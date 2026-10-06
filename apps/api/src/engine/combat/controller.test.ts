@@ -143,6 +143,33 @@ function harness(opts?: {
 
 const ids = (events: ServerEvent[], kind: ServerEvent["kind"]): ServerEvent[] => events.filter((e) => e.kind === kind);
 
+it.each(["player", "ended", "removed"] as const)(
+  "Discord 1557002713047502968: pending effect-battle Piercing respects the %s attack boundary",
+  async (boundary) => {
+    const attacker = digimon(0, 9000);
+    const victim = digimon(1, 3000, { suspended: true });
+    const h = harness({
+      piercingChange: { initial: true, afterDeletion: true },
+      onAttackTiming: async () => {
+        await h.combat.resolveBattle(attacker, victim);
+        if (boundary === "ended") h.combat.endAttack();
+        if (boundary === "removed") h.access.deletePermanent(attacker.permanentId);
+      },
+    });
+    h.state.players[0]!.battleArea.push(attacker);
+    h.state.players[1]!.battleArea.push(victim);
+    h.state.players[1]!.security.push(securityCard(1));
+    await h.combat.resolveAttack(
+      0,
+      attacker,
+      boundary === "player" ? { kind: "player" } : { kind: "permanent", permanentId: victim.permanentId },
+    );
+    expect(h.state.players[1]!.battleArea).toHaveLength(0);
+    expect(h.securityCalls).toHaveLength(boundary === "player" ? 1 : 0);
+    expect(ids(h.events, "attackEnded")).toHaveLength(1);
+  },
+);
+
 /**
  * resolveAttack is async and `await`s the (no-op) When-Attacking timings before it
  * opens the block window, so the window is not set synchronously after the call.

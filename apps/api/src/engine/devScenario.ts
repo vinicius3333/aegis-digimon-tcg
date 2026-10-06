@@ -57,6 +57,16 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-oct06-blue-scramble-decline",
+  "arena-oct06-rina-decline",
+  "arena-oct06-vortex-opt-decline",
+  "arena-oct06-vortex-piercing-controls",
+  "arena-oct06-zero-dp-partition",
+  "arena-oct06-takato-blitz",
+  "arena-oct06-partition-dragon-gene",
+  "arena-oct06-inherited-battle",
+  "arena-oct06-active-overflow",
+
   "arena-open-bugs-veemon-decline",
   "arena-open-bugs-lavorvomon-search",
   "arena-open-bugs-giromon-leave",
@@ -4625,6 +4635,93 @@ function prepareIssueScenario(state: GameState, decks: readonly [Decklist, Deckl
   state.memory = memory;
 }
 
+/** October 6 reports: ordinary card procedures reproduce the shared timing boundaries. */
+function layOct06Scenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  finding:
+    | "zero-dp-partition"
+    | "takato-blitz"
+    | "partition-dragon-gene"
+    | "inherited-battle"
+    | "active-overflow"
+    | "blue-scramble-decline"
+    | "rina-decline"
+    | "vortex-opt-decline"
+    | "vortex-piercing-controls",
+): void {
+  prepareIssueScenario(state, decks, finding === "active-overflow" ? 2 : finding === "zero-dp-partition" ? 10 : 3);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  // Fixed decks keep the opening draw and security checks out of the selected card pools.
+  for (const player of [human, opponent]) {
+    for (const zone of [Zone.Hand, Zone.Deck, Zone.Trash, Zone.Security, Zone.EggDeck] as const)
+      clearZone(player, zone);
+    for (let index = 0; index < 20; index++)
+      insertCard(player, Zone.Deck, faceDownCard(`oct06-deck-${player.seat}-${index}`, "BT1-085", player.seat));
+    for (let index = 0; index < 3; index++)
+      insertCard(player, Zone.Security, faceDownCard(`oct06-security-${player.seat}-${index}`, "BT1-009", player.seat));
+  }
+  insertCard(human, Zone.EggDeck, faceDownCard("oct06-opening-egg", "EX13-002", 0));
+  const add = (seat: Seat, cards: string[], slot: string) => {
+    const permanent = establishedDigimon(seat, cards, `-oct06-${slot}`);
+    placePermanent(state.players[seat]!, permanent);
+    return permanent;
+  };
+  const hand = (card: string) => insertCard(human, Zone.Hand, faceDownCard(`oct06-hand-${card}`, card, 0));
+  if (finding === "blue-scramble-decline") {
+    add(0, ["LM-028"], "scramble-a").placedByEffect = true;
+    add(0, ["LM-028"], "scramble-b").placedByEffect = true;
+    insertCard(human, Zone.Trash, faceDownCard("oct06-return", "BT1-027", 0));
+    insertCard(human, Zone.Trash, faceDownCard("oct06-rookie", "BT1-031", 0));
+    add(1, ["BT1-010"], "opponent");
+  } else if (finding === "rina-decline") {
+    add(0, ["EX13-069"], "rina-a");
+    add(0, ["EX13-069"], "rina-b");
+    add(0, ["BT3-021"], "veemon").isSuspended = true;
+    hand("ST8-05");
+  } else if (finding === "vortex-opt-decline") {
+    state.memory = 10;
+    add(0, ["EX11-074"], "vortex");
+    hand("BT1-110");
+    insertCard(human, Zone.Hand, faceDownCard("oct06-second-cannon", "BT1-110", 0));
+    add(1, ["BT1-009"], "first-target");
+    add(1, ["BT1-010"], "second-target");
+  } else if (finding === "vortex-piercing-controls") {
+    add(0, ["EX11-074"], "vortex");
+    add(1, ["BT1-009"], "direct-target").isSuspended = true;
+    add(1, ["BT1-010"], "attack-target").isSuspended = true;
+  } else if (finding === "takato-blitz") {
+    add(0, ["EX13-001", "EX2-009"], "growlmon");
+    for (const card of ["AD1-003", "EX2-056", "BT21-079"]) hand(card);
+  } else if (finding === "partition-dragon-gene") {
+    add(0, ["EX13-002", "EX13-041", "EX13-021", "BT23-047"], "examon");
+    add(0, ["BT20-093"], "gene").placedByEffect = true;
+    add(0, ["EX1-066"], "analog");
+    hand("BT23-047");
+    insertCard(human, Zone.EggDeck, faceDownCard("oct06-egg", "EX13-002", 0));
+    clearZone(opponent, Zone.Security);
+    insertCard(opponent, Zone.Security, faceDownCard("oct06-gaia-force", "ST1-16", 1));
+  } else if (finding === "inherited-battle") {
+    add(0, ["BT13-065"], "platinum");
+    add(1, ["EX13-041", "BT23-047"], "examon").isSuspended = true;
+  } else if (finding === "zero-dp-partition") {
+    // Six colors under a red level 6 make Sanmyojin's evolution apply -18000 DP.
+    add(0, ["BT1-038", "BT1-045", "BT1-076", "BT2-056", "BT2-067", "BT1-009", "EX12-048"], "sanmyo-base");
+    hand("EX12-076");
+    add(1, ["EX13-041", "EX13-021", "BT23-047"], "examon");
+  } else {
+    // A start-turn deletion with ACE Overflow reaches the same Active-phase boundary as
+    // the reported immunity expiry. The exact expiry snapshot is covered in the regression.
+    hand("BT1-010");
+    add(1, ["BT20-021", "BT11-012"], "shoutmon");
+    const breeding = establishedDigimon(1, ["BT1-009"], "-oct06-breeding");
+    breeding.inBreeding = true;
+    setBreeding(opponent, breeding);
+  }
+}
+
 /** Discord 1556882561995644928: read a noncandidate Alphamon while Leopardmon asks for a target. */
 function layMobileCardInspectionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 10);
@@ -6639,6 +6736,16 @@ function layPhasePacingScenario(
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-oct06-blue-scramble-decline": (state, decks) => layOct06Scenario(state, decks, "blue-scramble-decline"),
+  "arena-oct06-rina-decline": (state, decks) => layOct06Scenario(state, decks, "rina-decline"),
+  "arena-oct06-vortex-opt-decline": (state, decks) => layOct06Scenario(state, decks, "vortex-opt-decline"),
+  "arena-oct06-vortex-piercing-controls": (state, decks) => layOct06Scenario(state, decks, "vortex-piercing-controls"),
+  "arena-oct06-zero-dp-partition": (state, decks) => layOct06Scenario(state, decks, "zero-dp-partition"),
+  "arena-oct06-takato-blitz": (state, decks) => layOct06Scenario(state, decks, "takato-blitz"),
+  "arena-oct06-partition-dragon-gene": (state, decks) => layOct06Scenario(state, decks, "partition-dragon-gene"),
+  "arena-oct06-inherited-battle": (state, decks) => layOct06Scenario(state, decks, "inherited-battle"),
+  "arena-oct06-active-overflow": (state, decks) => layOct06Scenario(state, decks, "active-overflow"),
+
   "arena-open-bugs-veemon-decline": (state, decks) => layOpenBugScenario(state, decks, "veemon-decline"),
   "arena-open-bugs-lavorvomon-search": (state, decks) => layOpenBugScenario(state, decks, "lavorvomon-search"),
   "arena-open-bugs-giromon-leave": (state, decks) => layOpenBugScenario(state, decks, "giromon-leave"),

@@ -222,6 +222,8 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
           : adjustedEvoCost(seat, permanent, baseCost, definition, allowedDelta);
       const deferredReduction = reductionBlocked ? 0 : (opts.deferredCostReduction?.() ?? 0);
       const cost = Math.max(0, finalizedCost - deferredReduction);
+      await engine.fireWouldDigivolve?.(seat, permanent, definition);
+      if (access.permanentById(permanent.permanentId) !== permanent) return undefined;
       if (engine.memory.maxCostFor(seat) < cost) return undefined;
       if (!(await payPlacement(seat, placementRequirement, sourceDef))) return undefined;
       if (cost > 0) engine.memory.pay(seat, cost, "digivolve");
@@ -256,6 +258,10 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
         placementRequirement = alternate;
       }
       if (!(await payPlacement(seat, placementRequirement, sourceDef))) return undefined;
+    }
+    if (!opts?.payCost) {
+      await engine.fireWouldDigivolve?.(seat, permanent, definition);
+      if (access.permanentById(permanent.permanentId) !== permanent) return undefined;
     }
     // ＜Arts Digivolve＞ (CR §4-19): the source may be the DUAL card still resolving as an
     // Option, which this digivolution routes instead of the trash step. Same marker the

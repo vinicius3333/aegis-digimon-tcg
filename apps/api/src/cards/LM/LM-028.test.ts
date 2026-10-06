@@ -26,6 +26,64 @@ async function closeTurn(s: ReturnType<typeof setupEngine>, turn: Promise<void>)
 }
 
 describe("LM-028 Blue Scramble", () => {
+  it("Discord 1556998094070095964: accepting Delay still lets the sole rookie stay in trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "LM-028", as: "first" },
+            { card: "LM-028", as: "second" },
+          ],
+          trash: [
+            { card: "BT1-027", as: "return" },
+            { card: "BT1-031", as: "rookie" },
+          ],
+          deck: ["BT1-085", "BT1-085"],
+        },
+        1: { battleArea: ["BT1-010"], deck: ["BT1-085"] },
+      },
+      { autoOrderTriggers: false },
+    );
+    await s.ready();
+    s.perm("first").placedByEffect = true;
+    s.perm("second").placedByEffect = true;
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const order = s.decisions.at(-1)!.req;
+    const keys = order.options!.triggerKeys!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: { kind: "orderTriggers", order: keys, optionalAnswers: { [keys[0]!]: true, [keys[1]!]: false } },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const returned = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: returned.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("return").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision !== undefined || s.state.phase === "Main");
+    const revive = s.decisions.at(-1)!.req;
+    expect(revive.options?.candidateInstanceIds).toEqual([s.inst("rookie").instanceId]);
+    expect(revive.options?.min).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: revive.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("rookie").instanceId);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["LM-028"]);
+    await closeTurn(s, turn);
+  });
+
   it("digivolves a blue Digimon from hand at a cost reduced by 3, then enters the battle area", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT1-029", as: "host" }], hand: [{ card: "LM-028", as: "option" }, "BT1-115"] } },

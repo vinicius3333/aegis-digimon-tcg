@@ -424,7 +424,7 @@ describe("BT17-097 Return to the Primogenitor", () => {
         },
         1: { hand: [{ card: "BT17-017", as: "opponentEffect" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT17-097"] },
     );
     const optionId = s.inst("option").instanceId;
     await s.ready();

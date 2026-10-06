@@ -82,6 +82,49 @@ describe("TurnStateMachine - single turn", () => {
     fillDeck(state, 1, 10);
   });
 
+  it("Discord 1556992097352032276: end-turn memory restoration resumes Active before draw and breeding", async () => {
+    state.isFirstPlayersFirstTurn = false;
+    state.memory = 3;
+    const steps: (string | EffectTiming)[] = [];
+    let endWindows = 0;
+    const { hooks } = makeHooks(state, {
+      fireTiming: async (timing) => {
+        steps.push(timing);
+        if (timing === EffectTiming.OnStartTurn) state.memory = -2;
+        if (timing === EffectTiming.OnEndTurn && endWindows++ === 0) state.memory = 0;
+      },
+      unsuspendForActivePhase: async () => {
+        steps.push("unsuspend");
+        return [];
+      },
+      draw: async () => {
+        steps.push("draw");
+        return 1;
+      },
+      runBreedingPhase: async () => {
+        steps.push("breeding");
+      },
+      runMainPhase: async () => {
+        steps.push("main");
+        state.memory = -1;
+        return "crossed";
+      },
+    });
+    await new TurnStateMachine(state, hooks).runTurn();
+    expect(steps).toEqual([
+      EffectTiming.OnStartTurn,
+      EffectTiming.OnEndTurn,
+      "unsuspend",
+      "draw",
+      "breeding",
+      "main",
+      EffectTiming.OnStartMainPhase,
+      EffectTiming.OnEndMainPhase,
+      EffectTiming.OnEndTurn,
+    ]);
+    expect(state.turnCount).toBe(1);
+  });
+
   it.each([0, 1])("resumes the same Main phase after end-turn memory returns to %i", async (returnedMemory) => {
     const events: ServerEvent[] = [];
     const timings: EffectTiming[] = [];
@@ -242,6 +285,7 @@ describe("TurnStateMachine - first-player-skips-first-draw", () => {
     await machine.runTurn(); // first player's first turn: skip
     state.isFirstPlayersFirstTurn = false; // would be set by run(); set explicitly here
     state.turnSeat = 0;
+    state.memory = 3; // A later turn starts with memory on its turn player's side.
     await machine.runTurn(); // now draws
 
     expect(state.players[0]!.deck.length).toBe(9);

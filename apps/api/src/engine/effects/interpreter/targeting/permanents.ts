@@ -506,6 +506,7 @@ export async function resolvePermanentTargets(
     candidates.length <= want &&
     !target.upTo &&
     opts?.allowDecline !== true &&
+    !(ctx.pickingAcceptedOptional === true && ctx.presetOptionalAnswer === true) &&
     !holdsUnaffectableCandidate &&
     (target as Target & { forceSelection?: boolean }).forceSelection !== true
   ) {

@@ -27,6 +27,7 @@ import type {
   TriggerInfo,
 } from "../effects/EffectContext.js";
 import { detachLeaveReplacements, detachTraitTokens } from "../effects/detach.js";
+import { partitionLeaveReplacements } from "../effects/verbs/partition.js";
 import { guardLeaveReplacements } from "../effects/guard.js";
 import { definitionOf } from "../cards/cardData.js";
 import { consultLeavePrevention } from "../effects/leavePrevention.js";
@@ -292,6 +293,30 @@ export async function engineConsultLeavePrevention(
         }
       },
       keywordReplacements: (ids) => [
+        ...partitionLeaveReplacements(ids, {
+          idOffset: ids.length + [...engine.state.players].reduce((n, player) => n + player.battleArea.length, 0),
+          permanentById: (id) => engine.access.permanentById(id),
+          hasPartition: (id) => engine.continuous.hasKeyword(id, "Partition"),
+          select: async (_ctx, candidate) => {
+            const response = await engine.decisions.request({
+              seat: candidate.seat,
+              kind: "selectCards",
+              promptText: "＜Partition＞: play the specified digivolution cards without paying their costs?",
+              sourceCardId: candidate.partitionSourceCardId,
+              sourceInstanceId: candidate.partitionSourceInstanceId,
+              options: {
+                candidateInstanceIds: [candidate.matchedInstanceIds[0]!],
+                min: 0,
+                max: 1,
+                selectionContext: "partitionActivation",
+                visibleInstanceIds: candidate.matchedInstanceIds,
+              },
+            });
+            return response.kind === "selectCards" ? response.instanceIds : [];
+          },
+          play: (source, materialIds) =>
+            playForKeywordEffect(engine, source, materialIds, { playedFromZone: "digivolutionCards" }),
+        }),
         ...detachLeaveReplacements(ids, {
           permanentById: (id) => engine.access.permanentById(id),
           hasDetach: (id) => engine.continuous.hasKeyword(id, "Detach"),

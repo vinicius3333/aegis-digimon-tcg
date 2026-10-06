@@ -16,6 +16,43 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-oct06-blue-scramble-decline": {
+    ptBR: "No início do turno, ative um Blue Scramble e recuse o outro na ordenação. Devolva Armadillomon BT1-027 ao topo. Na seleção de Monmon BT1-031, escolha Nenhuma seleção: ele deve continuar no lixo mesmo sendo a única opção. Bug 1556998094070095964.",
+    en: "At turn start, activate one Blue Scramble and decline the other in the ordering plan. Return BT1-027 Armadillomon to the top. Choose no card in the BT1-031 Monmon selection: it must remain in trash even as the sole candidate. Bug 1556998094070095964.",
+  },
+  "arena-oct06-rina-decline": {
+    ptBR: "Na Fase Ativa, aceite uma Rina e recuse a outra na ordenação. A Rina aceita vira e compra 1. Escolha Nenhuma seleção na escolha de Veemon, ou selecione Veemon e depois recuse o único Veedramon ST8-05. Veemon continua em campo e Veedramon na mão. Bug 1556998094070095964.",
+    en: "During Active, accept one Rina and decline the other in the ordering plan. The accepted Rina suspends and draws 1. Choose no Veemon, or select Veemon and then decline the sole ST8-05 Veedramon. Veemon stays in play and Veedramon stays in hand. Bug 1556998094070095964.",
+  },
+  "arena-oct06-vortex-opt-decline": {
+    ptBR: "Encerre a criação. Use Flower Cannon para virar Monodramon BT1-009 e recuse Battle de Vortexdramon, que já está desvirado. Use a segunda Flower Cannon para virar Agumon BT1-010; aceite Battle e escolha Agumon. O efeito por turno continua disponível após a primeira recusa. Não há ataque nem Piercing nessa batalha. Controle do relato 1557002713047502968.",
+    en: "End breeding. Use Flower Cannon to suspend BT1-009 Monodramon and decline Vortexdramon's Battle while it is already unsuspended. Use the second Flower Cannon to suspend BT1-010 Agumon; accept Battle and select Agumon. The once-per-turn effect remains available after the first decline. This battle has no attack or Piercing. Control for report 1557002713047502968.",
+  },
+  "arena-oct06-vortex-piercing-controls": {
+    ptBR: "Encerre a criação e passe o turno. Aceite o ataque de Vortex contra Agumon BT1-010. Recuse Suspend, aceite Unsuspend e Battle. Se a batalha por efeito deletar Monodramon BT1-009, o ataque ainda alcança Agumon e Piercing verifica 1 segurança. Se deletar o próprio Agumon antes do combate normal, o ataque fica sem alvo, mas Piercing pendente ainda verifica 1 segurança antes do fim do ataque (CR 16-7-4). Controle da partida 98e7ed61 e do relato 1557002713047502968.",
+    en: "End breeding and pass the turn. Accept Vortex's attack against BT1-010 Agumon. Decline Suspend, accept Unsuspend and Battle. If the direct battle deletes BT1-009 Monodramon, the attack still reaches Agumon and Piercing checks 1 security. If it deletes Agumon itself before ordinary combat, the attack is unsuccessful, but pending Piercing still checks 1 security before End of Attack (CR 16-7-4). Control for match 98e7ed61 and report 1557002713047502968.",
+  },
+  "arena-oct06-zero-dp-partition": {
+    ptBR: "Evolua Erlangmon para Sanmyojin. O Examon adversário cai a 0 DP. Aceite Partition: Groundramon e Wingdramon devem ser deletados antes de suspender ou remover fontes.",
+    en: "Digivolve Erlangmon into Sanmyojin. The opposing Examon falls to 0 DP. Accept Partition: Groundramon and Wingdramon must be deleted before suspending anything or removing sources.",
+  },
+  "arena-oct06-takato-blitz": {
+    ptBR: "Evolua Growlmon para WarGrowlmon AD1 e jogue Takato EX2 pelo efeito. Aceite a evolução de Gigimon para Megidramon. Takato deve conceder Blitz mesmo com a memória no lado adversário.",
+    en: "Digivolve Growlmon into AD1 WarGrowlmon and play EX2 Takato with its effect. Accept Gigimon’s evolution into Megidramon. Takato must grant Blitz even with memory on the opponent’s side.",
+  },
+  "arena-oct06-partition-dragon-gene": {
+    ptBR: "Ataque a segurança com Examon e escolha-o como alvo de Gaia Force. Resolva Partition antes de Dragon Gene. Faça DNA dos dois materiais EX13 para o Examon da mão. Analog Youth pode suspender e ganhar memória porque a Digi-Egg ainda estava sob o Examon deletado.",
+    en: "Attack security with Examon and select it for Gaia Force. Resolve Partition before Dragon Gene. DNA digivolve the two EX13 materials into the Examon in hand. Analog Youth can suspend and gain memory because the deleted Examon still held its Digi-Egg.",
+  },
+  "arena-oct06-inherited-battle": {
+    ptBR: "Ataque o Examon suspenso com PlatinumSukamon. Após perder a batalha, use sua deleção para De-Digivolve 1 no Examon. Groundramon vira o topo e seu antigo herdado não pode remover segurança.",
+    en: "Attack suspended Examon with PlatinumSukamon. After losing the battle, use its deletion effect to De-Digivolve 1 on Examon. Groundramon becomes the top card and its former inherited effect cannot trash security.",
+  },
+  "arena-oct06-active-overflow": {
+    ptBR: "Jogue Agumon BT1-010 por 3 a partir de 2 de memória. No início do turno adversário, aceite deletar Shoutmon. Overflow do ACE sob ele encerra o turno ainda em Active, sem compra ou criação. Este cenário exercita a mesma fronteira do relato de imunidade.",
+    en: "Play BT1-010 Agumon for 3 from 2 memory. At the opponent’s turn start, accept Shoutmon’s self-deletion. The ACE underneath causes Overflow and ends that turn in Active, before drawing or breeding. This exercises the same boundary as the immunity report.",
+  },
+
   "arena-discord-1556882561995644928-mobile-inspection": {
     ptBR: "Encerre a criação e jogue Leopardmon sem Assembly. Selecione Alphamon diretamente na mesa e confirme para suspendê-lo; nenhuma confirmação separada de ativação deve aparecer. Na escolha seguinte, selecione um Dorumon na mesa; nenhuma galeria de alvos deve abrir. Se desejar, use Visualizar mesa para recolher os controles. Segure Alphamon ou toque na lupa para ler a carta e seus herdados; toque na arte para ampliar. Feche e retorne à decisão: o Dorumon selecionado deve continuar marcado. Só Confirmar alvos envia a escolha; o herdado de Grademon pode então proteger Dorumon.",
     en: "End breeding and play Leopardmon without Assembly. Select Alphamon directly on the board and confirm to suspend it; no separate activation confirmation should appear. In the next choice, select a Dorumon on the board; no target gallery should open. Optionally use View board to hide the controls. Hold Alphamon or tap its magnifier to read the card and its inherited effects; tap the art to zoom. Close and return to the decision: the selected Dorumon must remain picked. Only Confirm targets sends the choice; Grademon's inherited effect can then protect Dorumon.",
@@ -1245,6 +1282,15 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-oct06-blue-scramble-decline", "06/10 · Blue Scramble · recusar único rookie"],
+  ["arena-oct06-rina-decline", "06/10 · Rina · comprar e recusar evolução"],
+  ["arena-oct06-vortex-opt-decline", "06/10 · Vortexdramon · recusa preserva OPT"],
+  ["arena-oct06-vortex-piercing-controls", "06/10 · Vortexdramon · controles de Piercing"],
+  ["arena-oct06-zero-dp-partition", "06/10 · Sanmyojin · Partition a 0 DP"],
+  ["arena-oct06-takato-blitz", "06/10 · Takato · Blitz por efeito"],
+  ["arena-oct06-partition-dragon-gene", "06/10 · Partition · Dragon Gene · Analog Youth"],
+  ["arena-oct06-inherited-battle", "06/10 · Groundramon · herdado após De-Digivolve"],
+  ["arena-oct06-active-overflow", "06/10 · Overflow · início do turno"],
   ["arena-discord-1556882561995644928-mobile-inspection", "Mobile · read Alphamon during Leopardmon's decision"],
   ["arena-issue-5011-agumon-search", "#5011 · Agumon · busca DM/Ver.1"],
   ["arena-issue-5011-gabumon-search", "#5011 · Gabumon · busca DM/Ver.2"],

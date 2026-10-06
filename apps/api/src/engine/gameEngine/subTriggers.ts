@@ -887,6 +887,11 @@ export function subTriggerStillActivatable(engine: GameEngine, item: ArmedSubTri
  */
 export function subTriggerStillPending(engine: GameEngine, item: ArmedSubTrigger): boolean {
   if (item.activationStarted === true || subTriggerOccurrenceResolved(item)) return false;
+  if (
+    (item.sub.isInheritedSource === true || item.sub.isLinkedSource === true) &&
+    !pendingWatcherSourceStillResident(engine, item)
+  )
+    return false;
   const ctx = item.contextAtFireTime();
   if (ctx === undefined) return false;
   if (item.sub.matches !== undefined && !item.sub.matches(ctx)) return false;

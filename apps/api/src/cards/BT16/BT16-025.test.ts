@@ -1,6 +1,5 @@
 import { Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import {
   drainMicrotasks,
@@ -175,6 +174,7 @@ function freeDigimonThreatenedByOpponent(options: {
     {
       autoAcceptOptional: true,
       autoSelectCards: true,
+      preferTriggerKeys: ["BT17-097"],
       declinePrompts: options.useDelay ? [] : ["Prevent leaving the battle area"],
     },
   );
