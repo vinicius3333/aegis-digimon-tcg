@@ -568,6 +568,8 @@ export function useMatchCues({
   // even when its declaration and its resolution arrive in the same batch.
   const openAttackRef = useRef<OpenAttack | null>(null);
   const fieldClashKeyRef = useRef(0);
+  // A battle's blow, by loser, until the deletion it causes: the server can publish that a batch later.
+  const combatLandedRef = useRef(new Map<string, PresentationGate>());
   const drawFlightKeyRef = useRef(0);
   const deleteBurstKeyRef = useRef(0);
   const topResolutions = useMemo(createStackTopResolutions, []);
@@ -941,6 +943,7 @@ export function useMatchCues({
       heldOriginsRef,
       fieldClashKeyRef,
       openAttackRef,
+      combatLandedRef,
       lastVisibleArtRef,
       revealOnStageRef,
       pendingDigivolutionDrawRef,

@@ -3196,17 +3196,26 @@ describe("match cues", () => {
       const { result, rerender } = renderCues();
       await advance(0);
 
-      rerender([
-        effectCompared("perm-dead"),
-        {
-          kind: "cardsMoved",
-          instanceIds: ["inst-dead"],
-          from: "battleArea",
-          to: "trash",
-          battleDeletion: true,
-          deletedPermanents: [{ permanentId: "perm-dead", instanceId: "inst-dead", cardId: "BT1-020", seat: 0 }],
-        },
-      ]);
+      const deletion: ServerEvent = {
+        kind: "cardsMoved",
+        instanceIds: ["inst-dead"],
+        from: "battleArea",
+        to: "trash",
+        battleDeletion: true,
+        deletedPermanents: [{ permanentId: "perm-dead", instanceId: "inst-dead", cardId: "BT1-020", seat: 0 }],
+      };
+      const onDeletion: ServerEvent = {
+        kind: "effectTriggered",
+        seat: 0,
+        sourceCardId: "BT1-020",
+        effectKey: "effect-battle:onDeletion",
+        timing: "OnDeletion",
+        description: "Draw 1 card.",
+      };
+      // The server publishes the comparison a batch ahead of the deletion it causes.
+      rerender([effectCompared("perm-dead")]);
+      await advance(0);
+      rerender([effectCompared("perm-dead"), deletion, onDeletion]);
       await advance(0);
       expect(result.current.fieldClash).toMatchObject({
         attacker: { permanentId: "perm-1", cardId: "EX13-076" },
@@ -3222,10 +3231,13 @@ describe("match cues", () => {
 
       await advance(COMBAT_IMPACT_TOTAL_MS - 1);
       expect(result.current.deleteBursts).toEqual([]);
+      // What the deletion caused reads only once the blow has landed.
+      expect(result.current.notices).toHaveLength(0);
       await advance(1);
       expect(result.current.fieldClash).toBeNull();
       expect(result.current.combatImpactIds.size).toBe(0);
       expect(result.current.deleteBursts).toHaveLength(1);
+      expect(result.current.notices).toHaveLength(1);
     });
 
     it.each([0, 100])(

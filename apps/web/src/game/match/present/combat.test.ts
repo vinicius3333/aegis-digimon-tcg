@@ -157,7 +157,8 @@ describe("combatScenes across a ＜Raid＞ redirect", () => {
 /**
  * Room RQT-ggviX, batches 174-179: EX13-076 digivolves on perm-2, suspends perm-1, returns
  * its digivolution cards to the deck, and has perm-2 battle it. An effect battle opens no
- * attack and no `combatResolved`; the comparison receipt is the one the engine now sends.
+ * attack and no `combatResolved`; the comparison receipt is the one the engine now sends,
+ * one batch ahead of the deletion, as the real server publishes them.
  */
 const PALADIN_TRIGGERED: ServerEvent = {
   kind: "effectTriggered",
@@ -194,7 +195,8 @@ const PALADIN_BATCHES: readonly (readonly ServerEvent[])[] = [
   [PALADIN_TRIGGERED],
   [{ kind: "cardsMoved", instanceIds: ["perm-1"], from: "unsuspended", to: "suspended" }],
   [{ kind: "cardsMoved", instanceIds: ["s1-51", "s1-7", "s1-15"], from: "battleArea", to: "deck" }],
-  [PALADIN_COMPARED, PALADIN_DELETION],
+  [PALADIN_COMPARED],
+  [PALADIN_DELETION],
   [{ ...PALADIN_TRIGGERED, kind: "effectResolved" } as ServerEvent],
 ];
 

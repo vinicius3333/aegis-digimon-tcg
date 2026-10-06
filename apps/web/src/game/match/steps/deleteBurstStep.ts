@@ -14,7 +14,7 @@ import {
   type PresentationGate,
 } from "../presentationGate";
 import { startRemoval, waitForRemovalTurn, type RemovalTurn } from "../removalChain";
-import { waitForCombatImpactClock } from "../present/combatImpactClock";
+import { waitForCombatImpactClock, waitForCombatLanded } from "../present/combatImpactClock";
 import { waitForFieldShatterClock } from "../../fieldShatter";
 
 /**
@@ -160,7 +160,7 @@ export function deleteBurstStep({
       }
       if (context.cancelled) return leaveUnshown();
       await waitForStackStrips({ queue, context, throughKey: key, permanentId: anchorId });
-      if (combatLanded) await waitForGate(combatLanded, context, CONSEQUENCE_GATE_MAX_MS, "deleteBurst/combatLanded");
+      if (combatLanded) await waitForCombatLanded(combatLanded, context);
       if (fieldImpact) await waitForCombatImpactClock([anchorId], context);
       if (context.cancelled) return leaveUnshown();
       if (removal) await waitForRemovalTurn(removal, context);
