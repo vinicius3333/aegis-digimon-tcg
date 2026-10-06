@@ -133,9 +133,11 @@
 /* Upright phones draw one lane across the whole width, Digimon first. Compact
    utilities return height to that lane. */
 @media (width < 600px) and (orientation: portrait) {
+  /* The strips always leave room for a lifted, badged raising Digimon. Growing them
+     only while one is there would shrink the battle rows, and every card in them. */
   .aegis-arena .game-board:has([data-field-layout="organized"]) {
     --arena-pile-width: 36px;
-    --arena-utility-height: 64px;
+    --arena-utility-height: 78px;
     --arena-header-height: 44px;
     --arena-memory-height: 36px;
   }
@@ -145,6 +147,7 @@
     --field-reserve-support: 1;
     --field-overlap-lanes: 1;
     --field-fit-width: 1;
+    --field-fixed-width: 50;
     min-height: 78px !important;
   }
   .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field {
@@ -181,21 +184,26 @@
   .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field::after {
     grid-row: 3;
   }
-  .aegis-arena
-    .game-board:has([data-field-layout="organized"])
-    .game-field:has(.game-breeding-slot .game-permanent[style*="translateY(-6px)"]) {
-    --arena-utility-height: 74px;
-  }
-  .aegis-arena
-    .game-board:has([data-field-layout="organized"])
-    .game-field:has(.game-breeding-slot .game-keyword-badges, .game-breeding-slot .game-source-badge) {
-    --arena-utility-height: 78px;
-  }
   .game-board .game-battle-row[data-field-layout="organized"] > .game-battle-lane,
   .game-board .game-battle-row[data-field-layout="organized"] [data-field-key] {
     touch-action: pan-x !important;
   }
   .game-board .game-battle-row--opp[data-field-layout="organized"] > .game-battle-lane--support {
     background-position: top;
+  }
+}
+
+/* Tall phones trade some battle-row height for a larger raising area. */
+@media (width < 600px) and (orientation: portrait) and (min-height: 760px) {
+  .aegis-arena .game-board:has([data-field-layout="organized"]) {
+    --arena-utility-height: 90px;
+  }
+  .game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] {
+    --field-fixed-width: 64;
+  }
+}
+@media (width < 600px) and (orientation: portrait) and (min-height: 650px) and (max-height: 759px) {
+  .game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] {
+    --field-fixed-width: 58;
   }
 }

@@ -7,8 +7,8 @@
   .game-board {
     --arena-header-height: 44px;
     --arena-memory-height: 52px;
-    --arena-hand-width: 64px;
-    --arena-hand-height: 144px;
+    --arena-hand-width: 72px;
+    --arena-hand-height: 156px;
     --arena-hand-reserved: 36px;
     --arena-hand-lift: 6px;
     --arena-source-step: 2px;

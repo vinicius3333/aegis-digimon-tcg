@@ -24,8 +24,8 @@
     --arena-pile-width: 44px;
     --arena-utility-height: 80px;
     --arena-memory-height: 56px;
-    --arena-hand-width: 76px;
-    --arena-hand-height: 160px;
+    --arena-hand-width: 88px;
+    --arena-hand-height: 178px;
     /* The counter strip band the hand cards must never grow into. */
     --arena-hand-reserved: 40px;
     /* Headroom above the cards for a picked card's lift and its corner badges:

@@ -13,6 +13,8 @@ import {
   SHORT_BOARD_QUERY,
 } from "../queries";
 
+const TALL_PHONE_RAISING_WIDTH = 52;
+
 /** Everything about the board that the viewport alone decides. */
 export type ArenaLayout = {
   narrowGameLayout: boolean;
@@ -132,7 +134,13 @@ export function useArenaLayout(): ArenaLayout {
     arenaPermanentWidth: fieldWidthCeiling,
     arenaRaisingWidth:
       organized && portraitArena
-        ? Math.min(sharedRaisingWidth, tabletPortraitArena ? 62 : shortPortraitArena ? 40 : 44)
+        ? tabletPortraitArena
+          ? 62
+          : shortPortraitArena
+            ? 40
+            : mediumPortraitArena
+              ? 48
+              : TALL_PHONE_RAISING_WIDTH
         : organized || sidelineArena
           ? sharedRaisingWidth
           : arenaPileWidth,
@@ -143,8 +151,8 @@ export function useArenaLayout(): ArenaLayout {
         : shortPortraitArena
           ? 52
           : mediumPortraitArena
-            ? 64
-            : 76
+            ? 72
+            : 88
       : shortDock
         ? 76
         : compactPiles

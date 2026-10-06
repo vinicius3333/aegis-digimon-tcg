@@ -26,6 +26,8 @@ const MIN_STACKED_SHRINK = 0.6;
 const MIN_WIDTH_SHRINK = 0.75;
 /** Portrait cards keep a readable size; crowded boards use their existing lane paging. */
 const MIN_PORTRAIT_CARD_WIDTH = 65;
+/** Enough sources to reach the fan's cap, which `sourceFanStepLimit` holds at a quarter of the card width. */
+const FIXED_SIZE_SOURCE_RESERVE = 12;
 /** Each lane's horizontal padding, from fieldLayout.css. */
 const LANE_INLINE_PADDING = 12;
 const DIGIMON_GAP_SHARE = 0.25;
@@ -738,6 +740,29 @@ export function fitLanes(row: { width: number; height: number }, layoutWidth: nu
     : sideBySideLanes(row.height, layoutWidth, content);
 }
 
+/**
+ * A board whose cards keep one size (`--field-fixed-width`) sizes them from the row alone: room for both lanes,
+ * the widest source fan and no link cards, and no narrowing when a lane crowds. A crowded
+ * lane scrolls instead.
+ */
+function fixedSizeContent(content: LaneContent): LaneContent {
+  return {
+    ...content,
+    digimonCount: 1,
+    supportCount: 1,
+    digimonSources: FIXED_SIZE_SOURCE_RESERVE,
+    supportSources: FIXED_SIZE_SOURCE_RESERVE,
+    digimonLinks: 0,
+    supportLinks: 0,
+    reserveSupport: true,
+    fitWidth: false,
+  };
+}
+
+function capLanes(lanes: LaneLayout, width: number): LaneLayout {
+  return { ...lanes, digimon: width, support: Math.round(width * (lanes.support / lanes.digimon)) };
+}
+
 function useRowSize() {
   const ref = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({
@@ -750,6 +775,7 @@ function useRowSize() {
     reserveSupport: false,
     overlapLanes: false,
     fitWidth: false,
+    fixedWidth: 0,
   });
   function measure() {
     const row = ref.current;
@@ -762,6 +788,7 @@ function useRowSize() {
     const reserveSupport = style.getPropertyValue("--field-reserve-support").trim() === "1";
     const overlapLanes = style.getPropertyValue("--field-overlap-lanes").trim() === "1";
     const fitWidth = style.getPropertyValue("--field-fit-width").trim() === "1";
+    const fixedWidth = Number.parseFloat(style.getPropertyValue("--field-fixed-width")) || 0;
     setSize((previous) =>
       previous.width === row.clientWidth &&
       previous.height === row.clientHeight &&
@@ -771,7 +798,8 @@ function useRowSize() {
       previous.supportScale === supportScale &&
       previous.reserveSupport === reserveSupport &&
       previous.overlapLanes === overlapLanes &&
-      previous.fitWidth === fitWidth
+      previous.fitWidth === fitWidth &&
+      previous.fixedWidth === fixedWidth
         ? previous
         : {
             width: row.clientWidth,
@@ -783,6 +811,7 @@ function useRowSize() {
             reserveSupport,
             overlapLanes,
             fitWidth,
+            fixedWidth,
           },
     );
   }
@@ -873,11 +902,17 @@ export function OrganizedBattleRow({
     digimon: arrangement.digimon.map((permanent) => laneCard([permanent])),
     support: arrangement.support.map((group) => laneCard(group.members)),
   };
-  const heightFitted = fitLanes(size, layoutWidth, content);
-  const ownLanes = fitLanesToWidth(heightFitted, size.width, laneCards, content);
+  const fixedSize = size.fixedWidth > 0;
+  const fittedContent = fixedSize ? fixedSizeContent(content) : content;
+  const fit = (fitted: LaneContent) => {
+    const lanes = fitLanes(size, layoutWidth, fitted);
+    return fixedSize && lanes.digimon > size.fixedWidth ? capLanes(lanes, size.fixedWidth) : lanes;
+  };
+  const heightFitted = fit(fittedContent);
+  const ownLanes = fitLanesToWidth(heightFitted, size.width, laneCards, fittedContent);
   // Raising and security keep the size two lanes would give them; only a single lane's own cards grow.
-  const twoLaneContent = { ...content, singleLane: false };
-  const twoLaneHeightFitted = singleLane ? fitLanes(size, layoutWidth, twoLaneContent) : heightFitted;
+  const twoLaneContent = { ...fittedContent, singleLane: false };
+  const twoLaneHeightFitted = singleLane ? fit(twoLaneContent) : heightFitted;
   const twoLanes = singleLane ? fitLanesToWidth(twoLaneHeightFitted, size.width, laneCards, twoLaneContent) : ownLanes;
   const rowKey = useId();
   const reports = size.reserveSupport && size.height > 0;

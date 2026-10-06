@@ -128,4 +128,48 @@ describe("organized battle lanes", () => {
     expect(oneLane.beside).toBe(twoLaneWidth.drawn);
     expect(oneLane.heightFitted).toBe(twoLaneWidth.heightFitted);
   });
+
+  it("keeps one card size on a fixed-size board whatever the row holds", () => {
+    mockViewport({ phone: true });
+    vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(380);
+    vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(164);
+    const fixedRow = (digimon: Permanent[]) => (
+      <I18nProvider>
+        <OrganizedBattleRow
+          arrangement={{ digimon, support: [] }}
+          layoutWidth={76}
+          supportFirst={false}
+          digimonLabel="Digimon"
+          supportLabel="Support"
+          emptyLabel={null}
+          rowProps={{
+            style: {
+              "--field-reserve-support": "1",
+              "--field-support-scale": "1",
+              "--field-prefer-stacked": "1",
+              "--field-fit-width": "1",
+              "--field-fixed-width": "64",
+            } as React.CSSProperties,
+          }}
+          isSuspended={(member) => member.isSuspended}
+          renderCard={(card) => <div key={card.fieldKey} data-field-key={card.fieldKey} style={{ width: card.width }} />}
+        />
+      </I18nProvider>
+    );
+    const widths = (container: HTMLElement) =>
+      [...container.querySelectorAll<HTMLElement>("[data-field-key]")].map((card) => card.style.width);
+
+    const lone = render(fixedRow([permanent("a")]));
+    const loneWidths = widths(lone.container);
+    lone.unmount();
+    const crowded = Array.from({ length: 6 }, (_, index) => {
+      const card = permanent(`crowd-${index}`);
+      for (let source = 0; source < 8; source++) card.stack.push(`source-${source}`);
+      return card;
+    });
+    const full = render(fixedRow(crowded));
+
+    expect(loneWidths).toEqual(["64px"]);
+    expect(new Set(widths(full.container))).toEqual(new Set(["64px"]));
+  });
 });
