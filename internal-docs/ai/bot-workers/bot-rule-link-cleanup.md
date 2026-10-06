@@ -638,6 +638,58 @@ Even physical visibility and custody success will not replace independent
 printed mechanism/payment/order/quota/expander correctness or later rooms,
 serving, blind and delivery acceptance.
 
+## R1 partial ceilings and prepared further real correction
+
+The original frozen R1 evaluator remains live and must finish unchanged. An
+actual partial observer at 1,672/3,872 games showed three recipes that can no
+longer strictly beat the best original reference even if every remaining game
+is won: Dantemon Bandai can reach at most 68 versus reference 68; DGO Plutomon
+can reach at most 78 versus reference 80; Plutomon Bandai can reach at most 84
+versus reference 86. This is a diagnostic ceiling, not a final qualification
+consumer, and is not used to cancel the evaluation or drop any result.
+The local diagnostic `rule-link-current-corrective-strength-partial-ceiling.actual.json`
+under `/private/tmp/aegis-material-teacher-active-goal-20261006` has SHA-256
+`4b16ffa7cb85a440d362988243336006fb507f7dbaefdfefe2595943bef8925a`;
+it binds the actual observer bytes and completed baseline consumer output.
+Actual full closure and all44 results remain required. Physical admission of R1
+cannot use aggregate wins or replace this failed strict condition.
+
+A source-only further-learning adapter is prepared and sealed as desktop
+`transfers/rule-link-current-corrective-ppo-r2.py`, SHA-256
+`131b187c367fa53b43d688cb4409ef6c911be5ec970647e69af032c17d10b8fc`.
+The local source is under the same task temporary directory. It reuses the
+original actual corrective operator's checkpoint inspection, tensor/Adam delta,
+raw payment/trajectory verification, complete seed scanner, whole closure and
+ROOT Go functions. Admission invokes the unchanged full R1 evaluation consumer;
+only the final actual non-improving recipe list can admit its final request.
+The known actual frozen R1 checkpoint and 3,596-step learning origin remain
+explicit, rather than relabeling the original PPO checkpoint or metadata.
+
+The proposed next genuine training phase has three complete filtered paired
+passes against all44 opposing decks at both seats, fresh training seeds after
+6143463 and before 6170000, four game workers, zero snapshots and a balanced
+batch of twice the actual selected recipe count. Its learning rate is **1e-5**,
+a real reduction from R1's restored **3e-5**. The model and Adam state are restored
+before that override. All12 finite changed weights, positive equal actual Adam
+deltas, exact reload, all raw games, negative attributed payment losses and
+unchanged current source/runtime/original checkpoints remain required.
+Subsequent frozen evaluation must still prove every one of all44 recipes against
+each original reference, including recipes outside the targeted training list.
+
+Seven bounded synthetic tests passed, including repeated complete schedule and
+raw record checks, state restoration, differing original/new completion hashes,
+wrong checkpoint/source, boolean exit/delta, partial closure, final seeds,
+scope shrinking and changed supported helper seams. Fixture SHA-256 is
+`0768437df512356a892a2fadcf21468a5de35a7684ff9fafd47eaa115241b00e`.
+Actual desktop Python 3.12.14 syntax/stdlib loading, original resident operator
+pins and helper seams passed. Its pending request was rejected before any
+closure consumer or model import. Source-review receipt SHA-256 is `fb9dbad256c369a4a7ab8071ad7a465cb12566659ac5ee05626b3bf0b2b6c428`,
+local `rule-link-current-corrective-ppo-r2-source-review.actual.json`.
+No R2 job, model load, game or additional update has occurred. The actual final
+R1 evaluation completion, target list, fresh seed inventory, final sealed
+request/wrapper, admitted read-only inspect and separate ROOT resource Go remain
+pending; reserved final seeds remain untouched.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
