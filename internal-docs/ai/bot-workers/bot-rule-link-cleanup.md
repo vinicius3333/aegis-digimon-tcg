@@ -344,10 +344,87 @@ preserves missing witnesses and the distinction between card visibility,
 selected-material custody and independent printed-recipe/payment mastery.
 It changes neither the qualified source archive nor any checkpoint metadata.
 
+## Completed six-policy comparison and required further learning
+
+The original attached foreground session 22215 actually ended with exit zero.
+The unchanged resident full closure consumer independently passed actual whole
+zero, source/runtime/checkpoint guards, all six complete natural paired all44
+schedules and the sealed final output map. There were 23,232 development games
+and zero learning updates; final blind seeds remain unused. The actual completion
+SHA-256 is `b32675433481b354e965de11ed0e118f7c66aa7dc5c76326625f0ace22eff339`.
+The local full consumer output is
+`/private/tmp/aegis-material-teacher-active-goal-20261006/rule-link-current-strength-closed.actual.json`,
+SHA-256 `a78e1bccdcbe841f463ae971d5be00891b222d115b7ace1eb00c5ab6528c7d07`.
+
+All policies completed 3,872 games, without failed games or payment forfeits:
+
+| Policy | Wins | Losses | Recovered play rejections |
+| --- | ---: | ---: | ---: |
+| `fitted-reference` | 2346 | 1526 | 13 |
+| `imitation-candidate` | 2025 | 1847 | 6 |
+| `primary-before` | 2343 | 1529 | 2 |
+| `source-challenger` | 2360 | 1512 | 9 |
+| `trained-candidate` | 2408 | 1464 | 5 |
+| `v17-reference` | 2177 | 1695 | 7 |
+
+The formerly broken fitted-reference game at development seed 6137617 also
+terminated naturally by security, winner seat one, after 37 decisions, with
+no errors, rejections, asynchronous rejections or truncation. The failed old
+comparison remains preserved; the repaired current-engine game is a new actual
+result, not a recount or removal of the old effect draw.
+
+Neither candidate passes strict gains for every recipe against every reference.
+Imitation has 37 non-improving recipes and a worst delta of minus 33 wins; PPO
+has 24 non-improving recipes and a worst delta of minus 11 wins. No reference
+reaches the 88-win ceiling, so the required strict gain remains possible in this
+schedule for every recipe. Aggregate wins do not supersede the per-recipe gate.
+The complete assessment is
+`/private/tmp/aegis-material-teacher-active-goal-20261006/rule-link-current-all44-strength-assessment.actual.json`,
+SHA-256 `f759d7f3b9420891b59da0cb8a271bcfab151593737061a8b1a85c552f5e9bc0`.
+
+PPO failures against the strongest actual reference for each recipe:
+
+| Recipe | PPO wins | Maximum reference wins | Further wins needed for strict gain |
+| --- | ---: | ---: | ---: |
+| `bt26-dgo-2026-08-28-13-jupitermon@1` | 62 | 73 | 12 |
+| `curriculum-appmon-charismon@1` | 53 | 64 | 12 |
+| `curriculum-data-squad-rosemon@1` | 31 | 41 | 11 |
+| `curriculum-iliad-purple@1` | 41 | 51 | 11 |
+| `ex13-examon-royal-knights@1` | 74 | 84 | 11 |
+| `curriculum-nso-ghostmon@1` | 24 | 33 | 10 |
+| `bt26-dantemon-bandai@1` | 62 | 68 | 7 |
+| `bt26-dgo-2026-08-28-1-toho-braves@1` | 74 | 80 | 7 |
+| `bt26-dgo-2026-08-28-4-beelstarmon@1` | 58 | 64 | 7 |
+| `ex13-adventure-bandai@1` | 68 | 74 | 7 |
+| `ex13-omnimon-royal-knights@1` | 53 | 59 | 7 |
+| `curriculum-iliad-yellow@1` | 25 | 29 | 5 |
+| `ex13-alphamon-royal-knights@1` | 61 | 65 | 5 |
+| `bt26-dgo-2026-08-28-8-plutomon@1` | 77 | 80 | 4 |
+| `curriculum-data-squad-ravemon@1` | 39 | 41 | 3 |
+| `ex13-kentaurosmon-royal-knights@1` | 39 | 41 | 3 |
+| `bt26-dgo-2026-08-28-7-chronomon@1` | 70 | 71 | 2 |
+| `bt26-plutomon-bandai@1` | 85 | 86 | 2 |
+| `curriculum-dm-ver3@1` | 38 | 39 | 2 |
+| `ex13-gallantmon-royal-knights@1` | 70 | 71 | 2 |
+| `ex13-lordknightmon-royal-knights@1` | 49 | 50 | 2 |
+| `curriculum-ds-blue@1` | 43 | 43 | 1 |
+| `curriculum-nsp-insects@1` | 40 | 40 | 1 |
+| `ex13-mamemon-bandai@1` | 65 | 65 | 1 |
+
+Source inspection of the unchanged qualified `train.py` (SHA-256
+`40213cae178ee56b082e2b322cd4dea67a8296cee9463c000f5d896f125527a7`)
+confirms that continuation restores both model and Adam state, then optionally
+overrides the learning rate. Repeatable `--learner-deck` filters retain the full
+schedule's ordering, all44 opponent scope and both seats; unknown versions are
+rejected. These existing controls can support corrective training without a
+source rebuild or metadata-copy generation. No corrective training was launched
+by this inspection; its exact parameters, fresh seed inventory, request and
+separate ROOT source/resource agreement remain to be sealed and verified.
+
 ## Remaining work
 
-Close the current six-policy comparison, diagnose imitation/PPO per-deck
-performance and produce an accepted candidate. Obtain strict gains for all 44
+Use the completed six-policy diagnosis for actual further learning and produce
+an accepted candidate. Obtain strict gains for all 44
 recipes against all four references, and complete both-seat mechanisms,
 physical custody, 26 managed rooms, current-serving compatibility, and the
 reserved final blind evaluation. Final seeds `6210000..6213871` remain untouched.
