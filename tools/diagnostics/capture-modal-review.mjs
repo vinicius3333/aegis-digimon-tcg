@@ -76,6 +76,7 @@ for (const item of cases.filter((candidateCase) => !requested.length || requeste
     try {
       orca("goto", "--url", `http://localhost:5184${item.url}`);
       orca("exec", "--command", `set viewport ${width} ${height}`);
+      orca("wait", "--selector", item.url.startsWith("/dev/mobile") ? ".mobile-lab-frame" : ".effect-prompt-gallery");
       orca("wait", "--load", "networkidle");
       if (item.answer !== undefined) {
         const snapshot = orca("snapshot");
