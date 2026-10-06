@@ -503,10 +503,9 @@ export function Lobby({
           <div className="aegis-section-heading">
             <h1 className="aegis-section-heading__title">{t("lobby.title")}</h1>
             <span className="aegis-section-heading__rule" aria-hidden="true" />
+            <SpectatorPanel onWatch={(code) => onStart("spectator", code)} />
           </div>
         </header>
-
-        <SpectatorPanel onWatch={(code) => onStart("spectator", code)} />
 
         <div className="lobby-modes">
           {MODES.map((m) => {
