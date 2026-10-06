@@ -627,10 +627,13 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       playForKeywordEffect(engine, sourceInstanceId, instanceIds, opts),
     payAlternatePlacement: async (seat, requirement, evolving) =>
       (await digivolveDeps(engine).payAlternatePlacement?.(engine.state, seat, requirement, evolving)) ?? true,
-    finalizeEffectDigivolveCost: async (target, evolvingInstanceId, into, baseCost, baseAsDigimon) => {
+    finalizeEffectDigivolveCost: async (target, evolvingInstanceId, into, baseCost, baseAsDigimon, costDelta = 0) => {
       const deps = digivolveDeps(engine);
-      const adjusted = deps.adjustedDigivolveCost?.(engine.state, target, baseCost, into, { consumeOnce: true });
-      const passiveCost = adjusted ?? baseCost;
+      const adjusted = deps.adjustedDigivolveCost?.(engine.state, target, baseCost, into, {
+        consumeOnce: true,
+        costDelta,
+      });
+      const passiveCost = adjusted ?? baseCost + costDelta;
       const interactiveReduction =
         (await deps.activateInteractiveDigivolveReduction?.(
           engine.state,

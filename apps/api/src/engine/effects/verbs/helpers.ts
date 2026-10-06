@@ -68,10 +68,16 @@ export function createSharedHelpers(pc: PrimitivesContext) {
     );
   };
 
-  const adjustedEvoCost = (seat: Seat, target: Permanent, base: number, into: CardDefinition): number => {
+  const adjustedEvoCost = (
+    seat: Seat,
+    target: Permanent,
+    base: number,
+    into: CardDefinition,
+    costDelta = 0,
+  ): number => {
     const reductionsBlocked = continuous.blocksCostReduction(seat, "digivolve");
     let cost = base;
-    const adj = ledger.evoCostFor(target, into);
+    const adj = ledger.evoCostFor(target, into, { costDelta });
     if (adj !== undefined) {
       const adjusted = "fixed" in adj ? adj.fixed : cost + adj.delta;
       cost = reductionsBlocked ? Math.max(cost, adjusted) : adjusted;

@@ -7,6 +7,40 @@ import { compiled } from "./BT24-003.js";
 import "../index.js";
 
 describe("BT24-003 Tsunomon", () => {
+  it.each([1, 4])(
+    "Discord 1556821976922849360: discounts Jupitermon's variable cost with %s security remaining",
+    async (securityCount) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "P-213", as: "host", under: ["BT24-003", "P-194"] },
+              { card: "BT24-022", as: "attacker", under: ["BT24-031"] },
+            ],
+            hand: [{ card: "BT24-101", as: "jupitermon" }],
+            security: Array.from({ length: securityCount + 1 }, () => "BT1-009"),
+            deck: ["BT1-010", "BT1-011", "BT1-012"],
+          },
+          1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("host").topCard.cardId === "BT24-101");
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      expect(s.perm("host").topCard.instanceId).toBe(s.inst("jupitermon").instanceId);
+      expect(s.state.memory).toBe(10 - Math.max(0, securityCount - 1));
+    },
+  );
+
   it("matches the catalog identity", () => {
     expect(getCardDefinition("BT24-003")).toMatchObject({
       cardId: "BT24-003",

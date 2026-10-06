@@ -2273,6 +2273,35 @@ describe("primitives: effect-driven digivolve cost honors the continuous evo-cos
   const REDUCTION = 1; // continuous -1 reduction -> reduced cost 2 (> 0, so the delta is observable)
   const REDUCED_COST = PRINTED_COST - REDUCTION;
 
+  it.each([
+    [4, -1, 0, 3],
+    [1, -2, 0, 0],
+    [0, 1, 0, 1],
+    [1, 1, -2, 0],
+  ])(
+    "sets the requirement to %s, applies delta %s, and floors the payment",
+    async (fixed, delta, ledgerDelta, paid) => {
+      const h = harness({
+        turnSeat: 0,
+        memory: 5,
+        board: { 0: { battleArea: [battleDigimon("p1", 4000)], hand: [{ card: INTO, as: "evolving" }] } },
+      });
+      const base = h.s.perm("p1");
+      h.ledger.addEvoCostAdjustment((match) => match.target.permanentId === base.permanentId, fixed, true, {
+        continuous: true,
+      });
+      h.ledger.addEvoCostAdjustment((match) => match.target.permanentId === base.permanentId, ledgerDelta, false, {
+        continuous: true,
+      });
+      const result = await h.fx.digivolveFromInstance(base.permanentId, h.s.inst("evolving").instanceId, {
+        payCost: true,
+        costDelta: delta,
+      });
+      expect(result).toBeDefined();
+      expect(h.state.memory).toBe(5 - paid);
+    },
+  );
+
   it("effect-driven digivolveFromInstance pays the REDUCED cost off the memory gauge", async () => {
     const h = harness({
       turnSeat: 0,

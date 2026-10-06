@@ -172,6 +172,7 @@ export interface PrimitivesEngine {
     into: CardDefinition,
     baseCost: number,
     baseAsDigimon?: CardDefinition,
+    costDelta?: number,
   ) => Promise<number>;
   /** Read the effective hand-use cost for eligibility checks that must include automatic self reducers. */
   effectiveLooseUseCost?: (instanceId: string, controllerSeat: Seat) => number | undefined;

@@ -201,18 +201,23 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
         if (matched === undefined) return undefined;
         baseCost = opts.costOverride ?? matched;
       }
-      // The card-printed folded reduction ("... for its digivolution cost -N") is added ONCE here;
-      // the continuous evo-cost ledger (evoCostFor + the wouldDigivolve replacement reduction) is
-      // then applied so continuous cost-reductions reach this effect-driven path too (KB BT1-109
-      // Q980). Floored at 0 — a digivolution cost can't go below 0.
+      // Keep the effect's discount separate from the base requirement: a
+      // variable-cost requirement (BT24-101) replaces the base, then discounts
+      // apply once. The final payable cost is floored at zero.
       const declaredDelta = opts.costDelta ?? 0;
       const reductionBlocked = continuous.blocksCostReduction(seat, "digivolve");
       const allowedDelta = reductionBlocked ? Math.max(0, declaredDelta) : declaredDelta;
-      const declaredCost = baseCost + allowedDelta;
       const finalizedCost =
         engine.finalizeEffectDigivolveCost !== undefined
-          ? await engine.finalizeEffectDigivolveCost(permanent, sourceInstanceId, definition, declaredCost, asDigimon)
-          : adjustedEvoCost(seat, permanent, declaredCost, definition);
+          ? await engine.finalizeEffectDigivolveCost(
+              permanent,
+              sourceInstanceId,
+              definition,
+              baseCost,
+              asDigimon,
+              allowedDelta,
+            )
+          : adjustedEvoCost(seat, permanent, baseCost, definition, allowedDelta);
       const deferredReduction = reductionBlocked ? 0 : (opts.deferredCostReduction?.() ?? 0);
       const cost = Math.max(0, finalizedCost - deferredReduction);
       if (engine.memory.maxCostFor(seat) < cost) return undefined;

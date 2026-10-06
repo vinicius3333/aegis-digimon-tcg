@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, requireCardDefinition, Zone } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "./BT7-040.js";
+import "../LM/LM-059.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -101,6 +102,41 @@ async function paidToEvolveIntoBT7040(opts: { security: number; extraReduction?:
 }
 
 describe("A3 BT7-040 — hand-resident SET digivolve cost = security count (Q1568)", () => {
+  it.each([0, 4])(
+    "Discord 1556821976922849360 sweep: Heat Training discounts the variable cost with %s security (Q1568)",
+    async (security) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT1-057", as: "base" },
+              { card: "LM-059", as: "training" },
+            ],
+            hand: [{ card: "BT7-040", as: "evolving" }],
+            security: Array.from({ length: security }, () => "BT1-009"),
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      const effect = observe(s.engine)
+        .activatableEffects(s.perm("training"))
+        .find((entry) => entry.effectKey.startsWith("LM-059/"))!;
+      expect(effect).toBeDefined();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.inst("training").instanceId,
+          effectKey: effect.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
+      expect(s.state.memory).toBe(10 - Math.max(0, Math.max(1, security) - 2));
+      expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("LM-059");
+    },
+  );
+
   it("with 4 security, digivolving into BT7-040 pays cost 4 (not the printed evoCost 5)", async () => {
     const { paid, evolved } = await paidToEvolveIntoBT7040({ security: 4 });
     expect(evolved).toBe(true);
