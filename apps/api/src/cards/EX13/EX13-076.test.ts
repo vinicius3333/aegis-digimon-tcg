@@ -441,6 +441,20 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("battleTarget").permanentId] },
       }),
     ).toEqual({ ok: true });
+    const battleDecisionId = decision.decisionId;
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "chooseTargets" && s.state.pendingDecision.decisionId !== battleDecisionId,
+    );
+    decision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)?.req.options?.purpose).toBe("optionalTarget");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("suspendedOnly").permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await firing;
     await settle();
 

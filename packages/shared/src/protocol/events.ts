@@ -754,8 +754,9 @@ export interface DecisionRequest {
      *
      * `"acceptedOptional"` marks a pick of an action whose "you may" the controller already
      * accepted. A `min: 0` there only lets the player back out; an empty answer does nothing.
+     * `"optionalTarget"` asks the activation choice itself through a zero-to-one target pick.
      */
-    purpose?: "cost" | "acceptedOptional";
+    purpose?: "cost" | "acceptedOptional" | "optionalTarget";
     /** Effect-driven play awaiting the existing Assembly material picker for this card. */
     assemblyCardId?: string;
     /** Effect-driven play awaiting the existing DigiXros material picker for this card. */

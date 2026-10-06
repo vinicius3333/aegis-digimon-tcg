@@ -247,11 +247,14 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   ctx.activeTargetFate = targetFateOf(action);
   ctx.activeSelectionContext = action.kind === "Attack" ? "attackSource" : undefined;
   const outerPickingAcceptedOptional = ctx.pickingAcceptedOptional;
+  const outerSelectingOptionalTarget = ctx.selectingOptionalTarget;
   ctx.pickingAcceptedOptional = false;
+  ctx.selectingOptionalTarget = false;
   try {
     return await runActionInner(ctx, action);
   } finally {
     ctx.pickingAcceptedOptional = outerPickingAcceptedOptional;
+    ctx.selectingOptionalTarget = outerSelectingOptionalTarget;
     ctx.activeTargetFate = outerFate;
     ctx.activeSelectionContext = outerSelectionContext;
     ctx.activeEffectTextPart = outerEffectTextPart;
@@ -299,6 +302,34 @@ const PICK_DECLINABLE_AFTER_YES: ReadonlySet<Action["kind"]> = new Set([
 function targetsOneCard(action: Action): boolean {
   const target = "target" in action ? (action.target as Target | undefined) : undefined;
   return target?.count === undefined || target.count === 1;
+}
+
+/** A costless, independent one-permanent choice can ask its own "you may". */
+function optionalFieldTargetAsksAction(ctx: EffectContext, action: Action): boolean {
+  if (action.kind !== "Suspend" && action.kind !== "Unsuspend" && action.kind !== "Return") return false;
+  const target = action.target;
+  return (
+    action.optional === true &&
+    action.cost === undefined &&
+    action.additionalCost === undefined &&
+    !action.additionalCosts?.length &&
+    !action.costOptions?.length &&
+    action.abortOnDecline !== true &&
+    action.scaling === undefined &&
+    ctx.presetOptionalAnswer === undefined &&
+    !ctx.predecidedOptionalActions?.has(action) &&
+    target.count === 1 &&
+    target.countModifier === undefined &&
+    target.chooser !== "opponent" &&
+    target.filter.zone === undefined &&
+    !target.isSelf &&
+    !target.filter.isSelfRef &&
+    !target.sameTarget &&
+    target.filter.boundRef === undefined &&
+    target.sourceRef === undefined &&
+    target.fromSelectionRef === undefined &&
+    (action.kind !== "Return" || action.from === undefined)
+  );
 }
 
 function markActivationChosen(ctx: EffectContext): void {
@@ -784,6 +815,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.abortOnDecline === true &&
     payableActionCost !== undefined &&
     costIsAskedAsSelection(payableActionCost as Cost);
+  const targetAsksThisAction = optionalFieldTargetAsksAction(ctx, action);
 
   // "You may" — ask the controller. Skip the prompt when the action carries a cost that is
   // provably unpayable (e.g. a "by trashing your security" cost with an empty security stack):
@@ -1015,7 +1047,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // "By [cost], you may [effect]" pays first and asks afterwards: the leading prompt would make
     // a decline skip the cost too. The pay-then-ask block further down raises the payload prompt
     // once the cost is spent.
-    if (!costUnpayable && !costAsksThisAction && !paysProcessingCostBeforeOptional) {
+    if (!costUnpayable && !costAsksThisAction && !targetAsksThisAction && !paysProcessingCostBeforeOptional) {
       const chooser =
         action.kind === "Delete" && action.target.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
       const predecided = ctx.predecidedOptionalActions?.get(action);
@@ -1286,6 +1318,31 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   ctx.pickingAcceptedOptional =
     acceptedBeforeItsPick && PICK_DECLINABLE_AFTER_YES.has(action.kind) && targetsOneCard(action);
 
+  if (targetAsksThisAction && (action.kind === "Suspend" || action.kind === "Unsuspend" || action.kind === "Return")) {
+    // An empty pool raises no question. It must preserve the optional use just
+    // like an explicit empty answer; a chosen target clears this receipt.
+    markActivationDeclined(ctx);
+    ctx.selectingOptionalTarget = true;
+    const originalAsk = ctx.ask;
+    const originalAction = action;
+    let answered = false;
+    ctx.ask = {
+      ...originalAsk,
+      chooseTargets: async (answerCtx, request) => {
+        const selected = await originalAsk.chooseTargets(answerCtx, request);
+        if (!answered && answerCtx === ctx && ctx.activeCostDecisionAction === originalAction && !ctx.payingCostDepth) {
+          answered = true;
+          if (selected.length > 0) markActivationChosen(ctx);
+          else {
+            ctx.lastEffectActed = false;
+            markActivationDeclined(ctx);
+          }
+        }
+        return selected;
+      },
+    };
+  }
+
   // Everything the prologue worked out that a case body still needs.
   const scope: ActionScope = { scale, deferredCostSuspensions };
 
@@ -1314,7 +1371,13 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     case "DeletionMaxDpModifier":
     case "DelayedDelete":
     case "DelayedDeletePlayed":
-      return await runRemovalAction(ctx, action, scope);
+      return await runRemovalAction(
+        ctx,
+        targetAsksThisAction && action.kind === "Return"
+          ? { ...action, target: { ...action.target, upTo: true } }
+          : action,
+        scope,
+      );
     case "HandManipulation":
     case "Suspend":
     case "Unsuspend":
@@ -1328,7 +1391,13 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     case "GainKeyword":
     case "AddToHandSelf":
     case "PlaceInBattleAreaSelf":
-      return await runBoardAction(ctx, action, scope);
+      return await runBoardAction(
+        ctx,
+        targetAsksThisAction && (action.kind === "Suspend" || action.kind === "Unsuspend")
+          ? { ...action, target: { ...action.target, upTo: true } }
+          : action,
+        scope,
+      );
     case "PlayMultiple":
     case "PlayWithoutCost":
     case "PlayFromZone":

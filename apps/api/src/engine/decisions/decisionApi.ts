@@ -96,6 +96,7 @@ function buildSeatScopedApi(
     // Raised by `payCost` for as long as a cost payment is on the stack. Without it a
     // cost selection and a target selection reach the deciding seat as the same request.
     ...((ctx.payingCostDepth ?? 0) > 0 ? { purpose: "cost" as const } : {}),
+    ...(ctx.selectingOptionalTarget === true && asksController ? { purpose: "optionalTarget" as const } : {}),
   });
   // Only a pick whose floor was lowered here is the back-out of an accepted "you may"; a pick
   // the action already allowed to be empty keeps its own meaning (DigiXros materials).
