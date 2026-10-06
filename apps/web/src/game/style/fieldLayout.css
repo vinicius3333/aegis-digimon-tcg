@@ -1,7 +1,8 @@
 /* The organized field: each side's row holds two lanes, Digimon and a lane of grouped
-   Tamers and Options, or one lane when the player chooses it or on a phone. The row keeps the box every breakpoint gives it; the
-   lanes share that box and each scrolls sideways on its own. The selectors outrank
-   every breakpoint's `.game-battle-zones > .game-battle-row` rule on purpose. */
+   Tamers and Options, or one lane when the player chooses it or on a phone. The row
+   keeps the box every breakpoint gives it; the lanes share that box and each scrolls
+   sideways on its own. The selectors outrank every breakpoint's
+   `.game-battle-zones > .game-battle-row` rule on purpose. */
 
 .game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] {
   /* Every permanent follows the shared field size, including on compact boards. */
