@@ -12,6 +12,9 @@ import {
   renderCue,
   renderMusic,
   renderScore,
+  renderBattleScore,
+  BATTLE_BPM,
+  BATTLE_BARS,
   SCORE_BPM,
   SCORE_BARS,
   SCORE_PEAK,
@@ -198,24 +201,30 @@ describe("authored original bank", () => {
         expect(wav.readInt16LE(44 + (offset + i) * 2)).toBe(Math.round(samples[i]! * 32767) || 0);
     }
   });
-  it("ships the authored 16-bar 112 BPM stereo score as a seamless loop under the music ceiling", () => {
-    expect(SCORE_BPM).toBe(112);
-    expect(SCORE_BARS).toBe(16);
-    const [left, right] = renderScore();
-    expect(left!.length).toBe(Math.round(((SCORE_BARS * 4 * 60) / SCORE_BPM) * 48000));
-    expect(left).not.toEqual(right);
-    let peak = 0;
-    for (const channel of [left!, right!]) {
-      for (const sample of channel) peak = Math.max(peak, Math.abs(sample));
-      expect(Math.abs(channel[0]! - channel.at(-1)!)).toBeLessThan(0.01);
-    }
-    expect(peak).toBeCloseTo(SCORE_PEAK, 6);
-    const shipped = readFileSync(new URL("../../public/audio/aegis-music-v4.wav", import.meta.url));
-    for (let i = 0; i < left!.length; i += 397) {
-      expect(shipped.readInt16LE(44 + i * 4)).toBe(Math.round(left![i]! * 32767) || 0);
-      expect(shipped.readInt16LE(46 + i * 4)).toBe(Math.round(right![i]! * 32767) || 0);
-    }
-  });
+  it.each([
+    { file: "aegis-music-v4.wav", bpm: SCORE_BPM, bars: SCORE_BARS, render: renderScore, expectedBpm: 112 },
+    { file: "aegis-music-v5.wav", bpm: BATTLE_BPM, bars: BATTLE_BARS, render: renderBattleScore, expectedBpm: 144 },
+  ])(
+    "ships $file as a seamless 16-bar stereo loop under the music ceiling",
+    ({ file, bpm, bars, render, expectedBpm }) => {
+      expect(bpm).toBe(expectedBpm);
+      expect(bars).toBe(16);
+      const [left, right] = render();
+      expect(left!.length).toBe(Math.round(((bars * 4 * 60) / bpm) * 48000));
+      expect(left).not.toEqual(right);
+      let peak = 0;
+      for (const channel of [left!, right!]) {
+        for (const sample of channel) peak = Math.max(peak, Math.abs(sample));
+        expect(Math.abs(channel[0]! - channel.at(-1)!)).toBeLessThan(0.01);
+      }
+      expect(peak).toBeCloseTo(SCORE_PEAK, 6);
+      const shipped = readFileSync(new URL(`../../public/audio/${file}`, import.meta.url));
+      for (let i = 0; i < left!.length; i += 397) {
+        expect(shipped.readInt16LE(44 + i * 4)).toBe(Math.round(left![i]! * 32767) || 0);
+        expect(shipped.readInt16LE(46 + i * 4)).toBe(Math.round(right![i]! * 32767) || 0);
+      }
+    },
+  );
   it("keeps an 96 BPM pulse and progressing melody present from the beginning with a quiet circular seam", () => {
     expect(MUSIC_BPM).toBe(96);
     const layers = musicRecipe();

@@ -4,7 +4,7 @@
   "arrangement": "Aegis arrangements of licensed CC0 recorded card/object foley under original tuned tone accents",
   "recordedSourceProvenance": "sources/recorded-provenance.json",
   "renderer": "apps/web/src/design/audioRecipes.ts",
-  "rendererSha256": "d176b507df3fd7450423102099fc1575a34924fb85ab479ec3c44e2212cbeac6",
+  "rendererSha256": "acb0ef6b3e2a6fbf8ed421df80a4bb74a8848630c81630a477e2d0518731fef8",
   "sampleRate": 48000,
   "channels": 1,
   "seedMethod": "FNV-1a cue identity followed by xorshift32",
@@ -50,25 +50,28 @@
     "sha256": "133dad2e064ae8511dfcb2117b6aafe7a040dd643aeb81ba79b6784553c277ee"
   },
   "music": {
-    "file": "aegis-music-v4.wav",
-    "bpm": 112,
+    "file": "aegis-music-v5.wav",
+    "bpm": 144,
     "bars": 16,
     "original": true,
     "originalScore": true,
-    "selectedId": "digital-ascent-112",
-    "alternativeId": "warm-drive-pulse-112",
+    "selectedId": "digital-battle-144",
+    "alternativeIds": [
+      "digital-ascent-112",
+      "warm-drive-pulse-112"
+    ],
     "sourceProvenance": "music-candidates/provenance.json",
-    "composition": "Original synth score in the liked score's form: same 112 BPM, 16 bars, A-minor i-VI-VII drive and A-major release, with digital arpeggios and a digivolution-style rise into the release",
+    "composition": "Original tense battle loop unlike both earlier scores: 144 BPM, 16 bars, D harmonic minor i-iv-VI-V, breakbeat, syncopated octave bass, offbeat stabs, staccato lead and a fast closing run",
     "peak": 0.07501220703125,
     "peakDbFS": -22.497361128185656,
-    "rms": 0.015105655203327066,
-    "dc": -0.00016101810283788677,
-    "boundaryStep": 0.00018310546875,
-    "seconds": 34.28570833333333,
+    "rms": 0.01580872926266035,
+    "dc": -0.0001913106918334961,
+    "boundaryStep": 0.000091552734375,
+    "seconds": 26.666666666666668,
     "sampleRate": 48000,
     "channels": 2,
-    "bytes": 6582900,
-    "sha256": "c38aec12797c42e512b3c963bc1baf7903c304a1d91e0203b2da907ec2d5893c"
+    "bytes": 5120044,
+    "sha256": "2caed765fde290aa78c5400aceca42d16fdb710361c20fab9feeecbe0572e4ac"
   },
   "previews": {
     "warm": {

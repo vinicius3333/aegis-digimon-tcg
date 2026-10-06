@@ -17,6 +17,9 @@ const {
   renderScore,
   SCORE_BPM,
   SCORE_BARS,
+  renderBattleScore,
+  BATTLE_BPM,
+  BATTLE_BARS,
   MUSIC_BPM,
   decodeSourceWav,
   cueKey: audioKey,
@@ -312,10 +315,10 @@ const scoreBytes = encodeMusicWav({ sampleRate, channels: renderScore(sampleRate
 const scoreHash = createHash("sha256").update(scoreBytes).digest("hex");
 const scoreFile = "aegis-music-v4.wav";
 await writeFile(path.join(directory, scoreFile), scoreBytes);
-const runtimeMusic = {
+const ascentMusic = {
   id: "digital-ascent-112",
   label: "Digital ascent · original synth score · 112 BPM",
-  role: "selected",
+  role: "alternative",
   file: scoreFile,
   url: `/audio/${scoreFile}?v=${scoreHash.slice(0, 12)}`,
   sha256: scoreHash,
@@ -326,6 +329,26 @@ const runtimeMusic = {
   sourceIdentity: { type: "original-authored", rendererSha256: createHash("sha256").update(source).digest("hex") },
   composition:
     "Original synth score in the liked score's form: same 112 BPM, 16 bars, A-minor i-VI-VII drive and A-major release, with digital arpeggios and a digivolution-style rise into the release",
+};
+candidateRows.push(ascentMusic);
+const battleBytes = encodeMusicWav({ sampleRate, channels: renderBattleScore(sampleRate) });
+const battleHash = createHash("sha256").update(battleBytes).digest("hex");
+const battleFile = "aegis-music-v5.wav";
+await writeFile(path.join(directory, battleFile), battleBytes);
+const runtimeMusic = {
+  id: "digital-battle-144",
+  label: "Digital battle · original synth score · 144 BPM",
+  role: "selected",
+  file: battleFile,
+  url: `/audio/${battleFile}?v=${battleHash.slice(0, 12)}`,
+  sha256: battleHash,
+  bpm: BATTLE_BPM,
+  bars: BATTLE_BARS,
+  seconds: (BATTLE_BARS * 4 * 60) / BATTLE_BPM,
+  metrics: { ...measureMusic(decodeMusicWav(battleBytes)), bytes: battleBytes.length },
+  sourceIdentity: { type: "original-authored", rendererSha256: createHash("sha256").update(source).digest("hex") },
+  composition:
+    "Original tense battle loop unlike both earlier scores: 144 BPM, 16 bars, D harmonic minor i-iv-VI-V, breakbeat, syncopated octave bass, offbeat stabs, staccato lead and a fast closing run",
 };
 candidateRows.push(runtimeMusic);
 const musicMetrics = { ...runtimeMusic.metrics, sha256: runtimeMusic.sha256 };
@@ -385,7 +408,7 @@ const manifest = {
     original: true,
     originalScore: true,
     selectedId: runtimeMusic.id,
-    alternativeId: selectedMusic.id,
+    alternativeIds: [ascentMusic.id, selectedMusic.id],
     sourceProvenance: "music-candidates/provenance.json",
     composition: runtimeMusic.composition,
     ...musicMetrics,
@@ -409,7 +432,7 @@ if (!process.argv[2])
   );
 await writeFile(
   path.join(directory, "previews/index.html"),
-  `<!doctype html><html lang="en"><meta charset="utf-8"><title>Aegis authored audio directions</title><style>body{background:#0b1020;color:#dceaff;font:16px system-ui;max-width:760px;margin:48px auto;padding:24px}audio{width:100%}li{margin:6px}</style><h1>Original Aegis audio directions</h1><p>Same authored renderer as the game. Six cues at two-second intervals: draw, cost-12 play, activation, level-3 to level-6 evolution, impact, security crack. Warm tactile is applied; crisp restrained is the alternative.</p><h2>Warm tactile</h2><audio controls src="warm-six-cues.wav?v=${previewMetrics.warm.sha256.slice(0, 12)}"></audio><h2>Crisp restrained</h2><audio controls src="crisp-six-cues.wav?v=${previewMetrics.crisp.sha256.slice(0, 12)}"></audio><h2>Steady match music</h2><p>Selected original steady 112 BPM seamless composition. Set the player volume near 25% to approximate the default music bus.</p><audio controls loop src="..${runtimeMusic.url.slice(6)}"></audio><h2>Previous match music</h2><audio controls loop src="..${selectedMusic.url.slice(6)}"></audio><p><a href="../manifest.json">Original-generation manifest and measured levels</a></p></html>`,
+  `<!doctype html><html lang="en"><meta charset="utf-8"><title>Aegis authored audio directions</title><style>body{background:#0b1020;color:#dceaff;font:16px system-ui;max-width:760px;margin:48px auto;padding:24px}audio{width:100%}li{margin:6px}</style><h1>Original Aegis audio directions</h1><p>Same authored renderer as the game. Six cues at two-second intervals: draw, cost-12 play, activation, level-3 to level-6 evolution, impact, security crack. Warm tactile is applied; crisp restrained is the alternative.</p><h2>Warm tactile</h2><audio controls src="warm-six-cues.wav?v=${previewMetrics.warm.sha256.slice(0, 12)}"></audio><h2>Crisp restrained</h2><audio controls src="crisp-six-cues.wav?v=${previewMetrics.crisp.sha256.slice(0, 12)}"></audio><h2>Steady match music</h2><p>Selected original steady 112 BPM seamless composition. Set the player volume near 25% to approximate the default music bus.</p><audio controls loop src="..${runtimeMusic.url.slice(6)}"></audio><h2>Digital ascent</h2><audio controls loop src="..${ascentMusic.url.slice(6)}"></audio><h2>Warm drive</h2><audio controls loop src="..${selectedMusic.url.slice(6)}"></audio><p><a href="../manifest.json">Original-generation manifest and measured levels</a></p></html>`,
 );
 console.log(
   JSON.stringify(

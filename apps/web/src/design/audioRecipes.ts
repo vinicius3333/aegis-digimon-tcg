@@ -824,10 +824,15 @@ export function scoreRecipe(): { center: AudioLayer[]; wide: AudioLayer[] } {
   return { center, wide };
 }
 /** A seamless stereo loop: wide layers reach the right ear 13 ms late, peak-scaled to the music bus ceiling. */
-export function renderScore(sampleRate = 48000): Float32Array[] {
-  const { center, wide } = scoreRecipe();
-  const middle = renderLayers(center, SCORE_SECONDS, sampleRate, 0x5c0e112, true);
-  const side = renderLayers(wide, SCORE_SECONDS, sampleRate, 0x5c0e113, true);
+function mixStereoScore(
+  { center, wide }: { center: AudioLayer[]; wide: AudioLayer[] },
+  seconds: number,
+  sampleRate: number,
+  seed: number,
+  driveAmount = SCORE_DRIVE,
+): Float32Array[] {
+  const middle = renderLayers(center, seconds, sampleRate, seed, true);
+  const side = renderLayers(wide, seconds, sampleRate, seed + 1, true);
   const delay = Math.round(sampleRate * 0.013),
     frames = middle.length;
   const left = new Float32Array(frames),
@@ -839,11 +844,146 @@ export function renderScore(sampleRate = 48000): Float32Array[] {
     peak = Math.max(peak, Math.abs(left[i]!), Math.abs(right[i]!));
   }
   // Saturate before scaling so the transient beat stops setting the level for the whole bed.
-  const drive = SCORE_DRIVE / peak,
-    ceiling = Math.tanh(SCORE_DRIVE);
+  const drive = driveAmount / peak,
+    ceiling = Math.tanh(driveAmount);
   for (let i = 0; i < frames; i++) {
     left[i] = (Math.tanh(left[i]! * drive) / ceiling) * SCORE_PEAK;
     right[i] = (Math.tanh(right[i]! * drive) / ceiling) * SCORE_PEAK;
   }
   return [left, right];
+}
+export function renderScore(sampleRate = 48000): Float32Array[] {
+  return mixStereoScore(scoreRecipe(), SCORE_SECONDS, sampleRate, 0x5c0e112);
+}
+
+export const BATTLE_BPM = 144;
+export const BATTLE_BARS = 16;
+export const BATTLE_SECONDS = (BATTLE_BARS * 4 * 60) / BATTLE_BPM;
+/** One chord per bar in D harmonic minor: a slow i-iv-VI-V statement, then the same turn twice as fast. */
+const BATTLE_CHORDS: readonly (readonly [number, "major" | "minor"])[] = [
+  [38, "minor"],
+  [38, "minor"],
+  [43, "minor"],
+  [43, "minor"],
+  [46, "major"],
+  [46, "major"],
+  [45, "major"],
+  [45, "major"],
+  [38, "minor"],
+  [43, "minor"],
+  [46, "major"],
+  [45, "major"],
+  [38, "minor"],
+  [43, "minor"],
+  [46, "major"],
+  [45, "major"],
+];
+/** The call-and-response lead of the first half, as [bar, sixteenth, midi, sixteenths]. */
+const BATTLE_CALL: readonly (readonly [number, number, number, number])[] = [
+  [0, 0, 74, 2],
+  [0, 2, 77, 2],
+  [0, 4, 81, 3],
+  [0, 8, 79, 2],
+  [0, 10, 77, 2],
+  [0, 12, 76, 2],
+  [0, 14, 77, 2],
+  [1, 0, 74, 6],
+  [1, 8, 73, 2],
+  [1, 10, 74, 2],
+  [1, 12, 76, 4],
+  [2, 0, 79, 2],
+  [2, 2, 82, 2],
+  [2, 4, 86, 3],
+  [2, 8, 82, 2],
+  [2, 10, 81, 2],
+  [2, 12, 79, 2],
+  [2, 14, 81, 2],
+  [3, 0, 79, 6],
+  [3, 8, 77, 2],
+  [3, 10, 79, 2],
+  [3, 12, 81, 4],
+  [4, 0, 77, 2],
+  [4, 2, 81, 2],
+  [4, 4, 86, 3],
+  [4, 8, 82, 2],
+  [4, 10, 81, 2],
+  [4, 12, 77, 2],
+  [4, 14, 79, 2],
+  [5, 0, 81, 6],
+  [5, 8, 82, 2],
+  [5, 10, 81, 2],
+  [5, 12, 79, 4],
+  [6, 0, 81, 2],
+  [6, 2, 85, 2],
+  [6, 4, 88, 3],
+  [6, 8, 86, 2],
+  [6, 10, 85, 2],
+  [6, 12, 82, 2],
+  [6, 14, 81, 2],
+  [7, 0, 85, 8],
+  [7, 8, 76, 2],
+  [7, 10, 79, 2],
+  [7, 12, 82, 2],
+  [7, 14, 85, 2],
+];
+/** The descending harmonic-minor run that closes the loop on the dominant and lands back on D. */
+const BATTLE_RUN = [86, 85, 82, 81, 79, 77, 76, 74, 73, 74, 76, 77, 79, 81, 82, 85];
+/** A tense battle loop: breakbeat, syncopated octave bass, offbeat stabs and a fast staccato lead. */
+export function battleScoreRecipe(): { center: AudioLayer[]; wide: AudioLayer[] } {
+  const center: AudioLayer[] = [],
+    wide: AudioLayer[] = [];
+  const sixteenth = 60 / BATTLE_BPM / 4,
+    bar = sixteenth * 16;
+  const add = (
+    target: AudioLayer[],
+    texture: Texture,
+    at: number,
+    duration: number,
+    gain: number,
+    hz: number,
+    endHz?: number,
+  ) => target.push({ texture, at, duration, gain, hz, ...(endHz ? { endHz } : {}) });
+  // Harmonic plucks doubled an octave down: a brassy lead whose overtones stay inside the key.
+  const lead = (at: number, duration: number, gain: number, note: number) => {
+    add(center, "pluck", at, duration, gain, midi(note));
+    add(center, "pluck", at, duration, gain * 0.7, midi(note - 12));
+  };
+  BATTLE_CHORDS.forEach(([root, quality], index) => {
+    const at = index * bar,
+      third = quality === "major" ? 4 : 3,
+      driving = index >= 8;
+    for (const step of [0, 3, 6, 8, 10, 12, 14])
+      add(
+        center,
+        "pluck",
+        at + step * sixteenth,
+        sixteenth * 1.5,
+        step === 0 ? 0.085 : 0.065,
+        midi(root + (step === 6 || step === 14 ? 12 : 0)),
+      );
+    for (const step of driving ? [3, 7, 11, 14] : [3, 11])
+      for (const interval of [0, third, 7])
+        add(wide, "pluck", at + step * sixteenth, sixteenth * 1.2, 0.02, midi(root + 24 + interval));
+    for (const step of [0, 6, 10]) add(center, "body", at + step * sixteenth, 0.16, 0.12, midi(38), midi(26));
+    for (const step of [4, 12]) add(center, "grain", at + step * sixteenth, 0.12, 0.06, 2400);
+    if (driving) add(center, "grain", at + 15 * sixteenth, 0.06, 0.022, 2400);
+    for (let step = 0; step < 16; step++)
+      add(wide, "grain", at + step * sixteenth, 0.03, step % 2 === 0 ? 0.013 : 0.007, 9000);
+    if (driving && index < 15) {
+      const tones = [0, third, 7, 12, 12 + third],
+        leadRoot = root + 36 - (root > 40 ? 12 : 0);
+      for (let step = 0; step < 16; step++)
+        lead(at + step * sixteenth, sixteenth * 1.4, 0.026, leadRoot + tones[[0, 1, 2, 3, 4, 3, 2, 1][step % 8]!]!);
+    }
+  });
+  for (const [barIndex, step, note, length] of BATTLE_CALL)
+    lead(barIndex * bar + step * sixteenth, length * sixteenth * 1.1, 0.036, note);
+  BATTLE_RUN.forEach((note, step) => lead(15 * bar + step * sixteenth, sixteenth * 1.3, 0.03, note));
+  add(wide, "air", 7.5 * bar, bar / 2, 0.045, 3000);
+  add(center, "body", 8 * bar, 0.4, 0.13, midi(26));
+  return { center, wide };
+}
+export function renderBattleScore(sampleRate = 48000): Float32Array[] {
+  // The sparser battle mix takes more drive to match the other scores' loudness.
+  return mixStereoScore(battleScoreRecipe(), BATTLE_SECONDS, sampleRate, 0xba771e, 4.2);
 }

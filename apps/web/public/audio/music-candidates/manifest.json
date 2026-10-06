@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "selectedId": "digital-ascent-112",
-  "runtimeUrl": "/audio/aegis-music-v4.wav?v=c38aec12797c",
+  "selectedId": "digital-battle-144",
+  "runtimeUrl": "/audio/aegis-music-v5.wav?v=2caed765fde2",
   "candidates": [
     {
       "id": "current-clean-96",
@@ -24,7 +24,7 @@
       },
       "sourceIdentity": {
         "type": "original-authored",
-        "rendererSha256": "d176b507df3fd7450423102099fc1575a34924fb85ab479ec3c44e2212cbeac6"
+        "rendererSha256": "acb0ef6b3e2a6fbf8ed421df80a4bb74a8848630c81630a477e2d0518731fef8"
       }
     },
     {
@@ -638,7 +638,7 @@
     {
       "id": "digital-ascent-112",
       "label": "Digital ascent · original synth score · 112 BPM",
-      "role": "selected",
+      "role": "alternative",
       "file": "aegis-music-v4.wav",
       "url": "/audio/aegis-music-v4.wav?v=c38aec12797c",
       "sha256": "c38aec12797c42e512b3c963bc1baf7903c304a1d91e0203b2da907ec2d5893c",
@@ -658,9 +658,36 @@
       },
       "sourceIdentity": {
         "type": "original-authored",
-        "rendererSha256": "d176b507df3fd7450423102099fc1575a34924fb85ab479ec3c44e2212cbeac6"
+        "rendererSha256": "acb0ef6b3e2a6fbf8ed421df80a4bb74a8848630c81630a477e2d0518731fef8"
       },
       "composition": "Original synth score in the liked score's form: same 112 BPM, 16 bars, A-minor i-VI-VII drive and A-major release, with digital arpeggios and a digivolution-style rise into the release"
+    },
+    {
+      "id": "digital-battle-144",
+      "label": "Digital battle · original synth score · 144 BPM",
+      "role": "selected",
+      "file": "aegis-music-v5.wav",
+      "url": "/audio/aegis-music-v5.wav?v=2caed765fde2",
+      "sha256": "2caed765fde290aa78c5400aceca42d16fdb710361c20fab9feeecbe0572e4ac",
+      "bpm": 144,
+      "bars": 16,
+      "seconds": 26.666666666666668,
+      "metrics": {
+        "peak": 0.07501220703125,
+        "peakDbFS": -22.497361128185656,
+        "rms": 0.01580872926266035,
+        "dc": -0.0001913106918334961,
+        "boundaryStep": 0.000091552734375,
+        "seconds": 26.666666666666668,
+        "sampleRate": 48000,
+        "channels": 2,
+        "bytes": 5120044
+      },
+      "sourceIdentity": {
+        "type": "original-authored",
+        "rendererSha256": "acb0ef6b3e2a6fbf8ed421df80a4bb74a8848630c81630a477e2d0518731fef8"
+      },
+      "composition": "Original tense battle loop unlike both earlier scores: 144 BPM, 16 bars, D harmonic minor i-iv-VI-V, breakbeat, syncopated octave bass, offbeat stabs, staccato lead and a fast closing run"
     }
   ],
   "reference": {
