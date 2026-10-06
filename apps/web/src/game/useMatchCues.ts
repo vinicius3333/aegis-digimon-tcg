@@ -1,5 +1,5 @@
 /* Everything the board plays back at the player because the server said
-   something happened: sounds, info panels, the attack call-out and lunge, the
+   something happened: sounds, info panels, the attack call-out and target arrow, the
    security clash, the recovery and effect notices, the turn banner and the draw
    flights.
 
@@ -38,13 +38,13 @@ import { useDrawWatcher } from "./match/watchers/useDrawWatcher";
 import { useRestrictionPulses } from "./match/watchers/useRestrictionPulses";
 import { useSecurityCountWatcher } from "./match/watchers/useSecurityCountWatcher";
 import { narrationStream } from "./match/narration/narrationStream";
-import type { OwnEffectDialog } from "./match/narration/presentableNarration";
+import { createEffectSequence } from "./match/effectSequence";
 import type {
-  AttackLunge,
   DeleteBurst,
   DrawBurst,
   DrawFlight,
   DrawFlightCard,
+  DrawPhaseOwner,
   MatchCueAnchors,
   MatchCues,
   RevealOnStage,
@@ -55,7 +55,6 @@ import type {
 } from "./match/types";
 
 export type {
-  AttackLunge,
   DeleteBurst,
   DrawBurst,
   DrawFlight,
@@ -65,9 +64,10 @@ export type {
   TurnTransitionCue,
   UnsuspendSweep,
 } from "./match/types";
-export { CueTrack, LungeDirection, SecurityBreakPhase } from "./match/enums";
+export { CueTrack, AttackDirection, SecurityBreakPhase } from "./match/enums";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createStackTopResolutions } from "./match/stackTopResolutions";
 import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
 import {
   type GameState,
@@ -75,6 +75,7 @@ import {
   type SequencedServerEvent,
   type ServerEvent,
   type PresentationReport,
+  type DecisionRequest,
 } from "@aegis/shared";
 import { playSound, type SoundKind } from "../design/sound";
 import { otherSeat } from "./boardModel";
@@ -88,20 +89,19 @@ import {
   type SidePanel,
   type SidePanelLookup,
 } from "./sidePanels";
-import {
-  isOwnEffectNotice,
-  noticeRemaining,
-  rejectionNotice,
-  type EffectNoticeScope,
-  type MatchNotice,
-} from "./notices";
-import { TIMINGS } from "./timings";
-import { narrationReadingTime, trimNarration, COLLAPSED_NARRATION_LIMIT, type NarrationItem } from "./narration";
+import { noticeRemaining, rejectionNotice, type MatchNotice } from "./notices";
+import { narrationReadingTime, trimNarration, NARRATION_QUEUE_LIMIT, type NarrationItem } from "./narration";
 import { type SecurityBranchScene, type SecurityClashAttacker, type SecurityClashScene } from "./securityClash";
 import { type PermanentBurst, type ZoneShowcase } from "./showcases";
 import type { RevealShowcase } from "./match/present/revealShowcases";
-import { createAnimationQueue, type AnimationStep, type AnimationStepContext } from "./animationQueue";
+import {
+  createAnimationQueue,
+  type AnimationQueue,
+  type AnimationStep,
+  type AnimationStepContext,
+} from "./animationQueue";
 import { createPresentationProgress } from "./presentationProgress";
+import type { PresentationPacing, PresentationProbe } from "./presentationProbe";
 import { CONSEQUENCE_GATE_MAX_MS, observeGateExpiry, waitForGate } from "./match/presentationGate";
 import type { CostClause, DeletionReadyAt, PendingAnnounceGate, PresentationGate } from "./match/presentationGate";
 import type { RemovalLink } from "./match/removalChain";
@@ -121,11 +121,15 @@ export function useMatchCues({
   mulliganOpen,
   decisionPending = false,
   collapseNarration = false,
-  narrationLimit = 2,
+  narrationLimit = NARRATION_QUEUE_LIMIT,
   decisionStateVersion,
+  decisionSourceCardId,
+  targetDecision,
   anchors,
   onActionRejected,
   onPresentationReport,
+  devProbe,
+  presentationPacing = "current",
 }: {
   /** The closed server batches, in order. One batch is one moment of the rules. */
   batches: readonly ServerBatch[];
@@ -145,9 +149,8 @@ export function useMatchCues({
   /** The portrait phone folds both narration columns into one centred slot. */
   collapseNarration?: boolean;
   /**
-   * How many moments one column holds. Two, so a clause is not displaced the moment the
-   * other player raises one — the columns are shared by both players now. The phone's
-   * folded slot keeps one, because there is only room to read one thing at a time there.
+   * How many recent moments a column retains. Its visual height is capped separately so
+   * the reader can scroll through more than the two notices that fit at a glance.
    */
   narrationLimit?: number;
   /**
@@ -156,9 +159,20 @@ export function useMatchCues({
    * the viewer answers over is the board the question was asked about.
    */
   decisionStateVersion?: number;
+  /** The card whose effect the viewer's open decision is about, when it names one. */
+  decisionSourceCardId?: string;
+  /** A new clause waits for this viewer-owned field-target selection to be confirmed. */
+  targetDecision?: DecisionRequest | undefined;
   anchors: MatchCueAnchors;
   onActionRejected: (reason: string) => void;
   onPresentationReport?: (report: PresentationReport) => void;
+  /** Dev inspector hooks (the effects lab). Absent in every real match. */
+  devProbe?: PresentationProbe;
+  /**
+   * How simultaneous effects are paced. `sequential` plays each triggered effect as its own
+   * announce, results and settle beats, one after the other (match/effectSequence.ts).
+   */
+  presentationPacing?: PresentationPacing;
 }): MatchCues {
   // How far the presentation has got, in server revisions. Every step is counted into the
   // batch it was enqueued for, so the board can be rendered from the snapshot of the batch
@@ -226,16 +240,38 @@ export function useMatchCues({
   }
   const presentationReporterRef = useRef(onPresentationReport);
   presentationReporterRef.current = onPresentationReport;
+  const devProbeRef = useRef(devProbe);
+  devProbeRef.current = devProbe;
+  const presentationPacingRef = useRef(presentationPacing);
+  presentationPacingRef.current = presentationPacing;
   const presentationBatchRef = useRef<{ batchId: string; stateVersion: number } | undefined>(undefined);
   const batchVersionsRef = useRef(new Map<string, number>());
   const heldOriginsRef = useRef(new WeakMap<object, { batchId: string; stateVersion: number; phaseOrder: number }>());
   const stepBatchesRef = useRef(new WeakMap<AnimationStep, { batchId: string; stateVersion: number }>());
+  const viewerSeatRef = useRef(viewerSeat);
+  viewerSeatRef.current = viewerSeat;
+  const effectSequence = useMemo(() => createEffectSequence({ viewerSeat: () => viewerSeatRef.current }), []);
+  const batchOf = (step: AnimationStep) => step.origin?.batchId ?? stepBatchesRef.current.get(step)?.batchId;
   const queue = useMemo(() => {
     const inner = createAnimationQueue({
       mode: liveMode(),
       onChange: () => queueChangedRef.current(),
       onError: (error, step) => console.error("[MATCH_CUE] step failed", { step: step.id, error }),
       onStep: ({ step, ...event }) => {
+        const probe = devProbeRef.current;
+        if (probe?.onStep) {
+          try {
+            const batch = step.origin ?? stepBatchesRef.current.get(step);
+            probe.onStep({
+              ...event,
+              step,
+              ...(batch ? { batch: { batchId: batch.batchId, stateVersion: batch.stateVersion } } : {}),
+              at: performance.now(),
+            });
+          } catch {
+            // Diagnostic transport must never interrupt the presentation.
+          }
+        }
         if (event.mode === "replay") return;
         traceCueStep(event.phase, step.id, step.track ?? "main", event.cancelled);
         try {
@@ -256,7 +292,10 @@ export function useMatchCues({
     const counted = (step: AnimationStep): AnimationStep => {
       const phaseOrder = step.origin?.phaseOrder ?? enqueuePhaseOrderRef.current ?? completedPhaseOrderRef.current;
       const gated =
-        step.track === "phaseBanner" || step.track === "unsuspendSweep" || step.track?.startsWith("turnDrawFlight-")
+        step.track === "phaseBanner" ||
+        step.track === "unsuspendSweep" ||
+        step.track === CueTrack.DrawPresentation ||
+        step.track?.startsWith("turnDrawFlight-")
           ? step
           : {
               ...step,
@@ -284,6 +323,11 @@ export function useMatchCues({
     };
     return {
       ...inner,
+      // The mode sync below leaves a paused queue alone, so resuming catches up with it.
+      resume() {
+        inner.resume();
+        inner.setMode(liveMode());
+      },
       enqueue(step: AnimationStep | readonly AnimationStep[]) {
         inner.enqueue(Array.isArray(step) ? step.map(counted) : counted(step as AnimationStep));
         // An idle queue is the proof that nothing is left to present, whatever became of
@@ -361,7 +405,6 @@ export function useMatchCues({
   const [decisionBarrier, setDecisionBarrier] = useState<number | null>(null);
   const [unsuspendSweep, setUnsuspendSweep] = useState<UnsuspendSweep | null>(null);
   const [deleteBursts, setDeleteBursts] = useState<readonly DeleteBurst[]>([]);
-  const [attackLunge, setAttackLunge] = useState<AttackLunge | null>(null);
   const [securityHitSeat, setSecurityHitSeat] = useState<number | null>(null);
   const [drawFlights, setDrawFlights] = useState<readonly DrawFlight[]>([]);
   const [drawBursts, setDrawBursts] = useState<readonly DrawBurst[]>([]);
@@ -404,6 +447,7 @@ export function useMatchCues({
     ]),
   );
   const [heldTrashArrivals, setHeldTrashArrivals] = useState<MatchCues["heldTrashArrivals"]>(new Map());
+  const [heldHandArrivals, setHeldHandArrivals] = useState<MatchCues["heldHandArrivals"]>(new Map());
   const trashArrivalKeyRef = useRef(0);
   const [announcedPhase, setAnnouncedPhase] = useState(state?.phase);
   const [announcedTurn, setAnnouncedTurn] = useState<{ seat: Seat; count: number } | undefined>(
@@ -414,15 +458,15 @@ export function useMatchCues({
   const phaseBaselineRef = useRef(false);
   const lastPhaseEventRef = useRef<Extract<ServerEvent, { kind: "phaseChanged" | "turnEnded" }> | undefined>(undefined);
   /** The seat whose turn-start draw is held back, or null while nothing is held. */
-  const drawPhaseWaitingRef = useRef<Seat | null>(null);
+  const drawPhaseWaitingRef = useRef<DrawPhaseOwner | null>(null);
   const [combatImpactIds, setCombatImpactIds] = useState<ReadonlySet<string>>(new Set());
   const [fieldClash, setFieldClash] = useState<FieldClashScene | null>(null);
   const [dpPulses, setDpPulses] = useState<ReadonlyMap<string, DpPulse>>(new Map());
   const [dpBadgeSuppressions, setDpBadgeSuppressions] = useState<ReadonlyMap<string, number>>(new Map());
   const [freezePulses, setFreezePulses] = useState<ReadonlyMap<string, FreezePulse>>(new Map());
   const [effectSources, setEffectSources] = useState<readonly EffectActivation[]>([]);
-  const [deckRiffles, setDeckRiffles] = useState<ReadonlySet<string>>(new Set());
-  const [securityFlights, setSecurityFlights] = useState<ReadonlySet<number>>(new Set());
+  const [deckRiffles, setDeckRiffles] = useState<ReadonlyMap<string, number>>(new Map());
+  const [securityFlights, setSecurityFlights] = useState<ReadonlyMap<number, number>>(new Map());
   const [securityDealCounts, setSecurityDealCounts] = useState<ReadonlyMap<Seat, number>>(new Map());
 
   // Cues are observed twice for your own actions (the intent handler fires one
@@ -457,14 +501,17 @@ export function useMatchCues({
   // step was enqueued under.
   const decisionPendingRef = useRef(decisionPending);
   decisionPendingRef.current = decisionPending;
-  /** Cards whose own decision dialog is open, so their clause is not read out twice. */
-  const suppressedOwnEffectsRef = useRef(new Map<string, OwnEffectDialog>());
-  useEffect(
-    () => () => {
-      for (const dialog of suppressedOwnEffectsRef.current.values()) clearTimeout(dialog.releaseTimer);
-    },
-    [],
-  );
+  const decisionSourceCardIdRef = useRef(decisionSourceCardId);
+  decisionSourceCardIdRef.current = decisionSourceCardId;
+  const targetDecisionRef = useRef(targetDecision);
+  targetDecisionRef.current = targetDecision;
+  const targetClausesRef = useRef(new Map<string, () => void>());
+  const batchesRef = useRef(batches);
+  batchesRef.current = batches;
+  const liveStateVersionRef = useRef(state?.stateVersion);
+  liveStateVersionRef.current = state?.stateVersion;
+  /** The live revision the state watchers last compared against; updated after they run. */
+  const watchedLiveVersionRef = useRef(state?.stateVersion);
   // A security card that resolves an effect moves its notice out of the panels'
   // half of the screen; the flag is set by the check and spent by the effect.
   const securityEffectPendingRef = useRef(false);
@@ -487,8 +534,8 @@ export function useMatchCues({
   // same way the dock is: the check closing is what releases the card into its outcome beat.
   const securityHoldRef = useRef<{ key: number; closed: boolean; handedOver?: boolean } | null>(null);
   // The blow a security battle has yet to land. A field battle makes its losers wait on
-  // FIELD_CLASH_TOTAL_MS, a constant, because its scene is a constant; a check's scene is
-  // not — its hold runs as long as the server takes to answer what the check asked. So the
+  // the remaining declaration-arrow beat plus its impact; a check's scene is open-ended —
+  // its hold runs as long as the server takes to answer what the check asked. So the
   // wait is a gate rather than a duration: it opens when the outcome beat has played, and
   // whatever the check deleted shatters then, not seconds ahead of the battle that did it.
   const securityBlowRef = useRef<{ key: number; landed: boolean; gate: PresentationGate } | null>(null);
@@ -521,8 +568,11 @@ export function useMatchCues({
   // even when its declaration and its resolution arrive in the same batch.
   const openAttackRef = useRef<OpenAttack | null>(null);
   const fieldClashKeyRef = useRef(0);
+  // A battle's blow, by loser, until the deletion it causes: the server can publish that a batch later.
+  const combatLandedRef = useRef(new Map<string, PresentationGate>());
   const drawFlightKeyRef = useRef(0);
   const deleteBurstKeyRef = useRef(0);
+  const topResolutions = useMemo(createStackTopResolutions, []);
   const showcaseKeyRef = useRef(0);
   const revealShowcaseKeyRef = useRef(0);
   const dpPulseKeyRef = useRef(0);
@@ -571,7 +621,7 @@ export function useMatchCues({
   // same commit, which is what tells a turn-start draw from an effect draw.
   const turnStartDrawRef = useRef({ you: false, opp: false });
   const eventDrawCountsRef = useRef<{ you?: number; opp?: number }>({});
-  const pendingDigivolutionDrawRef = useRef(new Set<Seat>());
+  const pendingDigivolutionDrawRef = useRef(new Map<Seat, PresentationGate>());
 
   const playCue = (kind: SoundKind) => {
     const now = Date.now();
@@ -583,7 +633,10 @@ export function useMatchCues({
   // Reduced motion and a hidden tab both mean "no animation to watch": collapse
   // the decorative waits and leave the readable ones alone.
   useEffect(() => {
-    const sync = () => queue.setMode(liveMode());
+    // A hidden tab would drain a queue a developer paused in the effects lab.
+    const sync = () => {
+      if (!queue.isPaused()) queue.setMode(liveMode());
+    };
     sync();
     const query = typeof window.matchMedia === "function" ? window.matchMedia(REDUCED_MOTION_QUERY) : undefined;
     query?.addEventListener("change", sync);
@@ -594,7 +647,18 @@ export function useMatchCues({
     };
   }, [queue]);
 
-  useEffect(() => () => queue.clear(), [queue]);
+  useEffect(
+    () => () => {
+      queue.clear();
+      topResolutions.clear();
+    },
+    [queue, topResolutions],
+  );
+
+  const fastForwardRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    devProbeRef.current?.onQueue?.({ queue, fastForward: () => fastForwardRef.current() });
+  }, [queue]);
 
   // Declared before the event effect below so the same commit refreshes the
   // index first: a card is already in its new zone when its movement is narrated.
@@ -633,7 +697,7 @@ export function useMatchCues({
 
   const effectNarrationTracksRef = useRef(new Map<Seat, string>());
 
-  const { narrate, publishNow, flushHeldNotices, openHeld, narrationBefore } = narrationStream({
+  const { narrate, flushHeldNotices, openHeld, narrationBefore, flushTargetClauses } = narrationStream({
     viewerSeat,
     queue,
     cardSiteRef,
@@ -644,6 +708,8 @@ export function useMatchCues({
     narrationPhaseOrdersRef,
     completedPhaseOrderRef,
     presentationReporterRef,
+    presentationPacingRef,
+    effectSequence,
     narrationSkipRef,
     deletionReadyAtRef,
     optionDockRef,
@@ -656,7 +722,9 @@ export function useMatchCues({
     setNarration,
     collapseNarrationRef,
     narrationLimitRef,
-    suppressedOwnEffectsRef,
+    targetDecisionRef,
+    targetClausesRef,
+    batchesRef,
     heldNoticesRef,
     heldPanelsRef,
     readOutHeldRef,
@@ -677,7 +745,12 @@ export function useMatchCues({
     });
   }, [narration]);
 
-  // Each record expires on its own clock, including while a decision is open.
+  // Questions can release a new clause; each visible toast keeps its arrival clock.
+  useLayoutEffect(() => {
+    flushTargetClauses();
+  }, [decisionPending, targetDecision?.decisionId]);
+
+  // Each record expires on its own clock, including while a chain asks questions.
   // Schedule only the next expiry, and cancel on unmount or replacement.
   useEffect(() => {
     if (narration.size === 0) return;
@@ -703,7 +776,7 @@ export function useMatchCues({
     setNarration((items) =>
       trimNarration(
         items,
-        collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimit,
+        collapseNarrationRef.current ? NARRATION_QUEUE_LIMIT : narrationLimit,
         collapseNarrationRef.current,
       ),
     );
@@ -808,7 +881,10 @@ export function useMatchCues({
 
   /** The board as it stands at a docked security reveal, before its effect has been read. */
   function securityEffectHoldState(): GameState | undefined {
-    return state ? snapshotGameState(state) : undefined;
+    const revision = presentationBatchRef.current?.stateVersion;
+    const revealBoard =
+      revision === undefined ? undefined : snapshots?.find((snapshot) => snapshot.stateVersion === revision)?.state;
+    return revealBoard ?? (state ? snapshotGameState(state) : undefined);
   }
 
   /**
@@ -833,6 +909,9 @@ export function useMatchCues({
       replayingHistory,
       continuingBatch,
       present: presentBatch,
+      presentationPacingRef,
+      effectSequence,
+      batchOf,
       viewerSeat,
       state,
       snapshots: snapshots ?? [],
@@ -849,6 +928,7 @@ export function useMatchCues({
       launchDeckToUnderFlight,
       flyDockedOptionUnder,
       flyCardToDeck,
+      flyCardToHand,
       releaseTrashArrivalsThrough,
       launchSecurityGainFlight,
       securityCountOf,
@@ -863,11 +943,11 @@ export function useMatchCues({
       heldOriginsRef,
       fieldClashKeyRef,
       openAttackRef,
+      combatLandedRef,
       lastVisibleArtRef,
       revealOnStageRef,
       pendingDigivolutionDrawRef,
       eventDrawCountsRef,
-      drawPhaseWaitingRef,
       sidePanelLookupRef,
       sidePanelSequenceRef,
       noticeSequenceRef,
@@ -885,6 +965,7 @@ export function useMatchCues({
       optionDockKeyRef,
       optionDockRef,
       decisionPendingRef,
+      decisionSourceCardIdRef,
       heldNoticesRef,
       heldPanelsRef,
       queuedSecurityKeyRef,
@@ -904,20 +985,18 @@ export function useMatchCues({
       securityAttackerRef,
       pendingDestructionsRef,
       deleteBurstKeyRef,
+      topResolutions,
       deletionReadyAtRef,
       deletionBurstPresentedRef,
       removalChainRef,
       setPendingPermanentIds,
-      setHeldDrawState,
       setZoneShowcase,
       setRevealShowcase,
       setPermanentBursts,
       setEffectSources,
       setDeckRiffles,
-      setSecurityFlights,
       setHeldMemory,
       setAttackAnnouncement,
-      setAttackLunge,
       setSecurityBreak,
       setSecurityHitSeat,
       setSecurityClash,
@@ -981,8 +1060,17 @@ export function useMatchCues({
     lastPresentedSeqRef.current = pending.at(-1)!.events.at(-1)?.seq ?? lastPresentedSeqRef.current;
     // Each batch is its own moment, in order, even when several arrive in one render.
     for (const batch of pending) {
+      // Receive passive data before effect-unit gates can stage its scene. A peel may
+      // already be running, so its DP handoff cannot wait for another presentation step.
+      if (!replayingHistory) topResolutions.record(batch.events);
+      try {
+        devProbeRef.current?.onBatch?.(batch);
+      } catch {
+        // Diagnostic transport must never interrupt the presentation.
+      }
       enqueuePhaseOrderRef.current = phaseOrderFor(batch.events);
       presentBatch(batch.id, batch.stateVersion, batch.events, replayingHistory);
+      effectSequence.noteVersion(batch.stateVersion);
       if (!replayingHistory) {
         for (const event of batch.events) {
           if (event.kind !== "dpModifierApplied" || event.delta === 0) continue;
@@ -1048,7 +1136,14 @@ export function useMatchCues({
     setHeldBlowState(undefined);
   }
 
+  // A question holds the effect that asked it; what the answer does gets its own beat.
+  const askingCardId = decisionPending ? decisionSourceCardId : undefined;
+  useEffect(() => {
+    if (presentationPacingRef.current === "sequential") effectSequence.noteQuestion(askingCardId);
+  }, [askingCardId, effectSequence]);
+
   useDecisionBarrier({
+    pendingEffectUnits: () => effectSequence.pendingCount(),
     decisionPending,
     decisionStateVersion,
     decisionAnimationsPending,
@@ -1066,6 +1161,59 @@ export function useMatchCues({
     setDecisionStalled,
     setPendingRevealKey,
   });
+
+  /*
+   * The cause of what the live state shows. The server sends a batch's state patch ahead of
+   * the batch's close, so a watcher can see a hand grow or a DP change before the batch that
+   * did it has been presented, while the gate at hand still belongs to an earlier effect.
+   * Under sequential pacing such a change waits for its own batch's effect instead.
+   */
+  const liveStateCauseRef = useMemo(
+    () => ({
+      get current(): PresentationGate | null {
+        const liveVersion = liveStateVersionRef.current;
+        if (presentationPacingRef.current !== "sequential" || liveVersion === undefined)
+          return causingEffectGateRef.current;
+        if (liveVersion > effectSequence.observedVersion()) return effectSequence.causeOfLiveChange(liveVersion);
+        const watchedVersion = watchedLiveVersionRef.current;
+        return (
+          (watchedVersion !== undefined && watchedVersion < liveVersion
+            ? effectSequence.causeOfObservedChange(watchedVersion)
+            : undefined) ?? causingEffectGateRef.current
+        );
+      },
+      set current(gate: PresentationGate | null) {
+        causingEffectGateRef.current = gate;
+      },
+    }),
+    [effectSequence],
+  );
+
+  /*
+   * The queue as the live-state watchers see it. A watcher reacts to the newest server state,
+   * so its cue belongs to the newest phase this client has heard of, not to the last phase
+   * whose ribbon finished. Stamped with that older phase, a DP pulse caused by a start-of-main
+   * effect became a prerequisite of the Main ribbon while it waited on that effect's clause,
+   * and the effect waited on the ribbon: every track froze until the gate ceilings ran out.
+   */
+  const liveStateQueue = useMemo<AnimationQueue>(
+    () => ({
+      ...queue,
+      enqueue(step) {
+        const batchPhaseOrder = enqueuePhaseOrderRef.current;
+        enqueuePhaseOrderRef.current = Math.max(
+          batchPhaseOrder ?? completedPhaseOrderRef.current,
+          nextPhaseOrderRef.current,
+        );
+        try {
+          queue.enqueue(step);
+        } finally {
+          enqueuePhaseOrderRef.current = batchPhaseOrder;
+        }
+      },
+    }),
+    [queue],
+  );
 
   // A timed answer cannot wait behind cosmetic beats: the authoritative reserve
   // may be almost empty. Catch the board up and release the security hold as soon
@@ -1089,20 +1237,33 @@ export function useMatchCues({
 
   useDpPulses({
     state,
-    queue,
+    preserveChanges: presentationPacing === "sequential",
+    snapshots,
+    contextOfRevision(stateVersion) {
+      const batch = batches.find((candidate) => candidate.stateVersion === stateVersion);
+      return {
+        gate:
+          stateVersion > effectSequence.observedVersion()
+            ? effectSequence.causeOfLiveChange(stateVersion)
+            : (effectSequence.causeOfObservedChange(stateVersion - 1) ?? causingEffectGateRef.current),
+        ...(batch ? { origin: { batchId: batch.id, stateVersion, phaseOrder: phaseOrderFor(batch.events) } } : {}),
+      };
+    },
+    queue: liveStateQueue,
     dpByPermanentRef,
     dpPulseKeyRef,
-    causingEffectGateRef,
+    causingEffectGateRef: liveStateCauseRef,
+    stackStripKeyRef: deleteBurstKeyRef,
     setDpPulses,
     setDpBadgeSuppressions,
   });
 
   useRestrictionPulses({
     state,
-    queue,
+    queue: liveStateQueue,
     restrictionsByPermanentRef,
     freezePulseKeyRef,
-    causingEffectGateRef,
+    causingEffectGateRef: liveStateCauseRef,
     setFreezePulses,
   });
 
@@ -1115,18 +1276,21 @@ export function useMatchCues({
     launchDeckToUnderFlight,
     flyCardUnder,
     flyCardToDeck,
+    flyCardToHand,
   } = cueFlights({
     queue,
     anchors,
+    presentationBatchRef,
     viewerSeat,
     causingEffectGateRef,
-    presentationBatchRef,
+    stackStripKeyRef: deleteBurstKeyRef,
     securityGainKeyRef,
     drawFlightKeyRef,
     setSecurityFlights,
     setSecurityDealCounts,
     setDrawFlights,
     setDrawBursts,
+    setHeldHandArrivals,
   });
 
   /** The docked Option card, drawn over the board, flies into the permanent it went under. */
@@ -1137,8 +1301,27 @@ export function useMatchCues({
     return docked ? flyCardUnder(card, docked, permanentId, context) : Promise.resolve(false);
   }
 
+  // State watchers use the newest phase and that snapshot's cause, including security growth.
+  const { launchDrawFlight: launchWatchedDrawFlight, launchSecurityGainFlight: launchWatchedSecurityGainFlight } =
+    cueFlights({
+      queue: liveStateQueue,
+      anchors,
+      viewerSeat,
+      causingEffectGateRef: liveStateCauseRef,
+      stackStripKeyRef: deleteBurstKeyRef,
+      presentationBatchRef,
+      securityGainKeyRef,
+      drawFlightKeyRef,
+      setSecurityFlights,
+      setSecurityDealCounts,
+      setDrawFlights,
+      setDrawBursts,
+      setHeldHandArrivals,
+    });
+
   useDrawWatcher({
     state,
+    snapshots,
     viewer: you,
     opponent: opp,
     viewerSeat,
@@ -1149,7 +1332,8 @@ export function useMatchCues({
     handCountsRef,
     turnStartDrawRef,
     eventDrawCountsRef,
-    launchDrawFlight: (side, turnStart) => launchDrawFlight(side, turnStart, 0, undefined, deleteBurstKeyRef.current),
+    launchDrawFlight: (side, turnStart, waitBeforeMs, card, arrived, draw) =>
+      launchWatchedDrawFlight(side, turnStart, waitBeforeMs, card, arrived, draw, deleteBurstKeyRef.current),
   });
 
   useSecurityCountWatcher({
@@ -1171,9 +1355,14 @@ export function useMatchCues({
           securityGrowthSeatOf(event) === seat,
       ),
     launchOpeningSecurityDeal,
-    launchSecurityGainFlight,
+    launchSecurityGainFlight: launchWatchedSecurityGainFlight,
     narrate,
   });
+
+  // Declared after every state watcher, so each of them compared against the previous revision.
+  useEffect(() => {
+    watchedLiveVersionRef.current = state?.stateVersion;
+  }, [state?.stateVersion]);
 
   /** The items on screen, in slot order, so the read-only views below are stable. */
   const presented = useMemo(() => [...narration.values()], [narration]);
@@ -1208,6 +1397,7 @@ export function useMatchCues({
   function fastForward() {
     presentationTelemetry.countSkip();
     narrationSkipRef.current = true;
+    targetClausesRef.current.clear();
     narrationPhaseOrdersRef.current.clear();
     setNarration(new Map());
     queue.skip();
@@ -1215,6 +1405,7 @@ export function useMatchCues({
       narrationSkipRef.current = false;
     });
   }
+  fastForwardRef.current = fastForward;
 
   // Refusals expire independently of the recent effect records.
   useEffect(() => {
@@ -1232,47 +1423,6 @@ export function useMatchCues({
     narrationLock,
     sidePanels,
     notices,
-    dismissOwnEffectNotice: (cardId: string, scope?: EffectNoticeScope) => {
-      const reopened = suppressedOwnEffectsRef.current.get(cardId);
-      if (reopened !== undefined) {
-        clearTimeout(reopened.releaseTimer);
-        delete reopened.releaseTimer;
-      }
-      const dialog = reopened ?? { deferred: [] };
-      dialog.scope = scope;
-      suppressedOwnEffectsRef.current.set(cardId, dialog);
-      const held = heldNoticesRef.current.filter((notice) => isOwnEffectNotice(notice, cardId, scope));
-      heldNoticesRef.current = heldNoticesRef.current.filter((notice) => !held.includes(notice));
-      // Already on screen: the dialog is about to print the same clause, so the item gives
-      // its notice to the dialog and keeps only its panel, if it has one.
-      const shownIds = new Set<string>();
-      for (const item of narrationRef.current.values()) {
-        if (item.notice === undefined || !isOwnEffectNotice(item.notice, cardId, scope)) continue;
-        shownIds.add(item.id);
-        dialog.deferred.push(item.notice);
-      }
-      dialog.deferred.push(...held);
-      if (shownIds.size === 0) return;
-      setNarration((slots) => {
-        const next = new Map(slots);
-        for (const [slot, item] of slots) {
-          if (!shownIds.has(item.id)) continue;
-          if (item.panel) next.set(slot, { ...item, notice: undefined });
-          else next.delete(slot);
-        }
-        return next;
-      });
-    },
-    releaseOwnEffectNotice: (cardId: string) => {
-      const dialog = suppressedOwnEffectsRef.current.get(cardId);
-      if (dialog === undefined) return;
-      clearTimeout(dialog.releaseTimer);
-      dialog.releaseTimer = setTimeout(() => {
-        if (suppressedOwnEffectsRef.current.get(cardId) !== dialog) return;
-        suppressedOwnEffectsRef.current.delete(cardId);
-        publishNow(dialog.deferred, lastBatchIdRef.current);
-      }, TIMINGS.ownEffectNoticeReturn);
-    },
     raiseRejection: (reason: string) => {
       noticeSequenceRef.current += 1;
       setRejection(rejectionNotice(reason, `notice-${noticeSequenceRef.current}`, Date.now()));
@@ -1294,7 +1444,6 @@ export function useMatchCues({
     revealShowcase,
     permanentBursts,
     pendingPermanentIds,
-    attackLunge,
     effectSources,
     deckRiffles,
     securityFlights,
@@ -1310,6 +1459,7 @@ export function useMatchCues({
     heldDeletions,
     heldStackStrips,
     heldTrashArrivals,
+    heldHandArrivals,
     displayedPhase: pendingPhaseBanners > 0 ? announcedPhase : state?.phase,
     displayedTurn: pendingPhaseBanners > 0 ? announcedTurn : state && { seat: state.turnSeat, count: state.turnCount },
     heldSuspendedIds,

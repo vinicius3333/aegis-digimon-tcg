@@ -36,7 +36,13 @@ export function MemoryBand({
   return (
     <div className="game-memory-band" style={{ flexShrink: 0, position: "relative" }}>
       {phaseBanner ? (
-        <div className="game-phase-banner" data-side={phaseBanner.side} key={phaseBanner.key} role="status">
+        <div
+          className="game-phase-banner"
+          data-side={phaseBanner.side}
+          data-phase-key={phaseBanner.key}
+          key={phaseBanner.key}
+          role="status"
+        >
           <span>{t(phaseBanner.labelKey)}</span>
         </div>
       ) : null}

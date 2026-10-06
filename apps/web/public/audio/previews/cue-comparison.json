@@ -1,0 +1,506 @@
+{
+  "version": 1,
+  "sampleRate": 48000,
+  "channels": 1,
+  "priorFullBankSha256": "5700989d78a56b4500e5741d3ca06b85fab6e0bcb267c4c341b154b9f3faf420",
+  "priorRevision": "fd80df166bc38a25df184b729a73eeea6113e56b",
+  "priorRendererSha256": "292e2c79830dbd9206c76b68b74ad7fe23370171412bf763146aa9969ef802ac",
+  "previous": {
+    "url": "/audio/previews/prior-cues.wav?v=1543d3e034ab",
+    "seconds": 6.5,
+    "peak": 0.17559814453125,
+    "peakDbFS": -15.109601548108213,
+    "rms": 0.01765849318301104,
+    "dc": -0.0000022519429524739585,
+    "maximumStep": 0.082977294921875,
+    "boundaryStep": 0,
+    "bytes": 624044,
+    "sha256": "1543d3e034ab14d9e8dceed0d6ed56f42025780791da1418230e10e4e21172c0"
+  },
+  "current": {
+    "url": "/audio/aegis-cues-v2.wav?v=4422087ab1cc",
+    "seconds": 45.32875,
+    "peak": 0.2015380859375,
+    "peakDbFS": -13.912857407379239,
+    "rms": 0.009268024741572761,
+    "dc": -2.2624003123305206e-7,
+    "maximumStep": 0.17291259765625,
+    "boundaryStep": 0,
+    "bytes": 4351604,
+    "sha256": "4422087ab1cc1963ccc0d548c265223d48d4cf206fc1e115077534c3d24db31f"
+  },
+  "examples": [
+    {
+      "key": "draw",
+      "kind": "draw",
+      "details": {},
+      "label": "Draw",
+      "previous": {
+        "offset": 0,
+        "duration": 0.16,
+        "metrics": {
+          "seconds": 0.16,
+          "peak": 0.06358817964792252,
+          "peakDbFS": -23.932472149542434,
+          "rms": 0.006345792780403992,
+          "dc": -4.824371664464077e-7,
+          "maximumStep": 0.056011002510786057,
+          "boundaryStep": 0
+        },
+        "url": "/audio/previews/prior-draw.wav?v=5d0b9c286519",
+        "sha256": "5d0b9c2865198ede0a3ed4260519cc0d12ede74ab7550b819629accb9d864741",
+        "bytes": 15404
+      },
+      "current": {
+        "offset": 6.805541666666667,
+        "duration": 0.139375,
+        "metrics": {
+          "seconds": 0.139375,
+          "peak": 0.13624128699302673,
+          "peakDbFS": -17.313825249921177,
+          "rms": 0.01424176497467884,
+          "dc": 5.372093143923815e-7,
+          "maximumStep": 0.061990343034267426,
+          "boundaryStep": 0
+        }
+      }
+    },
+    {
+      "key": "cardPlay-2-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 2
+      },
+      "label": "Light play",
+      "previous": {
+        "offset": 0.185,
+        "duration": 0.284,
+        "metrics": {
+          "seconds": 0.284,
+          "peak": 0.12047917395830154,
+          "peakDbFS": -18.381760375752833,
+          "rms": 0.019561853776945966,
+          "dc": -5.749028977337839e-7,
+          "maximumStep": 0.06323651131242514,
+          "boundaryStep": 0
+        },
+        "url": "/audio/previews/prior-cardPlay-2-plain.wav?v=155eca468a15",
+        "sha256": "155eca468a15280fa27ee3046be79f410915ac92ad80f85e2edd4d81be7f5f93",
+        "bytes": 27308
+      },
+      "current": {
+        "offset": 12.499479166666667,
+        "duration": 0.18966666666666668,
+        "metrics": {
+          "seconds": 0.18966666666666668,
+          "peak": 0.1390085518360138,
+          "peakDbFS": -17.139169620681397,
+          "rms": 0.011762448062901176,
+          "dc": -1.5810630464430526e-7,
+          "maximumStep": 0.06763695704285055,
+          "boundaryStep": 0
+        }
+      }
+    },
+    {
+      "key": "cardPlay-12-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 12
+      },
+      "label": "Heavy play",
+      "previous": {
+        "offset": 0.494,
+        "duration": 0.404,
+        "metrics": {
+          "seconds": 0.404,
+          "peak": 0.17558914422988892,
+          "peakDbFS": -15.110046755704563,
+          "rms": 0.030619355172758125,
+          "dc": -0.000005978882158792613,
+          "maximumStep": 0.0679912306368351,
+          "boundaryStep": 0
+        },
+        "url": "/audio/previews/prior-cardPlay-12-plain.wav?v=48ca58cf345e",
+        "sha256": "48ca58cf345e31f2d818b2150bb3b82b4f6075e5c0cf651ddf1cf14a9a83141d",
+        "bytes": 38828
+      },
+      "current": {
+        "offset": 17.74625,
+        "duration": 0.254625,
+        "metrics": {
+          "seconds": 0.254625,
+          "peak": 0.17314203083515167,
+          "peakDbFS": -15.231949856355236,
+          "rms": 0.008327444964679348,
+          "dc": 3.881763593882794e-8,
+          "maximumStep": 0.1270600687712431,
+          "boundaryStep": 0
+        }
+      }
+    },
+    {
+      "key": "effectFocus",
+      "kind": "effectFocus",
+      "details": {},
+      "label": "Focus",
+      "previous": {
+        "offset": 0.923,
+        "duration": 0.28,
+        "metrics": {
+          "seconds": 0.28,
+          "peak": 0.04499160870909691,
+          "peakDbFS": -26.937369560563663,
+          "rms": 0.008673419798188567,
+          "dc": 5.215984870861354e-8,
+          "maximumStep": 0.023219008930027485,
+          "boundaryStep": 0
+        },
+        "url": "/audio/previews/prior-effectFocus.wav?v=0605dd4d0320",
+        "sha256": "0605dd4d03208f54c965662079f0dd8e5967623f917f21818f86cd11a4d55675",
+        "bytes": 26924
+      },
+      "current": {
+        "offset": 3.3632708333333334,
+        "duration": 0.163375,
+        "metrics": {
+          "seconds": 0.163375,
+          "peak": 0.08987210690975189,
+          "peakDbFS": -20.927501536821786,
+          "rms": 0.005813466597046216,
+          "dc": -3.511035571524636e-8,
+          "maximumStep": 0.03293957747519016,
+          "boundaryStep": 0
+        }
+      }
+    },
+    {
+      "key": "effectActivate",
+      "kind": "effectActivate",
+      "details": {},
+      "label": "Effect",
+      "previous": {
+        "offset": 1.228,
+        "duration": 0.372,
+        "metrics": {
+          "seconds": 0.372,
+          "peak": 0.10438242554664612,
+          "peakDbFS": -19.62745231223142,
+          "rms": 0.013191573569626037,
+          "dc": 2.795279549790767e-8,
+          "maximumStep": 0.07240203022956848,
+          "boundaryStep": 0
+        },
+        "url": "/audio/previews/prior-effectActivate.wav?v=c9aac345a0e3",
+        "sha256": "c9aac345a0e33ed0e6dd12e4c6a8ff534263cbf79bca26a3245e4c6bc3c94ae1",
+        "bytes": 35756
+      },
+      "current": {
+        "offset": 3.551645833333333,
+        "duration": 0.2191875,
+        "metrics": {
+          "seconds": 0.2191875,
+          "peak": 0.12978316843509674,
+          "peakDbFS": -17.735632549749354,
+          "rms": 0.009385193225896014,
+          "dc": 6.738576228607461e-7,
+          "maximumStep": 0.1324266940355301,
+          "boundaryStep": 0
+        }
+      }
+    },
+    {
+      "key": "endTurn",
+      "kind": "endTurn",
+      "details": {},
+      "label": "End turn",
+      "previous": {
+        "offset": 1.625,
+        "duration": 0.425,
+        "metrics": {
+          "seconds": 0.425,
+          "peak": 0.05784895643591881,
+          "peakDbFS": -24.754089421611898,
+          "rms": 0.011635568902449817,
+          "dc": -0.000017300280068467367,
+          "maximumStep": 0.02663519885390997,
+          "boundaryStep": 0
+        },
+        "url": "/audio/previews/prior-endTurn.wav?v=2cb94138714a",
+        "sha256": "2cb94138714ad232e263a0cd71b31b7be0e7b2455e08aa3ca1751cb831762f21",
+        "bytes": 40844
+      },
+      "current": {
+        "offset": 2.6943333333333332,
+        "duration": 0.34427083333333336,
+        "metrics": {
+          "seconds": 0.34427083333333336,
+          "peak": 0.1011536493897438,
+          "peakDbFS": -19.900368885399317,
+          "rms": 0.00829607710720532,
+          "dc": -5.078400668152394e-7,
+          "maximumStep": 0.08673901483416557,
+          "boundaryStep": 0
+        }
+      }
+    },
+    {
+      "key": "handTrash",
+      "kind": "handTrash",
+      "details": {},
+      "label": "Hand trash",
+      "previous": {
+        "offset": 2.075,
+        "duration": 0.255,
+        "metrics": {
+          "seconds": 0.255,
+          "peak": 0.06746748834848404,
+          "peakDbFS": -23.418109145552016,
+          "rms": 0.006320637473757769,
+          "dc": -9.734680814647132e-7,
+          "maximumStep": 0.042509326711297035,
+          "boundaryStep": 0
+        },
+        "url": "/audio/previews/prior-handTrash.wav?v=65e5d6a99266",
+        "sha256": "65e5d6a99266a5e86fd0b0a3547ea70f3dc31dd6ae71f864840f3b4752798173",
+        "bytes": 24524
+      },
+      "current": {
+        "offset": 3.7958333333333334,
+        "duration": 0.5219583333333333,
+        "metrics": {
+          "seconds": 0.5219583333333333,
+          "peak": 0.11845634132623672,
+          "peakDbFS": -18.528833704434085,
+          "rms": 0.007735856449343577,
+          "dc": 4.198984845669254e-7,
+          "maximumStep": 0.1149120181798935,
+          "boundaryStep": 0
+        }
+      }
+    },
+    {
+      "key": "sourceTrash",
+      "kind": "sourceTrash",
+      "details": {},
+      "label": "Stack trash",
+      "previous": {
+        "offset": 2.355,
+        "duration": 0.22,
+        "metrics": {
+          "seconds": 0.22,
+          "peak": 0.04708018898963928,
+          "peakDbFS": -26.543236049540305,
+          "rms": 0.004741082956484222,
+          "dc": 4.460549934209611e-7,
+          "maximumStep": 0.039756341837346554,
+          "boundaryStep": 0
+        },
+        "url": "/audio/previews/prior-sourceTrash.wav?v=3c17f88209a4",
+        "sha256": "3c17f88209a41e132c211c1affa10957c9441dd02d354e9f6d9d4c85af082538",
+        "bytes": 21164
+      },
+      "current": {
+        "offset": 4.342791666666667,
+        "duration": 0.343875,
+        "metrics": {
+          "seconds": 0.343875,
+          "peak": 0.11560416966676712,
+          "peakDbFS": -18.740530025816646,
+          "rms": 0.014464446592054985,
+          "dc": -2.482260105172524e-7,
+          "maximumStep": 0.08343369339127094,
+          "boundaryStep": 0
+        }
+      }
+    },
+    {
+      "key": "deDigivolve",
+      "kind": "deDigivolve",
+      "details": {},
+      "label": "De-digivolution",
+      "previous": {
+        "offset": 2.6,
+        "duration": 0.445,
+        "metrics": {
+          "seconds": 0.445,
+          "peak": 0.07361479103565216,
+          "peakDbFS": -22.660698327438777,
+          "rms": 0.013895575353487564,
+          "dc": -0.00000859390680659085,
+          "maximumStep": 0.03980164625681937,
+          "boundaryStep": 0
+        },
+        "url": "/audio/previews/prior-deDigivolve.wav?v=da918ee7a8a9",
+        "sha256": "da918ee7a8a9d96544115a6993303f8b228c6b37bee9bcfc8dc49a5ca46b5595",
+        "bytes": 42764
+      },
+      "current": {
+        "offset": 4.711666666666667,
+        "duration": 0.6469583333333333,
+        "metrics": {
+          "seconds": 0.6469583333333333,
+          "peak": 0.11921679973602295,
+          "peakDbFS": -18.473250811620577,
+          "rms": 0.009033553971821488,
+          "dc": -2.362803374499845e-8,
+          "maximumStep": 0.1021123118698597,
+          "boundaryStep": 0
+        }
+      }
+    },
+    {
+      "key": "digivolve-3-4",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 3,
+        "targetLevel": 4
+      },
+      "label": "Evolution 3 to 4",
+      "previous": {
+        "offset": 3.07,
+        "duration": 0.79,
+        "metrics": {
+          "seconds": 0.79,
+          "peak": 0.09935958683490753,
+          "peakDbFS": -20.05580446164556,
+          "rms": 0.019657330303622395,
+          "dc": -3.8147440742644793e-7,
+          "maximumStep": 0.07906387746334076,
+          "boundaryStep": 0
+        },
+        "url": "/audio/previews/prior-digivolve-3-4.wav?v=f88b41ddefbe",
+        "sha256": "f88b41ddefbe1f4835c4943a9c0392528068adfe740bb285694340fcbd33b39e",
+        "bytes": 75884
+      },
+      "current": {
+        "offset": 29.365583333333333,
+        "duration": 0.414625,
+        "metrics": {
+          "seconds": 0.414625,
+          "peak": 0.13198527693748474,
+          "peakDbFS": -17.589490239736,
+          "rms": 0.009520434391089388,
+          "dc": 1.432450901869752e-7,
+          "maximumStep": 0.09685726929455996,
+          "boundaryStep": 0
+        }
+      }
+    },
+    {
+      "key": "digivolve-4-5",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 4,
+        "targetLevel": 5
+      },
+      "label": "Evolution 4 to 5",
+      "previous": {
+        "offset": 3.885,
+        "duration": 0.81,
+        "metrics": {
+          "seconds": 0.81,
+          "peak": 0.10368134081363678,
+          "peakDbFS": -19.68598790227086,
+          "rms": 0.019932834468979446,
+          "dc": 7.618411142212354e-8,
+          "maximumStep": 0.08296027034521103,
+          "boundaryStep": 0
+        },
+        "url": "/audio/previews/prior-digivolve-4-5.wav?v=d5bfc9a3d164",
+        "sha256": "d5bfc9a3d164320d6e91f9536f81725ba46ad561406c84a2e8268433da4e4bca",
+        "bytes": 77804
+      },
+      "current": {
+        "offset": 33.28970833333333,
+        "duration": 0.426625,
+        "metrics": {
+          "seconds": 0.426625,
+          "peak": 0.13837167620658875,
+          "peakDbFS": -17.179055961465775,
+          "rms": 0.009532103913034906,
+          "dc": 1.4014532141724177e-7,
+          "maximumStep": 0.10154391452670097,
+          "boundaryStep": 0
+        }
+      }
+    },
+    {
+      "key": "digivolve-5-6",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 5,
+        "targetLevel": 6
+      },
+      "label": "Evolution 5 to 6",
+      "previous": {
+        "offset": 4.72,
+        "duration": 0.83,
+        "metrics": {
+          "seconds": 0.83,
+          "peak": 0.1165945827960968,
+          "peakDbFS": -18.66643254495625,
+          "rms": 0.019868666326305,
+          "dc": -3.362160917894871e-7,
+          "maximumStep": 0.06972994655370712,
+          "boundaryStep": 0
+        },
+        "url": "/audio/previews/prior-digivolve-5-6.wav?v=551d29680db9",
+        "sha256": "551d29680db949409683dd52cd62e1cb24402ffe219201779dedbd19d759fe9f",
+        "bytes": 79724
+      },
+      "current": {
+        "offset": 37.167833333333334,
+        "duration": 0.7089583333333334,
+        "metrics": {
+          "seconds": 0.7089583333333334,
+          "peak": 0.14731572568416595,
+          "peakDbFS": -16.635017810829392,
+          "rms": 0.008025426912206124,
+          "dc": -3.9062911145965185e-7,
+          "maximumStep": 0.11659239046275616,
+          "boundaryStep": 0
+        }
+      }
+    },
+    {
+      "key": "digivolve-3-6",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 3,
+        "targetLevel": 6
+      },
+      "label": "Evolution 3 to 6",
+      "previous": {
+        "offset": 5.575,
+        "duration": 0.9,
+        "metrics": {
+          "seconds": 0.9,
+          "peak": 0.09868331998586655,
+          "peakDbFS": -20.115124960847574,
+          "rms": 0.01926254088728122,
+          "dc": -1.8596772828420696e-7,
+          "maximumStep": 0.07468526251614094,
+          "boundaryStep": 0
+        },
+        "url": "/audio/previews/prior-digivolve-3-6.wav?v=8ee48c24c8c5",
+        "sha256": "8ee48c24c8c5e65fa1c5d79be78240a69e3f4a7b27d0de1fafeedaf41cd00ae6",
+        "bytes": 86444
+      },
+      "current": {
+        "offset": 30.324833333333334,
+        "duration": 0.8449583333333334,
+        "metrics": {
+          "seconds": 0.8449583333333334,
+          "peak": 0.14731572568416595,
+          "peakDbFS": -16.635017810829392,
+          "rms": 0.008739808240889227,
+          "dc": -3.2775445974591234e-7,
+          "maximumStep": 0.11659239046275616,
+          "boundaryStep": 0
+        }
+      }
+    }
+  ],
+  "listeningStatus": "Comparison prepared for listening; no subjective acceptance claimed"
+}

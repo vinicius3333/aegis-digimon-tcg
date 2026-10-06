@@ -11,17 +11,24 @@ export function heldDeletionFrom({
   snapshots,
   seat,
   permanentId,
+  topInstanceId,
 }: {
   snapshots: readonly StateSnapshot[];
   /** The owner when the event names one; otherwise both seats are searched. */
   seat: Seat | undefined;
   permanentId: string;
+  /** A stack-top removal must hold the version that still shows the departing top. */
+  topInstanceId?: string;
 }): HeldDeletion | undefined {
   for (let cursor = snapshots.length - 1; cursor >= 0; cursor -= 1) {
     const players = snapshots[cursor]!.state.players;
     for (const [playerSeat, player] of players.entries()) {
       if (seat !== undefined && playerSeat !== seat) continue;
-      const index = player.battleArea.findIndex((permanent) => permanent.permanentId === permanentId);
+      const index = player.battleArea.findIndex(
+        (permanent) =>
+          permanent.permanentId === permanentId &&
+          (topInstanceId === undefined || permanent.topCard?.instanceId === topInstanceId),
+      );
       if (index < 0) continue;
       return { seat: playerSeat as Seat, permanent: player.battleArea[index]!, index, trash: player.trash };
     }

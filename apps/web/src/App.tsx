@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { installAudioLifecycle } from "./design/sound";
 import { Stage, TopNav, type PlayerIdentity, type Screen } from "./design/primitives";
 import { AegisEmblem } from "./design/AegisLogo";
 import { CircuitBackdrop } from "./design/CircuitBackdrop";
@@ -30,6 +31,7 @@ import { pathForRoute, routeFromPathname, type AppRoute } from "./routes";
 import { roomCodeFromSearch } from "./roomInvite";
 import { isBattleLabPath } from "./dev/BattleLab";
 import { isUiPreviewPath } from "./prototype/routes";
+import { SEQUENTIAL_PACING_ENABLED } from "./features";
 import { clearReconnectSession, loadReconnectSession } from "./net/reconnectSession";
 
 const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
@@ -43,6 +45,8 @@ const CardEffectsDemo = lazy(() => import("./dev/CardEffectsDemo").then((m) => (
 const BoardShowcase = lazy(() => import("./dev/BoardShowcase").then((m) => ({ default: m.BoardShowcase })));
 const BattleLab = lazy(() => import("./dev/BattleLab").then((m) => ({ default: m.BattleLab })));
 const LiveArenaDemo = lazy(() => import("./dev/LiveArenaDemo").then((m) => ({ default: m.LiveArenaDemo })));
+const EffectsLab = lazy(() => import("./dev/EffectsLab").then((m) => ({ default: m.EffectsLab })));
+const MotionReference = lazy(() => import("./dev/MotionReference").then((m) => ({ default: m.MotionReference })));
 const ArenaDemo = lazy(() => import("./dev/ArenaDemo").then((m) => ({ default: m.ArenaDemo })));
 const BadgeLayoutLab = lazy(() => import("./dev/BadgeLayoutLab").then((m) => ({ default: m.BadgeLayoutLab })));
 const UiPreview = lazy(() => import("./prototype/UiPreview").then((m) => ({ default: m.UiPreview })));
@@ -52,6 +56,10 @@ const MobileComponentsLab = lazy(() =>
 
 export function isBoardShowcasePath(pathname: string): boolean {
   return /^\/dev\/board\/?$/i.test(pathname);
+}
+
+export function isEffectsLabPath(pathname: string): boolean {
+  return /^\/dev\/effects-lab\/?$/i.test(pathname);
 }
 
 export function isMobileComponentsLabPath(pathname: string): boolean {
@@ -107,18 +115,25 @@ export function initialAppRoute({
 }
 
 export function App() {
+  useEffect(installAudioLifecycle, []);
   const pathname = window.location.pathname;
   const labCardId = cardEffectsLabCardId(pathname);
   return (
     <I18nProvider>
       <Suspense fallback={<ScreenFallback />}>
-        {/^\/dev\/badges\/?$/i.test(pathname) ? (
+        {import.meta.env.DEV && /^\/dev\/motion-reference\/?$/i.test(pathname) ? (
+          <MotionReference />
+        ) : /^\/dev\/badges\/?$/i.test(pathname) ? (
           <BadgeLayoutLab />
         ) : labCardId ? (
           <CardEffectsDemo cardId={labCardId} />
         ) : /^\/dev\/arena\/?$/i.test(pathname) ? (
           <Stage>
             {new URLSearchParams(window.location.search).get("mode") === "visual" ? <ArenaDemo /> : <LiveArenaDemo />}
+          </Stage>
+        ) : isEffectsLabPath(pathname) ? (
+          <Stage>
+            <EffectsLab />
           </Stage>
         ) : isBoardShowcasePath(pathname) ? (
           <BoardShowcase />
@@ -475,6 +490,7 @@ export function AegisClient({
               waitForHost={startMode === "private_guest" && privateRoom?.code === roomCode}
               botDeckId={botDeckId}
               betaBattleMode={betaBattleMode}
+              presentationPacing={SEQUENTIAL_PACING_ENABLED ? "sequential" : "current"}
               signedIn={!!account}
               onExit={navigateScreen}
               onRematch={(privateRoomCode) => {

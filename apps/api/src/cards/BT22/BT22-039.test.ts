@@ -136,17 +136,18 @@ describe("BT22-039 Ouranosmon — KB Q&A rulings", () => {
 
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === ouranosmonId);
     expect(played).toBeDefined();
-    expect(s.events).toContainEqual(
-      expect.objectContaining({
-        kind: "effectTriggered",
-        sourceCardId: "BT22-039",
-        sourcePermanentId: played!.permanentId,
-        description: expect.stringContaining("When any of your Digimon are played"),
-      }),
-    );
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT22-039")).toBe(false);
     expect(s.decisions.find(({ req }) => req.kind === "optional")).toMatchObject({
       seat: 0,
-      req: { promptText: "Link", options: { timing: "AllTurns" } },
+      req: {
+        sourcePermanentId: played!.permanentId,
+        promptText: "Link",
+        options: {
+          timing: "AllTurns",
+          activationConfirmation: true,
+          effectText: expect.stringContaining("When any of your Digimon are played"),
+        },
+      },
     });
   });
 });

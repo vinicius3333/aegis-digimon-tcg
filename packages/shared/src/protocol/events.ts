@@ -67,6 +67,28 @@ export type DigivolveMechanic =
  */
 export type PreventionKeyword = "Scapegoat" | "Decoy" | "Guard" | "Fragment" | "Armor Purge" | "Delay";
 
+/** One pending effect in a {@link ServerEvent} `resolutionOrderChosen` answer. */
+export interface ResolutionOrderEntry {
+  /**
+   * The source card. Absent when the source sits where the opponent cannot see it (hand,
+   * deck, face-down security): naming it would reveal the card.
+   */
+  sourceCardId?: string;
+  /** Firing window label, as `orderTriggers` lists it (e.g. "OnPlay"). */
+  timing?: string;
+  /** The clause, absent under the same rule as `sourceCardId`. */
+  description?: string;
+}
+
+/** The public faces of an effect battle's two Digimon, read at the comparison. */
+export interface EffectBattleParticipants {
+  attackerSeat: Seat;
+  attackerCardId: string;
+  attackerArtId?: string;
+  defenderCardId: string;
+  defenderArtId?: string;
+}
+
 export type ServerEvent =
   | { kind: "matchStarted"; firstSeat: Seat }
   | { kind: "phaseChanged"; phase: string; turnSeat: Seat; turnCount: number }
@@ -75,6 +97,10 @@ export type ServerEvent =
       artId?: string;
       seat: Seat;
       cardId: string;
+      /** Exact public played instance and its origin, captured before entering the field. */
+      instanceId?: string;
+      fromZone?: string;
+      fromPermanentId?: string;
       permanentId?: string;
       /** Present when this play IS a digivolution mechanic that the engine models as a play
        * rather than as a `digivolved` event: DNA digivolve (§8-2-2) consumes two permanents,
@@ -154,6 +180,18 @@ export type ServerEvent =
   | { kind: "evadeResolved"; permanentId: string; accepted: boolean }
   | { kind: "barrierPrompt"; permanentId: string }
   | { kind: "barrierResolved"; permanentId: string; accepted: boolean }
+  /** A permanent battle, before optional deletion protection.
+   * Losers are deletion candidates after unconditional immunity, and may still survive
+   * Barrier/Evade/etc. combatResolved carries a declared attack's final deletions.
+   * `effectBattle` marks a battle an effect started (for example EX13-076): it is never the
+   * open attack's own battle, even against the same pair, and closes no attack. */
+  | {
+      kind: "battleCompared";
+      attackerPermanentId: string;
+      defenderPermanentId: string;
+      loserPermanentIds: string[];
+      effectBattle?: EffectBattleParticipants;
+    }
   | { kind: "combatResolved"; seat: Seat; attackerPermanentId: string; deletedPermanentIds: string[] }
   /**
    * The attack `attackDeclared` opened is over, after End of Attack and after any
@@ -241,11 +279,19 @@ export type ServerEvent =
       sourcePermanentId: string;
       targetPermanentIds: string[];
     }
-  | { kind: "effectActivated"; seat: Seat; sourceCardId: string; effectKey: string; description: string }
   | {
-      // A triggered effect (On Play / When Digivolving / ...) STARTED resolving. Emitted
-      // before the effect's optional prompt and any in-body decisions, so the client can
-      // announce the effect ahead of the "opponent is selecting" wait it may open.
+      kind: "effectActivated";
+      seat: Seat;
+      sourceCardId: string;
+      effectKey: string;
+      description: string;
+      /** Main action completed; accepted activation is narrated by its effectTriggered lifecycle. */
+      receiptOnly?: true;
+    }
+  | {
+      // An effect accepted its processing. Emitted before its first cost/result mutation,
+      // after any initial optional activation question. Pending questions explain their
+      // own source/clause; declining them never opens a public effect lifecycle.
       kind: "effectTriggered";
       /** A leave prevention resolves before its source's attempted removal. */
       beforeRemoval?: boolean;
@@ -271,6 +317,18 @@ export type ServerEvent =
        * actually been shown.
        */
       duringSecurityCheck?: boolean;
+    }
+  | {
+      // A seat answered an `orderTriggers` prompt. Public, so the other client can show which
+      // pending effects are about to resolve, and in what order, while the chain plays out.
+      kind: "resolutionOrderChosen";
+      seat: Seat;
+      /**
+       * The effects the answer puts next, first to resolve first. A full resolution plan lists
+       * every offered effect; a single pick lists only the one chosen, because the order of
+       * the rest is not decided yet.
+       */
+      entries: ResolutionOrderEntry[];
     }
   | {
       // The controller chose one option of an "activate 1 of the effects below" clause.
@@ -321,7 +379,7 @@ export type ServerEvent =
         seat: Seat;
       }[];
       /**
-       * Field permanents a move returned whole to a deck, captured before removal so the client
+       * Field permanents a move returned whole to hand or deck, captured before removal so the client
        * can send each one from where it stood. Absent for cards returned from any other zone.
        */
       returnedPermanents?: {
@@ -345,12 +403,15 @@ export type ServerEvent =
       }[];
       /**
        * Top cards stripped off a permanent that stays on the field (＜De-Digivolve＞, or an
-       * effect that trashes stack tops). The permanent was not deleted, so it gets no
+       * effect that trashes stack tops, or an Armor Purge cost). The permanent was not
+       * deleted, so it gets no
        * `deletedPermanents` entry; `cardIds` and `seat` name the stripped cards and their owner.
        */
       strippedStackTops?: {
         permanentId: string;
-        reason: "deDigivolve" | "trashTop";
+        reason: "deDigivolve" | "trashTop" | "armorPurge";
+        /** One atomic stripping invocation; each move waits for its matching resolved top. */
+        sequenceId?: string;
         /** The card whose effect stripped the stack, when an effect did. */
         sourceCardId?: string;
       };
@@ -362,6 +423,8 @@ export type ServerEvent =
       trashedSources?: {
         permanentId: string;
         hostCardId: string;
+        /** Public field DP before paying Digi-Burst, held until its source removal is shown. */
+        digiBurstDpBefore?: { permanentId: string; currentDP: number }[];
         /** The card whose effect trashed them, when an effect did. */
         sourceCardId?: string;
       };
@@ -376,6 +439,9 @@ export type ServerEvent =
        * still on the board.
        */
       battleDeletion?: true;
+      /** A draw, another hand addition, or an internal bridge to an immediate play/use.
+       * Carries no card identity. A staging move is not a visible hand arrival. */
+      handAddition?: "draw" | "transfer" | "staging";
       /** Automatic bonus draw from digivolution, rather than a card effect. */
       drawReason?: "digivolution";
       /** The card finished resolving after it was used as an Option, not discarded by an effect. */
@@ -397,6 +463,16 @@ export type ServerEvent =
        * they joined (an effect adding to security, whose face-down cards stay unnamed).
        */
       seat?: Seat;
+    }
+  | {
+      /** Passive derivation after one physical peel, without a new effect/rules window. */
+      kind: "stackTopResolved";
+      sequenceId: string;
+      permanentId: string;
+      strippedInstanceId: string;
+      topInstanceId: string;
+      baseDP: number;
+      currentDP: number;
     }
   | { kind: "turnEnded"; endingSeat: Seat; nextSeat: Seat; turnCount: number } // turn transition overlay
   | {
@@ -475,6 +551,7 @@ export const SERVER_EVENT_KINDS = [
   "evadeResolved",
   "barrierPrompt",
   "barrierResolved",
+  "battleCompared",
   "combatResolved",
   "attackEnded",
   "deletionPrevented",
@@ -486,10 +563,12 @@ export const SERVER_EVENT_KINDS = [
   "effectTargetsSelected",
   "effectActivated",
   "effectTriggered",
+  "resolutionOrderChosen",
   "effectOptionChosen",
   "effectResolved",
   "dpModifierApplied",
   "cardsMoved",
+  "stackTopResolved",
   "turnEnded",
   "actionRejected",
   "gameOver",
@@ -653,6 +732,10 @@ export interface DecisionRequest {
     timing?: string; // printed timing label of the resolving effect (e.g. "On Play"), for the overlay to show only that clause
     /** Exact clause that raised this decision, preserving main/inherited provenance without client-side guessing. */
     effectText?: string;
+    /** Exact resolving clause identity, including installed reactive effects. */
+    effectKey?: string;
+    /** Optional question accepts this effect's activation; false for choices inside an active effect. */
+    activationConfirmation?: boolean;
     /** Verbatim printed passage associated with this decision. */
     effectTextPart?: string;
     isInherited?: boolean;

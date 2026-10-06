@@ -45,6 +45,12 @@ limited to 2048 MB; Chromium consumes additional memory. No CI is configured.
   printed source order, zero cost, hand consumption, and visible sources.
 - `reconnect.spec.ts`: real page reload while Yuuki has an open decision; same room
   and decision resume, then UI actions pay exactly one card and resolve the effect.
+- `effects-lab-pacing.spec.ts`: the effects lab's opponent chain under the stacked
+  and sequential pacing styles, against the API's own entry point (it starts
+  `apps/api/dist/index.js` on 2569 instead of the test server). It fails when the
+  animation queue owes steps and starts or finishes none for 10 s, or when fewer
+  than 5 bot clauses reach the screen. It catches presentation wait cycles that
+  only close under real browser timing, which the jsdom pacing harness misses.
 
 These cover desktop Chromium. They do not claim full lobby/account coverage,
 mobile-device validation, cross-browser parity, or screenshot baseline comparison.

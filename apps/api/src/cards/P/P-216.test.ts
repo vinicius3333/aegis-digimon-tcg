@@ -96,7 +96,12 @@ describe("P-216 engine behavior", () => {
 
   it("plays a face-up Dark Masters Digimon from Security on deletion", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "P-216", as: "waru" }], security: [{ card: "BT15-031", as: "masters", faceUp: true }] } },
+      {
+        0: {
+          battleArea: [{ card: "P-216", as: "waru" }],
+          security: [{ card: "BT15-031", as: "masters", faceUp: true }],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
@@ -123,7 +128,12 @@ describe("P-216 engine behavior", () => {
 
   it("deletes the security-played Dark Masters Digimon at its owner's turn end", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "P-216", as: "waru" }], security: [{ card: "BT15-031", as: "masters", faceUp: true }] } },
+      {
+        0: {
+          battleArea: [{ card: "P-216", as: "waru" }],
+          security: [{ card: "BT15-031", as: "masters", faceUp: true }],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
@@ -178,11 +188,7 @@ describe("P-216 WaruMonzaemon — KB Q&A rulings", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [
-            { card: "P-216", as: "waru" },
-            { card: "BT15-031", as: "masters" },
-            "BT1-009",
-          ],
+          hand: [{ card: "P-216", as: "waru" }, { card: "BT15-031", as: "masters" }, "BT1-009"],
           deck: Array(10).fill("BT1-009"),
         },
         1: { deck: Array(10).fill("BT1-009"), security: 3 },
@@ -243,6 +249,7 @@ describe("P-216 WaruMonzaemon — KB Q&A rulings", () => {
         ok: true,
       });
       await settle(() => onField(s, mastersId) !== undefined && s.state.pendingDecision === undefined);
+      await advance(s.engine).verb.suspend([s.perm("dianamon").permanentId]);
 
       expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
       await advance(s.engine).waitForMainPhase(1);

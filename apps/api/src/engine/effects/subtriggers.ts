@@ -44,6 +44,8 @@ export interface SubTriggerSubscription {
   printedTiming?: string;
   /** The printed clause this watcher implements, for players; identity and prompts keep `description`. */
   printedClause?: string;
+  /** The watcher body reports an accepted processing choice before its first result. */
+  activationDeferred?: boolean;
   /** Public text of a temporary effect granted to this watcher's permanent. */
   grantedEffectText?: string;
   /** Server-resolved standing badge exposed while this granted watcher remains installed. */

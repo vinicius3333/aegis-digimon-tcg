@@ -1,43 +1,57 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { Seat } from "@aegis/shared";
-import type { AnimationQueue, AnimationStep, AnimationStepContext } from "../animationQueue";
+import type { AnimationQueue, AnimationStepContext } from "../animationQueue";
 import { Side } from "../side";
 import { isTouchLayout } from "./environment";
 import { waitForStackStrips } from "./stackStripBarrier";
 import { TIMINGS } from "../timings";
 import { CueTrack } from "./enums";
-import type { DrawBurst, DrawFlight, DrawFlightCard, MatchCueAnchors } from "./types";
+import type { DrawBurst, DrawFlight, DrawFlightCard, DrawHandArrival, HeldHandArrival, MatchCueAnchors } from "./types";
 import { CONSEQUENCE_GATE_MAX_MS, waitForGate, type PresentationGate } from "./presentationGate";
+import { waitForPresentation } from "./cardReveal";
+import { drawPresentationTiming, DRAW_PRESENTATION_GEOMETRY } from "../drawPresentationModel";
+import { runDrawPresentation } from "./drawPresentationClock";
+import { waitForHandArrivalClock } from "./handArrivalClock";
+import { waitForDeckReturnClock } from "./deckReturnClock";
+import { waitForHandReturnClock } from "./handReturnClock";
+import type { FieldShatterFace } from "../fieldShatter";
+import { HAND_CARD_WIDTH } from "../piece/constants";
+import { waitForPaintedAnimation } from "../paintedAnimationClock";
 
 export interface CueFlightsDeps {
   queue: AnimationQueue;
   anchors: MatchCueAnchors;
+  /** Origin of event-driven flights, retained while later batches arrive. */
+  presentationBatchRef?: MutableRefObject<{ batchId: string; stateVersion: number } | undefined>;
   viewerSeat: Seat;
-  presentationBatchRef: MutableRefObject<AnimationStep["origin"]>;
+  stackStripKeyRef?: MutableRefObject<number>;
   /** The clause a flight is a consequence of, which is read out before the cards move. */
   causingEffectGateRef: MutableRefObject<PresentationGate | null>;
   securityGainKeyRef: MutableRefObject<number>;
   drawFlightKeyRef: MutableRefObject<number>;
-  setSecurityFlights: Dispatch<SetStateAction<ReadonlySet<number>>>;
+  setSecurityFlights: Dispatch<SetStateAction<ReadonlyMap<number, number>>>;
   setSecurityDealCounts: Dispatch<SetStateAction<ReadonlyMap<Seat, number>>>;
   setDrawFlights: Dispatch<SetStateAction<readonly DrawFlight[]>>;
   setDrawBursts: Dispatch<SetStateAction<readonly DrawBurst[]>>;
+  setHeldHandArrivals: Dispatch<SetStateAction<ReadonlyMap<number, HeldHandArrival>>>;
 }
 
-/** The five card-back flights the board sends between a deck, a hand and a shield. */
+/** Card presentations and transfers between a deck, a hand and a shield. */
 export function cueFlights(deps: CueFlightsDeps) {
   const {
     queue,
     anchors,
-    viewerSeat,
-    causingEffectGateRef,
     presentationBatchRef,
+    viewerSeat,
+    stackStripKeyRef,
+    causingEffectGateRef,
     securityGainKeyRef,
     drawFlightKeyRef,
     setSecurityFlights,
     setSecurityDealCounts,
     setDrawFlights,
     setDrawBursts,
+    setHeldHandArrivals,
   } = deps;
 
   /** The card lands on the stack: the same shield bounce a recovery plays. */
@@ -46,19 +60,25 @@ export function cueFlights(deps: CueFlightsDeps) {
     const causingEffectGate = causingEffectGateRef.current;
     queue.enqueue({
       id: `security-gain-flight-${seat}-${key}`,
+      ...(presentationBatchRef?.current ? { origin: { ...presentationBatchRef.current } } : {}),
       track: `securityFlight-${seat}`,
-      replace: true,
       async run(context) {
         if (context.mode !== "live") return;
         await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "securityGainFlight/causingEffect");
-        if (context.cancelled) return;
+        if (context.cancelled || context.skipping || context.mode !== "live") return;
         try {
-          setSecurityFlights((seats) => new Set(seats).add(seat));
+          setSecurityFlights((seats) => new Map(seats).set(seat, key));
           await context.wait(TIMINGS.securityFlight);
+          await waitForPaintedAnimation(
+            () => (seat === viewerSeat ? anchors.yourSecurity.current : anchors.oppSecurity.current),
+            "battle-security-flight",
+            TIMINGS.securityFlight,
+            context,
+          );
         } finally {
           setSecurityFlights((seats) => {
-            if (!seats.has(seat)) return seats;
-            const next = new Set(seats);
+            if (seats.get(seat) !== key) return seats;
+            const next = new Map(seats);
             next.delete(seat);
             return next;
           });
@@ -100,21 +120,20 @@ export function cueFlights(deps: CueFlightsDeps) {
   }
 
   /**
-   * Sends a card back from a deck pile to the hand that just grew. The reference
-   * client presents a draw centre-screen; the web port keeps the deck→hand read,
-   * which is what makes an opponent's draw visible at all.
+   * Presents a deck draw before its physical hand card and counts advance. Other
+   * searches/returns only enter their hand slots after their causal/reveal gates.
    *
-   * A `card` makes the flight face-up. Only a move that made the card public names one, and
-   * that card was usually just held up by a reveal showcase, so the flight queues on the
-   * centre-stage track behind it instead of flying into the hand while the reveal is still
-   * being read.
+   * A `card` supplies the viewer's own artwork or an explicitly public opponent card.
+   * A public card waits for its matching reveal; opaque opponent draws show a card back.
    */
   function launchDrawFlight(
     side: Side,
     turnStart = false,
     waitBeforeMs = 0,
     card?: DrawFlightCard,
-    afterStackStripKey?: number,
+    arrived?: PresentationGate,
+    draw?: DrawHandArrival,
+    afterStackStripKey = stackStripKeyRef?.current,
   ) {
     // A turn's own draw is not the consequence of any clause; every other draw is.
     const causingEffectGate = turnStart ? null : causingEffectGateRef.current;
@@ -137,6 +156,94 @@ export function cueFlights(deps: CueFlightsDeps) {
       y: targetRect.top + targetRect.height / 2 - boardRect.top,
     };
     const key = (drawFlightKeyRef.current += 1);
+    if (draw) {
+      const timing = draw.entryOnly ? { handoff: 0, total: TIMINGS.handDraw } : drawPresentationTiming(side);
+      const handFace = anchors.yourHandDock.current?.querySelector<HTMLElement>("[data-hand-instance-id]");
+      const handWidth = handFace
+        ? parseFloat(handFace.ownerDocument.defaultView!.getComputedStyle(handFace).width)
+        : HAND_CARD_WIDTH;
+      const width = (handWidth || HAND_CARD_WIDTH) * 1.1;
+      const pile = (source.querySelector(".game-pile") ?? source).getBoundingClientRect();
+      const pileX = pile.left + pile.width / 2 - boardRect.left;
+      const pileY = pile.top + pile.height / 2 - boardRect.top;
+      const inward = pileX >= boardRect.width / 2 ? -1 : 1;
+      const presentation: DrawFlight = {
+        key,
+        x: pileX + inward * width * DRAW_PRESENTATION_GEOMETRY.inwardWidths,
+        y: pileY + (side === Side.Viewer ? width * 1.4 * DRAW_PRESENTATION_GEOMETRY.viewerDownHeights : 0),
+        dx: 0,
+        dy: 0,
+        duration: timing.total,
+        ...(card ? { card } : {}),
+        presentation: { side, width, inward, ...(draw.instanceId ? { instanceId: draw.instanceId } : {}) },
+      };
+      function release() {
+        setHeldHandArrivals((held) => {
+          if (!held.has(key)) return held;
+          const next = new Map(held);
+          next.delete(key);
+          return next;
+        });
+      }
+      if (queue.getMode() === "live")
+        setHeldHandArrivals((held) =>
+          new Map(held).set(key, { ...draw, seat: side === Side.Viewer ? viewerSeat : viewerSeat === 0 ? 1 : 0 }),
+        );
+      const origin = presentationBatchRef?.current ? { ...presentationBatchRef.current } : undefined;
+      queue.enqueue({
+        id: `draw-flight-${key}`,
+        ...(origin ? { origin } : {}),
+        side,
+        track:
+          draw.publicCard && !arrived && !draw.afterReveal && !draw.beforeEntry
+            ? CueTrack.CenterStage
+            : `${turnStart ? "turnDrawFlight" : "drawFlight"}-presentation`,
+        onDiscard: release,
+        async run(context) {
+          try {
+            await Promise.all([
+              waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "drawPresentation/causingEffect"),
+              waitBeforeMs > 0 ? context.wait(waitBeforeMs) : Promise.resolve(),
+            ]);
+            if (afterStackStripKey !== undefined)
+              await waitForStackStrips({ queue, context, throughKey: afterStackStripKey, side });
+            await waitForPresentation(arrived, context);
+            await waitForPresentation(draw.afterReveal, context);
+            await waitForGate(draw.beforeEntry, context, CONSEQUENCE_GATE_MAX_MS, "handEntry/fieldReturn");
+            if (context.cancelled || context.mode !== "live" || context.skipping) return;
+            await runDrawPresentation({
+              queue,
+              context,
+              key,
+              origin,
+              side,
+              timing,
+              show: () => {
+                if (draw.entryOnly) release();
+                else setDrawFlights((flights) => [...flights, presentation]);
+              },
+              ...(draw.entryOnly
+                ? {
+                    waitForClock: (_key: number, beat: number, local: AnimationStepContext) =>
+                      beat > 0
+                        ? waitForHandArrivalClock({ side, instanceId: draw.instanceId, context: local })
+                        : Promise.resolve(),
+                  }
+                : {}),
+              handOver: release,
+              clear: () => {
+                release();
+                setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));
+              },
+            });
+          } finally {
+            release();
+            setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));
+          }
+        },
+      });
+      return;
+    }
     // The card back is hand-card sized on a phone; at 340ms that size crosses a
     // 393px screen too fast to register, so the touch layouts get a longer trip.
     // The element animates on this same number, set inline by GameScreen, so the
@@ -155,9 +262,9 @@ export function cueFlights(deps: CueFlightsDeps) {
     // than queueing behind the other side's.
     queue.enqueue({
       id: `draw-flight-${key}`,
-      origin: presentationBatchRef.current,
+      ...(presentationBatchRef?.current ? { origin: { ...presentationBatchRef.current } } : {}),
       side,
-      track: card ? CueTrack.CenterStage : `${turnStart ? "turnDrawFlight" : "drawFlight"}-${key}`,
+      track: card && !arrived ? CueTrack.CenterStage : `${turnStart ? "turnDrawFlight" : "drawFlight"}-${key}`,
       async run(context) {
         await Promise.all([
           waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "drawFlight/causingEffect"),
@@ -168,6 +275,7 @@ export function cueFlights(deps: CueFlightsDeps) {
         if (afterStackStripKey !== undefined) {
           await waitForStackStrips({ queue, context, throughKey: afterStackStripKey, side });
         }
+        await waitForPresentation(arrived, context);
         if (context.cancelled) return;
         setDrawFlights((flights) => [...flights, flight]);
         await context.wait(duration);
@@ -234,6 +342,7 @@ export function cueFlights(deps: CueFlightsDeps) {
     const causingEffectGate = causingEffectGateRef.current;
     queue.enqueue({
       id: `deck-under-flight-${key}`,
+      ...(presentationBatchRef?.current ? { origin: { ...presentationBatchRef.current } } : {}),
       track: `deckUnder-${permanentId}`,
       async run(context) {
         await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "deckUnderFlight/causingEffect");
@@ -282,37 +391,86 @@ export function cueFlights(deps: CueFlightsDeps) {
    */
   async function flyCardToDeck(
     card: DrawFlightCard,
-    from: { x: number; y: number },
+    from: { x: number; y: number; width?: number; height?: number; stackClone?: HTMLElement; permanentId?: string },
     seat: Seat,
     context: AnimationStepContext,
   ): Promise<boolean> {
     const board = anchors.board.current;
     const deck = seat === viewerSeat ? anchors.yourDeck.current : anchors.oppDeck.current;
-    if (!board || !deck || context.mode !== "live") return false;
+    if (!board || !deck || context.mode !== "live" || context.cancelled || context.skipping) return false;
     const boardRect = board.getBoundingClientRect();
     const deckRect = deck.getBoundingClientRect();
     if (!deckRect.width) return false;
     const to = {
-      x: deckRect.left + deckRect.width / 2 - boardRect.left,
-      y: deckRect.top + deckRect.height / 2 - boardRect.top,
+      x: deckRect.left + deckRect.width / 2 - boardRect.left - board.clientLeft + board.scrollLeft,
+      y: deckRect.top + deckRect.height / 2 - boardRect.top - board.clientTop + board.scrollTop,
     };
     const key = ++drawFlightKeyRef.current;
-    const duration = isTouchLayout() ? TIMINGS.drawFlightTouch : TIMINGS.drawFlight;
+    const duration = TIMINGS.deckReturn;
     setDrawFlights((flights) => [
       ...flights,
-      { key, x: from.x, y: from.y, dx: to.x - from.x, dy: to.y - from.y, duration, card },
+      {
+        key,
+        x: from.x,
+        y: from.y,
+        dx: to.x - from.x,
+        dy: to.y - from.y,
+        duration,
+        card,
+        deckReturn: { ...from, width: from.width ?? 72, height: from.height ?? 100.8, angle: 0 },
+      },
     ]);
     try {
       await context.wait(duration);
+      await waitForDeckReturnClock(board, key, context);
     } finally {
       setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));
     }
     return true;
   }
 
+  async function flyCardToHand(
+    card: DrawFlightCard,
+    from: FieldShatterFace,
+    seat: Seat,
+    context: AnimationStepContext,
+  ): Promise<boolean> {
+    const board = anchors.board.current;
+    const hand = seat === viewerSeat ? anchors.yourHandDock.current : anchors.oppHandStrip.current;
+    if (!board || !hand || context.mode !== "live" || context.cancelled || context.skipping) return false;
+    const boardRect = board.getBoundingClientRect();
+    const handRect = hand.getBoundingClientRect();
+    if (!handRect.width) return false;
+    const x = handRect.left + handRect.width / 2 - boardRect.left - board.clientLeft + board.scrollLeft;
+    const y = handRect.top + handRect.height / 2 - boardRect.top - board.clientTop + board.scrollTop;
+    const key = ++drawFlightKeyRef.current;
+    setDrawFlights((flights) => [
+      ...flights,
+      {
+        key,
+        x: from.x,
+        y: from.y,
+        dx: x - from.x,
+        dy: y - from.y,
+        duration: TIMINGS.handReturn,
+        card,
+        handReturn: { ...from, targetScale: seat === viewerSeat ? 1.1 : 0.25 },
+      },
+    ]);
+    try {
+      await context.wait(TIMINGS.handReturn);
+      await waitForHandReturnClock(board, key, context);
+    } finally {
+      setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));
+    }
+    await context.wait(TIMINGS.handReturnPause);
+    return true;
+  }
+
   return {
     flyCardUnder,
     flyCardToDeck,
+    flyCardToHand,
     launchSecurityGainFlight,
     launchOpeningSecurityDeal,
     launchDrawFlight,

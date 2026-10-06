@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { DecisionRequest, ServerEvent } from "@aegis/shared";
-import { activeAttackArrow, effectTargetArrow } from "./trackingArrow";
+import { activeAttackArrow, createAttackArrowTracker, effectTargetArrow } from "./trackingArrow";
+import { singleServerBatch } from "../net/serverBatches";
 
 const attackSecurity: ServerEvent = {
   kind: "attackDeclared",
@@ -79,9 +80,44 @@ describe("activeAttackArrow", () => {
     const second = activeAttackArrow([
       attackDigimon,
       { kind: "combatResolved", seat: 0, attackerPermanentId: "att", deletedPermanentIds: [] },
-      attackDigimon,
+      { ...attackDigimon },
     ])?.key;
     expect(first).not.toBe(second);
+  });
+  it("keeps the declaration identity when older attacks leave the bounded log", () => {
+    const first = { ...attackDigimon, seq: 1, batch: "first", stateVersion: 1 };
+    const second = { ...attackDigimon, seq: 104, batch: "second", stateVersion: 2 };
+    const events: ServerEvent[] = [
+      first,
+      { kind: "attackEnded", seat: 0, attackerPermanentId: "att" },
+      ...Array.from({ length: 101 }, (): ServerEvent => ({ kind: "memoryChanged", from: 0, to: 1, reason: "padding" })),
+      second,
+    ];
+    expect(activeAttackArrow(events)?.key).toBe(activeAttackArrow(events.slice(-100))?.key);
+    expect(activeAttackArrow(events)?.key).not.toBe(activeAttackArrow([first])?.key);
+  });
+  it("retains a declaration and redirect after both leave the bounded log", () => {
+    const tracker = createAttackArrowTracker();
+    const first = { ...attackSecurity };
+    const declared = tracker.read([first]);
+    const padding = Array.from({ length: 101 }, (): ServerEvent => ({
+      kind: "memoryChanged",
+      from: 0,
+      to: 1,
+      reason: "padding",
+    }));
+    expect(tracker.read(padding.slice(-100))?.key).toBe(declared?.key);
+    const redirect: ServerEvent = { ...attackDigimon, redirected: true };
+    const redirected = tracker.read([...padding.slice(-99), redirect]);
+    expect(redirected?.key).toBe(declared?.key);
+    expect(redirected?.to).toEqual([{ kind: "permanent", permanentId: "def" }]);
+    expect(tracker.read([{ kind: "attackEnded", seat: 0, attackerPermanentId: "att" }])).toBeNull();
+  });
+  it("gives raw fixture events and their fabricated batch copies the same identity", () => {
+    const source: ServerEvent = { ...attackDigimon };
+    const raw = activeAttackArrow([source]);
+    const batch = singleServerBatch([source]);
+    expect(activeAttackArrow(batch.events)?.key).toBe(raw?.key);
   });
 });
 

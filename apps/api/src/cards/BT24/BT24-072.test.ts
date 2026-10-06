@@ -1,7 +1,7 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_072 } from "./BT24-072.js";
 import "../index.js";
@@ -185,7 +185,8 @@ describe("BT24-072 SkullGreymon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skullgreymon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT24-072"));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT24-072")).toBe(false);
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(costId);
     expect(observe(s.engine).hasKeyword(s.perm("skullgreymon"), "Blocker")).toBe(false);

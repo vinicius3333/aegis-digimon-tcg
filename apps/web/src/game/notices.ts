@@ -37,6 +37,8 @@ export type NoticeBody =
       timing?: string;
       /** Engine trigger timing, which may differ from the printed timing. */
       triggerTiming?: string;
+      /** Resolving clause identity, shared with the decision that asks for its targets. */
+      effectKey?: string;
       beforeRemoval?: boolean;
       description?: string;
       /** The chosen bullet of an "activate 1 of the effects below" clause; shown in place of the clause. */
@@ -44,6 +46,8 @@ export type NoticeBody =
       isInherited?: boolean;
       sourceInstanceId?: string;
       sourcePermanentId?: string;
+      /** The same effect resolving this many times in a row, announced once. Absent means once. */
+      count?: number;
     }
   | { variant: "deletion"; cards: readonly DeletedCard[] }
   | {
@@ -153,6 +157,7 @@ export function effectNoticeFromEvent(
       ...(artId && artId !== event.sourceCardId ? { artId } : {}),
       timing: event.printedTiming ?? event.timing,
       triggerTiming: event.timing,
+      effectKey: event.effectKey,
       ...(event.beforeRemoval === true ? { beforeRemoval: true } : {}),
       description: event.description,
       isInherited: event.isInherited,

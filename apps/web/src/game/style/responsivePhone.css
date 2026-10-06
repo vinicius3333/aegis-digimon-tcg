@@ -28,6 +28,11 @@
     height: auto !important;
     aspect-ratio: 5 / 7;
   }
+  /* The same arc stays inside the narrow card lane, with its curve and clock
+     intact. The resting card and caption layout keep their existing sizes. */
+  .battle-clash__card[data-role="revealed"] {
+    --security-reveal-arc: 30%;
+  }
   /* The end-turn orb shares the band with 21 chips; at phone widths it gives
      most of its diameter back so the gauge keeps every chip on screen. */
   .game-end-turn-orb {

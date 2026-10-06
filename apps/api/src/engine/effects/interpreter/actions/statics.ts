@@ -4,6 +4,7 @@ import type { CardColor } from "@aegis/shared";
 import type { EffectContext, Restriction } from "../../EffectContext.js";
 import { evaluateCondition } from "../conditions.js";
 import { runAction } from "../dispatch.js";
+import { laterEntrantGrantClause } from "../describe.js";
 import { toDuration } from "../duration.js";
 import { unsupported } from "../errors.js";
 import { GRANTED_EFFECT_LIBRARY } from "../grantedEffects.js";
@@ -153,6 +154,7 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
             filter: { controller: "opponent", ...target.filter },
             duration: action.duration ?? "untilOpponentTurnEnd",
             label: "GrantAuraToOpponents",
+            printedClause: laterEntrantGrantClause(ctx.activeEffectText, ctx.source.definition),
             alreadyGranted: ids,
             grant: (permanentId) => grantToPermanent(ctx, permanentId),
           });

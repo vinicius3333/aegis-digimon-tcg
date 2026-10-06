@@ -9,7 +9,12 @@
    - The stall watchdog is the backstop for a beat that starts and never finishes.
 
    Each budget exists because the thing it bounds has no clock of its own, and a prompt that
-   never opens is a match that ends without ending: the server is blocked on that answer. */
+   never opens is a match that ends without ending: the server is blocked on that answer.
+
+   Under sequential pacing every budget grows with the effect units still to play, up to a
+   hard ceiling (`sequentialBudgetMs`): a chain of six effects is several seconds of healthy
+   presentation, and a clock sized for one moment would cut it short. With no unit pending
+   the budgets are exactly the base ones. */
 
 import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import type { AnimationQueue } from "../../animationQueue";
@@ -17,8 +22,10 @@ import { type PresentationProgress, PRESENTED_BOARD_BUDGET_MS } from "../../pres
 import { presentationTelemetry } from "../../presentationTelemetry";
 import { DECISION_STALL_BUDGET_MS, PLAY_LEAD_IN_BUDGET_MS } from "../../timings";
 import { CueTrack } from "../enums";
+import { sequentialBudgetMs } from "../effectSequence";
 
 export function useDecisionBarrier({
+  pendingEffectUnits,
   decisionPending,
   decisionStateVersion,
   decisionAnimationsPending,
@@ -36,6 +43,8 @@ export function useDecisionBarrier({
   setDecisionStalled,
   setPendingRevealKey,
 }: {
+  /** Effect units sequential pacing has still to play; always 0 under `current`. */
+  pendingEffectUnits: () => number;
   decisionPending: boolean;
   /** The revision the viewer's open decision was raised at. */
   decisionStateVersion: number | undefined;
@@ -60,12 +69,16 @@ export function useDecisionBarrier({
 }) {
   useEffect(() => {
     if (presentedStateVersion === undefined) return;
-    const timer = setTimeout(() => {
-      presentationTelemetry.countBoardBudgetHit();
-      progress.settle();
-    }, PRESENTED_BOARD_BUDGET_MS);
+    const timer = setTimeout(
+      () => {
+        presentationTelemetry.countBoardBudgetHit();
+        progress.settle();
+      },
+      sequentialBudgetMs(PRESENTED_BOARD_BUDGET_MS, pendingEffectUnits()),
+    );
     return () => clearTimeout(timer);
-  }, [presentedStateVersion, progress]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [presentedStateVersion, queueActivity, progress]);
 
   /**
    * Snapshot revision barrier. Its budget bounds how long the displayed board
@@ -89,15 +102,22 @@ export function useDecisionBarrier({
     setDecisionBarrier(decisionStateVersion);
     // A newer server revision is not proof that the viewer has seen the older
     // consequences. Keep their animations intact while bounding snapshot lag.
-    const timer = setTimeout(() => {
-      // The budget is spent: the board is handed over at the revision the question was
-      // asked at, whatever the queue still had to say about the batches before it.
-      presentationTelemetry.countDecisionBudgetHit();
-      progress.raiseFloor(decisionStateVersion);
-      setDecisionBarrier(null);
-    }, PLAY_LEAD_IN_BUDGET_MS);
+    const timer = setTimeout(
+      () => {
+        // The budget is spent: the board is handed over at the revision the question was
+        // asked at, whatever the queue still had to say about the batches before it.
+        presentationTelemetry.countDecisionBudgetHit();
+        progress.raiseFloor(decisionStateVersion);
+        setDecisionBarrier(null);
+      },
+      sequentialBudgetMs(PLAY_LEAD_IN_BUDGET_MS, pendingEffectUnits()),
+    );
     return () => clearTimeout(timer);
-  }, [decisionPending, decisionStateVersion, progress]);
+    // Finishing a cue is progress: a healthy sequence of phase ribbons, arrivals and
+    // deletions must not spend a one-moment budget merely because the server sent it
+    // in a burst. A frozen cue still reaches this ceiling without a heartbeat.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [decisionPending, decisionStateVersion, queueActivity, progress]);
 
   /**
    * The wait is on progress: any queue change restarts the clock, so a long healthy sequence
@@ -111,11 +131,14 @@ export function useDecisionBarrier({
       return;
     }
     if (decisionStalled) return;
-    const timer = setTimeout(() => {
-      presentationTelemetry.countDecisionStallHit();
-      queue.skip();
-      setDecisionStalled(true);
-    }, DECISION_STALL_BUDGET_MS);
+    const timer = setTimeout(
+      () => {
+        presentationTelemetry.countDecisionStallHit();
+        queue.skip();
+        setDecisionStalled(true);
+      },
+      sequentialBudgetMs(DECISION_STALL_BUDGET_MS, pendingEffectUnits()),
+    );
     return () => clearTimeout(timer);
     // `queueActivity` is the heartbeat this effect waits on, not a value it reads.
   }, [decisionPending, decisionAnimationsPending, decisionStalled, queueActivity, queue]);

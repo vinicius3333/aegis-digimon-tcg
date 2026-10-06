@@ -8,12 +8,13 @@ import type { ServerBatch } from "../../../net/serverBatches";
 import { isAnnouncedPhase, phaseBannerFrom, type PhaseBanner } from "../../phaseBanner";
 import { PRESENTED_BOARD_BUDGET_MS } from "../../presentationProgress";
 import { TIMINGS } from "../../timings";
+import { waitForPaintedAnimation } from "../../paintedAnimationClock";
 import { Side } from "../../side";
 import { UNSUSPEND_PHASE, UNSUSPEND_SWEEP_MS } from "../constants";
 import { CueTrack } from "../enums";
 import { OPTION_DOCK_TRACKS } from "../tracks";
 import { buildInstanceSeatIndex } from "../../sidePanels";
-import type { MatchCues, TurnTransitionCue, UnsuspendSweep } from "../types";
+import type { DrawPhaseOwner, MatchCues, TurnTransitionCue, UnsuspendSweep } from "../types";
 
 /**
  * The phase and turn ribbons, and everything the board holds back while one is on screen.
@@ -148,7 +149,7 @@ export function usePhaseBanners({
   /** Mutated: true while a ribbon is on screen. */
   visiblePhaseBannerRef: MutableRefObject<boolean>;
   /** Mutated: the seat whose hand is frozen until its Draw banner. */
-  drawPhaseWaitingRef: MutableRefObject<Seat | null>;
+  drawPhaseWaitingRef: MutableRefObject<DrawPhaseOwner | null>;
   previousDrawStateRef: MutableRefObject<GameState | undefined>;
   phaseStateRef: MutableRefObject<{ events: readonly ServerEvent[]; snapshots: readonly StateSnapshot[] | undefined }>;
   /** The live state, which names the cards a hand move put in the viewer's hand. */
@@ -256,6 +257,8 @@ export function usePhaseBanners({
       const awaitingCue = queue.hasPendingStep(
         (step) =>
           step.track !== "phaseBanner" &&
+          // Audio callbacks have no painted handoff to finish before a ribbon.
+          step.track !== "sound" &&
           step.track !== CueTrack.SecurityDock &&
           !OPTION_DOCK_TRACKS.includes(step.track ?? "") &&
           (stepPhaseOrdersRef.current.get(step) ?? 0) < phaseOrder,
@@ -330,6 +333,15 @@ export function usePhaseBanners({
               playCue("turnChange");
               setTurnTransition(transition);
               await context.wait(TIMINGS.turnBanner);
+              await waitForPaintedAnimation(
+                () =>
+                  typeof document === "undefined"
+                    ? null
+                    : document.querySelector(`[data-turn-key="${transition.endingSeat}:${transition.turnCount}"]`),
+                "battle-banner",
+                TIMINGS.turnBanner,
+                context,
+              );
               setTurnTransition((current) => (current === transition ? null : current));
               await context.wait(TIMINGS.phaseBannerGap);
             } finally {
@@ -353,7 +365,7 @@ export function usePhaseBanners({
       if (banner) {
         setPendingPhaseBanners((count) => count + 1);
         if (banner.phase === UNSUSPEND_PHASE) {
-          drawPhaseWaitingRef.current = openedPhase.turnSeat;
+          drawPhaseWaitingRef.current = { seat: openedPhase.turnSeat, phaseOrder };
           const drawState = previousDrawStateRef.current;
           // The held revision can predate an unsuspend the ending turn made before its End
           // phase (EX13-006): the move reached an earlier pass, and the state patch lags the
@@ -397,6 +409,12 @@ export function usePhaseBanners({
             ),
           );
         }
+        const releaseDrawHold = () => {
+          const owner = drawPhaseWaitingRef.current;
+          if (owner?.seat !== openedPhase.turnSeat || phaseOrder < owner.phaseOrder) return;
+          drawPhaseWaitingRef.current = null;
+          setHeldDrawState(undefined);
+        };
         queue.enqueue({
           id: `phase-banner-${banner.key}`,
           side: banner.side,
@@ -407,8 +425,7 @@ export function usePhaseBanners({
                 setHeldSuspendedIds(new Set());
                 setHeldPhaseState(undefined);
                 setHeldBreedingState(undefined);
-                drawPhaseWaitingRef.current = null;
-                setHeldDrawState(undefined);
+                releaseDrawHold();
                 return;
               }
               await waitForPhasePrerequisites(context, arrivals, phaseOrder);
@@ -416,7 +433,10 @@ export function usePhaseBanners({
               visiblePhaseBannerRef.current = true;
               if (isAnnouncedPhase(openedPhase.phase)) setAnnouncedPhase(openedPhase.phase);
               setAnnouncedTurn({ seat: openedPhase.turnSeat, count: openedPhase.turnCount });
-              setPhaseBanner(banner);
+              const phaseBatch = phaseBatchesRef.current.find((batch) =>
+                batch.events.some((event) => event === openedPhase),
+              );
+              setPhaseBanner({ ...banner, ...(phaseBatch ? { stateVersion: phaseBatch.stateVersion } : {}) });
               if (banner.phase === UNSUSPEND_PHASE) {
                 setHeldSuspendedIds(new Set());
                 const timeline = phaseStateRef.current.events;
@@ -465,10 +485,16 @@ export function usePhaseBanners({
               }
               // The first turn can skip drawing; breeding also releases the hold.
               if (banner.phase === "Draw" || banner.phase === "Breeding" || banner.phase === "Main") {
-                drawPhaseWaitingRef.current = null;
-                setHeldDrawState(undefined);
+                releaseDrawHold();
               }
               await context.wait(TIMINGS.phaseBanner);
+              await waitForPaintedAnimation(
+                () =>
+                  typeof document === "undefined" ? null : document.querySelector(`[data-phase-key="${banner.key}"]`),
+                "arena-phase-ribbon",
+                TIMINGS.phaseBanner,
+                context,
+              );
               if (banner.phase === "Breeding") {
                 // A fast bot may already have evolved in Main. Present the raising
                 // area at the Main boundary first, so its hatch remains visible.
@@ -529,8 +555,7 @@ export function usePhaseBanners({
                 setHeldSuspendedIds(new Set());
                 setHeldPhaseState(undefined);
                 setHeldBreedingState(undefined);
-                drawPhaseWaitingRef.current = null;
-                setHeldDrawState(undefined);
+                releaseDrawHold();
               }
             }
           },

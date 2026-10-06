@@ -747,13 +747,7 @@ describe("BT25-043 Habakirimon — KB Q&A rulings", () => {
         s.events.some(
           (event) =>
             event.kind === "effectResolved" && event.sourceCardId === "BT25-043" && event.timing === "WhenDigivolving",
-        ) &&
-        s.events.some(
-          (event) =>
-            event.kind === "effectResolved" &&
-            event.sourceCardId === "BT25-039" &&
-            event.timing === "OnDestroyedAnyone",
-        ),
+        ) && s.state.pendingDecision === undefined,
     );
     expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT1-060");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT25-043")).toBe(false);
@@ -778,7 +772,10 @@ describe("BT25-043 Habakirimon — KB Q&A rulings", () => {
     expect(habakiriResolved).toBeGreaterThanOrEqual(0);
     expect(targetMoved).toBeGreaterThan(habakiriResolved);
     expect(whenDigivolvingResolved).toBeGreaterThan(targetMoved);
-    expect(onDeletionResolved).toBeGreaterThan(whenDigivolvingResolved);
+    expect(onDeletionResolved).toBe(-1);
+    expect(
+      s.decisions.some(({ req }) => req.sourceCardId === "BT25-039" && req.options?.activationConfirmation === true),
+    ).toBe(true);
   });
 
   it("stops every Glowing Dawn Digimon leaving at the same time with one security trash (Q6314)", async () => {

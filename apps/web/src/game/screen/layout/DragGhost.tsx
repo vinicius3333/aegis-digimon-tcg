@@ -29,6 +29,7 @@ export function DragGhost({
     <>
       {createPortal(
         <div
+          data-testid="drag-ghost"
           style={{
             position: "fixed",
             left: x,

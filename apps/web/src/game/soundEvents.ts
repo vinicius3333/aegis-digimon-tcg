@@ -30,6 +30,17 @@ export function soundForEvent(event: ServerEvent, viewerSeat: Seat): SoundKind |
       return "securityHit";
     case "turnEnded":
       return "turnChange";
+    case "movedFromBreeding":
+      return "move";
+    case "effectTriggered":
+      return "effectActivate";
+    case "deckShuffled":
+      return "shuffle";
+    case "cardsMoved":
+      if (event.strippedStackTops) return "deDigivolve";
+      if (event.trashedSources) return "sourceTrash";
+      if (event.to === "trash") return event.from === "hand" ? "handTrash" : "delete";
+      return "move";
     case "gameOver":
       // A draw is not a victory, so it takes the losing cue.
       return event.result.outcome === "win" && event.result.winnerSeat === viewerSeat ? "win" : "lose";

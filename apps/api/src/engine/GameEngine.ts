@@ -457,7 +457,11 @@ export class GameEngine {
       },
     });
     this.decisionApi = createDecisionApi(this.decisions);
-    this.resolverDecisions = createResolverDecisions(this.decisions, () => this.recomputeContinuousEffects());
+    this.resolverDecisions = createResolverDecisions(
+      this.decisions,
+      () => this.recomputeContinuousEffects(),
+      (event) => this.hooks.emit(event),
+    );
     this.mulligan = new MulliganCoordinator(this.state, {
       requestDecision: (seat, req) => this.hooks.requestDecision(seat, req),
     });
@@ -751,8 +755,17 @@ export class GameEngine {
     return recomputeContinuousEffects(this);
   }
 
-  runContinuousPass(noPromptAsk: DecisionApi, seed: ReadonlyMap<string, number> = new Map()): Promise<void> {
-    return runContinuousPass(this, noPromptAsk, seed);
+  /** Rebuild passive ledgers inside an atomic stack change without publishing affordances. */
+  recomputeContinuousDerivedEffects(): Promise<void> {
+    return recomputeContinuousEffects(this, false);
+  }
+
+  runContinuousPass(
+    noPromptAsk: DecisionApi,
+    seed: ReadonlyMap<string, number> = new Map(),
+    publishMemory = true,
+  ): Promise<void> {
+    return runContinuousPass(this, noPromptAsk, seed, publishMemory);
   }
 
   /**

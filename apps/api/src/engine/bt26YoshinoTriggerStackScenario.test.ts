@@ -61,8 +61,18 @@ describe("BT26 Yoshino trigger stack Discord arena scenario", () => {
     const suspendClause = "When any of your opponent's Digimon or Tamers suspend";
     const trashClause = "When effects trash cards from under this Tamer";
 
-    expect(yoshinos.map((permanentId) => triggersOf(permanentId, suspendClause))).toEqual([2, 2, 2]);
-    expect(yoshinos.map((permanentId) => triggersOf(permanentId, trashClause))).toEqual([1, 0, 0]);
+    // Six distinct suspended-event occurrences remain available in the ordering
+    // plans, but have no legal evolution left to activate. Repeated order prompts
+    // list a pending occurrence again, so count its unique key rather than prompts.
+    const offeredKeys = [...new Set(s.decisions.flatMap(({ req }) => req.options?.triggerKeys ?? []))];
+    const offersOf = (permanentId: string, clause: string) => {
+      const instanceId = human.battleArea.find((p) => p.permanentId === permanentId)!.topCard.instanceId;
+      return offeredKeys.filter((key) => key.startsWith(`${instanceId}::`) && key.includes(clause)).length;
+    };
+    expect(yoshinos.map((permanentId) => offersOf(permanentId, suspendClause))).toEqual([2, 2, 2]);
+    expect(yoshinos.map((permanentId) => triggersOf(permanentId, suspendClause))).toEqual([0, 0, 0]);
+    expect(yoshinos.map((permanentId) => offersOf(permanentId, trashClause))).toEqual([1, 0, 0]);
+    expect(yoshinos.map((permanentId) => triggersOf(permanentId, trashClause))).toEqual([0, 0, 0]);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;

@@ -61,11 +61,8 @@ describe("BT20-008 Huckmon", () => {
     await declined.ready();
     const declinedTurn = declined.engine.runOneTurn();
     await advance(declined.engine).waitForMainPhase(0);
-    await settle(() =>
-      declined.events.some(
-        (event) =>
-          event.kind === "effectResolved" && event.sourceCardId === "BT20-008" && event.timing === "OnStartMainPhase",
-      ),
+    expect(declined.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT20-008")).toBe(
+      false,
     );
     expect(declined.state.memory).toBe(0);
     advance(declined.engine).endMainPhaseIfOpen(0);

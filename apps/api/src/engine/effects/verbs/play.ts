@@ -73,6 +73,8 @@ export function createPlayVerbs(pc: PrimitivesContext) {
       created.push(permanent);
       engine.emit({
         kind: "cardPlayed",
+        instanceId: instance.instanceId,
+        fromZone: "hand",
         seat: owner.seat,
         cardId: instance.cardId,
         ...(instance.artId ? { artId: instance.artId } : {}),
@@ -115,6 +117,8 @@ export function createPlayVerbs(pc: PrimitivesContext) {
     const permanent = placePermanent(engine, owner, instance, definition, false);
     engine.emit({
       kind: "cardPlayed",
+      instanceId: instance.instanceId,
+      fromZone: "security",
       seat: owner.seat,
       cardId: instance.cardId,
       ...(instance.artId ? { artId: instance.artId } : {}),
@@ -189,6 +193,9 @@ export function createPlayVerbs(pc: PrimitivesContext) {
     // `fromDigivolution` sourceFilter gate (BT20-028 KB Q4321).
     const originByInstance = new Map(
       instanceIds.map((id) => [id, opts?.playedFromZone ?? looseZoneOfInstance(state, id)]),
+    );
+    const originHostByInstance = new Map(
+      instanceIds.map((id) => [id, opts?.hostPermanentIds?.[id] ?? hostOfStackInstance(state, id)?.hostPermanentId]),
     );
     const securityOriginSeats = new Set<Seat>();
     const placedMaterialCountByInstance = new Map<string, number>();
@@ -357,6 +364,9 @@ export function createPlayVerbs(pc: PrimitivesContext) {
       }
       engine.emit({
         kind: "cardPlayed",
+        instanceId: instance.instanceId,
+        fromZone: originByInstance.get(instanceId),
+        fromPermanentId: originHostByInstance.get(instanceId),
         seat: ownerPlayer.seat,
         cardId: instance.cardId,
         ...(instance.artId ? { artId: instance.artId } : {}),
@@ -476,6 +486,7 @@ export function createPlayVerbs(pc: PrimitivesContext) {
     // resolving-Option dock closes on it and would otherwise sit on screen until its
     // failsafe ceiling.
     const routesUsedOption = ownerPlayer.resolvingOption?.instanceId === instanceId;
+    const fromZone = looseZoneOfInstance(state, instanceId) ?? (routesUsedOption ? "resolvingOption" : undefined);
     const instance = removeLooseInstance(state, instanceId);
     if (instance === undefined) return undefined;
     instance.faceUp = true;
@@ -485,6 +496,8 @@ export function createPlayVerbs(pc: PrimitivesContext) {
     permanent.placedByEffect = true;
     engine.emit({
       kind: "cardPlayed",
+      instanceId: instance.instanceId,
+      fromZone,
       seat: ownerPlayer.seat,
       cardId: instance.cardId,
       ...(instance.artId ? { artId: instance.artId } : {}),

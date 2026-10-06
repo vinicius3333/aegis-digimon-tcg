@@ -3,10 +3,23 @@ import { Avatar, Button, Eyebrow, Field, Switch, type PlayerIdentity } from "../
 import { Panel, SectionHeading } from "../design/surfaces";
 import { ArenaLookSettings } from "../design/ArenaLookSettings";
 import { Icons } from "../design/icons";
-import { getSoundVolume, isSoundEnabled, playSound, setSoundEnabled, setSoundVolume } from "../design/sound";
+import {
+  getMusicVolume,
+  isMusicEnabled,
+  setMusicEnabled,
+  setMusicVolume,
+  getSoundVolume,
+  isSoundEnabled,
+  playSound,
+  setSoundEnabled,
+  setSoundVolume,
+  unlockAudio,
+} from "../design/sound";
 import { areActionConfirmationsEnabled, setActionConfirmationsEnabled } from "../design/actionConfirmation";
 import { FieldLayout, setFieldLayout, useFieldLayout } from "../design/fieldLayout";
 import { CardSleevePicker } from "../design/sleevePicker";
+import { SEQUENTIAL_PACING_ENABLED } from "../features";
+import { EFFECT_SPEEDS, getEffectSpeed, setEffectSpeed, type EffectSpeed } from "../game/pacing";
 import { LOCALES, LOCALE_LABELS, useTranslation } from "../i18n";
 import { AccountPanel } from "../account/AccountPanel";
 import { DigimonAvatarPicker } from "../account/DigimonAvatarPicker";
@@ -35,9 +48,17 @@ export function Settings({
   const { t, locale, setLocale } = useTranslation();
   const [nameInput, setNameInput] = useState(player.name);
   const [renameToastKey, setRenameToastKey] = useState<number>();
+  const [musicOn, setMusicOn] = useState(isMusicEnabled());
+  const [musicVolume, setMusicVolumeChoice] = useState(Math.round(getMusicVolume() * 100));
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
   const [volume, setVolume] = useState(Math.round(getSoundVolume() * 100));
   const [actionConfirmationsOn, setActionConfirmationsOn] = useState(areActionConfirmationsEnabled());
+  const [effectSpeed, setEffectSpeedChoice] = useState<EffectSpeed>(getEffectSpeed);
+  const effectSpeedLabels: Record<EffectSpeed, string> = {
+    slow: t("settings.effectSpeedSlow"),
+    normal: t("settings.effectSpeedNormal"),
+    fast: t("settings.effectSpeedFast"),
+  };
   const fieldLayout = useFieldLayout();
   function confirmRename() {
     const name = nameInput.trim();
@@ -195,6 +216,39 @@ export function Settings({
             </div>
             <div className="settings-block">
               <Switch
+                checked={musicOn}
+                label={t("settings.music")}
+                description={t("settings.musicDesc")}
+                onChange={(next) => {
+                  unlockAudio();
+                  setMusicEnabled(next);
+                  setMusicOn(next);
+                }}
+              />
+            </div>
+            <div className="settings-block settings-volume" data-disabled={!musicOn || undefined}>
+              <div className="settings-volume__heading">
+                <span>{t("settings.musicVolume")}</span>
+                <span className="settings-volume__value">{musicVolume}</span>
+              </div>
+              <input
+                aria-label={t("settings.musicVolume")}
+                name="musicVolume"
+                type="range"
+                min={0}
+                max={100}
+                value={musicVolume}
+                disabled={!musicOn}
+                onChange={(e) => {
+                  const next = Number(e.target.value);
+                  setMusicVolumeChoice(next);
+                  setMusicVolume(next / 100);
+                }}
+                className="settings-volume__control"
+              />
+            </div>
+            <div className="settings-block">
+              <Switch
                 checked={actionConfirmationsOn}
                 label={t("settings.actionConfirmations")}
                 description={t("settings.actionConfirmationsDesc")}
@@ -204,6 +258,34 @@ export function Settings({
                 }}
               />
             </div>
+            {SEQUENTIAL_PACING_ENABLED ? (
+              <div className="settings-row">
+                <div className="settings-row__copy">
+                  <strong id="settings-effect-speed-label">{t("settings.effectSpeed")}</strong>
+                  <small>{t("settings.effectSpeedDesc")}</small>
+                </div>
+                <div className="settings-language-list" role="group" aria-labelledby="settings-effect-speed-label">
+                  {EFFECT_SPEEDS.map((speed) => {
+                    const on = effectSpeed === speed;
+                    return (
+                      <button
+                        key={speed}
+                        type="button"
+                        className="settings-language-option"
+                        aria-pressed={on}
+                        onClick={() => {
+                          setEffectSpeed(speed);
+                          setEffectSpeedChoice(speed);
+                        }}
+                      >
+                        {effectSpeedLabels[speed]}
+                        {on ? <Icons.Check size={16} /> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
             <div className="settings-block">
               <Switch
                 checked={fieldLayout === FieldLayout.Organized}

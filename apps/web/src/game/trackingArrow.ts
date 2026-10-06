@@ -1,5 +1,5 @@
 /* The target arrow that stays up (`TargetArrow.cs`). The reference client does not
-   draw an attack arrow once and drop it: the arrow extends with two quick flashes,
+   draw an attack arrow once and drop it: the arrow advances twice,
    then persists, re-solving both ends every frame so it keeps pointing at the
    cards as they move, suspend and resize.
 
@@ -12,6 +12,12 @@
    the open decision, and the caller measures the elements the ids name. */
 
 import type { DecisionRequest, Seat, ServerEvent } from "@aegis/shared";
+import { eventIdentity } from "../net/eventIdentity";
+import { eventsAfter } from "./boardModel";
+
+export function attackDeclarationKey(event: Extract<ServerEvent, { kind: "attackDeclared" }>): string {
+  return `attack:${eventIdentity(event)}:${event.attackerPermanentId}`;
+}
 
 export type TrackingArrowKind = "attack" | "effect";
 
@@ -20,7 +26,7 @@ export type ArrowEndpoint = { kind: "permanent"; permanentId: string } | { kind:
 
 export interface TrackingArrow {
   kind: TrackingArrowKind;
-  /** Changes whenever a different arrow takes over, which restarts the flashes. */
+  /** Changes whenever a different arrow takes over, which restarts the sweeps. */
   key: string;
   from: { kind: "permanent"; permanentId: string };
   to: readonly ArrowEndpoint[];
@@ -43,10 +49,9 @@ function closesAttack(event: ServerEvent): boolean {
 
 /**
  * The open attack arrow after `event`: a declaration puts one up, a redirect and a block
- * re-aim the one already up, and anything that ends the attack takes it down. `index`
- * only feeds the key, which changes whenever a different attack takes over.
+ * re-aim the one already up, and anything that ends the attack takes it down.
  */
-function advanceArrow(arrow: TrackingArrow | null, event: ServerEvent, index: number): TrackingArrow | null {
+function advanceArrow(arrow: TrackingArrow | null, event: ServerEvent): TrackingArrow | null {
   if (closesAttack(event)) return null;
   if (event.kind === "attackDeclared") {
     // A player attack names no seat: the stack under attack is the other one's.
@@ -55,11 +60,11 @@ function advanceArrow(arrow: TrackingArrow | null, event: ServerEvent, index: nu
         ? { kind: "security", seat: (event.seat === 0 ? 1 : 0) as Seat }
         : { kind: "permanent", permanentId: event.target.permanentId };
     // A redirect re-aims the arrow the declaration already put up, the way a block does:
-    // keeping the key stops the flashes from replaying for an attack that never restarted.
+    // keeping the key stops the sweeps from replaying for an attack that never restarted.
     if (event.redirected === true && arrow !== null) return { ...arrow, to: [target] };
     return {
       kind: "attack",
-      key: `attack:${index}:${event.attackerPermanentId}`,
+      key: attackDeclarationKey(event),
       from: { kind: "permanent", permanentId: event.attackerPermanentId },
       to: [target],
     };
@@ -77,12 +82,38 @@ function advanceArrow(arrow: TrackingArrow | null, event: ServerEvent, index: nu
  */
 export function activeAttackArrow(events: readonly ServerEvent[]): TrackingArrow | null {
   let arrow: TrackingArrow | null = null;
-  let index = 0;
   for (const event of events) {
-    index += 1;
-    arrow = advanceArrow(arrow, event, index);
+    arrow = advanceArrow(arrow, event);
   }
   return arrow;
+}
+
+/** Preserve an open declaration even after it falls out of the room's 100-event log. */
+export function createAttackArrowTracker() {
+  let arrow: TrackingArrow | null = null;
+  let previous: ServerEvent | undefined;
+  return {
+    read(events: readonly ServerEvent[]): TrackingArrow | null {
+      if (events.length === 0) {
+        arrow = null;
+        previous = undefined;
+      }
+      for (const event of eventsAfter(events, previous)) arrow = advanceArrow(arrow, event);
+      previous = events.at(-1);
+      return arrow;
+    },
+  };
+}
+
+/** The latest declaration, including its redirects, retained across its close seam. */
+export function mostRecentAttackArrow(events: readonly ServerEvent[]): TrackingArrow | null {
+  let arrow: TrackingArrow | null = null;
+  let latest: TrackingArrow | null = null;
+  for (const event of events) {
+    arrow = advanceArrow(arrow, event);
+    if (arrow) latest = arrow;
+  }
+  return latest;
 }
 
 /**

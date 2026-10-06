@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { ServerEvent } from "@aegis/shared";
+import type { Seat, ServerEvent } from "@aegis/shared";
+import { activeAttackArrow, attackDeclarationKey } from "./trackingArrow";
+import { presentSecurityAttack } from "./match/present/securityAttacker";
+import type { SecurityClashAttacker } from "./securityClash";
 import {
   buildSecurityBranchScene,
   buildSecurityBreakScene,
@@ -16,6 +19,7 @@ import {
   SECURITY_CLASH_TOTAL_MS,
   SECURITY_DESTROY_OUTCOME_AT_MS,
   securityDestructionsFromEvents,
+  securityClashTailMs,
 } from "./securityClash";
 
 // Agumon is a Digimon with DP; Brave Shield is an Option, so it has none to compare.
@@ -23,6 +27,53 @@ const DIGIMON_CARD_ID = "BT1-010";
 const OPTION_CARD_ID = "BT1-095";
 
 describe("security clash scene", () => {
+  it.each([0, 1] as const)(
+    "keeps seat %s's declared arrow in a check painted after the server attack ended",
+    (seat) => {
+      const declaration: Extract<ServerEvent, { kind: "attackDeclared" }> = {
+        kind: "attackDeclared",
+        seat,
+        attackerPermanentId: "physical-attacker",
+        attackerCardId: "BT5-086",
+        target: { kind: "player" },
+      };
+      const context: { current: SecurityClashAttacker | undefined } = { current: undefined };
+      presentSecurityAttack({
+        securityAttack: declaration,
+        cardSiteRef: { current: { topInstanceOf: () => "physical-top" } },
+        securityAttackerRef: context,
+      });
+      expect(
+        activeAttackArrow([declaration, { kind: "attackEnded", seat, attackerPermanentId: "physical-attacker" }]),
+      ).toBeNull();
+      for (const key of [1, 2]) {
+        const scene = buildSecurityClashScene({
+          key,
+          revealedCardId: DIGIMON_CARD_ID,
+          resolution: "battle",
+          defenderSeat: (seat === 0 ? 1 : 0) as Seat,
+          viewerSeat: 0,
+          attacker: context.current,
+        });
+        expect(scene.attackArrow).toEqual({
+          kind: "attack",
+          key: attackDeclarationKey(declaration),
+          from: { kind: "permanent", permanentId: "physical-attacker" },
+          to: [{ kind: "security", seat: seat === 0 ? 1 : 0 }],
+        });
+      }
+      const effectCheck = buildSecurityClashScene({
+        key: 3,
+        revealedCardId: DIGIMON_CARD_ID,
+        resolution: "effect",
+        defenderSeat: seat,
+        viewerSeat: 0,
+        attacker: context.current,
+      });
+      expect(effectCheck.attackArrow).toBeUndefined();
+    },
+  );
+
   it("faces the attacker at the checked player from the viewer's own half", () => {
     const scene = buildSecurityClashScene({
       key: 1,
@@ -259,5 +310,39 @@ describe("security destroyed by an effect", () => {
     expect(scene.resolution).toBe("trashed");
     expect(scene.cause).toBe("destruction");
     expect(scene.outcomeAtMs).toBe(SECURITY_DESTROY_OUTCOME_AT_MS);
+  });
+});
+
+describe("central departure budget", () => {
+  it.each([false, true])(
+    "retains the losing attacker=%s without shortening checked-card disposal",
+    (attackerDeleted) => {
+      const scene = buildSecurityClashScene({
+        key: 1,
+        revealedCardId: DIGIMON_CARD_ID,
+        resolution: "battle",
+        defenderSeat: 1,
+        viewerSeat: 0,
+        attacker: { seat: 0, cardId: "BT1-019" },
+        battle: { attackerDP: 1000, securityCardDP: 2000, attackerDeleted, securityDigimonDeleted: !attackerDeleted },
+      });
+      expect(securityClashTailMs(scene)).toBe(350 + (attackerDeleted ? 250 : 140));
+    },
+  );
+
+  it("keeps a plain check's 140ms disposal", () => {
+    const scene = buildSecurityClashScene({
+      key: 1,
+      revealedCardId: OPTION_CARD_ID,
+      resolution: "trashed",
+      defenderSeat: 1,
+      viewerSeat: 0,
+    });
+    expect(securityClashTailMs(scene)).toBe(140);
+  });
+
+  it("gives effect destruction a full250ms fracture followed by the existing scene exit", () => {
+    const scene = buildSecurityDestructionScene({ key: 1, cardId: DIGIMON_CARD_ID, trashedSeat: 1, viewerSeat: 0 });
+    expect(securityClashTailMs(scene)).toBe(250 + 160);
   });
 });

@@ -282,7 +282,14 @@ describe("effectNoticeFromEvent", () => {
       id: "a",
       side: Side.Viewer,
       fromSecurity: false,
-      body: { variant: "effect", cardId: "BT1-010", timing: "OnPlay", triggerTiming: "OnPlay", description: "Draw 1." },
+      body: {
+        variant: "effect",
+        cardId: "BT1-010",
+        timing: "OnPlay",
+        triggerTiming: "OnPlay",
+        effectKey: "k",
+        description: "Draw 1.",
+      },
       createdAt: 7,
     });
     expect(effectNoticeFromEvent(resolved(1), VIEWER, "b", 0)?.side).toBe("opp");
@@ -426,6 +433,19 @@ describe("stackStripNoticeFromEvent", () => {
       createdAt: 5,
     });
     expect(stackStripNoticeFromEvent(trashedTop, 1, "n", 5)?.side).toBe(Side.Opponent);
+  });
+
+  it("keeps Armor Purge's cost peel from creating a second prevention notice", () => {
+    const cost: ServerEvent = { ...trashedTop, strippedStackTops: { permanentId: "perm-1", reason: "armorPurge" } };
+    expect(stackStripNoticeFromEvent(cost, VIEWER, "cost", 5)).toBeNull();
+    expect(
+      preventionNoticeFromEvent(
+        { kind: "deletionPrevented", keyword: "Armor Purge", permanentId: "perm-1", cardId: "BT8-012", seat: 0 },
+        VIEWER,
+        "saved",
+        5,
+      )?.body,
+    ).toMatchObject({ variant: "keyword", keyword: "armorPurge", cardId: "BT8-012" });
   });
 
   it("ignores a De-Digivolve strip", () => {

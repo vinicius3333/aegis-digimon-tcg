@@ -32,11 +32,10 @@ export function computeHandCardLayout({
   const fan = !handOverflows && mid > 0 ? (Math.abs(off) / mid) * HAND_MAX_FAN : 0;
   const maxFanAngle = Math.min(12, mid * 4);
   const fanAngle = !handOverflows && mid > 0 ? (off / mid) * maxFanAngle : 0;
-  // Hover raises a buried card out of the fan so its face can be read; it
-  // never grows it. A card is inspected by clicking it, which opens the same
-  // focused overlay the touch layout uses.
-  const translateY = selected ? -34 : hovered ? -18 : fan;
-  const rotate = selected || hovered ? 0 : fanAngle;
+  // The temporary hover face owns enlargement/lift. Its physical slot keeps
+  // the same fan pose, hit target and capture owner through pointer changes.
+  const translateY = selected ? -34 : fan;
+  const rotate = selected ? 0 : fanAngle;
   return {
     ...({
       "--arena-hand-margin": `${index === 0 ? 0 : -overlap}px`,

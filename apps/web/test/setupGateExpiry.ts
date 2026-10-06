@@ -25,9 +25,16 @@ beforeEach(() => {
   });
 });
 
+/**
+ * Set by a suite that counts expiries as a measurement of its own (the pacing harness,
+ * test/pacing), so a ceiling it reports is not also thrown here.
+ */
+export const GATE_EXPIRIES_MEASURED = Symbol.for("aegis.gateExpiriesMeasured");
+
 afterEach(() => {
   stop?.();
   stop = undefined;
+  if ((globalThis as Record<symbol, unknown>)[GATE_EXPIRIES_MEASURED] === true) return;
   if (expiries.length === 0) return;
   const ran = expiries.map(({ label, ceilingMs }) => `${label} ran out its ${ceilingMs}ms ceiling`);
   throw new Error(

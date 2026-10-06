@@ -1,6 +1,11 @@
 import type { EffectContext } from "../../EffectContext.js";
 import { runDigivolve } from "../actions/digivolve.js";
-import { raiseDeletionDpCap, resolvePermanentTargets, topInstanceIds } from "../targeting/permanents.js";
+import {
+  effectiveTargetCount,
+  raiseDeletionDpCap,
+  resolvePermanentTargets,
+  topInstanceIds,
+} from "../targeting/permanents.js";
 import { canUnsuspendForCost } from "./canPay.js";
 import type { Action, Cost } from "@aegis/shared";
 
@@ -155,6 +160,8 @@ export async function payDeleteOwnCost(ctx: EffectContext, cost: Cost): Promise<
   const target = raiseDeletionDpCap(ctx, cost.target);
   const permanentIds = await resolvePermanentTargets(ctx, target, { allowDecline: ctx.costIsTheQuestion });
   if (permanentIds.length === 0) return false;
+  if (target.upTo !== true && target.count !== "all" && permanentIds.length !== effectiveTargetCount(ctx, target))
+    return false;
   const deletedTopInstanceIds = topInstanceIds(ctx, permanentIds);
   // Capture the deleted Digimon's level BEFORE removal so a
   // subsequent target filter's `levelComparison.relativeTo:"lastDeleted"` can bound on it
@@ -176,6 +183,7 @@ export async function payDeleteOwnCost(ctx: EffectContext, cost: Cost): Promise<
     // `bindingContains` conditions inspect those cards in their destination zone.
     ctx.boundPlayed.set(cost.bindResultAs, new Set(deletedTopInstanceIds));
   }
+  ctx.onActivationChosen?.();
   const deleted = await ctx.fx.deletePermanent(permanentIds, "byEffect", { mechanic: cost.mechanic });
   // A cost is paid only when every declared permanent actually leaves play. A
   // leave-play replacement (or another deletion prevention) may reject one of

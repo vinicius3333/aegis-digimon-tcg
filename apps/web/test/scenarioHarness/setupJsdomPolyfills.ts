@@ -5,6 +5,18 @@
  */
 import { WebSocket } from "ws";
 
+// Real field layouts observe their height. jsdom has no layout engine or resize events;
+// callers still take their initial measurement, and tests supply geometry when needed.
+if (typeof window !== "undefined" && typeof window.ResizeObserver !== "function") {
+  class ResizeObserverPolyfill {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+  window.ResizeObserver = ResizeObserverPolyfill as unknown as typeof ResizeObserver;
+  globalThis.ResizeObserver = window.ResizeObserver;
+}
+
 // jsdom ships a `WebSocket` global that throws "not implemented" on connect
 // rather than actually opening a socket. Scenario tests need a real client
 // websocket to reach the in-process Colyseus server

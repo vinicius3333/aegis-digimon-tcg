@@ -1,6 +1,6 @@
-/* The match's board look settings: board colors and battlefield, the same controls
-   the Settings screen has. The stores apply every change to the board behind the
-   dialog as soon as it is picked. */
+/* The match's board look and audio settings: board colors and battlefield, the same
+   controls the Settings screen has, plus music and sound effects. The stores apply
+   every change to the board and the audio behind the dialog as soon as it is picked. */
 
 import { useId } from "react";
 import { ArenaLookSettings } from "../../../design/ArenaLookSettings";
@@ -8,6 +8,7 @@ import type { ArenaDeckColors } from "../../../design/arenaPalette";
 import { Dialog } from "../../../design/primitives";
 import { Icons } from "../../../design/icons";
 import { useTranslation } from "../../../i18n";
+import { ArenaAudioSettings } from "./ArenaAudioSettings";
 
 export function ArenaLookDialog({ deckColors, onClose }: { deckColors: ArenaDeckColors; onClose: () => void }) {
   const { t } = useTranslation();
@@ -23,6 +24,7 @@ export function ArenaLookDialog({ deckColors, onClose }: { deckColors: ArenaDeck
           <Icons.X size={18} />
         </button>
       </header>
+      <ArenaAudioSettings />
       <ArenaLookSettings deckColors={deckColors} showThemeChoice />
     </Dialog>
   );

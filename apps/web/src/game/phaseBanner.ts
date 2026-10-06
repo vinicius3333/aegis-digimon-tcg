@@ -11,6 +11,8 @@ export interface PhaseBanner {
   labelKey: PhaseBannerLabelKey;
   /** Whose phase it is, from the viewer's side. */
   side: Side;
+  /** The resulting revision announced by this ribbon, when its batch is available. */
+  stateVersion?: number;
 }
 
 const BANNER_LABEL_KEYS = {

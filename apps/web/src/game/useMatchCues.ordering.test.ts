@@ -1,3 +1,4 @@
+import { deletionField } from "./screen/model/presentedBoard";
 // @vitest-environment jsdom
 
 import { act, cleanup, render as renderDom, renderHook } from "@testing-library/react";
@@ -9,6 +10,8 @@ import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import { recordSnapshot, selectPresentedState, type StateSnapshot } from "../net/presentedState";
 import { presentedSeats } from "./screen/model/presentedSeats";
 import { TIMINGS } from "./timings";
+import { observeGateExpiry as observeTitanGateExpiry } from "./match/presentationGate";
+import type { PresentationPacing, PresentationProbe, PresentationControls } from "./presentationProbe";
 import { NarrationStack } from "./NarrationStack";
 import { I18nProvider } from "../i18n";
 import { CardOpenerProvider } from "./cardLinks";
@@ -78,6 +81,8 @@ function renderOrderingCues(
   initialState: GameState = BOARD,
   cueAnchors: MatchCueAnchors = anchors,
   viewerSeat: Seat = VIEWER,
+  presentationPacing: PresentationPacing = "current",
+  devProbe?: PresentationProbe,
 ) {
   const feed = batchFeed();
   let snapshots = recordSnapshot([], initialState);
@@ -85,6 +90,8 @@ function renderOrderingCues(
     ({ batches, decisionPending, state, snapshots: taken }: OrderingProps) =>
       useMatchCues({
         narrationLimit: 3,
+        presentationPacing,
+        devProbe,
         batches,
         state,
         snapshots: taken,
@@ -136,9 +143,14 @@ async function advance(ms: number) {
   });
 }
 
-async function firstSeenOrder(probes: Record<string, () => boolean>, totalMs: number): Promise<readonly string[]> {
+async function firstSeenOrder(
+  probes: Record<string, () => boolean>,
+  totalMs: number,
+  observeFrame?: () => void,
+): Promise<readonly string[]> {
   const seen: string[] = [];
   for (let elapsed = 0; elapsed <= totalMs; elapsed += 16) {
+    observeFrame?.();
     for (const [name, probe] of Object.entries(probes)) if (!seen.includes(name) && probe()) seen.push(name);
     await advance(16);
   }
@@ -149,6 +161,54 @@ beforeEach(() => vi.useFakeTimers());
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
+});
+
+it("keeps a raising evolution's card through its arrival tail before the next live top", async () => {
+  const board = (cardId: string, stateVersion: number) =>
+    ({
+      ...BOARD,
+      stateVersion,
+      players: [
+        BOARD.players[0],
+        {
+          ...BOARD.players[1],
+          breeding: {
+            permanentId: "raising",
+            topCard: { cardId, instanceId: cardId },
+            stack: [],
+            currentDP: 0,
+          },
+        },
+      ],
+    }) as unknown as GameState;
+  const first = board("ST1-03", 1);
+  const next = board("ST1-05", 2);
+  const view = renderOrderingCues(board("ST1-01", 0));
+  view.feedBatch(
+    [{ kind: "digivolved", seat: 1, permanentId: "raising", cardId: "ST1-03", mechanic: "normal", inBreeding: true }],
+    first,
+  );
+  await advance(800);
+  expect(view.result.current.permanentBursts.get("raising")?.variant).toBe("evolve");
+  view.feedBatch(
+    [{ kind: "digivolved", seat: 1, permanentId: "raising", cardId: "ST1-05", mechanic: "normal", inBreeding: true }],
+    next,
+  );
+  await advance(16);
+  const selected = selectPresentedState({
+    live: next,
+    snapshots: recordSnapshot(recordSnapshot([], first), next),
+    presentedStateVersion: view.result.current.presentedStateVersion,
+  });
+  expect(selected!.players[1]!.breeding!.topCard.cardId).toBe("ST1-03");
+  await advance(TIMINGS.cardBurst + 800);
+  expect(
+    selectPresentedState({
+      live: next,
+      snapshots: recordSnapshot(recordSnapshot([], first), next),
+      presentedStateVersion: view.result.current.presentedStateVersion,
+    })!.players[1]!.breeding!.topCard.cardId,
+  ).toBe("ST1-05");
 });
 
 it.each([
@@ -1259,5 +1319,227 @@ it.each([0, 1] as const)(
     );
     await advance(12_000);
     expect(expiries).toEqual([]);
+  },
+);
+
+// Actual Titan cascade: hand-trash reactions precede two physical Delay costs.
+// Each cost must wait its turn without spending its own gate ceiling in that queue.
+it.each([
+  [false, 2, "live"],
+  [true, 1, "live"],
+  [true, 2, "live"],
+  [true, 2, "skip"],
+  [true, 2, "cancel"],
+  [true, 2, "skip-tail"],
+  [true, 2, "cancel-tail"],
+] as const)(
+  "keeps Titan Delay costs physical with earlier reactions queued=%s and copies=%s, %s",
+  async (queuedReactions, copies, exit) => {
+    const expiries: string[] = [];
+    onTestFinished(observeTitanGateExpiry(({ label }) => expiries.push(label)));
+    const option = (permanentId: string, instanceId: string) => ({
+      permanentId,
+      topCard: { instanceId, cardId: "BT24-098" },
+      stack: [],
+      currentDP: 0,
+    });
+    const first = option("delay-first", "option-first");
+    const second = option("delay-second", "option-second");
+    const titan = {
+      permanentId: "titan",
+      topCard: { instanceId: "titamon", cardId: "BT25-084" },
+      stack: [],
+      currentDP: 14000,
+    };
+    const before = {
+      stateVersion: 0,
+      players: [
+        {
+          battleArea: [titan, first, second],
+          trash: [{ instanceId: "discard", cardId: "BT26-069" }],
+          hand: [],
+          deckCount: 30,
+          securityCount: 0,
+        },
+        { battleArea: [], trash: [], hand: [], securityCount: 0 },
+      ],
+    } as unknown as GameState;
+    const after = {
+      ...before,
+      stateVersion: 20,
+      players: [
+        {
+          ...before.players[0],
+          battleArea: copies === 2 ? [titan] : [titan, second],
+          trash: [...[first, second].slice(0, copies).map((physical) => physical.topCard), ...before.players[0]!.trash],
+          hand: [{ instanceId: "drawn", cardId: "BT1-009" }],
+        },
+        before.players[1],
+      ],
+    } as unknown as GameState;
+    let controls: PresentationControls | undefined;
+    const view = renderOrderingCues(
+      before,
+      {
+        ...anchors,
+        permanentCenter: () => ({ x: 200, y: 300 }),
+        permanentFace: (id) => ({ x: id === "delay-first" ? 200 : 300, y: 300, width: 99, height: 139, angle: 0 }),
+      },
+      0,
+      "sequential",
+      {
+        onQueue: (next) => {
+          controls = next;
+        },
+      },
+    );
+    await advance(0);
+    view.setDecisionPending(queuedReactions);
+    const batches: ServerEvent[][] = [];
+    if (queuedReactions) {
+      const reaction = {
+        seat: 0,
+        sourceCardId: "BT25-084",
+        sourceInstanceId: "titamon",
+        sourcePermanentId: "titan",
+        effectKey: "hand-trash",
+        timing: "whenHandTrashed",
+        description: "[All Turns] When your hand is trashed from, delete 1 of your opponent's lowest DP Digimon.",
+      } as const;
+      const draw = {
+        seat: 0,
+        sourceCardId: "BT26-069",
+        sourceInstanceId: "discard",
+        effectKey: "hand-draw",
+        timing: "whenTrashedFromHand",
+        description: "When this card is trashed from the hand, if your hand has 5 or fewer cards, ＜Draw 1＞",
+      } as const;
+      batches.push(
+        [{ kind: "effectTriggered", ...reaction }],
+        [{ kind: "effectResolved", ...reaction }],
+        [
+          { kind: "effectTriggered", ...draw },
+          { kind: "cardsMoved", from: "deck", to: "hand", handAddition: "draw", seat: 0, instanceIds: ["drawn"] },
+        ],
+        [{ kind: "effectResolved", ...draw }],
+      );
+    }
+    for (const physical of [first, second].slice(0, copies)) {
+      const clause = {
+        seat: 0,
+        sourceCardId: "BT24-098",
+        sourceInstanceId: physical.topCard.instanceId,
+        sourcePermanentId: physical.permanentId,
+        effectKey: `delay-${physical.permanentId}`,
+        timing: "whenPlayed",
+        description:
+          "[Your Turn] When any of your [Titan] trait Digimon are played, ＜Delay＞ · If your opponent has 5 or more memory, you may play 1 level 5 or lower [Titan] Digimon from your trash.",
+      } as const;
+      batches.push(
+        [{ kind: "effectTriggered", ...clause }],
+        [
+          {
+            kind: "cardsMoved",
+            from: "various",
+            to: "trash",
+            instanceIds: [physical.topCard.instanceId],
+            trashedPermanents: [
+              {
+                permanentId: physical.permanentId,
+                instanceId: physical.topCard.instanceId,
+                cardId: "BT24-098",
+                seat: 0,
+              },
+            ],
+          },
+        ],
+        [{ kind: "effectResolved", ...clause }],
+      );
+    }
+    view.feedBatches(batches, after);
+    const assertBothHeld = () => expect(view.result.current.heldDeletions.size).toBe(2);
+    const assertDepartureBegan = () =>
+      expect([...view.result.current.heldDeletions.values()].some((held) => held.departed)).toBe(true);
+    const assertSettled = () => {
+      expect(controls?.queue.isIdle()).toBe(true);
+      expect(expiries).toEqual([]);
+    };
+    const assertDecorationClean = () => {
+      expect(view.result.current.heldDeletions.size).toBe(0);
+      expect(view.result.current.deleteBursts).toHaveLength(0);
+    };
+    if (exit !== "live") {
+      await advance(16);
+      assertBothHeld();
+      if (exit.endsWith("tail")) {
+        await firstSeenOrder({ break: () => view.result.current.deleteBursts.length > 0 }, 8000);
+        assertDepartureBegan();
+      }
+      if (exit.startsWith("skip")) act(() => view.result.current.skipAnimations());
+      else view.unmount();
+      await advance(1000);
+      if (exit.startsWith("skip")) assertDecorationClean();
+      assertSettled();
+      return;
+    }
+    const visibleBrokenCopies: string[] = [];
+    let breakFrames = 0;
+    let tailFrames = 0;
+    const brokenAt = new Map<string, number>();
+    const missingWaitingCopies: string[] = [];
+    const observeDepartureFrame = () => {
+      const held = [...view.result.current.heldDeletions.values()];
+      const departed = held.filter((hold) => hold.departed).map((hold) => hold.permanent.permanentId);
+      if (!departed.length) return;
+      breakFrames++;
+      const shown = deletionField({ player: before.players[0]!, held });
+      const visibleIds = shown.battleArea.map((permanent) => permanent.permanentId);
+      for (const id of departed) {
+        if (!brokenAt.has(id)) brokenAt.set(id, Date.now());
+        if (Date.now() - brokenAt.get(id)! > TIMINGS.deletionBurst) tailFrames++;
+      }
+      visibleBrokenCopies.push(...visibleIds.filter((id) => departed.includes(id)));
+      if (!departed.includes("delay-second") && !visibleIds.includes("delay-second"))
+        missingWaitingCopies.push("delay-second");
+    };
+    const moments = await firstSeenOrder(
+      {
+        firstFocus: () =>
+          view.result.current.effectSources.some(
+            (source) => source.site.zone === "field" && source.site.permanentId === "delay-first",
+          ),
+        firstBreak: () => view.result.current.deleteBursts.some((burst) => burst.face?.x === 200),
+        firstClause: () =>
+          view.result.current.notices.some(
+            (notice) => notice.body.variant === "effect" && notice.body.sourceInstanceId === "option-first",
+          ),
+        secondFocus: () =>
+          copies === 2 &&
+          view.result.current.effectSources.some(
+            (source) => source.site.zone === "field" && source.site.permanentId === "delay-second",
+          ),
+        secondBreak: () => copies === 2 && view.result.current.deleteBursts.some((burst) => burst.face?.x === 300),
+        secondClause: () =>
+          copies === 2 &&
+          view.result.current.notices.some(
+            (notice) => notice.body.variant === "effect" && notice.body.sourceInstanceId === "option-second",
+          ),
+      },
+      12000,
+      observeDepartureFrame,
+    );
+    expect(moments).toEqual([
+      "firstFocus",
+      "firstBreak",
+      "firstClause",
+      ...(copies === 2 ? ["secondFocus", "secondBreak", "secondClause"] : []),
+    ]);
+    expect(breakFrames).toBeGreaterThan(1);
+    expect(tailFrames).toBeGreaterThan(0);
+    expect([...brokenAt.keys()]).toEqual(["delay-first", ...(copies === 2 ? ["delay-second"] : [])]);
+    expect(missingWaitingCopies).toEqual([]);
+    expect(visibleBrokenCopies).toEqual([]);
+    assertDecorationClean();
+    assertSettled();
   },
 );

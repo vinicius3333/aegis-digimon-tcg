@@ -1,172 +1,324 @@
-/* Synthesized UI feedback sounds (Web Audio). No audio assets: every cue is a
-   short oscillator envelope generated on the fly, so it works offline and is
-   trivial to retune. One AudioContext is created lazily on the first cue (a user
-   gesture is always the trigger, satisfying the browser autoplay policy). */
+import { cueKey, type SoundKind, type SoundDetails } from "./audioRecipes";
+import { AUDIO_BANK_URL, AUDIO_CUES, MUSIC_URL } from "./audioBank";
+export type { SoundKind, SoundDetails } from "./audioRecipes";
+const clamp = (value: number, fallback = 0) => (Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : fallback);
 
-export type SoundKind =
-  | "select"
-  | "nav"
-  | "confirm"
-  | "attack"
-  | "error"
-  | "success"
-  | "cardPlay"
-  | "digivolve"
-  | "attackDeclare"
-  | "securityHit"
-  | "turnChange"
-  | "hatch"
-  | "win"
-  | "lose";
-
-const STORAGE_ENABLED = "aegis.sound.enabled";
-const STORAGE_VOLUME = "aegis.sound.volume";
-
-interface Tone {
-  type: OscillatorType;
-  from: number;
-  to: number;
-  duration: number;
-  gain: number;
-  /** Second note, started when the first one ends, for two-step cues. */
-  then?: Omit<Tone, "then">;
-}
-
-/** Per-cue oscillator recipe. `to` sweeps the frequency across `duration`. */
-const TONES: Record<SoundKind, Tone> = {
-  select: { type: "sine", from: 620, to: 720, duration: 0.06, gain: 0.22 },
-  nav: { type: "triangle", from: 380, to: 380, duration: 0.045, gain: 0.16 },
-  confirm: { type: "sine", from: 520, to: 784, duration: 0.12, gain: 0.28 },
-  attack: { type: "sawtooth", from: 260, to: 90, duration: 0.16, gain: 0.3 },
-  error: { type: "square", from: 300, to: 150, duration: 0.2, gain: 0.22 },
-  success: { type: "sine", from: 660, to: 990, duration: 0.22, gain: 0.26 },
-  cardPlay: { type: "triangle", from: 300, to: 470, duration: 0.09, gain: 0.24 },
-  digivolve: {
-    type: "sine",
-    from: 440,
-    to: 660,
-    duration: 0.09,
-    gain: 0.26,
-    then: { type: "sine", from: 660, to: 990, duration: 0.14, gain: 0.26 },
-  },
-  attackDeclare: { type: "sawtooth", from: 320, to: 110, duration: 0.18, gain: 0.3 },
-  securityHit: {
-    type: "square",
-    from: 880,
-    to: 240,
-    duration: 0.12,
-    gain: 0.24,
-    then: { type: "sine", from: 300, to: 520, duration: 0.1, gain: 0.22 },
-  },
-  turnChange: { type: "sine", from: 392, to: 523, duration: 0.18, gain: 0.2 },
-  hatch: {
-    type: "triangle",
-    from: 520,
-    to: 880,
-    duration: 0.1,
-    gain: 0.22,
-    then: { type: "sine", from: 880, to: 1180, duration: 0.1, gain: 0.2 },
-  },
-  win: {
-    type: "sine",
-    from: 523,
-    to: 784,
-    duration: 0.16,
-    gain: 0.28,
-    then: { type: "sine", from: 784, to: 1046, duration: 0.3, gain: 0.28 },
-  },
-  lose: { type: "sawtooth", from: 330, to: 110, duration: 0.4, gain: 0.22 },
-};
-
-function readEnabled(): boolean {
+function readFlag(key: string, fallback = true): boolean {
   try {
-    return localStorage.getItem(STORAGE_ENABLED) !== "false";
+    return localStorage.getItem(key) === null ? fallback : localStorage.getItem(key) !== "false";
   } catch {
-    return true;
+    return fallback;
   }
 }
-
-function readVolume(): number {
+function readVolume(key: string, fallback: number): number {
   try {
-    const raw = localStorage.getItem(STORAGE_VOLUME);
-    const parsed = raw == null ? 0.7 : Number(raw);
-    return Number.isFinite(parsed) ? Math.min(1, Math.max(0, parsed)) : 0.7;
+    const raw = localStorage.getItem(key);
+    return raw === null ? fallback : clamp(Number(raw), fallback);
   } catch {
-    return 0.7;
+    return fallback;
   }
 }
-
-let enabled = readEnabled();
-let masterVolume = readVolume();
+function persist(key: string, value: number | boolean): void {
+  try {
+    localStorage.setItem(key, String(value));
+  } catch {
+    /* Guest storage may be unavailable. */
+  }
+}
+let enabled = readFlag("aegis.sound.enabled");
+let volume = readVolume("aegis.sound.volume", 0.7);
+let musicEnabled = readFlag("aegis.music.enabled");
+let musicVolume = readVolume("aegis.music.volume", 0.25);
 let context: AudioContext | null = null;
-let lastPlayedAt = 0;
+let effectsBus: GainNode | null = null;
+let musicBus: GainNode | null = null;
+let limiter: DynamicsCompressorNode | null = null;
+let unlocked = false;
+let musicWanted = false;
+const voices = new Set<AudioBufferSourceNode>();
+type MusicVoice = { node: AudioBufferSourceNode; gate: GainNode };
+let musicVoices: MusicVoice[] = [];
+let retiringMusic: AudioBufferSourceNode[] = [];
+let musicOrigin: number | null = null;
+let cueBuffer: AudioBuffer | null = null;
+let musicBuffer: AudioBuffer | null = null;
+const assets = new Map<string, Promise<ArrayBuffer>>();
+const decoding = new Map<string, Promise<void>>();
+let epoch = 0;
 
-function ensureContext(): AudioContext | null {
-  if (typeof window === "undefined") return null;
-  const Ctor =
-    window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!Ctor) return null;
-  if (!context) context = new Ctor();
-  if (context.state === "suspended") void context.resume();
-  return context;
+/** Network starts at app mount; each buffer decodes independently only in a gesture-created context. */
+export async function prepareAudio(): Promise<void> {
+  const urls = [AUDIO_BANK_URL, MUSIC_URL];
+  await Promise.all(
+    urls.map(async (url) => {
+      let request = assets.get(url);
+      try {
+        if (!request) {
+          request = fetch(url).then((response) => {
+            if (!response.ok) throw new Error("Audio bank unavailable");
+            return response.arrayBuffer();
+          });
+          assets.set(url, request);
+        }
+        const bytes = await request;
+        const ctx = context;
+        const isMusic = url === MUSIC_URL;
+        if (!ctx || !unlocked || (isMusic ? musicBuffer : cueBuffer)) return;
+        let task = decoding.get(url);
+        if (!task) {
+          const generation = epoch;
+          task = ctx
+            .decodeAudioData(bytes.slice(0))
+            .then((buffer) => {
+              if (context !== ctx || epoch !== generation) return;
+              if (isMusic) musicBuffer = buffer;
+              else cueBuffer = buffer;
+              syncMusic();
+            })
+            .catch(() => undefined);
+          decoding.set(url, task);
+          const ownTask = task;
+          void task.then(() => {
+            if (decoding.get(url) === ownTask) decoding.delete(url);
+          });
+        }
+        await task;
+      } catch {
+        if (assets.get(url) === request) assets.delete(url);
+        /* Offline/unsupported assets are silent; stale presentation cues are never replayed. */
+      }
+    }),
+  );
 }
-
-export function isSoundEnabled(): boolean {
-  return enabled;
+const lastPlayed = new Map<SoundKind, number>();
+export const MAX_SOUND_VOICES = 8;
+// Eight authored peaks <= .30 plus music <= .08 remain below full scale even at both controls = 1.
+export const SFX_MIX_GAIN = 0.38;
+function ramp(bus: GainNode | null, value: number): void {
+  if (!bus || !context) return;
+  bus.gain.cancelScheduledValues(context.currentTime);
+  bus.gain.setTargetAtTime(value, context.currentTime, 0.025);
 }
-
+export const isSoundEnabled = () => enabled;
+export const getSoundVolume = () => volume;
 export function setSoundEnabled(next: boolean): void {
   enabled = next;
-  try {
-    localStorage.setItem(STORAGE_ENABLED, String(next));
-  } catch {
-    // ignore persistence failures (private mode / disabled storage)
-  }
+  persist("aegis.sound.enabled", next);
+  ramp(effectsBus, next ? volume * SFX_MIX_GAIN : 0);
 }
-
-export function getSoundVolume(): number {
-  return masterVolume;
-}
-
 export function setSoundVolume(next: number): void {
-  masterVolume = Math.min(1, Math.max(0, next));
+  volume = clamp(next);
+  persist("aegis.sound.volume", volume);
+  ramp(effectsBus, enabled ? volume * SFX_MIX_GAIN : 0);
+}
+export const isMusicEnabled = () => musicEnabled;
+export const getMusicVolume = () => musicVolume;
+export function setMusicEnabled(next: boolean): void {
+  musicEnabled = next;
+  persist("aegis.music.enabled", next);
+  syncMusic();
+}
+export function setMusicVolume(next: number): void {
+  musicVolume = clamp(next);
+  persist("aegis.music.volume", musicVolume);
+  syncMusic();
+}
+
+/** Called by trusted input listeners, before an action's delayed presentation. */
+export function unlockAudio(): void {
+  if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(STORAGE_VOLUME, String(masterVolume));
+    if (!context) {
+      const Ctor =
+        window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!Ctor) return;
+      context = new Ctor();
+      limiter = context.createDynamicsCompressor();
+      limiter.threshold.value = -8;
+      limiter.knee.value = 6;
+      limiter.ratio.value = 8;
+      limiter.attack.value = 0.003;
+      limiter.release.value = 0.08;
+      limiter.connect(context.destination);
+      effectsBus = context.createGain();
+      effectsBus.gain.value = enabled ? volume * SFX_MIX_GAIN : 0;
+      effectsBus.connect(limiter);
+      musicBus = context.createGain();
+      musicBus.gain.value = 0;
+      musicBus.connect(limiter);
+    }
+    unlocked = true;
+    if (context.state === "suspended")
+      void context
+        .resume()
+        .then(syncMusic)
+        .catch(() => undefined);
+    void prepareAudio();
+    syncMusic();
   } catch {
-    // ignore persistence failures
+    /* Unsupported/denied audio must never break interaction. */
   }
 }
 
-/** Play a UI cue. Silently no-ops when disabled, muted, or Web Audio is absent. */
-export function playSound(kind: SoundKind): void {
-  if (!enabled || masterVolume <= 0) return;
-  const ctx = ensureContext();
-  if (!ctx) return;
-
-  // Coalesce cues fired in the same tick (e.g. a click that both navigates and
-  // selects) so they don't stack into a click.
-  const now = ctx.currentTime;
-  if (now - lastPlayedAt < 0.01) return;
-  lastPlayedAt = now;
-
-  const tone = TONES[kind];
-  scheduleTone(ctx, tone, now);
-  if (tone.then) scheduleTone(ctx, tone.then, now + tone.duration);
+/** One steady original score, prepared outside presentation callbacks. */
+function syncMusic(): void {
+  const ctx = context;
+  const audible = musicWanted && musicEnabled && musicVolume > 0;
+  ramp(musicBus, audible ? musicVolume : 0);
+  if (!audible) {
+    stopMusicVoices();
+    return;
+  }
+  if (!ctx || ctx.state !== "running" || !musicBus || !unlocked || musicVoices.length || !musicBuffer) return;
+  const when = ctx.currentTime + 0.02;
+  musicOrigin ??= when;
+  const offset = (when - musicOrigin) % musicBuffer.duration;
+  const node = ctx.createBufferSource(),
+    gate = ctx.createGain();
+  node.buffer = musicBuffer;
+  node.loop = true;
+  gate.gain.setValueAtTime(0, ctx.currentTime);
+  gate.gain.linearRampToValueAtTime(1, when + 0.08);
+  node.connect(gate).connect(musicBus);
+  node.onended = () => {
+    node.disconnect();
+    gate.disconnect();
+    retiringMusic = retiringMusic.filter((retiring) => retiring !== node);
+  };
+  node.start(when, offset);
+  musicVoices = [{ node, gate }];
+}
+export function startMusic(): void {
+  musicWanted = true;
+  syncMusic();
+}
+function stopMusicVoices(): void {
+  if (!musicVoices.length) return;
+  for (const node of retiringMusic) {
+    try {
+      node.stop();
+    } catch {
+      /* Already stopped. */
+    }
+  }
+  retiringMusic = [];
+  const now = context?.currentTime ?? 0;
+  for (const { node, gate } of musicVoices) {
+    try {
+      gate.gain.cancelScheduledValues(now);
+      gate.gain.setTargetAtTime(0, now, 0.02);
+      node.stop(now + 0.12);
+      retiringMusic.push(node);
+    } catch {
+      /* Already stopped. */
+    }
+  }
+  musicVoices = [];
+}
+export function stopMusic(): void {
+  musicWanted = false;
+  ramp(musicBus, 0);
+  stopMusicVoices();
 }
 
-function scheduleTone(ctx: AudioContext, tone: Omit<Tone, "then">, startAt: number): void {
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = tone.type;
-  osc.frequency.setValueAtTime(tone.from, startAt);
-  osc.frequency.exponentialRampToValueAtTime(Math.max(1, tone.to), startAt + tone.duration);
-
-  const peak = tone.gain * masterVolume;
-  gain.gain.setValueAtTime(0.0001, startAt);
-  gain.gain.exponentialRampToValueAtTime(peak, startAt + 0.008);
-  gain.gain.exponentialRampToValueAtTime(0.0001, startAt + tone.duration);
-
-  osc.connect(gain).connect(ctx.destination);
-  osc.start(startAt);
-  osc.stop(startAt + tone.duration + 0.02);
+/** Presentation cues never create a context or try to bypass autoplay. */
+export function playSound(kind: SoundKind, details?: SoundDetails): void {
+  if (!enabled || volume <= 0 || !unlocked || !context || context.state !== "running" || !effectsBus || !cueBuffer)
+    return;
+  const now = context.currentTime;
+  if (now - (lastPlayed.get(kind) ?? -Infinity) < 0.075 || voices.size >= MAX_SOUND_VOICES) return;
+  const cue = AUDIO_CUES[cueKey(kind, details)];
+  if (!cue) return;
+  lastPlayed.set(kind, now);
+  const node = context.createBufferSource();
+  node.buffer = cueBuffer;
+  node.connect(effectsBus);
+  voices.add(node);
+  node.onended = () => {
+    voices.delete(node);
+    node.disconnect();
+  };
+  // Offset/duration select a finished original clip. No fetch, decode, render or oscillator graph here.
+  node.start(now, cue.offset, cue.duration);
+}
+export function disposeAudio(): void {
+  epoch++;
+  decoding.clear();
+  cueBuffer = null;
+  musicBuffer = null;
+  musicOrigin = null;
+  stopMusic();
+  for (const node of retiringMusic) {
+    try {
+      node.stop();
+    } catch {
+      /* Already stopped. */
+    }
+  }
+  retiringMusic = [];
+  for (const node of voices) {
+    try {
+      node.stop();
+    } catch {
+      /* Already stopped. */
+    }
+  }
+  voices.clear();
+  lastPlayed.clear();
+  const old = context;
+  context = null;
+  effectsBus = null;
+  musicBus = null;
+  limiter = null;
+  unlocked = false;
+  if (old && old.state !== "closed") void old.close().catch(() => undefined);
+}
+/** App-scoped listeners, with no context allocation until real input. */
+export function installAudioLifecycle(): () => void {
+  void prepareAudio();
+  const gesture = (event: Event) => {
+    if (event.isTrusted) unlockAudio();
+  };
+  const visibility = () => {
+    if (!context || !unlocked) return;
+    if (document.hidden) {
+      for (const node of voices) {
+        try {
+          node.stop();
+        } catch {
+          /* Already stopped. */
+        }
+      }
+      voices.clear();
+      void context.suspend().catch(() => undefined);
+    } else
+      void context
+        .resume()
+        .then(syncMusic)
+        .catch(() => undefined);
+  };
+  document.addEventListener("pointerdown", gesture, true);
+  document.addEventListener("keydown", gesture, true);
+  document.addEventListener("visibilitychange", visibility);
+  let restoreMusic = false;
+  const pageHide = () => {
+    restoreMusic = musicWanted;
+    disposeAudio();
+  };
+  const pageShow = () => {
+    if (restoreMusic) {
+      startMusic();
+      restoreMusic = false;
+    }
+  };
+  window.addEventListener("pagehide", pageHide);
+  window.addEventListener("pageshow", pageShow);
+  return () => {
+    document.removeEventListener("pointerdown", gesture, true);
+    document.removeEventListener("keydown", gesture, true);
+    document.removeEventListener("visibilitychange", visibility);
+    window.removeEventListener("pagehide", pageHide);
+    window.removeEventListener("pageshow", pageShow);
+    disposeAudio();
+  };
 }

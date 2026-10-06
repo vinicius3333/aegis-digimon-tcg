@@ -31,6 +31,12 @@ import type {
 
 export type { CombatHooks, CombatTrigger } from "./types.js";
 
+interface DigimonBattleKind {
+  /** The attack's own battle, as opposed to an effect battle resolved during it. */
+  isAttackBattle?: boolean;
+  comparison?: "digivolutionCards";
+}
+
 /**
  * The attack lifecycle + block window (subsystem: attack-and-block).
  *
@@ -763,7 +769,7 @@ export class CombatController {
           this.access.isBattleAreaDigimon(defender, this.hooks.continuous) &&
           this.access.isBattleAreaDigimon(attacker, this.hooks.continuous)
         ) {
-          await this.resolveDigimonBattle(attacker, defender);
+          await this.resolveDigimonBattle(attacker, defender, { isAttackBattle: true });
           if (this.access.game.gameOver) return;
           // §11-1-4: the battle's [On Deletion] windows were parked behind the ordering
           // effect's window token; activate them before Piercing and End of Attack.
@@ -1265,19 +1271,19 @@ export class CombatController {
   ): Promise<void> {
     // Direct battles never check security here. They can record Piercing for the
     // same attacking Digimon; another Digimon's battle cannot (EX11-074 Q5957-Q5959).
-    await this.resolveDigimonBattle(attacker, defender, opts?.comparison);
+    await this.resolveDigimonBattle(attacker, defender, { comparison: opts?.comparison });
   }
 
   private async resolveDigimonBattle(
     attacker: Permanent,
     defender: Permanent,
-    comparison?: "digivolutionCards",
+    battle: DigimonBattleKind,
   ): Promise<void> {
     const battleScopeId = this.hooks.beginBattleScope?.();
     this.battles.push({ attacker, defender });
     try {
       await this.hooks.recomputeBattleEffects?.();
-      await this.resolveDigimonBattleResult(attacker, defender, comparison);
+      await this.resolveDigimonBattleResult(attacker, defender, battle);
       if (this.access.game.gameOver) {
         if (battleScopeId !== undefined) this.hooks.endBattleScope?.(battleScopeId);
         return;
@@ -1309,7 +1315,7 @@ export class CombatController {
   private async resolveDigimonBattleResult(
     attacker: Permanent,
     defender: Permanent,
-    comparison?: "digivolutionCards",
+    { isAttackBattle = false, comparison }: DigimonBattleKind,
   ): Promise<void> {
     const outcome = resolvePermanentBattle({
       attackerPermanentId: attacker.permanentId,
@@ -1323,6 +1329,26 @@ export class CombatController {
       defenderDigivolutionCount: defender.stack.length,
       attackerSparedFromDeletion: this.sparedFromBattleDeletion(attacker.permanentId),
       defenderSparedFromDeletion: this.sparedFromBattleDeletion(defender.permanentId),
+    });
+
+    // The blow precedes the "would be deleted" questions. Final deletions are published
+    // later, so they cannot tell the client which surviving protected card took that blow.
+    this.hooks.emit({
+      kind: "battleCompared",
+      attackerPermanentId: attacker.permanentId,
+      defenderPermanentId: defender.permanentId,
+      loserPermanentIds: [...outcome.deletedPermanentIds],
+      ...(isAttackBattle
+        ? {}
+        : {
+            effectBattle: {
+              attackerSeat: attacker.controllerSeat,
+              attackerCardId: attacker.topCard.cardId,
+              ...(attacker.topCard.artId ? { attackerArtId: attacker.topCard.artId } : {}),
+              defenderCardId: defender.topCard.cardId,
+              ...(defender.topCard.artId ? { defenderArtId: defender.topCard.artId } : {}),
+            },
+          }),
     });
 
     // Capture the winner now, but publish only after every "would be deleted/leave" replacement
@@ -1859,11 +1885,14 @@ export class CombatController {
     // Hold the completion payload until resolveAttack reaches its outer cleanup boundary.
     // Consumers use combatResolved as the end-of-attack seam, so publishing here would let
     // a second attack race the remaining OnEndAttack timing and controller cleanup.
-    this.completedCombat = {
-      seat: attacker.controllerSeat,
-      attackerPermanentId: attacker.permanentId,
-      deletedPermanentIds: deleted,
-    };
+    // Only the attack's own battle completes it: an effect battle during the attack (EX13-076)
+    // must not be published as that attack's result when the attack's battle never happens.
+    if (isAttackBattle)
+      this.completedCombat = {
+        seat: attacker.controllerSeat,
+        attackerPermanentId: attacker.permanentId,
+        deletedPermanentIds: deleted,
+      };
   }
 
   /**

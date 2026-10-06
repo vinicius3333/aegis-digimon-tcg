@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aegis music and card sounds</title>
+  </head>
+  <body>
+    <main class="audio-preview">
+      <header>
+        <a href="/dev/effects-lab">Aegis effects lab</a>
+        <h1>Music and card sounds</h1>
+        <p>Compare the music, then hear the applied game mix with individual card cues.</p>
+      </header>
+      <section aria-labelledby="tracks-heading">
+        <h2 id="tracks-heading">Music comparison</h2>
+        <div class="audio-preview__options">
+          <label><input type="checkbox" id="comparison-loop" checked /> Loop tracks</label>
+          <label><input type="checkbox" id="comparison-overlap" /> Allow track overlap</label>
+          <label><input type="checkbox" id="comparison-balanced" checked /> Balanced comparison volumes</label>
+          <button id="stop-all" type="button">Stop all</button>
+        </div>
+        <div id="tracks" class="audio-preview__tracks"></div>
+        <p id="candidate-status" role="status">Loading music choices…</p>
+      </section>
+      <section aria-labelledby="mix-heading">
+        <h2 id="mix-heading">Applied game mix</h2>
+        <p id="applied-track">The game’s current music and card cues.</p>
+        <div class="audio-preview__options">
+          <button id="start-game-mix" type="button">Start game mix</button>
+          <button id="stop-game-mix" type="button">Stop game music</button>
+          <button id="release-audio" type="button">Release audio</button>
+        </div>
+        <div class="audio-preview__controls">
+          <label><input type="checkbox" id="music-enabled" /> Music enabled</label>
+          <label for="music-volume">Music volume <output id="music-volume-value"></output></label>
+          <input id="music-volume" type="range" min="0" max="100" />
+          <label><input type="checkbox" id="effects-enabled" /> Card sounds enabled</label>
+          <label for="effects-volume">Card volume <output id="effects-volume-value"></output></label>
+          <input id="effects-volume" type="range" min="0" max="100" />
+        </div>
+        <div id="cues" class="audio-preview__options"></div>
+        <button id="overlap-cues" type="button">Play six cues together</button>
+        <p id="mix-status" role="status">Press a playback control to enable audio.</p>
+      </section>
+      <section aria-labelledby="alternative-heading">
+        <h2 id="alternative-heading">Alternative card texture</h2>
+        <p>Six crisp cues: draw, play, effect, evolution, impact and security.</p>
+        <audio id="crisp-cues" controls preload="none"></audio>
+      </section>
+      <details id="cue-comparison" hidden>
+        <summary>Card cues before and after</summary>
+        <p>Compare each previous original cue with its current gameplay version.</p>
+        <div id="cue-comparison-rows"></div>
+      </details>
+      <details>
+        <summary>Card sound references</summary>
+        <p>
+          <a href="https://kenney.nl/assets/casino-audio" target="_blank" rel="noreferrer">Kenney card Foley</a>
+          ·
+          <a href="https://opengameart.org/content/playing-card-sounds" target="_blank" rel="noreferrer"
+            >Brian MacIntosh playing-card sounds</a
+          >
+        </p>
+      </details>
+      <details>
+        <summary>Track measurements</summary>
+        <div class="audio-preview__table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Track</th>
+                <th>Duration</th>
+                <th>Tempo</th>
+                <th>Peak</th>
+                <th>RMS</th>
+                <th>Loop seam</th>
+              </tr>
+            </thead>
+            <tbody id="measurements"></tbody>
+          </table>
+        </div>
+      </details>
+    </main>
+    <script type="module" src="/src/dev/audioPreview.ts"></script>
+  </body>
+</html>

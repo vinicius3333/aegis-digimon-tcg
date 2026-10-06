@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CardInstance, Permanent, type DecisionRequest, type Seat } from "@aegis/shared";
 import {
   decisionPresentation,
+  isFieldTargetDecision,
   fieldSlots,
   sourcePermanentIdOf,
   triggerClauseSummary,
@@ -39,6 +40,17 @@ function permanent(permanentId: string, cardId: string, stackCardIds: readonly s
 
 describe("decisionPresentation", () => {
   const hand = ["h1", "h2", "h3"];
+
+  it("distinguishes field effect targets from costs, zone selections, and attack declarations", () => {
+    const field = [permanent("target", "BT1-010")];
+    const targets = decision({ options: { candidateInstanceIds: ["target"] } });
+    expect(isFieldTargetDecision(targets, field)).toBe(true);
+    expect(isFieldTargetDecision({ ...targets, options: { ...targets.options, purpose: "cost" } }, field)).toBe(false);
+    expect(isFieldTargetDecision({ ...targets, options: { candidateInstanceIds: ["h1"] } }, field)).toBe(false);
+    expect(
+      isFieldTargetDecision({ ...targets, options: { ...targets.options, selectionContext: "attackTarget" } }, field),
+    ).toBe(false);
+  });
 
   it("routes a field-only selection to the board", () => {
     const request = decision({

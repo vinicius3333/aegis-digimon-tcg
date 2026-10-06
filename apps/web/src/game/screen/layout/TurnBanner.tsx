@@ -9,7 +9,10 @@ export function TurnBanner({ transition, viewerSeat }: { transition: TurnTransit
   const { t } = useTranslation();
   const mine = transition.nextSeat === viewerSeat;
   return (
-    <div className={`game-turn-banner${mine ? " game-turn-banner--you" : " game-turn-banner--opp"}`}>
+    <div
+      className={`game-turn-banner${mine ? " game-turn-banner--you" : " game-turn-banner--opp"}`}
+      data-turn-key={`${transition.endingSeat}:${transition.turnCount}`}
+    >
       <span>{mine ? t("game.yourTurn") : t("game.opponentsTurn")}</span>
     </div>
   );

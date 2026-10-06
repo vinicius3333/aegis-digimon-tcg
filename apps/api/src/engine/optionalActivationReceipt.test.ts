@@ -3,7 +3,7 @@ import { EffectTiming, Zone, type CompiledCard } from "@aegis/shared";
 import "../cards/index.js";
 import { registerIrCard, runtimeCompiledCard } from "./effects/interpreter.js";
 import { advance } from "./testkit/advance.js";
-import { setupEngine } from "./testkit/harness.js";
+import { setupEngine, settle } from "./testkit/harness.js";
 
 const CARD_ID = "BT1-009";
 
@@ -35,6 +35,144 @@ function optionalActionRequests(s: ReturnType<typeof setupEngine>): string[] {
 }
 
 describe("once-per-turn activation receipt boundaries", () => {
+  it("does not activate an incomplete fixed-count hand payment", async () => {
+    const cost = {
+      kind: "trash" as const,
+      target: {
+        filter: { cardId: "BT1-009", controller: "mine" as const, zone: "hand" as const },
+        from: ["hand" as const],
+        count: 2,
+      },
+    };
+    await withCompiledCard(
+      oncePerTurnOnPlay({
+        actions: [
+          { kind: "CostGatedBlock", optional: true, abortOnDecline: true, cost, actions: [modifySelfDP(1000)] },
+        ],
+      }),
+      async () => {
+        const s = setupEngine({
+          0: {
+            battleArea: [{ card: CARD_ID, as: "source" }],
+            hand: [
+              { card: CARD_ID, as: "first" },
+              { card: CARD_ID, as: "second" },
+            ],
+          },
+        });
+        const fire = advance(s.engine);
+        const respond = async (instanceIds: string[]) => {
+          await settle(() => s.state.pendingDecision?.kind === "selectCards");
+          const prompt = s.decisions.at(-1)!.req;
+          expect(prompt.options).toMatchObject({ min: 0, max: 2, purpose: "cost" });
+          expect(
+            s.engine.applyIntent(0, {
+              type: "respondDecision",
+              decisionId: prompt.decisionId,
+              response: { kind: "selectCards", instanceIds },
+            }),
+          ).toEqual({ ok: true });
+        };
+
+        const incomplete = fire.fire(EffectTiming.OnPlay, s.perm("source"));
+        await respond([s.inst("first").instanceId]);
+        await incomplete;
+        expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === CARD_ID)).toBe(
+          false,
+        );
+        expect(s.state.players[0]!.hand).toHaveLength(2);
+        expect(s.state.players[0]!.trash).toHaveLength(0);
+        expect(s.perm("source").currentDP).toBe(3000);
+
+        const complete = fire.fire(EffectTiming.OnPlay, s.perm("source"));
+        await respond([s.inst("first").instanceId, s.inst("second").instanceId]);
+        await complete;
+        expect(s.state.players[0]!.hand).toHaveLength(0);
+        expect(s.state.players[0]!.trash).toHaveLength(2);
+        expect(s.perm("source").currentDP).toBe(4000);
+        const triggerIndex = s.events.findIndex(
+          (event) => event.kind === "effectTriggered" && event.sourceCardId === CARD_ID,
+        );
+        const paymentIndex = s.events.findIndex((event) => event.kind === "cardsMoved" && event.to === "trash");
+        expect(triggerIndex).toBeGreaterThan(-1);
+        expect(paymentIndex).toBeGreaterThan(triggerIndex);
+        expect(
+          s.events.filter((event) => event.kind === "effectTriggered" && event.sourceCardId === CARD_ID),
+        ).toHaveLength(1);
+      },
+    );
+  });
+
+  it("does not activate or partially pay an incomplete fixed-count deletion cost", async () => {
+    await withCompiledCard(
+      oncePerTurnOnPlay({
+        actions: [
+          {
+            kind: "CostGatedBlock",
+            optional: true,
+            abortOnDecline: true,
+            cost: {
+              kind: "deleteOwn",
+              declineViaSelection: true,
+              target: { filter: { controller: "mine", cardId: "BT1-010" }, count: 2 },
+            },
+            actions: [modifySelfDP(1000)],
+          },
+        ],
+      }),
+      async () => {
+        const s = setupEngine({
+          0: {
+            battleArea: [
+              { card: CARD_ID, as: "source" },
+              { card: "BT1-010", as: "first" },
+              { card: "BT1-010", as: "second" },
+            ],
+          },
+        });
+        const fire = advance(s.engine);
+        const respond = async (instanceIds: string[]) => {
+          await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+          const prompt = s.decisions.at(-1)!.req;
+          expect(prompt.options).toMatchObject({ min: 0, max: 2, purpose: "cost" });
+          expect(
+            s.engine.applyIntent(0, {
+              type: "respondDecision",
+              decisionId: prompt.decisionId,
+              response: { kind: "chooseTargets", instanceIds },
+            }),
+          ).toEqual({ ok: true });
+        };
+        const firstId = s.perm("first").permanentId;
+        const secondId = s.perm("second").permanentId;
+        const incomplete = fire.fire(EffectTiming.OnPlay, s.perm("source"));
+        await respond([firstId]);
+        await incomplete;
+        expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === CARD_ID)).toBe(
+          false,
+        );
+        expect(s.state.players[0]!.battleArea).toHaveLength(3);
+        expect(s.state.players[0]!.trash).toHaveLength(0);
+        expect(s.perm("source").currentDP).toBe(3000);
+
+        const complete = fire.fire(EffectTiming.OnPlay, s.perm("source"));
+        await respond([firstId, secondId]);
+        await complete;
+        expect(s.state.players[0]!.battleArea).toHaveLength(1);
+        expect(s.state.players[0]!.trash).toHaveLength(2);
+        expect(s.perm("source").currentDP).toBe(4000);
+        const triggerIndex = s.events.findIndex(
+          (event) => event.kind === "effectTriggered" && event.sourceCardId === CARD_ID,
+        );
+        const paymentIndex = s.events.findIndex(
+          (event) => event.kind === "cardsMoved" && event.deletedPermanents !== undefined,
+        );
+        expect(triggerIndex).toBeGreaterThan(-1);
+        expect(paymentIndex).toBeGreaterThan(triggerIndex);
+      },
+    );
+  });
+
   it("preserves the once-per-turn opportunity when an optional play has no candidate", async () => {
     await withCompiledCard(
       oncePerTurnOnPlay({

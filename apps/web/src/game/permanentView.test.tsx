@@ -8,6 +8,80 @@ import { PermanentView } from "./piece";
 
 afterEach(() => cleanup());
 
+it("keeps the host entrance when sources or its stripped top change, and remounts for an accepted evolution", () => {
+  const perm = opponentWithDpDown();
+  perm.stack.push(Object.assign(new CardInstance(), { cardId: "BT1-010", instanceId: "source" }));
+  const renderCard = (burst?: Parameters<typeof PermanentView>[0]["burst"]) => (
+    <I18nProvider>
+      <PermanentView perm={perm} burst={burst} />
+    </I18nProvider>
+  );
+  const { container, rerender } = render(renderCard());
+  const entrance = container.querySelector(".game-card-enter");
+  perm.topCard = perm.stack.pop()!;
+  rerender(renderCard());
+  expect(container.querySelector(".game-card-enter")).toBe(entrance);
+  const evolution = {
+    key: 2,
+    permanentId: perm.permanentId,
+    variant: "evolve" as const,
+    color: "Blue" as const,
+    inBreeding: false,
+  };
+  rerender(renderCard(evolution));
+  const arrived = container.querySelector(".game-card-enter");
+  expect(arrived).not.toBe(entrance);
+  rerender(renderCard());
+  expect(container.querySelector(".game-card-enter")).toBe(arrived);
+});
+
+it("keeps a breeding transfer quiet after handoff, but permits the next evolution's entrance", () => {
+  const perm = opponentWithDpDown();
+  const move = {
+    key: 1,
+    permanentId: perm.permanentId,
+    variant: "play" as const,
+    color: "Blue" as const,
+    inBreeding: false,
+    moveFromBreeding: true as const,
+  };
+  const { container, rerender } = render(
+    <I18nProvider>
+      <PermanentView perm={perm} pending burst={move} />
+    </I18nProvider>,
+  );
+  expect(container.querySelector(".battle-burst, .game-card-dust")).toBeNull();
+  rerender(
+    <I18nProvider>
+      <PermanentView perm={perm} />
+    </I18nProvider>,
+  );
+  expect(container.querySelector(".game-card-enter--quiet")).toBeTruthy();
+  perm.stack.push(Object.assign(new CardInstance(), { cardId: "BT1-010", instanceId: "new-source" }));
+  rerender(
+    <I18nProvider>
+      <PermanentView perm={perm} />
+    </I18nProvider>,
+  );
+  const entrance = container.querySelector(".game-card-enter");
+  expect(entrance?.classList.contains("game-card-enter--quiet")).toBe(true);
+  perm.topCard = perm.stack.pop()!;
+  rerender(
+    <I18nProvider>
+      <PermanentView perm={perm} />
+    </I18nProvider>,
+  );
+  expect(container.querySelector(".game-card-enter")).toBe(entrance);
+  expect(entrance?.classList.contains("game-card-enter--quiet")).toBe(true);
+  rerender(
+    <I18nProvider>
+      <PermanentView perm={perm} burst={{ ...move, key: 2, variant: "evolve", moveFromBreeding: undefined }} />
+    </I18nProvider>,
+  );
+  expect(container.querySelector(".game-card-enter--quiet")).toBeNull();
+  expect(container.querySelector(".game-card-enter")).not.toBe(entrance);
+});
+
 it("inspects a field-selection candidate without activating its primary choice", () => {
   const choose = vi.fn<() => void>();
   const inspect = vi.fn<() => void>();
@@ -429,7 +503,6 @@ it("raises an opponent's Plutomon during effect activation and returns it afterw
   );
   const card = container.querySelector<HTMLElement>(".game-permanent--effect-source")!;
   expect(card.style.transform).toBe("translateY(-6px)");
-  expect(container.querySelectorAll(".game-effect-source-particles i")).toHaveLength(8);
   rerender(
     <I18nProvider>
       <PermanentView perm={permanent} />

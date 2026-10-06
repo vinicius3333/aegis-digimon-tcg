@@ -1,7 +1,7 @@
 import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX3-004.js";
 
 describe("EX3-004 Veemon", () => {
@@ -117,7 +117,8 @@ describe("EX3-004 Veemon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("veemon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-004"));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX3-004")).toBe(false);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });

@@ -71,7 +71,8 @@ describe("EX1-015 Garurumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-015"));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX1-015")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("matt").instanceId)).toBe(true);
   });
 
@@ -94,7 +95,8 @@ describe("EX1-015 Garurumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-015"));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX1-015")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("matt").instanceId)).toBe(true);
   });
 
@@ -172,7 +174,8 @@ describe("EX1-015 Garurumon", () => {
       });
 
     expect(attack()).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-015"));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX1-015")).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("matt1").instanceId);
     responder.autoDeclineOptional = false;
     responder.autoAcceptOptional = true;
@@ -188,7 +191,7 @@ describe("EX1-015 Garurumon", () => {
     await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
     expect(
       s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-015"),
-    ).toHaveLength(2);
+    ).toHaveLength(1);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === s.inst("matt1").instanceId)).toBe(
       true,
     );

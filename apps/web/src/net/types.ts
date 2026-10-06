@@ -18,10 +18,14 @@ export interface AegisJoinOptions {
   ranked?: boolean;
   betaBattleMode?: boolean;
   authTicket?: string;
+  /** How this client paces a chain of triggered effects; a bot opponent follows `sequential` pacing. */
+  presentationPacing?: "current" | "sequential";
   /** Dev-only: ask a bot room for a hand-laid board instead of the pre-game procedure. */
   devScenario?:
     | "arena-bt23-examon-partition-return"
     | "arena-bt23-examon-piercing-end-turn"
+    | import("@aegis/shared").KeywordPacingScenarioId
+    | import("@aegis/shared").PhasePacingScenarioId
     | "battle"
     | "field-grouping"
     | "arena-field-grouping-dense"
@@ -51,6 +55,7 @@ export interface AegisJoinOptions {
     | "arena-bt16-phoenixmon-x-antibody-name"
     | "arena-bt21-davis-top-stack"
     | "arena-bt21-dracomon-start-main"
+    | "arena-bt24-asuna-return-play"
     | "arena-bt21-dogatchmon-link-attack"
     | "arena-bt24-sonic-shot-decline-link"
     | "arena-bt26-chronomon-dm-succession"
@@ -329,5 +334,18 @@ export interface AegisJoinOptions {
     | "counter-blast-dna"
     | "arena-mobile-blast-counter-tap"
     | "security-battle"
+    | "effects-lab-own-chain"
+    | "effects-lab-field-grouping"
+    | "effects-lab-opponent-chain"
+    | "effects-lab-opponent-play"
+    | "effects-lab-nested"
+    | "effects-lab-prod-royal-knights"
+    | "effects-lab-prod-ghost"
+    | "effects-lab-prod-ghost-execute"
+    | "effects-lab-prod-ghost-execute-security"
+    | "effects-lab-prod-attack-stack"
+    | "effects-lab-prod-security-removed"
+    | "effects-lab-prod-titan-cascade"
+    | "effects-lab-paladin-battle"
     | "security-chain";
 }

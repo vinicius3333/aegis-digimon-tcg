@@ -1,0 +1,2228 @@
+{
+  "schema": 4,
+  "sceneSha256": "cb8dc2a84eb1673a32b7f52419c046a7cbbf3a8e4af662cbc1860b49263376eb",
+  "evidence": [
+    {
+      "colour": "Red",
+      "prefab": "Effect/ポケモン/炎.prefab",
+      "sha256": "dd79e680f80119cba6077e57cec75749ab2eb71653f394cbada0ecf292afa972"
+    },
+    {
+      "colour": "Blue",
+      "prefab": "Effect/ポケモン/水.prefab",
+      "sha256": "bffb1b84e7c85436f4f35673409f147e62ad7734ed33a4230365b70aae258dca"
+    },
+    {
+      "colour": "Green",
+      "prefab": "Effect/ポケモン/草.prefab",
+      "sha256": "b0a0f6245de543bd78b812c2edc76cf77ed207d14bb1a37e8a823080e26d79f6"
+    },
+    {
+      "colour": "Yellow",
+      "prefab": "Effect/ポケモン/雷.prefab",
+      "sha256": "75764117e8e180fed3f2493a559f1751969a2c709ef5fd876e48880fed0125cc"
+    },
+    {
+      "colour": "Purple",
+      "prefab": "Effect/ポケモン/超.prefab",
+      "sha256": "351f3dd656484ec653c0781a9c97521a305796b8465b066c5c6c9d03f76e96c6"
+    },
+    {
+      "colour": "Black",
+      "prefab": "Effect/ポケモン/悪.prefab",
+      "sha256": "12b9a50aba0ba24db709ceaa9377a02224b64708069bcc3deba682cf52d4603f"
+    },
+    {
+      "colour": "White",
+      "prefab": "Effect/ポケモン/無.prefab",
+      "sha256": "45415df2b983e5383f747602f66bc8c125c8a2633abd04b5c1a371e6cb498328"
+    }
+  ],
+  "systems": [
+    {
+      "role": "core-needles",
+      "capacity": 3,
+      "emissionMs": 1000,
+      "simulationSpeed": 1,
+      "scalingMode": 2,
+      "simulationSpace": 0,
+      "velocityWorld": 0,
+      "rate": {
+        "mode": 0,
+        "scalar": 1000,
+        "min": 10
+      },
+      "delay": {
+        "mode": 0,
+        "scalar": 0,
+        "min": 0
+      },
+      "lifetime": {
+        "mode": 0,
+        "scalar": 1,
+        "min": 5
+      },
+      "speed": {
+        "mode": 0,
+        "scalar": 0.1,
+        "min": 5
+      },
+      "size": {
+        "mode": 0,
+        "scalar": 2,
+        "min": 1
+      },
+      "rotation": {
+        "mode": 3,
+        "scalar": 3.1415925,
+        "min": -3.1415925
+      },
+      "rotationSpeed": {
+        "mode": 3,
+        "scalar": 1.5707963,
+        "min": -1.5707963
+      },
+      "sizeOverLife": {
+        "mode": 1,
+        "scalar": 1,
+        "min": 1,
+        "keys": [
+          [
+            0,
+            1,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            0,
+            0
+          ]
+        ]
+      },
+      "alpha": [
+        [
+          0.0,
+          1
+        ],
+        [
+          0.6676432440680552,
+          1
+        ],
+        [
+          0.9911802853437095,
+          0
+        ]
+      ],
+      "shape": {
+        "enabled": false,
+        "type": 4,
+        "radius": 5,
+        "angle": 85,
+        "thickness": 1
+      },
+      "velocity": null,
+      "transform": {
+        "m_LocalRotation": {
+          "x": 0.7071068,
+          "y": 0,
+          "z": 0,
+          "w": 0.7071068
+        },
+        "m_LocalPosition": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "m_LocalScale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "renderer": {
+        "mode": 1,
+        "length": 9,
+        "alignment": 0,
+        "meshFileId": 0,
+        "meshSize": 1,
+        "freeformStretching": false,
+        "rotateWithStretch": true,
+        "velocityScale": 0,
+        "cameraVelocityScale": 0,
+        "material": {
+          "name": "Laser2",
+          "shaderFileId": 200,
+          "tint": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "textureFileId": 2800000,
+          "texture": "Effect/52SpecialEffectPack/Texture/Laser2.png",
+          "textureSha256": "45b95b047aaa697388dc9c168d8f8e9273fbe1f1f06a7b63e50c6f9010afe688",
+          "sha256": "f725ccb8bdf879927065625ac660cd99598128396c3e15855580d09395d809d1"
+        }
+      }
+    },
+    {
+      "role": "halo",
+      "capacity": 1,
+      "emissionMs": 500.0,
+      "simulationSpeed": 1,
+      "scalingMode": 2,
+      "simulationSpace": 0,
+      "velocityWorld": 0,
+      "rate": {
+        "mode": 0,
+        "scalar": 1000,
+        "min": 10
+      },
+      "delay": {
+        "mode": 0,
+        "scalar": 0,
+        "min": 0
+      },
+      "lifetime": {
+        "mode": 0,
+        "scalar": 1,
+        "min": 5
+      },
+      "speed": {
+        "mode": 0,
+        "scalar": 0,
+        "min": 5
+      },
+      "size": {
+        "mode": 0,
+        "scalar": 0.15,
+        "min": 1
+      },
+      "rotation": {
+        "mode": 3,
+        "scalar": 0,
+        "min": 0
+      },
+      "rotationSpeed": null,
+      "sizeOverLife": {
+        "mode": 1,
+        "scalar": 50,
+        "min": 1,
+        "keys": [
+          [
+            0,
+            0.16923079,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            0,
+            0
+          ]
+        ]
+      },
+      "alpha": [
+        [
+          0.0,
+          0
+        ],
+        [
+          0.1411764705882353,
+          0.2
+        ],
+        [
+          0.49411764705882355,
+          1
+        ],
+        [
+          0.8588235294117647,
+          0.09803922
+        ],
+        [
+          0.9911802853437095,
+          0
+        ]
+      ],
+      "shape": {
+        "enabled": true,
+        "type": 0,
+        "radius": 0.01,
+        "angle": 25,
+        "thickness": 1
+      },
+      "velocity": null,
+      "transform": {
+        "m_LocalRotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 1
+        },
+        "m_LocalPosition": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "m_LocalScale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "renderer": {
+        "mode": 4,
+        "length": 2,
+        "alignment": 2,
+        "meshFileId": 10209,
+        "meshSize": 10,
+        "freeformStretching": false,
+        "rotateWithStretch": true,
+        "velocityScale": 0,
+        "cameraVelocityScale": 0,
+        "material": {
+          "name": "Core4",
+          "shaderFileId": 200,
+          "tint": [
+            1,
+            1,
+            1,
+            0.40392157
+          ],
+          "textureFileId": 10300,
+          "texture": null,
+          "textureSha256": null,
+          "sha256": "e222a1758330160bbdf1a84841404e6a4891439efeea271a6b26a35f8ad2b4f1"
+        }
+      }
+    },
+    {
+      "role": "long-beams",
+      "capacity": 75,
+      "emissionMs": 1000,
+      "simulationSpeed": 1,
+      "scalingMode": 2,
+      "simulationSpace": 0,
+      "velocityWorld": 0,
+      "rate": {
+        "mode": 0,
+        "scalar": 1000,
+        "min": 10
+      },
+      "delay": {
+        "mode": 0,
+        "scalar": 0,
+        "min": 0
+      },
+      "lifetime": {
+        "mode": 0,
+        "scalar": 1,
+        "min": 5
+      },
+      "speed": {
+        "mode": 0,
+        "scalar": 0.1,
+        "min": 5
+      },
+      "size": {
+        "mode": 0,
+        "scalar": 2,
+        "min": 1
+      },
+      "rotation": {
+        "mode": 3,
+        "scalar": 3.1415925,
+        "min": -3.1415925
+      },
+      "rotationSpeed": {
+        "mode": 3,
+        "scalar": 1.5707963,
+        "min": -1.5707963
+      },
+      "sizeOverLife": {
+        "mode": 1,
+        "scalar": 1,
+        "min": 1,
+        "keys": [
+          [
+            0,
+            1,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            0,
+            0
+          ]
+        ]
+      },
+      "alpha": [
+        [
+          0.0294193942168307,
+          0.25882354
+        ],
+        [
+          0.21470969710841534,
+          0.45882353
+        ],
+        [
+          0.4882429236285954,
+          0.30588236
+        ],
+        [
+          0.6941176470588235,
+          0.2901961
+        ],
+        [
+          0.9911802853437095,
+          0
+        ]
+      ],
+      "shape": {
+        "enabled": true,
+        "type": 4,
+        "radius": 5,
+        "angle": 85,
+        "thickness": 1
+      },
+      "velocity": null,
+      "transform": {
+        "m_LocalRotation": {
+          "x": 0.7071068,
+          "y": 0,
+          "z": 0,
+          "w": 0.7071068
+        },
+        "m_LocalPosition": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "m_LocalScale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "renderer": {
+        "mode": 1,
+        "length": 9,
+        "alignment": 0,
+        "meshFileId": 0,
+        "meshSize": 1,
+        "freeformStretching": false,
+        "rotateWithStretch": true,
+        "velocityScale": 0,
+        "cameraVelocityScale": 0,
+        "material": {
+          "name": "Core4",
+          "shaderFileId": 200,
+          "tint": [
+            1,
+            1,
+            1,
+            0.40392157
+          ],
+          "textureFileId": 10300,
+          "texture": null,
+          "textureSha256": null,
+          "sha256": "e222a1758330160bbdf1a84841404e6a4891439efeea271a6b26a35f8ad2b4f1"
+        }
+      }
+    },
+    {
+      "role": "flash-core",
+      "capacity": 1,
+      "emissionMs": 500.0,
+      "simulationSpeed": 1,
+      "scalingMode": 2,
+      "simulationSpace": 0,
+      "velocityWorld": 0,
+      "rate": {
+        "mode": 0,
+        "scalar": 1000,
+        "min": 10
+      },
+      "delay": {
+        "mode": 0,
+        "scalar": 0,
+        "min": 0
+      },
+      "lifetime": {
+        "mode": 0,
+        "scalar": 0.5,
+        "min": 5
+      },
+      "speed": {
+        "mode": 0,
+        "scalar": 0,
+        "min": 5
+      },
+      "size": {
+        "mode": 0,
+        "scalar": 0.15,
+        "min": 1
+      },
+      "rotation": {
+        "mode": 3,
+        "scalar": 0,
+        "min": 0
+      },
+      "rotationSpeed": null,
+      "sizeOverLife": {
+        "mode": 1,
+        "scalar": 50,
+        "min": 1,
+        "keys": [
+          [
+            0,
+            0.16923079,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            0,
+            0
+          ]
+        ]
+      },
+      "alpha": [
+        [
+          0.0,
+          0
+        ],
+        [
+          0.1411764705882353,
+          0.2
+        ],
+        [
+          0.49411764705882355,
+          1
+        ],
+        [
+          0.8588235294117647,
+          0.09803922
+        ],
+        [
+          0.9911802853437095,
+          0
+        ]
+      ],
+      "shape": {
+        "enabled": true,
+        "type": 0,
+        "radius": 0.01,
+        "angle": 25,
+        "thickness": 1
+      },
+      "velocity": null,
+      "transform": {
+        "m_LocalRotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 1
+        },
+        "m_LocalPosition": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "m_LocalScale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "renderer": {
+        "mode": 4,
+        "length": 2,
+        "alignment": 2,
+        "meshFileId": 10209,
+        "meshSize": 10,
+        "freeformStretching": false,
+        "rotateWithStretch": true,
+        "velocityScale": 0,
+        "cameraVelocityScale": 0,
+        "material": {
+          "name": "Ring",
+          "shaderFileId": 203,
+          "tint": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "textureFileId": 2800000,
+          "texture": "Effect/52SpecialEffectPack/Texture/Ring.png",
+          "textureSha256": "d4734575c2fba4af8cd04bc76372c53ad550f8d0706ac9b31967bc061d31b2fc",
+          "sha256": "2c8d566b17b8375130fd57b88ae50df4a1f198d92e23d853e54a57bcef645110"
+        }
+      }
+    },
+    {
+      "role": "sparks",
+      "capacity": 150,
+      "emissionMs": 1000,
+      "simulationSpeed": 1,
+      "scalingMode": 2,
+      "simulationSpace": 0,
+      "velocityWorld": 0,
+      "rate": {
+        "mode": 0,
+        "scalar": 1000,
+        "min": 10
+      },
+      "delay": {
+        "mode": 0,
+        "scalar": 0,
+        "min": 0
+      },
+      "lifetime": {
+        "mode": 0,
+        "scalar": 1,
+        "min": 5
+      },
+      "speed": {
+        "mode": 0,
+        "scalar": 10,
+        "min": 5
+      },
+      "size": {
+        "mode": 0,
+        "scalar": 1,
+        "min": 1
+      },
+      "rotation": {
+        "mode": 3,
+        "scalar": 3.1415925,
+        "min": -3.1415925
+      },
+      "rotationSpeed": {
+        "mode": 3,
+        "scalar": 1.5707963,
+        "min": -1.5707963
+      },
+      "sizeOverLife": {
+        "mode": 1,
+        "scalar": 1,
+        "min": 1,
+        "keys": [
+          [
+            0,
+            1,
+            0,
+            0
+          ],
+          [
+            1,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "alpha": [
+        [
+          0.0294193942168307,
+          0
+        ],
+        [
+          0.21470969710841534,
+          0.2
+        ],
+        [
+          0.49411764705882355,
+          1
+        ],
+        [
+          0.6941176470588235,
+          0.09803922
+        ],
+        [
+          0.9911802853437095,
+          0
+        ]
+      ],
+      "shape": {
+        "enabled": true,
+        "type": 2,
+        "radius": 2,
+        "angle": 25,
+        "thickness": 0
+      },
+      "velocity": [
+        {
+          "mode": 3,
+          "scalar": 10,
+          "min": -10
+        },
+        {
+          "mode": 3,
+          "scalar": 10,
+          "min": -10
+        },
+        {
+          "mode": 3,
+          "scalar": 0,
+          "min": 0
+        }
+      ],
+      "transform": {
+        "m_LocalRotation": {
+          "x": -0.7071068,
+          "y": 0,
+          "z": 0,
+          "w": 0.7071068
+        },
+        "m_LocalPosition": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "m_LocalScale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "renderer": {
+        "mode": 0,
+        "length": 2,
+        "alignment": 0,
+        "meshFileId": 0,
+        "meshSize": 1,
+        "freeformStretching": false,
+        "rotateWithStretch": true,
+        "velocityScale": 0,
+        "cameraVelocityScale": 0,
+        "material": {
+          "name": "Core4",
+          "shaderFileId": 200,
+          "tint": [
+            1,
+            1,
+            1,
+            0.40392157
+          ],
+          "textureFileId": 10300,
+          "texture": null,
+          "textureSha256": null,
+          "sha256": "e222a1758330160bbdf1a84841404e6a4891439efeea271a6b26a35f8ad2b4f1"
+        }
+      }
+    },
+    {
+      "role": "soft-rays",
+      "capacity": 75,
+      "emissionMs": 1000,
+      "simulationSpeed": 1,
+      "scalingMode": 2,
+      "simulationSpace": 0,
+      "velocityWorld": 0,
+      "rate": {
+        "mode": 0,
+        "scalar": 1000,
+        "min": 10
+      },
+      "delay": {
+        "mode": 0,
+        "scalar": 0,
+        "min": 0
+      },
+      "lifetime": {
+        "mode": 0,
+        "scalar": 1,
+        "min": 5
+      },
+      "speed": {
+        "mode": 0,
+        "scalar": 0.1,
+        "min": 5
+      },
+      "size": {
+        "mode": 0,
+        "scalar": 2,
+        "min": 1
+      },
+      "rotation": {
+        "mode": 3,
+        "scalar": 3.1415925,
+        "min": -3.1415925
+      },
+      "rotationSpeed": {
+        "mode": 3,
+        "scalar": 1.5707963,
+        "min": -1.5707963
+      },
+      "sizeOverLife": {
+        "mode": 1,
+        "scalar": 1,
+        "min": 1,
+        "keys": [
+          [
+            0,
+            1,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            0,
+            0
+          ]
+        ]
+      },
+      "alpha": [
+        [
+          0.0294193942168307,
+          0.25882354
+        ],
+        [
+          0.21470969710841534,
+          0.45882353
+        ],
+        [
+          0.49411764705882355,
+          1
+        ],
+        [
+          0.6941176470588235,
+          0.2901961
+        ],
+        [
+          0.9911802853437095,
+          0
+        ]
+      ],
+      "shape": {
+        "enabled": true,
+        "type": 4,
+        "radius": 5,
+        "angle": 85,
+        "thickness": 1
+      },
+      "velocity": null,
+      "transform": {
+        "m_LocalRotation": {
+          "x": 0.7071068,
+          "y": 0,
+          "z": 0,
+          "w": 0.7071068
+        },
+        "m_LocalPosition": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "m_LocalScale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "renderer": {
+        "mode": 1,
+        "length": 9,
+        "alignment": 0,
+        "meshFileId": 0,
+        "meshSize": 1,
+        "freeformStretching": false,
+        "rotateWithStretch": true,
+        "velocityScale": 0,
+        "cameraVelocityScale": 0,
+        "material": {
+          "name": "Light3",
+          "shaderFileId": 200,
+          "tint": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "textureFileId": 2800000,
+          "texture": "Effect/52SpecialEffectPack/Texture/Light3.png",
+          "textureSha256": "4d629eb65624d0d4cdf9e64fbeac19a55b7626bf9250ef39442846f04135c6fb",
+          "sha256": "3d73916727fe9e2f2a9c40dac9e5001da948b77ca46b829136ab367bdcab84a3"
+        }
+      }
+    }
+  ],
+  "spatial": {
+    "effectsSha256": "bdc42a06fb9b7efc9b782299f47857b1bf7e61b8833deebd75d104d109364f4e",
+    "spawnScale": [
+      4.0,
+      1.0,
+      4.0
+    ],
+    "scaleMethods": [
+      "CreateFieldPermanentCardEffect",
+      "DigivolveFieldPermanentCardEffect",
+      "DestroyPermanentEffect",
+      "DestroySecurityEffect"
+    ],
+    "cameraRotation": {
+      "x": 0.67559016,
+      "y": 0,
+      "z": 0,
+      "w": 0.7372774
+    },
+    "planeDistance": 95.5,
+    "fieldOfView": 60,
+    "cardPlane": {
+      "prefab": "Prefab/FieldPermanentCard.prefab",
+      "sha256": "4ee44f3fb8287fa4c56af8a0c5925bb938f983b1bae9476fc74f1735087ff4dd",
+      "referenceSize": [
+        1920,
+        1080
+      ],
+      "printedWidth": 99.0,
+      "parentAngle": 5.000001626893865,
+      "fall": 30,
+      "durationMs": 100
+    }
+  },
+  "sourceColourGradients": {
+    "Red": [
+      [
+        [
+          0.0,
+          1,
+          1,
+          1
+        ],
+        [
+          1.0,
+          1,
+          1,
+          1
+        ]
+      ],
+      [
+        [
+          0.0,
+          0.8666667,
+          0.007843138,
+          0.03529412
+        ],
+        [
+          1.0,
+          0.8666667,
+          0.007843138,
+          0.03529412
+        ]
+      ],
+      [
+        [
+          0.01470969710841535,
+          1,
+          1,
+          1
+        ],
+        [
+          0.485297932402533,
+          0.8666667,
+          0.007843138,
+          0.03529412
+        ]
+      ],
+      [
+        [
+          0.2235294117647059,
+          1,
+          0.2971698,
+          0.31963462
+        ],
+        [
+          0.49411764705882355,
+          1,
+          0.36320752,
+          0.38356155
+        ],
+        [
+          0.8529488059815366,
+          0.8666667,
+          0.007843138,
+          0.03529412
+        ]
+      ],
+      [
+        [
+          0.30293736171511404,
+          0.8666667,
+          0.007843138,
+          0.03529412
+        ],
+        [
+          0.7941252765697718,
+          0.8666667,
+          0.007843138,
+          0.03529412
+        ]
+      ],
+      [
+        [
+          0.01470969710841535,
+          1,
+          1,
+          1
+        ],
+        [
+          0.485297932402533,
+          0.8666667,
+          0.007843137,
+          0.03414941
+        ]
+      ]
+    ],
+    "Blue": [
+      [
+        [
+          0.0,
+          1,
+          1,
+          1
+        ],
+        [
+          1.0,
+          1,
+          1,
+          1
+        ]
+      ],
+      [
+        [
+          0.0,
+          0.34901962,
+          0.43137255,
+          0.9843137
+        ],
+        [
+          1.0,
+          0.34901962,
+          0.43137255,
+          0.9843137
+        ]
+      ],
+      [
+        [
+          0.01470969710841535,
+          1,
+          1,
+          1
+        ],
+        [
+          0.485297932402533,
+          0.007843138,
+          0.61960787,
+          0.8666667
+        ]
+      ],
+      [
+        [
+          0.2235294117647059,
+          0.36078432,
+          0.61960787,
+          0.9764706
+        ],
+        [
+          0.49411764705882355,
+          0.34901962,
+          0.827451,
+          0.9843137
+        ],
+        [
+          0.8529488059815366,
+          0,
+          0.4392157,
+          0.69803923
+        ]
+      ],
+      [
+        [
+          0.30293736171511404,
+          0.26666668,
+          0.5058824,
+          0.9764706
+        ],
+        [
+          0.7735255970092317,
+          0.21176471,
+          0.5764706,
+          0.93333334
+        ]
+      ],
+      [
+        [
+          0.01470969710841535,
+          1,
+          1,
+          1
+        ],
+        [
+          0.485297932402533,
+          0.007843138,
+          0.61960787,
+          0.8666667
+        ]
+      ]
+    ],
+    "Green": [
+      [
+        [
+          0.0,
+          1,
+          1,
+          1
+        ],
+        [
+          1.0,
+          1,
+          1,
+          1
+        ]
+      ],
+      [
+        [
+          0.0,
+          0.13333334,
+          0.7647059,
+          0.02745098
+        ],
+        [
+          1.0,
+          0.13333334,
+          0.7647059,
+          0.02745098
+        ]
+      ],
+      [
+        [
+          0.01470969710841535,
+          1,
+          1,
+          1
+        ],
+        [
+          0.485297932402533,
+          0.13333334,
+          0.7647059,
+          0.02745098
+        ]
+      ],
+      [
+        [
+          0.2235294117647059,
+          0.4061873,
+          1,
+          0.3066038
+        ],
+        [
+          0.49411764705882355,
+          0.51099914,
+          0.9622642,
+          0.24964403
+        ],
+        [
+          0.8529488059815366,
+          0.13333334,
+          0.7647059,
+          0.02745098
+        ]
+      ],
+      [
+        [
+          0.30293736171511404,
+          0.13333334,
+          0.7647059,
+          0.02745098
+        ],
+        [
+          0.8117647058823529,
+          0.13333334,
+          0.7647059,
+          0.02745098
+        ]
+      ],
+      [
+        [
+          0.01470969710841535,
+          1,
+          1,
+          1
+        ],
+        [
+          0.485297932402533,
+          0.13163666,
+          0.764151,
+          0.025231415
+        ]
+      ]
+    ],
+    "Yellow": [
+      [
+        [
+          0.0,
+          1,
+          1,
+          1
+        ],
+        [
+          1.0,
+          1,
+          1,
+          1
+        ]
+      ],
+      [
+        [
+          0.0,
+          1,
+          0.95087165,
+          0.18396229
+        ],
+        [
+          1.0,
+          0.9756718,
+          0.9843137,
+          0.34901965
+        ]
+      ],
+      [
+        [
+          0.01470969710841535,
+          1,
+          1,
+          1
+        ],
+        [
+          0.485297932402533,
+          0.8174997,
+          0.8666667,
+          0.007843137
+        ]
+      ],
+      [
+        [
+          0.2235294117647059,
+          0.95721745,
+          0.9764706,
+          0.36078426
+        ],
+        [
+          0.49411764705882355,
+          0.8910139,
+          0.9843137,
+          0.34901965
+        ],
+        [
+          0.8529488059815366,
+          0.69803923,
+          0.67955124,
+          0
+        ]
+      ],
+      [
+        [
+          0.30293736171511404,
+          0.9764706,
+          0.88184506,
+          0.26666662
+        ],
+        [
+          0.7735255970092317,
+          0.9298285,
+          0.93333334,
+          0.2117647
+        ]
+      ],
+      [
+        [
+          0.01470969710841535,
+          1,
+          1,
+          1
+        ],
+        [
+          0.485297932402533,
+          0.7744782,
+          0.8666667,
+          0.007843137
+        ]
+      ]
+    ],
+    "Purple": [
+      [
+        [
+          0.0,
+          1,
+          1,
+          1
+        ],
+        [
+          1.0,
+          1,
+          1,
+          1
+        ]
+      ],
+      [
+        [
+          0.0,
+          1,
+          0.18431371,
+          0.6223829
+        ],
+        [
+          1.0,
+          0.9843137,
+          0.34901965,
+          0.7700546
+        ]
+      ],
+      [
+        [
+          0.01470969710841535,
+          1,
+          1,
+          1
+        ],
+        [
+          0.485297932402533,
+          0.8666667,
+          0.007843137,
+          0.53646827
+        ]
+      ],
+      [
+        [
+          0.2235294117647059,
+          0.9764706,
+          0.36078426,
+          0.4335219
+        ],
+        [
+          0.49411764705882355,
+          0.9843137,
+          0.34901965,
+          0.7154566
+        ],
+        [
+          0.8529488059815366,
+          0.69803923,
+          0,
+          0.29085723
+        ]
+      ],
+      [
+        [
+          0.30293736171511404,
+          0.9764706,
+          0.26666662,
+          0.6928728
+        ],
+        [
+          0.7735255970092317,
+          0.93333334,
+          0.2117647,
+          0.86713415
+        ]
+      ],
+      [
+        [
+          0.01470969710841535,
+          1,
+          1,
+          1
+        ],
+        [
+          0.49411764705882355,
+          0.8666667,
+          0.007843137,
+          0.45751873
+        ]
+      ]
+    ],
+    "Black": [
+      [
+        [
+          0.0,
+          1,
+          1,
+          1
+        ],
+        [
+          1.0,
+          1,
+          1,
+          1
+        ]
+      ],
+      [
+        [
+          0.0,
+          0.032344673,
+          0,
+          0.2264151
+        ],
+        [
+          1.0,
+          0.030298732,
+          0.029592374,
+          0.3301887
+        ]
+      ],
+      [
+        [
+          0.01470969710841535,
+          1,
+          1,
+          1
+        ],
+        [
+          0.485297932402533,
+          0.07405424,
+          0,
+          0.31132078
+        ]
+      ],
+      [
+        [
+          0.2235294117647059,
+          0.052368358,
+          0,
+          0.41509432
+        ],
+        [
+          0.49411764705882355,
+          0.0048695426,
+          0,
+          0.2830189
+        ],
+        [
+          0.8529488059815366,
+          0.0006728863,
+          0,
+          0.009433985
+        ]
+      ],
+      [
+        [
+          0.30293736171511404,
+          0.11583083,
+          0.031283367,
+          0.3490566
+        ],
+        [
+          0.7735255970092317,
+          0,
+          0.035432033,
+          0.3207547
+        ]
+      ],
+      [
+        [
+          0.01470969710841535,
+          1,
+          1,
+          1
+        ],
+        [
+          0.49411764705882355,
+          0.09260917,
+          0,
+          0.3584906
+        ]
+      ]
+    ],
+    "White": [
+      [
+        [
+          0.0,
+          1,
+          1,
+          1
+        ],
+        [
+          1.0,
+          1,
+          1,
+          1
+        ]
+      ],
+      [
+        [
+          0.0,
+          0.7971698,
+          0.9937873,
+          1
+        ],
+        [
+          1.0,
+          0.759434,
+          1,
+          0.9784143
+        ]
+      ],
+      [
+        [
+          0.01470969710841535,
+          1,
+          1,
+          1
+        ],
+        [
+          0.485297932402533,
+          0.6933962,
+          0.91179895,
+          1
+        ]
+      ],
+      [
+        [
+          0.2235294117647059,
+          0.8066038,
+          0.98790723,
+          1
+        ],
+        [
+          0.49411764705882355,
+          0.75,
+          1,
+          0.9904082
+        ],
+        [
+          0.8529488059815366,
+          0.6650944,
+          0.87582153,
+          1
+        ]
+      ],
+      [
+        [
+          0.30293736171511404,
+          0.7216981,
+          0.9686947,
+          1
+        ],
+        [
+          0.7735255970092317,
+          0.8443396,
+          0.9836514,
+          1
+        ]
+      ],
+      [
+        [
+          0.01470969710841535,
+          1,
+          1,
+          1
+        ],
+        [
+          0.485297932402533,
+          0.6367924,
+          0.8955157,
+          1
+        ]
+      ]
+    ]
+  },
+  "landing": {
+    "prefab": "Effect/52SpecialEffectPack/Effect/Effect(Shuriken)/新ユニット生成時着地エフェクト2.prefab",
+    "sha256": "fcf6d083ce8c300254bd617b32b19cb7c5d7262a7dc58fc5727e6a11a5f5169e",
+    "spawnMethods": [
+      "CreateFieldPermanentCardEffect",
+      "DigivolveFieldPermanentCardEffect"
+    ],
+    "spawnScale": [
+      1,
+      1,
+      1
+    ],
+    "height": 0.05,
+    "systems": [
+      {
+        "role": "landing-stars",
+        "capacity": 50,
+        "emissionMs": 500.0,
+        "simulationSpeed": 2.5,
+        "scalingMode": 2,
+        "simulationSpace": 0,
+        "velocityWorld": 0,
+        "rate": {
+          "mode": 0,
+          "scalar": 1000,
+          "min": 10
+        },
+        "delay": {
+          "mode": 0,
+          "scalar": 0,
+          "min": 0
+        },
+        "lifetime": {
+          "mode": 0,
+          "scalar": 0.5,
+          "min": 5
+        },
+        "speed": {
+          "mode": 3,
+          "scalar": 20,
+          "min": 10
+        },
+        "size": {
+          "mode": 0,
+          "scalar": 3,
+          "min": 1
+        },
+        "rotation": {
+          "mode": 3,
+          "scalar": 3.1415925,
+          "min": -3.1415925
+        },
+        "rotationSpeed": {
+          "mode": 3,
+          "scalar": 1.5707963,
+          "min": -1.5707963
+        },
+        "sizeOverLife": {
+          "mode": 1,
+          "scalar": 1.5,
+          "min": 1,
+          "keys": [
+            [
+              0,
+              0.6615385,
+              0,
+              0
+            ],
+            [
+              1,
+              1,
+              0,
+              0
+            ]
+          ]
+        },
+        "alpha": [
+          [
+            0.0294193942168307,
+            0
+          ],
+          [
+            0.21470969710841534,
+            0.45882353
+          ],
+          [
+            0.49411764705882355,
+            1
+          ],
+          [
+            0.6941176470588235,
+            0.2901961
+          ],
+          [
+            0.9911802853437095,
+            0
+          ]
+        ],
+        "colour": [
+          [
+            0.11461051346608682,
+            0.9843137,
+            0.10980392,
+            0.10980392
+          ],
+          [
+            0.2979934386205844,
+            0.6039216,
+            0.09411765,
+            0.9764706
+          ],
+          [
+            0.4882429236285954,
+            0.02745098,
+            0.95686275,
+            0.3019608
+          ],
+          [
+            0.685297932402533,
+            0.007843138,
+            0.6784314,
+            0.8980392
+          ],
+          [
+            0.8441138323033494,
+            1,
+            0.80784315,
+            0
+          ]
+        ],
+        "shape": {
+          "enabled": true,
+          "type": 0,
+          "radius": 0.01,
+          "angle": 25,
+          "thickness": 0
+        },
+        "velocity": null,
+        "transform": {
+          "m_LocalRotation": {
+            "x": -0.7071068,
+            "y": 0,
+            "z": 0,
+            "w": 0.7071068
+          },
+          "m_LocalPosition": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "m_LocalScale": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        },
+        "renderer": {
+          "mode": 0,
+          "length": 2,
+          "alignment": 0,
+          "meshFileId": 0,
+          "meshSize": 1,
+          "freeformStretching": false,
+          "rotateWithStretch": true,
+          "velocityScale": 0,
+          "cameraVelocityScale": 0,
+          "material": {
+            "name": "Star",
+            "shaderFileId": 200,
+            "tint": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "textureFileId": 2800000,
+            "texture": "Effect/52SpecialEffectPack/Texture/Star.png",
+            "textureSha256": "a92412e58880860e0e5d3bd445cfe7ddc8dd611817e6e222986b6e9f7d0d013a",
+            "sha256": "cc7127df1e290468b56e6164a2da1e3ab828b3f039d4dd59204e6d925827900b"
+          }
+        }
+      },
+      {
+        "role": "landing-beams",
+        "capacity": 75,
+        "emissionMs": 500.0,
+        "simulationSpeed": 2.5,
+        "scalingMode": 2,
+        "simulationSpace": 0,
+        "velocityWorld": 0,
+        "rate": {
+          "mode": 0,
+          "scalar": 150,
+          "min": 10
+        },
+        "delay": {
+          "mode": 0,
+          "scalar": 0,
+          "min": 0
+        },
+        "lifetime": {
+          "mode": 0,
+          "scalar": 0.5,
+          "min": 5
+        },
+        "speed": {
+          "mode": 0,
+          "scalar": 1,
+          "min": 5
+        },
+        "size": {
+          "mode": 0,
+          "scalar": 8,
+          "min": 1
+        },
+        "rotation": {
+          "mode": 3,
+          "scalar": 3.1415925,
+          "min": -3.1415925
+        },
+        "rotationSpeed": {
+          "mode": 3,
+          "scalar": 1.5707963,
+          "min": -1.5707963
+        },
+        "sizeOverLife": {
+          "mode": 1,
+          "scalar": 1,
+          "min": 1,
+          "keys": [
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              1,
+              0.8076923,
+              0,
+              0
+            ]
+          ]
+        },
+        "alpha": [
+          [
+            0.0,
+            0
+          ],
+          [
+            0.21470969710841534,
+            0.8039216
+          ],
+          [
+            0.49411764705882355,
+            1
+          ],
+          [
+            0.8452735179674983,
+            0.67058825
+          ],
+          [
+            0.9911802853437095,
+            0
+          ]
+        ],
+        "colour": [
+          [
+            0.15588616769665065,
+            0.9490196,
+            0.078431375,
+            0.45490196
+          ],
+          [
+            0.37248798352025636,
+            0.0627451,
+            0.6627451,
+            0.09019608
+          ],
+          [
+            0.6017242694743267,
+            0.039215688,
+            0.18431373,
+            0.7294118
+          ],
+          [
+            0.7421225299458305,
+            0.38039216,
+            0.09803922,
+            0.7294118
+          ],
+          [
+            0.9111772335393301,
+            0.90588236,
+            0.5176471,
+            0.105882354
+          ]
+        ],
+        "shape": {
+          "enabled": true,
+          "type": 0,
+          "radius": 5,
+          "angle": 25,
+          "thickness": 1
+        },
+        "velocity": null,
+        "transform": {
+          "m_LocalRotation": {
+            "x": -0.7071068,
+            "y": 0,
+            "z": 0,
+            "w": 0.7071068
+          },
+          "m_LocalPosition": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "m_LocalScale": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        },
+        "renderer": {
+          "mode": 1,
+          "length": 3,
+          "alignment": 0,
+          "meshFileId": 0,
+          "meshSize": 1,
+          "freeformStretching": false,
+          "rotateWithStretch": true,
+          "velocityScale": 0,
+          "cameraVelocityScale": 0,
+          "material": {
+            "name": "Light3",
+            "shaderFileId": 200,
+            "tint": [
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "textureFileId": 2800000,
+            "texture": "Effect/52SpecialEffectPack/Texture/Light3.png",
+            "textureSha256": "4d629eb65624d0d4cdf9e64fbeac19a55b7626bf9250ef39442846f04135c6fb",
+            "sha256": "3d73916727fe9e2f2a9c40dac9e5001da948b77ca46b829136ab367bdcab84a3"
+          }
+        }
+      },
+      {
+        "role": "landing-sparks",
+        "capacity": 50,
+        "emissionMs": 500.0,
+        "simulationSpeed": 2.5,
+        "scalingMode": 2,
+        "simulationSpace": 0,
+        "velocityWorld": 0,
+        "rate": {
+          "mode": 0,
+          "scalar": 1000,
+          "min": 10
+        },
+        "delay": {
+          "mode": 0,
+          "scalar": 0,
+          "min": 0
+        },
+        "lifetime": {
+          "mode": 0,
+          "scalar": 0.5,
+          "min": 5
+        },
+        "speed": {
+          "mode": 0,
+          "scalar": 30,
+          "min": 5
+        },
+        "size": {
+          "mode": 0,
+          "scalar": 2,
+          "min": 1
+        },
+        "rotation": {
+          "mode": 3,
+          "scalar": 3.1415925,
+          "min": -3.1415925
+        },
+        "rotationSpeed": {
+          "mode": 3,
+          "scalar": 1.5707963,
+          "min": -1.5707963
+        },
+        "sizeOverLife": {
+          "mode": 1,
+          "scalar": 1.5,
+          "min": 1,
+          "keys": [
+            [
+              0,
+              0.6615385,
+              0,
+              0
+            ],
+            [
+              1,
+              1,
+              0,
+              0
+            ]
+          ]
+        },
+        "alpha": [
+          [
+            0.0294193942168307,
+            0
+          ],
+          [
+            0.21470969710841534,
+            0.45882353
+          ],
+          [
+            0.49411764705882355,
+            1
+          ],
+          [
+            0.6941176470588235,
+            0.2901961
+          ],
+          [
+            0.9911802853437095,
+            0
+          ]
+        ],
+        "colour": [
+          [
+            0.11461051346608682,
+            0.9843137,
+            0.10980392,
+            0.10980392
+          ],
+          [
+            0.2979934386205844,
+            0.60784316,
+            0.22352941,
+            0.8901961
+          ],
+          [
+            0.4882429236285954,
+            0.023529412,
+            0.6784314,
+            0.10980392
+          ],
+          [
+            0.685297932402533,
+            0.007843138,
+            0.27058825,
+            0.8980392
+          ],
+          [
+            0.8441138323033494,
+            1,
+            0.5176471,
+            0
+          ]
+        ],
+        "shape": {
+          "enabled": true,
+          "type": 0,
+          "radius": 0.01,
+          "angle": 25,
+          "thickness": 0
+        },
+        "velocity": null,
+        "transform": {
+          "m_LocalRotation": {
+            "x": -0.7071068,
+            "y": 0,
+            "z": 0,
+            "w": 0.7071068
+          },
+          "m_LocalPosition": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "m_LocalScale": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        },
+        "renderer": {
+          "mode": 1,
+          "length": 2,
+          "alignment": 0,
+          "meshFileId": 0,
+          "meshSize": 1,
+          "freeformStretching": false,
+          "rotateWithStretch": true,
+          "velocityScale": 0,
+          "cameraVelocityScale": 0,
+          "material": {
+            "name": "Spark",
+            "shaderFileId": 203,
+            "tint": [
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "textureFileId": 2800000,
+            "texture": "Effect/52SpecialEffectPack/Texture/Spark.png",
+            "textureSha256": "73cbfc537121a70914a6c11af9be0a347e35e18940ae6d45578def1523920a1a",
+            "sha256": "623fcf1bf1c9f20799b83a2472be0b7788ceee91c22fc22d2b0b74d9d704837e"
+          }
+        }
+      },
+      {
+        "role": "landing-core",
+        "capacity": 15,
+        "emissionMs": 500.0,
+        "simulationSpeed": 2.5,
+        "scalingMode": 2,
+        "simulationSpace": 0,
+        "velocityWorld": 0,
+        "rate": {
+          "mode": 0,
+          "scalar": 1000,
+          "min": 10
+        },
+        "delay": {
+          "mode": 0,
+          "scalar": 0,
+          "min": 0
+        },
+        "lifetime": {
+          "mode": 0,
+          "scalar": 0.5,
+          "min": 5
+        },
+        "speed": {
+          "mode": 0,
+          "scalar": 1,
+          "min": 5
+        },
+        "size": {
+          "mode": 0,
+          "scalar": 8,
+          "min": 1
+        },
+        "rotation": {
+          "mode": 3,
+          "scalar": 3.1415925,
+          "min": -3.1415925
+        },
+        "rotationSpeed": {
+          "mode": 3,
+          "scalar": 1.5707963,
+          "min": -1.5707963
+        },
+        "sizeOverLife": {
+          "mode": 1,
+          "scalar": 1.5,
+          "min": 1,
+          "keys": [
+            [
+              0,
+              0.6615385,
+              0,
+              0
+            ],
+            [
+              1,
+              1,
+              0,
+              0
+            ]
+          ]
+        },
+        "alpha": [
+          [
+            0.0294193942168307,
+            0.25882354
+          ],
+          [
+            0.21470969710841534,
+            0.45882353
+          ],
+          [
+            0.49411764705882355,
+            1
+          ],
+          [
+            0.6941176470588235,
+            0.2901961
+          ],
+          [
+            0.9911802853437095,
+            0
+          ]
+        ],
+        "colour": [
+          [
+            0.12059205004959182,
+            0.9843137,
+            0.67058825,
+            0.6
+          ],
+          [
+            0.3088273441672389,
+            0.5372549,
+            0.34901962,
+            0.6745098
+          ],
+          [
+            0.4882429236285954,
+            0.023529412,
+            0.6784314,
+            0.10980392
+          ],
+          [
+            0.685297932402533,
+            0.8980392,
+            0.5764706,
+            0.007843138
+          ],
+          [
+            0.8441138323033494,
+            1,
+            0.14509805,
+            0
+          ]
+        ],
+        "shape": {
+          "enabled": true,
+          "type": 0,
+          "radius": 0.01,
+          "angle": 25,
+          "thickness": 1
+        },
+        "velocity": null,
+        "transform": {
+          "m_LocalRotation": {
+            "x": -0.7071068,
+            "y": 0,
+            "z": 0,
+            "w": 0.7071068
+          },
+          "m_LocalPosition": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "m_LocalScale": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        },
+        "renderer": {
+          "mode": 0,
+          "length": 2,
+          "alignment": 0,
+          "meshFileId": 0,
+          "meshSize": 1,
+          "freeformStretching": false,
+          "rotateWithStretch": true,
+          "velocityScale": 0,
+          "cameraVelocityScale": 0,
+          "material": {
+            "name": "Core4",
+            "shaderFileId": 200,
+            "tint": [
+              1,
+              1,
+              1,
+              0.40392157
+            ],
+            "textureFileId": 10300,
+            "texture": null,
+            "textureSha256": null,
+            "sha256": "e222a1758330160bbdf1a84841404e6a4891439efeea271a6b26a35f8ad2b4f1"
+          }
+        }
+      }
+    ]
+  },
+  "note": "Numeric emitter and authored spatial evidence. Slot pixel scale, runtime camera changes, procedural stamps and seeded trajectories remain adaptations; births are a continuous-rate model, not measured Unity frame timestamps."
+}

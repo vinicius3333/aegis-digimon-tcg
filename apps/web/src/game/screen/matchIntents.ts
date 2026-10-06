@@ -43,12 +43,12 @@ export function matchIntents({
   digivolveRoutesOf,
   mainActionBlocked,
   actionConfirmationsEnabled,
-  playGameCue,
   lastPlayAttemptRef,
   playAttemptEventSeqRef,
   setOptimisticPlayedInstanceId,
   selection,
   overlays,
+  onDecisionAnswered,
 }: {
   room: Room | undefined;
   /** A fabricated connection stands in for the room and may answer its own decisions. */
@@ -68,6 +68,8 @@ export function matchIntents({
   setOptimisticPlayedInstanceId: (instanceId: string | undefined) => void;
   selection: SelectionControls;
   overlays: OverlayControls;
+  /** Told about every answer this seat sends, after it is sent. */
+  onDecisionAnswered?: (decision: DecisionRequest, response: DecisionResponse) => void;
 }) {
   const { clearSel, setHandSel, setHandPreview, setSelPerm, setVortexMode, setLinkSel } = selection;
 
@@ -107,7 +109,6 @@ export function matchIntents({
           materialPermanentIds: prompt.materialPermanentIds,
         });
       } else if (room) {
-        playGameCue("digivolve");
         intents.dnaDigivolve(room, prompt.materialPermanentIds, instanceId);
         clearSel();
       }
@@ -126,7 +127,6 @@ export function matchIntents({
       return;
     }
     if (room) {
-      playGameCue("cardPlay");
       dispatchPlayCard(room, instanceId);
     }
     clearSel();
@@ -163,7 +163,6 @@ export function matchIntents({
     if (mainActionBlocked) return;
     if (room) {
       lastPlayAttemptRef.current = instanceId;
-      playGameCue("digivolve");
       intents.digivolve(room, permanentId, instanceId, useAlternateCost, alternateRequirementIndex);
     }
     clearSel();
@@ -172,7 +171,6 @@ export function matchIntents({
   const attack = (attackerPermanentId: string, target: AttackTarget, vortex?: boolean) => {
     if (mainActionBlocked) return;
     if (room) {
-      playGameCue("attackDeclare");
       intents.attack(room, attackerPermanentId, target, vortex);
     }
     setSelPerm(null);
@@ -185,6 +183,7 @@ export function matchIntents({
       if (room) intents.respondDecision(room, decision.decisionId, response);
       else localConnection?.respondDecision?.(response);
       acknowledgeDecision?.(decision.decisionId);
+      onDecisionAnswered?.(decision, response);
     }
     overlays.setPicks([]);
   };

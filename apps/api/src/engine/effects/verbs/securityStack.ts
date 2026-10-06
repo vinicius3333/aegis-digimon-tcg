@@ -74,6 +74,8 @@ export function createSecurityStackVerbs(pc: PrimitivesContext) {
         instanceIds: moved.map((c) => c.instanceId),
         from: Zone.Security,
         to: Zone.Hand,
+        handAddition: "transfer",
+        seat,
       });
       // A card added from security to hand still left the security stack. Publish the
       // same generic removal event used by checks and effect-driven trash so watchers

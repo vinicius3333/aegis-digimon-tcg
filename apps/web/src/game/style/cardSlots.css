@@ -1,0 +1,56 @@
+/* The guides use the same dimensions as the artwork. Empty places participate in
+   the lane's layout, so a played card takes the place of a guide without overlap. */
+.game-battle-row[data-card-slots] {
+  --field-slot-border: color-mix(in srgb, var(--arena-side, var(--ds-accent)) 48%, transparent);
+  --field-slot-fill: color-mix(in srgb, var(--arena-side, var(--ds-accent)) 5%, transparent);
+}
+
+.game-field-card-slot {
+  position: relative;
+  flex: 0 0 max(var(--ds-touch-target, 44px), var(--field-slot-width));
+  width: var(--field-slot-width);
+  height: calc(var(--field-slot-width) * 1.4);
+  min-height: var(--ds-touch-target, 44px);
+  pointer-events: none;
+}
+
+.game-field-card-slot__shape,
+.game-battle-row[data-card-slots] > .game-permanent::before {
+  position: absolute;
+  left: calc(var(--field-slot-width) * 0.5);
+  top: calc(var(--field-slot-width) * 0.7);
+  width: calc(var(--field-slot-width) + 4px);
+  height: calc(var(--field-slot-width) * 1.4 + 4px);
+  box-sizing: border-box;
+  translate: -50% -50%;
+  border: 1px solid var(--field-slot-border);
+  border-radius: 10px;
+  background: var(--field-slot-fill);
+  pointer-events: none;
+  content: "";
+}
+
+.game-field-card-slot__shape {
+  border-style: dashed;
+}
+
+.game-battle-row[data-card-slots] > .game-permanent::before {
+  --field-slot-width: var(--permanent-width);
+}
+
+.game-battle-row[data-card-slots] > .game-permanent[data-suspended]::before {
+  rotate: 90deg;
+}
+
+.game-field-card-slot__label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  text-align: center;
+}
+
+.game-field-card-slot__label > span {
+  color: var(--arena-muted, var(--ds-foreground-disabled)) !important;
+}

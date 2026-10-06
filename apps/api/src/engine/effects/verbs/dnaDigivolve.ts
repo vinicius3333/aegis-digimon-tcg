@@ -20,7 +20,12 @@ import {
 } from "../../state/access.js";
 import { effectiveNames } from "../continuous.js";
 import { matchingDnaDigivolveCost, matchingDnaMaterialOrder } from "../verbs/digivolveCost.js";
-import { locateLooseInstance, peekLooseInstance, removeLooseInstance } from "../verbs/looseInstances.js";
+import {
+  locateLooseInstance,
+  looseZoneOfInstance,
+  peekLooseInstance,
+  removeLooseInstance,
+} from "../verbs/looseInstances.js";
 
 import type { InternalVerbs, PrimitivesContext } from "./context.js";
 
@@ -68,6 +73,7 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
     const dnaMemoryGains = (engine.dnaDigivolveMemoryGains?.(materialPermanentIds, definition) ?? []).map((gain) => ({
       ...gain,
       cardId: access.permanentById(gain.sourcePermanentId)?.topCard?.cardId,
+      instanceId: access.permanentById(gain.sourcePermanentId)?.topCard?.instanceId,
     }));
     const dnaMemoryGain = dnaMemoryGains.reduce((sum, gain) => sum + gain.amount, 0);
     const materialDefinitions = [
@@ -110,6 +116,7 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
       if (engine.memory.maxCostFor(seat) < cost) return undefined;
       if (cost > 0) engine.memory.pay(seat, cost, "digivolve");
     }
+    const fromZone = looseZoneOfInstance(state, resultInstanceId);
     const instance = removeLooseInstance(state, resultInstanceId);
     if (instance === undefined) return undefined;
     instance.faceUp = true;
@@ -205,19 +212,22 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
     // effects now so inherited effects from every DNA material are active before entry timings run.
     await engine.recomputeContinuousEffects?.();
     if (dnaMemoryGain > 0) {
-      engine.memory.addMemoryForSeat(seat, dnaMemoryGain, "gainMemory", { isTamerEffect: false });
       for (const gain of dnaMemoryGains) {
-        if (gain.cardId === undefined) continue;
-        engine.emit({
-          kind: "effectTriggered",
+        const announced = {
           seat,
           sourceCardId: gain.cardId,
+          sourceInstanceId: gain.instanceId,
+          sourcePermanentId: gain.sourcePermanentId,
           effectKey: gain.activationIdentity ?? `dnaMemoryGain/${gain.sourcePermanentId}`,
           description: gain.description,
           // The clause is only live on its controller's turn, so the printed timing is the label
           // even for the compiled data that omits it.
           timing: gain.timing ?? "YourTurn",
-        });
+        };
+        if (gain.cardId !== undefined)
+          engine.emit({ kind: "effectTriggered", ...announced, sourceCardId: gain.cardId });
+        engine.memory.addMemoryForSeat(seat, gain.amount, "gainMemory", { isTamerEffect: false });
+        if (gain.cardId !== undefined) engine.emit({ kind: "effectResolved", ...announced, sourceCardId: gain.cardId });
       }
     }
     // A DNA digivolution is announced as a play because that is how the engine models it — one
@@ -225,6 +235,8 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
     // duplicating the moment with a second `digivolved` event.
     engine.emit({
       kind: "cardPlayed",
+      instanceId: instance.instanceId,
+      fromZone,
       seat,
       cardId: instance.cardId,
       ...(instance.artId ? { artId: instance.artId } : {}),

@@ -330,6 +330,8 @@
 
   .game-board .game-pile__top,
   .game-board .game-pile__top > div,
+  .game-board .game-pile__shuffle-face > div,
+  .game-board .game-pile__layer > div,
   .game-board .game-pile__layer,
   .game-board .game-breeding-slot__box {
     border-radius: 4px !important;

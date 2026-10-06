@@ -15,12 +15,14 @@ export function liveProjectionFields({ player, live }: { player: PlayerState; li
   const battleArea = player.battleArea.map((permanent) => {
     const current = live.battleArea.find((candidate) => candidate.permanentId === permanent.permanentId);
     if (current === undefined) return permanent;
+    const currentDP =
+      permanent.topCard.instanceId === current.topCard.instanceId ? current.currentDP : permanent.currentDP;
     if (
       permanent.keywords === current.keywords &&
       permanent.grantedKeywords === current.grantedKeywords &&
       permanent.summoningSick === current.summoningSick &&
       permanent.securityAttackModifier === current.securityAttackModifier &&
-      permanent.currentDP === current.currentDP &&
+      permanent.currentDP === currentDP &&
       permanent.immuneToOpponentDigimonEffects === current.immuneToOpponentDigimonEffects
     )
       return permanent;
@@ -31,7 +33,7 @@ export function liveProjectionFields({ player, live }: { player: PlayerState; li
       grantedKeywords: current.grantedKeywords,
       summoningSick: current.summoningSick,
       securityAttackModifier: current.securityAttackModifier,
-      currentDP: current.currentDP,
+      currentDP,
       immuneToOpponentDigimonEffects: current.immuneToOpponentDigimonEffects,
     } as Permanent;
   });
@@ -114,15 +116,23 @@ export function trashArrivalField(input: { player: PlayerState; held: readonly H
 export function deletionField(input: { player: PlayerState; held: readonly HeldDeletion[] }): PlayerState {
   const { player, held } = input;
   if (held.length === 0) return player;
-  const battleArea = [...player.battleArea];
+  const departed = new Set(
+    held.filter((deletion) => deletion.departed).map((deletion) => deletion.permanent.permanentId),
+  );
+  const battleArea = player.battleArea.filter((permanent) => !departed.has(permanent.permanentId));
   let restored = false;
   for (const deletion of held) {
-    if (battleArea.some((permanent) => permanent.permanentId === deletion.permanent.permanentId)) continue;
+    if (deletion.departed || battleArea.some((permanent) => permanent.permanentId === deletion.permanent.permanentId))
+      continue;
     battleArea.splice(Math.min(deletion.index, battleArea.length), 0, deletion.permanent);
     restored = true;
   }
-  if (!restored) return player;
-  return { ...player, battleArea, trash: held[0]!.trash } as PlayerState;
+  if (!restored && battleArea.length === player.battleArea.length) return player;
+  return {
+    ...player,
+    battleArea,
+    trash: restored ? held.find((deletion) => !deletion.departed)!.trash : player.trash,
+  } as PlayerState;
 }
 
 /** Restore only the host whose sources the current peel sequence is removing. */
@@ -140,5 +150,30 @@ export function stackStripField({
     if (index >= 0) battleArea[index] = strip.permanent;
     else battleArea.splice(Math.min(strip.index, battleArea.length), 0, strip.permanent);
   }
+  return { ...player, battleArea } as PlayerState;
+}
+
+/** A Digi-Burst result follows the cost's last peel, including a figure on the other seat. */
+export function stackCostDpField({
+  player,
+  held,
+}: {
+  player: PlayerState;
+  held: readonly HeldStackStrip[];
+}): PlayerState {
+  const figures = new Map<string, number>();
+  for (const strip of held) {
+    for (const [permanentId, dp] of strip.beforeCostDps ?? []) {
+      // Multiple costs can be queued together. Keep the earliest unfinished cost's figure.
+      if (!figures.has(permanentId)) figures.set(permanentId, dp);
+    }
+  }
+  if (figures.size === 0) return player;
+  const battleArea = player.battleArea.map((permanent) => {
+    const currentDP = figures.get(permanent.permanentId);
+    return currentDP === undefined || currentDP === permanent.currentDP
+      ? permanent
+      : ({ ...permanent, currentDP } as Permanent);
+  });
   return { ...player, battleArea } as PlayerState;
 }

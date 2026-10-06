@@ -1,3 +1,4 @@
+import { observeEffectActivation } from "../effects/activationPresentation.js";
 import { CardKind, EffectTiming, type CardInstance, type ServerEvent, type Seat } from "@aegis/shared";
 import { resolveKeywords } from "../combat/keywords.js";
 import {
@@ -273,35 +274,39 @@ export async function resolveSecurityEffect(
     // the same way: the client reads the clause out of the left notice column beside the
     // revealed card. `resolveSecurityEffect` runs inside `securityCheckDepth`, so the
     // stamp below marks the announcement for the client's hold-until-reveal queue.
-    engine.hooks.emit({
-      kind: "effectTriggered",
-      seat: source.ownerSeat,
-      sourceCardId: source.cardId,
-      sourceInstanceId: source.instanceId,
-      sourcePermanentId: source.permanent()?.permanentId,
-      effectKey: effect.effectKey,
-      description: effect.description,
-      timing: "Security",
-      ...(effect.isInherited ? { isInherited: true } : {}),
-      ...(engine.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
+    const presentation = observeEffectActivation(ctx, effect.activationDeferred === true && !effect.optional, () => {
+      engine.hooks.emit({
+        kind: "effectTriggered",
+        seat: source.ownerSeat,
+        sourceCardId: source.cardId,
+        sourceInstanceId: source.instanceId,
+        sourcePermanentId: source.permanent()?.permanentId,
+        effectKey: effect.effectKey,
+        description: effect.description,
+        timing: "Security",
+        ...(effect.isInherited ? { isInherited: true } : {}),
+        ...(engine.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
+      });
     });
     ctx.fx.enterEffectResolution?.(source.ownerSeat, securityEffectSourceKinds);
     try {
       await effect.resolve(ctx);
     } finally {
       ctx.fx.leaveEffectResolution?.();
+      presentation.restore();
     }
-    engine.hooks.emit({
-      kind: "effectResolved",
-      seat: source.ownerSeat,
-      sourceCardId: source.cardId,
-      sourceInstanceId: source.instanceId,
-      sourcePermanentId: source.permanent()?.permanentId,
-      effectKey: effect.effectKey,
-      description: effect.description,
-      timing: "Security",
-      ...(effect.isInherited ? { isInherited: true } : {}),
-    });
+    if (presentation.accepted())
+      engine.hooks.emit({
+        kind: "effectResolved",
+        seat: source.ownerSeat,
+        sourceCardId: source.cardId,
+        sourceInstanceId: source.instanceId,
+        sourcePermanentId: source.permanent()?.permanentId,
+        effectKey: effect.effectKey,
+        description: effect.description,
+        timing: "Security",
+        ...(effect.isInherited ? { isInherited: true } : {}),
+      });
     engine.tracker.register(source.instanceId, effect.effectKey);
     activated = true;
   }

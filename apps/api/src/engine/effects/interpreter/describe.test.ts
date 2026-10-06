@@ -1,6 +1,14 @@
-import type { Action } from "@aegis/shared";
+import { getCardDefinition, type Action } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { describeAction, describeCost } from "./describe.js";
+import {
+  describeAction,
+  describeCost,
+  isInternalDescription,
+  laterEntrantGrantClause,
+  quotedGrantedClause,
+  soleWatcherLine,
+  triggerLabel,
+} from "./describe.js";
 
 describe("describeAction", () => {
   it("prefers the printed sub-clause over any generated summary", () => {
@@ -75,5 +83,58 @@ describe("describeCost", () => {
         ],
       }),
     ).toBe("Pay 1 memory and Suspend 1 card(s)");
+  });
+});
+
+describe("player-facing watcher text", () => {
+  it("recognizes engine bookkeeping and leaves card text alone", () => {
+    const internals = [
+      "whenPlayed",
+      "onDigivolutionCardsDiscardedBatch",
+      "GainTriggeredEffect(whenSuspended) on perm-4",
+      "opponent-turn entrant granted effect",
+      "GainKeyword later entrant from BT17-040",
+    ];
+    expect(internals.filter((text) => !isInternalDescription(text))).toEqual([]);
+    const printed = [
+      "[When Attacking] If your hand has 7 or fewer cards, ＜Draw 1＞",
+      "[Main] Delete 1 target(s)",
+      "[Granted] [On Deletion] Trash 1 card(s)",
+    ];
+    expect(printed.filter((text) => isInternalDescription(text))).toEqual([]);
+  });
+
+  it("reads the one clause a granting card quotes, in any quote style", () => {
+    expect(
+      quotedGrantedClause(
+        "[Your Turn] When this Digimon digivolves, all of your opponent’s Digimon gain “[All Turns] When this Digimon is suspended, lose 1 memory.” until the end of your opponent’s turn.",
+      ),
+    ).toBe("[All Turns] When this Digimon is suspended, lose 1 memory.");
+    expect(quotedGrantedClause('gain "[On Deletion] You may play this card without paying the cost."')).toBe(
+      "[On Deletion] You may play this card without paying the cost.",
+    );
+    expect(quotedGrantedClause('gain "[On Play] A" and "[On Deletion] B"')).toBeUndefined();
+    expect(quotedGrantedClause(undefined)).toBeUndefined();
+  });
+
+  it("finds a box's only watcher line and names triggers in words", () => {
+    expect(
+      soleWatcherLine(
+        "＜Barrier＞\nWhen this card is trashed from the hand, ＜Draw 1＞\n[On Play] [When Attacking] By trashing 1 card, suspend 1.",
+      ),
+    ).toBe("When this card is trashed from the hand, ＜Draw 1＞");
+    expect(soleWatcherLine("[Your Turn] When A, B.\n[All Turns] When C, D.")).toBeUndefined();
+    expect(triggerLabel("OnDeletion")).toBe("On Deletion");
+    expect(triggerLabel("whenSuspended")).toBe("When suspended");
+  });
+
+  it("keeps a later-entrant grant to the granting clause as printed", () => {
+    const definition = getCardDefinition("EX1-068")!;
+    const printed =
+      '[Main] All of your opponent\'s Digimon gain "[When Attacking] Lose 2 memory" until the end of their next turn.';
+    expect(laterEntrantGrantClause(printed, definition)).toBe(printed);
+    expect(laterEntrantGrantClause("[Main] GrantStatic", definition)).toBe(
+      `${definition.nameEn}: its effect also applies to a Digimon that entered later`,
+    );
   });
 });

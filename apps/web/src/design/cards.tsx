@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { DEFAULT_CARD_SLEEVE, useCardSleeve } from "./sleeve";
 import { COLORS, colorKey, emblemFor, paletteFor, palettePairFor, sigilPaths } from "./theme";
+import { CARD_SUSPEND_MOTION } from "./cardMotion";
 
 /** True on hover-capable (desktop) pointers; false on touch/responsive devices. */
 function useHoverZoomEnabled(): boolean {
@@ -496,9 +497,6 @@ function TokenInfo({ def, width, dp }: { def: CardDefinition; width: number; dp?
 
 /** Compact board card (top of a permanent, or a hand card on the board).
  *  Pass `info` to overlay the token's name, play cost, level, traits and DP. */
-/** The reference client's Stand_Rest / Rest_Stand clips are 200 ms with flat tangents. */
-const SUSPEND_ROTATE_MS = 200;
-
 export function CardMini({
   cardId,
   artId,
@@ -575,7 +573,7 @@ export function CardMini({
         // owns the card's transform (the board's selection lift) cannot cancel the rotation.
         rotate: suspended ? "90deg" : "0deg",
         transformOrigin: "center",
-        transition: `rotate ${SUSPEND_ROTATE_MS}ms ease-in-out ${suspendDelayMs}ms, box-shadow 150ms, border-color 150ms`,
+        transition: `rotate ${CARD_SUSPEND_MOTION.durationMs}ms ${CARD_SUSPEND_MOTION.easing} ${suspendDelayMs}ms, box-shadow 150ms, border-color 150ms`,
         cursor: onClick ? "pointer" : "default",
         overflow: "hidden",
       }}

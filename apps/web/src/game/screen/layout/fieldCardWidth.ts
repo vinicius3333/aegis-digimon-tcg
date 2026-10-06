@@ -1,9 +1,14 @@
 import { useSyncExternalStore } from "react";
 
-/** A row's card width from its height alone, and after narrowing to fit its width. */
+/**
+ * A row's card width from its height alone, and after narrowing to fit its width. A
+ * single lane grows its own cards, so it also reports the width two lanes would draw:
+ * the pieces beside the rows keep that size. Height-fitted is always the two-lane width.
+ */
 export interface RowCardWidths {
   heightFitted: number;
   drawn: number;
+  beside: number;
 }
 
 /**
@@ -24,9 +29,15 @@ function settle() {
     ? {
         heightFitted: Math.min(...all.map((widths) => widths.heightFitted)),
         drawn: Math.min(...all.map((widths) => widths.drawn)),
+        beside: Math.min(...all.map((widths) => widths.beside)),
       }
     : undefined;
-  if (next?.heightFitted === narrowest?.heightFitted && next?.drawn === narrowest?.drawn) return;
+  if (
+    next?.heightFitted === narrowest?.heightFitted &&
+    next?.drawn === narrowest?.drawn &&
+    next?.beside === narrowest?.beside
+  )
+    return;
   narrowest = next;
   for (const listener of listeners) listener();
 }

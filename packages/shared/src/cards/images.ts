@@ -6,7 +6,7 @@ const CARD_IMAGE_BASE = "/assets/card-images";
 
 /**
  * Printings the upstream set has no English image for, bundled as official "SAMPLE" scans.
- * They load after the upstream image, so a published upstream image takes over on its own.
+ * They load after the upstream image, so a published upstream image takes precedence.
  */
 const UNPUBLISHED_IMAGE_IDS = new Set([
   "BT11-023_P1",

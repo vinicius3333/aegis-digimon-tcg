@@ -73,7 +73,12 @@ export function OpponentBattleRow({
         perm={p}
         copies={members.length}
         entranceKey={fieldKey}
-        quietEntrance={splitOff}
+        quietEntrance={
+          splitOff ||
+          chrome.combatImpactIds.has(p.permanentId) ||
+          members.some((member) => chrome.heldDeletionIds?.has(member.permanentId))
+        }
+        heldDeletion={members.some((member) => chrome.heldDeletionIds?.has(member.permanentId))}
         keywordLabels={chrome.keywordLabels?.[p.permanentId]}
         compact={chrome.compact}
         width={width}
@@ -84,6 +89,7 @@ export function OpponentBattleRow({
           "data-drop": "perm-opp",
           "data-id": p.permanentId,
           "data-field-key": fieldKey,
+          "data-field-member-ids": JSON.stringify(members.map((member) => member.permanentId)),
           ...dropIntentAttrs("perm-opp", p.permanentId),
         }}
         candidate={isCandidate(p)}
@@ -95,7 +101,6 @@ export function OpponentBattleRow({
         }
         pending={chrome.pendingPermanentIds.has(p.permanentId)}
         fate={chrome.fateBadges.get(p.permanentId)}
-        lunge={chrome.attackLunge?.permanentId === p.permanentId ? chrome.attackLunge.direction : undefined}
         heldSuspended={chrome.heldSuspendedIds.has(p.permanentId)}
         suspendDelayMs={chrome.suspendDelayMs(playOrder.get(p.permanentId) ?? 0)}
         onClick={onPermanentClick(p)}
@@ -134,10 +139,11 @@ export function OpponentBattleRow({
       className="game-battle-row game-battle-row--opp"
       role="group"
       aria-label={t("game.oppBattleArea")}
+      cardWidth={chrome.width}
+      emptyLabel={permanents.length === 0 ? emptyLabel : null}
       edgeClearance={suspendedCardEdgeClearance(chrome.width)}
       style={rowStyle}
     >
-      {permanents.length === 0 ? emptyLabel : null}
       {permanents.map((permanent) =>
         renderCard({
           permanent,

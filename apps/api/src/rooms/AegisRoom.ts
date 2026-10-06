@@ -139,6 +139,11 @@ export interface AegisJoinOptions extends SeatJoinOptions {
   tournamentMatchId?: string;
   tournamentGameId?: string;
   tournamentGameToken?: string;
+  /**
+   * How the client paces a chain of triggered effects. `sequential` plays them one at a time
+   * at the viewer's Effect speed, so a bot opponent need not space them out itself.
+   */
+  presentationPacing?: "current" | "sequential";
 }
 
 /**
@@ -197,6 +202,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
   private presentationLogWindows = new Map<Seat, { start: number; count: number }>();
   private accountByClient = new Map<string, string>();
   private rankedByClient = new Map<string, boolean>();
+  /** Clients that pace chains of triggered effects themselves (`presentationPacing: "sequential"`). */
+  private chainPacingClients = new Set<string>();
   private deckByClient = new Map<string, DeckSnapshot>();
   /**
    * Every StateView this room handed out, disposed with the room. @colyseus/schema's GC
@@ -799,6 +806,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
     // room accepts them and its clients never send the flag (onAuth already vetted the pair).
     if (this.isBetaBattleRoom) options = { ...options, betaBattleMode: true };
     this.rankedByClient.set(client.sessionId, options.ranked === true);
+    if (options.presentationPacing === "sequential") this.chainPacingClients.add(client.sessionId);
+    else this.chainPacingClients.delete(client.sessionId);
     this.deckByClient.set(client.sessionId, {
       deckId: options.deckId ?? null,
       deckName: options.deckName ?? "Deck sem nome",
@@ -881,6 +890,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
     if (seat === undefined) {
       this.accountByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
+      this.chainPacingClients.delete(client.sessionId);
       return;
     }
 
@@ -902,6 +912,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       if (countsAsDodge && accountId) await this.accounts().recordRankedDodge(this.roomId, accountId);
       this.accountByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
+      this.chainPacingClients.delete(client.sessionId);
       return;
     }
 
@@ -941,6 +952,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       if (countsAsDodge && accountId) await this.accounts().recordRankedDodge(this.roomId, accountId);
       this.accountByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
+      this.chainPacingClients.delete(client.sessionId);
       if (!this.matchStartRequested) await this.unlock();
     }
   }
@@ -983,6 +995,12 @@ export class AegisRoom extends Room<{ state: GameState }> {
           })
         : undefined;
     const scenarioPolicy = createIssueReproBotPolicy(this.devScenario);
+    const baseBotOptions: BotOptions | undefined =
+      scenarioPolicy === undefined ? modelOptions : { policy: scenarioPolicy };
+    const clientPacesChains = this.clients.some((client) => this.chainPacingClients.has(client.sessionId));
+    const botOptions: BotOptions | undefined = clientPacesChains
+      ? { ...baseBotOptions, clientPacesChains }
+      : baseBotOptions;
     this.bots[this.BOT_SEAT] = new BotPlayer(
       this.BOT_SEAT,
       this.state,
@@ -995,10 +1013,10 @@ export class AegisRoom extends Room<{ state: GameState }> {
         this.rebuildClientViews();
         return result;
       },
-      scenarioPolicy === undefined ? modelOptions : { policy: scenarioPolicy },
+      botOptions,
     );
 
-    this.debug("bot.seated", { seat: this.BOT_SEAT, deck });
+    this.debug("bot.seated", { seat: this.BOT_SEAT, deck, clientPacesChains });
     try {
       this.withBatch(() =>
         this.engine.seatPlayer(this.BOT_SEAT, "bot", {

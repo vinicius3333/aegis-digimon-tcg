@@ -162,7 +162,9 @@ describe("primitives: draw", () => {
     expect(p0.hand).toHaveLength(2);
     expect(p0.deck).toHaveLength(1);
     expect(p0.hand[0]!.faceUp).toBe(true);
-    expect(h.events).toContainEqual(expect.objectContaining({ kind: "cardsMoved", from: "deck", to: "hand", seat: 0 }));
+    expect(h.events).toContainEqual(
+      expect.objectContaining({ kind: "cardsMoved", from: "deck", to: "hand", seat: 0, handAddition: "draw" }),
+    );
   });
 
   it("stops at an empty deck and returns fewer cards (deck-out is handled elsewhere)", async () => {
@@ -745,6 +747,9 @@ describe("primitives: trash / delete / suspend", () => {
     const instanceId = h.s.inst("securityCard").instanceId;
 
     const moved = await h.fx.securityToHand(0, 1);
+    expect(h.events).toContainEqual(
+      expect.objectContaining({ kind: "cardsMoved", from: "security", to: "hand", seat: 0, handAddition: "transfer" }),
+    );
 
     expect(moved.map((card) => card.instanceId)).toEqual([instanceId]);
     expect(h.state.players[0]!.security).toHaveLength(0);
@@ -865,11 +870,70 @@ describe("primitives: return to hand / deck", () => {
       },
     });
 
+    const permanentId = h.s.perm("p1").permanentId;
     const moved = await h.fx.returnToHand([h.s.perm("p1").topCard.instanceId]);
     expect(moved).toHaveLength(1);
     expect(h.state.players[0]!.battleArea).toHaveLength(0);
     expect(h.state.players[0]!.hand.map((card) => card.cardId)).toEqual([DIGIMON]);
     expect(h.state.players[0]!.trash.map((card) => card.cardId)).toEqual([TAMER]);
+    expect(h.events).toContainEqual({
+      kind: "cardsMoved",
+      instanceIds: moved.map((card) => card.instanceId),
+      from: "various",
+      to: "hand",
+      seat: 0,
+      handAddition: "transfer",
+      returnedPermanents: [{ permanentId, instanceId: moved[0]!.instanceId, cardId: DIGIMON, seat: 0 }],
+    });
+  });
+
+  it("preserves the real deck origin of revealed cards returned to hand", async () => {
+    const h = harness({ board: { 0: { deck: [{ card: DIGIMON, as: "revealed" }] } } });
+    await h.fx.reveal(0, 1);
+    const id = h.s.inst("revealed").instanceId;
+    await h.fx.returnToHand([id], { publicIdentities: true });
+    expect(h.events.filter((event) => event.kind === "cardsMoved")).toEqual([
+      {
+        kind: "cardsMoved",
+        from: "deck",
+        to: "hand",
+        seat: 0,
+        handAddition: "transfer",
+        instanceIds: [id],
+        cardIds: [DIGIMON],
+      },
+    ]);
+  });
+
+  it("keeps mixed-owner, mixed-origin private additions ordered and unnamed", async () => {
+    const h = harness({
+      board: {
+        0: {
+          deck: [
+            { card: DIGIMON, as: "first" },
+            { card: TAMER, as: "third" },
+          ],
+        },
+        1: { trash: [{ card: OPTION, as: "second" }] },
+      },
+    });
+    const ids = ["first", "second", "third"].map((alias) => h.s.inst(alias).instanceId);
+    await h.fx.returnToHand(ids);
+    expect(h.events.filter((event) => event.kind === "cardsMoved")).toEqual([
+      { kind: "cardsMoved", from: "deck", to: "hand", seat: 0, handAddition: "transfer", instanceIds: [ids[0]] },
+      { kind: "cardsMoved", from: "various", to: "hand", seat: 1, handAddition: "transfer", instanceIds: [ids[1]] },
+      { kind: "cardsMoved", from: "deck", to: "hand", seat: 0, handAddition: "transfer", instanceIds: [ids[2]] },
+    ]);
+  });
+
+  it("labels a silent hand bridge as staging without exposing identities or firing hand-addition triggers", async () => {
+    const h = harness({ board: { 1: { deck: [{ card: DIGIMON, as: "staged" }] } } });
+    const id = h.s.inst("staged").instanceId;
+    await h.fx.returnToHand([id], { silent: true });
+    expect(h.events.filter((event) => event.kind === "cardsMoved")).toEqual([
+      { kind: "cardsMoved", from: "deck", to: "hand", seat: 1, handAddition: "staging", instanceIds: [id] },
+    ]);
+    expect(h.subTriggerFires.some((entry) => entry.event === "whenEffectAddsToHand")).toBe(false);
   });
 
   it("returnToDeck places a loose card on top or bottom, face-down", async () => {
@@ -1091,6 +1155,9 @@ describe("primitives: reveal / searchDeck / addSecurity", () => {
     const added = await h.fx.searchDeck(0, (def) => def.kinds.includes(CardKind.Digimon), { min: 1, max: 1 });
     expect(added.map((c) => c.instanceId)).toEqual([digiId]);
     expect(h.state.players[0]!.hand.map((c) => c.instanceId)).toEqual([digiId]);
+    expect(h.events.filter((event) => event.kind === "cardsMoved")).toEqual([
+      { kind: "cardsMoved", instanceIds: [digiId], from: "deck", to: "hand", seat: 0, handAddition: "transfer" },
+    ]);
     // remaining deck card re-hidden
     expect(h.state.players[0]!.deck.every((c) => c.faceUp === false)).toBe(true);
   });

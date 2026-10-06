@@ -219,6 +219,10 @@ export function advance(engine: GameEngine) {
      * permanents are armed, exactly as they would be mid-resolution.
      */
     verb: {
+      async deDigivolve(permanentId: string, count: number): Promise<void> {
+        await internals.recomputeContinuousEffects();
+        await internals.primitives.deDigivolve(permanentId, count);
+      },
       async trash(instanceIds: string[], byEffectSeat?: Seat): Promise<void> {
         await internals.recomputeContinuousEffects();
         await internals.primitives.trash(instanceIds, {
@@ -319,9 +323,9 @@ export function advance(engine: GameEngine) {
         await internals.primitives.returnToDeck(instanceIds, opts);
         await internals.recomputeContinuousEffects();
       },
-      async returnToHand(instanceIds: string[]): Promise<void> {
+      async returnToHand(instanceIds: string[], opts?: Parameters<Primitives["returnToHand"]>[1]): Promise<void> {
         await internals.recomputeContinuousEffects();
-        await internals.primitives.returnToHand(instanceIds);
+        await internals.primitives.returnToHand(instanceIds, opts);
         await internals.recomputeContinuousEffects();
       },
       /** Move a battle-area Digimon to its owner's empty breeding area as an effect (P-143's MovePermanent). */

@@ -166,6 +166,22 @@
   place-items: center;
 }
 
+/* One or two bars, drawn like the lanes they choose. */
+.aegis-arena-look__lanes-icon {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  align-content: center;
+  gap: 3px;
+}
+
+.aegis-arena-look__lanes-icon > span {
+  height: 6px;
+  border: 1px solid currentcolor;
+  border-radius: 2px;
+}
+
 .aegis-arena-look__check {
   display: grid;
   color: var(--ds-accent);

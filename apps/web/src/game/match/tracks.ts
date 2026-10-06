@@ -19,7 +19,7 @@ export const BOARD_HOLDING_TRACKS: readonly string[] = [
 ];
 
 export function holdsTheBoard(step: AnimationStep): boolean {
-  if (step.holdsBoard === false) return false;
+  if (step.holdsBoard !== undefined) return step.holdsBoard;
   const track = step.track ?? "";
   return (
     step.id.startsWith("narration-step-") ||

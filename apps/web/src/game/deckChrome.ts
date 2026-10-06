@@ -2,7 +2,7 @@
    draws a deck as a physical stack: its thickness follows the count, so a pile
    thinning out over the match is the de-facto deck-out warning, and it disappears
    entirely at zero rather than leaving an empty rectangle behind. A shuffle
-   riffles the stack for a fifth of a second.
+   riffles the stack through three pairs of 30 ms vertical movements.
 
    The riffle plays on the server's own `deckShuffled`, which the engine emits from
    the single helper that randomizes a deck. It used to be inferred from cards moving

@@ -1,7 +1,8 @@
-import { useLayoutEffect, useRef, useState, type HTMLAttributes } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
+import "./style/cardSlots.css";
 
 /** Horizontal overhang of a 1.4:1 card after a 90° turn, plus room for its outline and shadow. */
 export function suspendedCardEdgeClearance(cardWidth: number): number {
@@ -12,11 +13,21 @@ export function suspendedCardEdgeClearance(cardWidth: number): number {
 export function BattleRow({
   children,
   edgeClearance = 0,
+  cardWidth,
+  emptySlotCount,
+  emptyLabel,
   ...props
-}: HTMLAttributes<HTMLDivElement> & { edgeClearance?: number }) {
+}: HTMLAttributes<HTMLDivElement> & {
+  edgeClearance?: number;
+  cardWidth?: number;
+  /** An animated parent supplies the final slot layout before measuring card motion. */
+  emptySlotCount?: number;
+  emptyLabel?: ReactNode;
+}) {
   const { t } = useTranslation();
   const rowRef = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ left: false, right: false, x: 0, y: 0, end: 0 });
+  const [emptySlots, setEmptySlots] = useState(0);
   const measureRef = useRef<() => void>(undefined);
   // A sibling lane appearing can move this one without resizing it, so every render
   // re-reads where the paging controls belong. Reading is cheap; re-creating the
@@ -27,6 +38,34 @@ export function BattleRow({
     if (!row) return;
     function measure() {
       const rect = row!.getBoundingClientRect();
+      if (cardWidth !== undefined && emptySlotCount === undefined) {
+        const style = getComputedStyle(row!);
+        const gap = Number.parseFloat(style.columnGap) || 0;
+        const cards = [...row!.children].filter((child) => child.hasAttribute("data-field-key"));
+        const occupied = cards.reduce((width, card) => {
+          const cardStyle = getComputedStyle(card);
+          // Read layout width, so an entrance, hover or attack animation cannot move the slots.
+          return (
+            width +
+            (card as HTMLElement).offsetWidth +
+            (Number.parseFloat(cardStyle.marginLeft) || 0) +
+            (Number.parseFloat(cardStyle.marginRight) || 0)
+          );
+        }, 0);
+        const spacers = edgeClearance > 0 ? 2 : 0;
+        const available =
+          row!.clientWidth -
+          (Number.parseFloat(style.paddingLeft) || 0) -
+          (Number.parseFloat(style.paddingRight) || 0) -
+          edgeClearance * 2 -
+          occupied -
+          gap * Math.max(0, cards.length + spacers - 1);
+        const capacity = Math.floor(
+          (available + (cards.length + spacers === 0 ? gap : 0)) / (Math.max(44, cardWidth) + gap),
+        );
+        // Five is a visual guide, never a limit on how many permanents can be played.
+        setEmptySlots(Math.max(cards.length === 0 ? 1 : 0, Math.min(5 - cards.length, capacity)));
+      }
       const zones = row!.closest(".game-battle-zones");
       const field = zones && getComputedStyle(zones).overflowY === "auto" ? zones : row!.closest(".game-field");
       const fieldRect = field?.getBoundingClientRect();
@@ -52,27 +91,30 @@ export function BattleRow({
       observer?.disconnect();
       observer?.observe(row);
       for (const child of row.children) observer?.observe(child);
+      measure();
     };
     // Set up once rather than on every render: a crowded board re-rendered every
     // lane's observers and listeners on each state change. Cards entering or
     // leaving re-observe the children; any size change re-measures.
-    const children = typeof MutationObserver === "undefined" ? undefined : new MutationObserver(observeChildren);
-    children?.observe(row, { childList: true });
+    const childObserver = typeof MutationObserver === "undefined" ? undefined : new MutationObserver(observeChildren);
+    childObserver?.observe(row, { childList: true });
     observeChildren();
     measureRef.current = measure;
     row.addEventListener("scroll", measure, { passive: true });
+    // The classic row animates suspension margins, which ResizeObserver cannot see.
+    row.addEventListener("transitionend", measure);
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, true);
-    measure();
     return () => {
       observer?.disconnect();
-      children?.disconnect();
+      childObserver?.disconnect();
       measureRef.current = undefined;
       row.removeEventListener("scroll", measure);
+      row.removeEventListener("transitionend", measure);
       window.removeEventListener("resize", measure);
       window.removeEventListener("scroll", measure, true);
     };
-  }, []);
+  }, [cardWidth, edgeClearance, emptySlotCount]);
 
   function scroll(direction: number) {
     const row = rowRef.current;
@@ -87,7 +129,15 @@ export function BattleRow({
 
   return (
     <>
-      <div {...props} ref={rowRef}>
+      <div
+        {...props}
+        ref={rowRef}
+        data-card-slots={cardWidth !== undefined || undefined}
+        style={{
+          ...props.style,
+          ...(cardWidth === undefined ? {} : ({ "--field-slot-width": `${cardWidth}px` } as CSSProperties)),
+        }}
+      >
         {edgeClearance > 0 ? (
           <span
             className="game-battle-row__turn-clearance"
@@ -96,6 +146,14 @@ export function BattleRow({
           />
         ) : null}
         {children}
+        {Array.from({ length: emptySlotCount ?? emptySlots }, (_, index) => (
+          <div key={`empty-slot-${index}`} className="game-field-card-slot" aria-hidden={emptyLabel ? undefined : true}>
+            <span className="game-field-card-slot__shape" aria-hidden="true" />
+            {index === Math.floor((emptySlotCount ?? emptySlots) / 2) && emptyLabel ? (
+              <span className="game-field-card-slot__label">{emptyLabel}</span>
+            ) : null}
+          </div>
+        ))}
         {edgeClearance > 0 ? (
           <span
             className="game-battle-row__turn-clearance"

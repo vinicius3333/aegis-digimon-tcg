@@ -184,6 +184,10 @@ export interface EffectContext {
   oncePerTurnActivationDeclined?: boolean;
   /** A processing choice or mandatory action in this activation was actually chosen. */
   oncePerTurnActivationChosen?: boolean;
+  /** Presentation receipt, called after an activation choice and before its first mutation. */
+  onActivationChosen?: () => void;
+  /** Presentation receipt shared by context copies; distinguishes an activation question from a later operation. */
+  isActivationPending?: () => boolean;
   /**
    * The controller's preset answer to every yes/no question this activation asks them
    * (true = use, false = skip), from the resolution plan they sent when ordering it.

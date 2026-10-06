@@ -1,0 +1,4665 @@
+{
+  "version": 2,
+  "original": false,
+  "arrangement": "Aegis arrangements of licensed CC0 recorded card/object foley",
+  "recordedSourceProvenance": "sources/recorded-provenance.json",
+  "renderer": "apps/web/src/design/audioRecipes.ts",
+  "rendererSha256": "a8ff0e21833beba3908ab34b7f02e438634dede87045702b865cde424fe4aae5",
+  "sampleRate": 48000,
+  "channels": 1,
+  "seedMethod": "FNV-1a cue identity followed by xorshift32",
+  "selectedDirection": "warm",
+  "sourceHashes": {
+    "paper-texture.wav": "808fb476477d9427e531afddceef077dbf3b48f007ea7891edfdea4a266d92ed",
+    "impact-body.wav": "e06ad076596298e9f79d6307aef5f028f21937f615b179cec5c9ad061e06e9ca",
+    "crystal-rise.wav": "9ac045b2513f896e2803bc716ff129e0f5e935d32e021a75161ae0b9a2bb5aec",
+    "recorded-touch.wav": "c84daabec73b3bf596711771501767cf263b53003e911e9b82e72f9e1ddd0ac5",
+    "recorded-contact.wav": "6025203e6b36ea738de31272b81be9799b01a95b327b6e23935f5dabcca49a85",
+    "recorded-cut.wav": "bbdd8c5a8485bf4195af49fdcfaa3cee53bf6027684f54cf6641e506a4a59c84",
+    "recorded-shuffle.wav": "8c2af92b2f54b31aaaafe491497a46a0022386b888f28904a1705f460e606ce4",
+    "recorded-bridge.wav": "a022cebc2c1a1962b2c86665533b5c2a806fb19650c8d30b07f3a73ed94c46bb",
+    "recorded-placeLight.wav": "cf3397e79a0e366ce4e6a553f5e2ff0b381d954a544df44373f60c57fcd5f3d8",
+    "recorded-placeFirm.wav": "502ea9232f4269212ece30317343dab1cef7a7558cb313d60a59161df9ae321a",
+    "recorded-placeHeavy.wav": "48826562cc84c4a8f493549562aaf26c0021b7a52df564cbf0393495d6170212",
+    "recorded-placeStack.wav": "156874c51697a56542e5527ca2f01c3af2df8d09415045b6ec540ebeb292a1e5",
+    "recorded-slide.wav": "06c2dcb893b3e2c877d88e615b6fdebc0e87ce8ee210f1b834792a8d0b961344",
+    "recorded-slideAway.wav": "467d21bbb2b606b96ab0fc5062b5dedbb2025bb776a87668e5bd8bc3dcc62c87",
+    "recorded-slideBack.wav": "6e20280c0a8821d4a30e8dfb13da73db5c90ce7166e331266f0372e645ec308d",
+    "recorded-flick.wav": "08a1c9e453ab50d141eb5a8538caaf5d3f26d5f457e047e1d6003a7edba1fc46",
+    "recorded-shove.wav": "9fe8b0ec3fe212757d71c18492a1b5afb61098b559697f7291b8ec58f79ee4a5",
+    "recorded-shoveFirm.wav": "b6ed09577ce2eb66ff73267cf09e7c63a20c705285f7d5a62f79ab2c42fc3483",
+    "recorded-fan.wav": "4fec22d936f5324c6a95e20a0615b2d58bccf0a896daea5a71a8e69362cd288f",
+    "recorded-riffle.wav": "361a4d1ac21d53583840d6c01310619e4463a8c3972e7d7941c271455a2e8974",
+    "recorded-tap.wav": "6b149a6f06c7d1827ba31a1cc26d4579451116daf8fe00c3bb2a5d2102973c0a",
+    "recorded-stack.wav": "add9dfe64637aa0f2a87c85256d18519f96f493eaa1ef35dae9a2bc6928cd679",
+    "recorded-clack.wav": "d089d8732b3e2bbe858c2e14ee0cc6c098eccd90be3610e46cfb32641a6e15fb",
+    "recorded-pack.wav": "cf46fa2065e9e01e11e21176979b3c038fc47a1472d3b0098a5eefdf6e25a274"
+  },
+  "sourceProvenance": "sources/provenance.json",
+  "directionReason": "Natural-rate recorded card flicks, slides, cuts and placements; restrained acoustic object punctuation; no synthesized everyday cue layers",
+  "bank": {
+    "file": "aegis-cues-v2.wav",
+    "seconds": 45.32875,
+    "peak": 0.2015380859375,
+    "peakDbFS": -13.912857407379239,
+    "rms": 0.009268024741572761,
+    "dc": -2.2624003123305206e-7,
+    "maximumStep": 0.17291259765625,
+    "boundaryStep": 0,
+    "bytes": 4351604,
+    "sha256": "4422087ab1cc1963ccc0d548c265223d48d4cf206fc1e115077534c3d24db31f"
+  },
+  "music": {
+    "file": "aegis-music-v3.wav",
+    "bpm": 112,
+    "original": false,
+    "originalScore": true,
+    "recordedRhythmLicense": "CC0-1.0",
+    "selectedId": "warm-drive-pulse-112",
+    "sourceProvenance": "music-candidates/provenance.json",
+    "masteringRenderer": "apps/web/src/design/musicMaster.ts",
+    "masteringRendererSha256": "5062ab8a05312a619528456cce03a0dcaa7b40e962e43f660c17672a0d4253e4",
+    "tempoRendererSha256": "849cc065be14922d8e1f32228a81522f1eddefc99a55c13b20af889a40563fdf",
+    "composition": "Liked original 112 BPM melodic score, unchanged progression and duration, with sparse beat-phase-aligned CC0 recorded card-body and acoustic chip-tap accents",
+    "peak": 0.075164794921875,
+    "peakDbFS": -22.479710462412296,
+    "rms": 0.016943527292285994,
+    "dc": 2.503393994023874e-8,
+    "boundaryStep": 0,
+    "seconds": 34.28572916666667,
+    "sampleRate": 48000,
+    "channels": 2,
+    "bytes": 6582904,
+    "sha256": "69cbe499a72a28e4aa0c552e5a95835a88f9e51c04b99e341eafa02649e75acf"
+  },
+  "previews": {
+    "warm": {
+      "seconds": 12,
+      "peak": 0.184478759765625,
+      "peakDbFS": -14.681072595258545,
+      "rms": 0.0045844794624900305,
+      "dc": -1.049041748046875e-8,
+      "maximumStep": 0.16912841796875,
+      "boundaryStep": 0,
+      "bytes": 1152044,
+      "sha256": "424bc6db785322052f4101aceb529cdabef52e9efbb555654a61ceb2d6f87da6"
+    },
+    "crisp": {
+      "seconds": 12,
+      "peak": 0.162353515625,
+      "peakDbFS": -15.790766053293394,
+      "rms": 0.004034341570672401,
+      "dc": -5.510118272569444e-9,
+      "maximumStep": 0.148834228515625,
+      "boundaryStep": 0,
+      "bytes": 1152044,
+      "sha256": "2c310dc64232dfe7d6c0996e00a000aa82f32774373d58cb4cd8cb1ebbfe6a20"
+    }
+  },
+  "clips": [
+    {
+      "key": "select",
+      "kind": "select",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "touch",
+          "at": 0,
+          "duration": 0.08127083333333333,
+          "gain": 0.22,
+          "hz": 1
+        }
+      ],
+      "duration": 0.09927083333333334,
+      "offset": 0,
+      "metrics": {
+        "seconds": 0.09927083333333334,
+        "peak": 0.07908745855093002,
+        "peakDbFS": -22.0378476028562,
+        "rms": 0.00527029384654301,
+        "dc": 1.9921112848209077e-7,
+        "maximumStep": 0.028986826539039612,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "nav",
+      "kind": "nav",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0,
+          "duration": 0.13629166666666667,
+          "gain": 0.2,
+          "hz": 1
+        }
+      ],
+      "duration": 0.15429166666666666,
+      "offset": 0.12427083333333333,
+      "metrics": {
+        "seconds": 0.15429166666666666,
+        "peak": 0.07225260883569717,
+        "peakDbFS": -22.82292934305667,
+        "rms": 0.007950170896667023,
+        "dc": -8.476185267240899e-7,
+        "maximumStep": 0.052146059286314994,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "confirm",
+      "kind": "confirm",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0,
+          "duration": 0.13629166666666667,
+          "gain": 0.27,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "tap",
+          "at": 0.075,
+          "duration": 0.07502083333333333,
+          "gain": 0.13,
+          "hz": 1
+        }
+      ],
+      "duration": 0.16802083333333334,
+      "offset": 0.3035625,
+      "metrics": {
+        "seconds": 0.16802083333333334,
+        "peak": 0.09754101932048798,
+        "peakDbFS": -20.216254205368823,
+        "rms": 0.010677898564937815,
+        "dc": -6.067979450214779e-7,
+        "maximumStep": 0.07039717298175674,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "attack",
+      "kind": "attack",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0,
+          "duration": 0.236625,
+          "gain": 0.52,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "clack",
+          "at": 0.006,
+          "duration": 0.07527083333333333,
+          "gain": 0.12,
+          "hz": 1
+        }
+      ],
+      "duration": 0.254625,
+      "offset": 0.4965833333333333,
+      "metrics": {
+        "seconds": 0.254625,
+        "peak": 0.18449559807777405,
+        "peakDbFS": -14.680279826232674,
+        "rms": 0.009080360427472796,
+        "dc": 4.13620089074303e-8,
+        "maximumStep": 0.13539188168942928,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "error",
+      "kind": "error",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "touch",
+          "at": 0,
+          "duration": 0.08127083333333333,
+          "gain": 0.24,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "touch",
+          "at": 0.105,
+          "duration": 0.08127083333333333,
+          "gain": 0.2,
+          "hz": 1
+        }
+      ],
+      "duration": 0.20427083333333335,
+      "offset": 0.7762083333333333,
+      "metrics": {
+        "seconds": 0.20427083333333335,
+        "peak": 0.08627722412347794,
+        "peakDbFS": -21.282076726014182,
+        "rms": 0.005217400070482347,
+        "dc": 8.620493230973891e-8,
+        "maximumStep": 0.03162199445068836,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "success",
+      "kind": "success",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0,
+          "duration": 0.17166666666666666,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.085,
+          "duration": 0.07533333333333334,
+          "gain": 0.16,
+          "hz": 1
+        }
+      ],
+      "duration": 0.18966666666666668,
+      "offset": 1.0054791666666667,
+      "metrics": {
+        "seconds": 0.18966666666666668,
+        "peak": 0.10935987532138824,
+        "peakDbFS": -19.22283987137673,
+        "rms": 0.0097716911740692,
+        "dc": -1.463383813659165e-7,
+        "maximumStep": 0.056342968717217445,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "attackDeclare",
+      "kind": "attackDeclare",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "shove",
+          "at": 0,
+          "duration": 0.7642916666666667,
+          "gain": 0.36,
+          "hz": 1
+        }
+      ],
+      "duration": 0.7822916666666667,
+      "offset": 1.2201458333333333,
+      "metrics": {
+        "seconds": 0.7822916666666667,
+        "peak": 0.1284848302602768,
+        "peakDbFS": -17.82296289772875,
+        "rms": 0.005182157832964947,
+        "dc": -7.274408099300755e-7,
+        "maximumStep": 0.054380159825086594,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "securityHit",
+      "kind": "securityHit",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0,
+          "duration": 0.2011875,
+          "gain": 0.46,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "contact",
+          "at": 0.035,
+          "duration": 0.270875,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.323875,
+      "offset": 2.0274375,
+      "metrics": {
+        "seconds": 0.323875,
+        "peak": 0.17795376479625702,
+        "peakDbFS": -14.993856392264869,
+        "rms": 0.017699030110632823,
+        "dc": -2.2568242841706914e-7,
+        "maximumStep": 0.16913925483822823,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "turnChange",
+      "kind": "turnChange",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0,
+          "duration": 0.17166666666666666,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.105,
+          "duration": 0.13629166666666667,
+          "gain": 0.28,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "tap",
+          "at": 0.2,
+          "duration": 0.07502083333333333,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.29302083333333334,
+      "offset": 2.3763125,
+      "metrics": {
+        "seconds": 0.29302083333333334,
+        "peak": 0.10935987532138824,
+        "peakDbFS": -19.22283987137673,
+        "rms": 0.011233093884601471,
+        "dc": 6.437980681963699e-8,
+        "maximumStep": 0.07277352118398994,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "endTurn",
+      "kind": "endTurn",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0,
+          "duration": 0.13629166666666667,
+          "gain": 0.28,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0.11,
+          "duration": 0.21627083333333333,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.34427083333333336,
+      "offset": 2.6943333333333332,
+      "metrics": {
+        "seconds": 0.34427083333333336,
+        "peak": 0.1011536493897438,
+        "peakDbFS": -19.900368885399317,
+        "rms": 0.00829607710720532,
+        "dc": -5.078400668152394e-7,
+        "maximumStep": 0.08673901483416557,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "hatch",
+      "kind": "hatch",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0,
+          "duration": 0.13629166666666667,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.085,
+          "duration": 0.17166666666666666,
+          "gain": 0.34,
+          "hz": 1
+        }
+      ],
+      "duration": 0.27466666666666667,
+      "offset": 3.0636041666666665,
+      "metrics": {
+        "seconds": 0.27466666666666667,
+        "peak": 0.12393736839294434,
+        "peakDbFS": -18.135954592411075,
+        "rms": 0.012481901060388668,
+        "dc": -4.679915682938808e-7,
+        "maximumStep": 0.07821909268386662,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "effectFocus",
+      "kind": "effectFocus",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "touch",
+          "at": 0,
+          "duration": 0.08127083333333333,
+          "gain": 0.25,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0.024,
+          "duration": 0.121375,
+          "gain": 0.1,
+          "hz": 1
+        }
+      ],
+      "duration": 0.163375,
+      "offset": 3.3632708333333334,
+      "metrics": {
+        "seconds": 0.163375,
+        "peak": 0.08987210690975189,
+        "peakDbFS": -20.927501536821786,
+        "rms": 0.005813466597046216,
+        "dc": -3.511035571524636e-8,
+        "maximumStep": 0.03293957747519016,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "effectActivate",
+      "kind": "effectActivate",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0,
+          "duration": 0.2011875,
+          "gain": 0.36,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "tap",
+          "at": 0.07,
+          "duration": 0.07502083333333333,
+          "gain": 0.16,
+          "hz": 1
+        }
+      ],
+      "duration": 0.2191875,
+      "offset": 3.551645833333333,
+      "metrics": {
+        "seconds": 0.2191875,
+        "peak": 0.12978316843509674,
+        "peakDbFS": -17.735632549749354,
+        "rms": 0.009385193225896014,
+        "dc": 6.738576228607461e-7,
+        "maximumStep": 0.1324266940355301,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "handTrash",
+      "kind": "handTrash",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slideAway",
+          "at": 0,
+          "duration": 0.5039583333333333,
+          "gain": 0.34,
+          "hz": 1
+        }
+      ],
+      "duration": 0.5219583333333333,
+      "offset": 3.7958333333333334,
+      "metrics": {
+        "seconds": 0.5219583333333333,
+        "peak": 0.11845634132623672,
+        "peakDbFS": -18.528833704434085,
+        "rms": 0.007735856449343577,
+        "dc": 4.198984845669254e-7,
+        "maximumStep": 0.1149120181798935,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "sourceTrash",
+      "kind": "sourceTrash",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0,
+          "duration": 0.13629166666666667,
+          "gain": 0.32,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "contact",
+          "at": 0.055,
+          "duration": 0.270875,
+          "gain": 0.25,
+          "hz": 1
+        }
+      ],
+      "duration": 0.343875,
+      "offset": 4.342791666666667,
+      "metrics": {
+        "seconds": 0.343875,
+        "peak": 0.11560416966676712,
+        "peakDbFS": -18.740530025816646,
+        "rms": 0.014464446592054985,
+        "dc": -2.482260105172524e-7,
+        "maximumStep": 0.08343369339127094,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "deDigivolve",
+      "kind": "deDigivolve",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0,
+          "duration": 0.13629166666666667,
+          "gain": 0.33,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0.065,
+          "duration": 0.2011875,
+          "gain": 0.28,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "slideAway",
+          "at": 0.125,
+          "duration": 0.5039583333333333,
+          "gain": 0.24,
+          "hz": 1
+        }
+      ],
+      "duration": 0.6469583333333333,
+      "offset": 4.711666666666667,
+      "metrics": {
+        "seconds": 0.6469583333333333,
+        "peak": 0.11921679973602295,
+        "peakDbFS": -18.473250811620577,
+        "rms": 0.009033553971821488,
+        "dc": -2.362803374499845e-8,
+        "maximumStep": 0.1021123118698597,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "delete",
+      "kind": "delete",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "shoveFirm",
+          "at": 0,
+          "duration": 0.7556458333333333,
+          "gain": 0.38,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "contact",
+          "at": 0.08,
+          "duration": 0.270875,
+          "gain": 0.22,
+          "hz": 1
+        }
+      ],
+      "duration": 0.7736458333333334,
+      "offset": 5.383625,
+      "metrics": {
+        "seconds": 0.7736458333333334,
+        "peak": 0.13829533755779266,
+        "peakDbFS": -17.183849226021366,
+        "rms": 0.008637598942657615,
+        "dc": 8.05586896693991e-7,
+        "maximumStep": 0.054279519245028496,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "move",
+      "kind": "move",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slideBack",
+          "at": 0,
+          "duration": 0.5802708333333333,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.5982708333333333,
+      "offset": 6.182270833333333,
+      "metrics": {
+        "seconds": 0.5982708333333333,
+        "peak": 0.11572135239839554,
+        "peakDbFS": -18.731729990676655,
+        "rms": 0.006006497668333766,
+        "dc": -7.612840199483084e-7,
+        "maximumStep": 0.06886768527328968,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "draw",
+      "kind": "draw",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.38,
+          "hz": 1
+        }
+      ],
+      "duration": 0.139375,
+      "offset": 6.805541666666667,
+      "metrics": {
+        "seconds": 0.139375,
+        "peak": 0.13624128699302673,
+        "peakDbFS": -17.313825249921177,
+        "rms": 0.01424176497467884,
+        "dc": 5.372093143923815e-7,
+        "maximumStep": 0.061990343034267426,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "shuffle",
+      "kind": "shuffle",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "shuffle",
+          "at": 0,
+          "duration": 0.551375,
+          "gain": 0.36,
+          "hz": 1
+        }
+      ],
+      "duration": 0.569375,
+      "offset": 6.969916666666666,
+      "metrics": {
+        "seconds": 0.569375,
+        "peak": 0.12869058549404144,
+        "peakDbFS": -17.80906446479332,
+        "rms": 0.006111713068334634,
+        "dc": -1.0444910835155255e-8,
+        "maximumStep": 0.08305821381509304,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "reveal",
+      "kind": "reveal",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0,
+          "duration": 0.2011875,
+          "gain": 0.36,
+          "hz": 1
+        }
+      ],
+      "duration": 0.2191875,
+      "offset": 7.564291666666667,
+      "metrics": {
+        "seconds": 0.2191875,
+        "peak": 0.12934158742427826,
+        "peakDbFS": -17.76523626419464,
+        "rms": 0.008890280935212021,
+        "dc": 6.733860950336653e-7,
+        "maximumStep": 0.13168035075068474,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "impact",
+      "kind": "impact",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0,
+          "duration": 0.236625,
+          "gain": 0.52,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "clack",
+          "at": 0.006,
+          "duration": 0.07527083333333333,
+          "gain": 0.12,
+          "hz": 1
+        }
+      ],
+      "duration": 0.254625,
+      "offset": 7.808479166666666,
+      "metrics": {
+        "seconds": 0.254625,
+        "peak": 0.18449559807777405,
+        "peakDbFS": -14.680279826232674,
+        "rms": 0.009080360427472796,
+        "dc": 4.13620089074303e-8,
+        "maximumStep": 0.13539188168942928,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "buff",
+      "kind": "buff",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.065,
+          "duration": 0.07533333333333334,
+          "gain": 0.16,
+          "hz": 1
+        }
+      ],
+      "duration": 0.15833333333333333,
+      "offset": 8.088104166666668,
+      "metrics": {
+        "seconds": 0.15833333333333333,
+        "peak": 0.10755892097949982,
+        "peakDbFS": -19.3670712645269,
+        "rms": 0.011116094694009997,
+        "dc": 3.6300298693840937e-7,
+        "maximumStep": 0.057322838343679905,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "debuff",
+      "kind": "debuff",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slideAway",
+          "at": 0,
+          "duration": 0.5039583333333333,
+          "gain": 0.28,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "touch",
+          "at": 0.09,
+          "duration": 0.08127083333333333,
+          "gain": 0.18,
+          "hz": 1
+        }
+      ],
+      "duration": 0.5219583333333333,
+      "offset": 8.2714375,
+      "metrics": {
+        "seconds": 0.5219583333333333,
+        "peak": 0.09755228459835052,
+        "peakDbFS": -20.215251106252662,
+        "rms": 0.006638836368161944,
+        "dc": 3.458002668783322e-7,
+        "maximumStep": 0.0946334321051836,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "freeze",
+      "kind": "freeze",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "contact",
+          "at": 0,
+          "duration": 0.270875,
+          "gain": 0.32,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "touch",
+          "at": 0.075,
+          "duration": 0.08127083333333333,
+          "gain": 0.21,
+          "hz": 1
+        }
+      ],
+      "duration": 0.288875,
+      "offset": 8.818395833333334,
+      "metrics": {
+        "seconds": 0.288875,
+        "peak": 0.11263272166252136,
+        "peakDbFS": -18.966708428942027,
+        "rms": 0.018344458357648835,
+        "dc": 7.036510333490855e-7,
+        "maximumStep": 0.02801383286714554,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "recover",
+      "kind": "recover",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slideBack",
+          "at": 0,
+          "duration": 0.5802708333333333,
+          "gain": 0.28,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.09,
+          "duration": 0.17166666666666666,
+          "gain": 0.3,
+          "hz": 1
+        }
+      ],
+      "duration": 0.5982708333333333,
+      "offset": 9.132270833333333,
+      "metrics": {
+        "seconds": 0.5982708333333333,
+        "peak": 0.10956563800573349,
+        "peakDbFS": -19.20651256016523,
+        "rms": 0.007354485107249831,
+        "dc": -6.661240625573647e-7,
+        "maximumStep": 0.060259221121668816,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "group",
+      "kind": "group",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0,
+          "duration": 0.13629166666666667,
+          "gain": 0.32,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.08,
+          "duration": 0.5069583333333333,
+          "gain": 0.29,
+          "hz": 1
+        }
+      ],
+      "duration": 0.6049583333333334,
+      "offset": 9.755541666666666,
+      "metrics": {
+        "seconds": 0.6049583333333334,
+        "peak": 0.11560416966676712,
+        "peakDbFS": -18.740530025816646,
+        "rms": 0.007507802265030052,
+        "dc": -5.223072570580308e-7,
+        "maximumStep": 0.08343369339127094,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "win",
+      "kind": "win",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0,
+          "duration": 0.13629166666666667,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.1,
+          "duration": 0.17166666666666666,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.22,
+          "duration": 0.07533333333333334,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "tap",
+          "at": 0.33,
+          "duration": 0.07502083333333333,
+          "gain": 0.2,
+          "hz": 1
+        }
+      ],
+      "duration": 0.42302083333333335,
+      "offset": 10.3855,
+      "metrics": {
+        "seconds": 0.42302083333333335,
+        "peak": 0.10935863852500916,
+        "peakDbFS": -19.222938104275855,
+        "rms": 0.01047915806846603,
+        "dc": -1.6239979146610355e-7,
+        "maximumStep": 0.09183130413293839,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "lose",
+      "kind": "lose",
+      "details": {},
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "contact",
+          "at": 0,
+          "duration": 0.270875,
+          "gain": 0.32,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.16,
+          "duration": 0.5069583333333333,
+          "gain": 0.26,
+          "hz": 1
+        }
+      ],
+      "duration": 0.6849583333333333,
+      "offset": 10.833520833333333,
+      "metrics": {
+        "seconds": 0.6849583333333333,
+        "peak": 0.11263272166252136,
+        "peakDbFS": -18.966708428942027,
+        "rms": 0.01220928336857377,
+        "dc": -3.6351856974302356e-9,
+        "maximumStep": 0.07429907098412514,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-0-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 0,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0,
+          "duration": 0.17166666666666666,
+          "gain": 0.36,
+          "hz": 1
+        }
+      ],
+      "duration": 0.18966666666666668,
+      "offset": 11.543479166666666,
+      "metrics": {
+        "seconds": 0.18966666666666668,
+        "peak": 0.13123184442520142,
+        "peakDbFS": -17.639215344931646,
+        "rms": 0.011104409010746925,
+        "dc": -1.4926230752959362e-7,
+        "maximumStep": 0.06385306909214705,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-0-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 0,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0,
+          "duration": 0.17166666666666666,
+          "gain": 0.36,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.045,
+          "duration": 0.13629166666666667,
+          "gain": 0.18,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.145,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.23833333333333334,
+      "offset": 11.758145833333334,
+      "metrics": {
+        "seconds": 0.23833333333333334,
+        "peak": 0.13706526160240173,
+        "peakDbFS": -17.261452013771134,
+        "rms": 0.011851814465285758,
+        "dc": 5.0211046372822915e-8,
+        "maximumStep": 0.06414187513291836,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-1-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 1,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0,
+          "duration": 0.17166666666666666,
+          "gain": 0.37066666666666664,
+          "hz": 1
+        }
+      ],
+      "duration": 0.18966666666666668,
+      "offset": 12.021479166666667,
+      "metrics": {
+        "seconds": 0.18966666666666668,
+        "peak": 0.1351201832294464,
+        "peakDbFS": -17.3855954902502,
+        "rms": 0.01143342856848563,
+        "dc": -1.5368182133850457e-7,
+        "maximumStep": 0.06574501318391412,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-1-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 1,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0,
+          "duration": 0.17166666666666666,
+          "gain": 0.37066666666666664,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.045,
+          "duration": 0.13629166666666667,
+          "gain": 0.18,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.145,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.23833333333333334,
+      "offset": 12.236145833333333,
+      "metrics": {
+        "seconds": 0.23833333333333334,
+        "peak": 0.14095361530780792,
+        "peakDbFS": -17.018475609313995,
+        "rms": 0.012101888386035648,
+        "dc": 5.3230694954936326e-8,
+        "maximumStep": 0.06603381899185479,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-2-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 2,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0,
+          "duration": 0.17166666666666666,
+          "gain": 0.3813333333333333,
+          "hz": 1
+        }
+      ],
+      "duration": 0.18966666666666668,
+      "offset": 12.499479166666667,
+      "metrics": {
+        "seconds": 0.18966666666666668,
+        "peak": 0.1390085518360138,
+        "peakDbFS": -17.139169620681397,
+        "rms": 0.011762448062901176,
+        "dc": -1.5810630464430526e-7,
+        "maximumStep": 0.06763695704285055,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-2-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 2,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0,
+          "duration": 0.17166666666666666,
+          "gain": 0.3813333333333333,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.045,
+          "duration": 0.13629166666666667,
+          "gain": 0.18,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.145,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.23833333333333334,
+      "offset": 12.714145833333333,
+      "metrics": {
+        "seconds": 0.23833333333333334,
+        "peak": 0.1448419690132141,
+        "peakDbFS": -16.78211159842595,
+        "rms": 0.012353873638275382,
+        "dc": 5.6250567058134825e-8,
+        "maximumStep": 0.06792576285079122,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-3-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 3,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0,
+          "duration": 0.17166666666666666,
+          "gain": 0.392,
+          "hz": 1
+        }
+      ],
+      "duration": 0.18966666666666668,
+      "offset": 12.977479166666667,
+      "metrics": {
+        "seconds": 0.18966666666666668,
+        "peak": 0.14289690554141998,
+        "peakDbFS": -16.89954351667002,
+        "rms": 0.012091467629273099,
+        "dc": -1.625267680185791e-7,
+        "maximumStep": 0.06952890090178698,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-3-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 3,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0,
+          "duration": 0.17166666666666666,
+          "gain": 0.392,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.045,
+          "duration": 0.13629166666666667,
+          "gain": 0.18,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.145,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.23833333333333334,
+      "offset": 13.192145833333333,
+      "metrics": {
+        "seconds": 0.23833333333333334,
+        "peak": 0.1487303227186203,
+        "peakDbFS": -16.55200959434186,
+        "rms": 0.012607655789235906,
+        "dc": 5.9265065709009206e-8,
+        "maximumStep": 0.06981769925914705,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-4-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 4,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0,
+          "duration": 0.21627083333333333,
+          "gain": 0.4026666666666667,
+          "hz": 1
+        }
+      ],
+      "duration": 0.23427083333333334,
+      "offset": 13.455479166666667,
+      "metrics": {
+        "seconds": 0.23427083333333334,
+        "peak": 0.14345073699951172,
+        "peakDbFS": -16.86594432319425,
+        "rms": 0.006366210493347792,
+        "dc": -7.823626880442155e-7,
+        "maximumStep": 0.12473896145820618,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-4-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 4,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0,
+          "duration": 0.21627083333333333,
+          "gain": 0.4026666666666667,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.045,
+          "duration": 0.13629166666666667,
+          "gain": 0.18,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.145,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.23833333333333334,
+      "offset": 13.71475,
+      "metrics": {
+        "seconds": 0.23833333333333334,
+        "peak": 0.18635638058185577,
+        "peakDbFS": -14.59311466039738,
+        "rms": 0.009348765909477098,
+        "dc": -6.575895773387984e-7,
+        "maximumStep": 0.15981189534068108,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-5-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 5,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0,
+          "duration": 0.21627083333333333,
+          "gain": 0.41333333333333333,
+          "hz": 1
+        }
+      ],
+      "duration": 0.23427083333333334,
+      "offset": 13.978083333333334,
+      "metrics": {
+        "seconds": 0.23427083333333334,
+        "peak": 0.14725077152252197,
+        "peakDbFS": -16.638848420855087,
+        "rms": 0.006534851841322116,
+        "dc": -8.03086449184764e-7,
+        "maximumStep": 0.1280433051288128,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-5-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 5,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0,
+          "duration": 0.21627083333333333,
+          "gain": 0.41333333333333333,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.045,
+          "duration": 0.13629166666666667,
+          "gain": 0.18,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.145,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.23833333333333334,
+      "offset": 14.237354166666666,
+      "metrics": {
+        "seconds": 0.23833333333333334,
+        "peak": 0.19015640020370483,
+        "peakDbFS": -14.41778105412768,
+        "rms": 0.00947396272411139,
+        "dc": -6.73638521548286e-7,
+        "maximumStep": 0.16308913752436638,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-6-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 6,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0,
+          "duration": 0.21627083333333333,
+          "gain": 0.424,
+          "hz": 1
+        }
+      ],
+      "duration": 0.23427083333333334,
+      "offset": 14.5006875,
+      "metrics": {
+        "seconds": 0.23427083333333334,
+        "peak": 0.15105077624320984,
+        "peakDbFS": -16.417540771299425,
+        "rms": 0.006703493203641998,
+        "dc": -8.238099112398981e-7,
+        "maximumStep": 0.1313476525247097,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-6-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 6,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0,
+          "duration": 0.21627083333333333,
+          "gain": 0.424,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.045,
+          "duration": 0.13629166666666667,
+          "gain": 0.18,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.145,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.23833333333333334,
+      "offset": 14.759958333333334,
+      "metrics": {
+        "seconds": 0.23833333333333334,
+        "peak": 0.1939564198255539,
+        "peakDbFS": -14.245916819482122,
+        "rms": 0.009600438910379344,
+        "dc": -6.896924581670568e-7,
+        "maximumStep": 0.16636637225747108,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-7-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 7,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0,
+          "duration": 0.21627083333333333,
+          "gain": 0.43466666666666665,
+          "hz": 1
+        }
+      ],
+      "duration": 0.23427083333333334,
+      "offset": 15.023291666666667,
+      "metrics": {
+        "seconds": 0.23427083333333334,
+        "peak": 0.1548507958650589,
+        "peakDbFS": -16.20173116437247,
+        "rms": 0.006872134548154945,
+        "dc": -8.445347794649511e-7,
+        "maximumStep": 0.13465199247002602,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-7-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 7,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0,
+          "duration": 0.21627083333333333,
+          "gain": 0.43466666666666665,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.045,
+          "duration": 0.13629166666666667,
+          "gain": 0.18,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.145,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.23833333333333334,
+      "offset": 15.2825625,
+      "metrics": {
+        "seconds": 0.23833333333333334,
+        "peak": 0.19775643944740295,
+        "peakDbFS": -14.077387317572525,
+        "rms": 0.009728144475343507,
+        "dc": -7.05744776348664e-7,
+        "maximumStep": 0.16964362189173698,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-8-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 8,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0,
+          "duration": 0.21627083333333333,
+          "gain": 0.4453333333333333,
+          "hz": 1
+        }
+      ],
+      "duration": 0.23427083333333334,
+      "offset": 15.545895833333333,
+      "metrics": {
+        "seconds": 0.23427083333333334,
+        "peak": 0.15865081548690796,
+        "peakDbFS": -15.991153824494956,
+        "rms": 0.007040775884368711,
+        "dc": -8.652591398950617e-7,
+        "maximumStep": 0.13795633614063263,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-8-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 8,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0,
+          "duration": 0.21627083333333333,
+          "gain": 0.4453333333333333,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.045,
+          "duration": 0.13629166666666667,
+          "gain": 0.18,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.145,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.23833333333333334,
+      "offset": 15.805166666666667,
+      "metrics": {
+        "seconds": 0.23833333333333334,
+        "peak": 0.20155645906925201,
+        "peakDbFS": -13.912065598128576,
+        "rms": 0.009857031612880618,
+        "dc": -7.217953260855178e-7,
+        "maximumStep": 0.1729208640754223,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-9-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 9,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0,
+          "duration": 0.236625,
+          "gain": 0.45599999999999996,
+          "hz": 1
+        }
+      ],
+      "duration": 0.254625,
+      "offset": 16.0685,
+      "metrics": {
+        "seconds": 0.254625,
+        "peak": 0.1617884486913681,
+        "peakDbFS": -15.82104978410193,
+        "rms": 0.007781383015382667,
+        "dc": 3.627146247647269e-8,
+        "maximumStep": 0.11872826982289553,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-9-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 9,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0,
+          "duration": 0.236625,
+          "gain": 0.45599999999999996,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.045,
+          "duration": 0.13629166666666667,
+          "gain": 0.18,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.145,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.254625,
+      "offset": 16.348125,
+      "metrics": {
+        "seconds": 0.254625,
+        "peak": 0.1600479930639267,
+        "peakDbFS": -15.914995347201339,
+        "rms": 0.009907872479744588,
+        "dc": 2.212083173787454e-8,
+        "maximumStep": 0.11905210837721825,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-10-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 10,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0,
+          "duration": 0.236625,
+          "gain": 0.4666666666666667,
+          "hz": 1
+        }
+      ],
+      "duration": 0.254625,
+      "offset": 16.62775,
+      "metrics": {
+        "seconds": 0.254625,
+        "peak": 0.16557297110557556,
+        "peakDbFS": -15.620211159932403,
+        "rms": 0.007963403670057536,
+        "dc": 3.711828722280074e-8,
+        "maximumStep": 0.1215055389329791,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-10-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 10,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0,
+          "duration": 0.236625,
+          "gain": 0.4666666666666667,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.045,
+          "duration": 0.13629166666666667,
+          "gain": 0.18,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.145,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.254625,
+      "offset": 16.907375,
+      "metrics": {
+        "seconds": 0.254625,
+        "peak": 0.16383250057697296,
+        "peakDbFS": -15.711998801070187,
+        "rms": 0.010052388804224537,
+        "dc": 2.2969387235724435e-8,
+        "maximumStep": 0.12182937748730183,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-11-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 11,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0,
+          "duration": 0.236625,
+          "gain": 0.47733333333333333,
+          "hz": 1
+        }
+      ],
+      "duration": 0.254625,
+      "offset": 17.187,
+      "metrics": {
+        "seconds": 0.254625,
+        "peak": 0.1693575084209442,
+        "peakDbFS": -15.423910885199774,
+        "rms": 0.008145424318812473,
+        "dc": 3.796872433959083e-8,
+        "maximumStep": 0.12428280059248209,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-11-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 11,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0,
+          "duration": 0.236625,
+          "gain": 0.47733333333333333,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.045,
+          "duration": 0.13629166666666667,
+          "gain": 0.18,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.145,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.254625,
+      "offset": 17.466625,
+      "metrics": {
+        "seconds": 0.254625,
+        "peak": 0.1676170378923416,
+        "peakDbFS": -15.5136367682264,
+        "rms": 0.010198106104676516,
+        "dc": 2.381153142868401e-8,
+        "maximumStep": 0.12460663821548223,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-12-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 12,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0,
+          "duration": 0.236625,
+          "gain": 0.488,
+          "hz": 1
+        }
+      ],
+      "duration": 0.254625,
+      "offset": 17.74625,
+      "metrics": {
+        "seconds": 0.254625,
+        "peak": 0.17314203083515167,
+        "peakDbFS": -15.231949856355236,
+        "rms": 0.008327444964679348,
+        "dc": 3.881763593882794e-8,
+        "maximumStep": 0.1270600687712431,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-12-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 12,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0,
+          "duration": 0.236625,
+          "gain": 0.488,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.045,
+          "duration": 0.13629166666666667,
+          "gain": 0.18,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.145,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.254625,
+      "offset": 18.025875,
+      "metrics": {
+        "seconds": 0.254625,
+        "peak": 0.17140157520771027,
+        "peakDbFS": -15.319703823183728,
+        "rms": 0.010344973592742421,
+        "dc": 2.465753545573996e-8,
+        "maximumStep": 0.12738390732556581,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-13-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 13,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0,
+          "duration": 0.5069583333333333,
+          "gain": 0.4986666666666667,
+          "hz": 1
+        }
+      ],
+      "duration": 0.5249583333333333,
+      "offset": 18.3055,
+      "metrics": {
+        "seconds": 0.5249583333333333,
+        "peak": 0.18005254864692688,
+        "peakDbFS": -14.892014536066327,
+        "rms": 0.007172419451449912,
+        "dc": -7.598110308793606e-7,
+        "maximumStep": 0.142501812428236,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-13-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 13,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0,
+          "duration": 0.5069583333333333,
+          "gain": 0.4986666666666667,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.045,
+          "duration": 0.13629166666666667,
+          "gain": 0.18,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.145,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.5249583333333333,
+      "offset": 18.855458333333335,
+      "metrics": {
+        "seconds": 0.5249583333333333,
+        "peak": 0.18005254864692688,
+        "peakDbFS": -14.892014536066327,
+        "rms": 0.008324020084262881,
+        "dc": -7.59811341384816e-7,
+        "maximumStep": 0.142501812428236,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-14-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 14,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0,
+          "duration": 0.5069583333333333,
+          "gain": 0.5093333333333333,
+          "hz": 1
+        }
+      ],
+      "duration": 0.5249583333333333,
+      "offset": 19.405416666666667,
+      "metrics": {
+        "seconds": 0.5249583333333333,
+        "peak": 0.18390394747257233,
+        "peakDbFS": -14.708178971828316,
+        "rms": 0.007325840219077604,
+        "dc": -7.760665867463306e-7,
+        "maximumStep": 0.145549975335598,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-14-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 14,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0,
+          "duration": 0.5069583333333333,
+          "gain": 0.5093333333333333,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.045,
+          "duration": 0.13629166666666667,
+          "gain": 0.18,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.145,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.5249583333333333,
+      "offset": 19.955375,
+      "metrics": {
+        "seconds": 0.5249583333333333,
+        "peak": 0.18390394747257233,
+        "peakDbFS": -14.708178971828316,
+        "rms": 0.008456559354247824,
+        "dc": -7.760699231821138e-7,
+        "maximumStep": 0.145549975335598,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-15-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 15,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0,
+          "duration": 0.5069583333333333,
+          "gain": 0.52,
+          "hz": 1
+        }
+      ],
+      "duration": 0.5249583333333333,
+      "offset": 20.505333333333333,
+      "metrics": {
+        "seconds": 0.5249583333333333,
+        "peak": 0.18775533139705658,
+        "peakDbFS": -14.528154443232328,
+        "rms": 0.007479260909823495,
+        "dc": -7.923188052513064e-7,
+        "maximumStep": 0.14859814196825027,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-15-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 15,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0,
+          "duration": 0.5069583333333333,
+          "gain": 0.52,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.045,
+          "duration": 0.13629166666666667,
+          "gain": 0.18,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.145,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.5249583333333333,
+      "offset": 21.055291666666665,
+      "metrics": {
+        "seconds": 0.5249583333333333,
+        "peak": 0.18775533139705658,
+        "peakDbFS": -14.528154443232328,
+        "rms": 0.0085897937729839,
+        "dc": -7.923177479732748e-7,
+        "maximumStep": 0.14859814196825027,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-1-2",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 1,
+        "targetLevel": 2
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.068,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.136,
+          "duration": 0.17166666666666666,
+          "gain": 0.33599999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.171,
+          "duration": 0.07533333333333334,
+          "gain": 0.116,
+          "hz": 1
+        }
+      ],
+      "duration": 0.32566666666666666,
+      "offset": 21.60525,
+      "metrics": {
+        "seconds": 0.32566666666666666,
+        "peak": 0.12280796468257904,
+        "peakDbFS": -18.215469324234995,
+        "rms": 0.012052610931111481,
+        "dc": 2.236721393026284e-9,
+        "maximumStep": 0.06809034367324784,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-1-3",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 1,
+        "targetLevel": 3
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.068,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0.136,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.20400000000000001,
+          "duration": 0.17166666666666666,
+          "gain": 0.354,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.23900000000000002,
+          "duration": 0.07533333333333334,
+          "gain": 0.124,
+          "hz": 1
+        }
+      ],
+      "duration": 0.39366666666666666,
+      "offset": 21.955916666666667,
+      "metrics": {
+        "seconds": 0.39366666666666666,
+        "peak": 0.1298702508211136,
+        "peakDbFS": -17.729806414088305,
+        "rms": 0.012465992456687957,
+        "dc": 1.865525066558245e-8,
+        "maximumStep": 0.10662753880023956,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-1-4",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 1,
+        "targetLevel": 4
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.068,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0.136,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0.20400000000000001,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.272,
+          "duration": 0.236625,
+          "gain": 0.372,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.30700000000000005,
+          "duration": 0.07533333333333334,
+          "gain": 0.132,
+          "hz": 1
+        }
+      ],
+      "duration": 0.526625,
+      "offset": 22.374583333333334,
+      "metrics": {
+        "seconds": 0.526625,
+        "peak": 0.13197924196720123,
+        "peakDbFS": -17.589887407401402,
+        "rms": 0.010380597439744588,
+        "dc": 1.1247886436776666e-7,
+        "maximumStep": 0.10974393412470818,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-1-5",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 1,
+        "targetLevel": 5
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.068,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0.136,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0.20400000000000001,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.272,
+          "duration": 0.236625,
+          "gain": 0.39,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.30700000000000005,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.526625,
+      "offset": 22.926208333333335,
+      "metrics": {
+        "seconds": 0.526625,
+        "peak": 0.13836562633514404,
+        "peakDbFS": -17.179435733294284,
+        "rms": 0.010489516245382649,
+        "dc": 1.1323104999446275e-7,
+        "maximumStep": 0.10974393412470818,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-1-6",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 1,
+        "targetLevel": 6
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.068,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0.136,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0.20400000000000001,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.272,
+          "duration": 0.5069583333333333,
+          "gain": 0.408,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.30700000000000005,
+          "duration": 0.07533333333333334,
+          "gain": 0.14800000000000002,
+          "hz": 1
+        }
+      ],
+      "duration": 0.7969583333333333,
+      "offset": 23.477833333333333,
+      "metrics": {
+        "seconds": 0.7969583333333333,
+        "peak": 0.14731572568416595,
+        "peakDbFS": -16.635017810829392,
+        "rms": 0.009006067553123316,
+        "dc": -3.4749607377464403e-7,
+        "maximumStep": 0.11659239046275616,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-1-7",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 1,
+        "targetLevel": 7
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.068,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0.136,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0.20400000000000001,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.272,
+          "duration": 0.5069583333333333,
+          "gain": 0.426,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.30700000000000005,
+          "duration": 0.07533333333333334,
+          "gain": 0.156,
+          "hz": 1
+        }
+      ],
+      "duration": 0.7969583333333333,
+      "offset": 24.299791666666668,
+      "metrics": {
+        "seconds": 0.7969583333333333,
+        "peak": 0.15381495654582977,
+        "peakDbFS": -16.26002865746582,
+        "rms": 0.009131751968653871,
+        "dc": -3.656597298575276e-7,
+        "maximumStep": 0.12173616886138916,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-2-2",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 2,
+        "targetLevel": 2
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.074,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.148,
+          "duration": 0.17166666666666666,
+          "gain": 0.33599999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.183,
+          "duration": 0.07533333333333334,
+          "gain": 0.116,
+          "hz": 1
+        }
+      ],
+      "duration": 0.33766666666666667,
+      "offset": 25.12175,
+      "metrics": {
+        "seconds": 0.33766666666666667,
+        "peak": 0.12281230092048645,
+        "peakDbFS": -18.21516263876,
+        "rms": 0.011835173895204758,
+        "dc": 2.2019907480988048e-9,
+        "maximumStep": 0.06762057956075296,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-2-3",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 2,
+        "targetLevel": 3
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.074,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.148,
+          "duration": 0.17166666666666666,
+          "gain": 0.354,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.183,
+          "duration": 0.07533333333333334,
+          "gain": 0.124,
+          "hz": 1
+        }
+      ],
+      "duration": 0.33766666666666667,
+      "offset": 25.484416666666668,
+      "metrics": {
+        "seconds": 0.33766666666666667,
+        "peak": 0.12939712405204773,
+        "peakDbFS": -17.761507521600755,
+        "rms": 0.012129442702095778,
+        "dc": -5.804535322341963e-9,
+        "maximumStep": 0.06762057956075296,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-2-4",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 2,
+        "targetLevel": 4
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.074,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0.148,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.22199999999999998,
+          "duration": 0.236625,
+          "gain": 0.372,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.257,
+          "duration": 0.07533333333333334,
+          "gain": 0.132,
+          "hz": 1
+        }
+      ],
+      "duration": 0.476625,
+      "offset": 25.847083333333334,
+      "metrics": {
+        "seconds": 0.476625,
+        "peak": 0.13198696076869965,
+        "peakDbFS": -17.5893794282944,
+        "rms": 0.010161775332050874,
+        "dc": 1.247052366312442e-7,
+        "maximumStep": 0.10939297080039978,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-2-5",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 2,
+        "targetLevel": 5
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.074,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0.148,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0.22199999999999998,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.296,
+          "duration": 0.236625,
+          "gain": 0.39,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.33099999999999996,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.550625,
+      "offset": 26.348708333333335,
+      "metrics": {
+        "seconds": 0.550625,
+        "peak": 0.13836783170700073,
+        "peakDbFS": -17.179297292379378,
+        "rms": 0.010222338884955337,
+        "dc": 1.0840159116568662e-7,
+        "maximumStep": 0.10970218479633331,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-2-6",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 2,
+        "targetLevel": 6
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.074,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0.148,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0.22199999999999998,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.296,
+          "duration": 0.5069583333333333,
+          "gain": 0.408,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.33099999999999996,
+          "duration": 0.07533333333333334,
+          "gain": 0.14800000000000002,
+          "hz": 1
+        }
+      ],
+      "duration": 0.8209583333333333,
+      "offset": 26.924333333333333,
+      "metrics": {
+        "seconds": 0.8209583333333333,
+        "peak": 0.14731572568416595,
+        "peakDbFS": -16.635017810829392,
+        "rms": 0.008863537253058967,
+        "dc": -3.373361826029876e-7,
+        "maximumStep": 0.11659239046275616,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-2-7",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 2,
+        "targetLevel": 7
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.074,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0.148,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0.22199999999999998,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.296,
+          "duration": 0.5069583333333333,
+          "gain": 0.426,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.33099999999999996,
+          "duration": 0.07533333333333334,
+          "gain": 0.156,
+          "hz": 1
+        }
+      ],
+      "duration": 0.8209583333333333,
+      "offset": 27.770291666666665,
+      "metrics": {
+        "seconds": 0.8209583333333333,
+        "peak": 0.15381495654582977,
+        "peakDbFS": -16.26002865746582,
+        "rms": 0.008987445529446931,
+        "dc": -3.5496877003259033e-7,
+        "maximumStep": 0.12173616886138916,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-3-2",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 3,
+        "targetLevel": 2
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.08,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.16,
+          "duration": 0.17166666666666666,
+          "gain": 0.33599999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.195,
+          "duration": 0.07533333333333334,
+          "gain": 0.116,
+          "hz": 1
+        }
+      ],
+      "duration": 0.3496666666666667,
+      "offset": 28.61625,
+      "metrics": {
+        "seconds": 0.3496666666666667,
+        "peak": 0.12281505763530731,
+        "peakDbFS": -18.21496767252465,
+        "rms": 0.011632901623013909,
+        "dc": 2.1524195288363563e-9,
+        "maximumStep": 0.06824646628228948,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-3-3",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 3,
+        "targetLevel": 3
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.08,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.16,
+          "duration": 0.17166666666666666,
+          "gain": 0.354,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.195,
+          "duration": 0.07533333333333334,
+          "gain": 0.124,
+          "hz": 1
+        }
+      ],
+      "duration": 0.3496666666666667,
+      "offset": 28.990916666666667,
+      "metrics": {
+        "seconds": 0.3496666666666667,
+        "peak": 0.1293998807668686,
+        "peakDbFS": -17.761322476795346,
+        "rms": 0.011922039091397022,
+        "dc": -5.578866093750095e-9,
+        "maximumStep": 0.06824646628228948,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-3-4",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 3,
+        "targetLevel": 4
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.08,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.16,
+          "duration": 0.236625,
+          "gain": 0.372,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.195,
+          "duration": 0.07533333333333334,
+          "gain": 0.132,
+          "hz": 1
+        }
+      ],
+      "duration": 0.414625,
+      "offset": 29.365583333333333,
+      "metrics": {
+        "seconds": 0.414625,
+        "peak": 0.13198527693748474,
+        "peakDbFS": -17.589490239736,
+        "rms": 0.009520434391089388,
+        "dc": 1.432450901869752e-7,
+        "maximumStep": 0.09685726929455996,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-3-5",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 3,
+        "targetLevel": 5
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.08,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0.16,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.24,
+          "duration": 0.236625,
+          "gain": 0.39,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.275,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.494625,
+      "offset": 29.805208333333333,
+      "metrics": {
+        "seconds": 0.494625,
+        "peak": 0.1383727490901947,
+        "peakDbFS": -17.17898861450053,
+        "rms": 0.010122389123577514,
+        "dc": 1.2093422983239373e-7,
+        "maximumStep": 0.10959071666002274,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-3-6",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 3,
+        "targetLevel": 6
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.08,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0.16,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0.24,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.32,
+          "duration": 0.5069583333333333,
+          "gain": 0.408,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.355,
+          "duration": 0.07533333333333334,
+          "gain": 0.14800000000000002,
+          "hz": 1
+        }
+      ],
+      "duration": 0.8449583333333334,
+      "offset": 30.324833333333334,
+      "metrics": {
+        "seconds": 0.8449583333333334,
+        "peak": 0.14731572568416595,
+        "peakDbFS": -16.635017810829392,
+        "rms": 0.008739808240889227,
+        "dc": -3.2775445974591234e-7,
+        "maximumStep": 0.11659239046275616,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-3-7",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 3,
+        "targetLevel": 7
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.08,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0.16,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0.24,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.32,
+          "duration": 0.5069583333333333,
+          "gain": 0.426,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.355,
+          "duration": 0.07533333333333334,
+          "gain": 0.156,
+          "hz": 1
+        }
+      ],
+      "duration": 0.8449583333333334,
+      "offset": 31.194791666666667,
+      "metrics": {
+        "seconds": 0.8449583333333334,
+        "peak": 0.15381495654582977,
+        "peakDbFS": -16.26002865746582,
+        "rms": 0.008861796165619511,
+        "dc": -3.448871156115967e-7,
+        "maximumStep": 0.12173616886138916,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-4-2",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 4,
+        "targetLevel": 2
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.086,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.172,
+          "duration": 0.17166666666666666,
+          "gain": 0.33599999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.207,
+          "duration": 0.07533333333333334,
+          "gain": 0.116,
+          "hz": 1
+        }
+      ],
+      "duration": 0.3616666666666667,
+      "offset": 32.06475,
+      "metrics": {
+        "seconds": 0.3616666666666667,
+        "peak": 0.12281680852174759,
+        "peakDbFS": -18.214843844890822,
+        "rms": 0.01143741579374393,
+        "dc": 2.100430100611823e-9,
+        "maximumStep": 0.0679777609766461,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-4-3",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 4,
+        "targetLevel": 3
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.086,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.172,
+          "duration": 0.17166666666666666,
+          "gain": 0.354,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.207,
+          "duration": 0.07533333333333334,
+          "gain": 0.124,
+          "hz": 1
+        }
+      ],
+      "duration": 0.3616666666666667,
+      "offset": 32.45141666666667,
+      "metrics": {
+        "seconds": 0.3616666666666667,
+        "peak": 0.12940162420272827,
+        "peakDbFS": -17.761205450493893,
+        "rms": 0.011721743739273515,
+        "dc": -5.3744299235774115e-9,
+        "maximumStep": 0.0679777609766461,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-4-4",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 4,
+        "targetLevel": 4
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.086,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.172,
+          "duration": 0.236625,
+          "gain": 0.372,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.207,
+          "duration": 0.07533333333333334,
+          "gain": 0.132,
+          "hz": 1
+        }
+      ],
+      "duration": 0.426625,
+      "offset": 32.83808333333333,
+      "metrics": {
+        "seconds": 0.426625,
+        "peak": 0.13198529183864594,
+        "peakDbFS": -17.589489259097576,
+        "rms": 0.00938557516566324,
+        "dc": 1.3921559801775444e-7,
+        "maximumStep": 0.0968572711572051,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-4-5",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 4,
+        "targetLevel": 5
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.086,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.172,
+          "duration": 0.236625,
+          "gain": 0.39,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.207,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.426625,
+      "offset": 33.28970833333333,
+      "metrics": {
+        "seconds": 0.426625,
+        "peak": 0.13837167620658875,
+        "peakDbFS": -17.179055961465775,
+        "rms": 0.009532103913034906,
+        "dc": 1.4014532141724177e-7,
+        "maximumStep": 0.10154391452670097,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-4-6",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 4,
+        "targetLevel": 6
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.086,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0.172,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.258,
+          "duration": 0.5069583333333333,
+          "gain": 0.408,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.29300000000000004,
+          "duration": 0.07533333333333334,
+          "gain": 0.14800000000000002,
+          "hz": 1
+        }
+      ],
+      "duration": 0.7829583333333333,
+      "offset": 33.74133333333333,
+      "metrics": {
+        "seconds": 0.7829583333333333,
+        "peak": 0.14731572568416595,
+        "peakDbFS": -16.635017810829392,
+        "rms": 0.008591813605606107,
+        "dc": -3.537090079830261e-7,
+        "maximumStep": 0.11659239046275616,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-4-7",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 4,
+        "targetLevel": 7
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.086,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0.172,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0.258,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.344,
+          "duration": 0.5069583333333333,
+          "gain": 0.426,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.379,
+          "duration": 0.07533333333333334,
+          "gain": 0.156,
+          "hz": 1
+        }
+      ],
+      "duration": 0.8689583333333334,
+      "offset": 34.54929166666667,
+      "metrics": {
+        "seconds": 0.8689583333333334,
+        "peak": 0.15381495654582977,
+        "peakDbFS": -16.26002865746582,
+        "rms": 0.008733204567481266,
+        "dc": -3.35361114509446e-7,
+        "maximumStep": 0.12173616886138916,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-5-2",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 5,
+        "targetLevel": 2
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.092,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.184,
+          "duration": 0.17166666666666666,
+          "gain": 0.33599999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.219,
+          "duration": 0.07533333333333334,
+          "gain": 0.116,
+          "hz": 1
+        }
+      ],
+      "duration": 0.37366666666666665,
+      "offset": 35.44325,
+      "metrics": {
+        "seconds": 0.37366666666666665,
+        "peak": 0.12281792610883713,
+        "peakDbFS": -18.214764806898614,
+        "rms": 0.011253109796269176,
+        "dc": 2.03882997074544e-9,
+        "maximumStep": 0.06789262301754206,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-5-3",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 5,
+        "targetLevel": 3
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.092,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.184,
+          "duration": 0.17166666666666666,
+          "gain": 0.354,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.219,
+          "duration": 0.07533333333333334,
+          "gain": 0.124,
+          "hz": 1
+        }
+      ],
+      "duration": 0.37366666666666665,
+      "offset": 35.84191666666667,
+      "metrics": {
+        "seconds": 0.37366666666666665,
+        "peak": 0.1294027417898178,
+        "peakDbFS": -17.761130434463283,
+        "rms": 0.011532880534012201,
+        "dc": -5.192249033391819e-9,
+        "maximumStep": 0.06789262301754206,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-5-4",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 5,
+        "targetLevel": 4
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.092,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.184,
+          "duration": 0.236625,
+          "gain": 0.372,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.219,
+          "duration": 0.07533333333333334,
+          "gain": 0.132,
+          "hz": 1
+        }
+      ],
+      "duration": 0.438625,
+      "offset": 36.24058333333333,
+      "metrics": {
+        "seconds": 0.438625,
+        "peak": 0.13198529183864594,
+        "peakDbFS": -17.589489259097576,
+        "rms": 0.009248182015930268,
+        "dc": 1.3540568875321915e-7,
+        "maximumStep": 0.09685726556926966,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-5-5",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 5,
+        "targetLevel": 5
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.092,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.184,
+          "duration": 0.236625,
+          "gain": 0.39,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.219,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.438625,
+      "offset": 36.704208333333334,
+      "metrics": {
+        "seconds": 0.438625,
+        "peak": 0.13837167620658875,
+        "peakDbFS": -17.179055961465775,
+        "rms": 0.009392451132106315,
+        "dc": 1.3630802460605333e-7,
+        "maximumStep": 0.10154391638934612,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-5-6",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 5,
+        "targetLevel": 6
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.092,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.184,
+          "duration": 0.5069583333333333,
+          "gain": 0.408,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.219,
+          "duration": 0.07533333333333334,
+          "gain": 0.14800000000000002,
+          "hz": 1
+        }
+      ],
+      "duration": 0.7089583333333334,
+      "offset": 37.167833333333334,
+      "metrics": {
+        "seconds": 0.7089583333333334,
+        "peak": 0.14731572568416595,
+        "peakDbFS": -16.635017810829392,
+        "rms": 0.008025426912206124,
+        "dc": -3.9062911145965185e-7,
+        "maximumStep": 0.11659239046275616,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-5-7",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 5,
+        "targetLevel": 7
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.092,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "flick",
+          "at": 0.184,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.276,
+          "duration": 0.5069583333333333,
+          "gain": 0.426,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.31100000000000005,
+          "duration": 0.07533333333333334,
+          "gain": 0.156,
+          "hz": 1
+        }
+      ],
+      "duration": 0.8009583333333333,
+      "offset": 37.90179166666667,
+      "metrics": {
+        "seconds": 0.8009583333333333,
+        "peak": 0.15381495654582977,
+        "peakDbFS": -16.26002865746582,
+        "rms": 0.008615161820208725,
+        "dc": -3.6383437850703646e-7,
+        "maximumStep": 0.12173616886138916,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-6-2",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 6,
+        "targetLevel": 2
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.098,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.196,
+          "duration": 0.17166666666666666,
+          "gain": 0.33599999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.231,
+          "duration": 0.07533333333333334,
+          "gain": 0.116,
+          "hz": 1
+        }
+      ],
+      "duration": 0.38566666666666666,
+      "offset": 38.72775,
+      "metrics": {
+        "seconds": 0.38566666666666666,
+        "peak": 0.12281863391399384,
+        "peakDbFS": -18.21471474987554,
+        "rms": 0.011075536119371522,
+        "dc": 1.9863944233835766e-9,
+        "maximumStep": 0.06789122940972447,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-6-3",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 6,
+        "targetLevel": 3
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.098,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.196,
+          "duration": 0.17166666666666666,
+          "gain": 0.354,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.231,
+          "duration": 0.07533333333333334,
+          "gain": 0.124,
+          "hz": 1
+        }
+      ],
+      "duration": 0.38566666666666666,
+      "offset": 39.138416666666664,
+      "metrics": {
+        "seconds": 0.38566666666666666,
+        "peak": 0.12940345704555511,
+        "peakDbFS": -17.761082424543698,
+        "rms": 0.011350888954268131,
+        "dc": -5.024560284692713e-9,
+        "maximumStep": 0.06789122940972447,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-6-4",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 6,
+        "targetLevel": 4
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.098,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.196,
+          "duration": 0.236625,
+          "gain": 0.372,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.231,
+          "duration": 0.07533333333333334,
+          "gain": 0.132,
+          "hz": 1
+        }
+      ],
+      "duration": 0.450625,
+      "offset": 39.549083333333336,
+      "metrics": {
+        "seconds": 0.450625,
+        "peak": 0.13198529183864594,
+        "peakDbFS": -17.589489259097576,
+        "rms": 0.009122191358028015,
+        "dc": 1.3180106665579806e-7,
+        "maximumStep": 0.09685726650059223,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-6-5",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 6,
+        "targetLevel": 5
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.098,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.196,
+          "duration": 0.236625,
+          "gain": 0.39,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.231,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.450625,
+      "offset": 40.024708333333336,
+      "metrics": {
+        "seconds": 0.450625,
+        "peak": 0.13837167620658875,
+        "peakDbFS": -17.179055961465775,
+        "rms": 0.009264461676749262,
+        "dc": 1.326812597121747e-7,
+        "maximumStep": 0.1015439173206687,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-6-6",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 6,
+        "targetLevel": 6
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.098,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.196,
+          "duration": 0.5069583333333333,
+          "gain": 0.408,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.231,
+          "duration": 0.07533333333333334,
+          "gain": 0.14800000000000002,
+          "hz": 1
+        }
+      ],
+      "duration": 0.7209583333333334,
+      "offset": 40.50033333333333,
+      "metrics": {
+        "seconds": 0.7209583333333334,
+        "peak": 0.14731572568416595,
+        "peakDbFS": -16.635017810829392,
+        "rms": 0.007960996206623815,
+        "dc": -3.841266110506501e-7,
+        "maximumStep": 0.11659239046275616,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-6-7",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 6,
+        "targetLevel": 7
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.098,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.196,
+          "duration": 0.5069583333333333,
+          "gain": 0.426,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.231,
+          "duration": 0.07533333333333334,
+          "gain": 0.156,
+          "hz": 1
+        }
+      ],
+      "duration": 0.7209583333333334,
+      "offset": 41.246291666666664,
+      "metrics": {
+        "seconds": 0.7209583333333334,
+        "peak": 0.15381495654582977,
+        "peakDbFS": -16.26002865746582,
+        "rms": 0.008117428750757386,
+        "dc": -4.0420573405561446e-7,
+        "maximumStep": 0.12173616886138916,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-7-2",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 7,
+        "targetLevel": 2
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.10400000000000001,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.20800000000000002,
+          "duration": 0.17166666666666666,
+          "gain": 0.33599999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.24300000000000002,
+          "duration": 0.07533333333333334,
+          "gain": 0.116,
+          "hz": 1
+        }
+      ],
+      "duration": 0.39766666666666667,
+      "offset": 41.99225,
+      "metrics": {
+        "seconds": 0.39766666666666667,
+        "peak": 0.12281908839941025,
+        "peakDbFS": -18.214682608149655,
+        "rms": 0.010907695274981043,
+        "dc": 1.9265736983762257e-9,
+        "maximumStep": 0.06778987578582019,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-7-3",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 7,
+        "targetLevel": 3
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.10400000000000001,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeLight",
+          "at": 0.20800000000000002,
+          "duration": 0.17166666666666666,
+          "gain": 0.354,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.24300000000000002,
+          "duration": 0.07533333333333334,
+          "gain": 0.124,
+          "hz": 1
+        }
+      ],
+      "duration": 0.39766666666666667,
+      "offset": 42.41491666666667,
+      "metrics": {
+        "seconds": 0.39766666666666667,
+        "peak": 0.12940390408039093,
+        "peakDbFS": -17.761052418478712,
+        "rms": 0.011178889681520936,
+        "dc": -4.866403898320339e-9,
+        "maximumStep": 0.06778987578582019,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-7-4",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 7,
+        "targetLevel": 4
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.10400000000000001,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.20800000000000002,
+          "duration": 0.236625,
+          "gain": 0.372,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.24300000000000002,
+          "duration": 0.07533333333333334,
+          "gain": 0.132,
+          "hz": 1
+        }
+      ],
+      "duration": 0.462625,
+      "offset": 42.837583333333335,
+      "metrics": {
+        "seconds": 0.462625,
+        "peak": 0.13198529183864594,
+        "peakDbFS": -17.589489259097576,
+        "rms": 0.009011769442265276,
+        "dc": 1.2838218936008984e-7,
+        "maximumStep": 0.0968572674319148,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-7-5",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 7,
+        "targetLevel": 5
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.10400000000000001,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.20800000000000002,
+          "duration": 0.236625,
+          "gain": 0.39,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.24300000000000002,
+          "duration": 0.07533333333333334,
+          "gain": 0.14,
+          "hz": 1
+        }
+      ],
+      "duration": 0.462625,
+      "offset": 43.325208333333336,
+      "metrics": {
+        "seconds": 0.462625,
+        "peak": 0.13837167620658875,
+        "peakDbFS": -17.179055961465775,
+        "rms": 0.009152474160994696,
+        "dc": 1.2923860193469436e-7,
+        "maximumStep": 0.1015439173206687,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-7-6",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 7,
+        "targetLevel": 6
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.10400000000000001,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.20800000000000002,
+          "duration": 0.5069583333333333,
+          "gain": 0.408,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.24300000000000002,
+          "duration": 0.07533333333333334,
+          "gain": 0.14800000000000002,
+          "hz": 1
+        }
+      ],
+      "duration": 0.7329583333333334,
+      "offset": 43.81283333333333,
+      "metrics": {
+        "seconds": 0.7329583333333334,
+        "peak": 0.14731572568416595,
+        "peakDbFS": -16.635017810829392,
+        "rms": 0.007893552367902406,
+        "dc": -3.7783799969331033e-7,
+        "maximumStep": 0.11659239046275616,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-7-7",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 7,
+        "targetLevel": 7
+      },
+      "layers": [
+        {
+          "texture": "recording",
+          "source": "slide",
+          "at": 0,
+          "duration": 0.121375,
+          "gain": 0.22,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "cut",
+          "at": 0.10400000000000001,
+          "duration": 0.13629166666666667,
+          "gain": 0.26,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.20800000000000002,
+          "duration": 0.5069583333333333,
+          "gain": 0.426,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "stack",
+          "at": 0.24300000000000002,
+          "duration": 0.07533333333333334,
+          "gain": 0.156,
+          "hz": 1
+        }
+      ],
+      "duration": 0.7329583333333334,
+      "offset": 44.570791666666665,
+      "metrics": {
+        "seconds": 0.7329583333333334,
+        "peak": 0.15381495654582977,
+        "peakDbFS": -16.26002865746582,
+        "rms": 0.008048658765632448,
+        "dc": -3.9758782473551364e-7,
+        "maximumStep": 0.12173616886138916,
+        "boundaryStep": 0
+      }
+    }
+  ]
+}

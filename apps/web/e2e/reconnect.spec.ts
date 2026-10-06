@@ -5,7 +5,7 @@ type CardLike = { instanceId: string; cardId: string };
 type PlayerLike = { hand?: CardLike[]; handCount?: number; trash?: CardLike[] };
 type MatchSnapshot = {
   players: PlayerLike[];
-  pendingDecision?: { decisionId: string; kind: string; seat: number };
+  pendingDecision?: { decisionId: string; kind: string; seat: number; promptText: string; payloadJson: string };
   turnSeat: number;
   memory: number;
 };
@@ -68,14 +68,30 @@ test("reload resumes the same room and pending decision", async ({ page, match }
       continue;
     }
 
-    const surface = page.getByRole("dialog").or(page.getByTestId("board-prompt"));
+    await expect.poll(async () => (await match.snapshot()).pendingDecision?.decisionId).toBe(request.decisionId);
+    const pending = ((await match.snapshot()) as MatchSnapshot).pendingDecision!;
+    const options = JSON.parse(pending.payloadJson || "{}") as {
+      effectKey?: string;
+      effectText?: string;
+      timing?: string;
+    };
+    const surface = page.getByRole("dialog").or(page.getByTestId("board-prompt")).filter({ visible: true });
+    await expect(surface).toBeVisible();
+    if (options.effectText) {
+      // Timing labels can be narrowed to this firing window; the printed operation is
+      // stable and distinguishes an old payment prompt from the current return prompt.
+      const operation = options.effectText.replace(/^(?:\s*\[[^\]]+\])+\s*/, "");
+      await expect(surface).toContainText(operation);
+      expect(options.effectKey).toMatch(/^EX11-069\//);
+    }
     if (request.kind === "orderTriggers") {
       const dialog = page.getByRole("dialog");
       await dialog.getByRole("button", { pressed: false }).first().click();
       await dialog.getByRole("button", { name: /resolve (?:next )?effect/i }).click();
     } else if (request.kind === "optional") {
-      const prompt = await surface.innerText();
-      if (/return 1 to hand/i.test(prompt)) {
+      if (/return 1\b[\s\S]*\b(?:to the )?hand/i.test(request.promptText)) {
+        expect(options.timing).toBe("EndOfAllTurns");
+        await expect(surface).toContainText(/by suspending this Tamer, you may return 1 \[Evil\]/i);
         await surface.getByRole("button", { name: /no, decline|^don't use$/i }).click();
         declinedReturnOptional = true;
       } else {
@@ -109,6 +125,12 @@ test("reload resumes the same room and pending decision", async ({ page, match }
   }
 
   await expect.poll(() => match.state().turnSeat).toBe(1);
+  await expect
+    .poll(async () => {
+      const own = (await match.snapshot()) as MatchSnapshot;
+      return { turnSeat: own.turnSeat, pendingDecision: own.pendingDecision?.decisionId };
+    })
+    .toEqual({ turnSeat: 1, pendingDecision: undefined });
   const after = (await match.snapshot()) as MatchSnapshot;
   const protagonist = statePlayer(after, 0);
   const newlyTrashed = (protagonist.trash ?? []).filter((card) => !trashBeforePlay.includes(card.instanceId));

@@ -66,6 +66,10 @@ function narratedEventKinds(relativePath: string, functionName: string): Set<str
  * the only difference between a deliberate silence and a forgotten event is this note.
  */
 const DELIBERATELY_SILENT: Partial<Record<ServerEventKind, string>> = {
+  stackTopResolved: "supplies the resolved DP for the physical stack peel; cardsMoved narrates the removal",
+  // Starts the physical clash before protection questions; it reports potential losses,
+  // not deletions. combatResolved narrates the final result after those questions.
+  battleCompared: "rendered as the field impact; final outcomes carry the log lines",
   // Terminates the ＜Alliance＞ prompt overlay and carries no outcome: the event says the
   // decision was answered, not whether an ally joined, so a log line could only repeat
   // that something was decided. The ally's own effects narrate themselves.
@@ -87,6 +91,8 @@ const DELIBERATELY_SILENT: Partial<Record<ServerEventKind, string>> = {
   effectTargetsSelected: "shown as target cues before the effect actions resolve",
   effectTriggered: "shown as the effect notice; the log line belongs to effectResolved",
   effectOptionChosen: "shown as the effect notice naming the chosen bullet; the log records effectResolved",
+  // Every accepted effect is narrated when it resolves; the chosen order adds no separate notice.
+  resolutionOrderChosen: "every effect it orders is narrated as it resolves",
   // Opens the centre-stage check: the shield breaks and the card is turned face up. The
   // log line belongs to `securityChecked`, which names the same card AND what it did.
   securityRevealed: "played as the shield break and the reveal; the log line is securityChecked",

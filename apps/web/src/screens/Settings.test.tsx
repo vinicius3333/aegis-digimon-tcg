@@ -28,3 +28,40 @@ describe("settings portrait picker", () => {
     expect(onSelectAvatar).toHaveBeenCalledWith("greymon");
   });
 });
+
+describe("settings effect speed", () => {
+  afterEach(() => {
+    cleanup();
+    vi.doUnmock("../features");
+    vi.resetModules();
+  });
+
+  async function renderSettings() {
+    const { Settings: FreshSettings } = await import("./Settings");
+    const { I18nProvider: FreshProvider } = await import("../i18n");
+    const pacing = await import("../game/pacing");
+    render(
+      <FreshProvider>
+        <FreshSettings player={player} account={null} dark={false} onToggleDark={() => undefined} />
+      </FreshProvider>,
+    );
+    return pacing;
+  }
+
+  it("stays hidden while sequential pacing is off", async () => {
+    vi.resetModules();
+    vi.doMock("../features", () => ({ RANKED_ENABLED: false, SEQUENTIAL_PACING_ENABLED: false }));
+    await renderSettings();
+    expect(screen.queryByRole("group", { name: "Effect speed" })).toBeNull();
+  });
+
+  it("sets the effect speed when sequential pacing is on", async () => {
+    vi.resetModules();
+    vi.doMock("../features", () => ({ RANKED_ENABLED: false, SEQUENTIAL_PACING_ENABLED: true }));
+    const pacing = await renderSettings();
+    fireEvent.click(screen.getByRole("button", { name: "Fast" }));
+    expect(pacing.getEffectSpeed()).toBe("fast");
+    expect(screen.getByRole("button", { name: "Fast" }).getAttribute("aria-pressed")).toBe("true");
+    pacing.setEffectSpeed("normal");
+  });
+});

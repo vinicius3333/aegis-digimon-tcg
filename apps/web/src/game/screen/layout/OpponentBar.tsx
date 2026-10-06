@@ -12,6 +12,7 @@ import { useTranslation } from "../../../i18n";
 import { Icons } from "../../../design/icons";
 import { CardBack } from "../../../design/cards";
 import { ArenaCounters } from "../../ArenaCounters";
+import { useEnterAnimation } from "../../animations";
 import { Side } from "../../side";
 import { PlayerLine } from "./PlayerLine";
 
@@ -67,6 +68,7 @@ export function OpponentBar({
 }) {
   const { t } = useTranslation();
   const fanned = Math.max(0, handCount);
+  const entering = useEnterAnimation(Array.from({ length: fanned }, (_, index) => String(index)));
   return (
     <header
       className="game-opponent-bar"
@@ -107,6 +109,8 @@ export function OpponentBar({
         {Array.from({ length: fanned }).map((_, i) => (
           <div
             key={i}
+            data-opponent-hand-slot={i}
+            className={entering.has(String(i)) ? "game-opponent-hand-card--arriving" : undefined}
             aria-hidden
             style={
               {
@@ -167,7 +171,7 @@ export function OpponentBar({
               <Icons.Megaphone size={18} /> {t("bugReport.button")}
             </button>
             <button type="button" onClick={onOpenArenaLook}>
-              <Icons.Palette size={18} /> {t("redesign.arena.look.open")}
+              <Icons.Settings size={18} /> {t("redesign.arena.look.open")}
             </button>
             <button type="button" onClick={onSurrender}>
               <Icons.LogOut size={18} /> {t("game.surrender")}
@@ -189,7 +193,7 @@ export function OpponentBar({
             <Icons.Megaphone size={16} />
           </button>
           <button className="game-mobile-look" onClick={onOpenArenaLook} aria-label={t("redesign.arena.look.open")}>
-            <Icons.Palette size={16} />
+            <Icons.Settings size={16} />
           </button>
           <button
             className="game-mobile-surrender"
@@ -239,7 +243,7 @@ export function OpponentBar({
             aria-label={t("redesign.arena.look.open")}
             title={t("redesign.arena.look.open")}
           >
-            <Icons.Palette size={17} />
+            <Icons.Settings size={17} />
           </button>
           <button
             className="game-topbar-button game-topbar-button--danger"

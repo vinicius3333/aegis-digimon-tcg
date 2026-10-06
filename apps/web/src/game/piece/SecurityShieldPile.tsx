@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import type { SecurityCardView } from "@aegis/shared";
 import { CardBurst } from "../CardBurst";
 import { SecurityCardSlot } from "../SecurityCardSlot";
@@ -50,15 +50,19 @@ export function SecurityShieldPile({
   /** What attacking this stack would be, while it is a legal target being aimed at. */
   attackLabel?: string;
   /** A card is flying back onto the stack. */
-  landing?: boolean;
+  landing?: number;
   refEl?: (el: HTMLDivElement | null) => void;
   onClick?: () => void;
   drop?: DropAttrs;
 }) {
+  const [reactionKey, setReactionKey] = useState(landing);
+  if (landing !== undefined && landing !== reactionKey) setReactionKey(landing);
   const dpLabel =
     securityDpDelta !== 0 ? `${securityDpDelta > 0 ? "+" : "−"}${Math.abs(securityDpDelta)} DP` : undefined;
   const pane = (
     <div
+      key={reactionKey ?? "rest"}
+      data-security-landing-key={landing}
       className={[
         "game-security-shield",
         `game-security-shield--${shield}`,

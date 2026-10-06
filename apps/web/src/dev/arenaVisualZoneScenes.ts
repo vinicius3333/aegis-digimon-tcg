@@ -46,7 +46,12 @@ function ownTamer(own: PlayerState): Permanent | undefined {
 }
 
 /** These cards are public at their destination; hidden opponent zones stay untouched. */
-function movement(cards: readonly CardInstance[], from: string, to: string, seat: 0 | 1): ServerEvent {
+function movement(
+  cards: readonly CardInstance[],
+  from: string,
+  to: string,
+  seat: 0 | 1,
+): Extract<ServerEvent, { kind: "cardsMoved" }> {
   return {
     kind: "cardsMoved",
     instanceIds: cards.map((card) => card.instanceId),
@@ -164,7 +169,13 @@ export function applyArenaVisualZoneScene({
       600,
       "Fonte paga e enviada ao trash",
       "Source paid and sent to trash",
-      [activation(), movement([source], "various", "trash", 0)],
+      [
+        activation(),
+        {
+          ...movement([source], "various", "trash", 0),
+          trashedSources: { permanentId: actor.permanentId, hostCardId: actor.topCard.cardId },
+        },
+      ],
       () => {
         own.trash.push(...actor.stack.splice(actor.stack.length - 1, 1));
       },
@@ -233,7 +244,15 @@ export function applyArenaVisualZoneScene({
       ]);
     const owner = keyword === "Armor Purge" ? own : opp;
     const seat = keyword === "Armor Purge" ? 0 : 1;
-    const events = [movement([target.topCard], "various", "trash", seat)];
+    const events: ServerEvent[] = [
+      {
+        ...movement([target.topCard], "various", "trash", seat),
+        strippedStackTops: {
+          permanentId: target.permanentId,
+          reason: keyword === "DeDigivolve" ? "deDigivolve" : "trashTop",
+        },
+      },
+    ];
     if (keyword === "Armor Purge")
       events.unshift({
         kind: "combatResolved",

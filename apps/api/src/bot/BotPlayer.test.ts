@@ -6,6 +6,8 @@ import {
   SECURITY_CHECK_NARRATION_MS,
   SECURITY_DESTRUCTION_NARRATION_MS,
   EFFECT_CHOICE_NARRATION_MS,
+  CHAIN_EFFECT_NARRATION_MS,
+  SECURITY_EFFECT_NARRATION_MS,
   Zone,
   type DecisionRequest,
   type GameState,
@@ -97,6 +99,65 @@ describe("BotPlayer action pacing and player attacks", () => {
     // A later suite's restoreAllMocks must not resurrect a fake setImmediate.
     vi.restoreAllMocks();
     vi.useRealTimers();
+  });
+
+  it("coalesces a sequential client's chain into one handover beat and extends it for a new scene", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return { ok: true };
+      },
+      {
+        ...FIXED_THINK,
+        clientPacesChains: true,
+      },
+    );
+    for (let index = 0; index < 20; index++) {
+      bot.onEvent({ kind: "effectTriggered", timing: "WhenDigivolving" } as ServerEvent);
+    }
+    state.turnSeat = 1;
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
+    await advance(1_000);
+    bot.onEvent({ kind: "securityChecked", resolution: "effect" } as ServerEvent);
+    await advance(CHAIN_EFFECT_NARRATION_MS - 1_000);
+    expect(intents).toEqual([]);
+    await advance(1_000 + SECURITY_EFFECT_NARRATION_MS - CHAIN_EFFECT_NARRATION_MS - 1);
+    expect(intents).toEqual([]);
+    await advance(1);
+    expect(intents).toHaveLength(1);
+    bot.dispose();
+  });
+
+  it("retains additive arrival-effect narration for clients that do not pace chains", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
+    for (let index = 0; index < 3; index++) {
+      bot.onEvent({ kind: "effectTriggered", timing: "WhenDigivolving" } as ServerEvent);
+    }
+    state.turnSeat = 1;
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
+    await advance(3 * EFFECT_CHOICE_NARRATION_MS + PHASE_NARRATION_MS - 1);
+    expect(intents).toEqual([]);
+    await advance(1);
+    expect(intents).toHaveLength(1);
+    bot.dispose();
   });
 
   it("waits for an asynchronous Main decision before applying it", async () => {
@@ -373,33 +434,36 @@ describe("BotPlayer action pacing and player attacks", () => {
     expect(receivedSignal?.aborted).toBe(true);
   });
 
-  it("waits for the turn and opening phase ribbons before its breeding action", async () => {
-    vi.useFakeTimers();
-    const { state } = botState();
-    const intents: Intent[] = [];
-    const bot = new BotPlayer(
-      1,
-      state,
-      (intent) => {
-        intents.push(intent);
-        return { ok: true };
-      },
-      FIXED_THINK,
-    );
-    bot.onEvent({ kind: "phaseChanged", phase: Phase.End, turnSeat: 0, turnCount: 1 } as ServerEvent);
-    bot.onEvent({ kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 1 } as ServerEvent);
-    state.turnCount = 2;
-    for (const phase of [Phase.Active, Phase.Draw, Phase.Breeding]) {
-      state.phase = phase;
-      bot.onEvent({ kind: "phaseChanged", phase, turnSeat: 1, turnCount: 2 } as ServerEvent);
-    }
-    // Production plays End, turn change, Active, Draw and Breeding in sequence.
-    const ribbonsMs = 4 * PHASE_NARRATION_MS + TURN_NARRATION_MS;
-    await advance(ribbonsMs - 1);
-    expect(intents).toEqual([]);
-    await advance(1);
-    expect(intents).toHaveLength(1);
-  });
+  it.each([false, true])(
+    "waits for all opening phase ribbons before breeding, sequential client %s",
+    async (clientPacesChains) => {
+      vi.useFakeTimers();
+      const { state } = botState();
+      const intents: Intent[] = [];
+      const bot = new BotPlayer(
+        1,
+        state,
+        (intent) => {
+          intents.push(intent);
+          return { ok: true };
+        },
+        { ...FIXED_THINK, clientPacesChains },
+      );
+      bot.onEvent({ kind: "phaseChanged", phase: Phase.End, turnSeat: 0, turnCount: 1 } as ServerEvent);
+      bot.onEvent({ kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 1 } as ServerEvent);
+      state.turnCount = 2;
+      for (const phase of [Phase.Active, Phase.Draw, Phase.Breeding]) {
+        state.phase = phase;
+        bot.onEvent({ kind: "phaseChanged", phase, turnSeat: 1, turnCount: 2 } as ServerEvent);
+      }
+      // Production plays End, turn change, Active, Draw and Breeding in sequence.
+      const ribbonsMs = 4 * PHASE_NARRATION_MS + TURN_NARRATION_MS;
+      await advance(ribbonsMs - 1);
+      expect(intents).toEqual([]);
+      await advance(1);
+      expect(intents).toHaveLength(1);
+    },
+  );
 
   it("waits for an opponent play's arrival and On Play announcement before answering its choice", async () => {
     vi.useFakeTimers();
@@ -460,6 +524,47 @@ describe("BotPlayer action pacing and player attacks", () => {
     expect(intents).toEqual([]);
     await advance(COMBAT_REFLEX_MAX_MS - COMBAT_REFLEX_MIN_MS + 1);
     expect(intents).toMatchObject([{ type: "respondDecision", decisionId: "all-turns-delete" }]);
+  });
+
+  it("answers a chain's order on the reflex clock when the client paces chains", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
+      ...FIXED_THINK,
+      clientPacesChains: true,
+    });
+
+    bot.onDecisionRequested({
+      decisionId: "chain-order",
+      seat: 1,
+      kind: "orderTriggers",
+      promptText: "Choose the next effect to resolve",
+      options: { triggerKeys: ["a", "b"], triggerCardIds: ["LM-002", "P-199"] },
+    });
+
+    await advance(COMBAT_REFLEX_MAX_MS + 1);
+    expect(intents).toMatchObject([{ type: "respondDecision", decisionId: "chain-order" }]);
+  });
+
+  it("keeps the think time for a chain's order when the client does not pace chains", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), FIXED_THINK);
+
+    bot.onDecisionRequested({
+      decisionId: "chain-order",
+      seat: 1,
+      kind: "orderTriggers",
+      promptText: "Choose the next effect to resolve",
+      options: { triggerKeys: ["a", "b"], triggerCardIds: ["LM-002", "P-199"] },
+    });
+
+    await advance(COMBAT_REFLEX_MAX_MS + 1);
+    expect(intents).toEqual([]);
+    await advance(FIXED_THINK.maxThinkMs);
+    expect(intents).toMatchObject([{ type: "respondDecision", decisionId: "chain-order" }]);
   });
 
   it("declares an activated Blitz attack when its effect resolves outside Main", async () => {

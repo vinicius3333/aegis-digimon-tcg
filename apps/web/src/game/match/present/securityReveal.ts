@@ -12,15 +12,9 @@ import type { RevealOnStage } from "../types";
 import type { SecurityRevealStage } from "./securityRevealScene";
 
 /**
- * The card a security check just turned face up, put on stage.
- *
- * With the close still outstanding, the card plays its scene out and leaves, and everything
- * it causes queues behind that: the notices it earns, and the decisions its effect asks for.
- * The board is NOT given back here — the check is still running, and a reaction the removal
- * armed ("when your opponent's security stack is removed from") would open its prompt while
- * the card is still on screen. It is handed back at the close, or, for a check the server
- * stops to ask the viewer something, by the question itself; either way the card has already
- * gone.
+ * Shows the security card before presenting its consequences. Effects transfer into
+ * the existing side dock and read their own clauses there, whether the close arrives
+ * now or in a later batch. A battle keeps its separate outcome beat and board hold.
  */
 export function presentSecurityRevealed({
   securityReveal,
@@ -66,21 +60,22 @@ export function presentSecurityRevealed({
       ? { ...securityAttackerRef.current, artId: securityReveal.attackerArtId ?? securityAttackerRef.current.artId }
       : undefined,
   });
-  // A check that closes inside this same batch never shows the pending state: its outcome is
-  // already known, so the scene is staged settled and reads the way it always has. Only a
-  // check the server is still resolving holds the card unsettled.
+  // A same-batch verdict supplies the scene resolution before it starts. The effect
+  // path still shares the reveal, continuous transfer and clause read of a pending check.
   const settled = closingCheck ? settleSecurityClashScene(revealed, closingCheck) : revealed;
   // The server names what the card is about to do, so the client can commit to the dock at
   // the reveal rather than guessing from the close that has not arrived. An older server (or
   // a replayed history) sends no hint, and falls back to the centre-stage scene that plays
   // itself out.
-  const docking = securityReveal.hasSecurityEffect === true && !closingCheck;
+  const docking = closingCheck ? closingCheck.resolution === "effect" : securityReveal.hasSecurityEffect === true;
   // Whether a battle will actually be drawn for this check. Only then is there a blow for
   // the deletions it causes to wait on, and only then is the reveal-time board worth
   // holding. A revealed Option or Tamer never battles, so its check — which for a
   // [Security] effect runs until the viewer has answered every question it asks — must
   // arm neither.
-  const battlePending = securityReveal.isDigimon === true && securityAttackerRef.current !== undefined;
+  const battlePending =
+    (closingCheck ? closingCheck.resolution === "battle" : securityReveal.isDigimon === true) &&
+    securityAttackerRef.current !== undefined;
   stage.stageSecurityReveal(key, settled, securityReveal.seat, {
     docking,
     countBefore: securityReveal.securityCountBefore,

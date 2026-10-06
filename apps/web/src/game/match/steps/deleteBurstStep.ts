@@ -14,6 +14,8 @@ import {
   type PresentationGate,
 } from "../presentationGate";
 import { startRemoval, waitForRemovalTurn, type RemovalTurn } from "../removalChain";
+import { waitForCombatImpactClock, waitForCombatLanded } from "../present/combatImpactClock";
+import { waitForFieldShatterClock } from "../../fieldShatter";
 
 /**
  * The burst left where a deleted permanent stood. The board has already dropped the
@@ -31,6 +33,7 @@ export function deleteBurstStep({
   deletionReadyAtRef,
   setDeleteBursts,
   releaseHeldDeletion,
+  beginHeldDeletion,
   anchorId,
   delayMs = 0,
   metadataCardId,
@@ -45,6 +48,8 @@ export function deleteBurstStep({
   causedByOption = false,
   removal,
   readBeforeBreak = true,
+  fieldImpact = false,
+  combatLanded,
 }: {
   queue: AnimationQueue;
   anchors: MatchCueAnchors;
@@ -52,6 +57,8 @@ export function deleteBurstStep({
   deletionReadyAtRef: MutableRefObject<Map<string, DeletionReadyAt>>;
   setDeleteBursts: Dispatch<SetStateAction<readonly DeleteBurst[]>>;
   releaseHeldDeletion: () => void;
+  /** Keep an omitted physical face registered until the paced board catches up. */
+  beginHeldDeletion?: () => void;
   anchorId: string;
   delayMs?: number;
   metadataCardId?: string;
@@ -77,6 +84,10 @@ export function deleteBurstStep({
    * Option's gate opens on its own glow, before any clause is on screen, so it breaks at once.
    */
   readBeforeBreak?: boolean;
+  /** Match the painted field impact before replacing its held face with shards. */
+  fieldImpact?: boolean;
+  /** The battle blow this loser takes; it may still be queued behind an earlier blow. */
+  combatLanded?: PresentationGate;
 }): AnimationStep | null {
   const center = anchors.permanentCenter?.(anchorId);
   if (!center) return null;
@@ -85,14 +96,10 @@ export function deleteBurstStep({
   const cardId = metadataCardId ?? anchors.permanentCardId?.(anchorId);
   const shattered = createPresentationGate();
   const started = createPresentationGate();
-  void queue.idle().then(() => {
-    started.release();
-    shattered.release();
-  });
   if (cardId && metadataSeat !== undefined) {
     const now = Date.now();
     deletionReadyAtRef.current.set(`${metadataSeat}:${cardId}`, {
-      readyAt: now + delayMs + Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter),
+      readyAt: now + delayMs + TIMINGS.deletionBurst,
       stateVersion,
       causedByOption,
       instanceId: metadataInstanceId,
@@ -108,18 +115,19 @@ export function deleteBurstStep({
     ...(cardId ? { cardId, color: burstColorFor(cardId) } : {}),
     ...(metadataArtId ? { artId: metadataArtId } : {}),
   };
+  const leaveUnshown = () => {
+    if (removal) startRemoval(removal);
+    releaseHeldDeletion();
+    started.release();
+    shattered.release();
+  };
   return {
     id: `delete-burst-${key}`,
     // Several permanents can be deleted by one resolution, so each burst runs on its
     // own track instead of queueing behind the others.
     track: `deleteBurst-${key}`,
+    onDiscard: leaveUnshown,
     async run(context) {
-      const leaveUnshown = () => {
-        if (removal) startRemoval(removal);
-        releaseHeldDeletion();
-        started.release();
-        shattered.release();
-      };
       if (context.mode !== "live") return leaveUnshown();
       // The clause that did the deleting is still being read out, so once it is on screen
       // it gets one readable beat before the card it names breaks. A clause read out long
@@ -152,19 +160,56 @@ export function deleteBurstStep({
       }
       if (context.cancelled) return leaveUnshown();
       await waitForStackStrips({ queue, context, throughKey: key, permanentId: anchorId });
+      if (combatLanded) await waitForCombatLanded(combatLanded, context);
+      if (fieldImpact) await waitForCombatImpactClock([anchorId], context);
       if (context.cancelled) return leaveUnshown();
       if (removal) await waitForRemovalTurn(removal, context);
       if (context.cancelled) return leaveUnshown();
+      const face = anchors.permanentFace?.(anchorId) ?? {
+        x: center.x,
+        y: center.y,
+        width: 72,
+        height: 101,
+        angle: 0,
+      };
+      burst.face = face;
+      burst.x = face.x - face.width / 2;
+      burst.y = face.y - face.height / 2;
+      let lightOwnsCleanup = false;
+      const cleanup = () => setDeleteBursts((bursts) => bursts.filter((candidate) => candidate.key !== key));
       try {
         // The shards take over from the card in the same commit, so the slot is never empty.
-        releaseHeldDeletion();
+        (beginHeldDeletion ?? releaseHeldDeletion)();
         setDeleteBursts((bursts) => [...bursts, burst]);
         started.release();
         if (removal) startRemoval(removal);
-        await context.wait(Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter));
+        await context.wait(TIMINGS.deletionBurst);
+        await waitForFieldShatterClock(anchors.board.current, key, context);
+        shattered.release();
+        // The particles outlive the fractured card in their own, non-blocking track.
+        if (!context.cancelled && !context.skipping && context.mode === "live") {
+          queue.enqueue({
+            id: `delete-light-${key}`,
+            track: `deleteLight-${key}`,
+            holdsBoard: false,
+            blocksDecision: false,
+            onDiscard: cleanup,
+            async run(lightContext) {
+              try {
+                if (lightContext.mode === "live" && !lightContext.cancelled) {
+                  await lightContext.wait(Math.max(0, TIMINGS.cardBurst - TIMINGS.deletionBurst));
+                  await waitForFieldShatterClock(anchors.board.current, key, lightContext, true);
+                }
+              } finally {
+                cleanup();
+              }
+            },
+          });
+          lightOwnsCleanup = true;
+        }
       } finally {
         shattered.release();
-        setDeleteBursts((bursts) => bursts.filter((candidate) => candidate.key !== key));
+        if (!lightOwnsCleanup) cleanup();
       }
     },
   };

@@ -5,6 +5,7 @@ import type { EffectContext } from "./EffectContext.js";
 import { effectProvenanceKinds } from "./effectProvenance.js";
 import type { CollectedEffect } from "./collect.js";
 import { UseTracker, canActivate } from "./kernel.js";
+import { observeEffectActivation } from "./activationPresentation.js";
 import { ResolutionPlan } from "../decisions/resolutionPlan.js";
 
 /** One effect paired with the source that produced it (collection output). */
@@ -153,6 +154,9 @@ export interface ResolutionEnv {
    * used by the engine to announce the effect ahead of the wait it may cause.
    */
   onResolving?(timing: EffectTiming, collected: CollectedEffect): void;
+
+  /** Public narration starts only once the resolving clause accepts its processing. */
+  onActivating?(timing: EffectTiming, collected: CollectedEffect): void;
 }
 
 /**
@@ -531,6 +535,9 @@ async function resolveOne(
     ctx.oncePerTurnActivationChosen = true;
   }
 
+  const presentation = observeEffectActivation(ctx, effect.activationDeferred === true && !effect.optional, () =>
+    env.onActivating?.(timing, collected),
+  );
   const sourceKinds = effectProvenanceKinds(ctx, { isLinked: effect.isLinked });
   ctx.effectSourceKinds = sourceKinds;
   // source RegisterUseEffectThisTurn(cardEffect): identity is (instanceId, effectKey). The use
@@ -546,6 +553,7 @@ async function resolveOne(
     completed = true;
   } finally {
     ctx.fx.leaveEffectResolution?.();
+    presentation.restore();
     if (countsUse && (!completed || ctx.oncePerTurnActivationDeclined === true)) {
       env.tracker.unregister(source.instanceId, effect.effectKey);
     }

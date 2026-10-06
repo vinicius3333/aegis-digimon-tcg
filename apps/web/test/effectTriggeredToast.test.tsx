@@ -2,11 +2,14 @@
 
 import { afterEach, expect, it, vi } from "vitest";
 import type { ReactElement } from "react";
-import { setupEngine } from "@aegis-api/engine/testkit/harness.js";
+import { setupEngine, settle } from "@aegis-api/engine/testkit/harness.js";
+import "@aegis-api/cards/BT25/BT25-084.js";
 import { compiled } from "@aegis-api/cards/BT25/BT25-054.js";
 import { withPrintedClauses } from "@aegis-api/engine/effects/interpreter/registration/printedClauses.js";
 import { getCardDefinition } from "@aegis/shared";
-import { cleanup, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { cleanup, render, screen, within, waitFor } from "./scenarioHarness/testingLibrary";
+import { act } from "@testing-library/react";
+import type { DecisionResponse } from "@aegis/shared";
 
 const mocked = vi.hoisted(() => ({
   roomResult: { current: undefined as unknown },
@@ -18,6 +21,78 @@ vi.mock("../src/net/useRoom", () => ({
 }));
 
 afterEach(() => cleanup());
+
+it("shows Titamon's hand-trash All Turns clause from the real engine announcement", async () => {
+  const s = setupEngine(
+    {
+      0: { battleArea: ["BT25-084"], hand: [{ card: "BT1-013", as: "discard" }], security: 5 },
+      1: { battleArea: [{ card: "BT1-013", dp: 4000, as: "target" }], security: 5 },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  await s.engine.recomputeContinuousEffects();
+  const fx = (s.engine as unknown as { primitives: { trash(ids: string[]): Promise<unknown[]> } }).primitives;
+  await fx.trash([s.inst("discard").instanceId]);
+  await settle(() => s.state.players[1]!.battleArea.length === 0);
+  const activation = s.events.find((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-084");
+  expect(activation).toBeDefined();
+  s.state.players[0]!.sessionId = "viewer-session";
+  s.state.players[1]!.sessionId = "opponent-session";
+  await renderThenNarrate(
+    { room: mocked.room, status: "connected", state: s.state, sessionId: "viewer-session", stateVersion: 1 },
+    activation,
+  );
+  const notice = await screen.findByRole("status");
+  const printed = getCardDefinition("BT25-084")!.effectText!.split("\n");
+  expect(notice.textContent).toContain(printed.find((line) => line.startsWith("[All Turns] When your hand")));
+  expect(notice.textContent).not.toContain("When this Digimon would leave");
+});
+
+it("waits for confirmed targets before showing Titamon's new toast", async () => {
+  const s = setupEngine(
+    {
+      0: { battleArea: ["BT25-084"], hand: [{ card: "BT1-013", as: "discard" }], security: 5 },
+      1: {
+        battleArea: [
+          { card: "BT1-013", dp: 4000, as: "a" },
+          { card: "BT1-013", dp: 4000, as: "b" },
+        ],
+        security: 5,
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: false },
+  );
+  await s.engine.recomputeContinuousEffects();
+  const fx = (s.engine as unknown as { primitives: { trash(ids: string[]): Promise<unknown[]> } }).primitives;
+  const trashing = fx.trash([s.inst("discard").instanceId]);
+  await settle(() => s.decisions.some(({ req }) => req.kind === "chooseTargets" || req.kind === "selectCards"));
+  const request = s.decisions.find(({ req }) => req.kind === "chooseTargets" || req.kind === "selectCards")!.req;
+  const activation = s.events.find((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-084")!;
+  s.state.players[0]!.sessionId = "viewer-session";
+  s.state.players[1]!.sessionId = "opponent-session";
+  const connection = {
+    room: mocked.room,
+    status: "connected",
+    state: s.state,
+    sessionId: "viewer-session",
+    stateVersion: 1,
+  };
+  const update = await renderThenNarrate(connection, activation, request);
+  await screen.findByRole("button", { name: /confirm (targets|selection)/i });
+  await new Promise((resolve) => setTimeout(resolve, 900));
+  expect(document.querySelector(".match-notice[data-variant=effect]")).toBeNull();
+  const response: DecisionResponse = {
+    kind: request.kind === "selectCards" ? "selectCards" : "chooseTargets",
+    instanceIds: [s.perm("a").permanentId],
+  };
+  await s.engine.applyIntent(0, { type: "respondDecision", decisionId: request.decisionId, response });
+  await trashing;
+  await settle(() => s.state.players[1]!.battleArea.length === 1);
+  act(() => update({ ...connection, events: [activation], decision: undefined }));
+  await waitFor(() =>
+    expect(document.querySelector(".match-notice[data-variant=effect]")?.textContent).toContain("lowest DP"),
+  );
+});
 
 it.each([true, false])(
   "shows BT25-054's full digivolution clause with server description=%s",
@@ -62,7 +137,7 @@ it.each([true, false])(
  * and narrates none of it, so a notice is only raised for an event that arrives
  * after the board is already up.
  */
-async function renderThenNarrate(connection: Record<string, unknown>, event: unknown) {
+async function renderThenNarrate(connection: Record<string, unknown>, event: unknown, decision?: unknown) {
   mocked.roomResult.current = { ...connection, events: [] };
   const { GameScreen } = await import("../src/game/GameScreen");
   // A fresh element each time: React bails out of re-rendering when handed the
@@ -76,8 +151,12 @@ async function renderThenNarrate(connection: Record<string, unknown>, event: unk
     />
   );
   const { rerender } = render(screenElement());
-  mocked.roomResult.current = { ...connection, events: [event] };
+  mocked.roomResult.current = { ...connection, events: [event], decision };
   rerender(screenElement());
+  return (next: Record<string, unknown>) => {
+    mocked.roomResult.current = next;
+    rerender(screenElement());
+  };
 }
 
 it("shows a non-blocking notice when the viewer's mandatory effect resolves", async () => {

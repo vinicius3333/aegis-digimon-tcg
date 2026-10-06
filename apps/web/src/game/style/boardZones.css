@@ -380,27 +380,31 @@
   user-select: none;
 }
 
+.game-hand-card--arrival-pending {
+  /* Keep the physical slot reserved while CardFull decodes its incoming face. */
+  visibility: hidden;
+}
+
 .game-hand-card--drawn {
   /* The dock's inline transform carries the fan, so the slide-in animates the
-     independent `translate` property instead of fighting it.
-     the reference client drops the new hand card into its slot from 70px over 80ms Ease.OutBack
-     (CardObjectController.cs:696); 120ms is the readable web compromise. */
-  animation: battle-hand-draw var(--t-hand-draw, 120ms) cubic-bezier(0.34, 1.56, 0.64, 1) both;
+     independent `translate` property instead of fighting it. The inspected hand
+     face is 100×140 with a 70-unit entry, so half the Aegis face height preserves
+     that amplitude at every card size. Linear time controls reproduce the
+     OutBack polynomial (overshoot 1.70158), rather than stretching its clock. */
+  animation: battle-hand-draw var(--t-hand-draw, 80ms) cubic-bezier(0.333333, 1.567193333, 0.666667, 1) both;
 }
 
 @keyframes battle-hand-draw {
   from {
-    translate: 0 70px;
-    opacity: 0;
+    translate: 0 50%;
   }
   to {
     translate: 0 0;
-    opacity: 1;
   }
 }
 
 /* The accent ring the touch layouts leave on the card that just arrived: the drop
-   is over in 120ms, and on a phone the hand is a scrolling strip of near-identical
+   is over in 80ms, and on a phone the hand is a scrolling strip of near-identical
    backs, so the ring holds and then fades rather than blinking. It rides its own
    pseudo-element because `--playable`, `--pickable` and `--picked` each own the
    card's `box-shadow`, and a filled animation on the card would outrank them for
@@ -412,5 +416,25 @@
   }
   100% {
     opacity: 0;
+  }
+}
+
+/* An opaque opponent slot enters without introducing a card identity. */
+.game-opponent-hand-card--arriving {
+  animation: battle-opponent-hand-entry var(--t-hand-draw, 80ms) cubic-bezier(0.333333, 1.567193333, 0.666667, 1) both;
+}
+
+@keyframes battle-opponent-hand-entry {
+  from {
+    translate: 0 50%;
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-opponent-hand-card--arriving {
+    animation: none;
   }
 }

@@ -89,6 +89,7 @@ function buildSeatScopedApi(
     timing: ctx.activeTiming,
     ...(ctx.activeEffectIsInherited === true ? { isInherited: true } : {}),
     effectText: ctx.activeEffectText,
+    ...(ctx.activeEffectKey !== undefined ? { effectKey: ctx.activeEffectKey } : {}),
     ...(ctx.activeEffectTextPart !== undefined ? { effectTextPart: ctx.activeEffectTextPart } : {}),
     ...(ctx.activeSelectionContext !== undefined ? { selectionContext: ctx.activeSelectionContext } : {}),
     ...(ctx.affectedPermanentIds !== undefined ? { affectedPermanentIds: [...ctx.affectedPermanentIds] } : {}),
@@ -114,7 +115,10 @@ function buildSeatScopedApi(
   return {
     async optional(ctx: EffectContext, prompt: string): Promise<boolean> {
       const preset = presetAnswer(ctx);
-      if (preset !== undefined) return preset;
+      if (preset !== undefined) {
+        if (preset && asksController) ctx.onActivationChosen?.();
+        return preset;
+      }
       const response = await manager.request({
         seat: resolveSeat(ctx),
         kind: "optional",
@@ -122,9 +126,14 @@ function buildSeatScopedApi(
         sourceCardId: ctx.source.cardId,
         sourceInstanceId: ctx.source.instanceId,
         sourcePermanentId: ctx.source.permanent()?.permanentId,
-        options: provenance(ctx),
+        options: {
+          ...provenance(ctx),
+          activationConfirmation: asksController && ctx.isActivationPending?.() === true,
+        },
       });
-      return response.kind === "optional" ? response.accept : false;
+      const accepted = response.kind === "optional" && response.accept;
+      if (accepted && asksController) ctx.onActivationChosen?.();
+      return accepted;
     },
 
     async chooseTargets(
@@ -166,7 +175,8 @@ function buildSeatScopedApi(
         opts.candidates,
         opts.max,
       );
-      return clampToCostBudget(ctx, selected, opts.maxTotalPlayCost, (id) => loosePlayCost(ctx, id));
+      const result = clampToCostBudget(ctx, selected, opts.maxTotalPlayCost, (id) => loosePlayCost(ctx, id));
+      return result;
     },
 
     async selectCards(
@@ -215,7 +225,8 @@ function buildSeatScopedApi(
         opts.candidates,
         opts.max,
       );
-      return clampToCostBudget(ctx, selected, opts.maxTotalPlayCost, (id) => loosePlayCost(ctx, id));
+      const result = clampToCostBudget(ctx, selected, opts.maxTotalPlayCost, (id) => loosePlayCost(ctx, id));
+      return result;
     },
 
     async selectPermanents(
@@ -245,7 +256,8 @@ function buildSeatScopedApi(
         opts.candidates,
         opts.max,
       );
-      return clampToCostBudget(ctx, selected, opts.maxTotalPlayCost, (id) => permanentPlayCost(ctx, id));
+      const result = clampToCostBudget(ctx, selected, opts.maxTotalPlayCost, (id) => permanentPlayCost(ctx, id));
+      return result;
     },
 
     async orderCards(

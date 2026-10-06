@@ -8,12 +8,20 @@ import {
   type DragIntent,
 } from "./dragIntents";
 
-const playing = { kind: "play" as const, isOption: false, isDigiEgg: false };
-const option = { kind: "play" as const, isOption: true, isDigiEgg: false };
-const egg = { kind: "play" as const, isOption: false, isDigiEgg: true };
+const playing = { kind: "play" as const, isOption: false, isDigiEgg: false, playable: true };
+const option = { kind: "play" as const, isOption: true, isDigiEgg: false, playable: true };
+const egg = { kind: "play" as const, isOption: false, isDigiEgg: true, playable: false };
 const attacking = { kind: "attack" as const };
 
 describe("dragIntentFor", () => {
+  it("offers only evolution destinations when a card cannot be played", () => {
+    const evolutionOnly = { ...playing, playable: false };
+    expect(dragIntentFor({ drag: evolutionOnly, target: "battle-you" })).toBeNull();
+    expect(dragIntentFor({ drag: evolutionOnly, target: "perm-you" })).toBeNull();
+    expect(dragIntentFor({ drag: evolutionOnly, target: "perm-you", evolutionRoute: "dna" })).toBe("evolve");
+    expect(dragIntentFor({ drag: evolutionOnly, target: "breeding-you", digivolvable: true })).toBe("breeding");
+    expect(dragIntentFor({ drag: { ...option, playable: false }, target: "battle-you" })).toBeNull();
+  });
   it("plays a Digimon dropped on the battle area", () => {
     expect(dragIntentFor({ drag: playing, target: "battle-you" })).toBe("play");
   });

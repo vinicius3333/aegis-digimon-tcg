@@ -1,9 +1,14 @@
 import type { arenaEn } from "./arena.en";
 
 export const arenaPtBR: Record<keyof typeof arenaEn, string> = {
-  "redesign.arena.look.open": "Visual da arena",
-  "redesign.arena.look.title": "Visual da arena",
-  "redesign.arena.look.description": "Cores do tabuleiro e cenário. As mudanças aparecem no tabuleiro na hora.",
+  "redesign.arena.look.open": "Configurações da partida",
+  "redesign.arena.look.title": "Configurações da partida",
+  "redesign.arena.look.description": "Cores do tabuleiro, cenário e som. As mudanças valem na hora.",
+  "redesign.arena.audio.title": "Som",
+  "redesign.arena.audio.music": "Música",
+  "redesign.arena.audio.musicVolume": "Volume da música",
+  "redesign.arena.audio.effects": "Efeitos sonoros e sinais",
+  "redesign.arena.audio.effectsVolume": "Volume dos efeitos",
 
   "redesign.arena.badge.stackTitle": "Pilha de digivolução",
   "redesign.arena.badge.stack": "{count} cartas de digivolução sob este Digimon.",

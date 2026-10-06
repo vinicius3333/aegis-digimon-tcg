@@ -238,6 +238,7 @@ describe('beDeletedInBattle restriction — a granted "can\'t be deleted in batt
     // The defender lost the DP comparison (4000 < 9000) but the restriction spares it.
     expect(p1.battleArea.some((p) => p.permanentId === defender.permanentId)).toBe(true);
     expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(true); // attacker survives regardless (it won)
+    expect(s.events.find((event) => event.kind === "battleCompared")).toMatchObject({ loserPermanentIds: [] });
   });
 
   it("NEGATIVE CONTROL: without the restriction, the identical battle deletes the loser as usual", async () => {
@@ -262,6 +263,9 @@ describe('beDeletedInBattle restriction — a granted "can\'t be deleted in batt
     await settle(() => p1.battleArea.length === 0);
 
     expect(p1.battleArea).toHaveLength(0); // defender WAS deleted
+    expect(s.events.find((event) => event.kind === "battleCompared")).toMatchObject({
+      loserPermanentIds: [defender.permanentId],
+    });
   });
 
   it("a spared ACE does NOT pay <Overflow> — the deletion never happens, so neither does the memory charge", async () => {

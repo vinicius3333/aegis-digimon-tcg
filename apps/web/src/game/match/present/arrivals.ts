@@ -14,7 +14,9 @@ import { CueTrack } from "../enums";
 import { TIMINGS } from "../../timings";
 import { zoneChangeStep } from "../steps/zoneChangeStep";
 import type { RevealOnStage } from "../types";
-import type { CostClause } from "../presentationGate";
+import { waitForGate, CONSEQUENCE_GATE_MAX_MS, type CostClause, type PresentationGate } from "../presentationGate";
+import type { ArrivalPresentation } from "../cardReveal";
+import type { RemovalLink } from "../removalChain";
 
 /** What the batch's arrivals leave for the narration routing below them to decide. */
 export type BatchArrivals = {
@@ -31,9 +33,9 @@ export type BatchArrivals = {
 };
 
 /**
- * Zone changes own the centre of the screen: the opponent's card is held up, the destination
- * stays hidden behind it, and only then does the permanent reveal on its burst. The viewer's
- * own moves keep the burst and skip the hold — they watched the card leave their own hand.
+ * Public plays and digivolutions reveal centre-screen for either seat, then the
+ * destination appears on its colour-keyed burst. Independent consequences acquire
+ * the same visual stage only after their causal announcement has been read.
  *
  * A batch that also opens a security check is the exception. The check takes the centre of
  * the screen with `replace`, so a zone change enqueued ahead of it is cancelled before it
@@ -48,6 +50,7 @@ export function enqueueArrivals({
   batchId,
   raised,
   combatLeadInMs,
+  combatCompletionGate,
   securityReveal,
   securityBlowRef,
   queue,
@@ -62,13 +65,18 @@ export function enqueueArrivals({
   releaseArrivalHoldsWhenIdle,
   narrate,
   enqueue,
+  effectResults,
   costClause,
+  arrivalPresentations,
+  causingEffectGate,
+  deckReturn,
 }: {
   fresh: readonly ServerEvent[];
   viewerSeat: Seat;
   batchId: string;
   raised: readonly MatchNotice[];
   combatLeadInMs: number;
+  combatCompletionGate?: PresentationGate;
   securityReveal: ServerEvent | undefined;
   /** The check whose battle has not been drawn yet, which owns the centre of the screen. */
   securityBlowRef: MutableRefObject<{ key: number; landed: boolean } | null>;
@@ -86,8 +94,17 @@ export function enqueueArrivals({
   releaseArrivalHoldsWhenIdle: () => void;
   narrate: (notices: readonly MatchNotice[], panels: readonly SidePanel[], batchId: string) => void;
   enqueue: (step: AnimationStep) => void;
+  /**
+   * Sequential pacing: the arrivals from `fromEventIndex` on are what an effect unit did, and
+   * `afterAnnounced` holds each until that unit's clause has been read.
+   */
+  effectResults?: { fromEventIndex: number; afterAnnounced: (step: AnimationStep) => AnimationStep };
   /** A ＜Delay＞ clause not read yet: what its controller puts on the field waits for it. */
   costClause?: CostClause;
+  arrivalPresentations: ReadonlyMap<ServerEvent, ArrivalPresentation>;
+  causingEffectGate?: PresentationGate | null;
+  /** A paid deck return from an earlier batch that is still flying to its pile. */
+  deckReturn?: RemovalLink | undefined;
 }): BatchArrivals {
   let arriving = false;
   let showcased = false;
@@ -123,6 +140,7 @@ export function enqueueArrivals({
         skippable: false,
         async run(context) {
           await context.wait(combatLeadInMs);
+          await waitForGate(combatCompletionGate, context, CONSEQUENCE_GATE_MAX_MS, "showcaseCallout/paintedImpact");
           if (context.cancelled) return;
           narrate(callout, [], batchId);
         },
@@ -131,7 +149,7 @@ export function enqueueArrivals({
     /**
      * The centre of the screen belongs to the check until its battle has been drawn.
      * A card a removal reaction plays mid-check wants the same spot for its showcase,
-     * and being serial the centre-stage track simply hands it over: the 1.8s showcase
+     * and being serial the centre-stage track simply hands it over: the central showcase
      * ran between the clash and its outcome, so the battle broke in half and the verdict
      * arrived a scene later. The card still lands, on its burst — it just does not take
      * the stage the check is still using.
@@ -148,6 +166,11 @@ export function enqueueArrivals({
      * centre-stage one, waiting for the clause would hold the toast itself behind it.
      */
     const isTokenArrival = event.kind === "cardPlayed" && event.cardId.startsWith(TOKEN_ID_PREFIX);
+    /* An effect's own arrival (a card it played or digivolved) is its result, so it waits for
+       the clause the same way. It takes its own track: waiting on the serial centre-stage one
+       would hold an earlier effect's results behind it, and that effect has to settle before
+       this one can be announced. */
+    const effectResult = effectResults !== undefined && !securityReveal && eventIndex >= effectResults.fromEventIndex;
     /**
      * A card an Option's ＜Delay＞ played is that clause's consequence, the same way: the Option
      * breaks, its clause is read, and the card arrives after it. It waits on its permanent's
@@ -165,8 +188,16 @@ export function enqueueArrivals({
       key,
       showcase: blocked ? null : showcase,
       burst,
+      presentation: arrivalPresentations.get(event),
+      ...(causingEffectGate ? { waitFor: causingEffectGate } : {}),
+      ...(deckReturn && !securityReveal && (causingEffectGate || effectResult) ? { deckReturn } : {}),
+      combatCompletionGate,
       leadInMs: isTokenArrival || awaitsCostClause ? leadInMs + TIMINGS.effectAnnounce : leadInMs,
-      ...(isTokenArrival ? { track: `${CueTrack.CenterStage}-token-${key}` } : {}),
+      ...(isTokenArrival
+        ? { track: `${CueTrack.CenterStage}-token-${key}` }
+        : effectResult
+          ? { track: `${CueTrack.CenterStage}-effect-${key}` }
+          : {}),
       ...(awaitsCostClause
         ? {
             track: burst ? `burst-${burst.permanentId}` : `${CueTrack.CenterStage}-cost-clause-${key}`,
@@ -177,13 +208,8 @@ export function enqueueArrivals({
     // The board renders a permanent the moment its patch lands, so a card whose arrival is
     // still queued has to be held back from the field until the cue that shows it arriving
     // actually runs — otherwise it is simply there.
-    // A player normally watches their own card leave their hand, so only an opponent's
-    // arrival earns the hold, with or without a showcase: a fast opponent moves out of
-    // breeding while the turn's ribbons are still queued, and its burst waits behind them,
-    // so without the hold the card stood on the field and in the raising area at once. A
-    // Tamer played from the viewer's Security is different: the player has not seen it
-    // arrive yet, and it must stay hidden until the security card has reached its
-    // right-hand execution slot.
+    // Hold both seats through their reveal. A security play also waits for its
+    // source to reach the execution slot before taking the field.
     const tokenFieldArrival = (isTokenArrival || awaitsCostClause) && burst !== null && !burst.inBreeding;
     const opponentsFieldArrival =
       burst !== null && burst.variant === "play" && !burst.inBreeding && "seat" in event && event.seat !== viewerSeat;
@@ -203,7 +229,7 @@ export function enqueueArrivals({
     // synchronously. Queued first, that release ran before the hold above was applied, and
     // the card stayed hidden until the whole queue ran dry.
     if (securityReveal) zoneChanges.push(step);
-    else enqueue(step);
+    else enqueue(effectResult ? effectResults.afterAnnounced(step) : step);
   }
   // A step a later `replace` drops never runs its own release, and a permanent hidden for
   // good is far worse than one that arrives without its cue, so the board takes every held

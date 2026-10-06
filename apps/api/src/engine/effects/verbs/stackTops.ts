@@ -11,6 +11,7 @@ import type { PrimitivesContext } from "./context.js";
  */
 
 export function createStackTopsVerbs(pc: PrimitivesContext) {
+  let stripSequence = 0;
   const { engine, access, continuous, effectSeatStack, ledger, player, promotedTopNeedsInvalidRuleTrash, state } = pc;
   // Reached through the context because these are built in sibling modules: the
   // whole set exists before any of it runs, so forwarding at call time is safe.
@@ -34,6 +35,7 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
     }
     const controllerSeat = permanent.controllerSeat;
     const moved: CardInstance[] = [];
+    const sequenceId = engine.recomputeContinuousDerivedEffects ? `${permanentId}/strip/${++stripSequence}` : undefined;
     const levelFloor = opts?.stopAtLevel ?? 3;
     for (let i = 0; i < n; i++) {
       if (permanent.stack.length === 0) break; // no source to revert to
@@ -71,27 +73,42 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
       permanent.baseDP = dp;
       if (opts?.stackedCards) permanent.invalidNoDpStackTop = promotedTopNeedsInvalidRuleTrash(def);
       ledger.recomputeDP(state, permanent.permanentId);
+      if (oldTop !== undefined) {
+        // Publish the real physical move before yielding. An intermediate patch must
+        // not expose the promoted artwork before the client can hold the departing top.
+        engine.emit({
+          kind: "cardsMoved",
+          instanceIds: [oldTop.instanceId],
+          cardIds: [oldTop.cardId],
+          artIds: [oldTop.artId || oldTop.cardId],
+          seat: controllerSeat,
+          from: Zone.BattleArea,
+          to: Zone.Trash,
+          strippedStackTops: {
+            permanentId,
+            reason: opts?.stackedCards ? "trashTop" : "deDigivolve",
+            ...(sequenceId !== undefined ? { sequenceId } : {}),
+            ...(opts?.byEffectCardId !== undefined ? { sourceCardId: opts.byEffectCardId } : {}),
+          },
+        });
+        if (sequenceId !== undefined) {
+          await engine.recomputeContinuousDerivedEffects!();
+          engine.emit({
+            kind: "stackTopResolved",
+            sequenceId,
+            permanentId,
+            strippedInstanceId: oldTop.instanceId,
+            topInstanceId: newTop.instanceId,
+            baseDP: permanent.baseDP,
+            currentDP: permanent.currentDP,
+          });
+        }
+      }
     }
     // <Overflow> (CR §4-18): each demoted `oldTop` just left the field for the trash —
     // a genuine leave (it was the top card, not moving to under-a-card; it's being REPLACED
     // by the promoted stack card, not stacked itself).
     applyOverflow(engine.memory, moved, state.turnSeat);
-    if (moved.length > 0) {
-      engine.emit({
-        kind: "cardsMoved",
-        instanceIds: moved.map((c) => c.instanceId),
-        cardIds: moved.map((c) => c.cardId),
-        artIds: moved.map((c) => c.artId || c.cardId),
-        seat: controllerSeat,
-        from: Zone.BattleArea,
-        to: Zone.Trash,
-        strippedStackTops: {
-          permanentId,
-          reason: opts?.stackedCards ? "trashTop" : "deDigivolve",
-          ...(opts?.byEffectCardId !== undefined ? { sourceCardId: opts.byEffectCardId } : {}),
-        },
-      });
-    }
     if (moved.length > 0) await engine.recomputeContinuousEffects?.();
     for (const card of moved) {
       if (!requireCardDefinition(card.cardId).kinds.includes(CardKind.Digimon)) continue;
@@ -132,6 +149,18 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
     const def = requireCardDefinition(newTop.cardId);
     permanent.baseDP = def.kinds.includes(CardKind.Digimon) ? def.dp : 0;
     ledger.recomputeDP(state, permanentId);
+    // Publish the physical move before yielding: a continuous-effect recalculation can
+    // send another batch whose patch already exposes the promoted top.
+    engine.emit({
+      kind: "cardsMoved",
+      instanceIds: [oldTop.instanceId],
+      cardIds: [oldTop.cardId],
+      artIds: [oldTop.artId || oldTop.cardId],
+      seat: controllerSeat,
+      from: Zone.BattleArea,
+      to: Zone.Trash,
+      strippedStackTops: { permanentId, reason: "armorPurge" },
+    });
     // The promoted card is now the permanent's active top card. Re-derive its static
     // keywords/effects before the deletion-prevention window continues (BT8 Armor Purge
     // chains must expose the promoted card's own Armor Purge immediately).
@@ -139,7 +168,6 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
     // <Overflow> (CR §4-18): the old top card just left the battle area for trash — a genuine
     // leave, distinct from the permanent as a whole (which is NOT being deleted).
     applyOverflow(engine.memory, [oldTop], state.turnSeat);
-    engine.emit({ kind: "cardsMoved", instanceIds: [oldTop.instanceId], from: Zone.BattleArea, to: Zone.Trash });
     if (requireCardDefinition(oldTop.cardId).kinds.includes(CardKind.Digimon)) {
       await engine.fireSubTrigger?.("whenDigimonTopTrashed", {
         subjectPermanentId: permanentId,

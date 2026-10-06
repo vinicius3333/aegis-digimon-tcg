@@ -28,14 +28,18 @@
  */
 export enum CueTrack {
   CenterStage = "centerStage",
+  /** Serial visual ownership after independent arrival/reveal gates have opened. */
+  CardReveal = "cardReveal",
+  /** One temporary deck presentation after its owner's causal gates have opened. */
+  DrawPresentation = "drawPresentation",
   SecurityDock = "securityDock",
   OptionDock = "optionDock",
   OptionDockHold = "optionDockHold",
   SecurityHold = "securityHold",
 }
 
-/** Which way an attacking permanent lunges toward its target. */
-export enum LungeDirection {
+/** The attack orientation relative to the viewer’s side of the board. */
+export enum AttackDirection {
   Up = "up",
   Down = "down",
 }

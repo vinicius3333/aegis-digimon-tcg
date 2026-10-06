@@ -17,6 +17,8 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { GameState, Seat, ServerEvent } from "@aegis/shared";
 import type { AnimationQueue, AnimationStep } from "../../animationQueue";
+import { eventChangesPresentedBoard } from "../../animationCatalog";
+import { createArrivalPresentation, type ArrivalPresentation } from "../cardReveal";
 import type { EffectActivation, EffectSourceLookup } from "../../effectSource";
 import type { FieldClashScene, OpenAttack } from "../../fieldClash";
 import type { MatchNotice } from "../../notices";
@@ -28,9 +30,9 @@ import type { SecurityBranchScene, SecurityClashAttacker, SecurityClashScene } f
 import type { Side } from "../../side";
 import type { StateSnapshot } from "../../../net/presentedState";
 import type {
-  AttackLunge,
   DeleteBurst,
   DrawFlightCard,
+  DrawHandArrival,
   HeldDeletion,
   HeldStackStrip,
   MatchCueAnchors,
@@ -44,18 +46,21 @@ import { costClauseFromEvent } from "./costClause";
 import { TIMINGS } from "../../timings";
 import { otherSeat } from "../../boardModel";
 import { CueTrack } from "../enums";
+import { activePacing } from "../../pacing";
+import type { PresentationPacing } from "../../presentationProbe";
 import { withoutId } from "../eventLookup";
 import { batchFacts } from "./batchFacts";
 import { combatScenes } from "./combat";
 import { collectBatchAnnouncements } from "./announcements";
 import { enqueueArrivals } from "./arrivals";
 import { enqueueAttackAnnouncement } from "./attackAnnouncement";
-import { presentSecurityAttack } from "./attackLunge";
+import { presentSecurityAttack } from "./securityAttacker";
 import { enqueueCombatImpact } from "./combatImpact";
 import { traceCueBatch } from "../../cueTrace";
 import { enqueueDeletionBursts } from "./deletionBursts";
-import type { RemovalLink } from "../removalChain";
+import { landingDeckReturn, type RemovalLink } from "../removalChain";
 import { enqueueDeckReturns, type FlyCardToDeck } from "./deckReturns";
+import { enqueueHandReturns, planHandReturns, type FlyCardToHand } from "./handReturns";
 import { enqueueStackStripPeels } from "./stackStripPeels";
 import { enqueueSecurityDestructions } from "./securityDestructions";
 import { enqueueOptionDock, type FlyDockedOptionUnder, type OptionDockHold } from "./optionDock";
@@ -70,6 +75,7 @@ import { securityRevealScene } from "./securityRevealScene";
 import { presentSecurityClose } from "./securityClose";
 import { presentSecurityRevealed } from "./securityReveal";
 import { refreshSecurityAttacker } from "./securityAttackerRefresh";
+import { effectUnitSteps, resumedUnitSteps, type EffectSequence, type ObservedBatch } from "../effectSequence";
 import {
   createPresentationGate,
   waitForGate,
@@ -89,6 +95,25 @@ export type PresentSegment = (
   continuingBatch?: boolean,
 ) => void;
 
+/**
+ * The board a batch that announces an effect is narrated over. The server can emit an
+ * effect's first results in the same batch as its `effectTriggered`, and that batch's board
+ * already shows them: the clause would be read over its own outcome. Such a batch is held at
+ * the board before it, and the outcome reaches the board once the batch's beats are done.
+ */
+export function announcedBoardVersion(
+  events: readonly ServerEvent[],
+  sequenced: ObservedBatch,
+  stateVersion: number,
+): number {
+  const opensAt = sequenced.opened[0]?.eventIndex;
+  if (opensAt === undefined) return stateVersion;
+  const changesBoard = eventChangesPresentedBoard;
+  const resultsBefore = events.slice(0, opensAt).some(changesBoard);
+  const resultsAfter = events.slice(opensAt + 1).some(changesBoard);
+  return resultsAfter && !resultsBefore ? stateVersion - 1 : stateVersion;
+}
+
 export function presentServerBatch({
   batchId,
   stateVersion,
@@ -96,6 +121,9 @@ export function presentServerBatch({
   replayingHistory,
   continuingBatch,
   present,
+  presentationPacingRef,
+  effectSequence,
+  batchOf,
   viewerSeat,
   state,
   snapshots,
@@ -112,6 +140,7 @@ export function presentServerBatch({
   launchDeckToUnderFlight,
   flyDockedOptionUnder,
   flyCardToDeck,
+  flyCardToHand,
   releaseTrashArrivalsThrough,
   launchSecurityGainFlight,
   securityCountOf,
@@ -126,11 +155,11 @@ export function presentServerBatch({
   heldOriginsRef,
   fieldClashKeyRef,
   openAttackRef,
+  combatLandedRef,
   lastVisibleArtRef,
   revealOnStageRef,
   pendingDigivolutionDrawRef,
   eventDrawCountsRef,
-  drawPhaseWaitingRef,
   sidePanelLookupRef,
   sidePanelSequenceRef,
   noticeSequenceRef,
@@ -148,6 +177,7 @@ export function presentServerBatch({
   optionDockKeyRef,
   optionDockRef,
   decisionPendingRef,
+  decisionSourceCardIdRef,
   heldNoticesRef,
   heldPanelsRef,
   queuedSecurityKeyRef,
@@ -167,20 +197,18 @@ export function presentServerBatch({
   securityAttackerRef,
   pendingDestructionsRef,
   deleteBurstKeyRef,
+  topResolutions,
   deletionReadyAtRef,
   deletionBurstPresentedRef,
   removalChainRef,
   setPendingPermanentIds,
-  setHeldDrawState,
   setZoneShowcase,
   setRevealShowcase,
   setPermanentBursts,
   setEffectSources,
   setDeckRiffles,
-  setSecurityFlights,
   setHeldMemory,
   setAttackAnnouncement,
-  setAttackLunge,
   setSecurityBreak,
   setSecurityHitSeat,
   setSecurityClash,
@@ -200,6 +228,12 @@ export function presentServerBatch({
   /** True for every segment after the first of a batch this pass had to split. */
   continuingBatch: boolean;
   present: PresentSegment;
+  /** How simultaneous effects are paced. */
+  presentationPacingRef: MutableRefObject<PresentationPacing>;
+  /** The effect units sequential pacing plays one at a time. */
+  effectSequence: EffectSequence;
+  /** The server batch a queued step belongs to, however it was enqueued. */
+  batchOf: (step: AnimationStep) => string | undefined;
   viewerSeat: Seat;
   state: GameState | undefined;
   /** The boards the presentation has passed through, newest last. */
@@ -213,10 +247,18 @@ export function presentServerBatch({
   narrate: (notices: readonly MatchNotice[], panels: readonly SidePanel[], batchId: string) => void;
   openHeld: (ownNotices: readonly MatchNotice[], ownPanels: readonly SidePanel[]) => void;
   flushHeldNotices: () => void;
-  launchDrawFlight: (side: Side, burst: boolean, delayMs: number, card?: DrawFlightCard) => void;
+  launchDrawFlight: (
+    side: Side,
+    burst: boolean,
+    delayMs: number,
+    card?: DrawFlightCard,
+    arrived?: PresentationGate,
+    draw?: DrawHandArrival,
+  ) => void;
   launchDeckToUnderFlight: (seat: Seat, permanentId: string) => void;
   flyDockedOptionUnder: FlyDockedOptionUnder;
   flyCardToDeck: FlyCardToDeck;
+  flyCardToHand: FlyCardToHand;
   releaseTrashArrivalsThrough: (stateVersion: number) => void;
   launchSecurityGainFlight: (seat: Seat) => void;
   securityCountOf: (seat: Seat) => number | undefined;
@@ -231,11 +273,12 @@ export function presentServerBatch({
   heldOriginsRef: MutableRefObject<WeakMap<object, { batchId: string; stateVersion: number; phaseOrder: number }>>;
   fieldClashKeyRef: MutableRefObject<number>;
   openAttackRef: MutableRefObject<OpenAttack | null>;
+  /** Mutated: each battle loser's blow, kept until the battle deletion it causes takes it. */
+  combatLandedRef: MutableRefObject<Map<string, PresentationGate>>;
   lastVisibleArtRef: MutableRefObject<Map<string, string>>;
   revealOnStageRef: MutableRefObject<RevealOnStage | null>;
-  pendingDigivolutionDrawRef: MutableRefObject<Set<Seat>>;
+  pendingDigivolutionDrawRef: MutableRefObject<Map<Seat, PresentationGate>>;
   eventDrawCountsRef: MutableRefObject<{ you?: number; opp?: number }>;
-  drawPhaseWaitingRef: MutableRefObject<Seat | null>;
   sidePanelLookupRef: MutableRefObject<SidePanelLookup>;
   sidePanelSequenceRef: MutableRefObject<number>;
   noticeSequenceRef: MutableRefObject<number>;
@@ -258,6 +301,7 @@ export function presentServerBatch({
   optionDockKeyRef: MutableRefObject<number>;
   optionDockRef: MutableRefObject<OptionDockHold | null>;
   decisionPendingRef: MutableRefObject<boolean>;
+  decisionSourceCardIdRef?: MutableRefObject<string | undefined>;
   heldNoticesRef: MutableRefObject<readonly MatchNotice[]>;
   heldPanelsRef: MutableRefObject<readonly SidePanel[]>;
   queuedSecurityKeyRef: MutableRefObject<number | null>;
@@ -279,21 +323,19 @@ export function presentServerBatch({
   securityAttackerRef: MutableRefObject<SecurityClashAttacker | undefined>;
   pendingDestructionsRef: MutableRefObject<number>;
   deleteBurstKeyRef: MutableRefObject<number>;
+  topResolutions: import("../stackTopResolutions").StackTopResolutions;
   deletionReadyAtRef: MutableRefObject<Map<string, DeletionReadyAt>>;
   deletionBurstPresentedRef: MutableRefObject<Set<string>>;
   /** The latest card an effect took off the field, which the next one follows. */
   removalChainRef: MutableRefObject<RemovalLink | null>;
   setPendingPermanentIds: Dispatch<SetStateAction<ReadonlySet<string>>>;
-  setHeldDrawState: Dispatch<SetStateAction<{ seat: Seat; state: GameState } | undefined>>;
   setZoneShowcase: Dispatch<SetStateAction<ZoneShowcase | null>>;
   setRevealShowcase: Dispatch<SetStateAction<RevealShowcase | null>>;
   setPermanentBursts: Dispatch<SetStateAction<ReadonlyMap<string, PermanentBurst>>>;
   setEffectSources: Dispatch<SetStateAction<readonly EffectActivation[]>>;
-  setDeckRiffles: Dispatch<SetStateAction<ReadonlySet<string>>>;
-  setSecurityFlights: Dispatch<SetStateAction<ReadonlySet<number>>>;
+  setDeckRiffles: Dispatch<SetStateAction<ReadonlyMap<string, number>>>;
   setHeldMemory: Dispatch<SetStateAction<MemoryHold | undefined>>;
   setAttackAnnouncement: Dispatch<SetStateAction<AttackAnnouncement | null>>;
-  setAttackLunge: Dispatch<SetStateAction<AttackLunge | null>>;
   setSecurityBreak: Dispatch<SetStateAction<SecurityBreakCue | null>>;
   setSecurityHitSeat: Dispatch<SetStateAction<number | null>>;
   setSecurityClash: Dispatch<SetStateAction<SecurityClashScene | null>>;
@@ -347,13 +389,20 @@ export function presentServerBatch({
     return;
   }
   enqueuePhaseOrderRef.current = phaseOrderFor(fresh);
+  // Sequential pacing: which effect unit this batch announces or carries the results of.
+  const sequential = presentationPacingRef.current === "sequential" && !replayingHistory;
+  const earlierUnitsSettled = sequential ? effectSequence.unsettled() : null;
+  const sequenced = sequential ? effectSequence.observeBatch(batchId, stateVersion, fresh) : undefined;
+  const unitGate = sequenced?.owner?.announced ?? null;
   // Whatever this batch queues waits on the announcement the batch before it is still
   // reading out, so a consequence never overtakes the clause that caused it.
-  causingEffectGateRef.current = effectAnnounceGateRef.current;
+  causingEffectGateRef.current = unitGate ?? effectAnnounceGateRef.current;
   // A security card still on its way to the dock caused whatever this batch does, and its
   // clause has not been read out yet.
-  if (securityClauseGateRef.current?.gate.open === false)
+  // Under sequential pacing the effect that owns this batch already names its cause.
+  if (!unitGate && securityClauseGateRef.current?.gate.open === false)
     causingEffectGateRef.current = securityClauseGateRef.current.gate;
+  const precedingArrivalCause = causingEffectGateRef.current;
   lastBatchIdRef.current = batchId;
   // Everything enqueued from here belongs to this batch, and the board it is narrated
   // over is the board this batch produced.
@@ -361,7 +410,16 @@ export function presentServerBatch({
   batchVersionsRef.current.set(batchId, stateVersion);
   if (batchVersionsRef.current.size > 120)
     batchVersionsRef.current.delete(batchVersionsRef.current.keys().next().value!);
-  if (!replayingHistory && !continuingBatch) progress.present(batchId, stateVersion);
+  if (!replayingHistory && !continuingBatch)
+    progress.present(
+      batchId,
+      // A resumed unit's first results batch waits out the fresh beat over the board before it.
+      sequenced?.resumed
+        ? stateVersion - 1
+        : sequenced
+          ? announcedBoardVersion(fresh, sequenced, stateVersion)
+          : stateVersion,
+    );
   if (!replayingHistory) traceCueBatch(`${batchId} ${fresh.map((event) => event.kind).join(",")}`);
   const {
     refusal,
@@ -374,10 +432,19 @@ export function presentServerBatch({
     usedOption,
     optionRouted,
   } = batchFacts({ fresh });
+  // A close without its reveal still owns its source clause and arrivals. Reconstruct
+  // that presentation before ordinary play routing can enqueue them ahead of the dock.
+  const securityPresentation =
+    securityReveal ??
+    (securityCheck?.kind === "securityChecked" &&
+    securityCheck.resolution === "effect" &&
+    revealOnStageRef.current === null
+      ? securityCheck
+      : undefined);
   /**
    * An attack owns the screen for its call-out, the way a played card owns it for its
    * showcase. A [When Attacking] clause resolves in the same batch as the declaration that
-   * fired it, so with no lead-in its draw and its toast land on the very frame of the lunge
+   * fired it, so with no lead-in its draw and its toast land on the very frame of the declaration
    * — the clause going off before the attack that triggered it has been read. It waits the
    * same beat `attackAnnounce` gives the call-out, for the same reason `effectAnnounce`
    * gives one to an [On Play].
@@ -386,9 +453,23 @@ export function presentServerBatch({
   // Replayed steps still run, so their state lands in the right place — they
   // just run with every wait collapsed, which is no animation at all.
   const batchPhaseOrder = enqueuePhaseOrderRef.current;
+  /* Sequential pacing: a batch that no open effect carries is what the server did after the
+     effects still playing, a security check or the play that raised a new trigger. The centre
+     stage takes it only once those effects have settled. A batch an open effect carries, or
+     one that repeats a trigger waiting to be announced, belongs to that effect's own beats.
+     Each centre-stage step waits inside its own run: a security break replaces whatever its
+     track holds, so a separate waiting step ahead of it would be dropped. */
+  const unsettled =
+    sequenced && !sequenced.carriedBy && sequenced.grouped.length === 0 && !sequenced.resumed
+      ? earlierUnitsSettled
+      : null;
+  const afterEarlierUnits = (step: AnimationStep): AnimationStep =>
+    unsettled && step.track === CueTrack.CenterStage
+      ? afterGate(step, unsettled, activePacing().budgetCeilingMs, "centerStage/effectUnitsSettled")
+      : step;
   const enqueue = (step: AnimationStep) =>
     queue.enqueue({
-      ...step,
+      ...afterEarlierUnits(step),
       origin: { batchId, stateVersion, phaseOrder: batchPhaseOrder },
       ...(replayingHistory ? { mode: "replay" as const } : {}),
     });
@@ -441,8 +522,8 @@ export function presentServerBatch({
   // burst waits behind them — the reference client hits the card, then breaks
   // it. Only combat deletions get the impact; an effect deletion has no blow
   // to land. A battle whose defender is known plays the whole scene — arrow,
-  // lunge, then the blow — so its losers wait on the longer clock.
-  const { beaten, clashScenes, clashLoserIds, combatLeadInMs } = combatScenes({
+  // then the blow — so its losers wait on the longer clock.
+  const { beaten, clashScenes, clashLoserIds, combatLeadInMs, clashLeadInMsByPermanent } = combatScenes({
     fresh,
     viewerSeat,
     fieldClashKeyRef,
@@ -452,14 +533,23 @@ export function presentServerBatch({
   });
   // Start the field battle before a Piercing continuation can enqueue its security scene.
   // The shield step observes this track and waits until Raid's redirected battle has landed.
-  enqueueCombatImpact({
+  const { completion: combatCompletionGate, landedByPermanent } = enqueueCombatImpact({
     clashScenes,
     beaten,
     setFieldClash,
-    setAttackLunge,
     setCombatImpactIds,
     enqueue,
   });
+  for (const [permanentId, landed] of landedByPermanent) combatLandedRef.current.set(permanentId, landed);
+  // A battle deletion the server published a batch after its comparison still waits for that blow.
+  const battleGate =
+    combatCompletionGate ??
+    fresh
+      .flatMap((event) =>
+        event.kind === "cardsMoved" && event.battleDeletion === true ? (event.deletedPermanents ?? []) : [],
+      )
+      .map(({ permanentId }) => combatLandedRef.current.get(permanentId))
+      .find((landed) => landed !== undefined && !landed.open);
   // Notices a security check owns. They read as what the revealed card did, so they
   // are handed to the centre-stage sequence below instead of being raised here, where
   // they would talk over — or ahead of — the reveal they describe.
@@ -484,11 +574,16 @@ export function presentServerBatch({
   let playLeadInMs = 0;
   /** Permanents kept off the board until their arrival cue has actually run. */
   const arrivalHoldIds: string[] = [];
+  const arrivalGates: ArrivalPresentation[] = [];
   function releaseArrivalHoldsWhenIdle() {
-    if (arrivalHoldIds.length === 0) return;
+    if (arrivalHoldIds.length === 0 && arrivalGates.length === 0) return;
     const ids = [...arrivalHoldIds];
     void queue.idle().then(() => {
       setPendingPermanentIds((held) => ids.reduce((next, id) => withoutId(next, id), held));
+      for (const arrival of arrivalGates) {
+        arrival.revealed.release();
+        arrival.landed.release();
+      }
     });
   }
   function enqueueDeferredSecurityArrivals(key: number) {
@@ -513,24 +608,37 @@ export function presentServerBatch({
     });
   }
 
+  const handReturns = planHandReturns(fresh);
   if (!replayingHistory) {
-    enqueueBatchSounds({ fresh, viewerSeat, batchId, enqueue, playCue });
+    if (unitGate) {
+      // What came before the batch's first announcement caused it; what came after is its result.
+      const firstAnnounced = sequenced?.opened[0]?.eventIndex ?? 0;
+      enqueueBatchSounds({ fresh: fresh.slice(0, firstAnnounced), viewerSeat, batchId, enqueue, playCue });
+      enqueueBatchSounds({
+        fresh: fresh.slice(firstAnnounced),
+        viewerSeat,
+        batchId,
+        enqueue: (step) => enqueue(afterGate(step, unitGate)),
+        playCue,
+      });
+    } else enqueueBatchSounds({ fresh, viewerSeat, batchId, enqueue, playCue });
     const now = Date.now();
     const deletedThisBatch = new Set(
       fresh.flatMap((event) =>
         fieldDeparturesFromEvent(event).map((departed) => `${departed.seat}:${departed.cardId}`),
       ),
     );
-    const announcesEffect = fresh.some(
+    const firstAnnouncedEffect = fresh.findIndex(
       (event) =>
-        event.kind === "effectTriggered" &&
-        ((event.description?.startsWith("[Granted]") && !/delet|destroy/i.test(event.timing ?? "")) ||
+        (event.kind === "effectTriggered" || (event.kind === "effectActivated" && !event.receiptOnly)) &&
+        ((event.description?.startsWith("[Granted]") &&
+          !/delet|destroy/i.test("timing" in event ? (event.timing ?? "") : "")) ||
           !deletedThisBatch.has(`${event.seat}:${event.sourceCardId}`)),
     );
-    const batchAnnounceGate = announcesEffect ? createPresentationGate() : null;
+    const batchAnnounceGate = firstAnnouncedEffect !== -1 ? createPresentationGate() : null;
     if (batchAnnounceGate) {
       pendingAnnounceGateRef.current = { batchId, gate: batchAnnounceGate, deleted: deletedThisBatch };
-      causingEffectGateRef.current = batchAnnounceGate;
+      causingEffectGateRef.current = unitGate ?? batchAnnounceGate;
     }
     for (const event of fresh) {
       const clause = costClauseFromEvent(event);
@@ -542,21 +650,54 @@ export function presentServerBatch({
     // A security check owns the centre of the screen and reads its card's reveals beside it,
     // so a reveal it causes stays in the narration panel instead of competing for the stage.
     const revealShowcases =
-      showcasePlays && !securityReveal && revealOnStageRef.current === null
+      showcasePlays && !securityPresentation && revealOnStageRef.current === null
         ? revealShowcasesFromEvents(fresh, viewerSeat, () => (revealShowcaseKeyRef.current += 1))
         : [];
-    const { announcement, opened, raised, panelAt, noticeAt } = collectBatchAnnouncements({
+    const arrivalPresentations = new Map<ServerEvent, ArrivalPresentation>();
+    const revealCompletionGates = new Map(
+      revealShowcases.map((showcase) => {
+        const completed = createPresentationGate();
+        // Count the reading ceiling from this row's start, not the rows ahead of it.
+        completed.after = createPresentationGate();
+        return [showcase.key, completed] as const;
+      }),
+    );
+    for (const event of fresh) {
+      if (event.kind !== "cardPlayed" && event.kind !== "digivolved") continue;
+      const presentation = createArrivalPresentation();
+      arrivalPresentations.set(event, presentation);
+      arrivalGates.push(presentation);
+    }
+    const collected = collectBatchAnnouncements({
       fresh,
+      handReturnEntryGates: handReturns.beforeEntry,
       viewerSeat,
-      state,
+      state: snapshots.find((snapshot) => snapshot.stateVersion === stateVersion)?.state ?? state,
+      stateVersion,
+      deckDrawRevealGate: ({ seat, cardId, artId, eventIndex }) => {
+        // A printed ID can occur in several effects. Follow the nearest matching
+        // physical reveal before the movement, including its alternate art when known.
+        for (let index = eventIndex - 1; index >= 0; index -= 1) {
+          const reveal = fresh[index];
+          if (reveal?.kind !== "cardRevealed" || reveal.seat !== seat || reveal.cardId !== cardId) continue;
+          if (artId && reveal.artId && reveal.artId !== artId) continue;
+          const showcase = revealShowcases.find((entry) => entry.eventIndices.includes(index));
+          return showcase ? revealCompletionGates.get(showcase.key) : undefined;
+        }
+        return undefined;
+      },
+      observedHandCounts: {
+        you: state?.players[viewerSeat]?.handCount,
+        opp: state?.players[otherSeat(viewerSeat)]?.handCount,
+      },
       now,
       showcasePlays,
       attackLeadInMs,
-      securityReveal,
+      securityReveal: securityPresentation,
       revealOnStageRef,
       pendingDigivolutionDrawRef,
+      arrivalPresentations,
       eventDrawCountsRef,
-      drawPhaseWaitingRef,
       sidePanelLookupRef,
       sidePanelSequenceRef,
       noticeSequenceRef,
@@ -564,15 +705,41 @@ export function presentServerBatch({
       securityClausesReadRef,
       launchDrawFlight,
       launchDeckToUnderFlight,
-      setHeldDrawState,
     });
+    // A trigger that joined an earlier unit shares its "×N" clause. Each accepted physical
+    // source still focuses, so the viewer can see which copies paid their activation cost.
+    const groupedAt = new Set(sequenced?.grouped.map(({ eventIndex }) => eventIndex));
+    const { announcement, opened, panelAt } = collected;
+    const kept = collected.raised.flatMap((notice, index) =>
+      groupedAt.has(collected.noticeAt[index]!) ? [] : [{ notice, at: collected.noticeAt[index]! }],
+    );
+    const raised = kept.map(({ notice }) => notice);
+    const noticeAt = kept.map(({ at }) => at);
+    const resumed = sequenced?.resumed;
+    // A resumed effect lights its source again for its fresh beat: the prompt that covered
+    // the board is gone, and this is the card whose answer now plays out.
+    const relit: ServerEvent[] = resumed
+      ? [
+          {
+            kind: "effectTriggered",
+            seat: resumed.seat,
+            sourceCardId: resumed.sourceCardId,
+            effectKey: resumed.effectKey,
+            description: resumed.description,
+            ...(resumed.sourceInstanceId !== undefined ? { sourceInstanceId: resumed.sourceInstanceId } : {}),
+            ...(resumed.timing !== undefined ? { timing: resumed.timing } : {}),
+          },
+        ]
+      : [];
+    const lit = [...relit, ...fresh];
     const { arriving, showcased, zoneChanges, firstArrivalIndex, afterShowcaseNotices } = enqueueArrivals({
       fresh,
       viewerSeat,
       batchId,
       raised,
       combatLeadInMs,
-      securityReveal,
+      combatCompletionGate: battleGate,
+      securityReveal: securityPresentation,
       securityBlowRef,
       queue,
       showcaseKeyRef,
@@ -583,15 +750,29 @@ export function presentServerBatch({
       setZoneShowcase,
       setPermanentBursts,
       arrivalHoldIds,
+      arrivalPresentations,
+      causingEffectGate: precedingArrivalCause,
+      deckReturn: landingDeckReturn(removalChainRef),
       releaseArrivalHoldsWhenIdle,
       narrate,
       enqueue,
+      ...(unitGate || batchAnnounceGate
+        ? {
+            effectResults: {
+              fromEventIndex: sequenced?.opened[0]?.eventIndex ?? firstAnnouncedEffect,
+              afterAnnounced: (step: AnimationStep) =>
+                afterGate(step, (unitGate ?? batchAnnounceGate)!, activePacing().announceMaxMs, "arrival/effectUnit"),
+            },
+          }
+        : {}),
       ...(pendingCostClause ? { costClause: pendingCostClause } : {}),
     });
     enqueueEffectSources({
-      fresh,
+      fresh: lit,
+      groupedTriggers: sequenced?.grouped.map(({ eventIndex }) => fresh[eventIndex]!) ?? [],
       usedOption,
       combatLeadInMs,
+      combatCompletionGate: battleGate,
       cardSiteRef,
       effectSourceKeyRef,
       setEffectSources,
@@ -602,9 +783,7 @@ export function presentServerBatch({
       fresh,
       stateVersion,
       securityGrowthClaimedRef,
-      setSecurityFlights,
       launchSecurityGainFlight,
-      enqueue,
     });
     // The turn seat the gauge is currently read from, before this batch passes the turn on:
     // `state.memory` is signed from the turn player's side, and the live seat has already
@@ -614,14 +793,17 @@ export function presentServerBatch({
       if (event.kind === "turnEnded") presentedTurnSeatRef.current = event.nextSeat;
       if (event.kind === "phaseChanged") presentedTurnSeatRef.current = event.turnSeat;
     }
-    enqueueMemoryHold({
-      fresh,
-      announceGate: batchAnnounceGate,
-      turnSeat: turnSeatBeforeBatch,
-      memoryHoldKeyRef,
-      setHeldMemory,
-      enqueue,
-    });
+    // A paced unit pins the complete snapshot through its announcement. A legacy gauge
+    // hold from a later queued unit would replace that snapshot's earlier memory value.
+    if (!unitGate)
+      enqueueMemoryHold({
+        fresh,
+        announceGate: batchAnnounceGate,
+        turnSeat: turnSeatBeforeBatch,
+        memoryHoldKeyRef,
+        setHeldMemory,
+        enqueue,
+      });
     if (hasTurnStartDraw(fresh, viewerSeat)) turnStartDrawRef.current.you = true;
     if (hasTurnStartDraw(fresh, otherSeat(viewerSeat))) turnStartDrawRef.current.opp = true;
     // An On Play / When Digivolving notice reads as the consequence of the card
@@ -630,6 +812,24 @@ export function presentServerBatch({
     // the same events opened carry the other half of that consequence — the cards an
     // [On Play] reveal turned up — so they travel with the notices rather than
     // printing the result before the card that caused it has been seen.
+    if (sequenced) {
+      for (const [index, notice] of raised.entries()) {
+        const opener = sequenced.opened.find(({ eventIndex }) => eventIndex === noticeAt[index]);
+        if (opener && notice.body.variant === "effect") effectSequence.bindNotice(notice, opener.unit);
+      }
+      for (const { unit } of sequenced.grouped) {
+        const notice = effectSequence.noticeOf(unit) as MatchNotice | undefined;
+        if (notice?.body.variant === "effect") notice.body = { ...notice.body, count: unit.count };
+      }
+      const unitDeps = {
+        sequence: effectSequence,
+        queue,
+        batchOf,
+        decisionPending: () => decisionPendingRef.current,
+      };
+      if (sequenced.resumed) for (const step of resumedUnitSteps(sequenced.resumed, unitDeps)) enqueue(step);
+      for (const { unit } of sequenced.opened) for (const step of effectUnitSteps(unit, unitDeps)) enqueue(step);
+    }
     for (const item of [...raised, ...opened])
       heldOriginsRef.current.set(item, {
         batchId,
@@ -656,12 +856,14 @@ export function presentServerBatch({
       queue,
       stateVersion,
       usedOption,
+      revealed: usedOption ? arrivalPresentations.get(usedOption)?.revealed : undefined,
       optionRouted,
       routedUnderPermanentId,
       viewerSeat,
       optionDockKeyRef,
       optionDockRef,
       decisionPendingRef,
+      decisionSourceCardIdRef,
       setOptionBranch,
       flyDockedOptionUnder,
       releaseTrashArrivalsThrough,
@@ -683,7 +885,8 @@ export function presentServerBatch({
         firstArrivalIndex,
         zoneChanges,
         combatLeadInMs,
-        securityReveal,
+        combatCompletionGate: battleGate,
+        securityReveal: securityPresentation,
         revealOnStageRef,
         noticeSequenceRef,
         showcaseKeyRef,
@@ -696,7 +899,9 @@ export function presentServerBatch({
     // After the notice routing, so a showcase or security cue this batch put on the centre
     // stage — and the clause it reads out — plays first.
     enqueueRevealShowcases({
+      queue,
       showcases: revealShowcases,
+      completionGates: revealCompletionGates,
       causingEffectGate: causingEffectGateRef.current,
       setRevealShowcase,
       enqueue,
@@ -706,26 +911,13 @@ export function presentServerBatch({
   if (refusal?.kind === "actionRejected") onActionRejected(refusal.reason);
   presentSecurityAttack({
     securityAttack,
-    viewerSeat,
     cardSiteRef,
     securityAttackerRef,
-    setAttackLunge,
-    enqueue,
   });
-  // A check now reaches the client as two events: `securityRevealed` the moment the card
-  // is turned face up, and `securityChecked` once the server has resolved everything that
-  // card caused. The scene follows the same split — the card goes on stage at the reveal
-  // and plays its scene out there. A check that closes in the same batch takes its outcome
-  // beat and its detour to the side; one the server is still resolving lets the card leave
-  // at the end of the scene, so its effects read out on a board with nothing on it.
-  //
-  // The whole check runs on the one centre-screen track, in the reference client's
-  // order (battle-animation-spec.md §4b): the shield arms, its glass breaks, the card
-  // is revealed and held, and only then does what the card *did* reach the screen —
-  // its notice, its detour to the side, the decision it asks for. Serial order is what
-  // guarantees that: a parallel track with a fixed lead-in cannot know when this one
-  // actually gets to the reveal, so it can and does run ahead of it. The break carries
-  // the `replace`, so a check still cancels whatever showcase was mid-flight.
+  // Shield, reveal and dock share the serial centre-stage track. The source clause
+  // reads after docking, then deferred arrivals present what it played. This order
+  // holds for split, same-batch and close-only checks; ordinary battles retain their
+  // outcome beat. A first shield break replaces the preceding central showcase.
   const stage = securityRevealScene({
     queue,
     enqueue,
@@ -805,7 +997,6 @@ export function presentServerBatch({
       heldNoticesRef,
       heldPanelsRef,
       setSecurityClash,
-      setSecurityBranch,
       stage,
       enqueueDeferredSecurityArrivals,
       enqueue,
@@ -830,11 +1021,12 @@ export function presentServerBatch({
     // Notice routing has now enqueued this batch's effect clauses. Wait for its
     // latest announcement: the first gate may open on a preceding granted effect
     // before EX7-061's reaction names the security loss.
-    causingEffectGate: effectAnnounceGateRef.current ?? causingEffectGateRef.current,
+    causingEffectGate: unitGate ?? effectAnnounceGateRef.current ?? causingEffectGateRef.current,
     enqueue,
   });
   const optionResolving = optionDockRef.current !== null && !optionDockRef.current.closed;
   enqueueStackStripPeels({
+    topResolutions,
     queue,
     snapshots,
     stateVersion,
@@ -853,6 +1045,8 @@ export function presentServerBatch({
     snapshots,
     beaten,
     clashLoserIds,
+    clashLeadInMsByPermanent,
+    combatLandedRef,
     playLeadInMs,
     anchors,
     deleteBurstKeyRef,
@@ -867,6 +1061,7 @@ export function presentServerBatch({
     enqueue,
     stateVersion,
     causedByOption: optionResolving,
+    readBeforeBreak: !sequential,
   });
   enqueueDeckReturns({
     queue,
@@ -878,6 +1073,18 @@ export function presentServerBatch({
     holdKeyRef: deleteBurstKeyRef,
     setHeldDeletions,
     flyCardToDeck,
+    enqueue,
+  });
+  enqueueHandReturns({
+    queue,
+    plan: handReturns,
+    snapshots,
+    anchors,
+    removalChainRef,
+    causingEffectGate: causingEffectGateRef.current,
+    holdKeyRef: deleteBurstKeyRef,
+    setHeldDeletions,
+    flyCardToHand,
     enqueue,
   });
 
@@ -923,4 +1130,21 @@ export function presentServerBatch({
       setPendingRevealKey(null);
     }
   }
+}
+
+/** Waiters use the announcement owner's ceiling, including a security reveal before the clause. */
+function afterGate(
+  step: AnimationStep,
+  gate: PresentationGate,
+  ceilingMs = activePacing().announceMaxMs,
+  label = "sound/effectUnit",
+): AnimationStep {
+  return {
+    ...step,
+    async run(context) {
+      await waitForGate(gate, context, ceilingMs, label);
+      if (context.cancelled) return;
+      await step.run(context);
+    },
+  };
 }

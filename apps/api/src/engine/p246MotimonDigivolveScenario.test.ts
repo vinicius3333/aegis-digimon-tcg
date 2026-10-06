@@ -152,7 +152,11 @@ describe("P-246 Motimon dev scenarios", () => {
         instanceIds: [hostTop],
         cardIds: ["EX13-035"],
         seat: 0,
-        strippedStackTops: { permanentId: "p246-motimon-host", reason: "deDigivolve", sourceCardId: "BT25-025" },
+        strippedStackTops: expect.objectContaining({
+          permanentId: "p246-motimon-host",
+          reason: "deDigivolve",
+          sourceCardId: "BT25-025",
+        }),
       }),
     );
     expect(s.state.players[0]!.trash.find(({ instanceId }) => instanceId === hostTop)?.faceUp).toBe(true);

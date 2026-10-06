@@ -26,6 +26,8 @@ export interface DragIntentQuery {
         isOption: boolean;
         /** A Digi-Egg is hatched from the egg deck; dragging it does nothing. */
         isDigiEgg: boolean;
+        /** The server permits playing this card, including its current cost. */
+        playable: boolean;
       }
     | { kind: "attack" };
   target: DropTarget;
@@ -56,11 +58,11 @@ export function dragIntentFor(query: DragIntentQuery): DragIntent | null {
     case "perm-you":
       // An Option resolves on its own; dropping it on a Digimon means nothing.
       if (query.evolutionRoute) return "evolve";
-      return drag.isOption ? null : "play";
+      return !drag.isOption && drag.playable ? "play" : null;
     case "breeding-you":
       return query.digivolvable ? "breeding" : null;
     case "battle-you":
-      return drag.isOption ? "use" : "play";
+      return drag.playable ? (drag.isOption ? "use" : "play") : null;
     default:
       return null;
   }

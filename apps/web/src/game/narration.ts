@@ -25,8 +25,12 @@ export interface NarrationItem {
   source?: string;
   /** When the item was presented, which is when its reading clock started. */
   createdAt: number;
+  /** Reading stops here while a decision is open; the occurrence stays on screen. */
+  pausedAt?: number;
   /** Overrides the reading time the item's halves would earn. Set where the layout reads slower. */
   lifetimeMs?: number;
+  /** A later effect's clause has taken the screen: this one stays in the recent stack until its clock ends. */
+  superseded?: boolean;
   panel?: SidePanel;
   notice?: MatchNotice;
 }
@@ -39,13 +43,11 @@ export interface NarrationItem {
 export const NARRATION_TICK_MS = 120;
 
 /**
- * How many moments the phone's folded slot holds. A phone has no second column to spread
- * a batch across, so a single slot meant every moment erased the one before it — on a
- * screen where the notices are also the smallest. They queue downwards instead, past the
- * height the slot is capped at: the column scrolls rather than dropping what it cannot
- * show, and the cap here is only the wall that stops an unread queue growing forever.
+ * How many recent moments a scrollable column holds on both desktop and phone. The visual
+ * height is capped separately, so an effect beyond the two visible notices stays available
+ * by scrolling. Expiry and this bound keep the recent queue from growing indefinitely.
  */
-export const COLLAPSED_NARRATION_LIMIT = 6;
+export const NARRATION_QUEUE_LIMIT = 6;
 
 /**
  * How much longer a moment reads on the phone's folded slot. The same clause is set in a
@@ -91,7 +93,33 @@ export function narrationReadingTime(item: Pick<NarrationItem, "panel" | "notice
 
 /** Milliseconds left on a presented item's clock, never negative. */
 export function narrationRemaining(item: NarrationItem, nowMs: number): number {
-  return Math.max(0, item.createdAt + narrationReadingTime(item) - nowMs);
+  return Math.max(0, item.createdAt + narrationReadingTime(item) - Math.min(nowMs, item.pausedAt ?? nowMs));
+}
+
+/** Pause each existing reading clock once, including across consecutive questions. */
+export function pauseNarration(
+  items: ReadonlyMap<string, NarrationItem>,
+  nowMs: number,
+): ReadonlyMap<string, NarrationItem> {
+  if ([...items.values()].every((item) => item.pausedAt !== undefined)) return items;
+  return new Map(
+    [...items].map(([id, item]) => [id, item.pausedAt === undefined ? { ...item, pausedAt: nowMs } : item]),
+  );
+}
+
+/** Return the time spent answering without changing IDs, order, or effect provenance. */
+export function resumeNarration(
+  items: ReadonlyMap<string, NarrationItem>,
+  nowMs: number,
+): ReadonlyMap<string, NarrationItem> {
+  if ([...items.values()].every((item) => item.pausedAt === undefined)) return items;
+  return new Map(
+    [...items].map(([id, item]) => {
+      if (item.pausedAt === undefined) return [id, item];
+      const { pausedAt, ...running } = item;
+      return [id, { ...running, createdAt: item.createdAt + Math.max(0, nowMs - pausedAt) }];
+    }),
+  );
 }
 
 /**
@@ -179,6 +207,38 @@ export function pushNarrationItem(
   for (const slot of narrationSlots(shown, collapsed)) {
     const inSlot = [...next.values()].filter((item) => narrationSlots(item, collapsed).includes(slot));
     for (const evicted of inSlot.slice(0, Math.max(0, inSlot.length - limit))) next.delete(evicted.id);
+  }
+  return next;
+}
+
+/** The most earlier clauses a stack keeps under the one resolving now. */
+export const STACKED_CLAUSE_LIMIT = NARRATION_QUEUE_LIMIT - 1;
+
+/**
+ * The presented items once a new effect clause is about to take the screen. Paced effects
+ * show one clause at a time, so every earlier clause steps aside: with no `stackMs` it goes
+ * at once; otherwise it stays in the recent stack until `stackMs` after it appeared, and only the newest
+ * {@link STACKED_CLAUSE_LIMIT} stay.
+ */
+export function supersedeEffectClauses(
+  items: ReadonlyMap<string, NarrationItem>,
+  nowMs: number,
+  stackMs: number,
+): ReadonlyMap<string, NarrationItem> {
+  const clauses = [...items.values()].filter((item) => item.notice?.body.variant === "effect");
+  if (clauses.length === 0) return items;
+  const stacked = clauses
+    .filter((item) => (item.pausedAt ?? nowMs) - item.createdAt < stackMs)
+    .slice(-STACKED_CLAUSE_LIMIT);
+  const next = new Map(items);
+  for (const item of clauses) {
+    if (!stacked.includes(item)) next.delete(item.id);
+    else if (!item.superseded)
+      next.set(item.id, {
+        ...item,
+        superseded: true,
+        lifetimeMs: Math.min(narrationReadingTime(item), stackMs),
+      });
   }
   return next;
 }

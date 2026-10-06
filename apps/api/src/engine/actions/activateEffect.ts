@@ -1,3 +1,4 @@
+import { observeEffectActivation } from "../effects/activationPresentation.js";
 import {
   EffectTiming,
   Phase,
@@ -70,6 +71,8 @@ export interface ActivateEffectDeps {
   /** Attribute nested effect-driven events to this direct activation while it resolves. */
   enterEffectResolution?(seat: Seat, sourceKinds?: string[], sourcePermanentId?: string): void;
   leaveEffectResolution?(): void;
+  /** Begin the public lifecycle only when this activation accepts processing. */
+  announceActivation?(source: CardSource, effect: Effect, ctx: EffectContext): () => void;
 }
 
 /** The timing window activated `[Main]` abilities are keyed under. */
@@ -158,11 +161,17 @@ export async function applyActivateEffect(
   ctx.declaredProcessingCondition = true;
   const sourceKinds = effectProvenanceKinds(ctx, { isLinked: effect.isLinked });
   ctx.effectSourceKinds = sourceKinds;
+  let finishPresentation: (() => void) | undefined;
+  const presentation = observeEffectActivation(ctx, effect.activationDeferred === true, () => {
+    finishPresentation = deps.announceActivation?.(source, effect, ctx);
+  });
   deps.enterEffectResolution?.(source.ownerSeat, sourceKinds, source.permanent()?.permanentId);
   try {
     await effect.resolve(ctx);
   } finally {
     deps.leaveEffectResolution?.();
+    presentation.restore();
+    finishPresentation?.();
   }
   deps.tracker.register(source.instanceId, effect.effectKey);
 

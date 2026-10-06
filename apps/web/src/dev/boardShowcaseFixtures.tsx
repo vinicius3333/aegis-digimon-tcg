@@ -374,10 +374,10 @@ export function showcaseBurst(
 export const ZONE_SHOWCASES: { label: string; showcase: ZoneShowcaseModel }[] = [
   {
     label: "opponent played a card",
-    showcase: { key: 1, cardId: CARDS.opponentChampion, seat: 1, kind: "play", color: "Blue" },
+    showcase: { key: 1, cardId: CARDS.opponentChampion, seat: 1, mine: false, kind: "play", color: "Blue" },
   },
   {
     label: "opponent digivolved in breeding",
-    showcase: { key: 2, cardId: CARDS.opponentChampion, seat: 1, kind: "digivolve", color: "Blue" },
+    showcase: { key: 2, cardId: CARDS.opponentChampion, seat: 1, mine: false, kind: "digivolve", color: "Blue" },
   },
 ];

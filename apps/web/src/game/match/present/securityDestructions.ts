@@ -10,6 +10,7 @@ import {
   SECURITY_DESTROY_TOTAL_MS,
   type SecurityClashScene,
 } from "../../securityClash";
+import { waitForCardShatterClock } from "../../cardShatterClock";
 import { CueTrack } from "../enums";
 import { shieldBreakStep } from "../steps/shieldBreakStep";
 import type { SecurityBreakCue } from "../types";
@@ -109,12 +110,13 @@ export function enqueueSecurityDestructions({
       skippable: false,
       async run(context) {
         try {
-          setSecurityClash(scene);
+          setSecurityClash({ ...scene, lightOwner: { context, enqueue } });
           // The stack loses this card as it breaks, so the shield drops one at that beat
           // rather than all of them at once when the effect resolved.
           await context.wait(SECURITY_DESTROY_OUTCOME_AT_MS);
           releaseSecurityCard(key);
           await context.wait(SECURITY_DESTROY_TOTAL_MS - SECURITY_DESTROY_OUTCOME_AT_MS);
+          await waitForCardShatterClock(key, context);
         } finally {
           pendingDestructionsRef.current = Math.max(0, pendingDestructionsRef.current - 1);
           releaseSecurityCard(key);

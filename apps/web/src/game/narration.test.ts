@@ -9,6 +9,8 @@ import {
   noticeSourceCardId,
   panelSourceCardId,
   pushNarrationItem,
+  STACKED_CLAUSE_LIMIT,
+  supersedeEffectClauses,
   type NarrationItem,
 } from "./narration";
 import { NOTICE_LIFETIME_MS, type MatchNotice } from "./notices";
@@ -235,5 +237,37 @@ describe("pushing a moment into its column", () => {
   it("makes both columns share one queue where the layout folds them together", () => {
     const after = pushNarrationItem(pushNarrationItem(new Map(), clause("a"), 1, true), cards("b"), 1, true);
     expect([...after.keys()]).toEqual(["b"]);
+  });
+});
+
+describe("stepping earlier clauses aside for a new one", () => {
+  const clause = (id: string, createdAt: number): NarrationItem => ({
+    id,
+    side: Side.Viewer,
+    batchId: "b1",
+    createdAt,
+    notice: notice({ id, createdAt }),
+  });
+  const cards: NarrationItem = { id: "cards", side: Side.Viewer, batchId: "b1", createdAt: 0, panel: panel() };
+  const items = (...list: NarrationItem[]) => new Map(list.map((item) => [item.id, item] as const));
+
+  it("takes every clause off at once without a stack, and leaves card lists alone", () => {
+    const next = supersedeEffectClauses(items(clause("a", 0), cards), 100, 0);
+    expect([...next.keys()]).toEqual(["cards"]);
+  });
+
+  it("keeps a recent clause dimmed until the stack time after it appeared", () => {
+    const next = supersedeEffectClauses(items(clause("a", 1000)), 2000, 5000);
+    expect(next.get("a")).toMatchObject({ superseded: true, lifetimeMs: 5000 });
+    expect(narrationRemaining(next.get("a")!, 2000)).toBe(4000);
+  });
+
+  it("takes off a clause older than the stack time and keeps only the newest few", () => {
+    const list = [
+      clause("old", 0),
+      ...Array.from({ length: STACKED_CLAUSE_LIMIT + 1 }, (_, n) => clause(`c${n}`, 6000 + n)),
+    ];
+    const next = supersedeEffectClauses(items(...list), 6100, 5000);
+    expect([...next.keys()]).toEqual(list.slice(-STACKED_CLAUSE_LIMIT).map((item) => item.id));
   });
 });

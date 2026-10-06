@@ -159,11 +159,14 @@ describe("pending trigger matrix: distinct occurrences while pending", () => {
     const watcherResolutions = s.events.filter(
       (event) => event.kind === "effectResolved" && event.sourceInstanceId === watcherId,
     );
-    expect(watcherActivations).toHaveLength(2);
-    expect(watcherResolutions).toHaveLength(2);
-    const lastPlayIndex = s.events.indexOf(plays[1]!);
-    expect(s.events.indexOf(watcherActivations[0]!)).toBeGreaterThan(lastPlayIndex);
-    expect(s.events.indexOf(watcherActivations[1]!)).toBeGreaterThan(lastPlayIndex);
+    const offered = s.decisions.filter(
+      ({ req }) =>
+        req.sourceInstanceId === watcherId && req.kind === "optional" && req.options?.activationConfirmation === true,
+    );
+    expect(offered).toHaveLength(2);
+    expect(offered.every(({ req }) => req.options?.effectKey?.includes("whenPlayed"))).toBe(true);
+    expect(watcherActivations).toHaveLength(0);
+    expect(watcherResolutions).toHaveLength(0);
   });
 });
 

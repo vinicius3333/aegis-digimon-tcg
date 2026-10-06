@@ -10,7 +10,13 @@ import { BoardInputLock, PermanentView } from "./piece";
 import { PermanentDetailInspector, StackViewerOverlay } from "./overlay";
 import { buildPermanentDetail } from "./permanentDetail";
 import { SecurityClash } from "./SecurityClashView";
-import { buildSecurityClashScene, buildSecurityDestructionScene, buildSecurityRevealScene } from "./securityClash";
+import {
+  buildSecurityClashScene,
+  buildSecurityDestructionScene,
+  buildSecurityDockScene,
+  buildSecurityRevealScene,
+} from "./securityClash";
+import { SecurityScenes } from "./screen/layout/SecurityScenes";
 import { Side } from "./side";
 
 afterEach(() => cleanup());
@@ -34,6 +40,37 @@ function permanent(): Permanent {
 }
 
 describe("security feedback", () => {
+  it("removes the departing reveal while retaining its matching dock and clears both on close", () => {
+    const identity = { key: 1, revealedCardId: "BT1-010", defenderSeat: 1 as const, viewerSeat: 0 as const };
+    const reveal = { ...buildSecurityRevealScene(identity), departing: true };
+    const dock = buildSecurityDockScene(identity);
+    function scenes(showReveal: boolean, showDock: boolean) {
+      return (
+        <I18nProvider>
+          <SecurityScenes
+            securityBreak={null}
+            securityClash={showReveal ? reveal : null}
+            securityBranch={showDock ? dock : null}
+            optionBranch={null}
+            zoneShowcase={null}
+            revealShowcase={null}
+            compact={false}
+          />
+        </I18nProvider>
+      );
+    }
+    const { rerender } = render(scenes(true, false));
+    rerender(scenes(true, true));
+    expect(screen.getByTestId("security-clash")).toBeTruthy();
+    expect(screen.getByTestId("security-branch")).toBeTruthy();
+    rerender(scenes(false, true));
+    expect(screen.queryByTestId("security-clash")).toBeNull();
+    expect(screen.getAllByTestId("security-branch")).toHaveLength(1);
+    rerender(scenes(false, false));
+    expect(screen.queryByTestId("security-clash")).toBeNull();
+    expect(screen.queryByTestId("security-branch")).toBeNull();
+  });
+
   it("summarizes a revealed security card without a blocking dialog", () => {
     render(
       <I18nProvider>
@@ -121,7 +158,7 @@ describe("security feedback", () => {
     expect(screen.getByTestId("security-clash").querySelector(".battle-clash__flash")).toBeNull();
   });
 
-  it("stages a destroyed security card alone, cracked, with nothing printed around it", () => {
+  it("stages a destroyed security card alone with nothing printed around it", () => {
     render(
       <I18nProvider>
         <SecurityClash
@@ -136,9 +173,34 @@ describe("security feedback", () => {
     expect(scene.querySelector(".battle-clash__caption")).toBeNull();
     expect(scene.querySelector(".battle-clash__outcome")).toBeNull();
     expect(scene.textContent).toBe("");
-    expect(scene.querySelector(".game-card-cracks")).toBeTruthy();
+    expect(scene.querySelectorAll(".game-card-shatter__shard")).toHaveLength(41);
     expect(scene.querySelector(".battle-clash__shatter")).toBeTruthy();
     expect(scene.getAttribute("aria-label")).toContain("Agumon");
+  });
+
+  it.each(["battle", "trashed"])("keeps a checked card whole before its %s disposal", (resolution) => {
+    render(
+      <I18nProvider>
+        <SecurityClash
+          scene={buildSecurityClashScene({
+            key: 1,
+            revealedCardId: "BT1-010",
+            resolution,
+            defenderSeat: 1,
+            viewerSeat: 0,
+            attacker: { seat: 0, cardId: "BT1-019" },
+            battle:
+              resolution === "battle"
+                ? { attackerDP: 4000, securityCardDP: 2000, attackerDeleted: false, securityDigimonDeleted: true }
+                : undefined,
+          })}
+        />
+      </I18nProvider>,
+    );
+    const card = screen.getByTestId("security-clash").querySelector('[data-role="revealed"]');
+    expect(card?.querySelector(".battle-clash__shatter")).toBeNull();
+    expect(card?.querySelector("img")).toBeTruthy();
+    if (resolution === "battle") expect(card?.querySelector(".game-claw")).toBeTruthy();
   });
 
   it("announces recovery without exposing a card identity", () => {

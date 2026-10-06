@@ -36,6 +36,13 @@ export const CARD_ARRIVAL_NARRATION_MS = 2_620;
 /** Source glow, clause announcement, then a beat to see the revealed cards before a bot chooses. */
 export const EFFECT_CHOICE_NARRATION_MS = 2_600;
 
+/**
+ * One triggered effect under sequential pacing, at the slowest Effect speed: its source glow,
+ * its clause read alone, its results and the settle beat before the next one. A client that
+ * paces chains itself owes this much per effect in a chain, however fast the server resolved it.
+ */
+export const CHAIN_EFFECT_NARRATION_MS = 2_600;
+
 /** One phase ribbon including its gap; consecutive phases share the client's track. */
 export const PHASE_NARRATION_MS = 1_350;
 /** Turn-change ribbon including its gap, before the new turn's phase ribbons. */

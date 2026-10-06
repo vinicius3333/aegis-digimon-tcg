@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CardInstance, Permanent, PlayerState } from "@aegis/shared";
-import { blowField, deletionField, phaseField } from "./presentedBoard";
+import { blowField, deletionField, phaseField, liveProjectionFields } from "./presentedBoard";
 import type { HeldDeletion } from "../../match/types";
 
 function permanent(permanentId: string, isSuspended = false): Permanent {
@@ -14,6 +14,16 @@ function permanent(permanentId: string, isSuspended = false): Permanent {
 function player(battleArea: readonly Permanent[], trash: readonly CardInstance[] = []): PlayerState {
   return { battleArea, trash } as unknown as PlayerState;
 }
+
+it("preserves the held top's resolved DP while the live board has advanced to another top", () => {
+  const shown = { ...permanent("host"), currentDP: 7000 } as Permanent;
+  const live = { ...shown, topCard: { instanceId: "rookie", cardId: "BT1-009" }, currentDP: 3000 } as Permanent;
+  expect(liveProjectionFields({ player: player([shown]), live: player([live]) }).battleArea[0]!.currentDP).toBe(7000);
+  expect(
+    liveProjectionFields({ player: player([shown]), live: player([{ ...shown, currentDP: 8000 } as Permanent]) })
+      .battleArea[0]!.currentDP,
+  ).toBe(8000);
+});
 
 describe("deletionField", () => {
   const trashedCard = { cardId: "BT1-010", instanceId: "b-top" } as CardInstance;
@@ -35,6 +45,20 @@ describe("deletionField", () => {
     const shown = player([], [trashedCard]);
     const presented = deletionField({ player: shown, held: [{ ...held, index: 4 }] });
     expect(presented.battleArea.map((p) => p.permanentId)).toEqual(["b"]);
+  });
+
+  it("removes only the shattered physical copy from an older presented snapshot through the light tail", () => {
+    const shown = player([permanent("a"), permanent("b"), permanent("c")]);
+    const departing = { ...held, departed: true };
+    const waiting = { ...held, permanent: permanent("c"), index: 2 };
+    const tail = deletionField({ player: shown, held: [departing, waiting] });
+    expect(tail.battleArea.map((p) => p.permanentId)).toEqual(["a", "c"]);
+    expect(deletionField({ player: tail, held: [departing, waiting] }).battleArea).toEqual(tail.battleArea);
+    expect(
+      deletionField({ player: shown, held: [departing, { ...waiting, departed: true }] }).battleArea.map(
+        (p) => p.permanentId,
+      ),
+    ).toEqual(["a"]);
   });
 
   it("does nothing with no hold", () => {

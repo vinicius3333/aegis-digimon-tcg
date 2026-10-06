@@ -36,11 +36,12 @@ import type { GameEngine } from "../GameEngine.js";
  * the continuous ledgers. Public so callers/tests can force a recompute at a decision point
  * the timing/boundary hooks do not already cover.
  */
-export async function recomputeContinuousEffects(engine: GameEngine): Promise<void> {
+export async function recomputeContinuousEffects(engine: GameEngine, publish = true): Promise<void> {
   if (engine.recomputeInFlight !== undefined) {
     if (engine.continuousScope.getStore() === true) return;
     engine.recomputeQueued = true;
     await engine.recomputeInFlight;
+    if (publish) publishContinuousState(engine);
     return;
   }
   // Continuous effects are passive modifiers and never prompt (ARCHITECTURE.md §5);
@@ -72,7 +73,7 @@ export async function recomputeContinuousEffects(engine: GameEngine): Promise<vo
       let seed = engine.projection.continuousDpSeeds();
       let converged = false;
       for (let pass = 0; pass < maxFixpointPasses; pass++) {
-        await engine.continuousScope.run(true, () => engine.runContinuousPass(noPromptAsk, seed));
+        await engine.continuousScope.run(true, () => engine.runContinuousPass(noPromptAsk, seed, false));
         engine.projection.updateContinuousDpSeeds();
         const next = engine.projection.continuousDpSeeds();
         if (sameNumericMap(seed, next)) {
@@ -87,13 +88,7 @@ export async function recomputeContinuousEffects(engine: GameEngine): Promise<vo
     } while (engine.recomputeQueued);
 
     engine.modifiers.refreshReducedDp(engine.state);
-    engine.projection.syncActivatableEffects();
-    engine.projection.syncKeywords();
-    engine.projection.syncSummoningSickness();
-    engine.projection.syncRestrictions();
-    engine.projection.syncAttackTargets();
-    engine.projection.syncHandAffordances();
-    engine.projection.syncLinkTargets();
+    if (publish) publishContinuousState(engine);
   });
   engine.recomputeInFlight = task;
   try {
@@ -101,6 +96,18 @@ export async function recomputeContinuousEffects(engine: GameEngine): Promise<vo
   } finally {
     if (engine.recomputeInFlight === task) engine.recomputeInFlight = undefined;
   }
+}
+
+/** Intermediate stack tops derive ledgers but publish memory thresholds/affordances at the final boundary. */
+function publishContinuousState(engine: GameEngine): void {
+  engine.memory.commitTurnEndMinMemoryRecompute();
+  engine.projection.syncActivatableEffects();
+  engine.projection.syncKeywords();
+  engine.projection.syncSummoningSickness();
+  engine.projection.syncRestrictions();
+  engine.projection.syncAttackTargets();
+  engine.projection.syncHandAffordances();
+  engine.projection.syncLinkTargets();
 }
 
 /**
@@ -113,11 +120,12 @@ export async function runContinuousPass(
   engine: GameEngine,
   noPromptAsk: DecisionApi,
   seed: ReadonlyMap<string, number> = new Map(),
+  publishMemory = true,
 ): Promise<void> {
   try {
     await derivePass(engine, noPromptAsk, seed);
   } finally {
-    engine.memory.commitTurnEndMinMemoryRecompute();
+    if (publishMemory) engine.memory.commitTurnEndMinMemoryRecompute();
   }
 }
 

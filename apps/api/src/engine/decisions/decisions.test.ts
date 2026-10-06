@@ -4,6 +4,7 @@ import { GameState, PlayerState, type DecisionRequest, type DecisionResponse, ty
 import { DecisionManager, type DecisionTransport } from "./index.js";
 import { createDecisionApi } from "./decisionApi.js";
 import type { EffectContext } from "../effects/EffectContext.js";
+import { observeEffectActivation } from "../effects/activationPresentation.js";
 
 function makeState(): GameState {
   const state = new GameState();
@@ -204,6 +205,27 @@ describe("DecisionManager", () => {
 });
 
 describe("createDecisionApi", () => {
+  it("distinguishes activation acceptance from a later optional operation in the same clause", async () => {
+    const state = makeState();
+    const { transport, sent } = recordingTransport();
+    const mgr = new DecisionManager(state, transport);
+    const api = createDecisionApi(mgr);
+    const ctx = {
+      activeEffectKey: "test/clause",
+      source: { ownerSeat: 0, cardId: "AD1-020", instanceId: "source", permanent: () => undefined },
+    } as unknown as EffectContext;
+    const presentation = observeEffectActivation(ctx, true, () => {});
+    const first = api.optional({ ...ctx }, "Use this effect?");
+    expect(sent[0]!.req.options).toMatchObject({ effectKey: "test/clause", activationConfirmation: true });
+    mgr.respond(0, sent[0]!.req.decisionId, { kind: "optional", accept: true });
+    expect(await first).toBe(true);
+    const later = api.optional({ ...ctx }, "Also play a card?");
+    expect(sent[1]!.req.options).toMatchObject({ effectKey: "test/clause", activationConfirmation: false });
+    mgr.respond(0, sent[1]!.req.decisionId, { kind: "optional", accept: false });
+    expect(await later).toBe(false);
+    presentation.restore();
+  });
+
   /**
    * The overlay slices the printed clause for `options.timing` out of the card's full
    * effect text. Without a timing an optional prompt fell back to the WHOLE text, so a

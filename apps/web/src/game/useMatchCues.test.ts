@@ -19,7 +19,6 @@ import {
   CLASH_REVEAL_SHOWN_AT_MS,
   CLASH_TOTAL_MS,
   FIELD_CLASH_IMPACT_AT_MS,
-  FIELD_CLASH_LUNGE_AT_MS,
   SECURITY_BRANCH_IN_MS,
   SECURITY_BRANCH_TOTAL_MS,
   SECURITY_BREAK_TOTAL_MS,
@@ -38,7 +37,10 @@ import { REJECTION_LIFETIME_MS } from "./notices";
 import { SIDE_PANEL_LIFETIME_MS } from "./sidePanels";
 import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
 import { PRESENTED_BOARD_BUDGET_MS } from "./presentationProgress";
+import type { AnimationQueue } from "./animationQueue";
+import type { PresentationProbe } from "./presentationProbe";
 import { securityClauseHoldMs } from "./match/present/securityRevealScene";
+import { attackDeclarationKey } from "./trackingArrow";
 
 /**
  * How long a narration item carrying a notice holds its slot, plus the tick the slot
@@ -51,10 +53,11 @@ const CONSEQUENCE_WAIT_LIMIT_MS = 5000;
 
 /**
  * When a check that resolves an effect is finally allowed to speak: the shield break, the
- * whole centre-stage clash, and the slide that parks the revealed card at the side it reads
+ * reveal/light, and the transfer that parks the revealed card at the side it reads
  * out from. Its notice and the decisions it asks for both land here.
  */
-const EFFECT_CHECK_NOTICE_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS + SECURITY_BRANCH_IN_MS;
+const EFFECT_CHECK_NOTICE_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_DOCK_LEAVE_MS;
+const EFFECT_CHECK_PRESENTED_AT_MS = EFFECT_CHECK_NOTICE_AT_MS + TIMINGS.securityClauseRead;
 
 /** When a reveal the server has not closed yet has finished putting its card on screen. */
 const REVEAL_SHOWN_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_OUTCOME_AT_MS;
@@ -63,13 +66,13 @@ const REVEAL_SHOWN_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_OUTCOME_AT_MS;
  * When that card has played out and left the centre of the screen. A check the server is
  * still resolving hands the board over here: its effects read out on a clear board.
  */
-const REVEAL_EXIT_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS;
+const REVEAL_EXIT_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_OUTCOME_AT_MS + TIMINGS.securityCardExit;
 
 /** When a card the server says has a [Security] effect leaves the centre for its dock. */
-const DOCK_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_DOCK_LEAVE_MS;
+const DOCK_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_DOCK_AT_MS;
 
 /** When it has arrived there, which is when what it did may be read out beside it. */
-const DOCKED_AT_MS = DOCK_AT_MS + SECURITY_BRANCH_IN_MS;
+const DOCKED_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_DOCK_LEAVE_MS;
 
 /**
  * How long the docked card keeps the centre while its one [Security] clause is read, before
@@ -342,12 +345,16 @@ it.each([0, 1] as const)(
     await advance(32);
     expect(result.current.drawFlights).toHaveLength(1);
     expect(result.current.phaseBanner).toBeNull();
-    // One flight per drawn card: the server names a whole Draw 2 in a single event, and
-    // a flight per event sent one card back for two cards.
+    // A Draw 2 presents each physical card in order before handing over the turn.
+    const firstKey = result.current.drawFlights[0]!.key;
     const flightMs = result.current.drawFlights[0]!.duration;
     await advance(TIMINGS.drawFlightStagger);
-    expect(result.current.drawFlights).toHaveLength(2);
-    // Both land first, and the burst then plays every ribbon it carries, in order.
+    expect(result.current.drawFlights).toHaveLength(1);
+    expect(result.current.drawFlights[0]!.key).toBe(firstKey);
+    await advance(flightMs + 32);
+    expect(result.current.drawFlights).toHaveLength(1);
+    expect(result.current.drawFlights[0]!.key).not.toBe(firstKey);
+    expect(result.current.phaseBanner).toBeNull();
     await advance(flightMs + 32);
     expect(result.current.drawFlights).toHaveLength(0);
     expect(result.current.phaseBanner).toBeNull();
@@ -361,54 +368,67 @@ it.each([0, 1] as const)(
   },
 );
 
-it("finishes an effect-driven digivolution burst before flying its bonus draw", async () => {
-  const board = document.createElement("div");
-  const deck = document.createElement("div");
-  const hand = document.createElement("div");
-  vi.spyOn(board, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 800, 600));
-  vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(new DOMRect(600, 400, 80, 100));
-  vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 500, 300, 80));
-  const feed = batchFeed();
-  const { result, rerender } = renderHook(
-    (events: readonly ServerEvent[]) =>
-      useMatchCues({
-        batches: feed(events),
-        state: undefined,
-        viewerSeat: VIEWER,
-        mulliganOpen: false,
-        anchors: {
-          ...anchors,
-          board: { current: board },
-          yourDeck: { current: deck },
-          yourHandDock: { current: hand },
-        },
-        onActionRejected: vi.fn<(reason: string) => void>(),
-      }),
-    { initialProps: [] as readonly ServerEvent[] },
-  );
-  rerender([
-    {
-      kind: "digivolved",
-      seat: 0,
-      permanentId: "effect-evo",
-      cardId: "EX12-036",
-      mechanic: "normal",
-    },
-    {
-      kind: "cardsMoved",
-      from: "deck",
-      to: "hand",
-      instanceIds: ["bonus"],
-      seat: 0,
-      drawReason: "digivolution",
-    },
-  ]);
-  await advance(0);
-  expect(result.current.permanentBursts.get("effect-evo")?.variant).toBe("evolve");
-  expect(result.current.drawFlights).toHaveLength(0);
-  await advance(CARD_BURST_PEAK_MS);
-  expect(result.current.drawFlights).toHaveLength(1);
-});
+it.each([false, true])(
+  "waits for the actual digivolution arrival before its bonus draw (split batch=%s)",
+  async (splitBatch) => {
+    const board = document.createElement("div");
+    const deck = document.createElement("div");
+    const hand = document.createElement("div");
+    vi.spyOn(board, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 800, 600));
+    vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(new DOMRect(600, 400, 80, 100));
+    vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 500, 300, 80));
+    const feed = batchFeed();
+    const { result, rerender } = renderHook(
+      (events: readonly ServerEvent[]) =>
+        useMatchCues({
+          batches: feed(events),
+          state: undefined,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors: {
+            ...anchors,
+            board: { current: board },
+            yourDeck: { current: deck },
+            yourHandDock: { current: hand },
+          },
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: [] as readonly ServerEvent[] },
+    );
+    const events: ServerEvent[] = [
+      {
+        kind: "digivolved",
+        seat: 0,
+        permanentId: "effect-evo",
+        cardId: "EX12-036",
+        mechanic: "normal",
+      },
+      {
+        kind: "cardsMoved",
+        from: "deck",
+        to: "hand",
+        instanceIds: ["bonus"],
+        seat: 0,
+        drawReason: "digivolution",
+      },
+    ];
+    rerender(splitBatch ? events.slice(0, 1) : events);
+    await advance(0);
+    expect(result.current.zoneShowcase).toMatchObject({ kind: "digivolve", mine: true });
+    expect(result.current.drawFlights).toHaveLength(0);
+    if (splitBatch) {
+      await advance(100);
+      rerender(events);
+    }
+    await advance(SHOWCASE_TOTAL_MS - (splitBatch ? 100 : 0));
+    expect(result.current.permanentBursts.get("effect-evo")?.variant).toBe("evolve");
+    expect(result.current.drawFlights).toHaveLength(0);
+    await advance(CARD_BURST_PEAK_MS - 1);
+    expect(result.current.drawFlights).toHaveLength(0);
+    await advance(17);
+    expect(result.current.drawFlights).toHaveLength(1);
+  },
+);
 
 /**
  * Turns the cumulative event log a test writes into the server batches the hook consumes:
@@ -439,6 +459,8 @@ function renderCues(
   initialEvents: readonly ServerEvent[] = [],
   onActionRejected = vi.fn<(reason: string) => void>(),
   rawPhases = false,
+  devProbe?: PresentationProbe,
+  cueAnchors: MatchCueAnchors = anchors,
 ) {
   const feed = batchFeed();
   let latestEvents = initialEvents;
@@ -448,10 +470,11 @@ function renderCues(
         narrationLimit: 3,
         batches,
         phaseEvents: rawPhases ? latestEvents : undefined,
+        devProbe,
         state: undefined,
         viewerSeat: VIEWER,
         mulliganOpen: false,
-        anchors,
+        anchors: cueAnchors,
         onActionRejected,
       }),
     { initialProps: feed(initialEvents) },
@@ -544,10 +567,12 @@ function renderCuesAwaitingAnswer() {
       batches,
       decisionPending,
       decisionStateVersion,
+      decisionSourceCardId,
     }: {
       batches: readonly ServerBatch[];
       decisionPending: boolean;
       decisionStateVersion?: number;
+      decisionSourceCardId?: string;
     }) =>
       useMatchCues({
         narrationLimit: 3,
@@ -557,6 +582,7 @@ function renderCuesAwaitingAnswer() {
         mulliganOpen: false,
         decisionPending,
         decisionStateVersion,
+        decisionSourceCardId,
         anchors,
         onActionRejected: vi.fn<(reason: string) => void>(),
       }),
@@ -565,6 +591,7 @@ function renderCuesAwaitingAnswer() {
         batches: [] as readonly ServerBatch[],
         decisionPending: false,
         decisionStateVersion: undefined as number | undefined,
+        decisionSourceCardId: undefined as string | undefined,
       },
     },
   );
@@ -574,15 +601,18 @@ function renderCuesAwaitingAnswer() {
       events,
       decisionPending,
       decisionStateVersion,
+      decisionSourceCardId,
     }: {
       events: readonly ServerEvent[];
       decisionPending: boolean;
       decisionStateVersion?: number;
+      decisionSourceCardId?: string;
     }) =>
       view.rerender({
         batches: feed(events),
         decisionPending,
         decisionStateVersion,
+        decisionSourceCardId,
       }),
   };
 }
@@ -611,6 +641,82 @@ afterEach(() => {
  * last render", so two moments delivered together read as one, and one moment delivered in
  * two renders read as two. Both are now decided by the batch alone.
  */
+describe("checked security card disposal", () => {
+  it.each([
+    [0, "same batch"],
+    [1, "same batch"],
+    [0, "pending"],
+    [1, "pending"],
+    [0, "close only"],
+    [1, "close only"],
+  ] as const)("finishes the readable card before its thin exit, seat %s / %s", async (seat, delivery) => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    const reveal: ServerEvent = {
+      ...REVEAL,
+      seat,
+      revealedCardId: "BT1-085",
+      isDigimon: false,
+      hasSecurityEffect: false,
+    };
+    const check: ServerEvent = { ...CHECK, seat, revealedCardId: "BT1-085", resolution: "trashed" };
+    const events = delivery === "same batch" ? [reveal, check] : delivery === "pending" ? [reveal] : [check];
+    rerender(events);
+    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_OUTCOME_AT_MS - 1);
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-085");
+    expect(result.current.securityClash?.exiting).not.toBe(true);
+    await advance(1);
+    expect(result.current.securityClash?.exiting).toBe(true);
+    await advance(TIMINGS.securityCardExit - 1);
+    expect(result.current.securityClash?.exiting).toBe(true);
+    await advance(1);
+    expect(result.current.securityClash).toBeNull();
+    if (delivery === "pending") {
+      rerender([...events, check]);
+      await advance(0);
+      expect(result.current.securityClash).toBeNull();
+    }
+    expect(result.current.securityRevealPending).toBe(false);
+  });
+
+  it("finishes the security battle and its settle before disposal", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([ATTACK, { ...REVEAL, isDigimon: true }, CHECK]);
+    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_OUTCOME_AT_MS + TIMINGS.clashOutcome - 1);
+    expect(result.current.securityClash?.resolution).toBe("battle");
+    expect(result.current.securityClash?.exiting).not.toBe(true);
+    await advance(1);
+    expect(result.current.securityClash?.exiting).toBe(true);
+    await advance(TIMINGS.securityCardExit - 1);
+    expect(result.current.securityClash).not.toBeNull();
+    await advance(1);
+    expect(result.current.securityClash).toBeNull();
+    expect(result.current.securityRevealPending).toBe(false);
+  });
+
+  it("clears a cancelled thin exit and lets the next check start", async () => {
+    let queue: AnimationQueue | undefined;
+    const { result, rerender } = renderCues([], vi.fn(), false, {
+      onQueue: (controls) => {
+        queue = controls.queue as AnimationQueue;
+      },
+    });
+    await advance(0);
+    const reveal: ServerEvent = { ...REVEAL, isDigimon: false, hasSecurityEffect: false };
+    rerender([reveal]);
+    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_OUTCOME_AT_MS + 40);
+    expect(result.current.securityClash?.exiting).toBe(true);
+    act(() => queue!.clear());
+    await advance(0);
+    expect(result.current.securityClash).toBeNull();
+    expect(result.current.securityRevealPending).toBe(false);
+    rerender([reveal, SECOND_REVEAL, SECOND_CHECK]);
+    await advance(SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-011");
+  });
+});
+
 describe("match cues grouped by server batch", () => {
   /** The hook fed batches directly, which is what a test about batch boundaries needs. */
   function renderCuesOnBatches() {
@@ -677,7 +783,6 @@ describe("match cues", () => {
     expect(playSound).not.toHaveBeenCalled();
     expect(result.current.securityClash).toBeNull();
     expect(result.current.turnTransition).toBeNull();
-    expect(result.current.attackLunge).toBeNull();
     expect(result.current.attackAnnouncement).toBeNull();
     expect(result.current.sidePanels).toEqual([]);
     expect(vi.getTimerCount()).toBe(0);
@@ -730,7 +835,6 @@ describe("match cues", () => {
       expect(result.current.turnTransition).not.toBeNull();
       expect(result.current.phaseBanner).toBeNull();
       expect(result.current.attackAnnouncement).toBeNull();
-      expect(result.current.attackLunge).toBeNull();
       expect(result.current.securityClash).toBeNull();
       await advance(TIMINGS.turnBanner - 100 + TIMINGS.phaseBannerGap + 16);
       for (const phase of ["Active", "Draw", "Breeding", "Main"]) {
@@ -1678,7 +1782,7 @@ describe("match cues", () => {
     expect(result.current.phaseTransitionPending).toBe(false);
   });
 
-  it("releases the draw hold for an effect draw that flips the turn in the same patch", async () => {
+  it("keeps the incoming draw hold while presenting older same-seat effect draws", async () => {
     const state = {
       players: [0, 1].map(() => ({
         hand: [],
@@ -1726,9 +1830,10 @@ describe("match cues", () => {
     state.players[0]!.deckCount = 38;
     rerender({ phaseEvents: events, batches: [singleServerBatch(events)] });
     await advance(32);
-    // The Active banner armed the hold before the batch was read; the drawn cards belong
-    // to the turn that just ended, so they may not wait behind its ribbons.
-    expect(result.current.heldDrawState).toBeUndefined();
+    // Older effect draws join the held hand without releasing the incoming turn's hold.
+    expect(result.current.heldDrawState?.seat).toBe(0);
+    expect(result.current.heldDrawState?.state.players[0]?.handCount).toBe(7);
+    expect(result.current.heldDrawState?.state.players[0]?.deckCount).toBe(38);
   });
 
   it("does not lock actions or hold a hand when reconnecting to phase history", async () => {
@@ -1932,10 +2037,6 @@ describe("match cues", () => {
 
     rerender([ATTACK, CHECK]);
     await advance(0);
-    expect(result.current.attackLunge).toEqual({
-      permanentId: "perm-1",
-      direction: "down",
-    });
     // The shield arms first, and the reveal waits for its glass to break.
     expect(result.current.securityBreak).toMatchObject({
       seat: 0,
@@ -1948,11 +2049,7 @@ describe("match cues", () => {
     expect(result.current.securityBreak?.phase).toBe("break");
     expect(result.current.securityHitSeat).toBe(0);
 
-    // Each cue keeps its own clock: the lunge is over long before the break is.
-    await advance(TIMINGS.attackLunge - TIMINGS.securityArm);
-    expect(result.current.attackLunge).toBeNull();
-
-    await advance(SECURITY_BREAK_TOTAL_MS - TIMINGS.attackLunge);
+    await advance(SECURITY_BREAK_TOTAL_MS - TIMINGS.securityArm);
     expect(result.current.securityBreak).toBeNull();
     expect(result.current.securityHitSeat).toBeNull();
     expect(result.current.securityClash?.revealed.cardId).toBe("BT1-010");
@@ -2058,20 +2155,25 @@ describe("match cues", () => {
     await advance(SECURITY_BREAK_TOTAL_MS);
     expect(result.current.securityBranch).toBeNull();
 
-    // Strictly after: the card is never held to the side while it is still centre stage,
-    // which is what a branch on a clock of its own could not promise.
-    await advance(CLASH_TOTAL_MS - 1);
+    // The source remains through the handoff, then only the dock owns the card.
+    await advance(CLASH_DOCK_AT_MS - 1);
     expect(result.current.securityClash).not.toBeNull();
     expect(result.current.securityBranch).toBeNull();
 
     await advance(1);
-    expect(result.current.securityClash).toBeNull();
+    expect(result.current.securityClash?.departing).toBe(true);
     expect(result.current.securityBranch).toMatchObject({
       cardId: "BT1-010",
       side: "you",
     });
-
-    await advance(SECURITY_BRANCH_TOTAL_MS);
+    await advance(SECURITY_BRANCH_IN_MS);
+    expect(result.current.securityClash).toBeNull();
+    expect(result.current.securityBranch?.state).toBe("docked");
+    await advance(TIMINGS.securityClauseRead - 1);
+    expect(result.current.securityBranch?.state).toBe("docked");
+    await advance(1);
+    expect(result.current.securityBranch).toBeNull();
+    await advance(SECURITY_DOCK_CLOSE_MS);
     expect(result.current.securityBranch).toBeNull();
   });
 
@@ -2081,6 +2183,9 @@ describe("match cues", () => {
 
     rerender([OPTION_USE, OPTION_ROUTED]);
     await advance(0);
+    expect(result.current.zoneShowcase?.cardId).toBe("BT1-090");
+    expect(result.current.optionBranch).toBeNull();
+    await advance(SHOWCASE_TOTAL_MS + SECURITY_BRANCH_IN_MS);
     expect(result.current.optionBranch).toMatchObject({
       cardId: "BT1-090",
       side: "you",
@@ -2089,8 +2194,164 @@ describe("match cues", () => {
     });
 
     await advance(TIMINGS.optionDockHold + TIMINGS.securityDockPoll);
-    expect(result.current.optionBranch?.state).toBe("closing");
+    expect(result.current.optionBranch).toBeNull();
     await advance(SECURITY_DOCK_CLOSE_MS);
+    expect(result.current.optionBranch).toBeNull();
+  });
+
+  it("keeps a routed Option through the card it plays even without an On Play clause", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([
+      OPTION_USE,
+      {
+        kind: "effectTriggered",
+        seat: 0,
+        sourceCardId: "BT1-090",
+        effectKey: "main",
+        timing: "Main",
+        description: "Play a card.",
+      },
+      OPP_PLAY,
+      OPTION_ROUTED,
+    ]);
+    let elapsed = 0;
+    while (result.current.zoneShowcase?.cardId !== "BT1-010" && elapsed < 10000) {
+      await advance(16);
+      elapsed += 16;
+    }
+    await advance(16);
+    expect(result.current.zoneShowcase?.cardId).toBe("BT1-010");
+    expect(result.current.optionBranch?.state).toBe("docked");
+    await advance(SHOWCASE_TOTAL_MS - 32);
+    expect(result.current.zoneShowcase?.cardId).toBe("BT1-010");
+    expect(result.current.optionBranch?.state).toBe("docked");
+    await advance(32 + TIMINGS.securityDockPoll);
+    expect(result.current.zoneShowcase).toBeNull();
+    await advance(TIMINGS.optionDockHold + TIMINGS.effectSourceHold);
+    expect(result.current.optionBranch).toBeNull();
+  });
+
+  it("keeps a routed Option through its draw flight and releases a later clause", async () => {
+    const board = document.createElement("div");
+    const deck = document.createElement("div");
+    const hand = document.createElement("div");
+    vi.spyOn(board, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 800, 600));
+    vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(new DOMRect(600, 400, 80, 100));
+    vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 500, 300, 80));
+    const feed = batchFeed();
+    const { result, rerender } = renderHook(
+      (events: readonly ServerEvent[]) =>
+        useMatchCues({
+          narrationLimit: 3,
+          batches: feed(events),
+          state: undefined,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors: {
+            ...anchors,
+            board: { current: board },
+            yourDeck: { current: deck },
+            yourHandDock: { current: hand },
+          },
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: [] as readonly ServerEvent[] },
+    );
+    await advance(0);
+    const events: ServerEvent[] = [
+      OPTION_USE,
+      {
+        kind: "effectTriggered",
+        seat: 0,
+        sourceCardId: "BT1-090",
+        effectKey: "main",
+        timing: "Main",
+        description: "Draw 1.",
+      },
+      { kind: "cardsMoved", seat: 0, from: "deck", to: "hand", instanceIds: ["option-draw"] },
+      OPTION_ROUTED,
+    ];
+    rerender(events);
+    let elapsed = 0;
+    while (result.current.drawFlights.length === 0 && elapsed < 10000) {
+      await advance(16);
+      elapsed += 16;
+    }
+    await advance(16);
+    expect(result.current.drawFlights).toHaveLength(1);
+    expect(result.current.optionBranch?.state).toBe("docked");
+    rerender([...events, { ...EFFECT_NOTICE, timing: "On Play", description: "A later clause." }]);
+    await advance(result.current.drawFlights[0]!.duration - 32);
+    expect(result.current.drawFlights).toHaveLength(1);
+    expect(result.current.optionBranch?.state).toBe("docked");
+    await advance(32 + TIMINGS.securityDockPoll);
+    expect(result.current.drawFlights).toEqual([]);
+    await advance(TIMINGS.optionDockHold + TIMINGS.effectSourceHold);
+    expect(result.current.optionBranch).toBeNull();
+    await advance(TIMINGS.effectSourceHold);
+    expect(
+      result.current.notices.some(
+        (notice) => notice.body.variant === "effect" && notice.body.description === "A later clause.",
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps the Option source until its returned Digimon reaches the deck", async () => {
+    const board = document.createElement("div");
+    const deck = document.createElement("div");
+    vi.spyOn(board, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 800, 600));
+    vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(new DOMRect(600, 400, 80, 100));
+    const feed = batchFeed();
+    const { result, rerender } = renderHook(
+      (events: readonly ServerEvent[]) =>
+        useMatchCues({
+          narrationLimit: 3,
+          batches: feed(events),
+          state: undefined,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors: { ...anchors, board: { current: board }, oppDeck: { current: deck } },
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: [] as readonly ServerEvent[] },
+    );
+    await advance(0);
+    rerender([OPTION_USE]);
+    await advance(SHOWCASE_TOTAL_MS + SECURITY_BRANCH_IN_MS + TIMINGS.optionDockHold);
+    expect(result.current.optionBranch?.state).toBe("docked");
+    rerender([
+      OPTION_USE,
+      {
+        kind: "effectTriggered",
+        seat: 0,
+        sourceCardId: "BT1-090",
+        effectKey: "main",
+        timing: "Main",
+        description: "Return a Digimon to the deck.",
+      },
+      {
+        kind: "cardsMoved",
+        seat: 1,
+        from: "battleArea",
+        to: "deckBottom",
+        instanceIds: ["returned"],
+        returnedPermanents: [{ permanentId: "perm-dead", instanceId: "returned", cardId: "BT1-011", seat: 1 }],
+      },
+      OPTION_ROUTED,
+    ]);
+    let elapsed = 0;
+    while (result.current.drawFlights.length === 0 && elapsed < 10000) {
+      await advance(16);
+      elapsed += 16;
+    }
+    const flight = result.current.drawFlights[0]!;
+    expect(flight).toMatchObject({ card: { cardId: "BT1-011" }, x: 120, y: 80, dx: 520, dy: 370 });
+    await advance(TIMINGS.securityDockPoll);
+    expect(result.current.drawFlights).toHaveLength(1);
+    expect(result.current.optionBranch?.state).toBe("docked");
+    await advance(flight.duration - TIMINGS.securityDockPoll + 16 + TIMINGS.securityDockPoll);
+    expect(result.current.drawFlights).toEqual([]);
     expect(result.current.optionBranch).toBeNull();
   });
 
@@ -2102,8 +2363,8 @@ describe("match cues", () => {
     const { result, rerender } = renderCuesAwaitingAnswer();
     await advance(0);
 
-    rerender({ events: [OPTION_USE, OPTION_ROUTED], decisionPending: true });
-    await advance(0);
+    rerender({ events: [OPTION_USE, OPTION_ROUTED], decisionPending: true, decisionSourceCardId: "BT1-090" });
+    await advance(SHOWCASE_TOTAL_MS + SECURITY_BRANCH_IN_MS);
     expect(result.current.optionBranch?.state).toBe("docked");
 
     // Past the point the marker alone would have closed it.
@@ -2112,8 +2373,22 @@ describe("match cues", () => {
 
     rerender({ events: [OPTION_USE, OPTION_ROUTED], decisionPending: false });
     await advance(TIMINGS.securityDockPoll * 2);
-    expect(result.current.optionBranch?.state).toBe("closing");
+    expect(result.current.optionBranch).toBeNull();
     await advance(SECURITY_DOCK_CLOSE_MS);
+    expect(result.current.optionBranch).toBeNull();
+  });
+
+  it("closes a routed Option while a different effect is asking its question", async () => {
+    const { result, rerender } = renderCuesAwaitingAnswer();
+    await advance(0);
+    rerender({ events: [OPTION_USE, OPTION_ROUTED], decisionPending: true, decisionSourceCardId: "EX13-028" });
+    await advance(
+      SHOWCASE_TOTAL_MS +
+        SECURITY_BRANCH_IN_MS +
+        TIMINGS.optionDockHold +
+        TIMINGS.securityDockPoll +
+        SECURITY_DOCK_CLOSE_MS,
+    );
     expect(result.current.optionBranch).toBeNull();
   });
 
@@ -2127,7 +2402,7 @@ describe("match cues", () => {
 
     // No routing event: the Option is mid-resolution and its dock stays open.
     rerender([OPTION_USE]);
-    await advance(0);
+    await advance(SHOWCASE_TOTAL_MS + SECURITY_BRANCH_IN_MS);
     expect(result.current.optionBranch?.state).toBe("docked");
 
     rerender([OPTION_USE, { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 1 }]);
@@ -2148,26 +2423,27 @@ describe("match cues", () => {
     await advance(0);
     expect(result.current.securityRevealPending).toBe(true);
 
-    await advance(EFFECT_CHECK_NOTICE_AT_MS - 1);
+    await advance(EFFECT_CHECK_PRESENTED_AT_MS - 1);
     expect(result.current.securityRevealPending).toBe(true);
 
     await advance(1);
     expect(result.current.securityRevealPending).toBe(false);
   });
 
-  it("gives the screen back at the outcome when the player clicks through the scene", async () => {
+  it("keeps the resolved card readable when the player clicks through its dock", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
     rerender([EFFECT_CHECK]);
     await advance(SECURITY_BREAK_TOTAL_MS + CLASH_OUTCOME_AT_MS);
-    // The outcome beat is decoration, so a click takes the board back from it — and
-    // the branch and the reveal hold move up with it rather than waiting it out.
+    // Skipping decoration does not shorten the same source read used by a live dock.
     act(() => result.current.skipAnimations());
     await advance(0);
     expect(result.current.securityClash).toBeNull();
-    expect(result.current.securityRevealPending).toBe(false);
+    expect(result.current.securityRevealPending).toBe(true);
     expect(result.current.securityBranch).not.toBeNull();
+    await advance(EFFECT_CHECK_PRESENTED_AT_MS - SECURITY_BREAK_TOTAL_MS - CLASH_OUTCOME_AT_MS);
+    expect(result.current.securityRevealPending).toBe(false);
   });
 
   // The reference client docks a card with a [Security] effect in its brainstorm slot and
@@ -2182,30 +2458,29 @@ describe("match cues", () => {
     expect(result.current.securityClash?.revealed.cardId).toBe("BT1-010");
     expect(result.current.securityBranch).toBeNull();
 
-    // The card is seen centre stage for the hold every check gets, then it leaves for the
+    // The card is seen centre stage through its reveal light, then it leaves for the
     // dock rather than holding the middle of the board for a resolution of unknown length.
     await advance(CLASH_REVEAL_SHOWN_AT_MS);
     expect(result.current.securityClash?.departing).toBeUndefined();
     expect(result.current.securityBranch).toBeNull();
     await advance(CLASH_DOCK_AT_MS - CLASH_REVEAL_SHOWN_AT_MS);
     expect(result.current.securityClash?.departing).toBe(true);
-    expect(result.current.securityBranch).toBeNull();
-    await advance(TIMINGS.clashExit);
-    expect(result.current.securityClash).toBeNull();
     expect(result.current.securityBranch).toMatchObject({
       cardId: "BT1-010",
       side: "you",
       state: "docked",
     });
+    await advance(SECURITY_BRANCH_IN_MS);
+    expect(result.current.securityClash).toBeNull();
 
     // Open-ended: nothing but the close takes it away.
     await advance(CLASH_TOTAL_MS + SECURITY_BRANCH_TOTAL_MS);
     expect(result.current.securityBranch?.state).toBe("docked");
 
-    // The dock notices its close on its next poll, and only then starts leaving.
+    // Its close removes the execution card without a second presentation hold.
     rerender([ATTACK, EFFECT_REVEAL, EFFECT_CHECK]);
     await advance(TIMINGS.securityDockPoll);
-    expect(result.current.securityBranch?.state).toBe("closing");
+    expect(result.current.securityBranch).toBeNull();
     await advance(SECURITY_DOCK_CLOSE_MS);
     expect(result.current.securityBranch).toBeNull();
     expect(result.current.securityClash).toBeNull();
@@ -2335,15 +2610,112 @@ describe("match cues", () => {
     await advance(SHOWCASE_TOTAL_MS);
     expect(result.current.zoneShowcase).toBeNull();
     expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(false);
-    expect(result.current.securityBranch?.state).toBe("closing");
+    expect(result.current.securityBranch).toBeNull();
 
-    // Step 5: only once it has gone does the [On Play] result read out.
+    // Step 5: On Play can read without an extra dock fade between it and the arrival.
     await advance(SECURITY_DOCK_CLOSE_MS);
     expect(result.current.securityBranch).toBeNull();
     expect(result.current.notices).toHaveLength(2);
+    await advance(TIMINGS.narrationCardsLag);
     expect(result.current.sidePanels.at(-1)?.titleKey).toBe("panel.revealedCards");
     expect(result.current.sidePanels.at(-1)?.cards).toHaveLength(4);
   });
+
+  it.each([
+    ["transfer", DOCK_AT_MS + 60],
+    ["clause read", DOCKED_AT_MS + 20],
+    ["queued closure", DOCKED_AT_MS + CLAUSE_HOLD_MS - 1],
+  ] as const)("clears a resolved security dock cancelled during %s", async (_, cancelAt) => {
+    let queue: AnimationQueue | undefined;
+    const { result, rerender } = renderCues([], vi.fn(), false, {
+      onQueue: (controls) => {
+        queue = controls.queue as AnimationQueue;
+      },
+    });
+    await advance(0);
+    const events = [ATTACK, OPP_EFFECT_REVEAL, OPP_SECURITY_NOTICE, OPP_TAIKI_CHECK];
+    rerender(events);
+    await advance(cancelAt);
+    expect(result.current.securityBranch).not.toBeNull();
+    expect(queue).toBeDefined();
+    act(() => queue!.clear());
+    await advance(0);
+    expect(result.current.securityBranch).toBeNull();
+    expect(result.current.securityClash).toBeNull();
+    expect(result.current.securityRevealPending).toBe(false);
+    expect(result.current.heldSecurityEffectState).toBeUndefined();
+    rerender([...events, SECOND_REVEAL]);
+    await advance(SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-011");
+  });
+
+  it.each([true, false])(
+    "preserves source and arrival order for a resolved check with reveal=%s",
+    async (withReveal) => {
+      const { result, rerender } = renderCues();
+      await advance(0);
+      rerender([
+        ATTACK,
+        ...(withReveal ? [OPP_EFFECT_REVEAL] : []),
+        OPP_SECURITY_NOTICE,
+        OPP_TAIKI_PLAY,
+        OPP_ON_PLAY,
+        ...TAIKI_REVEALS,
+        OPP_TAIKI_CHECK,
+      ]);
+      await advance(DOCKED_AT_MS - 1);
+      expect(result.current.notices).toEqual([]);
+      expect(result.current.zoneShowcase).toBeNull();
+      expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(true);
+      await advance(1);
+      expect(result.current.securityBranch?.state).toBe("docked");
+      expect(result.current.notices.map((notice) => notice.body)).toEqual([
+        expect.objectContaining({ timing: "Security", cardId: "BT10-087" }),
+      ]);
+      await advance(CLAUSE_HOLD_MS - 1);
+      expect(result.current.zoneShowcase).toBeNull();
+      await advance(1);
+      expect(result.current.zoneShowcase?.cardId).toBe("BT10-087");
+      expect(result.current.sidePanels).toEqual([]);
+      await advance(SHOWCASE_TOTAL_MS + SECURITY_DOCK_CLOSE_MS + TIMINGS.effectSourceHold);
+      expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(false);
+      expect(
+        result.current.notices.filter(
+          (notice) => notice.body.variant === "effect" && notice.body.timing === "Security",
+        ),
+      ).toHaveLength(1);
+      expect(
+        result.current.notices.some((notice) => notice.body.variant === "effect" && notice.body.timing === "On Play"),
+      ).toBe(true);
+      expect(result.current.sidePanels.at(-1)?.cards).toHaveLength(4);
+    },
+  );
+
+  it.each(["effect", "battle"] as const)(
+    "holds the Digimon battle board only when the known verdict is %s",
+    async (resolution) => {
+      const state = {
+        players: [
+          { battleArea: [], trash: [], hand: [], securityCount: 5 },
+          {
+            battleArea: [{ permanentId: "perm-1", topCard: { cardId: "BT1-010", instanceId: "attacker" } }],
+            trash: [],
+            hand: [],
+            securityCount: 5,
+          },
+        ],
+      } as unknown as GameState;
+      const { result, rerender } = renderCuesOverBoard(state);
+      await advance(0);
+      rerender([ATTACK, { ...EFFECT_REVEAL, isDigimon: true }, { ...EFFECT_CHECK, resolution }]);
+      await advance(0);
+      expect(result.current.heldBlowState !== undefined).toBe(resolution === "battle");
+      await advance(DOCKED_AT_MS);
+      expect(result.current.heldBlowState !== undefined).toBe(resolution === "battle");
+      await advance(10000);
+      expect(result.current.heldBlowState).toBeUndefined();
+    },
+  );
 
   it("moves a resolved security card to the right before its played Tamer enters the field", async () => {
     const { result, rerender } = renderCues();
@@ -2352,7 +2724,7 @@ describe("match cues", () => {
     // A fast resolution can deliver the reveal, free play, and close together. The Tamer
     // must remain held while its security card is still travelling to the execution slot.
     rerender([ATTACK, OPP_EFFECT_REVEAL, OPP_TAIKI_PLAY, EFFECT_CHECK]);
-    await advance(EFFECT_CHECK_NOTICE_AT_MS - 1);
+    await advance(EFFECT_CHECK_NOTICE_AT_MS + CLAUSE_HOLD_MS - 1);
     expect(result.current.securityBranch).not.toBeNull();
     expect(result.current.zoneShowcase).toBeNull();
     expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(true);
@@ -2367,15 +2739,14 @@ describe("match cues", () => {
     await advance(0);
 
     rerender([ATTACK, EFFECT_REVEAL, YOUR_TAIKI_PLAY, EFFECT_CHECK]);
-    await advance(EFFECT_CHECK_NOTICE_AT_MS - 1);
-    // The player's regular hand plays skip the showcase, but a Security play cannot:
-    // its source is still animating from the shield to the execution slot.
+    await advance(EFFECT_CHECK_NOTICE_AT_MS + CLAUSE_HOLD_MS - 1);
+    // A Security play waits for the source to reach the execution slot, then reveals.
     expect(result.current.pendingPermanentIds.has("perm-your-taiki")).toBe(true);
 
     await advance(1);
     expect(result.current.securityBranch).not.toBeNull();
-    // The queued field-burst is scheduled after the branch step yields back to the queue.
-    await advance(0);
+    expect(result.current.zoneShowcase?.cardId).toBe(YOUR_TAIKI_PLAY.cardId);
+    await advance(SHOWCASE_TOTAL_MS);
     expect(result.current.pendingPermanentIds.has("perm-your-taiki")).toBe(false);
     expect(result.current.permanentBursts.get("perm-your-taiki")).toMatchObject({ variant: "play" });
   });
@@ -2474,7 +2845,7 @@ describe("match cues", () => {
     expect(result.current.zoneShowcase).toBeNull();
     expect(result.current.pendingPermanentIds.has("perm-1")).toBe(false);
     expect(result.current.sidePanels.some((panel) => panel.titleKey === "panel.playedCard")).toBe(false);
-    await advance(TIMINGS.cardBurst);
+    await advance(CARD_BURST_PEAK_MS + POLL_MS);
     expect(result.current.effectSources).toHaveLength(1);
     expect(result.current.notices).toHaveLength(0);
     await advance(TIMINGS.effectSourceHold);
@@ -2538,7 +2909,7 @@ describe("match cues", () => {
       await advance(0);
 
       rerender([LIVE_ATTACK, LIVE_REVEAL, LIVE_PLAY, LIVE_MOVE, LIVE_ON_PLAY, ...LIVE_REVEALS]);
-      await advance(DOCKED_AT_MS + SHOWCASE_TOTAL_MS);
+      await advance(DOCKED_AT_MS + CLAUSE_HOLD_MS + SECURITY_DOCK_CLOSE_MS);
 
       expect(result.current.zoneShowcase).toBeNull();
       expect(result.current.sidePanels.some((panel) => panel.titleKey === "panel.playedCard")).toBe(false);
@@ -2604,7 +2975,7 @@ describe("match cues", () => {
     expect(result.current.zoneShowcase).toBeNull();
     expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(false);
     // The dock leaves on the play, and the [On Play] clause reads out behind it.
-    expect(result.current.securityBranch?.state).toBe("closing");
+    expect(result.current.securityBranch).toBeNull();
     await advance(SECURITY_DOCK_CLOSE_MS);
     expect(result.current.securityBranch).toBeNull();
     expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["effect"]);
@@ -2643,7 +3014,7 @@ describe("match cues", () => {
 
     rerender([ATTACK, OPP_EFFECT_REVEAL, OPP_SECURITY_NOTICE, OPP_TAIKI_PLAY]);
     await advance(CLAUSE_HOLD_MS + SHOWCASE_TOTAL_MS);
-    expect(result.current.securityBranch?.state).toBe("closing");
+    expect(result.current.securityBranch).toBeNull();
 
     rerender([ATTACK, OPP_EFFECT_REVEAL, OPP_SECURITY_NOTICE, OPP_TAIKI_PLAY, OPP_ON_PLAY, ...TAIKI_REVEALS]);
     await advance(SECURITY_DOCK_CLOSE_MS + SHOWCASE_TOTAL_MS + NOTICE_ITEM_MS);
@@ -2676,12 +3047,17 @@ describe("match cues", () => {
     expect(result.current.securityBranch?.state).toBe("docked");
 
     rerender([ATTACK, EFFECT_REVEAL, CHECK]);
-    await advance(CLAUSE_HOLD_MS + TIMINGS.securityDockPoll + SECURITY_DOCK_CLOSE_MS);
+    await advance(CLAUSE_HOLD_MS);
     await advance(0);
     expect(result.current.securityBranch).toBeNull();
     expect(result.current.securityClash?.resolution).toBe("battle");
+    expect(result.current.securityClash?.revealedReady).toBe(true);
+    await advance(TIMINGS.clashOutcome - 1);
+    expect(result.current.securityClash?.exiting).not.toBe(true);
+    await advance(1);
+    expect(result.current.securityClash?.exiting).toBe(true);
 
-    await advance(CLASH_TOTAL_MS);
+    await advance(TIMINGS.securityCardExit);
     expect(result.current.securityClash).toBeNull();
   });
 
@@ -2785,8 +3161,8 @@ describe("match cues", () => {
     expect(result.current.combatImpactIds.size).toBe(0);
     expect(result.current.deleteBursts).toHaveLength(1);
     expect(result.current.deleteBursts[0]).toMatchObject({
-      x: 120 - 48,
-      y: 80 - 48,
+      x: 120 - 36,
+      y: 80 - 50.5,
     });
 
     await advance(TIMINGS.cardBurst);
@@ -2797,7 +3173,100 @@ describe("match cues", () => {
     expect(result.current.deleteBursts).toEqual([]);
   });
 
-  it("plays the board battle — arrow scene, lunge, then the blow — ahead of the loser's burst", async () => {
+  describe("an effect battle", () => {
+    const effectCompared = (loser: string): ServerEvent => ({
+      kind: "battleCompared",
+      attackerPermanentId: "perm-1",
+      defenderPermanentId: loser,
+      loserPermanentIds: [loser],
+      effectBattle: { attackerSeat: 1, attackerCardId: "EX13-076", defenderCardId: "BT1-020" },
+    });
+
+    it("strikes the loser after its arrow and breaks it only after the contact", async () => {
+      const { result, rerender } = renderCues();
+      await advance(0);
+
+      const deletion: ServerEvent = {
+        kind: "cardsMoved",
+        instanceIds: ["inst-dead"],
+        from: "battleArea",
+        to: "trash",
+        battleDeletion: true,
+        deletedPermanents: [{ permanentId: "perm-dead", instanceId: "inst-dead", cardId: "BT1-020", seat: 0 }],
+      };
+      const onDeletion: ServerEvent = {
+        kind: "effectTriggered",
+        seat: 0,
+        sourceCardId: "BT1-020",
+        effectKey: "effect-battle:onDeletion",
+        timing: "OnDeletion",
+        description: "Draw 1 card.",
+      };
+      // The server publishes the comparison a batch ahead of the deletion it causes.
+      rerender([effectCompared("perm-dead")]);
+      await advance(0);
+      rerender([effectCompared("perm-dead"), deletion, onDeletion]);
+      await advance(0);
+      expect(result.current.fieldClash).toMatchObject({
+        attacker: { permanentId: "perm-1", cardId: "EX13-076" },
+        defender: { permanentId: "perm-dead", cardId: "BT1-020" },
+        effectBattle: true,
+      });
+      expect(result.current.combatImpactIds.size).toBe(0);
+
+      await advance(FIELD_CLASH_IMPACT_AT_MS);
+      expect(result.current.combatImpactIds.has("perm-dead")).toBe(true);
+      expect(result.current.combatImpactIds.has("perm-1")).toBe(false);
+      expect(result.current.deleteBursts).toEqual([]);
+
+      await advance(COMBAT_IMPACT_TOTAL_MS - 1);
+      expect(result.current.deleteBursts).toEqual([]);
+      // What the deletion caused reads only once the blow has landed.
+      expect(result.current.notices).toHaveLength(0);
+      await advance(1);
+      expect(result.current.fieldClash).toBeNull();
+      expect(result.current.combatImpactIds.size).toBe(0);
+      expect(result.current.deleteBursts).toHaveLength(1);
+      expect(result.current.notices).toHaveLength(1);
+    });
+
+    it.each([0, 100])(
+      "queues an attack's blow %ims later behind it, and that loser breaks after its own blow",
+      async (attackDelayMs) => {
+        const { result, rerender } = renderCues();
+        await advance(0);
+
+        const declare: ServerEvent = {
+          kind: "attackDeclared",
+          seat: 1,
+          attackerPermanentId: "perm-1",
+          attackerCardId: "BT1-010",
+          target: { kind: "permanent", permanentId: "perm-dead" },
+          targetCardId: "BT1-020",
+        };
+        rerender([declare, effectCompared("perm-struck")]);
+        await advance(attackDelayMs);
+        rerender([declare, effectCompared("perm-struck"), COMBAT]);
+        await advance(FIELD_CLASH_IMPACT_AT_MS - attackDelayMs);
+        expect(result.current.combatImpactIds.has("perm-struck")).toBe(true);
+
+        await advance(COMBAT_IMPACT_TOTAL_MS);
+        expect(result.current.fieldClash).toMatchObject({ defender: { permanentId: "perm-dead" } });
+        expect(result.current.combatImpactIds.size).toBe(0);
+
+        await advance(FIELD_CLASH_IMPACT_AT_MS);
+        expect(result.current.combatImpactIds.has("perm-dead")).toBe(true);
+        // The fixed lead-in has passed; the burst still waits for the queued blow to land.
+        await advance(COMBAT_IMPACT_TOTAL_MS - 1);
+        expect(result.current.deleteBursts).toEqual([]);
+        await advance(1);
+        expect(result.current.fieldClash).toBeNull();
+        expect(result.current.deleteBursts).toHaveLength(1);
+      },
+    );
+  });
+
+  it("lands the battle blow after the arrow, with no invented attacker movement or extra delay", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
@@ -2818,25 +3287,118 @@ describe("match cues", () => {
       defender: { permanentId: "perm-dead", cardId: "BT1-020" },
       direction: "down",
     });
-    expect(result.current.attackLunge).toBeNull();
     expect(result.current.combatImpactIds.size).toBe(0);
 
-    await advance(FIELD_CLASH_LUNGE_AT_MS);
-    expect(result.current.attackLunge).toEqual({
-      permanentId: "perm-1",
-      direction: "down",
-    });
-
-    await advance(FIELD_CLASH_IMPACT_AT_MS - FIELD_CLASH_LUNGE_AT_MS);
+    await advance(FIELD_CLASH_IMPACT_AT_MS - 1);
+    expect(result.current.combatImpactIds.size).toBe(0);
+    await advance(1);
     expect(result.current.combatImpactIds.has("perm-dead")).toBe(true);
+    expect(result.current.combatImpactIds.has("perm-1")).toBe(false);
     expect(result.current.deleteBursts).toEqual([]);
 
     await advance(COMBAT_IMPACT_TOTAL_MS);
     expect(result.current.fieldClash).toBeNull();
-    expect(result.current.attackLunge).toBeNull();
     expect(result.current.combatImpactIds.size).toBe(0);
     expect(result.current.deleteBursts).toHaveLength(1);
   });
+
+  it.each([0, 40, 180, 380])("waits only the declaration arrow's remaining %ims before impact", async (remainingMs) => {
+    const declare: ServerEvent = {
+      ...ATTACK,
+      target: { kind: "permanent", permanentId: "perm-dead" },
+      targetCardId: "BT1-020",
+    };
+    const arrowClock = {
+      key: attackDeclarationKey(declare),
+      elapsedMs: 380 - remainingMs,
+      remainingMs,
+      observedAtMs: 0,
+    };
+    const readClock = vi.fn<NonNullable<MatchCueAnchors["attackArrowClock"]>>(() => arrowClock);
+    const { result, rerender } = renderCues([], undefined, false, undefined, {
+      ...anchors,
+      attackArrowClock: readClock,
+    });
+    await advance(0);
+    rerender([declare, COMBAT]);
+    await advance(0);
+    expect(readClock).toHaveBeenCalledWith("perm-1", arrowClock.key);
+    expect(result.current.fieldClash?.arrowClock).toEqual(arrowClock);
+    await advance(Math.max(0, remainingMs - 1));
+    expect(result.current.combatImpactIds.size).toBe(remainingMs > 0 ? 0 : 1);
+    await advance(remainingMs > 0 ? 1 : 0);
+    expect(result.current.combatImpactIds.has("perm-dead")).toBe(true);
+    await advance(COMBAT_IMPACT_TOTAL_MS - 1);
+    expect(result.current.deleteBursts).toHaveLength(0);
+    await advance(1);
+    expect(result.current.fieldClash).toBeNull();
+    expect(result.current.deleteBursts).toHaveLength(1);
+  });
+
+  it.each([true, false])(
+    "holds clauses and shards for a late painted impact (known defender: %s)",
+    async (knownDefender) => {
+      const descriptor = Object.getOwnPropertyDescriptor(document, "timeline");
+      const root = document.createElement("div");
+      root.dataset.combatImpact = "true";
+      root.dataset.permanentId = "perm-dead";
+      document.body.append(root);
+      const start = Date.now() + 64;
+      Object.defineProperty(document, "timeline", {
+        configurable: true,
+        value: {
+          get currentTime() {
+            return Date.now();
+          },
+        },
+      });
+      root.getAnimations = () => [
+        {
+          animationName: "battle-claw",
+          startTime: start,
+          currentTime: 250,
+          playState: "finished",
+          effect: { getTiming: () => ({ delay: 0 }) },
+        } as unknown as Animation,
+      ];
+      try {
+        const { result, rerender } = renderCues([], undefined, false, undefined, {
+          ...anchors,
+          attackArrowClock: () => ({ key: "attack:1:perm-1", elapsedMs: 380, remainingMs: 0, observedAtMs: 0 }),
+        });
+        await advance(0);
+        const declare: ServerEvent = {
+          ...ATTACK,
+          target: { kind: "permanent", permanentId: "perm-dead" },
+          targetCardId: "BT1-020",
+        };
+        const trigger: ServerEvent = {
+          kind: "effectTriggered",
+          seat: 1,
+          sourceCardId: "BT1-010",
+          effectKey: "late-impact:onDeletion",
+          timing: "OnDeletion",
+          description: "Draw 1 card.",
+        };
+        rerender([...(knownDefender ? [declare] : []), trigger, COMBAT]);
+        await advance(COMBAT_IMPACT_TOTAL_MS);
+        expect(result.current.fieldClash === null).toBe(!knownDefender);
+        expect(result.current.combatImpactIds.has("perm-dead")).toBe(true);
+        expect(result.current.notices).toHaveLength(0);
+        expect(result.current.deleteBursts).toHaveLength(0);
+        await advance(63);
+        expect(result.current.notices).toHaveLength(0);
+        await advance(1);
+        expect(result.current.fieldClash).toBeNull();
+        expect(result.current.notices).toHaveLength(1);
+        expect(result.current.deleteBursts).toHaveLength(1);
+      } finally {
+        root.remove();
+        if (descriptor) Object.defineProperty(document, "timeline", descriptor);
+        else Reflect.deleteProperty(document, "timeline");
+      }
+    },
+  );
 
   it("finishes a Raid field battle before a Piercing security battle", async () => {
     const { result, rerender } = renderCues();
@@ -3091,12 +3653,16 @@ describe("zone-change showcases", () => {
     expect(result.current.permanentBursts.has("perm-9")).toBe(false);
   });
 
-  it("skips the hold for the viewer's own play but keeps the field burst", async () => {
+  it("reveals the viewer's accepted play before lighting its field slot", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
     rerender([YOUR_PLAY]);
     await advance(0);
+    expect(result.current.zoneShowcase).toMatchObject({ mine: true, kind: "play" });
+    expect(result.current.pendingPermanentIds.has("perm-8")).toBe(true);
+    expect(result.current.permanentBursts.size).toBe(0);
+    await advance(SHOWCASE_TOTAL_MS);
     expect(result.current.zoneShowcase).toBeNull();
     expect(result.current.pendingPermanentIds.size).toBe(0);
     expect(result.current.permanentBursts.get("perm-8")).toMatchObject({
@@ -3307,7 +3873,7 @@ describe("notices", () => {
     });
   });
 
-  it("reads a notice out on its own clock while the viewer's decision waits", async () => {
+  it("keeps an accepted notice's reading clock running while the viewer decides", async () => {
     const { result, rerender } = renderCuesAwaitingAnswer();
     await advance(0);
 
@@ -3315,16 +3881,16 @@ describe("notices", () => {
     await advance(0);
     expect(result.current.notices).toHaveLength(1);
 
-    // The question arrives half way through the reading. Phase 3: it no longer stops the
-    // clock — the barrier has already caught the presentation up, so an item on screen
-    // beside a prompt is one the viewer has been given the time to read.
+    // A question halfway through reading does not extend the toast's lifetime.
     await advance(TIMINGS.noticeLifetime / 2);
     rerender({
       events: [EFFECT],
       decisionPending: true,
       decisionStateVersion: 1,
     });
-    await advance(TIMINGS.noticeLifetime / 2 + NARRATION_TICK_MS);
+    await advance(TIMINGS.noticeLifetime / 2 - 1);
+    expect(result.current.notices).toHaveLength(1);
+    await advance(1);
     expect(result.current.notices).toEqual([]);
   });
 
@@ -3587,7 +4153,7 @@ describe("server-named signals", () => {
     await advance(0);
     rerender([SHUFFLE]);
     await advance(1);
-    expect([...result.current.deckRiffles]).toEqual(["1:eggDeck"]);
+    expect([...result.current.deckRiffles.keys()]).toEqual(["1:eggDeck"]);
     await advance(TIMINGS.deckRiffle + 10);
     expect(result.current.deckRiffles.size).toBe(0);
   });
@@ -4254,8 +4820,7 @@ describe("a DigiXros play whose [On Play] deletes, and the question it raises", 
     await advance(0);
     expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["keyword"]);
 
-    // A pending decision no longer stops the reading clock: the call-out is read, it
-    // leaves, and the clause behind it takes the corner — all while the question is open.
+    // Presentation continues during a question; earlier announcements expire independently.
     await advance(NOTICE_ITEM_MS + 1);
     expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["effect", "deletion"]);
     expect(result.current.notices[0]?.body).toMatchObject({
@@ -4367,42 +4932,34 @@ describe("the narration feed", () => {
     expect(result.current.narration.size).toBe(0);
   });
 
-  // Each corner is a FIFO of its own, so a moment only ever displaces an earlier moment of
-  // the same side. Folded into the phone's single slot, the two sides share that one queue.
-  it.each([true, false])(
-    "keeps only the newest record per slot, which the phone folds into one (portrait=%s)",
-    async (portrait) => {
-      const feed = batchFeed();
-      const view = renderHook(
-        (batches: readonly ServerBatch[]) =>
-          useMatchCues({
-            batches,
-            state: undefined,
-            viewerSeat: VIEWER,
-            mulliganOpen: false,
-            collapseNarration: portrait,
-            anchors,
-            onActionRejected: vi.fn<(reason: string) => void>(),
-          }),
-        { initialProps: feed([]) },
-      );
-      await advance(0);
-      view.rerender(feed([yourEffect("BT1-001"), yourEffect("BT1-002"), theirEffect("BT1-009")]));
-      await advance(0);
-      // All three are clauses, so they all read out of the one text column. It holds two, so
-      // the oldest falls off; the phone's folded slot queues them instead of dropping any.
-      const expected = portrait ? ["BT1-001", "BT1-002", "BT1-009"] : ["BT1-002", "BT1-009"];
-      const firstRead = portrait ? ["BT1-001"] : expected;
-      const secondRead = portrait ? ["BT1-001", "BT1-002"] : expected;
-      expect(cards(view.result.current.narration)).toEqual(firstRead);
-      await advance(TIMINGS.effectAnnounce);
-      expect(cards(view.result.current.narration)).toEqual(secondRead);
-      await advance(TIMINGS.effectAnnounce);
-      expect(cards(view.result.current.narration)).toEqual(expected);
-      expect(view.result.current.narrationLock).toBe(false);
-      expect(view.result.current.presenting).toBe(false);
-    },
-  );
+  // Both layouts retain the recent effects from both players in activation order.
+  it.each([true, false])("stacks recent effects from both players (portrait=%s)", async (portrait) => {
+    const feed = batchFeed();
+    const view = renderHook(
+      (batches: readonly ServerBatch[]) =>
+        useMatchCues({
+          batches,
+          state: undefined,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          collapseNarration: portrait,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: feed([]) },
+    );
+    await advance(0);
+    view.rerender(feed([yourEffect("BT1-001"), yourEffect("BT1-002"), theirEffect("BT1-009")]));
+    await advance(0);
+    const expected = ["BT1-001", "BT1-002", "BT1-009"];
+    expect(cards(view.result.current.narration)).toEqual(portrait ? expected.slice(0, 1) : expected);
+    await advance(TIMINGS.effectAnnounce);
+    expect(cards(view.result.current.narration)).toEqual(portrait ? expected.slice(0, 2) : expected);
+    await advance(TIMINGS.effectAnnounce);
+    expect(cards(view.result.current.narration)).toEqual(expected);
+    expect(view.result.current.narrationLock).toBe(false);
+    expect(view.result.current.presenting).toBe(false);
+  });
 
   it("dismisses the selected record without dismissing its neighbors or changing their clocks", async () => {
     const { result, rerender } = renderCues();
@@ -4418,6 +4975,28 @@ describe("the narration feed", () => {
     expect(result.current.advanceNarration(middle)).toBe(false);
     await advance(TIMINGS.noticeLifetime - 1000);
     expect(result.current.narration.size).toBe(0);
+  });
+
+  it("keeps the arrival clock when its cards half arrives during a decision", async () => {
+    const { result, rerender } = renderCuesAwaitingAnswer();
+    const events: ServerEvent[] = [
+      theirEffect("BT1-001"),
+      { kind: "cardRevealed", seat: 1, cardId: "BT1-001", sourceCardId: "BT1-001" },
+    ];
+    rerender({ events, decisionPending: false });
+    await advance(0);
+    const original = [...result.current.narration.values()][0]!;
+    expect(original.notice).toBeDefined();
+    expect(original.panel).toBeUndefined();
+    await advance(TIMINGS.narrationCardsLag / 2);
+    rerender({ events, decisionPending: true, decisionStateVersion: 1 });
+    await advance(TIMINGS.narrationCardsLag / 2);
+    const withCards = result.current.narration.get(original.id)!;
+    expect(withCards.panel).toBeDefined();
+    expect(withCards.pausedAt).toBeUndefined();
+    expect(withCards.createdAt).toBe(original.createdAt);
+    await advance(12_000);
+    expect(result.current.narration.has(original.id)).toBe(false);
   });
 
   it("keeps repeated activations of the same card independently dismissible", async () => {
@@ -4445,7 +5024,7 @@ describe("the narration feed", () => {
     expect(cards(result.current.narration)).toEqual(["BT1-002"]);
   });
 
-  it("does not wait for reading timers to open a decision, and keeps expiring records", async () => {
+  it("expires accepted toasts from arrival while a chain is still asking a question", async () => {
     const { result, rerender } = renderCuesAwaitingAnswer();
     await advance(0);
     rerender({
@@ -4461,6 +5040,9 @@ describe("the narration feed", () => {
     });
     await advance(0);
     expect(result.current.decisionBarrierPending).toBe(false);
+    await advance(TIMINGS.noticeLifetime);
+    expect(result.current.narration.size).toBe(0);
+    rerender({ events: [yourEffect("BT1-001"), yourEffect("BT1-002")], decisionPending: false });
     await advance(TIMINGS.noticeLifetime);
     expect(result.current.narration.size).toBe(0);
   });
@@ -4635,11 +5217,12 @@ describe("triggered effect source prelude", () => {
     expect(result.current.deleteBursts).toHaveLength(1);
     expect(result.current.effectSources).toHaveLength(0);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
-    await advance(Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter));
-    expect(result.current.deleteBursts).toHaveLength(0);
+    await advance(TIMINGS.deletionBurst);
+    // Only the non-blocking light remains; the source may now activate in the trash.
+    expect(result.current.deleteBursts).toHaveLength(1);
     expect(result.current.effectSources).toMatchObject([{ site: { zone: "trash", instanceId: "sec-1" } }]);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
-    await advance(TIMINGS.effectSourceHold - 1);
+    await advance(TIMINGS.effectTrashPreparation - 1);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
     await advance(1);
     /* The punch is over, but the source does not go dark: it is handed to the clause it
@@ -4735,7 +5318,7 @@ describe("triggered effect source prelude", () => {
     await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap + 16);
     expect(result.current.effectSources).toHaveLength(1);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
-    await advance(TIMINGS.effectSourceHold);
+    await advance(TIMINGS.effectTrashPreparation);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(1);
   });
 
@@ -4772,7 +5355,7 @@ describe("triggered effect source prelude", () => {
       await advance(0);
       expect(result.current.effectSources).toHaveLength(0);
       expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
-      await advance(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst);
+      await advance(SHOWCASE_TOTAL_MS + CARD_BURST_PEAK_MS + POLL_MS);
       expect(result.current.effectSources).toHaveLength(1);
       expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
       await advance(TIMINGS.effectSourceHold);
@@ -4824,7 +5407,7 @@ it("shows Analog Youth's On Play before its trash result across server batches",
   await advance(0);
   expect(result.current.effectSources).toHaveLength(0);
   expect(result.current.notices).toHaveLength(0);
-  await advance(2348);
+  await advance(SHOWCASE_TOTAL_MS + CARD_BURST_PEAK_MS + TIMINGS.effectSourceHold - 24);
   rerender([
     play,
     effect,
@@ -4837,7 +5420,7 @@ it("shows Analog Youth's On Play before its trash result across server batches",
   ]);
   await advance(0);
   expect(result.current.sidePanels.filter((panel) => panel.titleKey === "panel.trashedCards")).toHaveLength(0);
-  await advance(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst + TIMINGS.effectSourceHold - 2360);
+  await advance(28);
   expect(
     result.current.notices.some((notice) => notice.body.variant === "effect" && notice.body.cardId === "EX1-066"),
   ).toBe(true);
@@ -4949,7 +5532,7 @@ it("plays the whole battle when the close arrives after the hold gave up", async
 
   // It stays for the whole scene: the attacker's entrance, the reveal and the hold all
   // still have to play before the outcome beat the tail alone used to cover.
-  await advance(CLASH_TOTAL_MS - 1);
+  await advance(CLASH_OUTCOME_AT_MS + TIMINGS.clashOutcome + TIMINGS.cardShatter - 1);
   expect(result.current.securityClash?.resolution).toBe("battle");
   await advance(1);
   expect(result.current.securityClash).toBeNull();
@@ -5037,7 +5620,7 @@ it("highlights each physical Digimon when identical cards resolve their start-of
   expect(result.current.effectSources).toMatchObject([{ site: { zone: "field", permanentId: "second-hyokomon" } }]);
 });
 
-it("keeps the activation glow when a decision suppresses its duplicate toast", async () => {
+it("keeps the activation glow and clause together when an effect asks for a decision", async () => {
   const board = {
     players: [
       {
@@ -5054,7 +5637,6 @@ it("keeps the activation glow when a decision suppresses its duplicate toast", a
     ],
   } as unknown as GameState;
   const { result, rerender } = renderCuesOverBoard(board);
-  act(() => result.current.dismissOwnEffectNotice("BT26-009"));
   rerender([
     {
       kind: "effectTriggered",
@@ -5070,7 +5652,7 @@ it("keeps the activation glow when a decision suppresses its duplicate toast", a
   await advance(0);
   expect(result.current.effectSources).toMatchObject([{ site: { zone: "field", permanentId: "second" } }]);
   await advance(TIMINGS.effectSourceHold);
-  expect(result.current.notices).toHaveLength(0);
+  expect(result.current.notices).toHaveLength(1);
 });
 
 const RINA_BOARD = {
@@ -5100,24 +5682,14 @@ const RINA_YOUR_TURN_PROMPT: ServerEvent = {
   timing: "YourTurn",
 };
 
-/** The held-back clause's own read-out: the return delay, then its source card's glow. */
-const HELD_CLAUSE_RETURN_MS = TIMINGS.ownEffectNoticeReturn + TIMINGS.effectSourceHold + NARRATION_TICK_MS;
-
-it("reads a card's clause out after the dialog that held it back is answered", async () => {
+it("reads an accepted clause once without a decision-return delay", async () => {
   const { result, rerender } = renderCuesOverBoard(RINA_BOARD);
-  // The [Your Turn] clause asks whether to suspend the Tamer: its dialog prints the clause,
-  // so the toast that would repeat it waits while the dialog is open.
   rerender([RINA_YOUR_TURN_PROMPT]);
-  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
   await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
-  expect(result.current.notices).toHaveLength(0);
-
-  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
-  await advance(HELD_CLAUSE_RETURN_MS);
   expect(result.current.notices).toMatchObject([{ body: { variant: "effect", cardId: "EX13-069" } }]);
   await advance(NOTICE_ITEM_MS);
+  expect(result.current.notices).toHaveLength(0);
 
-  // Next turn, the same Tamer's [Start of Your Main Phase] clause asks nothing and reads out.
   const startOfMain: ServerEvent = {
     ...RINA_YOUR_TURN_PROMPT,
     effectKey: "EX13-069/ir-1-0",
@@ -5131,33 +5703,7 @@ it("reads a card's clause out after the dialog that held it back is answered", a
   ]);
 });
 
-it("reads out a clause still queued when its dialog was answered", async () => {
-  const { result, rerender } = renderCuesOverBoard(RINA_BOARD);
-  rerender([RINA_YOUR_TURN_PROMPT]);
-  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
-  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
-  await advance(HELD_CLAUSE_RETURN_MS);
-  expect(result.current.notices).toMatchObject([{ body: { variant: "effect", cardId: "EX13-069" } }]);
-});
-
-it("keeps a clause held back across two dialogs the same effect opens in a row", async () => {
-  const { result, rerender } = renderCuesOverBoard(RINA_BOARD);
-  rerender([RINA_YOUR_TURN_PROMPT]);
-  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
-  await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
-  // "Use it?" answered; "which target?" opens a round trip later, inside the return delay.
-  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
-  await advance(TIMINGS.ownEffectNoticeReturn / 2);
-  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
-  await advance(HELD_CLAUSE_RETURN_MS);
-  expect(result.current.notices).toHaveLength(0);
-
-  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
-  await advance(HELD_CLAUSE_RETURN_MS);
-  expect(result.current.notices).toMatchObject([{ body: { variant: "effect", cardId: "EX13-069" } }]);
-});
-
-it("Discord 1555741214014447737: reads a held clause before the next copy's clause", async () => {
+it("Discord 1555741214014447737: stacks accepted clauses from two copies in their activation order", async () => {
   const board = {
     players: [
       {
@@ -5185,13 +5731,11 @@ it("Discord 1555741214014447737: reads a held clause before the next copy's clau
   const { result, rerender } = renderCuesOverBoard(board);
   const first = startOfMain("first", "copy-1");
   rerender([first]);
-  act(() => result.current.dismissOwnEffectNotice("BT26-091"));
   await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
 
   // The answer resolves the first copy, and the server announces the second in the same tick.
-  act(() => result.current.releaseOwnEffectNotice("BT26-091"));
   rerender([first, startOfMain("second", "copy-2")]);
-  await advance(HELD_CLAUSE_RETURN_MS + TIMINGS.effectSourceHold);
+  await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
 
   expect(
     result.current.notices.map((notice) => notice.body.variant === "effect" && notice.body.sourcePermanentId),
@@ -5630,7 +6174,7 @@ describe("an opponent's arrival behind the turn's ribbons", () => {
     cardId: "BT1-010",
   };
 
-  it("keeps the card off the field until its burst has waited the ribbon out", async () => {
+  it("waits out the ribbon, then holds the destination through the breeding transfer", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
     rerender([BREEDING_PHASE]);
@@ -5646,13 +6190,16 @@ describe("an opponent's arrival behind the turn's ribbons", () => {
 
     await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap + 32);
     expect(result.current.phaseBanner).toBeNull();
-    expect(result.current.pendingPermanentIds.has("perm-9")).toBe(false);
+    expect(result.current.pendingPermanentIds.has("perm-9")).toBe(true);
     expect(result.current.permanentBursts.get("perm-9")).toMatchObject({
-      variant: "play",
+      moveFromBreeding: true,
     });
+    await advance(200);
+    expect(result.current.pendingPermanentIds.has("perm-9")).toBe(false);
+    expect(result.current.permanentBursts.has("perm-9")).toBe(false);
   });
 
-  it("shows the card at once when nothing is ahead of its burst", async () => {
+  it("retains the destination until the unobstructed transfer lands", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
     // An idle track starts the arrival step the moment it is queued, and a step with no
@@ -5660,8 +6207,11 @@ describe("an opponent's arrival behind the turn's ribbons", () => {
     // or the card vanishes from the field until the whole queue has run dry.
     rerender([OUT_OF_BREEDING]);
     await advance(0);
+    expect(result.current.pendingPermanentIds.has("perm-9")).toBe(true);
+    expect(result.current.permanentBursts.get("perm-9")).toMatchObject({ moveFromBreeding: true });
+    await advance(200);
     expect(result.current.pendingPermanentIds.has("perm-9")).toBe(false);
-    expect(result.current.permanentBursts.get("perm-9")).toMatchObject({ variant: "play" });
+    expect(result.current.permanentBursts.has("perm-9")).toBe(false);
   });
 });
 

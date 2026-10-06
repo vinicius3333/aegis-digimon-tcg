@@ -62,12 +62,14 @@ function EffectNoticeBody({
   description,
   effectTextPart,
   isInherited,
+  count,
 }: {
   cardId: string;
   timing?: string;
   description?: string;
   effectTextPart?: string;
   isInherited?: boolean;
+  count?: number;
 }) {
   const { t } = useTranslation();
   const clause = noticeEffectClause({ cardId, timing, description, effectTextPart, isInherited });
@@ -85,6 +87,7 @@ function EffectNoticeBody({
       <strong className="match-notice__title" data-quiet={restated || undefined}>
         <CardLink cardId={cardId} />
       </strong>
+      {count !== undefined && count > 1 ? <span className="match-notice__count">×{count}</span> : null}
       {/* The clause is the card's printed text: it names other cards, but only as
           prose this client cannot resolve to ids, so it stays unlinked. */}
       {clause ? (
@@ -243,6 +246,7 @@ export function NoticeStack({
               description={body.description}
               effectTextPart={body.effectTextPart}
               isInherited={body.isInherited}
+              {...(body.count !== undefined ? { count: body.count } : {})}
             />
             <NoticeThumb cardId={body.cardId} artId={body.artId} />
           </>

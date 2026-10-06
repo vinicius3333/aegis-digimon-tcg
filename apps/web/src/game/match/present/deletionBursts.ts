@@ -35,6 +35,8 @@ export function enqueueDeletionBursts({
   snapshots,
   beaten,
   clashLoserIds,
+  clashLeadInMsByPermanent,
+  combatLandedRef,
   playLeadInMs,
   anchors,
   deleteBurstKeyRef,
@@ -49,12 +51,19 @@ export function enqueueDeletionBursts({
   enqueue,
   stateVersion,
   causedByOption,
+  readBeforeBreak = true,
 }: {
   queue: AnimationQueue;
   fresh: readonly ServerEvent[];
   snapshots: readonly StateSnapshot[];
   beaten: ReadonlySet<string>;
   clashLoserIds: ReadonlySet<string>;
+  clashLeadInMsByPermanent?: ReadonlyMap<string, number>;
+  /**
+   * Mutated: each battle loser's own blow. A queued blow starts later than its lead-in, and a
+   * blow staged from an earlier batch's comparison still owns the battle deletion that follows.
+   */
+  combatLandedRef?: MutableRefObject<Map<string, PresentationGate>>;
   playLeadInMs: number;
   anchors: MatchCueAnchors;
   /** Mutated: incremented per burst so each shatter gets its own key. */
@@ -76,6 +85,8 @@ export function enqueueDeletionBursts({
   enqueue: (step: AnimationStep) => void;
   stateVersion: number;
   causedByOption: boolean;
+  /** Paced announcement gates already include the reading beat. */
+  readBeforeBreak?: boolean;
 }) {
   function releaseHeldDeletion(key: number) {
     setHeldDeletions((held) => {
@@ -103,18 +114,23 @@ export function enqueueDeletionBursts({
       // this the shatter plays over a battle the viewer is still waiting to see.
       const openBlow = securityBlowRef.current;
       const blowKey = openBlow !== null && !openBlow.landed ? openBlow.key : undefined;
+      const struckThisBatch = clashLoserIds.has(anchorId) || beaten.has(anchorId);
+      const battleDeletion = event.kind === "cardsMoved" && event.battleDeletion === true;
+      const combatLanded = struckThisBatch || battleDeletion ? combatLandedRef?.current.get(anchorId) : undefined;
+      if (combatLanded) combatLandedRef?.current.delete(anchorId);
+      const struckEarlier = combatLanded !== undefined && !struckThisBatch;
       const delayMs =
-        blowKey !== undefined
+        blowKey !== undefined || struckEarlier
           ? 0
           : clashLoserIds.has(anchorId)
-            ? FIELD_CLASH_TOTAL_MS
+            ? (clashLeadInMsByPermanent?.get(anchorId) ?? FIELD_CLASH_TOTAL_MS)
             : beaten.has(anchorId)
               ? COMBAT_IMPACT_TOTAL_MS
               : Math.min(playLeadInMs, PLAY_LEAD_IN_BUDGET_MS);
       const deleted = deletionMetadata.get(anchorId);
       const key = (deleteBurstKeyRef.current += 1);
       const trashedOption = trashedOptionIds.includes(anchorId);
-      const effectDeletion = blowKey === undefined && !clashLoserIds.has(anchorId) && !beaten.has(anchorId);
+      const effectDeletion = blowKey === undefined && !struckThisBatch && !struckEarlier;
       const removal = trashedOption || effectDeletion ? joinRemovalChain(removalChainRef) : undefined;
       const step = deleteBurstStep({
         queue,
@@ -123,6 +139,11 @@ export function enqueueDeletionBursts({
         deletionReadyAtRef,
         setDeleteBursts,
         releaseHeldDeletion: () => releaseHeldDeletion(key),
+        beginHeldDeletion: () =>
+          setHeldDeletions((current) => {
+            const held = current.get(key);
+            return held ? new Map(current).set(key, { ...held, departed: true }) : current;
+          }),
         anchorId,
         delayMs,
         metadataCardId: deleted?.cardId,
@@ -130,10 +151,12 @@ export function enqueueDeletionBursts({
         metadataSeat: deleted?.seat,
         metadataInstanceId: deleted?.instanceId,
         effectDeletion,
+        fieldImpact: struckThisBatch || struckEarlier,
+        combatLanded,
         blowKey,
         securityBlowRef,
         causingEffectGate: anchorId === costClause?.permanentId ? costClause.focused : causingEffectGate,
-        readBeforeBreak: anchorId !== costClause?.permanentId,
+        readBeforeBreak: readBeforeBreak && anchorId !== costClause?.permanentId,
         stateVersion,
         causedByOption,
         ...(removal ? { removal } : {}),
@@ -143,12 +166,15 @@ export function enqueueDeletionBursts({
         if (anchorId === costClause?.permanentId) costClause.departing.release();
         continue;
       }
+      if (anchorId === costClause?.permanentId)
+        costClause.deletion = deletionReadyAtRef.current.get(costClause.sourceKey);
       deletionBurstPresentedRef.current.add(anchorId);
       const held = heldDeletionFrom({ snapshots, seat: deleted?.seat, permanentId: anchorId });
       if (held) setHeldDeletions((current) => new Map(current).set(key, held));
       enqueue(step);
       if (removal) void queue.idle().then(() => removal.link.started.release());
       if (anchorId === costClause?.permanentId) costClause.departing.release();
+      // Begun departures stay omitted even if their old paced snapshot outlives the light.
       // A step a later `replace` drops never runs, so the card would stand there for the
       // rest of the match. Registered after the enqueue: on an idle queue the promise
       // settles at once and the hold would be given back before it began.

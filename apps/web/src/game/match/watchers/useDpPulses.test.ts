@@ -1,0 +1,175 @@
+// @vitest-environment jsdom
+import { act, cleanup, renderHook } from "@testing-library/react";
+import { useState } from "react";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import type { GameState } from "@aegis/shared";
+import { createAnimationQueue } from "../../animationQueue";
+import type { DpPulse } from "../../dpPulse";
+import { createPresentationGate } from "../presentationGate";
+import { useDpPulses } from "./useDpPulses";
+import type { StateSnapshot } from "../../../net/presentedState";
+
+beforeEach(() => vi.useFakeTimers());
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
+
+function board(currentDP: number, stateVersion: number): GameState {
+  return {
+    stateVersion,
+    players: [{ battleArea: [] }, { battleArea: [{ permanentId: "opponent", currentDP }] }],
+  } as unknown as GameState;
+}
+
+function harness(preserveChanges = false) {
+  const queue = createAnimationQueue();
+  const gate = createPresentationGate();
+  const dpByPermanentRef = { current: null as Map<string, number> | null };
+  const dpPulseKeyRef = { current: 0 };
+  const stackStripKeyRef = { current: 0 };
+  const view = renderHook(
+    ({ state, snapshots }: { state: GameState; snapshots?: readonly StateSnapshot[] }) => {
+      const [pulses, setDpPulses] = useState<ReadonlyMap<string, DpPulse>>(new Map());
+      const [suppressions, setDpBadgeSuppressions] = useState<ReadonlyMap<string, number>>(new Map());
+      useDpPulses({
+        state,
+        preserveChanges,
+        snapshots,
+        contextOfRevision: (stateVersion) => ({ gate, origin: { batchId: `revision-${stateVersion}`, stateVersion } }),
+        queue,
+        dpByPermanentRef,
+        dpPulseKeyRef,
+        stackStripKeyRef,
+        causingEffectGateRef: { current: gate },
+        setDpPulses,
+        setDpBadgeSuppressions,
+      });
+      return { pulses, suppressions };
+    },
+    { initialProps: { state: board(12000, 1) } as { state: GameState; snapshots?: readonly StateSnapshot[] } },
+  );
+  return { ...view, queue, gate, stackStripKeyRef };
+}
+
+it("paints a paced gain before its queued expiry when both arrived during the clause", async () => {
+  const view = harness(true);
+  view.rerender({ state: board(15000, 2) });
+  await advance(32);
+  view.rerender({ state: board(12000, 3) });
+  await advance(32);
+  expect(view.result.current.pulses.size).toBe(0);
+  act(() => view.gate.release());
+  await advance(32);
+  expect(view.result.current.pulses.get("opponent")).toMatchObject({ from: 12000, to: 15000 });
+  await advance(700);
+  expect(view.result.current.pulses.get("opponent")).toMatchObject({ from: 15000, to: 12000 });
+  await advance(2000);
+  expect(view.queue.isIdle()).toBe(true);
+  expect(view.result.current.suppressions.size).toBe(0);
+});
+
+it("retains a gain and expiry from synchronized patches coalesced into one React render", async () => {
+  const view = harness(true);
+  const gain = board(15000, 2);
+  const expired = board(12000, 3);
+  const enqueue = vi.spyOn(view.queue, "enqueue");
+  view.rerender({
+    state: expired,
+    snapshots: [
+      { stateVersion: 2, state: gain },
+      { stateVersion: 3, state: expired },
+    ],
+  });
+  act(() => view.gate.release());
+  await advance(32);
+  expect(view.result.current.pulses.get("opponent")).toMatchObject({ from: 12000, to: 15000 });
+  await advance(700);
+  expect(view.result.current.pulses.get("opponent")).toMatchObject({ from: 15000, to: 12000 });
+  await advance(2000);
+  // Rereading the same snapshot ring cannot replay either occurrence.
+  view.rerender({
+    state: expired,
+    snapshots: [
+      { stateVersion: 2, state: gain },
+      { stateVersion: 3, state: expired },
+    ],
+  });
+  await advance(32);
+  expect(view.result.current.pulses.size).toBe(0);
+  expect(view.queue.isIdle()).toBe(true);
+  expect(enqueue.mock.calls.map(([step]) => ("origin" in step ? step.origin : undefined))).toEqual([
+    { batchId: "revision-2", stateVersion: 2 },
+    { batchId: "revision-3", stateVersion: 3 },
+  ]);
+  // A new match revision establishes a baseline rather than replaying old history.
+  view.rerender({ state: board(13000, 0), snapshots: [{ stateVersion: 2, state: gain }] });
+  await advance(32);
+  expect(view.result.current.pulses.size).toBe(0);
+  expect(enqueue).toHaveBeenCalledTimes(2);
+});
+
+async function advance(ms: number) {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(ms);
+  });
+}
+
+it("waits for a same-revision source receipt arriving after the DP patch, excluding future costs", async () => {
+  const view = harness();
+  view.rerender({ state: board(8000, 2) });
+  expect(view.result.current.suppressions.has("opponent")).toBe(true);
+  let futureStarted = false;
+  act(() => {
+    view.stackStripKeyRef.current = 2;
+    view.queue.enqueue({
+      id: "stack-strip-peel-1",
+      track: "stackStripPeel",
+      origin: { batchId: "cost", stateVersion: 2 },
+      run: async (context) => {
+        await context.wait(300);
+      },
+    });
+    view.queue.enqueue({
+      id: "stack-strip-peel-2",
+      track: "stackStripPeel",
+      origin: { batchId: "future-cost", stateVersion: 3 },
+      run: async (context) => {
+        futureStarted = true;
+        await context.wait(3000);
+      },
+    });
+    view.gate.release();
+  });
+  await advance(280);
+  expect(view.result.current.pulses.size).toBe(0);
+  await advance(48);
+  expect(futureStarted).toBe(true);
+  expect(view.result.current.pulses.get("opponent")).toMatchObject({ from: 12000, to: 8000 });
+  await advance(5000);
+  expect(view.result.current.pulses.size).toBe(0);
+  expect(view.result.current.suppressions.size).toBe(0);
+  expect(view.queue.isIdle()).toBe(true);
+});
+
+it.each(["skip", "clear"] as const)("releases DP suppression when %s interrupts its cause wait", async (action) => {
+  const view = harness();
+  view.rerender({ state: board(0, 2) });
+  expect(view.result.current.suppressions.size).toBe(1);
+  act(() => view.queue[action]());
+  await advance(32);
+  expect(view.result.current.pulses.size).toBe(0);
+  expect(view.result.current.suppressions.size).toBe(0);
+  expect(view.queue.isIdle()).toBe(true);
+});
+
+it("cleans a queued DP pulse discarded before it starts while paused", async () => {
+  const view = harness();
+  act(() => view.queue.pause());
+  view.rerender({ state: board(8000, 2) });
+  expect(view.result.current.suppressions.size).toBe(1);
+  act(() => view.queue.clear());
+  await advance(32);
+  expect(view.result.current.suppressions.size).toBe(0);
+  expect(view.queue.isIdle()).toBe(true);
+});

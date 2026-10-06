@@ -60,8 +60,10 @@ export function createPresentationProgress(
 
   function reported(): number | undefined {
     const oldest = entries.find((entry) => entry.outstanding > 0);
-    if (!oldest || oldest.stateVersion < floor) return undefined;
-    return oldest.stateVersion;
+    if (!oldest) return undefined;
+    // A prompt's floor raises the narrated snapshot; it does not make later unresolved
+    // effects visible. Undefined selects the complete live board, beyond that floor.
+    return Math.max(oldest.stateVersion, floor);
   }
 
   function publish(before: number | undefined) {

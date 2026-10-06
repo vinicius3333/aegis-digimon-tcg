@@ -683,10 +683,6 @@ button.game-player-line__name {
     translate: none;
     animation: board-prompt-rail-in var(--t-dialog-in, 180ms) ease-out both !important;
   }
-
-  .decision-overlay.decision-overlay--side::before {
-    display: none;
-  }
 }
 
 @media (min-width: 1024px) and (min-height: 760px) {
@@ -695,10 +691,9 @@ button.game-player-line__name {
     max-height: calc(100% - 15.375rem - var(--ds-space-4));
   }
 
+  /* Where the rail sits on this board is set with the clause column it shares the left
+     edge with (desktopNotices.css). */
   .aegis-stage .board-prompt {
-    top: 15.375rem;
-    bottom: auto;
-    max-height: calc(100% - 15.375rem - var(--ds-space-4));
     translate: none;
     animation-name: board-prompt-rail-in;
   }
@@ -721,7 +716,6 @@ button.game-player-line__name {
     right: auto;
     margin-inline: 0;
     width: min(19rem, 42vw);
-    max-height: calc(100% - 15.375rem - var(--ds-space-4));
   }
 }
 
@@ -735,4 +729,72 @@ button.game-player-line__name {
     opacity: 1;
     translate: 0 0;
   }
+}
+
+/* ---- The match audio controls above the board look ---- */
+.game-arena-audio {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--ds-space-3) var(--ds-space-5);
+  margin-bottom: var(--ds-space-5);
+  padding-bottom: var(--ds-space-4);
+  border-bottom: 1px solid var(--ds-border);
+}
+
+.game-arena-audio__title {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--ds-fg);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+}
+
+.game-arena-audio__channel {
+  display: grid;
+  gap: var(--ds-space-2);
+  min-width: 0;
+}
+
+.game-arena-audio__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  min-height: 2.75rem;
+  color: var(--ds-fg);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.game-arena-audio__toggle input {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  accent-color: var(--ds-accent);
+}
+
+.game-arena-audio__volume {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--ds-space-1) var(--ds-space-2);
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-sm);
+}
+
+.game-arena-audio__channel[data-disabled="true"] .game-arena-audio__volume {
+  opacity: 0.5;
+}
+
+.game-arena-audio__value {
+  color: var(--ds-accent);
+  font-family: var(--ds-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.game-arena-audio__volume input {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 2.75rem;
+  margin: 0;
+  accent-color: var(--ds-accent);
 }

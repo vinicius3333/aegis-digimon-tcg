@@ -7,7 +7,7 @@ import {
 } from "@aegis/shared";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { expectOnlyOneCounterPerAttack } from "./counterOnce.testSupport.js";
 import { compiled } from "./EX12-077.js";
@@ -745,7 +745,8 @@ describe("EX12-077 Proximamon — KB Q&A rulings", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX12-077"));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX12-077")).toBe(false);
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);

@@ -1,6 +1,8 @@
-/* One side's battle area as two lanes: Digimon, and a smaller lane of grouped Tamers
-   and Options. The outer element keeps the row's class, so every breakpoint still
-   places and sizes it as the single row it replaces; each lane scrolls on its own. */
+/* One side's battle area as two lanes: Digimon, and a lane of grouped Tamers and
+   Options. A player who chooses one lane, and every phone, gets a single lane with
+   the groups after the Digimon. The outer element keeps the row's class, so every
+   breakpoint still places and sizes it as the single row it replaces; each lane
+   scrolls on its own. */
 
 import { useEffect, useId, useLayoutEffect, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
 import type { Permanent } from "@aegis/shared";
@@ -10,6 +12,9 @@ import "../../style/fieldLayout.css";
 import { linkCardOverhang, linkCardSlots, sourceFanStepLimit } from "../../boardModel";
 import { COPY_EDGE_STEP, copyEdgeCount } from "../../piece/PermanentCopies";
 import { reportFieldCardWidth, useFieldCardWidth } from "./fieldCardWidth";
+import { CARD_SUSPEND_MOTION } from "../../../design/cardMotion";
+import { BattleLanes } from "../../../design/battleLanes";
+import { useBattleLanes } from "../hooks/useBattleLanes";
 
 const CARD_ASPECT = 1.4;
 /** The design's --ds-touch-target minimum also applies to each permanent's button wrapper. */
@@ -19,15 +24,19 @@ const LANE_GAP = 0;
 const MIN_STACKED_SHRINK = 0.6;
 /** A crowded lane shrinks its cards to this share of the height-fitted width before it scrolls. */
 const MIN_WIDTH_SHRINK = 0.75;
+/** Portrait cards keep a readable size; crowded boards use their existing lane paging. */
+const MIN_PORTRAIT_CARD_WIDTH = 65;
 /** Each lane's horizontal padding, from fieldLayout.css. */
 const LANE_INLINE_PADDING = 12;
 const DIGIMON_GAP_SHARE = 0.25;
 const SUPPORT_GAP_SHARE = 0.3;
+/** One lane has the row's whole height, so its cards may grow past the layout's card width, up to this share. */
+const SINGLE_LANE_GROWTH = 1.2;
 
 /**
  * Stacked puts the support lane under the Digimon (above them for the opponent). A row
- * too short for two lanes, like a phone on its side, puts the lanes side by side. An
- * upright phone too short to stack merges both into one lane, Digimon first.
+ * too short for two lanes puts the lanes side by side. Merged draws one lane, Digimon
+ * first: the player's one-lane choice, and every phone.
  */
 export enum LanePlacement {
   Stacked = "stacked",
@@ -73,7 +82,7 @@ export interface OrganizedCard {
   splitOff: boolean;
 }
 
-/** How long a card takes to slide to its new place and turn. */
+/** Group layout movement runs independently of the artwork's quarter-turn. */
 const MOTION_MS = 420;
 
 interface DrawnCard {
@@ -81,6 +90,7 @@ interface DrawnCard {
   y: number;
   suspended: boolean;
   element: HTMLElement;
+  art?: { element: HTMLElement; copy: HTMLElement; x: number; y: number; width: number; height: number; angle: number };
 }
 
 /** Where a card in flight is drawn, relative to its place in the layout. */
@@ -90,29 +100,47 @@ interface FlightOffset {
   angle: number;
 }
 
+interface GroupReturn {
+  animation: Animation;
+  memberIds: string[];
+  targetMemberIds: string[];
+  origin: { x: number; y: number };
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+}
+
 const STILL: FlightOffset = { x: 0, y: 0, angle: 0 };
-const flights = new WeakMap<Element, Animation>();
-const artFlights = new WeakMap<HTMLElement, { animation: Animation; suspended: boolean }>();
+const flights = new WeakMap<Element, { animation: Animation; from: FlightOffset }>();
+const artFlights = new WeakMap<HTMLElement, { animation: Animation; suspended: boolean; from: number }>();
 
 function turnArtwork(art: HTMLElement, from: number, suspended: boolean) {
   artFlights.get(art)?.animation.cancel();
   const animation = art.animate([{ rotate: `${from}deg` }, { rotate: suspended ? "90deg" : "0deg" }], {
-    duration: MOTION_MS,
+    duration: CARD_SUSPEND_MOTION.durationMs,
     fill: "backwards",
-    easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+    easing: CARD_SUSPEND_MOTION.easing,
   });
-  artFlights.set(art, { animation, suspended });
+  artFlights.set(art, { animation, suspended, from });
+}
+
+function artworkAngle(art: NonNullable<DrawnCard["art"]>): number {
+  const flight = artFlights.get(art.element);
+  const progress = flight?.animation.effect?.getComputedTiming().progress;
+  return flight && progress !== null && progress !== undefined
+    ? flight.from + ((flight.suspended ? 90 : 0) - flight.from) * progress
+    : art.angle;
 }
 
 /** The offset a running slide still applies, read from the computed transform. */
 function flightOffset(element: HTMLElement): FlightOffset {
-  if (flights.get(element)?.playState !== "running") return STILL;
-  const style = getComputedStyle(element);
-  const translation = style.translate.split(" ");
+  const flight = flights.get(element);
+  if (!flight || flight.animation.playState === "finished" || flight.animation.playState === "idle") return STILL;
+  const progress = flight.animation.effect?.getComputedTiming().progress;
+  if (progress === null || progress === undefined) return STILL;
   return {
-    x: Number.parseFloat(translation[0]!) || 0,
-    y: Number.parseFloat(translation[1]!) || 0,
-    angle: Number.parseFloat(style.rotate) || 0,
+    x: flight.from.x * (1 - progress),
+    y: flight.from.y * (1 - progress),
+    angle: flight.from.angle * (1 - progress),
   };
 }
 
@@ -123,11 +151,25 @@ function measureCards(row: HTMLElement): Map<string, DrawnCard> {
   for (const element of row.querySelectorAll<HTMLElement>("[data-field-key]")) {
     const rect = element.getBoundingClientRect();
     const scroll = element.closest(".game-battle-lane")?.scrollLeft ?? 0;
+    const art = element.querySelector<HTMLElement>(".game-card-enter > [data-state]");
+    const artRect = art?.getBoundingClientRect();
     drawn.set(element.dataset.fieldKey!, {
       x: rect.left + rect.width / 2 - rowRect.left + scroll,
       y: rect.top + rect.height / 2 - rowRect.top,
       suspended: element.hasAttribute("data-suspended"),
       element,
+      art:
+        art && artRect
+          ? {
+              element: art,
+              copy: art.cloneNode(true) as HTMLElement,
+              x: artRect.left + artRect.width / 2 - rowRect.left + scroll,
+              y: artRect.top + artRect.height / 2 - rowRect.top,
+              width: art.offsetWidth,
+              height: art.offsetHeight,
+              angle: element.hasAttribute("data-suspended") ? 90 : 0,
+            }
+          : undefined,
     });
   }
   return drawn;
@@ -148,32 +190,143 @@ function useFieldMotion(
 ) {
   const drawnBefore = useRef(new Map<string, DrawnCard>());
   const sizeBefore = useRef({ width: 0, height: 0 });
+  const returns = useRef(new Map<HTMLElement, GroupReturn>());
+  const heldOffsets = useRef(new Map<HTMLElement, FlightOffset>());
+  const measuredSignature = useRef("");
+  useEffect(() => {
+    const media = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    const stop = () => {
+      for (const [copy, { animation }] of returns.current) {
+        animation.cancel();
+        artFlights.get(copy)?.animation.cancel();
+        artFlights.delete(copy);
+        copy.remove();
+      }
+      returns.current.clear();
+      for (const element of heldOffsets.current.keys()) {
+        element.style.translate = "";
+        element.style.rotate = "";
+      }
+      heldOffsets.current.clear();
+      for (const { element } of drawnBefore.current.values()) {
+        flights.get(element)?.animation.cancel();
+        const art = element.querySelector<HTMLElement>(".game-card-enter > [data-state]");
+        if (art) {
+          artFlights.get(art)?.animation.cancel();
+          artFlights.delete(art);
+        }
+      }
+    };
+    const changed = () => {
+      if (media?.matches) stop();
+    };
+    media?.addEventListener("change", changed);
+    return () => {
+      media?.removeEventListener("change", changed);
+      stop();
+    };
+  }, [rowRef]);
   const signature = JSON.stringify([
     rowSize,
     cards.map((card) => [
       card.fieldKey,
       card.width,
-      card.members.map((member) => [member.permanentId, isSuspended(member)]),
+      card.members.map((member) => [
+        member.permanentId,
+        isSuspended(member),
+        member.stack.length,
+        member.linked.length,
+      ]),
     ]),
   ]);
   useLayoutEffect(() => {
     const row = rowRef.current;
     if (!row) return;
+    const heldKeys = [...row.querySelectorAll<HTMLElement>("[data-field-key][data-stationary-departure]")].map(
+      (element) => element.dataset.fieldKey!,
+    );
+    const nextSignature = JSON.stringify([signature, heldKeys]);
+    if (measuredSignature.current === nextSignature) return;
+    measuredSignature.current = nextSignature;
+    const size = { width: row.clientWidth, height: row.clientHeight };
+    const resized = size.width !== sizeBefore.current.width || size.height !== sizeBefore.current.height;
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     const offsets = new Map<Element, FlightOffset>();
     for (const element of row.querySelectorAll<HTMLElement>("[data-field-key]")) {
       const art = element.querySelector<HTMLElement>(".game-card-enter > [data-state]");
       const turn = art ? artFlights.get(art) : undefined;
       const suspended = element.hasAttribute("data-suspended");
-      if (art && turn && turn.suspended !== suspended) {
+      if (art && (reduceMotion || resized)) {
+        turn?.animation.cancel();
+        artFlights.delete(art);
+      } else if (art && turn && turn.suspended !== suspended) {
         turnArtwork(art, Number.parseFloat(getComputedStyle(art).rotate) || 0, suspended);
       }
-      offsets.set(element, flightOffset(element));
-      flights.get(element)?.cancel();
+      offsets.set(element, heldOffsets.current.get(element) ?? flightOffset(element));
+      flights.get(element)?.animation.cancel();
+      // Measure the new layout without our previous static hold. Its offset is
+      // reapplied below, keeping the painted position through later field changes.
+      if (heldOffsets.current.has(element)) {
+        element.style.translate = "";
+        element.style.rotate = "";
+        heldOffsets.current.delete(element);
+      }
     }
     const drawn = measureCards(row);
-    const size = { width: row.clientWidth, height: row.clientHeight };
-    const resized = size.width !== sizeBefore.current.width || size.height !== sizeBefore.current.height;
-    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    const returningPositions = new Map<string, { x: number; y: number; angle: number }>();
+    // Shared card sizing can commit again before the first paint of a merge.
+    // Keep the same return and its clock, updating its destination from its
+    // current eased position instead of deleting it on every layout change.
+    for (const [copy, flight] of returns.current) {
+      const targets = cards.filter((card) =>
+        card.members.some((member) => flight.memberIds.includes(member.permanentId)),
+      );
+      const target = targets.length === 1 ? targets[0] : undefined;
+      const now = target ? drawn.get(target.fieldKey) : undefined;
+      const sameGroup =
+        target &&
+        target.fieldKey === copy.dataset.returnTargetFieldKey &&
+        target.members.length === flight.targetMemberIds.length &&
+        target.members.every((member) => flight.targetMemberIds.includes(member.permanentId));
+      const progress = flight.animation.effect?.getComputedTiming().progress ?? 0;
+      if (resized || reduceMotion || !now?.art || !sameGroup) {
+        // A member split back out during its return. Hand its painted position
+        // to the actual card's FLIP instead of drawing both card and copy.
+        if (
+          !resized &&
+          !reduceMotion &&
+          now?.art &&
+          target &&
+          target.members.every((member) => flight.memberIds.includes(member.permanentId))
+        ) {
+          returningPositions.set(target.fieldKey, {
+            x: flight.origin.x + flight.from.x * (1 - progress) + flight.to.x * progress,
+            y: flight.origin.y + flight.from.y * (1 - progress) + flight.to.y * progress,
+            angle: Number.parseFloat(getComputedStyle(copy).rotate) || 0,
+          });
+        }
+        flight.animation.cancel();
+        copy.remove();
+        returns.current.delete(copy);
+        artFlights.get(copy)?.animation.cancel();
+        artFlights.delete(copy);
+        continue;
+      }
+      copy.dataset.returnTargetFieldKey = target!.fieldKey;
+      const to = { x: now.art.x - flight.origin.x, y: now.art.y - flight.origin.y };
+      if (progress < 1 && (to.x !== flight.to.x || to.y !== flight.to.y)) {
+        const from = {
+          x: (flight.from.x * (1 - progress) + flight.to.x * progress - to.x * progress) / (1 - progress),
+          y: (flight.from.y * (1 - progress) + flight.to.y * progress - to.y * progress) / (1 - progress),
+        };
+        (flight.animation.effect as KeyframeEffect).setKeyframes([
+          { translate: `${from.x}px ${from.y}px`, opacity: 1 },
+          { translate: `${to.x}px ${to.y}px`, opacity: 1 },
+        ]);
+        flight.from = from;
+        flight.to = to;
+      }
+    }
     if (!resized && !reduceMotion) {
       for (const card of cards) {
         const now = drawn.get(card.fieldKey);
@@ -182,17 +335,29 @@ function useFieldMotion(
           ? card.fieldKey
           : card.members.map((member) => previous.current.get(member.permanentId)?.key).find(Boolean);
         const before = earlierKey ? drawnBefore.current.get(earlierKey) : undefined;
-        if (!before) continue;
-        const offset = offsets.get(before.element) ?? STILL;
-        const dx = before.x + offset.x - now.x;
-        const dy = before.y + offset.y - now.y;
+        const returning = returningPositions.get(card.fieldKey);
+        if (!before && !returning) continue;
+        const offset = before ? (offsets.get(before.element) ?? STILL) : STILL;
+        const dx = returning && now.art ? returning.x - now.art.x : before!.x + offset.x - now.x;
+        const dy = returning && now.art ? returning.y - now.art.y : before!.y + offset.y - now.y;
         // Turn only the art. Rotating the whole touch frame would sweep badges
         // and its empty corners outside the lane when a copy splits off.
-        if (before.element !== now.element && before.suspended !== now.suspended) {
+        if (returning) {
+          if (now.art && Math.abs(returning.angle - (now.suspended ? 90 : 0)) > 0.01)
+            turnArtwork(now.art.element, returning.angle, now.suspended);
+        } else if (before!.element !== now.element && before!.suspended !== now.suspended) {
           const art = now.element.querySelector<HTMLElement>(".game-card-enter > [data-state]");
-          if (art) turnArtwork(art, before.suspended ? 90 : 0, now.suspended);
+          if (art) turnArtwork(art, before!.suspended ? 90 : 0, now.suspended);
         }
-        const angle = before.element === now.element ? offset.angle : 0;
+        const angle = !returning && before!.element === now.element ? offset.angle : 0;
+        if (now.element.hasAttribute("data-stationary-departure")) {
+          // A destruction target can be selected halfway through a layout slide.
+          // Keep its current painted pose instead of finishing or restarting it.
+          now.element.style.translate = `${dx}px ${dy}px`;
+          now.element.style.rotate = `${angle}deg`;
+          heldOffsets.current.set(now.element, { x: dx, y: dy, angle });
+          continue;
+        }
         if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(angle) < 1) continue;
         const flight = now.element.animate(
           [
@@ -208,8 +373,86 @@ function useFieldMotion(
         // The document timeline can lag behind input in background browser tabs.
         // Use the current document clock and hold the origin until its next paint.
         flight.startTime = performance.now();
-        flights.set(now.element, flight);
+        flights.set(now.element, { animation: flight, from: { x: dx, y: dy, angle } });
       }
+      // A removed visual whose members still exist has merged, rather than left play.
+      // Keep only its artwork until it reaches the surviving group; it owns no input.
+      for (const [oldKey, before] of drawnBefore.current) {
+        if (drawn.has(oldKey) || !before.art) continue;
+        const target = cards.find((card) =>
+          card.members.some((member) => previous.current.get(member.permanentId)?.key === oldKey),
+        );
+        const now = target ? drawn.get(target.fieldKey) : undefined;
+        if (!now?.art || typeof before.art.copy.animate !== "function") continue;
+        const copy = before.art.copy;
+        for (const node of [copy, ...copy.querySelectorAll<HTMLElement>("*")]) {
+          for (const attribute of [...node.attributes])
+            if (attribute.name === "id" || attribute.name.startsWith("data-")) node.removeAttribute(attribute.name);
+          node.style.animation = "none";
+          node.style.transition = "none";
+        }
+        copy.setAttribute("aria-hidden", "true");
+        copy.inert = true;
+        copy.dataset.testid = "field-group-return";
+        copy.dataset.returnTargetFieldKey = target!.fieldKey;
+        copy.dataset.fieldMemberIds = JSON.stringify(
+          [...previous.current].filter(([, placement]) => placement.key === oldKey).map(([id]) => id),
+        );
+        const scroll = now.element.closest(".game-battle-lane")?.scrollLeft ?? 0;
+        const offset = offsets.get(before.element) ?? flightOffset(before.element);
+        flights.get(before.element)?.animation.cancel();
+        const fromAngle = artworkAngle(before.art);
+        artFlights.get(before.art.element)?.animation.cancel();
+        artFlights.delete(before.art.element);
+        Object.assign(copy.style, {
+          position: "absolute",
+          left: `${before.art.x + offset.x - scroll - before.art.width / 2}px`,
+          top: `${before.art.y + offset.y - before.art.height / 2}px`,
+          width: `${before.art.width}px`,
+          height: `${before.art.height}px`,
+          margin: "0",
+          translate: "0px 0px",
+          rotate: now.suspended ? "90deg" : "0deg",
+          pointerEvents: "none",
+          zIndex: "2",
+        });
+        row.append(copy);
+        // A landscape row can be static inside a positioned field. Convert into
+        // the copy's actual containing block without changing the row's layout.
+        const origin = copy.offsetParent instanceof HTMLElement ? copy.offsetParent : row;
+        const originRect = origin.getBoundingClientRect();
+        const rowRect = row.getBoundingClientRect();
+        copy.style.left = `${rowRect.left - originRect.left - origin.clientLeft + before.art.x + offset.x - scroll - before.art.width / 2}px`;
+        copy.style.top = `${rowRect.top - originRect.top - origin.clientTop + before.art.y + offset.y - before.art.height / 2}px`;
+        if (Math.abs(fromAngle - (now.suspended ? 90 : 0)) > 0.01) turnArtwork(copy, fromAngle, now.suspended);
+        const animation = copy.animate(
+          [
+            { translate: "0px 0px", opacity: 1 },
+            {
+              translate: `${now.art.x - before.art.x - offset.x}px ${now.art.y - before.art.y - offset.y}px`,
+              opacity: 1,
+            },
+          ],
+          { duration: MOTION_MS, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", fill: "both" },
+        );
+        returns.current.set(copy, {
+          animation,
+          memberIds: [...previous.current].filter(([, placement]) => placement.key === oldKey).map(([id]) => id),
+          targetMemberIds: target!.members.map((member) => member.permanentId),
+          origin: { x: before.art.x + offset.x, y: before.art.y + offset.y },
+          from: { x: 0, y: 0 },
+          to: { x: now.art.x - before.art.x - offset.x, y: now.art.y - before.art.y - offset.y },
+        });
+        const remove = () => {
+          copy.remove();
+          returns.current.delete(copy);
+        };
+        animation.onfinish = remove;
+        animation.oncancel = remove;
+      }
+    }
+    for (const element of heldOffsets.current.keys()) {
+      if (!row.contains(element)) heldOffsets.current.delete(element);
     }
     drawnBefore.current = drawn;
     sizeBefore.current = size;
@@ -220,7 +463,7 @@ function useFieldMotion(
         ),
       ),
     );
-  }, [rowRef, previous, signature]);
+  });
 }
 
 export interface LaneLayout {
@@ -247,6 +490,8 @@ interface LaneContent {
   overlapLanes?: boolean;
   /** Shrink crowded lanes' cards, down to a floor, before they scroll. */
   fitWidth?: boolean;
+  /** Draw one merged lane whatever the row's height. */
+  singleLane?: boolean;
 }
 
 /** What a card adds to its lane's width beyond the card itself. */
@@ -324,7 +569,10 @@ export function fitLanesToWidth(
       laneContentWidth([...cards.digimon, ...cards.support], width, DIGIMON_GAP_SHARE, step, preferStacked) <= rowWidth,
   }[lanes.placement];
   if (fits(lanes.digimon)) return lanes;
-  const digimon = Math.max(Math.ceil(lanes.digimon * MIN_WIDTH_SHRINK), fittedWidth(lanes.digimon, fits));
+  const floor = preferStacked
+    ? Math.min(lanes.digimon, MIN_PORTRAIT_CARD_WIDTH)
+    : Math.ceil(lanes.digimon * MIN_WIDTH_SHRINK);
+  const digimon = Math.max(floor, fittedWidth(lanes.digimon, fits));
   return { ...lanes, digimon, support: supportFor(digimon) };
 }
 
@@ -399,7 +647,10 @@ function stackedLanes(rowHeight: number, layoutWidth: number, content: LaneConte
       rowHeight
     );
   });
-  if (digimon < (content.preferStacked ? 44 : layoutWidth * MIN_STACKED_SHRINK)) return undefined;
+  const floor = content.preferStacked
+    ? Math.min(layoutWidth, MIN_PORTRAIT_CARD_WIDTH)
+    : layoutWidth * MIN_STACKED_SHRINK;
+  if (digimon < floor) return undefined;
   return { placement: LanePlacement.Stacked, digimon, support: supportWidth(digimon) };
 }
 
@@ -426,16 +677,21 @@ function mergedLanes(rowHeight: number, layoutWidth: number, content: LaneConten
 
 function sideBySideLanes(rowHeight: number, layoutWidth: number, content: LaneContent): LaneLayout {
   const placement = LanePlacement.SideBySide;
+  const supportScale = content.supportScale ?? LANE_METRICS[placement].supportScale;
   const digimon = fittedWidth(
     layoutWidth,
     (width) =>
       laneHeight(width, laneMetrics(placement, content, { digimon: width, support: 0 }).digimonPadding) <= rowHeight,
   );
   const support = fittedWidth(
-    Math.max(22, digimon * (content.supportScale ?? LANE_METRICS[placement].supportScale)),
+    Math.max(22, digimon * supportScale),
     (width) =>
       laneHeight(width, laneMetrics(placement, content, { digimon, support: width }).supportPadding) <= rowHeight,
   );
+  if (supportScale === 1) {
+    const width = Math.min(digimon, support);
+    return { placement, digimon: width, support: width };
+  }
   return { placement, digimon, support };
 }
 
@@ -445,6 +701,12 @@ function sideBySideLanes(rowHeight: number, layoutWidth: number, content: LaneCo
  * merging copies cannot flip the lanes or change every Digimon's size.
  */
 export function fitLanes(row: { width: number; height: number }, layoutWidth: number, drawn: LaneContent): LaneLayout {
+  if (drawn.singleLane) {
+    const ceiling = Math.round(layoutWidth * SINGLE_LANE_GROWTH);
+    return row.height <= 0
+      ? { placement: LanePlacement.Merged, digimon: ceiling, support: ceiling }
+      : mergedLanes(row.height, ceiling, drawn);
+  }
   const content = drawn.reserveSupport
     ? { ...drawn, digimonCount: Math.max(1, drawn.digimonCount), supportCount: Math.max(1, drawn.supportCount) }
     : drawn;
@@ -452,7 +714,7 @@ export function fitLanes(row: { width: number; height: number }, layoutWidth: nu
     return {
       placement: LanePlacement.Stacked,
       digimon: layoutWidth,
-      support: Math.round(layoutWidth * LANE_METRICS[LanePlacement.Stacked].supportScale),
+      support: Math.round(layoutWidth * (content.supportScale ?? LANE_METRICS[LanePlacement.Stacked].supportScale)),
     };
   }
   if (content.supportCount === 0 || content.digimonCount === 0) {
@@ -563,6 +825,7 @@ export function OrganizedBattleRow({
   isSuspended: (permanent: Permanent) => boolean;
 }) {
   const { ref, size } = useRowSize();
+  const singleLane = useBattleLanes() === BattleLanes.One;
   const previous = useRef<PreviousPlacement>(new Map());
   // A card stays split-off for as long as it is drawn: dropping the flag on a later
   // render would restart the entrance animation it skipped.
@@ -598,6 +861,7 @@ export function OrganizedBattleRow({
     reserveSupport: size.reserveSupport,
     overlapLanes: size.overlapLanes,
     fitWidth: size.fitWidth,
+    singleLane,
   };
   const laneCard = (members: readonly Permanent[]): LaneCard => ({
     suspended: isSuspended(members[0]!),
@@ -605,29 +869,30 @@ export function OrganizedBattleRow({
     links: members[0]!.linked.length,
     copies: members.length,
   });
+  const laneCards = {
+    digimon: arrangement.digimon.map((permanent) => laneCard([permanent])),
+    support: arrangement.support.map((group) => laneCard(group.members)),
+  };
   const heightFitted = fitLanes(size, layoutWidth, content);
-  const ownLanes = fitLanesToWidth(
-    heightFitted,
-    size.width,
-    {
-      digimon: arrangement.digimon.map((permanent) => laneCard([permanent])),
-      support: arrangement.support.map((group) => laneCard(group.members)),
-    },
-    content,
-  );
+  const ownLanes = fitLanesToWidth(heightFitted, size.width, laneCards, content);
+  // Raising and security keep the size two lanes would give them; only a single lane's own cards grow.
+  const twoLaneContent = { ...content, singleLane: false };
+  const twoLaneHeightFitted = singleLane ? fitLanes(size, layoutWidth, twoLaneContent) : heightFitted;
+  const twoLanes = singleLane ? fitLanesToWidth(twoLaneHeightFitted, size.width, laneCards, twoLaneContent) : ownLanes;
   const rowKey = useId();
   const reports = size.reserveSupport && size.height > 0;
-  const reportedHeightFitted = reports ? heightFitted.digimon : undefined;
+  const reportedHeightFitted = reports ? twoLaneHeightFitted.digimon : undefined;
   const reportedWidth = reports ? ownLanes.digimon : undefined;
+  const reportedBeside = reports ? twoLanes.digimon : undefined;
   useEffect(
     () =>
       reportFieldCardWidth(
         rowKey,
-        reportedHeightFitted === undefined || reportedWidth === undefined
+        reportedHeightFitted === undefined || reportedWidth === undefined || reportedBeside === undefined
           ? undefined
-          : { heightFitted: reportedHeightFitted, drawn: reportedWidth },
+          : { heightFitted: reportedHeightFitted, drawn: reportedWidth, beside: reportedBeside },
       ),
-    [rowKey, reportedHeightFitted, reportedWidth],
+    [rowKey, reportedHeightFitted, reportedWidth, reportedBeside],
   );
   useEffect(() => () => reportFieldCardWidth(rowKey, undefined), [rowKey]);
   // Rows sharing one card size follow the narrowest of them.
@@ -648,6 +913,25 @@ export function OrganizedBattleRow({
     card(group.members, group.key, lanes.support),
   );
   const cards = [...digimonCards, ...supportCards];
+  function emptySlots(drawn: readonly OrganizedCard[], width: number, gapShare: number): number {
+    // Short rows devote their width to occupied cards; their guides still outline each card.
+    if (lanes.placement === LanePlacement.SideBySide) return drawn.length === 0 ? 1 : 0;
+    const occupied = drawn.map((drawnCard) => laneCard(drawnCard.members));
+    const guide: LaneCard = { suspended: false, sources: 0, links: 0, copies: 1 };
+    let count = 0;
+    // Calculate the complete layout before useFieldMotion measures it. A child-only
+    // placeholder update would otherwise shift cards after their flight was computed.
+    while (count < 5 - drawn.length) {
+      const proposed = [...occupied, ...Array.from({ length: count + 1 }, () => guide)];
+      if (laneContentWidth(proposed, width, gapShare, size.sourceStep, size.preferStacked) > size.width) break;
+      count++;
+    }
+    return Math.max(drawn.length === 0 ? 1 : 0, count);
+  }
+  const digimonSlots = emptySlots(merged ? cards : digimonCards, lanes.digimon, DIGIMON_GAP_SHARE);
+  // Two lanes always draw the support lane, outlining its places like the Digimon lane's.
+  const drawsSupportLane = !merged && (hasSupport || content.reserveSupport);
+  const supportSlots = emptySlots(supportCards, lanes.support, SUPPORT_GAP_SHARE);
   useFieldMotion(ref, previous, cards, isSuspended, size);
   useLayoutEffect(() => {
     splitKeys.current = new Set(cards.filter((drawn) => drawn.splitOff).map((drawn) => drawn.fieldKey));
@@ -661,6 +945,9 @@ export function OrganizedBattleRow({
       className="game-battle-row game-battle-lane game-battle-lane--digimon"
       role="group"
       aria-label={digimonLabel}
+      cardWidth={lanes.digimon}
+      emptySlotCount={digimonSlots}
+      emptyLabel={arrangement.digimon.length === 0 && !hasSupport ? emptyLabel : null}
       edgeClearance={edge(
         lanes.digimon,
         merged ? Math.max(content.digimonSources, content.supportSources) : content.digimonSources,
@@ -678,36 +965,36 @@ export function OrganizedBattleRow({
         } as React.CSSProperties),
       }}
     >
-      {arrangement.digimon.length === 0 && !hasSupport ? emptyLabel : null}
       {digimonCards.map(renderCard)}
       {merged ? supportCards.map(renderCard) : null}
     </BattleRow>
   );
 
   const showsDigimonLane = merged || content.digimonCount > 0 || !hasSupport || keepsDigimonSlot;
-  const supportLane =
-    hasSupport && !merged ? (
-      <BattleRow
-        key="support"
-        className="game-battle-row game-battle-lane game-battle-lane--support"
-        role="group"
-        aria-label={supportLabel}
-        edgeClearance={edge(lanes.support, content.supportSources)}
-        style={{
-          flex: "0 1 auto",
-          display: "flex",
-          gap: laneGap(lanes.support, size.preferStacked, SUPPORT_GAP_SHARE),
-          justifyContent: "safe center",
-          alignItems: "center",
-          ...({
-            "--field-lane-top": `${metrics.supportPadding.top}px`,
-            "--field-lane-bottom": `${metrics.supportPadding.bottom}px`,
-          } as React.CSSProperties),
-        }}
-      >
-        {supportCards.map(renderCard)}
-      </BattleRow>
-    ) : null;
+  const supportLane = drawsSupportLane ? (
+    <BattleRow
+      key="support"
+      className="game-battle-row game-battle-lane game-battle-lane--support"
+      role="group"
+      aria-label={supportLabel}
+      cardWidth={lanes.support}
+      emptySlotCount={supportSlots}
+      edgeClearance={edge(lanes.support, content.supportSources)}
+      style={{
+        flex: "0 1 auto",
+        display: "flex",
+        gap: laneGap(lanes.support, size.preferStacked, SUPPORT_GAP_SHARE),
+        justifyContent: "safe center",
+        alignItems: "center",
+        ...({
+          "--field-lane-top": `${metrics.supportPadding.top}px`,
+          "--field-lane-bottom": `${metrics.supportPadding.bottom}px`,
+        } as React.CSSProperties),
+      }}
+    >
+      {supportCards.map(renderCard)}
+    </BattleRow>
+  ) : null;
 
   return (
     <div
@@ -719,7 +1006,7 @@ export function OrganizedBattleRow({
         ...rowProps.style,
         gap: LANE_GAP,
         ...({
-          "--field-lane-overlap": `${hasSupport ? laneOverlap(lanes.placement, content, metrics) : 0}px`,
+          "--field-lane-overlap": `${drawsSupportLane ? laneOverlap(lanes.placement, content, metrics) : 0}px`,
         } as React.CSSProperties),
       }}
     >

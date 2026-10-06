@@ -8,10 +8,13 @@
    must be retimed together:
      0ms      attacker slides in from its own half        (150ms)
      150ms    revealed card plays the 233ms EnterSecurity clip
-     383ms    both hold, readable                         (900ms)
-     1283ms   outcome beat, per resolution                (350ms)
-     1633ms   scene fades out                             (160ms)
-   Everything from 1283ms on is a separate, skippable queue step: a click through
+     383ms    both hold, readable                         (470ms)
+     853ms    battle outcome                              (350ms)
+     1203ms   checked card narrows and rises               (140ms CSS)
+   A no-battle check starts its disposal directly at 853ms. The queue retains
+   either disposal through its actual painted CSS finish, after React commits.
+   Destruction and isolated specimens retain the separate 160ms scene fade.
+   Everything from 853ms on is a separate, skippable queue step: a click through
    the scene takes the board back at the outcome rather than at the fade.
 
    A check the server has not closed yet holds at `data-resolution="pending"`: the
@@ -43,12 +46,16 @@
   animation:
     battle-clash-in var(--t-clash-enter, 150ms) linear both,
     battle-clash-out var(--t-clash-exit, 160ms) linear
-      calc(var(--t-clash-outcome-at, 1283ms) + var(--t-clash-outcome, 350ms)) both;
+      var(--t-clash-stage-out-at, calc(var(--t-clash-outcome-at, 853ms) + var(--t-clash-outcome, 350ms))) both;
 }
 
-/* A card leaving for its dock has no outcome to play here, so the fade runs at once. */
+/* The dock owns the moving card immediately. Only the abandoned stage fades. */
 .battle-clash[data-departing="true"] {
-  animation: battle-clash-out var(--t-clash-exit, 160ms) linear both;
+  animation: battle-clash-out var(--t-security-branch-in, 120ms) linear both;
+}
+
+.battle-clash[data-departing="true"] .battle-clash__card[data-role="revealed"] {
+  visibility: hidden;
 }
 
 .battle-clash__badge {
@@ -84,6 +91,7 @@
 
 .battle-clash__art {
   position: relative;
+  z-index: 1;
   overflow: hidden;
   border-radius: var(--ds-radius-sm);
   box-shadow:
@@ -102,49 +110,143 @@
 /* The reference client's YourEnterSecurityCard.anim (233ms): the card grows from
    almost nothing, arcs left, and burns off a white-out — it never flips. */
 .battle-clash__card[data-role="revealed"] .battle-clash__art {
-  animation: battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both;
+  animation: battle-security-reveal var(--t-clash-reveal, 233ms) linear var(--t-clash-enter, 150ms) both;
+}
+
+/* The origin follows the revealed card's owner; the resting Aegis composition
+   and card width are unchanged. Coordinates are relative to the final card. */
+.battle-clash__card[data-role="revealed"] {
+  --security-reveal-arc: 83.333333%;
+  --security-reveal-start-y: 78.571429%;
+  --security-reveal-mid-y: 54.761905%;
+  --security-reveal-mid-slope: -39.285714%;
+}
+
+.battle-clash__card[data-role="revealed"][data-side="opp"] {
+  --security-reveal-start-y: -45.238095%;
+  --security-reveal-mid-y: -38.095238%;
+  --security-reveal-mid-slope: 14.285714%;
+}
+
+/* Brightness multiplication leaves dark ink visible. A white face instead
+   clears into the printed card on the reveal's clock. */
+.battle-clash__card[data-role="revealed"] .battle-clash__art::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: white;
+  pointer-events: none;
+  content: "";
+  animation: battle-security-face var(--t-clash-reveal, 233ms) linear var(--t-clash-enter, 150ms) both;
 }
 
 .battle-clash[data-resolution="effect"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
   animation:
-    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
-    battle-clash-glow var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+    battle-security-reveal var(--t-clash-reveal, 233ms) linear var(--t-clash-enter, 150ms) both,
+    battle-clash-glow var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 853ms) forwards;
 }
 
-.battle-clash[data-resolution="trashed"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
+.battle-clash[data-cause="destruction"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
   animation:
-    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
-    battle-clash-fall var(--t-clash-outcome, 350ms) cubic-bezier(0.32, 0, 0.67, 0) var(--t-clash-outcome-at, 1283ms)
-      both;
+    battle-security-reveal var(--t-clash-reveal, 233ms) linear var(--t-clash-enter, 150ms) both,
+    battle-clash-fall var(--t-clash-outcome, 350ms) cubic-bezier(0.32, 0, 0.67, 0) var(--t-clash-outcome-at, 853ms)
+      forwards;
 }
 
-/* A battle resolution shakes both cards, so each entrance keeps its own first
-   animation and appends the impact rather than being replaced by it. */
-.battle-clash[data-resolution="battle"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
-  animation:
-    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
-    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+/* The dock already revealed this card. Returning it for battle keeps its face and
+   resting geometry rather than restarting an entrance under a claw at time zero. */
+.battle-clash[data-revealed-ready="true"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
+  animation: none;
 }
 
-.battle-clash[data-resolution="battle"] .battle-clash__card[data-role="attacker"][data-side="you"] .battle-clash__art {
-  animation:
-    battle-clash-enter-you var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
-    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+.battle-clash[data-revealed-ready="true"] .battle-clash__card[data-role="revealed"] .battle-clash__art::after,
+.battle-clash[data-revealed-ready="true"] .battle-security-reveal-light {
+  display: none;
 }
 
-.battle-clash[data-resolution="battle"] .battle-clash__card[data-role="attacker"][data-side="opp"] .battle-clash__art {
-  animation:
-    battle-clash-enter-opp var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
-    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+/* Disposal is a separate queued beat, after the claw/settle or a plain check's
+   recognition hold. Each 70 ms half uses the source project's quadratic deceleration.
+   The artwork clears halfway through narrowing; geometry and captions stay in place. */
+.battle-clash[data-exiting="true"] {
+  animation: none;
+  opacity: 1;
+}
+
+.battle-clash__card[data-role="revealed"] {
+  --security-exit-rise: -302.380952%;
+}
+
+.battle-clash__card[data-role="revealed"][data-side="opp"] {
+  --security-exit-rise: -186.904762%;
+}
+
+.battle-clash[data-exiting="true"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
+  animation: battle-security-exit var(--t-security-card-exit, 140ms) cubic-bezier(0.333333, 0.666667, 0.666667, 1) both;
+}
+
+.battle-clash[data-exiting="true"] .battle-clash__card[data-role="revealed"] .battle-clash__art::after {
+  display: block;
+  animation: battle-security-exit-face var(--t-security-card-exit, 140ms) steps(1, end) both;
+}
+
+.battle-clash[data-exiting="true"] .battle-clash__card[data-role="revealed"] {
+  animation: none;
+  filter: none;
+}
+
+.battle-clash[data-exiting="true"] .battle-clash__card[data-role="revealed"] .battle-clash__frame {
+  animation: none;
+}
+
+.battle-clash[data-exiting="true"] .battle-clash__card[data-role="revealed"] .game-claw,
+.battle-clash[data-exiting="true"] .battle-clash__card[data-role="revealed"] .battle-clash__dp {
+  visibility: hidden;
+}
+
+@keyframes battle-security-exit {
+  0% {
+    transform: translateY(0%) scale(1, 1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: translateY(0%) scale(0.1, 2.333333);
+    filter: brightness(0.803922);
+  }
+  100% {
+    transform: translateY(var(--security-exit-rise)) scale(0.1, 2.333333);
+    filter: brightness(0.803922);
+  }
+}
+
+@keyframes battle-security-exit-face {
+  0% {
+    opacity: 0;
+  }
+  25%,
+  100% {
+    opacity: 1;
+  }
 }
 
 .battle-clash__caption {
+  z-index: 1;
   display: flex;
   width: 13rem;
   flex-direction: column;
   gap: 0.1rem;
   color: #fff;
   text-shadow: 0 1px 5px rgb(4 8 20 / 95%);
+}
+
+/* Blue light appears after the face settles, then clears before the verdict.
+   The existing Aegis rays stay behind the card and caption, without rings. */
+.battle-security-reveal-light {
+  --t-card-burst: var(--t-security-reveal-light, 170ms);
+}
+
+.battle-security-reveal-light .battle-burst__core,
+.battle-security-reveal-light .battle-burst__rays i {
+  animation-delay: calc(var(--t-clash-enter, 150ms) + var(--t-clash-reveal, 233ms));
 }
 
 .battle-clash__role {
@@ -189,7 +291,7 @@
   inset: -0.6rem;
   border-radius: 50%;
   background: radial-gradient(circle, rgb(255 255 255 / 90%) 0%, var(--battle-attack) 45%, transparent 70%);
-  animation: battle-clash-burst var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+  animation: battle-clash-burst var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 853ms) both;
 }
 
 .battle-clash__outcome {
@@ -244,38 +346,248 @@
   }
 }
 
+/* Sampled Hermite motion: scale eases at both endpoints, x arcs left,
+   y keeps its continuous middle tangent, and the final transform is identity. */
 @keyframes battle-security-reveal {
   0% {
-    transform: translate(0, 42px) scale(0.08);
-    filter: brightness(6);
+    transform: translate(
+        calc(-0 * var(--security-reveal-arc)),
+        calc(
+          1 * var(--security-reveal-start-y) + 0 * var(--security-reveal-mid-y) + 0 * var(--security-reveal-mid-slope)
+        )
+      )
+      scale(0.08333333);
+  }
+  5% {
+    transform: translate(
+        calc(-0.028 * var(--security-reveal-arc)),
+        calc(
+          0.972 * var(--security-reveal-start-y) + 0.028 * var(--security-reveal-mid-y) + -0.009 *
+            var(--security-reveal-mid-slope)
+        )
+      )
+      scale(0.08997917);
+  }
+  10% {
+    transform: translate(
+        calc(-0.104 * var(--security-reveal-arc)),
+        calc(
+          0.896 * var(--security-reveal-start-y) + 0.104 * var(--security-reveal-mid-y) + -0.032 *
+            var(--security-reveal-mid-slope)
+        )
+      )
+      scale(0.109);
+  }
+  15% {
+    transform: translate(
+        calc(-0.216 * var(--security-reveal-arc)),
+        calc(
+          0.784 * var(--security-reveal-start-y) + 0.216 * var(--security-reveal-mid-y) + -0.063 *
+            var(--security-reveal-mid-slope)
+        )
+      )
+      scale(0.13902083);
+  }
+  20% {
+    transform: translate(
+        calc(-0.352 * var(--security-reveal-arc)),
+        calc(
+          0.648 * var(--security-reveal-start-y) + 0.352 * var(--security-reveal-mid-y) + -0.096 *
+            var(--security-reveal-mid-slope)
+        )
+      )
+      scale(0.17866667);
+  }
+  25% {
+    transform: translate(
+        calc(-0.49999999 * var(--security-reveal-arc)),
+        calc(
+          0.5 * var(--security-reveal-start-y) + 0.5 * var(--security-reveal-mid-y) + -0.125 *
+            var(--security-reveal-mid-slope)
+        )
+      )
+      scale(0.2265625);
+  }
+  30% {
+    transform: translate(
+        calc(-0.648 * var(--security-reveal-arc)),
+        calc(
+          0.352 * var(--security-reveal-start-y) + 0.648 * var(--security-reveal-mid-y) + -0.144 *
+            var(--security-reveal-mid-slope)
+        )
+      )
+      scale(0.28133333);
+  }
+  35% {
+    transform: translate(
+        calc(-0.784 * var(--security-reveal-arc)),
+        calc(
+          0.216 * var(--security-reveal-start-y) + 0.784 * var(--security-reveal-mid-y) + -0.147 *
+            var(--security-reveal-mid-slope)
+        )
+      )
+      scale(0.34160417);
+  }
+  40% {
+    transform: translate(
+        calc(-0.896 * var(--security-reveal-arc)),
+        calc(
+          0.104 * var(--security-reveal-start-y) + 0.896 * var(--security-reveal-mid-y) + -0.128 *
+            var(--security-reveal-mid-slope)
+        )
+      )
+      scale(0.406);
+  }
+  45% {
+    transform: translate(
+        calc(-0.972 * var(--security-reveal-arc)),
+        calc(
+          0.028 * var(--security-reveal-start-y) + 0.972 * var(--security-reveal-mid-y) + -0.081 *
+            var(--security-reveal-mid-slope)
+        )
+      )
+      scale(0.47314583);
   }
   50% {
-    transform: translate(-18px, 33px) scale(0.55);
-    filter: brightness(3);
+    transform: translate(
+        calc(-1 * var(--security-reveal-arc)),
+        calc(
+          0 * var(--security-reveal-start-y) + 1 * var(--security-reveal-mid-y) + 0 * var(--security-reveal-mid-slope)
+        )
+      )
+      scale(0.54166667);
+  }
+  55% {
+    transform: translate(
+        calc(-0.972 * var(--security-reveal-arc)),
+        calc(0.972 * var(--security-reveal-mid-y) + 0.081 * var(--security-reveal-mid-slope))
+      )
+      scale(0.6101875);
+  }
+  60% {
+    transform: translate(
+        calc(-0.896 * var(--security-reveal-arc)),
+        calc(0.896 * var(--security-reveal-mid-y) + 0.128 * var(--security-reveal-mid-slope))
+      )
+      scale(0.67733333);
+  }
+  65% {
+    transform: translate(
+        calc(-0.784 * var(--security-reveal-arc)),
+        calc(0.784 * var(--security-reveal-mid-y) + 0.147 * var(--security-reveal-mid-slope))
+      )
+      scale(0.74172917);
+  }
+  70% {
+    transform: translate(
+        calc(-0.648 * var(--security-reveal-arc)),
+        calc(0.648 * var(--security-reveal-mid-y) + 0.144 * var(--security-reveal-mid-slope))
+      )
+      scale(0.802);
+  }
+  75% {
+    transform: translate(
+        calc(-0.49999999 * var(--security-reveal-arc)),
+        calc(0.5 * var(--security-reveal-mid-y) + 0.125 * var(--security-reveal-mid-slope))
+      )
+      scale(0.85677083);
+  }
+  80% {
+    transform: translate(
+        calc(-0.352 * var(--security-reveal-arc)),
+        calc(0.352 * var(--security-reveal-mid-y) + 0.096 * var(--security-reveal-mid-slope))
+      )
+      scale(0.90466667);
+  }
+  85% {
+    transform: translate(
+        calc(-0.216 * var(--security-reveal-arc)),
+        calc(0.216 * var(--security-reveal-mid-y) + 0.063 * var(--security-reveal-mid-slope))
+      )
+      scale(0.9443125);
+  }
+  90% {
+    transform: translate(
+        calc(-0.104 * var(--security-reveal-arc)),
+        calc(0.104 * var(--security-reveal-mid-y) + 0.032 * var(--security-reveal-mid-slope))
+      )
+      scale(0.97433333);
+  }
+  95% {
+    transform: translate(
+        calc(-0.028 * var(--security-reveal-arc)),
+        calc(0.028 * var(--security-reveal-mid-y) + 0.009 * var(--security-reveal-mid-slope))
+      )
+      scale(0.99335417);
   }
   100% {
-    transform: translate(0, 0) scale(1);
-    filter: brightness(1);
+    transform: translate(calc(0 * var(--security-reveal-arc)), 0%) scale(1);
   }
 }
 
-/* The reference client's BattleEffect: a 250ms claw slash plus a short shake,
-   then a 100ms settle before the objects are destroyed. */
-@keyframes battle-clash-impact {
+@keyframes battle-security-face {
   0% {
-    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  5% {
+    opacity: 0.998;
+  }
+  10% {
+    opacity: 0.992;
+  }
+  15% {
+    opacity: 0.982;
   }
   20% {
-    transform: translate(-6px, 2px) scale(1.05);
+    opacity: 0.968;
+  }
+  25% {
+    opacity: 0.95;
+  }
+  30% {
+    opacity: 0.928;
+  }
+  35% {
+    opacity: 0.902;
+  }
+  40% {
+    opacity: 0.872;
   }
   45% {
-    transform: translate(5px, -3px) scale(1.05);
+    opacity: 0.838;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  55% {
+    opacity: 0.7452;
+  }
+  60% {
+    opacity: 0.6656;
+  }
+  65% {
+    opacity: 0.5684;
   }
   70% {
-    transform: translate(-3px, 1px) scale(1.02);
+    opacity: 0.4608;
+  }
+  75% {
+    opacity: 0.35;
+  }
+  80% {
+    opacity: 0.2432;
+  }
+  85% {
+    opacity: 0.1476;
+  }
+  90% {
+    opacity: 0.0704;
+  }
+  95% {
+    opacity: 0.0188;
   }
   100% {
-    transform: translate(0, 0) scale(1);
+    opacity: 0;
   }
 }
 

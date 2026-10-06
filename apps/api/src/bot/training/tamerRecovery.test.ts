@@ -143,10 +143,17 @@ describe("Murasamemon recovery payment through the asynchronous policy", () => {
       setup.events.filter((event) => event.kind === "actionRejected" || event.kind === "securityRevealed"),
     ).toEqual([]);
     expect(setup.state.pendingDecision).toBeUndefined();
-    expect(
-      setup.events
-        .filter((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT26-031")
-        .map((event) => (event.kind === "effectTriggered" ? event.timing : undefined)),
-    ).toContain(entry === "digivolve" ? "WhenDigivolving" : "OnUseAttack");
+    const recoveryKey = optionalWindows[0]!.request!.options!.effectKey;
+    expect(recoveryKey).toBeDefined();
+    const recoveryActivations = setup.events.filter(
+      (event) =>
+        event.kind === "effectTriggered" && event.sourceCardId === "BT26-031" && event.effectKey === recoveryKey,
+    );
+    // An offered payment is still verified above; declining it does not announce an activation.
+    expect(recoveryActivations).toHaveLength(payer < 0 ? 0 : 1);
+    if (payer >= 0)
+      expect(recoveryActivations[0]).toMatchObject({
+        timing: entry === "digivolve" ? "WhenDigivolving" : "OnUseAttack",
+      });
   });
 });

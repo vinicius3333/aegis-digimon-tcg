@@ -1,6 +1,14 @@
 import { ISSUE_REPRO_SCENARIO_IDS, layIssueReproScenario } from "./issueReproScenarios.js";
 import {
   CATALOG_DECKS,
+  KEYWORD_PACING_SCENARIOS,
+  KEYWORD_TURN_PACING_SCENARIOS,
+  KEYWORD_PROTECTION_PACING_SCENARIOS,
+  KEYWORD_STACK_PACING_SCENARIOS,
+  KEYWORD_DECK_PACING_SCENARIOS,
+  KEYWORD_ATTACK_PACING_SCENARIOS,
+  KEYWORD_END_ATTACK_PACING_SCENARIOS,
+  PHASE_PACING_SCENARIOS,
   CardKind,
   CardInstance,
   Permanent,
@@ -8,6 +16,16 @@ import {
   getCardDefinition,
   type GameState,
   type Seat,
+  type KeywordPacingScenario,
+  type KeywordPacingScenarioId,
+  type KeywordTurnPacingScenario,
+  type KeywordProtectionPacingScenario,
+  type KeywordStackPacingScenario,
+  type KeywordDeckPacingScenario,
+  type KeywordAttackPacingScenario,
+  type KeywordEndAttackPacingScenario,
+  type PhasePacingScenario,
+  type PhasePacingScenarioId,
 } from "@aegis/shared";
 import {
   clearZone,
@@ -51,6 +69,15 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt11-hades-force-target-selection",
   "arena-bt23-examon-partition-return",
   "arena-bt23-examon-piercing-end-turn",
+  ...KEYWORD_PACING_SCENARIOS.map((scenario) => scenario.id),
+  ...KEYWORD_TURN_PACING_SCENARIOS.map((scenario) => scenario.id),
+  ...KEYWORD_PROTECTION_PACING_SCENARIOS.map((scenario) => scenario.id),
+  ...KEYWORD_STACK_PACING_SCENARIOS.map((scenario) => scenario.id),
+  ...KEYWORD_DECK_PACING_SCENARIOS.map((scenario) => scenario.id),
+  ...KEYWORD_ATTACK_PACING_SCENARIOS.map((scenario) => scenario.id),
+  ...KEYWORD_END_ATTACK_PACING_SCENARIOS.map((scenario) => scenario.id),
+  ...PHASE_PACING_SCENARIOS.map((scenario) => scenario.id),
+  "effects-lab-field-grouping",
   "arena-bt26-monimon-optional-cost",
   "arena-bt26-cerberusmon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
@@ -78,6 +105,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt16-phoenixmon-x-antibody-name",
   "arena-bt21-davis-top-stack",
   "arena-bt21-dracomon-start-main",
+  "arena-bt24-asuna-return-play",
   "arena-bt21-dogatchmon-link-attack",
   "arena-bt24-sonic-shot-decline-link",
   "arena-bt26-chronomon-dm-succession",
@@ -235,6 +263,18 @@ export const DEV_SCENARIO_IDS = [
   "arena-vortexdramon",
   "card-bugs",
   "counter-blast-dna",
+  "effects-lab-own-chain",
+  "effects-lab-opponent-chain",
+  "effects-lab-opponent-play",
+  "effects-lab-nested",
+  "effects-lab-prod-royal-knights",
+  "effects-lab-prod-ghost",
+  "effects-lab-prod-ghost-execute",
+  "effects-lab-prod-ghost-execute-security",
+  "effects-lab-prod-attack-stack",
+  "effects-lab-prod-security-removed",
+  "effects-lab-prod-titan-cascade",
+  "effects-lab-paladin-battle",
   "arena-mobile-blast-counter-tap",
   "security-battle",
   "security-chain",
@@ -2290,6 +2330,19 @@ function layEx13MagnamonEndTurnScenario(state: GameState, decks: readonly [Deckl
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/**
+ * The bot's Asuna Shiroki pays its [Start of Your Turn] by returning itself to the bottom of
+ * the deck, then plays the other Asuna from the trash. The human only passes the turn.
+ */
+function layAsunaReturnPlayScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 0);
+  const bot = state.players[1]!;
+  const asuna = establishedDigimon(1, ["BT24-088"], "-asuna");
+  asuna.permanentId = "opp-asuna";
+  placePermanent(bot, asuna);
+  insertCard(bot, Zone.Trash, faceUpCard("dev-asuna-trash", "BT25-092", 1));
 }
 
 /** Starts the human's turn with only suspended ＜Reboot＞ Digimon on their battle area. */
@@ -5707,6 +5760,305 @@ function layCounterBlastDnaScenario(state: GameState, decks: readonly [Decklist,
   state.memory = 0;
 }
 
+/** Shuffled decks and a full security stack for both seats, the base every Effects Lab board starts from. */
+function prepareEffectsLabDecks(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+}
+
+/** Replaces the top of a seat's security stack with known cards, listed top first, keeping its size. */
+function stackEffectsLabSecurity(state: GameState, seat: Seat, cardIds: readonly string[]): void {
+  const player = state.players[seat];
+  if (player === undefined) return;
+  [...cardIds].reverse().forEach((cardId, index) => {
+    insertCard(player, Zone.Security, faceDownCard(`dev-lab-security-${seat}-${index}`, cardId, seat), "top");
+    takeBottom(player, Zone.Security);
+  });
+}
+
+function startEffectsLabTurn(state: GameState, memory: number): void {
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = memory;
+}
+
+/**
+ * Digivolving Golemon into Megadramon fires six of the human's effects at once: Megadramon's
+ * [When Digivolving] deletion, three inherited "other Digimon digivolves" watchers (Tsunomon,
+ * Agumon, Gabumon) and two Tamers that pay by suspending (Takumi Aiba, Cody Hida & T.K.).
+ */
+function layEffectsLabOwnChainScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT10-062"], "-lab-own-golemon"));
+    placePermanent(human, establishedDigimon(0, ["EX4-003", "EX4-038", "BT3-067"], "-lab-own-tankmon"));
+    placePermanent(human, establishedDigimon(0, ["EX4-039", "BT9-060"], "-lab-own-grizzlymon"));
+    placePermanent(human, establishedDigimon(0, ["BT5-091"], "-lab-own-takumi"));
+    placePermanent(human, establishedDigimon(0, ["BT16-088"], "-lab-own-cody"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-own-megadramon", "BT9-065", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-own-target"));
+  }
+  startEffectsLabTurn(state, 5);
+}
+
+/**
+ * The bot's [Start of Your Main Phase] effects all fire together once the human ends the
+ * turn: Jellymon draws, Tyrannomon gains DP, Kanan Yuki suspends the human's Digimon, Dan
+ * Yuki boosts a bot Digimon, and Kunlun gains memory.
+ */
+function layEffectsLabOpponentChainScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT1-009"], "-lab-opponent-target"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["LM-002"], "-lab-opponent-jellymon"));
+    placePermanent(bot, establishedDigimon(1, ["EX8-011"], "-lab-opponent-tyrannomon"));
+    placePermanent(bot, establishedDigimon(1, ["P-200"], "-lab-opponent-kanan"));
+    placePermanent(bot, establishedDigimon(1, ["P-199"], "-lab-opponent-dan"));
+    placePermanent(bot, establishedDigimon(1, ["BT26-104"], "-lab-opponent-kunlun"));
+  }
+  startEffectsLabTurn(state, 0);
+}
+
+/**
+ * One attack nests three trigger batches across both players: Gallantmon's [When Attacking]
+ * deletion and Jellymon's inherited draw, then the deleted Tapirmon's [On Deletion] beside
+ * WarGrowlmon's inherited Security Attack watcher, then a security-played Thomas H. Norstein's
+ * [On Play] draw during the check.
+ */
+function layEffectsLabNestedScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT4-093", "BT1-009", "BT1-009", "BT1-009", "BT1-009"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["LM-002", "ST7-08", "ST7-09"], "-lab-nested-gallantmon"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT2-070"], "-lab-nested-tapirmon"));
+  }
+  startEffectsLabTurn(state, 3);
+}
+
+/**
+ * Production chain approximation: digivolving into the [Royal Knight] UlforceVeedramon fires
+ * three Cool Boy (BT20-091) watchers beside its [When Digivolving]; attacking afterwards
+ * checks The Last Guardian (BT20-100), whose [Security] plays the bot's Cool Boy from trash.
+ */
+function layEffectsLabProdRoyalKnightsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT20-100"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT2-027"], "-lab-royal-zudomon"));
+    for (const slot of ["first", "second", "third"] as const) {
+      placePermanent(human, establishedDigimon(0, ["BT20-091"], `-lab-royal-cool-boy-${slot}`));
+    }
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-royal-ulforce", "ST8-10", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-royal-target"));
+    insertCard(bot, Zone.Trash, faceUpCard("dev-lab-royal-bot-cool-boy", "BT20-091", 1));
+  }
+  startEffectsLabTurn(state, 5);
+}
+
+/**
+ * Production chain: Phantomon's ＜Execute＞ attack at end of turn fires Violet Inboots
+ * (EX11-068), whose suspension fires Soul Banquet's ＜Delay＞ (BT23-098); the check plays the
+ * bot's Kunlun (BT26-104) and its [On Play]; the end of the attack deletes Phantomon, whose
+ * [On Deletion] replays Bakemon from trash.
+ */
+function layEffectsLabProdGhostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT26-104"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT20-072"], "-lab-ghost-phantomon"));
+    placePermanent(human, establishedDigimon(0, ["EX11-068"], "-lab-ghost-violet-inboots"));
+    const banquet = establishedDigimon(0, ["BT23-098"], "-lab-ghost-soul-banquet");
+    banquet.placedByEffect = true;
+    placePermanent(human, banquet);
+    insertCard(human, Zone.Trash, faceUpCard("dev-lab-ghost-bakemon", "BT20-068", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-ghost-necromon", "BT20-079", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-ghost-discard", "BT20-063", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    insertCard(bot, Zone.Hand, faceDownCard("dev-lab-ghost-bot-kakamon", "EX12-006", 1));
+  }
+  startEffectsLabTurn(state, 3);
+}
+
+/**
+ * Production chain (order prompt of 8): Ghoulmon's ＜Execute＞ attack at end of turn, then its
+ * deletion fires eight [On Deletion] effects at once — its own two, five inherited from its
+ * digivolution cards and a Tamer's watcher. One of them plays a Ghost from trash, whose
+ * [On Play] resolves inside the chain. The `-security` variant checks Our Courage United
+ * (ST20-14) on the way, as a second production match did, so the bot's [Security] lands
+ * between the attack and the deletion.
+ */
+function layEffectsLabProdGhostExecuteScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  securityCardId = "BT1-009",
+): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, [securityCardId]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(
+      human,
+      establishedDigimon(
+        0,
+        ["BT20-006", "BT20-063", "BT20-068", "BT23-065", "BT20-006", "EX11-051"],
+        "-lab-execute-ghoulmon",
+      ),
+    );
+    placePermanent(human, establishedDigimon(0, ["EX11-068"], "-lab-execute-violet-inboots"));
+    placePermanent(human, establishedDigimon(0, ["BT20-088"], "-lab-execute-tamer"));
+    insertCard(human, Zone.Trash, faceUpCard("dev-lab-execute-ghostmon", "BT20-063", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-execute-target"));
+  }
+  startEffectsLabTurn(state, 3);
+}
+
+/**
+ * Production chain that runs straight into an attack: digivolving Omnimon into Merciful Mode
+ * lets it attack at once, and four inherited [When Attacking] effects from its digivolution
+ * cards trigger together. The 16000 DP attack wakes the bot's GrapLeomon watcher (BT25-016), whose
+ * digivolution into Callismon fires Callismon's own watcher; a Tamer waits in security.
+ */
+function layEffectsLabProdAttackStackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT26-090"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(
+      human,
+      establishedDigimon(0, ["EX9-019", "AD1-014", "ST21-05", "AD1-004", "AD1-025"], "-lab-attack-omnimon"),
+    );
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-attack-zwart", "EX13-077", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    // Merciful Mode finishes three follow-up battles before the parked attack window.
+    // Two further targets pay the inherited De-Digivolve/-DP and deletion outcomes,
+    // leaving GrapLeomon alive to react to the declaration.
+    for (const slot of ["first", "second", "third", "fourth", "fifth"] as const) {
+      placePermanent(bot, establishedDigimon(1, ["BT1-009", "BT1-011"], `-lab-attack-target-${slot}`));
+    }
+    placePermanent(bot, establishedDigimon(1, ["BT25-016"], "-lab-attack-watcher"));
+    insertCard(bot, Zone.Hand, faceDownCard("dev-lab-attack-callismon", "BT25-058", 1));
+  }
+  startEffectsLabTurn(state, 5);
+}
+
+/** One opponent play with a mandatory draw, isolating the public arrival and On Play focus. */
+function layEffectsLabOpponentPlayScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  const bot = state.players[1];
+  if (bot !== undefined) insertCard(bot, Zone.Hand, faceDownCard("dev-lab-opponent-gabumon", "BT1-029", 1));
+  startEffectsLabTurn(state, 5);
+}
+
+/**
+ * Production chain: an attacking Jupitermon: Wrath Mode adds its own top security card to the
+ * hand ([When Attacking] inherited from Blue Elecmon), which wakes three "security removed"
+ * watchers at once — two Jupitermon and Inori Misono. Inori's digivolves Aegiomon into
+ * Aegiochusmon: Blue, whose [When Digivolving] resolves before the attack goes on.
+ */
+function layEffectsLabProdSecurityRemovedScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT1-009"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT24-031", "BT26-103"], "-lab-security-wrath"));
+    placePermanent(human, establishedDigimon(0, ["BT24-101"], "-lab-security-jupitermon"));
+    placePermanent(human, establishedDigimon(0, ["BT24-034"], "-lab-security-aegiomon"));
+    placePermanent(human, establishedDigimon(0, ["BT24-084"], "-lab-security-inori"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-security-aegiochusmon", "BT25-025", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009", "BT1-010"], "-lab-security-target"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-security-second-target"));
+  }
+  startEffectsLabTurn(state, 3);
+}
+
+/**
+ * Production chain: Plutomon's [When Attacking] trashes a card from the hand and plays Witchmon
+ * from the trash, which wakes Witchmon's [On Play], two ＜Delay＞ Invasion of the Titans and
+ * Plutomon's own hand-trash watcher at once. The logged chain also woke two Cherubimon in the
+ * trash, which need the opponent at 5 or more memory; this board keeps the turn's memory
+ * positive, so they stay quiet and the prompt holds 5 effects, not 8.
+ */
+function layEffectsLabProdTitanCascadeScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT1-009"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT26-059"], "-lab-titan-plutomon"));
+    placePermanent(human, establishedDigimon(0, ["BT24-021", "BT26-069"], "-lab-titan-dobermon"));
+    for (const slot of ["first", "second"] as const) {
+      const invasion = establishedDigimon(0, ["BT24-098"], `-lab-titan-invasion-${slot}`);
+      invasion.placedByEffect = true;
+      placePermanent(human, invasion);
+      insertCard(human, Zone.Trash, faceUpCard(`dev-lab-titan-cherubimon-${slot}`, "BT26-078", 0));
+    }
+    insertCard(human, Zone.Trash, faceUpCard("dev-lab-titan-witchmon", "BT25-080", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-titan-discard", "BT26-069", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-titan-titamon", "BT25-084", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-titan-target"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-titan-second-target"));
+  }
+  startEffectsLabTurn(state, 3);
+}
+
+/**
+ * Room RQT-ggviX: UlforceVeedramon digivolves into EX13-076 Imperialdramon: Paladin Mode,
+ * whose [When Digivolving] suspends BeelStarmon, returns its three digivolution cards to the
+ * deck and has Imperialdramon battle it. The battle compares digivolution cards, so the
+ * stripped BeelStarmon loses; no attack is declared.
+ */
+function layEffectsLabPaladinBattleScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-022", "EX13-023"], "-lab-paladin-ulforce"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-paladin-imperialdramon", "EX13-076", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(
+      bot,
+      establishedDigimon(1, ["BT25-082", "BT21-074", "BT25-083", "BT25-085"], "-lab-paladin-beelstarmon"),
+    );
+  }
+  startEffectsLabTurn(state, 6);
+}
+
 /**
  * Discord 1556418465231806535 and 1556335019209793638: on a phone, the badges on a small
  * card swallowed the tap meant for the card, so a lone Blast Digivolve host could not be
@@ -5800,7 +6152,351 @@ function laySt17MagnamonMercifulColorsScenario(state: GameState, decks: readonly
   );
 }
 
+/** The engine derives keywords, legality and every result from the registered printed cards. */
+function layEffectsLabFieldGroupingScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  const player = state.players[0]!;
+  placePermanent(player, establishedDigimon(0, ["BT1-077"], "-group-green"));
+  for (let index = 0; index < 2; index++)
+    placePermanent(player, establishedDigimon(0, ["BT1-088"], `-group-izzy-${index}`));
+  for (let index = 0; index < 4; index++)
+    insertCard(player, Zone.Deck, faceDownCard(`dev-group-draw-${index}`, "BT1-010", 0), "top");
+  startEffectsLabTurn(state, 8);
+}
+
+function layKeywordPacingScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  scenario: KeywordPacingScenario,
+): void {
+  prepareEffectsLabDecks(state, decks);
+  placePermanent(state.players[0]!, establishedDigimon(0, [scenario.attackerCardId], "-keyword-attacker"));
+  for (const [index, cardId] of (scenario.allies ?? []).entries())
+    placePermanent(state.players[0]!, establishedDigimon(0, [cardId], `-keyword-ally-${index}`));
+  if (scenario.defenderCardId) {
+    const defender = establishedDigimon(1, [scenario.defenderCardId], "-keyword-defender");
+    defender.isSuspended = true;
+    placePermanent(state.players[1]!, defender);
+  }
+  stackEffectsLabSecurity(state, 1, Array(Math.max(1, scenario.securityRemoved)).fill(scenario.securityCardId));
+  if (scenario.ownSecurityRemoved) stackEffectsLabSecurity(state, 0, [scenario.securityCardId]);
+  startEffectsLabTurn(state, 3);
+}
+
+function layKeywordTurnPacingScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  scenario: KeywordTurnPacingScenario,
+): void {
+  prepareEffectsLabDecks(state, decks);
+  if (scenario.flow === "block") {
+    placePermanent(state.players[0]!, establishedDigimon(0, [scenario.blockerCardId], "-keyword-blocker"));
+    placePermanent(state.players[1]!, establishedDigimon(1, [scenario.attackerCardId], "-keyword-attacker"));
+    stackEffectsLabSecurity(state, 0, [scenario.securityCardId]);
+  } else {
+    const ownCards = [...scenario.holderCardIds, scenario.controlCardId];
+    for (const [index, cardId] of ownCards.entries()) {
+      // They begin active and suspend through attacks, rather than a forged keyword move.
+      placePermanent(state.players[0]!, establishedDigimon(0, [cardId], `-keyword-reboot-${index}`));
+      const defender = establishedDigimon(1, [scenario.defenderCardId], `-keyword-reboot-target-${index}`);
+      defender.isSuspended = true;
+      placePermanent(state.players[1]!, defender);
+    }
+  }
+  startEffectsLabTurn(state, 3);
+}
+
+function layKeywordProtectionPacingScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  scenario: KeywordProtectionPacingScenario,
+): void {
+  prepareEffectsLabDecks(state, decks);
+  placePermanent(state.players[0]!, establishedDigimon(0, scenario.holderCardIds, "-keyword-protected"));
+  if (scenario.flow === "evade") {
+    // The level-five attacker is ineligible for Death Claw; the active holder is its only target.
+    placePermanent(state.players[0]!, establishedDigimon(0, [scenario.attackerCardId], "-keyword-attacker"));
+    stackEffectsLabSecurity(state, 1, [scenario.securityCardId]);
+  } else {
+    const defender = establishedDigimon(1, [scenario.defenderCardId], "-keyword-defender");
+    defender.isSuspended = true;
+    placePermanent(state.players[1]!, defender);
+  }
+  startEffectsLabTurn(state, 3);
+}
+
+function layKeywordStackPacingScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  scenario: KeywordStackPacingScenario,
+): void {
+  prepareEffectsLabDecks(state, decks);
+  if (scenario.flow === "de-digivolve") {
+    placePermanent(state.players[0]!, establishedDigimon(0, [scenario.supportCardId], "-keyword-stack-support"));
+    insertCard(state.players[0]!, Zone.Hand, faceDownCard("dev-keyword-stack-option", scenario.optionCardId, 0));
+    for (let index = 0; index < 2; index++)
+      placePermanent(state.players[1]!, establishedDigimon(1, scenario.targetCardIds, `-keyword-stack-${index}`));
+  } else {
+    for (let index = 0; index < 2; index++)
+      placePermanent(state.players[0]!, establishedDigimon(0, scenario.holderCardIds, `-keyword-stack-${index}`));
+    placePermanent(state.players[1]!, establishedDigimon(1, [scenario.targetCardId], "-keyword-stack-target"));
+  }
+  startEffectsLabTurn(state, 8);
+}
+
+/** Conserved main decks with known next cards and no incidental bot action before the printed On Play. */
+function layKeywordDeckPacingScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  scenario: KeywordDeckPacingScenario,
+): void {
+  const fillers = [
+    "BT1-009",
+    "BT1-010",
+    "BT1-011",
+    "BT1-014",
+    "BT1-017",
+    "BT1-050",
+    "BT1-054",
+    "BT1-067",
+    "BT1-071",
+    "BT1-074",
+    "BT1-077",
+    "BT1-081",
+  ].flatMap((id) => Array<string>(4).fill(id));
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    const extras = [...(seat === scenario.sourceSeat ? [scenario.sourceCardId] : []), "BT1-089", "ST2-16"];
+    loadDeckInto(player, seat, {
+      mainDeck: [...extras, ...fillers.slice(0, 50 - extras.length)],
+      eggDeck: decks[seat].eggDeck,
+    });
+    const take = (cardId: string) => {
+      const card = extractCardAt(
+        player,
+        Zone.Deck,
+        player.deck.findIndex((candidate) => candidate.cardId === cardId),
+      );
+      if (!card) throw new Error(`Deck pacing scenario is missing ${cardId}`);
+      return card;
+    };
+    const control = new Permanent();
+    control.permanentId = `dev-perm-${seat}-keyword-deck-control`;
+    control.controllerSeat = seat;
+    control.enterFieldTurnCount = ESTABLISHED_TURN;
+    const tamer = take("BT1-089");
+    tamer.faceUp = true;
+    setTopCard(control, tamer);
+    placePermanent(player, control);
+    if (seat === scenario.sourceSeat) {
+      const source = take(scenario.sourceCardId);
+      source.instanceId = `dev-keyword-deck-source-${seat}`;
+      insertCard(player, Zone.Hand, source);
+    }
+    const count = seat === scenario.sourceSeat ? scenario.initialSecurity : 5;
+    for (let index = 0; index < count; index++) insertCard(player, Zone.Security, takeBottom(player, Zone.Deck)!);
+    if (seat === 0 && scenario.sourceSeat === 1) insertCard(player, Zone.Hand, take("BT1-009"));
+    // The ordinary turn draw consumes Cocytus Breath. With no blue Digimon initially,
+    // the bot's only playable hand card is this scenario's printed On Play source.
+    // Subsequent effect cards are Agumon, then Kokatorimon, in physical deck order.
+    for (const cardId of ["BT1-014", "BT1-010", "ST2-16"]) insertCard(player, Zone.Deck, take(cardId), "top");
+  }
+  startEffectsLabTurn(state, 10);
+}
+
+/** Every field/hand/security instance is extracted from a legal fifty-card main deck. */
+function layKeywordAttackPacingScenario(
+  state: GameState,
+  _decks: readonly [Decklist, Decklist],
+  scenario: KeywordAttackPacingScenario | KeywordEndAttackPacingScenario,
+): void {
+  const security = ["BT1-011", "BT1-010", "BT1-009", "BT1-014"];
+  const fillerIds = [
+    "BT1-009",
+    "BT1-010",
+    "BT1-011",
+    "BT1-014",
+    "BT1-017",
+    "BT1-050",
+    "BT1-054",
+    "BT1-067",
+    "BT1-071",
+    "BT1-074",
+    "BT1-077",
+    "BT1-081",
+  ];
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    const fieldIds =
+      seat === 0
+        ? scenario.attackerCardIds
+        : scenario.flow === "raid" || scenario.flow === "vortex"
+          ? scenario.defenderCardIds
+          : [];
+    const mainFieldIds = fieldIds.filter((id) => !getCardDefinition(id)?.kinds.includes(CardKind.DigiEgg));
+    const extras = [
+      ...mainFieldIds,
+      ...security,
+      "BT1-089",
+      "ST2-16",
+      ...(seat === 0 && scenario.flow === "rush" ? [scenario.controlCardId] : []),
+      ...(seat === 0 && (scenario.flow === "blitz" || scenario.flow === "vortex") ? [scenario.sourceCardId] : []),
+    ];
+    const fillers = fillerIds.flatMap((id) =>
+      Array<string>(4 - extras.filter((extra) => extra === id).length).fill(id),
+    );
+    const mainDeck = [...extras, ...fillers.slice(0, 50 - extras.length)];
+    if (mainDeck.length !== 50) throw new Error("Attack pacing scenario needs fifty main-deck cards");
+    loadDeckInto(player, seat, { mainDeck, eggDeck: Array<string>(4).fill("BT1-001") });
+    const take = (cardId: string) => {
+      const zone = getCardDefinition(cardId)?.kinds.includes(CardKind.DigiEgg) ? Zone.EggDeck : Zone.Deck;
+      const cards = zone === Zone.EggDeck ? player.eggDeck : player.deck;
+      const card = extractCardAt(
+        player,
+        zone,
+        cards.findIndex((candidate) => candidate.cardId === cardId),
+      );
+      if (!card) throw new Error(`Attack pacing scenario is missing ${cardId}`);
+      return card;
+    };
+    const place = (ids: readonly string[], slot: string) => {
+      const permanent = new Permanent();
+      permanent.permanentId = `dev-perm-${seat}-keyword-attack-${slot}`;
+      permanent.controllerSeat = seat;
+      permanent.enterFieldTurnCount = ESTABLISHED_TURN;
+      const cards = ids.map(take);
+      for (const card of cards) card.faceUp = true;
+      setTopCard(permanent, cards.at(-1)!);
+      for (const card of cards.slice(0, -1)) pushOnStack(permanent, card);
+      permanent.baseDP = getCardDefinition(cards.at(-1)!.cardId)?.dp ?? 0;
+      permanent.currentDP = permanent.baseDP;
+      placePermanent(player, permanent);
+    };
+    place(["BT1-089"], "control");
+    if (seat === 0) {
+      if (scenario.flow === "rush") {
+        for (const [slot, cardId] of [
+          ["source", scenario.attackerCardIds[0]],
+          ["control", scenario.controlCardId],
+        ] as const) {
+          const card = take(cardId);
+          card.instanceId = `dev-keyword-attack-${slot}`;
+          insertCard(player, Zone.Hand, card);
+        }
+      } else if (scenario.flow === "blitz" || scenario.flow === "vortex") {
+        if (scenario.attackerCardIds.length > 0) place(scenario.attackerCardIds, "attacker");
+        const card = take(scenario.sourceCardId);
+        card.instanceId = "dev-keyword-attack-source";
+        insertCard(player, Zone.Hand, card);
+      } else place(scenario.attackerCardIds, "attacker");
+      // A playable reserve prevents the real loop from auto-passing an exhausted Main.
+      const reserve = take("BT1-009");
+      reserve.instanceId = "dev-keyword-attack-reserve";
+      insertCard(player, Zone.Hand, reserve);
+    } else if (scenario.flow === "raid" || scenario.flow === "vortex") {
+      scenario.defenderCardIds.forEach((id, index) => place([id], `defender-${index}`));
+      if (scenario.flow === "vortex")
+        for (const permanent of player.battleArea)
+          permanent.isSuspended =
+            permanent.permanentId.endsWith("defender-0") || permanent.permanentId.endsWith("defender-1");
+    }
+    for (const cardId of security) insertCard(player, Zone.Security, take(cardId));
+    insertCard(player, Zone.Deck, take("ST2-16"), "top");
+  }
+  startEffectsLabTurn(state, scenario.flow === "blitz" ? 3 : 10);
+}
+
+function layPhasePacingScenario(
+  state: GameState,
+  _decks: readonly [Decklist, Decklist],
+  scenario: PhasePacingScenario,
+): void {
+  const security = ["BT1-011", "BT1-014", "BT1-017", "BT1-025"];
+  const fillerIds = [
+    "BT1-009",
+    "BT1-010",
+    "BT1-011",
+    "BT1-014",
+    "BT1-017",
+    "BT1-050",
+    "BT1-054",
+    "BT1-067",
+    "BT1-071",
+    "BT1-074",
+    "BT1-077",
+    "BT1-081",
+  ];
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    const prepared =
+      seat === 0
+        ? ["BT1-009"]
+        : [
+            ...scenario.handCardIds,
+            ...scenario.fieldCardIds,
+            ...scenario.breedingCardIds.filter((id) => !getCardDefinition(id)?.kinds.includes(CardKind.DigiEgg)),
+          ];
+    const extras = ["BT1-089", ...security, ...Array<string>(4).fill("ST2-16"), ...prepared];
+    const fillers = fillerIds.flatMap((id) =>
+      Array<string>(4 - extras.filter((extra) => extra === id).length).fill(id),
+    );
+    const mainDeck = [...extras, ...fillers.slice(0, 50 - extras.length)];
+    if (mainDeck.length !== 50) throw new Error("Phase pacing scenario needs fifty main-deck cards");
+    loadDeckInto(player, seat, {
+      mainDeck,
+      eggDeck: Array<string>(4).fill(seat === 0 ? "ST1-01" : scenario.eggCardId),
+    });
+    const take = (cardId: string) => {
+      const zone = getCardDefinition(cardId)?.kinds.includes(CardKind.DigiEgg) ? Zone.EggDeck : Zone.Deck;
+      const cards = zone === Zone.EggDeck ? player.eggDeck : player.deck;
+      const card = extractCardAt(
+        player,
+        zone,
+        cards.findIndex((candidate) => candidate.cardId === cardId),
+      );
+      if (!card) throw new Error(`Phase pacing scenario is missing ${cardId}`);
+      return card;
+    };
+    const place = (ids: readonly string[], slot: string, breeding = false) => {
+      const permanent = new Permanent();
+      permanent.permanentId = `dev-perm-${seat}-phase-pacing-${slot}`;
+      permanent.controllerSeat = seat;
+      permanent.enterFieldTurnCount = ESTABLISHED_TURN;
+      permanent.inBreeding = breeding;
+      const cards = ids.map(take);
+      for (const card of cards) card.faceUp = true;
+      setTopCard(permanent, cards.at(-1)!);
+      for (const card of cards.slice(0, -1)) pushOnStack(permanent, card);
+      permanent.baseDP = getCardDefinition(cards.at(-1)!.cardId)?.dp ?? 0;
+      permanent.currentDP = permanent.baseDP;
+      if (breeding) setBreeding(player, permanent);
+      else placePermanent(player, permanent);
+    };
+    place(["BT1-089"], "control");
+    if (seat === 0) {
+      const reserve = take("BT1-009");
+      reserve.instanceId = "dev-phase-pacing-reserve";
+      insertCard(player, Zone.Hand, reserve);
+    } else {
+      for (const cardId of scenario.handCardIds) insertCard(player, Zone.Hand, take(cardId));
+      scenario.fieldCardIds.forEach((id, index) => place([id], `field-${index}`));
+      if (scenario.breedingCardIds.length) place(scenario.breedingCardIds, "raising", true);
+    }
+    for (const id of security) insertCard(player, Zone.Security, take(id));
+    // Real draws remain mandatory; the blue options have no color source on these boards.
+    const draws = Array.from({ length: 4 }, () => take("ST2-16"));
+    fillZone(player, Zone.Deck, [...draws, ...player.deck]);
+  }
+  startEffectsLabTurn(state, 5);
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  ...(Object.fromEntries(
+    PHASE_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) => layPhasePacingScenario(state, decks, scenario),
+    ]),
+  ) as Record<PhasePacingScenarioId, typeof layBattleScenario>),
   "arena-ex12-thetismon-mistymon-deletion": layThetismonJammingScenario,
   "arena-ex12-thetismon-jamming-control": (state, decks) => layThetismonJammingScenario(state, decks, false),
   ...(Object.fromEntries(
@@ -5819,6 +6515,40 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-kotone-digixros-any-tamer-effect": (state, decks) => layTaikiAnyTamerDigiXrosScenario(state, decks, true),
   "arena-bt22-gabumon-eot-dna": layBt22GabumonEotDnaScenario,
   "arena-bt11-hades-force-target-selection": layBt11HadesForceTargetSelectionScenario,
+  "effects-lab-field-grouping": layEffectsLabFieldGroupingScenario,
+  ...(Object.fromEntries([
+    ...KEYWORD_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) => layKeywordPacingScenario(state, decks, scenario),
+    ]),
+    ...KEYWORD_TURN_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) => layKeywordTurnPacingScenario(state, decks, scenario),
+    ]),
+    ...KEYWORD_PROTECTION_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) =>
+        layKeywordProtectionPacingScenario(state, decks, scenario),
+    ]),
+    ...KEYWORD_STACK_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) => layKeywordStackPacingScenario(state, decks, scenario),
+    ]),
+    ...KEYWORD_DECK_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) => layKeywordDeckPacingScenario(state, decks, scenario),
+    ]),
+    ...KEYWORD_ATTACK_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) =>
+        layKeywordAttackPacingScenario(state, decks, scenario),
+    ]),
+    ...KEYWORD_END_ATTACK_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) =>
+        layKeywordAttackPacingScenario(state, decks, scenario),
+    ]),
+  ]) as Record<KeywordPacingScenarioId, typeof layBattleScenario>),
   battle: layBattleScenario,
   "field-grouping": layFieldGroupingScenario,
   "arena-field-grouping-dense": layDenseFieldGroupingScenario,
@@ -5828,6 +6558,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-alliance-20": layAllianceTwentyScenario,
   "arena-marcus-alliance": layMarcusAllianceScenario,
   "arena-bt23-examon-partition-return": layBt23ExamonRemovalScenario,
+  "arena-bt24-asuna-return-play": layAsunaReturnPlayScenario,
   "arena-bt23-examon-piercing-end-turn": (state, decks) => layBt23ExamonRemovalScenario(state, decks, true),
   "arena-bt26-monimon-optional-cost": layBt26MonimonOptionalCostScenario,
   "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,
@@ -6010,6 +6741,19 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-vortexdramon": layVortexdramonScenario,
   "card-bugs": layCardBugsScenario,
   "counter-blast-dna": layCounterBlastDnaScenario,
+  "effects-lab-own-chain": layEffectsLabOwnChainScenario,
+  "effects-lab-opponent-chain": layEffectsLabOpponentChainScenario,
+  "effects-lab-opponent-play": layEffectsLabOpponentPlayScenario,
+  "effects-lab-nested": layEffectsLabNestedScenario,
+  "effects-lab-prod-royal-knights": layEffectsLabProdRoyalKnightsScenario,
+  "effects-lab-prod-ghost": layEffectsLabProdGhostScenario,
+  "effects-lab-prod-ghost-execute": (state, decks) => layEffectsLabProdGhostExecuteScenario(state, decks),
+  "effects-lab-prod-ghost-execute-security": (state, decks) =>
+    layEffectsLabProdGhostExecuteScenario(state, decks, "ST20-14"),
+  "effects-lab-prod-attack-stack": layEffectsLabProdAttackStackScenario,
+  "effects-lab-prod-security-removed": layEffectsLabProdSecurityRemovedScenario,
+  "effects-lab-prod-titan-cascade": layEffectsLabProdTitanCascadeScenario,
+  "effects-lab-paladin-battle": layEffectsLabPaladinBattleScenario,
   "arena-mobile-blast-counter-tap": layMobileBlastCounterTapScenario,
   "security-battle": layDelayedSecurityBattleScenario,
   "security-chain": laySecurityChainScenario,

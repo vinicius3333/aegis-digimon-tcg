@@ -1,47 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { CARD_CRACK_VIEWBOX, CARD_SHARD_COUNT, cardCrackPaths, cardShards } from "./cardShatter";
+import { CARD_FRACTURE } from "./cardShatter";
+import { FIELD_FRACTURE } from "./fieldShatter";
+import fracture from "./fieldFracture.json";
 
-describe("cardShards", () => {
-  it("cuts the card into the whole set of wedges", () => {
-    expect(cardShards()).toHaveLength(CARD_SHARD_COUNT);
+// The asset coverage test independently verifies the shared UV plane.
+describe("printed card fracture", () => {
+  it("uses the same 41 authored polygons on the field and central stage", () => {
+    expect(CARD_FRACTURE).toBe(FIELD_FRACTURE);
+    expect(CARD_FRACTURE).toHaveLength(41);
+    expect(CARD_FRACTURE.map((shard) => shard.clipPath)).toEqual(
+      fracture.polygons.map((points) => `polygon(${points.map(([x, y]) => `${x}% ${y}%`).join(", ")})`),
+    );
   });
 
-  it("draws every wedge out of the card's centre", () => {
-    for (const shard of cardShards()) expect(shard.clipPath.startsWith("polygon(50% 50%,")).toBe(true);
-  });
-
-  it("throws the shards in different directions", () => {
-    const directions = cardShards().map((shard) => `${shard.driftX},${shard.driftY}`);
-    expect(new Set(directions).size).toBe(CARD_SHARD_COUNT);
-  });
-
-  it("staggers the break rather than firing it all at once", () => {
-    const delays = cardShards().map((shard) => shard.delayMs);
-    expect(delays[0]).toBe(0);
-    expect(delays.at(-1)).toBeGreaterThan(0);
-  });
-
-  it("is stable, so a shard always flies the same way", () => {
-    expect(cardShards()).toEqual(cardShards());
-  });
-
-  it("honours a smaller cut", () => {
-    expect(cardShards(3)).toHaveLength(3);
-  });
-});
-
-describe("cardCrackPaths", () => {
-  it("opens one seam per shard, each with its two forks", () => {
-    expect(cardCrackPaths()).toHaveLength(CARD_SHARD_COUNT * 3);
-  });
-
-  it("runs every seam out from the impact at the card's centre", () => {
-    const centre = `M${CARD_CRACK_VIEWBOX.width / 2} ${CARD_CRACK_VIEWBOX.height / 2}`;
-    const seams = cardCrackPaths().filter((_, index) => index % 3 === 0);
-    for (const seam of seams) expect(seam.startsWith(centre)).toBe(true);
-  });
-
-  it("is stable, so the pane always cracks the same way", () => {
-    expect(cardCrackPaths()).toEqual(cardCrackPaths());
+  it("spreads fragments in finite outward directions without adding spin or stagger", () => {
+    for (const shard of CARD_FRACTURE) {
+      expect(Number.isFinite(shard.driftX) && Number.isFinite(shard.driftY)).toBe(true);
+      expect(Math.hypot(shard.driftX, shard.driftY)).toBeGreaterThan(0);
+      expect(Object.keys(shard).sort()).toEqual(["clipPath", "driftX", "driftY"]);
+    }
   });
 });

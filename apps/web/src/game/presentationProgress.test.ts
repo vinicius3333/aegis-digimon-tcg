@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { createPresentationProgress } from "./presentationProgress";
 import type { AnimationStep } from "./animationQueue";
+import { CardInstance, GameState, PlayerState } from "@aegis/shared";
+import { selectPresentedState, snapshotGameState } from "../net/presentedState";
 
 /** A step that runs until it is let go, the way a step holding a moment on screen does. */
 const step = (id: string): AnimationStep => ({ id, run: (context) => context.wait(1) });
@@ -63,6 +65,42 @@ describe("createPresentationProgress", () => {
     runTracked(progress.track(step("first")));
     progress.raiseFloor(2);
 
-    expect(progress.current()).toBeUndefined();
+    expect(progress.current()).toBe(2);
+  });
+
+  it("keeps a decision floor on its exact snapshot while later accepted results remain queued", async () => {
+    const progress = createPresentationProgress(vi.fn<() => void>());
+    const live = new GameState();
+    live.stateVersion = 2;
+    live.players.push(new PlayerState(), new PlayerState());
+    const decisionBoard = snapshotGameState(live);
+    const laterDraw = new CardInstance();
+    laterDraw.instanceId = "later-effect-draw";
+    laterDraw.cardId = "ST1-07";
+    live.players[0]!.hand.push(laterDraw);
+    live.players[0]!.handCount = 1;
+    live.stateVersion = 5;
+    const futureBoard = snapshotGameState(live);
+    const snapshots = [
+      { stateVersion: 2, state: decisionBoard },
+      { stateVersion: 5, state: futureBoard },
+    ];
+    const shown = () => selectPresentedState({ live, snapshots, presentedStateVersion: progress.current() })!;
+
+    progress.present("earlier-clause", 1);
+    const earlier = runTracked(progress.track(step("earlier-reading")));
+    progress.present("later-effect", 5);
+    const later = runTracked(progress.track(step("later-result")));
+    progress.raiseFloor(2);
+    expect(progress.current()).toBe(2);
+    expect(shown().stateVersion).toBe(2);
+    expect(shown().players[0]!.hand).toEqual([]);
+
+    earlier();
+    await vi.waitFor(() => expect(progress.current()).toBe(5));
+    expect(shown().players[0]!.hand.map((card) => card.instanceId)).toEqual([laterDraw.instanceId]);
+    later();
+    await vi.waitFor(() => expect(progress.current()).toBeUndefined());
+    expect(shown()).toBe(live);
   });
 });

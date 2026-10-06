@@ -11,6 +11,15 @@ import type { DecisionRequest, Permanent } from "@aegis/shared";
 
 export type DecisionPresentation = "board" | "dialog";
 
+/** The effect is asking for field targets, rather than a cost, zone card, or attack declaration. */
+export function isFieldTargetDecision(decision: DecisionRequest, permanents: readonly Permanent[]): boolean {
+  if (decision.kind !== "chooseTargets" && decision.kind !== "selectCards") return false;
+  if (decision.options?.purpose === "cost" || decision.options?.selectionContext !== undefined) return false;
+  const candidates = decision.options?.candidateInstanceIds ?? [];
+  const field = new Set(permanents.flatMap((permanent) => [permanent.permanentId, permanent.topCard?.instanceId]));
+  return candidates.length > 0 && candidates.every((id) => field.has(id));
+}
+
 /** The engine's dedicated optional Decoy sacrifice question, not any effect mentioning the keyword. */
 export function isDecoyDecision(decision: DecisionRequest | undefined): boolean {
   return decision?.kind === "selectCards" && /^[＜<]\s*Decoy(?:\s*[＞>]|\s*\()/i.test(decision.promptText ?? "");

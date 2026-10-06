@@ -192,6 +192,8 @@ export async function applyAssembly(
   permanent.enterFieldTurnCount = state.turnCount;
   deps.emit?.({
     kind: "cardPlayed",
+    instanceId: instance.instanceId,
+    fromZone: "hand",
     seat,
     cardId: instance.cardId,
     ...(instance.artId ? { artId: instance.artId } : {}),

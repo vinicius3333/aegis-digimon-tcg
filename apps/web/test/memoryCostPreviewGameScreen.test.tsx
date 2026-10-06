@@ -53,24 +53,26 @@ async function mountGame(s: EngineSetup, identityColor: "Red" | "Yellow" | "Blac
   };
 
   const { GameScreen } = await import("../src/game/GameScreen");
-  render(
+  const game = () => (
     <GameScreen
       joinOptions={{ displayName: "Protagonist", deck: { mainDeck: [], eggDeck: [] } }}
       identityColor={identityColor}
       startMode="casual"
       onExit={() => {}}
-    />,
+    />
   );
+  const mounted = render(game());
+  return { refresh: () => mounted.rerender(game()) };
 }
 
-function placeDropZone(target: HTMLElement): void {
+function placeDropZone(target: HTMLElement, width = 140): void {
   target.getBoundingClientRect = () =>
     ({
       left: 40,
-      right: 180,
+      right: 40 + width,
       top: 160,
       bottom: 360,
-      width: 140,
+      width,
       height: 200,
       x: 40,
       y: 160,
@@ -79,10 +81,10 @@ function placeDropZone(target: HTMLElement): void {
 }
 
 /** Pick the card up and hold it over the drop zone; the drop is never released. */
-async function holdOver(source: Element, pointerId: number): Promise<void> {
+async function holdOver(source: Element, pointerId: number, pointerType = "mouse"): Promise<void> {
   await act(async () => {
     source.dispatchEvent(
-      new PointerEvent("pointerdown", { bubbles: true, clientX: 100, clientY: 650, pointerId, pointerType: "mouse" }),
+      new PointerEvent("pointerdown", { bubbles: true, clientX: 100, clientY: 650, pointerId, pointerType }),
     );
     window.dispatchEvent(
       new PointerEvent("pointermove", {
@@ -91,7 +93,7 @@ async function holdOver(source: Element, pointerId: number): Promise<void> {
         clientX: 100,
         clientY: 260,
         pointerId,
-        pointerType: "mouse",
+        pointerType,
       }),
     );
   });
@@ -232,3 +234,168 @@ it("previews nothing over an area that would refuse the drop", async () => {
 
   expect(previewMarker()).toBeNull();
 });
+
+it.each(["mouse", "touch"])(
+  "refuses a %s drag without sufficient memory but still lets the card be inspected",
+  async (pointerType) => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT1-025", as: "warGreymon" }], deck: ["BT1-010"], security: 5 },
+      1: { deck: ["BT1-029"], security: 5 },
+    });
+    s.state.memory = 0;
+    await mountGame(s);
+    expect(s.inst("warGreymon").playableFromHand).toBe(false);
+    expect(s.inst("warGreymon").digivolveTargetPermanentIds).toHaveLength(0);
+
+    const source = within(screen.getByTestId("hand")).getByRole("img", { name: /^wargreymon$/i });
+    const target = document.querySelector('[data-drop="battle-you"]') as HTMLElement;
+    placeDropZone(target);
+    await holdOver(source, 31, pointerType);
+
+    expect(screen.queryByTestId("drag-ghost")).toBeNull();
+    expect(target.hasAttribute("data-drag-intent")).toBe(false);
+    expect(previewMarker()).toBeNull();
+    await act(async () => {
+      window.dispatchEvent(
+        new PointerEvent("pointerup", { bubbles: true, clientX: 100, clientY: 260, pointerId: 31, pointerType }),
+      );
+    });
+    expect(mocked.playCard).not.toHaveBeenCalled();
+
+    await act(async () => {
+      source.dispatchEvent(
+        new PointerEvent("pointerdown", { bubbles: true, clientX: 100, clientY: 650, pointerId: 32, pointerType }),
+      );
+      window.dispatchEvent(
+        new PointerEvent("pointerup", { bubbles: true, clientX: 100, clientY: 650, pointerId: 32, pointerType }),
+      );
+    });
+    expect(screen.getByRole("dialog", { name: /^wargreymon$/i })).toBeDefined();
+    expect(mocked.playCard).not.toHaveBeenCalled();
+  },
+);
+
+it("lets an unaffordable play drag to an affordable evolution base, without offering a play on the field", async () => {
+  const s = setupEngine({
+    0: {
+      battleArea: [{ card: "ST12-08", as: "saviorHuckmon" }],
+      hand: [{ card: "BT1-025", as: "warGreymon" }],
+      deck: ["BT1-010"],
+      security: 5,
+    },
+    1: { deck: ["BT1-029"], security: 5 },
+  });
+  s.state.memory = 0;
+  await mountGame(s);
+  expect(s.inst("warGreymon").playableFromHand).toBe(false);
+  expect([...s.inst("warGreymon").digivolveTargetPermanentIds]).toContain(s.perm("saviorHuckmon").permanentId);
+
+  const source = within(screen.getByTestId("hand")).getByRole("img", { name: /^wargreymon$/i });
+  const field = document.querySelector('[data-drop="battle-you"]') as HTMLElement;
+  placeDropZone(field);
+  await holdOver(source, 33, "touch");
+  expect(screen.getByTestId("drag-ghost")).toBeDefined();
+  expect(field.hasAttribute("data-drag-intent")).toBe(false);
+  expect(previewMarker()).toBeNull();
+
+  const base = screen.getByRole("img", { name: /^saviorhuckmon$/i }).closest('[data-drop="perm-you"]') as HTMLElement;
+  placeDropZone(base, 100);
+  await act(async () => {
+    window.dispatchEvent(
+      new PointerEvent("pointermove", {
+        bubbles: true,
+        cancelable: true,
+        clientX: 100,
+        clientY: 260,
+        pointerId: 33,
+        pointerType: "touch",
+      }),
+    );
+  });
+  expect(base.getAttribute("data-drag-intent")).toBe("evolve");
+  expect(previewedMemory()).toBe(-3);
+  await act(async () => {
+    window.dispatchEvent(
+      new PointerEvent("pointerup", { bubbles: true, clientX: 100, clientY: 260, pointerId: 33, pointerType: "touch" }),
+    );
+  });
+  expect(await screen.findByText(/digivolve saviorhuckmon into wargreymon/i)).toBeDefined();
+  expect(mocked.playCard).not.toHaveBeenCalled();
+});
+
+it("cancels a held card when the server revokes its actions before release", async () => {
+  const s = setupEngine({
+    0: { hand: [{ card: "BT1-010", as: "agumon" }], deck: ["BT1-010"], security: 5 },
+    1: { deck: ["BT1-029"], security: 5 },
+  });
+  const mounted = await mountGame(s);
+  const source = within(screen.getByTestId("hand")).getByRole("img", { name: /^agumon$/i });
+  const target = document.querySelector('[data-drop="battle-you"]') as HTMLElement;
+  placeDropZone(target);
+  await holdOver(source, 34);
+  expect(screen.getByTestId("drag-ghost")).toBeDefined();
+
+  await act(async () => {
+    s.state.memory = -9;
+    await s.ready();
+  });
+  expect(s.inst("agumon").playableFromHand).toBe(false);
+  mounted.refresh();
+
+  expect(screen.queryByTestId("drag-ghost")).toBeNull();
+  expect(target.hasAttribute("data-drag-intent")).toBe(false);
+  await act(async () => {
+    window.dispatchEvent(
+      new PointerEvent("pointerup", { bubbles: true, clientX: 100, clientY: 260, pointerId: 34, pointerType: "mouse" }),
+    );
+  });
+  expect(mocked.playCard).not.toHaveBeenCalled();
+});
+
+it.each(["BT1-010", "BT1-025"])(
+  "leaves a sideways touch swipe over %s available for native hand scrolling",
+  async (cardId) => {
+    const s = setupEngine({
+      0: { hand: [{ card: cardId, as: "held" }], deck: ["BT1-010"], security: 5 },
+      1: { deck: ["BT1-029"], security: 5 },
+    });
+    s.state.memory = 0;
+    await mountGame(s);
+    const source = within(screen.getByTestId("hand")).getByRole("button");
+    const move = new PointerEvent("pointermove", {
+      bubbles: true,
+      cancelable: true,
+      clientX: 180,
+      clientY: 655,
+      pointerId: 35,
+      pointerType: "touch",
+    });
+    await act(async () => {
+      source.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          cancelable: true,
+          clientX: 100,
+          clientY: 650,
+          pointerId: 35,
+          pointerType: "touch",
+        }),
+      );
+      window.dispatchEvent(move);
+      window.dispatchEvent(
+        new PointerEvent("pointerup", {
+          bubbles: true,
+          clientX: 180,
+          clientY: 655,
+          pointerId: 35,
+          pointerType: "touch",
+        }),
+      );
+    });
+
+    expect(move.defaultPrevented).toBe(false);
+    expect(screen.queryByTestId("drag-ghost")).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(mocked.playCard).not.toHaveBeenCalled();
+  },
+);

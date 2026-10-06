@@ -10,12 +10,14 @@ import type { RevealShowcase } from "./present/revealShowcases";
 import type { EffectActivation } from "../effectSource";
 import type { PresentationGate } from "./presentationGate";
 import type { FieldClashScene } from "../fieldClash";
+import type { AttackArrowClock } from "../attackArrowClock";
 import type { PhaseBanner } from "../phaseBanner";
 import type { DpPulse } from "../dpPulse";
 import type { FreezePulse } from "../freezePulse";
 import type { ColorName } from "../../design/theme";
 import type { SoundKind } from "../../design/sound";
-import { LungeDirection, SecurityBreakPhase } from "./enums";
+import { SecurityBreakPhase } from "./enums";
+import type { Side } from "../side";
 
 /**
  * Card back sent from a deck pile to the hand that just grew, in board coordinates.
@@ -32,14 +34,45 @@ export type DrawFlight = {
   duration: number;
   /** The card's face, when the move made its identity public; a card back otherwise. */
   card?: DrawFlightCard;
+  /** A physical field stack returning upright to its owner's deck. */
+  deckReturn?: import("../fieldShatter").FieldShatterFace;
+  /** A whole field stack preserves its orientation while approaching the owner's hand. */
+  handReturn?: import("../fieldShatter").FieldShatterFace & { targetScale: number };
+  /** A deck draw presents beside the pile before its real hand slot arrives. */
+  presentation?: { side: Side; width: number; instanceId?: string; inward: number };
 };
 
 export type DrawFlightCard = { cardId: string; artId?: string };
 
+export interface DrawHandArrival {
+  /** Searches/returns only enter the hand, without the temporary draw face. */
+  entryOnly?: boolean;
+  /** Non-deck additions must not restore a card to the deck while held. */
+  fromDeck?: boolean;
+  instanceId?: string;
+  stateVersion: number;
+  handCountAfter: number;
+  deckCountAfter: number;
+  /** The public deck card's matching showcase finishes before this draw beat. */
+  afterReveal?: PresentationGate;
+  /** Whole field returns finish before any of this group enters the hand. */
+  beforeEntry?: PresentationGate;
+  /** Explicit public identity in the event, distinct from the viewer's private hand art. */
+  publicCard?: boolean;
+}
+
+export interface HeldHandArrival extends DrawHandArrival {
+  seat: Seat;
+}
+
+/** A pending turn draw belongs to this turn, even while earlier ribbons are still playing. */
+export interface DrawPhaseOwner {
+  seat: Seat;
+  phaseOrder: number;
+}
+
 /** Starburst left where a turn-start draw lands, in board coordinates. */
 export type DrawBurst = { key: number; x: number; y: number };
-
-export type AttackLunge = { permanentId: string; direction: LungeDirection };
 
 /** The stack host and pending hand return held while its sources peel away. */
 export interface HeldStackStrip {
@@ -48,6 +81,8 @@ export interface HeldStackStrip {
   index: number;
   stateVersion: number;
   returnedInstanceId: string | undefined;
+  /** Server-resolved figures before this Digi-Burst cost, across both public fields. */
+  beforeCostDps?: ReadonlyMap<string, number>;
 }
 
 /**
@@ -57,6 +92,8 @@ export interface HeldStackStrip {
  * was reached and broke apart over an empty slot a beat later.
  */
 export interface HeldDeletion {
+  /** The shards own this physical card; older presented revisions must omit its face. */
+  departed?: boolean;
   seat: Seat;
   permanent: Permanent;
   /** Where in the battle area it stood, so the row does not reflow ahead of the shatter. */
@@ -81,12 +118,13 @@ export interface HeldTrashArrival {
 /** The shield break, and which of its two beats the defender's shield is playing. */
 export type SecurityBreakCue = SecurityBreakScene & { phase: SecurityBreakPhase };
 
-/** The green-and-orange burst left where a deleted permanent stood, in board coordinates. */
+/** The artwork and card-coloured light left at a field departure, in board coordinates. */
 export type DeleteBurst = {
   key: number;
   x: number;
   y: number;
-  /** Effect deletions get a brief energy ring in addition to the card shatter. */
+  face?: import("../fieldShatter").FieldShatterFace;
+  /** Whether an effect caused this deletion. */
   effectDeletion?: boolean;
   /** The card that was there, so its own art can be the thing that shatters. */
   cardId?: string;
@@ -97,6 +135,12 @@ export type DeleteBurst = {
    * card lifts off toward the trash instead of shattering.
    */
   stackStrip?: true;
+  /** Public movement distinguishes top stripping from removal of inherited sources. */
+  stackStripKind?: "top" | "source";
+  /** Viewer moves right/up; opponent moves left/down on the shared board plane. */
+  /** Host of a source-removal vignette. */
+  permanentId?: string;
+  stackStripDirection?: 1 | -1;
 };
 
 /** The unsuspend phase sweeping one player's board, ordered by slot. */
@@ -141,6 +185,11 @@ export interface MatchCueAnchors {
   permanentCenter?: (permanentId: string) => { x: number; y: number } | undefined;
   /** The card that was on top of a permanent, kept the same way and for the same reason. */
   permanentCardId?: (permanentId: string) => string | undefined;
+  /** The held physical face at departure, falling back to its last measured pose. */
+  permanentStack?: (permanentId: string) => import("../fieldShatter").FieldShatterFace | undefined;
+  permanentFace?: (permanentId: string) => import("../fieldShatter").FieldShatterFace | undefined;
+  /** The painted declaration clock; a resolved battle continues it instead of replaying it. */
+  attackArrowClock?: (permanentId: string, key: string) => AttackArrowClock | undefined;
   yourDeck: RefObject<HTMLDivElement | null>;
   oppDeck: RefObject<HTMLDivElement | null>;
   yourHandDock: RefObject<HTMLDivElement | null>;
@@ -163,16 +212,6 @@ export interface MatchCues {
   sidePanels: readonly SidePanel[];
   /** The notices currently on screen, the refusal included. A read-only view of {@link narration}. */
   notices: readonly MatchNotice[];
-  /**
-   * Holds back the viewer's own effect notice for a card whose decision dialog is now open —
-   * the dialog already names the card and prints the clause the notice would repeat.
-   */
-  dismissOwnEffectNotice: (cardId: string, scope?: import("../notices").EffectNoticeScope) => void;
-  /**
-   * The dialog for that card has closed. The notices it held back read out once the answer
-   * settles, unless another dialog for the same card opens first.
-   */
-  releaseOwnEffectNotice: (cardId: string) => void;
   /** Raises a notice for a refused action, which no server event narrates for the viewer. */
   raiseRejection: (reason: string) => void;
   attackAnnouncement: AttackAnnouncement | null;
@@ -226,7 +265,6 @@ export interface MatchCues {
   permanentBursts: ReadonlyMap<string, PermanentBurst>;
   /** Permanents held back from the board while their showcase is still up. */
   pendingPermanentIds: ReadonlySet<string>;
-  attackLunge: AttackLunge | null;
   /** "Breeding Phase" / "Main Phase", announced as the phase opens. */
   phaseBanner: PhaseBanner | null;
   /** Turn actions wait until all queued phase announcements have finished. */
@@ -262,6 +300,8 @@ export interface MatchCues {
   heldStackStrips: ReadonlyMap<number, HeldStackStrip>;
   /** Cards the server has already trashed whose move to the trash is not on screen yet. */
   heldTrashArrivals: ReadonlyMap<number, HeldTrashArrival>;
+  /** Incoming hand cards retained until their draw/reveal gates hand over the physical slot. */
+  heldHandArrivals: ReadonlyMap<number, HeldHandArrival>;
   /** The last announced phase persists through the gaps between ribbons. */
   displayedPhase: GameState["phase"] | undefined;
   /**
@@ -276,9 +316,9 @@ export interface MatchCues {
   /** The zone-specific moment each activating effect source is currently playing. */
   effectSources: readonly EffectActivation[];
   /** The deck piles currently riffling, as `${seat}:${pile}`. */
-  deckRiffles: ReadonlySet<string>;
+  deckRiffles: ReadonlyMap<string, number>;
   /** The seats whose security stack a recovered card is currently flying back onto. */
-  securityFlights: ReadonlySet<number>;
+  securityFlights: ReadonlyMap<number, number>;
   /**
    * While the opening five cards are being dealt, how many of them a seat's shield has
    * already been seen to take. The stack is full on the server from the first patch, so

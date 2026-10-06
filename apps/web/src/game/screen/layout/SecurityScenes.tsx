@@ -9,6 +9,7 @@ import type { RevealShowcase as RevealShowcaseCue } from "../../match/present/re
 import type { SecurityBranchScene, SecurityClashScene } from "../../securityClash";
 import type { ZoneShowcase as ZoneShowcaseCue } from "../../showcases";
 import type { SecurityBreakCue } from "../../match/types";
+import { ParticleLightScope } from "../../ParticleLightScope";
 
 export function SecurityScenes({
   securityBreak,
@@ -29,14 +30,16 @@ export function SecurityScenes({
   compact: boolean;
 }) {
   return (
-    <>
+    <ParticleLightScope>
       {securityBreak && securityBreak.phase === "break" ? (
-        <SecurityEdgeFlash key={securityBreak.key} scene={securityBreak} />
+        <SecurityEdgeFlash key={`security-break-${securityBreak.key}`} scene={securityBreak} />
       ) : null}
 
-      {securityClash ? <SecurityClash key={securityClash.key} scene={securityClash} /> : null}
+      {securityClash ? <SecurityClash key={`security-clash-${securityClash.key}`} scene={securityClash} /> : null}
 
-      {securityBranch ? <SecurityBranch key={securityBranch.key} scene={securityBranch} compact={compact} /> : null}
+      {securityBranch ? (
+        <SecurityBranch key={`security-branch-${securityBranch.key}`} scene={securityBranch} compact={compact} />
+      ) : null}
 
       {optionBranch ? (
         <SecurityBranch key={`option-${optionBranch.key}`} scene={optionBranch} compact={compact} />
@@ -47,6 +50,6 @@ export function SecurityScenes({
       {revealShowcase && !securityClash ? (
         <RevealShowcase key={`reveal-${revealShowcase.key}`} showcase={revealShowcase} />
       ) : null}
-    </>
+    </ParticleLightScope>
   );
 }
