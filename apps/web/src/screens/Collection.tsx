@@ -53,7 +53,7 @@ export function Collection() {
   return (
     <main className="collection-page">
       <div className="collection-results">
-        <div className="collection-column">
+        <div className="collection-column aegis-page-sheet">
           <Panel as="div" className="collection-hero">
             <div className="collection-header">
               <Eyebrow>{t("collection.eyebrow")}</Eyebrow>

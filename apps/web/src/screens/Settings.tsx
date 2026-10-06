@@ -69,7 +69,7 @@ export function Settings({
   const accountStatus = account ? t("account.connected") : account === null ? t("redesign.settings.guest") : null;
   return (
     <main className="settings-page">
-      <div className="settings-shell">
+      <div className="settings-shell aegis-page-sheet aegis-page-sheet--padded">
         <Panel as="header" className="settings-hero">
           <Avatar
             name={player.name}

@@ -50,42 +50,44 @@ export function TournamentsScreen({
 
   return (
     <div className="tournaments-page">
-      <header className="tournaments-page__head">
-        <h1>{t("tournaments.title")}</h1>
-        <p>{t("tournaments.subtitle")}</p>
-      </header>
+      <div className="tournaments-page__sheet aegis-page-sheet aegis-page-sheet--padded">
+        <header className="tournaments-page__head">
+          <h1>{t("tournaments.title")}</h1>
+          <p>{t("tournaments.subtitle")}</p>
+        </header>
 
-      {activeView.kind === "catalog" ? (
-        <Catalog
-          canCreate={account?.isAdmin === true}
-          onOpen={(id) => setView({ kind: "detail", id })}
-          onCreate={() => setView({ kind: "create" })}
-        />
-      ) : null}
+        {activeView.kind === "catalog" ? (
+          <Catalog
+            canCreate={account?.isAdmin === true}
+            onOpen={(id) => setView({ kind: "detail", id })}
+            onCreate={() => setView({ kind: "create" })}
+          />
+        ) : null}
 
-      {activeView.kind === "create" && account?.isAdmin ? (
-        <CreateTournamentForm
-          onCreated={(tournament) => setView({ kind: "detail", id: tournament.id })}
-          onCancel={() => setView({ kind: "catalog" })}
-        />
-      ) : null}
+        {activeView.kind === "create" && account?.isAdmin ? (
+          <CreateTournamentForm
+            onCreated={(tournament) => setView({ kind: "detail", id: tournament.id })}
+            onCancel={() => setView({ kind: "catalog" })}
+          />
+        ) : null}
 
-      {activeView.kind === "create" && account !== undefined && !account?.isAdmin ? (
-        <Alert tone="warning" title={t("tournaments.create.adminOnly")}>
-          {t("tournaments.create.adminOnlyDescription")}
-        </Alert>
-      ) : null}
+        {activeView.kind === "create" && account !== undefined && !account?.isAdmin ? (
+          <Alert tone="warning" title={t("tournaments.create.adminOnly")}>
+            {t("tournaments.create.adminOnlyDescription")}
+          </Alert>
+        ) : null}
 
-      {activeView.kind === "detail" ? (
-        <TournamentDetail
-          id={activeView.id}
-          accountId={account?.id}
-          accountDisplayName={account?.displayName}
-          accountIsAdmin={account?.isAdmin === true}
-          decks={decks}
-          onBack={() => setView({ kind: "catalog" })}
-        />
-      ) : null}
+        {activeView.kind === "detail" ? (
+          <TournamentDetail
+            id={activeView.id}
+            accountId={account?.id}
+            accountDisplayName={account?.displayName}
+            accountIsAdmin={account?.isAdmin === true}
+            decks={decks}
+            onBack={() => setView({ kind: "catalog" })}
+          />
+        ) : null}
+      </div>
     </div>
   );
 }

@@ -10,22 +10,24 @@ export function ReleasesScreen() {
 
   return (
     <main className="releases-page">
-      <header className="releases-page__head">
-        <span className="aegis-eyebrow">{t("releases.eyebrow")}</span>
-        <h1>{t("releases.title")}</h1>
-        <p>{t("releases.subtitle")}</p>
-      </header>
-      <div className="releases-list">
-        {latest ? (
-          <Panel as="article" className="release release--latest">
-            <ReleaseEntry release={latest} current />
-          </Panel>
-        ) : null}
-        {earlier.map((release) => (
-          <article key={release.version} className="release release--archived">
-            <ReleaseEntry release={release} />
-          </article>
-        ))}
+      <div className="aegis-page-sheet aegis-page-sheet--padded">
+        <header className="releases-page__head">
+          <span className="aegis-eyebrow">{t("releases.eyebrow")}</span>
+          <h1>{t("releases.title")}</h1>
+          <p>{t("releases.subtitle")}</p>
+        </header>
+        <div className="releases-list">
+          {latest ? (
+            <Panel as="article" className="release release--latest">
+              <ReleaseEntry release={latest} current />
+            </Panel>
+          ) : null}
+          {earlier.map((release) => (
+            <article key={release.version} className="release release--archived">
+              <ReleaseEntry release={release} />
+            </article>
+          ))}
+        </div>
       </div>
     </main>
   );

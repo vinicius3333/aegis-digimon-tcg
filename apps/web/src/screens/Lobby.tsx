@@ -378,7 +378,7 @@ export function Lobby({
 
   return (
     <main className="lobby-page">
-      <div className="lobby-content">
+      <div className="lobby-content aegis-page-sheet">
         <Panel as="section" className="lobby-active-strip" aria-label={t("lobby.battleDeck")}>
           {randomSelected ? (
             <div className="lobby-active-strip__jump">

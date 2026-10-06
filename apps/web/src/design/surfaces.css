@@ -218,3 +218,27 @@
 .aegis-info-note__body {
   min-width: 0;
 }
+
+/* The page sheet: one solid surface under a screen's content column, so text
+   never sits on the moving bits backdrop, which stays visible in the gutters.
+   Columns that carry their own padding get only the surface; columns without
+   it add the --padded modifier. On phones the sheet spans the full width. */
+.aegis-page-sheet {
+  margin-block: var(--ds-space-6);
+  background: var(--ds-bg);
+  border: 1px solid var(--ds-border-soft);
+  border-radius: var(--ds-radius-xl);
+  box-shadow: var(--ds-elev-raised);
+}
+
+.aegis-page-sheet--padded {
+  padding: clamp(var(--ds-space-5), 3vw, var(--ds-space-8));
+}
+
+@media (max-width: 599px) {
+  .aegis-page-sheet {
+    margin-block: 0;
+    border-inline: 0;
+    border-radius: 0;
+  }
+}

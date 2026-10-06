@@ -72,7 +72,7 @@ export function DeckList({
 
   return (
     <div className="deck-list-page">
-      <div className="deck-list-page__column">
+      <div className="deck-list-page__column aegis-page-sheet">
         <Panel as="div" className="deck-list-hero">
           <div className="deck-list-header">
             <div className="deck-list-hero__copy">
