@@ -53,14 +53,14 @@ describe("decisionPresentation", () => {
     ).toBe(false);
   });
 
-  it("routes a field-only selection to the central dialog", () => {
+  it("routes a field-only selection to the physical cards on the board", () => {
     const request = decision({
       promptText: "＜Decoy＞: delete this Digimon to prevent deletion?",
       options: { candidateInstanceIds: ["plain", "stacked"], min: 0, max: 1 },
     });
     expect(
       decisionPresentation({ decision: request, handInstanceIds: hand, fieldInstanceIds: ["plain", "stacked"] }),
-    ).toBe("dialog");
+    ).toBe("board");
     expect(decisionPresentation({ decision: request, handInstanceIds: hand, fieldInstanceIds: ["plain"] })).toBe(
       "dialog",
     );
@@ -70,17 +70,45 @@ describe("decisionPresentation", () => {
         handInstanceIds: hand,
         fieldInstanceIds: ["plain", "stacked"],
       }),
-    ).toBe("dialog");
+    ).toBe("board");
   });
 
-  it("puts field-only chooseTargets decisions in the central dialog", () => {
+  it("Discord 1556882561995644928: chooses effect targets directly on the field", () => {
     const request = decision({
       kind: "chooseTargets",
       options: { candidateInstanceIds: ["mine", "theirs"], min: 1, max: 1 },
     });
     expect(
       decisionPresentation({ decision: request, handInstanceIds: hand, fieldInstanceIds: ["mine", "theirs"] }),
+    ).toBe("board");
+  });
+
+  it("recognizes both permanent and top-card identities, including visible noncandidates", () => {
+    const request = decision({
+      kind: "chooseTargets",
+      options: { candidateInstanceIds: ["target-top"], visibleInstanceIds: ["target-top", "other"], min: 0, max: 1 },
+    });
+    expect(
+      decisionPresentation({
+        decision: request,
+        handInstanceIds: hand,
+        fieldInstanceIds: ["target", "target-top", "other"],
+      }),
+    ).toBe("board");
+    expect(
+      decisionPresentation({ decision: request, handInstanceIds: hand, fieldInstanceIds: ["target", "target-top"] }),
     ).toBe("dialog");
+  });
+
+  it.each([
+    { assemblyCardId: "BT26-014" },
+    { digiXrosCardId: "BT10-009" },
+    { selectionContext: "partitionActivation" as const },
+  ])("retains dedicated material dialogs even for field-only pools (%j)", (options) => {
+    const request = decision({ options: { candidateInstanceIds: ["field"], min: 0, max: 1, ...options } });
+    expect(decisionPresentation({ decision: request, handInstanceIds: hand, fieldInstanceIds: ["field"] })).toBe(
+      "dialog",
+    );
   });
 
   it("keeps mixed-zone chooseTargets decisions in the dialog", () => {
@@ -248,8 +276,8 @@ it("uses the optional decision's physical source for duplicate field cards", () 
 
 describe("effect decision surface", () => {
   it.each(["chooseTargets", "selectCards", "orderCards", "orderTriggers", "mulligan"] as const)(
-    "centers %s card choices regardless of source zone",
-    (kind) => expect(effectDecisionSurface(decision({ kind }))).toBe("center"),
+    "docks %s card choices on the left regardless of source zone",
+    (kind) => expect(effectDecisionSurface(decision({ kind }))).toBe("left"),
   );
 
   it("keeps optional activation and simple choices on the left", () => {
@@ -260,7 +288,7 @@ describe("effect decision surface", () => {
     expect(effectDecisionSurface(decision({ options: { selectionContext: "partitionActivation" } }))).toBe("left");
   });
 
-  it("centers choices between printed effects", () => {
+  it("docks choices between printed effects on the left", () => {
     expect(
       effectDecisionSurface(
         decision({
@@ -268,6 +296,6 @@ describe("effect decision surface", () => {
           options: { choices: ["First", "Second"], choiceEffects: [{ cardId: "BT1-010" }, { cardId: "BT1-011" }] },
         }),
       ),
-    ).toBe("center");
+    ).toBe("left");
   });
 });

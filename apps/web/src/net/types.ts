@@ -22,6 +22,7 @@ export interface AegisJoinOptions {
   presentationPacing?: "current" | "sequential";
   /** Dev-only: ask a bot room for a hand-laid board instead of the pre-game procedure. */
   devScenario?:
+    | "arena-discord-1556882561995644928-mobile-inspection"
     | "arena-bt23-examon-partition-return"
     | "arena-bt23-examon-piercing-end-turn"
     | import("@aegis/shared").KeywordPacingScenarioId

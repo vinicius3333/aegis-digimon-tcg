@@ -16,6 +16,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-discord-1556882561995644928-mobile-inspection": {
+    ptBR: "Encerre a criação e jogue Leopardmon sem Assembly. Selecione Alphamon diretamente na mesa e confirme para suspendê-lo; nenhuma confirmação separada de ativação deve aparecer. Na escolha seguinte, selecione um Dorumon na mesa; nenhuma galeria de alvos deve abrir. Se desejar, use Visualizar mesa para recolher os controles. Segure Alphamon ou toque na lupa para ler a carta e seus herdados; toque na arte para ampliar. Feche e retorne à decisão: o Dorumon selecionado deve continuar marcado. Só Confirmar alvos envia a escolha; o herdado de Grademon pode então proteger Dorumon.",
+    en: "End breeding and play Leopardmon without Assembly. Select Alphamon directly on the board and confirm to suspend it; no separate activation confirmation should appear. In the next choice, select a Dorumon on the board; no target gallery should open. Optionally use View board to hide the controls. Hold Alphamon or tap its magnifier to read the card and its inherited effects; tap the art to zoom. Close and return to the decision: the selected Dorumon must remain picked. Only Confirm targets sends the choice; Grademon's inherited effect can then protect Dorumon.",
+  },
   "arena-issue-5011-agumon-search": {
     ptBR: "Encerre a criação e jogue Agumon EX9. Na seleção para a mão, escolha a cópia revelada de Agumon, a única Ver.1, mesmo com Gabumon também disponível. Ela deve ir para a mão, sem colocação sob o Digimon; ordene as duas cartas restantes no fundo do deck.",
     en: "End breeding and play EX9 Agumon. Select the revealed Agumon, the only Ver.1, for your hand even though Gabumon is also available. It must enter the hand without placing anything under the Digimon; order the two remaining cards at the bottom of the deck.",
@@ -1201,6 +1205,7 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-discord-1556882561995644928-mobile-inspection", "Mobile · read Alphamon during Leopardmon's decision"],
   ["arena-issue-5011-agumon-search", "#5011 · Agumon · busca DM/Ver.1"],
   ["arena-issue-5011-gabumon-search", "#5011 · Gabumon · busca DM/Ver.2"],
   ["arena-issue-5014-digital-gate-cool-boy", "#5014 · Digital Gate Open · Cool Boy sem custo"],

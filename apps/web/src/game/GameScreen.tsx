@@ -89,6 +89,7 @@ import { useArenaBoardLook } from "./arenaLook";
 import "./game.css";
 import "./arena.css";
 import "./arenaMobile.css";
+import { Side } from "./side";
 import { type DropTarget } from "./dragIntents";
 import {
   bothSeated,
@@ -278,7 +279,8 @@ export function GameScreen({
   }>();
   const allianceConfirmationSubmittedRef = useRef(false);
 
-  const { drag, dragHover, handleTapRef, handleDropRef, canDragRef, startHandDrag, startPermDrag } = useDragPlumbing();
+  const { drag, dragHover, handleTapRef, handleDropRef, canDragRef, startHandDrag, startPermDrag, cancelDrag } =
+    useDragPlumbing();
   canDragRef.current = null;
 
   const boardRef = useRef<HTMLDivElement | null>(null);
@@ -1234,6 +1236,11 @@ export function GameScreen({
 
   /** What both battle rows put on a permanent; only the sweep's stagger differs. */
   const permanentChrome: Omit<PermanentChrome, "suspendDelayMs"> = {
+    showInspectionControls:
+      !state.gameOver &&
+      viewerDecision !== undefined &&
+      viewerDecision.kind !== "optional" &&
+      viewerDecision.kind !== "mulligan",
     keywordLabels: demoConnection?.keywordLabels,
     compact: narrowGameLayout || shortBoard,
     width: arenaPermanentWidth,
@@ -1430,8 +1437,14 @@ export function GameScreen({
       onStartHandDrag={(index, event, origin) => startHandDrag(index, shownHandEntries[index], event, origin)}
       onStartPermanentDrag={startPermDrag}
       onInspectPermanent={{
-        viewer: (perm) => actions.onYourPerm(perm)?.(),
-        opponent: (perm) => actions.onOppPerm(perm)?.(),
+        viewer: (perm) => {
+          cancelDrag();
+          actions.showCardMenu(perm.permanentId, Side.Viewer, { preserveSelection: true });
+        },
+        opponent: (perm) => {
+          cancelDrag();
+          actions.showCardMenu(perm.permanentId, Side.Opponent, { preserveSelection: true });
+        },
       }}
       onOpenCard={(cardId, artId) => {
         setZoomCardId(cardId);

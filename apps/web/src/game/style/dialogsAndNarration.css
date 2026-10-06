@@ -241,6 +241,9 @@
 .erode-ring__half {
   position: absolute;
   inset: 0;
+  /* The rotating clock is larger than the notice. Its hidden decoration must
+     not extend the narration column's scrollable area. */
+  overflow: clip;
   animation-duration: inherit;
   animation-delay: inherit;
   animation-play-state: inherit;

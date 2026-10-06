@@ -155,5 +155,10 @@ export function useDragPlumbing() {
     });
   }
 
-  return { drag, dragHover, handleTapRef, handleDropRef, canDragRef, startHandDrag, startPermDrag };
+  const cancelDrag = () => {
+    setDrag(null);
+    setDragHover(null);
+  };
+
+  return { drag, dragHover, handleTapRef, handleDropRef, canDragRef, startHandDrag, startPermDrag, cancelDrag };
 }

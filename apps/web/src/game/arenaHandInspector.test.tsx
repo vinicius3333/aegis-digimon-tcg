@@ -1,5 +1,13 @@
 // @vitest-environment jsdom
-import { CardInstance, GameState, Permanent, Phase, PlayerState, getCardDefinition } from "@aegis/shared";
+import {
+  CardInstance,
+  GameState,
+  Permanent,
+  Phase,
+  PlayerState,
+  getCardDefinition,
+  type DecisionRequest,
+} from "@aegis/shared";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { setActionConfirmationsEnabled } from "../design/actionConfirmation";
@@ -19,7 +27,7 @@ afterEach(() => {
   setActionConfirmationsEnabled(true);
 });
 
-function arena() {
+function arena(decision?: DecisionRequest) {
   const state = new GameState();
   state.phase = Phase.Main;
   state.turnSeat = 0;
@@ -61,7 +69,7 @@ function arena() {
           state,
           events: [],
           batches: [],
-          decision: undefined,
+          decision,
           acknowledgeDecision: () => undefined,
           error: undefined,
           sessionId: "session-0",
@@ -144,6 +152,40 @@ it("retains the server-projected link target flow", () => {
   fireEvent.click(base);
   expect(send).toHaveBeenCalledWith("linkCard", { instanceId: "hand-greymon", targetPermanentId: "base-agumon" });
 });
+
+it("keeps local digivolution selection after inspecting a field card without showing magnifiers", () => {
+  const { hand, base, send } = arena();
+  expect(screen.queryByRole("button", { name: "Read Agumon" })).toBeNull();
+  fireEvent.click(hand);
+  fireEvent.click(within(screen.getByRole("dialog", { name: "Greymon" })).getByRole("button", { name: "Digivolve" }));
+  expect(screen.queryByRole("button", { name: "Read Agumon" })).toBeNull();
+  fireEvent.contextMenu(base);
+  expect(hand.getAttribute("aria-pressed")).toBe("true");
+  expect(send).not.toHaveBeenCalled();
+  fireEvent.click(within(screen.getByRole("dialog", { name: "Agumon" })).getByRole("button", { name: "Close" }));
+  expect(hand.getAttribute("aria-pressed")).toBe("true");
+  expect(screen.queryByRole("button", { name: "Read Agumon" })).toBeNull();
+  fireEvent.click(base);
+  expect(send).toHaveBeenCalledWith(
+    "digivolve",
+    expect.objectContaining({ instanceId: "hand-greymon", permanentId: "base-agumon" }),
+  );
+});
+
+it.each(["optional", "chooseTargets", "selectCards"] as const)(
+  "shows field magnifiers only for an active card selection (%s)",
+  (kind) => {
+    const { container } = arena({
+      decisionId: "inspection-event",
+      seat: 0,
+      kind,
+      promptText: "Choose a Digimon.",
+      sourceCardId: "ST1-03",
+      options: { candidateInstanceIds: ["base-agumon"], min: 0, max: 1 },
+    });
+    expect(container.querySelectorAll(".game-permanent__inspect")).toHaveLength(kind === "optional" ? 0 : 1);
+  },
+);
 
 it("preserves distinct hand effects and art zoom in the shared inspector", () => {
   const activate = vi.fn<(effect: ActivatableEntry) => void>();

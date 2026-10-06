@@ -86,6 +86,8 @@ export type PresentedPlayer = {
  * makes that side of the board different.
  */
 export interface PermanentChrome {
+  /** A card/effect selection is open; all field cards offer a dedicated inspection button. */
+  showInspectionControls?: boolean;
   /** Canonical keyword names mapped to printed parameters, in the visual demo only. */
   keywordLabels?: Readonly<Record<string, Readonly<Record<string, string>>>>;
   compact: boolean;
