@@ -595,7 +595,7 @@ describe("the viewer's own moves on a phone", () => {
     expect(portraitRules).toMatch(/\.game-mobile-surrender,\s*\.game-mobile-log,\s*\.game-mobile-bug \{/);
     expect(gameScreenSource).toMatch(/className="game-mobile-log"[\s\S]*?onClick=\{onOpenLog\}/);
     expect(gameScreenSource).toMatch(/onOpenLog=\{\(\) => overlays\.setHistoryOpen\(true\)\}/);
-    expect(gameScreenSource).not.toMatch(/game-mobile-fullscreen|game-log-strip/);
+    expect(gameScreenSource).not.toMatch(/game-log-strip/);
     expect(portraitRules).not.toMatch(/game-log-strip/);
   });
 });

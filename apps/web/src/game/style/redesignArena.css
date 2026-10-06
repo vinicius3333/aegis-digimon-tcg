@@ -406,17 +406,18 @@ button.game-player-line__name {
 }
 
 /* ---- The board look control on a phone on its side ---- */
-.game-mobile-look {
+.game-mobile-look,
+.game-mobile-fullscreen {
   display: none;
 }
 
 /* Held upright, a phone folds the controls into the header menu instead. */
 @media (width < 600px) and (orientation: landscape), (height < 520px) and (orientation: landscape) {
   .aegis-arena .game-opponent-bar {
-    grid-template-columns: minmax(0, 1fr) auto auto auto auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto auto auto auto auto;
   }
 
-  .aegis-arena .game-mobile-look {
+  .aegis-arena :is(.game-mobile-look, .game-mobile-fullscreen) {
     display: grid;
     place-items: center;
     width: 44px;

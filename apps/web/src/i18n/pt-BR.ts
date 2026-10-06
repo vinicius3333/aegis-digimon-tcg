@@ -795,6 +795,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.dragIntent.use": "USAR",
   "game.dragIntent.attack": "ATACAR",
   "game.matchLog": "Registro da partida",
+  "game.fullscreen.enter": "Tela cheia",
+  "game.fullscreen.exit": "Sair da tela cheia",
   "game.skipPresentation": "Pular animações",
   "game.noActions": "Nenhuma ação ainda.",
   "game.surrender": "Desistir",

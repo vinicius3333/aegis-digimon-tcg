@@ -15,6 +15,7 @@ import { ArenaCounters } from "../../ArenaCounters";
 import { useEnterAnimation } from "../../animations";
 import { Side } from "../../side";
 import { PlayerLine } from "./PlayerLine";
+import { useFullscreen } from "../hooks/useFullscreen";
 
 const OPPONENT_NAME_MAX_LENGTH = 12;
 
@@ -67,6 +68,9 @@ export function OpponentBar({
   onResetScenario?: () => void;
 }) {
   const { t } = useTranslation();
+  const fullscreen = useFullscreen();
+  const fullscreenLabel = fullscreen.active ? t("game.fullscreen.exit") : t("game.fullscreen.enter");
+  const FullscreenIcon = fullscreen.active ? Icons.Minimize : Icons.Maximize;
   const fanned = Math.max(0, handCount);
   const entering = useEnterAnimation(Array.from({ length: fanned }, (_, index) => String(index)));
   return (
@@ -167,6 +171,11 @@ export function OpponentBar({
             <button type="button" onClick={onOpenLog}>
               <Icons.ScrollText size={18} /> {t("game.matchLog")}
             </button>
+            {fullscreen.supported ? (
+              <button type="button" onClick={fullscreen.toggle}>
+                <FullscreenIcon size={18} /> {fullscreenLabel}
+              </button>
+            ) : null}
             <button type="button" onClick={onReportBug}>
               <Icons.Megaphone size={18} /> {t("bugReport.button")}
             </button>
@@ -195,6 +204,11 @@ export function OpponentBar({
           <button className="game-mobile-look" onClick={onOpenArenaLook} aria-label={t("redesign.arena.look.open")}>
             <Icons.Settings size={16} />
           </button>
+          {fullscreen.supported ? (
+            <button className="game-mobile-fullscreen" onClick={fullscreen.toggle} aria-label={fullscreenLabel}>
+              <FullscreenIcon size={16} />
+            </button>
+          ) : null}
           <button
             className="game-mobile-surrender"
             onClick={onResetScenario ?? onSurrender}
@@ -222,6 +236,16 @@ export function OpponentBar({
           <button className="game-topbar-button" onClick={onReportBug} aria-label={t("bugReport.button")}>
             <Icons.Megaphone size={17} />
           </button>
+          {fullscreen.supported ? (
+            <button
+              className="game-topbar-button"
+              onClick={fullscreen.toggle}
+              aria-label={fullscreenLabel}
+              title={fullscreenLabel}
+            >
+              <FullscreenIcon size={17} />
+            </button>
+          ) : null}
           {/* Only while there is something to skip: a button that does nothing most
               of the match teaches players to ignore it. The phone has no equivalent
               — a tap anywhere on the board already advances the narration. Space and

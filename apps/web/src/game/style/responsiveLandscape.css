@@ -617,7 +617,9 @@
   .game-opponent-bar > .game-arena-counters {
     padding: 0;
   }
-  .aegis-arena .game-opponent-bar :is(.game-mobile-log, .game-mobile-bug, .game-mobile-look, .game-mobile-surrender) {
+  .aegis-arena
+    .game-opponent-bar
+    :is(.game-mobile-log, .game-mobile-bug, .game-mobile-look, .game-mobile-fullscreen, .game-mobile-surrender) {
     min-width: 36px;
     width: 36px;
     min-height: 36px;
@@ -650,7 +652,9 @@
     min-height: 0;
     padding: 1px var(--ds-space-2) !important;
   }
-  .aegis-arena .game-opponent-bar :is(.game-mobile-log, .game-mobile-bug, .game-mobile-look, .game-mobile-surrender) {
+  .aegis-arena
+    .game-opponent-bar
+    :is(.game-mobile-log, .game-mobile-bug, .game-mobile-look, .game-mobile-fullscreen, .game-mobile-surrender) {
     min-width: 30px;
     width: 30px;
     min-height: 30px;
