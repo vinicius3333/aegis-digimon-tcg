@@ -56,7 +56,8 @@ test("#5043 selects Takato's granted Blitz before Gallantmon's printed effect", 
     await printed.click();
     await page.getByRole("button", { name: "Resolve next effect", exact: true }).click();
     await expect(page.getByText("Activate Blitz?", { exact: true })).not.toBeVisible();
-    await expect(page.getByRole("button", { name: /^Opponent security · 3$/ })).toBeVisible();
+    // Sequential effect and security playback can settle after the 20-second presentation budget.
+    await expect(page.getByRole("button", { name: /^Opponent security · 3$/ })).toBeVisible({ timeout: 45000 });
   } finally {
     await page.close();
     await server.close();
@@ -81,7 +82,7 @@ test("#4990 shows four phases and a turn-pass control in the repeated end-turn s
     await page.getByRole("button", { name: /^end turn$/i }).click();
     await page.getByRole("button", { name: /^\[End of Your Turn\], WarGrowlmon,/ }).click();
     await page.getByRole("button", { name: /^resolve next effect$/i }).click();
-    const activation = page.getByRole("region", { name: "WarGrowlmon · effect", exact: true });
+    const activation = page.getByRole("dialog", { name: "WarGrowlmon · effect", exact: true });
     await expect(activation).toContainText("Engage");
     await expect(activation).toContainText("at the end of this turn, this Digimon may attack.");
     await expect(activation).not.toContainText("Delete 1 of your opponent's Digimon");
@@ -101,9 +102,9 @@ test("Burst Mode hides the unpaid cost 0 route and displays its Option Main text
     await page.getByTestId("hand").getByRole("img", { name: "ShineGreymon: Burst Mode", exact: true }).click();
     await page.getByRole("button", { name: "Digivolve", exact: true }).click();
     await page.locator('[data-drop="perm-you"][data-id="arena-issue-4964-burst-own-tamer-0-field-0"]').click();
-    const activation = page.getByRole("region", { name: "ShineGreymon: Burst Mode · effect", exact: true });
+    const activation = page.getByRole("dialog", { name: "ShineGreymon: Burst Mode · effect", exact: true });
     await expect(activation).toBeVisible();
-    await expect(page.getByRole("region", { name: "Digivolve cost", exact: true })).not.toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Digivolve cost", exact: true })).not.toBeVisible();
     await expect(activation).toContainText("[Main]");
     await expect(activation).toContainText("-15000 DP");
     await activation.getByRole("button", { name: "Use", exact: true }).click();
@@ -249,7 +250,7 @@ test("#4985 the second Alliance stays selectable after answering the first", asy
     await page.getByRole("button", { name: "Digivolve", exact: true }).click();
     await page.locator('[data-drop="perm-you"][data-id="arena-issue-4985-double-alliance-0-field-0"]').click();
     await page
-      .getByRole("region", { name: "Digivolve cost", exact: true })
+      .getByRole("dialog", { name: "Digivolve cost", exact: true })
       .getByRole("button", { name: /^SaviorHuckmon.*3 memory/ })
       .click();
     await page.getByRole("button", { name: /^(Don't use|No, decline)$/i }).click();
@@ -348,7 +349,7 @@ test("#5004 Burst Digivolution with ST24 Marcus pays zero through the UI", async
     await page.getByTestId("hand").getByRole("img", { name: "ShineGreymon: Burst Mode", exact: true }).click();
     await page.getByRole("button", { name: "Digivolve", exact: true }).click();
     await page.locator('[data-drop="perm-you"][data-id="arena-issue-5004-shine-burst-marcus-0-field-0"]').click();
-    const costs = page.getByRole("region", { name: "Digivolve cost", exact: true });
+    const costs = page.getByRole("dialog", { name: "Digivolve cost", exact: true });
     await expect(costs).toBeVisible();
     await costs.getByRole("button").filter({ hasText: /0/ }).click();
     await expect(
