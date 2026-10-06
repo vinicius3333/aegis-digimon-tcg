@@ -378,13 +378,14 @@ export class ContinuousEffectLedger {
     const targetSeat =
       this.anyControllerSeatOf?.(restriction.permanentId) ?? this.controllerSeatOf?.(restriction.permanentId);
     if (targetSeat === undefined) return false;
-    return this.restrictions.some((immunity) => {
-      if (immunity.permanentId !== restriction.permanentId || immunity.restriction !== "beAffected") return false;
-      if (immunity.byOpponentEffectsOnly === true && restriction.originSeat === targetSeat) return false;
-      const immuneKinds = immunity.fromSourceKind;
-      if (immuneKinds === undefined) return true;
-      return restrictionKinds.some((kind) => immuneKinds.includes(kind));
-    });
+    // Player-wide immunity (BT20-059/Q4395) shares the same live reader as
+    // per-permanent immunity. Keep the original restriction stored so it can
+    // resume if immunity ends first (Q4396).
+    const opts = { byOpponentEffect: restriction.originSeat !== targetSeat };
+    return (
+      this.hasRestriction(restriction.permanentId, "beAffected", undefined, opts) ||
+      restrictionKinds.some((kind) => this.hasRestriction(restriction.permanentId, "beAffected", kind, opts))
+    );
   }
 
   /**
