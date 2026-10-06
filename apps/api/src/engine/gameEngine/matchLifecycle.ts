@@ -178,6 +178,7 @@ export function collectStagedDecks(engine: GameEngine): [Decklist, Decklist] | u
  * tests are reproducible). Replace with the coin-toss intent flow when added.
  */
 export function chooseFirstPlayer(engine: GameEngine): Seat {
+  if (engine.hooks.firstSeat !== undefined) return engine.hooks.firstSeat;
   return ((engine.hooks.seed & 1) === 0 ? 0 : 1) as Seat;
 }
 
