@@ -133,17 +133,16 @@ describe("ArenaLookSettings", () => {
 describe("surfaces", () => {
   afterEach(() => cleanup());
 
-  it("renders the panel with optional circuit nodes and a labelled section heading", () => {
+  it("renders the panel as a region named by its section heading", () => {
     const { container, rerender } = render(
       <Panel aria-labelledby="hero-title">
         <SectionHeading id="hero-title" title="Decks" />
       </Panel>,
     );
     expect(screen.getByRole("region", { name: "Decks" })).toBeTruthy();
-    expect(container.querySelectorAll(".aegis-circuit-node")).toHaveLength(2);
 
-    rerender(<Panel circuitNodes={false} as="div" />);
-    expect(container.querySelectorAll(".aegis-circuit-node")).toHaveLength(0);
+    rerender(<Panel as="div" />);
+    expect(container.querySelector("div.aegis-hero-panel")).toBeTruthy();
   });
 
   it("pairs each stat label with its value", () => {

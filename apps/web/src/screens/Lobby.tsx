@@ -379,7 +379,7 @@ export function Lobby({
   return (
     <main className="lobby-page">
       <div className="lobby-content">
-        <Panel as="section" circuitNodes={false} className="lobby-active-strip" aria-label={t("lobby.battleDeck")}>
+        <Panel as="section" className="lobby-active-strip" aria-label={t("lobby.battleDeck")}>
           {randomSelected ? (
             <div className="lobby-active-strip__jump">
               <span className="lobby-active-strip__thumb lobby-active-strip__thumb--mystery">

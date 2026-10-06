@@ -1,5 +1,5 @@
-/* Redesign surfaces. `Panel` is the hero surface: the "blueprint" look in the
-   light theme and the navy "console" look in the dark theme. Content inside it
+/* Redesign surfaces. `Panel` is the hero surface: a plain surface with a faint
+   bits field in the light theme and the navy "console" look in the dark theme. Content inside it
    reads its colors from the --aegis-panel-* custom properties (see surfaces.css),
    so it stays legible in both. */
 
@@ -15,18 +15,11 @@ type PanelElement = "section" | "div" | "article" | "aside" | "header";
 
 export interface PanelProps extends HTMLAttributes<HTMLElement> {
   as?: PanelElement;
-  circuitNodes?: boolean;
 }
 
-export function Panel({ as: Element = "section", circuitNodes = true, className, children, ...props }: PanelProps) {
+export function Panel({ as: Element = "section", className, children, ...props }: PanelProps) {
   return (
     <Element className={classNames("aegis-hero-panel", className)} {...props}>
-      {circuitNodes ? (
-        <>
-          <span className="aegis-circuit-node" data-corner="top-right" aria-hidden="true" />
-          <span className="aegis-circuit-node" data-corner="bottom-left" aria-hidden="true" />
-        </>
-      ) : null}
       {children}
     </Element>
   );

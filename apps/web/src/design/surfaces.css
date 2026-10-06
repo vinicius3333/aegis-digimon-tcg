@@ -1,7 +1,8 @@
-/* Hero panel. Light theme: the "blueprint" look, the ordinary surface with a
-   faint accent grid. Dark theme: the "console" look, a navy gradient whose grid
-   fades out from the top-left. Content colors come from the --aegis-panel-*
-   properties so screens never branch on the theme. */
+/* Hero panel. Light theme: the ordinary surface. Dark theme: the navy
+   "console" gradient. Both carry a faint field of bits glyphs, matching the
+   page backdrop, that fades in toward the bottom-right corner so titles and
+   actions at the top-left sit on clean ground. Content colors come from the
+   --aegis-panel-* properties so screens never branch on the theme. */
 .aegis-hero-panel {
   --aegis-panel-fg: var(--ds-fg);
   --aegis-panel-muted: var(--ds-fg-muted);
@@ -14,10 +15,6 @@
   padding: var(--aegis-panel-pad, clamp(var(--ds-space-5), 4vw, var(--ds-space-10)));
   color: var(--aegis-panel-fg);
   background-color: var(--ds-surface);
-  background-image:
-    linear-gradient(to right, color-mix(in srgb, var(--ds-accent) 7%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in srgb, var(--ds-accent) 7%, transparent) 1px, transparent 1px);
-  background-size: 28px 28px;
   border: 1px solid var(--aegis-panel-border);
   border-radius: var(--ds-radius-xl);
 }
@@ -35,16 +32,27 @@
   );
 }
 
-.dark .aegis-hero-panel::before {
+/* The tile is a mask, so the glyphs take the theme color instead of a color
+   baked into the SVG; the second mask layer is the corner fade. */
+.aegis-hero-panel::before {
   position: absolute;
   z-index: -1;
   inset: 0;
   content: "";
-  background-image:
-    linear-gradient(to right, color-mix(in srgb, var(--ds-brand-accent-soft) 14%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in srgb, var(--ds-brand-accent-soft) 14%, transparent) 1px, transparent 1px);
-  background-size: 28px 28px;
-  mask-image: radial-gradient(ellipse at 20% 10%, black 35%, transparent 95%);
+  pointer-events: none;
+  background: var(--ds-accent);
+  opacity: 0.12;
+  mask-image: url("./bitsTile.svg"), radial-gradient(ellipse at 100% 100%, black 15%, transparent 75%);
+  mask-repeat: repeat, no-repeat;
+  mask-size:
+    220px 220px,
+    100% 100%;
+  mask-composite: intersect;
+}
+
+.dark .aegis-hero-panel::before {
+  background: var(--ds-brand-accent-soft);
+  opacity: 0.2;
 }
 
 .aegis-hero-panel__eyebrow,
@@ -64,44 +72,6 @@
 
 .aegis-hero-panel .aegis-page-title {
   color: var(--aegis-panel-fg);
-}
-
-/* A node with a short trace, pinned to a panel corner. */
-.aegis-circuit-node {
-  position: absolute;
-  width: 7px;
-  height: 7px;
-  pointer-events: none;
-  border-radius: var(--ds-radius-pill);
-  background: color-mix(in srgb, var(--ds-card-rim-ready) 70%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-card-rim-ready) 18%, transparent);
-}
-
-.aegis-circuit-node::before {
-  position: absolute;
-  top: 3px;
-  width: 28px;
-  height: 1px;
-  content: "";
-  background: color-mix(in srgb, var(--ds-card-rim-ready) 40%, transparent);
-}
-
-.aegis-circuit-node[data-corner="top-right"] {
-  top: var(--ds-space-4);
-  right: var(--ds-space-4);
-}
-
-.aegis-circuit-node[data-corner="top-right"]::before {
-  right: 7px;
-}
-
-.aegis-circuit-node[data-corner="bottom-left"] {
-  bottom: var(--ds-space-4);
-  left: var(--ds-space-4);
-}
-
-.aegis-circuit-node[data-corner="bottom-left"]::before {
-  left: 7px;
 }
 
 /* Title, then a hairline that ends in an accent dot. */

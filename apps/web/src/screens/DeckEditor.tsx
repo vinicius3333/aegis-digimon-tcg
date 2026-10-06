@@ -301,7 +301,7 @@ export function DeckEditor({
               ×
             </button>
           </div>
-          <Panel as="div" circuitNodes={false} className="deck-current__header">
+          <Panel as="div" className="deck-current__header">
             <div className="deck-current__identity">
               <div className="deck-current__cover-thumb">
                 <CoverThumb
