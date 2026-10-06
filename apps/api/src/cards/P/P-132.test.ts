@@ -36,6 +36,34 @@ describe("P-132 Galemon", () => {
     assertNoLoudGap(s);
   });
 
+  it("GitHub #5127 sweep: digivolving suspends an opposing Digimon for the DP bonus", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-064", as: "base" }], hand: [{ card: "P-132", as: "galemon" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "payer" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("payer").permanentId, s.perm("payer").topCard.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("galemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("payer").isSuspended).toBe(true);
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.perm("base").topCard.cardId).toBe("P-132");
+    expect(s.perm("base").currentDP).toBe(7000);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
   it("grants Piercing to Galemon while Shoto Kazama is present", async () => {
     const s = setupEngine({
       0: {

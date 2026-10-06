@@ -85,11 +85,19 @@ describe("BT24-047 Kokatorimon", () => {
     );
 
     expect(s.state.memory).toBe(6);
-    expect(
-      s.decisions
-        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT24-047")
-        .map(({ req }) => req.options?.effectTextPart),
-    ).toEqual([
+    const optionalChoices = s.decisions.filter(
+      ({ req }) =>
+        req.sourceCardId === "BT24-047" &&
+        (req.kind === "optional" || (req.kind === "chooseTargets" && req.options?.purpose === "optionalTarget")),
+    );
+    expect(optionalChoices.map(({ req }) => req.kind)).toEqual(["chooseTargets", "optional"]);
+    expect(optionalChoices[0]!.req.options).toMatchObject({
+      min: 0,
+      max: 1,
+      purpose: "optionalTarget",
+      candidateInstanceIds: expect.arrayContaining([avianPermanentId]),
+    });
+    expect(optionalChoices.map(({ req }) => req.options?.effectTextPart)).toEqual([
       "[On Play] [When Digivolving] You may suspend 1 Digimon.",
       "If this effect unsuspended, that Digimon may attack.",
     ]);

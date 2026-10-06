@@ -292,6 +292,14 @@ export async function drainActivatedMainTriggers(
   await drainPendingEffectTriggers(engine, EffectTiming.OnDeclaration, extraPending);
 }
 
+/** Counter reactions settle after the body and before combat continues (CR §15-4-4). */
+export async function drainActivatedCounterTriggers(
+  engine: GameEngine,
+  extraPending: readonly CollectedEffect[] = [],
+): Promise<void> {
+  await drainPendingEffectTriggers(engine, EffectTiming.OnCounterTiming, extraPending);
+}
+
 async function drainPendingEffectTriggers(
   engine: GameEngine,
   timing: EffectTiming,

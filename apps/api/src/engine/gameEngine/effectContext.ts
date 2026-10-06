@@ -199,6 +199,8 @@ export function effectEnvironment(engine: GameEngine, trigger: TriggerInfo): Eff
     canDeclareAttack: (permanent) =>
       canAttackerDeclare(engine.access, permanent.controllerSeat, permanent, engine.continuous) === null,
     battleOpponentOf: (id) => engine.combat.battleOpponentOf(id),
+    baseGrantedDigivolve: (seat, base, evolving, sourceZone) =>
+      engine.digivolveSupport.matchBaseGrantedDigivolve(seat, base, evolving, sourceZone),
     triggerInfo: trigger,
   };
 }

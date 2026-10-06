@@ -31,6 +31,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenOneOfYoursDigivolves",
+          requireDigivolvedFromTamer: true,
           sourceFilter: { controller: "mine", kind: ["Digimon"], digivolutionStackKind: ["Tamer"] },
           actions: [{ kind: "GainMemory", amount: 2 }],
         },

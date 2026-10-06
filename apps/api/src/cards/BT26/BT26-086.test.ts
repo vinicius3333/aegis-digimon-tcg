@@ -439,51 +439,56 @@ describe("BT26-086 compiled behavior", () => {
     await loop;
   });
 
-  it("deletes an opposing Digimon and returns its security top card to deck bottom when seven links are present", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            {
-              card: "BT26-086",
-              as: "dantemon",
-              linked: [
-                { card: "BT26-010" },
-                { card: "BT26-010" },
-                { card: "BT26-010" },
-                { card: "BT26-010" },
-                { card: "BT26-010" },
-                { card: "BT26-010" },
-              ],
-            },
-          ],
-          hand: [{ card: "BT26-010", as: "linkCard" }],
+  it.each([true, false])(
+    "returns security with seven links whether deletion is accepted or passed (accept: %s)",
+    async (accept) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              {
+                card: "BT26-086",
+                as: "dantemon",
+                linked: [
+                  { card: "BT26-010" },
+                  { card: "BT26-010" },
+                  { card: "BT26-010" },
+                  { card: "BT26-010" },
+                  { card: "BT26-010" },
+                  { card: "BT26-010" },
+                ],
+              },
+            ],
+            hand: [{ card: "BT26-010", as: "linkCard" }],
+          },
+          1: {
+            battleArea: [{ card: "BT1-010", as: "victim" }],
+            security: ["BT1-009", "BT1-010"],
+          },
         },
-        1: {
-          battleArea: [{ card: "BT1-010", as: "victim" }],
-          security: ["BT1-009", "BT1-010"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    const loop = s.engine.startTurnLoop();
-    await advance(s.engine).waitForMainPhase(0);
-    s.state.memory = 3;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "linkCard",
-        instanceId: s.inst("linkCard").instanceId,
-        targetPermanentId: s.perm("dantemon").permanentId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("dantemon").linked.length === 7);
+        accept ? { autoAcceptOptional: true, autoSelectCards: true } : { autoDeclineOptional: true },
+      );
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      s.state.memory = 3;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "linkCard",
+          instanceId: s.inst("linkCard").instanceId,
+          targetPermanentId: s.perm("dantemon").permanentId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("dantemon").linked.length === 7);
 
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-010"]);
-    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
-    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
-    await loop;
-  });
+      expect(s.decisions.map(({ req }) => req.kind)).toEqual(["chooseTargets"]);
+      expect(s.decisions[0]?.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
+      expect(s.state.players[1]!.battleArea).toHaveLength(accept ? 0 : 1);
+      expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-010"]);
+      expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
 
   it("uses the linked reaction only once per turn and needs seven links to return security to deck", async () => {
     const once = setupEngine(

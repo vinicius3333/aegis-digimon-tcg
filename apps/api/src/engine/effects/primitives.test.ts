@@ -1168,6 +1168,34 @@ describe("primitives: reveal / searchDeck / addSecurity", () => {
     expect(added).toHaveLength(0);
   });
 
+  it.each(["hand", "deck", "security"] as const)(
+    "hand/deck return immunity permits only security placement (%s)",
+    async (destination) => {
+      const h = harness({ board: { 0: { battleArea: [battleDigimon("guarded", 4000)] } } });
+      const perm = h.s.perm("guarded");
+      h.fx.restrict(perm.permanentId, "beReturned", EffectDuration.UntilOpponentTurnEnd);
+      if (destination === "hand") await h.fx.returnToHand([perm.topCard.instanceId]);
+      else if (destination === "deck") await h.fx.returnToDeck([perm.topCard.instanceId]);
+      else await h.fx.addSecurity(0, [perm.topCard.instanceId]);
+      expect(h.state.players[0]!.battleArea.includes(perm)).toBe(destination !== "security");
+      expect(h.state.players[0]!.security.map((c) => c.instanceId)).toEqual(
+        destination === "security" ? [perm.topCard.instanceId] : [],
+      );
+      expect(h.state.players[0]!.hand).toHaveLength(0);
+      expect(h.state.players[0]!.deck).toHaveLength(0);
+    },
+  );
+
+  it("security placement still respects the broader non-deletion leave lock", async () => {
+    const h = harness({ board: { 0: { battleArea: [battleDigimon("guarded", 4000)] } } });
+    const perm = h.s.perm("guarded");
+    h.fx.restrict(perm.permanentId, "leaveBattleAreaExceptByDeletion", EffectDuration.UntilOpponentTurnEnd);
+    await h.fx.addSecurity(0, [perm.topCard.instanceId]);
+    expect(h.state.players[0]!.battleArea).toContain(perm);
+    expect(h.state.players[0]!.security).toHaveLength(0);
+    expect(h.leavePreventionCalls).toHaveLength(0);
+  });
+
   it("addSecurity places loose cards onto the security stack face-down", async () => {
     const h = harness({ board: { 0: { hand: [{ card: TAMER, as: "c" }] } } });
     const cId = h.s.inst("c").instanceId;

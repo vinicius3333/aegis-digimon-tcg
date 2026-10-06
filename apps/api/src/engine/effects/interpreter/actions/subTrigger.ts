@@ -7,7 +7,7 @@ import { canPayCost, payCost, payOneCostOption } from "../costs.js";
 import { runAction } from "../dispatch.js";
 import { trashDelaySource } from "../optionTrash.js";
 import { unsupported } from "../errors.js";
-import { quotedGrantedClause, triggerLabel } from "../describe.js";
+import { quotedGrantedClause, soleLinkingClause, triggerLabel } from "../describe.js";
 import { DefinitionFacts, definitionHasKeyword, definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { matchingSubjectPermanentIds, subjectMatchesFilter, triggerAddedSecurityMatches } from "../matching/trigger.js";
 import { isPermanentUnaffectable, permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
@@ -166,7 +166,6 @@ export async function runSubTrigger(
   // resolves to that permanent and the watcher is installed on IT — so the sub-effect's
   // "this Digimon" / controller scope resolve to the GRANTED permanent, not the granter.
   const playerScoped = action.playerScoped === true;
-  const printedWatcherClause = action.printedClause ?? (action.raw?.startsWith("[") === true ? action.raw : undefined);
   if (playerScoped && action.on !== undefined) {
     unsupported(ctx, action, "player-scoped SubTrigger cannot also target a permanent anchor");
     return;
@@ -175,6 +174,14 @@ export async function runSubTrigger(
   const isLinkedSource = self?.linked?.some((card) => card.instanceId === ctx.source.instanceId) === true;
   const isInheritedSource =
     !isLinkedSource && self?.stack?.some((card) => card.instanceId === ctx.source.instanceId) === true;
+  const printedWatcherClause =
+    action.printedClause ??
+    (action.raw?.startsWith("[") === true ? action.raw : undefined) ??
+    (isLinkedSource && event === "whenLinked" ? soleLinkingClause(ctx.source.definition.linkEffect) : undefined);
+  const printedTiming =
+    isLinkedSource && event === "whenLinked" && soleLinkingClause(printedWatcherClause) !== undefined
+      ? "WhenLinking"
+      : ctx.activeTiming;
   let anchorPermanentId = playerScoped ? undefined : self?.permanentId;
   let expiresOnTurnEndOf: typeof ctx.source.ownerSeat | undefined;
   if (action.on !== undefined) {
@@ -1017,9 +1024,11 @@ export async function runSubTrigger(
   const tamerDigivolvedGate =
     event === "whenOneOfYoursDigivolves" || event === "whenAnyDigivolves"
       ? (subCtx: EffectContext): boolean =>
-          subCtx.trigger.tamerDigivolved !== true ||
-          sourceFilter?.kind?.includes("Tamer") === true ||
-          sourceFilter?.digivolutionStackKind?.includes("Tamer") === true
+          action.requireDigivolvedFromTamer === true
+            ? subCtx.trigger.digivolvedFromTamer === true
+            : subCtx.trigger.tamerDigivolved !== true ||
+              sourceFilter?.kind?.includes("Tamer") === true ||
+              sourceFilter?.digivolutionStackKind?.includes("Tamer") === true
       : undefined;
   // A SubTrigger's action-level condition is checked when the watcher is installed, but the
   // board may change while simultaneous copies wait to activate. Keep it among the live event
@@ -1224,18 +1233,18 @@ export async function runSubTrigger(
             : `${ctx.source.instanceId}/${ctx.conferralGranterInstanceId ?? "printed"}/${action.oncePerTurnKey}`,
         }
       : {}),
-    ...(ctx.activeTiming !== undefined ? { printedTiming: ctx.activeTiming } : {}),
-    ...(action.printedClause !== undefined ? { printedClause: action.printedClause } : {}),
+    ...(printedTiming !== undefined ? { printedTiming } : {}),
+    ...(printedWatcherClause !== undefined ? { printedClause: printedWatcherClause } : {}),
     description: playerScoped ? `${action.raw ?? event} [${ctx.source.instanceId}]` : (action.raw ?? event),
     run: async (subCtx) => {
       // Preserve the printed clause timing on every decision opened by the future watcher.
       // The freshly rebound context carries the event payload but not the installing effect's
       // activeTiming; without this, UI provenance degrades to a card-only guess (EX3-038's
       // opponent-target prompt lost its [Your Turn] label entirely).
-      subCtx.activeTiming ??= ctx.activeTiming;
+      subCtx.activeTiming = printedTiming ?? subCtx.activeTiming;
       // A watcher's own printed clause names the moment better than the whole box of the
       // continuous effect that installed it (BT11-112 prints three clauses in one box).
-      subCtx.activeEffectText ??= printedWatcherClause ?? ctx.activeEffectText;
+      subCtx.activeEffectText = printedWatcherClause ?? subCtx.activeEffectText ?? ctx.activeEffectText;
       subCtx.activeEffectTextPart = action.effectTextPart;
       subCtx.activeEffectIsInherited = isInheritedSource;
       // The body is resolving a triggered event even when its watcher was installed by a

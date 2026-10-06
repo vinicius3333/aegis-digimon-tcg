@@ -46,6 +46,7 @@ import {
   fireBeforePayCost,
   firePlayEntryWindows,
   drainPendingOptionEntryTriggers,
+  drainActivatedCounterTriggers,
   fireTimingForPermanent,
   projectLooseUseCost,
   residentPlayCostEffects,
@@ -59,7 +60,13 @@ import {
   withPendingSubTriggers,
 } from "./subTriggers.js";
 import { collectRuleProcessPending, listCandidateInstances, nextPermanentId, ruleProcess } from "./ruleProcess.js";
-import { collectDeferredTimingPending, takeLeaveReplacementPending } from "./windows.js";
+import {
+  beginResolvingWindow,
+  collectDeferredTimingPending,
+  endResolvingWindow,
+  takeLeaveReplacementPending,
+  withPendingPoolDrain,
+} from "./windows.js";
 import { buildEffectContext, cardSourceOf } from "./effectContext.js";
 import { drawCards, runBreedingPhase, sweepDurations } from "./turnFlow.js";
 import { effectiveColorsOf } from "./matchLifecycle.js";
@@ -724,13 +731,28 @@ export function intentRouterDeps(engine: GameEngine): IntentRouterDeps {
 /** Dependencies the respondCounter verb needs (subsystem: attack-and-block). */
 export function respondCounterDeps(engine: GameEngine): RespondCounterDeps {
   return {
+    resolveInWindow: async (body) => {
+      const wasOutermostWindow = beginResolvingWindow(engine);
+      try {
+        await engine.recomputeContinuousEffects();
+        await withPendingPoolDrain(engine, wasOutermostWindow, async () => {
+          await body();
+          const rulePending = await collectRuleProcessPending(engine);
+          await drainActivatedCounterTriggers(engine, [...rulePending, ...collectDeferredTimingPending(engine)]);
+        });
+      } finally {
+        endResolvingWindow(engine, wasOutermostWindow);
+      }
+      await engine.recomputeContinuousEffects();
+      await ruleProcess(engine);
+    },
     combat: engine.combat,
     findInstance: (instanceId) => findInstance(engine, instanceId),
     cardSourceOf: (instance) => cardSourceOf(engine, instance),
     // A player-activated [Counter] ability has no incoming trigger payload (it is
     // not reacting to another event), so the TriggerInfo is empty — same as
     // activateEffectDeps.makeContext.
-    makeContext: (source, _effect) => buildEffectContext(engine, source, {}),
+    makeContext: (source, effect) => engine.projection.activationContext({ source, effect }),
     tracker: engine.tracker,
   };
 }

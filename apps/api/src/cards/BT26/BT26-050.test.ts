@@ -126,7 +126,7 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
           security: [{ card: "BT1-010", as: "security" }],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: false },
     );
     await s.ready();
 
@@ -137,12 +137,12 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
         target: { kind: "permanent", permanentId: s.perm("returned").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "chooseTargets", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle();
@@ -167,10 +167,11 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
           battleArea: [
             { card: "BT1-010", as: "lockTargetOne", suspended: true },
             { card: "BT1-011", as: "lockTargetTwo", suspended: true },
+            { card: "BT1-012", as: "unselectedLockTarget", suspended: true },
           ],
         },
       },
-      { autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
+      { autoSelectCards: false, autoOrderTriggers: true, preferInstanceIds: preferred },
     );
     preferred.push(
       s.perm("ownSuspendTargetOne").permanentId,
@@ -190,30 +191,69 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
       }),
     );
     await settle(() => s.state.pendingDecision?.kind === "optional");
-    const suspendDecisionId = s.state.pendingDecision!.decisionId;
+    const activation = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
-        decisionId: suspendDecisionId,
+        decisionId: activation.decisionId,
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () => s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== suspendDecisionId,
-    );
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const suspend = s.state.pendingDecision!;
+    expect(s.decisions.find(({ req }) => req.decisionId === suspend.decisionId)!.req.options).toMatchObject({
+      min: 2,
+      max: 2,
+    });
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
-        decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "optional", accept: false },
+        decisionId: suspend.decisionId,
+        response: {
+          kind: "chooseTargets",
+          instanceIds: [s.perm("ownSuspendTargetOne").permanentId, s.perm("ownSuspendTargetTwo").permanentId],
+        },
       }),
     ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "chooseTargets" && s.state.pendingDecision.decisionId !== suspend.decisionId,
+    );
+    const lock = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: lock.decisionId,
+        response: {
+          kind: "chooseTargets",
+          instanceIds: [s.perm("lockTargetOne").permanentId, s.perm("lockTargetTwo").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.pendingDecision?.kind === "chooseTargets" && s.state.pendingDecision.decisionId !== lock.decisionId,
+    );
+    const returned = s.state.pendingDecision!;
+    expect(s.decisions.find(({ req }) => req.decisionId === returned.decisionId)!.req.options).toMatchObject({
+      min: 0,
+      max: 1,
+      purpose: "optionalTarget",
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: returned.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
     await resolving;
 
     expect(s.perm("ownSuspendTargetOne").isSuspended).toBe(true);
     expect(s.perm("ownSuspendTargetTwo").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("lockTargetOne"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("lockTargetTwo"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("unselectedLockTarget"), "unsuspend")).toBe(false);
   });
 
   it("Q7055: offers both simultaneous When Digivolving effects for ordering", async () => {

@@ -7,6 +7,7 @@ import {
   laterEntrantGrantClause,
   quotedGrantedClause,
   soleWatcherLine,
+  soleLinkingClause,
   triggerLabel,
 } from "./describe.js";
 
@@ -137,4 +138,11 @@ describe("player-facing watcher text", () => {
       `${definition.nameEn}: its effect also applies to a Digimon that entered later`,
     );
   });
+});
+
+it("selects only a unique When Linking clause without guessing between several", () => {
+  const clause = "[When Linking] Suspend 1 Digimon.";
+  expect(soleLinkingClause(clause + "\n[Your Turn] This Digimon gets +1000 DP.")).toBe(clause);
+  expect(soleLinkingClause(clause + "\n[When Linking] Draw 1.")).toBeUndefined();
+  expect(soleLinkingClause("[All Turns] When this Digimon gets linked, draw 1.")).toBeUndefined();
 });

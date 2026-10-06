@@ -258,13 +258,13 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("holy").instanceId })).toEqual({ ok: true });
 
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const deleteChoice = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: deleteChoice.decisionId,
-        response: { kind: "optional", accept: true },
+        response: { kind: "chooseTargets", instanceIds: [s.perm("victim").permanentId] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");

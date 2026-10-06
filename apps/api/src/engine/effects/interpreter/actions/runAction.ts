@@ -306,7 +306,18 @@ function targetsOneCard(action: Action): boolean {
 
 /** A costless, independent one-permanent choice can ask its own "you may". */
 function optionalFieldTargetAsksAction(ctx: EffectContext, action: Action): boolean {
-  if (action.kind !== "Suspend" && action.kind !== "Unsuspend" && action.kind !== "Return") return false;
+  if (action.kind !== "Suspend" && action.kind !== "Unsuspend" && action.kind !== "Return" && action.kind !== "Delete")
+    return false;
+  if (
+    action.kind === "Delete" &&
+    (action.at !== undefined ||
+      action.dpCeilingScaling !== undefined ||
+      action.totalDpCapScaling !== undefined ||
+      action.playCostCeiling !== undefined ||
+      action.target.totalDpCap !== undefined ||
+      action.target.filter.playCostLteScaling !== undefined)
+  )
+    return false;
   const target = action.target;
   return (
     action.optional === true &&
@@ -1318,7 +1329,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   ctx.pickingAcceptedOptional =
     acceptedBeforeItsPick && PICK_DECLINABLE_AFTER_YES.has(action.kind) && targetsOneCard(action);
 
-  if (targetAsksThisAction && (action.kind === "Suspend" || action.kind === "Unsuspend" || action.kind === "Return")) {
+  if (targetAsksThisAction) {
     // An empty pool raises no question. It must preserve the optional use just
     // like an explicit empty answer; a chosen target clears this receipt.
     markActivationDeclined(ctx);

@@ -71938,7 +71938,7 @@
     "attributes": ["-"],
     "types": ["Seven Great Demon Lords"],
     "effectText": "While you have a Digimon with [Lucemon] in its name on the field, you can ignore this card's color requirements.\n[Trash] [End of Your Turn] If you have a Digimon with [Lucemon] in its name, by returning this card to the bottom of the deck, trash your top security card and 1 of your Digimon attacks without suspending.\n[Main] Until your opponent's turn ends, 1 of your Digimon with [Lucemon] in its name gains ＜Raid＞ , ＜Piercing＞ , ＜Blocker＞ and +3000 DP.",
-    "securityEffectText": "[Security] You may play 1 Digimon with [Lucemon] in its name from your trash without paying the cost.",
+    "securityEffectText": "[Security] You may play 1 [Lucemon] from your trash without paying the cost.",
     "rarity": "U",
     "maxCountInDeck": 4,
     "imageId": "EX10-071"

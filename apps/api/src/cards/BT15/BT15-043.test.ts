@@ -50,6 +50,25 @@ describe("BT15-043", () => {
     expect(s.perm("otherInsectoid").currentDP).toBe(5000);
   });
 
+  it("GitHub #5127 sweep: start-of-main can suspend an opposing Digimon as cost", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT15-043", as: "source", dp: 1000 }] },
+        1: { battleArea: [{ card: "BT1-010", as: "payer" }], deck: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("payer").permanentId, s.perm("payer").topCard.instanceId);
+    s.state.memory = 10;
+    await advance(s.engine).runTurn(0);
+    await settle();
+    expect(s.perm("payer").isSuspended).toBe(true);
+    expect(s.perm("source").isSuspended).toBe(false);
+    expect(s.perm("source").currentDP).toBe(4000);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("preserves the inherited battle trigger through a legal evolution stack", async () => {
     const s = setupEngine({
       0: {

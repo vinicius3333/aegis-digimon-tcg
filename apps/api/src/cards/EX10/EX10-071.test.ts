@@ -9,6 +9,47 @@ import "../index.js";
 const CARD_ID = "EX10-071";
 
 describe("EX10-071 Paradise Lost", () => {
+  it("GitHub #5060: security offers exact Lucemon and excludes Chaos Mode", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+        1: {
+          security: [CARD_ID],
+          trash: [
+            { card: "EX10-013", as: "lucemon" },
+            { card: "EX6-018", as: "secondLucemon" },
+            { card: "BT7-111", as: "chaos" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const choice = s.decisions.at(-1)!.req;
+    expect(choice.options?.candidateInstanceIds).toEqual([
+      s.inst("lucemon").instanceId,
+      s.inst("secondLucemon").instanceId,
+    ]);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: choice.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("lucemon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "EX10-013")).toBe(true);
+    expect(s.state.players[1]!.trash.some((c) => c.cardId === "BT7-111")).toBe(true);
+  });
+
   it("records the exact catalog and complete trash/Main contracts", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
       nameEn: "Paradise Lost",
@@ -18,7 +59,7 @@ describe("EX10-071 Paradise Lost", () => {
       types: ["Seven Great Demon Lords"],
     });
     expect(getCardDefinition(CARD_ID)!.securityEffectText).toBe(
-      "[Security] You may play 1 Digimon with [Lucemon]\u00a0in its name from your trash without paying the cost.",
+      "[Security] You may play 1 [Lucemon] from your trash without paying the cost.",
     );
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find(({ trigger }) => trigger === "EndOfYourTurn")).toMatchObject({
@@ -59,7 +100,7 @@ describe("EX10-071 Paradise Lost", () => {
       actions: [
         {
           kind: "PlayWithoutCost",
-          target: { filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Lucemon"], match: "name" }] } },
+          target: { filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Lucemon"], match: "nameExact" }] } },
           from: ["trash"],
           payCost: false,
           optional: true,
@@ -176,7 +217,7 @@ describe("EX10-071 Paradise Lost", () => {
           security: [{ card: CARD_ID, as: "paradise" }],
           trash: [
             { card: "BT1-024", as: "decoy" },
-            { card: "EX10-060", as: "lucemon" },
+            { card: "EX10-013", as: "lucemon" },
           ],
         },
       },
@@ -196,7 +237,7 @@ describe("EX10-071 Paradise Lost", () => {
     await settle(() => false, 60);
 
     expect(s.events.some(({ kind }) => kind === "securityChecked")).toBe(true);
-    expect(p1.battleArea.map(({ topCard }) => topCard!.cardId)).toEqual(["EX10-060"]);
+    expect(p1.battleArea.map(({ topCard }) => topCard!.cardId)).toEqual(["EX10-013"]);
     expect(p1.security).toHaveLength(0);
     expect(p1.trash.map(({ cardId }) => cardId)).toContain("BT1-024");
     expect(p1.trash.map(({ cardId }) => cardId)).toContain(CARD_ID);
@@ -320,7 +361,7 @@ describe("EX10-071 Paradise Lost", () => {
           hand: [{ card: CARD_ID, as: "paradise" }],
           battleArea: [
             { card: "EX10-060", as: "satanMode" },
-            { card: "EX10-013", as: "rookieLucemon" },
+            { card: "EX10-060", as: "rookieLucemon" },
             { card: "BT1-024", as: "decoy" },
           ],
         },
@@ -363,7 +404,7 @@ describe("EX10-071 Paradise Lost", () => {
           security: [{ card: CARD_ID, as: "paradise" }],
           trash: [
             { card: "BT1-024", as: "decoy" },
-            { card: "EX10-060", as: "lucemon" },
+            { card: "EX10-013", as: "lucemon" },
           ],
         },
       },
@@ -372,7 +413,7 @@ describe("EX10-071 Paradise Lost", () => {
     await mixed.ready();
     await advance(mixed.engine).fireForInstance(EffectTiming.SecuritySkill, mixed.inst("paradise"));
     await settle(() => mixed.state.players[0]!.battleArea.length > 0);
-    expect(mixed.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX10-060"]);
+    expect(mixed.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX10-013"]);
     expect(mixed.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-024");
 
     const none = setupEngine(
@@ -504,11 +545,11 @@ describe("EX10-071 Paradise Lost", () => {
 
   it("Security optionally plays a Lucemon from trash without paying", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: CARD_ID, as: "paradise" }], trash: [{ card: "EX10-060", as: "lucemon" }] } },
+      { 0: { security: [{ card: CARD_ID, as: "paradise" }], trash: [{ card: "EX10-013", as: "lucemon" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("paradise"));
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX10-060")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX10-013")).toBe(true);
   });
 });

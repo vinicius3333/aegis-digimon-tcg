@@ -386,9 +386,14 @@ describe("BT26-080 compiled behavior", () => {
         s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("secondPlay").instanceId),
       );
       expect(s.perm("secondTarget").isSuspended).toBe(false);
-      expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT25-077")).toHaveLength(
-        1,
-      );
+      expect(
+        s.decisions.filter(
+          ({ req }) =>
+            req.kind === "chooseTargets" &&
+            req.options?.purpose === "optionalTarget" &&
+            req.sourceCardId === "BT25-077",
+        ),
+      ).toHaveLength(1);
       advance(s.engine).endMainPhaseIfOpen(0);
       await firstTurn;
 
@@ -405,9 +410,14 @@ describe("BT26-080 compiled behavior", () => {
       });
       await settle(() => s.perm("secondTarget").isSuspended);
       expect(s.perm("thirdTarget").isSuspended).toBe(false);
-      expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT25-077")).toHaveLength(
-        2,
-      );
+      expect(
+        s.decisions.filter(
+          ({ req }) =>
+            req.kind === "chooseTargets" &&
+            req.options?.purpose === "optionalTarget" &&
+            req.sourceCardId === "BT25-077",
+        ),
+      ).toHaveLength(2);
       advance(s.engine).endMainPhaseIfOpen(0);
       await nextTurn;
       expect(observe(s.engine).isAttacking()).toBe(false);

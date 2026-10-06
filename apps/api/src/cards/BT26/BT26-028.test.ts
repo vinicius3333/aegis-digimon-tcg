@@ -244,7 +244,12 @@ describe("BT26-028 Medicmon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT21-009", as: "host" }], hand: [{ card: "BT26-028", as: "medicmon" }] },
-        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 7000 }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "target", dp: 7000 },
+            { card: "BT1-009", as: "other", dp: 7000 },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
@@ -260,6 +265,12 @@ describe("BT26-028 Medicmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 4000);
 
+    const clause = getCardDefinition("BT26-028")!.linkEffect;
+    expect(s.decisions.find(({ req }) => req.kind === "chooseTargets")?.req.options?.effectText).toBe(clause);
+    expect(s.decisions.find(({ req }) => req.kind === "chooseTargets")?.req.options?.timing).toBe("WhenLinking");
+    expect(
+      s.events.find((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT26-028"),
+    ).toMatchObject({ description: clause });
     expect(s.perm("target").currentDP).toBe(4000);
     expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(true);
 

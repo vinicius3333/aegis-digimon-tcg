@@ -1,10 +1,12 @@
-import { Phase } from "@aegis/shared";
+import { allCards, Phase, splitPrintedClauses } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import "../../cards/EX4/EX4-059.js";
 import "../../cards/EX4/EX4-065.js";
 import { isInternalDescription } from "../effects/interpreter/describe.js";
 import { setupEngine, settle } from "../testkit/harness.js";
 import { observe } from "../testkit/observe.js";
+import { internalsOf } from "../testkit/internals.js";
+import { playerFacingWatcherClause } from "./subTriggers.js";
 
 const GRANTED_REPLAY = "[Granted] [On Deletion] You may play this card without paying the cost.";
 
@@ -56,4 +58,27 @@ describe("watcher clauses players read", () => {
     expect(announced).toContain(GRANTED_REPLAY);
     expect(announced.filter((description) => isInternalDescription(description))).toEqual([]);
   });
+});
+
+const linkedClauses = allCards().flatMap((card) => {
+  const clauses = splitPrintedClauses(card.linkEffect).filter((clause) => clause.labels.has("When Linking"));
+  return clauses.length === 1 ? [{ cardId: card.cardId, clause: clauses[0]!.text }] : [];
+});
+it.each(linkedClauses)("resolves $cardId's linked watcher from its link box", ({ cardId, clause }) => {
+  const s = setupEngine({ 0: { hand: [{ card: cardId, as: "linkedSource" }] } });
+  const engine = internalsOf(s.engine);
+  const ctx = engine.buildEffectContext(engine.cardSourceOf(s.inst("linkedSource")), {});
+  expect(
+    playerFacingWatcherClause(
+      {
+        id: 1,
+        event: "whenLinked",
+        description: "whenLinked",
+        isLinkedSource: true,
+        once: false,
+        run: async () => {},
+      },
+      ctx,
+    ),
+  ).toBe(clause);
 });

@@ -206,7 +206,7 @@ describe("BT26-032 compiled fidelity", () => {
           deck: ["BT1-009", "BT1-009", "BT1-010"],
         },
       },
-      { autoAcceptOptional: false, autoSelectCards: true, autoChooseOption: false },
+      { autoAcceptOptional: false, autoSelectCards: false, autoChooseOption: false },
     );
     s.state.memory = 3;
     await s.ready();
@@ -241,15 +241,15 @@ describe("BT26-032 compiled fidelity", () => {
           response: { kind: "chooseOption", optionIndex: 1 },
         }),
       ).toEqual({ ok: true });
-      await settle(() => s.state.pendingDecision?.kind === "optional");
-
-      const suspend = s.state.pendingDecision;
-      expect(suspend?.kind).toBe("optional");
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+      const suspend = s.state.pendingDecision!;
+      const request = s.decisions.find(({ req }) => req.decisionId === suspend.decisionId)!.req;
+      expect(request.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
       expect(
         s.engine.applyIntent(0, {
           type: "respondDecision",
-          decisionId: suspend!.decisionId,
-          response: { kind: "optional", accept: false },
+          decisionId: suspend.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [] },
         }),
       ).toEqual({ ok: true });
       await settle(() => s.perm("target").currentDP === 7000);

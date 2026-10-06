@@ -21,7 +21,7 @@ const compiled: CompiledCard = {
             kind: "suspend",
             target: {
               filter: {
-                controller: "mine",
+                controller: "any",
                 kind: ["Digimon"],
               },
               count: 1,

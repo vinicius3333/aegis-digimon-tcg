@@ -128,7 +128,11 @@ describe("BT7-049 MameTyramon — KB Q&A rulings", () => {
     const digivolved = indexOfEvent(eventLog, (event) => event.kind === "digivolved" && event.cardId === "BT7-054");
     const bonusDraw = indexOfEvent(
       eventLog,
-      (event) => event.kind === "cardsMoved" && event.from === "deck" && event.to === "hand",
+      (event) =>
+        event.kind === "cardsMoved" &&
+        event.from === "deck" &&
+        event.to === "hand" &&
+        event.instanceIds.includes(s.inst("unrevealed").instanceId),
     );
     const returnedToBottom = indexOfEvent(
       eventLog,

@@ -127,12 +127,16 @@ export function createPartitionReactions(pc: PrimitivesContext) {
       );
   }
 
-  function captureReturns(instanceIds: readonly string[], resolvingSeat?: Seat) {
+  function captureReturns(
+    instanceIds: readonly string[],
+    resolvingSeat?: Seat,
+    destination: "handOrDeck" | "security" = "handOrDeck",
+  ) {
     const permanentIds = instanceIds.flatMap((instanceId) => {
       const permanentId = pc.helpers.permanentByTopInstance(instanceId);
       if (
         permanentId === undefined ||
-        pc.helpers.isRestricted(permanentId, "beReturned") ||
+        (destination !== "security" && pc.helpers.isRestricted(permanentId, "beReturned")) ||
         pc.helpers.isRestricted(permanentId, "leaveBattleAreaExceptByDeletion")
       )
         return [];

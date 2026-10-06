@@ -289,4 +289,41 @@ describe("EX5-045 Chuumon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("candidate").instanceId);
     expect(s.state.pendingDecision).toBeUndefined();
   });
+  it("GitHub #5106: replays its own newly trashed inherited Chuumon after public battle deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-052", as: "host", under: [{ card: "EX5-045", as: "inherited" }], suspended: true }],
+        },
+        1: { battleArea: [{ card: "BT1-014", as: "attacker", dp: 20000 }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("inherited").instanceId),
+    );
+    expect(s.events).toContainEqual(
+      expect.objectContaining({
+        kind: "cardPlayed",
+        fromZone: "trash",
+        cardId: "EX5-045",
+        instanceId: s.inst("inherited").instanceId,
+      }),
+    );
+    const revived = s.state.players[0]!.battleArea.find(
+      ({ topCard }) => topCard.instanceId === s.inst("inherited").instanceId,
+    )!;
+    expect(revived.isSuspended).toBe(true);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX1-052"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
 });

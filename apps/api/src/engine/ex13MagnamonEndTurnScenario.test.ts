@@ -15,7 +15,7 @@ describe("EX13 Magnamon end-of-turn arena scenario", () => {
       const s = setupEngine(
         { 0: {}, 1: {} },
         {
-          autoSelectCards: true,
+          autoSelectCards: false,
           onEvent(event) {
             if (event.kind === "cardsMoved" && event.from === "suspended" && event.to === "unsuspended") {
               for (const id of event.instanceIds) unsuspends.push({ id, seat: s.state.turnSeat, phase: s.state.phase });
@@ -39,14 +39,21 @@ describe("EX13 Magnamon end-of-turn arena scenario", () => {
       magnamon!.isSuspended = true;
       reboot!.isSuspended = true;
       advance(s.engine).endMainPhaseIfOpen(0);
-      await settle(() => s.state.pendingDecision?.kind === "optional");
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+      const unsuspend = s.state.pendingDecision!;
+      expect(s.decisions.at(-1)!.req.options).toMatchObject({
+        min: 0,
+        max: 1,
+        purpose: "optionalTarget",
+        candidateInstanceIds: [magnamon!.permanentId],
+      });
       expect(s.state.turnSeat).toBe(0);
       expect(reboot!.isSuspended).toBe(true);
       expect(
         s.engine.applyIntent(0, {
           type: "respondDecision",
-          decisionId: s.state.pendingDecision!.decisionId,
-          response: { kind: "optional", accept },
+          decisionId: unsuspend.decisionId,
+          response: { kind: "chooseTargets", instanceIds: accept ? [magnamon!.permanentId] : [] },
         }),
       ).toEqual({ ok: true });
       await ownTurn;

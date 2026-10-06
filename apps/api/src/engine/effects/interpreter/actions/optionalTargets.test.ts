@@ -26,6 +26,27 @@ describe("optional target preflight", () => {
     expect(ctx.selectingOptionalTarget).toBeUndefined();
   });
 
+  it.each([false, true])("asks optional Delete only through field selection (accept: %s)", async (accept) => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "ST1-03", as: "source" }] }, 1: { battleArea: [{ card: "ST1-03", as: "target" }] } },
+      accept ? { autoAcceptOptional: true, autoSelectCards: true } : { autoDeclineOptional: true },
+    );
+    await s.ready();
+    const engine = internalsOf(s.engine);
+    const ctx = engine.buildEffectContext(engine.cardSourceOf(s.perm("source").topCard), {});
+    await runAction(ctx, {
+      kind: "Delete",
+      optional: true,
+      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+    });
+    expect(s.decisions.map(({ req }) => req.kind)).toEqual(["chooseTargets"]);
+    expect(s.decisions[0]?.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
+    expect(s.state.players[1]!.battleArea).toHaveLength(accept ? 0 : 1);
+    expect(ctx.oncePerTurnActivationChosen === true).toBe(accept);
+    expect(ctx.oncePerTurnActivationDeclined === true).toBe(!accept);
+    expect(ctx.lastDeleteCount).toBe(accept ? 1 : 0);
+  });
+
   it.each(["Suspend", "Unsuspend", "Return"] as const)(
     "preserves the optional %s use when no target is available",
     async (kind) => {
@@ -231,7 +252,8 @@ describe("optional target preflight", () => {
       optional: true,
       target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
     });
-    expect(s.decisions.map(({ req }) => req.kind)).toEqual(["optional"]);
+    expect(s.decisions.map(({ req }) => req.kind)).toEqual(["chooseTargets"]);
+    expect(s.decisions[0]?.req.options).toMatchObject({ min: 0, purpose: "optionalTarget" });
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
