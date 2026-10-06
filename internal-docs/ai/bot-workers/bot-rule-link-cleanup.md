@@ -102,13 +102,39 @@ All paths below are under that new binding run; original checkpoints remain unch
 | `imitation-candidate.pt` | `0e3cab723e6899b347d8615347dd79b6300f196dfd1c152eb00d67d8355c7d73` |
 | `trained-candidate.pt` | `8490902dc7b6fa67c96ed141407e5684380e8ac761ff6b5191d13d77ce14bb34` |
 
+## Actual corrected-runtime replay
+
+The original development case, seed `6137617` with the fitted reference and its
+unchanged weights, was replayed on the qualified current runtime. The new run
+`/home/vinicius/aegis-bot-lab/runs/rule-link-current-aa2e56463-replay` and its
+strict closure reader both exited 0. The actual game ended by security with
+winner seat 1 after 37 decisions; errors, rejections, recoveries, truncation,
+and additional learning updates were all absent.
+
+The actual trace exercised the original fault: Progress attacker Medicmon
+(`BT26-028`, `perm-7`) had two Links with a limit of one. Rule-based trash
+requested `s0-4` and actually moved `s0-4`. No effect draw was declared. All
+12 finite model tensors and checkpoint bytes stayed unchanged. This is one
+development regression replay, not candidate strength or blind acceptance.
+
+- External operator SHA-256: `f5eb1199a22c99133772d6d841ef6a67b46a2607e086cff73ac7b5ac5f7d05c1`.
+- Trace module SHA-256: `a7c072de36b8b4837ae40249c2931d95614fc055a56f34dd25a588e467549dff`.
+- Request SHA-256: `cc346df2685b8da9c83cee1dbebd1d0574695a63be9efb813db30e1af9c30d95`.
+- Whole identity SHA-256: `88d740735631cd1afc6062a837736feab20ddcffc325cc270db722aa52758e86` (PID 685/start ticks 12499).
+- Completion SHA-256: `ce6151146ae2736c0404258984fe4d284d628e1a379e80ed0a2d520ae35686cc`.
+- Worker result SHA-256: `fe3304eceac15b5da2113d0a62b885a24f011d5bf6278b30f92c00594676a0a4`.
+- Actual rule trace SHA-256: `c5790bf9b75f8020bf5ac96f860035fa42da6abe029e479dd0cb9106a880ff5e`.
+
+The external replay's 22 local Python guards and 15 Node hook fixtures passed.
+Those fixtures are explicitly synthetic and are separate from the actual game.
+The original failed comparison, frozen diagnostic runs, checkpoints, and output
+maps remain unchanged. The failed comparison is not relabeled successful.
+
 ## Remaining work
 
-Reproduce the original development effect-draw case on the corrected runtime,
-then diagnose imitation/PPO per-deck performance and produce an accepted candidate.
-The original frozen archive, checkpoints, diagnostic receipts, and failed
-comparison remain immutable; that failed comparison is not relabeled successful.
-Then diagnose and correct the per-deck regressions, obtain strict gains for all
-44 recipes against all four references, and complete both-seat mechanisms,
-physical custody, 26 managed rooms, current-serving compatibility, and the
-reserved final blind evaluation. Final seeds `6210000..6213871` remain untouched.
+Establish actual CUDA parity for `infer` and `greedy_action`, then diagnose
+imitation/PPO per-deck performance and produce an accepted candidate. Obtain
+strict gains for all 44 recipes against all four references, and complete
+both-seat mechanisms, physical custody, 26 managed rooms, current-serving
+compatibility, and the reserved final blind evaluation. Final seeds
+`6210000..6213871` remain untouched.
