@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync, renameSync, existsSync, rmSync, cpSync, readdirSync } from "node:fs";
-import { resolve } from "node:path";
+import { isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { describeSync, syncCardImages } from "./card-images.mjs";
 import { FIXED_SLOTS, isDeploymentSlot, readManifest, validateManifest, assertEmptySlot } from "./shared.mjs";
@@ -38,6 +38,14 @@ function parseComposeProcessList(output) {
 
 export function buildSlotCompose({ slot, revision, apiEnvironment, network, state }) {
   if (!isDeploymentSlot(slot)) throw new Error("Invalid slot");
+  const { AEGIS_BOT_CHECKPOINT_HOST_PATH: checkpoint, ...applicationEnvironment } = apiEnvironment;
+  if (
+    checkpoint &&
+    (!isAbsolute(checkpoint) || !/^[a-f0-9]{64}$/.test(apiEnvironment.AEGIS_BOT_CHECKPOINT_SHA256 ?? ""))
+  )
+    throw new Error("Bot deployment requires an absolute checkpoint path and its SHA256");
+  if (!checkpoint && (apiEnvironment.AEGIS_BOT_CHECKPOINT || apiEnvironment.AEGIS_BOT_CHECKPOINT_SHA256))
+    throw new Error("Bot deployment requires AEGIS_BOT_CHECKPOINT_HOST_PATH");
   const services = {
     redis: {
       image: "redis:7-alpine",
@@ -72,7 +80,8 @@ export function buildSlotCompose({ slot, revision, apiEnvironment, network, stat
       stop_grace_period: "60s",
       environment: Object.fromEntries(
         Object.entries({
-          ...apiEnvironment,
+          ...applicationEnvironment,
+          ...(checkpoint ? { AEGIS_BOT_CHECKPOINT: "/models/checkpoint.pt", AEGIS_BOT_PYTHON: "python3" } : {}),
           AEGIS_REVISION: revision,
           AEGIS_DEPLOYMENT_SLOT: slot,
           AEGIS_PROCESS_PATH: `api/${slot}/p${index}`,
@@ -81,10 +90,24 @@ export function buildSlotCompose({ slot, revision, apiEnvironment, network, stat
           AEGIS_DEPLOYMENT_START_DRAINING: "false",
           AEGIS_LOG_DIR: "/logs",
           AEGIS_LOG_MAX_BYTES: String(256 * 1024 * 1024),
-          NODE_OPTIONS: "--max-old-space-size=1100 --report-on-fatalerror --report-directory=/logs",
+          NODE_OPTIONS: `--max-old-space-size=${checkpoint ? 850 : 1100} --report-on-fatalerror --report-directory=/logs`,
         }).map(([key, value]) => [key, typeof value === "string" ? value.replaceAll("$", () => "$$") : value]),
       ),
-      volumes: [`${state}/routing:/deployment:ro`, `${state}/logs:/logs`],
+      volumes: [
+        `${state}/routing:/deployment:ro`,
+        `${state}/logs:/logs`,
+        ...(checkpoint
+          ? [
+              {
+                type: "bind",
+                source: checkpoint.replaceAll("$", () => "$$"),
+                target: "/models/checkpoint.pt",
+                read_only: true,
+                bind: { create_host_path: false },
+              },
+            ]
+          : []),
+      ],
       depends_on: { redis: { condition: "service_healthy" } },
       networks: { default: { aliases: [`aegis-${slot}-api${index}`] } },
       healthcheck: {
@@ -450,6 +473,13 @@ export async function controller({ action, source, envFile, state, revision }) {
       apiEnvironment.AEGIS_PUBLIC_VERSION = JSON.parse(readFileSync(`${source}/package.json`, "utf8")).version;
     }
     apiEnvironment.AEGIS_DEPLOYMENT_ADMIN_TOKEN = adminToken;
+    const slotCompose = buildSlotCompose({
+      slot,
+      revision,
+      apiEnvironment,
+      network: config.networks.default.name,
+      state,
+    });
     // Docker builds run serially; there is no build or recreation of active-slot services.
     console.log(`Building immutable revision ${revision} for ${slot}`);
     await run("docker", [
@@ -464,10 +494,7 @@ export async function controller({ action, source, envFile, state, revision }) {
     ]);
     await buildWebRelease(config, revision);
     mkdirSync(`${state}/slots/${slot}`, { recursive: true, mode: 0o700 });
-    atomicJson(
-      slotPath(slot),
-      buildSlotCompose({ slot, revision, apiEnvironment, network: config.networks.default.name, state }),
-    );
+    atomicJson(slotPath(slot), slotCompose);
     await compose(slot, ["up", "-d", "--wait", "--wait-timeout", "120"]);
     const ready = await statuses(slot);
     if (

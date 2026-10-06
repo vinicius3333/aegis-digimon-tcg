@@ -394,7 +394,7 @@ async function main(args) {
   }
   requireValue(
     ["validate", "launch", "probe"].includes(command),
-    "Use pack, validate, probe, or launch (see delivery.md)",
+    "Use pack, validate, probe, or launch (see README.md)",
   );
   const directory = realpathSync(values.package);
   const pin = values["manifest-sha256"];

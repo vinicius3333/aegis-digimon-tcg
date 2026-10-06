@@ -5,4 +5,11 @@ node_modules
 tools
 !tools/deploy
 !tools/deploy/*.mjs
+!tools/bot-training
+tools/bot-training/*
+!tools/bot-training/inference.py
+!tools/bot-training/features.py
+!tools/bot-training/model.py
+!tools/bot-training/migrate.py
+!tools/bot-training/bridge.py
 docs

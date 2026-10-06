@@ -5,7 +5,7 @@ import numpy as np
 import torch
 
 from features import FEATURE_VERSION, STATUS_FIELDS, FeatureEncoder
-from migrate import column_map, migrate_checkpoint
+from migrate import bind_runtime, column_map, migrate_checkpoint
 from model import CandidatePolicy
 from test_policy import window
 
@@ -45,6 +45,37 @@ def checkpoint() -> dict:
 
 
 class MigrationTests(unittest.TestCase):
+    def test_runtime_binding_preserves_all_weights_and_optimizer_moments(self) -> None:
+        saved = checkpoint()
+        original = copy.deepcopy(saved)
+        target = {**saved["metadata"], "engineSha256": "verified-build"}
+        bound = bind_runtime(saved, target, "source")
+        self.assertEqual(bound["metadata"], target)
+        self.assertEqual(saved["metadata"], original["metadata"])
+        self.assertEqual(bound["runtimeBinding"]["learningUpdates"], 0)
+        for key, value in saved["model"].items():
+            torch.testing.assert_close(bound["model"][key], value, rtol=0, atol=0)
+        self.assertEqual(bound["optimizer"]["param_groups"], saved["optimizer"]["param_groups"])
+        for key, state in saved["optimizer"]["state"].items():
+            for field, value in state.items():
+                torch.testing.assert_close(
+                    bound["optimizer"]["state"][key][field], value, rtol=0, atol=0
+                )
+
+    def test_runtime_binding_rejects_other_sources_and_schema_changes(self) -> None:
+        saved = checkpoint()
+        target = {**saved["metadata"], "engineSha256": "verified-build"}
+        with self.assertRaisesRegex(ValueError, "Source engine"):
+            bind_runtime(saved, target, "wrong-source")
+        for change in [
+            {"cardIds": ["A", "B", "C"]}, {"decks": []}, {"keywords": []}, {"schemaVersion": 5}
+        ]:
+            with self.subTest(change=change), self.assertRaisesRegex(ValueError, "cannot change"):
+                bind_runtime(saved, {**target, **change}, "source")
+        next(iter(saved["model"].values())).fill_(float("nan"))
+        with self.assertRaisesRegex(ValueError, "nonfinite"):
+            bind_runtime(saved, target, "source")
+
     def test_rejects_scalar_or_nontensor_moments_and_nonscalar_step(self) -> None:
         for field, value in (
             ("exp_avg", torch.tensor(0.0)),

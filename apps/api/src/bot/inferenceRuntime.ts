@@ -17,6 +17,8 @@ let startup: Promise<void> | undefined;
 export async function startBotInference(environment: NodeJS.ProcessEnv): Promise<void> {
   const checkpoint = environment.AEGIS_BOT_CHECKPOINT;
   if (!checkpoint) return;
+  const expectedHash = environment.AEGIS_BOT_CHECKPOINT_SHA256;
+  if (expectedHash && !/^[a-f0-9]{64}$/.test(expectedHash)) throw new Error("Invalid bot checkpoint SHA256");
   if (client !== undefined || startup !== undefined) throw new Error("Bot inference is already started");
   startup = InferenceClient.start({
     command: environment.AEGIS_BOT_PYTHON ?? "python3",
@@ -29,7 +31,11 @@ export async function startBotInference(environment: NodeJS.ProcessEnv): Promise
     ],
     metadata: trainingMetadata(),
     requestTimeoutMs: 2_000,
-  }).then((loaded) => {
+  }).then(async (loaded) => {
+    if (expectedHash && loaded.checkpointSha256 !== expectedHash) {
+      await loaded.close();
+      throw new Error("Bot checkpoint SHA256 mismatch");
+    }
     client = loaded;
   });
   try {
