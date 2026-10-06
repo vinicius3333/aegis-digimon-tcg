@@ -690,6 +690,114 @@ R1 evaluation completion, target list, fresh seed inventory, final sealed
 request/wrapper, admitted read-only inspect and separate ROOT resource Go remain
 pending; reserved final seeds remain untouched.
 
+## Completed frozen R1 evaluation and actual R2b admission
+
+The original evaluation session 97906 actually ended with exit zero and must not
+be restarted. The unchanged full resident evaluation `--closed` consumer also
+passed with actual whole zero and full source/runtime/checkpoint/raw-record/output
+map guards. Completion SHA-256 is
+`707c62ee92fa146d2d495ee55ef6243209f7451a64e8fe108347293f3360d0aa`;
+local full consumer output `rule-link-current-corrective-strength-closed.actual.json`
+under `/private/tmp/aegis-material-teacher-active-goal-20261006` has SHA-256
+`1700023dc93929e440f731846b31e955460634456ce78cb11fa40db42741f8c0`.
+All 3,872 games are complete and natural, with 2,427 wins, 1,445 losses, zero
+failed/unusable games or payment forfeits, eight recovered play rejections and
+zero learning updates. Elapsed game time was 2,808.763 seconds. The recovered
+rejections remain in the evidence; these are not pristine physical witnesses.
+
+The actual strict all44 gate is **false**: 26 recipes do not strictly exceed every
+one of the four references. An aggregate gain from 2,408 to 2,427 wins cannot
+replace that condition. The complete diagnostic
+`rule-link-current-corrective-r1-all44-assessment.actual.json` has SHA-256
+`cb83743747c4e6b2f3e176253c5a0894303e8a89e5197203e8c2349b73809807`.
+Each deficit below is the smallest actual delta against the four preserved references.
+
+| Recipe | R1 wins out of 88 | Minimum delta |
+| --- | ---: | ---: |
+| bt26-chronomon-bandai@1 | 70 | -2 |
+| bt26-dantemon-bandai@1 | 55 | -13 |
+| bt26-dgo-2026-08-28-1-toho-braves@1 | 78 | -2 |
+| bt26-dgo-2026-08-28-13-jupitermon@1 | 70 | -3 |
+| bt26-dgo-2026-08-28-7-chronomon@1 | 65 | -6 |
+| bt26-dgo-2026-08-28-8-plutomon@1 | 72 | -8 |
+| bt26-dgo-2026-09-05-1-glowing-dawn@1 | 47 | -2 |
+| bt26-plutomon-bandai@1 | 81 | -5 |
+| curriculum-appmon-charismon@1 | 64 | 0 |
+| curriculum-beatbreak-black@1 | 57 | -1 |
+| curriculum-data-squad-rosemon@1 | 37 | -4 |
+| curriculum-ds-blue@1 | 40 | -3 |
+| curriculum-iliad-purple@1 | 50 | -1 |
+| curriculum-nsp-insects@1 | 40 | 0 |
+| curriculum-shambala-zanbamon@1 | 46 | -5 |
+| curriculum-sukamon-etemon@1 | 35 | 0 |
+| ex13-adventure-bandai@1 | 66 | -8 |
+| ex13-alphamon-royal-knights@1 | 58 | -7 |
+| ex13-examon-royal-knights@1 | 75 | -9 |
+| ex13-gallantmon-royal-knights@1 | 67 | -4 |
+| ex13-gankoomon-jesmon-royal-knights@1 | 66 | -1 |
+| ex13-imperialdramon-bandai@1 | 51 | -9 |
+| ex13-lordknightmon-royal-knights@1 | 50 | 0 |
+| ex13-magnamon-royal-knights@1 | 68 | -6 |
+| ex13-omnimon-royal-knights@1 | 51 | -8 |
+| ex13-ulforceveedramon-royal-knights@1 | 68 | 0 |
+
+The first proposed R2 training interval beginning 6143464 was rejected by the
+unchanged complete scanner because it overlaps historical seeds beginning
+6145000; further inventory showed no contiguous 6,864-game window in that
+initial narrow range. No model or job was started by those rejected preparations.
+The sealed unused R2 operator and wrapper remain unchanged. The corrected R2b
+source admits an earlier training interval, still outside current evaluation,
+rooms/physical and reserved final blocks, and still requires the unchanged full
+scanner. Its final actual fresh interval is **6009240..6016103** for 6,864 games,
+verified against 633 actual schedule files and 124,111 previously used seeds.
+Original final seeds `6210000..6213871` remain untouched.
+
+Corrected source `transfers/rule-link-current-corrective-ppo-r2b.py` is sealed,
+SHA-256 `ad53af557ba9e1191fa0ca4d6880dd00cfad4f3f792239343c28ffef5f0cdc7d`.
+Eight bounded synthetic tests passed, including original/new completion separation,
+three complete repeated paired passes, restored Adam state, all12 positive tensor
+deltas, retained negative payment losses, changed helper seams and both allowed
+training windows versus reserved boundaries. Fixture SHA-256 is
+`0b82d37d39af3258b63f6077dbefec3fc1c93d25c550b78b7d9e8eb44c12fafd`.
+Actual desktop Python 3.12.14 syntax/stdlib source review and null-future-closure
+rejection passed; review SHA-256 is
+`35cda05fc4ee8c2ca669fb63df4dd319f9008a73e7058cfbbce1ad495e7ac858`.
+
+The final actual request SHA-256 is
+`c408add80219c3d13721daf604c731e12ee48659a3afb67221cb25e1758af082`;
+actual fresh inventory SHA-256 is
+`a2e52aeb0e2bfe1cc1921cc7099e42a1ca2c7a87aa8766c73a8e9c9f1600ecb1`.
+Full read-only admission exited zero after the unchanged actual R1 closure consumer,
+actual source/runtime/CP guards and a second complete fresh-seed scan. Inspection
+SHA-256 is `59a8ed454e4cbbda586b69adfc7b1fe3917ea7d5c4e2afa168d098f0c9e9d74e`.
+It confirms 26 selected learners, all44 opposing decks, both seats, 6,864 genuine
+training games, balanced batch52, four workers, zero snapshots, no evaluation flag,
+no runtime override, and a **1e-5** override after restoring the known **3e-5** Adam
+state. Input remains actual R1 checkpoint `e4effc446ef39f04c2853fb69b81e798ed06059e3b847b7cfbf9f5daa5f4b232`.
+
+A fresh actual unchanged static idle guard and GPU inventory passed before the
+separate ROOT Go, SHA-256
+`b948a733367523f5a80aa08f1a3764e43da8940e6321538dc964ef2f712f0b64`.
+The launched original foreground session is **26324** and must remain attached;
+actual whole PID **693/start573249**, operator **713/start573263**, identity SHA-256
+`ed11a1570c7bf9dd6aa3414fcf6b906535b572ac24589a13df3251feee033e8b`.
+Wrapper SHA-256 is
+`336d5ac98db5e3fee6267d2e9e284d0beb5af4bd7241f70cfd96b19f18994af7`.
+The initial actual observer verifies exact argv, source/request/Go pins and parentage
+while the operator performs full predecessor admission. Actual subsequent observation
+verifies CUDA learner PID **869/start588939**, parent 713, with the exact admitted
+26-recipe/three-pass command. Its configuration confirms `evaluate: false`, feature
+V7, CUDA, actual R1 input checkpoint, restored learning rate **3e-5** and applied
+rate **1e-5**. GPU inventory binds to that actual learner. The first real batch has
+52 usable games, zero failures or payment forfeits, positive gradient norm and a
+new output checkpoint. These are live partial training results; final all12 tensor
+and Adam deltas, full raw records, actual whole zero and checkpoint hash remain
+pending until the unchanged guarded learning closure succeeds.
+Qualified source archive, engine fingerprint and protected original checkpoints
+remain unchanged; no metadata-copy generation or repeated engine build is needed.
+Subsequent full all44 strength, physical mechanisms/materials, rooms, serving,
+untouched final blind and delivery acceptance remain required.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
