@@ -239,7 +239,7 @@ export interface CombatHooks {
    * its `UntilEndAttackEffects` / `UntilEndBattleEffects` lists here. Optional so the
    * combat unit tests (which pass a minimal hooks object) need no change.
    */
-  sweepEndOfAttack?: () => void;
+  sweepEndOfAttack?: () => void | Promise<void>;
   /**
    * Queue the End of Attack timing behind the effect that is ending the attack, so its
    * [End of Attack] effects activate as derived triggers ahead of the effects still pending

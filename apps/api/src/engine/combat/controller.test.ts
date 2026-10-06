@@ -74,6 +74,7 @@ function harness(opts?: {
   piercingWhenOpponentGone?: boolean;
   piercingReactionEvent?: "whenBattleWon" | "onDeletionOf";
   captureAttackPayloads?: TriggerInfo[];
+  sweepEndOfAttack?: CombatHooks["sweepEndOfAttack"];
 }): Harness {
   const state = makeState();
   const access = new GameStateAccess(state);
@@ -87,6 +88,7 @@ function harness(opts?: {
 
   const hooks: CombatHooks = {
     emit: (e) => events.push(e),
+    sweepEndOfAttack: opts?.sweepEndOfAttack,
     fireTiming: async (timing) => {
       firedTimings.push(timing);
       timeline.push(`timing:${timing}`);
@@ -150,6 +152,50 @@ async function flush(): Promise<void> {
     await Promise.resolve();
   }
 }
+
+it("#5015 awaits the duration sweep before publishing attack completion or returning", async () => {
+  let finishSweep!: () => void;
+  let enterSweep!: () => void;
+  let sweepStarted = false;
+  let attackReturned = false;
+  const sweepEntered = new Promise<void>((resolve) => {
+    enterSweep = resolve;
+  });
+  const sweep = new Promise<void>((resolve) => {
+    finishSweep = resolve;
+  });
+  const h = harness({
+    sweepEndOfAttack: () => {
+      sweepStarted = true;
+      enterSweep();
+      return sweep;
+    },
+  });
+  const attacker = digimon(0, 9000);
+  const defender = digimon(1, 4000, { suspended: true });
+  h.state.players[0]!.battleArea.push(attacker);
+  h.state.players[1]!.battleArea.push(defender);
+  const attack = h.combat
+    .resolveAttack(0, attacker, { kind: "permanent", permanentId: defender.permanentId })
+    .then(() => {
+      attackReturned = true;
+    });
+  await sweepEntered;
+  await flush();
+  const duringSweep = {
+    sweepStarted,
+    attackReturned,
+    events: h.events
+      .filter((event) => event.kind === "combatResolved" || event.kind === "attackEnded")
+      .map(({ kind }) => kind),
+  };
+  finishSweep();
+  await attack;
+  expect(duringSweep).toEqual({ sweepStarted: true, attackReturned: false, events: [] });
+  expect(
+    h.events.filter((event) => event.kind === "combatResolved" || event.kind === "attackEnded").map(({ kind }) => kind),
+  ).toEqual(["combatResolved", "attackEnded"]);
+});
 
 describe("CombatController.resolveAttack — Digimon vs Digimon", () => {
   it("does not trigger Piercing acquired from a deleted Token's reaction", async () => {
