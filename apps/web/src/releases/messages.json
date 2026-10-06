@@ -1,4 +1,20 @@
 {
+  "releases.1.14.1-beta.summary": {
+    "en": "This patch fixes drawn-card flicker after digivolution, bot animation pacing and excess space in action confirmations.",
+    "pt-BR": "Este patch corrige cartas piscando após a compra de digivolução, o ritmo das animações do bot e o espaço excessivo nas confirmações de ações."
+  },
+  "releases.1.14.1-beta.fix.drawHandoff": {
+    "en": "Cards drawn after digivolution enter the hand once their draw animation reaches its handoff, without appearing early or disappearing again. Successive draws preserve hand and deck counts.",
+    "pt-BR": "Cartas compradas após a digivolução entram na mão quando a animação de compra chega à entrega, sem aparecer antes ou sumir novamente. Compras seguidas preservam as contagens da mão e do deck."
+  },
+  "releases.1.14.1-beta.fix.botPacing": {
+    "en": "The bot waits through digivolution arrivals, consecutive effects and each trashed security card before choosing its next action.",
+    "pt-BR": "O bot espera as animações de digivolução, os efeitos consecutivos e cada carta de segurança enviada ao lixo antes de escolher a próxima ação."
+  },
+  "releases.1.14.1-beta.fix.confirmationLayout": {
+    "en": "Action confirmation panels fit their content with compact spacing on desktop, tablet and mobile.",
+    "pt-BR": "Os painéis de confirmação de ações se ajustam ao conteúdo, com espaçamento compacto no desktop, tablet e celular."
+  },
   "releases.1.13.0-beta.summary": {
     "en": "This minor release makes match decisions compact on phones, moves field choices onto the board, refreshes the home screen and fixes card timing and legal choices.",
     "pt-BR": "Esta versão minor deixa as decisões compactas no celular, permite escolher cartas diretamente no campo, renova a tela inicial e corrige tempos de efeitos e escolhas legais."

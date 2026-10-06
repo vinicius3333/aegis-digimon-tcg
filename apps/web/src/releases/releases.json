@@ -1,5 +1,22 @@
 [
   {
+    "version": "1.14.1-beta",
+    "releasedAt": "2026-10-06",
+    "summaryKey": "releases.1.14.1-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.14.1-beta.fix.drawHandoff"
+      },
+      {
+        "textKey": "releases.1.14.1-beta.fix.botPacing"
+      },
+      {
+        "textKey": "releases.1.14.1-beta.fix.confirmationLayout"
+      }
+    ]
+  },
+  {
     "version": "1.14.0-beta",
     "releasedAt": "2026-10-06",
     "summaryKey": "releases.1.14.0-beta.summary",
