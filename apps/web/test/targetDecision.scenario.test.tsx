@@ -168,8 +168,9 @@ scenario("target-decision", () => {
     fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
     // Brave Shield's [Main] Unsuspend target can't auto-resolve (2 Monodramon in
-    // play), so the real field-only "chooseTargets" decision opens on the board.
-    const targetRail = await screen.findByTestId("board-prompt", {}, { timeout: 10_000 });
+    // play), so the real field-only "chooseTargets" decision opens in the central gallery.
+    const targetRail = await screen.findByRole("dialog", {}, { timeout: 10_000 });
+    expect(targetRail.getAttribute("data-prompt-surface")).toBe("center");
     expect(within(targetRail).getByText(/unsuspend 1 of your digimon/i)).toBeTruthy();
     expect((within(targetRail).getByRole("button", { name: /confirm target/i }) as HTMLButtonElement).disabled).toBe(
       true,
@@ -178,8 +179,8 @@ scenario("target-decision", () => {
     // Pick the first candidate and confirm once. "That Digimon" binds the Blocker
     // grant to the Digimon chosen for Unsuspend, so no second target prompt may open.
     const decisionIdBefore = opponent.room.state.pendingDecision?.decisionId;
-    const [candidate] = within(yourBattleArea()).getAllByRole("button", { name: /monodramon/i });
-    const chosenId = candidate!.closest("[data-id]")?.getAttribute("data-id");
+    const [candidate] = within(targetRail).getAllByRole("button", { name: /monodramon/i });
+    const chosenId = candidate!.getAttribute("data-instance-id");
     expect(chosenId).toBeTruthy();
     const unchosenId = opponent.room.state.players[0]!.battleArea.find(
       (permanent) => permanent.topCard?.cardId === "BT1-009" && permanent.permanentId !== chosenId,

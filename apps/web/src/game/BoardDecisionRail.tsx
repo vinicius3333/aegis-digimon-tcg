@@ -1,8 +1,6 @@
-/* Decisions answered on the board instead of in a dialog: the left rail that
-   carries the prompt and its actions while the cards are picked in place, and
-   the pill that tells the viewer the opponent is busy picking cards of their
-   own. Which decisions land here is decided by ./decisionPresentation; this file
-   only draws them. */
+/* Simple actions use the left dialog. Legacy board-selection rails remain for
+   compatibility, while live card choices use the central gallery. The pill tells
+   the viewer when the opponent is choosing. */
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "../design/primitives";
@@ -11,6 +9,7 @@ import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
 import { cardDisplayName, useCardOpener } from "./cardLinks";
 import { DecisionBoardReturn } from "./overlay/choice/DecisionBoardReturn";
+import { useEffectPromptFocus } from "./overlay/choice/useEffectPromptFocus";
 import "./overlay/fieldDecisionRail.css";
 
 function useEscapeToDialog(onOpenDialog: (() => void) | undefined) {
@@ -88,16 +87,20 @@ export function BoardPromptRail({
 }) {
   const { t } = useTranslation();
   useEscapeToDialog(onOpenDialog);
+  const modal = variant === "prompt";
+  const focusProps = useEffectPromptFocus(!modal);
   return (
     <>
-      {/* Phone only (see game.css): dims the board under the sheet, not the hand
-          a selection picks from nor the notices that explain the decision. */}
-      <div className="board-prompt-scrim" data-variant={variant} aria-hidden />
+      <div className={modal ? "decision-overlay-backdrop" : "board-prompt-scrim"} data-variant={variant} aria-hidden />
       <section
         className={`board-prompt${variant === "field-selection" ? " combat-prompt" : ""}${className ? ` ${className}` : ""}`}
         aria-label={label}
+        role={modal ? "dialog" : "region"}
+        aria-modal={modal || undefined}
+        {...(modal ? focusProps : {})}
         data-testid="board-prompt"
         data-variant={variant}
+        data-prompt-surface="left"
       >
         <div className="board-prompt__grip" aria-hidden />
         {onOpenDialog && showDialogButton ? (
@@ -114,10 +117,8 @@ export function BoardPromptRail({
         ) : null}
         <div className="board-prompt__heading">
           {eyebrow ? <p className="board-prompt__eyebrow">{eyebrow}</p> : null}
-          {/* The card's printed clause is the question. A restated prompt over it says the
-              same thing twice, so it stays only as the live region that announces the
-              decision — and becomes the visible question when no clause explains it. */}
-          <p className="board-prompt__text" aria-live="polite" data-quiet={clause ? true : undefined}>
+          {/* Announce the action first; the printed clause supplies its context below. */}
+          <p className="board-prompt__text" aria-live="polite">
             {prompt}
           </p>
         </div>

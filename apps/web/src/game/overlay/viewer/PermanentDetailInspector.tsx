@@ -9,8 +9,8 @@ import { CardArt } from "../CardArt";
 import { ROLE_LABEL_KEYS } from "../constants";
 
 /** How wide and tall the inspector is allowed to get, so it can be placed before it renders. */
-const INSPECTOR_WIDTH = 420;
-const INSPECTOR_HEIGHT = 480;
+const INSPECTOR_WIDTH = 440;
+const INSPECTOR_HEIGHT = 640;
 
 /**
  * The permanent inspector (`PermanentDetail.cs`): the position as it stands right
@@ -44,13 +44,17 @@ export function PermanentDetailInspector({
   const topDef = getCardDefinition(detail.cardId);
   const supporting = detail.cards.filter((card) => card.role !== "top");
   const granted = new Set(detail.grantedKeywords);
+  const viewportWidth = typeof window === "undefined" ? 1280 : window.innerWidth;
+  const viewportHeight = typeof window === "undefined" ? 800 : window.innerHeight;
+  const panelWidth = Math.min(INSPECTOR_WIDTH, viewportWidth - 24);
+  const panelHeight = Math.min(INSPECTOR_HEIGHT, viewportHeight - 24);
   const placement = inspectorPlacement({
     anchorX,
     anchorY,
-    viewportWidth: typeof window === "undefined" ? 1280 : window.innerWidth,
-    viewportHeight: typeof window === "undefined" ? 800 : window.innerHeight,
-    panelWidth: INSPECTOR_WIDTH,
-    panelHeight: INSPECTOR_HEIGHT,
+    viewportWidth,
+    viewportHeight,
+    panelWidth,
+    panelHeight,
   });
 
   const panel = (
@@ -64,7 +68,7 @@ export function PermanentDetailInspector({
       onMouseLeave={onInteractEnd}
       onFocus={onInteractStart}
       onBlur={onInteractEnd}
-      style={{ left: placement.left, top: placement.top, width: INSPECTOR_WIDTH }}
+      style={{ left: placement.left, top: placement.top, width: panelWidth, maxHeight: panelHeight }}
     >
       <header>
         <div>

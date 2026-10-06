@@ -1172,6 +1172,8 @@ export function GameScreen({
               picking: pickingSourceHost,
               cardIds: chosenSourceHostId ? sourceHostChoice.cardIdsByHost.get(chosenSourceHostId) : undefined,
               onChangeHost: () => chooseSourceHost(undefined),
+              hostPermanentIds: sourceHostChoice.hostPermanentIds,
+              onChooseHost: chooseSourceHost,
             }
           : undefined
       }

@@ -5,6 +5,15 @@ import { trapDialogFocus } from "./decisionFocusTrap";
 export function useEffectPromptFocus(isViewingBoard = false) {
   const panelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    const previous = document.activeElement;
+    return () => {
+      queueMicrotask(() => {
+        if (previous instanceof HTMLElement && previous.isConnected && document.activeElement === document.body)
+          previous.focus();
+      });
+    };
+  }, []);
+  useEffect(() => {
     if (!isViewingBoard) panelRef.current?.focus();
   }, [isViewingBoard]);
   return {

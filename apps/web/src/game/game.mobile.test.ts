@@ -725,8 +725,8 @@ describe("a board-mode hand selection is answered by the finger that makes it", 
     // The hand is a `pan-x` scroll-snap row on a phone, so the browser may turn a
     // tap into a scroll or retarget the trailing click at the row. Reading the
     // pointer is how every other tap on this screen is resolved (pressGesture.ts).
-    expect(boardPiecesSource).toMatch(/onPointerUp=\{selection \? \(e\) => finishPick\(/);
-    expect(boardPiecesSource).toMatch(/onPointerCancel=\{\s*selection\s*\?/);
+    expect(boardPiecesSource).toMatch(/onPointerUp:\s*selection \? \(e\) => finishPick\(/);
+    expect(boardPiecesSource).toMatch(/onPointerCancel:\s*selection\s*\?/);
     expect(boardPiecesSource).toMatch(/pressGesture\(\{ dx: event\.clientX - press\.x/);
     // The click trailing that same gesture must not toggle the card back, while a
     // click that is the only signal (keyboard, assistive) still picks.
@@ -742,7 +742,7 @@ describe("a board-mode hand selection is answered by the finger that makes it", 
   it("still refuses to start a drag out of a hand that is picking", () => {
     // A pick that became a play would answer the decision by putting the card on
     // the board — the one thing the selection must not do.
-    expect(boardPiecesSource).toMatch(/: \(e\) => startDrag\(i, e\)\}/);
+    expect(boardPiecesSource).toMatch(/: \(e\) => startDrag\(i, e\),/);
     expect(boardPiecesSource).not.toMatch(/selection \? \(e\) => startDrag/);
   });
 });

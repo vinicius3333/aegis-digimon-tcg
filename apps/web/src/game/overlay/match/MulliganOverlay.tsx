@@ -48,7 +48,7 @@ export function MulliganOverlay({
           {t("overlay.keepHand")}
         </h2>
         {turnOrder ? (
-          <p className="mulligan-turn-order">
+          <p className="mulligan-turn-order" data-turn-order={turnOrder}>
             {t(turnOrder === "first" ? "overlay.turnOrderFirst" : "overlay.turnOrderSecond")}
           </p>
         ) : null}

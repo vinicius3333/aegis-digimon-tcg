@@ -107,7 +107,7 @@ scenario("reconnect-decision", () => {
     // A real pendingDecision is now open on the protagonist's seat — proven both by
     // the server's synchronized state and the rendered prompt.
     const dialog = await findDecisionSurface();
-    expect(within(dialog).getByText(/yuuki/i)).toBeTruthy();
+    expect(within(dialog).getByRole("img", { name: /^yuuki$/i })).toBeTruthy();
     await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.seat).toBe(0), { timeout: 10_000 });
     const decisionIdBeforeDrop = opponent.room.state.pendingDecision?.decisionId;
     expect(protagonistRoom!.state.pendingDecision?.decisionId).toBe(decisionIdBeforeDrop);
@@ -134,7 +134,7 @@ scenario("reconnect-decision", () => {
     await vi.waitFor(
       () => {
         const current = screen.queryByRole("dialog") ?? screen.getByTestId("board-prompt");
-        expect(within(current).getAllByText(/yuuki/i).length).toBeGreaterThan(0);
+        expect(within(current).getByRole("img", { name: /^yuuki$/i })).toBeTruthy();
       },
       { timeout: 15_000 },
     );
@@ -192,7 +192,9 @@ scenario("reconnect-decision", () => {
         );
         const matches = candidates.flatMap((candidate) => {
           const label = candidate.getAttribute("aria-label") ?? "";
-          const handCards = uniqueHandCards.filter((card) => label === `Pick ${card.name}`);
+          const handCards = uniqueHandCards.filter(
+            (card) => label === `Pick ${card.name}` || label === card.name || label.startsWith(`${card.name},`),
+          );
           return handCards.length === 1 ? [{ candidate, handCard: handCards[0]! }] : [];
         });
         expect(matches.length).toBeGreaterThan(0);

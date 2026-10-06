@@ -113,10 +113,11 @@ scenario("block", () => {
     const agumonPermanentId = opponent.room.state.players[1]!.battleArea[0]!.permanentId;
     opponent.attack(agumonPermanentId, { kind: "player" });
 
-    // The block window renders on the board: its "decline" action proves the
-    // window opened, and Monmon is selected directly from the battle area.
+    // The central gallery offers only the server-authorized blocker.
     await screen.findByRole("button", { name: /take the attack/i }, { timeout: 10_000 });
-    const monmonBlockerButton = within(yourBattleArea()).getByRole("button", { name: /^monmon$/i });
+    const blockDialog = screen.getByRole("dialog", { name: "Block window" });
+    expect(blockDialog.getAttribute("data-prompt-surface")).toBe("center");
+    const monmonBlockerButton = within(blockDialog).getByRole("button", { name: /^monmon,/i });
     const blocker = opponent.room.state.players[0]!.battleArea.find(
       (permanent) => permanent.topCard.cardId === "BT1-031",
     )!;

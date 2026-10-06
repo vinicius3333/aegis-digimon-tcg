@@ -6,7 +6,7 @@ import { Button } from "../../../design/primitives";
 import { useMediaQuery, WIDE_DIALOG_QUERY } from "../../../design/useMediaQuery";
 import { useTranslation } from "../../../i18n";
 import { useCardOpener } from "../../cardLinks";
-import { decisionSelectionMin } from "../../decisionPresentation";
+import { effectDecisionSurface, decisionSelectionMin } from "../../decisionPresentation";
 import { pendingFateBadge } from "../../pendingFate";
 import { playerFacingEffectClause, playerFacingPromptText } from "../effectText";
 import { printedCardName } from "../printedCardName";
@@ -30,7 +30,7 @@ import type { DecisionCandidate } from "./decisionTypes";
 import "../effectPromptFamily.css";
 
 /** The art of the card asking the question, big enough to recognise beside its clause. */
-const DECISION_SOURCE_ART_WIDTH = 64;
+const DECISION_SOURCE_ART_WIDTH = 72;
 
 type DialogWidthParams = {
   docksOnRail: boolean;
@@ -63,8 +63,12 @@ export function DecisionOverlay({
   onTogglePick,
   onRespond,
   onChangeSourceHost,
+  confirmLabel,
+  contextText,
 }: {
   request: DecisionRequest;
+  confirmLabel?: string;
+  contextText?: string;
   sourceCardId?: string;
   candidates: DecisionCandidate[];
   picks: string[];
@@ -89,7 +93,8 @@ export function DecisionOverlay({
   const choiceClauses = request.options?.choiceClauses;
   const isOptional = request.kind === "optional";
   const isChoose = request.kind === "chooseOption";
-  const docksOnRail = isChoose || isOptional;
+  const surface = effectDecisionSurface(request);
+  const docksOnRail = surface === "left";
   const choosesPrintedBullet =
     isChoose &&
     choiceEffects === undefined &&
@@ -151,15 +156,17 @@ export function DecisionOverlay({
     else onRespond({ kind: "chooseTargets", instanceIds: picks });
   };
 
-  const sourceClause = sourceCardId
-    ? playerFacingEffectClause({
-        cardId: sourceCardId,
-        timing: request.options?.timing,
-        description: request.options?.effectText,
-        effectTextPart: request.options?.effectTextPart,
-        isInherited: request.options?.isInherited,
-      })
-    : undefined;
+  const sourceClause =
+    contextText ??
+    (sourceCardId
+      ? playerFacingEffectClause({
+          cardId: sourceCardId,
+          timing: request.options?.timing,
+          description: request.options?.effectText,
+          effectTextPart: request.options?.effectTextPart,
+          isInherited: request.options?.isInherited,
+        })
+      : undefined);
   // Each bullet is spelled out on its own option, so the header keeps only the lead-in.
   const sourceEffectText =
     choosesPrintedBullet && sourceClause !== undefined ? printedModalPreamble(sourceClause) : sourceClause;
@@ -205,6 +212,7 @@ export function DecisionOverlay({
           role="dialog"
           aria-modal="true"
           aria-label={t("game.digivolve")}
+          data-prompt-surface="left"
           className="game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family decision-overlay--side"
           onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
         >
@@ -227,6 +235,7 @@ export function DecisionOverlay({
         role="dialog"
         aria-modal="true"
         aria-label={dialogLabel}
+        data-prompt-surface={surface}
         className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isSelect ? " decision-overlay--selection" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}${isResolutionPlan ? " decision-overlay--resolution-plan" : ""}${docksOnRail ? " decision-overlay--side" : ""}`}
         onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
         /* Geometry, surface and entrance all live in game.css: inline values could not be
@@ -353,6 +362,7 @@ export function DecisionOverlay({
         ) : isSelect ? (
           <DecisionSelectFooter
             canConfirm={canConfirm}
+            confirmLabel={confirmLabel}
             onConfirm={confirmSelect}
             min={min}
             onNone={() =>

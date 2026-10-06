@@ -1,7 +1,6 @@
 /* Which surface a pending decision is answered on, and the small pieces of text
    that surface needs. All pure: the server still owns every rule, this module
-   only decides whether the answer is taken on the board itself (left rail, cards
-   picked in place) or in the modal dialog, and formats labels for the trigger
+   chooses a left action rail or a central card dialog and formats labels for the trigger
    chooser.
 
    The dialog is the fallback for everything, so a decision shape this module has
@@ -25,41 +24,28 @@ export function isDecoyDecision(decision: DecisionRequest | undefined): boolean 
   return decision?.kind === "selectCards" && /^[＜<]\s*Decoy(?:\s*[＞>]|\s*\()/i.test(decision.promptText ?? "");
 }
 
-/**
- * Card selections answered entirely from the hand or battle area need no dialog:
- * the cards are already on screen. `optional` prompts read better beside the
- * field they are about to change, as long as their source card is visible there.
+/** Effect card selections always use the central dialog, regardless of their zone.
+ * Simple optional actions use the left rail when their source is on the field.
+ * Unknown decisions retain the dialog fallback.
  */
 export function decisionPresentation({
   decision,
-  handInstanceIds,
   sourcePermanentId,
-  fieldInstanceIds = [],
 }: {
   decision: DecisionRequest;
   handInstanceIds: readonly string[];
   sourcePermanentId?: string;
   fieldInstanceIds?: readonly string[];
 }): DecisionPresentation {
-  if (decision.kind === "optional") return sourcePermanentId === undefined ? "dialog" : "board";
-  if (decision.kind !== "selectCards" && decision.kind !== "chooseTargets") return "dialog";
-  const candidates = decision.options?.candidateInstanceIds ?? [];
-  if (candidates.length === 0) return "dialog";
-  const visible = decision.options?.visibleInstanceIds ?? [];
-  const field = new Set(fieldInstanceIds);
-  if (
-    decision.options?.selectionContext === "attackTarget" &&
-    [...candidates, ...visible].every((instanceId) => instanceId === "player" || field.has(instanceId))
-  ) {
-    return "board";
-  }
-  if ([...candidates, ...visible].every((instanceId) => field.has(instanceId))) return "board";
-  if (decision.kind === "chooseTargets" || isDecoyDecision(decision)) return "dialog";
-  const hand = new Set(handInstanceIds);
-  if (!candidates.every((instanceId) => hand.has(instanceId))) return "dialog";
-  // A visible card outside the hand (a revealed deck card shown alongside) has
-  // nowhere to render on the board, so that decision keeps the dialog.
-  return visible.every((instanceId) => hand.has(instanceId)) ? "board" : "dialog";
+  return decision.kind === "optional" && sourcePermanentId !== undefined ? "board" : "dialog";
+}
+
+/** Placement follows the action being requested, rather than the card's zone. */
+export function effectDecisionSurface(decision: DecisionRequest): "left" | "center" {
+  if (decision.kind === "optional") return "left";
+  if (decision.kind === "chooseOption") return decision.options?.choiceEffects ? "center" : "left";
+  if (decision.kind === "selectCards" && decision.options?.selectionContext === "partitionActivation") return "left";
+  return "center";
 }
 
 /**

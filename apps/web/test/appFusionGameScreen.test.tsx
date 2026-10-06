@@ -83,7 +83,8 @@ it("opens App Fusion from hand selection on the second host and sends the second
   fireEvent.keyDown(handButton, { key: "Enter" });
   secondHost.click();
   const dialog = await screen.findByRole("dialog", { name: /App Fusion/i });
-  const panel = dialog.querySelector(".app-fusion-choice__panel") as HTMLElement;
+  const panel = dialog;
+  expect(panel.getAttribute("data-prompt-surface")).toBe("center");
   expect(within(panel).getAllByRole("radio")).toHaveLength(2);
   within(panel).getAllByRole("radio")[1]!.click();
   within(panel)
@@ -105,9 +106,7 @@ it("keeps the drag route and does not invent a normal fallback", async () => {
     .getAllByRole("img", { name: /^dokamon$/i })[1]!
     .closest('[data-drop="perm-you"]') as HTMLElement;
   dragOnto(result, secondHost);
-  const panel = (await screen.findByRole("dialog", { name: /App Fusion/i })).querySelector(
-    ".app-fusion-choice__panel",
-  ) as HTMLElement;
+  const panel = await screen.findByRole("dialog", { name: /App Fusion/i });
   expect(within(panel).queryByRole("button", { name: /normal evolution/i })).toBeNull();
   expect(mocked.appFusion).not.toHaveBeenCalled();
 });
@@ -121,9 +120,7 @@ it("cancels without sending an App Fusion intent", async () => {
     .closest('[data-drop="perm-you"]') as HTMLElement;
   fireEvent.keyDown(handButton, { key: "Enter" });
   secondHost.click();
-  const panel = (await screen.findByRole("dialog", { name: /App Fusion/i })).querySelector(
-    ".app-fusion-choice__panel",
-  ) as HTMLElement;
+  const panel = await screen.findByRole("dialog", { name: /App Fusion/i });
   within(panel)
     .getByRole("button", { name: /cancel/i })
     .click();
@@ -150,9 +147,7 @@ it("rejects a route after its selected host link is removed", async () => {
       onExit={() => {}}
     />,
   );
-  const currentPanel = screen
-    .queryByRole("dialog", { name: /App Fusion/i })
-    ?.querySelector(".app-fusion-choice__panel") as HTMLElement | null;
+  const currentPanel = screen.queryByRole("dialog", { name: /App Fusion/i });
   expect(currentPanel).toBeTruthy();
   const confirm = within(currentPanel!).getByRole("button", { name: /app fuse/i });
   expect((confirm as HTMLButtonElement).disabled).toBe(true);

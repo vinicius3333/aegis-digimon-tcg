@@ -92,7 +92,8 @@ scenario("card-selection", () => {
     const selectDialog = await vi.waitFor(
       () => {
         const dialog = screen.queryByRole("dialog") ?? screen.getByTestId("board-prompt");
-        expect(dialog.textContent).toMatch(/hand selection/i);
+        expect(dialog.getAttribute("data-prompt-surface")).toBe("center");
+        expect(opponent.room.state.pendingDecision?.kind).toBe("selectCards");
         return dialog;
       },
       { timeout: 10_000 },
@@ -101,7 +102,7 @@ scenario("card-selection", () => {
     const candidateLabel = candidate!.getAttribute("aria-label") ?? "";
     // The hand labels a pickable card "Pick {name}"; the trash below lists the
     // card by its bare name, so keep both forms.
-    const candidateName = candidateLabel.replace(/^Pick /, "");
+    const candidateName = candidateLabel.replace(/^Pick /, "").split(",")[0]!;
     expect(candidateName.length).toBeGreaterThan(0);
 
     fireEvent.click(candidate!);
@@ -133,7 +134,7 @@ scenario("card-selection", () => {
           }
         : undefined;
       const dialog = screen.queryByRole("dialog") ?? screen.getByTestId("board-prompt");
-      fireEvent.click(within(dialog).getByRole("button", { name: /no, decline|^don't use$|^no selection$/i }));
+      fireEvent.click(within(dialog).getByRole("button", { name: /no, decline|^don't use$|^no selection$|^none$/i }));
       await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(decisionId), {
         timeout: 10_000,
       });

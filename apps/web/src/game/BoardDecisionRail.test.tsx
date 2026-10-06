@@ -156,7 +156,7 @@ describe("board prompt scrim", () => {
     const { container } = renderIn(
       <BoardOptionalPrompt sourceCardId="ST1-07" clause="Draw 1 card." onUse={noop} onDecline={noop} />,
     );
-    const scrim = container.querySelector(".board-prompt-scrim");
+    const scrim = container.querySelector(".decision-overlay-backdrop");
     expect(scrim).toBeTruthy();
     expect(scrim?.nextElementSibling?.classList.contains("board-prompt")).toBe(true);
   });
@@ -166,7 +166,7 @@ describe("board prompt scrim", () => {
       <BoardOptionalPrompt sourceCardId="ST1-07" clause="Draw 1 card." onUse={noop} onDecline={noop} />,
     );
     expect(prompt.container.querySelector('.board-prompt[data-variant="prompt"]')).toBeTruthy();
-    expect(prompt.container.querySelector('.board-prompt-scrim[data-variant="prompt"]')).toBeTruthy();
+    expect(prompt.container.querySelector('.decision-overlay-backdrop[data-variant="prompt"]')).toBeTruthy();
     prompt.unmount();
     const selection = renderIn(
       <BoardSelectionRail
@@ -311,7 +311,7 @@ describe("BoardOptionalPrompt", () => {
 
   it("names itself after the source card so the rail is addressable", () => {
     renderIn(<BoardOptionalPrompt sourceCardId="ST1-07" clause="Draw 1 card." onUse={noop} onDecline={noop} />);
-    expect(screen.getByRole("region", { name: /· effect/i })).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: /· effect/i })).toBeTruthy();
   });
 
   it("opens the source card from the rail's own eyebrow", () => {
@@ -375,8 +375,8 @@ describe("Hand in selection mode", () => {
       />,
     );
     const hand = screen.getByTestId("hand");
-    expect(within(hand).getByRole("button", { name: /copy 1 of 2, selected$/ }).textContent).toBe("2");
-    expect(within(hand).getByRole("button", { name: /copy 2 of 2, selected$/ }).textContent).toBe("1");
+    expect(within(hand).getByRole("button", { name: /copy 1 of 2, selected, pick 2$/ }).textContent).toBe("2");
+    expect(within(hand).getByRole("button", { name: /copy 2 of 2, selected, pick 1$/ }).textContent).toBe("1");
     expect(within(hand).getByRole("button", { name: "Pick Greymon" }).getAttribute("aria-disabled")).toBe("true");
   });
 
@@ -476,4 +476,24 @@ describe("Hand in selection mode", () => {
       expect(onToggle.mock.calls).toEqual([["h1"]]);
     });
   });
+});
+
+it("focuses the left optional dialog and keeps Tab within its controls", () => {
+  const use = vi.fn<() => void>();
+  const decline = vi.fn<() => void>();
+  renderIn(<BoardOptionalPrompt sourceCardId="ST1-07" clause="Draw 1 card." onUse={use} onDecline={decline} />);
+  const dialog = screen.getByRole("dialog", { name: /· effect/i });
+  expect(dialog.getAttribute("aria-modal")).toBe("true");
+  expect(dialog.getAttribute("data-prompt-surface")).toBe("left");
+  expect(document.activeElement).toBe(dialog);
+  const accept = within(dialog).getByRole("button", { name: "Use" });
+  const viewBoard = within(dialog).getByRole("button", { name: "View board" });
+  fireEvent.keyDown(dialog, { key: "Tab", shiftKey: true });
+  expect(document.activeElement).toBe(viewBoard);
+  fireEvent.keyDown(viewBoard, { key: "Tab" });
+  expect(document.activeElement).toBe(accept);
+  fireEvent.keyDown(accept, { key: "Tab", shiftKey: true });
+  expect(document.activeElement).toBe(viewBoard);
+  expect(use).not.toHaveBeenCalled();
+  expect(decline).not.toHaveBeenCalled();
 });

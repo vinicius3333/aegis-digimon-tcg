@@ -25,7 +25,7 @@ type DecisionOptionKey = keyof NonNullable<DecisionRequest["options"]>;
  */
 const OPTION_CONSUMERS: Record<DecisionOptionKey, string | null> = {
   candidateInstanceIds: "screen/model/decisionView.ts",
-  visibleInstanceIds: "decisionPresentation.ts",
+  visibleInstanceIds: "decisionModel.ts",
   visibleCards: "decisionModel.ts",
   min: "decisionPresentation.ts",
   max: "overlay/choice/DecisionOverlay.tsx",
@@ -88,7 +88,7 @@ describe("engine to UI decision contract", () => {
             }}
             candidates={[]}
             picks={[]}
-            onTogglePick={vi.fn()}
+            onTogglePick={vi.fn<(instanceId: string) => void>()}
             onRespond={onRespond}
           />
         </I18nProvider>,
@@ -167,6 +167,9 @@ describe("engine to UI decision contract", () => {
           onRespond={vi.fn<(response: DecisionResponse) => void>()}
         />
       </I18nProvider>,
+    );
+    expect(screen.getByRole("dialog").getAttribute("data-prompt-surface")).toBe(
+      request.kind === "optional" || request.kind === "chooseOption" ? "left" : "center",
     );
     const enabled = screen.getAllByRole("button").filter((button) => !(button as HTMLButtonElement).disabled);
     expect(enabled.length).toBeGreaterThan(0);
@@ -261,4 +264,43 @@ describe("Hades Force board target budget", () => {
     expect(allows("thomas", ["thomas", "gaomon"])).toBe(true);
     expect(allows("hexeblau", [])).toBe(true);
   });
+});
+
+it("keeps the Hades Force budget visible and lets a central pick be deselected", () => {
+  const onTogglePick = vi.fn<(instanceId: string) => void>();
+  const candidates: DecisionCandidate[] = [
+    { instanceId: "hexeblau", cardId: "EX7-023" },
+    { instanceId: "thomas", cardId: "BT4-093" },
+    { instanceId: "gaomon", cardId: "EX4-015" },
+  ];
+  render(
+    <I18nProvider>
+      <DecisionOverlay
+        request={{
+          decisionId: "hades-budget",
+          seat: 0,
+          kind: "chooseTargets",
+          promptText: "Delete Digimon and Tamers with a combined play cost of 12 or less.",
+          options: {
+            candidateInstanceIds: candidates.map((candidate) => candidate.instanceId),
+            min: 0,
+            max: 3,
+            maxTotalPlayCost: 12,
+          },
+        }}
+        candidates={candidates}
+        picks={["hexeblau"]}
+        onTogglePick={onTogglePick}
+        onRespond={vi.fn<(response: DecisionResponse) => void>()}
+      />
+    </I18nProvider>,
+  );
+  expect(screen.getByRole("dialog").getAttribute("data-prompt-surface")).toBe("center");
+  expect(screen.getByText("Play cost: 12 / 12")).toBeTruthy();
+  const blocked = screen.getByRole("button", { name: /Thomas H/ }) as HTMLButtonElement;
+  expect(blocked.disabled).toBe(true);
+  fireEvent.click(blocked);
+  expect(onTogglePick).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: /Hexeblaumon.*selected/ }));
+  expect(onTogglePick).toHaveBeenCalledExactlyOnceWith("hexeblau");
 });

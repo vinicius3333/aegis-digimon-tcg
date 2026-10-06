@@ -20,3 +20,5 @@
 @import "./style/effectSources.css";
 @import "./style/securityShatter.css";
 @import "./style/desktopNotices.css";
+/* Required decisions own their placement after the board's density rules. */
+@import "./overlay/effectPromptLayout.css";

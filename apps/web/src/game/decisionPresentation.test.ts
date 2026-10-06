@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CardInstance, Permanent, type DecisionRequest, type Seat } from "@aegis/shared";
 import {
   decisionPresentation,
+  effectDecisionSurface,
   isFieldTargetDecision,
   fieldSlots,
   sourcePermanentIdOf,
@@ -52,14 +53,14 @@ describe("decisionPresentation", () => {
     ).toBe(false);
   });
 
-  it("routes a field-only selection to the board", () => {
+  it("routes a field-only selection to the central dialog", () => {
     const request = decision({
       promptText: "＜Decoy＞: delete this Digimon to prevent deletion?",
       options: { candidateInstanceIds: ["plain", "stacked"], min: 0, max: 1 },
     });
     expect(
       decisionPresentation({ decision: request, handInstanceIds: hand, fieldInstanceIds: ["plain", "stacked"] }),
-    ).toBe("board");
+    ).toBe("dialog");
     expect(decisionPresentation({ decision: request, handInstanceIds: hand, fieldInstanceIds: ["plain"] })).toBe(
       "dialog",
     );
@@ -69,17 +70,17 @@ describe("decisionPresentation", () => {
         handInstanceIds: hand,
         fieldInstanceIds: ["plain", "stacked"],
       }),
-    ).toBe("board");
+    ).toBe("dialog");
   });
 
-  it("puts field-only chooseTargets decisions on the board", () => {
+  it("puts field-only chooseTargets decisions in the central dialog", () => {
     const request = decision({
       kind: "chooseTargets",
       options: { candidateInstanceIds: ["mine", "theirs"], min: 1, max: 1 },
     });
     expect(
       decisionPresentation({ decision: request, handInstanceIds: hand, fieldInstanceIds: ["mine", "theirs"] }),
-    ).toBe("board");
+    ).toBe("dialog");
   });
 
   it("keeps mixed-zone chooseTargets decisions in the dialog", () => {
@@ -92,7 +93,7 @@ describe("decisionPresentation", () => {
     );
   });
 
-  it("puts an attack-target choice spanning security and the field on the board", () => {
+  it("puts an attack-target choice spanning security and the field in the central dialog", () => {
     const request = decision({
       kind: "selectCards",
       options: {
@@ -103,13 +104,13 @@ describe("decisionPresentation", () => {
       },
     });
     expect(decisionPresentation({ decision: request, handInstanceIds: hand, fieldInstanceIds: ["defender"] })).toBe(
-      "board",
+      "dialog",
     );
   });
 
-  it("puts a hand-only selectCards decision on the board", () => {
+  it("puts a hand-only selectCards decision in the central dialog", () => {
     const request = decision({ options: { candidateInstanceIds: ["h1", "h2"], min: 1, max: 1 } });
-    expect(decisionPresentation({ decision: request, handInstanceIds: hand })).toBe("board");
+    expect(decisionPresentation({ decision: request, handInstanceIds: hand })).toBe("dialog");
   });
 
   it("keeps the dialog when a candidate lives outside the hand", () => {
@@ -216,4 +217,30 @@ it("uses the optional decision's physical source for duplicate field cards", () 
   expect(sourcePermanentIdOf("BT26-009", permanents, { sourcePermanentId: "second", sourceInstanceId: "copy-2" })).toBe(
     "second",
   );
+});
+
+describe("effect decision surface", () => {
+  it.each(["chooseTargets", "selectCards", "orderCards", "orderTriggers", "mulligan"] as const)(
+    "centers %s card choices regardless of source zone",
+    (kind) => expect(effectDecisionSurface(decision({ kind }))).toBe("center"),
+  );
+
+  it("keeps optional activation and simple choices on the left", () => {
+    expect(effectDecisionSurface(decision({ kind: "optional" }))).toBe("left");
+    expect(effectDecisionSurface(decision({ kind: "chooseOption", options: { choices: ["Use", "Don't use"] } }))).toBe(
+      "left",
+    );
+    expect(effectDecisionSurface(decision({ options: { selectionContext: "partitionActivation" } }))).toBe("left");
+  });
+
+  it("centers choices between printed effects", () => {
+    expect(
+      effectDecisionSurface(
+        decision({
+          kind: "chooseOption",
+          options: { choices: ["First", "Second"], choiceEffects: [{ cardId: "BT1-010" }, { cardId: "BT1-011" }] },
+        }),
+      ),
+    ).toBe("center");
+  });
 });

@@ -2,6 +2,8 @@ import { Button } from "../../../design/primitives";
 import { Icons } from "../../../design/icons";
 import { useTranslation } from "../../../i18n";
 import { BoardPromptRail, type BoardPromptVariant } from "../../BoardDecisionRail";
+import { CardArt } from "../CardArt";
+import { CardPromptFrame } from "./CardPromptFrame";
 import { cardDisplayName } from "../../cardLinks";
 
 type CounterChoice = { instanceId: string; effectKey: string; description: string };
@@ -50,16 +52,14 @@ export function counterSources({
 }
 
 /**
- * The counter window on the same board rail as Block and Alliance. With one source it is a
- * yes/no question beside that card's art; with several, the viewer first picks the card in
- * the hand or on the field, then answers for it.
+ * Select a source or Blast route in the central card gallery. A lone field effect
+ * asks for activation on the left. Every submitted route is one the server offered.
  */
 export function CounterOverlay({
   eligibleCounters,
   getCardId,
   fieldPermanentOf = () => undefined,
   selectedInstanceId,
-  selectedTargetPermanentId,
   onSelectInstance,
   handInstanceIds,
   onActivate,
@@ -87,14 +87,8 @@ export function CounterOverlay({
     ? eligibleCounters.filter((choice) => sourceKeyOf(choice.instanceId) === selectedSource)
     : [];
   const selectedBlast = choices.some((choice) => counterTargetIds(choice.effectKey));
-  const blastHostIds = new Set(choices.map((choice) => counterTargetIds(choice.effectKey)?.permanentId));
-  // A lone host gets a rail button: tapping a small card on a phone board is unreliable.
-  // Several hosts stay on the board, where identical names are told apart by position.
-  const blastTargetPermanentId =
-    selectedTargetPermanentId ?? (blastHostIds.size === 1 ? [...blastHostIds][0] : undefined);
-  const inlineChoices = selectedBlast
-    ? choices.filter((choice) => counterTargetIds(choice.effectKey)?.permanentId === blastTargetPermanentId)
-    : choices;
+
+  const inlineChoices = choices;
   // Identical hand partners offer the same action. Keep one server-provided route
   // per card while preserving distinct hosts, field sources and DNA ingredient order.
   const uniqueChoices = new Map<string, CounterChoice>();
@@ -144,6 +138,54 @@ export function CounterOverlay({
     if (choice.effectKey.startsWith("blast-digivolve:")) return "Blast Digivolve";
     return `${cardDisplayName(getCardId(choice.instanceId) ?? "", t)} · ${choice.description}`;
   };
+  if (eligibleCounters.length > 0 && (!selectedSource || selectedBlast || inlineChoices.length > 1)) {
+    const sources = [...new Map(eligibleCounters.map((choice) => [sourceKeyOf(choice.instanceId), choice])).values()];
+    const offered = selectedSource ? [...uniqueChoices.values()] : sources;
+    return (
+      <CardPromptFrame
+        cardId={sourceCardId}
+        label={t("overlay.counterTiming")}
+        eyebrow={selectedBlast ? blastLabel : "[Counter]"}
+        title={selectedBlast ? t("overlay.counterChooseField") : t("overlay.counterChooseSource")}
+        description={t("overlay.counterPrompt")}
+        onBack={selectedInstanceId ? () => onSelectInstance(undefined) : undefined}
+      >
+        <div className="counter-overlay__gallery block-overlay__gallery">
+          {offered.map((choice, index) => {
+            const target = selectedSource ? counterTargetIds(choice.effectKey) : undefined;
+            const cardId = target ? getCardId(target.permanentId) : getCardId(choice.instanceId);
+            const partnerCardId = target?.handInstanceId ? getCardId(target.handInstanceId) : undefined;
+            return (
+              <button
+                type="button"
+                className="counter-overlay__card"
+                key={`${choice.instanceId}-${choice.effectKey}`}
+                onClick={() =>
+                  selectedSource ? onActivate(choice.instanceId, choice.effectKey) : onSelectInstance(choice.instanceId)
+                }
+              >
+                {cardId ? <CardArt cardId={cardId} width={112} /> : null}
+                <strong>{cardDisplayName(cardId ?? "", t)}</strong>
+                {selectedSource ? <span>{choiceLabel(choice)}</span> : null}
+                {partnerCardId ? <span>+ {cardDisplayName(partnerCardId, t)}</span> : null}
+                <span className="counter-overlay__card-id">
+                  {index + 1} / {offered.length}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        {selectedInstanceId ? (
+          <Button full variant="ghost" onClick={() => onSelectInstance(undefined)}>
+            {t("common.cancel")}
+          </Button>
+        ) : null}
+        <Button full variant="secondary" onClick={onPass}>
+          {t("overlay.passCounterShort")}
+        </Button>
+      </CardPromptFrame>
+    );
+  }
   return (
     <BoardPromptRail
       variant={variant}

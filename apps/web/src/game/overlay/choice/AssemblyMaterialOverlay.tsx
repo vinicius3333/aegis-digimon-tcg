@@ -87,10 +87,11 @@ export function AssemblyMaterialOverlay({
 
   if (isViewingBoard) return boardReturn;
   return (
-    <Scrim className="game-modal">
+    <Scrim className="game-modal effect-prompt-layer">
       <div
         {...focusProps}
         className="game-modal__panel effect-prompt-family material-prompt"
+        data-prompt-surface="center"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -108,7 +109,7 @@ export function AssemblyMaterialOverlay({
           gap: 16,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div className="material-prompt__header">
           <CardArt cardId={playingCardId} width={64} />
           <div>
             <div
@@ -129,7 +130,7 @@ export function AssemblyMaterialOverlay({
             {t("overlay.assemblyNoMaterials")}
           </div>
         ) : (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, maxHeight: 280, overflowY: "auto" }}>
+          <div className="material-prompt__grid">
             {candidates.map((candidate) => {
               const selected = picks.includes(candidate.instanceId);
               const disabled = !selected && !eligibleIds.has(candidate.instanceId);

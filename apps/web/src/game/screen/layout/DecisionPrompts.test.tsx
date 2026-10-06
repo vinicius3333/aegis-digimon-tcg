@@ -209,3 +209,70 @@ it("shows Taiki and the DigiXros instruction when selecting a material-zone Tame
   expect(container.querySelector('img[src*="BT10-087"]')).toBeTruthy();
   expect(container.querySelector('img[src*="P-224"]')).toBeNull();
 });
+
+it("chooses a source host centrally, filters its cards, and returns without answering", () => {
+  const hosts = ["first", "second"].map((id) => {
+    const host = new Permanent();
+    host.permanentId = id;
+    host.topCard = new CardInstance();
+    host.topCard.cardId = "ST1-07";
+    host.currentDP = 6000;
+    return host;
+  });
+  const onChooseHost = vi.fn<(permanentId: string) => void>();
+  const onChangeHost = vi.fn<() => void>();
+  const onRespond = vi.fn<(response: DecisionResponse) => void>();
+  const props = {
+    decision: {
+      decisionId: "source-host",
+      seat: 0 as const,
+      kind: "selectCards" as const,
+      promptText: "Play 1 digivolution card.",
+      options: { candidateInstanceIds: ["a", "b"], min: 0, max: 1 },
+    },
+    answerOnBoard: false,
+    permanents: hosts,
+    sourceCardId: undefined,
+    candidates: [
+      { instanceId: "a", cardId: "ST1-03", zone: "digivolutionCards" as const },
+      { instanceId: "b", cardId: "ST1-09", zone: "digivolutionCards" as const },
+    ],
+    allowsPick: () => true,
+    picks: [],
+    min: 0,
+    max: 1,
+    triggerDetails: [],
+    opponentSelecting: false,
+    opponentSecurityCount: 5,
+    onTogglePick: vi.fn<(instanceId: string) => void>(),
+    onRespond,
+    onOpenDialog: vi.fn<() => void>(),
+    sourceHost: {
+      picking: true,
+      cardIds: undefined as ReadonlySet<string> | undefined,
+      hostPermanentIds: ["first", "second"],
+      onChooseHost,
+      onChangeHost,
+    },
+  };
+  const view = render(
+    <I18nProvider>
+      <DecisionPrompts {...props} />
+    </I18nProvider>,
+  );
+  const dialog = screen.getByRole("dialog");
+  expect(dialog.getAttribute("data-prompt-surface")).toBe("center");
+  fireEvent.click(screen.getAllByRole("button", { name: /Greymon/ })[1]!);
+  expect(onChooseHost).toHaveBeenCalledExactlyOnceWith("second");
+  expect(onRespond).not.toHaveBeenCalled();
+  view.rerender(
+    <I18nProvider>
+      <DecisionPrompts {...props} sourceHost={{ ...props.sourceHost, picking: false, cardIds: new Set(["b"]) }} />
+    </I18nProvider>,
+  );
+  expect(screen.queryByRole("button", { name: /^Agumon/ })).toBeNull();
+  expect(screen.getByRole("button", { name: /^MetalGreymon/ })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: /choose.*digimon|change.*digimon/i }));
+  expect(onChangeHost).toHaveBeenCalledOnce();
+  expect(onRespond).not.toHaveBeenCalled();
+});

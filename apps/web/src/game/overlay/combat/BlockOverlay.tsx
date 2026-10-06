@@ -26,6 +26,7 @@ export function BlockOverlay({
       cardId={attackerCardId}
       fallback={<Icons.Swords size={32} />}
       className="block-overlay"
+      surface={blockers.length ? "center" : "left"}
       label={t("overlay.blockWindow")}
       eyebrow={
         <>
@@ -38,20 +39,21 @@ export function BlockOverlay({
           ) : null}
         </>
       }
-      title={t("overlay.blockChooseCard")}
+      title={t(blockers.length ? "overlay.blockChooseCard" : "overlay.takeAttack")}
       description={t(forced ? "overlay.blockForcedPrompt" : "overlay.blockPrompt")}
     >
       {blockers.length ? (
         <div className="counter-overlay__gallery block-overlay__gallery">
-          {blockers.map((blocker) => {
+          {blockers.map((blocker, index) => {
             const sourceLabel = t(blocker.sourceCount === 1 ? "overlay.sourceCountOne" : "overlay.sourceCountMany", {
               count: blocker.sourceCount,
             });
             return (
               <button
                 key={blocker.permanentId}
+                type="button"
                 className="counter-overlay__card"
-                aria-label={`${printedCardName(blocker.cardId)}, ${blocker.currentDP.toLocaleString()} DP, ${sourceLabel}`}
+                aria-label={`${printedCardName(blocker.cardId)}, ${blocker.currentDP.toLocaleString()} DP, ${sourceLabel}, ${t("overlay.cardCopy", { index: index + 1, total: blockers.length })}`}
                 onClick={() => onBlock(blocker.permanentId)}
               >
                 <CardArt cardId={blocker.cardId} width={112} />
@@ -59,6 +61,9 @@ export function BlockOverlay({
                 <span className="counter-overlay__card-id">{blocker.cardId}</span>
                 <span className="block-overlay__dp">{blocker.currentDP.toLocaleString()} DP</span>
                 <span>{sourceLabel}</span>
+                <span className="counter-overlay__card-id">
+                  {index + 1} / {blockers.length}
+                </span>
               </button>
             );
           })}

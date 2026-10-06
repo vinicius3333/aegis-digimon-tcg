@@ -19,7 +19,10 @@ export function trapDialogFocus({
   }
   const first = focusable[0];
   const last = focusable[focusable.length - 1];
-  if (event.shiftKey && (document.activeElement === first || document.activeElement === panelRef.current)) {
+  if (
+    event.shiftKey &&
+    (document.activeElement === first || !Array.from(focusable).includes(document.activeElement as HTMLElement))
+  ) {
     event.preventDefault();
     last?.focus();
   } else if (!event.shiftKey && document.activeElement === last) {

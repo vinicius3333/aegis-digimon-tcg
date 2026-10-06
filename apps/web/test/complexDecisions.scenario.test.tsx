@@ -25,7 +25,8 @@ function distinctPermanentButtons(container: HTMLElement, name: RegExp) {
   const buttons = within(container).getAllByRole("button", { name });
   const byPermanentId = new Map<string, HTMLButtonElement>();
   for (const button of buttons) {
-    const id = button.closest('[data-drop="perm-opp"]')?.getAttribute("data-id");
+    const id =
+      button.getAttribute("data-instance-id") ?? button.closest('[data-drop="perm-opp"]')?.getAttribute("data-id");
     if (id && !byPermanentId.has(id)) byPermanentId.set(id, button);
   }
   return [...byPermanentId.entries()];
@@ -127,10 +128,7 @@ scenario("complex-decisions", () => {
     const firstTargets = opponent.room.state.players[1]!.battleArea.map(({ permanentId }) => permanentId);
     const firstTargetInstances = opponent.room.state.players[1]!.battleArea.map(({ topCard }) => topCard!.instanceId);
     expect(firstTargets).toHaveLength(2);
-    const firstCandidateButtons = distinctPermanentButtons(
-      document.querySelector(".game-battle-row--opp") as HTMLElement,
-      /monodramon/i,
-    );
+    const firstCandidateButtons = distinctPermanentButtons(firstPrompt, /monodramon/i);
     expect(firstCandidateButtons.map(([id]) => id).sort()).toEqual([...firstTargets].sort());
     await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.kind).toBe("chooseTargets"), {
       timeout: 10_000,
@@ -139,7 +137,7 @@ scenario("complex-decisions", () => {
 
     // “Up to 3” permits choosing zero. Confirming zero consumes the played
     // Option but leaves both eligible permanents and their exact identities alone.
-    fireEvent.click(within(firstPrompt).getByRole("button", { name: /^pass$/i }));
+    fireEvent.click(within(firstPrompt).getByRole("button", { name: /^none$/i }));
     await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(firstDecisionId), {
       timeout: 10_000,
     });
@@ -197,10 +195,7 @@ scenario("complex-decisions", () => {
     fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
     const maximumPrompt = await findDecisionSurface();
-    const candidateButtons = distinctPermanentButtons(
-      document.querySelector(".game-battle-row--opp") as HTMLElement,
-      /monodramon/i,
-    );
+    const candidateButtons = distinctPermanentButtons(maximumPrompt, /monodramon/i);
     expect(candidateButtons).toHaveLength(4);
     const candidateIds = candidateButtons.map(([id]) => id);
     expect(new Set(candidateIds).size).toBe(4);
@@ -215,11 +210,11 @@ scenario("complex-decisions", () => {
       expect(target).toBeDefined();
       fireEvent.click(target!);
     }
-    expect(within(maximumPrompt).getByText(/^3 selected of 0–3$/i)).toBeTruthy();
+    expect(within(maximumPrompt).getByText(/^3 chosen$/i)).toBeTruthy();
     const fourthCandidate = candidateButtons.find(([id]) => id === fourthCandidateId)?.[1];
     expect(fourthCandidate).toBeDefined();
     fireEvent.click(fourthCandidate!);
-    expect(within(maximumPrompt).getByText(/^3 selected of 0–3$/i)).toBeTruthy();
+    expect(within(maximumPrompt).getByText(/^3 chosen$/i)).toBeTruthy();
     // The field picker keeps the newest three when a fourth eligible target is
     // clicked, replacing the oldest selection. This proves the cap while keeping
     // the exact identities of the final selected set explicit.
@@ -390,7 +385,7 @@ scenario("complex-decisions", () => {
     fireEvent.click(attackTarget);
 
     const deletionPrompt = await findDecisionSurface();
-    const deletionCandidates = distinctPermanentButtons(opponentBattle, /mojyamon/i);
+    const deletionCandidates = distinctPermanentButtons(deletionPrompt, /mojyamon/i);
     expect(deletionCandidates).toHaveLength(2);
     await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.kind).toBe("chooseTargets"), {
       timeout: 10_000,

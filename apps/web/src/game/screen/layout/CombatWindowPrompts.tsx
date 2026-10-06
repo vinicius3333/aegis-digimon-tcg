@@ -6,8 +6,9 @@
 
 import type { GameState } from "@aegis/shared";
 import { instanceCardId, instancePermanentId, permCardId } from "../../decisionModel";
-import { BarrierOverlay, CounterOverlay, EvadeOverlay } from "../../overlay";
-import { BoardAlliancePrompt, BoardBlockPrompt } from "../../BoardDecisionRail";
+import { BarrierOverlay, BlockOverlay, CounterOverlay, EvadeOverlay } from "../../overlay";
+import { AllianceOverlay } from "../../overlay/combat/AllianceOverlay";
+import { findPermanentInState } from "../../decisionModel";
 import type { CombatWindows } from "../model/combatWindows";
 
 export function CombatWindowPrompts({
@@ -48,9 +49,23 @@ export function CombatWindowPrompts({
   return (
     <>
       {blockWindow ? (
-        <BoardBlockPrompt
+        <BlockOverlay
           attackerCardId={permCardId(state, blockWindow.attackerPermanentId)}
           mustBlock={blockWindow.mustBlock}
+          blockers={blockWindow.eligibleBlockerIds.flatMap((id) => {
+            const permanent = findPermanentInState(state, id);
+            return permanent
+              ? [
+                  {
+                    permanentId: id,
+                    cardId: permanent.topCard.cardId,
+                    currentDP: permanent.currentDP,
+                    sourceCount: permanent.stack.length,
+                  },
+                ]
+              : [];
+          })}
+          onBlock={onBlock}
           onDecline={() => onBlock()}
         />
       ) : null}
@@ -62,7 +77,7 @@ export function CombatWindowPrompts({
           selectedTargetPermanentId={counterSelection?.targetPermanentId}
           onSelectInstance={counterSelection?.onSelect ?? (() => undefined)}
           handInstanceIds={counterSelection?.handInstanceIds ?? []}
-          getCardId={(instanceId) => instanceCardId(state, instanceId)}
+          getCardId={(instanceId) => instanceCardId(state, instanceId) ?? permCardId(state, instanceId)}
           fieldPermanentOf={(instanceId) => instancePermanentId(state, instanceId)}
           onActivate={(instanceId, effectKey) => onCounter(instanceId, effectKey)}
           onPass={() => onCounter()}
@@ -70,8 +85,16 @@ export function CombatWindowPrompts({
       ) : null}
 
       {allianceWindow ? (
-        <BoardAlliancePrompt
+        <AllianceOverlay
+          key={`${allianceWindow.permanentId}:${allianceWindow.stateVersion ?? "current"}`}
           attackerCardId={permCardId(state, allianceWindow.permanentId)}
+          allies={allianceWindow.eligibleAllyIds.flatMap((id) => {
+            const permanent = findPermanentInState(state, id);
+            return permanent
+              ? [{ permanentId: id, cardId: permanent.topCard.cardId, currentDP: permanent.currentDP }]
+              : [];
+          })}
+          onChoose={onAlliance}
           onPass={() => onAlliance()}
         />
       ) : null}

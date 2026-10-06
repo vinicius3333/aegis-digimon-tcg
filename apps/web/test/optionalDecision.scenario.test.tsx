@@ -99,7 +99,7 @@ scenario("optional-decision", () => {
       const declineBtn = within(dialog).queryByRole("button", { name: /no, decline|^don't use$/i });
       // A selection rail whose floor is zero carries the refusal itself: a clause gated only
       // by a hand cost has no separate "use this effect?" step, so "No Selection" IS the decline.
-      const noSelectionBtn = within(dialog).queryByRole("button", { name: /^no selection$/i });
+      const noSelectionBtn = within(dialog).queryByRole("button", { name: /^no selection$|^none$/i });
       if (acceptBtn && declineBtn) {
         fireEvent.click(mode === "accept" ? acceptBtn : declineBtn);
       } else if (mode === "decline" && noSelectionBtn) {
@@ -123,7 +123,7 @@ scenario("optional-decision", () => {
     // Yuuki's OnPlay is gated only by its hand-trash cost, so the board rail beside the Tamer
     // asks that cost directly — answering it with nothing is the decline.
     const dialog = await findDecisionSurface();
-    expect(within(dialog).getByText(/yuuki/i)).toBeTruthy();
+    expect(within(dialog).getByRole("img", { name: /^yuuki$/i })).toBeTruthy();
 
     await resolveAllDecisions(opponent, "decline");
 

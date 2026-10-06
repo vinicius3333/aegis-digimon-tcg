@@ -83,3 +83,27 @@ it("cancels on Escape and clears a selected route that disappears", () => {
   expect(onCancel).toHaveBeenCalledOnce();
   expect(onConfirm).not.toHaveBeenCalled();
 });
+
+it("keeps keyboard focus inside the central fusion choice when returning from board inspection focuses its heading", () => {
+  const onConfirm = vi.fn<(linkedInstanceId: string) => void>();
+  const onCancel = vi.fn<() => void>();
+  renderOverlay({ onConfirm, onCancel });
+  const dialog = screen.getByRole("dialog", { name: /App Fusion/i });
+  expect(dialog.getAttribute("data-prompt-surface")).toBe("center");
+  expect(screen.queryByRole("button", { name: /^Open / })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "View board" }));
+  expect(screen.queryByRole("dialog")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Return to decision" }));
+  const heading = screen.getByRole("heading", { name: /App Fusion/i });
+  const viewBoard = screen.getByRole("button", { name: "View board" });
+  const firstRadio = screen.getAllByRole("radio")[0]!;
+  expect(document.activeElement).toBe(heading);
+  fireEvent.keyDown(heading, { key: "Tab", shiftKey: true });
+  expect(document.activeElement).toBe(viewBoard);
+  fireEvent.keyDown(viewBoard, { key: "Tab" });
+  expect(document.activeElement).toBe(firstRadio);
+  fireEvent.keyDown(firstRadio, { key: "Tab", shiftKey: true });
+  expect(document.activeElement).toBe(viewBoard);
+  expect(onConfirm).not.toHaveBeenCalled();
+  expect(onCancel).not.toHaveBeenCalled();
+});

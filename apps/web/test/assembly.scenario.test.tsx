@@ -48,8 +48,8 @@ scenario("assembly", () => {
     await chooseHandPlay(/^yuuki$/i);
     const costSurface = await findDecisionSurface();
     const costId = owner.state.pendingDecision!.decisionId;
-    fireEvent.click(within(screen.getByTestId("hand")).getByRole("button", { name: /^pick musyamon$/i }));
-    fireEvent.click(within(costSurface).getByRole("button", { name: /^end selection$/i }));
+    fireEvent.click(within(costSurface).getByRole("button", { name: /^musyamon$/i }));
+    fireEvent.click(within(costSurface).getByRole("button", { name: /^confirm targets$/i }));
     await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(costId), {
       timeout: 10_000,
     });
@@ -59,9 +59,9 @@ scenario("assembly", () => {
     });
     await passOpponentTurn(opponent);
     fireEvent.click(await findEndBreedingControl());
-    // Yuuki's Start of Main hand cost is optional; decline it through its rail.
+    // Yuuki's optional hand cost may be declined in the central selection.
     const surface = await findDecisionSurface();
-    fireEvent.click(within(surface).getByRole("button", { name: /^no selection$/i }));
+    fireEvent.click(within(surface).getByRole("button", { name: /^none$/i }));
     await vi.waitFor(() => expect(opponent.room.state.pendingDecision).toBeUndefined(), { timeout: 10_000 });
     await waitForBoardActions();
     const memoryBefore = owner.state.memory;

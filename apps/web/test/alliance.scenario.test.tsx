@@ -143,13 +143,13 @@ scenario("alliance", () => {
     // Alliance prompt opens on the protagonist's own screen (it's the attacker's
     // controller who chooses, not a defender).
     // Attacking suspends Seadramon, so its [All Turns] Draw 1 triggers with ＜Alliance＞;
-    // resolve ＜Alliance＞ first. The Alliance prompt is then answered on the board: the
-    // eligible ally itself is the button, followed by a confirmation.
+    // resolve ＜Alliance＞ first, then choose the eligible ally in the central gallery.
     fireEvent.click(await screen.findByRole("button", { name: /^\[When Attacking\], Seadramon/ }, { timeout: 10_000 }));
     fireEvent.click(screen.getByRole("button", { name: /resolve next effect/i }));
     await screen.findByRole("button", { name: /^pass$/i }, { timeout: 10_000 });
-    fireEvent.click(within(yourBattleArea()).getByRole("button", { name: /^agumon$/i }));
-    fireEvent.click(await screen.findByRole("button", { name: /^use alliance$/i }));
+    const allianceDialog = screen.getByRole("dialog", { name: "Alliance window" });
+    expect(allianceDialog.getAttribute("data-prompt-surface")).toBe("center");
+    fireEvent.click(within(allianceDialog).getByRole("button", { name: /^agumon,/i }));
 
     // Answered-outcome proof: Agumon is suspended (spent as the Alliance cost) —
     // both in synchronized state and, per apps/web/src/design/cards.tsx's

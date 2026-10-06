@@ -150,7 +150,7 @@ it.each([false, true])("presents the Barrier prompt safely (timed: %s)", async (
   expect(screen.getByRole("button", { name: "Yes, trash security" }).hasAttribute("disabled")).toBe(false);
 });
 
-it("makes a newly played board target visible while a timed security sequence is still running", async () => {
+it("makes a newly played target selectable in the central dialog while a timed security sequence is still running", async () => {
   vi.useFakeTimers();
   const state = createArenaDemoState();
   state.matchTimer = true;
@@ -224,7 +224,9 @@ it("makes a newly played board target visible while a timed security sequence is
     await vi.advanceTimersByTimeAsync(0);
   });
   expect(screen.queryByTestId("security-clash")).toBeNull();
-  const candidate = document.querySelector<HTMLElement>(".game-permanent--candidate")!;
+  const dialog = screen.getByRole("dialog");
+  expect(dialog.getAttribute("data-prompt-surface")).toBe("center");
+  const candidate = dialog.querySelector<HTMLElement>(".decision-overlay__candidate")!;
   expect(candidate).not.toBeNull();
   expect(candidate.style.visibility).not.toBe("hidden");
   fireEvent.click(candidate);

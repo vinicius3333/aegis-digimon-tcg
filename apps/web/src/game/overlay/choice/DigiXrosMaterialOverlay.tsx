@@ -136,10 +136,11 @@ export function DigiXrosMaterialOverlay({
     );
   }
   return (
-    <Scrim className="game-modal">
+    <Scrim className="game-modal effect-prompt-layer">
       <div
         {...focusProps}
         className="game-modal__panel effect-prompt-family material-prompt"
+        data-prompt-surface="center"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

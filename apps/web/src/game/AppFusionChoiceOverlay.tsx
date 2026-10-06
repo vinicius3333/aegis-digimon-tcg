@@ -1,8 +1,9 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { getCardDefinition } from "@aegis/shared";
-import { Button, Dialog } from "../design/primitives";
+import { Button } from "../design/primitives";
 import { CardFull } from "../design/cards";
 import { useTranslation } from "../i18n";
+import { CardPromptFrame } from "./overlay/combat/CardPromptFrame";
 import "./AppFusionChoiceOverlay.css";
 
 export interface AppFusionRoute {
@@ -49,58 +50,53 @@ export function AppFusionChoiceOverlay({
   const hostName = getCardDefinition(hostCardId)?.nameEn ?? hostCardId;
 
   return (
-    <Dialog className="app-fusion-choice" labelledBy={titleId} onClose={onCancel}>
-      <section className="action-confirmation app-fusion-choice__panel">
-        <div className="app-fusion-choice__heading">
-          <CardFull cardId={resultCardId} width={64} />
-          <div>
-            <h2 id={titleId}>{t("overlay.appFusionTitle")}</h2>
-            <p>{t("overlay.appFusionDetail", { result: resultName, host: hostName })}</p>
-          </div>
-        </div>
-        <fieldset className="app-fusion-choice__routes">
-          <legend>{t("overlay.appFusionMaterial")}</legend>
-          {routes.length === 0 ? <p role="status">{t("overlay.appFusionUnavailable")}</p> : null}
-          {routes.map((route, index) => {
-            const id = `${titleId}-material-${route.linkedInstanceId}`;
-            return (
-              <label className="app-fusion-choice__route" htmlFor={id} key={route.linkedInstanceId}>
-                <input
-                  ref={index === 0 ? initialFocusRef : undefined}
-                  id={id}
-                  type="radio"
-                  name={`${titleId}-material`}
-                  value={route.linkedInstanceId}
-                  checked={selectedId === route.linkedInstanceId}
-                  onChange={() => setSelectedId(route.linkedInstanceId)}
-                />
-                <CardFull cardId={route.linkedCardId} width={58} />
-                <span>
-                  {getCardDefinition(route.linkedCardId)?.nameEn ?? route.linkedCardId}
-                  <small>{t("overlay.appFusionCost", { cost: route.projectedCost })}</small>
-                </span>
-              </label>
-            );
-          })}
-        </fieldset>
-        <div className="game-actions-row">
-          <Button
-            full
-            disabled={selected === undefined}
-            onClick={() => selected && onConfirm(selected.linkedInstanceId)}
-          >
-            {t("overlay.appFusionConfirm")}
+    <CardPromptFrame
+      cardId={resultCardId}
+      className="app-fusion-choice"
+      label={t("overlay.appFusionTitle")}
+      eyebrow={t("overlay.appFusionMaterial")}
+      title={t("overlay.appFusionTitle")}
+      description={t("overlay.appFusionDetail", { result: resultName, host: hostName })}
+      onBack={onCancel}
+    >
+      <fieldset className="app-fusion-choice__routes">
+        <legend>{t("overlay.appFusionMaterial")}</legend>
+        {routes.length === 0 ? <p role="status">{t("overlay.appFusionUnavailable")}</p> : null}
+        {routes.map((route, index) => {
+          const id = `${titleId}-material-${route.linkedInstanceId}`;
+          return (
+            <label className="app-fusion-choice__route" htmlFor={id} key={route.linkedInstanceId}>
+              <input
+                ref={index === 0 ? initialFocusRef : undefined}
+                id={id}
+                type="radio"
+                name={`${titleId}-material`}
+                value={route.linkedInstanceId}
+                checked={selectedId === route.linkedInstanceId}
+                onChange={() => setSelectedId(route.linkedInstanceId)}
+              />
+              <CardFull cardId={route.linkedCardId} width={58} />
+              <span>
+                {getCardDefinition(route.linkedCardId)?.nameEn ?? route.linkedCardId}
+                <small>{t("overlay.appFusionCost", { cost: route.projectedCost })}</small>
+              </span>
+            </label>
+          );
+        })}
+      </fieldset>
+      <div className="game-actions-row">
+        <Button full disabled={selected === undefined} onClick={() => selected && onConfirm(selected.linkedInstanceId)}>
+          {t("overlay.appFusionConfirm")}
+        </Button>
+        {onNormalEvolution ? (
+          <Button full variant="secondary" onClick={onNormalEvolution}>
+            {t("overlay.appFusionNormal")}
           </Button>
-          {onNormalEvolution ? (
-            <Button full variant="secondary" onClick={onNormalEvolution}>
-              {t("overlay.appFusionNormal")}
-            </Button>
-          ) : null}
-          <Button full variant="ghost" onClick={onCancel}>
-            {t("common.cancel")}
-          </Button>
-        </div>
-      </section>
-    </Dialog>
+        ) : null}
+        <Button full variant="ghost" onClick={onCancel}>
+          {t("common.cancel")}
+        </Button>
+      </div>
+    </CardPromptFrame>
   );
 }

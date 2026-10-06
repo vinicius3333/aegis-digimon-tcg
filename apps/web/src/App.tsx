@@ -46,6 +46,9 @@ const BoardShowcase = lazy(() => import("./dev/BoardShowcase").then((m) => ({ de
 const BattleLab = lazy(() => import("./dev/BattleLab").then((m) => ({ default: m.BattleLab })));
 const LiveArenaDemo = lazy(() => import("./dev/LiveArenaDemo").then((m) => ({ default: m.LiveArenaDemo })));
 const EffectsLab = lazy(() => import("./dev/EffectsLab").then((m) => ({ default: m.EffectsLab })));
+const EffectPromptGallery = lazy(() =>
+  import("./dev/EffectPromptGallery").then((m) => ({ default: m.EffectPromptGallery })),
+);
 const MotionReference = lazy(() => import("./dev/MotionReference").then((m) => ({ default: m.MotionReference })));
 const ArenaDemo = lazy(() => import("./dev/ArenaDemo").then((m) => ({ default: m.ArenaDemo })));
 const BadgeLayoutLab = lazy(() => import("./dev/BadgeLayoutLab").then((m) => ({ default: m.BadgeLayoutLab })));
@@ -121,7 +124,11 @@ export function App() {
   return (
     <I18nProvider>
       <Suspense fallback={<ScreenFallback />}>
-        {import.meta.env.DEV && /^\/dev\/motion-reference\/?$/i.test(pathname) ? (
+        {import.meta.env.DEV && /^\/dev\/effect-prompts\/?$/i.test(pathname) ? (
+          <Stage>
+            <EffectPromptGallery />
+          </Stage>
+        ) : import.meta.env.DEV && /^\/dev\/motion-reference\/?$/i.test(pathname) ? (
           <MotionReference />
         ) : /^\/dev\/badges\/?$/i.test(pathname) ? (
           <BadgeLayoutLab />

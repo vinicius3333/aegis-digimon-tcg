@@ -12,7 +12,7 @@ it.each([
   ["ace-1", "ouryumon-1"],
   ["ace-2", "ouryumon-1"],
 ] as const)(
-  "Discord 1556343982546755625: selecting %s groups identical hand partners and activates %s from the Counter rail",
+  "Discord 1556343982546755625: selecting %s groups identical hand partners and activates %s from the central Counter dialog",
   (aceId, partnerId) => {
     localStorage.clear();
     const state = new GameState();
@@ -88,11 +88,12 @@ it.each([
         />
       </I18nProvider>,
     );
-    const hand = within(screen.getByTestId("hand"));
-    fireEvent.click(hand.getAllByRole("button", { name: /Pick Alphamon: Ouryuken/ })[aceId === "ace-1" ? 0 : 1]!);
+    const dialog = screen.getByRole("dialog", { name: "Counter timing" });
+    expect(dialog.getAttribute("data-prompt-surface")).toBe("center");
+    fireEvent.click(within(dialog).getAllByRole("button", { name: /Alphamon: Ouryuken/ })[aceId === "ace-1" ? 0 : 1]!);
     expect(send).not.toHaveBeenCalled();
-    const rail = within(screen.getByRole("region", { name: "Counter timing" }));
-    const partners = rail.getAllByRole("button", { name: "Blast DNA" });
+    const rail = within(screen.getByRole("dialog", { name: "Counter timing" }));
+    const partners = rail.getAllByRole("button", { name: /Blast DNA/ });
     expect(partners).toHaveLength(1);
     fireEvent.click(partners[0]!);
     expect(send).toHaveBeenCalledExactlyOnceWith("respondCounter", {

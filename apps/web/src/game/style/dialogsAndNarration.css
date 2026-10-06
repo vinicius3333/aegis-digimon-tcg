@@ -11,6 +11,9 @@
    that belong here, so the whole ramp comes from there. */
 .game-modal__panel,
 .mulligan-sheet,
+.board-prompt,
+.opponent-permanent-inspector,
+.stack-sheet .card-action-sheet__panel,
 .combat-prompt,
 .evo-cost-prompt {
   --ds-fg: #eaf1ff;

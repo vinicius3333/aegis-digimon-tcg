@@ -32,19 +32,8 @@ export function ActionConfirmationOverlay({
   const focusProps = useEffectPromptFocus(isViewingBoard);
   if (isViewingBoard) return boardReturn;
   return (
-    <div
-      className="game-modal"
-      onClick={(event) => event.stopPropagation()}
-      style={{
-        position: "absolute",
-        inset: 0,
-        zIndex: 86,
-        display: "grid",
-        placeItems: "center",
-        background: "rgba(15,23,42,0.42)",
-        backdropFilter: "blur(3px)",
-      }}
-    >
+    <div className="effect-prompt-layer" onClick={(event) => event.stopPropagation()}>
+      <div className="decision-overlay-backdrop decision-overlay-backdrop--side" aria-hidden="true" />
       <div
         {...focusProps}
         role="dialog"
@@ -52,25 +41,19 @@ export function ActionConfirmationOverlay({
         aria-label={title}
         data-summary={showSummary || undefined}
         className="game-modal__panel action-confirmation effect-prompt-family"
-        style={{
-          width: showSummary ? 480 : 360,
-          maxWidth: "calc(100% - 32px)",
-          padding: 22,
-          borderRadius: 18,
-          background: "var(--ds-surface)",
-          border: "2px solid var(--ds-accent)",
-          boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
-        }}
+        data-prompt-surface="left"
       >
         {showSummary ? (
-          <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 18 }}>
+          <div className="action-confirmation__header">
             <CardFull cardId={cardId} width={92} />
             <div className="action-confirmation__copy">
-              <div className="action-confirmation__title">{title}</div>
-              <div className="action-confirmation__detail">{detail}</div>
+              <h2 className="action-confirmation__title">{title}</h2>
+              <p className="action-confirmation__detail">{detail}</p>
             </div>
           </div>
-        ) : null}
+        ) : (
+          <h2 className="action-confirmation__title">{confirmLabel}</h2>
+        )}
         <div className="game-actions-row">
           <Button full onClick={onConfirm}>
             {confirmLabel}

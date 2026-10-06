@@ -36,12 +36,7 @@ export async function resolveNextTriggerThroughUi(opponent: HeadlessOpponent): P
   return true;
 }
 
-/**
- * The surface the open decision is answered on. Most decisions render the modal
- * dialog; the ones the board can answer in place (a selection made entirely out
- * of the viewer's hand, an optional effect whose source is on the field) render
- * the left rail instead, with the cards picked in the hand itself.
- */
+/** Card selections use the central dialog; optional field actions use the left rail. */
 export async function findDecisionSurface(): Promise<HTMLElement> {
   return await waitFor(
     () => {

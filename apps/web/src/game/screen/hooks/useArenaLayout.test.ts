@@ -33,7 +33,7 @@ it("lets portrait battlefield cards grow beyond auxiliary piles while raising fi
   const { result } = renderHook(useArenaLayout);
   expect(result.current.arenaPermanentWidth).toBe(76);
   expect(result.current.arenaPileWidth).toBe(36);
-  expect(result.current.arenaRaisingWidth).toBe(36);
+  expect(result.current.arenaRaisingWidth).toBe(40);
   expect(result.current.handCardWidth).toBe(52);
 });
 
@@ -42,7 +42,7 @@ it("preserves shared battlefield and raising sizing on a desktop sideline board"
   viewport.queries.add("(height < 950px)");
   const { result } = renderHook(useArenaLayout);
   expect(result.current.arenaPermanentWidth).toBe(100);
-  expect(result.current.arenaRaisingWidth).toBe(viewport.drawn);
+  expect(result.current.arenaRaisingWidth).toBe(viewport.heightFitted);
   expect(result.current.arenaPileWidth).toBe(56);
 });
 

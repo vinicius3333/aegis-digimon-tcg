@@ -123,7 +123,7 @@ mobileScenario("reconnect-decision", () => {
       const surface = await vi.waitFor(
         () => {
           const current = screen.queryByRole("dialog") ?? screen.getByTestId("board-prompt");
-          expect(within(current).getAllByText(/yuuki/i).length).toBeGreaterThan(0);
+          expect(within(current).getByRole("img", { name: /^yuuki$/i })).toBeTruthy();
           return current;
         },
         { timeout: 15_000 },
@@ -190,7 +190,9 @@ mobileScenario("reconnect-decision", () => {
           );
           const matches = candidates.flatMap((candidate) => {
             const label = candidate.getAttribute("aria-label") ?? "";
-            const handCards = uniqueHandCards.filter((card) => label === `Pick ${card.name}`);
+            const handCards = uniqueHandCards.filter(
+              (card) => label === `Pick ${card.name}` || label === card.name || label.startsWith(`${card.name},`),
+            );
             return handCards.length === 1 ? [{ candidate, handCard: handCards[0]! }] : [];
           });
           expect(matches.length).toBeGreaterThan(0);

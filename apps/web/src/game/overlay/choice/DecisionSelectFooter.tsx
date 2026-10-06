@@ -5,12 +5,14 @@ import { DecisionViewBoardButton } from "./DecisionViewBoardButton";
 
 export function DecisionSelectFooter({
   canConfirm,
+  confirmLabel,
   onConfirm,
   min,
   onNone,
   onOpenBoard,
 }: {
   canConfirm: boolean;
+  confirmLabel?: string;
   onConfirm: () => void;
   min: number;
   onNone: () => void;
@@ -20,7 +22,7 @@ export function DecisionSelectFooter({
   return (
     <div className="game-actions-row decision-overlay__footer decision-overlay__footer--selection">
       <Button full size="lg" icon={Icons.Check} disabled={!canConfirm} onClick={onConfirm}>
-        {t("overlay.confirmTargets")}
+        {confirmLabel ?? t("overlay.confirmTargets")}
       </Button>
       {min === 0 ? (
         <Button full size="lg" variant="ghost" onClick={onNone}>

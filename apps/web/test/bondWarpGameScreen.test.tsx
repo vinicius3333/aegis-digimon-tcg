@@ -106,10 +106,9 @@ it("renders the Agumon permanent candidate and submits the warp target", async (
     }),
   });
   const actualAgumonPermanentId = s.perm("agumon").permanentId;
-  const yourBattleArea = document.querySelector('[data-drop="battle-you"]') as HTMLElement;
-
-  // A battle-area target is answered on the board: pick the permanent, then confirm on the rail.
-  fireEvent.click(within(yourBattleArea).getByRole("button", { name: /^agumon$/i }));
+  const dialog = screen.getByRole("dialog");
+  expect(dialog.getAttribute("data-prompt-surface")).toBe("center");
+  fireEvent.click(within(dialog).getByRole("button", { name: /^agumon,/i }));
   fireEvent.click(screen.getByRole("button", { name: /confirm targets/i }));
 
   expect(mocked.respondDecision).toHaveBeenCalledWith(mocked.room, decisionId, {
