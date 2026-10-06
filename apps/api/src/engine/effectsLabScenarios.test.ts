@@ -134,7 +134,11 @@ describe("Effects Lab dev scenarios", () => {
       const beelstarmon = s.state.players[1]!.battleArea[0]!;
       const firstEvent = s.events.length;
       expect(
-        s.engine.applyIntent(0, { type: "digivolve", permanentId: ulforce.permanentId, instanceId: paladin.instanceId }),
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: ulforce.permanentId,
+          instanceId: paladin.instanceId,
+        }),
       ).toEqual({ ok: true });
       await drain(s);
 
