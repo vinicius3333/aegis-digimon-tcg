@@ -125,6 +125,39 @@ describe("Effects Lab dev scenarios", () => {
     }
   });
 
+  it("effects-lab-paladin-battle: EX13-076 strips BeelStarmon and battles it without an attack", async () => {
+    const s = await startScenario("effects-lab-paladin-battle");
+    try {
+      const human = s.state.players[0]!;
+      const ulforce = human.battleArea.find((permanent) => permanent.topCard.cardId === "EX13-023")!;
+      const paladin = human.hand.find((card) => card.cardId === "EX13-076")!;
+      const beelstarmon = s.state.players[1]!.battleArea[0]!;
+      const firstEvent = s.events.length;
+      expect(
+        s.engine.applyIntent(0, { type: "digivolve", permanentId: ulforce.permanentId, instanceId: paladin.instanceId }),
+      ).toEqual({ ok: true });
+      await drain(s);
+
+      const events = s.events.slice(firstEvent);
+      const stripped = events.findIndex((event) => event.kind === "cardsMoved" && event.to === "deck");
+      const compared = events.findIndex((event) => event.kind === "battleCompared");
+      const deleted = events.findIndex((event) => event.kind === "cardsMoved" && event.battleDeletion === true);
+      expect(events[compared]).toMatchObject({
+        attackerPermanentId: ulforce.permanentId,
+        defenderPermanentId: beelstarmon.permanentId,
+        loserPermanentIds: [beelstarmon.permanentId],
+        effectBattle: { attackerSeat: 0, attackerCardId: "EX13-076", defenderCardId: "BT25-085" },
+      });
+      expect(stripped).toBeGreaterThanOrEqual(0);
+      expect(stripped).toBeLessThan(compared);
+      expect(compared).toBeLessThan(deleted);
+      expect(events.some((event) => event.kind === "attackDeclared")).toBe(false);
+      expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    } finally {
+      s.engine.applyIntent(0, { type: "surrender" });
+    }
+  });
+
   it("effects-lab-opponent-chain: ending the turn lets the bot resolve five start-of-main effects", async () => {
     const s = await startScenario("effects-lab-opponent-chain");
     try {

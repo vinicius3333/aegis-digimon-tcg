@@ -264,6 +264,7 @@ export const DEV_SCENARIO_IDS = [
   "effects-lab-prod-attack-stack",
   "effects-lab-prod-security-removed",
   "effects-lab-prod-titan-cascade",
+  "effects-lab-paladin-battle",
   "arena-mobile-blast-counter-tap",
   "security-battle",
   "security-chain",
@@ -5839,6 +5840,29 @@ function layEffectsLabProdTitanCascadeScenario(state: GameState, decks: readonly
 }
 
 /**
+ * Room RQT-ggviX: UlforceVeedramon digivolves into EX13-076 Imperialdramon: Paladin Mode,
+ * whose [When Digivolving] suspends BeelStarmon, returns its three digivolution cards to the
+ * deck and has Imperialdramon battle it. The battle compares digivolution cards, so the
+ * stripped BeelStarmon loses; no attack is declared.
+ */
+function layEffectsLabPaladinBattleScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-022", "EX13-023"], "-lab-paladin-ulforce"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-paladin-imperialdramon", "EX13-076", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(
+      bot,
+      establishedDigimon(1, ["BT25-082", "BT21-074", "BT25-083", "BT25-085"], "-lab-paladin-beelstarmon"),
+    );
+  }
+  startEffectsLabTurn(state, 6);
+}
+
+/**
  * Discord 1556418465231806535 and 1556335019209793638: on a phone, the badges on a small
  * card swallowed the tap meant for the card, so a lone Blast Digivolve host could not be
  * chosen. The bot attacks while the viewer holds EX10-010 BlackWarGreymon; the only host is
@@ -6514,6 +6538,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "effects-lab-prod-attack-stack": layEffectsLabProdAttackStackScenario,
   "effects-lab-prod-security-removed": layEffectsLabProdSecurityRemovedScenario,
   "effects-lab-prod-titan-cascade": layEffectsLabProdTitanCascadeScenario,
+  "effects-lab-paladin-battle": layEffectsLabPaladinBattleScenario,
   "arena-mobile-blast-counter-tap": layMobileBlastCounterTapScenario,
   "security-battle": layDelayedSecurityBattleScenario,
   "security-chain": laySecurityChainScenario,
