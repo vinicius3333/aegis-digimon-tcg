@@ -38,7 +38,7 @@ let musicWanted = false;
 const voices = new Set<AudioBufferSourceNode>();
 type MusicVoice = { node: AudioBufferSourceNode; gate: GainNode };
 let musicVoices: MusicVoice[] = [];
-let retiringMusic: AudioBufferSourceNode[] = [];
+let retiringMusic: MusicVoice[] = [];
 let musicOrigin: number | null = null;
 let cueBuffer: AudioBuffer | null = null;
 let musicBuffer: AudioBuffer | null = null;
@@ -132,7 +132,16 @@ export function unlockAudio(): void {
       const Ctor =
         window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (!Ctor) return;
-      context = new Ctor();
+      // Android's low-latency output can underrun under load. Let mobile output
+      // buffer playback at the device's native rate instead of forcing a rate.
+      const mobile = navigator.maxTouchPoints > 0 || /Android|iPhone|iPad|iPod/.test(navigator.userAgent);
+      context = new Ctor({ latencyHint: mobile ? "playback" : "interactive" });
+      const ctx = context;
+      ctx.onstatechange = () => {
+        if (context !== ctx) return;
+        if (ctx.state === "running") syncMusic();
+        else stopPlayback();
+      };
       limiter = context.createDynamicsCompressor();
       limiter.threshold.value = -8;
       limiter.knee.value = 6;
@@ -148,7 +157,7 @@ export function unlockAudio(): void {
       musicBus.connect(limiter);
     }
     unlocked = true;
-    if (context.state === "suspended")
+    if (context.state !== "running" && context.state !== "closed")
       void context
         .resume()
         .then(syncMusic)
@@ -163,7 +172,7 @@ export function unlockAudio(): void {
 /** One steady original score, prepared outside presentation callbacks. */
 function syncMusic(): void {
   const ctx = context;
-  const audible = musicWanted && musicEnabled && musicVolume > 0;
+  const audible = musicWanted && musicEnabled && musicVolume > 0 && !document.hidden;
   ramp(musicBus, audible ? musicVolume : 0);
   if (!audible) {
     stopMusicVoices();
@@ -183,7 +192,7 @@ function syncMusic(): void {
   node.onended = () => {
     node.disconnect();
     gate.disconnect();
-    retiringMusic = retiringMusic.filter((retiring) => retiring !== node);
+    retiringMusic = retiringMusic.filter((retiring) => retiring.node !== node);
   };
   node.start(when, offset);
   musicVoices = [{ node, gate }];
@@ -194,12 +203,14 @@ export function startMusic(): void {
 }
 function stopMusicVoices(): void {
   if (!musicVoices.length) return;
-  for (const node of retiringMusic) {
+  for (const { node, gate } of retiringMusic) {
     try {
       node.stop();
     } catch {
       /* Already stopped. */
     }
+    node.disconnect();
+    gate.disconnect();
   }
   retiringMusic = [];
   const now = context?.currentTime ?? 0;
@@ -208,7 +219,7 @@ function stopMusicVoices(): void {
       gate.gain.cancelScheduledValues(now);
       gate.gain.setTargetAtTime(0, now, 0.02);
       node.stop(now + 0.12);
-      retiringMusic.push(node);
+      retiringMusic.push({ node, gate });
     } catch {
       /* Already stopped. */
     }
@@ -221,9 +232,43 @@ export function stopMusic(): void {
   stopMusicVoices();
 }
 
+/** Disconnect immediately: a suspended audio clock cannot finish scheduled fades. */
+function stopPlayback(): void {
+  for (const { node, gate } of [...musicVoices, ...retiringMusic]) {
+    try {
+      node.stop();
+    } catch {
+      /* Already stopped. */
+    }
+    node.disconnect();
+    gate.disconnect();
+  }
+  musicVoices = [];
+  retiringMusic = [];
+  for (const node of voices) {
+    try {
+      node.stop();
+    } catch {
+      /* Already stopped. */
+    }
+    node.disconnect();
+  }
+  voices.clear();
+  lastPlayed.clear();
+}
+
 /** Presentation cues never create a context or try to bypass autoplay. */
 export function playSound(kind: SoundKind, details?: SoundDetails): void {
-  if (!enabled || volume <= 0 || !unlocked || !context || context.state !== "running" || !effectsBus || !cueBuffer)
+  if (
+    !enabled ||
+    volume <= 0 ||
+    !unlocked ||
+    !context ||
+    context.state !== "running" ||
+    !effectsBus ||
+    !cueBuffer ||
+    document.hidden
+  )
     return;
   const now = context.currentTime;
   if (now - (lastPlayed.get(kind) ?? -Infinity) < 0.075 || voices.size >= MAX_SOUND_VOICES) return;
@@ -247,25 +292,10 @@ export function disposeAudio(): void {
   cueBuffer = null;
   musicBuffer = null;
   musicOrigin = null;
-  stopMusic();
-  for (const node of retiringMusic) {
-    try {
-      node.stop();
-    } catch {
-      /* Already stopped. */
-    }
-  }
-  retiringMusic = [];
-  for (const node of voices) {
-    try {
-      node.stop();
-    } catch {
-      /* Already stopped. */
-    }
-  }
-  voices.clear();
-  lastPlayed.clear();
+  musicWanted = false;
+  stopPlayback();
   const old = context;
+  if (old) old.onstatechange = null;
   context = null;
   effectsBus = null;
   musicBus = null;
@@ -282,14 +312,7 @@ export function installAudioLifecycle(): () => void {
   const visibility = () => {
     if (!context || !unlocked) return;
     if (document.hidden) {
-      for (const node of voices) {
-        try {
-          node.stop();
-        } catch {
-          /* Already stopped. */
-        }
-      }
-      voices.clear();
+      stopPlayback();
       void context.suspend().catch(() => undefined);
     } else
       void context

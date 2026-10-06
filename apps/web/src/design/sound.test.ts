@@ -24,12 +24,13 @@ class Node {
 }
 class Context {
   static instances: Context[] = [];
+  onstatechange: ((event: Event) => void) | null = null;
   state = "suspended";
   currentTime = 1;
   destination = new Node();
   sources: Node[] = [];
   gains: Node[] = [];
-  constructor() {
+  constructor(readonly options?: AudioContextOptions) {
     Context.instances.push(this);
   }
   resume = vi.fn<() => Promise<void>>(async () => {
@@ -94,6 +95,69 @@ async function ready() {
 }
 
 describe("prepared original AudioBuffer mixer", () => {
+  it("uses buffered output on touch devices and the device's native sample rate", async () => {
+    vi.stubGlobal("navigator", { userAgent: navigator.userAgent, maxTouchPoints: 5 });
+    const ctx = await ready();
+    expect(ctx.options).toEqual({ latencyHint: "playback" });
+  });
+  it("uses buffered output for Android tablets even without touch capability reporting", async () => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+      "Mozilla/5.0 (Linux; Android 13; Tablet) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36 OPR/80.0.0.0",
+    );
+    const ctx = await ready();
+    expect(ctx.options).toEqual({ latencyHint: "playback" });
+  });
+  it.each(["suspended", "interrupted"])(
+    "disconnects every source when the mobile audio session is %s and resumes on a gesture",
+    async (state) => {
+      sound.startMusic();
+      const ctx = await ready();
+      sound.setMusicEnabled(false);
+      sound.setMusicEnabled(true);
+      sound.playSound("draw");
+      const interruptedSources = [...ctx.sources];
+      ctx.state = state;
+      ctx.onstatechange?.(new Event("statechange"));
+      for (const source of interruptedSources) {
+        expect(source.stop).toHaveBeenLastCalledWith();
+        expect(source.disconnect).toHaveBeenCalled();
+      }
+      const resumes = ctx.resume.mock.calls.length;
+      sound.unlockAudio();
+      await sound.prepareAudio();
+      expect(ctx.resume).toHaveBeenCalledTimes(resumes + 1);
+      expect(ctx.state).toBe("running");
+      expect(ctx.sources).toHaveLength(interruptedSources.length + 1);
+      expect(ctx.sources.at(-1)!.loop).toBe(true);
+      expect(Context.instances).toHaveLength(1);
+    },
+  );
+  it("disconnects looping music immediately when hidden and never restarts from a pending resume", async () => {
+    const cleanup = sound.installAudioLifecycle();
+    try {
+      sound.startMusic();
+      const ctx = await ready();
+      sound.playSound("effectFocus");
+      const hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(true);
+      document.dispatchEvent(new Event("visibilitychange"));
+      for (const source of ctx.sources) {
+        expect(source.stop).toHaveBeenLastCalledWith();
+        expect(source.disconnect).toHaveBeenCalled();
+      }
+      // A late resume or decode callback must not resurrect playback in a hidden tab.
+      ctx.state = "running";
+      sound.startMusic();
+      sound.playSound("draw");
+      expect(ctx.sources).toHaveLength(2);
+      hidden.mockReturnValue(false);
+      document.dispatchEvent(new Event("visibilitychange"));
+      await sound.prepareAudio();
+      expect(ctx.sources).toHaveLength(3);
+      expect(ctx.sources.at(-1)!.loop).toBe(true);
+    } finally {
+      cleanup();
+    }
+  });
   it("does not allocate a context for preload, autoplay, music start or synthetic input", () => {
     const cleanup = sound.installAudioLifecycle();
     sound.startMusic();
@@ -104,6 +168,7 @@ describe("prepared original AudioBuffer mixer", () => {
   });
   it("never fetches/decodes/renders in a presentation cue, bounds eight sources and coalesces occurrences", async () => {
     const ctx = await ready();
+    expect(ctx.options).toEqual({ latencyHint: "interactive" });
     sound.unlockAudio();
     expect(Context.instances).toHaveLength(1);
     expect(ctx.decodeAudioData).toHaveBeenCalledTimes(2);
