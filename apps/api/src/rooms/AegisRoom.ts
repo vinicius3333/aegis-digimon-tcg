@@ -19,7 +19,7 @@ import {
 import { isDevScenarioId, type DevScenarioId } from "../engine/devScenario.js";
 import { createIssueReproBotPolicy } from "../engine/issueReproBotPolicy.js";
 import { GameEngine, type SeatJoinOptions } from "../engine/GameEngine.js";
-import type { VisibilityPort } from "../engine/state/index.js";
+import { finalRevealOf, type VisibilityPort } from "../engine/state/index.js";
 import { BotPlayer, type BotOptions } from "../bot/BotPlayer.js";
 import { trainedBotOptions } from "../bot/inferenceRuntime.js";
 import { playableBotDeck } from "../engine/botDeck.js";
@@ -503,6 +503,10 @@ export class AegisRoom extends Room<{ state: GameState }> {
           }
         } else {
           this.broadcast(EVENT_CHANNEL, this.stamp(event));
+        }
+        // A tournament set plays on with the same decks, so its hidden cards stay hidden.
+        if (event.kind === "gameOver" && !this.isTournamentRoom) {
+          this.broadcast(EVENT_CHANNEL, this.stamp({ kind: "finalReveal", players: finalRevealOf(this.state) }));
         }
         // Rebuild each client's StateView after any event that can move a CardInstance
         // into a public zone (battleArea/breeding topCard) from a private one
