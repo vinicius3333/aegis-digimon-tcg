@@ -89,7 +89,8 @@ describe("EX4-048 Gaiomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
-    expect(observe(s.engine).effectiveNames(s.perm("base"))).toContain("greymon");
+    expect(observe(s.engine).grantedNames(s.perm("base"))).toContain("greymon");
+    expect(observe(s.engine).effectiveNames(s.perm("base"))).toEqual(["gaiomon"]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("AD1-025");
   });
 

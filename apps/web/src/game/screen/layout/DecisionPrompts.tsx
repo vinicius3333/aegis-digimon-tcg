@@ -1,7 +1,7 @@
 /* The viewer's open decision, in whichever surface answers it.
 
-   Simple field actions use the left rail. All effect card selections use the central
-   dialog, including the host step for digivolution cards. The pill tells the viewer
+   Field targets use the physical cards and a confirmation rail. Selections from other
+   zones use the central dialog, including the host step for digivolution cards. The pill tells the viewer
    when the opponent has a question open. */
 
 import {

@@ -87,7 +87,7 @@ it("inspects a field-selection candidate without activating its primary choice",
   const inspect = vi.fn<() => void>();
   render(
     <I18nProvider>
-      <PermanentView perm={opponentWithDpDown()} candidate onClick={choose} onInspect={inspect} />
+      <PermanentView perm={opponentWithDpDown()} candidate onClick={choose} onInspect={inspect} showInspect />
     </I18nProvider>,
   );
 

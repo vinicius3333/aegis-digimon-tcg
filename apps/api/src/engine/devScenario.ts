@@ -67,6 +67,15 @@ export const DEV_SCENARIO_IDS = [
   "arena-oct06-inherited-battle",
   "arena-oct06-active-overflow",
 
+  "arena-open-bugs-veemon-decline",
+  "arena-open-bugs-lavorvomon-search",
+  "arena-open-bugs-giromon-leave",
+  "arena-open-bugs-koromon-evolution",
+  "arena-open-bugs-mega-knight-materials",
+  "arena-open-bugs-marcus-attack",
+  "arena-open-bugs-larva-immunity",
+  "arena-ex2-takato-blitz-order",
+  "arena-discord-1556882561995644928-mobile-inspection",
   "arena-ex12-thetismon-mistymon-deletion",
   "arena-ex12-thetismon-jamming-control",
   ...ISSUE_REPRO_SCENARIO_IDS,
@@ -231,6 +240,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-mirage-hidden-hand",
   "arena-p224-kotone-own-source",
   "arena-bt25-ceresmon-homeros-suspend",
+  "arena-bt24-homeros-neptunemon-timing-choice",
   "arena-kotone-digixros-pending-attack",
   "arena-bt6-beelstarmon-duplicate-cost",
   "arena-bt20-saviorhuckmon-end-turn-sistermon",
@@ -4212,6 +4222,85 @@ function layEx13GallantmonStandoffScenario(state: GameState, decks: readonly [De
   state.memory = 10;
 }
 
+/** GitHub #5043: granted Blitz must stay selectable beside Gallantmon's printed OPT. */
+function layOpenBugScenario(state: GameState, decks: readonly [Decklist, Decklist], bug: string): void {
+  prepareEffectsLabDecks(state, decks);
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Deck);
+    clearZone(player, Zone.Security);
+    for (let index = 0; index < 16; index += 1)
+      insertCard(player, Zone.Deck, faceDownCard(`dev-open-bugs-deck-${seat}-${index}`, "BT1-009", seat));
+    for (let index = 0; index < 5; index += 1)
+      insertCard(player, Zone.Security, faceDownCard(`dev-open-bugs-security-${seat}-${index}`, "BT1-009", seat));
+  }
+  const human = state.players[0]!;
+  const field = (cards: string[], slot: string) =>
+    placePermanent(human, establishedDigimon(0, cards, `-open-bugs-${slot}`));
+  const hand = (cardId: string, slot: string) =>
+    insertCard(human, Zone.Hand, faceDownCard(`dev-open-bugs-${slot}`, cardId, 0));
+  switch (bug) {
+    case "veemon-decline":
+      field(["P-248"], "veemon");
+      field(["P-124"], "davis");
+      hand("BT1-027", "cost");
+      break;
+    case "lavorvomon-search":
+      hand("EX3-007", "lavorvomon");
+      clearZone(human, Zone.Deck);
+      ["BT1-009", "EX3-011", "EX3-065", "BT1-009", "BT1-013", "BT1-014"].forEach((cardId, index) =>
+        insertCard(human, Zone.Deck, faceDownCard(`dev-open-bugs-reveal-${index}`, cardId, 0)),
+      );
+      break;
+    case "giromon-leave":
+      field(["BT26-055", "EX9-073"], "host");
+      hand("P-220", "millennium");
+      break;
+    case "koromon-evolution":
+      field(["BT14-001", "BT17-102"], "greymon");
+      hand("BT12-034", "agumon");
+      break;
+    case "mega-knight-materials":
+      field(["BT22-026"], "metal");
+      field(["BT17-095"], "delay-a");
+      field(["BT17-095"], "delay-b");
+      for (const permanent of human.battleArea)
+        if (permanent.topCard.cardId === "BT17-095") permanent.placedByEffect = true;
+      hand("EX13-016", "omnimon");
+      hand("BT22-017", "wrong");
+      hand("BT22-013", "war-a");
+      hand("BT17-015", "war-b");
+      hand("P-220", "millennium");
+      break;
+    case "marcus-attack":
+      field(["BT25-104"], "burst");
+      field(["BT12-092"], "marcus");
+      break;
+    case "larva-immunity":
+      field(["BT18-086"], "larva");
+      field(["EX6-054"], "lucemon");
+      hand("AD1-018", "lord");
+      human.battleArea[0]!.isSuspended = true;
+      placePermanent(state.players[1]!, establishedDigimon(1, ["EX5-041"], "-open-bugs-ebon"));
+      insertCard(state.players[1]!, Zone.Hand, faceDownCard("dev-open-bugs-second-ebon", "EX5-041", 1));
+      break;
+  }
+  startEffectsLabTurn(state, 10);
+}
+
+function layEx2TakatoBlitzOrderScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX2-010"], "-takato-blitz-wargrowlmon"));
+    placePermanent(human, establishedDigimon(0, ["EX2-056"], "-takato-blitz-takato"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-takato-blitz-gallantmon", "EX13-015", 0));
+  }
+  stackEffectsLabSecurity(state, 1, ["BT1-009", "BT1-013", "BT1-014", "BT1-009", "BT1-013"]);
+  startEffectsLabTurn(state, 1);
+}
+
 function layAd1GallantmonDeletionAttackOrderScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
@@ -4633,6 +4722,22 @@ function layOct06Scenario(
   }
 }
 
+/** Discord 1556882561995644928: read a noncandidate Alphamon while Leopardmon asks for a target. */
+function layMobileCardInspectionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0]!;
+  const opponent = state.players[1]!;
+  insertCard(human, Zone.Hand, faceDownCard("dev-inspection-leopardmon", "EX13-043", 0));
+  placePermanent(human, establishedDigimon(0, ["EX13-039"], "-inspection-own"));
+  placePermanent(
+    opponent,
+    establishedDigimon(1, ["EX13-005", "EX13-049", "EX13-055", "EX13-057", "EX13-060"], "-inspection-alphamon"),
+  );
+  // A second copy of the lowest-DP target prevents automatic selection.
+  placePermanent(opponent, establishedDigimon(1, ["EX13-049"], "-inspection-dorumon-first"));
+  placePermanent(opponent, establishedDigimon(1, ["EX13-049"], "-inspection-dorumon-second"));
+}
+
 function layIssue4888AppFusionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 0);
   const human = state.players[0];
@@ -4839,6 +4944,22 @@ function layVikemonLiveSourceLockScenario(state: GameState, decks: readonly [Dec
   for (let i = 0; i < 3; i += 1) {
     insertCard(opponent, Zone.Security, faceDownCard(`dev-vikemon-security-${i}`, "BT1-009", 1));
   }
+}
+
+/** MiMiMi's Homeros report: one shared clause can be activated at either printed timing. */
+function layBt24HomerosNeptunemonTimingChoiceScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT24-102"], "-timing-homeros"));
+  placePermanent(human, establishedDigimon(0, ["BT24-030"], "-timing-neptunemon"));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-timing-fewest-a"));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-010"], "-timing-fewest-b"));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-001", "BT1-011"], "-timing-more-sources"));
+  // Keep Main open and Homeros unsuspended after its start-of-main memory gain.
+  insertCard(human, Zone.Hand, faceDownCard("dev-homeros-timing-playable", "BT1-009", 0));
+  insertCard(human, Zone.Deck, faceDownCard("dev-homeros-timing-draw", "BT1-085", 0), "top");
 }
 
 /** Discord 1556518401655054436, match da48b9f0: Homeros suspended at 6 → 7 memory. */
@@ -6625,6 +6746,15 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-oct06-inherited-battle": (state, decks) => layOct06Scenario(state, decks, "inherited-battle"),
   "arena-oct06-active-overflow": (state, decks) => layOct06Scenario(state, decks, "active-overflow"),
 
+  "arena-open-bugs-veemon-decline": (state, decks) => layOpenBugScenario(state, decks, "veemon-decline"),
+  "arena-open-bugs-lavorvomon-search": (state, decks) => layOpenBugScenario(state, decks, "lavorvomon-search"),
+  "arena-open-bugs-giromon-leave": (state, decks) => layOpenBugScenario(state, decks, "giromon-leave"),
+  "arena-open-bugs-koromon-evolution": (state, decks) => layOpenBugScenario(state, decks, "koromon-evolution"),
+  "arena-open-bugs-mega-knight-materials": (state, decks) => layOpenBugScenario(state, decks, "mega-knight-materials"),
+  "arena-open-bugs-marcus-attack": (state, decks) => layOpenBugScenario(state, decks, "marcus-attack"),
+  "arena-open-bugs-larva-immunity": (state, decks) => layOpenBugScenario(state, decks, "larva-immunity"),
+  "arena-ex2-takato-blitz-order": layEx2TakatoBlitzOrderScenario,
+  "arena-discord-1556882561995644928-mobile-inspection": layMobileCardInspectionScenario,
   ...(Object.fromEntries(
     PHASE_PACING_SCENARIOS.map((scenario) => [
       scenario.id,
@@ -6833,6 +6963,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
   "arena-p224-kotone-own-source": layP224KotoneOwnSourceScenario,
   "arena-bt25-ceresmon-homeros-suspend": layBt25CeresmonHomerosSuspendScenario,
+  "arena-bt24-homeros-neptunemon-timing-choice": layBt24HomerosNeptunemonTimingChoiceScenario,
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-bt6-beelstarmon-duplicate-cost": layBt6BeelStarmonDuplicateCostScenario,
   "arena-bt20-saviorhuckmon-end-turn-sistermon": layBt20SaviorHuckmonEndTurnSistermonScenario,

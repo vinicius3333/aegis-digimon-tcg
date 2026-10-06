@@ -144,6 +144,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
         );
         const printed = matchingEvoCostIgnoringLevel(definition, baseDef);
         const matchedAlternate = matchingAlternateDigivolutionRequirement(definition, baseDef, {
+          grantedBaseExactNames: continuous.grantedExactNames(permanent.permanentId),
           ignoreLevel: true,
           ...(sourceZone === undefined ? {} : { sourceZone }),
         });
@@ -186,6 +187,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
         const matchedAlternate =
           opts.virtualBase === undefined
             ? matchingAlternateDigivolutionRequirement(definition, baseDef, {
+                grantedBaseExactNames: continuous.grantedExactNames(permanent.permanentId),
                 ...(sourceZone === undefined ? {} : { sourceZone }),
               })
             : undefined;
@@ -238,6 +240,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
       const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition, sourceZone);
       const printed = matchingDigivolveCost(definition, baseDef);
       const matchedAlternate = matchingAlternateDigivolutionRequirement(definition, baseDef, {
+        grantedBaseExactNames: continuous.grantedExactNames(permanent.permanentId),
         ...(sourceZone === undefined ? {} : { sourceZone }),
       });
       const alternate =

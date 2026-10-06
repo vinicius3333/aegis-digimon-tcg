@@ -117,6 +117,7 @@ function legalIntoCandidates(
     const matchedAlternate =
       virtualBase === undefined
         ? matchingAlternateDigivolutionRequirement(intoDef, baseDef, {
+            grantedBaseExactNames: projectedBase === undefined && base ? (ctx.game.effectiveNames?.(base) ?? []) : [],
             ...(ignoreLevel ? { ignoreLevel: true } : {}),
             ...(sourceZone === undefined ? {} : { sourceZone }),
           })
@@ -569,6 +570,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
         const matchedAlternate =
           action.virtualBase === undefined
             ? matchingAlternateDigivolutionRequirement(intoDef, baseDef, {
+                grantedBaseExactNames: base ? (ctx.game.effectiveNames?.(base) ?? []) : [],
                 ...(ignoreLevel ? { ignoreLevel: true } : {}),
                 ...(sourceZone === undefined ? {} : { sourceZone }),
               })

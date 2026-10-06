@@ -67,7 +67,8 @@ export async function runDnaDigivolve(
     const fieldOnlySlots = action.materials.every(
       (slot) => slot.zone === undefined || slot.zone === "battleArea" || slot.zone === "breeding",
     );
-    for (let slotIndex = 0; slotIndex < action.materials.length; slotIndex += 1) {
+    const materialSlots = action.materials;
+    for (let slotIndex = 0; slotIndex < materialSlots.length; slotIndex += 1) {
       const slot = action.materials[slotIndex]!;
       const slotTarget: Target = { ...slot, filter: slot.filter, count: slot.count } as Target;
       // An omitted zone is the normal printed "this Digimon / another Digimon in play"
@@ -89,7 +90,14 @@ export async function runDnaDigivolve(
         materialIds.push(...(await resolvePermanentTargets(ctx, slotTarget, eligible ? { eligible } : undefined)));
       } else {
         looseMaterialIds.push(
-          ...(await pickLoose(ctx, slotTarget, candidateLooseInstances(ctx, slotTarget, [slot.zone]))),
+          ...(await pickLoose(
+            ctx,
+            slotTarget,
+            candidateLooseInstances(ctx, slotTarget, [slot.zone]).filter(
+              (candidate) =>
+                slotIndex !== materialSlots.length - 1 || slot.count !== 1 || legalLooseMaterial(candidate.instanceId),
+            ),
+          )),
         );
       }
     }
@@ -165,11 +173,26 @@ export async function runDnaDigivolve(
       materialIds = [pinnedId, ...rest];
     }
   }
+  function legalLooseMaterial(instanceId: string): boolean {
+    if (looseMaterialIds.includes(instanceId)) return false;
+    return resultPool.some(
+      (result) =>
+        result.instanceId !== instanceId &&
+        !looseMaterialIds.includes(result.instanceId) &&
+        ctx.fx.canDnaDigivolve?.(materialIds, result.instanceId, [...looseMaterialIds, instanceId]) !== false,
+    );
+  }
   if (action.looseMaterials !== undefined) {
     const zones = action.looseMaterials.from ?? ["trash"];
     looseMaterialIds = [
       ...looseMaterialIds,
-      ...(await pickLoose(ctx, action.looseMaterials, candidateLooseInstances(ctx, action.looseMaterials, zones))),
+      ...(await pickLoose(
+        ctx,
+        action.looseMaterials,
+        candidateLooseInstances(ctx, action.looseMaterials, zones).filter(
+          (candidate) => action.looseMaterials!.count !== 1 || legalLooseMaterial(candidate.instanceId),
+        ),
+      )),
     ];
   }
   if (materialIds.length + looseMaterialIds.length < 2) {
@@ -179,7 +202,9 @@ export async function runDnaDigivolve(
     return;
   }
   const candidates = resultPool.filter(
-    (candidate) => ctx.fx.canDnaDigivolve?.(materialIds, candidate.instanceId, looseMaterialIds) !== false,
+    (candidate) =>
+      !looseMaterialIds.includes(candidate.instanceId) &&
+      ctx.fx.canDnaDigivolve?.(materialIds, candidate.instanceId, looseMaterialIds) !== false,
   );
   if (candidates.length === 0) return;
   const chosen = await pickLoose(

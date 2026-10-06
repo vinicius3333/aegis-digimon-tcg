@@ -1,4 +1,4 @@
-/* Simple actions use the left dialog. Hand-only choices highlight the live hand;
+/* Simple actions use the left dialog. Hand and field choices use their physical cards;
    other card choices use the central gallery. The pill tells
    the viewer when the opponent is choosing. */
 
@@ -31,8 +31,8 @@ function useEscapeToDialog(onOpenDialog: (() => void) | undefined) {
     give the board the space instead. */
 export type BoardPromptVariant = "prompt" | "selection" | "field-selection";
 
-/** The art of the card asking the question, big enough to recognise beside its clause. */
-const BOARD_PROMPT_ART_WIDTH = 92;
+/** A small illustration cue; the full card remains available through its opener. */
+const BOARD_PROMPT_ART_WIDTH = 64;
 
 /**
  * The card asking the question. With the name gone from the rail, the art is the only
@@ -41,7 +41,11 @@ const BOARD_PROMPT_ART_WIDTH = 92;
 function BoardPromptArt({ cardId, width }: { cardId: string; width: number }) {
   const { t } = useTranslation();
   const openCard = useCardOpener();
-  const art = <CardMini cardId={cardId} width={width} zoomOnHover={false} />;
+  const art = (
+    <span className="board-prompt__art-crop">
+      <CardMini cardId={cardId} width={width} zoomOnHover={false} />
+    </span>
+  );
   if (!openCard) return <span className="board-prompt__art">{art}</span>;
   return (
     <button
@@ -238,7 +242,7 @@ export function BoardSelectionRail({
       detail={t("overlay.selectedOfRange", { count: pickCount, range: min === max ? `${max}` : `${min}–${max}` })}
       budgetText={budgetText}
       handClearance={handClearance}
-      onOpenDialog={onOpenDialog}
+      onOpenDialog={fieldSelection ? undefined : onOpenDialog}
     >
       {/* Keep the confirm slot mounted so the rail does not jump when the first card is
           picked. No Selection only exists for an up-to selection (min 0); a mandatory

@@ -107,18 +107,37 @@ function Slot({
   const followsNewest = useRef(true);
   const leavingBottom = useRef(false);
   const [more, setMore] = useState({ above: false, below: false });
+  // The desktop text lane grows with its two visible notices. Artwork can have
+  // decorative overflow, which is not another notice to scroll to.
+  const scrolls = () => column.current && getComputedStyle(column.current).overflowY !== "visible";
   // Before paint, so a moment arriving never shows the column scrolled to the old one.
   useLayoutEffect(() => {
     const element = column.current;
     if (!element) return;
-    if (anchor === "bottom" && followsNewest.current) element.scrollTop = element.scrollHeight;
+    if (scrolls() && anchor === "bottom" && followsNewest.current) element.scrollTop = element.scrollHeight;
   }, [count, anchor, children]);
+  useLayoutEffect(() => {
+    const element = column.current;
+    if (!element || slot !== "narration-text") return;
+    const stage = element.closest<HTMLElement>(".aegis-stage") ?? document.documentElement;
+    const update = () => stage.style.setProperty("--narration-text-top", `${element.getBoundingClientRect().top}px`);
+    update();
+    const observer = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(update);
+    observer?.observe(element);
+    window.addEventListener("resize", update);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", update);
+      stage.style.removeProperty("--narration-text-top");
+    };
+  }, [slot, count, children]);
   useEffect(() => {
     const element = column.current;
     if (!element) return;
     const update = () => {
-      const above = element.scrollTop > MORE_CHEVRON_SLACK_PX;
-      const below = element.scrollTop + element.clientHeight < element.scrollHeight - MORE_CHEVRON_SLACK_PX;
+      const above = Boolean(scrolls()) && element.scrollTop > MORE_CHEVRON_SLACK_PX;
+      const below =
+        Boolean(scrolls()) && element.scrollTop + element.clientHeight < element.scrollHeight - MORE_CHEVRON_SLACK_PX;
       setMore((current) => (current.above === above && current.below === below ? current : { above, below }));
     };
     const onScroll = () => {

@@ -10,6 +10,25 @@ import type { DecisionRequest, Permanent } from "@aegis/shared";
 
 export type DecisionPresentation = "board" | "dialog";
 
+/** Every offered card is already a physical permanent on the battle areas. */
+export function isFieldCardSelection(
+  decision: DecisionRequest | undefined,
+  fieldInstanceIds: readonly string[],
+): boolean {
+  if (decision?.kind !== "selectCards" && decision?.kind !== "chooseTargets") return false;
+  const options = decision.options;
+  if (
+    options?.assemblyCardId !== undefined ||
+    options?.digiXrosCardId !== undefined ||
+    options?.selectionContext === "partitionActivation"
+  )
+    return false;
+  const candidates = options?.candidateInstanceIds ?? [];
+  const visible = options?.visibleInstanceIds ?? candidates;
+  const field = new Set(fieldInstanceIds);
+  return candidates.length > 0 && candidates.every((id) => field.has(id)) && visible.every((id) => field.has(id));
+}
+
 /** The effect is asking for field targets, rather than a cost, zone card, or attack declaration. */
 export function isFieldTargetDecision(decision: DecisionRequest, permanents: readonly Permanent[]): boolean {
   if (decision.kind !== "chooseTargets" && decision.kind !== "selectCards") return false;
@@ -24,7 +43,7 @@ export function isDecoyDecision(decision: DecisionRequest | undefined): boolean 
   return decision?.kind === "selectCards" && /^[＜<]\s*Decoy(?:\s*[＞>]|\s*\()/i.test(decision.promptText ?? "");
 }
 
-/** Hand-only selections are answered by highlighting cards in the live hand.
+/** Hand and field selections are answered on their physical cards.
  * Other card selections retain the central dialog and its revealed context.
  * Simple optional actions use the left rail when their source is on the field.
  * Unknown decisions retain the dialog fallback.
@@ -33,12 +52,14 @@ export function decisionPresentation({
   decision,
   handInstanceIds,
   sourcePermanentId,
+  fieldInstanceIds = [],
 }: {
   decision: DecisionRequest;
   handInstanceIds: readonly string[];
   sourcePermanentId?: string;
   fieldInstanceIds?: readonly string[];
 }): DecisionPresentation {
+  if (isFieldCardSelection(decision, fieldInstanceIds)) return "board";
   if (decision.kind === "selectCards" || decision.kind === "chooseTargets") {
     const options = decision.options;
     const candidates = options?.candidateInstanceIds ?? [];
@@ -58,12 +79,9 @@ export function decisionPresentation({
   return decision.kind === "optional" && sourcePermanentId !== undefined ? "board" : "dialog";
 }
 
-/** Placement follows the action being requested, rather than the card's zone. */
-export function effectDecisionSurface(decision: DecisionRequest): "left" | "center" {
-  if (decision.kind === "optional") return "left";
-  if (decision.kind === "chooseOption") return decision.options?.choiceEffects ? "center" : "left";
-  if (decision.kind === "selectCards" && decision.options?.selectionContext === "partitionActivation") return "left";
-  return "center";
+/** Every effect decision shares the lower-left dock. */
+export function effectDecisionSurface(_decision: DecisionRequest): "left" {
+  return "left";
 }
 
 /**

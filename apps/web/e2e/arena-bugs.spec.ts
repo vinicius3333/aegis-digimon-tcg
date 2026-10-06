@@ -11,6 +11,58 @@ class ArenaPage {
   }
 }
 
+test("#5036/#5032/#5020 Marcus opens attack actions and attacks while treated as a Digimon", async ({ page }) => {
+  const server = await startBrowserServer();
+  try {
+    await page.addInitScript(() => localStorage.setItem("aegis.action-confirmation.enabled", "false"));
+    await new ArenaPage(page).open("arena-open-bugs-marcus-attack");
+    await page.getByRole("button", { name: /^end breeding$/i }).click();
+    await page.getByRole("button", { name: "Don't use", exact: true }).click();
+    await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
+    const marcus = page.locator('[data-drop="perm-you"][data-id="dev-perm-0-open-bugs-marcus"]');
+    await marcus.click();
+    await page.getByRole("button", { name: "Attack", exact: true }).click();
+    await page.getByRole("button", { name: /^Opponent security/ }).click();
+    await expect(page.getByRole("button", { name: /^Opponent security · 4$/ })).toBeVisible();
+  } finally {
+    await page.close();
+    await server.close();
+  }
+});
+
+test("#5043 selects Takato's granted Blitz before Gallantmon's printed effect", async ({ page }) => {
+  const server = await startBrowserServer();
+  try {
+    await page.addInitScript(() => localStorage.setItem("aegis.action-confirmation.enabled", "false"));
+    await new ArenaPage(page).open("arena-ex2-takato-blitz-order");
+    await page.getByRole("button", { name: /^end breeding$/i }).click();
+    await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
+    await page.getByTestId("hand").getByRole("img", { name: "Gallantmon", exact: true }).click();
+    await page.getByRole("button", { name: "Digivolve", exact: true }).click();
+    await page.locator('[data-drop="perm-you"][data-id="dev-perm-0-takato-blitz-wargrowlmon"]').click();
+    const blitz = page.getByRole("button").filter({ hasText: "＜Blitz＞" });
+    await expect(blitz).toHaveCount(1);
+    await expect(blitz).not.toContainText("12000 DP");
+    await blitz.click();
+    await page.getByRole("button", { name: /^resolve next effect$/i }).click();
+    await expect(page.getByText("Activate Blitz?", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Use", exact: true }).click();
+    const attacker = page.locator('[data-drop="perm-you"][data-id="dev-perm-0-takato-blitz-wargrowlmon"]');
+    await attacker.click();
+    await page.getByRole("button", { name: "Attack", exact: true }).click();
+    await page.getByRole("button", { name: /^Opponent security/ }).click();
+    const printed = page.getByRole("button").filter({ hasText: "12000 DP or higher" });
+    await expect(printed).toHaveCount(1);
+    await printed.click();
+    await page.getByRole("button", { name: "Resolve next effect", exact: true }).click();
+    await expect(page.getByText("Activate Blitz?", { exact: true })).not.toBeVisible();
+    await expect(page.getByRole("button", { name: /^Opponent security · 3$/ })).toBeVisible();
+  } finally {
+    await page.close();
+    await server.close();
+  }
+});
+
 test("#4990 shows four phases and a turn-pass control in the repeated end-turn scenario", async ({ page }) => {
   const server = await startBrowserServer();
   try {

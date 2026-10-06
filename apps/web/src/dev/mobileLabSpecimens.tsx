@@ -415,6 +415,21 @@ export const SPECIMENS: readonly Specimen[] = [
       </DockSpecimen>
     );
   }),
+  decision("decision-field-budget", "Field selection with a play-cost budget", () => (
+    <BoardSelectionRail
+      fieldSelection
+      sourceCardId="BT11-095"
+      prompt="Hades Force"
+      clause="Delete any number of your opponent's Digimon and Tamers within the play-cost budget."
+      min={0}
+      max={3}
+      pickCount={1}
+      canConfirm
+      budgetText="Play cost: 12 / 12"
+      onConfirm={noop}
+      onNoSelection={noop}
+    />
+  )),
   decision("decision-order-cards", "Order cards", (locale) => (
     <DecisionSpecimen request={orderCardsDecision(locale)} candidates={ORDER_CANDIDATES} />
   )),

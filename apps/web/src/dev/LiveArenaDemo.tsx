@@ -53,6 +53,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "Play BT1-010 Agumon for 3 from 2 memory. At the opponent’s turn start, accept Shoutmon’s self-deletion. The ACE underneath causes Overflow and ends that turn in Active, before drawing or breeding. This exercises the same boundary as the immunity report.",
   },
 
+  "arena-discord-1556882561995644928-mobile-inspection": {
+    ptBR: "Encerre a criação e jogue Leopardmon sem Assembly. Selecione Alphamon diretamente na mesa e confirme para suspendê-lo; nenhuma confirmação separada de ativação deve aparecer. Na escolha seguinte, selecione um Dorumon na mesa; nenhuma galeria de alvos deve abrir. Se desejar, use Visualizar mesa para recolher os controles. Segure Alphamon ou toque na lupa para ler a carta e seus herdados; toque na arte para ampliar. Feche e retorne à decisão: o Dorumon selecionado deve continuar marcado. Só Confirmar alvos envia a escolha; o herdado de Grademon pode então proteger Dorumon.",
+    en: "End breeding and play Leopardmon without Assembly. Select Alphamon directly on the board and confirm to suspend it; no separate activation confirmation should appear. In the next choice, select a Dorumon on the board; no target gallery should open. Optionally use View board to hide the controls. Hold Alphamon or tap its magnifier to read the card and its inherited effects; tap the art to zoom. Close and return to the decision: the selected Dorumon must remain picked. Only Confirm targets sends the choice; Grademon's inherited effect can then protect Dorumon.",
+  },
   "arena-issue-5011-agumon-search": {
     ptBR: "Encerre a criação e jogue Agumon EX9. Na seleção para a mão, escolha a cópia revelada de Agumon, a única Ver.1, mesmo com Gabumon também disponível. Ela deve ir para a mão, sem colocação sob o Digimon; ordene as duas cartas restantes no fundo do deck.",
     en: "End breeding and play EX9 Agumon. Select the revealed Agumon, the only Ver.1, for your hand even though Gabumon is also available. It must enter the hand without placing anything under the Digimon; order the two remaining cards at the bottom of the deck.",
@@ -619,6 +623,38 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue EX7-072 Seventh Fascination e encerre seu turno. O Digimon do bot deve permanecer em campo, sem pedido de deleção nesse momento. O efeito concedido só deve ativar no fim do turno do bot.",
     en: "Play EX7-072 Seventh Fascination and end your turn. The bot's Digimon should stay in play, with no deletion prompt yet. The granted effect should activate only at the end of the bot's turn.",
   },
+  "arena-open-bugs-veemon-decline": {
+    ptBR: "Na entrada da fase principal, ordene Davis e Veemon e recuse Veemon. A carta Free deve ficar na mão; não há custo de descarte, compra nem memória de Veemon.",
+    en: "At Main entry, order Davis and Veemon and decline Veemon. Keep the Free card in hand; Veemon must not trash, draw or gain memory.",
+  },
+  "arena-open-bugs-lavorvomon-search": {
+    ptBR: "Jogue Lavorvomon. Adicione Volcanicdramon e Hina Kurihara à mão e ordene as duas cartas restantes no fundo do deck.",
+    en: "Play Lavorvomon. Add Volcanicdramon and Hina Kurihara to hand and order the two remaining cards at the bottom of the deck.",
+  },
+  "arena-open-bugs-giromon-leave": {
+    ptBR: "Jogue Millenniumon P-220 e escolha excluir seu host. O herdado de Giromon deve remover uma segurança do oponente antes da exclusão.",
+    en: "Play P-220 Millenniumon and choose to delete your host. Giromon must trash one opposing security before the deletion.",
+  },
+  "arena-open-bugs-koromon-evolution": {
+    ptBR: "Evolua Greymon para Agumon BT12-034 por 0. Koromon sob Greymon concede o nome exigido; a evolução deve manter as fontes e comprar uma carta.",
+    en: "Digivolve Greymon into BT12-034 Agumon for zero. Koromon beneath Greymon grants the required name; preserve the sources and draw one card.",
+  },
+  "arena-open-bugs-mega-knight-materials": {
+    ptBR: "Jogue Millenniumon P-220 e exclua seu MetalGarurumon. Use um Delay; escolha um WarGreymon da mão e depois Omnimon. Omnimon e o Rookie não podem ser materiais. O segundo Delay deve permanecer.",
+    en: "Play P-220 Millenniumon and delete your MetalGarurumon. Use one Delay, choose a WarGreymon from hand, then Omnimon. Omnimon and the Rookie must not be material candidates. The other Delay remains.",
+  },
+  "arena-open-bugs-marcus-attack": {
+    ptBR: "Clique ou arraste Marcus para atacar a segurança. Burst Mode o trata como Digimon com 12000 DP e Rush; recuse efeitos opcionais que evoluem ou jogam cartas.",
+    en: "Click or drag Marcus to attack security. Burst Mode treats him as a 12000-DP Digimon with Rush; decline optional effects that evolve or play cards.",
+  },
+  "arena-open-bugs-larva-immunity": {
+    ptBR: "Jogue LordKnightmon e dê imunidade a Larva. Passe o turno; pelo jogador 2, jogue Ebonwumon e resolva seu efeito. Larva deve sobreviver com Lucemon presente, inclusive após a imunidade expirar.",
+    en: "Play LordKnightmon and grant immunity to Larva. Pass the turn; as player 2, play Ebonwumon and resolve its effect. Larva must survive with Lucemon present, including after immunity expires.",
+  },
+  "arena-ex2-takato-blitz-order": {
+    ptBR: "Encerre a criação e evolua WarGrowlmon EX2-010 para Gallantmon EX13-015. A memória passa de 1 para -2. Escolha o efeito concedido [When Digivolving] Blitz antes do efeito impresso de Gallantmon, resolva e aceite Blitz. Declare o ataque à segurança. O efeito impresso deve resolver depois da declaração e antes da checagem: descarte 1 segurança e cheque outra. Gallantmon permanece suspenso, com WarGrowlmon na pilha. Reinicie para testar recusar Blitz ou resolver o efeito impresso primeiro.",
+    en: "End breeding and digivolve EX2-010 WarGrowlmon into EX13-015 Gallantmon. Memory moves from 1 to -2. Choose the granted [When Digivolving] Blitz before Gallantmon's printed effect, resolve it and accept Blitz. Declare an attack on security. The printed effect must resolve after declaration and before the check: trash 1 security and check another. Gallantmon stays suspended with WarGrowlmon in its stack. Reset to test declining Blitz or resolving the printed effect first.",
+  },
   "arena-ex9-metal-mamemon-face-down-deletion": {
     ptBR: "Encerre a fase de criação. Jogue EX12-076 Susanoomon com Assembly, escolhendo os 8 materiais diferentes da lixeira. O [Ao Jogar] dá -9000 DP ao MetalMamemon EX9-018 do bot e ele morre. Seu Kokuwamon EX13-046 estava virado para baixo: o herdado [Ao Ser Deletado] não deve ativar nem oferecer De-Digivolve. Susanoomon permanece no campo com os 8 materiais; as duas cartas vão viradas para cima para a lixeira do bot, visíveis para ambos os jogadores.",
     en: "End breeding. Play EX12-076 Susanoomon with Assembly, selecting all 8 different materials from trash. Its [On Play] gives the bot's EX9-018 MetalMamemon -9000 DP and deletes it. Its EX13-046 Kokuwamon was face down: the inherited [On Deletion] must not trigger or offer De-Digivolve. Susanoomon stays on the field with all 8 materials; both cards enter the bot's trash face up, visible to both players.",
@@ -790,6 +826,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-vikemon-live-source-lock": {
     ptBR: "Encerre a criação e ataque a segurança com Monodramon. O bot faz Blast Digivolve de Zudomon para Vikemon ACE. Gomamon, com 1 fonte, fica impedido de suspender/atacar. Evolua esse Gomamon para Gorillamon: com 2 fontes, ele deve poder atacar a segurança. Jogue o outro Gomamon da mão: ele também recebe a trava, embora tenha entrado depois do efeito. A trava dura até o fim deste turno.",
     en: "End breeding and attack security with Monodramon. The bot Blast Digivolves Zudomon into Vikemon ACE. Gomamon, with 1 source, cannot suspend/attack. Evolve that Gomamon into Gorillamon: with 2 sources, it must be able to attack security. Play the other Gomamon from hand: it also receives the lock despite entering after the effect. The lock expires at the end of this turn.",
+  },
+  "arena-bt24-homeros-neptunemon-timing-choice": {
+    ptBR: "Relato de MiMiMi. Encerre a criação e depois a fase Principal sem jogar cartas. Aceite suspender Homeros. Neptunemon oferece a mesma cláusula com dois timings: cada opção deve mostrar seu badge [On Play] ou [When Digivolving]. Escolha qualquer uma: os dois Digimon sem fontes do bot voltam ao fundo do deck, e o Digimon com uma fonte permanece. Homeros fica suspenso e o turno passa normalmente.",
+    en: "MiMiMi report. End breeding, then end Main without playing cards. Accept suspending Homeros. Neptunemon offers the same clause at two timings: each option must show its [On Play] or [When Digivolving] badge. Choose either: both opposing Digimon with no sources return to the deck bottom, while the Digimon with one source stays. Homeros remains suspended and the turn passes normally.",
   },
   "arena-bt25-ceresmon-homeros-suspend": {
     ptBR: "Discord 1556518401655054436. Encerre a criação e resolva Homeros: memória de 6 para 7, ele suspende e compra 1. Nenhuma Ceresmon deve ativar, nem a BT25-059 nem a recebida por Succession da BT26-032; Omnimon continua com 17000 DP. Ataque a segurança com Muchomon BT1-013: agora as duas Ceresmon ativam. Escolha Omnimon para ambas. Há 2 Digimon suspensos (Muchomon e Omnimon), então cada efeito dá -6000 DP e Omnimon fica com 5000 DP. Homeros não conta nem consome o uma vez por turno.",
@@ -1251,6 +1291,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-oct06-partition-dragon-gene", "06/10 · Partition · Dragon Gene · Analog Youth"],
   ["arena-oct06-inherited-battle", "06/10 · Groundramon · herdado após De-Digivolve"],
   ["arena-oct06-active-overflow", "06/10 · Overflow · início do turno"],
+  ["arena-discord-1556882561995644928-mobile-inspection", "Mobile · read Alphamon during Leopardmon's decision"],
   ["arena-issue-5011-agumon-search", "#5011 · Agumon · busca DM/Ver.1"],
   ["arena-issue-5011-gabumon-search", "#5011 · Gabumon · busca DM/Ver.2"],
   ["arena-issue-5014-digital-gate-cool-boy", "#5014 · Digital Gate Open · Cool Boy sem custo"],
@@ -1413,6 +1454,14 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-mervamon-trash-digixros", "Mervamon · DigiXros materials from trash"],
   ["arena-bt5-koromon-attack-draw", "BT5 Koromon · draw before security"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
+  ["arena-open-bugs-veemon-decline", "Open bugs · veemon decline"],
+  ["arena-open-bugs-lavorvomon-search", "Open bugs · lavorvomon search"],
+  ["arena-open-bugs-giromon-leave", "Open bugs · giromon leave"],
+  ["arena-open-bugs-koromon-evolution", "Open bugs · koromon evolution"],
+  ["arena-open-bugs-mega-knight-materials", "Open bugs · mega knight materials"],
+  ["arena-open-bugs-marcus-attack", "Open bugs · marcus attack"],
+  ["arena-open-bugs-larva-immunity", "Open bugs · larva immunity"],
+  ["arena-ex2-takato-blitz-order", "EX2 Takato · granted Blitz before Gallantmon's effect"],
   ["arena-ex12-thetismon-mistymon-deletion", "EX12 Thetismon · Mistymon effect deletion before battle"],
   ["arena-ex12-thetismon-jamming-control", "EX12 Thetismon · Jamming security battle control"],
   ["arena-ex13-sampson-face-down-sources", "EX13 Richard Sampson · owner reads face-down cards"],
@@ -1521,6 +1570,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-mirage-hidden-hand", "Mirage BM · concealed hand selection"],
   ["arena-vikemon-live-source-lock", "Vikemon ACE · live source-count lock"],
   ["arena-bt25-ceresmon-homeros-suspend", "BT25 Ceresmon · Homeros e Succession / suspension"],
+  ["arena-bt24-homeros-neptunemon-timing-choice", "BT24 Homeros · Neptunemon timing choice"],
   ["arena-p224-kotone-own-source", "P-224 Kotone · X7 das próprias fontes / own sources"],
   ["arena-kotone-digixros-pending-attack", "Kotone · DigiXros + EX6 pending attack"],
   ["arena-bt6-beelstarmon-duplicate-cost", "BT6 BeelStarmon · duplicate hand cost"],

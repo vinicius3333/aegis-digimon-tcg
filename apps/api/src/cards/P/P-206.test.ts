@@ -169,3 +169,35 @@ describe("P-206 Digimon Liberator", () => {
     });
   });
 });
+
+it("GitHub bug #5021 plays white Cool Boy through Delay for zero with a white breeding Digimon", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "P-206", as: "gate" }],
+        breeding: { card: "BT13-007", as: "base" },
+        hand: [{ card: "EX11-071", as: "coolBoy" }],
+        deck: Array(5).fill("BT1-009"),
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 5;
+  await s.ready();
+  const delay = observe(s.engine)
+    .activatableEffects(s.perm("gate"))
+    .find((e) => /delay/i.test(e.description ?? ""))!;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: delay.instanceId!,
+      effectKey: delay.effectKey,
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("coolBoy").instanceId) &&
+      !s.state.pendingDecision,
+  );
+  expect(s.state.memory).toBe(5);
+});

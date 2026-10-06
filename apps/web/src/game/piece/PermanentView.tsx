@@ -29,6 +29,7 @@ import { PermanentSparkles } from "./PermanentSparkles";
 import { PermanentSummoningRing } from "./PermanentSummoningRing";
 import { originalDP, permanentTransformation } from "../transformation";
 import type { DropAttrs } from "./types";
+import { usePermanentInspection } from "./usePermanentInspection";
 import "./fieldBadges.css";
 
 export function PermanentView({
@@ -61,6 +62,7 @@ export function PermanentView({
   onPointerDown,
   onKeyboardActivate,
   onInspect,
+  showInspect = false,
 }: {
   perm: Permanent;
   /** Identical permanents drawn as this one card, itself included. */
@@ -114,8 +116,10 @@ export function PermanentView({
   onPointerDown?: (e: React.PointerEvent) => void;
   /** Keyboard fallback for drag-only interactions (select to play or attack). */
   onKeyboardActivate?: () => void;
-  /** Secondary action used while the permanent's primary click answers a field selection. */
+  /** Read the permanent without declaring an action or changing a pending choice. */
   onInspect?: () => void;
+  /** Show the magnifier while the board is being used to choose a card or effect. */
+  showInspect?: boolean;
 }) {
   const stationaryDeparture =
     heldDeletion || fate?.fate === "delete" || fate?.fate === "trash" || fate?.fate === "effectTarget";
@@ -123,6 +127,7 @@ export function PermanentView({
   const isVisuallySuspended = heldSuspended || perm.isSuspended;
   const suspendedInlineMargin = Math.ceil(permanentWidth * 0.2);
   const { t } = useTranslation();
+  const beginInspection = usePermanentInspection(onInspect);
   const movedEntrance = useRef<string | undefined>(undefined);
   const fieldIdentity = entranceKey ?? perm.permanentId;
   const landingBurst = burst?.moveFromBreeding ? undefined : burst;
@@ -166,6 +171,16 @@ export function PermanentView({
       ref={faceRef}
       onClick={onClick}
       onPointerDown={onPointerDown}
+      onPointerDownCapture={beginInspection}
+      onContextMenu={
+        onInspect
+          ? (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onInspect();
+            }
+          : undefined
+      }
       onKeyDown={
         activate
           ? (event) => {
@@ -198,6 +213,7 @@ export function PermanentView({
       data-tap-target={candidate || highlight || !!onPointerDown || undefined}
       data-combat-impact={(shake && claw) || undefined}
       data-permanent-id={perm.permanentId}
+      data-inspectable={!!onInspect || undefined}
       style={{
         // The badges size themselves from the card, so a phone's smaller card gets smaller badges.
         ...({ "--permanent-width": `${permanentWidth}px` } as CSSProperties),
@@ -297,12 +313,13 @@ export function PermanentView({
           baseDp={originalDP(perm)}
         />
       ) : null}
-      {onInspect ? (
+      {onInspect && showInspect ? (
         <button
           type="button"
           className="game-permanent__inspect"
           aria-label={t("game.inspectCard", { card: cardName })}
           onPointerDown={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
           onClick={(event) => {
             event.stopPropagation();
             onInspect();

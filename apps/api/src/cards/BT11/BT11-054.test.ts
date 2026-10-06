@@ -30,9 +30,8 @@ describe("BT11-054 Panjyamon", () => {
 
     await advance(s.engine).recompute();
 
-    expect(observe(s.engine).effectiveNames(s.perm("panjyamon"))).toEqual(
-      expect.arrayContaining(["panjyamon", "leomon"]),
-    );
+    expect(observe(s.engine).grantedNames(s.perm("panjyamon"))).toContain("leomon");
+    expect(observe(s.engine).effectiveNames(s.perm("panjyamon"))).toEqual(["panjyamon"]);
   });
 
   it("exposes the alias to the universal loose-card name resolver", () => {

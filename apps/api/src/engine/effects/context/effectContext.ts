@@ -96,6 +96,8 @@ export interface EffectContext {
    * `purpose: "acceptedOptional"`.
    */
   pickingAcceptedOptional?: boolean;
+  /** This target selection is the optional action's activation choice. */
+  selectingOptionalTarget?: boolean;
   /** Temporary restrictions installed by a RestrictEffect action in this resolution. */
   effectRestrictions?: Set<string>;
   game: GameAccess;

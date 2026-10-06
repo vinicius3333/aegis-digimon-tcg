@@ -20,6 +20,44 @@ import { choiceLabel } from "./overlay/choice/decisionChoiceLabels";
 afterEach(() => cleanup());
 
 it.each([
+  ["EX13-015", 1],
+  ["AD1-003", 1],
+  ["EX8-012", 2],
+] as const)("GitHub bug #5043: selects granted Blitz before %s's printed effect (%s copies)", (cardId, copies) => {
+  const printed = buildTriggerKey("host", `${cardId}/ir-0`);
+  const blitzKeys = Array.from({ length: copies }, (_, index) =>
+    buildTriggerKey("host", `subtrigger/${3956 + index}/[When Digivolving] ＜Blitz＞`),
+  );
+  const { onRespond } = renderDecision({
+    decisionId: "takato-granted-blitz",
+    seat: 0,
+    kind: "orderTriggers",
+    promptText: "Choose the next pending effect to resolve.",
+    sourceCardId: cardId,
+    options: {
+      triggerKeys: [printed, ...blitzKeys],
+      triggerCardIds: Array.from({ length: copies + 1 }, () => cardId),
+      triggerTimings: ["WhenDigivolving", ...blitzKeys.map(() => "whenOneOfYoursDigivolves")],
+      triggerDescriptions: [
+        cardEffectClauseForTiming(cardId, "WhenDigivolving")!,
+        ...blitzKeys.map(() => "[When Digivolving] ＜Blitz＞"),
+      ],
+      triggerIsOptional: Array.from({ length: copies + 1 }, () => false),
+      acceptsResolutionPlan: true,
+      timing: "WhenDigivolving",
+    },
+  });
+  const blitzTexts = screen.getAllByText(/Blitz/);
+  expect(blitzTexts).toHaveLength(copies);
+  const blitzButton = blitzTexts.at(-1)!.closest("button")!;
+  expect(blitzButton).toBeTruthy();
+  expect(within(blitzButton).queryByText(/Delete 1 of your opponent/)).toBeNull();
+  fireEvent.click(blitzButton);
+  fireEvent.click(screen.getByRole("button", { name: /Resolve next effect/i }));
+  expect(onRespond).toHaveBeenCalledWith({ kind: "orderTriggers", order: [blitzKeys.at(-1)] });
+});
+
+it.each([
   [
     "legacy watcher",
     "[All Turns] When your hand is trashed from, delete 1 of your opponent's Digimon with the lowest DP.",
@@ -84,6 +122,36 @@ it("renders each Monarchlizamon trigger's authoritative clause instead of repeat
   });
   expect(screen.getAllByText(/By trashing the bottom face-down card/)).toHaveLength(1);
   expect(screen.getByText(/This Digimon may battle 1 of your opponent's Digimon/)).toBeTruthy();
+});
+
+it("MiMiMi Homeros report: visibly distinguishes Neptunemon's borrowed activation timings", () => {
+  const clause = cardEffectClauseForTiming("BT24-030", "OnPlay")!;
+  const { onRespond } = renderDecision({
+    decisionId: "homeros-neptunemon-timings",
+    seat: 0,
+    kind: "chooseOption",
+    promptText: "Homeros",
+    sourceCardId: "BT24-102",
+    options: {
+      choices: [clause, clause],
+      choiceEffects: [
+        { cardId: "BT24-030", timing: "OnPlay" },
+        { cardId: "BT24-030", timing: "WhenDigivolving" },
+      ],
+      timing: "EndOfYourTurn",
+    },
+  });
+  const onPlay = screen.getByRole("button", { name: "[On Play], Neptunemon" });
+  const whenDigivolving = screen.getByRole("button", { name: "[When Digivolving], Neptunemon" });
+  expect(onPlay.querySelector(".effect-choice__body")!.textContent).not.toBe(
+    whenDigivolving.querySelector(".effect-choice__body")!.textContent,
+  );
+  expect(onPlay.querySelector(".effect-choice__title")!.textContent).toContain("[On Play]");
+  expect(whenDigivolving.querySelector(".effect-choice__title")!.textContent).toContain("[When Digivolving]");
+  expect(within(onPlay).getByText(/Return all of your opponent's Digimon/)).toBeTruthy();
+  expect(within(whenDigivolving).getByText(/Return all of your opponent's Digimon/)).toBeTruthy();
+  fireEvent.click(whenDigivolving);
+  expect(onRespond).toHaveBeenCalledWith({ kind: "chooseOption", optionIndex: 1 });
 });
 
 it("Discord 1555770458866065499: shows each borrowable effect as its full printed clause", () => {
@@ -3159,6 +3227,7 @@ describe("decision board preview", () => {
 
     expect(screen.queryByText(/ActivateForeignEffect|By paying:/)).toBeNull();
     expect(screen.getByText(/By suspending this Tamer, you may activate 1/)).toBeTruthy();
+    expect(screen.getByText(/effect of 1 of your \[Olympos XII\].*trait Digimon/)).toBeTruthy();
   });
 
   it("shows Chaosdramon's printed clause instead of the generated DeDigivolve label", () => {

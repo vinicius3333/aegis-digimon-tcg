@@ -8,11 +8,53 @@ import { compiled } from "./EX2-056.js";
 import "./EX2-009.js";
 import "../EX3/EX3-016.js";
 import "../EX3/EX3-019.js";
+import "../BT12/BT12-016.js";
 
 const INERT_DECK = ["BT1-009", "BT1-013", "BT1-014", "BT1-009", "BT1-013", "BT1-014"];
 const INERT_SECURITY = ["BT1-009", "BT1-013", "BT1-014"];
 
 describe("EX2-056 Takato Matsuki", () => {
+  it("GitHub bug #5043: offers granted Blitz alongside printed When Digivolving effects", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX2-009", as: "growlmon" },
+            { card: "EX2-056", as: "takato" },
+          ],
+          hand: [{ card: "BT12-016", as: "wargrowlmon" }],
+          deck: INERT_DECK,
+          security: INERT_SECURITY,
+        },
+        1: { deck: INERT_DECK, security: INERT_SECURITY },
+      },
+      { autoOrderTriggers: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("growlmon").permanentId,
+          instanceId: s.inst("wargrowlmon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const order = s.decisions.find(
+        ({ req }) => req.kind === "orderTriggers" && req.options?.triggerCardIds?.includes("BT12-016"),
+      )?.req;
+      expect(order).toBeDefined();
+      expect(order!.options!.triggerKeys).toHaveLength(2);
+      expect(order!.options!.triggerDescriptions).toEqual(expect.arrayContaining([expect.stringContaining("Blitz")]));
+    } finally {
+      if (!s.state.gameOver) s.engine.applyIntent(0, { type: "surrender" });
+      await loop;
+    }
+  });
+
   it("matches the catalog and compiles the deletion, Blitz, and Security clauses", () => {
     expect(getCardDefinition("EX2-056")).toMatchObject({
       cardId: "EX2-056",

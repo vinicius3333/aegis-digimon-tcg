@@ -7,7 +7,7 @@ import { COLOR_MAP, PROTECTION_STRING_TOKEN_MAP, PROTECTION_TOKEN_MAP } from "..
 import { DefinitionFacts, definitionMatches, parseCopyEffectsFilterText } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { affectabilityBySource, resolvePermanentTargets } from "../targeting/permanents.js";
-import { CardColor, CardKind, effectiveStaticNames } from "@aegis/shared";
+import { CardColor, CardKind, effectiveStaticNames, effectiveSubstringOnlyNames } from "@aegis/shared";
 import type { Action } from "@aegis/shared";
 
 export async function runGrantStaticAction(ctx: EffectContext, action: Action): Promise<boolean> {
@@ -65,11 +65,28 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           unsupported(ctx, action, "GrantStatic name/trait with no tokens");
           return false;
         }
+        // Older self-static IR records omit the distinction between a full name and
+        // "having [X] in its name". Preserve the printed inclusion-only channel.
+        const printedInclusions = new Set(
+          action.grant === "name" && ctx.continuousPass && (action.target.isSelf || action.target.filter.isSelfRef)
+            ? effectiveSubstringOnlyNames(ctx.source.definition).map((name) => name.toLowerCase())
+            : [],
+        );
+        const inclusionTokens = tokens.filter(
+          (token) => action.nameContainsOnly === true || printedInclusions.has(token.toLowerCase()),
+        );
+        const exactTokens = tokens.filter((token) => !inclusionTokens.includes(token));
         for (const id of ids) {
-          ctx.fx.grantNameTrait(id, action.grant, tokens, duration, {
-            fromRule: ctx.activeTiming === "Rule",
-            nameContainsOnly: action.nameContainsOnly === true,
-          });
+          for (const [names, containsOnly] of [
+            [exactTokens, false],
+            [inclusionTokens, true],
+          ] as const) {
+            if (names.length === 0) continue;
+            ctx.fx.grantNameTrait(id, action.grant, names, duration, {
+              fromRule: ctx.activeTiming === "Rule",
+              nameContainsOnly: containsOnly,
+            });
+          }
         }
         return false;
       }

@@ -18,6 +18,7 @@ const trashForDrawAndMemory: CostGatedBlockAction = {
     },
     raw: "By trashing 1 card with [Veedramon] in its text or the [Armor Form] or [Free] trait from your hand",
   },
+  optional: true,
   abortOnDecline: true,
   actions: [
     { kind: "Draw", controller: "mine", amount: 1 },

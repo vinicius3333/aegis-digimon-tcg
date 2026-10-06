@@ -72,5 +72,6 @@ export {
   rawHints,
   splitPrintedClauses,
   isInsidePrintedQuote,
+  isPrintedTimingReference,
 } from "./printedClauses.js";
 export type { PrintedClause } from "./printedClauses.js";

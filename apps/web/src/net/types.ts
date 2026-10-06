@@ -22,6 +22,7 @@ export interface AegisJoinOptions {
   presentationPacing?: "current" | "sequential";
   /** Dev-only: ask a bot room for a hand-laid board instead of the pre-game procedure. */
   devScenario?:
+    | "arena-discord-1556882561995644928-mobile-inspection"
     | "arena-bt23-examon-partition-return"
     | "arena-bt23-examon-piercing-end-turn"
     | import("@aegis/shared").KeywordPacingScenarioId
@@ -79,6 +80,14 @@ export interface AegisJoinOptions {
     | "arena-discord-1556745762682183811-giant-slayer-execute"
     | "arena-discord-1556745762682183811-holy-succession"
     | "arena-ex7-seventh-fascination-turn"
+    | "arena-open-bugs-veemon-decline"
+    | "arena-open-bugs-lavorvomon-search"
+    | "arena-open-bugs-giromon-leave"
+    | "arena-open-bugs-koromon-evolution"
+    | "arena-open-bugs-mega-knight-materials"
+    | "arena-open-bugs-marcus-attack"
+    | "arena-open-bugs-larva-immunity"
+    | "arena-ex2-takato-blitz-order"
     | "arena-ex12-thetismon-mistymon-deletion"
     | "arena-ex12-thetismon-jamming-control"
     | "arena-discord-1556772689731915896-fly-bullet-hand"
@@ -300,6 +309,7 @@ export interface AegisJoinOptions {
     | "arena-mirage-hidden-hand"
     | "arena-p224-kotone-own-source"
     | "arena-bt25-ceresmon-homeros-suspend"
+    | "arena-bt24-homeros-neptunemon-timing-choice"
     | "arena-kotone-digixros-pending-attack"
     | "arena-bt6-beelstarmon-duplicate-cost"
     | "arena-bt20-saviorhuckmon-end-turn-sistermon"

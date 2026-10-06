@@ -1,6 +1,7 @@
 import {
   getCardDefinition,
   isInsidePrintedQuote,
+  isPrintedTimingReference,
   printedModalBullets,
   printedModalPreamble,
   type DecisionKind,
@@ -27,8 +28,8 @@ import {
  *   On Play slice collapsing to an empty "[On Play]".
  *
  * - Printed-catalog-only rule. playerFacingEffectClause resolves display text only
- *   from the printed catalog; a supplied description is never shown verbatim except
- *   to identify which exact printed clause it names.
+ *   from the printed catalog. Granted effects and synthesized keyword activations
+ *   use the server's description because they need not be printed on their host.
  */
 
 export const TIMING_LABELS: Record<string, string> = {
@@ -169,7 +170,7 @@ function printedClauseGroups(effectText: string): {
     // A timing label can be mentioned inside a sentence rather than opening a new clause
     // (EX3-026: "activate 1 of this Digimon's [When Digivolving] effects"). Do not split
     // before the noun "effect(s)"; only bracket labels that introduce effect text are bounds.
-    if (/^\s+effects?\b/i.test(effectText.slice(m.index + m[0].length))) continue;
+    if (isPrintedTimingReference(effectText, m.index + m[0].length)) continue;
     marks.push({ label: m[1] ?? "", index: m.index, end: m.index + m[0].length });
   }
   const groups: { labels: Set<string>; start: number }[] = [];
@@ -358,7 +359,7 @@ export function playerFacingPromptText(promptText: string | undefined, kind: Dec
     : trimmed;
 }
 
-/** Resolve display text only from the printed catalog; supplied descriptions identify exact clauses. */
+/** Resolve printed clauses from the catalog and granted keyword activations from their descriptions. */
 export function playerFacingEffectClause({
   cardId,
   timing,
@@ -413,6 +414,11 @@ export function playerFacingEffectClause({
   const printedKeyword =
     keywordPrefix && !/^(?:\[|＜)/.test(supplied!.slice(keywordPrefix.length).trim()) ? keywordPrefix : undefined;
   const standaloneKeyword = supplied?.match(/^＜[^＞]+＞$/)?.[0];
+  // Takato grants "[When Digivolving] ＜Blitz＞" to another card. Preserve that
+  // timed keyword instead of substituting the host's printed effect; a host OPT
+  // would otherwise also make the chooser hide Blitz as a duplicate of that OPT.
+  const timedKeyword =
+    describedTiming !== undefined && supplied?.match(/^(?:\[[^\]]+\]\s*)+＜[^＞]+＞$/) ? supplied : undefined;
   // Synthesized keyword effects describe their activation after a colon. The
   // keyword may have been granted by another card and be absent from this card.
   const keywordActivation = supplied?.match(/^＜[^＞]+＞:\s*\S/) ? supplied : undefined;
@@ -432,6 +438,7 @@ export function playerFacingEffectClause({
     : undefined;
   const clause =
     (standaloneKeyword ||
+      timedKeyword ||
       keywordActivation ||
       matchingKeyword ||
       delayClause ||

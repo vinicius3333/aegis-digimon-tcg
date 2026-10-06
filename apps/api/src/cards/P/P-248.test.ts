@@ -45,6 +45,44 @@ describe("P-248 Veemon", () => {
     });
   });
 
+  it("GitHub bug #5042 respects a declined Veemon in a simultaneous resolution plan", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "veemon" },
+            { card: "P-124", as: "davis" },
+          ],
+          hand: [{ card: FREE_TRAIT_MATCH, as: "cost" }],
+          deck: neutralDeck(8),
+          security: neutralDeck(2),
+        },
+        1: { deck: neutralDeck(8), security: neutralDeck(2) },
+      },
+      { autoOrderTriggers: false },
+    );
+    await s.ready();
+    void s.engine.runOneTurn();
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const request = s.decisions.find(({ req }) => req.kind === "orderTriggers")!.req;
+    const keys = request.options!.triggerKeys!;
+    const veemonKey = keys.find((key) => key.includes("P-248"))!;
+    expect(keys).toHaveLength(2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "orderTriggers", order: keys, optionalAnswers: { [veemonKey]: false } },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.decisions.some(({ req }) => req.kind === "selectCards" && req.sourceCardId === cardId)).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+  });
+
   it("compiles every printed clause", () => {
     expect(runtimeCompiledCard(cardId)).toMatchObject({ coverage: "full", residual: [] });
 
@@ -72,7 +110,7 @@ describe("P-248 Veemon", () => {
         },
       },
     });
-    expect(block.cost.optional).toBeUndefined();
+    expect(block.optional).toBe(true);
     expect(block.actions).toEqual([
       { kind: "Draw", controller: "mine", amount: 1 },
       { kind: "GainMemory", amount: 1 },

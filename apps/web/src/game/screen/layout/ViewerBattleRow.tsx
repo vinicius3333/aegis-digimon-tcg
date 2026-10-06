@@ -128,7 +128,8 @@ export function ViewerBattleRow({
         // Drag-only permanents still need a pointer-free path: Enter or
         // Space selects them like a tap would.
         onKeyboardActivate={canDrag ? onPermanentClick(p) : undefined}
-        onInspect={isDecisionCandidate(p) ? () => onPermanentInspect(p) : undefined}
+        onInspect={() => onPermanentInspect(p)}
+        showInspect={chrome.showInspectionControls}
       />
     );
   }
