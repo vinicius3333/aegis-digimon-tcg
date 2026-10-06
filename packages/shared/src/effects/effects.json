@@ -184700,7 +184700,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gallantmon"], "cost": 1, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gallantmon"], "cost": 1, "isAlternate": true }]
   },
   "EX8-074": {
     "effects": [

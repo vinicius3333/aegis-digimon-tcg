@@ -10,6 +10,8 @@ import "../BT1/BT1-055.js";
 import "../BT1/BT1-070.js";
 import "../P/P-134.js";
 import { compiled } from "./EX8-073.js";
+import "../EX13/EX13-001.js";
+import "../EX13/EX13-015.js";
 import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("EX8-073", () => {
@@ -641,3 +643,39 @@ describe("EX8-073 [X Antibody] reference", () => {
     expect(xAntibodyNameGateVerdicts("EX8-073")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });
+
+it.each(["EX13-015", "EX8-073"])(
+  "GitHub bug #5028 Gigimon discounts only legal Gallantmon X evolution from %s",
+  async (base) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: base, as: "base", under: ["EX13-001"] }],
+          hand: [
+            { card: "BT1-085", as: "tamer" },
+            { card: "EX8-073", as: "evolution" },
+          ],
+          deck: Array(8).fill("BT1-009"),
+        },
+        1: { security: ["BT1-009", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT1-085") && !s.state.pendingDecision,
+    );
+    if (base === "EX8-073") {
+      expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("evolution").instanceId)).toBe(true);
+      expect(s.perm("base").stack.map((c) => c.cardId)).toEqual(["EX13-001"]);
+    } else {
+      await settle(
+        () => s.perm("base").topCard.instanceId === s.inst("evolution").instanceId && !s.state.pendingDecision,
+      );
+      expect(s.perm("base").stack.map((c) => c.cardId)).toEqual(["EX13-001", "EX13-015"]);
+      expect(s.state.memory).toBe(6);
+    }
+  },
+);
