@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "selectedId": "warm-drive-pulse-112",
-  "runtimeUrl": "/audio/aegis-music-v3.wav?v=69cbe499a72a",
+  "selectedId": "digital-ascent-112",
+  "runtimeUrl": "/audio/aegis-music-v4.wav?v=c38aec12797c",
   "candidates": [
     {
       "id": "current-clean-96",
@@ -24,7 +24,7 @@
       },
       "sourceIdentity": {
         "type": "original-authored",
-        "rendererSha256": "8a687e3b5be7e4d7e7c72f82c88e6f62fd33ffe238113770265ce15a63305568"
+        "rendererSha256": "d176b507df3fd7450423102099fc1575a34924fb85ab479ec3c44e2212cbeac6"
       }
     },
     {
@@ -120,7 +120,7 @@
     {
       "id": "warm-drive-pulse-112",
       "label": "Warm drive · subtle recorded pulse · 112 BPM",
-      "role": "selected",
+      "role": "alternative",
       "file": "aegis-music-v3.wav",
       "url": "/audio/aegis-music-v3.wav?v=69cbe499a72a",
       "sha256": "69cbe499a72a28e4aa0c552e5a95835a88f9e51c04b99e341eafa02649e75acf",
@@ -634,6 +634,33 @@
         "crossfadeBeats": 0.5,
         "lowpassHz": 5200
       }
+    },
+    {
+      "id": "digital-ascent-112",
+      "label": "Digital ascent · original synth score · 112 BPM",
+      "role": "selected",
+      "file": "aegis-music-v4.wav",
+      "url": "/audio/aegis-music-v4.wav?v=c38aec12797c",
+      "sha256": "c38aec12797c42e512b3c963bc1baf7903c304a1d91e0203b2da907ec2d5893c",
+      "bpm": 112,
+      "bars": 16,
+      "seconds": 34.285714285714285,
+      "metrics": {
+        "peak": 0.07501220703125,
+        "peakDbFS": -22.497361128185656,
+        "rms": 0.015105655203327066,
+        "dc": -0.00016101810283788677,
+        "boundaryStep": 0.00018310546875,
+        "seconds": 34.28570833333333,
+        "sampleRate": 48000,
+        "channels": 2,
+        "bytes": 6582900
+      },
+      "sourceIdentity": {
+        "type": "original-authored",
+        "rendererSha256": "d176b507df3fd7450423102099fc1575a34924fb85ab479ec3c44e2212cbeac6"
+      },
+      "composition": "Original synth score in the liked score's form: same 112 BPM, 16 bars, A-minor i-VI-VII drive and A-major release, with digital arpeggios and a digivolution-style rise into the release"
     }
   ],
   "reference": {

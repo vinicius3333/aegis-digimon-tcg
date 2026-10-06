@@ -11,6 +11,10 @@ import {
   cueKey,
   renderCue,
   renderMusic,
+  renderScore,
+  SCORE_BPM,
+  SCORE_BARS,
+  SCORE_PEAK,
   decodeSourceWav,
   type FoleyKind,
 } from "./audioRecipes";
@@ -62,13 +66,13 @@ describe("authored original bank", () => {
     }
     expect(audioRecipe("draw").duration).toBeLessThan(0.2);
     expect(() => renderCue("draw")).toThrow(/Recorded foley source required/);
-    for (const recipe of recipes) {
-      const recorded = recipe.layers.filter((layer) => layer.texture === "recording");
-      // Only digivolution layers original synthesized tone over its card foley.
-      if (recipe.kind === "digivolve") expect(recorded.length).toBeLessThan(recipe.layers.length);
-      else expect(recorded).toHaveLength(recipe.layers.length);
-      expect(recorded.length).toBeGreaterThan(0);
-    }
+    const foleyOnly = new Set(["select", "nav", "draw", "move", "shuffle"]);
+    // Every cue keeps its card foley; the most frequent everyday cues stay foley only.
+    expect(recipes.every((recipe) => recipe.layers.some((layer) => layer.texture === "recording"))).toBe(true);
+    const toned = recipes.filter((recipe) => recipe.layers.some((layer) => layer.texture !== "recording"));
+    expect(new Set(toned.map((recipe) => recipe.kind))).toEqual(
+      new Set(SOUND_KINDS.filter((kind) => !foleyOnly.has(kind))),
+    );
   });
   it("compares the rejected cue version and exact natural recorded runtime slices", () => {
     const root = new URL("../../public/audio/", import.meta.url);
@@ -192,6 +196,24 @@ describe("authored original bank", () => {
       const offset = Math.round(AUDIO_CUES[cueKey(kind, details)]!.offset * 48000);
       for (let i = 0; i < samples.length; i += 31)
         expect(wav.readInt16LE(44 + (offset + i) * 2)).toBe(Math.round(samples[i]! * 32767) || 0);
+    }
+  });
+  it("ships the authored 16-bar 112 BPM stereo score as a seamless loop under the music ceiling", () => {
+    expect(SCORE_BPM).toBe(112);
+    expect(SCORE_BARS).toBe(16);
+    const [left, right] = renderScore();
+    expect(left!.length).toBe(Math.round(((SCORE_BARS * 4 * 60) / SCORE_BPM) * 48000));
+    expect(left).not.toEqual(right);
+    let peak = 0;
+    for (const channel of [left!, right!]) {
+      for (const sample of channel) peak = Math.max(peak, Math.abs(sample));
+      expect(Math.abs(channel[0]! - channel.at(-1)!)).toBeLessThan(0.01);
+    }
+    expect(peak).toBeCloseTo(SCORE_PEAK, 6);
+    const shipped = readFileSync(new URL("../../public/audio/aegis-music-v4.wav", import.meta.url));
+    for (let i = 0; i < left!.length; i += 397) {
+      expect(shipped.readInt16LE(44 + i * 4)).toBe(Math.round(left![i]! * 32767) || 0);
+      expect(shipped.readInt16LE(46 + i * 4)).toBe(Math.round(right![i]! * 32767) || 0);
     }
   });
   it("keeps an 96 BPM pulse and progressing melody present from the beginning with a quiet circular seam", () => {
