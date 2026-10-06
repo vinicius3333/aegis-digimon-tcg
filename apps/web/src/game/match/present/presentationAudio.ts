@@ -1,9 +1,18 @@
-import { getCardDefinition, type Permanent, type Seat } from "@aegis/shared";
+import { CardKind, getCardDefinition, Phase, type Permanent, type Seat } from "@aegis/shared";
 import type { SoundDetails, SoundKind } from "../../../design/sound";
 import type { presentedSeats } from "../../screen/model/presentedSeats";
 import type { MatchCues } from "../types";
+import type { NoticeKeyword } from "../../notices";
 import { SecurityBreakPhase } from "../enums";
 import { SECURITY_CLASH_OUTCOME_AT_MS, SECURITY_DESTROY_OUTCOME_AT_MS } from "../../securityClash";
+
+const PROTECTION_KEYWORDS: ReadonlySet<NoticeKeyword> = new Set([
+  "scapegoat",
+  "decoy",
+  "guard",
+  "fragment",
+  "armorPurge",
+]);
 
 export interface PresentationSound {
   id: string;
@@ -58,9 +67,10 @@ export function soundsForPresentation(cues: MatchCues, board?: PresentationAudio
           (item) => item.permanentId === arrival.permanentId,
         )
       : undefined;
+    const option = getCardDefinition(scene.cardId)?.kinds.includes(CardKind.Option) === true;
     add(
       `arrival:${scene.key}`,
-      scene.kind === "play" ? "cardPlay" : "digivolve",
+      scene.kind === "digivolve" ? "digivolve" : option ? "optionUse" : "cardPlay",
       scene.kind === "play" ? cardDetails(scene.cardId) : evolutionDetails(scene.cardId, permanent),
     );
   }
@@ -101,6 +111,10 @@ export function soundsForPresentation(cues: MatchCues, board?: PresentationAudio
   if (cues.revealShowcase) add(`reveal:${cues.revealShowcase.key}`, "reveal");
   for (const pulse of cues.dpPulses.values()) add(`dp:${pulse.key}`, pulse.kind === "buff" ? "buff" : "debuff");
   for (const pulse of cues.freezePulses.values()) add(`freeze:${pulse.key}`, "freeze");
+  // Unsuspend and Draw already sound through their sweep and draw flight.
+  if (cues.phaseBanner && (cues.phaseBanner.phase === Phase.Breeding || cues.phaseBanner.phase === Phase.Main))
+    add(`phase:${cues.phaseBanner.key}`, "phase");
+  for (const [seat, dealt] of cues.securityDealCounts) if (dealt > 0) add(`deal:${seat}:${dealt}`, "securityDeal");
   if (cues.unsuspendSweep) add(`unsuspend:${cues.unsuspendSweep.key}`, "move");
   for (const notice of cues.notices) {
     const body = notice.body;
@@ -108,7 +122,8 @@ export function soundsForPresentation(cues: MatchCues, board?: PresentationAudio
       // A physical source focus already explains this activation. Unlocated sources still have the painted clause.
       if (!cues.effectSources.some((source) => source.itemId === notice.id || source.cardId === body.cardId))
         add(`notice:${notice.id}`, "effectActivate");
-    } else if (notice.body.variant === "keyword") add(`notice:${notice.id}`, "group");
+    } else if (notice.body.variant === "keyword")
+      add(`notice:${notice.id}`, PROTECTION_KEYWORDS.has(notice.body.keyword) ? "protect" : "group");
   }
   for (const panel of cues.sidePanels) {
     if (panel.titleKey === "panel.discardedCards") add(`panel:${panel.id}`, "handTrash");
