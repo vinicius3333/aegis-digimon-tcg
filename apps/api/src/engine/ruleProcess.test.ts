@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { EffectDuration, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "./testkit/harness.js";
+import { runRuleProcessFixpoint } from "./gameEngine/ruleProcess.js";
 // Boot side-effect: self-registers every compiled-IR card module.
 import "../cards/index.js";
 
@@ -104,6 +105,48 @@ describe("A4 ruleProcess — face-down top card (CR §17-1-3-2-4)", () => {
 });
 
 describe("A4 ruleProcess — excess link cards (CR §17-1-3-2-5)", () => {
+  it.each([0, 1] as const)(
+    "converges during an opponent effect against a Progress attacker in seat %i",
+    async (seat) => {
+      // Reproduces the active state in development seed 6137617: Medicmon attacks
+      // with Progress and two valid Links. Keep the newly linked card under §4-9-5.
+      const s = setupEngine({
+        [seat]: {
+          battleArea: [
+            {
+              card: "BT26-028",
+              as: "attacker",
+              dp: 11000,
+              linked: [
+                { card: "BT26-010", as: "newLink" },
+                { card: "BT26-019", as: "oldLink" },
+              ],
+            },
+          ],
+        },
+      });
+      const host = s.perm("attacker");
+      const newId = s.inst("newLink").instanceId;
+      const oldId = s.inst("oldLink").instanceId;
+      s.engine.continuous.addKeywordGrant(host.permanentId, "Progress", EffectDuration.UntilEachTurnEnd);
+      s.engine.justLinked.add(newId);
+      const attacker = vi.spyOn(s.engine.combat, "currentAttackerId", "get").mockReturnValue(host.permanentId);
+      s.engine.primitives.enterEffectResolution?.(seat === 0 ? 1 : 0, ["Digimon"]);
+      try {
+        expect(s.engine.ruleChecks.anyExcessLinkCards()).toBe(true);
+        await runRuleProcessFixpoint(s.engine);
+        expect(s.state.gameOver).toBe(false);
+        expect(s.engine.ruleChecks.doRuleProcess()).toBe(false);
+        expect(host.linked.map((card) => card.instanceId)).toEqual([newId]);
+        expect(s.state.players[seat]!.trash.map((card) => card.instanceId)).toContain(oldId);
+        expect(s.engine.justLinked.size).toBe(0);
+      } finally {
+        s.engine.primitives.leaveEffectResolution?.();
+        attacker.mockRestore();
+      }
+    },
+  );
+
   it("trashes only the linked cards beyond the effective link limit (base 1), and the owner picks which", async () => {
     // Q6370 (BT25-075): "The link cards to trash are chosen by the player." The RULE fixes
     // the count (down to the limit); the controller names the cards, so this test answers

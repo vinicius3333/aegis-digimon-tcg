@@ -626,6 +626,116 @@ describe("primitives: forceBattle (Battle may-battle, §14 DP comparison)", () =
 });
 
 describe("primitives: trash / delete / suspend", () => {
+  it.each([0, 1] as const)("rule cleanup removes an excess Link from a Progress attacker in seat %i", async (seat) => {
+    let attackerId: string | undefined;
+    const combat: CombatPort = {
+      isAttacking: true,
+      get currentAttackerId() {
+        return attackerId;
+      },
+      resolveAttack: async () => {},
+      redirectTarget: () => false,
+      endAttack: () => false,
+      runEvadeDecision: async () => false,
+      runBarrierDecision: async () => false,
+    };
+    const h = harness({
+      turnSeat: seat,
+      combat,
+      board: {
+        [seat]: {
+          battleArea: [
+            {
+              card: "BT26-028",
+              as: "attacker",
+              linked: [
+                { card: "BT26-010", as: "newLink" },
+                { card: "BT26-019", as: "oldLink" },
+              ],
+            },
+          ],
+        },
+      },
+    });
+    const host = h.s.perm("attacker");
+    attackerId = host.permanentId;
+    h.continuous.addKeywordGrant(attackerId, "Progress", EffectDuration.UntilEachTurnEnd);
+    const oldId = h.s.inst("oldLink").instanceId;
+    const newId = h.s.inst("newLink").instanceId;
+    h.fx.enterEffectResolution?.(seat === 0 ? 1 : 0, [CardKind.Digimon]);
+    try {
+      // The same target is immune to an opponent effect, but rule processing must converge.
+      expect(await h.fx.trash([oldId])).toEqual([]);
+      expect(host.linked).toHaveLength(2);
+      expect((await h.fx.trash([oldId], { byRule: true })).map((card) => card.instanceId)).toEqual([oldId]);
+    } finally {
+      h.fx.leaveEffectResolution?.();
+    }
+    expect(host.linked.map((card) => card.instanceId)).toEqual([newId]);
+    expect(h.state.players[seat]!.trash.map((card) => card.instanceId)).toContain(oldId);
+    expect(h.subTriggerFires.some(({ event }) => event === "whenLinkTrashed")).toBe(false);
+  });
+
+  it.each([{ byEffectsOnly: true }, { byOpponentEffectsOnly: true }, {}])(
+    "rule cleanup respects the scope of a trash restriction: %j",
+    async (scope) => {
+      const h = harness({
+        board: {
+          0: {
+            battleArea: [
+              {
+                card: "BT26-028",
+                as: "host",
+                linked: [{ card: "BT26-019", as: "link" }],
+              },
+            ],
+          },
+        },
+      });
+      const host = h.s.perm("host");
+      const linkId = h.s.inst("link").instanceId;
+      h.continuous.addRestriction(host.permanentId, "beTrashed", EffectDuration.UntilEachTurnEnd, scope);
+      h.fx.enterEffectResolution?.(1, [CardKind.Digimon]);
+      try {
+        expect(await h.fx.trash([linkId])).toEqual([]);
+        const moved = await h.fx.trash([linkId], { byRule: true });
+        const effectOnly = "byEffectsOnly" in scope || "byOpponentEffectsOnly" in scope;
+        expect(moved.map((card) => card.instanceId)).toEqual(effectOnly ? [linkId] : []);
+        expect(host.linked).toHaveLength(effectOnly ? 0 : 1);
+      } finally {
+        h.fx.leaveEffectResolution?.();
+      }
+    },
+  );
+
+  it("rule cleanup ignores effect immunity without firing a link-trash effect trigger", async () => {
+    const h = harness({
+      board: {
+        0: {
+          battleArea: [
+            {
+              card: "BT26-028",
+              as: "host",
+              linked: [{ card: "BT26-019", as: "link" }],
+            },
+          ],
+        },
+      },
+    });
+    h.continuous.addRestriction(h.s.perm("host").permanentId, "beAffected", EffectDuration.UntilEachTurnEnd, {
+      byOpponentEffectsOnly: true,
+    });
+    const linkId = h.s.inst("link").instanceId;
+    h.fx.enterEffectResolution?.(1, [CardKind.Digimon]);
+    try {
+      expect(await h.fx.trash([linkId])).toEqual([]);
+      expect((await h.fx.trash([linkId], { byRule: true })).map((card) => card.instanceId)).toEqual([linkId]);
+    } finally {
+      h.fx.leaveEffectResolution?.();
+    }
+    expect(h.subTriggerFires.some(({ event }) => event === "whenLinkTrashed")).toBe(false);
+  });
+
   it("trashes loose cards from hand to their owner's trash", async () => {
     const h = harness({
       board: {

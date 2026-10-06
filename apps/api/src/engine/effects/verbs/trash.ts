@@ -48,7 +48,17 @@ export function createTrashVerbs(pc: PrimitivesContext) {
         hostOfStackInstance(state, id)?.hostPermanentId ??
         hostOfLinkedInstance(state, id) ??
         permanentByTopInstance(id);
-      return host === undefined || !isRestricted(host, "beTrashed");
+      if (host === undefined) return true;
+      // CR 4-9-5's excess-Link cleanup is rule processing. Progress and effect-only
+      // immunity cannot prevent it, even while an opponent effect is resolving.
+      // Preserve an unqualified prohibition against trashing the host's cards.
+      if (opts?.byRule === true) {
+        return !continuous.hasRestriction(host, "beTrashed", undefined, {
+          byOpponentEffect: false,
+          byEffect: false,
+        });
+      }
+      return !isRestricted(host, "beTrashed");
     });
     const moved: CardInstance[] = [];
     // SubTrigger bus (System B): "when a link card is trashed" (whenLinkTrashed) fires for each
