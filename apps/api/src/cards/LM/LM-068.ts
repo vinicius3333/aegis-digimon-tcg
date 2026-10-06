@@ -12,22 +12,32 @@ const handAtMostFour: Condition = {
   raw: "your hand has 4 or fewer cards",
 };
 
+const trashPlay: Extract<Action, { kind: "PlayWithoutCost" }> = {
+  kind: "PlayWithoutCost",
+  target: {
+    filter: {
+      controller: "mine",
+      kind: ["Digimon"],
+      zone: "trash",
+      levelComparison: { op: "lte", value: 4 },
+      nameOrTrait: evilDragonTraits,
+    },
+    count: 1,
+  },
+  from: ["trash"],
+  payCost: false,
+};
+
+// "To the field" permits either area. Breeding remains single-occupancy and
+// an effect played there does not activate its On Play effects (CR 3-4-7).
 const playFromTrash: Action[] = [
   {
-    kind: "PlayWithoutCost",
-    target: {
-      filter: {
-        controller: "mine",
-        kind: ["Digimon"],
-        zone: "trash",
-        levelComparison: { op: "lte", value: 4 },
-        nameOrTrait: evilDragonTraits,
-      },
-      count: 1,
-    },
-    from: ["trash"],
-    payCost: false,
+    kind: "Modal",
+    choose: 1,
     optional: true,
+    labels: ["Battle area", "Breeding area"],
+    optionConditions: [null, { kind: "youHaveNone", filter: { controller: "mine", zone: "breeding" } }],
+    options: [[trashPlay], [{ ...trashPlay, breeding: true }]],
   },
 ];
 

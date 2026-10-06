@@ -588,7 +588,10 @@ export function armedAsPendingCollected(engine: GameEngine, items: readonly Arme
         canActivate: () => {
           sourceDeparted ||= !pendingWatcherSourceStillResident(engine, item);
           return (
-            !sourceDeparted && !oncePerTurnSpentByAnotherOccurrence(engine, item) && subTriggerHasLegalOutcome(item)
+            !item.activationStarted &&
+            !sourceDeparted &&
+            !oncePerTurnSpentByAnotherOccurrence(engine, item) &&
+            subTriggerHasLegalOutcome(item)
           );
         },
         resolve: async (resolverCtx: EffectContext) => {
@@ -877,6 +880,7 @@ export function subTriggerStillActivatable(engine: GameEngine, item: ArmedSubTri
  * rest of the window any effect that drops out of its pool once (CR §15-4-4-5).
  */
 export function subTriggerStillPending(engine: GameEngine, item: ArmedSubTrigger): boolean {
+  if (item.activationStarted === true) return false;
   const ctx = item.contextAtFireTime();
   if (ctx === undefined) return false;
   if (item.sub.matches !== undefined && !item.sub.matches(ctx)) return false;
@@ -1023,13 +1027,19 @@ function subTriggerEffectKey(sub: SubTriggerSubscription): string {
  */
 export async function fireOneSubTrigger(
   engine: GameEngine,
-  { sub, ctx: armedContext, contextAtFireTime, occurrence }: ArmedSubTrigger,
+  item: ArmedSubTrigger,
   opts: {
     announce?: boolean;
     drainCurrentTimingWindow?: () => Promise<void>;
     presetOptionalAnswer?: boolean;
   } = {},
 ): Promise<void> {
+  if (item.activationStarted === true) return;
+  // A forced attack drains the enclosing pending pool reentrantly. Retire this
+  // exact activation before its body runs; shared OPT sibling clauses still
+  // have separate armed entries and retain their own resolution.
+  item.activationStarted = true;
+  const { sub, ctx: armedContext, contextAtFireTime, occurrence } = item;
   if (engine.subTriggerWindowDepth > 0)
     engine.consumedSubTriggerKeys.add(subTriggerIdentity(sub, armedContext.trigger));
   const drainCurrentTimingWindow = opts.drainCurrentTimingWindow;

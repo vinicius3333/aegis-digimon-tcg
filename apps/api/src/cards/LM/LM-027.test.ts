@@ -86,7 +86,12 @@ describe("LM-027 Red Scramble", () => {
     });
     await settle(() => s.perm("huckmon").topCard.cardId === "BT23-013");
     expect(s.perm("huckmon").topCard.instanceId).toBe(s.inst("jesmon").instanceId);
-    expect(s.state.memory).toBe(6);
+    // Assert the warp payment itself: Huckmon's inherited memory gain can resolve
+    // afterward if Jesmon's token effect is registered by another collection suite.
+    expect(s.events.find((event) => event.kind === "memoryChanged" && event.reason === "digivolve")).toMatchObject({
+      from: 8,
+      to: 6,
+    });
   });
   it("digivolves a red Digimon from hand and places Red Scramble in the battle area", async () => {
     const s = setupEngine(

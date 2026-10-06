@@ -49,26 +49,21 @@ export function applyIntent(engine: GameEngine, seat: Seat, intent: Intent): Int
   }
   const mainActionWhileResolving =
     engine.activeWindowToken !== undefined || engine.effectResolutionDepth > 0 || engine.optionResolutionDepth > 0;
-  // Readiness guard. Main opens before its start-of-main timing finishes, so a fast client
-  // can submit a verb while the turn has not actually been handed over; those are refused.
-  // Once entry is finalized the engine SERIALIZES main verbs through `continueMainVerb`
-  // instead, so a verb issued while some other effect window happens to be open is queued,
-  // not rejected — refusing those would break the ordinary "act again immediately" path.
-  // An open decision is the more specific refusal: each verb's own gate reports
-  // `decision-pending` for it, so both readiness checks here yield to that gate.
+  // Main verbs are serialized behind an earlier Main verb. A reactive window
+  // outside that queue (for example during turn end) cannot protect its remaining
+  // mandatory effects through queuing, so reject new board actions until it finishes.
+  // Keep decision-pending precedence and Counter Timing's Blast declarations.
   const noDecisionOpen = engine.state.pendingDecision === undefined;
   if (
-    engine.mainEntryPending &&
-    mainActionWhileResolving &&
+    (engine.mainPhase.hasEnded ||
+      (mainActionWhileResolving &&
+        (engine.mainEntryPending || engine.mainVerbContinuationsInFlight === 0 || intent.type === "activateEffect"))) &&
     noDecisionOpen &&
-    ["playCard", "appFusion", "digivolve", "attack", "activateEffect", "linkCard", "dnaDigivolve"].includes(intent.type)
+    ["playCard", "appFusion", "digivolve", "attack", "activateEffect", "linkCard", "dnaDigivolve"].includes(
+      intent.type,
+    ) &&
+    !isBlastDigivolve(intent)
   ) {
-    return { ok: false, reason: "wrong-phase" };
-  }
-  // Q5335 (BT23-065): activating an effect is refused outright while ANOTHER effect is still
-  // resolving, at any point in the turn. This one verb keeps the broad condition — it is a
-  // rules restriction on activation timing, not the start-of-main readiness case above.
-  if (mainActionWhileResolving && noDecisionOpen && intent.type === "activateEffect") {
     return { ok: false, reason: "wrong-phase" };
   }
   // CR section 11: an attack runs from declaration to the end of the battle as one

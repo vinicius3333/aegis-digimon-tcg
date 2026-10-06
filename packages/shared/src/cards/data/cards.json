@@ -72083,7 +72083,7 @@
     "forms": ["In-Training"],
     "attributes": ["-"],
     "types": ["Lesser", "LIBERATOR"],
-    "inheritedEffectText": "[Your Turn] [Once Per Turn] When face-up cards are added to your opponent's security stack, ＜Draw 1＞",
+    "inheritedEffectText": "[Your Turn] [Once Per Turn] When your opponent's face-up security cards increase, ＜Draw 1＞.",
     "rarity": "C",
     "maxCountInDeck": 4,
     "imageId": "EX11-004"

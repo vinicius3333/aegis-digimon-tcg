@@ -1405,7 +1405,7 @@ export class CombatController {
     // digivolution card beneath it to the new top), prevent this Digimon's deletion. Requires
     // >= 1 digivolution card to promote.
     const armorPurgedIds = new Set<string>();
-    for (const permanentId of postBarrierDeletedIds) {
+    for (const permanentId of this.hooks.armorPurgeInLeavePrevention === true ? [] : postBarrierDeletedIds) {
       if (!this.hasKeyword(permanentId, "Armor Purge")) continue;
       const perm = this.access.permanentById(permanentId);
       if (perm === undefined || perm.topCard === undefined || perm.stack.length === 0) continue;

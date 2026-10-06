@@ -31,6 +31,7 @@ import { guardLeaveReplacements } from "../effects/guard.js";
 import { definitionOf } from "../cards/cardData.js";
 import { consultLeavePrevention } from "../effects/leavePrevention.js";
 import { effectTextMayAskYesNo } from "../decisions/resolverDecisions.js";
+import { armorPurgeLeaveReplacements } from "../effects/armorPurge.js";
 import { evadeLeaveReplacements } from "../effects/evade.js";
 import { canPaySuspendCost } from "../combat/legality.js";
 import { consultDigivolutionTrashRedirect } from "../effects/digivolutionTrashRedirect.js";
@@ -258,6 +259,7 @@ export async function engineConsultLeavePrevention(
     playerAction?: boolean;
     isDigiXros?: boolean;
     includeEvade?: boolean;
+    includeArmorPurge?: boolean;
   },
 ): Promise<Set<string>> {
   // Immediate reactions must observe the rebuilt continuous registry, never its
@@ -316,6 +318,12 @@ export async function engineConsultLeavePrevention(
           },
         ),
       ],
+      armorPurgeReplacements: (ids) =>
+        armorPurgeLeaveReplacements(ids, {
+          permanentById: (id) => engine.access.permanentById(id),
+          hasArmorPurge: (id) => engine.continuous.hasKeyword(id, "Armor Purge"),
+          purge: (id) => engine.primitives.armorPurge(id),
+        }),
       evadeReplacements: (ids) =>
         evadeLeaveReplacements(ids, {
           permanentById: (id) => engine.access.permanentById(id),
@@ -357,7 +365,11 @@ export async function engineConsultLeavePrevention(
           keyword,
           seat: saved.controllerSeat,
           permanentId: saved.permanentId,
-          ...(saved.topCard === undefined ? {} : { cardId: saved.topCard.cardId }),
+          ...(keyword === "Armor Purge" && sourceCardId !== undefined
+            ? { cardId: sourceCardId }
+            : saved.topCard === undefined
+              ? {}
+              : { cardId: saved.topCard.cardId }),
           ...(sourcePermanentId === undefined ? {} : { paidPermanentId: sourcePermanentId }),
           ...(sourceCardId === undefined ? {} : { paidCardId: sourceCardId }),
         });
@@ -430,6 +442,7 @@ export async function engineConsultLeavePrevention(
       isDigiXros: opts?.isDigiXros,
       insteadOnly: opts?.insteadOnly,
       includeEvade: opts?.includeEvade,
+      includeArmorPurge: opts?.includeArmorPurge,
       reentryGuard: engine.preventReentryGuard,
     },
   );

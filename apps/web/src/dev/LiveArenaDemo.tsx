@@ -16,6 +16,95 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-issue-5011-agumon-search": {
+    ptBR: "Encerre a criação e jogue Agumon EX9. Na seleção para a mão, escolha a cópia revelada de Agumon, a única Ver.1, mesmo com Gabumon também disponível. Ela deve ir para a mão, sem colocação sob o Digimon; ordene as duas cartas restantes no fundo do deck.",
+    en: "End breeding and play EX9 Agumon. Select the revealed Agumon, the only Ver.1, for your hand even though Gabumon is also available. It must enter the hand without placing anything under the Digimon; order the two remaining cards at the bottom of the deck.",
+  },
+  "arena-issue-5011-gabumon-search": {
+    ptBR: "Encerre a criação e jogue Gabumon EX9. Na seleção para a mão, escolha a cópia revelada de Gabumon, a única Ver.2, mesmo com Agumon também disponível. Ela deve ir para a mão, sem colocação sob o Digimon; ordene as duas cartas restantes no fundo do deck.",
+    en: "End breeding and play EX9 Gabumon. Select the revealed Gabumon, the only Ver.2, for your hand even though Agumon is also available. It must enter the hand without placing anything under the Digimon; order the two remaining cards at the bottom of the deck.",
+  },
+  "arena-issue-5014-digital-gate-cool-boy": {
+    ptBR: "Encerre a criação e ative Delay de Digital Gate Open. Use o efeito para jogar Cool Boy BT20-091: Mother D-Reaper fornece a cor branca. Com a redução de 4, o custo é 0, a memória continua em 8 e Digital Gate Open vai para o lixo.",
+    en: "End breeding and activate Digital Gate Open's Delay. Use its effect to play BT20-091 Cool Boy: Mother D-Reaper supplies white. The reduction of 4 makes the cost 0, memory stays at 8 and Digital Gate Open goes to trash.",
+  },
+  "arena-issue-4999-mother-option-color": {
+    ptBR: "Encerre a criação. Use In-Between Theater por 3. Mother D-Reaper na batalha fornece a cor branca; resolva os efeitos e a memória fica em 5.",
+    en: "End breeding. Use In-Between Theater for 3. Mother D-Reaper in battle supplies white; resolve its effects and memory ends at 5.",
+  },
+  "arena-issue-5000-mother-marsmon-cost": {
+    ptBR: "Encerre a criação e jogue Marsmon. Mother D-Reaper tem 15000 DP e habilita a redução de 5: o custo é 7 e a memória fica em 3.",
+    en: "End breeding and play Marsmon. Mother D-Reaper has 15000 DP and enables the reduction of 5: pay 7 and finish at 3 memory.",
+  },
+  "arena-issue-5001-gomamon-vikemon-search": {
+    ptBR: "Encerre a criação e jogue Gomamon EX8-018. Na primeira seleção, escolha Gomamon como DS; na segunda, selecione Vikemon LM-040 como Sea Beast. A linha Rule atribui esse tipo e a carta deve ir para a mão.",
+    en: "End breeding and play EX8-018 Gomamon. First select Gomamon as DS; then select LM-040 Vikemon as the Sea Beast. Its Rule grants that trait and it must enter the hand.",
+  },
+  "arena-issue-5003-bacchus-pending-effects": {
+    ptBR: "Encerre a criação e passe o turno. Use HeavyMetaldramon para jogar DemiDevimon do lixo. Resolva o efeito de Bacchusmon: você pode recusar suspender, mas a exclusão obrigatória ainda deve acontecer. Nenhuma jogada manual pode interromper a resolução.",
+    en: "End breeding and pass the turn. Use HeavyMetaldramon to play DemiDevimon from trash. Resolve Bacchusmon: suspension may be declined, but its mandatory deletion must still happen. Manual plays cannot interrupt resolution.",
+  },
+  "arena-issue-5004-shine-burst-marcus": {
+    ptBR: "Encerre a criação e recuse colocar Marcus sob o Digimon. Evolua ShineGreymon ST24-07 para Burst Mode BT25-104 usando a rota de custo 0. Devolva Marcus Damon & Thomas H. Norstein à mão; a Rule de Marcus habilita a rota. Na seleção opcional de Tamer, escolha Nenhuma seleção para conferir a memória em 8.",
+    en: "End breeding and decline placing Marcus under the Digimon. Digivolve ST24-07 ShineGreymon into BT25-104 Burst Mode using the cost-0 route. Return Marcus Damon & Thomas H. Norstein to the hand; its Marcus Rule enables this route. Decline the optional Tamer play and check 8 memory.",
+  },
+  "arena-issue-5005-mococomon-forced-attack": {
+    ptBR: "Encerre a criação. Evolua Hakubamon para Sanzomon e use o efeito de remover sua security. Pelo efeito de Sanzomon, jogue Cho-Hakkaimon, sem DigiXros. Resolva Cho-Hakkaimon antes de Mococomon: dê Alliance a Sanzomon e ataque. Use Mococomon para evoluir para Erlangmon. O mesmo efeito herdado não deve reaparecer após o ataque.",
+    en: "End breeding. Digivolve Hakubamon into Sanzomon and use its security removal. Use Sanzomon to play Cho-Hakkaimon without DigiXros. Resolve Cho-Hakkaimon before Mococomon: give Sanzomon Alliance and attack. Use Mococomon to digivolve into Erlangmon. That inherited effect must not reappear after the attack.",
+  },
+  "arena-issue-5007-armor-shakkoumon-order": {
+    ptBR: "Encerre a criação e ataque Omnimon suspenso com Magnamon X. Escolha a ordem entre o herdado de Shakkoumon e Armor Purge. Shakkoumon primeiro pode jogar Reppamon da pilha; Armor Purge primeiro promove Shakkoumon e remove seu efeito herdado.",
+    en: "End breeding and attack suspended Omnimon with Magnamon X. Choose the order of Shakkoumon’s inherited effect and Armor Purge. Shakkoumon first can play Reppamon from the stack; Armor Purge first promotes Shakkoumon and removes its inherited effect.",
+  },
+  "arena-issue-5008-hand-trash-selection": {
+    ptBR: "Encerre a criação e evolua WereGarurumon para HeavyMetaldramon. No pedido de descartar duas cartas, selecione duas cartas da mão e confirme. Use Visualizar mesa para testar a seleção diretamente na mão; a resposta deve descartar ambas e liberar a partida.",
+    en: "End breeding and digivolve WereGarurumon into HeavyMetaldramon. Select two hand cards for the discard and confirm. Use View table to test selection directly in the hand; both selected cards must be trashed and play must resume.",
+  },
+  "arena-issue-5009-pipe-fox-no-level": {
+    ptBR: "Encerre a criação e jogue AeroVeedramon BT22-023. Pipe Fox não tem nível nem custo de jogo; o efeito de devolver nível 4 ou menor não pode selecioná-lo. O token deve continuar na batalha.",
+    en: "End breeding and play BT22-023 AeroVeedramon. Pipe Fox has neither a level nor a play cost, so the level-4-or-lower return effect cannot select it. The token must remain in battle.",
+  },
+  "arena-issue-5010-kapurimon-security-flip": {
+    ptBR: "Promova Espimon EX11-037 da criação. Seu efeito deve virar a security do oponente para cima e o herdado de Kapurimon deve comprar uma carta: virar uma carta também aumenta a quantidade de security revelada.",
+    en: "Move EX11-037 Espimon out of breeding. Its effect flips opposing security face up and Kapurimon’s inherited effect must draw one card: flipping also increases the number of face-up security cards.",
+  },
+
+  "arena-issue-4998-gammamon-breeding": {
+    ptBR: "Encerre a criação sem promover Gammamon LM-016. Use The Strongest of Brothers por 3: deve ser permitido mesmo sem cartas vermelhas, pois Gammamon na criação tem Gammamon em seu texto. Resolva a busca e coloque a Option na batalha; a memória fica em 5.",
+    en: "End breeding without promoting LM-016 Gammamon. Use The Strongest of Brothers for 3: it is legal without red cards because Gammamon in breeding mentions Gammamon in its text. Resolve the search and place the Option in battle; memory ends at 5.",
+  },
+  "arena-issue-4998-paradise-lost-breeding": {
+    ptBR: "Encerre a criação sem promover Lucemon. Use Paradise Lost por 2: deve ser permitido apesar de não haver fonte roxa. Como Lucemon está na criação, ele não recebe os bônus da Main. A memória fica em 6 e Paradise Lost vai à lixeira.",
+    en: "End breeding without promoting Lucemon. Use Paradise Lost for 2: it is legal despite having no purple source. Lucemon in breeding receives none of the Main bonuses. Memory ends at 6 and Paradise Lost goes to trash.",
+  },
+  "arena-issue-4993-inferno-divide-immunity": {
+    ptBR: "Encerre a criação. Ataque com Raptordramon e evolua-o para Grademon durante o ataque. Conceda a proteção contra efeitos de Digimon ao Alphamon. Recuse evoluções posteriores e passe o turno. O bot tem Inferno Divide na lixeira e deve usá-lo pelo efeito de Cerberusmon ao atacar. Acompanhe De-Digivolve 3 no Alphamon protegido: ele deve ficar como Dorumon. Recuse bloquear para concluir o ataque.",
+    en: "End breeding. Attack with Raptordramon and digivolve it into Grademon during the attack. Grant Digimon-effect immunity to Alphamon. Decline later evolutions and pass. The bot has Inferno Divide in trash and can use it through Cerberusmon’s attacking effect. Watch De-Digivolve 3 reduce protected Alphamon to Dorumon. Decline blocking to finish the attack.",
+  },
+  "arena-issue-4994-fly-bullet-immunity": {
+    ptBR: "Encerre a criação. Ataque a segurança com Bacchusmon e Muchomon para suspendê-los; recuse evoluções opcionais. Jogue Ceresmon por 7 e recuse suspender outros Digimon: Bacchusmon recebe proteção contra efeitos de Digimon. Use Heat Viper por 5, deletando seu Ceresmon como custo e o Monodramon adversário como alvo. Passe o turno. Ao atacar, o bot pode usar Fly Bullet das fontes de BeelStarmon: Bacchusmon, o único alvo de nível mais alto, deve ser deletado apesar da proteção.",
+    en: "End breeding. Attack security with Bacchusmon and Muchomon to suspend them; decline optional digivolutions. Play Ceresmon for 7 and decline suspending other Digimon: Bacchusmon gains Digimon-effect immunity. Use Heat Viper for 5, deleting your Ceresmon as its cost and the opponent’s Monodramon as its target. Pass. When attacking, the bot can use Fly Bullet from BeelStarmon’s sources: Bacchusmon, the only highest-level target, is deleted despite its protection.",
+  },
+  "arena-issue-4995-image-training": {
+    ptBR: "Encerre a criação e ative Delay de Image Training. Escolha Gazimon para evoluir para BlackGatomon, usando a rota alternativa de custo 2 por TS/Three Musketeers. Com a redução de 2, o custo final deve ser 0 e a memória continuar em 5.",
+    en: "End breeding and activate Image Training’s Delay. Choose Gazimon and BlackGatomon, then the alternate cost-2 TS/Three Musketeers route. The reduction makes the final cost 0; memory stays at 5.",
+  },
+  "arena-issue-4995-breathing-training": {
+    ptBR: "Encerre a criação e ative Delay de Breathing Training. Evolua Gazimon para BlackGatomon pela rota alternativa de custo 2 por TS/Three Musketeers. Com a redução de 2, o custo final deve ser 0 e a memória continuar em 5.",
+    en: "End breeding and activate Breathing Training’s Delay. Digivolve Gazimon into BlackGatomon using the alternate cost-2 TS/Three Musketeers route. The reduction makes the final cost 0; memory stays at 5.",
+  },
+  "arena-issue-4995-asuna-evolution": {
+    ptBR: "Encerre a criação e recuse o efeito de início da Main de Asuna. Ative seu Main, suspenda Asuna e descarte Cerberusmon: Werewolf Mode como Option. Evolua LadyDevimon para BeelStarmon escolhendo a rota alternativa de custo 3. A redução de 1 deve resultar em custo 2 e memória 6. Recuse usar outras Options.",
+    en: "End breeding and decline Asuna’s start-of-main effect. Activate her Main, suspend her and trash Cerberusmon: Werewolf Mode as an Option. Digivolve LadyDevimon into BeelStarmon through the alternate cost-3 route. The reduction makes the final cost 2 and memory 6. Decline other Option uses.",
+  },
+  "arena-issue-4995-pagumon-evolution": {
+    ptBR: "Encerre a criação. Evolua BlackGatomon para LadyDevimon pela rota comum de custo 3. Coloque BeelStarmon da lixeira como fonte e aceite a evolução herdada de Pagumon. Escolha BeelStarmon da mão e sua rota alternativa de custo 3, reduzido em 2. O gasto total deve ser 4 e a memória ficar em 4. Recuse usar Options e outros efeitos opcionais.",
+    en: "End breeding. Digivolve BlackGatomon into LadyDevimon through the ordinary cost-3 route. Place BeelStarmon from trash under it and accept Pagumon’s inherited digivolution. Choose BeelStarmon from hand and its alternate cost-3 route, reduced by 2. Total cost is 4; memory ends at 4. Decline Option uses and other optional effects.",
+  },
+  "arena-issue-4996-heavy-metal-breeding": {
+    ptBR: "Encerre a criação e ataque com HeavyMetaldramon. No fim do ataque, escolha Breeding area e DarkLizardmon da lixeira. Ele deve entrar na criação sem pagar custo e sem ativar On Play; HeavyMetaldramon permanece na batalha. A criação ocupada não deve aparecer como destino.",
+    en: "End breeding and attack with HeavyMetaldramon. At the end of the attack, choose Breeding area and DarkLizardmon from trash. It enters breeding without paying its cost or activating On Play; HeavyMetaldramon remains in battle. An occupied breeding area must not be offered.",
+  },
   "arena-discord-1556745762682183811-giant-slayer-execute": {
     ptBR: "Jogue Giant Slayer por 12, passando 5 de memória. Aceite devolver Cherubimon da lixeira ao fundo do deck e conceda Rush e Execute ao Giant Slayer. Aceite Execute e ataque o jogador. No fim do ataque, aceite a proteção de Giant Slayer e evolua sem custo para Chronomon: Destroy Mode da mão. Execute deve resolver a deleção uma única vez: Destroy Mode permanece em campo.",
     en: "Play Giant Slayer for 12, passing 5 memory. Accept returning Cherubimon from trash to the deck bottom and grant Giant Slayer Rush and Execute. Accept Execute and attack the player. At the end of the attack, accept Giant Slayer’s protection and digivolve for free into Chronomon: Destroy Mode from hand. Execute’s deletion resolves once: Destroy Mode stays in play.",
@@ -1037,6 +1126,28 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-issue-5011-agumon-search", "#5011 · Agumon · busca DM/Ver.1"],
+  ["arena-issue-5011-gabumon-search", "#5011 · Gabumon · busca DM/Ver.2"],
+  ["arena-issue-5014-digital-gate-cool-boy", "#5014 · Digital Gate Open · Cool Boy sem custo"],
+  ["arena-issue-4999-mother-option-color", "#4999 · Mother D-Reaper · cor de Option"],
+  ["arena-issue-5000-mother-marsmon-cost", "#5000 · Mother D-Reaper · Marsmon"],
+  ["arena-issue-5001-gomamon-vikemon-search", "#5001 · Gomamon · Vikemon Sea Beast"],
+  ["arena-issue-5003-bacchus-pending-effects", "#5003 · Bacchusmon · efeitos pendentes"],
+  ["arena-issue-5004-shine-burst-marcus", "#5004 · ShineGreymon · Marcus ST24"],
+  ["arena-issue-5005-mococomon-forced-attack", "#5005 · Mococomon · ataque por efeito"],
+  ["arena-issue-5007-armor-shakkoumon-order", "#5007 · Shakkoumon · Armor Purge"],
+  ["arena-issue-5008-hand-trash-selection", "#5008 · Seleção da mão · descarte"],
+  ["arena-issue-5009-pipe-fox-no-level", "#5009 · Pipe Fox · token sem nível"],
+  ["arena-issue-5010-kapurimon-security-flip", "#5010 · Kapurimon · security revelada"],
+  ["arena-issue-4998-gammamon-breeding", "#4998 · Strongest of Brothers · criação"],
+  ["arena-issue-4998-paradise-lost-breeding", "#4998 · Paradise Lost · varredura"],
+  ["arena-issue-4993-inferno-divide-immunity", "#4993 · Inferno Divide · imunidade"],
+  ["arena-issue-4994-fly-bullet-immunity", "#4994 · Fly Bullet · imunidade"],
+  ["arena-issue-4995-image-training", "#4995 · Image Training · custo alternativo"],
+  ["arena-issue-4995-breathing-training", "#4995 · Breathing Training · custo alternativo"],
+  ["arena-issue-4995-asuna-evolution", "#4995 · Asuna · evolução por efeito"],
+  ["arena-issue-4995-pagumon-evolution", "#4995 · Pagumon · evolução por efeito"],
+  ["arena-issue-4996-heavy-metal-breeding", "#4996 · HeavyMetaldramon · criação"],
   ["arena-discord-1556702519952932885-rosemon-burst", "Rosemon \u00b7 Burst"],
   ["arena-discord-1556702519952932885-yoshino", "Yoshino \u00b7 reactive evolution"],
   ["arena-discord-1556702668754387095-machinedramon", "Machinedramon \u00b7 Chaosdramon X Fragment"],

@@ -204,7 +204,7 @@ export function controllersFieldDigimonColors(ctx: EffectContext): Set<CardColor
   for (const permanent of fieldPermanents) {
     if (permanent.topCard === undefined) continue;
     const definition = ctx.game.definitionOf(permanent.topCard);
-    if (!definition.kinds.includes(CardKind.Digimon)) continue;
+    if (!permanentMatchesFilter(ctx, permanent, { controller: "mine", kind: ["Digimon"] }, ctx.source)) continue;
     const effective =
       typeof ctx.game.effectiveColors === "function" ? ctx.game.effectiveColors(permanent) : definition.colors;
     for (const color of effective) colors.add(color);

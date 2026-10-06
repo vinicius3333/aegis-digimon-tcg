@@ -216,6 +216,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
       const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
       const prevented = await engine.consultLeavePrevention(permanentIds, cause, resolvingSeat, {
         includeEvade: true,
+        includeArmorPurge: true,
       });
       if (prevented.size > 0) toDelete = permanentIds.filter((id) => !prevented.has(id));
     }
@@ -343,7 +344,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     // an optional processing condition; once activated the prevention is mandatory). Requires
     // >= 1 digivolution card to promote — with none, there is nothing to reveal underneath and
     // the deletion proceeds.
-    {
+    if (!engine.consultLeavePrevention) {
       const armorPurged = new Set<string>();
       for (const permanentId of toDelete) {
         if (!continuous.hasKeyword(permanentId, "Armor Purge")) continue;

@@ -1359,6 +1359,7 @@ describe("EX13-031 KingSukamon", () => {
       await advance(s.engine).runTurn(1);
       await settle(() => victim.originalColorsOverride.length === 0);
       s.state.turnSeat = 1;
+      s.state.turnCount += 1; // The next Main must not reuse the turn that just ended.
       s.state.phase = Phase.Main;
       s.state.memory = 10;
 

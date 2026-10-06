@@ -20,6 +20,7 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon"],
+              zone: ["battleArea", "breeding"],
               nameOrTrait: [
                 {
                   tokens: ["Lucemon"],

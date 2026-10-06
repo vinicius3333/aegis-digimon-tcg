@@ -437,7 +437,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       for (const seat of [mine, opp]) {
         total += ctx.game.player(seat).battleArea.filter((permanent) => {
           if (permanent.topCard === undefined) return false;
-          if (!(ctx.game.definitionOf(permanent.topCard).kinds as string[]).includes(CardKind.Digimon)) return false;
+          if (!permanentMatchesFilter(ctx, permanent, { kind: ["Digimon"] }, ctx.source)) return false;
           return cond.filter === undefined || permanentMatchesFilter(ctx, permanent, cond.filter, ctx.source);
         }).length;
       }

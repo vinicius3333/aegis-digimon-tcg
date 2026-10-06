@@ -538,6 +538,7 @@ describe("BT24-029 Whamon", () => {
           ],
         },
         1: {
+          hand: ["BT1-010"],
           battleArea: [{ card: "BT1-020", as: "restricted" }],
           deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
@@ -550,7 +551,12 @@ describe("BT24-029 Whamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("whamon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).isRestricted(s.perm("restricted"), "suspend"));
+    await settle(
+      () =>
+        observe(s.engine).isRestricted(s.perm("restricted"), "suspend") &&
+        s.engine.mainVerbContinuationsInFlight === 0 &&
+        !s.state.pendingDecision,
+    );
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(true);
     s.state.turnSeat = 1;
     s.state.memory = 3;

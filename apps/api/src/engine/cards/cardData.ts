@@ -430,6 +430,12 @@ function matchGatedRequirement(
 ): DigivolutionRequirement | undefined {
   for (const [requirementIndex, req] of requirements.entries()) {
     if (options?.requirementIndex !== undefined && options.requirementIndex !== requirementIndex) continue;
+    // The shared list also contains ordinary color/level routes. They must not shadow
+    // a printed alternate route when an effect asks the controller to choose a cost.
+    // Keep identity-gated ordinary Appmon form badges, which also use this matcher.
+    // Explicit indices still address the full list used by the public intent.
+    if (options?.requirementIndex === undefined && req.isAlternate === false && !requirementHasIdentityGate(req))
+      continue;
     if (
       options?.sourceZone !== undefined &&
       req.sourceZones !== undefined &&

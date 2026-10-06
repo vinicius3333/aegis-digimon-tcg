@@ -1,4 +1,5 @@
 import {
+  CardKind,
   Permanent,
   Zone,
   EffectTiming,
@@ -112,9 +113,11 @@ export function createOptionEffectsVerbs(pc: PrimitivesContext) {
         timing: EffectTiming[EffectTiming.OnUseOption],
       };
       engine.emit({ kind: "effectTriggered", ...announced, printedTiming: "Main" });
+      ctx.fx.enterEffectResolution?.(ctx.source.ownerSeat, [CardKind.Option]);
       try {
         await effect.resolve(ctx);
       } finally {
+        ctx.fx.leaveEffectResolution?.();
         engine.emit({ kind: "effectResolved", ...announced });
       }
     }
@@ -224,6 +227,10 @@ export function createOptionEffectsVerbs(pc: PrimitivesContext) {
           };
           const optionCtx: EffectContext = {
             ...ctx,
+            // Using an Option starts that card's own effect, even when a Digimon
+            // initiated the use. Do not carry the caller's effect category into it.
+            effectSourceKinds: [CardKind.Option],
+            activeTiming: "Main",
             source: {
               instanceId: usedInstanceId,
               cardId: usedCard.cardId,

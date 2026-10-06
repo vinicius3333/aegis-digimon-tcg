@@ -304,6 +304,7 @@ describe("BT25-005 Pagumon", () => {
       } as never),
     ).toEqual({ ok: true });
     await answerUntilPagumonDecision(s, false);
+    await settle(() => s.engine.mainVerbContinuationsInFlight === 0 && !s.state.pendingDecision);
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX7-066", "EX7-073"]);
     expect(

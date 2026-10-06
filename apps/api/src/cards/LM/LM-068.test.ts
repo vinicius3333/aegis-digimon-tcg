@@ -108,7 +108,7 @@ describe("LM-068 HeavyMetaldramon / Black Sabbath", () => {
         },
         1: { security: [FILLER, FILLER], deck: [FILLER, FILLER] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
     );
     s.state.turnSeat = 0;
     await s.ready();
@@ -140,7 +140,7 @@ describe("LM-068 HeavyMetaldramon / Black Sabbath", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "victim" }], deck: [FILLER, FILLER] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
     );
     s.state.memory = 4;
     await s.ready();
@@ -179,7 +179,7 @@ describe("LM-068 HeavyMetaldramon / Black Sabbath", () => {
           deck: [FILLER, FILLER],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
     );
     s.state.memory = 4;
     await s.ready();
@@ -211,7 +211,7 @@ describe("LM-068 HeavyMetaldramon / Black Sabbath", () => {
         },
         1: { security: [FILLER, FILLER], deck: [FILLER, FILLER] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
     );
     s.state.turnSeat = 0;
     await s.ready();
@@ -245,7 +245,13 @@ describe("LM-068 HeavyMetaldramon / Black Sabbath", () => {
           deck: [FILLER, FILLER],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, declinePrompts: ["digivolve"] },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderTriggers: true,
+        declinePrompts: ["digivolve"],
+      },
     );
     s.state.turnSeat = 0;
     s.state.memory = 3;
@@ -277,7 +283,7 @@ describe("LM-068 HeavyMetaldramon / Black Sabbath", () => {
         },
         1: { security: [FILLER, FILLER], deck: [FILLER, FILLER] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
     );
     s.state.turnSeat = 0;
     await s.ready();
@@ -310,7 +316,7 @@ describe("LM-068 HeavyMetaldramon / Black Sabbath", () => {
           deck: [FILLER, FILLER],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
     );
     s.state.turnSeat = 0;
     await s.ready();
@@ -341,7 +347,7 @@ describe("LM-068 HeavyMetaldramon / Black Sabbath", () => {
         },
         1: { battleArea: [{ card: "BT11-079", as: "attacker" }], deck: [FILLER, FILLER] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
     );
     s.state.turnSeat = 1;
     s.state.memory = 3;
@@ -375,7 +381,13 @@ describe("LM-068 HeavyMetaldramon / Black Sabbath", () => {
           deck: [FILLER, FILLER],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, declinePrompts: ["digivolve"] },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderTriggers: true,
+        declinePrompts: ["digivolve"],
+      },
     );
     s.state.turnSeat = 0;
     s.state.memory = 3;
@@ -409,7 +421,13 @@ describe("LM-068 HeavyMetaldramon / Black Sabbath", () => {
           deck: [FILLER, FILLER],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, declinePrompts: ["digivolve"] },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderTriggers: true,
+        declinePrompts: ["digivolve"],
+      },
     );
     s.state.turnSeat = 0;
     s.state.memory = 3;
@@ -439,7 +457,7 @@ describe("LM-068 HeavyMetaldramon / Black Sabbath", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "victim" }], deck: [FILLER, FILLER] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
     );
     s.state.memory = 4;
     await s.ready();

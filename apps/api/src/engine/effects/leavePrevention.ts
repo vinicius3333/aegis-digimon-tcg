@@ -24,6 +24,7 @@ export interface LeavePreventionHost {
   /** Live keyword reactions use the same ordering and reentry guards as authored effects. */
   keywordReplacements?(permanentIds: string[]): ReplacementSubscription[];
   /** ＜Evade＞ preventions, offered after the authored reactions when a caller asks for them. */
+  armorPurgeReplacements?(permanentIds: string[]): ReplacementSubscription[];
   evadeReplacements?(permanentIds: string[]): ReplacementSubscription[];
   /** The live permanent for an id (undefined when it already left). */
   permanentById(permanentId: string): Permanent | undefined;
@@ -99,6 +100,7 @@ export async function consultLeavePrevention(
     insteadOnly?: boolean;
     /** Offer ＜Evade＞ with the other reactions (the effect/rule deletion path). */
     includeEvade?: boolean;
+    includeArmorPurge?: boolean;
     reentryGuard: { activeReplacementKeys: Set<string> };
   },
 ): Promise<Set<string>> {
@@ -111,6 +113,9 @@ export async function consultLeavePrevention(
     ...(host.keywordReplacements?.(permanentIds) ?? []),
     ...(opts.isBounce === true ? [] : host.subTriggers.replacementsFor("wouldBeDeleted")),
     ...host.subTriggers.replacementsFor("wouldLeavePlay"),
+    ...(opts.includeArmorPurge === true && opts.isBounce !== true
+      ? (host.armorPurgeReplacements?.(permanentIds) ?? [])
+      : []),
     ...(opts.includeEvade === true && opts.isBounce !== true ? (host.evadeReplacements?.(permanentIds) ?? []) : []),
   ];
   if (replacements.length === 0) return prevented;

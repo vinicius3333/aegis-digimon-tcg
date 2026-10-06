@@ -226,3 +226,191 @@ test("#4985 the second Alliance stays selectable after answering the first", asy
     await server.close();
   }
 });
+
+for (const scenario of [
+  "arena-issue-4993-inferno-divide-immunity",
+  "arena-issue-4994-fly-bullet-immunity",
+  "arena-issue-4995-image-training",
+  "arena-issue-4995-breathing-training",
+  "arena-issue-4995-asuna-evolution",
+  "arena-issue-4995-pagumon-evolution",
+  "arena-issue-4996-heavy-metal-breeding",
+  "arena-issue-4998-gammamon-breeding",
+  "arena-issue-4998-paradise-lost-breeding",
+]) {
+  test(`Latest bug scenario joins and renders: ${scenario}`, async ({ page }) => {
+    const server = await startBrowserServer();
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    try {
+      await new ArenaPage(page).open(scenario);
+      await page.getByRole("button", { name: /^end breeding$/i }).click();
+      // Asuna may offer her printed start-of-main optional cost before Main opens.
+      if (scenario === "arena-issue-4995-asuna-evolution")
+        await page.getByRole("button", { name: "Don't use", exact: true }).click();
+      await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
+      expect(errors).toEqual([]);
+    } finally {
+      await page.close();
+      await server.close();
+    }
+  });
+}
+
+test("#4995 Image Training displays both discounted routes and pays zero for the alternate", async ({ page }) => {
+  const server = await startBrowserServer();
+  try {
+    await page.addInitScript(() => localStorage.setItem("aegis.action-confirmation.enabled", "false"));
+    await new ArenaPage(page).open("arena-issue-4995-image-training");
+    await page.getByRole("button", { name: /^end breeding$/i }).click();
+    await page.locator('[data-drop="perm-you"][data-id="arena-issue-4995-image-training-0-field-0"]').click();
+    await page.getByRole("button", { name: /^Activate effect:/ }).click();
+    await page
+      .getByRole("dialog", { name: "Image Training · effect", exact: true })
+      .getByRole("button", { name: "Yes, activate", exact: true })
+      .click();
+    const choice = page.getByRole("dialog", { name: "Digivolve", exact: true });
+    await expect(choice.getByRole("button", { name: "Printed requirement, pays 1 memory", exact: true })).toBeVisible();
+    await choice.getByRole("button", { name: "Alternate requirement, pays 0 memory", exact: true }).click();
+    await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
+    await expect(
+      page
+        .locator('[data-drop="perm-you"][data-id="arena-issue-4995-image-training-0-field-1"]')
+        .getByRole("img", { name: "BlackGatomon", exact: true }),
+    ).toBeVisible();
+    await expect(page.getByRole("img", { name: "Memory: +5", exact: true })).toBeVisible();
+  } finally {
+    await page.close();
+    await server.close();
+  }
+});
+
+test("#5004 Burst Digivolution with ST24 Marcus pays zero through the UI", async ({ page }) => {
+  const server = await startBrowserServer();
+  try {
+    await page.addInitScript(() => localStorage.setItem("aegis.action-confirmation.enabled", "false"));
+    await new ArenaPage(page).open("arena-issue-5004-shine-burst-marcus");
+    await page.getByRole("button", { name: /^end breeding$/i }).click();
+    await page.getByRole("button", { name: "Don't use", exact: true }).click();
+    await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
+    await page.getByTestId("hand").getByRole("img", { name: "ShineGreymon: Burst Mode", exact: true }).click();
+    await page.getByRole("button", { name: "Digivolve", exact: true }).click();
+    await page.locator('[data-drop="perm-you"][data-id="arena-issue-5004-shine-burst-marcus-0-field-0"]').click();
+    const costs = page.getByRole("region", { name: "Digivolve cost", exact: true });
+    await expect(costs).toBeVisible();
+    await costs.getByRole("button").filter({ hasText: /0/ }).click();
+    await expect(
+      page.getByTestId("hand").getByRole("img", { name: "Marcus Damon & Thomas H. Norstein", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page
+        .locator('[data-drop="perm-you"][data-id="arena-issue-5004-shine-burst-marcus-0-field-0"]')
+        .getByRole("img", { name: "ShineGreymon: Burst Mode", exact: true }),
+    ).toBeVisible();
+    await expect(page.getByRole("img", { name: "Memory: +8", exact: true })).toBeVisible();
+  } finally {
+    await page.close();
+    await server.close();
+  }
+});
+
+test("#5001 Gomamon offers LM Vikemon in its search", async ({ page }) => {
+  const server = await startBrowserServer();
+  try {
+    await page.addInitScript(() => localStorage.setItem("aegis.action-confirmation.enabled", "false"));
+    await new ArenaPage(page).open("arena-issue-5001-gomamon-vikemon-search");
+    await page.getByRole("button", { name: /^end breeding$/i }).click();
+    await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
+    await page.getByTestId("hand").getByRole("img", { name: "Gomamon", exact: true }).click();
+    await page.getByRole("button", { name: "Play Digimon", exact: true }).click();
+    const search = page.getByRole("dialog", { name: "Gomamon · effect", exact: true });
+    await expect(search).toContainText("[DS]");
+    await search.getByRole("button", { name: "Gomamon", exact: true }).click();
+    await search.getByRole("button", { name: "Confirm targets", exact: true }).click();
+    await expect(search).toContainText("[Sea Beast]/[Plesiosaur]");
+    await expect(search).toBeVisible();
+    await search.getByRole("button", { name: "Vikemon", exact: true }).click();
+    await search.getByRole("button", { name: "Confirm targets", exact: true }).click();
+    await expect(page.getByTestId("hand").getByRole("img", { name: "Vikemon", exact: true })).toBeVisible();
+  } finally {
+    await page.close();
+    await server.close();
+  }
+});
+
+test("#5008 mandatory hand trash can be selected and confirmed on the board", async ({ page }) => {
+  const server = await startBrowserServer();
+  try {
+    await page.addInitScript(() => localStorage.setItem("aegis.action-confirmation.enabled", "false"));
+    await new ArenaPage(page).open("arena-issue-5008-hand-trash-selection");
+    await page.getByRole("button", { name: /^end breeding$/i }).click();
+    await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
+    await page.getByTestId("hand").getByRole("img", { name: "HeavyMetaldramon", exact: true }).click();
+    await page.getByRole("button", { name: "Digivolve", exact: true }).click();
+    await page.locator('[data-drop="perm-you"][data-id="arena-issue-5008-hand-trash-selection-0-field-0"]').click();
+    const selection = page.getByRole("region", { name: "Hand selection", exact: true });
+    await expect(selection).toBeVisible();
+    const cards = page.getByTestId("hand").locator(".game-hand-card");
+    await cards.nth(0).click();
+    await cards.nth(1).click();
+    await selection.getByRole("button", { name: /end selection/i }).click();
+    await expect(selection).not.toBeVisible();
+    await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
+    await expect(page.getByRole("button", { name: "Trash: 2 discarded cards", exact: true })).toBeVisible();
+  } finally {
+    await page.close();
+    await server.close();
+  }
+});
+
+for (const [scenario, name] of [
+  ["arena-issue-5011-agumon-search", "Agumon"],
+  ["arena-issue-5011-gabumon-search", "Gabumon"],
+] as const) {
+  test(`#5011 ${name} permits taking the only matching version instead of placing it under`, async ({ page }) => {
+    const server = await startBrowserServer();
+    try {
+      await page.addInitScript(() => localStorage.setItem("aegis.action-confirmation.enabled", "false"));
+      await new ArenaPage(page).open(scenario);
+      await page.getByRole("button", { name: /^end breeding$/i }).click();
+      await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
+      await page.getByTestId("hand").getByRole("img", { name, exact: true }).click();
+      await page.getByRole("button", { name: "Play Digimon", exact: true }).click();
+      const search = page.getByRole("dialog", { name: `${name} · effect`, exact: true });
+      const wanted = search.getByRole("button", { name, exact: true });
+      await expect(wanted).toBeEnabled();
+      await wanted.click();
+      await search.getByRole("button", { name: "Confirm targets", exact: true }).click();
+      await page.getByRole("button", { name: "Confirm order", exact: true }).click();
+      await expect(page.getByTestId("hand").getByRole("img", { name, exact: true })).toBeVisible();
+      await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
+      await expect(page.getByRole("img", { name: "Memory: +5", exact: true })).toBeVisible();
+    } finally {
+      await page.close();
+      await server.close();
+    }
+  });
+}
+
+test("#5014 Digital Gate Open offers Cool Boy for zero using Mother D-Reaper", async ({ page }) => {
+  const server = await startBrowserServer();
+  try {
+    await page.addInitScript(() => localStorage.setItem("aegis.action-confirmation.enabled", "false"));
+    await new ArenaPage(page).open("arena-issue-5014-digital-gate-cool-boy");
+    await page.getByRole("button", { name: /^end breeding$/i }).click();
+    await page.locator('[data-drop="perm-you"][data-id="arena-issue-5014-digital-gate-cool-boy-0-field-0"]').click();
+    await page.getByRole("button", { name: /^Activate effect:/ }).click();
+    await page
+      .getByRole("dialog", { name: "Digital Gate Open · effect", exact: true })
+      .getByRole("button", { name: "Yes, activate", exact: true })
+      .click();
+    await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
+    await expect(
+      page.locator('[data-drop="perm-you"]').getByRole("img", { name: "Cool Boy", exact: true }),
+    ).toBeVisible();
+    await expect(page.getByRole("img", { name: "Memory: +8", exact: true })).toBeVisible();
+  } finally {
+    await page.close();
+    await server.close();
+  }
+});

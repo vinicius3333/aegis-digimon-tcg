@@ -306,6 +306,7 @@ describe("EX3-054 Darkdramon", () => {
 
     await advance(s.engine).runTurn(0);
     s.perm("darkdramon").isSuspended = true;
+    s.state.turnCount += 1; // The next Main must not reuse the turn that just ended.
     s.state.phase = Phase.Main;
     s.state.memory = 3;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("third").instanceId })).toEqual({
