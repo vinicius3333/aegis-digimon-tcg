@@ -138,7 +138,12 @@ describe("BT15-003", () => {
         },
         1: { security: ["BT1-009", "BT1-010", "BT1-009"], deck: ["BT1-009", "BT1-010"] },
       },
-      { autoAcceptOptional: true, autoChooseOption: true },
+      {
+        autoAcceptOptional: true,
+        autoChooseOption: true,
+        // Patamon must finish its private security inspection even with no legal evolution target.
+        autoSelectCards: true,
+      },
     );
     s.state.memory = 0;
     await s.ready();
