@@ -10,7 +10,7 @@ We did not find a verifiable public model with trained weights, inference code, 
 
 The strongest concrete example found of a TCG agent with available weights and documented local execution is **YGO Agent**, for Yu-Gi-Oh!. Its architecture and training process are useful references; changing card names would not make its weights play Digimon.
 
-We also inspected [DCGO's selection utility](https://github.com/DCGO2/DCGO/blob/develop/Assets/Scripts/Script/AISelectionUtility.cs): it samples valid combinations and falls back to exhaustive enumeration. That utility is not trained-model inference; this inspection does not characterize the entire project.
+The inspected reference selection utility (`AISelectionUtility.cs`) samples valid combinations and falls back to exhaustive enumeration. That utility is not trained-model inference; this inspection does not characterize the entire project.
 
 ## Verified alternatives
 

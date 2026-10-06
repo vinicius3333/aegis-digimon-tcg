@@ -1,13 +1,13 @@
 ---
-title: Engine vs DCGO trigger sequencing audit
+title: Engine vs reference trigger sequencing audit
 updated: 2026-08-23
 ---
 
-# Engine vs DCGO — trigger sequencing audit — 2026-08-23
+# Engine vs reference — trigger sequencing audit — 2026-08-23
 
 Scope: the trigger-sequencing core only. Compares this engine against the upstream
-reference implementation (Unity/C#, `github.com/DCGO2/DCGO`), read directly at
-`/Users/viniciusluiz/dcgo-source`.
+reference implementation (Unity/C#), inspected directly in the local source checkout
+under `Assets/Scripts/Script/`.
 
 Every claim below cites the file and line it came from, on both sides.
 
@@ -58,7 +58,7 @@ The Aegis loop now matches the shape above:
 The first pass compared sweep orders. The KB voids that comparison: **§17-1-3
 (`comprehensive.md:3395`) declares all rule-check processing simultaneous** and assigns no
 precedence anywhere in Chapter 17. Neither engine "matches" the KB on ordering — both
-serialize a rule the KB declares simultaneous — and reordering Aegis to match DCGO would
+serialize a rule the KB declares simultaneous — and reordering Aegis to match the reference would
 buy zero rules correctness.
 
 What the KB _does_ mandate governs the resulting triggers, not the sweeps:
@@ -79,13 +79,13 @@ divergence dissolves. Within a single sweep, batching is already correct
 
 Corrections to the first pass's "asymmetries to confirm":
 
-- **Options-in-battle-area is NOT missing from DCGO.** It is fused into `IsNotHavingDP`
+- **Options-in-battle-area is NOT missing from the reference.** It is fused into `IsNotHavingDP`
   (`AutoProcessing.cs:179-186`): option top card + `!IsPlayedOptionPermanent`
   (`Permanent.cs:3947`) — the exact analogue of Aegis's `placedByEffect`. Same rule
-  (§17-1-3-2-2, backed by Q4542/Q7083), different slot (DCGO slot 3, Aegis slot 8).
+  (§17-1-3-2-2, backed by Q4542/Q7083), different slot (the reference slot 3, Aegis slot 8).
   Aegis's exclusion of dual Digimon/Option cards (`GameEngine.ts:3617-3627`) is a genuine
-  refinement DCGO lacks.
-- **Battle as Tamer is dead code in DCGO.** `BattleWithoutDigimon`
+  refinement the reference lacks.
+- **Battle as Tamer is dead code in the reference.** `BattleWithoutDigimon`
   (`AutoProcessing.cs:492`) sets `IsEndAttack` (attack abort, not deletion) and its
   `DoRuleProcess` gate is commented out (`AutoProcessing.cs:353-357`). Aegis's comment
   (`GameEngine.ts:3367-3371`) — no such condition in KB Chapter 17 — is correct. Keep as
@@ -97,7 +97,7 @@ by the player."** This must be a player choice, not a tail trim.
 
 ### 2. Location check — real gap, but narrower than "no global equivalent"
 
-DCGO's `EnforceLocationCheck` (`CardEffectCommons/GameContextDeterminarion.cs:15-34`,
+The reference's `EnforceLocationCheck` (`CardEffectCommons/GameContextDeterminarion.cs:15-34`,
 called at `AutoProcessing.cs:316` and `:325`) is **identity-based**: it captures the
 source card's `Permanent` object and root zone at trigger time and compares at activation
 time (`IsCorrectLocation` `:45-65`, `*Activate` helpers `:160-200`). Aegis's
@@ -128,18 +128,18 @@ Two confirmed gaps:
 - **Gap B — same battle area, different permanent.** `permanentHolds`
   (`context.ts:33-45`) matches top card, digivolution stack, AND linked cards, so a card
   that becomes a digivolution/linked card under another Digimon still reports
-  `isOnBattleArea() === true` and never departs. DCGO catches this with the
+  `isOnBattleArea() === true` and never departs. The reference catches this with the
   `PermanentOfThisCard() != CardPermanenceMap[effect]` comparison. KB: §15-4-4-3
   "becomes a new card"; Q2738, Q2769. No end-to-end repro confirmed, but no check exists.
 
-Fix shape (DCGO-faithful, no new global sweep): capture root zone / anchoring permanent
+Fix shape (reference-aligned, no new global sweep): capture root zone / anchoring permanent
 at trigger time, compare at activation time — in `buildSubTriggerSourceContext`
 (`GameEngine.ts:2176-2180`) and the `onField` base guard (`builders.ts:64`).
 
 ### 3. `AfterEffectsActivate` — NOT a rules timing; but BT16-015 is actually broken
 
 `AfterEffectsActivate` (`ICardEffect.cs:1022`, stacked at `:1283` and
-`AutoProcessing.cs:601`) is DCGO's hand-rolled polling hook for a capability it lacks: a
+`AutoProcessing.cs:601`) is the reference's hand-rolled polling hook for a capability it lacks: a
 continuous-effect recompute pass. Both consumers mark themselves
 `SetIsBackgroundProcess(true)` — passive, not triggered. Aegis's structural equivalent is
 the continuous tier: `[Your Turn]` → `EffectTiming.None`
@@ -147,9 +147,9 @@ the continuous tier: `[Your Turn]` → `EffectTiming.None`
 (`GameEngine.recomputeContinuousEffects`, `GameEngine.ts:2235-2300`). **No new enum
 member or seam is needed.**
 
-- **BT12-044 (Lampmon): covered, and more correct than DCGO.** Aegis re-derives the
+- **BT12-044 (Lampmon): covered, and more correct than the reference.** Aegis re-derives the
   ＜Security Attack +1 per Digimon＞ bonus each pass (`BT12-044.ts` patches scaling to
-  count matching permanents); DCGO's top-up loop (`BT12_044.cs:95-107`) never removes
+  count matching permanents); the reference's top-up loop (`BT12_044.cs:95-107`) never removes
   granted copies, so its bonus ratchets when the count drops. Tests pass on real behavior.
 - **BT16-015 (Phoenixmon X): NOT covered.** Its `[Your Turn]` grant
   `{kind: "GrantStatic", grant: {keyword: "EndOfAttack", targetFilter: {keyword: "OnDeletion"}}}`
@@ -160,13 +160,13 @@ member or seam is needed.**
   Q2614/Q2615 require the projection to reach inherited `[On Deletion]` effects and to
   lapse the instant the source clause does — which clear-then-recompute gives for free
   once the primitive exists.
-- **Residual sequencing nit:** DCGO recomputes right before each between-effects rule
+- **Residual sequencing nit:** the reference recomputes right before each between-effects rule
   pass; Aegis recomputes at window boundaries only (`stack.ts:283-288` calls
   `ruleProcess` + `betweenEffects`, no recompute; documented precondition
   `GameEngine.ts:3306-3313`). Exposure is narrow (grant + same-window read with no nested
   window in between). One-line fix in the resolver loop.
 
-### 4. Cut-in chain cap — NOT a divergence; DCGO's cap is dead and inverted code
+### 4. Cut-in chain cap — NOT a divergence; the reference's cap is dead and inverted code
 
 - `ChainActivations` is never set by any of the ~4,700 card scripts; the only writer is
   the constructor default `-1` (`ICardEffect.cs:38`), so the gate at
@@ -177,43 +177,43 @@ member or seam is needed.**
   port a bug.
 - The sibling guard `IsCutInEffectHasUsed` is hardcoded `false`
   (`AutoProcessing.cs:1094-1097`).
-- The guard DCGO actually relies on, `HasExecutedSameEffect` (`AutoProcessing.cs:628`),
+- The guard the reference actually relies on, `HasExecutedSameEffect` (`AutoProcessing.cs:628`),
   already has a stronger Aegis equivalent: the `resolved` set (`stack.ts:151-162`), plus
-  `departed` which DCGO lacks.
+  `departed` which the reference lacks.
 - The rules never define a per-chain cap. Loops are handled by §18-3-2 (draw when neither
   player can stop it — implemented: `stack.ts:207-215`, `GameEngine.ts:3335-3341`, tested
   in `ch18-other-information.test.ts:233-266`) and §18-3-3 (declare-repeat-count when a
   player CAN stop it — **not implemented**; see plan item P5).
-- The 10 DCGO cut-in cards (Green ＜Digisorption＞) all exist in Aegis and cannot loop:
+- The 10 reference cut-in cards (Green ＜Digisorption＞) all exist in Aegis and cannot loop:
   Digisorption is an inline digivolve-cost payment (`digisorptionDigivolve.ts`,
   `GameEngine.payDigisorption`), not a nested trigger window.
 
 ### 5. Two representations vs one list — unchanged
 
 PR #4607 unified the RESOLUTION, not the representation: Aegis still has collected timing
-effects plus SubTrigger watchers, while DCGO has the single `StackedSkillInfos`. The
+effects plus SubTrigger watchers, while the reference has the single `StackedSkillInfos`. The
 functional gaps this split causes are exactly items 1 (pooling) and 2 (location check)
 above; once those land, collapsing the representation is an IR and card-module migration
 with no independent correctness payoff. Deferred deliberately.
 
 ## Divergences that are deliberate
 
-- **Collection.** DCGO fixes the pending list when the event happens and only re-filters it
+- **Collection.** The reference fixes the pending list when the event happens and only re-filters it
   by `CanActivate` each turn of the loop (`MultipleSkills.cs:76-160`). Aegis re-collects
   from the board every pass (`stack.ts`, `env.collect(timing)`), compensating with the
   `resolved` / `departed` sets. Aegis can therefore pick up an effect that becomes
-  triggerable mid-window without a new event; DCGO cannot.
-- **Ordering prompt identity.** DCGO builds the prompt from `RootCardSources` and maps the
+  triggerable mid-window without a new event; the reference cannot.
+- **Ordering prompt identity.** The reference builds the prompt from `RootCardSources` and maps the
   answer back through the CARD (`MultipleSkills.cs:181-244`), so two simultaneous effects of
   the same card resolve first-listed-first. Aegis addresses each entry by
   `instanceId + effectKey` (`packages/shared/src/protocol/triggerKey.ts`), which also
   distinguishes two copies of the same card.
-- **Hand-effect prompt.** DCGO has a separate UI path for the Blast case — all stacked
+- **Hand-effect prompt.** The reference has a separate UI path for the Blast case — all stacked
   effects from hand, optional, distinct cards — via `SelectHandEffect`
   (`MultipleSkills.cs:184-240`), including "don't activate these effects". Aegis routes
   everything through the one `orderTriggers` decision; the rule that declining requires the
   whole group to be optional is the same on both sides.
-- **Digisorption.** DCGO models it as a nested cut-in trigger window; Aegis as an inline
+- **Digisorption.** The reference models it as a nested cut-in trigger window; Aegis as an inline
   interactive cost payment (CR §16-10). Same outcomes, no chain, no cap needed.
 
 ## Behavior confirmed identical
