@@ -132,6 +132,26 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Use Gaia Force em Zephagamon. O jogador adversário pode aceitar sua proteção e suspender seu Agumon para impedir a deleção.",
     en: "Use Gaia Force on Zephagamon. Its controller may accept protection and suspend your Agumon to prevent deletion.",
   },
+  "arena-issue-5168-alter-s-simultaneous": {
+    ptBR: "Ataque com Alter-S e aceite seu Fim de Ataque. As duas fontes entram juntas; Garurumon pode evoluir para WereGarurumon EX9-019 da mão sem custo. Alter-S vira a segurança do topo.",
+    en: "Attack with Alter-S and accept End of Attack. Both sources enter together; Garurumon can evolve into hand WereGarurumon EX9-019 for free. Alter-S becomes top security.",
+  },
+  "arena-issue-5169-demidevimon-native": {
+    ptBR: "Jogue Arukenimon e delete DemiDevimon para reduzir o custo. Resolva o efeito nativo de DemiDevimon: coloque-o sob Arukenimon e evolua para MaloMyotismon. Seu efeito herdado não pode ativar retroativamente; Agumon adversário e sua carta na mão permanecem.",
+    en: "Play Arukenimon and delete DemiDevimon to reduce its cost. Resolve DemiDevimon’s native effect: place it under Arukenimon and evolve into MaloMyotismon. Its inherited effect cannot activate retroactively; the opposing Agumon and your hand card remain.",
+  },
+  "arena-issue-5170-kaguyamon-end-turn": {
+    ptBR: "Encerre o turno e aceite Kaguyamon EX9-033. Escolha Sistermon Blanc ou Ciel no lixo; ambas são Puppet de nível 4 ou menor e podem entrar sem custo.",
+    en: "End your turn and accept EX9-033 Kaguyamon. Choose trash Sistermon Blanc or Ciel; both are level 4 or lower Puppets and can enter for free.",
+  },
+  "arena-issue-5170-kaguyamon-on-play": {
+    ptBR: "Jogue Kaguyamon EX12-065 e aceite seu Ao Jogar. Escolha Sistermon Blanc ou Ciel no lixo para jogar sem custo. Seu Ao Deletar devolve um Digimon adversário ao fundo do deck; não joga Puppets.",
+    en: "Play EX12-065 Kaguyamon and accept On Play. Choose trash Sistermon Blanc or Ciel to play for free. Its On Deletion returns an opposing Digimon to the deck bottom; it does not play Puppets.",
+  },
+  "arena-issue-5170-arisa-overclock": {
+    ptBR: "Encerre o turno, aceite Overclock e delete o Familiar Token. Aceite Arisa e suspenda-a para comprar 1. Escolha Sistermon Blanc ou Ciel na mão para jogar sem custo. Arisa deve estar ativa; ela não joga do lixo.",
+    en: "End your turn, accept Overclock and delete the Familiar Token. Accept Arisa and suspend her to draw 1. Choose hand Sistermon Blanc or Ciel to play for free. Arisa must be unsuspended; she does not play from trash.",
+  },
   "arena-issue-5159-kudamon-moving": {
     ptBR: "Mova Kudamon da criação. Mesmo sem Tamer em campo, selecione uma carta revelada para a mão e confirme a ordem das restantes no fundo do deck. A movimentação encerra a criação automaticamente; a fase Principal deve continuar normalmente.",
     en: "Move Kudamon out of breeding. With no Tamer on the field, select a revealed card for the hand and confirm the order of the remaining cards at the bottom of the deck. Moving ends breeding automatically; Main must then continue normally.",
@@ -1656,6 +1676,11 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-5171-taomon-famis", "GitHub #5171 · Taomon ACE uses Famis"],
   ["arena-issue-5127-opponent-suspend-cost", "GitHub #5127 · Opposing suspend cost"],
   ["arena-issue-5127-opponent-survival", "GitHub #5127 · Opposing survival cost"],
+  ["arena-issue-5168-alter-s-simultaneous", "GitHub #5168 · alter-s-simultaneous"],
+  ["arena-issue-5169-demidevimon-native", "GitHub #5169 · demidevimon-native"],
+  ["arena-issue-5170-kaguyamon-end-turn", "GitHub #5170 · kaguyamon-end-turn"],
+  ["arena-issue-5170-kaguyamon-on-play", "GitHub #5170 · kaguyamon-on-play"],
+  ["arena-issue-5170-arisa-overclock", "GitHub #5170 · arisa-overclock"],
   ["arena-issue-5159-kudamon-moving", "GitHub #5159 · Kudamon moving reveal"],
   ["arena-issue-5158-guilmon-x-reveal", "GitHub #5158 · Guilmon X reveal"],
   ["arena-issue-5050-counter-immunity", "GitHub #5050 · Counter immunity"],

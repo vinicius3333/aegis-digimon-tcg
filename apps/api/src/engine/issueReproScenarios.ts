@@ -36,6 +36,37 @@ const ISSUE_LAYOUTS = {
       { field: [{ card: "BT1-010" }, { card: "BT1-011" }] },
     ],
   },
+  "arena-issue-5168-alter-s-simultaneous": {
+    players: [
+      {
+        field: [{ card: "EX9-021", under: ["EX9-012", "AD1-010"] }],
+        hand: ["EX9-019"],
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+      { security: ["BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-issue-5169-demidevimon-native": {
+    players: [
+      { field: [{ card: "P-239" }], hand: ["EX10-048", "EX10-011", "BT1-009"] },
+      { field: [{ card: "BT1-009", suspended: true }] },
+    ],
+  },
+  "arena-issue-5170-kaguyamon-end-turn": {
+    players: [{ field: [{ card: "EX9-033" }], trash: ["BT23-076", "BT23-077"] }, {}],
+  },
+  "arena-issue-5170-kaguyamon-on-play": {
+    players: [{ hand: ["EX12-065"], trash: ["BT23-076", "BT23-077"] }, {}],
+  },
+  "arena-issue-5170-arisa-overclock": {
+    players: [
+      {
+        field: [{ card: "EX11-060" }, { card: "EX11-024" }, { card: "TOKEN-Familiar-Token" }],
+        hand: ["BT23-076", "BT23-077"],
+      },
+      { security: ["BT1-009", "BT1-009"] },
+    ],
+  },
   "arena-issue-5127-opponent-suspend-cost": {
     memory: 8,
     players: [
