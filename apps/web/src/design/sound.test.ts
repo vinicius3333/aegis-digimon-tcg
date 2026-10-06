@@ -95,6 +95,16 @@ async function ready() {
 }
 
 describe("prepared original AudioBuffer mixer", () => {
+  it("avoids the Web Audio output path on touch Opera devices", async () => {
+    vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => undefined);
+    vi.spyOn(HTMLMediaElement.prototype, "load").mockImplementation(() => undefined);
+    vi.stubGlobal("navigator", {
+      userAgent: "Mozilla/5.0 (Linux; Android 13; Tablet) Chrome/122 Safari/537.36 OPR/80.0.0.0",
+      maxTouchPoints: 5,
+    });
+    await ready();
+    expect(Context.instances).toHaveLength(0);
+  });
   it("uses buffered output on touch devices and the device's native sample rate", async () => {
     vi.stubGlobal("navigator", { userAgent: navigator.userAgent, maxTouchPoints: 5 });
     const ctx = await ready();
@@ -102,7 +112,7 @@ describe("prepared original AudioBuffer mixer", () => {
   });
   it("uses buffered output for Android tablets even without touch capability reporting", async () => {
     vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
-      "Mozilla/5.0 (Linux; Android 13; Tablet) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36 OPR/80.0.0.0",
+      "Mozilla/5.0 (Linux; Android 13; Tablet) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36",
     );
     const ctx = await ready();
     expect(ctx.options).toEqual({ latencyHint: "playback" });

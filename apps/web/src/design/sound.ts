@@ -1,5 +1,6 @@
 import { cueKey, type SoundKind, type SoundDetails } from "./audioRecipes";
 import { AUDIO_BANK_URL, AUDIO_CUES, MUSIC_URL } from "./audioBank";
+import { MediaAudio, needsMediaAudio } from "./mediaAudio";
 export type { SoundKind, SoundDetails } from "./audioRecipes";
 const clamp = (value: number, fallback = 0) => (Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : fallback);
 
@@ -45,10 +46,20 @@ let musicBuffer: AudioBuffer | null = null;
 const assets = new Map<string, Promise<ArrayBuffer>>();
 const decoding = new Map<string, Promise<void>>();
 let epoch = 0;
+let mediaAudio: MediaAudio | null = null;
+function getMediaAudio(): MediaAudio | null {
+  if (!needsMediaAudio()) return null;
+  mediaAudio ??= new MediaAudio(
+    () => ({ enabled, effectsVolume: volume * SFX_MIX_GAIN, musicEnabled, musicVolume, musicWanted }),
+    MAX_SOUND_VOICES,
+  );
+  return mediaAudio;
+}
 
 /** Network starts at app mount; each buffer decodes independently only in a gesture-created context. */
 export async function prepareAudio(): Promise<void> {
-  const urls = [AUDIO_BANK_URL, MUSIC_URL];
+  const media = getMediaAudio();
+  const urls = media ? [AUDIO_BANK_URL] : [AUDIO_BANK_URL, MUSIC_URL];
   await Promise.all(
     urls.map(async (url) => {
       let request = assets.get(url);
@@ -61,6 +72,10 @@ export async function prepareAudio(): Promise<void> {
           assets.set(url, request);
         }
         const bytes = await request;
+        if (media) {
+          media.prepare(bytes);
+          return;
+        }
         const ctx = context;
         const isMusic = url === MUSIC_URL;
         if (!ctx || !unlocked || (isMusic ? musicBuffer : cueBuffer)) return;
@@ -105,11 +120,13 @@ export function setSoundEnabled(next: boolean): void {
   enabled = next;
   persist("aegis.sound.enabled", next);
   ramp(effectsBus, next ? volume * SFX_MIX_GAIN : 0);
+  mediaAudio?.sync();
 }
 export function setSoundVolume(next: number): void {
   volume = clamp(next);
   persist("aegis.sound.volume", volume);
   ramp(effectsBus, enabled ? volume * SFX_MIX_GAIN : 0);
+  mediaAudio?.sync();
 }
 export const isMusicEnabled = () => musicEnabled;
 export const getMusicVolume = () => musicVolume;
@@ -128,6 +145,12 @@ export function setMusicVolume(next: number): void {
 export function unlockAudio(): void {
   if (typeof window === "undefined") return;
   try {
+    const media = getMediaAudio();
+    if (media) {
+      media.unlock();
+      void prepareAudio();
+      return;
+    }
     if (!context) {
       const Ctor =
         window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -171,6 +194,10 @@ export function unlockAudio(): void {
 
 /** One steady original score, prepared outside presentation callbacks. */
 function syncMusic(): void {
+  if (mediaAudio) {
+    mediaAudio.sync();
+    return;
+  }
   const ctx = context;
   const audible = musicWanted && musicEnabled && musicVolume > 0 && !document.hidden;
   ramp(musicBus, audible ? musicVolume : 0);
@@ -228,6 +255,7 @@ function stopMusicVoices(): void {
 }
 export function stopMusic(): void {
   musicWanted = false;
+  mediaAudio?.sync();
   ramp(musicBus, 0);
   stopMusicVoices();
 }
@@ -259,6 +287,10 @@ function stopPlayback(): void {
 
 /** Presentation cues never create a context or try to bypass autoplay. */
 export function playSound(kind: SoundKind, details?: SoundDetails): void {
+  if (mediaAudio) {
+    mediaAudio.play(kind, details);
+    return;
+  }
   if (
     !enabled ||
     volume <= 0 ||
@@ -287,6 +319,8 @@ export function playSound(kind: SoundKind, details?: SoundDetails): void {
   node.start(now, cue.offset, cue.duration);
 }
 export function disposeAudio(): void {
+  mediaAudio?.dispose();
+  mediaAudio = null;
   epoch++;
   decoding.clear();
   cueBuffer = null;
@@ -309,7 +343,17 @@ export function installAudioLifecycle(): () => void {
   const gesture = (event: Event) => {
     if (event.isTrusted) unlockAudio();
   };
+  // Touch activation is granted at pointerup; native Opera media may reject
+  // playback attempted by the earlier pointerdown capture listener.
+  const mediaGesture = (event: Event) => {
+    if (mediaAudio && event.isTrusted) unlockAudio();
+  };
   const visibility = () => {
+    if (mediaAudio) {
+      if (document.hidden) mediaAudio.stop();
+      else mediaAudio.sync();
+      return;
+    }
     if (!context || !unlocked) return;
     if (document.hidden) {
       stopPlayback();
@@ -321,6 +365,7 @@ export function installAudioLifecycle(): () => void {
         .catch(() => undefined);
   };
   document.addEventListener("pointerdown", gesture, true);
+  document.addEventListener("pointerup", mediaGesture, true);
   document.addEventListener("keydown", gesture, true);
   document.addEventListener("visibilitychange", visibility);
   let restoreMusic = false;
@@ -338,6 +383,7 @@ export function installAudioLifecycle(): () => void {
   window.addEventListener("pageshow", pageShow);
   return () => {
     document.removeEventListener("pointerdown", gesture, true);
+    document.removeEventListener("pointerup", mediaGesture, true);
     document.removeEventListener("keydown", gesture, true);
     document.removeEventListener("visibilitychange", visibility);
     window.removeEventListener("pagehide", pageHide);
