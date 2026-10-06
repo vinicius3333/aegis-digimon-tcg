@@ -1,4 +1,4 @@
-/** Aegis cue arrangements of licensed CC0 recorded foley; offline authoring and preview share finished PCM. */
+/** Aegis cue arrangements of licensed CC0 recorded foley, plus original synthesized tone for digivolution; offline authoring and preview share finished PCM. */
 export const SOUND_KINDS = [
   "select",
   "nav",
@@ -125,6 +125,22 @@ export function audioRecipe(
       gain: gain * (direction === "crisp" ? 0.88 : 1),
       hz: 1,
     });
+  const tone = (
+    texture: Exclude<Texture, "recording">,
+    at: number,
+    length: number,
+    gain: number,
+    hz: number,
+    endHz?: number,
+  ) =>
+    layers.push({
+      texture,
+      at,
+      duration: length,
+      gain: gain * (direction === "crisp" ? 0.88 : 1),
+      hz,
+      ...(endHz ? { endHz } : {}),
+    });
   switch (kind) {
     case "select":
       play("touch", 0, 0.22);
@@ -169,16 +185,45 @@ export function audioRecipe(
       break;
     }
     case "digivolve": {
+      // An original digivolution in four beats: the digivice charges, a data cocoon sweeps up,
+      // a crystal arpeggio spins, and the new form lands on a flash. Higher target levels and
+      // skipped levels lengthen every beat and raise the key, so 3->4 stays short and 6->7 soars.
       const source = finite(details.sourceLevel, 3, 1, 7),
         target = finite(details.targetLevel, 4, 2, 7);
-      // The build-up grows with the arriving level (3->4 stays short, 5->6 swells) and with skipped levels.
       const jump = Math.max(1, target - source),
-        stages = Math.min(4, Math.max(target - 2, jump + 1)),
-        gap = 0.062 + source * 0.006;
-      const gestures: FoleyKind[] = ["slide", "cut", "flick", "placeFirm"];
-      for (let i = 0; i < stages; i++) play(gestures[i]!, i * gap, 0.22 + i * 0.04);
-      play(target >= 6 ? "placeStack" : target >= 4 ? "placeHeavy" : "placeLight", stages * gap, 0.3 + target * 0.018);
-      play("stack", stages * gap + 0.035, 0.1 + target * 0.008);
+        intensity = Math.min(4, Math.max(0, target - 4) + (jump > 1 ? 1 : 0)),
+        root = 60 + [0, 2, 4, 5, 7][intensity]!,
+        major = [0, 4, 7];
+      const charges = 2 + intensity;
+      for (let i = 0; i < charges; i++)
+        tone("pluck", i * 0.055, 0.08, 0.045, midi(root + 24 + major[i % 3]! + 12 * Math.floor(i / 3)));
+      play("slide", 0, 0.24);
+      const sweepAt = charges * 0.055,
+        sweep = 0.3 + intensity * 0.11;
+      tone("pad", sweepAt, sweep, 0.07 + intensity * 0.008, midi(root - 12), midi(root + intensity * 2));
+      tone("air", sweepAt, sweep, 0.05 + intensity * 0.01, 1400 + intensity * 500);
+      play("cut", sweepAt + sweep * 0.4, 0.2);
+      const arpeggio = 3 + intensity * 2,
+        spin = Math.min(0.05, (sweep * 0.7) / arpeggio),
+        spinAt = sweepAt + sweep - arpeggio * spin;
+      for (let i = 0; i < arpeggio; i++)
+        tone(
+          "glass",
+          spinAt + i * spin,
+          0.16,
+          0.03 + i * 0.002,
+          midi(root + 12 + major[i % 3]! + 12 * Math.floor(i / 3)),
+        );
+      const flash = sweepAt + sweep;
+      play(target >= 6 ? "placeStack" : target >= 4 ? "placeHeavy" : "placeLight", flash, 0.3 + target * 0.018);
+      play("stack", flash + 0.035, 0.1 + target * 0.008);
+      tone("body", flash, 0.35 + intensity * 0.08, 0.09 + intensity * 0.01, midi(root - 24));
+      for (const interval of [0, 4, 7, 12])
+        tone("glass", flash + 0.01, 0.55 + intensity * 0.12, 0.028, midi(root + interval));
+      if (intensity >= 2)
+        for (let i = 0; i < intensity + 1; i++)
+          tone("glass", flash + 0.12 + i * 0.07, 0.3, 0.018, midi(root + 31 + [0, 5, 9, 12, 17][i]!));
+      if (intensity >= 3) tone("pad", flash, 0.6 + intensity * 0.1, 0.045, midi(root - 5), midi(root - 5));
       break;
     }
     case "deDigivolve":
@@ -413,7 +458,12 @@ export function renderCue(
 ): Float32Array {
   const recipe = audioRecipe(kind, details, direction);
   const output = new Float32Array(Math.round(recipe.duration * sampleRate));
-  for (const layer of recipe.layers) {
+  const synthesized = recipe.layers.filter((layer) => layer.texture !== "recording");
+  if (synthesized.length) {
+    const tone = renderLayers(synthesized, recipe.duration, sampleRate, 1);
+    for (let i = 0; i < output.length; i++) output[i]! += tone[i] ?? 0;
+  }
+  for (const layer of recipe.layers.filter((item) => item.texture === "recording")) {
     const recording = sources?.recordings?.[layer.source as FoleyKind];
     if (!recording) throw new Error(`Recorded foley source required: ${layer.source}`);
     const start = Math.round(layer.at * sampleRate),
@@ -426,7 +476,7 @@ export function renderCue(
       output[start + i]! += value * layer.gain;
     }
   }
-  // Linear relative mix, natural playback rate, no noise/oscillator/pitch substitution or per-cue normalization.
+  // Linear relative mix at natural playback rate, no per-cue normalization. Only authored tone layers are synthesized.
   let previous = 0,
     filtered = 0;
   const coefficient = Math.exp((-2 * Math.PI * 12) / sampleRate);

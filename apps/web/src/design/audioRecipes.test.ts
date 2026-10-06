@@ -62,7 +62,13 @@ describe("authored original bank", () => {
     }
     expect(audioRecipe("draw").duration).toBeLessThan(0.2);
     expect(() => renderCue("draw")).toThrow(/Recorded foley source required/);
-    for (const recipe of recipes) expect(recipe.layers.every((layer) => layer.texture === "recording")).toBe(true);
+    for (const recipe of recipes) {
+      const recorded = recipe.layers.filter((layer) => layer.texture === "recording");
+      // Only digivolution layers original synthesized tone over its card foley.
+      if (recipe.kind === "digivolve") expect(recorded.length).toBeLessThan(recipe.layers.length);
+      else expect(recorded).toHaveLength(recipe.layers.length);
+      expect(recorded.length).toBeGreaterThan(0);
+    }
   });
   it("compares the rejected cue version and exact natural recorded runtime slices", () => {
     const root = new URL("../../public/audio/", import.meta.url);
@@ -146,11 +152,14 @@ describe("authored original bank", () => {
       renderCue("turnChange", {}, "warm", 48000, sources),
     );
 
-    const gestureCount = (sourceLevel: number, targetLevel: number) =>
-      audioRecipe("digivolve", { sourceLevel, targetLevel }).layers.length;
-    expect(gestureCount(3, 4)).toBeLessThan(gestureCount(4, 5));
-    expect(gestureCount(4, 5)).toBeLessThan(gestureCount(5, 6));
-    expect(gestureCount(5, 6)).toBe(gestureCount(6, 7));
+    const evolution = (sourceLevel: number, targetLevel: number) =>
+      audioRecipe("digivolve", { sourceLevel, targetLevel });
+    const steps = [evolution(3, 4), evolution(4, 5), evolution(5, 6), evolution(6, 7)];
+    for (let i = 1; i < steps.length; i++) {
+      expect(steps[i]!.layers.length).toBeGreaterThan(steps[i - 1]!.layers.length);
+      expect(steps[i]!.duration).toBeGreaterThan(steps[i - 1]!.duration);
+    }
+    expect(evolution(3, 5).duration).toBeGreaterThan(evolution(4, 5).duration);
 
     expect(cueKey("digivolve", { sourceLevel: NaN, targetLevel: Infinity })).toBe("digivolve-3-4");
     expect(cueKey("cardPlay", { cost: Infinity })).toBe("cardPlay-5-plain");
