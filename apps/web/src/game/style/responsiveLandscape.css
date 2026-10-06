@@ -21,7 +21,7 @@
        there is no action to offer. */
     grid-template-columns: minmax(0, 1fr) auto;
     overflow: hidden !important;
-    background: var(--ds-brand-ink);
+    background: var(--ds-ink);
   }
   .game-board {
     min-height: 0;
@@ -29,13 +29,13 @@
     grid-template-rows: auto minmax(0, 1fr) auto;
     flex: 1 1 auto !important;
     overflow: hidden;
-    background: var(--ds-game-surface) !important;
+    background: color-mix(in srgb, var(--ds-sheet) 94%, transparent) !important;
   }
   .game-opponent-bar {
     min-height: 44px;
     padding: var(--ds-space-1) var(--ds-space-3) !important;
     border-bottom: 0 !important;
-    background: var(--ds-brand-ink) !important;
+    background: var(--ds-ink) !important;
   }
   .game-opponent-identity > div:last-child > div:last-child {
     display: none !important;
@@ -54,7 +54,7 @@
     display: flex;
     align-items: center;
     flex-direction: column;
-    color: var(--ds-brand-on-ink);
+    color: var(--ds-on-ink);
     font-size: 0.625rem;
     text-align: center;
     text-transform: uppercase;
@@ -75,10 +75,10 @@
     width: 40px;
     min-height: 40px;
     padding: 0;
-    color: var(--ds-brand-on-ink);
-    border: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 42%, transparent);
+    color: var(--ds-on-ink);
+    border: 1px solid color-mix(in srgb, var(--ds-on-ink) 42%, transparent);
     border-radius: var(--ds-radius-sm);
-    background: color-mix(in srgb, var(--ds-brand-on-ink) 8%, transparent);
+    background: color-mix(in srgb, var(--ds-on-ink) 8%, transparent);
   }
   .game-field {
     width: 100%;
@@ -88,7 +88,7 @@
     flex: 1 1 auto !important;
     overflow: hidden !important;
     border: 0 !important;
-    background: var(--ds-game-surface-strong);
+    background: var(--ds-sheet);
   }
   .game-pile-column {
     width: auto !important;
@@ -193,7 +193,7 @@
     gap: var(--ds-space-2);
     align-items: center;
     overflow: hidden;
-    border-right: 1px solid var(--ds-border) !important;
+    border-right: 1px solid var(--ds-line) !important;
     border-bottom: 0 !important;
   }
   /* The sideways "breeding area" caption is ~110px of writing-mode text, which
@@ -241,7 +241,7 @@
     overscroll-behavior-x: contain;
     scroll-snap-type: x proximity;
     scrollbar-width: thin;
-    scrollbar-color: var(--ds-accent) var(--ds-surface-muted);
+    scrollbar-color: var(--ds-accent) var(--ds-fill);
   }
   .game-player-dock [data-testid="hand"] > div {
     flex: 0 0 auto;
@@ -269,8 +269,8 @@
     flex-direction: column !important;
     overflow: hidden;
     border-top: 0 !important;
-    border-left: 1px solid var(--ds-border);
-    background: var(--ds-brand-ink) !important;
+    border-left: 1px solid var(--ds-line);
+    background: var(--ds-ink) !important;
   }
   .game-sidebar > div:first-child,
   .game-sidebar > div:nth-child(3),
@@ -313,11 +313,11 @@
     padding: var(--ds-space-2) !important;
     flex-wrap: wrap;
     overflow: auto;
-    color: var(--ds-fg);
-    border: 1px solid var(--ds-border-strong);
+    color: var(--ds-text);
+    border: 1px solid var(--ds-line-strong);
     border-radius: var(--ds-radius-md);
-    background: var(--ds-surface);
-    box-shadow: var(--ds-shadow-lg);
+    background: var(--ds-sheet);
+    box-shadow: var(--ds-shadow-raise);
   }
   .opponent-action-feed {
     top: calc(3.25rem + env(safe-area-inset-top, 0px));
@@ -593,8 +593,8 @@
     min-height: 0;
     padding: 0 0.375rem;
     border-radius: 999px;
-    color: var(--ds-brand-on-ink);
-    background: var(--ds-brand-ink);
+    color: var(--ds-on-ink);
+    background: var(--ds-ink);
   }
   .aegis-arena .game-board .game-arena-counters[data-side] .game-arena-counter__icon {
     display: flex;

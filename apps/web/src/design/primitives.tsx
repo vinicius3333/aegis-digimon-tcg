@@ -333,7 +333,7 @@ export function ColorDot({ color, size = 12, ring }: { color: string; size?: num
         borderRadius: "50%",
         background: c.base,
         flexShrink: 0,
-        boxShadow: ring ? `0 0 0 2px var(--ds-surface), 0 0 0 3px ${c.base}` : "none",
+        boxShadow: ring ? `0 0 0 2px var(--ds-sheet), 0 0 0 3px ${c.base}` : "none",
         display: "inline-block",
       }}
     />
@@ -390,7 +390,7 @@ export function Avatar({
         fontFamily: "var(--ds-font-display)",
         fontWeight: 800,
         fontSize: size * 0.4,
-        boxShadow: ring ? `0 0 0 2px var(--ds-background), 0 0 0 4px ${c.base}` : "none",
+        boxShadow: ring ? `0 0 0 2px var(--ds-paper), 0 0 0 4px ${c.base}` : "none",
       }}
     >
       {imageUrl ? (
@@ -436,8 +436,8 @@ export function Logo({ size = 26, sub = true }: { size?: number; sub?: boolean }
         <div
           className="aegis-logo__wordmark"
           style={{
-            color: "var(--ds-fg)",
-            fontFamily: "var(--ds-font-brand)",
+            color: "var(--ds-text)",
+            fontFamily: "var(--ds-font-display)",
             fontSize: Math.round(size * 0.9),
             fontWeight: 900,
             letterSpacing: "0.08em",
@@ -454,7 +454,7 @@ export function Logo({ size = 26, sub = true }: { size?: number; sub?: boolean }
               fontFamily: "var(--ds-font-mono)",
               fontSize: 8.5,
               letterSpacing: "0.32em",
-              color: "var(--ds-foreground-muted)",
+              color: "var(--ds-text-3)",
               marginTop: 2,
             }}
           >

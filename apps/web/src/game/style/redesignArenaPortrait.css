@@ -4,10 +4,10 @@
 
 /* The field arrows are portalled to the stage, outside the board's tokens. */
 .game-battle-scroll-arrow {
-  color: var(--ds-brand-on-ink);
+  color: var(--ds-on-ink);
   border: 1px solid rgb(255 255 255 / 25%);
   border-radius: var(--ds-radius-md);
-  background: color-mix(in srgb, var(--ds-brand-ink) 90%, transparent);
+  background: color-mix(in srgb, var(--ds-ink) 90%, transparent);
   box-shadow: 0 4px 14px rgb(0 0 0 / 35%);
 }
 
@@ -22,11 +22,11 @@
 
   /* The top bar is ink in both looks, as the app's header is. */
   .aegis-arena .game-board .game-opponent-bar {
-    color: var(--ds-brand-on-ink);
+    color: var(--ds-on-ink);
     background: var(--arena-plate) !important;
     box-shadow:
       inset 0 -1px 0 color-mix(in srgb, var(--arena-opponent) 45%, transparent),
-      0 3px 10px color-mix(in srgb, var(--ds-brand-ink) 25%, transparent);
+      0 3px 10px color-mix(in srgb, var(--ds-ink) 25%, transparent);
   }
 
   /* One row: the opponent's portrait and name, their counters, their card backs
@@ -41,7 +41,7 @@
     grid-column: 1;
     grid-row: 1;
     max-width: 30vw;
-    color: var(--ds-brand-on-ink);
+    color: var(--ds-on-ink);
     font-size: 10px;
     line-height: 12px;
   }
@@ -109,7 +109,7 @@
     right: 150px;
     display: flex;
     height: 24px;
-    color: var(--ds-brand-on-ink);
+    color: var(--ds-on-ink);
     font-size: 11px;
   }
 
@@ -119,9 +119,9 @@
   }
 
   .aegis-arena .game-board .game-opponent-bar .game-arena-counter {
-    color: var(--ds-brand-on-ink);
+    color: var(--ds-on-ink);
     border-color: color-mix(in srgb, var(--arena-opponent) 55%, transparent);
-    background: color-mix(in srgb, var(--ds-brand-on-ink) 10%, transparent);
+    background: color-mix(in srgb, var(--ds-on-ink) 10%, transparent);
   }
 
   .aegis-arena .game-opponent-hand > div > div {
@@ -134,9 +134,9 @@
     width: 36px;
     height: 36px;
     border-radius: 8px;
-    color: var(--ds-brand-on-ink);
-    border: 1px solid color-mix(in srgb, var(--ds-brand-accent-soft) 35%, transparent);
-    background: color-mix(in srgb, var(--ds-brand-on-ink) 8%, transparent);
+    color: var(--ds-on-ink);
+    border: 1px solid color-mix(in srgb, var(--ds-ink-accent) 35%, transparent);
+    background: color-mix(in srgb, var(--ds-on-ink) 8%, transparent);
     box-shadow: none;
   }
 
@@ -151,13 +151,13 @@
   }
 
   .aegis-arena .game-mobile-menu__actions {
-    border-color: color-mix(in srgb, var(--ds-brand-accent-soft) 40%, transparent);
-    background: var(--ds-brand-ink);
+    border-color: color-mix(in srgb, var(--ds-ink-accent) 40%, transparent);
+    background: var(--ds-ink);
   }
 
   .aegis-arena .game-mobile-menu__actions > button {
-    color: var(--ds-brand-on-ink);
-    background: color-mix(in srgb, var(--ds-brand-on-ink) 8%, transparent);
+    color: var(--ds-on-ink);
+    background: color-mix(in srgb, var(--ds-on-ink) 8%, transparent);
   }
 
   .aegis-arena .game-mobile-menu__actions > button:last-child {
@@ -167,7 +167,7 @@
   /* Each side's eggs, raising area, security, deck and trash share one framed row. */
   .aegis-arena .game-board .game-field::before,
   .aegis-arena .game-board .game-field::after {
-    border: 1px dashed color-mix(in srgb, var(--arena-side, var(--ds-brand-accent-soft)) 45%, transparent);
+    border: 1px dashed color-mix(in srgb, var(--arena-side, var(--ds-ink-accent)) 45%, transparent);
     background: var(--arena-zone-fill);
     box-shadow: none;
     backdrop-filter: blur(3px);
@@ -183,7 +183,7 @@
 
   .aegis-arena .game-board .game-pile__top {
     box-shadow:
-      2px 2px 0 var(--ds-brand-ink-soft),
+      2px 2px 0 var(--ds-ink-raised),
       0 4px 8px rgb(0 0 0 / 35%) !important;
   }
 
@@ -197,8 +197,8 @@
     border: 0;
     background: var(--arena-track);
     box-shadow:
-      inset 0 0 0 1px color-mix(in srgb, var(--ds-brand-accent-soft) 25%, transparent),
-      0 0 24px color-mix(in srgb, var(--ds-brand-ink) 45%, transparent);
+      inset 0 0 0 1px color-mix(in srgb, var(--ds-ink-accent) 25%, transparent),
+      0 0 24px color-mix(in srgb, var(--ds-ink) 45%, transparent);
     backdrop-filter: blur(4px);
   }
 
@@ -222,11 +222,11 @@
   }
 
   .aegis-arena .game-board .game-memory-coin[data-memory-side="zero"] {
-    background: color-mix(in srgb, var(--ds-brand-on-ink) 55%, var(--arena-track-cell)) !important;
+    background: color-mix(in srgb, var(--ds-on-ink) 55%, var(--arena-track-cell)) !important;
   }
 
   .aegis-arena .game-board .game-memory-coin--five .game-memory-coin__n {
-    color: var(--ds-brand-on-ink-muted);
+    color: var(--ds-on-ink-2);
   }
 
   /* The current value, in a large circle of the side it sits on. */
@@ -236,19 +236,19 @@
     border: 0;
     background: var(--arena-player);
     box-shadow:
-      0 0 0 2px var(--ds-brand-ink),
+      0 0 0 2px var(--ds-ink),
       0 0 14px color-mix(in srgb, var(--arena-player) 65%, transparent);
   }
 
   .aegis-arena .game-board .game-memory-coin--marker[data-memory-side="opp"]::before {
     background: var(--arena-opponent);
     box-shadow:
-      0 0 0 2px var(--ds-brand-ink),
+      0 0 0 2px var(--ds-ink),
       0 0 14px color-mix(in srgb, var(--arena-opponent) 65%, transparent);
   }
 
   .aegis-arena .game-board .game-memory-coin--marker[data-memory-side="zero"]::before {
-    background: var(--ds-brand-on-ink);
+    background: var(--ds-on-ink);
   }
 
   .aegis-arena .game-board .game-memory-coin--marker .game-memory-coin__n,
@@ -258,7 +258,7 @@
   }
 
   .aegis-arena .game-board .game-memory-coin--marker[data-memory-side="zero"] .game-memory-coin__n {
-    color: var(--ds-brand-ink);
+    color: var(--ds-ink);
   }
 
   .aegis-arena .game-board .game-memory-gauge__phase {
@@ -277,7 +277,7 @@
   .aegis-arena .game-board .game-end-turn-orb {
     border: 0;
     box-shadow:
-      0 0 0 2px var(--ds-brand-ink),
+      0 0 0 2px var(--ds-ink),
       0 0 16px color-mix(in srgb, var(--arena-player) 55%, transparent);
     font-family: var(--ds-font-display);
     text-transform: uppercase;
@@ -285,14 +285,14 @@
 
   .aegis-arena .game-board .game-end-turn-orb--breeding {
     box-shadow:
-      0 0 0 2px var(--ds-brand-ink),
+      0 0 0 2px var(--ds-ink),
       0 0 16px color-mix(in srgb, var(--ds-warning) 55%, transparent);
   }
 
   .aegis-arena .game-board :is(.game-end-turn-orb--waiting, .game-end-turn-orb:disabled) {
-    color: var(--ds-brand-on-ink-muted);
-    background: color-mix(in srgb, var(--ds-brand-on-ink) 10%, var(--ds-brand-ink));
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-brand-accent-soft) 30%, transparent);
+    color: var(--ds-on-ink-2);
+    background: color-mix(in srgb, var(--ds-on-ink) 10%, var(--ds-ink));
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-ink-accent) 30%, transparent);
   }
 
   /* ---- The hand tray ---- */
@@ -301,13 +301,13 @@
     background: var(--arena-plate) !important;
     box-shadow:
       inset 0 1px 0 color-mix(in srgb, var(--arena-player) 45%, transparent),
-      0 -4px 16px color-mix(in srgb, var(--ds-brand-ink) 25%, transparent);
+      0 -4px 16px color-mix(in srgb, var(--ds-ink) 25%, transparent);
   }
 
   .aegis-arena .game-board .game-player-dock .game-arena-counter {
-    color: var(--ds-brand-on-ink);
+    color: var(--ds-on-ink);
     border-color: color-mix(in srgb, var(--arena-player) 55%, transparent);
-    background: color-mix(in srgb, var(--ds-brand-on-ink) 10%, transparent);
+    background: color-mix(in srgb, var(--ds-on-ink) 10%, transparent);
   }
 
   .aegis-arena .game-board .game-player-dock [data-testid="hand"] {
@@ -324,11 +324,11 @@
 
   .aegis-arena .game-board :is(.game-hand-card__inspect, .game-permanent__inspect) {
     border-color: rgb(255 255 255 / 45%);
-    background: color-mix(in srgb, var(--ds-brand-ink) 75%, transparent);
+    background: color-mix(in srgb, var(--ds-ink) 75%, transparent);
   }
 
   .aegis-arena .game-field > .game-breeding-dock > .game-breeding-hint {
-    color: var(--ds-brand-on-ink);
+    color: var(--ds-on-ink);
     border-color: color-mix(in srgb, var(--arena-player) 60%, transparent);
     background: var(--arena-plate);
   }

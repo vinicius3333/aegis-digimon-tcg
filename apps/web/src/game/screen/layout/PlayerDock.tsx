@@ -87,8 +87,8 @@ export function PlayerDock({
       style={{
         position: "relative",
         flexShrink: 0,
-        borderTop: "1px solid var(--ds-border)",
-        background: "var(--ds-surface)",
+        borderTop: "1px solid var(--ds-line)",
+        background: "var(--ds-sheet)",
         display: "flex",
         alignItems: "stretch",
       }}

@@ -14,9 +14,9 @@
 .audio-preview section,
 .audio-preview details {
   padding: 1.25rem;
-  border: 1px solid var(--ds-border);
+  border: 1px solid var(--ds-line);
   border-radius: var(--ds-radius-md);
-  background: var(--ds-surface);
+  background: var(--ds-sheet);
 }
 .audio-preview h1 {
   font-family: var(--ds-font-display);
@@ -28,7 +28,7 @@
   margin: 0 0 0.75rem;
 }
 .audio-preview p {
-  color: var(--ds-fg-secondary);
+  color: var(--ds-text-2);
 }
 .audio-preview a {
   color: var(--ds-accent);
@@ -43,9 +43,9 @@
 .audio-preview button {
   min-height: 2.75rem;
   padding: 0.5rem 0.75rem;
-  background: var(--ds-surface-muted);
-  color: var(--ds-fg);
-  border: 1px solid var(--ds-border-strong);
+  background: var(--ds-fill);
+  color: var(--ds-text);
+  border: 1px solid var(--ds-line-strong);
   border-radius: var(--ds-radius-sm);
   cursor: pointer;
 }
@@ -91,7 +91,7 @@
 .audio-preview td {
   padding: 0.75rem 0.5rem;
   white-space: nowrap;
-  border-bottom: 1px solid var(--ds-border-soft);
+  border-bottom: 1px solid var(--ds-line);
 }
 @media (max-width: 375px) {
   .audio-preview {

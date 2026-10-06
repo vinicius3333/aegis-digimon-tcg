@@ -57,7 +57,7 @@ export function OpponentBattleRow({
     padding: "12px 18px 26px",
   };
   const emptyLabel = (
-    <span style={{ fontSize: 12, color: "var(--ds-foreground-disabled)", fontFamily: "var(--ds-font-mono)" }}>
+    <span style={{ fontSize: 12, color: "var(--ds-text-off)", fontFamily: "var(--ds-font-mono)" }}>
       {t("game.noDigimon")}
     </span>
   );

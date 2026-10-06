@@ -77,7 +77,7 @@ export function RightPileColumn({
       style={{
         width: 130,
         flexShrink: 0,
-        borderLeft: "1px solid var(--ds-border)",
+        borderLeft: "1px solid var(--ds-line)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",

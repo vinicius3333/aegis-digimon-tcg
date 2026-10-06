@@ -9,12 +9,12 @@
   align-items: center;
   gap: var(--ds-space-3);
   padding: var(--ds-space-3) var(--ds-space-4) var(--ds-space-3) var(--ds-space-3);
-  color: var(--ds-brand-on-ink);
-  border: 1px solid color-mix(in srgb, var(--ds-brand-accent-soft) 24%, transparent);
+  color: var(--ds-on-ink);
+  border: 1px solid color-mix(in srgb, var(--ds-ink-accent) 24%, transparent);
   border-left: 3px solid var(--ds-success);
   border-radius: var(--ds-radius-lg);
-  background: var(--ds-brand-ink);
-  box-shadow: var(--ds-elev-overlay);
+  background: var(--ds-ink);
+  box-shadow: var(--ds-shadow-overlay);
   animation: aegis-rise var(--ds-motion-base) var(--ds-ease-standard);
 }
 
@@ -24,7 +24,7 @@
   height: 26px;
   flex: none;
   place-items: center;
-  color: var(--ds-brand-ink);
+  color: var(--ds-ink);
   border-radius: var(--ds-radius-pill);
   background: color-mix(in srgb, var(--ds-success) 70%, white);
 }

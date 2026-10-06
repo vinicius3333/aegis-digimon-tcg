@@ -97,9 +97,9 @@ function readPalette() {
   const style = getComputedStyle(document.documentElement);
   const token = (name: string, fallback: string) => style.getPropertyValue(name).trim() || fallback;
   return {
-    trace: token("--ds-border-strong", "#aeb5c0"),
+    trace: token("--ds-line-strong", "#aeb5c0"),
     pulse: token("--ds-accent", "#075ff7"),
-    node: token("--ds-card-rim-ready", "#0891b2"),
+    node: token("--ds-rim-ready", "#0891b2"),
   };
 }
 

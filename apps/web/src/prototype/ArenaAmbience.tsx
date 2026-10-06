@@ -15,8 +15,8 @@ interface Shard {
 }
 
 const SHARD_COUNT = 46;
-const SHARD_TOKENS = ["--ds-accent", "--ds-brand-accent-soft", "--ds-card-rim-ready", "--ds-particle-glow"];
-const RARE_TOKEN = "--ds-card-rim-attention";
+const SHARD_TOKENS = ["--ds-accent", "--ds-ink-accent", "--ds-rim-ready", "--ds-ink-accent"];
+const RARE_TOKEN = "--ds-rim-attention";
 
 function readColors() {
   const style = getComputedStyle(document.documentElement);

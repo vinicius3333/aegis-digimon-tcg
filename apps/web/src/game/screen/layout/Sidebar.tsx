@@ -43,14 +43,14 @@ export function Sidebar({
       style={{
         width: 296,
         flexShrink: 0,
-        borderLeft: "1px solid var(--ds-border)",
-        background: "var(--ds-surface)",
+        borderLeft: "1px solid var(--ds-line)",
+        background: "var(--ds-sheet)",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
       }}
     >
-      <div style={{ padding: "16px 18px", borderBottom: "1px solid var(--ds-border)" }}>
+      <div style={{ padding: "16px 18px", borderBottom: "1px solid var(--ds-line)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <Logo size={18} sub={false} />
           <Badge tone={isMyTurn ? "primary" : "neutral"}>
@@ -59,7 +59,7 @@ export function Sidebar({
                 width: 6,
                 height: 6,
                 borderRadius: "50%",
-                background: isMyTurn ? "var(--ds-primary)" : "var(--ds-foreground-muted)",
+                background: isMyTurn ? "var(--ds-accent)" : "var(--ds-text-3)",
               }}
             />
             {isMyTurn ? t("game.yourTurn") : t("game.opponentsTurn")}
@@ -74,8 +74,8 @@ export function Sidebar({
                 textAlign: "center",
                 padding: "6px 2px",
                 borderRadius: 8,
-                background: phase === p ? "var(--ds-primary)" : "var(--ds-surface-muted)",
-                color: phase === p ? "#fff" : "var(--ds-foreground-muted)",
+                background: phase === p ? "var(--ds-accent)" : "var(--ds-fill)",
+                color: phase === p ? "#fff" : "var(--ds-text-3)",
                 fontSize: 9.5,
                 fontWeight: 700,
               }}
@@ -88,7 +88,7 @@ export function Sidebar({
           style={{
             fontFamily: "var(--ds-font-mono)",
             fontSize: 11,
-            color: "var(--ds-foreground-muted)",
+            color: "var(--ds-text-3)",
             marginTop: 8,
             textAlign: "center",
           }}
@@ -100,7 +100,7 @@ export function Sidebar({
       <div
         style={{
           padding: "14px 18px",
-          borderBottom: "1px solid var(--ds-border)",
+          borderBottom: "1px solid var(--ds-line)",
           display: "flex",
           flexDirection: "column",
           gap: 8,
@@ -112,7 +112,7 @@ export function Sidebar({
             fontWeight: 700,
             letterSpacing: "0.1em",
             textTransform: "uppercase",
-            color: "var(--ds-foreground-muted)",
+            color: "var(--ds-text-3)",
           }}
         >
           {t("game.actions")}
@@ -134,7 +134,7 @@ export function Sidebar({
             fontWeight: 700,
             letterSpacing: "0.1em",
             textTransform: "uppercase",
-            color: "var(--ds-foreground-muted)",
+            color: "var(--ds-text-3)",
             marginBottom: 10,
           }}
         >
@@ -142,7 +142,7 @@ export function Sidebar({
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
           {log.length === 0 ? (
-            <span style={{ fontSize: 12, color: "var(--ds-foreground-disabled)" }}>{t("game.noActions")}</span>
+            <span style={{ fontSize: 12, color: "var(--ds-text-off)" }}>{t("game.noActions")}</span>
           ) : null}
           {log.map((e, i) => (
             <div
@@ -164,13 +164,13 @@ export function Sidebar({
                   flexShrink: 0,
                   background:
                     e.kind === "you"
-                      ? "var(--ds-primary)"
+                      ? "var(--ds-accent)"
                       : e.kind === "opp"
                         ? "var(--ds-danger)"
-                        : "var(--ds-foreground-disabled)",
+                        : "var(--ds-text-off)",
                 }}
               />
-              <span style={{ color: "var(--ds-foreground-secondary)" }}>{e.text}</span>
+              <span style={{ color: "var(--ds-text-2)" }}>{e.text}</span>
             </div>
           ))}
         </div>
@@ -185,8 +185,8 @@ export function Sidebar({
             flexDirection: "column",
             gap: 6,
             padding: "12px 16px",
-            borderTop: "1px solid var(--ds-border)",
-            background: "var(--ds-surface-muted)",
+            borderTop: "1px solid var(--ds-line)",
+            background: "var(--ds-fill)",
           }}
         >
           {/* The board fills the viewport, so the report button the rest of the client shows in the

@@ -145,8 +145,8 @@ export function Pile({
               inset: 0,
               transform: `translate(${(index + 1) * 1.2}px,${(index + 1) * 1.2}px)`,
               borderRadius: 8,
-              background: "var(--ds-surface-muted)",
-              border: "1px solid var(--ds-border)",
+              background: "var(--ds-fill)",
+              border: "1px solid var(--ds-line)",
             }}
           >
             {shuffleMotion ? <CardBack width={w} useSelectedSleeve={useSelectedSleeve} egg={egg} /> : null}
@@ -190,8 +190,8 @@ export function Pile({
               zIndex: 3,
               bottom: -2,
               right: -2,
-              background: "var(--ds-foreground)",
-              color: "var(--ds-background)",
+              background: "var(--ds-text)",
+              color: "var(--ds-paper)",
               fontFamily: "var(--ds-font-mono)",
               fontSize: 10,
               fontWeight: 600,
@@ -208,7 +208,7 @@ export function Pile({
           fontFamily: "var(--ds-font-mono)",
           fontSize: compact ? 8 : 10,
           letterSpacing: "0.05em",
-          color: "var(--ds-foreground-muted)",
+          color: "var(--ds-text-3)",
           textTransform: "uppercase",
         }}
       >

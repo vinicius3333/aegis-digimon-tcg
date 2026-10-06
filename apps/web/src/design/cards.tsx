@@ -90,8 +90,8 @@ export function CardBack({
         width,
         height: h,
         borderRadius: Math.max(6, width * 0.07),
-        background: sleeve.src ? "#0b1020" : "linear-gradient(150deg, var(--ds-surface-muted), var(--ds-surface))",
-        border: "1px solid var(--ds-border-strong)",
+        background: sleeve.src ? "#0b1020" : "linear-gradient(150deg, var(--ds-fill), var(--ds-sheet))",
+        border: "1px solid var(--ds-line-strong)",
         display: "grid",
         placeItems: "center",
         position: "relative",
@@ -112,12 +112,12 @@ export function CardBack({
           height={width * 0.5}
           viewBox="0 0 24 24"
           fill="none"
-          stroke="var(--ds-primary)"
+          stroke="var(--ds-accent)"
           strokeWidth={1.4}
           style={{ opacity: 0.85 }}
         >
           <polygon points="12 2 21.5 7 21.5 17 12 22 2.5 17 2.5 7" />
-          <polygon points="12 7 17 9.5 17 14.5 12 17 7 14.5 7 9.5" fill="var(--ds-primary)" opacity="0.25" />
+          <polygon points="12 7 17 9.5 17 14.5 12 17 7 14.5 7 9.5" fill="var(--ds-accent)" opacity="0.25" />
         </svg>
       )}
       {label != null ? (
@@ -194,7 +194,7 @@ function CardZoomPreview({
           style={{
             width: "100%",
             height: "100%",
-            background: "var(--ds-surface-muted)",
+            background: "var(--ds-fill)",
             display: "grid",
             placeItems: "center",
           }}
@@ -265,14 +265,14 @@ export function CardFull({
         // itself (the hand strip) blanks the rim through these custom properties.
         border: `2px solid ${c.edge}`,
         boxShadow: selected
-          ? "0 0 0 2px var(--card-highlight-rim, var(--ds-card-rim-attention)), 0 0 18px var(--card-highlight-glow, var(--ds-card-glow-attention)), var(--ds-shadow-md)"
-          : "var(--ds-shadow-sm)",
+          ? "0 0 0 2px var(--card-highlight-rim, var(--ds-rim-attention)), 0 0 18px var(--card-highlight-glow, color-mix(in srgb, var(--ds-rim-attention) 40%, transparent)), var(--ds-shadow-raise)"
+          : "var(--ds-shadow-raise)",
         cursor: onClick ? "pointer" : "default",
         overflow: "hidden",
         opacity: dim ? 0.4 : 1,
         transition: "box-shadow 150ms, opacity 150ms",
         flexShrink: 0,
-        background: `radial-gradient(${c.soft}, var(--ds-surface-muted))`,
+        background: `radial-gradient(${c.soft}, var(--ds-fill))`,
         display: "grid",
         placeItems: "center",
       }}
@@ -285,14 +285,14 @@ export function CardFull({
             gap: 8,
             padding: 10,
             textAlign: "center",
-            color: "var(--ds-foreground)",
+            color: "var(--ds-text)",
             fontSize: 11,
             fontWeight: 700,
           }}
         >
           <Sigil cardId={cardId} color={key} size={Math.round(h * 0.32)} />
           <span>{def.nameEn}</span>
-          <span style={{ fontFamily: "var(--ds-font-mono)", color: "var(--ds-foreground-muted)" }}>{cardId}</span>
+          <span style={{ fontFamily: "var(--ds-font-mono)", color: "var(--ds-text-3)" }}>{cardId}</span>
         </div>
       ) : (
         <img
@@ -565,9 +565,9 @@ export function CardMini({
         // replaces the card's own colour edge.
         border: `1.5px solid ${c.edge}`,
         boxShadow: selected
-          ? "0 0 0 2px var(--card-highlight-rim, var(--ds-card-rim-attention)), 0 0 16px var(--card-highlight-glow, var(--ds-card-glow-attention)), 0 6px 14px rgba(15,23,42,0.32)"
+          ? "0 0 0 2px var(--card-highlight-rim, var(--ds-rim-attention)), 0 0 16px var(--card-highlight-glow, color-mix(in srgb, var(--ds-rim-attention) 40%, transparent)), 0 6px 14px rgba(15,23,42,0.32)"
           : attackable
-            ? "0 0 0 1.5px var(--ds-card-rim-threat), 0 0 12px var(--ds-card-glow-threat), 0 6px 14px rgba(15,23,42,0.32)"
+            ? "0 0 0 1.5px var(--ds-rim-threat), 0 0 12px color-mix(in srgb, var(--ds-rim-threat) 35%, transparent), 0 6px 14px rgba(15,23,42,0.32)"
             : "inset 0 0 0 1px rgba(255,255,255,0.06), 0 4px 10px rgba(15,23,42,0.26)",
         // The individual `rotate` property rather than `transform`, so a caller that already
         // owns the card's transform (the board's selection lift) cannot cancel the rotation.
@@ -583,7 +583,7 @@ export function CardMini({
           style={{
             width: "100%",
             height: "100%",
-            background: `radial-gradient(${c.soft}, var(--ds-surface-muted))`,
+            background: `radial-gradient(${c.soft}, var(--ds-fill))`,
             display: "grid",
             placeItems: "center",
           }}

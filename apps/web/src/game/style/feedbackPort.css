@@ -43,12 +43,12 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  font-family: var(--ds-font-sans);
+  font-family: var(--ds-font-body);
   font-size: 0.52rem;
   font-weight: 800;
   line-height: 1;
   white-space: nowrap;
-  color: var(--ds-on-danger);
+  color: var(--ds-on-status);
   background: var(--ds-danger);
   border: 1px solid rgb(255 255 255 / 35%);
   border-radius: 0.32rem;
@@ -107,17 +107,17 @@
 }
 
 .game-restriction-badge[data-protection] {
-  color: var(--ds-fg);
-  background: var(--ds-accent-surface);
+  color: var(--ds-text);
+  background: var(--ds-accent-soft);
 }
 
 .game-restriction-badge[data-dp="down"] {
-  color: var(--ds-on-danger);
+  color: var(--ds-on-status);
   background: var(--ds-danger);
 }
 
 .game-restriction-badge[data-dp="up"] {
-  color: var(--ds-on-success);
+  color: var(--ds-on-status);
   background: var(--ds-success);
 }
 
@@ -129,7 +129,7 @@
 }
 
 .game-restriction-badge[data-action] {
-  color: var(--ds-on-warning);
+  color: var(--ds-on-status);
   background: var(--ds-warning);
 }
 
@@ -154,7 +154,7 @@
   gap: 0.2rem;
   align-items: center;
   padding: 0.1rem 0.4rem;
-  font-family: var(--ds-font-sans);
+  font-family: var(--ds-font-body);
   font-size: 0.56rem;
   font-weight: 800;
   letter-spacing: 0.04em;

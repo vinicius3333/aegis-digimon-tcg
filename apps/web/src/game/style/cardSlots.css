@@ -52,5 +52,5 @@
 }
 
 .game-field-card-slot__label > span {
-  color: var(--arena-muted, var(--ds-foreground-disabled)) !important;
+  color: var(--arena-muted, var(--ds-text-off)) !important;
 }

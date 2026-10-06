@@ -36,7 +36,7 @@
   background: none;
   font-size: 12px;
   line-height: 1.5;
-  color: var(--ds-fg-secondary);
+  color: var(--ds-text-2);
 }
 .decision-overlay.effect-prompt-family .decision-overlay__grid:not(.decision-overlay__grid--scroll) {
   display: flex;
@@ -53,7 +53,7 @@
   flex: none;
   min-width: 0;
   padding: 0;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -72,11 +72,11 @@
   outline: none;
 }
 .decision-overlay.effect-prompt-family button:focus-visible {
-  outline: 3px solid var(--ds-focus-color);
+  outline: 3px solid var(--ds-focus);
   outline-offset: 4px;
 }
 .effect-prompt-family button:focus-visible {
-  outline: 3px solid var(--ds-focus-color);
+  outline: 3px solid var(--ds-focus);
   outline-offset: 4px;
 }
 .material-prompt {
@@ -101,7 +101,7 @@
 }
 .action-confirmation__detail {
   margin-top: 7px;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   font-size: 15px;
   line-height: 1.45;
 }

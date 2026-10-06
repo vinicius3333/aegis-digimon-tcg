@@ -54,7 +54,7 @@
     align-self: flex-start;
     padding: 0.5rem;
     border-radius: var(--ds-radius-md);
-    background: var(--ds-glass);
+    background: color-mix(in srgb, var(--ds-sheet) 90%, transparent);
   }
 
   .game-opponent-hand {
@@ -107,7 +107,7 @@
     right: -0.5rem;
     margin: 0 !important;
     padding: 0.125rem 0.5rem;
-    color: var(--ds-brand-on-ink) !important;
+    color: var(--ds-on-ink) !important;
     white-space: nowrap;
     border: 1px solid var(--arena-cyan);
     border-radius: var(--ds-radius-sm);
@@ -119,7 +119,7 @@
   }
 
   .game-topbar-button {
-    background: var(--ds-glass);
+    background: color-mix(in srgb, var(--ds-sheet) 90%, transparent);
   }
 
   .game-field {

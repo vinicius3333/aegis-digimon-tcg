@@ -1,146 +1,119 @@
 # Aegis interface design contract
 
-This document is the canonical design intent for the Aegis web client. The
-compiled values live in `tokens.css`; components must keep both sources aligned.
+This is the design intent for the Aegis web client. `tokens.css` holds the
+compiled values, and the card inks live in `theme.ts` (`COLORS`). Keep all
+three aligned.
 
-## Atmosphere and product character
+## Character
 
-Aegis is a calm, minimal operational tabletop client. It should feel deliberate
-and precise, with enough personality to belong to a competitive card game
-without turning every screen into a sci-fi HUD. Hierarchy comes from typography,
-spacing, alignment and grouping before containers or effects. Surfaces are
-quiet, borders are fine, elevation is rare, and gameplay color is reserved for
-cards, players, legal targets, and meaningful status. Decorative chrome must
-never compete with the current action.
+Aegis is a calm, precise card table. The color comes from the cards. The
+**bits backdrop** (`PixelBackdrop`) is the brand: mirrored 4×4 pixel glyphs in
+the seven card inks, falling behind every screen except the match. Everything
+else stays quiet so the bits and the cards carry the personality.
 
-Every visual element must earn its place through navigation, grouping, state or
-feedback. Avoid nested cards, ornamental gradients, glow, duplicate labels and
-icons that merely repeat nearby text. Prefer one boundary around a meaningful
-region to a separate panel around every item.
+Hierarchy comes from type, spacing, and grouping before containers or effects.
+Every element earns its place through navigation, grouping, state, or feedback.
+Avoid nested cards, ornamental gradients, glow outside card rims, and icons that
+repeat nearby text.
 
-## Color roles
+## Three rules
 
-The interface uses semantic surface, foreground, border, accent, and status
-roles. Light and dark themes change the values of those roles rather than
-restyling individual components. The seven gameplay colors in `theme.ts` are
-domain identity colors, not substitutes for success, warning, danger, or focus.
+1. **Bits live in the margins.** The backdrop is full strength in the gutters
+   and fades to 15% across the content column. Running text never sits on bare
+   bits: it sits on the page sheet (`.aegis-page-sheet`) or on `--ds-paper`
+   inside the faded column.
+2. **One interface hue.** `--ds-accent` (Aegis magenta) is the only color for
+   action and selection. Card inks mean card color and nothing else. Status uses
+   `--ds-success`, `--ds-warning`, and `--ds-danger`, always with a word or icon.
+3. **Navy frames, paper holds.** The `--ds-ink` band (top nav, mobile bar, beta
+   notice, stat strip, match dialogs) is navy in both themes. Content sits on
+   `--ds-paper` and `--ds-sheet`, which follow the theme.
 
-Normal text must reach 4.5:1 contrast and large text 3:1 against the paired
-surface. Status is always reinforced with a label, icon, position, or shape.
+## Tokens
 
-## Typography and hierarchy
+| Role | Tokens |
+| --- | --- |
+| Ground | `paper` (page and page sheet), `sheet` (panels, cards, dialogs), `fill` (inputs, pressed rows) |
+| Lines | `line` (hairlines), `line-strong` (control borders, 3:1) |
+| Text | `text`, `text-2`, `text-3`, `text-off` (disabled only) |
+| Accent | `accent`, `accent-strong` (hover/pressed), `on-accent`, `accent-soft`, `focus`, `focus-ring` |
+| Navy band | `ink`, `ink-raised`, `on-ink`, `on-ink-2`, `ink-accent` |
+| Status | `success`, `warning`, `danger`, each with `-soft`; `on-status` for labels on a solid fill |
+| Card rims | `rim-attention`, `rim-ready`, `rim-threat` |
 
-Bricolage Grotesque carries authored headings, Inter carries interface copy,
-Fira Code carries counts and telemetry, and Tektur is limited to the brand
-wordmark. Each visible region has one dominant entry point. Scale is combined
-with spacing, weight, tracking, or alignment so hierarchy does not depend on
-font size alone.
+All tokens carry the `--ds-` prefix. Derive tints with `color-mix()` instead of
+adding tokens: a status border is the status color at 40%, and a rim glow is
+the rim at 35–45%. Navy surfaces that are navy in both themes restate the
+dark values locally (see `dialogsAndNarration.css`).
 
-Use no more than three simultaneous visual levels in a region: primary,
-secondary, and incidental. Memory, costs, counts, and phase readouts use tabular
-numbers.
+Text meets 4.5:1 on `paper`, `sheet`, and `fill` in both themes; large text,
+control borders, focus, and meaningful icons meet 3:1.
 
-## Spacing, containers, and grids
+## Typography
 
-Spacing follows a 4 px base with named 4, 8, 12, 16, 20, 24, 32, 40, and 48 px
-steps. Use 8–12 px inside a conceptual group and 32–48 px between major groups.
-Uniform spacing between every block is not acceptable because it erases
-grouping.
+Tektur (`--ds-font-display`) sets anything authored: the hero, titles, section
+headings, nav, button labels, and eyebrows. Titles and labels are uppercase,
+and labels use `--ds-tracking-label`. Inter (`--ds-font-body`) sets every
+sentence. Fira Code (`--ds-font-mono`) sets memory, DP, costs, counts, and logs,
+always with tabular figures. A region shows at most three levels.
 
-Content uses responsive gutters and a 1280 px maximum container. App chrome is
-viewport-driven; reusable panels and card grids use container queries when
-their parent controls available width.
+## Space, shape, depth
+
+Spacing uses a 4px base (`--ds-space-1` to `--ds-space-12`). Use 8–12px inside a
+group and 32–48px between groups, and never space every block evenly. Radii stay
+small like the pixels: 4, 6, and 8px, with `--ds-radius-lg` as the largest. The
+page sheet uses `--ds-shadow-raise`, the only resting shadow. Popovers use
+`--ds-shadow-overlay`, and dialogs use `--ds-shadow-dialog` over `--ds-scrim`.
 
 ## Responsive composition
 
-Aegis renders one React application at every width. Responsive behavior changes
-composition, density, and progressive disclosure; it never selects a second
-business flow.
+One React application at every width. Width changes composition, density, and
+disclosure, never the business flow. Breakpoints: narrow under 600, medium
+600–959, compact 960–1279, wide from 1280. Below 600 the page sheet goes
+full-bleed and navigation moves to a bottom bar. Everything works from 320px, in
+landscape phone, at 200% zoom, and with long Portuguese strings. Changing width
+never resets the screen, draft, filter, selection, or server decision.
 
-- Narrow phone: bottom navigation, one-column reading order, sheets for
-  secondary tools, high-frequency actions in the thumb area.
-- Large phone/tablet: compact navigation and one/two-region hybrids.
-- Compact desktop: top navigation with reduced secondary panels.
-- Wide desktop: authored multi-panel grids with persistent supporting context.
+## Components and states
 
-The layout must work from 320 px wide, in landscape phone, at 200% zoom, and
-with long English and Portuguese strings. Breakpoints follow content pressure,
-not device names.
+Shared primitives own their visual grammar; feature code supplies meaning and
+callbacks. Prefer native HTML over invented ARIA. Every control has default,
+hover, pressed, focus-visible, disabled, and pending states. Touch targets are
+44px (`--ds-touch-target`) and never below 24px. Surfaces that load data cover
+loading, empty, error, populated, and edge states. Errors say what happened and
+what to do next, and keep the player's input.
 
-## Components and interaction states
+## Match board
 
-Shared buttons, icon buttons, panels, badges, navigation, dialogs, sheets,
-notices, and empty/error/loading states own their visual grammar. Feature code
-supplies meaning and callbacks. Native HTML is preferred over invented ARIA.
-
-Every control has default, hover where applicable, pressed, focus-visible,
-disabled, and pending behavior. Phone targets aim for 44 px and never fall
-below the 24 px WCAG AA floor. Hover is enhancement only.
-
-## Navigation
-
-Home, Play, Decks, and Cards are the primary destinations. Settings and profile
-remain reachable without competing with play. Wide layouts use top navigation;
-narrow layouts use bottom navigation. Both are presentations of the same item
-model, active state, translated labels, and navigation callback.
-
-Changing viewport width must not reset the current screen, draft, filter,
-selection, or server decision.
-
-## Match-board priorities
-
-The match board prioritizes, in order: current phase/turn and required decision;
-selected object and legal target; synchronized zones and memory; high-frequency
-actions; counts, logs, and secondary telemetry. Narrow layouts move secondary
-information into sheets while retaining the same controller and intent path.
-
-Animation never performs a game-state change. It may confirm a state already
-received from the authoritative server.
+Priorities, in order: the current phase and required decision; the selected
+object and legal target; zones and memory; frequent actions; counts and logs.
+Narrow layouts move secondary information into sheets. Animation never changes
+game state; it only confirms state from the server.
 
 ## Motion
 
-Use 50–100 ms for direct press feedback, 150 ms for hover and ordinary state
-confirmation, 180–260 ms for dialogs and sheets, and at most 500 ms for a major
-container transition. Use strong ease-out curves for value/color changes and a
-restrained physical curve for short transforms.
+Press feedback takes `--ds-motion-instant`, hover and state changes take
+`--ds-motion-fast`, and dialogs and sheets take `--ds-motion-base`. Under reduced
+motion, remove translation, scale, particles, and drift, and keep static cues.
 
-Under `prefers-reduced-motion: reduce`, remove translation, scale, rotation,
-parallax, particles, and ambient drift. Preserve static color, label, position,
-and opacity cues. No functional surface may contain indefinite decorative
-motion.
-
-One product-owner exception: the page backdrop (`PixelBackdrop`) animates its
-bits glyphs continuously behind every screen except the match. It stays at
-10 fps, behind all content, never takes pointer events, stops while the tab
-is hidden, and never runs under reduced motion. Do not extend this exception
+The backdrop is the one product-owner exception to "no indefinite decorative
+motion". It runs at 10 fps behind all content, never takes pointer events, stops
+while the tab is hidden, and never runs under reduced motion. Do not extend it
 to any other surface.
-
-## State coverage
-
-Every surface that loads, filters, transforms, or accepts data accounts for
-loading, empty, error, populated, and edge states. Forms additionally account
-for untouched, dirty-valid, invalid, and submitted-pending states. Errors say
-what happened, why when known, and what the player can do next while preserving
-input.
 
 ## Accessibility
 
-DOM and focus order follow meaning even when CSS changes visual placement.
-Icon-only buttons have accessible names. Dialogs and sheets manage initial
-focus, containment, Escape behavior when dismissible, and focus return. Required
-server decisions cannot be dismissed accidentally. Live updates use polite or
-assertive regions according to severity.
-
-Decorative sigils and ambient effects are hidden from assistive technology.
-Information is never communicated by gameplay color or animation alone.
+DOM order follows meaning. Icon-only buttons have names. Dialogs and sheets
+manage focus, Escape, and focus return; required server decisions cannot be
+dismissed by accident. Decorative effects are hidden from assistive technology.
+Information is never carried by card color or animation alone.
 
 ## Anti-patterns
 
-- Do not render complete desktop and mobile screen copies and hide one with CSS.
-- Do not branch product routing on `window.innerWidth`.
-- Do not hardcode repeated colors, spacing, radii, shadows, or motion in TSX.
-- Do not use gameplay colors as generic interface status.
-- Do not squeeze multi-panel desktop layouts onto a phone.
-- Do not make drag, hover, color, or animation the only interaction signal.
-- Do not add decorative dashboards, fake metrics, or rules invented by a mockup.
-- Do not move legality or authoritative game behavior into the client.
+- Rendering desktop and mobile copies of a screen and hiding one with CSS.
+- Branching product routing on `window.innerWidth`.
+- Hardcoding repeated colors, spacing, radii, shadows, or motion in TSX.
+- Adding a token for a tint that `color-mix()` can derive.
+- Using card inks as interface status, or the accent as a card color.
+- Putting text directly on full-strength bits.
+- Moving legality or authoritative game behavior into the client.

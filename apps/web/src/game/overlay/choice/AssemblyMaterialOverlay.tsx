@@ -99,10 +99,10 @@ export function AssemblyMaterialOverlay({
         style={{
           maxWidth: 640,
           width: "100%",
-          background: "var(--ds-surface)",
+          background: "var(--ds-sheet)",
           borderRadius: 18,
-          border: "1px solid var(--ds-border)",
-          boxShadow: "var(--ds-shadow-summary)",
+          border: "1px solid var(--ds-line)",
+          boxShadow: "var(--ds-shadow-raise)",
           padding: 24,
           display: "flex",
           flexDirection: "column",
@@ -116,11 +116,11 @@ export function AssemblyMaterialOverlay({
           <div>
             <div
               id={titleId}
-              style={{ fontFamily: "var(--ds-font-display)", fontWeight: 800, fontSize: 18, color: "var(--ds-fg)" }}
+              style={{ fontFamily: "var(--ds-font-display)", fontWeight: 800, fontSize: 18, color: "var(--ds-text)" }}
             >
               {t("overlay.assemblyTitle", { name: printedCardName(playingCardId) })}
             </div>
-            <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)", marginTop: 2 }}>
+            <div style={{ fontSize: 12.5, color: "var(--ds-text-3)", marginTop: 2 }}>
               {t("overlay.assemblyDetail", { reduction, cost: reducedCost })}
               {recipeLabels.length > 0 ? t("overlay.xrosAccepted", { slots: recipeLabels.join(" / ") }) : null}
             </div>
@@ -129,7 +129,7 @@ export function AssemblyMaterialOverlay({
 
         <div className="material-prompt__body">
           {candidates.length === 0 ? (
-            <div style={{ padding: "14px 0", textAlign: "center", fontSize: 13, color: "var(--ds-fg-disabled)" }}>
+            <div style={{ padding: "14px 0", textAlign: "center", fontSize: 13, color: "var(--ds-text-off)" }}>
               {t("overlay.assemblyNoMaterials")}
             </div>
           ) : (
@@ -155,7 +155,7 @@ export function AssemblyMaterialOverlay({
                       cursor: disabled ? "not-allowed" : "pointer",
                       opacity: disabled ? 0.45 : 1,
                       filter: disabled ? "grayscale(0.6)" : "none",
-                      background: selected ? "var(--ds-accent-surface)" : "var(--ds-surface-muted)",
+                      background: selected ? "var(--ds-accent-soft)" : "var(--ds-fill)",
                       border: `2px solid ${selected ? "var(--ds-accent)" : "transparent"}`,
                       transition: "background 100ms, border-color 100ms",
                       display: "flex",
@@ -169,7 +169,7 @@ export function AssemblyMaterialOverlay({
                       style={{
                         fontSize: 9.5,
                         fontWeight: 600,
-                        color: selected ? "var(--ds-accent)" : "var(--ds-fg-muted)",
+                        color: selected ? "var(--ds-accent)" : "var(--ds-text-3)",
                         textTransform: "uppercase",
                         letterSpacing: "0.05em",
                       }}
@@ -182,7 +182,7 @@ export function AssemblyMaterialOverlay({
             </div>
           )}
 
-          <div style={{ fontSize: 12, color: "var(--ds-fg-muted)" }}>
+          <div style={{ fontSize: 12, color: "var(--ds-text-3)" }}>
             {t("overlay.assemblySelected", { count: picks.length, needed })}
           </div>
         </div>

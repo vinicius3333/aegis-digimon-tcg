@@ -75,10 +75,10 @@ export function BreedingSlot({
           width: w,
           height: Math.round(w * 1.4),
           borderRadius: compact ? 8 : 12,
-          border: candidate ? "2px solid var(--ds-warning)" : "1.5px dashed var(--ds-border-strong)",
+          border: candidate ? "2px solid var(--ds-warning)" : "1.5px dashed var(--ds-line-strong)",
           display: "grid",
           placeItems: "center",
-          background: "var(--ds-surface-muted)",
+          background: "var(--ds-fill)",
           cursor: onClick ? "pointer" : "default",
           animation: candidate ? "aegis-pulse 1.2s ease-in-out infinite" : "none",
         }}
@@ -107,7 +107,7 @@ export function BreedingSlot({
           <span
             style={{
               fontSize: compact ? 8 : 10,
-              color: "var(--ds-foreground-disabled)",
+              color: "var(--ds-text-off)",
               fontFamily: "var(--ds-font-mono)",
             }}
           >
@@ -120,7 +120,7 @@ export function BreedingSlot({
           fontFamily: "var(--ds-font-mono)",
           fontSize: compact ? 8 : 10,
           letterSpacing: "0.05em",
-          color: "var(--ds-foreground-muted)",
+          color: "var(--ds-text-3)",
           textTransform: "uppercase",
         }}
       >

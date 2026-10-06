@@ -18,7 +18,7 @@ export function CardArt({ cardId, artId, width }: { cardId: string; artId?: stri
           width,
           height: h,
           borderRadius: 10,
-          background: `radial-gradient(${COLORS[colorKey(def.colors[0])].soft}, var(--ds-surface-muted))`,
+          background: `radial-gradient(${COLORS[colorKey(def.colors[0])].soft}, var(--ds-fill))`,
           display: "grid",
           placeItems: "center",
           flexShrink: 0,

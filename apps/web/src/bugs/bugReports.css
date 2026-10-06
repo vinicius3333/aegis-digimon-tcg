@@ -38,7 +38,7 @@
 
 .bug-report__title > svg {
   flex: none;
-  color: var(--ds-brand-accent-soft);
+  color: var(--ds-ink-accent);
 }
 
 .bug-report__head p {
@@ -62,9 +62,9 @@
   gap: var(--ds-space-2);
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--ds-border);
-  background: var(--ds-surface);
-  color: var(--ds-fg-secondary);
+  border: 1px solid var(--ds-line);
+  background: var(--ds-sheet);
+  color: var(--ds-text-2);
   font-size: var(--ds-text-sm);
   font-weight: 600;
   cursor: pointer;
@@ -88,7 +88,7 @@
 }
 
 .bug-report__kind:hover {
-  background: var(--ds-surface-muted);
+  background: var(--ds-fill);
 }
 
 .bug-report__kind:has(input:checked) {
@@ -127,11 +127,11 @@
   margin: var(--ds-space-1) 0 0;
   padding: 0;
   overflow-y: auto;
-  border: 1px solid var(--ds-border);
+  border: 1px solid var(--ds-line);
   border-radius: var(--ds-radius-md);
-  background: var(--ds-surface-raised);
+  background: var(--ds-sheet);
   list-style: none;
-  box-shadow: var(--ds-shadow-lg);
+  box-shadow: var(--ds-shadow-raise);
 }
 
 .bug-report__suggestion {
@@ -142,7 +142,7 @@
   padding: var(--ds-space-2) var(--ds-space-3);
   border: 0;
   background: transparent;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   font: inherit;
   font-size: 0.85rem;
   text-align: left;
@@ -150,17 +150,17 @@
 }
 
 .bug-report__suggestion[data-active] {
-  background: var(--ds-accent-surface);
+  background: var(--ds-accent-soft);
 }
 
 .bug-report__suggestion span {
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-family: var(--ds-font-mono);
 }
 
 .bug-report__hint {
   margin: 0;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-size: 0.78rem;
 }
 
@@ -180,7 +180,7 @@
   padding: 2px var(--ds-space-1) 2px var(--ds-space-2);
   border: 1px solid color-mix(in srgb, var(--ds-accent) 35%, transparent);
   border-radius: var(--ds-radius-sm);
-  background: var(--ds-accent-surface);
+  background: var(--ds-accent-soft);
   color: var(--ds-accent);
   font: 600 var(--ds-text-xs) / 1.4 var(--ds-font-mono);
 }
@@ -195,7 +195,7 @@
   border: 0;
   border-radius: var(--ds-radius-sm);
   background: transparent;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   cursor: pointer;
 }
 
@@ -243,8 +243,8 @@
     position: sticky;
     bottom: 0;
     padding: var(--ds-space-3) 0 max(var(--ds-space-3), env(safe-area-inset-bottom));
-    border-top: 1px solid var(--ds-border);
-    background: var(--ds-surface-raised);
+    border-top: 1px solid var(--ds-line);
+    background: var(--ds-sheet);
   }
 
   .bug-report__actions > button {

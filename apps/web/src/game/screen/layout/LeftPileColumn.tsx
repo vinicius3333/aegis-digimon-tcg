@@ -56,7 +56,7 @@ export function LeftPileColumn({
       style={{
         width: 130,
         flexShrink: 0,
-        borderRight: "1px solid var(--ds-border)",
+        borderRight: "1px solid var(--ds-line)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",

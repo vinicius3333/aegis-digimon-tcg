@@ -12,7 +12,7 @@ const STORAGE_KEY = "aegis.battlefield";
 const CUSTOM_IMAGE_KEY = "aegis.battlefield.custom";
 
 /** The original plain board surface, available as an explicit player choice. */
-const CLASSIC_SURFACE = "radial-gradient(120% 80% at 50% 50%, var(--ds-surface), var(--ds-background))";
+const CLASSIC_SURFACE = "radial-gradient(120% 80% at 50% 50%, var(--ds-sheet), var(--ds-paper))";
 
 export interface Battlefield {
   id: string;

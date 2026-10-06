@@ -23,7 +23,7 @@
 }
 
 .tournaments-page__head h1 {
-  color: var(--ds-fg);
+  color: var(--ds-text);
   font: 800 clamp(1.7rem, 3vw, 2.5rem)/1.08 var(--ds-font-display);
   letter-spacing: var(--ds-tracking-display);
   text-transform: uppercase;
@@ -32,7 +32,7 @@
 .tournaments-page__head p {
   max-width: 52ch;
   margin-top: var(--ds-space-2);
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
 }
 
 .tournaments-page__actions {
@@ -49,7 +49,7 @@
   gap: var(--ds-space-2);
   padding: var(--ds-space-8) var(--ds-space-5);
   text-align: center;
-  border: 1.5px dashed var(--ds-border);
+  border: 1.5px dashed var(--ds-line);
   border-radius: var(--ds-radius-md);
 }
 
@@ -59,21 +59,21 @@
   height: 52px;
   place-items: center;
   color: var(--ds-accent);
-  border: 1px solid var(--ds-info-border);
+  border: 1px solid color-mix(in srgb, var(--ds-accent) 40%, transparent);
   border-radius: var(--ds-radius-sm);
-  background: var(--ds-accent-surface);
+  background: var(--ds-accent-soft);
   margin-bottom: var(--ds-space-1);
 }
 
 .tournaments-empty__title {
-  color: var(--ds-fg);
+  color: var(--ds-text);
   font: 700 var(--ds-text-lg)/1.2 var(--ds-font-display);
 }
 
 .tournaments-empty__copy {
   max-width: 34rem;
   margin: 0 0 var(--ds-space-2);
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-size: var(--ds-text-sm);
   line-height: 1.5;
 }
@@ -105,8 +105,8 @@
 }
 
 .tournaments-card:hover {
-  border-color: var(--ds-border-strong);
-  box-shadow: var(--ds-elev-raised);
+  border-color: var(--ds-line-strong);
+  box-shadow: var(--ds-shadow-raise);
 }
 
 .tournaments-card__head {
@@ -131,7 +131,7 @@
   flex-wrap: wrap;
   gap: var(--ds-space-1) var(--ds-space-4);
   margin: 0;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-family: var(--ds-font-mono);
   font-size: var(--ds-text-xs);
 }
@@ -148,7 +148,7 @@
 }
 
 .tournaments-empty {
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
 }
 
 /* ---- Detail ---- */
@@ -198,7 +198,7 @@
 .tournaments-preview h3,
 .tournaments-estimates h3 {
   margin: 0 0 var(--ds-space-3);
-  color: var(--ds-fg-secondary);
+  color: var(--ds-text-2);
   font-size: var(--ds-text-xs);
   font-weight: 700;
   letter-spacing: var(--ds-tracking-label);
@@ -223,7 +223,7 @@
 .tournaments-detail dt,
 .tournaments-my-match dt {
   align-self: center;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-size: var(--ds-text-xs);
 }
 
@@ -262,7 +262,7 @@
 }
 
 .tournaments-note {
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-size: var(--ds-text-xs);
 }
 
@@ -274,7 +274,7 @@
 }
 
 .tournaments-organizer__danger {
-  border-top: 1px solid var(--ds-border);
+  border-top: 1px solid var(--ds-line);
   margin-top: var(--ds-space-3);
   padding-top: var(--ds-space-3);
 }
@@ -303,7 +303,7 @@
   align-items: center;
   gap: var(--ds-space-1) var(--ds-space-2);
   padding: var(--ds-space-2) 0;
-  border-top: 1px solid var(--ds-border-soft);
+  border-top: 1px solid var(--ds-line);
   font-size: var(--ds-text-sm);
 }
 
@@ -317,7 +317,7 @@
 
 .tournaments-standings li > span:first-child {
   min-width: 3ch;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-family: var(--ds-font-mono);
   font-size: var(--ds-text-xs);
 }
@@ -326,7 +326,7 @@
 .tournaments-banlist__copies,
 .tournaments-banlist__pair,
 .tournaments-seed {
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-family: var(--ds-font-mono);
   font-size: var(--ds-text-xs);
 }
@@ -338,7 +338,7 @@
 
 .tournaments-preview,
 .tournaments-estimates {
-  border-top: 1px solid var(--ds-border);
+  border-top: 1px solid var(--ds-line);
   padding-top: var(--ds-space-3);
 }
 
@@ -362,7 +362,7 @@
 
 .tournaments-bracket__round h4 {
   margin: 0 0 var(--ds-space-2);
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-size: var(--ds-text-xs);
   letter-spacing: var(--ds-tracking-label);
   text-transform: uppercase;
@@ -383,9 +383,9 @@
   align-items: center;
   gap: var(--ds-space-1) var(--ds-space-2);
   padding: var(--ds-space-2) var(--ds-space-3);
-  border: 1px solid var(--ds-border);
+  border: 1px solid var(--ds-line);
   border-radius: var(--ds-radius-md);
-  background: var(--ds-surface);
+  background: var(--ds-sheet);
   font-size: var(--ds-text-sm);
 }
 

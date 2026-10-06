@@ -5,7 +5,7 @@
 }
 
 .account-panel__loading {
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
 }
 
 /* ---- Signed out ---- */
@@ -26,21 +26,21 @@
   height: 46px;
   flex-shrink: 0;
   place-items: center;
-  color: var(--ds-brand-accent-soft);
-  border: 1px solid color-mix(in srgb, var(--ds-brand-accent-soft) 30%, transparent);
+  color: var(--ds-ink-accent);
+  border: 1px solid color-mix(in srgb, var(--ds-ink-accent) 30%, transparent);
   border-radius: var(--ds-radius-md);
-  background: var(--ds-brand-ink);
+  background: var(--ds-ink);
 }
 
 .account-panel__intro-title {
   display: block;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   font: 700 var(--ds-text-lg)/1.2 var(--ds-font-display);
 }
 
 .account-panel__intro-copy {
   margin: var(--ds-space-1) 0 0;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-size: var(--ds-text-sm);
   line-height: 1.5;
 }
@@ -49,7 +49,7 @@
   display: flex;
   align-items: center;
   gap: var(--ds-space-3);
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font: 700 var(--ds-text-xs) / 1 var(--ds-font-display);
   text-transform: uppercase;
   letter-spacing: var(--ds-tracking-label);
@@ -60,7 +60,7 @@
   content: "";
   height: 1px;
   flex: 1;
-  background: var(--ds-border);
+  background: var(--ds-line);
 }
 
 .account-panel__magic-link {
@@ -90,7 +90,7 @@
 .account-panel__identity-copy strong {
   display: block;
   overflow: hidden;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   font: 700 var(--ds-text-lg)/1.2 var(--ds-font-display);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -111,9 +111,9 @@
   display: grid;
   gap: var(--ds-space-3);
   padding: var(--ds-space-4);
-  border: 1px solid var(--ds-border);
+  border: 1px solid var(--ds-line);
   border-radius: var(--ds-radius-md);
-  background: var(--ds-surface-muted);
+  background: var(--ds-fill);
 }
 
 .account-panel__nickname h3,
@@ -122,7 +122,7 @@
 }
 
 .account-panel__nickname h3 {
-  color: var(--ds-fg);
+  color: var(--ds-text);
   font: 700 var(--ds-text-xs) / 1.3 var(--ds-font-display);
   letter-spacing: var(--ds-tracking-label);
   text-transform: uppercase;
@@ -130,7 +130,7 @@
 
 .account-panel__nickname p,
 .account-panel__nickname small {
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-size: var(--ds-text-xs);
 }
 
@@ -145,7 +145,7 @@
 .account-panel__nickname-value strong {
   min-width: 0;
   overflow: hidden;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   font: 700 var(--ds-text-lg) / 1.2 var(--ds-font-display);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -175,22 +175,22 @@
 
 .account-panel__deck {
   padding: var(--ds-space-2) var(--ds-space-3);
-  border: 1px solid var(--ds-border);
+  border: 1px solid var(--ds-line);
   border-left: 3px solid var(--ds-accent);
   border-radius: var(--ds-radius-md);
-  background: var(--ds-surface-muted);
+  background: var(--ds-fill);
 }
 
 .account-panel__deck strong {
   display: block;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   font-size: var(--ds-text-sm);
 }
 
 .account-panel__deck span {
   display: block;
   margin-top: 2px;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font: var(--ds-text-xs)/1.4 var(--ds-font-mono);
 }
 
@@ -200,9 +200,9 @@
   justify-content: space-between;
   gap: var(--ds-space-3);
   padding: var(--ds-space-2) 0;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-size: var(--ds-text-sm);
-  border-bottom: 1px solid var(--ds-border);
+  border-bottom: 1px solid var(--ds-line);
 }
 
 .account-panel__match:last-child {
@@ -224,12 +224,12 @@
 }
 
 .account-panel__match[data-result="draw"] strong {
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
 }
 
 .account-avatar-picker {
   padding-top: var(--ds-space-4);
-  border-top: 1px solid var(--ds-border);
+  border-top: 1px solid var(--ds-line);
 }
 
 .account-avatar-picker__heading {
@@ -241,28 +241,28 @@
 
 .account-avatar-picker h3 {
   margin: 0;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   font: 700 var(--ds-text-base) / 1.2 var(--ds-font-display);
   letter-spacing: var(--ds-tracking-display);
 }
 
 .account-avatar-picker p {
   margin: var(--ds-space-1) 0 0;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-size: var(--ds-text-sm);
   line-height: 1.45;
 }
 
 .account-avatar-picker__credit {
   margin-top: var(--ds-space-1);
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-size: var(--ds-text-xs);
 }
 
 .account-avatar-picker__search {
   display: grid;
   gap: var(--ds-space-1);
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-size: var(--ds-text-xs);
   font-weight: 700;
 }
@@ -271,15 +271,15 @@
   width: 100%;
   min-height: var(--ds-touch-target);
   padding: 0 var(--ds-space-3);
-  color: var(--ds-fg);
-  border: 1px solid var(--ds-border);
+  color: var(--ds-text);
+  border: 1px solid var(--ds-line);
   border-radius: var(--ds-radius-md);
   outline: none;
-  background: var(--ds-surface);
+  background: var(--ds-sheet);
 }
 
 .dark .account-avatar-picker__search input {
-  background: var(--ds-surface-muted);
+  background: var(--ds-fill);
 }
 
 .account-avatar-picker__search input:focus-visible {
@@ -301,7 +301,7 @@
 .account-avatar-option {
   min-width: 0;
   padding: var(--ds-space-1);
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-size: var(--ds-text-xs);
   line-height: 1.2;
   overflow-wrap: anywhere;
@@ -317,9 +317,9 @@
 }
 
 .account-avatar-option:hover:not(:disabled) {
-  color: var(--ds-fg);
-  border-color: var(--ds-border);
-  background: var(--ds-surface-muted);
+  color: var(--ds-text);
+  border-color: var(--ds-line);
+  background: var(--ds-fill);
 }
 
 .account-avatar-option:focus-visible {
@@ -330,7 +330,7 @@
 .account-avatar-option[aria-pressed="true"] {
   color: var(--ds-accent);
   border-color: var(--ds-accent);
-  background: var(--ds-accent-surface);
+  background: var(--ds-accent-soft);
   box-shadow: 0 0 0 1px var(--ds-accent);
 }
 
@@ -346,7 +346,7 @@
   margin-bottom: var(--ds-space-1);
   overflow: hidden;
   border-radius: calc(var(--ds-radius-sm) - 2px);
-  background: var(--ds-surface-muted);
+  background: var(--ds-fill);
 }
 
 .account-avatar-option__image img {
@@ -369,7 +369,7 @@
   font-weight: 900;
   border-radius: 50%;
   background: var(--ds-accent);
-  box-shadow: 0 0 0 2px var(--ds-surface);
+  box-shadow: 0 0 0 2px var(--ds-sheet);
 }
 
 .account-avatar-picker .account-avatar-picker__empty {

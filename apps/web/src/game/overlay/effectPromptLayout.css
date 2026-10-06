@@ -24,11 +24,11 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   min-width: 0 !important;
   margin: 0 !important;
   padding: var(--ds-space-5) !important;
-  color: var(--ds-fg);
-  border: 1px solid var(--ds-border) !important;
+  color: var(--ds-text);
+  border: 1px solid var(--ds-line) !important;
   border-radius: var(--ds-radius-lg) !important;
-  background: var(--ds-surface) !important;
-  box-shadow: var(--ds-elev-dialog) !important;
+  background: var(--ds-sheet) !important;
+  box-shadow: var(--ds-shadow-dialog) !important;
   overflow: hidden auto !important;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -87,7 +87,7 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   :is(.decision-overlay__title, .counter-overlay__header h2, .action-confirmation__title),
 .board-prompt[data-prompt-surface] .board-prompt__text {
   margin: 0;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   font: 700 1.25rem / 1.3 var(--ds-font-display) !important;
   text-transform: none;
   letter-spacing: var(--ds-tracking-display);
@@ -98,7 +98,7 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
 .board-prompt[data-prompt-surface] .board-prompt__clause {
   margin: 0;
   padding: 0 !important;
-  color: var(--ds-fg-secondary);
+  color: var(--ds-text-2);
   background: none;
   font-size: var(--ds-text-sm) !important;
   line-height: 1.55 !important;
@@ -161,7 +161,7 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   flex: none;
   margin: var(--ds-space-4) 0 calc(-1 * var(--ds-space-5));
   padding: var(--ds-space-3) 0 var(--ds-space-5);
-  background: var(--ds-surface);
+  background: var(--ds-sheet);
 }
 .game-modal__panel.effect-prompt-family[data-prompt-surface] .decision-overlay__footer > button,
 .game-modal__panel.effect-prompt-family[data-prompt-surface] .game-actions-row > button,
@@ -205,7 +205,7 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   > div:last-child
   > div
   + div {
-  color: var(--ds-fg-secondary) !important;
+  color: var(--ds-text-2) !important;
   font-size: var(--ds-text-sm) !important;
   line-height: 1.55;
 }
@@ -257,7 +257,7 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
 }
 .game-modal__panel.effect-prompt-family[data-prompt-surface] button:focus-visible,
 .board-prompt[data-prompt-surface] button:focus-visible {
-  outline: 3px solid var(--ds-focus-color);
+  outline: 3px solid var(--ds-focus);
   outline-offset: 3px;
 }
 .game-modal__panel.effect-prompt-family[data-prompt-surface] .effect-choice__option {
@@ -312,10 +312,10 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   max-height: calc(100dvh - var(--ds-space-8) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   overflow: hidden;
   padding: var(--ds-space-5);
-  border: 1px solid var(--ds-border);
+  border: 1px solid var(--ds-line);
   border-radius: var(--ds-radius-lg);
-  background: var(--ds-surface);
-  box-shadow: var(--ds-elev-dialog);
+  background: var(--ds-sheet);
+  box-shadow: var(--ds-shadow-dialog);
 }
 .mulligan-sheet > :not(.mulligan-cards) {
   flex: none;
@@ -355,14 +355,14 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   padding: var(--ds-space-2) var(--ds-space-4);
   color: var(--ds-accent);
   border-radius: var(--ds-radius-md);
-  background: var(--ds-accent-surface);
+  background: var(--ds-accent-soft);
   font: 800 clamp(1.125rem, 2vw, 1.5rem) / 1.3 var(--ds-font-display);
   text-transform: none;
   letter-spacing: 0;
 }
 .mulligan-sheet .mulligan-turn-order[data-turn-order="second"] {
   color: var(--ds-warning);
-  background: var(--ds-warning-surface);
+  background: var(--ds-warning-soft);
 }
 .mulligan-sheet .mulligan-title {
   padding: 0;
@@ -403,7 +403,7 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   position: sticky;
   bottom: 0;
   margin-top: auto;
-  background: var(--ds-brand-ink);
+  background: var(--ds-ink);
 }
 .opponent-permanent-inspector p {
   font-size: var(--ds-text-sm);
@@ -423,7 +423,7 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   position: sticky;
   bottom: calc(-1 * max(var(--ds-space-4), env(safe-area-inset-bottom, 0px)));
   padding-block: var(--ds-space-3) max(var(--ds-space-4), env(safe-area-inset-bottom, 0px));
-  background: var(--ds-surface);
+  background: var(--ds-sheet);
 }
 
 @media (width < 768px) {
@@ -617,7 +617,7 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   grid-area: actions;
 }
 .board-prompt[data-prompt-surface="left"][data-variant="selection"] .board-prompt__detail {
-  color: var(--ds-card-rim-ready);
+  color: var(--ds-rim-ready);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -626,10 +626,10 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   bottom: calc(-1 * var(--ds-space-4));
   margin-bottom: calc(-1 * var(--ds-space-4));
   padding-block: var(--ds-space-2) var(--ds-space-4);
-  background: var(--ds-surface);
+  background: var(--ds-sheet);
 }
 .game-hand--selecting .game-hand-card:focus-visible {
-  outline: 3px solid var(--ds-focus-color);
+  outline: 3px solid var(--ds-focus);
   outline-offset: 4px;
 }
 
@@ -1039,7 +1039,7 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   width: 32px;
   min-height: 44px;
   padding: 0;
-  color: var(--ds-fg-secondary);
+  color: var(--ds-text-2);
   border: 0;
   border-radius: var(--ds-radius-sm);
   background: transparent;

@@ -192,7 +192,7 @@
     color: #e4faff;
     background: #203f4f;
     text-align: left;
-    font: 600 12px/1.2 var(--ds-font-sans);
+    font: 600 12px/1.2 var(--ds-font-body);
     cursor: pointer;
   }
 
@@ -367,7 +367,7 @@
     border: 0;
     color: #e4faff !important;
     background: transparent;
-    font: 600 9px/12px var(--ds-font-sans) !important;
+    font: 600 9px/12px var(--ds-font-body) !important;
     letter-spacing: 0.02em !important;
     white-space: nowrap;
     text-shadow: 0 1px 2px #071c26;
@@ -465,7 +465,7 @@
     bottom: 0;
     overflow: hidden;
     color: #c4e6ed;
-    font: 600 8px/10px var(--ds-font-sans);
+    font: 600 8px/10px var(--ds-font-body);
     text-align: center;
     white-space: nowrap;
   }

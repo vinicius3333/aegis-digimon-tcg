@@ -4,31 +4,31 @@
    actions at the top-left sit on clean ground. Content colors come from the
    --aegis-panel-* properties so screens never branch on the theme. */
 .aegis-hero-panel {
-  --aegis-panel-fg: var(--ds-fg);
-  --aegis-panel-muted: var(--ds-fg-muted);
+  --aegis-panel-fg: var(--ds-text);
+  --aegis-panel-muted: var(--ds-text-3);
   --aegis-panel-eyebrow: var(--ds-accent);
-  --aegis-panel-border: var(--ds-border);
+  --aegis-panel-border: var(--ds-line);
 
   position: relative;
   isolation: isolate;
   overflow: hidden;
   padding: var(--aegis-panel-pad, clamp(var(--ds-space-5), 4vw, var(--ds-space-10)));
   color: var(--aegis-panel-fg);
-  background-color: var(--ds-surface);
+  background-color: var(--ds-sheet);
   border: 1px solid var(--aegis-panel-border);
-  border-radius: var(--ds-radius-xl);
+  border-radius: var(--ds-radius-lg);
 }
 
 .dark .aegis-hero-panel {
-  --aegis-panel-fg: var(--ds-brand-on-ink);
-  --aegis-panel-muted: var(--ds-brand-on-ink-muted);
-  --aegis-panel-eyebrow: var(--ds-brand-accent-soft);
-  --aegis-panel-border: color-mix(in srgb, var(--ds-brand-accent-soft) 22%, transparent);
+  --aegis-panel-fg: var(--ds-on-ink);
+  --aegis-panel-muted: var(--ds-on-ink-2);
+  --aegis-panel-eyebrow: var(--ds-ink-accent);
+  --aegis-panel-border: color-mix(in srgb, var(--ds-ink-accent) 22%, transparent);
 
   background: linear-gradient(
     135deg,
-    var(--ds-brand-ink-soft) 0%,
-    color-mix(in srgb, var(--ds-accent) 18%, var(--ds-brand-ink)) 100%
+    var(--ds-ink-raised) 0%,
+    color-mix(in srgb, var(--ds-accent) 18%, var(--ds-ink)) 100%
   );
 }
 
@@ -51,7 +51,7 @@
 }
 
 .dark .aegis-hero-panel::before {
-  background: var(--ds-brand-accent-soft);
+  background: var(--ds-ink-accent);
   opacity: 0.2;
 }
 
@@ -95,7 +95,7 @@
   min-width: var(--ds-space-6);
   height: 1px;
   margin-right: 6px;
-  background: var(--aegis-panel-border, var(--ds-border));
+  background: var(--aegis-panel-border, var(--ds-line));
 }
 
 .aegis-section-heading__rule::after {
@@ -115,9 +115,9 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin: 0;
-  color: var(--ds-brand-on-ink);
-  border: 1px solid color-mix(in srgb, var(--ds-card-rim-ready) 20%, transparent);
-  background: var(--ds-brand-ink);
+  color: var(--ds-on-ink);
+  border: 1px solid color-mix(in srgb, var(--ds-rim-ready) 20%, transparent);
+  background: var(--ds-ink);
 }
 
 .aegis-stat-strip::before,
@@ -127,7 +127,7 @@
   height: 18px;
   content: "";
   pointer-events: none;
-  border-color: var(--ds-card-rim-ready);
+  border-color: var(--ds-rim-ready);
   border-style: solid;
 }
 
@@ -150,7 +150,7 @@
   gap: var(--ds-space-1);
   padding: var(--ds-space-4) var(--ds-space-3);
   text-align: center;
-  border-color: color-mix(in srgb, var(--ds-brand-on-ink) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ds-on-ink) 10%, transparent);
   border-style: solid;
   border-width: 0;
 }
@@ -171,7 +171,7 @@
 }
 
 .aegis-stat-strip__label {
-  color: var(--ds-brand-on-ink-muted);
+  color: var(--ds-on-ink-2);
   font-size: 11px;
   letter-spacing: var(--ds-tracking-label);
   text-transform: uppercase;
@@ -199,12 +199,12 @@
   align-items: flex-start;
   gap: var(--ds-space-2);
   padding: var(--ds-space-2) var(--ds-space-3);
-  color: var(--ds-fg-secondary);
+  color: var(--ds-text-2);
   font-size: var(--ds-text-sm);
   line-height: var(--ds-leading-body);
-  border: 1px solid color-mix(in srgb, var(--ds-info-border) 50%, transparent);
+  border: 1px solid color-mix(in srgb, color-mix(in srgb, var(--ds-accent) 40%, transparent) 50%, transparent);
   border-radius: var(--ds-radius-md);
-  background: color-mix(in srgb, var(--ds-info-surface) 50%, transparent);
+  background: color-mix(in srgb, var(--ds-accent-soft) 50%, transparent);
 }
 
 .aegis-info-note__icon {
@@ -225,10 +225,10 @@
    it add the --padded modifier. On phones the sheet spans the full width. */
 .aegis-page-sheet {
   margin-block: var(--ds-space-6);
-  background: var(--ds-bg);
-  border: 1px solid var(--ds-border-soft);
-  border-radius: var(--ds-radius-xl);
-  box-shadow: var(--ds-elev-raised);
+  background: var(--ds-paper);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-raise);
 }
 
 .aegis-page-sheet--padded {

@@ -11,7 +11,7 @@
   justify-content: space-between;
   gap: var(--ds-space-4);
   padding-bottom: var(--ds-space-4);
-  border-bottom: 1px solid var(--ds-border);
+  border-bottom: 1px solid var(--ds-line);
 }
 
 .famous-deck-dialog__title {
@@ -28,9 +28,9 @@
 
 .famous-deck-dialog__collection {
   padding: 2px 8px;
-  border: 1px solid var(--ds-info-border);
+  border: 1px solid color-mix(in srgb, var(--ds-accent) 40%, transparent);
   border-radius: var(--ds-radius-sm);
-  background: var(--ds-accent-surface);
+  background: var(--ds-accent-soft);
   font-family: var(--ds-font-mono);
   font-size: 12px;
   font-weight: 700;
@@ -41,7 +41,7 @@
 .famous-deck-dialog__meta {
   margin: 0;
   font-size: 13px;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
 }
 
 .famous-deck-dialog__sections {
@@ -57,7 +57,7 @@
 
 .famous-deck-dialog__section-title {
   margin: 0 0 var(--ds-space-2);
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font: 700 11px / 1.3 var(--ds-font-display);
   letter-spacing: var(--ds-tracking-label);
   text-transform: uppercase;
@@ -101,8 +101,8 @@
   right: 6px;
   padding: 1px 6px;
   border-radius: var(--ds-radius-sm);
-  background: var(--ds-surface-inverse);
-  color: var(--ds-fg-on-inverse);
+  background: var(--ds-text);
+  color: var(--ds-paper);
   font-family: var(--ds-font-mono);
   font-size: 11px;
   font-weight: 700;
@@ -117,7 +117,7 @@
   font-size: 11.5px;
   font-weight: 650;
   text-align: center;
-  color: var(--ds-fg);
+  color: var(--ds-text);
 }
 
 .famous-deck-dialog__actions {
@@ -125,7 +125,7 @@
   justify-content: flex-end;
   gap: var(--ds-space-3);
   padding-top: var(--ds-space-4);
-  border-top: 1px solid var(--ds-border);
+  border-top: 1px solid var(--ds-line);
 }
 
 .famous-deck-dialog__export {

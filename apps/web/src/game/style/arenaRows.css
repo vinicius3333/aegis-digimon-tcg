@@ -236,7 +236,7 @@
   width: 100%;
   padding: 1rem 2rem;
   text-align: center;
-  font-family: var(--ds-font-sans);
+  font-family: var(--ds-font-body);
   font-size: clamp(1.1rem, 3.2vw, 3.5rem);
   font-weight: 900;
   font-style: italic;

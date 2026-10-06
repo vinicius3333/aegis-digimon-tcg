@@ -58,7 +58,7 @@ export function DecisionCandidateGrid({
           fontWeight: 700,
           letterSpacing: "0.08em",
           textTransform: "uppercase",
-          color: "var(--ds-fg-muted)",
+          color: "var(--ds-text-3)",
           marginBottom: 10,
         }}
       >
@@ -79,7 +79,7 @@ export function DecisionCandidateGrid({
           style={{
             fontSize: 12,
             fontWeight: 600,
-            color: withinPlayCostBudget ? "var(--ds-fg-secondary)" : "var(--ds-danger)",
+            color: withinPlayCostBudget ? "var(--ds-text-2)" : "var(--ds-danger)",
             marginBottom: 10,
           }}
         >
@@ -94,7 +94,7 @@ export function DecisionCandidateGrid({
           style={{
             fontSize: 12,
             fontWeight: 600,
-            color: selectedDP <= maxTotalDP ? "var(--ds-fg-secondary)" : "var(--ds-danger)",
+            color: selectedDP <= maxTotalDP ? "var(--ds-text-2)" : "var(--ds-danger)",
             marginBottom: 10,
           }}
         >
@@ -118,20 +118,20 @@ export function DecisionCandidateGrid({
                   fontWeight: 700,
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
-                  color: "var(--ds-fg-secondary)",
+                  color: "var(--ds-text-2)",
                   marginBottom: 6,
                 }}
               >
                 <span>{zone ? t(`overlay.candidateZone.${zone}` as const) : t("overlay.candidateZone.other")}</span>
                 <span
                   style={{
-                    color: "var(--ds-fg-muted)",
+                    color: "var(--ds-text-3)",
                     fontFamily: "var(--ds-font-mono)",
                   }}
                 >
                   {items.length}
                 </span>
-                <span style={{ flex: 1, height: 1, background: "var(--ds-border)" }} />
+                <span style={{ flex: 1, height: 1, background: "var(--ds-line)" }} />
               </div>
             ) : null}
             {/* Past six options a row would wrap into rows taller than the sheet, so it
@@ -227,8 +227,8 @@ export function DecisionCandidateGrid({
                           position: "absolute",
                           top: 6,
                           right: 6,
-                          color: "var(--ds-fg-muted)",
-                          background: "var(--ds-surface)",
+                          color: "var(--ds-text-3)",
+                          background: "var(--ds-sheet)",
                           borderRadius: "50%",
                         }}
                       >

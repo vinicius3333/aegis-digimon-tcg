@@ -4,14 +4,14 @@
   grid-template-columns: 190px minmax(0, 1fr);
   min-height: 280px;
   overflow: hidden;
-  border: 1px solid var(--ds-border);
+  border: 1px solid var(--ds-line);
   border-radius: var(--ds-radius-md);
-  background: var(--ds-surface);
+  background: var(--ds-sheet);
   box-shadow: none;
 }
 
 .deck-list-card.is-active {
-  border-color: var(--ds-primary);
+  border-color: var(--ds-accent);
 }
 
 .deck-list-card.is-disabled,
@@ -54,8 +54,8 @@
   width: 190px;
   place-items: center;
   overflow: hidden;
-  border-right: 1px solid var(--ds-border);
-  background: var(--ds-brand-ink) !important;
+  border-right: 1px solid var(--ds-line);
+  background: var(--ds-ink) !important;
 }
 
 .deck-list-card__cover img {
@@ -86,7 +86,7 @@
 .deck-list-card__identity h3 {
   overflow: hidden;
   margin: 0;
-  color: var(--ds-foreground);
+  color: var(--ds-text);
   font: 700 var(--ds-text-2xl)/1.2 var(--ds-font-display);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -110,9 +110,9 @@
   margin-bottom: var(--ds-space-2);
   padding: var(--ds-space-2) var(--ds-space-3);
   color: var(--ds-danger);
-  border: 1px solid var(--ds-danger-border);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 40%, transparent);
   border-radius: var(--ds-radius-sm);
-  background: var(--ds-danger-surface);
+  background: var(--ds-danger-soft);
   font-size: var(--ds-text-xs);
   line-height: 1.5;
 }
@@ -140,7 +140,7 @@
   grid-template-columns: 84px minmax(0, 1fr);
   min-height: 124px;
   border-radius: var(--ds-radius-sm);
-  background: linear-gradient(135deg, var(--deck-color-soft), transparent 62%), var(--ds-surface);
+  background: linear-gradient(135deg, var(--deck-color-soft), transparent 62%), var(--ds-sheet);
 }
 
 .deck-list-card.is-compact::after {

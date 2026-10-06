@@ -4,7 +4,7 @@
   height: calc(100% - var(--ds-nav-height-wide));
   overflow-y: auto;
   padding: var(--ds-space-10) max(var(--ds-gutter-desktop), calc((100% - 1032px) / 2 + var(--ds-gutter-desktop)))
-    var(--ds-section-y-desktop);
+    var(--ds-space-12);
 }
 
 .releases-page__head {
@@ -15,7 +15,7 @@
 
 .releases-page__head h1 {
   margin: 0;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   font: 800 clamp(var(--ds-text-3xl), 4vw, var(--ds-text-4xl)) / var(--ds-leading-tight) var(--ds-font-display);
   letter-spacing: var(--ds-tracking-display);
   text-transform: uppercase;
@@ -24,7 +24,7 @@
 .releases-page__head p {
   max-width: var(--ds-readable-max);
   margin: 0;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-size: var(--ds-text-lg);
   line-height: var(--ds-leading-body);
 }
@@ -37,16 +37,16 @@
 /* The latest release is a hero Panel; earlier ones sit on a plain surface that
    defines the same --aegis-panel-* colors, so the shared rules below fit both. */
 .release--archived {
-  --aegis-panel-fg: var(--ds-fg);
-  --aegis-panel-muted: var(--ds-fg-muted);
+  --aegis-panel-fg: var(--ds-text);
+  --aegis-panel-muted: var(--ds-text-3);
   --aegis-panel-eyebrow: var(--ds-accent);
-  --aegis-panel-border: var(--ds-border);
+  --aegis-panel-border: var(--ds-line);
 
   padding: clamp(var(--ds-space-5), 3vw, var(--ds-space-8));
   color: var(--aegis-panel-fg);
   border: 1px solid var(--aegis-panel-border);
-  border-radius: var(--ds-radius-xl);
-  background: var(--ds-surface);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-sheet);
 }
 
 .release__head {
@@ -117,18 +117,18 @@
   padding: var(--ds-space-1) var(--ds-space-2);
   color: var(--ds-accent);
   border-radius: var(--ds-radius-sm);
-  background: var(--ds-accent-surface);
+  background: var(--ds-accent-soft);
   font-size: var(--ds-text-xs);
   font-weight: 600;
   text-decoration: none;
 }
 
 .release__reported:hover {
-  color: var(--ds-accent-hover);
+  color: var(--ds-accent-strong);
 }
 
 .release__reported:active {
-  color: var(--ds-accent-active);
+  color: var(--ds-accent-strong);
 }
 
 .release__reported:focus-visible {

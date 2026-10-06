@@ -49,7 +49,7 @@ export function AegisLogo({ className }: { className?: string }) {
       <span className="grid leading-none">
         <span
           className="bg-gradient-to-b from-white to-[#9cc6ff] bg-clip-text font-display text-[22px] font-extrabold tracking-[0.08em] text-transparent"
-          style={{ fontFamily: "var(--ds-font-brand)" }}
+          style={{ fontFamily: "var(--ds-font-display)" }}
         >
           AEGIS
         </span>

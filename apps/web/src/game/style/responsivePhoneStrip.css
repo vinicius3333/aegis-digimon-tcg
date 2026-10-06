@@ -10,8 +10,8 @@
     max-height: none;
     flex: none !important;
     overflow: hidden !important;
-    border-top: 1px solid var(--ds-border);
-    background: var(--ds-brand-ink) !important;
+    border-top: 1px solid var(--ds-line);
+    background: var(--ds-ink) !important;
   }
   .game-sidebar > div:first-child,
   .game-sidebar > div:nth-child(3),
@@ -56,7 +56,7 @@
   .game-breeding-dock::-webkit-scrollbar-track,
   .game-battle-zones > div::-webkit-scrollbar-track,
   .game-player-dock [data-testid="hand"]::-webkit-scrollbar-track {
-    background: var(--ds-surface-muted);
+    background: var(--ds-fill);
   }
 
   /* Field-card actions as a bottom sheet: the card stays visible next to the
@@ -76,9 +76,9 @@
     max-height: 82dvh;
     padding: var(--ds-space-2) var(--ds-space-4) max(var(--ds-space-4), env(safe-area-inset-bottom));
     overflow-y: auto;
-    border-top: 1px solid var(--ds-border-strong);
+    border-top: 1px solid var(--ds-line-strong);
     border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0;
-    background: var(--ds-surface);
+    background: var(--ds-sheet);
     box-shadow: 0 -12px 40px rgb(4 14 31 / 45%);
   }
   .card-action-sheet__grip {
@@ -86,7 +86,7 @@
     height: 4px;
     margin: 0 auto var(--ds-space-3);
     border-radius: 999px;
-    background: var(--ds-border-strong);
+    background: var(--ds-line-strong);
   }
   .card-action-sheet__body {
     display: grid;
@@ -117,7 +117,7 @@
     align-content: start;
   }
   .card-action-sheet__info > strong {
-    color: var(--ds-fg);
+    color: var(--ds-text);
     font-family: var(--ds-font-display);
     font-size: var(--ds-text-base);
     line-height: 1.2;
@@ -133,14 +133,14 @@
     align-items: baseline;
     gap: 3px;
     padding: 2px var(--ds-space-2);
-    color: var(--ds-fg-secondary);
+    color: var(--ds-text-2);
     font: 700 var(--ds-text-xs) var(--ds-font-mono);
     border-radius: var(--ds-radius-sm);
-    background: var(--ds-surface-muted);
+    background: var(--ds-fill);
   }
   .card-action-sheet__stats > span[data-state="suspended"] {
     color: var(--ds-warning);
-    background: var(--ds-warning-surface, var(--ds-surface-muted));
+    background: var(--ds-warning-soft, var(--ds-fill));
   }
   .card-action-sheet__stats em {
     font-style: normal;
@@ -172,10 +172,10 @@
     gap: var(--ds-space-2);
     margin-top: var(--ds-space-3);
     padding-top: var(--ds-space-3);
-    border-top: 1px solid var(--ds-border);
+    border-top: 1px solid var(--ds-line);
   }
   .card-action-sheet__stack > div > span {
-    color: var(--ds-fg-muted);
+    color: var(--ds-text-3);
     font-size: 0.625rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -206,7 +206,7 @@
   .card-action-sheet__stack figcaption {
     margin-top: 2px;
     overflow: hidden;
-    color: var(--ds-fg-muted);
+    color: var(--ds-text-3);
     font-size: 0.5625rem;
     line-height: 1.2;
     text-overflow: ellipsis;
@@ -242,7 +242,7 @@
     gap: var(--ds-space-3);
   }
   .stack-sheet__groups > section > span {
-    color: var(--ds-fg-muted);
+    color: var(--ds-text-3);
     font-size: 0.625rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -268,7 +268,7 @@
   }
   .stack-sheet__grid figcaption {
     margin-top: 2px;
-    color: var(--ds-fg-muted);
+    color: var(--ds-text-3);
     font-size: 0.5625rem;
     line-height: 1.2;
     text-align: center;
@@ -288,17 +288,17 @@
     margin-bottom: var(--ds-space-3);
   }
   .trash-sheet__header > strong {
-    color: var(--ds-fg);
+    color: var(--ds-text);
     font-family: var(--ds-font-display);
     font-size: var(--ds-text-base);
   }
   .trash-sheet__header > span {
-    color: var(--ds-fg-muted);
+    color: var(--ds-text-3);
     font: 600 var(--ds-text-xs) var(--ds-font-mono);
   }
   .trash-sheet__empty {
     margin: var(--ds-space-6) 0;
-    color: var(--ds-fg-disabled);
+    color: var(--ds-text-off);
     font: var(--ds-text-xs) var(--ds-font-mono);
     text-align: center;
   }
@@ -311,7 +311,7 @@
     overscroll-behavior-x: contain;
     scroll-snap-type: x proximity;
     scrollbar-width: thin;
-    scrollbar-color: var(--ds-accent) var(--ds-surface-muted);
+    scrollbar-color: var(--ds-accent) var(--ds-fill);
   }
   .trash-sheet__row > button {
     width: 96px;
@@ -325,7 +325,7 @@
   .trash-sheet__row figcaption {
     margin-top: var(--ds-space-1);
     overflow: hidden;
-    color: var(--ds-fg-muted);
+    color: var(--ds-text-3);
     font-size: 0.625rem;
     line-height: 1.2;
     text-align: center;
@@ -518,12 +518,12 @@
   .card-zoom > button {
     min-height: 44px;
     padding: var(--ds-space-2) var(--ds-space-6);
-    color: var(--ds-brand-on-ink);
+    color: var(--ds-on-ink);
     font-size: var(--ds-text-sm);
     font-weight: 700;
-    border: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 40%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ds-on-ink) 40%, transparent);
     border-radius: var(--ds-radius-md);
-    background: color-mix(in srgb, var(--ds-brand-on-ink) 10%, transparent);
+    background: color-mix(in srgb, var(--ds-on-ink) 10%, transparent);
   }
   .card-action-sheet__actions {
     display: grid;
@@ -567,7 +567,7 @@
     --draw-flight-h: calc(var(--hand-card-width) * 1.4);
 
     border-width: 2px;
-    border-color: color-mix(in srgb, var(--battle-cyan) 70%, var(--ds-border-strong));
+    border-color: color-mix(in srgb, var(--battle-cyan) 70%, var(--ds-line-strong));
     box-shadow:
       0 6px 18px rgb(0 0 0 / 55%),
       0 0 20px 6px color-mix(in srgb, var(--battle-cyan) 55%, transparent);

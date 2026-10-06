@@ -162,7 +162,7 @@
   aspect-ratio: 5 / 7;
   overflow: visible;
   align-self: center;
-  background: var(--ds-surface);
+  background: var(--ds-sheet);
 }
 .game-security-cards i.game-security-card--revealed::before,
 .game-security-cards i.game-security-card--revealed::after {
@@ -188,10 +188,10 @@
   transform: translate(-50%, 50%);
   z-index: 1;
   padding: 2px 4px;
-  border: 1px solid var(--ds-border);
+  border: 1px solid var(--ds-line);
   border-radius: 4px;
-  background: var(--ds-surface);
-  color: var(--ds-fg);
+  background: var(--ds-sheet);
+  color: var(--ds-text);
   font: 700 11px var(--ds-font-mono);
   font-style: normal;
   white-space: nowrap;

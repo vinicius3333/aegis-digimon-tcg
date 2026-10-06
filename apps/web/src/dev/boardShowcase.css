@@ -4,7 +4,7 @@
 .board-showcase {
   min-height: 100%;
   padding: 1.5rem 1.5rem 6rem;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   overflow-y: auto;
 }
 
@@ -21,12 +21,12 @@
 
 .board-showcase__lead {
   margin: 0;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
 }
 
 .board-showcase__section {
   padding: 1.2rem 0 2rem;
-  border-top: 1px solid var(--ds-border);
+  border-top: 1px solid var(--ds-line);
   scroll-margin-top: 1rem;
 }
 
@@ -43,7 +43,7 @@
 .board-showcase__section-note {
   margin: 0 0 1.2rem;
   font-size: 0.85rem;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
 }
 
 .board-showcase__row {
@@ -69,7 +69,7 @@
   font-size: 0.7rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
 }
 
 /* Overlays and banners position themselves against the board; each gets its own
@@ -77,9 +77,9 @@
 .board-showcase__stage {
   position: relative;
   overflow: hidden;
-  border: 1px dashed var(--ds-border-strong);
+  border: 1px dashed var(--ds-line-strong);
   border-radius: 0.75rem;
-  background: var(--ds-game-surface, var(--ds-surface));
+  background: color-mix(in srgb, var(--ds-sheet) 94%, transparent);
 }
 
 /* The eroding borders are held part-way through their sweep here: a live panel
