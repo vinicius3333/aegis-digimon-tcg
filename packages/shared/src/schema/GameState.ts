@@ -60,7 +60,6 @@ export function combatWindowKey(window: { kind: string; attackerPermanentId: str
 export class GameState extends Schema {
   @type("string") matchLogId = "";
   @type("string") matchId = "";
-  @type("string") spectatorCode = ""; // code-only observer access for public and private matches
   @type("string") roomCode = ""; // set for private rooms, empty for public
   @type("string") phase: Phase = Phase.None;
   @type("uint32") turnCount = 0;
@@ -93,4 +92,5 @@ export class GameState extends Schema {
 
   @type("boolean") gameOver = false;
   @type("int8") winnerSeat = -1; // -1 until decided
+  @type("string") spectatorCode = ""; // code-only observer access for public and private matches
 }
