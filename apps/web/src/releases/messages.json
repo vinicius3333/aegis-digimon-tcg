@@ -1,4 +1,60 @@
 {
+  "releases.1.12.0-beta.summary": {
+    "en": "This minor release adds match settings for music, sound effects and battle lanes, new card sounds and music, and clearer effect and card animations. It also fixes several card effects and Partition.",
+    "pt-BR": "Esta versão minor traz configurações da partida para música, efeitos sonoros e faixas de batalha, novos sons de cartas e música, e animações de efeitos e cartas mais claras. Também corrige vários efeitos de cartas e Partition."
+  },
+  "releases.1.12.0-beta.feature.matchSettings": {
+    "en": "The gear in a match opens Match settings. Music and sound effects each have their own switch and volume, and your choices are saved.",
+    "pt-BR": "A engrenagem na partida abre as Configurações da partida. Música e efeitos sonoros têm cada um seu botão e volume, e suas escolhas ficam salvas."
+  },
+  "releases.1.12.0-beta.feature.battleLanes": {
+    "en": "On larger screens, choose one or two battle lanes. One lane shows every card in a single row with larger cards; phones always use one lane.",
+    "pt-BR": "Em telas maiores, escolha uma ou duas faixas de batalha. Uma faixa mostra todas as cartas em uma só fileira, com cartas maiores; celulares sempre usam uma faixa."
+  },
+  "releases.1.12.0-beta.feature.gameAudio": {
+    "en": "Recorded card sounds play with each card animation, and a new background music track plays during matches.",
+    "pt-BR": "Sons de cartas gravados acompanham cada animação de carta, e uma nova música de fundo toca durante as partidas."
+  },
+  "releases.1.12.0-beta.feature.effectPacing": {
+    "en": "Effects are announced after they are accepted and get their own readable beat. Repeated effects show once as ×N, and long chains move faster.",
+    "pt-BR": "Os efeitos são anunciados depois de aceitos e ganham seu próprio tempo de leitura. Efeitos repetidos aparecem uma vez como ×N, e cadeias longas andam mais rápido."
+  },
+  "releases.1.12.0-beta.feature.cardMotion": {
+    "en": "Card animations are clearer: effect battles show their clash, defeated cards wait for the blow before breaking, grouped cards leave together, and cards returned to the deck land before the next effect plays.",
+    "pt-BR": "As animações de cartas estão mais claras: batalhas por efeito mostram o confronto, cartas derrotadas esperam o golpe antes de quebrar, cartas agrupadas saem juntas, e cartas devolvidas ao deck pousam antes do próximo efeito."
+  },
+  "releases.1.12.0-beta.fix.partition": {
+    "en": "Partition asks whether to activate it and previews every source card it can use.",
+    "pt-BR": "Partition pergunta se você quer ativá-lo e mostra todas as cartas de fonte que pode usar."
+  },
+  "releases.1.12.0-beta.fix.borrowedEffects": {
+    "en": "Effects a Digimon gains from another card stay tied to the Digimon that triggered them.",
+    "pt-BR": "Efeitos que um Digimon ganha de outra carta continuam ligados ao Digimon que os ativou."
+  },
+  "releases.1.12.0-beta.fix.attackCleanup": {
+    "en": "After an attack, effects wait for continuous effects to update before they continue.",
+    "pt-BR": "Depois de um ataque, os efeitos esperam os efeitos contínuos se atualizarem antes de continuar."
+  },
+  "releases.1.12.0-beta.fix.evolutionCosts": {
+    "en": "Effect discounts apply after variable digivolution costs, and alternate digivolution costs stay available.",
+    "pt-BR": "Descontos de efeitos valem depois dos custos variáveis de digivolução, e custos alternativos de digivolução continuam disponíveis."
+  },
+  "releases.1.12.0-beta.fix.nestedEffects": {
+    "en": "Once-per-turn effects no longer resolve twice through nested triggers, and Option effects on dual cards keep their Option type.",
+    "pt-BR": "Efeitos de uma vez por turno não resolvem mais duas vezes por gatilhos aninhados, e efeitos de Opção em cartas duplas mantêm o tipo Opção."
+  },
+  "releases.1.12.0-beta.fix.immunity": {
+    "en": "Player-wide immunity also lifts restrictions already in place, and they return when the immunity ends.",
+    "pt-BR": "A imunidade do jogador também suspende restrições já ativas, e elas voltam quando a imunidade termina."
+  },
+  "releases.1.12.0-beta.fix.securitySearch": {
+    "en": "A private security search and an optional digivolution now appear as one choice, and you can still decline.",
+    "pt-BR": "Uma busca privada na segurança e uma digivolução opcional agora aparecem em uma só escolha, e você ainda pode recusar."
+  },
+  "releases.1.12.0-beta.fix.breedingOptions": {
+    "en": "Options that require a Digimon color on the field also count the Digimon in your breeding area.",
+    "pt-BR": "Opções que exigem uma cor de Digimon em campo também contam o Digimon na sua área de criação."
+  },
   "releases.1.11.0-beta.summary": {
     "en": "This minor release adds optional match timers, a resizable deck builder grid that follows your account, and a backup provider for sign-in emails. It also fixes card effects, prompts, images and reconnection.",
     "pt-BR": "Esta versão minor traz timer opcional nas partidas, uma grade redimensionável no construtor de decks que acompanha sua conta e um provedor reserva para os e-mails de login. Também corrige efeitos de cartas, pedidos de escolha, imagens e reconexão."

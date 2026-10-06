@@ -1,5 +1,55 @@
 [
   {
+    "version": "1.12.0-beta",
+    "releasedAt": "2026-10-06",
+    "summaryKey": "releases.1.12.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.12.0-beta.feature.matchSettings"
+      },
+      {
+        "textKey": "releases.1.12.0-beta.feature.battleLanes"
+      },
+      {
+        "textKey": "releases.1.12.0-beta.feature.gameAudio"
+      },
+      {
+        "textKey": "releases.1.12.0-beta.feature.effectPacing"
+      },
+      {
+        "textKey": "releases.1.12.0-beta.feature.cardMotion"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.12.0-beta.fix.partition"
+      },
+      {
+        "textKey": "releases.1.12.0-beta.fix.borrowedEffects",
+        "issue": 5016
+      },
+      {
+        "textKey": "releases.1.12.0-beta.fix.attackCleanup",
+        "issue": 5015
+      },
+      {
+        "textKey": "releases.1.12.0-beta.fix.evolutionCosts"
+      },
+      {
+        "textKey": "releases.1.12.0-beta.fix.nestedEffects"
+      },
+      {
+        "textKey": "releases.1.12.0-beta.fix.immunity"
+      },
+      {
+        "textKey": "releases.1.12.0-beta.fix.securitySearch"
+      },
+      {
+        "textKey": "releases.1.12.0-beta.fix.breedingOptions"
+      }
+    ]
+  },
+  {
     "version": "1.11.0-beta",
     "releasedAt": "2026-10-05",
     "summaryKey": "releases.1.11.0-beta.summary",
