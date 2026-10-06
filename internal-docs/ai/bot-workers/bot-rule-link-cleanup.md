@@ -598,6 +598,46 @@ ROOT resource agreement remain pending after a passing actual full comparison.
 No model load, game, GPU job, checkpoint copy or source archive is produced by
 this helper; the sealed original physical operator remains unchanged.
 
+## Prepared corrective physical runtime adapter
+
+The source-only adapter is now sealed under desktop
+`transfers/rule-link-current-corrective-physical.py`, SHA-256
+`1a79a4e6813c39a5619e267e2ab0934831c2d5805926691a0633e80a80d3baee`.
+Its local source is `/private/tmp/aegis-material-teacher-active-goal-20261006/rule-link-current-corrective-physical.py`.
+The admission helper is also sealed as
+`transfers/rule-link-current-corrective-physical-admission.py` with the unchanged
+SHA-256 `6bf3a549f47db9f189430e48a39debaf61143625ff9937cbb9d206e570c77007`.
+Neither changes the qualified source archive or original physical operator.
+
+The adapter preserves the exact original physical capture, raw trace, worker,
+closure, whole-wrapper and ROOT resource agreement functions. It changes the
+candidate admission to the actual corrective checkpoint and learning origin,
+requires unchanged full actual learning, new evaluation and baseline closure
+consumers, and checks strict gains for every recipe against each reference.
+It binds its own actual worker command and source pin, so the child does not
+fall back to the old candidate consumer. Fresh seed inventory, current source
+and runtime maps, checkpoint bytes, exact loaded module paths, finite unchanged
+weights and separate ROOT resource agreement remain required.
+
+All 28 bounded synthetic tests passed: six new namespace/admission tests, five
+strict data admission tests and 17 preserved physical reader/worker guards.
+The new fixture SHA-256 is
+`a616bb877d92bef0e0db4ee9b72da3485899ff19dec708ffd3df7fa2f7c37717`.
+These include explicit fake-model fixtures; they prove guard behavior, not
+actual model execution, game results or future qualification.
+
+Actual desktop Python 3.12.14 compilation and stdlib loading passed, exact
+sealed capture functions were checked, and a request with a null future
+comparison completion was rejected before any closure consumer or model import.
+No job or game was started. The source-review receipt is
+`/private/tmp/aegis-material-teacher-active-goal-20261006/rule-link-current-corrective-physical-source-review.actual.json`,
+SHA-256 `a7c0e26d56a0046bf7eb600686f69d0bbe798e3bc35b3887fa81a36fabae3437`.
+Actual physical admission, final request, fresh capture seeds and ROOT resource
+Go remain pending until the full frozen evaluation passes all44 strength.
+Even physical visibility and custody success will not replace independent
+printed mechanism/payment/order/quota/expander correctness or later rooms,
+serving, blind and delivery acceptance.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
