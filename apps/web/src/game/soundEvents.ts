@@ -33,6 +33,11 @@ export function soundForEvent(event: ServerEvent, viewerSeat: Seat): SoundKind |
       return event.endingSeat === viewerSeat ? "endTurn" : "turnChange";
     case "movedFromBreeding":
       return "move";
+    case "blocked":
+      return "block";
+    case "barrierResolved":
+    case "evadeResolved":
+      return event.accepted ? "protect" : null;
     case "effectTriggered":
       return "effectActivate";
     case "deckShuffled":
