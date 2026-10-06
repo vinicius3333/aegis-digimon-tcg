@@ -6,6 +6,8 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-027.js";
 import "../BT4/BT4-011.js";
 import "../BT13/BT13-020.js";
+import "../BT23/BT23-013.js";
+import "../EX13/EX13-009.js";
 import { describeScrambleRulings } from "./scrambleRulings.testSupport.js";
 
 async function openAfterStartOfTurn(s: ReturnType<typeof setupEngine>): Promise<{ turn: Promise<void> }> {
@@ -77,14 +79,19 @@ describe("LM-027 Red Scramble", () => {
         },
         1: { battleArea: [{ card: "BT1-024", dp: 10000, as: "opponent" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Modal"] },
     );
     s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("huckmon").topCard.cardId === "BT23-013");
+    await settle(
+      () =>
+        s.perm("huckmon").topCard.cardId === "BT23-013" &&
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "LM-027"),
+    );
     expect(s.perm("huckmon").topCard.instanceId).toBe(s.inst("jesmon").instanceId);
     expect(s.state.memory).toBe(6);
   });

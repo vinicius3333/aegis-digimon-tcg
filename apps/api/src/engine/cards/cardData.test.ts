@@ -167,3 +167,19 @@ describe("digivolution matching (static-data half)", () => {
     expect(matchingAlternateDigivolutionRequirement("BT20-101", "BT20-101")).toBeUndefined();
   });
 });
+
+describe("Discord 1556772182607011971: ordinary catalog routes do not shadow alternatives", () => {
+  it("finds BeelStarmon's cost-3 special requirement after its ordinary cost-4 routes", () => {
+    expect(matchingEvoCost("BT25-085", "BT25-083")?.memoryCost).toBe(4);
+    expect(matchingAlternateDigivolutionRequirement("BT25-085", "BT25-083")).toMatchObject({
+      cost: 3,
+      isAlternate: true,
+    });
+  });
+  it("keeps an explicitly declared catalog index stable", () => {
+    expect(matchingAlternateDigivolutionRequirement("BT25-085", "BT25-083", { requirementIndex: 0 })).toMatchObject({
+      cost: 4,
+      isAlternate: false,
+    });
+  });
+});

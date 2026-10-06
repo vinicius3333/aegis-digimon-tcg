@@ -430,6 +430,12 @@ function matchGatedRequirement(
 ): DigivolutionRequirement | undefined {
   for (const [requirementIndex, req] of requirements.entries()) {
     if (options?.requirementIndex !== undefined && options.requirementIndex !== requirementIndex) continue;
+    // The catalog includes ordinary color/level routes before its special requirements.
+    // An implicit alternate search must not return that ordinary route and hide the
+    // name/trait route (Discord 1556772182607011971). Keep explicit catalog indexes
+    // selectable: public intents use those stable indexes for declared requirements.
+    if (options?.requirementIndex === undefined && req.isAlternate === false && !requirementHasIdentityGate(req))
+      continue;
     if (
       options?.sourceZone !== undefined &&
       req.sourceZones !== undefined &&
