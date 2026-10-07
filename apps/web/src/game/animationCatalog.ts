@@ -116,7 +116,7 @@ export const ANIMATION_FAMILIES = {
     label: "Digivolution cards and links",
     owner: "match/present/stackStripPeels.ts",
     timings: ["stackStripPeel", "drawFlight", "cardEnter"],
-    sequence: "Clause → source lift/sway → hold → rim off/face fade, or attach linked card → update stack",
+    sequence: "Clause → source lift/sway → hold → rim off/face fade, or attach link card → update stack",
   },
   zone: {
     label: "Reveal and zone movement",

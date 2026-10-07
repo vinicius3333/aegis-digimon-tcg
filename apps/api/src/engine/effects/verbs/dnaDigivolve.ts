@@ -331,7 +331,7 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
               eligiblePartners.map((card) => card.instanceId),
               1,
               1,
-              "App Fusion: choose the linked card used as fusion material.",
+              "App Fusion: choose the link card used as fusion material.",
               { sourceCardId: peek.cardId, timing: "WhenDigivolving", effectText: "App Fusion" },
             );
     if (selectedPartnerIds.length !== 1) return undefined;

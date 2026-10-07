@@ -52,7 +52,7 @@ it("cancels without sending a fusion intent and supports normal evolution", () =
 it("reports no legal material and blocks confirmation when every route is gone", () => {
   const onConfirm = vi.fn<(linkedInstanceId: string) => void>();
   renderOverlay({ onConfirm, routes: [] });
-  expect(screen.getByRole("status").textContent).toBe("No legal linked material is available.");
+  expect(screen.getByRole("status").textContent).toBe("No legal link card is available.");
   expect(screen.queryAllByRole("radio")).toHaveLength(0);
   const confirm = screen.getByRole("button", { name: "App Fuse" }) as HTMLButtonElement;
   expect(confirm.disabled).toBe(true);
