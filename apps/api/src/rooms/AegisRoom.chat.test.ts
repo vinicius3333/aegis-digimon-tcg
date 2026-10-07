@@ -62,6 +62,17 @@ describe("AegisRoom chat", () => {
     }
   });
 
+  it("masks blocked words before broadcasting text", () => {
+    const { room, chats } = makeRoom();
+    try {
+      const [a] = joinBothSeats(room);
+      chatSender(room)(a, { kind: "text", text: "what the fuck" });
+      expect(chats.map((chat) => chat.message)).toEqual([{ kind: "text", text: "what the ****" }]);
+    } finally {
+      room.onDispose();
+    }
+  });
+
   it("drops a second message from the same seat inside the cooldown", () => {
     const { room, chats } = makeRoom();
     try {

@@ -19,6 +19,7 @@ import {
   CHAT_COOLDOWN_MS,
   parseChatMessage,
   type ChatBroadcast,
+  type ChatMessage,
   type ChatSender,
   SERIES_CHANNEL,
   matchBestOf,
@@ -40,6 +41,7 @@ import { MatchClock } from "./MatchClock.js";
 import { CasualSeries, type SeriesContinuationOptions, type SeriesRoomPort } from "./series/CasualSeries.js";
 import type { SeriesRecord } from "./series/SeriesDirectory.js";
 import { parsePresentationReport } from "./presentationReport.js";
+import { maskBlockedWords } from "../moderation/blockedWords.js";
 
 /** Hand-laid boards must never be reachable by a real player. */
 const DEV_SCENARIOS_ENABLED = process.env.NODE_ENV !== "production";
@@ -1041,7 +1043,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
       this.seriesArrivals.clear();
       for (const [arrivedSeat, arrival] of arrivals) this.seatClient(arrival.client, arrivedSeat, arrival.options);
       for (const [arrivedSeat, arrival] of arrivals)
-        if (this.seriesEarlyReady.delete(arrival.client.sessionId)) this.applyLoggedIntent(arrivedSeat, { type: "ready" });
+        if (this.seriesEarlyReady.delete(arrival.client.sessionId))
+          this.applyLoggedIntent(arrivedSeat, { type: "ready" });
       this.armReadyTimeoutIfSeated();
       return;
     }
@@ -1599,13 +1602,16 @@ export class AegisRoom extends Room<{ state: GameState }> {
 
   /**
    * Players and spectators may chat; anyone else is ignored. Messages inside the sender's
-   * cooldown are dropped without a reply.
+   * cooldown are dropped without a reply, and blocked words are masked before anyone, the
+   * match log included, sees the text.
    */
   private handleChat(client: Client, payload: unknown): void {
     const sender = this.chatSender(client);
     if (!sender) return;
-    const message = parseChatMessage(payload);
-    if (!message) return;
+    const parsed = parseChatMessage(payload);
+    if (!parsed) return;
+    const message: ChatMessage =
+      parsed.kind === "text" ? { kind: "text", text: maskBlockedWords(parsed.text) } : parsed;
     // A player's cooldown follows the seat, so a reconnect cannot reset it.
     const cooldownKey = sender.kind === "player" ? `seat:${sender.seat}` : client.sessionId;
     const now = Date.now();
