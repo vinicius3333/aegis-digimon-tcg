@@ -288,6 +288,7 @@ export const EVENT_ANIMATIONS = {
   resolutionOrderChosen: { families: ["choice", "effect"], changesBoard: false },
   effectOptionChosen: { families: ["choice"], changesBoard: false },
   effectResolved: { families: ["effect"], changesBoard: false },
+  effectHadNoEffect: { families: [], changesBoard: false, note: "Match log line only; the effect did nothing" },
   dpModifierApplied: { families: ["dp"], changesBoard: true },
   cardsMoved: { families: ["zone"], changesBoard: true },
   stackTopResolved: { families: ["removal", "dp"], changesBoard: true },

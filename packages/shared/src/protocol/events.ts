@@ -361,6 +361,20 @@ export type ServerEvent =
       isInherited?: boolean;
     }
   | {
+      // A triggered effect's condition was met, but it had nothing it could do (a cost-free
+      // "you may" with no legal target), so it was never offered and opened no lifecycle.
+      // Log-only: it tells the players the trigger was not ignored.
+      kind: "effectHadNoEffect";
+      seat: Seat;
+      sourceCardId: string;
+      sourceInstanceId?: string;
+      sourcePermanentId?: string;
+      effectKey: string;
+      description: string;
+      timing?: string;
+      isInherited?: boolean;
+    }
+  | {
       // Generic zone movement for the log. Identity-free by default: the event is
       // broadcast the instant it happens, which is normally BEFORE the state patch
       // that lands the cards in their destination, so a client cannot reliably
@@ -577,6 +591,7 @@ export const SERVER_EVENT_KINDS = [
   "resolutionOrderChosen",
   "effectOptionChosen",
   "effectResolved",
+  "effectHadNoEffect",
   "dpModifierApplied",
   "cardsMoved",
   "stackTopResolved",

@@ -1356,6 +1356,8 @@ export const en = {
   "log.cardRevealedByOpp": "Opponent revealed {card} with {source}",
   "log.effectActivated": "{card}: {description}",
   "log.effectResolved": "{card}'s effect resolved",
+  "log.effectTriggered": "{card}'s effect activated",
+  "log.effectHadNoEffect": "{card}'s effect had no effect",
   "log.cardMoved": "{count} card moved: {from} → {to}",
   "log.cardMovedNamed": "{card} moved: {from} → {to}",
   "log.turnEndDeletion": "{card} was deleted at turn end by {source}'s effect",
