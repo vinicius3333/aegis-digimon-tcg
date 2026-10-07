@@ -2455,3 +2455,35 @@ source/CP freeze, raw/full report, whole0 and the unchanged full closed
 consumer remain pending; retain all failures/losses/recoveries and never
 restart the sole live foreground. Physical/room/serving/blind/delivery remain
 unaccepted, and reserved finalblind seeds stay untouched.
+
+## Mentor candidate cannot pass strictall44; preserve full evaluation
+
+At actual1672/3872, pinned read-only observerSHA
+`0731fb462eabb02db7ba057c10655eaf940568e115b5fb1bf7a8c9615947fec6`
+records Plutomon Bandai35wins/38games. Its best possible final result is85/88;
+the original v17 reference has86/88. Consequently this frozen candidate cannot
+strictly gain every recipe against each reference, even if all remaining
+Plutomon games are won. This is a mathematical partial failure diagnostic,
+not a completed full qualification consumer. Keep original foreground43135
+running unchanged to actual3872/whole0; retain every outcome and no acceptance.
+
+The diagnostic binds original actual baseline full consumer stdoutSHA
+`a78e1bccdcbe841f463ae971d5be00891b222d115b7ace1eb00c5ab6528c7d07`,
+completionb3267543.., source/engine/current CPP/identity and all44 natural88game
+reference counts. Its local read-only script never authorizes cancellation,
+new games, primary imports, updates or qualification. Training request5627db4..
+already routes this recipe to v17; changing mentor routing alone is not a fix.
+
+Read-only actual paired raw inspection at2024games pins original v17 raw
+SHA`0c85c7d67ce6b68890e41620b7e27a9eb5762a1e7925ec62ecbabb8a8dff8246`
+through the unchanged original completion output map. Current partial rawSHA
+`0d7b31441ad63aa15781e848066beac9f25f378202047f1c5fc34425e01b6b1d`
+contains candidate losses/v17 wins at6135669 and6136461, both learnerSeat1,
+with exact same decks/pins/opponent and natural security outcomes, no errors,
+rejections or recoveries. Candidate/reference decisions are39/33 and16/73.
+Another loss6136373 is shared by both models and is not a winning-mentor case.
+No replay or model load has occurred in this inspection. Next correction must
+use actual choice-level diagnosis after full frozen comparison closure and a
+separate ROOT resource agreement, rather than accepting aggregate gains or
+blindly repeating teacher training. Later all44/physical/mechanisms/rooms/
+serving/blind/delivery gates remain fully required; no finalblind seed use.
