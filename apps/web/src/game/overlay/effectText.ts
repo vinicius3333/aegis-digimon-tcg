@@ -1,7 +1,9 @@
 import {
+  canonicalTimingLabel,
   getCardDefinition,
   isInsidePrintedQuote,
   isPrintedTimingReference,
+  printedTimingLabelPattern,
   printedModalBullets,
   printedModalPreamble,
   type DecisionKind,
@@ -85,8 +87,6 @@ const GENERIC_TIMING_VARIANTS: Record<string, string[]> = {
   OnEndTurn: ["EndOfYourTurn", "EndOfOpponentsTurn", "EndOfAllTurns"],
 };
 
-const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
 /**
  * Slice the single printed clause for the resolving `timing` out of the card's full
  * effect text (dropping the [Digivolve]/cost preamble and any sibling clauses). Falls
@@ -163,7 +163,7 @@ function printedClauseGroups(effectText: string): {
   marks: { label: string; index: number; end: number }[];
   groups: { labels: Set<string>; start: number }[];
 } {
-  const boundary = new RegExp(`\\[(${Object.values(TIMING_LABELS).map(escapeRegExp).join("|")})\\]`, "g");
+  const boundary = new RegExp(`\\[(${Object.values(TIMING_LABELS).map(printedTimingLabelPattern).join("|")})\\]`, "g");
   const marks: { label: string; index: number; end: number }[] = [];
   for (let m = boundary.exec(effectText); m !== null; m = boundary.exec(effectText)) {
     if (isInsidePrintedQuote(effectText, m.index)) continue;
@@ -171,7 +171,7 @@ function printedClauseGroups(effectText: string): {
     // (EX3-026: "activate 1 of this Digimon's [When Digivolving] effects"). Do not split
     // before the noun "effect(s)"; only bracket labels that introduce effect text are bounds.
     if (isPrintedTimingReference(effectText, m.index + m[0].length)) continue;
-    marks.push({ label: m[1] ?? "", index: m.index, end: m.index + m[0].length });
+    marks.push({ label: canonicalTimingLabel(m[1] ?? ""), index: m.index, end: m.index + m[0].length });
   }
   const groups: { labels: Set<string>; start: number }[] = [];
   for (let i = 0; i < marks.length; i++) {
@@ -216,7 +216,9 @@ function printedBoxesForTiming(
           ];
   const texts = boxes.filter((text): text is string => Boolean(text));
   const label = timing ? TIMING_LABELS[timing] : undefined;
-  const matching = label ? texts.find((text) => new RegExp(`\\[${escapeRegExp(label)}\\]`).test(text)) : undefined;
+  const matching = label
+    ? texts.find((text) => new RegExp(`\\[${printedTimingLabelPattern(label)}\\]`).test(text))
+    : undefined;
   return { texts, matching };
 }
 
@@ -263,7 +265,9 @@ export function cardEffectClauseForTiming(
     const present = variants.flatMap((variant) => {
       const variantLabel = TIMING_LABELS[variant];
       if (variantLabel === undefined) return [];
-      const text = texts.find((candidate) => new RegExp(`\\[${escapeRegExp(variantLabel)}\\]`).test(candidate));
+      const text = texts.find((candidate) =>
+        new RegExp(`\\[${printedTimingLabelPattern(variantLabel)}\\]`).test(candidate),
+      );
       return text === undefined ? [] : [{ text, variant }];
     });
     if (present.length === 1) return effectClauseForTiming(present[0]!.text, present[0]!.variant);

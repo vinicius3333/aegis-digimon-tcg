@@ -208,5 +208,10 @@ describe("BT13-103 Akihiro Kurata", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-088"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-083")).toBe(false);
     expect(s.state.memory).toBe(1 - (11 - 6));
+    // The prompt shows only the [Your Turn] clause, not the [End of Opponent’s Turn] one after it.
+    const prompt = s.decisions.find(({ req }) => req.kind === "optional" && req.sourceCardId === "BT13-103")?.req;
+    expect(prompt?.options?.effectText).toBe(
+      "[Your Turn] When a card with [Belphemon] in its name would be played, by deleting 1 of your Digimon with [Gizmon] in its name, reduce the play cost by the play cost of the deleted Digimon.",
+    );
   });
 });
