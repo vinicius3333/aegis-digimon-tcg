@@ -41,11 +41,17 @@ describe("famous deck selection", () => {
         />
       </I18nProvider>,
     );
-    fireEvent.click(screen.getByRole("button", { name: /Unlimited/ }));
+    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
     const launch = screen.getByRole("button", { name: "Enter queue" });
     expect((launch as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(launch);
     expect(onStart).toHaveBeenCalledWith("unlimited");
+    expect(screen.getByRole("button", { name: /Quick Match/ }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.queryByRole("button", { name: /^Unlimited/ })).toBeNull();
+    expect(screen.getByRole("switch", { name: "Match timer" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    expect(screen.getByRole("switch", { name: "Unlimited" }).getAttribute("aria-checked")).toBe("false");
+    expect(screen.getByRole("button", { name: "Enter queue" })).toHaveProperty("disabled", true);
   });
   it("GitHub #5236: a personal beta bot deck routes random human practice through the beta room", () => {
     const onStart = vi.fn();

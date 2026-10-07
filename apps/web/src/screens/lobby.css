@@ -173,7 +173,7 @@ button.lobby-active-strip__jump {
 /* Game modes: one selectable card each. */
 .lobby-modes {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--ds-space-4);
 }
 

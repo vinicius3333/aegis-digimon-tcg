@@ -141,14 +141,6 @@ const modesFor = (t: Translate): Mode[] => [
     available: true,
   },
   {
-    key: "unlimited",
-    title: t("lobby.unlimited"),
-    desc: t("lobby.unlimitedDesc"),
-    icon: Icons.Swords,
-    meta: t("lobby.unlimitedMeta"),
-    available: true,
-  },
-  {
     key: "practice",
     title: t("lobby.mode.practice"),
     desc: t("lobby.mode.practiceDesc"),
@@ -453,7 +445,7 @@ export function Lobby({
     : pairViolations.length > 0 || banViolations.length > 0
       ? { tone: "banned", label: t("redesign.play.banlistIssue") }
       : { tone: "draft", label: t("redesign.play.draft") };
-  const modeTitle = MODES.find((m) => m.key === mode)?.title;
+  const modeTitle = mode === "unlimited" ? t("lobby.unlimited") : MODES.find((m) => m.key === mode)?.title;
 
   return (
     <main className="lobby-page">
@@ -492,12 +484,14 @@ export function Lobby({
                     {deckLegal ? <Icons.Check size={13} /> : null}
                     {deckStatus.label}
                   </span>
-                  {bestOf === 3 && (mode === "casual" || (mode === "private" && privateSub === "create")) ? (
+                  {bestOf === 3 &&
+                  (mode === "casual" || mode === "unlimited" || (mode === "private" && privateSub === "create")) ? (
                     <span className="lobby-timer-summary">
                       <Icons.Trophy size={13} /> {t("lobby.format.enabled")}
                     </span>
                   ) : null}
-                  {timer.matchTimer && (mode === "casual" || (mode === "private" && privateSub === "create")) ? (
+                  {timer.matchTimer &&
+                  (mode === "casual" || mode === "unlimited" || (mode === "private" && privateSub === "create")) ? (
                     <span className="lobby-timer-summary">
                       <Icons.Clock size={13} /> {t("lobby.timer.enabled")}
                     </span>
@@ -607,7 +601,7 @@ export function Lobby({
 
         <div className="lobby-modes">
           {MODES.map((m) => {
-            const sel = mode === m.key;
+            const sel = mode === m.key || (mode === "unlimited" && m.key === "casual");
             const Icon = m.icon;
             return (
               <button
@@ -616,7 +610,7 @@ export function Lobby({
                 className={`lobby-mode${sel ? " is-selected" : ""}`}
                 disabled={!m.available}
                 aria-pressed={sel}
-                onClick={() => m.available && setMode(m.key)}
+                onClick={() => m.available && !sel && setMode(m.key)}
               >
                 <span className="lobby-mode__icon">
                   <Icon size={20} />
@@ -686,7 +680,7 @@ export function Lobby({
               {mode !== "private" ? (
                 <dl className="lobby-details">
                   {[
-                    [t("lobby.format"), t("lobby.formatValue")],
+                    [t("lobby.format"), mode === "unlimited" ? t("lobby.unlimitedMeta") : t("lobby.formatValue")],
                     [t("lobby.players"), vsBot ? t("lobby.playersBot") : t("lobby.playersHuman")],
                     [t("lobby.identity"), player.name],
                   ].map(([label, value]) => (
@@ -700,10 +694,43 @@ export function Lobby({
             </div>
 
             <div className="lobby-setup__column">
-              {mode === "casual" || (mode === "private" && privateSub === "create" && !privateRoom) ? (
+              {mode === "casual" ||
+              mode === "unlimited" ||
+              (mode === "private" && privateSub === "create" && !privateRoom) ? (
                 <div className="lobby-match-rules">
                   <MatchFormatSettings bestOf={bestOf} onChange={changeBestOf} />
                   <MatchTimerSettings options={timer} onChange={changeTimer} privateRoom={mode === "private"} />
+                  {mode === "casual" || mode === "unlimited" ? (
+                    <div className="lobby-format-settings lobby-unlimited-settings">
+                      <div className="lobby-timer-settings__header">
+                        <span id="lobby-unlimited-label" className="lobby-timer-settings__label">
+                          <span aria-hidden="true">
+                            <Icons.Swords size={20} />
+                          </span>
+                          {t("lobby.unlimited")}
+                        </span>
+                        <div className="lobby-timer-settings__control">
+                          <span className="lobby-timer-settings__status">
+                            {t(mode === "unlimited" ? "lobby.timer.on" : "lobby.timer.off")}
+                          </span>
+                          <button
+                            type="button"
+                            role="switch"
+                            className="lobby-timer-switch"
+                            aria-checked={mode === "unlimited"}
+                            aria-labelledby="lobby-unlimited-label"
+                            aria-describedby="lobby-unlimited-hint"
+                            onClick={() => setMode(mode === "unlimited" ? "casual" : "unlimited")}
+                          >
+                            <span />
+                          </button>
+                        </div>
+                      </div>
+                      <p id="lobby-unlimited-hint" className="lobby-timer-settings__hint">
+                        {t("lobby.unlimitedDesc")} {t("lobby.unlimitedMeta")}
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
               ) : mode === "private" ? (
                 <p className="lobby-timer-hint">{t("lobby.timer.guestHint")}</p>
