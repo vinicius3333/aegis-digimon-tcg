@@ -15,6 +15,11 @@ import {
   EVENT_CHANNEL,
   DECISION_CHANNEL,
   PRESENTATION_CHANNEL,
+  CHAT_CHANNEL,
+  CHAT_COOLDOWN_MS,
+  parseChatMessage,
+  type ChatBroadcast,
+  type ChatSender,
 } from "@aegis/shared";
 import { isDevScenarioId, type DevScenarioId } from "../engine/devScenario.js";
 import { createIssueReproBotPolicy } from "../engine/issueReproBotPolicy.js";
@@ -202,6 +207,11 @@ export class AegisRoom extends Room<{ state: GameState }> {
   private spectatorClients = new Set<string>();
   private seatByClient = new Map<string, Seat>(); // sessionId -> seat
   private presentationLogWindows = new Map<Seat, { start: number; count: number }>();
+  /** Keyed by `seat:<n>` for players and by session id for spectators. */
+  private lastChatAtBySender = new Map<string, number>();
+  /** The number in each spectator's chat name, given the first time that spectator writes. */
+  private spectatorNumbers = new Map<string, number>();
+  private spectatorsNumbered = 0;
   private accountByClient = new Map<string, string>();
   private rankedByClient = new Map<string, boolean>();
   /** Clients that pace chains of triggered effects themselves (`presentationPacing: "sequential"`). */
@@ -554,6 +564,10 @@ export class AegisRoom extends Room<{ state: GameState }> {
     this.onMessage("*", (client, type, payload) => {
       if (type === PRESENTATION_CHANNEL) {
         this.handlePresentationReport(client, payload);
+        return;
+      }
+      if (type === CHAT_CHANNEL) {
+        this.handleChat(client, payload);
         return;
       }
       this.handleIntent(client, { type, ...(payload as object) } as Intent);
@@ -959,6 +973,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
         // Spectator expiry has no effect on either player or the match clock.
       }
       this.spectatorClients.delete(client.sessionId);
+      this.spectatorNumbers.delete(client.sessionId);
+      this.lastChatAtBySender.delete(client.sessionId);
       if (client.view) {
         client.view.dispose();
         this.issuedViews.delete(client.view);
@@ -1405,6 +1421,37 @@ export class AegisRoom extends Room<{ state: GameState }> {
       serverStateVersion: this.state.stateVersion,
       ...report,
     });
+  }
+
+  /**
+   * Players and spectators may chat; anyone else is ignored. Messages inside the sender's
+   * cooldown are dropped without a reply.
+   */
+  private handleChat(client: Client, payload: unknown): void {
+    const sender = this.chatSender(client);
+    if (!sender) return;
+    const message = parseChatMessage(payload);
+    if (!message) return;
+    // A player's cooldown follows the seat, so a reconnect cannot reset it.
+    const cooldownKey = sender.kind === "player" ? `seat:${sender.seat}` : client.sessionId;
+    const now = Date.now();
+    const lastChatAt = this.lastChatAtBySender.get(cooldownKey);
+    if (lastChatAt !== undefined && now - lastChatAt < CHAT_COOLDOWN_MS) return;
+    this.lastChatAtBySender.set(cooldownKey, now);
+    this.debug("client.chat", { sender, sessionId: client.sessionId, ...message });
+    this.broadcast(CHAT_CHANNEL, { sender, message } satisfies ChatBroadcast);
+  }
+
+  private chatSender(client: Client): ChatSender | undefined {
+    const seat = this.seatByClient.get(client.sessionId);
+    if (seat !== undefined) return { kind: "player", seat };
+    if (!this.spectatorClients.has(client.sessionId)) return;
+    let number = this.spectatorNumbers.get(client.sessionId);
+    if (number === undefined) {
+      number = ++this.spectatorsNumbered;
+      this.spectatorNumbers.set(client.sessionId, number);
+    }
+    return { kind: "spectator", sessionId: client.sessionId, number };
   }
 
   private debugError(...data: unknown[]): void {
