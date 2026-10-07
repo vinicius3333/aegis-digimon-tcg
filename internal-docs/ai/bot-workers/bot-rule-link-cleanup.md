@@ -2082,3 +2082,30 @@ optimizer/checkpoint has been observed at this source-preparation checkpoint.
 Later full strict strength for every44 against each four references, both-seat
 physical/material mechanisms,26rooms/current serving and untouched finalblind/
 delivery remain pending; neither prepared source nor a job launch is acceptance.
+
+
+## Actual admitted CUDA imitation child and preserved joined view
+
+Original full supplemental and validation data consumers completed before any
+learner. The actual4832-episode view exists with original hardlink bytes/folds;
+parent learner-authorization receiptSHA is
+`e6c9274fe1c1c41b863180a5a95bf5742b1017d9af21c97baa7b40485dd49787`.
+Fresh actual observation binds whole723/start58280 -> CPUparent742/start58285
+-> CUDAlearner1698/start158698, with the exact reviewed child argv and direct
+parentage. Actual learner-started receiptSHA
+`e04a0ffbd5533eb37ede670ae4b971611d8049334d8dc53f8014cbf62a7de9d4`
+binds source5ac08../requestf662b../identity2ec641../Go c72b637../Python3.12.14/
+Torch2.7.1+cu128, zero game authorization and six actual qualified module paths
+and bytes. The unchanged canonical imitation now encodes its cache;3,791,802,636
+bytes are observed at this checkpoint, not claimed complete. No native epoch,
+Adam update or selected new checkpoint is claimed yet. Read-only progress
+`observe-mentor-imitation-r3-learning.sh` reads cache size, log tail and native
+history without model imports; SAME foreground30293 remains attached.
+
+Actual3epochs/actor steps/value state preservation, selected positive native
+best-validation checkpoint, child exit and original full post-source consumers,
+whole0 and full strict learning custody remain pending. No PPO request/inventory/
+Go or game has started. The prepared source1a0bf9905 is pushed with normal Node26
+shared/API/web checks0; its12 bounded synthetic guards are not actual learning.
+Strict44-versus-four strength, both-seat physical/material behavior,26rooms/
+current serving and untouched finalblind/delivery remain unproven and required.
