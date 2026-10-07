@@ -2487,3 +2487,35 @@ use actual choice-level diagnosis after full frozen comparison closure and a
 separate ROOT resource agreement, rather than accepting aggregate gains or
 blindly repeating teacher training. Later all44/physical/mechanisms/rooms/
 serving/blind/delivery gates remain fully required; no finalblind seed use.
+
+## Prepared four-game choice diagnosis; no replay authorization yet
+
+Own `current-mentor-choice-diagnosis.py` is exclusively sealed on desktop as
+`transfers/rule-link-current-mentor-choice-diagnosis.py`, sourceSHA
+`f37137a44fcee06d0328d312a9bae2ee6e2a91404bd66c409e0b819121c634ca`;
+fixtureSHA385accd0e5d71019a63b4cde33328ccac80241c883aa8dbac6fd6a397c819a44.
+Ten meaningful synthetic guards pass locally and on actual desktopPython3.12.14,
+without primary imports, games, updates or GPU use. Original replay helperSHA
+894e8bbb124b79f160cd2fd2789ee92ffc9e629d6b3ea91a7a656468002a8266 stays exact.
+
+The adapter preserves original whole/idle/resource/model/module/tensor freeze,
+real Episode handshake, exact natural replay outcome/coverage and captured
+decision windows. Only candidate/source/parent admission, role label and four
+query-only game scope change. It compares native candidate712d01e7.. with the
+unchanged v17 native3b9d75a5.. on actual paired losses6135669/6136461 atseat1.
+It requires the unchanged full actual closed mentor evaluator,3872/all44,
+6756actual learning origin, failed strict strength and exact final completion/
+raw hashes bound to the real full output map. Partial/null pins cannot admit.
+
+Separate exact ROOT four-game/zero-update/max1worker/no-finalblind Go, original
+live whole/argv/parentage and actual idle/GPU-empty guards precede primary
+imports. Both models remain frozen; no optimizer, metadata migration or copy.
+Postchecks retain actual finite tensor/module/CP/source/input byte guards and
+the unchanged full predecessor consumer. Tests exercise failed/boolean/partial
+closure, wrong origin/model/source/cell, extra games or learning, changed sealed
+request, altered replay seam and incorrect resource phase/counts. These are
+synthetic rejection tests, not actual replay or diagnosis evidence.
+Actual current evaluation completion/raw hashes, final request/wrapper/Go and
+four actual replays remain pending; no new job or primary model has started.
+Keep current evaluation43135 unchanged to actual full closure, retain every
+result and all final acceptance gates. Source/archive/runtime/FP stay exact.
