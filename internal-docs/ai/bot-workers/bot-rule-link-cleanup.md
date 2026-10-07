@@ -1644,6 +1644,49 @@ A source-only synthetic seam exercise also confirms the unchanged PPO
 requiring equal positive new deltas on all12 parameters; an unequal delta is
 rejected. It loads no real model and establishes no actual training.
 
+## Mentor imitation continuation source preparation
+
+`tools/bot-training/operators/current-mentor-imitation.py` prepares a separate
+warm anchored imitation stage on the same qualified source. SHA-256 is
+`cbf53c408dc6e215241e2ca118e628f86501539ffada6019377268b693bc152b`.
+The bounded synthetic tests have SHA-256
+`78cb751629a97afc515e6eab6335fd87d149690b9a9dbeed2b5482aaf3a87f40`;
+all12 local tests complete0. No real checkpoint/dataset is fabricated by these
+fixtures. The actual collection remains foreground56480; this learning stage
+has no data completion, sealed request, resource Go, launch or new CP yet.
+
+Default admission requires the unchanged original full dataset consumer with
+its actual whole0/identity/Go and externally observed completion SHA. It rejects
+pending data before any primary inspection. All181 visibility and all8 families/
+both seats/original folds must hold. A separate raw scan requires actual
+engine-teacher positives in every original mechanism/seat/fold bin, so frozen
+policy positives cannot masquerade as that teacher evidence. The original
+mixed, explicitly attributed labels remain intact and enter the unmodified
+canonical imitation/cache/sampling functions; there are no helper patches,
+moved folds, filtered losses, engine rebuilds or metadata-copy migrations.
+
+Proposed bounded configuration is3 CUDA epochs, optimizer RNG424006, learning
+rate1e-5, policy anchor0.1 and mechanism share0.2, warm-starting actual R4 CP1de.
+The exact maximum Adam budget is derived from complete original training
+counts and the canonical128-example batching/resampling formula. ROOT must
+review actual data/inspection before issuing the separate no-game learning
+agreement. Nine qualified Python files are byte-guarded and actual imported
+module paths are recorded. The existing canonical imitate module executes in
+an admitted CUDA child; it exits before the parent's unchanged full post-data
+consumer. Its native epoch0 model/moments/counters must equal the immutable
+warm CP, proving optimizer restoration rather than inferring it from metadata.
+
+The strict report binds every original raw frame hash and all3872 original
+fold names to the canonical cache configuration. It checks all actual epochs,
+original mechanism counts, the strictly positive validation-selected native
+snapshot, full12 finite tensors and actual per-actor Adam deltas. Both value
+weights and their complete Adam states must remain exact during imitation;
+the report distinguishes selected updates from all3 epochs. The next actual
+PPO continuation must update all12 parameters, and all44 strength gains remain
+mandatory. Original whole0/external completion/raw maps/pre-post source/CP
+custody are required for the learning closure reader. Supervision, tensor
+changes and aggregate wins establish no playing-strength or mastery acceptance.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
