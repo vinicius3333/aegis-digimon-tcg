@@ -270,6 +270,22 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
             pendingDecisionId: pending?.decisionId,
           });
           confirmedDecisionIdRef.current = reconciled.confirmedDecisionId;
+          // A later series game can already be waiting for mulligan before this socket
+          // binds its message handler. The synchronized request contains all its inputs.
+          if (
+            !reconciled.decision &&
+            pending?.kind === "mulligan" &&
+            next.players[pending.seat]?.sessionId === room.sessionId &&
+            !answeredDecisionsRef.current.has(pending.decisionId)
+          ) {
+            confirmedDecisionIdRef.current = pending.decisionId;
+            return {
+              decisionId: pending.decisionId,
+              seat: pending.seat,
+              kind: "mulligan",
+              promptText: pending.promptText,
+            };
+          }
           return reconciled.decision;
         });
         setVersion((v) => v + 1);

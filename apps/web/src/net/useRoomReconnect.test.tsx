@@ -417,3 +417,21 @@ it("GitHub #5197: restores a spectator's decoded state on reload without sending
   expect(sendIntent).not.toHaveBeenCalled();
   expect(flushIntents).not.toHaveBeenCalled();
 });
+
+it("GitHub #5210: restores game-two mulligan from a decoded state when its message arrived before binding", async () => {
+  sessionStorage.clear();
+  const joined = fakeRoom("game-two");
+  const initial = {
+    players: [
+      { seat: 0, sessionId: joined.room.sessionId },
+      { seat: 1, sessionId: "opponent" },
+    ],
+    stateVersion: 1,
+    pendingDecision: { decisionId: "mull-1", seat: 0, kind: "mulligan", promptText: "Redraw your opening hand?" },
+  } as GameState;
+  Reflect.set(joined.room, "state", initial);
+  joinOrCreate.mockResolvedValue(joined.room);
+  const { result } = renderHook(() => useRoom(OPTIONS));
+  await waitFor(() => expect(result.current.status).toBe("connected"));
+  expect(result.current.decision).toMatchObject(initial.pendingDecision!);
+});
