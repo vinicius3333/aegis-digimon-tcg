@@ -60,10 +60,9 @@ it("grants, retains through phase changes, removes and resets while preserving b
   expect(ui.container.inert).toBe(false);
   expect(ui.field().querySelector('[aria-label="Active keywords: Blocker"]')).toBeTruthy();
   expect(ui.container.querySelectorAll(".game-hand-card")).toHaveLength(20);
+  // Pile chips are hidden by default (4886cf605); the screen-reader pile list always carries the counts.
   for (const side of ["You", "Opponent"])
-    expect(within(screen.getByRole("group", { name: side })).getByRole("img", { name: "20 cards" }).textContent).toBe(
-      "20",
-    );
+    expect(within(screen.getByRole("list", { name: side })).getByText("Hand: 20 cards in hand")).toBeTruthy();
   fireEvent.change(screen.getByRole("combobox", { name: "Phase" }), { target: { value: Phase.End } });
   expect(ui.field().querySelector('[aria-label="Active keywords: Blocker"]')).toBeTruthy();
   ui.open();
