@@ -291,7 +291,16 @@ export async function consultLeavePrevention(
         // Keep the public target visible while a nested prevention prompt is open. The
         // original target decision may belong to the opponent and is intentionally
         // private, but the permanent it selected is public game state by this point.
-        did = await repl.preventCheck({ ...ctx, affectedPermanentIds: [leavingId] }, leavingId);
+        did = await repl.preventCheck(
+          {
+            ...ctx,
+            affectedPermanentIds: [leavingId],
+            onActivationChosen: () => {
+              if (repl.oncePerTurnKey !== undefined) host.markOncePerTurnFired?.(repl.oncePerTurnKey);
+            },
+          },
+          leavingId,
+        );
       } finally {
         opts.reentryGuard.activeReplacementKeys.delete(activationKey);
       }
