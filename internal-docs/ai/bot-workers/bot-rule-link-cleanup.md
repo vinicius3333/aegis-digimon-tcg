@@ -949,6 +949,55 @@ Final exclusive request, complete original fresh-seed scanner, full read-only
 admission, fresh idle checks and separate ROOT learning Go remain required
 before actual R3 execution.
 
+## Actual balanced R3 admission and original foreground launch
+
+The unchanged complete seed scanner exited zero: the full window
+**6016104..6019975** (3,872 training games) is fresh, with no overlap in either
+`runs` or `validations`. Its exclusive inventory has SHA-256
+`8310d9d7632077f9fb1cf8f15d5f6f1648c8617e25990c775397148662f00afa`;
+the sealed final request has SHA-256
+`3ae3accf87504271dcf72902ae794b87f479f6e940c84850d70e47dec9479bae`.
+Full read-only admission exited zero in session 84732, with receipt SHA-256
+`040aed633121847259a88b351c36e9c6832e78dcd46a0dff3d3c9e116e97b9b6`.
+The actual admitted supported command retains CUDA, four workers, snapshot zero,
+max failures zero and 4,000 max decisions; it selects all44 learners against
+all44 opponents at both seats, in batches of 88, with the actual R2b checkpoint
+and preserved optimizer at learning rate `1e-5`. No primary model or training
+was started by that inspection.
+
+Two separate actual static idle checks passed with empty GPU inventory and
+absent fresh R3 outputs. The ROOT learning Go has SHA-256
+`cc463747853d89b4da4508d77c1466535d36f6856069305f9a7fbf628e5c20dd`.
+Original foreground session **49940** is now attached: actual whole
+**716/start53032** launched operator **736/start53040**, with exact arguments,
+parentage and sealed request/operator/Go provenance verified. Actual launch
+identity SHA-256 is
+`36eaad915d93e2312565cf30b3c0beb24b6754d6093380a20b01d3f26f456c78`.
+The first subsequent observer still shows predecessor/source admission in
+progress, **no training child or games yet**, empty GPU inventory and no whole
+exit. Keep the original foreground session attached, and obtain later actual
+process and terminal evidence without restarting on an observation timeout.
+Actual updates, a new checkpoint and full training closure remain pending.
+
+The later frozen all44 evaluation adapter is separately prepared as source only:
+`rule-link-current-corrective-strength-r3.py`, SHA-256
+`9109fd058afd9b49440a528ba7f02908d9efd9fa1d263e4f31ed839119c58af0`.
+It binds this actual learning launch, source/runtime, original reference rows,
+full development schedule and original unchanged evaluation/records/whole/Go
+functions. Actual new checkpoint and learning completion SHA fields remain
+null in the rejected pending request; no future success is supplied. Seven
+synthetic guards passed (`test_current_corrective_strength_r3.py`, SHA-256
+`c8735999c1ed81d847b09df7c75a4ccaaee45913926e986add7ef0a87dc63ad0`).
+Actual Python 3.12.14 desktop syntax and unchanged-function review exited zero;
+the pending request was rejected before any consumer or primary model import.
+Source-review receipt SHA-256 is
+`e5651d2c4b9f3eab25a3b5f4d5e1bcbef32b9c4d5e35c5a240162fac57b27154`.
+This does not admit evaluation: actual R3 whole-zero/full consumer, actual new
+checkpoint pins, final exclusive request/wrapper, full read-only inspection,
+fresh idle inventory and a distinct ROOT evaluation resource Go remain required.
+No metadata generation, engine rebuild, physical/room games or final blind
+seeds were consumed by this preparation.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
