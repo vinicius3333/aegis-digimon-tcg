@@ -23,4 +23,5 @@ export const decksEs: Record<keyof typeof decksEn, string> = {
   "redesign.decks.editor.stats": "Forma del deck",
   "redesign.decks.editor.sleeve": "Funda",
   "redesign.decks.editor.sleeveGlobal": "Funda de la configuración ({sleeve})",
+  "redesign.decks.editor.eggSleeve": "Funda de los Digi-Eggs",
 };

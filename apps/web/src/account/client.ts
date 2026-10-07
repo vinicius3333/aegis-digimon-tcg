@@ -15,6 +15,7 @@ export type AccountPreferences = {
   darkMode?: boolean;
   locale?: string;
   sleeve?: string;
+  eggSleeve?: string;
   deckShare?: number;
   deckView?: "grid" | "list";
   deckSort?: string;
@@ -101,6 +102,7 @@ export const accountApi = {
           eggDeckArts?: string[];
           coverCardId?: string;
           sleeveId?: string;
+          eggSleeveId?: string;
           updatedAt?: number;
         }>
       >("/account/decks")
@@ -116,6 +118,7 @@ export const accountApi = {
         eggDeckArts: deck.eggDeckArts,
         coverCardId: deck.coverCardId,
         sleeveId: deck.sleeveId ?? null,
+        eggSleeveId: deck.eggSleeveId ?? null,
       }),
     }),
   deleteDeck: async (id: string): Promise<void> => {

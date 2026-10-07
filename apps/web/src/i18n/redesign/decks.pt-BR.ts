@@ -23,4 +23,5 @@ export const decksPtBR: Record<keyof typeof decksEn, string> = {
   "redesign.decks.editor.stats": "Formato do deck",
   "redesign.decks.editor.sleeve": "Sleeve",
   "redesign.decks.editor.sleeveGlobal": "Sleeve das configurações ({sleeve})",
+  "redesign.decks.editor.eggSleeve": "Sleeve dos Digi-Eggs",
 };

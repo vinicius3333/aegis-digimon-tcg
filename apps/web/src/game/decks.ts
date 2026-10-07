@@ -83,6 +83,8 @@ export interface DeckListing {
   updatedAt?: number;
   /** This deck's card sleeve; absent means the global sleeve from Settings. */
   sleeveId?: string;
+  /** This deck's Digi-Egg sleeve; absent means the global egg sleeve from Settings. */
+  eggSleeveId?: string;
 }
 
 export interface FamousDeckListingGroup {

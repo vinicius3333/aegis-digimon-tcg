@@ -53,6 +53,8 @@ describe("AccountStore", () => {
     expect((await store.decks(account.id))[0]?.sleeveId).toBe("alphamon");
     await store.saveDeck(account.id, { ...deck, sleeveId: undefined });
     expect((await store.decks(account.id))[0]?.sleeveId).toBeUndefined();
+    await store.saveDeck(account.id, { ...deck, sleeveId: undefined, eggSleeveId: "gold" });
+    expect((await store.decks(account.id))[0]).toMatchObject({ sleeveId: undefined, eggSleeveId: "gold" });
     await store.close();
   });
   it("reports when each deck was last saved, newest first", async () => {

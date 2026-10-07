@@ -91,6 +91,7 @@ export function DeckEditor({
   const [name, setName] = useState(deck.name);
   const [coverCardId, setCoverCardId] = useState<string | undefined>(() => displayCoverCard(deck));
   const [sleeveId, setSleeveId] = useState<string | undefined>(deck.sleeveId);
+  const [eggSleeveId, setEggSleeveId] = useState<string | undefined>(deck.eggSleeveId);
   const [sel, setSel] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -178,6 +179,7 @@ export function DeckEditor({
         eggDeck,
         coverCardId,
         sleeveId,
+        eggSleeveId,
         mainDeckArts: Object.entries(main).flatMap(([id, count]) =>
           Array.from({ length: count }, (_, i) => resolveCardArt(id, arts[id]?.[i]).artId),
         ),
@@ -191,7 +193,7 @@ export function DeckEditor({
 
   useEffect(() => {
     persist(false);
-  }, [main, egg, name, coverCardId, sleeveId, arts]);
+  }, [main, egg, name, coverCardId, sleeveId, eggSleeveId, arts]);
 
   const play = () => {
     persist(true);
@@ -374,7 +376,10 @@ export function DeckEditor({
           </div>
 
           <div className="deck-current__footer">
-            <DeckSleeveSelect sleeveId={sleeveId} onChange={setSleeveId} />
+            <div className="deck-current__sleeves">
+              <DeckSleeveSelect sleeveId={sleeveId} onChange={setSleeveId} />
+              <DeckSleeveSelect kind="egg" sleeveId={eggSleeveId} onChange={setEggSleeveId} />
+            </div>
             {banlistViolations.length > 0 ? (
               <div className="deck-current__violations">
                 <strong>{t("deck.banlistTitle")}</strong>

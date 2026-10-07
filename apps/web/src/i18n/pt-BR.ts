@@ -720,6 +720,9 @@ export const ptBR: Record<keyof typeof en, string> = {
   "settings.sleeveUploading": "Enviando imagem…",
   "settings.sleeveHint": "Salva neste dispositivo. Prefira imagens verticais; a imagem preenche a carta.",
   "settings.cardSleeveDesc": "Escolha uma sleeve para suas cartas ocultas",
+  "settings.eggSleeve": "Sleeve dos Digi-Eggs",
+  "settings.eggSleeveDesc":
+    "Escolha o verso do seu deck de Digi-Eggs. Uma imagem enviada em Verso das cartas também funciona aqui",
   "settings.textSize": "Tamanho do texto",
   "settings.textSizeDesc": "Aumenta menus, prompts e o texto de efeito das cartas neste dispositivo",
   "settings.textSizeDefault": "Padrão",

@@ -177,7 +177,7 @@ export function installAccountRoutes(
   put("/account/decks{/:id}", async (req, res) => {
     const session = await requireSession(req, res, store);
     if (!session) return;
-    const { name, mainDeck, eggDeck, mainDeckArts, eggDeckArts, coverCardId, sleeveId } = req.body as {
+    const { name, mainDeck, eggDeck, mainDeckArts, eggDeckArts, coverCardId, sleeveId, eggSleeveId } = req.body as {
       name?: unknown;
       mainDeck?: unknown;
       eggDeck?: unknown;
@@ -185,6 +185,7 @@ export function installAccountRoutes(
       eggDeckArts?: unknown;
       coverCardId?: unknown;
       sleeveId?: unknown;
+      eggSleeveId?: unknown;
     };
     if (
       typeof name !== "string" ||
@@ -201,7 +202,8 @@ export function installAccountRoutes(
           eggDeckArts.length !== eggDeck.length ||
           !eggDeckArts.every((v) => typeof v === "string"))) ||
       (coverCardId !== undefined && coverCardId !== null && typeof coverCardId !== "string") ||
-      (sleeveId !== undefined && sleeveId !== null && !isSleeveId(sleeveId))
+      (sleeveId !== undefined && sleeveId !== null && !isSleeveId(sleeveId)) ||
+      (eggSleeveId !== undefined && eggSleeveId !== null && !isSleeveId(eggSleeveId))
     ) {
       res.status(400).json({ error: "invalid deck" });
       return;
@@ -217,6 +219,7 @@ export function installAccountRoutes(
           eggDeckArts: eggDeckArts as string[] | undefined,
           coverCardId: (coverCardId as string | null | undefined) ?? undefined,
           sleeveId: (sleeveId as string | null | undefined) ?? undefined,
+          eggSleeveId: (eggSleeveId as string | null | undefined) ?? undefined,
         }),
       );
     } catch (error) {
@@ -709,12 +712,16 @@ function isSleeveId(value: unknown): value is string {
  */
 function parsePreferences(value: unknown): AccountPreferences | undefined {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return undefined;
-  const { darkMode, locale, sleeve, deckShare, deckView, deckSort, ...unknownKeys } = value as Record<string, unknown>;
+  const { darkMode, locale, sleeve, eggSleeve, deckShare, deckView, deckSort, ...unknownKeys } = value as Record<
+    string,
+    unknown
+  >;
   if (Object.keys(unknownKeys).length > 0) return undefined;
   const isShortText = (text: unknown) => typeof text === "string" && text.length <= MAX_PREFERENCE_LENGTH;
   if (darkMode !== undefined && typeof darkMode !== "boolean") return undefined;
   if (locale !== undefined && !isShortText(locale)) return undefined;
   if (sleeve !== undefined && !isShortText(sleeve)) return undefined;
+  if (eggSleeve !== undefined && !isShortText(eggSleeve)) return undefined;
   if (deckShare !== undefined && !(typeof deckShare === "number" && deckShare > 0 && deckShare < 1)) return undefined;
   if (deckView !== undefined && deckView !== "grid" && deckView !== "list") return undefined;
   if (deckSort !== undefined && !isShortText(deckSort)) return undefined;
@@ -722,6 +729,7 @@ function parsePreferences(value: unknown): AccountPreferences | undefined {
     ...(darkMode !== undefined && { darkMode }),
     ...(locale !== undefined && { locale: locale as string }),
     ...(sleeve !== undefined && { sleeve: sleeve as string }),
+    ...(eggSleeve !== undefined && { eggSleeve: eggSleeve as string }),
     ...(deckShare !== undefined && { deckShare: deckShare as number }),
     ...(deckView !== undefined && { deckView: deckView as "grid" | "list" }),
     ...(deckSort !== undefined && { deckSort: deckSort as string }),

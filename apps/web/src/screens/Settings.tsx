@@ -17,7 +17,7 @@ import {
 } from "../design/sound";
 import { areActionConfirmationsEnabled, setActionConfirmationsEnabled } from "../design/actionConfirmation";
 import { FieldLayout, setFieldLayout, useFieldLayout } from "../design/fieldLayout";
-import { CardSleevePicker } from "../design/sleevePicker";
+import { CardSleevePicker, EggSleevePicker } from "../design/sleevePicker";
 import { TEXT_SCALES, setTextScale, useTextScale, type TextScale } from "../design/textScale";
 import { SEQUENTIAL_PACING_ENABLED } from "../features";
 import { EFFECT_SPEEDS, getEffectSpeed, setEffectSpeed, type EffectSpeed } from "../game/pacing";
@@ -207,6 +207,14 @@ export function Settings({
                 <small>{t("settings.cardSleeveDesc")}</small>
               </div>
               <CardSleevePicker />
+            </div>
+
+            <div className="settings-block">
+              <div className="settings-block__heading">
+                <strong>{t("settings.eggSleeve")}</strong>
+                <small>{t("settings.eggSleeveDesc")}</small>
+              </div>
+              <EggSleevePicker />
             </div>
           </section>
 

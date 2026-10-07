@@ -145,6 +145,12 @@ describe("/account/preferences", () => {
     expect(await getPreferences()).toEqual({ darkMode: false, locale: "pt-BR", sleeve: "omnimon" });
   });
 
+  it("stores the Digi-Egg sleeve beside the main sleeve", async () => {
+    expect((await putPreferences({ sleeve: "omnimon", eggSleeve: "gold" })).status).toBe(200);
+    expect(await getPreferences()).toEqual({ sleeve: "omnimon", eggSleeve: "gold" });
+    expect((await putPreferences({ eggSleeve: "x".repeat(65) })).status).toBe(400);
+  });
+
   it("stores the deck builder layout", async () => {
     const layout = { deckShare: 0.6, deckView: "list", deckSort: "level" };
     expect((await putPreferences(layout)).status).toBe(200);

@@ -21,4 +21,5 @@ export const decksEn = {
   "redesign.decks.editor.stats": "Deck shape",
   "redesign.decks.editor.sleeve": "Sleeve",
   "redesign.decks.editor.sleeveGlobal": "Settings sleeve ({sleeve})",
+  "redesign.decks.editor.eggSleeve": "Digi-Egg sleeve",
 } as const;

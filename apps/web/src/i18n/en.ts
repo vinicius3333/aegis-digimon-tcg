@@ -697,6 +697,9 @@ export const en = {
   "settings.sleeveUploading": "Uploading image…",
   "settings.sleeveHint": "Saved on this device. Portrait images work best; the image fills the card.",
   "settings.cardSleeveDesc": "Choose a sleeve for your hidden cards",
+  "settings.eggSleeve": "Digi-Egg sleeve",
+  "settings.eggSleeveDesc":
+    "Choose the back of your Digi-Egg deck. An image uploaded under Card sleeves also works here",
   "settings.textSize": "Text size",
   "settings.textSizeDesc": "Makes menus, prompts and card effect text larger on this device",
   "settings.textSizeDefault": "Default",

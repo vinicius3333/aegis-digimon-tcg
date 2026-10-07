@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "aegis.sleeve";
 const CUSTOM_IMAGE_KEY = "aegis.sleeve.custom";
+const EGG_STORAGE_KEY = "aegis.eggSleeve";
 export const CUSTOM_CARD_SLEEVE_ID = "custom";
 
 export interface CardSleeve {
@@ -407,6 +408,32 @@ function readId(): string {
 
 let currentId = readId();
 
+/** The white Digi-Egg back every egg deck used before egg sleeves; still the default. */
+export const DEFAULT_EGG_SLEEVE: CardSleeve = {
+  id: "digimon-egg",
+  label: "Digi-Egg",
+  collection: "Standard Card Back",
+  src: "/sleeves/digimon-egg.webp",
+};
+
+/** Egg sleeves reuse the main catalog and the uploaded image, after the standard egg back. */
+export const EGG_SLEEVES: readonly CardSleeve[] = [DEFAULT_EGG_SLEEVE, ...CARD_SLEEVES];
+
+function isEggSleeveId(id: string | null): id is string {
+  return id === DEFAULT_EGG_SLEEVE.id || isCardSleeveId(id);
+}
+
+function readEggId(): string {
+  try {
+    const stored = localStorage.getItem(EGG_STORAGE_KEY);
+    return isEggSleeveId(stored) ? stored : DEFAULT_EGG_SLEEVE.id;
+  } catch {
+    return DEFAULT_EGG_SLEEVE.id;
+  }
+}
+
+let currentEggId = readEggId();
+
 export function getCardSleeveId(): string {
   return currentId;
 }
@@ -436,6 +463,7 @@ export function clearCustomCardSleeve(): void {
     // Nothing to clean up when storage is blocked.
   }
   customSrc = undefined;
+  if (currentEggId === CUSTOM_CARD_SLEEVE_ID) setEggSleeveId(DEFAULT_EGG_SLEEVE.id);
   if (currentId === CUSTOM_CARD_SLEEVE_ID) setCardSleeveId(DEFAULT_CARD_SLEEVE.id);
   else for (const listener of listeners) listener();
 }
@@ -475,4 +503,43 @@ export function useCardSleeve(): CardSleeve {
   // Replacements keep the same id, so subscribe to the image as well.
   useSyncExternalStore(subscribeCardSleeve, getCustomCardSleeveSrc, () => undefined);
   return cardSleeveById(id);
+}
+
+export function getEggSleeveId(): string {
+  return currentEggId;
+}
+
+export function setEggSleeveId(id: string): void {
+  if (!isEggSleeveId(id)) return;
+  currentEggId = id;
+  try {
+    localStorage.setItem(EGG_STORAGE_KEY, id);
+  } catch {
+    // The sleeve is cosmetic; a blocked storage still applies for this session.
+  }
+  for (const listener of listeners) listener();
+}
+
+let deckEggSleeveId: string | undefined;
+
+/** The playing deck's own egg sleeve, with the same fallback rules as {@link setDeckSleeveId}. */
+export function setDeckEggSleeveId(id: string | undefined): void {
+  if (id === deckEggSleeveId) return;
+  deckEggSleeveId = id;
+  for (const listener of listeners) listener();
+}
+
+/** The egg deck's back: the deck's own egg sleeve, else the global egg sleeve, else the Digi-Egg back. */
+export function getEffectiveEggSleeveId(): string {
+  return deckEggSleeveId && isEggSleeveId(deckEggSleeveId) ? deckEggSleeveId : currentEggId;
+}
+
+export function eggSleeveById(id: string): CardSleeve {
+  return id === DEFAULT_EGG_SLEEVE.id || !isCardSleeveId(id) ? DEFAULT_EGG_SLEEVE : cardSleeveById(id);
+}
+
+export function useEggSleeve(): CardSleeve {
+  const id = useSyncExternalStore(subscribeCardSleeve, getEffectiveEggSleeveId, () => DEFAULT_EGG_SLEEVE.id);
+  useSyncExternalStore(subscribeCardSleeve, getCustomCardSleeveSrc, () => undefined);
+  return eggSleeveById(id);
 }

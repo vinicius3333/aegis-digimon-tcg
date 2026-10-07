@@ -22,7 +22,7 @@ import { Settings } from "./screens/Settings";
 import { loadIdentity, saveIdentity, loadDecks, saveDecks, loadActiveDeckId, saveActiveDeckId } from "./identity";
 import { accentForAvatar } from "./guest";
 import { applyDarkMode, setDarkMode, useDarkMode } from "./design/darkMode";
-import { setDeckSleeveId } from "./design/sleeve";
+import { setDeckEggSleeveId, setDeckSleeveId } from "./design/sleeve";
 import { applyTextScale } from "./design/textScale";
 import { I18nProvider, useTranslation } from "./i18n";
 import { accountApi, type RemoteAccount } from "./account/client";
@@ -364,6 +364,8 @@ export function AegisClient({
   const matchDeck = deckById(availableDecks, matchDeckId ?? activeDeckId);
   const matchSleeveId = screen === "game" ? matchDeck?.sleeveId : undefined;
   useEffect(() => setDeckSleeveId(matchSleeveId), [matchSleeveId]);
+  const matchEggSleeveId = screen === "game" ? matchDeck?.eggSleeveId : undefined;
+  useEffect(() => setDeckEggSleeveId(matchEggSleeveId), [matchEggSleeveId]);
   const collectionSize = useMemo(() => activeCollectionCards().length, []);
   const identityColor: ColorName = colorKey(player.color);
 

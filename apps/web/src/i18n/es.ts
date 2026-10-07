@@ -689,6 +689,9 @@ export const es: Record<keyof typeof en, string> = {
   "settings.sleeveHint":
     "Se guarda en este dispositivo. Las imágenes verticales funcionan mejor; la imagen llena la carta.",
   "settings.cardSleeveDesc": "Elige una funda para tus cartas ocultas",
+  "settings.eggSleeve": "Funda de los Digi-Eggs",
+  "settings.eggSleeveDesc":
+    "Elige el reverso de tu deck de Digi-Eggs. Una imagen subida en Fundas de cartas también funciona aquí",
   "settings.textSize": "Tamaño del texto",
   "settings.textSizeDesc": "Agranda los menús, los avisos y el texto de efecto de las cartas en este dispositivo",
   "settings.textSizeDefault": "Predeterminado",

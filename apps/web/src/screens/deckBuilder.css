@@ -1074,6 +1074,12 @@
   }
 }
 
+.deck-current__sleeves {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--ds-space-2) var(--ds-space-3);
+}
+
 .deck-sleeve {
   display: flex;
   align-items: center;
