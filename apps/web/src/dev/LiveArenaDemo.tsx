@@ -156,6 +156,26 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue Arukenimon e delete DemiDevimon para reduzir o custo. Resolva o efeito nativo de DemiDevimon: coloque-o sob Arukenimon e evolua para MaloMyotismon. Seu efeito herdado não pode ativar retroativamente; Agumon adversário e sua carta na mão permanecem.",
     en: "Play Arukenimon and delete DemiDevimon to reduce its cost. Resolve DemiDevimon’s native effect: place it under Arukenimon and evolve into MaloMyotismon. Its inherited effect cannot activate retroactively; the opposing Agumon and your hand card remain.",
   },
+  "arena-issue-5179-imperialdramon-blitz": {
+    ptBR: "Encerre a criação. Evolua Paildramon para Imperialdramon EX3-063 por 4, passando a memória ao oponente. Aceite Blitz e ataque a segurança. Os dois Digimon adversários devem permanecer: a remoção exige DNA, Blitz não.",
+    en: "End breeding. Digivolve Paildramon into EX3-063 Imperialdramon for 4, passing memory. Accept Blitz and attack security. Both opposing Digimon remain: deletion requires DNA, Blitz does not.",
+  },
+  "arena-issue-5190-tapmon-bootmon": {
+    ptBR: "Encerre a criação. Use App Fusion de Logimon com Craftmon ligado para Bootmon por zero. Aceite ligar Shutmon por Quando Evoluir. Aceite a redução de Tapmon: custo 3 menos 2 menos 1 é zero. Resolva a suspensão de Bootmon e a restrição de Shutmon.",
+    en: "End breeding. App Fuse Logimon with linked Craftmon into Bootmon for zero. Accept linking Shutmon through When Digivolving. Accept Tapmon’s reduction: cost 3 minus 2 minus 1 is zero. Resolve Bootmon’s suspension and Shutmon’s restriction.",
+  },
+  "arena-issue-5196-kyubimon-search": {
+    ptBR: "Encerre a criação e evolua Renamon para Kyubimon por 2. Após comprar pela evolução, revele 3 e escolha Sakuyamon; devolva as demais ao fundo. Ao Jogar não deve buscar. Quando Mover da criação também deve buscar.",
+    en: "End breeding and digivolve Renamon into Kyubimon for 2. After the evolution draw, reveal 3 and select Sakuyamon; return the rest to the bottom. On Play must not search. Moving from breeding must also search.",
+  },
+  "arena-issue-5194-alphamon-entry": {
+    ptBR: "Encerre a criação. Jogue Alphamon sem Assembly. Aceite seu efeito: Alphamon não pode atacar no turno em que entrou sem Rush, mas ainda deve oferecer a reativação de Quando Evoluir. Aceite e reduza o DP adversário em 8000. A resolução deve terminar normalmente.",
+    en: "End breeding. Play Alphamon without Assembly. Accept its effect: the newly played Alphamon cannot attack without Rush, but must still offer to reactivate When Digivolving. Accept and reduce opposing DP by 8000. Resolution must finish normally.",
+  },
+  "arena-issue-5185-nokia-warp": {
+    ptBR: "Encerre a criação. Selecione WarGreymon na mão e use seu efeito Principal da mão para evoluir Agumon: custo impresso 6, reduzido para 5 por Nokia. Não use a evolução normal. Repita com MetalGarurumon e Gabumon, ou reinicie o cenário.",
+    en: "End breeding. Select WarGreymon in hand and use its Hand Main effect to evolve Agumon: printed cost 6, reduced to 5 by Nokia. Use the hand effect action. Repeat with MetalGarurumon and Gabumon, or reset the scenario.",
+  },
   "arena-issue-5170-kaguyamon-end-turn": {
     ptBR: "Encerre o turno e aceite Kaguyamon EX9-033. Escolha Sistermon Blanc ou Ciel no lixo; ambas são Puppet de nível 4 ou menor e podem entrar sem custo.",
     en: "End your turn and accept EX9-033 Kaguyamon. Choose trash Sistermon Blanc or Ciel; both are level 4 or lower Puppets and can enter for free.",
@@ -1754,6 +1774,11 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-5127-opponent-survival", "GitHub #5127 · Opposing survival cost"],
   ["arena-issue-5168-alter-s-simultaneous", "GitHub #5168 · alter-s-simultaneous"],
   ["arena-issue-5169-demidevimon-native", "GitHub #5169 · demidevimon-native"],
+  ["arena-issue-5179-imperialdramon-blitz", "GitHub #5179 \u00b7 Imperialdramon ordinary-evolution Blitz"],
+  ["arena-issue-5190-tapmon-bootmon", "GitHub #5190 / #5192 \u00b7 Tapmon, Bootmon and Shutmon"],
+  ["arena-issue-5196-kyubimon-search", "GitHub #5196 · Kyubimon search timing"],
+  ["arena-issue-5194-alphamon-entry", "GitHub #5193 / #5194 \u00b7 Alphamon entry without Rush"],
+  ["arena-issue-5185-nokia-warp", "GitHub #5185 \u00b7 Nokia Hand Main warp"],
   ["arena-issue-5170-kaguyamon-end-turn", "GitHub #5170 · kaguyamon-end-turn"],
   ["arena-issue-5170-kaguyamon-on-play", "GitHub #5170 · kaguyamon-on-play"],
   ["arena-issue-5170-arisa-overclock", "GitHub #5170 · arisa-overclock"],

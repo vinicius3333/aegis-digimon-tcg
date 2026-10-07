@@ -146,6 +146,45 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
 });
 
 describe("BT17-102 Greymon — dynamic stack names", () => {
+  it("GitHub #5187: evolves back into Greymon after Agumon evolved over a Koromon-named Greymon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: GREYMON, as: "base", under: ["BT14-001"] }],
+          hand: [
+            { card: "BT12-034", as: "agumon" },
+            { card: GREYMON, as: "nextGreymon" },
+          ],
+          deck: ["BT1-009", "BT1-013", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("agumon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT12-034" && s.engine.mainVerbContinuationsInFlight === 0);
+    expect(s.inst("nextGreymon").digivolveTargetPermanentIds).toContain(s.perm("base").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("nextGreymon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === GREYMON && s.engine.mainVerbContinuationsInFlight === 0);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").stack.map((c) => c.cardId)).toEqual(["BT14-001", GREYMON, "BT12-034"]);
+  });
+
   it.each([true, false])(
     "GitHub bugs #5030 and #5019 evolve Agumon only with the granted Koromon name (%s)",
     async (koromon) => {

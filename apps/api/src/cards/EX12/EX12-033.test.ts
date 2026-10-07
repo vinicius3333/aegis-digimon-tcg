@@ -11,6 +11,43 @@ import { expectOnlyOneCounterPerAttack } from "./counterOnce.testSupport.js";
 const cardId = "EX12-033";
 
 describe("EX12-033 Amphimon", () => {
+  it.each([
+    { trashCount: 2, accept: true, survives: false },
+    { trashCount: 3, accept: true, survives: true },
+    { trashCount: 3, accept: false, survives: false },
+  ])(
+    "GitHub #5198: equal-DP security battle with $trashCount trash cards and protection accepted=$accept",
+    async ({ trashCount, accept, survives }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: cardId, as: "amphimon" }],
+            trash: ["BT1-009", "BT1-010", "BT1-011"].slice(0, trashCount),
+          },
+          1: { security: ["BT12-070"] },
+        },
+        { autoAcceptOptional: accept, autoDeclineOptional: !accept, autoSelectCards: true, autoOrderTriggers: true },
+      );
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("amphimon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("amphimon").permanentId)).toBe(
+        survives,
+      );
+      expect(
+        s.state.players[0]!.trash.filter((c) => ["BT1-009", "BT1-010", "BT1-011"].includes(c.cardId)),
+      ).toHaveLength(survives ? 0 : trashCount);
+      expect(s.state.players[1]!.security).toHaveLength(0);
+    },
+  );
+
   it("maps both evolution routes, all three shared timings, and the DS color waiver", () => {
     const card = getCardDefinition(cardId);
     const compiled = registeredCompiledCards.get(cardId)!;

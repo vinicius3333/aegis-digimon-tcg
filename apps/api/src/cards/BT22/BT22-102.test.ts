@@ -61,6 +61,39 @@ describe("BT22-102 Sayo", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it.each([true, false])(
+    "GitHub #5177: a real CS attack requires repeated levels before Sayo can evolve it (%s)",
+    async (repeated) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT22-102", as: "sayo" },
+              { card: "BT22-069", as: "attacker", under: repeated ? ["BT22-068", "BT22-071"] : [] },
+            ],
+            trash: [{ card: "BT22-072", as: "lekismon" }],
+          },
+          1: { security: ["BT1-001", "BT1-001"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      if (repeated) await settle(() => s.perm("attacker").topCard.cardId === "BT22-072");
+      await advance(s.engine).finishAttack();
+      expect(s.perm("sayo").isSuspended).toBe(repeated);
+      expect(s.perm("attacker").topCard.cardId).toBe(repeated ? "BT22-072" : "BT22-069");
+      expect(s.state.memory).toBe(repeated ? 2 : 3);
+    },
+  );
+
   it("suspends Sayo and pays the reduced trash evolution for a repeated-level attacker", async () => {
     const s = setupEngine(
       {

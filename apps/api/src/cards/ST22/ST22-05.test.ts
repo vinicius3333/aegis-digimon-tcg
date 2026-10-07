@@ -4,6 +4,33 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("ST22-05 Sakuyamon", () => {
+  it.each([true, false])("GitHub #5045: High-Speed Plug-In H obeys its Tamer color waiver (%s)", async (hasTamer) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: hasTamer ? ["ST22-07"] : [],
+          hand: [
+            { card: "ST22-05", as: "sakuyamon" },
+            { card: "ST22-09", as: "plugIn" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sakuyamon").instanceId })).toEqual({
+      ok: true,
+    });
+    if (hasTamer)
+      await settle(() => s.state.players[0]!.battleArea.some((p) => p.linked.some((c) => c.cardId === "ST22-09")));
+    await settle(() => s.state.pendingDecision === undefined && s.engine.mainVerbContinuationsInFlight === 0);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "beSuspended")).toBe(hasTamer);
+    expect(s.state.players[0]!.hand.some((c) => c.cardId === "ST22-09")).toBe(!hasTamer);
+    expect(s.state.players[0]!.battleArea.some((p) => p.linked.some((c) => c.cardId === "ST22-09"))).toBe(hasTamer);
+  });
+
   it("plays a Pipe Fox Token from its On Play effect", async () => {
     const s = setupEngine(
       { 0: { hand: [{ card: "ST22-05", as: "sakuyamon" }] } },
