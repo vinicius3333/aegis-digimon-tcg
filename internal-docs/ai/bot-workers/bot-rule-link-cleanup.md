@@ -1365,6 +1365,21 @@ Final seeds `6210000..6213871` remain untouched. All44 strict gains against
 all four references and the full mechanics, custody, rooms, serving and
 final-blind gates remain required.
 
+## R4 actual frozen CUDA evaluation started
+
+Actual observation2 confirms the evaluation-start receipt and CUDA child
+PID1097/startTicks570286 as a direct child of operator713/529212. The real
+config has `evaluate=true`, `streamEvaluation=true`, featureV7, all44 default
+curriculum recipes, 3,872 games at the unchanged development seed6135000,
+and exact frozen R4 checkpoint1de. GPU process1097 is present. Original
+foreground session96188 remains attached, whole exit is pending, and no
+completed batch or strength result was claimed at this observation.
+The next action is to monitor this same handle through its real terminal
+result, obtain original whole0/process disappearance/GPU empty, then run its
+full closure consumer. Only its complete same-schedule all44 report can
+establish strict gains against all four references. Final blind seeds remain
+untouched, and all downstream acceptance gates remain pending.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
