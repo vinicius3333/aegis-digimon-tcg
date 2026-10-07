@@ -123,8 +123,10 @@ export interface SubTriggerSubscription {
   /**
    * Whether the body has any legal outcome. Unlike `canFire`, this is never read when the
    * event arms the watcher: a deletion arms its watchers while the deleted card is still on
-   * the field, so a body that uses that card from the trash has no outcome yet. It is read
-   * when the watcher is offered for ordering and immediately before it fires.
+   * the field, so a body that uses that card from the trash has no outcome yet. A watcher that
+   * fails it stays pending, because an earlier simultaneous effect may still make it activatable
+   * (an unsuspended source for a "by suspending this Digimon" cost, Q4101). It is read when the
+   * watcher is offered for ordering and immediately before it fires.
    */
   hasLegalOutcome?: (ctx: EffectContext) => boolean;
   /**
@@ -644,9 +646,9 @@ export class SubTriggerRegistry {
       if (sub.matches !== undefined && !sub.matches(ctx)) {
         continue;
       }
-      // A lone watcher bypasses the ordering path, so its live activation gate must also be
-      // enforced here. Otherwise a self-suspending Tamer can still announce a second activation
-      // while already suspended, even though its body later fails to pay the cost.
+      // A lone watcher bypasses the ordering path, so its live activation gates must also be
+      // enforced here. Otherwise a self-suspending Tamer that is still suspended announces an
+      // activation its body then fails to pay for.
       if (sub.canFire !== undefined && !sub.canFire(ctx)) continue;
       if (sub.hasLegalOutcome !== undefined && !sub.hasLegalOutcome(ctx)) continue;
       this.markFired(sub, windowToken, turnLedger);

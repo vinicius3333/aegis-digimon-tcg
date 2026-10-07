@@ -11,7 +11,10 @@ export const compiled: CompiledCard = {
           event: "wouldBeDeleted",
           mode: "prevent",
           sourceFilter: { zone: "trash", controller: "mine" },
-          target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Dorugamon"], match: "name" }] }, count: 1 },
+          target: {
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Dorugamon"], match: "nameExact" }] },
+            count: 1,
+          },
           leaveCause: "any",
           digivolveFromTrash: true,
           optional: true,
@@ -50,7 +53,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Dorugamon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                   raw: "[Dorugamon] is in this Digimon's digivolution cards",
@@ -85,7 +88,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Dorugamon"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
                 raw: "[Dorugamon] is in this Digimon's digivolution cards",

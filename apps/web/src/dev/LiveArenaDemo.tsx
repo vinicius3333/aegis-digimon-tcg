@@ -788,6 +788,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue EX7-072 Seventh Fascination e encerre seu turno. O Digimon do bot deve permanecer em campo, sem pedido de deleção nesse momento. O efeito concedido só deve ativar no fim do turno do bot.",
     en: "Play EX7-072 Seventh Fascination and end your turn. The bot's Digimon should stay in play, with no deletion prompt yet. The granted effect should activate only at the end of the bot's turn.",
   },
+  "arena-bt17-dexdoru-exact-name": {
+    ptBR: "Encerre a criação. 1) Jogue BT5-106 Demonic Disaster e delete o DexDoruGreymon BT17-067 do campo. O DexDoruGreymon da lixeira não deve oferecer seu efeito [Trash]: o nome exigido é exatamente [DoruGreymon]. 2) Jogue o segundo Demonic Disaster e delete o DoruGreymon BT16-061. Agora o efeito [Trash] deve ser oferecido; aceite: o DoruGreymon evolui para DexDoruGreymon da lixeira sem pagar o custo e não é deletado.",
+    en: "End breeding. 1) Play BT5-106 Demonic Disaster and delete the BT17-067 DexDoruGreymon on the field. The DexDoruGreymon in trash must not offer its [Trash] effect: the required name is exactly [DoruGreymon]. 2) Play the second Demonic Disaster and delete the BT16-061 DoruGreymon. Now the [Trash] effect must be offered; accept: DoruGreymon digivolves into the DexDoruGreymon from trash without paying the cost and is not deleted.",
+  },
   "arena-open-bugs-veemon-decline": {
     ptBR: "Na entrada da fase principal, ordene Davis e Veemon e recuse Veemon. A carta Free deve ficar na mão; não há custo de descarte, compra nem memória de Veemon.",
     en: "At Main entry, order Davis and Veemon and decline Veemon. Keep the Free card in hand; Veemon must not trash, draw or gain memory.",
@@ -839,6 +843,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-bt24-ogremon-ulforce-unsuspend": {
     ptBR: "Ataque a segurança com Ulforce BT11-032. No efeito de BT24-098, o oponente joga Ogremon e descarta Agumon para escolher Ulforce, mesmo já suspenso. Depois jogue o Tamer azul: Ulforce deve desvirar. Como alternativa, jogue Ulforce EX13-023 e escolha desvirar o BT11-032. Ogremon só impede desvirar na próxima fase de desvirar do alvo; efeitos podem desvirá-lo antes dela.",
     en: "Attack security with BT11-032 Ulforce. BT24-098 plays the opponent's Ogremon; discard Agumon and choose Ulforce even though it is already suspended. Then play the blue Tamer: Ulforce must unsuspend. Alternatively, play EX13-023 Ulforce and choose to unsuspend BT11-032. Ogremon blocks only the target's next unsuspend phase; effects may unsuspend it before that phase.",
+  },
+  "arena-bt23-king-drasil-unsuspended-cost": {
+    ptBR: "Ataque a segurança com o BT23-072 King Drasil_7D6: ele fica suspenso. Depois jogue o EX13-023 UlforceVeedramon da mão (custo 12). Os dois efeitos disparam juntos. Resolva primeiro o [Ao Jogar] do Ulforce que muda a orientação, escolha desvirar 1 Digimon suspenso e escolha o King Drasil. Em seguida o [Todos os Turnos] do King Drasil pode ser ativado: aceite suspender o King Drasil. O Ulforce ganha ＜Rush＞, ＜Raid＞, ＜Reboot＞ e ＜Blocker＞ até o fim do turno do oponente e já pode atacar.",
+    en: "Attack security with BT23-072 King Drasil_7D6: it stays suspended. Then play EX13-023 UlforceVeedramon from hand (cost 12). Both effects trigger together. Resolve Ulforce's orientation [On Play] first, choose to unsuspend 1 suspended Digimon, and choose King Drasil. King Drasil's [All Turns] effect can then activate: accept suspending King Drasil. Ulforce gains ＜Rush＞, ＜Raid＞, ＜Reboot＞ and ＜Blocker＞ until the opponent's turn ends and can attack right away.",
   },
   "arena-ex13-leopardmon-unsuspend-lock": {
     ptBR: "Jogue EX13-040 Mikemon da mão (custo 4). O [Ao Jogar] escolhe o EX13-043 Leopardmon suspenso do bot: ele não pode desuspender até o fim do turno dele. Depois ataque o Leopardmon com o seu BT10-055 Gryphonmon (13000 contra 12000). O Leopardmon não pode pagar a prevenção, porque nenhum Digimon do bot pode desuspender: ele é deletado e vai para a lixeira.",
@@ -1420,6 +1428,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "O Vulcanusmon do bot tem Divine Arms Version Ω ([Link] [Vulcanusmon]) e Iron Slash ([Link] traço [TS]) linkados. Jogue EX13-031 KingSukamon da mão (custo 7), aceite o [Ao Jogar], descarte o Chuumon e escolha o Vulcanusmon. Ele passa a se chamar [Sukamon], então o Divine Arms deve ir para o lixo do bot e o Vulcanusmon perde ＜Reboot＞ e ＜Security A. +1＞. O Iron Slash continua linkado, porque o traço [TS] não muda.",
     en: "The bot's Vulcanusmon has Divine Arms Version Ω ([Link] [Vulcanusmon]) and Iron Slash ([Link] [TS] trait) linked. Play EX13-031 KingSukamon from hand (cost 7), accept its [On Play], trash Chuumon, and choose Vulcanusmon. Its name becomes [Sukamon], so Divine Arms must go to the bot's trash and Vulcanusmon loses ＜Reboot＞ and ＜Security A. +1＞. Iron Slash stays linked, because the [TS] trait does not change.",
   },
+  "arena-ex13-kingetemon-digivolve-rule-check": {
+    ptBR: "Encerre a criação e digivolva o seu KingSukamon (EX13-031) em KingEtemon (EX13-035) da mão pelo custo 4. Com KingEtemon, seu Etemon e o Sukamon do bot, há 3 Digimon com [Sukamon]/[Etemon] no nome: o Sukamon do bot cai para 0 DP e vai para o lixo. Você deve receber UM pedido de ordem com o herdado do KingSukamon e o [Ao Digivolver] do KingEtemon. Resolva o KingSukamon primeiro: ele revela 3 cartas e pode jogar o Sukamon (EX13-028). Depois o [Ao Digivolver] do KingEtemon resolve.",
+    en: "End breeding and digivolve your KingSukamon (EX13-031) into KingEtemon (EX13-035) from hand for 4. KingEtemon, your Etemon, and the bot's Sukamon make 3 Digimon with [Sukamon]/[Etemon] in their names, so the bot's Sukamon drops to 0 DP and is trashed. You must get ONE order prompt with KingSukamon's inherited effect and KingEtemon's [When Digivolving]. Resolve KingSukamon first: it reveals 3 cards and may play Sukamon (EX13-028). Then KingEtemon's [When Digivolving] resolves.",
+  },
   "arena-bt16-phoenixmon-x-antibody-name": {
     ptBR: "Você tem 2 Phoenixmon (X Antibody). Ataque um dos 3 Digimon adversários suspensos com o que tem só WarGrowlmon (X Antibody) embaixo: o On Deletion NÃO deve ganhar End of Attack, e nada mais é deletado. Depois ataque com o que tem a Opção X Antibody (BT9-109) embaixo: no End of Attack, o On Deletion herdado de Garudamon deve deletar outro Digimon adversário.",
     en: "You have 2 Phoenixmon (X Antibody). Attack one of the 3 suspended opposing Digimon with the one that has only WarGrowlmon (X Antibody) under it: its On Deletion effects must NOT gain End of Attack, and nothing else is deleted. Then attack with the one that has the X Antibody Option (BT9-109) under it: at End of Attack, Garudamon's inherited On Deletion must delete another opposing Digimon.",
@@ -1875,6 +1887,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-mervamon-trash-digixros", "Mervamon · DigiXros materials from trash"],
   ["arena-bt5-koromon-attack-draw", "BT5 Koromon · draw before security"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
+  ["arena-bt17-dexdoru-exact-name", "BT17 DexDoruGreymon · exact [DoruGreymon] from trash"],
   ["arena-open-bugs-veemon-decline", "Open bugs · veemon decline"],
   ["arena-open-bugs-lavorvomon-search", "Open bugs · lavorvomon search"],
   ["arena-open-bugs-giromon-leave", "Open bugs · giromon leave"],
@@ -1895,6 +1908,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex7-seventh-fascination-trash-turn", "EX7 Seventh Fascination · trash activation"],
   ["arena-ex13-leopardmon-suspended-target", "EX13 Leopardmon · suspend an already suspended Digimon"],
   ["arena-bt24-ogremon-ulforce-unsuspend", "BT24 Ogremon · Ulforce can unsuspend by effects"],
+  ["arena-bt23-king-drasil-unsuspended-cost", "BT23 King Drasil · pay the suspend cost after Ulforce unsuspends it"],
   ["arena-ex13-leopardmon-unsuspend-lock", "EX13 Leopardmon · locked Digimon can't pay the unsuspend cost"],
   ["arena-ex13-breakdramon-zero-security-check", "EX13 Breakdramon · Security Attack -1 attack checks no card"],
   ["arena-decoy-protect-choice", "Decoy · choose which Digimon to protect"],
@@ -1948,6 +1962,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex12-susanoomon-later-arrival-dp", "EX12 Susanoomon · DP on later arrival"],
   ["arena-ex13-kingsukamon-machinedramon-dp", "EX13 KingSukamon · Machinedramon becomes 3000 DP"],
   ["arena-ex13-kingsukamon-vulcanusmon-link", "EX13 KingSukamon · Vulcanusmon loses Divine Arms link"],
+  ["arena-ex13-kingetemon-digivolve-rule-check", "EX13 KingEtemon · 0 DP deletion orders with When Digivolving"],
   ["arena-ex13-examon", "EX13 Examon · Lv.5 DNA + battle timing"],
   ["arena-ex13-examon-option-dp", "EX13 Examon · DP bonus excludes Options/Tamers"],
   ["arena-ex13-examon-battle-win-timing", "EX13 Examon · win-battle trigger order"],

@@ -70,7 +70,7 @@ it.each([
     Reflect.deleteProperty(clientState.players[1]!, "hand");
     const send = vi.fn<(type: string, payload: unknown) => void>();
     const room = { connection: { isOpen: true }, send, onMessage: () => () => {} } as unknown as AegisRoom;
-    render(
+    const { container } = render(
       <I18nProvider>
         <GameScreen
           joinOptions={{ displayName: "zeroxbass", deck: { mainDeck: [], eggDeck: [] } }}
@@ -91,9 +91,10 @@ it.each([
         />
       </I18nProvider>,
     );
-    const dialog = screen.getByRole("dialog", { name: "Counter timing" });
-    expect(dialog.getAttribute("data-prompt-surface")).toBe("left");
-    fireEvent.click(within(dialog).getAllByRole("button", { name: /Alphamon: Ouryuken/ })[aceId === "ace-1" ? 0 : 1]!);
+    const picking = screen.getByRole("region", { name: "Counter timing" });
+    expect(within(picking).queryAllByRole("img")).toHaveLength(0);
+    const handCards = container.querySelectorAll(".game-hand-card");
+    fireEvent.click(handCards[aceId === "ace-1" ? 0 : 1]!, { detail: 1 });
     expect(send).not.toHaveBeenCalled();
     const rail = within(screen.getByRole("dialog", { name: "Counter timing" }));
     const partners = rail.getAllByRole("button", { name: /Blast DNA/ });

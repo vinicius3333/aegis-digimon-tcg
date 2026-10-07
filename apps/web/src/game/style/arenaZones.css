@@ -421,18 +421,13 @@
   }
 
   .game-hand-dock {
-    padding: 0.5rem 18rem 0 0 !important;
+    padding: 0.25rem 18rem 0 0 !important;
   }
 
+  /* Its only line, the drag hint, is hidden here, and the empty bar took 2rem of the
+     13rem dock: the hand row then clipped its cards' tops or bottoms. */
   .game-action-bar--idle {
-    justify-content: center;
-    min-height: 2rem;
-    padding: 0 !important;
-    background: transparent !important;
-  }
-
-  .game-action-bar--idle > :last-child {
-    display: none;
+    display: none !important;
   }
 
   .game-player-dock [data-testid="hand"][data-hand-overflow="true"] {

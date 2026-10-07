@@ -18,7 +18,7 @@
   }
   .narration-slot[data-slot="narration-text"],
   .narration-slot[data-slot="narration"] {
-    width: min(32rem, calc(100% - var(--ds-space-8)));
+    width: min(33.25rem, calc(100% - var(--ds-space-8)));
   }
 
   /* The column runs from just under the top-bar buttons to just above the corner counters,

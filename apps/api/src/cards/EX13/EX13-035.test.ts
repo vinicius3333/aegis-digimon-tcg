@@ -16,6 +16,8 @@ const ETEMON_7 = "BT3-070";
 const PLATINUM_SUKAMON_LV4 = "BT13-065";
 const TEXT_ONLY_SUKAMON = "BT11-063";
 const UNNAMED_LV5 = "BT1-057";
+const ETEMON_BLOCKER = "BT3-070";
+const OPPONENT_SUKAMON_3000 = "EX9-049";
 
 const SENTINEL = "BT1-009";
 const OPPONENT_TARGET = "BT1-010";
@@ -702,5 +704,69 @@ describe("EX13-035 KingEtemon", () => {
 
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(0);
     expect(s.perm("target").currentDP).toBe(9000);
+  });
+  it("Discord 1557158483273453598: orders KingSukamon's inherited watcher with [When Digivolving] after the aura deletes a Sukamon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX13-031", as: "kingSukamon" },
+            { card: ETEMON_BLOCKER, as: "myEtemon" },
+          ],
+          hand: [{ card: cardId, as: "king" }],
+          deck: [SENTINEL, SENTINEL, SENTINEL, SENTINEL, SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [{ card: OPPONENT_SUKAMON_3000, as: "theirSukamon" }],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+      },
+      { autoDeclineOptional: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("kingSukamon").permanentId,
+        instanceId: s.inst("king").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("theirSukamon").instanceId]);
+    const order = s.decisions.findLast(({ req }) => req.kind === "orderTriggers")!.req;
+    expect(order.options?.triggerCardIds).toEqual(expect.arrayContaining([cardId, "EX13-031"]));
+    expect(order.options?.triggerKeys).toHaveLength(2);
+    const resolvedBeforeOrder = s.events.filter(
+      (event) => event.kind === "effectTriggered" && [cardId, "EX13-031"].includes(event.sourceCardId ?? ""),
+    );
+    expect(resolvedBeforeOrder).toEqual([]);
+    expect(s.state.players[0]!.deck).toHaveLength(5);
+
+    const watcherKey = order.options!.triggerKeys![order.options!.triggerCardIds!.indexOf("EX13-031")]!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: { kind: "orderTriggers", order: [watcherKey] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const triggeredCardIds = s.events.flatMap((event) =>
+      event.kind === "effectTriggered" && [cardId, "EX13-031"].includes(event.sourceCardId ?? "")
+        ? [event.sourceCardId]
+        : [],
+    );
+    expect(triggeredCardIds).toEqual(["EX13-031"]);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(3);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    assertNoLoudGap(s);
   });
 });

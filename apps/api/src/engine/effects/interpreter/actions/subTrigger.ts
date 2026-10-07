@@ -1120,9 +1120,12 @@ export async function runSubTrigger(
     (event === "onDigiBurstCardDiscarded" ||
       event === "onDigivolutionCardsDiscardedBatch" ||
       event === "onDigivolutionCardDiscarded");
-  // "by suspending this Tamer" is unpayable while the Tamer is already suspended, so such a
-  // watcher must not join the simultaneous-trigger ordering prompt it could only decline.
+  // "by suspending this Tamer" is an optional processing condition, not a trigger condition: the
+  // watcher triggers even while its source is suspended, and the cost is checked when it would
+  // activate (CR 15-8-3-9-2, 15-7-4). A simultaneous effect resolved first may unsuspend the
+  // source (Q4101/Q4108) or suspend it (Q938), so the check is never made at arming time.
   const requiresSelfSuspend = costsSelfSuspend(action);
+  const selfSuspendPayable = (subCtx: EffectContext): boolean => subCtx.source.permanent()?.isSuspended !== true;
   // §16-17-3 bars a ＜Delay＞ activation on the turn its card entered play. `run` enforces that
   // below, but a watcher that can only refuse must not reach the simultaneous-trigger ordering
   // prompt either: the client renders that prompt from what the server offers, so an entry the
@@ -1158,7 +1161,6 @@ export async function runSubTrigger(
     parsedBody.length > 0 &&
     parsedBody.every((candidate) => candidate.optional === true && !hasCost(candidate));
   const fireGates = [
-    ...(requiresSelfSuspend ? [(subCtx: EffectContext) => subCtx.source.permanent()?.isSuspended !== true] : []),
     ...(delayArmedIntrinsic
       ? [
           (subCtx: EffectContext) => {
@@ -1184,8 +1186,12 @@ export async function runSubTrigger(
     ...(isLinkedSource ? { isLinkedSource: true } : {}),
     ...(sourceFilter?.isSelfRef === true ? { watchesSelf: true } : {}),
     ...(fireGates.length === 0 ? {} : { canFire: (subCtx) => fireGates.every((gate) => gate(subCtx)) }),
-    ...(costFreeOptionalBody
-      ? { hasLegalOutcome: (subCtx: EffectContext) => canActivateEffect(subCtx, { actions: action.actions }) }
+    ...(costFreeOptionalBody || requiresSelfSuspend
+      ? {
+          hasLegalOutcome: (subCtx: EffectContext) =>
+            (!requiresSelfSuspend || selfSuspendPayable(subCtx)) &&
+            (!costFreeOptionalBody || canActivateEffect(subCtx, { actions: action.actions })),
+        }
       : {}),
     // A discarded inherited source is intentionally not permanently anchored to its host: its
     // source instance is the identity used by the stack-card event gate. `matchTrashedSource`

@@ -149,6 +149,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt20-invisimon-security-count",
   "arena-ex13-grademon-immunity",
   "arena-ex7-seventh-fascination-turn",
+  "arena-bt17-dexdoru-exact-name",
   "arena-ad1-adventure-tamers-security",
   "arena-lm067-gundramon-free-option",
   "arena-bt10-taiki-x7-xros-heart",
@@ -166,6 +167,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-leopardmon-suspended-target",
   "arena-ex13-leopardmon-unsuspend-lock",
   "arena-bt24-ogremon-ulforce-unsuspend",
+  "arena-bt23-king-drasil-unsuspended-cost",
   "arena-ex13-breakdramon-zero-security-check",
   "arena-decoy-protect-choice",
   "arena-crimson-blaze-jesmon-token",
@@ -223,6 +225,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex12-susanoomon-later-arrival-dp",
   "arena-ex13-kingsukamon-machinedramon-dp",
   "arena-ex13-kingsukamon-vulcanusmon-link",
+  "arena-ex13-kingetemon-digivolve-rule-check",
   "arena-ex13-examon",
   "arena-ex13-examon-option-dp",
   "arena-ex13-examon-battle-win-timing",
@@ -928,6 +931,33 @@ function layEx7SeventhFascinationTurnScenario(
   state.memory = fromTrash ? 10 : 7;
 }
 
+/** Discord 1557128872544313456: DexDoruGreymon's [Trash] effect answers only an exact [DoruGreymon]. */
+function layBt17DexDoruExactNameScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT17-067"], "-dexdoru-near-name"));
+    placePermanent(human, establishedDigimon(0, ["BT16-061"], "-dexdoru-doru-greymon"));
+    insertCard(human, Zone.Trash, faceUpCard("dev-dexdoru-trash", "BT17-067", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-dexdoru-disaster-1", "BT5-106", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-dexdoru-disaster-2", "BT5-106", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-dexdoru-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 4;
+}
+
 /** Discord 1556119607822254110: Mervamon offers Xros Heart materials from trash. */
 function layMervamonTrashDigiXrosScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -1444,6 +1474,35 @@ function layBt24OgremonUlforceUnsuspendScenario(state: GameState, decks: readonl
     insertCard(bot, Zone.Hand, faceDownCard("dev-ogremon-trash-cost", "BT1-009", 1));
     insertCard(bot, Zone.Security, faceDownCard("dev-ogremon-security-option", "BT24-098", 1));
     insertCard(bot, Zone.Security, faceDownCard("dev-ogremon-security-last", "BT1-009", 1));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 20;
+}
+
+/**
+ * Discord 1557169113896583198: King Drasil_7D6 attacks and stays suspended. Playing EX13-023
+ * UlforceVeedramon triggers both effects; resolving Ulforce's orientation change first
+ * unsuspends King Drasil, which can then pay its own suspend cost (CR 15-8-3-9-2, Q4101).
+ */
+function layBt23KingDrasilUnsuspendedCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    setSecurityStack(human);
+    placePermanent(human, establishedDigimon(0, ["BT23-072"], "-king-drasil-cost"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-king-drasil-cost-ulforce", "EX13-023", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    insertCard(bot, Zone.Security, faceDownCard("dev-king-drasil-cost-security-top", "BT1-009", 1));
+    insertCard(bot, Zone.Security, faceDownCard("dev-king-drasil-cost-security-last", "BT1-009", 1));
   }
   state.turnSeat = 0;
   state.turnCount = 0;
@@ -4568,6 +4627,49 @@ function layEx13KingsOpponentSukamonScenario(state: GameState, decks: readonly [
   state.memory = 0;
 }
 
+/**
+ * Discord 1557158483273453598: digivolving EX13-031 KingSukamon into EX13-035 KingEtemon turns
+ * on KingEtemon's -3000 DP aura (3 [Sukamon]/[Etemon] Digimon), which drops the bot's 3000 DP
+ * Sukamon to 0. The rule-check deletion happens at the [When Digivolving] checkpoint, so the
+ * inherited KingSukamon watcher and KingEtemon's [When Digivolving] reach one order prompt.
+ */
+function layEx13KingEtemonDigivolveRuleCheckScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    const kingSukamon = establishedDigimon(0, ["EX13-031"], "-kingetemon-rule-check-base");
+    kingSukamon.permanentId = "kingetemon-rule-check-base";
+    placePermanent(human, kingSukamon);
+    placePermanent(human, establishedDigimon(0, ["BT3-070"], "-kingetemon-rule-check-etemon"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-kingetemon-rule-check-king", "EX13-035", 0));
+
+    // insertCard(..., "top") prepends: the bonus draw sits on top, then KingSukamon's 3 reveals.
+    insertCard(human, Zone.Deck, faceDownCard("dev-kingetemon-rule-check-reveal-third", "BT1-014", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-kingetemon-rule-check-reveal-second", "BT1-013", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-kingetemon-rule-check-reveal-sukamon", "EX13-028", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-kingetemon-rule-check-bonus-draw", "BT1-009", 0), "top");
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    const sukamon = establishedDigimon(1, ["EX9-049"], "-kingetemon-rule-check-sukamon");
+    sukamon.permanentId = "kingetemon-rule-check-opponent-sukamon";
+    placePermanent(bot, sukamon);
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 4;
+}
+
 /** Compares two off-colour Options while BT26 Copipemon is the only Appmon in breeding. */
 function layEx10GodGradeRaisingColorScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -6989,6 +7091,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-diarbbitmon-dual-option-immunity": layDiarbbitmonDualOptionImmunityScenario,
   "arena-bt5-koromon-attack-draw": layBt5KoromonAttackDrawScenario,
   "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
+  "arena-bt17-dexdoru-exact-name": layBt17DexDoruExactNameScenario,
   "arena-ad1-adventure-tamers-security": layAd1AdventureTamersSecurityScenario,
   "arena-lm067-gundramon-free-option": layLm067GundramonFreeOptionScenario,
   "arena-bt10-taiki-x7-xros-heart": layBt10TaikiX7XrosHeartScenario,
@@ -7007,6 +7110,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-leopardmon-suspended-target": layEx13LeopardmonSuspendedTargetScenario,
   "arena-ex13-leopardmon-unsuspend-lock": layEx13LeopardmonUnsuspendLockScenario,
   "arena-bt24-ogremon-ulforce-unsuspend": layBt24OgremonUlforceUnsuspendScenario,
+  "arena-bt23-king-drasil-unsuspended-cost": layBt23KingDrasilUnsuspendedCostScenario,
   "arena-ex13-breakdramon-zero-security-check": layEx13BreakdramonZeroSecurityCheckScenario,
   "arena-decoy-protect-choice": layDecoyProtectChoiceScenario,
   "arena-crimson-blaze-jesmon-token": layCrimsonBlazeJesmonTokenScenario,
@@ -7067,6 +7171,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex12-susanoomon-later-arrival-dp": layEx12SusanoomonLaterArrivalDpScenario,
   "arena-ex13-kingsukamon-machinedramon-dp": layEx13KingSukamonMachinedramonDpScenario,
   "arena-ex13-kingsukamon-vulcanusmon-link": layEx13KingSukamonVulcanusmonLinkScenario,
+  "arena-ex13-kingetemon-digivolve-rule-check": layEx13KingEtemonDigivolveRuleCheckScenario,
   "arena-ex13-examon": layEx13ExamonScenario,
   "arena-ex13-examon-option-dp": layEx13ExamonOptionDpScenario,
   "arena-ex13-examon-battle-win-timing": layEx13ExamonBattleWinTimingScenario,

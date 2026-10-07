@@ -297,6 +297,68 @@ describe("BT23-072 King Drasil_7D6", () => {
     await closeLoop(s, loop);
   });
 
+  describe("Discord 1557169113896583198: the suspend cost is checked when the effect activates", () => {
+    const SUSPEND_OPTION = 0;
+    const UNSUSPEND_OPTION = 1;
+
+    async function playUlforceChanging(orientationTarget: "drasil" | "ulforce", drasilSuspended: boolean) {
+      const preferInstanceIds: string[] = [];
+      const { s, loop } = await openMain(
+        playableBoard({
+          battleArea: [{ card: "BT23-072", as: "drasil" }],
+          hand: [
+            { card: "EX13-023", as: "ulforce" },
+            { card: "ST1-02", as: "neutral" },
+          ],
+        }),
+        {
+          autoAcceptOptional: true,
+          autoSelectCards: true,
+          preferTriggerKeys: ["EX13-023"],
+          preferInstanceIds,
+          preferOptionIndex: orientationTarget === "drasil" && drasilSuspended ? UNSUSPEND_OPTION : SUSPEND_OPTION,
+        },
+      );
+      preferInstanceIds.push(s.inst(orientationTarget).instanceId);
+      s.state.memory = 15;
+      if (drasilSuspended) await advance(s.engine).verb.suspend([s.perm("drasil").permanentId]);
+      expect(s.perm("drasil").isSuspended).toBe(drasilSuspended);
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ulforce").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => false, 80);
+      return { s, loop };
+    }
+
+    it("activates after UlforceVeedramon's [On Play] unsuspends this Digimon (CR 15-8-3-9-2, Q4101)", async () => {
+      const { s, loop } = await playUlforceChanging("drasil", true);
+
+      expect(s.perm("drasil").isSuspended).toBe(true);
+      expect(keywordsOn(s, "ulforce")).toEqual([true, true, true, true]);
+      expect(s.state.pendingDecision).toBeUndefined();
+      await closeLoop(s, loop);
+    });
+
+    it("cannot activate while this Digimon stays suspended", async () => {
+      const { s, loop } = await playUlforceChanging("ulforce", true);
+
+      expect(s.perm("drasil").isSuspended).toBe(true);
+      expect(keywordsOn(s, "ulforce").slice(0, 3)).toEqual([false, false, false]);
+      expect(s.state.pendingDecision).toBeUndefined();
+      await closeLoop(s, loop);
+    });
+
+    it("cannot activate once an earlier simultaneous effect suspends this Digimon (Q938)", async () => {
+      const { s, loop } = await playUlforceChanging("drasil", false);
+
+      expect(s.perm("drasil").isSuspended).toBe(true);
+      expect(keywordsOn(s, "ulforce").slice(0, 3)).toEqual([false, false, false]);
+      expect(s.state.pendingDecision).toBeUndefined();
+      await closeLoop(s, loop);
+    });
+  });
+
   it("ignores an own played Digimon with neither the Royal Knight nor the CS trait", async () => {
     const { s, loop } = await openMain(
       playableBoard({

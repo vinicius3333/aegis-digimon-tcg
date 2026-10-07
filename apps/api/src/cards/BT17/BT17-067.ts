@@ -12,7 +12,7 @@ export const compiled: CompiledCard = {
           event: "wouldBeDeleted",
           sourceFilter: { zone: "trash", controller: "mine" },
           target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["DoruGreymon"], match: "name" }] },
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["DoruGreymon"], match: "nameExact" }] },
             count: 1,
           },
           mode: "prevent",
@@ -41,7 +41,7 @@ export const compiled: CompiledCard = {
               conditions: [
                 {
                   kind: "selfHasInDigivolutionCards",
-                  nameOrTrait: [{ tokens: ["DoruGreymon"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["DoruGreymon"], match: "nameExact" }],
                 },
                 { kind: "digivolvedFromZone", zone: "trash" },
               ],
@@ -56,7 +56,7 @@ export const compiled: CompiledCard = {
           condition: {
             kind: "anyOf",
             conditions: [
-              { kind: "selfHasInDigivolutionCards", nameOrTrait: [{ tokens: ["DoruGreymon"], match: "name" }] },
+              { kind: "selfHasInDigivolutionCards", nameOrTrait: [{ tokens: ["DoruGreymon"], match: "nameExact" }] },
               { kind: "digivolvedFromZone", zone: "trash" },
             ],
           },

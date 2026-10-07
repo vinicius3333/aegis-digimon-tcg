@@ -47005,7 +47005,7 @@
             "mode": "prevent",
             "sourceFilter": { "zone": "trash", "controller": "mine" },
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Dorugamon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Dorugamon"], "match": "nameExact" }] },
               "count": 1
             },
             "leaveCause": "any",
@@ -47033,7 +47033,7 @@
                 "conditions": [
                   {
                     "kind": "selfHasInDigivolutionCards",
-                    "nameOrTrait": [{ "tokens": ["Dorugamon"], "match": "name" }],
+                    "nameOrTrait": [{ "tokens": ["Dorugamon"], "match": "nameExact" }],
                     "raw": "[Dorugamon] is in this Digimon's digivolution cards"
                   },
                   { "kind": "digivolvedFromZone", "zone": "trash", "raw": "this digivolved from the trash" }
@@ -47051,7 +47051,7 @@
               "conditions": [
                 {
                   "kind": "selfHasInDigivolutionCards",
-                  "nameOrTrait": [{ "tokens": ["Dorugamon"], "match": "name" }],
+                  "nameOrTrait": [{ "tokens": ["Dorugamon"], "match": "nameExact" }],
                   "raw": "[Dorugamon] is in this Digimon's digivolution cards"
                 },
                 { "kind": "digivolvedFromZone", "zone": "trash", "raw": "this digivolved from the trash" }
@@ -47111,7 +47111,7 @@
             "event": "wouldBeDeleted",
             "sourceFilter": { "zone": "trash", "controller": "mine" },
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["DoruGreymon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["DoruGreymon"], "match": "nameExact" }] },
               "count": 1
             },
             "mode": "prevent",
@@ -47139,7 +47139,7 @@
                 "conditions": [
                   {
                     "kind": "selfHasInDigivolutionCards",
-                    "nameOrTrait": [{ "tokens": ["DoruGreymon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["DoruGreymon"], "match": "nameExact" }]
                   },
                   { "kind": "digivolvedFromZone", "zone": "trash" }
                 ]
@@ -47155,7 +47155,7 @@
               "conditions": [
                 {
                   "kind": "selfHasInDigivolutionCards",
-                  "nameOrTrait": [{ "tokens": ["DoruGreymon"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["DoruGreymon"], "match": "nameExact" }]
                 },
                 { "kind": "digivolvedFromZone", "zone": "trash" }
               ]

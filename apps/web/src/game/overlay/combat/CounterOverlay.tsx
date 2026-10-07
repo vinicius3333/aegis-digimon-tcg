@@ -54,8 +54,9 @@ export function counterSources({
 }
 
 /**
- * Select a source or Blast route in the central card gallery. A lone field effect
- * asks for activation on the left. Every submitted route is one the server offered.
+ * The viewer picks a counter source directly in the hand or on the field; the left rail
+ * only asks and confirms. Blast hosts are chosen in a card gallery, since same-name hosts
+ * differ only by their art. Every submitted route is one the server offered.
  */
 export function CounterOverlay({
   eligibleCounters,
@@ -142,21 +143,20 @@ export function CounterOverlay({
     if (choice.effectKey.startsWith("blast-digivolve:")) return "Blast Digivolve";
     return `${cardDisplayName(getCardId(choice.instanceId) ?? "", t)} · ${choice.description}`;
   };
-  if (eligibleCounters.length > 0 && (!selectedSource || selectedBlast || inlineChoices.length > 1)) {
-    const sources = [...new Map(eligibleCounters.map((choice) => [sourceKeyOf(choice.instanceId), choice])).values()];
-    const offered = selectedSource ? [...uniqueChoices.values()] : sources;
+  if (selectedBlast) {
+    const offered = [...uniqueChoices.values()];
     return (
       <CardPromptFrame
         cardId={sourceCardId}
         label={t("overlay.counterTiming")}
-        eyebrow={selectedBlast ? blastLabel : "[Counter]"}
-        title={selectedBlast ? t("overlay.counterChooseField") : t("overlay.counterChooseSource")}
+        eyebrow={blastLabel}
+        title={t("overlay.counterChooseField")}
         description={t("overlay.counterPrompt")}
         onBack={selectedInstanceId ? () => onSelectInstance(undefined) : undefined}
       >
         <div className="counter-overlay__gallery block-overlay__gallery">
           {offered.map((choice, index) => {
-            const target = selectedSource ? counterTargetIds(choice.effectKey) : undefined;
+            const target = counterTargetIds(choice.effectKey);
             const cardId = target ? getCardId(target.permanentId) : getCardId(choice.instanceId);
             const partnerCardId = target?.handInstanceId ? getCardId(target.handInstanceId) : undefined;
             return (
@@ -164,13 +164,11 @@ export function CounterOverlay({
                 type="button"
                 className="counter-overlay__card"
                 key={`${choice.instanceId}-${choice.effectKey}`}
-                onClick={() =>
-                  selectedSource ? onActivate(choice.instanceId, choice.effectKey) : onSelectInstance(choice.instanceId)
-                }
+                onClick={() => onActivate(choice.instanceId, choice.effectKey)}
               >
                 {cardId ? <CardArt cardId={cardId} width={112} /> : null}
                 <strong>{cardDisplayName(cardId ?? "", t)}</strong>
-                {selectedSource ? <span>{choiceLabel(choice)}</span> : null}
+                <span>{choiceLabel(choice)}</span>
                 {partnerCardId ? <span>+ {cardDisplayName(partnerCardId, t)}</span> : null}
                 <span className="counter-overlay__card-id">
                   {index + 1} / {offered.length}

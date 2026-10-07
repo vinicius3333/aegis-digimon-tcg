@@ -115,7 +115,7 @@ export async function collectRuleProcessMovements(engine: GameEngine): Promise<P
 
 /** A synchronous quiet-board gate that avoids adding awaits to ordinary timing windows. */
 export function hasRuleProcessPending(engine: GameEngine): boolean {
-  if (engine.ruleProcessing || engine.ruleTriggerPool !== undefined) return false;
+  if (engine.ruleProcessing || engine.ruleTriggerPool !== undefined || engine.drawingDigivolutionBonus) return false;
   return engine.deferredRuleSubTriggers.length > 0 || engine.ruleChecks.doRuleProcess();
 }
 
@@ -124,7 +124,7 @@ export async function collectRuleProcessPending(engine: GameEngine): Promise<Col
   // A nested timing window opened by a replacement cost can reach this collector
   // while the outer rule-check fixpoint is still moving cards. Leave its watcher
   // queue with that fixpoint; reactions cannot activate between rule-check passes.
-  if (engine.ruleProcessing || engine.ruleTriggerPool !== undefined) return [];
+  if (engine.ruleProcessing || engine.ruleTriggerPool !== undefined || engine.drawingDigivolutionBonus) return [];
   const pool = await collectRuleProcessMovements(engine);
   const watcherEvents = engine.deferredRuleSubTriggers.splice(0);
   const pending = collectDeletionPending(engine, pool);

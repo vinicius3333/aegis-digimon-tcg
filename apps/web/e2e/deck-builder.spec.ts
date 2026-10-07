@@ -3,14 +3,14 @@ const labels = {
   en: {
     "mobile.filters": "Filters",
     "library.traitAttribute": "Trait / attribute",
-    "library.searchPlaceholder": "Search cards…",
+    "library.searchPlaceholder": "Search name, number or text…",
     "common.add": "Add",
     "common.remove": "Remove",
   },
   "pt-BR": {
     "mobile.filters": "Filtros",
     "library.traitAttribute": "Traço / atributo",
-    "library.searchPlaceholder": "Buscar cartas…",
+    "library.searchPlaceholder": "Buscar nome, número ou texto…",
     "common.add": "Adicionar",
     "common.remove": "Remover",
   },

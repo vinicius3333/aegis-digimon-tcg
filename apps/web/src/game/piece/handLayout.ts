@@ -14,14 +14,16 @@ export const HAND_TOUCH_GAP = 16;
 
 const handMinOverlap = (cardWidth: number) => Math.round(cardWidth * 0.26);
 /**
- * The sliver a buried card keeps: enough to read its cost and level corner with a
- * mouse. HAND_MIN_EXPOSURE_TOUCH (constants.ts) sets the wider touch equivalent.
+ * The sliver a buried card keeps: enough to read its cost circle with a mouse, whose
+ * hover face shows the whole card. Tight enough that a 20-card hand still fans across
+ * the desktop dock instead of scrolling. HAND_MIN_EXPOSURE_TOUCH (constants.ts) sets
+ * the wider touch equivalent.
  */
-export const HAND_MIN_EXPOSURE = 30;
+export const HAND_MIN_EXPOSURE = 22;
 /**
  * How far a card may be buried before the fan stops tightening. A hand big enough
- * to need more than this overflows, which only phone widths reach — there the row
- * scrolls instead.
+ * to need more than this overflows and the row scrolls instead: phones, and docks
+ * as narrow as an unfolded foldable's.
  */
 const handMaxOverlap = (cardWidth: number, minExposure: number) => cardWidth - minExposure;
 export const handRowHeight = (cardWidth: number) => Math.round(cardWidth * 1.4) + HAND_FAN_ROOM + 1;

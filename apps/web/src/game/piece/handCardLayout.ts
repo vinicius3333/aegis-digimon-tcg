@@ -43,7 +43,10 @@ export function computeHandCardLayout({
     } as CSSProperties),
     marginLeft: index === 0 ? 0 : -overlap,
     cursor: "grab",
-    touchAction: "none",
+    // An overflowing row scrolls, and the cards cover all of it: a finger must be
+    // able to pan it sideways. A vertical drag still lifts the card to play it,
+    // as on the phone strip.
+    touchAction: handOverflows ? "pan-x" : "none",
     transform: `translateY(${translateY}px) rotate(${rotate}deg)`,
     transformOrigin: "bottom center",
     transition: "transform 200ms",

@@ -589,6 +589,15 @@ export class GameEngine {
    * (a deletion can fire an [On Deletion] effect that itself drives `resolveTiming`, which
    */
   ruleProcessing = false;
+  /**
+   * True while a player-declared digivolution draws its bonus card. That draw is still part
+   * of the digivolution procedure ("after drawing 1 card from your deck, the digivolution
+   * procedure has resolved"), and rule checks aren't performed during rule processing
+   * (§17-1-2-1). A Digimon the new top card's aura drops to 0 DP is therefore deleted at the
+   * [When Digivolving] checkpoint, and its reactions are ordered with those effects
+   * (§15-4-3-3) instead of resolving inside the draw's own window.
+   */
+  drawingDigivolutionBonus = false;
   /** The seat whose end-of-turn window is resolving; undefined outside that window. */
   turnEndWindowSeat: Seat | undefined = undefined;
   /** Barrier costs trigger security-removal effects before the current security battle continues. */
