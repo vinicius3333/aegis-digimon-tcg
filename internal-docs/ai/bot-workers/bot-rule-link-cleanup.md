@@ -1466,6 +1466,75 @@ fatal errors/rejections/asyncRejections; recovered counters alone do not
 justify discarding a game. Reserved final seeds remain untouched and every
 strength/mechanics/custody/room/serving/final-blind gate remains required.
 
+## Retained diagnostic frames, original failure and post-source proof
+
+Original foreground session65330 ended with **actual exit1**, after printing
+eight completed diagnostic replays. Each R4 driver reproduced its original
+loss and each paired source-challenger/primary-before driver reproduced its
+original win. The immutable operator checked exact winner, reason, decision
+count, recoveries and coverage before each completed-replay output. It then
+failed in its final unchanged predecessor consumer. No diagnostic report or
+completion was written. Never relaunch this terminal handle or relabel its
+original exit1 as successful qualification.
+
+Actual terminal observation confirms the original whole/operator are gone,
+GPU is empty, all eight JSONL files remain, and the original trap contains1.
+Their total size is about6.7MB; no checkpoint/archive/large dataset was copied.
+The Torch-free retained-frame reader completed with actual exit0, requiring
+all eight original frame counts and exact complete proposal-coverage maps,
+correct seats, all five legal frozen-query choices, explicit unsupervised
+query provenance, complete newline-delimited data and unchanged CP bytes.
+Local `r4-choice-diagnosis-retained-frames-v2.actual.json` has SHA-256
+`0225e1e3e497ec303cddaa0e1a39606903801781cc5ac8130fd77880bbc8848a`.
+The first reader invocation lacked an annotation binding in its extracted
+pure helper; the corrected read-only reader imports that annotation and
+retains the initial failure. It never loads a primary model.
+
+The unchanged corrective PPO consumer calls `approved(ctx,idle=True)` even
+under `--closed`. The diagnostic called its final predecessor check while
+its own CUDA query models were resident. This source restriction explains
+the failed phase boundary; the subprocess did not preserve its nested
+stderr, so the specific terminal guard message is unavailable. After all
+diagnostic processes disappeared, original full R4 consumer session91495
+completed with actual exit0. Its entire parsed proof exactly equals the
+previous successful R4 proof, with unchanged completion2b07, CP1de, source,
+runtime and all raw maps. Post-consumer stdout has SHA-256
+`8c53d17d8f3c568014eac2f34340139425ce09d9088ecb2b2b4d444a981bdbef`.
+This establishes post-source/CP custody without changing the failed
+diagnostic's original whole1. Future GPU capture must run in a child that
+exits before the parent invokes this unchanged consumer.
+
+Actual windows identify concrete learning differences. In both inspected
+Adventure openings R4 mulligans while source-challenger keeps. Imperial
+differs in evolution-versus-attack, attack target, trigger order and an
+Assembly material choice between ST9-09 and BT21-037 from trash. These are
+observed differences on selected losses, not proof each alternative alone
+causes a win. A model-free NumPy check of the unchanged qualified F7 encoder
+examined40 retained action comparisons and found zero identical-vector
+aliases. `r4-diagnostic-feature-seams.actual.json` has SHA-256
+`71fdb50ab23bc597ca210c9af5f140d87c2e529d8cd44f45593c9a682f05b45e`.
+This sample supports addressing policy supervision first; it does not prove
+universal feature completeness or justify any source/schema change.
+
+The next source-only proposal is
+`rule-link-current-r4-mentor-learning-plan.pending.json`, SHA-256
+`8279155542c3679573abdc04e047c19d8c4c3c587630e355c2196c0409ee5920`.
+It derives per-recipe data mentors solely from actual full same-source
+reports: preserve R4 on24best/tied recipes; use strongest immutable references
+on20weaker recipes (primary-before6, v175, source-challenger5, fitted4).
+This routing is for producing fresh training examples only; serving must
+still use one genuinely learned primary. New data must cover all44 recipes
+and both seats with freshly inventoried training seeds, preserve natural
+losses/recoveries and distinguish frozen-policy labels from actual current
+engine material labels. Do not train on these diagnostic development frames.
+Require actual all181/all8-family/both-seat/original-fold coverage before
+mechanism resampling. Continue the existing qualified anchored imitation
+and PPO with restored Adam state; report actor/value changes and actual
+update counts accurately. The proposal has no new dataset completion,
+checkpoint, source approval or resource Go. No further learning/model/game
+job is admitted or live; all44 strict gains and every downstream gate remain
+pending, and final seeds6210000..6213871 are untouched.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
