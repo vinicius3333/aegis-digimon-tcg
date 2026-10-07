@@ -168,6 +168,58 @@ describe("EX8-027", () => {
     ]);
   });
 
+  it("#5258 keeps attacking optional after accepting DNA in the trigger resolution plan", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-027", as: "first" },
+            { card: "EX8-026", as: "metal" },
+            { card: "EX8-027", as: "second" },
+          ],
+          hand: [
+            { card: "EX8-021", as: "played" },
+            { card: "EX8-029", as: "aegis" },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoOrderTriggers: false,
+        declinePrompts: ["Attack with a Digimon"],
+      },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const request = s.state.pendingDecision!;
+    const keys: string[] = JSON.parse(request.payloadJson).triggerKeys;
+    expect(keys).toHaveLength(2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request.decisionId,
+        response: { kind: "orderTriggers", order: keys, optionalAnswers: { [keys[0]!]: true, [keys[1]!]: false } },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX8-029") && !s.state.pendingDecision,
+    );
+    const optionalAttack = s.decisions.filter(
+      ({ req }) =>
+        req.kind === "optional" && req.sourceCardId === "EX8-027" && req.options?.selectionContext === "attackSource",
+    );
+    expect(optionalAttack).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+    expect(s.events.some((e) => e.kind === "attackDeclared")).toBe(false);
+    expect(s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "EX8-029")?.isSuspended).toBe(false);
+  });
+
   it("triggers from Plesiomon's own digivolution and exposes the exact DS route (Q3895)", async () => {
     expect(digivolutionRequirementsFor("EX8-027")).toContainEqual({
       level: 5,
