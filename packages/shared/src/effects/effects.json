@@ -79988,7 +79988,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gammamon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gammamon"], "cost": 2, "isAlternate": true }]
   },
   "BT22-021": {
     "effects": [
@@ -82105,7 +82105,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gammamon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gammamon"], "cost": 2, "isAlternate": true }]
   },
   "BT22-046": {
     "effects": [
@@ -140019,7 +140019,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gammamon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gammamon"], "cost": 2, "isAlternate": true }]
   },
   "EX10-043": {
     "effects": [
@@ -149332,7 +149332,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Gammamon"], "cost": 2, "isAlternate": true },
+      { "namesExact": ["Gammamon"], "cost": 2, "isAlternate": true },
       { "level": 3, "traits": ["VB"], "cost": 2, "isAlternate": true }
     ]
   },

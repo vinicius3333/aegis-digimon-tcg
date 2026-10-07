@@ -239,7 +239,7 @@ describe("EX12-013 BetelGammamon", () => {
   it("encodes playable card kinds, option use, reduction, timing, and evolution routes", () => {
     const compiled = registeredCompiledCards.get("EX12-013")!;
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Gammamon"], cost: 2, isAlternate: true },
+      { namesExact: ["Gammamon"], cost: 2, isAlternate: true },
       { level: 3, traits: ["VB"], cost: 2, isAlternate: true },
     ]);
     const effect = compiled.effects.find((entry) => entry.trigger === "Main")!;
@@ -296,7 +296,7 @@ describe("EX12-013 BetelGammamon", () => {
 
   it("uses both normal colors and both printed cost-2 alternatives", async () => {
     expect(digivolutionRequirementsFor("EX12-013")).toEqual([
-      { names: ["Gammamon"], cost: 2, isAlternate: true },
+      { namesExact: ["Gammamon"], cost: 2, isAlternate: true },
       { level: 3, traits: ["VB"], cost: 2, isAlternate: true },
     ]);
 
