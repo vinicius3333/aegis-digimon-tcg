@@ -2047,3 +2047,38 @@ PPO must update all12 parameters with equal positive new Adam deltas. Strict
 44-recipe strength versus each four references, both-seat material/physical
 mechanisms,26rooms/current serving and untouched finalblind/delivery are still
 required; this launch is not acceptance of a new bot.
+
+
+## Source-ready PPO continuation after actual mentor imitation
+
+Prepared `current-mentor-ppo.py` and bounded synthetic tests. SourceSHA
+`341be9b4711b8c20a9f5f162376e21534c96238be8ee13edfff5a0a081f74291`;
+testSHA `36340847824bedec8d957105c7708cb90277b262b220b6344140ff2b4212360a`.
+All12 synthetic guards pass locally and on actual desktop Python3.12.14.
+The two files are exclusively sealed outside the archive; unchanged mixed-PPO,
+original-PPO and imitation helper bytes plus all four reference CPP pins pass
+without Torch imports, games, GPU jobs or learned-checkpoint assumptions.
+No actual PPO request, seed inventory, ROOT resource Go or run exists yet.
+
+The adapter requires the original full actual imitation `--closed` consumer,
+externally supplied real completion and exact selected native checkpoint SHA.
+Pending inputs, native epoch0/no-learning, wrong source/FP/CP/folds, incomplete
+44-recipe scope, boolean count aliases, reserved seeds and nonzero whole exits
+are rejected. Its source/compiled runtime checks reuse existing qualified static
+helpers, while mixed-opponent command, natural records, original seed scanner,
+checkpoint inspection and all12 PPO tensor/Adam delta rules stay unchanged.
+The copied operator/self-pin path is explicitly the new source, not the static
+helper; tests cover that admission seam. No engine rebuild or metadata migration.
+
+One balanced3872-game pass covers every44 learner versus every44 opponent at
+both seats, batch88/workers4/LR1e-5, heuristic share0.5 and all four frozen model
+opponents. Actual fresh inventory and a separate ROOT resource Go remain
+mandatory. The bounded fake tensor fixture proves that unequal inherited actor/
+value Adam counters after BC admit equal positive *new* PPO deltas across all12,
+and rejects an unequal new delta. It is not actual model/update evidence.
+The imitation process remains SAME foreground30293, exact whole723/start58280
+and operator742/start58285, in original full source-data verification. No new
+optimizer/checkpoint has been observed at this source-preparation checkpoint.
+Later full strict strength for every44 against each four references, both-seat
+physical/material mechanisms,26rooms/current serving and untouched finalblind/
+delivery remain pending; neither prepared source nor a job launch is acceptance.
