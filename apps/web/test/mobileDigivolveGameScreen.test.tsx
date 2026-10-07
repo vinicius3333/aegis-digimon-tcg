@@ -115,6 +115,9 @@ async function touchDrag(source: Element, pointerId: number): Promise<void> {
       }),
     );
   });
+  // A moved touch sends no trailing click, so the drop's swallowNextClick guard stays armed
+  // until it expires; a player's next tap comes after that window.
+  await act(() => new Promise((resolve) => setTimeout(resolve, 450)));
 }
 
 it("mobile touch-drag lets ST12-08 digivolve onto a red level 4 and asks for confirmation", async () => {
