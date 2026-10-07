@@ -34,6 +34,7 @@ export function DnaMaterialChoiceOverlay({
   const selected = liveRoutes.find((route) => JSON.stringify(route.materialPermanentIds) === selectedKey);
   return (
     <CardPromptFrame
+      surface="center"
       cardId={cardId}
       className="dna-material-choice"
       label={t("overlay.confirmDnaTitle")}

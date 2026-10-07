@@ -35,6 +35,7 @@ it("#5166: lets the player confirm the second physical DNA pair and see its sour
       />
     </I18nProvider>,
   );
+  expect(screen.getByRole("dialog").getAttribute("data-prompt-surface")).toBe("center");
   fireEvent.click(screen.getByRole("radio", { name: /Pair 2/ }));
   fireEvent.click(screen.getByRole("button", { name: "DNA Digivolve" }));
   expect(onConfirm).toHaveBeenCalledExactlyOnceWith(["yellow", "second-purple"]);
