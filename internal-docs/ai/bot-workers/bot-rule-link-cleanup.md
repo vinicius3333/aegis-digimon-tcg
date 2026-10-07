@@ -1089,6 +1089,92 @@ launch, not yet proof of CUDA evaluation or strength. Keep session1111 attached
 and never restart because an observation times out. Await actual evaluator argv
 and config, full 3,872-game closure and unchanged strict all44-versus-four report.
 
+## Actual frozen R3 evaluation closed: 22 recipes still fail
+
+Actual CUDA evaluator **1157/start509466**, parent739, matched the admitted
+command byte for byte. Config confirmed CUDA, F7, evaluation and streaming,
+3,872 games at development seed6135000, and frozen R3 checkpoint
+`0366f0d5fef105a1fd34b436526dc4ebcd9551c527c19d53d401bab5031abccc`.
+Original foreground session1111 and original whole720/start473739 ended with
+exit zero. All captured processes are gone and GPU empty. Original full
+closure reader session28871 also ended with exit zero. Full consumer output
+`rule-link-current-corrective-strength-r3-closed.actual.json` has SHA-256
+`2c5058ba1ac229a43f2acf12e3790f6a57a0d466cb0c87c28450a7968f51167d`;
+completion SHA-256 is
+`692b35a7c1db4b5ef893f08ef627aedc345af9168a90aea1da75787b95a93554`.
+
+All 3,872 natural games closed: **2,451 wins / 1,421 losses**, zero failed or
+unusable games and payment forfeits, ten recovered play rejections retained,
+2,798.087077268 seconds, and **zero evaluation updates**. Source/runtime,
+candidate bytes, original references and raw output map remain guarded.
+Strict all44-versus-four acceptance is **false: 22 recipes still fail**.
+Against R2b, 16 recipes improved, 18 regressed and ten tied; aggregate wins
+fell by ten. Balanced coverage reduced the failed-recipe count from24 to22 but
+did not establish all44 improvement or prevent regressions.
+
+The unchanged pure assessment consumer produced
+`rule-link-current-corrective-r3-all44-assessment.actual.json`, SHA-256
+`95c91acf85490127f3f758d340fc8002cb081c77ae3ee30868822e56bd295e32`.
+The largest strict-gain deficits are Adventure Bandai (16 additional wins),
+Examon (10), Imperialdramon Bandai (9), and Ghostmon (8), each on the same
+88-game development recipe schedule. These are measured deficits, not a
+reason to shrink the recipe scope. R3 does not admit physical mastery, rooms,
+serving, final blind evaluation or delivery.
+
+## Prepared mixed-opponent R4 experiment; no actual training yet
+
+Another identical heuristic-only pass and a lower learning rate are possible
+experiments; neither directly addresses the narrow opponent distribution.
+The next bounded experiment keeps R3's restored optimizer, `1e-5` learning
+rate, one balanced 3,872-game all44/both-seat pass, batch88/workers4 and
+snapshot0. Its only training-distribution change is the qualified train.py's
+existing deterministic mixed-opponent support: heuristic share0.5 and all
+four current immutable reference checkpoint paths/hashes in their original
+order. Evaluation remains the unchanged full development schedule and strict
+44-versus-four gate. This is a hypothesis to test, not an accepted remedy.
+
+External operator `transfers/rule-link-current-corrective-ppo-r4.py` is sealed
+without overwriting an existing operator, SHA-256
+`f55e4467cf0ba998216eb7ac78c08472c2961de1aff911f7c4519fa6a8949e8b`
+(15,997 bytes). It binds the actual R3 whole-zero full consumer, completion,
+learner hash and 6,508 positive all12 Adam deltas. Original paired cells,
+whole/Go, optimizer/tensor, penalty-loss and raw trajectory guards are reused.
+Opponent names must exactly match the qualified trainer's seeded selection;
+all five opponent classes must occur, and all frozen checkpoint hashes stay
+guarded pre/post. Original six reference/baseline checkpoints and previous
+R1/R2b learning outputs remain protected. Static source helpers are reused
+after the full parent consumer, avoiding a second identical nested parent
+consumer invocation. No metadata copy, engine rebuild or source change is
+introduced.
+
+Ten bounded synthetic tests passed in
+`test_current_corrective_ppo_r4.py`, SHA-256
+`d699f684075c3d0cc713deb47cacea98858130620fd765a9075e169786a8fe2a`.
+They cover exact supported opponent selection, commands, wrong/missing/reordered
+checkpoint pins, wrong share, partial/bool parent evidence, all44 paired cells,
+positive preserved optimizer state, guarded old checkpoints, source seam
+drift, actual opponent-name mismatch, and retained negative payment losses.
+Actual desktop Python3.12.14 syntax/stdlib/source-seam checks passed with seven
+existing checkpoint byte pins checked. Source-only receipt
+`rule-link-current-corrective-ppo-r4-source-review.actual.json` has SHA-256
+`82143b0cd1668adfa63e3c8f85abe41f20364c382eb5423993065c0a22ccf2af`.
+The receipt explicitly
+labels its synthetic request and rejects a pending seed before admission;
+no Torch primary models, games or training were started. Actual fresh-seed
+inventory, final request/wrapper, full read-only admission, fresh idle and
+distinct ROOT resource Go remain required. The read-only advisory scan ended
+with exit zero: 645 schedule files, 134,847 previously used seeds and candidate
+interval `6019976..6023847`. This advisory cannot authorize a launch. The
+unchanged complete original seed inventory is running through session39592,
+with output `rule-link-current-corrective-ppo-r4-inventory.actual.json`.
+Keep that reader attached and obtain its real exit-zero/full fresh receipt.
+Only a local wrapper is prepared, SHA-256
+`36b309b29c1014eb9d78c059e4d500e2591a0dfa0da216b56d80d43e9edd3793`;
+Bash syntax passed, but it has not been uploaded or executed. The separate
+pending request still has a null inventory hash. No actual R4 learning
+request, resource Go, whole identity or training job has been admitted.
+Reserved final seeds `6210000..6213871` remain untouched.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
