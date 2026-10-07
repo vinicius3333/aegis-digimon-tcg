@@ -5,7 +5,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, renameSync, rmSync } from "node:
 import { tmpdir } from "node:os";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createGateway } from "./gateway.mjs";
+import { createGateway, isApiPath } from "./gateway.mjs";
 
 const { WebSocketServer, WebSocket } = createRequire(new URL("../../apps/web/package.json", import.meta.url))("ws");
 
@@ -155,4 +155,12 @@ test("cutover retains established sockets, routes reconnect to the old owner, an
   const migratedManifest = await (await fetch(`${origin}/deployment/manifest.json`)).json();
   assert.equal(migratedManifest.active.slot, "red");
   assert.equal(migratedManifest.draining[0].slot, "g-333333333333");
+});
+
+test("community API calls reach the API while page navigation gets the web app", () => {
+  const api = { accept: "application/json" };
+  assert.equal(isApiPath("/community/decks", api), true);
+  assert.equal(isApiPath("/community/publications/deck-1", {}), true);
+  assert.equal(isApiPath("/community", { accept: "text/html,application/xhtml+xml" }), false);
+  assert.equal(isApiPath("/communityish", api), false);
 });
