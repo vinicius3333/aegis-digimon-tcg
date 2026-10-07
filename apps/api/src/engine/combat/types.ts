@@ -325,7 +325,11 @@ export interface CombatHooks {
    * Trash `instanceIds` from `hostPermanentId`'s own digivolution stack as an already-accepted
    * cost. Backs ＜Fragment＞'s cost payment (§16-37). Optional, mirrors `armorPurge`.
    */
-  trashDigivolutionCards?: (hostPermanentId: string, instanceIds: string[]) => Promise<void>;
+  trashDigivolutionCards?: (
+    hostPermanentId: string,
+    instanceIds: string[],
+    provenance: { byEffectSeat: Seat; byEffectCardId: string },
+  ) => Promise<void>;
 
   /**
    * Place a card instance already loose in trash at the top of its owner's security stack, on

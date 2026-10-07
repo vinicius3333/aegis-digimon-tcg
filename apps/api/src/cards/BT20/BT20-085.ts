@@ -60,11 +60,7 @@ export const compiled: CompiledCard = {
           },
           from: ["trash"],
           payCost: false,
-          condition: {
-            kind: "allOf",
-            conditions: [{ kind: "ifThisEffectActed" }, { kind: "youHaveNone", filter: { kind: ["Digimon"] } }],
-            raw: "you don't have a Digimon",
-          },
+          condition: { kind: "youHaveNone", filter: { kind: ["Digimon"] }, raw: "you don't have a Digimon" },
           optional: true,
         },
       ],

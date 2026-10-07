@@ -129,6 +129,81 @@ it("pins a coalesced draw to its own snapshot and retains its exact ID after a l
   expect(result.current.heldHandArrivals.size).toBe(0);
 });
 
+it("holds a checked security card that a coalesced patch leaked into the reveal snapshot (Discord 1557410815466938429)", async () => {
+  const before = initial();
+  for (const player of before.players) player.securityCount = 5;
+  const revealed = snapshotGameState(before);
+  revealed.stateVersion = 2;
+  revealed.players[0]!.securityCount = 4;
+  revealed.players[0]!.hand.push(card("horn"));
+  revealed.players[0]!.handCount = 2;
+  const live = snapshotGameState(revealed);
+  live.stateVersion = 3;
+  const layout = anchors();
+  const snapshots = [before, revealed, live].map((state) => ({ stateVersion: state.stateVersion, state }));
+  const { result, rerender } = renderHook(
+    ({ state, batches }: { state: GameState; batches: readonly ServerBatch[] }) =>
+      useMatchCues({
+        state,
+        batches,
+        snapshots,
+        viewerSeat: 0,
+        mulliganOpen: false,
+        anchors: layout,
+        presentationPacing: "sequential",
+        onActionRejected() {},
+      }),
+    { initialProps: { state: before, batches: [] as readonly ServerBatch[] } },
+  );
+  await advance(0);
+  rerender({
+    state: live,
+    batches: [
+      singleServerBatch(
+        [
+          {
+            kind: "cardsMoved",
+            from: "various",
+            to: "hand",
+            seat: 0,
+            instanceIds: ["horn"],
+            handAddition: "transfer",
+            fromSecurityCheck: true,
+          },
+        ],
+        3,
+      ),
+    ],
+  });
+  // Without a causing [Security] clause to wait for, the entry starts on the next tick,
+  // so read the hold the batch registered before any timer runs.
+  expect([...result.current.heldHandArrivals.values()][0]).toMatchObject({
+    stateVersion: 3,
+    instanceId: "horn",
+    fromDeck: false,
+    fromSecurity: true,
+    securityCountAfter: 4,
+  });
+  const shown = presentedSeats({
+    shownState: revealed,
+    viewer: live.players[0]!,
+    opponent: live.players[1]!,
+    viewerSeat: 0,
+    heldPhaseState: undefined,
+    heldBlowState: undefined,
+    heldSecurityEffectState: undefined,
+    heldDrawState: undefined,
+    heldBreedingState: undefined,
+    heldDeletions: new Map(),
+    heldTrashArrivals: new Map(),
+    heldHandArrivals: result.current.heldHandArrivals,
+    optimisticPlayedInstanceId: undefined,
+    presentationPacing: "sequential",
+  });
+  expect(shown.shownHand!.map((entry) => entry.instanceId)).toEqual(["kept"]);
+  expect(shown.shownViewer).toMatchObject({ handCount: 1, deckCount: 30 });
+});
+
 it.each([false, true])("keeps a public deck draw behind its matching reveal (separate batch=%s)", async (split) => {
   const before = initial();
   const after = snapshotGameState(before);

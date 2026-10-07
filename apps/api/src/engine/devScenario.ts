@@ -171,6 +171,9 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex5-reppamon-optional-cost",
   "arena-ex13-dorimon-optional-cost",
   "arena-ex13-giromon-zero-dp-play",
+  "arena-bt13-kurata-belphemon-play-cost",
+  "arena-ex10-close-sunarizamon-without-close",
+  "arena-ex11-pyramidimon-fragment-recovery",
   "arena-ex13-rina-suspend-lock",
   "arena-ex11-vortex-effect-attack",
   "arena-bt24-ogremon-ulforce-unsuspend",
@@ -1580,6 +1583,71 @@ function loadShuffledDecks(state: GameState, decks: readonly [Decklist, Decklist
     shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
     setSecurityStack(player);
   }
+}
+
+/**
+ * Discord 1557417507898269858: BT13-103 Akihiro Kurata deletes BT13-083 Gizmon: AT (play cost 6)
+ * to reduce BT13-088 Belphemon: Sleep Mode's play cost from 11 to 5.
+ */
+function layBt13KurataBelphemonPlayCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  loadShuffledDecks(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT13-103"], "-kurata-tamer"));
+    placePermanent(human, establishedDigimon(0, ["BT13-083"], "-kurata-gizmon"));
+    insertCard(human, Zone.Hand, faceUpCard("dev-kurata-belphemon", "BT13-088", 0));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
+}
+
+/**
+ * Discord 1557413340161253496: EX10-063 Close with no [Close] in hand and no Digimon. Returning
+ * Close still plays EX10-025 Sunarizamon from the trash (KB Q5173).
+ */
+function layEx10CloseSunarizamonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  loadShuffledDecks(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX10-063"], "-close-tamer"));
+    insertCard(human, Zone.Trash, faceUpCard("dev-close-sunarizamon", "EX10-025", 0));
+    insertCard(human, Zone.Deck, faceDownCard("dev-close-turn-draw", "BT1-009", 0), "top");
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/**
+ * Discord 1557413340161253496: EX11-044 Pyramidimon (12000 DP, 4 [Mineral] Golemon sources) loses
+ * a battle to the bot's suspended BT8-017 UltimateBrachiomon (13000 DP). ＜Fragment (3)＞ trashes 3
+ * sources, and its [All Turns] places 3 [Mineral] cards from the trash back under it.
+ */
+function layEx11PyramidimonFragmentRecoveryScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  loadShuffledDecks(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(
+      human,
+      establishedDigimon(0, ["BT10-062", "BT10-062", "BT10-062", "BT10-062", "EX11-044"], "-pyramidimon"),
+    );
+    for (const suffix of ["a", "b", "c"]) {
+      insertCard(human, Zone.Trash, faceUpCard(`dev-pyramidimon-trash-${suffix}`, "BT10-062", 0));
+    }
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    const brachiomon = establishedDigimon(1, ["BT8-017"], "-pyramidimon-brachiomon");
+    brachiomon.isSuspended = true;
+    placePermanent(bot, brachiomon);
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
 }
 
 /** Discord 1557251527851114516: EX5-029 Reppamon's "By trashing your top security card" is optional. */
@@ -7294,6 +7362,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex5-reppamon-optional-cost": layEx5ReppamonOptionalCostScenario,
   "arena-ex13-dorimon-optional-cost": layEx13DorimonOptionalCostScenario,
   "arena-ex13-giromon-zero-dp-play": layEx13GiromonZeroDpPlayScenario,
+  "arena-bt13-kurata-belphemon-play-cost": layBt13KurataBelphemonPlayCostScenario,
+  "arena-ex10-close-sunarizamon-without-close": layEx10CloseSunarizamonScenario,
+  "arena-ex11-pyramidimon-fragment-recovery": layEx11PyramidimonFragmentRecoveryScenario,
   "arena-ex13-rina-suspend-lock": layEx13RinaSuspendLockScenario,
   "arena-ex11-vortex-effect-attack": layEx11VortexEffectAttackScenario,
   "arena-bt24-ogremon-ulforce-unsuspend": layBt24OgremonUlforceUnsuspendScenario,

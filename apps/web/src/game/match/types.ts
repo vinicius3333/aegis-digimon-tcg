@@ -49,6 +49,9 @@ export interface DrawHandArrival {
   entryOnly?: boolean;
   /** Non-deck additions must not restore a card to the deck while held. */
   fromDeck?: boolean;
+  /** A security card reaching the hand left security already, at its reveal or its own move. */
+  fromSecurity?: boolean;
+  securityCountAfter?: number;
   instanceId?: string;
   stateVersion: number;
   handCountAfter: number;

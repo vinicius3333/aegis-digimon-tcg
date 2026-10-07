@@ -5,21 +5,25 @@ import { describe, it, expect } from "vitest";
 import { LocalLogWriter, pruneLogs } from "./localLogWriter.js";
 
 describe("local application logs", () => {
-  it("removes expired segments while preserving seven days and unrelated files", () => {
+  it("removes segments last written more than 12 hours ago while preserving unrelated files", () => {
     const dir = mkdtempSync(join(tmpdir(), "aegis-logs-"));
+    const now = Date.parse("2026-09-12T12:00:00Z");
+    const lastWritten = {
+      "api-2026-09-11-stale.jsonl": "2026-09-11T23:59:00Z",
+      "api-2026-09-12-stale.jsonl": "2026-09-11T23:59:00Z",
+      "api-2026-09-11-kept.jsonl": "2026-09-12T00:01:00Z",
+      "api-2026-09-12-current.jsonl": "2026-09-12T11:59:00Z",
+      "api.log.1": "2026-09-11T20:00:00Z",
+      "notes.txt": "2026-09-01T00:00:00Z",
+    };
     try {
-      for (const name of [
-        "api-2026-09-05-old.jsonl",
-        "api-2026-09-06-kept.jsonl",
-        "api-2026-09-12-current.jsonl",
-        "notes.txt",
-      ])
+      for (const [name, at] of Object.entries(lastWritten)) {
         writeFileSync(join(dir, name), "data");
-      writeFileSync(join(dir, "api.log.1"), "legacy");
-      utimesSync(join(dir, "api.log.1"), new Date("2026-09-01"), new Date("2026-09-01"));
-      pruneLogs(dir, Date.parse("2026-09-12T12:00:00Z"));
+        utimesSync(join(dir, name), new Date(at), new Date(at));
+      }
+      pruneLogs(dir, now);
       expect(readdirSync(dir).sort()).toEqual([
-        "api-2026-09-06-kept.jsonl",
+        "api-2026-09-11-kept.jsonl",
         "api-2026-09-12-current.jsonl",
         "notes.txt",
       ]);

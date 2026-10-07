@@ -219,6 +219,131 @@ describe("EX11-044 Pyramidimon", () => {
     await turn;
     assertNoLoudGap(s);
   });
+
+  it("[All Turns] recovers 3 Mineral cards when an opponent's effect trashes its source on their turn (Discord 1557413340161253496)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: cardId,
+              as: "source",
+              under: [
+                { card: "BT10-062", as: "bottomFuel" },
+                { card: "BT10-062", as: "topFuel" },
+              ],
+            },
+          ],
+          trash: [
+            { card: "BT10-062", as: "recoveredA" },
+            { card: "BT10-062", as: "recoveredB" },
+            { card: "BT10-062", as: "recoveredC" },
+          ],
+          hand: ["BT1-013"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          security: ["BT1-009", "BT1-014"],
+        },
+        1: {
+          hand: [
+            { card: "BT15-019", as: "crabmon" },
+            { card: "BT1-013", as: "spare" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          security: ["BT1-009", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 6;
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("crabmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("source").stack.length === 4 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("bottomFuel").instanceId]);
+    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("topFuel").instanceId,
+        s.inst("recoveredA").instanceId,
+        s.inst("recoveredB").instanceId,
+        s.inst("recoveredC").instanceId,
+      ]),
+    );
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("[All Turns] recovers 3 Mineral cards after its own <Fragment> trashes sources in an opponent's attack (Discord 1557413340161253496)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: cardId,
+              as: "source",
+              dp: 1_000,
+              under: [
+                { card: "BT10-062", as: "fuelA" },
+                { card: "BT10-062", as: "fuelB" },
+                { card: "BT10-062", as: "fuelC" },
+                { card: "BT10-062", as: "fuelD" },
+              ],
+            },
+          ],
+          trash: [
+            { card: "BT10-062", as: "recoveredA" },
+            { card: "BT10-062", as: "recoveredB" },
+            { card: "BT10-062", as: "recoveredC" },
+          ],
+          hand: ["BT1-013"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          security: ["BT1-009", "BT1-014"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-014", as: "attacker", dp: 20_000 }],
+          hand: ["BT1-013"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          security: ["BT1-009", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    // <Reboot> unsuspends it in the opponent's unsuspend phase; production reached the battle via a redirect.
+    s.perm("source").isSuspended = true;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("source").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined && s.perm("attacker").isSuspended && s.perm("source").stack.length === 4,
+    );
+
+    const recoveredIds = [s.inst("recoveredA"), s.inst("recoveredB"), s.inst("recoveredC")].map(
+      ({ instanceId }) => instanceId,
+    );
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([cardId]);
+    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual(expect.arrayContaining(recoveredIds));
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 });
 
 describe("EX11-044 Pyramidimon — KB Q&A rulings", () => {

@@ -49,13 +49,7 @@ describe("EX10-063 Close", () => {
           from: ["trash"],
           payCost: false,
           optional: true,
-          condition: {
-            kind: "allOf",
-            conditions: [
-              { kind: "ifThisEffectActed" },
-              { kind: "youHaveNone", filter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" } },
-            ],
-          },
+          condition: { kind: "youHaveNone", filter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" } },
         },
       ],
     });
@@ -259,7 +253,7 @@ describe("EX10-063 Close", () => {
     await loop;
   });
 
-  it("without a [Close] in hand the return cost may be paid, but the dependent tail cannot run", async () => {
+  it("Q5173 without a [Close] in hand, returning this Tamer still plays the trash [Sunarizamon] (Discord 1557413340161253496)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -281,9 +275,9 @@ describe("EX10-063 Close", () => {
     await settle(() => false, 60);
 
     const p0 = s.state.players[0]!;
-    expect(p0.battleArea).toHaveLength(0);
+    expect(p0.battleArea.map(({ topCard }) => topCard?.instanceId)).toEqual([s.inst("suna").instanceId]);
     expect(p0.deck.map(({ instanceId }) => instanceId)).toEqual([...deckBefore, s.inst("source").instanceId]);
-    expect(p0.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("suna").instanceId]);
+    expect(p0.trash).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });

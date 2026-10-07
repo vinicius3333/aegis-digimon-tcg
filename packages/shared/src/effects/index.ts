@@ -73,5 +73,7 @@ export {
   splitPrintedClauses,
   isInsidePrintedQuote,
   isPrintedTimingReference,
+  canonicalTimingLabel,
+  printedTimingLabelPattern,
 } from "./printedClauses.js";
 export type { PrintedClause } from "./printedClauses.js";
