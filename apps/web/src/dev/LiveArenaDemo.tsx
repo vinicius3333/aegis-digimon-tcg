@@ -744,6 +744,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue EX7-072 Seventh Fascination e encerre seu turno. O Digimon do bot deve permanecer em campo, sem pedido de deleção nesse momento. O efeito concedido só deve ativar no fim do turno do bot.",
     en: "Play EX7-072 Seventh Fascination and end your turn. The bot's Digimon should stay in play, with no deletion prompt yet. The granted effect should activate only at the end of the bot's turn.",
   },
+  "arena-bt17-dexdoru-exact-name": {
+    ptBR: "Encerre a criação. 1) Jogue BT5-106 Demonic Disaster e delete o DexDoruGreymon BT17-067 do campo. O DexDoruGreymon da lixeira não deve oferecer seu efeito [Trash]: o nome exigido é exatamente [DoruGreymon]. 2) Jogue o segundo Demonic Disaster e delete o DoruGreymon BT16-061. Agora o efeito [Trash] deve ser oferecido; aceite: o DoruGreymon evolui para DexDoruGreymon da lixeira sem pagar o custo e não é deletado.",
+    en: "End breeding. 1) Play BT5-106 Demonic Disaster and delete the BT17-067 DexDoruGreymon on the field. The DexDoruGreymon in trash must not offer its [Trash] effect: the required name is exactly [DoruGreymon]. 2) Play the second Demonic Disaster and delete the BT16-061 DoruGreymon. Now the [Trash] effect must be offered; accept: DoruGreymon digivolves into the DexDoruGreymon from trash without paying the cost and is not deleted.",
+  },
   "arena-open-bugs-veemon-decline": {
     ptBR: "Na entrada da fase principal, ordene Davis e Veemon e recuse Veemon. A carta Free deve ficar na mão; não há custo de descarte, compra nem memória de Veemon.",
     en: "At Main entry, order Davis and Veemon and decline Veemon. Keep the Free card in hand; Veemon must not trash, draw or gain memory.",
@@ -1820,6 +1824,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-mervamon-trash-digixros", "Mervamon · DigiXros materials from trash"],
   ["arena-bt5-koromon-attack-draw", "BT5 Koromon · draw before security"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
+  ["arena-bt17-dexdoru-exact-name", "BT17 DexDoruGreymon · exact [DoruGreymon] from trash"],
   ["arena-open-bugs-veemon-decline", "Open bugs · veemon decline"],
   ["arena-open-bugs-lavorvomon-search", "Open bugs · lavorvomon search"],
   ["arena-open-bugs-giromon-leave", "Open bugs · giromon leave"],

@@ -38,7 +38,7 @@ describe("BT17-065 DexDorugamon", () => {
       kind: "Replacement",
       event: "wouldBeDeleted",
       target: {
-        filter: { controller: "mine", nameOrTrait: [{ tokens: ["Dorugamon"], match: "name" }] },
+        filter: { controller: "mine", nameOrTrait: [{ tokens: ["Dorugamon"], match: "nameExact" }] },
       },
       sourceFilter: { zone: "trash", controller: "mine" },
       leaveCause: "any",
@@ -278,5 +278,70 @@ describe("BT17-065 DexDorugamon", () => {
     expect(s.perm("host").topCard.cardId).toBe("BT14-078");
     expect(s.perm("host").stack.some((card) => card.cardId === "BT17-065")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
+  });
+});
+
+describe("BT17-065 DexDorugamon — Discord bug 1557128872544313456 (exact [Dorugamon])", () => {
+  it.each(["BT17-065", "BT9-075"])(
+    "does not offer the [Trash] replacement when DexDorugamon %s would be deleted",
+    async (nearNameCardId) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: nearNameCardId, as: "nearName" }],
+            trash: [{ card: "BT17-065", as: "dexDorugamon" }],
+          },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+
+      expect(await advance(s.engine).verb.deletePermanent([s.perm("nearName").permanentId], "byEffect")).toBe(1);
+      await settle();
+
+      expect(s.decisions.filter(({ req }) => req.kind === "optional")).toEqual([]);
+      expect(s.state.players[0]!.battleArea).toHaveLength(0);
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("dexDorugamon").instanceId)).toBe(
+        true,
+      );
+    },
+  );
+
+  it("draws instead of deleting when only a DexDorugamon is in its digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-063", under: ["BT9-075"], as: "dorumon" }],
+          hand: [
+            { card: "BT17-065", as: "dexDorugamon" },
+            { card: "BT1-011", as: "toTrash" },
+          ],
+          deck: [
+            { card: "BT1-012", as: "bonusDraw" },
+            { card: "BT1-013", as: "effectDraw" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "safe" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const safeId = s.perm("safe").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("dorumon").permanentId,
+        instanceId: s.inst("dexDorugamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("toTrash").instanceId));
+    await settle();
+
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.perm("dorumon").topCard.cardId).toBe("BT17-065");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("effectDraw").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === safeId)).toBe(true);
   });
 });

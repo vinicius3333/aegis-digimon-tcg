@@ -149,6 +149,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt20-invisimon-security-count",
   "arena-ex13-grademon-immunity",
   "arena-ex7-seventh-fascination-turn",
+  "arena-bt17-dexdoru-exact-name",
   "arena-ad1-adventure-tamers-security",
   "arena-lm067-gundramon-free-option",
   "arena-bt10-taiki-x7-xros-heart",
@@ -926,6 +927,33 @@ function layEx7SeventhFascinationTurnScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = fromTrash ? 10 : 7;
+}
+
+/** Discord 1557128872544313456: DexDoruGreymon's [Trash] effect answers only an exact [DoruGreymon]. */
+function layBt17DexDoruExactNameScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT17-067"], "-dexdoru-near-name"));
+    placePermanent(human, establishedDigimon(0, ["BT16-061"], "-dexdoru-doru-greymon"));
+    insertCard(human, Zone.Trash, faceUpCard("dev-dexdoru-trash", "BT17-067", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-dexdoru-disaster-1", "BT5-106", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-dexdoru-disaster-2", "BT5-106", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-dexdoru-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 4;
 }
 
 /** Discord 1556119607822254110: Mervamon offers Xros Heart materials from trash. */
@@ -6989,6 +7017,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-diarbbitmon-dual-option-immunity": layDiarbbitmonDualOptionImmunityScenario,
   "arena-bt5-koromon-attack-draw": layBt5KoromonAttackDrawScenario,
   "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
+  "arena-bt17-dexdoru-exact-name": layBt17DexDoruExactNameScenario,
   "arena-ad1-adventure-tamers-security": layAd1AdventureTamersSecurityScenario,
   "arena-lm067-gundramon-free-option": layLm067GundramonFreeOptionScenario,
   "arena-bt10-taiki-x7-xros-heart": layBt10TaikiX7XrosHeartScenario,
