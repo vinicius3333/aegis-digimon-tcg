@@ -43,7 +43,7 @@ import { DragGhost } from "./DragGhost";
 import { FieldClashGhosts } from "./FieldClashGhosts";
 import { LeftPileColumn } from "./LeftPileColumn";
 import { LogTicker } from "./LogTicker";
-import { DecisionMatchTimer, MatchTimer } from "../../MatchTimer";
+import { DecisionMatchTimer, MatchTimer, SeriesBadge } from "../../MatchTimer";
 import { MemoryBand } from "./MemoryBand";
 import { OpponentBar } from "./OpponentBar";
 import { OpponentBattleRow } from "./OpponentBattleRow";
@@ -279,7 +279,16 @@ export function BoardStage({
             spectating={spectating}
             spectatorCode={!state.gameOver ? state.spectatorCode : undefined}
             onResetScenario={onResetScenario}
-            timer={state.matchTimer ? <MatchTimer state={state} seat={other} opponent /> : undefined}
+            timer={
+              (state.series?.bestOf ?? 1) > 1 ? (
+                <span className="match-clock-group">
+                  <SeriesBadge state={state} viewerSeat={viewerSeat} />
+                  {state.matchTimer ? <MatchTimer state={state} seat={other} opponent /> : null}
+                </span>
+              ) : state.matchTimer ? (
+                <MatchTimer state={state} seat={other} opponent />
+              ) : undefined
+            }
             handStripRef={anchors.opponentHandStrip}
             opponentName={opponent.displayName || t("game.opponent")}
             opponentAvatarId={opponent.avatarId}

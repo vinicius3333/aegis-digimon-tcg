@@ -7,17 +7,18 @@ describe("ST22-13 GrandGalemon", () => {
   it("#4969 gains 3000 DP after declining the optional suspension", async () => {
     const s = setupEngine(
       { 0: { hand: [{ card: "ST22-13", as: "grand" }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoAcceptOptional: false, autoSelectCards: false },
     );
     s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("grand").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    expect(s.decisions.at(-1)?.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "chooseTargets", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(

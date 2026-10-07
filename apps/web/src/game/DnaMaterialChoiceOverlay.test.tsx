@@ -21,25 +21,27 @@ const permanents = ["yellow", "first-purple", "second-purple"].map((id, index) =
   return permanent;
 });
 
-it("#5166: lets the player confirm the second physical DNA pair and see its sources and price", () => {
+it("#5166: lets the player confirm the second physical DNA pair with a compact price summary", () => {
   const onConfirm = vi.fn<(ids: string[]) => void>();
   render(
     <I18nProvider>
       <DnaMaterialChoiceOverlay
-        cardId="ST10-06"
         routes={routes}
         permanents={permanents}
-        initialMaterialPermanentIds={routes[0]!.materialPermanentIds}
+        pickedPermanentIds={routes[1]!.materialPermanentIds}
         onConfirm={onConfirm}
         onCancel={vi.fn<() => void>()}
       />
     </I18nProvider>,
   );
-  fireEvent.click(screen.getByRole("radio", { name: /Pair 2/ }));
+  expect(screen.getByRole("region").getAttribute("data-prompt-surface")).toBe("left");
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(screen.queryByRole("radio")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "DNA Digivolve" }));
   expect(onConfirm).toHaveBeenCalledExactlyOnceWith(["yellow", "second-purple"]);
-  expect(screen.getByText("1 digivolution cards")).toBeTruthy();
-  expect(screen.getByText("Cost: 1")).toBeTruthy();
+  expect(screen.queryByText("1 digivolution cards")).toBeNull();
+  expect(screen.queryByRole("img")).toBeNull();
+  expect(screen.getByText(/^Cost: 1/)).toBeTruthy();
 });
 
 it("#5166: cannot silently switch to the first pair when the selected route disappears", () => {
@@ -47,10 +49,9 @@ it("#5166: cannot silently switch to the first pair when the selected route disa
   const view = render(
     <I18nProvider>
       <DnaMaterialChoiceOverlay
-        cardId="ST10-06"
         routes={routes}
         permanents={permanents}
-        initialMaterialPermanentIds={routes[1]!.materialPermanentIds}
+        pickedPermanentIds={routes[1]!.materialPermanentIds}
         onConfirm={onConfirm}
         onCancel={vi.fn<() => void>()}
       />
@@ -59,10 +60,9 @@ it("#5166: cannot silently switch to the first pair when the selected route disa
   view.rerender(
     <I18nProvider>
       <DnaMaterialChoiceOverlay
-        cardId="ST10-06"
         routes={[routes[0]!]}
         permanents={permanents}
-        initialMaterialPermanentIds={routes[1]!.materialPermanentIds}
+        pickedPermanentIds={routes[1]!.materialPermanentIds}
         onConfirm={onConfirm}
         onCancel={vi.fn<() => void>()}
       />
@@ -81,10 +81,9 @@ it("#5166: supports cancellation and normal evolution without consuming a DNA pa
   render(
     <I18nProvider>
       <DnaMaterialChoiceOverlay
-        cardId="ST10-06"
         routes={routes}
         permanents={permanents}
-        initialMaterialPermanentIds={routes[0]!.materialPermanentIds}
+        pickedPermanentIds={routes[0]!.materialPermanentIds}
         onConfirm={onConfirm}
         onCancel={onCancel}
         onNormalEvolution={onNormalEvolution}
@@ -92,7 +91,7 @@ it("#5166: supports cancellation and normal evolution without consuming a DNA pa
     </I18nProvider>,
   );
   fireEvent.click(screen.getByRole("button", { name: "Digivolve normally" }));
-  fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+  fireEvent.keyDown(screen.getByRole("region"), { key: "Escape" });
   expect(onNormalEvolution).toHaveBeenCalledOnce();
   expect(onCancel).toHaveBeenCalledOnce();
   expect(onConfirm).not.toHaveBeenCalled();

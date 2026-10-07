@@ -6,6 +6,7 @@ import { communityEn } from "./redesign/community.en";
 import { foundationEn } from "./redesign/foundation.en";
 import { homeEn } from "./redesign/home.en";
 import { playEn } from "./redesign/play.en";
+import { seriesEn } from "./redesign/series.en";
 import { settingsEn } from "./redesign/settings.en";
 import { shellEn } from "./redesign/shell.en";
 
@@ -33,10 +34,10 @@ export const en = {
   "lobby.timer.with": "With timer",
   "lobby.timer.without": "Without timer",
   "lobby.timer.summary": "{minutes} min initially · +60s your turn · +30s opponent turn",
-  "lobby.timer.publicHint": "Matched with players using the same timer setting.",
+  "lobby.timer.publicHint": "Matched with players using the same format and timer.",
   "lobby.timer.privateHint":
     "Applies to both players. Counts while you decide; capped at the starting time. Time out means defeat.",
-  "lobby.timer.guestHint": "The host sets the timer for both players.",
+  "lobby.timer.guestHint": "The host sets the format and timer for both players.",
   "lobby.timer.start": "Starting time",
   "lobby.timer.refill": "Per-turn refill",
   "lobby.timer.seconds": "{seconds} sec",
@@ -1149,6 +1150,11 @@ export const en = {
   "overlay.playAsDigimon": "Play as Digimon",
   "overlay.useAsOption": "Use as Option",
   "overlay.confirmActionTitle": "Confirm action",
+  "overlay.dnaMaterialOrder": "DNA material {number}",
+  "overlay.dnaSelectOnField": "Select the two DNA materials on the field.",
+  "overlay.dnaConfirmMaterials": "Confirm the DNA materials.",
+  "overlay.dnaSelectionCount": "{count} of 2 materials selected",
+  "overlay.dnaStackOrder": "1 goes on the bottom, 2 on top",
   "overlay.dnaChooseMaterials": "Choose the stacks to DNA digivolve.",
   "overlay.dnaUnavailable": "No DNA materials are available.",
   "overlay.dnaPair": "Pair {number}",
@@ -1804,4 +1810,5 @@ export const en = {
   ...collectionEn,
   ...settingsEn,
   ...arenaEn,
+  ...seriesEn,
 } as const;

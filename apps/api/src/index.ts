@@ -29,6 +29,7 @@ import { corsOriginForRequest } from "./http/cors.js";
 import { mailerFromEnv } from "./email/mailer.js";
 import { createClusterRuntime } from "./cluster/runtime.js";
 import { roomCodeDirectory, setRoomCodeDirectory } from "./rooms/AegisRoom.js";
+import { createSeriesDirectory, setSeriesDirectory } from "./rooms/series/SeriesDirectory.js";
 import { startBotInference, stopBotInference } from "./bot/inferenceRuntime.js";
 
 const app = express();
@@ -73,6 +74,7 @@ installAccountRoutes(
 
 const cluster = createClusterRuntime();
 setRoomCodeDirectory(cluster.roomCodes);
+setSeriesDirectory(createSeriesDirectory(cluster.presence, cluster.keyPrefix));
 
 const configuredSlot = process.env.AEGIS_DEPLOYMENT_SLOT ?? "legacy";
 if (!/^(?:blue|red|green|legacy|g-[a-f0-9]{12})$/.test(configuredSlot)) {

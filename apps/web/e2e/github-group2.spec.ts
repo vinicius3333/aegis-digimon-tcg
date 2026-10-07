@@ -10,6 +10,7 @@ class GroupArena {
     });
     await this.page.goto(`/dev/arena?scenario=arena-github-${suffix}`);
     await expect(this.page.getByRole("combobox", { name: "Scenario" })).toHaveValue(`arena-github-${suffix}`);
+    await expect(this.page.getByRole("dialog", { name: "Connecting bot opponent…", exact: true })).toBeHidden();
     await this.page.getByRole("button", { name: /^end breeding$/i }).click();
     if (suffix === "5116-rizegreymon") await this.page.getByRole("button", { name: "Use", exact: true }).click();
     await expect(this.page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();

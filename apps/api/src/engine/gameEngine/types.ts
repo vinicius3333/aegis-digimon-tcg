@@ -15,6 +15,8 @@ import type {
  */
 export interface GameEngineHooks {
   seed: number;
+  /** Who goes first, when the room already knows (a later game of a series). Otherwise the seed decides. */
+  firstSeat?: Seat;
   requestDecision: (seat: Seat, req: DecisionRequest) => void;
   emit: (event: ServerEvent) => void;
   /** Fires once, the first time both seats have sent `ready` (see {@link GameEngine.intentRouterDeps}). */

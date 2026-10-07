@@ -161,7 +161,7 @@ describe("Blast Digivolve public Counter consent and host selection", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-009"], deck: ["BT1-013", "BT1-014"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: false },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     await s.ready();

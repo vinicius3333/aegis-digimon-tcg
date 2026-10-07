@@ -35,7 +35,19 @@ const everydayCues: typeof cues = [
   { label: "Trash stacked source", kind: "sourceTrash" },
   { label: "De-digivolve", kind: "deDigivolve" },
   { label: "Evolve level 3 → 4", kind: "digivolve", details: { sourceLevel: 3, targetLevel: 4 } },
+  { label: "Evolve level 4 → 5", kind: "digivolve", details: { sourceLevel: 4, targetLevel: 5 } },
   { label: "Evolve level 4 → 6", kind: "digivolve", details: { sourceLevel: 4, targetLevel: 6 } },
+  { label: "Evolve level 5 → 6", kind: "digivolve", details: { sourceLevel: 5, targetLevel: 6 } },
+  { label: "Evolve level 6 → 7", kind: "digivolve", details: { sourceLevel: 6, targetLevel: 7 } },
+  { label: "Memory 1", kind: "memory", details: { steps: 1 } },
+  { label: "Memory 5", kind: "memory", details: { steps: 5 } },
+  { label: "Block", kind: "block" },
+  { label: "Protect", kind: "protect" },
+  { label: "Your move", kind: "prompt" },
+  { label: "Timer tick", kind: "timerTick" },
+  { label: "Phase", kind: "phase" },
+  { label: "Security deal", kind: "securityDeal" },
+  { label: "Option", kind: "optionUse" },
 ];
 const uninstall = sound.installAudioLifecycle();
 function stopComparisons(except?: HTMLAudioElement): void {

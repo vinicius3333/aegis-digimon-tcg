@@ -17,7 +17,7 @@ export function defineAegisRooms(gameServer: Pick<Server, "define">): void {
   // Explicit false values are security boundaries: Colyseus merges handler options
   // over client-supplied create options, so clients cannot promote another room type
   // into bot mode by sending `{ botRoom: true }` themselves.
-  gameServer.define(ROOM_TYPE, AegisRoom, { ...publicMode, betaBattleRoom: false }).filterBy(["matchTimer"]);
+  gameServer.define(ROOM_TYPE, AegisRoom, { ...publicMode, betaBattleRoom: false }).filterBy(["matchTimer", "bestOf"]);
   gameServer.define(ROOM_TYPE_BOT, AegisRoom, { ...publicMode, botRoom: true, betaBattleRoom: false });
   gameServer.define(ROOM_TYPE_BETA_BOT, AegisRoom, { ...publicMode, botRoom: true, betaBattleRoom: true });
   gameServer.define(ROOM_TYPE_RANKED, AegisRoom, { ...publicMode, rankedRoom: true, betaBattleRoom: false });
@@ -26,7 +26,7 @@ export function defineAegisRooms(gameServer: Pick<Server, "define">): void {
       ...publicMode,
       betaBattleRoom: true,
     })
-    .filterBy(["matchTimer"]);
+    .filterBy(["matchTimer", "bestOf"]);
   // Filtered by BOTH tournament join keys: the legacy flow matches a room per bracket match, the
   // program flow one per Tournament Game, and neither may ever land in the other's room.
   gameServer

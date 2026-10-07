@@ -133,7 +133,7 @@ export function useArenaVisualPlayback(
     });
     const timers = scene.stages.map((stage) =>
       window.setTimeout(() => {
-        const batch = singleServerBatch(stage.events, stage.beforeState.stateVersion);
+        const batch = singleServerBatch(stage.events, stage.state.stateVersion);
         setFrame((previous) => ({
           scene,
           state: stage.state,

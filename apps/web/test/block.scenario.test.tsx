@@ -8,6 +8,7 @@ import { scenario } from "./scenarioHarness/scenario";
 import { startTestServer, type TestServer } from "./scenarioHarness/server";
 import { joinHeadlessOpponent } from "./scenarioHarness/headlessOpponent";
 import { respondToHeadlessDecision } from "./scenarioHarness/decisions";
+import { tap } from "./scenarioHarness/tap";
 
 /**
  * Proves historical migration ledger behavioral scenario "block":
@@ -113,18 +114,21 @@ scenario("block", () => {
     const agumonPermanentId = opponent.room.state.players[1]!.battleArea[0]!.permanentId;
     opponent.attack(agumonPermanentId, { kind: "player" });
 
-    // The central gallery offers only the server-authorized blocker.
+    // The block rail offers the decline action while the server-authorized
+    // blocker can be selected directly from the battle area.
     await screen.findByRole("button", { name: /take the attack/i }, { timeout: 10_000 });
-    const blockDialog = screen.getByRole("dialog", { name: "Block window" });
-    expect(blockDialog.getAttribute("data-prompt-surface")).toBe("center");
-    const monmonBlockerButton = within(blockDialog).getByRole("button", { name: /^monmon,/i });
+    const blockPrompt = screen.getByRole("region", { name: "Block window" });
+    expect(blockPrompt.getAttribute("data-prompt-surface")).toBe("left");
+    const monmonBlockerButton = within(yourBattleArea()).getByRole("button", { name: /^monmon$/i });
     const blocker = opponent.room.state.players[0]!.battleArea.find(
       (permanent) => permanent.topCard.cardId === "BT1-031",
     )!;
     const blockerId = blocker.permanentId;
     const blockerCardId = blocker.topCard.instanceId;
     expect(blocker.isSuspended).toBe(false);
-    fireEvent.click(monmonBlockerButton);
+    expect(monmonBlockerButton.classList.contains("game-permanent--candidate")).toBe(true);
+    expect(monmonBlockerButton.getAttribute("data-permanent-id")).toBe(blockerId);
+    tap(monmonBlockerButton);
 
     // The attack is redirected onto Monmon instead of the protagonist's security —
     // the answered-outcome proof: security stays at 5 (never checked) while the

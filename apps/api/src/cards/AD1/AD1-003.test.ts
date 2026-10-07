@@ -31,11 +31,17 @@ describe("AD1-003 WarGrowlmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[0]!.battleArea.length === 2);
 
-    const confirmations = s.decisions.filter(({ req }) => req.sourceCardId === "AD1-003" && req.kind === "optional");
+    const confirmations = s.decisions.filter(
+      ({ req }) => req.sourceCardId === "AD1-003" && (req.kind === "optional" || req.kind === "chooseTargets"),
+    );
     expect(confirmations.map(({ req }) => req.options?.effectTextPart)).toEqual([
       "[On Play] [When Digivolving] You may play 1 [Takato Matsuki] from your hand or trash without paying the cost.",
       "Then, you may delete 1 of your opponent's Digimon with 6000 DP or less.",
     ]);
+    expect(confirmations[1]?.req).toMatchObject({
+      kind: "chooseTargets",
+      options: { min: 0, max: 1, purpose: "optionalTarget" },
+    });
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("takato").instanceId),

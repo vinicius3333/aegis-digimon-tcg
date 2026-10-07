@@ -16,8 +16,10 @@ import {
   type DeckListing,
 } from "./game/decks";
 import type { AegisJoinOptions } from "./net/types";
+import type { SeriesGameTicket } from "./net/useRoom";
 import type { PrivateRoom, StartMode } from "./screens/Lobby";
 import { loadMatchTimerPreference } from "./screens/matchTimerPreference";
+import { loadMatchFormatPreference } from "./screens/matchFormatPreference";
 import { Settings } from "./screens/Settings";
 import { loadIdentity, saveIdentity, loadDecks, saveDecks, loadActiveDeckId, saveActiveDeckId } from "./identity";
 import { accentForAvatar } from "./guest";
@@ -309,6 +311,9 @@ export function AegisClient({
     timerStartSeconds: 300,
     timerRefillSeconds: 60,
   }));
+  const [bestOf, setBestOf] = useState(loadMatchFormatPreference);
+  /** Set between the games of a best-of-three: the next GameScreen takes this seat. */
+  const [seriesGame, setSeriesGame] = useState<SeriesGameTicket>();
   const [startMode, setStartMode] = useState<StartMode>("casual");
   const [editingDeck, setEditingDeck] = useState<DeckListing | null>(null);
   // A community deck picked to play with. It lives for this session only and is never saved.
@@ -376,6 +381,7 @@ export function AegisClient({
   const joinOptions = useMemo<AegisJoinOptions>(
     () => ({
       ...timerOptions,
+      bestOf,
       displayName: effectivePlayer.name,
       avatarId: effectivePlayer.avatarId ?? undefined,
       deckId: matchDeck?.id,
@@ -387,7 +393,7 @@ export function AegisClient({
         eggDeckArts: matchDeck?.eggDeckArts,
       },
     }),
-    [effectivePlayer.name, effectivePlayer.avatarId, matchDeck, timerOptions],
+    [effectivePlayer.name, effectivePlayer.avatarId, matchDeck, timerOptions, bestOf],
   );
 
   const showNav = NAV_SCREENS.includes(screen);
@@ -465,6 +471,8 @@ export function AegisClient({
               onNav={navigateScreen}
               timerOptions={timerOptions}
               onTimerOptionsChange={setTimerOptions}
+              bestOf={bestOf}
+              onBestOfChange={setBestOf}
               invitedRoomCode={invitedRoomCode}
               privateRoom={privateRoom}
               onLeavePrivateRoom={() => setPrivateRoom(undefined)}
@@ -472,6 +480,7 @@ export function AegisClient({
                 // A lobby start explicitly requests a new match, even if a page
                 // reload left a resumable seat from the previous match in storage.
                 clearReconnectSession();
+                setSeriesGame(undefined);
                 if (mode !== "private_host" && mode !== "private_guest") setPrivateRoom(undefined);
                 setStartMode(mode);
                 setRoomCode(code);
@@ -553,11 +562,21 @@ export function AegisClient({
               waitForHost={startMode === "private_guest" && privateRoom?.code === roomCode}
               botDeckId={botDeckId}
               betaBattleMode={betaBattleMode}
+              seriesGame={seriesGame}
+              onSeriesNext={(ticket) => {
+                clearReconnectSession();
+                setSeriesGame(ticket);
+                setMatchNumber((current) => current + 1);
+              }}
               presentationPacing={SEQUENTIAL_PACING_ENABLED ? "sequential" : "current"}
               signedIn={!!account}
-              onExit={navigateScreen}
+              onExit={(next) => {
+                setSeriesGame(undefined);
+                navigateScreen(next);
+              }}
               onRematch={(privateRoomCode) => {
                 clearReconnectSession();
+                setSeriesGame(undefined);
                 if (privateRoomCode) {
                   setPrivateRoom({ code: privateRoomCode, host: startMode === "private_host" });
                   navigateScreen("lobby");

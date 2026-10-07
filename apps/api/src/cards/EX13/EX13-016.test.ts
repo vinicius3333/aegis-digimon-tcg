@@ -398,7 +398,8 @@ describe("EX13-016 Omnimon", () => {
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
       s.perm("oneStack").permanentId,
     ]);
-    const deletePrompt = s.decisions.find(({ req }) => req.kind === "optional");
+    const deletePrompt = s.decisions.find(({ req }) => req.kind === "chooseTargets");
+    expect(deletePrompt?.req).toMatchObject({ options: { min: 0, max: 1, purpose: "optionalTarget" } });
     expect(deletePrompt?.req.options?.effectText).toBe(
       "[On Play] [When Digivolving] [Counter] [Once Per Turn] You may delete 1 of your opponent's Digimon with as many digivolution cards as this Digimon or fewer.",
     );

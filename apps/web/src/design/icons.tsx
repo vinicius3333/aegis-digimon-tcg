@@ -410,6 +410,16 @@ const Clock = (p: IconProps) => (
     <polyline points="12 6 12 12 16 14" />
   </Svg>
 );
+const Trophy = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+    <path d="M4 22h16" />
+    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+  </Svg>
+);
 const FileText = (p: IconProps) => (
   <Svg {...p}>
     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -644,6 +654,7 @@ export const Icons = {
   Map: MapIcon,
   Sparkles,
   Clock,
+  Trophy,
   FileText,
   BookOpen,
   MoreVertical,
