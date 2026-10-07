@@ -71,7 +71,7 @@ export function presentedSeats({
     // Coalesced server patches can enqueue a later scene while an earlier effect is
     // still being narrated. Its hold may delay that scene, but must not import its
     // future field, rotation or draw into the earlier presented revision.
-    return paced && state !== undefined && state.stateVersion > shownState.stateVersion ? undefined : state;
+    return state !== undefined && state.stateVersion > shownState.stateVersion ? undefined : state;
   }
   const phaseHold = fullStateHold(heldPhaseState);
   const blowHold = fullStateHold(heldBlowState);

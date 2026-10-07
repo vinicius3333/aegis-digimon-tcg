@@ -30,6 +30,39 @@ function player(seat: 0 | 1, battleArea: Permanent[] = []): PlayerState {
 
 describe("presentedSeats live projection", () => {
   it.each(["current", "sequential"] as const)(
+    "does not turn a forced attacker early from a newer security hold under %s pacing (Discord bug 1557482157012680795)",
+    (presentationPacing) => {
+      const upright = permanent({ rush: false });
+      const shownState = new GameState();
+      shownState.stateVersion = 16;
+      shownState.players.push(player(0), player(1, [upright]));
+      const attacking = permanent({ rush: false });
+      attacking.isSuspended = true;
+      const securityRevealed = new GameState();
+      securityRevealed.stateVersion = 20;
+      securityRevealed.players.push(player(0), player(1, [attacking]));
+
+      const seats = presentedSeats({
+        shownState,
+        viewer: player(0),
+        opponent: player(1, [attacking]),
+        viewerSeat: 0,
+        presentationPacing,
+        heldPhaseState: undefined,
+        heldBlowState: undefined,
+        heldSecurityEffectState: securityRevealed,
+        heldDrawState: undefined,
+        heldBreedingState: undefined,
+        heldDeletions: new Map(),
+        heldTrashArrivals: new Map(),
+        optimisticPlayedInstanceId: undefined,
+      });
+
+      expect(seats.shownOpponent.battleArea[0]!.isSuspended).toBe(false);
+    },
+  );
+
+  it.each(["current", "sequential"] as const)(
     "keeps both seats' Digi-Burst DP until the earliest cost finishes under %s pacing",
     (presentationPacing) => {
       const host = permanent({ rush: true });

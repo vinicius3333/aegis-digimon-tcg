@@ -248,6 +248,8 @@ export function useMatchCues({
   presentationPacingRef.current = presentationPacing;
   const presentationBatchRef = useRef<{ batchId: string; stateVersion: number } | undefined>(undefined);
   const batchVersionsRef = useRef(new Map<string, number>());
+  /** The revision of the last presented batch that carried events: the board a viewer last saw change. */
+  const eventfulBoardVersionRef = useRef<number | undefined>(undefined);
   const heldOriginsRef = useRef(new WeakMap<object, { batchId: string; stateVersion: number; phaseOrder: number }>());
   const stepBatchesRef = useRef(new WeakMap<AnimationStep, { batchId: string; stateVersion: number }>());
   const viewerSeatRef = useRef(viewerSeat);
@@ -395,6 +397,7 @@ export function useMatchCues({
   const narrationRef = useRef(narration);
   narrationRef.current = narration;
   const [attackAnnouncement, setAttackAnnouncement] = useState<AttackAnnouncement | null>(null);
+  const [attackAwaitingCause, setAttackAwaitingCause] = useState(false);
   const [turnTransition, setTurnTransition] = useState<TurnTransitionCue | null>(null);
   const [securityClash, setSecurityClash] = useState<SecurityClashScene | null>(null);
   const [securityBreak, setSecurityBreak] = useState<SecurityBreakCue | null>(null);
@@ -952,6 +955,7 @@ export function useMatchCues({
       lastBatchIdRef,
       presentationBatchRef,
       batchVersionsRef,
+      eventfulBoardVersionRef,
       heldOriginsRef,
       fieldClashKeyRef,
       openAttackRef,
@@ -1009,6 +1013,7 @@ export function useMatchCues({
       setDeckRiffles,
       setHeldMemory,
       setAttackAnnouncement,
+      setAttackAwaitingCause,
       setSecurityBreak,
       setSecurityHitSeat,
       setSecurityClash,
@@ -1548,6 +1553,7 @@ export function useMatchCues({
       setRejection(rejectionNotice(reason, `notice-${noticeSequenceRef.current}`, Date.now()));
     },
     attackAnnouncement,
+    attackAwaitingCause,
     turnTransition,
     securityClash,
     securityBreak,
