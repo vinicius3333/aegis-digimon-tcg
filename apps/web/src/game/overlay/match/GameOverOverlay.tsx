@@ -3,6 +3,37 @@ import { Button } from "../../../design/primitives";
 import { Icons } from "../../../design/icons";
 import { useTranslation } from "../../../i18n";
 import { gameOverSplash, type GameOverOutcome } from "../../gameOverSplash";
+import type { SeriesView } from "../../seriesModel";
+import { SeriesNextGame, SeriesScore } from "./SeriesStatus";
+
+/** The best-of-three this game belongs to, for a seated player. */
+export interface SeriesResultProps {
+  view: SeriesView;
+  opponentName: string;
+  onChooseTurnOrder: (goFirst: boolean) => void;
+  onLeave: () => void;
+}
+
+const SERIES_TITLES = {
+  win: "overlay.series.won",
+  loss: "overlay.series.lost",
+  draw: "overlay.series.drawn",
+} as const;
+
+function seriesReason(t: ReturnType<typeof useTranslation>["t"], { view, opponentName }: SeriesResultProps): string {
+  switch (view.endReason) {
+    case "forfeit":
+      return view.outcome === "win"
+        ? t("overlay.series.reason.opponentLeft", { name: opponentName })
+        : t("overlay.series.reason.youLeft");
+    case "draw":
+      return t("overlay.series.reason.draw");
+    case "aborted":
+      return t("overlay.series.reason.aborted");
+    default:
+      return t("overlay.series.reason.won", { you: view.viewerWins, opponent: view.opponentWins });
+  }
+}
 
 const HEADER_GAP_PX = 12;
 
@@ -64,6 +95,7 @@ export function GameOverOverlay({
   onMenu,
   onRematch,
   returnsToRoom = false,
+  series,
 }: {
   spectatorResult?: string;
   result: GameOverOutcome;
@@ -75,6 +107,8 @@ export function GameOverOverlay({
   onRematch: () => void;
   /** A private match goes back to its room, where both players can switch decks. */
   returnsToRoom?: boolean;
+  /** Set in a best-of-three: the splash shows the series and, between games, the next one. */
+  series?: SeriesResultProps;
 }) {
   const { t } = useTranslation();
   const splash = gameOverSplash(result, reason);
@@ -91,7 +125,19 @@ export function GameOverOverlay({
     window.addEventListener("resize", place);
     return () => window.removeEventListener("resize", place);
   }, [reviewingBoard]);
-  const title = spectatorResult ? t("spectator.finished") : t(splash.titleKey);
+  const seriesOutcome = series?.view.outcome;
+  const seriesRunning = series !== undefined && seriesOutcome === undefined;
+  const title = spectatorResult
+    ? t("spectator.finished")
+    : seriesOutcome
+      ? t(SERIES_TITLES[seriesOutcome])
+      : t(splash.titleKey);
+  const eyebrow = !series
+    ? t("overlay.matchComplete")
+    : seriesOutcome
+      ? t("overlay.series.complete")
+      : t("overlay.series.gameComplete", { game: series.view.gameNumber, bestOf: series.view.bestOf });
+  const reasonText = spectatorResult ?? (series && seriesOutcome ? seriesReason(t, series) : t(splash.reasonKey));
 
   if (reviewingBoard) {
     return (
@@ -127,27 +173,43 @@ export function GameOverOverlay({
     >
       <div className="game-result__rays" aria-hidden="true" />
       <div className="game-result__panel">
-        <p className="game-result__eyebrow">{t("overlay.matchComplete")}</p>
-        <h1 id="aegis-game-over-title" className="game-result__title">
+        <p className="game-result__eyebrow">{eyebrow}</p>
+        <h1
+          id="aegis-game-over-title"
+          className={`game-result__title${seriesOutcome ? " game-result__title--series" : ""}`}
+        >
           {title}
         </h1>
-        <p className="game-result__reason">{spectatorResult ?? t(splash.reasonKey)}</p>
-        <div className="game-result__stats">
-          {stats.map((entry) => (
-            <div key={entry.label} className="game-result__stat">
-              <span className="game-result__stat-value">{entry.value}</span>
-              <span className="game-result__stat-label">{entry.label}</span>
-            </div>
-          ))}
-        </div>
-        <div className="game-actions-row">
-          <Button full autoFocus icon={returnsToRoom ? Icons.Link2 : Icons.Swords} onClick={onRematch}>
-            {t(spectatorResult ? "spectator.back" : returnsToRoom ? "overlay.backToRoom" : "overlay.findRematch")}
-          </Button>
-          <Button full variant="secondary" icon={Icons.LayoutDashboard} onClick={onMenu}>
-            {t("overlay.mainMenu")}
-          </Button>
-        </div>
+        <p className="game-result__reason">{reasonText}</p>
+        {series ? (
+          <SeriesScore series={series.view} opponentName={series.opponentName} />
+        ) : (
+          <div className="game-result__stats">
+            {stats.map((entry) => (
+              <div key={entry.label} className="game-result__stat">
+                <span className="game-result__stat-value">{entry.value}</span>
+                <span className="game-result__stat-label">{entry.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {seriesRunning ? (
+          <SeriesNextGame
+            series={series.view}
+            opponentName={series.opponentName}
+            onChooseTurnOrder={series.onChooseTurnOrder}
+          />
+        ) : null}
+        {seriesRunning ? null : (
+          <div className="game-actions-row">
+            <Button full autoFocus icon={returnsToRoom ? Icons.Link2 : Icons.Swords} onClick={onRematch}>
+              {t(spectatorResult ? "spectator.back" : returnsToRoom ? "overlay.backToRoom" : "overlay.findRematch")}
+            </Button>
+            <Button full variant="secondary" icon={Icons.LayoutDashboard} onClick={onMenu}>
+              {t("overlay.mainMenu")}
+            </Button>
+          </div>
+        )}
         <Button
           className="game-result__view-board"
           variant="ghost"
@@ -157,6 +219,17 @@ export function GameOverOverlay({
         >
           {t("overlay.viewBoard")}
         </Button>
+        {seriesRunning && series.view.stage === "choosing" ? (
+          <Button
+            className="game-result__view-board series-leave"
+            variant="ghost"
+            size="sm"
+            icon={Icons.LogOut}
+            onClick={series.onLeave}
+          >
+            {t("overlay.series.leave")}
+          </Button>
+        ) : null}
       </div>
     </div>
   );

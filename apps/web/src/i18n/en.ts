@@ -5,6 +5,7 @@ import { decksEn } from "./redesign/decks.en";
 import { foundationEn } from "./redesign/foundation.en";
 import { homeEn } from "./redesign/home.en";
 import { playEn } from "./redesign/play.en";
+import { seriesEn } from "./redesign/series.en";
 import { settingsEn } from "./redesign/settings.en";
 import { shellEn } from "./redesign/shell.en";
 
@@ -32,10 +33,10 @@ export const en = {
   "lobby.timer.with": "With timer",
   "lobby.timer.without": "Without timer",
   "lobby.timer.summary": "{minutes} min initially · +60s your turn · +30s opponent turn",
-  "lobby.timer.publicHint": "Matched with players using the same timer setting.",
+  "lobby.timer.publicHint": "Matched with players using the same format and timer.",
   "lobby.timer.privateHint":
     "Applies to both players. Counts while you decide; capped at the starting time. Time out means defeat.",
-  "lobby.timer.guestHint": "The host sets the timer for both players.",
+  "lobby.timer.guestHint": "The host sets the format and timer for both players.",
   "lobby.timer.start": "Starting time",
   "lobby.timer.refill": "Per-turn refill",
   "lobby.timer.seconds": "{seconds} sec",
@@ -1798,4 +1799,5 @@ export const en = {
   ...collectionEn,
   ...settingsEn,
   ...arenaEn,
+  ...seriesEn,
 } as const;

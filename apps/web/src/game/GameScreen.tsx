@@ -66,6 +66,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CardKind,
   PRESENTATION_CHANNEL,
+  SERIES_CHANNEL,
   getCardDefinition,
   type DecisionResponse,
   type Permanent,
@@ -73,7 +74,8 @@ import {
 } from "@aegis/shared";
 import { rejectionMessage } from "../rejectionMessages";
 import { useTranslation } from "../i18n";
-import { useRoom, type MatchMode, type UseRoomResult } from "../net/useRoom";
+import { useRoom, type MatchMode, type SeriesGameTicket, type UseRoomResult } from "../net/useRoom";
+import { seriesView } from "./seriesModel";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import { selectPresentedState, type StateSnapshot } from "../net/presentedState";
 import { joinWithBot } from "../net/client";
@@ -111,6 +113,8 @@ import { TIMINGS } from "./timings";
 import { loadReconnectSession } from "../net/reconnectSession";
 import { pendingFateBadges } from "./pendingFate";
 
+const SERIES_HOP_DELAY_MS = 1500;
+
 export function GameScreen({
   joinOptions,
   startMode = "casual",
@@ -125,6 +129,8 @@ export function GameScreen({
   demoConnection,
   devProbe,
   presentationPacing,
+  seriesGame,
+  onSeriesNext,
 }: {
   joinOptions: AegisJoinOptions;
   identityColor: ColorName;
@@ -160,6 +166,10 @@ export function GameScreen({
   /** Dev inspector hooks (the effects lab): queue controls, step events, batches, decisions. */
   devProbe?: PresentationProbe;
   presentationPacing?: PresentationPacing;
+  /** A later game of a best-of-three: join it by this seat instead of matchmaking. */
+  seriesGame?: SeriesGameTicket;
+  /** The series opened its next game; the caller remounts this screen on that ticket. */
+  onSeriesNext?: (ticket: SeriesGameTicket) => void;
 }) {
   const { t } = useTranslation();
   const [spectating] = useState(() => startMode === "spectator" || loadReconnectSession()?.spectator === true);
@@ -168,10 +178,11 @@ export function GameScreen({
   const { narrowGameLayout, compactPiles, shortBoard, collapseNotices } = arenaLayout;
   const matchConfig = useMemo(() => {
     if (startMode === "spectator") return { mode: "spectator" as const, roomCode };
+    if (seriesGame) return { mode: "series" as const, seriesGame };
     if (startMode === "casual" || startMode === "ranked" || startMode === "beta") return undefined;
     if (startMode === "bot") return { mode: "bot" as MatchMode };
     return { mode: startMode, roomCode, waitForHost };
-  }, [startMode, roomCode, waitForHost]);
+  }, [startMode, roomCode, waitForHost, seriesGame]);
   const roomOptions = useMemo(
     () => ({
       ...joinOptions,
@@ -197,6 +208,21 @@ export function GameScreen({
     snapshots,
   } = demoConnection ?? liveConnection;
   const room = spectating ? undefined : connectedRoom;
+
+  // Holds the "Game 2 · X goes first" line on screen for a beat before the room hop.
+  const nextSeriesRoomId =
+    !spectating && state?.series?.phase === "starting" ? state.series.nextRoomId : "";
+  const { seriesSeat } = liveConnection;
+  const onSeriesNextRef = useRef(onSeriesNext);
+  onSeriesNextRef.current = onSeriesNext;
+  useEffect(() => {
+    if (!nextSeriesRoomId || !seriesSeat) return;
+    const hop = setTimeout(
+      () => onSeriesNextRef.current?.({ roomId: nextSeriesRoomId, ...seriesSeat }),
+      SERIES_HOP_DELAY_MS,
+    );
+    return () => clearTimeout(hop);
+  }, [nextSeriesRoomId, seriesSeat]);
   // A demo or showcase fabricates events with no batch boundary of their own, so its list
   // is presented as the one moment it describes.
   const cueBatches = useMemo(() => batches ?? [singleServerBatch(events)], [batches, events]);
@@ -695,7 +721,25 @@ export function GameScreen({
     !seats ||
     !bothSeated(state)
   ) {
-    const notice = pendingMatchNotice({ status, botError, error, vsBot, startMode, hostRoomCode, joinOptions, t });
+    const pendingSeries = state && viewerSeat !== undefined ? seriesView(state.series, viewerSeat) : undefined;
+    const notice =
+      pendingSeries?.stage === "over"
+        ? {
+            title: t(pendingSeries.outcome === "win" ? "overlay.series.won" : "overlay.series.drawn"),
+            detail: t(
+              pendingSeries.endReason === "forfeit"
+                ? "overlay.series.reason.opponentLeft"
+                : "overlay.series.reason.aborted",
+              { name: t("game.opponent") },
+            ),
+            spinner: false,
+            actionLabel: t("game.returnToLobby"),
+            exitTo: "lobby" as const,
+            roomCode: undefined,
+          }
+        : seriesGame && status === "connected"
+          ? { title: t("overlay.series.joining"), detail: "", spinner: true, roomCode: undefined }
+          : pendingMatchNotice({ status, botError, error, vsBot, startMode, hostRoomCode, joinOptions, t });
     return (
       <PendingMatchBoard
         title={notice.title}
@@ -946,6 +990,8 @@ export function GameScreen({
   const viewerTurnOrder = modelViewerTurnOrder({ events, viewerSeat });
 
   const revealed = state.gameOver ? modelRevealedZones({ events, viewerSeat }) : undefined;
+
+  const series = spectating ? undefined : seriesView(state.series, viewerSeat);
 
   const attackerPerm = selPerm ? you.battleArea.find((p) => p.permanentId === selPerm) : undefined;
   const draggedAttackerPerm =
@@ -1225,11 +1271,17 @@ export function GameScreen({
       signedIn={signedIn}
       opponentDropped={!spectating && !vsBot && !opp.connected && !state.gameOver}
       gameOver={
-        state.gameOver
+        state.gameOver || series?.stage === "over"
           ? {
-              result: gameOverResult,
+              result: series?.outcome ?? gameOverResult,
               reason: gameOverReason,
               revealed,
+              series: series && {
+                view: series,
+                opponentName: opp.displayName || t("game.opponent"),
+                onChooseTurnOrder: (goFirst) => room?.send(SERIES_CHANNEL, { action: "chooseTurnOrder", goFirst }),
+                onLeave: () => room?.send(SERIES_CHANNEL, { action: "leave" }),
+              },
               spectatorResult: spectating
                 ? state.winnerSeat < 0
                   ? t("spectator.draw")

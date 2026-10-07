@@ -16,6 +16,10 @@ export interface AegisJoinOptions {
   matchTimer?: boolean;
   timerStartSeconds?: number;
   timerRefillSeconds?: number;
+  /** Casual and private rooms play one game or a best-of-three; anything else plays one. */
+  bestOf?: 1 | 3;
+  /** A later game of a best-of-three: the seat token its series handed this player. */
+  seriesToken?: string;
   ranked?: boolean;
   betaBattleMode?: boolean;
   authTicket?: string;

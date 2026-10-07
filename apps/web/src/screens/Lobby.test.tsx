@@ -597,8 +597,43 @@ describe("optional match timer configuration", () => {
     expect(screen.getByText("Maximum 60s · Counts while you decide")).toBeTruthy();
     fireEvent.click(screen.getByRole("tab", { name: "Join" }));
     expect(screen.queryByRole("switch", { name: "Match timer" })).toBeNull();
-    expect(screen.getByText("The host sets the timer for both players.")).toBeTruthy();
+    expect(screen.getByText("The host sets the format and timer for both players.")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
     expect(screen.queryByRole("switch", { name: "Match timer" })).toBeNull();
+  });
+});
+
+describe("match format configuration", () => {
+  afterEach(() => localStorage.removeItem("aegis:match-format"));
+
+  it("sits beside the timer, remembers the choice and hides for guests and practice", () => {
+    const onBestOfChange = vi.fn<(bestOf: 1 | 3) => void>();
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={DECKS}
+          activeDeckId={DECKS[0]!.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={() => undefined}
+          onBestOfChange={onBestOfChange}
+        />
+      </I18nProvider>,
+    );
+    const bestOfThree = screen.getByRole("radio", { name: "Best of 3" });
+    expect(screen.getByRole("radio", { name: "Best of 1" }).getAttribute("aria-checked")).toBe("true");
+    fireEvent.click(bestOfThree);
+    expect(bestOfThree.getAttribute("aria-checked")).toBe("true");
+    expect(onBestOfChange).toHaveBeenLastCalledWith(3);
+    expect(localStorage.getItem("aegis:match-format")).toBe("3");
+    expect(screen.getByText(/First to 2 wins/)).toBeTruthy();
+    expect(screen.getByRole("switch", { name: "Match timer" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Private Match/ }));
+    fireEvent.click(screen.getByRole("tab", { name: "Join" }));
+    expect(screen.queryByRole("radio", { name: "Best of 3" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
+    expect(screen.queryByRole("radio", { name: "Best of 3" })).toBeNull();
   });
 });
