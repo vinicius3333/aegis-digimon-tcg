@@ -1,9 +1,7 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { I18nProvider } from "../i18n";
-import { en } from "../i18n/en";
-import { DeckSleeveSelect } from "../screens/DeckSleeveSelect";
 import { CardBack } from "./cards";
 import {
   DEFAULT_EGG_SLEEVE,
@@ -96,7 +94,7 @@ describe("egg sleeve fallback", () => {
   });
 });
 
-describe("egg sleeve pickers", () => {
+describe("egg sleeve picker", () => {
   it("sets the global egg sleeve from Settings", () => {
     render(
       <I18nProvider>
@@ -108,20 +106,5 @@ describe("egg sleeve pickers", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Gold, Official Card Sleeves" }));
     expect(getEggSleeveId()).toBe("gold");
-  });
-
-  it("offers the Settings egg sleeve as the deck default", () => {
-    const onChange = vi.fn<(sleeveId: string | undefined) => void>();
-    render(
-      <I18nProvider>
-        <DeckSleeveSelect kind="egg" sleeveId={undefined} onChange={onChange} />
-      </I18nProvider>,
-    );
-    const select = screen.getByRole("combobox", {
-      name: en["redesign.decks.editor.eggSleeve"],
-    }) as HTMLSelectElement;
-    expect(select.selectedOptions[0]?.textContent).toBe("Settings sleeve (Digi-Egg)");
-    fireEvent.change(select, { target: { value: "digimon-egg" } });
-    expect(onChange).toHaveBeenLastCalledWith("digimon-egg");
   });
 });

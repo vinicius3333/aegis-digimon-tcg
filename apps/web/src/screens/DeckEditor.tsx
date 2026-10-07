@@ -18,7 +18,7 @@ import { CoverThumb } from "../design/cards";
 import { Icons } from "../design/icons";
 import { Panel, SectionHeading } from "../design/surfaces";
 import { CardDetailDrawer } from "./CardDetailDrawer";
-import { DeckSleeveSelect } from "./DeckSleeveSelect";
+import { DeckSleevePicker } from "./DeckSleevePicker";
 import { FilterRail } from "./FilterRail";
 import { useCardFilter } from "./cardFilters";
 import { sortCards } from "./cardSorting";
@@ -376,10 +376,10 @@ export function DeckEditor({
           </div>
 
           <div className="deck-current__footer">
-            <div className="deck-current__sleeves">
-              <DeckSleeveSelect sleeveId={sleeveId} onChange={setSleeveId} />
-              <DeckSleeveSelect kind="egg" sleeveId={eggSleeveId} onChange={setEggSleeveId} />
-            </div>
+            <DeckSleevePicker
+              sleeveIds={{ main: sleeveId, egg: eggSleeveId }}
+              onChange={(part, next) => (part === "main" ? setSleeveId : setEggSleeveId)(next)}
+            />
             {banlistViolations.length > 0 ? (
               <div className="deck-current__violations">
                 <strong>{t("deck.banlistTitle")}</strong>
