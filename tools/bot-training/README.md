@@ -52,7 +52,7 @@ Tests cover the information boundary, complete small selection/order trees, join
 
 The initial desktop evidence is `/home/vinicius/aegis-bot-lab/runs/2026-09-26-training-pilot/`. A successful pilot or a nonzero weight update is not evidence of a strong policy.
 
-The updated v2 evidence is `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v2/`: 16 completed training games, 543 decisions, one win, exact checkpoint reload; greedy evaluation produced seven losses and one decision-limit truncation in eight games. Node 26 build/typecheck, 44 TypeScript tests, and four Python tests passed. A shared-runtime mutation check confirmed fingerprint sensitivity. See the [training plan](../../docs/plans/2026-09-26-local-bot-training-design.md) for source hashes and remaining acceptance gates.
+The updated v2 evidence is `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v2/`: 16 completed training games, 543 decisions, one win, exact checkpoint reload; greedy evaluation produced seven losses and one decision-limit truncation in eight games. Node 26 build/typecheck, 44 TypeScript tests, and four Python tests passed. A shared-runtime mutation check confirmed fingerprint sensitivity.
 
 The current feature version 6 intentionally invalidates older checkpoints. Keyword vocabulary and public-status field order are recorded in worker metadata; unexpected keywords fail explicitly. Observation schema 4 uses only permitted history, public engine projections and the existing authorized card-identity boundary. These changes improve the information available for decisions; they do not establish that the model has learned good decisions.
 
