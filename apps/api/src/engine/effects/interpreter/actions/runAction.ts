@@ -300,6 +300,7 @@ const PICK_DECLINABLE_AFTER_YES: ReadonlySet<Action["kind"]> = new Set([
  * time, and an accepted set must not stop halfway.
  */
 function targetsOneCard(action: Action): boolean {
+  if (action.kind === "Delete" && action.additionalSimultaneousTargets?.length) return false;
   const target = "target" in action ? (action.target as Target | undefined) : undefined;
   return target?.count === undefined || target.count === 1;
 }
@@ -317,6 +318,7 @@ function optionalTargetAsksAction(ctx: EffectContext, action: Action): boolean {
   if (
     action.kind === "Delete" &&
     (action.at !== undefined ||
+      action.additionalSimultaneousTargets?.length ||
       action.dpCeilingScaling !== undefined ||
       action.totalDpCapScaling !== undefined ||
       action.playCostCeiling !== undefined ||
@@ -617,7 +619,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // Through the raised cap, not the printed one: a DP-deletion-maximum modifier already on
     // the ledger (EX8-074's "+3000 per other suspended Digimon") widens who is a legal target,
     // and skipping the prompt against the printed `<= N` would drop the clause outright.
-    candidatePermanents(ctx, raiseDeletionDpCap(ctx, action.target), { includeUnaffectable: true }).length === 0
+    [action.target, ...(action.additionalSimultaneousTargets ?? [])].every(
+      (target) => candidatePermanents(ctx, raiseDeletionDpCap(ctx, target), { includeUnaffectable: true }).length === 0,
+    )
   ) {
     clearDeleteOutcome(ctx, action);
     return false;
@@ -630,7 +634,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     !placeCostProducesDeleteTarget &&
     !looseCostDefinesDeleteTarget &&
     (!deleteTargetBoundByItsCost || !deleteOwnBoundedTargetAvailable) &&
-    candidatePermanents(ctx, targetAfterSelfPlacementCost(ctx, action) ?? action.target).length === 0
+    [targetAfterSelfPlacementCost(ctx, action) ?? action.target, ...(action.additionalSimultaneousTargets ?? [])].every(
+      (target) => candidatePermanents(ctx, target).length === 0,
+    )
   ) {
     return unavailableAction(ctx, action, action.abortOnDecline === true);
   }

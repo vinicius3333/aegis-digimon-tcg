@@ -1008,7 +1008,8 @@ export function canActivateEffect(
     // preflight; only statically answerable deletion targets are safe to gate here.
     if (
       action.kind === "Delete" &&
-      (action.dpCeilingScaling !== undefined ||
+      (action.additionalSimultaneousTargets?.length ||
+        action.dpCeilingScaling !== undefined ||
         action.totalDpCapScaling !== undefined ||
         action.playCostCeiling !== undefined ||
         action.scaling !== undefined ||
