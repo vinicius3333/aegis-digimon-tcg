@@ -1502,7 +1502,7 @@ export function useMatchCues({
     const closedState = snapshots?.find((snapshot) => snapshot.stateVersion === closedVersion)?.state;
     const previous = closedState?.players[viewerSeat];
     const current = state?.players[viewerSeat];
-    if (previous && current && closedVersion !== undefined && state!.stateVersion >= closedVersion) {
+    if (previous && current?.hand && closedVersion !== undefined && state!.stateVersion >= closedVersion) {
       const deckDraws = Math.max(0, previous.deckCount - current.deckCount);
       const known = new Set(previous.hand?.map((card) => card.instanceId));
       const pending = new Set(

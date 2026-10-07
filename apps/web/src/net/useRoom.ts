@@ -247,7 +247,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
       const heartbeat = setInterval(stampSession, SESSION_HEARTBEAT_MS);
       stopHeartbeat = () => clearInterval(heartbeat);
 
-      room.onStateChange((next) => {
+      const acceptState = (next: GameState) => {
         stateRef.current = next;
         if (next.gameOver) {
           gameOver = true;
@@ -278,7 +278,11 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
         // and the revisions in between would never be recorded.
         snapshotsRef.current = recordSnapshot(snapshotsRef.current, next);
         setSnapshots(snapshotsRef.current);
-      });
+      };
+      room.onStateChange(acceptState);
+      // A spectator can receive the full state before the join promise resolves.
+      // Idle matches may publish no subsequent patch, so consume that decoded state now.
+      if (room.state?.players?.length === 2) acceptState(room.state);
       room.onMessage<SequencedServerEvent>(EVENT_CHANNEL, (event) => {
         if (event.kind === "actionRejected" && event.decisionId) {
           const rejected = answeredDecisionsRef.current.get(event.decisionId);

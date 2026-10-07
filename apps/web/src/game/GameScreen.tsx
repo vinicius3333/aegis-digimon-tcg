@@ -682,7 +682,7 @@ export function GameScreen({
 
   useEffect(() => {
     if (!optimisticPlayedInstanceId) return;
-    const stillInHand = you?.hand.some((card) => card.instanceId === optimisticPlayedInstanceId) ?? false;
+    const stillInHand = you?.hand?.some((card) => card.instanceId === optimisticPlayedInstanceId) ?? false;
     if (!stillInHand) {
       const presented =
         presentationPacing === "sequential"
@@ -904,7 +904,7 @@ export function GameScreen({
     setHandPreview(null);
     setCounterHandChoice(instanceId ? { windowKey: counterWindowKey, instanceId } : undefined);
   };
-  const counterHandInstanceIds = you.hand.map((card) => card.instanceId);
+  const counterHandInstanceIds = (you.hand ?? []).map((card) => card.instanceId);
   const eligibleCounterHandIds =
     combatWindows.counterWindow?.eligibleCounters
       .filter((choice) => counterHandInstanceIds.includes(choice.instanceId))

@@ -23,7 +23,7 @@ export function handEntriesOf({
   handHeld: boolean;
   optimisticPlayedInstanceId: string | undefined;
 }): { handEntries: HandEntry[]; shownHandEntries: HandEntry[] } {
-  const handEntries: HandEntry[] = viewer.hand.map((ci) => ({
+  const handEntries: HandEntry[] = (viewer.hand ?? []).map((ci) => ({
     instanceId: ci.instanceId,
     cardId: ci.cardId,
     artId: ci.artId,
