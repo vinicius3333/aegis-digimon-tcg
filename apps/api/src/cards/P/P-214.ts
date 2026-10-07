@@ -96,6 +96,7 @@ const compiled: CompiledCard = {
           leaveCause: "byOpponentEffect",
           optional: true,
           sourceFilter: {
+            isSelfRef: true,
             controllerDefault: "mine",
             kind: ["Digimon"],
             nameOrTrait: seadramonText,

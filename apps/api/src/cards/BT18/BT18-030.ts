@@ -42,6 +42,7 @@ export const compiled: CompiledCard = {
           event: "wouldLeavePlay",
           leaveCause: "byOpponentEffect",
           sourceFilter: {
+            isSelfRef: true,
             controllerDefault: "mine",
             kind: ["Digimon"],
             colors: ["Yellow"],

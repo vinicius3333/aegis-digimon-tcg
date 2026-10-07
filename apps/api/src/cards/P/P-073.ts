@@ -43,6 +43,7 @@ const compiled: CompiledCard = {
           leaveCause: "byBattle",
           optional: true,
           sourceFilter: {
+            isSelfRef: true,
             controllerDefault: "mine",
             kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["Garurumon", "Omnimon"], match: "name" }],

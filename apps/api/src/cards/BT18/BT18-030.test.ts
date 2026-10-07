@@ -294,6 +294,52 @@ describe("BT18-030 Candlemon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
+  it("issue #5265: does not protect another Elecmon stack or consume the host's prevention", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT18-036", dp: 1000, as: "host", under: ["BT18-030"] },
+            { card: "BT25-030", as: "elecmon" },
+          ],
+          security: [{ card: "BT1-048", as: "top-security" }, "BT1-056"],
+        },
+        1: {
+          hand: [
+            { card: "BT18-008", as: "first-goblimon" },
+            { card: "BT18-008", as: "second-goblimon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    preferInstanceIds.push(s.perm("elecmon").topCard!.instanceId);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("first-goblimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT18-036"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT25-030"]);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("second-goblimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.battleArea.length === 2);
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT18-036"]);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT25-030", "BT1-048"]);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+  });
+
   it("does not protect the inherited host from its controller's effect", async () => {
     const s = setupEngine(
       {

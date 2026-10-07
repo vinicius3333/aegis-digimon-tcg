@@ -41,6 +41,7 @@ const compiled: CompiledCard = {
           leaveCause: "byEffect",
           optional: true,
           sourceFilter: {
+            isSelfRef: true,
             controllerDefault: "mine",
             kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["Greymon", "Omnimon"], match: "name" }],
