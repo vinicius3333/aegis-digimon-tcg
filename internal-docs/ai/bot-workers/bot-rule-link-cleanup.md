@@ -2363,3 +2363,36 @@ No whole exit/completion exists yet. These are provisional training results,
 not all44 development comparison, mechanism mastery or final acceptance.
 Keep the sole live foreground attached; no duplicate job, source rebuild,
 metadata migration, original checkpoint update or finalblind seed use.
+
+## Actual mentor-PPO whole0; full closed reader running
+
+The sole foreground20258 is terminal0 and must never be restarted or polled
+again. Fresh read-only inventory finds no captured whole/supervisor/learner
+descendants; original whole673/start5137 has real nonlink trap `0\n`, SHA
+9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa.
+Actual completionSHA
+`e5534944d5e0a7e6f2b131a388a9cfe98d7e99079a3b84d18db5dbd729706c86`,
+reportSHA57e1a7a17476386b8e1a80597b080d26e4ac8d1ed6be5445074a240b44f5e1fa
+and train receiptSHA451f5793e0228b9048d3d22c3dbfea45f723a85e444ae547c7a123bb49581761
+are observed from actual files. The train child receipt records exitCode0.
+
+Actual3872training games:2330wins/1542losses, zero failed/unusable/payment
+forfeits;8 recovered play rejections are retained. Elapsed3432.680871494seconds.
+The actual native new checkpoint remains in the original PPO output path,
+SHA`712d01e7c6161ee28c3de20c9c02dd92f90bb21ae283d211489fa4d28c6d1405`.
+The actual report records all12 finite changed parameters and6756 equal positive
+NEW Adam deltas, including value parameters; no equal-absolute-step assumption.
+This training record does not establish all44 strength or mechanism mastery.
+
+Full original closed PPO consumer foreground13215 is running with the literal
+externally observed completionSHA, pinned identity/request/source/Go, dead
+original whole and real trap0. Its final actual exit0 remains pending; do not
+substitute these summaries for that full source/raw/tensor/closure consumer.
+Prepared all44 evaluation wrapperSHA
+`b8263776bc5d610a64b21043745c4135e19d7955e3ecaab33fd8902348bfaa12`
+is exclusively transferred/sealed and local/desktop Bash syntax checks exit0.
+No evaluation wrapper execution, request, resource Go or evaluation job yet.
+The local request builder requires the externally pinned actual full closed
+proof and validates unchanged evaluation/learning functions before exclusive
+request creation. Source/archive/runtime/FP, original checkpoints, original
+imitation failure and reserved finalblind seeds remain unchanged.
