@@ -457,6 +457,7 @@ button.game-player-line__name {
 .aegis-dialog.game-confirm-dialog {
   display: grid;
   justify-items: center;
+  grid-template-columns: minmax(0, 1fr);
   width: min(100%, 22rem);
   text-align: center;
 }
@@ -485,7 +486,7 @@ button.game-player-line__name {
 
 .game-confirm-dialog__actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--ds-space-2);
   width: 100%;
   margin-top: var(--ds-space-5);
@@ -493,6 +494,10 @@ button.game-player-line__name {
 
 .game-confirm-dialog__actions > .aegis-button {
   justify-content: center;
+  min-width: 0;
+  min-height: 44px;
+  white-space: normal;
+  padding-inline: var(--ds-space-2);
 }
 
 .game-confirm-dialog .game-confirm-dialog__confirm {
@@ -1033,4 +1038,30 @@ button.game-player-line__name {
 }
 .game-hand-reorder-marker[data-edge="after"] {
   right: -4px;
+}
+
+/* Passing a turn uses the ordinary action color, rather than surrender's warning. */
+.game-confirm-dialog--primary .game-confirm-dialog__icon {
+  color: var(--ds-accent);
+  background: var(--ds-accent-soft);
+}
+.game-confirm-dialog--primary .game-confirm-dialog__confirm {
+  background: var(--ds-accent);
+}
+.game-confirm-dialog--primary .game-confirm-dialog__confirm:hover {
+  background: color-mix(in srgb, var(--ds-accent) 85%, black);
+}
+
+.game-confirm-dialog__preference {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-2);
+  min-height: 44px;
+  margin-top: var(--ds-space-2);
+  font-size: var(--ds-text-sm);
+  cursor: pointer;
+}
+.game-confirm-dialog__preference input {
+  accent-color: var(--ds-accent);
 }

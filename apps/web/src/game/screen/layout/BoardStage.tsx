@@ -22,6 +22,8 @@ import type { RevealedZones } from "../model/gameOutcome";
 import { canAttackPlayerWith, canAttackWith, otherSeat } from "../../boardModel";
 import { type LogLine } from "../../matchLog";
 import { intents } from "../../../net/intents";
+import { EndTurnDialog } from "./EndTurnDialog";
+import { useEndTurnConfirmation } from "../hooks/useEndTurnConfirmation";
 import { SurrenderDialog } from "./SurrenderDialog";
 import { useTranslation } from "../../../i18n";
 import { CardOpenerProvider } from "../../cardLinks";
@@ -231,6 +233,17 @@ export function BoardStage({
   useFieldShatterOrigins(anchors.board);
   const other = otherSeat(viewerSeat);
   const [chatOpen, setChatOpen] = useState(false);
+  const endTurnConfirmation = useEndTurnConfirmation({
+    phase: state.phase,
+    turnCount: state.turnCount,
+    blocked: guards.endPhaseBlocked || !room,
+    onEndPhase: () => {
+      if (room) intents.endPhase(room);
+    },
+  });
+  const endTurnDialog = endTurnConfirmation.open ? (
+    <EndTurnDialog onConfirm={endTurnConfirmation.confirm} onClose={endTurnConfirmation.cancel} />
+  ) : null;
   const opponentName = opponent.displayName || t("game.opponent");
   // A spectator watches from one player's seat but is not that player.
   const viewerName = spectating ? viewer.displayName || t("game.you") : t("chat.you");
@@ -442,7 +455,7 @@ export function BoardStage({
                 memoryPrediction={readouts.memoryPrediction}
                 turnControlState={turnControlState({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat })}
                 endPhaseBlocked={guards.endPhaseBlocked}
-                onEndPhase={() => room && intents.endPhase(room)}
+                onEndPhase={endTurnConfirmation.request}
               />
               <ViewerBattleRow
                 permanents={shownViewer.battleArea}
@@ -601,6 +614,8 @@ export function BoardStage({
         ) : null}
 
         {stageEl ? createPortal(overlayStack, stageEl) : overlayStack}
+
+        {endTurnDialog && stageEl ? createPortal(endTurnDialog, stageEl) : endTurnDialog}
 
         {surrenderDialog && stageEl ? createPortal(surrenderDialog, stageEl) : surrenderDialog}
 
