@@ -57,11 +57,11 @@ describe("P-204 Release of the Sealed Knight!", () => {
     const watcher = delay?.actions?.find((action) => action.kind === "SubTrigger");
     expect(watcher).toMatchObject({
       event: "whenAttacking",
+      fireCondition: { kind: "attackTargetsPlayer" },
       sourceFilter: { controllerDefault: "any", kind: ["Digimon"] },
       actions: [
         {
           kind: "Digivolve",
-          condition: { kind: "attackTargetsPlayer" },
           from: ["hand"],
           payCost: false,
           optional: true,
@@ -500,7 +500,10 @@ describe("P-204 Release of the Sealed Knight! — KB Q&A rulings", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "P-204", as: "option" }, { card: handCard, as: "other" }],
+          hand: [
+            { card: "P-204", as: "option" },
+            { card: handCard, as: "other" },
+          ],
           battleArea: [{ card: "BT19-065", as: "color" }],
           deck: Array.from({ length: 20 }, () => "BT1-009"),
           security: Array.from({ length: 5 }, () => "BT1-009"),

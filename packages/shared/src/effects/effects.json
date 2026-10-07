@@ -203349,6 +203349,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenAttacking",
+            "fireCondition": { "kind": "attackTargetsPlayer", "raw": "Digimon attack players" },
             "sourceFilter": { "controllerDefault": "any", "kind": ["Digimon"] },
             "actions": [
               {
@@ -203375,8 +203376,7 @@
                 },
                 "payCost": false,
                 "from": ["hand"],
-                "optional": true,
-                "condition": { "kind": "attackTargetsPlayer", "raw": "Digimon attack players" }
+                "optional": true
               }
             ]
           }
@@ -206092,6 +206092,7 @@
             "amount": 3
           },
           {
+            "effectTextPart": "Then, by placing 2 cards with [Gammamon] in its text or the [VB] trait from your trash as this Digimon's bottom digivolution cards, give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends.",
             "kind": "GrantStatic",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "grant": "tokenEffect",
@@ -206117,8 +206118,7 @@
               "host": "self"
             },
             "optional": true,
-            "abortOnDecline": true,
-            "effectTextPart": "Then, by placing 2 cards with [Gammamon] in its text or the [VB] trait from your trash as this Digimon's bottom digivolution cards, give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends."
+            "abortOnDecline": true
           }
         ]
       },
@@ -206132,6 +206132,7 @@
             "amount": 3
           },
           {
+            "effectTextPart": "Then, by placing 2 cards with [Gammamon] in its text or the [VB] trait from your trash as this Digimon's bottom digivolution cards, give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends.",
             "kind": "GrantStatic",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "grant": "tokenEffect",
@@ -206157,8 +206158,7 @@
               "host": "self"
             },
             "optional": true,
-            "abortOnDecline": true,
-            "effectTextPart": "Then, by placing 2 cards with [Gammamon] in its text or the [VB] trait from your trash as this Digimon's bottom digivolution cards, give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends."
+            "abortOnDecline": true
           }
         ]
       },
