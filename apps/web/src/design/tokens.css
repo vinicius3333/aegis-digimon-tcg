@@ -122,6 +122,9 @@
      the card blow-up opened from one sits above the viewer itself. */
   --ds-z-pile-viewer: 11000;
   --ds-z-card-zoom: 12000;
+  /* A keyword or badge explanation explains whatever surface it was tapped on,
+     so it sits above all of them. */
+  --ds-z-hint: 12100;
 }
 
 .dark {

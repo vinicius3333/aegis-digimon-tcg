@@ -1,30 +1,11 @@
-/* The reminder text for each keyword the rules glossary explains
-   (data/kb/rules/glossary.md), for the field badges and the card details. A keyword
-   the glossary does not cover points at the card's own effect text instead. */
+/* The reminder text for each keyword the Comprehensive Rules explain, for the field
+   badges and the card text. A keyword the glossary does not cover points at the card's
+   own effect text instead. */
 
-import { translator, type Translate, type TranslationKey } from "../i18n";
+import { translator, type Translate } from "../i18n";
+import { KEYWORD_GLOSSARY, OFFICIAL_COMPREHENSIVE_RULES_URL } from "./keywordGlossary";
 
 const english = translator("en");
-
-const REMINDER_KEYS: Readonly<Record<string, TranslationKey>> = {
-  Blocker: "redesign.arena.keyword.Blocker",
-  SecurityAttack: "redesign.arena.keyword.SecurityAttack",
-  Recovery: "redesign.arena.keyword.Recovery",
-  Piercing: "redesign.arena.keyword.Piercing",
-  Draw: "redesign.arena.keyword.Draw",
-  Jamming: "redesign.arena.keyword.Jamming",
-  Digisorption: "redesign.arena.keyword.Digisorption",
-  Reboot: "redesign.arena.keyword.Reboot",
-  DeDigivolve: "redesign.arena.keyword.DeDigivolve",
-  Retaliation: "redesign.arena.keyword.Retaliation",
-  DigiBurst: "redesign.arena.keyword.DigiBurst",
-  Rush: "redesign.arena.keyword.Rush",
-  Blitz: "redesign.arena.keyword.Blitz",
-  Delay: "redesign.arena.keyword.Delay",
-  Decoy: "redesign.arena.keyword.Decoy",
-  ArmorPurge: "redesign.arena.keyword.ArmorPurge",
-  Engage: "redesign.arena.keyword.Engage",
-};
 
 /** Card data writes keywords in full-width brackets (＜Blocker＞); the UI prints ASCII ones. */
 export function normalizeKeywordBrackets(text: string): string {
@@ -39,6 +20,7 @@ export function keywordBaseName(keyword: string): string {
   return normalizeKeywordBrackets(keyword)
     .replace(/[<>]/g, "")
     .replace(/\bA\.(?=\s|$)/, "Attack")
+    .replace(/\./g, "")
     .replace(/\(.*\)/, "")
     .replace(/[+-]?\d+/g, "")
     .replace(/[\s-]/g, "");
@@ -59,6 +41,17 @@ export function keywordReminder(keyword: string, t: Translate, securityAttackMod
       },
     );
   }
-  const key = REMINDER_KEYS[name];
-  return key ? english(key) : t("redesign.arena.keyword.unlisted");
+  return KEYWORD_GLOSSARY[name]?.reminder ?? t("redesign.arena.keyword.unlisted");
+}
+
+/** Where the official Comprehensive Rules define a keyword, or nothing for one they don't. */
+export function keywordRuleLink(keyword: string): { rule: string; href: string } | undefined {
+  const entry = KEYWORD_GLOSSARY[keywordBaseName(keyword)];
+  return entry ? { rule: entry.rule, href: OFFICIAL_COMPREHENSIVE_RULES_URL } : undefined;
+}
+
+/** The rule link as a hint prints it, in English like the reminder above it. */
+export function keywordRuleHintLink(keyword: string): { label: string; href: string } | undefined {
+  const link = keywordRuleLink(keyword);
+  return link ? { label: `Comprehensive Rules ${link.rule}`, href: link.href } : undefined;
 }

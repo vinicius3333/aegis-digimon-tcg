@@ -82,6 +82,7 @@ function Slot({
   peekLabel,
   closeLabel,
   anchor = "bottom",
+  onHold,
 }: {
   slot: NarrationSlot | "rejection";
   count: number;
@@ -102,8 +103,20 @@ function Slot({
    * a batch they had not seen yet.
    */
   anchor?: "top" | "bottom";
+  /** A mouse over the column, or focus inside it, stops the reading clocks until it leaves. */
+  onHold?: (held: boolean) => void;
 }) {
   const column = useRef<HTMLDivElement>(null);
+  const held = useRef(false);
+  const hold = (next: boolean) => {
+    if (held.current === next) return;
+    held.current = next;
+    onHold?.(next);
+  };
+  // A column that unmounts under the pointer never sees it leave.
+  const onHoldRef = useRef(onHold);
+  onHoldRef.current = onHold;
+  useEffect(() => () => void (held.current && onHoldRef.current?.(false)), []);
   const followsNewest = useRef(true);
   const leavingBottom = useRef(false);
   const [more, setMore] = useState({ above: false, below: false });
@@ -182,6 +195,12 @@ function Slot({
       data-anchor={anchor}
       ref={column}
       style={{ "--narration-count": count } as CSSProperties}
+      onPointerEnter={(event) => event.pointerType === "mouse" && hold(true)}
+      onPointerLeave={(event) => event.pointerType === "mouse" && hold(false)}
+      onFocus={() => hold(true)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) hold(false);
+      }}
     >
       {onTogglePeek ? (
         /* The only way back to the band, on a screen with no Escape key: a labelled pill
@@ -407,6 +426,7 @@ export function NarrationStack({
   securityDockActive = false,
   onAdvance,
   onDismissRejection,
+  onHold,
 }: {
   /** Recent items keyed by occurrence ID. */
   narration: ReadonlyMap<string, NarrationItem>;
@@ -425,6 +445,8 @@ export function NarrationStack({
   /** Dismiss only the named record. */
   onAdvance: (id: string) => void;
   onDismissRejection: () => void;
+  /** Stop or restart the reading clocks while the viewer reads a column. */
+  onHold?: (held: boolean) => void;
 }) {
   const { t } = useTranslation();
   const now = nowMs ?? Date.now();
@@ -489,7 +511,7 @@ export function NarrationStack({
   return (
     <>
       {cardItems.length > 0 ? (
-        <Slot slot="narration-cards" count={cardItems.length} securityDockActive={securityDockActive}>
+        <Slot slot="narration-cards" count={cardItems.length} securityDockActive={securityDockActive} onHold={onHold}>
           {cardItems.map(body("cards"))}
         </Slot>
       ) : null}
@@ -516,6 +538,7 @@ export function NarrationStack({
           {...(compact ? { onTogglePeek: () => setExpanded(false), anchor: "top" as const } : {})}
           peekLabel={t("notice.collapse")}
           closeLabel={t("notice.close")}
+          onHold={onHold}
         >
           {shownTextItems.map(compact ? compactBody : body("text"))}
           {rejection ? (

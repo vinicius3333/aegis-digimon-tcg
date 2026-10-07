@@ -1,5 +1,5 @@
 import { useTranslation } from "../../i18n";
-import { keywordReminder } from "../keywordReminders";
+import { keywordReminder, keywordRuleHintLink } from "../keywordReminders";
 import { BadgeHint } from "./BadgeHint";
 
 /**
@@ -13,7 +13,11 @@ export function PermanentBlockerBadge() {
     <BadgeHint
       className="game-blocker-badge"
       aria-label={t("game.blockerBadge")}
-      hint={{ title: `<${t("game.blockerBadge")}>`, description: keywordReminder("Blocker", t) }}
+      hint={{
+        title: `<${t("game.blockerBadge")}>`,
+        description: keywordReminder("Blocker", t),
+        link: keywordRuleHintLink("Blocker"),
+      }}
     >
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <path d="M12 2.6 20 6v6.2c0 4.6-3.2 8-8 9.2-4.8-1.2-8-4.6-8-9.2V6z" />

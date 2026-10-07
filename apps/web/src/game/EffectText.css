@@ -13,3 +13,13 @@
   font-weight: 600;
   background: color-mix(in srgb, currentColor 14%, transparent);
 }
+
+/* A keyword the rules glossary explains opens its reminder on tap. */
+.card-effect-text__keyword {
+  cursor: help;
+}
+
+.card-effect-text__keyword mark[data-kind="keyword"] {
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}

@@ -209,6 +209,8 @@ export interface MatchCues {
   dismissRejection: () => void;
   /** Dismiss one item by ID, or the oldest when omitted. */
   advanceNarration: (id?: string) => boolean;
+  /** Stop or restart every reading clock, for a viewer reading the column. */
+  holdNarration: (held: boolean) => void;
   /** Compatibility signal: recent narration never locks input. */
   narrationLock: boolean;
   /** The side panels currently on screen, oldest slot first. A read-only view of {@link narration}. */

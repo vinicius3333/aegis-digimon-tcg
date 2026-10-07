@@ -1443,14 +1443,6 @@ body:has(.decision-overlay--selection) .narration-slot {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .opponent-action-feed__current,
-  .opponent-action-feed__trail-item {
-    animation: none;
-    transition: none;
-  }
-}
-
 /* Effect choice: one row per borrowable printed effect. */
 .effect-choice {
   display: flex;

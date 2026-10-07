@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { translator } from "../i18n";
-import { keywordBaseName, keywordReminder, normalizeKeywordBrackets } from "./keywordReminders";
+import { KEYWORD_GLOSSARY, OFFICIAL_COMPREHENSIVE_RULES_URL } from "./keywordGlossary";
+import { keywordBaseName, keywordReminder, keywordRuleLink, normalizeKeywordBrackets } from "./keywordReminders";
 
 const t = translator("en");
 
@@ -10,6 +11,10 @@ describe("keyword reminders", () => {
     expect(keywordBaseName("De-Digivolve 1")).toBe("DeDigivolve");
     expect(keywordBaseName("Security A. +1")).toBe("SecurityAttack");
     expect(keywordBaseName("Decoy (Black)")).toBe("Decoy");
+    expect(keywordBaseName("<Use Req.>")).toBe("UseReq");
+    expect(keywordBaseName("<Link +1>")).toBe("Link");
+    expect(keywordBaseName("<Partition (blue Lv.4 & green Lv.4)>")).toBe("Partition");
+    expect(keywordBaseName("<Blast DNA Digivolve>")).toBe("BlastDNADigivolve");
   });
 
   it("explains Security Attack with the modifier the permanent carries or the card prints", () => {
@@ -18,7 +23,17 @@ describe("keyword reminders", () => {
   });
 
   it("points a keyword the glossary does not cover at the card text", () => {
-    expect(keywordReminder("Vortex", t)).toBe(t("redesign.arena.keyword.unlisted"));
+    expect(keywordReminder("Not A Keyword", t)).toBe(t("redesign.arena.keyword.unlisted"));
+    expect(keywordRuleLink("Not A Keyword")).toBeUndefined();
+  });
+
+  it("covers every keyword in section 16 of the Comprehensive Rules", () => {
+    const rules = Object.values(KEYWORD_GLOSSARY).map((entry) => entry.rule);
+    expect(rules).toEqual(Array.from({ length: 44 }, (_, index) => `16-${index + 4}`));
+  });
+
+  it("links a keyword to its official rule", () => {
+    expect(keywordRuleLink("＜Evade＞")).toEqual({ rule: "16-22", href: OFFICIAL_COMPREHENSIVE_RULES_URL });
   });
 
   it("keeps keyword rules in English when the interface uses Portuguese", () => {

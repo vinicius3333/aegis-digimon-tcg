@@ -32,6 +32,7 @@ import {
   useEffectPromptPosition,
 } from "../game/effectPromptPosition";
 import { setHandAutoSortEnabled, useHandAutoSort } from "../game/handAutoSort";
+import { NOTICE_DURATION_LABELS, NOTICE_DURATIONS, setNoticeDuration, useNoticeDuration } from "../game/noticeDuration";
 import { LOCALES, LOCALE_LABELS, useTranslation, type TranslationKey } from "../i18n";
 import { AccountPanel } from "../account/AccountPanel";
 import { DigimonAvatarPicker } from "../account/DigimonAvatarPicker";
@@ -83,6 +84,7 @@ export function Settings({
   const pileCountsShown = usePileCountsShown();
   const handAutoSort = useHandAutoSort();
   const effectPromptPosition = useEffectPromptPosition();
+  const noticeDuration = useNoticeDuration();
   function confirmRename() {
     const name = nameInput.trim();
     if (!name || name === player.name) return;
@@ -388,6 +390,29 @@ export function Settings({
                 </div>
               </div>
             ) : null}
+            <div className="settings-row">
+              <div className="settings-row__copy">
+                <strong id="settings-notice-duration-label">{t("settings.noticeDuration")}</strong>
+                <small>{t("settings.noticeDurationDesc")}</small>
+              </div>
+              <div className="settings-language-list" role="group" aria-labelledby="settings-notice-duration-label">
+                {NOTICE_DURATIONS.map((duration) => {
+                  const on = noticeDuration === duration;
+                  return (
+                    <button
+                      key={duration}
+                      type="button"
+                      className="settings-language-option"
+                      aria-pressed={on}
+                      onClick={() => setNoticeDuration(duration)}
+                    >
+                      {t(NOTICE_DURATION_LABELS[duration])}
+                      {on ? <Icons.Check size={16} /> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             <div className="settings-block">
               <Switch
                 checked={fieldLayout === FieldLayout.Organized}

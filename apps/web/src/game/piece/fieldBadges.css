@@ -218,7 +218,7 @@
 /* ---- The explanation a tap opens (portalled to the page) ---- */
 .game-badge-hint {
   position: fixed;
-  z-index: var(--ds-z-toast);
+  z-index: var(--ds-z-hint);
   display: grid;
   gap: 2px;
   padding: 6px 10px;
@@ -242,6 +242,12 @@
 
 .game-badge-hint > span {
   color: var(--ds-on-ink-2);
+}
+
+.game-badge-hint__link {
+  justify-self: start;
+  color: var(--ds-ink-accent);
+  text-decoration: underline;
 }
 
 /* ---- Grouped copies ---- */

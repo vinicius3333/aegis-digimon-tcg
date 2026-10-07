@@ -153,9 +153,7 @@ export const TIMINGS = {
   noticeIn: 200,
   /** The accepted effect clause slides in over100 ms with OutQuad. */
   effectNoticeIn: 100,
-  /** How long one opponent action stays up in the corner feed. */
-  feedAction: 3600,
-  /** A feed entry carrying effect text to read is held longer than a bare title. */
+  /** How long a rejected action stays readable. */
   feedEffect: 7200,
   /** How long a side panel stays readable. Nothing on the board shortens it. */
   sidePanelLifetime: 7000,

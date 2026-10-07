@@ -105,8 +105,7 @@ const DELIBERATELY_SILENT: Partial<Record<ServerEventKind, string>> = {
 
 describe("server event coverage", () => {
   const logged = narratedEventKinds("game/matchLog.ts", "describeEvent");
-  const fed = narratedEventKinds("game/opponentActionFeed.ts", "opponentActionFromEvent");
-  const surfaced = new Set<string>([...logged, ...fed, ...SUPPORTED_COMBAT_PROMPTS]);
+  const surfaced = new Set<string>([...logged, ...SUPPORTED_COMBAT_PROMPTS]);
 
   it("every ServerEvent kind reaches a surface or is deliberately silent", () => {
     const unreached = SERVER_EVENT_KINDS.filter((kind) => !surfaced.has(kind) && !(kind in DELIBERATELY_SILENT));
@@ -120,7 +119,6 @@ describe("server event coverage", () => {
 
   it("reads the real switches, not an empty file", () => {
     expect(logged.size).toBeGreaterThan(0);
-    expect(fed.size).toBeGreaterThan(0);
   });
 });
 
