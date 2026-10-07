@@ -73,8 +73,12 @@ export function ArenaPermanentInspector({
       event.stopPropagation();
       closeCallback.current();
     };
+    // A keyword explanation is portalled to the page but belongs to the text inside the panel.
     const onOutside = (event: PointerEvent) => {
-      if (event.target instanceof Node && !panelRef.current?.contains(event.target)) closeCallback.current();
+      const target = event.target;
+      if (!(target instanceof Node) || panelRef.current?.contains(target)) return;
+      if (target instanceof Element && target.closest(".game-badge-hint")) return;
+      closeCallback.current();
     };
     document.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", onOutside, true);

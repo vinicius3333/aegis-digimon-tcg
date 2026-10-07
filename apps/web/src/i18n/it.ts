@@ -1734,35 +1734,8 @@ const interfaceMessages = {
   "redesign.arena.restriction.cannotDigivolve": "Un effetto impedisce a questa carta di digievolvere.",
   "redesign.arena.restriction.cannotActivateWhenDigivolving":
     "Un effetto impedisce l'attivazione degli effetti [When Digivolving] di questo Digimon.",
-  "redesign.arena.keyword.Blocker":
-    "Quando un Digimon avversario attacca, puoi sospendere questo Digimon per costringere l'avversario ad attaccarlo.",
   "redesign.arena.keyword.SecurityAttackUp": "Questo Digimon controlla {count} carte di sicurezza aggiuntive.",
   "redesign.arena.keyword.SecurityAttackDown": "Questo Digimon controlla {count} carte di sicurezza in meno.",
-  "redesign.arena.keyword.SecurityAttack":
-    "Modifica il numero di carte di sicurezza controllate da questo Digimon quando attacca.",
-  "redesign.arena.keyword.Recovery": "Metti le prime X carte del tuo mazzo in cima alla tua sicurezza.",
-  "redesign.arena.keyword.Piercing":
-    "Quando questo Digimon attacca, elimina un Digimon avversario e sopravvive al combattimento, effettua i normali controlli di sicurezza.",
-  "redesign.arena.keyword.Draw": "Pesca X carte dal tuo mazzo.",
-  "redesign.arena.keyword.Jamming": "Questo Digimon non può essere eliminato in battaglia contro Digimon di sicurezza.",
-  "redesign.arena.keyword.Digisorption":
-    "Quando un tuo Digimon digievolve in questa carta dalla mano, puoi sospendere un tuo Digimon per ridurre il costo di X.",
-  "redesign.arena.keyword.Reboot": "Riattiva questo Digimon nella fase di riattivazione avversaria.",
-  "redesign.arena.keyword.DeDigivolve":
-    "Scarta fino a X carte dalla cima di un Digimon avversario. Se non ha carte di digievoluzione o diventa un Digimon di livello 3, non puoi scartarne altre.",
-  "redesign.arena.keyword.Retaliation":
-    "Quando questo Digimon viene eliminato dopo aver perso una battaglia, elimina il Digimon contro cui combatteva.",
-  "redesign.arena.keyword.DigiBurst":
-    "Scarta X carte di digievoluzione di questo Digimon per attivare l'effetto successivo.",
-  "redesign.arena.keyword.Rush": "Questo Digimon può attaccare nel turno in cui entra in gioco.",
-  "redesign.arena.keyword.Blitz": "Questo Digimon può attaccare quando l'avversario ha almeno 1 memoria.",
-  "redesign.arena.keyword.Delay":
-    "Scarta questa carta nell'area di battaglia per attivare l'effetto successivo. Non puoi attivarlo nel turno in cui la carta entra in gioco.",
-  "redesign.arena.keyword.Decoy":
-    "Quando un altro tuo Digimon del tipo indicato sta per essere eliminato da un effetto avversario, puoi eliminare questo Digimon per impedirlo.",
-  "redesign.arena.keyword.ArmorPurge":
-    "Quando questo Digimon sta per essere eliminato, puoi scartare la sua carta superiore per impedirlo.",
-  "redesign.arena.keyword.Engage": "Alla fine del tuo turno, questo Digimon può attaccare.",
   "redesign.arena.keyword.unlisted": "Stampato su questa carta. Aprila per leggere l'effetto completo.",
   "chat.open": "Chat",
   "chat.openUnread": "Chat, {count} non letti",

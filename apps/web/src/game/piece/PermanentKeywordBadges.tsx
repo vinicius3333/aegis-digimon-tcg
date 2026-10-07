@@ -1,5 +1,5 @@
 import { useTranslation } from "../../i18n";
-import { keywordReminder } from "../keywordReminders";
+import { keywordReminder, keywordRuleHintLink } from "../keywordReminders";
 import { BadgeHint } from "./BadgeHint";
 import type { PermanentKeywordEntry } from "./permanentKeywords";
 
@@ -61,7 +61,11 @@ export function PermanentKeywordBadges({
         <BadgeHint
           key={keyword}
           className="game-keyword-badge"
-          hint={{ title: `<${label}>`, description: keywordReminder(keyword, t, securityAttackModifier) }}
+          hint={{
+            title: `<${label}>`,
+            description: keywordReminder(keyword, t, securityAttackModifier),
+            link: keywordRuleHintLink(keyword),
+          }}
         >
           {label}
         </BadgeHint>
