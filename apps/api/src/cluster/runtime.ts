@@ -9,6 +9,8 @@ export interface ClusterRuntime {
   clustered: boolean;
   publicAddress: string | undefined;
   presence: Presence;
+  /** Namespace for this slot's keys in `presence`. */
+  keyPrefix: string;
   driver: matchMaker.MatchMakerDriver;
   roomCodes: RoomCodeDirectory;
   /** Tell the slot's other processes that the drain state changed. */
@@ -34,6 +36,7 @@ export function createClusterRuntime(env: NodeJS.ProcessEnv = process.env): Clus
       clustered: false,
       publicAddress: undefined,
       presence: new LocalPresence(),
+      keyPrefix: config.keyPrefix,
       driver: new LocalDriver(),
       roomCodes: createLocalRoomCodeDirectory(),
       broadcastAcceptingNewRooms: () => {},
@@ -52,6 +55,7 @@ export function createClusterRuntime(env: NodeJS.ProcessEnv = process.env): Clus
     clustered: true,
     publicAddress: config.publicAddress,
     presence,
+    keyPrefix: config.keyPrefix,
     driver,
     roomCodes: createSharedRoomCodeDirectory(presence, config.keyPrefix),
     broadcastAcceptingNewRooms: (accepting) => presence.publish(drainTopic, accepting ? "1" : "0"),

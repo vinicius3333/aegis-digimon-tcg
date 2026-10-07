@@ -26,6 +26,7 @@ import { PermanentStackView } from "./PermanentStackView";
 import { PileViewers } from "./PileViewers";
 import { Side } from "../../side";
 import type { GameOverOutcome } from "../../gameOverSplash";
+import type { SeriesResultProps } from "../../overlay/match/GameOverOverlay";
 import type { TurnOrder } from "../../overlay";
 import type { LogLine } from "../../matchLog";
 import type { PendingFateBadge } from "../../pendingFate";
@@ -150,6 +151,7 @@ export function MatchOverlays({
         reason: string;
         /** Every hidden zone, once the server reveals them; absent in a tournament set. */
         revealed?: RevealedZones;
+        series?: SeriesResultProps;
       }
     | undefined;
   overlays: ReturnType<typeof useOverlayState>;
