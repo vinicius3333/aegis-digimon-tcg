@@ -220,6 +220,30 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre o turno, recuse DNA e aceite atacar com BlitzGreymon.",
     en: "End the turn, decline DNA and accept attacking with BlitzGreymon.",
   },
+  "arena-issue-5073-epulse-trash": {
+    ptBR: "Encerre a criação e use e-Pulse. Aceite o efeito: a seleção mostra Cougarmon da mão e Liollmon do lixo; Murasamemon (custo 7) fica desabilitado. Escolha Liollmon do lixo: ele entra em jogo, e-Pulse vai para a área de batalha e a memória fica em 2.",
+    en: "End breeding and use e-Pulse. Accept the effect: the selection shows Cougarmon from hand and Liollmon from trash; Murasamemon (cost 7) stays disabled. Pick the trash Liollmon: it enters play, e-Pulse goes to the battle area and memory ends at 2.",
+  },
+  "arena-issue-5099-mervamon-iliad": {
+    ptBR: "Encerre a criação e digivolva Aegiochusmon: Holy em Mervamon. Aceite o efeito: a seleção mostra Kamemon e Hyokomon da mão e Cyclonemon e Salamon do lixo. Escolha Kamemon (3) e Cyclonemon (5), total 8: os dois entram em jogo e Omnimon fica com 3000 DP.",
+    en: "End breeding and digivolve Aegiochusmon: Holy into Mervamon. Accept the effect: the selection shows Kamemon and Hyokomon from hand and Cyclonemon and Salamon from trash. Pick Kamemon (3) and Cyclonemon (5), 8 in total: both enter play and Omnimon ends at 3000 DP.",
+  },
+  "arena-issue-5106-king-sukamon-cost": {
+    ptBR: "Encerre a criação e digivolva Sukamon em KingSukamon. Aceite o efeito: o custo oferece o Chuumon da mão e as cartas de digivolução Sukamon e Chuumon. Descarte o Chuumon da mão: MetalGreymon vira Sukamon branco com 3000 DP.",
+    en: "End breeding and digivolve Sukamon into KingSukamon. Accept the effect: the cost offers the hand Chuumon and the Sukamon and Chuumon digivolution cards. Trash the hand Chuumon: MetalGreymon becomes a white Sukamon with 3000 DP.",
+  },
+  "arena-issue-5118-candlemon-search": {
+    ptBR: "Encerre a criação e jogue Candlemon BT18-030. A janela de revelação mostra Treadmill Training, Dynasmon e Heat Training; só Dynasmon pode ser escolhido. Confirme: Dynasmon vai para a mão e o resto vai para o fundo do deck.",
+    en: "End breeding and play BT18-030 Candlemon. The reveal window shows Treadmill Training, Dynasmon and Heat Training; only Dynasmon can be picked. Confirm: Dynasmon goes to hand and the rest goes to the bottom of the deck.",
+  },
+  "arena-issue-5135-ai-mako-your-turn": {
+    ptBR: "Encerre a criação e jogue Ai & Mako. Escolha Beelzemon (X Antibody) entre Impmon, Beelzemon e Impmon (X); Purple Memory Boost! fica desabilitado. Depois digivolva Impmon em Porcupamon, aceite o efeito de Ai & Mako e devolva a carta comprada ao deck: o Tamer fica suspenso e a memória sobe de 3 para 4.",
+    en: "End breeding and play Ai & Mako. Pick Beelzemon (X Antibody) among Impmon, Beelzemon and Impmon (X); Purple Memory Boost! stays disabled. Then digivolve Impmon into Porcupamon, accept Ai & Mako's effect and return the drawn card to the deck: the Tamer suspends and memory goes from 3 to 4.",
+  },
+  "arena-issue-5106-chuumon-self-replay": {
+    ptBR: "Encerre a criação e ataque Omnimon com Etemon. Etemon é deletado; aceite a herança do Chuumon EX5: o mesmo Chuumon volta do lixo para o campo suspenso.",
+    en: "End breeding and attack Omnimon with Etemon. Etemon is deleted; accept the EX5 Chuumon inherited effect: that same Chuumon returns from trash to the field suspended.",
+  },
   "arena-issue-5011-agumon-search": {
     ptBR: "Encerre a criação e jogue Agumon EX9. Na seleção para a mão, escolha a cópia revelada de Agumon, a única Ver.1, mesmo com Gabumon também disponível. Ela deve ir para a mão, sem colocação sob o Digimon; ordene as duas cartas restantes no fundo do deck.",
     en: "End breeding and play EX9 Agumon. Select the revealed Agumon, the only Ver.1, for your hand even though Gabumon is also available. It must enter the hand without placing anything under the Digimon; order the two remaining cards at the bottom of the deck.",
@@ -1734,6 +1758,12 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-5060-exact-lucemon", "GitHub #5060 · exact-lucemon"],
   ["arena-issue-5047-richard-self", "GitHub #5047 · richard-self"],
   ["arena-issue-5049-decline-dna", "GitHub #5049 · decline-dna"],
+  ["arena-issue-5073-epulse-trash", "GitHub #5073 · e-Pulse trash play"],
+  ["arena-issue-5099-mervamon-iliad", "GitHub #5099 · Mervamon hand + trash"],
+  ["arena-issue-5106-king-sukamon-cost", "GitHub #5106 · KingSukamon cost choice"],
+  ["arena-issue-5118-candlemon-search", "GitHub #5118 · BT18-030 Candlemon search"],
+  ["arena-issue-5135-ai-mako-your-turn", "GitHub #5135 · Ai & Mako search + memory"],
+  ["arena-issue-5106-chuumon-self-replay", "GitHub #5106 · Chuumon self replay"],
   ["arena-issue-5011-agumon-search", "#5011 · Agumon · busca DM/Ver.1"],
   ["arena-issue-5011-gabumon-search", "#5011 · Gabumon · busca DM/Ver.2"],
   ["arena-issue-5014-digital-gate-cool-boy", "#5014 · Digital Gate Open · Cool Boy sem custo"],

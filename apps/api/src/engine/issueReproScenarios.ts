@@ -1525,6 +1525,53 @@ const ISSUE_LAYOUTS = {
     ],
     memory: 8,
   },
+  "arena-issue-5073-epulse-trash": {
+    players: [{ field: [{ card: "ST23-10" }], hand: ["ST23-15", "ST23-03"], trash: ["ST23-02", "ST23-04"] }, {}],
+    memory: 5,
+  },
+  "arena-issue-5099-mervamon-iliad": {
+    players: [
+      {
+        field: [{ card: "BT26-029" }],
+        hand: ["BT26-081", "BT24-019", "BT26-009", "BT1-009"],
+        trash: ["BT24-011", "BT24-033"],
+      },
+      { field: [{ card: "BT1-084" }] },
+    ],
+    memory: 8,
+  },
+  "arena-issue-5106-king-sukamon-cost": {
+    players: [
+      { field: [{ card: "BT11-040", under: ["EX5-045"] }], hand: ["EX13-031", "EX13-027"] },
+      { field: [{ card: "ST15-11" }] },
+    ],
+    memory: 8,
+  },
+  "arena-issue-5118-candlemon-search": {
+    players: [
+      {
+        hand: ["BT18-030"],
+        deck: ["BT1-009", "LM-054", "EX13-037", "LM-059", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5135-ai-mako-your-turn": {
+    players: [
+      {
+        field: [{ card: "ST14-02" }],
+        hand: ["ST14-11", "ST14-05"],
+        deck: ["BT1-009", "EX10-037", "BT12-085", "BT12-073", "P-040", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5106-chuumon-self-replay": {
+    players: [{ field: [{ card: "EX1-052", under: ["EX5-045"] }] }, { field: [{ card: "BT1-084", suspended: true }] }],
+    memory: 8,
+  },
 } satisfies Record<string, Layout>;
 
 export type IssueReproScenarioId = keyof typeof ISSUE_LAYOUTS;
