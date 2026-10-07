@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it, vi } from "vitest";
 import { setupEngine } from "@aegis-api/engine/testkit/harness.js";
-import { cleanup, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
 import { dragOnto } from "./scenarioHarness/dragDrop";
 
 const mocked = vi.hoisted(() => ({
@@ -76,14 +76,15 @@ async function renderOrdinemonChoice() {
   const target = ophanimon!.closest('[data-drop="perm-you"]') as HTMLElement;
   dragOnto(ordinemon, target);
 
-  const dialog = await screen.findByText(/dna digivolution available/i);
-  const panel = dialog.closest(".game-modal__panel") as HTMLElement;
+  const panel = await screen.findByRole("region", { name: /dna digivolution available/i });
   return { s, panel };
 }
 
 it("dragging Ordinemon onto Ophanimon exposes DNA instead of silently choosing normal evolution", async () => {
   const { s, panel } = await renderOrdinemonChoice();
   expect(within(panel).getByRole("button", { name: /digivolve normally/i })).toBeTruthy();
+  // The drop picks the host; the partner is picked on the field.
+  fireEvent.click(document.querySelector(`[data-drop="perm-you"][data-id="${s.perm("partner").permanentId}"]`)!);
   within(panel)
     .getByRole("button", { name: /^dna digivolve$/i })
     .click();

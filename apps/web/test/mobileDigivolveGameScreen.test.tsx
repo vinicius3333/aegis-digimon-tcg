@@ -199,8 +199,10 @@ it("mobile touch-drag exposes both normal and DNA evolution for Ordinemon", asyn
   placeDropZone(target);
   await touchDrag(source, 14);
 
-  expect(await screen.findByText(/dna digivolution available/i)).toBeDefined();
-  fireEvent.click(screen.getByRole("button", { name: /^dna digivolve$/i }));
+  const dnaPrompt = await screen.findByRole("region", { name: /dna digivolution available/i });
+  // The drop picks the Ophanimon under the finger; the partner is picked on the field.
+  fireEvent.click(document.querySelector(`[data-drop="perm-you"][data-id="${s.perm("ophanimonB").permanentId}"]`)!);
+  fireEvent.click(within(dnaPrompt).getByRole("button", { name: /^dna digivolve$/i }));
   expect(mocked.dnaDigivolve).toHaveBeenCalledWith(
     mocked.room,
     [s.perm("ophanimonA").permanentId, s.perm("ophanimonB").permanentId],
