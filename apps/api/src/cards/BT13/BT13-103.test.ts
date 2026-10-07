@@ -186,4 +186,27 @@ describe("BT13-103 Akihiro Kurata", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-091")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-083")).toBe(false);
   });
+
+  it("reduces a Belphemon: Sleep Mode play by the deleted Gizmon: AT play cost (Discord 1557417507898269858)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-103", as: "akihiro" },
+            { card: "BT13-083", as: "gizmon" },
+          ],
+          hand: [{ card: "BT13-088", as: "sleep" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sleep").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-088"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-083")).toBe(false);
+    expect(s.state.memory).toBe(1 - (11 - 6));
+  });
 });

@@ -689,13 +689,17 @@ export async function runReplacement(
               if (nestedCostModifier?.dynamicFrom === "deletedDigimonPlayCost") {
                 if (interactiveCost?.kind !== "deleteOwn" || interactiveCost.target === undefined) return false;
                 const reductionBinding = `dynamic-play-cost/${ctx.source.instanceId}/${activationIdentity ?? "effect"}`;
-                const playCostByPermanentId = new Map(
-                  candidatePermanents(runtimeCtx, interactiveCost.target).map((permanent) => [
-                    permanent.permanentId,
+                const playCostByTopInstanceId = new Map(
+                  candidatePermanents(runtimeCtx, interactiveCost.target).flatMap((permanent) =>
                     permanent.topCard === undefined
-                      ? 0
-                      : Math.max(0, runtimeCtx.game.definitionOf(permanent.topCard).playCost),
-                  ]),
+                      ? []
+                      : [
+                          [
+                            permanent.topCard.instanceId,
+                            Math.max(0, runtimeCtx.game.definitionOf(permanent.topCard).playCost),
+                          ] as const,
+                        ],
+                  ),
                 );
                 const succeeded = await payCost(runtimeCtx, {
                   ...interactiveCost,
@@ -706,7 +710,7 @@ export async function runReplacement(
                   if (!(await payCost(runtimeCtx, additionalCost))) return false;
                 }
                 return [...(runtimeCtx.boundPlayed?.get(reductionBinding) ?? [])].reduce(
-                  (total, permanentId) => total + (playCostByPermanentId.get(permanentId) ?? 0),
+                  (total, instanceId) => total + (playCostByTopInstanceId.get(instanceId) ?? 0),
                   0,
                 );
               }
