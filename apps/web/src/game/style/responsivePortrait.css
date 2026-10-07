@@ -7,19 +7,6 @@
   .game-sidebar > div:nth-child(2) > button {
     min-height: 44px;
   }
-  .opponent-action-feed {
-    top: calc(3.75rem + env(safe-area-inset-top, 0px));
-  }
-  .opponent-action-feed__trail {
-    display: none;
-  }
-  .opponent-action-feed__copy strong,
-  .opponent-action-feed__copy small {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    -webkit-line-clamp: 1;
-  }
 }
 
 /* Phone portrait. Both floating stacks span the width here (a capped column cut

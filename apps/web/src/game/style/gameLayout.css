@@ -3,7 +3,13 @@
 
 .game-layout {
   background:
-    linear-gradient(135deg, transparent 0 67%, color-mix(in srgb, var(--ds-accent) 4%, transparent) 67% 67.2%, transparent 67.2%), var(--ds-paper);
+    linear-gradient(
+      135deg,
+      transparent 0 67%,
+      color-mix(in srgb, var(--ds-accent) 4%, transparent) 67% 67.2%,
+      transparent 67.2%
+    ),
+    var(--ds-paper);
 }
 
 .game-board {
@@ -28,7 +34,12 @@
   border: 1px solid color-mix(in srgb, var(--ds-accent) 15%, transparent);
   border-radius: var(--ds-radius-md);
   background:
-    linear-gradient(135deg, transparent 0 72%, color-mix(in srgb, var(--ds-accent) 4%, transparent) 72% 72.4%, transparent 72.4%),
+    linear-gradient(
+      135deg,
+      transparent 0 72%,
+      color-mix(in srgb, var(--ds-accent) 4%, transparent) 72% 72.4%,
+      transparent 72.4%
+    ),
     color-mix(in srgb, var(--ds-sheet) 42%, transparent);
 }
 
@@ -36,135 +47,6 @@
 .game-mobile-surrender,
 .game-mobile-log,
 .game-mobile-bug {
-  display: none;
-}
-
-/* The board's left edge, not its right: the opponent digivolves and plays into
-   the right half of the field, and a feed anchored over it hid the very move it
-   was narrating. */
-.opponent-action-feed {
-  position: absolute;
-  z-index: calc(var(--ds-z-toast) - 3);
-  top: calc(7.5rem + env(safe-area-inset-top, 0px));
-  left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
-  width: min(22rem, calc(100% - var(--ds-space-8)));
-  pointer-events: none;
-}
-.opponent-action-feed__current,
-.opponent-action-feed__trail-item {
-  display: grid;
-  width: 100%;
-  min-width: 0;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: var(--ds-space-3);
-  align-items: center;
-  color: var(--ds-text);
-  text-align: left;
-  border: 1px solid color-mix(in srgb, var(--ds-danger) 36%, var(--ds-line));
-  border-radius: var(--ds-radius-md);
-  background: color-mix(in srgb, var(--ds-sheet) 96%, var(--ds-danger));
-  box-shadow: var(--ds-shadow-raise);
-}
-.opponent-action-feed__current {
-  position: relative;
-  min-height: 3.5rem;
-  padding: var(--ds-space-3);
-  font: inherit;
-  pointer-events: none;
-  animation: aegis-rise 180ms ease-out;
-}
-/* The feed itself is see-through so it never blocks the board; only what a
-   player can actually press takes the pointer back. */
-.opponent-action-feed button {
-  pointer-events: auto;
-}
-.opponent-action-feed__aside {
-  display: grid;
-  gap: var(--ds-space-1);
-  align-self: start;
-  justify-items: end;
-}
-.opponent-action-feed__history {
-  display: grid;
-  width: 1.75rem;
-  height: 1.75rem;
-  padding: 0;
-  color: var(--ds-text-3);
-  border: 1px solid var(--ds-line);
-  border-radius: var(--ds-radius-sm);
-  background: var(--ds-sheet);
-  cursor: pointer;
-  place-items: center;
-}
-.opponent-action-feed__history:hover {
-  color: var(--ds-text);
-  border-color: color-mix(in srgb, var(--ds-danger) 62%, var(--ds-line));
-}
-.opponent-action-feed__history:focus-visible {
-  outline: 2px solid var(--ds-accent);
-  outline-offset: 2px;
-}
-.opponent-action-feed__icon {
-  display: grid;
-  width: 2rem;
-  height: 2rem;
-  place-items: center;
-  color: var(--ds-danger);
-  border-radius: var(--ds-radius-sm);
-  background: color-mix(in srgb, var(--ds-danger) 12%, var(--ds-sheet));
-}
-.opponent-action-feed__copy {
-  min-width: 0;
-}
-.opponent-action-feed__copy strong,
-.opponent-action-feed__copy small {
-  display: block;
-  overflow-wrap: anywhere;
-}
-.opponent-action-feed__copy strong {
-  font-size: var(--ds-text-sm);
-  line-height: 1.25;
-}
-.opponent-action-feed__copy small {
-  display: -webkit-box;
-  margin-top: 2px;
-  overflow: hidden;
-  color: var(--ds-text-3);
-  font-size: var(--ds-text-xs);
-  line-height: 1.35;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-.opponent-action-feed__pending {
-  align-self: start;
-  padding: 2px var(--ds-space-2);
-  color: var(--ds-danger);
-  font: 700 0.625rem var(--ds-font-mono);
-  white-space: nowrap;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--ds-danger) 10%, var(--ds-sheet));
-}
-.opponent-action-feed__trail {
-  position: absolute;
-  inset: 0;
-}
-.opponent-action-feed__trail-item {
-  position: absolute;
-  right: var(--ds-space-2);
-  bottom: calc(100% + var(--ds-space-2));
-  left: var(--ds-space-2);
-  min-height: 2.5rem;
-  padding: var(--ds-space-2) var(--ds-space-3);
-  grid-template-columns: minmax(0, 1fr);
-  opacity: 0.72;
-  transform: scale(0.97);
-}
-.opponent-action-feed__trail-item[data-depth="2"] {
-  bottom: calc(100% + 3.25rem);
-  opacity: 0.48;
-  transform: scale(0.94);
-}
-.opponent-action-feed__trail-item .opponent-action-feed__copy small {
   display: none;
 }
 

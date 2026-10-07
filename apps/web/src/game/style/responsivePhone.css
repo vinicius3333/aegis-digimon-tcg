@@ -193,27 +193,6 @@
     height: 32px !important;
     margin-left: -17px !important;
   }
-  .opponent-action-feed {
-    top: calc(6.75rem + env(safe-area-inset-top, 0px));
-    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
-    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
-    width: auto;
-  }
-  .opponent-action-feed__current {
-    min-height: 3.25rem;
-    padding: var(--ds-space-2) var(--ds-space-3);
-    gap: var(--ds-space-2);
-  }
-  .opponent-action-feed__copy strong {
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-  .opponent-action-feed__trail-item {
-    right: var(--ds-space-3);
-    left: var(--ds-space-3);
-  }
   .match-history-sheet__list {
     max-height: calc(78dvh - 6rem);
   }

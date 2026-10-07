@@ -322,15 +322,6 @@
     background: var(--ds-sheet);
     box-shadow: var(--ds-shadow-raise);
   }
-  .opponent-action-feed {
-    top: calc(3.25rem + env(safe-area-inset-top, 0px));
-    right: auto;
-    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
-    width: min(20rem, 45vw);
-  }
-  .opponent-action-feed__trail {
-    display: none;
-  }
   .narration-slot {
     width: min(22rem, 45vw);
   }

@@ -3,7 +3,7 @@
    result once the game is over. */
 
 import { BugReportDialog } from "../../../bugs/BugReportDialog";
-import { PlayLogSidebar } from "../../OpponentActionFeedView";
+import { PlayLogSidebar } from "../../PlayLogSidebar";
 import { CardZoomOverlay, GameOverOverlay, OpponentDroppedOverlay } from "../../overlay";
 import type { SeriesResultProps } from "../../overlay/match/GameOverOverlay";
 import type { LogLine } from "../../matchLog";

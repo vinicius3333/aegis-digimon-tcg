@@ -6,7 +6,7 @@ import { AttackArrow, BreedingSlot, Hand, MemoryGauge, PermanentView, Pile, Turn
 import { pendingFateBadge } from "../game/pendingFate";
 import { buildPermanentDetail } from "../game/permanentDetail";
 import { CardShatter } from "../game/CardShatterView";
-import { PlayLogSidebar } from "../game/OpponentActionFeedView";
+import { PlayLogSidebar } from "../game/PlayLogSidebar";
 import { TARGET_FATES, Phase } from "@aegis/shared";
 import { dragIntentLabelKey } from "../game/dragIntents";
 import {

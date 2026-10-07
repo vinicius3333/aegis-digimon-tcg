@@ -32,7 +32,7 @@ import {
 } from "../game/BoardDecisionRail";
 import { NarrationStack } from "../game/NarrationStack";
 import { AttackAnnouncementBanner, SidePanelStack } from "../game/SidePanelStack";
-import { PlayLogSidebar } from "../game/OpponentActionFeedView";
+import { PlayLogSidebar } from "../game/PlayLogSidebar";
 import { SecurityClash } from "../game/SecurityClashView";
 import { ZoneShowcase } from "../game/ZoneShowcase";
 import { HandCardPreview } from "../game/screen/layout/HandCardPreview";

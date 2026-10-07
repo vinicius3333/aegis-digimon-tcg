@@ -5,7 +5,7 @@
   inset: 0;
   z-index: var(--ds-z-dialog) !important;
 }
-body:has([data-prompt-surface]:not([hidden] *)) :is(.narration-slot, .opponent-action-feed) {
+body:has([data-prompt-surface]:not([hidden] *)) .narration-slot {
   z-index: calc(var(--ds-z-dialog) - 1);
 }
 body:has([data-prompt-surface]:not([hidden] *)) .narration-slot[data-slot="narration-text"] {
