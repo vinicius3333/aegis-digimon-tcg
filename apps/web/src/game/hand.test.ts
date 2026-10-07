@@ -26,7 +26,12 @@ describe("hand fan overlap", () => {
   });
 
   it("never hides a card past its cost and level corner", () => {
-    expect(handOverlap(20, 200)).toBeLessThanOrEqual(CARD_WIDTH - 30);
+    expect(handOverlap(20, 200)).toBeLessThanOrEqual(CARD_WIDTH - 22);
+  });
+
+  it("Discord 1557141287948521624: fits a 20-card hand in the 576px desktop dock without scrolling", () => {
+    const overlap = handOverlap(20, 576, 112);
+    expect(fannedWidth(20, overlap, 112)).toBeLessThanOrEqual(576);
   });
 
   it("scales the spacing with the compact card the tablet dock uses", () => {
