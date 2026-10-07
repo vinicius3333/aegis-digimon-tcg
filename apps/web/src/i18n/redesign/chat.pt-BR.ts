@@ -2,6 +2,7 @@ import type { chatEn } from "./chat.en";
 
 export const chatPtBR: Record<keyof typeof chatEn, string> = {
   "chat.open": "Chat",
+  "chat.openUnread": "Chat, {count} não lidas",
   "chat.title": "Chat",
   "chat.close": "Fechar chat",
   "chat.expand": "Expandir chat",

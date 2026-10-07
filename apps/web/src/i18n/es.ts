@@ -1912,6 +1912,7 @@ export const es: Record<keyof typeof en, string> = {
   "community.moderation.hiddenOwnerNote": "Denunciado por jugadores. Nadie más lo ve.",
   "community.publish.errorGeneric": "No se pudo publicar. Inténtalo de nuevo.",
   "chat.open": "Chat",
+  "chat.openUnread": "Chat, {count} sin leer",
   "chat.title": "Chat",
   "chat.close": "Cerrar chat",
   "chat.expand": "Ampliar chat",

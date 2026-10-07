@@ -1743,6 +1743,7 @@ const interfaceMessages = {
   "redesign.arena.keyword.Engage": "Alla fine del tuo turno, questo Digimon può attaccare.",
   "redesign.arena.keyword.unlisted": "Stampato su questa carta. Aprila per leggere l'effetto completo.",
   "chat.open": "Chat",
+  "chat.openUnread": "Chat, {count} non letti",
   "chat.title": "Chat",
   "chat.close": "Chiudi la chat",
   "chat.expand": "Espandi la chat",

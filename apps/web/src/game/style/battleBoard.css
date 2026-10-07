@@ -87,6 +87,41 @@
   border-color: var(--ds-accent);
 }
 
+/* Unread chat count on the chat button's corner (or the phone's match-menu button). */
+:has(> .game-chat-unread) {
+  position: relative;
+}
+
+.game-chat-unread {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  color: var(--ds-on-accent);
+  font: 700 11px/18px var(--ds-font-mono);
+  text-align: center;
+  pointer-events: none;
+  border-radius: 999px;
+  background: var(--ds-accent);
+  box-shadow: 0 0 0 2px var(--ds-sheet);
+  animation: game-chat-unread-pop 220ms ease-out;
+}
+
+@keyframes game-chat-unread-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-chat-unread {
+    animation: none;
+  }
+}
+
 .game-topbar-button--danger:hover {
   color: var(--ds-danger);
   border-color: var(--ds-danger);
