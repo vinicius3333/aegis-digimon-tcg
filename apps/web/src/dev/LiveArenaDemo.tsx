@@ -956,6 +956,18 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "O bot tem dois EX13-035 KingEtemon e um Etemon: seus Digimon recebem -6000 DP. Encerre a criação e passe o turno. Quando o KingEtemon atacar, bloqueie com o EX13-056 Giromon. O Giromon suspende, revela as 3 cartas do topo e joga o EX13-047 Gotsumon (3000 DP). O efeito do Giromon termina, a verificação de regras deleta o Gotsumon com 0 DP, e o [Ao Jogar] dele não é ativado.",
     en: "The bot has two EX13-035 KingEtemon and an Etemon: your Digimon get -6000 DP. End breeding and pass the turn. When KingEtemon attacks, block with EX13-056 Giromon. Giromon suspends, reveals the top 3 cards and plays EX13-047 Gotsumon (3000 DP). Giromon's effect finishes, the rule check deletes the 0 DP Gotsumon, and its [On Play] does not activate.",
   },
+  "arena-bt13-kurata-belphemon-play-cost": {
+    ptBR: "Você tem 5 de memória, o BT13-103 Akihiro Kurata e o BT13-083 Gizmon: AT (custo de jogo 6). Encerre a criação e jogue o BT13-088 Belphemon: Sleep Mode da mão (custo 11). Aceite o efeito do Kurata e delete o Gizmon: AT. O custo cai para 5: a memória fica em 0 e o turno continua.",
+    en: "You have 5 memory, BT13-103 Akihiro Kurata and BT13-083 Gizmon: AT (play cost 6). End breeding and play BT13-088 Belphemon: Sleep Mode from hand (cost 11). Accept Kurata's effect and delete Gizmon: AT. The cost drops to 5: memory ends at 0 and your turn continues.",
+  },
+  "arena-ex10-close-sunarizamon-without-close": {
+    ptBR: "Você tem só o EX10-063 Close em jogo, nenhum Digimon, nenhum Close na mão e o EX10-025 Sunarizamon na lixeira. Encerre a criação. No [Início da Sua Fase Principal], aceite devolver o Close ao fundo do deck. Sem Close na mão, nada é jogado da mão, mas como você não tem Digimon, jogue o Sunarizamon da lixeira sem pagar o custo.",
+    en: "You have only EX10-063 Close in play, no Digimon, no Close in hand and EX10-025 Sunarizamon in the trash. End breeding. At [Start of Your Main Phase], accept returning Close to the bottom of the deck. With no Close in hand nothing is played from hand, but since you have no Digimon, play Sunarizamon from the trash without paying the cost.",
+  },
+  "arena-ex11-pyramidimon-fragment-recovery": {
+    ptBR: "Seu EX11-044 Pyramidimon (12000 DP) tem 4 Golemon [Mineral] como fontes e há 3 Golemon na lixeira. Encerre a criação e ataque o BT8-017 UltimateBrachiomon suspenso do bot (13000 DP). Recuse o [Ao Atacar] do Pyramidimon. Ele perde a batalha: use o ＜Fragmento (3)＞ e lixe 3 fontes. O [Todos os Turnos] dispara e coloca os 3 Golemon da lixeira embaixo dele. O Pyramidimon sobrevive com 4 fontes.",
+    en: "Your EX11-044 Pyramidimon (12000 DP) has 4 [Mineral] Golemon sources, and 3 Golemon are in the trash. End breeding and attack the bot's suspended BT8-017 UltimateBrachiomon (13000 DP). Decline Pyramidimon's [When Attacking]. It loses the battle: use ＜Fragment (3)＞ and trash 3 sources. Its [All Turns] triggers and places the 3 trash Golemon under it. Pyramidimon survives with 4 sources.",
+  },
   "arena-ex13-leopardmon-unsuspend-lock": {
     ptBR: "Jogue EX13-040 Mikemon da mão (custo 4). O [Ao Jogar] escolhe o EX13-043 Leopardmon suspenso do bot: ele não pode desuspender até o fim do turno dele. Depois ataque o Leopardmon com o seu BT10-055 Gryphonmon (13000 contra 12000). O Leopardmon não pode pagar a prevenção, porque nenhum Digimon do bot pode desuspender: ele é deletado e vai para a lixeira.",
     en: "Play EX13-040 Mikemon from hand (cost 4). Its [On Play] picks the bot's suspended EX13-043 Leopardmon: it can't unsuspend until the end of the bot's turn. Then attack Leopardmon with your BT10-055 Gryphonmon (13000 vs 12000). Leopardmon can't pay its leave prevention, because no bot Digimon can unsuspend: it is deleted and goes to the trash.",
@@ -2066,6 +2078,9 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex5-reppamon-optional-cost", "EX5 Reppamon · decline the security trash on attack"],
   ["arena-ex13-dorimon-optional-cost", "EX13 Dorimon · decline the 1-cost unsuspend without paying"],
   ["arena-ex13-giromon-zero-dp-play", "EX13 Giromon · Gotsumon at 0 DP dies before its On Play"],
+  ["arena-bt13-kurata-belphemon-play-cost", "BT13 Kurata · deleting Gizmon: AT reduces Belphemon by 6"],
+  ["arena-ex10-close-sunarizamon-without-close", "EX10 Close · play Sunarizamon with no Close in hand"],
+  ["arena-ex11-pyramidimon-fragment-recovery", "EX11 Pyramidimon · Fragment trash triggers its recovery"],
   ["arena-ex13-rina-suspend-lock", "EX13 Rina · locked Tamer can't pay the suspend cost"],
   ["arena-ex11-vortex-effect-attack", "EX11 Vortexdramon · retrigger after a decline in an effect attack"],
   ["arena-ex13-breakdramon-zero-security-check", "EX13 Breakdramon · Security Attack -1 attack checks no card"],
