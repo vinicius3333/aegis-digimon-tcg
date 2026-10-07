@@ -247,6 +247,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex5-biting-crush-delay",
   "arena-p108-training-delay-no-target",
   "arena-p108-training-delay-with-target",
+  "arena-bt20-dragon-gene-delay-no-dna",
   "arena-bt13-royal-purge-delay-rush",
   "arena-p206-digital-gate-breeding-color",
   "arena-ex13-merciful-mode-attack-order",
@@ -6079,6 +6080,37 @@ function layP108TrainingDelayScenario(
 }
 
 /**
+ * BT20-093 Unleash the Dragon Gene's ＜Delay＞ with no legal DNA digivolution (Discord bug
+ * 1557483604253212703, match 02afb1e1). The Option has waited in the battle area since an earlier
+ * turn beside BT20-027 Slayerdramon, and the hand holds no [Examon]. Playing BT4-102 Aqua Viper
+ * returns Slayerdramon by effect: the Delay must still be offered, and accepting it trashes the
+ * Option for no effect (CR 15-7-5, Q5710).
+ */
+function layBt20DragonGeneDelayNoDnaScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    const dragonGene = establishedDigimon(0, ["BT20-093"], "-bt20-dragon-gene");
+    dragonGene.placedByEffect = true;
+    placePermanent(human, dragonGene);
+    placePermanent(human, establishedDigimon(0, ["BT20-027"], "-bt20-slayerdramon"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-bt20-aqua-viper", "BT4-102", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/**
  * BT13-110 Royal Knights of the Purge ＜Delay＞ (Discord bug 1554301049614110770, match
  * dd487753). The Option has waited in the battle area since an earlier turn, and King
  * Drasil_7D6 holds BT20-102 Omnimon (X Antibody) among its breeding digivolution cards. Two
@@ -7514,6 +7546,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,
   "arena-p108-training-delay-no-target": (state, decks) => layP108TrainingDelayScenario(state, decks, false),
   "arena-p108-training-delay-with-target": (state, decks) => layP108TrainingDelayScenario(state, decks, true),
+  "arena-bt20-dragon-gene-delay-no-dna": layBt20DragonGeneDelayNoDnaScenario,
   "arena-bt13-royal-purge-delay-rush": layBt13RoyalPurgeDelayRushScenario,
   "arena-p206-digital-gate-breeding-color": layP206DigitalGateBreedingColorScenario,
   "arena-ex13-merciful-mode-attack-order": layEx13MercifulModeAttackOrderScenario,

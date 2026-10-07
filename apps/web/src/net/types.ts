@@ -445,6 +445,7 @@ export interface AegisJoinOptions {
     | "arena-ex5-attack-priority"
     | "arena-ex5-biting-crush-delay"
     | "arena-p108-training-delay-no-target"
+    | "arena-bt20-dragon-gene-delay-no-dna"
     | "arena-bt13-royal-purge-delay-rush"
     | "arena-p206-digital-gate-breeding-color"
     | "arena-ex13-merciful-mode-attack-order"

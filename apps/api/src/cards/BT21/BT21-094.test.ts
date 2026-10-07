@@ -47,7 +47,7 @@ describe("BT21-094 [Main] reveal-and-add", () => {
     expect(p0.trash.some((c) => c.cardId === "BT21-094")).toBe(false);
   });
 
-  it("does not treat a non-Armor hand card as a valid Delay destination", async () => {
+  it("does not treat a non-Armor hand card as a valid Delay destination, but still lets the Delay be paid", async () => {
     const s = setup(
       {
         0: {
@@ -104,7 +104,9 @@ describe("BT21-094 [Main] reveal-and-add", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT21-035"));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nonArmor").instanceId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-094")).toBe(true);
+    // No legal Armor destination, but the ＜Delay＞ may still be paid for no effect (Q5710).
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-094")).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-094")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-032")).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;

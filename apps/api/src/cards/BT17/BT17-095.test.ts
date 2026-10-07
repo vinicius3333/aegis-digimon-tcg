@@ -324,8 +324,8 @@ describe("BT17-095 Miraculous Mega Knight", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === leavingId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("plainOmnimon").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-084")).toBe(false);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
@@ -368,12 +368,12 @@ describe("BT17-095 Miraculous Mega Knight", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === leavingId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wrongMaterial").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX4-060")).toBe(false);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("does not consume intrinsic Delay without a separate hand material for the DNA recipe", async () => {
+  it("still lets the player pay intrinsic Delay without a separate hand material for the DNA recipe (Q5710)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -409,8 +409,8 @@ describe("BT17-095 Miraculous Mega Knight", () => {
       s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("leavingWarGreymon").instanceId),
     );
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
   });
 
   it("naturally plays a Tai/Matt card from Security, then adds itself to hand", async () => {

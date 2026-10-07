@@ -225,7 +225,7 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([]);
   });
 
-  it("does not pay ＜Delay＞ when the hand only holds Ghost-without-LIBERATOR or LIBERATOR-without-Ghost cards", async () => {
+  it("pays ＜Delay＞ for no effect when the hand only holds Ghost-without-LIBERATOR or LIBERATOR-without-Ghost cards (Q5710)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -258,7 +258,8 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     await settle(() => s.perm("violet").isSuspended);
 
     expect(s.perm("violet").isSuspended).toBe(true);
-    expect(optionPermanent(s, 0, optionId)).toBeDefined();
+    expect(optionPermanent(s, 0, optionId)).toBeUndefined();
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
     expect(s.perm("delayGhost").topCard?.cardId).toBe("BT23-061");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
       s.inst("ghostOnly").instanceId,

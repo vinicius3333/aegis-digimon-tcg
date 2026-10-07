@@ -165,8 +165,9 @@ describe("BT23-093 Big Bang Punch", () => {
     ).toEqual({ ok: true });
     await settle(() => suspended(s, 0, attackerId));
     expect(s.perm("attacker").linked).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([trashedId]);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+    // The trash Appmon stays put; the ＜Delay＞ may still be paid for no effect (Q5710).
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([trashedId, optionId]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(false);
   });
 
   it("draws exactly 1 and then places itself in the battle area for memory 2", async () => {
@@ -377,7 +378,37 @@ describe("BT23-093 Big Bang Punch", () => {
     await loop;
   });
 
-  it("keeps the Delay card when the only Appmon in hand has no [Link]", async () => {
+  it("offers the event-triggered Delay with an empty hand and trashes the Option for no effect (Discord 1557483604253212703)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-093", as: "option" },
+            { card: APPMON_NO_LINK, as: "attacker", dp: SURVIVES_SECURITY },
+          ],
+        },
+        1: { security: [WEAK_SECURITY, WEAK_SECURITY] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.perm("option").topCard!.instanceId;
+    s.perm("option").placedByEffect = true;
+    const attackerId = s.perm("attacker").permanentId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => suspended(s, 0, attackerId) && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(false);
+    expect(s.perm("attacker").linked).toHaveLength(0);
+  });
+
+  it("links nothing when the only Appmon in hand has no [Link], but the Delay may still be paid (Q5710)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -404,8 +435,8 @@ describe("BT23-093 Big Bang Punch", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => suspended(s, 0, attackerId));
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
     expect(s.perm("attacker").linked).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([noLinkId]);
   });

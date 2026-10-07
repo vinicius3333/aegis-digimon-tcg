@@ -212,6 +212,8 @@ describe("BT20-095 Fellowship of Hope's Keepers", () => {
     "immediately resolves the prior-turn Delay after public deletion: %s",
     async (route) => {
       const accepted = route === "hand" || route === "trash";
+      // An egg base has no legal digivolution, but the Delay may still be paid for no effect (Q5710).
+      const delayPaid = accepted || route === "egg";
       const destinationZone = route === "trash" ? "trash" : "hand";
       const s = setupEngine(
         {
@@ -268,8 +270,8 @@ describe("BT20-095 Fellowship of Hope's Keepers", () => {
       expect(evolved?.stack.map((card) => card.instanceId) ?? []).toEqual(accepted ? [baseId] : []);
       expect(s.state.players[0]!.breeding?.topCard.instanceId).toBe(accepted ? undefined : baseId);
       expect(s.state.players[0]![destinationZone].some((card) => card.instanceId === destinationId)).toBe(!accepted);
-      expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(accepted);
-      expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(!accepted);
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(delayPaid);
+      expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(!delayPaid);
       expect(s.state.memory).toBe(0);
       advance(s.engine).endMainPhaseIfOpen(1);
       await opponentTurn;

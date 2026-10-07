@@ -45,6 +45,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenAttacking",
+          fireCondition: { kind: "attackTargetsPlayer", raw: "Digimon attack players" },
           sourceFilter: {
             controllerDefault: "any",
             kind: ["Digimon"],
@@ -75,7 +76,6 @@ const compiled: CompiledCard = {
               payCost: false,
               from: ["hand"],
               optional: true,
-              condition: { kind: "attackTargetsPlayer", raw: "Digimon attack players" },
             },
           ],
         },

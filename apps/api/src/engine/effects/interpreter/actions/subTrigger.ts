@@ -15,9 +15,6 @@ import { candidatePermanents, resolvePermanentTargets } from "../targeting/perma
 import { getCardDefinition } from "@aegis/shared";
 import type { Action, Cost, Filter } from "@aegis/shared";
 import { findLooseCandidateByInstance } from "../targeting/loose.js";
-import { canAttemptDigivolve } from "./digivolve.js";
-import { canAttemptDnaDigivolve } from "./dna.js";
-import { canAttemptLink } from "./link.js";
 import { mayDeclareAttack } from "./meta.js";
 import { isDetachTopAction, onlyInfeasibleDetachTop } from "../targeting/detachTop.js";
 import { canActivateEffect } from "../effect.js";
@@ -1294,29 +1291,8 @@ export async function runSubTrigger(
         const delaySource = subCtx.source.permanent();
         if (delaySource === undefined) return;
         if (delaySource.enterFieldTurnCount === subCtx.game.state.turnCount) return;
-        // Delay is optional processing, but it still cannot be activated when every declared
-        // digivolution payload has no legal base/card pair. Check while the Option remains on
-        // field so an impossible Q5183 target does not consume the Delay cost.
-        const digivolveActions = action.actions.filter(
-          (candidate): candidate is Extract<Action, { kind: "Digivolve" }> => candidate.kind === "Digivolve",
-        );
-        if (
-          digivolveActions.length > 0 &&
-          !digivolveActions.some((candidate) => canAttemptDigivolve(subCtx, candidate))
-        )
-          return;
-        const dnaDigivolveActions = action.actions.filter(
-          (candidate): candidate is Extract<Action, { kind: "DnaDigivolve" }> => candidate.kind === "DnaDigivolve",
-        );
-        if (
-          dnaDigivolveActions.length > 0 &&
-          !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))
-        )
-          return;
-        const linkActions = action.actions.filter(
-          (candidate): candidate is Extract<Action, { kind: "Link" }> => candidate.kind === "Link",
-        );
-        if (linkActions.length > 0 && !linkActions.some((candidate) => canAttemptLink(subCtx, candidate))) return;
+        // Trashing the card is the activation cost, so a payload with no legal digivolution,
+        // DNA, or link target never blocks the offer (CR 15-7-5, Q5710; Discord 1557483604253212703).
         const activate = await subCtx.ask.optional(
           subCtx,
           action.raw ?? "Trash this card to activate its ＜Delay＞ effect?",

@@ -830,10 +830,17 @@ export async function runReplacement(
         const dnaDigivolveActions = nestedActions.filter(
           (candidate): candidate is Extract<Action, { kind: "DnaDigivolve" }> => candidate.kind === "DnaDigivolve",
         );
+        const isIntrinsicDelay = (action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true;
         // A "would be deleted -> may DNA digivolve" reaction (BT20-016 Paildramon) that has no legal
-        // DNA to offer never replaces the event, so it reports that it did not apply.
+        // DNA to offer never replaces the event, so it reports that it did not apply. A ＜Delay＞ is
+        // exempt: trashing its card is the activation cost, and CR 15-7-5 lets the player pay it
+        // when the payload cannot execute (Q5710; Discord 1557483604253212703, BT20-093).
         const onlyDnaDigivolves = dnaDigivolveActions.length > 0 && dnaDigivolveActions.length === nestedActions.length;
-        if (onlyDnaDigivolves && !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))) {
+        if (
+          onlyDnaDigivolves &&
+          !isIntrinsicDelay &&
+          !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))
+        ) {
           return false;
         }
         const replacementCost = action.cost;
@@ -846,14 +853,9 @@ export async function runReplacement(
         ) {
           return false;
         }
-        if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
+        if (isIntrinsicDelay) {
           const delaySource = subCtx.source.permanent();
           if (delaySource === undefined || delaySource.enterFieldTurnCount === subCtx.game.state.turnCount)
-            return false;
-          if (
-            dnaDigivolveActions.length > 0 &&
-            !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))
-          )
             return false;
           if (!(await subCtx.ask.optional(subCtx, action.raw ?? "Trash this card to activate its ＜Delay＞ effect?"))) {
             return false;
