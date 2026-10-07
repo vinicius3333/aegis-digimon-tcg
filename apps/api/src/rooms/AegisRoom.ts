@@ -155,6 +155,7 @@ export interface AegisJoinOptions extends SeatJoinOptions {
   seriesToken?: string;
   deckId?: string;
   deckName?: string;
+  manualMode?: boolean;
   roomCode?: string; // for joining a private room by code
   ranked?: boolean;
   authTicket?: string;
@@ -337,6 +338,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
   private combatWindowTimeoutKey: string | undefined;
 
   override async onAuth(client: Client, options: AegisJoinOptions): Promise<boolean> {
+    if (options.manualMode === true) return false;
     if (options.spectator === true) {
       return this.spectatorInfo(options.roomCode) !== null;
     }
