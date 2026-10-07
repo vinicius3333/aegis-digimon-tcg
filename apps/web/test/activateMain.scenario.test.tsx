@@ -210,8 +210,8 @@ scenario("activate-main", () => {
       },
       { timeout: 10_000 },
     );
-    expect(document.querySelector('[data-side="opp"] [data-counter="trash"]')?.textContent).toContain(
-      String(opponent.room.state.players[1]!.trash.length),
+    expect(screen.getByRole("list", { name: /^opponent$/i }).textContent).toContain(
+      `Trash: ${opponent.room.state.players[1]!.trash.length} discarded`,
     );
 
     await opponent.leave();

@@ -136,8 +136,8 @@ scenario("use-option", () => {
     // The card reaches the pile as its Option dock closes, not while it is still docked.
     await vi.waitFor(
       () =>
-        expect(document.querySelector('[data-side="you"] [data-counter="trash"]')?.textContent).toContain(
-          String(opponent.room.state.players[0]!.trash.length),
+        expect(screen.getByRole("list", { name: /^you$/i }).textContent).toContain(
+          `Trash: ${opponent.room.state.players[0]!.trash.length} discarded`,
         ),
       { timeout: 10_000 },
     );

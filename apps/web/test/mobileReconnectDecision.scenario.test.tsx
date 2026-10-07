@@ -245,8 +245,8 @@ mobileScenario("reconnect-decision", () => {
       // The pile follows the narration: the paid card lands once its batch is on screen.
       await vi.waitFor(
         () =>
-          expect(document.querySelector('[data-side="you"] [data-counter="trash"]')?.textContent).toContain(
-            String(protagonist.trash.length),
+          expect(screen.getByRole("list", { name: /^you$/i }).textContent).toContain(
+            `Trash: ${protagonist.trash.length} discarded`,
           ),
         { timeout: 10_000 },
       );

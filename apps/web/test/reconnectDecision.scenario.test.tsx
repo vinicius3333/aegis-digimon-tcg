@@ -244,8 +244,8 @@ scenario("reconnect-decision", () => {
 
     expect(protagonist.trash.length).toBe(trashBeforePlay.length + 1);
     expect(screen.getByTestId("hand").querySelectorAll(".game-hand-card")).toHaveLength(protagonist.handCount);
-    expect(document.querySelector('[data-side="you"] [data-counter="trash"]')?.textContent).toContain(
-      String(protagonist.trash.length),
+    expect(screen.getByRole("list", { name: /^you$/i }).textContent).toContain(
+      `Trash: ${protagonist.trash.length} discarded`,
     );
     expect(screen.getAllByRole("img", { name: /^yuuki$/i }).length).toBeGreaterThan(0);
 
