@@ -2109,3 +2109,33 @@ Go or game has started. The prepared source1a0bf9905 is pushed with normal Node2
 shared/API/web checks0; its12 bounded synthetic guards are not actual learning.
 Strict44-versus-four strength, both-seat physical/material behavior,26rooms/
 current serving and untouched finalblind/delivery remain unproven and required.
+
+
+## Actual first positive imitation epoch and sealed PPO launch assets
+
+The canonical cache completed at27,524,635,196bytes. Native epoch0 evaluates
+136417training/71060validation decisions with no new updates. Initial train
+loss0.5167297013681529 and validation loss1.2319355674505301 are preserved.
+Actual native epoch1 completes1300 actor Adam updates on166383 resampled samples,
+parameter-change norm1.6429498195648193, train loss0.4647500959062045 and validation
+loss1.163821796601905. Local actual epoch1 observationSHA is
+`f21c670d14905c0d6daedda73f2232f099da928ce3493802c7546ccf65894135`.
+This is positive native optimization evidence; actual full tensor/Adam custody,
+final selected checkpoint, remaining two epochs and whole/strict closure remain
+pending. SAME foreground30293/CUDA1698/start158698 remains live. Read-only
+resource observation confirms actual GPU use and continued cache I/O; no job or
+module was stopped, changed or restarted to obtain it. Native loss is not44-deck
+strength, physical mechanisms, room/current-serving or finalblind acceptance.
+
+The original unchanged complete scanner reads270996episode files/661schedule
+records/144352used seeds and finds the future3872-game PPO range6029858..6033729
+fresh with zero overlap across both runs/validations. This is seed admission,
+not future games. Actual inventorySHA
+`1c70c3e53c880bdad5cfe1a41469d4378988df449aaad73cc3b18c1c98a75af1`
+and reviewed Bash-n0 wrapperSHA
+`516d6857c8a62e9621c31f121cc8d53963bd290b23b335fe864454b389fac4c9`
+are exclusively sealed outside the source archive. No actual PPO request,
+identity, resource Go or run exists. The eventual execute path rechecks that
+complete inventory before primary imports; it must fail on any drift or overlap.
+Actual final imitation whole0/CP pins and full original consumer, separate
+ROOT resource Go and idle GPU/source checks are still required before PPO.
