@@ -983,3 +983,34 @@ it("rechecks player capacity before a late join can overwrite an occupied seat",
   expect(intruder.view).toBeUndefined();
   room.onDispose();
 });
+
+describe("AegisRoom final reveal", () => {
+  it("reveals every hidden zone right after the game is over", () => {
+    const room = makeRoom();
+    const host = fakeClient("reveal-host");
+    room.clients.push(host);
+    room.onJoin(host, { displayName: "Host", deck: RED_DECK });
+    const guest = fakeClient("reveal-guest");
+    room.clients.push(guest);
+    room.onJoin(guest, { displayName: "Guest", deck: RED_DECK });
+    intentSender(room)(host, { type: "ready" });
+    intentSender(room)(guest, { type: "ready" });
+    expect(broadcastedEvents(room).some((event) => event.kind === "finalReveal")).toBe(false);
+
+    intentSender(room)(host, { type: "surrender" });
+
+    const events = broadcastedEvents(room);
+    const gameOverIndex = events.findIndex((event) => event.kind === "gameOver");
+    const reveal = events[gameOverIndex + 1];
+    expect(reveal?.kind).toBe("finalReveal");
+    if (reveal?.kind !== "finalReveal") return;
+    for (const player of room.state.players) {
+      const revealed = reveal.players.find((entry) => entry.seat === player.seat)!;
+      expect(revealed.hand.map((card) => card.cardId)).toEqual(player.hand.map((card) => card.cardId));
+      expect(revealed.deck.map((card) => card.cardId)).toEqual(player.deck.map((card) => card.cardId));
+      expect(revealed.security).toHaveLength(player.security.length);
+      expect(revealed.hand.length).toBeGreaterThan(0);
+    }
+    room.onDispose();
+  });
+});

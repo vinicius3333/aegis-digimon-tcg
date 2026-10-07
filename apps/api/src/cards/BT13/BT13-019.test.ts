@@ -97,13 +97,13 @@ describe("BT13-019 Gankoomon", () => {
       0: { hand: [{ card: "BT13-019", as: "gankoomon" }], trash: [{ card: "BT10-085", as: "ciel" }] },
     });
     const resolving = playGankoomon(s);
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const pending = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: pending.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await resolving;

@@ -132,7 +132,7 @@ describe("BT20-026 MegaSeadramon (X Antibody)", () => {
           security: ["BT1-010", "BT1-010"],
         },
       },
-      { autoAcceptOptional: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     expect(

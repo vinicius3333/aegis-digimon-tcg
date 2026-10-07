@@ -14,4 +14,5 @@ export {
   revealSecurityCardToOpponent,
   privateZoneSnapshot,
   exposeCardInZone,
+  finalRevealOf,
 } from "./visibility.js";

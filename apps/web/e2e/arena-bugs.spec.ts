@@ -56,7 +56,8 @@ test("#5043 selects Takato's granted Blitz before Gallantmon's printed effect", 
     await printed.click();
     await page.getByRole("button", { name: "Resolve next effect", exact: true }).click();
     await expect(page.getByText("Activate Blitz?", { exact: true })).not.toBeVisible();
-    await expect(page.getByRole("button", { name: /^Opponent security · 3$/ })).toBeVisible();
+    // Sequential effect and security playback can settle after the 20-second presentation budget.
+    await expect(page.getByRole("button", { name: /^Opponent security · 3$/ })).toBeVisible({ timeout: 45000 });
   } finally {
     await page.close();
     await server.close();
@@ -81,7 +82,7 @@ test("#4990 shows four phases and a turn-pass control in the repeated end-turn s
     await page.getByRole("button", { name: /^end turn$/i }).click();
     await page.getByRole("button", { name: /^\[End of Your Turn\], WarGrowlmon,/ }).click();
     await page.getByRole("button", { name: /^resolve next effect$/i }).click();
-    const activation = page.getByRole("region", { name: "WarGrowlmon · effect", exact: true });
+    const activation = page.getByRole("dialog", { name: "WarGrowlmon · effect", exact: true });
     await expect(activation).toContainText("Engage");
     await expect(activation).toContainText("at the end of this turn, this Digimon may attack.");
     await expect(activation).not.toContainText("Delete 1 of your opponent's Digimon");
@@ -101,9 +102,9 @@ test("Burst Mode hides the unpaid cost 0 route and displays its Option Main text
     await page.getByTestId("hand").getByRole("img", { name: "ShineGreymon: Burst Mode", exact: true }).click();
     await page.getByRole("button", { name: "Digivolve", exact: true }).click();
     await page.locator('[data-drop="perm-you"][data-id="arena-issue-4964-burst-own-tamer-0-field-0"]').click();
-    const activation = page.getByRole("region", { name: "ShineGreymon: Burst Mode · effect", exact: true });
+    const activation = page.getByRole("dialog", { name: "ShineGreymon: Burst Mode · effect", exact: true });
     await expect(activation).toBeVisible();
-    await expect(page.getByRole("region", { name: "Digivolve cost", exact: true })).not.toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Digivolve cost", exact: true })).not.toBeVisible();
     await expect(activation).toContainText("[Main]");
     await expect(activation).toContainText("-15000 DP");
     await activation.getByRole("button", { name: "Use", exact: true }).click();
@@ -249,7 +250,7 @@ test("#4985 the second Alliance stays selectable after answering the first", asy
     await page.getByRole("button", { name: "Digivolve", exact: true }).click();
     await page.locator('[data-drop="perm-you"][data-id="arena-issue-4985-double-alliance-0-field-0"]').click();
     await page
-      .getByRole("region", { name: "Digivolve cost", exact: true })
+      .getByRole("dialog", { name: "Digivolve cost", exact: true })
       .getByRole("button", { name: /^SaviorHuckmon.*3 memory/ })
       .click();
     await page.getByRole("button", { name: /^(Don't use|No, decline)$/i }).click();
@@ -348,7 +349,7 @@ test("#5004 Burst Digivolution with ST24 Marcus pays zero through the UI", async
     await page.getByTestId("hand").getByRole("img", { name: "ShineGreymon: Burst Mode", exact: true }).click();
     await page.getByRole("button", { name: "Digivolve", exact: true }).click();
     await page.locator('[data-drop="perm-you"][data-id="arena-issue-5004-shine-burst-marcus-0-field-0"]').click();
-    const costs = page.getByRole("region", { name: "Digivolve cost", exact: true });
+    const costs = page.getByRole("dialog", { name: "Digivolve cost", exact: true });
     await expect(costs).toBeVisible();
     await costs.getByRole("button").filter({ hasText: /0/ }).click();
     await expect(
@@ -466,3 +467,83 @@ test("#5014 Digital Gate Open offers Cool Boy for zero using Mother D-Reaper", a
     await server.close();
   }
 });
+
+for (const width of [1440, 390]) {
+  test(`#5166 compact field DNA selection preserves the chosen physical pair at width ${width}`, async ({ page }) => {
+    const server = await startBrowserServer();
+    try {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.addInitScript(() => localStorage.setItem("aegis.action-confirmation.enabled", "false"));
+      await new ArenaPage(page).open("arena-issue-5166-dna-material-pairs");
+      await page.getByRole("button", { name: /^end breeding$/i }).click();
+      await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
+      await page.getByTestId("hand").getByRole("img", { name: "Mastemon", exact: true }).click();
+      await page.getByRole("button", { name: "Digivolve", exact: true }).click();
+      const field = (index: number) =>
+        page.locator(`[data-drop="perm-you"][data-id="arena-issue-5166-dna-material-pairs-0-field-${index}"]`);
+      await field(0).click();
+      const rail = page.getByRole("region", { name: /DNA Digivolution available/i });
+      const confirm = rail.getByRole("button", { name: "DNA Digivolve", exact: true });
+      await expect(confirm).toBeDisabled();
+      await expect(field(0).getByLabel("DNA material 1", { exact: true })).toBeVisible();
+      await expect(rail.getByRole("button", { name: "View board", exact: true })).toBeVisible();
+      await expect(rail.locator("img")).toHaveCount(0);
+      await field(2).click();
+      await expect(confirm).toBeEnabled();
+      await expect(field(0).getByLabel("DNA material 1", { exact: true })).toBeVisible();
+      await expect(field(2).getByLabel("DNA material 2", { exact: true })).toBeVisible();
+      await expect(field(1)).toBeVisible();
+      await field(2).click();
+      await expect(confirm).toBeDisabled();
+      await field(1).click();
+      await expect(confirm).toBeEnabled();
+      await field(1).click();
+      await field(2).click();
+      const bounds = await confirm.boundingBox();
+      expect(bounds).not.toBeNull();
+      expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(1000);
+      await confirm.click();
+      await expect(
+        page.locator('[data-drop="perm-you"]').getByRole("img", { name: "Mastemon", exact: true }),
+      ).toBeVisible();
+      await expect(field(1).getByRole("img", { name: "LadyDevimon", exact: true })).toBeVisible();
+      await expect(field(2)).toHaveCount(0);
+    } finally {
+      await page.close();
+      await server.close();
+    }
+  });
+}
+
+for (const accept of [false, true]) {
+  test(`Cyber Engage opens one declinable hand selection (accept ${accept})`, async ({ page }) => {
+    const server = await startBrowserServer();
+    try {
+      await page.addInitScript(() => localStorage.setItem("aegis.action-confirmation.enabled", "false"));
+      await new ArenaPage(page).open("arena-issue-5173-cyber-engage");
+      await page.getByRole("button", { name: /^end breeding$/i }).click();
+      await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
+      await page.locator('[data-drop="perm-you"][data-id="arena-issue-5173-cyber-engage-0-field-0"]').click();
+      await page.getByRole("button", { name: /^Activate effect:/ }).click();
+      const choice = page.getByRole("region", { name: "Hand selection", exact: true });
+      await expect(choice).toBeVisible();
+      await expect(page.getByRole("button", { name: "Yes, activate", exact: true })).toHaveCount(0);
+      if (accept) {
+        await page.getByTestId("hand").getByRole("img", { name: "Roleplaymon", exact: true }).click();
+        await choice.getByRole("button", { name: "End Selection", exact: true }).click();
+        await expect(
+          page.locator('[data-drop="perm-you"]').getByRole("img", { name: "Roleplaymon", exact: true }),
+        ).toBeVisible();
+        await expect(page.getByRole("img", { name: "Memory: 0", exact: true })).toBeVisible();
+      } else {
+        await choice.getByRole("button", { name: "No Selection", exact: true }).click();
+        await expect(choice).toHaveCount(0);
+        await expect(page.getByTestId("hand").getByRole("img", { name: "Roleplaymon", exact: true })).toBeVisible();
+        await expect(page.getByRole("img", { name: "Memory: +1", exact: true })).toBeVisible();
+      }
+    } finally {
+      await page.close();
+      await server.close();
+    }
+  });
+}

@@ -24,8 +24,12 @@ describe("EX9-021", () => {
       trigger: "EndOfAttack",
       optional: true,
       actions: [
-        { kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, bindResultAs: "firstPlayed" },
-        { kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, bindResultAs: "secondPlayed" },
+        {
+          kind: "PlayWithoutCost",
+          fromOwnDigivolutionStack: true,
+          bindResultAs: "playedSources",
+          additionalSimultaneousTargets: [{ count: 1 }],
+        },
         { kind: "SecurityManipulation", op: "addTop" },
       ],
     });
@@ -177,6 +181,56 @@ describe("EX9-021", () => {
       expect.arrayContaining([...under]),
     );
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each([
+    ["red watcher", ["EX9-012", "AD1-010"], "EX9-013", "EX9-013"],
+    ["blue watcher", ["EX9-012", "AD1-010"], "EX9-019", "EX9-019"],
+  ])("#5168 lets the %s react to the other simultaneously played source", async (_label, under, hand, evolved) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-021", as: "alterS", under }], hand: [hand] },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("alterS").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security[0]?.cardId === "EX9-021" && !s.state.pendingDecision);
+    await settle();
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === evolved)).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it.each([
+    ["blue group alone", ["AD1-010"], ["AD1-010"]],
+    ["one card from each group", ["AD1-001", "AD1-001", "AD1-010", "AD1-010", "BT1-009"], ["AD1-001", "AD1-010"]],
+    ["no matching group", ["BT1-009"], ["EX9-021"]],
+  ])("#5168 preserves separately counted selections: %s", async (_label, under, expected) => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX9-021", as: "alterS", under }] }, 1: { security: ["BT1-009", "BT1-009"] } },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("alterS").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).sort()).toEqual(expected.sort());
+    expect(s.state.players[0]!.security.some(({ cardId }) => cardId === "EX9-021")).toBe(
+      under.some((card) => card !== "BT1-009"),
+    );
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

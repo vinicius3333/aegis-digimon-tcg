@@ -45,6 +45,44 @@ async function passToNextOwnMain(
 }
 
 describe("BT13-007 King Drasil_7D6", () => {
+  it("#5176: a Royal Knight ACE played during Main remains until the next own Main, with no Overflow on placement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT13-007", as: "drasil" },
+          hand: [{ card: "BT20-060", as: "ace" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { deck: ["BT1-009", "BT1-009"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoOrderCards: true,
+      },
+    );
+    s.state.memory = 10;
+    s.state.isFirstPlayersFirstTurn = false;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const aceId = s.inst("ace").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: aceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === aceId) &&
+        s.state.pendingDecision === undefined &&
+        s.engine.mainVerbContinuationsInFlight === 0,
+    );
+    expect(s.perm("drasil").stack.some((c) => c.instanceId === aceId)).toBe(false);
+    const { ownTurn } = await passToNextOwnMain(s, firstTurn, 5);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === aceId)).toBe(false);
+    expect(s.perm("drasil").stack.some((c) => c.instanceId === aceId)).toBe(true);
+    expect(s.state.memory).toBe(5);
+    expect(s.events.filter((e) => e.kind === "memoryChanged" && e.reason === "overflow")).toHaveLength(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+  });
+
   it("prevents its controller's Digimon from digivolving while it is in breeding", async () => {
     const s = setupEngine({
       0: {

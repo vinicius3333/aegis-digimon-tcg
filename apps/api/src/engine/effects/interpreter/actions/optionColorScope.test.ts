@@ -188,12 +188,14 @@ describe("Glowing Dawn peer Option use", () => {
 });
 
 describe("Option eligibility from printed filters and live use requirements", () => {
+  // Both DUAL fixtures have two Digimon colors, but a single green Option face.
+  // A printed single-color Option restriction must still offer those Option faces.
   it.each([
     [false, true, false, ["mono", "dual", "dual2"]],
-    [true, true, false, ["mono"]],
+    [true, true, false, ["mono", "dual", "dual2"]],
     [false, false, false, []],
     [true, false, false, []],
-    [true, false, true, ["mono"]],
+    [true, false, true, ["mono", "dual", "dual2"]],
     [false, false, true, ["mono", "dual", "dual2"]],
   ] as const)(
     "singleColor=%s, live requirement=%s, explicit waiver=%s",

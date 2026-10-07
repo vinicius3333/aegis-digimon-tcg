@@ -98,6 +98,7 @@ export interface PermanentChrome {
   decisionHighlightPermanentId?: string;
   /** Permanents currently picked by a board-answered target decision. */
   decisionPickedInstanceIds: ReadonlySet<string>;
+  materialSelectionOrder?: ReadonlyMap<string, number>;
   permanentBursts: ReadonlyMap<string, PermanentBurst>;
   pendingPermanentIds: ReadonlySet<string>;
   fateBadges: ReadonlyMap<string, PendingFateBadge>;
@@ -116,7 +117,14 @@ export interface PermanentChrome {
 export type PendingActionConfirmation =
   | { kind: DragKind.Play; instanceId: string; cardId: string }
   | { kind: "digivolve"; instanceId: string; cardId: string; permanentId: string; baseCardId: string }
-  | { kind: "dna"; instanceId: string; cardId: string; materialPermanentIds: string[]; normalPermanentId?: string };
+  | {
+      kind: "dna";
+      instanceId: string;
+      cardId: string;
+      materialPermanentIds: string[];
+      initialPermanentId?: string;
+      normalPermanentId?: string;
+    };
 
 /** An armed link declaration: the card to link, and the Digimon it may be plugged into. */
 export interface LinkDeclaration {

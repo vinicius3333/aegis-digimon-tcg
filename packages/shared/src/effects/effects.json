@@ -5997,13 +5997,9 @@
             "kind": "PlayWithoutCost",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "levels": [3] }, "count": 1 },
             "from": ["digivolutionCards"],
-            "fromOwnDigivolutionStack": true,
-            "payCost": false
-          },
-          {
-            "kind": "PlayWithoutCost",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "levels": [4] }, "count": 1 },
-            "from": ["digivolutionCards"],
+            "additionalSimultaneousTargets": [
+              { "filter": { "controller": "mine", "kind": ["Digimon"], "levels": [4] }, "count": 1 }
+            ],
             "fromOwnDigivolutionStack": true,
             "payCost": false
           }
@@ -80715,52 +80711,42 @@
               ],
               "count": 1
             },
-            "fromOwnDigivolutionStack": true,
-            "payCost": false,
-            "optional": false
-          },
-          {
-            "kind": "PlayWithoutCost",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "levels": [4],
-                "nameOrTrait": [{ "tokens": ["Aqua"], "match": "traitContains" }]
-              },
-              "orFilters": [
-                {
+            "additionalSimultaneousTargets": [
+              {
+                "filter": {
                   "controller": "mine",
                   "kind": ["Digimon"],
                   "levels": [4],
-                  "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "traitContains" }]
-                }
-              ],
-              "count": 1
-            },
-            "fromOwnDigivolutionStack": true,
-            "payCost": false,
-            "optional": false
-          },
-          {
-            "kind": "PlayWithoutCost",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "levels": [5],
-                "nameOrTrait": [{ "tokens": ["Aqua"], "match": "traitContains" }]
+                  "nameOrTrait": [{ "tokens": ["Aqua"], "match": "traitContains" }]
+                },
+                "orFilters": [
+                  {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levels": [4],
+                    "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "traitContains" }]
+                  }
+                ],
+                "count": 1
               },
-              "orFilters": [
-                {
+              {
+                "filter": {
                   "controller": "mine",
                   "kind": ["Digimon"],
                   "levels": [5],
-                  "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "traitContains" }]
-                }
-              ],
-              "count": 1
-            },
+                  "nameOrTrait": [{ "tokens": ["Aqua"], "match": "traitContains" }]
+                },
+                "orFilters": [
+                  {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levels": [5],
+                    "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "traitContains" }]
+                  }
+                ],
+                "count": 1
+              }
+            ],
             "fromOwnDigivolutionStack": true,
             "payCost": false,
             "optional": false
@@ -186061,39 +186047,29 @@
               },
               "count": 1
             },
+            "additionalSimultaneousTargets": [
+              {
+                "filter": {
+                  "controller": "mine",
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [
+                    { "tokens": ["Garurumon"], "match": "name" },
+                    { "tokens": ["Ver.2"], "match": "trait" }
+                  ]
+                },
+                "count": 1
+              }
+            ],
             "fromOwnDigivolutionStack": true,
             "payCost": false,
-            "bindResultAs": "firstPlayed"
-          },
-          {
-            "kind": "PlayWithoutCost",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [
-                  { "tokens": ["Garurumon"], "match": "name" },
-                  { "tokens": ["Ver.2"], "match": "trait" }
-                ]
-              },
-              "count": 1
-            },
-            "fromOwnDigivolutionStack": true,
-            "payCost": false,
-            "bindResultAs": "secondPlayed"
+            "bindResultAs": "playedSources"
           },
           {
             "kind": "SecurityManipulation",
             "op": "addTop",
             "controller": "mine",
             "source": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "condition": {
-              "kind": "anyOf",
-              "conditions": [
-                { "kind": "bindingExists", "ref": "firstPlayed" },
-                { "kind": "bindingExists", "ref": "secondPlayed" }
-              ]
-            }
+            "condition": { "kind": "bindingExists", "ref": "playedSources" }
           }
         ]
       }
@@ -224559,7 +224535,10 @@
     "residual": [],
     "appFusionRequirement": [{ "names": ["Weathermon", "Rocketmon", "Newsmon"], "cost": 0 }],
     "assemblyRequirement": [
-      { "reduceCost": 2, "materials": [{ "traits": ["Navi", "System", "Seven Code"], "level": 3, "count": 1 }] }
+      {
+        "reduceCost": 2,
+        "materials": [{ "kinds": ["Digimon"], "traits": ["Navi", "System", "Seven Code"], "level": 3, "count": 1 }]
+      }
     ],
     "linkRequirement": [{ "traits": ["Appmon"], "cost": 3 }]
   },
@@ -225671,7 +225650,9 @@
     "assemblyRequirement": [
       {
         "reduceCost": 6,
-        "materials": [{ "traits": ["Larva", "Insectoid", "Titan"], "count": 4, "differentLevels": true }]
+        "materials": [
+          { "kinds": ["Digimon"], "traits": ["Larva", "Insectoid", "Titan"], "count": 4, "differentLevels": true }
+        ]
       }
     ]
   },
@@ -227893,6 +227874,7 @@
         "reduceCost": 2,
         "materials": [
           {
+            "kinds": ["Digimon"],
             "levelMax": 4,
             "nameOrTrait": [
               { "tokens": ["Chronomon"], "match": "text" },

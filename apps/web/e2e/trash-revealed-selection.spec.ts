@@ -8,6 +8,7 @@ async function openScenario(page: Page, scenario: string) {
   });
   await page.goto(`/dev/arena?scenario=${scenario}`);
   await expect(page.getByRole("combobox", { name: "Scenario" })).toHaveValue(scenario);
+  await expect(page.getByRole("dialog", { name: "Connecting bot opponent…", exact: true })).toBeHidden();
   await page.getByRole("button", { name: /^end breeding$/i }).click();
   await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
 }
@@ -134,13 +135,14 @@ test("Discord 1557059213266522233: Assembly plays using the three selected trash
       .filter({ has: page.getByRole("img", { name: "Millenniummon", exact: true }) });
     await expect(source).toBeVisible();
     await page.getByRole("button", { name: "2 cards", exact: true }).click();
-    const optional = page.getByRole("dialog", { name: "Millenniummon · effect", exact: true });
-    await expect(optional.getByRole("button", { name: "Use", exact: true })).toBeVisible();
+    const optional = page.getByRole("region", { name: "Confirm targets", exact: true });
+    await expect(optional.getByText("Then, you may delete 1 Digimon.", { exact: true })).toBeVisible();
+    await expect(optional.getByText("0 selected of 0–1", { exact: true })).toBeVisible();
     for (const notice of await page.getByRole("button", { name: "Dismiss notice", exact: true }).all())
       await notice.click();
     await expect(page.locator(".match-notice")).toHaveCount(0);
     await expect(source).toHaveClass(/game-permanent--effect-linked/);
-    await optional.getByRole("button", { name: "Don't use", exact: true }).click();
+    await optional.getByRole("button", { name: "Pass", exact: true }).click();
     await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
     await expect(source).not.toHaveClass(/game-permanent--effect-linked/);
   } finally {

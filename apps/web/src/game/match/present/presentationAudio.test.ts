@@ -33,10 +33,43 @@ function cues(patch: Partial<MatchCues> = {}): MatchCues {
     phaseBanner: null,
     notices: [],
     sidePanels: [],
+    securityDealCounts: new Map(),
     ...patch,
   } as unknown as MatchCues;
 }
 describe("painted presentation audio", () => {
+  it("voices Options, Breeding/Main banners, each dealt shield, and protection call-outs", () => {
+    const option = {
+      key: 7,
+      cardId: "BT1-090",
+      seat: 0 as const,
+      mine: true,
+      kind: "play" as const,
+      color: "Red" as const,
+    };
+    expect(soundsForPresentation(cues({ zoneShowcase: option })).map((sound) => sound.kind)).toEqual(["optionUse"]);
+    const banner = (phase: string) =>
+      soundsForPresentation(cues({ phaseBanner: { key: 3, phase } as MatchCues["phaseBanner"] })).map(
+        (sound) => sound.kind,
+      );
+    expect(banner("Main")).toEqual(["phase"]);
+    expect(banner("Breeding")).toEqual(["phase"]);
+    expect(banner("Draw")).toEqual([]);
+    const seen = new Set<string>();
+    const deal = (dealt: number) =>
+      takeNewPresentationSounds(soundsForPresentation(cues({ securityDealCounts: new Map([[0, dealt]]) })), seen);
+    expect(deal(0)).toEqual([]);
+    expect(deal(1)).toMatchObject([{ kind: "securityDeal" }]);
+    expect(deal(1)).toEqual([]);
+    expect(deal(2)).toHaveLength(1);
+    const notice = (keyword: string) =>
+      soundsForPresentation(
+        cues({ notices: [{ id: keyword, body: { variant: "keyword", keyword, cardId: "BT1-010" } }] as never }),
+      ).map((sound) => sound.kind);
+    expect(notice("guard")).toEqual(["protect"]);
+    expect(notice("digiXros")).toEqual(["group"]);
+    expect(notice("cannotBlock")).toEqual(["group"]);
+  });
   it("plays public play once across showcase, landing, and repeated commits", () => {
     const seen = new Set<string>();
     const showcase = {

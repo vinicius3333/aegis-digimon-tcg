@@ -483,11 +483,7 @@
   padding: var(--ds-space-5) var(--aegis-dialog-pad);
   color: var(--ds-on-ink);
   border-bottom: 1px solid color-mix(in srgb, var(--ds-ink-accent) 30%, transparent);
-  background: linear-gradient(
-    135deg,
-    var(--ds-ink) 0%,
-    color-mix(in srgb, var(--ds-accent) 16%, var(--ds-ink)) 100%
-  );
+  background: linear-gradient(135deg, var(--ds-ink) 0%, color-mix(in srgb, var(--ds-accent) 16%, var(--ds-ink)) 100%);
 }
 
 .aegis-dialog__header::before {
@@ -815,8 +811,16 @@
   justify-content: center;
   gap: 5px;
   min-width: 0;
-  padding: 6px 4px;
-  font-size: 10px;
+  padding: 6px 2px;
+  /* Five tabs share a phone's width: "Community" and "Collection" only fit side by side at
+     this size without the desktop tracking. */
+  font-size: 9px;
+  letter-spacing: 0;
+}
+.aegis-nav-item__label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 /* On the tab bar the active marker is a short bar on the top edge. */
 .aegis-nav-item--compact::after {

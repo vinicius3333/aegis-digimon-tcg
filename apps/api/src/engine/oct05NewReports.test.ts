@@ -59,7 +59,7 @@ it("#5004 ST24-13 pays Burst Digivolution's Marcus Damon return", async () => {
         deck: ["BT1-010", "BT1-010"],
       },
     },
-    { autoSelectCards: true, autoAcceptOptional: false },
+    { autoSelectCards: true, autoDeclineOptional: true },
   );
   await s.ready();
   s.state.memory = 8;

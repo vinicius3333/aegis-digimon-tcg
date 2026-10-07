@@ -44,6 +44,24 @@ export function MatchTimer({ state, seat, opponent = false }: { state: GameState
   );
 }
 
+/** The series score beside the clock, from the viewer's side; nothing in a single game. */
+export function SeriesBadge({ state, viewerSeat }: { state: GameState; viewerSeat: Seat }) {
+  const { t } = useTranslation();
+  const series = state.series;
+  if (!series || series.bestOf <= 1) return null;
+  const you = viewerSeat === 0 ? series.wins0 : series.wins1;
+  const opponent = viewerSeat === 0 ? series.wins1 : series.wins0;
+  const values = { game: series.gameNumber, bestOf: series.bestOf, you, opponent };
+  return (
+    <span className="series-badge" role="status" aria-label={t("game.series.badgeLabel", values)}>
+      <span className="series-badge__game" aria-hidden="true">
+        {t("game.series.badgeGame", values)}
+      </span>
+      <span aria-hidden="true">{t("game.series.badgeScore", values)}</span>
+    </span>
+  );
+}
+
 /** Keep both clocks visible while a decision sheet covers the player identities. */
 export function DecisionMatchTimer({ state, seat }: { state: GameState; seat: Seat }) {
   if (!state.matchTimer || state.gameOver || !state.pendingDecision || typeof document === "undefined") return null;

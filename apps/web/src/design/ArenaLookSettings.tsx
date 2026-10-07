@@ -55,15 +55,36 @@ const BATTLEFIELD_LABEL_KEYS: Partial<Record<string, TranslationKey>> = {
   [CUSTOM_BATTLEFIELD_ID]: "settings.playmatCustom",
 };
 
-function PreviewHalf({ label, side }: { label: string; side: "player" | "opponent" }) {
+const PREVIEW_DIGIMON_SLOTS = 3;
+const PREVIEW_TAMER_SLOTS = 2;
+
+function PreviewSlots({ count, side, kind }: { count: number; side: "player" | "opponent"; kind: "digimon" | "tamer" }) {
+  return Array.from({ length: count }, (_, slot) => (
+    <span key={`${kind}-${slot}`} data-side={side} data-kind={kind} className="aegis-arena-look__slot" />
+  ));
+}
+
+function PreviewHalf({ label, side, lanes }: { label: string; side: "player" | "opponent"; lanes: BattleLanes }) {
   return (
-    <div className="aegis-arena-look__half">
+    <div className="aegis-arena-look__half" data-side={side}>
       <span data-side={side} className="aegis-arena-side-label aegis-arena-look__side-label">
         {label}
       </span>
-      {[0, 1, 2].map((slot) => (
-        <span key={slot} data-side={side} className="aegis-arena-look__slot" />
-      ))}
+      {lanes === BattleLanes.Two ? (
+        <>
+          <div className="aegis-arena-look__lane">
+            <PreviewSlots count={PREVIEW_DIGIMON_SLOTS} side={side} kind="digimon" />
+          </div>
+          <div className="aegis-arena-look__lane">
+            <PreviewSlots count={PREVIEW_TAMER_SLOTS} side={side} kind="tamer" />
+          </div>
+        </>
+      ) : (
+        <div className="aegis-arena-look__lane">
+          <PreviewSlots count={PREVIEW_DIGIMON_SLOTS} side={side} kind="digimon" />
+          <PreviewSlots count={PREVIEW_TAMER_SLOTS} side={side} kind="tamer" />
+        </div>
+      )}
     </div>
   );
 }
@@ -147,8 +168,8 @@ export function ArenaLookSettings({
               className="aegis-arena-backdrop aegis-arena-look__backdrop"
               data-art={battlefield.src ? "" : undefined}
             />
-            <PreviewHalf label={t("redesign.foundation.arena.opponent")} side="opponent" />
-            <PreviewHalf label={t("redesign.foundation.arena.you")} side="player" />
+            <PreviewHalf label={t("redesign.foundation.arena.opponent")} side="opponent" lanes={battleLanes} />
+            <PreviewHalf label={t("redesign.foundation.arena.you")} side="player" lanes={battleLanes} />
             <span className="aegis-arena-clash aegis-arena-look__clash" />
           </div>
           <p className="aegis-arena-look__note">{t("redesign.foundation.arena.themeNote")}</p>

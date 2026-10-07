@@ -76,7 +76,7 @@ function renderCombatGame(kind: "alliance" | "block" | "counter" = "alliance", m
     { instanceId: "ineligible-top", effectKey: "second", description: "Second counter" },
   ]);
   const send = vi.fn<(type: string, payload: unknown) => void>();
-  const room = { connection: { isOpen: true }, send } as unknown as AegisRoom;
+  const room = { connection: { isOpen: true }, send, onMessage: () => () => {} } as unknown as AegisRoom;
   const view = render(
     <I18nProvider>
       <GameScreen

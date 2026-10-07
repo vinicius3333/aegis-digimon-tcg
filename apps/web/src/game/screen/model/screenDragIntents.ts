@@ -61,6 +61,7 @@ export function dragIntentAt(input: {
         you.battleArea,
         digivolveTargetsOf({ handEntries, instanceId: drag.instanceId }).includes(hit.id ?? ""),
         entry.dnaDigivolveRoutes,
+        base.permanentId,
       )
     : undefined;
   const appFusion = base ? appFusionRoutesForHost(entry.appFusionRoutes ?? [], base).length > 0 : false;

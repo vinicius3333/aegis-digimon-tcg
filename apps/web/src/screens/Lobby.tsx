@@ -8,12 +8,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   allCards,
   MATCH_TIMER_REFILL_SECONDS,
+  type MatchBestOf,
   type MatchTimerOptions,
   bannedPairViolations,
   effectiveCopyLimit as banlistLimit,
   getCardDefinition,
   isBetaOnlyCard,
   sharedCardNumberGroups,
+  deckLegality,
 } from "@aegis/shared";
 import {
   Alert,
@@ -32,10 +34,11 @@ import { FAMOUS_DECKS, FAMOUS_DECK_GROUPS, displayCoverCard, selectableDecks, ty
 import { useTranslation, type Translate } from "../i18n";
 import { RankedStart } from "../account/RankedStart";
 import { RANKED_ENABLED } from "../features";
-import { deckLegality } from "./DeckListCard";
 import { DeckColorDots, DeckPicker } from "./DeckPicker";
 import { FamousDeckListDialog } from "./FamousDeckListDialog";
+import { MatchFormatSettings } from "./MatchFormatSettings";
 import { MatchTimerSettings } from "./MatchTimerSettings";
+import { loadMatchFormatPreference, saveMatchFormatPreference } from "./matchFormatPreference";
 import { loadMatchTimerPreference, saveMatchTimerPreference } from "./matchTimerPreference";
 import "./lobby.css";
 import { SpectatorPanel } from "./SpectatorPanel";
@@ -147,6 +150,10 @@ const modesFor = (t: Translate): Mode[] => [
 export function Lobby({
   player,
   decks,
+  borrowedDeck,
+  onBorrowCommunityDeck,
+  onOpenCommunityDeck,
+  accountId,
   activeDeckId,
   onSelectDeck,
   onCopyDeck,
@@ -158,11 +165,21 @@ export function Lobby({
   onLeavePrivateRoom,
   timerOptions,
   onTimerOptionsChange,
+  bestOf: initialBestOf,
+  onBestOfChange,
 }: {
   timerOptions?: MatchTimerOptions;
   onTimerOptionsChange?: (options: Required<MatchTimerOptions>) => void;
+  bestOf?: MatchBestOf;
+  onBestOfChange?: (bestOf: MatchBestOf) => void;
   player: PlayerIdentity;
   decks: DeckListing[];
+  /** A community deck picked to play with; selectable like a preset but never saved. */
+  borrowedDeck?: DeckListing;
+  onBorrowCommunityDeck?: (id: string) => void;
+  onOpenCommunityDeck?: (id: string) => void;
+  /** The signed-in account, so community tiles can be liked from the picker. */
+  accountId?: string;
   activeDeckId: string;
   onSelectDeck: (id: string) => void;
   onCopyDeck: (deck: DeckListing) => void;
@@ -187,6 +204,12 @@ export function Lobby({
   function changeTimer(options: Required<MatchTimerOptions>) {
     setTimer(options);
     onTimerOptionsChange?.(options);
+  }
+  const [bestOf, setBestOf] = useState<MatchBestOf>(() => initialBestOf ?? loadMatchFormatPreference());
+  function changeBestOf(next: MatchBestOf) {
+    setBestOf(next);
+    saveMatchFormatPreference(next);
+    onBestOfChange?.(next);
   }
   const [mode, setMode] = useState(invitedRoomCode || privateRoom ? "private" : "casual");
   const [betaConfirmation, setBetaConfirmation] = useState<"beta" | "bot" | null>(null);
@@ -223,12 +246,21 @@ export function Lobby({
     [onEditDeck, onSelectDeck, onNav],
   );
   const buildDeck = useCallback(() => onNav("deck"), [onNav]);
-  const availableDecks = selectableDecks(decks);
+  const pickCommunityDeck = useCallback(
+    (id: string) => {
+      setRandomSelected(false);
+      onBorrowCommunityDeck?.(id);
+    },
+    [onBorrowCommunityDeck],
+  );
+  const openCommunityDeck = useCallback((id: string) => onOpenCommunityDeck?.(id), [onOpenCommunityDeck]);
+  const availableDecks = borrowedDeck ? [borrowedDeck, ...selectableDecks(decks)] : selectableDecks(decks);
   const active = availableDecks.find((d) => d.id === activeDeckId) ?? availableDecks[0];
   const activeCollection = FAMOUS_DECK_GROUPS.find((group) =>
     group.decks.some((deck) => deck.id === active?.id),
   )?.collection;
   const activeIsPreset = activeCollection !== undefined;
+  const activeIsBorrowed = borrowedDeck !== undefined && active?.id === borrowedDeck.id;
   const vsBot = mode === "practice";
   const banViolations = useMemo(() => {
     if (!active) return [];
@@ -414,6 +446,11 @@ export function Lobby({
                     {deckLegal ? <Icons.Check size={13} /> : null}
                     {deckStatus.label}
                   </span>
+                  {bestOf === 3 && (mode === "casual" || (mode === "private" && privateSub === "create")) ? (
+                    <span className="lobby-timer-summary">
+                      <Icons.Trophy size={13} /> {t("lobby.format.enabled")}
+                    </span>
+                  ) : null}
                   {timer.matchTimer && (mode === "casual" || (mode === "private" && privateSub === "create")) ? (
                     <span className="lobby-timer-summary">
                       <Icons.Clock size={13} /> {t("lobby.timer.enabled")}
@@ -422,6 +459,10 @@ export function Lobby({
                   {activeIsPreset ? (
                     <span className="lobby-active-strip__source">
                       {t("lobby.presetSource", { collection: activeCollection })}
+                    </span>
+                  ) : activeIsBorrowed ? (
+                    <span className="lobby-active-strip__source">
+                      {t("community.lobbySource", { name: active.blurb })}
                     </span>
                   ) : null}
                 </span>
@@ -459,6 +500,17 @@ export function Lobby({
                   <Icons.Copy size={16} />
                 </IconButton>
               </>
+            ) : !randomSelected && active && activeIsBorrowed ? (
+              <IconButton
+                className="lobby-deck-action"
+                variant="ghost"
+                size="sm"
+                label={t("lobby.copyPreset")}
+                title={t("lobby.copyPreset")}
+                onClick={() => onCopyDeck(active)}
+              >
+                <Icons.Copy size={16} />
+              </IconButton>
             ) : null}
             <IconButton
               className="lobby-deck-action"
@@ -603,7 +655,10 @@ export function Lobby({
 
             <div className="lobby-setup__column">
               {mode === "casual" || (mode === "private" && privateSub === "create" && !privateRoom) ? (
-                <MatchTimerSettings options={timer} onChange={changeTimer} privateRoom={mode === "private"} />
+                <div className="lobby-match-rules">
+                  <MatchFormatSettings bestOf={bestOf} onChange={changeBestOf} />
+                  <MatchTimerSettings options={timer} onChange={changeTimer} privateRoom={mode === "private"} />
+                </div>
               ) : mode === "private" ? (
                 <p className="lobby-timer-hint">{t("lobby.timer.guestHint")}</p>
               ) : null}
@@ -695,6 +750,9 @@ export function Lobby({
           onViewDeck={setViewedDeck}
           onEditDeck={editDeck}
           onBuildDeck={buildDeck}
+          onPickCommunityDeck={pickCommunityDeck}
+          onOpenCommunityDeck={openCommunityDeck}
+          accountId={accountId}
         />
       </div>
       {viewedDeck ? (

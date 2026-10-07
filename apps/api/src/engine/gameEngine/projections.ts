@@ -679,7 +679,7 @@ export class BoardProjection {
             .map(({ materials }) => materials.length)
             .filter((count) => count >= 2),
         );
-        const chooseMaterials = (requiredCount: number, start: number, chosen: Permanent[]): boolean => {
+        const chooseMaterials = (requiredCount: number, start: number, chosen: Permanent[]): void => {
           if (chosen.length === requiredCount) {
             const materialPermanentIds = chosen.map(({ permanentId }) => permanentId);
             const check = validateDnaDigivolve(
@@ -693,17 +693,15 @@ export class BoardProjection {
               route.materialPermanentIdsJson = JSON.stringify(materialPermanentIds);
               route.projectedCost = check.cost;
               dnaDigivolveRoutes.push(route);
-              return true;
             }
-            return false;
+            return;
           }
           for (let index = start; index < battleArea.length; index += 1) {
-            if (chooseMaterials(requiredCount, index + 1, [...chosen, battleArea[index]!])) return true;
+            chooseMaterials(requiredCount, index + 1, [...chosen, battleArea[index]!]);
           }
-          return false;
         };
         for (const materialCount of materialCounts) {
-          if (chooseMaterials(materialCount, 0, [])) break;
+          chooseMaterials(materialCount, 0, []);
         }
 
         for (const base of active.bases) {

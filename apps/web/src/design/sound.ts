@@ -1,5 +1,6 @@
 import { cueKey, type SoundKind, type SoundDetails } from "./audioRecipes";
-import { AUDIO_BANK_URL, AUDIO_CUES, MUSIC_URL } from "./audioBank";
+import { AUDIO_BANK_URL, AUDIO_CUES } from "./audioBank";
+import { DEFAULT_MUSIC_TRACK, isMusicTrack, MUSIC_TRACK_URLS, type MusicTrack } from "./musicTracks";
 import { MediaAudio, needsMediaAudio } from "./mediaAudio";
 export type { SoundKind, SoundDetails } from "./audioRecipes";
 const clamp = (value: number, fallback = 0) => (Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : fallback);
@@ -19,7 +20,15 @@ function readVolume(key: string, fallback: number): number {
     return fallback;
   }
 }
-function persist(key: string, value: number | boolean): void {
+function readTrack(): MusicTrack {
+  try {
+    const raw = localStorage.getItem("aegis.music.track");
+    return isMusicTrack(raw) ? raw : DEFAULT_MUSIC_TRACK;
+  } catch {
+    return DEFAULT_MUSIC_TRACK;
+  }
+}
+function persist(key: string, value: number | boolean | string): void {
   try {
     localStorage.setItem(key, String(value));
   } catch {
@@ -30,6 +39,8 @@ let enabled = readFlag("aegis.sound.enabled");
 let volume = readVolume("aegis.sound.volume", 0.7);
 let musicEnabled = readFlag("aegis.music.enabled");
 let musicVolume = readVolume("aegis.music.volume", 0.25);
+let musicTrack = readTrack();
+const musicUrl = () => MUSIC_TRACK_URLS[musicTrack];
 let context: AudioContext | null = null;
 let effectsBus: GainNode | null = null;
 let musicBus: GainNode | null = null;
@@ -50,7 +61,14 @@ let mediaAudio: MediaAudio | null = null;
 function getMediaAudio(): MediaAudio | null {
   if (!needsMediaAudio()) return null;
   mediaAudio ??= new MediaAudio(
-    () => ({ enabled, effectsVolume: volume * SFX_MIX_GAIN, musicEnabled, musicVolume, musicWanted }),
+    () => ({
+      enabled,
+      effectsVolume: volume * SFX_MIX_GAIN,
+      musicEnabled,
+      musicVolume,
+      musicWanted,
+      musicUrl: musicUrl(),
+    }),
     MAX_SOUND_VOICES,
   );
   return mediaAudio;
@@ -59,7 +77,7 @@ function getMediaAudio(): MediaAudio | null {
 /** Network starts at app mount; each buffer decodes independently only in a gesture-created context. */
 export async function prepareAudio(): Promise<void> {
   const media = getMediaAudio();
-  const urls = media ? [AUDIO_BANK_URL] : [AUDIO_BANK_URL, MUSIC_URL];
+  const urls = media ? [AUDIO_BANK_URL] : [AUDIO_BANK_URL, musicUrl()];
   await Promise.all(
     urls.map(async (url) => {
       let request = assets.get(url);
@@ -77,8 +95,8 @@ export async function prepareAudio(): Promise<void> {
           return;
         }
         const ctx = context;
-        const isMusic = url === MUSIC_URL;
-        if (!ctx || !unlocked || (isMusic ? musicBuffer : cueBuffer)) return;
+        const isMusic = url !== AUDIO_BANK_URL;
+        if (!ctx || !unlocked || (isMusic ? musicBuffer || url !== musicUrl() : cueBuffer)) return;
         let task = decoding.get(url);
         if (!task) {
           const generation = epoch;
@@ -86,8 +104,10 @@ export async function prepareAudio(): Promise<void> {
             .decodeAudioData(bytes.slice(0))
             .then((buffer) => {
               if (context !== ctx || epoch !== generation) return;
-              if (isMusic) musicBuffer = buffer;
-              else cueBuffer = buffer;
+              if (!isMusic) cueBuffer = buffer;
+              // The player may have picked another track while this one was decoding.
+              else if (url === musicUrl()) musicBuffer = buffer;
+              else return;
               syncMusic();
             })
             .catch(() => undefined);
@@ -139,6 +159,17 @@ export function setMusicVolume(next: number): void {
   musicVolume = clamp(next);
   persist("aegis.music.volume", musicVolume);
   syncMusic();
+}
+export const getMusicTrack = () => musicTrack;
+export function setMusicTrack(next: MusicTrack): void {
+  if (next === musicTrack) return;
+  musicTrack = next;
+  persist("aegis.music.track", next);
+  musicBuffer = null;
+  musicOrigin = null;
+  stopMusicVoices();
+  syncMusic();
+  void prepareAudio();
 }
 
 /** Called by trusted input listeners, before an action's delayed presentation. */

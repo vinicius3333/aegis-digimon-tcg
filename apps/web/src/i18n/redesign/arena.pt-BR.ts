@@ -7,6 +7,7 @@ export const arenaPtBR: Record<keyof typeof arenaEn, string> = {
   "redesign.arena.audio.title": "Som",
   "redesign.arena.audio.music": "Música",
   "redesign.arena.audio.musicVolume": "Volume da música",
+  "redesign.arena.audio.musicTrack": "Trilha sonora",
   "redesign.arena.audio.effects": "Efeitos sonoros e sinais",
   "redesign.arena.audio.effectsVolume": "Volume dos efeitos",
 

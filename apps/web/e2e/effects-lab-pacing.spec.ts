@@ -193,7 +193,7 @@ class EffectsLabPage {
     await expect(this.page.getByRole("button", { name: "Sequential", exact: true })).toHaveCount(0);
     await this.button(/^Collapse/i).click();
     await this.button(/END BREEDING/i).click();
-    await expect(this.button(/END PHASE/i)).toBeEnabled({ timeout: 20_000 });
+    await expect(this.button(/END TURN/i)).toBeEnabled({ timeout: 20_000 });
     await this.page.evaluate(
       ({ key, observePaint }) => {
         const globals = window as unknown as Record<string, unknown>;
@@ -265,7 +265,7 @@ class EffectsLabPage {
       },
       { key: LAB_KEY, observePaint },
     );
-    if (endTurn) await this.button(/END PHASE/i).click();
+    if (endTurn) await this.button(/END TURN/i).click();
   }
   read() {
     return this.page.evaluate((key) => (window as unknown as Record<string, LabReader>)[key]!(), LAB_KEY);
@@ -497,21 +497,22 @@ class EffectsLabPage {
 
 test.describe("effects lab pacing in the browser", () => {
   // The lab plays a real bot room, so it runs against the API's own entry point.
+  const apiPort = Number(process.env.AEGIS_E2E_EDGE_PORT ?? 2569);
   let api: ChildProcess;
   let startupOutput = "";
   test.beforeAll(async () => {
     const listening = () =>
       new Promise<boolean>((resolve) => {
-        const socket = connect(2569, "127.0.0.1", () => {
+        const socket = connect(apiPort, "127.0.0.1", () => {
           socket.destroy();
           resolve(true);
         });
         socket.once("error", () => resolve(false));
       });
-    expect(await listening(), "test API port 2569 is already occupied").toBe(false);
+    expect(await listening(), `test API port ${apiPort} is already occupied`).toBe(false);
     api = spawn(process.execPath, ["dist/index.js"], {
       cwd: fileURLToPath(new URL("../../api/", import.meta.url)),
-      env: { ...process.env, PORT: "2569" },
+      env: { ...process.env, PORT: String(apiPort) },
       stdio: ["ignore", "pipe", "pipe"],
     });
     api.stdout?.on("data", (chunk) => {
@@ -595,12 +596,12 @@ test.describe("effects lab pacing in the browser", () => {
           } else await prompt.getByRole("button", { name: "Pass", exact: true }).click();
         }
         if (scenario.decision?.kind === "Barrier") {
-          const prompt = page.getByRole("region", { name: "＜Barrier＞", exact: true });
+          const prompt = page.getByRole("dialog", { name: "＜Barrier＞", exact: true });
           await expect(prompt).toBeVisible();
           await waitForDecisionPaint(page, "＜Barrier＞");
           await prompt
             .getByRole("button", {
-              name: scenario.decision.accept ? "Yes, trash security" : "No, let it be deleted",
+              name: scenario.decision.accept ? "Use" : "Don't use",
               exact: true,
             })
             .click();
@@ -645,7 +646,7 @@ test.describe("effects lab pacing in the browser", () => {
               ?.isSuspended,
           ).toBe(false);
         }
-        await expect(lab.button(/END PHASE/i)).toBeEnabled();
+        await expect(lab.button(/END TURN/i)).toBeEnabled();
         const capture = await finishPacingCapture(page);
         await info.attach("real-keyword-pacing.json", {
           body: Buffer.from(JSON.stringify({ scenario, speed, format, capture, state }, null, 2)),
@@ -725,7 +726,7 @@ test.describe("effects lab pacing in the browser", () => {
           ]);
         }
         await mark("end-turn");
-        await lab.button(/END PHASE/i).click();
+        await lab.button(/END TURN/i).click();
         if (scenario.flow === "block") {
           const prompt = page.getByRole("region", { name: "Block window", exact: true });
           await expect(prompt).toBeVisible({ timeout: 40_000 });
@@ -883,7 +884,7 @@ test.describe("effects lab pacing in the browser", () => {
         let label: string;
         if (scenario.flow === "evade") {
           label = "＜Evade＞";
-          const prompt = page.getByRole("region", { name: label, exact: true });
+          const prompt = page.getByRole("dialog", { name: label, exact: true });
           await expect(prompt).toBeVisible();
           await waitForDecisionPaint(page, label);
           actions.push({
@@ -892,7 +893,7 @@ test.describe("effects lab pacing in the browser", () => {
           });
           await prompt
             .getByRole("button", {
-              name: scenario.accept ? "Yes, suspend to evade" : "No, let it be deleted",
+              name: scenario.accept ? "Use" : "Don't use",
               exact: true,
             })
             .click();
@@ -1110,7 +1111,7 @@ test.describe("effects lab pacing in the browser", () => {
             { timeout: 40_000 },
           )
           .toBe(true);
-        await expect(lab.button(/END PHASE/i)).toBeEnabled();
+        await expect(lab.button(/END TURN/i)).toBeEnabled();
         const capture = await finishPacingCapture(page);
         const state = await lab.read();
         await info.attach("real-keyword-pacing.json", {
@@ -1271,7 +1272,7 @@ test.describe("effects lab pacing in the browser", () => {
       await lab.start("keyword-pacing-vortex-decline", false, format.speed, false);
       const before = await lab.read();
       await startPacingCapture(page);
-      await lab.button(/END PHASE/i).click();
+      await lab.button(/END TURN/i).click();
       await expect
         .poll(
           async () => {
@@ -1372,7 +1373,7 @@ test.describe("effects lab pacing in the browser", () => {
         const before = await lab.read();
         const audioBefore = await readAudioCapture(page);
         await startPacingCapture(page);
-        await lab.button(/END PHASE/i).click();
+        await lab.button(/END TURN/i).click();
         await expect
           .poll(
             async () => {
@@ -1695,7 +1696,7 @@ test.describe("effects lab pacing in the browser", () => {
             )
             .toBe(true);
           await boundary("end-turn");
-          await lab.button(/END PHASE/i).click();
+          await lab.button(/END TURN/i).click();
           await expect.poll(async () => (await lab.read()).decision?.kind).toMatch(/^(orderTriggers|optional)$/);
           if ((await lab.read()).decision?.kind === "orderTriggers") {
             await page.getByRole("button", { name: /GrandGalemon/i }).click();
@@ -1897,7 +1898,7 @@ test.describe("effects lab pacing in the browser", () => {
         ];
         if (scenario.sourceSeat === 0)
           await new GamePage(page).play(new RegExp(`^${getCardDefinition(scenario.sourceCardId)!.nameEn}$`, "i"));
-        else await lab.button(/END PHASE/i).click();
+        else await lab.button(/END TURN/i).click();
         await expect
           .poll(
             async () => {

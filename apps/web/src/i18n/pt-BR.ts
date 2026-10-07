@@ -6,11 +6,14 @@
 import type { en } from "./en";
 import releaseMessages from "../releases/messages.json";
 import { arenaPtBR } from "./redesign/arena.pt-BR";
+import { chatPtBR } from "./redesign/chat.pt-BR";
 import { collectionPtBR } from "./redesign/collection.pt-BR";
 import { decksPtBR } from "./redesign/decks.pt-BR";
+import { communityPtBR } from "./redesign/community.pt-BR";
 import { foundationPtBR } from "./redesign/foundation.pt-BR";
 import { homePtBR } from "./redesign/home.pt-BR";
 import { playPtBR } from "./redesign/play.pt-BR";
+import { seriesPtBR } from "./redesign/series.pt-BR";
 import { settingsPtBR } from "./redesign/settings.pt-BR";
 import { shellPtBR } from "./redesign/shell.pt-BR";
 
@@ -34,10 +37,10 @@ export const ptBR: Record<keyof typeof en, string> = {
   "lobby.timer.with": "Com timer",
   "lobby.timer.without": "Sem timer",
   "lobby.timer.summary": "{minutes} min iniciais · +60s no seu turno · +30s no turno do oponente",
-  "lobby.timer.publicHint": "Você encontra jogadores com a mesma opção de timer.",
+  "lobby.timer.publicHint": "Você encontra jogadores com o mesmo formato e timer.",
   "lobby.timer.privateHint":
     "Vale para os dois jogadores. Conta enquanto você decide, até o limite do tempo inicial. Zerar significa derrota.",
-  "lobby.timer.guestHint": "O anfitrião define o timer para os dois jogadores.",
+  "lobby.timer.guestHint": "O anfitrião define o formato e o timer para os dois jogadores.",
   "lobby.timer.start": "Tempo inicial",
   "lobby.timer.refill": "Reposição por turno",
   "lobby.timer.seconds": "{seconds} s",
@@ -742,6 +745,11 @@ export const ptBR: Record<keyof typeof en, string> = {
   "settings.music": "Ambiente de fundo",
   "settings.musicDesc": "Trilha original suave durante as partidas",
   "settings.musicVolume": "Volume da música",
+  "settings.musicTrack": "Trilha sonora",
+  "settings.musicTrackDesc": "Escolha a música que toca durante as partidas",
+  "settings.musicTrackDigitalBattle": "Batalha digital",
+  "settings.musicTrackDigitalAscent": "Ascensão digital",
+  "settings.musicTrackWarmDrive": "Ritmo envolvente",
   "settings.volume": "Volume",
   "settings.community": "Comunidade",
   "settings.communityDesc": "Novidades, partidas e papo de deck no nosso servidor do Discord.",
@@ -1169,12 +1177,29 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.mainMenu": "Menu principal",
   "overlay.backToRoom": "Voltar para a sala",
   "overlay.findRematch": "Buscar revanche",
+  "overlay.showResult": "Ver resultado",
+  "overlay.reveal.hint": "Clique nos montes para ver as cartas",
+  "overlay.reveal.deck": "Deck de {name}",
+  "overlay.reveal.yourDeck": "Seu deck",
+  "overlay.reveal.eggDeck": "Ovos de {name}",
+  "overlay.reveal.yourEggDeck": "Seus ovos",
+  "overlay.reveal.count": "{count} cartas · topo primeiro",
+  "overlay.reveal.empty": "Nenhuma carta aqui.",
   "overlay.digivolveCost": "Custo de digievolução",
   "overlay.dualPlayTitle": "Escolha qual lado usar",
   "overlay.dualPlayDetail": "Jogue esta carta como Digimon ou use seu efeito de Option.",
   "overlay.playAsDigimon": "Jogar como Digimon",
   "overlay.useAsOption": "Usar como Option",
   "overlay.confirmActionTitle": "Confirmar ação",
+  "overlay.dnaMaterialOrder": "Material de DNA {number}",
+  "overlay.dnaSelectOnField": "Selecione os dois materiais de DNA no campo.",
+  "overlay.dnaConfirmMaterials": "Confirme os materiais de DNA.",
+  "overlay.dnaSelectionCount": "{count} de 2 materiais selecionados",
+  "overlay.dnaStackOrder": "1 fica no fundo, 2 acima",
+  "overlay.dnaChooseMaterials": "Escolha as pilhas para digievoluir por DNA.",
+  "overlay.dnaUnavailable": "Nenhum material de DNA disponível.",
+  "overlay.dnaPair": "Par {number}",
+  "overlay.dnaSources": "{count} cartas de digievolução",
   "overlay.confirmDnaTitle": "Digievolução DNA disponível",
   "overlay.confirmPlayDetail": "Jogar {card} na sua área de batalha?",
   "overlay.confirmDigivolveDetail": "Digievoluir {base} para {card}?",
@@ -1827,7 +1852,10 @@ export const ptBR: Record<keyof typeof en, string> = {
   ...homePtBR,
   ...playPtBR,
   ...decksPtBR,
+  ...communityPtBR,
   ...collectionPtBR,
   ...settingsPtBR,
   ...arenaPtBR,
+  ...chatPtBR,
+  ...seriesPtBR,
 };

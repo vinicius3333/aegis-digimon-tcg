@@ -194,6 +194,15 @@ test("Discord 1556831312008974437: Jesmon attacks at negative memory after gaini
       .locator(".trigger-chooser__footer")
       .getByRole("button", { name: /resolve/i })
       .click();
+    const baseChoice = page.getByRole("region", { name: "Confirm targets", exact: true });
+    await expect(baseChoice).toBeVisible();
+    await page.locator('[data-drop="perm-you"]').getByRole("img", { name: "Gankoomon", exact: true }).click();
+    await baseChoice.getByRole("button", { name: "Confirm targets", exact: true }).click();
+    await page.getByRole("button", { name: "Pick Gankoomon (X Antibody)", exact: true }).click();
+    await page
+      .getByRole("region", { name: "Hand selection", exact: true })
+      .getByRole("button", { name: "End Selection", exact: true })
+      .click();
     await expect(
       page.locator('[data-drop="perm-you"]').getByRole("img", { name: "Gankoomon (X Antibody)", exact: true }),
     ).toBeVisible();

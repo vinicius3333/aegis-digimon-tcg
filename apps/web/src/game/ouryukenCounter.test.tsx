@@ -12,7 +12,7 @@ it.each([
   ["ace-1", "ouryumon-1"],
   ["ace-2", "ouryumon-1"],
 ] as const)(
-  "Discord 1556343982546755625: selecting %s groups identical hand partners and activates %s from the central Counter dialog",
+  "Discord 1556343982546755625: selecting %s groups identical hand partners and activates %s from the Counter selection dialog",
   (aceId, partnerId) => {
     localStorage.clear();
     const state = new GameState();
@@ -65,8 +65,11 @@ it.each([
         })),
       ),
     );
+    // The server omits the opponent's private hand from the live client projection.
+    const clientState = state.toJSON() as unknown as GameState;
+    Reflect.deleteProperty(clientState.players[1]!, "hand");
     const send = vi.fn<(type: string, payload: unknown) => void>();
-    const room = { connection: { isOpen: true }, send } as unknown as AegisRoom;
+    const room = { connection: { isOpen: true }, send, onMessage: () => () => {} } as unknown as AegisRoom;
     render(
       <I18nProvider>
         <GameScreen
@@ -76,7 +79,7 @@ it.each([
           demoConnection={{
             room,
             status: "connected",
-            state,
+            state: clientState,
             events: [],
             batches: [],
             decision: undefined,
@@ -89,12 +92,13 @@ it.each([
       </I18nProvider>,
     );
     const dialog = screen.getByRole("dialog", { name: "Counter timing" });
-    expect(dialog.getAttribute("data-prompt-surface")).toBe("center");
+    expect(dialog.getAttribute("data-prompt-surface")).toBe("left");
     fireEvent.click(within(dialog).getAllByRole("button", { name: /Alphamon: Ouryuken/ })[aceId === "ace-1" ? 0 : 1]!);
     expect(send).not.toHaveBeenCalled();
     const rail = within(screen.getByRole("dialog", { name: "Counter timing" }));
     const partners = rail.getAllByRole("button", { name: /Blast DNA/ });
     expect(partners).toHaveLength(1);
+    expect(within(partners[0]!).getByRole("img", { name: /^Alphamon$/ })).toBeTruthy();
     fireEvent.click(partners[0]!);
     expect(send).toHaveBeenCalledExactlyOnceWith("respondCounter", {
       sourceInstanceId: aceId,

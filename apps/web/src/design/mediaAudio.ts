@@ -1,4 +1,4 @@
-import { AUDIO_CUES, MUSIC_URL } from "./audioBank";
+import { AUDIO_CUES } from "./audioBank";
 import { cueKey, type SoundDetails, type SoundKind } from "./audioRecipes";
 
 export function needsMediaAudio(): boolean {
@@ -56,12 +56,14 @@ interface Settings {
   musicEnabled: boolean;
   musicVolume: number;
   musicWanted: boolean;
+  musicUrl: string;
 }
 type Voice = { player: HTMLAudioElement; busy: boolean; ticket: number };
 
 /** Android Opera compatibility path: no AudioContext, compressor or looping audio sprite. */
 export class MediaAudio {
-  private readonly music = new Audio(MUSIC_URL);
+  private readonly music: HTMLAudioElement;
+  private musicSource: string;
   private readonly voices: Voice[];
   private readonly urls = new Map<string, string>();
   private readonly lastPlayed = new Map<SoundKind, number>();
@@ -74,6 +76,8 @@ export class MediaAudio {
     private readonly settings: () => Settings,
     limit: number,
   ) {
+    this.musicSource = settings().musicUrl;
+    this.music = new Audio(this.musicSource);
     this.music.preload = "auto";
     this.music.loop = true;
     this.voices = Array.from({ length: limit }, () => {
@@ -105,6 +109,13 @@ export class MediaAudio {
       player.volume = settings.effectsVolume;
     }
     this.music.volume = settings.musicVolume;
+    if (!this.disposed && this.musicSource !== settings.musicUrl) {
+      this.musicSource = settings.musicUrl;
+      this.musicTicket++;
+      this.musicPending = false;
+      this.music.pause();
+      this.music.src = settings.musicUrl;
+    }
     if (
       this.disposed ||
       !this.unlocked ||

@@ -3,7 +3,8 @@
    delete actions. */
 
 import { useState } from "react";
-import { getCardDefinition, restrictionLabel } from "@aegis/shared";
+import { deckLegality, getCardDefinition, restrictionLabel, type CommunityPublication } from "@aegis/shared";
+import { useCommunityPublications } from "../community/useCommunityPublications";
 import { Badge, Button, ColorDot, Eyebrow, Field } from "../design/primitives";
 import { Panel, SectionHeading, StatStrip } from "../design/surfaces";
 import { CoverThumb } from "../design/cards";
@@ -16,10 +17,10 @@ import {
   parseDeckList,
   type DeckListing,
 } from "../game/decks";
-import { deckLegality } from "./DeckListCard";
 import { useTranslation, type TranslationKey } from "../i18n";
 import { DeckDeleteModal, DeckImportModal } from "./DeckTextModals";
 import { DeckImageButton } from "./DeckImageButton";
+import { DeckPublishModal, type PublishMode } from "./DeckPublishModal";
 import { EGG_TARGET, MAIN_TARGET } from "./deckCounts";
 import {
   DECK_LIST_SORTS,
@@ -47,6 +48,7 @@ export function DeckList({
   onSelectDeck,
   onDelete,
   onPlay,
+  signedIn = false,
 }: {
   decks: DeckListing[];
   activeDeckId: string;
@@ -55,6 +57,7 @@ export function DeckList({
   onSelectDeck: (id: string) => void;
   onDelete: (id: string) => void;
   onPlay: () => void;
+  signedIn?: boolean;
 }) {
   const { t } = useTranslation();
   const [importing, setImporting] = useState(false);
@@ -62,6 +65,8 @@ export function DeckList({
   const [query, setQuery] = useState("");
   const sort = useDeckListSort();
   const shownDecks = orderDecks(decks, sort, query);
+  const [publishing, setPublishing] = useState<{ deck: DeckListing; mode: PublishMode } | null>(null);
+  const { publications, publish, unpublish } = useCommunityPublications(signedIn);
 
   const handleImport = (text: string) => {
     const result = parseDeckList(text);
@@ -121,6 +126,15 @@ export function DeckList({
               setDeleting(null);
             }}
             onClose={() => setDeleting(null)}
+          />
+        ) : null}
+        {publishing ? (
+          <DeckPublishModal
+            deck={publishing.deck}
+            mode={publishing.mode}
+            onPublish={publish}
+            onUnpublish={unpublish}
+            onClose={() => setPublishing(null)}
           />
         ) : null}
 
@@ -186,6 +200,9 @@ export function DeckList({
                     onSelect={() => onSelectDeck(deck.id)}
                     onPlay={onPlay}
                     onDelete={() => setDeleting(deck)}
+                    signedIn={signedIn}
+                    publication={publications.get(deck.id)}
+                    onPublishAction={(mode) => setPublishing({ deck, mode })}
                   />
                 ))}
               </div>
@@ -204,6 +221,9 @@ function DeckListRow({
   onSelect,
   onPlay,
   onDelete,
+  signedIn,
+  publication,
+  onPublishAction,
 }: {
   deck: DeckListing;
   active: boolean;
@@ -211,6 +231,9 @@ function DeckListRow({
   onSelect: () => void;
   onPlay: () => void;
   onDelete: () => void;
+  signedIn: boolean;
+  publication: CommunityPublication | undefined;
+  onPublishAction: (mode: PublishMode) => void;
 }) {
   const { t } = useTranslation();
   const { legal, banViolations, pairViolations } = deckLegality(deck);
@@ -241,7 +264,18 @@ function DeckListRow({
             <Badge tone={legal ? "success" : "neutral"}>
               {legal ? t("redesign.decks.list.legal") : t("redesign.decks.list.draft")}
             </Badge>
+            {publication ? (
+              <Badge tone="primary" className="deck-list-row__visibility">
+                <Icons.Users size={12} />
+                {t("community.publish.public")}
+                <Icons.Heart size={12} />
+                {publication.likeCount}
+              </Badge>
+            ) : signedIn ? (
+              <Badge className="deck-list-row__visibility">{t("community.publish.private")}</Badge>
+            ) : null}
           </div>
+          {publication?.outdated ? <p className="deck-list-row__blurb">{t("community.publish.outdated")}</p> : null}
           {blurb ? <p className="deck-list-row__blurb">{blurb}</p> : null}
           {banViolations.length > 0 ? (
             <p className="deck-list-row__violation">
@@ -301,6 +335,26 @@ function DeckListRow({
           </Button>
         ) : (
           <span className="deck-list-row__hint">{t("deck.finishToUse")}</span>
+        )}
+        {!signedIn ? null : (
+          <div className="deck-list-row__publish">
+            {publication ? (
+              <>
+                {publication.outdated && legal ? (
+                  <Button size="sm" variant="secondary" icon={Icons.Users} onClick={() => onPublishAction("update")}>
+                    {t("community.publish.update")}
+                  </Button>
+                ) : null}
+                <Button size="sm" variant="ghost" onClick={() => onPublishAction("unpublish")}>
+                  {t("community.publish.unpublish")}
+                </Button>
+              </>
+            ) : legal ? (
+              <Button size="sm" variant="ghost" icon={Icons.Users} onClick={() => onPublishAction("publish")}>
+                {t("community.publish.action")}
+              </Button>
+            ) : null}
+          </div>
         )}
         <Button
           size="sm"

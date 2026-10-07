@@ -8,10 +8,13 @@ import { SpectatorInvite } from "./SpectatorInvite";
    sidebar — carries them as the reference client's circular header buttons. */
 
 import type { CSSProperties, ReactNode, RefObject } from "react";
-import type { Phase, Seat } from "@aegis/shared";
+import type { FinalRevealCard, Phase, Seat } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
 import { Icons } from "../../../design/icons";
 import { CardBack } from "../../../design/cards";
+import { CardArt } from "../../overlay/CardArt";
+import { printedCardName } from "../../overlay/printedCardName";
+import { useCardOpener } from "../../cardLinks";
 import { ArenaCounters } from "../../ArenaCounters";
 import { useEnterAnimation } from "../../animations";
 import { Side } from "../../side";
@@ -34,6 +37,7 @@ export function OpponentBar({
   memory,
   eggDeckCount,
   handCount,
+  revealedHand,
   deckCount,
   trashCount,
   portraitArena,
@@ -42,6 +46,8 @@ export function OpponentBar({
   onOpenLog,
   onReportBug,
   onOpenArenaLook,
+  onToggleChat,
+  chatOpen = false,
   onSurrender,
   onSkipPresentation,
   onResetScenario,
@@ -59,6 +65,8 @@ export function OpponentBar({
   memory: number;
   eggDeckCount: number;
   handCount: number;
+  /** The hand face up, once the server reveals it after the match. */
+  revealedHand?: readonly FinalRevealCard[];
   deckCount: number;
   trashCount: number;
   portraitArena: boolean;
@@ -68,6 +76,9 @@ export function OpponentBar({
   onOpenLog: () => void;
   onReportBug: () => void;
   onOpenArenaLook: () => void;
+  /** Absent when there is no live room to chat through. */
+  onToggleChat?: () => void;
+  chatOpen?: boolean;
   onSurrender: () => void;
   onSkipPresentation: () => void;
   onResetScenario?: () => void;
@@ -76,7 +87,8 @@ export function OpponentBar({
   const fullscreen = useFullscreen();
   const fullscreenLabel = fullscreen.active ? t("game.fullscreen.exit") : t("game.fullscreen.enter");
   const FullscreenIcon = fullscreen.active ? Icons.Minimize : Icons.Maximize;
-  const fanned = Math.max(0, handCount);
+  const openCard = useCardOpener();
+  const fanned = revealedHand?.length ?? Math.max(0, handCount);
   const entering = useEnterAnimation(Array.from({ length: fanned }, (_, index) => String(index)));
   return (
     <header
@@ -102,7 +114,7 @@ export function OpponentBar({
       <div
         className="game-opponent-hand"
         ref={handStripRef}
-        role="img"
+        role={revealedHand ? "group" : "img"}
         aria-label={t("game.handCount", { count: handCount })}
         data-testid="opponent-hand"
         data-hand-count={handCount}
@@ -120,7 +132,7 @@ export function OpponentBar({
             key={i}
             data-opponent-hand-slot={i}
             className={entering.has(String(i)) ? "game-opponent-hand-card--arriving" : undefined}
-            aria-hidden
+            aria-hidden={!revealedHand}
             style={
               {
                 marginLeft: i ? -22 : 0,
@@ -128,7 +140,18 @@ export function OpponentBar({
               } as CSSProperties
             }
           >
-            <CardBack width={30} useSelectedSleeve={false} />
+            {revealedHand?.[i] ? (
+              <button
+                type="button"
+                className="game-opponent-hand__reveal"
+                aria-label={printedCardName(revealedHand[i].cardId)}
+                onClick={() => openCard?.(revealedHand[i]!.cardId, revealedHand[i]!.artId)}
+              >
+                <CardArt cardId={revealedHand[i].cardId} artId={revealedHand[i].artId} width={30} />
+              </button>
+            ) : (
+              <CardBack width={30} useSelectedSleeve={false} />
+            )}
           </div>
         ))}
         <span
@@ -182,6 +205,11 @@ export function OpponentBar({
             <button type="button" onClick={onOpenLog}>
               <Icons.ScrollText size={18} /> {t("game.matchLog")}
             </button>
+            {onToggleChat ? (
+              <button type="button" onClick={onToggleChat}>
+                <Icons.MessageSquare size={18} /> {t("chat.open")}
+              </button>
+            ) : null}
             {fullscreen.supported ? (
               <button type="button" onClick={fullscreen.toggle}>
                 <FullscreenIcon size={18} /> {fullscreenLabel}
@@ -210,6 +238,17 @@ export function OpponentBar({
           >
             <Icons.ScrollText size={16} />
           </button>
+          {onToggleChat ? (
+            <button
+              type="button"
+              className="game-mobile-log game-mobile-chat"
+              onClick={onToggleChat}
+              aria-label={t("chat.open")}
+              aria-pressed={chatOpen}
+            >
+              <Icons.MessageSquare size={16} />
+            </button>
+          ) : null}
           <button className="game-mobile-bug" onClick={onReportBug} aria-label={t("bugReport.button")}>
             <Icons.Megaphone size={16} />
           </button>
@@ -249,6 +288,17 @@ export function OpponentBar({
           <button className="game-topbar-button" onClick={onReportBug} aria-label={t("bugReport.button")}>
             <Icons.Megaphone size={17} />
           </button>
+          {onToggleChat ? (
+            <button
+              className="game-topbar-button"
+              onClick={onToggleChat}
+              aria-label={t("chat.open")}
+              aria-pressed={chatOpen}
+              title={t("chat.open")}
+            >
+              <Icons.MessageSquare size={17} />
+            </button>
+          ) : null}
           {fullscreen.supported ? (
             <button
               className="game-topbar-button"

@@ -1,10 +1,13 @@
 import releaseMessages from "../releases/messages.json";
 import { arenaEn } from "./redesign/arena.en";
+import { chatEn } from "./redesign/chat.en";
 import { collectionEn } from "./redesign/collection.en";
 import { decksEn } from "./redesign/decks.en";
+import { communityEn } from "./redesign/community.en";
 import { foundationEn } from "./redesign/foundation.en";
 import { homeEn } from "./redesign/home.en";
 import { playEn } from "./redesign/play.en";
+import { seriesEn } from "./redesign/series.en";
 import { settingsEn } from "./redesign/settings.en";
 import { shellEn } from "./redesign/shell.en";
 
@@ -32,10 +35,10 @@ export const en = {
   "lobby.timer.with": "With timer",
   "lobby.timer.without": "Without timer",
   "lobby.timer.summary": "{minutes} min initially · +60s your turn · +30s opponent turn",
-  "lobby.timer.publicHint": "Matched with players using the same timer setting.",
+  "lobby.timer.publicHint": "Matched with players using the same format and timer.",
   "lobby.timer.privateHint":
     "Applies to both players. Counts while you decide; capped at the starting time. Time out means defeat.",
-  "lobby.timer.guestHint": "The host sets the timer for both players.",
+  "lobby.timer.guestHint": "The host sets the format and timer for both players.",
   "lobby.timer.start": "Starting time",
   "lobby.timer.refill": "Per-turn refill",
   "lobby.timer.seconds": "{seconds} sec",
@@ -719,6 +722,11 @@ export const en = {
   "settings.music": "Background ambience",
   "settings.musicDesc": "A quiet original soundtrack during matches",
   "settings.musicVolume": "Music volume",
+  "settings.musicTrack": "Soundtrack",
+  "settings.musicTrackDesc": "Pick the music that plays during matches",
+  "settings.musicTrackDigitalBattle": "Digital battle",
+  "settings.musicTrackDigitalAscent": "Digital ascent",
+  "settings.musicTrackWarmDrive": "Warm drive",
   "settings.volume": "Volume",
   "settings.community": "Community",
   "settings.communityDesc": "News, matchmaking and deck talk on our Discord server.",
@@ -1144,12 +1152,29 @@ export const en = {
   "overlay.mainMenu": "Main menu",
   "overlay.backToRoom": "Back to room",
   "overlay.findRematch": "Find rematch",
+  "overlay.showResult": "Show result",
+  "overlay.reveal.hint": "Click a pile to see its cards",
+  "overlay.reveal.deck": "{name}'s deck",
+  "overlay.reveal.yourDeck": "Your deck",
+  "overlay.reveal.eggDeck": "{name}'s egg deck",
+  "overlay.reveal.yourEggDeck": "Your egg deck",
+  "overlay.reveal.count": "{count} cards · top first",
+  "overlay.reveal.empty": "No cards here.",
   "overlay.digivolveCost": "Digivolve cost",
   "overlay.dualPlayTitle": "Choose which side to use",
   "overlay.dualPlayDetail": "Play this card as a Digimon or use its Option effect.",
   "overlay.playAsDigimon": "Play as Digimon",
   "overlay.useAsOption": "Use as Option",
   "overlay.confirmActionTitle": "Confirm action",
+  "overlay.dnaMaterialOrder": "DNA material {number}",
+  "overlay.dnaSelectOnField": "Select the two DNA materials on the field.",
+  "overlay.dnaConfirmMaterials": "Confirm the DNA materials.",
+  "overlay.dnaSelectionCount": "{count} of 2 materials selected",
+  "overlay.dnaStackOrder": "1 goes on the bottom, 2 on top",
+  "overlay.dnaChooseMaterials": "Choose the stacks to DNA digivolve.",
+  "overlay.dnaUnavailable": "No DNA materials are available.",
+  "overlay.dnaPair": "Pair {number}",
+  "overlay.dnaSources": "{count} digivolution cards",
   "overlay.confirmDnaTitle": "DNA Digivolution available",
   "overlay.confirmPlayDetail": "Play {card} in your battle area?",
   "overlay.confirmDigivolveDetail": "Digivolve {base} into {card}?",
@@ -1797,7 +1822,10 @@ export const en = {
   ...homeEn,
   ...playEn,
   ...decksEn,
+  ...communityEn,
   ...collectionEn,
   ...settingsEn,
   ...arenaEn,
+  ...chatEn,
+  ...seriesEn,
 } as const;

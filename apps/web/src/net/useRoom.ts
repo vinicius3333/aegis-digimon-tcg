@@ -1,7 +1,14 @@
 import { spectate } from "./client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { GameState } from "@aegis/shared";
-import { EVENT_CHANNEL, DECISION_CHANNEL, type SequencedServerEvent, type DecisionRequest } from "@aegis/shared";
+import {
+  EVENT_CHANNEL,
+  DECISION_CHANNEL,
+  SERIES_CHANNEL,
+  type SequencedServerEvent,
+  type DecisionRequest,
+  type SeriesSeatMessage,
+} from "@aegis/shared";
 import { emptyBatchInbox, receiveServerEvent, type BatchInbox, type ServerBatch } from "./serverBatches";
 import { recordSnapshot, type StateSnapshot } from "./presentedState";
 import {
@@ -9,6 +16,7 @@ import {
   createBot,
   createPrivate,
   joinPrivateByCode,
+  joinSeriesGame,
   resumeReconnectSession,
   connectionSlot,
   flushIntents,
@@ -107,9 +115,18 @@ export interface UseRoomResult {
   snapshots: readonly StateSnapshot[];
   /** Non-empty only for the host of a private room. */
   roomCode: string;
+  /** This seat's claim on the next game of its best-of-three, once the series has handed it out. */
+  seriesSeat: Omit<SeriesGameTicket, "roomId"> | undefined;
 }
 
-export type MatchMode = "casual" | "bot" | "private_host" | "private_guest" | "spectator";
+/** Where the next game of a series is and how this player takes their seat in it. */
+export interface SeriesGameTicket {
+  roomId: string;
+  slot: RoomSlot;
+  seatToken: string;
+}
+
+export type MatchMode = "casual" | "bot" | "private_host" | "private_guest" | "spectator" | "series";
 
 export interface MatchConfig {
   mode: MatchMode;
@@ -117,6 +134,8 @@ export interface MatchConfig {
   roomCode?: string;
   /** A guest back in a private room waits here until the host has reopened it. */
   waitForHost?: boolean;
+  /** The `series` mode's seat in a later game of a best-of-three. */
+  seriesGame?: SeriesGameTicket;
 }
 
 const HOST_REOPEN_POLL_MS = 2000;
@@ -150,11 +169,17 @@ function connectRoom(
   switch (match?.mode) {
     case "spectator":
       if (!match.roomCode) throw new Error("roomCode required for spectator");
-      return spectate({ roomCode: match.roomCode });
+      return spectate({ roomCode: match.roomCode, displayName: options.displayName });
     case "bot":
       return createBot(options);
     case "private_host":
       return createPrivate(match.roomCode ? { ...options, roomCode: match.roomCode } : options);
+    case "series":
+      if (!match.seriesGame) throw new Error("seriesGame required for a series game");
+      return joinSeriesGame(match.seriesGame.roomId, match.seriesGame.slot, {
+        ...options,
+        seriesToken: match.seriesGame.seatToken,
+      });
     case "private_guest":
       if (!match.roomCode) throw new Error("roomCode required for private guest");
       if (match.waitForHost) return joinWhenHostReopens(match.roomCode, options, isCancelled);
@@ -183,6 +208,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
   const [error, setError] = useState<string>();
   const [sessionId, setSessionId] = useState<string>();
   const [roomCode, setRoomCode] = useState("");
+  const [seriesSeat, setSeriesSeat] = useState<Omit<SeriesGameTicket, "roomId">>();
   const roomRef = useRef<AegisRoom | undefined>(undefined);
   const roomSlotRef = useRef<RoomSlot>("legacy");
   const stateRef = useRef<GameState | undefined>(undefined);
@@ -268,6 +294,9 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
         // `batchClosed` is a stream boundary and narrates nothing, so it stays out of the log.
         if (event.kind !== "batchClosed") setEvents((prev) => [...prev.slice(-99), event]);
         setInbox((prev) => receiveServerEvent(prev, event));
+      });
+      room.onMessage<SeriesSeatMessage>(SERIES_CHANNEL, (message) => {
+        if (message.kind === "seat") setSeriesSeat({ seatToken: message.seatToken, slot: connectionSlot(room) });
       });
       room.onMessage<DecisionRequest>(DECISION_CHANNEL, (req) => {
         if (answeredDecisionsRef.current.has(req.decisionId)) return;
@@ -411,5 +440,6 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
     patchVersion,
     snapshots,
     roomCode,
+    seriesSeat,
   };
 }

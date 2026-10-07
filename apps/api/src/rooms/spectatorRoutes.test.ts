@@ -58,6 +58,7 @@ describe("spectator admission", () => {
       available(name);
       const response = await request({
         roomCode: "abcdef",
+        displayName: "Watcher",
         spectator: false,
         ranked: true,
         deck: { mainDeck: ["forged"] },
@@ -68,7 +69,7 @@ describe("spectator admission", () => {
       expect(matchMaker.reserveSeatFor).toHaveBeenCalledWith(expect.anything(), {
         spectator: true,
         roomCode: "ABCDEF",
-        displayName: "Spectator",
+        displayName: "Watcher",
         deck: { mainDeck: [], eggDeck: [] },
       });
     });

@@ -6,8 +6,10 @@
    Each is opened by `prePlayPrompt` (or by the drop itself) and answered here; the
    intent goes out only once the answer is in. */
 
-import { getCardDefinition, type AssemblyRequirement, type DigiXrosRequirement } from "@aegis/shared";
+import { getCardDefinition, type AssemblyRequirement, type DigiXrosRequirement, type Permanent } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
+import { DnaMaterialChoiceOverlay } from "../../DnaMaterialChoiceOverlay";
+import type { ProjectedDnaDigivolveRoute } from "../../digivolveModel";
 import { AppFusionChoiceOverlay } from "../../AppFusionChoiceOverlay";
 import {
   ActionConfirmationOverlay,
@@ -27,6 +29,9 @@ import type { PendingActionConfirmation } from "../types";
 export function PlayChoicePrompts({
   dualPlay,
   actionConfirm,
+  dnaRoutes,
+  dnaPermanents,
+  dnaPickedPermanentIds,
   appFusion,
   evoCostChoice,
   memory,
@@ -51,6 +56,9 @@ export function PlayChoicePrompts({
 }: {
   dualPlay: { instanceId: string; cardId: string } | null;
   actionConfirm: PendingActionConfirmation | null;
+  dnaRoutes: readonly ProjectedDnaDigivolveRoute[];
+  dnaPermanents: readonly Permanent[];
+  dnaPickedPermanentIds: readonly string[];
   /** The overlay stays mounted when its routes go stale, so the player sees why the
    *  action disappeared; an empty route list disables confirmation. */
   appFusion: {
@@ -74,7 +82,7 @@ export function PlayChoicePrompts({
   } | null;
   onDualPlay: (useAs: "digimon" | "option") => void;
   onDualPlayCancel: () => void;
-  onConfirmAction: () => void;
+  onConfirmAction: (materialPermanentIds?: string[]) => void;
   /** Only offered when the confirmed DNA play also has a normal digivolution. */
   onDigivolveNormally: (() => void) | undefined;
   onConfirmCancel: () => void;
@@ -98,32 +106,31 @@ export function PlayChoicePrompts({
         <DualPlayChoiceOverlay cardId={dualPlay.cardId} onChoose={onDualPlay} onCancel={onDualPlayCancel} />
       ) : null}
 
-      {actionConfirm ? (
+      {actionConfirm?.kind === "dna" ? (
+        <DnaMaterialChoiceOverlay
+          key={actionConfirm.instanceId}
+          routes={dnaRoutes}
+          permanents={dnaPermanents}
+          pickedPermanentIds={dnaPickedPermanentIds}
+          onConfirm={onConfirmAction}
+          onNormalEvolution={onDigivolveNormally}
+          onCancel={onConfirmCancel}
+        />
+      ) : actionConfirm ? (
         <ActionConfirmationOverlay
           cardId={actionConfirm.cardId}
-          title={actionConfirm.kind === "dna" ? t("overlay.confirmDnaTitle") : t("overlay.confirmActionTitle")}
+          title={t("overlay.confirmActionTitle")}
           detail={
             actionConfirm.kind === DragKind.Play
               ? t("overlay.confirmPlayDetail", { card: cardName(actionConfirm.cardId) })
-              : actionConfirm.kind === "digivolve"
-                ? t("overlay.confirmDigivolveDetail", {
-                    card: cardName(actionConfirm.cardId),
-                    base: cardName(actionConfirm.baseCardId),
-                  })
-                : t("overlay.confirmDnaDetail", {
-                    card: cardName(actionConfirm.cardId),
-                    count: actionConfirm.materialPermanentIds.length,
-                  })
+              : t("overlay.confirmDigivolveDetail", {
+                  card: cardName(actionConfirm.cardId),
+                  base: cardName(actionConfirm.baseCardId),
+                })
           }
-          confirmLabel={
-            actionConfirm.kind === DragKind.Play
-              ? t("overlay.confirmPlay")
-              : actionConfirm.kind === "dna"
-                ? t("overlay.confirmDna")
-                : t("overlay.confirmDigivolve")
-          }
+          confirmLabel={actionConfirm.kind === DragKind.Play ? t("overlay.confirmPlay") : t("overlay.confirmDigivolve")}
           alternateLabel={onDigivolveNormally ? t("overlay.digivolveNormally") : undefined}
-          onConfirm={onConfirmAction}
+          onConfirm={() => onConfirmAction()}
           onAlternate={onDigivolveNormally}
           onCancel={onConfirmCancel}
         />

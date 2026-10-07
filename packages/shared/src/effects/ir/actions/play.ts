@@ -47,6 +47,12 @@ export interface PlayWithoutCostAction extends ActionBase {
    * `from:["digivolutionCards"]` path scans ALL stacks. Mutually exclusive with `from`.
    */
   fromOwnDigivolutionStack?: boolean;
+  /**
+   * Additional separately counted own-stack selections played simultaneously with `target`.
+   * Select every group before playing one combined batch; a card cannot fill two groups.
+   * Requires `fromOwnDigivolutionStack` (EX9-021's Greymon/Ver.1 and Garurumon/Ver.2).
+   */
+  additionalSimultaneousTargets?: Target[];
   /** Play entering SUSPENDED rather than active (BT7-063). Default enters active. */
   suspended?: boolean;
   /**
