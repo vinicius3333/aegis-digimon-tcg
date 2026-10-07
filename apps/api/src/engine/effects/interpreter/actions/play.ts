@@ -359,6 +359,10 @@ async function selectOwnStackPlayGroup(ctx: EffectContext, target: Target, reser
 
 export async function runPlayAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
+  // This selection carries the optional activation itself, including a one-card pool.
+  if (action.kind === "PlayWithoutCost" && ctx.selectingOptionalTarget === true) {
+    action = { ...action, target: { ...action.target, upTo: true, minimum: 0 } };
+  }
   switch (action.kind) {
     case "PlayMultiple": {
       const from = Array.isArray(action.from)

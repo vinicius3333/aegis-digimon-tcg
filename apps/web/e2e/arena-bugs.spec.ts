@@ -514,3 +514,36 @@ for (const width of [1440, 390]) {
     }
   });
 }
+
+for (const accept of [false, true]) {
+  test(`Cyber Engage opens one declinable hand selection (accept ${accept})`, async ({ page }) => {
+    const server = await startBrowserServer();
+    try {
+      await page.addInitScript(() => localStorage.setItem("aegis.action-confirmation.enabled", "false"));
+      await new ArenaPage(page).open("arena-issue-5173-cyber-engage");
+      await page.getByRole("button", { name: /^end breeding$/i }).click();
+      await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
+      await page.locator('[data-drop="perm-you"][data-id="arena-issue-5173-cyber-engage-0-field-0"]').click();
+      await page.getByRole("button", { name: /^Activate effect:/ }).click();
+      const choice = page.getByRole("region", { name: "Hand selection", exact: true });
+      await expect(choice).toBeVisible();
+      await expect(page.getByRole("button", { name: "Yes, activate", exact: true })).toHaveCount(0);
+      if (accept) {
+        await page.getByTestId("hand").getByRole("img", { name: "Roleplaymon", exact: true }).click();
+        await choice.getByRole("button", { name: "End Selection", exact: true }).click();
+        await expect(
+          page.locator('[data-drop="perm-you"]').getByRole("img", { name: "Roleplaymon", exact: true }),
+        ).toBeVisible();
+        await expect(page.getByRole("img", { name: "Memory: 0", exact: true })).toBeVisible();
+      } else {
+        await choice.getByRole("button", { name: "No Selection", exact: true }).click();
+        await expect(choice).toHaveCount(0);
+        await expect(page.getByTestId("hand").getByRole("img", { name: "Roleplaymon", exact: true })).toBeVisible();
+        await expect(page.getByRole("img", { name: "Memory: +1", exact: true })).toBeVisible();
+      }
+    } finally {
+      await page.close();
+      await server.close();
+    }
+  });
+}

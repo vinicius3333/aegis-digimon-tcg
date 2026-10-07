@@ -121,6 +121,7 @@ describe("BT25-098 Cyber Engage", () => {
     );
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-061")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT25-098")).toBe(true);
+    expect(s.decisions.map(({ req }) => req.kind)).toEqual(["selectCards"]);
     expect(s.state.memory).toBe(10);
   });
 
