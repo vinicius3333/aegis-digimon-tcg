@@ -10,6 +10,7 @@ export const arenaPtBR: Record<keyof typeof arenaEn, string> = {
   "redesign.arena.audio.musicTrack": "Trilha sonora",
   "redesign.arena.audio.effects": "Efeitos sonoros e sinais",
   "redesign.arena.audio.effectsVolume": "Volume dos efeitos",
+  "redesign.arena.board.title": "Tabuleiro",
 
   "redesign.arena.badge.stackTitle": "Pilha de digivolução",
   "redesign.arena.badge.stack": "{count} cartas de digivolução sob este Digimon.",

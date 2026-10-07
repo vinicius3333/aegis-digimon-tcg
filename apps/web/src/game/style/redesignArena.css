@@ -822,3 +822,34 @@ button.game-player-line__name {
   background: var(--ds-paper);
   color: var(--ds-text);
 }
+
+/* ---- Board display choices between the audio and the board look ---- */
+.game-arena-board-settings {
+  display: grid;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-5);
+  padding-bottom: var(--ds-space-5);
+  border-bottom: 1px solid var(--ds-line);
+}
+
+.game-arena-settings__title {
+  margin: 0;
+  color: var(--ds-text);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+}
+
+.game-arena-settings__panel {
+  overflow: hidden;
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-sheet);
+}
+
+.game-arena-settings__row {
+  padding: var(--ds-space-2) var(--ds-space-4);
+}
+
+.game-arena-settings__row + .game-arena-settings__row {
+  border-top: 1px solid var(--ds-line);
+}
