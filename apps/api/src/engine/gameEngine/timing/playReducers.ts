@@ -43,7 +43,11 @@ export function projectLooseUseCost(engine: GameEngine, instanceId: string, cont
     { def: source.definition, controllerSeat },
     Math.max(0, source.definition.playCost),
   );
-  if (engine.continuous.blocksCostReduction(controllerSeat, "play")) return baseCost;
+  if (
+    !source.definition.kinds.includes(CardKind.Option) &&
+    engine.continuous.blocksCostReduction(controllerSeat, "play")
+  )
+    return baseCost;
   const ctx: EffectContext = { ...buildEffectContext(engine, source, {}), selections: new Map() };
   const reduction = wouldBePlayedSelfReducersFor(instance.cardId).reduce(
     (total, reducer) => total + potentialWouldBePlayedSelfReduction(ctx, reducer),
@@ -63,7 +67,13 @@ export function projectInHandCost(engine: GameEngine, instanceId: string, contro
   const source = cardSourceOf(engine, instance);
   const printedCost = source.definition.playCost;
   const inHand = engine.state.players[controllerSeat]?.hand.some((card) => card.instanceId === instanceId) === true;
-  if (!inHand || printedCost < 0 || engine.continuous.blocksCostReduction(controllerSeat, "play")) return printedCost;
+  if (
+    !inHand ||
+    printedCost < 0 ||
+    (!source.definition.kinds.includes(CardKind.Option) &&
+      engine.continuous.blocksCostReduction(controllerSeat, "play"))
+  )
+    return printedCost;
   const ctx: EffectContext = { ...buildEffectContext(engine, source, {}), selections: new Map() };
   const reduction = wouldBePlayedSelfReducersFor(instance.cardId)
     .filter((reducer) => reducer.whileInHand === true)

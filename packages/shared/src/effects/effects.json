@@ -1880,23 +1880,15 @@
         "trigger": "Security",
         "actions": [
           {
-            "kind": "SelectBind",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"] },
-              "count": 1,
-              "bindAs": "securityDebuffTarget"
-            }
-          },
-          {
             "kind": "GainKeyword",
-            "target": { "fromSelectionRef": "securityDebuffTarget", "filter": {}, "count": 1 },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security Attack -1＞" },
             "duration": "forTheTurn"
           },
           {
             "effectTextPart": "Then, 1 of their Digimon gets -3000 DP until your turn ends.",
             "kind": "ModifyDP",
-            "target": { "fromSelectionRef": "securityDebuffTarget", "filter": {}, "count": 1 },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": -3000,
             "duration": "untilYourTurnEnd"
           }
@@ -2492,10 +2484,10 @@
             "event": "wouldLeavePlay",
             "mode": "prevent",
             "sourceFilter": {
+              "isSelfRef": true,
               "controllerDefault": "mine",
               "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Hybrid", "Ten Warriors"], "match": "trait" }],
-              "isSelfRef": true
+              "nameOrTrait": [{ "tokens": ["Hybrid", "Ten Warriors"], "match": "trait" }]
             },
             "cost": {
               "kind": "securityToHand",

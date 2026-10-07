@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "./scenarioHarness/testingLibrary";
+import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
 import { endBreedingStep, waitForBoardActions } from "./scenarioHarness/breedingStep";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -69,9 +69,23 @@ scenario("end-turn", () => {
 
     const startingTurn = opponent.room.state.turnCount;
 
-    // End the protagonist's own Main phase — this passes the turn.
+    // Opening and cancelling confirmation must not pass the turn.
     await waitForBoardActions();
     fireEvent.click(screen.getByRole("button", { name: /^end turn$/i }));
+    await screen.findByRole("dialog", { name: /^end turn\?$/i });
+    expect(opponent.room.state.turnSeat).toBe(0);
+    expect(opponent.room.state.turnCount).toBe(startingTurn);
+    fireEvent.click(screen.getByRole("checkbox", { name: /don't ask again/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^keep playing$/i }));
+    expect(localStorage.getItem("aegis.skip-end-turn-confirmation")).toBeNull();
+    expect(screen.queryByRole("dialog", { name: /^end turn\?$/i })).toBeNull();
+    expect(opponent.room.state.turnSeat).toBe(0);
+    fireEvent.click(screen.getByRole("button", { name: /^end turn$/i }));
+    const dialog = await screen.findByRole("dialog", { name: /^end turn\?$/i });
+    expect((within(dialog).getByRole("checkbox", { name: /don't ask again/i }) as HTMLInputElement).checked).toBe(
+      false,
+    );
+    fireEvent.click(within(dialog).getByRole("button", { name: /^end turn$/i }));
 
     // The turn indicator flips to the opponent. A transient "Opponent's turn"
     // banner (2.5s, GameScreen.tsx's turnTransition) shares this exact text with

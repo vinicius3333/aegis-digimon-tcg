@@ -91,6 +91,8 @@ scenario("target-decision", () => {
       timeout: 10_000,
     });
     fireEvent.click(await screen.findByRole("button", { name: /^end turn$/i }, { timeout: 10_000 }));
+    const passDialog = await screen.findByRole("dialog", { name: /^end turn\?$/i });
+    fireEvent.click(within(passDialog).getByRole("button", { name: /^end turn$/i }));
 
     // Turn 2 (memory +3 from the pass-turn bonus): play the first Monodramon
     // (cost 2, memory 3 -> 1, not crossed — Main stays open) then the second

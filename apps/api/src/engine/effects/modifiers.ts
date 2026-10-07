@@ -890,7 +890,10 @@ export class ModifierLedger {
       else delta += a.delta;
     }
     if (!matched) return base;
-    if (this.continuous?.blocksCostReduction(facts.controllerSeat, "play")) {
+    if (
+      !facts.def.kinds.includes(CardKind.Option) &&
+      this.continuous?.blocksCostReduction(facts.controllerSeat, "play")
+    ) {
       if (delta < 0) delta = 0;
       if (fixed !== undefined && fixed < base) fixed = base;
     }

@@ -1,5 +1,4 @@
-/* A short, centred question before an action that ends the match for the
-   viewer. Cancel is the safe default. */
+/* A short, centred question before ending a turn or leaving a match. Cancel is the safe default. */
 
 import { useId, type ReactNode } from "react";
 import { Button, Dialog } from "../../../design/primitives";
@@ -10,20 +9,26 @@ export function MatchConfirmDialog({
   title,
   body,
   confirmLabel,
+  cancelLabel,
+  tone = "danger",
+  children,
   onConfirm,
   onClose,
 }: {
+  children?: ReactNode;
   icon: ReactNode;
   title: string;
   body: string;
   confirmLabel: string;
+  cancelLabel?: string;
+  tone?: "primary" | "danger";
   onConfirm: () => void;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
   const titleId = useId();
   return (
-    <Dialog className="game-confirm-dialog" labelledBy={titleId} onClose={onClose}>
+    <Dialog className={`game-confirm-dialog game-confirm-dialog--${tone}`} labelledBy={titleId} onClose={onClose}>
       <span className="game-confirm-dialog__icon" aria-hidden="true">
         {icon}
       </span>
@@ -31,11 +36,12 @@ export function MatchConfirmDialog({
         {title}
       </h2>
       <p className="game-confirm-dialog__body">{body}</p>
+      {children}
       <div className="game-confirm-dialog__actions">
         <Button variant="secondary" onClick={onClose}>
-          {t("common.cancel")}
+          {cancelLabel ?? t("common.cancel")}
         </Button>
-        <Button variant="danger" className="game-confirm-dialog__confirm" onClick={onConfirm}>
+        <Button variant={tone} className="game-confirm-dialog__confirm" onClick={onConfirm}>
           {confirmLabel}
         </Button>
       </div>

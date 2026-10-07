@@ -1,5 +1,5 @@
 import { observeEffectActivation } from "../effects/activationPresentation.js";
-import { EffectTiming, type Seat } from "@aegis/shared";
+import { EffectTiming, KEYWORDS, type Seat } from "@aegis/shared";
 import { rootZoneOfLooseInstance } from "../effects/primitives.js";
 import { type SubTriggerSubscription, type SubTriggerTurnLedger } from "../effects/subtriggers.js";
 import { permanentIdentityOf } from "../effects/index.js";
@@ -59,6 +59,9 @@ export async function fireSubTrigger(
       deletedControllerSeat: deletedPermanent.controllerSeat,
       deletedTopCardId: deletedPermanent.topCard?.cardId,
       deletedDigivolutionCardCount: deletedPermanent.stack.length,
+      deletedEffectiveKeywords: KEYWORDS.filter((keyword) =>
+        engine.continuous.hasKeyword(deletedPermanent.permanentId, keyword),
+      ),
       ...payload,
     };
   }

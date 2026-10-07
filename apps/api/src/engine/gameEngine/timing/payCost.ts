@@ -55,7 +55,7 @@ export async function fireBeforePayCost(
   simultaneousPlayCount = 1,
 ): Promise<number> {
   const source = cardSourceOf(engine, instance);
-  const reductionBlocked = engine.continuous.blocksCostReduction(source.ownerSeat, "play");
+  const reductionBlocked = !useAsOption && engine.continuous.blocksCostReduction(source.ownerSeat, "play");
   // A prohibition prevents the reducer from activating, including its optional
   // processing cost (ST12-03 Q755). Projection stays read-only; an unaffordable
   // blocked play cannot start paying side-effect costs. Free plays enter engine
@@ -245,13 +245,14 @@ export async function fireBeforePayCost(
           originZone,
         );
     if (interactiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + interactiveReduction;
-    const passiveReduction = engine.continuous.blocksCostReduction(source.ownerSeat, "play")
-      ? 0
-      : engine.subTriggers.costReductionFor("wouldBePlayed", playTarget, source.definition, {
-          consume: true,
-          hasFired: (key) => engine.tracker.count(key, "replacement") > 0,
-          markFired: (key) => engine.tracker.register(key, "replacement"),
-        });
+    const passiveReduction =
+      !useAsOption && engine.continuous.blocksCostReduction(source.ownerSeat, "play")
+        ? 0
+        : engine.subTriggers.costReductionFor("wouldBePlayed", playTarget, source.definition, {
+            consume: true,
+            hasFired: (key) => engine.tracker.count(key, "replacement") > 0,
+            markFired: (key) => engine.tracker.register(key, "replacement"),
+          });
     if (passiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + passiveReduction;
     // A prohibition nullifies the reduction, not the played card's own "by <cost>, reduce" clause:
     // its cost may still be paid (KB Q4443 — under Psychemon the 2 Digimon are suspended and the
@@ -284,7 +285,7 @@ export async function fireBeforePayCost(
       engine.pendingPlayReducerPlacements.set(instance.instanceId, [...pending, ...ctx.pendingSelfReducerPlacements]);
     }
     if (!reductionBlocked) await runCrossPermanentPlayReducers(engine, instance, ctx, crossWatchers);
-    if (engine.continuous.blocksCostReduction(source.ownerSeat, "play")) return baseCost;
+    if (!useAsOption && engine.continuous.blocksCostReduction(source.ownerSeat, "play")) return baseCost;
     const delta = Math.max(0, ctx.playCostDelta ?? 0);
     return Math.max(0, baseCost - delta);
   } finally {

@@ -168,6 +168,26 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "Play Icemon and accept placing Tumblemon from trash. The level 2 Rock DigiEgg becomes a digivolution card.",
     ptBR: "Jogue Icemon e aceite colocar Tumblemon do lixo. O DigiEgg de nível 2 com Rock deve entrar nas fontes.",
   },
+  "arena-issue-5246-savior-decline": {
+    en: "Digivolve Greymon into SaviorHuckmon. Decline playing a card, then attack and accept playing Sistermon Ciel. Declining must preserve the shared once-per-turn opportunity.",
+    ptBR: "Evolua Greymon para SaviorHuckmon. Recuse jogar uma carta e depois ataque aceitando jogar Sistermon Ciel. Recusar deve preservar o uso compartilhado uma vez por turno.",
+  },
+  "arena-issue-5241-kurata-sleep": {
+    en: "Play Belphemon Sleep Mode and accept Kurata's reduction by deleting Gizmon AT. Pay 11 minus 6: memory goes from 10 to 5, and Gizmon goes to trash.",
+    ptBR: "Jogue Belphemon Sleep Mode e aceite a redução de Kurata deletando Gizmon AT. Pague 11 menos 6: a memória passa de 10 para 5 e Gizmon vai ao lixo.",
+  },
+  "arena-issue-5247-crimson-use-cost": {
+    en: "Use Crimson Blaze against five opposing Digimon, including Chikurimon. Its use cost is 6 minus 5: memory goes from 3 to 2. A play-cost restriction must not block an Option use-cost reduction.",
+    ptBR: "Use Crimson Blaze contra cinco Digimon, incluindo Chikurimon. O custo de uso é 6 menos 5: a memória passa de 3 para 2. A restrição de custo de jogar não pode bloquear a redução de uso de uma Option.",
+  },
+  "arena-issue-5248-dynasmon-security": {
+    en: "Attack security with Agumon. As player 2, give Greymon Security Attack -1, then choose Garurumon for -3000 DP. The two Security choices are independent; you may also choose the same Digimon twice.",
+    ptBR: "Ataque a segurança com Agumon. Como jogador 2, dê Security Attack -1 a Greymon e depois escolha Garurumon para -3000 DP. As duas escolhas são independentes; você também pode escolher o mesmo Digimon duas vezes.",
+  },
+  "arena-issue-5207-dorimon-guard": {
+    en: "Attack with PrinceMamemon. As player 2, use Gallantmon's Counter. Accept Thundermon's Guard to protect PrinceMamemon. Dorimon must gain 1 memory for the sacrificed Digimon, which had Blocker from PrinceMamemon.",
+    ptBR: "Ataque com PrinceMamemon. Como jogador 2, use o Counter de Gallantmon. Aceite o Guard de Thundermon para proteger PrinceMamemon. Dorimon deve ganhar 1 memória pelo Digimon sacrificado, que tinha Blocker concedido por PrinceMamemon.",
+  },
   "arena-issue-5214-habakirimon-security": {
     en: "Digivolve Habakirimon and put Agumon in security. It belongs to the opponent security stack, not yours.",
     ptBR: "Evolua Habakirimon e coloque Agumon na segurança. Ele deve ir à segurança adversária.",
@@ -1841,6 +1861,11 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-5179-imperialdramon-blitz", "GitHub #5179 \u00b7 Imperialdramon ordinary-evolution Blitz"],
   ["arena-issue-5190-tapmon-bootmon", "GitHub #5190 / #5192 \u00b7 Tapmon, Bootmon and Shutmon"],
   ["arena-issue-5232-icemon-egg", "GitHub #5232 \u00b7 icemon-egg"],
+  ["arena-issue-5246-savior-decline", "GitHub #5246 \u00b7 SaviorHuckmon optional effect"],
+  ["arena-issue-5241-kurata-sleep", "GitHub #5241 \u00b7 Kurata / Belphemon Sleep"],
+  ["arena-issue-5247-crimson-use-cost", "GitHub #5247 \u00b7 Crimson Blaze / Chikurimon"],
+  ["arena-issue-5248-dynasmon-security", "GitHub #5248 \u00b7 Dynasmon Security targets"],
+  ["arena-issue-5207-dorimon-guard", "GitHub #5207 \u00b7 Dorimon / Guard memory"],
   ["arena-issue-5214-habakirimon-security", "GitHub #5214 \u00b7 habakirimon-security"],
   ["arena-issue-5204-dorimon-cost", "GitHub #5204 \u00b7 dorimon-cost"],
   ["arena-issue-5219-lucemon-breeding", "GitHub #5219 \u00b7 lucemon-breeding"],
