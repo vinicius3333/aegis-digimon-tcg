@@ -572,6 +572,11 @@ const Megaphone = (p: IconProps) => (
     <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
   </Svg>
 );
+const Heart = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+  </Svg>
+);
 const Eye = (p: IconProps) => (
   <Svg {...p}>
     <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
@@ -581,6 +586,7 @@ const Eye = (p: IconProps) => (
 export const Icons = {
   Copy,
   Eye,
+  Heart,
   Shield,
   ShieldCheck,
   DigimonEffect,

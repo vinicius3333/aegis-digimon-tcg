@@ -20,6 +20,7 @@ export function DeckBuilder({
   onSaveDeck,
   onDeleteDeck,
   onNav,
+  signedIn = false,
 }: {
   decks: DeckListing[];
   activeDeckId: string;
@@ -28,6 +29,7 @@ export function DeckBuilder({
   onSaveDeck: (deck: DeckListing, setActive: boolean) => void;
   onDeleteDeck: (id: string) => void;
   onNav: (s: Screen) => void;
+  signedIn?: boolean;
 }) {
   const { t } = useTranslation();
   const [editing, setEditing] = useState<DeckListing | null>(initialEditingDeck ?? null);
@@ -43,6 +45,7 @@ export function DeckBuilder({
       onSelectDeck={onSelectDeck}
       onDelete={onDeleteDeck}
       onPlay={() => onNav("lobby")}
+      signedIn={signedIn}
     />
   );
 }

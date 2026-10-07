@@ -24,6 +24,8 @@ import { accentForAvatar } from "./guest";
 import { applyDarkMode, setDarkMode, useDarkMode } from "./design/darkMode";
 import { I18nProvider, useTranslation } from "./i18n";
 import { accountApi, type RemoteAccount } from "./account/client";
+import { communityApi } from "./community/client";
+import { communityDeckListing } from "./community/communityDeckListing";
 import { usePreferencesSync } from "./account/usePreferencesSync";
 import { BugReportDialog } from "./bugs/BugReportDialog";
 import { PlayerMenu } from "./account/PlayerMenu";
@@ -41,6 +43,9 @@ const Login = lazy(() => import("./screens/Login").then((m) => ({ default: m.Log
 const Lobby = lazy(() => import("./screens/Lobby").then((m) => ({ default: m.Lobby })));
 const Collection = lazy(() => import("./screens/Collection").then((m) => ({ default: m.Collection })));
 const DeckBuilder = lazy(() => import("./screens/DeckBuilder").then((m) => ({ default: m.DeckBuilder })));
+const CommunityScreen = lazy(() =>
+  import("./screens/community/CommunityScreen").then((m) => ({ default: m.CommunityScreen })),
+);
 const GameScreen = lazy(() => import("./game/GameScreen").then((m) => ({ default: m.GameScreen })));
 const CardEffectsDemo = lazy(() => import("./dev/CardEffectsDemo").then((m) => ({ default: m.CardEffectsDemo })));
 const BoardShowcase = lazy(() => import("./dev/BoardShowcase").then((m) => ({ default: m.BoardShowcase })));
@@ -93,7 +98,7 @@ function ScreenFallback() {
   );
 }
 
-const NAV_SCREENS: Screen[] = ["home", "lobby", "deck", "collection", "settings", "releases"];
+const NAV_SCREENS: Screen[] = ["home", "lobby", "deck", "community", "collection", "settings", "releases"];
 
 export function withAccountAvatar(player: PlayerIdentity, account: RemoteAccount | null): PlayerIdentity {
   return {
@@ -272,6 +277,7 @@ export function AegisClient({
   setDark,
   initialScreen,
 }: ClientProps) {
+  const { t } = useTranslation();
   const effectivePlayer = useMemo<PlayerIdentity>(
     () =>
       account
@@ -305,6 +311,8 @@ export function AegisClient({
   }));
   const [startMode, setStartMode] = useState<StartMode>("casual");
   const [editingDeck, setEditingDeck] = useState<DeckListing | null>(null);
+  // A community deck picked to play with. It lives for this session only and is never saved.
+  const [borrowedDeck, setBorrowedDeck] = useState<DeckListing>();
   const [roomCode, setRoomCode] = useState<string>();
   const [privateRoom, setPrivateRoom] = useState<PrivateRoom>();
   const [botDeckId, setBotDeckId] = useState<string>();
@@ -357,7 +365,10 @@ export function AegisClient({
   };
   const navigateScreen = (nextScreen: Screen) => navigate({ screen: nextScreen });
 
-  const availableDecks = useMemo(() => selectableDecks(decks), [decks]);
+  const availableDecks = useMemo(
+    () => (borrowedDeck ? [borrowedDeck, ...selectableDecks(decks)] : selectableDecks(decks)),
+    [borrowedDeck, decks],
+  );
   const matchDeck = deckById(availableDecks, matchDeckId ?? activeDeckId);
   const collectionSize = useMemo(() => activeCollectionCards().length, []);
   const identityColor: ColorName = colorKey(player.color);
@@ -427,6 +438,19 @@ export function AegisClient({
             <Lobby
               player={effectivePlayer}
               decks={decks}
+              borrowedDeck={borrowedDeck}
+              onBorrowCommunityDeck={(id) => {
+                void communityApi
+                  .deck(id)
+                  .then((deck) => {
+                    const listing = communityDeckListing(deck);
+                    setBorrowedDeck(listing);
+                    setActiveDeckId(listing.id);
+                  })
+                  .catch(() => undefined);
+              }}
+              onOpenCommunityDeck={(id) => navigate({ screen: "community", communityDeckId: id })}
+              accountId={account?.id}
               activeDeckId={activeDeckId}
               onSelectDeck={setActiveDeckId}
               onCopyDeck={(preset) => {
@@ -467,9 +491,36 @@ export function AegisClient({
               onSelectDeck={setActiveDeckId}
               onSaveDeck={saveDeck}
               onDeleteDeck={deleteDeck}
+              signedIn={!!account}
               onNav={(next) => {
                 setEditingDeck(null);
                 navigateScreen(next);
+              }}
+            />
+          )}
+
+          {screen === "community" && (
+            <CommunityScreen
+              deckId={route.communityDeckId}
+              signedIn={!!account}
+              accountId={account?.id}
+              onOpenDeck={(id) => navigate({ screen: "community", communityDeckId: id })}
+              onBack={() => navigate({ screen: "community" })}
+              onPlay={(deck) => {
+                const listing = communityDeckListing(deck);
+                setBorrowedDeck(listing);
+                setActiveDeckId(listing.id);
+                navigateScreen("lobby");
+              }}
+              onCopy={(deck) => {
+                saveDeck(
+                  {
+                    ...copyDeckPreset(communityDeckListing(deck), decks),
+                    blurb: t("community.byAuthor", { name: deck.author.displayName }),
+                  },
+                  false,
+                );
+                if (account) void communityApi.recordCopy(deck.id).catch(() => undefined);
               }}
             />
           )}

@@ -2,6 +2,7 @@ import releaseMessages from "../releases/messages.json";
 import { arenaEn } from "./redesign/arena.en";
 import { collectionEn } from "./redesign/collection.en";
 import { decksEn } from "./redesign/decks.en";
+import { communityEn } from "./redesign/community.en";
 import { foundationEn } from "./redesign/foundation.en";
 import { homeEn } from "./redesign/home.en";
 import { playEn } from "./redesign/play.en";
@@ -1799,6 +1800,7 @@ export const en = {
   ...homeEn,
   ...playEn,
   ...decksEn,
+  ...communityEn,
   ...collectionEn,
   ...settingsEn,
   ...arenaEn,

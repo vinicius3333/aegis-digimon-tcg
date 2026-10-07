@@ -14,6 +14,7 @@ import {
   getCardDefinition,
   isBetaOnlyCard,
   sharedCardNumberGroups,
+  deckLegality,
 } from "@aegis/shared";
 import {
   Alert,
@@ -32,7 +33,6 @@ import { FAMOUS_DECKS, FAMOUS_DECK_GROUPS, displayCoverCard, selectableDecks, ty
 import { useTranslation, type Translate } from "../i18n";
 import { RankedStart } from "../account/RankedStart";
 import { RANKED_ENABLED } from "../features";
-import { deckLegality } from "./DeckListCard";
 import { DeckColorDots, DeckPicker } from "./DeckPicker";
 import { FamousDeckListDialog } from "./FamousDeckListDialog";
 import { MatchTimerSettings } from "./MatchTimerSettings";
@@ -147,6 +147,10 @@ const modesFor = (t: Translate): Mode[] => [
 export function Lobby({
   player,
   decks,
+  borrowedDeck,
+  onBorrowCommunityDeck,
+  onOpenCommunityDeck,
+  accountId,
   activeDeckId,
   onSelectDeck,
   onCopyDeck,
@@ -163,6 +167,12 @@ export function Lobby({
   onTimerOptionsChange?: (options: Required<MatchTimerOptions>) => void;
   player: PlayerIdentity;
   decks: DeckListing[];
+  /** A community deck picked to play with; selectable like a preset but never saved. */
+  borrowedDeck?: DeckListing;
+  onBorrowCommunityDeck?: (id: string) => void;
+  onOpenCommunityDeck?: (id: string) => void;
+  /** The signed-in account, so community tiles can be liked from the picker. */
+  accountId?: string;
   activeDeckId: string;
   onSelectDeck: (id: string) => void;
   onCopyDeck: (deck: DeckListing) => void;
@@ -223,12 +233,21 @@ export function Lobby({
     [onEditDeck, onSelectDeck, onNav],
   );
   const buildDeck = useCallback(() => onNav("deck"), [onNav]);
-  const availableDecks = selectableDecks(decks);
+  const pickCommunityDeck = useCallback(
+    (id: string) => {
+      setRandomSelected(false);
+      onBorrowCommunityDeck?.(id);
+    },
+    [onBorrowCommunityDeck],
+  );
+  const openCommunityDeck = useCallback((id: string) => onOpenCommunityDeck?.(id), [onOpenCommunityDeck]);
+  const availableDecks = borrowedDeck ? [borrowedDeck, ...selectableDecks(decks)] : selectableDecks(decks);
   const active = availableDecks.find((d) => d.id === activeDeckId) ?? availableDecks[0];
   const activeCollection = FAMOUS_DECK_GROUPS.find((group) =>
     group.decks.some((deck) => deck.id === active?.id),
   )?.collection;
   const activeIsPreset = activeCollection !== undefined;
+  const activeIsBorrowed = borrowedDeck !== undefined && active?.id === borrowedDeck.id;
   const vsBot = mode === "practice";
   const banViolations = useMemo(() => {
     if (!active) return [];
@@ -423,6 +442,10 @@ export function Lobby({
                     <span className="lobby-active-strip__source">
                       {t("lobby.presetSource", { collection: activeCollection })}
                     </span>
+                  ) : activeIsBorrowed ? (
+                    <span className="lobby-active-strip__source">
+                      {t("community.lobbySource", { name: active.blurb })}
+                    </span>
                   ) : null}
                 </span>
               </span>
@@ -459,6 +482,17 @@ export function Lobby({
                   <Icons.Copy size={16} />
                 </IconButton>
               </>
+            ) : !randomSelected && active && activeIsBorrowed ? (
+              <IconButton
+                className="lobby-deck-action"
+                variant="ghost"
+                size="sm"
+                label={t("lobby.copyPreset")}
+                title={t("lobby.copyPreset")}
+                onClick={() => onCopyDeck(active)}
+              >
+                <Icons.Copy size={16} />
+              </IconButton>
             ) : null}
             <IconButton
               className="lobby-deck-action"
@@ -695,6 +729,9 @@ export function Lobby({
           onViewDeck={setViewedDeck}
           onEditDeck={editDeck}
           onBuildDeck={buildDeck}
+          onPickCommunityDeck={pickCommunityDeck}
+          onOpenCommunityDeck={openCommunityDeck}
+          accountId={accountId}
         />
       </div>
       {viewedDeck ? (
