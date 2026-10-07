@@ -608,6 +608,15 @@
   box-shadow: var(--ds-shadow-raise);
   animation: aegis-rise 180ms ease-out;
 }
+/* Centred on the View board button that opened the board (DecisionBoardReturn). Phones
+   keep the full-width strip from responsivePhoneStrip.css. */
+@media (width >= 600px) and (not ((height < 520px) and (orientation: landscape))) {
+  .decision-board-return[data-anchored] {
+    top: var(--decision-return-top);
+    right: auto;
+    left: var(--decision-return-left);
+  }
+}
 .decision-board-return__status {
   padding-left: var(--ds-space-2);
   color: var(--ds-text-3);
