@@ -894,6 +894,61 @@ both seats and 3,872 identical development games, with zero weight updates.
 Actual full all44 results, whole-zero closure and strict gain acceptance remain
 pending; completion of learning alone does not qualify the new bot.
 
+## Actual full R2b evaluation closure and balanced next experiment
+
+Original evaluation session 49750 exited zero, and the exact whole
+683/start1185904, operator 702/start1185911 and frozen CUDA evaluator
+905/start1202652 are gone. The original nonlink whole trap is `0`, with an
+empty actual GPU inventory. All **3,872 natural development games** completed:
+**2,461 wins / 1,411 losses**, zero failed/unusable games or payment forfeits,
+and eight retained recovered play rejections. No weights were updated during
+evaluation; checkpoint `948aa03e...` remains unchanged.
+
+The unchanged full guarded R2b evaluation consumer also exited zero. Its actual
+completion SHA-256 is
+`40baeefda85cd0d8f45ffd94b1d3171a7c1c690195f10ef3cd262231c0df191c`;
+local `rule-link-current-corrective-strength-r2b-closed.actual.json` has SHA-256
+`120718b719f5adea53958b95ecfa7734795eba7f96e746e75c432f3a0a49ba70`.
+The complete all44 assessment has SHA-256
+`ab56b39c19f347a3215db0ce2e8e130b9727aaad91c654b20bc7cb67666dbe77`.
+**24 recipes still fail strict gains against every one of the four references**,
+compared with 26 in R1. Aggregate improvement (2,408 old PPO → 2,427 R1 →
+2,461 R2b) does not pass this gate. Against R1, 25 recipes improved, 15 regressed
+and four tied. The largest remaining deficits are Imperialdramon Bandai
+(14 additional wins required), Adventure Bandai (10), Charismon (7), Examon (7)
+and Gankoomon/Jesmon (7). Mechanisms, materials, rooms, serving, blind evaluation
+and delivery remain unaccepted; no physical or room job is admitted by this result.
+
+The next bounded experiment tests the learner selection: one balanced full
+44×44×both-seats pass, 3,872 genuinely fresh training games, warm-starting the
+actual R2b checkpoint and optimizer. It preserves the current `1e-5` learning
+rate, heuristic opponents, supported trainer, qualified source and runtime.
+The falsifiable hypothesis is that retaining all44 learner coverage reduces
+regressions caused by training only the deficient subset. Learning-rate drift
+and limited opponent variety remain alternatives; they are not asserted as
+proven causes. The next candidate still requires the unchanged full all44
+comparison against every reference before downstream acceptance.
+
+Source-only R3 operator `rule-link-current-corrective-ppo-r3.py` has SHA-256
+`87dfb8a9f49c6d348ff80cc40575d3d3c99703970643ace1f2a3614501fb8531`;
+its external launch wrapper has SHA-256
+`486dae7358f7db885330f24524a83a6324040c940996f08e26cca8602734ac79`.
+Nine bounded synthetic guards passed, including all44 pairing, partial/wrong
+closure rejection, original protected CP/source guards, real positive optimizer
+steps, retained negative payment losses, and the exact supported R2b namespace
+context seam. These fixtures do not prove a future actual training run.
+`test_current_corrective_ppo_r3.py` has SHA-256
+`c19542f77385006cb500f5ac72f8399c81d7c907895a27539877939dc63c4286`.
+Actual desktop source inspection exited zero using Python 3.12.14, pinned
+resident helpers and the supported namespace seam, without primary models or
+jobs. Its actual source/advisory receipt has SHA-256
+`2e6c9718ff2509cc90684d5e7c1d7ee7599636173f6050e93ba5ad31559deaa9`.
+The advisory found candidate seed 6016104 after observing 639 schedule files
+and 130,975 previously used seeds; this advisory is not final seed admission.
+Final exclusive request, complete original fresh-seed scanner, full read-only
+admission, fresh idle checks and separate ROOT learning Go remain required
+before actual R3 execution.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
