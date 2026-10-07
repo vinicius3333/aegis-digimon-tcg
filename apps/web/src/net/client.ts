@@ -45,6 +45,11 @@ function publicRoomType(options: AegisJoinOptions): string {
   return options.betaBattleMode ? ROOM_TYPE_BETA : options.ranked ? ROOM_TYPE_RANKED : ROOM_TYPE;
 }
 
+/** Queues split on both settings, so each is always sent explicitly. */
+function withQueueFilters(options: AegisJoinOptions): AegisJoinOptions {
+  return { ...options, matchTimer: options.matchTimer === true, bestOf: options.bestOf === 3 ? 3 : 1 };
+}
+
 export function connectionSlot(room: AegisRoom): RoomSlot {
   return roomSlots.get(room) ?? "legacy";
 }
@@ -56,7 +61,7 @@ export class AegisConnectionRouter {
   constructor(private readonly dependencies: RouterDependencies) {}
 
   async joinOrCreate(options: AegisJoinOptions): Promise<AegisRoom> {
-    return this.joinOrCreateWithFreshManifest({ ...options, matchTimer: options.matchTimer === true }, false);
+    return this.joinOrCreateWithFreshManifest(withQueueFilters(options), false);
   }
 
   private async joinOrCreateWithFreshManifest(
@@ -131,7 +136,12 @@ export class AegisConnectionRouter {
     throw new Error("room not found");
   }
 
-  async spectate(target: { roomCode: string }): Promise<AegisRoom> {
+  /** The next game of a series lives in the slot of the game before it, draining or not. */
+  async joinSeriesGame(roomId: string, slot: DeploymentSlot, options: AegisJoinOptions): Promise<AegisRoom> {
+    return this.remember(await this.client(slot).joinById(roomId, options), slot);
+  }
+
+  async spectate(target: SpectateTarget): Promise<AegisRoom> {
     const manifest = await this.dependencies.loadManifest();
     const deployments = [manifest.active, ...manifest.draining];
     for (const { slot } of deployments) {
@@ -273,9 +283,15 @@ function rememberLegacy(room: AegisRoom): AegisRoom {
 /** Join an existing public/ranked match or create one on the active deployment. */
 export async function joinOrCreate(options: AegisJoinOptions): Promise<AegisRoom> {
   if (useProductionRouter()) return getProductionRouter().joinOrCreate(options);
-  const authenticatedOptions = await withLegacyRoomTicket({ ...options, matchTimer: options.matchTimer === true });
+  const authenticatedOptions = await withLegacyRoomTicket(withQueueFilters(options));
   const joined = await getLegacyClient().joinOrCreate<GameState>(publicRoomType(options), authenticatedOptions);
   return rememberLegacy(joined);
+}
+
+/** Take this player's seat in the next game of their series, in the slot that runs it. */
+export async function joinSeriesGame(roomId: string, slot: RoomSlot, options: AegisJoinOptions): Promise<AegisRoom> {
+  if (slot !== "legacy") return getProductionRouter().joinSeriesGame(roomId, slot, options);
+  return rememberLegacy(await getLegacyClient().joinById<GameState>(roomId, options));
 }
 
 /** Re-establish a dropped room through the slot that still owns it. */
@@ -376,11 +392,17 @@ export function clearPendingIntents(): void {
   pendingIntents.length = 0;
 }
 
-function spectatorJoinRequest(target: { roomCode: string }): RequestInit {
+/** `displayName` only labels the spectator's chat messages; the server cleans it up. */
+export interface SpectateTarget {
+  roomCode: string;
+  displayName?: string;
+}
+
+function spectatorJoinRequest(target: SpectateTarget): RequestInit {
   return { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(target) };
 }
 
-export async function spectate(target: { roomCode: string }): Promise<AegisRoom> {
+export async function spectate(target: SpectateTarget): Promise<AegisRoom> {
   if (useProductionRouter()) return getProductionRouter().spectate(target);
   const response = await fetch(
     `${legacyEndpoint().replace(/^ws/, "http")}/spectate/join`,

@@ -99,13 +99,24 @@ export function playChoiceAnswers({
     },
     onDualPlayCancel: () => close(() => overlays.setDualPlay(null)),
 
-    onConfirmAction: () => {
+    onConfirmAction: (dnaMaterialPermanentIds?: string[]) => {
       if (!actionConfirm || mainActionBlocked) return;
       if (room) {
         if (actionConfirm.kind === DragKind.Play) dispatchPlayCard(room, actionConfirm.instanceId);
         else if (actionConfirm.kind === "digivolve")
           intents.digivolve(room, actionConfirm.permanentId, actionConfirm.instanceId);
-        else intents.dnaDigivolve(room, actionConfirm.materialPermanentIds, actionConfirm.instanceId);
+        else {
+          const entry = handEntries.find((candidate) => candidate.instanceId === actionConfirm.instanceId);
+          const selected = dnaMaterialPermanentIds;
+          const route = entry?.dnaDigivolveRoutes?.find(
+            (candidate) =>
+              selected &&
+              candidate.materialPermanentIds.length === selected.length &&
+              candidate.materialPermanentIds.every((id, index) => id === selected[index]),
+          );
+          if (route && route.materialPermanentIds.every((id) => viewer.battleArea.some((p) => p.permanentId === id)))
+            intents.dnaDigivolve(room, [...route.materialPermanentIds], actionConfirm.instanceId);
+        }
       }
       close(() => overlays.setActionConfirm(null));
     },

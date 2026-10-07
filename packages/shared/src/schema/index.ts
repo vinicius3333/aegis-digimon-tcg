@@ -9,7 +9,7 @@ import { installSchemaCompat } from "./schemaCompat.js";
 import { AppFusionRoute, CardInstance, DigivolveRoute, DnaDigivolveRoute } from "./CardInstance.js";
 import { Permanent } from "./Permanent.js";
 import { PlayerState, SecurityCardView } from "./PlayerState.js";
-import { CombatWindow, GameState, PendingDecision } from "./GameState.js";
+import { CombatWindow, GameState, PendingDecision, SeriesState } from "./GameState.js";
 
 installSchemaCompat([
   AppFusionRoute,
@@ -22,4 +22,5 @@ installSchemaCompat([
   Permanent,
   PlayerState,
   SecurityCardView,
+  SeriesState,
 ]);

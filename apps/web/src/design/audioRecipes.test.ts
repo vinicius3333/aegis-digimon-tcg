@@ -11,6 +11,13 @@ import {
   cueKey,
   renderCue,
   renderMusic,
+  renderScore,
+  renderBattleScore,
+  BATTLE_BPM,
+  BATTLE_BARS,
+  SCORE_BPM,
+  SCORE_BARS,
+  SCORE_PEAK,
   decodeSourceWav,
   type FoleyKind,
 } from "./audioRecipes";
@@ -62,7 +69,13 @@ describe("authored original bank", () => {
     }
     expect(audioRecipe("draw").duration).toBeLessThan(0.2);
     expect(() => renderCue("draw")).toThrow(/Recorded foley source required/);
-    for (const recipe of recipes) expect(recipe.layers.every((layer) => layer.texture === "recording")).toBe(true);
+    const foleyOnly = new Set(["select", "nav", "draw", "move", "shuffle"]);
+    // Every cue keeps its card foley; the most frequent everyday cues stay foley only.
+    expect(recipes.every((recipe) => recipe.layers.some((layer) => layer.texture === "recording"))).toBe(true);
+    const toned = recipes.filter((recipe) => recipe.layers.some((layer) => layer.texture !== "recording"));
+    expect(new Set(toned.map((recipe) => recipe.kind))).toEqual(
+      new Set(SOUND_KINDS.filter((kind) => !foleyOnly.has(kind))),
+    );
   });
   it("compares the rejected cue version and exact natural recorded runtime slices", () => {
     const root = new URL("../../public/audio/", import.meta.url);
@@ -146,7 +159,21 @@ describe("authored original bank", () => {
       renderCue("turnChange", {}, "warm", 48000, sources),
     );
 
+    const evolution = (sourceLevel: number, targetLevel: number) =>
+      audioRecipe("digivolve", { sourceLevel, targetLevel });
+    const steps = [evolution(3, 4), evolution(4, 5), evolution(5, 6), evolution(6, 7)];
+    for (let i = 1; i < steps.length; i++) {
+      expect(steps[i]!.layers.length).toBeGreaterThan(steps[i - 1]!.layers.length);
+      expect(steps[i]!.duration).toBeGreaterThan(steps[i - 1]!.duration);
+    }
+    expect(evolution(3, 5).duration).toBeGreaterThan(evolution(4, 5).duration);
+
     expect(cueKey("digivolve", { sourceLevel: NaN, targetLevel: Infinity })).toBe("digivolve-3-4");
+    expect(cueKey("digivolve", { sourceLevel: 2, targetLevel: 6 })).toBe(
+      cueKey("digivolve", { sourceLevel: 4, targetLevel: 6 }),
+    );
+    expect(cueKey("digivolve", { targetLevel: 6 })).toBe("digivolve-5-6");
+    expect(bankRecipes().filter((recipe) => recipe.kind === "digivolve")).toHaveLength(11);
     expect(cueKey("cardPlay", { cost: Infinity })).toBe("cardPlay-5-plain");
     expect(measures(renderCue("effectActivate", {}, "crisp", 48000, sources)).energy).toBeLessThan(
       measures(renderCue("effectActivate", {}, "warm", 48000, sources)).energy,
@@ -174,6 +201,30 @@ describe("authored original bank", () => {
         expect(wav.readInt16LE(44 + (offset + i) * 2)).toBe(Math.round(samples[i]! * 32767) || 0);
     }
   });
+  it.each([
+    { file: "aegis-music-v4.wav", bpm: SCORE_BPM, bars: SCORE_BARS, render: renderScore, expectedBpm: 112 },
+    { file: "aegis-music-v5.wav", bpm: BATTLE_BPM, bars: BATTLE_BARS, render: renderBattleScore, expectedBpm: 144 },
+  ])(
+    "ships $file as a seamless 16-bar stereo loop under the music ceiling",
+    ({ file, bpm, bars, render, expectedBpm }) => {
+      expect(bpm).toBe(expectedBpm);
+      expect(bars).toBe(16);
+      const [left, right] = render();
+      expect(left!.length).toBe(Math.round(((bars * 4 * 60) / bpm) * 48000));
+      expect(left).not.toEqual(right);
+      let peak = 0;
+      for (const channel of [left!, right!]) {
+        for (const sample of channel) peak = Math.max(peak, Math.abs(sample));
+        expect(Math.abs(channel[0]! - channel.at(-1)!)).toBeLessThan(0.01);
+      }
+      expect(peak).toBeCloseTo(SCORE_PEAK, 6);
+      const shipped = readFileSync(new URL(`../../public/audio/${file}`, import.meta.url));
+      for (let i = 0; i < left!.length; i += 397) {
+        expect(shipped.readInt16LE(44 + i * 4)).toBe(Math.round(left![i]! * 32767) || 0);
+        expect(shipped.readInt16LE(46 + i * 4)).toBe(Math.round(right![i]! * 32767) || 0);
+      }
+    },
+  );
   it("keeps an 96 BPM pulse and progressing melody present from the beginning with a quiet circular seam", () => {
     expect(MUSIC_BPM).toBe(96);
     const layers = musicRecipe();

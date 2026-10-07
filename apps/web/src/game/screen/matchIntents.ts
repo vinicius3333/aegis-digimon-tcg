@@ -101,17 +101,12 @@ export function matchIntents({
       return;
     }
     if (prompt?.kind === "dna") {
-      if (actionConfirmationsEnabled) {
-        overlays.setActionConfirm({
-          kind: "dna",
-          instanceId,
-          cardId: prompt.cardId,
-          materialPermanentIds: prompt.materialPermanentIds,
-        });
-      } else if (room) {
-        intents.dnaDigivolve(room, prompt.materialPermanentIds, instanceId);
-        clearSel();
-      }
+      overlays.setActionConfirm({
+        kind: "dna",
+        instanceId,
+        cardId: prompt.cardId,
+        materialPermanentIds: [...prompt.routes[0]!.materialPermanentIds],
+      });
       return;
     }
     if (prompt?.kind === "digiXros") {

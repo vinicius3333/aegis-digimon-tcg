@@ -9,9 +9,39 @@ import "../BT12/BT12-104.js";
 import "../P/P-037.js";
 import "../ST22/ST22-08.js";
 import "./BT10-039.js";
+import "../BT26/BT26-031.js";
+import "../BT26/BT26-032.js";
 import { compiled } from "./BT10-041.js";
 
 describe("BT10-041 Sakuyamon: Maid Mode", () => {
+  it("#5171 matches DUAL Option-face colors through the target filter and its OR branches", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-039", as: "taomon" }],
+          hand: [
+            { card: "BT10-041", as: "maid" },
+            { card: "BT26-031", as: "yellowOption" },
+            { card: "BT26-032", as: "greenOption" },
+          ],
+          deck: ["BT1-045"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("taomon").permanentId,
+        instanceId: s.inst("maid").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(s.decisions.at(-1)!.req.options?.candidateInstanceIds).toEqual([s.inst("yellowOption").instanceId]);
+  });
+
   it("encodes free color-waived Option use, trash replacement, and attack evolution", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects).toEqual([

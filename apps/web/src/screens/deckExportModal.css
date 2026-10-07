@@ -41,6 +41,12 @@
   line-height: var(--ds-leading-body);
 }
 
+.deck-modal__error {
+  margin: 0;
+  color: var(--ds-danger);
+  font-size: var(--ds-text-sm);
+}
+
 .deck-modal__hint code {
   padding: 1px 5px;
   color: var(--ds-text-2);

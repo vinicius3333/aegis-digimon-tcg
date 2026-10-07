@@ -22,6 +22,7 @@ import {
   setCustomBattlefield,
 } from "./battlefield";
 import { ArenaLookSettings } from "./ArenaLookSettings";
+import { BattleLanes, setBattleLanes } from "./battleLanes";
 import { InfoNote, Panel, SectionHeading, StatStrip } from "./surfaces";
 import { AegisLogo } from "./AegisLogo";
 
@@ -127,6 +128,21 @@ describe("ArenaLookSettings", () => {
     fireEvent.click(screen.getByRole("button", { name: en["settings.playmatRemove"] }));
     expect(getCustomBattlefieldSrc()).toBeUndefined();
     expect(screen.getByRole("button", { name: en["settings.playmatUpload"] })).toBeTruthy();
+  });
+
+  it("draws the preview with the chosen number of lanes per side", () => {
+    setBattleLanes(BattleLanes.Two);
+    render(
+      <I18nProvider>
+        <ArenaLookSettings />
+      </I18nProvider>,
+    );
+    const preview = screen.getByRole("img", { name: en["redesign.foundation.arena.preview"] });
+    const lanes = () => preview.querySelectorAll(".aegis-arena-look__lane").length;
+
+    expect(lanes()).toBe(4);
+    fireEvent.click(screen.getByRole("radio", { name: en["redesign.foundation.arena.lanes.one"] }));
+    expect(lanes()).toBe(2);
   });
 });
 

@@ -40,6 +40,7 @@ export function PermanentView({
   heldDeletion = false,
   keywordLabels,
   highlight,
+  selectionOrder,
   candidate,
   dimmed,
   compact,
@@ -78,6 +79,7 @@ export function PermanentView({
   heldDeletion?: boolean;
   keywordLabels?: Readonly<Record<string, string>>;
   highlight?: boolean;
+  selectionOrder?: number;
   candidate?: boolean;
   dimmed?: boolean;
   compact?: boolean;
@@ -241,6 +243,14 @@ export function PermanentView({
     >
       {copies > 1 ? (
         <PermanentCopyEdges cardId={topId} copies={copies} width={permanentWidth} suspended={isVisuallySuspended} />
+      ) : null}
+      {selectionOrder !== undefined ? (
+        <span
+          className="game-permanent__material-order"
+          aria-label={t("overlay.dnaMaterialOrder", { number: selectionOrder })}
+        >
+          {selectionOrder}
+        </span>
       ) : null}
       <PermanentCardStack stack={perm.stack} width={permanentWidth} />
       <PermanentLinkedCards linked={perm.linked} width={permanentWidth} />

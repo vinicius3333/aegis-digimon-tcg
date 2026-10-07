@@ -14,7 +14,6 @@ printed, referenced, and granted forms; parameterized forms are reconciled in
 the authoritative sections below.
 
 Baseline: `de4dda717d8c9e0c2420796cb387f68b1379b863`.
-Plan: `docs/plans/2026-09-12-engine-mechanism-audit-design.md`.
 
 ## Gates
 

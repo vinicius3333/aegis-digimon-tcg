@@ -126,13 +126,13 @@ describe("BT22-023 AeroVeedramon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT22-023", as: "aero", suspended: true }] } });
     await s.ready();
     const resolution = advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("aero"));
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    expect(s.state.pendingDecision).toBeDefined();
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 0, max: 1 });
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "chooseTargets", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await resolution;

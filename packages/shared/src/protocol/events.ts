@@ -494,6 +494,15 @@ export type ServerEvent =
     }
   | {
       /**
+       * Sent once, right after `gameOver`: every zone that stayed hidden during the match, for
+       * both players, so the board can be reviewed in full. Order is the zone's own order, top
+       * first (`deck[0]` and `security[0]` are the top cards).
+       */
+      kind: "finalReveal";
+      players: FinalRevealPlayer[];
+    }
+  | {
+      /**
        * The room finished everything one entry into the engine produced. It is sent after
        * the state patch carrying that batch's mutations, so a client that groups cues by
        * `batch` knows the board it is narrating over.
@@ -572,6 +581,7 @@ export const SERVER_EVENT_KINDS = [
   "turnEnded",
   "actionRejected",
   "gameOver",
+  "finalReveal",
   "batchClosed",
 ] as const satisfies readonly ServerEventKind[];
 
@@ -579,6 +589,19 @@ type _ServerEventKindsComplete =
   Exclude<ServerEventKind, (typeof SERVER_EVENT_KINDS)[number]> extends never ? true : never;
 const _serverEventKindsComplete: _ServerEventKindsComplete = true;
 void _serverEventKindsComplete;
+
+export interface FinalRevealCard {
+  cardId: string;
+  artId: string;
+}
+
+export interface FinalRevealPlayer {
+  seat: Seat;
+  hand: FinalRevealCard[];
+  deck: FinalRevealCard[];
+  eggDeck: FinalRevealCard[];
+  security: FinalRevealCard[];
+}
 
 /**
  * `cardsMoved.to` for a return that lands UNDER the whole deck rather than on top.

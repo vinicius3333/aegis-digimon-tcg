@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AUDIO_CUES, MUSIC_URL } from "./audioBank";
 import { needsMediaAudio, splitCueWav } from "./mediaAudio";
+import { MUSIC_TRACK_URLS } from "./musicTracks";
 import * as sound from "./sound";
 
 const bank = readFileSync("public/audio/aegis-cues-v2.wav");
@@ -56,6 +57,7 @@ beforeEach(() => {
   sound.setSoundVolume(0.7);
   sound.setMusicEnabled(true);
   sound.setMusicVolume(0.25);
+  sound.setMusicTrack("digitalBattle");
 });
 afterEach(() => {
   sound.disposeAudio();
@@ -93,7 +95,7 @@ describe("Opera tablet native audio compatibility", () => {
       expect(header.getUint32(40, true)).toBe(frames * frameBytes);
       expect(clip.byteLength).toBe(44 + frames * frameBytes);
       const start = 44 + Math.round(cue.offset * rate) * frameBytes;
-      expect(new Uint8Array(clip, 44)).toEqual(new Uint8Array(bytes, start, frames * frameBytes));
+      expect(Buffer.from(clip, 44).equals(Buffer.from(bytes, start, frames * frameBytes))).toBe(true);
     }
     expect(() => splitCueWav(new ArrayBuffer(8))).toThrow("Invalid cue WAV");
     expect(() => splitCueWav(bytes.slice(0, 100))).toThrow("Truncated cue WAV");
@@ -119,6 +121,16 @@ describe("Opera tablet native audio compatibility", () => {
     expect(createURL).toHaveBeenCalledTimes(Object.keys(AUDIO_CUES).length);
     await sound.prepareAudio();
     expect(createURL).toHaveBeenCalledTimes(Object.keys(AUDIO_CUES).length);
+  });
+
+  it("restarts native music from the chosen track's file", async () => {
+    sound.startMusic();
+    const music = await ready();
+    expect(music.play).toHaveBeenCalledOnce();
+    sound.setMusicTrack("digitalAscent");
+    expect(music.pause).toHaveBeenCalled();
+    expect(music.src).toBe(MUSIC_TRACK_URLS.digitalAscent);
+    expect(music.play).toHaveBeenCalledTimes(2);
   });
 
   it("bounds overlap, recovers ended or denied slots and updates channel controls", async () => {

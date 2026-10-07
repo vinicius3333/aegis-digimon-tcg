@@ -232,6 +232,16 @@
   gap: var(--ds-space-2);
 }
 
+.deck-list-row__publish {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+}
+
+.deck-list-row__publish:empty {
+  display: none;
+}
+
 .deck-list-row__hint {
   color: var(--ds-text-3);
   font-size: var(--ds-text-xs);
@@ -379,6 +389,17 @@
   }
 
   .deck-list-row__actions > :nth-child(3) {
+    min-height: var(--ds-touch-target);
+    justify-content: center;
+  }
+
+  /* Publishing is secondary to playing, so it takes its own line under the main action. */
+  .deck-list-row__publish {
+    grid-column: 1 / -1;
+  }
+
+  .deck-list-row__publish > .aegis-button {
+    flex: 1;
     min-height: var(--ds-touch-target);
     justify-content: center;
   }

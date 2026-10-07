@@ -280,8 +280,89 @@ export function applyPlayDpCeilingModifier(
   return { ...target, filter: { ...target.filter, dp: { ...origDp, value: newValue } } };
 }
 
+/** Select each printed own-stack group before any of the selected cards enter play. */
+async function selectOwnStackPlayGroup(ctx: EffectContext, target: Target, reservedIds: ReadonlySet<string>) {
+  const matching = ownStackPlayCandidates(ctx, target).filter((card) => !reservedIds.has(card.instanceId));
+  const totalPlayCostBudget = target.totalPlayCostBudget;
+  const playCostOf = (card: (typeof matching)[number]): number => ctx.game.definitionOf(card).playCost ?? 0;
+  if (matching.length === 0) {
+    return [];
+  }
+  const cap = target.count === "all" ? matching.length : Math.min(target.count, matching.length);
+  // Named own-stack targets need the same exact-name semantics as loose-card targeting.
+  // This matters for BT7-063: its On Play target is up-to by name, while its deletion
+  // replacement requires both names when both are present (Q1623).
+  const requiredNamesExact = target.requiredNamesExact ?? [];
+  const requiredNamesExactUpTo = target.requiredNamesExactUpTo ?? [];
+  const namedSelection = (names: string[], requireAll: boolean) => {
+    const selected: typeof matching = [];
+    const used = new Set<string>();
+    let spent = 0;
+    for (const requiredName of names) {
+      const candidate = matching.find((card) => {
+        if (used.has(card.instanceId)) return false;
+        const definition = ctx.game.definitionOf({ cardId: card.cardId } as never);
+        return (
+          hasExactName(definition, requiredName) &&
+          (totalPlayCostBudget === undefined || spent + playCostOf(card) <= totalPlayCostBudget)
+        );
+      });
+      if (candidate === undefined) {
+        if (requireAll) return [];
+        continue;
+      }
+      used.add(candidate.instanceId);
+      selected.push(candidate);
+      spent += playCostOf(candidate);
+    }
+    return selected;
+  };
+  // A required exact set is all-or-none; an up-to set takes one of each available name.
+  // With neither field, preserve the normal mandatory as-many-as-possible selection.
+  const selectedNamed =
+    requiredNamesExact.length > 0
+      ? namedSelection(requiredNamesExact, true)
+      : requiredNamesExactUpTo.length > 0
+        ? namedSelection(requiredNamesExactUpTo, false)
+        : undefined;
+  const chosenBeforeBudget =
+    selectedNamed !== undefined
+      ? selectedNamed.slice(0, cap).map((card) => card.instanceId)
+      : matching.length > cap || target.upTo === true
+        ? await ctx.ask.selectCards(ctx, {
+            candidates: matching.map((card) => card.instanceId),
+            min: target.upTo === true ? 0 : cap,
+            max: cap,
+            ...(totalPlayCostBudget === undefined ? {} : { maxTotalPlayCost: totalPlayCostBudget }),
+          })
+        : matching.map((card) => card.instanceId);
+  const chosenOwn =
+    totalPlayCostBudget === undefined
+      ? chosenBeforeBudget
+      : chosenBeforeBudget.reduce<{ ids: string[]; spent: number }>(
+          (result, instanceId) => {
+            const card = matching.find((candidate) => candidate.instanceId === instanceId);
+            if (card === undefined) return result;
+            const cost = playCostOf(card);
+            if (result.spent + cost <= totalPlayCostBudget) {
+              result.ids.push(instanceId);
+              result.spent += cost;
+            }
+            return result;
+          },
+          { ids: [], spent: 0 },
+        ).ids;
+  return chosenOwn
+    .map((id) => matching.find((card) => card.instanceId === id))
+    .filter((card): card is (typeof matching)[number] => card !== undefined);
+}
+
 export async function runPlayAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
+  // This selection carries the optional activation itself, including a one-card pool.
+  if (action.kind === "PlayWithoutCost" && ctx.selectingOptionalTarget === true) {
+    action = { ...action, target: { ...action.target, upTo: true, minimum: 0 } };
+  }
   switch (action.kind) {
     case "PlayMultiple": {
       const from = Array.isArray(action.from)
@@ -446,81 +527,15 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       if (action.fromOwnDigivolutionStack) {
         const self = ctx.source.permanent();
         if (self === undefined) return false;
-        const matching = ownStackPlayCandidates(ctx, action.target);
-        const totalPlayCostBudget = action.target.totalPlayCostBudget;
-        const playCostOf = (card: (typeof matching)[number]): number => ctx.game.definitionOf(card).playCost ?? 0;
-        if (matching.length === 0) {
-          ctx.lastEffectActed = false;
-          return false;
+        const chosenCards = [];
+        const reservedIds = new Set<string>();
+        for (const target of [action.target, ...(action.additionalSimultaneousTargets ?? [])]) {
+          const group = await selectOwnStackPlayGroup(ctx, target, reservedIds);
+          chosenCards.push(...group);
+          for (const card of group) reservedIds.add(card.instanceId);
         }
-        const cap = action.target.count === "all" ? matching.length : Math.min(action.target.count, matching.length);
-        // Named own-stack targets need the same exact-name semantics as loose-card targeting.
-        // This matters for BT7-063: its On Play target is up-to by name, while its deletion
-        // replacement requires both names when both are present (Q1623).
-        const requiredNamesExact = action.target.requiredNamesExact ?? [];
-        const requiredNamesExactUpTo = action.target.requiredNamesExactUpTo ?? [];
-        const namedSelection = (names: string[], requireAll: boolean) => {
-          const selected: typeof matching = [];
-          const used = new Set<string>();
-          let spent = 0;
-          for (const requiredName of names) {
-            const candidate = matching.find((card) => {
-              if (used.has(card.instanceId)) return false;
-              const definition = ctx.game.definitionOf({ cardId: card.cardId } as never);
-              return (
-                hasExactName(definition, requiredName) &&
-                (totalPlayCostBudget === undefined || spent + playCostOf(card) <= totalPlayCostBudget)
-              );
-            });
-            if (candidate === undefined) {
-              if (requireAll) return [];
-              continue;
-            }
-            used.add(candidate.instanceId);
-            selected.push(candidate);
-            spent += playCostOf(candidate);
-          }
-          return selected;
-        };
-        // A required exact set is all-or-none; an up-to set takes one of each available name.
-        // With neither field, preserve the normal mandatory as-many-as-possible selection.
-        const selectedNamed =
-          requiredNamesExact.length > 0
-            ? namedSelection(requiredNamesExact, true)
-            : requiredNamesExactUpTo.length > 0
-              ? namedSelection(requiredNamesExactUpTo, false)
-              : undefined;
-        const chosenBeforeBudget =
-          selectedNamed !== undefined
-            ? selectedNamed.slice(0, cap).map((card) => card.instanceId)
-            : matching.length > cap || action.target.upTo === true
-              ? await ctx.ask.selectCards(ctx, {
-                  candidates: matching.map((card) => card.instanceId),
-                  min: action.target.upTo === true ? 0 : cap,
-                  max: cap,
-                  ...(totalPlayCostBudget === undefined ? {} : { maxTotalPlayCost: totalPlayCostBudget }),
-                })
-              : matching.map((card) => card.instanceId);
-        const chosenOwn =
-          totalPlayCostBudget === undefined
-            ? chosenBeforeBudget
-            : chosenBeforeBudget.reduce<{ ids: string[]; spent: number }>(
-                (result, instanceId) => {
-                  const card = matching.find((candidate) => candidate.instanceId === instanceId);
-                  if (card === undefined) return result;
-                  const cost = playCostOf(card);
-                  if (result.spent + cost <= totalPlayCostBudget) {
-                    result.ids.push(instanceId);
-                    result.spent += cost;
-                  }
-                  return result;
-                },
-                { ids: [], spent: 0 },
-              ).ids;
+        const chosenOwn = chosenCards.map((card) => card.instanceId);
         if (chosenOwn.length > 0) {
-          const chosenCards = chosenOwn
-            .map((instanceId) => matching.find((candidate) => candidate.instanceId === instanceId))
-            .filter((candidate): candidate is (typeof matching)[number] => candidate !== undefined);
           const played = await playEffectInstances(ctx, chosenCards, {
             payCost: action.payCost,
             ...(action.playedByDecode === true ? { playedByDecode: true } : {}),

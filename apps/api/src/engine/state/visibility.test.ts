@@ -21,7 +21,7 @@ import {
   privateZoneSnapshot,
 } from "./visibility.js";
 import { extractCardAt, insertCard, installVisibilityPort, placePermanent } from "./access.js";
-import { exposeCardInZone } from "./visibility.js";
+import { exposeCardInZone, finalRevealOf } from "./visibility.js";
 import { Zone } from "@aegis/shared";
 
 function makeCard(id: string, ownerSeat: Seat, faceUp = true): CardInstance {
@@ -925,5 +925,20 @@ describe("spectator visibility", () => {
     expect(decoder.state.players[0]!.securityView[0]!.cardId).toBe("TEST-001");
     expect(decoder.state.players[0]!.securityView[1]!.cardId).toBe("");
     view.dispose();
+  });
+});
+
+describe("finalRevealOf", () => {
+  it("lists every hidden zone of both seats, top first", () => {
+    const state = makeState();
+    state.players[1]!.deck[0]!.cardId = "TOP-001";
+    const revealed = finalRevealOf(state);
+    expect(revealed.map((player) => player.seat)).toEqual([0, 1]);
+    const opponent = revealed[1]!;
+    expect(opponent.deck).toHaveLength(37);
+    expect(opponent.deck[0]).toEqual({ cardId: "TOP-001", artId: "TEST-001_P1" });
+    expect(opponent.eggDeck).toHaveLength(4);
+    expect(opponent.hand).toHaveLength(5);
+    expect(opponent.security).toHaveLength(5);
   });
 });

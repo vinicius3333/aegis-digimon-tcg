@@ -16,6 +16,10 @@ export interface AegisJoinOptions {
   matchTimer?: boolean;
   timerStartSeconds?: number;
   timerRefillSeconds?: number;
+  /** Casual and private rooms play one game or a best-of-three; anything else plays one. */
+  bestOf?: 1 | 3;
+  /** A later game of a best-of-three: the seat token its series handed this player. */
+  seriesToken?: string;
   ranked?: boolean;
   betaBattleMode?: boolean;
   authTicket?: string;
@@ -23,6 +27,10 @@ export interface AegisJoinOptions {
   presentationPacing?: "current" | "sequential";
   /** Dev-only: ask a bot room for a hand-laid board instead of the pre-game procedure. */
   devScenario?:
+    | "arena-issue-5176-king-drasil-ace"
+    | "arena-issue-5166-dna-material-pairs"
+    | "arena-issue-5173-cyber-engage"
+    | "arena-issue-5173-cyber-engage-psychemon"
     | "arena-issue-5161-larva-breeding"
     | "arena-issue-5104-alter-s-sources"
     | "arena-issue-5115-melting-trash"
@@ -79,8 +87,15 @@ export interface AegisJoinOptions {
     | "arena-issue-5132-lm-055-search"
     | "arena-issue-5182-supreme-connection-delay"
     | "arena-issue-5181-sharkmon-shellmon"
+    | "arena-issue-5167-assembly-digimon"
+    | "arena-issue-5171-taomon-famis"
     | "arena-issue-5127-opponent-suspend-cost"
     | "arena-issue-5127-opponent-survival"
+    | "arena-issue-5168-alter-s-simultaneous"
+    | "arena-issue-5169-demidevimon-native"
+    | "arena-issue-5170-kaguyamon-end-turn"
+    | "arena-issue-5170-kaguyamon-on-play"
+    | "arena-issue-5170-arisa-overclock"
     | "arena-issue-5159-kudamon-moving"
     | "arena-issue-5158-guilmon-x-reveal"
     | "arena-issue-5050-counter-immunity"

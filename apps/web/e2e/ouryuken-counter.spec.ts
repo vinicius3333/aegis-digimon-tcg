@@ -39,18 +39,18 @@ for (const width of [320, 390, 768, 1024, 1440]) {
       await page.getByRole("button", { name: /^end turn$/i }).click();
       await page.getByRole("button", { name: /^don't use$/i }).click();
       await page
-        .getByRole("region", { name: "Grademon · effect" })
+        .getByRole("dialog", { name: "Grademon · effect" })
         .getByRole("button", { name: /^don't use$/i })
         .click();
-      const rail = page.getByRole("region", { name: "Counter timing" });
+      const rail = page.getByRole("dialog", { name: "Counter timing" });
       await expect(rail).toBeVisible();
       // Select the second ACE; identical partner copies share one concise action.
-      await page
-        .getByTestId("hand")
-        .getByRole("button", { name: /Pick Alphamon: Ouryuken/ })
+      await rail
+        .getByRole("button")
+        .filter({ has: page.getByRole("img", { name: "Alphamon: Ouryuken", exact: true }) })
         .nth(1)
         .click();
-      const blast = rail.getByRole("button", { name: "Blast DNA", exact: true });
+      const blast = rail.getByRole("button", { name: /Blast DNA/ });
       await expect(blast).toHaveCount(1);
       await expect(blast).toBeVisible();
       const screenshotPath = test.info().outputPath("counter-rail.png");

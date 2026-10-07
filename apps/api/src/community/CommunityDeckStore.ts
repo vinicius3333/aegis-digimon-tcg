@@ -1,0 +1,340 @@
+import { randomUUID } from "node:crypto";
+import {
+  CardColor,
+  COMMUNITY_PAGE_SIZE,
+  deckLegality,
+  getCardDefinition,
+  type CommunityDeck,
+  type CommunityDeckPage,
+  type CommunityDeckSummary,
+  type CommunityLikeResult,
+  type CommunityPeriod,
+  type CommunityPublication,
+  type CommunityPublishError,
+  type CommunitySort,
+} from "@aegis/shared";
+import type { PoolClient } from "pg";
+import type { AccountStore } from "../accounts/AccountStore.js";
+import { reviewDeckName } from "./deckNameModeration.js";
+
+const SHOWN_COLORS = 3;
+const DAY_MS = 86_400_000;
+const PERIOD_MS: Record<Exclude<CommunityPeriod, "all">, number> = { week: 7 * DAY_MS, month: 30 * DAY_MS };
+
+export type CommunityDeckQuery = {
+  sort: CommunitySort;
+  period: CommunityPeriod;
+  colors: string[];
+  search: string;
+  page: number;
+  viewerId?: string;
+};
+
+export type PublishResult =
+  | { ok: true; publication: CommunityPublication }
+  | { ok: false; error: CommunityPublishError };
+
+/** Why a like was refused, or the new state. Authors cannot like their own deck. */
+export type LikeResult = { ok: true; like: CommunityLikeResult } | { ok: false; error: "deck_not_found" | "own_deck" };
+
+type PublicDeckRow = {
+  id: string;
+  account_id: string;
+  display_name: string;
+  name: string;
+  colors: string[];
+  main_deck: string[];
+  egg_deck: string[];
+  main_deck_arts: string[];
+  egg_deck_arts: string[];
+  cover_card_id: string | null;
+  like_count: number;
+  copy_count: number;
+  published_at: string;
+  updated_at: string;
+};
+
+const PUBLIC_DECK_COLUMNS =
+  "p.id,p.account_id,a.display_name,p.name,p.colors,p.main_deck,p.egg_deck,p.main_deck_arts,p.egg_deck_arts,p.cover_card_id,p.like_count,p.copy_count,p.published_at,p.updated_at";
+
+/**
+ * Public decks: publishing, browsing, likes and copies. Shares the AccountStore's pool and
+ * migration run rather than opening its own.
+ *
+ * A published deck is a frozen copy of a saved deck. Publishing reads the saved deck from the
+ * database, never from the request, so what goes public is exactly what the owner saved.
+ */
+export class CommunityDeckStore {
+  constructor(private readonly accounts: AccountStore) {}
+
+  async publish(accountId: string, sourceDeckId: string): Promise<PublishResult> {
+    return this.transaction(async (client) => {
+      const saved = (
+        await client.query<{
+          name: string;
+          main_deck: string[];
+          egg_deck: string[];
+          main_deck_arts: string[] | null;
+          egg_deck_arts: string[] | null;
+          cover_card_id: string | null;
+        }>(
+          "SELECT name,main_deck,egg_deck,main_deck_arts,egg_deck_arts,cover_card_id FROM saved_decks WHERE account_id=$1 AND id=$2",
+          [accountId, sourceDeckId],
+        )
+      ).rows[0];
+      if (!saved) return { ok: false, error: "deck_not_found" };
+      if (!deckLegality({ mainDeck: saved.main_deck, eggDeck: saved.egg_deck }).legal)
+        return { ok: false, error: "deck_not_legal" };
+      const review = reviewDeckName(saved.name);
+      if (!review.allowed) return { ok: false, error: "name_not_allowed" };
+      const now = Date.now();
+      const values = [
+        review.name,
+        JSON.stringify(deckColors(saved.main_deck)),
+        JSON.stringify(saved.main_deck),
+        JSON.stringify(saved.egg_deck),
+        JSON.stringify(saved.main_deck_arts ?? saved.main_deck),
+        JSON.stringify(saved.egg_deck_arts ?? saved.egg_deck),
+        saved.cover_card_id ?? fallbackCover(saved.main_deck),
+        now,
+      ];
+      const existing = (
+        await client.query<{ id: string; like_count: number }>(
+          "SELECT id,like_count FROM public_decks WHERE account_id=$1 AND source_deck_id=$2 FOR UPDATE",
+          [accountId, sourceDeckId],
+        )
+      ).rows[0];
+      const id = existing?.id ?? randomUUID();
+      if (existing)
+        await client.query(
+          "UPDATE public_decks SET name=$1,colors=$2,main_deck=$3,egg_deck=$4,main_deck_arts=$5,egg_deck_arts=$6,cover_card_id=$7,updated_at=$8,status='public' WHERE id=$9",
+          [...values, id],
+        );
+      else
+        await client.query(
+          "INSERT INTO public_decks (name,colors,main_deck,egg_deck,main_deck_arts,egg_deck_arts,cover_card_id,updated_at,published_at,id,account_id,source_deck_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$8,$9,$10,$11)",
+          [...values, id, accountId, sourceDeckId],
+        );
+      return {
+        ok: true,
+        publication: { id, sourceDeckId, name: review.name, likeCount: existing?.like_count ?? 0, outdated: false },
+      };
+    });
+  }
+
+  /** Hides the deck from everyone. Its likes stay, so publishing it again restores them. */
+  async unpublish(accountId: string, sourceDeckId: string): Promise<boolean> {
+    await this.accounts.ensureReady();
+    const result = await this.accounts.pool.query(
+      "UPDATE public_decks SET status='unpublished' WHERE account_id=$1 AND source_deck_id=$2 AND status='public'",
+      [accountId, sourceDeckId],
+    );
+    return result.rowCount === 1;
+  }
+
+  async publications(accountId: string): Promise<CommunityPublication[]> {
+    await this.accounts.ensureReady();
+    const rows = (
+      await this.accounts.pool.query<{
+        id: string;
+        source_deck_id: string;
+        name: string;
+        like_count: number;
+        updated_at: string;
+        saved_updated_at: string | null;
+      }>(
+        "SELECT p.id,p.source_deck_id,p.name,p.like_count,p.updated_at,s.updated_at saved_updated_at FROM public_decks p LEFT JOIN saved_decks s ON s.account_id=p.account_id AND s.id=p.source_deck_id WHERE p.account_id=$1 AND p.status='public'",
+        [accountId],
+      )
+    ).rows;
+    return rows.map((row) => ({
+      id: row.id,
+      sourceDeckId: row.source_deck_id,
+      name: row.name,
+      likeCount: row.like_count,
+      outdated: row.saved_updated_at !== null && Number(row.saved_updated_at) > Number(row.updated_at),
+    }));
+  }
+
+  async list(query: CommunityDeckQuery): Promise<CommunityDeckPage> {
+    await this.accounts.ensureReady();
+    const params: unknown[] = [];
+    const param = (value: unknown) => {
+      params.push(value);
+      return `$${params.length}`;
+    };
+    const filters = ["p.status='public'"];
+    for (const color of query.colors) filters.push(`p.colors @> ${param(JSON.stringify([color]))}::jsonb`);
+    const search = query.search.trim().toLowerCase();
+    if (search) {
+      const pattern = param(`%${escapeLike(search)}%`);
+      filters.push(`(lower(p.name) LIKE ${pattern} OR lower(a.display_name) LIKE ${pattern})`);
+    }
+    const periodLikes =
+      query.sort === "top" && query.period !== "all"
+        ? `LEFT JOIN (SELECT public_deck_id, COUNT(*) recent_likes FROM public_deck_likes WHERE created_at >= ${param(Date.now() - PERIOD_MS[query.period])} GROUP BY public_deck_id) recent ON recent.public_deck_id=p.id`
+        : "";
+    const order =
+      query.sort === "new"
+        ? "p.published_at DESC, p.id"
+        : periodLikes
+          ? "COALESCE(recent.recent_likes, 0) DESC, p.like_count DESC, p.published_at DESC, p.id"
+          : "p.like_count DESC, p.published_at DESC, p.id";
+    // One extra row tells whether another page exists without a COUNT.
+    const limit = param(COMMUNITY_PAGE_SIZE + 1);
+    const offset = param(Math.max(0, query.page) * COMMUNITY_PAGE_SIZE);
+    const rows = (
+      await this.accounts.pool.query<PublicDeckRow>(
+        `SELECT ${PUBLIC_DECK_COLUMNS} FROM public_decks p JOIN accounts a ON a.id=p.account_id ${periodLikes} WHERE ${filters.join(" AND ")} ORDER BY ${order} LIMIT ${limit} OFFSET ${offset}`,
+        params,
+      )
+    ).rows;
+    const page = rows.slice(0, COMMUNITY_PAGE_SIZE);
+    const liked = await this.likedAmong(
+      query.viewerId,
+      page.map((row) => row.id),
+    );
+    return { decks: page.map((row) => toSummary(row, liked.has(row.id))), hasMore: rows.length > COMMUNITY_PAGE_SIZE };
+  }
+
+  async deck(id: string, viewerId?: string): Promise<CommunityDeck | undefined> {
+    if (!isUuid(id)) return undefined;
+    await this.accounts.ensureReady();
+    const row = (
+      await this.accounts.pool.query<PublicDeckRow>(
+        `SELECT ${PUBLIC_DECK_COLUMNS} FROM public_decks p JOIN accounts a ON a.id=p.account_id WHERE p.id=$1 AND p.status='public'`,
+        [id],
+      )
+    ).rows[0];
+    if (!row) return undefined;
+    const liked = await this.likedAmong(viewerId, [row.id]);
+    return {
+      ...toSummary(row, liked.has(row.id)),
+      mainDeck: row.main_deck,
+      eggDeck: row.egg_deck,
+      mainDeckArts: row.main_deck_arts,
+      eggDeckArts: row.egg_deck_arts,
+    };
+  }
+
+  async like(accountId: string, id: string): Promise<LikeResult> {
+    return this.setLike(accountId, id, true);
+  }
+
+  async unlike(accountId: string, id: string): Promise<LikeResult> {
+    return this.setLike(accountId, id, false);
+  }
+
+  /** Counts one copy per account, so copying the same deck again does not inflate it. */
+  async recordCopy(accountId: string, id: string): Promise<boolean> {
+    if (!isUuid(id)) return false;
+    return this.transaction(async (client) => {
+      const deck = (await client.query("SELECT 1 FROM public_decks WHERE id=$1 AND status='public' FOR UPDATE", [id]))
+        .rows[0];
+      if (!deck) return false;
+      const inserted = await client.query(
+        "INSERT INTO public_deck_copies (public_deck_id,account_id,created_at) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING",
+        [id, accountId, Date.now()],
+      );
+      if (inserted.rowCount === 1)
+        await client.query("UPDATE public_decks SET copy_count=copy_count+1 WHERE id=$1", [id]);
+      return true;
+    });
+  }
+
+  private async setLike(accountId: string, id: string, liked: boolean): Promise<LikeResult> {
+    if (!isUuid(id)) return { ok: false, error: "deck_not_found" };
+    return this.transaction(async (client) => {
+      const deck = (
+        await client.query<{ account_id: string; like_count: number }>(
+          "SELECT account_id,like_count FROM public_decks WHERE id=$1 AND status='public' FOR UPDATE",
+          [id],
+        )
+      ).rows[0];
+      if (!deck) return { ok: false, error: "deck_not_found" };
+      if (deck.account_id === accountId) return { ok: false, error: "own_deck" };
+      const changed = liked
+        ? await client.query(
+            "INSERT INTO public_deck_likes (public_deck_id,account_id,created_at) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING",
+            [id, accountId, Date.now()],
+          )
+        : await client.query("DELETE FROM public_deck_likes WHERE public_deck_id=$1 AND account_id=$2", [
+            id,
+            accountId,
+          ]);
+      const likeCount = deck.like_count + (changed.rowCount === 1 ? (liked ? 1 : -1) : 0);
+      if (likeCount !== deck.like_count)
+        await client.query("UPDATE public_decks SET like_count=$1 WHERE id=$2", [likeCount, id]);
+      return { ok: true, like: { liked, likeCount } };
+    });
+  }
+
+  private async likedAmong(viewerId: string | undefined, ids: readonly string[]): Promise<Set<string>> {
+    if (!viewerId || ids.length === 0) return new Set();
+    const placeholders = ids.map((_, index) => `$${index + 2}`).join(",");
+    const rows = (
+      await this.accounts.pool.query<{ public_deck_id: string }>(
+        `SELECT public_deck_id FROM public_deck_likes WHERE account_id=$1 AND public_deck_id IN (${placeholders})`,
+        [viewerId, ...ids],
+      )
+    ).rows;
+    return new Set(rows.map((row) => row.public_deck_id));
+  }
+
+  private async transaction<T>(work: (client: PoolClient) => Promise<T>): Promise<T> {
+    await this.accounts.ensureReady();
+    const client = await this.accounts.pool.connect();
+    try {
+      await client.query("BEGIN");
+      const result = await work(client);
+      await client.query("COMMIT");
+      return result;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+}
+
+function toSummary(row: PublicDeckRow, likedByMe: boolean): CommunityDeckSummary {
+  return {
+    id: row.id,
+    name: row.name,
+    author: { id: row.account_id, displayName: row.display_name },
+    colors: row.colors,
+    coverCardId: row.cover_card_id,
+    likeCount: row.like_count,
+    copyCount: row.copy_count,
+    likedByMe,
+    // The banlist moves after a deck goes public, so legality is judged on every read.
+    legal: deckLegality({ mainDeck: row.main_deck, eggDeck: row.egg_deck }).legal,
+    publishedAt: Number(row.published_at),
+    updatedAt: Number(row.updated_at),
+  };
+}
+
+/** The same pick the famous presets make: the last Digimon in the list, usually its top level. */
+function fallbackCover(mainDeck: readonly string[]): string | null {
+  return [...mainDeck].reverse().find((cardId) => getCardDefinition(cardId)?.level !== undefined) ?? null;
+}
+
+function deckColors(mainDeck: readonly string[]): string[] {
+  const counts = new Map<string, number>();
+  for (const cardId of mainDeck)
+    for (const color of getCardDefinition(cardId)?.colors ?? [])
+      if (color !== CardColor.None) counts.set(color, (counts.get(color) ?? 0) + 1);
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, SHOWN_COLORS)
+    .map(([color]) => color);
+}
+
+function escapeLike(text: string): string {
+  return text.replace(/[\\%_]/g, (character) => `\\${character}`);
+}
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}

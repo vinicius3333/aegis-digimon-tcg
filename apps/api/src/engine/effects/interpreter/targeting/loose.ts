@@ -8,7 +8,7 @@ import { scaleFactor } from "../scaling.js";
 import { effectiveTargetCount } from "./permanents.js";
 import { filterToDistinctColors } from "@aegis/shared";
 import { nameIncludesToken } from "@aegis/shared";
-import type { Filter, Seat, Target, ZoneRef } from "@aegis/shared";
+import type { CardDefinition, Filter, Seat, Target, ZoneRef } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
 // Loose-card (hand/trash/security/deck/under-permanent) resolution
@@ -211,8 +211,13 @@ export function zoneList(zone: ZoneRef | ZoneRef[] | undefined): ZoneRef[] {
   return Array.isArray(zone) ? zone : [zone];
 }
 
-export function candidateLooseInstances(ctx: EffectContext, target: Target, zones: ZoneRef[]): LooseCandidate[] {
-  const candidates = candidateLooseInstancesIncludingReserved(ctx, target, zones);
+export function candidateLooseInstances(
+  ctx: EffectContext,
+  target: Target,
+  zones: ZoneRef[],
+  projectDefinition: (definition: CardDefinition) => CardDefinition = (definition) => definition,
+): LooseCandidate[] {
+  const candidates = candidateLooseInstancesIncludingReserved(ctx, target, zones, projectDefinition);
   const reserved = ctx.reservedCostInstanceIds;
   return reserved === undefined ? candidates : candidates.filter(({ instanceId }) => !reserved.has(instanceId));
 }
@@ -233,6 +238,7 @@ function candidateLooseInstancesIncludingReserved(
   ctx: EffectContext,
   target: Target,
   zones: ZoneRef[],
+  projectDefinition: (definition: CardDefinition) => CardDefinition,
 ): LooseCandidate[] {
   // For a loose card in hand/trash/security, `this card` is the source instance.  In a
   // hosted-card zone, though, "this Digimon's digivolution cards" means every stack card
@@ -243,7 +249,9 @@ function candidateLooseInstancesIncludingReserved(
     if (id === undefined || !zones.includes("security")) return [];
     const checked = peekCheckedCard(ctx.game.state, id);
     if (checked === undefined || !seatsForController(ctx, target.filter).includes(checked.seat)) return [];
-    return definitionMatches(target.filter, ctx.game.definitionOf(checked.card)) ? [checked.card] : [];
+    return definitionMatches(target.filter, projectDefinition(ctx.game.definitionOf(checked.card)))
+      ? [checked.card]
+      : [];
   }
   if (target.filter.isSelfRef === true && !hostedZone) {
     const self = findLooseCandidateByInstance(ctx, ctx.source.instanceId);
@@ -256,7 +264,7 @@ function candidateLooseInstancesIncludingReserved(
         ))
     ) {
       const { isSelfRef: _isSelfRef, ...definitionFilter } = target.filter;
-      if (definitionMatches(definitionFilter, ctx.game.definitionOf({ cardId: self.cardId })))
+      if (definitionMatches(definitionFilter, projectDefinition(ctx.game.definitionOf({ cardId: self.cardId }))))
         selfCandidates.push(self);
     }
     // "Link this card OR 1 matching card in your trash" (BT25-101): the self reference is only
@@ -268,7 +276,7 @@ function candidateLooseInstancesIncludingReserved(
     const union = [...selfCandidates];
     for (const alternative of alternatives) {
       const branchTarget: Target = { ...target, filter: alternative, orFilters: undefined };
-      for (const candidate of candidateLooseInstancesIncludingReserved(ctx, branchTarget, zones)) {
+      for (const candidate of candidateLooseInstancesIncludingReserved(ctx, branchTarget, zones, projectDefinition)) {
         if (seenSelfRefUnion.has(candidate.instanceId)) continue;
         seenSelfRefUnion.add(candidate.instanceId);
         union.push(candidate);
@@ -288,7 +296,7 @@ function candidateLooseInstancesIncludingReserved(
     )
       return [];
     const def = ctx.game.definitionOf({ cardId: bound.cardId });
-    return definitionMatches(target.filter, def) ? [bound] : [];
+    return definitionMatches(target.filter, projectDefinition(def)) ? [bound] : [];
   }
   // `orFilters`: a card qualifies if it matches the primary filter OR any alternative
   // ("play 1 [X] or 1 [Y]", BT17-074). Union the controller scope across all alternatives.
@@ -408,10 +416,16 @@ function candidateLooseInstancesIncludingReserved(
             if ((def.dp ?? 0) > cap) return false;
             const { dpAtMost: _baseCap, dpAtMostScaling: _scaledCap, ...staticFilter } = filter;
             return (
-              definitionMatches(staticFilter, def) && contextMatches(filter, cand.ownerSeat) && hostMatches(filter)
+              definitionMatches(staticFilter, projectDefinition(def)) &&
+              contextMatches(filter, cand.ownerSeat) &&
+              hostMatches(filter)
             );
           }
-          return definitionMatches(filter, def) && contextMatches(filter, cand.ownerSeat) && hostMatches(filter);
+          return (
+            definitionMatches(filter, projectDefinition(def)) &&
+            contextMatches(filter, cand.ownerSeat) &&
+            hostMatches(filter)
+          );
         };
         if (!allFilters.some(branchMatches)) continue;
         // hostFilter: when sourcing from digivolutionCards, gate on the host permanent's kind

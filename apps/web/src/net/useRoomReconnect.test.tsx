@@ -353,7 +353,7 @@ it("joins as an observer without readying a player and persists its role", async
   );
   await waitFor(() => expect(result.current.status).toBe("connected"));
   joined.emitState({ players: [] } as unknown as Partial<GameState>);
-  expect(spectate).toHaveBeenCalledWith({ roomCode: "ABCDEF" });
+  expect(spectate).toHaveBeenCalledWith({ roomCode: "ABCDEF", displayName: OPTIONS.displayName });
   expect(joined.room.send).not.toHaveBeenCalled();
   expect(loadReconnectSession()?.spectator).toBe(true);
 });

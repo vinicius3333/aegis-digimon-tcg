@@ -52,6 +52,36 @@ export function combatWindowKey(window: { kind: string; attackerPermanentId: str
   return `${window.kind}:${window.attackerPermanentId || window.permanentId}`;
 }
 
+export type SeriesPhase = "playing" | "choosing" | "starting" | "over";
+export type SeriesEndReason = "" | "won" | "forfeit" | "draw" | "aborted";
+
+/**
+ * The best-of-three this game belongs to, as both seats and spectators see it. A single-game room
+ * keeps the defaults (`bestOf` 1) and nothing reads the rest.
+ *
+ * `phase` walks `playing` → `choosing` (the last game's loser picks who goes first) → `starting`
+ * (the next room exists at `nextRoomId`) → `playing` in that room, until one seat has enough wins
+ * and it is `over`.
+ */
+export class SeriesState extends Schema {
+  @type("uint8") bestOf = 1;
+  @type("uint8") gameNumber = 1;
+  @type("uint8") wins0 = 0;
+  @type("uint8") wins1 = 0;
+  /** One entry per finished game: the winning seat, or -1 for a draw. */
+  @type(["int8"]) results = new ArraySchema<number>();
+  @type("string") phase: SeriesPhase = "playing";
+  /** Who picks the next game's turn order while `choosing`; -1 otherwise. */
+  @type("int8") chooserSeat = -1;
+  @type("uint8") choiceSecondsLeft = 0;
+  /** Who goes first in the next game, once known. */
+  @type("int8") nextFirstSeat = -1;
+  @type("string") nextRoomId = "";
+  /** -1 while the series runs, and for a drawn series. */
+  @type("int8") winnerSeat = -1;
+  @type("string") endReason: SeriesEndReason = "";
+}
+
 /**
  * Top-level synchronized object. Holds the shared memory gauge, the turn/phase
  * cursor, both players, and the current pending decision (if any). Mirrors
@@ -93,4 +123,6 @@ export class GameState extends Schema {
   @type("boolean") gameOver = false;
   @type("int8") winnerSeat = -1; // -1 until decided
   @type("string") spectatorCode = ""; // code-only observer access for public and private matches
+
+  @type(SeriesState) series = new SeriesState();
 }

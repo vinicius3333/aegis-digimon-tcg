@@ -1,0 +1,142 @@
+/* The series block of the result splash. It sits on the same dark scrim as the rest of the
+   splash, so it uses the splash's own light-on-dark values rather than the paper tokens. */
+.series-score {
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 1.4rem;
+}
+
+.series-score__line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  margin: 0;
+}
+
+.series-score__name {
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--ds-font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgb(226 232 240 / 82%);
+}
+
+.series-score__name:first-child {
+  text-align: right;
+}
+
+.series-score__name:last-child {
+  text-align: left;
+}
+
+.series-score__value {
+  font-family: var(--ds-font-mono);
+  font-size: 2.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+
+.series-score__pips {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.series-score__pip {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgb(255 255 255 / 28%);
+  border-radius: 50%;
+  font-family: var(--ds-font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgb(226 232 240 / 82%);
+}
+
+.series-score__pip[data-result="win"] {
+  border-color: var(--ds-accent);
+  background: var(--ds-accent);
+  color: var(--ds-on-accent);
+}
+
+.series-score__pip[data-result="loss"] {
+  background: rgb(255 255 255 / 10%);
+}
+
+.series-score__pip-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.series-next {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.2rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid rgb(255 255 255 / 12%);
+}
+
+.series-next__title {
+  margin: 0;
+  font-family: var(--ds-font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.series-next__detail {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgb(226 232 240 / 72%);
+}
+
+.series-next__countdown {
+  display: grid;
+  gap: 0.4rem;
+  font-family: var(--ds-font-mono);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: rgb(226 232 240 / 72%);
+}
+
+/* The bar drains with the server's whole-second count; the transition only smooths each step. */
+.series-next__bar {
+  display: block;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+      to right,
+      var(--ds-accent) calc(var(--series-choice-left) / var(--series-choice-total) * 100%),
+      transparent 0
+    )
+    rgb(255 255 255 / 14%);
+}
+
+.game-result .series-leave {
+  color: rgb(255 168 168);
+}
+
+.game-result .series-leave:is(:hover, :active, :focus-visible) {
+  color: #fff;
+  background: rgb(255 255 255 / 10%);
+}
+
+/* "Series won" is two words where "Victory" is one, so it steps down to stay on one line. */
+.game-result .game-result__title--series {
+  font-size: clamp(1.5rem, 11cqi, 4rem);
+}

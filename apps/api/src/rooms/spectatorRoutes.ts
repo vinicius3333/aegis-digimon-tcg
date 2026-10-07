@@ -6,7 +6,7 @@ import { roomCodeDirectory, type AegisRoom } from "./AegisRoom.js";
 /** Code-only observer reservations; active matches remain locked to player matchmaking. */
 export function installSpectatorRoutes(app: Express): void {
   app.post("/spectate/join", async (req, res) => {
-    const { roomCode } = req.body ?? {};
+    const { roomCode, displayName } = req.body ?? {};
     if (typeof roomCode !== "string" || !/^[A-Z2-9]{6}$/i.test(roomCode)) {
       res.status(400).json({ error: "A six-character roomCode is required" });
       return;
@@ -29,7 +29,8 @@ export function installSpectatorRoutes(app: Express): void {
       const reservation = await matchMaker.reserveSeatFor(listing, {
         spectator: true,
         roomCode: code,
-        displayName: "Spectator",
+        // Only shown in chat, and the room cleans it up before anyone sees it.
+        displayName: typeof displayName === "string" ? displayName.slice(0, 200) : "",
         deck: { mainDeck: [], eggDeck: [] },
       });
       res.json(reservation);

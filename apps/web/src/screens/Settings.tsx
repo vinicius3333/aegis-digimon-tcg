@@ -4,8 +4,10 @@ import { Panel, SectionHeading } from "../design/surfaces";
 import { ArenaLookSettings } from "../design/ArenaLookSettings";
 import { Icons } from "../design/icons";
 import {
+  getMusicTrack,
   getMusicVolume,
   isMusicEnabled,
+  setMusicTrack,
   setMusicEnabled,
   setMusicVolume,
   getSoundVolume,
@@ -15,6 +17,7 @@ import {
   setSoundVolume,
   unlockAudio,
 } from "../design/sound";
+import { MUSIC_TRACK_LABEL_KEYS, MUSIC_TRACKS, type MusicTrack } from "../design/musicTracks";
 import { areActionConfirmationsEnabled, setActionConfirmationsEnabled } from "../design/actionConfirmation";
 import { FieldLayout, setFieldLayout, useFieldLayout } from "../design/fieldLayout";
 import { CardSleevePicker } from "../design/sleevePicker";
@@ -50,6 +53,7 @@ export function Settings({
   const [renameToastKey, setRenameToastKey] = useState<number>();
   const [musicOn, setMusicOn] = useState(isMusicEnabled());
   const [musicVolume, setMusicVolumeChoice] = useState(Math.round(getMusicVolume() * 100));
+  const [musicTrack, setMusicTrackChoice] = useState<MusicTrack>(getMusicTrack);
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
   const [volume, setVolume] = useState(Math.round(getSoundVolume() * 100));
   const [actionConfirmationsOn, setActionConfirmationsOn] = useState(areActionConfirmationsEnabled());
@@ -246,6 +250,32 @@ export function Settings({
                 }}
                 className="settings-volume__control"
               />
+            </div>
+            <div className="settings-row">
+              <div className="settings-row__copy">
+                <strong id="settings-music-track-label">{t("settings.musicTrack")}</strong>
+                <small>{t("settings.musicTrackDesc")}</small>
+              </div>
+              <div className="settings-language-list" role="group" aria-labelledby="settings-music-track-label">
+                {MUSIC_TRACKS.map((track) => {
+                  const on = musicTrack === track;
+                  return (
+                    <button
+                      key={track}
+                      type="button"
+                      className="settings-language-option"
+                      aria-pressed={on}
+                      onClick={() => {
+                        setMusicTrack(track);
+                        setMusicTrackChoice(track);
+                      }}
+                    >
+                      {t(MUSIC_TRACK_LABEL_KEYS[track])}
+                      {on ? <Icons.Check size={16} /> : null}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div className="settings-block">
               <Switch

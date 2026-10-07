@@ -33,13 +33,21 @@ async function declineOnlyTheSuspend(s: ReturnType<typeof setupEngine>): Promise
   for (let step = 0; step < 8; step += 1) {
     await settle();
     const decision = s.state.pendingDecision;
-    if (decision?.kind !== "optional") return;
-    const accept = !decision.promptText.startsWith("Suspend");
+    if (decision === undefined) return;
+    const req = s.decisions.find(({ req: request }) => request.decisionId === decision.decisionId)!.req;
+    const response = (() => {
+      if (req.kind === "optional") return { kind: "optional" as const, accept: true };
+      if (req.kind === "chooseTargets") {
+        return { kind: "chooseTargets" as const, instanceIds: [] };
+      }
+      expect(req.kind).toBe("selectCards");
+      return { kind: "selectCards" as const, instanceIds: (req.options?.candidateInstanceIds ?? []).slice(0, 1) };
+    })();
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: decision.decisionId,
-        response: { kind: "optional", accept },
+        response,
       }),
     ).toEqual({ ok: true });
   }
@@ -389,7 +397,7 @@ describe("BT17-043 Terriermon", () => {
         },
         1: { battleArea: OPPONENT_BOARD },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: false },
     );
     s.state.memory = 4;
     const playedId = s.inst("trashedTerriermon").instanceId;
@@ -409,6 +417,13 @@ describe("BT17-043 Terriermon", () => {
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedId)).toBe(true);
     expect(suspendedOpponentCount(s)).toBe(0);
+    const suspendChoices = s.decisions.filter(
+      ({ req }) => req.sourceCardId === "BT17-043" && req.kind === "chooseTargets",
+    );
+    expect(suspendChoices).toHaveLength(2);
+    for (const { req } of suspendChoices) {
+      expect(req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
+    }
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

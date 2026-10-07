@@ -38,6 +38,7 @@ export type Screen =
   | "lobby"
   | "deck"
   | "collection"
+  | "community"
   | "tournaments"
   | "settings"
   | "releases"
@@ -484,7 +485,7 @@ function NavItem({
       aria-current={active ? "page" : undefined}
     >
       {compact ? <item.icon size={20} /> : null}
-      {item.label}
+      {compact ? <span className="aegis-nav-item__label">{item.label}</span> : item.label}
     </button>
   );
 }
@@ -526,6 +527,7 @@ export function TopNav({
     { key: "home", label: t("nav.home"), icon: Icons.LayoutDashboard },
     { key: "lobby", label: t("nav.play"), icon: Icons.Swords },
     { key: "deck", label: t("nav.decks"), icon: Icons.LayoutDashboard },
+    { key: "community", label: t("nav.community"), icon: Icons.Users },
     { key: "collection", label: t("nav.collection"), icon: Icons.BookOpen },
   ];
   const signIn = signedIn ? null : (

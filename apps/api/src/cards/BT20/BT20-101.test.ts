@@ -261,6 +261,7 @@ describe("BT20-101 Zephagamon", () => {
   it.each([0, 1, 2])(
     "returns exactly one opposing suspended Digimon only at the two-card boundary (%s)",
     async (suspendedCount) => {
+      const options = { autoSelectCards: false };
       const s = setupEngine(
         {
           0: { hand: [{ card: "BT20-101", as: "zephagamon" }] },
@@ -273,34 +274,38 @@ describe("BT20-101 Zephagamon", () => {
             deck: ["BT20-010"],
           },
         },
-        { autoAcceptOptional: false, autoDeclineOptional: false, autoSelectCards: true },
+        options,
       );
       s.state.memory = 8;
       await s.ready();
       expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zephagamon").instanceId })).toEqual({
         ok: true,
       });
-      await settle(() => s.state.pendingDecision?.kind === "optional");
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+      expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 0, max: 1, targetFate: "suspend" });
       expect(
         s.engine.applyIntent(0, {
           type: "respondDecision",
           decisionId: s.state.pendingDecision!.decisionId,
-          response: { kind: "optional", accept: false },
+          response: { kind: "chooseTargets", instanceIds: [] },
         }),
       ).toEqual({ ok: true });
+      options.autoSelectCards = true;
+      let returnResponse = { ok: true };
       if (suspendedCount === 2) {
         await settle(() => s.state.pendingDecision?.kind === "optional");
+        returnResponse = s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "optional", accept: true },
+        });
       }
-      const secondResponse =
-        s.state.pendingDecision === undefined
-          ? { ok: true as const }
-          : s.engine.applyIntent(0, {
-              type: "respondDecision",
-              decisionId: s.state.pendingDecision.decisionId,
-              response: { kind: "optional", accept: true },
-            });
-      expect(secondResponse).toEqual({ ok: true });
-      await settle(() => s.state.pendingDecision === undefined);
+      expect(returnResponse).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[1]!.battleArea.length === (suspendedCount === 2 ? 1 : suspendedCount) &&
+          s.state.pendingDecision === undefined,
+      );
       expect(s.state.players[1]!.battleArea).toHaveLength(suspendedCount === 2 ? 1 : suspendedCount);
       expect(s.state.players[1]!.deck).toHaveLength(suspendedCount === 2 ? 2 : 1);
     },

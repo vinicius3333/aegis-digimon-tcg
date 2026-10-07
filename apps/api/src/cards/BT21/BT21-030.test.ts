@@ -554,7 +554,12 @@ describe("BT21-030 compiled implementation", () => {
         s.state.players[1]!.security.length === 0 &&
         s.state.pendingDecision === undefined,
     );
-    expect(s.decisions.filter((decision) => decision.req.kind === "optional")).toHaveLength(1);
+    const returnChoices = s.decisions.filter(({ req }) => req.kind === "chooseTargets");
+    expect(returnChoices).toHaveLength(1);
+    expect(returnChoices[0]?.req).toMatchObject({
+      sourceCardId: "BT21-030",
+      options: { min: 0, max: 1, purpose: "optionalTarget", candidateInstanceIds: [sourceLessId] },
+    });
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === sourceLessId)).toBe(true);
     expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-001");
   });

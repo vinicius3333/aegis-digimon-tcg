@@ -28,7 +28,8 @@ describe("soundForEvent", () => {
       },
       { event: { kind: "cardsMoved", instanceIds: ["i1"], from: "hand", to: "trash" }, cue: "handTrash" },
       { event: { kind: "movedFromBreeding", seat: 0, permanentId: "p1", cardId: "BT1-002" }, cue: "move" },
-      { event: { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 4 }, cue: "turnChange" },
+      { event: { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 4 }, cue: "endTurn" },
+      { event: { kind: "turnEnded", endingSeat: 1, nextSeat: 0, turnCount: 5 }, cue: "turnChange" },
     ];
     for (const { event, cue } of cases) expect(soundForEvent(event, 0)).toBe(cue);
   });

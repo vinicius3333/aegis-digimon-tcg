@@ -964,13 +964,30 @@ export function buildArenaVisualScene(
       },
     );
   } else if (mechanism === "draw") {
-    stage(600, "Compra de carta", "Drawing a card", [], () => {
-      if (own.deckCount > 0) {
-        own.deckCount--;
-        own.handCount++;
-        own.hand.push(looseCard("BT26-009", "visual-draw", 0));
-      }
-    });
+    stage(
+      600,
+      "Compra de carta",
+      "Drawing a card",
+      own.deckCount > 0
+        ? [
+            {
+              kind: "cardsMoved",
+              seat: 0,
+              from: "deck",
+              to: "hand",
+              instanceIds: ["visual-draw"],
+              handAddition: "draw",
+            },
+          ]
+        : [],
+      () => {
+        if (own.deckCount > 0) {
+          own.deckCount--;
+          own.handCount++;
+          own.hand.push(looseCard("BT26-009", "visual-draw", 0));
+        }
+      },
+    );
   } else if (openingDeal) {
     stage(600, "Segurança inicial distribuída", "Opening security dealt", [], () => {
       for (const { player, cards, count } of openingDeal) {

@@ -154,14 +154,17 @@ scenario("barrier", () => {
 
     // Groundramon (6000 DP) beats Unimon (5000 DP) — Unimon would be deleted, so
     // the real Barrier prompt opens on the protagonist's screen.
-    const acceptButton = await screen.findByRole("button", { name: /yes, trash security/i }, { timeout: 10_000 });
+    const barrierPrompt = await screen.findByRole("dialog", { name: "＜Barrier＞" }, { timeout: 10_000 });
+    expect(barrierPrompt.getAttribute("data-prompt-surface")).toBe("left");
+    expect(within(barrierPrompt).getByText(/trashing the top card of your security stack/i)).toBeTruthy();
+    const acceptButton = within(barrierPrompt).getByRole("button", { name: /^use$/i });
     fireEvent.click(acceptButton);
 
     // Answered-outcome proof: the protagonist's security count drops from 5 to 4
     // (the trashed-to-prevent-deletion cost) while Unimon survives, still rendered
     // in the protagonist's battle area instead of being deleted.
     await vi.waitFor(() => expect(opponent.room.state.players[0]!.securityCount).toBe(4), { timeout: 10_000 });
-    await vi.waitFor(() => expect(screen.queryByRole("button", { name: /yes, trash security/i })).toBeNull(), {
+    await vi.waitFor(() => expect(screen.queryByRole("dialog", { name: "＜Barrier＞" })).toBeNull(), {
       timeout: 10_000,
     });
     expect(within(yourBattleArea()).getAllByRole("img", { name: /^unimon$/i })).toHaveLength(1);

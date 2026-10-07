@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { AUDIO_CUES } from "../src/design/audioBank";
+import { AUDIO_CUES, MUSIC_URL } from "../src/design/audioBank";
 
 test.use({
   userAgent: "Mozilla/5.0 (Linux; Android 13; Tablet) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36 OPR/80.0.0.0",
@@ -35,12 +35,12 @@ test("Opera tablet compatibility plays the actual music and finite cues through 
   await page.getByRole("button", { name: "Start game mix", exact: true }).tap();
   await expect
     .poll(() =>
-      page.evaluate(() => {
-        const music = (window as ProbeWindow).operaAudioProbe.players.find((player) =>
-          player.src.includes("aegis-music-v3"),
+      page.evaluate((musicUrl) => {
+        const music = (window as ProbeWindow).operaAudioProbe.players.find(
+          (player) => player.src === new URL(musicUrl, window.location.href).href,
         );
         return !!music && !music.paused && music.currentTime > 0 && music.loop && music.volume > 0;
-      }),
+      }, MUSIC_URL),
     )
     .toBe(true);
 

@@ -112,11 +112,7 @@
 /* ---- Piles and slots ---- */
 .aegis-arena .game-pile__layer {
   border-color: color-mix(in srgb, var(--arena-side, var(--ds-ink-accent)) 55%, var(--ds-ink)) !important;
-  background: color-mix(
-    in srgb,
-    var(--arena-side, var(--ds-ink-accent)) 30%,
-    var(--ds-ink-raised)
-  ) !important;
+  background: color-mix(in srgb, var(--arena-side, var(--ds-ink-accent)) 30%, var(--ds-ink-raised)) !important;
 }
 
 /* The pile's name under it reads as the zone label of the prototype board. */
@@ -420,8 +416,12 @@ button.game-player-line__name {
 
 /* Held upright, a phone folds the controls into the header menu instead. */
 @media (width < 600px) and (orientation: landscape), (height < 520px) and (orientation: landscape) {
+  /* One column per visible control, however many the match offers. A fixed count
+     drifted out of date as controls were added and pushed the last one to a new row. */
   .aegis-arena .game-opponent-bar {
-    grid-template-columns: minmax(0, 1fr) auto auto auto auto auto auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    grid-auto-columns: auto;
   }
 
   .aegis-arena :is(.game-mobile-look, .game-mobile-fullscreen) {
@@ -805,4 +805,20 @@ button.game-player-line__name {
   min-height: 2.75rem;
   margin: 0;
   accent-color: var(--ds-accent);
+}
+
+.game-arena-audio__track {
+  display: grid;
+  gap: var(--ds-space-1);
+  color: var(--ds-text-3);
+  font-size: var(--ds-text-sm);
+}
+
+.game-arena-audio__track select {
+  width: 100%;
+  padding: 0 var(--ds-space-2);
+  border: 1px solid var(--ds-line-strong);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-paper);
+  color: var(--ds-text);
 }

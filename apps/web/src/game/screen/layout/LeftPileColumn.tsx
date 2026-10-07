@@ -27,6 +27,7 @@ export function LeftPileColumn({
   securityHit,
   securityLanding,
   onOpenOpponentTrash,
+  onOpenOpponentDeck,
   onOpenViewerSecurity,
 }: {
   opponent: PresentedPlayer;
@@ -47,6 +48,8 @@ export function LeftPileColumn({
   securityHit: boolean;
   securityLanding: number | undefined;
   onOpenOpponentTrash: (() => void) | undefined;
+  /** Opens the revealed deck once the match is over. */
+  onOpenOpponentDeck?: () => void;
   onOpenViewerSecurity: (() => void) | undefined;
 }) {
   const { t } = useTranslation();
@@ -79,6 +82,7 @@ export function LeftPileColumn({
             count={opponent.deckCount}
             label={t("game.pile.deck")}
             riffling={opponentDeckRiffling}
+            onClick={onOpenOpponentDeck}
             useSelectedSleeve={false}
           />
         </div>

@@ -8,7 +8,7 @@ for (const viewport of [
   test(`decision galleries stay centered and action rails remain compact at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.emulateMedia({ reducedMotion: "reduce" });
-    let expectedSize: { width: number; height: number } | undefined;
+    let expectedWidth: number | undefined;
     for (const specimen of [
       "decision-action-confirmation",
       "decision-optional-rail",
@@ -39,16 +39,15 @@ for (const viewport of [
       } else if (!centered) {
         expect(bounds.y + bounds.height).toBeCloseTo(viewport.height - 8, 0);
       }
-      if (!expectedSize) expectedSize = { width: bounds.width, height: bounds.height };
-      if (!centered) expect(bounds.width).toBeCloseTo(expectedSize.width, 0);
+      expectedWidth ??= bounds.width;
+      if (!centered) expect(bounds.width).toBeCloseTo(expectedWidth, 0);
       if (viewport.width < 768) {
         expect(bounds.height).toBeLessThanOrEqual(viewport.height * 0.78);
       } else if (centered) {
         expect(bounds.height).toBeLessThan(viewport.height);
-      } else if (await panel.getAttribute("data-variant")) {
-        expect(bounds.height).toBeLessThanOrEqual(expectedSize.height);
       } else {
         expect(bounds.height).toBeLessThan(viewport.height);
+        expect(await panel.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeLessThanOrEqual(1);
       }
       if (specimen === "decision-action-confirmation" && viewport.width >= 768) {
         expect(await panel.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeLessThanOrEqual(1);
@@ -57,6 +56,7 @@ for (const viewport of [
         name: specimen === "decision-field-budget" ? "Select on board" : "View board",
         exact: true,
       });
+      await expect(viewBoard).toBeInViewport({ ratio: 1 });
       if (specimen === "decision-field-budget") {
         const count = (await panel.getByText("1 selected of 0–3", { exact: true }).boundingBox())!;
         const budget = (await panel.getByRole("status").boundingBox())!;

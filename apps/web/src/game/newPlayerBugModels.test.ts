@@ -63,7 +63,7 @@ it("#4967 playing Omnimon offers Assembly even when a DNA route is also availabl
   );
   expect(
     prePlayPromptFor({ entry, viewer, confirmDrop: false, actionConfirmationsEnabled: false, preferDna: true }),
-  ).toEqual({ kind: "dna", instanceId: "omni", cardId: "EX13-016", materialPermanentIds: ["wargrey", "metalgaruru"] });
+  ).toEqual({ kind: "dna", instanceId: "omni", cardId: "EX13-016", routes: entry.dnaDigivolveRoutes });
 });
 
 it("#4985 reopens the second Alliance when both prompts arrive without an intermediate render", () => {
