@@ -806,3 +806,19 @@ button.game-player-line__name {
   margin: 0;
   accent-color: var(--ds-accent);
 }
+
+.game-arena-audio__track {
+  display: grid;
+  gap: var(--ds-space-1);
+  color: var(--ds-text-3);
+  font-size: var(--ds-text-sm);
+}
+
+.game-arena-audio__track select {
+  width: 100%;
+  padding: 0 var(--ds-space-2);
+  border: 1px solid var(--ds-line-strong);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-paper);
+  color: var(--ds-text);
+}

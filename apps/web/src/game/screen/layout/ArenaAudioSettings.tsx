@@ -1,19 +1,22 @@
 /* Music and sound effect controls for the match dialog. The Settings screen keeps
    its own audio controls, so these live here instead of in the shared look settings. */
 
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import {
+  getMusicTrack,
   getMusicVolume,
   getSoundVolume,
   isMusicEnabled,
   isSoundEnabled,
   playSound,
   setMusicEnabled,
+  setMusicTrack,
   setMusicVolume,
   setSoundEnabled,
   setSoundVolume,
   unlockAudio,
 } from "../../../design/sound";
+import { isMusicTrack, MUSIC_TRACK_LABEL_KEYS, MUSIC_TRACKS } from "../../../design/musicTracks";
 import { useTranslation } from "../../../i18n";
 
 const toPercent = (volume: number) => Math.round(volume * 100);
@@ -28,6 +31,7 @@ function AudioChannel({
   onToggle,
   onVolume,
   onVolumeSettled,
+  children,
 }: {
   name: string;
   label: string;
@@ -37,6 +41,7 @@ function AudioChannel({
   onToggle: (enabled: boolean) => void;
   onVolume: (volume: number) => void;
   onVolumeSettled?: () => void;
+  children?: ReactNode;
 }) {
   const toggleId = useId();
   const sliderId = useId();
@@ -72,6 +77,7 @@ function AudioChannel({
           onKeyUp={(event) => SLIDER_KEYS.has(event.key) && onVolumeSettled?.()}
         />
       </div>
+      {children}
     </div>
   );
 }
@@ -81,6 +87,8 @@ export function ArenaAudioSettings() {
   const titleId = useId();
   const [musicOn, setMusicOn] = useState(isMusicEnabled);
   const [musicVolume, setMusicVolumeChoice] = useState(() => toPercent(getMusicVolume()));
+  const [musicTrack, setMusicTrackChoice] = useState(getMusicTrack);
+  const trackId = useId();
   const [soundOn, setSoundOn] = useState(isSoundEnabled);
   const [soundVolume, setSoundVolumeChoice] = useState(() => toPercent(getSoundVolume()));
   return (
@@ -103,7 +111,28 @@ export function ArenaAudioSettings() {
           setMusicVolumeChoice(next);
           setMusicVolume(next / 100);
         }}
-      />
+      >
+        <div className="game-arena-audio__track">
+          <label htmlFor={trackId}>{t("redesign.arena.audio.musicTrack")}</label>
+          <select
+            id={trackId}
+            name="musicTrack"
+            value={musicTrack}
+            onChange={(event) => {
+              const next = event.target.value;
+              if (!isMusicTrack(next)) return;
+              setMusicTrack(next);
+              setMusicTrackChoice(next);
+            }}
+          >
+            {MUSIC_TRACKS.map((track) => (
+              <option key={track} value={track}>
+                {t(MUSIC_TRACK_LABEL_KEYS[track])}
+              </option>
+            ))}
+          </select>
+        </div>
+      </AudioChannel>
       <AudioChannel
         name="sound"
         label={t("redesign.arena.audio.effects")}

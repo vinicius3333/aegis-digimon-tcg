@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as sound from "./sound";
 import { AUDIO_CUES } from "./audioBank";
+import { MUSIC_TRACK_URLS } from "./musicTracks";
 
 function param() {
   return {
@@ -81,6 +82,7 @@ beforeEach(async () => {
   sound.setSoundVolume(0.7);
   sound.setMusicEnabled(true);
   sound.setMusicVolume(0.25);
+  sound.setMusicTrack("digitalBattle");
   await sound.prepareAudio();
 });
 afterEach(() => {
@@ -239,6 +241,22 @@ describe("prepared original AudioBuffer mixer", () => {
     sound.setMusicVolume(Infinity);
     expect(sound.getSoundVolume()).toBe(0);
     expect(sound.getMusicVolume()).toBe(0);
+  });
+  it("swaps the looping score for the chosen track and remembers it", async () => {
+    sound.startMusic();
+    const ctx = await ready();
+    expect(ctx.sources).toHaveLength(1);
+    sound.setMusicTrack("warmDrive");
+    expect(ctx.sources[0]!.stop).toHaveBeenCalledWith(1.12);
+    await sound.prepareAudio();
+    expect(ctx.sources).toHaveLength(2);
+    expect(ctx.sources[1]!.loop).toBe(true);
+    expect(ctx.sources[1]!.start).toHaveBeenCalledWith(1.02, 0);
+    expect(fetch).toHaveBeenCalledWith(MUSIC_TRACK_URLS.warmDrive);
+    expect(sound.getMusicTrack()).toBe("warmDrive");
+    expect(localStorage.getItem("aegis.music.track")).toBe("warmDrive");
+    sound.setMusicTrack("warmDrive");
+    expect(ctx.sources).toHaveLength(2);
   });
   it("keeps one steady score at the persisted volume and resumes phase using actual decoded duration", async () => {
     sound.startMusic();
