@@ -800,6 +800,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Ataque a segurança com Ulforce BT11-032. No efeito de BT24-098, o oponente joga Ogremon e descarta Agumon para escolher Ulforce, mesmo já suspenso. Depois jogue o Tamer azul: Ulforce deve desvirar. Como alternativa, jogue Ulforce EX13-023 e escolha desvirar o BT11-032. Ogremon só impede desvirar na próxima fase de desvirar do alvo; efeitos podem desvirá-lo antes dela.",
     en: "Attack security with BT11-032 Ulforce. BT24-098 plays the opponent's Ogremon; discard Agumon and choose Ulforce even though it is already suspended. Then play the blue Tamer: Ulforce must unsuspend. Alternatively, play EX13-023 Ulforce and choose to unsuspend BT11-032. Ogremon blocks only the target's next unsuspend phase; effects may unsuspend it before that phase.",
   },
+  "arena-bt23-king-drasil-unsuspended-cost": {
+    ptBR: "Ataque a segurança com o BT23-072 King Drasil_7D6: ele fica suspenso. Depois jogue o EX13-023 UlforceVeedramon da mão (custo 12). Os dois efeitos disparam juntos. Resolva primeiro o [Ao Jogar] do Ulforce que muda a orientação, escolha desvirar 1 Digimon suspenso e escolha o King Drasil. Em seguida o [Todos os Turnos] do King Drasil pode ser ativado: aceite suspender o King Drasil. O Ulforce ganha ＜Rush＞, ＜Raid＞, ＜Reboot＞ e ＜Blocker＞ até o fim do turno do oponente e já pode atacar.",
+    en: "Attack security with BT23-072 King Drasil_7D6: it stays suspended. Then play EX13-023 UlforceVeedramon from hand (cost 12). Both effects trigger together. Resolve Ulforce's orientation [On Play] first, choose to unsuspend 1 suspended Digimon, and choose King Drasil. King Drasil's [All Turns] effect can then activate: accept suspending King Drasil. Ulforce gains ＜Rush＞, ＜Raid＞, ＜Reboot＞ and ＜Blocker＞ until the opponent's turn ends and can attack right away.",
+  },
   "arena-ex13-leopardmon-unsuspend-lock": {
     ptBR: "Jogue EX13-040 Mikemon da mão (custo 4). O [Ao Jogar] escolhe o EX13-043 Leopardmon suspenso do bot: ele não pode desuspender até o fim do turno dele. Depois ataque o Leopardmon com o seu BT10-055 Gryphonmon (13000 contra 12000). O Leopardmon não pode pagar a prevenção, porque nenhum Digimon do bot pode desuspender: ele é deletado e vai para a lixeira.",
     en: "Play EX13-040 Mikemon from hand (cost 4). Its [On Play] picks the bot's suspended EX13-043 Leopardmon: it can't unsuspend until the end of the bot's turn. Then attack Leopardmon with your BT10-055 Gryphonmon (13000 vs 12000). Leopardmon can't pay its leave prevention, because no bot Digimon can unsuspend: it is deleted and goes to the trash.",
@@ -1849,6 +1853,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex7-seventh-fascination-trash-turn", "EX7 Seventh Fascination · trash activation"],
   ["arena-ex13-leopardmon-suspended-target", "EX13 Leopardmon · suspend an already suspended Digimon"],
   ["arena-bt24-ogremon-ulforce-unsuspend", "BT24 Ogremon · Ulforce can unsuspend by effects"],
+  ["arena-bt23-king-drasil-unsuspended-cost", "BT23 King Drasil · pay the suspend cost after Ulforce unsuspends it"],
   ["arena-ex13-leopardmon-unsuspend-lock", "EX13 Leopardmon · locked Digimon can't pay the unsuspend cost"],
   ["arena-ex13-breakdramon-zero-security-check", "EX13 Breakdramon · Security Attack -1 attack checks no card"],
   ["arena-decoy-protect-choice", "Decoy · choose which Digimon to protect"],

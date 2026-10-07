@@ -183,7 +183,7 @@ describe("BT1-086 Matt Ishida", () => {
     expect(s.perm("target").stack.map((card) => card.instanceId)).toContain(s.inst("bottom").instanceId);
   });
 
-  it("does not trigger when Matt is already suspended", async () => {
+  it("cannot pay its suspend cost while Matt stays suspended", async () => {
     const s = setupEngine(
       {
         0: {

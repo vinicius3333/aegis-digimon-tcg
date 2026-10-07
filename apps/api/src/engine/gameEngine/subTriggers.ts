@@ -425,7 +425,7 @@ export function prepareFrozenSubTrigger(
  * bound at the moment the event fired. Filters what the ordering prompt must not offer: a
  * watcher already consumed by the surrounding timing window, one whose `[Once Per Turn]`
  * ledger entry is spent, one whose anchor is gone, one whose `matches` gate rejects the
- * event, and one that could not act anyway (`canFire`, e.g. an unpayable self-suspend cost).
+ * event, and one that could not act anyway (`canFire`, e.g. a ＜Delay＞ played this turn).
  */
 export function armedSubTriggers(
   engine: GameEngine,

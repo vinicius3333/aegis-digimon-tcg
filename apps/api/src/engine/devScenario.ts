@@ -167,6 +167,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-leopardmon-suspended-target",
   "arena-ex13-leopardmon-unsuspend-lock",
   "arena-bt24-ogremon-ulforce-unsuspend",
+  "arena-bt23-king-drasil-unsuspended-cost",
   "arena-ex13-breakdramon-zero-security-check",
   "arena-decoy-protect-choice",
   "arena-crimson-blaze-jesmon-token",
@@ -1473,6 +1474,35 @@ function layBt24OgremonUlforceUnsuspendScenario(state: GameState, decks: readonl
     insertCard(bot, Zone.Hand, faceDownCard("dev-ogremon-trash-cost", "BT1-009", 1));
     insertCard(bot, Zone.Security, faceDownCard("dev-ogremon-security-option", "BT24-098", 1));
     insertCard(bot, Zone.Security, faceDownCard("dev-ogremon-security-last", "BT1-009", 1));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 20;
+}
+
+/**
+ * Discord 1557169113896583198: King Drasil_7D6 attacks and stays suspended. Playing EX13-023
+ * UlforceVeedramon triggers both effects; resolving Ulforce's orientation change first
+ * unsuspends King Drasil, which can then pay its own suspend cost (CR 15-8-3-9-2, Q4101).
+ */
+function layBt23KingDrasilUnsuspendedCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    setSecurityStack(human);
+    placePermanent(human, establishedDigimon(0, ["BT23-072"], "-king-drasil-cost"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-king-drasil-cost-ulforce", "EX13-023", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    insertCard(bot, Zone.Security, faceDownCard("dev-king-drasil-cost-security-top", "BT1-009", 1));
+    insertCard(bot, Zone.Security, faceDownCard("dev-king-drasil-cost-security-last", "BT1-009", 1));
   }
   state.turnSeat = 0;
   state.turnCount = 0;
@@ -7080,6 +7110,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-leopardmon-suspended-target": layEx13LeopardmonSuspendedTargetScenario,
   "arena-ex13-leopardmon-unsuspend-lock": layEx13LeopardmonUnsuspendLockScenario,
   "arena-bt24-ogremon-ulforce-unsuspend": layBt24OgremonUlforceUnsuspendScenario,
+  "arena-bt23-king-drasil-unsuspended-cost": layBt23KingDrasilUnsuspendedCostScenario,
   "arena-ex13-breakdramon-zero-security-check": layEx13BreakdramonZeroSecurityCheckScenario,
   "arena-decoy-protect-choice": layDecoyProtectChoiceScenario,
   "arena-crimson-blaze-jesmon-token": layCrimsonBlazeJesmonTokenScenario,
