@@ -598,6 +598,7 @@ export function AegisClient({
             (startMode === "manual" || startMode === "manual_host" || startMode === "manual_guest" ? (
               <ManualGameScreen
                 key={matchNumber}
+                onLeaveForfeitsChange={setLeaveForfeitsMatch}
                 joinOptions={joinOptions}
                 mode={startMode}
                 roomCode={roomCode}

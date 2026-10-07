@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Dialog } from "../design/primitives";
 import { useTranslation } from "../i18n";
 import type { AegisJoinOptions } from "../net/types";
@@ -10,15 +10,22 @@ export function ManualGameScreen({
   mode,
   roomCode,
   onExit,
+  onLeaveForfeitsChange,
 }: {
   joinOptions: AegisJoinOptions;
   mode: ManualStartMode;
   roomCode?: string;
   onExit: () => void;
+  onLeaveForfeitsChange?: (forfeits: boolean) => void;
 }) {
   const { t } = useTranslation();
   const room = useManualRoom(joinOptions, mode, roomCode);
   const [leaving, setLeaving] = useState(false);
+  const forfeits = room.snapshot !== undefined && room.snapshot.players.length === 2 && room.snapshot.phase !== "over";
+  useEffect(() => {
+    onLeaveForfeitsChange?.(forfeits);
+    return () => onLeaveForfeitsChange?.(false);
+  }, [forfeits, onLeaveForfeitsChange]);
   const exit = () => {
     room.leave();
     onExit();
@@ -47,6 +54,9 @@ export function ManualGameScreen({
       {leaving ? (
         <Dialog labelledBy="manual-leave-title" onClose={() => setLeaving(false)}>
           <h2 id="manual-leave-title">{t("manual.concedeConfirm")}</h2>
+          <Button variant="secondary" onClick={() => setLeaving(false)}>
+            {t("common.cancel")}
+          </Button>
           <Button onClick={exit}>{t("manual.concede")}</Button>
         </Dialog>
       ) : null}

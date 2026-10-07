@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import {
   MANUAL_ZONES,
   getCardDefinition,
+  tokenDefinitions,
+  isTokenDefinition,
   type ManualAction,
   type ManualCard,
   type ManualSnapshot,
@@ -58,6 +60,7 @@ function StackView({
         />
       </div>
       <div className="manual-stack__meta">
+        <code>#{stack.id.slice(0, 4)}</code>
         {stack.suspended ? t("manual.suspend") : ""}
         {stack.dp ? ` ${stack.dp > 0 ? "+" : ""}${stack.dp} DP` : ""}
         {stack.note ? ` · ${stack.note}` : ""}
@@ -131,6 +134,9 @@ export function ManualBoard({
   const [message, setMessage] = useState("");
   const [copied, setCopied] = useState(false);
   const [concede, setConcede] = useState(false);
+  const [draftMemory, setDraftMemory] = useState(snapshot.memory);
+  useEffect(() => setDraftMemory(snapshot.memory), [snapshot.memory]);
+  const [tokenId, setTokenId] = useState(tokenDefinitions[0]!.cardId);
   const own = snapshot.players[snapshot.seat]!;
   const opponentSeat = (1 - snapshot.seat) as Seat;
   const opponent = snapshot.players[opponentSeat];
@@ -246,17 +252,24 @@ export function ManualBoard({
       ) : null}
       <Panel as="section" className="manual-memory">
         <label>
-          {t("manual.memory")}
+          {t("manual.memory", { name: snapshot.players[0]!.name })}
           <input
             type="range"
             min={-10}
             max={10}
-            value={snapshot.memory}
+            value={draftMemory}
             disabled={!playable}
-            onChange={(e) => send({ type: "memory", value: Number(e.target.value) })}
+            onChange={(e) => setDraftMemory(Number(e.target.value))}
           />
         </label>
-        <output aria-label={t("manual.memory")}>{snapshot.memory}</output>
+        <output aria-label={t("manual.memory", { name: snapshot.players[0]!.name })}>{draftMemory}</output>
+        <Button
+          variant="secondary"
+          disabled={!playable || draftMemory === snapshot.memory}
+          onClick={() => send({ type: "memory", value: draftMemory })}
+        >
+          {t("manual.action.memory")}
+        </Button>
         <label>
           {t("manual.turn")}
           <select
@@ -387,7 +400,7 @@ export function ManualBoard({
                     <select value={target} onChange={(e) => setTarget(e.target.value)}>
                       <option value="">{t("manual.newStack")}</option>
                       {own[to]
-                        .filter((stack) => stack.id !== selectedStack?.id)
+                        .filter((stack) => stack.id !== selectedStack?.id || stack.cards.length > 1)
                         .map((stack) => (
                           <option key={stack.id} value={stack.id}>
                             {cardName(stack.cards[0]!)} · {stack.cards.length}
@@ -409,7 +422,11 @@ export function ManualBoard({
                 </Button>
                 {selectedStack ? (
                   <>
-                    <Button disabled={!playable || placement === "link"} variant="secondary" onClick={() => move(true)}>
+                    <Button
+                      disabled={!playable || placement === "link" || target === selectedStack.id}
+                      variant="secondary"
+                      onClick={() => move(true)}
+                    >
                       {t("manual.moveStack")}
                     </Button>
                     <Button
@@ -471,6 +488,19 @@ export function ManualBoard({
                 >
                   {t(selectedCard.faceUp ? "manual.flipDown" : "manual.flipUp")}
                 </Button>
+                {getCardDefinition(selectedCard.cardId) &&
+                isTokenDefinition(getCardDefinition(selectedCard.cardId)!) ? (
+                  <Button
+                    disabled={!playable}
+                    variant="secondary"
+                    onClick={() => {
+                      send({ type: "removeToken", card: selectedCard.id });
+                      setSelection(undefined);
+                    }}
+                  >
+                    {t("manual.removeToken")}
+                  </Button>
+                ) : null}
                 <details>
                   <summary>{t("manual.inspectCard")}</summary>
                   <p>{getCardDefinition(selectedCard.cardId)?.effectText}</p>
@@ -604,6 +634,23 @@ export function ManualBoard({
             >
               {t("manual.concede")}
             </Button>
+            <label>
+              {t("manual.token")}
+              <select value={tokenId} onChange={(event) => setTokenId(event.target.value)}>
+                {tokenDefinitions.map((token) => (
+                  <option key={token.cardId} value={token.cardId}>
+                    {token.nameEn}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Button
+              disabled={!playable}
+              variant="secondary"
+              onClick={() => send({ type: "spawnToken", cardId: tokenId })}
+            >
+              {t("manual.spawnToken")}
+            </Button>
             <h2>{t("manual.history")}</h2>
             <ol className="manual-history" aria-label={t("manual.history")}>
               {snapshot.history.map((entry) => (
@@ -636,6 +683,9 @@ export function ManualBoard({
       {concede ? (
         <Dialog labelledBy="manual-concede-title" onClose={() => setConcede(false)}>
           <h2 id="manual-concede-title">{t("manual.concedeConfirm")}</h2>
+          <Button variant="secondary" onClick={() => setConcede(false)}>
+            {t("common.cancel")}
+          </Button>
           <Button
             onClick={() => {
               send({ type: "concede" });

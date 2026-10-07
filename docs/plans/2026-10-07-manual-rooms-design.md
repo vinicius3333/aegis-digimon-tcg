@@ -29,3 +29,11 @@ Two users must be able to enter either kind of room, complete setup, play, corre
 ## Prototype result
 
 All three variants rendered and completed a card move in Chromium. Screenshots: [sidebar](manual-room-prototypes/sidebar.png), [bottom dock](manual-room-prototypes/dock.png), [card-local controls](manual-room-prototypes/local.png). Adopt the sidebar: it keeps destinations and source placement visible while leaving both players' fields unobstructed. On narrow screens controls follow the board. Absorb that choice into the tested production ManualBoard and remove the temporary route and switcher.
+
+## Review follow-up
+
+Independent Standards and Spec reviews identified missing production invite routing and deployment accounting, unequal reconnect deadlines, unguarded browser Back, inaccessible source reordering, reversed bottom-stack order, incomplete attack announcements and absent token operations. Correct these before delivery. Use the same production invite resolver in browser tests, count both room modes toward deployment retirement, share a 120-second manual reconnect constant, reuse the existing navigation guard, expose source reordering, preserve bottom order, identify attackers/targets without revealing facedown identities, and provide catalog token creation/removal. Add focused regressions for those cases.
+
+## Verification baseline
+
+The full shared suite passed (622 tests), and the full API run passed 53,540 tests with five failures. Those same five failures reproduce on the untouched base commit `5317e5920`: BT16-077 and BT20-016 effect-attack timing (Q4298), BT26-012 full Option cost (Q6967), EX12-067 full Option cost (Q6872), and EX12-068 full Option cost (Q6875). They are existing automatic card issues outside the manual-room change. Keep feature validation and this baseline distinction explicit in the PR.

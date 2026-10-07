@@ -1,4 +1,10 @@
 export const manualEn = {
+  "manual.token": "Token",
+  "manual.spawnToken": "Create token",
+  "manual.removeToken": "Remove token",
+  "manual.action.spawnToken": "Created token",
+  "manual.action.removeToken": "Removed token",
+
   "manual.title": "Manual table",
   "manual.description": "Players resolve costs, effects and battles.",
   "manual.meta": "Manual · Public queue or invite",
@@ -14,7 +20,7 @@ export const manualEn = {
   "manual.mulligan": "Mulligan",
   "manual.first": "First player",
   "manual.turn": "Turn",
-  "manual.memory": "Memory (positive toward player 1)",
+  "manual.memory": "Memory (positive toward {name})",
   "manual.draw": "Draw",
   "manual.hatch": "Hatch egg",
   "manual.check": "Check security",

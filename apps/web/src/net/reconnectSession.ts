@@ -1,4 +1,4 @@
-import { RECONNECT_GRACE_SECONDS } from "@aegis/shared";
+import { RECONNECT_GRACE_SECONDS, MANUAL_RECONNECT_GRACE_SECONDS } from "@aegis/shared";
 import type { RoomSlot } from "./client";
 
 /**
@@ -26,7 +26,7 @@ export interface ReconnectSession {
 
 export function isReconnectSessionFresh(session: ReconnectSession, now: number): boolean {
   const age = now - session.savedAt;
-  return age >= 0 && age < RECONNECT_GRACE_MS;
+  return age >= 0 && age < (session.manual ? MANUAL_RECONNECT_GRACE_SECONDS * 1000 : RECONNECT_GRACE_MS);
 }
 
 function storage(): Storage | undefined {

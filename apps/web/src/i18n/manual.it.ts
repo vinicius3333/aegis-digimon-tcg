@@ -1,4 +1,10 @@
 export const manualIt = {
+  "manual.token": "Pedina",
+  "manual.spawnToken": "Crea pedina",
+  "manual.removeToken": "Rimuovi pedina",
+  "manual.action.spawnToken": "Ha creato pedina",
+  "manual.action.removeToken": "Ha rimosso pedina",
+
   "manual.title": "Tavolo manuale",
   "manual.description": "I giocatori risolvono costi, effetti e battaglie.",
   "manual.meta": "Manuale · Coda pubblica o invito",
@@ -14,7 +20,7 @@ export const manualIt = {
   "manual.mulligan": "Mulligan",
   "manual.first": "Primo giocatore",
   "manual.turn": "Turno",
-  "manual.memory": "Memoria (positivo verso giocatore 1)",
+  "manual.memory": "Memoria (positivo verso {name})",
   "manual.draw": "Pesca",
   "manual.hatch": "Schiudi uovo",
   "manual.check": "Controlla sicurezza",

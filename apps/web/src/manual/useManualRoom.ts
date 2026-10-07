@@ -4,6 +4,7 @@ import {
   MANUAL_SNAPSHOT,
   MANUAL_ERROR,
   MANUAL_SYNC,
+  MANUAL_RECONNECT_GRACE_SECONDS,
   type ManualAction,
   type ManualSnapshot,
 } from "@aegis/shared";
@@ -19,7 +20,6 @@ import {
   clearReconnectSession,
   loadReconnectSession,
   saveReconnectSession,
-  RECONNECT_GRACE_MS,
   type ReconnectSession,
 } from "../net/reconnectSession";
 import type { AegisJoinOptions } from "../net/types";
@@ -96,7 +96,7 @@ export function useManualRoom(options: AegisJoinOptions, mode: ManualStartMode, 
       if (reconnecting || !session || cancelled) return;
       reconnecting = true;
       setStatus("reconnecting");
-      const deadline = Date.now() + RECONNECT_GRACE_MS;
+      const deadline = Date.now() + MANUAL_RECONNECT_GRACE_SECONDS * 1000;
       while (Date.now() < deadline) {
         if (cancelled) break;
         try {

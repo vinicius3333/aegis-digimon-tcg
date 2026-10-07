@@ -102,6 +102,10 @@ test("players enter the manual queue through the lobby and play, undo and reload
     await a.ready();
     await b.ready();
     await expect(a.page.getByRole("button", { name: "Draw", exact: true })).toBeEnabled();
+    await a.page.goBack();
+    await expect(a.page.getByRole("dialog")).toBeVisible();
+    await a.page.getByRole("dialog").getByRole("button", { name: "Cancel", exact: true }).click();
+    await expect(a.page.getByRole("button", { name: "Draw", exact: true })).toBeEnabled();
     await a.draw();
     await expect(a.table.getByRole("heading", { name: "Hand (6)", exact: true })).toBeVisible();
     await a.page.getByRole("button", { name: "Request undo", exact: true }).click();
@@ -149,6 +153,10 @@ test("manual invite link opens the correct lobby mode and joins the host", async
     await expect(
       guest.table.getByRole("region", { name: "Battle area", exact: true }).getByRole("article"),
     ).toHaveCount(1);
+    await host.page.getByRole("button", { name: "Create token", exact: true }).click();
+    await expect(
+      guest.table.getByRole("region", { name: "Battle area", exact: true }).getByRole("article"),
+    ).toHaveCount(2);
     await host.page.getByRole("button", { name: "Concede", exact: true }).click();
     await host.page.getByRole("dialog").getByRole("button", { name: "Concede", exact: true }).click();
     await expect(guest.page.getByRole("heading", { name: "You won", exact: true })).toBeVisible();

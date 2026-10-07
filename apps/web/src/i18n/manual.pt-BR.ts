@@ -1,4 +1,10 @@
 export const manualPtBR = {
+  "manual.token": "Token",
+  "manual.spawnToken": "Criar token",
+  "manual.removeToken": "Remover token",
+  "manual.action.spawnToken": "Criou token",
+  "manual.action.removeToken": "Removeu token",
+
   "manual.title": "Mesa manual",
   "manual.description": "Os jogadores resolvem custos, efeitos e batalhas.",
   "manual.meta": "Manual · Fila pública ou convite",
@@ -14,7 +20,7 @@ export const manualPtBR = {
   "manual.mulligan": "Mulligan",
   "manual.first": "Primeiro jogador",
   "manual.turn": "Turno",
-  "manual.memory": "Memória (positivo para jogador 1)",
+  "manual.memory": "Memória (positivo para {name})",
   "manual.draw": "Comprar",
   "manual.hatch": "Chocar ovo",
   "manual.check": "Checar segurança",
