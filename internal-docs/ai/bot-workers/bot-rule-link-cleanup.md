@@ -2342,3 +2342,24 @@ primary imports. No CUDA child/game/optimizer update or whole/completion yet;
 keep SAME foreground attached and never duplicate/restart it for quiet output.
 All44 strength/new-candidate mechanisms/physical/material/rooms/serving and
 untouched finalblind/delivery acceptance still pending; no newbot accepted.
+
+## Actual mentor-PPO CUDA start and first completed training batches
+
+The same foreground20258 remains live. Fresh read-only observation confirms
+whole673/start5137 -> supervisor698/start5147 -> CUDA learner1598/start117304;
+the GPU registered process is1598. The actual started receipt SHA is
+`e25db5b1c4669ea25cbf63ac495a98ea5c9346e45cb08791a3e57b4b6731107c`.
+Exact command/config retain all44 decks,3872 games, seed6029858, four workers,
+batches88, CUDA, learningRate1e-5, heuristicShare0.5 and four frozen reference
+checkpoints. Native warm checkpoint8f61 is used at its original path.
+
+Five completed88-game batches are now recorded:440games,277wins,163losses,
+zero failed/unusable/payment forfeits/recovered play rejections, elapsed
+396.48434804399994seconds. The native checkpoint exists with25039221bytes;
+its final hash and tensor/optimizer proof remain pending and are not guessed.
+The pinned read-only observation SHA is
+`1b5679e86ed37e4e27c5b64422ea147798e83401e47a80b24c64b11003d0a8db`.
+No whole exit/completion exists yet. These are provisional training results,
+not all44 development comparison, mechanism mastery or final acceptance.
+Keep the sole live foreground attached; no duplicate job, source rebuild,
+metadata migration, original checkpoint update or finalblind seed use.
