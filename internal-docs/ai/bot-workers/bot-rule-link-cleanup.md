@@ -2434,3 +2434,24 @@ full comparison; old corrective-r1 physical admission cannot be relabeled.
 Both-seat named mechanisms/materials,26rooms/current serving, finalblind and
 delivery acceptance remain required and unproven. Source/FP/archive and all
 original models stay unchanged; no extra engine build or metadata migration.
+
+## Actual mentor evaluator CUDA start; first88 comparison games
+
+The same foreground43135 passed admission and launched actual evaluator
+1748/start115103, parent701/start2893. Fresh actual process/GPU inventory binds
+its exact argv to the real started receiptSHA
+`e30424e4c1ad7059bdc142a326f72361f9e1e96cf13cd7d9e41005566f321718`.
+Actual config is CUDA/evaluateTrue/F7,3872games/seed6135000, no learner filters,
+null learning/initial learning rates, snapshots0 and native checkpoint712d01e7..
+Four real Node engine workers are direct children of1748; their exact engine
+path stays in the qualified aa2e checkout. No copied/migrated/new model or
+additional optimizer update is authorized by this evaluation.
+
+The first88 paired development games record58wins/30losses, zero failed or
+unusable. They use the unchanged full same-schedule heuristic evaluation;
+each recipe's result will be compared with each of four preserved reference
+reports. These partial counts do not prove strict all44 gains. Actual3872,
+source/CP freeze, raw/full report, whole0 and the unchanged full closed
+consumer remain pending; retain all failures/losses/recoveries and never
+restart the sole live foreground. Physical/room/serving/blind/delivery remain
+unaccepted, and reserved finalblind seeds stay untouched.
