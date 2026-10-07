@@ -18,7 +18,8 @@ let closeOpenHint: (() => void) | undefined;
  * a phone can reach the explanation. The badge stays out of the tab order and the
  * accessibility tree: the permanent's own accessible name already speaks every
  * state its badges show. The tap is kept from reaching the permanent, so reading a
- * badge never selects, drags or attacks with the card under it.
+ * badge never selects, drags or attacks with the card under it, except for a touch
+ * while the permanent is the thing to tap (a target, a pick, an attacker).
  */
 export function BadgeHint({
   hint,
@@ -26,6 +27,7 @@ export function BadgeHint({
   ...rest
 }: { hint: BadgeHintText; children: ReactNode } & Omit<HTMLAttributes<HTMLSpanElement>, "onClick" | "onPointerDown">) {
   const badgeRef = useRef<HTMLSpanElement>(null);
+  const tapPassesToCard = useRef(false);
   const [anchor, setAnchor] = useState<DOMRect | null>(null);
   const close = useCallback(() => {
     setAnchor(null);
@@ -60,8 +62,19 @@ export function BadgeHint({
       ref={badgeRef}
       data-badge-hint=""
       data-hint-open={anchor ? "" : undefined}
-      onPointerDown={(event) => event.stopPropagation()}
+      onPointerDown={(event) => {
+        // fieldBadges.css already lets a finger through on `(pointer: coarse)`
+        // screens; a phone whose primary pointer reads as fine (a stylus, a paired
+        // mouse) still delivers the touch here, so decide from the touch itself.
+        tapPassesToCard.current =
+          event.pointerType !== "mouse" && !!event.currentTarget.closest(".game-permanent[data-tap-target]");
+        if (!tapPassesToCard.current) event.stopPropagation();
+      }}
       onClick={(event) => {
+        if (tapPassesToCard.current) {
+          tapPassesToCard.current = false;
+          return;
+        }
         event.stopPropagation();
         if (anchor) {
           close();

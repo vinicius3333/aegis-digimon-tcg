@@ -66,3 +66,51 @@ it("Discord 1555363063300096090: shows a digivolve lock such as Rosemon's Option
   fireEvent.click(document.querySelector('[data-label="Can\'t digivolve"]')!);
   expect(screen.getByRole("tooltip").textContent).toContain("stops this card from digivolving");
 });
+
+// A phone whose primary pointer reads as fine (an S Pen, a paired mouse) skips the
+// `(pointer: coarse)` stylesheet rule, so the badge itself receives the finger.
+it.each([
+  ["Blocker", () => screen.getByText("Blocker")],
+  ["stack count", () => screen.getByText("×1")],
+  ["restriction", () => document.querySelector<HTMLElement>('[data-label="Can\'t attack"]')!],
+  ["DP change", () => document.querySelector<HTMLElement>('[data-dp="down"]')!],
+])("Discord 1556335019209793638: a touch on the %s badge of a target picks the card", (_label, badge) => {
+  const onClick = vi.fn<() => void>();
+  const onPointerDown = vi.fn<() => void>();
+  render(
+    <I18nProvider>
+      <PermanentView perm={blockerWithStack()} candidate onClick={onClick} onPointerDown={onPointerDown} />
+    </I18nProvider>,
+  );
+
+  fireEvent.pointerDown(badge(), { pointerId: 1, pointerType: "touch" });
+  fireEvent.click(badge());
+
+  expect(onPointerDown).toHaveBeenCalledOnce();
+  expect(onClick).toHaveBeenCalledOnce();
+  expect(screen.queryByRole("tooltip")).toBeNull();
+});
+
+it("still explains a target's badge to a mouse", () => {
+  const onClick = vi.fn<() => void>();
+  render(
+    <I18nProvider>
+      <PermanentView perm={blockerWithStack()} candidate onClick={onClick} />
+    </I18nProvider>,
+  );
+
+  fireEvent.pointerDown(screen.getByText("Blocker"), { pointerId: 1, pointerType: "mouse" });
+  fireEvent.click(screen.getByText("Blocker"));
+
+  expect(onClick).not.toHaveBeenCalled();
+  expect(screen.getByRole("tooltip").textContent).toContain("you may suspend this Digimon");
+});
+
+it("still explains a touched badge when the card is not a target", () => {
+  const onClick = renderPermanent();
+  fireEvent.pointerDown(screen.getByText("Blocker"), { pointerId: 1, pointerType: "touch" });
+  fireEvent.click(screen.getByText("Blocker"));
+
+  expect(onClick).not.toHaveBeenCalled();
+  expect(screen.getByRole("tooltip")).toBeTruthy();
+});
