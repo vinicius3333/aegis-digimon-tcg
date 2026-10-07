@@ -389,7 +389,11 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
           permanentSource(perm),
         );
         if (chosen.length < n) continue; // all-or-nothing: a partial pick is a decline
-        await trashDigivolutionCards(permanentId, chosen);
+        // ＜Fragment＞ is a keyword effect, so "when effects trash" watchers must see this trash.
+        await trashDigivolutionCards(permanentId, chosen, {
+          byEffectSeat: perm.controllerSeat,
+          byEffectCardId: perm.topCard.cardId,
+        });
         emitDeletionPrevented("Fragment", perm);
         fragmentSaved.add(permanentId);
       }
