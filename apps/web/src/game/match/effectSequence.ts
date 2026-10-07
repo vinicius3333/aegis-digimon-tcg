@@ -171,6 +171,8 @@ export interface EffectUnit {
   repeat: boolean;
   /** Cards, instances and permanents its results named. */
   touched: Set<string>;
+  /** Effects that opened while this one was still resolving ("activate this card's [Main] effect"). */
+  nested: EffectUnit[];
 
   /** A clause was raised for it. A unit nobody announces has nothing to read before its results. */
   narrated: boolean;
@@ -362,6 +364,7 @@ export function createEffectSequence(options: EffectSequenceOptions = {}): Effec
       chainIndex: chainLength,
       repeat,
       touched: new Set(),
+      nested: [],
       narrated: false,
       clauseVisible: createPresentationGate(),
       started,
@@ -369,6 +372,7 @@ export function createEffectSequence(options: EffectSequenceOptions = {}): Effec
       settled: createPresentationGate(),
     };
     tail = announced;
+    open.at(-1)?.nested.push(unit);
     open.push(unit);
     pending.add(unit);
     newestUnit = unit;
@@ -571,8 +575,14 @@ export interface EffectUnitStepsDeps {
   onSettled?: (unit: EffectUnit) => void;
 }
 
+function nestedUnitOwns(unit: EffectUnit, batchId: string): boolean {
+  return unit.nested.some((nested) => nested.batchIds.has(batchId) || nestedUnitOwns(nested, batchId));
+}
+
 function resultsPendingOf(unit: EffectUnit, deps: EffectUnitStepsDeps): () => boolean {
   const { sequence, queue, batchOf } = deps;
+  // A nested effect's results wait for its own clause, which queues behind this unit's settle:
+  // they are that unit's to wait for, or the two would hold each other until the ceiling.
   return () =>
     queue.hasPendingStep((step) => {
       if (step.track === EFFECT_UNIT_TRACK || sequence.isClauseStep(step.id)) return false;
@@ -581,7 +591,7 @@ function resultsPendingOf(unit: EffectUnit, deps: EffectUnitStepsDeps): () => bo
       // not a result of the effect.
       if (TURN_TRACKS.has(step.track ?? "") || step.track?.startsWith("turnDrawFlight-")) return false;
       const batchId = batchOf(step);
-      return batchId !== undefined && unit.batchIds.has(batchId);
+      return batchId !== undefined && unit.batchIds.has(batchId) && !nestedUnitOwns(unit, batchId);
     });
 }
 
