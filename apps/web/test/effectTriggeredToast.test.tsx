@@ -14,7 +14,7 @@ import { GameScreen } from "../src/game/GameScreen";
 
 const mocked = vi.hoisted(() => ({
   roomResult: { current: undefined as unknown },
-  room: { roomId: "effect-resolved-toast-room" },
+  room: { roomId: "effect-resolved-toast-room", onMessage: () => () => {} },
 }));
 
 vi.mock("../src/net/useRoom", () => ({

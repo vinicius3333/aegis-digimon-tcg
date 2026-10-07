@@ -69,7 +69,7 @@ it.each([
     const clientState = state.toJSON() as unknown as GameState;
     Reflect.deleteProperty(clientState.players[1]!, "hand");
     const send = vi.fn<(type: string, payload: unknown) => void>();
-    const room = { connection: { isOpen: true }, send } as unknown as AegisRoom;
+    const room = { connection: { isOpen: true }, send, onMessage: () => () => {} } as unknown as AegisRoom;
     render(
       <I18nProvider>
         <GameScreen

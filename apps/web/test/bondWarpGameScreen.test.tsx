@@ -9,7 +9,7 @@ import { GameScreen } from "../src/game/GameScreen";
 
 const mocked = vi.hoisted(() => ({
   roomResult: { current: undefined as unknown },
-  room: { roomId: "bond-warp-ui-room" },
+  room: { roomId: "bond-warp-ui-room", onMessage: () => () => {} },
   activateEffect: vi.fn<(room: unknown, sourceInstanceId: string, effectKey: string) => void>(),
   respondDecision: vi.fn<(room: unknown, decisionId: string, response: unknown) => void>(),
 }));

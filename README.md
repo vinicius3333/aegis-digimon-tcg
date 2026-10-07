@@ -230,6 +230,11 @@ Player portraits come from the PlayStation _Digimon World_ card sheets ripped by
 **metaldodomon** and published on The Spriters Resource. `tools/extract-dw-card-avatars.py`
 slices those sheets into the files under `apps/web/public/avatars/digimon-world-1/`.
 
+Chat emote icons come from the PlayStation _Digimon World_ battle command sheet
+ripped by **Romsstar** and published on The Spriters Resource.
+`tools/extract-dw-command-emotes.py` slices that sheet into the files under
+`apps/web/public/emotes/digimon-world-1/`.
+
 ## License
 
 [MIT](./LICENSE) © Vinícius Luiz.

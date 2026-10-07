@@ -15,6 +15,14 @@ import {
   EVENT_CHANNEL,
   DECISION_CHANNEL,
   PRESENTATION_CHANNEL,
+  CHAT_CHANNEL,
+  CHAT_COOLDOWN_MS,
+  parseChatMessage,
+  normalizeChatText,
+  SPECTATOR_NAME_MAX_LENGTH,
+  type ChatBroadcast,
+  type ChatMessage,
+  type ChatSender,
   SERIES_CHANNEL,
   matchBestOf,
   type MatchBestOf,
@@ -35,6 +43,7 @@ import { MatchClock } from "./MatchClock.js";
 import { CasualSeries, type SeriesContinuationOptions, type SeriesRoomPort } from "./series/CasualSeries.js";
 import type { SeriesRecord } from "./series/SeriesDirectory.js";
 import { parsePresentationReport } from "./presentationReport.js";
+import { hasBlockedWord, maskBlockedWords } from "../moderation/blockedWords.js";
 
 /** Hand-laid boards must never be reachable by a real player. */
 const DEV_SCENARIOS_ENABLED = process.env.NODE_ENV !== "production";
@@ -211,6 +220,13 @@ export class AegisRoom extends Room<{ state: GameState }> {
   private spectatorClients = new Set<string>();
   private seatByClient = new Map<string, Seat>(); // sessionId -> seat
   private presentationLogWindows = new Map<Seat, { start: number; count: number }>();
+  /** Keyed by `seat:<n>` for players and by session id for spectators. */
+  private lastChatAtBySender = new Map<string, number>();
+  /** The number in each spectator's chat name, given the first time that spectator writes. */
+  private spectatorNumbers = new Map<string, number>();
+  private spectatorsNumbered = 0;
+  /** The raw name each spectator joined with; `spectatorChatName` decides whether to show it. */
+  private spectatorJoinNames = new Map<string, string>();
   private accountByClient = new Map<string, string>();
   private rankedByClient = new Map<string, boolean>();
   /** Clients that pace chains of triggered effects themselves (`presentationPacing: "sequential"`). */
@@ -653,6 +669,10 @@ export class AegisRoom extends Room<{ state: GameState }> {
         this.handlePresentationReport(client, payload);
         return;
       }
+      if (type === CHAT_CHANNEL) {
+        this.handleChat(client, payload);
+        return;
+      }
       if (type === SERIES_CHANNEL) {
         const seat = this.seatByClient.get(client.sessionId);
         if (seat !== undefined) this.casualSeries?.handleMessage(seat, payload, this.matchStartRequested);
@@ -993,6 +1013,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       // Recheck after reservation: a match can end while the socket is connecting.
       if (!this.spectatorInfo(options.roomCode)) throw new ServerError(403, "Match is not available to spectators");
       this.spectatorClients.add(client.sessionId);
+      if (typeof options.displayName === "string") this.spectatorJoinNames.set(client.sessionId, options.displayName);
       this.assignView(client, undefined);
       if (this.openSecurityReveal)
         this.withBatch(() => client.send(EVENT_CHANNEL, this.stamp(this.openSecurityReveal!)), client);
@@ -1027,7 +1048,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
       this.seriesArrivals.clear();
       for (const [arrivedSeat, arrival] of arrivals) this.seatClient(arrival.client, arrivedSeat, arrival.options);
       for (const [arrivedSeat, arrival] of arrivals)
-        if (this.seriesEarlyReady.delete(arrival.client.sessionId)) this.applyLoggedIntent(arrivedSeat, { type: "ready" });
+        if (this.seriesEarlyReady.delete(arrival.client.sessionId))
+          this.applyLoggedIntent(arrivedSeat, { type: "ready" });
       this.armReadyTimeoutIfSeated();
       return;
     }
@@ -1113,6 +1135,9 @@ export class AegisRoom extends Room<{ state: GameState }> {
         // Spectator expiry has no effect on either player or the match clock.
       }
       this.spectatorClients.delete(client.sessionId);
+      this.spectatorNumbers.delete(client.sessionId);
+      this.spectatorJoinNames.delete(client.sessionId);
+      this.lastChatAtBySender.delete(client.sessionId);
       if (client.view) {
         client.view.dispose();
         this.issuedViews.delete(client.view);
@@ -1579,6 +1604,53 @@ export class AegisRoom extends Room<{ state: GameState }> {
       serverStateVersion: this.state.stateVersion,
       ...report,
     });
+  }
+
+  /**
+   * Players and spectators may chat; anyone else is ignored. Messages inside the sender's
+   * cooldown are dropped without a reply, and blocked words are masked before anyone, the
+   * match log included, sees the text.
+   */
+  private handleChat(client: Client, payload: unknown): void {
+    const sender = this.chatSender(client);
+    if (!sender) return;
+    const parsed = parseChatMessage(payload);
+    if (!parsed) return;
+    const message: ChatMessage =
+      parsed.kind === "text" ? { kind: "text", text: maskBlockedWords(parsed.text) } : parsed;
+    // A player's cooldown follows the seat, so a reconnect cannot reset it.
+    const cooldownKey = sender.kind === "player" ? `seat:${sender.seat}` : client.sessionId;
+    const now = Date.now();
+    const lastChatAt = this.lastChatAtBySender.get(cooldownKey);
+    if (lastChatAt !== undefined && now - lastChatAt < CHAT_COOLDOWN_MS) return;
+    this.lastChatAtBySender.set(cooldownKey, now);
+    this.debug("client.chat", { sender, sessionId: client.sessionId, ...message });
+    this.broadcast(CHAT_CHANNEL, { sender, message } satisfies ChatBroadcast);
+  }
+
+  private chatSender(client: Client): ChatSender | undefined {
+    const seat = this.seatByClient.get(client.sessionId);
+    if (seat !== undefined) return { kind: "player", seat };
+    if (!this.spectatorClients.has(client.sessionId)) return;
+    let number = this.spectatorNumbers.get(client.sessionId);
+    if (number === undefined) {
+      number = ++this.spectatorsNumbered;
+      this.spectatorNumbers.set(client.sessionId, number);
+    }
+    const name = this.spectatorChatName(client.sessionId);
+    return { kind: "spectator", sessionId: client.sessionId, number, ...(name ? { name } : {}) };
+  }
+
+  /** The spectator's join name, cleaned, or nothing when it is empty, offensive or a player's. */
+  private spectatorChatName(sessionId: string): string | undefined {
+    const name = Array.from(normalizeChatText(this.spectatorJoinNames.get(sessionId) ?? ""))
+      .slice(0, SPECTATOR_NAME_MAX_LENGTH)
+      .join("")
+      .trim();
+    const folded = name.toLocaleLowerCase();
+    if (!name || hasBlockedWord(name)) return;
+    if (this.state.players.some((player) => player?.displayName.trim().toLocaleLowerCase() === folded)) return;
+    return name;
   }
 
   private debugError(...data: unknown[]): void {

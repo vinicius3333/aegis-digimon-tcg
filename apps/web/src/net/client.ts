@@ -141,7 +141,7 @@ export class AegisConnectionRouter {
     return this.remember(await this.client(slot).joinById(roomId, options), slot);
   }
 
-  async spectate(target: { roomCode: string }): Promise<AegisRoom> {
+  async spectate(target: SpectateTarget): Promise<AegisRoom> {
     const manifest = await this.dependencies.loadManifest();
     const deployments = [manifest.active, ...manifest.draining];
     for (const { slot } of deployments) {
@@ -392,11 +392,17 @@ export function clearPendingIntents(): void {
   pendingIntents.length = 0;
 }
 
-function spectatorJoinRequest(target: { roomCode: string }): RequestInit {
+/** `displayName` only labels the spectator's chat messages; the server cleans it up. */
+export interface SpectateTarget {
+  roomCode: string;
+  displayName?: string;
+}
+
+function spectatorJoinRequest(target: SpectateTarget): RequestInit {
   return { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(target) };
 }
 
-export async function spectate(target: { roomCode: string }): Promise<AegisRoom> {
+export async function spectate(target: SpectateTarget): Promise<AegisRoom> {
   if (useProductionRouter()) return getProductionRouter().spectate(target);
   const response = await fetch(
     `${legacyEndpoint().replace(/^ws/, "http")}/spectate/join`,

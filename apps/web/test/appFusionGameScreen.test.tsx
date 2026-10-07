@@ -8,7 +8,7 @@ import { GameScreen } from "../src/game/GameScreen";
 
 const mocked = vi.hoisted(() => ({
   roomResult: { current: undefined as unknown },
-  room: { roomId: "app-fusion-ui-room" },
+  room: { roomId: "app-fusion-ui-room", onMessage: () => () => {} },
   appFusion: vi.fn<typeof import("../src/net/intents").intents.appFusion>(),
   digivolve: vi.fn<typeof import("../src/net/intents").intents.digivolve>(),
 }));

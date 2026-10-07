@@ -24,6 +24,7 @@ import { PendingMatchBoard } from "./screen/layout/PendingMatchBoard";
 import { pendingMatchNotice } from "./screen/model/pendingMatchNotice";
 import { sourceHostChoiceFor } from "./screen/model/sourceHostChoice";
 import { BoardStage, type BoardAnchors } from "./screen/layout/BoardStage";
+import { useMatchChat } from "./chat/useMatchChat";
 import { BreedingDock } from "./screen/layout/BreedingDock";
 import { MatchOverlays } from "./screen/layout/MatchOverlays";
 
@@ -227,6 +228,7 @@ export function GameScreen({
   // is presented as the one moment it describes.
   const cueBatches = useMemo(() => batches ?? [singleServerBatch(events)], [batches, events]);
   const viewerSeat = useMemo(() => viewerSeatOf(state, sessionId), [state, sessionId]);
+  const chat = useMatchChat({ room: connectedRoom, viewerSeat, spectating });
 
   const vsBot = startMode === "bot";
   const isPrivateMatch = startMode === "private_host" || startMode === "private_guest";
@@ -1404,6 +1406,7 @@ export function GameScreen({
       spectating={spectating}
       onLeaveSpectator={() => onExit("lobby")}
       room={spectating ? undefined : room}
+      chat={connectedRoom ? chat : undefined}
       look={arenaLook}
       layout={layout}
       anchors={anchors}

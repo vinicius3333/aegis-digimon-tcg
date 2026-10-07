@@ -5,7 +5,16 @@
    is never clipped by the board's own overflow; the ghost that follows a held card goes
    to the document body for the same reason. */
 
-import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode, RefObject } from "react";
+import {
+  useState,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+  type RefObject,
+} from "react";
+import { ChatBubble } from "../../chat/ChatBubble";
+import { MatchChatWindow } from "../../chat/MatchChatWindow";
+import type { MatchChat } from "../../chat/useMatchChat";
 import type { ArenaBoardLook } from "../../arenaLook";
 import { createPortal } from "react-dom";
 import type { GameState, Permanent, PlayerState, Seat } from "@aegis/shared";
@@ -144,6 +153,7 @@ export function BoardStage({
   opponent,
   viewerSeat,
   room,
+  chat,
   look,
   layout,
   anchors,
@@ -179,6 +189,8 @@ export function BoardStage({
   spectating?: boolean;
   onLeaveSpectator?: () => void;
   room: Parameters<typeof intents.surrender>[0] | undefined;
+  /** Absent when there is no live room to talk through, as in a demo. */
+  chat?: MatchChat;
   look: ArenaBoardLook;
   layout: ReturnType<typeof useArenaLayout>;
   anchors: BoardAnchors;
@@ -215,6 +227,10 @@ export function BoardStage({
   useBreedingTransferOrigins(anchors.board);
   useFieldShatterOrigins(anchors.board);
   const other = otherSeat(viewerSeat);
+  const [chatOpen, setChatOpen] = useState(false);
+  const opponentName = opponent.displayName || t("game.opponent");
+  // A spectator watches from one player's seat but is not that player.
+  const viewerName = spectating ? viewer.displayName || t("game.you") : t("chat.you");
   const { shownViewer, shownOpponent, breedingViewer, breedingOpponent } = seats;
   const surrenderDialog = overlays.surrenderConfirmOpen ? (
     <SurrenderDialog
@@ -308,6 +324,8 @@ export function BoardStage({
             onOpenLog={() => overlays.setHistoryOpen(true)}
             onReportBug={() => overlays.setBugReportOpen(true)}
             onOpenArenaLook={() => overlays.setArenaLookOpen(true)}
+            onToggleChat={chat ? () => setChatOpen((open) => !open) : undefined}
+            chatOpen={chatOpen}
             onSurrender={spectating ? () => onLeaveSpectator?.() : () => overlays.setSurrenderConfirmOpen(true)}
             onSkipPresentation={() => cues.skipAnimations()}
           />
@@ -578,6 +596,31 @@ export function BoardStage({
         {stageEl ? createPortal(overlayStack, stageEl) : overlayStack}
 
         {surrenderDialog && stageEl ? createPortal(surrenderDialog, stageEl) : surrenderDialog}
+
+        {chat ? (
+          <>
+            <ChatBubble entry={chat.latest[other]} side="opponent" senderName={opponentName} boardRef={anchors.board} />
+            <ChatBubble
+              entry={chat.latest[viewerSeat]}
+              side="player"
+              senderName={viewerName}
+              boardRef={anchors.board}
+            />
+            {chatOpen ? (
+              <MatchChatWindow
+                chat={chat}
+                spectating={spectating}
+                seatNames={
+                  {
+                    [viewerSeat]: viewer.displayName || t("game.you"),
+                    [other]: opponentName,
+                  } as Record<Seat, string>
+                }
+                onClose={() => setChatOpen(false)}
+              />
+            ) : null}
+          </>
+        ) : null}
 
         {drag.cardId ? (
           <DragGhost

@@ -15,7 +15,7 @@ import { cleanup, render, screen, within } from "./scenarioHarness/testingLibrar
 
 const mocked = vi.hoisted(() => ({
   roomResult: { current: undefined as unknown },
-  room: { roomId: "security-option-decision-room" },
+  room: { roomId: "security-option-decision-room", onMessage: () => () => {} },
 }));
 
 vi.mock("../src/net/useRoom", () => ({

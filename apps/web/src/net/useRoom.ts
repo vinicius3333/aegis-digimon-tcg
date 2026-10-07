@@ -169,7 +169,7 @@ function connectRoom(
   switch (match?.mode) {
     case "spectator":
       if (!match.roomCode) throw new Error("roomCode required for spectator");
-      return spectate({ roomCode: match.roomCode });
+      return spectate({ roomCode: match.roomCode, displayName: options.displayName });
     case "bot":
       return createBot(options);
     case "private_host":

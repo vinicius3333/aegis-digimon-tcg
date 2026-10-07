@@ -46,6 +46,8 @@ export function OpponentBar({
   onOpenLog,
   onReportBug,
   onOpenArenaLook,
+  onToggleChat,
+  chatOpen = false,
   onSurrender,
   onSkipPresentation,
   onResetScenario,
@@ -74,6 +76,9 @@ export function OpponentBar({
   onOpenLog: () => void;
   onReportBug: () => void;
   onOpenArenaLook: () => void;
+  /** Absent when there is no live room to chat through. */
+  onToggleChat?: () => void;
+  chatOpen?: boolean;
   onSurrender: () => void;
   onSkipPresentation: () => void;
   onResetScenario?: () => void;
@@ -200,6 +205,11 @@ export function OpponentBar({
             <button type="button" onClick={onOpenLog}>
               <Icons.ScrollText size={18} /> {t("game.matchLog")}
             </button>
+            {onToggleChat ? (
+              <button type="button" onClick={onToggleChat}>
+                <Icons.MessageSquare size={18} /> {t("chat.open")}
+              </button>
+            ) : null}
             {fullscreen.supported ? (
               <button type="button" onClick={fullscreen.toggle}>
                 <FullscreenIcon size={18} /> {fullscreenLabel}
@@ -228,6 +238,17 @@ export function OpponentBar({
           >
             <Icons.ScrollText size={16} />
           </button>
+          {onToggleChat ? (
+            <button
+              type="button"
+              className="game-mobile-log game-mobile-chat"
+              onClick={onToggleChat}
+              aria-label={t("chat.open")}
+              aria-pressed={chatOpen}
+            >
+              <Icons.MessageSquare size={16} />
+            </button>
+          ) : null}
           <button className="game-mobile-bug" onClick={onReportBug} aria-label={t("bugReport.button")}>
             <Icons.Megaphone size={16} />
           </button>
@@ -267,6 +288,17 @@ export function OpponentBar({
           <button className="game-topbar-button" onClick={onReportBug} aria-label={t("bugReport.button")}>
             <Icons.Megaphone size={17} />
           </button>
+          {onToggleChat ? (
+            <button
+              className="game-topbar-button"
+              onClick={onToggleChat}
+              aria-label={t("chat.open")}
+              aria-pressed={chatOpen}
+              title={t("chat.open")}
+            >
+              <Icons.MessageSquare size={17} />
+            </button>
+          ) : null}
           {fullscreen.supported ? (
             <button
               className="game-topbar-button"
