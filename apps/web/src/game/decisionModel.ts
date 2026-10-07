@@ -216,7 +216,7 @@ export function instanceCardId(state: GameState, instanceId: string): string | u
   const onPermanent = (perm: Permanent): CardInstance | undefined =>
     [perm.topCard, ...perm.stack, ...perm.linked].find((c) => c?.instanceId === instanceId);
   for (const player of state.players) {
-    const inHand = player.hand.find((card) => card.instanceId === instanceId);
+    const inHand = player.hand?.find((card) => card.instanceId === instanceId);
     if (inHand) return inHand.cardId;
     for (const perm of player.battleArea) {
       const found = onPermanent(perm);
