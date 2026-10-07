@@ -68,14 +68,16 @@ async function concede(loser: Player, players: Player[]) {
   await vi.waitFor(() => expect(loser.room.state.gameOver).toBe(true), { timeout: 5000 });
 }
 
-/** The loser picks; then both seats hop to the room the series opened. */
+/** The loser picks; then both seats hop to the room the series opened, seat 1 first. */
 async function nextGame(players: Player[], chooser: Player, goFirst: boolean) {
   await vi.waitFor(() => expect(chooser.room.state.series.phase).toBe("choosing"));
   expect(chooser.room.state.series.chooserSeat).toBe(seatOf(chooser));
   chooser.room.send(SERIES_CHANNEL, { action: "chooseTurnOrder", goFirst });
   await vi.waitFor(() => expect(chooser.room.state.series.nextRoomId).not.toBe(""), { timeout: 5000 });
   const nextRoomId = chooser.room.state.series.nextRoomId;
-  for (const player of players) {
+  // Seat 1 hops first: the room must hold it until seat 0 arrives, since seats fill in order.
+  const bySeatDescending = [...players].sort((a, b) => seatOf(b) - seatOf(a));
+  for (const player of bySeatDescending) {
     await vi.waitFor(() => expect(player.seatToken).toBeDefined());
     const previous = player.room;
     const next = await new Client(server!.endpoint).joinById<GameState>(
