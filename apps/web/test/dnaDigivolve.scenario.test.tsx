@@ -95,13 +95,26 @@ scenario("dna-digivolve", () => {
     const silphymonId = [...protagonistRoom!.state.players[0]!.hand].find((c) => c.cardId === "BT16-012")!.instanceId;
 
     await play(/^silphymon$/i);
-    expect(await screen.findByText(/DNA Digivolution available/i, {}, { timeout: 10_000 })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: /^cancel$/i }));
+    const dnaPrompt = () => screen.getByRole("region", { name: /DNA Digivolution available/i });
+    expect(
+      await screen.findByRole("region", { name: /DNA Digivolution available/i }, { timeout: 10_000 }),
+    ).toBeTruthy();
+    fireEvent.click(within(dnaPrompt()).getByRole("button", { name: /^cancel$/i }));
     expect(opponent.room.state.players[0]!.handCount).toBe(handBefore);
     expect(opponent.room.state.players[0]!.battleArea).toHaveLength(2);
     expect(opponent.room.state.memory).toBe(0);
     await play(/^silphymon$/i);
-    fireEvent.click(await screen.findByRole("button", { name: /^DNA Digivolve$/i }, { timeout: 10_000 }));
+    await screen.findByRole("region", { name: /DNA Digivolution available/i }, { timeout: 10_000 });
+    expect(
+      within(dnaPrompt())
+        .getByRole("button", { name: /^DNA Digivolve$/i })
+        .hasAttribute("disabled"),
+    ).toBe(true);
+    // Materials are picked on the field, yellow first, as a player would.
+    for (const permanentId of [yellowPermId, redPermId]) {
+      tap(document.querySelector(`[data-drop="perm-you"][data-id="${permanentId}"]`) as HTMLElement);
+    }
+    fireEvent.click(within(dnaPrompt()).getByRole("button", { name: /^DNA Digivolve$/i }));
     await vi.waitFor(
       () => {
         const player = opponent.room.state.players[0]!;
