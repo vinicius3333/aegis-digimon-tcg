@@ -1782,3 +1782,34 @@ an accepted candidate. Obtain strict gains for all 44
 recipes against all four references, and complete both-seat mechanisms,
 physical custody, 26 managed rooms, current-serving compatibility, and the
 reserved final blind evaluation. Final seeds `6210000..6213871` remain untouched.
+
+## Fresh CPU teacher supplement source admission
+
+Prepared `current-mentor-supplement.py`, SHA-256
+`05283d54d50217430c7927ad88d831a1b7a8da4e2218db4e48bbea76ef18b439`,
+with nine bounded synthetic guards passing locally and on desktop Python3.12.14.
+Tests cover original fold/route allocation, teacher None versus real legal
+indices, boolean-index/provenance forgery, exact CPU request/resource scope,
+real predecessor command and failed/pending closure rejection. Fixtures are
+not actual game, learning, or completion evidence. Desktop source/request/
+wrapper/inventory/test files were created exclusively and byte-verified;
+qualified six module and five immutable checkpoint pins passed without models.
+
+The unchanged complete seed scanner examined 264244 episode files and654
+schedule records across runs and validations. Fresh160 seeds6028898..6029057
+have zero observed overlap; desktop observed no GPU compute process and
+520788418560 free bytes. Each of four previously observed gap routes receives
+40 natural mirror games at seat0, including eight original-index validation
+and32 training games. Teacher-unavailable first-action execution is explicitly
+unsupervised. No outcome filtering, fold movement, model imports/updates,
+source rebuild or reserved final seeds. Missing positives remain a failed
+learning admission even if collection exits0.
+
+Actual original full dataset closure and exact current source/CP guards are
+required before and after collection. Default inspection is read-only; actual
+launch needs a separately sealed ROOT CPU resource Go and original wrapper
+PID/startTicks/argv identity. Strict closure additionally requires externally
+observed completion and actual original whole0. At this source checkpoint the
+read-only admission consumer is running; no supplemental game or learning job
+has been launched. Completion, new training and all final acceptance gates
+remain pending.
