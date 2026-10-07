@@ -244,7 +244,10 @@ export function CursorParticles() {
     resize();
 
     const themeObserver = new MutationObserver(readPalette);
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "data-interface-theme"],
+    });
 
     window.addEventListener("resize", resize);
     window.addEventListener("pointermove", onMove, { passive: true });

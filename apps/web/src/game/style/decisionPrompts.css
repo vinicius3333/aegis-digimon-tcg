@@ -827,7 +827,12 @@ body:has(.decision-overlay--selection) .narration-slot {
    in dialogsAndNarration.css), a little wider than the rail so two cost tiles and the
    two footer buttons sit side by side. */
 .board-prompt.evo-cost-prompt {
-  background: linear-gradient(180deg, #14213c 0%, var(--battle-panel, #101b30) 30%, #0c1526 100%);
+  background: linear-gradient(
+    180deg,
+    var(--ds-game-sheet, #14213c) 0%,
+    var(--battle-panel, #101b30) 30%,
+    var(--ds-game-paper, #0c1526) 100%
+  );
 }
 @media (width >= 768px) {
   .board-prompt.evo-cost-prompt {
@@ -887,7 +892,7 @@ body:has(.decision-overlay--selection) .narration-slot {
   padding: var(--ds-space-1) var(--ds-space-2);
   color: var(--ds-text-2);
   border-radius: var(--ds-radius-sm);
-  background: rgb(4 10 22 / 55%);
+  background: var(--ds-game-fill, rgb(4 10 22 / 55%));
   font-size: var(--ds-text-sm);
   letter-spacing: 0;
 }

@@ -239,7 +239,10 @@ export function CircuitBackdrop() {
 
     resize();
     const themeObserver = new MutationObserver(onThemeChange);
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "data-interface-theme"],
+    });
     window.addEventListener("resize", resize);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     if (!paused && !reducedMotion) frame = requestAnimationFrame(tick);

@@ -2,13 +2,8 @@
 
 /* --- Dialogs: navy panel with a gradient header bar ----------------------- */
 
-/* Every navy surface in the match carries the same ink. These panels are navy
-   whichever theme the app is in, so the tokens their contents read cannot follow
-   the theme — light-theme surfaces inside them would be white cards on navy, and
-   the light theme's accent (tuned for white) reads poorly against this
-   panel, which is where the outlined secondary buttons, the primary badges and
-   the play-log card links were failing. The dark theme's values are the ones
-   that belong here, so the whole ramp comes from there. */
+/* Match panels use a readable ramp derived from the selected header color.
+   Aegis keeps its original navy values through the fallbacks below. */
 .game-modal__panel,
 .mulligan-sheet,
 .board-prompt,
@@ -16,29 +11,39 @@
 .stack-sheet .card-action-sheet__panel,
 .combat-prompt,
 .evo-cost-prompt {
-  --ds-text: #eaf1ff;
-  --ds-text-2: #c6d4ef;
-  --ds-text-3: #9fb0d0;
-  --ds-text-off: #5c6f92;
-  --ds-sheet: #16233c;
-  --ds-fill: #1e2d4a;
-  --ds-line: #334770;
-  --ds-line-strong: #46608f;
-  --ds-accent: #f472b6;
-  --ds-accent-strong: #f9a8d4;
-  --ds-accent-soft: rgb(244 114 182 / 15%);
-  --ds-on-accent: #0a0c12;
-  --ds-focus: #f472b6;
+  --battle-panel: var(--ds-game-sheet, #101b30);
+  --battle-panel-border: var(--ds-game-line-strong, #3b5c9e);
+  --battle-header-grad: linear-gradient(
+    180deg,
+    var(--ds-game-ink-raised, #2b57a8) 0%,
+    var(--ds-game-ink, #16336e) 55%,
+    var(--ds-game-paper, #102450) 100%
+  );
+  --ds-text: var(--ds-game-text, #eaf1ff);
+  --ds-text-2: var(--ds-game-text-2, #c6d4ef);
+  --ds-text-3: var(--ds-game-text-3, #9fb0d0);
+  --ds-text-off: var(--ds-game-text-off, #5c6f92);
+  --ds-sheet: var(--ds-game-sheet, #16233c);
+  --ds-fill: var(--ds-game-fill, #1e2d4a);
+  --ds-line: var(--ds-game-line, #334770);
+  --ds-line-strong: var(--ds-game-line-strong, #46608f);
+  --ds-accent: var(--ds-game-accent, #f472b6);
+  --ds-accent-strong: var(--ds-game-accent-strong, #f9a8d4);
+  --ds-accent-soft: var(--ds-game-accent-soft, rgb(244 114 182 / 15%));
+  --ds-accent-active: var(--ds-game-accent-active, rgb(244 114 182 / 15%));
+  --ds-on-accent: var(--ds-game-on-accent, #0a0c12);
+  --ds-focus: var(--ds-game-focus, #f472b6);
   /* The semantic ramp for the same reason: the light theme's success, warning and
      danger are near-black inks meant for white cards (2.4–2.6:1 here), and their
      surfaces are pale chips that would punch holes in the panel. */
-  --ds-success: #4ade80;
-  --ds-success-soft: rgb(34 197 94 / 15%);
-  --ds-warning: #fbbf24;
-  --ds-warning-soft: rgb(245 158 11 / 15%);
-  --ds-danger: #f87171;
-  --ds-danger-soft: rgb(239 68 68 / 15%);
-  --ds-on-status: #0a0c12;
+  --ds-success: var(--ds-game-success, #4ade80);
+  --ds-success-soft: var(--ds-game-success-soft, rgb(34 197 94 / 15%));
+  --ds-warning: var(--ds-game-warning, #fbbf24);
+  --ds-warning-soft: var(--ds-game-warning-soft, rgb(245 158 11 / 15%));
+  --ds-danger: var(--ds-game-danger, #f87171);
+  --ds-danger-soft: var(--ds-game-danger-soft, rgb(239 68 68 / 15%));
+  --ds-on-status: var(--ds-game-on-status, #0a0c12);
+  --ds-focus-ring: var(--ds-game-focus-ring, 0 0 0 4px rgb(244 114 182 / 24%));
 }
 
 .game-modal__panel {
@@ -49,7 +54,12 @@
   color: var(--ds-text);
   border: 1px solid var(--battle-panel-border) !important;
   border-radius: 0.6rem;
-  background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%) !important;
+  background: linear-gradient(
+    180deg,
+    var(--ds-game-sheet, #14213c) 0%,
+    var(--battle-panel) 30%,
+    var(--ds-game-paper, #0c1526) 100%
+  ) !important;
   box-shadow:
     0 0 0 1px rgb(0 0 0 / 60%),
     0 18px 60px rgb(0 0 0 / 65%) !important;
@@ -70,7 +80,12 @@
   color: var(--ds-text);
   border: 1px solid var(--battle-panel-border);
   border-radius: 0.6rem;
-  background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%);
+  background: linear-gradient(
+    180deg,
+    var(--ds-game-sheet, #14213c) 0%,
+    var(--battle-panel) 30%,
+    var(--ds-game-paper, #0c1526) 100%
+  );
   box-shadow:
     0 0 0 1px rgb(0 0 0 / 60%),
     0 18px 60px rgb(0 0 0 / 65%);
@@ -79,7 +94,12 @@
 .combat-prompt {
   z-index: 90 !important;
   color: var(--ds-text);
-  background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%) !important;
+  background: linear-gradient(
+    180deg,
+    var(--ds-game-sheet, #14213c) 0%,
+    var(--battle-panel) 30%,
+    var(--ds-game-paper, #0c1526) 100%
+  ) !important;
   box-shadow:
     0 0 0 1px rgb(0 0 0 / 60%),
     0 18px 60px rgb(0 0 0 / 65%) !important;
@@ -100,7 +120,7 @@
   padding: 0.7rem 1.2rem;
   margin: -0.2rem -0.2rem 0.6rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--ds-game-text, #fff);
   text-align: center;
   border-bottom: 1px solid rgb(255 255 255 / 14%);
   border-radius: 0.5rem 0.5rem 0 0;
@@ -113,7 +133,7 @@
   padding: 1rem 1.2rem;
   margin: 0 -22px var(--ds-space-4);
   font-weight: 700;
-  color: #fff;
+  color: var(--ds-game-text, #fff);
   text-align: center;
   border-bottom: 1px solid rgb(255 255 255 / 14%);
   border-radius: 0.5rem 0.5rem 0 0;

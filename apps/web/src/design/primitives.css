@@ -221,7 +221,7 @@
 }
 .aegis-button--secondary:active {
   color: var(--ds-accent);
-  background: color-mix(in srgb, var(--ds-accent) 18%, var(--ds-sheet));
+  background: var(--ds-accent-active, color-mix(in srgb, var(--ds-accent) 18%, var(--ds-sheet)));
 }
 .dark .aegis-button--secondary {
   background: transparent;

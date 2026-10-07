@@ -1,4 +1,5 @@
 import { CustomMusicPicker } from "../design/CustomMusicPicker";
+import { InterfaceThemeDialog } from "../design/InterfaceThemePicker";
 import { useState } from "react";
 import { Avatar, Button, Eyebrow, Field, Switch, type PlayerIdentity } from "../design/primitives";
 import { Panel, SectionHeading } from "../design/surfaces";
@@ -66,6 +67,7 @@ export function Settings({
 }) {
   const { t, locale, setLocale } = useTranslation();
   const textScale = useTextScale();
+  const [themeOpen, setThemeOpen] = useState(false);
   const [nameInput, setNameInput] = useState(player.name);
   const [renameToastKey, setRenameToastKey] = useState<number>();
   const [musicOn, setMusicOn] = useState(isMusicEnabled());
@@ -168,6 +170,16 @@ export function Settings({
                 {dark ? <Icons.Moon size={16} /> : <Icons.Sun size={16} />}
                 <span>{dark ? t("settings.themeDark") : t("settings.themeLight")}</span>
               </button>
+            </div>
+
+            <div className="settings-row settings-row--stack">
+              <div className="settings-row__copy">
+                <strong>{t("redesign.shell.theme.title")}</strong>
+                <small>{t("redesign.shell.theme.description")}</small>
+              </div>
+              <Button variant="secondary" size="sm" onClick={() => setThemeOpen(true)} aria-haspopup="dialog">
+                {t("redesign.shell.theme.choose")}
+              </Button>
             </div>
 
             <div className="settings-row">
@@ -451,6 +463,9 @@ export function Settings({
           message={t("settings.usernameUpdated")}
           onDismiss={() => setRenameToastKey(undefined)}
         />
+      ) : null}
+      {themeOpen ? (
+        <InterfaceThemeDialog dark={dark} onToggleDark={onToggleDark} onClose={() => setThemeOpen(false)} />
       ) : null}
     </main>
   );

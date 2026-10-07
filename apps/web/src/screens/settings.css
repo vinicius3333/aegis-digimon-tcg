@@ -93,9 +93,21 @@
   gap: var(--ds-space-3);
 }
 
+/* Option groups need their own line so long translations never squeeze the copy. */
+.settings-row:has(> .settings-language-list) {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--ds-space-3);
+}
+
+.settings-row--stack > .aegis-button {
+  justify-self: start;
+}
+
 .settings-row__copy,
 .settings-block__heading {
   display: grid;
+  min-width: 0;
   gap: 2px;
 }
 

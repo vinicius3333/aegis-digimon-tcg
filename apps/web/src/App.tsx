@@ -26,6 +26,7 @@ import { accentForAvatar } from "./guest";
 import { applyDarkMode, setDarkMode, useDarkMode } from "./design/darkMode";
 import { setDeckEggSleeveId, setDeckSleeveId } from "./design/sleeve";
 import { applyTextScale } from "./design/textScale";
+import { InterfaceThemeDialog } from "./design/InterfaceThemePicker";
 import { I18nProvider, useTranslation } from "./i18n";
 import { accountApi, type RemoteAccount } from "./account/client";
 import { communityApi } from "./community/client";
@@ -329,6 +330,7 @@ export function AegisClient({
   const [matchDeckId, setMatchDeckId] = useState<string>();
   const [matchNumber, setMatchNumber] = useState(0);
   const [playerMenuOpen, setPlayerMenuOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
   const [bugReportOpen, setBugReportOpen] = useState(false);
   const [leaveMatchPromptOpen, setLeaveMatchPromptOpen] = useState(false);
   const leaveForfeitsMatchRef = useRef(false);
@@ -460,6 +462,7 @@ export function AegisClient({
           onOpenPlayerMenu={() => setPlayerMenuOpen(true)}
           dark={dark}
           onToggleDark={setDark}
+          onOpenTheme={() => setThemeOpen(true)}
           onSendFeedback={() => setBugReportOpen(true)}
         />
       ) : null}
@@ -645,6 +648,9 @@ export function AegisClient({
         />
       ) : null}
 
+      {themeOpen ? (
+        <InterfaceThemeDialog dark={dark} onToggleDark={setDark} onClose={() => setThemeOpen(false)} />
+      ) : null}
       {bugReportOpen ? <BugReportDialog signedIn={!!account} onClose={() => setBugReportOpen(false)} /> : null}
       {leaveMatchPromptOpen ? (
         <LeaveMatchDialog onConfirm={confirmLeaveMatch} onClose={() => setLeaveMatchPromptOpen(false)} />

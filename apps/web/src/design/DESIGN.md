@@ -22,24 +22,24 @@ repeat nearby text.
    and fades to 15% across the content column. Running text never sits on bare
    bits: it sits on the page sheet (`.aegis-page-sheet`) or on `--ds-paper`
    inside the faded column.
-2. **One interface hue.** `--ds-accent` (Aegis magenta) is the only color for
+2. **One interface hue.** `--ds-accent` (Aegis magenta by default) is the only color for
    action and selection. Card inks mean card color and nothing else. Status uses
    `--ds-success`, `--ds-warning`, and `--ds-danger`, always with a word or icon.
-3. **Navy frames, paper holds.** The `--ds-ink` band (top nav, mobile bar, beta
-   notice, stat strip, match dialogs) is navy in both themes. Content sits on
+3. **Colored frames, paper holds.** The `--ds-ink` band (top nav, mobile bar, beta
+   notice, stat strip, match dialogs) is navy by default in both modes. Content sits on
    `--ds-paper` and `--ds-sheet`, which follow the theme.
 
 ## Tokens
 
-| Role | Tokens |
-| --- | --- |
-| Ground | `paper` (page and page sheet), `sheet` (panels, cards, dialogs), `fill` (inputs, pressed rows) |
-| Lines | `line` (hairlines), `line-strong` (control borders, 3:1) |
-| Text | `text`, `text-2`, `text-3`, `text-off` (disabled only) |
-| Accent | `accent`, `accent-strong` (hover/pressed), `on-accent`, `accent-soft`, `focus`, `focus-ring` |
-| Navy band | `ink`, `ink-raised`, `on-ink`, `on-ink-2`, `ink-accent` |
-| Status | `success`, `warning`, `danger`, each with `-soft`; `on-status` for labels on a solid fill |
-| Card rims | `rim-attention`, `rim-ready`, `rim-threat` |
+| Role      | Tokens                                                                                         |
+| --------- | ---------------------------------------------------------------------------------------------- |
+| Ground    | `paper` (page and page sheet), `sheet` (panels, cards, dialogs), `fill` (inputs, pressed rows) |
+| Lines     | `line` (hairlines), `line-strong` (control borders, 3:1)                                       |
+| Text      | `text`, `text-2`, `text-3`, `text-off` (disabled only)                                         |
+| Accent    | `accent`, `accent-strong` (hover/pressed), `on-accent`, `accent-soft`, `focus`, `focus-ring`   |
+| Navy band | `ink`, `ink-raised`, `on-ink`, `on-ink-2`, `ink-accent`                                        |
+| Status    | `success`, `warning`, `danger`, each with `-soft`; `on-status` for labels on a solid fill      |
+| Card rims | `rim-attention`, `rim-ready`, `rim-threat`                                                     |
 
 All tokens carry the `--ds-` prefix. Derive tints with `color-mix()` instead of
 adding tokens: a status border is the status color at 40%, and a rim glow is
@@ -48,6 +48,25 @@ dark values locally (see `dialogsAndNarration.css`).
 
 Text meets 4.5:1 on `paper`, `sheet`, and `fill` in both themes; large text,
 control borders, focus, and meaningful icons meet 3:1.
+
+### Player palettes
+
+The header theme button and Settings → Appearance open the same theme chooser.
+`interfaceTheme.ts` saves a device-local Digimon preset or custom palette and
+applies its semantic tokens before the first render. The existing light/dark
+store remains responsible for mode; presets adapt to both modes, and custom
+colors are stored separately for each. `interfaceThemeColors.ts` derives text,
+hover, focus, and chrome colors with contrast adjustment. When custom page and
+panel colors conflict, the panel moves toward the page to retain readable text.
+Selecting Aegis clears all palette overrides and uses the stylesheet values.
+The unified picker also retains the classic board palettes. On first load it
+reads `aegis.arenaPalette` when the new preference is absent; classic palettes
+keep their existing board color pairs and also theme the site interface. The old arena store
+API delegates to the new theme store, and writes retain the old key for older
+tabs. New themes and custom palettes use the themed board colors. Match panels
+read a separate `--ds-game-*` ramp derived for their panel background. Status
+hues retain their meaning while their shades adapt for readability.
+Card inks, gameplay status hues, and board-side palettes keep their meanings.
 
 ## Typography
 
@@ -117,3 +136,8 @@ Information is never carried by card color or animation alone.
 - Using card inks as interface status, or the accent as a card color.
 - Putting text directly on full-strength bits.
 - Moving legality or authoritative game behavior into the client.
+
+Theme names reference [Digimon Adventure](https://www.toei-animation-usa.com/digimon.html),
+[Cyber Sleuth](https://en.bandainamcoent.eu/digimon/digimon-story-cyber-sleuth),
+and [Next Order](https://en.bandainamcoent.eu/digimon/digimon-world-next-order).
+The palettes are authored interpretations, rather than official color specifications.
