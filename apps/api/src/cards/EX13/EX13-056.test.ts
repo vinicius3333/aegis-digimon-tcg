@@ -870,4 +870,43 @@ describe("EX13-056 Giromon", () => {
     expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);
   });
+
+  it("Discord 1557356892794388541: a Digimon its block trigger plays at 0 DP is deleted before its [On Play]", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX13-035", as: "attacker" },
+            { card: "EX13-035", as: "secondKingEtemon" },
+            { card: "BT11-041", as: "etemon" },
+          ],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: CARD_ID, as: "giromon" }],
+          deck: ["EX13-047", "BT1-085", "BT1-085", "BT1-085", "BT1-085"],
+          security: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 1, 5000);
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("giromon").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined, 5000);
+
+    expect(s.events.some((event) => event.kind === "cardPlayed" && event.cardId === "EX13-047")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "EX13-047")).toBe(true);
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX13-047")).toBe(false);
+    assertNoLoudGap(s);
+  });
 });
