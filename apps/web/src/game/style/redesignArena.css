@@ -903,7 +903,7 @@ button.game-player-line__name {
   flex: 1 1 auto;
   margin-bottom: 0;
 }
-/* The one-shot hand action stays beside the tray on every arena layout. */
+/* The one-shot action belongs to the hand tray. */
 .game-hand-sort {
   display: flex;
   flex: none;
@@ -934,6 +934,41 @@ button.game-player-line__name {
 .game-hand-sort:disabled {
   opacity: 0.45;
   cursor: default;
+}
+/* A desktop utility sits above the fan, leaving the whole tray for cards. */
+@media (min-width: 961px) {
+  .game-hand-sort {
+    min-height: 36px;
+    gap: var(--ds-space-1);
+    padding: var(--ds-space-1) var(--ds-space-3);
+    border-color: color-mix(in srgb, var(--arena-side, var(--ds-accent)) 30%, transparent);
+    border-radius: var(--ds-radius-pill);
+    background: var(--arena-zone-fill, var(--ds-sheet));
+    color: var(--arena-fg, var(--ds-text));
+    backdrop-filter: blur(4px);
+  }
+  .game-hand-sort svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 1.75;
+  }
+  .game-hand-sort:hover:not(:disabled),
+  .game-hand-sort:active:not(:disabled) {
+    border-color: var(--arena-side, var(--ds-accent));
+    background: color-mix(in srgb, var(--arena-side, var(--ds-accent)) 12%, var(--ds-sheet));
+  }
+}
+@media (min-width: 1024px) and (min-height: 760px) {
+  .game-hand-tray {
+    position: relative;
+  }
+  .game-hand-sort {
+    position: absolute;
+    z-index: 5;
+    right: var(--ds-space-2);
+    bottom: calc(100% + var(--ds-space-2));
+    margin: 0;
+  }
 }
 @media (max-width: 960px) {
   .game-hand-sort {
