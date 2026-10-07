@@ -36,7 +36,7 @@ import { LeaveMatchDialog } from "./game/screen/layout/LeaveMatchDialog";
 import { PlayerMenu } from "./account/PlayerMenu";
 import type { DigimonWorldAvatarId } from "./account/avatars";
 import { pathForRoute, routeFromPathname, type AppRoute } from "./routes";
-import { roomCodeFromSearch } from "./roomInvite";
+import { roomCodeFromSearch, manualInviteFromSearch } from "./roomInvite";
 import { isBattleLabPath } from "./dev/BattleLab";
 import { isUiPreviewPath } from "./prototype/routes";
 import { SEQUENTIAL_PACING_ENABLED } from "./features";
@@ -51,6 +51,7 @@ const DeckBuilder = lazy(() => import("./screens/DeckBuilder").then((m) => ({ de
 const CommunityScreen = lazy(() =>
   import("./screens/community/CommunityScreen").then((m) => ({ default: m.CommunityScreen })),
 );
+const ManualGameScreen = lazy(() => import("./manual/ManualGameScreen").then((m) => ({ default: m.ManualGameScreen })));
 const GameScreen = lazy(() => import("./game/GameScreen").then((m) => ({ default: m.GameScreen })));
 const CardEffectsDemo = lazy(() => import("./dev/CardEffectsDemo").then((m) => ({ default: m.CardEffectsDemo })));
 const BoardShowcase = lazy(() => import("./dev/BoardShowcase").then((m) => ({ default: m.BoardShowcase })));
@@ -318,7 +319,7 @@ export function AegisClient({
   const [bestOf, setBestOf] = useState(loadMatchFormatPreference);
   /** Set between the games of a best-of-three: the next GameScreen takes this seat. */
   const [seriesGame, setSeriesGame] = useState<SeriesGameTicket>();
-  const [startMode, setStartMode] = useState<StartMode>("casual");
+  const [startMode, setStartMode] = useState<StartMode>(() => (loadReconnectSession()?.manual ? "manual" : "casual"));
   const [editingDeck, setEditingDeck] = useState<DeckListing | null>(null);
   // A community deck picked to play with. It lives for this session only and is never saved.
   const [borrowedDeck, setBorrowedDeck] = useState<DeckListing>();
@@ -515,6 +516,7 @@ export function AegisClient({
               bestOf={bestOf}
               onBestOfChange={setBestOf}
               invitedRoomCode={invitedRoomCode}
+              manualInvite={manualInviteFromSearch(window.location.search)}
               privateRoom={privateRoom}
               onLeavePrivateRoom={() => setPrivateRoom(undefined)}
               onStart={(mode, code, requestedBotDeckId, requestedBetaBattleMode, requestedDeckId) => {
@@ -592,43 +594,52 @@ export function AegisClient({
             />
           )}
 
-          {screen === "game" && (
-            <GameScreen
-              key={matchNumber}
-              joinOptions={joinOptions}
-              identityColor={identityColor}
-              identityAvatarId={effectivePlayer.avatarId}
-              identityAvatarUrl={effectivePlayer.avatarUrl}
-              startMode={startMode}
-              roomCode={roomCode}
-              waitForHost={startMode === "private_guest" && privateRoom?.code === roomCode}
-              botDeckId={botDeckId}
-              betaBattleMode={betaBattleMode}
-              seriesGame={seriesGame}
-              onSeriesNext={(ticket) => {
-                clearReconnectSession();
-                setSeriesGame(ticket);
-                setMatchNumber((current) => current + 1);
-              }}
-              presentationPacing={SEQUENTIAL_PACING_ENABLED ? "sequential" : "current"}
-              signedIn={!!account}
-              onLeaveForfeitsChange={setLeaveForfeitsMatch}
-              onExit={(next) => {
-                setSeriesGame(undefined);
-                navigateScreen(next);
-              }}
-              onRematch={(privateRoomCode) => {
-                clearReconnectSession();
-                setSeriesGame(undefined);
-                if (privateRoomCode) {
-                  setPrivateRoom({ code: privateRoomCode, host: startMode === "private_host" });
-                  navigateScreen("lobby");
-                  return;
-                }
-                setMatchNumber((current) => current + 1);
-              }}
-            />
-          )}
+          {screen === "game" &&
+            (startMode === "manual" || startMode === "manual_host" || startMode === "manual_guest" ? (
+              <ManualGameScreen
+                key={matchNumber}
+                joinOptions={joinOptions}
+                mode={startMode}
+                roomCode={roomCode}
+                onExit={() => navigateScreen("lobby")}
+              />
+            ) : (
+              <GameScreen
+                key={matchNumber}
+                joinOptions={joinOptions}
+                identityColor={identityColor}
+                identityAvatarId={effectivePlayer.avatarId}
+                identityAvatarUrl={effectivePlayer.avatarUrl}
+                startMode={startMode}
+                roomCode={roomCode}
+                waitForHost={startMode === "private_guest" && privateRoom?.code === roomCode}
+                botDeckId={botDeckId}
+                betaBattleMode={betaBattleMode}
+                seriesGame={seriesGame}
+                onSeriesNext={(ticket) => {
+                  clearReconnectSession();
+                  setSeriesGame(ticket);
+                  setMatchNumber((current) => current + 1);
+                }}
+                presentationPacing={SEQUENTIAL_PACING_ENABLED ? "sequential" : "current"}
+                signedIn={!!account}
+                onLeaveForfeitsChange={setLeaveForfeitsMatch}
+                onExit={(next) => {
+                  setSeriesGame(undefined);
+                  navigateScreen(next);
+                }}
+                onRematch={(privateRoomCode) => {
+                  clearReconnectSession();
+                  setSeriesGame(undefined);
+                  if (privateRoomCode) {
+                    setPrivateRoom({ code: privateRoomCode, host: startMode === "private_host" });
+                    navigateScreen("lobby");
+                    return;
+                  }
+                  setMatchNumber((current) => current + 1);
+                }}
+              />
+            ))}
         </Suspense>
       </div>
 

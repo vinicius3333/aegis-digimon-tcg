@@ -17,11 +17,12 @@
 
 ## What it does
 
+- **Manual tables** with a dedicated public queue or invite code: players move cards, manage stacks and resolve effects themselves.
 - **1v1 matches** against a live opponent, a friend by invite code, or the bot.
 - **Full card pool**: 4,388 cards across 65 sets, searchable by color, type, level, trait and cost.
 - **Deck builder** with legality checks, level curve, color balance, import and export.
 - **Tournaments** with fixed rules, a frozen ban list and a server-owned clock.
-- **Server-authoritative rules**: the API decides every legal play, so a patched client changes nothing.
+- **Server-authoritative play**: automatic rooms validate the rules; manual rooms validate table operations and protect hidden cards.
 
 ## Screens
 

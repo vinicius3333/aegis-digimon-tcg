@@ -148,3 +148,11 @@ pnpm test
 Card behavior tests assert observable state changes. Engine conformance tests
 cover shared rules, and web scenarios exercise rendered flows through a real
 room.
+
+## Manual tables
+
+`ManualRoom` hosts `aegis_manual` (public matchmaking) and `aegis_manual_private` (invite only). Handler options freeze the privacy boundary. The client must explicitly opt into manual mode; automatic rooms reject that flag. Manual rooms share the deployment admission gate and the clustered room-code directory.
+
+`ManualTable` owns physical cards, zones and stacks without importing executable card modules or calling `GameEngine`. The API validates ownership, command shapes, revision and bounds, while players resolve all effects, costs and rules. Invalid commands restore the entire prior table atomically. Approved undo restores the last table mutation while retaining history and current connection flags.
+
+The Schema state is empty of card information. Each player instead receives an independently filtered `ManualSnapshot` over a room message. Hidden deck/egg/security cards and the opponent's hidden hand have no identity, art or stable instance identifier. Public cards and explicitly revealed cards are visible; private searches unlock one pile only for its owner. A mutation closes searches. No reconnecting client replays actions; it requests the current filtered snapshot after resuming its room on the owning deployment slot.

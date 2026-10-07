@@ -1,3 +1,4 @@
+import { manualEs } from "./manual.es";
 /* Latin American Spanish strings. Typed against the English source, so a new key
    there fails typecheck here until it is translated. Game terms that are printed
    on the cards (DigiXros, Blocker, Counter, DP, Digimon) stay untranslated,
@@ -15,6 +16,7 @@ import { settingsEs } from "./redesign/settings.es";
 import { shellEs } from "./redesign/shell.es";
 
 export const es: Record<keyof typeof en, string> = {
+  ...manualEs,
   "game.dragIntent.reorder": "REORDENAR MANO",
   "settings.sortHand": "Ordenar mano",
   "settings.sortHandDesc":

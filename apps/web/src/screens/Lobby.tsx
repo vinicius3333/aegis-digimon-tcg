@@ -50,6 +50,9 @@ export interface PrivateRoom {
 }
 
 export type StartMode =
+  | "manual"
+  | "manual_host"
+  | "manual_guest"
   | "casual"
   | "unlimited"
   | "ranked"
@@ -133,6 +136,14 @@ function scrollToActiveDeckCard() {
 
 const modesFor = (t: Translate): Mode[] => [
   {
+    key: "manual",
+    title: t("manual.title"),
+    desc: t("manual.description"),
+    icon: Icons.Link2,
+    meta: t("manual.meta"),
+    available: true,
+  },
+  {
     key: "casual",
     title: t("lobby.mode.casual"),
     desc: t("lobby.mode.casualDesc"),
@@ -172,6 +183,7 @@ export function Lobby({
   onNav,
   onStart,
   invitedRoomCode,
+  manualInvite = false,
   privateRoom,
   onLeavePrivateRoom,
   timerOptions,
@@ -199,6 +211,7 @@ export function Lobby({
   onStart: (mode: StartMode, roomCode?: string, botDeckId?: string, betaBattleMode?: boolean, deckId?: string) => void;
   /** A code carried in by an invite link; opens the private join form with it filled in. */
   invitedRoomCode?: string;
+  manualInvite?: boolean;
   privateRoom?: PrivateRoom;
   onLeavePrivateRoom?: () => void;
 }) {
@@ -222,7 +235,8 @@ export function Lobby({
     saveMatchFormatPreference(next);
     onBestOfChange?.(next);
   }
-  const [mode, setMode] = useState(invitedRoomCode || privateRoom ? "private" : "casual");
+  const [mode, setMode] = useState(manualInvite ? "manual" : invitedRoomCode || privateRoom ? "private" : "casual");
+  const [manualSub, setManualSub] = useState<"queue" | "create" | "join">(manualInvite ? "join" : "queue");
   const [betaConfirmation, setBetaConfirmation] = useState<"beta" | "bot" | null>(null);
   const [privateSub, setPrivateSub] = useState<"create" | "join">(invitedRoomCode ? "join" : "create");
   const [roomCodeInput, setRoomCodeInput] = useState(invitedRoomCode ?? "");
@@ -236,13 +250,14 @@ export function Lobby({
   const betaQueueMode = mode === "casual" || mode === "practice";
   // A private room is invite-only and both seats opt in by sharing the code, so it takes
   // an unreleased-card deck without the queue routing a public match needs.
-  const betaAllowed = betaQueueMode || mode === "private";
+  const betaAllowed = betaQueueMode || mode === "private" || mode === "manual";
   const userDecks = useMemo(() => {
     return decks
       .map((deck) => ({
         deck,
         legal:
-          deckLegality(deck, { unlimited: mode === "unlimited" }).legal && (betaAllowed || !deckHasBetaCards(deck)),
+          deckLegality(deck, { unlimited: mode === "unlimited" || mode === "manual" }).legal &&
+          (betaAllowed || !deckHasBetaCards(deck)),
       }))
       .sort((a, b) => Number(b.legal) - Number(a.legal));
   }, [decks, betaAllowed, mode]);
@@ -275,7 +290,7 @@ export function Lobby({
   const activeIsBorrowed = borrowedDeck !== undefined && active?.id === borrowedDeck.id;
   const vsBot = mode === "practice";
   const banViolations = useMemo(() => {
-    if (!active || mode === "unlimited") return [];
+    if (!active || mode === "unlimited" || mode === "manual") return [];
     const cardIds = [...active.mainDeck, ...active.eggDeck];
     const counts = new Map<string, number>();
     for (const id of cardIds) counts.set(id, (counts.get(id) ?? 0) + 1);
@@ -291,7 +306,10 @@ export function Lobby({
     return violations;
   }, [active, mode]);
   const pairViolations = useMemo(
-    () => (active && mode !== "unlimited" ? bannedPairViolations([...active.mainDeck, ...active.eggDeck]) : []),
+    () =>
+      active && mode !== "unlimited" && mode !== "manual"
+        ? bannedPairViolations([...active.mainDeck, ...active.eggDeck])
+        : [],
     [active, mode],
   );
   const customBotDeck =
@@ -327,7 +345,7 @@ export function Lobby({
     !!active &&
     active.mainDeck.length === 50 &&
     active.eggDeck.length <= 5 &&
-    deckLegality(active, { unlimited: mode === "unlimited" }).legal &&
+    deckLegality(active, { unlimited: mode === "unlimited" || mode === "manual" }).legal &&
     banViolations.length === 0 &&
     pairViolations.length === 0 &&
     (betaCards.length === 0 || betaAllowed);
@@ -377,69 +395,85 @@ export function Lobby({
     [active?.id, betaQueueMode, onStart, randomPool, randomSelected, customBotDeck],
   );
   const launch: LaunchAction | null =
-    mode === "unlimited"
+    mode === "manual"
       ? {
-          label: t("lobby.enterQueue"),
-          shortLabel: t("lobby.enterQueue"),
-          icon: Icons.Swords,
-          disabled: !selectionLegal,
-          onClick: () => start("unlimited"),
+          label: t(
+            manualSub === "queue" ? "lobby.enterQueue" : manualSub === "create" ? "manual.host" : "manual.guest",
+          ),
+          shortLabel: t(
+            manualSub === "queue" ? "lobby.enterQueue" : manualSub === "create" ? "manual.host" : "manual.guest",
+          ),
+          icon: Icons.Link2,
+          disabled: !selectionLegal || (manualSub === "join" && !/^[A-Z0-9]{6}$/.test(roomCodeInput)),
+          onClick: () =>
+            start(
+              manualSub === "queue" ? "manual" : manualSub === "create" ? "manual_host" : "manual_guest",
+              manualSub === "join" ? roomCodeInput : undefined,
+            ),
         }
-      : mode === "private" && privateRoom
+      : mode === "unlimited"
         ? {
-            label: t(privateRoom.host ? "lobby.reopenRoom" : "lobby.rejoinRoom"),
-            shortLabel: t(privateRoom.host ? "redesign.play.short.reopen" : "redesign.play.short.rejoin"),
+            label: t("lobby.enterQueue"),
+            shortLabel: t("lobby.enterQueue"),
             icon: Icons.Swords,
             disabled: !selectionLegal,
-            onClick: () => start(privateRoom.host ? "private_host" : "private_guest", privateRoom.code),
+            onClick: () => start("unlimited"),
           }
-        : mode === "private" && privateSub === "create"
+        : mode === "private" && privateRoom
           ? {
-              label: t("lobby.createRoom"),
-              shortLabel: t("lobby.create"),
-              icon: Icons.Link2,
+              label: t(privateRoom.host ? "lobby.reopenRoom" : "lobby.rejoinRoom"),
+              shortLabel: t(privateRoom.host ? "redesign.play.short.reopen" : "redesign.play.short.rejoin"),
+              icon: Icons.Swords,
               disabled: !selectionLegal,
-              onClick: () => start("private_host"),
+              onClick: () => start(privateRoom.host ? "private_host" : "private_guest", privateRoom.code),
             }
-          : mode === "private"
+          : mode === "private" && privateSub === "create"
             ? {
-                label: t("lobby.joinRoom"),
-                shortLabel: t("lobby.join"),
-                icon: Icons.LogIn,
-                disabled: !selectionLegal || roomCodeInput.length < 4,
-                onClick: () => start("private_guest", roomCodeInput),
+                label: t("lobby.createRoom"),
+                shortLabel: t("lobby.create"),
+                icon: Icons.Link2,
+                disabled: !selectionLegal,
+                onClick: () => start("private_host"),
               }
-            : vsBot
+            : mode === "private"
               ? {
-                  label: t("lobby.playVsBot"),
-                  shortLabel: t("redesign.play.short.bot"),
-                  icon: Icons.Bot,
-                  disabled: !selectionLegal,
-                  onClick: () =>
-                    betaEnabled
-                      ? setBetaConfirmation("bot")
-                      : start("bot", undefined, botDeckId || undefined, betaOptedIn),
+                  label: t("lobby.joinRoom"),
+                  shortLabel: t("lobby.join"),
+                  icon: Icons.LogIn,
+                  disabled: !selectionLegal || roomCodeInput.length < 4,
+                  onClick: () => start("private_guest", roomCodeInput),
                 }
-              : betaEnabled || betaOptedIn
+              : vsBot
                 ? {
-                    label: t("lobby.enterQueue"),
-                    shortLabel: t("redesign.play.short.queue"),
-                    beta: true,
-                    icon: Icons.Swords,
+                    label: t("lobby.playVsBot"),
+                    shortLabel: t("redesign.play.short.bot"),
+                    icon: Icons.Bot,
                     disabled: !selectionLegal,
                     onClick: () =>
-                      betaEnabled ? setBetaConfirmation("beta") : start("beta", undefined, undefined, true),
+                      betaEnabled
+                        ? setBetaConfirmation("bot")
+                        : start("bot", undefined, botDeckId || undefined, betaOptedIn),
                   }
-                : RANKED_ENABLED
-                  ? // RankedStart owns its ranked toggle and button, so it stays in the setup panel.
-                    null
-                  : {
+                : betaEnabled || betaOptedIn
+                  ? {
                       label: t("lobby.enterQueue"),
                       shortLabel: t("redesign.play.short.queue"),
+                      beta: true,
                       icon: Icons.Swords,
                       disabled: !selectionLegal,
-                      onClick: () => start("casual"),
-                    };
+                      onClick: () =>
+                        betaEnabled ? setBetaConfirmation("beta") : start("beta", undefined, undefined, true),
+                    }
+                  : RANKED_ENABLED
+                    ? // RankedStart owns its ranked toggle and button, so it stays in the setup panel.
+                      null
+                    : {
+                        label: t("lobby.enterQueue"),
+                        shortLabel: t("redesign.play.short.queue"),
+                        icon: Icons.Swords,
+                        disabled: !selectionLegal,
+                        onClick: () => start("casual"),
+                      };
   const deckStatus = deckLegal
     ? { tone: "legal", label: t("redesign.play.legal") }
     : pairViolations.length > 0 || banViolations.length > 0
@@ -768,7 +802,31 @@ export function Lobby({
                   </div>
                 </div>
               ) : null}
-              {mode === "private" && privateRoom ? (
+              {mode === "manual" ? (
+                <div className="lobby-manual-settings">
+                  <div role="group" aria-label={t("manual.title")}>
+                    {(["queue", "create", "join"] as const).map((sub) => (
+                      <Button
+                        key={sub}
+                        variant={manualSub === sub ? "primary" : "secondary"}
+                        aria-pressed={manualSub === sub}
+                        onClick={() => setManualSub(sub)}
+                      >
+                        {t(sub === "queue" ? "manual.queue" : sub === "create" ? "lobby.create" : "lobby.join")}
+                      </Button>
+                    ))}
+                  </div>
+                  {manualSub === "join" ? (
+                    <Field
+                      label={t("lobby.roomCodePlaceholder")}
+                      value={roomCodeInput}
+                      maxLength={6}
+                      onChange={(event) => setRoomCodeInput(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
+                    />
+                  ) : null}
+                  <p>{t("manual.description")}</p>
+                </div>
+              ) : mode === "private" && privateRoom ? (
                 <PrivateRoomPanel t={t} room={privateRoom} onLeave={() => onLeavePrivateRoom?.()} />
               ) : mode === "private" ? (
                 <PrivateSidebar

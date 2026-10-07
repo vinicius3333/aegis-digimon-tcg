@@ -146,7 +146,7 @@ export function GameScreen({
   identityColor: ColorName;
   identityAvatarId?: DigimonWorldAvatarId | null;
   identityAvatarUrl?: string | null;
-  startMode?: StartMode;
+  startMode?: Exclude<StartMode, "manual" | "manual_host" | "manual_guest">;
   roomCode?: string;
   /** A guest returning to a private room waits until the host has reopened it. */
   waitForHost?: boolean;

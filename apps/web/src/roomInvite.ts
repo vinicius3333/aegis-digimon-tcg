@@ -6,8 +6,8 @@ import { SCREEN_PATHS } from "./routes";
 
 export const ROOM_INVITE_PARAM = "room";
 
-export function roomInviteUrl(roomCode: string, origin = window.location.origin): string {
-  return `${origin}${SCREEN_PATHS.lobby}?${ROOM_INVITE_PARAM}=${encodeURIComponent(roomCode.toUpperCase())}`;
+export function roomInviteUrl(roomCode: string, origin = window.location.origin, manual = false): string {
+  return `${origin}${SCREEN_PATHS.lobby}?${ROOM_INVITE_PARAM}=${encodeURIComponent(roomCode.toUpperCase())}${manual ? "&mode=manual" : ""}`;
 }
 
 export function roomCodeFromSearch(search: string): string | undefined {
@@ -22,4 +22,8 @@ export function spectatorInviteUrl(code: string, origin = window.location.origin
 export function spectatorCodeFromSearch(search: string): string | undefined {
   const code = new URLSearchParams(search).get("watch")?.trim().toUpperCase();
   return code && /^[A-Z2-9]{6}$/.test(code) ? code : undefined;
+}
+
+export function manualInviteFromSearch(search: string): boolean {
+  return new URLSearchParams(search).get("mode") === "manual";
 }

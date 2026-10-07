@@ -2,6 +2,8 @@ import { Client, type Room } from "@colyseus/sdk";
 import {
   GameState,
   ROOM_TYPE,
+  ROOM_TYPE_MANUAL,
+  ROOM_TYPE_MANUAL_PRIVATE,
   ROOM_TYPE_UNLIMITED,
   ROOM_TYPE_BOT,
   ROOM_TYPE_PRIVATE,
@@ -42,6 +44,7 @@ interface RouterDependencies {
 const roomSlots = new WeakMap<AegisRoom, RoomSlot>();
 
 function publicRoomType(options: AegisJoinOptions): string {
+  if (options.manualMode) return ROOM_TYPE_MANUAL;
   if (options.unlimited && (options.ranked || options.betaBattleMode))
     throw new Error("Unlimited battles cannot be ranked or beta battles");
   if (options.unlimited) return ROOM_TYPE_UNLIMITED;
@@ -100,10 +103,13 @@ export class AegisConnectionRouter {
 
   async createPrivate(options: AegisJoinOptions): Promise<AegisRoom> {
     const manifest = await this.dependencies.loadManifest();
-    const created = await this.client(manifest.active.slot).create(ROOM_TYPE_PRIVATE, {
-      ...options,
-      private: true,
-    });
+    const created = await this.client(manifest.active.slot).create(
+      options.manualMode ? ROOM_TYPE_MANUAL_PRIVATE : ROOM_TYPE_PRIVATE,
+      {
+        ...options,
+        private: true,
+      },
+    );
     return this.remember(created, manifest.active.slot);
   }
 
@@ -334,7 +340,10 @@ export async function createBot(options: AegisJoinOptions): Promise<AegisRoom> {
 /** Create a private room on the active deployment. */
 export async function createPrivate(options: AegisJoinOptions): Promise<AegisRoom> {
   if (useProductionRouter()) return getProductionRouter().createPrivate(options);
-  const created = await getLegacyClient().create<GameState>(ROOM_TYPE_PRIVATE, { ...options, private: true });
+  const created = await getLegacyClient().create<GameState>(
+    options.manualMode ? ROOM_TYPE_MANUAL_PRIVATE : ROOM_TYPE_PRIVATE,
+    { ...options, private: true },
+  );
   return rememberLegacy(created);
 }
 

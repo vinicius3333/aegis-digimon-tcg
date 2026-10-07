@@ -320,3 +320,21 @@ it("reserves code-only spectator access on a draining slot and preserves its rec
   );
   expect(consume).toHaveBeenCalledWith({ sessionId: "observer", roomId: "watched-match" });
 });
+
+it("routes manual matchmaking and private creation to their own room types", async () => {
+  const joined = room("manual-room");
+  const queue = vi.fn(async () => joined);
+  const create = vi.fn(async () => joined);
+  const connection = router({
+    manifest: { version: 1, active: { slot: "green", revision: "new" }, draining: [] },
+    blue: clientPort(),
+    green: clientPort({ joinOrCreate: queue, create }),
+  });
+  await connection.joinOrCreate({ ...OPTIONS, manualMode: true });
+  expect(queue).toHaveBeenCalledWith("aegis_manual", expect.objectContaining({ manualMode: true }));
+  await connection.createPrivate({ ...OPTIONS, manualMode: true });
+  expect(create).toHaveBeenCalledWith(
+    "aegis_manual_private",
+    expect.objectContaining({ manualMode: true, private: true }),
+  );
+});

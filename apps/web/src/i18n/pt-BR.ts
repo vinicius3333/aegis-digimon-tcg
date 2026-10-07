@@ -1,3 +1,4 @@
+import { manualPtBR } from "./manual.pt-BR";
 /* Brazilian Portuguese strings. Typed against the English source, so a new key
    there fails typecheck here until it is translated. Game terms that are printed
    on the cards (DigiXros, Blocker, Counter, DP, Digimon) stay untranslated,
@@ -18,6 +19,7 @@ import { settingsPtBR } from "./redesign/settings.pt-BR";
 import { shellPtBR } from "./redesign/shell.pt-BR";
 
 export const ptBR: Record<keyof typeof en, string> = {
+  ...manualPtBR,
   "game.dragIntent.reorder": "REORDENAR MÃO",
   "settings.sortHand": "Ordenar mão",
   "settings.sortHandDesc":

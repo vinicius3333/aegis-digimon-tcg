@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { roomCodeFromSearch, roomInviteUrl, spectatorCodeFromSearch, spectatorInviteUrl } from "./roomInvite";
+import {
+  manualInviteFromSearch,
+  roomCodeFromSearch,
+  roomInviteUrl,
+  spectatorCodeFromSearch,
+  spectatorInviteUrl,
+} from "./roomInvite";
 
 describe("room invite links", () => {
   it("builds a lobby link carrying the code", () => {
@@ -21,4 +27,11 @@ it("shares observer links separately from player invitations", () => {
   expect(roomCodeFromSearch(new URL(url).search)).toBeUndefined();
   expect(spectatorCodeFromSearch("?watch=short")).toBeUndefined();
   expect(spectatorCodeFromSearch("?watch=ABCDEF<script>")).toBeUndefined();
+});
+
+it("shares manual invitations with an explicit mode", () => {
+  const url = roomInviteUrl("ab12cd", "https://aegis.example", true);
+  expect(url).toBe("https://aegis.example/play?room=AB12CD&mode=manual");
+  expect(manualInviteFromSearch(new URL(url).search)).toBe(true);
+  expect(manualInviteFromSearch("?room=AB12CD")).toBe(false);
 });

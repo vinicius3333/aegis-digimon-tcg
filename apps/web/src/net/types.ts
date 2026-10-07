@@ -6,6 +6,7 @@
  */
 export interface AegisJoinOptions {
   spectator?: boolean;
+  manualMode?: boolean;
   displayName: string;
   avatarId?: string;
   deck: { mainDeck: string[]; eggDeck: string[]; mainDeckArts?: string[]; eggDeckArts?: string[] }; // arrays of card ids

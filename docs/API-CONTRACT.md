@@ -186,3 +186,13 @@ by engine tests.
 Protocol changes must remain compatible with the currently deployed web client
 or ship with the controlled reload/versioning policy. Persistence compatibility
 is handled separately by the numbered database migrations.
+
+## Manual room protocol
+
+Room types are `aegis_manual` (public queue) and `aegis_manual_private` (invite). Joining requires `manualMode: true`, a display name, a 50-card main deck and up to five eggs. Catalog membership, egg placement and printed copy limits are checked; the ban list and executable card coverage do not restrict this casual mode. Invite guests supply the code from `/room/lookup`; invite URLs carry `mode=manual`.
+
+A client binds `manual:snapshot` and `manual:error`, then sends `manual:sync` to request its current seat view. `manual:command` carries `{ revision, action }`; the revision must match the latest snapshot, otherwise the server rejects the command and refreshes the view. The exported `ManualAction` union in `packages/shared/src/protocol/manual.ts` defines setup, zone transfers, whole-stack transfers, suspension, DP/notes, memory/turn, private search, visibility, attack announcements, dice, chat, concession and agreed undo. Card/stack IDs address only pieces owned by the sending seat. Actions never trigger card effects or automatic turn changes.
+
+Snapshots contain `seat`, `roomCode`, `revision`, `phase`, `turn`, `memory`, `winner`, both players' filtered zones, public history, an optional undo request and an owner-only inspection. Memory is positive toward seat 0, independent of turn. Hidden piles contain anonymous backs; searched cards appear solely in the requesting seat's inspection. Moving a card to hand or a hidden pile hides it again. Physical source and linked cards remain individually addressable and are never discarded implicitly.
+
+Commands are capped at 20 per second per client. An unconsented disconnect reserves the seat for 120 seconds; explicit leave concedes an active match. The browser persists the owning slot and reconnect token per tab with `manual: true`, then requests a new snapshot after reconnect/reload. Disconnected commands are not queued. Undo requires the other seat's approval and is canceled by another table mutation; revealed knowledge cannot be undone.
