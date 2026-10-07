@@ -1896,3 +1896,20 @@ foreground and consume its externally pinned actual closure. New source and
 original checkpoints/finalblind remain unchanged. Future imitation must consume
 all completed sources with preserved bytes/folds, require genuine combined
 engine-only positives and separate actual learning/strength acceptance.
+
+## Original160 whole0; independent strict reader active
+
+Original foreground22578 has terminated actual0. A fresh read-only observation
+finds original whole/operator gone, all160 natural records retained and real
+nonlink wrapper trap `0\n`. Actual completionSHA is
+`029573da7512cc6891f74dd2f6812139e450df66b0f455dad745887bc69c5bc7`.
+Producer stdout reports `requiredValidationTeacherBinsCovered: false` and zero
+learning updates, retaining the negative coverage result. The unchanged full
+strict `--closed` reader was started once in foreground50081 using that external
+completion and original request/operator/identity/resource pins; it remains
+active at this checkpoint, with no successful independent closure claimed yet.
+The validation-only800 source/tests/actual inventory and wrapper are pushed in
+453c35ed1 with normal Node26 shared/API/web typechecks0. Do not launch its games
+until the current actual strict reader finishes and resources are idle.
+All prior raw bytes, losses, folds, source/CPs and finalblind remain untouched;
+no actual new model, accepted44-recipe strength or delivery is claimed.
