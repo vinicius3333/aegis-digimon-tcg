@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom";
+import { usePileCountsShown } from "../design/pileCounts";
 import { useTranslation } from "../i18n";
 import { Side } from "./side";
 import { useAnchoredTooltip } from "./useAnchoredTooltip";
@@ -18,6 +19,7 @@ export function ArenaCounters({
   trash: number;
 }) {
   const { t } = useTranslation();
+  const shown = usePileCountsShown();
   const { tooltipId, open, show, closeSoon, cancelClose } = useAnchoredTooltip({
     preferAbove: side === Side.Viewer,
   });
@@ -51,58 +53,74 @@ export function ArenaCounters({
       path: "M6 3h12v14H6Z M9 6h6 M9 9h4 M3 17h6l2 3h2l2-3h6v5H3Z",
     },
   ];
-  return (
-    <div
-      className="game-arena-counters"
-      data-side={side}
-      role="group"
-      aria-label={t(side === "you" ? "game.you" : "game.opponent")}
-    >
-      {counters.map(({ id, count, label, tooltip, path }) => (
-        <button
-          key={id}
-          type="button"
-          className="game-arena-counter"
-          data-counter={id}
-          aria-label={tooltip}
-          aria-describedby={open?.id === id ? tooltipId : undefined}
-          onMouseEnter={(event) => show(id, event.currentTarget)}
-          onMouseLeave={closeSoon}
-          onFocus={(event) => show(id, event.currentTarget)}
-          onBlur={closeSoon}
-          onClick={(event) => show(id, event.currentTarget)}
-        >
-          <span className="game-arena-counter__icon" role="img" aria-label={label}>
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d={path} />
-            </svg>
-            <strong aria-hidden="true">{count}</strong>
-          </span>
-        </button>
+  const groupLabel = t(side === "you" ? "game.you" : "game.opponent");
+  // Hidden counters stay readable to screen readers. The opponent's hand chip
+  // remains as a fallback that CSS reveals only where the card-back fan is hidden.
+  const visibleCounters = shown ? counters : counters.filter(({ id }) => side === Side.Opponent && id === "hand");
+  const hiddenSummary = shown ? null : (
+    <ul className="aegis-sr-only" aria-label={groupLabel}>
+      {counters.map(({ id, tooltip }) => (
+        <li key={id}>{tooltip}</li>
       ))}
-      {open &&
-        createPortal(
-          <span
-            id={tooltipId}
-            role="tooltip"
-            className="game-arena-counter-tooltip"
-            data-above={open.above}
-            style={{ left: open.left, top: open.top }}
-            onMouseEnter={cancelClose}
+    </ul>
+  );
+  if (visibleCounters.length === 0) return hiddenSummary;
+  return (
+    <>
+      {hiddenSummary}
+      <div
+        className="game-arena-counters"
+        data-side={side}
+        data-fan-fallback={shown ? undefined : true}
+        role="group"
+        aria-label={groupLabel}
+      >
+        {visibleCounters.map(({ id, count, label, tooltip, path }) => (
+          <button
+            key={id}
+            type="button"
+            className="game-arena-counter"
+            data-counter={id}
+            aria-label={tooltip}
+            aria-describedby={open?.id === id ? tooltipId : undefined}
+            onMouseEnter={(event) => show(id, event.currentTarget)}
             onMouseLeave={closeSoon}
+            onFocus={(event) => show(id, event.currentTarget)}
+            onBlur={closeSoon}
+            onClick={(event) => show(id, event.currentTarget)}
           >
-            {counters.find((counter) => counter.id === open.id)?.tooltip}
-          </span>,
-          document.body,
-        )}
-    </div>
+            <span className="game-arena-counter__icon" role="img" aria-label={label}>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d={path} />
+              </svg>
+              <strong aria-hidden="true">{count}</strong>
+            </span>
+          </button>
+        ))}
+        {open &&
+          createPortal(
+            <span
+              id={tooltipId}
+              role="tooltip"
+              className="game-arena-counter-tooltip"
+              data-above={open.above}
+              style={{ left: open.left, top: open.top }}
+              onMouseEnter={cancelClose}
+              onMouseLeave={closeSoon}
+            >
+              {counters.find((counter) => counter.id === open.id)?.tooltip}
+            </span>,
+            document.body,
+          )}
+      </div>
+    </>
   );
 }

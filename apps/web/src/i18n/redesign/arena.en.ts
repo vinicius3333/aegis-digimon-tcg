@@ -8,6 +8,7 @@ export const arenaEn = {
   "redesign.arena.audio.musicTrack": "Soundtrack",
   "redesign.arena.audio.effects": "Sound effects and cues",
   "redesign.arena.audio.effectsVolume": "Effects volume",
+  "redesign.arena.board.title": "Board",
 
   "redesign.arena.badge.stackTitle": "Digivolution stack",
   "redesign.arena.badge.stack": "{count} digivolution cards under this Digimon.",

@@ -116,6 +116,7 @@ export function OpponentBar({
         ref={handStripRef}
         role={revealedHand ? "group" : "img"}
         aria-label={t("game.handCount", { count: handCount })}
+        title={t("game.counter.hand", { count: handCount })}
         data-testid="opponent-hand"
         data-hand-count={handCount}
         style={

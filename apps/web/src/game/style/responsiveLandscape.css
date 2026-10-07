@@ -43,6 +43,9 @@
   .game-opponent-hand {
     display: none !important;
   }
+  .game-opponent-bar > .game-arena-counters[data-fan-fallback] {
+    display: flex !important;
+  }
   /* One column per control the bar holds, same as portrait: the turn readout and
      both match controls are base-hidden, and only a touch layout brings them back. */
   .game-opponent-bar {
