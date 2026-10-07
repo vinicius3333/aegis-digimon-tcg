@@ -19,6 +19,12 @@
   color: var(--arena-control-light);
 }
 
+/* With pile counts off, only the opponent's hand chip is left, as a fallback for
+   layouts that hide their card-back fan. Those layouts reveal it. */
+.game-arena-counters[data-fan-fallback] {
+  display: none !important;
+}
+
 .game-board .game-arena-counter {
   padding: 0;
   cursor: help;

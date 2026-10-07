@@ -2,12 +2,17 @@
 import { CardInstance, GameState, Phase, PlayerState, type Seat } from "@aegis/shared";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it } from "vitest";
+import { setPileCountsShown } from "../design/pileCounts";
 import { I18nProvider } from "../i18n";
 import { ArenaCounters } from "./ArenaCounters";
 import { GameScreen } from "./GameScreen";
 import { Side } from "./side";
+import { mediaRules, readRelative, readStylesheet } from "./style/stylesheetSource";
 
-beforeEach(() => localStorage.clear());
+beforeEach(() => {
+  localStorage.clear();
+  setPileCountsShown(true);
+});
 afterEach(() => cleanup());
 
 it.each([0, 1] as const)("maps both HUDs to the presented players for viewer seat %s", (viewerSeat: Seat) => {
@@ -112,4 +117,64 @@ it("describes live counters on hover, keyboard focus and tap, and dismisses with
   expect(screen.getByRole("tooltip").textContent).toBe("Deck: 15 cartas para comprar");
   view.unmount();
   expect(screen.queryByRole("tooltip")).toBeNull();
+});
+
+it("hides the counter chips when pile counts are off, keeping the counts for screen readers", () => {
+  setPileCountsShown(false);
+  const view = render(
+    <I18nProvider>
+      <ArenaCounters side={Side.Viewer} eggs={3} hand={5} deck={16} trash={2} />
+    </I18nProvider>,
+  );
+  expect(view.container.querySelector(".game-arena-counters")).toBeNull();
+  expect(screen.queryByRole("button")).toBeNull();
+  expect(
+    within(screen.getByRole("list", { name: "You" }))
+      .getAllByRole("listitem")
+      .map((item) => item.textContent),
+  ).toEqual([
+    "Eggs: 3 cards in the Digi-Egg deck",
+    "Hand: 5 cards in hand",
+    "Deck: 16 cards available to draw",
+    "Trash: 2 discarded cards",
+  ]);
+
+  setPileCountsShown(true);
+  view.rerender(
+    <I18nProvider>
+      <ArenaCounters side={Side.Viewer} eggs={3} hand={5} deck={16} trash={2} />
+    </I18nProvider>,
+  );
+  expect(screen.getAllByRole("button")).toHaveLength(4);
+  expect(screen.queryByRole("list")).toBeNull();
+});
+
+it("keeps only the opponent's hand chip, as a fallback for layouts without the card-back fan", () => {
+  setPileCountsShown(false);
+  const view = render(
+    <I18nProvider>
+      <ArenaCounters side={Side.Opponent} eggs={3} hand={5} deck={16} trash={2} />
+    </I18nProvider>,
+  );
+  const fallback = view.container.querySelector(".game-arena-counters");
+  expect(fallback?.hasAttribute("data-fan-fallback")).toBe(true);
+  expect(
+    within(fallback as HTMLElement)
+      .getAllByRole("button")
+      .map((button) => button.dataset.counter),
+  ).toEqual(["hand"]);
+});
+
+it("reveals the opponent's hand fallback only where the card-back fan is hidden", () => {
+  expect(readRelative("../arenaControls.css")).toMatch(
+    /\.game-arena-counters\[data-fan-fallback\] \{\s*display:\s*none !important;/,
+  );
+  const landscapePhone = mediaRules(
+    readStylesheet("game.css"),
+    "(width < 600px) and (orientation: landscape), (height < 520px) and (orientation: landscape)",
+  );
+  expect(landscapePhone).toMatch(/\.game-opponent-hand \{\s*display:\s*none !important;/);
+  expect(landscapePhone).toMatch(
+    /\.game-opponent-bar > \.game-arena-counters\[data-fan-fallback\] \{\s*display:\s*flex !important;/,
+  );
 });

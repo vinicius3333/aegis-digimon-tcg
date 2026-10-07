@@ -11,6 +11,7 @@ import {
 } from "@aegis/shared";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { setPileCountsShown } from "../design/pileCounts";
 import { I18nProvider } from "../i18n";
 import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
@@ -79,6 +80,7 @@ function seats(
 
 beforeEach(() => {
   localStorage.clear();
+  setPileCountsShown(true);
   vi.useFakeTimers();
   setBasePacing(PACING_BY_STYLE.sequential);
 });

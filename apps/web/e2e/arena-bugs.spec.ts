@@ -393,7 +393,10 @@ test("#5001 Gomamon offers LM Vikemon in its search", async ({ page }) => {
 test("#5008 mandatory hand trash can be selected and confirmed on the board", async ({ page }) => {
   const server = await startBrowserServer();
   try {
-    await page.addInitScript(() => localStorage.setItem("aegis.action-confirmation.enabled", "false"));
+    await page.addInitScript(() => {
+      localStorage.setItem("aegis.action-confirmation.enabled", "false");
+      localStorage.setItem("aegis.pile-counts", "shown");
+    });
     await new ArenaPage(page).open("arena-issue-5008-hand-trash-selection");
     await page.getByRole("button", { name: /^end breeding$/i }).click();
     await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
