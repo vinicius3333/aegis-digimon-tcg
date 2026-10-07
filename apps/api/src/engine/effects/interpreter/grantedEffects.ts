@@ -520,11 +520,15 @@ export function grantedTokenEffectsForTiming(token: string, timing: EffectTiming
   return effects.flatMap((effect, index) => {
     if (!timingsForTrigger(effect, false).includes(timing)) return [];
     const build = builderForTrigger(effect);
+    // A literal-text token is the printed granted clause. Without an explicit description, the
+    // resolution context would quote the HOST card's own printed text in its decisions.
+    const description = `[Granted] ${token.startsWith("[") ? token : describeEffect(effect)}`;
+    const describedEffect: CardEffect = { ...effect, description };
     return [
       build({
         source,
         effectKey: `granted/${token}${effects.length > 1 ? `/${index}` : ""}/${timing}`,
-        description: `[Granted] ${describeEffect(effect)}`,
+        description,
         optional: effect.optional ?? false,
         when: turnOwnerGuard(effect.trigger),
         // The granted effect's own IR condition gates COLLECTION, exactly as it does for a
@@ -534,7 +538,7 @@ export function grantedTokenEffectsForTiming(token: string, timing: EffectTiming
         // then silently skipping the deletion.
         canActivate: (ctx) => canActivateEffect(ctx, effect, { collectsTriggeredEffect: true }),
         resolve: async (ctx) => {
-          await runEffect(ctx, effect);
+          await runEffect(ctx, describedEffect);
         },
       }),
     ];

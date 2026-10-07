@@ -210,4 +210,22 @@ describe("BT12-107 Laplace's Demon — KB Q&A rulings", () => {
     expect(attacksBy(s, ["ganemon"])).toHaveLength(1);
     expect(s.state.players[0]!.security).toHaveLength(2);
   });
+
+  it("announces the granted forced attack with its printed text (Discord bug 1557482157012680795)", async () => {
+    const { s, preferred } = laplaceBoard([{ card: "BT1-009", as: "target", dp: 10_000 }]);
+    await s.ready();
+    await useLaplaceOn(s, preferred, ["target"]);
+    await runOpponentStartOfMainPhase(s);
+
+    const grantedAnnouncements = s.events.flatMap((event) =>
+      event.kind === "effectTriggered" && event.effectKey.startsWith("granted/") ? [event.description] : [],
+    );
+    expect(grantedAnnouncements).toEqual(["[Granted] [Start of Your Main Phase] Attack with this Digimon."]);
+    const attackTargetPrompt = s.decisions.find(
+      ({ seat, req }) => seat === 1 && req.options?.selectionContext === "attackTarget",
+    );
+    expect(attackTargetPrompt?.req.options?.effectText).toBe(
+      "[Granted] [Start of Your Main Phase] Attack with this Digimon.",
+    );
+  });
 });
