@@ -286,6 +286,38 @@ describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
     expect(s.state.memory).toBe(7);
   });
 
+  it("Discord 1557536010517090345: Arts Digivolves onto a level-4 black Digimon in the breeding area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "EX13-051", as: "raised", under: ["BT1-001"] },
+          hand: [
+            { card: "BT26-056", as: "dual" },
+            { card: "BT1-010", as: "discard" },
+          ],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT26-060", as: "target", under: ["BT24-034", "BT26-015", "BT26-016"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dual").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT26-056") &&
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.resolvingOption === undefined,
+    );
+    expect(s.perm("raised").topCard.cardId).toBe("BT26-056");
+    expect(s.perm("raised").inBreeding).toBe(true);
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).not.toContain(s.inst("dual").instanceId);
+    expect(s.state.memory).toBe(7);
+  });
+
   it("waives the black Option requirement only with a TS card", async () => {
     const withoutTs = setupEngine({ 0: { hand: [{ card: "BT26-056", as: "infernoDivide" }] } });
     withoutTs.state.memory = 3;

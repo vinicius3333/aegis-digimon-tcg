@@ -290,7 +290,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
       kind: "cardsMoved",
       instanceIds: [instance.instanceId],
       from: "various",
-      to: Zone.BattleArea,
+      to: permanent.inBreeding ? Zone.Breeding : Zone.BattleArea,
       ...(routesUsedOption ? { optionUsed: true as const } : {}),
     });
     // This is a real digivolution even though an effect initiated it. Without the

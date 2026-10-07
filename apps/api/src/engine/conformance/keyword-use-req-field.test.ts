@@ -25,7 +25,7 @@ describe("Use Req. field and trait conditions", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", suspended: false }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Arts Digivolve"] },
     );
     const optionInstanceId = s.inst("option").instanceId;
     const targetId = s.perm("target").permanentId;

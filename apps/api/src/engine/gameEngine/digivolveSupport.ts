@@ -343,14 +343,20 @@ export class DigivolveSupport {
 
   async performArtsDigivolve(seat: Seat, instance: CardInstance, definition: CardDefinition): Promise<boolean> {
     const sourceZone = looseZoneOfInstance(this.deps.state, instance.instanceId);
-    const eligible = this.deps.access
-      .battleAreaPermanents(seat)
-      .filter(
-        (p) =>
-          p.topCard !== undefined &&
-          (canDigivolveOntoWithAlternates(definition, definitionOf(p.topCard.cardId)) ||
-            this.matchBaseGrantedDigivolve(seat, p, definition, sourceZone) !== undefined),
-      );
+    // CR §4-20-1 offers "one of your cards on the field", and the field includes the
+    // breeding area (§3-4-6). Effect-granted digivolution routes can't reference a card
+    // in the breeding area (§3-4-7-8), so only printed requirements qualify there.
+    const breeding = this.deps.state.players[seat]?.breeding;
+    const fieldPermanents = [
+      ...this.deps.access.battleAreaPermanents(seat),
+      ...(breeding === undefined ? [] : [breeding]),
+    ];
+    const eligible = fieldPermanents.filter(
+      (p) =>
+        p.topCard !== undefined &&
+        (canDigivolveOntoWithAlternates(definition, definitionOf(p.topCard.cardId)) ||
+          (!p.inBreeding && this.matchBaseGrantedDigivolve(seat, p, definition, sourceZone) !== undefined)),
+    );
     if (eligible.length === 0) return false;
 
     const response = await this.deps.decisions.request({
