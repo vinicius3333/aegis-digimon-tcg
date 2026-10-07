@@ -22,6 +22,16 @@ import { PlayerLine } from "./PlayerLine";
 import { useFullscreen } from "../hooks/useFullscreen";
 
 const OPPONENT_NAME_MAX_LENGTH = 12;
+const CHAT_UNREAD_SHOWN_MAX = 9;
+
+function ChatUnreadBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span className="game-chat-unread" aria-hidden="true" data-testid="chat-unread">
+      {count > CHAT_UNREAD_SHOWN_MAX ? `${CHAT_UNREAD_SHOWN_MAX}+` : count}
+    </span>
+  );
+}
 
 export function OpponentBar({
   spectating = false,
@@ -48,6 +58,7 @@ export function OpponentBar({
   onOpenArenaLook,
   onToggleChat,
   chatOpen = false,
+  chatUnread = 0,
   onSurrender,
   onSkipPresentation,
   onResetScenario,
@@ -79,6 +90,8 @@ export function OpponentBar({
   /** Absent when there is no live room to chat through. */
   onToggleChat?: () => void;
   chatOpen?: boolean;
+  /** Messages from others since the chat window was last open. */
+  chatUnread?: number;
   onSurrender: () => void;
   onSkipPresentation: () => void;
   onResetScenario?: () => void;
@@ -87,6 +100,7 @@ export function OpponentBar({
   const fullscreen = useFullscreen();
   const fullscreenLabel = fullscreen.active ? t("game.fullscreen.exit") : t("game.fullscreen.enter");
   const FullscreenIcon = fullscreen.active ? Icons.Minimize : Icons.Maximize;
+  const chatLabel = chatUnread > 0 ? t("chat.openUnread", { count: chatUnread }) : t("chat.open");
   const openCard = useCardOpener();
   const fanned = revealedHand?.length ?? Math.max(0, handCount);
   const entering = useEnterAnimation(Array.from({ length: fanned }, (_, index) => String(index)));
@@ -195,6 +209,7 @@ export function OpponentBar({
         >
           <summary aria-label={t("mobile.board.matchMenu")}>
             <Icons.MoreVertical size={20} />
+            <ChatUnreadBadge count={chatUnread} />
           </summary>
           <div className="game-mobile-menu__actions">
             {spectatorCode ? <SpectatorInvite code={spectatorCode} variant="menu" /> : null}
@@ -208,7 +223,7 @@ export function OpponentBar({
             </button>
             {onToggleChat ? (
               <button type="button" onClick={onToggleChat}>
-                <Icons.MessageSquare size={18} /> {t("chat.open")}
+                <Icons.MessageSquare size={18} /> {chatLabel}
               </button>
             ) : null}
             {fullscreen.supported ? (
@@ -244,10 +259,11 @@ export function OpponentBar({
               type="button"
               className="game-mobile-log game-mobile-chat"
               onClick={onToggleChat}
-              aria-label={t("chat.open")}
+              aria-label={chatLabel}
               aria-pressed={chatOpen}
             >
               <Icons.MessageSquare size={16} />
+              <ChatUnreadBadge count={chatUnread} />
             </button>
           ) : null}
           <button className="game-mobile-bug" onClick={onReportBug} aria-label={t("bugReport.button")}>
@@ -293,11 +309,12 @@ export function OpponentBar({
             <button
               className="game-topbar-button"
               onClick={onToggleChat}
-              aria-label={t("chat.open")}
+              aria-label={chatLabel}
               aria-pressed={chatOpen}
-              title={t("chat.open")}
+              title={chatLabel}
             >
               <Icons.MessageSquare size={17} />
+              <ChatUnreadBadge count={chatUnread} />
             </button>
           ) : null}
           {fullscreen.supported ? (

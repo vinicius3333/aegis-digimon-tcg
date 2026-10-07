@@ -38,6 +38,9 @@ const interfaceMessages = {
   "settings.sortHand": "Ordina la mano",
   "settings.sortHandDesc":
     "Ordina la mano attuale per livello dei Digimon, poi Tamer e Option. Le nuove carte restano in fondo finché non ordini di nuovo.",
+  "settings.handAutoSort": "Mantieni la mano ordinata",
+  "settings.handAutoSortDesc":
+    "Riordina la mano ogni volta che una carta entra o esce: Digimon per livello, poi Tamer, poi Option, dal costo più basso. Le carte che trascini restano al loro posto finché la mano non cambia.",
   "settings.customMusic": "File musicale locale",
   "settings.customMusicDesc":
     "Scegli un file audio fino a 50 MB. Rimane sul tuo dispositivo per questa sessione; selezionalo di nuovo dopo aver ricaricato.",
@@ -405,7 +408,8 @@ const interfaceMessages = {
   "settings.actionConfirmationsDesc":
     "Chiedi conferma prima di giocare, digievolvere o usare una digievoluzione DNA facoltativa",
   "settings.effectSpeed": "Velocità degli effetti",
-  "settings.effectSpeedDesc": "Quanto tempo rimane visibile ogni effetto prima del successivo",
+  "settings.effectSpeedDesc":
+    "Quanto tempo rimane visibile ogni effetto prima del successivo. Lenta mostra anche per qualche secondo la carta che l'avversario ha appena giocato o digievoluto.",
   "settings.effectSpeedSlow": "Lenta",
   "settings.effectSpeedNormal": "Normale",
   "settings.effectSpeedFast": "Rapida",
@@ -1743,6 +1747,7 @@ const interfaceMessages = {
   "redesign.arena.keyword.Engage": "Alla fine del tuo turno, questo Digimon può attaccare.",
   "redesign.arena.keyword.unlisted": "Stampato su questa carta. Aprila per leggere l'effetto completo.",
   "chat.open": "Chat",
+  "chat.openUnread": "Chat, {count} non letti",
   "chat.title": "Chat",
   "chat.close": "Chiudi la chat",
   "chat.expand": "Espandi la chat",

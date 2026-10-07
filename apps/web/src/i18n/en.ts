@@ -20,6 +20,9 @@ export const en = {
   "settings.sortHand": "Sort hand",
   "settings.sortHandDesc":
     "Sort the current hand by Digimon level, then Tamers and Options. New draws stay at the end until you sort again.",
+  "settings.handAutoSort": "Keep hand sorted",
+  "settings.handAutoSortDesc":
+    "Re-sort your hand whenever a card arrives or leaves: Digimon by level, then Tamers, then Options, cheapest first. Cards you drag stay put until the hand changes.",
   "settings.customMusic": "Local music file",
   "settings.customMusicDesc":
     "Choose an audio file up to 50 MB. It stays on your device for this session; choose it again after reloading.",
@@ -731,7 +734,8 @@ export const en = {
   "settings.actionConfirmations": "Confirm actions",
   "settings.actionConfirmationsDesc": "Ask before playing, digivolving, or using an optional DNA digivolution",
   "settings.effectSpeed": "Effect speed",
-  "settings.effectSpeedDesc": "How long each card effect stays on screen before the next one",
+  "settings.effectSpeedDesc":
+    "How long each card effect stays on screen before the next one. Slow also holds the card your opponent just played or digivolved for a few seconds.",
   "settings.effectSpeedSlow": "Slow",
   "settings.effectSpeedNormal": "Normal",
   "settings.effectSpeedFast": "Fast",
