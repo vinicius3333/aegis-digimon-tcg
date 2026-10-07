@@ -105,8 +105,16 @@ export interface PrintedClause {
 }
 
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-const timingBoundary = () =>
-  new RegExp(`\\[(${Object.values(PRINTED_TIMING_LABELS).map(escapeRegExp).join("|")})\\]`, "g");
+/**
+ * A regex source matching a timing label as printed. Some texts use a typographic apostrophe
+ * ("[End of Opponent’s Turn]", BT13-103), so either apostrophe matches.
+ */
+export const printedTimingLabelPattern = (label: string) => escapeRegExp(label).replace(/'/g, "['’]");
+/** The canonical spelling of a label matched by {@link printedTimingLabelPattern}. */
+export const canonicalTimingLabel = (printed: string) => printed.replace(/’/g, "'");
+const canonicalLabel = canonicalTimingLabel;
+const timingLabelsPattern = Object.values(PRINTED_TIMING_LABELS).map(printedTimingLabelPattern).join("|");
+const timingBoundary = () => new RegExp(`\\[(${timingLabelsPattern})\\]`, "g");
 
 /** A granted effect's quoted timing belongs to the enclosing clause, not a new one. */
 export function isInsidePrintedQuote(text: string, index: number): boolean {
@@ -117,7 +125,7 @@ export function isInsidePrintedQuote(text: string, index: number): boolean {
 }
 
 const timingReferenceTail = new RegExp(
-  `^\\s*(?:(?:or|and|,|/)\\s*\\[(?:${Object.values(PRINTED_TIMING_LABELS).map(escapeRegExp).join("|")})\\]\\s*)*effects?\\b`,
+  `^\\s*(?:(?:or|and|,|/)\\s*\\[(?:${timingLabelsPattern})\\]\\s*)*effects?\\b`,
   "i",
 );
 
@@ -139,7 +147,7 @@ export function splitPrintedClauses(text: string | undefined): PrintedClause[] {
     if (isInsidePrintedQuote(text, match.index)) continue;
     // "activate 1 of that Digimon's [When Digivolving] effects" mentions a timing mid-sentence.
     if (isPrintedTimingReference(text, match.index + match[0].length)) continue;
-    marks.push({ label: match[1] ?? "", index: match.index, end: match.index + match[0].length });
+    marks.push({ label: canonicalLabel(match[1] ?? ""), index: match.index, end: match.index + match[0].length });
   }
   const groups: { labels: Set<string>; start: number }[] = [];
   marks.forEach((mark, index) => {

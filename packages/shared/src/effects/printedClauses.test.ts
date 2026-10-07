@@ -19,6 +19,16 @@ describe("splitPrintedClauses", () => {
     expect(splitPrintedClauses(`${clause}\n${next}`).map((entry) => entry.text)).toEqual([clause, next]);
   });
 
+  it("splits at a timing printed with a typographic apostrophe (BT13-103's [End of Opponent’s Turn])", () => {
+    const definition = definitionOf("BT13-103");
+    const clauses = splitPrintedClauses(definition.effectText);
+    expect(clauses.map((entry) => [...entry.labels])).toEqual([["Your Turn"], ["End of Opponent's Turn"]]);
+    expect(clauses[0]!.text).toBe(
+      "[Your Turn] When a card with [Belphemon] in its name would be played, by deleting 1 of your Digimon with [Gizmon] in its name, reduce the play cost by the play cost of the deleted Digimon.",
+    );
+    expect(printedClauseForEffect({ definition, effect: { trigger: "YourTurn", actions: [] } })).toBe(clauses[0]!.text);
+  });
+
   it("keeps BT25-054's granted timing and duration inside its digivolution clause", () => {
     const definition = definitionOf("BT25-054");
     const clause = definition.effectText!.split("\n").find((line) => line.startsWith("[On Play]"))!;

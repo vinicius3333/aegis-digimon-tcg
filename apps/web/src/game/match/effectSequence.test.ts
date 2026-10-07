@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { ServerEvent } from "@aegis/shared";
+import type { AnimationStep, AnimationStepContext } from "../animationQueue";
 import { DEFAULT_PACING } from "../pacing";
 import {
   announceMsFor,
   createEffectSequence,
+  effectUnitSteps,
+  type EffectSequence,
+  type EffectUnit,
   isMinorEffect,
   sequentialBudgetMs,
   settleMsFor,
@@ -323,5 +327,55 @@ describe("chain beats", () => {
       .opened.map(({ unit }) => unit);
     expect(touching.nextSparesResultsOf(head!)).toBe(false);
     expect(sequence.nextSparesResultsOf(second!)).toBe(false);
+  });
+});
+
+describe("settling a unit around a nested effect", () => {
+  const deletion: ServerEvent = { kind: "cardsMoved", from: "battleArea", to: "trash", instanceIds: ["victim"] };
+  function settleWaitMs(
+    unit: EffectUnit,
+    sequence: EffectSequence,
+    pending: { id: string; track: string; batch: string }[],
+  ): Promise<number> {
+    let waitedMs = 0;
+    const settle = effectUnitSteps(unit, {
+      sequence,
+      queue: {
+        hasPendingStep: (match) => pending.some((step) => match({ id: step.id, track: step.track } as AnimationStep)),
+      },
+      batchOf: (step) => pending.find((candidate) => candidate.id === step.id)?.batch,
+      decisionPending: () => false,
+    })[1]!;
+    const context: AnimationStepContext = {
+      mode: "live",
+      cancelled: false,
+      skipping: false,
+      async wait(ms) {
+        waitedMs += ms;
+      },
+    };
+    return Promise.resolve(settle.run(context)).then(() => waitedMs);
+  }
+
+  it("does not wait out the ceiling for results that belong to a nested effect (Discord 1557410815466938429)", async () => {
+    // ST1-16 Gaia Force: "[Security] Activate this card's [Main] effect." The [Main] unit opens
+    // inside the [Security] unit, and the deletion it causes waits for the [Main] clause.
+    const sequence = createEffectSequence();
+    const [outer] = sequence.observeBatch("b10", 10, [triggered("security"), triggered("main")]).opened;
+    sequence.observeBatch("b12", 12, [deletion, resolved("main"), resolved("security")]);
+    const waitedMs = await settleWaitMs(outer!.unit, sequence, [
+      { id: "sound-b10", track: "sound", batch: "b10" },
+      { id: "delete-burst", track: "deleteBurst-1", batch: "b12" },
+    ]);
+    expect(waitedMs).toBeLessThan(DEFAULT_PACING.resultsMaxMs);
+  });
+
+  it("still waits for results the unit caused itself", async () => {
+    const sequence = createEffectSequence();
+    const [unit] = sequence.observeBatch("b1", 1, [triggered("a"), deletion, resolved("a")]).opened;
+    const waitedMs = await settleWaitMs(unit!.unit, sequence, [
+      { id: "delete-burst", track: "deleteBurst-1", batch: "b1" },
+    ]);
+    expect(waitedMs).toBeGreaterThanOrEqual(DEFAULT_PACING.resultsMaxMs);
   });
 });

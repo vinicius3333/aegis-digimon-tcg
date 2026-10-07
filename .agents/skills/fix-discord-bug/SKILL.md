@@ -29,12 +29,19 @@ around git are refused.
 
 ## 3. Check the production logs
 
+The VPS runs the live game on 4 cores, and its rules are in `/opt/aegis-rollout/AGENTS.md`.
+Run every log query through `aegis-safe` (1 GiB, one core, idle priority, 5 minutes), narrow
+by time first, and stream: never load whole log files into memory. A full-day scan script
+once took the game down.
+
 ```bash
 ssh oracle-vps 'docker ps --format "{{.Names}} {{.Status}}" | grep aegis'
-ssh oracle-vps 'cd /opt/aegis-rollout/logs && grep -l "<CARD-ID>" api-<YYYY-MM-DD>-*.jsonl'
-ssh oracle-vps 'cd /opt/aegis-rollout/logs && grep -h "<CARD-ID>" api-<YYYY-MM-DD>-*.jsonl | head -c 4000'
+ssh oracle-vps 'cd /opt/aegis-rollout/logs && find . -name "api-<YYYY-MM-DD>-*.jsonl" -newermt "<YYYY-MM-DD HH:MM>"'
+ssh oracle-vps 'cd /opt/aegis-rollout/logs && aegis-safe grep -l "<CARD-ID>" <files>'
+ssh oracle-vps 'cd /opt/aegis-rollout/logs && aegis-safe grep -h "<CARD-ID>" <files> | head -c 4000'
 ```
 
+- If `aegis-safe` kills a command (exit 137 or 124), make the query smaller. Do not bypass it.
 - Containers restart on every deploy, so `docker logs` is short. The JSONL files in
   `/opt/aegis-rollout/logs` persist across deploys.
 - Match the report's time (UTC) and player name to a `matchId`, then read that match's

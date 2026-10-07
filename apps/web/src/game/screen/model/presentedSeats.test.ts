@@ -280,6 +280,74 @@ describe("presentedSeats live projection", () => {
     },
   );
 
+  function securityTransferSeats(
+    presentationPacing: "current" | "sequential",
+    { shownSecurityCount, shownVersion }: { shownSecurityCount: number; shownVersion: number },
+  ) {
+    const kept = new CardInstance();
+    kept.instanceId = "kept";
+    kept.cardId = "ST1-03";
+    const horn = new CardInstance();
+    horn.instanceId = "horn";
+    horn.cardId = "BT1-108";
+    const viewer = player(0);
+    viewer.hand.push(kept, horn);
+    viewer.handCount = 2;
+    viewer.deckCount = 30;
+    viewer.securityCount = shownSecurityCount;
+    const opponent = player(1);
+    const shownState = new GameState();
+    shownState.stateVersion = shownVersion;
+    shownState.players.push(viewer, opponent);
+    return presentedSeats({
+      shownState,
+      viewer,
+      opponent,
+      viewerSeat: 0,
+      heldPhaseState: undefined,
+      heldBlowState: undefined,
+      heldSecurityEffectState: undefined,
+      heldDrawState: undefined,
+      heldBreedingState: undefined,
+      heldDeletions: new Map(),
+      heldTrashArrivals: new Map(),
+      heldHandArrivals: new Map([
+        [
+          1,
+          {
+            seat: 0,
+            instanceId: "horn",
+            entryOnly: true,
+            fromDeck: false,
+            fromSecurity: true,
+            stateVersion: 8,
+            handCountAfter: 2,
+            deckCountAfter: 30,
+            securityCountAfter: 4,
+          },
+        ],
+      ]),
+      optimisticPlayedInstanceId: undefined,
+      presentationPacing,
+    });
+  }
+
+  it.each(["current", "sequential"] as const)(
+    "%s: holds a checked security card a coalesced patch leaked into the reveal snapshot (Discord 1557410815466938429)",
+    (presentationPacing) => {
+      // The reveal (sv 7) already removed the card from security; its [Security] effect moved it
+      // to hand at sv 8, and one patch carried both into the snapshot frozen for the reveal.
+      const result = securityTransferSeats(presentationPacing, { shownSecurityCount: 4, shownVersion: 7 });
+      expect(result.shownHand!.map((card) => card.instanceId)).toEqual(["kept"]);
+      expect(result.shownViewer).toMatchObject({ handCount: 1, deckCount: 30 });
+    },
+  );
+
+  it("keeps a hand card in a snapshot from before the security reveal that later returns it", () => {
+    const result = securityTransferSeats("sequential", { shownSecurityCount: 5, shownVersion: 5 });
+    expect(result.shownHand!.map((card) => card.instanceId)).toEqual(["kept", "horn"]);
+  });
+
   it("keeps a card the narrated snapshot already held before a later draw of it", () => {
     const card = new CardInstance();
     card.instanceId = "returned";

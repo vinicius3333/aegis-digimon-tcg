@@ -41,13 +41,7 @@ const compiled: CompiledCard = {
           from: ["trash"],
           payCost: false,
           optional: true,
-          condition: {
-            kind: "allOf",
-            conditions: [
-              { kind: "ifThisEffectActed" },
-              { kind: "youHaveNone", filter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" } },
-            ],
-          },
+          condition: { kind: "youHaveNone", filter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" } },
         },
       ],
     },

@@ -70723,11 +70723,8 @@
             "from": ["trash"],
             "payCost": false,
             "condition": {
-              "kind": "allOf",
-              "conditions": [
-                { "kind": "ifThisEffectActed" },
-                { "kind": "youHaveNone", "filter": { "kind": ["Digimon"] } }
-              ],
+              "kind": "youHaveNone",
+              "filter": { "kind": ["Digimon"] },
               "raw": "you don't have a Digimon"
             },
             "optional": true
@@ -141970,11 +141967,8 @@
             "payCost": false,
             "optional": true,
             "condition": {
-              "kind": "allOf",
-              "conditions": [
-                { "kind": "ifThisEffectActed" },
-                { "kind": "youHaveNone", "filter": { "controller": "mine", "kind": ["Digimon"], "zone": "battleArea" } }
-              ]
+              "kind": "youHaveNone",
+              "filter": { "controller": "mine", "kind": ["Digimon"], "zone": "battleArea" }
             }
           }
         ]

@@ -194,6 +194,9 @@ export function collectBatchAnnouncements({
               ? {
                   entryOnly,
                   fromDeck: event.from === "deck",
+                  ...(event.fromSecurityCheck === true || event.from === "security"
+                    ? { fromSecurity: true, securityCountAfter: state?.players[seat]?.securityCount ?? 0 }
+                    : {}),
                   instanceId: event.instanceIds[drawIndex],
                   stateVersion,
                   handCountAfter: state?.players[seat]?.handCount ?? 0,

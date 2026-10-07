@@ -202,5 +202,11 @@ describe("BT1-108 Horn Buster", () => {
     expect(s.perm("chosen").isSuspended).toBe(true);
     expect(s.perm("other").isSuspended).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(0);
+    // Discord 1557410815466938429: the client holds this hand arrival by its security origin.
+    expect(
+      s.events.find(
+        (event) => event.kind === "cardsMoved" && event.to === "hand" && event.instanceIds.includes(optionId),
+      ),
+    ).toMatchObject({ handAddition: "transfer", seat: 0, fromSecurityCheck: true });
   });
 });

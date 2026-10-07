@@ -1474,7 +1474,11 @@ export class CombatController {
         this.permanentSource(perm),
       );
       if (chosenIds === undefined || chosenIds.length < n) continue;
-      await this.hooks.trashDigivolutionCards?.(permanentId, chosenIds);
+      // ＜Fragment＞ is a keyword effect, so "when effects trash" watchers must see this trash.
+      await this.hooks.trashDigivolutionCards?.(permanentId, chosenIds, {
+        byEffectSeat: perm.controllerSeat,
+        byEffectCardId: perm.topCard.cardId,
+      });
       this.emitDeletionPrevented("Fragment", perm);
       fragmentSavedIds.add(permanentId);
     }

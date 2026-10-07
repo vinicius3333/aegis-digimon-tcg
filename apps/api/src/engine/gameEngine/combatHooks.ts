@@ -379,8 +379,8 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
     armorPurge: async (permanentId) => {
       await engine.primitives.armorPurge(permanentId);
     },
-    trashDigivolutionCards: async (hostPermanentId, instanceIds) => {
-      await engine.primitives.trashDigivolutionCards(hostPermanentId, instanceIds);
+    trashDigivolutionCards: async (hostPermanentId, instanceIds, provenance) => {
+      await engine.primitives.trashDigivolutionCards(hostPermanentId, instanceIds, provenance);
     },
     ascendToSecurity: async (instanceId) => {
       await engine.primitives.ascendToSecurity(instanceId);
