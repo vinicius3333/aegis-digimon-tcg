@@ -299,6 +299,47 @@ describe("AD1-017 Dynasmon", () => {
     expect(s.perm("other-target").currentDP).toBe(8000);
   });
 
+  it.each(["target", "other-target"])(
+    "#5248 independently chooses %s for the second Security effect",
+    async (dpTarget) => {
+      const s = setupEngine({
+        0: { security: ["AD1-017"] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "attacker", dp: 20000 },
+            { card: "BT1-010", as: "target", dp: 8000 },
+            { card: "BT1-010", as: "other-target", dp: 8000 },
+          ],
+        },
+      });
+      s.state.turnSeat = 1;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      for (const target of ["target", dpTarget]) {
+        await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+        expect(
+          s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: s.state.pendingDecision!.decisionId,
+            response: { kind: "chooseTargets", instanceIds: [s.perm(target).permanentId] },
+          }),
+        ).toEqual({ ok: true });
+      }
+      await settle();
+      expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
+      expect(observe(s.engine).keywordAmount(s.perm("other-target"), "SecurityAttack")).toBe(0);
+      expect(s.perm(dpTarget).currentDP).toBe(5000);
+      expect(s.perm(dpTarget === "target" ? "other-target" : "target").currentDP).toBe(8000);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
   it("resolves its Security effect before battling the attacking Digimon (Q6086)", async () => {
     const s = setupEngine(
       {

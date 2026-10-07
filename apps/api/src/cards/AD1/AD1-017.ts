@@ -145,21 +145,9 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
-          kind: "SelectBind",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-            bindAs: "securityDebuffTarget",
-          },
-        },
-        {
           kind: "GainKeyword",
           target: {
-            fromSelectionRef: "securityDebuffTarget",
-            filter: {},
+            filter: { controller: "opponent", kind: ["Digimon"] },
             count: 1,
           },
           keyword: {
@@ -173,8 +161,7 @@ const compiled: CompiledCard = {
           effectTextPart: "Then, 1 of their Digimon gets -3000 DP until your turn ends.",
           kind: "ModifyDP",
           target: {
-            fromSelectionRef: "securityDebuffTarget",
-            filter: {},
+            filter: { controller: "opponent", kind: ["Digimon"] },
             count: 1,
           },
           amount: -3000,
