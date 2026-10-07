@@ -137,6 +137,13 @@ export const EFFECT_SPEEDS: readonly EffectSpeed[] = ["slow", "normal", "fast"];
 /** What each Effect speed multiplies the watched beats by. */
 export const EFFECT_SPEED_SCALE: Record<EffectSpeed, number> = { slow: 1.4, normal: 1, fast: 0.55 };
 
+/**
+ * Extra time the opponent's played or digivolved card stays centre-screen. The showcase
+ * itself keeps the reference client's 560 ms beat, which players who read the board
+ * fast prefer; Slow is for the ones who could not tell what the opponent just did.
+ */
+export const OPPONENT_SHOWCASE_EXTRA_HOLD_MS: Record<EffectSpeed, number> = { slow: 2000, normal: 0, fast: 0 };
+
 export function scalePacing(config: PacingConfig, scale: number): PacingConfig {
   const scaled = { ...config };
   for (const knob of SPEED_SCALED_KNOBS) scaled[knob] = Math.round(config[knob] * scale);
@@ -175,6 +182,11 @@ export function setBasePacing(config: PacingConfig): void {
 
 export function getEffectSpeed(): EffectSpeed {
   return effectSpeed;
+}
+
+/** How long past the standard beat a played card's showcase holds its face. */
+export function showcaseExtraHoldMs(showcase: { mine: boolean }): number {
+  return showcase.mine ? 0 : OPPONENT_SHOWCASE_EXTRA_HOLD_MS[effectSpeed];
 }
 
 export function setEffectSpeed(next: EffectSpeed): void {

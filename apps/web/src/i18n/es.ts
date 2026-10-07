@@ -720,7 +720,8 @@ export const es: Record<keyof typeof en, string> = {
   "settings.actionConfirmations": "Confirmar acciones",
   "settings.actionConfirmationsDesc": "Preguntar antes de jugar, digievolucionar o usar una digievolución DNA opcional",
   "settings.effectSpeed": "Velocidad de efectos",
-  "settings.effectSpeedDesc": "Cuánto tiempo se muestra cada efecto de carta antes del siguiente",
+  "settings.effectSpeedDesc":
+    "Cuánto tiempo se muestra cada efecto de carta antes del siguiente. Lenta también mantiene unos segundos la carta que tu oponente acaba de jugar o digievolucionar.",
   "settings.effectSpeedSlow": "Lenta",
   "settings.effectSpeedNormal": "Normal",
   "settings.effectSpeedFast": "Rápida",

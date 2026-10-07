@@ -731,7 +731,8 @@ export const en = {
   "settings.actionConfirmations": "Confirm actions",
   "settings.actionConfirmationsDesc": "Ask before playing, digivolving, or using an optional DNA digivolution",
   "settings.effectSpeed": "Effect speed",
-  "settings.effectSpeedDesc": "How long each card effect stays on screen before the next one",
+  "settings.effectSpeedDesc":
+    "How long each card effect stays on screen before the next one. Slow also holds the card your opponent just played or digivolved for a few seconds.",
   "settings.effectSpeedSlow": "Slow",
   "settings.effectSpeedNormal": "Normal",
   "settings.effectSpeedFast": "Fast",

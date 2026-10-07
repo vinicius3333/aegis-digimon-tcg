@@ -754,7 +754,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "settings.actionConfirmations": "Confirmar ações",
   "settings.actionConfirmationsDesc": "Perguntar antes de jogar, digievoluir ou fazer uma digievolução DNA opcional",
   "settings.effectSpeed": "Velocidade dos efeitos",
-  "settings.effectSpeedDesc": "Quanto tempo cada efeito de carta fica na tela antes do próximo",
+  "settings.effectSpeedDesc":
+    "Quanto tempo cada efeito de carta fica na tela antes do próximo. Lenta também mantém por alguns segundos a carta que o oponente acabou de jogar ou digivolver.",
   "settings.effectSpeedSlow": "Lenta",
   "settings.effectSpeedNormal": "Normal",
   "settings.effectSpeedFast": "Rápida",

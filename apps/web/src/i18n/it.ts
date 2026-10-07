@@ -405,7 +405,8 @@ const interfaceMessages = {
   "settings.actionConfirmationsDesc":
     "Chiedi conferma prima di giocare, digievolvere o usare una digievoluzione DNA facoltativa",
   "settings.effectSpeed": "Velocità degli effetti",
-  "settings.effectSpeedDesc": "Quanto tempo rimane visibile ogni effetto prima del successivo",
+  "settings.effectSpeedDesc":
+    "Quanto tempo rimane visibile ogni effetto prima del successivo. Lenta mostra anche per qualche secondo la carta che l'avversario ha appena giocato o digievoluto.",
   "settings.effectSpeedSlow": "Lenta",
   "settings.effectSpeedNormal": "Normale",
   "settings.effectSpeedFast": "Rapida",
