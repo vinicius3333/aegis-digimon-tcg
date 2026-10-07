@@ -957,8 +957,28 @@ button.game-player-line__name {
   }
 }
 
+/* Portrait puts the hand action in the existing player-name band. */
 @media (max-width: 960px) and (orientation: portrait) {
   .game-hand-sort {
+    position: absolute;
+    z-index: 5;
+    top: 0;
+    right: var(--ds-space-3);
+    margin: 0;
     color: var(--ds-on-ink);
+  }
+  .aegis-arena .game-board .game-player-dock:has(.game-hand-sort) > .game-player-line {
+    top: 0;
+    right: 68px;
+    height: var(--ds-touch-target);
+  }
+  .aegis-arena .game-board .game-player-dock:has(.game-hand-sort) > .game-arena-counters[data-side="you"] {
+    right: 68px;
+  }
+  .aegis-arena
+    .game-board
+    .game-player-dock:has(.game-hand-sort):has(> .game-arena-counters[data-side="you"])
+    > .game-player-line {
+    right: 200px;
   }
 }
