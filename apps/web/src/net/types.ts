@@ -107,6 +107,7 @@ export interface AegisJoinOptions {
     | "arena-issue-5259-gammamon-exact-evolution"
     | "arena-issue-5261-sukamon-field-reduction"
     | "arena-multiple-field-effects"
+    | "arena-own-field-effects"
     | "arena-issue-5248-dynasmon-security"
     | "arena-issue-5207-dorimon-guard"
     | "arena-issue-5214-habakirimon-security"

@@ -17,6 +17,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-own-field-effects": {
+    en: "End breeding and play Leopardmon. Decline playing another Digimon: your field gains Blocker until the opponent's turn ends. Your corner badge shows its source and duration. Then evolve Flaremon into Apollomon to add a simultaneous DP −8000 effect to the opponent field; resolve the mandatory deletion. End your turn: the DP reduction expires while your Blocker field effect remains.",
+    ptBR: "Encerre a criação e jogue Leopardmon. Recuse jogar outro Digimon: seu campo ganha Blocker até o fim do turno adversário. O indicador do seu lado mostra a fonte e a duração. Depois evolua Flaremon em Apollomon para adicionar DP −8000 ao campo adversário ao mesmo tempo; resolva a deleção obrigatória. Encerre seu turno: a redução de DP acaba, mas o Blocker do seu campo permanece.",
+  },
   "arena-multiple-field-effects": {
     en: "End breeding. Evolve each Flaremon into a hand Apollomon and decline optional effects. After the mandatory deletions, three opposing Digimon and a Tamer remain. The opponent corner badge must show two separate DP −4000 effects; open it to inspect both sources and deadlines. End the turn to verify both effects expire.",
     ptBR: "Encerre a criação. Evolua cada Flaremon em um Apollomon da mão e recuse efeitos opcionais. Após as deleções obrigatórias, restam três Digimon adversários e um Tamer. O indicador no canto adversário deve mostrar dois efeitos separados de DP −4000; abra para conferir fontes e duração. Encerre o turno para verificar que ambos expiram.",
@@ -1860,6 +1864,7 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-own-field-effects", "Your field effects · Leopardmon Blocker + opposing DP"],
   ["arena-multiple-field-effects", "Multiple field effects · stacked Apollomon reductions"],
   ["arena-tai-matt-double-end-turn", "Tai & Matt BT17 · double End of Turn"],
   ["arena-issue-5254-examon-dna", "GitHub #5254 · Examon BT20 / EX13 Lv.5 DNA"],

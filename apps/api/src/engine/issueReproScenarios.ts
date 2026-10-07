@@ -56,6 +56,16 @@ const ISSUE_LAYOUTS = {
       { field: [{ card: "BT1-009" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
     ],
   },
+  "arena-own-field-effects": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "BT25-017", under: ["BT25-008"] }, { card: "BT1-010" }, { card: "BT2-044" }],
+        hand: ["BT22-052", "BT25-018"],
+      },
+      { field: [{ card: "BT25-103" }, { card: "BT5-111" }, { card: "BT13-112" }, { card: "BT1-085" }] },
+    ],
+  },
   "arena-multiple-field-effects": {
     memory: 10,
     players: [

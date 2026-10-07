@@ -325,3 +325,46 @@ it("keeps two public field effects separate and expires both at the turn boundar
   await advance(s.engine).waitForMainPhase(1);
   await s.finish();
 });
+
+it("shows the viewer's Blocker alongside an opposing field reduction with independent expiry", async () => {
+  const s = await launch("arena-own-field-effects", {
+    autoDeclineOptional: true,
+    autoSelectCards: true,
+    autoOrderTriggers: true,
+  });
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.hand("BT22-052").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(
+    () => s.field("BT22-052") !== undefined && !s.state.pendingDecision && s.engine.mainVerbContinuationsInFlight === 0,
+  );
+  expect(JSON.parse(s.state.players[0]!.fieldEffectsJson)).toEqual(
+    expect.arrayContaining([expect.objectContaining({ kind: "keyword", value: "Blocker", sourceCardId: "BT22-052" })]),
+  );
+  const base = s.field("BT25-017");
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: base.permanentId,
+      instanceId: s.hand("BT25-018").instanceId,
+      useAlternateCost: true,
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () =>
+      base.topCard.cardId === "BT25-018" && !s.state.pendingDecision && s.engine.mainVerbContinuationsInFlight === 0,
+  );
+  expect(JSON.parse(s.state.players[1]!.fieldEffectsJson)).toEqual(
+    expect.arrayContaining([expect.objectContaining({ kind: "dp", value: -8000 })]),
+  );
+  expect(s.state.players[0]!.battleArea.every((p) => p.keywords.includes("Blocker"))).toBe(true);
+  expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  await settle(() => s.state.turnSeat === 1 && s.state.phase === Phase.Breeding);
+  expect(JSON.parse(s.state.players[1]!.fieldEffectsJson)).toEqual([]);
+  expect(JSON.parse(s.state.players[0]!.fieldEffectsJson)).toEqual(
+    expect.arrayContaining([expect.objectContaining({ kind: "keyword", value: "Blocker" })]),
+  );
+  expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+  await advance(s.engine).waitForMainPhase(1);
+  await s.finish();
+});
