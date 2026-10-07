@@ -1330,6 +1330,41 @@ No actual R4 evaluation games, all44 strength pass, physical/mastery/room
 acceptance, serving acceptance or final-blind acceptance exist yet.
 Reserved final seeds `6210000..6213871` remain untouched.
 
+## R4 evaluation admitted and original whole launched
+
+Default read-only admission session78983 ended with actual exit zero after
+its unchanged full learning consumer. Stdout
+`rule-link-current-corrective-strength-r4-inspect.actual.json` has SHA-256
+`f0e44382bbb7a8063a8e09c4656cbf392820b31b05e2144a6d3ac5ef1b416510`.
+The exact command retains all44 paired curriculum cells, 3,872 development
+games at seed6135000, workers4, CUDA, maxFailures0, maxDecisions4000,
+`--evaluate --stream-evaluation`, source R4 CP1de, and no learning-rate flag.
+All 15,488 actual same-schedule reference games are reused only after the
+unchanged full real consumer, not a synthetic acceptance flag.
+
+A second fresh static resource guard passed with GPU empty and fresh R4
+evaluation output/identity paths absent. ROOT then issued the separate
+sealed evaluation Go, SHA-256
+`794af38265162febfa646208e9e74dacbb45211d510a673e140072353e3cab68`,
+authorizing exactly 3,872 games, zero updates, maximum four concurrent
+workers, and no final blind seeds.
+
+The original foreground evaluation session **96188** is live and must
+remain attached. Actual whole PID694/startTicks529205 has operator
+PID713/startTicks529212 as its direct child with exact request/operator/Go
+argv. Identity SHA-256 is
+`9e48d90d6b5275387aa7bfb2667a361b4a3e640c658540d0e311ab0303360aa9`.
+At actual observation1 the operator is still checking full predecessor
+proofs; evaluation-start receipt is absent, GPU is empty, and whole exit is
+pending. Do not claim actual game evaluation, acceptance or completion from
+this queued source admission. Use `observe-current-corrective-strength-r4.sh`
+for bounded provisional log progress. Later obtain original whole0 and all
+processes gone before the full `closed-current-corrective-strength-r4.sh`
+consumer; do not restart the live handle or run that closure early.
+Final seeds `6210000..6213871` remain untouched. All44 strict gains against
+all four references and the full mechanics, custody, rooms, serving and
+final-blind gates remain required.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
