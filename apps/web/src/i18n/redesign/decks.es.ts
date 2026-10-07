@@ -1,0 +1,26 @@
+import type { decksEn } from "./decks.en";
+
+export const decksEs: Record<keyof typeof decksEn, string> = {
+  "redesign.decks.list.statDecks": "Mazos",
+  "redesign.decks.list.statActive": "Mazo activo",
+  "redesign.decks.list.statReady": "Listos para jugar",
+  "redesign.decks.list.saved": "Mazos guardados",
+  "redesign.decks.list.columnDeck": "Mazo",
+  "redesign.decks.list.columnColors": "Colores",
+  "redesign.decks.list.columnActions": "Acciones",
+  "redesign.decks.list.colors": "Colores: {colors}",
+  "redesign.decks.list.legal": "Válido",
+  "redesign.decks.list.draft": "Borrador",
+  "redesign.decks.list.search": "Filtrar mazos por nombre",
+  "redesign.decks.list.searchPlaceholder": "Filtrar por nombre",
+  "redesign.decks.list.sort": "Ordenar mazos",
+  "redesign.decks.list.sortRecent": "Editados recientemente",
+  "redesign.decks.list.sortName": "Nombre (A–Z)",
+  "redesign.decks.list.sortColor": "Color",
+  "redesign.decks.list.noMatches": "Ningún nombre de mazo contiene “{query}”.",
+  "redesign.decks.editor.pool": "Cartas disponibles",
+  "redesign.decks.editor.name": "Nombre del mazo",
+  "redesign.decks.editor.stats": "Forma del mazo",
+  "redesign.decks.editor.sleeve": "Funda",
+  "redesign.decks.editor.sleeveGlobal": "Funda de la configuración ({sleeve})",
+};

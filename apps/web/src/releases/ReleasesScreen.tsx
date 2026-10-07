@@ -35,7 +35,6 @@ export function ReleasesScreen() {
 
 function ReleaseEntry({ release, current = false }: { release: Release; current?: boolean }) {
   const { locale, t } = useTranslation();
-  const dateLocale = locale === "pt-BR" ? "pt-BR" : "en";
 
   return (
     <>
@@ -43,7 +42,7 @@ function ReleaseEntry({ release, current = false }: { release: Release; current?
         <h2 className="release__version">{displayVersion(release.version)}</h2>
         {current ? <span className="release__current">{t("releases.current")}</span> : null}
         <time dateTime={release.releasedAt}>
-          {new Intl.DateTimeFormat(dateLocale, { dateStyle: "long", timeZone: "UTC" }).format(
+          {new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "UTC" }).format(
             new Date(`${release.releasedAt}T00:00:00Z`),
           )}
         </time>

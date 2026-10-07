@@ -1,6 +1,6 @@
 /* Fixtures for the mobile components lab (/dev/mobile). Server-originated text — prompt
    sentences, choice labels, effect clauses — is not translated by the client, but the lab
-   still offers a pt-BR variant of each so the longest realistic strings can be tried on
+   still offers pt-BR and es variants of each so the longest realistic strings can be tried on
    a phone frame. Card ids are the ones the board showcase and the arena demo already use. */
 
 import { getCardDefinition, splitPrintedClauses, type DecisionRequest } from "@aegis/shared";
@@ -26,16 +26,19 @@ const LONG_CHOICES: readonly Copy[] = [
     en: "Trash the top card of your deck. Then, delete 1 of your opponent's Digimon with the lowest play cost.",
     "pt-BR":
       "Descarte a carta do topo do seu deck. Depois, delete 1 dos Digimon do seu oponente com o menor custo de jogo.",
+    es: "Descarta la carta superior de tu mazo. Luego, elimina 1 de los Digimon de tu oponente con el menor costo de juego.",
   },
   {
     en: "Return 1 of your opponent's Digimon with 6000 DP or less to the bottom of the deck, then your opponent adds the top card of their security stack to the hand.",
     "pt-BR":
       "Retorne 1 dos Digimon do seu oponente com 6000 DP ou menos para o fundo do deck; em seguida, seu oponente adiciona a carta do topo da pilha de segurança à mão.",
+    es: "Devuelve 1 de los Digimon de tu oponente con 6000 DP o menos al fondo del mazo; luego, tu oponente agrega a su mano la carta superior de su pila de seguridad.",
   },
   {
     en: "Place 1 [Chirinmon] from your hand under this Tamer as its bottom digivolution card to reduce the play cost by 3.",
     "pt-BR":
       "Coloque 1 [Chirinmon] da sua mão sob este Tamer como a carta de digivolução de baixo para reduzir o custo de jogo em 3.",
+    es: "Coloca 1 [Chirinmon] de tu mano debajo de este Tamer como su carta de digievolución inferior para reducir el costo de juego en 3.",
   },
 ];
 
@@ -43,32 +46,38 @@ const LONG_CLAUSE: Copy = {
   en: "[On Play] You may choose one of the following effects. If this Digimon has 3 or more digivolution cards, you may choose both, resolving them in the printed order.",
   "pt-BR":
     "[Ao Jogar] Você pode escolher um dos efeitos a seguir. Se este Digimon tiver 3 ou mais cartas de digivolução, você pode escolher os dois, resolvendo-os na ordem impressa.",
+  es: "[On Play] Puedes elegir uno de los siguientes efectos. Si este Digimon tiene 3 o más cartas de digievolución, puedes elegir ambos y resolverlos en el orden impreso.",
 };
 
 const OPTIONAL_CLAUSE: Copy = {
   en: "[When Digivolving] By suspending 1 of your Tamers, delete 1 of your opponent's Digimon with 8000 DP or less. Then, if you have 2 or more Tamers, gain 2 memory.",
   "pt-BR":
     "[Ao Digivolver] Ao suspender 1 dos seus Tamers, delete 1 dos Digimon do seu oponente com 8000 DP ou menos. Depois, se você tiver 2 ou mais Tamers, ganhe 2 de memória.",
+  es: "[When Digivolving] Al suspender 1 de tus Tamers, elimina 1 de los Digimon de tu oponente con 8000 DP o menos. Luego, si tienes 2 o más Tamers, gana 2 de memoria.",
 };
 
 const TARGET_PROMPT: Copy = {
   en: "Choose 1 of your opponent's Digimon with 6000 DP or less to delete.",
   "pt-BR": "Escolha 1 dos Digimon do seu oponente com 6000 DP ou menos para deletar.",
+  es: "Elige 1 de los Digimon de tu oponente con 6000 DP o menos para eliminar.",
 };
 
 const SELECT_PROMPT: Copy = {
   en: "Select up to 2 cards in your hand to trash.",
   "pt-BR": "Selecione até 2 cartas da sua mão para descartar.",
+  es: "Selecciona hasta 2 cartas de tu mano para descartar.",
 };
 
 const ORDER_PROMPT: Copy = {
   en: "Place the revealed cards at the bottom of your deck in any order.",
   "pt-BR": "Coloque as cartas reveladas no fundo do seu deck em qualquer ordem.",
+  es: "Coloca las cartas reveladas en el fondo de tu mazo en cualquier orden.",
 };
 
 export const REJECTION_REASON: Copy = {
   en: "You cannot digivolve into this card: its digivolution requirements are not met by that Digimon.",
   "pt-BR": "Você não pode digivolver para esta carta: aquele Digimon não cumpre os requisitos de digivolução.",
+  es: "No puedes digievolucionar a esta carta: ese Digimon no cumple los requisitos de digievolución.",
 };
 
 export function chooseShortDecision(): DecisionRequest {
