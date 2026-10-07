@@ -14,6 +14,7 @@ export function CommunityScreen({
   deckId,
   signedIn,
   accountId,
+  isAdmin,
   onOpenDeck,
   onBack,
   onPlay,
@@ -22,6 +23,7 @@ export function CommunityScreen({
   deckId: string | undefined;
   signedIn: boolean;
   accountId: string | undefined;
+  isAdmin: boolean;
   onOpenDeck: (id: string) => void;
   onBack: () => void;
   onPlay: (deck: CommunityDeck) => void;
@@ -51,9 +53,11 @@ export function CommunityScreen({
           deckId={deckId}
           signedIn={signedIn}
           accountId={accountId}
+          isAdmin={isAdmin}
           onBack={onBack}
           onPlay={onPlay}
           onCopy={copy}
+          onNotice={setToast}
         />
       ) : (
         <CommunityBrowse

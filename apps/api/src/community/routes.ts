@@ -1,12 +1,25 @@
-import { CardColor, COMMUNITY_PERIODS, COMMUNITY_SORTS, type CommunityPeriod, type CommunitySort } from "@aegis/shared";
+import {
+  CardColor,
+  COMMUNITY_MODERATION_ACTIONS,
+  COMMUNITY_PERIODS,
+  COMMUNITY_REPORT_DETAILS_MAX,
+  COMMUNITY_REPORT_REASONS,
+  COMMUNITY_SORTS,
+  type CommunityPeriod,
+  type CommunityReportInput,
+  type CommunitySort,
+} from "@aegis/shared";
 import type { Express, NextFunction, Request, Response } from "express";
 import type { AuthSession } from "../accounts/AccountStore.js";
 import { tokenBucketLimiter, type TokenBucketOptions } from "../http/rateLimit.js";
 import type { CommunityDeckStore } from "./CommunityDeckStore.js";
+import type { DeckReportTracker } from "./deckReports.js";
 
 // Generous for a person clicking hearts while browsing, tight for a script.
 const LIKE_RATE_LIMIT: TokenBucketOptions = { capacity: 30, refillMs: 2_000 };
 const PUBLISH_RATE_LIMIT: TokenBucketOptions = { capacity: 10, refillMs: 30_000 };
+// Every accepted report becomes a public issue or comment, so the budget is a few per minute.
+const REPORT_RATE_LIMIT: TokenBucketOptions = { capacity: 5, refillMs: 60_000 };
 const MAX_SEARCH = 60;
 const MAX_PAGE = 200;
 const DECK_COLORS: readonly string[] = Object.values(CardColor).filter((color) => color !== CardColor.None);
@@ -16,15 +29,21 @@ export type CommunityDeckRouteDeps = {
   store: CommunityDeckStore;
   /** The session lookup the account routes already own, so there is one cookie reader. */
   session: (req: Request) => Promise<AuthSession | undefined>;
+  /** Absent when this deployment has no GitHub token; reporting then answers 503. */
+  reports?: DeckReportTracker;
 };
 
 /**
  * Public decks. Reading is open to everyone, guests included; publishing, liking and counting a
  * copy need an account, because those are the numbers the ranking is built on.
+ *
+ * Reporting a deck also needs an account. Aegis keeps no report of its own: each one becomes a
+ * GitHub issue, and an admin acts on it by hiding the deck through the moderation route.
  */
-export function installCommunityDeckRoutes({ app, store, session }: CommunityDeckRouteDeps): void {
+export function installCommunityDeckRoutes({ app, store, session, reports }: CommunityDeckRouteDeps): void {
   const limitLike = tokenBucketLimiter(LIKE_RATE_LIMIT);
   const limitPublish = tokenBucketLimiter(PUBLISH_RATE_LIMIT);
+  const limitReport = tokenBucketLimiter(REPORT_RATE_LIMIT);
   const route =
     (handler: (req: Request<Record<string, string>>, res: Response) => Promise<unknown>) =>
     (req: Request, res: Response, next: NextFunction) => {
@@ -48,7 +67,7 @@ export function installCommunityDeckRoutes({ app, store, session }: CommunityDec
     "/community/decks/:id",
     route(async (req, res) => {
       const viewer = await session(req);
-      const deck = await store.deck(req.params.id!, viewer?.account.id);
+      const deck = await store.deck(req.params.id!, viewer?.account.id, viewer?.account.isAdmin === true);
       if (deck) res.json(deck);
       else res.sendStatus(404);
     }),
@@ -84,6 +103,59 @@ export function installCommunityDeckRoutes({ app, store, session }: CommunityDec
     }),
   );
 
+  app.post(
+    "/community/decks/:id/reports",
+    route(async (req, res) => {
+      if (!reports) {
+        res.status(503).json({ error: "reports_unavailable" });
+        return;
+      }
+      const current = await requireSession(req, res);
+      if (!current) return;
+      const input = parseReport(req.body);
+      if (!input) {
+        res.status(400).json({ error: "invalid_report" });
+        return;
+      }
+      if (!limitReport(current.account.id)) {
+        res.status(429).json({ error: "too_many_requests" });
+        return;
+      }
+      const target = await store.reportTarget(current.account.id, req.params.id!);
+      if (!target.ok) {
+        res.status(target.error === "own_deck" ? 403 : 404).json({ error: target.error });
+        return;
+      }
+      await reports.report({
+        deckId: target.deck.id,
+        deckName: target.deck.name,
+        authorName: target.deck.authorName,
+        ...input,
+      });
+      res.sendStatus(204);
+    }),
+  );
+
+  app.post(
+    "/admin/community/decks/:id/moderation",
+    route(async (req, res) => {
+      const current = await requireSession(req, res);
+      if (!current) return;
+      if (!current.account.isAdmin) {
+        res.status(403).json({ error: "admin_required" });
+        return;
+      }
+      const action = COMMUNITY_MODERATION_ACTIONS.find((value) => value === req.body?.action);
+      if (!action) {
+        res.status(400).json({ error: "invalid_action" });
+        return;
+      }
+      const status = await store.moderate(req.params.id!, action);
+      if (status) res.json({ status });
+      else res.sendStatus(404);
+    }),
+  );
+
   app.get(
     "/community/publications",
     route(async (req, res) => {
@@ -114,6 +186,18 @@ export function installCommunityDeckRoutes({ app, store, session }: CommunityDec
       if (current) res.sendStatus((await store.unpublish(current.account.id, req.params.deckId!)) ? 204 : 404);
     }),
   );
+}
+
+function parseReport(body: unknown): CommunityReportInput | undefined {
+  if (typeof body !== "object" || body === null) return undefined;
+  const { reason, details } = body as Record<string, unknown>;
+  const knownReason = COMMUNITY_REPORT_REASONS.find((value) => value === reason);
+  if (!knownReason) return undefined;
+  if (details === undefined || details === null) return { reason: knownReason };
+  if (typeof details !== "string") return undefined;
+  const trimmed = details.trim();
+  if (trimmed.length > COMMUNITY_REPORT_DETAILS_MAX) return undefined;
+  return trimmed ? { reason: knownReason, details: trimmed } : { reason: knownReason };
 }
 
 function parseListQuery(query: Request["query"]): {

@@ -29,6 +29,7 @@ const ERRORS: Record<Exclude<PublishOutcome, { ok: true }>["error"], Translation
   deck_not_found: "community.publish.errorGeneric",
   deck_not_legal: "community.publish.errorNotLegal",
   name_not_allowed: "community.publish.errorName",
+  deck_hidden: "community.publish.errorHidden",
   failed: "community.publish.errorGeneric",
 };
 

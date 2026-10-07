@@ -10,6 +10,7 @@ import "./cards/index.js"; // side-effect: registers every implemented card Effe
 import { log, logError, flushLogs } from "./logger.js";
 import { installAccountRoutes } from "./accounts/routes.js";
 import { GitHubIssueTracker } from "./bugs/index.js";
+import { GitHubDeckReportTracker } from "./community/deckReports.js";
 import {
   botSeatingStore,
   deadlineScheduler,
@@ -56,8 +57,8 @@ app.set("trust proxy", Number(process.env.AEGIS_TRUSTED_PROXY_HOPS ?? 2));
 // The runtime singletons, not fresh instances: `TopCutProgram`'s in-process lock only serializes
 // callers that SHARE the instance, and the routes, the resolution listener and the sweep are three
 // callers of the same transition.
-// The bug tracker and the mailer are read from the environment here, at the edge, so a test can
-// install the routes with its own — or with none at all.
+// The bug and deck report trackers and the mailer are read from the environment here, at the edge,
+// so a test can install the routes with its own — or with none at all.
 installAccountRoutes(
   app,
   accountStore,
@@ -70,6 +71,7 @@ installAccountRoutes(
   undefined,
   GitHubIssueTracker.fromEnvironment(),
   mailerFromEnv(accountStore),
+  GitHubDeckReportTracker.fromEnvironment(),
 );
 
 const cluster = createClusterRuntime();

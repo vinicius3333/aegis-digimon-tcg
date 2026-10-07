@@ -295,6 +295,95 @@
   gap: var(--ds-space-2);
 }
 
+/* Reporting is for the rare bad deck, so it reads as a quiet link under the real actions. */
+.community-report-link {
+  display: inline-flex;
+  justify-self: center;
+  align-items: center;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-1) var(--ds-space-2);
+  color: var(--ds-text-3);
+  border: 0;
+  border-radius: var(--ds-radius-sm);
+  background: none;
+  font: 500 var(--ds-text-xs) / 1.4 var(--ds-font-body);
+}
+
+button.community-report-link {
+  cursor: pointer;
+}
+
+button.community-report-link:hover {
+  color: var(--ds-text);
+}
+
+.community-report-link:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.community-report {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
+  width: min(520px, 92vw);
+  max-height: 86vh;
+  overflow-y: auto;
+}
+
+.community-report__title {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+.community-report__title > svg {
+  flex: none;
+  color: var(--ds-ink-accent);
+}
+
+.community-report .aegis-dialog__header p {
+  margin: var(--ds-space-2) 0 0;
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading-body);
+}
+
+.community-report__reasons {
+  display: grid;
+  gap: var(--ds-space-1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.community-report__reason {
+  display: flex;
+  min-height: var(--ds-touch-target);
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: 0 var(--ds-space-3);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-sheet);
+  color: var(--ds-text);
+  font-size: var(--ds-text-sm);
+  cursor: pointer;
+}
+
+.community-report__reason:has(input:checked) {
+  border-color: var(--ds-accent);
+}
+
+.community-report__reason input {
+  accent-color: var(--ds-accent);
+}
+
+.community-report__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ds-space-2);
+}
+
 .community-decklist {
   display: grid;
   gap: var(--ds-space-4);

@@ -21,6 +21,7 @@ import { emailDailyUsage } from "./018-email-daily-usage.js";
 import { communityDecks } from "./019-community-decks.js";
 import { deckSleeve } from "./020-deck-sleeve.js";
 import { deckEggSleeve } from "./021-deck-egg-sleeve.js";
+import { publicDeckHiddenStatus } from "./022-public-deck-hidden-status.js";
 
 export const migrations: readonly Migration[] = [
   initialSchema,
@@ -44,4 +45,5 @@ export const migrations: readonly Migration[] = [
   communityDecks,
   deckSleeve,
   deckEggSleeve,
+  publicDeckHiddenStatus,
 ];

@@ -1,4 +1,4 @@
-import type { CommunityDeck } from "@aegis/shared";
+import type { CommunityDeck, CommunityDeckSummary } from "@aegis/shared";
 import { colorKey } from "../design/theme";
 import type { DeckListing } from "../game/decks";
 
@@ -20,9 +20,7 @@ export function communityDeckListing(deck: CommunityDeck): DeckListing {
 }
 
 /** Browse tiles carry no card list, so they get a cover-only listing for the shared tile. */
-export function communityTileListing(
-  deck: Omit<CommunityDeck, "mainDeck" | "eggDeck" | "mainDeckArts" | "eggDeckArts">,
-): DeckListing {
+export function communityTileListing(deck: CommunityDeckSummary): DeckListing {
   return {
     id: `${COMMUNITY_ID_PREFIX}${deck.id}`,
     name: deck.name,

@@ -2,8 +2,11 @@ import type {
   CommunityDeck,
   CommunityDeckPage,
   CommunityLikeResult,
+  CommunityModerationAction,
   CommunityPeriod,
   CommunityPublication,
+  CommunityPublicationStatus,
+  CommunityReportInput,
   CommunitySort,
 } from "@aegis/shared";
 import { AccountApiError, accountApi, request } from "../account/client";
@@ -17,8 +20,14 @@ export type CommunityBrowseQuery = {
 };
 
 /** For the endpoints that answer 204 with no body, which the JSON helper cannot parse. */
-async function send(path: string, method: string): Promise<void> {
-  const response = await fetch(`${accountApi.base}${path}`, { method, credentials: "include" });
+async function send(path: string, method: string, payload?: unknown): Promise<void> {
+  const response = await fetch(`${accountApi.base}${path}`, {
+    method,
+    credentials: "include",
+    ...(payload === undefined
+      ? {}
+      : { headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }),
+  });
   if (!response.ok) {
     const body = (await response.json().catch(() => ({}))) as { error?: string };
     throw new AccountApiError(response.status, body.error);
@@ -42,4 +51,11 @@ export const communityApi = {
   publish: (deckId: string) =>
     request<CommunityPublication>(`/community/publications/${encodeURIComponent(deckId)}`, { method: "PUT" }),
   unpublish: (deckId: string) => send(`/community/publications/${encodeURIComponent(deckId)}`, "DELETE"),
+  report: (id: string, input: CommunityReportInput) =>
+    send(`/community/decks/${encodeURIComponent(id)}/reports`, "POST", input),
+  moderate: (id: string, action: CommunityModerationAction) =>
+    request<{ status: CommunityPublicationStatus | "unpublished" }>(
+      `/admin/community/decks/${encodeURIComponent(id)}/moderation`,
+      { method: "POST", body: JSON.stringify({ action }) },
+    ),
 };

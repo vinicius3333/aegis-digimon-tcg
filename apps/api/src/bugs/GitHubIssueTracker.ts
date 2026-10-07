@@ -15,7 +15,7 @@ const KIND_LABELS: Record<FeedbackKind, string> = {
   other: "feedback",
 };
 
-const GITHUB_API = "https://api.github.com";
+export const GITHUB_API = "https://api.github.com";
 const ISSUE_TITLE_LIMIT = 90;
 // Enough to name the browser and its version; the rest of a user agent string is noise.
 const USER_AGENT_LIMIT = 200;
@@ -96,12 +96,7 @@ export class GitHubIssueTracker implements IssueTracker {
   async file(report: NewBugReport): Promise<FiledBugReport> {
     const response = await this.fetch(`${GITHUB_API}/repos/${this.options.repository}/issues`, {
       method: "POST",
-      headers: {
-        Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${this.options.token}`,
-        "Content-Type": "application/json",
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
+      headers: githubHeaders(this.options.token),
       body: JSON.stringify({
         title: issueTitle(report),
         body: issueBody(report, this.options.serverRevision, this.options.publicVersion),
@@ -114,6 +109,15 @@ export class GitHubIssueTracker implements IssueTracker {
     const issue = (await response.json()) as { number: number; html_url: string };
     return { number: issue.number, url: issue.html_url };
   }
+}
+
+export function githubHeaders(token: string): Record<string, string> {
+  return {
+    Accept: "application/vnd.github+json",
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+    "X-GitHub-Api-Version": "2022-11-28",
+  };
 }
 
 /** `BT1-010 +2 — the summary`, so a card bug is recognizable straight from the issue list. */

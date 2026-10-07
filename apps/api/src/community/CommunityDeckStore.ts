@@ -8,7 +8,9 @@ import {
   type CommunityDeckPage,
   type CommunityDeckSummary,
   type CommunityLikeResult,
+  type CommunityModerationAction,
   type CommunityPeriod,
+  type CommunityPublicationStatus,
   type CommunityPublication,
   type CommunityPublishError,
   type CommunitySort,
@@ -37,6 +39,13 @@ export type PublishResult =
 /** Why a like was refused, or the new state. Authors cannot like their own deck. */
 export type LikeResult = { ok: true; like: CommunityLikeResult } | { ok: false; error: "deck_not_found" | "own_deck" };
 
+export type DeckStatus = CommunityPublicationStatus | "unpublished";
+
+/** What a report names, or why it was refused. Authors cannot report their own deck. */
+export type ReportTarget =
+  | { ok: true; deck: { id: string; name: string; authorName: string } }
+  | { ok: false; error: "deck_not_found" | "own_deck" };
+
 type PublicDeckRow = {
   id: string;
   account_id: string;
@@ -52,10 +61,11 @@ type PublicDeckRow = {
   copy_count: number;
   published_at: string;
   updated_at: string;
+  status: CommunityPublicationStatus;
 };
 
 const PUBLIC_DECK_COLUMNS =
-  "p.id,p.account_id,a.display_name,p.name,p.colors,p.main_deck,p.egg_deck,p.main_deck_arts,p.egg_deck_arts,p.cover_card_id,p.like_count,p.copy_count,p.published_at,p.updated_at";
+  "p.id,p.account_id,a.display_name,p.name,p.colors,p.main_deck,p.egg_deck,p.main_deck_arts,p.egg_deck_arts,p.cover_card_id,p.like_count,p.copy_count,p.published_at,p.updated_at,p.status";
 
 /**
  * Public decks: publishing, browsing, likes and copies. Shares the AccountStore's pool and
@@ -99,11 +109,12 @@ export class CommunityDeckStore {
         now,
       ];
       const existing = (
-        await client.query<{ id: string; like_count: number }>(
-          "SELECT id,like_count FROM public_decks WHERE account_id=$1 AND source_deck_id=$2 FOR UPDATE",
+        await client.query<{ id: string; like_count: number; status: string }>(
+          "SELECT id,like_count,status FROM public_decks WHERE account_id=$1 AND source_deck_id=$2 FOR UPDATE",
           [accountId, sourceDeckId],
         )
       ).rows[0];
+      if (existing?.status === "hidden") return { ok: false, error: "deck_hidden" };
       const id = existing?.id ?? randomUUID();
       if (existing)
         await client.query(
@@ -117,7 +128,14 @@ export class CommunityDeckStore {
         );
       return {
         ok: true,
-        publication: { id, sourceDeckId, name: review.name, likeCount: existing?.like_count ?? 0, outdated: false },
+        publication: {
+          id,
+          sourceDeckId,
+          name: review.name,
+          likeCount: existing?.like_count ?? 0,
+          outdated: false,
+          status: "public",
+        },
       };
     });
   }
@@ -142,8 +160,9 @@ export class CommunityDeckStore {
         like_count: number;
         updated_at: string;
         saved_updated_at: string | null;
+        status: CommunityPublicationStatus;
       }>(
-        "SELECT p.id,p.source_deck_id,p.name,p.like_count,p.updated_at,s.updated_at saved_updated_at FROM public_decks p LEFT JOIN saved_decks s ON s.account_id=p.account_id AND s.id=p.source_deck_id WHERE p.account_id=$1 AND p.status='public'",
+        "SELECT p.id,p.source_deck_id,p.name,p.like_count,p.updated_at,p.status,s.updated_at saved_updated_at FROM public_decks p LEFT JOIN saved_decks s ON s.account_id=p.account_id AND s.id=p.source_deck_id WHERE p.account_id=$1 AND p.status IN ('public','hidden')",
         [accountId],
       )
     ).rows;
@@ -153,6 +172,7 @@ export class CommunityDeckStore {
       name: row.name,
       likeCount: row.like_count,
       outdated: row.saved_updated_at !== null && Number(row.saved_updated_at) > Number(row.updated_at),
+      status: row.status,
     }));
   }
 
@@ -197,12 +217,14 @@ export class CommunityDeckStore {
     return { decks: page.map((row) => toSummary(row, liked.has(row.id))), hasMore: rows.length > COMMUNITY_PAGE_SIZE };
   }
 
-  async deck(id: string, viewerId?: string): Promise<CommunityDeck | undefined> {
+  /** `includeHidden` is for moderators, who open a reported deck after it has been hidden. */
+  async deck(id: string, viewerId?: string, includeHidden = false): Promise<CommunityDeck | undefined> {
     if (!isUuid(id)) return undefined;
     await this.accounts.ensureReady();
+    const statuses = includeHidden ? "('public','hidden')" : "('public')";
     const row = (
       await this.accounts.pool.query<PublicDeckRow>(
-        `SELECT ${PUBLIC_DECK_COLUMNS} FROM public_decks p JOIN accounts a ON a.id=p.account_id WHERE p.id=$1 AND p.status='public'`,
+        `SELECT ${PUBLIC_DECK_COLUMNS} FROM public_decks p JOIN accounts a ON a.id=p.account_id WHERE p.id=$1 AND p.status IN ${statuses}`,
         [id],
       )
     ).rows[0];
@@ -210,6 +232,7 @@ export class CommunityDeckStore {
     const liked = await this.likedAmong(viewerId, [row.id]);
     return {
       ...toSummary(row, liked.has(row.id)),
+      status: row.status,
       mainDeck: row.main_deck,
       eggDeck: row.egg_deck,
       mainDeckArts: row.main_deck_arts,
@@ -223,6 +246,40 @@ export class CommunityDeckStore {
 
   async unlike(accountId: string, id: string): Promise<LikeResult> {
     return this.setLike(accountId, id, false);
+  }
+
+  async reportTarget(accountId: string, id: string): Promise<ReportTarget> {
+    if (!isUuid(id)) return { ok: false, error: "deck_not_found" };
+    await this.accounts.ensureReady();
+    const row = (
+      await this.accounts.pool.query<{ account_id: string; name: string; display_name: string }>(
+        "SELECT p.account_id,p.name,a.display_name FROM public_decks p JOIN accounts a ON a.id=p.account_id WHERE p.id=$1 AND p.status='public'",
+        [id],
+      )
+    ).rows[0];
+    if (!row) return { ok: false, error: "deck_not_found" };
+    if (row.account_id === accountId) return { ok: false, error: "own_deck" };
+    return { ok: true, deck: { id, name: row.name, authorName: row.display_name } };
+  }
+
+  /**
+   * `hide` covers an unpublished deck too, so its owner cannot bring it back by publishing again.
+   * Undefined when no such deck exists.
+   */
+  async moderate(id: string, action: CommunityModerationAction): Promise<DeckStatus | undefined> {
+    if (!isUuid(id)) return undefined;
+    await this.accounts.ensureReady();
+    const result =
+      action === "hide"
+        ? await this.accounts.pool.query<{ status: DeckStatus }>(
+            "UPDATE public_decks SET status='hidden' WHERE id=$1 RETURNING status",
+            [id],
+          )
+        : await this.accounts.pool.query<{ status: DeckStatus }>(
+            "UPDATE public_decks SET status=CASE WHEN status='hidden' THEN 'public' ELSE status END WHERE id=$1 RETURNING status",
+            [id],
+          );
+    return result.rows[0]?.status;
   }
 
   /** Counts one copy per account, so copying the same deck again does not inflate it. */
