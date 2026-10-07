@@ -8,6 +8,25 @@ import "../index.js";
 const CARD_ID = "BT26-060";
 
 describe("BT26-060 Chronomon: Destroy Mode", () => {
+  it("issue #5228: Q7081 leaves a standalone Digimon on the field", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: CARD_ID, as: "chronomon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "standalone" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 20;
+    const id = s.perm("standalone").permanentId;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chronomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(id);
+    expect(s.state.players[1]!.deck).toHaveLength(0);
+  });
+
   it("matches the catalog and encodes the two alternate evolutions, keywords, Succession, and watcher", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
       nameEn: "Chronomon: Destroy Mode",

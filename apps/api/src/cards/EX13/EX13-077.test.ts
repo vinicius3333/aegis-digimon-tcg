@@ -15,11 +15,37 @@ import "../BT1/BT1-101.js";
 import "../BT4/BT4-057.js";
 import "../BT9/BT9-050.js";
 import "../AD1/AD1-025.js";
+import "../ST20/ST20-12.js";
+import "../ST21/ST21-12.js";
 import "./EX13-030.js";
 
 const CARD_ID = "EX13-077";
 
 describe("EX13-077 Omnimon: Merciful Mode", () => {
+  it("issue #5234: both unsuspended starter Tamers reduce Merciful Mode's hand play cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST20-12", as: "tai" },
+            { card: "ST21-12", as: "matt" },
+          ],
+          hand: [{ card: CARD_ID, as: "merciful" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("merciful").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("tai").isSuspended).toBe(true);
+    expect(s.perm("matt").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(6);
+  });
+
   it("matches the newly revealed catalog identity and requirements", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
       cardId: CARD_ID,

@@ -6,9 +6,9 @@ import type { IssueReproScenarioId } from "./issueReproScenarios.js";
 import { BLUE_DECK, RED_DECK } from "./testDecks.js";
 import { observe } from "./testkit/observe.js";
 import { advance } from "./testkit/advance.js";
-import { setupEngine, settle, settleAcrossTimers } from "./testkit/harness.js";
+import { setupEngine, settle, settleAcrossTimers, type SetupEngineOptions } from "./testkit/harness.js";
 
-async function launch(id: IssueReproScenarioId, autoSelectCards = true) {
+async function launch(id: IssueReproScenarioId, autoSelectCards = true, overrides: SetupEngineOptions = {}) {
   const s = setupEngine(
     { 0: {}, 1: {} },
     {
@@ -16,12 +16,13 @@ async function launch(id: IssueReproScenarioId, autoSelectCards = true) {
       autoSelectCards,
       autoChooseOption: true,
       autoOrderTriggers: true,
+      ...overrides,
     },
   );
   layDevScenario(id, s.state, [BLUE_DECK, RED_DECK]);
   const loop = s.engine.startTurnLoop();
-  await settle(() => s.state.phase === Phase.Breeding);
-  expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  await settle(() => s.engine.breeding.isOpen || s.state.phase === Phase.Main);
+  if (s.engine.breeding.isOpen) expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
   await advance(s.engine).waitForMainPhase(0);
   const act = (intent: Intent, seat = 0) => expect(s.engine.applyIntent(seat as 0 | 1, intent)).toEqual({ ok: true });
   return {
@@ -153,5 +154,104 @@ it("#5199 playing Sistermon from trash still requires the Option target selectio
   expect(s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT23-077")).toBe(true);
   expect(s.field("BT23-077")).toBeDefined();
   expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-010")).toBe(false);
+  await s.finish();
+});
+
+it("#5232 natural-turn Icemon accepts a Rock DigiEgg from trash", async () => {
+  const s = await launch("arena-issue-5232-icemon-egg");
+  s.act({ type: "playCard", instanceId: s.hand("P-215").instanceId });
+  await settle(() => s.field("P-215")?.stack.some((c) => c.cardId === "EX8-005") === true);
+  await s.idle();
+  expect(s.state.players[0]!.trash).toHaveLength(0);
+  await s.finish();
+});
+
+it("#5214 natural-turn Habakirimon puts the opponent in their own security", async () => {
+  const s = await launch("arena-issue-5214-habakirimon-security");
+  s.act({ type: "digivolve", permanentId: s.field("BT1-058").permanentId, instanceId: s.hand("ST23-05").instanceId });
+  await settle(() => s.state.players[1]!.security[0]?.cardId === "BT1-009");
+  await s.idle();
+  expect(s.state.players[0]!.security.some((c) => c.cardId === "BT1-009")).toBe(false);
+  await s.finish();
+});
+
+it("#5219 natural-turn Gospel activates Lucemon's breeding promotion", async () => {
+  const s = await launch("arena-issue-5219-lucemon-breeding");
+  s.act({ type: "playCard", instanceId: s.hand("BT18-100").instanceId });
+  await settle(() => s.field("EX10-013") !== undefined);
+  await s.idle();
+  expect(s.state.players[0]!.breeding).toBeUndefined();
+  await s.finish();
+});
+
+it("#5217 natural-turn MetalGarurumon keeps both modal choices without Agumon", async () => {
+  const s = await launch("arena-issue-5217-metalgarurumon-choice", true, { autoChooseOption: false });
+  s.act({ type: "digivolve", permanentId: s.field("BT1-038").permanentId, instanceId: s.hand("BT22-026").instanceId });
+  await settle(() => s.state.pendingDecision?.kind === "chooseOption");
+  s.act({
+    type: "respondDecision",
+    decisionId: s.state.pendingDecision!.decisionId,
+    response: { kind: "chooseOption", optionIndex: 0 },
+  });
+  await s.idle();
+  expect(s.field("BT1-009", 1)).toBeDefined();
+  await s.finish();
+});
+
+it("#5230 natural-turn hidden Hagurumon has no inherited Blocker", async () => {
+  const s = await launch("arena-issue-5230-hidden-inherited");
+  expect(observe(s.engine).hasKeyword(s.field("EX9-018"), "Blocker")).toBe(false);
+  expect(s.field("EX9-018").stack[0]?.faceUp).toBe(false);
+  await s.finish();
+});
+
+it("#5218 natural-turn source cost retains Landramon's inherited origin", async () => {
+  const s = await launch("arena-issue-5218-landramon-discard");
+  s.act({ type: "digivolve", permanentId: s.field("P-167").permanentId, instanceId: s.hand("EX10-032").instanceId });
+  await settle(() => s.field("BT1-009", 1) !== undefined);
+  await s.idle();
+  expect(s.state.players[0]!.trash.some((c) => c.cardId === "P-167")).toBe(true);
+  await s.finish();
+});
+
+it("#5204 natural-turn declining Dorimon does not spend memory", async () => {
+  const s = await launch("arena-issue-5204-dorimon-cost", true, { autoAcceptOptional: false });
+  s.act({ type: "attack", attackerPermanentId: s.field("BT9-016").permanentId, target: { kind: "player" } });
+  await advance(s.engine).finishAttack();
+  s.act({ type: "endPhase" });
+  await settle(() => s.state.pendingDecision?.kind === "optional");
+  expect(s.state.memory).toBe(-3);
+  s.act({
+    type: "respondDecision",
+    decisionId: s.state.pendingDecision!.decisionId,
+    response: { kind: "optional", accept: false },
+  });
+  await settleAcrossTimers(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 1);
+  expect(s.state.memory).toBe(3);
+  expect(s.field("BT9-016").isSuspended).toBe(true);
+  await s.finish();
+});
+
+it("#5235 natural-turn Merciful Mode completes three battles before Jupiter reacts", async () => {
+  const s = await launch("arena-issue-5235-merciful-jupiter-order", true, { declinePrompts: ["Attack"] });
+  s.act({ type: "playCard", instanceId: s.hand("EX13-077").instanceId });
+  for (let n = 0; n < 3; n++) {
+    await settle(() => s.events.filter((e) => e.kind === "barrierPrompt").length > n);
+    expect(s.events.some((e) => e.kind === "effectTriggered" && e.sourceCardId === "BT26-103")).toBe(false);
+    s.act({ type: "respondBarrier", permanentId: s.field("BT26-103", 1).permanentId, accept: true }, 1);
+  }
+  await s.idle();
+  expect(s.events.filter((e) => e.kind === "battleCompared")).toHaveLength(3);
+  await s.finish();
+});
+
+it("#5215 natural-turn failed Venusmon payment consumes its shared activation", async () => {
+  const preferred: string[] = [];
+  const s = await launch("arena-issue-5215-venusmon-guard-cost", true, { preferInstanceIds: preferred });
+  preferred.push(s.field("EX13-063").permanentId, s.field("EX13-059").permanentId);
+  s.act({ type: "playCard", instanceId: s.hand("BT6-095").instanceId });
+  await s.idle();
+  expect(s.events.some((e) => e.kind === "deletionPrevented" && e.keyword === "Guard")).toBe(true);
+  expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT24-040")).toHaveLength(1);
   await s.finish();
 });

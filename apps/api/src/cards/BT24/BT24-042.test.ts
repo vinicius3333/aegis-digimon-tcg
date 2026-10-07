@@ -115,6 +115,38 @@ describe("BT24-042 Goblimon", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it.each([
+    ["BT24-072", "BT24-072"],
+    ["P-250", "P-250"],
+  ])(
+    "GitHub #5237: Ogremon X as the inherited host only evolves into an eligible Titan (%s)",
+    async (trashCard, expectedTop) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "P-250", as: "host", under: ["BT24-042"] }],
+            hand: [
+              { card: "BT24-045", as: "ogremon" },
+              { card: "BT1-009", as: "cost" },
+            ],
+            trash: [{ card: trashCard, as: "evolution" }],
+          },
+          1: { battleArea: [{ card: "BT1-010" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, autoChooseOption: true },
+      );
+      s.state.memory = 20;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ogremon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+      expect(s.perm("host").topCard.cardId).toBe(expectedTop);
+      if (trashCard === "P-250")
+        expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("evolution").instanceId)).toBe(true);
+      else expect(s.perm("host").topCard.instanceId).toBe(s.inst("evolution").instanceId);
+    },
+  );
   it("pays the reduced cost to inherited-evolve its own host after its owner's hand is trashed", async () => {
     const s = setupEngine(
       {

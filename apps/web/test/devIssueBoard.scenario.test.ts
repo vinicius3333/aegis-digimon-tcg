@@ -34,6 +34,7 @@ it.each(ISSUE_REPRO_SCENARIO_IDS)("sends the complete %s board on its first conn
           "arena-issue-5176-king-drasil-ace",
           "arena-issue-5070-lunamon-breeding",
           "arena-issue-5067-treadmill-reveal",
+          "arena-issue-5219-lucemon-breeding",
         ].includes(devScenario)
           ? Phase.Main
           : Phase.Breeding,
