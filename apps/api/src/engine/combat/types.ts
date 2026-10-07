@@ -279,7 +279,7 @@ export interface CombatHooks {
    * `whenSecurityRemoved` watchers observe the removal before battle continues.
    * Minimal combat-unit fixtures may omit this and use the direct access fallback.
    */
-  trashTopSecurityForBarrier?: (seat: Seat) => Promise<void>;
+  trashTopSecurityForBarrier?: (seat: Seat, isAttackBattle: boolean) => Promise<void>;
   /**
    * Ask `seat` to optionally choose ONE of `candidateInstanceIds` (each the topCard instance
    * of an eligible permanent), or decline. Backs the ＜Raid＞ redirect choice (§16-23) and the

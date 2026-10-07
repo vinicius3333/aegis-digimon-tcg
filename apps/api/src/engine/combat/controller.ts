@@ -1419,7 +1419,7 @@ export class CombatController {
       if (this.access.game.gameOver) return;
       if (accepted) {
         if (this.hooks.trashTopSecurityForBarrier !== undefined) {
-          await this.hooks.trashTopSecurityForBarrier(perm.controllerSeat);
+          await this.hooks.trashTopSecurityForBarrier(perm.controllerSeat, isAttackBattle);
         } else {
           this.access.flipTopSecurityToTrash(perm.controllerSeat);
         }

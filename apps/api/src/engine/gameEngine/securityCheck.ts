@@ -342,11 +342,14 @@ export function securityEffectsFor(
   });
 }
 
-export async function payBarrierSecurityCost(engine: GameEngine, seat: Seat): Promise<void> {
-  engine.resolvingBarrierSecurityCost = true;
+export async function payBarrierSecurityCost(engine: GameEngine, seat: Seat, interruptsEffect: boolean): Promise<void> {
+  // Attack steps have their own interrupting windows. A direct battle inside another
+  // effect instead keeps removal reactions pending until that effect finishes (#5235).
+  const previous = engine.resolvingBarrierSecurityCost;
+  engine.resolvingBarrierSecurityCost = interruptsEffect;
   try {
     await engine.primitives.trashFromSecurity(seat, 1, { fromTop: true, cause: "barrierCost" });
   } finally {
-    engine.resolvingBarrierSecurityCost = false;
+    engine.resolvingBarrierSecurityCost = previous;
   }
 }
