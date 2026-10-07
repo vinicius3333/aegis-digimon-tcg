@@ -11,9 +11,7 @@ const SECURITY = Array(20).fill("BT1-009");
 
 describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
   it("delays on an effect-added Vemmon card and uses normal reduced-cost digivolution requirements", () => {
-    expect(
-      compiled.effects.find((effect) => effect.trigger === "Main")?.actions[0],
-    ).toMatchObject({
+    expect(compiled.effects.find((effect) => effect.trigger === "Main")?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",
       target: {
         filter: {
@@ -22,9 +20,7 @@ describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
         },
       },
     });
-    expect(
-      compiled.effects.find((effect) => effect.trigger === "YourTurn"),
-    ).toMatchObject({
+    expect(compiled.effects.find((effect) => effect.trigger === "YourTurn")).toMatchObject({
       keywords: [{ keyword: "Delay" }],
       actions: [
         {
@@ -75,26 +71,12 @@ describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
     ).toEqual({
       ok: true,
     });
-    await settle(
-      () =>
-        s.state.players[0]!.battleArea.some(
-          (permanent) => permanent.topCard.cardId === "P-244",
-        ),
-      500,
-    );
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "P-244"), 500);
     expect(s.state.memory).toBe(7);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toContain(vemmonId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(vemmonId);
     expect(
-      s.state.players[0]!.battleArea.map(
-        (permanent) => permanent.topCard?.instanceId,
-      ),
-    ).toContain(vemmonId);
-    expect(
-      s.state.players[0]!.trash.map((card) => card.instanceId),
-    ).not.toContain(vemmonId);
-    expect(
-      s.state.players[0]!.battleArea.filter(
-        (permanent) => permanent.topCard.cardId === "BT11-061",
-      ).length,
+      s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT11-061").length,
     ).toBeGreaterThanOrEqual(2);
   });
 
@@ -119,36 +101,26 @@ describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
     ).toEqual({
       ok: true,
     });
-    await settle(
-      () =>
-        s.state.players[0]!.battleArea.some(
-          (permanent) => permanent.topCard.cardId === "P-244",
-        ),
-      500,
-    );
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "P-244"), 500);
 
-    expect(
-      s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard.cardId === "EX11-066",
-      ),
-    ).toBe(true);
-    expect(
-      s.state.players[0]!.trash.some((card) => card.cardId === "EX11-066"),
-    ).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX11-066")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX11-066")).toBe(false);
   });
 
-  async function prepareNaturalVemmonPlacement(preferred: string[]) {
+  async function prepareNaturalVemmonPlacement(
+    preferred: string[],
+    baseCard = "BT21-062",
+    evolutionCard = "EX11-046",
+    extraCards: string[] = [],
+  ) {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT21-062", as: "galacticmon", under: ["BT11-065"] },
+            { card: baseCard, as: "galacticmon", under: ["BT11-065"] },
             { card: "BT11-061", as: "vemmon" },
           ],
-          hand: [
-            { card: "P-244", as: "emblem" },
-            { card: "EX11-046", as: "evolution" },
-          ],
+          hand: [{ card: "P-244", as: "emblem" }, { card: evolutionCard, as: "evolution" }, ...extraCards],
           trash: [{ card: "BT11-061", as: "seedVemmon" }],
           deck: [
             { card: "BT1-009", as: "filler1" },
@@ -179,14 +151,8 @@ describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
     ).toEqual({
       ok: true,
     });
-    await settle(() =>
-      s.decisions.some(
-        ({ req }) => req.kind === "optional" && req.sourceCardId === "P-244",
-      ),
-    );
-    const mainDecision = s.decisions.find(
-      ({ req }) => req.kind === "optional" && req.sourceCardId === "P-244",
-    )!.req;
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "P-244"));
+    const mainDecision = s.decisions.find(({ req }) => req.kind === "optional" && req.sourceCardId === "P-244")!.req;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -203,13 +169,9 @@ describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
     return { s, loop };
   }
 
-  async function triggerPublicVemmonPlacement(
-    prepared: Awaited<ReturnType<typeof prepareNaturalVemmonPlacement>>,
-  ) {
+  async function triggerPublicVemmonPlacement(prepared: Awaited<ReturnType<typeof prepareNaturalVemmonPlacement>>) {
     const { s } = prepared;
-    const effect = observe(s.engine).activatableEffects(
-      s.perm("vemmon"),
-    )[0] as { effectKey: string };
+    const effect = observe(s.engine).activatableEffects(s.perm("vemmon"))[0] as { effectKey: string };
     expect(effect).toBeDefined();
     expect(
       s.engine.applyIntent(0, {
@@ -218,14 +180,38 @@ describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
         effectKey: effect.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.decisions.some(
-        ({ req }) =>
-          req.kind === "optional" && req.promptText.includes("Delay"),
-      ),
-    );
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.promptText.includes("Delay")));
     return s;
   }
+
+  it("#5256 offers P-094 Destromon from hand after Delay chooses BT21-058 Snatchmon", async () => {
+    const preferred: string[] = [];
+    const prepared = await prepareNaturalVemmonPlacement(preferred, "BT21-058", "P-094", ["BT21-062"]);
+    preferred.push(prepared.s.perm("galacticmon").permanentId);
+    const s = await triggerPublicVemmonPlacement(prepared);
+    const before = s.state.memory;
+    for (const prompt of ["Delay", "Digivolve"]) {
+      await settle(
+        () => s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.promptText.includes(prompt),
+      );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => s.perm("galacticmon").topCard.cardId === "P-094" && s.state.pendingDecision === undefined);
+    const offered = s.decisions.find(
+      ({ req }) =>
+        req.kind === "selectCards" && req.options?.candidateInstanceIds?.includes(s.inst("evolution").instanceId),
+    );
+    expect(offered).toBeDefined();
+    expect(s.state.memory).toBe(before - 2);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await prepared.loop;
+  });
 
   it("keeps P-244 when Delay is declined after a real effect places Vemmon", async () => {
     const prepared = await prepareNaturalVemmonPlacement([]);
@@ -241,14 +227,10 @@ describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
-    expect(
-      s.state.players[0]!.trash.map((card) => card.instanceId),
-    ).not.toContain(s.inst("emblem").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("emblem").instanceId);
     expect(s.perm("emblem").topCard?.cardId).toBe("P-244");
     expect(s.perm("galacticmon").topCard?.cardId).toBe("BT21-062");
-    expect(s.perm("vemmon").stack.map((card) => card.instanceId)).toContain(
-      s.inst("placedVemmon").instanceId,
-    );
+    expect(s.perm("vemmon").stack.map((card) => card.instanceId)).toContain(s.inst("placedVemmon").instanceId);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({
       ok: true,
     });
@@ -259,9 +241,7 @@ describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
     const preferred: string[] = [];
     const prepared = await prepareNaturalVemmonPlacement(preferred);
     const originalPermanentId = prepared.s.perm("galacticmon").permanentId;
-    const originalStack = prepared.s
-      .perm("galacticmon")
-      .stack.map((card) => card.instanceId);
+    const originalStack = prepared.s.perm("galacticmon").stack.map((card) => card.instanceId);
     const originalTop = prepared.s.perm("galacticmon").topCard!.instanceId;
     preferred.push(prepared.s.perm("galacticmon").permanentId);
     const s = await triggerPublicVemmonPlacement(prepared);
@@ -276,11 +256,7 @@ describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.decisions.some(
-        ({ req }) => req.kind === "optional" && req.promptText === "Digivolve",
-      ),
-    );
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.promptText === "Digivolve"));
     const digivolveDecision = s.decisions.find(
       ({ req }) => req.kind === "optional" && req.promptText === "Digivolve",
     )!.req;
@@ -293,19 +269,13 @@ describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.perm("galacticmon").topCard?.instanceId ===
-          s.inst("evolution").instanceId &&
+        s.perm("galacticmon").topCard?.instanceId === s.inst("evolution").instanceId &&
         s.state.pendingDecision === undefined,
     );
     expect(s.state.memory).toBe(beforeDigivolve - (5 - 3));
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
-      s.inst("emblem").instanceId,
-    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("emblem").instanceId);
     expect(s.perm("galacticmon").permanentId).toBe(originalPermanentId);
-    expect(s.perm("galacticmon").stack.map((card) => card.instanceId)).toEqual([
-      ...originalStack,
-      originalTop,
-    ]);
+    expect(s.perm("galacticmon").stack.map((card) => card.instanceId)).toEqual([...originalStack, originalTop]);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({
       ok: true,
     });
@@ -316,13 +286,9 @@ describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
 describe("P-244 Unique Emblem: Ragnarok Attainer — KB Q&A rulings", () => {
   type Setup = ReturnType<typeof setupEngine>;
   const delayOffers = (s: Setup) =>
-    s.decisions.filter(
-      ({ req }) => req.kind === "optional" && req.promptText.includes("Delay"),
-    );
+    s.decisions.filter(({ req }) => req.kind === "optional" && req.promptText.includes("Delay"));
   const permanentWithTop = (s: Setup, alias: string) =>
-    s.state.players[0]!.battleArea.find(
-      (permanent) => permanent.topCard.instanceId === s.inst(alias).instanceId,
-    );
+    s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === s.inst(alias).instanceId);
 
   async function digivolveSnatchmonIntoGalacticmon() {
     const s = setupEngine(
@@ -360,8 +326,7 @@ describe("P-244 Unique Emblem: Ragnarok Attainer — KB Q&A rulings", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.perm("host").topCard.instanceId ===
-          s.inst("finalGalacticmon").instanceId &&
+        s.perm("host").topCard.instanceId === s.inst("finalGalacticmon").instanceId &&
         s.state.pendingDecision === undefined,
     );
     return {
@@ -381,9 +346,7 @@ describe("P-244 Unique Emblem: Ragnarok Attainer — KB Q&A rulings", () => {
     const { s, finish } = await digivolveSnatchmonIntoGalacticmon();
 
     expect(s.perm("host").topCard.cardId).toBe("EX11-046");
-    expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(
-      s.inst("galacticmon").instanceId,
-    );
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(s.inst("galacticmon").instanceId);
     await finish();
   });
 
@@ -419,22 +382,12 @@ describe("P-244 Unique Emblem: Ragnarok Attainer — KB Q&A rulings", () => {
         digiXros: { materialInstanceIds: [s.inst("vemmon").instanceId] },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        permanentWithTop(s, "snatchmon") !== undefined &&
-        s.state.pendingDecision === undefined,
-    );
+    await settle(() => permanentWithTop(s, "snatchmon") !== undefined && s.state.pendingDecision === undefined);
     const snatchmon = permanentWithTop(s, "snatchmon")!;
-    expect(snatchmon.stack.map((card) => card.instanceId)).toEqual([
-      s.inst("vemmon").instanceId,
-    ]);
+    expect(snatchmon.stack.map((card) => card.instanceId)).toEqual([s.inst("vemmon").instanceId]);
     expect(delayOffers(s)).toHaveLength(0);
 
-    expect(
-      s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard.cardId === "P-244",
-      ),
-    ).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "P-244")).toBe(true);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({
       ok: true,
     });
@@ -476,7 +429,8 @@ describe("P-244 Unique Emblem: Ragnarok Attainer — KB Q&A rulings", () => {
       }),
     ).toEqual({ ok: true });
     await settle(
-      () => s.perm("host").topCard.instanceId === s.inst("galacticmon").instanceId && s.state.pendingDecision === undefined,
+      () =>
+        s.perm("host").topCard.instanceId === s.inst("galacticmon").instanceId && s.state.pendingDecision === undefined,
     );
 
     expect(delayOffers(s)).toHaveLength(1);
@@ -494,18 +448,11 @@ describe("P-244 Unique Emblem: Ragnarok Attainer — KB Q&A rulings", () => {
     const { s, finish } = await digivolveSnatchmonIntoGalacticmon();
 
     expect(delayOffers(s)).toHaveLength(1);
-    expect(s.perm("host").topCard.instanceId).toBe(
-      s.inst("finalGalacticmon").instanceId,
-    );
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("finalGalacticmon").instanceId);
     expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining([
-        s.inst("galacticmon").instanceId,
-        s.inst("vemmon0").instanceId,
-      ]),
+      expect.arrayContaining([s.inst("galacticmon").instanceId, s.inst("vemmon0").instanceId]),
     );
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
-      s.inst("emblem").instanceId,
-    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("emblem").instanceId);
     const snatchmonToGalacticmon = 9;
     const placedVemmonCostReductions = 4;
     const delayDigivolveCost = Math.max(0, 5 - 3 - placedVemmonCostReductions);
