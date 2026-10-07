@@ -10,6 +10,7 @@ import {
   dnaDigivolutionRequirementsFor,
   effectiveExactNames,
   effectiveStaticNames,
+  effectiveTypeTraits,
   nameIncludesToken,
 } from "@aegis/shared";
 import type { CardDefinition, Filter } from "@aegis/shared";
@@ -93,7 +94,7 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   if (legacy.cardType !== undefined && !def.kinds.some((kind) => String(kind) === legacy.cardType)) return false;
   if (legacy.trait !== undefined) {
     const traits = Array.isArray(legacy.trait) ? legacy.trait : [legacy.trait];
-    if (!traits.some((trait) => (def.types ?? []).includes(trait))) return false;
+    if (!traits.some((trait) => effectiveTypeTraits(def).includes(trait))) return false;
   }
   // Disjunctive sub-filter: "black or has [Legend-Arms] in its traits" — the card matches
   // if ANY sub-filter matches. All other fields on the parent filter still apply (AND).
@@ -189,7 +190,8 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
     }
     if (filter.traitContains && filter.traitContains.length > 0) {
       const tokens = filter.traitContains.map((token) => token.toLowerCase());
-      if (!(def.types ?? []).some((trait) => tokens.some((token) => trait.toLowerCase().includes(token)))) return false;
+      if (!effectiveTypeTraits(def).some((trait) => tokens.some((token) => trait.toLowerCase().includes(token))))
+        return false;
     }
   }
   // Name-exclusion ("other than [X], [Y]"): reject when the card's name matches any.

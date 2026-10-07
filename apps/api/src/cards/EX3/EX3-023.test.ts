@@ -524,4 +524,34 @@ describe("EX3-023 Plesiomon", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+
+  it("plays a level 4 source whose [Aquatic] trait comes only from its [Rule] text (GitHub #5181 sweep)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-022", as: "base" },
+            { card: "BT1-033", under: [{ card: "EX12-026", as: "shellmon" }], as: "sourceHost" },
+          ],
+          hand: [{ card: "EX3-023", as: "plesiomon" }],
+          deck: ["BT1-031"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const shellmonId = s.inst("shellmon").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("plesiomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === shellmonId));
+
+    expect(s.perm("sourceHost").stack.map(({ instanceId }) => instanceId)).not.toContain(shellmonId);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === shellmonId)).toBe(true);
+  });
 });

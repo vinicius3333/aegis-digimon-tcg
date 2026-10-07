@@ -209,6 +209,7 @@ describe("BT24-059 Sharkmon", () => {
     ["normal blue level-4 requirement", "BT1-032", false, undefined, 4],
     ["Aquatic trait-substring requirement", "BT12-025", true, 0, 3],
     ["Sea Animal trait-substring requirement", "BT1-033", true, 0, 3],
+    ["Rule-granted Aquatic trait-substring requirement (GitHub #5181)", "EX12-026", true, 0, 3],
     ["TS requirement", "BT24-023", true, 1, 3],
   ])(
     "uses the %s and De-Digivolves 1",

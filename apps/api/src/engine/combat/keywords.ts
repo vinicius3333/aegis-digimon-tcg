@@ -1,4 +1,4 @@
-import { digiXrosRequirementFor, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { digiXrosRequirementFor, effectiveExactNames, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import type { CardColor, CardDefinition, Keyword, Permanent } from "@aegis/shared";
 
 const PRINTED_MATCHERS: ReadonlyArray<readonly [Keyword, RegExp]> = [
@@ -271,11 +271,11 @@ export function digiXrosRequirementNamesOf(cardId: string): string[] | undefined
 export function digiXrosMatches(hostCardId: string, stackCardId: string): boolean {
   const stack = getCardDefinition(stackCardId);
   if (stack === undefined) return false;
+  const stackNames = effectiveExactNames(stack).map((name) => name.toLowerCase());
   const slots = digiXrosRequirementFor(hostCardId)?.[0]?.materials;
   if (slots !== undefined && slots.length > 0) {
     return slots.some((slot) => {
-      if (slot.names?.length && !slot.names.some((name) => stack.nameEn.toLowerCase() === name.toLowerCase()))
-        return false;
+      if (slot.names?.length && !slot.names.some((name) => stackNames.includes(name.toLowerCase()))) return false;
       if (
         slot.traits?.length &&
         !slot.traits.some((trait) => (stack.types ?? []).some((type) => type.toLowerCase() === trait.toLowerCase()))
@@ -291,7 +291,7 @@ export function digiXrosMatches(hostCardId: string, stackCardId: string): boolea
 
   // Backward-compatible fallback for a legacy card whose compiled recipe is absent.
   const names = digiXrosRequirementNamesOf(hostCardId);
-  return names?.some((name) => name.toLowerCase() === stack.nameEn.toLowerCase()) ?? false;
+  return names?.some((name) => stackNames.includes(name.toLowerCase())) ?? false;
 }
 
 /**

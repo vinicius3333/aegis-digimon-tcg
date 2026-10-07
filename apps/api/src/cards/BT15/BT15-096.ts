@@ -76,6 +76,12 @@ const compiled: CompiledCard = {
           optional: true,
         },
       ],
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
     },
     {
       trigger: "Security",

@@ -8,7 +8,7 @@ import type { CardDefinition } from "./types.js";
  */
 const RULE_TRAIT_CLAUSE = /[[(]Rule[\])][^.。]*?Trait:\s*([^.。]*)/gi;
 
-function ruleTraitsOf(def: CardDefinition): string[] {
+function ruleTraitsOf(def: Pick<CardDefinition, "effectText">): string[] {
   return [...(def.effectText ?? "").matchAll(RULE_TRAIT_CLAUSE)].flatMap((clause) =>
     [...clause[1]!.matchAll(/\[([^\]]+)\]/g)].map((trait) => trait[1]!.trim()),
   );
@@ -31,6 +31,6 @@ export function effectiveStaticTraits(def: CardDefinition): string[] {
  * The card's printed type traits plus its Rule traits, without forms or attributes. Substring
  * trait filters ("a trait containing [Dragon]") read only these.
  */
-export function effectiveTypeTraits(def: CardDefinition): string[] {
+export function effectiveTypeTraits(def: Pick<CardDefinition, "types" | "effectText">): string[] {
   return [...(def.types ?? []), ...ruleTraitsOf(def)];
 }

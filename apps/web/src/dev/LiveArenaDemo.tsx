@@ -489,8 +489,8 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "DNA Digivolve into Examon using both field Digimon. Both opposing Tamers suspend even with fewer than five targets. Decline attacking to inspect. Tamers may unsuspend when their turn starts: the next-unsuspend restriction applies only to Digimon.",
   },
   "arena-issue-4989-linked-card-labels": {
-    ptBR: "Use Seven Code PAD. Na seleção de seis materiais, Mailmon linkado aparece no grupo Cartas linkadas, separado da área de batalha e da lixeira. Também linke Copipemon da mão em Medicmon e confira a descrição no log.",
-    en: "Use Seven Code PAD. In the six-material selection, linked Mailmon appears under Linked cards, separately from Battle area and Trash. Also link Copipemon from hand to Medicmon and inspect the log label.",
+    ptBR: "Use Seven Code PAD. Na seleção de seis materiais, Mailmon aparece no grupo Cartas de Link, separado da área de batalha e da lixeira. Também linke Copipemon da mão em Medicmon e confira a descrição no log.",
+    en: "Use Seven Code PAD. In the six-material selection, the Mailmon link card appears under Link cards, separately from Battle area and Trash. Also link Copipemon from hand to Medicmon and inspect the log label.",
   },
   "arena-issue-4990-end-of-turn-label": {
     ptBR: "A lista mostra somente quatro fases. Jogue um Monodramon: a memória passa de +1 para -1. No fim do turno, recuse Engage de WarGrowlmon e aceite Alphamon: devolva as duas fontes X Antibody para ganhar 2 memórias. A principal continua em +1, no mesmo turno. Jogue o segundo Monodramon e recuse Engage novamente: há outro fim de turno, e só então o turno passa ao adversário, sem uma quinta fase ou banner de End Phase.",
@@ -1126,7 +1126,7 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   },
   "arena-issue-4888-app-fusion": {
     ptBR: "Selecione Mienumon na mão e use App Fusion no Mirrormon com Copipemon vinculado. O custo deve ser 0.",
-    en: "Select Mienumon in hand and App Fuse onto Mirrormon with linked Copipemon. The cost must be 0.",
+    en: "Select Mienumon in hand and App Fuse onto Mirrormon, which has Copipemon as its link card. The cost must be 0.",
   },
   "arena-issue-4889-weregarurumon-dna": {
     ptBR: "Selecione WereGarurumon na mão e faça DNA Digivolve usando Apemon amarelo e Garurumon roxo.",
@@ -1672,6 +1672,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "End breeding and play Sprint Dash Training. Add Greymon to the hand. Main must remain playable.",
     ptBR: "Encerre a criação e jogue Sprint Dash Training. Adicione Greymon à mão. A fase Principal deve continuar.",
   },
+  "arena-issue-5182-supreme-connection-delay": {
+    en: "End breeding and use Supreme Connection! from hand (3 memory). It goes to the battle area, but its ＜Delay＞ can't be activated this turn. Then activate ＜Delay＞ on the Supreme Connection! that was already in play: it goes to the trash, and Gigadramon is played from hand for 3. Memory ends at 2.",
+    ptBR: "Encerre a criação e use Supreme Connection! da mão (3 de memória). Ela vai para a área de batalha, mas o ＜Delay＞ dela não pode ser ativado neste turno. Depois, ative o ＜Delay＞ da Supreme Connection! que já estava em jogo: ela vai para a lixeira e Gigadramon é jogado da mão por 3. A memória termina em 2.",
+  },
+  "arena-issue-5181-sharkmon-shellmon": {
+    en: "End breeding and digivolve Shellmon into Sharkmon with the [Aqua]/[Sea Animal] route (cost 3). Shellmon has [Aquatic] only from its [Rule] text. De-Digivolve 1 the opponent's Digimon. Memory ends at 5.",
+    ptBR: "Encerre a criação e digivolva Shellmon em Sharkmon pela rota [Aqua]/[Sea Animal] (custo 3). Shellmon tem [Aquatic] apenas pelo texto [Rule]. Aplique De-Digivolve 1 no Digimon do oponente. A memória termina em 5.",
+  },
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
@@ -2103,6 +2111,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-5114-st20-02-search", "GitHub #5114 · Biyomon search"],
   ["arena-issue-5152-lm-051-search", "GitHub #5152 · Alexandrite Memory Boost! search"],
   ["arena-issue-5132-lm-055-search", "GitHub #5132 · Sprint Dash Training search"],
+  ["arena-issue-5182-supreme-connection-delay", "GitHub #5182 · Supreme Connection! Delay"],
+  ["arena-issue-5181-sharkmon-shellmon", "GitHub #5181 · Sharkmon onto Shellmon"],
 ];
 
 /** Uses the normal room, bot and intent pipeline; all results come from the engine. */

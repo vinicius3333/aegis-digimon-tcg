@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT15-096.js";
 
 describe("BT15-096", () => {
@@ -196,5 +197,61 @@ describe("BT15-096 Supreme Connection! — KB Q&A rulings", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([onlyHitId]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(4);
+  });
+});
+
+describe("BT15-096 Supreme Connection! — ＜Delay＞ (GitHub #5182)", () => {
+  it("keeps the second [Main] as a ＜Delay＞ clause", () => {
+    expect(compiled.effects?.[1]?.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
+  });
+
+  it("cannot activate its ＜Delay＞ on the turn it is placed (GitHub #5182)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-056", as: "source" }],
+          hand: [{ card: "BT15-096", as: "option" }, "BT15-062"],
+          deck: ["BT15-007", "BT15-008", "BT15-009", "BT15-010", "BT15-011"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
+    const placed = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === optionId)!;
+
+    expect(observe(s.engine).activatableEffects(placed)).toEqual([]);
+  });
+
+  it("trashes itself on a later turn to play a level 5+ [Cyborg] from hand for 3 less (GitHub #5182)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-096", as: "option" }],
+          hand: [{ card: "BT15-062", as: "gigadramon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const [delay] = observe(s.engine).activatableEffects(s.perm("option"));
+    expect(delay?.description).toContain("Delay");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("option").instanceId,
+        effectKey: delay!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    const gigadramonId = s.inst("gigadramon").instanceId;
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === gigadramonId));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("option").instanceId]);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.cardId)).toEqual(["BT15-062"]);
+    expect(s.state.memory).toBe(7);
   });
 });

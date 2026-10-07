@@ -80,7 +80,7 @@ export const EFFECT_PROMPT_CASES = [
   ["assembly", "Assembly · trash materials", "center"],
   ["digixros", "DigiXros · hand / field / locked materials", "center"],
   ["digixros-expander", "DigiXros · Tamer activation", "left"],
-  ["app-fusion", "App Fusion · linked material", "center"],
+  ["app-fusion", "App Fusion · link card", "center"],
   ["app-fusion-empty", "App Fusion · unavailable route", "center"],
   ["block", "Block · choose blocker on field", "left"],
   ["collision", "Collision · required block on field", "left"],

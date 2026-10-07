@@ -63,7 +63,7 @@ describe("field card action sheet", () => {
       ],
     });
     expect(screen.getByText("Digivolution")).toBeTruthy();
-    expect(screen.getByText("Linked")).toBeTruthy();
+    expect(screen.getByText("Link card")).toBeTruthy();
     // The active card is already the large preview; it is not repeated below.
     expect(screen.queryByText("Active")).toBeNull();
   });

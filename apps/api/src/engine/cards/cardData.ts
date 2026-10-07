@@ -482,7 +482,7 @@ function matchGatedRequirement(
       if (!req.traits.some((t) => cardHasTrait(baseDef, t))) continue;
     }
     if (req.traitSubstrings && req.traitSubstrings.length > 0) {
-      const sourceTraits = [...(baseDef.forms ?? []), ...(baseDef.attributes ?? []), ...(baseDef.types ?? [])];
+      const sourceTraits = staticTraitsOf(baseDef);
       if (!req.traitSubstrings.some((token) => sourceTraits.some((trait) => trait.includes(token)))) continue;
     }
 

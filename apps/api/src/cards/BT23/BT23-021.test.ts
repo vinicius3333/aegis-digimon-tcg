@@ -529,7 +529,7 @@ describe("BT23-021 Dosukomon", () => {
       })();
       if (
         pending.kind === "selectCards" &&
-        pending.promptText === "App Fusion: choose the linked card used as fusion material."
+        pending.promptText === "App Fusion: choose the link card used as fusion material."
       ) {
         const ids = pending.options?.candidateInstanceIds;
         if (ids === undefined) throw new Error("App Fusion selection omitted candidates");

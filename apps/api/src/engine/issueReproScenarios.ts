@@ -1507,6 +1507,24 @@ const ISSUE_LAYOUTS = {
     ],
     memory: 8,
   },
+  "arena-issue-5182-supreme-connection-delay": {
+    players: [
+      {
+        field: [{ card: "BT15-056" }, { card: "BT15-096" }],
+        hand: ["BT15-096", "BT15-062"],
+        deck: ["BT15-055", "BT15-007", "BT15-061", "BT15-008", "BT15-009", "BT15-010"],
+      },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5181-sharkmon-shellmon": {
+    players: [
+      { field: [{ card: "EX12-026" }], hand: ["BT24-059"], deck: ["BT1-015", "BT1-015"] },
+      { field: [{ card: "BT24-051", under: ["BT24-050"] }] },
+    ],
+    memory: 8,
+  },
 } satisfies Record<string, Layout>;
 
 export type IssueReproScenarioId = keyof typeof ISSUE_LAYOUTS;
