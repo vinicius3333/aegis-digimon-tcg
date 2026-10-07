@@ -106,6 +106,13 @@ describe("printedClauseForEffect", () => {
       /^\[On Play\] Until/,
     );
   });
+
+  it("reads a linked effect from the link box, not the main text", () => {
+    const definition = definitionOf("BT24-057");
+    expect(printedClauseForEffect({ definition, effect: { trigger: "OnDeletion", isLinked: true, actions: [] } })).toBe(
+      definition.linkEffect,
+    );
+  });
 });
 
 describe("printedClauseForWatcher", () => {
@@ -129,6 +136,12 @@ describe("printedClauseForWatcher", () => {
     expect(printedClauseForWatcher({ definition, effect, event: "whenSuspended", action: {} })).toMatch(
       /^\[All Turns\] When one of your Digimon with \[Veedramon\]/,
     );
+  });
+
+  it("does not lend a linked watcher the main text's link clause (Discord 1557211687998984202)", () => {
+    const definition = definitionOf("BT25-072");
+    const effect: CardEffect = { trigger: "Static", isLinked: true, actions: [] };
+    expect(printedClauseForWatcher({ definition, effect, event: "whenLinked", action: {} })).toBeUndefined();
   });
 
   it("ignores watchers installed by a triggered clause", () => {

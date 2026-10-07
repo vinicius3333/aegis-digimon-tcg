@@ -10,6 +10,9 @@ import {
   type CompiledCard,
 } from "@aegis/shared";
 
+const printedBoxKey = (effect: CardEffect) =>
+  `${effect.trigger}/${effect.isInherited === true}/${effect.isLinked === true}`;
+
 function withWatcherClauses(effect: CardEffect, clauseFor: (action: Action) => string | undefined): CardEffect {
   if (!CONTINUOUS_TRIGGERS.has(effect.trigger) || effect.actions === undefined) return effect;
   let changed = false;
@@ -34,13 +37,13 @@ export function withPrintedClauses(cardId: string, compiled: CompiledCard): Comp
   let changed = false;
   const effectsPerTrigger = new Map<string, number>();
   for (const effect of compiled.effects) {
-    const key = `${effect.trigger}/${effect.isInherited === true}`;
+    const key = printedBoxKey(effect);
     effectsPerTrigger.set(key, (effectsPerTrigger.get(key) ?? 0) + 1);
   }
   const effects = compiled.effects.map((effect) => {
     let next = effect;
     if (next.description === undefined) {
-      const sharesTrigger = (effectsPerTrigger.get(`${effect.trigger}/${effect.isInherited === true}`) ?? 0) > 1;
+      const sharesTrigger = (effectsPerTrigger.get(printedBoxKey(effect)) ?? 0) > 1;
       const clause = printedClauseForEffect({ definition, effect, requireHints: sharesTrigger });
       if (clause !== undefined) next = { ...next, description: clause };
     }
@@ -68,7 +71,7 @@ const sameText = (left: string, right: string) =>
 function withClausesInPrintedOrder(definition: CardDefinition, effects: CardEffect[]): CardEffect[] {
   const groups = new Map<string, number[]>();
   effects.forEach((effect, index) => {
-    const key = `${effect.trigger}/${effect.isInherited === true}`;
+    const key = printedBoxKey(effect);
     groups.set(key, [...(groups.get(key) ?? []), index]);
   });
   const next = [...effects];
@@ -79,6 +82,7 @@ function withClausesInPrintedOrder(definition: CardDefinition, effects: CardEffe
       definition,
       trigger: first.trigger,
       inherited: first.isInherited === true,
+      linked: first.isLinked === true,
     });
     if (clauses.length !== indices.length) continue;
     const inOrder = indices.every((index, position) => {

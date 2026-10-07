@@ -295,6 +295,36 @@ describe("BT25-072 Shutmon", () => {
     expect(observe(s.engine).hasRestriction(s.perm("opponentDigimon"), "unsuspend")).toBe(false);
     expect(observe(s.engine).hasRestriction(s.perm("opponentTamer"), "unsuspend")).toBe(false);
   });
+
+  it("labels the linked When Linking target prompt with the link box, not the main text (Discord 1557211687998984202)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-009", as: "host" }],
+        hand: [{ card: CARD_ID, as: "linkedShutmon" }],
+      },
+      1: {
+        battleArea: [
+          { card: "BT25-081", as: "opponentDigimon" },
+          { card: "BT1-087", as: "opponentTamer" },
+          { card: "BT25-081", as: "otherOpponentDigimon" },
+        ],
+      },
+    });
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("linkedShutmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+
+    const payload = JSON.parse(s.state.pendingDecision!.payloadJson) as { timing?: string; effectText?: string };
+    expect(payload.timing).toBe("WhenLinking");
+    expect(payload.effectText).toBe(getCardDefinition(CARD_ID)!.linkEffect);
+  });
 });
 
 describe("BT25-072 Shutmon — KB Q&A rulings", () => {

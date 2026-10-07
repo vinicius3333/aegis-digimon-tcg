@@ -186,8 +186,9 @@ export function rawHints(node: unknown, out: string[] = []): string[] {
 
 function printedBoxes(
   definition: CardDefinition,
-  { inherited, trigger }: { inherited: boolean; trigger: EffectTrigger },
+  { inherited, linked = false, trigger }: { inherited: boolean; linked?: boolean; trigger: EffectTrigger },
 ) {
+  if (linked) return [definition.linkEffect];
   if (inherited) return [definition.inheritedEffectText];
   if (trigger === "Security") return [definition.securityEffectText, definition.effectText];
   if (trigger === "Main") return [definition.effectText, definition.optionEffect];
@@ -219,14 +220,16 @@ export function printedClausesForTrigger({
   definition,
   trigger,
   inherited,
+  linked = false,
 }: {
   definition: CardDefinition;
   trigger: EffectTrigger;
   inherited: boolean;
+  linked?: boolean;
 }): string[] {
   const label = PRINTED_TIMING_LABELS[trigger];
   if (label === undefined) return [];
-  return printedBoxes(definition, { inherited, trigger })
+  return printedBoxes(definition, { inherited, linked, trigger })
     .flatMap(splitPrintedClauses)
     .filter((clause) => clause.labels.has(label))
     .map((clause) => clause.text);
@@ -249,7 +252,11 @@ export function printedClauseForEffect({
 }): string | undefined {
   const label = PRINTED_TIMING_LABELS[effect.trigger];
   if (label === undefined) return undefined;
-  const clauses = printedBoxes(definition, { inherited: effect.isInherited === true, trigger: effect.trigger })
+  const clauses = printedBoxes(definition, {
+    inherited: effect.isInherited === true,
+    linked: effect.isLinked === true,
+    trigger: effect.trigger,
+  })
     .flatMap(splitPrintedClauses)
     .filter((clause) => clause.labels.has(label));
   return clauseByHints(clauses, rawHints(effect.actions), requireHints)?.text;
@@ -274,7 +281,11 @@ export function printedClauseForWatcher({
   if (!CONTINUOUS_TRIGGERS.has(effect.trigger)) return undefined;
   const label = PRINTED_TIMING_LABELS[effect.trigger];
   const labels = label === undefined ? CONTINUOUS_LABELS : [label];
-  const clauses = printedBoxes(definition, { inherited: effect.isInherited === true, trigger: effect.trigger })
+  const clauses = printedBoxes(definition, {
+    inherited: effect.isInherited === true,
+    linked: effect.isLinked === true,
+    trigger: effect.trigger,
+  })
     .flatMap(splitPrintedClauses)
     .filter((clause) => labels.some((candidate) => clause.labels.has(candidate)));
   const byHints = clauseByHints(clauses, rawHints(action));
