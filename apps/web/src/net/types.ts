@@ -205,6 +205,7 @@ export interface AegisJoinOptions {
     | "arena-discord-1556745762682183811-giant-slayer-execute"
     | "arena-discord-1556745762682183811-holy-succession"
     | "arena-ex7-seventh-fascination-turn"
+    | "arena-face-down-ace-no-overflow"
     | "arena-ex11-vortex-effect-attack-block"
     | "arena-bt17-dexdoru-exact-name"
     | "arena-open-bugs-veemon-decline"

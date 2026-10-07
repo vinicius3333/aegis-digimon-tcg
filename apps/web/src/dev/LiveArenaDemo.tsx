@@ -993,6 +993,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e ataque a segurança com Examon EX13-045. Na ordem dos efeitos [Ao Atacar], ＜Raid＞ deve mostrar Sim/Não/Perguntar, não Obrigatório. Marque Não: o ataque continua na segurança, sem pedido de Raid, e o Agumon BT1-013 do bot sobrevive. Reinicie e marque Sim: o alvo muda para o Agumon sem pedido extra, e ele é deletado na batalha.",
     en: "End breeding and attack security with EX13-045 Examon. In the [When Attacking] order, ＜Raid＞ must show Yes/No/Ask, not Mandatory. Set No: the attack stays on security with no Raid prompt, and the bot's BT1-013 Agumon survives. Reset and set Yes: the target switches to the Agumon with no extra prompt, and it is deleted in battle.",
   },
+  "arena-face-down-ace-no-overflow": {
+    ptBR: "Encerre a fase de criação. Seu MetalTyrannomon EX9-043 tem BlitzGreymon EX9-013 (ACE, Overflow -4) virado para baixo embaixo. Ataque o Digimon suspenso de 13000 DP do bot. MetalTyrannomon perde a batalha e as duas cartas vão para a lixeira. A memória não deve mudar: uma carta virada para baixo não tem informação, então não há Overflow.",
+    en: "End breeding. Your EX9-043 MetalTyrannomon has EX9-013 BlitzGreymon (ACE, Overflow -4) face down under it. Attack the bot's suspended 13000-DP Digimon. MetalTyrannomon loses the battle and both cards go to the trash. Memory must not change: a face-down card has no card information, so there is no Overflow.",
+  },
   "arena-ex7-seventh-fascination-trash-turn": {
     ptBR: "Evolua BT11-083 para EX7-061 Lilithmon (X Antibody) e aceite devolver EX7-072 da lixeira ao fundo do deck. O Digimon do bot deve sobreviver ao fim do seu turno e só ser deletado no fim do turno dele.",
     en: "Digivolve BT11-083 into EX7-061 Lilithmon (X Antibody) and accept returning EX7-072 from trash to the deck bottom. The bot's Digimon should survive your turn end and be deleted only at the end of its own turn.",
@@ -2130,6 +2134,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-mervamon-trash-digixros", "Mervamon · DigiXros materials from trash"],
   ["arena-bt5-koromon-attack-draw", "BT5 Koromon · draw before security"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
+  ["arena-face-down-ace-no-overflow", "Face-down ACE · no Overflow on deletion"],
   ["arena-ex11-vortex-effect-attack-block", "EX11 Vortexdramon · block after declined battle"],
   ["arena-bt17-dexdoru-exact-name", "BT17 DexDoruGreymon · exact [DoruGreymon] from trash"],
   ["arena-open-bugs-veemon-decline", "Open bugs · veemon decline"],
