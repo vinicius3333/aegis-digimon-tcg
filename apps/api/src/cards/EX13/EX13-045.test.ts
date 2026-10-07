@@ -157,6 +157,55 @@ describe("EX13-045 Examon", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("#5253 still offers the level-five dragon pair after Groundramon returns through Fortitude", async () => {
+    const opts = { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX13-041", as: "ground", under: ["BT1-010"] },
+            { card: "EX13-021", as: "wing" },
+          ],
+          hand: [{ card: cardId, as: "examon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-013", as: "victim", dp: 9000, suspended: true }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      opts,
+    );
+    s.state.memory = 2;
+    await s.ready();
+    const oldGroundId = s.perm("ground").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: oldGroundId,
+        target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX13-041" && p.permanentId !== oldGroundId),
+    );
+    await s.ready();
+    expect(s.inst("examon").dnaDigivolveRoutes).toHaveLength(1);
+    expect(s.inst("examon").dnaDigivolveRoutes[0]?.projectedCost).toBe(0);
+    const ground = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "EX13-041")!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        instanceId: s.inst("examon").instanceId,
+        materialPermanentIds: [ground.permanentId, s.perm("wing").permanentId],
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe(cardId);
+    expect(s.state.memory).toBe(2);
+  });
+
   it("DNA digivolves the Green + Blue Lv.6 pair for 0 and keeps both materials as its source", async () => {
     const s = setupEngine(
       {
