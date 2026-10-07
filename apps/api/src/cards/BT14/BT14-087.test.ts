@@ -83,6 +83,34 @@ describe("BT14-087", () => {
     expect(observe(s.engine).hasKeyword(s.perm("unrelated"), "Blocker")).toBe(false);
   });
 
+  it("Mind Links under a Digimon whose [Dark Animal] trait comes only from its [Rule] text (GitHub #5181 sweep)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-056", as: "cerberusmon" }],
+          hand: [{ card: "BT14-087", as: "eiji" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("eiji").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-087"));
+    const eiji = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "BT14-087")!;
+    const [mindLink] = observe(s.engine).activatableEffects(eiji);
+    expect(mindLink).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: eiji.topCard!.instanceId,
+        effectKey: mindLink!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("cerberusmon").stack.some((card) => card.cardId === "BT14-087"));
+
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.cardId)).toEqual(["BT26-056"]);
+  });
+
   it("naturally plays Eiji from this host's own stack at end of all turns", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT14-074", as: "loogarmon", under: ["BT14-087"] }] } },

@@ -67,6 +67,11 @@ describe("resolved keyword contract", () => {
     expect(materialSaveCountOf("BT10-111")).toBe(1);
   });
 
+  it("matches a DigiXros material named only by its [Rule] name for Material Save (GitHub #5181 sweep)", () => {
+    expect(digiXrosMatches("BT10-009", "BT15-012")).toBe(true);
+    expect(digiXrosMatches("BT10-009", "BT1-009")).toBe(false);
+  });
+
   it("reads Material Save count from IR when catalog text contains only reminder text", () => {
     expect(materialSaveCountOf("BT15-012")).toBe(2);
   });
