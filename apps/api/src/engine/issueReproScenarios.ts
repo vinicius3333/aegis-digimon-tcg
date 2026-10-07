@@ -1507,6 +1507,21 @@ const ISSUE_LAYOUTS = {
     ],
     memory: 8,
   },
+  // GrapLeomon's own [When Attacking] and two inherited ones trigger together; the opponent
+  // has no security, so the attack wins once they resolve.
+  "arena-issue-5065-lethal-attack-order": {
+    memory: 3,
+    players: [{ field: [{ card: "BT4-057", under: ["BT6-025", "BT5-031"] }] }, { security: [] }],
+  },
+  // The bot's Leopardmon and its inherited MetalMamemon both trigger at the end of its turn,
+  // right before the viewer's turn-start draw.
+  "arena-issue-5065-opponent-turn-end": {
+    memory: 3,
+    players: [
+      { hand: ["BT1-009", "BT1-010"] },
+      { field: [{ card: "BT13-058", under: ["EX9-018"] }], hand: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
 } satisfies Record<string, Layout>;
 
 export type IssueReproScenarioId = keyof typeof ISSUE_LAYOUTS;
