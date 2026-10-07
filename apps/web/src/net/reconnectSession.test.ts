@@ -21,6 +21,12 @@ describe("reconnect session storage", () => {
     sessionStorage.clear();
   });
 
+  it("#5257 expires a reload token at the same 30-second deadline as the server", () => {
+    saveReconnectSession(session);
+    expect(loadReconnectSession(session.savedAt + 29_999)).toEqual(session);
+    expect(loadReconnectSession(session.savedAt + 30_000)).toBeUndefined();
+  });
+
   it("round-trips a saved session within the server grace window", () => {
     saveReconnectSession(session);
     expect(loadReconnectSession(session.savedAt + 1_000)).toEqual(session);

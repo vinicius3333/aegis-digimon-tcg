@@ -6,8 +6,89 @@ import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/ha
 import { compiled } from "./BT20-045.js";
 import "./index.js";
 import "../ST22/ST22-08.js";
+import "../EX13/EX13-041.js";
+import "../EX13/EX13-021.js";
 
 describe("BT20-045 Examon ACE", () => {
+  it("#5254 projects and accepts DNA from EX13 Groundramon and Wingdramon as level-six materials", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX13-041", as: "ground" },
+            { card: "EX13-021", as: "wing" },
+          ],
+          hand: [{ card: "BT20-045", as: "examon" }],
+        },
+        1: { security: ["BT1-011", "BT1-012", "BT1-013"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    expect(s.inst("examon").dnaDigivolveRoutes).toHaveLength(1);
+    expect(s.inst("examon").dnaDigivolveRoutes[0]?.projectedCost).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        instanceId: s.inst("examon").instanceId,
+        materialPermanentIds: [s.perm("ground").permanentId, s.perm("wing").permanentId],
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT20-045");
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("#5254 still offers the level-five dragon pair after Groundramon returns through Fortitude", async () => {
+    const opts = { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX13-041", as: "ground", under: ["BT1-010"] },
+            { card: "EX13-021", as: "wing" },
+          ],
+          hand: [{ card: "BT20-045", as: "examon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-013", as: "victim", dp: 9000, suspended: true }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      opts,
+    );
+    s.state.memory = 2;
+    await s.ready();
+    const oldGroundId = s.perm("ground").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: oldGroundId,
+        target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX13-041" && p.permanentId !== oldGroundId),
+    );
+    await s.ready();
+    expect(s.inst("examon").dnaDigivolveRoutes).toHaveLength(1);
+    expect(s.inst("examon").dnaDigivolveRoutes[0]?.projectedCost).toBe(0);
+    const ground = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "EX13-041")!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        instanceId: s.inst("examon").instanceId,
+        materialPermanentIds: [ground.permanentId, s.perm("wing").permanentId],
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT20-045");
+    expect(s.state.memory).toBe(2);
+  });
+
   it("keeps Blast DNA Digivolve in hand and returns highest-DP opposing Digimon only on DNA digivolving", () => {
     expect(compiled.effects.find((effect) => effect.trigger === "Counter")).toMatchObject({
       isFromHand: true,

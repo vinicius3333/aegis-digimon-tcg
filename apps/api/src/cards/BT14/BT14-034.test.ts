@@ -85,4 +85,72 @@ describe("BT14-034", () => {
     expect(s.perm("target").currentDP).toBe(5000);
     assertNoLoudGap(s);
   });
+
+  it.each([false, true])(
+    "#5261 plays Sukamon against the reported GraceNovamon stack (Apollomon reduction=%s)",
+    async (reduction) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              {
+                card: "BT25-103",
+                as: "grace",
+                under: [
+                  "BT25-001",
+                  "P-198",
+                  "BT25-022",
+                  "BT25-024",
+                  "BT25-026",
+                  "BT25-028",
+                  "BT25-008",
+                  "BT25-013",
+                  "BT25-017",
+                  "BT25-018",
+                ],
+              },
+            ],
+            hand: [{ card: "BT25-018", as: "apollomon" }, { card: "BT1-009" }],
+          },
+          1: { security: [{ card: "BT14-034", as: "sukamon" }, { card: "EX5-054" }, { card: "BT11-036" }] },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      );
+      s.state.memory = 20;
+      if (reduction) {
+        expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("apollomon").instanceId })).toEqual({
+          ok: true,
+        });
+        await settle(() => s.engine.mainVerbContinuationsInFlight === 0 && !s.state.pendingDecision);
+      }
+      expect(s.state.players[1]!.battleArea).toHaveLength(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("grace").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).finishAttack();
+      const played = s.events.findIndex((e) => e.kind === "cardPlayed" && e.cardId === "BT14-034");
+      expect(played).toBeGreaterThan(
+        s.events.findIndex((e) => e.kind === "securityChecked" && e.revealedCardId === "BT14-034"),
+      );
+      expect(played).toBeGreaterThanOrEqual(0);
+      const sukamon = s.state.players[1]!.battleArea.find((p) => p.topCard.cardId === "BT14-034");
+      if (reduction) {
+        expect(sukamon).toBeUndefined();
+        expect(s.state.players[1]!.trash.some((c) => c.instanceId === s.inst("sukamon").instanceId)).toBe(true);
+        expect(
+          s.events
+            .slice(played + 1)
+            .some((e) => e.kind === "cardsMoved" && e.deletedPermanents?.some((p) => p.cardId === "BT14-034")),
+        ).toBe(true);
+      } else {
+        expect(sukamon?.currentDP).toBe(1000);
+      }
+      expect(s.state.pendingDecision).toBeUndefined();
+      assertNoLoudGap(s);
+    },
+  );
 });

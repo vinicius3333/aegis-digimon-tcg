@@ -1,9 +1,22 @@
 import { Schema, ArraySchema, type, view } from "@colyseus/schema";
 import { CardInstance } from "./CardInstance.js";
 import { Permanent } from "./Permanent.js";
-import type { Seat } from "./enums.js";
+import type { EffectDuration, Seat } from "./enums.js";
 import { PRIVATE_VIEW_TAG } from "./viewTags.js";
 export { PRIVATE_VIEW_TAG } from "./viewTags.js";
+
+/** Public summary of a rule affecting current and future field entrants. */
+export interface FieldEffectView {
+  kind: "dp" | "restriction" | "keyword";
+  value: number | string;
+  amount?: number;
+  duration: EffectDuration;
+  ownerSeat: Seat;
+  sourceCardId?: string;
+  effectText?: string;
+  continuous?: boolean;
+  skipsCurrentOpponentTurnEnd?: boolean;
+}
 
 /**
  * View tag marking a PlayerState field as private to its owner. Fields tagged with
@@ -88,6 +101,8 @@ export class PlayerState extends Schema {
   @type([SecurityCardView]) securityView = new ArraySchema<SecurityCardView>();
   /** Net effect modifier for this player's Security Digimon, public to all viewers. */
   @type("int32") securityDpDelta = 0;
+  /** Active player-wide field rules, public even while the field is empty. */
+  @type("string") fieldEffectsJson = "[]";
 
   // Public zones.
   @type([Permanent]) battleArea = new ArraySchema<Permanent>();

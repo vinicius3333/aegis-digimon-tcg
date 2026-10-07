@@ -37,6 +37,8 @@ export interface RestrictionEntry {
 }
 
 export interface PlayerRestrictionEntry {
+  sourceCardId?: string;
+  effectText?: string;
   seat: Seat;
   ownerSeat: Seat;
   restriction: Restriction;
@@ -91,6 +93,8 @@ export interface OriginalCardInfoOverride {
 }
 
 export interface PlayerKeywordGrant {
+  sourceCardId?: string;
+  effectText?: string;
   seat: Seat;
   keyword: string;
   amount?: number;

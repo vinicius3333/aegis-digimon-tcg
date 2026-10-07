@@ -137,6 +137,8 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
               );
             },
             {
+              sourceCardId: ctx.source.definition.cardId,
+              effectText: action.effectTextPart ?? action.raw ?? ctx.source.definition.effectText,
               ...(locksTamersAsDigimon ? { matchesAsDigimon: matchesAsDigimon(seat, true) } : {}),
               fromSourceKind: action.fromSourceKind as string[] | undefined,
               byOpponentEffectsOnly: action.byOpponentEffectsOnly === true ? true : undefined,

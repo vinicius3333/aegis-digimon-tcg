@@ -204,7 +204,10 @@ export function DecisionOverlay({
             : "overlay.resolveEffect",
   );
   // The eyebrow above already names the source card; repeating it as the title says nothing twice.
-  const specificPrompt = playerFacingPromptText(request.promptText, request.kind);
+  const specificPrompt =
+    request.options?.promptKey === "attackAlreadyResolving"
+      ? t("overlay.attackAlreadyResolving")
+      : playerFacingPromptText(request.promptText, request.kind);
   const promptText =
     request.options?.selectionContext === "attackTarget"
       ? t("overlay.declareAttack")

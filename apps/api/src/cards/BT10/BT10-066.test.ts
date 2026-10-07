@@ -3,6 +3,8 @@ import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT10-066.js";
+import "../P/P-115.js";
+import "../BT7/BT7-059.js";
 
 describe("BT10-066 DarkKnightmon", () => {
   it("matches its catalog and exact DigiXros, On Play, and deletion-window IR", () => {
@@ -168,4 +170,41 @@ describe("BT10-066 DarkKnightmon — KB Q&A rulings", () => {
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId).sort()).toEqual(["BT10-064", "BT10-066", "BT4-011"]);
     assertNoLoudGap(s);
   });
+});
+
+it("#5264 stops further checks when DarkKnightmon is deleted after playing its SkullKnightmon source", async () => {
+  const preferred: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          {
+            card: "BT10-066",
+            as: "attacker",
+            under: [
+              { card: "BT7-059", as: "cost" },
+              { card: "P-115", as: "skull" },
+            ],
+          },
+        ],
+      },
+      1: { security: ["BT13-112", "BT1-009", "BT1-009"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
+  );
+  preferred.push(s.inst("cost").instanceId, s.inst("skull").instanceId);
+  await s.ready();
+  expect(s.perm("attacker").securityAttackModifier).toBe(1);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await advance(s.engine).finishAttack();
+  expect(s.state.players[0]!.trash.some((c) => c.cardId === "BT10-066")).toBe(true);
+  expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["P-115"]);
+  expect(s.state.players[1]!.security).toHaveLength(2);
+  expect(s.events.filter((e) => e.kind === "securityRevealed")).toHaveLength(1);
 });

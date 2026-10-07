@@ -106,6 +106,7 @@ function publishContinuousState(engine: GameEngine): void {
   engine.projection.syncKeywords();
   engine.projection.syncSummoningSickness();
   engine.projection.syncRestrictions();
+  engine.projection.syncFieldEffects();
   engine.projection.syncAttackTargets();
   engine.projection.syncHandAffordances();
   engine.projection.syncLinkTargets();

@@ -169,6 +169,17 @@ export class BoardProjection {
    * the moment a restriction lands, wear a standing debuff badge for as long as one holds,
    * and show a truthful strike count in the inspector.
    */
+  syncFieldEffects(): void {
+    for (const player of this.deps.state.players) {
+      const effects = [
+        ...this.deps.modifiers.fieldEffectViews(player.seat),
+        ...this.deps.continuous.fieldEffectViews(player.seat),
+      ];
+      const json = JSON.stringify(effects);
+      if (player.fieldEffectsJson !== json) player.fieldEffectsJson = json;
+    }
+  }
+
   syncRestrictions(): void {
     for (const player of this.deps.state.players) {
       for (const perm of player.battleArea) this.projectRestrictions(perm);

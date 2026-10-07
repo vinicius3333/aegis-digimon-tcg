@@ -7,6 +7,47 @@ import { DecisionPrompts } from "./DecisionPrompts";
 
 afterEach(cleanup);
 
+it.each([false, true])(
+  "explains the second Tai & Matt activation during an attack on the board/dialog (%s)",
+  (answerOnBoard) => {
+    const onRespond = vi.fn<(response: DecisionResponse) => void>();
+    render(
+      <I18nProvider>
+        <DecisionPrompts
+          decision={{
+            decisionId: "dec-44",
+            seat: 0,
+            kind: "optional",
+            promptText: "Attack with a Digimon",
+            sourceCardId: "BT17-081",
+            options: { selectionContext: "attackSource", timing: "EndOfYourTurn", promptKey: "attackAlreadyResolving" },
+          }}
+          answerOnBoard={answerOnBoard}
+          permanents={[]}
+          sourceCardId="BT17-081"
+          candidates={[]}
+          allowsPick={() => true}
+          picks={[]}
+          min={0}
+          max={1}
+          triggerDetails={[]}
+          opponentSelecting={false}
+          opponentSecurityCount={5}
+          onTogglePick={() => {}}
+          onRespond={onRespond}
+          onOpenDialog={() => {}}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByText("Another attack cannot start while this attack is resolving.")).toBeTruthy();
+    expect(screen.queryByText("Attack with a Digimon")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: answerOnBoard ? "Use" : "Yes, activate" }));
+    expect(onRespond).toHaveBeenCalledWith({ kind: "optional", accept: true });
+    fireEvent.click(screen.getByRole("button", { name: answerOnBoard ? "Don't use" : "No, decline" }));
+    expect(onRespond).toHaveBeenCalledWith({ kind: "optional", accept: false });
+  },
+);
+
 it("reuses the Assembly material overlay for an effect-driven play", () => {
   const onRespond = vi.fn<(response: DecisionResponse) => void>();
   render(

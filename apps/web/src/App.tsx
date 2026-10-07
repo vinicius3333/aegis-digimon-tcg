@@ -439,9 +439,9 @@ export function AegisClient({
 
   const showNav = NAV_SCREENS.includes(screen);
 
-  const selectAvatar = async (avatarId: DigimonWorldAvatarId) => {
+  const selectAvatar = async (avatarId: DigimonWorldAvatarId | null) => {
     if (account) {
-      const updated = await accountApi.updateAvatar(avatarId).catch(() => undefined);
+      const updated = await accountApi.updateAvatar(avatarId);
       if (updated) setAccount?.(updated);
       return;
     }

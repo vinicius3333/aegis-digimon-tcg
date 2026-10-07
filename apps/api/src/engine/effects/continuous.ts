@@ -4,6 +4,7 @@ import {
   type CardColor,
   type CardDefinition,
   type GameState,
+  type FieldEffectView,
   type Seat,
   type Keyword,
   type ZoneRef,
@@ -238,6 +239,33 @@ export class ContinuousEffectLedger {
     );
   }
 
+  fieldEffectViews(seat: Seat): FieldEffectView[] {
+    return [
+      ...this.playerRestrictions
+        .filter((entry) => entry.seat === seat)
+        .map((entry) => ({
+          kind: "restriction" as const,
+          value: entry.restriction,
+          duration: entry.duration,
+          ownerSeat: entry.ownerSeat,
+          sourceCardId: entry.sourceCardId,
+          effectText: entry.effectText,
+          continuous: entry.continuous,
+        })),
+      ...this.playerKeywordGrants
+        .filter((entry) => entry.seat === seat)
+        .map((entry) => ({
+          kind: "keyword" as const,
+          value: entry.keyword,
+          amount: entry.amount,
+          duration: entry.duration,
+          ownerSeat: entry.ownerSeat ?? seat,
+          sourceCardId: entry.sourceCardId,
+          effectText: entry.effectText,
+        })),
+    ];
+  }
+
   /** Record a duration-scoped rule for every matching permanent a player controls, including future entrants. */
   addPlayerRestriction(
     seat: Seat,
@@ -247,6 +275,8 @@ export class ContinuousEffectLedger {
     matches: (permanentId: string) => boolean,
     opts?: {
       continuous?: boolean;
+      sourceCardId?: string;
+      effectText?: string;
       matchesAsDigimon?: PlayerRestrictionEntry["matchesAsDigimon"];
       fromSourceKind?: string[];
       byOpponentEffectsOnly?: boolean;
@@ -260,6 +290,8 @@ export class ContinuousEffectLedger {
         restriction,
         duration,
         matches,
+        sourceCardId: opts?.sourceCardId,
+        effectText: opts?.effectText,
         continuous: opts?.continuous,
         ...(opts?.matchesAsDigimon === undefined ? {} : { matchesAsDigimon: opts.matchesAsDigimon }),
         ...(opts?.fromSourceKind === undefined ? {} : { fromSourceKind: opts.fromSourceKind }),
@@ -938,7 +970,7 @@ export class ContinuousEffectLedger {
     keyword: string,
     duration: EffectDuration,
     amount?: number,
-    opts?: { ownerSeat?: Seat; matches?: (permanentId: string) => boolean },
+    opts?: { ownerSeat?: Seat; matches?: (permanentId: string) => boolean; sourceCardId?: string; effectText?: string },
   ): void {
     this.playerKeywordGrants.push(
       this.anchorDuration({
@@ -946,6 +978,8 @@ export class ContinuousEffectLedger {
         keyword,
         amount,
         duration,
+        sourceCardId: opts?.sourceCardId,
+        effectText: opts?.effectText,
         ...(opts?.ownerSeat === undefined ? {} : { ownerSeat: opts.ownerSeat }),
         ...(opts?.matches === undefined ? {} : { matches: opts.matches }),
       }),

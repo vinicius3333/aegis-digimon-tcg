@@ -23,7 +23,7 @@ export function PlayerMenu({
   player: PlayerIdentity;
   signedIn: boolean;
   selectedAvatarId: DigimonWorldAvatarId | null;
-  onSelectAvatar: (avatarId: DigimonWorldAvatarId) => void | Promise<void>;
+  onSelectAvatar: (avatarId: DigimonWorldAvatarId | null) => void | Promise<void>;
   onNav: (screen: Screen) => void;
   onSignOut?: () => void;
   onReportBug?: () => void;
@@ -31,7 +31,8 @@ export function PlayerMenu({
 }) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
-  const [pendingAvatarId, setPendingAvatarId] = useState<DigimonWorldAvatarId>();
+  const [pendingAvatarId, setPendingAvatarId] = useState<DigimonWorldAvatarId | null>();
+  const [avatarSaveFailed, setAvatarSaveFailed] = useState(false);
 
   const avatars = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase();
@@ -44,11 +45,14 @@ export function PlayerMenu({
     { key: "settings", label: t("menu.settings"), icon: Icons.Settings, action: () => onNav("settings") },
   ];
 
-  async function pickAvatar(avatarId: DigimonWorldAvatarId) {
-    if (pendingAvatarId) return;
+  async function pickAvatar(avatarId: DigimonWorldAvatarId | null) {
+    if (pendingAvatarId !== undefined) return;
+    setAvatarSaveFailed(false);
     setPendingAvatarId(avatarId);
     try {
       await onSelectAvatar(avatarId);
+    } catch {
+      setAvatarSaveFailed(true);
     } finally {
       setPendingAvatarId(undefined);
     }
@@ -116,6 +120,29 @@ export function PlayerMenu({
             onChange={(event) => setQuery(event.target.value)}
           />
         </div>
+
+        <button
+          type="button"
+          className="player-menu__account-avatar"
+          aria-label={t(signedIn ? "playerMenu.accountAvatar" : "playerMenu.defaultAvatar")}
+          aria-pressed={selectedAvatarId === null}
+          disabled={pendingAvatarId !== undefined}
+          onClick={() => void pickAvatar(null)}
+        >
+          <Avatar name={player.name} color={player.color} avatarUrl={signedIn ? player.avatarUrl : null} size={40} />
+          <span>
+            <strong>{t(signedIn ? "playerMenu.accountAvatar" : "playerMenu.defaultAvatar")}</strong>
+            <small>{t(signedIn ? "playerMenu.accountAvatarCopy" : "playerMenu.defaultAvatarCopy")}</small>
+          </span>
+          <span className="player-menu__avatar-check" aria-hidden="true">
+            {selectedAvatarId === null ? <Icons.Check size={14} /> : null}
+          </span>
+        </button>
+        {avatarSaveFailed ? (
+          <p role="alert" className="player-menu__avatar-error">
+            {t("playerMenu.avatarSaveFailed")}
+          </p>
+        ) : null}
 
         {avatars.length ? (
           <div className="player-menu__avatar-grid" role="group" aria-label={t("playerMenu.avatarGridAria")}>

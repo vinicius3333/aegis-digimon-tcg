@@ -26,6 +26,49 @@ async function launch(id: IssueReproScenarioId, options: SetupEngineOptions = {}
   };
 }
 
+it("Tai & Matt arena explains the second activation without declaring a second attack", async () => {
+  const s = await launch("arena-tai-matt-double-end-turn", {
+    autoAcceptOptional: true,
+    autoSelectCards: true,
+    autoOrderTriggers: true,
+  });
+  expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  await settle(() => s.events.some((e) => e.kind === "attackDeclared"));
+  await advance(s.engine).finishAttack();
+  await settle(() => s.state.turnSeat === 1 && s.state.phase === Phase.Breeding);
+  const questions = s.decisions.filter(({ req }) => req.options?.selectionContext === "attackSource");
+  expect(questions).toHaveLength(2);
+  expect(questions[0]!.req.options?.promptKey).toBeUndefined();
+  expect(questions[1]!.req.options?.promptKey).toBe("attackAlreadyResolving");
+  expect(s.events.filter((e) => e.kind === "attackDeclared")).toHaveLength(1);
+  expect(s.state.players[1]!.security).toHaveLength(2);
+  expect(s.field("AD1-025").isSuspended).toBe(false);
+  expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+  await advance(s.engine).waitForMainPhase(1);
+  await s.finish();
+});
+
+it("#5254 playable arena offers zero-cost DNA from the EX13 level-five pair", async () => {
+  const s = await launch("arena-issue-5254-examon-dna", { autoDeclineOptional: true });
+  expect(s.hand("BT20-045").dnaDigivolveRoutes).toHaveLength(1);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "dnaDigivolve",
+      instanceId: s.hand("BT20-045").instanceId,
+      materialPermanentIds: [s.field("EX13-041").permanentId, s.field("EX13-021").permanentId],
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.field("BT20-045") !== undefined && s.state.pendingDecision === undefined);
+  expect(s.state.memory).toBe(3);
+  expect(
+    s
+      .field("BT20-045")
+      .stack.map((c) => c.cardId)
+      .sort(),
+  ).toEqual(["EX13-021", "EX13-041"]);
+  await s.finish();
+});
+
 it("#5207 playable arena gains memory for a Guard sacrifice with granted Blocker", async () => {
   const s = await launch("arena-issue-5207-dorimon-guard", {
     autoAcceptOptional: true,
@@ -153,5 +196,175 @@ it("#5247 playable arena discounts Option use despite Chikurimon before deleting
   );
   expect(s.state.memory).toBe(2);
   expect(s.state.players[1]!.trash.some((c) => c.cardId === "ST13-08")).toBe(true);
+  await s.finish();
+});
+
+it("#5258 playable arena lets a resolution-plan DNA be followed by declining the attack", async () => {
+  const s = await launch("arena-issue-5258-plesiomon-optional-attack", {
+    autoAcceptOptional: true,
+    autoSelectCards: true,
+    autoOrderTriggers: false,
+    declinePrompts: ["Attack with a Digimon"],
+  });
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.hand("EX8-021").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+  const req = s.state.pendingDecision!;
+  const keys: string[] = JSON.parse(req.payloadJson).triggerKeys;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: req.decisionId,
+      response: { kind: "orderTriggers", order: keys, optionalAnswers: { [keys[0]!]: true, [keys[1]!]: false } },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.field("EX8-029") !== undefined && !s.state.pendingDecision);
+  expect(
+    s.decisions.some(({ req }) => req.kind === "optional" && req.options?.selectionContext === "attackSource"),
+  ).toBe(true);
+  expect(s.events.some((e) => e.kind === "attackDeclared")).toBe(false);
+  expect(s.state.players[1]!.security).toHaveLength(3);
+  await s.finish();
+});
+
+it("#5259 playable arena excludes GulusGammamon from the Brothers Delay on BetelGammamon", async () => {
+  const preferred: string[] = [];
+  const s = await launch("arena-issue-5259-gammamon-exact-evolution", {
+    autoAcceptOptional: true,
+    autoSelectCards: true,
+    autoOrderTriggers: true,
+    preferInstanceIds: preferred,
+  });
+  preferred.push(s.hand("BT21-010").instanceId, s.field("BT21-019").permanentId, s.hand("RB1-009").instanceId);
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.hand("BT21-022").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(
+    () => s.field("RB1-009") !== undefined && !s.state.pendingDecision && s.engine.mainVerbContinuationsInFlight === 0,
+  );
+  expect(s.hand("EX10-042")).toBeDefined();
+  expect(s.state.memory).toBe(3);
+  expect(s.state.turnSeat).toBe(0);
+  await s.finish();
+});
+
+it("#5261 arena shows the field-wide DP reduction, Sukamon's successful play and rule deletion", async () => {
+  const s = await launch("arena-issue-5261-sukamon-field-reduction", {
+    autoDeclineOptional: true,
+    autoSelectCards: true,
+    autoOrderTriggers: true,
+  });
+  const base = s.field("BT25-017");
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: base.permanentId,
+      instanceId: s.hand("BT25-018").instanceId,
+      useAlternateCost: true,
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () =>
+      base.topCard.cardId === "BT25-018" && !s.state.pendingDecision && s.engine.mainVerbContinuationsInFlight === 0,
+  );
+  expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  expect(JSON.parse(s.state.players[1]!.fieldEffectsJson)).toEqual(
+    expect.arrayContaining([expect.objectContaining({ kind: "dp", value: -4000, sourceCardId: "BT25-018" })]),
+  );
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.field("BT25-103").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await advance(s.engine).finishAttack();
+  expect(s.events.some((e) => e.kind === "cardPlayed" && e.cardId === "BT14-034")).toBe(true);
+  expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  expect(s.state.players[1]!.trash.some((c) => c.cardId === "BT14-034")).toBe(true);
+  expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  await settle(() => s.state.turnSeat === 1 && s.state.phase === Phase.Breeding);
+  expect(
+    JSON.parse(s.state.players[1]!.fieldEffectsJson).some((effect: { kind: string }) => effect.kind === "dp"),
+  ).toBe(false);
+  expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+  await advance(s.engine).waitForMainPhase(1);
+  await s.finish();
+});
+
+it("keeps two public field effects separate and expires both at the turn boundary", async () => {
+  const s = await launch("arena-multiple-field-effects", {
+    autoDeclineOptional: true,
+    autoSelectCards: true,
+    autoOrderTriggers: true,
+  });
+  for (let index = 0; index < 2; index++) {
+    const base = s.field("BT25-017");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: base.permanentId,
+        instanceId: s.hand("BT25-018").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        base.topCard.cardId === "BT25-018" && !s.state.pendingDecision && s.engine.mainVerbContinuationsInFlight === 0,
+    );
+  }
+  expect(JSON.parse(s.state.players[1]!.fieldEffectsJson)).toEqual([
+    expect.objectContaining({ kind: "dp", value: -4000, sourceCardId: "BT25-018" }),
+    expect.objectContaining({ kind: "dp", value: -4000, sourceCardId: "BT25-018" }),
+  ]);
+  expect(s.state.players[1]!.battleArea).toHaveLength(4);
+  expect(s.state.players[1]!.battleArea.filter((p) => p.currentDP > 0)).toHaveLength(3);
+  expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  await settle(() => s.state.turnSeat === 1 && s.state.phase === Phase.Breeding);
+  expect(JSON.parse(s.state.players[1]!.fieldEffectsJson)).toEqual([]);
+  expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+  await advance(s.engine).waitForMainPhase(1);
+  await s.finish();
+});
+
+it("shows the viewer's Blocker alongside an opposing field reduction with independent expiry", async () => {
+  const s = await launch("arena-own-field-effects", {
+    autoDeclineOptional: true,
+    autoSelectCards: true,
+    autoOrderTriggers: true,
+  });
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.hand("BT22-052").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(
+    () => s.field("BT22-052") !== undefined && !s.state.pendingDecision && s.engine.mainVerbContinuationsInFlight === 0,
+  );
+  expect(JSON.parse(s.state.players[0]!.fieldEffectsJson)).toEqual(
+    expect.arrayContaining([expect.objectContaining({ kind: "keyword", value: "Blocker", sourceCardId: "BT22-052" })]),
+  );
+  const base = s.field("BT25-017");
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: base.permanentId,
+      instanceId: s.hand("BT25-018").instanceId,
+      useAlternateCost: true,
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () =>
+      base.topCard.cardId === "BT25-018" && !s.state.pendingDecision && s.engine.mainVerbContinuationsInFlight === 0,
+  );
+  expect(JSON.parse(s.state.players[1]!.fieldEffectsJson)).toEqual(
+    expect.arrayContaining([expect.objectContaining({ kind: "dp", value: -8000 })]),
+  );
+  expect(s.state.players[0]!.battleArea.every((p) => p.keywords.includes("Blocker"))).toBe(true);
+  expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  await settle(() => s.state.turnSeat === 1 && s.state.phase === Phase.Breeding);
+  expect(JSON.parse(s.state.players[1]!.fieldEffectsJson)).toEqual([]);
+  expect(JSON.parse(s.state.players[0]!.fieldEffectsJson)).toEqual(
+    expect.arrayContaining([expect.objectContaining({ kind: "keyword", value: "Blocker" })]),
+  );
+  expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+  await advance(s.engine).waitForMainPhase(1);
   await s.finish();
 });

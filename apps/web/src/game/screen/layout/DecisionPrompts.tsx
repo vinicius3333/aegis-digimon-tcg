@@ -283,7 +283,11 @@ export function DecisionPrompts({
         <BoardOptionalPrompt
           key={decision.decisionId}
           sourceCardId={sourceCardId}
-          prompt={playerFacingPromptText(decision.promptText, decision.kind)}
+          prompt={
+            decision.options?.promptKey === "attackAlreadyResolving"
+              ? t("overlay.attackAlreadyResolving")
+              : playerFacingPromptText(decision.promptText, decision.kind)
+          }
           sourcePermanentId={decision.sourcePermanentId}
           clause={clause}
           onUse={() => onRespond({ kind: "optional", accept: true })}

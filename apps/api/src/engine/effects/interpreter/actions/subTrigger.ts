@@ -1391,6 +1391,17 @@ export async function runSubTrigger(
               : (current.condition ?? ("while" in current ? current.while : undefined));
           if (gate === undefined || evaluateCondition(subCtx, gate)) anyActionGateMatched = true;
           const outerContinuation = subCtx.continueEffectAfterAttackDeclaration;
+          const outerOptionalAnswer = subCtx.presetOptionalAnswer;
+          // Plesiomon's optional attack on the DNA result is a separate decision
+          // from accepting the watcher's DNA activation in the resolution plan.
+          if (
+            index > 0 &&
+            current.kind === "Attack" &&
+            current.optional === true &&
+            current.target.filter.boundRef !== undefined &&
+            outerOptionalAnswer === true
+          )
+            subCtx.presetOptionalAnswer = undefined;
           let continuationRan = false;
           if (mayDeclareAttack(current) && index + 1 < action.actions.length) {
             subCtx.continueEffectAfterAttackDeclaration = async () => {
@@ -1403,6 +1414,7 @@ export async function runSubTrigger(
             abort = await runAction(subCtx, current);
           } finally {
             subCtx.continueEffectAfterAttackDeclaration = outerContinuation;
+            subCtx.presetOptionalAnswer = outerOptionalAnswer;
           }
           if (abort || continuationRan) return;
         }

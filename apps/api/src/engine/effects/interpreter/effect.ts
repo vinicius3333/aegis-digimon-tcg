@@ -808,6 +808,17 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
         const outerActionPath = ctxWithSelections.activeActionPath;
         const outerChainsSameTarget = ctxWithSelections.nextActionChainsSameTarget;
         const outerAttackContinuation = ctxWithSelections.continueEffectAfterAttackDeclaration;
+        const outerOptionalAnswer = ctxWithSelections.presetOptionalAnswer;
+        // An optional attack on the result of an earlier action is a separate
+        // decision: accepting DNA in the plan does not also accept its attack.
+        if (
+          actionIndex > 0 &&
+          action.kind === "Attack" &&
+          action.optional === true &&
+          action.target.filter.boundRef !== undefined &&
+          outerOptionalAnswer === true
+        )
+          ctxWithSelections.presetOptionalAnswer = undefined;
         ctxWithSelections.activeActionPath = `${actionIndex}`;
         ctxWithSelections.nextActionChainsSameTarget =
           (actions[actionIndex + 1] as { target?: { sameTarget?: boolean } } | undefined)?.target?.sameTarget === true;
@@ -845,6 +856,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
           ctxWithSelections.activeActionPath = outerActionPath;
           ctxWithSelections.nextActionChainsSameTarget = outerChainsSameTarget;
           ctxWithSelections.continueEffectAfterAttackDeclaration = outerAttackContinuation;
+          ctxWithSelections.presetOptionalAnswer = outerOptionalAnswer;
         }
         if (abort || attackContinuationRan) return;
       }

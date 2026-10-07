@@ -50,7 +50,7 @@ describe("EX10-042 GulusGammamon", () => {
   it("compiles the three printed clauses with the right name-match strictness", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Gammamon"], cost: 2, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Gammamon"], cost: 2, isAlternate: true }]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects?.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [

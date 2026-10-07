@@ -253,7 +253,7 @@ export function installAccountRoutes(
     const session = await requireSession(req, res, store);
     if (!session) return;
     const avatarId = (req.body as { avatarId?: unknown }).avatarId;
-    if (!isDigimonWorldAvatarId(avatarId)) {
+    if (avatarId !== null && !isDigimonWorldAvatarId(avatarId)) {
       res.status(400).json({ error: "invalid avatar" });
       return;
     }

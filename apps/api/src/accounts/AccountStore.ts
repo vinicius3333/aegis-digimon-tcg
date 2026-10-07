@@ -307,7 +307,7 @@ export class AccountStore {
     });
   }
 
-  async updateAvatar(accountId: string, avatarId: DigimonWorldAvatarId): Promise<Account | undefined> {
+  async updateAvatar(accountId: string, avatarId: DigimonWorldAvatarId | null): Promise<Account | undefined> {
     await this.ensureReady();
     const row = (
       await this.pool.query<AccountRow>(

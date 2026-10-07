@@ -25,6 +25,97 @@ type Layout = { players: readonly [PlayerLayout, PlayerLayout]; memory?: number 
 
 // Reduced boards for reported issues. Each runs in the ordinary turn loop.
 const ISSUE_LAYOUTS = {
+  "arena-tai-matt-double-end-turn": {
+    memory: 3,
+    players: [
+      { field: [{ card: "BT17-081" }, { card: "BT17-081" }, { card: "AD1-025", under: ["BT22-026"] }] },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-issue-5254-examon-dna": {
+    memory: 3,
+    players: [
+      { field: [{ card: "EX13-041" }, { card: "EX13-021" }], hand: ["BT20-045"] },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-issue-5258-plesiomon-optional-attack": {
+    memory: 10,
+    players: [
+      { field: [{ card: "EX8-027" }, { card: "EX8-026" }, { card: "EX8-027" }], hand: ["EX8-021", "EX8-029"] },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-issue-5259-gammamon-exact-evolution": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "BT21-019", under: ["RB1-001", "BT21-010"] }, { card: "BT21-090" }],
+        hand: ["BT21-022", "BT21-010", "RB1-009", "EX10-042"],
+      },
+      { field: [{ card: "BT1-009" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-own-field-effects": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "BT25-017", under: ["BT25-008"] }, { card: "BT1-010" }, { card: "BT2-044" }],
+        hand: ["BT22-052", "BT25-018"],
+      },
+      { field: [{ card: "BT25-103" }, { card: "BT5-111" }, { card: "BT13-112" }, { card: "BT1-085" }] },
+    ],
+  },
+  "arena-multiple-field-effects": {
+    memory: 10,
+    players: [
+      {
+        field: [
+          { card: "BT25-017", under: ["BT25-008"] },
+          { card: "BT25-017", under: ["BT25-008"] },
+        ],
+        hand: ["BT25-018", "BT25-018"],
+      },
+      {
+        field: [
+          { card: "BT25-103" },
+          { card: "BT5-111" },
+          { card: "BT17-078" },
+          { card: "BT5-111" },
+          { card: "BT13-112" },
+          { card: "BT1-085" },
+        ],
+        security: ["BT14-034", "BT1-009", "BT1-009"],
+      },
+    ],
+  },
+  "arena-issue-5261-sukamon-field-reduction": {
+    memory: 10,
+    players: [
+      {
+        field: [
+          {
+            card: "BT25-103",
+            under: [
+              "BT25-001",
+              "P-198",
+              "BT25-022",
+              "BT25-024",
+              "BT25-026",
+              "BT25-028",
+              "BT25-008",
+              "BT25-013",
+              "BT25-017",
+              "BT25-018",
+            ],
+          },
+          { card: "BT25-017", under: ["BT25-008"] },
+        ],
+        hand: ["BT25-018", "BT1-009"],
+      },
+      { security: ["BT14-034", "EX5-054", "BT11-036"] },
+    ],
+  },
   "arena-issue-5207-dorimon-guard": {
     memory: 3,
     players: [
