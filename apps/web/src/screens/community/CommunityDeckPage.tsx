@@ -3,7 +3,7 @@ import { getCardDefinition, type CommunityDeck } from "@aegis/shared";
 import { communityApi } from "../../community/client";
 import { communityDeckListing } from "../../community/communityDeckListing";
 import { CardFull, CoverThumb } from "../../design/cards";
-import { Badge, Button, ColorDot } from "../../design/primitives";
+import { Alert, Badge, Button, ColorDot } from "../../design/primitives";
 import { Panel, SectionHeading } from "../../design/surfaces";
 import { Icons } from "../../design/icons";
 import { displayCoverArt, displayCoverCard } from "../../game/decks";
@@ -11,6 +11,7 @@ import { useTranslation } from "../../i18n";
 import { DeckImageButton } from "../DeckImageButton";
 import { deckSections } from "../deckSections";
 import { LikeButton } from "./LikeButton";
+import { ReportDeckDialog } from "./ReportDeckDialog";
 
 type Load = { status: "loading" } | { status: "missing" } | { status: "ready"; deck: CommunityDeck };
 
@@ -18,19 +19,27 @@ export function CommunityDeckPage({
   deckId,
   signedIn,
   accountId,
+  isAdmin,
   onBack,
   onPlay,
   onCopy,
+  onNotice,
 }: {
   deckId: string;
   signedIn: boolean;
   accountId: string | undefined;
+  isAdmin: boolean;
   onBack: () => void;
   onPlay: (deck: CommunityDeck) => void;
   onCopy: (deck: CommunityDeck) => void;
+  onNotice: (message: string) => void;
 }) {
   const { t, locale } = useTranslation();
   const [load, setLoad] = useState<Load>({ status: "loading" });
+  const [reporting, setReporting] = useState(false);
+  const [reported, setReported] = useState(false);
+  const [moderating, setModerating] = useState(false);
+  const [moderationFailed, setModerationFailed] = useState(false);
 
   useEffect(() => {
     let current = true;
@@ -68,6 +77,20 @@ export function CommunityDeckPage({
     );
 
   const { deck } = load;
+  const ownDeck = deck.author.id === accountId;
+  const hidden = deck.status === "hidden";
+  const moderate = () => {
+    setModerating(true);
+    setModerationFailed(false);
+    communityApi
+      .moderate(deck.id, hidden ? "restore" : "hide")
+      .then(({ status }) => {
+        if (status === "public" || status === "hidden") setLoad({ status: "ready", deck: { ...deck, status } });
+        onNotice(t(status === "hidden" ? "community.moderation.hidden" : "community.moderation.restored"));
+      })
+      .catch(() => setModerationFailed(true))
+      .finally(() => setModerating(false));
+  };
   const listing = communityDeckListing(deck);
   const sections = deckSections(listing, t);
   const updated = new Date(deck.updatedAt).toLocaleDateString(locale);
@@ -96,6 +119,7 @@ export function CommunityDeckPage({
                   <ColorDot key={color} color={color} size={12} />
                 ))}
               </span>
+              {hidden ? <Badge tone="danger">{t("community.moderation.hiddenBadge")}</Badge> : null}
               <Badge tone={deck.legal ? "success" : "danger"}>
                 {deck.legal ? t("redesign.decks.list.legal") : t("community.notLegal")}
               </Badge>
@@ -110,7 +134,7 @@ export function CommunityDeckPage({
               key={`${deck.id}:${deck.likeCount}:${deck.likedByMe}`}
               deck={deck}
               signedIn={signedIn}
-              ownDeck={deck.author.id === accountId}
+              ownDeck={ownDeck}
               size="lg"
             />
             <Button icon={Icons.Swords} disabled={!deck.legal} onClick={() => onPlay(deck)}>
@@ -125,8 +149,42 @@ export function CommunityDeckPage({
               variant="secondary"
               label={t("deck.exportPng")}
             />
+            {isAdmin ? (
+              <Button
+                variant={hidden ? "secondary" : "danger"}
+                icon={hidden ? Icons.Eye : Icons.Shield}
+                disabled={moderating}
+                onClick={moderate}
+              >
+                {t(hidden ? "community.moderation.restore" : "community.moderation.hide")}
+              </Button>
+            ) : null}
+            {!signedIn || ownDeck || hidden ? null : reported ? (
+              <span className="community-report-link" role="status">
+                <Icons.Check size={14} />
+                {t("community.report.done")}
+              </span>
+            ) : (
+              <button type="button" className="community-report-link" onClick={() => setReporting(true)}>
+                <Icons.Flag size={14} />
+                {t("community.report.open")}
+              </button>
+            )}
           </div>
         </Panel>
+        {moderationFailed ? <Alert tone="danger">{t("community.moderation.error")}</Alert> : null}
+        {reporting ? (
+          <ReportDeckDialog
+            deckId={deck.id}
+            deckName={deck.name}
+            onClose={() => setReporting(false)}
+            onReported={() => {
+              setReporting(false);
+              setReported(true);
+              onNotice(t("community.report.sent"));
+            }}
+          />
+        ) : null}
 
         <section className="community-decklist" aria-labelledby="community-decklist-title">
           <SectionHeading id="community-decklist-title" title={t("community.decklist")} />

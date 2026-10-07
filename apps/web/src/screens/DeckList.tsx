@@ -264,7 +264,12 @@ function DeckListRow({
             <Badge tone={legal ? "success" : "neutral"}>
               {legal ? t("redesign.decks.list.legal") : t("redesign.decks.list.draft")}
             </Badge>
-            {publication ? (
+            {publication?.status === "hidden" ? (
+              <Badge tone="danger" className="deck-list-row__visibility">
+                <Icons.Flag size={12} />
+                {t("community.moderation.hiddenOwnerBadge")}
+              </Badge>
+            ) : publication ? (
               <Badge tone="primary" className="deck-list-row__visibility">
                 <Icons.Users size={12} />
                 {t("community.publish.public")}
@@ -275,7 +280,11 @@ function DeckListRow({
               <Badge className="deck-list-row__visibility">{t("community.publish.private")}</Badge>
             ) : null}
           </div>
-          {publication?.outdated ? <p className="deck-list-row__blurb">{t("community.publish.outdated")}</p> : null}
+          {publication?.status === "hidden" ? (
+            <p className="deck-list-row__blurb">{t("community.moderation.hiddenOwnerNote")}</p>
+          ) : publication?.outdated ? (
+            <p className="deck-list-row__blurb">{t("community.publish.outdated")}</p>
+          ) : null}
           {blurb ? <p className="deck-list-row__blurb">{blurb}</p> : null}
           {banViolations.length > 0 ? (
             <p className="deck-list-row__violation">
@@ -338,7 +347,7 @@ function DeckListRow({
         )}
         {!signedIn ? null : (
           <div className="deck-list-row__publish">
-            {publication ? (
+            {publication?.status === "hidden" ? null : publication ? (
               <>
                 {publication.outdated && legal ? (
                   <Button size="sm" variant="secondary" icon={Icons.Users} onClick={() => onPublishAction("update")}>

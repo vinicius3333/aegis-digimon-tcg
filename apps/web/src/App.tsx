@@ -520,6 +520,7 @@ export function AegisClient({
               deckId={route.communityDeckId}
               signedIn={!!account}
               accountId={account?.id}
+              isAdmin={account?.isAdmin === true}
               onOpenDeck={(id) => navigate({ screen: "community", communityDeckId: id })}
               onBack={() => navigate({ screen: "community" })}
               onPlay={(deck) => {
