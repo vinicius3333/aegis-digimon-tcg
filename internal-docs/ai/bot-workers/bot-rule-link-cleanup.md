@@ -1856,3 +1856,43 @@ Warm R4 weights/Adam remain immutable, while the new actor continuation can
 learn in a separate output with two disconnected value tensors preserved.
 Later PPO/all44 current-ref strength, physical/material/both-seat mechanisms,
 26 rooms/current serving and reserved final blind/delivery remain required.
+
+## Actual160 natural games expose remaining validation gaps
+
+The same foreground22578 has completed all160 natural games:106 wins,
+54 losses,9737 decision frames and zero unavailable teacher labels. Its actual
+teacher-started receiptSHA
+`313fb020614d5f057d6c631e9145cc7a28e84c37229c7ba07e0f1fca13c85bde`
+binds operator741/start57942 to original whole722/start57937, exact bridge
+source5c491a9c.., Python3.12.14/Node26.10.0 and no primary imports.
+Read-only full raw progress shows one training DNA positive and two training
+effect-DigiXros material positives; both required validation bins remain absent.
+All losses and original folds are retained. The operator is now in its actual
+post-collection source/CP/predecessor verification; no original whole0 or
+completion is claimed yet. Existing imitation-r2 remains inadmissible.
+
+Prepared a new, explicitly validation-only batch source
+`current-mentor-validation.py`, SHA-256
+`2941632e9def577965b08d6166f7c61130bc8df848a4cddcfe0748060d27b825`.
+It declares800 fresh natural CPU games,200 per observed gap route, before
+any outcomes. Numeric raw episode indexes use stride5, so canonical imitation
+places every new episode in validation; game seeds still advance linearly.
+No existing episode/fold is moved and no outcome filtering or reroll occurs.
+Ten bounded synthetic guards pass locally and on desktop, including actual
+report/config agreement, original index types, all declared validation folds,
+loss retention and explicit legal/unavailable teacher provenance. These fixtures
+are not actual games, teacher coverage, models or successful completion.
+
+The unchanged complete seed inventory checks264564 episode files/656schedule
+records across both roots and finds6029058..6029857 fresh with zero overlap.
+New source/tests/request/wrapper/inventory are exclusively uploaded and sealed;
+six qualified Python module and five immutable CP pins pass without models.
+RequestSHA `240009c8c6e8e9f5c7f22f40ad1f841e27cf08b7f4e2c8fb24df86dc67bf24bb`,
+wrapperSHA `ea4f79f6ccbd54486436164caba69392f42ac43a581a07dc2315a78931dfdf4d`,
+inventorySHA `08805edebdc1f79a53cf0eb7ab56613f52432256be5aa5f95a77f65b131addd1`.
+No validation-only resource Go or job exists at this checkpoint. Do not overlap
+its games with the original160 post-consumer/closure. First finish that exact
+foreground and consume its externally pinned actual closure. New source and
+original checkpoints/finalblind remain unchanged. Future imitation must consume
+all completed sources with preserved bytes/folds, require genuine combined
+engine-only positives and separate actual learning/strength acceptance.
