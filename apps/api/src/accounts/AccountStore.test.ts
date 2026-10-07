@@ -40,6 +40,21 @@ describe("AccountStore", () => {
     expect((await store.decks(account.id))[0]?.coverCardId).toBeUndefined();
     await store.close();
   });
+  it("persists the deck's own sleeve and clears it back to the global sleeve", async () => {
+    const store = createStore();
+    const account = await store.accountForIdentity("discord", "sleeve-owner", "Sleeve Owner");
+    const deck = await store.saveDeck(account.id, {
+      name: "Sleeved",
+      mainDeck: ["BT1-010"],
+      eggDeck: [],
+      sleeveId: "alphamon",
+    });
+    expect(deck.sleeveId).toBe("alphamon");
+    expect((await store.decks(account.id))[0]?.sleeveId).toBe("alphamon");
+    await store.saveDeck(account.id, { ...deck, sleeveId: undefined });
+    expect((await store.decks(account.id))[0]?.sleeveId).toBeUndefined();
+    await store.close();
+  });
   it("reports when each deck was last saved, newest first", async () => {
     const store = createStore();
     const account = await store.accountForIdentity("discord", "edit-owner", "Edit Owner");

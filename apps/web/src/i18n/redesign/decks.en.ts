@@ -19,4 +19,6 @@ export const decksEn = {
   "redesign.decks.editor.pool": "Card pool",
   "redesign.decks.editor.name": "Deck name",
   "redesign.decks.editor.stats": "Deck shape",
+  "redesign.decks.editor.sleeve": "Sleeve",
+  "redesign.decks.editor.sleeveGlobal": "Settings sleeve ({sleeve})",
 } as const;

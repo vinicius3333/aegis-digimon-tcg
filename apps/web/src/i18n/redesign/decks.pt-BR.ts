@@ -21,4 +21,6 @@ export const decksPtBR: Record<keyof typeof decksEn, string> = {
   "redesign.decks.editor.pool": "Cartas disponíveis",
   "redesign.decks.editor.name": "Nome do deck",
   "redesign.decks.editor.stats": "Formato do deck",
+  "redesign.decks.editor.sleeve": "Sleeve",
+  "redesign.decks.editor.sleeveGlobal": "Sleeve das configurações ({sleeve})",
 };

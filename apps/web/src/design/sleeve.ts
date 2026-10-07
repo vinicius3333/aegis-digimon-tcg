@@ -440,6 +440,24 @@ export function clearCustomCardSleeve(): void {
   else for (const listener of listeners) listener();
 }
 
+let deckSleeveId: string | undefined;
+
+/**
+ * The playing deck's own sleeve, which replaces the global choice while it is set.
+ * Undefined, or an id this device cannot show (an uploaded image from another
+ * device), falls back to the global sleeve.
+ */
+export function setDeckSleeveId(id: string | undefined): void {
+  if (id === deckSleeveId) return;
+  deckSleeveId = id;
+  for (const listener of listeners) listener();
+}
+
+/** The sleeve the player's card backs show: the deck's own when it has one, else the global one. */
+export function getEffectiveCardSleeveId(): string {
+  return deckSleeveId && isCardSleeveId(deckSleeveId) ? deckSleeveId : currentId;
+}
+
 export function subscribeCardSleeve(listener: () => void): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);
@@ -453,7 +471,7 @@ export function cardSleeveById(id: string): CardSleeve {
 }
 
 export function useCardSleeve(): CardSleeve {
-  const id = useSyncExternalStore(subscribeCardSleeve, getCardSleeveId, () => DEFAULT_CARD_SLEEVE.id);
+  const id = useSyncExternalStore(subscribeCardSleeve, getEffectiveCardSleeveId, () => DEFAULT_CARD_SLEEVE.id);
   // Replacements keep the same id, so subscribe to the image as well.
   useSyncExternalStore(subscribeCardSleeve, getCustomCardSleeveSrc, () => undefined);
   return cardSleeveById(id);

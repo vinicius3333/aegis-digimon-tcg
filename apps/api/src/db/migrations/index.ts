@@ -18,6 +18,7 @@ import { deckCardArts } from "./015-deck-card-arts.js";
 import { deckCoverCard } from "./016-deck-cover-card.js";
 import { accountPreferences } from "./017-account-preferences.js";
 import { emailDailyUsage } from "./018-email-daily-usage.js";
+import { deckSleeve } from "./019-deck-sleeve.js";
 
 export const migrations: readonly Migration[] = [
   initialSchema,
@@ -38,4 +39,5 @@ export const migrations: readonly Migration[] = [
   deckCoverCard,
   accountPreferences,
   emailDailyUsage,
+  deckSleeve,
 ];

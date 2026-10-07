@@ -100,6 +100,7 @@ export const accountApi = {
           mainDeckArts?: string[];
           eggDeckArts?: string[];
           coverCardId?: string;
+          sleeveId?: string;
           updatedAt?: number;
         }>
       >("/account/decks")
@@ -114,6 +115,7 @@ export const accountApi = {
         mainDeckArts: deck.mainDeckArts,
         eggDeckArts: deck.eggDeckArts,
         coverCardId: deck.coverCardId,
+        sleeveId: deck.sleeveId ?? null,
       }),
     }),
   deleteDeck: async (id: string): Promise<void> => {

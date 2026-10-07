@@ -177,13 +177,14 @@ export function installAccountRoutes(
   put("/account/decks{/:id}", async (req, res) => {
     const session = await requireSession(req, res, store);
     if (!session) return;
-    const { name, mainDeck, eggDeck, mainDeckArts, eggDeckArts, coverCardId } = req.body as {
+    const { name, mainDeck, eggDeck, mainDeckArts, eggDeckArts, coverCardId, sleeveId } = req.body as {
       name?: unknown;
       mainDeck?: unknown;
       eggDeck?: unknown;
       mainDeckArts?: unknown;
       eggDeckArts?: unknown;
       coverCardId?: unknown;
+      sleeveId?: unknown;
     };
     if (
       typeof name !== "string" ||
@@ -199,7 +200,8 @@ export function installAccountRoutes(
         (!Array.isArray(eggDeckArts) ||
           eggDeckArts.length !== eggDeck.length ||
           !eggDeckArts.every((v) => typeof v === "string"))) ||
-      (coverCardId !== undefined && coverCardId !== null && typeof coverCardId !== "string")
+      (coverCardId !== undefined && coverCardId !== null && typeof coverCardId !== "string") ||
+      (sleeveId !== undefined && sleeveId !== null && !isSleeveId(sleeveId))
     ) {
       res.status(400).json({ error: "invalid deck" });
       return;
@@ -214,6 +216,7 @@ export function installAccountRoutes(
           mainDeckArts: mainDeckArts as string[] | undefined,
           eggDeckArts: eggDeckArts as string[] | undefined,
           coverCardId: (coverCardId as string | null | undefined) ?? undefined,
+          sleeveId: (sleeveId as string | null | undefined) ?? undefined,
         }),
       );
     } catch (error) {
@@ -694,6 +697,11 @@ function parseBanlistPolicy(value: unknown): BanlistPolicy | undefined {
 }
 
 const MAX_PREFERENCE_LENGTH = 64;
+
+/** The web client owns the sleeve catalog, so a deck's sleeve is checked only for shape. */
+function isSleeveId(value: unknown): value is string {
+  return typeof value === "string" && value.length > 0 && value.length <= MAX_PREFERENCE_LENGTH;
+}
 
 /**
  * Accepts a partial set of known keys. The web client owns the valid locale, sleeve and

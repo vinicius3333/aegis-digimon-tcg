@@ -18,6 +18,7 @@ import { CoverThumb } from "../design/cards";
 import { Icons } from "../design/icons";
 import { Panel, SectionHeading } from "../design/surfaces";
 import { CardDetailDrawer } from "./CardDetailDrawer";
+import { DeckSleeveSelect } from "./DeckSleeveSelect";
 import { FilterRail } from "./FilterRail";
 import { useCardFilter } from "./cardFilters";
 import { sortCards } from "./cardSorting";
@@ -89,6 +90,7 @@ export function DeckEditor({
   const [artPickerCard, setArtPickerCard] = useState<string | null>(null);
   const [name, setName] = useState(deck.name);
   const [coverCardId, setCoverCardId] = useState<string | undefined>(() => displayCoverCard(deck));
+  const [sleeveId, setSleeveId] = useState<string | undefined>(deck.sleeveId);
   const [sel, setSel] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -175,6 +177,7 @@ export function DeckEditor({
         mainDeck,
         eggDeck,
         coverCardId,
+        sleeveId,
         mainDeckArts: Object.entries(main).flatMap(([id, count]) =>
           Array.from({ length: count }, (_, i) => resolveCardArt(id, arts[id]?.[i]).artId),
         ),
@@ -188,7 +191,7 @@ export function DeckEditor({
 
   useEffect(() => {
     persist(false);
-  }, [main, egg, name, coverCardId, arts]);
+  }, [main, egg, name, coverCardId, sleeveId, arts]);
 
   const play = () => {
     persist(true);
@@ -371,6 +374,7 @@ export function DeckEditor({
           </div>
 
           <div className="deck-current__footer">
+            <DeckSleeveSelect sleeveId={sleeveId} onChange={setSleeveId} />
             {banlistViolations.length > 0 ? (
               <div className="deck-current__violations">
                 <strong>{t("deck.banlistTitle")}</strong>

@@ -81,6 +81,8 @@ export interface DeckListing {
   coverCardId?: string;
   /** Epoch milliseconds of the last save; absent on decks saved before it was recorded. */
   updatedAt?: number;
+  /** This deck's card sleeve; absent means the global sleeve from Settings. */
+  sleeveId?: string;
 }
 
 export interface FamousDeckListingGroup {
