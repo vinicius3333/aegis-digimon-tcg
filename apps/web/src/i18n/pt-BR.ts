@@ -761,6 +761,12 @@ export const ptBR: Record<keyof typeof en, string> = {
   "settings.textSizeLarger": "Muito grande",
   "settings.actionConfirmations": "Confirmar ações",
   "settings.actionConfirmationsDesc": "Perguntar antes de jogar, digievoluir ou fazer uma digievolução DNA opcional",
+  "overlay.moveEffectPrompt": "Mover painel de efeito",
+  "overlay.moveEffectPromptHelp": "Arraste para mover ou use as setas. Pressione Home para restaurar a posição.",
+  "settings.effectPromptPosition": "Posição dos efeitos",
+  "settings.effectPromptPositionDesc": "Escolha onde aparecem as perguntas de ativação. Os alvos continuam no campo.",
+  "settings.effectPromptCenter": "Centro",
+  "settings.effectPromptLeft": "Canto inferior esquerdo (padrão)",
   "settings.effectSpeed": "Velocidade dos efeitos",
   "settings.effectSpeedDesc":
     "Quanto tempo cada efeito de carta fica na tela antes do próximo. Lenta também mantém por alguns segundos a carta que o oponente acabou de jogar ou digivolver.",

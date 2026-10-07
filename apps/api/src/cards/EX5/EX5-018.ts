@@ -58,6 +58,7 @@ export const compiled: CompiledCard = {
           mode: "prevent",
           leaveCause: "byBattle",
           sourceFilter: {
+            isSelfRef: true,
             controllerDefault: "mine",
             kind: ["Digimon"],
             nameOrTrait: [

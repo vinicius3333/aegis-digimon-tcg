@@ -412,6 +412,13 @@ const interfaceMessages = {
   "settings.actionConfirmations": "Conferma le azioni",
   "settings.actionConfirmationsDesc":
     "Chiedi conferma prima di giocare, digievolvere o usare una digievoluzione DNA facoltativa",
+  "overlay.moveEffectPrompt": "Sposta il pannello dell’effetto",
+  "overlay.moveEffectPromptHelp": "Trascina per spostare o usa le frecce. Premi Home per ripristinare la posizione.",
+  "settings.effectPromptPosition": "Posizione degli effetti",
+  "settings.effectPromptPositionDesc":
+    "Scegli dove visualizzare le richieste di attivazione. I bersagli restano sul campo.",
+  "settings.effectPromptCenter": "Centro",
+  "settings.effectPromptLeft": "Angolo inferiore sinistro (predefinito)",
   "settings.effectSpeed": "Velocità degli effetti",
   "settings.effectSpeedDesc":
     "Quanto tempo rimane visibile ogni effetto prima del successivo. Lenta mostra anche per qualche secondo la carta che l'avversario ha appena giocato o digievoluto.",

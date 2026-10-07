@@ -350,3 +350,77 @@
     max-width: none;
   }
 }
+
+/* Compact activation questions can be centered without moving board target selections. */
+@media (width < 768px), (height < 520px) and (orientation: landscape) {
+  .game-modal__panel.effect-prompt-family[data-prompt-surface="center"][data-effect-activation="true"] {
+    top: 50% !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: calc(100vw - var(--ds-space-8)) !important;
+    max-width: calc(100vw - var(--ds-space-8)) !important;
+    border-radius: var(--ds-radius-lg) !important;
+    border-bottom: 1px solid var(--ds-line) !important;
+    translate: -50% -50% !important;
+  }
+}
+
+@media (width < 768px), (height < 520px) and (orientation: landscape) {
+  .game-modal__panel.effect-prompt-family[data-prompt-surface="left"][data-effect-activation="true"] {
+    left: var(--ds-space-4) !important;
+    right: auto !important;
+    bottom: max(var(--ds-space-4), env(safe-area-inset-bottom, 0px)) !important;
+    width: calc(100vw - var(--ds-space-8)) !important;
+    max-width: calc(100vw - var(--ds-space-8)) !important;
+    border-radius: var(--ds-radius-lg) !important;
+    border-bottom: 1px solid var(--ds-line) !important;
+  }
+}
+
+/* Once moved, activation prompts use viewport coordinates while retaining their responsive size. */
+.game-modal__panel.effect-prompt-family[data-effect-activation="true"][data-prompt-dragged="true"][data-prompt-surface] {
+  top: var(--effect-prompt-drag-top) !important;
+  left: var(--effect-prompt-drag-left) !important;
+  right: auto !important;
+  bottom: auto !important;
+  translate: none !important;
+  transform: none !important;
+}
+
+.decision-overlay__move-handle {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ds-radius-sm);
+  background: transparent;
+  color: var(--ds-text-2);
+  opacity: 0.7;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.decision-overlay__move-handle:hover,
+.decision-overlay__move-handle:focus-visible {
+  opacity: 1;
+  background: var(--ds-fill);
+}
+.decision-overlay__move-handle:active {
+  cursor: grabbing;
+}
+
+/* Reserve the header's upper-right corner for the handle, independent of its card/text layout. */
+.game-modal__panel.effect-prompt-family[data-effect-activation="true"] .decision-overlay__header {
+  position: relative;
+  min-height: 2.75rem;
+  padding-right: 3rem !important;
+}
+.decision-overlay__move-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+}

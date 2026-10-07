@@ -70,6 +70,7 @@ describe("BT21-022 Canoweissmon", () => {
             leaveCause: "byOpponentEffect",
             optional: true,
             sourceFilter: {
+              isSelfRef: true,
               controllerDefault: "mine",
               kind: ["Digimon"],
               nameOrTrait: [{ tokens: ["Gammamon"], match: "text" }],

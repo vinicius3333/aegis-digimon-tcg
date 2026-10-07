@@ -26,6 +26,72 @@ async function launch(id: IssueReproScenarioId, options: SetupEngineOptions = {}
   };
 }
 
+it("#5265 / #5266 playable arena never offers Candlemon protection for a separate Elecmon", async () => {
+  const s = await launch("arena-issue-5266-candlemon-own-host", {
+    autoAcceptOptional: true,
+    autoOrderTriggers: true,
+  });
+  const opponent = s.state.players[1]!;
+  const elecmon = opponent.battleArea.find((p) => p.topCard.cardId === "BT25-030")!;
+  const wizardmon = opponent.battleArea.find((p) => p.topCard.cardId === "BT18-036")!;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.hand("ST1-16").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: s.state.pendingDecision!.decisionId,
+      response: { kind: "chooseTargets", instanceIds: [elecmon.permanentId] },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => !s.state.pendingDecision && s.engine.mainVerbContinuationsInFlight === 0);
+  expect(opponent.battleArea.map((p) => p.permanentId)).toEqual([wizardmon.permanentId]);
+  expect(opponent.trash.some((c) => c.cardId === "BT25-030")).toBe(true);
+  expect(opponent.security).toHaveLength(3);
+  expect(s.decisions.filter(({ req }) => req.sourceCardId === "BT18-030")).toHaveLength(0);
+
+  // The remaining host is selected automatically because it is the only legal target.
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.hand("ST1-16").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(
+    () => opponent.security.length === 2 && !s.state.pendingDecision && s.engine.mainVerbContinuationsInFlight === 0,
+  );
+  expect(opponent.battleArea.map((p) => p.permanentId)).toEqual([wizardmon.permanentId]);
+  expect(opponent.security).toHaveLength(2);
+  expect(s.decisions.some(({ req }) => req.sourceCardId === "BT18-030")).toBe(true);
+  await s.finish();
+});
+
+it("#5266 playable arena reproduces AeroVeedramon's bottom-deck removal without another stack's protection", async () => {
+  // KingWows vs RAP SKALYIN, 8510afdd, 2026-10-07 19:44 UTC:
+  // Candlemon in perm-1 incorrectly offered to protect separate Elecmon perm-7.
+  const s = await launch("arena-issue-5266-elecmon-bottom-deck", { autoAcceptOptional: true });
+  const opponent = s.state.players[1]!;
+  const elecmon = opponent.battleArea.find((p) => p.topCard.cardId === "BT25-030")!;
+  const host = opponent.battleArea.find((p) => p.topCard.cardId === "EX13-034")!;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.field("BT1-036").permanentId,
+      instanceId: s.hand("BT22-023").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () =>
+      !opponent.battleArea.some((p) => p.permanentId === elecmon.permanentId) &&
+      !s.state.pendingDecision &&
+      s.engine.mainVerbContinuationsInFlight === 0,
+  );
+  expect(opponent.battleArea.map((p) => p.permanentId)).toEqual([host.permanentId]);
+  expect(opponent.deck.at(-1)?.instanceId).toBe(elecmon.topCard.instanceId);
+  expect(opponent.security).toHaveLength(3);
+  expect(s.decisions.filter(({ req }) => req.sourceCardId === "BT18-030")).toHaveLength(0);
+  expect(s.state.memory).toBe(0);
+  await s.finish();
+});
+
 it("Tai & Matt arena explains the second activation without declaring a second attack", async () => {
   const s = await launch("arena-tai-matt-double-end-turn", {
     autoAcceptOptional: true,

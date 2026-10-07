@@ -51749,6 +51749,7 @@
             "event": "wouldLeavePlay",
             "leaveCause": "byOpponentEffect",
             "sourceFilter": {
+              "isSelfRef": true,
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "colors": ["Yellow"],
@@ -73359,6 +73360,7 @@
             "leaveCause": "byOpponentEffect",
             "optional": true,
             "sourceFilter": {
+              "isSelfRef": true,
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "text" }]
@@ -103154,6 +103156,7 @@
             "event": "wouldLeavePlay",
             "mode": "prevent",
             "sourceFilter": {
+              "isSelfRef": true,
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [
@@ -130809,6 +130812,7 @@
             "leaveCause": "byBattle",
             "optional": true,
             "sourceFilter": {
+              "isSelfRef": true,
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Garurumon", "Omnimon"], "match": "name" }]
@@ -167180,6 +167184,7 @@
             "mode": "prevent",
             "leaveCause": "byBattle",
             "sourceFilter": {
+              "isSelfRef": true,
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Garurumon", "Omnimon"], "match": "name" }]
@@ -167371,6 +167376,7 @@
             "mode": "prevent",
             "leaveCause": "byBattle",
             "sourceFilter": {
+              "isSelfRef": true,
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Garurumon", "Omnimon"], "match": "name" }]
@@ -196356,6 +196362,7 @@
             "leaveCause": "byEffect",
             "optional": true,
             "sourceFilter": {
+              "isSelfRef": true,
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Greymon", "Omnimon"], "match": "name" }]
@@ -196421,6 +196428,7 @@
             "leaveCause": "byBattle",
             "optional": true,
             "sourceFilter": {
+              "isSelfRef": true,
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Garurumon", "Omnimon"], "match": "name" }]
@@ -204191,6 +204199,7 @@
             "leaveCause": "byOpponentEffect",
             "optional": true,
             "sourceFilter": {
+              "isSelfRef": true,
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Seadramon"], "match": "text" }]
@@ -218526,6 +218535,7 @@
             "event": "wouldLeavePlay",
             "mode": "prevent",
             "sourceFilter": {
+              "isSelfRef": true,
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [

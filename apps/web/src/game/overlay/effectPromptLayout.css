@@ -67,6 +67,13 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   width: min(48rem, calc(100vw - var(--ds-space-8))) !important;
 }
 
+/* Activation questions stay compact even on wide screens; card galleries keep their room. */
+.game-modal__panel.effect-prompt-family[data-prompt-surface="center"][data-effect-activation="true"]:not(
+    .decision-overlay--card-choice
+  ) {
+  width: min(32rem, calc(100vw - var(--ds-space-8))) !important;
+}
+
 .game-modal__panel.effect-prompt-family[data-prompt-surface] .decision-overlay__header,
 .game-modal__panel.effect-prompt-family[data-prompt-surface] .counter-overlay__header,
 .game-modal__panel.effect-prompt-family[data-prompt-surface] .action-confirmation__header {
