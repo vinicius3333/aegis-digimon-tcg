@@ -2276,3 +2276,35 @@ PPO seed inventory starts read-only foreground59327 after actual custody whole0
 and stable producer outputs; no source/model or GPU/game launch. Final PPO
 request/resource agreement and all44 strength/mechanism/room/finalblind/delivery
 acceptance remain pending; CPU qualification does not establish strength.
+
+
+## Prepared all44 mentor-PPO evaluator; no future evaluation authorized
+
+New thin external evaluator `rule-link-current-mentor-strength.py` SHA
+`cd88e566552384bf4a362a64abe4530e2f84e37545b25aac3c2112ed84a1c2aa`
+reuses original qualified full command, raw records, comparison report, whole,
+resource and main functions unchanged from baseline a7acf69. Only exact
+learning custody/input/namespace seams change. It requires externally observed
+new mentor-PPO request/identity/Go/completion and actual full original closed
+PPO consumer,3872training games at6029858, all12 finite changed weights with
+equal unknown positive NEW Adam deltas, and exact new native checkpoint path.
+No future status/guessed completion/old CPP can admit actual evaluation.
+
+Nine bounded synthetic guards pass locally and on desktopPython3.12.14;
+test sourceSHAda030e78fb70a557b739b07f920ff545d1f9d3ff9751f11c9c98d9130444c666,
+three immutable helper pins exact, stdlib only and exclusive sealed source.
+Tests include every-deck/every-reference rejection despite aggregate gains,
+one reference tie, failed/boolean/partial learning, changed seed/source,
+finalblind flags, all12 equal update deltas and altered helper seams.
+Actual comparison remains all44/3872/bothseats on6135000..6138871 against each
+of four original full same-source/schedule reference reports. Such strength
+alone still cannot accept mechanism/room/serving/finalblind mastery.
+No actual evaluator request, model/Go/GPU/game/evaluation launch exists;
+future actual checkpoint and PPO closure must be observed first. Frozen
+archive/runtime/FP, original CPs and reserved finalblind seeds stay untouched.
+
+Fresh complete PPO inventory foreground59327 is actual terminal0, SHA
+bc13442cb1e1dfc6b8a59b2e3ea6a08bed08dc798da5ee1231bd26c5d85eb232,
+6029858..6033729/3872fresh/no overlap with all observed runs/validations,
+661observed schedule files. Full strict custody reader23471 is still active;
+final PPO request remains blocked on its actual terminal0, without restart.
