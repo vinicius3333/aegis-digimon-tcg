@@ -1436,6 +1436,36 @@ a separate ROOT resource Go, actual direct whole identity/start ticks/argv,
 GPU/worker idle guard, exact qualified module paths, frozen finite tensors,
 and pre/post source/raw-map/CP checks. No new learning job is admitted yet.
 
+## Eight-game diagnostic original whole admitted
+
+Actual source sealing, all nine bounded synthetic tests, Bash syntax checks
+and the default read-only admission completed with exit zero on desktop
+Python3.12.14. Admission session58185 proved the unchanged full R4 consumer
+and started no models/games. A fresh static resource guard again found GPU
+empty and the exclusive diagnostic namespace absent.
+
+ROOT issued the separate diagnostic-only Go, SHA-256
+`d03ebb76497e8280829066cd948df7cab6e4df66edf72da271781746eae27bef`,
+authorizing eight frozen development replays, one concurrent game worker,
+zero updates and no final-blind seeds. Original foreground session65330 is
+attached and live. Actual whole PID683/startTicks50770 has direct operator
+PID703/startTicks50785 with exact pinned request/operator/Go argv. Identity
+SHA-256 is `1c14cfa754c5b5c490e30a59188fd03f7f88829a0a3500e6c8817638363e1012`.
+At actual observation1 the operator is still checking its full predecessor,
+the GPU is empty, no diagnostic frames exist, and whole exit is pending.
+Do not claim actual completed replays, learning or acceptance from this
+admission. Keep this original foreground attached through its terminal result.
+
+After original whole0 and process/GPU disappearance, use the Torch-free
+`closed-r4-choice-diagnosis.sh` with the actual identity and Go pins to
+verify all eight exact paired outcomes, all decision frames, query-label
+provenance, complete raw output map, current module paths and immutable CP
+bytes. No diagnostic development frames may become training samples.
+The standard collector keeps `recoveredPlayRejections` separately from
+fatal errors/rejections/asyncRejections; recovered counters alone do not
+justify discarding a game. Reserved final seeds remain untouched and every
+strength/mechanics/custody/room/serving/final-blind gate remains required.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
