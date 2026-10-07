@@ -2,7 +2,14 @@
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { useState, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { clearCustomCardSleeve, getCardSleeveId, setCardSleeveId, setCustomCardSleeve } from "../design/sleeve";
+import {
+  clearCustomCardSleeve,
+  getCardSleeveId,
+  getEggSleeveId,
+  setCardSleeveId,
+  setCustomCardSleeve,
+  setEggSleeveId,
+} from "../design/sleeve";
 import { getDeckBuilderPreferences, setDeckBuilderPreferences } from "../screens/deckBuilderPreferences";
 import { I18nProvider, useTranslation } from "../i18n";
 import { accountApi, type AccountPreferences } from "./client";
@@ -35,6 +42,7 @@ beforeEach(() => {
   clearCustomCardSleeve();
   localStorage.clear();
   setCardSleeveId("digimon-standard");
+  setEggSleeveId("digimon-egg");
   setDeckBuilderPreferences({ deckShare: 0.45, deckView: "grid", deckSort: "releaseDate" });
 });
 
@@ -111,5 +119,17 @@ describe("usePreferencesSync", () => {
     await waitFor(() => expect(update).toHaveBeenCalledWith({ darkMode: true }));
     act(() => setCardSleeveId("alphamon"));
     await waitFor(() => expect(update).toHaveBeenLastCalledWith({ sleeve: "alphamon" }));
+  });
+  it("applies and sends the Digi-Egg sleeve", async () => {
+    const stored = { eggSleeve: "gold" };
+    const load = vi.spyOn(accountApi, "preferences").mockResolvedValue(stored);
+    const update = echoUpdates(stored);
+    renderSync("account-1");
+    await act(async () => {
+      await load.mock.results[0]!.value;
+    });
+    expect(getEggSleeveId()).toBe("gold");
+    act(() => setEggSleeveId("digimon-egg"));
+    await waitFor(() => expect(update).toHaveBeenLastCalledWith({ eggSleeve: "digimon-egg" }));
   });
 });

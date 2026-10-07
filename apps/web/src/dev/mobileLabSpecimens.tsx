@@ -349,6 +349,10 @@ const LONG_EFFECT_LABELS: Record<Locale, string[]> = {
     "[Principal] Ao suspender este Digimon, delete 1 dos Digimon do seu oponente com 6000 DP ou menos.",
     "[Principal] [Uma Vez Por Turno] Descarte 1 carta da sua mão para comprar 2 cartas.",
   ],
+  es: [
+    "[Main] Al suspender este Digimon, elimina 1 de los Digimon de tu oponente con 6000 DP o menos.",
+    "[Main] [Once Per Turn] Descarta 1 carta de tu mano para robar 2 cartas.",
+  ],
 };
 
 const decision = (id: string, title: string, render: Specimen["render"], note?: string): Specimen => ({

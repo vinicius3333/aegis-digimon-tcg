@@ -1,7 +1,7 @@
 /* Locale identity and persistence. Kept free of React so non-component code
    (storage, formatting helpers) can import it without pulling in the provider. */
 
-export const LOCALES = ["en", "pt-BR"] as const;
+export const LOCALES = ["en", "pt-BR", "es"] as const;
 
 export type Locale = (typeof LOCALES)[number];
 
@@ -10,6 +10,7 @@ export const DEFAULT_LOCALE: Locale = "en";
 export const LOCALE_LABELS: Record<Locale, string> = {
   en: "English",
   "pt-BR": "Português (Brasil)",
+  es: "Español",
 };
 
 const STORAGE_KEY = "aegis:locale";
@@ -18,7 +19,7 @@ export function isLocale(value: string | null | undefined): value is Locale {
   return value != null && (LOCALES as readonly string[]).includes(value);
 }
 
-/** Best match for a browser language tag, e.g. `pt`, `pt-br`, `pt-PT` → `pt-BR`. */
+/** Best match for a browser language tag, e.g. `pt-PT` → `pt-BR`, `es-419` → `es`. */
 export function matchLocale(languageTag: string): Locale | undefined {
   const tag = languageTag.toLowerCase();
   return (

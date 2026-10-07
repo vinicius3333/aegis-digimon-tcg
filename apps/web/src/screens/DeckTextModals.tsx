@@ -20,7 +20,10 @@ export function DeckImportModal({ onImport, onClose }: { onImport: (text: string
           {t("deck.importTitle")}
         </h2>
         <p className="deck-modal__hint">
-          {t("deck.importHint")} <code>4 CardName BT1-009</code>
+          {t("deck.importHint")} <code>4 Agumon BT1-009</code>
+        </p>
+        <p className="deck-modal__hint">
+          {t("deck.importHintTabletop")} <code>["Exported from digimonmeta.com","BT1-009",…]</code>
         </p>
         <textarea
           className="deck-modal__textarea"

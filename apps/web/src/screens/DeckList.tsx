@@ -5,11 +5,10 @@
 import { useState } from "react";
 import { deckLegality, getCardDefinition, restrictionLabel, type CommunityPublication } from "@aegis/shared";
 import { useCommunityPublications } from "../community/useCommunityPublications";
-import { Badge, Button, ColorDot, Eyebrow } from "../design/primitives";
+import { Badge, Button, ColorDot, Eyebrow, Field } from "../design/primitives";
 import { Panel, SectionHeading, StatStrip } from "../design/surfaces";
 import { CoverThumb } from "../design/cards";
 import { Icons } from "../design/icons";
-import { colorKey } from "../design/theme";
 import {
   createBlankDeck,
   deckBlurbLabel,
@@ -18,26 +17,27 @@ import {
   parseDeckList,
   type DeckListing,
 } from "../game/decks";
-import { useTranslation } from "../i18n";
+import { useTranslation, type TranslationKey } from "../i18n";
 import { DeckDeleteModal, DeckImportModal } from "./DeckTextModals";
 import { DeckImageButton } from "./DeckImageButton";
 import { DeckPublishModal, type PublishMode } from "./DeckPublishModal";
 import { EGG_TARGET, MAIN_TARGET } from "./deckCounts";
+import {
+  DECK_LIST_SORTS,
+  deckColors,
+  isDeckListSort,
+  orderDecks,
+  setDeckListSort,
+  useDeckListSort,
+  type DeckListSort,
+} from "./deckListOrder";
 import "./deckList.css";
 
-const SHOWN_COLORS = 3;
-
-function deckColors(deck: DeckListing): string[] {
-  const counts = new Map<string, number>();
-  for (const cardId of deck.mainDeck) {
-    for (const color of getCardDefinition(cardId)?.colors ?? []) {
-      const key = colorKey(color);
-      counts.set(key, (counts.get(key) ?? 0) + 1);
-    }
-  }
-  const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([color]) => color);
-  return ranked.length > 0 ? ranked.slice(0, SHOWN_COLORS) : [deck.color];
-}
+const SORT_LABELS: Record<DeckListSort, TranslationKey> = {
+  recent: "redesign.decks.list.sortRecent",
+  name: "redesign.decks.list.sortName",
+  color: "redesign.decks.list.sortColor",
+};
 
 /* ---------------- deck list ---------------- */
 export function DeckList({
@@ -62,13 +62,22 @@ export function DeckList({
   const { t } = useTranslation();
   const [importing, setImporting] = useState(false);
   const [deleting, setDeleting] = useState<DeckListing | null>(null);
+  const [query, setQuery] = useState("");
+  const sort = useDeckListSort();
+  const shownDecks = orderDecks(decks, sort, query);
   const [publishing, setPublishing] = useState<{ deck: DeckListing; mode: PublishMode } | null>(null);
   const { publications, publish, unpublish } = useCommunityPublications(signedIn);
 
   const handleImport = (text: string) => {
     const result = parseDeckList(text);
     const base = createBlankDeck(decks, undefined, t("deck.newDeckName"));
-    onEdit({ ...base, mainDeck: result.mainDeck, eggDeck: result.eggDeck });
+    onEdit({
+      ...base,
+      mainDeck: result.mainDeck,
+      eggDeck: result.eggDeck,
+      mainDeckArts: result.mainDeckArts,
+      eggDeckArts: result.eggDeckArts,
+    });
     setImporting(false);
   };
 
@@ -131,9 +140,42 @@ export function DeckList({
 
         <section className="deck-list-section" aria-labelledby="deck-list-saved-title">
           <SectionHeading id="deck-list-saved-title" title={t("redesign.decks.list.saved")} />
+          {decks.length > 0 ? (
+            <div className="deck-list-toolbar">
+              <Field
+                className="deck-list-toolbar__search"
+                label={t("redesign.decks.list.search")}
+                name="deckListSearch"
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={t("redesign.decks.list.searchPlaceholder")}
+              />
+              <label className="deck-list-toolbar__sort">
+                <span className="aegis-sr-only">{t("redesign.decks.list.sort")}</span>
+                <select
+                  value={sort}
+                  onChange={(event) => {
+                    if (isDeckListSort(event.target.value)) setDeckListSort(event.target.value);
+                  }}
+                >
+                  {DECK_LIST_SORTS.map((option) => (
+                    <option key={option} value={option}>
+                      {t(SORT_LABELS[option])}
+                    </option>
+                  ))}
+                </select>
+                <Icons.ChevronDown className="deck-list-toolbar__chevron" size={16} />
+              </label>
+            </div>
+          ) : null}
           {decks.length === 0 ? (
             <p className="deck-list-empty" role="status">
               {t("deck.empty")}
+            </p>
+          ) : shownDecks.length === 0 ? (
+            <p className="deck-list-empty" role="status">
+              {t("redesign.decks.list.noMatches", { query: query.trim() })}
             </p>
           ) : (
             <div className="deck-list-table" role="table" aria-labelledby="deck-list-saved-title">
@@ -149,7 +191,7 @@ export function DeckList({
                 </div>
               </div>
               <div className="deck-list-grid" role="rowgroup">
-                {decks.map((deck) => (
+                {shownDecks.map((deck) => (
                   <DeckListRow
                     key={deck.id}
                     deck={deck}

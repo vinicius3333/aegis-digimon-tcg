@@ -18,6 +18,7 @@ import { CoverThumb } from "../design/cards";
 import { Icons } from "../design/icons";
 import { Panel, SectionHeading } from "../design/surfaces";
 import { CardDetailDrawer } from "./CardDetailDrawer";
+import { DeckSleevePicker } from "./DeckSleevePicker";
 import { FilterRail } from "./FilterRail";
 import { sortSearchResults, useCardFilter } from "./cardFilters";
 import {
@@ -51,6 +52,18 @@ import "./deckBuilder.css";
 const PAGE_SIZE = 60;
 
 /* ---------------- editor ---------------- */
+/** Each card's per-copy artwork, from a deck's flat copy and art lists. */
+function artsByCard(deck: Pick<DeckListing, "mainDeck" | "eggDeck" | "mainDeckArts" | "eggDeckArts">) {
+  const result: Record<string, string[]> = {};
+  for (const [ids, choices] of [
+    [deck.mainDeck, deck.mainDeckArts],
+    [deck.eggDeck, deck.eggDeckArts],
+  ] as const) {
+    ids.forEach((id, index) => (result[id] ??= []).push(resolveCardArt(id, choices?.[index]).artId));
+  }
+  return result;
+}
+
 export function DeckEditor({
   deck,
   onSave,
@@ -71,20 +84,13 @@ export function DeckEditor({
   });
   const [main, setMain] = useState<CountMap>(() => toCountMap(deck.mainDeck));
   const [egg, setEgg] = useState<CountMap>(() => toCountMap(deck.eggDeck));
-  const [arts, setArts] = useState<Record<string, string[]>>(() => {
-    const result: Record<string, string[]> = {};
-    for (const [ids, choices] of [
-      [deck.mainDeck, deck.mainDeckArts],
-      [deck.eggDeck, deck.eggDeckArts],
-    ] as const) {
-      ids.forEach((id, index) => (result[id] ??= []).push(resolveCardArt(id, choices?.[index]).artId));
-    }
-    return result;
-  });
+  const [arts, setArts] = useState<Record<string, string[]>>(() => artsByCard(deck));
   const [chosenArt, setChosenArt] = useState<Record<string, string>>({});
   const [artPickerCard, setArtPickerCard] = useState<string | null>(null);
   const [name, setName] = useState(deck.name);
   const [coverCardId, setCoverCardId] = useState<string | undefined>(() => displayCoverCard(deck));
+  const [sleeveId, setSleeveId] = useState<string | undefined>(deck.sleeveId);
+  const [eggSleeveId, setEggSleeveId] = useState<string | undefined>(deck.eggSleeveId);
   const [sel, setSel] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -171,6 +177,8 @@ export function DeckEditor({
         mainDeck,
         eggDeck,
         coverCardId,
+        sleeveId,
+        eggSleeveId,
         mainDeckArts: Object.entries(main).flatMap(([id, count]) =>
           Array.from({ length: count }, (_, i) => resolveCardArt(id, arts[id]?.[i]).artId),
         ),
@@ -184,7 +192,7 @@ export function DeckEditor({
 
   useEffect(() => {
     persist(false);
-  }, [main, egg, name, coverCardId, arts]);
+  }, [main, egg, name, coverCardId, sleeveId, eggSleeveId, arts]);
 
   const play = () => {
     persist(true);
@@ -193,7 +201,7 @@ export function DeckEditor({
 
   const handleImport = (text: string) => {
     const result = parseDeckList(text);
-    setArts({});
+    setArts(artsByCard(result));
     setMain(toCountMap(result.mainDeck));
     setEgg(toCountMap(result.eggDeck));
     setImporting(false);
@@ -367,6 +375,10 @@ export function DeckEditor({
           </div>
 
           <div className="deck-current__footer">
+            <DeckSleevePicker
+              sleeveIds={{ main: sleeveId, egg: eggSleeveId }}
+              onChange={(part, next) => (part === "main" ? setSleeveId : setEggSleeveId)(next)}
+            />
             {banlistViolations.length > 0 ? (
               <div className="deck-current__violations">
                 <strong>{t("deck.banlistTitle")}</strong>

@@ -34,7 +34,7 @@
 .decision-overlay.effect-prompt-family .decision-overlay__effect-text {
   padding: 0;
   background: none;
-  font-size: 12px;
+  font-size: calc(12px * var(--ds-text-scale));
   line-height: 1.5;
   color: var(--ds-text-2);
 }

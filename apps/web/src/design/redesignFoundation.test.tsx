@@ -113,6 +113,10 @@ describe("ArenaLookSettings", () => {
       (screen.getByRole("radio", { name: en["redesign.foundation.battlefield.data-sea"] }) as HTMLInputElement).checked,
     ).toBe(true);
     expect(screen.getByRole("button", { name: en["settings.playmatUpload"] })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("radio", { name: en["redesign.foundation.battlefield.random"] }));
+    expect(getBattlefieldId()).toBe("random");
+    expect(screen.getByText(en["redesign.foundation.arena.randomNote"])).toBeTruthy();
   });
 
   it("keeps an uploaded battlefield replaceable without removing it first", () => {

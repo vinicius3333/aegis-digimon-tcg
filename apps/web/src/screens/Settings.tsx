@@ -21,16 +21,23 @@ import { MUSIC_TRACK_LABEL_KEYS, MUSIC_TRACKS, type MusicTrack } from "../design
 import { areActionConfirmationsEnabled, setActionConfirmationsEnabled } from "../design/actionConfirmation";
 import { FieldLayout, setFieldLayout, useFieldLayout } from "../design/fieldLayout";
 import { setPileCountsShown, usePileCountsShown } from "../design/pileCounts";
-import { CardSleevePicker } from "../design/sleevePicker";
+import { CardSleevePicker, EggSleevePicker } from "../design/sleevePicker";
+import { TEXT_SCALES, setTextScale, useTextScale, type TextScale } from "../design/textScale";
 import { SEQUENTIAL_PACING_ENABLED } from "../features";
 import { EFFECT_SPEEDS, getEffectSpeed, setEffectSpeed, type EffectSpeed } from "../game/pacing";
-import { LOCALES, LOCALE_LABELS, useTranslation } from "../i18n";
+import { LOCALES, LOCALE_LABELS, useTranslation, type TranslationKey } from "../i18n";
 import { AccountPanel } from "../account/AccountPanel";
 import { DigimonAvatarPicker } from "../account/DigimonAvatarPicker";
 import type { DigimonWorldAvatarId } from "../account/avatars";
 import type { RemoteAccount } from "../account/client";
 import { SuccessToast } from "../design/SuccessToast";
 import "./settings.css";
+
+const TEXT_SCALE_LABELS: Record<TextScale, TranslationKey> = {
+  default: "settings.textSizeDefault",
+  large: "settings.textSizeLarge",
+  larger: "settings.textSizeLarger",
+};
 
 export function Settings({
   player,
@@ -50,6 +57,7 @@ export function Settings({
   onSelectAvatar?: (avatarId: DigimonWorldAvatarId) => void;
 }) {
   const { t, locale, setLocale } = useTranslation();
+  const textScale = useTextScale();
   const [nameInput, setNameInput] = useState(player.name);
   const [renameToastKey, setRenameToastKey] = useState<number>();
   const [musicOn, setMusicOn] = useState(isMusicEnabled());
@@ -175,12 +183,44 @@ export function Settings({
               </div>
             </div>
 
+            <div className="settings-row">
+              <div className="settings-row__copy">
+                <strong id="settings-text-size-label">{t("settings.textSize")}</strong>
+                <small>{t("settings.textSizeDesc")}</small>
+              </div>
+              <div className="settings-language-list" role="group" aria-labelledby="settings-text-size-label">
+                {TEXT_SCALES.map((option) => {
+                  const on = textScale === option;
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setTextScale(option)}
+                      className="settings-language-option"
+                      aria-pressed={on}
+                    >
+                      {t(TEXT_SCALE_LABELS[option])}
+                      {on ? <Icons.Check size={16} /> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="settings-block">
               <div className="settings-block__heading">
                 <strong>{t("settings.cardSleeve")}</strong>
                 <small>{t("settings.cardSleeveDesc")}</small>
               </div>
               <CardSleevePicker />
+            </div>
+
+            <div className="settings-block">
+              <div className="settings-block__heading">
+                <strong>{t("settings.eggSleeve")}</strong>
+                <small>{t("settings.eggSleeveDesc")}</small>
+              </div>
+              <EggSleevePicker />
             </div>
           </section>
 

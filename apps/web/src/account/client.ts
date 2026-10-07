@@ -15,6 +15,7 @@ export type AccountPreferences = {
   darkMode?: boolean;
   locale?: string;
   sleeve?: string;
+  eggSleeve?: string;
   deckShare?: number;
   deckView?: "grid" | "list";
   deckSort?: string;
@@ -100,6 +101,9 @@ export const accountApi = {
           mainDeckArts?: string[];
           eggDeckArts?: string[];
           coverCardId?: string;
+          sleeveId?: string;
+          eggSleeveId?: string;
+          updatedAt?: number;
         }>
       >("/account/decks")
     ).map((deck) => ({ ...deck, color: dominantColor([...deck.mainDeck, ...deck.eggDeck]), blurb: "deck.blurbSaved" })),
@@ -113,6 +117,8 @@ export const accountApi = {
         mainDeckArts: deck.mainDeckArts,
         eggDeckArts: deck.eggDeckArts,
         coverCardId: deck.coverCardId,
+        sleeveId: deck.sleeveId ?? null,
+        eggSleeveId: deck.eggSleeveId ?? null,
       }),
     }),
   deleteDeck: async (id: string): Promise<void> => {

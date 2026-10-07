@@ -1,5 +1,5 @@
 import { newDb } from "pg-mem";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { AccountStore, DisplayNameTakenError, InvalidDisplayNameError } from "./AccountStore.js";
 
 function createStore(): AccountStore {
@@ -38,6 +38,38 @@ describe("AccountStore", () => {
     const foreign = await store.saveDeck(account.id, { ...deck, coverCardId: "BT1-099" });
     expect(foreign.coverCardId).toBeUndefined();
     expect((await store.decks(account.id))[0]?.coverCardId).toBeUndefined();
+    await store.close();
+  });
+  it("persists the deck's own sleeve and clears it back to the global sleeve", async () => {
+    const store = createStore();
+    const account = await store.accountForIdentity("discord", "sleeve-owner", "Sleeve Owner");
+    const deck = await store.saveDeck(account.id, {
+      name: "Sleeved",
+      mainDeck: ["BT1-010"],
+      eggDeck: [],
+      sleeveId: "alphamon",
+    });
+    expect(deck.sleeveId).toBe("alphamon");
+    expect((await store.decks(account.id))[0]?.sleeveId).toBe("alphamon");
+    await store.saveDeck(account.id, { ...deck, sleeveId: undefined });
+    expect((await store.decks(account.id))[0]?.sleeveId).toBeUndefined();
+    await store.saveDeck(account.id, { ...deck, sleeveId: undefined, eggSleeveId: "gold" });
+    expect((await store.decks(account.id))[0]).toMatchObject({ sleeveId: undefined, eggSleeveId: "gold" });
+    await store.close();
+  });
+  it("reports when each deck was last saved, newest first", async () => {
+    const store = createStore();
+    const account = await store.accountForIdentity("discord", "edit-owner", "Edit Owner");
+    const clock = vi.spyOn(Date, "now").mockReturnValue(1_000);
+    await store.saveDeck(account.id, { name: "First", mainDeck: [], eggDeck: [] });
+    clock.mockReturnValue(2_000);
+    await store.saveDeck(account.id, { name: "Second", mainDeck: [], eggDeck: [] });
+    clock.mockRestore();
+    const decks = await store.decks(account.id);
+    expect(decks.map((deck) => [deck.name, deck.updatedAt])).toEqual([
+      ["Second", 2_000],
+      ["First", 1_000],
+    ]);
     await store.close();
   });
   it("keeps a verified email account, session and decks together", async () => {

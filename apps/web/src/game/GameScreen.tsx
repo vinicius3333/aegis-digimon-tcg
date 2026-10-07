@@ -678,7 +678,7 @@ export function GameScreen({
     ),
   );
 
-  const arenaLook = useArenaBoardLook({ viewer: you, opponent: opp });
+  const arenaLook = useArenaBoardLook({ viewer: you, opponent: opp, matchKey: connectedRoom?.roomId });
 
   useEffect(() => {
     if (!optimisticPlayedInstanceId) return;

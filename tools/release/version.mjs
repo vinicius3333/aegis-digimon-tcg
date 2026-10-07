@@ -6,6 +6,7 @@ import process from "node:process";
 const root = resolve(import.meta.dirname, "../..");
 const manifests = ["package.json", "apps/api/package.json", "apps/web/package.json", "packages/shared/package.json"];
 const pattern = /^(\d+)\.(\d+)\.(\d+)-beta$/;
+const messageLocales = ["en", "pt-BR", "es"];
 
 export function displayVersion(version) {
   if (!pattern.test(version)) throw new Error(`Invalid beta version: ${version}`);
@@ -42,17 +43,19 @@ function validate() {
       new Date(`${release.releasedAt}T00:00:00Z`).toISOString().slice(0, 10) !== release.releasedAt
     )
       throw new Error(`Invalid release date: ${release.releasedAt}`);
-    if (!messages[release.summaryKey]?.en || !messages[release.summaryKey]?.["pt-BR"])
-      throw new Error(`Missing i18n summary: ${release.version}`);
+    if (!hasEveryLocale(messages[release.summaryKey])) throw new Error(`Missing i18n summary: ${release.version}`);
     for (const item of [...release.features, ...release.fixes]) {
       if (Object.keys(item).some((key) => !itemKeys.includes(key))) throw new Error("Unknown release item fields");
-      if (!messages[item.textKey]?.en || !messages[item.textKey]?.["pt-BR"])
-        throw new Error(`Missing i18n release item: ${release.version}`);
+      if (!hasEveryLocale(messages[item.textKey])) throw new Error(`Missing i18n release item: ${release.version}`);
       if (item.issue !== undefined && (!Number.isInteger(item.issue) || item.issue <= 0))
         throw new Error("Invalid issue number");
     }
   }
   return version;
+}
+
+function hasEveryLocale(message) {
+  return messageLocales.every((locale) => typeof message?.[locale] === "string" && message[locale] !== "");
 }
 
 function compare(left, right) {

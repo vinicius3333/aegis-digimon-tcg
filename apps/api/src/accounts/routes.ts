@@ -181,13 +181,15 @@ export function installAccountRoutes(
   put("/account/decks{/:id}", async (req, res) => {
     const session = await requireSession(req, res, store);
     if (!session) return;
-    const { name, mainDeck, eggDeck, mainDeckArts, eggDeckArts, coverCardId } = req.body as {
+    const { name, mainDeck, eggDeck, mainDeckArts, eggDeckArts, coverCardId, sleeveId, eggSleeveId } = req.body as {
       name?: unknown;
       mainDeck?: unknown;
       eggDeck?: unknown;
       mainDeckArts?: unknown;
       eggDeckArts?: unknown;
       coverCardId?: unknown;
+      sleeveId?: unknown;
+      eggSleeveId?: unknown;
     };
     if (
       typeof name !== "string" ||
@@ -203,7 +205,9 @@ export function installAccountRoutes(
         (!Array.isArray(eggDeckArts) ||
           eggDeckArts.length !== eggDeck.length ||
           !eggDeckArts.every((v) => typeof v === "string"))) ||
-      (coverCardId !== undefined && coverCardId !== null && typeof coverCardId !== "string")
+      (coverCardId !== undefined && coverCardId !== null && typeof coverCardId !== "string") ||
+      (sleeveId !== undefined && sleeveId !== null && !isSleeveId(sleeveId)) ||
+      (eggSleeveId !== undefined && eggSleeveId !== null && !isSleeveId(eggSleeveId))
     ) {
       res.status(400).json({ error: "invalid deck" });
       return;
@@ -218,6 +222,8 @@ export function installAccountRoutes(
           mainDeckArts: mainDeckArts as string[] | undefined,
           eggDeckArts: eggDeckArts as string[] | undefined,
           coverCardId: (coverCardId as string | null | undefined) ?? undefined,
+          sleeveId: (sleeveId as string | null | undefined) ?? undefined,
+          eggSleeveId: (eggSleeveId as string | null | undefined) ?? undefined,
         }),
       );
     } catch (error) {
@@ -699,18 +705,27 @@ function parseBanlistPolicy(value: unknown): BanlistPolicy | undefined {
 
 const MAX_PREFERENCE_LENGTH = 64;
 
+/** The web client owns the sleeve catalog, so a deck's sleeve is checked only for shape. */
+function isSleeveId(value: unknown): value is string {
+  return typeof value === "string" && value.length > 0 && value.length <= MAX_PREFERENCE_LENGTH;
+}
+
 /**
  * Accepts a partial set of known keys. The web client owns the valid locale, sleeve and
  * sort ids, and clamps the deck panel share to its own layout limits.
  */
 function parsePreferences(value: unknown): AccountPreferences | undefined {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return undefined;
-  const { darkMode, locale, sleeve, deckShare, deckView, deckSort, ...unknownKeys } = value as Record<string, unknown>;
+  const { darkMode, locale, sleeve, eggSleeve, deckShare, deckView, deckSort, ...unknownKeys } = value as Record<
+    string,
+    unknown
+  >;
   if (Object.keys(unknownKeys).length > 0) return undefined;
   const isShortText = (text: unknown) => typeof text === "string" && text.length <= MAX_PREFERENCE_LENGTH;
   if (darkMode !== undefined && typeof darkMode !== "boolean") return undefined;
   if (locale !== undefined && !isShortText(locale)) return undefined;
   if (sleeve !== undefined && !isShortText(sleeve)) return undefined;
+  if (eggSleeve !== undefined && !isShortText(eggSleeve)) return undefined;
   if (deckShare !== undefined && !(typeof deckShare === "number" && deckShare > 0 && deckShare < 1)) return undefined;
   if (deckView !== undefined && deckView !== "grid" && deckView !== "list") return undefined;
   if (deckSort !== undefined && !isShortText(deckSort)) return undefined;
@@ -718,6 +733,7 @@ function parsePreferences(value: unknown): AccountPreferences | undefined {
     ...(darkMode !== undefined && { darkMode }),
     ...(locale !== undefined && { locale: locale as string }),
     ...(sleeve !== undefined && { sleeve: sleeve as string }),
+    ...(eggSleeve !== undefined && { eggSleeve: eggSleeve as string }),
     ...(deckShare !== undefined && { deckShare: deckShare as number }),
     ...(deckView !== undefined && { deckView: deckView as "grid" | "list" }),
     ...(deckSort !== undefined && { deckSort: deckSort as string }),

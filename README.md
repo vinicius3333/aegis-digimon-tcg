@@ -200,8 +200,9 @@ Pull requests are welcome. Before you open one:
 A release takes two steps. It is not public until you run step 2.
 
 1. **Prepare.** Run `pnpm release:set X.Y.Z-beta`. Add the release to
-   `apps/web/src/releases/releases.json` and its English and Portuguese text to
-   `messages.json`. Commit as `chore(release): prepare vX.Y.Z-BETA` and push `main`.
+   `apps/web/src/releases/releases.json` and its English (`en`), Portuguese (`pt-BR`)
+   and Spanish (`es`) text to `messages.json`. Commit as
+   `chore(release): prepare vX.Y.Z-BETA` and push `main`.
 2. **Publish.** From a clean worktree at that commit, run
    `pnpm release:publish -- vX.Y.Z-BETA`. It runs the release checks, pushes the tag and
    creates the GitHub release, marked as latest, with the notes from `pnpm release:notes`.

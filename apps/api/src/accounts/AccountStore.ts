@@ -26,12 +26,18 @@ export type Deck = {
   mainDeckArts?: string[];
   eggDeckArts?: string[];
   coverCardId?: string;
+  /** A card sleeve id from the web client's catalog; the api stores it without interpreting it. */
+  sleeveId?: string;
+  /** The Digi-Egg deck's sleeve id, stored the same way as `sleeveId`. */
+  eggSleeveId?: string;
   revision: number;
+  updatedAt: number;
 };
 export type AccountPreferences = {
   darkMode?: boolean;
   locale?: string;
   sleeve?: string;
+  eggSleeve?: string;
   deckShare?: number;
   deckView?: "grid" | "list";
   deckSort?: string;
@@ -422,8 +428,11 @@ export class AccountStore {
       main_deck_arts: string[];
       egg_deck_arts: string[];
       cover_card_id: string | null;
+      sleeve_id: string | null;
+      egg_sleeve_id: string | null;
+      updated_at: string | number;
     }>(
-      "SELECT id,name,main_deck,egg_deck,main_deck_arts,egg_deck_arts,cover_card_id,revision FROM saved_decks WHERE account_id=$1 ORDER BY updated_at DESC",
+      "SELECT id,name,main_deck,egg_deck,main_deck_arts,egg_deck_arts,cover_card_id,sleeve_id,egg_sleeve_id,revision,updated_at FROM saved_decks WHERE account_id=$1 ORDER BY updated_at DESC",
       [accountId],
     );
     return result.rows.map((row) => ({
@@ -434,10 +443,16 @@ export class AccountStore {
       mainDeckArts: row.main_deck_arts,
       eggDeckArts: row.egg_deck_arts,
       coverCardId: row.cover_card_id ?? undefined,
+      sleeveId: row.sleeve_id ?? undefined,
+      eggSleeveId: row.egg_sleeve_id ?? undefined,
       revision: row.revision,
+      updatedAt: Number(row.updated_at),
     }));
   }
-  async saveDeck(accountId: string, input: Omit<Deck, "id" | "revision"> & { id?: string }): Promise<Deck> {
+  async saveDeck(
+    accountId: string,
+    input: Omit<Deck, "id" | "revision" | "updatedAt"> & { id?: string },
+  ): Promise<Deck> {
     const mainDeckArts = input.mainDeck.map(
       (cardId, index) => resolveCardArt(cardId, input.mainDeckArts?.[index]).artId,
     );
@@ -454,20 +469,23 @@ export class AccountStore {
         [accountId, id],
       );
       const revision = (current.rows[0]?.revision ?? 0) + 1;
+      const updatedAt = Date.now();
       if (current.rows[0])
         await client.query(
-          "UPDATE saved_decks SET name=$1,main_deck=$2,egg_deck=$3,revision=$4,updated_at=$5,main_deck_arts=$8,egg_deck_arts=$9,cover_card_id=$10 WHERE account_id=$6 AND id=$7",
+          "UPDATE saved_decks SET name=$1,main_deck=$2,egg_deck=$3,revision=$4,updated_at=$5,main_deck_arts=$8,egg_deck_arts=$9,cover_card_id=$10,sleeve_id=$11,egg_sleeve_id=$12 WHERE account_id=$6 AND id=$7",
           [
             input.name,
             JSON.stringify(input.mainDeck),
             JSON.stringify(input.eggDeck),
             revision,
-            Date.now(),
+            updatedAt,
             accountId,
             id,
             JSON.stringify(mainDeckArts),
             JSON.stringify(eggDeckArts),
             coverCardId ?? null,
+            input.sleeveId ?? null,
+            input.eggSleeveId ?? null,
           ],
         );
       else {
@@ -478,7 +496,7 @@ export class AccountStore {
         if (Number(count.rows[0]?.count) >= MAX_SAVED_DECKS)
           throw new DeckLimitError(`accounts may save at most ${MAX_SAVED_DECKS} decks`);
         await client.query(
-          "INSERT INTO saved_decks (id,account_id,name,main_deck,egg_deck,revision,updated_at,main_deck_arts,egg_deck_arts,cover_card_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
+          "INSERT INTO saved_decks (id,account_id,name,main_deck,egg_deck,revision,updated_at,main_deck_arts,egg_deck_arts,cover_card_id,sleeve_id,egg_sleeve_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)",
           [
             id,
             accountId,
@@ -486,10 +504,12 @@ export class AccountStore {
             JSON.stringify(input.mainDeck),
             JSON.stringify(input.eggDeck),
             revision,
-            Date.now(),
+            updatedAt,
             JSON.stringify(mainDeckArts),
             JSON.stringify(eggDeckArts),
             coverCardId ?? null,
+            input.sleeveId ?? null,
+            input.eggSleeveId ?? null,
           ],
         );
       }
@@ -501,7 +521,10 @@ export class AccountStore {
         mainDeckArts,
         eggDeckArts,
         coverCardId,
+        sleeveId: input.sleeveId,
+        eggSleeveId: input.eggSleeveId,
         revision,
+        updatedAt,
       };
     });
   }

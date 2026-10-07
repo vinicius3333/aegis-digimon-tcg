@@ -12,7 +12,9 @@ import {
 } from "./arenaPalette";
 import {
   BATTLEFIELDS,
+  CLASSIC_BATTLEFIELD,
   CUSTOM_BATTLEFIELD_ID,
+  RANDOM_BATTLEFIELD_ID,
   battlefieldById,
   clearCustomBattlefield,
   setBattlefieldId,
@@ -126,7 +128,8 @@ export function ArenaLookSettings({
   const battleLanes = useBattleLanePreference();
   const battlefieldId = useBattlefieldId();
   const customSrc = useCustomBattlefieldSrc();
-  const battlefield = battlefieldById(battlefieldId);
+  const randomBattlefield = battlefieldId === RANDOM_BATTLEFIELD_ID;
+  const battlefield = randomBattlefield ? CLASSIC_BATTLEFIELD : battlefieldById(battlefieldId);
   const battlefields = customSrc ? [...BATTLEFIELDS, battlefieldById(CUSTOM_BATTLEFIELD_ID)] : BATTLEFIELDS;
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [uploadError, setUploadError] = useState<string>();
@@ -170,6 +173,9 @@ export function ArenaLookSettings({
             <span className="aegis-arena-clash aegis-arena-look__clash" />
           </div>
           <p className="aegis-arena-look__note">{t("redesign.foundation.arena.themeNote")}</p>
+          {randomBattlefield ? (
+            <p className="aegis-arena-look__note">{t("redesign.foundation.arena.randomNote")}</p>
+          ) : null}
         </div>
 
         <div className="aegis-arena-look__controls">
@@ -304,6 +310,23 @@ export function ArenaLookSettings({
                   <span className="aegis-arena-look__option-label">{battlefieldLabel(field)}</span>
                 </label>
               ))}
+              <label className="aegis-arena-look__option aegis-arena-look__battlefield">
+                <input
+                  type="radio"
+                  className="aegis-sr-only"
+                  name={`${groupName}-battlefield`}
+                  value={RANDOM_BATTLEFIELD_ID}
+                  checked={randomBattlefield}
+                  onChange={() => {
+                    setBattlefieldId(RANDOM_BATTLEFIELD_ID);
+                    playSound("select");
+                  }}
+                />
+                <span className="aegis-arena-look__thumb aegis-arena-look__upload" aria-hidden="true">
+                  <Icons.Dices size={20} />
+                </span>
+                <span className="aegis-arena-look__option-label">{t("redesign.foundation.battlefield.random")}</span>
+              </label>
               <button
                 type="button"
                 className="aegis-arena-look__option aegis-arena-look__battlefield"

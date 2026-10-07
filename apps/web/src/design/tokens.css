@@ -51,14 +51,16 @@
   --ds-font-display: "Tektur", ui-sans-serif, system-ui, sans-serif;
   --ds-font-body: "Inter", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   --ds-font-mono: "Fira Code", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --ds-text-xs: 0.75rem;
-  --ds-text-sm: 0.875rem;
-  --ds-text-base: 1rem;
-  --ds-text-lg: 1.125rem;
-  --ds-text-xl: 1.25rem;
-  --ds-text-2xl: 1.5rem;
-  --ds-text-3xl: 1.875rem;
-  --ds-text-4xl: 2.25rem;
+  /* The player's text size setting (textScale.ts) sets the scale on the root element. */
+  --ds-text-scale: 1;
+  --ds-text-xs: calc(0.75rem * var(--ds-text-scale));
+  --ds-text-sm: calc(0.875rem * var(--ds-text-scale));
+  --ds-text-base: calc(1rem * var(--ds-text-scale));
+  --ds-text-lg: calc(1.125rem * var(--ds-text-scale));
+  --ds-text-xl: calc(1.25rem * var(--ds-text-scale));
+  --ds-text-2xl: calc(1.5rem * var(--ds-text-scale));
+  --ds-text-3xl: calc(1.875rem * var(--ds-text-scale));
+  --ds-text-4xl: calc(2.25rem * var(--ds-text-scale));
   --ds-leading-body: 1.5;
   --ds-leading-tight: 1.08;
   --ds-tracking-display: -0.015em;

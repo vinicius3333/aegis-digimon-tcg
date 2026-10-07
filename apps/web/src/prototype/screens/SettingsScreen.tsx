@@ -101,6 +101,7 @@ export function SettingsScreen({ dark, onToggleDark }: { dark: boolean; onToggle
               <SelectContent>
                 <SelectItem value="en">English</SelectItem>
                 <SelectItem value="pt-BR">Português (BR)</SelectItem>
+                <SelectItem value="es">Español</SelectItem>
               </SelectContent>
             </Select>
           </SettingRow>

@@ -14,6 +14,7 @@ export const foundationPtBR: Record<keyof typeof foundationEn, string> = {
   "redesign.foundation.arena.lanes.phoneNote": "Celulares sempre usam uma linha.",
   "redesign.foundation.arena.battlefield": "Campo de batalha",
   "redesign.foundation.arena.replaceImage": "Trocar imagem",
+  "redesign.foundation.arena.randomNote": "Cada partida sorteia um campo de batalha.",
   "redesign.foundation.arena.palette.aegis": "Aegis: azul vs violeta",
   "redesign.foundation.arena.palette.red-blue": "Azul vs vermelho",
   "redesign.foundation.arena.palette.green-purple": "Verde vs roxo",
@@ -38,4 +39,5 @@ export const foundationPtBR: Record<keyof typeof foundationEn, string> = {
   "redesign.foundation.battlefield.pipe-lake": "Lago dos Canos",
   "redesign.foundation.battlefield.cyber-hub": "Central Cibernética",
   "redesign.foundation.battlefield.wire-woods": "Bosque dos Fios",
+  "redesign.foundation.battlefield.random": "Aleatório",
 };

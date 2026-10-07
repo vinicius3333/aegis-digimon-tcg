@@ -19,6 +19,8 @@ import { deckCoverCard } from "./016-deck-cover-card.js";
 import { accountPreferences } from "./017-account-preferences.js";
 import { emailDailyUsage } from "./018-email-daily-usage.js";
 import { communityDecks } from "./019-community-decks.js";
+import { deckSleeve } from "./020-deck-sleeve.js";
+import { deckEggSleeve } from "./021-deck-egg-sleeve.js";
 
 export const migrations: readonly Migration[] = [
   initialSchema,
@@ -40,4 +42,6 @@ export const migrations: readonly Migration[] = [
   accountPreferences,
   emailDailyUsage,
   communityDecks,
+  deckSleeve,
+  deckEggSleeve,
 ];

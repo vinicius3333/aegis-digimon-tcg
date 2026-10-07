@@ -24,6 +24,8 @@ import { Settings } from "./screens/Settings";
 import { loadIdentity, saveIdentity, loadDecks, saveDecks, loadActiveDeckId, saveActiveDeckId } from "./identity";
 import { accentForAvatar } from "./guest";
 import { applyDarkMode, setDarkMode, useDarkMode } from "./design/darkMode";
+import { setDeckEggSleeveId, setDeckSleeveId } from "./design/sleeve";
+import { applyTextScale } from "./design/textScale";
 import { I18nProvider, useTranslation } from "./i18n";
 import { accountApi, type RemoteAccount } from "./account/client";
 import { communityApi } from "./community/client";
@@ -210,11 +212,12 @@ function AppShell() {
   }, [activeDeckId]);
 
   useEffect(applyDarkMode, []);
+  useEffect(applyTextScale, []);
 
   usePreferencesSync({ accountId: account?.id, dark, setDark });
 
   const saveDeck = (deck: DeckListing, setActive: boolean) => {
-    const filtered = filterDeckToKnownCards(deck);
+    const filtered = { ...filterDeckToKnownCards(deck), updatedAt: Date.now() };
     setDecks((ds) => upsertDeck(ds, filtered));
     void accountApi
       .me()
@@ -375,6 +378,10 @@ export function AegisClient({
     [borrowedDeck, decks],
   );
   const matchDeck = deckById(availableDecks, matchDeckId ?? activeDeckId);
+  const matchSleeveId = screen === "game" ? matchDeck?.sleeveId : undefined;
+  useEffect(() => setDeckSleeveId(matchSleeveId), [matchSleeveId]);
+  const matchEggSleeveId = screen === "game" ? matchDeck?.eggSleeveId : undefined;
+  useEffect(() => setDeckEggSleeveId(matchEggSleeveId), [matchEggSleeveId]);
   const collectionSize = useMemo(() => activeCollectionCards().length, []);
   const identityColor: ColorName = colorKey(player.color);
 
