@@ -83,7 +83,7 @@ export function detachLeaveReplacements(
         sourcePermanentId: id,
         sourceInstanceId: permanent.topCard.instanceId,
         activationIdentity: "keyword-detach",
-        description: "＜Detach＞: trash 1 eligible link card to prevent leaving the battle area.",
+        description: "＜Detach＞: by trashing 1 eligible link card, this Digimon doesn't leave the battle area.",
         causeAllows: (cause, resolvingSeat) => !(cause === "byEffect" && resolvingSeat === permanent.controllerSeat),
         protects: (_ctx, leavingId) => leavingId === id && deps.hasDetach(id),
         preventCheck: async (ctx) => {
@@ -99,11 +99,15 @@ export function detachLeaveReplacements(
             // An unexecutable optional processing condition cannot be chosen (§15-7-4).
             return false;
           }
-          const selected = await askCtx.ask.selectCards(askCtx, {
-            candidates: eligible.map((card) => card.instanceId),
-            min: 0,
-            max: 1,
-          });
+          if (ctx.presetOptionalAnswer === false) return false;
+          const selected =
+            ctx.presetOptionalAnswer === true && eligible.length === 1
+              ? [eligible[0]!.instanceId]
+              : await askCtx.ask.selectCards(askCtx, {
+                  candidates: eligible.map((card) => card.instanceId),
+                  min: 0,
+                  max: 1,
+                });
           if (selected.length !== 1) return false;
           return (await detachLinkedCard(live, selected[0]!, traits, deps.definitionOf, deps)) !== undefined;
         },

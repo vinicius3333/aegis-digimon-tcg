@@ -131,19 +131,22 @@ export function DecisionTriggerChooser({
     });
   const presetAll = (preset: Preset) => setPresets(Object.fromEntries(optionalKeys.map((key) => [key, preset])));
 
-  const canResolve = acceptsResolutionPlan ? order.length > 0 : order.length === 1;
+  // With no effect picked, a plan resolves the list as shown: the Yes/No presets already
+  // answer each effect, so making the player click every row again adds nothing.
+  const submittedOrder = acceptsResolutionPlan && order.length === 0 ? displayedKeys : order;
+  const canResolve = acceptsResolutionPlan ? submittedOrder.length > 0 : order.length === 1;
   const respond = () => {
     const optionalAnswers = Object.fromEntries(Object.entries(presets).map(([key, preset]) => [key, preset === "yes"]));
     onRespond(
       acceptsResolutionPlan && Object.keys(optionalAnswers).length > 0
-        ? { kind: "orderTriggers", order: [...order], optionalAnswers }
-        : { kind: "orderTriggers", order: [...order] },
+        ? { kind: "orderTriggers", order: [...submittedOrder], optionalAnswers }
+        : { kind: "orderTriggers", order: [...submittedOrder] },
     );
   };
   const resolveLabel =
     optionCount === 1
       ? t("overlay.resolveEffect")
-      : order.length > 1
+      : submittedOrder.length > 1
         ? t("overlay.resolveInOrder")
         : t("overlay.resolveNextEffect");
 

@@ -77,7 +77,7 @@ export function partitionLeaveReplacements(
         sourcePermanentId: id,
         sourceInstanceId: candidate.partitionSourceInstanceId,
         activationIdentity: "keyword-partition",
-        description: "＜Partition＞: play the specified digivolution cards without paying their costs.",
+        description: "＜Partition＞: you may play the specified digivolution cards without paying their costs.",
         causeAllows: (cause, seat) =>
           cause !== "byBattle" && !(cause === "byEffect" && seat === permanent.controllerSeat),
         appliesTo: (_ctx, leavingId) => leavingId === id && stillAvailable(),

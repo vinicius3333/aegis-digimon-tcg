@@ -84,10 +84,12 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
         timing: EffectTiming.OnUseAttack,
         effect: {
           effectKey: `${top.instanceId}/alliance/${index}`,
-          description: "＜Alliance＞: Suspend another Digimon you control.",
+          description:
+            "＜Alliance＞: By suspending 1 of your other Digimon, this Digimon gets that Digimon's DP and ＜Security A. +1＞.",
           // Not `optional`: the ally prompt itself carries the decline (a null response),
           // exactly as the legacy path does. Marking it optional would insert a second,
-          // separate "use engine effect?" decision that ＜Alliance＞ does not have.
+          // separate "use engine effect?" decision that ＜Alliance＞ does not have. The
+          // "by suspending" clause still lets the effect order offer a Yes/No preset.
           optional: false,
           isInherited: false,
           isSecurity: false,
@@ -99,7 +101,7 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
           // put it after an effect that first creates the ally. `resolveAllianceEffect`
           // re-reads the board and does nothing when no ally is there at resolution time.
           canActivate: () => true,
-          resolve: async () => engine.combat.resolveAllianceEffect(attacker.permanentId),
+          resolve: async (ctx) => engine.combat.resolveAllianceEffect(attacker.permanentId, ctx.presetOptionalAnswer),
         },
       }));
       // ＜Raid＞ is one more simultaneous [When Attacking] trigger: the controller orders it
@@ -114,8 +116,10 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
                 timing: EffectTiming.OnUseAttack,
                 effect: {
                   effectKey: `${top.instanceId}/keyword/Raid`,
-                  description: "＜Raid＞: Switch the attack target to the opponent's highest-DP unsuspended Digimon.",
+                  description:
+                    "＜Raid＞: You may switch the attack target to the opponent's highest-DP unsuspended Digimon.",
                   // Not `optional`: the target prompt itself carries the decline, as with ＜Alliance＞.
+                  // The "may" clause still lets the effect order offer a Yes/No preset.
                   optional: false,
                   isInherited: false,
                   isSecurity: false,
@@ -124,7 +128,8 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
                   canTrigger: () => true,
                   canActivate: () => engine.combat.canResolveRaid(attacker.permanentId),
                   announce: () => engine.combat.hasRaidTarget(attacker.permanentId),
-                  resolve: async () => engine.combat.resolveRaidEffect(attacker.permanentId),
+                  resolve: async (ctx) =>
+                    engine.combat.resolveRaidEffect(attacker.permanentId, ctx.presetOptionalAnswer),
                 },
               },
             ]

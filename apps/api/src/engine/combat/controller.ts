@@ -1066,8 +1066,13 @@ export class CombatController {
       );
   }
 
-  /** Resolve ＜Raid＞ from the combined [When Attacking] window or the legacy inline step. */
-  async resolveRaidEffect(attackerPermanentId: string): Promise<void> {
+  /**
+   * Resolve ＜Raid＞ from the combined [When Attacking] window or the legacy inline step.
+   * `presetAnswer` is the Yes/No the controller set in the effect order: No skips the
+   * redirect, and Yes skips the prompt when only one Digimon ties for the highest DP.
+   */
+  async resolveRaidEffect(attackerPermanentId: string, presetAnswer?: boolean): Promise<void> {
+    if (presetAnswer === false) return;
     const attack = this.currentAttack;
     const attacker = this.access.permanentById(attackerPermanentId);
     if (attack === undefined || attacker === undefined || !this.canResolveRaid(attackerPermanentId)) return;
@@ -1075,12 +1080,15 @@ export class CombatController {
     if (unsuspended.length === 0) return;
     const highestDP = Math.max(...unsuspended.map((p) => p.currentDP));
     const tied = unsuspended.filter((p) => p.currentDP === highestDP);
-    const chosenInstanceId = await this.hooks.selectOptionalInstance?.(
-      attack.seat,
-      tied.map((p) => p.topCard!.instanceId),
-      "＜Raid＞: switch the attack target to this opponent's Digimon?",
-      attacker.topCard === undefined ? undefined : this.permanentSource(attacker),
-    );
+    const onlyTarget = presetAnswer === true && tied.length === 1 ? tied[0]!.topCard!.instanceId : undefined;
+    const chosenInstanceId =
+      onlyTarget ??
+      (await this.hooks.selectOptionalInstance?.(
+        attack.seat,
+        tied.map((p) => p.topCard!.instanceId),
+        "＜Raid＞: switch the attack target to this opponent's Digimon?",
+        attacker.topCard === undefined ? undefined : this.permanentSource(attacker),
+      ));
     if (chosenInstanceId === undefined) return;
     const chosen = tied.find((p) => p.topCard?.instanceId === chosenInstanceId);
     if (chosen === undefined) return;
@@ -1103,14 +1111,18 @@ export class CombatController {
    * sees the current board. The DP/security benefit it pays for is installed on the attacker
    * and is not undone by a later evolution of the suspended ally.
    */
-  async resolveAllianceEffect(attackerPermanentId: string): Promise<void> {
+  async resolveAllianceEffect(attackerPermanentId: string, presetAnswer?: boolean): Promise<void> {
+    if (presetAnswer === false) return;
     const attacker = this.access.permanentById(attackerPermanentId);
     if (attacker === undefined) return;
     const allyIds = this.allianceAllyIds(attacker.permanentId);
     // No eligible ally left when this instance resolves: the keyword simply does nothing.
     // Prompting an empty choice would be a decision with one answer.
     if (allyIds.length === 0) return;
-    const allyId = await this.runAllianceDecision(attacker.controllerSeat, attacker.permanentId, allyIds);
+    const allyId =
+      presetAnswer === true && allyIds.length === 1
+        ? allyIds[0]!
+        : await this.runAllianceDecision(attacker.controllerSeat, attacker.permanentId, allyIds);
     if (this.access.game.gameOver || allyId === null) return;
     const ally = this.access.permanentById(allyId);
     if (ally === undefined) return;

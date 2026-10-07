@@ -985,6 +985,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Você e o bot controlam EX13-071 Richard Sampson com 1 carta virada para baixo embaixo. No início da sua Fase Principal, aceite colocar a carta do topo do deck virada para baixo embaixo do seu Sampson. Abra a pilha do seu Sampson: as 2 cartas embaixo mostram o nome e a marca “Virada para baixo”, e tocar nelas amplia a carta. Abra a pilha do Sampson do bot: a carta embaixo continua como “Carta virada para baixo”, sem nome e sem ampliar.",
     en: "You and the bot each control EX13-071 Richard Sampson with 1 face-down card under it. At the start of your Main phase, accept placing your deck's top card face down under your Sampson. Open your Sampson's stack: both cards under it show their name with a “Face down” mark, and tapping one enlarges it. Open the bot's Sampson stack: its card stays “Face-down card”, with no name and no enlarge.",
   },
+  "arena-preset-order-no-clicks": {
+    ptBR: "Encerre a criação e ataque a segurança com Examon EX13-045. Na ordem dos efeitos [Ao Atacar], marque Sim para ＜Raid＞ e EX2-040, e Não para BT6-071 e BT9-006. Sem clicar em cada efeito, toque em Resolver: tudo resolve sem outro clique. O ataque muda para o Agumon BT1-013, as 2 cartas do topo do deck vão para a lixeira e sua mão não muda.",
+    en: "End breeding and attack security with EX13-045 Examon. In the [When Attacking] order, set Yes for ＜Raid＞ and EX2-040, and No for BT6-071 and BT9-006. Without clicking each effect, press Resolve: everything resolves with no further click. The attack switches to the BT1-013 Agumon, the top 2 deck cards go to trash, and your hand is unchanged.",
+  },
+  "arena-raid-optional-preset": {
+    ptBR: "Encerre a criação e ataque a segurança com Examon EX13-045. Na ordem dos efeitos [Ao Atacar], ＜Raid＞ deve mostrar Sim/Não/Perguntar, não Obrigatório. Marque Não: o ataque continua na segurança, sem pedido de Raid, e o Agumon BT1-013 do bot sobrevive. Reinicie e marque Sim: o alvo muda para o Agumon sem pedido extra, e ele é deletado na batalha.",
+    en: "End breeding and attack security with EX13-045 Examon. In the [When Attacking] order, ＜Raid＞ must show Yes/No/Ask, not Mandatory. Set No: the attack stays on security with no Raid prompt, and the bot's BT1-013 Agumon survives. Reset and set Yes: the target switches to the Agumon with no extra prompt, and it is deleted in battle.",
+  },
   "arena-ex7-seventh-fascination-trash-turn": {
     ptBR: "Evolua BT11-083 para EX7-061 Lilithmon (X Antibody) e aceite devolver EX7-072 da lixeira ao fundo do deck. O Digimon do bot deve sobreviver ao fim do seu turno e só ser deletado no fim do turno dele.",
     en: "Digivolve BT11-083 into EX7-061 Lilithmon (X Antibody) and accept returning EX7-072 from trash to the deck bottom. The bot's Digimon should survive your turn end and be deleted only at the end of its own turn.",
@@ -2142,6 +2150,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex12-siriusmon-group-placement", "EX12 Siriusmon · place two cards at one end"],
   ["arena-ex12-virus-busters-effect-attack", "EX12 Virus Busters · ordered with an effect-driven attack"],
   ["arena-ex7-seventh-fascination-trash-turn", "EX7 Seventh Fascination · trash activation"],
+  ["arena-raid-optional-preset", "EX13 Examon · Raid Yes/No preset in effect order"],
+  ["arena-preset-order-no-clicks", "EX13 Examon · preset effect order resolves in one submit"],
   ["arena-ex13-leopardmon-suspended-target", "EX13 Leopardmon · suspend an already suspended Digimon"],
   ["arena-bt24-ogremon-ulforce-unsuspend", "BT24 Ogremon · Ulforce can unsuspend by effects"],
   ["arena-bt23-king-drasil-unsuspended-cost", "BT23 King Drasil · pay the suspend cost after Ulforce unsuspends it"],
