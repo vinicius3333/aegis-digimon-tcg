@@ -1193,18 +1193,15 @@ export async function runSubTrigger(
             (!costFreeOptionalBody || canActivateEffect(subCtx, { actions: action.actions })),
         }
       : {}),
-    // A discarded inherited source is intentionally not permanently anchored to its host: its
-    // source instance is the identity used by the stack-card event gate. `matchTrashedSource`
-    // below is the narrow exception; omit sourceInstanceId from the subscription so the host
-    // context can still be built while the closure retains the exact instance identity.
+    // Preserve the exact printed source. Discard contexts carry placement proof for that
+    // instance after it moves to trash; binding the host top instead loses inherited
+    // eligibility when this watcher waits behind a resolving effect (#5218).
     ...(discardedSelfSource ? {} : anchorPermanentId !== undefined ? { sourcePermanentId: anchorPermanentId } : {}),
     ...(playerScoped
       ? { activationContext: ctx }
       : action.on !== undefined
         ? {}
-        : sourceFilter?.matchTrashedSource === true
-          ? {}
-          : { sourceInstanceId: ctx.source.instanceId }),
+        : { sourceInstanceId: ctx.source.instanceId }),
     // Anchor-less fallback (the eighth engine gap): when there is no on-field permanent to
     // anchor to AND the clause was not granted to another permanent (both cases already set
     // anchorPermanentId), the watcher's source is a loose hand/trash-resident CardInstance —
