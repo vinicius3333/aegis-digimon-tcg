@@ -158,6 +158,25 @@ describe("BT26-055 Giromon", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("doesn't delete opposing Digimon when the combined deletion is declined", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT26-055", as: "giromon" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("giromon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.length > 0 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-055");
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT1-010");
+  });
+
   it("keeps hand placement and deletion as separate actions", () => {
     expect(compiled.effects?.[1]?.actions).toEqual(
       expect.arrayContaining([

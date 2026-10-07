@@ -101,6 +101,33 @@ describe("BT16-070", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === allyId)).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+
+  it("deletes nothing when the optional choice is declined on attack (Discord 1557502317098573905)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "ally", dp: 3000 },
+            { card: "BT16-070", as: "seth", dp: 5000 },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 3000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("seth").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.length > 0 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(s.perm("ally").permanentId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
 });
 
 describe("BT16-070 Sethmon — KB Q&A rulings", () => {

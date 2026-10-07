@@ -124,6 +124,77 @@ describe("BT15-100", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === level4Id)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === level6Id)).toBe(true);
   });
+
+  it("keeps the hand card and both targets when the optional [Main] trash is declined (Discord 1557502317098573905)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-068", as: "source" }],
+          hand: [
+            { card: "BT15-100", as: "option" },
+            { card: "BT15-069", as: "cost" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT15-072", as: "level4" },
+            { card: "BT15-079", as: "level6" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional" || req.kind === "selectCards")).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+  });
+
+  it("leaves the card in the trash and both targets in play when the [Trash] return is declined (Discord 1557502317098573905)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-077", as: "base" }],
+          hand: [{ card: "BT15-081", as: "leviamon" }],
+          trash: [{ card: "BT15-100", as: "option" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT15-072", as: "level4" },
+            { card: "BT15-079", as: "level6" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const leviamonInstanceId = s.inst("leviamon").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: leviamonInstanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("base").topCard?.instanceId === leviamonInstanceId && s.state.pendingDecision === undefined,
+    );
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+  });
 });
 
 const LEVEL_3 = "BT1-009";
