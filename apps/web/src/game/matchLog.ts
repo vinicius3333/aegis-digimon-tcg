@@ -337,6 +337,12 @@ export function describeEvent(
         kind: "sys",
         cardIds: [event.sourceCardId],
       };
+    case "effectHadNoEffect":
+      return {
+        text: t("log.effectHadNoEffect", { card: cardName(event.sourceCardId) }),
+        kind: "sys",
+        cardIds: [event.sourceCardId],
+      };
     case "cardsMoved": {
       if (event.turnEndDeletion !== undefined) {
         const { sourceCardId, deletedCardId } = event.turnEndDeletion;

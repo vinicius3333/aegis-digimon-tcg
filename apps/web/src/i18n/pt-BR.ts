@@ -1330,6 +1330,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "log.effectActivated": "{card}: {description}",
   "log.effectResolved": "O efeito de {card} foi resolvido",
   "log.effectTriggered": "O efeito de {card} foi ativado",
+  "log.effectHadNoEffect": "O efeito de {card} não teve efeito",
   "log.cardMoved": "{count} carta movida: {from} → {to}",
   "log.cardMovedNamed": "{card} movida: {from} → {to}",
   "log.turnEndDeletion": "{card} foi excluída no fim do turno pelo efeito de {source}",

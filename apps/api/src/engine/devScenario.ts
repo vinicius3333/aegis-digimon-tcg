@@ -173,6 +173,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-decoy-protect-choice",
   "arena-crimson-blaze-jesmon-token",
   "arena-p245-kakkinmon-full-hand-suspend",
+  "arena-p245-kakkinmon-craniamon-no-target",
   "arena-ex13-craniamon-dual-play-cost",
   "arena-ex13-alphamon-end-turn-attack",
   "arena-bt20-dragon-gene-skip-play",
@@ -1692,6 +1693,34 @@ function layP245KakkinmonFullHandSuspendScenario(state: GameState, decks: readon
   if (bot !== undefined) {
     placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-kakkinmon-cheapest"));
     placePermanent(bot, establishedDigimon(1, ["BT1-013"], "-kakkinmon-dearer"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/**
+ * Discord 1557481090870939840: the human's EX13-062 Craniamon has P-245 Kakkinmon in its
+ * digivolution cards and the bot has no Digimon. At the end of the turn, Kakkinmon suspends
+ * Craniamon and draws 1. Craniamon's "When this Digimon suspends, you may delete..." then
+ * activates with nothing to delete, and the match log must still say so, after Kakkinmon's
+ * activation line and its results.
+ */
+function layP245KakkinmonCraniamonNoTargetScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    for (let index = 0; index < 4; index += 1) {
+      insertCard(human, Zone.Hand, faceDownCard(`dev-kakkinmon-no-target-hand-${index}`, "BT1-009", 0));
+    }
+    placePermanent(human, establishedDigimon(0, ["P-245", "EX13-062"], "-kakkinmon-no-target-craniamon"));
   }
   state.turnSeat = 0;
   state.turnCount = 0;
@@ -7148,6 +7177,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-decoy-protect-choice": layDecoyProtectChoiceScenario,
   "arena-crimson-blaze-jesmon-token": layCrimsonBlazeJesmonTokenScenario,
   "arena-p245-kakkinmon-full-hand-suspend": layP245KakkinmonFullHandSuspendScenario,
+  "arena-p245-kakkinmon-craniamon-no-target": layP245KakkinmonCraniamonNoTargetScenario,
   "arena-ex13-craniamon-dual-play-cost": layEx13CraniamonDualPlayCostScenario,
   "arena-ex13-alphamon-end-turn-attack": layEx13AlphamonEndTurnAttackScenario,
   "arena-bt20-dragon-gene-skip-play": layBt20DragonGeneSkipPlayScenario,

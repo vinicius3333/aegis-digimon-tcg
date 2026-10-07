@@ -523,7 +523,10 @@ export async function runSubTriggersInChosenOrder(
         if (!subTriggerStillPending(engine, remaining[index]!)) remaining.splice(index, 1);
       }
       const activatable = remaining.filter(subTriggerHasLegalOutcome);
-      if (activatable.length === 0) break;
+      if (activatable.length === 0) {
+        for (const item of remaining) announceWithoutLegalOutcome(engine, item);
+        break;
+      }
       const orderingSeatOfArmed = (item: ArmedSubTrigger): Seat =>
         item.sub.orderedByTurnPlayer === true ? engine.state.turnSeat : item.ctx.source.ownerSeat;
       const prioritySeat = activatable.some((item) => orderingSeatOfArmed(item) === engine.state.turnSeat)
@@ -588,21 +591,22 @@ export function armedAsPendingCollected(engine: GameEngine, items: readonly Arme
   return items.map((item) => {
     const collected = subTriggerAsCollected(engine, item);
     let sourceDeparted = false;
+    const stillPending = (): boolean => {
+      sourceDeparted ||= !pendingWatcherSourceStillResident(engine, item);
+      return (
+        !item.activationStarted &&
+        !sourceDeparted &&
+        !subTriggerOccurrenceResolved(item) &&
+        !oncePerTurnSpentByAnotherOccurrence(engine, item)
+      );
+    };
     return {
       ...collected,
       // The resolver announces what it resolves, so engine body must not announce itself.
       effect: {
         ...collected.effect,
-        canActivate: () => {
-          sourceDeparted ||= !pendingWatcherSourceStillResident(engine, item);
-          return (
-            !item.activationStarted &&
-            !sourceDeparted &&
-            !subTriggerOccurrenceResolved(item) &&
-            !oncePerTurnSpentByAnotherOccurrence(engine, item) &&
-            subTriggerHasLegalOutcome(item)
-          );
-        },
+        canActivate: () => stillPending() && subTriggerHasLegalOutcome(item),
+        lacksLegalOutcome: () => stillPending() && !subTriggerHasLegalOutcome(item),
         resolve: async (resolverCtx: EffectContext) => {
           // Retire the pending trigger before its body can open another window, mirroring
           // `resolutionDeps.onResolving` for the printed half of the same pool.
@@ -1066,6 +1070,28 @@ export function announceSubTrigger(
       ...(sub.isInheritedSource === true ? { isInherited: true } : {}),
     });
   };
+}
+
+/**
+ * A watcher that triggered but stayed without a legal outcome is never offered, and declining
+ * it would leave its [Once Per Turn] unused (KB Q1818), so it opens no effect lifecycle. The
+ * log still owes the players a line, or the trigger looks ignored (Discord 1557481090870939840).
+ */
+function announceWithoutLegalOutcome(engine: GameEngine, item: ArmedSubTrigger): void {
+  const ctx = item.contextAtFireTime();
+  if (ctx === undefined) return;
+  const { sub } = item;
+  engine.hooks.emit({
+    kind: "effectHadNoEffect",
+    seat: ctx.source.ownerSeat,
+    sourceCardId: ctx.source.cardId,
+    sourceInstanceId: ctx.source.instanceId,
+    sourcePermanentId: ctx.source.permanent()?.permanentId,
+    effectKey: subTriggerEffectKey(sub),
+    description: playerFacingWatcherClause(sub, ctx),
+    timing: sub.event,
+    ...(sub.isInheritedSource === true ? { isInherited: true } : {}),
+  });
 }
 
 /**

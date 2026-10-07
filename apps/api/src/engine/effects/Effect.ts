@@ -20,6 +20,11 @@ export interface Effect {
   description: string;
   /** Optional printed timing label used when the engine routes a trigger through a shared window. */
   timingOverride?: string;
+  /**
+   * Still pending, but its body can do nothing right now (a cost-free "you may" with no legal
+   * target), so it is never offered. Lets the resolver tell the log that it had no effect.
+   */
+  lacksLegalOutcome?: () => boolean;
   /** Must the controller be asked? (source IsOptional) */
   optional: boolean;
   /** Granted via the digivolution stack? (source IsInheritedEffect) */

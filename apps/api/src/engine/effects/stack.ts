@@ -157,6 +157,12 @@ export interface ResolutionEnv {
 
   /** Public narration starts only once the resolving clause accepts its processing. */
   onActivating?(timing: EffectTiming, collected: CollectedEffect): void;
+
+  /**
+   * The window closed with this effect still pending but never offered, because it had no
+   * legal outcome (`Effect.lacksLegalOutcome`). Called once per pending activation.
+   */
+  onWithoutLegalOutcome?(timing: EffectTiming, collected: CollectedEffect): void;
 }
 
 /**
@@ -304,6 +310,26 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
   let passBudget = MAX_RESOLUTION_PASSES;
   let stopAttempts = 0;
 
+  // A re-entrant drain runs inside an effect that may still create a legal outcome (Q2889), so
+  // only the outermost drain, with nothing in progress, reports what stayed without one.
+  const reportedWithoutLegalOutcome = new Set<string>();
+  const reportWithoutLegalOutcome = (collectedThisPass: readonly CollectedEffect[]): void => {
+    for (const c of collectedThisPass) {
+      const key = declineKey(c);
+      if (
+        reportedWithoutLegalOutcome.has(key) ||
+        declined.has(key) ||
+        resolved.has(key) ||
+        departed.has(key) ||
+        loopStopped.has(c.effect.effectKey) ||
+        c.effect.lacksLegalOutcome?.() !== true
+      )
+        continue;
+      reportedWithoutLegalOutcome.add(key);
+      env.onWithoutLegalOutcome?.(timing, c);
+    }
+  };
+
   const drainCurrentTimingWindow = async (): Promise<void> => {
     while (true) {
       if (env.isGameOver()) return;
@@ -352,7 +378,10 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
         if (activatable) activeKeys.add(key);
         return activatable;
       });
-      if (active.length === 0) return;
+      if (active.length === 0) {
+        if (inProgress.size === 0) reportWithoutLegalOutcome(collectedThisPass);
+        return;
+      }
 
       // §18-3 Infinite Loops. The window is still handing out activatable effects after
       // `passBudget` passes, which no legitimate chain reaches — so this is §18-3-1's

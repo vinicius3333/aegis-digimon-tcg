@@ -188,6 +188,19 @@ export function resolutionDeps(
         ...(engine.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
       });
     },
+    onWithoutLegalOutcome: (timing, collected) => {
+      engine.hooks.emit({
+        kind: "effectHadNoEffect",
+        seat: collected.source.ownerSeat,
+        sourceCardId: collected.source.cardId,
+        sourceInstanceId: collected.source.instanceId,
+        sourcePermanentId: collected.conferredToPermanentId ?? collected.source.permanent()?.permanentId,
+        effectKey: collected.effect.effectKey,
+        description: collected.effect.description,
+        timing: collected.timingLabel ?? EffectTiming[collected.timing ?? timing],
+        ...(collected.effect.isInherited ? { isInherited: true } : {}),
+      });
+    },
     onResolved: (timing, collected) => {
       if (!announced.delete(collected)) return;
       engine.hooks.emit({

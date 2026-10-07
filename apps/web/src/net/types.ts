@@ -337,6 +337,7 @@ export interface AegisJoinOptions {
     | "arena-decoy-protect-choice"
     | "arena-crimson-blaze-jesmon-token"
     | "arena-p245-kakkinmon-full-hand-suspend"
+    | "arena-p245-kakkinmon-craniamon-no-target"
     | "arena-ex13-craniamon-dual-play-cost"
     | "arena-ex13-alphamon-end-turn-attack"
     | "arena-bt20-dragon-gene-skip-play"
