@@ -163,6 +163,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex12-siriusmon-group-placement",
   "arena-ex12-virus-busters-effect-attack",
   "arena-ex12-diarbbitmon-option-trigger-timing",
+  "arena-bt26-cerberusmon-breeding-arts",
   "arena-bt15-leviamon-x-played-subject-left",
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-ex13-leopardmon-suspended-target",
@@ -3562,6 +3563,39 @@ function layEx12DiarbbitmonOptionTriggerTimingScenario(state: GameState, decks: 
   if (bot !== undefined) {
     placePermanent(bot, establishedDigimon(1, ["BT11-112"], "-diarb-rina"));
     placePermanent(bot, establishedDigimon(1, ["EX13-022", "EX13-023"], "-diarb-ulforce"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 6;
+}
+
+/**
+ * Discord bug 1557536010517090345: the human's only Digimon is EX13-051 Guardromon (black,
+ * Lv.4) in the breeding area. Using BT26-056 Cerberusmon: Werewolf Mode's Option side must
+ * offer Arts Digivolve onto that breeding Digimon, since the breeding area is part of the field.
+ */
+function layBt26CerberusmonBreedingArtsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    setBreeding(human, establishedDigimon(0, ["BT1-001", "EX13-051"], "-cerberus-guardromon"));
+    human.breeding!.inBreeding = true;
+    insertCard(human, Zone.Hand, faceDownCard("dev-cerberus-option", "BT26-056", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-cerberus-discard", "BT1-010", 0));
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT24-034", "BT26-015", "BT26-016", "BT26-060"], "-cerberus-target"));
   }
 
   state.turnSeat = 0;
@@ -7137,6 +7171,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex12-siriusmon-group-placement": layEx12SiriusmonGroupPlacementScenario,
   "arena-ex12-virus-busters-effect-attack": layEx12VirusBustersEffectAttackScenario,
   "arena-ex12-diarbbitmon-option-trigger-timing": layEx12DiarbbitmonOptionTriggerTimingScenario,
+  "arena-bt26-cerberusmon-breeding-arts": layBt26CerberusmonBreedingArtsScenario,
   "arena-bt15-leviamon-x-played-subject-left": layBt15LeviamonXPlayedSubjectLeftScenario,
   "arena-ex7-seventh-fascination-trash-turn": (state, decks) =>
     layEx7SeventhFascinationTurnScenario(state, decks, true),

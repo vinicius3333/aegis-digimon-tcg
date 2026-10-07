@@ -138,6 +138,7 @@ export interface AegisJoinOptions {
     | "arena-bt11-rina-mailmon-suspended-subject"
     | "arena-rina-evade-unsuspend"
     | "arena-ex12-diarbbitmon-option-trigger-timing"
+    | "arena-bt26-cerberusmon-breeding-arts"
     | "arena-bt15-leviamon-x-played-subject-left"
     | "arena-ex3-wingdramon-evade-suspend-lock"
     | "arena-ex13-wingdramon-evade-suspend-lock"

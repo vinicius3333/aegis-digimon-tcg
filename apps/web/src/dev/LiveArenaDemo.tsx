@@ -1140,6 +1140,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e use o lado Opção de Diarbbitmon (Truskmore Advance). Suspenda UlforceVeedramon e trave 2 cartas do bot. A Rina e o herdado de AeroVeedramon do bot NÃO podem ativar antes de a Opção terminar. Faça a Digievolução Arts de Bastemon em Diarbbitmon: seus efeitos Quando Digivolve resolvem primeiro e depois os do bot.",
     en: "End breeding and use Diarbbitmon's Option side (Truskmore Advance). Suspend UlforceVeedramon and lock 2 of the bot's cards. The bot's Rina and AeroVeedramon's inherited effect must NOT activate before the Option finishes. Arts Digivolve Bastemon into Diarbbitmon: your When Digivolving effects resolve first, then the bot's.",
   },
+  "arena-bt26-cerberusmon-breeding-arts": {
+    ptBR: "Encerre a criação e use o lado Opção de Cerberusmon: Werewolf Mode (Inferno Divide). Descarte 1 carta e De-Digivolva 3 o Digimon do bot. Depois, a Digievolução Arts deve oferecer o Guardromon da sua área de criação: escolha-o. Cerberusmon fica na área de criação e não vai para o lixo.",
+    en: "End breeding and use Cerberusmon: Werewolf Mode's Option side (Inferno Divide). Trash 1 card and De-Digivolve 3 the bot's Digimon. Arts Digivolve must then offer Guardromon in your breeding area: choose it. Cerberusmon stays in the breeding area and is not trashed.",
+  },
   "arena-bt15-leviamon-x-played-subject-left": {
     ptBR: "Encerre a criação e use Night Raid para jogar DemiDevimon do lixo. O ＜Atraso＞ do Biting Crush do bot joga Leviamon, cujo Ao Jogar apaga seus Digimon (DemiDevimon incluso). Mesmo assim, o Leviamon (X Antibody) do lixo do bot deve digievoluir Leviamon (Q4735).",
     en: "End breeding and use Night Raid to play DemiDevimon from the trash. The bot's Biting Crush ＜Delay＞ plays Leviamon, whose On Play deletes your Digimon (DemiDevimon included). The bot's Leviamon (X Antibody) in the trash must still digivolve Leviamon (Q4735).",
@@ -1909,6 +1913,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-rina-evade-unsuspend", "Rina · Evade → next-turn unsuspend"],
   ["arena-bt11-rina-ulforce-immunity", "BT11 Rina · Ulforce return vs Digimon immunity"],
   ["arena-ex12-diarbbitmon-option-trigger-timing", "EX12 Diarbbitmon · Option triggers wait for Arts"],
+  ["arena-bt26-cerberusmon-breeding-arts", "BT26 Cerberusmon · Arts Digivolve in breeding"],
   ["arena-bt15-leviamon-x-played-subject-left", "BT15 Leviamon X · trigger survives a deleted played Digimon"],
   ["arena-ex3-wingdramon-evade-suspend-lock", "EX3 Wingdramon · Evade cannot pay suspend"],
   ["arena-ex13-wingdramon-evade-suspend-lock", "EX13 Wingdramon · Evade cannot pay suspend"],
