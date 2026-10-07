@@ -377,4 +377,34 @@ describe("EX9-043", () => {
       expect(s.state.pendingDecision).toBeUndefined();
     },
   );
+
+  it.each([
+    [false, 0],
+    [true, 4],
+  ])(
+    "Discord bug 1557475629010518016: an ACE source with faceUp=%s costs %i Overflow memory when its host is deleted",
+    async (faceUp, overflow) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "EX9-043", as: "host", under: [{ card: "EX9-013", faceUp }] }] },
+          1: { battleArea: [{ card: "BT10-055", as: "wall", suspended: true }] },
+        },
+        { autoSelectCards: true, autoOrderTriggers: true },
+      );
+      await s.ready();
+      const before = s.state.memory;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(s.state.players[0]!.battleArea).toHaveLength(0);
+      expect(s.state.players[0]!.trash.map(({ cardId }) => cardId).sort()).toEqual(["EX9-013", "EX9-043"]);
+      expect(before - s.state.memory).toBe(overflow);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
 });

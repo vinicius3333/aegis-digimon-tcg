@@ -864,6 +864,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Você e o bot controlam EX13-071 Richard Sampson com 1 carta virada para baixo embaixo. No início da sua Fase Principal, aceite colocar a carta do topo do deck virada para baixo embaixo do seu Sampson. Abra a pilha do seu Sampson: as 2 cartas embaixo mostram o nome e a marca “Virada para baixo”, e tocar nelas amplia a carta. Abra a pilha do Sampson do bot: a carta embaixo continua como “Carta virada para baixo”, sem nome e sem ampliar.",
     en: "You and the bot each control EX13-071 Richard Sampson with 1 face-down card under it. At the start of your Main phase, accept placing your deck's top card face down under your Sampson. Open your Sampson's stack: both cards under it show their name with a “Face down” mark, and tapping one enlarges it. Open the bot's Sampson stack: its card stays “Face-down card”, with no name and no enlarge.",
   },
+  "arena-face-down-ace-no-overflow": {
+    ptBR: "Encerre a fase de criação. Seu MetalTyrannomon EX9-043 tem BlitzGreymon EX9-013 (ACE, Overflow -4) virado para baixo embaixo. Ataque o Digimon suspenso de 13000 DP do bot. MetalTyrannomon perde a batalha e as duas cartas vão para a lixeira. A memória não deve mudar: uma carta virada para baixo não tem informação, então não há Overflow.",
+    en: "End breeding. Your EX9-043 MetalTyrannomon has EX9-013 BlitzGreymon (ACE, Overflow -4) face down under it. Attack the bot's suspended 13000-DP Digimon. MetalTyrannomon loses the battle and both cards go to the trash. Memory must not change: a face-down card has no card information, so there is no Overflow.",
+  },
   "arena-ex7-seventh-fascination-trash-turn": {
     ptBR: "Evolua BT11-083 para EX7-061 Lilithmon (X Antibody) e aceite devolver EX7-072 da lixeira ao fundo do deck. O Digimon do bot deve sobreviver ao fim do seu turno e só ser deletado no fim do turno dele.",
     en: "Digivolve BT11-083 into EX7-061 Lilithmon (X Antibody) and accept returning EX7-072 from trash to the deck bottom. The bot's Digimon should survive your turn end and be deleted only at the end of its own turn.",
@@ -1940,6 +1944,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-mervamon-trash-digixros", "Mervamon · DigiXros materials from trash"],
   ["arena-bt5-koromon-attack-draw", "BT5 Koromon · draw before security"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
+  ["arena-face-down-ace-no-overflow", "Face-down ACE · no Overflow on deletion"],
   ["arena-bt17-dexdoru-exact-name", "BT17 DexDoruGreymon · exact [DoruGreymon] from trash"],
   ["arena-open-bugs-veemon-decline", "Open bugs · veemon decline"],
   ["arena-open-bugs-lavorvomon-search", "Open bugs · lavorvomon search"],

@@ -309,22 +309,37 @@ export function setBreeding(player: PlayerState, permanent: Permanent | undefine
 }
 
 /**
+ * Cards that were placed face down under a card (CR §4-7-9: no card information). Leaving the
+ * stack reveals them in the trash before `applyOverflow` runs, so their facing at placement is
+ * the only reliable record. Every placement primitive below refreshes it.
+ */
+const faceDownSources = new WeakSet<CardInstance>();
+
+function recordSourceFacing(card: CardInstance): void {
+  if (card.faceUp) faceDownSources.delete(card);
+  else faceDownSources.add(card);
+}
+
+/**
  * Replace a permanent's top card (a digivolve, or a promotion after the top is peeled off).
  * The displaced card is the caller's to place — this only writes the field.
  */
 export function setTopCard(permanent: Permanent, card: CardInstance): void {
+  faceDownSources.delete(card);
   permanent.topCard = card;
   notifyPermanentCard(permanent, card);
 }
 
 /** Add a card to the digivolution stack directly beneath the top card. */
 export function pushOnStack(permanent: Permanent, card: CardInstance): void {
+  recordSourceFacing(card);
   permanent.stack.push(card);
   notifyPermanentCard(permanent, card);
 }
 
 /** Add a card to the BOTTOM of the digivolution stack. */
 export function unshiftOnStack(permanent: Permanent, card: CardInstance): void {
+  recordSourceFacing(card);
   insertIntoSyncedArray(permanent.stack, card, 0, (inserted) => notifyPermanentCard(permanent, inserted));
 }
 
@@ -349,6 +364,7 @@ export function removeFromStackAt(permanent: Permanent, index: number): CardInst
 export function replaceStack(permanent: Permanent, cards: readonly CardInstance[]): void {
   permanent.stack.splice(0, permanent.stack.length);
   for (const card of cards) {
+    recordSourceFacing(card);
     permanent.stack.push(card);
     notifyPermanentCard(permanent, card);
   }
@@ -360,6 +376,7 @@ export function replaceStack(permanent: Permanent, cards: readonly CardInstance[
  * linked cards in board order passes "bottom" to keep the written order.
  */
 export function linkCard(permanent: Permanent, card: CardInstance, position: ZonePosition = "top"): void {
+  recordSourceFacing(card);
   if (position === "top") {
     insertIntoSyncedArray(permanent.linked, card, 0, (inserted) => notifyPermanentCard(permanent, inserted));
     return;
@@ -471,11 +488,13 @@ export function findPermanentInState(state: GameState, permanentId: string): Per
 
 /**
  * `<Overflow>`'s per-card memory value (Comprehensive Rules §4-18-1): the ACE Digimon's
- * printed overflow amount, or undefined for a card that isn't an Overflow ACE. Reads the
+ * printed overflow amount, or undefined for a card that isn't an Overflow ACE or that left
+ * from under a card face down (CR §4-7-9: no card information to reference). Reads the
  * static card definition, never the moving `CardInstance` (Overflow is a printed rule, not
  * per-instance state).
  */
 function overflowValueOf(card: CardInstance): number | undefined {
+  if (faceDownSources.has(card)) return undefined;
   const def = getCardDefinition(card.cardId);
   return def?.isAce === true ? def.overflowMemory : undefined;
 }

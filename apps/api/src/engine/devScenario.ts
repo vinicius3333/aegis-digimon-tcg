@@ -319,6 +319,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-mobile-blast-counter-tap",
   "security-battle",
   "security-chain",
+  "arena-face-down-ace-no-overflow",
 ] as const;
 export type DevScenarioId = (typeof DEV_SCENARIO_IDS)[number];
 
@@ -930,6 +931,33 @@ function layEx7SeventhFascinationTurnScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = fromTrash ? 10 : 7;
+}
+
+/** Discord 1557475629010518016: a face-down ACE digivolution card has no <Overflow> (CR §4-7-9). */
+function layFaceDownAceNoOverflowScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    const host = establishedDigimon(0, ["EX9-043"], "-face-down-ace-host");
+    pushOnStack(host, faceDownCard("dev-face-down-ace-blitz", "EX9-013", 0));
+    placePermanent(human, host);
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    const wall = establishedDigimon(1, ["BT10-055"], "-face-down-ace-wall");
+    wall.isSuspended = true;
+    placePermanent(bot, wall);
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /** Discord 1557128872544313456: DexDoruGreymon's [Trash] effect answers only an exact [DoruGreymon]. */
@@ -7299,6 +7327,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-mobile-blast-counter-tap": layMobileBlastCounterTapScenario,
   "security-battle": layDelayedSecurityBattleScenario,
   "security-chain": laySecurityChainScenario,
+  "arena-face-down-ace-no-overflow": layFaceDownAceNoOverflowScenario,
 };
 
 export function layDevScenario(scenario: DevScenarioId, state: GameState, decks: readonly [Decklist, Decklist]): void {
