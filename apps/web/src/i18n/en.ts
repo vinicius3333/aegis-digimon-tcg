@@ -16,6 +16,17 @@ import { shellEn } from "./redesign/shell.en";
    error. Placeholders use {name} and are filled by `t(key, params)`. */
 
 export const en = {
+  "settings.sortHand": "Sort hand",
+  "settings.sortHandDesc": "Group Digimon by level, then Tamers and Options. Turn off to restore draw order.",
+  "settings.customMusic": "Local music file",
+  "settings.customMusicDesc":
+    "Choose an audio file up to 50 MB. It stays on your device for this session; choose it again after reloading.",
+  "settings.customMusicClear": "Use built-in music",
+  "settings.customMusicError": "Choose a non-empty audio file up to 50 MB.",
+  "lobby.unlimited": "Unlimited",
+  "lobby.unlimitedDesc":
+    "Play in a separate unranked queue without banned cards, restricted cards or banned pairs. Printed copy limits still apply.",
+  "lobby.unlimitedMeta": "No banlist · Unranked",
   "spectator.code": "Match code",
   "spectator.share": "Share match",
   "spectator.link": "Link",

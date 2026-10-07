@@ -15,6 +15,18 @@ import { settingsEs } from "./redesign/settings.es";
 import { shellEs } from "./redesign/shell.es";
 
 export const es: Record<keyof typeof en, string> = {
+  "settings.sortHand": "Ordenar mano",
+  "settings.sortHandDesc":
+    "Agrupa Digimon por nivel, después Tamers y Options. Desactiva para volver al orden de robo.",
+  "settings.customMusic": "Archivo de música local",
+  "settings.customMusicDesc":
+    "Elige un archivo de audio de hasta 50 MB. Permanece en tu dispositivo durante esta sesión; vuelve a elegirlo después de recargar.",
+  "settings.customMusicClear": "Usar música del juego",
+  "settings.customMusicError": "Elige un archivo de audio no vacío de hasta 50 MB.",
+  "lobby.unlimited": "Unlimited",
+  "lobby.unlimitedDesc":
+    "Juega en una cola separada sin cartas prohibidas, restringidas ni pares prohibidos. Se mantienen los límites de copias impresos.",
+  "lobby.unlimitedMeta": "Sin banlist · No clasificatorio",
   "spectator.code": "Código de la partida",
   "spectator.share": "Compartir partida",
   "spectator.link": "Enlace",

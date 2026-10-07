@@ -8,7 +8,7 @@
    does, and cannot act on it meanwhile. A card an optimistic play has taken out of the
    hand is left out of both. */
 
-import type { CardInstance, PlayerState } from "@aegis/shared";
+import { CardKind, getCardDefinition, type CardInstance, type PlayerState } from "@aegis/shared";
 import type { HandEntry } from "../../piece";
 
 export function handEntriesOf({
@@ -16,8 +16,10 @@ export function handEntriesOf({
   shownHand,
   handHeld,
   optimisticPlayedInstanceId,
+  sorted = false,
 }: {
   viewer: PlayerState;
+  sorted?: boolean;
   /** The hand on screen, held by a draw ribbon or the paced presentation revision. */
   shownHand: readonly CardInstance[] | undefined;
   handHeld: boolean;
@@ -49,7 +51,7 @@ export function handEntriesOf({
   }));
   const shownHandEntries: HandEntry[] = (
     !handHeld
-      ? handEntries
+      ? [...handEntries]
       : [...(shownHand ?? [])].map(
           (ci) =>
             handEntries.find((entry) => entry.instanceId === ci.instanceId) ?? {
@@ -66,5 +68,16 @@ export function handEntriesOf({
             },
         )
   ).filter((entry) => entry.instanceId !== optimisticPlayedInstanceId);
+  // Sort the presentation array before callbacks resolve their indexes. The live
+  // hand and the server's legal routes remain keyed by the original instance IDs.
+  if (sorted) {
+    const rank = (entry: HandEntry): number => {
+      const definition = getCardDefinition(entry.cardId);
+      if (definition?.kinds.includes(CardKind.Digimon) || definition?.kinds.includes(CardKind.DigiEgg))
+        return definition.level ?? 0;
+      return definition?.kinds.includes(CardKind.Tamer) ? 100 : 200;
+    };
+    shownHandEntries.sort((a, b) => rank(a) - rank(b));
+  }
   return { handEntries, shownHandEntries };
 }

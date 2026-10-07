@@ -1,3 +1,4 @@
+import { CustomMusicPicker } from "../../../design/CustomMusicPicker";
 /* Music and sound effect controls for the match dialog. The Settings screen keeps
    its own audio controls, so these live here instead of in the shared look settings.
    Each channel is one row: its switch, then its volume slider and level, with the
@@ -128,6 +129,7 @@ export function ArenaAudioSettings() {
             ))}
           </select>
         </div>
+        <CustomMusicPicker />
         <AudioChannel
           name="sound"
           label={t("redesign.arena.audio.effects")}

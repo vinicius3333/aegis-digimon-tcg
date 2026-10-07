@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from "react";
 import { cueKey, type SoundKind, type SoundDetails } from "./audioRecipes";
 import { AUDIO_BANK_URL, AUDIO_CUES } from "./audioBank";
 import { DEFAULT_MUSIC_TRACK, isMusicTrack, MUSIC_TRACK_URLS, type MusicTrack } from "./musicTracks";
@@ -40,7 +41,53 @@ let volume = readVolume("aegis.sound.volume", 0.7);
 let musicEnabled = readFlag("aegis.music.enabled");
 let musicVolume = readVolume("aegis.music.volume", 0.25);
 let musicTrack = readTrack();
-const musicUrl = () => MUSIC_TRACK_URLS[musicTrack];
+let customMusic: { url: string; name: string } | undefined;
+const customMusicListeners = new Set<() => void>();
+const musicUrl = () => customMusic?.url ?? MUSIC_TRACK_URLS[musicTrack];
+export function getCustomMusicName(): string | undefined {
+  return customMusic?.name;
+}
+function subscribeCustomMusic(listener: () => void): () => void {
+  customMusicListeners.add(listener);
+  return () => customMusicListeners.delete(listener);
+}
+export function useCustomMusicName(): string | undefined {
+  return useSyncExternalStore(subscribeCustomMusic, getCustomMusicName, () => undefined);
+}
+function releaseCustomMusic(): void {
+  if (!customMusic) return;
+  assets.delete(customMusic.url);
+  decoding.delete(customMusic.url);
+  URL.revokeObjectURL(customMusic.url);
+  customMusic = undefined;
+}
+function reloadMusic(): void {
+  musicBuffer = null;
+  musicOrigin = null;
+  stopMusicVoices();
+  syncMusic();
+  void prepareAudio();
+  for (const listener of customMusicListeners) listener();
+}
+/** Local files remain on this device and are selected again after a reload. */
+export function setCustomMusicFile(file: File): boolean {
+  if (
+    !file.size ||
+    file.size > 50 * 1024 * 1024 ||
+    !(file.type.startsWith("audio/") || /\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(file.name))
+  )
+    return false;
+  const next = { url: URL.createObjectURL(file), name: file.name };
+  releaseCustomMusic();
+  customMusic = next;
+  reloadMusic();
+  return true;
+}
+export function clearCustomMusic(): void {
+  if (!customMusic) return;
+  releaseCustomMusic();
+  reloadMusic();
+}
 let context: AudioContext | null = null;
 let effectsBus: GainNode | null = null;
 let musicBus: GainNode | null = null;
@@ -162,14 +209,11 @@ export function setMusicVolume(next: number): void {
 }
 export const getMusicTrack = () => musicTrack;
 export function setMusicTrack(next: MusicTrack): void {
-  if (next === musicTrack) return;
+  if (next === musicTrack && !customMusic) return;
+  releaseCustomMusic();
   musicTrack = next;
   persist("aegis.music.track", next);
-  musicBuffer = null;
-  musicOrigin = null;
-  stopMusicVoices();
-  syncMusic();
-  void prepareAudio();
+  reloadMusic();
 }
 
 /** Called by trusted input listeners, before an action's delayed presentation. */

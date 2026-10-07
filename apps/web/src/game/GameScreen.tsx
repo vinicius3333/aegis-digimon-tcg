@@ -1,3 +1,4 @@
+import { useHandSorted } from "../design/handSort";
 /* The in-game board — the design's letterboxed board layout, driven entirely by
    the synchronized GameState and wired to the server through typed intents. The
    client owns zero rules: every action is an intent the server validates, and the
@@ -174,6 +175,7 @@ export function GameScreen({
   onSeriesNext?: (ticket: SeriesGameTicket) => void;
 }) {
   const { t } = useTranslation();
+  const handSorted = useHandSorted();
   const [spectating] = useState(() => startMode === "spectator" || loadReconnectSession()?.spectator === true);
   const actionConfirmationsEnabled = areActionConfirmationsEnabled();
   const arenaLayout = useArenaLayout();
@@ -181,7 +183,8 @@ export function GameScreen({
   const matchConfig = useMemo(() => {
     if (startMode === "spectator") return { mode: "spectator" as const, roomCode };
     if (seriesGame) return { mode: "series" as const, seriesGame };
-    if (startMode === "casual" || startMode === "ranked" || startMode === "beta") return undefined;
+    if (startMode === "casual" || startMode === "unlimited" || startMode === "ranked" || startMode === "beta")
+      return undefined;
     if (startMode === "bot") return { mode: "bot" as MatchMode };
     return { mode: startMode, roomCode, waitForHost };
   }, [startMode, roomCode, waitForHost, seriesGame]);
@@ -190,6 +193,7 @@ export function GameScreen({
       ...joinOptions,
       spectator: spectating,
       ranked: startMode === "ranked",
+      unlimited: startMode === "unlimited",
       betaBattleMode: startMode === "beta" || (startMode === "bot" && betaBattleMode === true),
       presentationPacing,
     }),
@@ -816,6 +820,7 @@ export function GameScreen({
   const instanceIndex = buildInstanceIndex(state, viewerSeat);
 
   const { handEntries, shownHandEntries } = handEntriesOf({
+    sorted: handSorted,
     viewer: you,
     shownHand,
     handHeld,
