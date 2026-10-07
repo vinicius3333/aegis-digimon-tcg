@@ -1064,6 +1064,31 @@ inventory and a distinct zero-update ROOT evaluation Go before launch.
 The frozen development schedule remains 3,872 games, all44 recipes/both seats,
 seeds `6135000..6138871`; final reserved seeds remain untouched.
 
+## Actual frozen R3 evaluation admitted and whole launched
+
+The original full read-only admission session 33889 ended with exit zero.
+Receipt `rule-link-current-corrective-strength-r3-inspect.actual.json` has
+SHA-256 `1c771fe31a95f2d94eb0c9026c5ed17da44c00a83798db2f93521f441a07852a`:
+no models imported or jobs started, exact supported 3,872-game CUDA evaluation
+command, batch88/workers4, both-seat full curriculum and frozen R3 checkpoint.
+The 15,488 reference games are reused after the unchanged actual full consumer;
+the final reserved seeds remain excluded. Fresh static idle/GPU-empty checks
+passed and the new run/identity outputs were absent before launch.
+
+The distinct zero-update ROOT evaluation Go has SHA-256
+`43dccb02d3d623c8b16a60eb9bda754bccf79514fa94aed4f2ced7d80baf60a1`.
+Original foreground session **1111** is attached to actual whole
+**720/start473739**, parent718, with operator **739/start473744**, parent720.
+Launch identity SHA-256 is
+`f83afb2887a3ee16d4e532ca09a0774bf38bb6acc61dbdda85c1e6f23d29c501`.
+Actual wrapper/operator argv and request/Go pins were checked against admission.
+The initial observer confirms only those launch processes, GPU empty, no
+candidate evaluator child/results/completion yet. The operator replays actual
+predecessor consumers before any primary evaluator import. This is a real whole
+launch, not yet proof of CUDA evaluation or strength. Keep session1111 attached
+and never restart because an observation times out. Await actual evaluator argv
+and config, full 3,872-game closure and unchanged strict all44-versus-four report.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
