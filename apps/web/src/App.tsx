@@ -23,6 +23,7 @@ import { loadIdentity, saveIdentity, loadDecks, saveDecks, loadActiveDeckId, sav
 import { accentForAvatar } from "./guest";
 import { applyDarkMode, setDarkMode, useDarkMode } from "./design/darkMode";
 import { setDeckSleeveId } from "./design/sleeve";
+import { applyTextScale } from "./design/textScale";
 import { I18nProvider, useTranslation } from "./i18n";
 import { accountApi, type RemoteAccount } from "./account/client";
 import { usePreferencesSync } from "./account/usePreferencesSync";
@@ -204,6 +205,7 @@ function AppShell() {
   }, [activeDeckId]);
 
   useEffect(applyDarkMode, []);
+  useEffect(applyTextScale, []);
 
   usePreferencesSync({ accountId: account?.id, dark, setDark });
 

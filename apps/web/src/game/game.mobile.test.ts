@@ -228,7 +228,9 @@ describe("mobile portrait match layout", () => {
   it("lets the effect text flow whole instead of hiding its tail in a scroll box", () => {
     // The wording the choice hinges on always reads in full at a denser size; the
     // sheet's own scroll is the only scroll.
-    expect(portraitRules).toMatch(/\.decision-overlay__effect-text \{[^}]*font-size:\s*0\.6875rem/);
+    expect(portraitRules).toMatch(
+      /\.decision-overlay__effect-text \{[^}]*font-size:\s*calc\(0\.6875rem \* var\(--ds-text-scale\)\)/,
+    );
     expect(portraitRules).not.toMatch(/\.decision-overlay__effect-text \{[^}]*max-height/);
   });
 

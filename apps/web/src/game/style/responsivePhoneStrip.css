@@ -432,7 +432,7 @@
   .decision-overlay__effect-text {
     padding: var(--ds-space-2) !important;
     margin-bottom: var(--ds-space-2) !important;
-    font-size: 0.6875rem !important;
+    font-size: calc(0.6875rem * var(--ds-text-scale)) !important;
     line-height: 1.4 !important;
   }
   .decision-overlay {
