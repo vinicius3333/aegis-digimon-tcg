@@ -1813,3 +1813,46 @@ observed completion and actual original whole0. At this source checkpoint the
 read-only admission consumer is running; no supplemental game or learning job
 has been launched. Completion, new training and all final acceptance gates
 remain pending.
+
+## Actual supplement launch and two-source imitation preparation
+
+Read-only supplement admission completed actual0 in session75692, including
+unchanged original full3872 dataset consumer0 and fresh160 seed inventory.
+Separate ROOT CPU resource Go
+`8d93f977f6777a984ee2ab362c9db42e32cf2bd22703f81e3a8a0be8cede11d3`
+was uploaded and sealed exclusively. Actual foreground22578 has original
+whole722/startTicks57937 and operator741/startTicks57942; wrapper argv,
+parentage and actual identity
+`31e5d1995e401190c40fae63d10a30647650686b30292d89bbdaa48d2a48cce1`
+match the reviewed source/request/wrapper/Go. At this checkpoint the
+operator remains in its full predecessor verification, with zero completed
+supplemental records. Observe the same foreground; do not duplicate launch.
+No supplement whole0, completion, coverage or new weights are claimed.
+
+Prepared external `current-mentor-imitation-r2.py`, SHA-256
+`947abb27df36d453a4d446a4393698c18dd5c2b035717828837eec84f1a25f04`,
+and16 bounded synthetic tests passing locally and on desktop3.12.14.
+The two source files were sealed exclusively and all nine qualified Python
+module byte pins passed without a primary import. No actual imitation request,
+GPU Go, joined view, learning job or checkpoint exists.
+
+This adaptation consumes both actual full closed sources through the
+unchanged supplement closure consumer, which already invokes the unchanged
+base dataset consumer. Its externally pinned map binds the exact original
+pre/post base proofs; the base consumer is not redundantly run twice in one
+admission. Both original whole0/completions, immutable checkpoints and current
+source byte custody remain required. Missing/future supplement pins or missing
+actual positive teacher bins reject learning before primary inspection.
+
+All3872 base raw files retain names/indexes;160 supplemental raw files use
+index offset4000, preserving original index modulo-five folds. The training
+view uses verified hardlinks to original bytes, without multiGB copies,
+relabeling or source/schema migration. It preserves all4032 natural episodes,
+including losses and explicit unsupervised teacher-unavailable frames.
+Canonical unchanged imitation/cache/resampling consumes those exact hashes
+and folds. Raw combined coverage, engine-only positive coverage and the
+canonical view counts must agree before models; no visibility/mastery shortcut.
+Warm R4 weights/Adam remain immutable, while the new actor continuation can
+learn in a separate output with two disconnected value tensors preserved.
+Later PPO/all44 current-ref strength, physical/material/both-seat mechanisms,
+26 rooms/current serving and reserved final blind/delivery remain required.
