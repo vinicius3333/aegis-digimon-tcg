@@ -329,6 +329,7 @@ export interface AegisJoinOptions {
     | "arena-ex12-siriusmon-group-placement"
     | "arena-ex12-virus-busters-effect-attack"
     | "arena-ex7-seventh-fascination-trash-turn"
+    | "arena-raid-optional-preset"
     | "arena-ex13-leopardmon-suspended-target"
     | "arena-ex13-leopardmon-unsuspend-lock"
     | "arena-bt24-ogremon-ulforce-unsuspend"

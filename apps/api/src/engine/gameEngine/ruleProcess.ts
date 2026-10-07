@@ -197,7 +197,7 @@ export function collectDeletionPending(engine: GameEngine, pool: readonly Pooled
         timingLabel: "Ascension",
         effect: {
           effectKey: `ascension/${instanceId}`,
-          description: "＜Ascension＞: place this card at the top of your security stack?",
+          description: "＜Ascension＞: you may place this card at the top of your security stack.",
           optional: false,
           isInherited: false,
           isSecurity: false,
@@ -205,7 +205,12 @@ export function collectDeletionPending(engine: GameEngine, pool: readonly Pooled
           maxPerTurn: -1,
           canTrigger: () => true,
           canActivate: () => rootZoneOfLooseInstance(engine.state, instanceId) === "trash",
-          resolve: async () => {
+          resolve: async (ctx) => {
+            if (ctx.presetOptionalAnswer === false) return;
+            if (ctx.presetOptionalAnswer === true) {
+              await engine.primitives.ascendToSecurity(instanceId);
+              return;
+            }
             const response = await engine.decisions.request({
               seat,
               kind: "selectCards",
