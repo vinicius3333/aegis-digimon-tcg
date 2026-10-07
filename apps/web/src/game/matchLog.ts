@@ -312,6 +312,8 @@ export function describeEvent(
       };
     }
     case "effectActivated":
+      // A [Main] activation's own effectTriggered/effectResolved lines already narrate it.
+      if (event.receiptOnly === true) return null;
       // Only the source card is linked. The description is generated text: the card names
       // inside it cannot be tied back to a card id without guessing which printing is meant,
       // and a wrong link is worse than none.
@@ -320,14 +322,18 @@ export function describeEvent(
         kind: "sys",
         cardIds: [event.sourceCardId],
       };
+    case "effectTriggered":
     case "effectResolved":
       // The transient clause overlay disappears, so the log is the only permanent record a
-      // triggered effect gets. It records THAT the effect resolved and leaves the wording to
-      // the overlay: repeating the description here would print the same sentence twice on
-      // screen at the same moment, and the log cannot narrow a raw engine description down
-      // to the printed clause the way the overlay does.
+      // triggered effect gets. It records THAT the effect activated and resolved and leaves
+      // the wording to the overlay: repeating the description here would print the same
+      // sentence twice on screen at the same moment, and the log cannot narrow a raw engine
+      // description down to the printed clause the way the overlay does. The activation line
+      // comes first so the effect's results read as its own, not the previous entry's.
       return {
-        text: t("log.effectResolved", { card: cardName(event.sourceCardId) }),
+        text: t(event.kind === "effectTriggered" ? "log.effectTriggered" : "log.effectResolved", {
+          card: cardName(event.sourceCardId),
+        }),
         kind: "sys",
         cardIds: [event.sourceCardId],
       };

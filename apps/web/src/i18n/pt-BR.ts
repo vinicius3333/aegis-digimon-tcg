@@ -1329,6 +1329,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "log.cardRevealedByOpp": "O oponente revelou {card} com {source}",
   "log.effectActivated": "{card}: {description}",
   "log.effectResolved": "O efeito de {card} foi resolvido",
+  "log.effectTriggered": "O efeito de {card} foi ativado",
   "log.cardMoved": "{count} carta movida: {from} → {to}",
   "log.cardMovedNamed": "{card} movida: {from} → {to}",
   "log.turnEndDeletion": "{card} foi excluída no fim do turno pelo efeito de {source}",
