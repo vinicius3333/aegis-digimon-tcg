@@ -73,6 +73,13 @@
 	handle @tournament_api {
 		import api_upstreams
 	}
+	@community_api {
+		path /community/*
+		not header Accept *text/html*
+	}
+	handle @community_api {
+		import api_upstreams
+	}
 
 	# Recovery endpoint for clients that retained HTML from an older release.
 	# It clears only the caller's HTTP cache; cookies and local storage are preserved.

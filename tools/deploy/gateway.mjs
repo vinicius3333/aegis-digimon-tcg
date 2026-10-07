@@ -28,10 +28,10 @@ function json(response, status, value) {
   response.end(JSON.stringify(value));
 }
 
-function isApiPath(path, headers) {
+export function isApiPath(path, headers) {
   return (
     /^\/(health|ready|matchmake|auth|account|room|bot|bug-reports)(\/|$)/.test(path) ||
-    (/^\/tournaments(\/|$)/.test(path) && !headers.accept?.includes("text/html"))
+    (/^\/(tournaments|community)(\/|$)/.test(path) && !headers.accept?.includes("text/html"))
   );
 }
 
