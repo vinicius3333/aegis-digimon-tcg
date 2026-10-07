@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { getCardArts, getCardDefinition, resolveCardArt } from "@aegis/shared";
+import { getCardArts, getCardDefinition, isJapaneseArt, resolveCardArt } from "@aegis/shared";
 import { CardFull } from "../design/cards";
-import { Button } from "../design/primitives";
+import { Badge, Button } from "../design/primitives";
 import { useTranslation } from "../i18n";
 import "./deckArtworkPicker.css";
 
@@ -95,17 +95,23 @@ export function DeckArtworkPicker({
         <div className="deck-art-picker__grid" role="group" aria-label={t("library.artworks")}>
           {getCardArts(cardId).map((art, index) => {
             const label = index === 0 ? t("library.baseArt") : t("library.alternateArt", { number: index });
+            const japanese = isJapaneseArt(art.artId);
             return (
               <button
                 className="deck-art-picker__art"
                 key={art.artId}
                 type="button"
-                aria-label={label}
+                aria-label={japanese ? t("library.japaneseArt", { label }) : label}
                 aria-pressed={art.artId === selected}
                 onClick={() => onChoose(art.artId, copy)}
               >
                 <CardFull cardId={cardId} artId={art.artId} width={140} />
-                <span>{label}</span>
+                {japanese ? (
+                  <Badge tone="primary" className="deck-art-picker__region">
+                    JP
+                  </Badge>
+                ) : null}
+                <span className="deck-art-picker__label">{label}</span>
               </button>
             );
           })}

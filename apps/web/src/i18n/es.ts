@@ -1762,6 +1762,7 @@ export const es: Record<keyof typeof en, string> = {
   "library.artworks": "Arte",
   "library.baseArt": "Original",
   "library.alternateArt": "Alternativo {number}",
+  "library.japaneseArt": "{label}, impresión japonesa",
   "deck.copyArtwork": "Copia {number}",
   "deck.editArtwork": "Elegir arte",
   "deck.splitResize": "Arrastra para cambiar el tamaño del panel del deck",

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { sourceCardArts } from "./card-arts.mjs";
+import { sourceCardArts, sourceJapaneseArts } from "./card-arts.mjs";
 
 test("imports only declared printings for the canonical card, deduplicated and sorted", () => {
   assert.deepEqual(
@@ -83,4 +83,29 @@ test("imports errata printings under their plain art ID with their own image", (
     }),
     [{ artId: "BT3-111_P2", imageId: "BT3-111_P2-Errata", label: "EX-03: Theme Booster Draconic Roar" }],
   );
+});
+
+test("imports the Japanese base printing and Japanese arts under -J art IDs", () => {
+  assert.deepEqual(
+    sourceJapaneseArts({
+      cardNumber: "BT6-084",
+      JAAs: [
+        { id: "BT6-084_P2-J", note: "Special Battle Area Set 2023" },
+        { id: "BT6-084_P1-J", type: "Alternative Art" },
+        { id: "BT6-084_P1-j", note: "Duplicate in lowercase" },
+        { id: "BT6-084_P3-Sample-J", note: "Sample scan" },
+        { id: "BT6-085_P1-J", note: "Another card" },
+        { id: "BT6-084_P4", note: "Not Japanese" },
+      ],
+    }),
+    [
+      { artId: "BT6-084-J", imageId: "BT6-084-J", label: "Japanese printing" },
+      { artId: "BT6-084_P1-J", imageId: "BT6-084_P1-J", label: "Alternative Art (Japanese)" },
+      { artId: "BT6-084_P2-J", imageId: "BT6-084_P2-J", label: "Special Battle Area Set 2023 (Japanese)" },
+      { artId: "BT6-084_P3-J", imageId: "BT6-084_P3-Sample-J", label: "Sample scan (Japanese)" },
+    ],
+  );
+  assert.deepEqual(sourceJapaneseArts({ cardNumber: "BT1-010" }), [
+    { artId: "BT1-010-J", imageId: "BT1-010-J", label: "Japanese printing" },
+  ]);
 });

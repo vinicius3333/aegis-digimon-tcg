@@ -220,6 +220,8 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
       withPendingSubTriggers(engine, ["whenAttacking", "whenOpponentAttacks"], payload, runWindows, {
         onlyInitiallyArmed: true,
       }),
+    withPendingSuspensionSubTriggers: (payload, runWindows) =>
+      withPendingSubTriggers(engine, ["whenSuspended"], payload, runWindows, { onlyInitiallyArmed: true }),
     prepareFrozenSubTrigger: (event, payload) => prepareFrozenSubTrigger(engine, event, payload),
     refreshContinuousEffects: () => engine.recomputeContinuousEffects(),
     resolveDeletionReactions: async (trigger, candidates, transientCandidates = []) => {

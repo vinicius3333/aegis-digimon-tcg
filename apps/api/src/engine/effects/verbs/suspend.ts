@@ -56,6 +56,24 @@ export function createSuspendVerbs(pc: PrimitivesContext) {
     }
   }
 
+  const canSuspend: NonNullable<Primitives["canSuspend"]> = (permanentId: string): boolean => {
+    const permanent = access.permanentById(permanentId);
+    if (permanent === undefined) return false;
+    // Only an actual unsuspended -> suspended TRANSITION counts as "becoming suspended":
+    // suspending an already-suspended permanent "isn't considered to be suspended by the
+    // effect" (KB ST18-10), so it opens no OnTappedAnyone / whenSuspended window. Gating
+    // here is also what terminates a "when an opponent becomes suspended, suspend 1 of
+    // their Digimon" loop (BT13-057 Rosemon) once every opponent is already suspended.
+    if (permanent.isSuspended) return false;
+    // A continuous "can't BE suspended" restriction (BT19-101, LM-041) blocks
+    // effect-driven suspension only. This primitive IS the effect-suspend seam
+    // (combat self-suspend to attack calls access.suspend directly and never routes
+    // here — KB BT19-101 Q3185: a "can't be suspended" Digimon may still attack via
+    // <Overclock>). The restricted permanent stays unsuspended and opens no
+    // whenSuspended/OnTappedAnyone window.
+    return !isRestricted(permanentId, "beSuspended");
+  };
+
   async function suspend(
     permanentIds: string[],
     opts?: {
@@ -67,24 +85,9 @@ export function createSuspendVerbs(pc: PrimitivesContext) {
   ): Promise<string[]> {
     const suspendedPermanentIds: string[] = [];
     for (const permanentId of permanentIds) {
-      const permanent = access.permanentById(permanentId);
-      if (permanent !== undefined) {
-        // Only an actual unsuspended -> suspended TRANSITION counts as "becoming suspended":
-        // suspending an already-suspended permanent "isn't considered to be suspended by the
-        // effect" (KB ST18-10), so it opens no OnTappedAnyone / whenSuspended window. Gating
-        // here is also what terminates a "when an opponent becomes suspended, suspend 1 of
-        // their Digimon" loop (BT13-057 Rosemon) once every opponent is already suspended.
-        if (permanent.isSuspended) continue;
-        // A continuous "can't BE suspended" restriction (BT19-101, LM-041) blocks
-        // effect-driven suspension only. This primitive IS the effect-suspend seam
-        // (combat self-suspend to attack calls access.suspend directly and never routes
-        // here — KB BT19-101 Q3185: a "can't be suspended" Digimon may still attack via
-        // <Overclock>). Skip the restricted permanent; it stays unsuspended and opens no
-        // whenSuspended/OnTappedAnyone window.
-        if (isRestricted(permanentId, "beSuspended")) continue;
-        access.suspend(permanent);
-        suspendedPermanentIds.push(permanentId);
-      }
+      if (!canSuspend(permanentId)) continue;
+      access.suspend(access.permanentById(permanentId)!);
+      suspendedPermanentIds.push(permanentId);
     }
     emitSuspensionMoves(suspendedPermanentIds);
     if (opts?.deferTriggers !== true) await fireSuspensionTriggers(suspendedPermanentIds, opts);
@@ -175,5 +178,13 @@ export function createSuspendVerbs(pc: PrimitivesContext) {
     }
   };
 
-  return { fireSuspensionTriggers, suspend, canPayActivationCost, payActivationCost, canUnsuspend, unsuspend };
+  return {
+    fireSuspensionTriggers,
+    canSuspend,
+    suspend,
+    canPayActivationCost,
+    payActivationCost,
+    canUnsuspend,
+    unsuspend,
+  };
 }

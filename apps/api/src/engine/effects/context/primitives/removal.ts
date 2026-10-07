@@ -147,6 +147,12 @@ export interface RemovalPrimitives {
   ): Promise<number>;
   /** Trash an invalid battle-area position during a rule check, without deletion semantics. */
   trashPermanentByRule(permanentIds: string[]): Promise<CardInstance[]>;
+  /**
+   * Whether `suspend` would turn this permanent: it is unsuspended and no "can't suspend"
+   * restriction holds it. A "suspend" cost is payable only with such a permanent. Optional on
+   * the port so faked primitives in tests need no change.
+   */
+  canSuspend?(permanentId: string): boolean;
   /** Returns the permanent IDs that actually transitioned to suspended. */
   suspend(
     permanentIds: string[],

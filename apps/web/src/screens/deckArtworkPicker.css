@@ -120,13 +120,19 @@
   background: var(--ds-accent);
   content: "✓";
 }
-.deck-art-picker__art span {
+.deck-art-picker__label {
   display: block;
   overflow: hidden;
   padding-top: 4px;
   font-size: var(--ds-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.deck-art-picker__region {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  pointer-events: none;
 }
 .deck-art-picker__footer {
   display: flex;
@@ -166,7 +172,7 @@
     grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
     gap: var(--ds-space-2);
   }
-  .deck-art-picker__art span {
+  .deck-art-picker__label {
     font-size: 11px;
   }
   .deck-art-picker__footer > button {

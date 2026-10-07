@@ -1835,6 +1835,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "library.artworks": "Artes",
   "library.baseArt": "Original",
   "library.alternateArt": "Alternativa {number}",
+  "library.japaneseArt": "{label}, impressão japonesa",
   "deck.copyArtwork": "Cópia {number}",
   "deck.editArtwork": "Escolher arte",
   "deck.splitResize": "Arraste para redimensionar o painel do deck",

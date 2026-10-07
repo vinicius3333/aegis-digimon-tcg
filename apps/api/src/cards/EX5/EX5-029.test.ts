@@ -30,7 +30,7 @@ describe("EX5-029 Reppamon", () => {
           costType: "digivolve",
           amount: 2,
           duration: "nextDigivolveThisTurn",
-          optional: false,
+          optional: true,
           cost: {
             kind: "trash",
             target: { filter: { controller: "mine", zone: "security", position: "top" }, count: 1 },
@@ -96,6 +96,70 @@ describe("EX5-029 Reppamon", () => {
     expect(s.perm("evolutionBase").stack.map((card) => card.cardId)).toEqual(["BT1-050"]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("handWitness").instanceId);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("Discord 1557251527851114516: declining the When Attacking cost keeps the top security card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX5-029", as: "reppamon" }],
+          security: [{ card: "BT1-009", as: "keptSecurity" }],
+        },
+        1: { security: ["BT1-009", "BT1-010"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("reppamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("keptSecurity").instanceId]);
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "EX5-029" && req.kind === "optional")).toBe(true);
+  });
+
+  it("Discord 1557251527851114516: a 'no' preset in the trigger order keeps the top security card", async () => {
+    const options = { autoOrderTriggers: false, autoSelectCards: true };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX5-029", as: "reppamon", under: ["EX5-029"] }],
+          security: [{ card: "BT1-009", as: "keptSecurity" }],
+        },
+        1: { security: ["BT1-009", "BT1-010"], battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      options,
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("reppamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const ordered = s.decisions.at(-1)!.req;
+    const keys = ordered.options!.triggerKeys!;
+    const costIndex = ordered.options!.triggerDescriptions!.findIndex((text) => text.includes("By trashing"));
+    const costKey = keys[costIndex]!;
+    expect(costIndex).toBeGreaterThanOrEqual(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordered.decisionId,
+        response: { kind: "orderTriggers", order: keys, optionalAnswers: { [costKey]: false } },
+      }),
+    ).toEqual({ ok: true });
+    options.autoOrderTriggers = true;
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("keptSecurity").instanceId]);
   });
 
   it.each([

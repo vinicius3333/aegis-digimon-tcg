@@ -168,6 +168,11 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-ex13-leopardmon-suspended-target",
   "arena-ex13-leopardmon-unsuspend-lock",
+  "arena-ex5-reppamon-optional-cost",
+  "arena-ex13-dorimon-optional-cost",
+  "arena-ex13-giromon-zero-dp-play",
+  "arena-ex13-rina-suspend-lock",
+  "arena-ex11-vortex-effect-attack",
   "arena-bt24-ogremon-ulforce-unsuspend",
   "arena-bt23-king-drasil-unsuspended-cost",
   "arena-ex13-breakdramon-zero-security-check",
@@ -1565,6 +1570,123 @@ function layEx13LeopardmonUnsuspendLockScenario(state: GameState, decks: readonl
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 4;
+}
+
+function loadShuffledDecks(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+}
+
+/** Discord 1557251527851114516: EX5-029 Reppamon's "By trashing your top security card" is optional. */
+function layEx5ReppamonOptionalCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  loadShuffledDecks(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) placePermanent(human, establishedDigimon(0, ["EX5-029"], "-reppamon-attacker"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/** Discord 1557220124367396915: EX13-006 Dorimon's "By paying 1 cost" is asked before it is paid. */
+function layEx13DorimonOptionalCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  loadShuffledDecks(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) placePermanent(human, establishedDigimon(0, ["EX13-006", "BT10-086"], "-dorimon-host"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 2;
+}
+
+/**
+ * Discord 1557356892794388541: the bot's two EX13-035 KingEtemon and an Etemon give your Digimon
+ * -6000 DP. Blocking with EX13-056 Giromon plays EX13-047 Gotsumon (3000 DP), the second card of
+ * your deck below this turn's draw; the rule check deletes it before its [On Play] can activate.
+ */
+function layEx13GiromonZeroDpPlayScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  loadShuffledDecks(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-056"], "-giromon-blocker"));
+    insertCard(human, Zone.Deck, faceDownCard("dev-giromon-gotsumon", "EX13-047", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-giromon-turn-draw", "BT1-009", 0), "top");
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["EX13-035"], "-giromon-king-etemon-a"));
+    placePermanent(bot, establishedDigimon(1, ["EX13-035"], "-giromon-king-etemon-b"));
+    placePermanent(bot, establishedDigimon(1, ["BT11-041"], "-giromon-etemon"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/**
+ * Discord 1557228631808548887: BT20-084 Sistermon Ciel (Awakened) makes the bot's EX13-069 Rina
+ * unable to suspend until the bot's turn ends. When the bot's suspended Veemon unsuspends, Rina
+ * can't pay "by suspending this Tamer", so her draw is neither offered nor activated.
+ */
+function layEx13RinaSuspendLockScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-rina-lock-sistermon", "BT20-084", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["EX13-069"], "-rina-lock-rina"));
+    const veemon = establishedDigimon(1, ["BT3-021"], "-rina-lock-veemon");
+    veemon.isSuspended = true;
+    placePermanent(bot, veemon);
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
+}
+
+/**
+ * Discord 1557002713047502968: ST21-09 Lillymon's effect gives Togemon ＜Alliance＞ and orders its
+ * attack, so the attack runs inside Lillymon's effect window. Declining Vortexdramon's battle on
+ * Togemon's suspension must still let the ＜Alliance＞ suspension trigger it again.
+ */
+function layEx11VortexEffectAttackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-vortex-effect-attack-togemon", "ST21-08", 0));
+    placePermanent(human, establishedDigimon(0, ["ST20-10"], "-vortex-effect-attack-agumon"));
+    placePermanent(human, establishedDigimon(0, ["ST21-09"], "-vortex-effect-attack-lillymon"));
+    placePermanent(human, establishedDigimon(0, ["EX11-074"], "-vortex-effect-attack-vortexdramon"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-vortex-effect-attack-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 2;
 }
 
 /**
@@ -7169,6 +7291,11 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
     layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-ex13-leopardmon-suspended-target": layEx13LeopardmonSuspendedTargetScenario,
   "arena-ex13-leopardmon-unsuspend-lock": layEx13LeopardmonUnsuspendLockScenario,
+  "arena-ex5-reppamon-optional-cost": layEx5ReppamonOptionalCostScenario,
+  "arena-ex13-dorimon-optional-cost": layEx13DorimonOptionalCostScenario,
+  "arena-ex13-giromon-zero-dp-play": layEx13GiromonZeroDpPlayScenario,
+  "arena-ex13-rina-suspend-lock": layEx13RinaSuspendLockScenario,
+  "arena-ex11-vortex-effect-attack": layEx11VortexEffectAttackScenario,
   "arena-bt24-ogremon-ulforce-unsuspend": layBt24OgremonUlforceUnsuspendScenario,
   "arena-bt23-king-drasil-unsuspended-cost": layBt23KingDrasilUnsuspendedCostScenario,
   "arena-ex13-breakdramon-zero-security-check": layEx13BreakdramonZeroSecurityCheckScenario,
