@@ -57,7 +57,10 @@ export const compiled: CompiledCard = {
   residual: [],
   appFusionRequirement: [{ names: ["Weathermon", "Rocketmon", "Newsmon"], cost: 0 }],
   assemblyRequirement: [
-    { reduceCost: 2, materials: [{ traits: ["Navi", "System", "Seven Code"], level: 3, count: 1 }] },
+    {
+      reduceCost: 2,
+      materials: [{ kinds: ["Digimon"], traits: ["Navi", "System", "Seven Code"], level: 3, count: 1 }],
+    },
   ],
   linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
 };

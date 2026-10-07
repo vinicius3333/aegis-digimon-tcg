@@ -886,7 +886,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.fromOwnDigivolutionStack === true &&
       !allowsOptionalProcessingCostWithoutTarget(action) &&
       !costCreatesTrashCandidate &&
-      ownStackPlayCandidates(ctx, action.target).length === 0
+      [action.target, ...(action.additionalSimultaneousTargets ?? [])].every(
+        (target) => ownStackPlayCandidates(ctx, target).length === 0,
+      )
     ) {
       return unavailableAction(ctx, action);
     }

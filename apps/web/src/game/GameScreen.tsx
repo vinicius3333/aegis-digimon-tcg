@@ -85,7 +85,7 @@ import { type Screen } from "../design/primitives";
 import type { DigimonWorldAvatarId } from "../account/avatars";
 import type { ColorName } from "../design/theme";
 import { playSound } from "../design/sound";
-import { usePresentationAudio } from "./usePresentationAudio";
+import { usePresentationAudio, useReadoutAudio } from "./usePresentationAudio";
 import { audioBoardFromPresentedSeats } from "./match/present/presentationAudio";
 import { areActionConfirmationsEnabled } from "../design/actionConfirmation";
 import { useArenaBoardLook } from "./arenaLook";
@@ -544,6 +544,28 @@ export function GameScreen({
         })
       : undefined;
   usePresentationAudio(cues, seats ? audioBoardFromPresentedSeats(seats, viewerSeat) : undefined);
+  const viewerTimerRunning =
+    !spectating && state?.matchTimer === true && !state.gameOver && state.timerActiveSeat === viewerSeat;
+  const viewerPromptKey = cues.decisionAnimationsPending
+    ? undefined
+    : decisionPendingForViewer
+      ? decision.decisionId
+      : openCombatWindowForBarrier?.key;
+  useReadoutAudio({
+    memory: shownState
+      ? displayMemory(
+          {
+            turnSeat: cues.heldMemory?.turnSeat ?? shownState.turnSeat,
+            memory: cues.heldMemory?.memory ?? shownState.memory,
+          },
+          viewerSeat,
+        )
+      : undefined,
+    promptKey: spectating ? undefined : viewerPromptKey,
+    timerSeconds: viewerTimerRunning
+      ? Math.ceil(viewerSeat === 0 ? state.timerRemaining0 : state.timerRemaining1)
+      : undefined,
+  });
   const devProbeRef = useRef(devProbe);
   devProbeRef.current = devProbe;
   useEffect(() => {

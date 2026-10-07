@@ -40,4 +40,23 @@ describe("receipt fallback audio", () => {
     await steps[0]!.run({ mode: "live", cancelled: false, skipping: false } as AnimationStepContext);
     expect(playCue).toHaveBeenCalledExactlyOnceWith("win");
   });
+  it("sounds blocks and accepted protection live, since no painted scene voices them", async () => {
+    const steps: AnimationStep[] = [];
+    const playCue = vi.fn<(kind: string) => void>();
+    enqueueBatchSounds({
+      fresh: [
+        { kind: "blocked", blockerPermanentId: "p2" },
+        { kind: "barrierResolved", permanentId: "p2", accepted: true },
+        { kind: "evadeResolved", permanentId: "p3", accepted: false },
+      ],
+      viewerSeat: 0,
+      batchId: "b3",
+      enqueue: (step) => steps.push(step),
+      playCue,
+    });
+    expect(steps).toHaveLength(2);
+    for (const step of steps)
+      await step.run({ mode: "live", cancelled: false, skipping: false } as AnimationStepContext);
+    expect(playCue.mock.calls).toEqual([["block"], ["protect"]]);
+  });
 });

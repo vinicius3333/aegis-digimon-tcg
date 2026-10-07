@@ -46,13 +46,14 @@ describe("BT22-028 Ariemon", () => {
     );
     const digivolving = compiled.effects.filter((entry) => entry.trigger === "WhenDigivolving");
     expect(digivolving[0]?.optional).toBe(true);
-    expect(digivolving[0]?.actions).toHaveLength(3);
-    expect(digivolving[0]?.actions.map((action) => (action as any).target.filter.levels)).toEqual([[3], [4], [5]]);
-    expect(
-      digivolving[0]?.actions.every(
-        (action) => (action as any).fromOwnDigivolutionStack === true && (action as any).optional === false,
-      ),
-    ).toBe(true);
+    expect(digivolving[0]?.actions).toHaveLength(1);
+    expect(digivolving[0]?.actions[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      fromOwnDigivolutionStack: true,
+      optional: false,
+      target: { filter: { levels: [3] } },
+      additionalSimultaneousTargets: [{ filter: { levels: [4] } }, { filter: { levels: [5] } }],
+    });
     for (const trigger of ["WhenDigivolving", "WhenAttacking"]) {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger && entry.actions[0]?.kind === "Return");
       expect(effect).toMatchObject({
@@ -259,4 +260,41 @@ describe("BT22-028 Ariemon — KB Q&A rulings", () => {
     expect(playFirst.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT22-028"]);
     expect(playFirst.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-031", "BT1-044"]);
   });
+});
+
+it("groups Ariemon's three levels into one public digivolution play event", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT10-027", as: "source", under: ["BT18-020", "BT1-033", "BT10-023"] },
+          { card: "BT1-010", as: "observer" },
+        ],
+        hand: [{ card: "BT22-028", as: "evolution" }],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+  );
+  s.state.memory = 10;
+  await s.ready();
+  const batches: string[][] = [];
+  advance(s.engine).ledgers.subTriggers.subscribe({
+    event: "whenPlayed",
+    sourcePermanentId: s.perm("observer").permanentId,
+    once: false,
+    description: "test: observe simultaneous play subjects",
+    run: async (ctx) => {
+      batches.push(ctx.trigger.subjectPermanentIds ?? [ctx.trigger.subjectPermanentId!]);
+    },
+  });
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("source").permanentId,
+      instanceId: s.inst("evolution").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle();
+  expect(batches.map((batch) => batch.length)).toEqual([3]);
+  expect(s.state.pendingDecision).toBeUndefined();
 });

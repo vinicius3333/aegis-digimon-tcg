@@ -49,48 +49,37 @@ describe("BT22-014 Gaiomon", () => {
     });
   });
 
-  it("unsuspends one opposing Digimon during the When Digivolving effect", async () => {
+  it("unsuspends one opposing Digimon and allows the following attack to be declined", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT22-014", as: "gaiomon" }] },
         1: { battleArea: [{ card: "BT22-010", suspended: true, as: "opponent" }] },
       },
-      { autoSelectCards: true },
+      {},
     );
     await s.ready();
-
-    const pending = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("gaiomon"));
-    await settle(() => s.decisions.some((decision) => decision.req.kind === "optional"), 60);
-    let prompt = s.decisions.find((decision) => decision.req.kind === "optional");
-    expect(prompt).toBeDefined();
-    if (prompt !== undefined) {
-      s.engine.applyIntent(prompt.seat, {
+    const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("gaiomon"));
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    expect(
+      s.engine.applyIntent(0, {
         type: "respondDecision",
-        decisionId: prompt.req.decisionId,
-        response: { kind: "optional", accept: true },
-      });
-    }
-    await settle(
-      () =>
-        s.decisions.some(
-          (decision) => decision.req.kind === "optional" && decision.req.decisionId !== prompt?.req.decisionId,
-        ),
-      60,
-    );
-    prompt = s.decisions.find(
-      (decision) => decision.req.kind === "optional" && decision.req.decisionId !== prompt?.req.decisionId,
-    );
-    expect(prompt).toBeDefined();
-    if (prompt !== undefined) {
-      s.engine.applyIntent(prompt.seat, {
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("opponent").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
         type: "respondDecision",
-        decisionId: prompt.req.decisionId,
+        decisionId: s.state.pendingDecision!.decisionId,
         response: { kind: "optional", accept: false },
-      });
-    }
-    await pending;
+      }),
+    ).toEqual({ ok: true });
+    await resolution;
 
     expect(s.perm("opponent").isSuspended).toBe(false);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("gains Piercing and exactly +5000 DP once when an attack target changes", async () => {

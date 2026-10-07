@@ -8,6 +8,7 @@ import {
   securityOutcomeSound,
   type PresentationAudioBoard,
 } from "./match/present/presentationAudio";
+import { soundsForReadouts, type AudioReadouts } from "./match/present/readoutAudio";
 
 export function usePresentationAudio(cues: MatchCues, board?: PresentationAudioBoard): void {
   const seen = useRef(new Set<string>());
@@ -34,4 +35,16 @@ export function usePresentationAudio(cues: MatchCues, board?: PresentationAudioB
     // Passive effects run after React commits the presentation, never from early server receipts.
     for (const sound of fresh) playSound(sound.kind, sound.details);
   }, [cues, board]);
+}
+
+/** Sounds the gauge, the viewer's prompt, and the viewer's last seconds as the screen paints them. */
+export function useReadoutAudio({ memory, promptKey, timerSeconds }: AudioReadouts): void {
+  const previous = useRef<AudioReadouts | undefined>(undefined);
+  useEffect(() => {
+    const current = { memory, promptKey, timerSeconds };
+    const sounds = soundsForReadouts(previous.current, current);
+    previous.current = current;
+    if (document.hidden) return;
+    for (const sound of sounds) playSound(sound.kind, sound.details);
+  }, [memory, promptKey, timerSeconds]);
 }

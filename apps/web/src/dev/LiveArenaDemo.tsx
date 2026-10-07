@@ -116,6 +116,30 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e jogue Leopardmon sem Assembly. Selecione Alphamon diretamente na mesa e confirme para suspendê-lo; nenhuma confirmação separada de ativação deve aparecer. Na escolha seguinte, selecione um Dorumon na mesa; nenhuma galeria de alvos deve abrir. Se desejar, use Visualizar mesa para recolher os controles. Segure Alphamon ou toque na lupa para ler a carta e seus herdados; toque na arte para ampliar. Feche e retorne à decisão: o Dorumon selecionado deve continuar marcado. Só Confirmar alvos envia a escolha; o herdado de Grademon pode então proteger Dorumon.",
     en: "End breeding and play Leopardmon without Assembly. Select Alphamon directly on the board and confirm to suspend it; no separate activation confirmation should appear. In the next choice, select a Dorumon on the board; no target gallery should open. Optionally use View board to hide the controls. Hold Alphamon or tap its magnifier to read the card and its inherited effects; tap the art to zoom. Close and return to the decision: the selected Dorumon must remain picked. Only Confirm targets sends the choice; Grademon's inherited effect can then protect Dorumon.",
   },
+  "arena-issue-5167-assembly-digimon": {
+    ptBR: "Encerre a criação. Jogue Aegiochusmon: Dark com Assembly: Yokomon no lixo não pode ser material, pois é Digi-Egg; Dobermon BT26-069 pode. Pague 6 e recuse o efeito ao jogar. Yokomon deve continuar no lixo.",
+    en: "End breeding. Play Aegiochusmon: Dark with Assembly: Yokomon in trash is a Digi-Egg and cannot be a material; BT26-069 Dobermon is eligible. Pay 6 and decline the On Play effect. Yokomon stays in trash.",
+  },
+  "arena-issue-5171-taomon-famis": {
+    ptBR: "Encerre a criação. Digievolua Taomon ACE sobre o Digimon amarelo por 3. Aceite usar Famis gratuitamente e suspenda os dois Digimon adversários; recuse Arts Digivolve. Famis deve ir ao lixo, com memória 7. A Option de Jupitermon tem duas cores e não pode ser escolhida.",
+    en: "End breeding. Digivolve Taomon ACE onto the yellow Digimon for 3. Accept using Famis for free and suspend both opposing Digimon; decline Arts Digivolve. Famis goes to trash with memory at 7. Jupitermon's two-color Option face cannot be selected.",
+  },
+  "arena-issue-5176-king-drasil-ace": {
+    en: "Skip breeding. King Drasil places Alphamon: Ouryuken ACE and the revealed egg under itself at the start of Main. Order those cards; the ACE's previous source goes to trash. Overflow must not charge memory. A Royal Knight played during Main stays on the field until your next Main.",
+    ptBR: "Pule a criação. King Drasil coloca Alphamon: Ouryuken ACE e o ovo revelado sob si no início da Principal. Ordene essas cartas; a fonte anterior do ACE vai para o lixo. Overflow não deve cobrar memória. Um Royal Knight jogado durante a Principal fica em campo até sua próxima Principal.",
+  },
+  "arena-issue-5166-dna-material-pairs": {
+    en: "Select Mastemon and a DNA material. Choose Pair 2 (LadyDevimon with one digivolution card) and confirm. The other LadyDevimon must remain on the field. Also try with action confirmations disabled.",
+    ptBR: "Selecione Mastemon e um material de DNA. Escolha o Par 2 (LadyDevimon com uma carta de digievolução) e confirme. A outra LadyDevimon deve ficar em campo. Teste também com as confirmações de ação desativadas.",
+  },
+  "arena-issue-5173-cyber-engage": {
+    en: "Activate Cyber Engage's Delay and choose Roleplaymon. Pay 1 memory (1 → 0).",
+    ptBR: "Ative o Delay de Cyber Engage e escolha Roleplaymon. Pague 1 memória (1 → 0).",
+  },
+  "arena-issue-5173-cyber-engage-psychemon": {
+    en: "Activate Cyber Engage's Delay and choose Roleplaymon. The opposing Psychemon prevent cost reduction: pay 4 memory (1 → -3), matching the reported game.",
+    ptBR: "Ative o Delay de Cyber Engage e escolha Roleplaymon. Os Psychemon adversários impedem a redução: pague 4 memórias (1 → -3), como na partida reportada.",
+  },
   "arena-issue-5127-opponent-suspend-cost": {
     ptBR: "Use a metade Option de Zephagamon. Para reduzir o custo, suspenda os dois Digimon adversários. O custo deve cair de 6 para 4; depois trave o Tamer e devolva um dos Digimon ao fundo do deck.",
     en: "Use Zephagamon's Option side. Suspend both opposing Digimon for the reduction. The cost falls from 6 to 4; then lock the Tamer and bottom-deck one Digimon.",
@@ -123,6 +147,26 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-issue-5127-opponent-survival": {
     ptBR: "Use Gaia Force em Zephagamon. O jogador adversário pode aceitar sua proteção e suspender seu Agumon para impedir a deleção.",
     en: "Use Gaia Force on Zephagamon. Its controller may accept protection and suspend your Agumon to prevent deletion.",
+  },
+  "arena-issue-5168-alter-s-simultaneous": {
+    ptBR: "Ataque com Alter-S e aceite seu Fim de Ataque. As duas fontes entram juntas; Garurumon pode evoluir para WereGarurumon EX9-019 da mão sem custo. Alter-S vira a segurança do topo.",
+    en: "Attack with Alter-S and accept End of Attack. Both sources enter together; Garurumon can evolve into hand WereGarurumon EX9-019 for free. Alter-S becomes top security.",
+  },
+  "arena-issue-5169-demidevimon-native": {
+    ptBR: "Jogue Arukenimon e delete DemiDevimon para reduzir o custo. Resolva o efeito nativo de DemiDevimon: coloque-o sob Arukenimon e evolua para MaloMyotismon. Seu efeito herdado não pode ativar retroativamente; Agumon adversário e sua carta na mão permanecem.",
+    en: "Play Arukenimon and delete DemiDevimon to reduce its cost. Resolve DemiDevimon’s native effect: place it under Arukenimon and evolve into MaloMyotismon. Its inherited effect cannot activate retroactively; the opposing Agumon and your hand card remain.",
+  },
+  "arena-issue-5170-kaguyamon-end-turn": {
+    ptBR: "Encerre o turno e aceite Kaguyamon EX9-033. Escolha Sistermon Blanc ou Ciel no lixo; ambas são Puppet de nível 4 ou menor e podem entrar sem custo.",
+    en: "End your turn and accept EX9-033 Kaguyamon. Choose trash Sistermon Blanc or Ciel; both are level 4 or lower Puppets and can enter for free.",
+  },
+  "arena-issue-5170-kaguyamon-on-play": {
+    ptBR: "Jogue Kaguyamon EX12-065 e aceite seu Ao Jogar. Escolha Sistermon Blanc ou Ciel no lixo para jogar sem custo. Seu Ao Deletar devolve um Digimon adversário ao fundo do deck; não joga Puppets.",
+    en: "Play EX12-065 Kaguyamon and accept On Play. Choose trash Sistermon Blanc or Ciel to play for free. Its On Deletion returns an opposing Digimon to the deck bottom; it does not play Puppets.",
+  },
+  "arena-issue-5170-arisa-overclock": {
+    ptBR: "Encerre o turno, aceite Overclock e delete o Familiar Token. Aceite Arisa e suspenda-a para comprar 1. Escolha Sistermon Blanc ou Ciel na mão para jogar sem custo. Arisa deve estar ativa; ela não joga do lixo.",
+    en: "End your turn, accept Overclock and delete the Familiar Token. Accept Arisa and suspend her to draw 1. Choose hand Sistermon Blanc or Ciel to play for free. Arisa must be unsuspended; she does not play from trash.",
   },
   "arena-issue-5159-kudamon-moving": {
     ptBR: "Mova Kudamon da criação. Mesmo sem Tamer em campo, selecione uma carta revelada para a mão e confirme a ordem das restantes no fundo do deck. A movimentação encerra a criação automaticamente; a fase Principal deve continuar normalmente.",
@@ -1644,8 +1688,19 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-oct06-inherited-battle", "06/10 · Groundramon · herdado após De-Digivolve"],
   ["arena-oct06-active-overflow", "06/10 · Overflow · início do turno"],
   ["arena-discord-1556882561995644928-mobile-inspection", "Mobile · read Alphamon during Leopardmon's decision"],
+  ["arena-issue-5167-assembly-digimon", "GitHub #5167 · Digimon Assembly materials"],
+  ["arena-issue-5171-taomon-famis", "GitHub #5171 · Taomon ACE uses Famis"],
+  ["arena-issue-5176-king-drasil-ace", "#5176 · King Drasil absorbs Royal Knight ACE"],
+  ["arena-issue-5166-dna-material-pairs", "#5166 · DNA material pair choice"],
+  ["arena-issue-5173-cyber-engage", "#5173 · Cyber Engage reduced cost"],
+  ["arena-issue-5173-cyber-engage-psychemon", "#5173 · Cyber Engage vs Psychemon"],
   ["arena-issue-5127-opponent-suspend-cost", "GitHub #5127 · Opposing suspend cost"],
   ["arena-issue-5127-opponent-survival", "GitHub #5127 · Opposing survival cost"],
+  ["arena-issue-5168-alter-s-simultaneous", "GitHub #5168 · alter-s-simultaneous"],
+  ["arena-issue-5169-demidevimon-native", "GitHub #5169 · demidevimon-native"],
+  ["arena-issue-5170-kaguyamon-end-turn", "GitHub #5170 · kaguyamon-end-turn"],
+  ["arena-issue-5170-kaguyamon-on-play", "GitHub #5170 · kaguyamon-on-play"],
+  ["arena-issue-5170-arisa-overclock", "GitHub #5170 · arisa-overclock"],
   ["arena-issue-5159-kudamon-moving", "GitHub #5159 · Kudamon moving reveal"],
   ["arena-issue-5158-guilmon-x-reveal", "GitHub #5158 · Guilmon X reveal"],
   ["arena-issue-5050-counter-immunity", "GitHub #5050 · Counter immunity"],

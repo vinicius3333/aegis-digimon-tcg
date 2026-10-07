@@ -117,15 +117,24 @@ export const ASSEMBLY_REQUIREMENT_OVERRIDES: Record<string, AssemblyRequirement[
       materials: [{ kinds: ["Digimon"], traits: ["Life", "System", "Seven Code"], level: 3, count: 1 }],
     },
   ],
-  "BT26-037": [{ reduceCost: 2, materials: [{ traits: ["Navi", "System", "Seven Code"], level: 3, count: 1 }] }],
+  "BT26-037": [
+    {
+      reduceCost: 2,
+      materials: [{ kinds: ["Digimon"], traits: ["Navi", "System", "Seven Code"], level: 3, count: 1 }],
+    },
+  ],
   "BT26-047": [
-    { reduceCost: 6, materials: [{ traits: ["Larva", "Insectoid", "Titan"], count: 4, differentLevels: true }] },
+    {
+      reduceCost: 6,
+      materials: [{ kinds: ["Digimon"], traits: ["Larva", "Insectoid", "Titan"], count: 4, differentLevels: true }],
+    },
   ],
   "BT26-073": [
     {
       reduceCost: 2,
       materials: [
         {
+          kinds: ["Digimon"],
           nameOrTrait: [
             { tokens: ["Chronomon"], match: "text" },
             { tokens: ["TS"], match: "trait" },

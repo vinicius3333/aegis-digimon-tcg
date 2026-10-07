@@ -93,7 +93,7 @@ describe("Opera tablet native audio compatibility", () => {
       expect(header.getUint32(40, true)).toBe(frames * frameBytes);
       expect(clip.byteLength).toBe(44 + frames * frameBytes);
       const start = 44 + Math.round(cue.offset * rate) * frameBytes;
-      expect(new Uint8Array(clip, 44)).toEqual(new Uint8Array(bytes, start, frames * frameBytes));
+      expect(Buffer.from(clip, 44).equals(Buffer.from(bytes, start, frames * frameBytes))).toBe(true);
     }
     expect(() => splitCueWav(new ArrayBuffer(8))).toThrow("Invalid cue WAV");
     expect(() => splitCueWav(bytes.slice(0, 100))).toThrow("Truncated cue WAV");
