@@ -13,6 +13,7 @@ import {
   type GameState,
   type Intent,
   type IntentResult,
+  type PresentationReport,
   type Seat,
   type ServerEvent,
 } from "@aegis/shared";
@@ -42,6 +43,18 @@ export const COMBAT_REFLEX_MAX_MS = 650;
    setImmediate instead keeps the event loop from ever sleeping and pins a core
    for as long as the human takes to answer. */
 const BLOCKED_MAIN_PHASE_POLL_MS = 50;
+
+/* When the opposing client reports its presentation queue, the bot waits for that queue
+   to drain instead of estimating it, then leaves this beat before acting. The think time
+   above only existed to cover the narration the client is now known to have finished. */
+export const PRESENTED_ACTION_BEAT_MIN_MS = 700;
+export const PRESENTED_ACTION_BEAT_MAX_MS = 1_100;
+/* An action or event that queues no animation produces no report; past this grace the
+   client is treated as idle. */
+export const PRESENTATION_START_GRACE_MS = 1_000;
+/* A docked decision or a hidden tab can keep the queue non-empty indefinitely. */
+export const PRESENTATION_WAIT_CEILING_MS = 12_000;
+const PRESENTATION_POLL_MS = 50;
 
 /** Safety valve: the most actions the bot will take in one Main phase. */
 const MAX_MAIN_PHASE_ACTIONS = 40;
@@ -107,6 +120,11 @@ export class BotPlayer {
   private eventRevision = 0;
   /** Narration the opposing client still owes the last attack, in milliseconds. */
   private narrationUntil = 0;
+  /** Zero until the opposing client sends its first presentation report. */
+  private lastPresentationReportAt = 0;
+  private opponentPresenting = false;
+  /** The last action or event the opposing client has yet to present. */
+  private lastChangeAt = 0;
   /**
    * A security check is open: the card is face up and the engine is holding the attack on
    * whatever it raises next. Opened by `securityRevealed`, closed by `securityChecked` —
@@ -128,7 +146,10 @@ export class BotPlayer {
     this.minThinkMs = options.minThinkMs ?? DEFAULT_MIN_ACTION_DELAY_MS;
     this.maxThinkMs = Math.max(options.maxThinkMs ?? DEFAULT_MAX_ACTION_DELAY_MS, this.minThinkMs);
     const seed = options.seed ?? 0x5eed;
-    this.fallbackPolicy = createEvaluationPolicy({ profile: resolveBotProfile(options.profile), seed });
+    this.fallbackPolicy = createEvaluationPolicy({
+      profile: resolveBotProfile(options.profile),
+      seed,
+    });
     this.policy = options.policy ?? this.fallbackPolicy;
     this.policyTimeoutMs = options.policyTimeoutMs ?? 1_000;
     if (!Number.isFinite(this.policyTimeoutMs) || this.policyTimeoutMs <= 0)
@@ -251,8 +272,18 @@ export class BotPlayer {
     this.startMainPhaseLoop();
   }
 
+  /** A presentation step the opposing human client queued, started or finished. */
+  onOpponentPresentation(report: Pick<PresentationReport, "phase" | "pendingCount" | "mode">): void {
+    if (this.disposed || report.phase === "expired") return;
+    this.lastPresentationReportAt = Date.now();
+    // The reported count still includes the step that is finishing.
+    const settled = (report.phase === "finished" || report.phase === "dropped") && report.pendingCount <= 1;
+    this.opponentPresenting = report.mode === "live" && !settled;
+  }
+
   onEvent(event: ServerEvent): void {
     if (this.disposed) return;
+    this.lastChangeAt = Date.now();
     this.policy.observeEvent?.(event);
     this.eventRevision++;
     switch (event.kind) {
@@ -459,6 +490,7 @@ export class BotPlayer {
   /** Send an intent and tell the policy when the engine refused it. */
   private act(intent: Intent): IntentResult | void {
     if (this.disposed) return;
+    this.lastChangeAt = Date.now();
     const result = this.sendIntent(intent);
     if (result !== undefined && result.ok === false) {
       this.policy.noteRejected(intent);
@@ -477,7 +509,7 @@ export class BotPlayer {
     }
     switch (phase) {
       case Phase.Breeding:
-        void this.nextActionDelay().then(() => this.runBreedingPhase());
+        void this.nextOwnActionDelay().then(() => this.runBreedingPhase());
         break;
       case Phase.Main:
         this.startMainPhaseLoop();
@@ -575,7 +607,7 @@ export class BotPlayer {
       }
       actionStep++;
 
-      await this.nextActionDelay();
+      await this.nextOwnActionDelay();
       // The delay can outlast the window we planned in (combat resolved, a decision
       // arrived); re-validate before acting and let the loop re-evaluate if so.
       if (
@@ -665,6 +697,38 @@ export class BotPlayer {
       const remaining = this.narrationUntil - Date.now();
       await this.pause(remaining, remaining);
     }
+  }
+
+  /**
+   * The beat before a breeding or main-phase action of this seat's own. Decision answers keep
+   * the estimate: a client can hold a dock open until that very answer arrives.
+   */
+  private async nextOwnActionDelay(): Promise<void> {
+    const deadline = Date.now() + PRESENTATION_WAIT_CEILING_MS;
+    if (!(await this.waitForOpponentPresentation(deadline))) return this.nextActionDelay();
+    do {
+      await this.pause(PRESENTED_ACTION_BEAT_MIN_MS, PRESENTED_ACTION_BEAT_MAX_MS);
+      // A turn change can reach the client during the beat, starting its ribbons.
+    } while (
+      !this.presentationSettled() &&
+      Date.now() < deadline &&
+      (await this.waitForOpponentPresentation(deadline))
+    );
+  }
+
+  /** False when the opposing client does not report, so the estimates above still apply. */
+  private async waitForOpponentPresentation(deadline: number): Promise<boolean> {
+    if (!this.usesRealTimePacing || this.lastPresentationReportAt === 0) return false;
+    while (!this.disposed && !this.presentationSettled() && Date.now() < deadline) {
+      await this.pause(PRESENTATION_POLL_MS, PRESENTATION_POLL_MS);
+    }
+    return true;
+  }
+
+  private presentationSettled(): boolean {
+    const reportedSinceChange = this.lastPresentationReportAt >= this.lastChangeAt;
+    const graceElapsed = Date.now() - this.lastChangeAt >= PRESENTATION_START_GRACE_MS;
+    return !this.opponentPresenting && (reportedSinceChange || graceElapsed);
   }
 }
 

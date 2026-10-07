@@ -21,6 +21,10 @@ import {
   COMBAT_REFLEX_MIN_MS,
   DEFAULT_MAX_ACTION_DELAY_MS,
   DEFAULT_MIN_ACTION_DELAY_MS,
+  PRESENTATION_START_GRACE_MS,
+  PRESENTATION_WAIT_CEILING_MS,
+  PRESENTED_ACTION_BEAT_MAX_MS,
+  PRESENTED_ACTION_BEAT_MIN_MS,
 } from "./BotPlayer.js";
 import { createEvaluationPolicy } from "./policy.js";
 
@@ -118,6 +122,90 @@ describe("BotPlayer action pacing and player attacks", () => {
     expect(intents).toEqual([]);
     await advance(1);
     expect(intents).toHaveLength(1);
+    bot.dispose();
+  });
+
+  it("waits for the opposing client to finish presenting before its next main action", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), FIXED_THINK);
+    bot.onOpponentPresentation({ phase: "started", pendingCount: 3, mode: "live" });
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 });
+    // Match 39d1607b: the estimate let the bot act while its last arrival was still lit.
+    await advance(PHASE_NARRATION_MS + DEFAULT_MAX_ACTION_DELAY_MS + 2_000);
+    expect(intents).toEqual([]);
+    bot.onOpponentPresentation({ phase: "finished", pendingCount: 1, mode: "live" });
+    await advance(PRESENTED_ACTION_BEAT_MIN_MS - 1);
+    expect(intents).toEqual([]);
+    await advance(PRESENTED_ACTION_BEAT_MAX_MS - PRESENTED_ACTION_BEAT_MIN_MS + 100);
+    expect(intents).toHaveLength(1);
+    bot.dispose();
+  });
+
+  it("waits for the ribbons a turn change starts after the client last reported idle", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), FIXED_THINK);
+    bot.onOpponentPresentation({ phase: "finished", pendingCount: 1, mode: "live" });
+    await advance(5_000);
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 });
+    // Match ff06953c: the client queued its turn ribbons 87 ms after the phase events.
+    await advance(90);
+    bot.onOpponentPresentation({ phase: "started", pendingCount: 4, mode: "live" });
+    await advance(6_000);
+    expect(intents).toEqual([]);
+    bot.onOpponentPresentation({ phase: "finished", pendingCount: 1, mode: "live" });
+    await advance(PRESENTED_ACTION_BEAT_MAX_MS + 100);
+    expect(intents).toHaveLength(1);
+    bot.dispose();
+  });
+
+  it("stops waiting for a presentation that never drains at its ceiling", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), FIXED_THINK);
+    bot.onOpponentPresentation({ phase: "started", pendingCount: 2, mode: "live" });
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 });
+    await advance(PRESENTATION_WAIT_CEILING_MS - 100);
+    expect(intents).toEqual([]);
+    await advance(PRESENTED_ACTION_BEAT_MAX_MS + 200);
+    expect(intents).toHaveLength(1);
+    bot.dispose();
+  });
+
+  it("treats an action that queued no presentation as presented after the grace period", async () => {
+    vi.useFakeTimers();
+    const { state, attackers } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        const attacker =
+          intent.type === "attack"
+            ? attackers.find((candidate) => candidate.permanentId === intent.attackerPermanentId)
+            : undefined;
+        if (attacker) {
+          attacker.isSuspended = true;
+          attacker.canAttackPlayer = false;
+        }
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
+    bot.onOpponentPresentation({ phase: "finished", pendingCount: 1, mode: "live" });
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
+    await advance(PRESENTED_ACTION_BEAT_MAX_MS + 100);
+    expect(intents).toHaveLength(1);
+    bot.onActionSettled("attack");
+    await advance(PRESENTATION_START_GRACE_MS - 100);
+    expect(intents).toHaveLength(1);
+    await advance(PRESENTED_ACTION_BEAT_MAX_MS + 200);
+    expect(intents).toHaveLength(2);
     bot.dispose();
   });
 

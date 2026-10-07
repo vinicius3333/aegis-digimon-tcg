@@ -1591,6 +1591,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
     if (seat === undefined) return;
     const report = parsePresentationReport(payload);
     if (!report) return;
+    for (const [botSeat, bot] of this.bots.entries()) if (botSeat !== seat) bot?.onOpponentPresentation(report);
     const now = Date.now();
     let window = this.presentationLogWindows.get(seat);
     if (!window || now - window.start >= 1000) {
