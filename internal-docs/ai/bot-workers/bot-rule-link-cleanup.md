@@ -1956,3 +1956,29 @@ engine-only positives in every mechanism/seat/fold remain mandatory before
 models, with no future boolean/CP/closure assumptions. Learned weights/Adam,
 strict44-recipe strength, full both-seat material/physical mechanisms,26rooms,
 current serving and untouched finalblind/delivery remain unproven and required.
+
+## Actual800 natural validation games; final custody still running
+
+Original foreground76954 remains attached to whole690/start7193 and
+operator709/start7198. Real teacher-started receiptSHA
+`52c0e73e8996fdfe41c3c7c20500ee5ce34a064786e1952d9d483b9452cce421`
+binds the exact bridge5c491a9c.. path/bytes, source/request/identity/CPU-Go,
+Python3.12.14/Node26.10.0 and no primary model imports.
+All800 planned natural games completed with512wins/288losses,45329frames,
+zero unavailable teacher labels and zero learning updates. Read-only full raw
+progress finds17 `dnaDigivolve:seat0` and2 `effectDigiXrosMaterial:seat0`
+positives, all in the validation fold declared before outcomes. Both genuine
+coverage gaps are filled in these raw data; every loss and original fold is
+retained. None of these events is learned-model strength or mastery evidence.
+
+The original operator has exited its game workers and entered unchanged full
+post-source/CP/predecessor verification. Original whole0/completion and
+independent strict800 closure are not claimed yet. Continue observing the SAME
+foreground76954 and actual process tree; no restart/duplicate collection.
+After observed actual whole0/external completion, consume unchanged strict
+closure and model-free combined counts; seal bounded learning scope only from
+all actual source proofs and original-fold counts. Prepared local
+`inspect-mentor-imitation-r3-data-counts.sh` refuses missing external validation
+completion or nonzero original source traps, remains model-free and explicitly
+labels its raw counts as distinct from independent source closure. No primary
+model/request/GPU learning Go/checkpoint or serving change exists yet.
