@@ -1,6 +1,15 @@
+import { liveRooms } from "./liveRooms.js";
 import { randomBytes } from "node:crypto";
 import { Room, ServerError, type Client } from "colyseus";
-import { GameState, MANUAL_COMMAND, MANUAL_SNAPSHOT, MANUAL_ERROR, MANUAL_SYNC, type Seat } from "@aegis/shared";
+import {
+  GameState,
+  MANUAL_COMMAND,
+  MANUAL_SNAPSHOT,
+  MANUAL_ERROR,
+  MANUAL_SYNC,
+  MANUAL_RECONNECT_GRACE_SECONDS,
+  type Seat,
+} from "@aegis/shared";
 import { canCreateRoom } from "../deployment/admission.js";
 import { roomCodeDirectory } from "./AegisRoom.js";
 import { ManualTable } from "../manual/ManualTable.js";
@@ -39,6 +48,7 @@ export class ManualRoom extends Room<{ state: GameState }> {
       directory.claim(this.code, this.roomId);
     }
     await this.setMetadata({ manual: true, private: this.privateRoom, roomCode: this.code });
+    liveRooms.set(this.roomId, this);
     this.onMessage(MANUAL_SYNC, (client) => this.sendSnapshot(client));
     this.onMessage(MANUAL_COMMAND, (client, command: unknown) => this.command(client, command));
   }
@@ -95,7 +105,7 @@ export class ManualRoom extends Room<{ state: GameState }> {
     this.sendAll();
     try {
       if (code === 1000 || code === 4000) throw new Error("Left table");
-      const reconnected = await this.allowReconnection(client, 120);
+      const reconnected = await this.allowReconnection(client, MANUAL_RECONNECT_GRACE_SECONDS);
       this.seats.delete(client.sessionId);
       this.seats.set(reconnected.sessionId, seat);
       this.table.setConnected(seat, true);
@@ -116,6 +126,7 @@ export class ManualRoom extends Room<{ state: GameState }> {
   }
 
   override onDispose(): void {
+    liveRooms.delete(this.roomId);
     if (this.code) roomCodeDirectory().release(this.code, this.roomId);
   }
 }

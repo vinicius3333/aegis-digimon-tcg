@@ -2,6 +2,7 @@ import type { Seat } from "../schema/enums.js";
 
 export const ROOM_TYPE_MANUAL = "aegis_manual";
 export const ROOM_TYPE_MANUAL_PRIVATE = "aegis_manual_private";
+export const MANUAL_RECONNECT_GRACE_SECONDS = 120;
 export const MANUAL_COMMAND = "manual:command";
 export const MANUAL_SNAPSHOT = "manual:snapshot";
 export const MANUAL_ERROR = "manual:error";
@@ -60,6 +61,8 @@ export interface ManualSnapshot extends ManualTableState {
   inspection: { zone: "deck" | "security" | "eggDeck"; cards: ManualCard[] } | null;
 }
 export type ManualAction =
+  | { type: "spawnToken"; cardId: string }
+  | { type: "removeToken"; card: string }
   | { type: "ready" | "mulligan" | "concede" | "undoRequest" }
   | { type: "undoReply"; accept: boolean }
   | { type: "first" | "turn"; seat: Seat }

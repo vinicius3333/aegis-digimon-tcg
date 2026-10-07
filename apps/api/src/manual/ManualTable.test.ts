@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allCards, CardKind, type ManualAction, type ManualPlayer, type Seat } from "@aegis/shared";
+import { allCards, CardKind, tokenDefinitions, type ManualAction, type ManualPlayer, type Seat } from "@aegis/shared";
 import { ManualTable } from "./ManualTable.js";
 
 export function manualTestDeck() {
@@ -166,5 +166,40 @@ describe("manual table", () => {
     act(t, 0, { type: "move", card: base!.id, to: "battle", target: stack.id, placement: "top" });
     expect(stack.cards.map((card) => card.id)).toEqual([base!.id, top!.id]);
     expect(cards(p)).toEqual(before);
+  });
+  it("creates and removes only catalog tokens without consuming printed cards", () => {
+    const t = playing();
+    const before = cards(t.state.players[0]!);
+    act(t, 0, { type: "spawnToken", cardId: tokenDefinitions[0]!.cardId });
+    const token = t.state.players[0]!.battle[0]!.cards[0]!;
+    expect(t.snapshot(1, "").players[0]!.battle[0]!.cards[0]!.cardId).toBe(token.cardId);
+    expect(() => act(t, 0, { type: "removeToken", card: t.state.players[0]!.hand[0]!.id })).toThrow(
+      "Only tokens can be removed",
+    );
+    act(t, 0, { type: "removeToken", card: token.id });
+    expect(cards(t.state.players[0]!)).toEqual(before);
+    expect(() => act(t, 0, { type: "spawnToken", cardId: "BT1-010" })).toThrow("Choose a catalog token");
+  });
+  it("preserves top-to-bottom source order when returning stacks to the bottom of a deck", () => {
+    const t = playing();
+    const p = t.state.players[0]!;
+    const [base, top] = p.hand;
+    act(t, 0, { type: "move", card: base!.id, to: "battle" });
+    const stack = p.battle[0]!;
+    act(t, 0, { type: "move", card: top!.id, to: "battle", target: stack.id });
+    act(t, 0, { type: "moveStack", stack: stack.id, to: "deck", placement: "bottom" });
+    expect(p.deck.slice(-2).map((card) => card.id)).toEqual([top!.id, base!.id]);
+  });
+  it("identifies announced attacks without exposing facedown identities", () => {
+    const t = playing();
+    act(t, 0, { type: "move", card: t.state.players[0]!.hand[0]!.id, to: "battle" });
+    act(t, 1, { type: "move", card: t.state.players[1]!.hand[0]!.id, to: "battle" });
+    const a = t.state.players[0]!.battle[0]!;
+    const b = t.state.players[1]!.battle[0]!;
+    act(t, 1, { type: "flip", card: b.cards[0]!.id, faceUp: false });
+    act(t, 0, { type: "attack", stack: a.id, target: b.id });
+    expect(t.state.history.at(-1)!.detail).toContain(`#${a.id.slice(0, 4)}`);
+    expect(t.state.history.at(-1)!.detail).toContain(`→ ? #${b.id.slice(0, 4)}`);
+    expect(t.state.players[1]!.security).toHaveLength(5);
   });
 });

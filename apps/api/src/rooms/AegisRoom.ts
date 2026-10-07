@@ -1,3 +1,4 @@
+import { liveRooms } from "./liveRooms.js";
 import { validateDecklist } from "../engine/deckValidation.js";
 import { log, logError, withMatchLog } from "../logger.js";
 import { CloseCode, Room, Client, ServerError, matchMaker, type Delayed } from "colyseus";
@@ -712,6 +713,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       this.matchClockInterval = this.clock.setInterval(() => this.syncMatchClock(), 100);
     }
     roomRegistry.set(this.roomId, this);
+    liveRooms.set(this.roomId, this);
   }
 
   /** Bot, ranked, tournament and hand-laid rooms always play a single game. */
@@ -984,6 +986,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
         .releaseTournamentRoom(this.tournamentMatchId, this.roomId)
         .catch((error) => this.debugError("[AegisRoom] failed to release tournament room", error));
     roomRegistry.delete(this.roomId);
+    liveRooms.delete(this.roomId);
     for (const view of this.issuedViews) view.dispose();
     this.issuedViews.clear();
     if (this.state?.spectatorCode && !this.isPrivate) roomCodes.release(this.state.spectatorCode, this.roomId);

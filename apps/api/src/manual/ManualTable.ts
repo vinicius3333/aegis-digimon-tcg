@@ -3,6 +3,7 @@ import {
   CardKind,
   deckLegality,
   getCardDefinition,
+  isTokenDefinition,
   MANUAL_ZONES,
   type ManualAction,
   type ManualCard,
@@ -80,6 +81,10 @@ export class ManualTable {
       deck.mainDeck.every((id) => !getCardDefinition(id)?.kinds.includes(CardKind.DigiEgg)) &&
         deck.eggDeck.every((id) => getCardDefinition(id)?.kinds.includes(CardKind.DigiEgg)),
       "Put eggs in the egg deck",
+    );
+    ensure(
+      [...deck.mainDeck, ...deck.eggDeck].every((id) => !isTokenDefinition(getCardDefinition(id)!)),
+      "Tokens cannot start in a deck",
     );
     ensure(deckLegality(deck, { unlimited: true }).legal, "Invalid deck composition or copy limit");
     ensure(
@@ -355,8 +360,9 @@ export class ManualTable {
           else target.stack.cards.unshift(...found.stack.cards);
           target.stack.links.push(...found.stack.links);
         } else {
-          for (const card of [...found.stack.cards, ...found.stack.links].reverse())
-            this.put(player, card, action.to, undefined, action.placement);
+          const moving = [...found.stack.cards, ...found.stack.links];
+          if (action.placement !== "bottom" && action.to !== "hand" && action.to !== "reveal") moving.reverse();
+          for (const card of moving) this.put(player, card, action.to, undefined, action.placement);
         }
         return `${found.zone} → ${action.to}`;
       }
@@ -391,16 +397,38 @@ export class ManualTable {
         card.faceUp = action.faceUp;
         return `${z} ${action.faceUp ? "face up" : "face down"}`;
       }
+      case "spawnToken": {
+        ensure(typeof action.cardId === "string", "Invalid token");
+        const definition = getCardDefinition(action.cardId);
+        ensure(definition && isTokenDefinition(definition), "Choose a catalog token");
+        const count =
+          looseZones.reduce((total, z) => total + player[z].length, 0) +
+          fieldZones.reduce(
+            (total, z) => total + player[z].reduce((n, stack) => n + stack.cards.length + stack.links.length, 0),
+            0,
+          );
+        ensure(count < 155, "Too many table pieces");
+        this.put(player, { id: randomUUID(), cardId: definition.cardId, artId: "", faceUp: true }, "battle");
+        return definition.nameEn;
+      }
+      case "removeToken": {
+        const found = this.findCard(player, action.card);
+        ensure(isTokenDefinition(getCardDefinition(found.card.cardId)!), "Only tokens can be removed from the table");
+        found.remove();
+        return getCardDefinition(found.card.cardId)!.nameEn;
+      }
       case "attack": {
-        this.findStack(player, action.stack);
+        const attacker = this.findStack(player, action.stack).stack;
+        const label = (stack: ManualStack) =>
+          `${stack.cards[0]!.faceUp ? (getCardDefinition(stack.cards[0]!.cardId)?.nameEn ?? "?") : "?"} #${stack.id.slice(0, 4)}`;
+        let targetLabel = "security";
         if (action.target) {
           const opponent = this.state.players[1 - seat]!;
-          ensure(
-            opponent.battle.some((s) => s.id === action.target),
-            "Invalid attack target",
-          );
+          const target = opponent.battle.find((s) => s.id === action.target);
+          ensure(target, "Invalid attack target");
+          targetLabel = label(target);
         }
-        return action.target ? "Digimon" : "security";
+        return `${label(attacker)} → ${targetLabel}`;
       }
       case "undoRequest":
         ensure(this.previous && !this.state.undo && this.state.players.length === 2, "Nothing to undo");

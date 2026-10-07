@@ -1,3 +1,5 @@
+import { liveRoomCounts } from "./rooms/liveRooms.js";
+import { lookupInviteRoom } from "./rooms/roomLookup.js";
 import { installSpectatorRoutes } from "./rooms/spectatorRoutes.js";
 import { createServer } from "node:http";
 import { matchMaker } from "colyseus";
@@ -29,7 +31,7 @@ import { isActiveDeploymentSlot, setRoomCreationAdmission } from "./deployment/a
 import { corsOriginForRequest } from "./http/cors.js";
 import { mailerFromEnv } from "./email/mailer.js";
 import { createClusterRuntime } from "./cluster/runtime.js";
-import { roomCodeDirectory, setRoomCodeDirectory } from "./rooms/AegisRoom.js";
+import { setRoomCodeDirectory } from "./rooms/AegisRoom.js";
 import { createSeriesDirectory, setSeriesDirectory } from "./rooms/series/SeriesDirectory.js";
 import { startBotInference, stopBotInference } from "./bot/inferenceRuntime.js";
 
@@ -92,8 +94,8 @@ const deploymentRuntime = createDeploymentRuntime({
         canAcceptNewRooms: () => isActiveDeploymentSlot(process.env.AEGIS_DEPLOYMENT_MANIFEST!, configuredSlot),
       }
     : {}),
-  activeRooms: () => roomRegistry.size,
-  connectedClients: () => [...roomRegistry.values()].reduce((total, room) => total + room.clients.length, 0),
+  activeRooms: () => liveRoomCounts().activeRooms,
+  connectedClients: () => liveRoomCounts().connectedClients,
   readiness: () => accountStore.healthCheck(),
   broadcastAcceptingNewRooms: cluster.broadcastAcceptingNewRooms,
 });
@@ -163,31 +165,8 @@ async function remoteAddBot(roomId: string, botDeckId?: string): Promise<boolean
  * joinById. Returns 404 if the code is unknown or the room is full/gone.
  */
 app.post("/room/lookup", async (req, res) => {
-  const { roomCode } = req.body as { roomCode?: string };
-  if (!roomCode) {
-    res.status(400).json({ error: "roomCode required" });
-    return;
-  }
-  const code = roomCode.toUpperCase();
-  const roomId = await roomCodeDirectory().resolve(code);
-  if (!roomId) {
-    res.status(404).json({ error: "room not found" });
-    return;
-  }
-  // Asked of the matchmaker rather than this process's registry: in a cluster the room is
-  // usually somewhere else, and the driver is the only place that knows its seat count.
-  const [listing] = await matchMaker.query({ roomId });
-  if (listing === undefined) {
-    roomCodeDirectory().release(code, roomId);
-    res.status(404).json({ error: "room not available" });
-    return;
-  }
-  // A failed player join must not revoke a running match's spectator code.
-  if (listing.name !== ROOM_TYPE_PRIVATE || listing.clients >= 2 || listing.locked) {
-    res.status(404).json({ error: "room not available" });
-    return;
-  }
-  res.json({ roomId });
+  const result = await lookupInviteRoom(req.body?.roomCode);
+  res.status(result.status).json(result.body);
 });
 
 installSpectatorRoutes(app);
