@@ -1380,6 +1380,62 @@ full closure consumer. Only its complete same-schedule all44 report can
 establish strict gains against all four references. Final blind seeds remain
 untouched, and all downstream acceptance gates remain pending.
 
+## R4 complete frozen evaluation and remaining deficits
+
+The original evaluation foreground session96188 ended with actual exit zero,
+and unchanged full closure consumer session22767 independently ended with
+actual exit zero. These completed handles supersede the preceding live
+observations and must never be relaunched. Actual completion SHA-256 is
+`2b07d65d36f43fe5146df2d1cd0cb4c32c503b1338301d7d6c28fe066cf154fb`.
+Local stdout `rule-link-current-corrective-strength-r4-closed.actual.json`
+has SHA-256 `227ee7eedd9fc4f11dda51d03ae9a0fe1a38343ac50bc393abb4e2250758435e`.
+The whole, operator and CUDA worker are gone and GPU was empty at closure.
+
+All3,872 actual natural games cover all44 recipes, both seats, unchanged
+development seeds6135000..6138871 and frozen R4 CP1de. Results are2,466wins,
+1,406losses, zero failed/unusable/payment-forfeit episodes, nine retained
+recovered play rejections, and zero evaluation updates. Elapsed time was
+2,794.0709692249993seconds. Full source/runtime/CP/raw-map checks passed.
+
+The unchanged pure assessment is
+`rule-link-current-corrective-r4-all44-assessment.actual.json`, SHA-256
+`9c8e1f302536e9749378907147a7890907f8c7d1e83bb8b39dfae40d64520cb1`.
+Strict all44 improvement against each of four references is **false**:
+24recipes fail, compared with22 after R3. Relative to R3,21recipes improved,
+19regressed and four tied. The aggregate gain of15wins does not establish
+acceptance. No primary candidate has passed the strength gate.
+
+The largest deficits remain Adventure59wins against strongest reference74
+(needs16additional wins for a strict gain), and Imperialdramon52 against60
+(needs9). Read-only analysis of their actual complete same-seed records
+finds Adventure wins34/25 by seat against source-challenger39/35. Imperial
+wins24/28 against primary-before28/32. R4 chose DNA10times in27offered
+Imperial windows; primary-before chose none in seven offered windows. These
+counts describe different trajectories and do not prove a causal defect.
+All exact result hashes and paired loss seeds are retained in
+`r4-paired-results.actual.json`; no model or game was launched by that reader.
+
+Streaming evaluation retains outcome/coverage records and stderr, but not
+decision frames. A bounded diagnostic operator now prepares eight actual
+frozen replays: one R4 and one winning-reference replay for each of four
+paired Adventure/Imperial losses covering both seats. It queries all four
+immutable references on each actual window, records every window with
+explicit reference-query provenance, and requires exact original winner,
+reason, decision count, recoveries and action coverage. These are diagnostic
+replays of development seeds, with zero updates and no strength/mastery
+acceptance. They do not consume reserved final seeds or create teacher labels.
+
+Operator `rule-link-current-r4-choice-diagnosis.py` has SHA-256
+`894e8bbb124b79f160cd2fd2789ee92ffc9e629d6b3ea91a7a656468002a8266`.
+Request SHA-256 is `28ee6c4c5be03940ac194db4f65b26c9a80e64d130ae03d88ab3cc75c3b6d7a4`;
+wrapper SHA-256 is `1a5e7910eb98d7f8332c6a20aedabdeac5ad07ed338bc397182adea3db362109`.
+Nine bounded synthetic guards pass locally; they do not prove real termination,
+game results or primary-model execution. Default inspection requires the
+unchanged actual full R4 consumer and starts no games/models. Execution needs
+a separate ROOT resource Go, actual direct whole identity/start ticks/argv,
+GPU/worker idle guard, exact qualified module paths, frozen finite tensors,
+and pre/post source/raw-map/CP checks. No new learning job is admitted yet.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
