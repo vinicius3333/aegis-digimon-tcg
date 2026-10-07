@@ -1614,6 +1614,36 @@ from the original output and run the same operator's strict `--closed` reader
 with `--completion-sha` and all original pins. New data coverage, actual learning,
 strict all44 improvements and all downstream acceptance remain unproven.
 
+## Fresh mentor/material actual CUDA progress
+
+The original pre-consumer finished successfully and the CUDA child actually
+started: collector1105/start94629, direct parent739/start51613, under original
+whole720/start51608. Its live `/proc` argv exactly matches its original start
+receipt; the only GPU PID is1105, and four actual Node workers are its direct
+children. Original source/request/Go/identity/CP guards remain exact. The
+initial CPU-only launch observation above is superseded by this live capture
+observation; no additional launch or retry was performed.
+
+The read-only natural progress observer completed0. It verifies195 complete
+natural terminal records:130 wins,65 retained losses, zero recovered play
+rejections,11093 decisions and all88 recipe/seat cells observed. Label origins
+are10907 frozen-policy choices and186 actual engine compound/material choices.
+This is partial data, not evaluation of one primary or any strength gain.
+`mentor-data-r1-natural-progress-1.actual.json` has SHA-256
+`ca5939ff75ad7ce459d9649dd644d1597a014f158c6db5366fe4d4ec0d5ae7d5`.
+All five CP file hashes remain unchanged; zero actual learning updates,
+no new candidate and no final seeds are authorized in this phase.
+
+Original foreground56480 is still live and attached. Continue monitoring it
+and the exact bound whole/collector; do not restart after an observation
+expiry. Data is not complete:3872 natural records, all raw frames, frozen
+tensor equality, actual child exit, original full post-consumer and whole0
+plus strict closure/coverage remain required before imitation admission.
+A source-only synthetic seam exercise also confirms the unchanged PPO
+`tensor_delta` accepts unequal absolute actor/value warm Adam counters while
+requiring equal positive new deltas on all12 parameters; an unequal delta is
+rejected. It loads no real model and establishes no actual training.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
