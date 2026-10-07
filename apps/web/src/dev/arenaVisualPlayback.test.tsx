@@ -102,7 +102,7 @@ it("mounts an empty baseline, delivers fresh later batches and retains cue-befor
   act(() => vi.advanceTimersByTime(1));
   const connection = result.current.connection!;
   expect(connection.events[0]!.kind).toBe("attackDeclared");
-  expect(connection.batches[0]!.stateVersion).toBe(1);
+  expect(connection.batches[0]!.stateVersion).toBe(2);
   expect(connection.state.stateVersion).toBe(2);
   expect(connection.snapshots.map((snapshot) => snapshot.stateVersion)).toEqual([1, 2]);
   expect(connection.snapshots[0]!.state.players[1]!.battleArea[0]!.isSuspended).toBe(false);

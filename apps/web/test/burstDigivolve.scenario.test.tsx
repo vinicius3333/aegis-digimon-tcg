@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
-import { endBreedingStep } from "./scenarioHarness/breedingStep";
+import { endBreedingStep, findEndBreedingControl } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import { dragOnto } from "./scenarioHarness/dragDrop";
 import { resolveIncidentalDecisionsThroughUi } from "./scenarioHarness/decisions";
@@ -96,7 +96,9 @@ scenario("burst-digivolve", () => {
     const shine = opponent.room.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT13-018")!;
     const shineId = shine.topCard.instanceId;
     const shinePermId = shine.permanentId;
-    fireEvent.click(await screen.findByRole("button", { name: /^end breeding$/i }, { timeout: 10_000 }));
+    // Marcus's Start of Main Phase question keeps ordinary actions disabled until
+    // it is answered, so wait for breeding to unlock, then resolve that question.
+    fireEvent.click(await findEndBreedingControl());
     await vi.waitFor(
       () => {
         expect(opponent.room.state.turnSeat).toBe(0);
