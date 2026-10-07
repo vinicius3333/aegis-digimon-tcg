@@ -238,6 +238,80 @@ describe("presentedSeats live projection", () => {
     expect(viewer.hand).toHaveLength(3);
   });
 
+  it.each(["current", "sequential"] as const)(
+    "%s: holds a bonus draw that a coalesced patch leaked into the earlier narrated snapshot",
+    (presentationPacing) => {
+      function handCard(id: string) {
+        const card = new CardInstance();
+        card.instanceId = id;
+        card.cardId = "ST1-03";
+        return card;
+      }
+      // Match 667f78a8: the digivolve closed at sv 7 and its bonus draw at sv 8 two
+      // milliseconds later, so the snapshot frozen for sv 7 already held the drawn card.
+      const viewer = player(0);
+      viewer.hand.push(handCard("kept"), handCard("bonus"));
+      viewer.handCount = 2;
+      viewer.deckCount = 29;
+      const opponent = player(1);
+      const digivolved = new GameState();
+      digivolved.stateVersion = 7;
+      digivolved.players.push(viewer, opponent);
+      const result = presentedSeats({
+        shownState: digivolved,
+        viewer,
+        opponent,
+        viewerSeat: 0,
+        heldPhaseState: undefined,
+        heldBlowState: undefined,
+        heldSecurityEffectState: undefined,
+        heldDrawState: undefined,
+        heldBreedingState: undefined,
+        heldDeletions: new Map(),
+        heldTrashArrivals: new Map(),
+        heldHandArrivals: new Map([
+          [1, { seat: 0, instanceId: "bonus", stateVersion: 8, handCountAfter: 2, deckCountAfter: 29 }],
+        ]),
+        optimisticPlayedInstanceId: undefined,
+        presentationPacing,
+      });
+      expect(result.shownHand!.map((card) => card.instanceId)).toEqual(["kept"]);
+      expect(result.shownViewer).toMatchObject({ handCount: 1, deckCount: 30 });
+    },
+  );
+
+  it("keeps a card the narrated snapshot already held before a later draw of it", () => {
+    const card = new CardInstance();
+    card.instanceId = "returned";
+    card.cardId = "ST1-03";
+    const viewer = player(0);
+    viewer.hand.push(card);
+    viewer.handCount = 1;
+    viewer.deckCount = 30;
+    const shownState = new GameState();
+    shownState.stateVersion = 5;
+    shownState.players.push(viewer, player(1));
+    const result = presentedSeats({
+      shownState,
+      viewer,
+      opponent: player(1),
+      viewerSeat: 0,
+      heldPhaseState: undefined,
+      heldBlowState: undefined,
+      heldSecurityEffectState: undefined,
+      heldDrawState: undefined,
+      heldBreedingState: undefined,
+      heldDeletions: new Map(),
+      heldTrashArrivals: new Map(),
+      heldHandArrivals: new Map([
+        [1, { seat: 0, instanceId: "returned", stateVersion: 9, handCountAfter: 1, deckCountAfter: 29 }],
+      ]),
+      optimisticPlayedInstanceId: undefined,
+      presentationPacing: "sequential",
+    });
+    expect(result.shownHand!.map((shown) => shown.instanceId)).toEqual(["returned"]);
+  });
+
   it.each([0, 1] as const)(
     "holds an opaque opponent hand and deck at the same beat for viewer seat %s",
     (viewerSeat) => {
