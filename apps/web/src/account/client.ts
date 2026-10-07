@@ -80,7 +80,7 @@ export const accountApi = {
   base: apiBase,
   me: () => request<RemoteAccount | null>("/auth/me"),
   profile: () => request<AccountProfile>("/account/profile"),
-  updateAvatar: (avatarId: DigimonWorldAvatarId) =>
+  updateAvatar: (avatarId: DigimonWorldAvatarId | null) =>
     request<RemoteAccount>("/account/profile/avatar", { method: "PUT", body: JSON.stringify({ avatarId }) }),
   updateDisplayName: (displayName: string) =>
     request<RemoteAccount>("/account/profile/display-name", { method: "PUT", body: JSON.stringify({ displayName }) }),

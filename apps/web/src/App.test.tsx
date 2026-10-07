@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useState } from "react";
+import { accountApi, type RemoteAccount } from "./account/client";
 import { AegisClient, cardEffectsLabCardId, initialAppRoute, withAccountAvatar } from "./App";
 import { I18nProvider } from "./i18n";
 
@@ -206,6 +208,50 @@ describe("responsive application state", () => {
 
     expect(await screen.findByRole("dialog")).toBeTruthy();
     expect(screen.getByText("Guest \u00b7 saved on this device")).toBeTruthy();
+  });
+
+  it("#5255 restores the provider portrait throughout the app after saving a reset", async () => {
+    const original: RemoteAccount = {
+      id: "account-5255",
+      displayName: "Revanche",
+      avatarId: "tyrannomon",
+      avatarUrl: "https://example.com/discord-avatar.png",
+      isAdmin: false,
+    };
+    const updateAvatar = vi.spyOn(accountApi, "updateAvatar").mockResolvedValue({ ...original, avatarId: null });
+    function SignedInClient() {
+      const [account, setAccount] = useState<RemoteAccount | null>(original);
+      return (
+        <I18nProvider>
+          <AegisClient
+            player={{ name: "Guest", color: "Blue", shards: 0, guestAvatarId: "greymon" }}
+            setPlayer={() => undefined}
+            account={account}
+            setAccount={setAccount}
+            decks={[]}
+            activeDeckId=""
+            setActiveDeckId={() => undefined}
+            saveDeck={() => undefined}
+            deleteDeck={() => undefined}
+            dark={false}
+            setDark={() => undefined}
+            initialScreen="home"
+          />
+        </I18nProvider>
+      );
+    }
+    try {
+      render(<SignedInClient />);
+      const menuButton = screen.getAllByRole("button", { name: "Open the player menu" })[0]!;
+      expect(menuButton.querySelector("img")?.getAttribute("src")).not.toBe(original.avatarUrl);
+      fireEvent.click(menuButton);
+      fireEvent.click(await screen.findByRole("button", { name: "Use account avatar" }));
+      await screen.findByRole("button", { name: "Use account avatar", pressed: true });
+      expect(updateAvatar).toHaveBeenCalledWith(null);
+      expect(menuButton.querySelector("img")?.getAttribute("src")).toBe(original.avatarUrl);
+    } finally {
+      updateAvatar.mockRestore();
+    }
   });
 
   it("preserves the active screen and form draft when the viewport crosses a breakpoint", async () => {

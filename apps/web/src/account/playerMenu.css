@@ -86,6 +86,72 @@
   color: var(--ds-text);
 }
 
+.player-menu__account-avatar {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  width: 100%;
+  min-height: var(--ds-touch-target);
+  margin-bottom: var(--ds-space-4);
+  padding: var(--ds-space-3);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-sheet);
+  color: var(--ds-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.player-menu__account-avatar > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+
+.player-menu__account-avatar strong,
+.player-menu__account-avatar small {
+  display: block;
+}
+
+.player-menu__account-avatar strong {
+  font-size: var(--ds-text-sm);
+}
+
+.player-menu__account-avatar small {
+  margin-top: var(--ds-space-1);
+  color: var(--ds-text-3);
+  font-size: var(--ds-text-xs);
+}
+
+.player-menu__account-avatar[aria-pressed="true"] {
+  border-color: var(--ds-accent);
+}
+
+.player-menu__account-avatar:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.player-menu__account-avatar:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 3px;
+}
+
+.player-menu__avatar-check {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border: 1px solid var(--ds-line);
+  border-radius: 50%;
+  color: var(--ds-accent);
+}
+
+.player-menu__avatar-error {
+  color: var(--ds-danger);
+  font-size: var(--ds-text-xs);
+}
+
 .player-menu__avatars-head {
   display: flex;
   flex-wrap: wrap;

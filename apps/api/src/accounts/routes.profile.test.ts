@@ -77,6 +77,16 @@ describe("PUT /account/profile/avatar", () => {
     expect(await sessionResponse.json()).toMatchObject({ avatarId: "tyrannomon" });
   });
 
+  it("#5255 restores the provider avatar and keeps that choice in a new session read", async () => {
+    expect((await putAvatar("tyrannomon")).status).toBe(200);
+    const reset = await putAvatar(null);
+    expect(reset.status).toBe(200);
+    expect(await reset.json()).toMatchObject({ avatarId: null, avatarUrl: "https://example.com/provider.png" });
+    const session = await fetch(`${harness.url}/auth/me`, { headers: { Cookie: harness.cookie } });
+    expect(await session.json()).toMatchObject({ avatarId: null, avatarUrl: "https://example.com/provider.png" });
+    expect((await putAvatar(undefined)).status).toBe(400);
+  });
+
   it("rejects unknown ids without changing the account", async () => {
     const rejected = await putAvatar("../outside");
     expect(rejected.status).toBe(400);
