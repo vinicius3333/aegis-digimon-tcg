@@ -16,7 +16,7 @@ import { AegisRoom, roomCodeDirectory, setRoomCodeDirectory } from "./AegisRoom.
 import { setRoomCreationAdmission } from "../deployment/admission.js";
 import type { RoomCodeDirectory } from "../cluster/roomCodes.js";
 import type { DecisionManager } from "../engine/decisions/index.js";
-import { RED_DECK } from "../engine/testDecks.js";
+import { BLUE_DECK, RED_DECK } from "../engine/testDecks.js";
 import { DEFAULT_MAX_ACTION_DELAY_MS } from "../bot/BotPlayer.js";
 
 /**
@@ -37,7 +37,13 @@ function fakeClient(sessionId: string): Client {
 type BroadcastCall = [string, unknown, { afterNextPatch?: boolean } | undefined];
 
 function makeRoom(
-  options: { botRoom?: boolean; betaBattleRoom?: boolean; private?: boolean; seed?: number } = {},
+  options: {
+    unlimitedRoom?: boolean;
+    botRoom?: boolean;
+    betaBattleRoom?: boolean;
+    private?: boolean;
+    seed?: number;
+  } = {},
 ): AegisRoom {
   const room = new AegisRoom();
   room.lock = vi.fn(async () => {});
@@ -196,6 +202,21 @@ describe("AegisRoom ready-gated match start", () => {
     expect(room.disconnect).not.toHaveBeenCalled();
   });
 
+  it("GitHub #5202: requires both seats to opt into Unlimited and cannot bypass a standard room's banlist", async () => {
+    const room = makeRoom({ unlimitedRoom: true });
+    const first = fakeClient("unlimited-first");
+    const deck = { mainDeck: [...RED_DECK.mainDeck], eggDeck: [...RED_DECK.eggDeck] };
+    deck.mainDeck.splice(0, 4, ...Array<string>(4).fill("BT5-109"));
+    const options = { displayName: "Unlimited", deck, unlimited: true };
+    expect(await room.onAuth(first, options)).toBe(true);
+    room.clients.push(first);
+    room.onJoin(first, options);
+    expect(room.state.players[0]?.displayName).toBe("Unlimited");
+    expect(await room.onAuth(fakeClient("standard"), { displayName: "Standard", deck: RED_DECK })).toBe(false);
+    const standard = makeRoom();
+    expect(await standard.onAuth(fakeClient("crafted"), options)).toBe(false);
+    expect(() => standard.onJoin(fakeClient("bypass"), options)).toThrow(/illegal deck/);
+  });
   it("requires explicit opt-in from both seats of a beta battle room", async () => {
     const room = makeRoom({ betaBattleRoom: true });
     const first = fakeClient("beta-first");
@@ -328,6 +349,29 @@ describe("AegisRoom ready-gated match start", () => {
     expect(broadcastedEvents(room).some((event) => event.kind === "matchStarted")).toBe(true);
   });
 
+  it("GitHub #5236: seats the exact validated personal deck for the bot and rejects illegal decks", async () => {
+    const room = makeRoom({ botRoom: true });
+    new Encoder(room.state);
+    const human = fakeClient("personal-bot-human");
+    const botDeck = { mainDeck: [...BLUE_DECK.mainDeck], eggDeck: [...BLUE_DECK.eggDeck] };
+    const options = { displayName: "Human", deck: RED_DECK, botDeck };
+    expect(await room.onAuth(human, options)).toBe(true);
+    room.clients.push(human);
+    room.onJoin(human, options);
+    expect(room.addBot()).toBe(true);
+    const bot = room.state.players[1]!;
+    expect([...bot.deck, ...bot.hand, ...bot.security].map((card) => card.cardId).sort()).toEqual(
+      [...botDeck.mainDeck].sort(),
+    );
+    const illegal = makeRoom({ botRoom: true });
+    expect(await illegal.onAuth(fakeClient("illegal"), { ...options, botDeck: { mainDeck: [], eggDeck: [] } })).toBe(
+      false,
+    );
+    expect(() => illegal.onJoin(fakeClient("illegal"), { ...options, botDeck: { mainDeck: [], eggDeck: [] } })).toThrow(
+      /Illegal custom bot deck/,
+    );
+    expect(await makeRoom().onAuth(fakeClient("casual"), options)).toBe(false);
+  });
   it("addBot deals the bot the requested famous-deck preset", () => {
     const requested = ALL_FAMOUS_DECKS.find(isFamousDeckAvailable);
     expect(requested).toBeDefined();

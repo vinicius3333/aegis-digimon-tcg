@@ -113,14 +113,17 @@ export function DeckEditor({
     [main, egg],
   );
 
+  const [unlimited, setUnlimited] = useState(false);
+  const copyLimit = (id: string): number =>
+    unlimited ? (getCardDefinition(id)?.maxCountInDeck ?? 4) : banlistLimit(id);
   const add = (cardId: string) => {
     const def = getCardDefinition(cardId);
     if (!def) return;
-    if (isBanned(cardId)) return;
+    if (!unlimited && isBanned(cardId)) return;
     const eggCard = isEggCard(def);
     const map = eggCard ? egg : main;
     const cur = map[cardId] ?? 0;
-    const cap = Math.min(def.maxCountInDeck, banlistLimit(cardId));
+    const cap = Math.min(def.maxCountInDeck, copyLimit(cardId));
     if (sharedCardNumberCount(deckCardIds, cardId) >= cap) return;
     if (eggCard && eggCount >= EGG_TARGET) return;
     if (!eggCard && mainCount >= MAIN_TARGET) return;
@@ -147,23 +150,26 @@ export function DeckEditor({
   const banlistViolations = useMemo(() => {
     const violations: { cardId: string; count: number; cap: number }[] = [];
     for (const [cardId, count] of Object.entries(main)) {
-      const cap = banlistLimit(cardId);
+      const cap = copyLimit(cardId);
       if (count > cap) violations.push({ cardId, count, cap });
     }
     for (const [cardId, count] of Object.entries(egg)) {
-      const cap = banlistLimit(cardId);
+      const cap = copyLimit(cardId);
       if (count > cap) violations.push({ cardId, count, cap });
     }
     for (const [, members] of sharedCardNumberGroups(deckCardIds)) {
       if (members.length < 2) continue;
       const count = sharedCardNumberCount(deckCardIds, members[0]!);
-      const cap = Math.min(...members.map(banlistLimit));
+      const cap = Math.min(...members.map(copyLimit));
       if (count > cap) violations.push({ cardId: members.join(" + "), count, cap });
     }
     return violations;
-  }, [main, egg, deckCardIds]);
+  }, [main, egg, deckCardIds, unlimited]);
 
-  const pairViolations = useMemo(() => bannedPairViolations([...Object.keys(main), ...Object.keys(egg)]), [main, egg]);
+  const pairViolations = useMemo(
+    () => (unlimited ? [] : bannedPairViolations([...Object.keys(main), ...Object.keys(egg)])),
+    [main, egg, unlimited],
+  );
   const pairedCardIds = useMemo(() => new Set(pairViolations.flat()), [pairViolations]);
 
   const persist = (setActive: boolean) => {
@@ -215,9 +221,9 @@ export function DeckEditor({
   const selectedAtMax =
     !sel ||
     !selectedDefinition ||
-    isBanned(sel) ||
+    (!unlimited && isBanned(sel)) ||
     pairedCardIds.has(sel) ||
-    sharedCardNumberCount(deckCardIds, sel) >= Math.min(selectedDefinition.maxCountInDeck, banlistLimit(sel));
+    sharedCardNumberCount(deckCardIds, sel) >= Math.min(selectedDefinition.maxCountInDeck, copyLimit(sel));
 
   const [page, setPage] = useState(1);
 
@@ -247,7 +253,16 @@ export function DeckEditor({
         showCostFilter
         showRarityFilter
         showSort
-        extra={<p className="deck-builder-hint">{t("deck.builderHint")}</p>}
+        extra={
+          <div>
+            <p className="deck-builder-hint">{t("deck.builderHint")}</p>
+            <label>
+              <input type="checkbox" checked={unlimited} onChange={(event) => setUnlimited(event.target.checked)} />
+              {t("lobby.unlimited")}
+            </label>
+            <p>{t("lobby.unlimitedDesc")}</p>
+          </div>
+        }
       />
 
       <div className="deck-workspace" ref={workspace} style={deckShare.style}>
@@ -263,7 +278,7 @@ export function DeckEditor({
           <div className="deck-card-grid">
             {shownPool.map((card) => {
               const inDeck = (isEggCard(card) ? egg : main)[card.cardId] ?? 0;
-              const cap = Math.min(card.maxCountInDeck, banlistLimit(card.cardId));
+              const cap = Math.min(card.maxCountInDeck, copyLimit(card.cardId));
               return (
                 <PoolCard
                   key={card.cardId}
@@ -469,8 +484,8 @@ export function DeckEditor({
                   />
                 </div>
               ) : (
-                <Button full icon={Icons.Plus} disabled={isBanned(sel)} onClick={() => add(sel)}>
-                  {isBanned(sel) ? t("common.banned") : t("deck.addToDeck")}
+                <Button full icon={Icons.Plus} disabled={!unlimited && isBanned(sel)} onClick={() => add(sel)}>
+                  {!unlimited && isBanned(sel) ? t("common.banned") : t("deck.addToDeck")}
                 </Button>
               )}
               {selectedCount > 0 && getCardArts(sel).length > 1 ? (

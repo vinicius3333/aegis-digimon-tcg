@@ -49,7 +49,15 @@ export interface PrivateRoom {
   host: boolean;
 }
 
-export type StartMode = "casual" | "ranked" | "beta" | "bot" | "private_host" | "private_guest" | "spectator";
+export type StartMode =
+  | "casual"
+  | "unlimited"
+  | "ranked"
+  | "beta"
+  | "bot"
+  | "private_host"
+  | "private_guest"
+  | "spectator";
 export type RandomDeckPool = "mine" | "famous" | "all";
 
 export function deckHasBetaCards(deck: DeckListing): boolean {
@@ -63,10 +71,13 @@ export function randomDeckPool(
   personalDecks: readonly DeckListing[],
   scope: RandomDeckPool,
   betaAllowed = false,
+  unlimited = false,
 ): DeckListing[] {
   const candidates =
     scope === "mine" ? personalDecks : scope === "famous" ? FAMOUS_DECKS : selectableDecks(personalDecks);
-  const eligible = candidates.filter((deck) => deckLegality(deck).legal && (betaAllowed || !deckHasBetaCards(deck)));
+  const eligible = candidates.filter(
+    (deck) => deckLegality(deck, { unlimited }).legal && (betaAllowed || !deckHasBetaCards(deck)),
+  );
   return [...new Map(eligible.map((deck) => [deck.id, deck])).values()];
 }
 
@@ -121,6 +132,14 @@ function scrollToActiveDeckCard() {
 }
 
 const modesFor = (t: Translate): Mode[] => [
+  {
+    key: "unlimited",
+    title: t("lobby.unlimited"),
+    desc: t("lobby.unlimitedDesc"),
+    icon: Icons.Swords,
+    meta: t("lobby.unlimitedMeta"),
+    available: true,
+  },
   {
     key: "casual",
     title: t("lobby.mode.casual"),
@@ -230,10 +249,11 @@ export function Lobby({
     return decks
       .map((deck) => ({
         deck,
-        legal: deckLegality(deck).legal && (betaAllowed || !deckHasBetaCards(deck)),
+        legal:
+          deckLegality(deck, { unlimited: mode === "unlimited" }).legal && (betaAllowed || !deckHasBetaCards(deck)),
       }))
       .sort((a, b) => Number(b.legal) - Number(a.legal));
-  }, [decks, betaAllowed]);
+  }, [decks, betaAllowed, mode]);
   const editDeck = useCallback(
     (deck: DeckListing) => {
       if (onEditDeck) {
@@ -263,7 +283,7 @@ export function Lobby({
   const activeIsBorrowed = borrowedDeck !== undefined && active?.id === borrowedDeck.id;
   const vsBot = mode === "practice";
   const banViolations = useMemo(() => {
-    if (!active) return [];
+    if (!active || mode === "unlimited") return [];
     const cardIds = [...active.mainDeck, ...active.eggDeck];
     const counts = new Map<string, number>();
     for (const id of cardIds) counts.set(id, (counts.get(id) ?? 0) + 1);
@@ -277,22 +297,33 @@ export function Lobby({
       if (n > cap) violations.push({ id: members.join(" + "), n, cap });
     }
     return violations;
-  }, [active]);
+  }, [active, mode]);
   const pairViolations = useMemo(
-    () => (active ? bannedPairViolations([...active.mainDeck, ...active.eggDeck]) : []),
-    [active],
+    () => (active && mode !== "unlimited" ? bannedPairViolations([...active.mainDeck, ...active.eggDeck]) : []),
+    [active, mode],
   );
+  const customBotDeck =
+    vsBot && botDeckId.startsWith("mine:") ? decks.find((deck) => deck.id === botDeckId.slice(5)) : undefined;
   const betaCards = useMemo(
     () =>
       active
-        ? [...new Set([...active.mainDeck, ...active.eggDeck])].filter((id) => {
+        ? [
+            ...new Set([
+              ...active.mainDeck,
+              ...active.eggDeck,
+              ...(customBotDeck?.mainDeck ?? []),
+              ...(customBotDeck?.eggDeck ?? []),
+            ]),
+          ].filter((id) => {
             const card = getCardDefinition(id);
             return card !== undefined && isBetaOnlyCard(card);
           })
         : [],
-    [active],
+    [active, customBotDeck],
   );
-  const betaEnabled = !randomSelected && betaQueueMode && betaCards.length > 0;
+  const betaEnabled =
+    betaQueueMode &&
+    ((!randomSelected && betaCards.length > 0) || (customBotDeck !== undefined && deckHasBetaCards(customBotDeck)));
   const betaPeriod = useMemo(() => allCards().some((card) => isBetaOnlyCard(card)), []);
   // While a set is in preview, a deck without its cards may still join the beta queue on request.
   const betaOptional = betaPeriod && betaQueueMode && (randomSelected || betaCards.length === 0);
@@ -301,12 +332,13 @@ export function Lobby({
     !!active &&
     active.mainDeck.length === 50 &&
     active.eggDeck.length <= 5 &&
+    deckLegality(active, { unlimited: mode === "unlimited" }).legal &&
     banViolations.length === 0 &&
     pairViolations.length === 0 &&
     (betaCards.length === 0 || betaAllowed);
   const randomPool = useMemo(
-    () => randomDeckPool(decks, randomPoolScope, betaAllowed),
-    [decks, randomPoolScope, betaAllowed],
+    () => randomDeckPool(decks, randomPoolScope, betaAllowed, mode === "unlimited"),
+    [decks, randomPoolScope, betaAllowed, mode],
   );
   const randomPoolLabel = t(randomPool.length === 1 ? "lobby.randomPoolOne" : "lobby.randomPool", {
     count: randomPool.length,
@@ -327,7 +359,10 @@ export function Lobby({
         const drawnId = randomDeckId(pool);
         const drawn = pool.find((deck) => deck.id === drawnId);
         if (!drawn) return;
-        const betaBattleMode = betaQueueMode && deckHasBetaCards(drawn) ? true : requestedBetaBattleMode;
+        const betaBattleMode =
+          betaQueueMode && (deckHasBetaCards(drawn) || (customBotDeck !== undefined && deckHasBetaCards(customBotDeck)))
+            ? true
+            : requestedBetaBattleMode;
         const queueMode = betaBattleMode && startMode === "casual" ? "beta" : startMode;
         onStart(queueMode, code, requestedBotDeckId, betaBattleMode, drawn.id);
         return;
@@ -344,64 +379,72 @@ export function Lobby({
         onStart(startMode);
       }
     },
-    [active?.id, betaQueueMode, onStart, randomPool, randomSelected],
+    [active?.id, betaQueueMode, onStart, randomPool, randomSelected, customBotDeck],
   );
   const launch: LaunchAction | null =
-    mode === "private" && privateRoom
+    mode === "unlimited"
       ? {
-          label: t(privateRoom.host ? "lobby.reopenRoom" : "lobby.rejoinRoom"),
-          shortLabel: t(privateRoom.host ? "redesign.play.short.reopen" : "redesign.play.short.rejoin"),
+          label: t("lobby.enterQueue"),
+          shortLabel: t("lobby.enterQueue"),
           icon: Icons.Swords,
           disabled: !selectionLegal,
-          onClick: () => start(privateRoom.host ? "private_host" : "private_guest", privateRoom.code),
+          onClick: () => start("unlimited"),
         }
-      : mode === "private" && privateSub === "create"
+      : mode === "private" && privateRoom
         ? {
-            label: t("lobby.createRoom"),
-            shortLabel: t("lobby.create"),
-            icon: Icons.Link2,
+            label: t(privateRoom.host ? "lobby.reopenRoom" : "lobby.rejoinRoom"),
+            shortLabel: t(privateRoom.host ? "redesign.play.short.reopen" : "redesign.play.short.rejoin"),
+            icon: Icons.Swords,
             disabled: !selectionLegal,
-            onClick: () => start("private_host"),
+            onClick: () => start(privateRoom.host ? "private_host" : "private_guest", privateRoom.code),
           }
-        : mode === "private"
+        : mode === "private" && privateSub === "create"
           ? {
-              label: t("lobby.joinRoom"),
-              shortLabel: t("lobby.join"),
-              icon: Icons.LogIn,
-              disabled: !selectionLegal || roomCodeInput.length < 4,
-              onClick: () => start("private_guest", roomCodeInput),
+              label: t("lobby.createRoom"),
+              shortLabel: t("lobby.create"),
+              icon: Icons.Link2,
+              disabled: !selectionLegal,
+              onClick: () => start("private_host"),
             }
-          : vsBot
+          : mode === "private"
             ? {
-                label: t("lobby.playVsBot"),
-                shortLabel: t("redesign.play.short.bot"),
-                icon: Icons.Bot,
-                disabled: !selectionLegal,
-                onClick: () =>
-                  betaEnabled
-                    ? setBetaConfirmation("bot")
-                    : start("bot", undefined, botDeckId || undefined, betaOptedIn),
+                label: t("lobby.joinRoom"),
+                shortLabel: t("lobby.join"),
+                icon: Icons.LogIn,
+                disabled: !selectionLegal || roomCodeInput.length < 4,
+                onClick: () => start("private_guest", roomCodeInput),
               }
-            : betaEnabled || betaOptedIn
+            : vsBot
               ? {
-                  label: t("lobby.enterQueue"),
-                  shortLabel: t("redesign.play.short.queue"),
-                  beta: true,
-                  icon: Icons.Swords,
+                  label: t("lobby.playVsBot"),
+                  shortLabel: t("redesign.play.short.bot"),
+                  icon: Icons.Bot,
                   disabled: !selectionLegal,
                   onClick: () =>
-                    betaEnabled ? setBetaConfirmation("beta") : start("beta", undefined, undefined, true),
+                    betaEnabled
+                      ? setBetaConfirmation("bot")
+                      : start("bot", undefined, botDeckId || undefined, betaOptedIn),
                 }
-              : RANKED_ENABLED
-                ? // RankedStart owns its ranked toggle and button, so it stays in the setup panel.
-                  null
-                : {
+              : betaEnabled || betaOptedIn
+                ? {
                     label: t("lobby.enterQueue"),
                     shortLabel: t("redesign.play.short.queue"),
+                    beta: true,
                     icon: Icons.Swords,
                     disabled: !selectionLegal,
-                    onClick: () => start("casual"),
-                  };
+                    onClick: () =>
+                      betaEnabled ? setBetaConfirmation("beta") : start("beta", undefined, undefined, true),
+                  }
+                : RANKED_ENABLED
+                  ? // RankedStart owns its ranked toggle and button, so it stays in the setup panel.
+                    null
+                  : {
+                      label: t("lobby.enterQueue"),
+                      shortLabel: t("redesign.play.short.queue"),
+                      icon: Icons.Swords,
+                      disabled: !selectionLegal,
+                      onClick: () => start("casual"),
+                    };
   const deckStatus = deckLegal
     ? { tone: "legal", label: t("redesign.play.legal") }
     : pairViolations.length > 0 || banViolations.length > 0
@@ -715,6 +758,13 @@ export function Lobby({
                     onChange={(event) => setBotDeckId(event.target.value)}
                   >
                     <option value="">{t("lobby.botDeckRandom")}</option>
+                    <optgroup label={t("lobby.filterMine")}>
+                      {decks.map((deck) => (
+                        <option key={deck.id} value={`mine:${deck.id}`} disabled={!deckLegality(deck).legal}>
+                          {deck.name}
+                        </option>
+                      ))}
+                    </optgroup>
                     {FAMOUS_DECK_GROUPS.map((group) => (
                       <optgroup key={group.collection} label={group.collection}>
                         {group.decks.map((deck) => (
@@ -726,7 +776,7 @@ export function Lobby({
                     ))}
                   </select>
                 </div>
-              ) : !betaEnabled && !betaOptedIn && RANKED_ENABLED ? (
+              ) : mode !== "unlimited" && !betaEnabled && !betaOptedIn && RANKED_ENABLED ? (
                 <RankedStart
                   disabled={!selectionLegal}
                   actionClassName="lobby-setup__launch"

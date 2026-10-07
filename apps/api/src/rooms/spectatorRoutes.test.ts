@@ -53,7 +53,7 @@ describe("spectator admission", () => {
     expect((await request({ roomCode: 42 })).status).toBe(400);
     expect(matchMaker.reserveSeatFor).not.toHaveBeenCalled();
   });
-  for (const name of ["aegis", "aegis_beta", "aegis_private"]) {
+  for (const name of ["aegis", "aegis_beta", "aegis_unlimited", "aegis_private"]) {
     it(`reserves a code-authorized observer in a locked ${name} match`, async () => {
       available(name);
       const response = await request({

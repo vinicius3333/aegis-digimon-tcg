@@ -40,8 +40,13 @@ interface ReadonlyDecklist {
  * illegal outside a beta-battle-mode match, so a casual/ranked/tournament deck cannot
  * smuggle in a preview card that has not gone on sale yet.
  */
-export function validateDecklist(deck: ReadonlyDecklist, options?: { betaBattleMode?: boolean }): DecklistValidation {
+export function validateDecklist(
+  deck: ReadonlyDecklist,
+  options?: { betaBattleMode?: boolean; unlimited?: boolean },
+): DecklistValidation {
   const betaBattleMode = options?.betaBattleMode ?? false;
+  const copyLimit = (cardId: string): number =>
+    options?.unlimited ? (getCardDefinition(cardId)?.maxCountInDeck ?? 4) : effectiveCopyLimit(cardId);
   for (const cardId of deck.mainDeck) {
     const def = getCardDefinition(cardId);
     if (def === undefined) {
@@ -87,7 +92,7 @@ export function validateDecklist(deck: ReadonlyDecklist, options?: { betaBattleM
     counts.set(cardId, (counts.get(cardId) ?? 0) + 1);
   }
   for (const [cardId, count] of counts) {
-    const cap = effectiveCopyLimit(cardId);
+    const cap = copyLimit(cardId);
     if (count > cap) {
       return {
         ok: false,
@@ -99,7 +104,7 @@ export function validateDecklist(deck: ReadonlyDecklist, options?: { betaBattleM
   for (const [, members] of sharedCardNumberGroups(allCards)) {
     if (members.length < 2) continue;
     const total = members.reduce((sum, cardId) => sum + (counts.get(cardId) ?? 0), 0);
-    const cap = Math.min(...members.map(effectiveCopyLimit));
+    const cap = Math.min(...members.map(copyLimit));
     if (total > cap) {
       return {
         ok: false,
@@ -108,7 +113,7 @@ export function validateDecklist(deck: ReadonlyDecklist, options?: { betaBattleM
     }
   }
 
-  const pairViolation = bannedPairViolations(allCards)[0];
+  const pairViolation = options?.unlimited ? undefined : bannedPairViolations(allCards)[0];
   if (pairViolation !== undefined) {
     const [cardId, partnerCardId] = pairViolation;
     return {

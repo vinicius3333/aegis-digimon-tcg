@@ -2,6 +2,7 @@ import { Client, type Room } from "@colyseus/sdk";
 import {
   GameState,
   ROOM_TYPE,
+  ROOM_TYPE_UNLIMITED,
   ROOM_TYPE_BOT,
   ROOM_TYPE_PRIVATE,
   ROOM_TYPE_RANKED,
@@ -41,6 +42,9 @@ interface RouterDependencies {
 const roomSlots = new WeakMap<AegisRoom, RoomSlot>();
 
 function publicRoomType(options: AegisJoinOptions): string {
+  if (options.unlimited && (options.ranked || options.betaBattleMode))
+    throw new Error("Unlimited battles cannot be ranked or beta battles");
+  if (options.unlimited) return ROOM_TYPE_UNLIMITED;
   if (options.betaBattleMode && options.ranked) throw new Error("Beta battles cannot be ranked");
   return options.betaBattleMode ? ROOM_TYPE_BETA : options.ranked ? ROOM_TYPE_RANKED : ROOM_TYPE;
 }

@@ -48,7 +48,10 @@ import type { GameEngine } from "../GameEngine.js";
 export function seatPlayer(engine: GameEngine, seat: Seat, sessionId: string, options: SeatJoinOptions): void {
   const deckIsEmpty = options.deck.mainDeck.length === 0 && options.deck.eggDeck.length === 0;
   if (!deckIsEmpty) {
-    const verdict = validateDecklist(options.deck, { betaBattleMode: options.betaBattleMode === true });
+    const verdict = validateDecklist(options.deck, {
+      betaBattleMode: options.betaBattleMode === true,
+      unlimited: options.unlimited === true,
+    });
     if (!verdict.ok) throw new Error(`illegal deck: ${verdict.reason}`);
   }
   const player = new PlayerState();

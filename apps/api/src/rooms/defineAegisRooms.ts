@@ -1,6 +1,7 @@
 import type { Server } from "colyseus";
 import {
   ROOM_TYPE,
+  ROOM_TYPE_UNLIMITED,
   ROOM_TYPE_BETA,
   ROOM_TYPE_BETA_BOT,
   ROOM_TYPE_BOT,
@@ -10,7 +11,7 @@ import {
 } from "@aegis/shared";
 import { AegisRoom } from "./AegisRoom.js";
 
-const publicMode = { private: false, botRoom: false, rankedRoom: false, tournamentRoom: false };
+const publicMode = { unlimitedRoom: false, private: false, botRoom: false, rankedRoom: false, tournamentRoom: false };
 
 /** Register the same immutable mode boundaries in production and websocket tests. */
 export function defineAegisRooms(gameServer: Pick<Server, "define">): void {
@@ -18,6 +19,9 @@ export function defineAegisRooms(gameServer: Pick<Server, "define">): void {
   // over client-supplied create options, so clients cannot promote another room type
   // into bot mode by sending `{ botRoom: true }` themselves.
   gameServer.define(ROOM_TYPE, AegisRoom, { ...publicMode, betaBattleRoom: false }).filterBy(["matchTimer", "bestOf"]);
+  gameServer
+    .define(ROOM_TYPE_UNLIMITED, AegisRoom, { ...publicMode, unlimitedRoom: true, betaBattleRoom: false })
+    .filterBy(["matchTimer", "bestOf"]);
   gameServer.define(ROOM_TYPE_BOT, AegisRoom, { ...publicMode, botRoom: true, betaBattleRoom: false });
   gameServer.define(ROOM_TYPE_BETA_BOT, AegisRoom, { ...publicMode, botRoom: true, betaBattleRoom: true });
   gameServer.define(ROOM_TYPE_RANKED, AegisRoom, { ...publicMode, rankedRoom: true, betaBattleRoom: false });
