@@ -57,6 +57,7 @@ export class ManualRoom extends Room<{ state: GameState }> {
     return (
       options.manualMode === true &&
       this.table.state.players.length < 2 &&
+      this.table.state.players.every((player) => player.connected) &&
       (!this.privateRoom || this.table.state.players.length === 0 || options.roomCode === this.code)
     );
   }
@@ -102,6 +103,7 @@ export class ManualRoom extends Room<{ state: GameState }> {
     const seat = this.seats.get(client.sessionId);
     if (seat === undefined) return;
     this.table.setConnected(seat, false);
+    await this.lock();
     this.sendAll();
     try {
       if (code === 1000 || code === 4000) throw new Error("Left table");
@@ -109,6 +111,7 @@ export class ManualRoom extends Room<{ state: GameState }> {
       this.seats.delete(client.sessionId);
       this.seats.set(reconnected.sessionId, seat);
       this.table.setConnected(seat, true);
+      if (this.table.state.players.length === 1) await this.unlock();
       this.sendAll();
     } catch {
       this.seats.delete(client.sessionId);

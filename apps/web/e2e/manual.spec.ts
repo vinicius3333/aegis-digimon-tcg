@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { Client } from "@colyseus/sdk";
+import { matchMaker } from "colyseus";
 import {
   ROOM_TYPE_MANUAL,
   ROOM_TYPE_MANUAL_PRIVATE,
@@ -61,6 +62,28 @@ test("manual public room keeps both seat views private and resumes after disconn
   expect(view!.players[0]!.reveal).toHaveLength(2);
   await resumed.leave();
   await b.leave();
+});
+
+test("public matchmaking skips a disconnected waiting seat and reopens it after reconnect", async () => {
+  const client = new Client(server.endpoint);
+  const alice = await client.joinOrCreate(ROOM_TYPE_MANUAL, { manualMode: true, displayName: "Alice", deck: RED_DECK });
+  const token = alice.reconnectionToken;
+  alice.reconnection.enabled = false;
+  await alice.leave(false);
+  await expect.poll(async () => (await matchMaker.query({ roomId: alice.roomId }))[0]?.locked).toBe(true);
+  const bob = await client.joinOrCreate(ROOM_TYPE_MANUAL, { manualMode: true, displayName: "Bob", deck: BLUE_DECK });
+  expect(bob.roomId).not.toBe(alice.roomId);
+  await bob.leave();
+  const resumed = await client.reconnect(token);
+  await expect.poll(async () => (await matchMaker.query({ roomId: alice.roomId }))[0]?.locked).toBe(false);
+  const guest = await client.joinOrCreate(ROOM_TYPE_MANUAL, {
+    manualMode: true,
+    displayName: "Guest",
+    deck: BLUE_DECK,
+  });
+  expect(guest.roomId).toBe(alice.roomId);
+  await resumed.leave();
+  await guest.leave();
 });
 
 test("manual invite rejects wrong codes and automatic clients", async () => {
