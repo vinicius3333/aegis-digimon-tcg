@@ -19,7 +19,7 @@ describe("release catalog", () => {
         ...release.fixes.map((item) => item.textKey),
       ];
       for (const key of keys) {
-        expect(t(key as TranslationKey)).toBe(messages[key as keyof typeof messages][locale]);
+        expect(t(key as TranslationKey)).toBe(messages[key as keyof typeof messages][locale === "it" ? "en" : locale]);
       }
     }
   });

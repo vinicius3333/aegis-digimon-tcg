@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { en } from "./en";
 import { es } from "./es";
+import { it as italian } from "./it";
 import { LOCALES, type Locale } from "./locales";
 import { ptBR } from "./pt-BR";
 
 const TRANSLATIONS: Record<Exclude<Locale, "en">, Record<string, string>> = {
   "pt-BR": ptBR,
   es,
+  it: italian,
 };
 
 const translatedLocales = LOCALES.filter((locale): locale is Exclude<Locale, "en"> => locale !== "en");

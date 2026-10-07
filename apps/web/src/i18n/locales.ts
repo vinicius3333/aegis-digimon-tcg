@@ -1,7 +1,7 @@
 /* Locale identity and persistence. Kept free of React so non-component code
    (storage, formatting helpers) can import it without pulling in the provider. */
 
-export const LOCALES = ["en", "pt-BR", "es"] as const;
+export const LOCALES = ["en", "pt-BR", "es", "it"] as const;
 
 export type Locale = (typeof LOCALES)[number];
 
@@ -11,6 +11,7 @@ export const LOCALE_LABELS: Record<Locale, string> = {
   en: "English",
   "pt-BR": "Português (Brasil)",
   es: "Español",
+  it: "Italiano",
 };
 
 const STORAGE_KEY = "aegis:locale";

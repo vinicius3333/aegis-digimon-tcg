@@ -3,6 +3,9 @@ import { isLocale, matchLocale } from "./locales";
 
 describe("matchLocale", () => {
   it.each([
+    ["it", "it"],
+    ["it-IT", "it"],
+    ["it-CH", "it"],
     ["en", "en"],
     ["en-US", "en"],
     ["pt", "pt-BR"],
@@ -24,6 +27,7 @@ describe("matchLocale", () => {
 
 describe("isLocale", () => {
   it("accepts only exact supported locales", () => {
+    expect(isLocale("it")).toBe(true);
     expect(isLocale("es")).toBe(true);
     expect(isLocale("pt-BR")).toBe(true);
     expect(isLocale("es-MX")).toBe(false);

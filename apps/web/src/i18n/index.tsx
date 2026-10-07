@@ -7,6 +7,7 @@ import { DEFAULT_LOCALE, loadLocale, saveLocale, type Locale } from "./locales";
 import { en } from "./en";
 import { ptBR } from "./pt-BR";
 import { es } from "./es";
+import { it } from "./it";
 
 export type TranslationKey = keyof typeof en;
 export type TranslationParams = Record<string, string | number>;
@@ -16,6 +17,7 @@ const DICTIONARIES: Record<Locale, Record<TranslationKey, string>> = {
   en,
   "pt-BR": ptBR,
   es,
+  it,
 };
 
 function interpolate(template: string, params?: TranslationParams): string {
