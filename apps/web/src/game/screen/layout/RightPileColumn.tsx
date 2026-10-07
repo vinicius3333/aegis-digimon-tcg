@@ -38,6 +38,7 @@ export function RightPileColumn({
   onOpenOpponentBreeding,
   onAttackSecurity,
   onOpenOpponentSecurity,
+  onOpenOpponentEggDeck,
 }: {
   opponent: PresentedPlayer;
   /** The opponent's raising area as the narration has it, which may lag the board. */
@@ -69,6 +70,8 @@ export function RightPileColumn({
   onOpenOpponentBreeding: (() => void) | undefined;
   onAttackSecurity: (() => void) | undefined;
   onOpenOpponentSecurity: (() => void) | undefined;
+  /** Opens the revealed egg deck once the match is over. */
+  onOpenOpponentEggDeck?: () => void;
 }) {
   const { t } = useTranslation();
   return (
@@ -96,6 +99,7 @@ export function RightPileColumn({
             label={t("game.pile.eggs")}
             useSelectedSleeve={false}
             riffling={opponentEggDeckRiffling}
+            onClick={onOpenOpponentEggDeck}
           />
           <div className="game-utility-slot game-utility-slot--opp-raising">
             <BreedingSlot

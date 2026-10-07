@@ -5,6 +5,7 @@ export const arenaEn = {
   "redesign.arena.audio.title": "Sound",
   "redesign.arena.audio.music": "Music",
   "redesign.arena.audio.musicVolume": "Music volume",
+  "redesign.arena.audio.musicTrack": "Soundtrack",
   "redesign.arena.audio.effects": "Sound effects and cues",
   "redesign.arena.audio.effectsVolume": "Effects volume",
 

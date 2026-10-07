@@ -5,7 +5,7 @@ import { act, cleanup, fireEvent, render, screen, within } from "./scenarioHarne
 
 const mocked = vi.hoisted(() => ({
   roomResult: { current: undefined as unknown },
-  room: { roomId: "mobile-digivolve-ui-room" },
+  room: { roomId: "mobile-digivolve-ui-room", onMessage: () => () => {} },
   digivolve: vi.fn(),
   dnaDigivolve: vi.fn(),
 }));

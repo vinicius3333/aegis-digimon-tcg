@@ -620,7 +620,20 @@ describe("digivolveBasePermanentIds", () => {
     ]);
   });
 
-  it("highlights exactly the deterministic server-projected DNA pair", () => {
+  it("5166: dropping on a later DNA material opens its pair, and unrelated bases have no DNA route", () => {
+    const routes = [
+      { materialPermanentIds: ["yellow", "purple-one"], projectedCost: 0 },
+      { materialPermanentIds: ["yellow", "purple-two"], projectedCost: 0 },
+    ];
+    expect(handCardEvolutionRoute("ST10-06", [], false, routes, "purple-two")).toEqual({
+      kind: "dna",
+      materialPermanentIds: ["yellow", "purple-two"],
+    });
+    expect(handCardEvolutionRoute("ST10-06", [], false, routes, "unrelated")).toBeUndefined();
+    expect(handCardEvolutionRoute("ST10-06", [], true, routes, "unrelated")).toEqual({ kind: "normal" });
+  });
+
+  it("5166: highlights the materials from every server-projected DNA pair", () => {
     const second = permOf("ST10-12");
     const unused = permOf("BT8-082");
     expect(
@@ -633,7 +646,7 @@ describe("digivolveBasePermanentIds", () => {
           { materialPermanentIds: [digimon.permanentId, unused.permanentId], projectedCost: 0 },
         ],
       ),
-    ).toEqual([digimon.permanentId, second.permanentId]);
+    ).toEqual([digimon.permanentId, second.permanentId, unused.permanentId]);
   });
 
   it("marks nothing when the card has no base on the field", () => {

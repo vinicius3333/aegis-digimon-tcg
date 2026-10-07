@@ -17,16 +17,10 @@ describe("BT10-027 Regalecusmon", () => {
           expect.objectContaining({
             kind: "PlayWithoutCost",
             fromOwnDigivolutionStack: true,
-            target: expect.objectContaining({
-              filter: expect.objectContaining({ controller: "mine", levels: [3] }),
-            }),
-          }),
-          expect.objectContaining({
-            kind: "PlayWithoutCost",
-            fromOwnDigivolutionStack: true,
-            target: expect.objectContaining({
-              filter: expect.objectContaining({ controller: "mine", levels: [4] }),
-            }),
+            target: expect.objectContaining({ filter: expect.objectContaining({ levels: [3] }) }),
+            additionalSimultaneousTargets: [
+              expect.objectContaining({ filter: expect.objectContaining({ levels: [4] }) }),
+            ],
           }),
         ],
       }),
@@ -229,4 +223,42 @@ describe("BT10-027 Regalecusmon", () => {
       s.inst("opposingLevel4").instanceId,
     ]);
   });
+});
+
+it("groups Regalecusmon's level 3 and level 4 plays into one public attack event", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT10-027", as: "source", under: ["BT1-009", "BT1-033"] },
+          { card: "BT1-010", as: "observer" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-009" }], security: ["BT1-009", "BT1-009"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+  );
+  await s.ready();
+  const batches: string[][] = [];
+  advance(s.engine).ledgers.subTriggers.subscribe({
+    event: "whenPlayed",
+    sourcePermanentId: s.perm("observer").permanentId,
+    once: false,
+    description: "test: observe simultaneous play subjects",
+    run: async (ctx) => {
+      batches.push(ctx.trigger.subjectPermanentIds ?? [ctx.trigger.subjectPermanentId!]);
+    },
+  });
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("source").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle();
+  expect(batches.map((batch) => batch.length)).toEqual([2]);
+  expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(
+    expect.arrayContaining(["BT1-009", "BT1-033"]),
+  );
 });

@@ -196,7 +196,7 @@ describe("BT23-030 Etemon", () => {
           deck: ["BT1-010", "BT1-011"],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: false },
     );
     await s.ready();
     s.state.memory = 5;
@@ -207,17 +207,17 @@ describe("BT23-030 Etemon", () => {
         effectKey: mainEffectKey(s),
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
     expect(s.state.memory).toBe(4);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
-    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
     expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Reboot")).toBe(true);

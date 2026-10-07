@@ -1,4 +1,4 @@
-/** Aegis cue arrangements of licensed CC0 recorded foley; offline authoring and preview share finished PCM. */
+/** Aegis cue arrangements of licensed CC0 recorded foley under original tuned tone accents in A; offline authoring and preview share finished PCM. */
 export const SOUND_KINDS = [
   "select",
   "nav",
@@ -19,6 +19,14 @@ export const SOUND_KINDS = [
   "sourceTrash",
   "deDigivolve",
   "delete",
+  "memory",
+  "block",
+  "protect",
+  "prompt",
+  "timerTick",
+  "phase",
+  "securityDeal",
+  "optionUse",
   "move",
   "draw",
   "shuffle",
@@ -38,6 +46,8 @@ export interface SoundDetails {
   sourceLevel?: number;
   targetLevel?: number;
   assembly?: boolean;
+  /** Memory points the gauge moved; only the count is heard, not the direction. */
+  steps?: number;
 }
 export type AudioDirection = "warm" | "crisp";
 type Texture = "paper" | "air" | "grain" | "body" | "pluck" | "glass" | "pad" | "recording";
@@ -88,13 +98,23 @@ export interface AudioRecipe {
   layers: AudioLayer[];
   duration: number;
 }
+export const MEMORY_TICK_LIMIT = 6;
+/** The sound hears only the arriving level and whether levels were skipped, so one skip stands for any. */
+function evolutionLevels(details: SoundDetails): { sourceLevel: number; targetLevel: number } {
+  const targetLevel = finite(details.targetLevel, 4, 2, 7);
+  const skipped = Number.isFinite(details.sourceLevel) && details.sourceLevel! < targetLevel - 1 && targetLevel >= 3;
+  return { sourceLevel: targetLevel - (skipped ? 2 : 1), targetLevel };
+}
 const finite = (n: number | undefined, fallback: number, low: number, high: number) =>
   Math.round(Math.min(high, Math.max(low, Number.isFinite(n) ? n! : fallback)));
 export function cueKey(kind: SoundKind, details: SoundDetails = {}): string {
   if (kind === "cardPlay")
     return `${kind}-${finite(details.cost, 5, 0, 15)}-${details.assembly ? "assembly" : "plain"}`;
-  if (kind === "digivolve")
-    return `${kind}-${finite(details.sourceLevel, 3, 1, 7)}-${finite(details.targetLevel, 4, 2, 7)}`;
+  if (kind === "digivolve") {
+    const { sourceLevel, targetLevel } = evolutionLevels(details);
+    return `${kind}-${sourceLevel}-${targetLevel}`;
+  }
+  if (kind === "memory") return `${kind}-${finite(details.steps, 1, 1, MEMORY_TICK_LIMIT)}`;
   return kind;
 }
 const midi = (note: number) => 440 * 2 ** ((note - 69) / 12);
@@ -113,6 +133,31 @@ export function audioRecipe(
       gain: gain * (direction === "crisp" ? 0.88 : 1),
       hz: 1,
     });
+  const tone = (
+    texture: Exclude<Texture, "recording">,
+    at: number,
+    length: number,
+    gain: number,
+    hz: number,
+    endHz?: number,
+  ) =>
+    layers.push({
+      texture,
+      at,
+      duration: length,
+      gain: gain * (direction === "crisp" ? 0.88 : 1),
+      hz,
+      ...(endHz ? { endHz } : {}),
+    });
+  // A quick run of tuned notes; cue accents stay in A to sit inside the match score.
+  const chime = (
+    at: number,
+    notes: readonly number[],
+    spacing: number,
+    gain: number,
+    texture: "glass" | "pluck" = "glass",
+    length = 0.18,
+  ) => notes.forEach((note, i) => tone(texture, at + i * spacing, length, gain, midi(note)));
   switch (kind) {
     case "select":
       play("touch", 0, 0.22);
@@ -123,6 +168,7 @@ export function audioRecipe(
     case "effectFocus":
       play("touch", 0, 0.25);
       play("slide", 0.024, 0.1);
+      tone("pluck", 0.02, 0.08, 0.018, midi(93));
       break;
     case "draw":
       play("slide", 0, 0.38);
@@ -132,10 +178,12 @@ export function audioRecipe(
       break;
     case "handTrash":
       play("slideAway", 0, 0.34);
+      chime(0.05, [76, 69], 0.06, 0.024, "pluck");
       break;
     case "sourceTrash":
       play("cut", 0, 0.32);
       play("contact", 0.055, 0.25);
+      chime(0.04, [81, 76], 0.05, 0.024);
       break;
     case "shuffle":
       play("shuffle", 0, 0.36);
@@ -143,6 +191,7 @@ export function audioRecipe(
     case "group":
       play("cut", 0, 0.32);
       play("placeStack", 0.08, 0.29);
+      chime(0.06, [69, 73, 76], 0.04, 0.02, "pluck");
       break;
     case "cardPlay": {
       const cost = finite(details.cost, 5, 0, 15),
@@ -150,102 +199,206 @@ export function audioRecipe(
       const placement: FoleyKind =
         cost <= 3 ? "placeLight" : cost <= 8 ? "placeFirm" : cost <= 12 ? "placeHeavy" : "placeStack";
       play(placement, 0, 0.36 + weight * 0.16);
+      tone("glass", 0.01, 0.22, 0.026 + weight * 0.02, midi([69, 71, 73, 76, 78, 81, 83, 85][Math.floor(cost / 2)]!));
+      if (cost >= 9) tone("body", 0, 0.25, 0.05, midi(45));
       if (details.assembly) {
         play("cut", 0.045, 0.18);
         play("stack", 0.145, 0.14);
+        chime(0.06, [76, 81, 85], 0.05, 0.022);
       }
       break;
     }
     case "digivolve": {
-      const source = finite(details.sourceLevel, 3, 1, 7),
-        target = finite(details.targetLevel, 4, 2, 7);
-      const jump = Math.max(1, target - source),
-        stages = Math.min(4, jump + 1),
-        gap = 0.062 + source * 0.006;
-      const gestures: FoleyKind[] = ["slide", "cut", "flick", "placeFirm"];
-      for (let i = 0; i < stages; i++) play(gestures[i]!, i * gap, 0.22 + i * 0.04);
-      play(target >= 6 ? "placeStack" : target >= 4 ? "placeHeavy" : "placeLight", stages * gap, 0.3 + target * 0.018);
-      play("stack", stages * gap + 0.035, 0.1 + target * 0.008);
+      // An original digivolution in four beats: the digivice charges, a data cocoon sweeps up,
+      // a crystal arpeggio spins, and the new form lands on a flash. Higher target levels and
+      // skipped levels lengthen every beat and raise the key, so 3->4 stays short and 6->7 soars.
+      const { sourceLevel: source, targetLevel: target } = evolutionLevels(details);
+      const jump = target - source,
+        intensity = Math.min(4, Math.max(0, target - 4) + (jump > 1 ? 1 : 0)),
+        root = 60 + [0, 2, 4, 5, 7][intensity]!,
+        major = [0, 4, 7];
+      const charges = 2 + intensity;
+      for (let i = 0; i < charges; i++)
+        tone("pluck", i * 0.045, 0.07, 0.045, midi(root + 24 + major[i % 3]! + 12 * Math.floor(i / 3)));
+      play("slide", 0, 0.24);
+      const sweepAt = charges * 0.045,
+        sweep = 0.22 + intensity * 0.08;
+      tone("pad", sweepAt, sweep, 0.07 + intensity * 0.008, midi(root - 12), midi(root + intensity * 2));
+      tone("air", sweepAt, sweep, 0.05 + intensity * 0.01, 1400 + intensity * 500);
+      play("cut", sweepAt + sweep * 0.4, 0.2);
+      const arpeggio = 3 + intensity * 2,
+        spin = Math.min(0.04, (sweep * 0.7) / arpeggio),
+        spinAt = sweepAt + sweep - arpeggio * spin;
+      for (let i = 0; i < arpeggio; i++)
+        tone(
+          "glass",
+          spinAt + i * spin,
+          0.16,
+          0.03 + i * 0.002,
+          midi(root + 12 + major[i % 3]! + 12 * Math.floor(i / 3)),
+        );
+      const flash = sweepAt + sweep;
+      play(target >= 6 ? "placeStack" : target >= 4 ? "placeHeavy" : "placeLight", flash, 0.3 + target * 0.018);
+      play("stack", flash + 0.035, 0.1 + target * 0.008);
+      tone("body", flash, 0.3 + intensity * 0.05, 0.09 + intensity * 0.01, midi(root - 24));
+      for (const interval of [0, 4, 7, 12])
+        tone("glass", flash + 0.01, 0.4 + intensity * 0.08, 0.028, midi(root + interval));
+      if (intensity >= 2)
+        for (let i = 0; i < intensity + 1; i++)
+          tone("glass", flash + 0.08 + i * 0.05, 0.24, 0.018, midi(root + 31 + [0, 5, 9, 12, 17][i]!));
+      if (intensity >= 3) tone("pad", flash, 0.45 + intensity * 0.06, 0.045, midi(root - 5), midi(root - 5));
       break;
     }
     case "deDigivolve":
       play("cut", 0, 0.33);
       play("flick", 0.065, 0.28);
       play("slideAway", 0.125, 0.24);
+      chime(0.02, [81, 76, 73, 69], 0.05, 0.024);
+      tone("pad", 0, 0.32, 0.04, midi(69), midi(57));
       break;
     case "attackDeclare":
       play("shove", 0, 0.36);
+      tone("pad", 0, 0.28, 0.05, midi(45), midi(57));
+      tone("air", 0, 0.3, 0.03, 2200);
+      break;
+    case "memory": {
+      const steps = finite(details.steps, 1, 1, MEMORY_TICK_LIMIT);
+      for (let i = 0; i < steps; i++) {
+        play("tap", i * 0.048, 0.12 + i * 0.012);
+        tone("pluck", i * 0.048, 0.06, 0.012, midi(88 + i));
+      }
+      break;
+    }
+    case "block":
+      play("placeFirm", 0, 0.36);
+      play("clack", 0.008, 0.12);
+      play("contact", 0.06, 0.24);
+      tone("body", 0, 0.25, 0.06, midi(45));
+      tone("glass", 0.01, 0.22, 0.02, midi(69));
+      break;
+    case "protect":
+      play("flick", 0, 0.3);
+      play("slideBack", 0.05, 0.2);
+      chime(0.02, [85, 88, 93], 0.045, 0.02);
+      break;
+    case "prompt":
+      play("touch", 0, 0.2);
+      play("tap", 0.09, 0.13);
+      chime(0, [88, 93], 0.07, 0.024, "pluck", 0.1);
+      break;
+    case "timerTick":
+      play("tap", 0, 0.2);
+      tone("pluck", 0, 0.06, 0.02, midi(93));
+      break;
+    case "phase":
+      play("slide", 0, 0.16);
+      play("tap", 0.06, 0.09);
+      tone("pluck", 0.04, 0.1, 0.014, midi(81));
+      break;
+    case "securityDeal":
+      play("placeLight", 0, 0.24);
+      tone("pluck", 0.01, 0.08, 0.014, midi(76));
+      break;
+    case "optionUse":
+      play("flick", 0, 0.3);
+      play("placeFirm", 0.06, 0.32);
+      play("tap", 0.14, 0.12);
+      chime(0.03, [73, 76, 81], 0.045, 0.024);
       break;
     case "attack":
     case "impact":
       play("placeHeavy", 0, 0.52);
       play("clack", 0.006, 0.12);
+      tone("body", 0, 0.28, 0.07, midi(40), midi(33));
       break;
     case "securityHit":
       play("flick", 0, 0.46);
       play("contact", 0.035, 0.28);
+      for (const note of [88, 92, 95]) tone("glass", 0.01, 0.26, 0.018, midi(note));
+      tone("air", 0, 0.2, 0.025, 3500);
       break;
     case "delete":
       play("shoveFirm", 0, 0.38);
       play("contact", 0.08, 0.22);
+      chime(0.03, [81, 77, 72, 69], 0.04, 0.02);
+      tone("air", 0.02, 0.3, 0.028, 3000);
       break;
     case "effectActivate":
       play("flick", 0, 0.36);
       play("tap", 0.07, 0.16);
+      chime(0, [81, 88], 0.05, 0.022, "pluck");
       break;
     case "hatch":
       play("cut", 0, 0.3);
       play("placeLight", 0.085, 0.34);
+      chime(0.06, [76, 81, 85], 0.06, 0.024, "pluck");
+      tone("glass", 0.24, 0.3, 0.02, midi(88));
       break;
     case "reveal":
       play("flick", 0, 0.36);
+      tone("glass", 0.01, 0.25, 0.024, midi(81));
       break;
     case "endTurn":
       play("cut", 0, 0.28);
       play("placeFirm", 0.11, 0.28);
+      chime(0, [81, 76], 0.11, 0.024);
       break;
     case "turnChange":
       play("placeLight", 0, 0.3);
       play("cut", 0.105, 0.28);
       play("tap", 0.2, 0.14);
+      chime(0, [76, 81], 0.1, 0.024);
+      tone("pluck", 0.2, 0.1, 0.018, midi(88));
       break;
     case "buff":
       play("slide", 0, 0.3);
       play("stack", 0.065, 0.16);
+      chime(0, [76, 81, 85], 0.04, 0.02);
       break;
     case "debuff":
       play("slideAway", 0, 0.28);
       play("touch", 0.09, 0.18);
+      chime(0, [81, 77, 72], 0.05, 0.02);
       break;
     case "freeze":
       play("contact", 0, 0.32);
       play("touch", 0.075, 0.21);
+      for (const note of [91, 95, 98]) tone("glass", 0.01, 0.4, 0.014, midi(note));
       break;
     case "recover":
       play("slideBack", 0, 0.28);
       play("placeLight", 0.09, 0.3);
+      chime(0.03, [69, 76, 81], 0.05, 0.02, "pluck");
       break;
     case "win":
       play("cut", 0, 0.3);
       play("placeLight", 0.1, 0.3);
       play("stack", 0.22, 0.26);
       play("tap", 0.33, 0.2);
+      chime(0, [69, 73, 76, 81], 0.09, 0.032);
+      for (const note of [57, 61, 64]) tone("pad", 0.36, 0.9, 0.032, midi(note));
+      tone("body", 0.36, 0.4, 0.05, midi(45));
       break;
     case "lose":
       play("contact", 0, 0.32);
       play("placeStack", 0.16, 0.26);
+      chime(0, [76, 72, 69], 0.14, 0.028);
+      for (const note of [57, 60, 64]) tone("pad", 0.3, 0.8, 0.028, midi(note));
       break;
     case "confirm":
       play("cut", 0, 0.27);
       play("tap", 0.075, 0.13);
+      chime(0.02, [81, 88], 0.06, 0.02, "pluck", 0.1);
       break;
     case "error":
       play("touch", 0, 0.24);
       play("touch", 0.105, 0.2);
+      chime(0, [70, 69], 0.1, 0.024, "pluck");
       break;
     case "success":
       play("placeLight", 0, 0.3);
       play("stack", 0.085, 0.16);
+      chime(0, [76, 81, 85], 0.06, 0.024, "pluck");
       break;
   }
   return {
@@ -367,7 +520,12 @@ export function renderCue(
 ): Float32Array {
   const recipe = audioRecipe(kind, details, direction);
   const output = new Float32Array(Math.round(recipe.duration * sampleRate));
-  for (const layer of recipe.layers) {
+  const synthesized = recipe.layers.filter((layer) => layer.texture !== "recording");
+  if (synthesized.length) {
+    const tone = renderLayers(synthesized, recipe.duration, sampleRate, 1);
+    for (let i = 0; i < output.length; i++) output[i]! += tone[i] ?? 0;
+  }
+  for (const layer of recipe.layers.filter((item) => item.texture === "recording")) {
     const recording = sources?.recordings?.[layer.source as FoleyKind];
     if (!recording) throw new Error(`Recorded foley source required: ${layer.source}`);
     const start = Math.round(layer.at * sampleRate),
@@ -380,7 +538,7 @@ export function renderCue(
       output[start + i]! += value * layer.gain;
     }
   }
-  // Linear relative mix, natural playback rate, no noise/oscillator/pitch substitution or per-cue normalization.
+  // Linear relative mix at natural playback rate, no per-cue normalization. Only authored tone layers are synthesized.
   let previous = 0,
     filtered = 0;
   const coefficient = Math.exp((-2 * Math.PI * 12) / sampleRate);
@@ -459,14 +617,16 @@ export function renderMusic(sampleRate = 48000): Float32Array {
 }
 /** Bounded variations retain printed-cost weight and physical source/target level differences. */
 export function bankRecipes(): AudioRecipe[] {
-  const recipes = SOUND_KINDS.filter((kind) => kind !== "cardPlay" && kind !== "digivolve").map((kind) =>
-    audioRecipe(kind),
+  const recipes = SOUND_KINDS.filter((kind) => kind !== "cardPlay" && kind !== "digivolve" && kind !== "memory").map(
+    (kind) => audioRecipe(kind),
   );
+  for (let steps = 1; steps <= MEMORY_TICK_LIMIT; steps++) recipes.push(audioRecipe("memory", { steps }));
   for (let cost = 0; cost <= 15; cost++)
     for (const assembly of [false, true]) recipes.push(audioRecipe("cardPlay", { cost, assembly }));
-  for (let sourceLevel = 1; sourceLevel <= 7; sourceLevel++)
-    for (let targetLevel = 2; targetLevel <= 7; targetLevel++)
-      recipes.push(audioRecipe("digivolve", { sourceLevel, targetLevel }));
+  for (let targetLevel = 2; targetLevel <= 7; targetLevel++) {
+    recipes.push(audioRecipe("digivolve", { sourceLevel: targetLevel - 1, targetLevel }));
+    if (targetLevel >= 3) recipes.push(audioRecipe("digivolve", { sourceLevel: targetLevel - 2, targetLevel }));
+  }
   return recipes;
 }
 
@@ -500,4 +660,330 @@ export function decodeSourceWav(bytes: Uint8Array): { samples: Float32Array; sam
     for (let channel = 0; channel < channels; channel++)
       samples[i]! += view.getInt16(dataOffset + (i * channels + channel) * 2, true) / (32768 * channels);
   return { samples, sampleRate };
+}
+
+export const SCORE_BPM = 112;
+export const SCORE_BARS = 16;
+export const SCORE_SECONDS = (SCORE_BARS * 4 * 60) / SCORE_BPM;
+export const SCORE_PEAK = 0.075;
+const SCORE_DRIVE = 3;
+/** Root and quality per half bar: the liked score's A-minor i-VI-VII drive, then its bright A-major release. */
+const SCORE_CHORDS: readonly (readonly [number, "major" | "minor"])[] = [
+  [57, "minor"],
+  [57, "minor"],
+  [57, "minor"],
+  [57, "minor"],
+  [53, "major"],
+  [55, "major"],
+  [57, "minor"],
+  [57, "minor"],
+  [53, "major"],
+  [55, "major"],
+  [57, "minor"],
+  [57, "minor"],
+  [53, "major"],
+  [55, "major"],
+  [57, "minor"],
+  [55, "major"],
+  [53, "major"],
+  [48, "major"],
+  [53, "major"],
+  [55, "major"],
+  [53, "major"],
+  [55, "major"],
+  [57, "major"],
+  [57, "major"],
+  [50, "major"],
+  [57, "major"],
+  [57, "major"],
+  [52, "major"],
+  [50, "major"],
+  [52, "major"],
+  [57, "major"],
+  [57, "major"],
+];
+/** Lead notes as [bar, sixteenth, midi, sixteenths]; the A-major bars answer the minor phrase an octave up. */
+const SCORE_MELODY: readonly (readonly [number, number, number, number])[] = [
+  [2, 0, 76, 6],
+  [2, 6, 74, 2],
+  [2, 8, 72, 4],
+  [2, 12, 74, 4],
+  [3, 0, 76, 8],
+  [3, 8, 69, 8],
+  [4, 0, 72, 4],
+  [4, 4, 74, 2],
+  [4, 6, 76, 6],
+  [4, 12, 79, 4],
+  [5, 0, 81, 8],
+  [5, 8, 79, 4],
+  [5, 12, 76, 4],
+  [6, 0, 77, 4],
+  [6, 4, 76, 4],
+  [6, 8, 74, 4],
+  [6, 12, 79, 4],
+  [7, 0, 76, 8],
+  [7, 8, 74, 8],
+  [8, 0, 72, 4],
+  [8, 4, 77, 4],
+  [8, 8, 81, 4],
+  [8, 12, 79, 4],
+  [9, 0, 81, 6],
+  [9, 6, 79, 2],
+  [9, 8, 77, 4],
+  [9, 12, 79, 4],
+  [10, 0, 77, 4],
+  [10, 4, 79, 4],
+  [10, 8, 81, 4],
+  [10, 12, 83, 4],
+  [11, 0, 76, 4],
+  [11, 4, 81, 4],
+  [11, 8, 85, 8],
+  [12, 0, 83, 4],
+  [12, 4, 81, 4],
+  [12, 8, 78, 4],
+  [12, 12, 81, 4],
+  [13, 0, 76, 6],
+  [13, 6, 81, 2],
+  [13, 8, 83, 4],
+  [13, 12, 80, 4],
+  [14, 0, 81, 4],
+  [14, 4, 78, 4],
+  [14, 8, 83, 8],
+  [15, 0, 81, 8],
+  [15, 8, 76, 4],
+  [15, 12, 73, 4],
+];
+/** Center layers carry the beat, bass and lead; wide layers carry the bed and the digital arpeggio. */
+export function scoreRecipe(): { center: AudioLayer[]; wide: AudioLayer[] } {
+  const center: AudioLayer[] = [],
+    wide: AudioLayer[] = [];
+  const beat = 60 / SCORE_BPM,
+    sixteenth = beat / 4,
+    bar = beat * 4;
+  const add = (
+    target: AudioLayer[],
+    texture: Texture,
+    at: number,
+    duration: number,
+    gain: number,
+    hz: number,
+    endHz?: number,
+  ) => target.push({ texture, at, duration, gain, hz, ...(endHz ? { endHz } : {}) });
+  SCORE_CHORDS.forEach(([root, quality], half) => {
+    const at = half * beat * 2,
+      triad = [0, quality === "major" ? 4 : 3, 7],
+      release = half >= 22;
+    for (const interval of triad) add(wide, "pad", at, beat * 2.2, release ? 0.03 : 0.024, midi(root + 12 + interval));
+    for (let step = 0; step < 8; step++)
+      add(
+        wide,
+        "pluck",
+        at + step * sixteenth,
+        sixteenth * 1.6,
+        0.016 + (step % 4 === 0 ? 0.006 : 0),
+        midi(root + 24 + [0, triad[1]!, 7, 12][step % 4]! + (release && step >= 4 ? 12 : 0)),
+      );
+    for (let eighth = 0; eighth < 4; eighth++)
+      add(
+        center,
+        "pluck",
+        at + eighth * beat * 0.5,
+        beat * 0.45,
+        eighth % 2 === 0 ? 0.075 : 0.05,
+        midi(root - 12 + (eighth === 3 ? 12 : 0)),
+      );
+  });
+  for (let b = 0; b < SCORE_BARS * 4; b++) {
+    const at = b * beat,
+      intro = b < 8;
+    add(center, "body", at, 0.2, intro ? 0.07 : 0.11, 62, 42);
+    if (!intro && b % 2 === 1) add(center, "grain", at, 0.14, 0.05, 2600);
+    add(wide, "grain", at + beat / 2, 0.05, intro ? 0.008 : 0.014, 8000);
+  }
+  // The lead runs in light eighths an octave up, leaping between octaves through each held note.
+  for (const [barIndex, step, note, length] of SCORE_MELODY) {
+    const at = barIndex * bar + step * sixteenth;
+    for (let offset = 0; offset < length; offset += 2)
+      add(
+        center,
+        "pluck",
+        at + offset * sixteenth,
+        sixteenth * 1.8,
+        offset === 0 ? 0.04 : 0.03,
+        midi(note + (offset % 4 === 0 ? 12 : 0)),
+      );
+    add(wide, "glass", at, sixteenth * 2.5, 0.014, midi(note + 12));
+  }
+  // Bar 11 rises into the major release the way a digivolution sweeps into its flash.
+  const rise = 10 * bar + bar / 2,
+    flash = 11 * bar;
+  add(wide, "pad", rise, bar / 2, 0.05, midi(45), midi(57));
+  add(wide, "air", rise, bar / 2, 0.05, 2200);
+  add(center, "body", flash, 0.6, 0.12, midi(33));
+  for (const note of [69, 73, 76, 81]) add(wide, "glass", flash + 0.01, 0.9, 0.03, midi(note));
+  return { center, wide };
+}
+/** A seamless stereo loop: wide layers reach the right ear 13 ms late, peak-scaled to the music bus ceiling. */
+function mixStereoScore(
+  { center, wide }: { center: AudioLayer[]; wide: AudioLayer[] },
+  seconds: number,
+  sampleRate: number,
+  seed: number,
+  driveAmount = SCORE_DRIVE,
+): Float32Array[] {
+  const middle = renderLayers(center, seconds, sampleRate, seed, true);
+  const side = renderLayers(wide, seconds, sampleRate, seed + 1, true);
+  const delay = Math.round(sampleRate * 0.013),
+    frames = middle.length;
+  const left = new Float32Array(frames),
+    right = new Float32Array(frames);
+  let peak = 0;
+  for (let i = 0; i < frames; i++) {
+    left[i] = middle[i]! + side[i]! * 0.8;
+    right[i] = middle[i]! + side[(i - delay + frames) % frames]! * 0.8;
+    peak = Math.max(peak, Math.abs(left[i]!), Math.abs(right[i]!));
+  }
+  // Saturate before scaling so the transient beat stops setting the level for the whole bed.
+  const drive = driveAmount / peak,
+    ceiling = Math.tanh(driveAmount);
+  for (let i = 0; i < frames; i++) {
+    left[i] = (Math.tanh(left[i]! * drive) / ceiling) * SCORE_PEAK;
+    right[i] = (Math.tanh(right[i]! * drive) / ceiling) * SCORE_PEAK;
+  }
+  return [left, right];
+}
+export function renderScore(sampleRate = 48000): Float32Array[] {
+  return mixStereoScore(scoreRecipe(), SCORE_SECONDS, sampleRate, 0x5c0e112);
+}
+
+export const BATTLE_BPM = 144;
+export const BATTLE_BARS = 16;
+export const BATTLE_SECONDS = (BATTLE_BARS * 4 * 60) / BATTLE_BPM;
+/** One chord per bar in D harmonic minor: a slow i-iv-VI-V statement, then the same turn twice as fast. */
+const BATTLE_CHORDS: readonly (readonly [number, "major" | "minor"])[] = [
+  [38, "minor"],
+  [38, "minor"],
+  [43, "minor"],
+  [43, "minor"],
+  [46, "major"],
+  [46, "major"],
+  [45, "major"],
+  [45, "major"],
+  [38, "minor"],
+  [43, "minor"],
+  [46, "major"],
+  [45, "major"],
+  [38, "minor"],
+  [43, "minor"],
+  [46, "major"],
+  [45, "major"],
+];
+/** The call-and-response lead of the first half, as [bar, sixteenth, midi, sixteenths]. */
+const BATTLE_CALL: readonly (readonly [number, number, number, number])[] = [
+  [0, 0, 74, 2],
+  [0, 2, 77, 2],
+  [0, 4, 81, 3],
+  [0, 8, 79, 2],
+  [0, 10, 77, 2],
+  [0, 12, 76, 2],
+  [0, 14, 77, 2],
+  [1, 0, 74, 6],
+  [1, 8, 73, 2],
+  [1, 10, 74, 2],
+  [1, 12, 76, 4],
+  [2, 0, 79, 2],
+  [2, 2, 82, 2],
+  [2, 4, 86, 3],
+  [2, 8, 82, 2],
+  [2, 10, 81, 2],
+  [2, 12, 79, 2],
+  [2, 14, 81, 2],
+  [3, 0, 79, 6],
+  [3, 8, 77, 2],
+  [3, 10, 79, 2],
+  [3, 12, 81, 4],
+  [4, 0, 77, 2],
+  [4, 2, 81, 2],
+  [4, 4, 86, 3],
+  [4, 8, 82, 2],
+  [4, 10, 81, 2],
+  [4, 12, 77, 2],
+  [4, 14, 79, 2],
+  [5, 0, 81, 6],
+  [5, 8, 82, 2],
+  [5, 10, 81, 2],
+  [5, 12, 79, 4],
+  [6, 0, 81, 2],
+  [6, 2, 85, 2],
+  [6, 4, 88, 3],
+  [6, 8, 86, 2],
+  [6, 10, 85, 2],
+  [6, 12, 82, 2],
+  [6, 14, 81, 2],
+  [7, 0, 85, 8],
+  [7, 8, 76, 2],
+  [7, 10, 79, 2],
+  [7, 12, 82, 2],
+  [7, 14, 85, 2],
+];
+/** The descending harmonic-minor run that closes the loop on the dominant and lands back on D. */
+const BATTLE_RUN = [86, 85, 82, 81, 79, 77, 76, 74, 73, 74, 76, 77, 79, 81, 82, 85];
+/** A tense battle loop: breakbeat, syncopated octave bass, offbeat stabs and a fast staccato lead. */
+export function battleScoreRecipe(): { center: AudioLayer[]; wide: AudioLayer[] } {
+  const center: AudioLayer[] = [],
+    wide: AudioLayer[] = [];
+  const sixteenth = 60 / BATTLE_BPM / 4,
+    bar = sixteenth * 16;
+  const add = (
+    target: AudioLayer[],
+    texture: Texture,
+    at: number,
+    duration: number,
+    gain: number,
+    hz: number,
+    endHz?: number,
+  ) => target.push({ texture, at, duration, gain, hz, ...(endHz ? { endHz } : {}) });
+  // Harmonic plucks doubled an octave down: a brassy lead whose overtones stay inside the key.
+  const lead = (at: number, duration: number, gain: number, note: number) => {
+    add(center, "pluck", at, duration, gain, midi(note));
+    add(center, "pluck", at, duration, gain * 0.7, midi(note - 12));
+  };
+  BATTLE_CHORDS.forEach(([root, quality], index) => {
+    const at = index * bar,
+      third = quality === "major" ? 4 : 3,
+      driving = index >= 8;
+    for (const step of [0, 3, 6, 8, 10, 12, 14])
+      add(
+        center,
+        "pluck",
+        at + step * sixteenth,
+        sixteenth * 1.5,
+        step === 0 ? 0.085 : 0.065,
+        midi(root + (step === 6 || step === 14 ? 12 : 0)),
+      );
+    for (const step of driving ? [3, 7, 11, 14] : [3, 11])
+      for (const interval of [0, third, 7])
+        add(wide, "pluck", at + step * sixteenth, sixteenth * 1.2, 0.02, midi(root + 24 + interval));
+    for (const step of [0, 6, 10]) add(center, "body", at + step * sixteenth, 0.16, 0.12, midi(38), midi(26));
+    for (const step of [4, 12]) add(center, "grain", at + step * sixteenth, 0.12, 0.06, 2400);
+    if (driving) add(center, "grain", at + 15 * sixteenth, 0.06, 0.022, 2400);
+    for (let step = 0; step < 16; step++)
+      add(wide, "grain", at + step * sixteenth, 0.03, step % 2 === 0 ? 0.013 : 0.007, 9000);
+    if (driving && index < 15) {
+      const tones = [0, third, 7, 12, 12 + third],
+        leadRoot = root + 36 - (root > 40 ? 12 : 0);
+      for (let step = 0; step < 16; step++)
+        lead(at + step * sixteenth, sixteenth * 1.4, 0.026, leadRoot + tones[[0, 1, 2, 3, 4, 3, 2, 1][step % 8]!]!);
+    }
+  });
+  for (const [barIndex, step, note, length] of BATTLE_CALL)
+    lead(barIndex * bar + step * sixteenth, length * sixteenth * 1.1, 0.036, note);
+  BATTLE_RUN.forEach((note, step) => lead(15 * bar + step * sixteenth, sixteenth * 1.3, 0.03, note));
+  add(wide, "air", 7.5 * bar, bar / 2, 0.045, 3000);
+  add(center, "body", 8 * bar, 0.4, 0.13, midi(26));
+  return { center, wide };
+}
+export function renderBattleScore(sampleRate = 48000): Float32Array[] {
+  // The sparser battle mix takes more drive to match the other scores' loudness.
+  return mixStereoScore(battleScoreRecipe(), BATTLE_SECONDS, sampleRate, 0xba771e, 4.2);
 }

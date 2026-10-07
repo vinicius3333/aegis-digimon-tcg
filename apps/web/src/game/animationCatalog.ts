@@ -294,6 +294,7 @@ export const EVENT_ANIMATIONS = {
   turnEnded: { families: ["phase"], changesBoard: true },
   actionRejected: { families: ["refusal"], changesBoard: true },
   gameOver: { families: ["result"], changesBoard: true },
+  finalReveal: { families: [], changesBoard: false, note: "Post-match data for the board review; nothing moves" },
   batchClosed: { families: [], changesBoard: false, note: "Transport boundary; no player-facing motion" },
 } as const satisfies Record<ServerEventKind, EventPresentation>;
 

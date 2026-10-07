@@ -12,6 +12,7 @@
 import type { RefObject } from "react";
 import { canMoveFromBreeding, canUseBreedingAction, displayMemory, parseActivatable } from "../../boardModel";
 import type { GameState, DecisionRequest, Permanent, PlayerState, Seat } from "@aegis/shared";
+import type { RevealedZones } from "../model/gameOutcome";
 import { useTranslation } from "../../../i18n";
 import { ActionConfirmationOverlay, MulliganOverlay, printedCardName } from "../../overlay";
 import { HandCardPreview } from "./HandCardPreview";
@@ -20,11 +21,13 @@ import { CombatWindowPrompts } from "./CombatWindowPrompts";
 import { SecurityScenes } from "./SecurityScenes";
 import { MatchStatusOverlays } from "./MatchStatusOverlays";
 import { PlayChoicePrompts } from "./PlayChoicePrompts";
+import { dnaMaterialPicks } from "../model/dnaMaterialSelection";
 import { FieldCardMenu } from "./FieldCardMenu";
 import { PermanentStackView } from "./PermanentStackView";
 import { PileViewers } from "./PileViewers";
 import { Side } from "../../side";
 import type { GameOverOutcome } from "../../gameOverSplash";
+import type { SeriesResultProps } from "../../overlay/match/GameOverOverlay";
 import type { TurnOrder } from "../../overlay";
 import type { LogLine } from "../../matchLog";
 import type { PendingFateBadge } from "../../pendingFate";
@@ -142,7 +145,16 @@ export function MatchOverlays({
   log: LogLine[];
   signedIn: boolean;
   opponentDropped: boolean;
-  gameOver: { spectatorResult?: string; result: GameOverOutcome; reason: string } | undefined;
+  gameOver:
+    | {
+        spectatorResult?: string;
+        result: GameOverOutcome;
+        reason: string;
+        /** Every hidden zone, once the server reveals them; absent in a tournament set. */
+        revealed?: RevealedZones;
+        series?: SeriesResultProps;
+      }
+    | undefined;
   overlays: ReturnType<typeof useOverlayState>;
   selection: ReturnType<typeof useBoardSelection>;
   intents: ReturnType<typeof matchIntents>;
@@ -320,6 +332,7 @@ export function MatchOverlays({
           gameOver
             ? {
                 ...gameOver,
+                cardsRevealed: gameOver.revealed !== undefined,
                 stats: gameOver.spectatorResult
                   ? [{ value: state.turnCount, label: t("game.stats.turns") }]
                   : [
@@ -343,6 +356,11 @@ export function MatchOverlays({
       <PlayChoicePrompts
         dualPlay={overlays.dualPlay}
         actionConfirm={overlays.actionConfirm}
+        dnaRoutes={
+          handEntries.find((entry) => entry.instanceId === overlays.actionConfirm?.instanceId)?.dnaDigivolveRoutes ?? []
+        }
+        dnaPermanents={viewer.battleArea}
+        dnaPickedPermanentIds={dnaMaterialPicks(overlays.actionConfirm, overlays.dnaMaterialSelection)}
         appFusion={
           overlays.appFusionChoice && appFusion
             ? {
@@ -433,6 +451,8 @@ export function MatchOverlays({
         viewer={viewer}
         opponent={opponent}
         opponentName={opponentName}
+        revealed={gameOver?.revealed}
+        revealedZoneView={overlays.revealedZoneView}
         sheet={narrowGameLayout}
         trashActivatable={isMyTurn && !mainActionBlocked}
         onActivateTrashEffect={(effect) => {
@@ -441,6 +461,7 @@ export function MatchOverlays({
         }}
         onCloseTrash={() => overlays.setTrashView(null)}
         onCloseSecurity={() => overlays.setSecurityView(null)}
+        onCloseRevealedZone={() => overlays.setRevealedZoneView(null)}
       />
     </>
   );

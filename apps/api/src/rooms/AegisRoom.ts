@@ -1,5 +1,5 @@
 import { log, logError, withMatchLog } from "../logger.js";
-import { CloseCode, Room, Client, ServerError, type Delayed } from "colyseus";
+import { CloseCode, Room, Client, ServerError, matchMaker, type Delayed } from "colyseus";
 import { canCreateRoom } from "../deployment/admission.js";
 import { randomBytes, randomUUID } from "node:crypto";
 import {
@@ -15,11 +15,22 @@ import {
   EVENT_CHANNEL,
   DECISION_CHANNEL,
   PRESENTATION_CHANNEL,
+  CHAT_CHANNEL,
+  CHAT_COOLDOWN_MS,
+  parseChatMessage,
+  normalizeChatText,
+  SPECTATOR_NAME_MAX_LENGTH,
+  type ChatBroadcast,
+  type ChatMessage,
+  type ChatSender,
+  SERIES_CHANNEL,
+  matchBestOf,
+  type MatchBestOf,
 } from "@aegis/shared";
 import { isDevScenarioId, type DevScenarioId } from "../engine/devScenario.js";
 import { createIssueReproBotPolicy } from "../engine/issueReproBotPolicy.js";
 import { GameEngine, type SeatJoinOptions } from "../engine/GameEngine.js";
-import type { VisibilityPort } from "../engine/state/index.js";
+import { finalRevealOf, type VisibilityPort } from "../engine/state/index.js";
 import { BotPlayer, type BotOptions } from "../bot/BotPlayer.js";
 import { trainedBotOptions } from "../bot/inferenceRuntime.js";
 import { playableBotDeck } from "../engine/botDeck.js";
@@ -29,7 +40,10 @@ import { seriesStore } from "../tournaments/runtime.js";
 import type { SeriesStore } from "../tournaments/series/index.js";
 import { createLocalRoomCodeDirectory, type RoomCodeDirectory } from "../cluster/roomCodes.js";
 import { MatchClock } from "./MatchClock.js";
+import { CasualSeries, type SeriesContinuationOptions, type SeriesRoomPort } from "./series/CasualSeries.js";
+import type { SeriesRecord } from "./series/SeriesDirectory.js";
 import { parsePresentationReport } from "./presentationReport.js";
+import { hasBlockedWord, maskBlockedWords } from "../moderation/blockedWords.js";
 
 /** Hand-laid boards must never be reachable by a real player. */
 const DEV_SCENARIOS_ENABLED = process.env.NODE_ENV !== "production";
@@ -46,8 +60,9 @@ function generateRoomCode(length = 6): string {
   return code;
 }
 
-interface RoomCreateOptions {
+interface RoomCreateOptions extends Partial<SeriesContinuationOptions> {
   matchTimer?: boolean;
+  bestOf?: unknown;
   timerStartSeconds?: number;
   timerRefillSeconds?: number;
   seed?: number;
@@ -132,6 +147,9 @@ export interface AegisJoinOptions extends SeatJoinOptions {
   matchTimer?: boolean;
   timerStartSeconds?: number;
   timerRefillSeconds?: number;
+  bestOf?: MatchBestOf;
+  /** A later game of a casual best-of-three: the seat token the series handed this seat. */
+  seriesToken?: string;
   deckId?: string;
   deckName?: string;
   roomCode?: string; // for joining a private room by code
@@ -202,6 +220,13 @@ export class AegisRoom extends Room<{ state: GameState }> {
   private spectatorClients = new Set<string>();
   private seatByClient = new Map<string, Seat>(); // sessionId -> seat
   private presentationLogWindows = new Map<Seat, { start: number; count: number }>();
+  /** Keyed by `seat:<n>` for players and by session id for spectators. */
+  private lastChatAtBySender = new Map<string, number>();
+  /** The number in each spectator's chat name, given the first time that spectator writes. */
+  private spectatorNumbers = new Map<string, number>();
+  private spectatorsNumbered = 0;
+  /** The raw name each spectator joined with; `spectatorChatName` decides whether to show it. */
+  private spectatorJoinNames = new Map<string, string>();
   private accountByClient = new Map<string, string>();
   private rankedByClient = new Map<string, boolean>();
   /** Clients that pace chains of triggered effects themselves (`presentationPacing: "sequential"`). */
@@ -241,6 +266,17 @@ export class AegisRoom extends Room<{ state: GameState }> {
   private matchStartRequested = false;
   private matchClock: MatchClock | undefined;
   private matchClockInterval: Delayed | undefined;
+  /** How many games this room's match runs to; only casual and private rooms play more than one. */
+  private bestOf: MatchBestOf = 1;
+  private casualSeries: CasualSeries | undefined;
+  /** Seats claimed by series token in onAuth, for onJoin to honour. */
+  private seriesSeatByClient = new Map<string, Seat>();
+  /** Series seats that arrived before their opponent, waiting to be seated together. */
+  private seriesArrivals = new Map<Seat, { client: Client; options: AegisJoinOptions }>();
+  /** Waiting series clients that already sent `ready`, which is sent only once per join. */
+  private seriesEarlyReady = new Set<string>();
+  /** Set while a departure is being turned into a concession, so the series can tell it from a surrender. */
+  private departingSeat: Seat | undefined;
 
   /** Position of the last event put on the wire; the first event of a room is `seq` 1. */
   private eventSeq = 0;
@@ -300,6 +336,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
       return this.spectatorInfo(options.roomCode) !== null;
     }
     if (this.matchStartRequested || this.seatByClient.size + this.occupiedBotSeats().length >= 2) return false;
+    if (this.casualSeries?.continuation)
+      return this.authorizeSeriesSeat(client, options, this.casualSeries.continuation);
     const identity = await this.resolveIdentity(options);
     if (!identity) return false;
     const account = identity.account;
@@ -315,6 +353,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
     // A private room allows beta cards without the client asking for them, so only the
     // public room types have to agree with the joiner's beta flag.
     if (!this.isPrivate && (options.betaBattleMode === true) !== this.isBetaBattleRoom) return false;
+    // A guest of a private room plays whatever the host set; a public joiner must have asked for it.
+    if (!this.isPrivate && this.offersSeries() && matchBestOf(options.bestOf) !== this.bestOf) return false;
     if (
       (this.isRankedRoom || this.isTournamentRoom) &&
       account &&
@@ -329,6 +369,32 @@ export class AegisRoom extends Room<{ state: GameState }> {
     // releases what was committed) and the game's UNIQUE room_id would refuse every later room.
     if (!(await identity.commit())) return false;
     if (account) this.accountByClient.set(client.sessionId, account.id);
+    return true;
+  }
+
+  /**
+   * A later game of a casual series admits only the two seats of its series, by the token each was
+   * handed, and seats them with exactly what they played game 1 with: the name and the deck are
+   * locked for the series, so nothing in the join payload is trusted.
+   */
+  private authorizeSeriesSeat(client: Client, options: AegisJoinOptions, record: SeriesRecord): boolean {
+    const seat = this.casualSeries?.seatForToken(options.seriesToken);
+    if (seat === undefined || [...this.seriesSeatByClient.values()].includes(seat)) return false;
+    const entry = record.seats[seat];
+    options.displayName = entry.displayName;
+    options.avatarId = entry.avatarId;
+    options.deck = {
+      mainDeck: [...entry.deck.mainDeck],
+      eggDeck: [...entry.deck.eggDeck],
+      mainDeckArts: entry.deck.mainDeckArts?.slice(),
+      eggDeckArts: entry.deck.eggDeckArts?.slice(),
+    };
+    options.deckId = entry.deckId;
+    options.deckName = entry.deckName;
+    options.presentationPacing = entry.presentationPacing;
+    options.ranked = false;
+    options.betaBattleMode = this.isBetaBattleRoom;
+    this.seriesSeatByClient.set(client.sessionId, seat);
     return true;
   }
 
@@ -416,6 +482,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
   }
 
   override onCreate(options: RoomCreateOptions): void | Promise<void> {
+    if (options.seriesId !== undefined || options.seriesNonce !== undefined) return this.continueSeries(options);
     const reopenedCode = options.private && isRoomCode(options.roomCode) ? options.roomCode : undefined;
     if (reopenedCode) return this.reopenUnderCode(options, reopenedCode);
     this.initialize(options);
@@ -427,10 +494,38 @@ export class AegisRoom extends Room<{ state: GameState }> {
     this.initialize(options, code);
   }
 
-  private initialize(options: RoomCreateOptions, reopenedCode?: string): void {
+  /**
+   * The next game of a casual series, requested by the previous game's room. Every setting comes
+   * from the series record, never from the request, which carries only the record's id and nonce.
+   */
+  private async continueSeries(options: RoomCreateOptions): Promise<void> {
+    const record = await CasualSeries.loadContinuation(this.roomName, options);
+    if (!record) throw new ServerError(403, "This series cannot continue here.");
+    const settings: RoomCreateOptions = {
+      private: options.private,
+      botRoom: options.botRoom,
+      rankedRoom: options.rankedRoom,
+      betaBattleRoom: options.betaBattleRoom,
+      tournamentRoom: options.tournamentRoom,
+      matchTimer: record.matchTimer,
+      timerStartSeconds: record.timerStartSeconds,
+      bestOf: record.bestOf,
+    };
+    const code = options.private ? record.roomCode : undefined;
+    if (code && (await roomCodes.resolve(code)) !== undefined)
+      throw new ServerError(409, "This room code is still in use.");
+    this.initialize(settings, code, record);
+    // Reachable only by the room id the series hands its two seats, never through matchmaking.
+    await this.setPrivate(true);
+  }
+
+  private initialize(options: RoomCreateOptions, reopenedCode?: string, continuation?: SeriesRecord): void {
     this.setState(new GameState());
     this.guardFullStateSync();
-    if (!canCreateRoom()) throw new ServerError(503, "This game server is draining; retry on the active slot.");
+    // A draining slot still finishes the series it is running: refusing the next game would end
+    // every series in progress at each release.
+    if (!canCreateRoom() && !continuation)
+      throw new ServerError(503, "This game server is draining; retry on the active slot.");
     this.state.matchLogId = randomUUID();
     const seed = options.seed ?? Date.now() >>> 0;
     this.debug("room.created", {
@@ -467,8 +562,20 @@ export class AegisRoom extends Room<{ state: GameState }> {
         if (!this.matchStartRequested) void this.disconnect();
       }, WAITING_ROOM_TIMEOUT_SECONDS * 1000);
     }
+    if (this.offersSeries()) {
+      this.bestOf = matchBestOf(options.bestOf);
+      if (continuation) this.casualSeries = CasualSeries.continueFrom(this.seriesPort(), continuation);
+      else if (this.bestOf > 1)
+        this.casualSeries = CasualSeries.begin(this.seriesPort(), {
+          bestOf: this.bestOf,
+          matchTimer: options.matchTimer === true,
+          timerStartSeconds: options.timerStartSeconds ?? 300,
+          ...(this.isPrivate ? { roomCode: this.state.roomCode } : {}),
+        });
+    }
     this.engine = new GameEngine(this.state, {
       seed,
+      ...(this.casualSeries?.fixedFirstSeat !== undefined ? { firstSeat: this.casualSeries.fixedFirstSeat } : {}),
       requestDecision: (seat, req) => this.requestDecision(seat, req),
       onBothReady: () => this.startMatchNow(),
       onActionSettled: (seat, intentType) => {
@@ -490,7 +597,12 @@ export class AegisRoom extends Room<{ state: GameState }> {
           // Frees the code for the next game, which the players open from the same private room.
           if (this.state.roomCode) roomCodes.release(this.state.roomCode, this.roomId);
           if (this.state.spectatorCode && !this.isPrivate) roomCodes.release(this.state.spectatorCode, this.roomId);
+          this.casualSeries?.recordGame(
+            event.result.outcome === "draw" ? -1 : event.result.winnerSeat,
+            this.departingSeat,
+          );
         }
+        if (event.kind === "matchStarted") this.casualSeries?.noteFirstSeat(event.firstSeat);
         if (event.kind === "counterWindowOpened") {
           const stamped = this.stamp(event);
           for (const client of this.clients) {
@@ -503,6 +615,11 @@ export class AegisRoom extends Room<{ state: GameState }> {
           }
         } else {
           this.broadcast(EVENT_CHANNEL, this.stamp(event));
+        }
+        // A tournament set or a casual series plays on with the same decks, so its hidden cards
+        // stay hidden until the last game.
+        if (event.kind === "gameOver" && !this.isTournamentRoom && (this.casualSeries?.over ?? true)) {
+          this.broadcast(EVENT_CHANNEL, this.stamp({ kind: "finalReveal", players: finalRevealOf(this.state) }));
         }
         // Rebuild each client's StateView after any event that can move a CardInstance
         // into a public zone (battleArea/breeding topCard) from a private one
@@ -552,6 +669,15 @@ export class AegisRoom extends Room<{ state: GameState }> {
         this.handlePresentationReport(client, payload);
         return;
       }
+      if (type === CHAT_CHANNEL) {
+        this.handleChat(client, payload);
+        return;
+      }
+      if (type === SERIES_CHANNEL) {
+        const seat = this.seatByClient.get(client.sessionId);
+        if (seat !== undefined) this.casualSeries?.handleMessage(seat, payload, this.matchStartRequested);
+        return;
+      }
       this.handleIntent(client, { type, ...(payload as object) } as Intent);
     });
 
@@ -574,6 +700,43 @@ export class AegisRoom extends Room<{ state: GameState }> {
       this.matchClockInterval = this.clock.setInterval(() => this.syncMatchClock(), 100);
     }
     roomRegistry.set(this.roomId, this);
+  }
+
+  /** Bot, ranked, tournament and hand-laid rooms always play a single game. */
+  private offersSeries(): boolean {
+    return !this.isBotRoom && !this.isRankedRoom && !this.isTournamentRoom && this.devScenario === undefined;
+  }
+
+  /** Built once the state exists; a room never replaces its state, so the port can hold it. */
+  private seriesPort(): SeriesRoomPort {
+    return {
+      state: this.state,
+      roomName: this.roomName,
+      setTimeout: (run, ms) => this.clock.setTimeout(run, ms),
+      setInterval: (run, ms) => this.clock.setInterval(run, ms),
+      seatSnapshot: (seat) => {
+        const player = this.state.players[seat];
+        const deck = player ? this.deckByClient.get(player.sessionId) : undefined;
+        if (!player || !deck) return undefined;
+        return {
+          displayName: player.displayName,
+          ...(player.avatarId ? { avatarId: player.avatarId } : {}),
+          deck: {
+            mainDeck: [...deck.mainDeck],
+            eggDeck: [...deck.eggDeck],
+            mainDeckArts: deck.mainDeckArts?.slice(),
+            eggDeckArts: deck.eggDeckArts?.slice(),
+          },
+          ...(deck.deckId ? { deckId: deck.deckId } : {}),
+          deckName: deck.deckName,
+          presentationPacing: this.chainPacingClients.has(player.sessionId) ? "sequential" : "current",
+        };
+      },
+      sendToSeat: (seat, message) =>
+        this.clients.find((client) => this.seatByClient.get(client.sessionId) === seat)?.send(SERIES_CHANNEL, message),
+      createNextRoom: async (options) => (await matchMaker.createRoom(this.roomName, options)).roomId,
+      logError: (...data) => this.debugError(...data),
+    };
   }
 
   /**
@@ -794,6 +957,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
 
   override onDispose(): void {
     for (const bot of this.bots) bot?.dispose();
+    this.casualSeries?.dispose();
     // A refused private-code lookup can dispose the room before initialize creates its state.
     // This hook must return normally so Colyseus can clear the room's patch timer.
     if (this.state) this.debug("room.disposed");
@@ -849,6 +1013,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       // Recheck after reservation: a match can end while the socket is connecting.
       if (!this.spectatorInfo(options.roomCode)) throw new ServerError(403, "Match is not available to spectators");
       this.spectatorClients.add(client.sessionId);
+      if (typeof options.displayName === "string") this.spectatorJoinNames.set(client.sessionId, options.displayName);
       this.assignView(client, undefined);
       if (this.openSecurityReveal)
         this.withBatch(() => client.send(EVENT_CHANNEL, this.stamp(this.openSecurityReveal!)), client);
@@ -872,13 +1037,40 @@ export class AegisRoom extends Room<{ state: GameState }> {
       mainDeckArts: options.deck.mainDeckArts?.slice(),
       eggDeckArts: options.deck.eggDeckArts?.slice(),
     });
+    // A later game of a series keeps every player in the seat their series token names. Seats
+    // fill in order, so whoever arrives first waits for the other before either is seated.
+    const seriesSeat = this.seriesSeatByClient.get(client.sessionId);
+    if (seriesSeat !== undefined) {
+      this.casualSeries?.noteArrival(seriesSeat);
+      this.seriesArrivals.set(seriesSeat, { client, options });
+      if (this.seriesArrivals.size < 2) return;
+      const arrivals = [...this.seriesArrivals].sort(([a], [b]) => a - b);
+      this.seriesArrivals.clear();
+      for (const [arrivedSeat, arrival] of arrivals) this.seatClient(arrival.client, arrivedSeat, arrival.options);
+      for (const [arrivedSeat, arrival] of arrivals)
+        if (this.seriesEarlyReady.delete(arrival.client.sessionId))
+          this.applyLoggedIntent(arrivedSeat, { type: "ready" });
+      this.armReadyTimeoutIfSeated();
+      return;
+    }
     // Assign the first free seat instead of using clients.length - 1, which
     // breaks when a client disconnects and reconnects (e.g. React StrictMode
     // double-mounts, or genuine network reconnect).
     // Bot seats count as taken: a tournament bot may already be driving seat 0.
     const taken = new Set<Seat>([...this.seatByClient.values(), ...this.occupiedBotSeats()]);
-    let seat: Seat = taken.has(0) ? 1 : 0;
+    const seat: Seat = taken.has(0) ? 1 : 0;
+    this.debug(
+      `[AegisRoom] onJoin sessionId=${client.sessionId} seat=${seat} takenSeats=[${[...taken].join(",")}] totalClients=${this.clients.length} allSessionIds=[${this.clients.map((c) => c.sessionId).join(", ")}]`,
+    );
+    this.seatClient(client, seat, options);
+    // The match starts once both seats have sent `ready` (GameEngineHooks.onBothReady),
+    // not on join — starting on join races the client's asset loading against the
+    // mulligan window. Arm a fallback so a stuck/never-readying client can't hang the
+    // room forever.
+    this.armReadyTimeoutIfSeated();
+  }
 
+  private seatClient(client: Client, seat: Seat, options: AegisJoinOptions): void {
     // A real reconnection is handled by allowReconnection() in onLeave. If a
     // staged PlayerState remains in a now-free seat, this is a replacement
     // player and their own identity/deck must replace the departed player's.
@@ -887,25 +1079,13 @@ export class AegisRoom extends Room<{ state: GameState }> {
       this.debug(
         `[AegisRoom] onJoin sessionId=${client.sessionId} seat=${seat} → replacing departed player ${existing.sessionId}`,
       );
-      this.seatByClient.set(client.sessionId, seat);
-      this.withBatch(() => this.engine.seatPlayer(seat, client.sessionId, options));
-      this.assignView(client, seat);
-    } else {
-      this.debug(
-        `[AegisRoom] onJoin sessionId=${client.sessionId} seat=${seat} takenSeats=[${[...taken].join(",")}] totalClients=${this.clients.length} allSessionIds=[${this.clients.map((c) => c.sessionId).join(", ")}]`,
-      );
-      this.seatByClient.set(client.sessionId, seat);
-      this.withBatch(() => this.engine.seatPlayer(seat, client.sessionId, options));
-      // Per-client visibility: hide hidden zones from the other seat.
-      this.assignView(client, seat);
     }
+    this.seatByClient.set(client.sessionId, seat);
+    this.withBatch(() => this.engine.seatPlayer(seat, client.sessionId, options));
+    // Per-client visibility: hide hidden zones from the other seat.
+    this.assignView(client, seat);
     const accountId = this.accountByClient.get(client.sessionId);
     if (this.tournamentGameId && accountId) this.tournamentSeatHolders[seat] = { accountId };
-    // The match starts once both seats have sent `ready` (GameEngineHooks.onBothReady),
-    // not on join — starting on join races the client's asset loading against the
-    // mulligan window. Arm a fallback so a stuck/never-readying client can't hang the
-    // room forever.
-    this.armReadyTimeoutIfSeated();
   }
 
   /** A hand-laid board instead of the pre-game procedure; bot rooms outside production only. */
@@ -955,6 +1135,9 @@ export class AegisRoom extends Room<{ state: GameState }> {
         // Spectator expiry has no effect on either player or the match clock.
       }
       this.spectatorClients.delete(client.sessionId);
+      this.spectatorNumbers.delete(client.sessionId);
+      this.spectatorJoinNames.delete(client.sessionId);
+      this.lastChatAtBySender.delete(client.sessionId);
       if (client.view) {
         client.view.dispose();
         this.issuedViews.delete(client.view);
@@ -969,6 +1152,13 @@ export class AegisRoom extends Room<{ state: GameState }> {
       `[AegisRoom] onLeave sessionId=${client.sessionId} seat=${seat} consented=${consented} totalClients=${this.clients.length}`,
     );
     if (seat === undefined) {
+      const seriesSeat = this.seriesSeatByClient.get(client.sessionId);
+      if (seriesSeat !== undefined && this.seriesArrivals.get(seriesSeat)?.client === client) {
+        this.seriesArrivals.delete(seriesSeat);
+        this.seriesSeatByClient.delete(client.sessionId);
+        this.seriesEarlyReady.delete(client.sessionId);
+        this.casualSeries?.departed(seriesSeat, false);
+      }
       this.accountByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
       this.chainPacingClients.delete(client.sessionId);
@@ -986,10 +1176,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
         await this.lock();
       }
       this.seatByClient.delete(client.sessionId);
-      this.withBatch(() => {
-        this.engine.clearReady(seat);
-        this.engine.handleDisconnect(seat, true);
-      });
+      this.concede(seat);
       if (countsAsDodge && accountId) await this.accounts().recordRankedDodge(this.roomId, accountId);
       this.accountByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
@@ -1019,6 +1206,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       // must go on the new Client; assigning it to `client` left the socket on the stale one.
       this.assignView(reconnectedClient, seat);
       this.resendOpenPrompts(reconnectedClient, seat);
+      this.casualSeries?.resendSeat(seat);
     } catch {
       // Grace elapsed (or room disposed) without a reconnect: resolve as a real
       // departure — the opponent wins an in-progress match.
@@ -1026,16 +1214,31 @@ export class AegisRoom extends Room<{ state: GameState }> {
       this.seatByClient.delete(client.sessionId);
       this.readyTimeout?.clear();
       this.readyTimeout = undefined;
-      this.withBatch(() => {
-        this.engine.clearReady(seat);
-        this.engine.handleDisconnect(seat, true);
-      });
+      this.concede(seat);
       if (countsAsDodge && accountId) await this.accounts().recordRankedDodge(this.roomId, accountId);
       this.accountByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
       this.chainPacingClients.delete(client.sessionId);
       if (!this.matchStartRequested) await this.unlock();
     }
+  }
+
+  /**
+   * A seat is gone for good. In a match that is a concession; in a series it can also forfeit the
+   * rest of the series, which is why the departure is marked while the concession runs.
+   */
+  private concede(seat: Seat): void {
+    this.departingSeat = seat;
+    try {
+      this.withBatch(() => {
+        this.engine.clearReady(seat);
+        this.engine.handleDisconnect(seat, true);
+      });
+    } finally {
+      this.departingSeat = undefined;
+    }
+    // A planned hop to the next game is not a departure from the series.
+    if (!this.casualSeries?.hopping) this.casualSeries?.departed(seat, this.matchStartRequested);
   }
 
   /**
@@ -1403,6 +1606,53 @@ export class AegisRoom extends Room<{ state: GameState }> {
     });
   }
 
+  /**
+   * Players and spectators may chat; anyone else is ignored. Messages inside the sender's
+   * cooldown are dropped without a reply, and blocked words are masked before anyone, the
+   * match log included, sees the text.
+   */
+  private handleChat(client: Client, payload: unknown): void {
+    const sender = this.chatSender(client);
+    if (!sender) return;
+    const parsed = parseChatMessage(payload);
+    if (!parsed) return;
+    const message: ChatMessage =
+      parsed.kind === "text" ? { kind: "text", text: maskBlockedWords(parsed.text) } : parsed;
+    // A player's cooldown follows the seat, so a reconnect cannot reset it.
+    const cooldownKey = sender.kind === "player" ? `seat:${sender.seat}` : client.sessionId;
+    const now = Date.now();
+    const lastChatAt = this.lastChatAtBySender.get(cooldownKey);
+    if (lastChatAt !== undefined && now - lastChatAt < CHAT_COOLDOWN_MS) return;
+    this.lastChatAtBySender.set(cooldownKey, now);
+    this.debug("client.chat", { sender, sessionId: client.sessionId, ...message });
+    this.broadcast(CHAT_CHANNEL, { sender, message } satisfies ChatBroadcast);
+  }
+
+  private chatSender(client: Client): ChatSender | undefined {
+    const seat = this.seatByClient.get(client.sessionId);
+    if (seat !== undefined) return { kind: "player", seat };
+    if (!this.spectatorClients.has(client.sessionId)) return;
+    let number = this.spectatorNumbers.get(client.sessionId);
+    if (number === undefined) {
+      number = ++this.spectatorsNumbered;
+      this.spectatorNumbers.set(client.sessionId, number);
+    }
+    const name = this.spectatorChatName(client.sessionId);
+    return { kind: "spectator", sessionId: client.sessionId, number, ...(name ? { name } : {}) };
+  }
+
+  /** The spectator's join name, cleaned, or nothing when it is empty, offensive or a player's. */
+  private spectatorChatName(sessionId: string): string | undefined {
+    const name = Array.from(normalizeChatText(this.spectatorJoinNames.get(sessionId) ?? ""))
+      .slice(0, SPECTATOR_NAME_MAX_LENGTH)
+      .join("")
+      .trim();
+    const folded = name.toLocaleLowerCase();
+    if (!name || hasBlockedWord(name)) return;
+    if (this.state.players.some((player) => player?.displayName.trim().toLocaleLowerCase() === folded)) return;
+    return name;
+  }
+
   private debugError(...data: unknown[]): void {
     withMatchLog(this.state.matchLogId, this.roomId, () => logError(...data));
   }
@@ -1443,7 +1693,11 @@ export class AegisRoom extends Room<{ state: GameState }> {
 
   private handleIntent(client: Client, intent: Intent): void {
     const seat = this.seatByClient.get(client.sessionId);
-    if (seat === undefined) return;
+    if (seat === undefined) {
+      if (intent.type === "ready" && this.seriesSeatByClient.has(client.sessionId))
+        this.seriesEarlyReady.add(client.sessionId);
+      return;
+    }
     const decisionId =
       intent.type === "respondDecision"
         ? intent.decisionId

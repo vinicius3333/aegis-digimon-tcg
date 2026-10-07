@@ -36,13 +36,14 @@ describe("ST17-09 Cherubimon", () => {
         instanceId: s.inst("cherubimon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     let decision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)?.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: decision.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "chooseTargets", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
@@ -209,17 +210,9 @@ describe("ST17-09 Cherubimon", () => {
         instanceId: s.inst("cherubimon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    const deleteChoice = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: deleteChoice.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const targetChoice = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)?.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
     const targetOptions = s.decisions.at(-1)?.req.options?.candidateInstanceIds ?? [];
     expect(targetOptions).toEqual(
       expect.arrayContaining([s.perm("ownTarget").permanentId, s.perm("opponentTarget").permanentId]),

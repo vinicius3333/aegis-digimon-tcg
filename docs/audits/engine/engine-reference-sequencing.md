@@ -14,8 +14,7 @@ Every claim below cites the file and line it came from, on both sides.
 **Re-audited 2026-08-23 (same day, deep pass against the rules KB).** The five "open
 divergences" from the first pass were each verified against the code on both sides and
 against `data/kb/rules/comprehensive.md` + `data/kb/qa.json`. Verdicts changed for four
-of them. The implementation plan derived from this audit lives at
-`internal-docs/plans/trigger-sequencing-fixes-2026-08-23.md`.
+of them.
 
 ## The reference model
 

@@ -143,13 +143,21 @@ scenario("alliance", () => {
     // Alliance prompt opens on the protagonist's own screen (it's the attacker's
     // controller who chooses, not a defender).
     // Attacking suspends Seadramon, so its [All Turns] Draw 1 triggers with ＜Alliance＞;
-    // resolve ＜Alliance＞ first, then choose the eligible ally in the central gallery.
+    // resolve ＜Alliance＞ first, then choose the eligible ally on the field.
     fireEvent.click(await screen.findByRole("button", { name: /^\[When Attacking\], Seadramon/ }, { timeout: 10_000 }));
     fireEvent.click(screen.getByRole("button", { name: /resolve next effect/i }));
     await screen.findByRole("button", { name: /^pass$/i }, { timeout: 10_000 });
-    const allianceDialog = screen.getByRole("dialog", { name: "Alliance window" });
-    expect(allianceDialog.getAttribute("data-prompt-surface")).toBe("center");
-    fireEvent.click(within(allianceDialog).getByRole("button", { name: /^agumon,/i }));
+    const alliancePrompt = screen.getByRole("region", { name: "Alliance window" });
+    expect(alliancePrompt.getAttribute("data-prompt-surface")).toBe("left");
+    const agumonAlly = within(yourBattleArea()).getByRole("button", { name: /^agumon$/i });
+    expect(agumonAlly.classList.contains("game-permanent--candidate")).toBe(true);
+    tap(agumonAlly);
+    const allianceConfirmation = await screen.findByRole("dialog", { name: "Confirm Alliance" });
+    expect(allianceConfirmation.getAttribute("data-prompt-surface")).toBe("left");
+    expect(opponent.room.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT1-010")?.isSuspended).toBe(
+      false,
+    );
+    fireEvent.click(within(allianceConfirmation).getByRole("button", { name: /^use alliance$/i }));
 
     // Answered-outcome proof: Agumon is suspended (spent as the Alliance cost) —
     // both in synchronized state and, per apps/web/src/design/cards.tsx's

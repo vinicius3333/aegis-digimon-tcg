@@ -251,7 +251,9 @@ describe("keyword save prompt answers fit a phone", () => {
     const body = overlaySource("KeywordSavePrompt");
     expect(body).toMatch(/<BoardPromptRail[^>]*variant="prompt"/);
     expect(body).not.toMatch(/game-actions-row/);
-    expect(body.indexOf("{acceptLabel}")).toBeLessThan(body.indexOf("{declineLabel}"));
+    expect(body.indexOf('t("overlay.use")')).toBeGreaterThan(-1);
+    expect(body.indexOf('t("overlay.notUse")')).toBeGreaterThan(-1);
+    expect(body.indexOf('t("overlay.use")')).toBeLessThan(body.indexOf('t("overlay.notUse")'));
   });
 });
 
@@ -265,7 +267,6 @@ describe("choice rows lead with the affirmative action", () => {
 
   it.each([
     ["ActionConfirmationOverlay", "{confirmLabel}", "common.cancel"],
-    ["DigiXrosMaterialOverlay", "overlay.xrosConfirm", "common.cancel"],
     ["GameOverOverlay", "overlay.findRematch", "overlay.mainMenu"],
     ["MulliganOverlay", "overlay.keep", "overlay.mulligan"],
   ])("%s lists its confirming action before %s", (name, confirming, trailing) => {
@@ -273,6 +274,16 @@ describe("choice rows lead with the affirmative action", () => {
     expect(body).toMatch(/className="(game-actions-row|mulligan-actions)"/);
     expect(body.indexOf(confirming)).toBeGreaterThan(-1);
     expect(body.indexOf(confirming)).toBeLessThan(body.indexOf(trailing));
+  });
+});
+
+describe("large material rows put confirmation on the right", () => {
+  it("lists secondary exits before the DigiXros confirmation", () => {
+    const body = overlaySource("DigiXrosMaterialOverlay");
+    expect(body.indexOf('t("common.cancel")')).toBeGreaterThan(-1);
+    expect(body.indexOf('t("common.cancel")')).toBeLessThan(body.indexOf('t("overlay.xrosConfirmOne")'));
+    const promptCss = readFileSync(new URL("./overlay/effectPromptLayout.css", import.meta.url), "utf8");
+    expect(promptCss).toMatch(/\.material-prompt__footer\s+\.game-actions-row \{\s*flex-direction:\s*row/);
   });
 });
 
@@ -592,7 +603,9 @@ describe("the viewer's own moves on a phone", () => {
     expect(portraitRules).toMatch(
       /\.game-opponent-bar \{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto auto auto auto/,
     );
-    expect(portraitRules).toMatch(/\.game-mobile-surrender,\s*\.game-mobile-log,\s*\.game-mobile-bug \{/);
+    expect(portraitRules).toMatch(
+      /\.game-mobile-surrender,\s*\.game-mobile-share,\s*\.game-mobile-log,\s*\.game-mobile-bug \{/,
+    );
     expect(gameScreenSource).toMatch(/className="game-mobile-log"[\s\S]*?onClick=\{onOpenLog\}/);
     expect(gameScreenSource).toMatch(/onOpenLog=\{\(\) => overlays\.setHistoryOpen\(true\)\}/);
     expect(gameScreenSource).not.toMatch(/game-log-strip/);

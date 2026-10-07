@@ -453,12 +453,16 @@
     flex-basis: 100%;
   }
 
+  /* Four filters do not fit one phone row, and a row that cannot wrap widened the whole
+     picker past the screen. Two by two keeps every label whole. */
   .deck-picker__filters {
-    flex: 1;
+    display: grid;
+    flex: 1 1 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-width: 0;
   }
 
   .deck-picker__filters button {
-    flex: 1;
     justify-content: center;
   }
 

@@ -883,6 +883,99 @@
   overflow-wrap: anywhere;
 }
 
+/* The theme's ghost text is tuned for light paper; the splash scrim is always dark. */
+.game-result .game-result__view-board {
+  color: rgb(226 232 240 / 82%);
+}
+
+.game-result .game-result__view-board {
+  margin-top: 0.75rem;
+}
+
+.game-result .game-result__view-board:is(:hover, :active, :focus-visible) {
+  color: #fff;
+  background: rgb(255 255 255 / 10%);
+}
+
+/* The board-review bar: the splash folded down so the final board stays readable
+   and every pile, card and stack stays open to inspect. */
+:where(.game-result-bar) {
+  --result-tint: rgb(255 214 102);
+}
+
+.game-result-bar {
+  position: absolute;
+  top: max(0.75rem, env(safe-area-inset-top, 0px));
+  left: 50%;
+  z-index: 96;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: max-content;
+  max-width: calc(100% - 2rem);
+  padding: 0.3rem 0.3rem 0.3rem 1rem;
+  translate: -50% 0;
+  border: 1px solid color-mix(in srgb, var(--result-tint) 45%, transparent);
+  border-radius: 999px;
+  background: rgb(0 0 0 / 82%);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 55%);
+}
+
+/* Short on room, the bar drops its hint first, then its labels, and names the icons in
+   tooltips. GameOverOverlay measures the header to decide. */
+.game-result-bar:is(.game-result-bar--brief, .game-result-bar--compact) .game-result-bar__hint,
+.game-result-bar--compact .game-result-bar__label {
+  display: none;
+}
+
+.game-result-bar--compact .game-result-bar__show {
+  padding-inline: 0.6rem;
+}
+
+.game-result-bar .game-result-bar__show {
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.game-result-bar__hint {
+  max-width: 11rem;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  color: rgb(226 232 240 / 72%);
+}
+
+/* A revealed card in the opponent's hand fan opens the card, like any card on the board. */
+.game-opponent-hand__reveal {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 0.25rem;
+  background: none;
+  cursor: zoom-in;
+  transition: translate 120ms ease-out;
+}
+
+.game-opponent-hand__reveal:is(:hover, :focus-visible) {
+  translate: 0 3px;
+}
+
+.game-opponent-hand__reveal:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.game-result-bar__title {
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--ds-font-display);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--result-tint);
+}
+
 /* The result is also used inside short portrait viewports and mobile browser
    shells. Give the panel room to scroll vertically, and stack its full-width
    actions so a long translated label never becomes a horizontal overflow. */

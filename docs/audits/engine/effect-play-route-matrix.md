@@ -1,7 +1,6 @@
 # Effect play and digivolution route matrix
 
-Reviewed: 2026-09-23. Scope: the six mechanics and five recipient-source routes
-specified in `docs/plans/2026-09-23-interaction-coverage-plan.md`, workstream B.
+Reviewed: 2026-09-23. Scope: six mechanics and five recipient-source routes.
 The canonical executable links and complete 30-cell manifest are in
 `data/kb/rule-obligations.json`, scope `effect-play-routes`.
 

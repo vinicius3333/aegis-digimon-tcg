@@ -506,10 +506,15 @@ export class AccountStore {
     });
   }
   async deleteDeck(accountId: string, id: string): Promise<boolean> {
-    await this.ensureReady();
-    return (
-      (await this.pool.query("DELETE FROM saved_decks WHERE account_id=$1 AND id=$2", [accountId, id])).rowCount === 1
-    );
+    return this.transaction(async (client) => {
+      const deleted = await client.query("DELETE FROM saved_decks WHERE account_id=$1 AND id=$2", [accountId, id]);
+      // The owner manages a public deck from its saved deck, so a public copy cannot outlive it.
+      await client.query(
+        "UPDATE public_decks SET status='unpublished' WHERE account_id=$1 AND source_deck_id=$2 AND status='public'",
+        [accountId, id],
+      );
+      return deleted.rowCount === 1;
+    });
   }
 
   /**

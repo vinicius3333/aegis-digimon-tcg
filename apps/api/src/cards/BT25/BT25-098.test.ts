@@ -121,6 +121,7 @@ describe("BT25-098 Cyber Engage", () => {
     );
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-061")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT25-098")).toBe(true);
+    expect(s.decisions.map(({ req }) => req.kind)).toEqual(["selectCards"]);
     expect(s.state.memory).toBe(10);
   });
 
@@ -146,6 +147,40 @@ describe("BT25-098 Cyber Engage", () => {
     expect(s.state.memory).toBe(9);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT25-098")).toBe(true);
   });
+
+  it.each([false, true])(
+    "#5173: Roleplaymon costs 1 unless an opposing Psychemon blocks reductions (%s)",
+    async (blocked) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT25-098", as: "delay" }], hand: [{ card: "BT26-010", as: "target" }] },
+          1: { battleArea: blocked ? [{ card: "BT8-071" }, { card: "BT8-071" }] : [] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.perm("delay").enterFieldTurnCount = s.state.turnCount - 1;
+      s.state.memory = 1;
+      await s.ready();
+      const entry = JSON.parse(s.perm("delay").activatableEffectsJson)[0] as { effectKey: string };
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.inst("delay").instanceId,
+          effectKey: entry.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT26-010") &&
+          s.state.pendingDecision === undefined,
+      );
+      expect(s.state.memory).toBe(blocked ? -3 : 0);
+      expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("delay").instanceId)).toBe(true);
+      expect(s.events.filter((e) => e.kind === "memoryChanged" && e.reason === "playCard")).toEqual([
+        expect.objectContaining({ from: 1, to: blocked ? -3 : 0 }),
+      ]);
+    },
+  );
 
   it("does not allow both copies' card-playing Delays to resolve concurrently (Q6464)", async () => {
     const s = setupEngine(

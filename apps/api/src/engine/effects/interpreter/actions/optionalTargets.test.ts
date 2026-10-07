@@ -47,6 +47,47 @@ describe("optional target preflight", () => {
     expect(ctx.lastDeleteCount).toBe(accept ? 1 : 0);
   });
 
+  it.each(["hand", "trash", "ownStack"] as const)(
+    "asks optional play from %s only through a declinable card selection",
+    async (from) => {
+      for (const accept of [false, true]) {
+        const s = setupEngine(
+          {
+            0: {
+              battleArea: [
+                {
+                  card: "ST1-07",
+                  as: "source",
+                  ...(from === "ownStack" ? { under: [{ card: "ST1-03", as: "candidate" }] } : {}),
+                },
+              ],
+              ...(from === "hand" ? { hand: [{ card: "ST1-03", as: "candidate" }] } : {}),
+              ...(from === "trash" ? { trash: [{ card: "ST1-03", as: "candidate" }] } : {}),
+            },
+          },
+          accept ? { autoAcceptOptional: true, autoSelectCards: true } : { autoDeclineOptional: true },
+        );
+        await s.ready();
+        const engine = internalsOf(s.engine);
+        const ctx = engine.buildEffectContext(engine.cardSourceOf(s.perm("source").topCard), {});
+        await runAction(ctx, {
+          kind: "PlayWithoutCost",
+          payCost: false,
+          optional: true,
+          target: { filter: { controller: "mine", kind: ["Digimon"], level: "3" }, count: 1, upTo: true },
+          ...(from === "ownStack" ? { fromOwnDigivolutionStack: true } : { from: [from] }),
+        });
+        expect(s.decisions.map(({ req }) => req.kind)).toEqual(["selectCards"]);
+        expect(s.decisions[0]?.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
+        expect(
+          s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("candidate").instanceId),
+        ).toBe(accept);
+        expect(ctx.oncePerTurnActivationChosen === true).toBe(accept);
+        expect(ctx.oncePerTurnActivationDeclined === true).toBe(!accept);
+      }
+    },
+  );
+
   it.each(["Suspend", "Unsuspend", "Return"] as const)(
     "preserves the optional %s use when no target is available",
     async (kind) => {

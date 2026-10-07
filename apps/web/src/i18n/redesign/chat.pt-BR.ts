@@ -1,0 +1,27 @@
+import type { chatEn } from "./chat.en";
+
+export const chatPtBR: Record<keyof typeof chatEn, string> = {
+  "chat.open": "Chat",
+  "chat.title": "Chat",
+  "chat.close": "Fechar chat",
+  "chat.expand": "Expandir chat",
+  "chat.emotes": "Comandos de tamer",
+  "chat.empty": "Nenhuma mensagem ainda. Grite um comando ou diga olá.",
+  "chat.placeholder": "Mensagem para o oponente",
+  "chat.placeholderSpectator": "Mensagem para a partida",
+  "chat.send": "Enviar",
+  "chat.mute": "Silenciar oponente",
+  "chat.muteSpectators": "Silenciar espectadores",
+  "chat.you": "Você",
+  "chat.spectator": "Espectador {number}",
+  "chat.spectatorTag": "espectador",
+  "chat.settings": "Configurações do chat",
+  "chat.emote.offense": "Ataque!",
+  "chat.emote.moderate": "Moderado!",
+  "chat.emote.stayAway": "Mantenha distância!",
+  "chat.emote.defense": "Defesa!",
+  "chat.emote.changeTarget": "Troque de alvo!",
+  "chat.emote.runAway": "Fuja!",
+  "chat.emote.praise": "Elogiar",
+  "chat.emote.scold": "Repreender",
+};

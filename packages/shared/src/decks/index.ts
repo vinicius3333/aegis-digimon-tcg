@@ -179,3 +179,5 @@ export * from "./types.js";
 export type { CatalogDeck, CatalogEntry, CatalogFile, CatalogTournament } from "./catalogSchema.js";
 export { ADDITIONAL_COLLECTION_DECKS } from "./additionalCollections.js";
 export { EX13_ROYAL_KNIGHTS_DECKS } from "./ex13.js";
+export * from "./legality.js";
+export * from "./community.js";

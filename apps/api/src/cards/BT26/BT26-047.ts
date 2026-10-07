@@ -51,7 +51,10 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [{ level: 5, traits: ["Insectoid", "TS"], cost: 3, isAlternate: true }],
   assemblyRequirement: [
-    { reduceCost: 6, materials: [{ traits: ["Larva", "Insectoid", "Titan"], count: 4, differentLevels: true }] },
+    {
+      reduceCost: 6,
+      materials: [{ kinds: ["Digimon"], traits: ["Larva", "Insectoid", "Titan"], count: 4, differentLevels: true }],
+    },
   ],
 };
 registerIrCard("BT26-047", compiled);

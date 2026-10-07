@@ -304,9 +304,15 @@ function targetsOneCard(action: Action): boolean {
   return target?.count === undefined || target.count === 1;
 }
 
-/** A costless, independent one-permanent choice can ask its own "you may". */
-function optionalFieldTargetAsksAction(ctx: EffectContext, action: Action): boolean {
-  if (action.kind !== "Suspend" && action.kind !== "Unsuspend" && action.kind !== "Return" && action.kind !== "Delete")
+/** A costless, independent one-card choice can ask its own "you may". */
+function optionalTargetAsksAction(ctx: EffectContext, action: Action): boolean {
+  if (
+    action.kind !== "Suspend" &&
+    action.kind !== "Unsuspend" &&
+    action.kind !== "Return" &&
+    action.kind !== "Delete" &&
+    action.kind !== "PlayWithoutCost"
+  )
     return false;
   if (
     action.kind === "Delete" &&
@@ -332,14 +338,22 @@ function optionalFieldTargetAsksAction(ctx: EffectContext, action: Action): bool
     target.count === 1 &&
     target.countModifier === undefined &&
     target.chooser !== "opponent" &&
-    target.filter.zone === undefined &&
+    (action.kind === "PlayWithoutCost" || target.filter.zone === undefined) &&
     !target.isSelf &&
     !target.filter.isSelfRef &&
     !target.sameTarget &&
     target.filter.boundRef === undefined &&
     target.sourceRef === undefined &&
     target.fromSelectionRef === undefined &&
-    (action.kind !== "Return" || action.from === undefined)
+    (action.kind !== "Return" || action.from === undefined) &&
+    (action.kind !== "PlayWithoutCost" ||
+      (target.upTo === true &&
+        !action.additionalSimultaneousTargets?.length &&
+        !target.requiredNamesExact?.length &&
+        !target.requiredNamesExactUpTo?.length &&
+        !target.distinctLevels &&
+        !target.distinctNames &&
+        (target.minimum === undefined || target.minimum === 0)))
   );
 }
 
@@ -826,7 +840,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.abortOnDecline === true &&
     payableActionCost !== undefined &&
     costIsAskedAsSelection(payableActionCost as Cost);
-  const targetAsksThisAction = optionalFieldTargetAsksAction(ctx, action);
+  const targetAsksThisAction = optionalTargetAsksAction(ctx, action);
 
   // "You may" — ask the controller. Skip the prompt when the action carries a cost that is
   // provably unpayable (e.g. a "by trashing your security" cost with an empty security stack):
@@ -886,7 +900,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.fromOwnDigivolutionStack === true &&
       !allowsOptionalProcessingCostWithoutTarget(action) &&
       !costCreatesTrashCandidate &&
-      ownStackPlayCandidates(ctx, action.target).length === 0
+      [action.target, ...(action.additionalSimultaneousTargets ?? [])].every(
+        (target) => ownStackPlayCandidates(ctx, target).length === 0,
+      )
     ) {
       return unavailableAction(ctx, action);
     }
@@ -1337,20 +1353,23 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     const originalAsk = ctx.ask;
     const originalAction = action;
     let answered = false;
+    const recordSelection = (answerCtx: EffectContext, selected: string[]) => {
+      if (!answered && answerCtx === ctx && ctx.activeCostDecisionAction === originalAction && !ctx.payingCostDepth) {
+        answered = true;
+        if (selected.length > 0) markActivationChosen(ctx);
+        else {
+          ctx.lastEffectActed = false;
+          markActivationDeclined(ctx);
+        }
+      }
+      return selected;
+    };
     ctx.ask = {
       ...originalAsk,
-      chooseTargets: async (answerCtx, request) => {
-        const selected = await originalAsk.chooseTargets(answerCtx, request);
-        if (!answered && answerCtx === ctx && ctx.activeCostDecisionAction === originalAction && !ctx.payingCostDepth) {
-          answered = true;
-          if (selected.length > 0) markActivationChosen(ctx);
-          else {
-            ctx.lastEffectActed = false;
-            markActivationDeclined(ctx);
-          }
-        }
-        return selected;
-      },
+      chooseTargets: async (answerCtx, request) =>
+        recordSelection(answerCtx, await originalAsk.chooseTargets(answerCtx, request)),
+      selectCards: async (answerCtx, request) =>
+        recordSelection(answerCtx, await originalAsk.selectCards(answerCtx, request)),
     };
   }
 

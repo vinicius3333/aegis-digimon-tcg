@@ -10,10 +10,11 @@ import { getCardDefinition } from "@aegis/shared";
 import { cleanup, render, screen, within, waitFor } from "./scenarioHarness/testingLibrary";
 import { act } from "@testing-library/react";
 import type { DecisionResponse } from "@aegis/shared";
+import { GameScreen } from "../src/game/GameScreen";
 
 const mocked = vi.hoisted(() => ({
   roomResult: { current: undefined as unknown },
-  room: { roomId: "effect-resolved-toast-room" },
+  room: { roomId: "effect-resolved-toast-room", onMessage: () => () => {} },
 }));
 
 vi.mock("../src/net/useRoom", () => ({
@@ -139,7 +140,6 @@ it.each([true, false])(
  */
 async function renderThenNarrate(connection: Record<string, unknown>, event: unknown, decision?: unknown) {
   mocked.roomResult.current = { ...connection, events: [] };
-  const { GameScreen } = await import("../src/game/GameScreen");
   // A fresh element each time: React bails out of re-rendering when handed the
   // very same element object, and the second pass is the point of the exercise.
   const screenElement = (): ReactElement => (
@@ -255,7 +255,6 @@ it("dims breeding only once the viewer can act, never during setup or the oppone
     roomCode: "",
   };
   mocked.roomResult.current = { ...connection, decision: { kind: "optional", seat: 1 } };
-  const { GameScreen } = await import("../src/game/GameScreen");
   const element = () => (
     <GameScreen
       joinOptions={{ displayName: "Protagonist", deck: { mainDeck: [], eggDeck: [] } }}

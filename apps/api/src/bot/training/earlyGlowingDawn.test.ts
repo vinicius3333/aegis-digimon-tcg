@@ -49,7 +49,6 @@ describe("early Glowing Dawn entry effects through the asynchronous policy", () 
       await setup.ready();
       const targetIds = [0, 1].map((index) => setup.perm(`target-${index}`).permanentId);
       const windows: TrainingWindow[] = [];
-      const optionals: TrainingWindow[] = [];
       const policy = createAsyncTrainingPolicy(setup.engine, seat, async (window) => {
         await Promise.resolve();
         if (window.kind === "main")
@@ -62,13 +61,13 @@ describe("early Glowing Dawn entry effects through the asynchronous policy", () 
                 intent.alternateRequirementIndex === 0,
           );
         expect(window.request?.sourceCardId).toBe("BT25-049");
-        if (window.kind === "optional") {
-          optionals.push(window);
-          return target < 0 ? 1 : 0;
-        }
+        expect(window.kind).toBe("chooseTargets");
+        expect(window.request?.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
         windows.push(window);
         return window.actions.findIndex((action) =>
-          window.selected.length > 0 ? action.label === "Finish selection" : action.sourceId === targetIds[target],
+          target < 0 || window.selected.length > 0
+            ? action.label === "Finish selection"
+            : action.sourceId === targetIds[target],
         );
       });
       expect(setup.engine.applyIntent(seat, await policy.chooseMainAction(buildBotView(setup.state, seat)!))).toEqual({
@@ -84,9 +83,15 @@ describe("early Glowing Dawn entry effects through the asynchronous policy", () 
           setup.engine.applyIntent(seat, await policy.answerDecision(buildBotView(setup.state, seat), request)),
         ).toEqual({ ok: true });
       }
-      expect(optionals).toHaveLength(card === "BT25-049" ? 1 : 0);
-      expect(windows).toHaveLength(target < 0 ? 0 : 2);
-      expect(windows[0]?.actions.map((action) => action.sourceId)).toEqual(target < 0 ? undefined : targetIds);
+      expect(setup.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
+      expect(windows).toHaveLength(card === "BT25-049" ? (target < 0 ? 1 : 2) : 0);
+      expect(windows[0]?.actions.flatMap((action) => (action.sourceId === undefined ? [] : [action.sourceId]))).toEqual(
+        card === "BT25-049" ? targetIds : undefined,
+      );
+      expect(windows[0]?.selected).toEqual(card === "BT25-049" ? [] : undefined);
+      expect(windows[0]?.actions.some((action) => action.label === "Finish selection")).toBe(
+        card === "BT25-049" ? true : undefined,
+      );
       for (const index of [0, 1]) expect(setup.perm(`target-${index}`).isSuspended).toBe(index === target);
       expect(setup.perm("tamer").isSuspended).toBe(false);
       expect(setup.perm("breeding").isSuspended).toBe(false);

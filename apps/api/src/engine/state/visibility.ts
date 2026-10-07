@@ -6,6 +6,8 @@ import {
   CARD_ID_VIEW_TAG,
   CardInstance,
   SecurityCardView,
+  type FinalRevealCard,
+  type FinalRevealPlayer,
   type GameState,
   type Permanent,
   type PlayerState,
@@ -442,4 +444,21 @@ export function revealSecurityCardToOpponent(view: StateView, card: CardInstance
  */
 export function privateZoneSnapshot(player: PlayerState): readonly CardInstance[][] {
   return privateZonesOf(player);
+}
+
+/**
+ * Every hidden zone of both players, for the `finalReveal` event sent once the match is over.
+ * The StateView policy above stays untouched: once nothing can change the outcome, the identities
+ * travel as a plain event payload instead of unlocking the schema's private fields.
+ */
+export function finalRevealOf(state: GameState): FinalRevealPlayer[] {
+  const faces = (cards: Iterable<CardInstance>): FinalRevealCard[] =>
+    Array.from(cards, (card) => ({ cardId: card.cardId, artId: card.artId }));
+  return Array.from(state.players, (player) => ({
+    seat: player.seat,
+    hand: faces(player.hand),
+    deck: faces(player.deck),
+    eggDeck: faces(player.eggDeck),
+    security: faces(player.security),
+  }));
 }

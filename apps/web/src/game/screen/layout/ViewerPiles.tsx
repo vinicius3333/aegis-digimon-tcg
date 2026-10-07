@@ -20,6 +20,7 @@ export function ViewerPiles({
   viewerTrashClassName,
   viewerTrashEffectCard,
   onOpenViewerTrash,
+  onOpenViewerDeck,
 }: {
   viewer: PresentedPlayer;
   /** In the bottom strip, side by side, rather than stacked in the rail. */
@@ -32,6 +33,8 @@ export function ViewerPiles({
   viewerTrashClassName: string;
   viewerTrashEffectCard?: TrashEffectCard;
   onOpenViewerTrash: (() => void) | undefined;
+  /** Opens the revealed deck once the match is over. */
+  onOpenViewerDeck?: () => void;
 }) {
   const { t } = useTranslation();
   const topTrashCard = viewer.trash[viewer.trash.length - 1];
@@ -51,6 +54,7 @@ export function ViewerPiles({
         count={viewer.deckCount}
         label={t("game.pile.deck")}
         riffling={viewerDeckRiffling}
+        onClick={onOpenViewerDeck}
         refEl={(el) => {
           viewerDeckRef.current = el;
         }}

@@ -8,7 +8,7 @@ import { GameScreen } from "../src/game/GameScreen";
 
 const mocked = vi.hoisted(() => ({
   roomResult: { current: undefined as unknown },
-  room: { roomId: "app-fusion-ui-room" },
+  room: { roomId: "app-fusion-ui-room", onMessage: () => () => {} },
   appFusion: vi.fn<typeof import("../src/net/intents").intents.appFusion>(),
   digivolve: vi.fn<typeof import("../src/net/intents").intents.digivolve>(),
 }));
@@ -84,7 +84,7 @@ it("opens App Fusion from hand selection on the second host and sends the second
   secondHost.click();
   const dialog = await screen.findByRole("dialog", { name: /App Fusion/i });
   const panel = dialog;
-  expect(panel.getAttribute("data-prompt-surface")).toBe("center");
+  expect(panel.getAttribute("data-prompt-surface")).toBe("left");
   expect(within(panel).getAllByRole("radio")).toHaveLength(2);
   within(panel).getAllByRole("radio")[1]!.click();
   within(panel)

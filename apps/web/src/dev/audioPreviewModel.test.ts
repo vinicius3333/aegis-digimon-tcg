@@ -39,23 +39,28 @@ it("supports generated relative files without inventing missing or invalid measu
   expect(candidateTracks(null, "/audio/applied.wav")).toHaveLength(1);
 });
 
-it("only offers cue comparisons whose current bank, physical metadata and segment match gameplay", () => {
+it("only offers cue comparisons whose current bank, evolution category and segment match gameplay", () => {
   const url = "/audio/current.wav?v=bank";
-  const cues = { "digivolve-3-6": { offset: 2, duration: 0.9 } };
+  const cues = { "digivolve-4-6": { offset: 2, duration: 0.9 } };
   const example = {
-    key: "digivolve-3-6",
+    key: "digivolve-4-6",
     label: "Evolution",
     kind: "digivolve",
-    details: { sourceLevel: 3, targetLevel: 6 },
+    details: { sourceLevel: 4, targetLevel: 6 },
     previous: { url: "/audio/previews/previous.wav?v=old" },
-    current: cues["digivolve-3-6"],
+    current: cues["digivolve-4-6"],
   };
   const manifest = { current: { url }, examples: [example] };
   expect(cueComparisons(manifest, url, cues)).toMatchObject([{ key: example.key, details: example.details }]);
+  // Every skipped-level evolution into level 6 shares its canonical 4→6 cue.
+  const longerSkip = { ...example, details: { sourceLevel: 3, targetLevel: 6 } };
+  expect(cueComparisons({ ...manifest, examples: [longerSkip] }, url, cues)).toMatchObject([
+    { key: example.key, details: longerSkip.details },
+  ]);
   expect(cueComparisons(manifest, "/audio/current.wav?v=new", cues)).toEqual([]);
   for (const changed of [
     { ...example, current: { offset: 2.1, duration: 0.9 } },
-    { ...example, details: { sourceLevel: 4, targetLevel: 6 } },
+    { ...example, details: { sourceLevel: 5, targetLevel: 6 } },
     { ...example, kind: "draw" },
     { ...example, previous: { url: "https://example.com/sample.wav" } },
     { ...example, previous: { url: "/audio/../private.wav" } },

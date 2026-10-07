@@ -15,7 +15,10 @@ describe("BT26-047 TyrantKabuterimon", () => {
       isAlternate: true,
     });
     expect(assemblyRequirementFor("BT26-047")).toEqual([
-      { reduceCost: 6, materials: [{ traits: ["Larva", "Insectoid", "Titan"], count: 4, differentLevels: true }] },
+      {
+        reduceCost: 6,
+        materials: [{ kinds: ["Digimon"], traits: ["Larva", "Insectoid", "Titan"], count: 4, differentLevels: true }],
+      },
     ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const effects = compiled.effects?.filter((effect) => effect.trigger === trigger) ?? [];
@@ -103,6 +106,33 @@ describe("BT26-047 TyrantKabuterimon", () => {
     expect(tyrant.stack.map((card) => card.instanceId)).toEqual([...materials].reverse());
     expect(tyrant.stack.every((card) => card.faceUp)).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("#5167 rejects a trait-matching Digi-Egg among four distinct Assembly levels", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT26-047", as: "tyrant" }],
+        trash: [
+          { card: "BT16-004", as: "egg" },
+          { card: "ST4-05", as: "level3" },
+          { card: "ST4-07", as: "level4" },
+          { card: "ST4-09", as: "level5" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("tyrant").instanceId,
+        assembly: {
+          materialInstanceIds: ["egg", "level3", "level4", "level5"].map((alias) => s.inst(alias).instanceId),
+        },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+    expect(s.state.players[0]!.trash).toHaveLength(4);
+    expect(s.state.memory).toBe(10);
   });
 
   it("rejects Assembly when matching materials repeat a level", () => {

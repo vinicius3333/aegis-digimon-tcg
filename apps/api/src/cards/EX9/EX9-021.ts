@@ -43,26 +43,22 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
-          fromOwnDigivolutionStack: true,
-          payCost: false,
-          bindResultAs: "firstPlayed",
-        },
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                { tokens: ["Garurumon"], match: "name" },
-                { tokens: ["Ver.2"], match: "trait" },
-              ],
+          additionalSimultaneousTargets: [
+            {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  { tokens: ["Garurumon"], match: "name" },
+                  { tokens: ["Ver.2"], match: "trait" },
+                ],
+              },
+              count: 1,
             },
-            count: 1,
-          },
+          ],
           fromOwnDigivolutionStack: true,
           payCost: false,
-          bindResultAs: "secondPlayed",
+          bindResultAs: "playedSources",
         },
         {
           kind: "SecurityManipulation",
@@ -70,11 +66,8 @@ const compiled: CompiledCard = {
           controller: "mine",
           source: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           condition: {
-            kind: "anyOf",
-            conditions: [
-              { kind: "bindingExists", ref: "firstPlayed" },
-              { kind: "bindingExists", ref: "secondPlayed" },
-            ],
+            kind: "bindingExists",
+            ref: "playedSources",
           },
         },
       ],

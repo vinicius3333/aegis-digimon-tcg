@@ -72,7 +72,7 @@ describe("scoped copied effects through the asynchronous policy", () => {
         : units[target].permanentId;
     const selectedWindows: { kind: "suspend" | "delete"; window: TrainingWindow }[] = [];
     let copyPrompts = 0;
-    const innerPrompts: string[] = [];
+    const selectedClauses: ("suspend" | "delete")[] = [];
     const policies = ([0, 1] as const).map((policySeat) =>
       createAsyncTrainingPolicy(setup.engine, policySeat, async (window) => {
         await Promise.resolve();
@@ -90,23 +90,18 @@ describe("scoped copied effects through the asynchronous policy", () => {
             copyPrompts++;
             return path.copy ? 0 : 1;
           }
-          if (window.request.promptText?.startsWith("Suspend")) {
-            innerPrompts.push("suspend");
-            return path.suspend === null ? 1 : 0;
-          }
-          if (window.request.promptText?.startsWith("Delete")) {
-            innerPrompts.push("delete");
-            return path.delete === null ? 1 : 0;
-          }
           throw new Error(`Unexpected copied-effect optional: ${window.request.promptText}`);
         }
         const kind = window.request.options?.effectTextPart?.includes("You may suspend") ? "suspend" : "delete";
+        expect(window.kind).toBe("chooseTargets");
+        expect(window.request.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
         selectedWindows.push({ kind, window });
-        if (window.selected.length > 0)
-          return window.actions.findIndex((action) => action.label === "Finish selection");
         const target = kind === "suspend" ? path.suspend : path.delete;
-        expect(target).not.toBeNull();
-        return window.actions.findIndex((action) => action.sourceId === targetId(target!));
+        const finish = window.actions.findIndex((action) => action.label === "Finish selection");
+        expect(finish).toBeGreaterThanOrEqual(0);
+        if (window.selected.length > 0) return finish;
+        selectedClauses.push(kind);
+        return target === null ? finish : window.actions.findIndex((action) => action.sourceId === targetId(target));
       }),
     );
     expect(
@@ -132,7 +127,7 @@ describe("scoped copied effects through the asynchronous policy", () => {
     expect(mainActionReady(setup.engine)).toBe(true);
     expect(setup.state.pendingDecision).toBeUndefined();
     expect(copyPrompts).toBe(1);
-    expect(innerPrompts).toEqual(path.copy ? ["suspend", "delete"] : []);
+    expect(selectedClauses).toEqual(path.copy ? ["suspend", "delete"] : []);
     const suspendWindow = selectedWindows.find((entry) => entry.kind === "suspend")?.window;
     const deleteWindow = selectedWindows.find((entry) => entry.kind === "delete")?.window;
     const idFor = (target: Target) =>
@@ -142,18 +137,18 @@ describe("scoped copied effects through the asynchronous policy", () => {
           )!.permanentId
         : units[target].permanentId;
     const suspensionCandidates = ["source", "ally", "low", "high", "played"] as const;
-    expect(suspendWindow?.actions.map((action) => action.sourceId).sort()).toEqual(
-      path.suspend === null ? undefined : suspensionCandidates.map(idFor).sort(),
-    );
+    expect(
+      suspendWindow?.actions.flatMap((action) => (action.sourceId === undefined ? [] : [action.sourceId])).sort(),
+    ).toEqual(path.copy ? suspensionCandidates.map(idFor).sort() : undefined);
     const raisedCeiling = path.suspend !== null && path.suspend !== "source";
     const deletionCandidates: Target[] = [
       "low",
       ...(raisedCeiling ? ["high" as const] : []),
       ...(path.opponentPlays ? ["played" as const] : []),
     ];
-    expect(deleteWindow?.actions.map((action) => action.sourceId).sort()).toEqual(
-      path.delete === null || deletionCandidates.length === 1 ? undefined : deletionCandidates.map(idFor).sort(),
-    );
+    expect(
+      deleteWindow?.actions.flatMap((action) => (action.sourceId === undefined ? [] : [action.sourceId])).sort(),
+    ).toEqual(path.copy ? deletionCandidates.map(idFor).sort() : undefined);
     for (const target of ["source", "ally", "low", "high"] as const) {
       const unit = units[target];
       expect(

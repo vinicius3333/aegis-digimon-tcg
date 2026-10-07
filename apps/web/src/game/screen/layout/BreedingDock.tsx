@@ -28,6 +28,7 @@ export function BreedingDock({
   slotCandidate,
   slotDrop,
   onHatch,
+  onOpenEggDeck,
   onSlotClick,
 }: {
   eggDeckCount: number;
@@ -48,6 +49,8 @@ export function BreedingDock({
   slotCandidate: boolean;
   slotDrop: DropAttrs;
   onHatch: (() => void) | undefined;
+  /** Opens the revealed egg deck once the match is over. */
+  onOpenEggDeck?: () => void;
   onSlotClick: (() => void) | undefined;
 }) {
   const { t } = useTranslation();
@@ -85,7 +88,7 @@ export function BreedingDock({
           label={t("game.pile.eggs")}
           glow={actionsOpen && canHatchEgg}
           riffling={eggDeckRiffling}
-          onClick={actionsOpen && canHatchEgg ? onHatch : undefined}
+          onClick={actionsOpen && canHatchEgg ? onHatch : onOpenEggDeck}
         />
         <div className="game-utility-slot game-utility-slot--you-raising">
           <BreedingSlot
