@@ -252,7 +252,8 @@ it.each(["mouse", "touch"])(
     placeDropZone(target);
     await holdOver(source, 31, pointerType);
 
-    expect(screen.queryByTestId("drag-ghost")).toBeNull();
+    // The card may still lift for local hand reordering (bf13439d8), but it offers no game action.
+    expect(document.querySelector(".game-drag-intent")).toBeNull();
     expect(target.hasAttribute("data-drag-intent")).toBe(false);
     expect(previewMarker()).toBeNull();
     await act(async () => {
@@ -342,7 +343,8 @@ it("cancels a held card when the server revokes its actions before release", asy
   expect(s.inst("agumon").playableFromHand).toBe(false);
   mounted.refresh();
 
-  expect(screen.queryByTestId("drag-ghost")).toBeNull();
+  // The card may still lift for local hand reordering (bf13439d8), but it offers no game action.
+  expect(document.querySelector(".game-drag-intent")).toBeNull();
   expect(target.hasAttribute("data-drag-intent")).toBe(false);
   await act(async () => {
     window.dispatchEvent(
@@ -394,7 +396,8 @@ it.each(["BT1-010", "BT1-025"])(
     });
 
     expect(move.defaultPrevented).toBe(false);
-    expect(screen.queryByTestId("drag-ghost")).toBeNull();
+    // The card may still lift for local hand reordering (bf13439d8), but it offers no game action.
+    expect(document.querySelector(".game-drag-intent")).toBeNull();
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(mocked.playCard).not.toHaveBeenCalled();
   },
