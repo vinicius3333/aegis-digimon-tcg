@@ -2,7 +2,7 @@
    answered on the board itself. These helpers drive the same three pieces a
    player does — the egg deck, the raising slot and the turn control. */
 
-import { fireEvent, screen } from "./testingLibrary";
+import { fireEvent, screen, within } from "./testingLibrary";
 import { expect, vi } from "vitest";
 
 const TIMEOUT = 20_000;
@@ -34,6 +34,13 @@ export async function endBreedingStep(timeout = TIMEOUT): Promise<void> {
   fireEvent.click(await findEndBreedingControl(timeout));
   await vi.waitFor(() => expect(screen.queryByRole("button", { name: /^end breeding$/i })).toBeNull(), { timeout });
   await waitForBoardActions(timeout);
+}
+
+/** Passes the turn from Main: the turn control asks for confirmation first (#5252). */
+export async function endTurnStep(timeout = TIMEOUT): Promise<void> {
+  fireEvent.click(await screen.findByRole("button", { name: /^end turn$/i }, { timeout }));
+  const dialog = await screen.findByRole("dialog", { name: /^end turn\?$/i }, { timeout });
+  fireEvent.click(within(dialog).getByRole("button", { name: /^end turn$/i }));
 }
 
 /**

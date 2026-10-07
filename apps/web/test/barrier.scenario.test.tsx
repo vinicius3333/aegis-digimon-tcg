@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
-import { endBreedingStep } from "./scenarioHarness/breedingStep";
+import { endBreedingStep, endTurnStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -140,7 +140,7 @@ scenario("barrier", () => {
       // The board also refuses ordinary actions for as long as it is still presenting the
       // check, and the skip control is the only thing on screen that says it still is.
       await vi.waitFor(() => expect(screen.queryByTestId("skip-presentation")).toBeNull(), { timeout: 10_000 });
-      fireEvent.click(await screen.findByRole("button", { name: /^end turn$/i }, { timeout: 10_000 }));
+      await endTurnStep(10_000);
     }
 
     // Turn 4 (opponent): Groundramon entered turn 2, so it may attack — attack the

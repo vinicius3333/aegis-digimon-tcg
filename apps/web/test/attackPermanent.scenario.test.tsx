@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
-import { endBreedingStep } from "./scenarioHarness/breedingStep";
+import { endBreedingStep, endTurnStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -99,7 +99,7 @@ scenario("attack-permanent", () => {
     // match moving identically to the other scenarios' pattern).
     await vi.waitFor(() => expect(opponent.room.state.turnSeat).toBe(0), { timeout: 10_000 });
     await endBreedingStep();
-    fireEvent.click(await screen.findByRole("button", { name: /^end turn$/i }, { timeout: 10_000 }));
+    await endTurnStep(10_000);
 
     // Turn 4 (opponent): Frigimon entered turn 2, so summoning sickness has cleared
     // by turn 4 — attack the protagonist's security directly, suspending Frigimon.

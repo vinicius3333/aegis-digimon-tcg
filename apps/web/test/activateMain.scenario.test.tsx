@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
-import { endBreedingStep } from "./scenarioHarness/breedingStep";
+import { endBreedingStep, endTurnStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import { Client, type Room } from "@colyseus/sdk";
 import type { GameState } from "@aegis/shared";
@@ -116,7 +116,7 @@ scenario("activate-main", () => {
     // straight through Main (nothing to play yet) to pass the turn — the opponent
     // can't act until it's their turn.
     await endBreedingStep();
-    fireEvent.click(await screen.findByRole("button", { name: /^end turn$/i }, { timeout: 10_000 }));
+    await endTurnStep(10_000);
 
     // Wait for the opponent's real playCard round trip: their battle area
     // (rendered from synchronized state, not injected) goes from empty to one
@@ -164,7 +164,7 @@ scenario("activate-main", () => {
     // Pass the turn so Meramon is attack-capable on the way back: only then does
     // the board wire the permanent for a drag (attack) rather than a click, which
     // is the arrangement the activation has to survive on touch.
-    fireEvent.click(await screen.findByRole("button", { name: /^end turn$/i }, { timeout: 10_000 }));
+    await endTurnStep(10_000);
     await endBreedingStep();
 
     // Activate Meramon's [Main] ability the way a player does: an attack-capable

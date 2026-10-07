@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
-import { hatchDigiEgg } from "./scenarioHarness/breedingStep";
+import { hatchDigiEgg, endTurnStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import { Client, type Room } from "@colyseus/sdk";
 import type { GameState } from "@aegis/shared";
@@ -144,7 +144,7 @@ scenario("use-option", () => {
 
     // Gravity Crush's end-of-turn loss is pending processing: pass through the real
     // UI so its exact -2 resolves at OnEndTurn before the turn frame flips.
-    fireEvent.click(await screen.findByRole("button", { name: /^end turn$/i }, { timeout: 10_000 }));
+    await endTurnStep(10_000);
     await vi.waitFor(
       () => {
         expect(opponent.room.state.turnSeat).toBe(1);

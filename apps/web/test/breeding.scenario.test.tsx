@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
-import { hatchDigiEgg, moveFromBreedingArea, waitForBoardActions } from "./scenarioHarness/breedingStep";
+import { hatchDigiEgg, moveFromBreedingArea, waitForBoardActions, endTurnStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -107,7 +107,7 @@ scenario("breeding", () => {
       }
     });
     await waitForBoardActions();
-    fireEvent.click(screen.getByRole("button", { name: /^end turn$/i }));
+    await endTurnStep();
 
     // Back on the protagonist's second turn, the breeding step reopens — the
     // raising slot now moves out instead of hatching, since the raised Biyomon is
@@ -158,7 +158,7 @@ scenario("breeding", () => {
       }
     });
     await waitForBoardActions();
-    fireEvent.click(screen.getByRole("button", { name: /^end turn$/i }));
+    await endTurnStep();
 
     await moveFromBreedingArea();
 

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
-import { endBreedingStep } from "./scenarioHarness/breedingStep";
+import { endBreedingStep, endTurnStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -163,7 +163,7 @@ scenario("complex-decisions", () => {
     // Passing and playing are driven by the headless client's real room intents.
     for (let added = 0; added < 2; added += 1) {
       if (opponent.room.state.turnSeat !== 1) {
-        fireEvent.click(await screen.findByRole("button", { name: /^end turn$/i }, { timeout: 10_000 }));
+        await endTurnStep(10_000);
         await waitForTurnSeat(opponent, 1);
       }
       if (opponent.room.state.phase === "Breeding") opponent.endPhase();
@@ -182,7 +182,7 @@ scenario("complex-decisions", () => {
       if (added === 0) {
         await endBreedingStep();
         await waitForOwnMain(opponent);
-        fireEvent.click(await screen.findByRole("button", { name: /^end turn$/i }, { timeout: 10_000 }));
+        await endTurnStep(10_000);
         await waitForTurnSeat(opponent, 1);
       }
     }
