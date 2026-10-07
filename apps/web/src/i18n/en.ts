@@ -704,6 +704,8 @@ export const en = {
   "settings.effectSpeedFast": "Fast",
   "settings.organizedField": "Organized field",
   "settings.organizedFieldDesc": "Sort Digimon by level and group identical Tamers and Options in a row of their own",
+  "settings.pileCounts": "Show pile counts",
+  "settings.pileCountsDesc": "Show the Eggs, Hand, Deck and Trash counters on the board",
   "settings.sound": "Sound effects",
   "settings.soundDesc": "Clicks, selections and combat cues",
   "settings.music": "Background ambience",

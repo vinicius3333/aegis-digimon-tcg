@@ -728,6 +728,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "settings.effectSpeedFast": "Rápida",
   "settings.organizedField": "Campo organizado",
   "settings.organizedFieldDesc": "Ordena os Digimon por nível e agrupa Tamers e Options iguais numa fileira própria",
+  "settings.pileCounts": "Mostrar contadores das pilhas",
+  "settings.pileCountsDesc": "Mostra os contadores de Ovos, Mão, Deck e Lixo no tabuleiro",
   "settings.sound": "Efeitos sonoros",
   "settings.soundDesc": "Cliques, seleções e sinais de combate",
   "settings.music": "Ambiente de fundo",
