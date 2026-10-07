@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { CATALOG_DECKS } from "@aegis/shared";
 import { colorKey } from "../design/theme";
+import { SEQUENTIAL_PACING_ENABLED } from "../features";
 import { GameScreen } from "../game/GameScreen";
 import { loadIdentity } from "../identity";
 import { useTranslation } from "../i18n";
@@ -2345,6 +2346,7 @@ export function LiveArenaDemo() {
         identityColor={colorKey(player.color)}
         startMode="bot"
         botDeckId="bt26-dgo-2026-08-28-8-plutomon"
+        presentationPacing={SEQUENTIAL_PACING_ENABLED ? "sequential" : "current"}
         onExit={reset}
       />
     </div>
