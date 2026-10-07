@@ -1913,3 +1913,46 @@ The validation-only800 source/tests/actual inventory and wrapper are pushed in
 until the current actual strict reader finishes and resources are idle.
 All prior raw bytes, losses, folds, source/CPs and finalblind remain untouched;
 no actual new model, accepted44-recipe strength or delivery is claimed.
+
+## Independent160 strict closure0 and actual validation-only launch
+
+Full unchanged160 strict consumer50081 completed actual0. Its stdoutSHA
+`c7c736353fb30306aa332bf06c1bb52d62eefd08514a56c5d212d65fa770619a`
+binds original whole0/completion029573da.. and confirms source/CP/pre-post
+custody, all160 raw games/9737frames, retained106wins/54losses and both actual
+missing validation bins. This confirms data integrity, not learning eligibility.
+Original22578 and50081 are terminal0; never duplicate their launches.
+
+Separate validation-only ROOT CPU Go
+`88a52da1324364c285b8d84907dffd85ada8f693b812f9182c8f81caa8bd4443`
+is exclusively sealed. Actual launch preflight rechecked fresh inventory,
+current source/CP pins and idle resources. New foreground76954 is attached;
+actual whole690/start7193 and operator709/start7198 have exact reviewed argv/
+parentage and identitySHA
+`cb4348d38401d74f252f96ab4b6c44ae64da0dea23f0f0ece148614326cba03a`.
+At this checkpoint it is in full predecessor verification, with no800-game
+completion or teacher-positive coverage claimed. Games800/workers4 are CPU-only,
+updates0, original stride5/fold validation and no reserved final seeds.
+
+## Three-source warm imitation source ready; no training admission
+
+Prepared `current-mentor-imitation-r3.py`, sourceSHA
+`5ac08f7961bc212fb8f4fdbdfe38860ee245a9d1085ca204addedaf2dd8edfd9`,
+with18 bounded synthetic guards passing locally and on desktop Python3.12.14.
+Source/tests were exclusively sealed; all nine qualified module byte pins pass
+without primary imports. Earlier sealed r1/r2 sources are unchanged and unused.
+No r3 actual request, GPU resource Go, joined view, optimizer job or model exists.
+
+The eventual view contains all4832 actual closed episodes:3872base,160existing
+supplement and800new validation. Base names are unchanged; offsets4000 and10000
+preserve original numeric modulo-five folds, including stride5 on the latter.
+There are3225training and1607validation episodes, with no dropped losses or
+multiGB raw copies. Hardlinks are checked against exact source receipts/inodes/
+hashes and canonical cache/coverage counts. Earlier negative160 coverage remains
+in the evidence and inputs; it does not bar later genuine combined coverage.
+Both unchanged actual supplement and validation full closure consumers are
+required, each including the unchanged actual base closure. Genuine combined
+engine-only positives in every mechanism/seat/fold remain mandatory before
+models, with no future boolean/CP/closure assumptions. Learned weights/Adam,
+strict44-recipe strength, full both-seat material/physical mechanisms,26rooms,
+current serving and untouched finalblind/delivery remain unproven and required.
