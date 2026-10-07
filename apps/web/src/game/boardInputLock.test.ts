@@ -41,7 +41,9 @@ describe("presentation cues and board actions", () => {
     expect(gameScreenSource).toContain("if (!breedingActionsOpen) return;");
     expect(gameScreenSource).toContain("covered={endPhaseBlocked ? true : undefined}");
     expect(gameScreenSource).toContain("onEndPhase={() => !endPhaseBlocked && onEndPhase()}");
-    expect(gameScreenSource).toContain("onEndPhase={() => room && intents.endPhase(room)}");
+    // The Main-phase pass goes through the end-turn confirmation (#5252), which keeps the same guard.
+    expect(gameScreenSource).toContain("onEndPhase={endTurnConfirmation.request}");
+    expect(gameScreenSource).toContain("blocked: guards.endPhaseBlocked || !room,");
     expect(gameScreenSource).toContain("decision && decision.seat === viewerSeat");
   });
 });
