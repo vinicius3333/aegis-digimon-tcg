@@ -193,6 +193,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt26-ravemon-recycled-trigger",
   "arena-bt26-yoshino-match-b3759aa7",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
+  "arena-bt24-skullbaluchimon-simultaneous-delete",
+  "arena-lm-gundramon-simultaneous-delete",
   "arena-bt24-fugamon-self-trash",
   "arena-bt2-kurisarimon-repeat-memory",
   "arena-bt2-kurisarimon-start-main-memory",
@@ -1061,6 +1063,60 @@ function laySt15TridentArmForcedAttackTextScenario(state: GameState, decks: read
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 6;
+}
+
+/** Discord 1557502317098573905: one effect deletes the level 3 and the level 4 Digimon at the same time. */
+function layBt24SkullBaluchimonSimultaneousDeleteScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-skullbaluchimon", "BT24-075", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-skullbaluchimon-cost", "BT1-009", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-skullbaluchimon-level3"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-014"], "-skullbaluchimon-level4"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 7;
+}
+
+/** Discord 1557502317098573905: LM-067 trashes up to 3 cards first, then deletes one Digimon per card at once. */
+function layLmGundramonSimultaneousDeleteScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT25-078", "BT25-082", "BT6-068", "LM-067"], "-gundramon"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-gundramon-target-a"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-013"], "-gundramon-target-b"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-027"], "-gundramon-target-c"));
+    placePermanent(bot, establishedDigimon(1, ["BT6-065"], "-gundramon-too-big"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /** Discord 1557128872544313456: DexDoruGreymon's [Trash] effect answers only an exact [DoruGreymon]. */
@@ -7542,6 +7598,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt26-ravemon-recycled-trigger": layBt26RavemonRecycledTriggerScenario,
   "arena-bt26-yoshino-match-b3759aa7": layBt26YoshinoMatchScenario,
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
+  "arena-bt24-skullbaluchimon-simultaneous-delete": layBt24SkullBaluchimonSimultaneousDeleteScenario,
+  "arena-lm-gundramon-simultaneous-delete": layLmGundramonSimultaneousDeleteScenario,
   "arena-bt24-fugamon-self-trash": layBt24FugamonSelfTrashScenario,
   "arena-bt2-kurisarimon-repeat-memory": layBt2KurisarimonRepeatMemoryScenario,
   "arena-bt2-kurisarimon-start-main-memory": (state, decks) =>
