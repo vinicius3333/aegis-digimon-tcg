@@ -384,6 +384,19 @@ describe("resolution plan chooser", () => {
     });
   });
 
+  it("Discord 1557475935962398842: resolves the shown order with presets without clicking each effect", () => {
+    const { onRespond } = renderDecision(planRequest);
+    fireEvent.click(within(screen.getByRole("group", { name: /Beelzemon/ })).getByRole("button", { name: "Yes" }));
+    fireEvent.click(within(screen.getByRole("group", { name: /Sukamon/ })).getByRole("button", { name: "No" }));
+    fireEvent.click(screen.getByRole("button", { name: "Resolve in this order" }));
+
+    expect(onRespond).toHaveBeenCalledWith({
+      kind: "orderTriggers",
+      order: [keys.beelzemon, keys.creepymon, keys.sukamon],
+      optionalAnswers: { [keys.beelzemon]: true, [keys.sukamon]: false },
+    });
+  });
+
   it("keeps a plain prompt to one checked effect", () => {
     const { onRespond } = renderDecision({
       ...planRequest,
@@ -441,7 +454,7 @@ describe("resolution plan chooser", () => {
     expect(within(waiting).getAllByRole("listitem")).toHaveLength(2);
     expect(within(waiting).getByText("×5")).toBeTruthy();
     expect(within(waiting).getByText("Ravemon")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Resolve next effect" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Resolve in this order" })).toBeTruthy();
   });
 });
 

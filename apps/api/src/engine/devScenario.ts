@@ -320,6 +320,7 @@ export const DEV_SCENARIO_IDS = [
   "security-battle",
   "security-chain",
   "arena-raid-optional-preset",
+  "arena-preset-order-no-clicks",
 ] as const;
 export type DevScenarioId = (typeof DEV_SCENARIO_IDS)[number];
 
@@ -946,6 +947,27 @@ function layRaidOptionalPresetScenario(state: GameState, decks: readonly [Deckli
   if (human !== undefined) placePermanent(human, establishedDigimon(0, ["BT1-041", "EX13-045"], "-raid-examon"));
   const bot = state.players[1];
   if (bot !== undefined) placePermanent(bot, establishedDigimon(1, ["BT1-013"], "-raid-target"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/** Discord 1557475935962398842: a fully preset [When Attacking] order resolves in one submit. */
+function layPresetOrderNoClicksScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT6-071", "BT9-006", "EX2-040", "EX13-045"], "-preset-examon"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) placePermanent(bot, establishedDigimon(1, ["BT1-013"], "-preset-target"));
   state.turnSeat = 0;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
@@ -7012,6 +7034,7 @@ function layOct06LatestScenario(state: GameState, decks: readonly [Decklist, Dec
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-raid-optional-preset": layRaidOptionalPresetScenario,
+  "arena-preset-order-no-clicks": layPresetOrderNoClicksScenario,
   "arena-oct06-king-sukamon-assembly": (state, decks) => layOct06LatestScenario(state, decks, "king-sukamon-assembly"),
   "arena-oct06-chuumon-trash-revival": (state, decks) => layOct06LatestScenario(state, decks, "chuumon-trash-revival"),
   "arena-oct06-dorbickmon-digixros": (state, decks) => layOct06LatestScenario(state, decks, "dorbickmon-digixros"),
