@@ -198,3 +198,51 @@ it("#5247 playable arena discounts Option use despite Chikurimon before deleting
   expect(s.state.players[1]!.trash.some((c) => c.cardId === "ST13-08")).toBe(true);
   await s.finish();
 });
+
+it("#5258 playable arena lets a resolution-plan DNA be followed by declining the attack", async () => {
+  const s = await launch("arena-issue-5258-plesiomon-optional-attack", {
+    autoAcceptOptional: true,
+    autoSelectCards: true,
+    autoOrderTriggers: false,
+    declinePrompts: ["Attack with a Digimon"],
+  });
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.hand("EX8-021").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+  const req = s.state.pendingDecision!;
+  const keys: string[] = JSON.parse(req.payloadJson).triggerKeys;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: req.decisionId,
+      response: { kind: "orderTriggers", order: keys, optionalAnswers: { [keys[0]!]: true, [keys[1]!]: false } },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.field("EX8-029") !== undefined && !s.state.pendingDecision);
+  expect(
+    s.decisions.some(({ req }) => req.kind === "optional" && req.options?.selectionContext === "attackSource"),
+  ).toBe(true);
+  expect(s.events.some((e) => e.kind === "attackDeclared")).toBe(false);
+  expect(s.state.players[1]!.security).toHaveLength(3);
+  await s.finish();
+});
+
+it("#5259 playable arena excludes GulusGammamon from the Brothers Delay on BetelGammamon", async () => {
+  const preferred: string[] = [];
+  const s = await launch("arena-issue-5259-gammamon-exact-evolution", {
+    autoAcceptOptional: true,
+    autoSelectCards: true,
+    autoOrderTriggers: true,
+    preferInstanceIds: preferred,
+  });
+  preferred.push(s.hand("BT21-010").instanceId, s.field("BT21-019").permanentId, s.hand("RB1-009").instanceId);
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.hand("BT21-022").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(
+    () => s.field("RB1-009") !== undefined && !s.state.pendingDecision && s.engine.mainVerbContinuationsInFlight === 0,
+  );
+  expect(s.hand("EX10-042")).toBeDefined();
+  expect(s.state.memory).toBe(3);
+  expect(s.state.turnSeat).toBe(0);
+  await s.finish();
+});

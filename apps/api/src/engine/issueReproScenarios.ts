@@ -39,6 +39,23 @@ const ISSUE_LAYOUTS = {
       { security: ["BT1-009", "BT1-009", "BT1-009"] },
     ],
   },
+  "arena-issue-5258-plesiomon-optional-attack": {
+    memory: 10,
+    players: [
+      { field: [{ card: "EX8-027" }, { card: "EX8-026" }, { card: "EX8-027" }], hand: ["EX8-021", "EX8-029"] },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-issue-5259-gammamon-exact-evolution": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "BT21-019", under: ["RB1-001", "BT21-010"] }, { card: "BT21-090" }],
+        hand: ["BT21-022", "BT21-010", "RB1-009", "EX10-042"],
+      },
+      { field: [{ card: "BT1-009" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
   "arena-issue-5207-dorimon-guard": {
     memory: 3,
     players: [

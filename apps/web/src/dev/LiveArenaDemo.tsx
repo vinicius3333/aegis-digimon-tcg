@@ -24,6 +24,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "End breeding, select Examon BT20-045 from hand and choose Digivolve. Select Groundramon EX13-041 and Wingdramon EX13-021 on the field, then confirm. Both Lv.5 Digimon count as Lv.6 for this DNA, which costs zero memory.",
     ptBR: "Encerre a criação, selecione Examon BT20-045 na mão e escolha Digivoluir. Selecione Groundramon EX13-041 e Wingdramon EX13-021 no campo e confirme. Ambos os Lv.5 contam como Lv.6 para essa DNA, que custa zero memória.",
   },
+  "arena-issue-5258-plesiomon-optional-attack": {
+    en: "End breeding and play EX8-021. Accept one Plesiomon activation in the effect order and decline the other. DNA Plesiomon and MetalSeadramon into Aegisdramon. The separate attack question must allow declining, leaving security untouched.",
+    ptBR: "Encerre a criação e jogue EX8-021. Aceite uma ativação do Plesiomon na ordem dos efeitos e recuse a outra. Faça DNA de Plesiomon e MetalSeadramon em Aegisdramon. A pergunta separada sobre atacar deve permitir recusar, mantendo a segurança intacta.",
+  },
+  "arena-issue-5259-gammamon-exact-evolution": {
+    en: "End breeding and play Canoweissmon BT21-022. Place hand Gammamon under it to delete the opponent's Digimon. Accept Strongest of Brothers Delay, choose BetelGammamon, then Canoweissmon RB1-009. GulusGammamon EX10-042 must not be eligible: its named route requires exactly Gammamon.",
+    ptBR: "Encerre a criação e jogue Canoweissmon BT21-022. Coloque Gammamon da mão sob ele para deletar o Digimon adversário. Aceite o Delay de The Strongest of Brothers, escolha BetelGammamon e depois Canoweissmon RB1-009. GulusGammamon EX10-042 não deve ser elegível: sua rota exige exatamente Gammamon.",
+  },
   "arena-oct06-king-sukamon-assembly": {
     ptBR: "Encerre a criação e jogue KingSukamon EX13-031. Selecione os três Sukamon do lixo na modal central e confirme Assembly. O custo cai de 7 para 3; as três cartas ficam sob KingSukamon. Recuse o efeito opcional para encerrar o fluxo. Bug 1557077795321024543.",
     en: "End breeding and play EX13-031 KingSukamon. Select the three Sukamon trash cards in the central dialog and confirm Assembly. Play cost falls from 7 to 3; the three cards go under KingSukamon. Decline the optional effect to finish the flow. Bug 1557077795321024543.",
@@ -1833,6 +1841,8 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-tai-matt-double-end-turn", "Tai & Matt BT17 · double End of Turn"],
   ["arena-issue-5254-examon-dna", "GitHub #5254 · Examon BT20 / EX13 Lv.5 DNA"],
+  ["arena-issue-5258-plesiomon-optional-attack", "GitHub #5258 · Plesiomon optional attack"],
+  ["arena-issue-5259-gammamon-exact-evolution", "GitHub #5259 · Gammamon exact evolution"],
   ["arena-oct06-king-sukamon-assembly", "06/10 · KingSukamon · Assembly do lixo"],
   ["arena-oct06-chuumon-trash-revival", "06/10 · Chuumon EX5 · herança e jogar do lixo"],
   ["arena-oct06-dorbickmon-digixros", "06/10 · Dorbickmon EX3 · cinco materiais DigiXros"],

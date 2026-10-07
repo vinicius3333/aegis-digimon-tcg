@@ -103,6 +103,8 @@ export interface AegisJoinOptions {
     | "arena-issue-5247-crimson-use-cost"
     | "arena-tai-matt-double-end-turn"
     | "arena-issue-5254-examon-dna"
+    | "arena-issue-5258-plesiomon-optional-attack"
+    | "arena-issue-5259-gammamon-exact-evolution"
     | "arena-issue-5248-dynasmon-security"
     | "arena-issue-5207-dorimon-guard"
     | "arena-issue-5214-habakirimon-security"
