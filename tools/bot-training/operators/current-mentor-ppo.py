@@ -1,4 +1,4 @@
-"""One all44 mixed-opponent PPO pass from actual closed warm mentor imitation."""
+"""One all44 mixed-opponent PPO pass from actual CPU-qualified native imitation."""
 
 import argparse
 import ast
@@ -26,6 +26,10 @@ IMITATION_NAME = 'rule-link-current-aa2e56463-mentor-imitation-r3'
 IMITATION_REQUEST_SHA = 'f662b7899b1895b9e5a23a917c9aa76a38d87e337937f776f538a59ca03815da'
 IMITATION_IDENTITY_SHA = '2ec641d36ece880361132fc76845c733df854e3f5605b98064159ee9167162a8'
 IMITATION_GO_SHA = 'c72b637f6fa4359a4bd4f8c50bd62c738a69daa3adcd521b1359bb112903f37b'
+RECOVERY = LAB / 'transfers/rule-link-current-mentor-imitation-recovery.py'
+RECOVERY_SHA = '4b2734a582637b8fa97e01c5fe04f1ada0cae160fac2b5bd45bc0c6954da0bb9'
+RECOVERY_NAME = 'rule-link-current-aa2e56463-mentor-imitation-custody-r1'
+NATIVE_CHECKPOINT_SHA = '8f61d0c182b1c804bc4ac914f75d20ffbdce1c1988c30d15319ccd4057e84a62'
 BASELINE_COMPLETION = 'b32675433481b354e965de11ed0e118f7c66aa7dc5c76326625f0ace22eff339'
 GAMES = 3872
 
@@ -46,12 +50,14 @@ def pinned_loader(path: Path, sha: str, name: str) -> Any:
 
 
 def request_fields(r: dict) -> None:
-    require(type(r.get('imitationCompletionSha256')) is str
-        and re.fullmatch('[a-f0-9]{64}', r['imitationCompletionSha256']) is not None, 'Actual imitation completion required')
+    recovery = r.get('imitationRecovery')
+    require(type(recovery) is dict and set(recovery) == {'requestSha256', 'identitySha256', 'resourceGoSha256', 'completionSha256'}
+        and all(type(v) is str and re.fullmatch('[a-f0-9]{64}', v) is not None for v in recovery.values()),
+        'Actual externally observed CPU custody pins required')
     checkpoint = r.get('checkpoint')
     require(type(checkpoint) is dict and set(checkpoint) == {'path', 'sha256'}
         and checkpoint['path'] == str(LAB / 'runs' / IMITATION_NAME / 'imitation/checkpoint.pt')
-        and type(checkpoint['sha256']) is str and re.fullmatch('[a-f0-9]{64}', checkpoint['sha256']) is not None,
+        and checkpoint['sha256'] == NATIVE_CHECKPOINT_SHA,
         'Exact actual selected native imitation checkpoint; no pending input')
     require(type(r.get('seed')) is int and 6000000 <= r['seed'] and r['seed'] + GAMES < 6130000, 'Fresh training range only')
     decks = r.get('learnerDecks')
@@ -62,7 +68,7 @@ def request_fields(r: dict) -> None:
         'run': str(RUN), 'identity': str(LAB / 'transfers' / (NAME + '-identity.json')),
         'resourceGo': str(LAB / 'transfers' / (NAME + '-ROOT-go.json')),
         'wrapper': r.get('wrapper'), 'inventory': r.get('inventory'), 'checkpoint': checkpoint,
-        'imitationCompletionSha256': r['imitationCompletionSha256'],
+        'imitationRecovery': recovery,
         'comparisonCompletionSha256': BASELINE_COMPLETION,
         'opponentCheckpoints': r.get('opponentCheckpoints'), 'heuristicShare': 0.5,
         'learnerDecks': decks, 'seed': r['seed'], 'games': GAMES, 'passes': 1, 'batchGames': 88,
@@ -73,7 +79,7 @@ def request_fields(r: dict) -> None:
         and r['finalBlindSeedsAuthorized'] is False and r['fullAll44AgainstAllFourRequiredAfterLearning'] is True,
         'Exact typed learning scope; no boolean count aliases')
     # The complete scanner also pins native results.json, which changes during
-    # imitation. Use fresh exclusive assets after actual imitation whole0;
+    # imitation. Use fresh exclusive assets after actual CPU custody whole0;
     # earlier preflight files remain sealed and cannot be overwritten.
     for key, suffix in (('wrapper', '-launch-closed.sh'), ('inventory', '-seed-inventory-closed.json')):
         require(type(r[key]) is dict and set(r[key]) == {'path', 'sha256'}
@@ -81,28 +87,39 @@ def request_fields(r: dict) -> None:
 
 
 def imitation_proof(r: dict) -> dict:
-    result = subprocess.run([str(LAB / 'venv/bin/python'), '-B', str(IMITATION), '--closed',
-        '--request', str(LAB / 'transfers' / (IMITATION_NAME + '-request.json')),
-        '--request-sha', IMITATION_REQUEST_SHA, '--operator-sha', IMITATION_SHA,
-        '--identity-sha', IMITATION_IDENTITY_SHA, '--go-sha', IMITATION_GO_SHA,
-        '--completion-sha', r['imitationCompletionSha256']], check=True, capture_output=True, text=True)
+    recovery = r['imitationRecovery']
+    result = subprocess.run([str(LAB / 'venv/bin/python'), '-B', str(RECOVERY), '--closed',
+        '--request', str(LAB / 'transfers' / (RECOVERY_NAME + '-request.json')),
+        '--request-sha', recovery['requestSha256'], '--operator-sha', RECOVERY_SHA,
+        '--identity-sha', recovery['identitySha256'], '--go-sha', recovery['resourceGoSha256'],
+        '--completion-sha', recovery['completionSha256']], check=True, capture_output=True, text=True)
     proof = json.loads(result.stdout)
     validate_imitation_proof(r, proof)
     return proof
 
 
 def validate_imitation_proof(r: dict, proof: dict) -> None:
-    require(type(proof['actualWholeExitCode']) is int and proof['actualWholeExitCode'] == 0
-        and proof['completionSha256'] == r['imitationCompletionSha256'], 'Actual original full imitation whole0 consumer')
-    report = proof['report']
+    require(type(proof['actualRecoveryWholeExitCode']) is int and proof['actualRecoveryWholeExitCode'] == 0
+        and type(proof['originalImitationWholeExitCode']) is int and proof['originalImitationWholeExitCode'] == 1
+        and proof['completionSha256'] == r['imitationRecovery']['completionSha256'],
+        'Actual full CPU custody whole0 consumer; original imitation remains whole1')
+    custody = proof['report']
+    require(custody['sourceCommit'] == SOURCE and custody['engineSha256'] == ENGINE
+        and custody['originalImitationWholeExitCode'] == 1 and custody['checkpoint'] == r['checkpoint']
+        and type(custody['actualNewGames']) is int and custody['actualNewGames'] == 0
+        and type(custody['actualNewLearningUpdates']) is int and custody['actualNewLearningUpdates'] == 0
+        and custody['cpuOnly'] is True and custody['sourceDataWholeExitCodes'] == {'base': 0, 'supplement': 0, 'validation': 0}
+        and custody['acceptedStrengthOrMastery'] is False and custody['finalBlindSeedsConsumed'] is False,
+        'Exact no-update CPU inspection of original native model and actual data closures')
+    report = custody['imitation']
     require(report['sourceCommit'] == SOURCE and report['engineSha256'] == ENGINE
         and report['checkpoint'] == r['checkpoint'] and type(report['selectedEpoch']) is int
-        and 0 < report['selectedEpoch'] <= 3 and report['actualTrainingEpochs'] == 3
+        and report['selectedEpoch'] == 3 and report['actualTrainingEpochs'] == 3
         and report['actualNewGames'] == 0 and report['originalEpisodeFolds'] == {'training': 3225, 'validation': 1607}
         and report['positiveEngineTeacherCoverage']['allMechanismsBothSeatsBothFolds'] is True
         and report['selectedLearning']['all12Finite'] is True
         and type(report['selectedLearning']['selectedActorAdamUpdates']) is int
-        and 0 < report['selectedLearning']['selectedActorAdamUpdates'] <= 3900
+        and report['selectedLearning']['selectedActorAdamUpdates'] == 3900
         and report['selectedLearning']['preservedValueParameters'] == ['value.bias', 'value.weight']
         and report['acceptedStrengthOrMastery'] is False and report['finalBlindSeedsConsumed'] is False,
         'Actual positive native imitation continuation and retained original data folds')
@@ -130,7 +147,8 @@ def namespace(r: dict, adapter: Any, raw: str) -> dict:
         adapter.pin(BASE, BASE_SHA)
         adapter.pin(ADAPTER, ADAPTER_SHA)
         adapter.pin(IMITATION, IMITATION_SHA)
-        adapter.pin(LAB / 'runs' / IMITATION_NAME / 'completion.json', r['imitationCompletionSha256'])
+        adapter.pin(RECOVERY, RECOVERY_SHA)
+        adapter.pin(LAB / 'runs' / RECOVERY_NAME / 'completion.json', r['imitationRecovery']['completionSha256'])
         adapter.pin(Path(r['checkpoint']['path']), r['checkpoint']['sha256'])
         for cp in adapter.LEAGUE:
             adapter.pin(Path(cp['path']), cp['sha256'])
@@ -141,6 +159,7 @@ def namespace(r: dict, adapter: Any, raw: str) -> dict:
         adapter.pin(args.request, args.request_sha)
         require(adapter.read(args.request) == r and r['operatorSha256'] == args.operator_sha, 'Actual own request/source binding')
         adapter.pin(IMITATION, IMITATION_SHA)
+        adapter.pin(RECOVERY, RECOVERY_SHA)
         imitation_proof(r)
         strength = adapter.load(LAB / 'transfers/rule-link-current-strength.py', ns['STRENGTH_SHA'], 'mentor_ppo_qualified_source_helpers')
         parity, h = strength.foundation()

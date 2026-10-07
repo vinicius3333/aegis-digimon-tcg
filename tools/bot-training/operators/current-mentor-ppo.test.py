@@ -34,22 +34,26 @@ class Guards(unittest.TestCase):
             'resourceGo': str(m.LAB / 'transfers' / (m.NAME + '-ROOT-go.json')),
             'wrapper': {'path': str(m.LAB / 'transfers' / (m.NAME + '-launch-closed.sh')), 'sha256': 'b' * 64},
             'inventory': {'path': str(m.LAB / 'transfers' / (m.NAME + '-seed-inventory-closed.json')), 'sha256': 'c' * 64},
-            'checkpoint': {'path': str(m.LAB / 'runs' / m.IMITATION_NAME / 'imitation/checkpoint.pt'), 'sha256': 'd' * 64},
-            'imitationCompletionSha256': 'e' * 64, 'comparisonCompletionSha256': m.BASELINE_COMPLETION,
+            'checkpoint': {'path': str(m.LAB / 'runs' / m.IMITATION_NAME / 'imitation/checkpoint.pt'), 'sha256': m.NATIVE_CHECKPOINT_SHA},
+            'imitationRecovery': {'requestSha256': 'd' * 64, 'identitySha256': 'e' * 64, 'resourceGoSha256': 'f' * 64, 'completionSha256': '1' * 64}, 'comparisonCompletionSha256': m.BASELINE_COMPLETION,
             'opponentCheckpoints': self.adapter.LEAGUE, 'heuristicShare': 0.5, 'learnerDecks': decks,
             'seed': 6029858, 'games': 3872, 'passes': 1, 'batchGames': 88, 'learningRate': 1e-5,
             'fullAll44AgainstAllFourRequiredAfterLearning': True, 'finalBlindSeedsAuthorized': False}
-        self.proof = {'actualWholeExitCode': 0, 'completionSha256': 'e' * 64, 'report': {
+        self.proof = {'actualRecoveryWholeExitCode': 0, 'originalImitationWholeExitCode': 1, 'completionSha256': '1' * 64, 'report': {
             'sourceCommit': m.SOURCE, 'engineSha256': m.ENGINE, 'checkpoint': self.r['checkpoint'],
-            'selectedEpoch': 2, 'actualTrainingEpochs': 3, 'actualNewGames': 0,
+            'originalImitationWholeExitCode': 1, 'actualNewGames': 0, 'actualNewLearningUpdates': 0,
+            'cpuOnly': True, 'sourceDataWholeExitCodes': {'base': 0, 'supplement': 0, 'validation': 0},
+            'acceptedStrengthOrMastery': False, 'finalBlindSeedsConsumed': False, 'imitation': {
+            'sourceCommit': m.SOURCE, 'engineSha256': m.ENGINE, 'checkpoint': self.r['checkpoint'],
+            'selectedEpoch': 3, 'actualTrainingEpochs': 3, 'actualNewGames': 0,
             'originalEpisodeFolds': {'training': 3225, 'validation': 1607},
             'positiveEngineTeacherCoverage': {'allMechanismsBothSeatsBothFolds': True},
-            'selectedLearning': {'all12Finite': True, 'selectedActorAdamUpdates': 2600,
+            'selectedLearning': {'all12Finite': True, 'selectedActorAdamUpdates': 3900,
                 'preservedValueParameters': ['value.bias', 'value.weight']},
-            'acceptedStrengthOrMastery': False, 'finalBlindSeedsConsumed': False}}
+            'acceptedStrengthOrMastery': False, 'finalBlindSeedsConsumed': False}}}
 
     def test_pending_or_guessed_checkpoint_not_admitted(self):
-        for key, value in [('imitationCompletionSha256', None), ('imitationCompletionSha256', 'pending'),
+        for key, value in [('imitationRecovery', None), ('imitationRecovery', {'completionSha256': 'pending'}),
             ('checkpoint', {'path': self.r['checkpoint']['path'], 'sha256': None})]:
             r = copy.deepcopy(self.r); r[key] = value
             with self.subTest(key=key, value=value), self.assertRaises(ValueError): m.request_fields(r)
@@ -82,8 +86,19 @@ class Guards(unittest.TestCase):
 
     def test_failed_partial_or_boolean_whole_rejected(self):
         for code in (1, 143, False):
-            p = copy.deepcopy(self.proof); p['actualWholeExitCode'] = code
+            p = copy.deepcopy(self.proof); p['actualRecoveryWholeExitCode'] = code
             with self.subTest(code=code), self.assertRaises(ValueError): m.validate_imitation_proof(self.r, p)
+
+    def test_original_imitation_failure_must_stay_failed(self):
+        for code in (0, True, 143):
+            p = copy.deepcopy(self.proof); p['originalImitationWholeExitCode'] = code
+            with self.subTest(code=code), self.assertRaises(ValueError): m.validate_imitation_proof(self.r, p)
+
+    def test_custody_cannot_add_games_updates_or_strength(self):
+        for key, value in [('actualNewGames', 1), ('actualNewLearningUpdates', 1), ('actualNewLearningUpdates', False),
+            ('cpuOnly', False), ('acceptedStrengthOrMastery', True), ('finalBlindSeedsConsumed', True)]:
+            p = copy.deepcopy(self.proof); p['report'][key] = value
+            with self.subTest(key=key), self.assertRaises(ValueError): m.validate_imitation_proof(self.r, p)
 
     def test_wrong_actual_selected_cp_or_completion_rejected(self):
         p = copy.deepcopy(self.proof); p['report']['checkpoint']['sha256'] = 'f' * 64
@@ -94,15 +109,15 @@ class Guards(unittest.TestCase):
     def test_no_learning_epoch_and_fold_change_rejected(self):
         for key, value in [('selectedEpoch', 0), ('selectedEpoch', True), ('actualNewGames', 1),
             ('originalEpisodeFolds', {'training': 4025, 'validation': 807})]:
-            p = copy.deepcopy(self.proof); p['report'][key] = value
+            p = copy.deepcopy(self.proof); p['report']['imitation'][key] = value
             with self.subTest(key=key), self.assertRaises(ValueError): m.validate_imitation_proof(self.r, p)
 
     def test_full_original_consumer_arguments_and_nonzero_exit(self):
         with patch.object(m.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, json.dumps(self.proof))) as run:
             m.imitation_proof(self.r)
             argv = run.call_args.args[0]
-            self.assertIn('--closed', argv); self.assertIn(m.IMITATION_IDENTITY_SHA, argv)
-            self.assertEqual(argv[-2:], ['--completion-sha', self.r['imitationCompletionSha256']])
+            self.assertIn('--closed', argv); self.assertIn(self.r['imitationRecovery']['identitySha256'], argv); self.assertIn(str(m.RECOVERY), argv)
+            self.assertEqual(argv[-2:], ['--completion-sha', self.r['imitationRecovery']['completionSha256']])
         with patch.object(m.subprocess, 'run', side_effect=subprocess.CalledProcessError(1, ['synthetic-only'])):
             with self.assertRaises(subprocess.CalledProcessError): m.imitation_proof(self.r)
 
@@ -124,7 +139,7 @@ class Guards(unittest.TestCase):
 
     def test_unequal_inherited_bc_steps_allow_equal_positive_new_ppo_steps(self):
         ns = m.namespace(self.r, self.adapter, self.raw)
-        before = {'weights': {f'p{i}': {'shape': [2], 'sha256': 'a', 'adamStep': 6632 + (2600 if i < 10 else 0)}
+        before = {'weights': {f'p{i}': {'shape': [2], 'sha256': 'a', 'adamStep': 6632 + (3900 if i < 10 else 0)}
             for i in range(12)}, 'cudaInitialized': False, 'learningRate': 1e-5}
         after = copy.deepcopy(before)
         for value in after['weights'].values(): value.update(sha256='b', adamStep=value['adamStep'] + 24)

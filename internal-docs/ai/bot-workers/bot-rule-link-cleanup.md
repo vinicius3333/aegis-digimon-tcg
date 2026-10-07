@@ -2220,3 +2220,28 @@ identitySHA1bbd52e69383d1f5fe850a08fe9cefb0999ce3436e30e0c03bc6b09d8ff7c245.
 The native CPU qualification, custody completion/whole0/full strict reader
 are pending. No actual PPO job, new games/updates, finalblind seeds or serving
 change is authorized by this recovery; all final acceptance gates remain.
+
+
+## PPO input now requires actual CPU custody, retains original failure
+
+New exclusive external PPO source `rule-link-current-mentor-ppo-custody.py`
+SHA5a5b930671c35d2905e0e23fd6b906b47e6011b0c18912b3b376ebeb557924d9
+and15-test sourceSHAba132ac98c3e5615a894f9952d696b8844249385ef89e7b82ddbc20cdf642ead
+are sealed with all15 local/desktop guards0, four original helper byte pins
+and all four immutable reference CPPs exact, no primary imports/games/learning.
+This supersedes the unused3259 source contract without changing its sealed
+bytes: original imitation whole0 is impossible and must never be fabricated.
+The request now requires all four externally observed recovery custody pins;
+its full actual `--closed` consumer must prove custody whole0/original whole1,
+source/data identity and zero new updates/games, native selected epoch3/3900
+steps and exact original CPP8f61. No pending or guessed custody accepted.
+Additional guards reject original-failure relabeling and learning/strength
+claims from CPU inspection. Existing all44/3872 mixed-opponent PPO mechanics,
+whole guards, records, full seed scanner and equal positive NEW Adam deltas
+across all12 weights are reused unchanged from actual qualified mixed-PPO.
+
+The local pending `-launch-closed.sh` now references this custody adapter and
+passes Bash-n; it remains unuploaded. Definitive complete seed inventory,
+actual custody completion/strict reader, final PPO request/ROOT resource Go
+and idle admission are still pending. No PPO job has started. No same-FP
+metadata migration, source/engine rebuild, original CP or raw dataset change.
