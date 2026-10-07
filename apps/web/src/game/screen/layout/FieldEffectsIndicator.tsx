@@ -56,7 +56,16 @@ export function FieldEffectsIndicator({
     function measure() {
       const bounds = row!.getBoundingClientRect();
       const visible = field!.getBoundingClientRect();
-      const top = ownField ? bounds.bottom - 48 : bounds.top + 4;
+      // The outer edge is outside the cards and their paging controls. A portal
+      // keeps the touch target clear of row clipping without reserving lane space.
+      const compact = window.matchMedia("(max-width: 959px)").matches;
+      const top = compact
+        ? ownField
+          ? bounds.bottom - 30
+          : bounds.top - 28
+        : ownField
+          ? bounds.bottom - 48
+          : bounds.top + 4;
       const next =
         top >= visible.top && top + 44 <= visible.bottom
           ? { right: Math.max(8, window.innerWidth - Math.min(bounds.right, visible.right) + 4), top }
