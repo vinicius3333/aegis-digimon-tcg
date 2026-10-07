@@ -658,7 +658,9 @@ export const en = {
   "deck.colorBalance": "Color balance",
   "deck.cardEyebrow": "Deck",
   "deck.importTitle": "Import deck",
-  "deck.importHint": "Paste a DigimonCard.io deck list. Each line:",
+  "deck.importHint":
+    "Paste a deck list from DigimonCard.io, digimoncard.app, digimoncard.dev, DCGO or Untap. Each line:",
+  "deck.importHintTabletop": "Tabletop Simulator codes from Digimon Meta and the same sites also work:",
   "deck.exportTitle": "Export deck",
   "deck.exportImage": "Export image",
   "deck.exportImageRendering": "Rendering…",

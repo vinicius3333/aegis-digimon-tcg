@@ -63,7 +63,13 @@ export function DeckList({
   const handleImport = (text: string) => {
     const result = parseDeckList(text);
     const base = createBlankDeck(decks, undefined, t("deck.newDeckName"));
-    onEdit({ ...base, mainDeck: result.mainDeck, eggDeck: result.eggDeck });
+    onEdit({
+      ...base,
+      mainDeck: result.mainDeck,
+      eggDeck: result.eggDeck,
+      mainDeckArts: result.mainDeckArts,
+      eggDeckArts: result.eggDeckArts,
+    });
     setImporting(false);
   };
 

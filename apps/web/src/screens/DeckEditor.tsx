@@ -52,6 +52,18 @@ import "./deckBuilder.css";
 const PAGE_SIZE = 60;
 
 /* ---------------- editor ---------------- */
+/** Each card's per-copy artwork, from a deck's flat copy and art lists. */
+function artsByCard(deck: Pick<DeckListing, "mainDeck" | "eggDeck" | "mainDeckArts" | "eggDeckArts">) {
+  const result: Record<string, string[]> = {};
+  for (const [ids, choices] of [
+    [deck.mainDeck, deck.mainDeckArts],
+    [deck.eggDeck, deck.eggDeckArts],
+  ] as const) {
+    ids.forEach((id, index) => (result[id] ??= []).push(resolveCardArt(id, choices?.[index]).artId));
+  }
+  return result;
+}
+
 export function DeckEditor({
   deck,
   onSave,
@@ -72,16 +84,7 @@ export function DeckEditor({
   });
   const [main, setMain] = useState<CountMap>(() => toCountMap(deck.mainDeck));
   const [egg, setEgg] = useState<CountMap>(() => toCountMap(deck.eggDeck));
-  const [arts, setArts] = useState<Record<string, string[]>>(() => {
-    const result: Record<string, string[]> = {};
-    for (const [ids, choices] of [
-      [deck.mainDeck, deck.mainDeckArts],
-      [deck.eggDeck, deck.eggDeckArts],
-    ] as const) {
-      ids.forEach((id, index) => (result[id] ??= []).push(resolveCardArt(id, choices?.[index]).artId));
-    }
-    return result;
-  });
+  const [arts, setArts] = useState<Record<string, string[]>>(() => artsByCard(deck));
   const [chosenArt, setChosenArt] = useState<Record<string, string>>({});
   const [artPickerCard, setArtPickerCard] = useState<string | null>(null);
   const [name, setName] = useState(deck.name);
@@ -194,7 +197,7 @@ export function DeckEditor({
 
   const handleImport = (text: string) => {
     const result = parseDeckList(text);
-    setArts({});
+    setArts(artsByCard(result));
     setMain(toCountMap(result.mainDeck));
     setEgg(toCountMap(result.eggDeck));
     setImporting(false);

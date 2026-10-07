@@ -295,6 +295,10 @@ export function deckColorKey(deck: DeckListing): ColorName {
 export interface DeckParseResult {
   mainDeck: string[];
   eggDeck: string[];
+  /** Per-copy artwork, aligned with `mainDeck`; alternate-art ids such as BT1-010_P1 keep their art. */
+  mainDeckArts: string[];
+  /** Per-copy artwork, aligned with `eggDeck`. */
+  eggDeckArts: string[];
   skipped: number;
   /** Cards trimmed because the deck or egg deck was already full. */
   trimmed: number;
@@ -303,47 +307,113 @@ export interface DeckParseResult {
 const IMPORT_MAIN_LIMIT = 50;
 const IMPORT_EGG_LIMIT = 5;
 
+interface ImportEntry {
+  code: string;
+  count: number;
+}
+
+/** A card number such as BT1-009, ST24-04, P-001 or EX13-076, with an optional _P1 alternate-art suffix. */
+const CARD_CODE = /\b([A-Z]{1,3}\d{0,2}-\d{2,3})(?:_P\d+)?\b/gi;
+const COPY_COUNT = /^x?(\d{1,2})x?$/i;
+/** The header element Tabletop Simulator codes start with, e.g. "Exported from digimonmeta.com". */
+const EXPORT_HEADER = /^exported from\b/i;
+
+/** Uppercases a code and drops leading zeros from the set number, so ST01-01 matches ST1-01. */
+function normalizeCode(code: string): string {
+  return code.toUpperCase().replace(/^([A-Z]+)0+(\d)/, "$1$2");
+}
+
 /**
- * Parses a DigimonCard.io-format deck list:
- *   // DigimonCard.io Deck List
- *   4 Agumon BT1-009
- * Lines starting with "//" are skipped. The last whitespace-separated token on
- * each data line is treated as the card ID; the first token is the count.
- * Unknown card IDs are counted in `skipped`; counts are capped to
- * banlist-aware per-card limits. Main deck is capped at 50, egg deck at 5.
+ * A Tabletop Simulator code: a JSON array with one card number per copy, used by
+ * Digimon Meta, DigimonCard.io, digimoncard.app, digimoncard.dev and older DCGO.
+ * Undefined when the text is not such an array. The quoted strings are read
+ * directly rather than through JSON.parse, so a code that lost its closing
+ * bracket in a copy and paste still imports.
  */
-export function parseDeckList(text: string): DeckParseResult {
-  const mainDeck: string[] = [];
-  const eggDeck: string[] = [];
-  let skipped = 0;
-  let trimmed = 0;
+function tabletopEntries(text: string): ImportEntry[] | undefined {
+  if (!text.startsWith("[")) return undefined;
+  const items = [...text.matchAll(/"([^"]*)"/g)].map((match) => match[1]!.trim());
+  if (items.length === 0) return undefined;
+  return items.filter((item) => !EXPORT_HEADER.test(item)).map((code) => ({ code, count: 1 }));
+}
+
+/** The copy count on a line: a leading count, else a trailing one, else 1. Accepts 4, 4x and x4. */
+function lineCount(tokens: readonly string[]): number {
+  const counts = tokens.flatMap((token) => {
+    const match = COPY_COUNT.exec(token);
+    return match ? [Number(match[1])] : [];
+  });
+  if (counts.length === 0) return 1;
+  const first = COPY_COUNT.exec(tokens[0]!);
+  return first ? Number(first[1]) : counts.at(-1)!;
+}
+
+/**
+ * Text deck lists, one card per line, in any column order:
+ *   4 Agumon BT1-009                (DigimonCard.io, digimoncard.app, DCGO)
+ *   4 Agumon (DCG) (BT1-009)        (Untap)
+ *   BT1-009 Agumon 4                (digimoncard.app custom order)
+ * Comment lines (// or #) and lines without a card number, such as section headers, are ignored.
+ */
+function textEntries(text: string): ImportEntry[] {
+  const entries: ImportEntry[] = [];
   for (const raw of text.split("\n")) {
     const line = raw.trim();
-    if (!line || line.startsWith("//")) continue;
-    const tokens = line.split(/\s+/);
-    if (tokens.length < 2) continue;
-    const count = parseInt(tokens[0]!, 10);
-    if (isNaN(count) || count < 1) continue;
-    const cardId = tokens[tokens.length - 1]!;
+    if (!line || line.startsWith("//") || line.startsWith("#")) continue;
+    const codes = [...line.matchAll(CARD_CODE)];
+    const code = codes.at(-1);
+    if (!code) continue;
+    const tokens = line.replace(code[0], " ").split(/\s+/).filter(Boolean);
+    const count = lineCount(tokens);
+    if (count < 1) continue;
+    entries.push({ code: code[0], count });
+  }
+  return entries;
+}
+
+/**
+ * Parses a pasted deck list: a text list or a Tabletop Simulator JSON code.
+ * Digi-Eggs go to the egg deck by card type, since no common export marks them.
+ * Unknown card numbers are counted in `skipped`; copies are capped to the
+ * banlist-aware per-card limit across the whole list. Main deck is capped at 50,
+ * egg deck at 5.
+ */
+export function parseDeckList(text: string): DeckParseResult {
+  const trimmedText = text.trim();
+  const entries = tabletopEntries(trimmedText) ?? textEntries(trimmedText);
+  const mainDeck: string[] = [];
+  const eggDeck: string[] = [];
+  const mainDeckArts: string[] = [];
+  const eggDeckArts: string[] = [];
+  const copies = new Map<string, number>();
+  let skipped = 0;
+  let trimmed = 0;
+  for (const { code, count } of entries) {
+    const artCode = normalizeCode(code);
+    const cardId = artCode.replace(/_P\d+$/, "");
     const def = getCardDefinition(cardId);
     if (!def) {
       skipped += 1;
       continue;
     }
+    const artId = resolveCardArt(cardId, artCode).artId;
     const cap = Math.min(def.maxCountInDeck, banlistLimit(cardId));
-    const copies = Math.min(count, cap);
     const isEgg = kindOf(def) === "DigiEgg";
-    const target = isEgg ? eggDeck : mainDeck;
-    const targetLimit = isEgg ? IMPORT_EGG_LIMIT : IMPORT_MAIN_LIMIT;
-    for (let i = 0; i < copies; i += 1) {
+    const [target, targetArts, targetLimit] = isEgg
+      ? [eggDeck, eggDeckArts, IMPORT_EGG_LIMIT]
+      : [mainDeck, mainDeckArts, IMPORT_MAIN_LIMIT];
+    const allowed = Math.min(count, Math.max(0, cap - (copies.get(cardId) ?? 0)));
+    for (let i = 0; i < allowed; i += 1) {
       if (target.length >= targetLimit) {
         trimmed += 1;
         break;
       }
       target.push(cardId);
+      targetArts.push(artId);
+      copies.set(cardId, (copies.get(cardId) ?? 0) + 1);
     }
   }
-  return { mainDeck, eggDeck, skipped, trimmed };
+  return { mainDeck, eggDeck, mainDeckArts, eggDeckArts, skipped, trimmed };
 }
 
 /**
