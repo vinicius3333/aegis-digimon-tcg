@@ -7,6 +7,7 @@ export const arenaEs: Record<keyof typeof arenaEn, string> = {
     "Colores del tablero, campo de batalla y sonido. Los cambios se aplican al instante.",
   "redesign.arena.audio.title": "Sonido",
   "redesign.arena.audio.music": "Música",
+  "redesign.arena.audio.musicTrack": "Banda sonora",
   "redesign.arena.audio.musicVolume": "Volumen de la música",
   "redesign.arena.audio.effects": "Efectos de sonido y avisos",
   "redesign.arena.audio.effectsVolume": "Volumen de los efectos",
