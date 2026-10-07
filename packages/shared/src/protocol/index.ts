@@ -5,3 +5,4 @@ export * from "./triggerKey.js";
 export * from "./pacing.js";
 export * from "./presentation.js";
 export * from "./chat.js";
+export * from "./series.js";

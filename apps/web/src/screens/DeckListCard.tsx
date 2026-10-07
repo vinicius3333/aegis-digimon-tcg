@@ -1,10 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import {
-  bannedPairViolations,
-  effectiveCopyLimit as banlistLimit,
-  getCardDefinition,
-  restrictionLabel,
-} from "@aegis/shared";
+import { deckLegality, getCardDefinition, restrictionLabel } from "@aegis/shared";
 import { Badge } from "../design/primitives";
 import { CoverThumb } from "../design/cards";
 import { COLORS } from "../design/theme";
@@ -13,42 +8,19 @@ import { displayCoverCard, displayCoverArt, type DeckListing } from "../game/dec
 import { useTranslation } from "../i18n";
 import "./deckListCard.css";
 
-const MAIN_TARGET = 50;
-const EGG_TARGET = 5;
-
-export interface DeckLegality {
-  legal: boolean;
-  banViolations: [string, number][];
-  pairViolations: [string, string][];
-}
-
-export function deckLegality(deck: DeckListing): DeckLegality {
-  const counts = new Map<string, number>();
-  for (const id of [...deck.mainDeck, ...deck.eggDeck]) counts.set(id, (counts.get(id) ?? 0) + 1);
-  const banViolations = [...counts.entries()].filter(([id, count]) => count > banlistLimit(id));
-  const pairViolations = bannedPairViolations([...deck.mainDeck, ...deck.eggDeck]);
-  return {
-    legal:
-      deck.mainDeck.length === MAIN_TARGET &&
-      deck.eggDeck.length <= EGG_TARGET &&
-      banViolations.length === 0 &&
-      pairViolations.length === 0,
-    banViolations,
-    pairViolations,
-  };
-}
-
 export function DeckListCard({
   deck,
   active,
   disabled = false,
   onSelect,
+  subtitle,
   actions,
 }: {
   deck: DeckListing;
   active: boolean;
   disabled?: boolean;
   onSelect?: () => void;
+  subtitle?: ReactNode;
   actions?: ReactNode;
 }) {
   const { t } = useTranslation();
@@ -89,6 +61,7 @@ export function DeckListCard({
             <div className="deck-list-card__name-row">
               <h3>{deck.name}</h3>
             </div>
+            {subtitle ? <span className="deck-list-card__subtitle">{subtitle}</span> : null}
           </div>
           {active ? (
             <Badge tone="primary">

@@ -12,9 +12,10 @@ import { COLORS, colorKey, type ColorName } from "../design/theme";
 import { FAMOUS_DECK_GROUPS, type DeckListing, type FamousDeckListingGroup } from "../game/decks";
 import { useTranslation } from "../i18n";
 import { DeckListCard } from "./DeckListCard";
+import { LobbyCommunityDecks } from "./community/LobbyCommunityDecks";
 import "./deckPicker.css";
 
-export type DeckFilter = "all" | "mine" | "famous";
+export type DeckFilter = "all" | "mine" | "famous" | "community";
 
 export interface OwnDeckEntry {
   deck: DeckListing;
@@ -86,6 +87,9 @@ function DeckPickerView({
   onViewDeck,
   onEditDeck,
   onBuildDeck,
+  onPickCommunityDeck,
+  onOpenCommunityDeck,
+  accountId,
 }: {
   ownDecks: OwnDeckEntry[];
   activeDeckId: string;
@@ -97,6 +101,9 @@ function DeckPickerView({
   onViewDeck: (deck: DeckListing) => void;
   onEditDeck: (deck: DeckListing) => void;
   onBuildDeck: () => void;
+  onPickCommunityDeck: (id: string) => void;
+  onOpenCommunityDeck: (id: string) => void;
+  accountId: string | undefined;
 }) {
   const { t } = useTranslation();
   const deckCount = (count: number) => t(count === 1 ? "lobby.deckCountOne" : "lobby.deckCount", { count });
@@ -109,8 +116,9 @@ function DeckPickerView({
   );
   const query = search.trim().toLocaleLowerCase();
   const searching = query !== "";
-  // The collection filter only narrows famous presets, so "Mine" ignores it.
-  const collectionChosen = filter !== "mine" && collection !== ALL_COLLECTIONS;
+  // The collection filter only narrows famous presets, so "Mine" and "Community" ignore it.
+  const collectionApplies = filter !== "mine" && filter !== "community";
+  const collectionChosen = collectionApplies && collection !== ALL_COLLECTIONS;
 
   const visibleOwnDecks = useMemo(() => ownDecks.filter(({ deck }) => matchesQuery(deck, query)), [ownDecks, query]);
   const visibleGroups = useMemo<FamousDeckListingGroup[]>(
@@ -126,14 +134,17 @@ function DeckPickerView({
   const famousTotal = FAMOUS_DECK_GROUPS.reduce((sum, group) => sum + group.decks.length, 0);
   const visibleFamousCount = visibleGroups.reduce((sum, group) => sum + group.decks.length, 0);
   // A chosen collection narrows the list to that collection's presets alone.
-  const showOwn = filter !== "famous" && !collectionChosen;
-  const showFamous = filter !== "mine";
+  const showCommunity = filter === "community";
+  const showOwn = filter !== "famous" && !showCommunity && !collectionChosen;
+  const showFamous = filter !== "mine" && !showCommunity;
   const visibleCount = (showOwn ? visibleOwnDecks.length : 0) + (showFamous ? visibleFamousCount : 0);
 
-  const filters: { key: DeckFilter; label: string; count: number }[] = [
+  // Community decks live on the server and grow every day, so their filter carries no count.
+  const filters: { key: DeckFilter; label: string; count?: number }[] = [
     { key: "all", label: t("lobby.filterAll"), count: ownDecks.length + famousTotal },
     { key: "mine", label: t("lobby.filterMine"), count: ownDecks.length },
     { key: "famous", label: t("lobby.filterFamous"), count: famousTotal },
+    { key: "community", label: t("community.lobbyFilter") },
   ];
 
   return (
@@ -160,7 +171,7 @@ function DeckPickerView({
           <span className="aegis-sr-only">{t("redesign.play.collection")}</span>
           <select
             value={collection}
-            disabled={filter === "mine"}
+            disabled={!collectionApplies}
             onChange={(event) => setCollection(event.target.value)}
           >
             <option value={ALL_COLLECTIONS}>{t("redesign.play.allCollections")}</option>
@@ -191,14 +202,26 @@ function DeckPickerView({
               onClick={() => setFilter(option.key)}
             >
               {option.label}
-              <span className="deck-picker__filter-count">{option.count}</span>
+              {option.count === undefined ? null : <span className="deck-picker__filter-count">{option.count}</span>}
             </button>
           ))}
         </div>
-        <span className="deck-picker__result-count" role="status">
-          {deckCount(visibleCount)}
-        </span>
+        {showCommunity ? null : (
+          <span className="deck-picker__result-count" role="status">
+            {deckCount(visibleCount)}
+          </span>
+        )}
       </div>
+
+      {showCommunity ? (
+        <LobbyCommunityDecks
+          search={search.trim()}
+          activeDeckId={randomSelected ? "" : activeDeckId}
+          onPick={onPickCommunityDeck}
+          onOpen={onOpenCommunityDeck}
+          accountId={accountId}
+        />
+      ) : null}
 
       {showOwn ? (
         <section className="deck-picker__group deck-picker__own" aria-label={t("lobby.yourDecks")}>

@@ -14,3 +14,4 @@ export * from "./dev/keywordPacing.js";
 export * from "./dev/phasePacing.js";
 
 export * from "./matchTimer.js";
+export * from "./matchFormat.js";

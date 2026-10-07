@@ -214,9 +214,10 @@ export function permCardId(state: GameState, permanentId: string): string | unde
 /** Locate a visible card instance in hand or on the board by instanceId. */
 export function instanceCardId(state: GameState, instanceId: string): string | undefined {
   const onPermanent = (perm: Permanent): CardInstance | undefined =>
-    [perm.topCard, ...perm.stack, ...perm.linked].find((c) => c?.instanceId === instanceId);
+    [perm.topCard, ...(perm.stack ?? []), ...(perm.linked ?? [])].find((c) => c?.instanceId === instanceId);
   for (const player of state.players) {
-    const inHand = player.hand.find((card) => card.instanceId === instanceId);
+    // Private hands are omitted from the opponent's synchronized projection.
+    const inHand = player.hand?.find((card) => card.instanceId === instanceId);
     if (inHand) return inHand.cardId;
     for (const perm of player.battleArea) {
       const found = onPermanent(perm);
@@ -234,7 +235,7 @@ export function instanceCardId(state: GameState, instanceId: string): string | u
 export function instancePermanentId(state: GameState, instanceId: string): string | undefined {
   for (const player of state.players) {
     const holder = player.battleArea.find((perm) =>
-      [perm.topCard, ...perm.stack, ...perm.linked].some((card) => card?.instanceId === instanceId),
+      [perm.topCard, ...(perm.stack ?? []), ...(perm.linked ?? [])].some((card) => card?.instanceId === instanceId),
     );
     if (holder) return holder.permanentId;
   }

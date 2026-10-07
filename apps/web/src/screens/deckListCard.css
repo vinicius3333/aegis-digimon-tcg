@@ -252,3 +252,11 @@
     flex-wrap: wrap;
   }
 }
+
+.deck-list-card__subtitle {
+  overflow: hidden;
+  color: var(--ds-text-3);
+  font-size: var(--ds-text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

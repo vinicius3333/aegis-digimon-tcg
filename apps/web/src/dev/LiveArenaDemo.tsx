@@ -129,8 +129,8 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Pule a criação. King Drasil coloca Alphamon: Ouryuken ACE e o ovo revelado sob si no início da Principal. Ordene essas cartas; a fonte anterior do ACE vai para o lixo. Overflow não deve cobrar memória. Um Royal Knight jogado durante a Principal fica em campo até sua próxima Principal.",
   },
   "arena-issue-5166-dna-material-pairs": {
-    en: "Select Mastemon and a DNA material. Choose Pair 2 (LadyDevimon with one digivolution card) and confirm. The other LadyDevimon must remain on the field. Also try with action confirmations disabled.",
-    ptBR: "Selecione Mastemon e um material de DNA. Escolha o Par 2 (LadyDevimon com uma carta de digievolução) e confirme. A outra LadyDevimon deve ficar em campo. Teste também com as confirmações de ação desativadas.",
+    en: "Select Mastemon and a DNA material. On the field, select Angewomon and the LadyDevimon with one digivolution card, then confirm. The other LadyDevimon must remain on the field. Also try with action confirmations disabled.",
+    ptBR: "Selecione Mastemon e um material de DNA. No campo, selecione Angewomon e a LadyDevimon com uma carta de digievolução e confirme. A outra LadyDevimon deve ficar em campo. Teste também com as confirmações de ação desativadas.",
   },
   "arena-issue-5173-cyber-engage": {
     en: "Activate Cyber Engage's Delay and choose Roleplaymon. Pay 1 memory (1 → 0).",

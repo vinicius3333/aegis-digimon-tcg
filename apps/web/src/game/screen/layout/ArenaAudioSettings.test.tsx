@@ -5,12 +5,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../../../i18n";
 
 const sound = vi.hoisted(() => ({
+  getMusicTrack: vi.fn<() => string>(() => "digitalBattle"),
   getMusicVolume: vi.fn<() => number>(() => 0.25),
   getSoundVolume: vi.fn<() => number>(() => 0.7),
   isMusicEnabled: vi.fn<() => boolean>(() => true),
   isSoundEnabled: vi.fn<() => boolean>(() => true),
   playSound: vi.fn<(kind: string) => void>(),
   setMusicEnabled: vi.fn<(enabled: boolean) => void>(),
+  setMusicTrack: vi.fn<(track: string) => void>(),
   setMusicVolume: vi.fn<(volume: number) => void>(),
   setSoundEnabled: vi.fn<(enabled: boolean) => void>(),
   setSoundVolume: vi.fn<(volume: number) => void>(),
@@ -41,6 +43,16 @@ describe("ArenaAudioSettings", () => {
     expect(screen.getByRole("slider", { name: "Effects volume" })).toHaveProperty("value", "70");
     expect(screen.getByText("25%")).toBeTruthy();
     expect(screen.getByText("70%")).toBeTruthy();
+  });
+
+  it("switches the soundtrack to the chosen track", () => {
+    const picker = screen.getByRole("combobox", { name: "Soundtrack" });
+    expect(picker).toHaveProperty("value", "digitalBattle");
+
+    fireEvent.change(picker, { target: { value: "warmDrive" } });
+
+    expect(sound.setMusicTrack).toHaveBeenCalledWith("warmDrive");
+    expect(picker).toHaveProperty("value", "warmDrive");
   });
 
   it("turns music off on its own and disables only its slider", () => {

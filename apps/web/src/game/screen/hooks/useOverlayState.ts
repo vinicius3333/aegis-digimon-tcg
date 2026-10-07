@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import type { DecisionRequest, GameState } from "@aegis/shared";
 import type { Side } from "../../side";
 import type { RevealedZoneView } from "../model/gameOutcome";
+import type { DnaMaterialSelection } from "../model/dnaMaterialSelection";
 import type {
   AppFusionChoice,
   AssemblyPick,
@@ -59,6 +60,7 @@ export function useOverlayState({
   const [digiXrosPick, setDigiXrosPick] = useState<DigiXrosPick | null>(null);
   const [appFusionChoice, setAppFusionChoice] = useState<AppFusionChoice | null>(null);
   const [actionConfirm, setActionConfirm] = useState<PendingActionConfirmation | null>(null);
+  const [dnaMaterialSelection, setDnaMaterialSelection] = useState<DnaMaterialSelection | null>(null);
 
   // Discard unfinished declarations when server authority changes their action window.
   useEffect(() => {
@@ -69,6 +71,7 @@ export function useOverlayState({
     setDigiXrosPick(null);
     setAssemblyPick(null);
     setActionConfirm(null);
+    setDnaMaterialSelection(null);
     setEvoCostChoice(null);
     setAppFusionChoice(null);
     setDecisionAsDialog(false);
@@ -121,5 +124,7 @@ export function useOverlayState({
     setAppFusionChoice,
     actionConfirm,
     setActionConfirm,
+    dnaMaterialSelection,
+    setDnaMaterialSelection,
   };
 }

@@ -27,6 +27,8 @@ import { BotSeatingStore } from "../tournaments/bots/index.js";
 import { EliminationStore } from "../tournaments/elimination/index.js";
 import { ArbitrationService, installArbitrationRoutes } from "../tournaments/arbitration/index.js";
 import { installBugReportRoutes, type IssueTracker } from "../bugs/index.js";
+import { CommunityDeckStore } from "../community/CommunityDeckStore.js";
+import { installCommunityDeckRoutes } from "../community/routes.js";
 import { openEliminationEvent } from "../tournaments/lifecycle/openEliminationEvent.js";
 import { TopCutProgram } from "../tournaments/topcut/index.js";
 import { tokenBucketLimiter, type TokenBucketOptions } from "../http/rateLimit.js";
@@ -81,6 +83,8 @@ export function installAccountRoutes(
   });
   // Player bug reports, filed straight to the project's GitHub issues. See src/bugs.
   installBugReportRoutes({ app, tracker: bugTracker, session: sessionFromRequest });
+  // Public decks, likes and copies. See src/community.
+  installCommunityDeckRoutes({ app, store: new CommunityDeckStore(store), session: sessionFromRequest });
   const get = (path: string, handler: AsyncHandler) => app.get(path, asyncRoute(handler));
   const post = (path: string, handler: AsyncHandler) => app.post(path, asyncRoute(handler));
   const put = (path: string, handler: AsyncHandler) => app.put(path, asyncRoute(handler));

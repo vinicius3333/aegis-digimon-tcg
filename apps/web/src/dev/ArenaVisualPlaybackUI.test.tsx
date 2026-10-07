@@ -50,9 +50,12 @@ it("renders a drawn fixture card through GameScreen with complete hand affordanc
   fireEvent.click(screen.getByRole("button", { name: "Pause after this scene" }));
   fireEvent.click(screen.getByRole("button", { name: /1\/44 · Blocker/ }));
   fireEvent.change(screen.getByRole("combobox", { name: "Choose a keyword" }), { target: { value: "27" } });
-  await act(async () => {
-    await vi.advanceTimersByTimeAsync(6000);
-  });
+  // Commit the scene patch and each draw-presentation step between clock advances.
+  for (let elapsed = 0; elapsed < 6000; elapsed += 600) {
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(600);
+    });
+  }
   expect(container.querySelectorAll(".game-hand-card")).toHaveLength(21);
   expect(screen.getByRole("region", { name: "Visual keyword playback" })).toBeTruthy();
 });

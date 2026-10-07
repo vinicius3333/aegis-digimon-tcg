@@ -101,6 +101,7 @@ it.each([false, true])(
                 instanceId: "mastemon",
                 cardId: "ST10-06",
                 materialPermanentIds: ["yellow", "purple-two"],
+                initialPermanentId: "purple-two",
               },
             ],
             [
@@ -109,6 +110,7 @@ it.each([false, true])(
                 instanceId: "mastemon",
                 cardId: "ST10-06",
                 materialPermanentIds: ["yellow", "purple-two"],
+                initialPermanentId: "purple-two",
               },
             ],
           ],

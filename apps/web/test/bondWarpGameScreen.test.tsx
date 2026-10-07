@@ -4,6 +4,8 @@ import { setupEngine } from "@aegis-api/engine/testkit/harness.js";
 import { observe } from "@aegis-api/engine/testkit/observe.js";
 import "@aegis-api/cards/BT6/BT6-087.js";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { tap } from "./scenarioHarness/tap";
+import { GameScreen } from "../src/game/GameScreen";
 
 const mocked = vi.hoisted(() => ({
   roomResult: { current: undefined as unknown },
@@ -61,7 +63,6 @@ async function renderBondState({ decision }: { decision?: (s: ReturnType<typeof 
     roomCode: "",
   };
 
-  const { GameScreen } = await import("../src/game/GameScreen");
   render(
     <GameScreen
       joinOptions={{ displayName: "Protagonist", deck: { mainDeck: [], eggDeck: [] } }}
@@ -79,7 +80,7 @@ it("exposes Tai's Bond warp as an activatable Main action", async () => {
   // Tapping the permanent opens its action menu; the activation is an entry there,
   // named after the effect it activates — the convention cardActionSheet.test.tsx
   // pins: "Activate effect: <description>".
-  fireEvent.click(screen.getByRole("button", { name: /^tai kamiya/i }));
+  tap(screen.getByRole("button", { name: /^tai kamiya/i }));
   fireEvent.click(screen.getByRole("button", { name: /^activate effect: .*digivolve/i }));
 
   expect(mocked.activateEffect).toHaveBeenCalledWith(
@@ -106,10 +107,15 @@ it("renders the Agumon permanent candidate and submits the warp target", async (
     }),
   });
   const actualAgumonPermanentId = s.perm("agumon").permanentId;
-  const dialog = screen.getByRole("dialog");
-  expect(dialog.getAttribute("data-prompt-surface")).toBe("center");
-  fireEvent.click(within(dialog).getByRole("button", { name: /^agumon,/i }));
-  fireEvent.click(screen.getByRole("button", { name: /confirm targets/i }));
+  const prompt = screen.getByRole("region", { name: "Confirm targets" });
+  expect(prompt.getAttribute("data-prompt-surface")).toBe("left");
+  const agumon = within(screen.getByRole("group", { name: "Your battle area" })).getByRole("button", {
+    name: /^agumon$/i,
+  });
+  expect(agumon.classList.contains("game-permanent--candidate")).toBe(true);
+  expect(agumon.getAttribute("data-permanent-id")).toBe(actualAgumonPermanentId);
+  tap(agumon);
+  fireEvent.click(within(prompt).getByRole("button", { name: /confirm targets/i }));
 
   expect(mocked.respondDecision).toHaveBeenCalledWith(mocked.room, decisionId, {
     kind: "chooseTargets",

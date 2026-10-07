@@ -31,6 +31,7 @@ export function PlayChoicePrompts({
   actionConfirm,
   dnaRoutes,
   dnaPermanents,
+  dnaPickedPermanentIds,
   appFusion,
   evoCostChoice,
   memory,
@@ -57,6 +58,7 @@ export function PlayChoicePrompts({
   actionConfirm: PendingActionConfirmation | null;
   dnaRoutes: readonly ProjectedDnaDigivolveRoute[];
   dnaPermanents: readonly Permanent[];
+  dnaPickedPermanentIds: readonly string[];
   /** The overlay stays mounted when its routes go stale, so the player sees why the
    *  action disappeared; an empty route list disables confirmation. */
   appFusion: {
@@ -107,10 +109,9 @@ export function PlayChoicePrompts({
       {actionConfirm?.kind === "dna" ? (
         <DnaMaterialChoiceOverlay
           key={actionConfirm.instanceId}
-          cardId={actionConfirm.cardId}
           routes={dnaRoutes}
           permanents={dnaPermanents}
-          initialMaterialPermanentIds={actionConfirm.materialPermanentIds}
+          pickedPermanentIds={dnaPickedPermanentIds}
           onConfirm={onConfirmAction}
           onNormalEvolution={onDigivolveNormally}
           onCancel={onConfirmCancel}
