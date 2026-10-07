@@ -768,6 +768,7 @@ const interfaceMessages = {
   "overlay.confirmTargets": "Conferma i bersagli",
   "overlay.activatePartitionPrompt": "Vuoi attivare Partition?",
   "overlay.activateBlitzPrompt": "Vuoi attivare Blitz?",
+  "overlay.attackAlreadyResolving": "Non puoi iniziare un altro attacco mentre questo attacco è in corso.",
   "overlay.deckTop": "Cima del mazzo",
   "overlay.deckBottom": "Fondo del mazzo",
   "overlay.digivolutionCardsTop": "Cima delle carte di digievoluzione",

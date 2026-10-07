@@ -12,6 +12,8 @@ import {
 import "../BT10/BT10-018.js";
 import "../BT10/BT10-019.js";
 import "../BT16/BT16-101.js";
+import "../BT22/BT22-026.js";
+import "../AD1/AD1-025.js";
 import { compiled } from "./BT17-081.js";
 import "./index.js";
 
@@ -458,6 +460,10 @@ describe("BT17-081 Tai Kamiya & Matt Ishida — KB Q&A rulings", () => {
     expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.perm("omnimon").isSuspended).toBe(false);
+    const attackQuestions = s.decisions.filter(({ req }) => req.options?.selectionContext === "attackSource");
+    expect(attackQuestions).toHaveLength(2);
+    expect(attackQuestions[0]!.req.options?.promptKey).toBeUndefined();
+    expect(attackQuestions[1]!.req.options?.promptKey).toBe("attackAlreadyResolving");
     expect(
       s.events.filter(
         (event) =>

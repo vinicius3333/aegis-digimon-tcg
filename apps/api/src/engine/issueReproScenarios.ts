@@ -25,6 +25,20 @@ type Layout = { players: readonly [PlayerLayout, PlayerLayout]; memory?: number 
 
 // Reduced boards for reported issues. Each runs in the ordinary turn loop.
 const ISSUE_LAYOUTS = {
+  "arena-tai-matt-double-end-turn": {
+    memory: 3,
+    players: [
+      { field: [{ card: "BT17-081" }, { card: "BT17-081" }, { card: "AD1-025", under: ["BT22-026"] }] },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-issue-5254-examon-dna": {
+    memory: 3,
+    players: [
+      { field: [{ card: "EX13-041" }, { card: "EX13-021" }], hand: ["BT20-045"] },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
   "arena-issue-5207-dorimon-guard": {
     memory: 3,
     players: [

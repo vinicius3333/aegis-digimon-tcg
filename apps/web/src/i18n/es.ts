@@ -1078,6 +1078,7 @@ export const es: Record<keyof typeof en, string> = {
   "overlay.confirmTargets": "Confirmar objetivos",
   "overlay.activatePartitionPrompt": "¿Quieres activar Partition?",
   "overlay.activateBlitzPrompt": "¿Quieres activar Blitz?",
+  "overlay.attackAlreadyResolving": "No se puede iniciar otro ataque mientras se resuelve este ataque.",
   "overlay.deckTop": "Parte superior del deck",
   "overlay.deckBottom": "Parte inferior del deck",
   "overlay.digivolutionCardsTop": "Parte superior de las cartas de digievolución",

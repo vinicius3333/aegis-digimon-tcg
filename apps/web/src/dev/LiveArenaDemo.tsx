@@ -16,6 +16,14 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-tai-matt-double-end-turn": {
+    en: "End breeding, then end your turn. Resolve both Tai & Matt effects and accept the first attack on security. Resolve MetalGarurumon's inherited unsuspend. The second Tai & Matt must explain that another attack cannot start during this attack. Both effects resolve, but only one security card is checked.",
+    ptBR: "Encerre a criação e depois o turno. Resolva ambos os Tai & Matt e aceite o primeiro ataque à segurança. Resolva a herança do MetalGarurumon para desvirar. O segundo Tai & Matt deve explicar que não pode iniciar outro ataque durante o atual. Ambos os efeitos resolvem, mas só uma segurança é verificada.",
+  },
+  "arena-issue-5254-examon-dna": {
+    en: "End breeding, select Examon BT20-045 from hand and choose Digivolve. Select Groundramon EX13-041 and Wingdramon EX13-021 on the field, then confirm. Both Lv.5 Digimon count as Lv.6 for this DNA, which costs zero memory.",
+    ptBR: "Encerre a criação, selecione Examon BT20-045 na mão e escolha Digivoluir. Selecione Groundramon EX13-041 e Wingdramon EX13-021 no campo e confirme. Ambos os Lv.5 contam como Lv.6 para essa DNA, que custa zero memória.",
+  },
   "arena-oct06-king-sukamon-assembly": {
     ptBR: "Encerre a criação e jogue KingSukamon EX13-031. Selecione os três Sukamon do lixo na modal central e confirme Assembly. O custo cai de 7 para 3; as três cartas ficam sob KingSukamon. Recuse o efeito opcional para encerrar o fluxo. Bug 1557077795321024543.",
     en: "End breeding and play EX13-031 KingSukamon. Select the three Sukamon trash cards in the central dialog and confirm Assembly. Play cost falls from 7 to 3; the three cards go under KingSukamon. Decline the optional effect to finish the flow. Bug 1557077795321024543.",
@@ -1823,6 +1831,8 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-tai-matt-double-end-turn", "Tai & Matt BT17 · double End of Turn"],
+  ["arena-issue-5254-examon-dna", "GitHub #5254 · Examon BT20 / EX13 Lv.5 DNA"],
   ["arena-oct06-king-sukamon-assembly", "06/10 · KingSukamon · Assembly do lixo"],
   ["arena-oct06-chuumon-trash-revival", "06/10 · Chuumon EX5 · herança e jogar do lixo"],
   ["arena-oct06-dorbickmon-digixros", "06/10 · Dorbickmon EX3 · cinco materiais DigiXros"],

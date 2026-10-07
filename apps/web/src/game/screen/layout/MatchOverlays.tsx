@@ -231,6 +231,7 @@ export function MatchOverlays({
           canPlay={handPreviewActions?.playableFromHand === true}
           canDigivolve={
             (handPreviewActions?.digivolveTargetPermanentIds.length ?? 0) > 0 ||
+            (handPreviewActions?.dnaDigivolveRoutes?.length ?? 0) > 0 ||
             (!!handPreviewActions && appFusionHostIdsOf(handPreviewActions.instanceId).length > 0)
           }
           canLink={(handPreviewActions?.linkTargetPermanentIds.length ?? 0) > 0}

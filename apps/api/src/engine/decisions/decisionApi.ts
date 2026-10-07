@@ -120,15 +120,21 @@ function buildSeatScopedApi(
         if (preset && asksController) ctx.onActivationChosen?.();
         return preset;
       }
+      // Q2859: the second attack effect still activates during the first attack,
+      // but cannot declare another. Explain this on the prompt without choosing
+      // the optional activation for the player or changing effect resolution.
+      const attackAlreadyResolving =
+        ctx.activeSelectionContext === "attackSource" && ctx.fx.isAttackResolving?.() === true;
       const response = await manager.request({
         seat: resolveSeat(ctx),
         kind: "optional",
-        promptText: prompt,
+        promptText: attackAlreadyResolving ? "Another attack cannot start while this attack is resolving." : prompt,
         sourceCardId: ctx.source.cardId,
         sourceInstanceId: ctx.source.instanceId,
         sourcePermanentId: ctx.source.permanent()?.permanentId,
         options: {
           ...provenance(ctx),
+          ...(attackAlreadyResolving ? { promptKey: "attackAlreadyResolving" as const } : {}),
           activationConfirmation: asksController && ctx.isActivationPending?.() === true,
         },
       });

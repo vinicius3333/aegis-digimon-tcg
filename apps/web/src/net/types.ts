@@ -101,6 +101,8 @@ export interface AegisJoinOptions {
     | "arena-issue-5246-savior-decline"
     | "arena-issue-5241-kurata-sleep"
     | "arena-issue-5247-crimson-use-cost"
+    | "arena-tai-matt-double-end-turn"
+    | "arena-issue-5254-examon-dna"
     | "arena-issue-5248-dynasmon-security"
     | "arena-issue-5207-dorimon-guard"
     | "arena-issue-5214-habakirimon-security"

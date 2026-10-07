@@ -1094,6 +1094,7 @@ export const en = {
   "overlay.confirmTargets": "Confirm targets",
   "overlay.activatePartitionPrompt": "Do you want to activate Partition?",
   "overlay.activateBlitzPrompt": "Do you want to activate Blitz?",
+  "overlay.attackAlreadyResolving": "Another attack cannot start while this attack is resolving.",
   "overlay.deckTop": "Top of the deck",
   "overlay.deckBottom": "Bottom of the deck",
   "overlay.digivolutionCardsTop": "Top of the digivolution cards",

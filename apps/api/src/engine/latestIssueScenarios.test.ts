@@ -26,6 +26,49 @@ async function launch(id: IssueReproScenarioId, options: SetupEngineOptions = {}
   };
 }
 
+it("Tai & Matt arena explains the second activation without declaring a second attack", async () => {
+  const s = await launch("arena-tai-matt-double-end-turn", {
+    autoAcceptOptional: true,
+    autoSelectCards: true,
+    autoOrderTriggers: true,
+  });
+  expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  await settle(() => s.events.some((e) => e.kind === "attackDeclared"));
+  await advance(s.engine).finishAttack();
+  await settle(() => s.state.turnSeat === 1 && s.state.phase === Phase.Breeding);
+  const questions = s.decisions.filter(({ req }) => req.options?.selectionContext === "attackSource");
+  expect(questions).toHaveLength(2);
+  expect(questions[0]!.req.options?.promptKey).toBeUndefined();
+  expect(questions[1]!.req.options?.promptKey).toBe("attackAlreadyResolving");
+  expect(s.events.filter((e) => e.kind === "attackDeclared")).toHaveLength(1);
+  expect(s.state.players[1]!.security).toHaveLength(2);
+  expect(s.field("AD1-025").isSuspended).toBe(false);
+  expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+  await advance(s.engine).waitForMainPhase(1);
+  await s.finish();
+});
+
+it("#5254 playable arena offers zero-cost DNA from the EX13 level-five pair", async () => {
+  const s = await launch("arena-issue-5254-examon-dna", { autoDeclineOptional: true });
+  expect(s.hand("BT20-045").dnaDigivolveRoutes).toHaveLength(1);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "dnaDigivolve",
+      instanceId: s.hand("BT20-045").instanceId,
+      materialPermanentIds: [s.field("EX13-041").permanentId, s.field("EX13-021").permanentId],
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.field("BT20-045") !== undefined && s.state.pendingDecision === undefined);
+  expect(s.state.memory).toBe(3);
+  expect(
+    s
+      .field("BT20-045")
+      .stack.map((c) => c.cardId)
+      .sort(),
+  ).toEqual(["EX13-021", "EX13-041"]);
+  await s.finish();
+});
+
 it("#5207 playable arena gains memory for a Guard sacrifice with granted Blocker", async () => {
   const s = await launch("arena-issue-5207-dorimon-guard", {
     autoAcceptOptional: true,
