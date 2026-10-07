@@ -44,6 +44,7 @@ function cards(player: ManualPlayer): string[] {
 describe("manual table", () => {
   it("sets up a match without exposing any hidden pile identities or the other hand", () => {
     const t = playing();
+    t.state.players[0]!.hand[0]!.artId = "private-printing";
     for (const seat of [0, 1] as const) {
       const view = t.snapshot(seat, "");
       expect(view.players[seat]!.hand.every((c) => c.cardId && c.id)).toBe(true);
@@ -60,9 +61,9 @@ describe("manual table", () => {
     const before = cards(t.state.players[0]!);
     act(t, 0, { type: "mulligan" });
     expect(cards(t.state.players[0]!)).toEqual(before);
-    expect(() => act(t, 0, { type: "mulligan" })).toThrow();
+    expect(() => act(t, 0, { type: "mulligan" })).toThrow("Mulligan unavailable");
     act(t, 0, { type: "ready" });
-    expect(() => act(t, 0, { type: "first", seat: 1 })).toThrow();
+    expect(() => act(t, 0, { type: "first", seat: 1 })).toThrow("Choose first player before ready");
   });
   it("conserves source/link identities across evolution, splitting and stack deletion", () => {
     const t = playing();
@@ -85,13 +86,17 @@ describe("manual table", () => {
   it("rejects foreign cards, malformed commands and stale revisions atomically", () => {
     const t = playing();
     const before = structuredClone(t.state);
-    expect(() => act(t, 0, { type: "move", card: t.state.players[1]!.hand[0]!.id, to: "battle" })).toThrow();
+    expect(() => act(t, 0, { type: "move", card: t.state.players[1]!.hand[0]!.id, to: "battle" })).toThrow(
+      "Card does not belong to your seat",
+    );
     expect(t.state).toEqual(before);
     expect(() =>
       t.apply(0, { revision: t.state.revision, action: { type: "take", from: "deck", to: "invalid", count: 1 } }),
-    ).toThrow();
-    expect(() => t.apply(0, { revision: t.state.revision - 1, action: { type: "memory", value: 3 } })).toThrow();
-    expect(() => act(t, 0, { type: "memory", value: NaN })).toThrow();
+    ).toThrow("Invalid pile operation");
+    expect(() => t.apply(0, { revision: t.state.revision - 1, action: { type: "memory", value: 3 } })).toThrow(
+      "Table changed. Try again.",
+    );
+    expect(() => act(t, 0, { type: "memory", value: NaN })).toThrow("Memory must be between -10 and 10");
     expect(t.state).toEqual(before);
   });
   it("only explicitly exposes searches to the owner and reveals to both players", () => {
@@ -113,7 +118,7 @@ describe("manual table", () => {
     const before = cards(t.state.players[0]!);
     act(t, 0, { type: "take", from: "deck", to: "hand", count: 1 });
     act(t, 0, { type: "undoRequest" });
-    expect(() => act(t, 0, { type: "undoReply", accept: true })).toThrow();
+    expect(() => act(t, 0, { type: "undoReply", accept: true })).toThrow("No opponent correction request");
     act(t, 1, { type: "undoReply", accept: true });
     expect(t.state.players[0]!.hand).toHaveLength(5);
     expect(cards(t.state.players[0]!)).toEqual(before);
@@ -121,7 +126,7 @@ describe("manual table", () => {
     act(t, 0, { type: "undoRequest" });
     act(t, 1, { type: "memory", value: 3 });
     expect(t.state.undo).toBeNull();
-    expect(() => act(t, 1, { type: "undoReply", accept: true })).toThrow();
+    expect(() => act(t, 1, { type: "undoReply", accept: true })).toThrow("No opponent correction request");
   });
   it("moves whole stacks between breeding/battle and merges sources in order", () => {
     const t = playing();
@@ -149,5 +154,17 @@ describe("manual table", () => {
     expect(t.state.players[1]!.security).toHaveLength(5);
     act(t, 0, { type: "concede" });
     expect(t.state.winner).toBe(1);
+  });
+  it("reorders existing evolution sources without duplicating physical cards", () => {
+    const t = playing();
+    const p = t.state.players[0]!;
+    const before = cards(p);
+    const [base, top] = p.hand;
+    act(t, 0, { type: "move", card: base!.id, to: "battle" });
+    const stack = p.battle[0]!;
+    act(t, 0, { type: "move", card: top!.id, to: "battle", target: stack.id });
+    act(t, 0, { type: "move", card: base!.id, to: "battle", target: stack.id, placement: "top" });
+    expect(stack.cards.map((card) => card.id)).toEqual([base!.id, top!.id]);
+    expect(cards(p)).toEqual(before);
   });
 });

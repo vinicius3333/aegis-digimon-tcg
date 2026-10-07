@@ -36,9 +36,14 @@ function shuffle(cards: ManualCard[]): void {
     [cards[i], cards[j]] = [cards[j]!, cards[i]!];
   }
 }
+function cleanText(value: string): string {
+  return Array.from(value, (character) =>
+    character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127 ? " " : character,
+  ).join("");
+}
 function text(value: unknown, max: number): string {
   ensure(typeof value === "string" && value.trim().length > 0 && value.length <= max, "Invalid text");
-  return value.trim().replace(/[\u0000-\u001f\u007f]/g, " ");
+  return cleanText(value.trim());
 }
 function makeCards(ids: string[], arts?: string[]): ManualCard[] {
   return ids.map((cardId, index) => ({ id: randomUUID(), cardId, artId: arts?.[index] ?? "", faceUp: false }));
@@ -323,7 +328,10 @@ export class ManualTable {
         // Reject self-targeting of the last top card before removing the stack.
         if (action.target)
           ensure(
-            !this.findStack(player, action.target).stack.cards.some((card) => card.id === action.card),
+            !(
+              this.findStack(player, action.target).stack.cards.length === 1 &&
+              this.findStack(player, action.target).stack.cards[0]?.id === action.card
+            ),
             "Card is already in that stack",
           );
         found.remove();
@@ -364,7 +372,7 @@ export class ManualTable {
         );
         const { stack } = this.findStack(player, action.stack);
         stack.dp = action.dp;
-        stack.note = action.note.replace(/[\u0000-\u001f\u007f]/g, " ");
+        stack.note = cleanText(action.note);
         return `${action.dp} DP ${stack.note}`;
       }
       case "shuffle":
