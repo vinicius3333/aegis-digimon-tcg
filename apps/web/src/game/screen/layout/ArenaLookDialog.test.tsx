@@ -49,15 +49,13 @@ describe("match settings board section", () => {
   });
 });
 
-it("offers a one-shot sort button, without an automatic sorting switch", () => {
+it("keeps hand sorting out of match settings", () => {
   localStorage.setItem("aegis.locale", "en");
-  const onSortHand = vi.fn<() => void>();
   render(
     <I18nProvider>
-      <ArenaLookDialog deckColors={{}} onClose={() => undefined} onSortHand={onSortHand} />
+      <ArenaLookDialog deckColors={{}} onClose={() => undefined} />
     </I18nProvider>,
   );
+  expect(screen.queryByRole("button", { name: "Sort hand" })).toBeNull();
   expect(screen.queryByRole("switch", { name: "Sort hand" })).toBeNull();
-  fireEvent.click(screen.getByRole("button", { name: "Sort hand" }));
-  expect(onSortHand).toHaveBeenCalledTimes(1);
 });

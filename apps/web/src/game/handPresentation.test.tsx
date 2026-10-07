@@ -8,7 +8,7 @@ import {
   type ServerEvent,
   type SequencedServerEvent,
 } from "@aegis/shared";
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import type { AegisRoom } from "../net/client";
@@ -132,3 +132,62 @@ it.each(["deck", "trash"])(
     expect(screen.getByTestId("hand").querySelectorAll(".game-hand-card")).toHaveLength(0);
   },
 );
+
+it("sorts from the hand tray without opening settings and appends later draws", async () => {
+  localStorage.setItem("aegis.locale", "en");
+  const state = new GameState();
+  state.phase = Phase.Main;
+  state.turnSeat = 0;
+  for (const seat of [0, 1] as const) {
+    const player = new PlayerState();
+    player.seat = seat;
+    player.sessionId = `sort-${seat}`;
+    state.players.push(player);
+  }
+  for (const [index, cardId] of ["BT1-087", "BT1-009", "BT1-084"].entries()) {
+    const card = new CardInstance();
+    card.cardId = cardId;
+    card.instanceId = `sort-card-${index}`;
+    state.players[0]!.hand.push(card);
+  }
+  const connection = {
+    room: undefined,
+    status: "connected" as const,
+    error: undefined,
+    decision: undefined,
+    state,
+    events: [],
+    acknowledgeDecision: () => undefined,
+    sessionId: "sort-0",
+    roomCode: "",
+  };
+  const view = () => (
+    <I18nProvider>
+      <GameScreen
+        joinOptions={{ displayName: "You", deck: { mainDeck: [], eggDeck: [] } }}
+        identityColor="Blue"
+        onExit={() => undefined}
+        demoConnection={connection}
+      />
+    </I18nProvider>
+  );
+  const rendered = render(view());
+  const button = screen.getByRole("button", { name: "Sort hand" });
+  expect(button.closest(".game-player-dock")?.querySelector('[data-testid="hand"]')).toBeTruthy();
+  expect(screen.queryByRole("dialog", { name: "Match settings" })).toBeNull();
+  const ids = () =>
+    [...document.querySelectorAll<HTMLElement>('[data-testid="hand"] [data-hand-instance-id]')].map(
+      (card) => card.dataset.handInstanceId,
+    );
+  expect(ids()).toEqual(["sort-card-0", "sort-card-1", "sort-card-2"]);
+  fireEvent.click(button);
+  expect(ids()).toEqual(["sort-card-1", "sort-card-2", "sort-card-0"]);
+  const draw = new CardInstance();
+  draw.cardId = "BT1-009";
+  draw.instanceId = "later-draw";
+  state.players[0]!.hand.push(draw);
+  rendered.rerender(view());
+  expect(ids()).toEqual(["sort-card-1", "sort-card-2", "sort-card-0", "later-draw"]);
+  fireEvent.click(button);
+  expect(ids()).toEqual(["sort-card-1", "later-draw", "sort-card-2", "sort-card-0"]);
+});

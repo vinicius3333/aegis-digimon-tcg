@@ -1359,7 +1359,6 @@ export function GameScreen({
       linkTargetsOfPermanent={linkTargetsOfPermanent}
       handEntries={handEntries}
       shownHandEntries={shownHandEntries}
-      onSortHand={() => setHandOrder(sortedHandInstanceIds(shownHandEntries))}
       viewerTurnOrder={viewerTurnOrder}
       boardRef={boardRef}
       permanentRefs={permRefs}
@@ -1481,6 +1480,7 @@ export function GameScreen({
       }}
       chrome={{ permanentChrome, unsuspendStagger, dropIntentAttrs, baseDropIntentAttrs, trashEffectSource }}
       handDock={{
+        onSortHand: () => setHandOrder(sortedHandInstanceIds(shownHandEntries)),
         effectSource: handEffectSource,
         effectSourceInstanceId:
           handEffectSourceInstanceId?.zone === "hand" ? handEffectSourceInstanceId.instanceId : undefined,

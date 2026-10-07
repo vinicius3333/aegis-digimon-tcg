@@ -101,7 +101,6 @@ export function MatchOverlays({
   onRematch,
   returnsToRoom,
   arenaDeckColors,
-  onSortHand,
 }: {
   state: GameState;
   viewer: PlayerState;
@@ -193,7 +192,6 @@ export function MatchOverlays({
   returnsToRoom?: boolean;
   /** Each side's main card color, for the board look settings' deck-color palette. */
   arenaDeckColors: ArenaDeckColors;
-  onSortHand: () => void;
 }) {
   const { t } = useTranslation();
   const { cardMenu } = overlays;
@@ -324,7 +322,7 @@ export function MatchOverlays({
         bugReportOpen={overlays.bugReportOpen}
         arenaLook={
           overlays.arenaLookOpen
-            ? { deckColors: arenaDeckColors, onSortHand, onClose: () => overlays.setArenaLookOpen(false) }
+            ? { deckColors: arenaDeckColors, onClose: () => overlays.setArenaLookOpen(false) }
             : undefined
         }
         matchLogId={state.matchLogId}

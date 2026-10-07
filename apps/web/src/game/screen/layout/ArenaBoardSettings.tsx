@@ -7,7 +7,7 @@ import { setPileCountsShown, usePileCountsShown } from "../../../design/pileCoun
 import { Switch } from "../../../design/primitives";
 import { useTranslation } from "../../../i18n";
 
-export function ArenaBoardSettings({ onSortHand }: { onSortHand?: () => void }) {
+export function ArenaBoardSettings() {
   const { t } = useTranslation();
   const titleId = useId();
   const pileCountsShown = usePileCountsShown();
@@ -18,14 +18,6 @@ export function ArenaBoardSettings({ onSortHand }: { onSortHand?: () => void }) 
         {t("redesign.arena.board.title")}
       </h3>
       <div className="game-arena-settings__panel">
-        {onSortHand ? (
-          <div className="game-arena-settings__row game-arena-board-settings__sort">
-            <button type="button" onClick={onSortHand}>
-              {t("settings.sortHand")}
-            </button>
-            <p>{t("settings.sortHandDesc")}</p>
-          </div>
-        ) : null}
         <div className="game-arena-settings__row game-arena-board-settings__size">
           <label htmlFor={`${titleId}-text-size`}>{t("settings.textSize")}</label>
           <select

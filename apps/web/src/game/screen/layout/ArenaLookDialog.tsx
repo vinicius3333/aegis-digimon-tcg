@@ -12,15 +12,7 @@ import { useTranslation } from "../../../i18n";
 import { ArenaAudioSettings } from "./ArenaAudioSettings";
 import { ArenaBoardSettings } from "./ArenaBoardSettings";
 
-export function ArenaLookDialog({
-  deckColors,
-  onClose,
-  onSortHand,
-}: {
-  deckColors: ArenaDeckColors;
-  onClose: () => void;
-  onSortHand?: () => void;
-}) {
+export function ArenaLookDialog({ deckColors, onClose }: { deckColors: ArenaDeckColors; onClose: () => void }) {
   const { t } = useTranslation();
   const titleId = useId();
   return (
@@ -35,7 +27,7 @@ export function ArenaLookDialog({
         </button>
       </header>
       <ArenaAudioSettings />
-      <ArenaBoardSettings onSortHand={onSortHand} />
+      <ArenaBoardSettings />
       <ArenaLookSettings deckColors={deckColors} showThemeChoice />
     </Dialog>
   );

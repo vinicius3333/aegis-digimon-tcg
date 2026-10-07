@@ -4,6 +4,7 @@
    short desktop moves the deck and trash down from the right rail the same way. */
 
 import type { ReactNode, RefObject } from "react";
+import { Icons } from "../../../design/icons";
 import { CardBack } from "../../../design/cards";
 import { useTranslation } from "../../../i18n";
 import { ArenaCounters } from "../../ArenaCounters";
@@ -39,8 +40,10 @@ export function PlayerDock({
   startDrag,
   selectCard,
   onHoverChange,
+  onSortHand,
 }: {
   spectating?: boolean;
+  onSortHand?: () => void;
   timer?: ReactNode;
   /** The viewer's name for the line over the tray, when the screen knows it. */
   playerName?: string;
@@ -106,28 +109,45 @@ export function PlayerDock({
         ) : reserveActionBarSpace ? (
           <div className="game-action-bar game-action-bar--idle" aria-hidden />
         ) : null}
-        {spectating ? (
-          <div className="game-spectator-hand" aria-label={t("game.handCount", { count: handCount })}>
-            {Array.from({ length: handCount }, (_, index) => (
-              <CardBack key={index} width={40} useSelectedSleeve={false} />
-            ))}
-          </div>
-        ) : (
-          <Hand
-            cardWidth={cardWidth}
-            minExposure={minExposure}
-            cards={cards}
-            selectedInstanceId={selectedInstanceId}
-            effectSourceInstanceId={effectSourceInstanceId}
-            effectSource={effectSource}
-            selection={selection}
-            startDrag={startDrag}
-            selectCard={selectCard}
-            draggingInstanceId={draggingInstanceId}
-            shakeInstanceId={shakeInstanceId}
-            onHoverChange={onHoverChange}
-          />
-        )}
+        <div className="game-hand-tray">
+          {spectating ? (
+            <div className="game-spectator-hand" aria-label={t("game.handCount", { count: handCount })}>
+              {Array.from({ length: handCount }, (_, index) => (
+                <CardBack key={index} width={40} useSelectedSleeve={false} />
+              ))}
+            </div>
+          ) : (
+            <Hand
+              cardWidth={cardWidth}
+              minExposure={minExposure}
+              cards={cards}
+              selectedInstanceId={selectedInstanceId}
+              effectSourceInstanceId={effectSourceInstanceId}
+              effectSource={effectSource}
+              selection={selection}
+              startDrag={startDrag}
+              selectCard={selectCard}
+              draggingInstanceId={draggingInstanceId}
+              shakeInstanceId={shakeInstanceId}
+              onHoverChange={onHoverChange}
+            />
+          )}
+          {!spectating && onSortHand ? (
+            <button
+              type="button"
+              className="game-hand-sort"
+              aria-label={t("settings.sortHand")}
+              title={t("settings.sortHandDesc")}
+              disabled={cards.length < 2 || draggingInstanceId !== undefined}
+              onClick={onSortHand}
+            >
+              <span aria-hidden="true">
+                <Icons.List size={18} />
+              </span>
+              <span className="game-hand-sort__label">{t("settings.sortHand")}</span>
+            </button>
+          ) : null}
+        </div>
       </div>
       {pileDock ? (
         // The counters stack under the docked deck and trash, so the column is as wide as
