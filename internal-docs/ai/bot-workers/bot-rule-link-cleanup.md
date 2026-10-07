@@ -2245,3 +2245,34 @@ passes Bash-n; it remains unuploaded. Definitive complete seed inventory,
 actual custody completion/strict reader, final PPO request/ROOT resource Go
 and idle admission are still pending. No PPO job has started. No same-FP
 metadata migration, source/engine rebuild, original CP or raw dataset change.
+
+
+## Actual CPU custody whole0; native imitation retained without retraining
+
+Foreground66691 is terminal0; actual original custody whole680 is gone with
+real nonlink trap `0\n` SHA9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa.
+New custody completionSHA
+`4b5af3c23ed3faf2bf01dcd4e9c10b50ffb9f8f75ac16286e505b116b6c3f1cf`,
+reportSHA16e9754d1b0259d57be4857e10389654b110cd71090f554602a6edffe9f42108,
+CPU inspector receiptSHAdca972d631ade0d50529dc442ac7745ba13ea69c06d339c137b67ac115cefdba,
+actual stdoutSHA0d0c46427b33fcb68848cc5f043cbb3f91332fced3f1b4f4752f238ddc8ea177
+and empty stderrSHAe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+are freshly observed. Exact CPU child command binds parent ticks12809 and
+all sealed source/request/identity/Go pins; its actual exitCode is0.
+
+Original full unchanged consumers prove base/supplement/validation whole0.
+Joined raw teacher/fold proof equals original data-before; full failed map,
+protected source/runtime and old CPP hashes remain exact before and after.
+Unchanged native reporter actually inspects warm and saved models in CPU:
+selected epoch3/3900actor Adam deltas; all12 finite; all10 actor weights changed;
+value.bias/value.weight and their complete Adam state preserved with delta0.
+Native CPP8f61 remains at its original path; no copied/migrated model, replayed
+learning, games or new optimizer updates. Original imitation whole remains1
+and its failure/artifacts are preserved, never relabeled successful.
+
+External full strict custody reader starts foreground23471 using the actual
+observed completion pin; its final actual exit0 is still pending. Fresh complete
+PPO seed inventory starts read-only foreground59327 after actual custody whole0
+and stable producer outputs; no source/model or GPU/game launch. Final PPO
+request/resource agreement and all44 strength/mechanism/room/finalblind/delivery
+acceptance remain pending; CPU qualification does not establish strength.
