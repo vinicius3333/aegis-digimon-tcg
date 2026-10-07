@@ -239659,50 +239659,12 @@
                   "zone": "digivolutionCards",
                   "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
                 },
-                "count": 1
+                "count": 3,
+                "upTo": true
               },
-              "raw": "By trashing 1 [Three Musketeers] text card from any of your Digimon's digivolution cards"
+              "raw": "By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards"
             },
             "optional": true,
-            "abortOnDecline": true,
-            "raw": "By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards, for each one trashed, delete 1 of your opponent's play cost 7 or lower Digimon."
-          },
-          {
-            "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 },
-            "cost": {
-              "kind": "trash",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "zone": "digivolutionCards",
-                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
-                },
-                "count": 1
-              },
-              "raw": "By trashing 1 [Three Musketeers] text card from any of your Digimon's digivolution cards"
-            },
-            "optional": true,
-            "abortOnDecline": true,
-            "raw": "By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards, for each one trashed, delete 1 of your opponent's play cost 7 or lower Digimon."
-          },
-          {
-            "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 },
-            "cost": {
-              "kind": "trash",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "zone": "digivolutionCards",
-                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
-                },
-                "count": 1
-              },
-              "raw": "By trashing 1 [Three Musketeers] text card from any of your Digimon's digivolution cards"
-            },
-            "optional": true,
-            "abortOnDecline": true,
             "raw": "By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards, for each one trashed, delete 1 of your opponent's play cost 7 or lower Digimon."
           }
         ]
@@ -239721,50 +239683,12 @@
                   "zone": "digivolutionCards",
                   "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
                 },
-                "count": 1
+                "count": 3,
+                "upTo": true
               },
-              "raw": "By trashing 1 [Three Musketeers] text card from any of your Digimon's digivolution cards"
+              "raw": "By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards"
             },
             "optional": true,
-            "abortOnDecline": true,
-            "raw": "By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards, for each one trashed, delete 1 of your opponent's play cost 7 or lower Digimon."
-          },
-          {
-            "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 },
-            "cost": {
-              "kind": "trash",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "zone": "digivolutionCards",
-                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
-                },
-                "count": 1
-              },
-              "raw": "By trashing 1 [Three Musketeers] text card from any of your Digimon's digivolution cards"
-            },
-            "optional": true,
-            "abortOnDecline": true,
-            "raw": "By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards, for each one trashed, delete 1 of your opponent's play cost 7 or lower Digimon."
-          },
-          {
-            "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 },
-            "cost": {
-              "kind": "trash",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "zone": "digivolutionCards",
-                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
-                },
-                "count": 1
-              },
-              "raw": "By trashing 1 [Three Musketeers] text card from any of your Digimon's digivolution cards"
-            },
-            "optional": true,
-            "abortOnDecline": true,
             "raw": "By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards, for each one trashed, delete 1 of your opponent's play cost 7 or lower Digimon."
           }
         ]
