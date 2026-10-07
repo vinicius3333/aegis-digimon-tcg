@@ -486,9 +486,15 @@ describe("BT20-093 Unleash the Dragon Gene — KB Q&A rulings", () => {
     expect(result.departedCardInHand).toBe(false);
     expect(result.examonInHand).toBe(false);
   });
+
+  it("offers <Delay> and trashes the Option even with no legal DNA digivolution (Discord 1557483604253212703)", async () => {
+    const result = await runDelayDeparture("BT20-027", { examonInHand: false });
+    expect(result.optionTrashed).toBe(true);
+    expect(result.departedCardInHand).toBe(true);
+  });
 });
 
-async function runDelayDeparture(departingCard: string) {
+async function runDelayDeparture(departingCard: string, { examonInHand = true } = {}) {
   const preferred: string[] = [];
   const options = {
     autoAcceptOptional: false,
@@ -503,10 +509,7 @@ async function runDelayDeparture(departingCard: string) {
           { card: departingCard, suspended: true, as: "departing" },
           { card: "BT20-044", as: "breaker" },
         ],
-        hand: [
-          { card: "BT20-093", as: "option" },
-          { card: "EX3-074", as: "examon" },
-        ],
+        hand: [{ card: "BT20-093", as: "option" }, ...(examonInHand ? [{ card: "EX3-074", as: "examon" }] : [])],
         deck: ["BT1-010", "BT1-010", "BT1-010"],
       },
       1: {
@@ -518,7 +521,7 @@ async function runDelayDeparture(departingCard: string) {
     options,
   );
   const optionId = s.inst("option").instanceId;
-  const examonCardId = s.inst("examon").instanceId;
+  const examonCardId = examonInHand ? s.inst("examon").instanceId : undefined;
   const departingPermanentId = s.perm("departing").permanentId;
   const departingCardId = s.perm("departing").topCard.instanceId;
   preferred.push(departingPermanentId, departingCardId);
