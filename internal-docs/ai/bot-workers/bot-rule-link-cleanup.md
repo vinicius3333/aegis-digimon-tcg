@@ -1175,6 +1175,43 @@ pending request still has a null inventory hash. No actual R4 learning
 request, resource Go, whole identity or training job has been admitted.
 Reserved final seeds `6210000..6213871` remain untouched.
 
+## R4 actual inventory and sealed admission files; full inspection pending
+
+The unchanged complete original seed scanner session39592 ended with exit
+zero: 645 observed schedule files, no overlap and actual fresh interval
+`6019976..6023847` for one full 3,872-game balanced pass. The actual inventory
+is sealed at `transfers/rule-link-current-aa2e56463-corrective-ppo-r4-seed-inventory.json`,
+SHA-256 `77a1061d39b98e390285ecc5409e211f1c67be46707b87a6681a18bf966589ad`
+(116,536 bytes). It remains subject to the unchanged scanner again during
+read-only admission and immediately before primary training imports.
+
+The final actual request is now separately sealed at
+`transfers/rule-link-current-aa2e56463-corrective-ppo-r4-request.json`, SHA-256
+`413849baec3592f1cccefcbf032dea09790c976db118741ebe0f72b108c41a89`
+(4,191 bytes), binding that actual inventory, real R3 learner/origin/full
+evaluation closure, all44 recipes, four frozen references, heuristic share0.5
+and learning rate1e-5. The wrapper is also actually sealed, SHA-256
+`36b309b29c1014eb9d78c059e4d500e2591a0dfa0da216b56d80d43e9edd3793`
+(1,727 bytes); actual desktop Bash syntax validation passed without execution.
+Every transfer used exclusive creation and all byte pins were checked.
+
+An initial local inspection helper accidentally retained an old inventory
+hash in a transfer stanza and exited one at its source guard before any write,
+operator admission, primary import or job. Its failed artifacts are retained.
+The corrected `inspect-current-corrective-ppo-r4-sealed.sh` performs only the
+original read-only operator invocation against the already sealed actual
+files. Its original foreground session **33613** is still active, output
+`rule-link-current-corrective-ppo-r4-sealed-inspect.actual.json`; keep this
+reader attached and await its actual terminal result without restarting.
+
+Fresh static idle/GPU-empty inspection also passed with new R4 output and
+identity paths absent, without importing Torch models or starting training.
+Resource receipt is `rule-link-current-corrective-ppo-r4-resource-inventory.actual.json`.
+That inventory is not an execution Go. Actual full read-only admission must
+finish successfully, followed by another fresh idle check and a distinct ROOT
+learning resource Go before any whole launch. No R4 training job, actual
+weight update or candidate acceptance is claimed by these sealed files.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
