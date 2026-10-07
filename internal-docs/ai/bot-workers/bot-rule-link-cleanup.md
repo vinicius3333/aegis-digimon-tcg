@@ -1687,6 +1687,32 @@ mandatory. Original whole0/external completion/raw maps/pre-post source/CP
 custody are required for the learning closure reader. Supervision, tensor
 changes and aggregate wins establish no playing-strength or mastery acceptance.
 
+## Mentor imitation desktop source guards and live data coverage
+
+The imitation operator/tests were sealed exclusively0444 on desktop, matching
+cbf53c4/78cb7516 source pins above. All12 bounded synthetic tests complete0 under
+actual Python3.12.14, and all nine qualified module byte pins match. No real
+primary is loaded by that source review, and no imitation request, Go, job or
+new checkpoint exists. Source commit `f106fc8d8` is pushed after the normal
+Node26 shared/API/web TypeScript pre-push checks complete0. The unexecuted local
+imitation wrapper passes Bash syntax checking and has SHA-256
+`9d4640753405fce060f6c0f1c9199bb9432078e00e4851d5708d338fe650e718`.
+
+Original dataset foreground56480 remains attached and live. Its actual output
+reaches3432 natural games (2227 wins,1205 losses,10 recoveries retained), with
+zero learning updates. Read-only source-pinned raw scans on2401 and3291 completed
+records observe every181 set card in both seats. Engine-only positives still
+lack `dnaDigivolve:seat1` in training and `dnaDigivolve:seat0` plus
+`effectDigiXrosMaterial:seat0` in validation at the3291-record snapshot. These
+are genuine teacher-origin gaps; frozen-policy positives remain explicitly
+separate. Both observers declare collection incomplete and learning unadmitted.
+Do not infer full corpus closure, physical mastery or playing strength from
+partial coverage. Inspect complete original data after whole0; if these gaps
+remain, obtain additional actual current-source supervision before admitting
+the prepared mechanism-resampled imitation stage. Preserve all original
+losses/folds/raw frames and immutable CP/source custody; do not invent labels,
+move validation samples, relabel failed closures or touch final seeds.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
