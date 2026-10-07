@@ -17,14 +17,29 @@ function CounterHarness(
   },
 ) {
   const [selectedInstanceId, onSelectInstance] = useState<string>();
+  const sources = [...new Set(props.eligibleCounters.map((choice) => choice.instanceId))];
   return (
-    <CounterOverlay
-      {...props}
-      handInstanceIds={props.handInstanceIds ?? ["ace"]}
-      selectedInstanceId={selectedInstanceId}
-      onSelectInstance={onSelectInstance}
-    />
+    <>
+      {sources.map((instanceId) => (
+        <button key={instanceId} type="button" onClick={() => onSelectInstance(instanceId)}>
+          {`pick ${instanceId}`}
+        </button>
+      ))}
+      <CounterOverlay
+        {...props}
+        handInstanceIds={props.handInstanceIds ?? ["ace"]}
+        selectedInstanceId={selectedInstanceId}
+        onSelectInstance={onSelectInstance}
+      />
+    </>
   );
+}
+
+/** While a source is being picked in the hand or on the board, the rail is a region, not a dialog. */
+function counterPickingRail() {
+  const rail = screen.getByRole("region", { name: "Counter timing" });
+  expect(rail.getAttribute("data-prompt-surface")).toBe("left");
+  return within(rail);
 }
 
 function counterDialog() {
@@ -33,8 +48,13 @@ function counterDialog() {
   return within(dialog);
 }
 
+/** Stands in for tapping the card in the hand or on the board, where sources are picked. */
+function pickSource(instanceId: string) {
+  fireEvent.click(screen.getByRole("button", { name: `pick ${instanceId}` }));
+}
+
 function chooseHandAce() {
-  fireEvent.click(counterDialog().getByRole("button", { name: /^Quartzmon/ }));
+  pickSource("ace");
 }
 
 afterEach(cleanup);
@@ -178,7 +198,7 @@ it("shows blocker artwork and statistics, and preserves mandatory blocking", () 
   expect(block).not.toHaveBeenCalled();
   expect(decline).not.toHaveBeenCalled();
 });
-it("selects a hand Counter and then its exact Blast target in the central dialog", () => {
+it("picks a hand Counter in the hand and then its exact Blast target in the central dialog", () => {
   const activate = vi.fn<(instanceId: string, effectKey: string) => void>();
   const pass = vi.fn<() => void>();
   render(
@@ -196,7 +216,10 @@ it("selects a hand Counter and then its exact Blast target in the central dialog
       />
     </I18nProvider>,
   );
-  expect(counterDialog().getAllByRole("button", { name: /Quartzmon|Greymon/ })).toHaveLength(2);
+  const picking = counterPickingRail();
+  expect(picking.getByText("Tap a card in your hand to use its [Counter].")).toBeTruthy();
+  expect(picking.queryAllByRole("img")).toHaveLength(0);
+  expect(picking.queryByRole("button", { name: /Quartzmon|Greymon/ })).toBeNull();
   chooseHandAce();
   expect(activate).not.toHaveBeenCalled();
   fireEvent.click(counterDialog().getByRole("button", { name: /MetalGreymon Blast Digivolve/ }));
@@ -300,7 +323,7 @@ it("asks a lone field counter as a left yes/no prompt", () => {
   expect(pass).toHaveBeenCalledOnce();
 });
 
-it("chooses between identical field counters centrally and cancels back without passing", () => {
+it("picks between identical field counters on the board and cancels back without passing", () => {
   const activate = vi.fn<(instanceId: string, effectKey: string) => void>();
   const pass = vi.fn<() => void>();
   render(
@@ -318,12 +341,13 @@ it("chooses between identical field counters centrally and cancels back without 
       />
     </I18nProvider>,
   );
-  fireEvent.click(counterDialog().getByRole("button", { name: /Kentaurosmon 2 \/ 2/ }));
+  expect(counterPickingRail().queryAllByRole("img")).toHaveLength(0);
+  pickSource("second-top");
   expect(activate).not.toHaveBeenCalled();
   const rail = within(screen.getByRole("dialog", { name: "Counter timing" }));
   fireEvent.click(rail.getByRole("button", { name: "Cancel" }));
   expect(pass).not.toHaveBeenCalled();
-  fireEvent.click(counterDialog().getByRole("button", { name: /Kentaurosmon 1 \/ 2/ }));
+  pickSource("first-top");
   fireEvent.click(screen.getByRole("button", { name: "Activate" }));
   expect(activate).toHaveBeenCalledWith("first-top", "EX13-036/counter");
 });
@@ -339,9 +363,10 @@ it.each([false, true])("uses server-authorized blockers on the field and preserv
   expect(send).toHaveBeenCalledWith("declareBlock", { blockerPermanentId: "ally" });
 });
 
-it("routes the central field Counter picker to the exact GameScreen intent", () => {
-  const { send } = renderCombatGame("counter");
-  fireEvent.click(counterDialog().getByRole("button", { name: /MetalTyrannomon/ }));
+it("routes a field Counter picked on the board to the exact GameScreen intent", () => {
+  const { send, permanent } = renderCombatGame("counter");
+  expect(counterPickingRail().queryByRole("button", { name: /MetalTyrannomon/ })).toBeNull();
+  fireEvent.click(permanent("ineligible"));
   expect(send).not.toHaveBeenCalled();
   expect(screen.getByRole("dialog", { name: "Counter timing" }).getAttribute("data-prompt-surface")).toBe("left");
   fireEvent.click(screen.getByRole("button", { name: "Activate" }));
