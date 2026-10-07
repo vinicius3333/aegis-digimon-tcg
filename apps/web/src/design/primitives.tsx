@@ -505,6 +505,7 @@ export function TopNav({
   onOpenPlayerMenu,
   dark,
   onToggleDark,
+  onOpenTheme,
   onSendFeedback,
 }: {
   screen: Screen;
@@ -513,9 +514,10 @@ export function TopNav({
   actions?: ReactNode;
   signedIn?: boolean;
   onOpenPlayerMenu?: () => void;
-  /** With `onToggleDark`, shows the light/dark toggle in the bar. */
+  /** Opens the palette chooser when available, otherwise toggles light/dark. */
   dark?: boolean;
   onToggleDark?: (dark: boolean) => void;
+  onOpenTheme?: () => void;
   onSendFeedback?: () => void;
 }) {
   const { t } = useTranslation();
@@ -536,16 +538,30 @@ export function TopNav({
       <span>{t("nav.signIn")}</span>
     </button>
   );
-  const themeToggle = onToggleDark ? (
-    <button
-      className="aegis-icon-button aegis-theme-toggle"
-      onClick={() => onToggleDark(!dark)}
-      aria-label={t(dark ? "redesign.shell.theme.useLight" : "redesign.shell.theme.useDark")}
-      title={t(dark ? "redesign.shell.theme.useLight" : "redesign.shell.theme.useDark")}
-    >
-      {dark ? <Icons.Sun size={18} /> : <Icons.Moon size={18} />}
-    </button>
-  ) : null;
+  const themeToggle =
+    onOpenTheme || onToggleDark ? (
+      <button
+        className="aegis-icon-button aegis-theme-toggle"
+        onClick={() => (onOpenTheme ? onOpenTheme() : onToggleDark?.(!dark))}
+        aria-haspopup={onOpenTheme ? "dialog" : undefined}
+        aria-label={t(
+          onOpenTheme
+            ? "redesign.shell.theme.title"
+            : dark
+              ? "redesign.shell.theme.useLight"
+              : "redesign.shell.theme.useDark",
+        )}
+        title={t(
+          onOpenTheme
+            ? "redesign.shell.theme.title"
+            : dark
+              ? "redesign.shell.theme.useLight"
+              : "redesign.shell.theme.useDark",
+        )}
+      >
+        {dark ? <Icons.Sun size={18} /> : <Icons.Moon size={18} />}
+      </button>
+    ) : null;
 
   const feedback = onSendFeedback ? (
     <button

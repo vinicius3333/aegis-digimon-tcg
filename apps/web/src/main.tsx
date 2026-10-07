@@ -8,6 +8,8 @@ import { AegisEmblem } from "./design/AegisLogo";
 import { Button } from "./design/primitives";
 import { Panel } from "./design/surfaces";
 import { installTranslationCompatibility } from "./translationCompatibility";
+import { applyDarkMode } from "./design/darkMode";
+import { applyInterfaceTheme } from "./design/interfaceTheme";
 import "./design/tokens.css";
 import "./design/base.css";
 import "./design/layout.css";
@@ -73,5 +75,7 @@ export function Startup() {
 
 const container = document.getElementById("root");
 if (!container) throw new Error("#root not found");
+applyDarkMode();
+applyInterfaceTheme();
 installTranslationCompatibility(container);
 createRoot(container).render(<Startup />);

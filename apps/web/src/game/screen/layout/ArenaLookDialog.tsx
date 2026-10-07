@@ -11,10 +11,14 @@ import { Icons } from "../../../design/icons";
 import { useTranslation } from "../../../i18n";
 import { ArenaAudioSettings } from "./ArenaAudioSettings";
 import { ArenaBoardSettings } from "./ArenaBoardSettings";
+import { InterfaceThemePicker } from "../../../design/InterfaceThemePicker";
+import { setDarkMode, useDarkMode } from "../../../design/darkMode";
 
 export function ArenaLookDialog({ deckColors, onClose }: { deckColors: ArenaDeckColors; onClose: () => void }) {
   const { t } = useTranslation();
   const titleId = useId();
+  const themeTitleId = useId();
+  const dark = useDarkMode();
   return (
     <Dialog className="game-arena-look-dialog" labelledBy={titleId} onClose={onClose}>
       <header className="aegis-dialog__header game-arena-look-dialog__header">
@@ -28,7 +32,13 @@ export function ArenaLookDialog({ deckColors, onClose }: { deckColors: ArenaDeck
       </header>
       <ArenaAudioSettings />
       <ArenaBoardSettings />
-      <ArenaLookSettings deckColors={deckColors} showThemeChoice />
+      <section className="game-arena-theme-settings" aria-labelledby={themeTitleId}>
+        <h3 id={themeTitleId} className="game-arena-settings__title">
+          {t("redesign.shell.theme.title")}
+        </h3>
+        <InterfaceThemePicker dark={dark} onToggleDark={setDarkMode} deckColors={deckColors} />
+      </section>
+      <ArenaLookSettings deckColors={deckColors} />
     </Dialog>
   );
 }

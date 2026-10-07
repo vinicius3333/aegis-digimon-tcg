@@ -2,10 +2,9 @@
    board reads them from the four `--arena-*` custom properties that
    `arenaPaletteStyle` returns, with fallbacks in arenaTheme.css. */
 
-import { useMemo, useSyncExternalStore, type CSSProperties } from "react";
+import { useMemo, type CSSProperties } from "react";
 import { COLORS, colorKey, type GameColor } from "./theme";
-
-const STORAGE_KEY = "aegis.arenaPalette";
+import { getInterfaceTheme, setInterfaceTheme, subscribeInterfaceTheme, useInterfaceTheme } from "./interfaceTheme";
 
 export const ARENA_PALETTE_IDS = ["aegis", "red-blue", "green-purple", "gold-black", "deck-colors"] as const;
 
@@ -37,7 +36,9 @@ const FIXED_PALETTES: Record<Exclude<ArenaPaletteId, "deck-colors">, Omit<ArenaP
     opponent: ["var(--ds-ink-accent)", COLORS.Purple.edge],
   },
   "red-blue": {
-    player: [COLORS.Blue.base, "var(--ds-ink-accent)"],
+    // This hue was the fixed Aegis chrome accent in production. Keep the saved
+    // board combination while the site's chrome now follows the chosen theme.
+    player: [COLORS.Blue.base, "#ff8cc8"],
     opponent: [COLORS.Red.base, "var(--ds-rim-threat)"],
   },
   "green-purple": {
@@ -80,41 +81,24 @@ function isArenaPaletteId(value: string | null): value is ArenaPaletteId {
   return (ARENA_PALETTE_IDS as readonly (string | null)[]).includes(value);
 }
 
-function readId(): ArenaPaletteId {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return isArenaPaletteId(saved) ? saved : DEFAULT_ARENA_PALETTE_ID;
-  } catch {
-    return DEFAULT_ARENA_PALETTE_ID;
-  }
-}
-
-const listeners = new Set<() => void>();
-let currentId = readId();
-
 export function getArenaPaletteId(): ArenaPaletteId {
-  return currentId;
+  const id = getInterfaceTheme().preset;
+  return isArenaPaletteId(id) ? id : DEFAULT_ARENA_PALETTE_ID;
 }
 
 export function setArenaPaletteId(id: ArenaPaletteId): void {
   if (!isArenaPaletteId(id)) return;
-  currentId = id;
-  try {
-    localStorage.setItem(STORAGE_KEY, id);
-  } catch {
-    // Preference is cosmetic; a blocked storage still applies for this session.
-  }
-  for (const listener of listeners) listener();
+  setInterfaceTheme(id);
 }
 
 export function subscribeArenaPalette(listener: () => void): () => void {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
+  return subscribeInterfaceTheme(listener);
 }
 
 /** The chosen palette, re-rendering when the choice changes. */
 export function useArenaPalette(deckColors?: ArenaDeckColors): ArenaPalette {
-  const id = useSyncExternalStore(subscribeArenaPalette, getArenaPaletteId, () => DEFAULT_ARENA_PALETTE_ID);
+  const theme = useInterfaceTheme();
+  const id = isArenaPaletteId(theme.preset) ? theme.preset : DEFAULT_ARENA_PALETTE_ID;
   const player = deckColors?.player;
   const opponent = deckColors?.opponent;
   return useMemo(() => arenaPaletteById(id, { player, opponent }), [id, player, opponent]);

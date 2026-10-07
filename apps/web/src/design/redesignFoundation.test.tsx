@@ -94,7 +94,7 @@ describe("redesign i18n scaffold", () => {
 describe("ArenaLookSettings", () => {
   afterEach(() => cleanup());
 
-  it("changes the palette and battlefield through native radios", () => {
+  it("shows the current palette preview and changes the battlefield through native radios", () => {
     setArenaPaletteId("aegis");
     setBattlefieldId("classic");
     render(
@@ -104,8 +104,7 @@ describe("ArenaLookSettings", () => {
     );
 
     expect(screen.getByRole("img", { name: en["redesign.foundation.arena.preview"] })).toBeTruthy();
-    fireEvent.click(screen.getByRole("radio", { name: en["redesign.foundation.arena.palette.red-blue"] }));
-    expect(getArenaPaletteId()).toBe("red-blue");
+    expect(screen.queryByRole("group", { name: en["redesign.foundation.arena.boardColors"] })).toBeNull();
 
     fireEvent.click(screen.getByRole("radio", { name: en["redesign.foundation.battlefield.data-sea"] }));
     expect(getBattlefieldId()).toBe("data-sea");
