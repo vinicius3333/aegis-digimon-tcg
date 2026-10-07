@@ -227,7 +227,10 @@ export function GameScreen({
   // A demo or showcase fabricates events with no batch boundary of their own, so its list
   // is presented as the one moment it describes.
   const cueBatches = useMemo(() => batches ?? [singleServerBatch(events)], [batches, events]);
-  const viewerSeat = useMemo(() => viewerSeatOf(state, sessionId), [state, sessionId]);
+  // Not memoized on `state`: Colyseus mutates that one object in place, so a seat filled after the
+  // first sync (the first player to reach a later series game, Discord 1557352131416035499) would
+  // stay cached as the fallback seat 0.
+  const viewerSeat = viewerSeatOf(state, sessionId);
   const chat = useMatchChat({ room: connectedRoom, viewerSeat, spectating });
 
   const vsBot = startMode === "bot";
