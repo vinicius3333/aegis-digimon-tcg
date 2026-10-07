@@ -16,6 +16,34 @@ const labels = {
   },
 };
 
+const layoutViewports = [
+  { name: "phone", width: 390, height: 844 },
+  { name: "foldable inner screen", width: 673, height: 841 },
+  { name: "phone landscape", width: 844, height: 390 },
+  { name: "tablet landscape", width: 1024, height: 768 },
+] as const;
+
+for (const viewport of layoutViewports) {
+  test(`deck builder fits and keeps the deck reachable on a ${viewport.name}`, async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("aegis:deckBuilder", JSON.stringify({ deckShare: 0.75 })));
+    await page.setViewportSize(viewport);
+    await page.goto("/e2e/deck-builder.html");
+    await page.getByRole("button", { name: "Add", exact: true }).first().click();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width);
+    const pool = await page.locator(".deck-card-pool").boundingBox();
+    expect(pool!.x + pool!.width).toBeLessThanOrEqual(viewport.width);
+
+    const deck = page.getByRole("complementary", { name: "Deck information" });
+    const sheetTrigger = page.getByRole("button", { name: /Tap to see more about the deck/ });
+    if (await sheetTrigger.isVisible()) await sheetTrigger.click();
+    const deckList = deck.locator(".deck-preview");
+    await deckList.scrollIntoViewIfNeeded();
+    await expect(deckList).toBeInViewport();
+    const deckBox = await deck.boundingBox();
+    expect(deckBox!.x + deckBox!.width).toBeLessThanOrEqual(viewport.width);
+  });
+}
+
 for (const locale of ["en", "pt-BR"] as const) {
   test(`1555813766040391700: red Hybrid is searchable in the mobile deck builder (${locale})`, async ({ page }) => {
     const t = (key: keyof typeof labels.en | "mobile.applyFilters", params?: { count: number }) =>

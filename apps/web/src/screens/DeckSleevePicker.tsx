@@ -144,7 +144,9 @@ export function DeckSleevePicker({
               <SleeveThumb src={sleeve.src} />
               <span className="deck-sleeves__copy">
                 <span className="deck-sleeves__caption">{t(PARTS[part].caption)}</span>
-                <span className="deck-sleeves__name">{sleeveName(sleeve, t)}</span>
+                <span className="deck-sleeves__name" title={sleeveName(sleeve, t)}>
+                  {sleeveName(sleeve, t)}
+                </span>
                 {fromSettings ? (
                   <span className="deck-sleeves__source">{t("redesign.decks.editor.sleeveFromSettings")}</span>
                 ) : null}

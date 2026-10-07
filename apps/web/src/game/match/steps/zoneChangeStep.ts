@@ -9,6 +9,7 @@ import { runCardReveal, type ArrivalPresentation } from "../cardReveal";
 import { waitForDeckReturnLanding, type RemovalLink } from "../removalChain";
 import { runBreedingTransfer } from "../../breedingTransfer";
 import { waitForPaintedAnimation } from "../../paintedAnimationClock";
+import { showcaseExtraHoldMs } from "../../pacing";
 
 /** Reveal the public card, then light its destination. Every exit returns held cards. */
 export function zoneChangeStep({
@@ -76,7 +77,7 @@ export function zoneChangeStep({
             context,
             id: `card-reveal-${key}`,
             origin,
-            duration: SHOWCASE_TOTAL_MS,
+            duration: SHOWCASE_TOTAL_MS + showcaseExtraHoldMs(showcase),
             waitForPaintedExit: (revealContext) =>
               waitForPaintedAnimation(
                 () =>

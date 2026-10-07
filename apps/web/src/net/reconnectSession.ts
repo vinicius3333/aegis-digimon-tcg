@@ -1,5 +1,5 @@
-import type { RoomSlot } from "./client";
 import { RECONNECT_GRACE_SECONDS } from "@aegis/shared";
+import type { RoomSlot } from "./client";
 
 /**
  * The Colyseus reconnection token only lives in memory, so a tab reload used to

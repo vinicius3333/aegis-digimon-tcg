@@ -1,11 +1,14 @@
 /* Public arrival: white turn, readable face, then a narrow upward exit.
    The queue owns the lifetime; the existing card, caption and board design stay ours. */
 
+import { useState, type CSSProperties } from "react";
 import { getCardDefinition } from "@aegis/shared";
 import { CardFull } from "../design/cards";
 import { useTranslation } from "../i18n";
 import { CardBurst } from "./CardBurst";
 import type { ZoneShowcase as ZoneShowcaseModel } from "./showcases";
+import { showcaseExtraHoldMs } from "./pacing";
+import { SHOWCASE_OUT_AT_MS } from "./timings";
 
 const SHOWCASE_CARD_WIDTH = 190;
 
@@ -13,6 +16,7 @@ export function ZoneShowcase({ showcase }: { showcase: ZoneShowcaseModel }) {
   const { t } = useTranslation();
   const cardName = getCardDefinition(showcase.cardId)?.nameEn ?? showcase.cardId;
   const digivolving = showcase.kind === "digivolve";
+  const [extraHoldMs] = useState(() => showcaseExtraHoldMs(showcase));
   return (
     <div
       className="battle-showcase battle-showcase--arrival"
@@ -20,6 +24,11 @@ export function ZoneShowcase({ showcase }: { showcase: ZoneShowcaseModel }) {
       data-card-id={showcase.cardId}
       data-showcase-key={showcase.key}
       role="status"
+      style={
+        extraHoldMs > 0
+          ? ({ "--t-showcase-out-at": `${SHOWCASE_OUT_AT_MS + extraHoldMs}ms` } as CSSProperties)
+          : undefined
+      }
     >
       <figure className="battle-showcase__frame">
         <span className="battle-showcase__halo" aria-hidden="true">

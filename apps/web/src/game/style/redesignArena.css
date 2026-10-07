@@ -887,6 +887,10 @@ button.game-player-line__name {
   color: var(--ds-text);
   font: inherit;
 }
+.game-arena-board-settings__size small {
+  flex-basis: 100%;
+  color: var(--ds-text-3);
+}
 .game-arena-board-settings__size select:focus-visible {
   outline: 2px solid var(--ds-accent);
   outline-offset: 2px;

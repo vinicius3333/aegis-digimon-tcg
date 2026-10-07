@@ -26,6 +26,7 @@ import { CardSleevePicker, EggSleevePicker } from "../design/sleevePicker";
 import { TEXT_SCALES, setTextScale, useTextScale, type TextScale } from "../design/textScale";
 import { SEQUENTIAL_PACING_ENABLED } from "../features";
 import { EFFECT_SPEEDS, getEffectSpeed, setEffectSpeed, type EffectSpeed } from "../game/pacing";
+import { setHandAutoSortEnabled, useHandAutoSort } from "../game/handAutoSort";
 import { LOCALES, LOCALE_LABELS, useTranslation, type TranslationKey } from "../i18n";
 import { AccountPanel } from "../account/AccountPanel";
 import { DigimonAvatarPicker } from "../account/DigimonAvatarPicker";
@@ -75,6 +76,7 @@ export function Settings({
   };
   const fieldLayout = useFieldLayout();
   const pileCountsShown = usePileCountsShown();
+  const handAutoSort = useHandAutoSort();
   function confirmRename() {
     const name = nameInput.trim();
     if (!name || name === player.name) return;
@@ -366,6 +368,14 @@ export function Settings({
                 label={t("settings.organizedField")}
                 description={t("settings.organizedFieldDesc")}
                 onChange={(next) => setFieldLayout(next ? FieldLayout.Organized : FieldLayout.Classic)}
+              />
+            </div>
+            <div className="settings-block">
+              <Switch
+                checked={handAutoSort}
+                label={t("settings.handAutoSort")}
+                description={t("settings.handAutoSortDesc")}
+                onChange={setHandAutoSortEnabled}
               />
             </div>
             <div className="settings-block">

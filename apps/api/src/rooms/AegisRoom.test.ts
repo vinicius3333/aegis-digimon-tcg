@@ -725,14 +725,14 @@ describe("AegisRoom combat windows", () => {
     expect(b.send).not.toHaveBeenCalled();
   });
 
-  it("#5257 grants one minute to reconnect and awards the connected opponent the win on expiry", async () => {
+  it("#5257 grants 30 seconds to reconnect and awards the connected opponent the win on expiry", async () => {
     vi.useFakeTimers();
     const room = makeRoom();
     const [, dropped] = joinBothSeats(room);
     room.state.phase = Phase.Main;
     (room as unknown as { matchStartRequested: boolean }).matchStartRequested = true;
     room.broadcastPatch = vi.fn<AegisRoom["broadcastPatch"]>(() => false);
-    room.allowReconnection = vi.fn(
+    room.allowReconnection = vi.fn<(_client: Client, seconds?: number) => Promise<Client>>(
       (_client: Client, seconds?: number) =>
         new Promise<Client>((_resolve, reject) =>
           setTimeout(() => reject(new Error("grace expired")), seconds! * 1000),
@@ -740,9 +740,9 @@ describe("AegisRoom combat windows", () => {
     ) as unknown as AegisRoom["allowReconnection"];
     const departure = room.onLeave(dropped, CloseCode.ABNORMAL_CLOSURE);
     await Promise.resolve();
-    expect(room.allowReconnection).toHaveBeenCalledWith(dropped, 60);
+    expect(room.allowReconnection).toHaveBeenCalledWith(dropped, 30);
     expect(room.state.players[1]!.connected).toBe(false);
-    await vi.advanceTimersByTimeAsync(59_999);
+    await vi.advanceTimersByTimeAsync(29_999);
     expect(room.state.gameOver).toBe(false);
     await vi.advanceTimersByTimeAsync(1);
     await departure;

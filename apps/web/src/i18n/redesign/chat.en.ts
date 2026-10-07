@@ -1,5 +1,6 @@
 export const chatEn = {
   "chat.open": "Chat",
+  "chat.openUnread": "Chat, {count} unread",
   "chat.title": "Chat",
   "chat.close": "Close chat",
   "chat.expand": "Expand chat",

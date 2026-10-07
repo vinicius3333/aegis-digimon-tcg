@@ -15,6 +15,7 @@ import {
 import { ChatBubble } from "../../chat/ChatBubble";
 import { MatchChatWindow } from "../../chat/MatchChatWindow";
 import type { MatchChat } from "../../chat/useMatchChat";
+import { useUnreadChatCount } from "../../chat/useUnreadChatCount";
 import type { ArenaBoardLook } from "../../arenaLook";
 import { createPortal } from "react-dom";
 import type { GameState, Permanent, PlayerState, Seat } from "@aegis/shared";
@@ -233,6 +234,7 @@ export function BoardStage({
   useFieldShatterOrigins(anchors.board);
   const other = otherSeat(viewerSeat);
   const [chatOpen, setChatOpen] = useState(false);
+  const chatUnread = useUnreadChatCount(chat?.entries, chatOpen);
   const endTurnConfirmation = useEndTurnConfirmation({
     phase: state.phase,
     turnCount: state.turnCount,
@@ -343,6 +345,7 @@ export function BoardStage({
             onOpenArenaLook={() => overlays.setArenaLookOpen(true)}
             onToggleChat={chat ? () => setChatOpen((open) => !open) : undefined}
             chatOpen={chatOpen}
+            chatUnread={chatUnread}
             onSurrender={spectating ? () => onLeaveSpectator?.() : () => overlays.setSurrenderConfirmOpen(true)}
             onSkipPresentation={() => cues.skipAnimations()}
           />
