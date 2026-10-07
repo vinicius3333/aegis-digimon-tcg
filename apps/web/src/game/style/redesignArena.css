@@ -454,14 +454,14 @@ button.game-player-line__name {
 
 /* A short, centred confirmation: the question, what it costs, and two equal
    answers, the destructive one filled in red. */
-.aegis-dialog.game-surrender-dialog {
+.aegis-dialog.game-confirm-dialog {
   display: grid;
   justify-items: center;
   width: min(100%, 22rem);
   text-align: center;
 }
 
-.game-surrender-dialog__icon {
+.game-confirm-dialog__icon {
   display: grid;
   width: 3rem;
   height: 3rem;
@@ -472,18 +472,18 @@ button.game-player-line__name {
   background: var(--ds-danger-soft);
 }
 
-.game-surrender-dialog__title {
+.game-confirm-dialog__title {
   margin: 0;
   font: 700 var(--ds-text-lg) / 1.25 var(--ds-font-display);
 }
 
-.game-surrender-dialog__body {
+.game-confirm-dialog__body {
   margin: var(--ds-space-2) 0 0;
   color: var(--ds-text-3);
   font-size: var(--ds-text-sm);
 }
 
-.game-surrender-dialog__actions {
+.game-confirm-dialog__actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--ds-space-2);
@@ -491,16 +491,16 @@ button.game-player-line__name {
   margin-top: var(--ds-space-5);
 }
 
-.game-surrender-dialog__actions > .aegis-button {
+.game-confirm-dialog__actions > .aegis-button {
   justify-content: center;
 }
 
-.game-surrender-dialog .game-surrender-dialog__confirm {
+.game-confirm-dialog .game-confirm-dialog__confirm {
   color: var(--ds-on-status);
   background: var(--ds-danger);
 }
 
-.game-surrender-dialog .game-surrender-dialog__confirm:hover {
+.game-confirm-dialog .game-confirm-dialog__confirm:hover {
   background: color-mix(in srgb, var(--ds-danger) 85%, black);
 }
 
