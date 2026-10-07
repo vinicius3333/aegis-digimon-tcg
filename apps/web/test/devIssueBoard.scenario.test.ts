@@ -26,9 +26,15 @@ it.each(ISSUE_REPRO_SCENARIO_IDS)("sends the complete %s board on its first conn
     expect(host.addBot()).toBe(true);
     await vi.waitFor(() =>
       expect(room.state.phase).toBe(
-        ["arena-issue-4939-demon-lord-free-reduction", "arena-discord-1556732255148179569-drasil-turn"].includes(
-          devScenario,
-        )
+        [
+          "arena-issue-4939-demon-lord-free-reduction",
+          "arena-discord-1556732255148179569-drasil-turn",
+          // These occupied breeding areas contain cards without DP, so neither
+          // hatching nor movement is legal and the turn proceeds directly to Main.
+          "arena-issue-5176-king-drasil-ace",
+          "arena-issue-5070-lunamon-breeding",
+          "arena-issue-5067-treadmill-reveal",
+        ].includes(devScenario)
           ? Phase.Main
           : Phase.Breeding,
       ),

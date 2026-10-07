@@ -10,6 +10,7 @@ import { scenario } from "./scenarioHarness/scenario";
 import { startTestServer, type TestServer } from "./scenarioHarness/server";
 import { joinHeadlessOpponent } from "./scenarioHarness/headlessOpponent";
 import { decisionCandidates, findDecisionSurface, resolveNextTriggerThroughUi } from "./scenarioHarness/decisions";
+import { GameScreen } from "../src/game/GameScreen";
 
 // EX11-069 "Yuuki" (Purple/Red Tamer, playCost 4): printed "[Start of Your Main
 // Phase][On Play] By trashing 1 card in your hand, gain 1 memory" — compiled as TWO
@@ -44,7 +45,6 @@ scenario("optional-decision", () => {
 
   async function playYuuki() {
     vi.stubEnv("VITE_AEGIS_API_URL", server.endpoint);
-    const { GameScreen } = await import("../src/game/GameScreen");
 
     const joinOptions: AegisJoinOptions & { seed?: number } = {
       displayName: "Protagonist",

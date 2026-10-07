@@ -22,8 +22,10 @@ function replaceCopies(deck: typeof BLUE_DECK, from: string, to: string, count: 
 }
 
 function distinctPermanentButtons(container: HTMLElement, name: RegExp) {
-  const buttons = within(container).getAllByRole("button", { name });
-  const byPermanentId = new Map<string, HTMLButtonElement>();
+  const fieldSelection = container.getAttribute("data-variant") === "field-selection";
+  const candidates = fieldSelection ? (document.querySelector(".game-battle-row--opp") as HTMLElement) : container;
+  const buttons = within(candidates).getAllByRole("button", { name });
+  const byPermanentId = new Map<string, HTMLElement>();
   for (const button of buttons) {
     const id =
       button.getAttribute("data-instance-id") ?? button.closest('[data-drop="perm-opp"]')?.getAttribute("data-id");
@@ -137,7 +139,7 @@ scenario("complex-decisions", () => {
 
     // “Up to 3” permits choosing zero. Confirming zero consumes the played
     // Option but leaves both eligible permanents and their exact identities alone.
-    fireEvent.click(within(firstPrompt).getByRole("button", { name: /^none$/i }));
+    fireEvent.click(within(firstPrompt).getByRole("button", { name: /^pass$/i }));
     await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(firstDecisionId), {
       timeout: 10_000,
     });
@@ -208,13 +210,13 @@ scenario("complex-decisions", () => {
     for (const id of initialSelectedIds) {
       const target = candidateButtons.find(([candidateId]) => candidateId === id)?.[1];
       expect(target).toBeDefined();
-      fireEvent.click(target!);
+      tap(target!);
     }
-    expect(within(maximumPrompt).getByText(/^3 chosen$/i)).toBeTruthy();
+    expect(within(maximumPrompt).getByText(/^3 selected of 0–3$/i)).toBeTruthy();
     const fourthCandidate = candidateButtons.find(([id]) => id === fourthCandidateId)?.[1];
     expect(fourthCandidate).toBeDefined();
-    fireEvent.click(fourthCandidate!);
-    expect(within(maximumPrompt).getByText(/^3 chosen$/i)).toBeTruthy();
+    tap(fourthCandidate!);
+    expect(within(maximumPrompt).getByText(/^3 selected of 0–3$/i)).toBeTruthy();
     // The field picker keeps the newest three when a fourth eligible target is
     // clicked, replacing the oldest selection. This proves the cap while keeping
     // the exact identities of the final selected set explicit.
@@ -392,7 +394,7 @@ scenario("complex-decisions", () => {
     });
     const exactTargetButton = deletionCandidates.find(([id]) => id === attackedTargetId)?.[1];
     expect(exactTargetButton).toBeDefined();
-    fireEvent.click(exactTargetButton!);
+    tap(exactTargetButton!);
     fireEvent.click(within(deletionPrompt).getByRole("button", { name: /confirm targets/i }));
 
     await vi.waitFor(

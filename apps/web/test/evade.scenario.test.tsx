@@ -10,6 +10,7 @@ import { scenario } from "./scenarioHarness/scenario";
 import { startTestServer, type TestServer } from "./scenarioHarness/server";
 import { joinHeadlessOpponent } from "./scenarioHarness/headlessOpponent";
 import { respondToHeadlessDecision } from "./scenarioHarness/decisions";
+import { GameScreen } from "../src/game/GameScreen";
 
 // BT14-025 "Shellmon" (Blue, Lv.4, cost 5, 6000 DP): printed "＜Evade＞ (When this
 // Digimon would be deleted, you may suspend it to prevent that deletion.)" with no
@@ -57,7 +58,6 @@ scenario("evade", () => {
 
   it("accepting the Evade prompt suspends the Digimon instead of deleting it", async () => {
     vi.stubEnv("VITE_AEGIS_API_URL", server.endpoint);
-    const { GameScreen } = await import("../src/game/GameScreen");
 
     // Seed 64: seat 0 (protagonist, swapped BLUE_DECK) goes first and its dealt
     // opening hand includes BT14-025 "Shellmon". The headless opponent's (swapped
@@ -122,7 +122,10 @@ scenario("evade", () => {
 
     // MetalGreymon's [On Play] would delete Shellmon — the real Evade prompt
     // opens on the protagonist's screen (EvadeOverlay, evadePrompt event).
-    const acceptButton = await screen.findByRole("button", { name: /yes, suspend to evade/i }, { timeout: 10_000 });
+    const evadePrompt = await screen.findByRole("dialog", { name: "＜Evade＞" }, { timeout: 10_000 });
+    expect(evadePrompt.getAttribute("data-prompt-surface")).toBe("left");
+    expect(within(evadePrompt).getByText(/you may suspend it to prevent that deletion/i)).toBeTruthy();
+    const acceptButton = within(evadePrompt).getByRole("button", { name: /^use$/i });
     fireEvent.click(acceptButton);
 
     // Answered-outcome proof: Shellmon SURVIVES — still rendered in the
@@ -138,7 +141,7 @@ scenario("evade", () => {
         ).toBe(true),
       { timeout: 10_000 },
     );
-    await vi.waitFor(() => expect(screen.queryByRole("button", { name: /yes, suspend to evade/i })).toBeNull(), {
+    await vi.waitFor(() => expect(screen.queryByRole("dialog", { name: "＜Evade＞" })).toBeNull(), {
       timeout: 10_000,
     });
     const shellmonPermElAfter = within(yourBattleArea())
