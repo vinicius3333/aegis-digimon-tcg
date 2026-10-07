@@ -26,13 +26,13 @@ const LONG_CHOICES: readonly Copy[] = [
     en: "Trash the top card of your deck. Then, delete 1 of your opponent's Digimon with the lowest play cost.",
     "pt-BR":
       "Descarte a carta do topo do seu deck. Depois, delete 1 dos Digimon do seu oponente com o menor custo de jogo.",
-    es: "Descarta la carta superior de tu mazo. Luego, elimina 1 de los Digimon de tu oponente con el menor costo de juego.",
+    es: "Descarta la carta superior de tu deck. Luego, elimina 1 de los Digimon de tu oponente con el menor costo de juego.",
   },
   {
     en: "Return 1 of your opponent's Digimon with 6000 DP or less to the bottom of the deck, then your opponent adds the top card of their security stack to the hand.",
     "pt-BR":
       "Retorne 1 dos Digimon do seu oponente com 6000 DP ou menos para o fundo do deck; em seguida, seu oponente adiciona a carta do topo da pilha de segurança à mão.",
-    es: "Devuelve 1 de los Digimon de tu oponente con 6000 DP o menos al fondo del mazo; luego, tu oponente agrega a su mano la carta superior de su pila de seguridad.",
+    es: "Devuelve 1 de los Digimon de tu oponente con 6000 DP o menos al fondo del deck; luego, tu oponente agrega a su mano la carta superior de su pila de seguridad.",
   },
   {
     en: "Place 1 [Chirinmon] from your hand under this Tamer as its bottom digivolution card to reduce the play cost by 3.",
@@ -71,7 +71,7 @@ const SELECT_PROMPT: Copy = {
 const ORDER_PROMPT: Copy = {
   en: "Place the revealed cards at the bottom of your deck in any order.",
   "pt-BR": "Coloque as cartas reveladas no fundo do seu deck em qualquer ordem.",
-  es: "Coloca las cartas reveladas en el fondo de tu mazo en cualquier orden.",
+  es: "Coloca las cartas reveladas en el fondo de tu deck en cualquier orden.",
 };
 
 export const REJECTION_REASON: Copy = {

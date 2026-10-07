@@ -12,7 +12,7 @@
   "releases.1.15.0-beta.feature.sleeves": {
     "en": "Pick a custom sleeve for your deck's card backs.",
     "pt-BR": "Escolha uma capa personalizada para o verso das cartas do seu deck.",
-    "es": "Elige una funda personalizada para el reverso de las cartas de tu mazo."
+    "es": "Elige una funda personalizada para el reverso de las cartas de tu deck."
   },
   "releases.1.15.0-beta.feature.newLook": {
     "en": "A new magenta accent, calmer page surfaces and falling bits that stay in the margins so text is easier to read, in light and dark themes.",
@@ -37,7 +37,7 @@
   "releases.1.14.1-beta.fix.drawHandoff": {
     "en": "Cards drawn after digivolution enter the hand once their draw animation reaches its handoff, without appearing early or disappearing again. Successive draws preserve hand and deck counts.",
     "pt-BR": "Cartas compradas após a digivolução entram na mão quando a animação de compra chega à entrega, sem aparecer antes ou sumir novamente. Compras seguidas preservam as contagens da mão e do deck.",
-    "es": "Las cartas robadas tras la digievolución entran en la mano cuando su animación de robo llega a la entrega, sin aparecer antes ni desaparecer de nuevo. Los robos seguidos conservan los conteos de la mano y del mazo."
+    "es": "Las cartas robadas tras la digievolución entran en la mano cuando su animación de robo llega a la entrega, sin aparecer antes ni desaparecer de nuevo. Los robos seguidos conservan los conteos de la mano y del deck."
   },
   "releases.1.14.1-beta.fix.botPacing": {
     "en": "The bot waits through digivolution arrivals, consecutive effects and each trashed security card before choosing its next action.",
@@ -127,7 +127,7 @@
   "releases.1.12.0-beta.feature.cardMotion": {
     "en": "Card animations are clearer: effect battles show their clash, defeated cards wait for the blow before breaking, grouped cards leave together, and cards returned to the deck land before the next effect plays.",
     "pt-BR": "As animações de cartas estão mais claras: batalhas por efeito mostram o confronto, cartas derrotadas esperam o golpe antes de quebrar, cartas agrupadas saem juntas, e cartas devolvidas ao deck pousam antes do próximo efeito.",
-    "es": "Las animaciones de cartas son más claras: las batallas por efecto muestran su choque, las cartas derrotadas esperan el golpe antes de romperse, las cartas agrupadas salen juntas y las cartas devueltas al mazo aterrizan antes de que se juegue el siguiente efecto."
+    "es": "Las animaciones de cartas son más claras: las batallas por efecto muestran su choque, las cartas derrotadas esperan el golpe antes de romperse, las cartas agrupadas salen juntas y las cartas devueltas al deck aterrizan antes de que se juegue el siguiente efecto."
   },
   "releases.1.12.0-beta.fix.partition": {
     "en": "Partition asks whether to activate it and previews every source card it can use.",
@@ -172,7 +172,7 @@
   "releases.1.11.0-beta.summary": {
     "en": "This minor release adds optional match timers, a resizable deck builder grid that follows your account, and a backup provider for sign-in emails. It also fixes card effects, prompts, images and reconnection.",
     "pt-BR": "Esta versão minor traz timer opcional nas partidas, uma grade redimensionável no construtor de decks que acompanha sua conta e um provedor reserva para os e-mails de login. Também corrige efeitos de cartas, pedidos de escolha, imagens e reconexão.",
-    "es": "Esta versión menor añade temporizadores opcionales en las partidas, una cuadrícula redimensionable en el constructor de mazos que se guarda en tu cuenta y un proveedor de respaldo para los correos de inicio de sesión. También corrige efectos de cartas, solicitudes de elección, imágenes y reconexión."
+    "es": "Esta versión menor añade temporizadores opcionales en las partidas, una cuadrícula redimensionable en el constructor de decks que se guarda en tu cuenta y un proveedor de respaldo para los correos de inicio de sesión. También corrige efectos de cartas, solicitudes de elección, imágenes y reconexión."
   },
   "releases.1.11.0-beta.fix.burstOwnership": {
     "en": "ShineGreymon: Burst Mode only offers Tamers from your own hand when its Option effect plays a Tamer.",
@@ -247,12 +247,12 @@
   "releases.1.11.0-beta.feature.deckGrid": {
     "en": "The deck builder shows your deck as a card grid. Drag the divider or use the Pool, Split and Deck presets to resize it against the card pool. A compact list view and the level curve sit above the deck.",
     "pt-BR": "O construtor de decks mostra o deck como uma grade de cartas. Arraste o divisor ou use os atalhos Cartas, Dividir e Deck para redimensionar em relação às cartas disponíveis. A visão em lista compacta e a curva de níveis ficam acima do deck.",
-    "es": "El constructor de mazos muestra tu mazo como una cuadrícula de cartas. Arrastra el divisor o usa los ajustes Pool, Split y Deck para cambiar su tamaño frente al conjunto de cartas. Una vista de lista compacta y la curva de niveles están encima del mazo."
+    "es": "El constructor de decks muestra tu deck como una cuadrícula de cartas. Arrastra el divisor o usa los ajustes Pool, Split y Deck para cambiar su tamaño frente al conjunto de cartas. Una vista de lista compacta y la curva de niveles están encima del deck."
   },
   "releases.1.11.0-beta.feature.deckLayoutSync": {
     "en": "Signed-in players keep their deck builder layout, view and sort on every device.",
     "pt-BR": "Jogadores conectados mantêm o layout, a visão e a ordenação do construtor de decks em todos os dispositivos.",
-    "es": "Los jugadores que iniciaron sesión conservan el diseño, la vista y el orden del constructor de mazos en todos sus dispositivos."
+    "es": "Los jugadores que iniciaron sesión conservan el diseño, la vista y el orden del constructor de decks en todos sus dispositivos."
   },
   "releases.1.11.0-beta.fix.signInEmailLimit": {
     "en": "Email sign-in switches to a second email provider when the first reaches its daily limit. When both are used up, the sign-in panel says so and suggests Discord.",
@@ -337,7 +337,7 @@
   "releases.1.10.2-beta.fix.seventhLightning": {
     "en": "Seventh Lightning returns to the deck as its trash-effect cost before resolving both deletion effects, even when one target level is absent.",
     "pt-BR": "Seventh Lightning volta ao deck como custo de seu efeito da lixeira antes de resolver as duas deleções, mesmo quando não há alvo de um dos níveis.",
-    "es": "Seventh Lightning vuelve al mazo como costo de su efecto de descarte antes de resolver ambos efectos de eliminación, incluso cuando falta un objetivo de uno de los niveles."
+    "es": "Seventh Lightning vuelve al deck como costo de su efecto de descarte antes de resolver ambos efectos de eliminación, incluso cuando falta un objetivo de uno de los niveles."
   },
   "releases.1.10.2-beta.fix.raidBlocking": {
     "en": "A Digimon targeted by Raid can no longer block the attack directed at itself.",
@@ -412,7 +412,7 @@
   "releases.1.10.0-beta.fix.partitionBarrier": {
     "en": "Partition now resolves before effect removal to the hand, deck or security, including nested effects. Barrier can protect against repeated battles in the same turn.",
     "pt-BR": "Partition agora resolve antes da remoção por efeito para a mão, deck ou security, inclusive com efeitos encadeados. Barrier pode proteger contra batalhas repetidas no mesmo turno.",
-    "es": "Partition ahora se resuelve antes de que un efecto quite la carta a la mano, el mazo o la seguridad, incluso con efectos anidados. Barrier puede proteger contra batallas repetidas en el mismo turno."
+    "es": "Partition ahora se resuelve antes de que un efecto quite la carta a la mano, el deck o la seguridad, incluso con efectos anidados. Barrier puede proteger contra batallas repetidas en el mismo turno."
   },
   "releases.1.10.0-beta.fix.dnaRequirements": {
     "en": "Effects that perform DNA digivolution now recognize shared card requirements, including AD1-025 destinations, while still rejecting invalid partners.",
@@ -432,7 +432,7 @@
   "releases.1.10.0-beta.fix.sourceStripping": {
     "en": "Source removal now counts colors gained by effects. The board finishes showing source cards leave before their host moves to the hand, deck or trash.",
     "pt-BR": "A remoção de fontes agora conta as cores ganhas por efeitos. O campo termina de mostrar a saída das fontes antes de mover a carta principal para a mão, deck ou lixo.",
-    "es": "Quitar fuentes ahora cuenta los colores obtenidos por efectos. El tablero termina de mostrar la salida de las fuentes antes de que su carta principal pase a la mano, el mazo o el descarte."
+    "es": "Quitar fuentes ahora cuenta los colores obtenidos por efectos. El tablero termina de mostrar la salida de las fuentes antes de que su carta principal pase a la mano, el deck o el descarte."
   },
   "releases.1.10.0-beta.fix.hadesForce": {
     "en": "BT11-107 Hades Force now lets you select opposing Digimon and Tamers together within its total play-cost budget, with valid targets highlighted as you choose.",
@@ -497,7 +497,7 @@
   "releases.1.9.0-beta.feature.tabletopLayout": {
     "en": "Deck, trash, security and breeding areas now use a tabletop arrangement with mirrored opponent piles. On laptops, security sits beside the breeding area, and hidden security cards display the selected deck sleeve.",
     "pt-BR": "Deck, lixo, security e área de criação agora usam uma disposição como numa mesa, com as pilhas do oponente espelhadas. Em notebooks, a security fica ao lado da criação, e as cartas ocultas de security mostram o sleeve escolhido para o deck.",
-    "es": "Las áreas de mazo, descarte, seguridad y crianza ahora usan una disposición como en una mesa, con las pilas del oponente en espejo. En laptops, la seguridad está junto al área de crianza, y las cartas de seguridad ocultas muestran la funda del mazo seleccionado."
+    "es": "Las áreas de deck, descarte, seguridad y crianza ahora usan una disposición como en una mesa, con las pilas del oponente en espejo. En laptops, la seguridad está junto al área de crianza, y las cartas de seguridad ocultas muestran la funda del deck seleccionado."
   },
   "releases.1.9.0-beta.fix.responsiveArena": {
     "en": "The arena fits portrait and landscape phones more comfortably, with card sizes that update when the window changes, clearer source and Link stacks, complete keyword labels and better access to the hand and game controls.",
@@ -592,7 +592,7 @@
   "releases.1.8.6-beta.fix.hybridSearch": {
     "en": "Searching for Hybrid in the deck builder now finds cards with Hybrid in their printed form.",
     "pt-BR": "Buscar Hybrid no construtor de decks agora encontra cartas com Hybrid na forma impressa.",
-    "es": "Buscar Hybrid en el constructor de mazos ahora encuentra cartas con Hybrid en su forma impresa."
+    "es": "Buscar Hybrid en el constructor de decks ahora encuentra cartas con Hybrid en su forma impresa."
   },
   "releases.1.8.6-beta.fix.taiki": {
     "en": "BT10-087 Taiki Kudo can now place a lone revealed Xros Heart Digimon under a Tamer.",
@@ -872,7 +872,7 @@
   "releases.1.7.7-beta.fix.privateReveal": {
     "en": "Effects that move a \"card with XX\" from hand, deck, or security into another private area now reveal it to the opponent first, such as BT14-032 Chuumon placing a [Sukamon] card in security. A plain \"card\" stays hidden.",
     "pt-BR": "Efeitos que movem uma \"carta com XX\" da mão, do deck ou da segurança para outra área privada agora a revelam ao oponente antes, como BT14-032 Chuumon ao colocar uma carta [Sukamon] na segurança. Uma \"carta\" sem requisito continua escondida.",
-    "es": "Los efectos que mueven una \"carta con XX\" de la mano, el mazo o la seguridad a otra área privada ahora se la revelan primero al oponente, como BT14-032 Chuumon al colocar una carta [Sukamon] en la seguridad. Una \"carta\" sin requisito sigue oculta."
+    "es": "Los efectos que mueven una \"carta con XX\" de la mano, el deck o la seguridad a otra área privada ahora se la revelan primero al oponente, como BT14-032 Chuumon al colocar una carta [Sukamon] en la seguridad. Una \"carta\" sin requisito sigue oculta."
   },
   "releases.1.7.7-beta.fix.pendingEffectsPhone": {
     "en": "On portrait phones, the pending-effects sheet no longer hides the whole board. Its effect list scrolls inside it.",
@@ -962,7 +962,7 @@
   "releases.1.7.2-beta.fix.rulings": {
     "en": "Cards across the booster and starter deck sets now follow the official Q&A rulings, including ST22 Maid Mode, Offensive Plug-In V and Barbamon.",
     "pt-BR": "Cartas dos boosters e dos starter decks agora seguem as respostas oficiais de Q&A, incluindo Maid Mode, Offensive Plug-In V e Barbamon do ST22.",
-    "es": "Las cartas de los sets de boosters y de mazos de inicio ahora siguen las respuestas oficiales de Q&A, incluidos Maid Mode, Offensive Plug-In V y Barbamon de ST22."
+    "es": "Las cartas de los sets de boosters y de decks de inicio ahora siguen las respuestas oficiales de Q&A, incluidos Maid Mode, Offensive Plug-In V y Barbamon de ST22."
   },
   "releases.1.7.2-beta.fix.engine": {
     "en": "Digivolve costs scale after reductions, Tamers treated as Digimon count as both, and hidden hand cards stay hidden when trashed without being revealed.",
@@ -1012,7 +1012,7 @@
   "releases.1.7.0-beta.feature.redesign": {
     "en": "Home, login, play lobby, decks, collection, settings and release notes have a new look, with a blueprint style in light mode and a console style in dark mode.",
     "pt-BR": "Início, login, lobby, decks, coleção, configurações e novidades ganharam um novo visual, com estilo de planta no modo claro e de console no modo escuro.",
-    "es": "Inicio, inicio de sesión, lobby de juego, mazos, colección, configuración y notas de la versión tienen un nuevo aspecto, con estilo de plano en modo claro y estilo de consola en modo oscuro."
+    "es": "Inicio, inicio de sesión, lobby de juego, decks, colección, configuración y notas de la versión tienen un nuevo aspecto, con estilo de plano en modo claro y estilo de consola en modo oscuro."
   },
   "releases.1.7.0-beta.feature.arena": {
     "en": "The match arena follows your theme, with board colors and battlefield art. Tap a field badge to see what it means, with keyword reminders from the rules glossary.",
@@ -1027,7 +1027,7 @@
   "releases.1.7.0-beta.feature.feedback": {
     "en": "The Feedback button in the top bar opens one dialog to report a bug, suggest an improvement or send anything else. Card and deck fields show only for bugs.",
     "pt-BR": "O botão Feedback na barra superior abre uma janela para relatar um bug, sugerir uma melhoria ou enviar outra coisa. Os campos de carta e deck aparecem só para bugs.",
-    "es": "El botón Comentarios de la barra superior abre un diálogo para reportar un error, sugerir una mejora o enviar cualquier otra cosa. Los campos de carta y mazo solo aparecen para errores."
+    "es": "El botón Comentarios de la barra superior abre un diálogo para reportar un error, sugerir una mejora o enviar cualquier otra cosa. Los campos de carta y deck solo aparecen para errores."
   },
   "releases.1.7.0-beta.feature.surrender": {
     "en": "Surrender now asks you to confirm before it ends the match.",
@@ -1147,7 +1147,7 @@
   "releases.1.5.0-beta.summary": {
     "en": "This update lets you order all of your simultaneous effects in one step and preset their yes/no questions, shows the cards your opponent reveals from their deck, and fixes several effect prompts and notices.",
     "pt-BR": "Esta atualização permite ordenar todos os seus efeitos simultâneos de uma vez e definir antes as perguntas de sim/não, mostra as cartas que o oponente revela do deck e corrige vários prompts e avisos de efeitos.",
-    "es": "Esta actualización te permite ordenar todos tus efectos simultáneos en un solo paso y prefijar sus preguntas de sí/no, muestra las cartas que tu oponente revela de su mazo y corrige varios avisos y notificaciones de efectos."
+    "es": "Esta actualización te permite ordenar todos tus efectos simultáneos en un solo paso y prefijar sus preguntas de sí/no, muestra las cartas que tu oponente revela de su deck y corrige varios avisos y notificaciones de efectos."
   },
   "releases.1.5.0-beta.feature.resolutionPlan": {
     "en": "When several of your effects trigger at once, click them in the order they should resolve, like picking Assembly materials. Set Ask, Yes or No for each optional effect, or use Yes to all and No to all. One answer resolves the whole group, which helps with cards like Gate of Deadly Sins (EX6-006) and King Drasil_7D6 (BT23-072).",
@@ -1157,7 +1157,7 @@
   "releases.1.5.0-beta.feature.opponentReveals": {
     "en": "Cards your opponent reveals from their deck, such as with P-104, are shown face-up in the center of the board, and a revealed card added to their hand flies face-up.",
     "pt-BR": "As cartas que o oponente revela do deck, como com o P-104, aparecem viradas para cima no centro do tabuleiro, e uma carta revelada que vai para a mão dele voa virada para cima.",
-    "es": "Las cartas que tu oponente revela de su mazo, como con P-104, se muestran boca arriba en el centro del tablero, y una carta revelada que va a su mano vuela boca arriba."
+    "es": "Las cartas que tu oponente revela de su deck, como con P-104, se muestran boca arriba en el centro del tablero, y una carta revelada que va a su mano vuela boca arriba."
   },
   "releases.1.5.0-beta.fix.gateNotice": {
     "en": "Gate of Deadly Sins (EX6-006) keeps its effect notice on screen while you choose the Seven Great Demon Lords card to place under it.",
@@ -1367,7 +1367,7 @@
   "releases.1.1.5-beta.fix.effectPlayDigiXros": {
     "en": "Effects that play a card with DigiXros requirements, such as plays from the trash or from a deck reveal, now offer DigiXros. If no material is available, the card is played normally.",
     "pt-BR": "Efeitos que jogam uma carta com requisitos de DigiXros, como jogadas da lixeira ou de cartas reveladas do deck, agora oferecem DigiXros. Se não houver material disponível, a carta é jogada normalmente.",
-    "es": "Los efectos que juegan una carta con requisitos de DigiXros, como jugar desde el descarte o desde cartas reveladas del mazo, ahora ofrecen DigiXros. Si no hay material disponible, la carta se juega normalmente."
+    "es": "Los efectos que juegan una carta con requisitos de DigiXros, como jugar desde el descarte o desde cartas reveladas del deck, ahora ofrecen DigiXros. Si no hay material disponible, la carta se juega normalmente."
   },
   "releases.1.1.5-beta.fix.partitionDigiXros": {
     "en": "Cards played by ＜Partition＞ can now use DigiXros.",
@@ -1407,12 +1407,12 @@
   "releases.1.1.2-beta.summary": {
     "en": "This patch gives practice bots a wider variety of decks.",
     "pt-BR": "Esta atualização traz mais variedade de decks para os bots de treino.",
-    "es": "Este parche da a los bots de práctica una mayor variedad de mazos."
+    "es": "Este parche da a los bots de práctica una mayor variedad de decks."
   },
   "releases.1.1.2-beta.fix.randomBotDeck": {
     "en": "Random bot opponents now choose from the legal deck catalog instead of only three built-in decks.",
     "pt-BR": "Bots com deck aleatório agora escolhem entre os decks válidos do catálogo, em vez de apenas três decks predefinidos.",
-    "es": "Los bots oponentes aleatorios ahora eligen del catálogo de mazos legales en lugar de solo tres mazos predefinidos."
+    "es": "Los bots oponentes aleatorios ahora eligen del catálogo de decks legales en lugar de solo tres decks predefinidos."
   },
   "releases.1.1.1-beta.summary": {
     "en": "This patch fixes the rematch button after a game ends.",
@@ -1422,7 +1422,7 @@
   "releases.1.1.1-beta.fix.rematch": {
     "en": "Find rematch now starts a fresh game with the same mode and deck instead of returning to a menu.",
     "pt-BR": "Buscar revanche agora inicia uma nova partida com o mesmo modo e deck, em vez de voltar a um menu.",
-    "es": "Buscar revancha ahora inicia una partida nueva con el mismo modo y mazo, en lugar de volver a un menú."
+    "es": "Buscar revancha ahora inicia una partida nueva con el mismo modo y deck, en lugar de volver a un menú."
   },
   "releases.1.1.0-beta.summary": {
     "en": "This update tightens turn timing, triggered Delay effects, token restrictions, and several card-specific interactions while making their presentation easier to follow.",
@@ -1537,7 +1537,7 @@
   "releases.1.14.0-beta.fix.cardEffects": {
     "en": "Corrected Mastemon security ownership, Barrier effect timing, Millenniummon return costs and deck ordering, and Jupiter and Asuna trash interactions.",
     "pt-BR": "Corrigidos o dono da segurança de Mastemon, o tempo de efeitos de Barrier, custos de retorno e ordenação do deck de Millenniummon e interações de Jupiter e Asuna com o lixo.",
-    "es": "Se corrigieron el dueño de la seguridad de Mastemon, el momento de los efectos de Barrier, los costos de devolución y el orden del mazo de Millenniummon, y las interacciones de Jupiter y Asuna con el descarte."
+    "es": "Se corrigieron el dueño de la seguridad de Mastemon, el momento de los efectos de Barrier, los costos de devolución y el orden del deck de Millenniummon, y las interacciones de Jupiter y Asuna con el descarte."
   },
   "releases.1.14.0-beta.fix.counterTimeout": {
     "en": "Counter decisions that time out can finish without leaving the match waiting for an unanswered response.",

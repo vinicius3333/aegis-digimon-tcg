@@ -32,7 +32,7 @@ export const arenaEs: Record<keyof typeof arenaEn, string> = {
   "redesign.arena.restriction.protectedFromEffectDeletion":
     "Los efectos de tu oponente no pueden eliminar a este Digimon.",
   "redesign.arena.restriction.protectedFromEffectReturn":
-    "Los efectos de tu oponente no pueden devolver a este Digimon a la mano ni al mazo.",
+    "Los efectos de tu oponente no pueden devolver a este Digimon a la mano ni al deck.",
   "redesign.arena.restriction.attacksAtStartOfMainPhase":
     "Un efecto hace que este Digimon ataque al inicio de su fase principal, si puede.",
   "redesign.arena.restriction.cannotAttack": "Un efecto impide que este Digimon ataque.",
@@ -48,10 +48,10 @@ export const arenaEs: Record<keyof typeof arenaEn, string> = {
   "redesign.arena.keyword.SecurityAttackUp": "Este Digimon revisa {count} carta(s) de seguridad adicional(es).",
   "redesign.arena.keyword.SecurityAttackDown": "Este Digimon revisa {count} carta(s) de seguridad menos.",
   "redesign.arena.keyword.SecurityAttack": "Cambia cuántas cartas de seguridad revisa este Digimon cuando ataca.",
-  "redesign.arena.keyword.Recovery": "Coloca las X carta(s) superiores de tu mazo encima de tu pila de seguridad.",
+  "redesign.arena.keyword.Recovery": "Coloca las X carta(s) superiores de tu deck encima de tu pila de seguridad.",
   "redesign.arena.keyword.Piercing":
     "Cuando este Digimon ataca, elimina a un Digimon del oponente y sobrevive a la batalla, realiza las revisiones de seguridad que haría normalmente.",
-  "redesign.arena.keyword.Draw": "Roba X carta(s) de tu mazo.",
+  "redesign.arena.keyword.Draw": "Roba X carta(s) de tu deck.",
   "redesign.arena.keyword.Jamming": "Este Digimon no puede ser eliminado en batallas contra Digimon de seguridad.",
   "redesign.arena.keyword.Digisorption":
     "Cuando uno de tus Digimon digievoluciona en esta carta desde tu mano, puedes suspender 1 de tus Digimon para reducir el costo de digievolución en X.",

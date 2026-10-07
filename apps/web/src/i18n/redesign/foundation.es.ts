@@ -19,7 +19,7 @@ export const foundationEs: Record<keyof typeof foundationEn, string> = {
   "redesign.foundation.arena.palette.red-blue": "Azul vs. rojo",
   "redesign.foundation.arena.palette.green-purple": "Verde vs. morado",
   "redesign.foundation.arena.palette.gold-black": "Dorado vs. negro",
-  "redesign.foundation.arena.palette.deck-colors": "Color principal de cada mazo",
+  "redesign.foundation.arena.palette.deck-colors": "Color principal de cada deck",
   "redesign.foundation.battlefield.classic": "Solo colores",
   "redesign.foundation.battlefield.tropical": "Arena Tropical",
   "redesign.foundation.battlefield.sanctum": "Santuario",
