@@ -77,14 +77,23 @@ export function handEntriesOf({
   return { handEntries, shownHandEntries };
 }
 
-export function sortedHandInstanceIds(entries: readonly HandEntry[]): string[] {
-  const rank = (entry: HandEntry): number => {
+/** Digimon and Digi-Eggs by level, then Tamers, then Options; cost, then card number, inside each. */
+export function sortedHandInstanceIds(entries: readonly Pick<HandEntry, "instanceId" | "cardId">[]): string[] {
+  const sortKey = (entry: Pick<HandEntry, "cardId">): [number, number, number] => {
     const definition = getCardDefinition(entry.cardId);
+    const cost = definition?.playCost ?? -1;
     if (definition?.kinds.includes(CardKind.Digimon) || definition?.kinds.includes(CardKind.DigiEgg))
-      return definition.level ?? 0;
-    return definition?.kinds.includes(CardKind.Tamer) ? 100 : 200;
+      return [0, definition.level ?? 0, cost];
+    return [definition?.kinds.includes(CardKind.Tamer) ? 1 : 2, 0, cost];
   };
-  return [...entries].sort((a, b) => rank(a) - rank(b)).map((entry) => entry.instanceId);
+  const keys = new Map(entries.map((entry) => [entry.instanceId, sortKey(entry)]));
+  return [...entries]
+    .sort((a, b) => {
+      const [groupA, levelA, costA] = keys.get(a.instanceId)!;
+      const [groupB, levelB, costB] = keys.get(b.instanceId)!;
+      return groupA - groupB || levelA - levelB || costA - costB || a.cardId.localeCompare(b.cardId);
+    })
+    .map((entry) => entry.instanceId);
 }
 
 export function retainHandOrder(

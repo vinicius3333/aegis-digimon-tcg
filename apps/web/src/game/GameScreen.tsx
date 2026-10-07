@@ -59,6 +59,7 @@ import {
   retainHandOrder,
   reorderedHandInstanceIds,
 } from "./screen/model/handEntries";
+import { useHandAutoSort } from "./handAutoSort";
 import { dnaFieldChoice, dnaMaterialPicks, toggleDnaMaterial } from "./screen/model/dnaMaterialSelection";
 import { presentedSeats } from "./screen/model/presentedSeats";
 import { visibleBoard } from "./screen/model/visibleBoard";
@@ -757,12 +758,16 @@ export function GameScreen({
 
   // ----- pre-match / connection gates -----
   const presentedHand = seats?.handHeld ? seats.shownHand : you?.hand;
-  const presentedHandKey = presentedHand?.map((card) => card.instanceId).join("\0");
+  const presentedHandKey = presentedHand?.map((card) => `${card.instanceId}\u0001${card.cardId}`).join("\0");
+  const handAutoSort = useHandAutoSort();
   useEffect(() => {
     if (presentedHandKey === undefined) return;
-    const hand = presentedHandKey.split("\0").map((instanceId) => ({ instanceId }));
-    setHandOrder((order) => retainHandOrder(order, hand));
-  }, [presentedHandKey]);
+    const hand = presentedHandKey.split("\0").map((card) => {
+      const [instanceId = "", cardId = ""] = card.split("\u0001");
+      return { instanceId, cardId };
+    });
+    setHandOrder((order) => (handAutoSort ? sortedHandInstanceIds(hand) : retainHandOrder(order, hand)));
+  }, [presentedHandKey, handAutoSort]);
 
   if (
     status === "reconnecting" ||

@@ -20,6 +20,9 @@ export const en = {
   "settings.sortHand": "Sort hand",
   "settings.sortHandDesc":
     "Sort the current hand by Digimon level, then Tamers and Options. New draws stay at the end until you sort again.",
+  "settings.handAutoSort": "Keep hand sorted",
+  "settings.handAutoSortDesc":
+    "Re-sort your hand whenever a card arrives or leaves: Digimon by level, then Tamers, then Options, cheapest first. Cards you drag stay put until the hand changes.",
   "settings.customMusic": "Local music file",
   "settings.customMusicDesc":
     "Choose an audio file up to 50 MB. It stays on your device for this session; choose it again after reloading.",

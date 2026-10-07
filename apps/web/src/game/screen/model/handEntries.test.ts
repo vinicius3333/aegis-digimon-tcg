@@ -65,6 +65,30 @@ describe("handEntriesOf", () => {
   });
 });
 
+it("Discord suggestion 1557203354323787857: sorts by type, then level, then cost, keeping copies together", () => {
+  const hand = [
+    ["option-3", "BT1-091"],
+    ["tamer-4", "BT1-085"],
+    ["rookie-3", "BT1-010"],
+    ["option-0", "BT1-090"],
+    ["tamer-2", "BT1-088"],
+    ["rookie-2", "BT1-009"],
+    ["rookie-3-copy", "BT1-010"],
+    ["rookie-3-other", "BT1-011"],
+  ].map(([instanceId, cardId]) => ({ instanceId: instanceId!, cardId: cardId! }));
+
+  expect(sortedHandInstanceIds(hand)).toEqual([
+    "rookie-2",
+    "rookie-3",
+    "rookie-3-copy",
+    "rookie-3-other",
+    "tamer-2",
+    "tamer-4",
+    "option-0",
+    "option-3",
+  ]);
+});
+
 it("forgets a departed card's sorted position when the same instance returns", () => {
   const cards = ["a", "b", "c"].map((instanceId) => {
     const card = new CardInstance();

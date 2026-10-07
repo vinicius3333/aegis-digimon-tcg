@@ -22,6 +22,9 @@ export const ptBR: Record<keyof typeof en, string> = {
   "settings.sortHand": "Ordenar mão",
   "settings.sortHandDesc":
     "Ordena a mão atual por nível de Digimon, depois Tamers e Options. Novas compras ficam no fim até você ordenar novamente.",
+  "settings.handAutoSort": "Manter mão ordenada",
+  "settings.handAutoSortDesc":
+    "Reordena a mão sempre que uma carta entra ou sai: Digimon por nível, depois Tamers, depois Options, do mais barato ao mais caro. Cartas que você arrasta ficam no lugar até a mão mudar.",
   "settings.customMusic": "Arquivo de música local",
   "settings.customMusicDesc":
     "Escolha um arquivo de áudio de até 50 MB. Ele fica no seu dispositivo nesta sessão; selecione novamente após recarregar.",
