@@ -405,7 +405,8 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       ignoreLevel,
       ignoreRequirements,
       virtualBase: action.virtualBase,
-      suppressWhenDigivolving: true,
+      // Breeding effects explicitly tagged [Breeding] can trigger here; the
+      // normal placement guard still excludes ordinary When Digivolving effects.
     });
     if (result !== undefined) {
       ctx.lastDigivolveResult = true;
