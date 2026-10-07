@@ -1212,6 +1212,54 @@ finish successfully, followed by another fresh idle check and a distinct ROOT
 learning resource Go before any whole launch. No R4 training job, actual
 weight update or candidate acceptance is claimed by these sealed files.
 
+## R4 actual admission and foreground launch; evaluation source ready
+
+The corrected original read-only admission session33613 ended with actual
+exit zero and checked the sealed request against the unchanged full parent
+consumer and complete fresh-seed scanner. The command covers all44 recipes,
+3,872 games, both seats, batch88, rate1e-5, original four frozen reference
+checkpoints and heuristic share0.5. No primary model or job was started by
+that admission. A second fresh static resource inspection passed with GPU
+empty and all new output/identity paths absent.
+
+ROOT issued a separate learning Go, SHA-256
+`3349c3e8cba56889659365ae5a49886070938507b98aad133091f70837b22fe3`,
+and launched the exclusive original foreground wrapper through session
+**44990**, which must remain attached. Actual whole PID680/startTicks52105
+has operator PID701/startTicks52120 as its direct child, with exact argv.
+Identity SHA-256 is
+`5d899787689fe80bd1b0e6a15b0f4828932da2a1714c0de09fe8a3d1f2b76613`.
+At observation3 the operator remains live in full parent validation, the
+training-start receipt is absent, GPU remains empty and whole exit is pending.
+This is actual orchestration admission, not actual completed learning or
+candidate acceptance. Never restart this live dispatch on an observation
+timeout. Later use `closed-current-corrective-ppo-r4.sh` only after real
+whole0/process disappearance, obtaining all actual update/checkpoint pins
+from its full unchanged closure consumer.
+
+The separate frozen all44 evaluator is prepared and sealed at
+`transfers/rule-link-current-corrective-strength-r4.py`, SHA-256
+`624e93446f5547b2ea975315802cce2d5327aa5621432ab677e7753ca6f6ee47`.
+It binds the exact actual R4 request, learning operator, identity and Go;
+requires its future full learning consumer, positive finite changed all12
+Adam proof and exact new CP; reuses the original all44 evaluation/records/
+whole/resource functions and unchanged four-reference baseline. It preserves
+the full 3,872 development games at `6135000..6138871` with zero updates.
+The known R3 parent completion is pinned; actual R4 completion and new CP
+hashes remain null in the separate pending review request, which cannot
+admit a future run.
+
+Seven bounded synthetic evaluator guards passed; they are not actual model
+or game proof. Test file `test_current_corrective_strength_r4.py` has SHA-256
+`d2741c7bd4c62a09d56615d4726af3be9506381ce94b0172a500265945edd159`.
+Actual desktop Python3.12.14 source/syntax/helper-seam inspection also passed,
+explicitly rejecting the pending request before any closure consumer, model
+import or job. Receipt `rule-link-current-corrective-strength-r4-source-review.actual.json`
+has SHA-256 `f1febdcb5bd44167e191127afab59e7dc370fdc129ac0635e4d57ff454ec9174`.
+No actual evaluation request, resource Go or GPU evaluation launch exists.
+No new source archive, metadata migration or huge engine rerun was introduced.
+Reserved final seeds `6210000..6213871` remain untouched.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
