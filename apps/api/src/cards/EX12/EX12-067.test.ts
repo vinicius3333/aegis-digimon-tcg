@@ -172,7 +172,9 @@ describe("EX12-067 Kiyoshiro Higashimitarai", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
-  it("Q6872 uses the Option at full cost when play-cost reductions are prohibited", async () => {
+  // Q6872 covers digivolution only. A play-cost prohibition does not reach an Option's use cost
+  // (comprehensive rules 2-6 and 2-7), so the use keeps its reduction.
+  it("keeps the Option use-cost reduction when play-cost reductions are prohibited", async () => {
     const s = setupEngine(
       {
         0: {
@@ -198,7 +200,7 @@ describe("EX12-067 Kiyoshiro Higashimitarai", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.hand.some(({ cardId }) => cardId === "BT9-020"));
     expect(s.perm("kiyo").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(2);
   });
 
   it("does not waive digivolution requirements when the selected DS card is illegal", async () => {

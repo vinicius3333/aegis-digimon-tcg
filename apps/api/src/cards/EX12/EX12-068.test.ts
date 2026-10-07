@@ -172,7 +172,9 @@ describe("EX12-068 Ruli Tsukiyono", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
-  it("Q6875 uses the Option at full cost when play-cost reductions are prohibited", async () => {
+  // Q6875 covers digivolution only. A play-cost prohibition does not reach an Option's use cost
+  // (comprehensive rules 2-6 and 2-7), so the use keeps its reduction.
+  it("keeps the Option use-cost reduction when play-cost reductions are prohibited", async () => {
     const s = setupEngine(
       {
         0: {
@@ -197,7 +199,7 @@ describe("EX12-068 Ruli Tsukiyono", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.every(({ instanceId }) => instanceId !== s.inst("option").instanceId));
     expect(s.perm("ruli").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(2);
   });
 
   it("does not waive digivolution requirements when no legal NSp card is available", async () => {
