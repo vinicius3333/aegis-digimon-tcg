@@ -72,7 +72,10 @@ def request_fields(r: dict) -> None:
         and type(r['learningRate']) is float and type(r['heuristicShare']) is float
         and r['finalBlindSeedsAuthorized'] is False and r['fullAll44AgainstAllFourRequiredAfterLearning'] is True,
         'Exact typed learning scope; no boolean count aliases')
-    for key, suffix in (('wrapper', '-launch.sh'), ('inventory', '-seed-inventory.json')):
+    # The complete scanner also pins native results.json, which changes during
+    # imitation. Use fresh exclusive assets after actual imitation whole0;
+    # earlier preflight files remain sealed and cannot be overwritten.
+    for key, suffix in (('wrapper', '-launch-closed.sh'), ('inventory', '-seed-inventory-closed.json')):
         require(type(r[key]) is dict and set(r[key]) == {'path', 'sha256'}
             and r[key]['path'] == str(LAB / 'transfers' / (NAME + suffix)), 'Exact original external admission paths')
 

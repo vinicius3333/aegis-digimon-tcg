@@ -32,8 +32,8 @@ class Guards(unittest.TestCase):
             'sourceCommit': m.SOURCE, 'engineSha256': m.ENGINE, 'operatorSha256': 'a' * 64,
             'run': str(m.RUN), 'identity': str(m.LAB / 'transfers' / (m.NAME + '-identity.json')),
             'resourceGo': str(m.LAB / 'transfers' / (m.NAME + '-ROOT-go.json')),
-            'wrapper': {'path': str(m.LAB / 'transfers' / (m.NAME + '-launch.sh')), 'sha256': 'b' * 64},
-            'inventory': {'path': str(m.LAB / 'transfers' / (m.NAME + '-seed-inventory.json')), 'sha256': 'c' * 64},
+            'wrapper': {'path': str(m.LAB / 'transfers' / (m.NAME + '-launch-closed.sh')), 'sha256': 'b' * 64},
+            'inventory': {'path': str(m.LAB / 'transfers' / (m.NAME + '-seed-inventory-closed.json')), 'sha256': 'c' * 64},
             'checkpoint': {'path': str(m.LAB / 'runs' / m.IMITATION_NAME / 'imitation/checkpoint.pt'), 'sha256': 'd' * 64},
             'imitationCompletionSha256': 'e' * 64, 'comparisonCompletionSha256': m.BASELINE_COMPLETION,
             'opponentCheckpoints': self.adapter.LEAGUE, 'heuristicShare': 0.5, 'learnerDecks': decks,
@@ -57,6 +57,11 @@ class Guards(unittest.TestCase):
     def test_only_native_imitation_checkpoint_admitted(self):
         r = copy.deepcopy(self.r); r['checkpoint']['path'] = self.adapter.CHECKPOINT['path']
         with self.assertRaises(ValueError): m.request_fields(r)
+
+    def test_early_sealed_inventory_and_wrapper_paths_rejected(self):
+        for key, suffix in (('wrapper', '-launch.sh'), ('inventory', '-seed-inventory.json')):
+            r = copy.deepcopy(self.r); r[key]['path'] = str(m.LAB / 'transfers' / (m.NAME + suffix))
+            with self.subTest(key=key), self.assertRaises(ValueError): m.request_fields(r)
 
     def test_final_seeds_and_training_range_edges_rejected(self):
         for seed in (6210000, 5999999, 6130000 - m.GAMES, True):

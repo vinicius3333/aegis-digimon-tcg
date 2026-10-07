@@ -2139,3 +2139,40 @@ identity, resource Go or run exists. The eventual execute path rechecks that
 complete inventory before primary imports; it must fail on any drift or overlap.
 Actual final imitation whole0/CP pins and full original consumer, separate
 ROOT resource Go and idle GPU/source checks are still required before PPO.
+
+
+## Native second epoch; correct final inventory admission timing
+
+Actual native epoch2 completes2600 cumulative actor updates on166383 samples,
+parameter-change norm2.70108962059021, train loss0.44269684471431764 and validation
+loss1.1524754206160577. Real retained epoch2 observationSHA is
+`bc148ce5bc1f099e0380703a5b20f3a32d5743c3b20f265858d184e72b01d559`.
+SAME foreground30293/CUDA1698 remains active in epoch3. Full tensor custody,
+selected final checkpoint, post-source consumers and whole/strict closure are
+pending; native validation improvement does not satisfy strength or mastery.
+
+The early seed preflight was sealed too soon: its original complete scanner
+also includes `imitation/results.json` with epoch0SHA cd07ff0d.. in
+`observedScheduleFiles`. Native epochs correctly change those bytes, so the
+future exact inventory comparison must reject that stale receipt. No overlap,
+model/data corruption or current-job failure is inferred. Preserve early
+inventory1c70c3.., wrapper516d685.. and operator341be9.. unchanged and unused;
+none authorized or started a PPO job. Generate the definitive complete inventory
+ONLY after actual imitation whole0, using the original scanner unchanged.
+
+The small request-path correction requires exclusive `-seed-inventory-closed.json`
+and `-launch-closed.sh` assets in the same PPO-r1 namespace. Reviewed source
+`rule-link-current-mentor-ppo-closed.py` SHA
+`3259a70f5ae98c1cb055a6359238bc7abc5b0d98548a20912ecc6ab5fe470d41`
+and13-test sourceSHA
+`9da4a716fa0280bf891bc16ddd89d32d29e41c37582665b89bf05ef190b76e70`
+are exclusively sealed; all13 bounded guards pass locally and on desktop
+Python3.12.14, including rejecting early asset paths. Original three helper
+byte pins/four reference CPPs remain exact, no primary imports or jobs.
+New local unexecuted wrapperSHA
+`494f94da8deaebfb1ad48e3edc81983f49ff1f53f915fae50143d4f515a72ce3`
+passes Bash-n0 and points to the revised sealed operator. It is not uploaded;
+no final inventory/request/resource Go exists. No engine/module/archive/FP/CP
+changes, metadata migrations, model loads or game launches accompany this fix.
+Actual final closed imitation CPP/source/identity/completion and fresh final
+seed inventory plus separate ROOT resource/idle agreement remain mandatory.
