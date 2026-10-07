@@ -600,7 +600,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "collection.count": "{count} cartas",
   "collection.empty": "Nenhuma carta corresponde a esses filtros.",
 
-  "library.searchPlaceholder": "Buscar cartas…",
+  "library.searchPlaceholder": "Buscar nome, número ou texto…",
   "library.color": "Cor",
   "library.cardType": "Tipo de carta",
   "library.level": "Nível",

@@ -4,7 +4,7 @@
 import { useMemo, useState } from "react";
 import { type CardColor, type CardDefinition } from "@aegis/shared";
 import { colorKey, kindOf, type ColorName } from "../design/theme";
-import { collectionOrder } from "./cardSorting";
+import { collectionOrder, sortCards } from "./cardSorting";
 
 export const KIND_FILTERS = ["Digimon", "DigiEgg", "Tamer", "Option"] as const;
 
@@ -72,6 +72,72 @@ export function matchesTraitOrAttributeFilter(
   );
 }
 
+export type CardSearchMatch = "name" | "text" | "none";
+
+interface CardSearchIndex {
+  identity: string;
+  text: string;
+}
+
+const searchIndexByCard = new WeakMap<CardDefinition, CardSearchIndex>();
+
+const TEXT_FIELD_SEPARATOR = "\u0000";
+
+/** Folds full-width characters, case, and keyword brackets so "royal knight" matches "[Royal Knight]". */
+function normalizeSearchText(value: string): string {
+  return value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[[\]<>{}【】《》「」]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Built once per card and cached, since the filter reruns over the whole catalog on every keystroke. */
+function searchIndexFor(card: CardDefinition): CardSearchIndex {
+  const cached = searchIndexByCard.get(card);
+  if (cached) return cached;
+  const textFields = [
+    card.effectText,
+    card.inheritedEffectText,
+    card.securityEffectText,
+    card.optionEffect,
+    card.dualEffect,
+    card.linkEffect,
+    card.linkRequirement,
+  ].filter((field): field is string => Boolean(field));
+  const index = {
+    identity: normalizeSearchText(`${card.nameEn}${TEXT_FIELD_SEPARATOR}${card.cardId}`),
+    text: normalizeSearchText(textFields.join(TEXT_FIELD_SEPARATOR)),
+  };
+  searchIndexByCard.set(card, index);
+  return index;
+}
+
+export function cardSearchMatch(card: CardDefinition, query: string): CardSearchMatch {
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) return "name";
+  const index = searchIndexFor(card);
+  if (index.identity.includes(normalizedQuery)) return "name";
+  if (index.text.includes(normalizedQuery)) return "text";
+  return "none";
+}
+
+/** Sorts each match group on its own so cards found by name stay ahead of cards found only by their text. */
+export function sortSearchResults({
+  cards,
+  sort,
+  query,
+}: {
+  cards: readonly CardDefinition[];
+  sort: CardSort;
+  query: string;
+}): CardDefinition[] {
+  const nameMatches = cards.filter((card) => cardSearchMatch(card, query) === "name");
+  const textMatches = cards.filter((card) => cardSearchMatch(card, query) === "text");
+  return [...sortCards(nameMatches, sort), ...sortCards(textMatches, sort)];
+}
+
 export interface CardFilter {
   query: string;
   setQuery: (v: string) => void;
@@ -127,9 +193,10 @@ export function useCardFilter(
   }, [all]);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return all.filter((c) => {
-      if (q && !c.nameEn.toLowerCase().includes(q) && !c.cardId.toLowerCase().includes(q)) return false;
+    const textMatches: CardDefinition[] = [];
+    const nameMatches = all.filter((c) => {
+      const searchMatch = cardSearchMatch(c, query);
+      if (searchMatch === "none") return false;
       if (!matchesColorFilter({ cardColors: c.colors, selectedColors: colors, mode: colorFilterMode })) return false;
       if (kinds.length && !kinds.includes(kindOf(c) as KindFilter)) return false;
       if (!matchesLevelFilter(c.level, levels)) return false;
@@ -137,8 +204,13 @@ export function useCardFilter(
       if (!matchesRarityFilter(c.rarity, rarities)) return false;
       if (!matchesTraitOrAttributeFilter(c, traitQuery)) return false;
       if (set && c.set !== set) return false;
+      if (searchMatch === "text") {
+        textMatches.push(c);
+        return false;
+      }
       return true;
     });
+    return [...nameMatches, ...textMatches];
   }, [all, query, colors, kinds, levels, costs, rarities, traitQuery, set, colorFilterMode]);
 
   return {

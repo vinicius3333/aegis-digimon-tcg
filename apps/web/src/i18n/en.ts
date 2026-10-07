@@ -576,7 +576,7 @@ export const en = {
   "collection.count": "{count} cards",
   "collection.empty": "No cards match those filters.",
 
-  "library.searchPlaceholder": "Search cards…",
+  "library.searchPlaceholder": "Search name, number or text…",
   "library.color": "Color",
   "library.cardType": "Card type",
   "library.level": "Level",

@@ -19,8 +19,7 @@ import { Icons } from "../design/icons";
 import { Panel, SectionHeading } from "../design/surfaces";
 import { CardDetailDrawer } from "./CardDetailDrawer";
 import { FilterRail } from "./FilterRail";
-import { useCardFilter } from "./cardFilters";
-import { sortCards } from "./cardSorting";
+import { sortSearchResults, useCardFilter } from "./cardFilters";
 import {
   activeCollectionCards,
   displayCoverCard,
@@ -215,8 +214,8 @@ export function DeckEditor({
   const [page, setPage] = useState(1);
 
   const sortedPool = useMemo(() => {
-    return sortCards(filter.filtered, filter.sort);
-  }, [filter.filtered, filter.sort]);
+    return sortSearchResults({ cards: filter.filtered, sort: filter.sort, query: filter.query });
+  }, [filter.filtered, filter.sort, filter.query]);
 
   useEffect(() => {
     setPage(1);
