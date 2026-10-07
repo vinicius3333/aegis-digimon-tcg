@@ -438,6 +438,37 @@ describe("BT17-081 Tai Kamiya & Matt Ishida — KB Q&A rulings", () => {
     ).toHaveLength(1);
   });
 
+  it("Discord report: two Tai & Matt cannot declare another attack even if Omnimon unsuspends during the first (Q2859)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-081", as: "firstTamer" },
+            { card: "BT17-081", as: "secondTamer" },
+            { card: "AD1-025", as: "omnimon", under: ["BT22-026"] },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+    await drainMicrotasks();
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.perm("omnimon").isSuspended).toBe(false);
+    expect(
+      s.events.filter(
+        (event) =>
+          event.kind === "effectTriggered" &&
+          event.sourceCardId === "BT17-081" &&
+          event.printedTiming === "EndOfYourTurn",
+      ),
+    ).toHaveLength(2);
+    assertNoLoudGap(s);
+  });
+
   it("lets only one Omnimon attack when two copies trigger at the end of your turn (Q2859)", async () => {
     const s = setupEngine(
       {

@@ -127,6 +127,36 @@ describe("EX13-045 Examon", () => {
     ]);
   });
 
+  it("#5253 projects and accepts DNA from EX13 Groundramon and Wingdramon as level-six materials", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX13-041", as: "ground" },
+            { card: "EX13-021", as: "wing" },
+          ],
+          hand: [{ card: cardId, as: "examon" }],
+        },
+        1: { security: ["BT1-011", "BT1-012", "BT1-013"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    expect(s.inst("examon").dnaDigivolveRoutes).toHaveLength(1);
+    expect(s.inst("examon").dnaDigivolveRoutes[0]?.projectedCost).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        instanceId: s.inst("examon").instanceId,
+        materialPermanentIds: [s.perm("ground").permanentId, s.perm("wing").permanentId],
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe(cardId);
+    expect(s.state.memory).toBe(2);
+  });
+
   it("DNA digivolves the Green + Blue Lv.6 pair for 0 and keeps both materials as its source", async () => {
     const s = setupEngine(
       {
