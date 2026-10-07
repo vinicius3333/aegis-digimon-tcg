@@ -299,7 +299,11 @@ describe("BT20-016 Paildramon — KB Q&A rulings", () => {
   }
 
   function isPaildramonAttackPrompt({ req }: EngineSetup["decisions"][number]) {
-    return req.sourceCardId === "BT20-016" && req.kind === "optional" && (req.promptText ?? "").includes("Attack");
+    return (
+      req.sourceCardId === "BT20-016" &&
+      req.kind === "optional" &&
+      ((req.promptText ?? "").includes("Attack") || req.options?.promptKey === "attackAlreadyResolving")
+    );
   }
 
   it("lets the Piercing and +4000 DP go to another Digimon and then skip Paildramon's attack (Q4297)", async () => {

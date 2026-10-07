@@ -246,7 +246,10 @@ describe("BT16-077 Dinobeemon — KB Q&A rulings", () => {
     expect(observe(s.engine).hasKeyword(paildramon, "Rush")).toBe(true);
     expect(
       s.decisions.some(
-        ({ req }) => req.sourceCardId === "BT20-016" && req.kind === "optional" && req.promptText?.includes("Attack"),
+        ({ req }) =>
+          req.sourceCardId === "BT20-016" &&
+          req.kind === "optional" &&
+          req.options?.promptKey === "attackAlreadyResolving",
       ),
     ).toBe(true);
     expect(attackDeclarations(s)).toMatchObject([{ attackerPermanentId: dinobeemon.permanentId }]);
