@@ -1535,6 +1535,54 @@ checkpoint, source approval or resource Go. No further learning/model/game
 job is admitted or live; all44 strict gains and every downstream gate remain
 pending, and final seeds6210000..6213871 are untouched.
 
+## Fresh mentor/material collection source admission
+
+The external operator `tools/bot-training/operators/current-mentor-collection.py`
+collects new labels on the unchanged qualified aa2e56463 runtime. Its SHA-256 is
+`61de62422b2963c90321251df521f0d0720582674c90bef0e73c00ce5729e3f2`.
+The bounded synthetic test file has SHA-256
+`62aa392bb22afd15431b390254c11bbf202b2af6d0bd176ba4b7f946a03c6bbe`;
+all13 local tests pass. These fixtures do not establish actual model execution,
+data completion, learning, or acceptance.
+
+The unchanged complete seed scanner rejects the initially proposed6023848
+interval because it overlaps existing6025000-series seeds. Read-only selection
+using that scanner's complete parser, followed by its unchanged full verifier,
+confirms6025026..6028897 are fresh across runs and validations. It observes652
+schedule files and138719 previously used seeds. The actual observer reports
+524492255232 free bytes and no GPU process. The failed initial observation is
+retained; it is not relabeled as fresh evidence.
+
+The new run is `rule-link-current-aa2e56463-mentor-data-r1`:3872 games,4 workers,
+all44 recipes/both seats, zero optimizer updates and no final-blind use.
+Per-recipe frozen mentors come from the actual full same-source reports: retain
+R4 on24 best/tied recipes and use the four immutable references on20 others.
+Each frame records the queried mentor and actual engine teacher separately.
+Positive compound/material engine labels take priority; otherwise the actual
+frozen greedy choice supplies the label. None remains explicitly unavailable;
+there is no arbitrary action0 label. This routing produces training data only.
+Serving must still use a single learned primary.
+
+The CPU parent invokes the unchanged actual full R4 closure consumer before
+admission. A separate CUDA child collects all natural terminal records, retains
+losses/recoveries/failures, and guards all five CPs, exact12 tensor names/hashes,
+all-finite tensors, and all six qualified module paths/bytes. The child exits
+before the parent's idle/source checks and unchanged full post-consumer. The
+strict closure reader requires actual original whole0, externally observed
+completion SHA, complete raw output maps, identical pre/post source custody,
+and all3872 results/frames. All181 visibility and all8 mechanisms/both seats/
+original train-validation folds are reported from raw data; incomplete coverage
+blocks mechanism resampling without being converted into success.
+
+Admission file pins are: request
+`5627db4efa83936ead839829c98d84d9e9dc592cda7b77ffe917631e46598343`,
+wrapper `d8dfc4ec1af41c20a36c7fc5549ccc9a57540e66b265a7e608896122eb2e1de4`,
+and inventory `39436e68db6e1f5f29e4c00e99264d2fb3a487f68227514ea035c2fc46777389`.
+At this source checkpoint desktop source tests, full inspection, a separate
+ROOT resource Go, actual launch, collection closure, and new learning remain
+pending. Adding the external operator does not alter the source archive,
+engine/schema/F7 or CP metadata; no rebuild or metadata-copy migration is needed.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
