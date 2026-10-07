@@ -1583,6 +1583,37 @@ ROOT resource Go, actual launch, collection closure, and new learning remain
 pending. Adding the external operator does not alter the source archive,
 engine/schema/F7 or CP metadata; no rebuild or metadata-copy migration is needed.
 
+## Fresh mentor/material actual launch custody
+
+Desktop source admission completed with actual Python3.12.14,13 bounded guard
+fixtures exit0, six qualified module pins and five immutable CP pins. Default
+inspection completed with actual exit0, invoking the unchanged full R4 consumer;
+it confirms the24/6/5/5/4 mentor recipe counts and fresh6025026 interval. The
+post-inspection observation finds no admitted process, no new run and no GPU
+process. Source commit `e8dd3d5a6` is pushed after the normal Node26 pre-push
+shared/API/web TypeScript checks completed0.
+
+ROOT reviewed this evidence and separately authorized the actual data-only
+resource Go, SHA-256
+`3c58a954ba7a17de78cd0229b94522167f24ba1bb8278b33ea697b2e8a0a81a5`.
+It permits3872 games/four workers/zero learning updates and no final seeds.
+The Go was uploaded and sealed exclusively0444, with no existing job mutated.
+Original foreground session56480 remains attached. The wrapper's actual
+identity has SHA-256
+`ca05ae5c851f7f6c3a55c6d578b93b4e9ac4c0e5f0d80bac9f2d9c7c70fa56f6`:
+whole720/start51608 -> operator739/start51613. Read-only original whole guards
+verify its exact current argv/ticks, original wrapper/source/request/Go and CP
+bytes. At this observation the operator is running its full pre-source consumer;
+no collector receipt, new run, completed episode or GPU process exists yet.
+This is a verified live admission phase, not data completion or training proof.
+
+Retain this exact foreground handle; an observation timeout does not admit a
+retry. Once the CUDA child actually starts, verify its receipt/parentage and
+natural raw progress. After actual original whole0, obtain the completion SHA
+from the original output and run the same operator's strict `--closed` reader
+with `--completion-sha` and all original pins. New data coverage, actual learning,
+strict all44 improvements and all downstream acceptance remain unproven.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
