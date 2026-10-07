@@ -783,6 +783,20 @@ export async function runReplacement(
         const into = intoCardId === undefined ? undefined : getCardDefinition(intoCardId);
         if (into === undefined || !definitionMatches(intoFilter, into)) return false;
       }
+      // A DNA-only reaction with no legal merge cannot process anything, so it is not offered
+      // or announced (EX12-003 used to read out on every [ME] leave with no DNA card in hand).
+      // A ＜Delay＞ is exempt: trashing its card is a cost payable for no effect (CR 15-7-5, Q5710).
+      const nestedActions = action.actions ?? [];
+      const dnaDigivolveActions = nestedActions.filter(
+        (nested): nested is Extract<Action, { kind: "DnaDigivolve" }> => nested.kind === "DnaDigivolve",
+      );
+      if (
+        (action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic !== true &&
+        dnaDigivolveActions.length > 0 &&
+        dnaDigivolveActions.length === nestedActions.length &&
+        !dnaDigivolveActions.some((dna) => canAttemptDnaDigivolve(_subCtx, dna))
+      )
+        return false;
       return true;
     },
     ...(event === "wouldBePlayed"

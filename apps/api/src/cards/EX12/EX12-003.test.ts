@@ -361,4 +361,47 @@ describe("EX12-003 Kapurimon", () => {
     );
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX12-017")).toBe(false);
   });
+
+  it("does not activate when no DNA Digivolution is possible (Discord bug 1557482157012680795)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-016", as: "leaving", dp: 2000, under: ["EX12-003"] },
+            { card: "EX12-055", as: "partner", dp: 12000 },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "EX12-016", as: "opponentBase" }],
+          hand: [{ card: "ST20-11", as: "wargreymon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const leavingId = s.perm("leaving").permanentId;
+    s.state.turnSeat = 1;
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("opponentBase").permanentId,
+        instanceId: s.inst("wargreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some(
+          (event) =>
+            event.kind === "effectResolved" && event.sourceCardId === "ST20-11" && event.timing === "WhenDigivolving",
+        ) && s.engine.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === leavingId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX12-003");
+    expect(s.events.filter((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX12-003")).toEqual(
+      [],
+    );
+  });
 });
