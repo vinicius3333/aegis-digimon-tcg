@@ -2396,3 +2396,41 @@ The local request builder requires the externally pinned actual full closed
 proof and validates unchanged evaluation/learning functions before exclusive
 request creation. Source/archive/runtime/FP, original checkpoints, original
 imitation failure and reserved finalblind seeds remain unchanged.
+
+## Full mentor-PPO closure0 and sole all44 evaluation admission
+
+Full original closed PPO consumer13215 is actual terminal0 and settled.
+Its complete stdoutSHA is
+`700c67c9437e8a1690b30083d731446f408382b26ab6ff662d1c20ceaa2fe07c`;
+it consumes literal completione5534944.., real original trap0/dead whole,
+all source/raw/runtime/checkpoint maps and the native all12/6756NEW Adam proof.
+Original failed imitation whole1 and the successful CPU custody remain exact.
+Training/import/custody success does not establish playing strength or mastery.
+
+Actual final all44 evaluation requestSHA
+`a237710ac5dee2ade5a67eddaf48e92e023356882010ba78b834f59e198d8f25`
+is exclusively sealed against native checkpoint712d01e7.., actual learning
+completione5534944.. and original request/identity/Go custody. Exact same
+3872development seeds6135000..6138871,44recipes, bothseats and all four original
+full reference reports remain required; no training updates or finalblind.
+Sourcecd88e566.. and wrapperb8263776.. remain unchanged and externally pinned.
+
+Distinct ROOT evaluation GoSHA
+`a078e47fe9d0a9470fe7f82cbf9bf50c40d048b7dc3b659b86db87a59063579f`
+is sealed after actual static idle/GPU-empty/source/request/wrapper/CP checks,
+Python3.12.14 and492033691648B available lab disk. It authorizes3872evaluation
+games, zero learning updates, at most four workers and no finalblind seeds.
+Nine prior local/desktop synthetic guard tests remain explicit synthetic proof.
+
+The sole evaluation foreground43135 is live: original whole669/start2882 ->
+operator701/start2893. Fresh actual inventory confirms exact argv/parentage,
+request/operator/Go pins and identitySHA
+`0a42e8e9a16f1e592326c49cd6dd3f7ead34902ea78beb67f41d9f9589f0f3d8`.
+Its context is running the unchanged full learning consumer before primary
+model imports. Actual CUDA evaluator, games, full comparison, original whole0
+and strict every-recipe gains remain pending; never restart this live handle.
+Later physical admission must bind this actual new model and a passing actual
+full comparison; old corrective-r1 physical admission cannot be relabeled.
+Both-seat named mechanisms/materials,26rooms/current serving, finalblind and
+delivery acceptance remain required and unproven. Source/FP/archive and all
+original models stay unchanged; no extra engine build or metadata migration.
