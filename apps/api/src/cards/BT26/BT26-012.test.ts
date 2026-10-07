@@ -163,7 +163,9 @@ describe("BT26-012 Manekimon", () => {
     ]);
   });
 
-  it("Q6967 pays an Option's full cost when play-cost reductions are prohibited", async () => {
+  // Q6967 rules on playing a card. A play-cost prohibition does not reach an Option's use cost
+  // (comprehensive rules 2-6 and 2-7), so using a [TB] Option keeps its reduction.
+  it("keeps an Option's use-cost reduction when play-cost reductions are prohibited", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -194,7 +196,7 @@ describe("BT26-012 Manekimon", () => {
     await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("manekimon"));
 
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("option").instanceId)).toBe(false);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(2);
   });
 
   it("Q6966 does not combine reductions from two copies into one play", async () => {
