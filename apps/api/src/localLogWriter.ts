@@ -2,17 +2,18 @@ import { createWriteStream, mkdirSync, readdirSync, statSync, rmSync, type Write
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 
-const DAY = 86_400_000;
-const NAME = /^api-(\d{4}-\d{2}-\d{2})-.*\.jsonl$/;
+const RETENTION_MS = 12 * 60 * 60 * 1000;
+const SEGMENT = /^api-\d{4}-\d{2}-\d{2}-.*\.jsonl$|^api\.log(?:\.\d+)?$/;
 
-/** Daily segments retain at most seven UTC calendar days, including today. */
+/**
+ * Keeps 12 hours of logs, so they cannot fill the server's disk. A segment goes once its last
+ * write is older than that; the segment being written is always newer, so it is never removed.
+ */
 export function pruneLogs(directory: string, now = Date.now()): void {
-  const today = Date.parse(new Date(now).toISOString().slice(0, 10));
   for (const name of readdirSync(directory)) {
-    const date = NAME.exec(name)?.[1];
-    if (/^api\.log(?:\.\d+)?$/.test(name) && statSync(join(directory, name)).mtimeMs <= now - 7 * DAY)
-      rmSync(join(directory, name), { force: true });
-    if (date && Date.parse(date) <= today - 7 * DAY) rmSync(join(directory, name), { force: true });
+    if (!SEGMENT.test(name)) continue;
+    const path = join(directory, name);
+    if (statSync(path).mtimeMs <= now - RETENTION_MS) rmSync(path, { force: true });
   }
 }
 
