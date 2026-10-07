@@ -863,6 +863,8 @@ export const en = {
   "game.surrender": "Surrender",
   "game.surrenderConfirmTitle": "Surrender this match?",
   "game.surrenderConfirmBody": "The match ends now and counts as a loss.",
+  "game.leaveConfirmTitle": "Leave this match?",
+  "game.leaveConfirmBody": "Leaving ends the match and counts as a loss.",
   "game.stats.turns": "Turns",
   "game.stats.oppBoard": "Opp. board",
   "game.stats.yourSecurity": "Your security",

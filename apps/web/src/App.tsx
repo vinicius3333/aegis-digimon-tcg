@@ -1,5 +1,5 @@
 import { spectatorCodeFromSearch } from "./roomInvite";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { installAudioLifecycle } from "./design/sound";
 import { Stage, TopNav, type PlayerIdentity, type Screen } from "./design/primitives";
 import { AegisEmblem } from "./design/AegisLogo";
@@ -32,6 +32,7 @@ import { communityApi } from "./community/client";
 import { communityDeckListing } from "./community/communityDeckListing";
 import { usePreferencesSync } from "./account/usePreferencesSync";
 import { BugReportDialog } from "./bugs/BugReportDialog";
+import { LeaveMatchDialog } from "./game/screen/layout/LeaveMatchDialog";
 import { PlayerMenu } from "./account/PlayerMenu";
 import type { DigimonWorldAvatarId } from "./account/avatars";
 import { pathForRoute, routeFromPathname, type AppRoute } from "./routes";
@@ -329,6 +330,13 @@ export function AegisClient({
   const [matchNumber, setMatchNumber] = useState(0);
   const [playerMenuOpen, setPlayerMenuOpen] = useState(false);
   const [bugReportOpen, setBugReportOpen] = useState(false);
+  const [leaveMatchPromptOpen, setLeaveMatchPromptOpen] = useState(false);
+  const leaveForfeitsMatchRef = useRef(false);
+  const leaveMatchConfirmedRef = useRef(false);
+  const setLeaveForfeitsMatch = useCallback((forfeits: boolean) => {
+    leaveForfeitsMatchRef.current = forfeits;
+    if (!forfeits) setLeaveMatchPromptOpen(false);
+  }, []);
   const screen = route.screen;
   useEffect(() => {
     if (screen !== "deck") setEditingDeck(null);
@@ -354,15 +362,29 @@ export function AegisClient({
     if (initialScreen) return;
     const onPopState = () => {
       const nextRoute = routeFromPathname(window.location.pathname);
-      setRoute(
+      const resolvedRoute: AppRoute =
         nextRoute?.screen === "game" && !loadReconnectSession()
           ? { screen: "lobby" }
-          : (nextRoute ?? { screen: "home" }),
-      );
+          : (nextRoute ?? { screen: "home" });
+      /* The browser has already moved off the match URL, so the guard restores it and
+         asks. Confirming steps back again, which lands on the route the player chose. */
+      if (leaveForfeitsMatchRef.current && resolvedRoute.screen !== "game" && !leaveMatchConfirmedRef.current) {
+        window.history.pushState(null, "", pathForRoute({ screen: "game" }));
+        setLeaveMatchPromptOpen(true);
+        return;
+      }
+      leaveMatchConfirmedRef.current = false;
+      setRoute(resolvedRoute);
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, [initialScreen]);
+
+  const confirmLeaveMatch = () => {
+    leaveMatchConfirmedRef.current = true;
+    setLeaveMatchPromptOpen(false);
+    window.history.back();
+  };
 
   const navigate = (nextRoute: AppRoute) => {
     if (!initialScreen) {
@@ -578,6 +600,7 @@ export function AegisClient({
               }}
               presentationPacing={SEQUENTIAL_PACING_ENABLED ? "sequential" : "current"}
               signedIn={!!account}
+              onLeaveForfeitsChange={setLeaveForfeitsMatch}
               onExit={(next) => {
                 setSeriesGame(undefined);
                 navigateScreen(next);
@@ -611,6 +634,9 @@ export function AegisClient({
       ) : null}
 
       {bugReportOpen ? <BugReportDialog signedIn={!!account} onClose={() => setBugReportOpen(false)} /> : null}
+      {leaveMatchPromptOpen ? (
+        <LeaveMatchDialog onConfirm={confirmLeaveMatch} onClose={() => setLeaveMatchPromptOpen(false)} />
+      ) : null}
     </Stage>
   );
 }

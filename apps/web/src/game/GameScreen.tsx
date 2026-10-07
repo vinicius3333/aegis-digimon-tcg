@@ -133,6 +133,7 @@ export function GameScreen({
   presentationPacing,
   seriesGame,
   onSeriesNext,
+  onLeaveForfeitsChange,
 }: {
   joinOptions: AegisJoinOptions;
   identityColor: ColorName;
@@ -172,6 +173,8 @@ export function GameScreen({
   seriesGame?: SeriesGameTicket;
   /** The series opened its next game; the caller remounts this screen on that ticket. */
   onSeriesNext?: (ticket: SeriesGameTicket) => void;
+  /** Whether leaving now would concede a live match; must be a stable callback. */
+  onLeaveForfeitsChange?: (forfeits: boolean) => void;
 }) {
   const { t } = useTranslation();
   const [spectating] = useState(() => startMode === "spectator" || loadReconnectSession()?.spectator === true);
@@ -232,6 +235,13 @@ export function GameScreen({
   // stay cached as the fallback seat 0.
   const viewerSeat = viewerSeatOf(state, sessionId);
   const chat = useMatchChat({ room: connectedRoom, viewerSeat, spectating });
+
+  const leaveForfeits = !demoConnection && !spectating && !!state && bothSeated(state) && !state.gameOver;
+  useEffect(() => {
+    if (!leaveForfeits || !onLeaveForfeitsChange) return;
+    onLeaveForfeitsChange(true);
+    return () => onLeaveForfeitsChange(false);
+  }, [leaveForfeits, onLeaveForfeitsChange]);
 
   const vsBot = startMode === "bot";
   const isPrivateMatch = startMode === "private_host" || startMode === "private_guest";
