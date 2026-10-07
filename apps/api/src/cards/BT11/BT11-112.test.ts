@@ -445,4 +445,37 @@ describe("Discord 1555770458866065499: Rina chooses between Ulforce's printed ef
     expect(notice).toMatchObject({ description: printed[1], timing: "WhenDigivolving" });
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
   });
+
+  it("offers only the return effect once Ulforce's [Once Per Turn] orientation effect was used this turn", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-112", as: "rina" },
+            { card: "EX13-023", as: "ulforce" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "target" }], security: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["EX13-023"], preferOptionIndex: 1 },
+    );
+    await s.ready();
+    const targetId = s.perm("target").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ulforce").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.deck.some(({ instanceId }) => instanceId === targetId));
+    const orientationUses = s.events.filter(
+      (e) =>
+        e.kind === "effectResolved" && e.sourceCardId === "EX13-023" && e.description.includes("change orientation"),
+    );
+    expect(orientationUses).toHaveLength(1);
+    expect(s.decisions.some(({ req }) => req.kind === "chooseOption" && req.sourceCardId === "BT11-112")).toBe(false);
+    expect(s.perm("rina").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+  });
 });
