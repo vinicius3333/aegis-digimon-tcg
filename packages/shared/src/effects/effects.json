@@ -36383,7 +36383,8 @@
             "reduceCostBy": 3,
             "optional": true
           }
-        ]
+        ],
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }]
       },
       {
         "trigger": "Security",
