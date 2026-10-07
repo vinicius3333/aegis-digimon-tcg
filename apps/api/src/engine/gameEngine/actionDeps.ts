@@ -475,7 +475,14 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
     costWaived: (_state, instance) => hasBlastDigivolveKeyword(instance.cardId),
     blastWindowAllowed: (_state, seat) =>
       engine.combat.hasOpenCounterWindow && engine.combat.counterWindowSeat === seat,
-    draw: (_state, seat, count) => drawCards(engine, seat, count),
+    draw: async (_state, seat, count) => {
+      engine.drawingDigivolutionBonus = true;
+      try {
+        return await drawCards(engine, seat, count);
+      } finally {
+        engine.drawingDigivolutionBonus = false;
+      }
+    },
     fireWhenDigivolving: async (_state, seat, permanent, previousLevel, baseWasDigimon) => {
       // Turn-scoped fact consumed by inherited effects such as BT1-007. Register before
       // firing When Digivolving so effects in that window can observe the completed evolution.

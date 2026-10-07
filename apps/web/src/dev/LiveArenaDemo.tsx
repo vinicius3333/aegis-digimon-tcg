@@ -1380,6 +1380,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "O Vulcanusmon do bot tem Divine Arms Version Ω ([Link] [Vulcanusmon]) e Iron Slash ([Link] traço [TS]) linkados. Jogue EX13-031 KingSukamon da mão (custo 7), aceite o [Ao Jogar], descarte o Chuumon e escolha o Vulcanusmon. Ele passa a se chamar [Sukamon], então o Divine Arms deve ir para o lixo do bot e o Vulcanusmon perde ＜Reboot＞ e ＜Security A. +1＞. O Iron Slash continua linkado, porque o traço [TS] não muda.",
     en: "The bot's Vulcanusmon has Divine Arms Version Ω ([Link] [Vulcanusmon]) and Iron Slash ([Link] [TS] trait) linked. Play EX13-031 KingSukamon from hand (cost 7), accept its [On Play], trash Chuumon, and choose Vulcanusmon. Its name becomes [Sukamon], so Divine Arms must go to the bot's trash and Vulcanusmon loses ＜Reboot＞ and ＜Security A. +1＞. Iron Slash stays linked, because the [TS] trait does not change.",
   },
+  "arena-ex13-kingetemon-digivolve-rule-check": {
+    ptBR: "Encerre a criação e digivolva o seu KingSukamon (EX13-031) em KingEtemon (EX13-035) da mão pelo custo 4. Com KingEtemon, seu Etemon e o Sukamon do bot, há 3 Digimon com [Sukamon]/[Etemon] no nome: o Sukamon do bot cai para 0 DP e vai para o lixo. Você deve receber UM pedido de ordem com o herdado do KingSukamon e o [Ao Digivolver] do KingEtemon. Resolva o KingSukamon primeiro: ele revela 3 cartas e pode jogar o Sukamon (EX13-028). Depois o [Ao Digivolver] do KingEtemon resolve.",
+    en: "End breeding and digivolve your KingSukamon (EX13-031) into KingEtemon (EX13-035) from hand for 4. KingEtemon, your Etemon, and the bot's Sukamon make 3 Digimon with [Sukamon]/[Etemon] in their names, so the bot's Sukamon drops to 0 DP and is trashed. You must get ONE order prompt with KingSukamon's inherited effect and KingEtemon's [When Digivolving]. Resolve KingSukamon first: it reveals 3 cards and may play Sukamon (EX13-028). Then KingEtemon's [When Digivolving] resolves.",
+  },
   "arena-bt16-phoenixmon-x-antibody-name": {
     ptBR: "Você tem 2 Phoenixmon (X Antibody). Ataque um dos 3 Digimon adversários suspensos com o que tem só WarGrowlmon (X Antibody) embaixo: o On Deletion NÃO deve ganhar End of Attack, e nada mais é deletado. Depois ataque com o que tem a Opção X Antibody (BT9-109) embaixo: no End of Attack, o On Deletion herdado de Garudamon deve deletar outro Digimon adversário.",
     en: "You have 2 Phoenixmon (X Antibody). Attack one of the 3 suspended opposing Digimon with the one that has only WarGrowlmon (X Antibody) under it: its On Deletion effects must NOT gain End of Attack, and nothing else is deleted. Then attack with the one that has the X Antibody Option (BT9-109) under it: at End of Attack, Garudamon's inherited On Deletion must delete another opposing Digimon.",
@@ -1898,6 +1902,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex12-susanoomon-later-arrival-dp", "EX12 Susanoomon · DP on later arrival"],
   ["arena-ex13-kingsukamon-machinedramon-dp", "EX13 KingSukamon · Machinedramon becomes 3000 DP"],
   ["arena-ex13-kingsukamon-vulcanusmon-link", "EX13 KingSukamon · Vulcanusmon loses Divine Arms link"],
+  ["arena-ex13-kingetemon-digivolve-rule-check", "EX13 KingEtemon · 0 DP deletion orders with When Digivolving"],
   ["arena-ex13-examon", "EX13 Examon · Lv.5 DNA + battle timing"],
   ["arena-ex13-examon-option-dp", "EX13 Examon · DP bonus excludes Options/Tamers"],
   ["arena-ex13-examon-battle-win-timing", "EX13 Examon · win-battle trigger order"],

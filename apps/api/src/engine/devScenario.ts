@@ -224,6 +224,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex12-susanoomon-later-arrival-dp",
   "arena-ex13-kingsukamon-machinedramon-dp",
   "arena-ex13-kingsukamon-vulcanusmon-link",
+  "arena-ex13-kingetemon-digivolve-rule-check",
   "arena-ex13-examon",
   "arena-ex13-examon-option-dp",
   "arena-ex13-examon-battle-win-timing",
@@ -4596,6 +4597,49 @@ function layEx13KingsOpponentSukamonScenario(state: GameState, decks: readonly [
   state.memory = 0;
 }
 
+/**
+ * Discord 1557158483273453598: digivolving EX13-031 KingSukamon into EX13-035 KingEtemon turns
+ * on KingEtemon's -3000 DP aura (3 [Sukamon]/[Etemon] Digimon), which drops the bot's 3000 DP
+ * Sukamon to 0. The rule-check deletion happens at the [When Digivolving] checkpoint, so the
+ * inherited KingSukamon watcher and KingEtemon's [When Digivolving] reach one order prompt.
+ */
+function layEx13KingEtemonDigivolveRuleCheckScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    const kingSukamon = establishedDigimon(0, ["EX13-031"], "-kingetemon-rule-check-base");
+    kingSukamon.permanentId = "kingetemon-rule-check-base";
+    placePermanent(human, kingSukamon);
+    placePermanent(human, establishedDigimon(0, ["BT3-070"], "-kingetemon-rule-check-etemon"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-kingetemon-rule-check-king", "EX13-035", 0));
+
+    // insertCard(..., "top") prepends: the bonus draw sits on top, then KingSukamon's 3 reveals.
+    insertCard(human, Zone.Deck, faceDownCard("dev-kingetemon-rule-check-reveal-third", "BT1-014", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-kingetemon-rule-check-reveal-second", "BT1-013", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-kingetemon-rule-check-reveal-sukamon", "EX13-028", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-kingetemon-rule-check-bonus-draw", "BT1-009", 0), "top");
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    const sukamon = establishedDigimon(1, ["EX9-049"], "-kingetemon-rule-check-sukamon");
+    sukamon.permanentId = "kingetemon-rule-check-opponent-sukamon";
+    placePermanent(bot, sukamon);
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 4;
+}
+
 /** Compares two off-colour Options while BT26 Copipemon is the only Appmon in breeding. */
 function layEx10GodGradeRaisingColorScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -7096,6 +7140,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex12-susanoomon-later-arrival-dp": layEx12SusanoomonLaterArrivalDpScenario,
   "arena-ex13-kingsukamon-machinedramon-dp": layEx13KingSukamonMachinedramonDpScenario,
   "arena-ex13-kingsukamon-vulcanusmon-link": layEx13KingSukamonVulcanusmonLinkScenario,
+  "arena-ex13-kingetemon-digivolve-rule-check": layEx13KingEtemonDigivolveRuleCheckScenario,
   "arena-ex13-examon": layEx13ExamonScenario,
   "arena-ex13-examon-option-dp": layEx13ExamonOptionDpScenario,
   "arena-ex13-examon-battle-win-timing": layEx13ExamonBattleWinTimingScenario,
