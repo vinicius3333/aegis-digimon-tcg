@@ -33,6 +33,7 @@
     "@colyseus/ws-transport": "^0.18.3",
     "colyseus": "^0.18.8",
     "express": "^5.2.1",
+    "obscenity": "^0.4.6",
     "pg": "^8.23.0"
   },
   "devDependencies": {

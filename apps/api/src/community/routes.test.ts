@@ -1,0 +1,213 @@
+import type { AddressInfo } from "node:net";
+import { ALL_FAMOUS_DECKS, isFamousDeckAvailable, type CommunityDeck, type CommunityDeckPage } from "@aegis/shared";
+import express from "express";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { AccountStore } from "../accounts/AccountStore.js";
+import { installAccountRoutes } from "../accounts/routes.js";
+import { createMemoryPool } from "../db/memoryPool.fixture.js";
+
+type Player = { id: string; cookie: string };
+type Harness = { url: string; store: AccountStore; close: () => Promise<void> };
+
+const legalDecks = ALL_FAMOUS_DECKS.filter(isFamousDeckAvailable)
+  .map((deck) => deck.decklist)
+  .filter((list) => list.mainDeck.length === 50 && list.eggDeck.length <= 5);
+const [redList, otherList] = legalDecks;
+
+let harness: Harness;
+
+async function startHarness(): Promise<Harness> {
+  const store = new AccountStore(createMemoryPool());
+  const app = express();
+  app.use(express.json());
+  installAccountRoutes(app, store);
+  const server = app.listen(0);
+  await new Promise((resolve) => server.once("listening", resolve));
+  return {
+    url: `http://127.0.0.1:${(server.address() as AddressInfo).port}`,
+    store,
+    close: () => new Promise<void>((resolve) => server.close(() => resolve())),
+  };
+}
+
+async function signIn(name: string): Promise<Player> {
+  const account = await harness.store.accountForIdentity("discord", name, name);
+  const session = await harness.store.issueSession(account);
+  return { id: account.id, cookie: `aegis_session=${session.id}` };
+}
+
+async function call(path: string, method = "GET", player?: Player, body?: unknown): Promise<Response> {
+  return fetch(`${harness.url}${path}`, {
+    method,
+    headers: { "Content-Type": "application/json", ...(player ? { Cookie: player.cookie } : {}) },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+}
+
+async function saveAndPublish(player: Player, deckId: string, name: string, list = redList!) {
+  await harness.store.saveDeck(player.id, {
+    id: deckId,
+    name,
+    mainDeck: [...list.mainDeck],
+    eggDeck: [...list.eggDeck],
+  });
+  const response = await call(`/community/publications/${deckId}`, "PUT", player);
+  expect(response.status).toBe(200);
+  return (await response.json()) as { id: string };
+}
+
+async function browse(query = "", player?: Player): Promise<CommunityDeckPage> {
+  return (await call(`/community/decks${query}`, "GET", player)).json() as Promise<CommunityDeckPage>;
+}
+
+beforeEach(async () => {
+  harness = await startHarness();
+});
+
+afterEach(async () => {
+  await harness.close();
+  await harness.store.close();
+});
+
+describe("publishing", () => {
+  it("needs an account", async () => {
+    expect((await call("/community/publications/custom-1", "PUT")).status).toBe(401);
+  });
+
+  it("publishes the saved deck, not the request body", async () => {
+    const author = await signIn("Author");
+    const { id } = await saveAndPublish(author, "custom-1", "Jesmon Blitz");
+    const deck = (await (await call(`/community/decks/${id}`)).json()) as CommunityDeck;
+    expect(deck).toMatchObject({ name: "Jesmon Blitz", author: { displayName: "Author" }, likeCount: 0, legal: true });
+    expect(deck.mainDeck).toEqual(redList!.mainDeck);
+  });
+
+  it("refuses an illegal deck and a blocked name", async () => {
+    const author = await signIn("Author");
+    await harness.store.saveDeck(author.id, { id: "short", name: "Half", mainDeck: ["BT1-009"], eggDeck: [] });
+    expect(await (await call("/community/publications/short", "PUT", author)).json()).toEqual({
+      error: "deck_not_legal",
+    });
+    await harness.store.saveDeck(author.id, {
+      id: "rude",
+      name: "Caralho Rush",
+      mainDeck: [...redList!.mainDeck],
+      eggDeck: [...redList!.eggDeck],
+    });
+    const rude = await call("/community/publications/rude", "PUT", author);
+    expect(rude.status).toBe(422);
+    expect(await rude.json()).toEqual({ error: "name_not_allowed" });
+    expect((await browse()).decks).toEqual([]);
+  });
+
+  it("returns 404 for a deck the caller does not own", async () => {
+    const author = await signIn("Author");
+    const other = await signIn("Other");
+    await harness.store.saveDeck(author.id, {
+      id: "custom-1",
+      name: "Mine",
+      mainDeck: [...redList!.mainDeck],
+      eggDeck: [...redList!.eggDeck],
+    });
+    expect((await call("/community/publications/custom-1", "PUT", other)).status).toBe(404);
+  });
+
+  it("keeps one public copy per saved deck and marks it outdated after an edit", async () => {
+    const author = await signIn("Author");
+    const first = await saveAndPublish(author, "custom-1", "First name");
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    await harness.store.saveDeck(author.id, {
+      id: "custom-1",
+      name: "Second name",
+      mainDeck: [...redList!.mainDeck],
+      eggDeck: [...redList!.eggDeck],
+    });
+    const [publication] = (await (await call("/community/publications", "GET", author)).json()) as Array<{
+      outdated: boolean;
+      name: string;
+    }>;
+    expect(publication).toMatchObject({ name: "First name", outdated: true });
+    const second = await saveAndPublish(author, "custom-1", "Second name");
+    expect(second.id).toBe(first.id);
+    expect((await browse()).decks.map((deck) => deck.name)).toEqual(["Second name"]);
+  });
+
+  it("hides an unpublished or deleted deck and keeps its likes for a republish", async () => {
+    const author = await signIn("Author");
+    const fan = await signIn("Fan");
+    const { id } = await saveAndPublish(author, "custom-1", "Comeback");
+    await call(`/community/decks/${id}/like`, "PUT", fan);
+    expect((await call("/community/publications/custom-1", "DELETE", author)).status).toBe(204);
+    expect((await call(`/community/decks/${id}`)).status).toBe(404);
+    await saveAndPublish(author, "custom-1", "Comeback");
+    expect((await browse()).decks[0]).toMatchObject({ id, likeCount: 1 });
+    expect((await call("/account/decks/custom-1", "DELETE", author)).status).toBe(204);
+    expect((await browse()).decks).toEqual([]);
+  });
+});
+
+describe("likes", () => {
+  it("counts one like per account and refuses the author's own", async () => {
+    const author = await signIn("Author");
+    const fan = await signIn("Fan");
+    const { id } = await saveAndPublish(author, "custom-1", "Liked deck");
+    expect((await call(`/community/decks/${id}/like`, "PUT")).status).toBe(401);
+    expect((await call(`/community/decks/${id}/like`, "PUT", author)).status).toBe(403);
+    expect(await (await call(`/community/decks/${id}/like`, "PUT", fan)).json()).toEqual({ liked: true, likeCount: 1 });
+    expect(await (await call(`/community/decks/${id}/like`, "PUT", fan)).json()).toEqual({ liked: true, likeCount: 1 });
+    expect((await browse("", fan)).decks[0]).toMatchObject({ likeCount: 1, likedByMe: true });
+    expect((await browse("", author)).decks[0]).toMatchObject({ likedByMe: false });
+    expect(await (await call(`/community/decks/${id}/like`, "DELETE", fan)).json()).toEqual({
+      liked: false,
+      likeCount: 0,
+    });
+  });
+
+  it("returns 404 for an unknown deck", async () => {
+    const fan = await signIn("Fan");
+    expect((await call("/community/decks/not-a-uuid/like", "PUT", fan)).status).toBe(404);
+    expect((await call("/community/decks/00000000-0000-0000-0000-000000000000/like", "PUT", fan)).status).toBe(404);
+  });
+});
+
+describe("browsing", () => {
+  it("ranks top by likes and new by publish time", async () => {
+    const author = await signIn("Author");
+    const fans = await Promise.all(["A", "B"].map((name) => signIn(name)));
+    const older = await saveAndPublish(author, "older", "Older deck");
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    await saveAndPublish(author, "newer", "Newer deck");
+    for (const fan of fans) await call(`/community/decks/${older.id}/like`, "PUT", fan);
+    expect((await browse("?sort=top&period=week")).decks.map((deck) => deck.name)).toEqual([
+      "Older deck",
+      "Newer deck",
+    ]);
+    expect((await browse("?sort=top&period=all")).decks.map((deck) => deck.name)).toEqual(["Older deck", "Newer deck"]);
+    expect((await browse("?sort=new")).decks.map((deck) => deck.name)).toEqual(["Newer deck", "Older deck"]);
+  });
+
+  it("filters by name, author and color", async () => {
+    const author = await signIn("Gotsumon");
+    await saveAndPublish(author, "one", "Jesmon Blitz", redList);
+    await saveAndPublish(author, "two", "Something else", otherList);
+    expect((await browse("?q=jesmon")).decks.map((deck) => deck.name)).toEqual(["Jesmon Blitz"]);
+    expect((await browse("?q=gotsu")).decks).toHaveLength(2);
+    expect((await browse("?q=100%25")).decks).toEqual([]);
+    const [color] = (await browse("?q=jesmon")).decks[0]!.colors;
+    const byColor = await browse(`?colors=${color}`);
+    expect(byColor.decks.every((deck) => deck.colors.includes(color!))).toBe(true);
+    expect(byColor.decks.map((deck) => deck.name)).toContain("Jesmon Blitz");
+  });
+});
+
+describe("copies", () => {
+  it("counts one copy per account", async () => {
+    const author = await signIn("Author");
+    const fan = await signIn("Fan");
+    const { id } = await saveAndPublish(author, "custom-1", "Copied deck");
+    expect((await call(`/community/decks/${id}/copies`, "POST")).status).toBe(401);
+    expect((await call(`/community/decks/${id}/copies`, "POST", fan)).status).toBe(204);
+    expect((await call(`/community/decks/${id}/copies`, "POST", fan)).status).toBe(204);
+    expect((await browse()).decks[0]).toMatchObject({ copyCount: 1 });
+  });
+});
