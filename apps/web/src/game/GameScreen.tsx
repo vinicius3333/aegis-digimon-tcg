@@ -702,6 +702,12 @@ export function GameScreen({
 
   const arenaLook = useArenaBoardLook({ viewer: you, opponent: opp, matchKey: connectedRoom?.roomId });
 
+  // A play written into a dropping socket can be lost without the server ever refusing it, so a
+  // reconnect rolls the hide back: the resumed state alone says whether the card left the hand.
+  useEffect(() => {
+    if (status === "reconnecting") setOptimisticPlayedInstanceId(undefined);
+  }, [status]);
+
   useEffect(() => {
     if (!optimisticPlayedInstanceId) return;
     const stillInHand = you?.hand?.some((card) => card.instanceId === optimisticPlayedInstanceId) ?? false;
