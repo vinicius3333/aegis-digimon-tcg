@@ -1029,6 +1029,41 @@ this preparation or synthetic fixtures. Full all44 strength, both-seat
 mechanisms/materials, 26 managed rooms/current serving, reserved blind seeds
 and verified delivery remain required.
 
+## Actual balanced R3 learning closed; frozen evaluation admission pending
+
+The original foreground session 49940 ended with exit zero, and the original
+whole trap contains actual `0\n`. Whole 716/start53032, operator 736/start53040
+and CUDA learner 1138/start87977 are gone. The unchanged full training consumer
+also ended with exit zero through original reader session 82178. Its actual
+output is `rule-link-current-corrective-ppo-r3-closed.actual.json`, SHA-256
+`ed452f312bfe2f4a553e8928ee799dd3fe282aea9880a3c6270caf72341c3344`.
+Completion SHA-256 is
+`ff2e25e07bb5414cdec5231b19ad8c80337aeafc3704c835476450488c57ba71`.
+
+All 3,872 training games closed: 2,401 wins, 1,471 losses, zero failed/unusable
+games or payment forfeits, and ten recovered play rejections retained in the
+records. Elapsed training time was 3,042.610867685 seconds. The consumer confirms
+**6,508 actual Adam updates**, equal positive deltas for all 12 parameters,
+all12 finite changed weights and exact reload. The new checkpoint is
+`runs/rule-link-current-aa2e56463-corrective-ppo-r3/ppo/checkpoint.pt`, SHA-256
+`0366f0d5fef105a1fd34b436526dc4ebcd9551c527c19d53d401bab5031abccc`.
+Protected checkpoints and qualified source/runtime remain guarded unchanged.
+This proves genuine learning; all44 strength and mastery remain unaccepted.
+
+The separately sealed evaluation wrapper is
+`transfers/rule-link-current-aa2e56463-corrective-strength-r3-launch.sh`,
+SHA-256 `b39bf46dbb682d3b121a6a5f06ad726f607b873569014bc1a8dc6dfba41e9f44`.
+Actual desktop Bash syntax validation and exclusive transfer passed without
+execution. The new actual request binds the above full learning completion and
+checkpoint, with SHA-256
+`85cf3c11474a9eeb2f121d87046e312949d655c339639a9f2ce59953a7e15edb`.
+The original rejected pending request remains unchanged. Full read-only
+evaluation admission is now running through session 33889; evaluation has not
+started. Require that admission to exit zero, fresh static idle/GPU-empty
+inventory and a distinct zero-update ROOT evaluation Go before launch.
+The frozen development schedule remains 3,872 games, all44 recipes/both seats,
+seeds `6135000..6138871`; final reserved seeds remain untouched.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
