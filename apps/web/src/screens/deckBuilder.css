@@ -18,6 +18,12 @@
   box-shadow: none;
 }
 
+/* The filter trigger's Button rule can load after cardLibrary.css, so the deck page
+   hides it here and shows it again only where the filter rail becomes a sheet. */
+.deck-builder-page > .card-filter-trigger {
+  display: none;
+}
+
 .deck-builder-hint {
   margin: 0;
   padding-top: var(--ds-space-3);
@@ -29,6 +35,8 @@
 
 /* ---------- workspace: pool, resize handle, deck ---------- */
 .deck-workspace {
+  --deck-pool-min-width: 240px;
+
   display: flex;
   flex: 1;
   min-width: 0;
@@ -76,7 +84,7 @@
 /* ---------- card pool ---------- */
 .deck-card-pool {
   flex: 1;
-  min-width: 240px;
+  min-width: var(--deck-pool-min-width);
   overflow-y: auto;
   padding: var(--ds-space-5) var(--ds-space-6);
 }
@@ -255,6 +263,8 @@
   display: flex;
   width: calc(var(--deck-share, 0.45) * 100%);
   min-width: 320px;
+  /* A wide saved share must not push the pool below its minimum on a narrow window. */
+  max-width: calc(100% - var(--deck-pool-min-width) - var(--ds-space-4));
   flex-shrink: 0;
   flex-direction: column;
   overflow: hidden;
@@ -901,46 +911,34 @@
   font-style: italic;
 }
 
-/* ---------- phone sheet ---------- */
+/* ---------- deck sheet (narrow windows) ---------- */
 .deck-info-trigger,
 .deck-info-backdrop,
 .deck-info-sheet-handle {
   display: none;
 }
 
+/* Below 960px the pool keeps the width beside the filter rail, and the deck opens as a
+   bottom sheet from a fixed trigger. Side by side, the deck panel would clip off screen. */
 @media (width < 960px) {
   .deck-builder-page {
+    --deck-info-trigger-height: 48px;
+
     height: 100%;
     gap: var(--ds-space-3);
     padding: var(--ds-space-3) var(--ds-space-3)
-      calc(var(--ds-nav-height-narrow) + var(--ds-space-3) + env(safe-area-inset-bottom));
+      calc(
+        var(--deck-info-trigger-height) + var(--ds-nav-height-narrow) + 2 * var(--ds-space-3) +
+          env(safe-area-inset-bottom)
+      );
   }
 
-  .deck-current {
-    min-width: 280px;
-  }
-
-  .deck-card-pool {
-    min-width: 200px;
+  .deck-workspace {
+    --deck-pool-min-width: 200px;
   }
 
   .deck-card-pool {
     padding: var(--ds-space-4);
-  }
-}
-
-@media (width < 600px) {
-  .deck-builder-page {
-    flex-direction: column;
-    overflow-y: auto;
-  }
-
-  .deck-builder-page > .card-filter-trigger {
-    flex: none;
-  }
-
-  .deck-workspace {
-    display: contents;
   }
 
   .deck-split,
@@ -955,6 +953,8 @@
     bottom: calc(var(--ds-nav-height-narrow) + env(safe-area-inset-bottom));
     left: 0;
     width: 100%;
+    min-width: 0;
+    max-width: none;
     height: min(78dvh, 720px);
     max-height: min(78dvh, 720px);
     border-bottom: 0;
@@ -977,6 +977,7 @@
     align-items: center;
     padding: var(--ds-space-2) var(--ds-space-4);
     border-bottom: 1px solid var(--ds-line);
+    background: var(--ds-sheet);
   }
 
   .deck-info-sheet-handle > span {
@@ -1020,7 +1021,7 @@
     bottom: calc(var(--ds-nav-height-narrow) + var(--ds-space-3) + env(safe-area-inset-bottom));
     left: var(--ds-space-3);
     display: flex;
-    min-height: 48px;
+    min-height: var(--deck-info-trigger-height);
     align-items: center;
     justify-content: space-between;
     gap: var(--ds-space-3);
@@ -1041,6 +1042,68 @@
     font: 600 11px / 1 var(--ds-font-mono);
   }
 
+  .deck-info-trigger > span:first-child {
+    overflow: hidden;
+    font-size: var(--ds-text-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .deck-pool-card-actions {
+    opacity: 1;
+  }
+
+  .deck-stepper > button {
+    height: 32px;
+  }
+
+  .deck-stepper {
+    grid-template-columns: 32px minmax(24px, auto) 32px;
+  }
+}
+
+/* Phone landscape and other short windows: the whole sheet scrolls, so the deck list is
+   never squeezed to nothing between the header and the footer. */
+@media (width < 960px) and (height < 560px) {
+  .deck-builder-page {
+    --deck-info-trigger-height: 40px;
+  }
+
+  .deck-current {
+    height: calc(100dvh - var(--ds-nav-height-narrow) - env(safe-area-inset-bottom) - var(--ds-space-3));
+    max-height: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .deck-info-sheet-handle {
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    padding-block: 0;
+  }
+
+  .deck-current__body {
+    flex: none;
+    overflow: visible;
+  }
+}
+
+@media (width < 600px) {
+  .deck-builder-page {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .deck-builder-page > .card-filter-trigger {
+    display: inline-flex;
+    flex: none;
+  }
+
+  .deck-workspace {
+    display: contents;
+  }
+
   .deck-card-pool {
     min-height: 65vh;
   }
@@ -1050,27 +1113,8 @@
     gap: var(--ds-space-3);
   }
 
-  .deck-pool-card-actions {
-    opacity: 1;
-  }
-
   .deck-card-pool .aegis-section-heading__title {
     font-size: var(--ds-text-lg);
-  }
-
-  .deck-info-trigger > span:first-child {
-    overflow: hidden;
-    font-size: var(--ds-text-sm);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .deck-stepper > button {
-    height: 32px;
-  }
-
-  .deck-stepper {
-    grid-template-columns: 32px minmax(24px, auto) 32px;
   }
 }
 

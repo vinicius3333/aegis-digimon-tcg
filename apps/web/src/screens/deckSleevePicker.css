@@ -84,6 +84,74 @@
   color: var(--ds-accent);
 }
 
+/* Narrow and short windows: one strip with a small thumbnail per sleeve, so the row
+   leaves the deck panel's height to the deck list. A truncated name shows in full in
+   its tooltip and in the dialog. */
+@media (width < 1100px), (height < 640px) {
+  .deck-sleeves {
+    gap: var(--ds-space-2);
+  }
+
+  .deck-sleeves__list {
+    container: deck-sleeves / inline-size;
+    flex-wrap: nowrap;
+    gap: var(--ds-space-3);
+  }
+
+  .deck-sleeves__item {
+    flex: 1 1 0;
+  }
+
+  .deck-sleeve-thumb {
+    width: 24px;
+  }
+
+  .deck-sleeves__copy {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .deck-sleeves__caption {
+    overflow: hidden;
+    font-size: 10.5px;
+    text-overflow: ellipsis;
+  }
+
+  .deck-sleeves__name {
+    overflow: hidden;
+    font-size: var(--ds-text-xs);
+    text-overflow: ellipsis;
+    overflow-wrap: normal;
+  }
+
+  .deck-sleeves__source {
+    display: none;
+  }
+
+  .deck-sleeves > .deck-sleeves__change {
+    min-height: 32px;
+    padding-inline: var(--ds-space-2);
+  }
+
+  /* With room to spare, caption and name share one line; a narrow row stacks them so
+     the name is not cut to a few letters. */
+  @container deck-sleeves (width >= 420px) {
+    .deck-sleeve-thumb {
+      width: 20px;
+    }
+
+    .deck-sleeves__copy {
+      display: flex;
+      align-items: baseline;
+      gap: var(--ds-space-2);
+    }
+
+    .deck-sleeves__caption {
+      flex: none;
+    }
+  }
+}
+
 .aegis-dialog.deck-sleeve-dialog {
   display: flex;
   width: min(100%, 760px);
