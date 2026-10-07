@@ -13,8 +13,11 @@ describe("BT15-100", () => {
           kind: "CostGatedBlock",
           cost: { kind: "trash" },
           actions: [
-            { kind: "Delete", target: { filter: { levels: [4] } } },
-            { kind: "Delete", target: { filter: { levels: [6] } } },
+            {
+              kind: "Delete",
+              target: { filter: { levels: [4] } },
+              additionalSimultaneousTargets: [{ filter: { levels: [6] } }],
+            },
           ],
         },
       ],
@@ -29,13 +32,19 @@ describe("BT15-100", () => {
           kind: "SubTrigger",
           event: "whenOneOfYoursDigivolves",
           actions: [
-            { kind: "CostGatedBlock", cost: { kind: "return" }, actions: [{ kind: "Delete" }, { kind: "Delete" }] },
+            {
+              kind: "CostGatedBlock",
+              cost: { kind: "return" },
+              actions: [{ kind: "Delete", additionalSimultaneousTargets: [{ filter: { levels: [6] } }] }],
+            },
           ],
         },
       ],
     }));
 
-  it("naturally trashes a hand card and deletes both required opposing levels from Main", async () => {
+  // Vilemon and Piemon are deleted at the same time, so Vilemon can delete itself to keep the
+  // [Dark Masters] Piemon in play (Discord 1557502317098573905; ruling pattern of Q6463).
+  it("naturally trashes a hand card and deletes both levels at once, letting Vilemon save Piemon from Main", async () => {
     const s = setupEngine(
       {
         0: {
@@ -64,15 +73,15 @@ describe("BT15-100", () => {
     await settle(
       () =>
         !s.state.players[1]!.battleArea.some((p) => p.permanentId === level4Id) &&
-        !s.state.players[1]!.battleArea.some((p) => p.permanentId === level6Id),
+        s.state.pendingDecision === undefined,
     );
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === level4Id)).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === level6Id)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === level6Id)).toBe(true);
   });
 
-  it("naturally resolves the Trash trigger on Leviamon (X Antibody) digivolution and returns itself to deck bottom", async () => {
+  it("naturally resolves the Trash trigger on Leviamon (X Antibody) digivolution, deleting both levels at once", async () => {
     const s = setupEngine(
       {
         0: {
@@ -106,14 +115,14 @@ describe("BT15-100", () => {
       () =>
         s.perm("base").topCard?.instanceId === leviamonInstanceId &&
         !s.state.players[1]!.battleArea.some((p) => p.permanentId === level4Id) &&
-        !s.state.players[1]!.battleArea.some((p) => p.permanentId === level6Id),
+        s.state.pendingDecision === undefined,
     );
 
     expect(s.perm("base").topCard?.instanceId).toBe(leviamonInstanceId);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionInstanceId)).toBe(false);
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(optionInstanceId);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === level4Id)).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === level6Id)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === level6Id)).toBe(true);
   });
 });
 

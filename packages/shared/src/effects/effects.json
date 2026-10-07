@@ -20630,9 +20630,9 @@
                 "relativeTo": { "attr": "dp", "op": "lte", "selectionRef": "chosenMachine" }
               },
               "count": 1
-            }
-          },
-          { "kind": "Delete", "target": { "filter": {}, "count": 1, "fromSelectionRef": "chosenMachine" } }
+            },
+            "additionalSimultaneousTargets": [{ "filter": {}, "count": 1, "fromSelectionRef": "chosenMachine" }]
+          }
         ]
       },
       {
@@ -29628,14 +29628,10 @@
               "raw": "By trashing 1 card in your hand"
             },
             "optional": true,
-            "abortOnDecline": true
-          },
-          {
-            "kind": "Delete",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestLevel" },
-              "count": 1
-            }
+            "abortOnDecline": true,
+            "additionalSimultaneousTargets": [
+              { "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestLevel" }, "count": 1 }
+            ]
           }
         ]
       },
@@ -36613,11 +36609,13 @@
                 "actions": [
                   {
                     "kind": "Delete",
-                    "target": { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] } }
-                  },
-                  {
-                    "kind": "Delete",
-                    "target": { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [6] } }
+                    "target": {
+                      "count": 1,
+                      "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] }
+                    },
+                    "additionalSimultaneousTargets": [
+                      { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [6] } }
+                    ]
                   }
                 ]
               }
@@ -36640,11 +36638,10 @@
             "actions": [
               {
                 "kind": "Delete",
-                "target": { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] } }
-              },
-              {
-                "kind": "Delete",
-                "target": { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [6] } }
+                "target": { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] } },
+                "additionalSimultaneousTargets": [
+                  { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [6] } }
+                ]
               }
             ]
           }
@@ -40815,17 +40812,19 @@
             "optional": true,
             "abortOnDecline": true
           },
-          { "kind": "Delete", "target": { "filter": {}, "fromSelectionRef": "chosenDigimon", "count": 1 } },
           {
             "kind": "Delete",
-            "target": {
-              "filter": {
-                "controller": "opponent",
-                "kind": ["Digimon"],
-                "relativeTo": { "attr": "dp", "op": "lte", "selectionRef": "chosenDigimon" }
-              },
-              "count": 1
-            }
+            "target": { "filter": {}, "fromSelectionRef": "chosenDigimon", "count": 1 },
+            "additionalSimultaneousTargets": [
+              {
+                "filter": {
+                  "controller": "opponent",
+                  "kind": ["Digimon"],
+                  "relativeTo": { "attr": "dp", "op": "lte", "selectionRef": "chosenDigimon" }
+                },
+                "count": 1
+              }
+            ]
           }
         ]
       },
@@ -40842,17 +40841,19 @@
             "optional": true,
             "abortOnDecline": true
           },
-          { "kind": "Delete", "target": { "filter": {}, "fromSelectionRef": "chosenDigimon", "count": 1 } },
           {
             "kind": "Delete",
-            "target": {
-              "filter": {
-                "controller": "opponent",
-                "kind": ["Digimon"],
-                "relativeTo": { "attr": "dp", "op": "lte", "selectionRef": "chosenDigimon" }
-              },
-              "count": 1
-            }
+            "target": { "filter": {}, "fromSelectionRef": "chosenDigimon", "count": 1 },
+            "additionalSimultaneousTargets": [
+              {
+                "filter": {
+                  "controller": "opponent",
+                  "kind": ["Digimon"],
+                  "relativeTo": { "attr": "dp", "op": "lte", "selectionRef": "chosenDigimon" }
+                },
+                "count": 1
+              }
+            ]
           }
         ]
       }
@@ -60563,17 +60564,11 @@
             },
             "optional": true,
             "abortOnDecline": true,
-            "raw": "Delete 1 opponent level 3 Digimon."
-          },
-          {
-            "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] }, "count": 1 },
-            "raw": "Delete 1 opponent level 4 Digimon."
-          },
-          {
-            "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [5] }, "count": 1 },
-            "raw": "Delete 1 opponent level 5 Digimon."
+            "raw": "Delete 1 opponent level 3 Digimon.",
+            "additionalSimultaneousTargets": [
+              { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] } },
+              { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [5] } }
+            ]
           }
         ]
       },
@@ -60590,17 +60585,11 @@
             },
             "optional": true,
             "abortOnDecline": true,
-            "raw": "Delete 1 opponent level 3 Digimon."
-          },
-          {
-            "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] }, "count": 1 },
-            "raw": "Delete 1 opponent level 4 Digimon."
-          },
-          {
-            "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [5] }, "count": 1 },
-            "raw": "Delete 1 opponent level 5 Digimon."
+            "raw": "Delete 1 opponent level 3 Digimon.",
+            "additionalSimultaneousTargets": [
+              { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] } },
+              { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [5] } }
+            ]
           }
         ]
       },
@@ -99062,11 +99051,10 @@
             "actions": [
               {
                 "kind": "Delete",
-                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [3] }, "count": 1 }
-              },
-              {
-                "kind": "Delete",
-                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] }, "count": 1 }
+                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [3] }, "count": 1 },
+                "additionalSimultaneousTargets": [
+                  { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] }, "count": 1 }
+                ]
               }
             ]
           }
@@ -99087,11 +99075,10 @@
             "actions": [
               {
                 "kind": "Delete",
-                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [3] }, "count": 1 }
-              },
-              {
-                "kind": "Delete",
-                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] }, "count": 1 }
+                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [3] }, "count": 1 },
+                "additionalSimultaneousTargets": [
+                  { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] }, "count": 1 }
+                ]
               }
             ]
           }
@@ -118463,14 +118450,13 @@
             "target": {
               "filter": { "controller": "opponent", "unsuspended": true, "kind": ["Digimon"], "levels": [4] },
               "count": 1
-            }
-          },
-          {
-            "kind": "Delete",
-            "target": {
-              "filter": { "controller": "opponent", "unsuspended": true, "kind": ["Digimon"], "levels": [5] },
-              "count": 1
-            }
+            },
+            "additionalSimultaneousTargets": [
+              {
+                "filter": { "controller": "opponent", "unsuspended": true, "kind": ["Digimon"], "levels": [5] },
+                "count": 1
+              }
+            ]
           }
         ]
       },
@@ -132856,18 +132842,17 @@
                 "kind": ["Digimon"]
               },
               "count": 1
-            }
-          },
-          {
-            "kind": "Delete",
-            "target": {
-              "filter": {
-                "levelComparison": { "op": "lte", "value": 5 },
-                "controller": "opponent",
-                "kind": ["Digimon"]
-              },
-              "count": "all"
-            }
+            },
+            "additionalSimultaneousTargets": [
+              {
+                "filter": {
+                  "levelComparison": { "op": "lte", "value": 5 },
+                  "controller": "opponent",
+                  "kind": ["Digimon"]
+                },
+                "count": "all"
+              }
+            ]
           },
           {
             "kind": "SecurityManipulation",
@@ -141154,17 +141139,19 @@
             "kind": "SelectBind",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1, "bindAs": "A" }
           },
-          { "kind": "Delete", "target": { "filter": {}, "count": 1, "fromSelectionRef": "A" } },
           {
             "kind": "Delete",
-            "target": {
-              "filter": {
-                "controller": "opponent",
-                "kind": ["Digimon"],
-                "relativeTo": { "attr": "level", "op": "lte", "selectionRef": "A" }
-              },
-              "count": 1
-            }
+            "target": { "filter": {}, "count": 1, "fromSelectionRef": "A" },
+            "additionalSimultaneousTargets": [
+              {
+                "filter": {
+                  "controller": "opponent",
+                  "kind": ["Digimon"],
+                  "relativeTo": { "attr": "level", "op": "lte", "selectionRef": "A" }
+                },
+                "count": 1
+              }
+            ]
           }
         ]
       },
@@ -141176,17 +141163,19 @@
             "kind": "SelectBind",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1, "bindAs": "A" }
           },
-          { "kind": "Delete", "target": { "filter": {}, "count": 1, "fromSelectionRef": "A" } },
           {
             "kind": "Delete",
-            "target": {
-              "filter": {
-                "controller": "opponent",
-                "kind": ["Digimon"],
-                "relativeTo": { "attr": "level", "op": "lte", "selectionRef": "A" }
-              },
-              "count": 1
-            }
+            "target": { "filter": {}, "count": 1, "fromSelectionRef": "A" },
+            "additionalSimultaneousTargets": [
+              {
+                "filter": {
+                  "controller": "opponent",
+                  "kind": ["Digimon"],
+                  "relativeTo": { "attr": "level", "op": "lte", "selectionRef": "A" }
+                },
+                "count": 1
+              }
+            ]
           }
         ]
       },
@@ -166408,12 +166397,10 @@
           {
             "effectTextPart": "[End of Attack] Delete this Digimon and 1 of your opponent's Digimon, and ＜Recovery +1 (Deck)＞.",
             "kind": "Delete",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
-          },
-          {
-            "effectTextPart": "[End of Attack] Delete this Digimon and 1 of your opponent's Digimon, and ＜Recovery +1 (Deck)＞.",
-            "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "additionalSimultaneousTargets": [
+              { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
+            ]
           },
           {
             "effectTextPart": "[End of Attack] Delete this Digimon and 1 of your opponent's Digimon, and ＜Recovery +1 (Deck)＞.",
@@ -179270,12 +179257,10 @@
           {
             "effectTextPart": "Then, delete 1 of your opponent's level 3 Digimon and level 4 Digimon.",
             "kind": "Delete",
-            "target": { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [3] } }
-          },
-          {
-            "effectTextPart": "Then, delete 1 of your opponent's level 3 Digimon and level 4 Digimon.",
-            "kind": "Delete",
-            "target": { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] } }
+            "target": { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [3] } },
+            "additionalSimultaneousTargets": [
+              { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] } }
+            ]
           }
         ]
       },
@@ -180245,17 +180230,11 @@
           {
             "effectTextPart": "[Main] Delete 1 of your opponent's level 3 Digimon, level 4 Digimon, and level 5 Digimon.",
             "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [3] }, "count": 1 }
-          },
-          {
-            "effectTextPart": "[Main] Delete 1 of your opponent's level 3 Digimon, level 4 Digimon, and level 5 Digimon.",
-            "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] }, "count": 1 }
-          },
-          {
-            "effectTextPart": "[Main] Delete 1 of your opponent's level 3 Digimon, level 4 Digimon, and level 5 Digimon.",
-            "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [5] }, "count": 1 }
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [3] }, "count": 1 },
+            "additionalSimultaneousTargets": [
+              { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] } },
+              { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [5] } }
+            ]
           },
           {
             "effectTextPart": "Then, place this card as the bottom digivolution card of 1 of your Digimon with the [Three Musketeers] trait.",
@@ -180275,15 +180254,11 @@
         "actions": [
           {
             "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [3] }, "count": 1 }
-          },
-          {
-            "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] }, "count": 1 }
-          },
-          {
-            "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [5] }, "count": 1 }
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [3] }, "count": 1 },
+            "additionalSimultaneousTargets": [
+              { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] } },
+              { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [5] } }
+            ]
           }
         ],
         "isSecurity": true
@@ -226309,13 +226284,15 @@
             "optional": true,
             "abortOnDecline": true
           },
-          { "kind": "Delete", "target": { "filter": { "boundRef": "ownVer3ToDelete" }, "count": 1 } },
           {
             "kind": "Delete",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestPlayCost" },
-              "count": "all"
-            }
+            "target": { "filter": { "boundRef": "ownVer3ToDelete" }, "count": 1 },
+            "additionalSimultaneousTargets": [
+              {
+                "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestPlayCost" },
+                "count": "all"
+              }
+            ]
           }
         ]
       },
@@ -226348,13 +226325,15 @@
             "optional": true,
             "abortOnDecline": true
           },
-          { "kind": "Delete", "target": { "filter": { "boundRef": "ownVer3ToDelete" }, "count": 1 } },
           {
             "kind": "Delete",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestPlayCost" },
-              "count": "all"
-            }
+            "target": { "filter": { "boundRef": "ownVer3ToDelete" }, "count": 1 },
+            "additionalSimultaneousTargets": [
+              {
+                "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestPlayCost" },
+                "count": "all"
+              }
+            ]
           }
         ]
       },
@@ -226387,13 +226366,15 @@
             "optional": true,
             "abortOnDecline": true
           },
-          { "kind": "Delete", "target": { "filter": { "boundRef": "ownVer3ToDelete" }, "count": 1 } },
           {
             "kind": "Delete",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestPlayCost" },
-              "count": "all"
-            }
+            "target": { "filter": { "boundRef": "ownVer3ToDelete" }, "count": 1 },
+            "additionalSimultaneousTargets": [
+              {
+                "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestPlayCost" },
+                "count": "all"
+              }
+            ]
           }
         ]
       },

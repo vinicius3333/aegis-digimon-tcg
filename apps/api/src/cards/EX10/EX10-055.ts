@@ -25,21 +25,20 @@ const compiled: CompiledCard = {
             count: 1,
             fromSelectionRef: "A",
           },
-        },
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              relativeTo: {
-                attr: "level",
-                op: "lte",
-                selectionRef: "A",
+          additionalSimultaneousTargets: [
+            {
+              filter: {
+                controller: "opponent",
+                kind: ["Digimon"],
+                relativeTo: {
+                  attr: "level",
+                  op: "lte",
+                  selectionRef: "A",
+                },
               },
+              count: 1,
             },
-            count: 1,
-          },
+          ],
         },
       ],
     },
@@ -65,21 +64,20 @@ const compiled: CompiledCard = {
             count: 1,
             fromSelectionRef: "A",
           },
-        },
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              relativeTo: {
-                attr: "level",
-                op: "lte",
-                selectionRef: "A",
+          additionalSimultaneousTargets: [
+            {
+              filter: {
+                controller: "opponent",
+                kind: ["Digimon"],
+                relativeTo: {
+                  attr: "level",
+                  op: "lte",
+                  selectionRef: "A",
+                },
               },
+              count: 1,
             },
-            count: 1,
-          },
+          ],
         },
       ],
     },

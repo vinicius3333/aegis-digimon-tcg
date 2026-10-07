@@ -36,17 +36,19 @@ describe("EX10-055 Tactimon", () => {
         optional: true,
         actions: [
           { kind: "SelectBind", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, bindAs: "A" } },
-          { kind: "Delete", target: { fromSelectionRef: "A" } },
           {
             kind: "Delete",
-            target: {
-              filter: {
-                controller: "opponent",
-                kind: ["Digimon"],
-                relativeTo: { attr: "level", op: "lte", selectionRef: "A" },
+            target: { fromSelectionRef: "A" },
+            additionalSimultaneousTargets: [
+              {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  relativeTo: { attr: "level", op: "lte", selectionRef: "A" },
+                },
+                count: 1,
               },
-              count: 1,
-            },
+            ],
           },
         ],
       });

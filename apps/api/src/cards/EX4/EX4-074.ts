@@ -53,18 +53,7 @@ export const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-        },
-        {
-          effectTextPart:
-            "[End of Attack] Delete this Digimon and 1 of your opponent's Digimon, and ＜Recovery +1 (Deck)＞.",
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
+          additionalSimultaneousTargets: [{ filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }],
         },
         {
           effectTextPart:

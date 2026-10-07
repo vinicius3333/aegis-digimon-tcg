@@ -53,9 +53,11 @@ describe("BT19-070 Kimeramon", () => {
             cost: { kind: "deleteOwn", target: { count: 1, filter: { controller: "mine", kind: ["Digimon"] } } },
             optional: true,
             abortOnDecline: true,
+            additionalSimultaneousTargets: [
+              { count: 1, filter: { controller: "opponent", levels: [4] } },
+              { count: 1, filter: { controller: "opponent", levels: [5] } },
+            ],
           },
-          { kind: "Delete", target: { count: 1, filter: { controller: "opponent", levels: [4] } } },
-          { kind: "Delete", target: { count: 1, filter: { controller: "opponent", levels: [5] } } },
         ],
       })),
       {

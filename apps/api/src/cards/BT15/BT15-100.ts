@@ -31,10 +31,9 @@ const compiled: CompiledCard = {
                 {
                   kind: "Delete",
                   target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [4] } },
-                },
-                {
-                  kind: "Delete",
-                  target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [6] } },
+                  additionalSimultaneousTargets: [
+                    { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [6] } },
+                  ],
                 },
               ],
             },
@@ -58,10 +57,9 @@ const compiled: CompiledCard = {
             {
               kind: "Delete",
               target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [4] } },
-            },
-            {
-              kind: "Delete",
-              target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [6] } },
+              additionalSimultaneousTargets: [
+                { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [6] } },
+              ],
             },
           ],
         },

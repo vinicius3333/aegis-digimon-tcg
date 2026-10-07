@@ -35,8 +35,11 @@ describe("BT9-082 Ordinemon", () => {
           trigger: "WhenDigivolving",
           condition: { kind: "isDnaDigivolving" },
           actions: [
-            { kind: "Delete", target: { filter: { levelComparison: { op: "gte", value: 6 } }, count: 1 } },
-            { kind: "Delete", target: { filter: { levelComparison: { op: "lte", value: 5 } }, count: "all" } },
+            {
+              kind: "Delete",
+              target: { filter: { levelComparison: { op: "gte", value: 6 } }, count: 1 },
+              additionalSimultaneousTargets: [{ filter: { levelComparison: { op: "lte", value: 5 } }, count: "all" }],
+            },
             {
               kind: "SecurityManipulation",
               op: "addTop",

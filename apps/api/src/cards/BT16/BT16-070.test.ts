@@ -22,11 +22,11 @@ describe("BT16-070", () => {
       expect(effect.actions?.[1]).toMatchObject({
         kind: "Delete",
         target: { filter: {}, fromSelectionRef: "chosenDigimon" },
+        additionalSimultaneousTargets: [
+          { filter: { relativeTo: { attr: "dp", op: "lte", selectionRef: "chosenDigimon" } } },
+        ],
       });
-      expect(effect.actions?.[2]).toMatchObject({
-        kind: "Delete",
-        target: { filter: { relativeTo: { attr: "dp", op: "lte", selectionRef: "chosenDigimon" } } },
-      });
+      expect(effect.actions).toHaveLength(2);
     }
   });
 

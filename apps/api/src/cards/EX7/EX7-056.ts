@@ -38,18 +38,9 @@ export const compiled: CompiledCard = {
               levels: [3],
             },
           },
-        },
-        {
-          effectTextPart: "Then, delete 1 of your opponent's level 3 Digimon and level 4 Digimon.",
-          kind: "Delete",
-          target: {
-            count: 1,
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levels: [4],
-            },
-          },
+          additionalSimultaneousTargets: [
+            { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [4] } },
+          ],
         },
       ],
     },

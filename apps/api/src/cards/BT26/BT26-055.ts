@@ -24,10 +24,12 @@ const deleteBody = [
     optional: true,
     abortOnDecline: true,
   },
-  { kind: "Delete", target: { filter: { boundRef: "ownVer3ToDelete" }, count: 1 } },
   {
     kind: "Delete",
-    target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestPlayCost" }, count: "all" },
+    target: { filter: { boundRef: "ownVer3ToDelete" }, count: 1 },
+    additionalSimultaneousTargets: [
+      { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestPlayCost" }, count: "all" },
+    ],
   },
 ] satisfies Action[];
 const body = [place, ...deleteBody];

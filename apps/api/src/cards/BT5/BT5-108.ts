@@ -8,10 +8,9 @@ const compiled: CompiledCard = {
         {
           kind: "Delete",
           target: { filter: { controller: "opponent", unsuspended: true, kind: ["Digimon"], levels: [4] }, count: 1 },
-        },
-        {
-          kind: "Delete",
-          target: { filter: { controller: "opponent", unsuspended: true, kind: ["Digimon"], levels: [5] }, count: 1 },
+          additionalSimultaneousTargets: [
+            { filter: { controller: "opponent", unsuspended: true, kind: ["Digimon"], levels: [5] }, count: 1 },
+          ],
         },
       ],
     },
