@@ -100,6 +100,7 @@ export const accountApi = {
           mainDeckArts?: string[];
           eggDeckArts?: string[];
           coverCardId?: string;
+          updatedAt?: number;
         }>
       >("/account/decks")
     ).map((deck) => ({ ...deck, color: dominantColor([...deck.mainDeck, ...deck.eggDeck]), blurb: "deck.blurbSaved" })),

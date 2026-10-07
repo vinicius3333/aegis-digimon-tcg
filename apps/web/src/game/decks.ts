@@ -79,6 +79,8 @@ export interface DeckListing {
   mainDeckArts?: string[];
   eggDeckArts?: string[];
   coverCardId?: string;
+  /** Epoch milliseconds of the last save; absent on decks saved before it was recorded. */
+  updatedAt?: number;
 }
 
 export interface FamousDeckListingGroup {

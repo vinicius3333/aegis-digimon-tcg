@@ -613,8 +613,9 @@ export class ParticipantStore {
         main_deck_arts: string[];
         egg_deck_arts: string[];
         revision: number;
+        updated_at: string | number;
       }>(
-        "SELECT id, name, main_deck, egg_deck, main_deck_arts, egg_deck_arts, revision FROM saved_decks WHERE account_id=$1 AND id=$2",
+        "SELECT id, name, main_deck, egg_deck, main_deck_arts, egg_deck_arts, revision, updated_at FROM saved_decks WHERE account_id=$1 AND id=$2",
         [accountId, savedDeckId],
       )
     ).rows[0];
@@ -627,6 +628,7 @@ export class ParticipantStore {
         mainDeckArts: row.main_deck_arts,
         eggDeckArts: row.egg_deck_arts,
         revision: Number(row.revision),
+        updatedAt: Number(row.updated_at),
       }
     );
   }

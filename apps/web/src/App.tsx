@@ -207,7 +207,7 @@ function AppShell() {
   usePreferencesSync({ accountId: account?.id, dark, setDark });
 
   const saveDeck = (deck: DeckListing, setActive: boolean) => {
-    const filtered = filterDeckToKnownCards(deck);
+    const filtered = { ...filterDeckToKnownCards(deck), updatedAt: Date.now() };
     setDecks((ds) => upsertDeck(ds, filtered));
     void accountApi
       .me()
