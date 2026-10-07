@@ -344,9 +344,9 @@
 }
 
 @media (width < 768px) {
-  .board-prompt[data-prompt-surface][data-variant] .board-prompt__actions > button {
+  .board-prompt[data-prompt-surface][data-variant="field-selection"] .board-prompt__actions > button {
     width: 100%;
-    flex: 1 0 100%;
+    grid-column: 1 / -1;
     max-width: none;
   }
 }
