@@ -6,7 +6,7 @@
 import { useMemo, type CSSProperties } from "react";
 import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { arenaPaletteStyle, useArenaPalette, type ArenaDeckColors } from "../design/arenaPalette";
-import { battlefieldById, useBattlefieldId } from "../design/battlefield";
+import { resolveBattlefield, useBattlefieldId } from "../design/battlefield";
 import { useMediaQuery } from "../design/useMediaQuery";
 import { PORTRAIT_ARENA_QUERY } from "./screen/queries";
 
@@ -57,14 +57,17 @@ export function mainCardColor(player: VisibleCards | undefined): string | undefi
 export function useArenaBoardLook({
   viewer,
   opponent,
+  matchKey,
 }: {
   viewer: VisibleCards | undefined;
   opponent: VisibleCards | undefined;
+  /** Keeps a random battlefield on one scene for the whole match. */
+  matchKey?: string;
 }): ArenaBoardLook {
   const playerColor = mainCardColor(viewer);
   const opponentColor = mainCardColor(opponent);
   const palette = useArenaPalette({ player: playerColor, opponent: opponentColor });
-  const battlefield = battlefieldById(useBattlefieldId());
+  const battlefield = resolveBattlefield(useBattlefieldId(), matchKey);
   const portrait = useMediaQuery(PORTRAIT_ARENA_QUERY);
   const art = portrait ? (battlefield.portraitSrc ?? battlefield.src) : battlefield.src;
   return useMemo(

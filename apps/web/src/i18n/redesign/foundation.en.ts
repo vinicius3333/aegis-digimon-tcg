@@ -12,6 +12,7 @@ export const foundationEn = {
   "redesign.foundation.arena.lanes.one": "One lane with every card",
   "redesign.foundation.arena.lanes.phoneNote": "Phones always use one lane.",
   "redesign.foundation.arena.replaceImage": "Replace image",
+  "redesign.foundation.arena.randomNote": "Each match picks a battlefield at random.",
   "redesign.foundation.arena.palette.aegis": "Aegis: blue vs violet",
   "redesign.foundation.arena.palette.red-blue": "Blue vs red",
   "redesign.foundation.arena.palette.green-purple": "Green vs purple",
@@ -36,4 +37,5 @@ export const foundationEn = {
   "redesign.foundation.battlefield.pipe-lake": "Pipe Lake",
   "redesign.foundation.battlefield.cyber-hub": "Cyber Hub",
   "redesign.foundation.battlefield.wire-woods": "Wire Woods",
+  "redesign.foundation.battlefield.random": "Random",
 } as const;

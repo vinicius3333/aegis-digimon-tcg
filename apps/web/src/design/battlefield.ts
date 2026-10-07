@@ -173,6 +173,32 @@ const CUSTOM_SCRIM = "radial-gradient(120% 80% at 50% 50%, rgba(12,14,24,0.28), 
 
 const CUSTOM_IMAGE_MAX_EDGE = 1920;
 
+/** Picks a different scene for every match instead of one fixed battlefield. */
+export const RANDOM_BATTLEFIELD_ID = "random";
+
+/** Every scene with art; the plain gradient and the uploaded image are explicit choices only. */
+export const RANDOM_BATTLEFIELD_POOL: readonly Battlefield[] = BATTLEFIELDS.filter((field) => field.src);
+
+/** Stands in for a match id on boards that have none yet (connecting, waiting for an opponent). */
+const PAGE_MATCH_KEY = Math.random().toString(36);
+
+function hashKey(key: string): number {
+  let hash = 2166136261;
+  for (let index = 0; index < key.length; index += 1) {
+    hash ^= key.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+/**
+ * The scene a random battlefield shows for one match. Derived from the match id, so a
+ * reconnect or a remount keeps the same scene for the rest of that match.
+ */
+export function randomBattlefieldFor(matchKey: string | undefined): Battlefield {
+  return RANDOM_BATTLEFIELD_POOL[hashKey(matchKey ?? PAGE_MATCH_KEY) % RANDOM_BATTLEFIELD_POOL.length]!;
+}
+
 /** Scales the picked file down before it goes into localStorage as a data URL. */
 export async function toStorableDataUrl(file: File): Promise<string> {
   const bitmap = await createImageBitmap(file);
@@ -205,6 +231,7 @@ export function getCustomBattlefieldSrc(): string | undefined {
 
 function knownId(id: string | null): boolean {
   if (id === CUSTOM_BATTLEFIELD_ID) return Boolean(customSrc);
+  if (id === RANDOM_BATTLEFIELD_ID) return true;
   return BATTLEFIELDS.some((b) => b.id === id);
 }
 
@@ -270,9 +297,14 @@ export function battlefieldById(id: string): Battlefield {
   return BATTLEFIELDS.find((b) => b.id === id) ?? DEFAULT_BATTLEFIELD;
 }
 
+/** The scene to paint for a selection, resolving the random choice for one match. */
+export function resolveBattlefield(id: string, matchKey?: string): Battlefield {
+  return id === RANDOM_BATTLEFIELD_ID ? randomBattlefieldFor(matchKey) : battlefieldById(id);
+}
+
 /** Board-surface style for a battlefield: scrim over art, or the plain gradient. */
-export function battlefieldStyle(id: string, portrait = false): CSSProperties {
-  const field = battlefieldById(id);
+export function battlefieldStyle(id: string, portrait = false, matchKey?: string): CSSProperties {
+  const field = resolveBattlefield(id, matchKey);
   const src = portrait ? (field.portraitSrc ?? field.src) : field.src;
   return {
     backgroundImage: src ? `${field.scrim}, url("${src}")` : CLASSIC_SURFACE,

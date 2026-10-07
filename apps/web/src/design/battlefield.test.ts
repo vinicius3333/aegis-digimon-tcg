@@ -4,10 +4,14 @@ import { act, renderHook } from "@testing-library/react";
 import {
   BATTLEFIELDS,
   CUSTOM_BATTLEFIELD_ID,
+  RANDOM_BATTLEFIELD_ID,
+  RANDOM_BATTLEFIELD_POOL,
   battlefieldStyle,
   clearCustomBattlefield,
   getBattlefieldId,
   getCustomBattlefieldSrc,
+  randomBattlefieldFor,
+  resolveBattlefield,
   setBattlefieldId,
   setCustomBattlefield,
   useBattlefieldStyle,
@@ -85,6 +89,42 @@ describe("custom battlefield", () => {
   });
 });
 
+describe("random battlefield", () => {
+  beforeEach(() => {
+    clearCustomBattlefield();
+    setBattlefieldId("classic");
+  });
+
+  it("is a selectable preference", () => {
+    setBattlefieldId(RANDOM_BATTLEFIELD_ID);
+    expect(getBattlefieldId()).toBe(RANDOM_BATTLEFIELD_ID);
+  });
+
+  it("draws only scenes with art", () => {
+    expect(RANDOM_BATTLEFIELD_POOL.every((field) => field.src)).toBe(true);
+    expect(RANDOM_BATTLEFIELD_POOL.some((field) => field.id === "classic")).toBe(false);
+  });
+
+  it("keeps one scene for the whole match", () => {
+    expect(randomBattlefieldFor("room-a")).toEqual(randomBattlefieldFor("room-a"));
+    expect(resolveBattlefield(RANDOM_BATTLEFIELD_ID, "room-a")).toEqual(randomBattlefieldFor("room-a"));
+  });
+
+  it("varies the scene across matches", () => {
+    const scenes = new Set(Array.from({ length: 40 }, (_, index) => randomBattlefieldFor(`room-${index}`).id));
+    expect(scenes.size).toBeGreaterThan(3);
+  });
+
+  it("paints the drawn scene on the board", () => {
+    const scene = randomBattlefieldFor("room-b");
+    expect(String(battlefieldStyle(RANDOM_BATTLEFIELD_ID, false, "room-b").backgroundImage)).toContain(scene.src);
+  });
+
+  it("leaves fixed choices alone", () => {
+    expect(resolveBattlefield("sanctum", "room-a").id).toBe("sanctum");
+  });
+});
+
 describe("initial battlefield preference", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -99,7 +139,7 @@ describe("initial battlefield preference", () => {
     );
   });
 
-  it.each(["classic", "sanctum", "tropical"])("preserves the explicit saved %s choice", async (choice) => {
+  it.each(["classic", "sanctum", "tropical", "random"])("preserves the explicit saved %s choice", async (choice) => {
     localStorage.setItem("aegis.battlefield", choice);
     const fresh = await import("./battlefield");
     expect(fresh.getBattlefieldId()).toBe(choice);
