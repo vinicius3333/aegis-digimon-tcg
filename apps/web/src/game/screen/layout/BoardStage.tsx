@@ -49,6 +49,7 @@ import type { boardActions } from "../boardActions";
 import type { matchIntents } from "../matchIntents";
 import type { actionGuards } from "../model/actionGuards";
 import { AttackArrowLayer } from "./AttackArrowLayer";
+import { FieldEffectsIndicator, readFieldEffects } from "./FieldEffectsIndicator";
 import { BattleZones } from "./BattleZones";
 import { BoardBurstLayer } from "./BoardBurstLayer";
 import { DragGhost } from "./DragGhost";
@@ -434,7 +435,20 @@ export function BoardStage({
               onOpenViewerSecurity={shownViewer.securityCount ? () => overlays.setSecurityView(Side.Viewer) : undefined}
             />
 
-            <BattleZones>
+            <FieldEffectsIndicator
+              json={shownOpponent.fieldEffectsJson}
+              ownField={false}
+              playerNames={[shownState.players[0]?.displayName ?? "", shownState.players[1]?.displayName ?? ""]}
+            />
+            <FieldEffectsIndicator
+              json={shownViewer.fieldEffectsJson}
+              ownField
+              playerNames={[shownState.players[0]?.displayName ?? "", shownState.players[1]?.displayName ?? ""]}
+            />
+            <BattleZones
+              opponentFieldEffects={readFieldEffects(shownOpponent.fieldEffectsJson).length > 0}
+              viewerFieldEffects={readFieldEffects(shownViewer.fieldEffectsJson).length > 0}
+            >
               <OpponentBattleRow
                 permanents={shownOpponent.battleArea}
                 chrome={{

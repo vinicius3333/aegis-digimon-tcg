@@ -4,9 +4,22 @@
 
 import type { ReactNode } from "react";
 
-export function BattleZones({ children }: { children: ReactNode }) {
+export function BattleZones({
+  children,
+  opponentFieldEffects,
+  viewerFieldEffects,
+}: {
+  children: ReactNode;
+  opponentFieldEffects?: boolean;
+  viewerFieldEffects?: boolean;
+}) {
   return (
-    <section className="game-battle-zones" style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+    <section
+      className="game-battle-zones"
+      data-opponent-field-effects={opponentFieldEffects || undefined}
+      data-viewer-field-effects={viewerFieldEffects || undefined}
+      style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}
+    >
       {children}
     </section>
   );

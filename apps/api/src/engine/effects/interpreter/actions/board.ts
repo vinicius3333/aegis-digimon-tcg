@@ -248,6 +248,8 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
             // affected player, so the owner seat is always the source's.
             ctx.fx.modifyPlayerDP(seat, amount, duration, {
               ownerSeat: ctx.source.ownerSeat,
+              sourceCardId: ctx.source.definition.cardId,
+              effectText: action.effectTextPart ?? action.raw ?? ctx.source.definition.effectText,
               ...sourceProvenance,
               ...(nextOpponentTurnDuration ? { skipsCurrentOpponentTurnEnd: !ctx.source.isOwnersTurn() } : {}),
               ...(matches === undefined ? {} : { matches }),
@@ -256,6 +258,8 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           for (const keyword of action.alsoGainKeywords ?? []) {
             ctx.fx.grantPlayerKeyword(seat, keyword.keyword, duration, keyword.amount, {
               ownerSeat: ctx.source.ownerSeat,
+              sourceCardId: ctx.source.definition.cardId,
+              effectText: action.effectTextPart ?? action.raw ?? ctx.source.definition.effectText,
               matches: keywordMatches,
             });
           }
@@ -395,7 +399,12 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
             : seatsForController(ctx, filter);
         const matches = playerWideKeywordMatcher(ctx, filter);
         for (const seat of seats) {
-          ctx.fx.grantPlayerKeyword(seat, kw, duration, keyword.amount, { ownerSeat: ctx.source.ownerSeat, matches });
+          ctx.fx.grantPlayerKeyword(seat, kw, duration, keyword.amount, {
+            ownerSeat: ctx.source.ownerSeat,
+            matches,
+            sourceCardId: ctx.source.definition.cardId,
+            effectText: action.effectTextPart ?? action.raw ?? ctx.source.definition.effectText,
+          });
         }
         // A player-wide grant is an activated effect even when no matching permanent is
         // currently present; its ledger entry applies to qualifying permanents entering later.
@@ -539,7 +548,11 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           action.playerScopedController === "opponent"
             ? ctx.game.opponentOf(ctx.source.ownerSeat)
             : ctx.source.ownerSeat;
-        ctx.fx.grantPlayerKeyword(playerSeat, kw, duration, keyword.amount);
+        ctx.fx.grantPlayerKeyword(playerSeat, kw, duration, keyword.amount, {
+          ownerSeat: ctx.source.ownerSeat,
+          sourceCardId: ctx.source.definition.cardId,
+          effectText: action.effectTextPart ?? action.raw ?? ctx.source.definition.effectText,
+        });
         return false;
       }
       // `count` grants the keyword N times to each target (default 1). Each call to

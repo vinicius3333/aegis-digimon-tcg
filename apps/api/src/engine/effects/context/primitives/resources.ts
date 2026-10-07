@@ -92,6 +92,8 @@ export interface ResourcePrimitives {
     delta: number,
     duration: EffectDuration,
     opts?: {
+      sourceCardId?: string;
+      effectText?: string;
       ownerSeat?: Seat;
       sourceSeat?: Seat;
       sourceKinds?: string[];

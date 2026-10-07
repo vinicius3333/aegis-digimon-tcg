@@ -4,6 +4,7 @@ import {
   requireCardDefinition,
   type CardDefinition,
   type GameState,
+  type FieldEffectView,
   type Permanent,
   type Seat,
 } from "@aegis/shared";
@@ -72,6 +73,8 @@ export interface DpModifier {
 
 /** A duration-bounded DP delta applied to every current and future Digimon of a player. */
 export interface PlayerDpModifier {
+  sourceCardId?: string;
+  effectText?: string;
   seat: Seat;
   delta: number;
   duration: EffectDuration;
@@ -399,6 +402,20 @@ export class ModifierLedger {
     return modifier;
   }
 
+  fieldEffectViews(seat: Seat): FieldEffectView[] {
+    return this.playerDpModifiers
+      .filter((entry) => entry.seat === seat && entry.delta !== 0)
+      .map((entry) => ({
+        kind: "dp",
+        value: entry.delta,
+        skipsCurrentOpponentTurnEnd: entry.skipsCurrentOpponentTurnEnd,
+        duration: entry.duration,
+        ownerSeat: entry.ownerSeat ?? seat,
+        sourceCardId: entry.sourceCardId,
+        effectText: entry.effectText,
+      }));
+  }
+
   /** Record a player-wide DP delta and immediately refresh all current affected Digimon. */
   addPlayerDpModifier(
     state: GameState,
@@ -406,6 +423,8 @@ export class ModifierLedger {
     delta: number,
     duration: EffectDuration,
     opts?: {
+      sourceCardId?: string;
+      effectText?: string;
       ownerSeat?: Seat;
       sourceSeat?: Seat;
       sourceKinds?: string[];
@@ -414,6 +433,8 @@ export class ModifierLedger {
     },
   ): PlayerDpModifier {
     const modifier: PlayerDpModifier = {
+      sourceCardId: opts?.sourceCardId,
+      effectText: opts?.effectText,
       seat,
       delta,
       duration,

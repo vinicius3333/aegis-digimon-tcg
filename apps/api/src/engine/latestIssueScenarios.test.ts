@@ -246,3 +246,82 @@ it("#5259 playable arena excludes GulusGammamon from the Brothers Delay on Betel
   expect(s.state.turnSeat).toBe(0);
   await s.finish();
 });
+
+it("#5261 arena shows the field-wide DP reduction, Sukamon's successful play and rule deletion", async () => {
+  const s = await launch("arena-issue-5261-sukamon-field-reduction", {
+    autoDeclineOptional: true,
+    autoSelectCards: true,
+    autoOrderTriggers: true,
+  });
+  const base = s.field("BT25-017");
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: base.permanentId,
+      instanceId: s.hand("BT25-018").instanceId,
+      useAlternateCost: true,
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () =>
+      base.topCard.cardId === "BT25-018" && !s.state.pendingDecision && s.engine.mainVerbContinuationsInFlight === 0,
+  );
+  expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  expect(JSON.parse(s.state.players[1]!.fieldEffectsJson)).toEqual(
+    expect.arrayContaining([expect.objectContaining({ kind: "dp", value: -4000, sourceCardId: "BT25-018" })]),
+  );
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.field("BT25-103").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await advance(s.engine).finishAttack();
+  expect(s.events.some((e) => e.kind === "cardPlayed" && e.cardId === "BT14-034")).toBe(true);
+  expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  expect(s.state.players[1]!.trash.some((c) => c.cardId === "BT14-034")).toBe(true);
+  expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  await settle(() => s.state.turnSeat === 1 && s.state.phase === Phase.Breeding);
+  expect(
+    JSON.parse(s.state.players[1]!.fieldEffectsJson).some((effect: { kind: string }) => effect.kind === "dp"),
+  ).toBe(false);
+  expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+  await advance(s.engine).waitForMainPhase(1);
+  await s.finish();
+});
+
+it("keeps two public field effects separate and expires both at the turn boundary", async () => {
+  const s = await launch("arena-multiple-field-effects", {
+    autoDeclineOptional: true,
+    autoSelectCards: true,
+    autoOrderTriggers: true,
+  });
+  for (let index = 0; index < 2; index++) {
+    const base = s.field("BT25-017");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: base.permanentId,
+        instanceId: s.hand("BT25-018").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        base.topCard.cardId === "BT25-018" && !s.state.pendingDecision && s.engine.mainVerbContinuationsInFlight === 0,
+    );
+  }
+  expect(JSON.parse(s.state.players[1]!.fieldEffectsJson)).toEqual([
+    expect.objectContaining({ kind: "dp", value: -4000, sourceCardId: "BT25-018" }),
+    expect.objectContaining({ kind: "dp", value: -4000, sourceCardId: "BT25-018" }),
+  ]);
+  expect(s.state.players[1]!.battleArea).toHaveLength(4);
+  expect(s.state.players[1]!.battleArea.filter((p) => p.currentDP > 0)).toHaveLength(3);
+  expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  await settle(() => s.state.turnSeat === 1 && s.state.phase === Phase.Breeding);
+  expect(JSON.parse(s.state.players[1]!.fieldEffectsJson)).toEqual([]);
+  expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+  await advance(s.engine).waitForMainPhase(1);
+  await s.finish();
+});

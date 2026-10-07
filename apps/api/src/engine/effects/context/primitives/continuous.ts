@@ -44,6 +44,8 @@ export interface ContinuousPrimitives {
     duration: EffectDuration,
     matches: (permanentId: string) => boolean,
     opts?: {
+      sourceCardId?: string;
+      effectText?: string;
       matchesAsDigimon?: (permanentId: string, asDigimon: CardDefinition) => boolean;
       fromSourceKind?: string[];
       byOpponentEffectsOnly?: boolean;
@@ -175,7 +177,7 @@ export interface ContinuousPrimitives {
     keyword: string,
     duration: EffectDuration,
     amount?: number,
-    opts?: { ownerSeat?: Seat; matches?: (permanentId: string) => boolean },
+    opts?: { ownerSeat?: Seat; matches?: (permanentId: string) => boolean; sourceCardId?: string; effectText?: string },
   ): void;
   /**
    * Keywords currently GRANTED to a permanent (the consuming read of `grantKeyword`).

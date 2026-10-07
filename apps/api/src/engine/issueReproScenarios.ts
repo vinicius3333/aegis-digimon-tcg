@@ -56,6 +56,56 @@ const ISSUE_LAYOUTS = {
       { field: [{ card: "BT1-009" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
     ],
   },
+  "arena-multiple-field-effects": {
+    memory: 10,
+    players: [
+      {
+        field: [
+          { card: "BT25-017", under: ["BT25-008"] },
+          { card: "BT25-017", under: ["BT25-008"] },
+        ],
+        hand: ["BT25-018", "BT25-018"],
+      },
+      {
+        field: [
+          { card: "BT25-103" },
+          { card: "BT5-111" },
+          { card: "BT17-078" },
+          { card: "BT5-111" },
+          { card: "BT13-112" },
+          { card: "BT1-085" },
+        ],
+        security: ["BT14-034", "BT1-009", "BT1-009"],
+      },
+    ],
+  },
+  "arena-issue-5261-sukamon-field-reduction": {
+    memory: 10,
+    players: [
+      {
+        field: [
+          {
+            card: "BT25-103",
+            under: [
+              "BT25-001",
+              "P-198",
+              "BT25-022",
+              "BT25-024",
+              "BT25-026",
+              "BT25-028",
+              "BT25-008",
+              "BT25-013",
+              "BT25-017",
+              "BT25-018",
+            ],
+          },
+          { card: "BT25-017", under: ["BT25-008"] },
+        ],
+        hand: ["BT25-018", "BT1-009"],
+      },
+      { security: ["BT14-034", "EX5-054", "BT11-036"] },
+    ],
+  },
   "arena-issue-5207-dorimon-guard": {
     memory: 3,
     players: [

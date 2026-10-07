@@ -78,7 +78,8 @@ export type PresentedPlayer = {
   | "securityView"
   | "securityCount"
   | "securityDpDelta"
->;
+> &
+  Partial<Pick<PlayerState, "fieldEffectsJson">>;
 
 /**
  * Everything both battle rows put on a permanent that comes from the cue hook rather

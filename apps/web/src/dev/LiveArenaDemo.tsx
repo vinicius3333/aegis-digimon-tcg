@@ -16,6 +16,14 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-multiple-field-effects": {
+    en: "End breeding. Evolve each Flaremon into a hand Apollomon and decline optional effects. After the mandatory deletions, three opposing Digimon and a Tamer remain. The opponent corner badge must show two separate DP −4000 effects; open it to inspect both sources and deadlines. End the turn to verify both effects expire.",
+    ptBR: "Encerre a criação. Evolua cada Flaremon em um Apollomon da mão e recuse efeitos opcionais. Após as deleções obrigatórias, restam três Digimon adversários e um Tamer. O indicador no canto adversário deve mostrar dois efeitos separados de DP −4000; abra para conferir fontes e duração. Encerre o turno para verificar que ambos expiram.",
+  },
+  "arena-issue-5261-sukamon-field-reduction": {
+    en: "End breeding and evolve the separate Flaremon into hand Apollomon. Decline its optional effects. The opponent field must show DP −4000 even while empty. Attack security with GraceNovamon and decline its optional effects. Sukamon activates and enters, then is deleted at 0 DP by the existing field reduction. Open the field badge to inspect Apollomon and its turn-long duration.",
+    ptBR: "Encerre a criação e evolua o Flaremon separado no Apollomon da mão. Recuse os efeitos opcionais. O campo adversário deve mostrar DP −4000 mesmo vazio. Ataque a segurança com GraceNovamon e recuse seus efeitos opcionais. Sukamon ativa e entra, mas é deletado por chegar a 0 DP devido à redução já ativa. Abra o indicador de campo para ver Apollomon e a duração até o fim do turno.",
+  },
   "arena-tai-matt-double-end-turn": {
     en: "End breeding, then end your turn. Resolve both Tai & Matt effects and accept the first attack on security. Resolve MetalGarurumon's inherited unsuspend. The second Tai & Matt must explain that another attack cannot start during this attack. Both effects resolve, but only one security card is checked.",
     ptBR: "Encerre a criação e depois o turno. Resolva ambos os Tai & Matt e aceite o primeiro ataque à segurança. Resolva a herança do MetalGarurumon para desvirar. O segundo Tai & Matt deve explicar que não pode iniciar outro ataque durante o atual. Ambos os efeitos resolvem, mas só uma segurança é verificada.",
@@ -1839,10 +1847,12 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-multiple-field-effects", "Multiple field effects · stacked Apollomon reductions"],
   ["arena-tai-matt-double-end-turn", "Tai & Matt BT17 · double End of Turn"],
   ["arena-issue-5254-examon-dna", "GitHub #5254 · Examon BT20 / EX13 Lv.5 DNA"],
   ["arena-issue-5258-plesiomon-optional-attack", "GitHub #5258 · Plesiomon optional attack"],
   ["arena-issue-5259-gammamon-exact-evolution", "GitHub #5259 · Gammamon exact evolution"],
+  ["arena-issue-5261-sukamon-field-reduction", "GitHub #5261 · Sukamon and field effects"],
   ["arena-oct06-king-sukamon-assembly", "06/10 · KingSukamon · Assembly do lixo"],
   ["arena-oct06-chuumon-trash-revival", "06/10 · Chuumon EX5 · herança e jogar do lixo"],
   ["arena-oct06-dorbickmon-digixros", "06/10 · Dorbickmon EX3 · cinco materiais DigiXros"],

@@ -66,6 +66,8 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
       duration === EffectDuration.UntilNextUntap || duration === EffectDuration.UntilOwnerActivePhase;
     const ownerSeat = recipientFramed ? seat : resolvingSeat;
     continuous.addPlayerRestriction(seat, ownerSeat, restriction, duration, matches, {
+      sourceCardId: opts?.sourceCardId,
+      effectText: opts?.effectText,
       ...continuousOpt(),
       ...(opts?.matchesAsDigimon === undefined ? {} : { matchesAsDigimon: opts.matchesAsDigimon }),
       fromSourceKind: opts?.fromSourceKind,
