@@ -2308,3 +2308,37 @@ bc13442cb1e1dfc6b8a59b2e3ea6a08bed08dc798da5ee1231bd26c5d85eb232,
 6029858..6033729/3872fresh/no overlap with all observed runs/validations,
 661observed schedule files. Full strict custody reader23471 is still active;
 final PPO request remains blocked on its actual terminal0, without restart.
+
+
+## Actual full custody consumer0 and one mentor-PPO foreground admitted
+
+Strict recovery reader23471 is actual terminal0, stdoutSHA
+`b989e96c549023115db530f303819cff57345a37b47e65131991484ad118a83a`.
+It consumes externally pinned completion4b5af3c.. through the unchanged full
+producer consumers and isolated native CPU inspector, verifies original
+whole1/new custody whole0, exact source/runtime/maps/CPs and native epoch3/
+3900actor deltas/all12 finite. No training was repeated or failure relabeled.
+
+Final actual PPO requestSHA
+`4aa70dd780a88c1a9c9b4e7a95b9f8b2c2175229ccf7ad23b22ead8346376984`,
+wrapperSHA286da30d9463e52a3b9b84febbe8c0340aeb91abcd4ea8a18ef5c86bdf22d737,
+and complete fresh inventorybc13442.. are exclusively sealed. Actual desktop
+request/source/full runtime/command guards exit0 without primary model imports.
+One3872-game all44/bothseat mixed-opponent pass uses seed6029858, batches88,
+workers4, learningRate1e-5 and original heuristicShare0.5/four immutable reference
+opponents, directly from native CPP8f61 with full inherited Adam state. Source
+and archive/runtime/FP stay unchanged; no metadata migration or CP copies.
+
+Separate ROOT actual learning GoSHA
+`8c6ac9803b1ab5a0e569b00ed1c1840d5551ced15541ae54e04daca5afb99833`
+sealed after actual GPU empty/idle guards and492082356224B available lab disk,
+with actual authorized3872games/updates allowed/max4workers/no finalblind.
+Foreground20258 starts the sole actual mentor-PPO whole673/start5137,
+operator698/start5147; exact argv/parentage/source/request/wrapper/Go are
+freshly observed, identitySHA
+`59de9f29149e59025a47693b6f845f44e5bad369d76c32a36b94d55ab2f916a0`.
+Its context is currently running the original full CPU recovery consumer before
+primary imports. No CUDA child/game/optimizer update or whole/completion yet;
+keep SAME foreground attached and never duplicate/restart it for quiet output.
+All44 strength/new-candidate mechanisms/physical/material/rooms/serving and
+untouched finalblind/delivery acceptance still pending; no newbot accepted.
