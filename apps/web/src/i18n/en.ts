@@ -1,5 +1,6 @@
 import releaseMessages from "../releases/messages.json";
 import { arenaEn } from "./redesign/arena.en";
+import { chatEn } from "./redesign/chat.en";
 import { collectionEn } from "./redesign/collection.en";
 import { decksEn } from "./redesign/decks.en";
 import { foundationEn } from "./redesign/foundation.en";
@@ -1802,4 +1803,5 @@ export const en = {
   ...collectionEn,
   ...settingsEn,
   ...arenaEn,
+  ...chatEn,
 } as const;

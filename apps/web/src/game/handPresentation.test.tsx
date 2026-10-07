@@ -47,6 +47,7 @@ it.each(["deck", "trash"])(
     const room = {
       connection: { isOpen: true },
       send: vi.fn<(type: string, payload: unknown) => void>(),
+      onMessage: () => () => {},
     } as unknown as AegisRoom;
     const events: SequencedServerEvent[] = [];
     const batches: ServerBatch[] = [];

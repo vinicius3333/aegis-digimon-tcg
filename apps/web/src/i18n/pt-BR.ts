@@ -6,6 +6,7 @@
 import type { en } from "./en";
 import releaseMessages from "../releases/messages.json";
 import { arenaPtBR } from "./redesign/arena.pt-BR";
+import { chatPtBR } from "./redesign/chat.pt-BR";
 import { collectionPtBR } from "./redesign/collection.pt-BR";
 import { decksPtBR } from "./redesign/decks.pt-BR";
 import { foundationPtBR } from "./redesign/foundation.pt-BR";
@@ -1833,4 +1834,5 @@ export const ptBR: Record<keyof typeof en, string> = {
   ...collectionPtBR,
   ...settingsPtBR,
   ...arenaPtBR,
+  ...chatPtBR,
 };

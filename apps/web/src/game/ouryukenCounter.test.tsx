@@ -66,7 +66,7 @@ it.each([
       ),
     );
     const send = vi.fn<(type: string, payload: unknown) => void>();
-    const room = { connection: { isOpen: true }, send } as unknown as AegisRoom;
+    const room = { connection: { isOpen: true }, send, onMessage: () => () => {} } as unknown as AegisRoom;
     render(
       <I18nProvider>
         <GameScreen

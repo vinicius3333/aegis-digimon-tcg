@@ -13,7 +13,7 @@ import { memoryCellCenterFraction, predictedMemory } from "../src/game/memoryArc
 
 const mocked = vi.hoisted(() => ({
   roomResult: { current: undefined as unknown },
-  room: { roomId: "memory-preview-room" },
+  room: { roomId: "memory-preview-room", onMessage: () => () => {} },
   digivolve: vi.fn(),
   dnaDigivolve: vi.fn(),
   playCard: vi.fn(),

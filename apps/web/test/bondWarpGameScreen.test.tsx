@@ -7,7 +7,7 @@ import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/te
 
 const mocked = vi.hoisted(() => ({
   roomResult: { current: undefined as unknown },
-  room: { roomId: "bond-warp-ui-room" },
+  room: { roomId: "bond-warp-ui-room", onMessage: () => () => {} },
   activateEffect: vi.fn<(room: unknown, sourceInstanceId: string, effectKey: string) => void>(),
   respondDecision: vi.fn<(room: unknown, decisionId: string, response: unknown) => void>(),
 }));
