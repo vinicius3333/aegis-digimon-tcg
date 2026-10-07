@@ -1,3 +1,4 @@
+import { RECONNECT_GRACE_SECONDS } from "@aegis/shared";
 import type { RoomSlot } from "./client";
 
 /**
@@ -11,8 +12,11 @@ import type { RoomSlot } from "./client";
  */
 const STORAGE_KEY = "aegis:matchSession";
 
-/** Matches AegisRoom.RECONNECT_GRACE_SECONDS; past it the server has already resolved the drop. */
-export const RECONNECT_GRACE_MS = 180_000;
+/**
+ * The longest grace any room grants; past it the server has already resolved the drop.
+ * A ranked room grants less, and simply refuses a later attempt.
+ */
+export const RECONNECT_GRACE_MS = RECONNECT_GRACE_SECONDS * 1000;
 
 export interface ReconnectSession {
   reconnectionToken: string;

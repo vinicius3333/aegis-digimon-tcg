@@ -316,9 +316,9 @@ export class AegisRoom extends Room<{ state: GameState }> {
   // a consented leave (network blip, tab reload, mobile browser backgrounded —
   // phones kill the socket seconds after the app loses focus). A reconnect within
   // this window resumes the same seat; past it the drop resolves as a real
-  // departure. Sized so switching apps to answer a message does not forfeit the
-  // match. This cannot survive a server restart (deploy) — the room state lives
-  // only in memory.
+  // departure. Sized for a reload or a network blip, not for a long absence: an
+  // opponent should not sit through minutes of a frozen board. This cannot survive
+  // a server restart (deploy) — the room state lives only in memory.
   private readonly RECONNECT_GRACE_SECONDS = RECONNECT_GRACE_SECONDS;
 
   // How long both seats can sit joined-but-not-ready (e.g. a client stuck loading
