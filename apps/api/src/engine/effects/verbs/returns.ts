@@ -8,6 +8,7 @@ import {
   type Seat,
   type ServerEvent,
 } from "@aegis/shared";
+import { peekCheckedCard } from "../../security/checkedCard.js";
 import { applyOverflow, insertCard } from "../../state/access.js";
 import {
   collectForReturn,
@@ -93,6 +94,9 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
         owner.deck.filter((card) => instanceIds.includes(card.instanceId)).map((card) => card.instanceId),
       ),
     );
+    const checkedSecurityIds = new Set(
+      instanceIds.filter((instanceId) => peekCheckedCard(state, instanceId) !== undefined),
+    );
     const moved: CardInstance[] = [];
     const movedToHand: CardInstance[] = [];
     const returnedPermanents: NonNullable<Extract<ServerEvent, { kind: "cardsMoved" }>["returnedPermanents"]> = [];
@@ -161,14 +165,16 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
       // (a card taken from a reveal), never for an ordinary private hand addition.
       // Keep contiguous owner/origin groups in requested order. A revealed card still
       // leaves the deck, and a multi-owner return must not assign both hands to one seat.
-      const groups: { seat: Seat; from: "deck" | "various"; cards: CardInstance[] }[] = [];
+      const groups: { seat: Seat; from: "deck" | "various"; fromSecurityCheck: boolean; cards: CardInstance[] }[] = [];
       for (const card of movedToHand) {
         const from = deckOriginIds.has(card.instanceId) ? "deck" : "various";
+        const fromSecurityCheck = checkedSecurityIds.has(card.instanceId);
         const last = groups.at(-1);
-        if (last?.seat === card.ownerSeat && last.from === from) last.cards.push(card);
-        else groups.push({ seat: card.ownerSeat, from, cards: [card] });
+        if (last?.seat === card.ownerSeat && last.from === from && last.fromSecurityCheck === fromSecurityCheck)
+          last.cards.push(card);
+        else groups.push({ seat: card.ownerSeat, from, fromSecurityCheck, cards: [card] });
       }
-      for (const { seat, from, cards } of groups) {
+      for (const { seat, from, fromSecurityCheck, cards } of groups) {
         const artIds = cards.map((card) => card.artId ?? "");
         const fieldReturns = returnedPermanents.filter((returned) =>
           cards.some((card) => card.instanceId === returned.instanceId),
@@ -180,6 +186,7 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
           to: Zone.Hand,
           handAddition: opts?.silent === true ? "staging" : "transfer",
           seat,
+          ...(fromSecurityCheck ? { fromSecurityCheck: true as const } : {}),
           ...(fieldReturns.length ? { returnedPermanents: fieldReturns } : {}),
           ...(opts?.publicIdentities === true
             ? { cardIds: cards.map((card) => card.cardId), ...(artIds.some((artId) => artId !== "") ? { artIds } : {}) }
