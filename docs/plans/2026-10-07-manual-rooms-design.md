@@ -25,3 +25,7 @@ Compare a persistent side inspector, a bottom action dock and card-local menus a
 Implement protocol/controller with behavioral tests, room registration and privacy, UI prototypes and production board, lobby/invite/deployment/reload integration, then real two-client network/browser verification. Run typechecking, focused and full suites, lint, formatting and review; commit and push the feature branch.
 
 Two users must be able to enter either kind of room, complete setup, play, correct a move by agreement, reconnect and concede. Hidden identities remain hidden unless explicitly exposed; cards and stack sources are conserved. Existing automatic flows stay green. Essential controls support keyboard and small screens. No prototype switcher ships in production.
+
+## Prototype result
+
+All three variants rendered and completed a card move in Chromium. Screenshots: [sidebar](manual-room-prototypes/sidebar.png), [bottom dock](manual-room-prototypes/dock.png), [card-local controls](manual-room-prototypes/local.png). Adopt the sidebar: it keeps destinations and source placement visible while leaving both players' fields unobstructed. On narrow screens controls follow the board. Absorb that choice into the tested production ManualBoard and remove the temporary route and switcher.
