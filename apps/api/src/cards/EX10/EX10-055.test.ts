@@ -36,17 +36,19 @@ describe("EX10-055 Tactimon", () => {
         optional: true,
         actions: [
           { kind: "SelectBind", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, bindAs: "A" } },
-          { kind: "Delete", target: { fromSelectionRef: "A" } },
           {
             kind: "Delete",
-            target: {
-              filter: {
-                controller: "opponent",
-                kind: ["Digimon"],
-                relativeTo: { attr: "level", op: "lte", selectionRef: "A" },
+            target: { fromSelectionRef: "A" },
+            additionalSimultaneousTargets: [
+              {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  relativeTo: { attr: "level", op: "lte", selectionRef: "A" },
+                },
+                count: 1,
               },
-              count: 1,
-            },
+            ],
           },
         ],
       });
@@ -315,6 +317,38 @@ describe("EX10-055 Tactimon", () => {
     expect(evolved.stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT10-064"]);
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(sacrificeId);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([highId]);
+  });
+
+  it("[When Digivolving] deletes nothing when the optional choice is declined (Discord 1557502317098573905)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "tactimon" }],
+          battleArea: [
+            { card: "BT10-064", as: "source", under: [{ card: "BT1-009", as: "beneath" }] },
+            { card: "BT1-014", as: "sacrifice" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "low" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("tactimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard!.cardId === CARD_ID && s.state.pendingDecision === undefined);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
+      s.perm("sacrifice").permanentId,
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
   it("does not protect an own Digimon without the [Bagra Army] trait", async () => {

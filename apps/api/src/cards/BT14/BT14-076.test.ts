@@ -17,8 +17,8 @@ describe("BT14-076", () => {
         kind: "Delete",
         cost: { kind: "trash", target: { filter: { zone: "hand" } } },
         target: { filter: { controller: "mine", superlative: "lowestLevel" } },
+        additionalSimultaneousTargets: [{ filter: { controller: "opponent", superlative: "lowestLevel" } }],
       },
-      { kind: "Delete", target: { filter: { controller: "opponent", superlative: "lowestLevel" } } },
     ]));
   it("plays an Agumon from trash and grants a Digimon Rush if Tai is present on deletion", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")).toMatchObject({

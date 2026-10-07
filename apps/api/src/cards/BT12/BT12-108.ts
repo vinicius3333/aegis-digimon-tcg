@@ -65,8 +65,8 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
+          additionalSimultaneousTargets: [{ filter: {}, count: 1, fromSelectionRef: "chosenMachine" }],
         },
-        { kind: "Delete", target: { filter: {}, count: 1, fromSelectionRef: "chosenMachine" } },
       ],
     },
     {

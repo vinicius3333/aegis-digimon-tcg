@@ -389,6 +389,54 @@ describe("LM-067 Gundramon / Gewalt Schwärmer", () => {
     expect(trashed).toHaveLength(3);
   });
 
+  it("trashes every chosen card first, then deletes all targets in one event (Discord 1557502317098573905)", async () => {
+    const deletions: string[][] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "gundramon",
+              under: [
+                { card: "BT25-078", as: "m1" },
+                { card: "BT25-082", as: "m2" },
+                { card: "BT6-068", as: "m3" },
+              ],
+            },
+          ],
+          deck: deckWith(),
+        },
+        1: { battleArea: [{ card: "BT1-009" }, { card: "BT1-013" }, { card: "BT1-027" }, { card: "BT6-065" }] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        onEvent(event) {
+          if (event.kind === "cardsMoved" && event.deletedPermanents !== undefined) {
+            deletions.push(event.deletedPermanents.map(({ cardId }) => cardId));
+          }
+        },
+      },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gundramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    const musketeerIds = ["m1", "m2", "m3"].map((key) => s.inst(key).instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(expect.arrayContaining(musketeerIds));
+    expect(deletions).toEqual([["BT1-009", "BT1-013", "BT1-027"]]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT6-065"]);
+  });
+
   it("deletes a play cost 7 Digimon but leaves a play cost 8 one alone", async () => {
     const s = setupEngine(
       {

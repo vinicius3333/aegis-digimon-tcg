@@ -34,7 +34,7 @@ const freePlayWindow = (trigger: "WhenDigivolving" | "Counter"): CardEffect => (
   actions: [freePlayFromReveal],
 });
 
-const makeDeleteForOneTrashedCard = (): Action => ({
+const deleteForEachTrashedCard: Action = {
   kind: "Delete",
   target: {
     filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 7 },
@@ -44,21 +44,20 @@ const makeDeleteForOneTrashedCard = (): Action => ({
     kind: "trash",
     target: {
       filter: { controller: "mine", zone: "digivolutionCards", nameOrTrait: [threeMusketeersText] },
-      count: 1,
+      count: 3,
+      upTo: true,
     },
-    raw: "By trashing 1 [Three Musketeers] text card from any of your Digimon's digivolution cards",
+    raw: "By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards",
   },
   optional: true,
-  abortOnDecline: true,
   raw: "By trashing up to 3 [Three Musketeers] text cards from any of your Digimon's digivolution cards, for each one trashed, delete 1 of your opponent's play cost 7 or lower Digimon.",
-});
+};
 
-// "Up to 3 ... for each one trashed": one trash-and-delete pair per card, so declining the
-// second pair also skips the third. Each window builds its own three action objects, so the
-// digivolve and attack windows never share per-action state and each allows a fresh 3.
+// An "up to" trash cost scales the target count by the cards actually trashed, so every card
+// is trashed first and the chosen Digimon then leave in one simultaneous deletion.
 const deletionWindow = (trigger: "WhenDigivolving" | "WhenAttacking"): CardEffect => ({
   trigger,
-  actions: [0, 1, 2].map(() => makeDeleteForOneTrashedCard()),
+  actions: [deleteForEachTrashedCard],
 });
 
 const threeMusketeersInPlay: Filter = {

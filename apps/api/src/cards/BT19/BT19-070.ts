@@ -30,30 +30,10 @@ const compiled: CompiledCard = {
           optional: true,
           abortOnDecline: true,
           raw: "Delete 1 opponent level 3 Digimon.",
-        },
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levels: [4],
-            },
-            count: 1,
-          },
-          raw: "Delete 1 opponent level 4 Digimon.",
-        },
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levels: [5],
-            },
-            count: 1,
-          },
-          raw: "Delete 1 opponent level 5 Digimon.",
+          additionalSimultaneousTargets: [
+            { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [4] } },
+            { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [5] } },
+          ],
         },
       ],
     },
@@ -84,30 +64,10 @@ const compiled: CompiledCard = {
           optional: true,
           abortOnDecline: true,
           raw: "Delete 1 opponent level 3 Digimon.",
-        },
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levels: [4],
-            },
-            count: 1,
-          },
-          raw: "Delete 1 opponent level 4 Digimon.",
-        },
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levels: [5],
-            },
-            count: 1,
-          },
-          raw: "Delete 1 opponent level 5 Digimon.",
+          additionalSimultaneousTargets: [
+            { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [4] } },
+            { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [5] } },
+          ],
         },
       ],
     },

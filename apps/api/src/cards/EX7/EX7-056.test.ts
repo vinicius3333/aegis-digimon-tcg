@@ -27,8 +27,11 @@ describe("EX7-056", () => {
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions).toMatchObject([
       { kind: "Trash" },
-      { kind: "Delete", target: { filter: { levels: [3] } } },
-      { kind: "Delete", target: { filter: { levels: [4] } } },
+      {
+        kind: "Delete",
+        target: { filter: { levels: [3] } },
+        additionalSimultaneousTargets: [{ filter: { levels: [4] } }],
+      },
     ]);
     expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
       keyword: "Retaliation",

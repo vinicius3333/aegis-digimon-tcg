@@ -24,14 +24,14 @@ describe("BT12-108 compiled module", () => {
   it("binds the Machine/Cyborg choice and uses its DP snapshot for both deletions", async () => {
     const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
     const main = runtimeCompiledCard("BT12-108")!.effects.find((effect) => effect.trigger === "Main");
-    expect(main?.actions.map((action) => action.kind)).toEqual(["SelectBind", "Delete", "Delete"]);
+    expect(main?.actions.map((action) => action.kind)).toEqual(["SelectBind", "Delete"]);
     expect(main?.actions[0]).toMatchObject({
       target: { bindAs: "chosenMachine", count: 1, orFilters: [{ nameOrTrait: [{ tokens: ["Cyborg"] }] }] },
     });
     expect(main?.actions[1]).toMatchObject({
       target: { filter: { relativeTo: { attr: "dp", op: "lte", selectionRef: "chosenMachine" } } },
     });
-    expect(main?.actions[2]).toMatchObject({ target: { fromSelectionRef: "chosenMachine" } });
+    expect(main?.actions[1]).toMatchObject({ additionalSimultaneousTargets: [{ fromSelectionRef: "chosenMachine" }] });
   });
 });
 

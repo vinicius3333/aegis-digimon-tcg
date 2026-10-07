@@ -1,4 +1,4 @@
-import type { Action, CompiledCard, Cost, CostGatedBlockAction, Filter } from "@aegis/shared";
+import type { CompiledCard, Cost, CostGatedBlockAction, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const trashOneCard: Cost = {
@@ -7,9 +7,9 @@ const trashOneCard: Cost = {
   raw: "By trashing 1 card in your hand",
 };
 
-const deleteByLevel = (level: number): Action => {
+const opponentDigimonAtLevel = (level: number): Target => {
   const filter: Filter = { controller: "opponent", kind: ["Digimon"], levels: [level] };
-  return { kind: "Delete", target: { filter, count: 1 } };
+  return { filter, count: 1 };
 };
 
 const deleteTargets: CostGatedBlockAction = {
@@ -17,7 +17,9 @@ const deleteTargets: CostGatedBlockAction = {
   cost: trashOneCard,
   optional: true,
   abortOnDecline: true,
-  actions: [deleteByLevel(3), deleteByLevel(4)],
+  actions: [
+    { kind: "Delete", target: opponentDigimonAtLevel(3), additionalSimultaneousTargets: [opponentDigimonAtLevel(4)] },
+  ],
 };
 
 export const compiled: CompiledCard = {

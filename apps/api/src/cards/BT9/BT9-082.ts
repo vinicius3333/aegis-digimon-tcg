@@ -18,17 +18,16 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-        },
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              levelComparison: { op: "lte", value: 5 },
-              controller: "opponent",
-              kind: ["Digimon"],
+          additionalSimultaneousTargets: [
+            {
+              filter: {
+                levelComparison: { op: "lte", value: 5 },
+                controller: "opponent",
+                kind: ["Digimon"],
+              },
+              count: "all",
             },
-            count: "all",
-          },
+          ],
         },
         {
           kind: "SecurityManipulation",

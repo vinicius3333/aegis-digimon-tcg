@@ -34,9 +34,12 @@ describe("BT24-075 SkullBaluchimon", () => {
       });
       const gated = actions[0];
       if (!gated || gated.kind !== "CostGatedBlock") throw new Error("missing cost-gated entry block");
-      expect(gated.actions).toHaveLength(2);
-      expect(gated.actions[0]).toMatchObject({ kind: "Delete", target: { filter: { levels: [3] }, count: 1 } });
-      expect(gated.actions[1]).toMatchObject({ kind: "Delete", target: { filter: { levels: [4] }, count: 1 } });
+      expect(gated.actions).toHaveLength(1);
+      expect(gated.actions[0]).toMatchObject({
+        kind: "Delete",
+        target: { filter: { levels: [3] }, count: 1 },
+        additionalSimultaneousTargets: [{ filter: { levels: [4] }, count: 1 }],
+      });
     }
     const inherited = BT24_075.effects?.find((entry) => entry.trigger === "YourTurn");
     expect(inherited?.actions?.[0]).toMatchObject({
@@ -92,6 +95,40 @@ describe("BT24-075 SkullBaluchimon", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
       s.perm("level5").permanentId,
     );
+  });
+
+  it("deletes the level 3 and level 4 targets at the same time (Discord 1557502317098573905)", async () => {
+    const deletions: string[][] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-075", as: "skull" },
+            { card: "BT1-009", as: "cost" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "level3" },
+            { card: "BT1-014", as: "level4" },
+          ],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent(event) {
+          if (event.kind === "cardsMoved" && event.deletedPermanents !== undefined) {
+            deletions.push(event.deletedPermanents.map(({ cardId }) => cardId));
+          }
+        },
+      },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skull").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+    expect(deletions).toEqual([["BT1-009", "BT1-014"]]);
   });
 
   it("deletes the level 4 target even when no level 3 is present", async () => {

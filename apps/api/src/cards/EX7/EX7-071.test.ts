@@ -36,13 +36,13 @@ describe("EX7-071 Hurricane Screw Shot", () => {
       { kind: "WaiveColorRequirement", condition: { kind: "youHave" } },
     ]);
     const main = compiled.effects?.find((entry) => entry.trigger === "Main")?.actions ?? [];
-    expect(main.slice(0, 3)).toMatchObject([
-      { kind: "Delete", target: { filter: { levels: [3] } } },
-      { kind: "Delete", target: { filter: { levels: [4] } } },
-      { kind: "Delete", target: { filter: { levels: [5] } } },
-    ]);
-    expect(main[3]).toMatchObject({ kind: "PlaceUnder" });
-    expect(compiled.effects?.find((entry) => entry.isSecurity)?.actions).toHaveLength(3);
+    expect(main[0]).toMatchObject({
+      kind: "Delete",
+      target: { filter: { levels: [3] } },
+      additionalSimultaneousTargets: [{ filter: { levels: [4] } }, { filter: { levels: [5] } }],
+    });
+    expect(main[1]).toMatchObject({ kind: "PlaceUnder" });
+    expect(compiled.effects?.find((entry) => entry.isSecurity)?.actions).toHaveLength(1);
   });
 
   it("deletes one opposing level 3, 4, and 5, preserves level 6, then places itself under a Musketeer", async () => {

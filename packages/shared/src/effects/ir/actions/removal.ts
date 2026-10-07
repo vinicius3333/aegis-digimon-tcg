@@ -17,6 +17,13 @@ export interface DeleteAction extends ActionBase {
   at?: "endOfTurn";
   /** Store how many selected permanents were actually deleted. */
   trackCount?: string;
+  /**
+   * Further groups deleted at the same time as `target` ("delete 1 of their level 3 and 1 of
+   * their level 4 Digimon"). Every group is selected first, then one deletion removes them all,
+   * so deletion triggers and protections see a single simultaneous event. A permanent fills at
+   * most one group.
+   */
+  additionalSimultaneousTargets?: Target[];
   /** Add to the target DP ceiling per unit counted. */
   dpCeilingScaling?: Scaling & { amount: number };
   /** Add to a total-DP deletion budget per live scaling unit. */

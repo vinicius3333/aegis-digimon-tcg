@@ -66,30 +66,10 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-        },
-        {
-          effectTextPart: "[Main] Delete 1 of your opponent's level 3 Digimon, level 4 Digimon, and level 5 Digimon.",
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levels: [4],
-            },
-            count: 1,
-          },
-        },
-        {
-          effectTextPart: "[Main] Delete 1 of your opponent's level 3 Digimon, level 4 Digimon, and level 5 Digimon.",
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levels: [5],
-            },
-            count: 1,
-          },
+          additionalSimultaneousTargets: [
+            { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [4] } },
+            { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [5] } },
+          ],
         },
         {
           effectTextPart:
@@ -129,28 +109,10 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-        },
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levels: [4],
-            },
-            count: 1,
-          },
-        },
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levels: [5],
-            },
-            count: 1,
-          },
+          additionalSimultaneousTargets: [
+            { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [4] } },
+            { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [5] } },
+          ],
         },
       ],
       isSecurity: true,

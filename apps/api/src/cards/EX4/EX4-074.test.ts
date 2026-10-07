@@ -41,8 +41,11 @@ describe("EX4-074 ShineGreymon: Ruin Mode", () => {
   it("at end of attack deletes itself and an opposing Digimon, adds security, and hatches with a Tamer", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "EndOfAttack")?.actions;
     expect(actions).toMatchObject([
-      { kind: "Delete", target: { isSelf: true } },
-      { kind: "Delete", target: { filter: { controller: "opponent" }, count: 1 } },
+      {
+        kind: "Delete",
+        target: { isSelf: true },
+        additionalSimultaneousTargets: [{ filter: { controller: "opponent" }, count: 1 }],
+      },
       { kind: "SecurityManipulation", op: "placeFromDeck", controller: "mine", amount: 1, toTop: true },
       { kind: "Hatch", condition: { kind: "youHave" } },
     ]);

@@ -206,7 +206,15 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
               preserveUnaffectableSelection: true,
               allowDecline: ctx.selectingOptionalTarget === true,
             });
-      const ids = survivorIds.length > 0 ? resolved.filter((id) => !survivorIds.includes(id)) : resolved;
+      const ids = resolved.filter((id) => !survivorIds.includes(id));
+      for (const additionalTarget of action.additionalSimultaneousTargets ?? []) {
+        const chosen = new Set(ids);
+        const additionalIds = await resolvePermanentTargets(ctx, raiseDeletionDpCap(ctx, additionalTarget), {
+          preserveUnaffectableSelection: true,
+          eligible: (permanentId) => !chosen.has(permanentId),
+        });
+        ids.push(...additionalIds.filter((id) => !chosen.has(id)));
+      }
       ctx.lastDeleteTargetSelected = ids.length > 0;
       ctx.lastDeletedPermanentSnapshots = [];
       if (action.at === "endOfTurn") {

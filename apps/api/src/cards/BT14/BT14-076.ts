@@ -29,17 +29,16 @@ export const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
-        },
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              superlative: "lowestLevel",
+          additionalSimultaneousTargets: [
+            {
+              filter: {
+                controller: "opponent",
+                kind: ["Digimon"],
+                superlative: "lowestLevel",
+              },
+              count: 1,
             },
-            count: 1,
-          },
+          ],
         },
       ],
     },
