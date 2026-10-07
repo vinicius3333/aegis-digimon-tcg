@@ -41,6 +41,15 @@ export function subTriggerIdentity(sub: SubTriggerSubscription, trigger?: Trigge
     const subject = trigger.deletedPermanentId ?? trigger.subjectPermanentId;
     if (subject !== undefined) return `${identity}|leave:${subject}`;
   }
+  // Suspending another permanent later is a new occurrence too. An effect-ordered attack keeps
+  // its ordering effect's window open, so without the subject a declined Vortexdramon trigger
+  // on the attack's suspension also consumed its own block's suspension
+  // (Discord 1557002713047502968). One suspend action publishes all its subjects in one event.
+  if (trigger !== undefined && (sub.event === "whenSuspended" || sub.event === "whenEffectSuspends")) {
+    const subjects =
+      trigger.subjectPermanentIds ?? (trigger.suspendedPermanentId ? [trigger.suspendedPermanentId] : []);
+    if (subjects.length > 0) return `${identity}|suspend:${[...subjects].sort().join(",")}`;
+  }
   return identity;
 }
 

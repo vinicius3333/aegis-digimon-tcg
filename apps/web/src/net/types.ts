@@ -334,6 +334,8 @@ export interface AegisJoinOptions {
     | "arena-ex5-reppamon-optional-cost"
     | "arena-ex13-dorimon-optional-cost"
     | "arena-ex13-giromon-zero-dp-play"
+    | "arena-ex13-rina-suspend-lock"
+    | "arena-ex11-vortex-effect-attack"
     | "arena-bt24-ogremon-ulforce-unsuspend"
     | "arena-bt23-king-drasil-unsuspended-cost"
     | "arena-ex13-breakdramon-zero-security-check"

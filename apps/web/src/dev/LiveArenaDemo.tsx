@@ -896,6 +896,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue EX13-040 Mikemon da mão (custo 4). O [Ao Jogar] escolhe o EX13-043 Leopardmon suspenso do bot: ele não pode desuspender até o fim do turno dele. Depois ataque o Leopardmon com o seu BT10-055 Gryphonmon (13000 contra 12000). O Leopardmon não pode pagar a prevenção, porque nenhum Digimon do bot pode desuspender: ele é deletado e vai para a lixeira.",
     en: "Play EX13-040 Mikemon from hand (cost 4). Its [On Play] picks the bot's suspended EX13-043 Leopardmon: it can't unsuspend until the end of the bot's turn. Then attack Leopardmon with your BT10-055 Gryphonmon (13000 vs 12000). Leopardmon can't pay its leave prevention, because no bot Digimon can unsuspend: it is deleted and goes to the trash.",
   },
+  "arena-ex13-rina-suspend-lock": {
+    ptBR: 'Jogue o BT20-084 Sistermon Ciel (Awakened) da mão (custo 5). O [Ao Jogar] pede 1 Digimon ou Tamer do bot: escolha a EX13-069 Rina Shinomiya. Ela não pode suspender até o fim do turno do bot. Encerre seu turno. Na fase de desuspender do bot, o BT3-021 Veemon dele desuspende. A Rina não pode pagar "suspendendo este Tamer": o efeito dela não é oferecido nem ativado, o log não mostra "efeito da Rina Shinomiya resolvido", a Rina continua desvirada e o bot só compra a carta normal do turno.',
+    en: "Play BT20-084 Sistermon Ciel (Awakened) from hand (cost 5). Its [On Play] asks for 1 of the bot's Digimon or Tamers: choose EX13-069 Rina Shinomiya. She can't suspend until the end of the bot's turn. End your turn. In the bot's unsuspend phase, its BT3-021 Veemon unsuspends. Rina can't pay \"by suspending this Tamer\": her effect is neither offered nor activated, the log shows no \"Rina Shinomiya's effect resolved\", Rina stays unsuspended, and the bot draws only its normal turn card.",
+  },
+  "arena-ex11-vortex-effect-attack": {
+    ptBR: "Digivolva o ST20-10 Agumon no ST21-08 Togemon da mão (custo 2). O [Seu Turno] do ST21-09 Lillymon dispara: dê ＜Aliança＞ ao Togemon e ataque o jogador com ele. Na ＜Aliança＞, escolha a Lillymon. O Togemon e a Lillymon suspendem, e o [Todos os Turnos] do seu EX11-074 Vortexdramon (desvirado) pergunta Battle duas vezes. Recuse a primeira. Aceite a segunda e escolha o BT1-009 Monodramon do bot: ele é deletado. Recusar não gasta o [Uma Vez Por Turno], mesmo com o ataque ordenado por um efeito.",
+    en: "Digivolve ST20-10 Agumon into ST21-08 Togemon from hand (cost 2). ST21-09 Lillymon's [Your Turn] effect triggers: give Togemon ＜Alliance＞ and attack the player with it. For ＜Alliance＞, choose Lillymon. Togemon and Lillymon suspend, and the [All Turns] effect of your unsuspended EX11-074 Vortexdramon asks Battle twice. Decline the first. Accept the second and choose the bot's BT1-009 Monodramon: it is deleted. Declining does not spend the [Once Per Turn], even when an effect ordered the attack.",
+  },
   "arena-crimson-blaze-jesmon-token": {
     ptBR: "Use o BT8-097 Crimson Blaze da mão: o bot tem 6 Digimon, então o custo é 0. O token Atho, René & Por pode usar Decoy para salvar um Digimon vermelho e é deletado. O Jesmon (12000 DP) sobrevive. Encerre seu turno. No turno do bot, o ataque do BT23-013 Jesmon não pode jogar outro token nem uma Sistermon por efeito: o bloqueio continua até o fim desse turno. Jogadas normais da mão continuam permitidas.",
     en: "Use BT8-097 Crimson Blaze from hand: the bot has 6 Digimon, so the cost is 0. The Atho, René & Por token can use Decoy to save a red Digimon and is deleted. Jesmon (12000 DP) survives. End your turn. During the bot's turn, BT23-013 Jesmon's attack cannot play another token or a Sistermon by effect: the restriction lasts until the end of that turn. Normal hand plays remain legal.",
@@ -1978,6 +1986,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex5-reppamon-optional-cost", "EX5 Reppamon · decline the security trash on attack"],
   ["arena-ex13-dorimon-optional-cost", "EX13 Dorimon · decline the 1-cost unsuspend without paying"],
   ["arena-ex13-giromon-zero-dp-play", "EX13 Giromon · Gotsumon at 0 DP dies before its On Play"],
+  ["arena-ex13-rina-suspend-lock", "EX13 Rina · locked Tamer can't pay the suspend cost"],
+  ["arena-ex11-vortex-effect-attack", "EX11 Vortexdramon · retrigger after a decline in an effect attack"],
   ["arena-ex13-breakdramon-zero-security-check", "EX13 Breakdramon · Security Attack -1 attack checks no card"],
   ["arena-decoy-protect-choice", "Decoy · choose which Digimon to protect"],
   ["arena-crimson-blaze-jesmon-token", "Crimson Blaze · Jesmon token play lock"],

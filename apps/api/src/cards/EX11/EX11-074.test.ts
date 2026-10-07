@@ -72,6 +72,67 @@ describe("EX11-074 Vortexdramon", () => {
     assertNoLoudGap(s);
   });
 
+  it("Discord 1557002713047502968: declining the battle during an effect attack still lets the block retrigger", async () => {
+    const declinedPrompts = ["Battle"];
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST20-10", as: "agumon" },
+            { card: "ST21-09", as: "lillymon" },
+          ],
+          hand: [{ card: "ST21-08", as: "togemon" }],
+        },
+        1: {
+          battleArea: [{ card: "EX11-074", as: "vortex", dp: 30000 }],
+          security: ["BT1-011", "BT1-012"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: declinedPrompts,
+        preferInstanceIds: preferred,
+      },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("agumon").permanentId, "player");
+    const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;
+    const vortexWatcherTriggers = () =>
+      s.events.filter(
+        (event) =>
+          event.kind === "effectTriggered" && event.sourceCardId === "EX11-074" && event.timing === "whenSuspended",
+      ).length;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("agumon").permanentId,
+        instanceId: s.inst("togemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => combat.hasOpenAllianceDecision, 5000);
+    expect(
+      s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("lillymon").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 1, 5000);
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "EX11-074" && req.promptText === "Battle")).toBe(true);
+    expect(s.perm("vortex").isSuspended).toBe(false);
+    const triggersBeforeBlock = vortexWatcherTriggers();
+
+    declinedPrompts.length = 0;
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("vortex").permanentId })).toEqual(
+      { ok: true },
+    );
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined, 5000);
+
+    expect(vortexWatcherTriggers()).toBe(triggersBeforeBlock + 1);
+    expect(s.perm("vortex").isSuspended).toBe(false);
+    assertNoLoudGap(s);
+  });
+
   it("Discord 1557002713047502968: pending Piercing survives deletion of the original attack target (CR 16-7-4)", async () => {
     const s = setupEngine(
       {
