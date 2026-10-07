@@ -115,6 +115,9 @@ mobileScenario("match-start", () => {
     });
 
     expect(await screen.findByText(/play biyomon in your battle area/i, {}, { timeout: 10_000 })).toBeDefined();
+    // A moved touch sends no trailing click, so the drop's swallowNextClick guard stays armed
+    // until it expires; a player's next tap comes after that window.
+    await act(() => new Promise((resolve) => setTimeout(resolve, 450)));
     fireEvent.click(screen.getByRole("button", { name: /^play card$/i }));
     await screen.findByText(/memory -3/i, {}, { timeout: 10_000 });
 
