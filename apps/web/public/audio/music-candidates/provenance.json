@@ -2,7 +2,7 @@
   "version": 1,
   "original": true,
   "selectedId": "warm-drive",
-  "selectionReason": "Preserves the liked dry 112 BPM score byte-for-byte as warm-drive comparison; selected mix adds only sparse beat-phase-aligned recorded acoustic rhythm",
+  "selectionReason": "Preserves the liked dry 112 BPM score byte-for-byte as warm-drive comparison; the selected mix re-stretches the source master to the faster drive tempo and adds an eighth-note beat-phase-aligned recorded acoustic rhythm",
   "generator": {
     "repository": "https://github.com/Stability-AI/stable-audio-3",
     "sourceCommit": "3a82c807b69cf4b7c5c05270011a5d5e47abac18",
@@ -311,21 +311,15 @@
     }
   },
   "selectedMixId": "warm-drive-pulse-112",
-  "rhythmRecipe": {
-    "bpm": 112,
-    "analysis": "Offline 35-280 Hz attack RMS grid phase fitted at 2 ms resolution; independent spectral-flux phase cross-check",
-    "sources": ["recorded-placeHeavy.wav", "recorded-tap.wav"],
-    "sourceProvenance": "../sources/recorded-provenance.json",
-    "bodyPeak": 0.006,
-    "tapPeak": 0.0025,
-    "sourcePitchChange": "none",
-    "fixedConsistent": true,
-    "finishedTempo": {
-      "sha256": "69cbe499a72a28e4aa0c552e5a95835a88f9e51c04b99e341eafa02649e75acf",
-      "estimatedBpm": 112.03463668922063,
-      "normalizedAutocorrelation": 0.6740238747000331,
-      "method": "Finished PCM16 mono; scipy resample_poly to 11025 Hz; Hann STFT 1024/256; positive log1p(abs(STFT)*1000) spectral flux; median9 suppression; FFT autocorrelation 95-125 BPM with parabolic lag refinement",
-      "scope": "Finished pulse mix waveform only"
-    }
+  "driveRecipe": {
+    "bpm": 136,
+    "fromBpm": 104,
+    "method": "offline ffmpeg atempo from the 104 BPM source master; pitch preserving; one stretch",
+    "renderer": "tools/diagnostics/tempo-original-music.mjs",
+    "stepsPerBeat": 2,
+    "bodyPeak": 0.008,
+    "tapPeak": 0.0035,
+    "pattern": "recorded card-body thump on every beat, chip tap on every offbeat eighth",
+    "reason": "Faster, busier warm drive closer to the 144 BPM battle score's energy"
   }
 }

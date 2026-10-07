@@ -8,7 +8,7 @@ export const DEFAULT_MUSIC_TRACK: MusicTrack = "digitalBattle";
 export const MUSIC_TRACK_URLS: Record<MusicTrack, string> = {
   digitalBattle: MUSIC_URL,
   digitalAscent: "/audio/aegis-music-v4.wav?v=c38aec12797c",
-  warmDrive: "/audio/aegis-music-v3.wav?v=69cbe499a72a",
+  warmDrive: "/audio/aegis-music-v6.wav?v=28250706a1df",
 };
 
 export const isMusicTrack = (value: unknown): value is MusicTrack =>
