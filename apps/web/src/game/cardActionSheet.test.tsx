@@ -389,6 +389,7 @@ describe("stack viewer bottom sheet", () => {
     keywords: ["Blocker"],
     grantedKeywords: [],
     grantedEffectTexts: [],
+    forcedAttackGrants: [],
     restrictions: [],
     suspended: true,
     summoningSick: false,

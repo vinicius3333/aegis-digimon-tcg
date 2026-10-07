@@ -7,6 +7,7 @@ import { Icons } from "../design/icons";
 import { COLORS, colorKey } from "../design/theme";
 import { useTranslation } from "../i18n";
 import { groupedInspectorEvolutionCosts, inspectorCardsTopToBottom, inspectedArenaHalf } from "./arenaInspectorModel";
+import { forcedAttackGrantText } from "./fieldBadges";
 import { formatResolvedKeyword } from "./keywordDisplay";
 import type { CardInspectionDetail } from "./permanentDetail";
 import type { PendingFateBadge } from "./pendingFate";
@@ -239,6 +240,18 @@ export function ArenaPermanentInspector({
                 </p>
               </div>
             ) : null}
+            {detail.forcedAttackGrants.map((grant, index) => (
+              <div
+                key={`forced-attack-${index}`}
+                className="arena-permanent-inspector__effect"
+                data-role="granted-forced-attack"
+              >
+                <span className="arena-permanent-inspector__effect-label">{t("overlay.grantedEffects")}</span>
+                <p>
+                  <EffectText asciiBrackets text={forcedAttackGrantText(grant, t)} />
+                </p>
+              </div>
+            ))}
             {top?.optionEffect ? (
               <div className="arena-permanent-inspector__effect" data-role="printed-option">
                 <span className="arena-permanent-inspector__effect-label">

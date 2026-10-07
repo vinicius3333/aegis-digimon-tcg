@@ -55,6 +55,8 @@ export interface CustomEffectGrant {
   isActive?: () => boolean;
   /** Persistent clauses are cleared and re-derived on every continuous recompute. */
   continuous?: boolean;
+  /** The card whose effect granted the clause, shown to players beside the granted clause. */
+  sourceCardId?: string;
 }
 
 export interface MemoryGainPolicy {

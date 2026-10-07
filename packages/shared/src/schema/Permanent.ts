@@ -119,6 +119,10 @@ export class Permanent extends Schema {
   // next Main phase starts. Projected from the authoritative SubTrigger subscription so the
   // client can keep the pending action visible before it fires.
   @type("boolean") attacksAtStartOfMainPhase = false;
+  // The granted clauses behind `attacksAtStartOfMainPhase`, as JSON
+  // `[{ clause, sourceCardId? }]`, so both players can read what forces the attack and from
+  // which card. Empty while no granted clause forces one.
+  @type("string") forcedAttackGrantsJson = "";
   // Number of security cards an attack by this Digimon checks: base 1 plus every resolved
   // ＜Security Attack ±N＞ grant, floored at 0 (Comprehensive Rules §16-4-4). Projected from
   // the same helper the security-check loop uses (`securityStrikeCount`) so the inspector can

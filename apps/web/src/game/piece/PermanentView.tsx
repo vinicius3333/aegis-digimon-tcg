@@ -7,7 +7,7 @@ import { linkCardOverhang, sourceFanStepLimit } from "../boardModel";
 import { CardBurst } from "../CardBurst";
 import { useFieldShatterOrigin } from "../fieldShatter";
 import { useCardLanding, CARD_LANDING_DEPTH } from "../cardLanding";
-import { hasBlocker, restrictionBadges, sourceCountBadge } from "../fieldBadges";
+import { forcedAttackGrants, hasBlocker, restrictionBadges, sourceCountBadge } from "../fieldBadges";
 import type { PendingFateBadge } from "../pendingFate";
 import type { DpPulse } from "../dpPulse";
 import type { FreezePulse } from "../freezePulse";
@@ -319,6 +319,7 @@ export function PermanentView({
       {restrictions.length > 0 || (hasDpDelta && !dpBadgeSuppressed) ? (
         <PermanentRestrictionBadges
           restrictions={restrictions}
+          forcedAttackGrants={forcedAttackGrants(perm)}
           dpDelta={hasDpDelta && !dpBadgeSuppressed ? delta : undefined}
           baseDp={originalDP(perm)}
         />

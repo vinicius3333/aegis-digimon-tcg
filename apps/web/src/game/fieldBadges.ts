@@ -13,7 +13,8 @@
 
 import { getCardDefinition, type Permanent } from "@aegis/shared";
 import { colorKey, palettePairFor, type ColorName } from "../design/theme";
-import type { TranslationKey } from "../i18n";
+import type { Translate, TranslationKey } from "../i18n";
+import { cardDisplayName } from "./cardLinks";
 
 /**
  * The keyword name the engine projects for ＜Blocker＞. Compared against
@@ -191,6 +192,34 @@ const RESTRICTION_BADGES: readonly RestrictionBadge[] = [
  * server resolves those into `attackablePermanentIds` / `canAttackPlayer`, and a chip
  * would double-count them.
  */
+export interface ForcedAttackGrant {
+  clause: string;
+  sourceCardId?: string;
+}
+
+/** The granted clauses the server says force this permanent to attack, oldest first. */
+export function forcedAttackGrants(permanent: Pick<Permanent, "forcedAttackGrantsJson">): readonly ForcedAttackGrant[] {
+  if (!permanent.forcedAttackGrantsJson) return [];
+  try {
+    const parsed: unknown = JSON.parse(permanent.forcedAttackGrantsJson);
+    return Array.isArray(parsed)
+      ? parsed.filter((grant): grant is ForcedAttackGrant => typeof grant?.clause === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+/** "Trident Arm granted: [Start of Your Main Phase] This Digimon attacks." */
+export function forcedAttackGrantText({ clause, sourceCardId }: ForcedAttackGrant, t: Translate): string {
+  return sourceCardId
+    ? t("redesign.arena.restriction.attacksAtStartOfMainPhaseGranted", {
+        card: cardDisplayName(sourceCardId, t),
+        clause,
+      })
+    : clause;
+}
+
 export function restrictionBadges(
   permanent: Pick<Permanent, Exclude<RestrictionBadgeKind, "immuneToOpponentEffects">>,
 ): readonly RestrictionBadge[] {

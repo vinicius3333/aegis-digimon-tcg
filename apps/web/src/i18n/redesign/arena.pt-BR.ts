@@ -36,6 +36,7 @@ export const arenaPtBR: Record<keyof typeof arenaEn, string> = {
     "Os efeitos do oponente não podem devolver este Digimon para a mão ou para o deck.",
   "redesign.arena.restriction.attacksAtStartOfMainPhase":
     "Um efeito faz este Digimon atacar no início da fase principal, se puder.",
+  "redesign.arena.restriction.attacksAtStartOfMainPhaseGranted": "{card} concedeu: {clause}",
   "redesign.arena.restriction.cannotAttack": "Um efeito impede este Digimon de atacar.",
   "redesign.arena.restriction.cannotBlock": "Um efeito impede este Digimon de bloquear.",
   "redesign.arena.restriction.cannotSuspend": "Um efeito impede este Digimon de ser suspenso.",

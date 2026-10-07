@@ -256,6 +256,8 @@ export interface ContinuousPrimitives {
       isActive?: () => boolean;
       /** Explicit continuous-pass provenance; avoids ambient async-scope races. */
       continuous?: boolean;
+      /** The card whose effect grants the clause. */
+      sourceCardId?: string;
     },
   ): void;
   /** Grant a named effect to every matching current/future permanent controlled by `seat`. */

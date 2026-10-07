@@ -506,6 +506,18 @@ export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect | readonly CardEf
  * unresolved by design; this throw is what will surface them the moment their grant condition
  * actually becomes live, rather than leaving them silently inert forever.
  */
+/** A granted clause that makes its recipient attack when its controller's Main phase starts. */
+export function grantForcesAttackAtStartOfMainPhase(token: string): boolean {
+  const libraryEntry = GRANTED_EFFECT_LIBRARY[token];
+  if (libraryEntry === undefined) return false;
+  const effects: readonly CardEffect[] = Array.isArray(libraryEntry) ? libraryEntry : [libraryEntry as CardEffect];
+  return effects.some(
+    (effect) =>
+      effect.trigger === "StartOfYourMainPhase" &&
+      effect.actions.some((action) => action.kind === "Attack" && action.target?.isSelf === true),
+  );
+}
+
 export function grantedTokenEffectsForTiming(token: string, timing: EffectTiming, source: CardSource): Effect[] {
   const libraryEntry = GRANTED_EFFECT_LIBRARY[token];
   if (libraryEntry === undefined) {
