@@ -158,7 +158,7 @@ export const ANIMATION_FAMILIES = {
     label: "Match result",
     owner: "overlay/match/GameOverOverlay.tsx",
     timings: [],
-    sequence: "Finish outcome → reveal the settled winner/draw, reason and actions immediately",
+    sequence: "Finish outcome → queued playback drains (bounded) → reveal the winner/draw, reason and actions",
   },
   interaction: {
     label: "Selection and inspection",

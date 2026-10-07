@@ -1310,7 +1310,7 @@ export function GameScreen({
       signedIn={signedIn}
       opponentDropped={!spectating && !vsBot && !opp.connected && !state.gameOver}
       gameOver={
-        state.gameOver || series?.stage === "over"
+        (state.gameOver || series?.stage === "over") && !cues.resultPending
           ? {
               result: series?.outcome ?? gameOverResult,
               reason: gameOverReason,

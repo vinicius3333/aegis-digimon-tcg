@@ -444,6 +444,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Relato 1556677140253249656: sua segurança começa como na partida c77fc6f3 de 05/10/2026 às 14:35 UTC: Jesmon BT20-017 para cima e 3 cartas para baixo. O contador deve mostrar 4, inclusive em telas horizontais baixas. Abra a segurança para conferir 1 carta para cima de 4. Encerre a criação e evolua MetalGreymon em Invisimon BT20-055 por 3 e escolha “2 cartas”: a primeira segurança adversária vira para cima, mas ambos os contadores continuam em 4. Confira também a inspeção adversária.",
     en: "Report 1556677140253249656: your security starts as in match c77fc6f3 on 2026-10-05 at 14:35 UTC: face-up BT20-017 Jesmon and 3 face-down cards. The count must read 4, including short landscape screens. Open security to confirm 1 face-up card out of 4. End breeding and digivolve MetalGreymon into BT20-055 Invisimon for 3 and choose “2 cards”: the opponent's first security turns face up while both counts stay at 4. Check the opponent's inspection too.",
   },
+  "arena-issue-5065-lethal-attack-order": {
+    ptBR: "Encerre a criação e ataque o oponente com GrapLeomon: ele não tem segurança. Os três [Ao Atacar] (GrapLeomon, Panjyamon e MetalGarurumon herdados) disparam juntos; escolha a ordem. Cada efeito deve brilhar e ganhar 1 memória, um após o outro. A tela de vitória só aparece depois do último efeito e da sua leitura, nunca por cima das animações.",
+    en: "End breeding and attack the opponent with GrapLeomon: they have no security. The three [When Attacking] effects (GrapLeomon, inherited Panjyamon and MetalGarurumon) trigger together; choose their order. Each effect must glow and gain 1 memory, one after the other. The victory screen appears only after the last effect has played and been readable, never over the animations.",
+  },
+  "arena-issue-5065-opponent-turn-end": {
+    ptBR: "Encerre a criação e o seu turno. No fim do turno do bot, Leopardmon e o MetalMamemon herdado disparam: Leopardmon descarta a carta do topo e desvira os Digimon do bot. O banner “Seu turno” e a sua compra só devem aparecer depois que esses efeitos terminarem; a carta comprada chega à mão uma vez, sem voltar ao deck.",
+    en: "End breeding and your turn. At the end of the bot's turn, Leopardmon and its inherited MetalMamemon trigger: Leopardmon trashes its top card and unsuspends the bot's Digimon. The “Your turn” banner and your draw must appear only after those effects finish; the drawn card reaches your hand once, without returning to the deck.",
+  },
   "arena-issue-4965-optional-raid": {
     ptBR: "Ataque a segurança com ShineGreymon. Recuse jogar um Tamer e, na seleção de Raid, escolha nenhuma carta. O ataque deve continuar contra a segurança.",
     en: "Attack security with ShineGreymon. Decline the Tamer play and choose no Raid target. The attack continues against security.",
@@ -1818,6 +1826,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-discord-1556745762682183811-giant-slayer-execute", "Giant Slayer · Execute replacement"],
   ["arena-discord-1556745762682183811-holy-succession", "Giant Slayer · Holy Mode Succession"],
   ["arena-issue-4965-optional-raid", "#4965 · Raid opcional"],
+  ["arena-issue-5065-lethal-attack-order", "#5065 · ataque letal com efeitos ordenados"],
+  ["arena-issue-5065-opponent-turn-end", "#5065 · fim do turno do bot e compra"],
   ["arena-issue-4967-assembly-with-dna", "#4967 · Omnimon · Assembly e DNA"],
   ["arena-issue-4968-hand-trash-draw", "#4968 · Ogremon / Dobermon · descarte"],
   ["arena-issue-4969-grandgalemon-dp", "#4969 · GrandGalemon · bônus de DP"],

@@ -257,6 +257,7 @@ export function BoardStage({
       }
     />
   );
+  const resultShown = state.gameOver && !cues.resultPending;
 
   return (
     // Every surface that names a card — notices, side panels, combat prompts,
@@ -334,7 +335,7 @@ export function BoardStage({
           {/* One moment at a time. The portrait phone folds both sides into a single
               centred slot; everywhere else the viewer reads the left corner and the
               opponent's moments arrive in the right one. */}
-          {!state.gameOver ? (
+          {!resultShown ? (
             <NarrationStack
               narration={cues.narration}
               rejection={cues.rejection}
@@ -346,7 +347,7 @@ export function BoardStage({
             />
           ) : null}
 
-          {cues.attackAnnouncement && !state.gameOver ? (
+          {cues.attackAnnouncement && !resultShown ? (
             <AttackAnnouncementBanner announcement={cues.attackAnnouncement} />
           ) : null}
 

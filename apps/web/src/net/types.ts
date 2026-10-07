@@ -202,6 +202,8 @@ export interface AegisJoinOptions {
     | "arena-discord-1556772182607011971-breathing-training"
     | "arena-discord-1556772182607011971-pagumon"
     | "arena-issue-4965-optional-raid"
+    | "arena-issue-5065-lethal-attack-order"
+    | "arena-issue-5065-opponent-turn-end"
     | "arena-oct06-mastemon-owner-security"
     | "arena-oct06-king-sukamon-assembly"
     | "arena-oct06-chuumon-trash-revival"

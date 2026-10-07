@@ -801,3 +801,18 @@ Limitations: the returned sources show only the defender's relayout (about 240 m
 which ends before the arrow; a dedicated return animation belongs to the deck-return
 work. The clash ghost can show for one frame before the arrow. Logs from before this
 change have no comparison receipt, so replaying them still shows no clash.
+
+## Result and turn handoff hold, 2026-10-06 (#5065)
+
+The live state flips `gameOver` with the winning blow. `match/queue/useResultHold.ts`
+keeps the result splash back, and the narration, attack banner and security scenes on
+screen, until finite queue steps drain, the `gameOver` batch is presented and the last
+clause has had `clauseReadableMs`. A 4 s stall clock and the `budgetCeilingMs` ceiling
+fast-forward the queue and show the result. Reconnects, late spectators and drain mode
+never hold. Legality, the match timer and intents keep reading the live state.
+
+Phase and turn ribbons now wait for the batch of every streamed event before them, not
+only card arrivals. An end-of-turn effect that moves no card no longer lets "Your turn"
+play before its clause. `resultHold.test.tsx` and `turnHandoffHold.test.tsx` cover both;
+`/dev/arena?scenario=arena-issue-5065-lethal-attack-order` and
+`/dev/arena?scenario=arena-issue-5065-opponent-turn-end` reproduce them on a real server.
