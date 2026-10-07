@@ -209,6 +209,25 @@ export function usePhaseBanners({
   const phaseBatchesRef = useRef(batches);
   phaseBatchesRef.current = batches;
 
+  /**
+   * The board the turn handoff starts from. `previous` is the live state of the previous
+   * render, which predates every batch of a burst: when the ending turn's last effect and the
+   * next turn's unsuspend arrive together, it still shows the board before that effect, so
+   * an end-of-turn suspend undone by ＜Reboot＞ never rotated (Discord 1557481090870939840).
+   * The newest snapshot taken before the phase opened is the board the turn really ended on.
+   */
+  function boardBeforePhase(openedPhase: ServerEvent, previous: GameState | undefined): GameState | undefined {
+    const openedAt =
+      "stateVersion" in openedPhase && typeof openedPhase.stateVersion === "number"
+        ? openedPhase.stateVersion
+        : undefined;
+    if (openedAt === undefined) return previous;
+    const snapshot = phaseStateRef.current.snapshots?.filter((candidate) => candidate.stateVersion <= openedAt).at(-1);
+    if (snapshot === undefined) return previous;
+    if (previous !== undefined && (previous.stateVersion ?? 0) >= snapshot.stateVersion) return previous;
+    return snapshot.state;
+  }
+
   async function waitForPhasePrerequisites(
     context: AnimationStepContext,
     awaitedEvents: readonly ServerEvent[],
@@ -373,7 +392,7 @@ export function usePhaseBanners({
         setPendingPhaseBanners((count) => count + 1);
         if (banner.phase === UNSUSPEND_PHASE) {
           drawPhaseWaitingRef.current = { seat: openedPhase.turnSeat, phaseOrder };
-          const drawState = previousDrawStateRef.current;
+          const drawState = boardBeforePhase(openedPhase, previousDrawStateRef.current);
           // The held revision can predate an unsuspend the ending turn made before its End
           // phase (EX13-006): the move reached an earlier pass, and the state patch lags the
           // events. Release every move the held revision does not show yet, not only this
@@ -410,7 +429,7 @@ export function usePhaseBanners({
           if (player) setHeldBreedingState({ seat: openedPhase.turnSeat, player });
           setHeldSuspendedIds(
             new Set(
-              previousDrawStateRef.current?.players[openedPhase.turnSeat]?.battleArea
+              drawState?.players[openedPhase.turnSeat]?.battleArea
                 .filter((permanent) => permanent.isSuspended)
                 .map((permanent) => permanent.permanentId) ?? [],
             ),
