@@ -5,50 +5,75 @@ export interface WindowPosition {
   top: number;
 }
 
-const VIEWPORT_GUTTER_PX = 4;
-
-function clampToViewport(position: WindowPosition, size: { width: number; height: number }): WindowPosition {
-  const maxLeft = Math.max(VIEWPORT_GUTTER_PX, window.innerWidth - size.width - VIEWPORT_GUTTER_PX);
-  const maxTop = Math.max(VIEWPORT_GUTTER_PX, window.innerHeight - size.height - VIEWPORT_GUTTER_PX);
+function clampToViewport(
+  position: WindowPosition,
+  size: { width: number; height: number },
+  gutter: number,
+): WindowPosition {
+  const viewport = window.visualViewport;
+  const left = (viewport?.offsetLeft ?? 0) + gutter;
+  const top = (viewport?.offsetTop ?? 0) + gutter;
+  const maxLeft = Math.max(
+    left,
+    (viewport?.offsetLeft ?? 0) + (viewport?.width ?? window.innerWidth) - size.width - gutter,
+  );
+  const maxTop = Math.max(
+    top,
+    (viewport?.offsetTop ?? 0) + (viewport?.height ?? window.innerHeight) - size.height - gutter,
+  );
   return {
-    left: Math.min(Math.max(position.left, VIEWPORT_GUTTER_PX), maxLeft),
-    top: Math.min(Math.max(position.top, VIEWPORT_GUTTER_PX), maxTop),
+    left: Math.min(Math.max(position.left, left), maxLeft),
+    top: Math.min(Math.max(position.top, top), maxTop),
   };
 }
 
-/**
- * Lets a fixed-position window be dragged by a handle and keeps it on screen. The position
- * stays `undefined` until the first drag, so the stylesheet decides where the window docks.
- */
-export function useDraggableWindow(windowRef: RefObject<HTMLElement | null>) {
-  const [position, setPosition] = useState<WindowPosition>();
-  const dragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number }>(undefined);
+/** Fixed windows retain their stylesheet docking until the viewer moves their handle. */
+export function useDraggableWindow(
+  windowRef: RefObject<HTMLElement | null>,
+  { viewportGutter = 4, resetKey }: { viewportGutter?: number; resetKey?: string } = {},
+) {
+  const [placed, setPlaced] = useState<{ position: WindowPosition; key?: string }>();
+  const position = placed?.key === resetKey ? placed?.position : undefined;
+  const dragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number; key?: string }>(undefined);
+
+  useEffect(() => {
+    dragRef.current = undefined;
+    setPlaced(undefined);
+  }, [resetKey]);
 
   const onHandlePointerDown = useCallback(
     (event: PointerEvent<HTMLElement>) => {
       const element = windowRef.current;
-      if (!element || event.button !== 0 || (event.target as Element).closest("button")) return;
+      const interactive = (event.target as Element).closest("button, a, input, select, textarea");
+      if (!element || event.button !== 0 || (interactive && interactive !== event.currentTarget)) return;
       const rect = element.getBoundingClientRect();
       dragRef.current = {
         pointerId: event.pointerId,
         offsetX: event.clientX - rect.left,
         offsetY: event.clientY - rect.top,
+        key: resetKey,
       };
       event.currentTarget.setPointerCapture?.(event.pointerId);
       event.preventDefault();
     },
-    [windowRef],
+    [windowRef, resetKey],
   );
 
   const onHandlePointerMove = useCallback(
     (event: PointerEvent<HTMLElement>) => {
       const drag = dragRef.current;
       const element = windowRef.current;
-      if (!drag || drag.pointerId !== event.pointerId || !element) return;
-      const rect = element.getBoundingClientRect();
-      setPosition(clampToViewport({ left: event.clientX - drag.offsetX, top: event.clientY - drag.offsetY }, rect));
+      if (!drag || drag.key !== resetKey || drag.pointerId !== event.pointerId || !element) return;
+      setPlaced({
+        key: resetKey,
+        position: clampToViewport(
+          { left: event.clientX - drag.offsetX, top: event.clientY - drag.offsetY },
+          element.getBoundingClientRect(),
+          viewportGutter,
+        ),
+      });
     },
-    [windowRef],
+    [windowRef, resetKey, viewportGutter],
   );
 
   const onHandlePointerUp = useCallback((event: PointerEvent<HTMLElement>) => {
@@ -60,22 +85,53 @@ export function useDraggableWindow(windowRef: RefObject<HTMLElement | null>) {
   const keepOnScreen = useCallback(() => {
     const element = windowRef.current;
     if (!element) return;
-    setPosition((current) => {
-      if (!current) return current;
-      const clamped = clampToViewport(current, element.getBoundingClientRect());
-      return clamped.left === current.left && clamped.top === current.top ? current : clamped;
+    setPlaced((current) => {
+      if (!current || current.key !== resetKey) return current;
+      const clamped = clampToViewport(current.position, element.getBoundingClientRect(), viewportGutter);
+      return clamped.left === current.position.left && clamped.top === current.position.top
+        ? current
+        : { position: clamped, key: resetKey };
     });
-  }, [windowRef]);
+  }, [windowRef, resetKey, viewportGutter]);
 
-  // A rotated phone or a resized browser must not leave the window off screen.
+  const moveBy = useCallback(
+    (x: number, y: number) => {
+      const element = windowRef.current;
+      if (!element) return;
+      const rect = element.getBoundingClientRect();
+      setPlaced({
+        key: resetKey,
+        position: clampToViewport({ left: rect.left + x, top: rect.top + y }, rect, viewportGutter),
+      });
+    },
+    [windowRef, resetKey, viewportGutter],
+  );
+
+  const resetPosition = useCallback(() => {
+    dragRef.current = undefined;
+    setPlaced(undefined);
+  }, []);
+
+  // Rotation, browser resizing, and changes to the panel must keep its controls reachable.
   useEffect(() => {
     window.addEventListener("resize", keepOnScreen);
-    return () => window.removeEventListener("resize", keepOnScreen);
-  }, [keepOnScreen]);
+    window.visualViewport?.addEventListener("resize", keepOnScreen);
+    window.visualViewport?.addEventListener("scroll", keepOnScreen);
+    const observer = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(keepOnScreen);
+    if (windowRef.current) observer?.observe(windowRef.current);
+    return () => {
+      window.removeEventListener("resize", keepOnScreen);
+      window.visualViewport?.removeEventListener("resize", keepOnScreen);
+      window.visualViewport?.removeEventListener("scroll", keepOnScreen);
+      observer?.disconnect();
+    };
+  }, [keepOnScreen, windowRef]);
 
   return {
     position,
     keepOnScreen,
+    moveBy,
+    resetPosition,
     handleProps: {
       onPointerDown: onHandlePointerDown,
       onPointerMove: onHandlePointerMove,

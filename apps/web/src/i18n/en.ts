@@ -738,6 +738,12 @@ export const en = {
   "settings.textSizeLarger": "Extra large",
   "settings.actionConfirmations": "Confirm actions",
   "settings.actionConfirmationsDesc": "Ask before playing, digivolving, or using an optional DNA digivolution",
+  "overlay.moveEffectPrompt": "Move effect prompt",
+  "overlay.moveEffectPromptHelp": "Drag to move, or use the arrow keys. Press Home to reset the position.",
+  "settings.effectPromptPosition": "Effect prompt position",
+  "settings.effectPromptPositionDesc": "Choose where activation prompts appear. Field targets stay on the board.",
+  "settings.effectPromptCenter": "Center",
+  "settings.effectPromptLeft": "Lower left (default)",
   "settings.effectSpeed": "Effect speed",
   "settings.effectSpeedDesc":
     "How long each card effect stays on screen before the next one. Slow also holds the card your opponent just played or digivolved for a few seconds.",

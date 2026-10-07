@@ -66,7 +66,7 @@ const OPTION_CONSUMERS: Record<DecisionOptionKey, string | null> = {
   promptKey: "overlay/choice/DecisionOverlay.tsx",
   // Tells an automated seat that an empty selection forfeits the clause; the human UI
   // already offers the same No Selection answer for every min-0 prompt.
-  purpose: null,
+  purpose: "decisionPresentation.ts",
   assemblyCardId: "screen/layout/DecisionPrompts.tsx",
   digiXrosCardId: "screen/layout/DecisionPrompts.tsx",
 };

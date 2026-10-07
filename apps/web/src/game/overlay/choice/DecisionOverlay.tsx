@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { printedModalPreamble, type DecisionRequest, type DecisionResponse } from "@aegis/shared";
 import { CardMini } from "../../../design/cards";
 import { Icons } from "../../../design/icons";
@@ -6,7 +6,9 @@ import { Button } from "../../../design/primitives";
 import { useMediaQuery, WIDE_DIALOG_QUERY } from "../../../design/useMediaQuery";
 import { useTranslation } from "../../../i18n";
 import { useCardOpener } from "../../cardLinks";
-import { effectDecisionSurface, decisionSelectionMin } from "../../decisionPresentation";
+import { useDraggableWindow } from "../../chat/useDraggableWindow";
+import { useEffectPromptPosition } from "../../effectPromptPosition";
+import { effectDecisionSurface, isEffectActivationDecision, decisionSelectionMin } from "../../decisionPresentation";
 import { pendingFateBadge } from "../../pendingFate";
 import { playerFacingEffectClause, playerFacingPromptText } from "../effectText";
 import { printedCardName } from "../printedCardName";
@@ -86,6 +88,7 @@ export function DecisionOverlay({
   onChangeSourceHost?: () => void;
 }) {
   const { t } = useTranslation();
+  const effectPromptPosition = useEffectPromptPosition();
   const openCard = useCardOpener();
   const wideDialog = useMediaQuery(WIDE_DIALOG_QUERY);
   const min = decisionSelectionMin(request);
@@ -121,8 +124,13 @@ export function DecisionOverlay({
   const isOrderTriggers = request.kind === "orderTriggers";
   const isResolutionPlan = isOrderTriggers && request.options?.acceptsResolutionPlan === true;
   const isOrdering = isOrderCards || isOrderTriggers;
-  const surface = isSecurityChoice ? "left" : isCardChoice || isOrdering ? "center" : effectDecisionSurface(request);
+  const surface = isSecurityChoice
+    ? "left"
+    : isCardChoice || isOrdering
+      ? "center"
+      : effectDecisionSurface(request, effectPromptPosition);
   const docksOnRail = surface === "left";
+  const draggableActivation = isEffectActivationDecision(request) && !isCardChoice;
   const triggerKeys = request.options?.triggerKeys ?? [];
   const triggerCardIds = request.options?.triggerCardIds ?? [];
   const maxTotalPlayCost = request.options?.maxTotalPlayCost;
@@ -143,6 +151,7 @@ export function DecisionOverlay({
   const [cardOrder, setCardOrder] = useState<string[]>([]);
   const panelRef = useRef<HTMLDivElement>(null);
   const returnControlRef = useRef<HTMLDivElement>(null);
+  const drag = useDraggableWindow(panelRef, { viewportGutter: 16, resetKey: `${request.decisionId}:${surface}` });
   usePromptHandSpace(panelRef, !isViewingBoard);
   useEffect(() => {
     setIsViewingBoard(false);
@@ -263,6 +272,8 @@ export function DecisionOverlay({
           aria-modal="true"
           aria-label={dialogLabel}
           data-prompt-surface={surface}
+          data-effect-activation={draggableActivation || undefined}
+          data-prompt-dragged={(draggableActivation && drag.position !== undefined) || undefined}
           className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isCardChoice ? " decision-overlay--card-choice" : ""}${isOrdering ? " decision-overlay--ordering" : ""}${isSecurityChoice ? " decision-overlay--security-choice" : ""}${isSelect ? " decision-overlay--selection" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}${isResolutionPlan ? " decision-overlay--resolution-plan" : ""}${docksOnRail ? " decision-overlay--side" : ""}`}
           onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
           /* Geometry, surface and entrance all live in game.css: inline values could not be
@@ -275,6 +286,12 @@ export function DecisionOverlay({
               wideDialog,
               itemCount: Math.max(candidates.length, triggerKeys.length),
             }),
+            ...(draggableActivation && drag.position
+              ? ({
+                  "--effect-prompt-drag-left": `${drag.position.left}px`,
+                  "--effect-prompt-drag-top": `${drag.position.top}px`,
+                } as CSSProperties)
+              : {}),
           }}
         >
           {/* Artwork and the question share the same compact header as combat prompts. */}
@@ -316,6 +333,35 @@ export function DecisionOverlay({
                 </Button>
               ) : null}
             </div>
+            {draggableActivation ? (
+              <button
+                {...drag.handleProps}
+                type="button"
+                className="decision-overlay__move-handle"
+                aria-label={t("overlay.moveEffectPrompt")}
+                title={t("overlay.moveEffectPromptHelp")}
+                onKeyDown={(event) => {
+                  const deltas: Record<string, [number, number]> = {
+                    ArrowLeft: [-20, 0],
+                    ArrowRight: [20, 0],
+                    ArrowUp: [0, -20],
+                    ArrowDown: [0, 20],
+                  };
+                  const delta = deltas[event.key];
+                  if (delta) {
+                    event.preventDefault();
+                    drag.moveBy(...delta);
+                  } else if (event.key === "Home") {
+                    event.preventDefault();
+                    drag.resetPosition();
+                  }
+                }}
+              >
+                <svg width="16" height="20" viewBox="0 0 16 20" fill="currentColor" aria-hidden="true">
+                  {[5, 10, 15].flatMap((y) => [5, 11].map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.25" />))}
+                </svg>
+              </button>
+            ) : null}
           </div>
 
           {isPartitionActivation ? (

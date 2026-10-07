@@ -45,7 +45,7 @@ export function isDecoyDecision(decision: DecisionRequest | undefined): boolean 
 
 /** Hand and field selections are answered on their physical cards.
  * Other card selections retain the central dialog and its revealed context.
- * Simple optional actions use the left rail when their source is on the field.
+ * Optional activations use the preferred surface; field targets remain on the board.
  * Unknown decisions retain the dialog fallback.
  */
 export function decisionPresentation({
@@ -76,12 +76,26 @@ export function decisionPresentation({
     )
       return "board";
   }
-  return decision.kind === "optional" && sourcePermanentId !== undefined ? "board" : "dialog";
+  return decision.kind === "optional" && sourcePermanentId !== undefined && !isEffectActivationDecision(decision)
+    ? "board"
+    : "dialog";
 }
 
-/** Card galleries need the central dialog; compact activation choices keep the board rail. */
-export function effectDecisionSurface(decision: DecisionRequest): "left" | "center" {
-  if (decision.options?.selectionContext === "partitionActivation") return "left";
+/** Activation prompts follow the preference; costs and card galleries keep their own surfaces. */
+export function isEffectActivationDecision(decision: DecisionRequest): boolean {
+  if (decision.options?.purpose === "cost" || decision.options?.digivolveCostChoice !== undefined) return false;
+  return (
+    decision.kind === "optional" ||
+    decision.kind === "chooseOption" ||
+    decision.options?.selectionContext === "partitionActivation"
+  );
+}
+
+export function effectDecisionSurface(
+  decision: DecisionRequest,
+  position: "left" | "center" = "left",
+): "left" | "center" {
+  if (isEffectActivationDecision(decision)) return position;
   return ["chooseTargets", "selectCards", "orderCards", "orderTriggers", "mulligan"].includes(decision.kind)
     ? "center"
     : "left";

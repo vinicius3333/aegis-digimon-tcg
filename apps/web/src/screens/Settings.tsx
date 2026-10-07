@@ -26,6 +26,11 @@ import { CardSleevePicker, EggSleevePicker } from "../design/sleevePicker";
 import { TEXT_SCALES, setTextScale, useTextScale, type TextScale } from "../design/textScale";
 import { SEQUENTIAL_PACING_ENABLED } from "../features";
 import { EFFECT_SPEEDS, getEffectSpeed, setEffectSpeed, type EffectSpeed } from "../game/pacing";
+import {
+  EFFECT_PROMPT_POSITIONS,
+  setEffectPromptPosition,
+  useEffectPromptPosition,
+} from "../game/effectPromptPosition";
 import { setHandAutoSortEnabled, useHandAutoSort } from "../game/handAutoSort";
 import { LOCALES, LOCALE_LABELS, useTranslation, type TranslationKey } from "../i18n";
 import { AccountPanel } from "../account/AccountPanel";
@@ -77,6 +82,7 @@ export function Settings({
   const fieldLayout = useFieldLayout();
   const pileCountsShown = usePileCountsShown();
   const handAutoSort = useHandAutoSort();
+  const effectPromptPosition = useEffectPromptPosition();
   function confirmRename() {
     const name = nameInput.trim();
     if (!name || name === player.name) return;
@@ -333,6 +339,26 @@ export function Settings({
                   setActionConfirmationsOn(next);
                 }}
               />
+            </div>
+            <div className="settings-row">
+              <div className="settings-row__copy">
+                <strong id="settings-effect-position-label">{t("settings.effectPromptPosition")}</strong>
+                <small>{t("settings.effectPromptPositionDesc")}</small>
+              </div>
+              <div className="settings-language-list" role="group" aria-labelledby="settings-effect-position-label">
+                {EFFECT_PROMPT_POSITIONS.map((position) => (
+                  <button
+                    key={position}
+                    type="button"
+                    className="settings-language-option"
+                    aria-pressed={effectPromptPosition === position}
+                    onClick={() => setEffectPromptPosition(position)}
+                  >
+                    {t(position === "center" ? "settings.effectPromptCenter" : "settings.effectPromptLeft")}
+                    {effectPromptPosition === position ? <Icons.Check size={16} /> : null}
+                  </button>
+                ))}
+              </div>
             </div>
             {SEQUENTIAL_PACING_ENABLED ? (
               <div className="settings-row">

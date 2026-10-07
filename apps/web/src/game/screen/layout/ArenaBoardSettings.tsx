@@ -1,6 +1,7 @@
 /* Board display choices for the match dialog. They share their stores with the
    Settings screen, so a change here shows on the board behind the dialog at once. */
 
+import { EFFECT_PROMPT_POSITIONS, setEffectPromptPosition, useEffectPromptPosition } from "../../effectPromptPosition";
 import { TEXT_SCALES, setTextScale, useTextScale } from "../../../design/textScale";
 import { useId, useState } from "react";
 import { setPileCountsShown, usePileCountsShown } from "../../../design/pileCounts";
@@ -22,6 +23,7 @@ export function ArenaBoardSettings() {
   const pileCountsShown = usePileCountsShown();
   const textScale = useTextScale();
   const handAutoSort = useHandAutoSort();
+  const effectPromptPosition = useEffectPromptPosition();
   const [effectSpeed, setEffectSpeedChoice] = useState<EffectSpeed>(getEffectSpeed);
   return (
     <section className="game-arena-board-settings" aria-labelledby={titleId}>
@@ -51,6 +53,25 @@ export function ArenaBoardSettings() {
               </option>
             ))}
           </select>
+        </div>
+        <div className="game-arena-settings__row game-arena-board-settings__size">
+          <label htmlFor={`${titleId}-effect-position`}>{t("settings.effectPromptPosition")}</label>
+          <select
+            id={`${titleId}-effect-position`}
+            value={effectPromptPosition}
+            aria-describedby={`${titleId}-effect-position-desc`}
+            onChange={(event) => {
+              const position = EFFECT_PROMPT_POSITIONS.find((value) => value === event.target.value);
+              if (position) setEffectPromptPosition(position);
+            }}
+          >
+            {EFFECT_PROMPT_POSITIONS.map((position) => (
+              <option key={position} value={position}>
+                {t(position === "center" ? "settings.effectPromptCenter" : "settings.effectPromptLeft")}
+              </option>
+            ))}
+          </select>
+          <small id={`${titleId}-effect-position-desc`}>{t("settings.effectPromptPositionDesc")}</small>
         </div>
         {SEQUENTIAL_PACING_ENABLED ? (
           <div className="game-arena-settings__row game-arena-board-settings__size">

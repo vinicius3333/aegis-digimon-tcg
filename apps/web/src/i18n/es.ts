@@ -727,6 +727,13 @@ export const es: Record<keyof typeof en, string> = {
   "settings.textSizeLarger": "Muy grande",
   "settings.actionConfirmations": "Confirmar acciones",
   "settings.actionConfirmationsDesc": "Preguntar antes de jugar, digievolucionar o usar una digievolución DNA opcional",
+  "overlay.moveEffectPrompt": "Mover panel de efecto",
+  "overlay.moveEffectPromptHelp": "Arrastra para mover o usa las flechas. Pulsa Inicio para restaurar la posición.",
+  "settings.effectPromptPosition": "Posición de los efectos",
+  "settings.effectPromptPositionDesc":
+    "Elige dónde aparecen las preguntas de activación. Los objetivos siguen en el campo.",
+  "settings.effectPromptCenter": "Centro",
+  "settings.effectPromptLeft": "Esquina inferior izquierda (predeterminada)",
   "settings.effectSpeed": "Velocidad de efectos",
   "settings.effectSpeedDesc":
     "Cuánto tiempo se muestra cada efecto de carta antes del siguiente. Lenta también mantiene unos segundos la carta que tu oponente acaba de jugar o digievolucionar.",

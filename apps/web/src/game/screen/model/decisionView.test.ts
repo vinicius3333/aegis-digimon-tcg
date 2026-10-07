@@ -74,3 +74,30 @@ it.each(["optional", "chooseOption", "selectCards"] as const)(
     ).toBeUndefined();
   },
 );
+
+it("keeps an activation source highlighted while answering its movable dialog", () => {
+  const state = createArenaDemoState();
+  const permanents = [...state.players].flatMap((player) => [...player.battleArea]);
+  const source = permanents[0]!;
+  const inputs = {
+    decision: {
+      decisionId: "activation-source",
+      seat: 0 as const,
+      kind: "optional" as const,
+      sourceCardId: source.topCard.cardId,
+      sourceInstanceId: source.topCard.instanceId,
+      promptText: "Activate this effect?",
+    },
+    decisionAnimationsPending: false,
+    decisionAsDialog: false,
+    viewerSeat: 0 as const,
+    events: [],
+    state,
+    instanceIndex: new Map<string, string>(),
+    permanents,
+    breedingPermanents: [],
+    handInstanceIds: [],
+  };
+  expect(decisionViewFor(inputs).answerOnBoard).toBe(false);
+  expect(decisionViewFor(inputs).decisionHighlightPermanentId).toBe(source.permanentId);
+});

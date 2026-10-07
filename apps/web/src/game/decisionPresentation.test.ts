@@ -185,9 +185,9 @@ describe("decisionPresentation", () => {
     expect(decisionPresentation({ decision: request, handInstanceIds: hand })).toBe("dialog");
   });
 
-  it("puts an optional decision on the board when its source is on the field", () => {
+  it("renders activations in a movable dialog even when their source is on the field", () => {
     const request = decision({ kind: "optional" });
-    expect(decisionPresentation({ decision: request, handInstanceIds: hand, sourcePermanentId: "p1" })).toBe("board");
+    expect(decisionPresentation({ decision: request, handInstanceIds: hand, sourcePermanentId: "p1" })).toBe("dialog");
   });
 
   it("falls back to the dialog when the optional decision's source is not on the board", () => {
@@ -275,12 +275,33 @@ it("uses the optional decision's physical source for duplicate field cards", () 
 });
 
 describe("effect decision surface", () => {
+  it("uses the chosen center position for activation prompts", () => {
+    expect(effectDecisionSurface(decision({ kind: "optional" }), "center")).toBe("center");
+    expect(effectDecisionSurface(decision({ kind: "chooseOption" }), "center")).toBe("center");
+    expect(effectDecisionSurface(decision({ options: { selectionContext: "partitionActivation" } }), "center")).toBe(
+      "center",
+    );
+  });
+
+  it("honors the left preference for activations while keeping target galleries centered", () => {
+    expect(effectDecisionSurface(decision({ kind: "optional" }), "left")).toBe("left");
+    expect(effectDecisionSurface(decision({ kind: "chooseOption" }), "left")).toBe("left");
+    expect(effectDecisionSurface(decision({ options: { selectionContext: "partitionActivation" } }), "left")).toBe(
+      "left",
+    );
+    expect(effectDecisionSurface(decision({ kind: "selectCards" }), "left")).toBe("center");
+  });
+
+  it("keeps unrelated cost questions on their existing surface", () => {
+    expect(effectDecisionSurface(decision({ kind: "chooseOption", options: { purpose: "cost" } }))).toBe("left");
+  });
+
   it.each(["chooseTargets", "selectCards", "orderCards", "orderTriggers", "mulligan"] as const)(
     "Discord 1557059213266522233: centers %s card choices regardless of source zone",
     (kind) => expect(effectDecisionSurface(decision({ kind }))).toBe("center"),
   );
 
-  it("keeps optional activation and simple choices on the left", () => {
+  it("defaults optional activation and simple choices to the lower left", () => {
     expect(effectDecisionSurface(decision({ kind: "optional" }))).toBe("left");
     expect(effectDecisionSurface(decision({ kind: "chooseOption", options: { choices: ["Use", "Don't use"] } }))).toBe(
       "left",
@@ -288,7 +309,7 @@ describe("effect decision surface", () => {
     expect(effectDecisionSurface(decision({ options: { selectionContext: "partitionActivation" } }))).toBe("left");
   });
 
-  it("docks choices between printed effects on the left", () => {
+  it("defaults choices between printed effects to the lower left", () => {
     expect(
       effectDecisionSurface(
         decision({
