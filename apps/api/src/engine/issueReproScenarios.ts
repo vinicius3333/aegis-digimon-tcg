@@ -25,6 +25,40 @@ type Layout = { players: readonly [PlayerLayout, PlayerLayout]; memory?: number 
 
 // Reduced boards for reported issues. Each runs in the ordinary turn loop.
 const ISSUE_LAYOUTS = {
+  "arena-issue-5207-dorimon-guard": {
+    memory: 3,
+    players: [
+      { field: [{ card: "EX13-063", under: ["BT16-005"] }, { card: "EX13-053" }] },
+      { field: [{ card: "EX13-015" }] },
+    ],
+  },
+  "arena-issue-5248-dynasmon-security": {
+    memory: 3,
+    players: [{ field: [{ card: "BT1-010" }, { card: "BT1-014" }, { card: "BT1-026" }] }, { security: ["AD1-017"] }],
+  },
+  "arena-issue-5246-savior-decline": {
+    memory: 10,
+    players: [{ field: [{ card: "BT1-014" }], hand: ["EX13-012", "ST12-13"] }, {}],
+  },
+  "arena-issue-5241-kurata-sleep": {
+    memory: 10,
+    players: [{ field: [{ card: "BT13-103" }, { card: "BT13-083" }], hand: ["BT13-088"] }, {}],
+  },
+  "arena-issue-5247-crimson-use-cost": {
+    memory: 3,
+    players: [
+      { field: [{ card: "BT1-009" }], hand: ["BT8-097"] },
+      {
+        field: [
+          { card: "ST13-08" },
+          { card: "BT1-025" },
+          { card: "BT1-025" },
+          { card: "BT1-025" },
+          { card: "BT1-025" },
+        ],
+      },
+    ],
+  },
   "arena-issue-5232-icemon-egg": { memory: 10, players: [{ hand: ["P-215"], trash: ["EX8-005"] }, {}] },
   "arena-issue-5214-habakirimon-security": {
     memory: 10,
