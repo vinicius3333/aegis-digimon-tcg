@@ -1260,6 +1260,28 @@ No actual evaluation request, resource Go or GPU evaluation launch exists.
 No new source archive, metadata migration or huge engine rerun was introduced.
 Reserved final seeds `6210000..6213871` remain untouched.
 
+## R4 actual CUDA learning started; strength wrapper sealed only
+
+Actual observation6 confirmed `ppo-started.json`, CUDA learner PID1241/
+startTicks92346 as a direct child of exact operator701/52120, and GPU process
+1241. The real config binds all44 recipes, 3,872 games, fresh seed6019976,
+rate1e-5, featureV7, source R3 checkpoint0366, four exact frozen reference
+checkpoint paths and heuristic share0.5. Evaluation is false. The original
+foreground session44990 remains attached; actual whole exit and completion
+remain pending. Preserve its partial results and do not restart it.
+Observation7 uses a bounded log tail for provisional batch progress, avoiding
+a full reread of growing results. A batch summary is not final tensor,
+whole, strength, mechanic, room or delivery acceptance.
+
+The separate evaluation launch wrapper is now sealed exclusively at
+`transfers/rule-link-current-aa2e56463-corrective-strength-r4-launch.sh`,
+SHA-256 `dddc2e3340bb63a3d8b4ebf92fed5750d4088907877d8c23a63abaa9481cd39c`
+(1,746 bytes). Actual desktop Bash syntax and byte pins passed without any
+evaluation execution. Actual R4 learning completion/new CP hashes, final
+sealed evaluation request, read-only full learning admission, fresh resource
+agreement and actual evaluation whole identity remain required. This source
+preparation cannot substitute for them or overlap active CUDA training.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
