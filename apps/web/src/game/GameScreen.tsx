@@ -1378,10 +1378,9 @@ export function GameScreen({
     effectLinkedPermanentIds,
     decisionHighlightPermanentId,
     decisionPickedInstanceIds: dnaChoosing ? new Set(dnaPicks) : fieldDecision ? new Set(picks) : new Set<string>(),
-    materialSelectionOrder:
-      dnaChoosing && dnaChoice.selected
-        ? new Map(dnaChoice.orderedPicks.map((id, index) => [id, index + 1]))
-        : undefined,
+    materialSelectionOrder: dnaChoosing
+      ? new Map(dnaChoice.orderedPicks.map((id, index) => [id, index + 1]))
+      : undefined,
     permanentBursts,
     pendingPermanentIds,
     fateBadges,

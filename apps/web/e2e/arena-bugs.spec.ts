@@ -485,6 +485,8 @@ for (const width of [1440, 390]) {
       const rail = page.getByRole("region", { name: /DNA Digivolution available/i });
       const confirm = rail.getByRole("button", { name: "DNA Digivolve", exact: true });
       await expect(confirm).toBeDisabled();
+      await expect(field(0).getByLabel("DNA material 1", { exact: true })).toBeVisible();
+      await expect(rail.getByRole("button", { name: "View board", exact: true })).toBeVisible();
       await expect(rail.locator("img")).toHaveCount(0);
       await field(2).click();
       await expect(confirm).toBeEnabled();

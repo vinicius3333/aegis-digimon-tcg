@@ -2,6 +2,8 @@ import { type Permanent } from "@aegis/shared";
 import { Button } from "../design/primitives";
 import { useTranslation } from "../i18n";
 import { BoardPromptRail } from "./BoardDecisionRail";
+import { useBoardPreview } from "./overlay/choice/useBoardPreview";
+import { DecisionViewBoardButton } from "./overlay/choice/DecisionViewBoardButton";
 import { dnaFieldChoice } from "./screen/model/dnaMaterialSelection";
 import type { ProjectedDnaDigivolveRoute } from "./digivolveModel";
 import "./DnaMaterialChoiceOverlay.css";
@@ -23,7 +25,9 @@ export function DnaMaterialChoiceOverlay({
   onCancel: () => void;
 }) {
   const { t } = useTranslation();
+  const { isViewingBoard, openBoard, boardReturn } = useBoardPreview();
   const choice = dnaFieldChoice(routes, permanents, pickedPermanentIds);
+  if (isViewingBoard) return boardReturn;
   return (
     <BoardPromptRail
       variant="field-selection"
@@ -59,6 +63,7 @@ export function DnaMaterialChoiceOverlay({
           {t("overlay.confirmDna")}
         </Button>
       </div>
+      <DecisionViewBoardButton onOpenBoard={openBoard} />
     </BoardPromptRail>
   );
 }
