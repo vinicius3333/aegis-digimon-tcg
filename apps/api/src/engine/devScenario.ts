@@ -168,6 +168,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-leopardmon-suspended-target",
   "arena-ex13-leopardmon-unsuspend-lock",
   "arena-ex13-rina-suspend-lock",
+  "arena-ex11-vortex-effect-attack",
   "arena-bt24-ogremon-ulforce-unsuspend",
   "arena-bt23-king-drasil-unsuspended-cost",
   "arena-ex13-breakdramon-zero-security-check",
@@ -1570,6 +1571,36 @@ function layEx13RinaSuspendLockScenario(state: GameState, decks: readonly [Deckl
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 5;
+}
+
+/**
+ * Discord 1557002713047502968: ST21-09 Lillymon's effect gives Togemon ＜Alliance＞ and orders its
+ * attack, so the attack runs inside Lillymon's effect window. Declining Vortexdramon's battle on
+ * Togemon's suspension must still let the ＜Alliance＞ suspension trigger it again.
+ */
+function layEx11VortexEffectAttackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-vortex-effect-attack-togemon", "ST21-08", 0));
+    placePermanent(human, establishedDigimon(0, ["ST20-10"], "-vortex-effect-attack-agumon"));
+    placePermanent(human, establishedDigimon(0, ["ST21-09"], "-vortex-effect-attack-lillymon"));
+    placePermanent(human, establishedDigimon(0, ["EX11-074"], "-vortex-effect-attack-vortexdramon"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-vortex-effect-attack-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 2;
 }
 
 /**
@@ -7174,6 +7205,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-leopardmon-suspended-target": layEx13LeopardmonSuspendedTargetScenario,
   "arena-ex13-leopardmon-unsuspend-lock": layEx13LeopardmonUnsuspendLockScenario,
   "arena-ex13-rina-suspend-lock": layEx13RinaSuspendLockScenario,
+  "arena-ex11-vortex-effect-attack": layEx11VortexEffectAttackScenario,
   "arena-bt24-ogremon-ulforce-unsuspend": layBt24OgremonUlforceUnsuspendScenario,
   "arena-bt23-king-drasil-unsuspended-cost": layBt23KingDrasilUnsuspendedCostScenario,
   "arena-ex13-breakdramon-zero-security-check": layEx13BreakdramonZeroSecurityCheckScenario,

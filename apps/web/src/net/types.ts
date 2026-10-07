@@ -332,6 +332,7 @@ export interface AegisJoinOptions {
     | "arena-ex13-leopardmon-suspended-target"
     | "arena-ex13-leopardmon-unsuspend-lock"
     | "arena-ex13-rina-suspend-lock"
+    | "arena-ex11-vortex-effect-attack"
     | "arena-bt24-ogremon-ulforce-unsuspend"
     | "arena-bt23-king-drasil-unsuspended-cost"
     | "arena-ex13-breakdramon-zero-security-check"
