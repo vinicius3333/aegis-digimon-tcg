@@ -1282,6 +1282,54 @@ sealed evaluation request, read-only full learning admission, fresh resource
 agreement and actual evaluation whole identity remain required. This source
 preparation cannot substitute for them or overlap active CUDA training.
 
+## R4 actual full learning closure; actual evaluation admission running
+
+The original learning foreground session44990 ended with actual exit zero.
+Its whole trap contains real nonlink `0\n`; whole680, operator701 and learner1241
+are gone, completion exists and GPU is empty. The unchanged full R4 closure
+consumer session53602 also ended with actual exit zero. Actual completion is
+`c1d3c8f467b7c25b58b3f32a67972a06742de70f8f530540b5c7d706c56a0a1c`.
+Its local stdout `rule-link-current-corrective-ppo-r4-closed.actual.json` has
+SHA-256 `6b15096137018ca4be9c7c92b7936650a99b405da903c2fc6d71ff119fd8b8c6`.
+Never repoll either terminal session or relaunch its completed job.
+
+The real new checkpoint is
+`runs/rule-link-current-aa2e56463-corrective-ppo-r4/ppo/checkpoint.pt`, SHA-256
+`1de36f6a1e7fc439fe34c4af71d81976a5e0b74e38fa17cd417e63dea07924c1`.
+The full consumer proves 6,632 actual positive Adam updates, equal deltas
+across all12 finite changed parameters, preserved optimizer continuation,
+exact save/reload and all input CP/source/runtime/raw-map guards. Learning
+origin is actual R3 evaluation completion692b. This is actual learning proof,
+with strength, payment mastery and final-blind acceptance still false.
+
+Actual records cover 3,872 games, all44 recipes in both seats, fresh seeds
+`6019976..6023847`, 2,344 wins, 1,528 losses, zero failed/unusable/payment
+forfeits, and ten retained recovered play rejections. Elapsed training time
+was 3,365.606183594 seconds. Exact seeded opponent counts were heuristic1865,
+v17-reference513, fitted-reference519, primary-before491 and source-challenger484.
+The four reference CPs and warm-start R3 CP remain immutable. These training
+wins cannot be compared directly to heuristic-only frozen strength results.
+
+A separate final evaluation request is now exclusively sealed at
+`transfers/rule-link-current-aa2e56463-corrective-strength-r4-request.json`,
+SHA-256 `a28a986990f6e912857961bbc2a317a143c2bbf2b7376e36f3da231a43da68c2`
+(1,380 bytes). Its genuine new completion and CP pins came only from the
+actual full closure consumer; the earlier pending request remains unchanged.
+It binds evaluator624e, wrapperdddc, current source/engine, baselineb326 and
+the full unchanged 3,872-game paired development schedule. Default read-only
+admission is running through original foreground session **78983**, output
+`rule-link-current-corrective-strength-r4-inspect.actual.json`. Keep it
+attached and await actual exit zero; never use a future completion flag or
+synthetic proof in place of that real consumer.
+
+Initial static resource inspection for the fresh evaluation namespace passed
+with GPU empty and no prior run/identity/output. That is not an execution Go.
+After actual read-only admission, repeat the fresh resource guard and issue
+a distinct evaluation ROOT Go before launching the exclusive original whole.
+No actual R4 evaluation games, all44 strength pass, physical/mastery/room
+acceptance, serving acceptance or final-blind acceptance exist yet.
+Reserved final seeds `6210000..6213871` remain untouched.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
