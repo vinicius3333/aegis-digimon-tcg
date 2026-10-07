@@ -25,6 +25,26 @@ type Layout = { players: readonly [PlayerLayout, PlayerLayout]; memory?: number 
 
 // Reduced boards for reported issues. Each runs in the ordinary turn loop.
 const ISSUE_LAYOUTS = {
+  "arena-issue-5266-elecmon-bottom-deck": {
+    memory: 3,
+    players: [
+      { field: [{ card: "BT1-036" }], hand: ["BT22-023"] },
+      {
+        field: [{ card: "BT25-030" }, { card: "EX13-034", under: ["BT18-030"] }],
+        security: ["EX13-037", "BT1-009", "BT1-009"],
+      },
+    ],
+  },
+  "arena-issue-5266-candlemon-own-host": {
+    memory: 20,
+    players: [
+      { field: [{ card: "BT1-009" }, { card: "BT1-036" }], hand: ["BT22-023", "ST1-16", "ST1-16"] },
+      {
+        field: [{ card: "BT25-030" }, { card: "BT18-036", under: ["BT18-030"] }],
+        security: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+    ],
+  },
   "arena-tai-matt-double-end-turn": {
     memory: 3,
     players: [

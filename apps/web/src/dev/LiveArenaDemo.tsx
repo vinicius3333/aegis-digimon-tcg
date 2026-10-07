@@ -17,6 +17,14 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-issue-5266-elecmon-bottom-deck": {
+    en: "Production report from KingWows vs RAP SKALYIN: end breeding and evolve Garurumon into AeroVeedramon BT22-023. Elecmon BT25-030 is the only opposing level 4 or lower Digimon, so it must return to the deck bottom automatically. Candlemon under the separate Wisemon must not activate, and all three opposing security cards remain.",
+    ptBR: "Relato de produção de KingWows contra RAP SKALYIN: encerre a criação e evolua Garurumon em AeroVeedramon BT22-023. Elecmon BT25-030 é o único Digimon adversário de nível 4 ou menor, então deve voltar automaticamente ao fundo do deck. O Candlemon sob o Wisemon separado não deve ativar, e as três seguranças adversárias permanecem.",
+  },
+  "arena-issue-5266-candlemon-own-host": {
+    en: "End breeding and evolve Garurumon into AeroVeedramon BT22-023. Return the opponent's separate Elecmon BT25-030 to the deck bottom. Candlemon under Wizardmon must not activate or consume security to protect Elecmon. Then use Gaia Force on Wizardmon: Candlemon may trash the top security card to save its own yellow Data/Witchelny host. Alternatively, reset and target Elecmon with Gaia Force to verify deletion is not prevented either.",
+    ptBR: "Encerre a criação e evolua Garurumon em AeroVeedramon BT22-023. Devolva o Elecmon BT25-030 separado do oponente ao fundo do deck. O Candlemon sob Wizardmon não deve ativar nem consumir segurança para proteger Elecmon. Depois use Gaia Force em Wizardmon: Candlemon pode descartar a segurança do topo para salvar o próprio Digimon amarelo Data/Witchelny. Alternativamente, reinicie e use Gaia Force em Elecmon para verificar que a deleção também não é impedida.",
+  },
   "arena-own-field-effects": {
     en: "End breeding and play Leopardmon. Decline playing another Digimon: your field gains Blocker until the opponent's turn ends. Your corner badge shows its source and duration. Then evolve Flaremon into Apollomon to add a simultaneous DP −8000 effect to the opponent field; resolve the mandatory deletion. End your turn: the DP reduction expires while your Blocker field effect remains.",
     ptBR: "Encerre a criação e jogue Leopardmon. Recuse jogar outro Digimon: seu campo ganha Blocker até o fim do turno adversário. O indicador do seu lado mostra a fonte e a duração. Depois evolua Flaremon em Apollomon para adicionar DP −8000 ao campo adversário ao mesmo tempo; resolva a deleção obrigatória. Encerre seu turno: a redução de DP acaba, mas o Blocker do seu campo permanece.",
@@ -1864,6 +1872,8 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-issue-5266-elecmon-bottom-deck", "GitHub #5266 · AeroVeedramon returns separate Elecmon"],
+  ["arena-issue-5266-candlemon-own-host", "GitHub #5265 / #5266 · Candlemon protects only its own host"],
   ["arena-own-field-effects", "Your field effects · Leopardmon Blocker + opposing DP"],
   ["arena-multiple-field-effects", "Multiple field effects · stacked Apollomon reductions"],
   ["arena-tai-matt-double-end-turn", "Tai & Matt BT17 · double End of Turn"],
