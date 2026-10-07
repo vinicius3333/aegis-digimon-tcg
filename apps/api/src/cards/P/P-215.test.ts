@@ -55,6 +55,19 @@ describe("P-215 Icemon", () => {
   });
 });
 describe("P-215 engine behavior", () => {
+  it("issue #5232: accepts a level-2 Rock Digi-Egg from trash as its placement cost", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "P-215", as: "host" }], trash: [{ card: "EX8-005", as: "egg" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("host").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").stack.map((card) => card.cardId)).toContain("EX8-005");
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
   it("pays its On Play placement cost by putting an eligible level-4 card underneath", async () => {
     const s = setupEngine(
       {

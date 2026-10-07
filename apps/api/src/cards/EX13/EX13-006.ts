@@ -19,6 +19,7 @@ export const compiled: CompiledCard = {
           cost: {
             kind: "payMemory",
             memory: 1,
+            optional: true,
             raw: "By paying 1 cost",
           },
           optional: true,

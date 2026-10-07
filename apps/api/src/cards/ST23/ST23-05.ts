@@ -38,7 +38,7 @@ const compiled: CompiledCard = {
           op: "placeAsSecurity",
           effectTextPart:
             "[When Digivolving] [When Attacking] [Once Per Turn] Place 1 of your opponent's lowest DP Digimon as the top security card.",
-          controller: "mine",
+          controller: "opponent",
           source: {
             filter: {
               controller: "opponent",
@@ -68,7 +68,7 @@ const compiled: CompiledCard = {
           op: "placeAsSecurity",
           effectTextPart:
             "[When Digivolving] [When Attacking] [Once Per Turn] Place 1 of your opponent's lowest DP Digimon as the top security card.",
-          controller: "mine",
+          controller: "opponent",
           source: {
             filter: {
               controller: "opponent",

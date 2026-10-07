@@ -12,7 +12,7 @@ const placeAndProtect: Action = {
     target: {
       filter: {
         controller: "mine",
-        kind: ["Digimon"],
+        kind: ["Digimon", "DigiEgg"],
         levelComparison: { op: "lte", value: 4 },
         nameOrTrait: traits,
       },

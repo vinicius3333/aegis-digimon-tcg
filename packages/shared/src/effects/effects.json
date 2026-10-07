@@ -79506,6 +79506,7 @@
         "actions": [
           {
             "kind": "Modal",
+            "allowNoOpOptions": true,
             "choose": 1,
             "options": [
               [
@@ -80465,6 +80466,7 @@
         "actions": [
           {
             "kind": "Modal",
+            "allowNoOpOptions": true,
             "choose": 1,
             "options": [
               [
@@ -204240,7 +204242,7 @@
               "target": {
                 "filter": {
                   "controller": "mine",
-                  "kind": ["Digimon"],
+                  "kind": ["Digimon", "DigiEgg"],
                   "levelComparison": { "op": "lte", "value": 4 },
                   "nameOrTrait": [{ "tokens": ["Ice-Snow", "Mineral", "Rock"], "match": "trait" }]
                 },
@@ -204295,7 +204297,7 @@
               "target": {
                 "filter": {
                   "controller": "mine",
-                  "kind": ["Digimon"],
+                  "kind": ["Digimon", "DigiEgg"],
                   "levelComparison": { "op": "lte", "value": 4 },
                   "nameOrTrait": [{ "tokens": ["Ice-Snow", "Mineral", "Rock"], "match": "trait" }]
                 },
@@ -204350,7 +204352,7 @@
               "target": {
                 "filter": {
                   "controller": "mine",
-                  "kind": ["Digimon"],
+                  "kind": ["Digimon", "DigiEgg"],
                   "levelComparison": { "op": "lte", "value": 4 },
                   "nameOrTrait": [{ "tokens": ["Ice-Snow", "Mineral", "Rock"], "match": "trait" }]
                 },
@@ -206091,6 +206093,7 @@
             "amount": 3
           },
           {
+            "effectTextPart": "Then, by placing 2 cards with [Gammamon] in its text or the [VB] trait from your trash as this Digimon's bottom digivolution cards, give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends.",
             "kind": "GrantStatic",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "grant": "tokenEffect",
@@ -206116,8 +206119,7 @@
               "host": "self"
             },
             "optional": true,
-            "abortOnDecline": true,
-            "effectTextPart": "Then, by placing 2 cards with [Gammamon] in its text or the [VB] trait from your trash as this Digimon's bottom digivolution cards, give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends."
+            "abortOnDecline": true
           }
         ]
       },
@@ -206131,6 +206133,7 @@
             "amount": 3
           },
           {
+            "effectTextPart": "Then, by placing 2 cards with [Gammamon] in its text or the [VB] trait from your trash as this Digimon's bottom digivolution cards, give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends.",
             "kind": "GrantStatic",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "grant": "tokenEffect",
@@ -206156,8 +206159,7 @@
               "host": "self"
             },
             "optional": true,
-            "abortOnDecline": true,
-            "effectTextPart": "Then, by placing 2 cards with [Gammamon] in its text or the [VB] trait from your trash as this Digimon's bottom digivolution cards, give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends."
+            "abortOnDecline": true
           }
         ]
       },
@@ -217230,7 +217232,7 @@
             "kind": "SecurityManipulation",
             "op": "placeAsSecurity",
             "effectTextPart": "[When Digivolving] [When Attacking] [Once Per Turn] Place 1 of your opponent's lowest DP Digimon as the top security card.",
-            "controller": "mine",
+            "controller": "opponent",
             "source": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
               "count": 1
@@ -217254,7 +217256,7 @@
             "kind": "SecurityManipulation",
             "op": "placeAsSecurity",
             "effectTextPart": "[When Digivolving] [When Attacking] [Once Per Turn] Place 1 of your opponent's lowest DP Digimon as the top security card.",
-            "controller": "mine",
+            "controller": "opponent",
             "source": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
               "count": 1
@@ -231670,7 +231672,7 @@
               },
               "count": 1
             },
-            "cost": { "kind": "payMemory", "memory": 1, "raw": "By paying 1 cost" },
+            "cost": { "kind": "payMemory", "memory": 1, "optional": true, "raw": "By paying 1 cost" },
             "optional": true,
             "payCostBeforeOptional": true,
             "abortOnDecline": true

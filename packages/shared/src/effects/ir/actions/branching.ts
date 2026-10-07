@@ -59,6 +59,8 @@ export interface ModalAction extends ActionBase {
   labels?: string[];
   /** Per-option availability gate evaluated at decision time. */
   optionConditions?: Array<Condition | null>;
+  /** Printed choices may be selected even when their payload has no legal target. */
+  allowNoOpOptions?: boolean;
 }
 
 /** Execute exactly one ordered action list based on a live condition. */
