@@ -253,6 +253,11 @@ export interface MatchCues {
    * button while this is set; a phone taps the board instead.
    */
   presenting: boolean;
+  /**
+   * The server has ended the match, and the queue is still playing what led there. The
+   * result waits for it, bounded by `useResultHold`'s clocks; legality does not.
+   */
+  resultPending: boolean;
   /** The player whose board the unsuspend phase is currently sweeping. */
   unsuspendSweep: UnsuspendSweep | null;
   /** Bursts left where permanents were deleted, in board coordinates. */

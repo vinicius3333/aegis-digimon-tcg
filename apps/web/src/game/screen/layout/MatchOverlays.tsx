@@ -312,7 +312,7 @@ export function MatchOverlays({
         />
       ) : null}
 
-      {!state.gameOver ? <SecurityScenes {...scenes} compact={collapseNotices} /> : null}
+      {!gameOver ? <SecurityScenes {...scenes} compact={collapseNotices} /> : null}
 
       <MatchStatusOverlays
         log={log}

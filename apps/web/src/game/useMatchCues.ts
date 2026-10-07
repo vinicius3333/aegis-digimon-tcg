@@ -21,7 +21,7 @@
 
 import { CueTrack, OpeningDealState } from "./match/enums";
 import { REDUCED_MOTION_QUERY } from "./match/environment";
-import { holdsTheBoard } from "./match/tracks";
+import { holdsTheBoard, OPTION_DOCK_TRACKS } from "./match/tracks";
 import { liveMode } from "./match/environment";
 import { buildCardSiteIndex } from "./match/cardSiteIndex";
 import { presentServerBatch } from "./match/present/presentBatch";
@@ -32,6 +32,7 @@ import { securityHold } from "./match/securityHold";
 import { traceCueStep } from "./cueTrace";
 import { cueFlights } from "./match/flights";
 import { useDecisionBarrier } from "./match/queue/useDecisionBarrier";
+import { useResultHold } from "./match/queue/useResultHold";
 import { usePhaseBanners } from "./match/queue/usePhaseBanners";
 import { useDpPulses } from "./match/watchers/useDpPulses";
 import { useDrawWatcher } from "./match/watchers/useDrawWatcher";
@@ -184,6 +185,7 @@ export function useMatchCues({
     [],
   );
   const [decisionAnimationsPending, setDecisionAnimationsPending] = useState(false);
+  const [playbackPending, setPlaybackPending] = useState(false);
   // Every queue change bumps this. Nothing reads what it counts — it is the proof that the
   // queue is still moving, which is what the decision stall watchdog waits on.
   const [queueActivity, setQueueActivity] = useState(0);
@@ -371,6 +373,16 @@ export function useMatchCues({
       queue.hasPendingStep(
         (step) =>
           step.track !== CueTrack.SecurityDock && step.track !== CueTrack.SecurityHold && step.blocksDecision !== false,
+      ),
+    );
+    // The open-ended docks and holds wait for an answer a finished match never sends.
+    setPlaybackPending(
+      queue.hasPendingStep(
+        (step) =>
+          step.track !== "sound" &&
+          step.track !== CueTrack.SecurityDock &&
+          step.track !== CueTrack.SecurityHold &&
+          !OPTION_DOCK_TRACKS.includes(step.track ?? ""),
       ),
     );
     setQueueActivity((count) => count + 1);
@@ -1142,6 +1154,15 @@ export function useMatchCues({
     if (presentationPacingRef.current === "sequential") effectSequence.noteQuestion(askingCardId);
   }, [askingCardId, effectSequence]);
 
+  const resultPending = useResultHold({
+    gameOver: state?.gameOver === true,
+    gameOverPresented: batches.some((batch) => batch.events.some((event) => event.kind === "gameOver")),
+    playbackPending,
+    lastClauseAt: narration.size > 0 ? Math.max(...[...narration.values()].map((item) => item.createdAt)) : undefined,
+    queueActivity,
+    queue,
+  });
+
   useDecisionBarrier({
     pendingEffectUnits: () => effectSequence.pendingCount(),
     decisionPending,
@@ -1537,6 +1558,7 @@ export function useMatchCues({
     decisionAnimationsPending: decisionAnimationsPending && !decisionStalled && !timedDecisionPending,
     presentedStateVersion,
     presenting: presentedStateVersion !== undefined || pendingPhaseBanners > 0,
+    resultPending,
     unsuspendSweep,
     deleteBursts,
     zoneShowcase,
