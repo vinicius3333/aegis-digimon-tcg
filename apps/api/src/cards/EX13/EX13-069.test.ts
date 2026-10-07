@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -83,6 +83,45 @@ describe("EX13-069 Rina Shinomiya", () => {
       await turn;
     },
   );
+
+  it("Discord 1557228631808548887: a Rina that can't suspend neither offers nor activates its draw", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "rina" },
+            { card: "BT3-021", as: "veemon", suspended: true },
+          ],
+          hand: [{ card: "ST8-05", as: "veedramon" }],
+          deck: ["BT1-085", "BT1-085", "BT1-085"],
+        },
+        1: { deck: ["BT1-085"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    advance(s.engine).ledgers.continuous.addRestriction(
+      s.perm("rina").permanentId,
+      "suspend",
+      EffectDuration.Permanent,
+    );
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("veemon").isSuspended).toBe(false);
+    expect(s.perm("rina").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("veedramon").instanceId]);
+    expect(s.decisions.filter((decision) => decision.req.promptText?.includes("by suspending this Tamer"))).toEqual([]);
+    expect(
+      s.events.filter(
+        (event) =>
+          event.kind === "effectTriggered" && event.sourceCardId === CARD_ID && event.timing === "whenUnsuspended",
+      ),
+    ).toEqual([]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
 
   it("matches the printed catalog entry", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({

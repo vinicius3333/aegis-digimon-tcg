@@ -331,6 +331,7 @@ export interface AegisJoinOptions {
     | "arena-ex7-seventh-fascination-trash-turn"
     | "arena-ex13-leopardmon-suspended-target"
     | "arena-ex13-leopardmon-unsuspend-lock"
+    | "arena-ex13-rina-suspend-lock"
     | "arena-bt24-ogremon-ulforce-unsuspend"
     | "arena-bt23-king-drasil-unsuspended-cost"
     | "arena-ex13-breakdramon-zero-security-check"

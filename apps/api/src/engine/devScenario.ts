@@ -167,6 +167,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-ex13-leopardmon-suspended-target",
   "arena-ex13-leopardmon-unsuspend-lock",
+  "arena-ex13-rina-suspend-lock",
   "arena-bt24-ogremon-ulforce-unsuspend",
   "arena-bt23-king-drasil-unsuspended-cost",
   "arena-ex13-breakdramon-zero-security-check",
@@ -1539,6 +1540,36 @@ function layEx13LeopardmonUnsuspendLockScenario(state: GameState, decks: readonl
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 4;
+}
+
+/**
+ * Discord 1557228631808548887: BT20-084 Sistermon Ciel (Awakened) makes the bot's EX13-069 Rina
+ * unable to suspend until the bot's turn ends. When the bot's suspended Veemon unsuspends, Rina
+ * can't pay "by suspending this Tamer", so her draw is neither offered nor activated.
+ */
+function layEx13RinaSuspendLockScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-rina-lock-sistermon", "BT20-084", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["EX13-069"], "-rina-lock-rina"));
+    const veemon = establishedDigimon(1, ["BT3-021"], "-rina-lock-veemon");
+    veemon.isSuspended = true;
+    placePermanent(bot, veemon);
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
 }
 
 /**
@@ -7142,6 +7173,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
     layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-ex13-leopardmon-suspended-target": layEx13LeopardmonSuspendedTargetScenario,
   "arena-ex13-leopardmon-unsuspend-lock": layEx13LeopardmonUnsuspendLockScenario,
+  "arena-ex13-rina-suspend-lock": layEx13RinaSuspendLockScenario,
   "arena-bt24-ogremon-ulforce-unsuspend": layBt24OgremonUlforceUnsuspendScenario,
   "arena-bt23-king-drasil-unsuspended-cost": layBt23KingDrasilUnsuspendedCostScenario,
   "arena-ex13-breakdramon-zero-security-check": layEx13BreakdramonZeroSecurityCheckScenario,

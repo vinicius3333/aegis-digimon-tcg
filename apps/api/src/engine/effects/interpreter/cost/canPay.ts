@@ -28,6 +28,17 @@ export function canUnsuspendForCost(
   return permanent.isSuspended && ctx.fx.canUnsuspend?.(permanent.permanentId) !== false;
 }
 
+/**
+ * A suspend cost is paid only by a permanent that actually turns. A Tamer under "can't
+ * suspend" (BT20-084, EX13-022) can't pay it (Discord 1557228631808548887).
+ */
+export function canSuspendForCost(
+  ctx: EffectContext,
+  permanent: { permanentId: string; isSuspended: boolean },
+): boolean {
+  return !permanent.isSuspended && ctx.fx.canSuspend?.(permanent.permanentId) !== false;
+}
+
 export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "raw") return false;
   if (cost.kind === "digivolve") {
@@ -140,10 +151,10 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   }
   if (cost.kind === "suspend") {
     const candidates = cost.target
-      ? candidatePermanents(ctx, cost.target).filter((permanent) => !permanent.isSuspended)
+      ? candidatePermanents(ctx, cost.target).filter((permanent) => canSuspendForCost(ctx, permanent))
       : (() => {
           const self = ctx.source.permanent();
-          return self !== undefined && !self.isSuspended ? [self] : [];
+          return self !== undefined && canSuspendForCost(ctx, self) ? [self] : [];
         })();
     // "By suspending up to N ..." is payable with any non-zero number of candidates: the player
     // chooses how many and the parent action scales by what was paid. Zero candidates stays
