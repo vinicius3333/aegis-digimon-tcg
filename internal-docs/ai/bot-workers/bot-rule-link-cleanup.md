@@ -1982,3 +1982,36 @@ all actual source proofs and original-fold counts. Prepared local
 completion or nonzero original source traps, remains model-free and explicitly
 labels its raw counts as distinct from independent source closure. No primary
 model/request/GPU learning Go/checkpoint or serving change exists yet.
+
+
+## Actual800 whole0 and combined original-fold learning budget
+
+Original foreground76954 has terminated actual0. Fresh read-only observation
+finds all original processes gone and the real launch trap `0\n`; externally
+observed completionSHA is
+`e2dfeaba4dccb90088da4c4e108e906ac0ecf274b5efcdc688f7c52750c2ac32`.
+The original source-before/source-after maps are byte-identical. Unchanged full
+independent strict consumer87454 is active at this checkpoint; its success is
+not assumed from the producer closure or the raw counts below.
+
+Model-free raw inspection of all4832 retained episodes completed actual0.
+Both supervision coverage and genuine engine-teacher positives cover every
+one of eight mechanisms, both seats and both original folds. Raw-count artifact
+SHA is `157718b116cdab15e160669b854e0ed15a839d91b08675fd67a9d78f1bc98250`.
+Original training has136417 nontrivial supervised samples,3311 mechanism samples;
+mechanism share0.2 yields166383 resampled samples per epoch and1300 actual actor
+Adam steps per epoch, capped at3900 over three epochs. All800 added episodes
+remain validation-only; no outcome filtering, label/fold changes or raw copies.
+
+Actual bounded r3 imitation request and wrapper are exclusively sealed after
+real source/module/immutable-CP guards, with no primary model imports or jobs.
+RequestSHA `f662b7899b1895b9e5a23a917c9aa76a38d87e337937f776f538a59ca03815da`;
+wrapperSHA `50bedffb9a283538974b83939efee44a00137931094ffff974b596337e150c1d`.
+The request binds all three actual completions/identities and warm R4 CPP1de36..,
+with zero game authorization and no finalblind permission. Static idle/GPU,
+Node26.10/Python3.12.14, nine modules/five immutable checkpoints and disk budget
+passed. No ROOT CUDA Go, joined view, learner job or learned checkpoint exists
+at this checkpoint. Wait for the SAME actual independent consumer87454, then
+admit a separate no-game CUDA Go and recheck resources before a single launch.
+Full44 strict strength, all both-seat material mechanisms, physical custody,
+26rooms/current serving and untouched finalblind/delivery remain required.
