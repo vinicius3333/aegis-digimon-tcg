@@ -1,4 +1,5 @@
 import type { RoomSlot } from "./client";
+import { RECONNECT_GRACE_SECONDS } from "@aegis/shared";
 
 /**
  * The Colyseus reconnection token only lives in memory, so a tab reload used to
@@ -12,7 +13,7 @@ import type { RoomSlot } from "./client";
 const STORAGE_KEY = "aegis:matchSession";
 
 /** Matches AegisRoom.RECONNECT_GRACE_SECONDS; past it the server has already resolved the drop. */
-export const RECONNECT_GRACE_MS = 180_000;
+export const RECONNECT_GRACE_MS = RECONNECT_GRACE_SECONDS * 1000;
 
 export interface ReconnectSession {
   reconnectionToken: string;
