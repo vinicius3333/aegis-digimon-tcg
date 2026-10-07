@@ -188,6 +188,13 @@ export interface CombatHooks {
    * the windows first and the watcher bus second.
    */
   withPendingAttackSubTriggers?: (payload: TriggerInfo, runWindows: () => Promise<void>) => Promise<void>;
+  /**
+   * Run a combat suspension's [On Tapped] window with its `whenSuspended` watchers folded in, so
+   * a watcher resolves as an effect inside a timing window: what its body triggers (the [On Play]
+   * of a Digimon it plays) waits for the rule check after it (CR §15-4-4-3, Discord
+   * 1557356892794388541). Absent => the window and the watcher bus run one after the other.
+   */
+  withPendingSuspensionSubTriggers?: (payload: TriggerInfo, runWindows: () => Promise<void>) => Promise<void>;
   /** Capture event-time eligibility before battle losers leave, without resolving reactions. */
   prepareFrozenSubTrigger?: (
     event: SubTriggerEventName,

@@ -1218,14 +1218,14 @@ export class CombatController {
    */
   private async fireSuspended(permanent: Permanent, didSuspend: boolean): Promise<void> {
     if (!didSuspend) return;
-    await this.hooks.fireTiming(EffectTiming.OnTappedAnyone, {
-      subjectPermanentId: permanent.permanentId,
-      suspendedPermanentId: permanent.permanentId,
-    });
-    await this.hooks.fireSubTrigger?.("whenSuspended", {
-      subjectPermanentId: permanent.permanentId,
-      suspendedPermanentId: permanent.permanentId,
-    });
+    const trigger = { subjectPermanentId: permanent.permanentId, suspendedPermanentId: permanent.permanentId };
+    const fireTappedWindow = () => this.hooks.fireTiming(EffectTiming.OnTappedAnyone, trigger);
+    if (this.hooks.withPendingSuspensionSubTriggers !== undefined) {
+      await this.hooks.withPendingSuspensionSubTriggers(trigger, fireTappedWindow);
+      return;
+    }
+    await fireTappedWindow();
+    await this.hooks.fireSubTrigger?.("whenSuspended", trigger);
   }
 
   /**
