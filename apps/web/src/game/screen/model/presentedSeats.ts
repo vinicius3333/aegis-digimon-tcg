@@ -142,12 +142,18 @@ export function presentedSeats({
   const heldOpponent =
     heldDrawState?.seat === otherSeat(viewerSeat) ? drawHold?.players[otherSeat(viewerSeat)] : undefined;
   function holdHand(player: PlayerState, seat: Seat, version: number) {
-    // A patch can carry a later draw into the snapshot frozen for an earlier batch
-    // (digivolve at sv 7, its bonus draw at sv 8). That snapshot already shows the deck
-    // at the draw's resulting count, so its hold applies there too.
+    // A patch can carry a later hand arrival into the snapshot frozen for an earlier batch
+    // (digivolve at sv 7, its bonus draw at sv 8; a security reveal, then its [Security]
+    // effect adding the card to hand). That snapshot already shows the source zone at the
+    // arrival's resulting count, so its hold applies there too.
+    const sourceAlreadyLeft = (hold: HeldHandArrival) =>
+      hold.fromDeck !== false
+        ? player.deckCount <= hold.deckCountAfter
+        : hold.fromSecurity === true &&
+          hold.securityCountAfter !== undefined &&
+          player.securityCount <= hold.securityCountAfter;
     const leakedAhead = (hold: HeldHandArrival) =>
-      hold.fromDeck !== false &&
-      player.deckCount <= hold.deckCountAfter &&
+      sourceAlreadyLeft(hold) &&
       (hold.instanceId
         ? player.hand?.some((card) => card.instanceId === hold.instanceId) === true
         : player.handCount >= hold.handCountAfter);
