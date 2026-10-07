@@ -16,6 +16,10 @@ import { fireEvent } from "@testing-library/react";
  * rect and therefore can't also contain that same point (`handleDrop` picks the
  * smallest-area zone that contains the drop point, so an unambiguous non-zero
  * target rect is sufficient — the rest don't need individual stubs).
+ *
+ * Like `tap`, it ends with the click the browser sends after the gesture: a
+ * finished drag arms `swallowNextClick`, which would otherwise eat the test's
+ * next click on an action button.
  */
 export function dragOnto(sourceEl: Element, targetEl: HTMLElement): void {
   targetEl.getBoundingClientRect = () =>
@@ -33,4 +37,5 @@ export function dragOnto(sourceEl: Element, targetEl: HTMLElement): void {
   fireEvent.pointerDown(sourceEl, { clientX: 100, clientY: 100 });
   fireEvent.pointerMove(window, { clientX: 550, clientY: 550 });
   fireEvent.pointerUp(window, { clientX: 550, clientY: 550 });
+  fireEvent.click(targetEl);
 }
