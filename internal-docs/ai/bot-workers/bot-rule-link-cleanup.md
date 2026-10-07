@@ -2015,3 +2015,35 @@ at this checkpoint. Wait for the SAME actual independent consumer87454, then
 admit a separate no-game CUDA Go and recheck resources before a single launch.
 Full44 strict strength, all both-seat material mechanisms, physical custody,
 26rooms/current serving and untouched finalblind/delivery remain required.
+
+
+## Independent800 strict closure0 and actual imitation execution admitted
+
+Unchanged independent800 full strict consumer87454 terminated actual0.
+Its stdoutSHA `b76264106d2e4dfde58b15557d4aa6a9ceaa074a00af9008ed115346cecdf927`
+binds externally observed completione2dfeaba.., original whole0, all800 raw
+records and positive validation bins, plus unchanged full source/CP/pre-post
+custody. No reader or collection restart is needed. Both source consumers
+22578/50081 for160 and76954/87454 for800 are terminal0; preserve all inputs.
+
+Separate actual ROOT no-game CUDA GoSHA
+`c72b637f6fa4359a4bd4f8c50bd62c738a69daa3adcd521b1359bb112903f37b`
+is exclusively sealed after real independent closure, source/mock review,
+actual coverage/budget and fresh idle/GPU/disk/module/immutable-CP checks.
+Maximum3epochs/3900 actor Adam steps, zero new games and no finalblind permission.
+Actual single foreground30293 is attached. Fresh read-only initial observation
+binds exact whole723/start58280 -> operator742/start58285, reviewed full argv,
+requestf662b789../source5ac08f79../wrapper50bedffb../Go c72b637f.. and identitySHA
+`2ec641d36ece880361132fc76845c733df854e3f5605b98064159ee9167162a8`.
+
+At this checkpoint execution is in unchanged full actual source-data admission;
+the joined view, primary learner, optimizer updates and checkpoint are not yet
+observed. Continue SAME foreground30293 with read-only original-process/receipt
+observation; never restart for an observation timeout or idle pre-proof phase.
+A real CUDA child-start receipt and actual native epoch/Adam/tensor results,
+original whole0 and independent strict learning closure remain pending. The
+operator exits its CUDA child before full post-source consumers. Later actual
+PPO must update all12 parameters with equal positive new Adam deltas. Strict
+44-recipe strength versus each four references, both-seat material/physical
+mechanisms,26rooms/current serving and untouched finalblind/delivery are still
+required; this launch is not acceptance of a new bot.
