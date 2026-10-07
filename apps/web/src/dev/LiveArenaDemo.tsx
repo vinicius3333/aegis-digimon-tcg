@@ -164,6 +164,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação. Use App Fusion de Logimon com Craftmon ligado para Bootmon por zero. Aceite ligar Shutmon por Quando Evoluir. Aceite a redução de Tapmon: custo 3 menos 2 menos 1 é zero. Resolva a suspensão de Bootmon e a restrição de Shutmon.",
     en: "End breeding. App Fuse Logimon with linked Craftmon into Bootmon for zero. Accept linking Shutmon through When Digivolving. Accept Tapmon’s reduction: cost 3 minus 2 minus 1 is zero. Resolve Bootmon’s suspension and Shutmon’s restriction.",
   },
+  "arena-issue-5199-sistermon-option": {
+    ptBR: "Encerre a criação e use EX13-066 como Option. Jogue Sistermon Ciel do lixo; depois selecione um dos dois Digimon adversários para De-Digivolve. Resolva Arts Digivolve: recuse para observar o Ao Jogar de Ciel, ou aceite para evoluir sobre ela sem ativar esse Ao Jogar.",
+    en: "End breeding and use EX13-066 as an Option. Play trash Sistermon Ciel, then select one of the two opposing Digimon for De-Digivolve. Resolve Arts Digivolve: decline to observe Ciel's On Play, or accept to evolve over her without resolving that On Play.",
+  },
   "arena-issue-5196-kyubimon-search": {
     ptBR: "Encerre a criação e evolua Renamon para Kyubimon por 2. Após comprar pela evolução, revele 3 e escolha Sakuyamon; devolva as demais ao fundo. Ao Jogar não deve buscar. Quando Mover da criação também deve buscar.",
     en: "End breeding and digivolve Renamon into Kyubimon for 2. After the evolution draw, reveal 3 and select Sakuyamon; return the rest to the bottom. On Play must not search. Moving from breeding must also search.",
@@ -1776,6 +1780,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-5169-demidevimon-native", "GitHub #5169 · demidevimon-native"],
   ["arena-issue-5179-imperialdramon-blitz", "GitHub #5179 \u00b7 Imperialdramon ordinary-evolution Blitz"],
   ["arena-issue-5190-tapmon-bootmon", "GitHub #5190 / #5192 \u00b7 Tapmon, Bootmon and Shutmon"],
+  ["arena-issue-5199-sistermon-option", "GitHub #5199 · Sistermon Option target selection"],
   ["arena-issue-5196-kyubimon-search", "GitHub #5196 · Kyubimon search timing"],
   ["arena-issue-5194-alphamon-entry", "GitHub #5193 / #5194 \u00b7 Alphamon entry without Rush"],
   ["arena-issue-5185-nokia-warp", "GitHub #5185 \u00b7 Nokia Hand Main warp"],

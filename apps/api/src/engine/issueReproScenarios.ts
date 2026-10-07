@@ -25,6 +25,18 @@ type Layout = { players: readonly [PlayerLayout, PlayerLayout]; memory?: number 
 
 // Reduced boards for reported issues. Each runs in the ordinary turn loop.
 const ISSUE_LAYOUTS = {
+  "arena-issue-5199-sistermon-option": {
+    memory: 10,
+    players: [
+      { field: [{ card: "BT20-084" }], hand: ["EX13-066"], trash: ["BT23-077", "BT23-076"] },
+      {
+        field: [
+          { card: "BT1-080", under: ["BT1-028"] },
+          { card: "BT2-027", under: ["BT1-010"] },
+        ],
+      },
+    ],
+  },
   "arena-issue-5196-kyubimon-search": {
     memory: 10,
     players: [

@@ -124,3 +124,34 @@ it("#5196 Kyubimon searches after evolution in the live turn loop", async () => 
   ).toBe(true);
   await s.finish();
 });
+
+it("#5199 playing Sistermon from trash still requires the Option target selection before her On Play", async () => {
+  const s = await launch("arena-issue-5199-sistermon-option", false);
+  s.act({ type: "playCard", instanceId: s.hand("EX13-066").instanceId, useAs: "option" });
+  await settle(() => s.state.pendingDecision?.kind === "selectCards");
+  const play = s.state.pendingDecision!;
+  const ciel = s.state.players[0]!.trash.find((card) => card.cardId === "BT23-077")!;
+  s.act({
+    type: "respondDecision",
+    decisionId: play.decisionId,
+    response: { kind: "selectCards", instanceIds: [ciel.instanceId] },
+  });
+  await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+  const target = s.state.pendingDecision!;
+  expect(JSON.parse(target.payloadJson).candidateInstanceIds).toHaveLength(2);
+  expect(s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT23-077")).toBe(false);
+  s.act({
+    type: "respondDecision",
+    decisionId: target.decisionId,
+    response: { kind: "chooseTargets", instanceIds: [s.field("BT2-027", 1).permanentId] },
+  });
+  await settleAcrossTimers(() => s.state.pendingDecision?.kind === "selectCards");
+  const arts = s.state.pendingDecision!;
+  expect(arts.promptText).toContain("Arts Digivolve");
+  s.act({ type: "respondDecision", decisionId: arts.decisionId, response: { kind: "selectCards", instanceIds: [] } });
+  await s.idle();
+  expect(s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT23-077")).toBe(true);
+  expect(s.field("BT23-077")).toBeDefined();
+  expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-010")).toBe(false);
+  await s.finish();
+});

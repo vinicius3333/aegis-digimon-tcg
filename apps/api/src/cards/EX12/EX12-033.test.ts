@@ -11,6 +11,58 @@ import { expectOnlyOneCounterPerAttack } from "./counterOnce.testSupport.js";
 const cardId = "EX12-033";
 
 describe("EX12-033 Amphimon", () => {
+  it("GitHub #5198: retains LM-003 battle protection after evolving twice in the same turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "LM-003", as: "attacker" }],
+          hand: [
+            { card: "BT1-028", as: "cost1" },
+            { card: "BT1-028", as: "cost2" },
+            { card: "BT1-028", as: "cost3" },
+            { card: "LM-004", as: "thetismon" },
+            { card: cardId, as: "amphimon" },
+          ],
+          deck: ["BT1-028", "BT1-028", "BT1-028", "BT1-028"],
+        },
+        1: { security: ["BT12-070", "BT12-070"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
+    );
+    preferred.push(...["cost1", "cost2", "cost3"].map((alias) => s.inst(alias).instanceId));
+    s.state.memory = 10;
+    await s.ready();
+    const attackerPermanentId = s.perm("attacker").permanentId;
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId, target: { kind: "player" } })).toEqual({
+      ok: true,
+    });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isRestricted(attackerPermanentId, "beDeletedInBattle")).toBe(true);
+    for (const alias of ["thetismon", "amphimon"]) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          instanceId: s.inst(alias).instanceId,
+          permanentId: attackerPermanentId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.perm("attacker").topCard.cardId === s.inst(alias).cardId && s.state.pendingDecision === undefined,
+      );
+    }
+    expect(s.perm("attacker").isSuspended).toBe(false);
+    const trashBefore = s.state.players[0]!.trash.map((card) => card.instanceId);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId, target: { kind: "player" } })).toEqual({
+      ok: true,
+    });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === attackerPermanentId)).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(trashBefore);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
   it.each([
     { trashCount: 2, accept: true, survives: false },
     { trashCount: 3, accept: true, survives: true },

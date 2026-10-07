@@ -95,6 +95,7 @@ export interface AegisJoinOptions {
     | "arena-issue-5169-demidevimon-native"
     | "arena-issue-5179-imperialdramon-blitz"
     | "arena-issue-5190-tapmon-bootmon"
+    | "arena-issue-5199-sistermon-option"
     | "arena-issue-5196-kyubimon-search"
     | "arena-issue-5194-alphamon-entry"
     | "arena-issue-5185-nokia-warp"
