@@ -24,6 +24,60 @@ describe("famous deck selection", () => {
   beforeEach(() => vi.setSystemTime(BEFORE_EX13_RELEASE));
   afterEach(() => vi.useRealTimers());
 
+  it("GitHub #5202: offers a separate Unlimited queue for a banned-card deck", () => {
+    const onStart = vi.fn();
+    const deck = { ...DECKS[0]!, mainDeck: [...DECKS[0]!.mainDeck] };
+    deck.mainDeck.splice(0, 4, ...Array<string>(4).fill("BT5-109"));
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[deck]}
+          activeDeckId={deck.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={onStart}
+        />
+      </I18nProvider>,
+    );
+    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    const launch = screen.getByRole("button", { name: "Enter queue" });
+    expect((launch as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(launch);
+    expect(onStart).toHaveBeenCalledWith("unlimited");
+    expect(screen.getByRole("button", { name: /Quick Match/ }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.queryByRole("button", { name: /^Unlimited/ })).toBeNull();
+    expect(screen.getByRole("switch", { name: "Match timer" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    expect(screen.getByRole("switch", { name: "Unlimited" }).getAttribute("aria-checked")).toBe("false");
+    expect(screen.getByRole("button", { name: "Enter queue" })).toHaveProperty("disabled", true);
+  });
+  it("GitHub #5236: a personal beta bot deck routes random human practice through the beta room", () => {
+    const onStart = vi.fn();
+    const human = { ...DECKS[0]!, id: "human", name: "Human" };
+    const bot = { ...human, id: "personal-bot", name: "Personal beta bot", mainDeck: [...human.mainDeck] };
+    bot.mainDeck[0] = "EX13-007";
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[human, bot]}
+          activeDeckId={human.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={onStart}
+        />
+      </I18nProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
+    fireEvent.change(screen.getByLabelText("Bot's deck"), { target: { value: "mine:personal-bot" } });
+    fireEvent.click(screen.getByRole("button", { name: /Surprise me/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Play vs Bot" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    expect(onStart.mock.calls[0]?.slice(0, 4)).toEqual(["bot", undefined, "mine:personal-bot", true]);
+  });
   it("translates automatic beta confirmation into Portuguese and confirms the human queue", () => {
     localStorage.setItem("aegis:locale", "pt-BR");
     const onStart = vi.fn();

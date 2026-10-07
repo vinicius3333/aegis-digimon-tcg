@@ -5,6 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../../../i18n";
 
 const sound = vi.hoisted(() => ({
+  useCustomMusicName: vi.fn<() => string | undefined>(() => undefined),
+  setCustomMusicFile: vi.fn<(file: File) => boolean>(() => true),
+  clearCustomMusic: vi.fn<() => void>(),
   getMusicTrack: vi.fn<() => string>(() => "digitalBattle"),
   getMusicVolume: vi.fn<() => number>(() => 0.25),
   getSoundVolume: vi.fn<() => number>(() => 0.7),

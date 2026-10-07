@@ -247,7 +247,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
       const heartbeat = setInterval(stampSession, SESSION_HEARTBEAT_MS);
       stopHeartbeat = () => clearInterval(heartbeat);
 
-      room.onStateChange((next) => {
+      const acceptState = (next: GameState) => {
         stateRef.current = next;
         if (next.gameOver) {
           gameOver = true;
@@ -270,6 +270,22 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
             pendingDecisionId: pending?.decisionId,
           });
           confirmedDecisionIdRef.current = reconciled.confirmedDecisionId;
+          // A later series game can already be waiting for mulligan before this socket
+          // binds its message handler. The synchronized request contains all its inputs.
+          if (
+            !reconciled.decision &&
+            pending?.kind === "mulligan" &&
+            next.players[pending.seat]?.sessionId === room.sessionId &&
+            !answeredDecisionsRef.current.has(pending.decisionId)
+          ) {
+            confirmedDecisionIdRef.current = pending.decisionId;
+            return {
+              decisionId: pending.decisionId,
+              seat: pending.seat,
+              kind: "mulligan",
+              promptText: pending.promptText,
+            };
+          }
           return reconciled.decision;
         });
         setVersion((v) => v + 1);
@@ -278,7 +294,11 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
         // and the revisions in between would never be recorded.
         snapshotsRef.current = recordSnapshot(snapshotsRef.current, next);
         setSnapshots(snapshotsRef.current);
-      });
+      };
+      room.onStateChange(acceptState);
+      // A spectator can receive the full state before the join promise resolves.
+      // Idle matches may publish no subsequent patch, so consume that decoded state now.
+      if (room.state?.players?.length === 2) acceptState(room.state);
       room.onMessage<SequencedServerEvent>(EVENT_CHANNEL, (event) => {
         if (event.kind === "actionRejected" && event.decisionId) {
           const rejected = answeredDecisionsRef.current.get(event.decisionId);

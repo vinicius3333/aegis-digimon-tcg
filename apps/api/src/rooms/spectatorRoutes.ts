@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { matchMaker } from "colyseus";
-import { ROOM_TYPE, ROOM_TYPE_BETA, ROOM_TYPE_PRIVATE } from "@aegis/shared";
+import { ROOM_TYPE, ROOM_TYPE_UNLIMITED, ROOM_TYPE_BETA, ROOM_TYPE_PRIVATE } from "@aegis/shared";
 import { roomCodeDirectory, type AegisRoom } from "./AegisRoom.js";
 
 /** Code-only observer reservations; active matches remain locked to player matchmaking. */
@@ -14,7 +14,10 @@ export function installSpectatorRoutes(app: Express): void {
     const code = roomCode.toUpperCase();
     const roomId = await roomCodeDirectory().resolve(code);
     const [listing] = roomId ? await matchMaker.query({ roomId }) : [];
-    if (!listing || !new Set<string>([ROOM_TYPE, ROOM_TYPE_BETA, ROOM_TYPE_PRIVATE]).has(listing.name)) {
+    if (
+      !listing ||
+      !new Set<string>([ROOM_TYPE, ROOM_TYPE_UNLIMITED, ROOM_TYPE_BETA, ROOM_TYPE_PRIVATE]).has(listing.name)
+    ) {
       res.status(404).json({ error: "Match is not available to spectators" });
       return;
     }

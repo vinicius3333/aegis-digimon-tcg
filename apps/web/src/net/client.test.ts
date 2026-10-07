@@ -58,6 +58,21 @@ describe("room-scoped deployment affinity", () => {
     await expect(client.joinOrCreate({ ...OPTIONS, betaBattleMode: true })).resolves.toBe(betaRoom);
     expect(greenJoin).toHaveBeenCalledWith("aegis_beta", expect.objectContaining({ betaBattleMode: true }));
   });
+  it("issue #5202: routes Unlimited to its own queue and rejects ranked or beta combinations", async () => {
+    const unlimitedRoom = room("unlimited-room");
+    const greenJoin = vi.fn(async () => unlimitedRoom);
+    const client = router({
+      manifest: { version: 1, active: { slot: "green", revision: "new" }, draining: [] },
+      blue: clientPort(),
+      green: clientPort({ joinOrCreate: greenJoin }),
+    });
+    await expect(client.joinOrCreate({ ...OPTIONS, unlimited: true })).resolves.toBe(unlimitedRoom);
+    expect(greenJoin).toHaveBeenCalledWith("aegis_unlimited", expect.objectContaining({ unlimited: true }));
+    greenJoin.mockClear();
+    await expect(client.joinOrCreate({ ...OPTIONS, unlimited: true, ranked: true })).rejects.toThrow();
+    await expect(client.joinOrCreate({ ...OPTIONS, unlimited: true, betaBattleMode: true })).rejects.toThrow();
+    expect(greenJoin).not.toHaveBeenCalled();
+  });
   it("rejects combining beta matchmaking with ranked play", async () => {
     const greenJoin = vi.fn(async () => room("unexpected"));
     const client = router({

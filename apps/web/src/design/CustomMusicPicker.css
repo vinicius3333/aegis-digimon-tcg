@@ -1,0 +1,69 @@
+.custom-music-picker {
+  display: grid;
+  gap: var(--ds-space-3);
+  min-width: 0;
+  padding: var(--ds-space-4);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  background: color-mix(in srgb, var(--ds-rim-ready) 4%, var(--ds-sheet));
+}
+.custom-music-picker__copy {
+  display: grid;
+  gap: var(--ds-space-1);
+}
+.custom-music-picker__copy label {
+  color: var(--ds-text);
+  font-weight: 600;
+}
+.custom-music-picker__copy small {
+  color: var(--ds-text-3);
+  line-height: var(--ds-leading-body);
+}
+.custom-music-picker input {
+  width: 100%;
+  min-width: 0;
+  color: transparent;
+  font-size: 0;
+}
+.custom-music-picker input::file-selector-button {
+  min-height: var(--ds-touch-target);
+  margin-right: var(--ds-space-3);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border: 1px solid var(--ds-accent);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-accent);
+  color: var(--ds-on-accent);
+  font: 600 var(--ds-text-sm) / 1.2 var(--ds-font-body);
+  cursor: pointer;
+}
+.custom-music-picker input:focus-visible,
+.custom-music-picker__reset:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 3px;
+}
+.custom-music-picker__active {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-2) var(--ds-space-3);
+}
+.custom-music-picker__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--ds-text);
+  font: var(--ds-text-sm) / 1.4 var(--ds-font-mono);
+}
+.custom-music-picker__reset {
+  min-height: var(--ds-touch-target);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-sheet);
+  color: var(--ds-text);
+  font: inherit;
+  cursor: pointer;
+}
+.custom-music-picker [role="alert"] {
+  margin: 0;
+  color: var(--ds-text);
+}

@@ -49,6 +49,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Modal",
+          allowNoOpOptions: true,
           choose: 1,
           options: [
             [

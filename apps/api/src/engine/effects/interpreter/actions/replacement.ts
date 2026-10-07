@@ -426,6 +426,10 @@ export async function runReplacement(
               const yes = await askCtx.ask.optional(askCtx, "Prevent leaving the battle area?");
               if (!yes) return false;
             }
+            // Choosing to activate consumes the printed limit even when a
+            // nested protection later prevents full payment (issues #5215/#5216).
+            subCtx.onActivationChosen?.();
+            subCtx.oncePerTurnActivationChosen = true;
             if (action.digivolveFromTrash === true) {
               const targetId = subCtx.trigger.deletedPermanentId;
               if (targetId === undefined) return false;

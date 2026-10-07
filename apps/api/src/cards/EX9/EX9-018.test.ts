@@ -2,9 +2,18 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-018.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("EX9-018", () => {
+  it.each([false, true])("issue #5230: Hagurumon grants Blocker only while face up (%s)", async (faceUp) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX9-018", as: "host", under: [{ card: "EX12-053", faceUp }] }] },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(faceUp);
+  });
+
   it.each([
     { base: "BT6-064", cost: 1, legal: true },
     { base: "EX9-029", cost: 3, legal: true },

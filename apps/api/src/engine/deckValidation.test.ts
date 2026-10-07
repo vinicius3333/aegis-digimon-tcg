@@ -89,6 +89,27 @@ describe("validateDecklist (decklist + banlist legality)", () => {
     expect(validateDecklist(shared)).toEqual({ ok: true });
   });
 
+  it("GitHub #5202: Unlimited lifts banlist restrictions while retaining printed copy limits, sizes and card-number budgets", () => {
+    const deck = clone(RED_DECK);
+    deck.mainDeck.splice(0, 4, ...Array<string>(4).fill("BT5-109"));
+    expect(validateDecklist(deck).ok).toBe(false);
+    expect(validateDecklist(deck, { unlimited: true })).toEqual({ ok: true });
+    deck.mainDeck[4] = "BT5-109";
+    expect(validateDecklist(deck, { unlimited: true })).toMatchObject({ ok: false });
+    deck.mainDeck.pop();
+    expect(validateDecklist(deck, { unlimited: true }).ok).toBe(false);
+    const shared = clone(RED_DECK);
+    shared.mainDeck.splice(0, 5, "RB1-004", "RB1-004", "P-009", "P-009", "P-009");
+    expect(validateDecklist(shared, { unlimited: true })).toMatchObject({
+      ok: false,
+      reason: expect.stringContaining("shared card number"),
+    });
+    const pair = clone(RED_DECK);
+    pair.eggDeck = ["EX2-007"];
+    pair.mainDeck[0] = "EX7-064";
+    expect(validateDecklist(pair).ok).toBe(false);
+    expect(validateDecklist(pair, { unlimited: true })).toEqual({ ok: true });
+  });
   it("rejects a deck containing a banlisted single card (banned, count 0)", () => {
     // BT5-109 is banned under the current banlist (effective cap 0).
     const banned = clone(RED_DECK);

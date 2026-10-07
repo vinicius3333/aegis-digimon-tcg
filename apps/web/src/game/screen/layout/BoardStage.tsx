@@ -128,6 +128,9 @@ export interface BoardChrome {
 
 /** The hand strip's own inputs, which the field does not share. */
 export interface HandDockInputs {
+  reorderDropBeforeInstanceId?: string | null;
+  onMoveHandCard: (instanceId: string, direction: -1 | 1) => void;
+  onSortHand: () => void;
   effectSourceInstanceId: string | undefined;
   effectSource?: EffectActivation;
   shakeInstanceId: string | undefined;
@@ -528,6 +531,9 @@ export function BoardStage({
 
           <PlayerDock
             spectating={spectating}
+            onSortHand={handDock.onSortHand}
+            onMoveHandCard={handDock.onMoveHandCard}
+            reorderDropBeforeInstanceId={handDock.reorderDropBeforeInstanceId}
             timer={state.matchTimer ? <MatchTimer state={state} seat={viewerSeat} /> : undefined}
             playerName={viewer.displayName || t("game.you")}
             playerAvatarId={viewer.avatarId}

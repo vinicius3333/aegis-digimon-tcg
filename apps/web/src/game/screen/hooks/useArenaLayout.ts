@@ -65,6 +65,8 @@ export function useArenaLayout(): ArenaLayout {
   const tabletPortraitArena = useMediaQuery(
     "(min-width: 600px) and (max-width: 1023px) and (orientation: portrait) and (min-height: 800px)",
   );
+  const spaciousDesktop = useMediaQuery("(min-width: 1920px) and (min-height: 1100px)");
+  const largeDesktop = useMediaQuery("(min-width: 2560px) and (min-height: 1600px)");
   const compactArena = useMediaQuery("(height < 950px)");
   const tightArena = useMediaQuery("(height < 875px)");
   // Just above the phone layout, full-size hand cards leave the field too short for both battle rows.
@@ -109,7 +111,11 @@ export function useArenaLayout(): ArenaLayout {
           ? 84
           : compactArena
             ? 100
-            : 116;
+            : largeDesktop
+              ? 220
+              : spaciousDesktop
+                ? 164
+                : 116;
   const sidelineArena = useMediaQuery(SIDELINE_ARENA_QUERY);
   // Portrait battle lanes have their own height fitter. Auxiliary piles must not
   // cap their artwork at 36px just because raising shares the compact utility strip.

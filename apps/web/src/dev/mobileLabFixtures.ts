@@ -17,9 +17,9 @@ import { CARDS, handEntry } from "./boardShowcaseFixtures";
 /** Long enough that nothing in a specimen expires while it is being looked at. */
 const READING_TIME_MS = 60 * 60 * 1000;
 
-type Copy = Record<Locale, string>;
+type Copy = Record<Exclude<Locale, "it">, string>;
 
-const pick = (copy: Copy, locale: Locale) => copy[locale];
+const pick = (copy: Copy, locale: Locale) => copy[locale === "it" ? "en" : locale];
 
 const LONG_CHOICES: readonly Copy[] = [
   {

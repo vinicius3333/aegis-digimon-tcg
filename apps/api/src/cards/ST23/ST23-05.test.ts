@@ -41,7 +41,7 @@ describe("ST23-05 place-as-security + Recovery by trashing the most-security pla
     expect(s.decisions).toHaveLength(decisionCount);
   });
 
-  it("digivolving places the opp lowest-DP Digimon in security, then trashes-and-recovers (+1 deck draw)", async () => {
+  it("issue #5214: digivolving places the opposing Digimon in its owner's security, then recovers", async () => {
     const s = setupEngine(
       {
         0: {
@@ -74,7 +74,8 @@ describe("ST23-05 place-as-security + Recovery by trashing the most-security pla
 
     expect(base.topCard?.cardId).toBe(HABA);
     expect(p1.battleArea.some((p) => p.permanentId === oppPermanentId)).toBe(false);
-    expect(p0.trash.some((c) => c.instanceId === oppTopId)).toBe(true);
+    expect(p1.security.some((c) => c.instanceId === oppTopId)).toBe(true);
+    expect(p0.trash.some((c) => c.instanceId === oppTopId)).toBe(false);
     expect(deckBefore - p0.deck.length).toBe(2);
   });
 });
@@ -95,7 +96,7 @@ async function digivolveHabakirimon(securityCounts: { mine: number; opponent: nu
     },
     { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: ["opponent"] },
   );
-  const opponentTopSecurityId = s.state.players[1]!.security[0]!.instanceId;
+  const opponentTopSecurityId = s.perm("oppPerm").topCard.instanceId;
   s.state.memory = EVO_COST;
   await s.ready();
   expect(
@@ -114,14 +115,14 @@ async function digivolveHabakirimon(securityCounts: { mine: number; opponent: nu
 
 describe("ST23-05 Habakirimon — KB Q&A rulings", () => {
   it("lets the activating player choose either player when security counts are tied (Q6167)", async () => {
-    const tied = await digivolveHabakirimon({ mine: 1, opponent: 2 });
+    const tied = await digivolveHabakirimon({ mine: 3, opponent: 2 });
     expect(tied.candidates).toEqual(["mine", "opponent"]);
     expect(tied.s.state.players[1]!.security.some((card) => card.instanceId === tied.opponentTopSecurityId)).toBe(
       false,
     );
     expect(tied.s.state.players[1]!.trash.some((card) => card.instanceId === tied.opponentTopSecurityId)).toBe(true);
-    expect(tied.s.state.players[1]!.security).toHaveLength(1);
-    expect(tied.s.state.players[0]!.security).toHaveLength(3);
+    expect(tied.s.state.players[1]!.security).toHaveLength(2);
+    expect(tied.s.state.players[0]!.security).toHaveLength(4);
 
     const opponentAhead = await digivolveHabakirimon({ mine: 1, opponent: 3 });
     expect(opponentAhead.candidates).toEqual(["opponent"]);

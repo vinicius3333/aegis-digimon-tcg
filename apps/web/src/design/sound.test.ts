@@ -258,6 +258,29 @@ describe("prepared original AudioBuffer mixer", () => {
     sound.setMusicTrack("warmDrive");
     expect(ctx.sources).toHaveLength(2);
   });
+  it("GitHub #5208: plays a local file, releases replaced URLs and restores the built-in track", async () => {
+    const create = vi.fn<(file: Blob) => string>().mockReturnValueOnce("blob:first").mockReturnValueOnce("blob:second");
+    const revoke = vi.fn<(url: string) => void>();
+    vi.stubGlobal("URL", { createObjectURL: create, revokeObjectURL: revoke });
+    sound.startMusic();
+    const ctx = await ready();
+    expect(sound.setCustomMusicFile(new File(["music"], "score.mp3", { type: "audio/mpeg" }))).toBe(true);
+    await sound.prepareAudio();
+    expect(fetch).toHaveBeenCalledWith("blob:first");
+    expect(sound.getCustomMusicName()).toBe("score.mp3");
+    expect(ctx.sources.at(-1)!.loop).toBe(true);
+    expect(sound.setCustomMusicFile(new File(["music"], "second.mp3", { type: "audio/mpeg" }))).toBe(true);
+    await sound.prepareAudio();
+    expect(revoke).toHaveBeenCalledWith("blob:first");
+    expect(sound.setCustomMusicFile(new File(["bad"], "document.txt", { type: "text/plain" }))).toBe(false);
+    expect(sound.getCustomMusicName()).toBe("second.mp3");
+    sound.setMusicTrack(sound.getMusicTrack());
+    await sound.prepareAudio();
+    expect(revoke).toHaveBeenCalledWith("blob:second");
+    expect(sound.getCustomMusicName()).toBeUndefined();
+    expect(ctx.sources).toHaveLength(4);
+    expect(sound.getMusicTrack()).toBe("digitalBattle");
+  });
   it("keeps one steady score at the persisted volume and resumes phase using actual decoded duration", async () => {
     sound.startMusic();
     const ctx = await ready();

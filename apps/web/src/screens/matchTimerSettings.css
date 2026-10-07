@@ -142,7 +142,8 @@
   padding-left: var(--ds-space-5);
   border-left: 1px solid var(--ds-line);
 }
-.lobby-match-rules .lobby-timer-settings {
+.lobby-match-rules .lobby-timer-settings,
+.lobby-match-rules .lobby-unlimited-settings {
   padding-top: var(--ds-space-4);
   padding-left: 0;
   border-top: 1px solid var(--ds-line);

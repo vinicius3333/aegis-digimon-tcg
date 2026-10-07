@@ -63,3 +63,14 @@ it("keeps raising and security at the arena's size when one battle lane grows it
   expect(result.current.arenaRaisingWidth).toBe(87);
   expect(result.current.arenaSidelineBasisWidth).toBe(87);
 });
+
+it.each([
+  ["(min-width: 1920px) and (min-height: 1100px)", 164],
+  ["(min-width: 2560px) and (min-height: 1600px)", 220],
+])("#5033/#4927 grows field cards on a spacious desktop: %s", (query, width) => {
+  viewport.queries.add(SIDELINE_ARENA_QUERY);
+  viewport.queries.add(query);
+  const { result } = renderHook(useArenaLayout);
+  expect(result.current.arenaPermanentWidth).toBe(width);
+  expect(result.current.handCardWidth).toBe(112);
+});

@@ -72,7 +72,7 @@ describe("EX3-063 Imperialdramon: Dragon Mode", () => {
           trigger: "WhenDigivolving",
           actions: [
             { kind: "Delete", condition: { kind: "isDnaDigivolving" }, target: { count: "all" } },
-            { kind: "GainKeyword", condition: { kind: "isDnaDigivolving" }, keyword: { keyword: "Blitz" } },
+            { kind: "GainKeyword", keyword: { keyword: "Blitz" } },
           ],
         },
         {
@@ -187,7 +187,7 @@ describe("EX3-063 Imperialdramon: Dragon Mode", () => {
     assertNoLoudGap(s);
   });
 
-  it("ordinary digivolution costs 4 and grants neither deletion nor Blitz", async () => {
+  it("GitHub #5179: ordinary digivolution costs 4 and grants Blitz without the DNA deletion", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX3-061", as: "base" }],
@@ -215,7 +215,7 @@ describe("EX3-063 Imperialdramon: Dragon Mode", () => {
 
     expect(s.state.memory).toBe(2);
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
-    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blitz")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blitz")).toBe(true);
     expect(s.decisions).toHaveLength(0);
     assertNoLoudGap(s);
   });

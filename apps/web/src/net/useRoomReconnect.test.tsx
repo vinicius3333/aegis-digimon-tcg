@@ -31,6 +31,7 @@ vi.mock("./client", () => ({
 }));
 
 const { useRoom } = await import("./useRoom");
+const { sendIntent, flushIntents } = await import("./client");
 const { saveReconnectSession, loadReconnectSession } = await import("./reconnectSession");
 
 const STORAGE_KEY = "aegis:matchSession";
@@ -356,4 +357,81 @@ it("joins as an observer without readying a player and persists its role", async
   expect(spectate).toHaveBeenCalledWith({ roomCode: "ABCDEF", displayName: OPTIONS.displayName });
   expect(joined.room.send).not.toHaveBeenCalled();
   expect(loadReconnectSession()?.spectator).toBe(true);
+});
+
+it("GitHub #5197: displays a spectator's already decoded initial state without waiting for another patch", async () => {
+  sessionStorage.clear();
+  vi.mocked(sendIntent).mockClear();
+  const joined = fakeRoom("already-started-match");
+  const initial = { players: [{ seat: 0 }, { seat: 1 }], stateVersion: 42, memory: 3, roomCode: "ABCDEF" } as GameState;
+  Reflect.set(joined.room, "state", initial);
+  spectate.mockResolvedValue(joined.room);
+  const { result } = renderHook(() =>
+    useRoom({ ...OPTIONS, spectator: true }, { mode: "spectator", roomCode: "ABCDEF" }),
+  );
+  await waitFor(() => expect(result.current.status).toBe("connected"));
+  expect(result.current.state).toBe(initial);
+  expect(result.current.snapshots.at(-1)?.stateVersion).toBe(42);
+  expect(result.current.roomCode).toBe("ABCDEF");
+  expect(sendIntent).not.toHaveBeenCalled();
+});
+
+it("consumes an already decoded player state and sends ready only once across later patches", async () => {
+  sessionStorage.clear();
+  vi.mocked(sendIntent).mockClear();
+  const joined = fakeRoom("decoded-player");
+  const initial = { players: [{ seat: 0 }, { seat: 1 }], stateVersion: 42 } as GameState;
+  Reflect.set(joined.room, "state", initial);
+  joinOrCreate.mockResolvedValue(joined.room);
+  const { result } = renderHook(() => useRoom(OPTIONS));
+  await waitFor(() => expect(result.current.status).toBe("connected"));
+  expect(result.current.state).toBe(initial);
+  expect(sendIntent).toHaveBeenCalledTimes(1);
+  expect(sendIntent).toHaveBeenCalledWith(joined.room, { type: "ready" });
+  joined.emitState({ ...initial, stateVersion: 43 });
+  expect(result.current.snapshots.at(-1)?.stateVersion).toBe(43);
+  expect(sendIntent).toHaveBeenCalledTimes(1);
+});
+
+it("GitHub #5197: restores a spectator's decoded state on reload without sending player intents", async () => {
+  sessionStorage.clear();
+  vi.mocked(sendIntent).mockClear();
+  vi.mocked(flushIntents).mockClear();
+  saveReconnectSession({
+    reconnectionToken: "watched-match:token",
+    roomId: "watched-match",
+    slot: "legacy",
+    spectator: true,
+    savedAt: Date.now(),
+  });
+  const resumed = fakeRoom("watched-match");
+  const initial = { players: [{ seat: 0 }, { seat: 1 }], stateVersion: 42, roomCode: "ABCDEF" } as GameState;
+  Reflect.set(resumed.room, "state", initial);
+  reconnect.mockResolvedValue(resumed.room);
+  const { result } = renderHook(() =>
+    useRoom({ ...OPTIONS, spectator: true }, { mode: "spectator", roomCode: "ABCDEF" }),
+  );
+  await waitFor(() => expect(result.current.status).toBe("connected"));
+  expect(result.current.state).toBe(initial);
+  expect(loadReconnectSession()?.spectator).toBe(true);
+  expect(sendIntent).not.toHaveBeenCalled();
+  expect(flushIntents).not.toHaveBeenCalled();
+});
+
+it("GitHub #5210: restores game-two mulligan from a decoded state when its message arrived before binding", async () => {
+  sessionStorage.clear();
+  const joined = fakeRoom("game-two");
+  const initial = {
+    players: [
+      { seat: 0, sessionId: joined.room.sessionId },
+      { seat: 1, sessionId: "opponent" },
+    ],
+    stateVersion: 1,
+    pendingDecision: { decisionId: "mull-1", seat: 0, kind: "mulligan", promptText: "Redraw your opening hand?" },
+  } as GameState;
+  Reflect.set(joined.room, "state", initial);
+  joinOrCreate.mockResolvedValue(joined.room);
+  const { result } = renderHook(() => useRoom(OPTIONS));
+  await waitFor(() => expect(result.current.status).toBe("connected"));
+  expect(result.current.decision).toMatchObject(initial.pendingDecision!);
 });

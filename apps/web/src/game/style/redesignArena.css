@@ -859,3 +859,178 @@ button.game-player-line__name {
     width: 100%;
   }
 }
+
+.game-arena-board-settings__size {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-2);
+  min-height: var(--ds-touch-target);
+}
+.game-arena-board-settings__size label {
+  color: var(--ds-text);
+  font-weight: 600;
+}
+.game-arena-board-settings__size select {
+  min-height: var(--ds-touch-target);
+  max-width: 100%;
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-sheet);
+  color: var(--ds-text);
+  font: inherit;
+}
+.game-arena-board-settings__size select:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 2px;
+}
+
+.game-hand-tray {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: flex-end;
+  min-width: 0;
+  min-height: 0;
+}
+.game-hand-tray > .game-hand-scroller {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+.game-hand-tray [data-testid="hand"] {
+  flex: 1 1 auto;
+  margin-bottom: 0;
+}
+/* The one-shot action belongs to the hand tray. */
+.game-hand-sort {
+  display: flex;
+  flex: none;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-2);
+  min-width: var(--ds-touch-target);
+  min-height: var(--ds-touch-target);
+  max-width: 8rem;
+  margin: var(--ds-space-2);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-sheet);
+  color: var(--ds-text);
+  font: 600 var(--ds-text-xs) / 1.3 var(--ds-font-body);
+  cursor: pointer;
+}
+.game-hand-sort > span:first-child {
+  display: flex;
+  flex: none;
+}
+.game-hand-sort:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 2px;
+}
+.game-hand-sort:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+/* A desktop utility sits above the fan, leaving the whole tray for cards. */
+@media (min-width: 961px) {
+  .game-hand-sort {
+    min-height: 36px;
+    gap: var(--ds-space-1);
+    padding: var(--ds-space-1) var(--ds-space-3);
+    border-color: color-mix(in srgb, var(--arena-side, var(--ds-accent)) 30%, transparent);
+    border-radius: var(--ds-radius-pill);
+    background: var(--arena-zone-fill, var(--ds-sheet));
+    color: var(--arena-fg, var(--ds-text));
+    backdrop-filter: blur(4px);
+  }
+  .game-hand-sort svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 1.75;
+  }
+  .game-hand-sort:hover:not(:disabled),
+  .game-hand-sort:active:not(:disabled) {
+    border-color: var(--arena-side, var(--ds-accent));
+    background: color-mix(in srgb, var(--arena-side, var(--ds-accent)) 12%, var(--ds-sheet));
+  }
+}
+@media (min-width: 1024px) and (min-height: 760px) {
+  .game-hand-tray {
+    position: relative;
+  }
+  .game-hand-sort {
+    position: absolute;
+    z-index: 5;
+    right: var(--ds-space-2);
+    bottom: calc(100% + var(--ds-space-2));
+    margin: 0;
+  }
+}
+@media (max-width: 960px) {
+  .game-hand-sort {
+    width: var(--ds-touch-target);
+    padding: var(--ds-space-2);
+    margin: var(--ds-space-1);
+    border-color: transparent;
+    background: transparent;
+    color: var(--ds-text-2);
+  }
+  .game-hand-sort svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 1.75;
+  }
+  .game-hand-sort:active {
+    background: color-mix(in srgb, currentColor 10%, transparent);
+  }
+  .game-hand-sort__label {
+    display: none;
+  }
+}
+
+/* Portrait puts the hand action in the existing player-name band. */
+@media (max-width: 960px) and (orientation: portrait) {
+  .game-hand-sort {
+    position: absolute;
+    z-index: 5;
+    top: 0;
+    right: var(--ds-space-3);
+    margin: 0;
+    color: var(--ds-on-ink);
+  }
+  .aegis-arena .game-board .game-player-dock:has(.game-hand-sort) > .game-player-line {
+    top: 0;
+    right: 68px;
+    height: var(--ds-touch-target);
+  }
+  .aegis-arena .game-board .game-player-dock:has(.game-hand-sort) > .game-arena-counters[data-side="you"] {
+    right: 68px;
+  }
+  .aegis-arena
+    .game-board
+    .game-player-dock:has(.game-hand-sort):has(> .game-arena-counters[data-side="you"])
+    > .game-player-line {
+    right: 200px;
+  }
+}
+
+.game-hand-reorder-marker {
+  position: absolute;
+  z-index: 8;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: var(--ds-radius-pill);
+  background: var(--ds-accent);
+  pointer-events: none;
+}
+.game-hand-reorder-marker[data-edge="before"] {
+  left: -4px;
+}
+.game-hand-reorder-marker[data-edge="after"] {
+  right: -4px;
+}

@@ -818,6 +818,40 @@ describe("BT24-040 Venusmon — KB Q&A rulings", () => {
 });
 
 describe("GitHub #4930 — Venusmon opponent cost", () => {
+  it("issues #5215/#5216: Guard preventing the chosen cost still consumes Venusmon's activation", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-040", as: "venus", under: ["BT24-033"] },
+            { card: "BT24-034", as: "first" },
+            { card: "BT24-034", as: "second" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "EX13-063", as: "guard" },
+            { card: "BT1-009", as: "redSource", under: ["BT1-001"] },
+            { card: "EX13-059", as: "guardCost1" },
+            { card: "EX9-018", as: "guardCost2" },
+          ],
+          hand: [{ card: "BT6-095", as: "blaze" }],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("guard").permanentId, s.perm("guardCost1").permanentId, s.perm("guardCost2").permanentId);
+    s.state.turnSeat = 1;
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("blaze").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.events.some((event) => event.kind === "deletionPrevented" && event.keyword === "Guard")).toBe(true);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT24-040")).toHaveLength(1);
+  });
+
   it("places an opponent's source-free Digimon into its owner's bottom security to protect TS", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

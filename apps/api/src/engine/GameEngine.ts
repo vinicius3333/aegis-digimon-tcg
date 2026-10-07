@@ -419,6 +419,7 @@ export class GameEngine {
           const inheritsFromStack = hostKinds.includes(CardKind.Digimon) || hostKinds.includes(CardKind.DigiEgg);
           if (!inheritsFromStack) return [...keywords];
           for (const card of permanent.stack) {
+            if (card.faceUp === false) continue;
             for (const keyword of printedKeywordsOf(lookupDefinition(card.cardId)?.inheritedEffectText)) {
               keywords.add(keyword);
             }

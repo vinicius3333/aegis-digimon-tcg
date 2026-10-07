@@ -18,6 +18,19 @@ import { settingsPtBR } from "./redesign/settings.pt-BR";
 import { shellPtBR } from "./redesign/shell.pt-BR";
 
 export const ptBR: Record<keyof typeof en, string> = {
+  "game.dragIntent.reorder": "REORDENAR MÃO",
+  "settings.sortHand": "Ordenar mão",
+  "settings.sortHandDesc":
+    "Ordena a mão atual por nível de Digimon, depois Tamers e Options. Novas compras ficam no fim até você ordenar novamente.",
+  "settings.customMusic": "Arquivo de música local",
+  "settings.customMusicDesc":
+    "Escolha um arquivo de áudio de até 50 MB. Ele fica no seu dispositivo nesta sessão; selecione novamente após recarregar.",
+  "settings.customMusicClear": "Usar música do jogo",
+  "settings.customMusicError": "Escolha um arquivo de áudio não vazio de até 50 MB.",
+  "lobby.unlimited": "Unlimited",
+  "lobby.unlimitedDesc":
+    "Jogue em uma fila separada sem cartas banidas, restritas ou pares proibidos. Os limites de cópias impressos continuam valendo.",
+  "lobby.unlimitedMeta": "Sem banlist · Não ranqueado",
   "spectator.code": "Código da partida",
   "spectator.share": "Compartilhar partida",
   "spectator.link": "Link",

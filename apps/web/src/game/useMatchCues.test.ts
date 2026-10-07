@@ -241,6 +241,37 @@ const anchors: MatchCueAnchors = {
   oppSecurity: { current: null },
 };
 
+it("GitHub #5197: reconnects a spectator over a snapshot with both private hands withheld", () => {
+  const state = {
+    stateVersion: 42,
+    phase: Phase.Breeding,
+    turnSeat: 0,
+    players: [0, 1].map((seat) => ({
+      seat,
+      battleArea: [],
+      trash: [],
+      delayZone: [],
+      handCount: 5,
+      deckCount: 40,
+      securityCount: 5,
+    })),
+  } as unknown as GameState;
+  const { result, rerender } = renderHook(() =>
+    useMatchCues({
+      batches: [],
+      state,
+      snapshots: [{ stateVersion: 42, state: snapshotGameState(state) }],
+      viewerSeat: 0,
+      mulliganOpen: false,
+      anchors,
+      onActionRejected() {},
+    }),
+  );
+  rerender();
+  expect(result.current.heldHandArrivals.size).toBe(0);
+  expect(result.current.drawFlights).toHaveLength(0);
+});
+
 it("flies a face-down card from the deck to its Tamer and clears it after landing", async () => {
   const board = document.createElement("div");
   const deck = document.createElement("div");

@@ -25,6 +25,127 @@ type Layout = { players: readonly [PlayerLayout, PlayerLayout]; memory?: number 
 
 // Reduced boards for reported issues. Each runs in the ordinary turn loop.
 const ISSUE_LAYOUTS = {
+  "arena-issue-5232-icemon-egg": { memory: 10, players: [{ hand: ["P-215"], trash: ["EX8-005"] }, {}] },
+  "arena-issue-5214-habakirimon-security": {
+    memory: 10,
+    players: [{ field: [{ card: "BT1-058" }], hand: ["ST23-05"] }, { field: [{ card: "BT1-009" }] }],
+  },
+  "arena-issue-5204-dorimon-cost": {
+    memory: 2,
+    players: [{ field: [{ card: "BT9-016", under: ["EX13-006"] }] }, { security: ["BT1-009"] }],
+  },
+  "arena-issue-5219-lucemon-breeding": {
+    memory: 10,
+    players: [
+      {
+        breeding: { card: "BT1-006" },
+        field: [{ card: "BT10-071" }],
+        hand: ["BT18-100", "BT1-009"],
+        trash: ["EX10-013"],
+      },
+      {},
+    ],
+  },
+  "arena-issue-5217-metalgarurumon-choice": {
+    memory: 10,
+    players: [{ field: [{ card: "BT1-038" }], hand: ["BT22-026"] }, { field: [{ card: "BT1-009" }] }],
+  },
+  "arena-issue-5230-hidden-inherited": {
+    memory: 10,
+    players: [
+      { field: [{ card: "EX9-018", under: ["EX12-053"], faceDownUnder: true }] },
+      { field: [{ card: "BT1-009" }] },
+    ],
+  },
+  "arena-issue-5218-landramon-discard": {
+    memory: 10,
+    players: [{ field: [{ card: "P-167" }], hand: ["EX10-032"] }, { field: [{ card: "BT1-025", under: ["BT1-009"] }] }],
+  },
+  "arena-issue-5235-merciful-jupiter-order": {
+    memory: 20,
+    players: [
+      {
+        hand: ["EX13-077"],
+        field: [
+          { card: "AD1-001" },
+          { card: "AD1-010" },
+          { card: "AD1-014" },
+          { card: "AD1-025" },
+          { card: "ST20-05" },
+          { card: "ST20-07" },
+        ],
+      },
+      { field: [{ card: "BT26-103", under: ["EX13-030"] }], security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-issue-5215-venusmon-guard-cost": {
+    memory: 20,
+    players: [
+      {
+        hand: ["BT6-095"],
+        field: [
+          { card: "EX13-063" },
+          { card: "BT1-009", under: ["BT1-001"] },
+          { card: "EX13-059" },
+          { card: "EX9-018" },
+        ],
+        security: ["BT1-009"],
+      },
+      { field: [{ card: "BT24-040", under: ["BT24-033"] }, { card: "BT24-034" }, { card: "BT24-034" }] },
+    ],
+  },
+
+  "arena-issue-5199-sistermon-option": {
+    memory: 10,
+    players: [
+      { field: [{ card: "BT20-084" }], hand: ["EX13-066"], trash: ["BT23-077", "BT23-076"] },
+      {
+        field: [
+          { card: "BT1-080", under: ["BT1-028"] },
+          { card: "BT2-027", under: ["BT1-010"] },
+        ],
+      },
+    ],
+  },
+  "arena-issue-5196-kyubimon-search": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "ST22-02" }],
+        hand: ["ST22-03"],
+        deck: ["BT1-009", "BT1-010", "ST22-05", "BT1-011", "BT1-013"],
+      },
+      {},
+    ],
+  },
+  "arena-issue-5179-imperialdramon-blitz": {
+    memory: 2,
+    players: [
+      { field: [{ card: "BT20-016" }], hand: ["EX3-063"] },
+      { field: [{ card: "BT1-028" }, { card: "BT1-029" }], security: ["BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-issue-5190-tapmon-bootmon": {
+    memory: 0,
+    players: [
+      { field: [{ card: "BT25-052", under: ["BT25-004"], linked: ["BT25-036"] }], hand: ["BT25-056", "BT25-072"] },
+      { field: [{ card: "BT1-028" }, { card: "BT1-088" }] },
+    ],
+  },
+  "arena-issue-5194-alphamon-entry": {
+    memory: 10,
+    players: [
+      { hand: ["EX13-060"] },
+      { field: [{ card: "BT1-080" }, { card: "BT1-028" }], security: ["BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-issue-5185-nokia-warp": {
+    players: [
+      { field: [{ card: "EX4-038" }, { card: "EX4-039" }, { card: "BT22-084" }], hand: ["BT22-013", "BT22-026"] },
+      { field: [{ card: "BT1-014" }] },
+    ],
+  },
+
   "arena-issue-5167-assembly-digimon": {
     memory: 10,
     players: [{ hand: ["BT26-073"], trash: ["BT26-001", "BT26-069"] }, {}],

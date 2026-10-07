@@ -148,7 +148,7 @@ describe("EX13-006 Dorimon", () => {
     expect(s.state.memory).toBe(1);
   });
 
-  it("Discord 1557220124367396915: declining the By cost leaves memory unpaid (CR 15-7)", async () => {
+  it("GitHub #5204 / Discord 1557220124367396915: declining the By cost preserves memory and suspension", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-063", as: "host", under: ["EX13-006"], suspended: true }] },

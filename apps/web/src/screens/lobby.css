@@ -623,3 +623,30 @@ button.lobby-active-strip__jump {
     flex-basis: 100%;
   }
 }
+
+.lobby-bot-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-fill);
+}
+.lobby-bot-preview__copy {
+  display: grid;
+  min-width: 0;
+  gap: var(--ds-space-1);
+}
+.lobby-bot-preview__copy strong {
+  overflow-wrap: anywhere;
+  color: var(--ds-text);
+}
+.lobby-bot-preview__copy small {
+  color: var(--ds-text-3);
+}
+@media (min-width: 769px) and (max-width: 1024px) {
+  .lobby-modes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

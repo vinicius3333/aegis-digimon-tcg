@@ -290,7 +290,7 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
       engine.modifiers.addDpModifier(engine.state, permanentId, delta, EffectDuration.UntilEndAttack),
     addSecurityAttack: (permanentId) =>
       engine.continuous.addKeywordGrant(permanentId, "SecurityAttack", EffectDuration.UntilEndAttack, 1),
-    trashTopSecurityForBarrier: (seat) => payBarrierSecurityCost(engine, seat),
+    trashTopSecurityForBarrier: (seat, isAttackBattle) => payBarrierSecurityCost(engine, seat, isAttackBattle),
     sweepEndOfAttack: () => sweepCombatDurations(engine),
     deferEndOfAttack: (trigger) => {
       if (engine.activeWindowToken === undefined) return undefined;

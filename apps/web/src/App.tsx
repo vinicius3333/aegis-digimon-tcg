@@ -407,6 +407,10 @@ export function AegisClient({
   const collectionSize = useMemo(() => activeCollectionCards().length, []);
   const identityColor: ColorName = colorKey(player.color);
 
+  const customBotDeck =
+    startMode === "bot" && botDeckId?.startsWith("mine:")
+      ? decks.find((deck) => deck.id === botDeckId.slice(5))
+      : undefined;
   const joinOptions = useMemo<AegisJoinOptions>(
     () => ({
       ...timerOptions,
@@ -415,6 +419,14 @@ export function AegisClient({
       avatarId: effectivePlayer.avatarId ?? undefined,
       deckId: matchDeck?.id,
       deckName: matchDeck?.name,
+      botDeck: customBotDeck
+        ? {
+            mainDeck: customBotDeck.mainDeck,
+            eggDeck: customBotDeck.eggDeck,
+            mainDeckArts: customBotDeck.mainDeckArts,
+            eggDeckArts: customBotDeck.eggDeckArts,
+          }
+        : undefined,
       deck: {
         mainDeck: matchDeck?.mainDeck ?? [],
         eggDeck: matchDeck?.eggDeck ?? [],
@@ -422,7 +434,7 @@ export function AegisClient({
         eggDeckArts: matchDeck?.eggDeckArts,
       },
     }),
-    [effectivePlayer.name, effectivePlayer.avatarId, matchDeck, timerOptions, bestOf],
+    [effectivePlayer.name, effectivePlayer.avatarId, matchDeck, timerOptions, bestOf, customBotDeck],
   );
 
   const showNav = NAV_SCREENS.includes(screen);

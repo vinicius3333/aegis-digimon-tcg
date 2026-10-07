@@ -37,7 +37,7 @@ export function buildInstanceIndex(state: GameState, viewerSeat: Seat): Map<stri
     // HIDDEN_ZONE_VIEW_TAG), so there is nothing to index. A deck card whose identity an
     // effect legitimately reveals arrives in the decision payload instead, which
     // `decisionVisibleCards` already prefers over this index.
-    if (seat === viewerSeat) player.hand.forEach(add);
+    if (seat === viewerSeat) player.hand?.forEach(add);
   });
   return index;
 }
@@ -88,7 +88,7 @@ export function buildInstanceZoneIndex(
     player.trash.forEach((ci) => add(ci, mine ? "trash" : "opponentTrash"));
     player.delayZone?.forEach((ci) => add(ci, "delay"));
     player.security?.forEach((ci) => add(ci, "security"));
-    if (mine) player.hand.forEach((ci) => add(ci, "hand"));
+    if (mine) player.hand?.forEach((ci) => add(ci, "hand"));
   });
   return zones;
 }

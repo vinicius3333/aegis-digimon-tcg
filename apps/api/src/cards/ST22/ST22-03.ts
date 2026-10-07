@@ -33,7 +33,7 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "OnPlay",
+      trigger: "WhenDigivolving",
       actions: [
         {
           kind: "RevealAdd",

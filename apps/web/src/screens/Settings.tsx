@@ -1,3 +1,4 @@
+import { CustomMusicPicker } from "../design/CustomMusicPicker";
 import { useState } from "react";
 import { Avatar, Button, Eyebrow, Field, Switch, type PlayerIdentity } from "../design/primitives";
 import { Panel, SectionHeading } from "../design/surfaces";
@@ -293,6 +294,7 @@ export function Settings({
                 className="settings-volume__control"
               />
             </div>
+            <CustomMusicPicker />
             <div className="settings-row">
               <div className="settings-row__copy">
                 <strong id="settings-music-track-label">{t("settings.musicTrack")}</strong>

@@ -312,6 +312,61 @@ describe("EX13-072 Kota Domoto", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it.each(["P-204", "EX5-070"])("GitHub #5057: fully resolves %s used during a Chronicle attack", async (option) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "kota" },
+            { card: "BT20-051", as: "attacker" },
+          ],
+          hand: [
+            { card: option, as: "option" },
+            { card: option === "P-204" ? "BT20-048" : "BT9-064", as: "material" },
+          ],
+          deck: ["BT1-009", "BT1-013", "BT1-009", "BT1-013"],
+        },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.hand.some((c) => c.cardId === option));
+    await advance(s.engine).finishAttack();
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("kota").isSuspended).toBe(true);
+    const outcome =
+      option === "P-204"
+        ? {
+            optionInBattle: s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === option),
+            materialInTrash: s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("material").instanceId),
+            handCount: s.state.players[0]!.hand.length,
+            memory: s.state.memory,
+          }
+        : {
+            evolvedCardId: s.perm("attacker").topCard.cardId,
+            sourceCardId: s.perm("attacker").stack[0]!.cardId,
+          };
+    expect(outcome).toEqual(
+      option === "P-204"
+        ? {
+            optionInBattle: true,
+            materialInTrash: true,
+            handCount: 2,
+            memory: 6,
+          }
+        : { evolvedCardId: "BT9-064", sourceCardId: option },
+    );
+  });
+
   it("uses the exactly-named [X Antibody] Option through the name branch", async () => {
     const s = setupEngine(
       {

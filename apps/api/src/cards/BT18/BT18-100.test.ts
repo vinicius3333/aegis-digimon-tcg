@@ -5,6 +5,28 @@ import "../index.js";
 import { compiled } from "./BT18-100.js";
 
 describe("BT18-100 Gospel of the Fallen Angel", () => {
+  it("issue #5219: Lucemon's breeding When Digivolving triggers after Gospel evolves from trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT1-006", as: "base" },
+          battleArea: ["BT10-071"],
+          hand: [{ card: "BT18-100", as: "option" }],
+          trash: [{ card: "EX10-013", as: "lucemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX10-013")).toBe(true);
+  });
+
   it("covers the breeding digivolution, Delay, and Security placement clauses", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);

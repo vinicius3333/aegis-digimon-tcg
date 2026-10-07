@@ -623,7 +623,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
         transientCandidates,
       ),
     fireSubTrigger: (event, payload, sourceScope) => engine.fireSubTrigger(event, payload, sourceScope),
-    trashTopSecurityForBarrier: (seat) => payBarrierSecurityCost(engine, seat),
+    trashTopSecurityForBarrier: (seat) => payBarrierSecurityCost(engine, seat, false),
     recomputeContinuousEffects: () => engine.recomputeContinuousEffects(),
     recomputeContinuousDerivedEffects: () => engine.recomputeContinuousDerivedEffects(),
     forgetCardUses: (instanceIds) => {

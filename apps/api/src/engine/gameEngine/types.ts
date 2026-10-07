@@ -42,6 +42,7 @@ export interface SeatJoinOptions {
    * the same value — {@link AegisRoom} enforces that before either seat is staged.
    */
   betaBattleMode?: boolean;
+  unlimited?: boolean;
 }
 
 export type AppFusionValidation =

@@ -48,3 +48,14 @@ describe("match settings board section", () => {
     expect(screen.queryByRole("group", { name: "You" })).toBeNull();
   });
 });
+
+it("keeps hand sorting out of match settings", () => {
+  localStorage.setItem("aegis.locale", "en");
+  render(
+    <I18nProvider>
+      <ArenaLookDialog deckColors={{}} onClose={() => undefined} />
+    </I18nProvider>,
+  );
+  expect(screen.queryByRole("button", { name: "Sort hand" })).toBeNull();
+  expect(screen.queryByRole("switch", { name: "Sort hand" })).toBeNull();
+});

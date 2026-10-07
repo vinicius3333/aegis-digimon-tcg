@@ -156,6 +156,66 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue Arukenimon e delete DemiDevimon para reduzir o custo. Resolva o efeito nativo de DemiDevimon: coloque-o sob Arukenimon e evolua para MaloMyotismon. Seu efeito herdado não pode ativar retroativamente; Agumon adversário e sua carta na mão permanecem.",
     en: "Play Arukenimon and delete DemiDevimon to reduce its cost. Resolve DemiDevimon’s native effect: place it under Arukenimon and evolve into MaloMyotismon. Its inherited effect cannot activate retroactively; the opposing Agumon and your hand card remain.",
   },
+  "arena-issue-5179-imperialdramon-blitz": {
+    ptBR: "Encerre a criação. Evolua Paildramon para Imperialdramon EX3-063 por 4, passando a memória ao oponente. Aceite Blitz e ataque a segurança. Os dois Digimon adversários devem permanecer: a remoção exige DNA, Blitz não.",
+    en: "End breeding. Digivolve Paildramon into EX3-063 Imperialdramon for 4, passing memory. Accept Blitz and attack security. Both opposing Digimon remain: deletion requires DNA, Blitz does not.",
+  },
+  "arena-issue-5190-tapmon-bootmon": {
+    ptBR: "Encerre a criação. Use App Fusion de Logimon com Craftmon ligado para Bootmon por zero. Aceite ligar Shutmon por Quando Evoluir. Aceite a redução de Tapmon: custo 3 menos 2 menos 1 é zero. Resolva a suspensão de Bootmon e a restrição de Shutmon.",
+    en: "End breeding. App Fuse Logimon with linked Craftmon into Bootmon for zero. Accept linking Shutmon through When Digivolving. Accept Tapmon’s reduction: cost 3 minus 2 minus 1 is zero. Resolve Bootmon’s suspension and Shutmon’s restriction.",
+  },
+  "arena-issue-5232-icemon-egg": {
+    en: "Play Icemon and accept placing Tumblemon from trash. The level 2 Rock DigiEgg becomes a digivolution card.",
+    ptBR: "Jogue Icemon e aceite colocar Tumblemon do lixo. O DigiEgg de nível 2 com Rock deve entrar nas fontes.",
+  },
+  "arena-issue-5214-habakirimon-security": {
+    en: "Digivolve Habakirimon and put Agumon in security. It belongs to the opponent security stack, not yours.",
+    ptBR: "Evolua Habakirimon e coloque Agumon na segurança. Ele deve ir à segurança adversária.",
+  },
+  "arena-issue-5204-dorimon-cost": {
+    en: "Attack security, end the turn and decline Dorimon payment. Passing sets memory to -3; it stays there, the Digimon remains suspended. Accepting payment costs 1.",
+    ptBR: "Ataque a segurança, encerre o turno e recuse pagar Dorimon. A memória ao passar permanece em -3 e o Digimon suspenso. Aceitar custa 1 memória.",
+  },
+  "arena-issue-5219-lucemon-breeding": {
+    en: "Use Gospel and evolve the Cupimon in breeding into trash EX10-013. Accept its Breeding When Digivolving effect to move it to battle.",
+    ptBR: "Use Gospel e evolua Cupimon para EX10-013 do lixo. Aceite Quando Evoluir na criação para movê-lo à batalha.",
+  },
+  "arena-issue-5217-metalgarurumon-choice": {
+    en: "Digivolve MetalGarurumon. Even without Agumon, both bullets remain selectable. Choosing evolution does nothing and leaves the opposing Monodramon alive.",
+    ptBR: "Evolua MetalGarurumon. Mesmo sem Agumon, as duas opções devem aparecer. Escolher evolução não remove o Monodramon adversário.",
+  },
+  "arena-issue-5230-hidden-inherited": {
+    en: "MetalMamemon has a face-down Hagurumon source. It must not gain the inherited Blocker keyword.",
+    ptBR: "MetalMamemon possui Hagurumon virado para baixo nas fontes. O herdado Blocker não pode estar ativo.",
+  },
+  "arena-issue-5218-landramon-discard": {
+    en: "Digivolve EX10-032, trash Landramon as its cost and select your Digimon for Collision. After that effect resolves, Landramon De-Digivolves the opponent.",
+    ptBR: "Evolua EX10-032, pague descartando Landramon e escolha seu Digimon para Collision. Após resolver, Landramon aplica De-Digivolve ao adversário.",
+  },
+  "arena-issue-5235-merciful-jupiter-order": {
+    en: "Play Merciful Mode, decline its attack, and choose Battle three times against Jupiter. Red accepts Barrier each time. Jupiter DP reduction waits for all three battles.",
+    ptBR: "Jogue Merciful Mode, recuse o ataque e escolha Battle três vezes contra Jupiter. Vermelho aceita Barrier a cada vez. A redução de DP aguarda os três combates.",
+  },
+  "arena-issue-5215-venusmon-guard-cost": {
+    en: "Blue uses Happy Bullet Showering. Red accepts Venusmon protection and picks Blue Guard Mamemon for the cost. Blue prevents that move with Guard. Venusmon must not activate again for the other deleted Digimon.",
+    ptBR: "Azul usa Happy Bullet Showering. Vermelho aceita Venusmon e escolhe Mamemon para pagar. Azul usa Guard para impedir. Venusmon não pode ativar novamente para o outro Digimon.",
+  },
+  "arena-issue-5199-sistermon-option": {
+    ptBR: "Encerre a criação e use EX13-066 como Option. Jogue Sistermon Ciel do lixo; depois selecione um dos dois Digimon adversários para De-Digivolve. Resolva Arts Digivolve: recuse para observar o Ao Jogar de Ciel, ou aceite para evoluir sobre ela sem ativar esse Ao Jogar.",
+    en: "End breeding and use EX13-066 as an Option. Play trash Sistermon Ciel, then select one of the two opposing Digimon for De-Digivolve. Resolve Arts Digivolve: decline to observe Ciel's On Play, or accept to evolve over her without resolving that On Play.",
+  },
+  "arena-issue-5196-kyubimon-search": {
+    ptBR: "Encerre a criação e evolua Renamon para Kyubimon por 2. Após comprar pela evolução, revele 3 e escolha Sakuyamon; devolva as demais ao fundo. Ao Jogar não deve buscar. Quando Mover da criação também deve buscar.",
+    en: "End breeding and digivolve Renamon into Kyubimon for 2. After the evolution draw, reveal 3 and select Sakuyamon; return the rest to the bottom. On Play must not search. Moving from breeding must also search.",
+  },
+  "arena-issue-5194-alphamon-entry": {
+    ptBR: "Encerre a criação. Jogue Alphamon sem Assembly. Aceite seu efeito: Alphamon não pode atacar no turno em que entrou sem Rush, mas ainda deve oferecer a reativação de Quando Evoluir. Aceite e reduza o DP adversário em 8000. A resolução deve terminar normalmente.",
+    en: "End breeding. Play Alphamon without Assembly. Accept its effect: the newly played Alphamon cannot attack without Rush, but must still offer to reactivate When Digivolving. Accept and reduce opposing DP by 8000. Resolution must finish normally.",
+  },
+  "arena-issue-5185-nokia-warp": {
+    ptBR: "Encerre a criação. Selecione WarGreymon na mão e use seu efeito Principal da mão para evoluir Agumon: custo impresso 6, reduzido para 5 por Nokia. Não use a evolução normal. Repita com MetalGarurumon e Gabumon, ou reinicie o cenário.",
+    en: "End breeding. Select WarGreymon in hand and use its Hand Main effect to evolve Agumon: printed cost 6, reduced to 5 by Nokia. Use the hand effect action. Repeat with MetalGarurumon and Gabumon, or reset the scenario.",
+  },
   "arena-issue-5170-kaguyamon-end-turn": {
     ptBR: "Encerre o turno e aceite Kaguyamon EX9-033. Escolha Sistermon Blanc ou Ciel no lixo; ambas são Puppet de nível 4 ou menor e podem entrar sem custo.",
     en: "End your turn and accept EX9-033 Kaguyamon. Choose trash Sistermon Blanc or Ciel; both are level 4 or lower Puppets and can enter for free.",
@@ -1778,6 +1838,21 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-5127-opponent-survival", "GitHub #5127 · Opposing survival cost"],
   ["arena-issue-5168-alter-s-simultaneous", "GitHub #5168 · alter-s-simultaneous"],
   ["arena-issue-5169-demidevimon-native", "GitHub #5169 · demidevimon-native"],
+  ["arena-issue-5179-imperialdramon-blitz", "GitHub #5179 \u00b7 Imperialdramon ordinary-evolution Blitz"],
+  ["arena-issue-5190-tapmon-bootmon", "GitHub #5190 / #5192 \u00b7 Tapmon, Bootmon and Shutmon"],
+  ["arena-issue-5232-icemon-egg", "GitHub #5232 \u00b7 icemon-egg"],
+  ["arena-issue-5214-habakirimon-security", "GitHub #5214 \u00b7 habakirimon-security"],
+  ["arena-issue-5204-dorimon-cost", "GitHub #5204 \u00b7 dorimon-cost"],
+  ["arena-issue-5219-lucemon-breeding", "GitHub #5219 \u00b7 lucemon-breeding"],
+  ["arena-issue-5217-metalgarurumon-choice", "GitHub #5217 \u00b7 metalgarurumon-choice"],
+  ["arena-issue-5230-hidden-inherited", "GitHub #5230 \u00b7 hidden-inherited"],
+  ["arena-issue-5218-landramon-discard", "GitHub #5218 \u00b7 landramon-discard"],
+  ["arena-issue-5235-merciful-jupiter-order", "GitHub #5235 \u00b7 merciful-jupiter-order"],
+  ["arena-issue-5215-venusmon-guard-cost", "GitHub #5215 \u00b7 venusmon-guard-cost"],
+  ["arena-issue-5199-sistermon-option", "GitHub #5199 · Sistermon Option target selection"],
+  ["arena-issue-5196-kyubimon-search", "GitHub #5196 · Kyubimon search timing"],
+  ["arena-issue-5194-alphamon-entry", "GitHub #5193 / #5194 \u00b7 Alphamon entry without Rush"],
+  ["arena-issue-5185-nokia-warp", "GitHub #5185 \u00b7 Nokia Hand Main warp"],
   ["arena-issue-5170-kaguyamon-end-turn", "GitHub #5170 · kaguyamon-end-turn"],
   ["arena-issue-5170-kaguyamon-on-play", "GitHub #5170 · kaguyamon-on-play"],
   ["arena-issue-5170-arisa-overclock", "GitHub #5170 · arisa-overclock"],

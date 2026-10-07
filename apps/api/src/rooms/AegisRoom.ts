@@ -1,3 +1,4 @@
+import { validateDecklist } from "../engine/deckValidation.js";
 import { log, logError, withMatchLog } from "../logger.js";
 import { CloseCode, Room, Client, ServerError, matchMaker, type Delayed } from "colyseus";
 import { canCreateRoom } from "../deployment/admission.js";
@@ -72,6 +73,7 @@ interface RoomCreateOptions extends Partial<SeriesContinuationOptions> {
   botRoom?: boolean;
   rankedRoom?: boolean;
   betaBattleRoom?: boolean;
+  unlimitedRoom?: boolean;
   tournamentRoom?: boolean;
   devScenario?: unknown;
 }
@@ -144,6 +146,7 @@ function combatWindowEvent(window: CombatWindow): ServerEvent | undefined {
  */
 export interface AegisJoinOptions extends SeatJoinOptions {
   spectator?: boolean;
+  botDeck?: SeatJoinOptions["deck"];
   matchTimer?: boolean;
   timerStartSeconds?: number;
   timerRefillSeconds?: number;
@@ -258,6 +261,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
   private isPrivate = false;
   private isRankedRoom = false;
   private isBetaBattleRoom = false;
+  private isUnlimitedRoom = false;
+  private customBotDeck?: SeatJoinOptions["deck"];
   private isTournamentRoom = false;
   private tournamentMatchId: string | undefined;
   private tournamentGameId: string | undefined;
@@ -353,6 +358,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
     // A private room allows beta cards without the client asking for them, so only the
     // public room types have to agree with the joiner's beta flag.
     if (!this.isPrivate && (options.betaBattleMode === true) !== this.isBetaBattleRoom) return false;
+    if ((options.unlimited === true) !== this.isUnlimitedRoom) return false;
+    if (options.botDeck && (!this.isBotRoom || !this.validCustomBotDeck(options.botDeck))) return false;
     // A guest of a private room plays whatever the host set; a public joiner must have asked for it.
     if (!this.isPrivate && this.offersSeries() && matchBestOf(options.bestOf) !== this.bestOf) return false;
     if (
@@ -506,6 +513,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       botRoom: options.botRoom,
       rankedRoom: options.rankedRoom,
       betaBattleRoom: options.betaBattleRoom,
+      unlimitedRoom: options.unlimitedRoom,
       tournamentRoom: options.tournamentRoom,
       matchTimer: record.matchTimer,
       timerStartSeconds: record.timerStartSeconds,
@@ -534,6 +542,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       botRoom: options.botRoom,
       rankedRoom: options.rankedRoom,
       betaBattleRoom: options.betaBattleRoom,
+      unlimitedRoom: options.unlimitedRoom,
       tournamentRoom: options.tournamentRoom,
       devScenario: options.devScenario,
     });
@@ -545,6 +554,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
     }
     this.isRankedRoom = options.rankedRoom === true;
     this.isBetaBattleRoom = options.betaBattleRoom === true;
+    this.isUnlimitedRoom = options.unlimitedRoom === true && !options.rankedRoom && !options.tournamentRoom;
     this.isTournamentRoom = options.tournamentRoom === true;
     if (options.private) {
       this.isPrivate = true;
@@ -1025,7 +1035,17 @@ export class AegisRoom extends Room<{ state: GameState }> {
     this.debug("player.join", { sessionId: client.sessionId, deck: options.deck });
     // The room type, not the payload, decides whether unreleased cards are legal: a private
     // room accepts them and its clients never send the flag (onAuth already vetted the pair).
-    if (this.isBetaBattleRoom) options = { ...options, betaBattleMode: true };
+    options = { ...options, betaBattleMode: this.isBetaBattleRoom, unlimited: this.isUnlimitedRoom };
+    if (options.botDeck) {
+      if (!this.isBotRoom || !this.validCustomBotDeck(options.botDeck))
+        throw new ServerError(400, "Illegal custom bot deck");
+      this.customBotDeck = {
+        mainDeck: [...options.botDeck.mainDeck],
+        eggDeck: [...options.botDeck.eggDeck],
+        mainDeckArts: options.botDeck.mainDeckArts?.slice(),
+        eggDeckArts: options.botDeck.eggDeckArts?.slice(),
+      };
+    }
     this.rankedByClient.set(client.sessionId, options.ranked === true);
     if (options.presentationPacing === "sequential") this.chainPacingClients.add(client.sessionId);
     else this.chainPacingClients.delete(client.sessionId);
@@ -1245,6 +1265,18 @@ export class AegisRoom extends Room<{ state: GameState }> {
    * Seat a bot as seat 1 and start the match. The room must have exactly one
    * human player already seated. Idempotent: a second call is a no-op.
    */
+  private validCustomBotDeck(deck: SeatJoinOptions["deck"]): boolean {
+    return (
+      Array.isArray(deck.mainDeck) &&
+      Array.isArray(deck.eggDeck) &&
+      deck.mainDeck.length === 50 &&
+      deck.eggDeck.length <= 5 &&
+      deck.mainDeck.every((id) => typeof id === "string") &&
+      deck.eggDeck.every((id) => typeof id === "string") &&
+      validateDecklist(deck, { betaBattleMode: this.isBetaBattleRoom }).ok
+    );
+  }
+
   addBot(botDeckId?: string): boolean {
     // Ordinary casual rooms remain accepted during the expand/contract rollout so
     // a tab with the previous web bundle can still start its bot match. New clients
@@ -1263,7 +1295,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
     // exactly as it was rather than half-seated.
     let deck;
     try {
-      deck = playableBotDeck(botDeckId, this.isBetaBattleRoom);
+      deck = this.customBotDeck ?? playableBotDeck(botDeckId, this.isBetaBattleRoom);
     } catch (error) {
       logError("[AegisRoom] addBot could not resolve a legal bot deck", error);
       return false;

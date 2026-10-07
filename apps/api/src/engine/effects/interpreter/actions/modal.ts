@@ -108,6 +108,7 @@ function optionIsAvailable(
 ): boolean {
   const condition = action.optionConditions?.[idx];
   if (condition != null && !evaluateCondition(ctx, condition)) return false;
+  if (action.allowNoOpOptions === true) return true;
   if (option.length === 0) return true;
   return option.some((nested) => canAttemptModalAction(ctx, nested));
 }

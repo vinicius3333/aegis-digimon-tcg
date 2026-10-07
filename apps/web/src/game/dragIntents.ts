@@ -10,10 +10,10 @@
    unreachable is a target the drop would refuse. */
 
 /** The `data-drop` names the board paints on its drop areas. */
-export type DropTarget = "battle-you" | "perm-you" | "breeding-you" | "opp-security" | "perm-opp";
+export type DropTarget = "battle-you" | "perm-you" | "breeding-you" | "opp-security" | "perm-opp" | "hand-you";
 
 /** What the drop would do, in the words the floating label uses. */
-export type DragIntent = "play" | "evolve" | "breeding" | "use" | "attack";
+export type DragIntent = "play" | "evolve" | "breeding" | "use" | "attack" | "reorder";
 
 /** How a hand card may reach a permanent, as `boardModel.handCardEvolutionRoute` reports it. */
 export type EvolutionRouteKind = "normal" | "dna" | "both";
@@ -69,6 +69,7 @@ export function dragIntentFor(query: DragIntentQuery): DragIntent | null {
 }
 
 const INTENT_LABEL_KEYS = {
+  reorder: "game.dragIntent.reorder",
   play: "game.dragIntent.play",
   evolve: "game.dragIntent.evolve",
   breeding: "game.dragIntent.breeding",

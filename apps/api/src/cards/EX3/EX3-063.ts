@@ -33,10 +33,6 @@ const compiled: CompiledCard = {
           },
           keyword: { keyword: "Blitz", raw: "＜Blitz＞" },
           duration: "forTheTurn",
-          condition: {
-            kind: "isDnaDigivolving",
-            raw: "DNA digivolving",
-          },
         },
       ],
     },

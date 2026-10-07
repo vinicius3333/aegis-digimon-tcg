@@ -22,6 +22,8 @@ export interface AegisJoinOptions {
   seriesToken?: string;
   ranked?: boolean;
   betaBattleMode?: boolean;
+  unlimited?: boolean;
+  botDeck?: AegisJoinOptions["deck"];
   authTicket?: string;
   /** How this client paces a chain of triggered effects; a bot opponent follows `sequential` pacing. */
   presentationPacing?: "current" | "sequential";
@@ -93,6 +95,21 @@ export interface AegisJoinOptions {
     | "arena-issue-5127-opponent-survival"
     | "arena-issue-5168-alter-s-simultaneous"
     | "arena-issue-5169-demidevimon-native"
+    | "arena-issue-5179-imperialdramon-blitz"
+    | "arena-issue-5190-tapmon-bootmon"
+    | "arena-issue-5232-icemon-egg"
+    | "arena-issue-5214-habakirimon-security"
+    | "arena-issue-5204-dorimon-cost"
+    | "arena-issue-5219-lucemon-breeding"
+    | "arena-issue-5217-metalgarurumon-choice"
+    | "arena-issue-5230-hidden-inherited"
+    | "arena-issue-5218-landramon-discard"
+    | "arena-issue-5235-merciful-jupiter-order"
+    | "arena-issue-5215-venusmon-guard-cost"
+    | "arena-issue-5199-sistermon-option"
+    | "arena-issue-5196-kyubimon-search"
+    | "arena-issue-5194-alphamon-entry"
+    | "arena-issue-5185-nokia-warp"
     | "arena-issue-5170-kaguyamon-end-turn"
     | "arena-issue-5170-kaguyamon-on-play"
     | "arena-issue-5170-arisa-overclock"
