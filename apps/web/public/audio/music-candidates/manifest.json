@@ -118,24 +118,24 @@
       }
     },
     {
-      "id": "warm-drive-pulse-112",
-      "label": "Warm drive · subtle recorded pulse · 112 BPM",
+      "id": "warm-drive-136",
+      "label": "Warm drive · eighth-note recorded pulse · 136 BPM",
       "role": "alternative",
-      "file": "aegis-music-v3.wav",
-      "url": "/audio/aegis-music-v3.wav?v=69cbe499a72a",
-      "sha256": "69cbe499a72a28e4aa0c552e5a95835a88f9e51c04b99e341eafa02649e75acf",
-      "bpm": 112,
-      "seconds": 34.28572916666667,
+      "file": "aegis-music-v6.wav",
+      "url": "/audio/aegis-music-v6.wav?v=28250706a1df",
+      "sha256": "28250706a1df116a556daff23349cb7f4d655c19f4df28aacdfad15749f01f1a",
+      "bpm": 136,
+      "seconds": 28.235291666666665,
       "metrics": {
-        "peak": 0.075164794921875,
-        "peakDbFS": -22.479710462412296,
-        "rms": 0.016943527292285994,
-        "dc": 2.503393994023874e-8,
+        "peak": 0.07562255859375,
+        "peakDbFS": -22.426972658393467,
+        "rms": 0.016892057990699746,
+        "dc": 2.364317781326413e-10,
         "boundaryStep": 0,
-        "seconds": 34.28572916666667,
+        "seconds": 28.235291666666665,
         "sampleRate": 48000,
         "channels": 2,
-        "bytes": 6582904
+        "bytes": 5421220
       },
       "sourceIdentity": {
         "type": "original-score-with-licensed-recorded-rhythm",
@@ -149,23 +149,6 @@
         "boundaryChromaCosine": 0.9065326829911248,
         "scope": "Original generated source and proposed source crop; not the finished tempo-adjusted master"
       },
-      "finishedAnalysis": {
-        "sha256": "69cbe499a72a28e4aa0c552e5a95835a88f9e51c04b99e341eafa02649e75acf",
-        "gridBpm": 112,
-        "measuredTempo": {
-          "sha256": "69cbe499a72a28e4aa0c552e5a95835a88f9e51c04b99e341eafa02649e75acf",
-          "estimatedBpm": 112.03463668922063,
-          "normalizedAutocorrelation": 0.6740238747000331,
-          "method": "Finished PCM16 mono; scipy resample_poly to 11025 Hz; Hann STFT 1024/256; positive log1p(abs(STFT)*1000) spectral flux; median9 suppression; FFT autocorrelation 95-125 BPM with parabolic lag refinement",
-          "scope": "Finished pulse mix waveform only"
-        },
-        "analysisScope": "Current finished mix; pulse fitted to the unchanged dry score beat grid",
-        "phaseSeconds": 0.020000000000000004,
-        "gridStrength": 1.8717093891482344,
-        "bpm": 112,
-        "uncertaintySeconds": 0.02,
-        "method": "35-280 Hz attack RMS; 10 ms frames; positive energy rises; 112 BPM circular grid fit at 2 ms phases with 20 ms attack windows"
-      },
       "masterSettings": {
         "startSeconds": 2.3103854875283445,
         "sourceBpm": 105.02324819208111,
@@ -176,421 +159,802 @@
         "lowpassHz": 5200
       },
       "tempoAdjustment": {
-        "bpm": 112,
+        "bpm": 136,
         "fromBpm": 104,
-        "method": "offline ffmpeg atempo; pitch preserving",
-        "ratio": 1.0769230769230769,
-        "ffmpegVersion": "8.1.2",
+        "method": "offline ffmpeg atempo from the 104 BPM source master; pitch preserving; one stretch",
         "renderer": "tools/diagnostics/tempo-original-music.mjs",
-        "sourceMasterSha256": "605e4aab391d5ddbcc4cc8ce2473c0298d059985720414d1046d9a75e948e55e",
-        "finishedAnalysis": {
-          "sha256": "dfc22b914a38fd0c2e681022c3e630288c3fcf0a8f5cf73687bbabd9471a6715",
-          "estimatedBpm": 112.02756010664898,
-          "normalizedAutocorrelation": 0.6696969342306412,
-          "method": "Finished PCM16 mono; scipy resample_poly to 11025 Hz; Hann STFT 1024/256; positive log1p(abs(STFT)*1000) spectral flux; median9 suppression; FFT autocorrelation 95-125 BPM with parabolic lag refinement",
-          "confidence": "Numerical estimate; beat interpretation and listening acceptance remain"
-        }
+        "stepsPerBeat": 2,
+        "bodyPeak": 0.008,
+        "tapPeak": 0.0035,
+        "pattern": "recorded card-body thump on every beat, chip tap on every offbeat eighth",
+        "reason": "Faster, busier warm drive closer to the 144 BPM battle score's energy"
       },
-      "dryAnalysis": {
-        "sha256": "dfc22b914a38fd0c2e681022c3e630288c3fcf0a8f5cf73687bbabd9471a6715",
-        "estimatedBpm": 112.02756010664898,
-        "normalizedAutocorrelation": 0.6696969342306412,
-        "method": "Finished PCM16 mono; scipy resample_poly to 11025 Hz; Hann STFT 1024/256; positive log1p(abs(STFT)*1000) spectral flux; median9 suppression; FFT autocorrelation 95-125 BPM with parabolic lag refinement",
-        "confidence": "Numerical estimate; beat interpretation and listening acceptance remain"
+      "finishedAnalysis": {
+        "sha256": "28250706a1df116a556daff23349cb7f4d655c19f4df28aacdfad15749f01f1a",
+        "gridBpm": 136,
+        "phaseSeconds": 0.012,
+        "gridStrength": 1.9446568990446191,
+        "bpm": 136,
+        "uncertaintySeconds": 0.02,
+        "method": "35-280 Hz attack RMS; 10 ms frames; positive energy rises; 136 BPM circular grid fit at 2 ms phases with 20 ms attack windows"
       },
       "rhythm": {
         "source": "CC0 recorded card-body and chip-tap",
         "bodyId": "placeHeavy",
         "tapId": "tap",
-        "bodyPeak": 0.006,
-        "tapPeak": 0.0025,
+        "bodyPeak": 0.008,
+        "tapPeak": 0.0035,
+        "stepsPerBeat": 2,
         "events": [
           {
             "beat": 0,
-            "peakSeconds": 0.02,
+            "peakSeconds": 0.012,
             "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 0.5,
+            "peakSeconds": 0.23258333333333334,
+            "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 1,
-            "peakSeconds": 0.5557083333333334,
+            "peakSeconds": 0.45316666666666666,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 1.5,
+            "peakSeconds": 0.6737708333333333,
             "source": "chip-tap",
-            "polarity": -1
+            "polarity": 1
           },
           {
             "beat": 2,
-            "peakSeconds": 1.0914375,
+            "peakSeconds": 0.8943541666666667,
             "source": "card-body",
             "polarity": -1
+          },
+          {
+            "beat": 2.5,
+            "peakSeconds": 1.1149375,
+            "source": "chip-tap",
+            "polarity": 1
           },
           {
             "beat": 3,
-            "peakSeconds": 1.6271458333333333,
-            "source": "chip-tap",
+            "peakSeconds": 1.3355208333333333,
+            "source": "card-body",
             "polarity": -1
+          },
+          {
+            "beat": 3.5,
+            "peakSeconds": 1.556125,
+            "source": "chip-tap",
+            "polarity": 1
           },
           {
             "beat": 4,
-            "peakSeconds": 2.1628541666666665,
+            "peakSeconds": 1.7767083333333333,
             "source": "card-body",
             "polarity": -1
+          },
+          {
+            "beat": 4.5,
+            "peakSeconds": 1.9972916666666667,
+            "source": "chip-tap",
+            "polarity": 1
           },
           {
             "beat": 5,
-            "peakSeconds": 2.6985625,
-            "source": "chip-tap",
-            "polarity": 1
-          },
-          {
-            "beat": 6,
-            "peakSeconds": 3.2342916666666666,
+            "peakSeconds": 2.217875,
             "source": "card-body",
             "polarity": 1
           },
           {
-            "beat": 7,
-            "peakSeconds": 3.77,
+            "beat": 5.5,
+            "peakSeconds": 2.4384791666666668,
             "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 6,
+            "peakSeconds": 2.6590625,
+            "source": "card-body",
             "polarity": 1
           },
           {
-            "beat": 8,
-            "peakSeconds": 4.3057083333333335,
+            "beat": 6.5,
+            "peakSeconds": 2.8796458333333335,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 7,
+            "peakSeconds": 3.100229166666667,
             "source": "card-body",
             "polarity": -1
           },
           {
+            "beat": 7.5,
+            "peakSeconds": 3.3208333333333333,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 8,
+            "peakSeconds": 3.5414166666666667,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 8.5,
+            "peakSeconds": 3.762,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
             "beat": 9,
-            "peakSeconds": 4.8414375,
+            "peakSeconds": 3.9825833333333334,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 9.5,
+            "peakSeconds": 4.203166666666666,
             "source": "chip-tap",
             "polarity": 1
           },
           {
             "beat": 10,
-            "peakSeconds": 5.3771458333333335,
+            "peakSeconds": 4.423770833333333,
             "source": "card-body",
             "polarity": 1
           },
           {
-            "beat": 11,
-            "peakSeconds": 5.9128541666666665,
+            "beat": 10.5,
+            "peakSeconds": 4.644354166666667,
             "source": "chip-tap",
             "polarity": 1
           },
           {
-            "beat": 12,
-            "peakSeconds": 6.4485625,
+            "beat": 11,
+            "peakSeconds": 4.8649375,
             "source": "card-body",
             "polarity": -1
           },
           {
+            "beat": 11.5,
+            "peakSeconds": 5.085520833333334,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 12,
+            "peakSeconds": 5.306125,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 12.5,
+            "peakSeconds": 5.526708333333334,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
             "beat": 13,
-            "peakSeconds": 6.984291666666667,
+            "peakSeconds": 5.7472916666666665,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 13.5,
+            "peakSeconds": 5.967875,
             "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 14,
-            "peakSeconds": 7.52,
+            "peakSeconds": 6.188479166666666,
             "source": "card-body",
             "polarity": 1
           },
           {
+            "beat": 14.5,
+            "peakSeconds": 6.4090625,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
             "beat": 15,
-            "peakSeconds": 8.055708333333333,
+            "peakSeconds": 6.629645833333333,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 15.5,
+            "peakSeconds": 6.850229166666667,
             "source": "chip-tap",
             "polarity": 1
           },
           {
             "beat": 16,
-            "peakSeconds": 8.5914375,
+            "peakSeconds": 7.070833333333334,
             "source": "card-body",
             "polarity": 1
           },
           {
+            "beat": 16.5,
+            "peakSeconds": 7.291416666666667,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
             "beat": 17,
-            "peakSeconds": 9.127145833333334,
+            "peakSeconds": 7.512,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 17.5,
+            "peakSeconds": 7.732583333333333,
             "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 18,
-            "peakSeconds": 9.662854166666667,
+            "peakSeconds": 7.953166666666666,
             "source": "card-body",
             "polarity": -1
           },
           {
+            "beat": 18.5,
+            "peakSeconds": 8.173770833333334,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
             "beat": 19,
-            "peakSeconds": 10.1985625,
+            "peakSeconds": 8.394354166666666,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 19.5,
+            "peakSeconds": 8.6149375,
             "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 20,
-            "peakSeconds": 10.734291666666667,
+            "peakSeconds": 8.835520833333334,
             "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 20.5,
+            "peakSeconds": 9.056125,
+            "source": "chip-tap",
             "polarity": 1
           },
           {
             "beat": 21,
-            "peakSeconds": 11.27,
+            "peakSeconds": 9.276708333333334,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 21.5,
+            "peakSeconds": 9.497291666666667,
             "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 22,
-            "peakSeconds": 11.805708333333333,
+            "peakSeconds": 9.717875,
             "source": "card-body",
             "polarity": -1
           },
           {
-            "beat": 23,
-            "peakSeconds": 12.3414375,
+            "beat": 22.5,
+            "peakSeconds": 9.938479166666667,
             "source": "chip-tap",
             "polarity": -1
           },
           {
+            "beat": 23,
+            "peakSeconds": 10.1590625,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 23.5,
+            "peakSeconds": 10.379645833333333,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
             "beat": 24,
-            "peakSeconds": 12.877145833333334,
+            "peakSeconds": 10.600229166666667,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 24.5,
+            "peakSeconds": 10.820833333333333,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 25,
+            "peakSeconds": 11.041416666666667,
             "source": "card-body",
             "polarity": 1
           },
           {
-            "beat": 25,
-            "peakSeconds": 13.412854166666667,
+            "beat": 25.5,
+            "peakSeconds": 11.262,
             "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 26,
-            "peakSeconds": 13.9485625,
+            "peakSeconds": 11.482583333333332,
             "source": "card-body",
-            "polarity": -1
+            "polarity": 1
+          },
+          {
+            "beat": 26.5,
+            "peakSeconds": 11.703166666666666,
+            "source": "chip-tap",
+            "polarity": 1
           },
           {
             "beat": 27,
-            "peakSeconds": 14.484291666666667,
+            "peakSeconds": 11.923770833333334,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 27.5,
+            "peakSeconds": 12.144354166666666,
             "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 28,
-            "peakSeconds": 15.02,
+            "peakSeconds": 12.3649375,
             "source": "card-body",
-            "polarity": 1
+            "polarity": -1
+          },
+          {
+            "beat": 28.5,
+            "peakSeconds": 12.585520833333334,
+            "source": "chip-tap",
+            "polarity": -1
           },
           {
             "beat": 29,
-            "peakSeconds": 15.555708333333333,
+            "peakSeconds": 12.806125,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 29.5,
+            "peakSeconds": 13.026708333333334,
             "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 30,
-            "peakSeconds": 16.0914375,
+            "peakSeconds": 13.247291666666667,
             "source": "card-body",
             "polarity": -1
           },
           {
+            "beat": 30.5,
+            "peakSeconds": 13.467875,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
             "beat": 31,
-            "peakSeconds": 16.627145833333334,
+            "peakSeconds": 13.688479166666667,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 31.5,
+            "peakSeconds": 13.9090625,
             "source": "chip-tap",
             "polarity": 1
           },
           {
             "beat": 32,
-            "peakSeconds": 17.162854166666666,
+            "peakSeconds": 14.129645833333333,
             "source": "card-body",
             "polarity": 1
           },
           {
+            "beat": 32.5,
+            "peakSeconds": 14.350229166666667,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
             "beat": 33,
-            "peakSeconds": 17.6985625,
+            "peakSeconds": 14.570833333333333,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 33.5,
+            "peakSeconds": 14.791416666666667,
             "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 34,
-            "peakSeconds": 18.234291666666667,
+            "peakSeconds": 15.012,
             "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 34.5,
+            "peakSeconds": 15.232583333333332,
+            "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 35,
-            "peakSeconds": 18.77,
+            "peakSeconds": 15.453166666666666,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 35.5,
+            "peakSeconds": 15.673770833333334,
             "source": "chip-tap",
             "polarity": 1
           },
           {
             "beat": 36,
-            "peakSeconds": 19.30570833333333,
+            "peakSeconds": 15.894354166666666,
             "source": "card-body",
             "polarity": 1
           },
           {
+            "beat": 36.5,
+            "peakSeconds": 16.1149375,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
             "beat": 37,
-            "peakSeconds": 19.8414375,
+            "peakSeconds": 16.335520833333334,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 37.5,
+            "peakSeconds": 16.556125,
             "source": "chip-tap",
             "polarity": 1
           },
           {
             "beat": 38,
-            "peakSeconds": 20.377145833333334,
+            "peakSeconds": 16.776708333333332,
             "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 38.5,
+            "peakSeconds": 16.997291666666666,
+            "source": "chip-tap",
             "polarity": 1
           },
           {
             "beat": 39,
-            "peakSeconds": 20.912854166666666,
+            "peakSeconds": 17.217875,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 39.5,
+            "peakSeconds": 17.438479166666667,
             "source": "chip-tap",
             "polarity": 1
           },
           {
             "beat": 40,
-            "peakSeconds": 21.4485625,
+            "peakSeconds": 17.6590625,
             "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 40.5,
+            "peakSeconds": 17.879645833333335,
+            "source": "chip-tap",
             "polarity": 1
           },
           {
             "beat": 41,
-            "peakSeconds": 21.984291666666667,
+            "peakSeconds": 18.100229166666665,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 41.5,
+            "peakSeconds": 18.320833333333333,
             "source": "chip-tap",
             "polarity": 1
           },
           {
             "beat": 42,
-            "peakSeconds": 22.52,
+            "peakSeconds": 18.541416666666667,
             "source": "card-body",
             "polarity": 1
           },
           {
-            "beat": 43,
-            "peakSeconds": 23.05570833333333,
+            "beat": 42.5,
+            "peakSeconds": 18.762,
             "source": "chip-tap",
             "polarity": -1
           },
           {
-            "beat": 44,
-            "peakSeconds": 23.5914375,
+            "beat": 43,
+            "peakSeconds": 18.982583333333334,
             "source": "card-body",
             "polarity": -1
           },
           {
+            "beat": 43.5,
+            "peakSeconds": 19.203166666666668,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
+            "beat": 44,
+            "peakSeconds": 19.423770833333332,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 44.5,
+            "peakSeconds": 19.644354166666666,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
             "beat": 45,
-            "peakSeconds": 24.127145833333334,
+            "peakSeconds": 19.8649375,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 45.5,
+            "peakSeconds": 20.085520833333334,
             "source": "chip-tap",
             "polarity": 1
           },
           {
             "beat": 46,
-            "peakSeconds": 24.662854166666666,
+            "peakSeconds": 20.306125,
             "source": "card-body",
             "polarity": 1
           },
           {
-            "beat": 47,
-            "peakSeconds": 25.1985625,
+            "beat": 46.5,
+            "peakSeconds": 20.526708333333332,
             "source": "chip-tap",
+            "polarity": 1
+          },
+          {
+            "beat": 47,
+            "peakSeconds": 20.747291666666666,
+            "source": "card-body",
             "polarity": -1
+          },
+          {
+            "beat": 47.5,
+            "peakSeconds": 20.967875,
+            "source": "chip-tap",
+            "polarity": 1
           },
           {
             "beat": 48,
-            "peakSeconds": 25.734291666666667,
+            "peakSeconds": 21.188479166666667,
             "source": "card-body",
             "polarity": -1
+          },
+          {
+            "beat": 48.5,
+            "peakSeconds": 21.4090625,
+            "source": "chip-tap",
+            "polarity": 1
           },
           {
             "beat": 49,
-            "peakSeconds": 26.27,
+            "peakSeconds": 21.629645833333335,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 49.5,
+            "peakSeconds": 21.850229166666665,
             "source": "chip-tap",
-            "polarity": -1
+            "polarity": 1
           },
           {
             "beat": 50,
-            "peakSeconds": 26.80570833333333,
+            "peakSeconds": 22.070833333333333,
             "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 50.5,
+            "peakSeconds": 22.291416666666667,
+            "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 51,
-            "peakSeconds": 27.3414375,
+            "peakSeconds": 22.512,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 51.5,
+            "peakSeconds": 22.732583333333334,
             "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 52,
-            "peakSeconds": 27.877145833333334,
+            "peakSeconds": 22.953166666666668,
             "source": "card-body",
             "polarity": -1
           },
           {
+            "beat": 52.5,
+            "peakSeconds": 23.173770833333332,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
             "beat": 53,
-            "peakSeconds": 28.412854166666666,
+            "peakSeconds": 23.394354166666666,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 53.5,
+            "peakSeconds": 23.6149375,
             "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 54,
-            "peakSeconds": 28.9485625,
+            "peakSeconds": 23.835520833333334,
             "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 54.5,
+            "peakSeconds": 24.056125,
+            "source": "chip-tap",
             "polarity": 1
           },
           {
             "beat": 55,
-            "peakSeconds": 29.484291666666667,
+            "peakSeconds": 24.276708333333332,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 55.5,
+            "peakSeconds": 24.497291666666666,
             "source": "chip-tap",
             "polarity": 1
           },
           {
             "beat": 56,
-            "peakSeconds": 30.02,
+            "peakSeconds": 24.717875,
             "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 56.5,
+            "peakSeconds": 24.938479166666667,
+            "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 57,
-            "peakSeconds": 30.55570833333333,
+            "peakSeconds": 25.1590625,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 57.5,
+            "peakSeconds": 25.379645833333335,
             "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 58,
-            "peakSeconds": 31.0914375,
+            "peakSeconds": 25.600229166666665,
             "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 58.5,
+            "peakSeconds": 25.820833333333333,
+            "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 59,
-            "peakSeconds": 31.627145833333334,
-            "source": "chip-tap",
+            "peakSeconds": 26.041416666666667,
+            "source": "card-body",
             "polarity": 1
           },
           {
+            "beat": 59.5,
+            "peakSeconds": 26.262,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
             "beat": 60,
-            "peakSeconds": 32.16285416666667,
+            "peakSeconds": 26.482583333333334,
             "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 60.5,
+            "peakSeconds": 26.703166666666668,
+            "source": "chip-tap",
             "polarity": -1
           },
           {
             "beat": 61,
-            "peakSeconds": 32.6985625,
+            "peakSeconds": 26.923770833333332,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 61.5,
+            "peakSeconds": 27.144354166666666,
             "source": "chip-tap",
-            "polarity": -1
+            "polarity": 1
           },
           {
             "beat": 62,
-            "peakSeconds": 33.234291666666664,
+            "peakSeconds": 27.3649375,
             "source": "card-body",
             "polarity": -1
           },
           {
-            "beat": 63,
-            "peakSeconds": 33.77,
+            "beat": 62.5,
+            "peakSeconds": 27.585520833333334,
             "source": "chip-tap",
+            "polarity": 1
+          },
+          {
+            "beat": 63,
+            "peakSeconds": 27.806125,
+            "source": "card-body",
             "polarity": -1
+          },
+          {
+            "beat": 63.5,
+            "peakSeconds": 28.026708333333332,
+            "source": "chip-tap",
+            "polarity": 1
           }
-        ],
-        "drySha256": "dfc22b914a38fd0c2e681022c3e630288c3fcf0a8f5cf73687bbabd9471a6715"
+        ]
       }
     },
     {
@@ -696,6 +1060,6 @@
     "sha256": "42adc3affa0a810d699df36fdf17e8ee5885d5d9d13dcb130ddb0edfa466b63b",
     "seconds": 258.48454166666664
   },
-  "selectionReason": "Preserves the liked dry 112 BPM score byte-for-byte as warm-drive comparison; selected mix adds only sparse beat-phase-aligned recorded acoustic rhythm",
+  "selectionReason": "Preserves the liked dry 112 BPM score byte-for-byte as warm-drive comparison; the selected mix re-stretches the source master to the faster drive tempo and adds an eighth-note beat-phase-aligned recorded acoustic rhythm",
   "listeningStatus": "Measured verification only; user/validator listening acceptance remains"
 }

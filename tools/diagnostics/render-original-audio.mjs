@@ -6,9 +6,15 @@ import { gunzipSync } from "node:zlib";
 import { tempoOriginalMusic } from "./tempo-original-music.mjs";
 
 // Exactly the renderer used to author the shipped bank, not an approximation of browser oscillators.
-const source = await readFile(new URL("../../apps/web/src/design/audioRecipes.ts", import.meta.url), "utf8");
+const source = await readFile(
+  new URL("../../apps/web/src/design/audioRecipes.ts", import.meta.url),
+  "utf8",
+);
 const compiled = ts.transpileModule(source, {
-  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 },
+  compilerOptions: {
+    target: ts.ScriptTarget.ES2022,
+    module: ts.ModuleKind.ES2022,
+  },
 }).outputText;
 const {
   bankRecipes,
@@ -23,10 +29,18 @@ const {
   MUSIC_BPM,
   decodeSourceWav,
   cueKey: audioKey,
-} = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`);
-const masterSource = await readFile(new URL("../../apps/web/src/design/musicMaster.ts", import.meta.url), "utf8");
+} = await import(
+  `data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`
+);
+const masterSource = await readFile(
+  new URL("../../apps/web/src/design/musicMaster.ts", import.meta.url),
+  "utf8",
+);
 const masterCompiled = ts.transpileModule(masterSource, {
-  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 },
+  compilerOptions: {
+    target: ts.ScriptTarget.ES2022,
+    module: ts.ModuleKind.ES2022,
+  },
 }).outputText;
 const {
   decodeMusicWav,
@@ -34,12 +48,20 @@ const {
   encodeMusicWav,
   musicMetrics: measureMusic,
   addRecordedMusicPulse,
-} = await import(`data:text/javascript;base64,${Buffer.from(masterCompiled).toString("base64")}`);
-const musicInputsRoot = new URL("../../apps/web/public/audio/music-candidates/", import.meta.url);
-const musicProvenance = JSON.parse(await readFile(new URL("provenance.json", musicInputsRoot), "utf8"));
+} = await import(
+  `data:text/javascript;base64,${Buffer.from(masterCompiled).toString("base64")}`
+);
+const musicInputsRoot = new URL(
+  "../../apps/web/public/audio/music-candidates/",
+  import.meta.url,
+);
+const musicProvenance = JSON.parse(
+  await readFile(new URL("provenance.json", musicInputsRoot), "utf8"),
+);
 const directory = path.resolve(process.argv[2] ?? "apps/web/public/audio");
 const sampleRate = Number(process.env.AUDIO_SAMPLE_RATE ?? 48000);
-if (![44100, 48000].includes(sampleRate)) throw new Error("Choose 44100 or 48000 Hz");
+if (![44100, 48000].includes(sampleRate))
+  throw new Error("Choose 44100 or 48000 Hz");
 await mkdir(path.join(directory, "previews"), { recursive: true });
 function metrics(samples) {
   let peak = 0,
@@ -51,7 +73,8 @@ function metrics(samples) {
     peak = Math.max(peak, Math.abs(value));
     sum += value;
     square += value * value;
-    if (i) maximumStep = Math.max(maximumStep, Math.abs(value - samples[i - 1]));
+    if (i)
+      maximumStep = Math.max(maximumStep, Math.abs(value - samples[i - 1]));
   }
   return {
     seconds: samples.length / sampleRate,
@@ -77,7 +100,8 @@ async function wav(name, samples) {
   data.writeUInt16LE(16, 34);
   data.write("data", 36);
   data.writeUInt32LE(samples.length * 2, 40);
-  for (let i = 0; i < samples.length; i++) data.writeInt16LE(Math.round(samples[i] * 32767), 44 + i * 2);
+  for (let i = 0; i < samples.length; i++)
+    data.writeInt16LE(Math.round(samples[i] * 32767), 44 + i * 2);
   await writeFile(path.join(directory, name), data);
   return {
     ...metrics(decodeSourceWav(data).samples),
@@ -85,8 +109,15 @@ async function wav(name, samples) {
     sha256: createHash("sha256").update(data).digest("hex"),
   };
 }
-const sourcesDirectory = new URL("../../apps/web/public/audio/sources/", import.meta.url);
-const sourceFiles = { paper: "paper-texture.wav", impact: "impact-body.wav", crystal: "crystal-rise.wav" };
+const sourcesDirectory = new URL(
+  "../../apps/web/public/audio/sources/",
+  import.meta.url,
+);
+const sourceFiles = {
+  paper: "paper-texture.wav",
+  impact: "impact-body.wav",
+  crystal: "crystal-rise.wav",
+};
 const sources = { sampleRate: 44100 };
 const sourceHashes = {};
 for (const [key, file] of Object.entries(sourceFiles)) {
@@ -94,19 +125,29 @@ for (const [key, file] of Object.entries(sourceFiles)) {
   sources[key] = decodeSourceWav(bytes).samples;
   sourceHashes[file] = createHash("sha256").update(bytes).digest("hex");
 }
-const recordedProvenance = JSON.parse(await readFile(new URL("recorded-provenance.json", sourcesDirectory), "utf8"));
+const recordedProvenance = JSON.parse(
+  await readFile(new URL("recorded-provenance.json", sourcesDirectory), "utf8"),
+);
 sources.recordings = {};
 for (const asset of recordedProvenance.assets) {
   const bytes = await readFile(new URL(asset.preparedFile, sourcesDirectory));
   const sha256 = createHash("sha256").update(bytes).digest("hex");
-  if (sha256 !== asset.sha256) throw new Error(`Recorded source identity changed: ${asset.id}`);
-  sources.recordings[asset.id] = { samples: decodeSourceWav(bytes).samples, sampleRate: asset.sampleRate };
+  if (sha256 !== asset.sha256)
+    throw new Error(`Recorded source identity changed: ${asset.id}`);
+  sources.recordings[asset.id] = {
+    samples: decodeSourceWav(bytes).samples,
+    sampleRate: asset.sampleRate,
+  };
   sourceHashes[asset.preparedFile] = sha256;
 }
 const recipes = bankRecipes();
-const clips = recipes.map((r) => renderCue(r.kind, r.details, "warm", sampleRate, sources));
+const clips = recipes.map((r) =>
+  renderCue(r.kind, r.details, "warm", sampleRate, sources),
+);
 const gap = Math.round(sampleRate * 0.025);
-const bank = new Float32Array(clips.reduce((length, clip) => length + clip.length + gap, 0));
+const bank = new Float32Array(
+  clips.reduce((length, clip) => length + clip.length + gap, 0),
+);
 let frame = 0;
 const cues = {};
 const manifestClips = [];
@@ -114,15 +155,27 @@ for (let i = 0; i < clips.length; i++) {
   const clip = clips[i],
     recipe = recipes[i];
   bank.set(clip, frame);
-  cues[recipe.key] = { offset: frame / sampleRate, duration: clip.length / sampleRate };
-  manifestClips.push({ ...recipe, ...cues[recipe.key], metrics: metrics(clip) });
+  cues[recipe.key] = {
+    offset: frame / sampleRate,
+    duration: clip.length / sampleRate,
+  };
+  manifestClips.push({
+    ...recipe,
+    ...cues[recipe.key],
+    metrics: metrics(clip),
+  });
   frame += clip.length + gap;
 }
 const bankMetrics = await wav("aegis-cues-v2.wav", bank);
 // Preserve prior original renderer for a reproducible, identical-source comparison.
-const priorSource = gunzipSync(await readFile(new URL("prior-audio-recipes.ts.gz", sourcesDirectory))).toString("utf8");
+const priorSource = gunzipSync(
+  await readFile(new URL("prior-audio-recipes.ts.gz", sourcesDirectory)),
+).toString("utf8");
 const priorCompiled = ts.transpileModule(priorSource, {
-  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 },
+  compilerOptions: {
+    target: ts.ScriptTarget.ES2022,
+    module: ts.ModuleKind.ES2022,
+  },
 }).outputText;
 const { renderCue: renderPriorCue } = await import(
   `data:text/javascript;base64,${Buffer.from(priorCompiled).toString("base64")}`
@@ -145,7 +198,9 @@ const comparisonExamples = [
 const priorClips = comparisonExamples.map(([kind, details]) =>
   renderPriorCue(kind, details, "warm", sampleRate, sources),
 );
-const priorBank = new Float32Array(priorClips.reduce((length, clip) => length + clip.length + gap, 0));
+const priorBank = new Float32Array(
+  priorClips.reduce((length, clip) => length + clip.length + gap, 0),
+);
 let priorFrame = 0;
 const comparisonRows = comparisonExamples.map(([kind, details, label], i) => {
   const key = audioKey(kind, details),
@@ -156,8 +211,15 @@ const comparisonRows = comparisonExamples.map(([kind, details, label], i) => {
     kind,
     details,
     label,
-    previous: { offset: priorFrame / sampleRate, duration: clip.length / sampleRate, metrics: metrics(clip) },
-    current: { ...cues[key], metrics: manifestClips.find((entry) => entry.key === key).metrics },
+    previous: {
+      offset: priorFrame / sampleRate,
+      duration: clip.length / sampleRate,
+      metrics: metrics(clip),
+    },
+    current: {
+      ...cues[key],
+      metrics: manifestClips.find((entry) => entry.key === key).metrics,
+    },
   };
   priorFrame += clip.length + gap;
   return row;
@@ -179,19 +241,32 @@ await writeFile(
       version: 1,
       sampleRate,
       channels: 1,
-      priorFullBankSha256: "5700989d78a56b4500e5741d3ca06b85fab6e0bcb267c4c341b154b9f3faf420",
+      priorFullBankSha256:
+        "5700989d78a56b4500e5741d3ca06b85fab6e0bcb267c4c341b154b9f3faf420",
       priorRevision: "fd80df166bc38a25df184b729a73eeea6113e56b",
-      priorRendererSha256: createHash("sha256").update(priorSource).digest("hex"),
-      previous: { url: `/audio/previews/prior-cues.wav?v=${priorMetrics.sha256.slice(0, 12)}`, ...priorMetrics },
-      current: { url: `/audio/aegis-cues-v2.wav?v=${bankMetrics.sha256.slice(0, 12)}`, ...bankMetrics },
+      priorRendererSha256: createHash("sha256")
+        .update(priorSource)
+        .digest("hex"),
+      previous: {
+        url: `/audio/previews/prior-cues.wav?v=${priorMetrics.sha256.slice(0, 12)}`,
+        ...priorMetrics,
+      },
+      current: {
+        url: `/audio/aegis-cues-v2.wav?v=${bankMetrics.sha256.slice(0, 12)}`,
+        ...bankMetrics,
+      },
       examples: comparisonRows,
-      listeningStatus: "Comparison prepared for listening; no subjective acceptance claimed",
+      listeningStatus:
+        "Comparison prepared for listening; no subjective acceptance claimed",
     },
     null,
     2,
   ) + "\n",
 );
-const baselineMetrics = await wav("aegis-music-v2.wav", renderMusic(sampleRate));
+const baselineMetrics = await wav(
+  "aegis-music-v2.wav",
+  renderMusic(sampleRate),
+);
 await mkdir(path.join(directory, "music-candidates"), { recursive: true });
 const candidateRows = [
   {
@@ -203,20 +278,34 @@ const candidateRows = [
     bpm: MUSIC_BPM,
     seconds: baselineMetrics.seconds,
     metrics: baselineMetrics,
-    sourceIdentity: { type: "original-authored", rendererSha256: createHash("sha256").update(source).digest("hex") },
+    sourceIdentity: {
+      type: "original-authored",
+      rendererSha256: createHash("sha256").update(source).digest("hex"),
+    },
   },
 ];
-let selectedMusic;
+let selectedMusic, warmSourceMaster;
 for (const candidate of musicProvenance.candidates) {
-  const bytes = gunzipSync(await readFile(new URL(candidate.sourceFile, musicInputsRoot)));
+  const bytes = gunzipSync(
+    await readFile(new URL(candidate.sourceFile, musicInputsRoot)),
+  );
   const hash = createHash("sha256").update(bytes).digest("hex");
-  if (hash !== candidate.sourceSha256) throw new Error(`Original source identity changed: ${candidate.id}`);
-  let mastered = masterOriginalMusic(decodeMusicWav(bytes), candidate.masterSettings, sampleRate);
+  if (hash !== candidate.sourceSha256)
+    throw new Error(`Original source identity changed: ${candidate.id}`);
+  let mastered = masterOriginalMusic(
+    decodeMusicWav(bytes),
+    candidate.masterSettings,
+    sampleRate,
+  );
   const selected = candidate.id === musicProvenance.selectedId;
+  if (selected) warmSourceMaster = mastered;
   if (selected && musicProvenance.selectedTempo) {
     const oldBytes = encodeMusicWav(mastered);
     const oldHash = createHash("sha256").update(oldBytes).digest("hex");
-    if (sampleRate === 48000 && oldHash !== musicProvenance.selectedTempo.sourceMasterSha256)
+    if (
+      sampleRate === 48000 &&
+      oldHash !== musicProvenance.selectedTempo.sourceMasterSha256
+    )
       throw new Error("Selected source master identity changed");
     const oldFile = "music-candidates/warm-drive-104.wav";
     await writeFile(path.join(directory, oldFile), oldBytes);
@@ -229,14 +318,26 @@ for (const candidate of musicProvenance.candidates) {
       sha256: oldHash,
       bpm: candidate.masterSettings.bpm,
       seconds: mastered.channels[0].length / sampleRate,
-      metrics: { ...measureMusic(decodeMusicWav(oldBytes)), bytes: oldBytes.length },
-      sourceIdentity: { type: "original-text-generation", sha256: candidate.sourceSha256 },
+      metrics: {
+        ...measureMusic(decodeMusicWav(oldBytes)),
+        bytes: oldBytes.length,
+      },
+      sourceIdentity: {
+        type: "original-text-generation",
+        sha256: candidate.sourceSha256,
+      },
     });
-    mastered = tempoOriginalMusic(mastered, musicProvenance.selectedTempo.fromBpm, musicProvenance.selectedTempo.bpm);
+    mastered = tempoOriginalMusic(
+      mastered,
+      musicProvenance.selectedTempo.fromBpm,
+      musicProvenance.selectedTempo.bpm,
+    );
   }
   const encoded = encodeMusicWav(mastered),
     sha256 = createHash("sha256").update(encoded).digest("hex");
-  const file = selected ? "music-candidates/warm-drive-dry-112.wav" : `music-candidates/${candidate.id}.wav`;
+  const file = selected
+    ? "music-candidates/warm-drive-dry-112.wav"
+    : `music-candidates/${candidate.id}.wav`;
   await writeFile(path.join(directory, file), encoded);
   const row = {
     id: candidate.id,
@@ -245,9 +346,14 @@ for (const candidate of musicProvenance.candidates) {
     file,
     url: `/audio/${file}?v=${sha256.slice(0, 12)}`,
     sha256,
-    bpm: selected ? (musicProvenance.selectedTempo?.bpm ?? candidate.masterSettings.bpm) : candidate.masterSettings.bpm,
+    bpm: selected
+      ? (musicProvenance.selectedTempo?.bpm ?? candidate.masterSettings.bpm)
+      : candidate.masterSettings.bpm,
     seconds: mastered.channels[0].length / sampleRate,
-    metrics: { ...measureMusic(decodeMusicWav(encoded)), bytes: encoded.length },
+    metrics: {
+      ...measureMusic(decodeMusicWav(encoded)),
+      bytes: encoded.length,
+    },
     sourceIdentity: {
       type: "original-text-generation",
       sha256: candidate.sourceSha256,
@@ -258,51 +364,69 @@ for (const candidate of musicProvenance.candidates) {
       sourceBpm: candidate.sourceBpm,
       tempoConfidence: candidate.tempoConfidence,
       boundaryChromaCosine: candidate.boundaryChromaCosine,
-      scope: "Original generated source and proposed source crop; not the finished tempo-adjusted master",
+      scope:
+        "Original generated source and proposed source crop; not the finished tempo-adjusted master",
     },
-    ...(selected ? { finishedAnalysis: musicProvenance.selectedTempo?.finishedAnalysis } : {}),
+    ...(selected
+      ? { finishedAnalysis: musicProvenance.selectedTempo?.finishedAnalysis }
+      : {}),
     masterSettings: candidate.masterSettings,
-    ...(selected && musicProvenance.selectedTempo ? { tempoAdjustment: musicProvenance.selectedTempo } : {}),
+    ...(selected && musicProvenance.selectedTempo
+      ? { tempoAdjustment: musicProvenance.selectedTempo }
+      : {}),
   };
   candidateRows.push(row);
   if (selected) {
     if (sha256 !== musicProvenance.selectedTempo.finishedAnalysis.sha256)
       throw new Error("Liked dry 112 BPM score identity changed");
-    const pulsed = addRecordedMusicPulse(
-      decodeMusicWav(encoded),
+    const { driveRecipe } = musicProvenance;
+    const driven = addRecordedMusicPulse(
+      tempoOriginalMusic(
+        warmSourceMaster,
+        driveRecipe.fromBpm,
+        driveRecipe.bpm,
+      ),
       sources.recordings.placeHeavy,
       sources.recordings.tap,
+      driveRecipe,
     );
-    const finished = encodeMusicWav(pulsed.pcm);
-    const pulseHash = createHash("sha256").update(finished).digest("hex");
-    const pulseFile = "aegis-music-v3.wav";
-    await writeFile(path.join(directory, pulseFile), finished);
+    const driveBytes = encodeMusicWav(driven.pcm);
+    const driveHash = createHash("sha256").update(driveBytes).digest("hex");
+    const driveFile = "aegis-music-v6.wav";
+    await writeFile(path.join(directory, driveFile), driveBytes);
     selectedMusic = {
-      ...row,
-      id: "warm-drive-pulse-112",
-      label: "Warm drive · subtle recorded pulse · 112 BPM",
+      id: `warm-drive-${driveRecipe.bpm}`,
+      label: `Warm drive · eighth-note recorded pulse · ${driveRecipe.bpm} BPM`,
       role: "selected",
-      file: pulseFile,
-      url: `/audio/${pulseFile}?v=${pulseHash.slice(0, 12)}`,
-      sha256: pulseHash,
-      metrics: { ...measureMusic(decodeMusicWav(finished)), bytes: finished.length },
-      sourceIdentity: { ...row.sourceIdentity, type: "original-score-with-licensed-recorded-rhythm" },
-      dryAnalysis: row.finishedAnalysis,
+      file: driveFile,
+      url: `/audio/${driveFile}?v=${driveHash.slice(0, 12)}`,
+      sha256: driveHash,
+      bpm: driveRecipe.bpm,
+      seconds: driven.pcm.channels[0].length / sampleRate,
+      metrics: {
+        ...measureMusic(decodeMusicWav(driveBytes)),
+        bytes: driveBytes.length,
+      },
+      sourceIdentity: {
+        ...row.sourceIdentity,
+        type: "original-score-with-licensed-recorded-rhythm",
+      },
+      sourceAnalysis: row.sourceAnalysis,
+      masterSettings: row.masterSettings,
+      tempoAdjustment: driveRecipe,
       finishedAnalysis: {
-        sha256: pulseHash,
-        gridBpm: 112,
-        measuredTempo: musicProvenance.rhythmRecipe.finishedTempo,
-        analysisScope: "Current finished mix; pulse fitted to the unchanged dry score beat grid",
-        ...pulsed.analysis,
+        sha256: driveHash,
+        gridBpm: driveRecipe.bpm,
+        ...driven.analysis,
       },
       rhythm: {
         source: "CC0 recorded card-body and chip-tap",
         bodyId: "placeHeavy",
         tapId: "tap",
-        bodyPeak: 0.006,
-        tapPeak: 0.0025,
-        events: pulsed.events,
-        drySha256: sha256,
+        bodyPeak: driveRecipe.bodyPeak,
+        tapPeak: driveRecipe.tapPeak,
+        stepsPerBeat: driveRecipe.stepsPerBeat,
+        events: driven.events,
       },
     };
     candidateRows.push(selectedMusic);
@@ -311,7 +435,10 @@ for (const candidate of musicProvenance.candidates) {
 if (!selectedMusic) throw new Error("No original selected score");
 // The liked generated score stays as an alternative; the match plays the authored synth score in its form.
 selectedMusic.role = "alternative";
-const scoreBytes = encodeMusicWav({ sampleRate, channels: renderScore(sampleRate) });
+const scoreBytes = encodeMusicWav({
+  sampleRate,
+  channels: renderScore(sampleRate),
+});
 const scoreHash = createHash("sha256").update(scoreBytes).digest("hex");
 const scoreFile = "aegis-music-v4.wav";
 await writeFile(path.join(directory, scoreFile), scoreBytes);
@@ -325,13 +452,22 @@ const ascentMusic = {
   bpm: SCORE_BPM,
   bars: SCORE_BARS,
   seconds: (SCORE_BARS * 4 * 60) / SCORE_BPM,
-  metrics: { ...measureMusic(decodeMusicWav(scoreBytes)), bytes: scoreBytes.length },
-  sourceIdentity: { type: "original-authored", rendererSha256: createHash("sha256").update(source).digest("hex") },
+  metrics: {
+    ...measureMusic(decodeMusicWav(scoreBytes)),
+    bytes: scoreBytes.length,
+  },
+  sourceIdentity: {
+    type: "original-authored",
+    rendererSha256: createHash("sha256").update(source).digest("hex"),
+  },
   composition:
     "Original synth score in the liked score's form: same 112 BPM, 16 bars, A-minor i-VI-VII drive and A-major release, with digital arpeggios and a digivolution-style rise into the release",
 };
 candidateRows.push(ascentMusic);
-const battleBytes = encodeMusicWav({ sampleRate, channels: renderBattleScore(sampleRate) });
+const battleBytes = encodeMusicWav({
+  sampleRate,
+  channels: renderBattleScore(sampleRate),
+});
 const battleHash = createHash("sha256").update(battleBytes).digest("hex");
 const battleFile = "aegis-music-v5.wav";
 await writeFile(path.join(directory, battleFile), battleBytes);
@@ -345,8 +481,14 @@ const runtimeMusic = {
   bpm: BATTLE_BPM,
   bars: BATTLE_BARS,
   seconds: (BATTLE_BARS * 4 * 60) / BATTLE_BPM,
-  metrics: { ...measureMusic(decodeMusicWav(battleBytes)), bytes: battleBytes.length },
-  sourceIdentity: { type: "original-authored", rendererSha256: createHash("sha256").update(source).digest("hex") },
+  metrics: {
+    ...measureMusic(decodeMusicWav(battleBytes)),
+    bytes: battleBytes.length,
+  },
+  sourceIdentity: {
+    type: "original-authored",
+    rendererSha256: createHash("sha256").update(source).digest("hex"),
+  },
   composition:
     "Original tense battle loop unlike both earlier scores: 144 BPM, 16 bars, D harmonic minor i-iv-VI-V, breakbeat, syncopated octave bass, offbeat stabs, staccato lead and a fast closing run",
 };
@@ -364,7 +506,8 @@ const candidatesManifest = {
     seconds: musicProvenance.reference.duration,
   },
   selectionReason: musicProvenance.selectionReason,
-  listeningStatus: "Measured verification only; user/validator listening acceptance remains",
+  listeningStatus:
+    "Measured verification only; user/validator listening acceptance remains",
 };
 await writeFile(
   path.join(directory, "music-candidates/manifest.json"),
@@ -382,13 +525,20 @@ const previewMetrics = {};
 for (const direction of ["warm", "crisp"]) {
   const preview = new Float32Array(sampleRate * 12);
   for (let i = 0; i < examples.length; i++)
-    preview.set(renderCue(...examples[i], direction, sampleRate, sources), Math.round((i * 2 + 0.15) * sampleRate));
-  previewMetrics[direction] = await wav(`previews/${direction}-six-cues.wav`, preview);
+    preview.set(
+      renderCue(...examples[i], direction, sampleRate, sources),
+      Math.round((i * 2 + 0.15) * sampleRate),
+    );
+  previewMetrics[direction] = await wav(
+    `previews/${direction}-six-cues.wav`,
+    preview,
+  );
 }
 const manifest = {
   version: 2,
   original: false,
-  arrangement: "Aegis arrangements of licensed CC0 recorded card/object foley under original tuned tone accents",
+  arrangement:
+    "Aegis arrangements of licensed CC0 recorded card/object foley under original tuned tone accents",
   recordedSourceProvenance: "sources/recorded-provenance.json",
   renderer: "apps/web/src/design/audioRecipes.ts",
   rendererSha256: createHash("sha256").update(source).digest("hex"),
@@ -416,7 +566,10 @@ const manifest = {
   previews: previewMetrics,
   clips: manifestClips,
 };
-await writeFile(path.join(directory, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
+await writeFile(
+  path.join(directory, "manifest.json"),
+  JSON.stringify(manifest, null, 2) + "\n",
+);
 // Static offsets are bundled; no manifest request or recipe rendering happens at cue time.
 if (!process.argv[2])
   await writeFile(
