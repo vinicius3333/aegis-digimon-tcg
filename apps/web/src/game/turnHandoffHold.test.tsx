@@ -184,5 +184,10 @@ it.each([0, 48])(
     expect(drawnAt, "the drawn card reaches the hand").toBeDefined();
     expect(turnBannerAt!).toBeGreaterThan(clauseSeenAt!);
     expect(drawnAt!).toBeGreaterThan(turnBannerAt!);
+    // The drawn card lands once: it never drops back to the deck and arrives again.
+    for (let elapsed = 0; elapsed < 3_000; elapsed += 16) {
+      await act(async () => vi.advanceTimersByTimeAsync(16));
+      expect(screen.getByTestId("hand").querySelectorAll(".game-hand-card")).toHaveLength(2);
+    }
   },
 );
