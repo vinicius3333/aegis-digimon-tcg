@@ -30,11 +30,15 @@ export const CHAT_COOLDOWN_MS = 1500;
 export type ChatMessage = { kind: "emote"; emote: MatchEmote } | { kind: "text"; text: string };
 
 /**
- * A spectator is named by the server ("Spectator 2") rather than by its own join
- * options, so nobody can pass as a player. `sessionId` lets that spectator's client
- * recognise its own messages.
+ * A spectator writes under the name it joined with, cleaned up by the server. A name that
+ * is empty, offensive or a player's own is withheld, and clients fall back to "Spectator
+ * <number>". `sessionId` lets that spectator's client recognise its own messages.
  */
-export type ChatSender = { kind: "player"; seat: Seat } | { kind: "spectator"; sessionId: string; number: number };
+export type ChatSender =
+  | { kind: "player"; seat: Seat }
+  | { kind: "spectator"; sessionId: string; number: number; name?: string };
+
+export const SPECTATOR_NAME_MAX_LENGTH = 24;
 
 export interface ChatBroadcast {
   sender: ChatSender;

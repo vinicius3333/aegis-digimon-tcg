@@ -18,6 +18,8 @@ import {
   CHAT_CHANNEL,
   CHAT_COOLDOWN_MS,
   parseChatMessage,
+  normalizeChatText,
+  SPECTATOR_NAME_MAX_LENGTH,
   type ChatBroadcast,
   type ChatMessage,
   type ChatSender,
@@ -41,7 +43,7 @@ import { MatchClock } from "./MatchClock.js";
 import { CasualSeries, type SeriesContinuationOptions, type SeriesRoomPort } from "./series/CasualSeries.js";
 import type { SeriesRecord } from "./series/SeriesDirectory.js";
 import { parsePresentationReport } from "./presentationReport.js";
-import { maskBlockedWords } from "../moderation/blockedWords.js";
+import { hasBlockedWord, maskBlockedWords } from "../moderation/blockedWords.js";
 
 /** Hand-laid boards must never be reachable by a real player. */
 const DEV_SCENARIOS_ENABLED = process.env.NODE_ENV !== "production";
@@ -223,6 +225,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
   /** The number in each spectator's chat name, given the first time that spectator writes. */
   private spectatorNumbers = new Map<string, number>();
   private spectatorsNumbered = 0;
+  /** The raw name each spectator joined with; `spectatorChatName` decides whether to show it. */
+  private spectatorJoinNames = new Map<string, string>();
   private accountByClient = new Map<string, string>();
   private rankedByClient = new Map<string, boolean>();
   /** Clients that pace chains of triggered effects themselves (`presentationPacing: "sequential"`). */
@@ -1009,6 +1013,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       // Recheck after reservation: a match can end while the socket is connecting.
       if (!this.spectatorInfo(options.roomCode)) throw new ServerError(403, "Match is not available to spectators");
       this.spectatorClients.add(client.sessionId);
+      if (typeof options.displayName === "string") this.spectatorJoinNames.set(client.sessionId, options.displayName);
       this.assignView(client, undefined);
       if (this.openSecurityReveal)
         this.withBatch(() => client.send(EVENT_CHANNEL, this.stamp(this.openSecurityReveal!)), client);
@@ -1131,6 +1136,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       }
       this.spectatorClients.delete(client.sessionId);
       this.spectatorNumbers.delete(client.sessionId);
+      this.spectatorJoinNames.delete(client.sessionId);
       this.lastChatAtBySender.delete(client.sessionId);
       if (client.view) {
         client.view.dispose();
@@ -1631,7 +1637,20 @@ export class AegisRoom extends Room<{ state: GameState }> {
       number = ++this.spectatorsNumbered;
       this.spectatorNumbers.set(client.sessionId, number);
     }
-    return { kind: "spectator", sessionId: client.sessionId, number };
+    const name = this.spectatorChatName(client.sessionId);
+    return { kind: "spectator", sessionId: client.sessionId, number, ...(name ? { name } : {}) };
+  }
+
+  /** The spectator's join name, cleaned, or nothing when it is empty, offensive or a player's. */
+  private spectatorChatName(sessionId: string): string | undefined {
+    const name = Array.from(normalizeChatText(this.spectatorJoinNames.get(sessionId) ?? ""))
+      .slice(0, SPECTATOR_NAME_MAX_LENGTH)
+      .join("")
+      .trim();
+    const folded = name.toLocaleLowerCase();
+    if (!name || hasBlockedWord(name)) return;
+    if (this.state.players.some((player) => player?.displayName.trim().toLocaleLowerCase() === folded)) return;
+    return name;
   }
 
   private debugError(...data: unknown[]): void {

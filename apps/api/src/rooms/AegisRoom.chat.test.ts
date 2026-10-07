@@ -88,27 +88,30 @@ describe("AegisRoom chat", () => {
     }
   });
 
-  it("numbers spectators in the order they first write and gives each its own cooldown", () => {
+  it("names spectators by their cleaned join name, numbers them, and gives each its own cooldown", () => {
     const { room, chats } = makeRoom();
     try {
       joinBothSeats(room);
-      const watching = (room as unknown as { spectatorClients: Set<string> }).spectatorClients;
-      watching.add("watcher-a");
-      watching.add("watcher-b");
+      const internals = room as unknown as { spectatorClients: Set<string>; spectatorJoinNames: Map<string, string> };
+      for (const [sessionId, name] of [
+        ["watcher-a", "  Gabumon \n Fan  "],
+        ["watcher-b", "A"],
+        ["watcher-c", "caralho"],
+      ] as const) {
+        internals.spectatorClients.add(sessionId);
+        internals.spectatorJoinNames.set(sessionId, name);
+      }
       const send = chatSender(room);
       vi.spyOn(Date, "now").mockReturnValue(10_000);
       send(fakeClient("watcher-b"), { kind: "text", text: "nice play" });
       send(fakeClient("watcher-a"), { kind: "emote", emote: "praise" });
+      send(fakeClient("watcher-c"), { kind: "emote", emote: "scold" });
       send(fakeClient("watcher-b"), { kind: "text", text: "too soon" });
-      expect(chats).toEqual([
-        {
-          sender: { kind: "spectator", sessionId: "watcher-b", number: 1 },
-          message: { kind: "text", text: "nice play" },
-        },
-        {
-          sender: { kind: "spectator", sessionId: "watcher-a", number: 2 },
-          message: { kind: "emote", emote: "praise" },
-        },
+      expect(chats.map((chat) => chat.sender)).toEqual([
+        // "A" is a player's name, and a spectator must not pass as a player.
+        { kind: "spectator", sessionId: "watcher-b", number: 1 },
+        { kind: "spectator", sessionId: "watcher-a", number: 2, name: "Gabumon Fan" },
+        { kind: "spectator", sessionId: "watcher-c", number: 3 },
       ]);
     } finally {
       room.onDispose();
