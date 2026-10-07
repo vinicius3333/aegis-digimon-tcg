@@ -2,9 +2,9 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEve
 import { createPortal } from "react-dom";
 import { CHAT_TEXT_MAX_LENGTH, normalizeChatText, type MatchEmote, type Seat } from "@aegis/shared";
 import { Icons } from "../../design/icons";
-import { Switch } from "../../design/primitives";
 import { useTranslation } from "../../i18n";
 import { useChatMessageText } from "./ChatBubble";
+import { ChatSettingsMenu } from "./ChatSettingsMenu";
 import { EmoteIcon } from "./EmoteIcon";
 import { EmotePicker } from "./EmotePicker";
 import { useDraggableWindow } from "./useDraggableWindow";
@@ -30,7 +30,8 @@ export function MatchChatWindow({
   const messageText = useChatMessageText();
   const senderName = ({ own, sender }: ChatEntry) => {
     if (own) return t("chat.you");
-    return sender.kind === "player" ? seatNames[sender.seat] : t("chat.spectator", { number: sender.number });
+    if (sender.kind === "player") return seatNames[sender.seat];
+    return sender.name ?? t("chat.spectator", { number: sender.number });
   };
   const [draft, setDraft] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -44,6 +45,9 @@ export function MatchChatWindow({
   useLayoutEffect(keepOnScreen, [expanded, keepOnScreen]);
   const { send, coolingDown } = chat;
   const closePicker = useCallback(() => setPickerOpen(false), []);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsButtonRef = useRef<HTMLButtonElement>(null);
+  const closeSettings = useCallback(() => setSettingsOpen(false), []);
 
   useEffect(() => {
     const history = historyRef.current;
@@ -80,6 +84,17 @@ export function MatchChatWindow({
         <Icons.MessageSquare size={14} aria-hidden="true" />
         <h2>{t("chat.title")}</h2>
         <button
+          ref={settingsButtonRef}
+          type="button"
+          className="match-chat-window__control"
+          onClick={() => setSettingsOpen((open) => !open)}
+          aria-label={t("chat.settings")}
+          aria-expanded={settingsOpen}
+          title={t("chat.settings")}
+        >
+          <Icons.MoreVertical size={16} />
+        </button>
+        <button
           type="button"
           className="match-chat-window__control"
           onClick={() => setExpanded((current) => !current)}
@@ -93,6 +108,14 @@ export function MatchChatWindow({
           <Icons.X size={16} />
         </button>
       </header>
+      {settingsOpen ? (
+        <ChatSettingsMenu
+          chat={chat}
+          spectating={spectating}
+          anchor={settingsButtonRef.current}
+          onClose={closeSettings}
+        />
+      ) : null}
       <div className="match-chat-window__body">
         <ol className="match-chat-window__history" ref={historyRef}>
           {chat.entries.length === 0 ? <li className="match-chat-window__empty">{t("chat.empty")}</li> : null}
@@ -104,6 +127,10 @@ export function MatchChatWindow({
               data-kind={entry.message.kind}
             >
               <strong>{senderName(entry)}</strong>
+              {/* Spectators pick their own names, so the tag keeps them from passing as a player. */}
+              {entry.sender.kind === "spectator" && entry.sender.name ? (
+                <small className="match-chat-window__tag">{t("chat.spectatorTag")}</small>
+              ) : null}
               {entry.message.kind === "emote" ? (
                 <span role="img" aria-label={messageText(entry.message)} title={messageText(entry.message)}>
                   <EmoteIcon emote={entry.message.emote} size={24} />
@@ -153,14 +180,6 @@ export function MatchChatWindow({
                 <Icons.Send size={16} />
               </button>
             </form>
-            {spectating ? null : (
-              <Switch checked={chat.mutedOpponent} label={t("chat.mute")} onChange={chat.setMutedOpponent} />
-            )}
-            <Switch
-              checked={chat.mutedSpectators}
-              label={t("chat.muteSpectators")}
-              onChange={chat.setMutedSpectators}
-            />
           </>
         ) : null}
       </div>

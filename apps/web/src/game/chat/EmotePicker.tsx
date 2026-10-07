@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { MATCH_EMOTES, type MatchEmote } from "@aegis/shared";
 import { useTranslation } from "../../i18n";
 import { EmoteIcon } from "./EmoteIcon";
+import { useDismissOnOutsidePress } from "./useDismissOnOutsidePress";
 
 /** The pop-up menu of tamer-command icons, opened from the smiley button beside the text box. */
 export function EmotePicker({
@@ -23,15 +24,7 @@ export function EmotePicker({
     menuRef.current?.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus();
   }, []);
 
-  useEffect(() => {
-    const closeOnOutsidePress = (event: globalThis.PointerEvent) => {
-      const target = event.target as Node;
-      if (menuRef.current?.contains(target) || anchor?.contains(target)) return;
-      onClose();
-    };
-    document.addEventListener("pointerdown", closeOnOutsidePress, true);
-    return () => document.removeEventListener("pointerdown", closeOnOutsidePress, true);
-  }, [anchor, onClose]);
+  useDismissOnOutsidePress(menuRef, anchor, onClose);
 
   return (
     <div

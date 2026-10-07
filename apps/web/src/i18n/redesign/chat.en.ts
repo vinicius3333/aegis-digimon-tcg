@@ -12,6 +12,8 @@ export const chatEn = {
   "chat.muteSpectators": "Mute spectators",
   "chat.you": "You",
   "chat.spectator": "Spectator {number}",
+  "chat.spectatorTag": "spectator",
+  "chat.settings": "Chat settings",
   "chat.emote.offense": "Offense!",
   "chat.emote.moderate": "Moderate!",
   "chat.emote.stayAway": "Stay away!",

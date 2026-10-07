@@ -164,6 +164,36 @@
   font-weight: 500;
 }
 
+.match-chat-window__tag {
+  flex: none;
+  padding: 0 var(--ds-space-1);
+  color: var(--ds-text-3);
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-sm);
+}
+
+/* ---- Settings menu ----
+   Hangs from the kebab button, just under the 2.75rem title bar. */
+.match-chat-settings {
+  position: absolute;
+  z-index: 2;
+  top: 2.75rem;
+  right: var(--ds-space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  width: min(16rem, calc(100% - var(--ds-space-4)));
+  padding: var(--ds-space-3);
+  border: 1px solid var(--ds-line-strong);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-sheet);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.28);
+  animation: match-chat-picker-in 120ms ease-out;
+}
+
 .match-chat-window__empty {
   color: var(--ds-text-3);
 }

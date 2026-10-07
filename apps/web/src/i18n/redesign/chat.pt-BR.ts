@@ -14,6 +14,8 @@ export const chatPtBR: Record<keyof typeof chatEn, string> = {
   "chat.muteSpectators": "Silenciar espectadores",
   "chat.you": "Você",
   "chat.spectator": "Espectador {number}",
+  "chat.spectatorTag": "espectador",
+  "chat.settings": "Configurações do chat",
   "chat.emote.offense": "Ataque!",
   "chat.emote.moderate": "Moderado!",
   "chat.emote.stayAway": "Mantenha distância!",

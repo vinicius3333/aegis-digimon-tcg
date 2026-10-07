@@ -16,7 +16,11 @@ import { MatchChatWindow } from "./MatchChatWindow";
 import { useMatchChat, type ChatEntry, type MatchChat } from "./useMatchChat";
 
 const player = (seat: Seat): ChatSender => ({ kind: "player", seat });
-const spectator = (sessionId: string, number: number): ChatSender => ({ kind: "spectator", sessionId, number });
+const spectator = (sessionId: string, number: number): Extract<ChatSender, { kind: "spectator" }> => ({
+  kind: "spectator",
+  sessionId,
+  number,
+});
 
 function fakeRoom(sessionId = "viewer-session") {
   let deliver: ((broadcast: ChatBroadcast) => void) | undefined;
@@ -191,18 +195,47 @@ describe("MatchChatWindow", () => {
     expect(screen.getByRole("button", { name: "Offense!" })).toHaveProperty("disabled", true);
   });
 
+  const openSettings = () => fireEvent.click(screen.getByRole("button", { name: "Chat settings" }));
+
+  it("shows a spectator's chosen name with a spectator tag", () => {
+    renderWindow({
+      entries: [
+        {
+          id: 0,
+          own: false,
+          sender: { ...spectator("x", 3), name: "Gabumon Fan" },
+          message: { kind: "text", text: "hi" },
+        },
+      ],
+    });
+    const row = screen.getByRole("listitem");
+    expect(row.textContent).toContain("Gabumon Fan");
+    expect(row.textContent).toContain("spectator");
+  });
+
   it("lets a spectator write and mute other spectators, but not mute a player", () => {
     const { chat } = renderWindow({}, true);
     fireEvent.change(screen.getByRole("textbox", { name: "Message the match" }), { target: { value: "gg" } });
     fireEvent.click(screen.getByRole("button", { name: "Send" }));
     expect(chat.send).toHaveBeenCalledWith({ kind: "text", text: "gg" });
+    openSettings();
     expect(screen.queryByRole("switch", { name: "Mute opponent" })).toBeNull();
     fireEvent.click(screen.getByRole("switch", { name: "Mute spectators" }));
     expect(chat.setMutedSpectators).toHaveBeenCalledWith(true);
   });
 
+  it("keeps the mute switches in the settings menu, which closes on a press outside it", () => {
+    renderWindow();
+    expect(screen.queryByRole("switch")).toBeNull();
+    openSettings();
+    expect(screen.getAllByRole("switch")).toHaveLength(2);
+    fireEvent.pointerDown(screen.getByRole("list"));
+    expect(screen.queryByRole("switch")).toBeNull();
+  });
+
   it("gives a player both mute switches and closes from the title bar", () => {
     const { chat, onClose } = renderWindow();
+    openSettings();
     fireEvent.click(screen.getByRole("switch", { name: "Mute opponent" }));
     expect(chat.setMutedOpponent).toHaveBeenCalledWith(true);
     fireEvent.click(screen.getByRole("switch", { name: "Mute spectators" }));
