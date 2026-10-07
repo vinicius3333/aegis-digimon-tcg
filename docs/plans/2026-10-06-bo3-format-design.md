@@ -26,32 +26,38 @@ already run Bo3 through `tournaments/series`.
 `MatchTimerSettings` becomes `MatchRulesSettings`, one "Match rules" group with
 two rows:
 
-- **Format:** a `Best of 1 | Best of 3` segmented control, with the hint "First
+- **Games per match:** a `Best of 1 | Best of 3` segmented control, with the hint "First
   to 2 wins. Loser of each game picks who goes first. Decks are locked for the
   series."
 - **Match timer:** the existing switch, reserve line, and start select.
 
 Quick Match and the private-room host see both rows. A private-room guest sees
-one read-only line, for example "Host set: Best of 3 · 5:00 timer". The choice
-is saved to localStorage next to the timer preference. The page keeps a single
-"Create room" button.
+the existing guest line, now "The host sets the format and timer for both
+players." The choice is saved to localStorage (`aegis:match-format`) next to the
+timer preference. The deck strip shows a "Best of 3" chip beside "Timer ON".
+
+The row is labeled "Games per match", not "Format": the setup panel already
+uses "Format" for the card pool ("Standard through BT1").
 
 ### In match
 
-`MatchTimer` becomes one pill: `0–1 · G2 │ 4:12 │ NOVA`. With the timer off,
-the pill shows only the score. A Bo1 match looks exactly like today.
+Each player already has their own clock beside their name, so the series score
+sits in the opponent bar as a badge next to the opponent's clock: `G2 · 0–1`,
+counted from the viewer's side. Phones drop the game number and show `0–1`. With
+the timer off, the badge stands alone. A Bo1 match looks exactly like today.
 
 ### Between games
 
-`GameOverOverlay` gets a `series` variant, shown on a navy match dialog over the
-dimmed board:
+`GameOverOverlay` gets a `series` variant. It keeps the existing dark result
+scrim rather than the navy dialog of the mockups, so Bo1 and Bo3 endings match:
 
 1. Eyebrow `GAME 1 OF 3 · COMPLETE`, the game result, and its reason.
 2. Score as text (`0 – 1`) and one pip per game, labeled W or L from the
    viewer's side. An unlabeled filled pip does not say who won, so never use one.
 3. For the loser: "Go first" / "Go second" with a 20 s countdown bar. For the
    winner: "Nova is choosing…".
-4. Opponent status, "View board", and "Leave series" (danger tone).
+4. "View board" and "Leave series" (danger tone). "Find rematch" and "Main
+   menu" are not shown until the series is over.
 
 When the next room is ready, a short splash reads "Game 2 · Nova goes first"
 while the client moves to the new room.
@@ -109,6 +115,11 @@ run them.
    `seriesNext { roomId }`.
 5. Clients join by `roomId` with their `seatToken`, and the room seats each one
    by token. A seat with no client after 60 s forfeits the series.
+
+Seats fill in order, because `state.players` must not have a gap. When the
+seat-1 player arrives first, the room holds them until seat 0 arrives, then
+seats both. A `ready` sent while held is buffered, since the client sends it
+only once. Leaving while held forfeits the series.
 
 ### Forfeit reasons
 
