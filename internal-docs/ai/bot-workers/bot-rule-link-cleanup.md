@@ -998,6 +998,37 @@ fresh idle inventory and a distinct ROOT evaluation resource Go remain required.
 No metadata generation, engine rebuild, physical/room games or final blind
 seeds were consumed by this preparation.
 
+## Actual balanced R3 CUDA learning started
+
+A later actual observer now confirms the real learner **1138/start87977**,
+parent 736, under the original whole 716/start53032 and foreground session
+49940. Its complete argv equals the admitted supported command byte for byte.
+Actual config confirms CUDA, `evaluate: false`, F7, seed 6016104, 3,872 games,
+the exact protected R2b checkpoint SHA-256
+`948aa03ea52208321e4d47e3ece9fd2517ee45d3b941d5b608fe94368b65df45`,
+all44 learner recipes and both initial/restored and current learning rate `1e-5`.
+No optimizer reset or additional metadata migration was requested.
+
+The first actual batch completed **88 usable games** (61 wins / 27 losses),
+with every learner recipe observed twice, zero failed/unusable games, payment
+forfeits or recovered play rejections. These stochastic training results and
+visible mechanism choices do not accept strength or mastery. The original
+whole is still live; full 3,872-game completion, actual new checkpoint SHA,
+positive all12 Adam deltas and unchanged guarded full closure remain pending.
+Keep the same foreground session attached, allow no overlapping CUDA evaluation,
+and preserve any attributable penalty losses and partial failures.
+
+A local future full training closure reader is prepared at
+`closed-current-corrective-ppo-r3.sh`, SHA-256
+`83c4941ead8c763f68e0a83fe8e19432072f859d39dfd8a4ac18d2e04b8c3b84`.
+Bash syntax validation passed; it has not been executed and must wait for actual
+original whole zero. It binds the real request/operator/identity/ROOT-Go pins
+and invokes the unchanged resident R3 full closure consumer. New checkpoint,
+completion and update-count pins must come from that actual output, never from
+this preparation or synthetic fixtures. Full all44 strength, both-seat
+mechanisms/materials, 26 managed rooms/current serving, reserved blind seeds
+and verified delivery remain required.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
