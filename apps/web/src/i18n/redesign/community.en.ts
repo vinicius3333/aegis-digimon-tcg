@@ -56,5 +56,6 @@ export const communityEn = {
   "community.publish.signIn": "Sign in to publish your decks.",
   "community.publish.errorNotLegal": "This deck is not legal, so it cannot be public.",
   "community.publish.errorName": "Rename this deck first. Its name has a word that is not allowed.",
+  "community.publish.errorHidden": "A moderator hid this deck after a report, so it cannot be public.",
   "community.publish.errorGeneric": "Could not publish. Try again.",
 } as const;

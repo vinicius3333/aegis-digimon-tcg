@@ -5,9 +5,10 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AccountStore } from "../accounts/AccountStore.js";
 import { installAccountRoutes } from "../accounts/routes.js";
 import { createMemoryPool } from "../db/memoryPool.fixture.js";
+import type { NewDeckReport } from "./deckReports.js";
 
 type Player = { id: string; cookie: string };
-type Harness = { url: string; store: AccountStore; close: () => Promise<void> };
+type Harness = { url: string; store: AccountStore; reports: NewDeckReport[]; close: () => Promise<void> };
 
 const legalDecks = ALL_FAMOUS_DECKS.filter(isFamousDeckAvailable)
   .map((deck) => deck.decklist)
@@ -18,20 +19,37 @@ let harness: Harness;
 
 async function startHarness(): Promise<Harness> {
   const store = new AccountStore(createMemoryPool());
+  const reports: NewDeckReport[] = [];
   const app = express();
   app.use(express.json());
-  installAccountRoutes(app, store);
+  const tracker = { report: async (report: NewDeckReport) => void reports.push(report) };
+  installAccountRoutes(
+    app,
+    store,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    tracker,
+  );
   const server = app.listen(0);
   await new Promise((resolve) => server.once("listening", resolve));
   return {
     url: `http://127.0.0.1:${(server.address() as AddressInfo).port}`,
     store,
+    reports,
     close: () => new Promise<void>((resolve) => server.close(() => resolve())),
   };
 }
 
-async function signIn(name: string): Promise<Player> {
+async function signIn(name: string, { admin = false } = {}): Promise<Player> {
   const account = await harness.store.accountForIdentity("discord", name, name);
+  if (admin) await harness.store.pool.query("UPDATE accounts SET is_admin=true WHERE id=$1", [account.id]);
   const session = await harness.store.issueSession(account);
   return { id: account.id, cookie: `aegis_session=${session.id}` };
 }
@@ -209,5 +227,97 @@ describe("copies", () => {
     expect((await call(`/community/decks/${id}/copies`, "POST", fan)).status).toBe(204);
     expect((await call(`/community/decks/${id}/copies`, "POST", fan)).status).toBe(204);
     expect((await browse()).decks[0]).toMatchObject({ copyCount: 1 });
+  });
+});
+
+describe("reports", () => {
+  it("files the deck, its author and the reason, but never the reporter", async () => {
+    const author = await signIn("Author");
+    const reporter = await signIn("Reporter");
+    const { id } = await saveAndPublish(author, "custom-1", "Reported deck");
+    const response = await call(`/community/decks/${id}/reports`, "POST", reporter, {
+      reason: "offensive_name",
+      details: "  rude name  ",
+    });
+    expect(response.status).toBe(204);
+    expect(harness.reports).toEqual([
+      { deckId: id, deckName: "Reported deck", authorName: "Author", reason: "offensive_name", details: "rude name" },
+    ]);
+  });
+
+  it("refuses guests, the author, unknown decks and malformed reports", async () => {
+    const author = await signIn("Author");
+    const reporter = await signIn("Reporter");
+    const { id } = await saveAndPublish(author, "custom-1", "Reported deck");
+    const report = (player: Player | undefined, body: unknown, deckId = id) =>
+      call(`/community/decks/${deckId}/reports`, "POST", player, body);
+    expect((await report(undefined, { reason: "spam" })).status).toBe(401);
+    expect((await report(author, { reason: "spam" })).status).toBe(403);
+    expect((await report(reporter, { reason: "spam" }, "00000000-0000-0000-0000-000000000000")).status).toBe(404);
+    expect((await report(reporter, { reason: "rude" })).status).toBe(400);
+    expect((await report(reporter, { reason: "spam", details: "x".repeat(501) })).status).toBe(400);
+    expect(harness.reports).toEqual([]);
+  });
+
+  it("limits how fast one account files reports", async () => {
+    const author = await signIn("Author");
+    const reporter = await signIn("Reporter");
+    const { id } = await saveAndPublish(author, "custom-1", "Reported deck");
+    const statuses = [];
+    for (let attempt = 0; attempt < 6; attempt += 1)
+      statuses.push((await call(`/community/decks/${id}/reports`, "POST", reporter, { reason: "spam" })).status);
+    expect(statuses).toEqual([204, 204, 204, 204, 204, 429]);
+  });
+});
+
+describe("moderation", () => {
+  const moderate = (id: string, player: Player | undefined, action: string) =>
+    call(`/admin/community/decks/${id}/moderation`, "POST", player, { action });
+
+  it("is for admins only", async () => {
+    const author = await signIn("Author");
+    const { id } = await saveAndPublish(author, "custom-1", "Deck");
+    expect((await moderate(id, undefined, "hide")).status).toBe(401);
+    expect((await moderate(id, author, "hide")).status).toBe(403);
+    const admin = await signIn("Admin", { admin: true });
+    expect((await moderate(id, admin, "delete")).status).toBe(400);
+    expect((await moderate("00000000-0000-0000-0000-000000000000", admin, "hide")).status).toBe(404);
+  });
+
+  it("hides a deck from players but not from admins, and the owner cannot republish it", async () => {
+    const author = await signIn("Author");
+    const admin = await signIn("Admin", { admin: true });
+    const { id } = await saveAndPublish(author, "custom-1", "Rude deck");
+    expect(await (await moderate(id, admin, "hide")).json()).toEqual({ status: "hidden" });
+    expect((await browse()).decks).toEqual([]);
+    expect((await call(`/community/decks/${id}`, "GET", author)).status).toBe(404);
+    expect(await (await call(`/community/decks/${id}`, "GET", admin)).json()).toMatchObject({ status: "hidden" });
+    expect((await call(`/community/decks/${id}/like`, "PUT", admin)).status).toBe(404);
+    const republish = await call("/community/publications/custom-1", "PUT", author);
+    expect(republish.status).toBe(422);
+    expect(await republish.json()).toEqual({ error: "deck_hidden" });
+    expect((await call("/community/publications/custom-1", "DELETE", author)).status).toBe(404);
+    expect(await (await call("/community/publications", "GET", author)).json()).toEqual([
+      expect.objectContaining({ id, status: "hidden" }),
+    ]);
+  });
+
+  it("hides an unpublished deck so it cannot come back, and restores a hidden one", async () => {
+    const author = await signIn("Author");
+    const admin = await signIn("Admin", { admin: true });
+    const { id } = await saveAndPublish(author, "custom-1", "Deck");
+    await call("/community/publications/custom-1", "DELETE", author);
+    expect(await (await moderate(id, admin, "hide")).json()).toEqual({ status: "hidden" });
+    expect((await call("/community/publications/custom-1", "PUT", author)).status).toBe(422);
+    expect(await (await moderate(id, admin, "restore")).json()).toEqual({ status: "public" });
+    expect((await browse()).decks.map((deck) => deck.id)).toEqual([id]);
+  });
+
+  it("leaves an unpublished deck unpublished on restore", async () => {
+    const author = await signIn("Author");
+    const admin = await signIn("Admin", { admin: true });
+    const { id } = await saveAndPublish(author, "custom-1", "Deck");
+    await call("/community/publications/custom-1", "DELETE", author);
+    expect(await (await moderate(id, admin, "restore")).json()).toEqual({ status: "unpublished" });
   });
 });

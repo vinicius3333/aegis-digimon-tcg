@@ -58,5 +58,6 @@ export const communityPtBR: Record<keyof typeof communityEn, string> = {
   "community.publish.signIn": "Entre para publicar seus decks.",
   "community.publish.errorNotLegal": "Este deck é ilegal, então não pode ser público.",
   "community.publish.errorName": "Renomeie este deck antes. O nome tem uma palavra não permitida.",
+  "community.publish.errorHidden": "Um moderador ocultou este deck após uma denúncia, então ele não pode ser público.",
   "community.publish.errorGeneric": "Não foi possível publicar. Tente de novo.",
 };

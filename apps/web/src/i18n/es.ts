@@ -1864,6 +1864,7 @@ export const es: Record<keyof typeof en, string> = {
   "community.publish.signIn": "Inicia sesión para publicar tus decks.",
   "community.publish.errorNotLegal": "Este deck no es válido, así que no puede ser público.",
   "community.publish.errorName": "Cambia primero el nombre de este deck. Tiene una palabra que no está permitida.",
+  "community.publish.errorHidden": "Un moderador ocultó este deck tras una denuncia, así que no puede ser público.",
   "community.publish.errorGeneric": "No se pudo publicar. Inténtalo de nuevo.",
   "chat.open": "Chat",
   "chat.title": "Chat",
