@@ -387,7 +387,7 @@ describe("EX10-070 God Grade Unleashed", () => {
     await loop;
   });
 
-  it("does not offer the ＜Delay＞ when the only [Appmon] link material is in HAND, not the trash", async () => {
+  it("links nothing from HAND but still lets the ＜Delay＞ be paid (Q5710)", async () => {
     const s = setupEngine(delayBoard({ material: "hand", host: "maquinamon" }), {
       autoAcceptOptional: true,
       autoSelectCards: true,
@@ -416,7 +416,8 @@ describe("EX10-070 God Grade Unleashed", () => {
     await settle(() => false, 60);
     await s.ready();
 
-    expect(p0.battleArea.some(({ topCard }) => topCard?.instanceId === optionId)).toBe(true);
+    expect(p0.battleArea.some(({ topCard }) => topCard?.instanceId === optionId)).toBe(false);
+    expect(p0.trash.map(({ instanceId }) => instanceId)).toContain(optionId);
     expect(s.perm("host").linked).toHaveLength(0);
     expect(p0.hand.map(({ instanceId }) => instanceId)).toContain(materialId);
 
@@ -424,7 +425,7 @@ describe("EX10-070 God Grade Unleashed", () => {
     await loop;
   });
 
-  it("does not offer the ＜Delay＞ when the trash holds no linkable [Appmon] Digimon card", async () => {
+  it("links nothing when the trash holds no linkable [Appmon] Digimon card, but the ＜Delay＞ may still be paid (Q5710)", async () => {
     const board = delayBoard({ material: "none", host: "maquinamon" });
     board[0].trash = [{ card: "BT1-009", as: "wrongMaterial" }];
     const s = setupEngine(board, { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true });
@@ -451,7 +452,8 @@ describe("EX10-070 God Grade Unleashed", () => {
     await settle(() => false, 60);
     await s.ready();
 
-    expect(p0.battleArea.some(({ topCard }) => topCard?.instanceId === optionId)).toBe(true);
+    expect(p0.battleArea.some(({ topCard }) => topCard?.instanceId === optionId)).toBe(false);
+    expect(p0.trash.map(({ instanceId }) => instanceId)).toContain(optionId);
     expect(s.perm("host").linked).toHaveLength(0);
     expect(p0.trash.map(({ instanceId }) => instanceId)).toContain(wrongMaterialId);
 

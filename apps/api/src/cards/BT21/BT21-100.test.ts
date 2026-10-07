@@ -234,8 +234,9 @@ describe("BT21-100 The Digimon I Designed", () => {
       await settle(() => s.state.pendingDecision === undefined);
 
       expect(s.perm("host").topCard.cardId).toBe(hostCard);
-      expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(true);
-      expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+      // The ＜Delay＞ may still be paid for no effect (CR 15-7-5, Q5710).
+      expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(false);
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
       expect(s.state.players[0]!.trash.some((card) => card.instanceId === destinationId)).toBe(true);
       advance(s.engine).endMainPhaseIfOpen(0);
       await ownTurn;

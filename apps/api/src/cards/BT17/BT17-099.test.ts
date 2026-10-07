@@ -283,9 +283,8 @@ describe("BT17-099 Awakening of the Sun", () => {
       }),
     ).toEqual({ ok: true });
     await settle();
-    // No legal digivolution pair, so the ＜Delay＞ window resolves to nothing and never charges
-    // its §16-17-1 activation cost.
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === optionPermanentId)).toBe(true);
+    // No legal digivolution pair, but the ＜Delay＞ may still be paid for no effect (CR 15-7-5, Q5710).
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === optionPermanentId)).toBe(false);
 
     expect(s.perm("rize").topCard?.cardId).toBe("BT17-037");
     expect(s.perm("rize").stack).toHaveLength(0);
@@ -326,9 +325,8 @@ describe("BT17-099 Awakening of the Sun", () => {
       }),
     ).toEqual({ ok: true });
     await settle();
-    // No legal digivolution pair, so the ＜Delay＞ window resolves to nothing and never charges
-    // its §16-17-1 activation cost.
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === optionPermanentId)).toBe(true);
+    // No legal digivolution pair, but the ＜Delay＞ may still be paid for no effect (CR 15-7-5, Q5710).
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === optionPermanentId)).toBe(false);
 
     expect(s.perm("rookie").topCard?.cardId).toBe("BT1-009");
     expect(s.perm("rookie").stack).toHaveLength(0);

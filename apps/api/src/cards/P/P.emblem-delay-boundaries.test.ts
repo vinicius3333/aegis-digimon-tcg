@@ -17,7 +17,7 @@ const cases = [
 ] as const;
 
 describe.each(cases)("%s intrinsic Delay target boundaries", (emblem, tamer, tamerAlias) => {
-  it("does not consume the source or hand card for a level-6 non-LIBERATOR candidate", async () => {
+  it("pays the Delay for no effect and keeps the hand card for a level-6 non-LIBERATOR candidate (Q5710)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -34,6 +34,7 @@ describe.each(cases)("%s intrinsic Delay target boundaries", (emblem, tamer, tam
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.perm("emblem").placedByEffect = true;
+    const emblemId = s.perm("emblem").topCard.instanceId;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst(tamerAlias).instanceId })).toEqual({
       ok: true,
@@ -41,10 +42,10 @@ describe.each(cases)("%s intrinsic Delay target boundaries", (emblem, tamer, tam
     await settle();
     expect(s.perm("base").topCard.cardId).toBe("BT19-052");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
-    expect(s.perm("emblem").topCard.cardId).toBe(emblem);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === emblemId)).toBe(true);
   });
 
-  it("does not consume the source or hand card for a level-7 LIBERATOR candidate", async () => {
+  it("pays the Delay for no effect and keeps the hand card for a level-7 LIBERATOR candidate (Q5710)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -61,6 +62,7 @@ describe.each(cases)("%s intrinsic Delay target boundaries", (emblem, tamer, tam
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.perm("emblem").placedByEffect = true;
+    const emblemId = s.perm("emblem").topCard.instanceId;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst(tamerAlias).instanceId })).toEqual({
       ok: true,
@@ -68,6 +70,6 @@ describe.each(cases)("%s intrinsic Delay target boundaries", (emblem, tamer, tam
     await settle();
     expect(s.perm("base").topCard.cardId).toBe("BT20-077");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
-    expect(s.perm("emblem").topCard.cardId).toBe(emblem);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === emblemId)).toBe(true);
   });
 });

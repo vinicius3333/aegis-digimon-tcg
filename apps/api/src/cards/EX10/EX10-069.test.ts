@@ -378,7 +378,7 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
     ["[Mineral] but no [LIBERATOR]", MINERAL_ONLY],
     ["[LIBERATOR] but no [Mineral]", LIBERATOR_ONLY],
   ] as const) {
-    it(`Q5183 refuses a hand Digimon with ${label}, leaving the ＜Delay＞ unspent`, async () => {
+    it(`Q5183 refuses a hand Digimon with ${label}, while the ＜Delay＞ may still be paid for no effect (Q5710)`, async () => {
       const s = setupEngine(delayBoard(handCard), SELECT);
       await s.ready();
       const loop = s.engine.startTurnLoop();
@@ -412,8 +412,8 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
       const p0 = s.state.players[0]!;
       expect(s.perm("host").topCard!.instanceId).toBe(hostTopId);
       expect(p0.hand.map(({ instanceId }) => instanceId)).toContain(targetId);
-      expect(p0.battleArea.some(({ topCard }) => topCard.instanceId === emblemId)).toBe(true);
-      expect(p0.trash.map(({ instanceId }) => instanceId)).not.toContain(emblemId);
+      expect(p0.battleArea.some(({ topCard }) => topCard.instanceId === emblemId)).toBe(false);
+      expect(p0.trash.map(({ instanceId }) => instanceId)).toContain(emblemId);
       expect(s.state.memory).toBe(5);
       expect(s.state.pendingDecision).toBeUndefined();
 
@@ -543,8 +543,9 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
     expect(s.perm("trigger").topCard!.instanceId).toBe(triggerTopId);
     expect(p0.hand.map(({ instanceId }) => instanceId)).toContain(targetId);
     expect(p0.deck).toHaveLength(deckBefore);
-    expect(p0.battleArea.some(({ topCard }) => topCard.instanceId === emblemId)).toBe(true);
-    expect(p0.trash.map(({ instanceId }) => instanceId)).not.toContain(emblemId);
+    // The illegal base still lets the ＜Delay＞ be paid for no effect (CR 15-7-5, Q5710).
+    expect(p0.battleArea.some(({ topCard }) => topCard.instanceId === emblemId)).toBe(false);
+    expect(p0.trash.map(({ instanceId }) => instanceId)).toContain(emblemId);
     expect(s.state.memory).toBe(5);
     expect(s.state.pendingDecision).toBeUndefined();
 
