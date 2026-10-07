@@ -129,6 +129,7 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
           grantCtx.fx.grantCustomEffect?.(top.instanceId, ctx.source.ownerSeat, action.effectText!, grantDuration, {
             activationIdentity,
             continuous: ctx.continuousPass === true,
+            sourceCardId: ctx.source.cardId,
             // Q2120/Q2121: a duration-scoped Option aura is applied only while this Digimon can
             // be affected by the granting Option. Re-evaluate at trigger collection time.
             isActive: () => {

@@ -1,5 +1,5 @@
 import { Icons } from "../../design/icons";
-import type { RestrictionBadge } from "../fieldBadges";
+import { forcedAttackGrantText, type ForcedAttackGrant, type RestrictionBadge } from "../fieldBadges";
 import { useTranslation } from "../../i18n";
 import { BadgeHint } from "./BadgeHint";
 import { formatDpDelta } from "./formatDpDelta";
@@ -33,10 +33,13 @@ function BadgeIcon({ restriction }: { restriction: RestrictionBadge }) {
  */
 export function PermanentRestrictionBadges({
   restrictions,
+  forcedAttackGrants = [],
   dpDelta,
   baseDp,
 }: {
   restrictions: readonly RestrictionBadge[];
+  /** What forces the attack behind an `attacksAtStartOfMainPhase` chip, and which card granted it. */
+  forcedAttackGrants?: readonly ForcedAttackGrant[];
   dpDelta?: number;
   /** The original DP (printed, or rewritten by an effect) the DP badge's explanation compares the change against. */
   baseDp?: number;
@@ -45,6 +48,10 @@ export function PermanentRestrictionBadges({
   const maxVisibleBadges = 3;
   const visibleRestrictions = restrictions.slice(0, maxVisibleBadges);
   const hiddenRestrictions = restrictions.slice(visibleRestrictions.length);
+  const describe = (restriction: RestrictionBadge) =>
+    restriction.kind === "attacksAtStartOfMainPhase" && forcedAttackGrants.length > 0
+      ? forcedAttackGrants.map((grant) => forcedAttackGrantText(grant, t)).join(" ")
+      : t(`redesign.arena.restriction.${restriction.kind}`);
   const dpLabel =
     dpDelta === undefined ? undefined : `DP ${dpDelta < 0 ? "−" : "+"}${formatDpDelta(Math.abs(dpDelta))}`;
   return (
@@ -59,7 +66,7 @@ export function PermanentRestrictionBadges({
           title={t(restriction.labelKey)}
           hint={{
             title: t(restriction.labelKey),
-            description: t(`redesign.arena.restriction.${restriction.kind}`),
+            description: describe(restriction),
           }}
         >
           <i aria-hidden="true">
@@ -97,7 +104,7 @@ export function PermanentRestrictionBadges({
           hint={{
             title: t("redesign.arena.badge.moreTitle"),
             description: hiddenRestrictions
-              .map(({ kind, labelKey }) => `${t(labelKey)}: ${t(`redesign.arena.restriction.${kind}`)}`)
+              .map((restriction) => `${t(restriction.labelKey)}: ${describe(restriction)}`)
               .join(" "),
           }}
         >

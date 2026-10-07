@@ -220,6 +220,8 @@ export interface MatchCues {
   /** Raises a notice for a refused action, which no server event narrates for the viewer. */
   raiseRejection: (reason: string) => void;
   attackAnnouncement: AttackAnnouncement | null;
+  /** An attack has been declared, but the clause that caused it is still being read: draw no arrow yet. */
+  attackAwaitingCause: boolean;
   turnTransition: TurnTransitionCue | null;
   securityClash: SecurityClashScene | null;
   /** The defender's shield arming and shattering, ahead of the reveal. */

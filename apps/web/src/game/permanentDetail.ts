@@ -10,7 +10,7 @@
    Pure projection over a `Permanent`; no rules, no measurement. */
 
 import { getCardDefinition, type Permanent, type Seat } from "@aegis/shared";
-import { restrictionBadges, type RestrictionBadge } from "./fieldBadges";
+import { forcedAttackGrants, restrictionBadges, type ForcedAttackGrant, type RestrictionBadge } from "./fieldBadges";
 import { readableStackCardIdentity } from "./stackCardIdentity";
 import { originalDP, permanentTransformation, type PermanentTransformation } from "./transformation";
 import type { StackCard } from "./overlay";
@@ -35,6 +35,8 @@ export interface PermanentDetail {
   grantedKeywords: readonly string[];
   /** Active triggered effects granted to this permanent. */
   grantedEffectTexts: readonly string[];
+  /** The granted clauses forcing this permanent to attack, with the card that granted each. */
+  forcedAttackGrants: readonly ForcedAttackGrant[];
   /** Optional printed parameter labels for the demo editor. */
   keywordLabels?: Readonly<Record<string, string>>;
   /**
@@ -121,6 +123,7 @@ export function buildPermanentDetail(
     keywords,
     grantedKeywords: [...permanent.grantedKeywords],
     grantedEffectTexts: [...permanent.grantedEffectTexts],
+    forcedAttackGrants: forcedAttackGrants(permanent),
     ...(keywordLabels ? { keywordLabels } : {}),
     securityAttack: shownSecurityAttack(permanent),
     securityAttackModifier: permanent.securityAttackModifier ?? permanent.securityAttack - BASE_SECURITY_ATTACK,
@@ -145,6 +148,7 @@ export type CardInspectionDetail = Pick<
   | "keywords"
   | "grantedKeywords"
   | "grantedEffectTexts"
+  | "forcedAttackGrants"
   | "keywordLabels"
   | "securityAttack"
   | "securityAttackModifier"
@@ -167,6 +171,7 @@ export function buildPrintedCardDetail(cardId: string, artId?: string): CardInsp
     keywords: [],
     grantedKeywords: [],
     grantedEffectTexts: [],
+    forcedAttackGrants: [],
     restrictions: [],
     suspended: false,
   };

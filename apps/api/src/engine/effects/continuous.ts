@@ -1382,7 +1382,7 @@ export class ContinuousEffectLedger {
     ownerSeat: Seat,
     token: string,
     duration: EffectDuration,
-    opts?: { activationIdentity?: object; isActive?: () => boolean; continuous?: boolean },
+    opts?: { activationIdentity?: object; isActive?: () => boolean; continuous?: boolean; sourceCardId?: string },
   ): void {
     const exists =
       opts?.activationIdentity !== undefined &&

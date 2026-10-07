@@ -506,6 +506,18 @@ export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect | readonly CardEf
  * unresolved by design; this throw is what will surface them the moment their grant condition
  * actually becomes live, rather than leaving them silently inert forever.
  */
+/** A granted clause that makes its recipient attack when its controller's Main phase starts. */
+export function grantForcesAttackAtStartOfMainPhase(token: string): boolean {
+  const libraryEntry = GRANTED_EFFECT_LIBRARY[token];
+  if (libraryEntry === undefined) return false;
+  const effects: readonly CardEffect[] = Array.isArray(libraryEntry) ? libraryEntry : [libraryEntry as CardEffect];
+  return effects.some(
+    (effect) =>
+      effect.trigger === "StartOfYourMainPhase" &&
+      effect.actions.some((action) => action.kind === "Attack" && action.target?.isSelf === true),
+  );
+}
+
 export function grantedTokenEffectsForTiming(token: string, timing: EffectTiming, source: CardSource): Effect[] {
   const libraryEntry = GRANTED_EFFECT_LIBRARY[token];
   if (libraryEntry === undefined) {
@@ -520,11 +532,15 @@ export function grantedTokenEffectsForTiming(token: string, timing: EffectTiming
   return effects.flatMap((effect, index) => {
     if (!timingsForTrigger(effect, false).includes(timing)) return [];
     const build = builderForTrigger(effect);
+    // A literal-text token is the printed granted clause. Without an explicit description, the
+    // resolution context would quote the HOST card's own printed text in its decisions.
+    const description = `[Granted] ${token.startsWith("[") ? token : describeEffect(effect)}`;
+    const describedEffect: CardEffect = { ...effect, description };
     return [
       build({
         source,
         effectKey: `granted/${token}${effects.length > 1 ? `/${index}` : ""}/${timing}`,
-        description: `[Granted] ${describeEffect(effect)}`,
+        description,
         optional: effect.optional ?? false,
         when: turnOwnerGuard(effect.trigger),
         // The granted effect's own IR condition gates COLLECTION, exactly as it does for a
@@ -534,7 +550,7 @@ export function grantedTokenEffectsForTiming(token: string, timing: EffectTiming
         // then silently skipping the deletion.
         canActivate: (ctx) => canActivateEffect(ctx, effect, { collectsTriggeredEffect: true }),
         resolve: async (ctx) => {
-          await runEffect(ctx, effect);
+          await runEffect(ctx, describedEffect);
         },
       }),
     ];

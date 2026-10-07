@@ -510,3 +510,29 @@ it("raises an opponent's Plutomon during effect activation and returns it afterw
   );
   expect(card.style.transform).toBe("none");
 });
+
+describe("PermanentView forced attack", () => {
+  it("marks a Digimon a granted clause forces to attack, quoting the clause and its card (Discord bug 1557482157012680795)", () => {
+    const permanent = new Permanent();
+    permanent.permanentId = "monodramon";
+    permanent.controllerSeat = 1;
+    permanent.topCard = Object.assign(new CardInstance(), { instanceId: "monodramon-top", cardId: "BT1-009" });
+    permanent.baseDP = 3000;
+    permanent.currentDP = 3000;
+    permanent.attacksAtStartOfMainPhase = true;
+    permanent.forcedAttackGrantsJson = JSON.stringify([
+      { clause: "[Start of Your Main Phase] This Digimon attacks.", sourceCardId: "ST15-16" },
+    ]);
+    render(
+      <I18nProvider>
+        <PermanentView perm={permanent} onClick={vi.fn<() => void>()} />
+      </I18nProvider>,
+    );
+
+    fireEvent.click(screen.getByTitle("Must attack"));
+
+    const tooltip = screen.getByRole("tooltip");
+    expect(tooltip.textContent).toContain("[Start of Your Main Phase] This Digimon attacks.");
+    expect(tooltip.textContent).toContain("Trident Arm");
+  });
+});

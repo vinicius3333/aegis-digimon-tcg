@@ -34,6 +34,7 @@ export const arenaEn = {
     "Your opponent's effects can't return this Digimon to the hand or the deck.",
   "redesign.arena.restriction.attacksAtStartOfMainPhase":
     "An effect makes this Digimon attack at the start of its main phase, if it can.",
+  "redesign.arena.restriction.attacksAtStartOfMainPhaseGranted": "{card} granted: {clause}",
   "redesign.arena.restriction.cannotAttack": "An effect stops this Digimon from attacking.",
   "redesign.arena.restriction.cannotBlock": "An effect stops this Digimon from blocking.",
   "redesign.arena.restriction.cannotSuspend": "An effect stops this Digimon from suspending.",

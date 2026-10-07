@@ -45,7 +45,7 @@ export {
 export { evaluateCondition } from "./interpreter/conditions.js";
 export { payCost } from "./interpreter/costs.js";
 export { UnsupportedEffectError } from "./interpreter/errors.js";
-export { grantedTokenEffectsForTiming } from "./interpreter/grantedEffects.js";
+export { grantForcesAttackAtStartOfMainPhase, grantedTokenEffectsForTiming } from "./interpreter/grantedEffects.js";
 export { definitionMatches, matchNameOrTrait } from "./interpreter/matching/definition.js";
 export { permanentMatchesFilter } from "./interpreter/matching/permanent.js";
 export {

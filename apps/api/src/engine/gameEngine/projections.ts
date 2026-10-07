@@ -16,6 +16,7 @@ import { linkEligible } from "../effects/mindLink.js";
 import { canActivate } from "../effects/kernel.js";
 import { gatherTriggeredEffects } from "../effects/context.js";
 import { getEffectModule } from "../effects/registry.js";
+import { grantForcesAttackAtStartOfMainPhase } from "../effects/interpreter.js";
 import { ACTIVATE_TIMING } from "../actions/activateEffect.js";
 import {
   validateAttack,
@@ -211,6 +212,18 @@ export class BoardProjection {
           }),
         );
       });
+    const forcedAttackGrants = this.deps.continuous
+      .listCustomEffectGrants()
+      .filter(
+        (grant) =>
+          grant.instanceId === perm.topCard?.instanceId &&
+          grant.isActive?.() !== false &&
+          grantForcesAttackAtStartOfMainPhase(grant.token),
+      )
+      .map(({ token, sourceCardId }) => ({ clause: token, ...(sourceCardId ? { sourceCardId } : {}) }));
+    if (forcedAttackGrants.length > 0) perm.attacksAtStartOfMainPhase = true;
+    const forcedAttackGrantsJson = forcedAttackGrants.length > 0 ? JSON.stringify(forcedAttackGrants) : "";
+    if (perm.forcedAttackGrantsJson !== forcedAttackGrantsJson) perm.forcedAttackGrantsJson = forcedAttackGrantsJson;
     perm.immuneToOpponentDigimonEffects = this.deps.continuous.hasRestriction(
       perm.permanentId,
       "beAffected",

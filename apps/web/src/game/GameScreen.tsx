@@ -652,7 +652,8 @@ export function GameScreen({
     viewerSeat,
     fieldClash,
     securityClash,
-    phasePresentationPending: cues.phaseTransitionPending || phaseBanner !== null || turnTransition !== null,
+    phasePresentationPending:
+      cues.phaseTransitionPending || cues.attackAwaitingCause || phaseBanner !== null || turnTransition !== null,
     effectSelection: effectSources
       .flatMap((source) =>
         source.targetPermanentIds && source.site.zone === "field"

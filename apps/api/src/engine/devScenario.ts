@@ -150,6 +150,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt20-invisimon-security-count",
   "arena-ex13-grademon-immunity",
   "arena-ex7-seventh-fascination-turn",
+  "arena-st15-trident-arm-forced-attack-text",
   "arena-ex11-vortex-effect-attack-block",
   "arena-bt17-dexdoru-exact-name",
   "arena-ad1-adventure-tamers-security",
@@ -1035,6 +1036,30 @@ function layFaceDownAceNoOverflowScenario(state: GameState, decks: readonly [Dec
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/** Discord 1557482157012680795: a granted forced attack reads its printed clause. */
+function laySt15TridentArmForcedAttackTextScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT12-061"], "-trident-black"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-trident-arm", "ST15-16", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-trident-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 6;
 }
 
 /** Discord 1557128872544313456: DexDoruGreymon's [Trash] effect answers only an exact [DoruGreymon]. */
@@ -7444,6 +7469,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-diarbbitmon-dual-option-immunity": layDiarbbitmonDualOptionImmunityScenario,
   "arena-bt5-koromon-attack-draw": layBt5KoromonAttackDrawScenario,
   "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
+  "arena-st15-trident-arm-forced-attack-text": laySt15TridentArmForcedAttackTextScenario,
   "arena-ex11-vortex-effect-attack-block": layEx11VortexEffectAttackBlockScenario,
   "arena-bt17-dexdoru-exact-name": layBt17DexDoruExactNameScenario,
   "arena-ad1-adventure-tamers-security": layAd1AdventureTamersSecurityScenario,

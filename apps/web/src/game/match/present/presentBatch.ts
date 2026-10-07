@@ -152,6 +152,7 @@ export function presentServerBatch({
   lastBatchIdRef,
   presentationBatchRef,
   batchVersionsRef,
+  eventfulBoardVersionRef,
   heldOriginsRef,
   fieldClashKeyRef,
   openAttackRef,
@@ -209,6 +210,7 @@ export function presentServerBatch({
   setDeckRiffles,
   setHeldMemory,
   setAttackAnnouncement,
+  setAttackAwaitingCause,
   setSecurityBreak,
   setSecurityHitSeat,
   setSecurityClash,
@@ -270,6 +272,7 @@ export function presentServerBatch({
   lastBatchIdRef: MutableRefObject<string>;
   presentationBatchRef: MutableRefObject<{ batchId: string; stateVersion: number } | undefined>;
   batchVersionsRef: MutableRefObject<Map<string, number>>;
+  eventfulBoardVersionRef: MutableRefObject<number | undefined>;
   heldOriginsRef: MutableRefObject<WeakMap<object, { batchId: string; stateVersion: number; phaseOrder: number }>>;
   fieldClashKeyRef: MutableRefObject<number>;
   openAttackRef: MutableRefObject<OpenAttack | null>;
@@ -336,6 +339,7 @@ export function presentServerBatch({
   setDeckRiffles: Dispatch<SetStateAction<ReadonlyMap<string, number>>>;
   setHeldMemory: Dispatch<SetStateAction<MemoryHold | undefined>>;
   setAttackAnnouncement: Dispatch<SetStateAction<AttackAnnouncement | null>>;
+  setAttackAwaitingCause: Dispatch<SetStateAction<boolean>>;
   setSecurityBreak: Dispatch<SetStateAction<SecurityBreakCue | null>>;
   setSecurityHitSeat: Dispatch<SetStateAction<number | null>>;
   setSecurityClash: Dispatch<SetStateAction<SecurityClashScene | null>>;
@@ -403,10 +407,24 @@ export function presentServerBatch({
   if (!unitGate && securityClauseGateRef.current?.gate.open === false)
     causingEffectGateRef.current = securityClauseGateRef.current.gate;
   const precedingArrivalCause = causingEffectGateRef.current;
+  // An attack an effect forced ("This Digimon attacks.") is that effect's consequence: the
+  // attacker turns, points and calls out only once its clause has been read, so the board
+  // stays at the revision before the declaration until then.
+  // The clause may still be waiting behind a phase ribbon, so it has not adopted its gate yet.
+  const unreadClause = [precedingArrivalCause, pendingAnnounceGateRef.current?.gate].find(
+    (gate) => gate?.open === false,
+  );
+  const attackCause =
+    !replayingHistory && unreadClause && fresh.some((event) => event.kind === "attackDeclared") ? unreadClause : null;
+  const attackReady = attackCause ? createPresentationGate() : null;
   lastBatchIdRef.current = batchId;
   // Everything enqueued from here belongs to this batch, and the board it is narrated
   // over is the board this batch produced.
   presentationBatchRef.current = { batchId, stateVersion };
+  // A revision with no event of its own may already show the attacker turned, so the forced
+  // attack holds the board of the last batch that carried events, not the revision before.
+  const boardBeforeAttack = eventfulBoardVersionRef.current ?? stateVersion - 1;
+  if (fresh.length > 0) eventfulBoardVersionRef.current = stateVersion;
   batchVersionsRef.current.set(batchId, stateVersion);
   if (batchVersionsRef.current.size > 120)
     batchVersionsRef.current.delete(batchVersionsRef.current.keys().next().value!);
@@ -414,11 +432,13 @@ export function presentServerBatch({
     progress.present(
       batchId,
       // A resumed unit's first results batch waits out the fresh beat over the board before it.
-      sequenced?.resumed
-        ? stateVersion - 1
-        : sequenced
-          ? announcedBoardVersion(fresh, sequenced, stateVersion)
-          : stateVersion,
+      attackReady
+        ? boardBeforeAttack
+        : sequenced?.resumed
+          ? stateVersion - 1
+          : sequenced
+            ? announcedBoardVersion(fresh, sequenced, stateVersion)
+            : stateVersion,
     );
   if (!replayingHistory) traceCueBatch(`${batchId} ${fresh.map((event) => event.kind).join(",")}`);
   const {
@@ -473,6 +493,29 @@ export function presentServerBatch({
       origin: { batchId, stateVersion, phaseOrder: batchPhaseOrder },
       ...(replayingHistory ? { mode: "replay" as const } : {}),
     });
+  if (attackCause && attackReady) {
+    setAttackAwaitingCause(true);
+    const readyToAttack = () => {
+      attackReady.release();
+      setAttackAwaitingCause(false);
+    };
+    enqueue({
+      id: `attack-cause-${batchId}`,
+      track: `attackCause-${batchId}`,
+      holdsBoard: true,
+      onDiscard: readyToAttack,
+      async run(context) {
+        try {
+          await waitForGate(attackCause, context, CONSEQUENCE_GATE_MAX_MS, "attack/causingEffect");
+          // The gate opens as the clause appears (or soon after); give it the beat a deletion gets.
+          if (!context.cancelled && context.mode === "live") await context.wait(TIMINGS.effectAnnounce);
+        } finally {
+          readyToAttack();
+        }
+      },
+    });
+    if (!continuingBatch) progress.present(batchId, stateVersion);
+  }
   for (const event of fresh) {
     if (event.kind !== "effectTargetsSelected" || replayingHistory) continue;
     const preceding = effectAnnounceGateRef.current;
@@ -906,7 +949,13 @@ export function presentServerBatch({
       setRevealShowcase,
       enqueue,
     });
-    enqueueAttackAnnouncement({ announcement, setAttackAnnouncement, enqueue });
+    enqueueAttackAnnouncement({
+      announcement,
+      setAttackAnnouncement,
+      enqueue: attackReady
+        ? (step) => enqueue(afterGate(step, attackReady, CONSEQUENCE_GATE_MAX_MS, "attack/ready"))
+        : enqueue,
+    });
   }
   if (refusal?.kind === "actionRejected") onActionRejected(refusal.reason);
   presentSecurityAttack({
