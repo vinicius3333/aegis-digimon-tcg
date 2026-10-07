@@ -7,8 +7,8 @@ afterEach(() => liveRooms.clear());
 it("keeps manual rooms counted during draining and forgets them on disposal", async () => {
   const room = new ManualRoom();
   room.roomId = "manual-room";
-  room.setPrivate = vi.fn(async () => {});
-  room.setMetadata = vi.fn(async () => {});
+  room.setPrivate = vi.fn<() => Promise<void>>(async () => {});
+  room.setMetadata = vi.fn<() => Promise<void>>(async () => {});
   await room.onCreate({ manualPrivate: false });
   const runtime = createDeploymentRuntime({
     slot: "blue",

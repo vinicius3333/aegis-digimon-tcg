@@ -9,7 +9,9 @@ describe("production invite lookup", () => {
     async (name) => {
       const directory = createLocalRoomCodeDirectory();
       directory.claim("ABCDEF", "remote-room");
-      const query = vi.fn(async () => [{ name, clients: 1, locked: false }]);
+      const query = vi.fn<() => Promise<{ name: string; clients: number; locked: boolean }[]>>(async () => [
+        { name, clients: 1, locked: false },
+      ]);
       expect(await lookupInviteRoom("abcdef", directory, query)).toEqual({
         status: 200,
         body: { roomId: "remote-room" },

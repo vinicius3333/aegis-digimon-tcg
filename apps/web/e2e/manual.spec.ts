@@ -97,6 +97,7 @@ test("players enter the manual queue through the lobby and play, undo and reload
   try {
     await a.lobby();
     await a.queue();
+    await expect(a.page.getByRole("button", { name: "Ready", exact: true })).toBeDisabled();
     await b.lobby();
     await b.queue();
     await a.ready();
@@ -121,6 +122,13 @@ test("players enter the manual queue through the lobby and play, undo and reload
       .poll(() => a.page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
       .toBe(true);
     await a.page.screenshot({ path: "test-results/manual-mobile.png", fullPage: true });
+    await a.page.goBack();
+    await a.page.getByRole("dialog").getByRole("button", { name: "Leave match", exact: true }).click();
+    await expect(a.table).toHaveCount(0);
+    await expect.poll(() => a.page.evaluate(() => sessionStorage.getItem("aegis:matchSession"))).toBeNull();
+    await a.lobby();
+    await a.queue();
+    await expect(a.page.getByRole("heading", { name: "Waiting for opponent", exact: true })).toBeVisible();
   } finally {
     await ca.close();
     await cb.close();

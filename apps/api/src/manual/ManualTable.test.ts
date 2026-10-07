@@ -42,6 +42,19 @@ function cards(player: ManualPlayer): string[] {
 }
 
 describe("manual table", () => {
+  it("waits for both seats before readiness locks the first-player choice", () => {
+    const table = new ManualTable();
+    table.join("Alice", manualTestDeck());
+    const before = structuredClone(table.state);
+    expect(() => act(table, 0, { type: "ready" })).toThrow("Wait for an opponent");
+    expect(table.state).toEqual(before);
+    table.join("Bob", manualTestDeck());
+    act(table, 0, { type: "first", seat: 1 });
+    act(table, 0, { type: "ready" });
+    act(table, 1, { type: "ready" });
+    expect(table.state.phase).toBe("playing");
+    expect(table.state.turn).toBe(1);
+  });
   it("sets up a match without exposing any hidden pile identities or the other hand", () => {
     const t = playing();
     t.state.players[0]!.hand[0]!.artId = "private-printing";

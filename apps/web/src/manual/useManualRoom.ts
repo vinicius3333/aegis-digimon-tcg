@@ -150,6 +150,7 @@ export function useManualRoom(options: AegisJoinOptions, mode: ManualStartMode, 
       clearInterval(timer);
       const room = roomRef.current;
       roomRef.current = undefined;
+      if (session && loadReconnectSession()?.reconnectionToken === session.reconnectionToken) clearReconnectSession();
       if (room) void room.leave();
     };
   }, [options, mode, code]);

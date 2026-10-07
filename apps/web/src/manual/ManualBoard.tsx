@@ -244,7 +244,7 @@ export function ManualBoard({
           >
             {t("manual.mulligan")}
           </Button>
-          <Button disabled={blocked || own.ready} onClick={() => send({ type: "ready" })}>
+          <Button disabled={blocked || own.ready || !opponent} onClick={() => send({ type: "ready" })}>
             {t("manual.ready")}
             {own.ready ? " ✓" : ""}
           </Button>

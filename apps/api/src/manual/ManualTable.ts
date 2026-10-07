@@ -292,6 +292,7 @@ export class ManualTable {
     }
     if (action.type === "ready") {
       ensure(this.state.phase === "setup" && !player.ready, "Already ready");
+      ensure(this.state.players.length === 2, "Wait for an opponent");
       player.ready = true;
       if (this.state.players.length === 2 && this.state.players.every((p) => p.ready)) {
         for (const p of this.state.players) p.security = p.deck.splice(0, 5);

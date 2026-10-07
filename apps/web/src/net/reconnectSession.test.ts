@@ -83,13 +83,13 @@ it("preserves the spectator role across a page reload", () => {
 });
 
 it("preserves manual reconnect tokens throughout the manual room's 120-second grace", () => {
-  const session = {
+  const manualSession = {
     reconnectionToken: "manual:token",
     roomId: "manual-room",
     slot: "legacy" as const,
     savedAt: 1000,
     manual: true,
   };
-  expect(isReconnectSessionFresh(session, 46000)).toBe(true);
-  expect(isReconnectSessionFresh(session, 121000)).toBe(false);
+  expect(isReconnectSessionFresh(manualSession, 46000)).toBe(true);
+  expect(isReconnectSessionFresh(manualSession, 121000)).toBe(false);
 });
