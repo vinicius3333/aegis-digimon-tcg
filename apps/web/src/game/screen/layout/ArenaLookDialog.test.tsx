@@ -48,3 +48,16 @@ describe("match settings board section", () => {
     expect(screen.queryByRole("group", { name: "You" })).toBeNull();
   });
 });
+
+it("offers a one-shot sort button, without an automatic sorting switch", () => {
+  localStorage.setItem("aegis.locale", "en");
+  const onSortHand = vi.fn<() => void>();
+  render(
+    <I18nProvider>
+      <ArenaLookDialog deckColors={{}} onClose={() => undefined} onSortHand={onSortHand} />
+    </I18nProvider>,
+  );
+  expect(screen.queryByRole("switch", { name: "Sort hand" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Sort hand" }));
+  expect(onSortHand).toHaveBeenCalledTimes(1);
+});

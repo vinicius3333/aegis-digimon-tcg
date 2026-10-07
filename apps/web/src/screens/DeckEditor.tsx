@@ -254,14 +254,16 @@ export function DeckEditor({
         showRarityFilter
         showSort
         extra={
-          <div>
+          <>
             <p className="deck-builder-hint">{t("deck.builderHint")}</p>
-            <label>
-              <input type="checkbox" checked={unlimited} onChange={(event) => setUnlimited(event.target.checked)} />
-              {t("lobby.unlimited")}
-            </label>
-            <p>{t("lobby.unlimitedDesc")}</p>
-          </div>
+            <div className="deck-format-panel">
+              <label>
+                <input type="checkbox" checked={unlimited} onChange={(event) => setUnlimited(event.target.checked)} />
+                {t("lobby.unlimited")}
+              </label>
+              <p>{t("lobby.unlimitedDesc")}</p>
+            </div>
+          </>
         }
       />
 

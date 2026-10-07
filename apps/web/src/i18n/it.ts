@@ -5,7 +5,7 @@ import { en } from "./en";
 const interfaceMessages = {
   "settings.sortHand": "Ordina la mano",
   "settings.sortHandDesc":
-    "Raggruppa i Digimon per livello, poi i Tamer e le Option. Disattiva per ripristinare l'ordine di pesca.",
+    "Ordina la mano attuale per livello dei Digimon, poi Tamer e Option. Le nuove carte restano in fondo finché non ordini di nuovo.",
   "settings.customMusic": "File musicale locale",
   "settings.customMusicDesc":
     "Scegli un file audio fino a 50 MB. Rimane sul tuo dispositivo per questa sessione; selezionalo di nuovo dopo aver ricaricato.",

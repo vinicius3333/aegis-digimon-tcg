@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CardInstance, type PlayerState } from "@aegis/shared";
-import { handEntriesOf } from "./handEntries";
+import { handEntriesOf, sortedHandInstanceIds, retainHandOrder } from "./handEntries";
 
 describe("handEntriesOf", () => {
   it("GitHub #5197: renders a spectator snapshot whose private hand is withheld", () => {
@@ -41,7 +41,8 @@ describe("handEntriesOf", () => {
     });
     const viewer = { hand } as unknown as PlayerState;
     const input = { viewer, shownHand: undefined, handHeld: false, optimisticPlayedInstanceId: undefined };
-    const sorted = handEntriesOf({ ...input, sorted: true });
+    const handOrder = sortedHandInstanceIds(handEntriesOf(input).shownHandEntries);
+    const sorted = handEntriesOf({ ...input, handOrder });
     expect(sorted.shownHandEntries.map((card) => card.instanceId)).toEqual([
       "card-2",
       "card-4",
@@ -50,9 +51,36 @@ describe("handEntriesOf", () => {
       "card-3",
     ]);
     expect(sorted.shownHandEntries.map((card) => card.projectedPlayCost)).toEqual([2, 4, 0, 1, 3]);
-    expect(sorted.handEntries.map((card) => card.instanceId)).toEqual(hand.map((card) => card.instanceId));
+    const draw = new CardInstance();
+    draw.cardId = "BT1-009";
+    draw.instanceId = "new-draw";
+    hand.push(draw);
+    expect(handEntriesOf({ ...input, handOrder }).shownHandEntries.at(-1)?.instanceId).toBe("new-draw");
+    const resorted = sortedHandInstanceIds(handEntriesOf({ ...input, handOrder }).shownHandEntries);
+    expect(resorted.indexOf("new-draw")).toBe(2);
+    expect(sorted.handEntries.map((card) => card.instanceId)).toEqual(hand.slice(0, -1).map((card) => card.instanceId));
     expect(handEntriesOf(input).shownHandEntries.map((card) => card.instanceId)).toEqual(
       hand.map((card) => card.instanceId),
     );
   });
+});
+
+it("forgets a departed card's sorted position when the same instance returns", () => {
+  const cards = ["a", "b", "c"].map((instanceId) => {
+    const card = new CardInstance();
+    card.instanceId = instanceId;
+    card.cardId = "BT1-009";
+    return card;
+  });
+  const order = retainHandOrder(["a", "b"], [cards[1]!]);
+  const viewer = { hand: [cards[1], cards[2], cards[0]] } as unknown as PlayerState;
+  expect(
+    handEntriesOf({
+      viewer,
+      handOrder: order,
+      shownHand: undefined,
+      handHeld: false,
+      optimisticPlayedInstanceId: undefined,
+    }).shownHandEntries.map((card) => card.instanceId),
+  ).toEqual(["b", "c", "a"]);
 });

@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import "./CustomMusicPicker.css";
 import { useTranslation } from "../i18n";
 import { clearCustomMusic, setCustomMusicFile, unlockAudio, useCustomMusicName } from "./sound";
 
@@ -8,8 +9,8 @@ export function CustomMusicPicker() {
   const name = useCustomMusicName();
   const [error, setError] = useState(false);
   return (
-    <div className="settings-row">
-      <div className="settings-row__copy">
+    <div className="custom-music-picker">
+      <div className="custom-music-picker__copy">
         <label htmlFor={id}>{t("settings.customMusic")}</label>
         <small id={`${id}-help`}>{t("settings.customMusicDesc")}</small>
       </div>
@@ -28,9 +29,9 @@ export function CustomMusicPicker() {
         }}
       />
       {name ? (
-        <div>
-          <span>{name}</span>{" "}
-          <button type="button" onClick={clearCustomMusic}>
+        <div className="custom-music-picker__active">
+          <output className="custom-music-picker__name">{name}</output>
+          <button className="custom-music-picker__reset" type="button" onClick={clearCustomMusic}>
             {t("settings.customMusicClear")}
           </button>
         </div>

@@ -1073,3 +1073,31 @@
     grid-template-columns: 32px minmax(24px, auto) 32px;
   }
 }
+
+.deck-format-panel {
+  display: grid;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-3);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-sheet);
+}
+.deck-format-panel label {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  min-height: var(--ds-touch-target);
+  color: var(--ds-text);
+  font-weight: 600;
+}
+.deck-format-panel input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--ds-accent);
+}
+.deck-format-panel p {
+  margin: 0;
+  color: var(--ds-text-3);
+  font-size: var(--ds-text-xs);
+  line-height: var(--ds-leading-body);
+}

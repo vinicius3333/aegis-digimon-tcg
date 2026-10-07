@@ -17,7 +17,8 @@ import { shellEn } from "./redesign/shell.en";
 
 export const en = {
   "settings.sortHand": "Sort hand",
-  "settings.sortHandDesc": "Group Digimon by level, then Tamers and Options. Turn off to restore draw order.",
+  "settings.sortHandDesc":
+    "Sort the current hand by Digimon level, then Tamers and Options. New draws stay at the end until you sort again.",
   "settings.customMusic": "Local music file",
   "settings.customMusicDesc":
     "Choose an audio file up to 50 MB. It stays on your device for this session; choose it again after reloading.",

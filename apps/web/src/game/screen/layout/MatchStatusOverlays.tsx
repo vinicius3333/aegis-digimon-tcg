@@ -37,7 +37,7 @@ export function MatchStatusOverlays({
   zoomArtId: string | undefined;
   bugReportOpen: boolean;
   /** The board look settings, while the viewer has them open. */
-  arenaLook?: { deckColors: ArenaDeckColors; onClose: () => void };
+  arenaLook?: { deckColors: ArenaDeckColors; onClose: () => void; onSortHand?: () => void };
   matchLogId: string;
   /** Only shapes what the report dialog says about follow-up questions. */
   signedIn: boolean;
@@ -74,7 +74,13 @@ export function MatchStatusOverlays({
         <BugReportDialog signedIn={signedIn} matchLogId={matchLogId} onClose={onCloseBugReport} />
       ) : null}
 
-      {arenaLook ? <ArenaLookDialog deckColors={arenaLook.deckColors} onClose={arenaLook.onClose} /> : null}
+      {arenaLook ? (
+        <ArenaLookDialog
+          deckColors={arenaLook.deckColors}
+          onClose={arenaLook.onClose}
+          onSortHand={arenaLook.onSortHand}
+        />
+      ) : null}
 
       {opponentDropped ? <OpponentDroppedOverlay onLeave={onLeaveDropped} /> : null}
 

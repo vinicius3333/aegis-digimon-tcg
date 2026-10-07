@@ -859,3 +859,54 @@ button.game-player-line__name {
     width: 100%;
   }
 }
+
+.game-arena-board-settings__size {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-2);
+  min-height: var(--ds-touch-target);
+}
+.game-arena-board-settings__size label {
+  color: var(--ds-text);
+  font-weight: 600;
+}
+.game-arena-board-settings__size select {
+  min-height: var(--ds-touch-target);
+  max-width: 100%;
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-sheet);
+  color: var(--ds-text);
+  font: inherit;
+}
+.game-arena-board-settings__size select:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 2px;
+}
+
+.game-arena-board-settings__sort {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-3);
+  align-items: center;
+}
+.game-arena-board-settings__sort button {
+  min-height: 44px;
+  padding: var(--ds-space-2) var(--ds-space-4);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-accent);
+  color: var(--ds-on-accent);
+  cursor: pointer;
+}
+.game-arena-board-settings__sort button:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 3px;
+}
+.game-arena-board-settings__sort p {
+  flex: 1 1 220px;
+  margin: 0;
+}

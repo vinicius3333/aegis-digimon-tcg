@@ -133,19 +133,19 @@ function scrollToActiveDeckCard() {
 
 const modesFor = (t: Translate): Mode[] => [
   {
-    key: "unlimited",
-    title: t("lobby.unlimited"),
-    desc: t("lobby.unlimitedDesc"),
-    icon: Icons.Swords,
-    meta: t("lobby.unlimitedMeta"),
-    available: true,
-  },
-  {
     key: "casual",
     title: t("lobby.mode.casual"),
     desc: t("lobby.mode.casualDesc"),
     icon: Icons.Swords,
     meta: t("lobby.mode.casualMeta"),
+    available: true,
+  },
+  {
+    key: "unlimited",
+    title: t("lobby.unlimited"),
+    desc: t("lobby.unlimitedDesc"),
+    icon: Icons.Swords,
+    meta: t("lobby.unlimitedMeta"),
     available: true,
   },
   {
@@ -304,6 +304,9 @@ export function Lobby({
   );
   const customBotDeck =
     vsBot && botDeckId.startsWith("mine:") ? decks.find((deck) => deck.id === botDeckId.slice(5)) : undefined;
+  const botPreview = vsBot
+    ? (customBotDeck ?? FAMOUS_DECK_GROUPS.flatMap((group) => group.decks).find((deck) => deck.id === botDeckId))
+    : undefined;
   const betaCards = useMemo(
     () =>
       active
@@ -775,6 +778,26 @@ export function Lobby({
                       </optgroup>
                     ))}
                   </select>
+                  {botPreview ? (
+                    <div className="lobby-bot-preview">
+                      <span className="lobby-active-strip__thumb">
+                        <CoverThumb
+                          coverCardId={displayCoverCard(botPreview)}
+                          sigilColor={botPreview.color}
+                          sigilSize={22}
+                        />
+                      </span>
+                      <div className="lobby-bot-preview__copy">
+                        <strong>{botPreview.name}</strong>
+                        <small>
+                          {t("redesign.play.deckCounts", {
+                            main: botPreview.mainDeck.length,
+                            egg: botPreview.eggDeck.length,
+                          })}
+                        </small>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               ) : mode !== "unlimited" && !betaEnabled && !betaOptedIn && RANKED_ENABLED ? (
                 <RankedStart

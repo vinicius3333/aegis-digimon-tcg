@@ -16,10 +16,10 @@ export function handEntriesOf({
   shownHand,
   handHeld,
   optimisticPlayedInstanceId,
-  sorted = false,
+  handOrder = [],
 }: {
   viewer: PlayerState;
-  sorted?: boolean;
+  handOrder?: readonly string[];
   /** The hand on screen, held by a draw ribbon or the paced presentation revision. */
   shownHand: readonly CardInstance[] | undefined;
   handHeld: boolean;
@@ -68,16 +68,30 @@ export function handEntriesOf({
             },
         )
   ).filter((entry) => entry.instanceId !== optimisticPlayedInstanceId);
-  // Sort the presentation array before callbacks resolve their indexes. The live
-  // hand and the server's legal routes remain keyed by the original instance IDs.
-  if (sorted) {
-    const rank = (entry: HandEntry): number => {
-      const definition = getCardDefinition(entry.cardId);
-      if (definition?.kinds.includes(CardKind.Digimon) || definition?.kinds.includes(CardKind.DigiEgg))
-        return definition.level ?? 0;
-      return definition?.kinds.includes(CardKind.Tamer) ? 100 : 200;
-    };
-    shownHandEntries.sort((a, b) => rank(a) - rank(b));
-  }
+  // A button click captures only the cards visible at that moment. Later draws
+  // retain their arrival order at the end until the player sorts again.
+  const positions = new Map(handOrder.map((id, index) => [id, index]));
+  shownHandEntries.sort(
+    (a, b) => (positions.get(a.instanceId) ?? Infinity) - (positions.get(b.instanceId) ?? Infinity),
+  );
   return { handEntries, shownHandEntries };
+}
+
+export function sortedHandInstanceIds(entries: readonly HandEntry[]): string[] {
+  const rank = (entry: HandEntry): number => {
+    const definition = getCardDefinition(entry.cardId);
+    if (definition?.kinds.includes(CardKind.Digimon) || definition?.kinds.includes(CardKind.DigiEgg))
+      return definition.level ?? 0;
+    return definition?.kinds.includes(CardKind.Tamer) ? 100 : 200;
+  };
+  return [...entries].sort((a, b) => rank(a) - rank(b)).map((entry) => entry.instanceId);
+}
+
+export function retainHandOrder(
+  order: readonly string[],
+  hand: readonly Pick<CardInstance, "instanceId">[],
+): readonly string[] {
+  const present = new Set(hand.map((card) => card.instanceId));
+  const retained = order.filter((id) => present.has(id));
+  return retained.length === order.length ? order : retained;
 }

@@ -17,7 +17,7 @@ import { shellEs } from "./redesign/shell.es";
 export const es: Record<keyof typeof en, string> = {
   "settings.sortHand": "Ordenar mano",
   "settings.sortHandDesc":
-    "Agrupa Digimon por nivel, después Tamers y Options. Desactiva para volver al orden de robo.",
+    "Ordena la mano actual por nivel de Digimon, después Tamers y Options. Las nuevas cartas quedan al final hasta que vuelvas a ordenar.",
   "settings.customMusic": "Archivo de música local",
   "settings.customMusicDesc":
     "Elige un archivo de audio de hasta 50 MB. Permanece en tu dispositivo durante esta sesión; vuelve a elegirlo después de recargar.",

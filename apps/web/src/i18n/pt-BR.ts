@@ -19,7 +19,8 @@ import { shellPtBR } from "./redesign/shell.pt-BR";
 
 export const ptBR: Record<keyof typeof en, string> = {
   "settings.sortHand": "Ordenar mão",
-  "settings.sortHandDesc": "Agrupa Digimon por nível, depois Tamers e Options. Desative para voltar à ordem de compra.",
+  "settings.sortHandDesc":
+    "Ordena a mão atual por nível de Digimon, depois Tamers e Options. Novas compras ficam no fim até você ordenar novamente.",
   "settings.customMusic": "Arquivo de música local",
   "settings.customMusicDesc":
     "Escolha um arquivo de áudio de até 50 MB. Ele fica no seu dispositivo nesta sessão; selecione novamente após recarregar.",

@@ -1,18 +1,16 @@
 /* Board display choices for the match dialog. They share their stores with the
    Settings screen, so a change here shows on the board behind the dialog at once. */
 
-import { setHandSorted, useHandSorted } from "../../../design/handSort";
 import { TEXT_SCALES, setTextScale, useTextScale } from "../../../design/textScale";
 import { useId } from "react";
 import { setPileCountsShown, usePileCountsShown } from "../../../design/pileCounts";
 import { Switch } from "../../../design/primitives";
 import { useTranslation } from "../../../i18n";
 
-export function ArenaBoardSettings() {
+export function ArenaBoardSettings({ onSortHand }: { onSortHand?: () => void }) {
   const { t } = useTranslation();
   const titleId = useId();
   const pileCountsShown = usePileCountsShown();
-  const handSorted = useHandSorted();
   const textScale = useTextScale();
   return (
     <section className="game-arena-board-settings" aria-labelledby={titleId}>
@@ -20,15 +18,15 @@ export function ArenaBoardSettings() {
         {t("redesign.arena.board.title")}
       </h3>
       <div className="game-arena-settings__panel">
-        <div className="game-arena-settings__row">
-          <Switch
-            checked={handSorted}
-            label={t("settings.sortHand")}
-            description={t("settings.sortHandDesc")}
-            onChange={setHandSorted}
-          />
-        </div>
-        <div className="game-arena-settings__row">
+        {onSortHand ? (
+          <div className="game-arena-settings__row game-arena-board-settings__sort">
+            <button type="button" onClick={onSortHand}>
+              {t("settings.sortHand")}
+            </button>
+            <p>{t("settings.sortHandDesc")}</p>
+          </div>
+        ) : null}
+        <div className="game-arena-settings__row game-arena-board-settings__size">
           <label htmlFor={`${titleId}-text-size`}>{t("settings.textSize")}</label>
           <select
             id={`${titleId}-text-size`}

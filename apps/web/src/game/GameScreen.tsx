@@ -1,4 +1,3 @@
-import { useHandSorted } from "../design/handSort";
 /* The in-game board — the design's letterboxed board layout, driven entirely by
    the synchronized GameState and wired to the server through typed intents. The
    client owns zero rules: every action is an intent the server validates, and the
@@ -53,7 +52,7 @@ import {
   viewerTurnOrder as modelViewerTurnOrder,
 } from "./screen/model/gameOutcome";
 import { actionGuards } from "./screen/model/actionGuards";
-import { handEntriesOf } from "./screen/model/handEntries";
+import { handEntriesOf, sortedHandInstanceIds, retainHandOrder } from "./screen/model/handEntries";
 import { dnaFieldChoice, dnaMaterialPicks, toggleDnaMaterial } from "./screen/model/dnaMaterialSelection";
 import { presentedSeats } from "./screen/model/presentedSeats";
 import { visibleBoard } from "./screen/model/visibleBoard";
@@ -175,7 +174,7 @@ export function GameScreen({
   onSeriesNext?: (ticket: SeriesGameTicket) => void;
 }) {
   const { t } = useTranslation();
-  const handSorted = useHandSorted();
+  const [handOrder, setHandOrder] = useState<readonly string[]>([]);
   const [spectating] = useState(() => startMode === "spectator" || loadReconnectSession()?.spectator === true);
   const actionConfirmationsEnabled = areActionConfirmationsEnabled();
   const arenaLayout = useArenaLayout();
@@ -738,6 +737,14 @@ export function GameScreen({
   });
 
   // ----- pre-match / connection gates -----
+  const presentedHand = seats?.handHeld ? seats.shownHand : you?.hand;
+  const presentedHandKey = presentedHand?.map((card) => card.instanceId).join("\0");
+  useEffect(() => {
+    if (presentedHandKey === undefined) return;
+    const hand = presentedHandKey.split("\0").map((instanceId) => ({ instanceId }));
+    setHandOrder((order) => retainHandOrder(order, hand));
+  }, [presentedHandKey]);
+
   if (
     status === "reconnecting" ||
     status === "error" ||
@@ -820,7 +827,7 @@ export function GameScreen({
   const instanceIndex = buildInstanceIndex(state, viewerSeat);
 
   const { handEntries, shownHandEntries } = handEntriesOf({
-    sorted: handSorted,
+    handOrder,
     viewer: you,
     shownHand,
     handHeld,
@@ -1352,6 +1359,7 @@ export function GameScreen({
       linkTargetsOfPermanent={linkTargetsOfPermanent}
       handEntries={handEntries}
       shownHandEntries={shownHandEntries}
+      onSortHand={() => setHandOrder(sortedHandInstanceIds(shownHandEntries))}
       viewerTurnOrder={viewerTurnOrder}
       boardRef={boardRef}
       permanentRefs={permRefs}
