@@ -122,3 +122,14 @@ it("names the next opponent turn when the current boundary must be skipped", () 
   fireEvent.click(screen.getByLabelText("Your field: DP −4,000"));
   expect(screen.getByText("Until the end of Matt’s next turn")).toBeTruthy();
 });
+
+it("keeps the desktop viewer indicator visible when its battle row extends below the field container", () => {
+  vi.spyOn(window, "matchMedia").mockReturnValue({ ...window.matchMedia(""), matches: false });
+  vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+    return this.matches(".game-field") ? new DOMRect(0, 69, 1440, 623) : new DOMRect(258, 470, 923, 274);
+  });
+  render(indicator([reduction]));
+  const badge = screen.getByLabelText("Your field: DP −4,000").closest("details")!;
+  expect(Number.parseFloat(badge.style.top)).toBeGreaterThanOrEqual(470);
+  expect(Number.parseFloat(badge.style.top) + 44).toBeLessThanOrEqual(692);
+});
