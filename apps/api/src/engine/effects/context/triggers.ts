@@ -116,6 +116,8 @@ export interface TriggerInfo {
   deletedEffectiveColorsByInstanceId?: Record<string, import("@aegis/shared").CardColor[]>;
   /** Effective host names captured before deletion, keyed by the deleted permanent. */
   deletedEffectiveNamesByPermanentId?: Record<string, string[]>;
+  /** Effective keywords of the deletion subject, captured while it was still in play. */
+  deletedEffectiveKeywords?: Keyword[];
   /**
    * The subset of {@link deletedInstanceIds} that were STACK cards (not top cards)
    * of the deleted permanents. Used by the placement guard to distinguish inherited

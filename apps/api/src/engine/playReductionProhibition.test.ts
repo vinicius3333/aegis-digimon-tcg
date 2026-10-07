@@ -4,7 +4,7 @@ import "../cards/BT8/BT8-071.js";
 import "../cards/BT9/BT9-097.js";
 import "../cards/BT9/BT9-109.js";
 
-describe("automatic Option reduction under a prohibition", () => {
+describe("Option use-cost reduction is unaffected by a play-cost prohibition", () => {
   it.each([false, true])("Psychemon present: %s", async (blocked) => {
     const s = setupEngine(
       {
@@ -31,7 +31,7 @@ describe("automatic Option reduction under a prohibition", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
-    expect(s.state.memory).toBe(blocked ? 0 : 2);
+    expect(s.state.memory).toBe(2);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });

@@ -21,7 +21,8 @@ export function minimumDeferredPlayCost(
 ): number | undefined {
   const source = cardSourceOf(engine, instance);
   const seat = source.ownerSeat;
-  if (engine.continuous.blocksCostReduction(seat, "play")) return baseCost;
+  if (!source.definition.kinds.includes(CardKind.Option) && engine.continuous.blocksCostReduction(seat, "play"))
+    return baseCost;
   const breeding = engine.state.players[seat]?.breeding;
   const breedingEffects = [breeding?.topCard, ...Array.from(breeding?.stack ?? [])].some(
     (card, index) =>

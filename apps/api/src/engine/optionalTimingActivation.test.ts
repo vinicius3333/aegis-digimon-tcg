@@ -58,8 +58,8 @@ describe("optional processing across shared timing limits", () => {
     await settle(() => s.perm("base").topCard.cardId === "EX13-043" && s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("mammal").instanceId)).toBe(decline);
     expect(s.perm("base").isSuspended).toBe(false);
-    // Choosing the modal branch activates the Once Per Turn effect. Declining the nested
-    // optional play does not roll that activation back, so the attack timing offers no retry.
+    // The play/use selection is optional processing. Refusing it preserves the shared
+    // activation for When Attacking; accepting it consumes the shared use.
 
     expect(
       s.engine.applyIntent(0, {
@@ -68,8 +68,19 @@ describe("optional processing across shared timing limits", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    let retryResult = { ok: true };
+    if (decline) {
+      await settle(() => playOffers().length === 2);
+      retryResult = s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("mammal").instanceId] },
+      });
+    }
+    expect(retryResult).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
-    expect(playOffers()).toHaveLength(1);
+    expect(playOffers()).toHaveLength(decline ? 2 : 1);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("mammal").instanceId)).toBe(false);
     assertNoLoudGap(s);
   });
 });

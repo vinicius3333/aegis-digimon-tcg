@@ -48,13 +48,11 @@ export function createSharedHelpers(pc: PrimitivesContext) {
     simultaneousPlayCount = 1,
   ): Promise<number> => {
     const printed = normalizeCost(definition.playCost);
-    const overrideBlocked =
-      continuous.blocksCostReduction(controllerSeat, "play") && (explicitOverride ?? printed) < printed;
+    const reductionsBlocked = !useAsOption && continuous.blocksCostReduction(controllerSeat, "play");
+    const overrideBlocked = reductionsBlocked && (explicitOverride ?? printed) < printed;
     const baseCost = overrideBlocked ? printed : (explicitOverride ?? printed);
     const adjusted = ledger.playCostFor({ def: definition, controllerSeat }, Math.max(0, baseCost));
-    const allowedReduction = continuous.blocksCostReduction(controllerSeat, "play")
-      ? 0
-      : Math.max(0, explicitReduction);
+    const allowedReduction = reductionsBlocked ? 0 : Math.max(0, explicitReduction);
     const reduced = Math.max(0, adjusted - allowedReduction);
     return (
       engine.finalizeEffectPlayCost?.(

@@ -83,7 +83,7 @@ export function mergedPlayOrUseAction(
   return {
     ...play,
     chooseDualMode: true,
-    optional: false,
+    optional: play.optional === true,
     target: {
       ...play.target,
       upTo: play.optional === true,

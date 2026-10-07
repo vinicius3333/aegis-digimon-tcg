@@ -400,6 +400,15 @@ export async function runSubTrigger(
           const definition = getCardDefinition(deletedCardId);
           if (definition === undefined) return false;
           let snapshotFilter = sourceFilter;
+          // Granted keywords belong to the deletion event even after the subject leaves.
+          // Keep the other activation gates live, including conditions on the watcher's board.
+          const keywords = subCtx.trigger.deletedEffectiveKeywords;
+          if (keywords !== undefined) {
+            if (sourceFilter.keywords?.some((keyword) => !keywords.includes(keyword))) return false;
+            if (sourceFilter.excludeKeywords?.some((keyword) => keywords.includes(keyword))) return false;
+            const { keywords: _keywords, excludeKeywords: _excludeKeywords, ...rest } = snapshotFilter;
+            snapshotFilter = rest;
+          }
           const effectiveNames =
             deletedPermanentId === undefined
               ? undefined
@@ -417,7 +426,7 @@ export async function runSubTrigger(
                 ),
             )
           ) {
-            const { nameOrTrait: _nameOrTrait, ...rest } = sourceFilter;
+            const { nameOrTrait: _nameOrTrait, ...rest } = snapshotFilter;
             snapshotFilter = rest;
           }
           if (!definitionMatches(snapshotFilter, definition as DefinitionFacts)) return false;
