@@ -87,6 +87,7 @@ it("keeps the result splash behind the effects that resolved before the winning 
         joinOptions={{ displayName: "You", deck: { mainDeck: [], eggDeck: [] } }}
         identityColor="Blue"
         onExit={() => undefined}
+        presentationPacing="sequential"
         demoConnection={{
           room: undefined,
           status: "connected",
