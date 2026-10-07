@@ -1805,6 +1805,7 @@ export const en = {
   "library.artworks": "Artwork",
   "library.baseArt": "Original",
   "library.alternateArt": "Alternate {number}",
+  "library.japaneseArt": "{label}, Japanese printing",
   "deck.copyArtwork": "Copy {number}",
   "deck.editArtwork": "Choose artwork",
   "deck.splitResize": "Drag to resize the deck panel",

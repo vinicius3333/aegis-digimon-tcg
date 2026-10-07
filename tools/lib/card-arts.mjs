@@ -106,3 +106,26 @@ export function sourceCardArts(card) {
     })
     .sort((a, b) => a.artId.localeCompare(b.artId, "en", { numeric: true }));
 }
+
+/**
+ * The Japanese base printing plus the source's Japanese arts (`JAAs`), under `-J` art IDs so
+ * they never collide with an English printing. Some differ from the English art (Sistermon
+ * Noir became Ciel in English), so players can pick either. The source spells a few image IDs
+ * with a lowercase `-j` or as `-Sample-J` scans; the art ID is normalized, the image ID kept.
+ */
+export function sourceJapaneseArts(card) {
+  const seen = new Set();
+  const base = { artId: `${card.cardNumber}-J`, imageId: `${card.cardNumber}-J`, label: "Japanese printing" };
+  const alternates = (Array.isArray(card.JAAs) ? card.JAAs : [])
+    .flatMap((art) => {
+      if (typeof art.id !== "string" || !art.id.startsWith(card.cardNumber)) return [];
+      const printing = art.id.slice(card.cardNumber.length).match(/^_P(\d+)(?:-Sample)?-J$/i);
+      if (!printing) return [];
+      const artId = `${card.cardNumber}_P${printing[1]}-J`;
+      if (seen.has(artId)) return [];
+      seen.add(artId);
+      return [{ artId, imageId: art.id, label: `${art.note || art.type || "Alternate art"} (Japanese)` }];
+    })
+    .sort((a, b) => a.artId.localeCompare(b.artId, "en", { numeric: true }));
+  return [base, ...alternates];
+}

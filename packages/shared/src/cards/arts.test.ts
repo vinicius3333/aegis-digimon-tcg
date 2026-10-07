@@ -29,3 +29,10 @@ it.each(["__proto__", "constructor", "toString"])(
     expect(resolveCardArt(cardId, "BT1-010_P1").artId).toBe(cardId);
   },
 );
+
+it("offers the Japanese printing, where Sistermon Ciel is still Sistermon Noir", () => {
+  const artIds = getCardArts("BT6-084").map((art) => art.artId);
+  expect(artIds).toEqual(expect.arrayContaining(["BT6-084-J", "BT6-084_P1-J"]));
+  expect(resolveCardArt("BT6-084", "BT6-084-J").imageId).toBe("BT6-084-J");
+  expect(cardImageUrls("BT6-084", "BT6-084-J")[0]).toContain("/BT6-084-J.webp");
+});

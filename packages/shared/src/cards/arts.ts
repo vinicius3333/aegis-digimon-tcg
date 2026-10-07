@@ -19,3 +19,8 @@ export function resolveCardArt(cardId: string, artId?: string): CardArt {
   const arts = getCardArts(cardId);
   return arts.find((art) => art.artId === artId) ?? arts[0]!;
 }
+
+/** Japanese printings use `-J` art IDs, set by tools/lib/card-arts.mjs. */
+export function isJapaneseArt(artId: string): boolean {
+  return artId.endsWith("-J");
+}

@@ -2,7 +2,7 @@
 import {} from "./deckCounts";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getCardArts } from "@aegis/shared";
+import { getCardArts, isJapaneseArt } from "@aegis/shared";
 import { I18nProvider } from "../i18n";
 import { loadDecks, saveDecks } from "../identity";
 import { type DeckListing } from "../game/decks";
@@ -74,5 +74,27 @@ describe("card artwork choices", () => {
     saveDecks([onSave.mock.lastCall![0]]);
     expect(loadDecks()[0]?.mainDeckArts).toEqual([alternate(), alternate()]);
     expect(loadDecks()[0]?.mainDeck).toEqual([cardId, cardId]);
+  });
+  it("marks Japanese printings with a JP badge", () => {
+    render(
+      <I18nProvider>
+        <DeckBuilder
+          decks={[deck()]}
+          activeDeckId="art-deck"
+          initialEditingDeck={deck()}
+          onDeleteDeck={() => undefined}
+          onSelectDeck={() => undefined}
+          onSaveDeck={() => undefined}
+          onNav={() => undefined}
+        />
+      </I18nProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Agumon, 2 in deck" }));
+    fireEvent.click(screen.getByRole("button", { name: "Agumon · Choose artwork" }));
+    const picker = within(screen.getByRole("dialog", { name: "Choose artwork" }));
+    const japaneseIndex = getCardArts(cardId).findIndex((art) => isJapaneseArt(art.artId));
+    const japanese = picker.getByRole("button", { name: `Alternate ${japaneseIndex}, Japanese printing` });
+    expect(within(japanese).getByText("JP")).toBeTruthy();
+    expect(within(picker.getByRole("button", { name: "Original" })).queryByText("JP")).toBeNull();
   });
 });
