@@ -744,6 +744,12 @@ export const en = {
   "settings.effectSpeedSlow": "Slow",
   "settings.effectSpeedNormal": "Normal",
   "settings.effectSpeedFast": "Fast",
+  "settings.noticeDuration": "Notice duration",
+  "settings.noticeDurationDesc":
+    "How long effect notices and card panels stay on screen. Hover over a notice to keep it open.",
+  "settings.noticeDurationNormal": "Normal",
+  "settings.noticeDurationLong": "Long",
+  "settings.noticeDurationLongest": "Longest",
   "settings.organizedField": "Organized field",
   "settings.organizedFieldDesc": "Sort Digimon by level and group identical Tamers and Options in a row of their own",
   "settings.pileCounts": "Show pile counts",

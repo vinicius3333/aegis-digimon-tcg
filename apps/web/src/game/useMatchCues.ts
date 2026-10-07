@@ -91,7 +91,14 @@ import {
   type SidePanelLookup,
 } from "./sidePanels";
 import { noticeRemaining, rejectionNotice, type MatchNotice } from "./notices";
-import { narrationReadingTime, trimNarration, NARRATION_QUEUE_LIMIT, type NarrationItem } from "./narration";
+import {
+  narrationReadingTime,
+  pauseNarration,
+  resumeNarration,
+  trimNarration,
+  NARRATION_QUEUE_LIMIT,
+  type NarrationItem,
+} from "./narration";
 import { type SecurityBranchScene, type SecurityClashAttacker, type SecurityClashScene } from "./securityClash";
 import { type PermanentBurst, type ZoneShowcase } from "./showcases";
 import type { RevealShowcase } from "./match/present/revealShowcases";
@@ -762,16 +769,22 @@ export function useMatchCues({
     flushTargetClauses();
   }, [decisionPending, targetDecision?.decisionId]);
 
-  // Each record expires on its own clock, including while a chain asks questions.
+  // Each record expires on its own clock, including while a chain asks questions. A record
+  // the viewer is holding (pointer over it) keeps its clock stopped until released.
   // Schedule only the next expiry, and cancel on unmount or replacement.
   useEffect(() => {
-    if (narration.size === 0) return;
-    const expiresAt = Math.min(...[...narration.values()].map((item) => item.createdAt + narrationReadingTime(item)));
+    const running = [...narration.values()].filter((item) => item.pausedAt === undefined);
+    if (running.length === 0) return;
+    const expiresAt = Math.min(...running.map((item) => item.createdAt + narrationReadingTime(item)));
     const timer = setTimeout(
       () => {
         const now = Date.now();
         setNarration((items) => {
-          const kept = new Map([...items].filter(([, item]) => item.createdAt + narrationReadingTime(item) > now));
+          const kept = new Map(
+            [...items].filter(
+              ([, item]) => item.pausedAt !== undefined || item.createdAt + narrationReadingTime(item) > now,
+            ),
+          );
           for (const id of narrationPhaseOrdersRef.current.keys())
             if (!kept.has(id)) narrationPhaseOrdersRef.current.delete(id);
           return kept;
@@ -1410,6 +1423,11 @@ export function useMatchCues({
     return true;
   }
 
+  /** Stop every reading clock while the viewer reads, and restart them where they left off. */
+  function holdNarration(held: boolean) {
+    setNarration((items) => (held ? pauseNarration(items, Date.now()) : resumeNarration(items, Date.now())));
+  }
+
   /**
    * Collapse everything still queued: skippable waits go to nothing and every item still
    * to be read is dropped rather than narrated. The match log keeps all of them, so a
@@ -1540,6 +1558,7 @@ export function useMatchCues({
     rejection,
     dismissRejection: () => setRejection(null),
     advanceNarration,
+    holdNarration,
     narrationLock,
     sidePanels,
     notices,

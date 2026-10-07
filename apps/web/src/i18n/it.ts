@@ -418,6 +418,12 @@ const interfaceMessages = {
   "settings.effectSpeedSlow": "Lenta",
   "settings.effectSpeedNormal": "Normale",
   "settings.effectSpeedFast": "Rapida",
+  "settings.noticeDuration": "Durata degli avvisi",
+  "settings.noticeDurationDesc":
+    "Quanto restano sullo schermo gli avvisi degli effetti e i pannelli delle carte. Passa il mouse su un avviso per tenerlo aperto.",
+  "settings.noticeDurationNormal": "Normale",
+  "settings.noticeDurationLong": "Lunga",
+  "settings.noticeDurationLongest": "Più lunga",
   "settings.organizedField": "Campo ordinato",
   "settings.organizedFieldDesc":
     "Ordina i Digimon per livello e raggruppa Tamer e Option identici in una fila separata",

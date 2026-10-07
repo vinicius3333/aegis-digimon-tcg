@@ -364,6 +364,7 @@ export function BoardStage({
               securityDockActive={cues.securityBranch !== null || cues.optionBranch !== null}
               onAdvance={cues.advanceNarration}
               onDismissRejection={cues.dismissRejection}
+              onHold={cues.holdNarration}
             />
           ) : null}
 

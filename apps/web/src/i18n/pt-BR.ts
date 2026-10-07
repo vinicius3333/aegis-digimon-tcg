@@ -767,6 +767,12 @@ export const ptBR: Record<keyof typeof en, string> = {
   "settings.effectSpeedSlow": "Lenta",
   "settings.effectSpeedNormal": "Normal",
   "settings.effectSpeedFast": "Rápida",
+  "settings.noticeDuration": "Duração dos avisos",
+  "settings.noticeDurationDesc":
+    "Quanto tempo os avisos de efeito e os painéis de cartas ficam na tela. Passe o mouse sobre um aviso para mantê-lo aberto.",
+  "settings.noticeDurationNormal": "Normal",
+  "settings.noticeDurationLong": "Longa",
+  "settings.noticeDurationLongest": "Mais longa",
   "settings.organizedField": "Campo organizado",
   "settings.organizedFieldDesc": "Ordena os Digimon por nível e agrupa Tamers e Options iguais numa fileira própria",
   "settings.pileCounts": "Mostrar contadores das pilhas",

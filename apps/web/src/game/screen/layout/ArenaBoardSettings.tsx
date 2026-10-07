@@ -8,6 +8,7 @@ import { Switch } from "../../../design/primitives";
 import { SEQUENTIAL_PACING_ENABLED } from "../../../features";
 import { useTranslation, type TranslationKey } from "../../../i18n";
 import { setHandAutoSortEnabled, useHandAutoSort } from "../../handAutoSort";
+import { NOTICE_DURATION_LABELS, NOTICE_DURATIONS, setNoticeDuration, useNoticeDuration } from "../../noticeDuration";
 import { EFFECT_SPEEDS, getEffectSpeed, setEffectSpeed, type EffectSpeed } from "../../pacing";
 
 const EFFECT_SPEED_LABELS: Record<EffectSpeed, TranslationKey> = {
@@ -22,6 +23,7 @@ export function ArenaBoardSettings() {
   const pileCountsShown = usePileCountsShown();
   const textScale = useTextScale();
   const handAutoSort = useHandAutoSort();
+  const noticeDuration = useNoticeDuration();
   const [effectSpeed, setEffectSpeedChoice] = useState<EffectSpeed>(getEffectSpeed);
   return (
     <section className="game-arena-board-settings" aria-labelledby={titleId}>
@@ -75,6 +77,25 @@ export function ArenaBoardSettings() {
             <small id={`${titleId}-effect-speed-desc`}>{t("settings.effectSpeedDesc")}</small>
           </div>
         ) : null}
+        <div className="game-arena-settings__row game-arena-board-settings__size">
+          <label htmlFor={`${titleId}-notice-duration`}>{t("settings.noticeDuration")}</label>
+          <select
+            id={`${titleId}-notice-duration`}
+            value={noticeDuration}
+            aria-describedby={`${titleId}-notice-duration-desc`}
+            onChange={(event) => {
+              const duration = NOTICE_DURATIONS.find((value) => value === event.target.value);
+              if (duration) setNoticeDuration(duration);
+            }}
+          >
+            {NOTICE_DURATIONS.map((duration) => (
+              <option key={duration} value={duration}>
+                {t(NOTICE_DURATION_LABELS[duration])}
+              </option>
+            ))}
+          </select>
+          <small id={`${titleId}-notice-duration-desc`}>{t("settings.noticeDurationDesc")}</small>
+        </div>
         <div className="game-arena-settings__row">
           <Switch
             checked={handAutoSort}

@@ -733,6 +733,12 @@ export const es: Record<keyof typeof en, string> = {
   "settings.effectSpeedSlow": "Lenta",
   "settings.effectSpeedNormal": "Normal",
   "settings.effectSpeedFast": "Rápida",
+  "settings.noticeDuration": "Duración de los avisos",
+  "settings.noticeDurationDesc":
+    "Cuánto tiempo permanecen en pantalla los avisos de efecto y los paneles de cartas. Pasa el ratón sobre un aviso para mantenerlo abierto.",
+  "settings.noticeDurationNormal": "Normal",
+  "settings.noticeDurationLong": "Larga",
+  "settings.noticeDurationLongest": "Más larga",
   "settings.organizedField": "Campo ordenado",
   "settings.organizedFieldDesc": "Ordena los Digimon por nivel y agrupa los Tamers y Options iguales en su propia fila",
   "settings.pileCounts": "Mostrar contadores de las pilas",
