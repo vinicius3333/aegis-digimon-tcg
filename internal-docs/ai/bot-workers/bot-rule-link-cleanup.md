@@ -1742,6 +1742,39 @@ against all four references, full named both-seat mechanics/material custody,
 26 native rooms/current serving, untouched reserved finalblind and delivery.
 No data/weights/aggregate score constitutes accepted newbot status.
 
+## Mentor dataset actual whole0 and strict closure0
+
+Original foreground56480 completed with actual exit0. Its observed completion
+SHA-256 is `5bc00d0ef3b23564d23306811e8757f8cadeacc6ad2786037843a84f268cb461`.
+The unchanged producer's full strict `--closed` consumer, with that external
+completion and original source/request/identity/Go pins, completed actual0 in
+session60285. Parsed proof confirms original whole0, all3872 natural records,
+raw maps and frame counters, five unchanged finite frozen models/tensors,
+full original predecessor/source custody and exact qualified module bytes.
+Consumer stdout `mentor-data-r1-closed.actual.json` has SHA-256
+`9d1cdaf0248087d19d60aae5c01a425fb6dcd30cf199f2e1c3deadd5c6af3f2c`.
+No live collection or closure reader remains; no imitation/model job is started.
+
+This is actual closed data, not admissible mechanism-resampled learning:
+all181 cards are visible in both seats, every training mechanism/seat bin
+is present, but the full mixed-supervisor validation fold lacks
+`effectDigiXrosMaterial:seat0`. Separately, actual engine-only validation
+positives lack that same bin and `dnaDigivolve:seat0`. Never manufacture these
+labels or move existing episodes across folds. Additional fresh current-source
+natural teacher trajectories must fill the genuine gaps before imitation.
+
+A whole0/read-only source scan finds actual seat0 engine-positive DNA in
+`ex13-examon-royal-knights@1` and
+`bt26-dgo-2026-08-28-1-toho-braves@1` (one training occurrence each). Effect
+DigiXros material positives occur in `curriculum-bagra-darkknightmon@1`
+(EX10-031, four training labels) and `ex13-lordknightmon-royal-knights@1`
+(BT19-063, four training labels). These observed routes provide concrete
+supplemental collection targets; they are not synthetic acceptance evidence.
+All original raw data/losses/folds/source/CPs remain immutable and final seeds
+6210000..6213871 remain untouched. Warm imitation/PPO, all44 strict current-ref
+strength gains, full both-seat named mechanics, physical custody,26 native
+rooms/current serving and final blind/delivery remain pending.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
