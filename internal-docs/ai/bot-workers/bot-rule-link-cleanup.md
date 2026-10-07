@@ -2176,3 +2176,47 @@ no final inventory/request/resource Go exists. No engine/module/archive/FP/CP
 changes, metadata migrations, model loads or game launches accompany this fix.
 Actual final closed imitation CPP/source/identity/completion and fresh final
 seed inventory plus separate ROOT resource/idle agreement remain mandatory.
+
+
+## Native third epoch completed; supervisor failed after learning
+
+All three native epochs completed:3900 cumulative actor updates, final train
+loss0.4291108337352904 and validation loss1.1454497468864082. The original
+foreground30293 terminated with actual whole1 after its CUDA child returned:
+its CPU parent had imported Torch for pretraining checkpoint inspection and
+then called the Torch-free idle helper. The exact original trap is `1\n`
+SHA4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865.
+Original whole/operator/CUDA processes are gone, GPU empty, and no original
+completion/report/source-after exists. Never claim original training whole0.
+
+Native selected checkpoint observed at the original path has SHA
+`8f61d0c182b1c804bc4ac914f75d20ffbdce1c1988c30d15319ccd4057e84a62`.
+Actual read-only frozen map covers all4851 original outputs, including4832raw
+files, encoded cache, native snapshots and learner admission, SHA
+`caac0ad80512fda4507c28c5032d350c35cf027af45cbaed6e2a293ee6bb4ee5`.
+No output/model/data is rewritten, copied or retrained.
+
+New external operator `rule-link-current-mentor-imitation-recovery.py` SHA
+`4b2734a582637b8fa97e01c5fe04f1ada0cae160fac2b5bd45bc0c6954da0bb9`
+creates exclusive CPU-only custody-r1 while retaining original whole1. It
+runs the original full producer consumers, hashes all protected source/runtime
+and failed outputs before/after, and calls the unchanged native output reporter
+in an isolated CPU subprocess. GPU idle checks stay in the Torch-free parent;
+CPU inspector checks idle before Torch import. It requires native selected
+3900 actor updates/epoch3, all12 finite tensors/complete Adam state and preserved
+value tensors. Primary-inspection stdout/stderr and actual exit receipt are
+retained in custody only. Its strict reader requires actual custody whole0,
+original whole1, external completion and all exact maps; it never reports
+original success or strength/mastery. Twelve synthetic guards pass locally
+and on actual desktopPython3.12.14, with actual stdlib-only inspect0 of the
+failed map and full runtime before separate ROOT CPU resource agreement.
+
+Actual custody requestSHA
+`e1d95a66d28ba32bbd37bfb0b3c674ceb761643dc36fab217b8b130f6eda851b`,
+wrapperSHA49d54a8b2e2e166eb1a062e837c010eee2e860e168a25d893eec537faa9306de,
+GoSHA8e900116d4ff57d577630b5a6b9c59ee846c0ac7dd8f4bd37c4643dc5f0f14c6
+are exclusively sealed. Foreground66691 starts actual recovery whole680,
+identitySHA1bbd52e69383d1f5fe850a08fe9cefb0999ce3436e30e0c03bc6b09d8ff7c245.
+The native CPU qualification, custody completion/whole0/full strict reader
+are pending. No actual PPO job, new games/updates, finalblind seeds or serving
+change is authorized by this recovery; all final acceptance gates remain.
