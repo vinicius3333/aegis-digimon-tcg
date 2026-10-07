@@ -1713,6 +1713,35 @@ the prepared mechanism-resampled imitation stage. Preserve all original
 losses/folds/raw frames and immutable CP/source custody; do not invent labels,
 move validation samples, relabel failed closures or touch final seeds.
 
+## All mentor games recorded; original post-consumer still live
+
+Original foreground56480 reports all3872 natural games:2508 wins,1364 retained
+losses and10 recoveries, with zero optimizer updates. Read-only actual process
+observation first finds CUDA1105 finishing its frozen model guards, then finds
+only CPU operator739 under whole720 with GPU empty. This confirms the admitted
+CUDA child has actually exited before the original full post-source consumer;
+there was no extra launch, stop or retry. Original whole0/completion remains
+pending, so these complete game records are not yet a closed dataset.
+
+The final-game read-only raw scan completes0 on all3872 natural records. It
+counts202064 decisions:198462 frozen-policy labels and3602 actual engine
+compound/material labels. All181 set cards are visible in both seats. Actual
+engine teacher bins now cover every training family/seat, while validation
+still lacks `dnaDigivolve:seat0` and `effectDigiXrosMaterial:seat0`. The observer
+explicitly declares full collection closure and learning admission false.
+Resolve these two genuine supervision gaps with additional actual fresh
+current-source teacher examples after original whole0/full closure; preserve
+original folds and every natural result. The prepared imitation source cannot
+admit its mechanism-resampled run from an incomplete teacher matrix.
+
+Keep foreground56480 attached, poll the same handle, and await the producer's
+actual completion SHA. Require original trap0 and its strict full `--closed`
+consumer before any next model/game phase. The next work remains actual
+additional coverage, warm learned primary/PPO, strict improvements on all44
+against all four references, full named both-seat mechanics/material custody,
+26 native rooms/current serving, untouched reserved finalblind and delivery.
+No data/weights/aggregate score constitutes accepted newbot status.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
