@@ -34,7 +34,7 @@ function mockViewport({ phone }: { phone: boolean }) {
   };
 }
 
-function view(support: Permanent[], supportFirst = false) {
+function view(support: Permanent[], supportFirst = false, layoutWidth = 100) {
   return (
     <I18nProvider>
       <OrganizedBattleRow
@@ -42,7 +42,7 @@ function view(support: Permanent[], supportFirst = false) {
           digimon: [permanent("digimon")],
           support: support.map((member) => ({ key: member.permanentId, members: [member] })),
         }}
-        layoutWidth={100}
+        layoutWidth={layoutWidth}
         supportFirst={supportFirst}
         digimonLabel="Digimon"
         supportLabel="Support"
@@ -69,6 +69,17 @@ afterEach(() => {
 });
 
 describe("organized battle lanes", () => {
+  it.each([164, 220])("#5033/#4927 grows rendered desktop cards within the %ipx ceiling", (ceiling) => {
+    mockViewport({ phone: false });
+    vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(2400);
+    vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(900);
+    const { container } = render(view([permanent("tamer")], false, ceiling));
+    const card = container.querySelector<HTMLElement>('[data-field-key="digimon"]')!;
+    const width = Number.parseFloat(card.style.width);
+    expect(width).toBeGreaterThan(116);
+    expect(width).toBeLessThanOrEqual(ceiling);
+  });
+
   it("outlines empty places in the support lane, like the Digimon lane", () => {
     mockViewport({ phone: false });
     const { container } = render(view([permanent("tamer")]));
