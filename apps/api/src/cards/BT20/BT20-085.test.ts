@@ -44,7 +44,7 @@ describe("BT20-085 Shoto Kazama", () => {
     });
     expect(effect?.actions[1]).toMatchObject({
       kind: "PlayWithoutCost",
-      condition: { kind: "allOf", conditions: [{ kind: "ifThisEffectActed" }, { kind: "youHaveNone" }] },
+      condition: { kind: "youHaveNone" },
       target: {
         filter: {
           controller: "mine",
@@ -306,6 +306,27 @@ describe("BT20-085 Shoto Kazama — KB Q&A rulings", () => {
     };
     return { s, optionalParts, finish };
   }
+
+  it("Q5553 returning this Tamer still plays the trash Avian/Bird with no [Shoto Kazama] in hand (Discord 1557413340161253496 sweep)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-085", as: "shoto" }],
+          hand: [{ card: "BT1-010", as: "filler" }],
+          trash: [{ card: "BT1-013", as: "bird" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const turnLoop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.pendingDecision === undefined);
+    const player = s.state.players[0]!;
+    expect(player.deck.at(-1)?.instanceId).toBe(s.inst("shoto").instanceId);
+    expect(player.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([s.inst("bird").instanceId]);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await turnLoop;
+  });
 
   it("cannot process the part after Then without returning this Tamer to the bottom of the deck (Q5553)", async () => {
     const declined = await runStartOfMainPhase({ declineReturn: true, spareShoto: false, birdInTrash: true });
