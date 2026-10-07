@@ -1376,6 +1376,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e ative o efeito Main de Davis. Magnamon deve ir ao lixo e Veemon deve permanecer no campo.",
     en: "End breeding and activate Davis's Main effect. Magnamon should be trashed and Veemon should remain in play.",
   },
+  "arena-bt25-shutmon-link-prompt": {
+    ptBR: "Encerre a criação e vincule Shutmon da mão ao Digimon Appmon. O seletor de 2 alvos deve mostrar o texto [When Linking] do quadro de vínculo, não o [All Turns] do texto principal.",
+    en: "End breeding and link Shutmon from your hand to the Appmon Digimon. The choose-2 prompt must show the link box's [When Linking] text, not the main text's [All Turns] clause.",
+  },
   "arena-bt21-dogatchmon-link-attack": {
     ptBR: "Vincule Navimon ao DoGatchmon e resolva o ataque dele primeiro. O efeito da Tamer Haru Shinkai deve resolver antes da checagem de segurança.",
     en: "Link Navimon to DoGatchmon and resolve its attack first. Tamer Haru Shinkai's effect must resolve before the security check.",
@@ -1908,6 +1912,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt21-dracomon-start-main", "BT21 Dracomon X + BT20 Dracomon · start-main order"],
   ["arena-bt24-asuna-return-play", "BT24 Asuna · return to deck, then play from trash"],
   ["arena-bt21-dogatchmon-link-attack", "BT21 DoGatchmon · link attack waits for pending effects"],
+  ["arena-bt25-shutmon-link-prompt", "BT25 Shutmon · link prompt shows the link box"],
   ["arena-bt24-sonic-shot-decline-link", "BT24 Sonic Shot · decline Link after Dan & Kanan"],
   ["arena-bt26-chronomon-dm-succession", "BT26 Chronomon DM · Succession When Digivolving"],
   ["arena-bt8-digimon-emperor-breeding-memory", "BT8 Digimon Emperor · breeding memory ends turn"],

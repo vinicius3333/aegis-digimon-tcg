@@ -151,6 +151,7 @@ export interface AegisJoinOptions {
     | "arena-bt21-dracomon-start-main"
     | "arena-bt24-asuna-return-play"
     | "arena-bt21-dogatchmon-link-attack"
+    | "arena-bt25-shutmon-link-prompt"
     | "arena-bt24-sonic-shot-decline-link"
     | "arena-bt26-chronomon-dm-succession"
     | "arena-face-up-security"

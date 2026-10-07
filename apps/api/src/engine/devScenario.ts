@@ -142,6 +142,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt21-dracomon-start-main",
   "arena-bt24-asuna-return-play",
   "arena-bt21-dogatchmon-link-attack",
+  "arena-bt25-shutmon-link-prompt",
   "arena-bt24-sonic-shot-decline-link",
   "arena-bt26-chronomon-dm-succession",
   "arena-bt8-digimon-emperor-breeding-memory",
@@ -2386,6 +2387,37 @@ function layBt21DogatchmonLinkAttackScenario(state: GameState, decks: readonly [
     placePermanent(human, establishedDigimon(0, ["BT21-018"], "-bt21-dogatchmon"));
     placePermanent(human, establishedDigimon(0, ["BT21-084"], "-bt21-link-tamer"));
     insertCard(human, Zone.Hand, faceDownCard("dev-bt21-link-card", "BT21-047", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/**
+ * Link Shutmon from hand onto an Appmon Digimon. The "choose 2" prompt must show the link box's
+ * [When Linking] clause, not the main text's [All Turns] link clause.
+ */
+function layBt25ShutmonLinkPromptScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT21-009"], "-bt25-shutmon-host"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-bt25-shutmon", "BT25-072", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT25-081"], "-bt25-shutmon-digimon-a"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-087"], "-bt25-shutmon-tamer"));
+    placePermanent(bot, establishedDigimon(1, ["BT25-081"], "-bt25-shutmon-digimon-b"));
   }
 
   state.turnSeat = 0;
@@ -7082,6 +7114,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt16-phoenixmon-x-antibody-name": layBt16PhoenixmonXAntibodyNameScenario,
   "arena-bt21-davis-top-stack": layBt21DavisTopStackScenario,
   "arena-bt21-dogatchmon-link-attack": layBt21DogatchmonLinkAttackScenario,
+  "arena-bt25-shutmon-link-prompt": layBt25ShutmonLinkPromptScenario,
   "arena-bt24-sonic-shot-decline-link": layBt24SonicShotDeclineLinkScenario,
   "arena-bt26-chronomon-dm-succession": layBt26ChronomonDmSuccessionScenario,
   "arena-bt8-digimon-emperor-breeding-memory": layBt8DigimonEmperorBreedingMemoryScenario,
