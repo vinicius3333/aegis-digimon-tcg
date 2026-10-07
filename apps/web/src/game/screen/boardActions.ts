@@ -254,6 +254,7 @@ export function boardActions({
             instanceId: d.instanceId,
             cardId: d.cardId,
             materialPermanentIds: evolutionRoute.materialPermanentIds,
+            initialPermanentId: perm?.permanentId,
           });
           return;
         }
@@ -263,6 +264,7 @@ export function boardActions({
             instanceId: d.instanceId,
             cardId: d.cardId,
             materialPermanentIds: evolutionRoute.materialPermanentIds,
+            initialPermanentId: perm?.permanentId,
             normalPermanentId: perm.permanentId,
           });
           return;
@@ -331,6 +333,7 @@ export function boardActions({
             instanceId: handSel,
             cardId: selCardId,
             materialPermanentIds: route.materialPermanentIds,
+            initialPermanentId: perm?.permanentId,
             normalPermanentId: perm.permanentId,
           });
       if (route?.kind === "dna")
@@ -340,6 +343,7 @@ export function boardActions({
             instanceId: handSel,
             cardId: selCardId,
             materialPermanentIds: route.materialPermanentIds,
+            initialPermanentId: perm?.permanentId,
           });
       if (route?.kind === "normal") return () => digivolveWithChoice(perm.permanentId, handSel, selCardId, perm);
     }

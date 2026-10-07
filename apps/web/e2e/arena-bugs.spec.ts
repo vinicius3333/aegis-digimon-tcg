@@ -467,3 +467,48 @@ test("#5014 Digital Gate Open offers Cool Boy for zero using Mother D-Reaper", a
     await server.close();
   }
 });
+
+for (const width of [1440, 390]) {
+  test(`#5166 compact field DNA selection preserves the chosen physical pair at width ${width}`, async ({ page }) => {
+    const server = await startBrowserServer();
+    try {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.addInitScript(() => localStorage.setItem("aegis.action-confirmation.enabled", "false"));
+      await new ArenaPage(page).open("arena-issue-5166-dna-material-pairs");
+      await page.getByRole("button", { name: /^end breeding$/i }).click();
+      await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
+      await page.getByTestId("hand").getByRole("img", { name: "Mastemon", exact: true }).click();
+      await page.getByRole("button", { name: "Digivolve", exact: true }).click();
+      const field = (index: number) =>
+        page.locator(`[data-drop="perm-you"][data-id="arena-issue-5166-dna-material-pairs-0-field-${index}"]`);
+      await field(0).click();
+      const rail = page.getByRole("region", { name: /DNA Digivolution available/i });
+      const confirm = rail.getByRole("button", { name: "DNA Digivolve", exact: true });
+      await expect(confirm).toBeDisabled();
+      await expect(rail.locator("img")).toHaveCount(0);
+      await field(2).click();
+      await expect(confirm).toBeEnabled();
+      await expect(field(0).getByLabel("DNA material 1", { exact: true })).toBeVisible();
+      await expect(field(2).getByLabel("DNA material 2", { exact: true })).toBeVisible();
+      await expect(field(1)).toBeVisible();
+      await field(2).click();
+      await expect(confirm).toBeDisabled();
+      await field(1).click();
+      await expect(confirm).toBeEnabled();
+      await field(1).click();
+      await field(2).click();
+      const bounds = await confirm.boundingBox();
+      expect(bounds).not.toBeNull();
+      expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(1000);
+      await confirm.click();
+      await expect(
+        page.locator('[data-drop="perm-you"]').getByRole("img", { name: "Mastemon", exact: true }),
+      ).toBeVisible();
+      await expect(field(1).getByRole("img", { name: "LadyDevimon", exact: true })).toBeVisible();
+      await expect(field(2)).toHaveCount(0);
+    } finally {
+      await page.close();
+      await server.close();
+    }
+  });
+}

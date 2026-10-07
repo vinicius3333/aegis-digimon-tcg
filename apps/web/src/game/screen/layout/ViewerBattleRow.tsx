@@ -103,6 +103,7 @@ export function ViewerBattleRow({
           for (const member of members) chrome.permanentRefs.current[member.permanentId] = el;
         }}
         candidate={isBasePermanent(p)}
+        selectionOrder={chrome.materialSelectionOrder?.get(p.permanentId)}
         {...groupChrome(members, chrome)}
         // A board-mode optional prompt points at the permanent whose
         // effect is asking, so the rail and the field read as one.

@@ -21,6 +21,7 @@ import { CombatWindowPrompts } from "./CombatWindowPrompts";
 import { SecurityScenes } from "./SecurityScenes";
 import { MatchStatusOverlays } from "./MatchStatusOverlays";
 import { PlayChoicePrompts } from "./PlayChoicePrompts";
+import { dnaMaterialPicks } from "../model/dnaMaterialSelection";
 import { FieldCardMenu } from "./FieldCardMenu";
 import { PermanentStackView } from "./PermanentStackView";
 import { PileViewers } from "./PileViewers";
@@ -359,6 +360,7 @@ export function MatchOverlays({
           handEntries.find((entry) => entry.instanceId === overlays.actionConfirm?.instanceId)?.dnaDigivolveRoutes ?? []
         }
         dnaPermanents={viewer.battleArea}
+        dnaPickedPermanentIds={dnaMaterialPicks(overlays.actionConfirm, overlays.dnaMaterialSelection)}
         appFusion={
           overlays.appFusionChoice && appFusion
             ? {

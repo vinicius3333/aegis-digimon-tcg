@@ -52,6 +52,7 @@ import {
 } from "./screen/model/gameOutcome";
 import { actionGuards } from "./screen/model/actionGuards";
 import { handEntriesOf } from "./screen/model/handEntries";
+import { dnaFieldChoice, dnaMaterialPicks, toggleDnaMaterial } from "./screen/model/dnaMaterialSelection";
 import { presentedSeats } from "./screen/model/presentedSeats";
 import { visibleBoard } from "./screen/model/visibleBoard";
 import { appFusionLive } from "./screen/model/appFusionLive";
@@ -210,8 +211,7 @@ export function GameScreen({
   const room = spectating ? undefined : connectedRoom;
 
   // Holds the "Game 2 · X goes first" line on screen for a beat before the room hop.
-  const nextSeriesRoomId =
-    !spectating && state?.series?.phase === "starting" ? state.series.nextRoomId : "";
+  const nextSeriesRoomId = !spectating && state?.series?.phase === "starting" ? state.series.nextRoomId : "";
   const { seriesSeat } = liveConnection;
   const onSeriesNextRef = useRef(onSeriesNext);
   onSeriesNextRef.current = onSeriesNext;
@@ -819,6 +819,20 @@ export function GameScreen({
     handHeld,
     optimisticPlayedInstanceId,
   });
+  const dnaChoosing = actionConfirm?.kind === "dna";
+  const dnaPicks = dnaMaterialPicks(actionConfirm, overlayState.dnaMaterialSelection);
+  const dnaChoice = dnaFieldChoice(
+    handEntries.find((entry) => entry.instanceId === actionConfirm?.instanceId)?.dnaDigivolveRoutes ?? [],
+    you.battleArea,
+    dnaPicks,
+  );
+  const toggleDnaPick = (permanentId: string) => {
+    if (!dnaChoosing || !dnaChoice.candidates.has(permanentId)) return;
+    overlayState.setDnaMaterialSelection({
+      action: actionConfirm,
+      permanentIds: toggleDnaMaterial(dnaPicks, permanentId),
+    });
+  };
   const digivolveRoutesOf = (instanceId: string) => modelDigivolveRoutesOf({ handEntries, instanceId });
   const selEntry = handSel ? handEntries.find((h) => h.instanceId === handSel) : undefined;
   const selCardId = selEntry?.cardId;
@@ -989,6 +1003,7 @@ export function GameScreen({
   handleTapRef.current = handleTap;
   handleDropRef.current = handleDrop;
   canDragRef.current = (candidate) =>
+    !dnaChoosing &&
     !mainActionBlocked &&
     (candidate.kind !== DragKind.Attack || (!handSel && !linkSel)) &&
     canDragCard({ drag: candidate, you, handEntries });
@@ -1326,7 +1341,7 @@ export function GameScreen({
       keywordLabels={demoConnection?.keywordLabels}
       narrowGameLayout={narrowGameLayout}
       isMyTurn={isMyTurn}
-      mainActionBlocked={mainActionBlocked}
+      mainActionBlocked={mainActionBlocked || dnaChoosing}
       linkTargetsOfPermanent={linkTargetsOfPermanent}
       handEntries={handEntries}
       shownHandEntries={shownHandEntries}
@@ -1350,10 +1365,11 @@ export function GameScreen({
   /** What both battle rows put on a permanent; only the sweep's stagger differs. */
   const permanentChrome: Omit<PermanentChrome, "suspendDelayMs"> = {
     showInspectionControls:
-      !state.gameOver &&
-      viewerDecision !== undefined &&
-      viewerDecision.kind !== "optional" &&
-      viewerDecision.kind !== "mulligan",
+      dnaChoosing ||
+      (!state.gameOver &&
+        viewerDecision !== undefined &&
+        viewerDecision.kind !== "optional" &&
+        viewerDecision.kind !== "mulligan"),
     keywordLabels: demoConnection?.keywordLabels,
     compact: narrowGameLayout || shortBoard,
     width: arenaPermanentWidth,
@@ -1361,7 +1377,11 @@ export function GameScreen({
     effectSourcePermanentIds,
     effectLinkedPermanentIds,
     decisionHighlightPermanentId,
-    decisionPickedInstanceIds: fieldDecision ? new Set(picks) : new Set<string>(),
+    decisionPickedInstanceIds: dnaChoosing ? new Set(dnaPicks) : fieldDecision ? new Set(picks) : new Set<string>(),
+    materialSelectionOrder:
+      dnaChoosing && dnaChoice.selected
+        ? new Map(dnaChoice.orderedPicks.map((id, index) => [id, index + 1]))
+        : undefined,
     permanentBursts,
     pendingPermanentIds,
     fateBadges,
@@ -1399,7 +1419,11 @@ export function GameScreen({
         shownOpponentHandCount,
         revealed,
       }}
-      guards={guards}
+      guards={{
+        ...guards,
+        mainActionBlocked: guards.mainActionBlocked || dnaChoosing,
+        endPhaseBlocked: guards.endPhaseBlocked || dnaChoosing,
+      }}
       readouts={{ memory, memoryPrediction, displayedTurnSeat, displayedTurnCount, log }}
       targeting={{
         spotlight,
@@ -1417,20 +1441,23 @@ export function GameScreen({
             }
           : undefined,
         isBasePermanent: (perm) =>
-          combatWindows.counterWindow
-            ? counterHostIds.has(perm.permanentId) || counterPickableFieldSourceOf(perm.permanentId) !== undefined
-            : combatWindows.blockWindow
-              ? combatWindows.blockWindow.eligibleBlockerIds.includes(perm.permanentId)
-              : combatWindows.allianceWindow
-                ? combatWindows.allianceWindow.eligibleAllyIds.includes(perm.permanentId)
-                : pickingSourceHost
-                  ? sourceHostChoice?.cardIdsByHost.has(perm.permanentId) === true
-                  : fieldDecision
-                    ? decisionAllowsPermanent(perm)
-                    : (handIsDigi && eligibleBase(perm)) ||
-                      dragBasePermanentIds.has(perm.permanentId) ||
-                      (linkSel?.targetPermanentIds.includes(perm.permanentId) ?? false),
+          dnaChoosing
+            ? dnaChoice.candidates.has(perm.permanentId)
+            : combatWindows.counterWindow
+              ? counterHostIds.has(perm.permanentId) || counterPickableFieldSourceOf(perm.permanentId) !== undefined
+              : combatWindows.blockWindow
+                ? combatWindows.blockWindow.eligibleBlockerIds.includes(perm.permanentId)
+                : combatWindows.allianceWindow
+                  ? combatWindows.allianceWindow.eligibleAllyIds.includes(perm.permanentId)
+                  : pickingSourceHost
+                    ? sourceHostChoice?.cardIdsByHost.has(perm.permanentId) === true
+                    : fieldDecision
+                      ? decisionAllowsPermanent(perm)
+                      : (handIsDigi && eligibleBase(perm)) ||
+                        dragBasePermanentIds.has(perm.permanentId) ||
+                        (linkSel?.targetPermanentIds.includes(perm.permanentId) ?? false),
         isDecisionCandidate: (perm) =>
+          (dnaChoosing && dnaChoice.candidates.has(perm.permanentId)) ||
           (combatWindows.counterWindow !== undefined && counterPickableFieldSourceOf(perm.permanentId) !== undefined) ||
           combatWindows.blockWindow?.eligibleBlockerIds.includes(perm.permanentId) === true ||
           combatWindows.allianceWindow?.eligibleAllyIds.includes(perm.permanentId) === true ||
@@ -1443,30 +1470,37 @@ export function GameScreen({
         effectSourceInstanceId:
           handEffectSourceInstanceId?.zone === "hand" ? handEffectSourceInstanceId.instanceId : undefined,
         shakeInstanceId: shakeHandInstanceId,
-        selection: combatWindows.counterWindow
+        selection: dnaChoosing
           ? {
-              selectableInstanceIds: eligibleCounterHandIds,
-              pickedInstanceIds: counterSourceInstanceId ? [counterSourceInstanceId] : [],
-              onToggle: (instanceId) => {
-                if (eligibleCounterHandIds.includes(instanceId)) selectCounterSource(instanceId);
-              },
-              onInspect: setHandPreview,
+              selectableInstanceIds: [],
+              pickedInstanceIds: [],
+              onToggle: () => undefined,
+              onInspect: (id) => setZoomCardId(handEntries.find((entry) => entry.instanceId === id)?.cardId ?? null),
             }
-          : !fieldDecision &&
-              decisionView.answerOnBoard &&
-              (decisionView.viewerDecision?.kind === "selectCards" ||
-                decisionView.viewerDecision?.kind === "chooseTargets")
+          : combatWindows.counterWindow
             ? {
-                selectableInstanceIds: (decisionView.viewerDecision.options?.candidateInstanceIds ?? []).filter(
-                  decisionAllowsPick,
-                ),
-                pickedInstanceIds: picks,
-                onToggle: toggleDecisionPick,
+                selectableInstanceIds: eligibleCounterHandIds,
+                pickedInstanceIds: counterSourceInstanceId ? [counterSourceInstanceId] : [],
+                onToggle: (instanceId) => {
+                  if (eligibleCounterHandIds.includes(instanceId)) selectCounterSource(instanceId);
+                },
                 onInspect: setHandPreview,
               }
-            : undefined,
+            : !fieldDecision &&
+                decisionView.answerOnBoard &&
+                (decisionView.viewerDecision?.kind === "selectCards" ||
+                  decisionView.viewerDecision?.kind === "chooseTargets")
+              ? {
+                  selectableInstanceIds: (decisionView.viewerDecision.options?.candidateInstanceIds ?? []).filter(
+                    decisionAllowsPick,
+                  ),
+                  pickedInstanceIds: picks,
+                  onToggle: toggleDecisionPick,
+                  onInspect: setHandPreview,
+                }
+              : undefined,
         actionBar:
-          !selPerm && !combatWindows.counterWindow && !fieldDecision
+          !dnaChoosing && !selPerm && !combatWindows.counterWindow && !fieldDecision
             ? {
                 selCardId: handPreview ? undefined : selCardId,
                 hasBase:
@@ -1483,67 +1517,80 @@ export function GameScreen({
       selection={selectionState}
       overlays={overlayState}
       actions={
-        combatWindows.counterWindow
+        dnaChoosing
           ? {
               ...actions,
               onYourPerm: (perm) => () => {
-                const choices = counterSourceChoices.filter(
-                  (choice) => counterTargetIds(choice.effectKey)?.permanentId === perm.permanentId,
-                );
-                const fieldSource = counterPickableFieldSourceOf(perm.permanentId);
-                if (choices.length === 1) combatWindowAnswers.onCounter(choices[0]!.instanceId, choices[0]!.effectKey);
-                else if (choices.length > 1)
-                  setCounterHandChoice((current) =>
-                    current ? { ...current, targetPermanentId: perm.permanentId } : current,
-                  );
-                else if (fieldSource) selectCounterSource(fieldSource);
+                if (dnaChoice.candidates.has(perm.permanentId)) toggleDnaPick(perm.permanentId);
                 else setZoomCardId(perm.topCard.cardId);
               },
+              onOppPerm: (perm) => () => setZoomCardId(perm.topCard.cardId),
             }
-          : combatWindows.blockWindow
+          : combatWindows.counterWindow
             ? {
                 ...actions,
                 onYourPerm: (perm) => () => {
-                  if (combatWindows.blockWindow?.eligibleBlockerIds.includes(perm.permanentId))
-                    combatWindowAnswers.onBlock(perm.permanentId);
+                  const choices = counterSourceChoices.filter(
+                    (choice) => counterTargetIds(choice.effectKey)?.permanentId === perm.permanentId,
+                  );
+                  const fieldSource = counterPickableFieldSourceOf(perm.permanentId);
+                  if (choices.length === 1)
+                    combatWindowAnswers.onCounter(choices[0]!.instanceId, choices[0]!.effectKey);
+                  else if (choices.length > 1)
+                    setCounterHandChoice((current) =>
+                      current ? { ...current, targetPermanentId: perm.permanentId } : current,
+                    );
+                  else if (fieldSource) selectCounterSource(fieldSource);
                   else setZoomCardId(perm.topCard.cardId);
                 },
               }
-            : combatWindows.allianceWindow
+            : combatWindows.blockWindow
               ? {
                   ...actions,
                   onYourPerm: (perm) => () => {
-                    if (combatWindows.allianceWindow?.eligibleAllyIds.includes(perm.permanentId) && allianceWindowKey) {
-                      allianceConfirmationSubmittedRef.current = false;
-                      setAllianceConfirmation({ windowKey: allianceWindowKey, permanentId: perm.permanentId });
-                    } else setZoomCardId(perm.topCard.cardId);
+                    if (combatWindows.blockWindow?.eligibleBlockerIds.includes(perm.permanentId))
+                      combatWindowAnswers.onBlock(perm.permanentId);
+                    else setZoomCardId(perm.topCard.cardId);
                   },
                 }
-              : pickingSourceHost
+              : combatWindows.allianceWindow
                 ? {
                     ...actions,
                     onYourPerm: (perm) => () => {
-                      if (sourceHostChoice?.cardIdsByHost.has(perm.permanentId)) chooseSourceHost(perm.permanentId);
-                      else setZoomCardId(perm.topCard.cardId);
+                      if (
+                        combatWindows.allianceWindow?.eligibleAllyIds.includes(perm.permanentId) &&
+                        allianceWindowKey
+                      ) {
+                        allianceConfirmationSubmittedRef.current = false;
+                        setAllianceConfirmation({ windowKey: allianceWindowKey, permanentId: perm.permanentId });
+                      } else setZoomCardId(perm.topCard.cardId);
                     },
                   }
-                : fieldDecision
+                : pickingSourceHost
                   ? {
                       ...actions,
                       onYourPerm: (perm) => () => {
-                        const candidateId = decisionCandidateIdFor(perm);
-                        if (candidateId && (picks.includes(candidateId) || decisionAllowsPick(candidateId)))
-                          toggleDecisionPick(candidateId);
-                        else actions.onYourPerm(perm)?.();
-                      },
-                      onOppPerm: (perm) => () => {
-                        const candidateId = decisionCandidateIdFor(perm);
-                        if (candidateId && (picks.includes(candidateId) || decisionAllowsPick(candidateId)))
-                          toggleDecisionPick(candidateId);
-                        else actions.onOppPerm(perm)?.();
+                        if (sourceHostChoice?.cardIdsByHost.has(perm.permanentId)) chooseSourceHost(perm.permanentId);
+                        else setZoomCardId(perm.topCard.cardId);
                       },
                     }
-                  : actions
+                  : fieldDecision
+                    ? {
+                        ...actions,
+                        onYourPerm: (perm) => () => {
+                          const candidateId = decisionCandidateIdFor(perm);
+                          if (candidateId && (picks.includes(candidateId) || decisionAllowsPick(candidateId)))
+                            toggleDecisionPick(candidateId);
+                          else actions.onYourPerm(perm)?.();
+                        },
+                        onOppPerm: (perm) => () => {
+                          const candidateId = decisionCandidateIdFor(perm);
+                          if (candidateId && (picks.includes(candidateId) || decisionAllowsPick(candidateId)))
+                            toggleDecisionPick(candidateId);
+                          else actions.onOppPerm(perm)?.();
+                        },
+                      }
+                    : actions
       }
       senders={matchSenders}
       drag={{ state: drag, isPlay: dragIsPlay, cardId: dragCardId, hoveredIntent: hoveredDragIntent ?? undefined }}

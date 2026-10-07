@@ -29,8 +29,12 @@ test("dragging Silphymon onto the field DNA digivolves both exact materials for 
   // The server has placed Reppamon; wait until its presentation releases normal actions.
   await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
   await game.dragCardTo(/^silphymon$/i, page.locator('[data-drop="battle-you"]'));
-  await expect(page.getByText(/DNA Digivolution available/i)).toBeVisible();
-  await page.getByRole("button", { name: /^DNA Digivolve$/i }).click();
+  const dnaPrompt = page.getByRole("region", { name: /DNA Digivolution available/i });
+  await expect(dnaPrompt).toBeVisible();
+  await expect(dnaPrompt.getByRole("button", { name: /^DNA Digivolve$/i })).toBeDisabled();
+  await page.locator(`[data-drop="perm-you"][data-id="${yellowPermanentId}"]`).click();
+  await page.locator(`[data-drop="perm-you"][data-id="${redPermanentId}"]`).click();
+  await dnaPrompt.getByRole("button", { name: /^DNA Digivolve$/i }).click();
 
   await expect.poll(() => match.state().players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT16-012"]);
   const player = match.state().players[0]!;
@@ -53,6 +57,7 @@ test("dragging Silphymon onto the field DNA digivolves both exact materials for 
     .locator('[data-drop="perm-you"]')
     .filter({ has: page.getByRole("img", { name: /^silphymon$/i }) });
   await expect(resultCard).toContainText("×2");
+  await page.getByRole("button", { name: "View board", exact: true }).click();
   await resultCard.click();
   await expect(page.getByRole("button", { name: /^open kokatorimon$/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /^open reppamon$/i })).toBeVisible();
