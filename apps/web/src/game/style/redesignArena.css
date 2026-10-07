@@ -739,95 +739,17 @@ button.game-player-line__name {
   }
 }
 
-/* ---- The match audio controls above the board look ---- */
-.game-arena-audio {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
-  gap: var(--ds-space-3) var(--ds-space-5);
-  margin-bottom: var(--ds-space-5);
-  padding-bottom: var(--ds-space-4);
-  border-bottom: 1px solid var(--ds-line);
-}
-
-.game-arena-audio__title {
-  grid-column: 1 / -1;
-  margin: 0;
-  color: var(--ds-text);
-  font-size: var(--ds-text-sm);
-  font-weight: 600;
-}
-
-.game-arena-audio__channel {
-  display: grid;
-  gap: var(--ds-space-2);
-  min-width: 0;
-}
-
-.game-arena-audio__toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--ds-space-2);
-  min-height: 2.75rem;
-  color: var(--ds-text);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.game-arena-audio__toggle input {
-  width: 1.125rem;
-  height: 1.125rem;
-  margin: 0;
-  accent-color: var(--ds-accent);
-}
-
-.game-arena-audio__volume {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: var(--ds-space-1) var(--ds-space-2);
-  color: var(--ds-text-3);
-  font-size: var(--ds-text-sm);
-}
-
-.game-arena-audio__channel[data-disabled="true"] .game-arena-audio__volume {
-  opacity: 0.5;
-}
-
-.game-arena-audio__value {
-  color: var(--ds-accent);
-  font-family: var(--ds-font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-.game-arena-audio__volume input {
-  grid-column: 1 / -1;
-  width: 100%;
-  min-height: 2.75rem;
-  margin: 0;
-  accent-color: var(--ds-accent);
-}
-
-.game-arena-audio__track {
-  display: grid;
-  gap: var(--ds-space-1);
-  color: var(--ds-text-3);
-  font-size: var(--ds-text-sm);
-}
-
-.game-arena-audio__track select {
-  width: 100%;
-  padding: 0 var(--ds-space-2);
-  border: 1px solid var(--ds-line-strong);
-  border-radius: var(--ds-radius-sm);
-  background: var(--ds-paper);
-  color: var(--ds-text);
-}
-
-/* ---- Board display choices between the audio and the board look ---- */
+/* ---- Match dialog sections above the board look: sound, then board display ----
+   Each section is a titled panel of rows split by hairlines, so the two read as one
+   list and every control lines up on the same columns. */
+.game-arena-audio,
 .game-arena-board-settings {
   display: grid;
   gap: var(--ds-space-3);
   margin-bottom: var(--ds-space-5);
+}
+
+.game-arena-board-settings {
   padding-bottom: var(--ds-space-5);
   border-bottom: 1px solid var(--ds-line);
 }
@@ -852,4 +774,88 @@ button.game-player-line__name {
 
 .game-arena-settings__row + .game-arena-settings__row {
   border-top: 1px solid var(--ds-line);
+}
+
+/* A channel row: the switch on a fixed-width label column, then the slider and its
+   level. The soundtrack row uses the same columns, so its picker starts where the
+   sliders do. A narrow dialog stacks each row instead. */
+.game-arena-audio {
+  container-type: inline-size;
+}
+
+.game-arena-audio__row {
+  display: grid;
+  grid-template-columns: minmax(0, 17rem) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--ds-space-2) var(--ds-space-5);
+  min-height: var(--ds-touch-target);
+}
+
+.game-arena-audio__volume {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 3.5rem;
+  align-items: center;
+  gap: var(--ds-space-3);
+}
+
+.game-arena-audio__row[data-disabled="true"] .game-arena-audio__volume {
+  opacity: 0.5;
+}
+
+.game-arena-audio__volume input {
+  width: 100%;
+  min-height: var(--ds-touch-target);
+  margin: 0;
+  accent-color: var(--ds-accent);
+}
+
+.game-arena-audio__volume input:focus-visible,
+.game-arena-audio__track:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.game-arena-audio__volume input:focus-visible {
+  border-radius: var(--ds-radius-sm);
+}
+
+.game-arena-audio__value {
+  color: var(--ds-accent);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.game-arena-audio__track-label {
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+}
+
+.game-arena-audio__track {
+  width: calc(100% - 3.5rem - var(--ds-space-3));
+  min-height: 2.5rem;
+  padding: 0 var(--ds-space-2);
+  border: 1px solid var(--ds-line-strong);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-paper);
+  color: var(--ds-text);
+  font: inherit;
+}
+
+@container (max-width: 34rem) {
+  .game-arena-audio__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding-block: var(--ds-space-2);
+  }
+
+  .game-arena-audio__track-label {
+    margin-bottom: var(--ds-space-2);
+  }
+
+  .game-arena-audio__track {
+    width: 100%;
+  }
 }
