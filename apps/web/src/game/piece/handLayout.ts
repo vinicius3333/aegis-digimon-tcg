@@ -20,8 +20,8 @@ const handMinOverlap = (cardWidth: number) => Math.round(cardWidth * 0.26);
 export const HAND_MIN_EXPOSURE = 30;
 /**
  * How far a card may be buried before the fan stops tightening. A hand big enough
- * to need more than this overflows, which only phone widths reach — there the row
- * scrolls instead.
+ * to need more than this overflows and the row scrolls instead: phones, and docks
+ * as narrow as an unfolded foldable's.
  */
 const handMaxOverlap = (cardWidth: number, minExposure: number) => cardWidth - minExposure;
 export const handRowHeight = (cardWidth: number) => Math.round(cardWidth * 1.4) + HAND_FAN_ROOM + 1;
