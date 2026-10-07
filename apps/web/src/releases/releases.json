@@ -1,5 +1,32 @@
 [
   {
+    "version": "1.16.0-beta",
+    "releasedAt": "2026-10-06",
+    "summaryKey": "releases.1.16.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.16.0-beta.feature.chat"
+      },
+      {
+        "textKey": "releases.1.16.0-beta.feature.language"
+      },
+      {
+        "textKey": "releases.1.16.0-beta.feature.decks"
+      },
+      {
+        "textKey": "releases.1.16.0-beta.feature.table"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.16.0-beta.fix.cards"
+      },
+      {
+        "textKey": "releases.1.16.0-beta.fix.table"
+      }
+    ]
+  },
+  {
     "version": "1.15.0-beta",
     "releasedAt": "2026-10-06",
     "summaryKey": "releases.1.15.0-beta.summary",

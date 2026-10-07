@@ -139,6 +139,13 @@ export const ptBR: Record<keyof typeof en, string> = {
   "home.shortcuts.collection.copy": "Explore a coleção",
   "home.footer.legal":
     "Projeto de f\u00e3s gratuito, sem afilia\u00e7\u00e3o com a Bandai. Digimon, o Digimon Card Game e as imagens das cartas pertencem \u00e0 Bandai e aos seus detentores. Se voc\u00ea curte o Aegis, apoie o jogo oficial.",
+  "releases.1.16.0-beta.summary": releaseMessages["releases.1.16.0-beta.summary"]["pt-BR"],
+  "releases.1.16.0-beta.feature.chat": releaseMessages["releases.1.16.0-beta.feature.chat"]["pt-BR"],
+  "releases.1.16.0-beta.feature.language": releaseMessages["releases.1.16.0-beta.feature.language"]["pt-BR"],
+  "releases.1.16.0-beta.feature.decks": releaseMessages["releases.1.16.0-beta.feature.decks"]["pt-BR"],
+  "releases.1.16.0-beta.feature.table": releaseMessages["releases.1.16.0-beta.feature.table"]["pt-BR"],
+  "releases.1.16.0-beta.fix.cards": releaseMessages["releases.1.16.0-beta.fix.cards"]["pt-BR"],
+  "releases.1.16.0-beta.fix.table": releaseMessages["releases.1.16.0-beta.fix.table"]["pt-BR"],
   "releases.1.15.0-beta.summary": releaseMessages["releases.1.15.0-beta.summary"]["pt-BR"],
   "releases.1.15.0-beta.feature.spectators": releaseMessages["releases.1.15.0-beta.feature.spectators"]["pt-BR"],
   "releases.1.15.0-beta.feature.sleeves": releaseMessages["releases.1.15.0-beta.feature.sleeves"]["pt-BR"],

@@ -1,4 +1,39 @@
 {
+  "releases.1.16.0-beta.summary": {
+    "en": "This minor release adds match chat, a Spanish locale, a text size setting, per-deck sleeves and deck list tools, and fixes reported card and table problems.",
+    "pt-BR": "Esta versão minor adiciona chat nas partidas, o idioma espanhol, uma opção de tamanho de texto, capas por deck e ferramentas de listas de deck, e corrige problemas reportados em cartas e na mesa.",
+    "es": "Esta versión menor agrega chat en las partidas, el idioma español, un ajuste de tamaño de texto, fundas por deck y herramientas de listas de deck, y corrige problemas reportados en cartas y en la mesa."
+  },
+  "releases.1.16.0-beta.feature.chat": {
+    "en": "Chat with your opponent and spectators during a match, with Digimon World emotes. Spectators show by name, and blocked words are masked.",
+    "pt-BR": "Converse com o oponente e os espectadores durante a partida, com emotes de Digimon World. Os espectadores aparecem pelo nome, e palavras bloqueadas são mascaradas.",
+    "es": "Chatea con tu oponente y los espectadores durante la partida, con emotes de Digimon World. Los espectadores aparecen por su nombre, y las palabras bloqueadas se ocultan."
+  },
+  "releases.1.16.0-beta.feature.language": {
+    "en": "Play in Spanish, and pick a larger or smaller text size in settings.",
+    "pt-BR": "Jogue em espanhol e escolha um tamanho de texto maior ou menor nas configurações.",
+    "es": "Juega en español y elige un tamaño de texto más grande o más pequeño en los ajustes."
+  },
+  "releases.1.16.0-beta.feature.decks": {
+    "en": "Sort and filter your decks, import Tabletop Simulator and site deck lists, and pick a sleeve for each deck and its Digi-Egg deck.",
+    "pt-BR": "Ordene e filtre seus decks, importe listas do Tabletop Simulator e de sites, e escolha uma capa para cada deck e para o deck de Digi-Egg.",
+    "es": "Ordena y filtra tus decks, importa listas de Tabletop Simulator y de sitios, y elige una funda para cada deck y su deck de Digi-Egg."
+  },
+  "releases.1.16.0-beta.feature.table": {
+    "en": "Choose a random battlefield, show pile counts from match settings, and pick Counter sources in the hand or on the field.",
+    "pt-BR": "Escolha um campo de batalha aleatório, mostre a contagem das pilhas nas configurações da partida e escolha fontes de Counter na mão ou no campo.",
+    "es": "Elige un campo de batalla aleatorio, muestra el conteo de las pilas en los ajustes de la partida y elige fuentes de Counter en la mano o en el campo."
+  },
+  "releases.1.16.0-beta.fix.cards": {
+    "en": "Fixes reported problems with Rule-granted traits and names, self-suspend costs, linked effect text, rule checks during digivolve draws, BT15-096 and DexDoru trash effects.",
+    "pt-BR": "Corrige problemas reportados com traços e nomes concedidos por Rule, custos de suspender a si mesmo, texto de efeitos de link, verificações de regra durante compras de digivolução, BT15-096 e efeitos de lixeira de DexDoru.",
+    "es": "Corrige problemas reportados con rasgos y nombres otorgados por Rule, costos de suspenderse a sí mismo, texto de efectos de enlace, verificaciones de reglas durante robos de digivolución, BT15-096 y efectos de papelera de DexDoru."
+  },
+  "releases.1.16.0-beta.fix.table": {
+    "en": "The hand fits the desktop screen and pans on touch, badge taps reach targetable cards, the card filter searches card text, and the result waits until animations finish.",
+    "pt-BR": "A mão cabe na tela do desktop e rola no toque, toques nos selos chegam às cartas alvo, o filtro de cartas busca no texto e o resultado espera as animações terminarem.",
+    "es": "La mano cabe en la pantalla de escritorio y se desplaza al tocar, los toques en las insignias llegan a las cartas objetivo, el filtro de cartas busca en el texto y el resultado espera a que terminen las animaciones."
+  },
   "releases.1.15.0-beta.summary": {
     "en": "This minor release adds spectators, custom card sleeves and a new look built around the falling bits, and fixes reported card and prompt problems.",
     "pt-BR": "Esta versão minor adiciona espectadores, capas de carta personalizadas e um novo visual em torno dos bits caindo, e corrige problemas reportados em cartas e prompts.",

@@ -137,6 +137,13 @@ export const en = {
   "home.shortcuts.collection.copy": "Browse the collection",
   "home.footer.legal":
     "Free fan project with no affiliation to Bandai. Digimon, the Digimon Card Game and the card images belong to Bandai and their respective owners. If you enjoy Aegis, support the official game.",
+  "releases.1.16.0-beta.summary": releaseMessages["releases.1.16.0-beta.summary"].en,
+  "releases.1.16.0-beta.feature.chat": releaseMessages["releases.1.16.0-beta.feature.chat"].en,
+  "releases.1.16.0-beta.feature.language": releaseMessages["releases.1.16.0-beta.feature.language"].en,
+  "releases.1.16.0-beta.feature.decks": releaseMessages["releases.1.16.0-beta.feature.decks"].en,
+  "releases.1.16.0-beta.feature.table": releaseMessages["releases.1.16.0-beta.feature.table"].en,
+  "releases.1.16.0-beta.fix.cards": releaseMessages["releases.1.16.0-beta.fix.cards"].en,
+  "releases.1.16.0-beta.fix.table": releaseMessages["releases.1.16.0-beta.fix.table"].en,
   "releases.1.15.0-beta.summary": releaseMessages["releases.1.15.0-beta.summary"].en,
   "releases.1.15.0-beta.feature.spectators": releaseMessages["releases.1.15.0-beta.feature.spectators"].en,
   "releases.1.15.0-beta.feature.sleeves": releaseMessages["releases.1.15.0-beta.feature.sleeves"].en,
