@@ -3,6 +3,7 @@ import { en } from "./en";
 // Historical release notes keep their published English text. All interface
 // messages are translated; printed card names and effects remain in English.
 const interfaceMessages = {
+  "game.dragIntent.reorder": "RIORDINA LA MANO",
   "settings.sortHand": "Ordina la mano",
   "settings.sortHandDesc":
     "Ordina la mano attuale per livello dei Digimon, poi Tamer e Option. Le nuove carte restano in fondo finché non ordini di nuovo.",

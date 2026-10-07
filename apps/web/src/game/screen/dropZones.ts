@@ -17,6 +17,13 @@ export function dropZoneAt(cx: number, cy: number): DropZoneHit | null {
   document.querySelectorAll("[data-drop]").forEach((candidate) => {
     const rect = candidate.getBoundingClientRect();
     if (cx < rect.left || cx > rect.right || cy < rect.top || cy > rect.bottom) return;
+    if (candidate.getAttribute("data-drop") === "hand-you") {
+      const scroller = candidate.closest<HTMLElement>(".game-hand-scroller");
+      if (scroller && getComputedStyle(scroller).display !== "contents") {
+        const visible = scroller.getBoundingClientRect();
+        if (cx < visible.left || cx > visible.right || cy < visible.top || cy > visible.bottom) return;
+      }
+    }
     const area = rect.width * rect.height;
     if (area >= bestArea) return;
     bestArea = area;
@@ -26,5 +33,12 @@ export function dropZoneAt(cx: number, cy: number): DropZoneHit | null {
   const element = zone as Element;
   const target = element.getAttribute("data-drop");
   if (!target) return null;
+  if (target === "hand-you") {
+    const before = [...element.querySelectorAll<HTMLElement>("[data-hand-instance-id]")].find((card) => {
+      const rect = card.getBoundingClientRect();
+      return cx < rect.left + rect.width / 2;
+    });
+    return { target, id: before?.dataset.handInstanceId };
+  }
   return { target: target as DropTarget, id: element.getAttribute("data-id") ?? undefined };
 }

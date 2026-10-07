@@ -39,8 +39,12 @@ export function Hand({
   onHoverChange,
   cardWidth = HAND_CARD_WIDTH,
   minExposure = HAND_MIN_EXPOSURE,
+  onMoveCard,
+  reorderDropBeforeInstanceId,
 }: {
   cards: HandEntry[];
+  onMoveCard?: (instanceId: string, direction: -1 | 1) => void;
+  reorderDropBeforeInstanceId?: string | null;
   selectedInstanceId?: string;
   startDrag: (index: number, e: React.PointerEvent, origin?: HTMLElement) => void;
   selectCard?: (index: number) => void;
@@ -106,6 +110,7 @@ export function Hand({
       <div
         ref={setRowEl}
         data-testid="hand"
+        data-drop={selection ? undefined : "hand-you"}
         data-hand-overflow={handOverflows ? "true" : undefined}
         className={selection ? "game-hand game-hand--selecting" : "game-hand"}
         style={{
@@ -164,6 +169,16 @@ export function Hand({
               if (selection?.onInspect && event.key === "Enter" && event.altKey) {
                 event.preventDefault();
                 selection.onInspect(entry.instanceId);
+                return;
+              }
+              if (
+                !selection &&
+                onMoveCard &&
+                event.altKey &&
+                (event.key === "ArrowLeft" || event.key === "ArrowRight")
+              ) {
+                event.preventDefault();
+                onMoveCard(entry.instanceId, event.key === "ArrowLeft" ? -1 : 1);
                 return;
               }
               if (event.key !== "Enter" && event.key !== " ") return;
@@ -247,6 +262,7 @@ export function Hand({
             <Fragment key={entry.instanceId}>
               <div
                 data-hand-instance-id={entry.instanceId}
+                aria-keyshortcuts={!selection && onMoveCard ? "Alt+ArrowLeft Alt+ArrowRight" : undefined}
                 data-hand-card-id={entry.cardId}
                 data-hand-hovered={hov ? "true" : undefined}
                 data-hand-hover-covered={showHover && coveredHoverKey === hoverKey ? "true" : undefined}
@@ -294,6 +310,14 @@ export function Hand({
                 }
               >
                 {face}
+                {reorderDropBeforeInstanceId === entry.instanceId ||
+                (reorderDropBeforeInstanceId === null && i === cards.length - 1) ? (
+                  <span
+                    aria-hidden="true"
+                    className="game-hand-reorder-marker"
+                    data-edge={reorderDropBeforeInstanceId === null ? "after" : "before"}
+                  />
+                ) : null}
               </div>
               {showHover && rowEl ? (
                 <HandHoverFace

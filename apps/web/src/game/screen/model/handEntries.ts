@@ -95,3 +95,25 @@ export function retainHandOrder(
   const retained = order.filter((id) => present.has(id));
   return retained.length === order.length ? order : retained;
 }
+
+/** Local presentation order; no card or legality projection is changed. */
+export function reorderedHandInstanceIds(
+  entries: readonly Pick<HandEntry, "instanceId">[],
+  instanceId: string,
+  beforeInstanceId?: string,
+): string[] {
+  const ids = entries.map((entry) => entry.instanceId);
+  if (
+    !ids.includes(instanceId) ||
+    beforeInstanceId === instanceId ||
+    (beforeInstanceId !== undefined && !ids.includes(beforeInstanceId))
+  )
+    return ids;
+  const remaining = ids.filter((id) => id !== instanceId);
+  remaining.splice(
+    beforeInstanceId === undefined ? remaining.length : remaining.indexOf(beforeInstanceId),
+    0,
+    instanceId,
+  );
+  return remaining;
+}

@@ -52,7 +52,13 @@ import {
   viewerTurnOrder as modelViewerTurnOrder,
 } from "./screen/model/gameOutcome";
 import { actionGuards } from "./screen/model/actionGuards";
-import { handEntriesOf, sortedHandInstanceIds, retainHandOrder } from "./screen/model/handEntries";
+import { dropZoneAt } from "./screen/dropZones";
+import {
+  handEntriesOf,
+  sortedHandInstanceIds,
+  retainHandOrder,
+  reorderedHandInstanceIds,
+} from "./screen/model/handEntries";
 import { dnaFieldChoice, dnaMaterialPicks, toggleDnaMaterial } from "./screen/model/dnaMaterialSelection";
 import { presentedSeats } from "./screen/model/presentedSeats";
 import { visibleBoard } from "./screen/model/visibleBoard";
@@ -955,7 +961,27 @@ export function GameScreen({
   const dragCardId = drag && drag.started ? drag.cardId : undefined;
   const dragIsPlay = drag?.kind === DragKind.Play && drag.started;
 
-  const dragIntentAt = (hit: DropZoneHit | null) => modelDragIntentAt({ hit, drag, you, handEntries });
+  const canReorderHand = (instanceId: string) =>
+    !spectating &&
+    !dnaChoosing &&
+    !handHeld &&
+    !decision &&
+    !state.pendingDecision &&
+    !state.combatWindow &&
+    !cues.presenting &&
+    !state.gameOver &&
+    shownHandEntries.some((entry) => entry.instanceId === instanceId) &&
+    handEntries.some((entry) => entry.instanceId === instanceId);
+  const canDragGameAction = (candidate: NonNullable<typeof drag>) =>
+    !dnaChoosing &&
+    !mainActionBlocked &&
+    (candidate.kind !== DragKind.Attack || (!handSel && !linkSel)) &&
+    canDragCard({ drag: candidate, you, handEntries });
+  const dragIntentAt = (hit: DropZoneHit | null) => {
+    if (drag?.started && hit?.target === "hand-you" && drag.kind === DragKind.Play && canReorderHand(drag.instanceId))
+      return "reorder" as const;
+    return drag && canDragGameAction(drag) ? modelDragIntentAt({ hit, drag, you, handEntries }) : null;
+  };
 
   const dropIntentAttrs = (target: DropTarget, id?: string) =>
     modelDropIntentAttrs({ target, id, drag, you, handEntries });
@@ -1015,12 +1041,17 @@ export function GameScreen({
   });
   const { findPermanent, handleTap, handleDrop, onYourPerm, onBreeding } = actions;
   handleTapRef.current = handleTap;
-  handleDropRef.current = handleDrop;
+  handleDropRef.current = (candidate, x, y) => {
+    const hit = dropZoneAt(x, y);
+    if (hit?.target === "hand-you" && candidate.kind === DragKind.Play) {
+      if (canReorderHand(candidate.instanceId))
+        setHandOrder(reorderedHandInstanceIds(shownHandEntries, candidate.instanceId, hit.id));
+      return;
+    }
+    if (canDragGameAction(candidate)) handleDrop(candidate, x, y);
+  };
   canDragRef.current = (candidate) =>
-    !dnaChoosing &&
-    !mainActionBlocked &&
-    (candidate.kind !== DragKind.Attack || (!handSel && !linkSel)) &&
-    canDragCard({ drag: candidate, you, handEntries });
+    (candidate.kind === DragKind.Play && canReorderHand(candidate.instanceId)) || canDragGameAction(candidate);
   const combatWindowAnswers = combatAnswers({
     room,
     acknowledgeBlockWindowLocally: demoConnection?.acknowledgeBlockWindow,
@@ -1481,6 +1512,16 @@ export function GameScreen({
       chrome={{ permanentChrome, unsuspendStagger, dropIntentAttrs, baseDropIntentAttrs, trashEffectSource }}
       handDock={{
         onSortHand: () => setHandOrder(sortedHandInstanceIds(shownHandEntries)),
+        reorderDropBeforeInstanceId: hoveredDragIntent === "reorder" ? (dragHover?.id ?? null) : undefined,
+        onMoveHandCard: (instanceId, direction) => {
+          const index = shownHandEntries.findIndex((entry) => entry.instanceId === instanceId);
+          const entry = shownHandEntries[index];
+          if (!entry || !canReorderHand(instanceId)) return;
+          const destination =
+            direction === -1 ? shownHandEntries[index - 1]?.instanceId : shownHandEntries[index + 2]?.instanceId;
+          if (index + direction < 0 || index + direction >= shownHandEntries.length) return;
+          setHandOrder(reorderedHandInstanceIds(shownHandEntries, instanceId, destination));
+        },
         effectSource: handEffectSource,
         effectSourceInstanceId:
           handEffectSourceInstanceId?.zone === "hand" ? handEffectSourceInstanceId.instanceId : undefined,

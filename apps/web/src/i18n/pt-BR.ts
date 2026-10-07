@@ -18,6 +18,7 @@ import { settingsPtBR } from "./redesign/settings.pt-BR";
 import { shellPtBR } from "./redesign/shell.pt-BR";
 
 export const ptBR: Record<keyof typeof en, string> = {
+  "game.dragIntent.reorder": "REORDENAR MÃO",
   "settings.sortHand": "Ordenar mão",
   "settings.sortHandDesc":
     "Ordena a mão atual por nível de Digimon, depois Tamers e Options. Novas compras ficam no fim até você ordenar novamente.",

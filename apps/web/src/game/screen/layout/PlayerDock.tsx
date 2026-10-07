@@ -41,9 +41,13 @@ export function PlayerDock({
   selectCard,
   onHoverChange,
   onSortHand,
+  onMoveHandCard,
+  reorderDropBeforeInstanceId,
 }: {
   spectating?: boolean;
   onSortHand?: () => void;
+  onMoveHandCard?: (instanceId: string, direction: -1 | 1) => void;
+  reorderDropBeforeInstanceId?: string | null;
   timer?: ReactNode;
   /** The viewer's name for the line over the tray, when the screen knows it. */
   playerName?: string;
@@ -121,6 +125,8 @@ export function PlayerDock({
               cardWidth={cardWidth}
               minExposure={minExposure}
               cards={cards}
+              onMoveCard={onMoveHandCard}
+              reorderDropBeforeInstanceId={reorderDropBeforeInstanceId}
               selectedInstanceId={selectedInstanceId}
               effectSourceInstanceId={effectSourceInstanceId}
               effectSource={effectSource}

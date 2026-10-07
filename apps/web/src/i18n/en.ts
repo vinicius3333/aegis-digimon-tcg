@@ -16,6 +16,7 @@ import { shellEn } from "./redesign/shell.en";
    error. Placeholders use {name} and are filled by `t(key, params)`. */
 
 export const en = {
+  "game.dragIntent.reorder": "REORDER HAND",
   "settings.sortHand": "Sort hand",
   "settings.sortHandDesc":
     "Sort the current hand by Digimon level, then Tamers and Options. New draws stay at the end until you sort again.",

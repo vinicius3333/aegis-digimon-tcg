@@ -30,10 +30,10 @@ export function useDragPlumbing() {
   /** Assigned every render, so the listeners below reach the current handlers. */
   const handleTapRef = useRef<((d: DragState) => void) | null>(null);
   const handleDropRef = useRef<((d: DragState, cx: number, cy: number) => void) | null>(null);
-  /** Live legality: a pending press may inspect any card, but only a legal action may drag. */
+  /** Live legality: a pending press may inspect any card, but a legal game action or local hand reorder may drag. */
   const canDragRef = useRef<((d: DragState) => boolean) | null>(null);
   // The drop area the pointer is currently over, so the ghost can carry the name
-  // of the intent that release would send.
+  // of the game action or local reorder that release would perform.
   const [dragHover, setDragHover] = useState<DropZoneHit | null>(null);
 
   useEffect(() => {
@@ -75,6 +75,7 @@ export function useDragPlumbing() {
       const d = dragRef.current;
       if (d) {
         if (d.started) {
+          swallowNextClick();
           if (canDragRef.current?.(d) === true) handleDropRef.current?.(d, e.clientX, e.clientY);
         } else {
           swallowNextClick();

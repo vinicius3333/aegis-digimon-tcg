@@ -15,6 +15,7 @@ import { settingsEs } from "./redesign/settings.es";
 import { shellEs } from "./redesign/shell.es";
 
 export const es: Record<keyof typeof en, string> = {
+  "game.dragIntent.reorder": "REORDENAR MANO",
   "settings.sortHand": "Ordenar mano",
   "settings.sortHandDesc":
     "Ordena la mano actual por nivel de Digimon, después Tamers y Options. Las nuevas cartas quedan al final hasta que vuelvas a ordenar.",

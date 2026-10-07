@@ -982,3 +982,20 @@ button.game-player-line__name {
     right: 200px;
   }
 }
+
+.game-hand-reorder-marker {
+  position: absolute;
+  z-index: 8;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: var(--ds-radius-pill);
+  background: var(--ds-accent);
+  pointer-events: none;
+}
+.game-hand-reorder-marker[data-edge="before"] {
+  left: -4px;
+}
+.game-hand-reorder-marker[data-edge="after"] {
+  right: -4px;
+}
