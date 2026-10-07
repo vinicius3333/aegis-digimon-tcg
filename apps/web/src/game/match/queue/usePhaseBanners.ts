@@ -23,8 +23,8 @@ import type { DrawPhaseOwner, MatchCues, TurnTransitionCue, UnsuspendSweep } fro
  * only after sending its resulting state patch, so a ribbon keyed on the close would arrive
  * after the board it is meant to introduce.
  *
- * A ribbon waits for three things before it takes the screen — the batches its arrivals
- * belong to, the cues those batches queued ahead of it, and one readable beat for a clause it
+ * A ribbon waits for three things before it takes the screen — the batches of the events
+ * before it, the cues those batches queued ahead of it, and one readable beat for a clause it
  * is about to cover. All three are bounded by the same budget: a batch that keeps arriving
  * must never hold the ribbon for good.
  *
@@ -211,7 +211,7 @@ export function usePhaseBanners({
 
   async function waitForPhasePrerequisites(
     context: AnimationStepContext,
-    arrivals: readonly ServerEvent[],
+    awaitedEvents: readonly ServerEvent[],
     phaseOrder: number,
   ) {
     // Batch presentation registers its cues in the following layout effect.
@@ -228,7 +228,7 @@ export function usePhaseBanners({
         event.seq < oldestTrackedSeq;
       const awaitingBatch =
         Date.now() < batchDeadline &&
-        arrivals.some(
+        awaitedEvents.some(
           (event) =>
             !evictedFromWindow(event) &&
             !phaseBatchesRef.current.some((batch) =>
@@ -298,16 +298,23 @@ export function usePhaseBanners({
       if (openedPhase.kind === "phaseChanged" && !isAnnouncedPhase(openedPhase.phase)) continue;
       const phaseOrder = ++nextPhaseOrderRef.current;
       phaseOrdersRef.current.set(openedPhase, phaseOrder);
-      const arrivals = eventTimeline
-        .slice(last ? eventTimeline.lastIndexOf(last) + 1 : 0, eventTimeline.indexOf(openedPhase))
-        .filter(
-          (event) =>
-            event.kind === "cardPlayed" ||
-            event.kind === "digivolved" ||
-            event.kind === "hatched" ||
-            event.kind === "movedFromBreeding" ||
-            event.kind === "cardsMoved",
-        );
+      const preceding = eventTimeline.slice(
+        last ? eventTimeline.lastIndexOf(last) + 1 : 0,
+        eventTimeline.indexOf(openedPhase),
+      );
+      const isArrival = (event: ServerEvent) =>
+        event.kind === "cardPlayed" ||
+        event.kind === "digivolved" ||
+        event.kind === "hatched" ||
+        event.kind === "movedFromBreeding" ||
+        event.kind === "cardsMoved";
+      const arrivals = preceding.filter(isArrival);
+      // The previous turn's last effects (an end-of-turn trigger, a DP change) move no card,
+      // and their batches can close after this phase's raw event has arrived. Their cues are
+      // only queued on that close, so the ribbon waits for every streamed event before it.
+      const awaitedEvents = preceding.filter(
+        (event) => isArrival(event) || ("seq" in event && "batch" in event && typeof event.batch === "string"),
+      );
       if (openedPhase.kind === "turnEnded") {
         const transition: TurnTransitionCue = {
           endingSeat: openedPhase.endingSeat,
@@ -321,7 +328,7 @@ export function usePhaseBanners({
           track: "phaseBanner",
           async run(context) {
             try {
-              await waitForPhasePrerequisites(context, arrivals, phaseOrder);
+              await waitForPhasePrerequisites(context, awaitedEvents, phaseOrder);
               if (context.cancelled || context.mode !== "live") return;
               visiblePhaseBannerRef.current = true;
               // The count belongs to the turn that just ended; the new one arrives with the
@@ -428,7 +435,7 @@ export function usePhaseBanners({
                 releaseDrawHold();
                 return;
               }
-              await waitForPhasePrerequisites(context, arrivals, phaseOrder);
+              await waitForPhasePrerequisites(context, awaitedEvents, phaseOrder);
               if (context.cancelled || context.mode !== "live") return;
               visiblePhaseBannerRef.current = true;
               if (isAnnouncedPhase(openedPhase.phase)) setAnnouncedPhase(openedPhase.phase);
