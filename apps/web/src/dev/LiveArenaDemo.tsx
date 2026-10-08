@@ -1179,6 +1179,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: 'Encerre a criação. Com seu Digimon preto BT12-061 em campo, jogue ST15-16 Trident Arm: aplique De-Digivolve 3 e conceda o ataque forçado ao Digimon do bot. Encerre seu turno. No início da Fase Principal do bot, o aviso do efeito deve mostrar "[Start of Your Main Phase] This Digimon attacks.", não um texto genérico nem o texto do próprio Digimon, e o Digimon do bot deve atacar.',
     en: "End breeding. With your black BT12-061 Digimon in play, play ST15-16 Trident Arm: apply De-Digivolve 3 and grant the forced attack to the bot's Digimon. End your turn. At the start of the bot's Main phase, the effect notice must read \"[Start of Your Main Phase] This Digimon attacks.\", not generic text or the Digimon's own text, and the bot's Digimon must attack.",
   },
+  "arena-ex13-veemon-protection-5363": {
+    ptBR: "Encerre a criação. Evolua o primeiro MetalGreymon para AD1-004 WarGreymon e escolha o UlforceVeedramon X não suspenso do bot para deletar. Aceite a proteção herdada de EX13-017 Veemon: o Ulforce fica suspenso e permanece no campo. Evolua o segundo MetalGreymon para o outro WarGreymon e escolha o Ulforce que já começou suspenso. Ele deve ser deletado sem oferecer proteção, pois não pode pagar o custo de suspensão.",
+    en: "End breeding. Digivolve the first MetalGreymon into AD1-004 WarGreymon and select the bot's unsuspended UlforceVeedramon X for deletion. Accept EX13-017 Veemon's inherited protection: Ulforce suspends and stays in play. Digivolve the second MetalGreymon into the other WarGreymon and select the Ulforce that started suspended. It must be deleted without a protection prompt because it cannot pay the suspension cost.",
+  },
   "arena-bt17-dexdoru-exact-name": {
     ptBR: "Encerre a criação. 1) Jogue BT5-106 Demonic Disaster e delete o DexDoruGreymon BT17-067 do campo. O DexDoruGreymon da lixeira não deve oferecer seu efeito [Trash]: o nome exigido é exatamente [DoruGreymon]. 2) Jogue o segundo Demonic Disaster e delete o DoruGreymon BT16-061. Agora o efeito [Trash] deve ser oferecido; aceite: o DoruGreymon evolui para DexDoruGreymon da lixeira sem pagar o custo e não é deletado.",
     en: "End breeding. 1) Play BT5-106 Demonic Disaster and delete the BT17-067 DexDoruGreymon on the field. The DexDoruGreymon in trash must not offer its [Trash] effect: the required name is exactly [DoruGreymon]. 2) Play the second Demonic Disaster and delete the BT16-061 DoruGreymon. Now the [Trash] effect must be offered; accept: DoruGreymon digivolves into the DexDoruGreymon from trash without paying the cost and is not deleted.",
@@ -2714,6 +2718,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt22-shinmonzaemon-opponent-security", "BT22 ShinMonzaemon · opponent security"],
   ["arena-face-down-ace-no-overflow", "Face-down ACE · no Overflow on deletion"],
   ["arena-ex11-vortex-effect-attack-block", "EX11 Vortexdramon · block after declined battle"],
+  ["arena-ex13-veemon-protection-5363", "EX13 Veemon · WarGreymon protection and suspension cost (#5363)"],
   ["arena-bt17-dexdoru-exact-name", "BT17 DexDoruGreymon · exact [DoruGreymon] from trash"],
   ["arena-open-bugs-veemon-decline", "Open bugs · veemon decline"],
   ["arena-open-bugs-lavorvomon-search", "Open bugs · lavorvomon search"],
