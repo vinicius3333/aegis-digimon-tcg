@@ -1531,9 +1531,19 @@ describe("exact vs substring name gates on digivolution routes (Q2868)", () => {
     expect(effectiveExactNames(getCardDefinition("EX4-030")!)).toEqual(["Kuzuhamon"]);
   });
 
-  it("offers LM-023's substring [Sakuyamon] route onto EX4-030", () => {
-    const options = getDigivolveCostOptions("LM-023", permOf("EX4-030"));
-    expect(options.some((option) => option.type === "alternate" && option.cost === 1)).toBe(true);
+  it("limits LM-023's cost-1 route to exact [Sakuyamon] (Q3475)", () => {
+    // LM-023 prints "[Digivolve] [Sakuyamon]: Cost 1", without "in its name".
+    expect(getDigivolveCostOptions("LM-023", permOf("EX4-030"))).toEqual([]);
+    expect(getDigivolveCostOptions("LM-023", permOf("LM-023"))).toEqual([]);
+    expect(getDigivolveCostOptions("LM-023", permOf("BT5-044"))).toContainEqual(
+      expect.objectContaining({ type: "alternate", cost: 1 }),
+    );
+  });
+
+  it("keeps LM-023's yellow level-5 cost-3 route independent of its exact-name route", () => {
+    const options = getDigivolveCostOptions("LM-023", permOf("EX2-023"));
+    expect(options).toContainEqual(expect.objectContaining({ type: "normal", cost: 3 }));
+    expect(options).not.toContainEqual(expect.objectContaining({ type: "alternate", cost: 1 }));
   });
 
   it("refuses an exact-name route to a base that only carries the alias in its name", () => {
