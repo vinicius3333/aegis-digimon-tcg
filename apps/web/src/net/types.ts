@@ -244,6 +244,8 @@ export interface AegisJoinOptions {
     | "arena-discord-1556732255148179569-drasil-turn"
     | "arena-discord-1556745762682183811-giant-slayer-execute"
     | "arena-discord-1556745762682183811-holy-succession"
+    | "arena-bt21-metalgreymon-one-target-two-colors"
+    | "arena-bt21-metalgreymon-one-target-four-colors"
     | "arena-ex7-seventh-fascination-turn"
     | "arena-st15-trident-arm-forced-attack-text"
     | "arena-face-down-ace-no-overflow"

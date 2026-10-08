@@ -7,16 +7,119 @@ import { compiled as BT24_041 } from "./BT24-041.js";
 import "../index.js";
 
 describe("BT24-041 Minervamon", () => {
+  it("Discord 1557624042733969509 mechanism sweep: keeps repeated De-Digivolve on one opponent", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-034", as: "ally" }], hand: [{ card: "BT24-041", as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT21-045", as: "chosen", under: ["BT21-042", "BT21-044"] },
+            { card: "BT21-045", as: "untouched", under: ["BT21-042", "BT21-044"] },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 1, max: 1 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("chosen").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("chosen").topCard.cardId !== "BT21-045" &&
+        (s.state.pendingDecision?.kind === "chooseTargets" ||
+          s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT24-041")),
+    );
+    const repeatedResponse =
+      s.state.pendingDecision?.kind === "chooseTargets"
+        ? s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: s.state.pendingDecision.decisionId,
+            response: { kind: "chooseTargets", instanceIds: [s.perm("untouched").permanentId] },
+          })
+        : undefined;
+    expect(repeatedResponse?.ok ?? true).toBe(true);
+    await settle(
+      () =>
+        s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT24-041") && !s.state.pendingDecision,
+    );
+    expect(s.perm("untouched").topCard.cardId).toBe("BT21-045");
+    expect(s.perm("untouched").stack).toHaveLength(2);
+    expect(s.perm("chosen").topCard.cardId).toBe("BT21-042");
+    expect(s.perm("chosen").stack).toHaveLength(0);
+    expect(
+      s.decisions.filter(({ req }) => req.sourceCardId === "BT24-041" && req.kind === "chooseTargets"),
+    ).toHaveLength(1);
+  });
+
+  it.each([0, 2])(
+    "On Deletion counts %i surviving Digimon, preserves one recipient after the source leaves",
+    async (survivors) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT24-041", as: "source", suspended: true },
+              ...(survivors === 2 ? [{ card: "BT1-009" }, { card: "BT1-010" }] : []),
+            ],
+          },
+          1: {
+            battleArea: [
+              { card: "BT1-084", as: "attacker" },
+              { card: "BT21-045", as: "chosen", under: ["BT21-042", "BT21-044"] },
+              { card: "BT21-045", as: "untouched", under: ["BT21-042", "BT21-044"] },
+            ],
+          },
+        },
+        { autoSelectCards: true, autoDeclineOptional: true, preferInstanceIds: preferred },
+      );
+      s.state.turnSeat = 1;
+      s.state.memory = 3;
+      await s.ready();
+      const sourceId = s.inst("source").instanceId;
+      preferred.push(s.perm("chosen").permanentId);
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("source").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[0]!.trash.some((card) => card.instanceId === sourceId) &&
+          !observe(s.engine).isAttacking() &&
+          !s.state.pendingDecision,
+      );
+      expect(s.perm("chosen").topCard.cardId).toBe(survivors === 2 ? "BT21-042" : "BT21-045");
+      expect(s.perm("untouched").topCard.cardId).toBe("BT21-045");
+      expect(
+        s.decisions.filter(({ req }) => req.sourceCardId === "BT24-041" && req.kind === "chooseTargets"),
+      ).toHaveLength(survivors === 2 ? 1 : 0);
+    },
+  );
+
   it("shares the three entry triggers and scales De-Digivolve by your Digimon", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving", "OnDeletion"]) {
       const effect = BT24_041.effects?.find((entry) => entry.trigger === trigger);
       expect(effect?.actions?.[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["hand"], payCost: false });
-      expect(effect?.actions?.[1]).toMatchObject({
+      expect(effect?.actions?.find((action) => action.kind === "DeDigivolve")).toMatchObject({
         kind: "DeDigivolve",
         amount: 1,
         scaling: { unit: "cards", per: 1 },
       });
-      expect(effect?.actions?.[1]).not.toHaveProperty("optional");
+      expect(effect?.actions?.find((action) => action.kind === "DeDigivolve")).not.toHaveProperty("optional");
     }
   });
   it("grants Iliad Digimon Reboot and Blocker during the opponent turn", () => {
