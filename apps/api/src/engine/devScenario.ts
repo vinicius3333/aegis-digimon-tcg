@@ -262,6 +262,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt20-omnimon-each-player-survivor",
   "arena-bt20-ouryuken-reduction-resumes",
   "arena-bt20-ouryuken-blast-dna-counter",
+  "arena-github-5323-alphamon-main-dna",
+  "arena-github-5323-alphamon-blast-dna",
   "arena-ex13-gotsumon-blocker-search",
   "arena-ex13-magnamon-partition-assembly",
   "arena-ex13-craniamon-assembly",
@@ -2900,6 +2902,35 @@ function layBt20OuryukenBlastDnaCounterScenario(state: GameState, decks: readonl
     // A red Option cannot be used with only the blue Lanamon, so the bot attacks first.
     insertCard(bot, Zone.Deck, faceDownCard("dev-ouryuken-bot-draw", "ST1-16", 1), "top");
   }
+}
+
+/** GitHub #5323: separate ordinary DNA and named Counter procedures with the reported cards. */
+function layGithub5323DnaScenario(state: GameState, decks: readonly [Decklist, Decklist], blast: boolean): void {
+  prepareIssueScenario(state, decks, 7);
+  for (const player of state.players) {
+    for (const zone of [Zone.Hand, Zone.Deck, Zone.Security, Zone.EggDeck] as const) clearZone(player, zone);
+    insertCard(player, Zone.EggDeck, faceDownCard(`github-5323-egg-${player.seat}`, "BT1-001", player.seat));
+    for (let index = 0; index < 20; index++) {
+      insertCard(
+        player,
+        Zone.Deck,
+        faceDownCard(`github-5323-deck-${player.seat}-${index}`, player.seat === 0 ? "BT1-085" : "ST1-16", player.seat),
+      );
+    }
+    for (let index = 0; index < 3; index++) {
+      insertCard(
+        player,
+        Zone.Security,
+        faceDownCard(`github-5323-security-${player.seat}-${index}`, "BT1-009", player.seat),
+      );
+    }
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["EX13-060"], "-github-5323-alphamon"));
+  if (blast) insertCard(human, Zone.Hand, faceDownCard("github-5323-partner", "BT20-018", 0));
+  else placePermanent(human, establishedDigimon(0, ["BT20-018"], "-github-5323-ouryumon"));
+  insertCard(human, Zone.Hand, faceDownCard("github-5323-ace", "BT20-060", 0));
+  placePermanent(state.players[1]!, establishedDigimon(1, ["BT12-024"], "-github-5323-lanamon"));
 }
 
 /**
@@ -8948,6 +8979,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt20-omnimon-each-player-survivor": layBt20OmnimonEachPlayerSurvivorScenario,
   "arena-bt20-ouryuken-reduction-resumes": layBt20OuryukenReductionResumesScenario,
   "arena-bt20-ouryuken-blast-dna-counter": layBt20OuryukenBlastDnaCounterScenario,
+  "arena-github-5323-alphamon-main-dna": (state, decks) => layGithub5323DnaScenario(state, decks, false),
+  "arena-github-5323-alphamon-blast-dna": (state, decks) => layGithub5323DnaScenario(state, decks, true),
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
   "arena-ex13-magnamon-partition-assembly": layEx13MagnamonPartitionAssemblyScenario,
   "arena-ex13-craniamon-assembly": layEx13CraniamonAssemblyScenario,
