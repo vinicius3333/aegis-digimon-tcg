@@ -1467,6 +1467,18 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e use o lado Opção de Cerberusmon: Werewolf Mode (Inferno Divide). Descarte 1 carta e De-Digivolva 3 o Digimon do bot. Depois, a Digievolução Arts deve oferecer o Guardromon da sua área de criação: escolha-o. Cerberusmon fica na área de criação e não vai para o lixo.",
     en: "End breeding and use Cerberusmon: Werewolf Mode's Option side (Inferno Divide). Trash 1 card and De-Digivolve 3 the bot's Digimon. Arts Digivolve must then offer Guardromon in your breeding area: choose it. Cerberusmon stays in the breeding area and is not trashed.",
   },
+  "arena-github-5301-bacchusmon-arts": {
+    en: "End breeding. Use BT26-080 Bacchusmon's Option side (Reversal of the Dead) for 5; Deramon's TS trait waives the Purple color requirement. Unsuspend the bot's Agumon: it is then deleted as the lowest-DP unsuspended Digimon. Arts Digivolve must offer only Deramon, not the red Groundramon. Choose Deramon: Bacchusmon evolves for free and draws 1; decline its optional When Digivolving attack. Restart and decline Arts instead: the Option is trashed and Deramon stays.",
+    ptBR: "Encerre a criação. Use o lado Opção de Bacchusmon BT26-080 (Reversal of the Dead) por 5; o traço TS de Deramon dispensa a cor roxa. Desvire Agumon do bot: ele é deletado como o Digimon desvirado de menor DP. Digievolução Arts deve oferecer só Deramon, não Groundramon vermelho. Escolha Deramon: Bacchusmon evolui de graça e compra 1; recuse o ataque opcional de Quando Digivolve. Reinicie e recuse Arts: a Opção vai ao lixo e Deramon fica.",
+  },
+  "arena-github-5301-bacchusmon-breeding-arts": {
+    en: "End breeding without moving Deramon. Use BT26-080's Option side for 5; Deramon's TS trait in breeding waives the Purple requirement. Unsuspend the bot's Agumon and resolve its deletion. Arts Digivolve must offer Deramon in breeding, excluding the red Groundramon. Choose Deramon: Bacchusmon stays in breeding, draws 1, and is not trashed. Its When Digivolving effect does not activate in breeding.",
+    ptBR: "Encerre a criação sem mover Deramon. Use o lado Opção de BT26-080 por 5; o traço TS de Deramon na criação dispensa a cor roxa. Desvire Agumon do bot e resolva sua deleção. Digievolução Arts deve oferecer Deramon na criação, excluindo Groundramon vermelho. Escolha Deramon: Bacchusmon fica na criação, compra 1 e não vai ao lixo. Seu Quando Digivolve não ativa na criação.",
+  },
+  "arena-github-5301-bacchusmon-no-arts-base": {
+    en: "End breeding. Use BT26-080's Option side for 5; Dan Yuki's TS trait waives the Purple requirement. Unsuspend the bot's Agumon, which is then deleted. Groundramon is red Lv.5 and Dan is a Tamer: neither meets Bacchusmon's printed evolution requirement. No Arts choice is offered; the Option is trashed. Compare with the legal-base scenarios.",
+    ptBR: "Encerre a criação. Use o lado Opção de BT26-080 por 5; o traço TS de Dan Yuki dispensa a cor roxa. Desvire Agumon do bot, que é deletado em seguida. Groundramon é nível 5 vermelho e Dan é Domador: nenhum atende ao requisito impresso de Bacchusmon. Arts não é oferecida; a Opção vai ao lixo. Compare com os cenários de base válida.",
+  },
   "arena-bt15-leviamon-x-played-subject-left": {
     ptBR: "Encerre a criação e use Night Raid para jogar DemiDevimon do lixo. O ＜Atraso＞ do Biting Crush do bot joga Leviamon, cujo Ao Jogar apaga seus Digimon (DemiDevimon incluso). Mesmo assim, o Leviamon (X Antibody) do lixo do bot deve digievoluir Leviamon (Q4735).",
     en: "End breeding and use Night Raid to play DemiDevimon from the trash. The bot's Biting Crush ＜Delay＞ plays Leviamon, whose On Play deletes your Digimon (DemiDevimon included). The bot's Leviamon (X Antibody) in the trash must still digivolve Leviamon (Q4735).",
@@ -2366,6 +2378,9 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt11-rina-ulforce-immunity", "BT11 Rina · Ulforce return vs Digimon immunity"],
   ["arena-ex12-diarbbitmon-option-trigger-timing", "EX12 Diarbbitmon · Option triggers wait for Arts"],
   ["arena-bt26-cerberusmon-breeding-arts", "BT26 Cerberusmon · Arts Digivolve in breeding"],
+  ["arena-github-5301-bacchusmon-arts", "#5301 Bacchusmon · Option to Arts / decline"],
+  ["arena-github-5301-bacchusmon-breeding-arts", "#5301 Bacchusmon · Arts in breeding"],
+  ["arena-github-5301-bacchusmon-no-arts-base", "#5301 Bacchusmon · no legal Arts base"],
   ["arena-bt15-leviamon-x-played-subject-left", "BT15 Leviamon X · trigger survives a deleted played Digimon"],
   ["arena-ex3-wingdramon-evade-suspend-lock", "EX3 Wingdramon · Evade cannot pay suspend"],
   ["arena-ex13-wingdramon-evade-suspend-lock", "EX13 Wingdramon · Evade cannot pay suspend"],
