@@ -72,6 +72,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-github-5270-hurricane",
   "arena-github-5270-gundramon",
 
+  "arena-discord-1557565628439724032-duskmon-dna-colors",
+  "arena-discord-1557565628439724032-duskmon-dna-control",
   "arena-oct06-sukamon-bt11-deletion-search",
   "arena-oct06-sukamon-bt3-deletion-search",
   "arena-oct06-sukamon-ex13-deletion-search",
@@ -6159,6 +6161,40 @@ function layBt26ChronomonDmSuccessionScenario(state: GameState, decks: readonly 
   state.memory = 6;
 }
 
+/** Duskmon changes Wingdramon to red before the human's DNA/normal digivolution choices. */
+function layDuskmonDnaColorsScenario(state: GameState, decks: readonly [Decklist, Decklist], control = false): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Deck);
+    clearZone(player, Zone.EggDeck);
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-duskmon-egg-${seat}`, "ST1-01", seat));
+    fillZone(
+      player,
+      Zone.Deck,
+      Array.from({ length: 12 }, (_, index) => faceDownCard(`dev-duskmon-filler-${seat}-${index}`, "BT1-010", seat)),
+    );
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-008", "EX13-021"], "-duskmon-changed"));
+    placePermanent(human, establishedDigimon(0, ["BT1-081"], "-duskmon-green"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-duskmon-examon", "BT13-059", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-duskmon-slayerdramon", "EX3-024", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined && !control) {
+    insertCard(bot, Zone.Hand, faceDownCard("dev-duskmon-color-source", "BT18-078", 1));
+  }
+  state.turnSeat = 1;
+  state.turnCount = 1;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 9;
+}
+
 /**
  * Reproduces the EX13 Examon report from a board where its printed DNA action should already
  * be legal. Wingdramon and Groundramon are printed Lv.5s, but each treats itself as the named
@@ -7736,6 +7772,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github-5270-hurricane": (state, decks) => layGithubRemovalScenario(state, decks, "hurricane"),
   "arena-github-5270-gundramon": (state, decks) => layGithubRemovalScenario(state, decks, "gundramon"),
 
+  "arena-discord-1557565628439724032-duskmon-dna-colors": layDuskmonDnaColorsScenario,
+  "arena-discord-1557565628439724032-duskmon-dna-control": (state, decks) =>
+    layDuskmonDnaColorsScenario(state, decks, true),
   "arena-raid-optional-preset": layRaidOptionalPresetScenario,
   "arena-preset-order-no-clicks": layPresetOrderNoClicksScenario,
   "arena-oct06-king-sukamon-assembly": (state, decks) => layOct06LatestScenario(state, decks, "king-sukamon-assembly"),

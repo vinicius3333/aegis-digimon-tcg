@@ -18,7 +18,7 @@ import {
   pushOnStack,
   setTopCard,
 } from "../../state/access.js";
-import { effectiveNames } from "../continuous.js";
+import { effectiveColors, effectiveNames } from "../continuous.js";
 import { matchingDnaDigivolveCost, matchingDnaMaterialOrder } from "../verbs/digivolveCost.js";
 import {
   locateLooseInstance,
@@ -83,6 +83,7 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
         const names = effectiveNames(continuous, mat, printed.nameEn ?? printed.cardId);
         return {
           ...printed,
+          colors: effectiveColors(continuous, mat.permanentId, printed.colors) as typeof printed.colors,
           ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }),
           nameEn: names.join(" | "),
         };
