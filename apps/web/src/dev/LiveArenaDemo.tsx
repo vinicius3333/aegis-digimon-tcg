@@ -1179,6 +1179,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação. Seus dois EX13-028 Sukamon são amarelos Nv.4. Selecione BT23-032 Shakkoumon: nenhuma combinação de DNA deve aparecer, pois falta um material preto ou azul Nv.4. Uma única carta multicolorida também não ocupa os dois lugares do DNA. A mão, os dois Sukamon e a memória devem permanecer sem alterações. Use o cenário Shakkoumon DNA · materiais do relato para comparar com pares válidos.",
     en: "End breeding. Both of your EX13-028 Sukamon are yellow Lv.4. Select BT23-032 Shakkoumon: no DNA combination should appear because a black or blue Lv.4 material is missing. A single multicolor card also cannot fill both DNA slots. Your hand, both Sukamon, and memory should remain unchanged. Use Shakkoumon DNA · reported materials to compare with legal pairs.",
   },
+  "arena-discord-1557631388650315826-sukamon-dna-materials": {
+    en: "Let the opponent play KingSukamon and turn Wingdramon into a white 3000 DP Sukamon. On your turn, Examon must offer no DNA route with Breakdramon: Wingdramon still counts as Lv.6 for Examon, but is no longer blue. End the turn; the inherited DNA effect must leave both materials in play. The rewrite expires afterward.",
+    ptBR: "Deixe o oponente jogar KingSukamon e transformar Wingdramon em Sukamon branco de 3000 DP. No seu turno, Examon não deve oferecer DNA com Breakdramon: Wingdramon ainda conta como Nv.6 para Examon, mas não é azul. Encerre o turno; o efeito herdado de DNA deve manter os dois materiais em campo. A transformação termina depois disso.",
+  },
+  "arena-discord-1557631388650315826-sukamon-dna-control": {
+    en: "Healthy control: Wingdramon is blue/red and Breakdramon is green/red. DNA digivolve into Examon for 0, or end the turn and accept Dracomon's inherited DNA. Both materials must merge; Examon's mandatory attack resolves. White Sukamon can still DNA when a printed recipe admits it, such as Kimeramon's color-free Lv.4 + Lv.4 recipe.",
+    ptBR: "Controle: Wingdramon é azul/vermelho e Breakdramon é verde/vermelho. Faça DNA para Examon por 0, ou encerre o turno e aceite o DNA herdado de Dracomon. Os materiais devem se unir; o ataque obrigatório de Examon resolve. Sukamon branco ainda pode fazer DNA quando o requisito permite, como Nv.4 + Nv.4 sem cor de Kimeramon.",
+  },
   "arena-discord-1557565628439724032-duskmon-dna-colors": {
     ptBR: "Espere o bot jogar Duskmon BT18-078 e mudar Wingdramon EX13-021 para vermelho. Encerre a criação: Examon BT13-059 não deve oferecer DNA com Wingdramon + HerculesKabuterimon, pois falta azul. Evolua Wingdramon em Slayerdramon EX3-024 pela condição de nome (3 memória): ele continua vermelho e a DNA continua indisponível. Encerre o turno: o Dracomon herdado não deve oferecer DNA ilegal. Para comparar, abra o cenário Duskmon DNA · controle: sem mudança de cor, a mesma dupla pode fazer DNA por 0.",
     en: "Wait for the bot to play BT18-078 Duskmon and change EX13-021 Wingdramon to red. End breeding: BT13-059 Examon must not offer DNA with Wingdramon + HerculesKabuterimon because blue is missing. Digivolve Wingdramon into EX3-024 Slayerdramon using its named requirement (3 memory): it stays red and DNA remains unavailable. End your turn: inherited Dracomon must not offer illegal DNA. Compare with Duskmon DNA · control: without the color change, the same pair can DNA digivolve for 0.",
@@ -2503,6 +2511,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex13-examon", "EX13 Examon · Lv.5 DNA + battle timing"],
   ["arena-ex13-examon-option-dp", "EX13 Examon · DP bonus excludes Options/Tamers"],
   ["arena-ex13-examon-battle-win-timing", "EX13 Examon · win-battle trigger order"],
+  ["arena-discord-1557631388650315826-sukamon-dna-materials", "KingSukamon · white material rejects Examon DNA"],
+  ["arena-discord-1557631388650315826-sukamon-dna-control", "KingSukamon DNA · healthy control"],
   ["arena-discord-1557565628439724032-duskmon-dna-colors", "Duskmon DNA · changed colors persist through evolution"],
   ["arena-discord-1557565628439724032-duskmon-dna-control", "Duskmon DNA · control"],
   ["arena-discord-1557575147119054889-shakkoumon-sukamon", "Shakkoumon DNA · reported materials"],

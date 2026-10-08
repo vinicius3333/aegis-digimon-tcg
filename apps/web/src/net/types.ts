@@ -29,6 +29,8 @@ export interface AegisJoinOptions {
   presentationPacing?: "current" | "sequential";
   /** Dev-only: ask a bot room for a hand-laid board instead of the pre-game procedure. */
   devScenario?:
+    | "arena-discord-1557631388650315826-sukamon-dna-materials"
+    | "arena-discord-1557631388650315826-sukamon-dna-control"
     | "arena-discord-1557565628439724032-duskmon-dna-colors"
     | "arena-discord-1557565628439724032-duskmon-dna-control"
     | "arena-discord-1557575147119054889-shakkoumon-sukamon"
