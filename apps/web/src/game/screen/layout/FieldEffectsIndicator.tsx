@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { EffectDuration, getCardDefinition, type FieldEffectView, type Seat } from "@aegis/shared";
 import { Layers, Clock } from "lucide-react";
@@ -48,8 +48,13 @@ export function FieldEffectsIndicator({
   const { t } = useTranslation();
   const effects = readFieldEffects(json);
   const anchor = useRef<HTMLSpanElement>(null);
+  const details = useRef<HTMLDetailsElement>(null);
+  const [portalHost, setPortalHost] = useState<HTMLElement>();
   const [corner, setCorner] = useState<{ right: number; top: number }>();
   useLayoutEffect(() => {
+    // Share the board dialogs' stacking context while escaping battle-row clipping.
+    // Standalone boards without an application stage still use the viewport.
+    setPortalHost(anchor.current?.closest<HTMLElement>("#aegis-stage") ?? document.body);
     const field = anchor.current?.closest(".game-field");
     const row = field?.querySelector(ownField ? ".game-battle-row--you" : ".game-battle-row--opp");
     if (!row || !field) return;
@@ -78,6 +83,30 @@ export function FieldEffectsIndicator({
       window.removeEventListener("scroll", measure, true);
     };
   }, [ownField, effects.length]);
+  useEffect(() => {
+    if (effects.length === 0) return;
+    function dismissOutside(event: PointerEvent) {
+      const panel = details.current;
+      if (panel?.open && event.target instanceof Node && !panel.contains(event.target)) panel.open = false;
+    }
+    function dismissWithEscape(event: KeyboardEvent) {
+      const panel = details.current;
+      if (event.key !== "Escape" || event.defaultPrevented || !panel?.open) return;
+      panel.open = false;
+      // A decision may have taken focus since this explanation opened. Do not
+      // send it back behind the modal when that decision handles Escape.
+      if (panel.contains(document.activeElement)) {
+        panel.querySelector("summary")?.focus();
+        event.preventDefault();
+      }
+    }
+    document.addEventListener("pointerdown", dismissOutside, true);
+    document.addEventListener("keydown", dismissWithEscape);
+    return () => {
+      document.removeEventListener("pointerdown", dismissOutside, true);
+      document.removeEventListener("keydown", dismissWithEscape);
+    };
+  }, [effects.length]);
   const title = t(ownField ? "game.fieldEffects.yours" : "game.fieldEffects.opponent");
   function label(effect: FieldEffectView): string {
     if (effect.kind === "dp")
@@ -116,6 +145,7 @@ export function FieldEffectsIndicator({
   if (effects.length === 0) return null;
   const badge = (
     <details
+      ref={details}
       className={`game-field-effects${harmful ? " game-field-effects--warning" : ""}${ownField ? " game-field-effects--own" : ""}`}
       style={{ position: "fixed", ...corner }}
     >
@@ -153,7 +183,7 @@ export function FieldEffectsIndicator({
   return (
     <>
       <span ref={anchor} hidden />
-      {corner ? createPortal(badge, document.body) : null}
+      {corner && portalHost ? createPortal(badge, portalHost) : null}
     </>
   );
 }

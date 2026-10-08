@@ -133,3 +133,90 @@ it("keeps the desktop viewer indicator visible when its battle row extends below
   expect(Number.parseFloat(badge.style.top)).toBeGreaterThanOrEqual(470);
   expect(Number.parseFloat(badge.style.top) + 44).toBeLessThanOrEqual(692);
 });
+
+it("Discord 1557582673117970482 keeps field chrome in the board's modal stacking context", () => {
+  const view = render(<div id="aegis-stage">{indicator([reduction])}</div>);
+  const badge = screen.getByLabelText("Your field: DP −4,000").closest("details")!;
+  expect(badge.parentElement).toBe(view.container.querySelector("#aegis-stage"));
+  expect(badge.closest(".game-battle-zones")).toBeNull();
+});
+
+it("uses the body fallback for standalone boards even if an unrelated stage exists", () => {
+  render(<div id="aegis-stage" />);
+  render(indicator([reduction], false));
+  expect(screen.getByLabelText("Opponent field: DP −4,000").closest("details")?.parentElement).toBe(document.body);
+});
+
+it("dismisses explanations on outside pointer interaction without cancelling the board action", () => {
+  render(indicator([reduction]));
+  const summary = screen.getByLabelText("Your field: DP −4,000");
+  const details = summary.closest("details")!;
+  fireEvent.click(summary);
+  fireEvent.pointerDown(screen.getByText("Apollomon · BT25-018"));
+  expect(details.open).toBe(true);
+  const action = document.createElement("button");
+  document.body.append(action);
+  const handle = vi.fn<(event: PointerEvent) => void>();
+  action.addEventListener("pointerdown", handle);
+  fireEvent.pointerDown(action);
+  expect(details.open).toBe(false);
+  expect(handle).toHaveBeenCalledOnce();
+  expect(handle.mock.calls[0]![0].defaultPrevented).toBe(false);
+  action.remove();
+});
+
+it("dismisses with Escape and preserves keyboard access without stealing focus from another control", () => {
+  render(indicator([reduction]));
+  const summary = screen.getByLabelText("Your field: DP −4,000");
+  const details = summary.closest("details")!;
+  summary.focus();
+  fireEvent.click(summary);
+  fireEvent.keyDown(summary, { key: "Escape" });
+  expect(details.open).toBe(false);
+  expect(document.activeElement).toBe(summary);
+  fireEvent.click(summary);
+  const action = document.createElement("button");
+  document.body.append(action);
+  action.focus();
+  fireEvent.keyDown(action, { key: "Escape" });
+  expect(details.open).toBe(false);
+  expect(document.activeElement).toBe(action);
+  action.remove();
+});
+
+it("updates both field anchors on scrolling and fold resize and removes offscreen open chrome", () => {
+  let shift = 0;
+  let visible = true;
+  vi.spyOn(window, "matchMedia").mockReturnValue({ ...window.matchMedia(""), matches: true });
+  vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+    if (this.matches(".game-field")) return new DOMRect(0, 0, 900, visible ? 600 : 10);
+    return this.matches(".game-battle-row--you")
+      ? new DOMRect(100, 250 + shift, 700, 200)
+      : new DOMRect(100, 100 + shift, 700, 100);
+  });
+  const view = render(
+    <>
+      {indicator([reduction])}
+      {indicator([reduction], false)}
+    </>,
+  );
+  const own = screen.getByLabelText("Your field: DP −4,000");
+  const opponent = screen.getByLabelText("Opponent field: DP −4,000");
+  expect(own.closest("details")!.style.top).toBe("420px");
+  expect(opponent.closest("details")!.style.top).toBe("72px");
+  fireEvent.click(own);
+  shift = 10;
+  fireEvent.scroll(window);
+  expect(own.closest("details")!.style.top).toBe("430px");
+  expect(opponent.closest("details")!.style.top).toBe("82px");
+  visible = false;
+  fireEvent.resize(window);
+  expect(document.querySelectorAll(".game-field-effects")).toHaveLength(0);
+  visible = true;
+  fireEvent.resize(window);
+  expect(screen.getByLabelText("Your field: DP −4,000").closest("details")!.open).toBe(false);
+  view.unmount();
+  fireEvent.pointerDown(document.body);
+  fireEvent.keyDown(document.body, { key: "Escape" });
+  expect(document.querySelectorAll(".game-field-effects")).toHaveLength(0);
+});
