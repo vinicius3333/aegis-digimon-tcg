@@ -49,6 +49,7 @@ it.each([0, 1])("#5332 live arena pays Tamer %s and completes the inherited atta
       });
     }
     await settle(() => s.events.some((event) => event.kind === "attackEnded") && s.state.pendingDecision === undefined);
+    expect(s.events.filter((event) => event.kind === "attackEnded")).toHaveLength(1);
     expect(tamers.map((tamer) => tamer.isSuspended)).toEqual([true, true]);
     expect(helperDecisions).toEqual([
       "optional/ST23-01/payload",
@@ -112,7 +113,10 @@ it.each([0, 1])("#5332 live arena pays Tamer %s and completes the inherited atta
         response: { kind: "selectCards", instanceIds: ["dev-5332-evolution-0"] },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "attackEnded") && s.state.pendingDecision === undefined);
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "attackEnded").length === 2 && s.state.pendingDecision === undefined,
+    );
     expect(attacker.topCard.cardId).toBe("ST23-07");
     expect(tamers.map((tamer) => tamer.stack.length)).toEqual(payer === 0 ? [0, 4] : [1, 3]);
     expect(human.trash.some((card) => card.instanceId === paymentId)).toBe(true);
