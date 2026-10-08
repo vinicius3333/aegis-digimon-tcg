@@ -202,6 +202,10 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt17-dexdoru-exact-name",
   "arena-ad1-adventure-tamers-security",
   "arena-lm067-gundramon-free-option",
+  "arena-github-5316-shoutmon-rush",
+  "arena-github-5316-shoutmon-rush-control",
+  "arena-github-5317-shoutmon-material-save-evolved",
+  "arena-github-5317-shoutmon-material-save-printed",
   "arena-bt10-taiki-x7-xros-heart",
   "arena-bt10-taiki-reveal-under-self",
   "arena-ex13-sampson-face-down-sources",
@@ -1386,6 +1390,42 @@ function layTaikiAnyTamerDigiXrosScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 10;
+}
+
+/** Reports #5316/#5317 and their printed-trait/name controls. */
+function layShoutmonReportedRushScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  control = false,
+): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  insertCard(human, Zone.Hand, faceDownCard("dev-shoutmon-host", control ? "BT21-027" : "BT15-012", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-shoutmon-omni", "BT21-021", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-shoutmon-other", control ? "AD1-013" : "BT19-051", 0));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-shoutmon-target"));
+}
+
+function layShoutmonReportedMaterialSaveScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  printed = false,
+): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  if (human === undefined) return;
+  // Established top at a genuine start-of-turn window; sources follow DigiXros order.
+  placePermanent(
+    human,
+    establishedDigimon(
+      0,
+      printed ? ["BT10-049", "BT10-008", "BT15-012"] : ["BT19-051", "BT21-021", "BT15-012"],
+      "-shoutmon-deletion",
+    ),
+  );
+  placePermanent(human, establishedDigimon(0, ["BT10-087"], "-shoutmon-tamer"));
 }
 
 /** Discord 1555932180322975924, match 802ba658: Kotone to hand, lone X7 under Taiki. */
@@ -8844,6 +8884,11 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt17-dexdoru-exact-name": layBt17DexDoruExactNameScenario,
   "arena-ad1-adventure-tamers-security": layAd1AdventureTamersSecurityScenario,
   "arena-lm067-gundramon-free-option": layLm067GundramonFreeOptionScenario,
+  "arena-github-5316-shoutmon-rush": layShoutmonReportedRushScenario,
+  "arena-github-5316-shoutmon-rush-control": (state, decks) => layShoutmonReportedRushScenario(state, decks, true),
+  "arena-github-5317-shoutmon-material-save-evolved": layShoutmonReportedMaterialSaveScenario,
+  "arena-github-5317-shoutmon-material-save-printed": (state, decks) =>
+    layShoutmonReportedMaterialSaveScenario(state, decks, true),
   "arena-bt10-taiki-x7-xros-heart": layBt10TaikiX7XrosHeartScenario,
   "arena-bt10-taiki-reveal-under-self": layBt10TaikiRevealUnderSelfScenario,
   "arena-ex13-sampson-face-down-sources": layEx13SampsonFaceDownSourcesScenario,
