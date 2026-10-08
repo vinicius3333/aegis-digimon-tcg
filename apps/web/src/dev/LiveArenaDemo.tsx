@@ -17,6 +17,18 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-github5307-larva-bt18-breeding": {
+    en: "GitHub #5307, current behavior control. End breeding without moving Larva. Attack the suspended opposing Satan Mode with your BT18 Satan Mode. Both have 16000 DP. Accept Larva's prevention: Larva moves from breeding, your Satan Mode stays, and the opposing Satan Mode is deleted. Reset and decline to compare: your Satan Mode is deleted and Larva stays in breeding.",
+    ptBR: "GitHub #5307, controle do comportamento atual. Encerre a criação sem mover Larva. Ataque o Satan Mode adversário suspenso com seu Satan Mode BT18. Ambos têm 16000 DP. Aceite a proteção de Larva: ela sai da criação, seu Satan Mode fica e o adversário é deletado. Reinicie e recuse para comparar: seu Satan Mode é deletado e Larva fica na criação.",
+  },
+  "arena-github5307-larva-ex10-breeding": {
+    en: "GitHub #5307, EX10 current behavior control. End breeding without moving Larva. Attack the suspended opposing Satan Mode with EX10 Satan Mode. The opponent must decline deleting its Digimon for EX10's When Attacking effect; its top security is trashed and your Satan Mode unsuspends. At the equal-DP battle, accept Larva's prevention: Larva moves from breeding, your Satan Mode stays, and the opponent is deleted. Reset and decline Larva to compare.",
+    ptBR: "GitHub #5307, controle atual do EX10. Encerre a criação sem mover Larva. Ataque o Satan Mode adversário suspenso com Satan Mode EX10. O oponente deve recusar deletar seu Digimon pelo Quando Ataca do EX10; o topo da segurança dele é descartado e seu Satan Mode desvira. Na batalha de DP igual, aceite Larva: ela sai da criação, seu Satan Mode fica e o adversário é deletado. Reinicie e recuse Larva para comparar.",
+  },
+  "arena-github5308-greymon-security-destination": {
+    en: "GitHub #5308. End breeding. Use Chaos Degradation on opposing BT1 Greymon and choose the bottom of security: BT11 Greymon X cannot prevent this move. Greymon goes to security, its sources go to trash, and X Antibody is not bottom-decked. Reset for the legal control: use Cocytus Breath instead; the opponent may bottom-deck X Antibody to keep Greymon. Then Gaia Force deletes it because that payment is no longer available.",
+    ptBR: "GitHub #5308. Encerre a criação. Use Chaos Degradation no Greymon BT1 adversário e escolha o fundo da segurança: Greymon X BT11 não pode impedir esse movimento. Greymon vai para a segurança, suas fontes vão para o lixo e X Antibody não volta ao fundo do deck. Reinicie para o controle legal: use Cocytus Breath; o oponente pode devolver X Antibody ao fundo do deck para manter Greymon. Depois Gaia Force o deleta, pois esse pagamento não está mais disponível.",
+  },
   "arena-github5311-imperialdramon-cost-scope": {
     en: "GitHub #5311 same-defect sweep. End breeding. First evolve one Paildramon into the hand BT3-111 Imperialdramon for 3 (printed 5 minus 2): memory goes from 8 to 5. Then evolve the remaining Paildramon into MetalGarurumon for its full printed 3: memory ends at 2. The Imperialdramon copies already in play must not discount this unrelated evolution, and they keep Piercing.",
     ptBR: "GitHub #5311, varredura do mesmo defeito. Encerre a criação. Primeiro evolua um Paildramon em Imperialdramon BT3-111 da mão por 3 (custo impresso 5 menos 2): a memória vai de 8 para 5. Depois evolua o outro Paildramon em MetalGarurumon pelo custo impresso completo 3: a memória termina em 2. As cópias de Imperialdramon já em campo não podem reduzir essa evolução diferente e mantêm Piercing.",
@@ -2186,6 +2198,9 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-github5307-larva-bt18-breeding", "GitHub #5307 · Larva breeding / BT18 Satan Mode"],
+  ["arena-github5307-larva-ex10-breeding", "GitHub #5307 · Larva breeding / EX10 Satan Mode"],
+  ["arena-github5308-greymon-security-destination", "GitHub #5308 · Greymon X / security versus hand"],
   ["arena-github5311-crescemon-cost-scope", "GitHub #5311 · Crescemon incoming versus outgoing cost"],
   ["arena-github5311-imperialdramon-cost-scope", "GitHub #5311 sweep · Imperialdramon intrinsic discount"],
   ["arena-github5318-junomon-printed-cost", "GitHub #5318 · Junomon printed play-cost control"],

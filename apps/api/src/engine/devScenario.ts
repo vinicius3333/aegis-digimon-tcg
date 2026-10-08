@@ -58,6 +58,9 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github5307-larva-bt18-breeding",
+  "arena-github5307-larva-ex10-breeding",
+  "arena-github5308-greymon-security-destination",
   "arena-github5311-crescemon-cost-scope",
   "arena-github5311-imperialdramon-cost-scope",
   "arena-github5318-junomon-printed-cost",
@@ -8185,6 +8188,30 @@ function prepareGithubCardEffectsScenario(state: GameState, memory: number): voi
   startEffectsLabTurn(state, memory);
 }
 
+function layGithub5307LarvaScenario(state: GameState, satanCard: string): void {
+  prepareGithubCardEffectsScenario(state, 10);
+  const human = state.players[0]!;
+  const larva = establishedDigimon(0, ["BT18-086"], "-github5307-larva");
+  larva.inBreeding = true;
+  setBreeding(human, larva);
+  placePermanent(human, establishedDigimon(0, [satanCard], "-github5307-satan"));
+  const defender = establishedDigimon(1, ["BT18-101"], "-github5307-defender");
+  defender.isSuspended = true;
+  placePermanent(state.players[1]!, defender);
+}
+
+function layGithub5308GreymonScenario(state: GameState): void {
+  prepareGithubCardEffectsScenario(state, 10);
+  const human = state.players[0]!;
+  for (const [index, card] of ["BT1-010", "BT1-028", "BT1-045", "BT10-079"].entries()) {
+    placePermanent(human, establishedDigimon(0, [card], `-github5308-color-${index}`));
+  }
+  for (const [index, card] of ["ST10-14", "ST2-16", "ST1-16"].entries()) {
+    insertCard(human, Zone.Hand, faceDownCard(`github5308-option-${index}`, card, 0));
+  }
+  placePermanent(state.players[1]!, establishedDigimon(1, ["BT11-064", "BT9-109", "BT1-015"], "-github5308-greymon"));
+}
+
 function layGithub5311CrescemonCostScenario(state: GameState): void {
   prepareGithubCardEffectsScenario(state, 6);
   const human = state.players[0]!;
@@ -8417,6 +8444,9 @@ function layGithubEndTurnReportScenario(
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-github5307-larva-bt18-breeding": (state) => layGithub5307LarvaScenario(state, "BT18-101"),
+  "arena-github5307-larva-ex10-breeding": (state) => layGithub5307LarvaScenario(state, "EX10-060"),
+  "arena-github5308-greymon-security-destination": layGithub5308GreymonScenario,
   "arena-github5311-crescemon-cost-scope": layGithub5311CrescemonCostScenario,
   "arena-github5311-imperialdramon-cost-scope": layGithub5311ImperialdramonCostScenario,
   "arena-github5318-junomon-printed-cost": layGithub5318JunomonPrintedCostScenario,
