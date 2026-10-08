@@ -1,3 +1,4 @@
+import { Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -159,4 +160,136 @@ describe("BT22-061 Vademon — KB Q&A rulings", () => {
     const onlyMeatsFaceDown = await digivolveWithMeat(0);
     expect(onlyMeatsFaceDown.state.memory).toBe(2);
   });
+});
+
+describe("Discord 1557652222744199228 Vademon return memory", () => {
+  for (const actor of [0, 1] as const) {
+    for (const target of ["BT1-085", "BT14-014", "BT1-013"] as const) {
+      it(`seat ${actor} returns ${target} without charging its own face-down ACE payment`, async () => {
+        const opponent = actor === 0 ? 1 : 0;
+        const s = setupEngine({ 0: {}, 1: {} }, { autoAcceptOptional: true, autoSelectCards: true });
+        s.putOnBoard(actor, {
+          card: "BT22-049",
+          as: "base",
+          under: [{ card: "EX9-013", as: "payment", faceUp: false }],
+        });
+        s.putOnBoard(opponent, { card: target, as: "target" });
+        s.give(actor, Zone.Hand, { card: "BT22-061", as: "vademon" });
+        s.state.turnSeat = actor;
+        s.state.memory = 6;
+        await s.ready();
+        const targetId = s.inst("target").instanceId;
+        expect(
+          s.engine.applyIntent(actor, {
+            type: "digivolve",
+            permanentId: s.perm("base").permanentId,
+            instanceId: s.inst("vademon").instanceId,
+          }),
+        ).toEqual({ ok: true });
+        await settle(
+          () =>
+            s.state.players[opponent]!.hand.some((card) => card.instanceId === targetId) &&
+            s.state.pendingDecision === undefined,
+        );
+        expect(s.state.players[actor]!.trash.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(
+          true,
+        );
+        expect(s.state.memory).toBe(target === "BT14-014" ? 7 : 4);
+        expect(s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "overflow")).toHaveLength(
+          target === "BT14-014" ? 1 : 0,
+        );
+        expect(s.state.players[actor]!.hand.some((card) => card.instanceId === targetId)).toBe(false);
+      });
+    }
+  }
+
+  for (const control of ["cost5", "noSource", "decline"] as const) {
+    it(`${control} prevents Vademon's return and charges no Overflow`, async () => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              {
+                card: "BT22-049",
+                as: "base",
+                under: control === "noSource" ? [] : [{ card: "EX9-013", as: "payment", faceUp: false }],
+              },
+            ],
+            hand: [{ card: "BT22-061", as: "vademon" }],
+          },
+          1: { battleArea: [{ card: control === "cost5" ? "BT1-020" : "BT1-085", as: "target" }] },
+        },
+        {
+          autoAcceptOptional: control !== "decline",
+          autoSelectCards: true,
+          autoDeclineOptional: control === "decline",
+        },
+      );
+      s.state.memory = 6;
+      await s.ready();
+      const targetId = s.inst("target").instanceId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("vademon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT22-061") &&
+          s.state.pendingDecision === undefined,
+      );
+      expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === targetId)).toBe(true);
+      expect(s.state.memory).toBe(control === "noSource" ? 3 : 4);
+      expect(s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "overflow")).toHaveLength(0);
+      expect(s.perm("base").stack.filter((card) => !card.faceUp)).toHaveLength(control === "decline" ? 1 : 0);
+    });
+  }
+});
+
+describe("Discord 1557652222744199228 Vademon returned ACE sources", () => {
+  for (const actor of [0, 1] as const) {
+    for (const faceUp of [false, true]) {
+      it(`seat ${actor} returns a cost-3 Digimon with a ${faceUp ? "face-up" : "face-down"} ACE source`, async () => {
+        const opponent = actor === 0 ? 1 : 0;
+        const s = setupEngine({ 0: {}, 1: {} }, { autoAcceptOptional: true, autoSelectCards: true });
+        s.putOnBoard(actor, {
+          card: "BT22-049",
+          as: "base",
+          under: [{ card: "EX9-013", as: "payment", faceUp: false }],
+        });
+        // Level 3 cannot be De-Digivolved, so the returned top and trashed attachment are unambiguous.
+        s.putOnBoard(opponent, {
+          card: "BT1-013",
+          as: "target",
+          under: [{ card: "EX9-013", as: "attachment", faceUp }],
+        });
+        s.give(actor, Zone.Hand, { card: "BT22-061", as: "vademon" });
+        s.state.turnSeat = actor;
+        s.state.memory = 6;
+        await s.ready();
+        const targetId = s.inst("target").instanceId;
+        expect(
+          s.engine.applyIntent(actor, {
+            type: "digivolve",
+            permanentId: s.perm("base").permanentId,
+            instanceId: s.inst("vademon").instanceId,
+          }),
+        ).toEqual({ ok: true });
+        await settle(
+          () =>
+            s.state.players[opponent]!.hand.some((card) => card.instanceId === targetId) &&
+            s.state.pendingDecision === undefined,
+        );
+        expect(
+          s.state.players[opponent]!.trash.some((card) => card.instanceId === s.inst("attachment").instanceId),
+        ).toBe(true);
+        expect(s.state.memory).toBe(faceUp ? 8 : 4);
+        expect(s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "overflow")).toHaveLength(
+          faceUp ? 1 : 0,
+        );
+      });
+    }
+  }
 });

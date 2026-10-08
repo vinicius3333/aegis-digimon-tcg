@@ -84146,6 +84146,7 @@
             "kind": "SecurityManipulation",
             "op": "placeAsSecurity",
             "controller": "mine",
+            "ownerSecurity": true,
             "source": {
               "filter": {
                 "controllerDefault": "any",
@@ -84178,6 +84179,7 @@
             "kind": "SecurityManipulation",
             "op": "placeAsSecurity",
             "controller": "mine",
+            "ownerSecurity": true,
             "source": {
               "filter": {
                 "controllerDefault": "any",
