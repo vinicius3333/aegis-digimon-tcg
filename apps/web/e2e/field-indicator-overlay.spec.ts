@@ -134,6 +134,40 @@ for (const hasTouch of [false, true]) {
         const presets = dialog.locator(".trigger-chooser__preset");
         await expect(presets).toHaveCount(2);
 
+        if (viewport.width === 844 && viewport.height === 390) {
+          await dialog.getByRole("button", { name: /^View board$/i }).click();
+          await expect(dialog).toBeHidden();
+          const fit = await page.locator(".game-field").evaluate((field) => {
+            const row = field.querySelector(".game-battle-row--you")!;
+            const bounds = row.getBoundingClientRect();
+            const visible = field.getBoundingClientRect();
+            const top = bounds.bottom - 30;
+            return {
+              viewport: { width: innerWidth, height: innerHeight },
+              row: bounds.toJSON(),
+              field: visible.toJSON(),
+              top,
+              fits: top >= visible.top && top + 44 <= visible.bottom,
+            };
+          });
+          await testInfo.attach("short-landscape-existing-no-fit", {
+            body: JSON.stringify(fit, null, 2),
+            contentType: "application/json",
+          });
+          // Existing anchoring deliberately suppresses chrome that cannot fit.
+          // This checks absence at landscape, not an exposed overlay there.
+          expect(fit.fits).toBe(false);
+          await expect(own).toHaveCount(0);
+          await page.getByRole("button", { name: /^Return to decision$/i }).click();
+          expect((await hitProbe(dialog)).pass).toBe(true);
+          await expect(presets.getByRole("button", { name: "Ask", exact: true }).first()).toHaveAttribute(
+            "aria-pressed",
+            "true",
+          );
+          // Preserve the same pending choices when folding back to a fitting view.
+          await page.setViewportSize({ width: 390, height: 844 });
+        }
+
         for (const open of [false, true]) {
           await dialog.getByRole("button", { name: /^View board$/i }).click();
           await expect(dialog).toBeHidden();
@@ -158,7 +192,7 @@ for (const hasTouch of [false, true]) {
           });
           expect(proof.probes.length).toBeGreaterThan(0);
           // The live RED at 390x844 overlaps the first presets and second row.
-          if (open && viewport.width === 390)
+          if (open && proof.viewport.width === 390)
             expect(proof.probes.some((point) => point.kind === "intersection")).toBe(true);
           expect(proof.pass, JSON.stringify(proof.probes)).toBe(true);
         }
@@ -178,7 +212,7 @@ for (const hasTouch of [false, true]) {
         await expect(dialog.locator(".trigger-chooser__option[aria-pressed=true]")).toHaveCount(0);
 
         // Explanations remain keyboard accessible, dismiss without stealing focus,
-        // and ordinary board actions still work while viewing a pending decision.
+        // and an outside pointer closes the explanation while a decision is pending.
         await dialog.getByRole("button", { name: /^View board$/i }).click();
         await summary.focus();
         await summary.press("Enter");
@@ -187,7 +221,10 @@ for (const hasTouch of [false, true]) {
         await expect(own).not.toHaveAttribute("open", "");
         await expect(summary).toBeFocused();
         await summary.press("Enter");
-        await page.getByRole("button", { name: "Sort hand", exact: true }).click();
+        await page
+          .getByRole("img", { name: /^Memory:/ })
+          .locator(".game-memory-coin--marker")
+          .click();
         await expect(own).not.toHaveAttribute("open", "");
         await page.getByRole("button", { name: /^Return to decision$/i }).click();
         await expect(firstYes).toHaveAttribute("aria-pressed", "true");
