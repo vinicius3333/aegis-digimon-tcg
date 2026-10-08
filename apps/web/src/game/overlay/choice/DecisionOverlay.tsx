@@ -216,7 +216,11 @@ export function DecisionOverlay({
   const specificPrompt =
     request.options?.promptKey === "attackAlreadyResolving"
       ? t("overlay.attackAlreadyResolving")
-      : playerFacingPromptText(request.promptText, request.kind);
+      : playerFacingPromptText(
+          request.promptText,
+          request.kind,
+          request.options?.effectTextPart ? sourceEffectText : undefined,
+        );
   const promptText =
     request.options?.selectionContext === "attackTarget"
       ? t("overlay.declareAttack")
