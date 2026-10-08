@@ -133,6 +133,7 @@ export type TournamentMatch = {
   winnerAccountId: string | null;
   status: "waiting" | "pending" | "finished" | "bye";
 };
+export type DiscordAvatarCheck = { accountId: string; discordUserId: string; previousCheckedAt: number | null };
 export const MAX_SAVED_DECKS = 100;
 export class DeckLimitError extends Error {}
 export class DisplayNameTakenError extends Error {}
@@ -213,11 +214,13 @@ export class AccountStore {
           const row = existing.rows[0];
           if (row) {
             // Discord avatar URLs embed a hash that changes with every upload, so refresh it on each login.
-            if (provider === "discord" && row.avatar_url !== avatarUrl) {
-              await client.query("UPDATE accounts SET avatar_url=$1 WHERE id=$2", [avatarUrl, row.id]);
-              return toAccount({ ...row, avatar_url: avatarUrl });
-            }
-            return toAccount(row);
+            if (provider !== "discord") return toAccount(row);
+            await client.query("UPDATE accounts SET avatar_url=$1, avatar_checked_at=$2 WHERE id=$3", [
+              avatarUrl,
+              Date.now(),
+              row.id,
+            ]);
+            return toAccount({ ...row, avatar_url: avatarUrl });
           }
           const account: Account = {
             id: randomUUID(),
@@ -226,12 +229,11 @@ export class AccountStore {
             avatarId: null,
             isAdmin: false,
           };
-          await client.query("INSERT INTO accounts (id, display_name, avatar_url, created_at) VALUES ($1,$2,$3,$4)", [
-            account.id,
-            account.displayName,
-            account.avatarUrl,
-            Date.now(),
-          ]);
+          const now = Date.now();
+          await client.query(
+            "INSERT INTO accounts (id, display_name, avatar_url, avatar_checked_at, created_at) VALUES ($1,$2,$3,$4,$5)",
+            [account.id, account.displayName, account.avatarUrl, provider === "discord" ? now : null, now],
+          );
           await client.query("INSERT INTO login_identities (provider, subject, account_id) VALUES ($1,$2,$3)", [
             provider,
             normalized,
@@ -266,6 +268,52 @@ export class AccountStore {
     );
     const row = result.rows[0];
     return row ? { id: row.session_id, expiresAt: Number(row.expires_at), account: toAccount(row) } : undefined;
+  }
+  /**
+   * Claims Discord accounts whose avatar was never checked or was last checked before `staleBefore`.
+   * Each claim stamps `avatar_checked_at` first, so concurrent API replicas never fetch the same account.
+   */
+  async claimDiscordAvatarChecks({
+    staleBefore,
+    limit,
+    accountId,
+  }: {
+    staleBefore: number;
+    limit: number;
+    accountId?: string;
+  }): Promise<DiscordAvatarCheck[]> {
+    await this.ensureReady();
+    const candidates = await this.pool.query<{ id: string; subject: string; avatar_checked_at: string | null }>(
+      `SELECT a.id, i.subject, a.avatar_checked_at FROM accounts a JOIN login_identities i ON i.account_id=a.id
+       WHERE i.provider='discord' AND (a.avatar_checked_at IS NULL OR a.avatar_checked_at<$1)${accountId ? " AND a.id=$3" : ""}
+       ORDER BY a.created_at LIMIT $2`,
+      accountId ? [staleBefore, limit, accountId] : [staleBefore, limit],
+    );
+    const claims: DiscordAvatarCheck[] = [];
+    for (const candidate of candidates.rows) {
+      const claimed = await this.pool.query(
+        "UPDATE accounts SET avatar_checked_at=$1 WHERE id=$2 AND (avatar_checked_at IS NULL OR avatar_checked_at<$3) RETURNING id",
+        [Date.now(), candidate.id, staleBefore],
+      );
+      if (claimed.rowCount)
+        claims.push({
+          accountId: candidate.id,
+          discordUserId: candidate.subject,
+          previousCheckedAt: candidate.avatar_checked_at === null ? null : Number(candidate.avatar_checked_at),
+        });
+    }
+    return claims;
+  }
+  async releaseDiscordAvatarCheck(check: DiscordAvatarCheck): Promise<void> {
+    await this.ensureReady();
+    await this.pool.query("UPDATE accounts SET avatar_checked_at=$1 WHERE id=$2", [
+      check.previousCheckedAt,
+      check.accountId,
+    ]);
+  }
+  async setAvatarUrl(accountId: string, avatarUrl: string | null): Promise<void> {
+    await this.ensureReady();
+    await this.pool.query("UPDATE accounts SET avatar_url=$1 WHERE id=$2", [avatarUrl, accountId]);
   }
   async revokeSession(id: string | undefined): Promise<void> {
     if (id) {

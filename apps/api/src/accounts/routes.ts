@@ -35,6 +35,7 @@ import { TopCutProgram } from "../tournaments/topcut/index.js";
 import { tokenBucketLimiter, type TokenBucketOptions } from "../http/rateLimit.js";
 import { EmailQuotaExceededError, type Mailer } from "../email/mailer.js";
 import { TOURNAMENT_RULES_PRESETS, type TournamentRulesPreset } from "../tournaments/rules/index.js";
+import { type DiscordAvatarSource, discordAvatarUrl, refreshStaleDiscordAvatar } from "./discordAvatars.js";
 import {
   AccountStore,
   DeckLimitError,
@@ -74,6 +75,7 @@ export function installAccountRoutes(
   bugTracker?: IssueTracker,
   mailer?: Mailer,
   deckReports?: DeckReportTracker,
+  discordAvatars?: DiscordAvatarSource,
 ): void {
   const sessionFromRequest = (req: Request) => store.session(cookie(req, SESSION_COOKIE));
   // The organizer's override surface, in its own module. See src/tournaments/arbitration.
@@ -97,7 +99,15 @@ export function installAccountRoutes(
   const put = (path: string, handler: AsyncHandler) => app.put(path, asyncRoute(handler));
   const del = (path: string, handler: AsyncHandler) => app.delete(path, asyncRoute(handler));
   const limitDisplayNameChange = tokenBucketLimiter(DISPLAY_NAME_RATE_LIMIT);
-  get("/auth/me", async (req, res) => res.json((await store.session(cookie(req, SESSION_COOKIE)))?.account ?? null));
+  get("/auth/me", async (req, res) => {
+    const account = (await store.session(cookie(req, SESSION_COOKIE)))?.account;
+    if (!account || !discordAvatars) {
+      res.json(account ?? null);
+      return;
+    }
+    const avatarUrl = await refreshStaleDiscordAvatar(store, discordAvatars, account.id);
+    res.json(avatarUrl === undefined ? account : { ...account, avatarUrl });
+  });
   post("/auth/logout", async (req, res) => {
     await store.revokeSession(cookie(req, SESSION_COOKIE));
     expire(res, SESSION_COOKIE);
@@ -172,7 +182,7 @@ export function installAccountRoutes(
         "discord",
         user.id,
         user.global_name ?? user.username,
-        user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png` : null,
+        discordAvatarUrl(user.id, user.avatar),
       );
       setSession(res, await store.issueSession(account));
       res.redirect(process.env.AEGIS_WEB_URL ?? "/");
