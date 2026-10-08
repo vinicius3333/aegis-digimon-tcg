@@ -1,4 +1,4 @@
-import { getCompiledCard } from "@aegis/shared";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -41,8 +41,11 @@ async function evolveOkuwamonIntoGrandis() {
 }
 
 describe("GitHub #5310 GrandisKuwagamon and Okuwamon", () => {
-  it("keeps P-075's shared snapshot identical to its registered compiled IR", () => {
-    expect(getCompiledCard("P-075")).toEqual(runtimeCompiledCard("P-075"));
+  it("keeps the committed P-075 snapshot identical to its registered compiled IR", () => {
+    const snapshot = JSON.parse(
+      readFileSync(new URL("../../../../../packages/shared/src/effects/effects.json", import.meta.url), "utf8"),
+    ) as Record<string, unknown>;
+    expect(snapshot["P-075"]).toEqual(runtimeCompiledCard("P-075"));
   });
   it("original reported loop: one public digivolve suspends once and keeps DP stable with a bounded effect lifecycle", async () => {
     const s = await evolveOkuwamonIntoGrandis();
