@@ -41,6 +41,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           into: {
+            controller: "mine",
             kind: ["Digimon"],
             colors: ["Blue"],
           },
