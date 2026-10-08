@@ -278,6 +278,12 @@ const interfaceMessages = {
   "lobby.rejoinRoom": "Rientra nella stanza",
   "lobby.leaveRoom": "Lascia la stanza",
   "lobby.createRoom": "Crea una stanza",
+  "lobby.unlimitedLocalDesc":
+    "Ignora la lista ufficiale in questa battaglia. Restano validi i limiti di copie stampati.",
+  "lobby.hostBanlist": "Lista dell’host: {mode}",
+  "lobby.standardBanlist": "Lista attuale",
+  "lobby.roomRulesPending": "Inserisci un codice valido per caricare le regole dell’host.",
+  "lobby.roomLookupFailed": "Stanza non disponibile. Controlla il codice e riprova.",
   "lobby.joinHint": "Apri il link di invito del tuo amico o inserisci qui il codice della stanza.",
   "lobby.roomCodePlaceholder": "Inserisci il codice della stanza",
   "lobby.joinRoom": "Entra nella stanza",

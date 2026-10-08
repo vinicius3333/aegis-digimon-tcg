@@ -11,7 +11,14 @@ import {
 } from "@aegis/shared";
 import { AegisRoom } from "./AegisRoom.js";
 
-const publicMode = { unlimitedRoom: false, private: false, botRoom: false, rankedRoom: false, tournamentRoom: false };
+const publicMode = {
+  allowUnlimitedSelection: false,
+  unlimitedRoom: false,
+  private: false,
+  botRoom: false,
+  rankedRoom: false,
+  tournamentRoom: false,
+};
 
 /** Register the same immutable mode boundaries in production and websocket tests. */
 export function defineAegisRooms(gameServer: Pick<Server, "define">): void {
@@ -22,8 +29,18 @@ export function defineAegisRooms(gameServer: Pick<Server, "define">): void {
   gameServer
     .define(ROOM_TYPE_UNLIMITED, AegisRoom, { ...publicMode, unlimitedRoom: true, betaBattleRoom: false })
     .filterBy(["matchTimer", "bestOf"]);
-  gameServer.define(ROOM_TYPE_BOT, AegisRoom, { ...publicMode, botRoom: true, betaBattleRoom: false });
-  gameServer.define(ROOM_TYPE_BETA_BOT, AegisRoom, { ...publicMode, botRoom: true, betaBattleRoom: true });
+  gameServer.define(ROOM_TYPE_BOT, AegisRoom, {
+    ...publicMode,
+    botRoom: true,
+    allowUnlimitedSelection: true,
+    betaBattleRoom: false,
+  });
+  gameServer.define(ROOM_TYPE_BETA_BOT, AegisRoom, {
+    ...publicMode,
+    botRoom: true,
+    allowUnlimitedSelection: true,
+    betaBattleRoom: true,
+  });
   gameServer.define(ROOM_TYPE_RANKED, AegisRoom, { ...publicMode, rankedRoom: true, betaBattleRoom: false });
   gameServer
     .define(ROOM_TYPE_BETA, AegisRoom, {
@@ -38,5 +55,10 @@ export function defineAegisRooms(gameServer: Pick<Server, "define">): void {
     .filterBy(["tournamentMatchId", "tournamentGameId"]);
   // Invite-only, so unreleased-product cards are legal here: both seats opted in by sharing
   // the code, and no public queue or statistic depends on the result.
-  gameServer.define(ROOM_TYPE_PRIVATE, AegisRoom, { ...publicMode, private: true, betaBattleRoom: true });
+  gameServer.define(ROOM_TYPE_PRIVATE, AegisRoom, {
+    ...publicMode,
+    private: true,
+    allowUnlimitedSelection: true,
+    betaBattleRoom: true,
+  });
 }

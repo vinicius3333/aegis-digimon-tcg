@@ -36,6 +36,7 @@ export interface SeriesSettings {
   bestOf: MatchBestOf;
   matchTimer: boolean;
   timerStartSeconds: number;
+  unlimited?: boolean;
   roomCode?: string;
 }
 
@@ -257,6 +258,7 @@ export class CasualSeries {
       bestOf: this.settings.bestOf,
       matchTimer: this.settings.matchTimer,
       timerStartSeconds: this.settings.timerStartSeconds,
+      unlimited: this.settings.unlimited === true,
       ...(this.settings.roomCode ? { roomCode: this.settings.roomCode } : {}),
       results: [...this.results],
       seats: [

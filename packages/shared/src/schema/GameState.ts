@@ -125,4 +125,7 @@ export class GameState extends Schema {
   @type("string") spectatorCode = ""; // code-only observer access for public and private matches
 
   @type(SeriesState) series = new SeriesState();
+
+  /** Authoritative banlist choice, including after reconnect. Append to preserve field indexes. */
+  @type("boolean") unlimited = false;
 }

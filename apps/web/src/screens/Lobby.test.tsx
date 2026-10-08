@@ -1,12 +1,21 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { Lobby, deckHasBetaCards, randomDeckPool } from "./Lobby";
 import { DECKS, selectableDecks } from "../game/decks";
 
+const lookupPrivateRoom = vi.hoisted(() =>
+  vi.fn<() => Promise<{ roomId: string; unlimited: boolean }>>(async () => ({
+    roomId: "private-room",
+    unlimited: false,
+  })),
+);
+vi.mock("../net/client", () => ({ lookupPrivateRoom }));
+
 // EX13 is the beta fixture, so the clock stays before its 2026-10-02 release.
 beforeEach(() => {
+  lookupPrivateRoom.mockResolvedValue({ roomId: "private-room", unlimited: false });
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date("2026-09-15T12:00:00.000Z"));
 });
@@ -499,7 +508,7 @@ describe("famous deck selection", () => {
 });
 
 describe("invite links", () => {
-  it("opens the private join form with the invited code filled in", () => {
+  it("opens the private join form with the invited code filled in", async () => {
     const onStart = vi.fn();
     render(
       <I18nProvider>
@@ -516,6 +525,7 @@ describe("invite links", () => {
       </I18nProvider>,
     );
     expect((screen.getByLabelText("Enter room code") as HTMLInputElement).value).toBe("AB12CD");
+    await waitFor(() => expect(screen.getByRole("button", { name: "Join Room" })).toHaveProperty("disabled", false));
     fireEvent.click(screen.getByRole("button", { name: "Join Room" }));
     expect(onStart).toHaveBeenCalledWith("private_guest", "AB12CD");
   });
@@ -689,5 +699,157 @@ describe("match format configuration", () => {
     expect(screen.queryByRole("radio", { name: "Best of 3" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
     expect(screen.queryByRole("radio", { name: "Best of 3" })).toBeNull();
+  });
+});
+
+describe("bot and private Unlimited selection", () => {
+  function bannedDeck() {
+    const deck = {
+      ...DECKS[0]!,
+      id: "unlimited-fixture",
+      name: "Unlimited fixture",
+      mainDeck: [...DECKS[0]!.mainDeck],
+    };
+    deck.mainDeck.splice(0, 4, "BT5-109", "BT5-109", "ST2-13", "ST2-13");
+    return deck;
+  }
+  function setup(options: { invitedRoomCode?: string; printedOverflow?: boolean; beta?: boolean } = {}) {
+    const deck = bannedDeck();
+    if (options.printedOverflow) deck.mainDeck.splice(0, 5, ...Array<string>(5).fill("BT5-109"));
+    if (options.beta) deck.mainDeck[5] = "EX13-007";
+    const onStart = vi.fn<Parameters<typeof Lobby>[0]["onStart"]>();
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[deck]}
+          activeDeckId={deck.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={onStart}
+          invitedRoomCode={options.invitedRoomCode}
+        />
+      </I18nProvider>,
+    );
+    return { onStart, deck };
+  }
+
+  it("enables the human and custom bot deck only after selecting Unlimited, and toggles back", () => {
+    const { onStart, deck } = setup();
+    fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
+    const botSelect = screen.getByLabelText("Bot's deck");
+    expect(within(botSelect).getByRole("option", { name: deck.name })).toHaveProperty("disabled", true);
+    expect(screen.getByRole("button", { name: "Play vs Bot" })).toHaveProperty("disabled", true);
+    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    expect(within(botSelect).getByRole("option", { name: deck.name })).toHaveProperty("disabled", false);
+    fireEvent.change(botSelect, { target: { value: `mine:${deck.id}` } });
+    fireEvent.click(screen.getByRole("button", { name: "Play vs Bot" }));
+    expect(onStart).toHaveBeenCalledWith("bot", undefined, `mine:${deck.id}`, false, undefined, true);
+    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    expect(screen.getByRole("button", { name: "Play vs Bot" })).toHaveProperty("disabled", true);
+  });
+
+  it("exposes the existing selector for private hosts and sends the selected mode", () => {
+    const { onStart } = setup();
+    fireEvent.click(screen.getByRole("button", { name: /Private Match/ }));
+    expect(screen.getByRole("button", { name: "Create Room" })).toHaveProperty("disabled", true);
+    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    fireEvent.click(screen.getByRole("button", { name: "Create Room" }));
+    expect(onStart).toHaveBeenCalledWith("private_host", undefined, undefined, undefined, undefined, true);
+  });
+
+  it("loads the guest host mode before allowing a banned deck and gives no override", async () => {
+    lookupPrivateRoom.mockResolvedValue({ roomId: "private-room", unlimited: true });
+    const { onStart } = setup({ invitedRoomCode: "ABC234" });
+    expect(screen.queryByRole("switch", { name: "Unlimited" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Join Room" })).toHaveProperty("disabled", true);
+    await screen.findByText("Host banlist: Unlimited");
+    fireEvent.click(screen.getByRole("button", { name: "Join Room" }));
+    expect(onStart).toHaveBeenCalledWith("private_guest", "ABC234", undefined, undefined, undefined, true);
+    fireEvent.change(screen.getByLabelText("Enter room code"), { target: { value: "NEW234" } });
+    expect(screen.getByRole("button", { name: "Join Room" })).toHaveProperty("disabled", true);
+  });
+
+  it("keeps a banned guest deck disabled under the host's current banlist", async () => {
+    setup({ invitedRoomCode: "ABC234" });
+    await screen.findByText("Host banlist: Current banlist");
+    expect(screen.getByRole("button", { name: "Join Room" })).toHaveProperty("disabled", true);
+  });
+
+  it.each([false, true])("ignores an older lookup arriving after the new host mode (%s)", async (unlimited) => {
+    let resolveOld!: (rules: { roomId: string; unlimited: boolean }) => void;
+    const oldLookup = new Promise<{ roomId: string; unlimited: boolean }>((resolve) => {
+      resolveOld = resolve;
+    });
+    lookupPrivateRoom.mockResolvedValue({ roomId: "new-room", unlimited });
+    lookupPrivateRoom.mockReturnValueOnce(oldLookup);
+    const { onStart, deck } = setup({ invitedRoomCode: "ABC234" });
+    await waitFor(() => expect(lookupPrivateRoom).toHaveBeenCalledWith("ABC234"));
+    fireEvent.change(screen.getByLabelText("Enter room code"), { target: { value: "NEW234" } });
+    const hostMode = `Host banlist: ${unlimited ? "Unlimited" : "Current banlist"}`;
+    await screen.findByText(hostMode);
+    await act(async () => resolveOld({ roomId: "old-room", unlimited: !unlimited }));
+
+    expect(screen.getByText(hostMode)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Join Room" })).toHaveProperty("disabled", !unlimited);
+    const picker = within(screen.getByRole("region", { name: "Choose your battle deck" }));
+    expect(picker.getByRole("button", { name: deck.name })).toHaveProperty("disabled", !unlimited);
+    fireEvent.click(screen.getByRole("button", { name: "Join Room" }));
+    expect(onStart.mock.calls).toEqual(
+      unlimited ? [["private_guest", "NEW234", undefined, undefined, undefined, true]] : [],
+    );
+  });
+
+  it("does not enable a banned deck from an old Unlimited response while the new code is pending", async () => {
+    let resolveOld!: (rules: { roomId: string; unlimited: boolean }) => void;
+    let resolveNew!: (rules: { roomId: string; unlimited: boolean }) => void;
+    lookupPrivateRoom.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveOld = resolve;
+      }),
+    );
+    lookupPrivateRoom.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveNew = resolve;
+      }),
+    );
+    const { onStart, deck } = setup({ invitedRoomCode: "ABC234" });
+    await waitFor(() => expect(lookupPrivateRoom).toHaveBeenCalledWith("ABC234"));
+    fireEvent.change(screen.getByLabelText("Enter room code"), { target: { value: "NEW234" } });
+    await waitFor(() => expect(lookupPrivateRoom).toHaveBeenCalledWith("NEW234"));
+    await act(async () => resolveOld({ roomId: "old-room", unlimited: true }));
+    expect(screen.queryByText("Host banlist: Unlimited")).toBeNull();
+    expect(screen.getByRole("button", { name: "Join Room" })).toHaveProperty("disabled", true);
+    const picker = within(screen.getByRole("region", { name: "Choose your battle deck" }));
+    expect(picker.getByRole("button", { name: deck.name })).toHaveProperty("disabled", true);
+    fireEvent.click(screen.getByRole("button", { name: "Join Room" }));
+    expect(onStart).not.toHaveBeenCalled();
+    await act(async () => resolveNew({ roomId: "new-room", unlimited: false }));
+    expect(screen.getByText("Host banlist: Current banlist")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Join Room" })).toHaveProperty("disabled", true);
+  });
+
+  it("retains printed limits when Unlimited is selected", () => {
+    setup({ printedOverflow: true });
+    fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
+    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    expect(screen.getByRole("button", { name: "Play vs Bot" })).toHaveProperty("disabled", true);
+  });
+
+  it("keeps beta bot confirmation and Unlimited independent", () => {
+    const { onStart } = setup({ beta: true });
+    fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
+    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    fireEvent.click(screen.getByRole("button", { name: "Play vs Bot" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    expect(onStart).toHaveBeenCalledWith("bot", undefined, undefined, true, undefined, true);
+  });
+
+  it("localizes the host's mode in Portuguese", async () => {
+    localStorage.setItem("aegis:locale", "pt-BR");
+    lookupPrivateRoom.mockResolvedValue({ roomId: "private-room", unlimited: true });
+    setup({ invitedRoomCode: "ABC234" });
+    expect(await screen.findByText("Lista do anfitrião: Unlimited")).toBeTruthy();
   });
 });

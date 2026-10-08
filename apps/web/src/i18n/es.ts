@@ -600,6 +600,12 @@ export const es: Record<keyof typeof en, string> = {
   "lobby.rejoinRoom": "Volver a la sala",
   "lobby.leaveRoom": "Salir de la sala",
   "lobby.createRoom": "Crear sala",
+  "lobby.unlimitedLocalDesc":
+    "Ignora la lista oficial en esta batalla. Los límites de copias impresos siguen vigentes.",
+  "lobby.hostBanlist": "Lista del anfitrión: {mode}",
+  "lobby.standardBanlist": "Lista actual",
+  "lobby.roomRulesPending": "Introduce un código válido para cargar las reglas del anfitrión.",
+  "lobby.roomLookupFailed": "Sala no disponible. Comprueba el código e inténtalo de nuevo.",
   "lobby.joinHint": "Abre el enlace de invitación que te envió tu amigo o escribe aquí el código de la sala.",
   "lobby.roomCodePlaceholder": "Escribe el código de la sala",
   "lobby.joinRoom": "Unirse a la sala",
