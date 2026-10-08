@@ -72,6 +72,75 @@ describe("BT23-076 Sistermon Blanc", () => {
     assertNoLoudGap(s);
   });
 
+  it.each([false, true])("issue #5326: recovers with zero security (face-up deck card: %s)", async (faceUp) => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT23-076", as: "blanc" }],
+        deck: [
+          { card: "BT1-010", as: "deckTop", faceUp },
+          { card: "BT1-011", as: "deckSecond" },
+        ],
+        security: [],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    const blancId = s.inst("blanc").instanceId;
+    const deckTopId = s.inst("deckTop").instanceId;
+    const deckSecondId = s.inst("deckSecond").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: blancId })).toEqual({ ok: true });
+    await settle(() =>
+      s.events.some(
+        (event) =>
+          (event.kind === "effectResolved" || event.kind === "effectHadNoEffect") && event.sourceCardId === "BT23-076",
+      ),
+    );
+
+    const me = s.state.players[0]!;
+    expect(me.security.map((card) => card.instanceId)).toEqual([deckTopId]);
+    expect(me.security[0]!.faceUp).toBe(false);
+    expect(me.deck.map((card) => card.instanceId)).toEqual([deckSecondId]);
+    expect(me.hand).toHaveLength(0);
+    expect(me.battleArea.some((permanent) => permanent.topCard?.instanceId === blancId)).toBe(true);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it.each([0, 1])(
+    "issue #5326: with an empty deck and %s security, resolves only the possible movement",
+    async (security) => {
+      const s = setupEngine({
+        0: {
+          hand: [{ card: "BT23-076", as: "blanc" }],
+          deck: [],
+          security: security === 1 ? [{ card: "BT1-009", as: "oldTop" }] : [],
+        },
+      });
+      s.state.memory = 3;
+      await s.ready();
+      const oldTopId = security === 1 ? s.inst("oldTop").instanceId : undefined;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blanc").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() =>
+        s.events.some(
+          (event) =>
+            (event.kind === "effectResolved" || event.kind === "effectHadNoEffect") &&
+            event.sourceCardId === "BT23-076",
+        ),
+      );
+      expect(s.state.players[0]!.security).toHaveLength(0);
+      expect(s.state.players[0]!.deck).toHaveLength(0);
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(oldTopId ? [oldTopId] : []);
+      expect(s.state.memory).toBe(0);
+      expect(s.state.gameOver).toBe(false);
+      expect(s.state.pendingDecision).toBeUndefined();
+      assertNoLoudGap(s);
+    },
+  );
+
   it("when Blanc suspends by attacking, another Digimon digivolves into a [Huckmon] card from hand for 1 less", async () => {
     const s = setupEngine(
       {
