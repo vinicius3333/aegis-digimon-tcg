@@ -62,6 +62,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-github5307-larva-ex10-breeding",
   "arena-github5308-greymon-security-destination",
   "arena-bt21-satellamon-cost-control",
+  "arena-turn-end-dp-expiry",
   "arena-github5311-crescemon-cost-scope",
   "arena-github5311-imperialdramon-cost-scope",
   "arena-github5318-junomon-printed-cost",
@@ -515,6 +516,29 @@ function laySatellamonCostControlScenario(state: GameState, _decks: readonly [De
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 10;
+}
+
+/** A printed turn-long DP gain expires before the next Active phase's memory setter. */
+function layTurnEndDpExpiryScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-dp-expiry-egg-${seat}`, "BT1-003", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-dp-expiry-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-dp-expiry-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT1-014"], "-dp-expiry"));
+  placePermanent(state.players[1]!, establishedDigimon(1, ["BT3-093"], "-dp-expiry-davis"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-dp-expiry-war", "EX13-013", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-dp-expiry-training", "LM-057", 0));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 4;
 }
 
 /**
@@ -8632,6 +8656,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github5307-larva-ex10-breeding": (state) => layGithub5307LarvaScenario(state, "EX10-060"),
   "arena-github5308-greymon-security-destination": layGithub5308GreymonScenario,
   "arena-bt21-satellamon-cost-control": laySatellamonCostControlScenario,
+  "arena-turn-end-dp-expiry": layTurnEndDpExpiryScenario,
   "arena-github5311-crescemon-cost-scope": layGithub5311CrescemonCostScenario,
   "arena-github5311-imperialdramon-cost-scope": layGithub5311ImperialdramonCostScenario,
   "arena-github5318-junomon-printed-cost": layGithub5318JunomonPrintedCostScenario,

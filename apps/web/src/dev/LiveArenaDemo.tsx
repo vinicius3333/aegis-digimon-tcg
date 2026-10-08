@@ -17,6 +17,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-turn-end-dp-expiry": {
+    en: "Skip breeding. Evolve Greymon into EX13 WarGrowlmon for 3 (4→1 memory): with no opposing Digimon to delete, it reaches 11000 DP for the turn. Use Wall Training for 2 and select either revealed Agumon. Decline Engage at end of turn. WarGrowlmon returns to 8000 DP; opposing Davis sets memory to 3. Active, Draw and Breeding must proceed in order without an idle stall. Use normal sequential effects without skipping. This diagnoses a turn-end DP presentation cycle, not a confirmed replay of the Freezing reporter's match.",
+    ptBR: "Pule a criação. Evolua Greymon em WarGrowlmon EX13 por 3 (memória 4→1): sem Digimon adversário para deletar, ele fica com 11000 DP neste turno. Use Wall Training por 2 e escolha qualquer Agumon revelado. Recuse Engage no fim do turno. WarGrowlmon volta a 8000 DP; Davis adversário ajusta a memória para 3. Ativa, Compra e Criação devem avançar em ordem, sem pausa travada. Use efeitos sequenciais normais, sem pular animações. Este cenário diagnostica um ciclo na apresentação da expiração de DP, não reproduz uma partida confirmada do autor de Freezing.",
+  },
   "arena-github5307-larva-bt18-breeding": {
     en: "GitHub #5307, current behavior control. End breeding without moving Larva. Attack the suspended opposing Satan Mode with your BT18 Satan Mode. Both have 16000 DP. Accept Larva's prevention: Larva moves from breeding, your Satan Mode stays, and the opposing Satan Mode is deleted. Reset and decline to compare: your Satan Mode is deleted and Larva stays in breeding.",
     ptBR: "GitHub #5307, controle do comportamento atual. Encerre a criação sem mover Larva. Ataque o Satan Mode adversário suspenso com seu Satan Mode BT18. Ambos têm 16000 DP. Aceite a proteção de Larva: ela sai da criação, seu Satan Mode fica e o adversário é deletado. Reinicie e recuse para comparar: seu Satan Mode é deletado e Larva fica na criação.",
@@ -2254,6 +2258,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-github5307-larva-ex10-breeding", "GitHub #5307 · Larva breeding / EX10 Satan Mode"],
   ["arena-github5308-greymon-security-destination", "GitHub #5308 · Greymon X / security versus hand"],
   ["arena-bt21-satellamon-cost-control", "BT21 Satellamon · 13-card cost control (Freezing unresolved)"],
+  ["arena-turn-end-dp-expiry", "Turn-end DP expiry · Active phase handoff"],
   ["arena-github5311-crescemon-cost-scope", "GitHub #5311 · Crescemon incoming versus outgoing cost"],
   ["arena-github5311-imperialdramon-cost-scope", "GitHub #5311 sweep · Imperialdramon intrinsic discount"],
   ["arena-github5318-junomon-printed-cost", "GitHub #5318 · Junomon printed play-cost control"],
