@@ -2,7 +2,7 @@ import type { EffectContext } from "../../EffectContext.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { LooseCandidate, candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { resolvePermanentTargets, topInstanceIds } from "../targeting/permanents.js";
-import { bindLooseCostSelection } from "./candidates.js";
+import { bindLooseCostSelection, candidateTrashCostInstances } from "./candidates.js";
 import { payTrashStackCost } from "./trashStack.js";
 import { CardKind, getCardDefinition } from "@aegis/shared";
 import type { Cost, Permanent, Target } from "@aegis/shared";
@@ -14,7 +14,7 @@ import type { Cost, Permanent, Target } from "@aegis/shared";
 export async function payTrashCost(ctx: EffectContext, cost: Cost, out?: { paidCount: number }): Promise<boolean> {
   if (cost.target?.from?.includes("hand") && cost.target.from.includes("digivolutionCards")) {
     const filter = { ...cost.target.filter, zone: undefined };
-    const candidates = candidateLooseInstances(ctx, { ...cost.target, filter }, ["hand", "digivolutionCards"]);
+    const candidates = candidateTrashCostInstances(ctx, { ...cost.target, filter }, ["hand", "digivolutionCards"]);
     const want = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     if (want <= 0 || candidates.length < want) return false;
     const chosen = await pickLoose(ctx, { ...cost.target, filter, count: want }, candidates);
@@ -39,6 +39,7 @@ export async function payTrashCost(ctx: EffectContext, cost: Cost, out?: { paidC
             byEffectSeat: ctx.source.ownerSeat,
             byEffectCardId: ctx.source.cardId,
           });
+    if (movedFromStacks.length !== stackSelections.length) return false;
     const movedLoose =
       looseIds.length === 0 ? [] : await ctx.fx.trash(looseIds, { byEffectSeat: ctx.source.ownerSeat });
     const moved = [...movedFromStacks, ...movedLoose];
@@ -136,7 +137,7 @@ export async function payTrashCost(ctx: EffectContext, cost: Cost, out?: { paidC
     const candidates: LooseCandidate[] = [];
     const candidateZones = new Map<string, "digivolutionCards" | "linked">();
     if (cost.target.filter.zone === "digivolutionCardsOrLinkCards") {
-      const stackCandidates = candidateLooseInstances(
+      const stackCandidates = candidateTrashCostInstances(
         ctx,
         { ...cost.target, filter: { ...cost.target.filter, zone: "digivolutionCards" } },
         ["digivolutionCards"],

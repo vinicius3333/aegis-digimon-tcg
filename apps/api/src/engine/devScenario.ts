@@ -308,6 +308,10 @@ export const DEV_SCENARIO_IDS = [
   "arena-kotone-digixros-pending-attack",
   "arena-bt6-beelstarmon-duplicate-cost",
   "arena-bt20-saviorhuckmon-end-turn-sistermon",
+  "arena-rock-proganomon-breeding-sources",
+  "arena-rock-pyramidimon-breeding-sources",
+  "arena-rock-magneticdramon-breeding-sources",
+  "arena-rock-gravel-hearts-tumblemon-memory",
   "arena-bt25-beelstarmon-option-trash-trigger",
   "arena-bt20-last-guardian-omnimon-wipe",
   "arena-ex7-deputymon-option-trash-trigger",
@@ -5806,6 +5810,53 @@ function layBt20LastGuardianOmnimonWipeScenario(state: GameState, decks: readonl
   placePermanent(bot, establishedDigimon(1, ["ST2-06"], "-last-guardian-wiped"));
 }
 
+/** Discord 1557413340161253496: legal battle sources and a protected breeding control. */
+function layRockBreedingSourcesScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  attacker: string,
+): void {
+  prepareIssueScenario(state, decks, 6);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  for (const player of [human, opponent]) {
+    for (const zone of [Zone.Hand, Zone.Deck, Zone.Trash, Zone.Security, Zone.EggDeck] as const)
+      clearZone(player, zone);
+    for (let i = 0; i < 20; i++)
+      insertCard(player, Zone.Deck, faceDownCard(`rock-deck-${player.seat}-${i}`, "BT1-085", player.seat));
+    for (let i = 0; i < 5; i++)
+      insertCard(player, Zone.Security, faceDownCard(`rock-security-${player.seat}-${i}`, "BT1-009", player.seat));
+  }
+  placePermanent(human, establishedDigimon(0, [attacker], "-rock-attacker"));
+  placePermanent(human, establishedDigimon(0, ["BT4-065", "BT4-065", "BT4-065", "BT4-065", "BT4-065"], "-rock-fuel"));
+  const breeding = establishedDigimon(0, ["EX8-005", "EX10-025"], "-rock-breeding");
+  breeding.inBreeding = true;
+  setBreeding(human, breeding);
+  const victim = establishedDigimon(1, ["BT1-009"], "-rock-victim");
+  victim.isSuspended = true;
+  placePermanent(opponent, victim);
+}
+
+/** Real Close suspension -> Gravel Hearts evolution -> Pyramidimon source cost. */
+function layRockGravelHeartsMemoryScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  layRockBreedingSourcesScenario(state, decks, "EX10-032");
+  const human = state.players[0];
+  if (human === undefined) return;
+  const base = human.battleArea.find(({ permanentId }) => permanentId === "dev-perm-0-rock-attacker")!;
+  pushOnStack(base, faceUpCard("dev-rock-tumblemon", "EX8-005", 0));
+  pushOnStack(base, faceUpCard("dev-rock-mineral-1", "BT4-065", 0));
+  pushOnStack(base, faceUpCard("dev-rock-mineral-2", "BT4-065", 0));
+  const fuel = human.battleArea.find(({ permanentId }) => permanentId === "dev-perm-0-rock-fuel")!;
+  replaceStack(fuel, Array.from(fuel.stack).slice(0, 1));
+  placePermanent(human, establishedDigimon(0, ["EX10-063"], "-rock-close"));
+  const emblem = establishedDigimon(0, ["EX10-069"], "-rock-emblem");
+  emblem.placedByEffect = true;
+  placePermanent(human, emblem);
+  insertCard(human, Zone.Hand, faceDownCard("dev-rock-landramon", "EX10-028", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-rock-pyramidimon", "EX11-044", 0));
+}
+
 /**
  * Reproduce Discord bug 1555578375677018193: BT25-085 BeelStarmon's [When Attacking] unsuspend
  * cost trashes EX7-071 Hurricane Screw Shot from digivolution cards, which must fire its
@@ -8132,6 +8183,11 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-bt6-beelstarmon-duplicate-cost": layBt6BeelStarmonDuplicateCostScenario,
   "arena-bt20-saviorhuckmon-end-turn-sistermon": layBt20SaviorHuckmonEndTurnSistermonScenario,
+  "arena-rock-proganomon-breeding-sources": (state, decks) => layRockBreedingSourcesScenario(state, decks, "EX10-032"),
+  "arena-rock-pyramidimon-breeding-sources": (state, decks) => layRockBreedingSourcesScenario(state, decks, "EX11-044"),
+  "arena-rock-magneticdramon-breeding-sources": (state, decks) =>
+    layRockBreedingSourcesScenario(state, decks, "EX10-036"),
+  "arena-rock-gravel-hearts-tumblemon-memory": layRockGravelHeartsMemoryScenario,
   "arena-bt25-beelstarmon-option-trash-trigger": layBt25BeelStarmonOptionTrashTriggerScenario,
   "arena-bt20-last-guardian-omnimon-wipe": layBt20LastGuardianOmnimonWipeScenario,
   "arena-ex7-deputymon-option-trash-trigger": layEx7DeputymonOptionTrashTriggerScenario,
