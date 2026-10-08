@@ -16403,6 +16403,17 @@
   "BT12-024": {
     "effects": [
       {
+        "trigger": "Static",
+        "actions": [
+          {
+            "kind": "TamerOntoDigivolve",
+            "onto": { "controller": "mine", "kind": ["Tamer"], "colors": ["Blue"] },
+            "asLevel": 3,
+            "from": ["hand"]
+          }
+        ]
+      },
+      {
         "trigger": "WhenDigivolving",
         "actions": [
           {
@@ -16429,12 +16440,23 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Calmaramon"], "cost": 0, "isAlternate": true },
-      { "cost": 0, "isAlternate": true, "baseIsTamer": true, "baseColors": ["Blue"] }
+      { "namesExact": ["Calmaramon"], "cost": 0, "isAlternate": true },
+      { "cost": 2, "isAlternate": true, "baseIsTamer": true, "baseColors": ["Blue"] }
     ]
   },
   "BT12-025": {
     "effects": [
+      {
+        "trigger": "Static",
+        "actions": [
+          {
+            "kind": "TamerOntoDigivolve",
+            "onto": { "controller": "mine", "kind": ["Tamer"], "colors": ["Blue"] },
+            "asLevel": 3,
+            "from": ["hand"]
+          }
+        ]
+      },
       {
         "trigger": "WhenAttacking",
         "actions": [
@@ -16460,8 +16482,8 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Lanamon"], "cost": 1, "isAlternate": true },
-      { "cost": 0, "isAlternate": true, "baseIsTamer": true, "baseColors": ["Blue"] }
+      { "namesExact": ["Lanamon"], "cost": 1, "isAlternate": true },
+      { "cost": 3, "isAlternate": true, "baseIsTamer": true, "baseColors": ["Blue"] }
     ]
   },
   "BT12-026": {

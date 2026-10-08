@@ -12,7 +12,7 @@ import "../BT13/BT13-100.js";
 describe("BT12-024 Lanamon", () => {
   it("digivolves from Calmaramon for 0 with the evolution draw and source transition", async () => {
     expect(digivolutionRequirementsFor("BT12-024")).toContainEqual({
-      names: ["Calmaramon"],
+      namesExact: ["Calmaramon"],
       cost: 0,
       isAlternate: true,
     });
@@ -37,9 +37,9 @@ describe("BT12-024 Lanamon", () => {
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
   });
 
-  it("digivolves from a blue Tamer for 0 and preserves it as an evolution card", async () => {
+  it("digivolves from a blue Tamer for 2 and preserves it as an evolution card", async () => {
     expect(digivolutionRequirementsFor("BT12-024")).toContainEqual({
-      cost: 0,
+      cost: 2,
       isAlternate: true,
       baseIsTamer: true,
       baseColors: ["Blue"],
@@ -157,7 +157,7 @@ describe("BT12-024 Lanamon — KB Q&A rulings", () => {
     await settle();
     expect(watched.perm("davis").topCard.cardId).toBe("BT12-024");
     expect(watched.perm("yoshino").isSuspended).toBe(true);
-    expect(watched.state.memory).toBe(1);
+    expect(watched.state.memory).toBe(-1);
 
     const locked = setupEngine({
       0: {
@@ -205,7 +205,7 @@ describe("BT12-024 Lanamon — KB Q&A rulings", () => {
       },
       1: { security: ["BT1-009", "BT1-010"], deck: ["BT1-011"] },
     });
-    s.state.memory = 5;
+    s.state.memory = 10;
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("freshDavis").instanceId })).toEqual({
@@ -246,6 +246,7 @@ describe("BT12-024 Lanamon — KB Q&A rulings", () => {
       },
       1: { battleArea: [{ card: "BT1-020", as: "defender", suspended: true }] },
     });
+    s.state.memory = 5;
     await s.ready();
     const davisInstanceId = s.inst("davis").instanceId;
     const lanamonInstanceId = s.inst("lanamon").instanceId;
@@ -321,6 +322,7 @@ describe("BT12-024 Lanamon — KB Q&A rulings", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["placing"] },
     );
+    s.state.memory = 5;
     await s.ready();
     expect(digivolveOntoTamer(s, "tommy", "lanamon")).toEqual({ ok: true });
     await settle(() => s.perm("tommy").topCard.cardId === "BT12-024");

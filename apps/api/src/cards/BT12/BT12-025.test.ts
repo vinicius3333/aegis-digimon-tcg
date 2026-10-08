@@ -12,7 +12,7 @@ import "../BT16/BT16-085.js";
 describe("BT12-025 Calmaramon", () => {
   it("digivolves from Lanamon for 1", async () => {
     expect(digivolutionRequirementsFor("BT12-025")).toContainEqual({
-      names: ["Lanamon"],
+      namesExact: ["Lanamon"],
       cost: 1,
       isAlternate: true,
     });
@@ -37,9 +37,9 @@ describe("BT12-025 Calmaramon", () => {
     expect(s.perm("lanamon").stack.map(({ cardId }) => cardId)).toContain("BT12-024");
   });
 
-  it("digivolves from a blue Tamer for 0 and rejects a non-blue Tamer", async () => {
+  it("digivolves from a blue Tamer for 3 and rejects a non-blue Tamer", async () => {
     expect(digivolutionRequirementsFor("BT12-025")).toContainEqual({
-      cost: 0,
+      cost: 3,
       isAlternate: true,
       baseIsTamer: true,
       baseColors: ["Blue"],
@@ -368,7 +368,7 @@ describe("BT12-025 Calmaramon — KB Q&A rulings", () => {
     await settle(() => declared.perm("davis").topCard.instanceId === calmaramonInstanceId);
     expect(declared.perm("davis").stack.map(({ instanceId }) => instanceId)).toEqual([davisInstanceId]);
     expect(handIds(declared)).not.toContain(calmaramonInstanceId);
-    expect(declared.state.memory).toBe(5);
+    expect(declared.state.memory).toBe(2);
     expect(
       declared.decisions.filter(
         ({ req }) =>
