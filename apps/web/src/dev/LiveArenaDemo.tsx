@@ -1237,6 +1237,22 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação. Evolua a BaoHuckmon para BT20-014 SaviorHuckmon da mão: custo 3, a memória vai de 5 para 2. Aceite o ＜Delay＞ de The Sistermon Sisters Training Gym e jogue a BT23-077 Sistermon Ciel da mão. Os efeitos de SaviorHuckmon e da Sistermon Ciel deletam os dois Monodramon do bot. Encerre o turno: no [Fim do Seu Turno], SaviorHuckmon oferece suspender a Sistermon Ciel e evoluir para BT13-017 Jesmon da mão sem pagar o custo. Aceite: a Sistermon Ciel fica suspensa e SaviorHuckmon vira Jesmon.",
     en: "End breeding. Digivolve BaoHuckmon into BT20-014 SaviorHuckmon from hand: cost 3, memory goes from 5 to 2. Accept The Sistermon Sisters Training Gym's ＜Delay＞ and play BT23-077 Sistermon Ciel from hand. SaviorHuckmon's and Sistermon Ciel's effects delete the bot's two Monodramon. End the turn: on [End of Your Turn], SaviorHuckmon offers to suspend Sistermon Ciel and digivolve into BT13-017 Jesmon from hand without paying the cost. Accept: Sistermon Ciel is suspended and SaviorHuckmon becomes Jesmon.",
   },
+  "arena-rock-proganomon-breeding-sources": {
+    ptBR: "Discord 1557413340161253496. Encerre a criação sem mover Sunarizamon. Ataque o Monodramon suspenso com EX10-032 Proganomon. Aceite o efeito de descartar fontes e escolha 1 Golemon das fontes no campo. Tumblemon EX8-005 na criação não aparece como candidato e fica intacto.",
+    en: "Discord 1557413340161253496. End breeding without moving Sunarizamon. Attack suspended Monodramon with EX10-032 Proganomon. Accept the source-trash effect and select 1 Golemon from battle-area sources. Tumblemon EX8-005 in breeding is excluded and remains intact.",
+  },
+  "arena-rock-pyramidimon-breeding-sources": {
+    ptBR: "Discord 1557413340161253496. Encerre a criação sem mover Sunarizamon. Ataque o Monodramon suspenso com EX11-044 Pyramidimon. Aceite o efeito de descartar fontes e escolha 3 Golemon das fontes no campo. Tumblemon EX8-005 na criação não aparece como candidato e fica intacto.",
+    en: "Discord 1557413340161253496. End breeding without moving Sunarizamon. Attack suspended Monodramon with EX11-044 Pyramidimon. Accept the source-trash effect and select 3 Golemon from battle-area sources. Tumblemon EX8-005 in breeding is excluded and remains intact.",
+  },
+  "arena-rock-magneticdramon-breeding-sources": {
+    ptBR: "Discord 1557413340161253496. Encerre a criação sem mover Sunarizamon. Ataque o Monodramon suspenso com EX10-036 Magneticdramon. Aceite o efeito de descartar fontes e escolha 3 Golemon das fontes no campo. Tumblemon EX8-005 na criação não aparece como candidato e fica intacto. Para Magneticdramon, recuse recolocar fontes; a segurança do bot perde 1 card.",
+    en: "Discord 1557413340161253496. End breeding without moving Sunarizamon. Attack suspended Monodramon with EX10-036 Magneticdramon. Accept the source-trash effect and select 3 Golemon from battle-area sources. Tumblemon EX8-005 in breeding is excluded and remains intact. For Magneticdramon, decline source replenishment; the bot loses 1 security card.",
+  },
+  "arena-rock-gravel-hearts-tumblemon-memory": {
+    ptBR: "Discord 1557413340161253496. Encerre a criação sem mover Sunarizamon. Recuse trocar Close no início da Principal. Jogue Landramon EX10-028 (memória 6 para 2). Aceite o efeito, descartando o único Golemon das fontes do outro Golemon no campo; dê os bônus a Proganomon. Aceite suspender Close EX10-063 (+1 memória: 3). Aceite Gravel Hearts e evolua Proganomon para Pyramidimon EX11-044 da mão por 0. Aceite descartar 3 fontes: Tumblemon EX8-005 e os dois Golemon sob Pyramidimon. Delete Monodramon. Recuse repor as fontes de Pyramidimon. Tumblemon ganha 1 memória obrigatoriamente (3 para 4), sem confirmação opcional; o Tumblemon na criação fica intacto.",
+    en: "Discord 1557413340161253496. End breeding without moving Sunarizamon. Decline replacing Close at the start of Main. Play EX10-028 Landramon (memory 6 to 2). Accept its effect, trashing the single Golemon source under the other battle-area Golemon; give the bonuses to Proganomon. Accept suspending EX10-063 Close (+1 memory: 3). Accept Gravel Hearts and evolve Proganomon into hand EX11-044 Pyramidimon for 0. Accept trashing 3 sources: EX8-005 Tumblemon and both Golemon under Pyramidimon. Delete Monodramon. Decline replenishing Pyramidimon sources. Tumblemon mandatorily gains 1 memory (3 to 4) without an optional confirmation; breeding Tumblemon remains intact.",
+  },
   "arena-bt25-beelstarmon-option-trash-trigger": {
     ptBR: "Encerre a criação. Ataque o Monodramon suspenso do bot com a sua BT25-085 BeelStarmon (EX7-071 Hurricane Screw Shot está nas fontes dela). No [Ao Atacar], resolva primeiro o efeito que desuspende; aceite e pague descartando Hurricane Screw Shot das fontes. BeelStarmon desuspende e o efeito de Hurricane Screw Shot ativa: a memória vai de 5 para 6. Depois recuse usar uma Option. A batalha deleta o Monodramon.",
     en: "End breeding. Attack the bot's suspended Monodramon with your BT25-085 BeelStarmon (EX7-071 Hurricane Screw Shot is in its sources). On [When Attacking], resolve the unsuspend effect first; accept it and pay by trashing Hurricane Screw Shot from the sources. BeelStarmon unsuspends and Hurricane Screw Shot's effect activates: memory goes from 5 to 6. Then decline using an Option. The battle deletes Monodramon.",
@@ -2300,6 +2316,10 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-kotone-digixros-pending-attack", "Kotone · DigiXros + EX6 pending attack"],
   ["arena-bt6-beelstarmon-duplicate-cost", "BT6 BeelStarmon · duplicate hand cost"],
   ["arena-bt20-saviorhuckmon-end-turn-sistermon", "BT20 SaviorHuckmon · end of turn with an Option-played Sistermon"],
+  ["arena-rock-proganomon-breeding-sources", "Proganomon · battle sources exclude breeding"],
+  ["arena-rock-pyramidimon-breeding-sources", "Pyramidimon · battle sources exclude breeding"],
+  ["arena-rock-magneticdramon-breeding-sources", "Magneticdramon · battle sources exclude breeding"],
+  ["arena-rock-gravel-hearts-tumblemon-memory", "Close → Gravel Hearts → Pyramidimon · mandatory Tumblemon memory"],
   ["arena-bt25-beelstarmon-option-trash-trigger", "BT25 BeelStarmon · unsuspend cost fires the Option's trash effect"],
   ["arena-bt20-last-guardian-omnimon-wipe", "BT20 The Last Guardian · Delay vs Omnimon (X Antibody) wipe"],
   ["arena-ex7-deputymon-option-trash-trigger", "EX7 Deputymon · trashed Option source fires its effect"],

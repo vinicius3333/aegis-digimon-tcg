@@ -1,14 +1,27 @@
 import type { EffectContext } from "../../EffectContext.js";
 import { hasPlayCost } from "../../../cards/cardData.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
-import { LooseCandidate } from "../targeting/loose.js";
+import { LooseCandidate, candidateLooseInstances } from "../targeting/loose.js";
 import { candidatePermanents } from "../targeting/permanents.js";
 import { canAssignDistinctColors, effectiveExactNames, filterToDistinctColors } from "@aegis/shared";
-import type { Cost, Filter, Permanent, Target } from "@aegis/shared";
+import type { Cost, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
 
 /**
  * Candidate pools and selection binding shared by the cost payers.
  */
+
+/** CR 3-4-7-3/5: ordinary source-trash costs cannot choose or affect breeding. */
+export function candidateTrashCostInstances(ctx: EffectContext, target: Target, zones: ZoneRef[]): LooseCandidate[] {
+  return candidateLooseInstances(ctx, target, zones).filter((candidate) => {
+    if (candidate.hostPermanentId === undefined) return true;
+    const host = ctx.game.permanentById(candidate.hostPermanentId);
+    return (
+      host !== undefined &&
+      !host.inBreeding &&
+      ctx.game.player(host.controllerSeat).battleArea.some((permanent) => permanent.permanentId === host.permanentId)
+    );
+  });
+}
 
 export function placeCostHostCandidates(ctx: EffectContext, host: Target): Permanent[] {
   const zone = host.filter.zone as string | readonly string[] | undefined;

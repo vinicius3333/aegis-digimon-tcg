@@ -30,6 +30,25 @@ const namedSuspended = (cardId: string): Target => ({
   count: 1,
 });
 
+describe("Discord 1557413340161253496 breeding source payment availability", () => {
+  it.each([false, true])("breeding alone cannot pay a stack cost (mixed hand: %s)", async (mixed) => {
+    const ctx = await contextFor({
+      battleArea: [{ card: SOURCE, as: "source" }],
+      breeding: { card: "EX10-025", under: ["EX8-005"] },
+    });
+    expect(
+      canPayCost(ctx, {
+        kind: "trash",
+        target: {
+          filter: { controller: "mine", nameOrTrait: [{ tokens: ["Rock", "Mineral"], match: "trait" }] },
+          count: 1,
+          from: mixed ? ["hand", "digivolutionCards"] : ["digivolutionCards"],
+        },
+      }),
+    ).toBe(false);
+  });
+});
+
 describe("canPayCost for kinds that used to count as always payable", () => {
   describe("flipSecurity (BT23-043)", () => {
     const cost: Cost = { kind: "flipSecurity" };

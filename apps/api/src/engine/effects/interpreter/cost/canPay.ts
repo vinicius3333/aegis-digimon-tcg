@@ -8,6 +8,7 @@ import { LooseCandidate, candidateLooseInstances, findLooseCandidateByInstance, 
 import { candidatePermanents, effectiveTargetCount, raiseDeletionDpCap } from "../targeting/permanents.js";
 import { rotatesChosenStack, selfRestackHost } from "./stacks.js";
 import {
+  candidateTrashCostInstances,
   distinctColorPermanentIds,
   isSelfFromFieldPlaceCost,
   permanentTopReturnCostCandidates,
@@ -54,7 +55,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   }
   if (cost.kind === "trash" && cost.target?.from?.includes("hand") && cost.target.from.includes("digivolutionCards")) {
     const filter = { ...cost.target.filter, zone: undefined };
-    const candidates = candidateLooseInstances(ctx, { ...cost.target, filter }, ["hand", "digivolutionCards"]);
+    const candidates = candidateTrashCostInstances(ctx, { ...cost.target, filter }, ["hand", "digivolutionCards"]);
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     return required > 0 && candidates.length >= required;
   }
@@ -74,7 +75,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     cost.target.filter.isSelfRef === true
   ) {
     const self = ctx.source.permanent();
-    if (self === undefined) return false;
+    if (self === undefined || self.inBreeding) return false;
     const { zone: _zone, isSelfRef: _isSelfRef, controller: _controller, ...stackCardFilter } = cost.target.filter;
     const candidates = self.stack
       .filter((card) => definitionMatches(stackCardFilter, ctx.game.definitionOf(card)))
@@ -266,12 +267,12 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     }
     let candidates =
       cost.target.filter.zone === "digivolutionCardsOrLinkCards"
-        ? candidateLooseInstances(
+        ? candidateTrashCostInstances(
             ctx,
             { ...cost.target, filter: { ...cost.target.filter, zone: "digivolutionCards" } },
             ["digivolutionCards"],
           )
-        : candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
+        : candidateTrashCostInstances(ctx, cost.target, ["digivolutionCards"]);
     if (cost.target.filter.zone === "digivolutionCardsOrLinkCards") {
       const linked: LooseCandidate[] = [];
       const { zone: _zone, controller: _controller, isSelfRef: _isSelfRef, ...linkedCardFilter } = cost.target.filter;
@@ -498,7 +499,7 @@ function canPayStackTrash(ctx: EffectContext, target: Target): boolean {
     if (isUnboundSelectionRef(ctx, boundHostRef)) return true;
     const hostId = ctx.selections?.get(boundHostRef);
     const host = hostId === undefined ? undefined : ctx.game.permanentById(hostId);
-    if (host === undefined) return false;
+    if (host === undefined || host.inBreeding) return false;
     const { zone: _zone, boundTo: _boundTo, ...cardFilter } = target.filter as Filter & { boundTo?: string };
     const available = host.stack
       .filter((card) => definitionMatches(cardFilter, ctx.game.definitionOf(card)))
@@ -509,13 +510,13 @@ function canPayStackTrash(ctx: EffectContext, target: Target): boolean {
   // EX10-033 "up to 3 ... from any of your Digimon's digivolution cards", EX13-031 "from your
   // hand or your Digimon's digivolution cards".
   const zones: ZoneRef[] = target.filter.zone === undefined ? ["digivolutionCards"] : zoneList(target.filter.zone);
-  return stackCardsPayable(target, candidateLooseInstances(ctx, target, zones));
+  return stackCardsPayable(target, candidateTrashCostInstances(ctx, target, zones));
 }
 
 /** Mirrors payTrashStackCost's isSelfRef branch, except the host redirect it asks about. */
 function canPaySelfStackTrash(ctx: EffectContext, target: Target): boolean {
   const self = ctx.source.permanent();
-  if (self === undefined) return false;
+  if (self === undefined || self.inBreeding) return false;
   const trashable = self.stack.filter((card) => ctx.fx.canTrashDigivolutionCard?.(card.instanceId) !== false);
   if (target.upTo === true) {
     const maximum = target.count === "all" ? trashable.length : target.count;

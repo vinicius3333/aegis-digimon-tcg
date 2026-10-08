@@ -1829,6 +1829,36 @@ describe("primitives: placeUnder / link", () => {
     expect(h.state.players[0]!.trash.find((card) => card.instanceId === hiddenId)).toMatchObject({ faceUp: true });
   });
 
+  it("Discord 1557413340161253496: rejects a mixed battle/breeding atomic source cost without partial payment", async () => {
+    const h = harness({
+      board: {
+        0: {
+          battleArea: [{ card: DIGIMON, as: "battle", under: [{ card: TAMER, as: "fuel" }] }],
+          breeding: { card: DIGIMON, as: "breeding", under: [{ card: "EX8-005", as: "egg" }] },
+        },
+      },
+    });
+    const fuel = h.s.inst("fuel").instanceId;
+    const egg = h.s.inst("egg").instanceId;
+    expect(h.fx.canTrashDigivolutionCard?.(egg)).toBe(false);
+    const moved = await h.fx.trashDigivolutionCardsAtomic(
+      [
+        { hostPermanentId: h.s.perm("battle").permanentId, instanceId: fuel },
+        { hostPermanentId: h.s.perm("breeding").permanentId, instanceId: egg },
+      ],
+      2,
+      { byEffectSeat: 0 },
+    );
+    expect(moved).toEqual([]);
+    expect(await h.fx.trashDigivolutionCards(h.s.perm("breeding").permanentId, [egg], { byEffectSeat: 0 })).toEqual([]);
+    expect(await h.fx.trashDigivolutionCards(h.s.perm("battle").permanentId, [egg], { byEffectSeat: 0 })).toEqual([]);
+    expect(h.s.perm("battle").stack.map(({ instanceId }) => instanceId)).toEqual([fuel]);
+    expect(h.s.perm("breeding").stack.map(({ instanceId }) => instanceId)).toEqual([egg]);
+    expect(h.state.players[0]!.trash).toHaveLength(0);
+    expect(h.events).toHaveLength(0);
+    expect(h.subTriggerFires).toHaveLength(0);
+  });
+
   it("atomically trashes an exact cross-host digivolution-card cost before publishing watchers", async () => {
     const h = harness({
       board: {
