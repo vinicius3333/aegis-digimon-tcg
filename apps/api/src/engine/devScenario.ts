@@ -323,6 +323,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt22-leopardmon-king-drasil",
   "arena-bt13-king-drasil-source-count",
   "arena-ui-king-drasil-mandatory-order",
+  "arena-ui-ex11-cool-boy-hand-selection",
   "arena-bt13-omnimon-later-token-rush",
   "arena-st12-blanc-rush-second-attack",
   "arena-bt26-zombie-plutomon-removed-trigger",
@@ -5505,6 +5506,22 @@ function prepareIssueScenario(state: GameState, decks: readonly [Decklist, Deckl
   state.memory = memory;
 }
 
+/** EX11-071 Main exposes two exact physical hand choices without extra On Play effects. */
+function layUiEx11CoolBoyHandSelectionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 6);
+  for (const player of state.players) {
+    clearZone(player, Zone.Deck);
+    for (let index = 0; index < 20; index++)
+      insertCard(player, Zone.Deck, faceDownCard(`ui-cool-boy-deck-${player.seat}-${index}`, "BT1-009", player.seat));
+  }
+  const human = state.players[0];
+  if (human === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["EX11-071"], "-ui-ex11-cool-boy"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-ui-ex11-cool-boy-first", "BT20-050", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-ui-ex11-cool-boy-second", "BT20-050", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-ui-ex11-cool-boy-witness", "EX11-071", 0));
+}
+
 /** October 6 reports: ordinary card procedures reproduce the shared timing boundaries. */
 function layOct06Scenario(
   state: GameState,
@@ -8432,6 +8449,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt22-leopardmon-king-drasil": layLeopardmonKingDrasilScenario,
   "arena-bt13-king-drasil-source-count": layBt13KingDrasilSourceCountScenario,
   "arena-ui-king-drasil-mandatory-order": layUiKingDrasilMandatoryOrderScenario,
+  "arena-ui-ex11-cool-boy-hand-selection": layUiEx11CoolBoyHandSelectionScenario,
   "arena-bt13-omnimon-later-token-rush": layBt13OmnimonLaterTokenRushScenario,
   "arena-st12-blanc-rush-second-attack": laySt12BlancRushSecondAttackScenario,
   "arena-bt26-zombie-plutomon-removed-trigger": layZombiePlutomonRemovedTriggerScenario,
