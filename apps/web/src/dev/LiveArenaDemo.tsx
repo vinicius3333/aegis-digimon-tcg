@@ -1819,6 +1819,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e ataque a segurança com Paildramon (AD1-011). Gaia Force na segurança tentará deletá-lo. Aceite Partition para jogar Magnamon EX13-020 e Vegiemon sem pagar custo. Na escolha de Assembly do Magnamon, selecione o Veemon do seu lixo; Monodramon não deve ser elegível. Magnamon entra com Veemon em suas cartas de digievolução e a memória continua em 5. Você também pode recusar Assembly: Magnamon entra sem Veemon e continua gratuito.",
     en: "End breeding and attack security with Paildramon (AD1-011). The security Gaia Force attempts to delete it. Accept Partition to play EX13-020 Magnamon and Vegiemon without paying their costs. For Magnamon's Assembly, select the Veemon in your trash; Monodramon must not be eligible. Magnamon enters with Veemon in its digivolution cards and memory stays at 5. You may also decline Assembly: Magnamon enters without Veemon and remains free.",
   },
+  "arena-yuugo-omnimon-assembly": {
+    ptBR: "Encerre a criação. Jogue Omnimon EX13-016 com Assembly usando WarGreymon, MetalGarurumon, Agumon e Gabumon do lixo. Aceite os dois Yuugos: ambos voltam ao fundo do deck, o custo é 4 e a memória fica em 0 antes dos efeitos de entrada. Resolva os efeitos de Omnimon e digievolua para Omnimon (X Antibody) BT20-102 por 2. Escolha os sobreviventes: o campo oponente deve ficar vazio. Reinicie para aceitar só um Yuugo (custo 6) ou recusar ambos (custo 8).",
+    en: "End breeding. Play EX13-016 Omnimon with Assembly using WarGreymon, MetalGarurumon, Agumon and Gabumon from trash. Accept both Yuugos: both return to deck bottom, the cost is 4, and memory reaches 0 before On Play. Resolve Omnimon, then digivolve into BT20-102 Omnimon (X Antibody) for 2. Choose the survivors: the opposing field should end empty. Restart to accept one Yuugo (cost 6) or decline both (cost 8).",
+  },
   "arena-ex13-craniamon-assembly": {
     ptBR: "Compre a carta do turno e encerre a criação. Jogue Craniamon (EX13-062) com a memória em 0: o seletor de Assembly deve abrir. Somente Bulbmon (Lv.5), Guardromon (Lv.4) e Gotsumon (Lv.3) devem ser elegíveis; Bokomon (Blocker só herdado) e Monmon (azul) não. Escolha os três: Craniamon custa 7 e a memória vai para 7 do oponente.",
     en: "Draw the turn card and end breeding. Play Craniamon (EX13-062) with memory at 0: the Assembly picker must open. Only Bulbmon (Lv.5), Guardromon (Lv.4), and Gotsumon (Lv.3) may be eligible; Bokomon (inherited-only Blocker) and Monmon (blue) may not. Pick all three: Craniamon costs 7 and memory goes to 7 on the opponent's side.",
@@ -2778,6 +2782,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ],
   ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],
   ["arena-ex13-magnamon-partition-assembly", "#5294 Magnamon · Partition + free Assembly"],
+  ["arena-yuugo-omnimon-assembly", "Yuugo · Omnimon Assembly cost (#5341)"],
   ["arena-ex13-craniamon-assembly", "EX13 Craniamon · Assembly with printed Blocker"],
   ["arena-ex13-craniamon-weregarurumon-assembly", "EX13 Craniamon · WereGarurumon Assembly"],
   ["arena-p220-millenniummon-assembly", "P-220 Millenniummon · Assembly with different levels"],

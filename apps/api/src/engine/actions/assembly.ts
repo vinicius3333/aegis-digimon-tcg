@@ -20,6 +20,7 @@ import { matchNameOrTrait } from "../effects/interpreter.js";
 import { definitionHasKeyword } from "../effects/interpreter/matching/definition.js";
 import { extractCardAt } from "../state/access.js";
 import { normalizeCost, placePermanent } from "./digiXros.js";
+import type { PlayCardDeps } from "./playCard.js";
 
 /**
  * Assembly (Comprehensive Rules §7-3): a distinct alternate play mode from DigiXros. A card
@@ -84,7 +85,10 @@ export type AssemblyCheck =
       cost: number;
     };
 
-export interface AssemblyDeps {
+export interface AssemblyDeps extends Pick<
+  PlayCardDeps,
+  "finalizePlayCost" | "hasBeforePayCost" | "minimumDeferredPlayCost" | "placePendingDigivolution"
+> {
   maxAffordable(state: GameState, seat: Seat): number;
   payMemory(state: GameState, seat: Seat, cost: number): void;
   /** Apply continuous play-cost modifiers to the printed cost (before the Assembly reduction). */
@@ -110,7 +114,7 @@ export function validateAssembly(
   state: GameState,
   seat: Seat,
   intent: AssemblyIntent,
-  deps: Pick<AssemblyDeps, "maxAffordable" | "adjustedPlayCost">,
+  deps: Pick<AssemblyDeps, "maxAffordable" | "adjustedPlayCost" | "hasBeforePayCost" | "minimumDeferredPlayCost">,
 ): AssemblyCheck {
   if (state.gameOver) return { ok: false, reason: "game-over" };
   if (state.pendingDecision !== undefined) return { ok: false, reason: "decision-pending" };
@@ -149,7 +153,15 @@ export function validateAssembly(
   const printed = normalizeCost(definition.playCost);
   const base = deps.adjustedPlayCost ? Math.max(0, deps.adjustedPlayCost(state, seat, definition, printed)) : printed;
   const cost = Math.max(0, base - requirement.reduceCost);
-  if (deps.maxAffordable(state, seat) < cost) return { ok: false, reason: "insufficient-memory" };
+  if (deps.maxAffordable(state, seat) < cost) {
+    const minimum = deps.minimumDeferredPlayCost?.(instance, cost);
+    if (
+      deps.hasBeforePayCost?.(instance) !== true ||
+      (minimum !== undefined && minimum > deps.maxAffordable(state, seat))
+    ) {
+      return { ok: false, reason: "insufficient-memory" };
+    }
+  }
 
   return {
     ok: true,
@@ -173,7 +185,22 @@ export async function applyAssembly(
   const check = validateAssembly(state, seat, intent, deps);
   if (!check.ok) return check;
 
-  const { definition, materialInstanceIds, cost } = check;
+  const { definition, materialInstanceIds } = check;
+  // CR 7-3-2-2: would-be-played effects resolve before Assembly placement/payment.
+  // The declared recipe discount is only arithmetic here; no material has moved yet.
+  const needsFinalize =
+    deps.finalizePlayCost !== undefined &&
+    (deps.hasBeforePayCost === undefined || deps.hasBeforePayCost(check.instance));
+  const cost = needsFinalize
+    ? Math.max(0, await deps.finalizePlayCost!(state, seat, check.instance, definition, check.cost, "permanent"))
+    : check.cost;
+  if (needsFinalize) {
+    // Optional costs can change the hand or consume trash materials. Never place a
+    // partial recipe or charge memory using stale pre-prompt identities.
+    const recheck = validateAssembly(state, seat, intent, { ...deps, maxAffordable: () => Infinity });
+    if (!recheck.ok) return recheck;
+  }
+  if (deps.maxAffordable(state, seat) < cost) return { ok: false, reason: "insufficient-memory" };
   const player = state.players[seat]!;
 
   if (cost > 0) {
@@ -213,6 +240,7 @@ export async function applyAssembly(
     placedIds.push(materialId);
   }
 
+  await deps.placePendingDigivolution?.(instance.instanceId, permanent.permanentId);
   await deps.fireTiming(state, seat, EffectTiming.OnPlay, instance.instanceId);
 
   return {
