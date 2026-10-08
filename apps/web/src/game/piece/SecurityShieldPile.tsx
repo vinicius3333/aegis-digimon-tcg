@@ -123,12 +123,14 @@ export function SecurityShieldPile({
         {count}
       </span>
       <span className="game-security-cards">
+        {/* Index 0 is checked first, so it paints above later/bottom slots. */}
         {Array.from({ length: Math.min(count, 10) }, (_, index) => (
           <SecurityCardSlot
             key={securityCards?.[index]?.instanceId || `security-${index}`}
             cardId={securityCards?.[index]?.faceUp ? securityCards[index].cardId : ""}
             artId={securityCards?.[index]?.faceUp ? securityCards[index].artId : undefined}
             faceUp={securityCards?.[index]?.faceUp === true}
+            stackDepth={Math.min(count, 10) - index}
             useSelectedSleeve={useSelectedSleeve}
           />
         ))}

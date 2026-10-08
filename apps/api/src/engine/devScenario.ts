@@ -57,6 +57,7 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github-5299-ravemon-bottom-security",
   "arena-github-5297-omnimon-main-dna",
   "arena-github-5297-omnimon-agumon-dna",
   "arena-github-5286-lordknightmon-knightmon",
@@ -1473,6 +1474,42 @@ function layBt26RavemonRecycledTriggerScenario(state: GameState, decks: readonly
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 8;
+}
+
+/** GitHub #5299: face-up bottom security must remain behind the existing top. */
+function layGithub5299RavemonBottomSecurityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    clearZone(player, Zone.Hand);
+    fillZone(
+      player,
+      Zone.Deck,
+      Array.from({ length: 20 }, (_, index) => faceDownCard(`dev-5299-deck-${seat}-${index}`, "BT1-010", seat)),
+    );
+    fillZone(player, Zone.Security, [
+      faceUpCard(`dev-5299-security-top-${seat}`, "BT1-009", seat),
+      faceDownCard(`dev-5299-security-hidden-${seat}`, "BT1-010", seat),
+    ]);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT26-076"], "-5299-crowmon"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-5299-ravemon", "BT26-082", 0));
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    placePermanent(opponent, establishedDigimon(1, ["BT1-084"], "-5299-highest"));
+    placePermanent(opponent, establishedDigimon(1, ["AD1-001"], "-5299-attacker"));
+    for (let index = 0; index < 8; index += 1) {
+      insertCard(opponent, Zone.Hand, faceDownCard(`dev-5299-discard-${index}`, "BT1-010", 1));
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 6;
 }
 
 /**
@@ -7724,6 +7761,7 @@ function layGithub5297OmnimonDnaScenario(state: GameState, includeSecondPair: bo
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-github-5299-ravemon-bottom-security": layGithub5299RavemonBottomSecurityScenario,
   "arena-github-5297-omnimon-main-dna": (state) => layGithub5297OmnimonDnaScenario(state, true),
   "arena-github-5297-omnimon-agumon-dna": (state) => layGithub5297OmnimonDnaScenario(state, false),
   "arena-github-5286-lordknightmon-knightmon": layGithubLordKnightmonScenario,

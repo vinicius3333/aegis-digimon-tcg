@@ -12,8 +12,9 @@ export function SecurityCardSlot({
   cardId = "",
   artId,
   faceUp = false,
+  stackDepth,
   useSelectedSleeve = false,
-}: Partial<PublicCard> & { useSelectedSleeve?: boolean }) {
+}: Partial<PublicCard> & { stackDepth?: number; useSelectedSleeve?: boolean }) {
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const [previous, setPrevious] = useState<PublicCard>({ cardId, artId, faceUp });
   const [turningDown, setTurningDown] = useState<PublicCard | null>(null);
@@ -37,7 +38,7 @@ export function SecurityCardSlot({
           .filter(Boolean)
           .join(" ") || undefined
       }
-      style={{ "--security-flip-duration": `${SECURITY_FLIP_DURATION}ms` } as CSSProperties}
+      style={{ "--security-flip-duration": `${SECURITY_FLIP_DURATION}ms`, zIndex: stackDepth } as CSSProperties}
     >
       {publicCard ? (
         <span className="game-security-card__faces" aria-hidden={!faceUp || undefined}>

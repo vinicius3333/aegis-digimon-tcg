@@ -180,6 +180,8 @@
 }
 .game-security-cards {
   align-items: center;
+  /* Slot depth follows security order, contained below the count and shield cues. */
+  isolation: isolate;
 }
 .game-security-card__buff {
   position: absolute;
