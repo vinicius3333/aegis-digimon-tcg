@@ -5,8 +5,8 @@ import "../cards/index.js";
 
 describe("granted Start of Main attack visibility (Discord 1557600224011096104)", () => {
   it.each([
-    ["EX12-016", "playCard", "EX12-011"],
-    ["EX12-016", "digivolve", "EX12-011"],
+    ["EX12-016", "playCard", "EX12-010"],
+    ["EX12-016", "digivolve", "EX12-010"],
     ["BT12-065", "digivolve", "BT12-060"],
     ["BT23-056", "playCard", "BT23-041"],
     ["BT23-056", "digivolve", "BT23-041"],

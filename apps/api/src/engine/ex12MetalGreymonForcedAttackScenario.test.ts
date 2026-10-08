@@ -55,6 +55,7 @@ describe("EX12 MetalGreymon arena (Discord 1557600224011096104)", () => {
           }),
         ).toEqual({ ok: true });
         await settle(() => s.state.pendingDecision === undefined);
+        expect(s.state.memory).toBe(mode === "play" ? 3 : 7);
         expect(recipient.attacksAtStartOfMainPhase).toBe(true);
         expect(recipient.grantedEffectTexts.join(" ")).toContain("[Start of Your Main Phase]");
         expect(s.events.filter((e) => e.kind === "attackDeclared")).toHaveLength(0);

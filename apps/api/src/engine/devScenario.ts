@@ -2545,7 +2545,7 @@ function layEx12MetalGreymonForcedAttackScenario(
   }
   const human = state.players[0];
   if (human !== undefined) {
-    if (digivolve) placePermanent(human, establishedDigimon(0, ["EX12-011"], "-metalgreymon-base"));
+    if (digivolve) placePermanent(human, establishedDigimon(0, ["EX12-010"], "-metalgreymon-base"));
     insertCard(human, Zone.Hand, faceDownCard("dev-metalgreymon-hand", "EX12-016", 0));
   }
   const opponent = state.players[1];
