@@ -110,6 +110,9 @@ export async function payTrashStackCost(
       const { zone: _zone, isSelfRef: _isSelfRef, controller: _controller, ...stackCardFilter } = cost.target.filter;
       let eligible: LooseCandidate[] = Array.from(host.stack)
         .filter((card) => cost.target!.filter.faceDown !== true || !card.faceUp)
+        // Q4785: the bottom face-down source may have visible sources below it.
+        // Fix its position before trashability checks; an upper card cannot substitute.
+        .slice(0, cost.target.filter.position === "bottom" ? n : undefined)
         .filter((card) => definitionMatches(stackCardFilter, ctx.game.definitionOf(card)))
         .filter((card) => ctx.fx.canTrashDigivolutionCard?.(card.instanceId) !== false)
         .map((card) => ({

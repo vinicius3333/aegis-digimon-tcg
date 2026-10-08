@@ -261,8 +261,13 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
           ? ctx.game.permanentById(ctx.trigger.attackerPermanentId)
           : undefined);
       if (self === undefined) return false;
-      const candidates = self.stack.filter((card) => cost.target!.filter.faceDown !== true || !card.faceUp);
+      let candidates = self.stack.filter((card) => cost.target!.filter.faceDown !== true || !card.faceUp);
       const required = cost.target.count === "all" ? candidates.length : cost.target.count;
+      if (cost.target.filter.position === "bottom") {
+        candidates = candidates
+          .slice(0, required)
+          .filter((card) => ctx.fx.canTrashDigivolutionCard?.(card.instanceId) !== false);
+      }
       return required > 0 && candidates.length >= required;
     }
     let candidates =
