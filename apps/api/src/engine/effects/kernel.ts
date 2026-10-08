@@ -108,6 +108,12 @@ function wasHiddenAtDeletion(ctx: EffectContext): boolean {
  */
 export function passesPlacementGuard(effect: Effect, ctx: EffectContext): boolean {
   if (wasHiddenAtDeletion(ctx)) return false;
+  // Gained keywords belong to the recipient Digimon, rather than its former top card.
+  // Preserve activation across ordinary evolution, but never after that permanent leaves.
+  if (ctx.source.gainedOnPermanentId !== undefined) {
+    const recipient = ctx.source.permanent();
+    return recipient?.permanentId === ctx.source.gainedOnPermanentId && ctx.source.isOnBattleArea();
+  }
   // This proof is captured for one discard event and remains on the deferred context. Once the
   // source or host moves again, it is stale: do not let the ordinary inherited branch below
   // reinterpret a reattached source as the original discarded card.

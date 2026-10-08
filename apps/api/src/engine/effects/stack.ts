@@ -190,6 +190,7 @@ export interface ResolutionEnv {
 export function permanentIdentityOf(source: CardSource): string | undefined {
   const permanent = source.permanent();
   if (permanent === undefined) return undefined;
+  if (source.gainedOnPermanentId === permanent.permanentId) return `${permanent.permanentId} gained`;
   const role =
     permanent.topCard?.instanceId === source.instanceId
       ? "top"

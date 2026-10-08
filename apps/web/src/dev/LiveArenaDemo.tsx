@@ -69,6 +69,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "Skip breeding and evolve Junomon into Wrath Mode for 5, crossing from 4 to -1. Its mandatory recovery resolves once and security increases from 2 to 3. At end of turn Homeros cannot repeat that spent Once Per Turn effect (Q6029); security stays at 3. Compare the unused scenario.",
     ptBR: "Pule a criação e evolua Junomon em Wrath Mode por 5, passando de 4 para -1. A recuperação obrigatória resolve uma vez e a segurança sobe de 2 para 3. No fim do turno, Homeros não pode repetir esse efeito Uma Vez Por Turno já gasto (Q6029); a segurança continua em 3. Compare o cenário de efeito ainda não usado.",
   },
+  "arena-github5320-alliance-after-evolution": {
+    en: "GitHub #5320. Skip breeding, then evolve Hakubamon into Sanzomon for 3. Add your top security to hand, recover 1, and use Sanzomon to play Cho-Hakkaimon for 5; decline DigiXros. Resolve Cho-Hakkaimon before Mococomon, give Sanzomon Alliance, and attack the player. In the attack's effect order, resolve Mococomon before Alliance and evolve the attacker into Erlangmon for 1; accept its Kotenken Token. The pending Alliance must still work: suspend Cho-Hakkaimon for 19000 DP and two security checks. Memory ends at 1. Restart and choose Mococomon before Cho-Hakkaimon to compare, or decline Alliance for one check.",
+    ptBR: "GitHub #5320. Pule a criação e evolua Hakubamon em Sanzomon por 3. Adicione o topo da segurança à mão, recupere 1 e use Sanzomon para jogar Cho-Hakkaimon por 5; recuse DigiXros. Resolva Cho-Hakkaimon antes de Mococomon, conceda Alliance a Sanzomon e ataque o jogador. Na ordem dos efeitos do ataque, resolva Mococomon antes de Alliance e evolua o atacante em Erlangmon por 1; aceite a Ficha Kotenken. Alliance pendente deve funcionar: vire Cho-Hakkaimon para atingir 19000 DP e dois testes de segurança. A memória termina em 1. Reinicie e escolha Mococomon antes de Cho-Hakkaimon para comparar, ou recuse Alliance para um teste.",
+  },
   "arena-github-5297-omnimon-main-dna": {
     en: "Skip breeding. During Main, select EX13-016 Omnimon and WarGreymon. Choose DNA and select the MetalGarurumon with Gabumon underneath, then confirm. Pay 0: those two stacks merge into an unsuspended Omnimon and the other MetalGarurumon stays in play. Also try with action confirmations disabled. EX13-077 Merciful Mode has no DNA route; evolve it normally after Omnimon instead.",
     ptBR: "Pule a criação. Na Principal, selecione Omnimon EX13-016 e WarGreymon. Escolha DNA e selecione o MetalGarurumon com Gabumon nas fontes; confirme. Custo 0: as duas pilhas viram um Omnimon não suspenso e o outro MetalGarurumon continua em campo. Teste também com as confirmações de ação desativadas. Merciful Mode EX13-077 não tem rota de DNA; digievolua-o normalmente após Omnimon.",
@@ -2257,6 +2261,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-github-5305-gravity-order", "GitHub #5305 · Gravity Crush end-turn ordering"],
   ["arena-github-5315-homeros-unused", "GitHub #5315 · Homeros / unused Wrath Mode"],
   ["arena-github-5315-homeros-spent", "GitHub #5315 · Homeros / spent Wrath Mode"],
+  ["arena-github5320-alliance-after-evolution", "GitHub #5320 · Alliance after Mococomon evolution"],
   ["arena-github-5297-omnimon-main-dna", "GitHub #5297 · Omnimon Main DNA and physical materials"],
   ["arena-github-5297-omnimon-agumon-dna", "GitHub #5297 · Omnimon Agumon end-of-turn DNA"],
   ["arena-github-5286-lordknightmon-knightmon", "GitHub #5286 · LordKnightmon EX13 Knightmon picker"],

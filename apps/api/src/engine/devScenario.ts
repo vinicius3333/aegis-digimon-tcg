@@ -58,6 +58,7 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github5320-alliance-after-evolution",
   "arena-github5307-larva-bt18-breeding",
   "arena-github5307-larva-ex10-breeding",
   "arena-github5308-greymon-security-destination",
@@ -8534,6 +8535,28 @@ function layGithubRemovalScenario(
   }
 }
 
+function layGithub5320AllianceAfterEvolutionScenario(state: GameState): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-5320-egg-${seat}`, "EX12-002", seat));
+    for (let index = 0; index < 16; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-5320-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < (seat === 0 ? 3 : 5); index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-5320-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["EX12-002", "EX12-022", "EX12-043"], "-5320-host"));
+  for (const cardId of ["EX12-045", "EX12-056", "EX12-034"]) {
+    insertCard(human, Zone.Hand, faceDownCard(`dev-5320-hand-${cardId}`, cardId, 0));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
 function layGithub5297OmnimonDnaScenario(state: GameState, includeSecondPair: boolean): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat]!;
@@ -8608,6 +8631,7 @@ function layGithubEndTurnReportScenario(
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-github5320-alliance-after-evolution": layGithub5320AllianceAfterEvolutionScenario,
   "arena-github5307-larva-bt18-breeding": (state) => layGithub5307LarvaScenario(state, "BT18-101"),
   "arena-github5307-larva-ex10-breeding": (state) => layGithub5307LarvaScenario(state, "EX10-060"),
   "arena-github5308-greymon-security-destination": layGithub5308GreymonScenario,
