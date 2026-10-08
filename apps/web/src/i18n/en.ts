@@ -16,6 +16,29 @@ import { shellEn } from "./redesign/shell.en";
    error. Placeholders use {name} and are filled by `t(key, params)`. */
 
 export const en = {
+  "feedback.title": "Player feedback",
+  "feedback.subtitle": "Reports submitted in Aegis, newest first.",
+  "feedback.restricted": "Only administrators can view feedback.",
+  "feedback.error": "Could not load feedback. Try refreshing.",
+  "feedback.empty": "No feedback on this page.",
+  "feedback.refresh": "Refresh",
+  "feedback.page": "Page {page}",
+  "feedback.pagination": "Feedback pages",
+  "feedback.newer": "Newer",
+  "feedback.older": "Older",
+  "feedback.anonymous": "Anonymous player",
+  "feedback.context": "Technical details",
+  "feedback.match": "Match ID",
+  "feedback.version": "Version",
+  "feedback.client": "Client",
+  "feedback.server": "Server",
+  "feedback.browser": "Browser",
+  "feedback.github": "Open GitHub issue #{number}",
+  "feedback.mirror.pending": "Awaiting confirmation",
+  "feedback.mirror.sent": "Sent",
+  "feedback.mirror.failed": "Copy failed; feedback saved",
+  "feedback.mirror.disabled": "Copy disabled",
+
   "game.dragIntent.reorder": "REORDER HAND",
   "settings.sortHand": "Sort hand",
   "settings.sortHandDesc":
@@ -1827,9 +1850,10 @@ export const en = {
 
   "bugReport.button": "Send feedback",
   "bugReport.title": "Send feedback",
-  "bugReport.notice.signed": "It becomes a public issue on GitHub, signed with your display name. Write in English.",
+  "bugReport.notice.signed":
+    "Your feedback is saved, signed with your display name, and may also be published on GitHub. Write in English.",
   "bugReport.notice.anonymous":
-    "It becomes a public issue on GitHub. Write in English, and sign in first if you want us to reply.",
+    "Your feedback is saved and may also be published on GitHub. Write in English, and sign in first if you want us to reply.",
   "bugReport.kindLabel": "Type",
   "bugReport.kind.bug": "Bug",
   "bugReport.kind.improvement": "Improvement",

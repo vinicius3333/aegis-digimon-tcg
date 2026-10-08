@@ -1,3 +1,4 @@
+import type { FeedbackStore } from "./FeedbackStore.js";
 import { getCardDefinition } from "@aegis/shared";
 import type { Express, Request, Response } from "express";
 import type { AuthSession } from "../accounts/AccountStore.js";
@@ -14,7 +15,7 @@ import {
 } from "./GitHubIssueTracker.js";
 
 // A report is typed by hand, so a handful per minute is already far above human pace. The limit is
-// there because every accepted report becomes a public issue, not to pace an honest reporter.
+// there to protect feedback storage and the optional public GitHub mirror.
 const SIGNED_IN_RATE_LIMIT: TokenBucketOptions = { capacity: 5, refillMs: 60_000 };
 
 // An anonymous reporter is only as identifiable as their address, and an address is cheap to change,
@@ -28,20 +29,15 @@ const MAX_CLIENT_REVISION = 60;
 
 export type BugReportRouteDeps = {
   app: Express;
-  /** Absent when this deployment has no GitHub token; the route then answers 503. */
+  store: FeedbackStore;
+  /** Optional GitHub mirror; database storage is always enabled. */
   tracker?: IssueTracker;
   /** The session lookup the account routes already own, so there is one cookie reader. */
   session: (req: Request) => Promise<AuthSession | undefined>;
 };
 
-/**
- * The bug-report surface: one write, open to anyone — a player who hits a broken card mid-match
- * should not have to make an account first.
- *
- * Aegis keeps no report of its own — a submission becomes an issue on the project's GitHub
- * repository, which is where the bugs get triaged and closed. Nothing to read back here.
- */
-export function installBugReportRoutes({ app, tracker, session }: BugReportRouteDeps): void {
+/** Public submissions persist before mirroring; only authenticated admins can read them. */
+export function installBugReportRoutes({ app, store, tracker, session }: BugReportRouteDeps): void {
   const limitAccount = tokenBucketLimiter(SIGNED_IN_RATE_LIMIT);
   const limitAddress = tokenBucketLimiter(ANONYMOUS_RATE_LIMIT);
 
@@ -51,7 +47,7 @@ export function installBugReportRoutes({ app, tracker, session }: BugReportRoute
       maxSummary: MAX_BUG_REPORT_SUMMARY,
       maxDescription: MAX_BUG_REPORT_DESCRIPTION,
       maxOpponentDeck: MAX_BUG_REPORT_OPPONENT_DECK,
-      enabled: tracker !== undefined,
+      enabled: true,
     });
   });
 
@@ -59,11 +55,38 @@ export function installBugReportRoutes({ app, tracker, session }: BugReportRoute
     submit(req, res).catch(next);
   });
 
-  async function submit(req: Request, res: Response): Promise<void> {
-    if (!tracker) {
-      res.status(503).json({ error: "reports_unavailable" });
+  app.get("/account/feedback", (req, res, next) => {
+    list(req, res).catch(next);
+  });
+
+  async function list(req: Request, res: Response): Promise<void> {
+    res.set("Cache-Control", "no-store");
+    const auth = await session(req);
+    if (!auth) {
+      res.status(401).json({ error: "authentication_required" });
       return;
     }
+    if (!auth.account.isAdmin) {
+      res.status(403).json({ error: "admin_required" });
+      return;
+    }
+    const raw = req.query.before;
+    const before = raw === undefined ? undefined : Number(raw);
+    if (
+      raw !== undefined &&
+      (typeof raw !== "string" ||
+        !/^\d+$/.test(raw) ||
+        !Number.isSafeInteger(before) ||
+        before! <= 0 ||
+        before! > 2147483647)
+    ) {
+      res.status(400).json({ error: "invalid_cursor" });
+      return;
+    }
+    res.json(await store.list(before));
+  }
+
+  async function submit(req: Request, res: Response): Promise<void> {
     const auth = await session(req);
     // An account is its own identity; without one the caller's address is all there is to meter by,
     // and `trust proxy` is what makes that address the reporter's rather than the proxy's.
@@ -77,12 +100,31 @@ export function installBugReportRoutes({ app, tracker, session }: BugReportRoute
       res.status(400).json({ error: report.error });
       return;
     }
+    let id: number;
     try {
-      res.status(201).json(await tracker.file(report));
+      id = await store.save(report, auth?.account.id, tracker !== undefined);
     } catch (failure) {
-      console.error("[bug-reports] could not file an issue", failure);
-      res.status(502).json({ error: "tracker_unavailable" });
+      console.error("[bug-reports] could not save feedback", failure);
+      res.status(503).json({ error: "reports_unavailable" });
+      return;
     }
+    if (!tracker) {
+      res.status(201).json({ number: id });
+      return;
+    }
+    let issue;
+    try {
+      issue = await tracker.file(report);
+    } catch (failure) {
+      console.error("[bug-reports] saved feedback but GitHub mirror failed", failure);
+    }
+    // A tracking update must never turn an already saved report into a failed submission.
+    try {
+      await store.recordMirror(id, issue);
+    } catch (failure) {
+      console.error("[bug-reports] could not update mirror status", failure);
+    }
+    res.status(201).json(issue ?? { number: id });
   }
 }
 

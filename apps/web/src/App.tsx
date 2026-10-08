@@ -43,6 +43,7 @@ import { isUiPreviewPath } from "./prototype/routes";
 import { SEQUENTIAL_PACING_ENABLED } from "./features";
 import { clearReconnectSession, loadReconnectSession } from "./net/reconnectSession";
 
+const FeedbackScreen = lazy(() => import("./bugs/FeedbackScreen").then((m) => ({ default: m.FeedbackScreen })));
 const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
 const ReleasesScreen = lazy(() => import("./releases/ReleasesScreen").then((m) => ({ default: m.ReleasesScreen })));
 const Login = lazy(() => import("./screens/Login").then((m) => ({ default: m.Login })));
@@ -104,7 +105,7 @@ function ScreenFallback() {
   );
 }
 
-const NAV_SCREENS: Screen[] = ["home", "lobby", "deck", "community", "collection", "settings", "releases"];
+const NAV_SCREENS: Screen[] = ["home", "lobby", "deck", "community", "collection", "settings", "releases", "feedback"];
 
 export function withAccountAvatar(player: PlayerIdentity, account: RemoteAccount | null): PlayerIdentity {
   return {
@@ -488,6 +489,7 @@ export function AegisClient({
             />
           )}
 
+          {screen === "feedback" && <FeedbackScreen key={account?.id ?? "guest"} isAdmin={account?.isAdmin === true} />}
           {screen === "login" && <Login onBack={() => navigateScreen("home")} />}
 
           {screen === "lobby" && (
@@ -658,6 +660,7 @@ export function AegisClient({
         <PlayerMenu
           player={effectivePlayer}
           signedIn={!!account}
+          isAdmin={account?.isAdmin === true}
           selectedAvatarId={effectivePlayer.avatarId ?? null}
           onSelectAvatar={selectAvatar}
           onRefreshDiscordAvatar={account?.discordLinked ? refreshDiscordAvatar : undefined}

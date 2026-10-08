@@ -10,6 +10,7 @@ export interface AppRoute {
 }
 
 export const SCREEN_PATHS: Record<Screen, string> = {
+  feedback: "/admin/feedback",
   home: "/",
   login: "/login",
   lobby: "/play",
@@ -24,6 +25,7 @@ export const SCREEN_PATHS: Record<Screen, string> = {
 
 export function routeFromPathname(pathname: string): AppRoute | undefined {
   const normalized = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+  if (normalized === "/admin/feedback") return { screen: "feedback" };
   if (normalized === "/") return { screen: "home" };
   if (normalized === "/login") return { screen: "login" };
   if (normalized === "/play") return { screen: "lobby" };

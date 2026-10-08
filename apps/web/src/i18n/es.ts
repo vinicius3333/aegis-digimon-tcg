@@ -15,6 +15,29 @@ import { settingsEs } from "./redesign/settings.es";
 import { shellEs } from "./redesign/shell.es";
 
 export const es: Record<keyof typeof en, string> = {
+  "feedback.title": "Comentarios de los jugadores",
+  "feedback.subtitle": "Informes enviados desde Aegis, del más reciente al más antiguo.",
+  "feedback.restricted": "Solo los administradores pueden ver los comentarios.",
+  "feedback.error": "No se pudieron cargar los comentarios. Intenta actualizar.",
+  "feedback.empty": "No hay comentarios en esta página.",
+  "feedback.refresh": "Actualizar",
+  "feedback.page": "Página {page}",
+  "feedback.pagination": "Páginas de comentarios",
+  "feedback.newer": "Más recientes",
+  "feedback.older": "Más antiguos",
+  "feedback.anonymous": "Jugador anónimo",
+  "feedback.context": "Detalles técnicos",
+  "feedback.match": "ID de la partida",
+  "feedback.version": "Versión",
+  "feedback.client": "Cliente",
+  "feedback.server": "Servidor",
+  "feedback.browser": "Navegador",
+  "feedback.github": "Abrir issue #{number} en GitHub",
+  "feedback.mirror.pending": "Esperando confirmación",
+  "feedback.mirror.sent": "Enviado",
+  "feedback.mirror.failed": "Falló la copia; comentario guardado",
+  "feedback.mirror.disabled": "Copia desactivada",
+
   "game.dragIntent.reorder": "REORDENAR MANO",
   "settings.sortHand": "Ordenar mano",
   "settings.sortHandDesc":
@@ -1783,10 +1806,9 @@ export const es: Record<keyof typeof en, string> = {
   "account.avatar.error": "No se pudo guardar tu avatar. Inténtalo de nuevo.",
   "bugReport.button": "Enviar comentarios",
   "bugReport.title": "Enviar comentarios",
-  "bugReport.notice.signed":
-    "Se publica como un issue público en GitHub, firmado con tu nombre visible. Escribe en inglés.",
+  "bugReport.notice.signed": "Tu comentario se guardará con tu nombre y podrá publicarse en GitHub. Escribe en inglés.",
   "bugReport.notice.anonymous":
-    "Se publica como un issue público en GitHub. Escribe en inglés e inicia sesión antes si quieres que te respondamos.",
+    "Tu comentario se guardará y podrá publicarse en GitHub. Escribe en inglés e inicia sesión antes si quieres una respuesta.",
   "bugReport.kindLabel": "Tipo",
   "bugReport.kind.bug": "Error",
   "bugReport.kind.improvement": "Mejora",

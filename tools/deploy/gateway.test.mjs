@@ -164,3 +164,8 @@ test("community API calls reach the API while page navigation gets the web app",
   assert.equal(isApiPath("/community", { accept: "text/html,application/xhtml+xml" }), false);
   assert.equal(isApiPath("/communityish", api), false);
 });
+
+test("feedback API reaches the API while the admin screen reaches the web app", () => {
+  assert.equal(isApiPath("/account/feedback", { accept: "*/*" }), true);
+  assert.equal(isApiPath("/admin/feedback", { accept: "text/html" }), false);
+});

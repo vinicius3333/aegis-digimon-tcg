@@ -14,6 +14,7 @@ import "./playerMenu.css";
 export function PlayerMenu({
   player,
   signedIn,
+  isAdmin = false,
   selectedAvatarId,
   onSelectAvatar,
   onRefreshDiscordAvatar,
@@ -24,6 +25,7 @@ export function PlayerMenu({
 }: {
   player: PlayerIdentity;
   signedIn: boolean;
+  isAdmin?: boolean;
   selectedAvatarId: DigimonWorldAvatarId | null;
   onSelectAvatar: (avatarId: DigimonWorldAvatarId | null) => void | Promise<void>;
   /** Present only for an account that signs in with Discord. */
@@ -49,6 +51,15 @@ export function PlayerMenu({
     { key: "releases", label: t("releases.nav"), icon: Icons.Sparkles, action: () => onNav("releases") },
     { key: "settings", label: t("menu.settings"), icon: Icons.Settings, action: () => onNav("settings") },
   ];
+
+  if (signedIn && isAdmin) {
+    links.push({
+      key: "feedback",
+      label: t("feedback.title"),
+      icon: Icons.MessageSquare,
+      action: () => onNav("feedback"),
+    });
+  }
 
   async function pickAvatar(avatarId: DigimonWorldAvatarId | null) {
     if (pendingAvatarId !== undefined) return;

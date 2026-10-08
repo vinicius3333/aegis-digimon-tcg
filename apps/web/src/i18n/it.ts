@@ -3,6 +3,29 @@ import { en } from "./en";
 // Historical release notes keep their published English text. All interface
 // messages are translated; printed card names and effects remain in English.
 const interfaceMessages = {
+  "feedback.title": "Feedback dei giocatori",
+  "feedback.subtitle": "Segnalazioni inviate da Aegis, dalle più recenti.",
+  "feedback.restricted": "Solo gli amministratori possono vedere i feedback.",
+  "feedback.error": "Impossibile caricare i feedback. Prova ad aggiornare.",
+  "feedback.empty": "Nessun feedback in questa pagina.",
+  "feedback.refresh": "Aggiorna",
+  "feedback.page": "Pagina {page}",
+  "feedback.pagination": "Pagine dei feedback",
+  "feedback.newer": "Più recenti",
+  "feedback.older": "Più vecchi",
+  "feedback.anonymous": "Giocatore anonimo",
+  "feedback.context": "Dettagli tecnici",
+  "feedback.match": "ID della partita",
+  "feedback.version": "Versione",
+  "feedback.client": "Client",
+  "feedback.server": "Server",
+  "feedback.browser": "Browser",
+  "feedback.github": "Apri issue #{number} su GitHub",
+  "feedback.mirror.pending": "In attesa di conferma",
+  "feedback.mirror.sent": "Inviato",
+  "feedback.mirror.failed": "Copia non riuscita; feedback salvato",
+  "feedback.mirror.disabled": "Copia disattivata",
+
   "game.leaveConfirmTitle": "Lasciare questa partita?",
   "game.leaveConfirmBody": "Se esci, la partita termina e conta come una sconfitta.",
   "library.japaneseArt": "{label}, edizione giapponese",
@@ -1479,9 +1502,10 @@ const interfaceMessages = {
   "account.avatar.error": "Impossibile salvare l'avatar. Riprova.",
   "bugReport.button": "Invia un feedback",
   "bugReport.title": "Invia un feedback",
-  "bugReport.notice.signed": "Diventerà una issue pubblica su GitHub con il tuo nome. Scrivi in inglese.",
+  "bugReport.notice.signed":
+    "Il feedback verrà salvato con il tuo nome e potrà essere pubblicato su GitHub. Scrivi in inglese.",
   "bugReport.notice.anonymous":
-    "Diventerà una issue pubblica su GitHub. Scrivi in inglese e accedi prima se vuoi ricevere una risposta.",
+    "Il feedback verrà salvato e potrà essere pubblicato su GitHub. Scrivi in inglese e accedi prima se vuoi una risposta.",
   "bugReport.kindLabel": "Tipo",
   "bugReport.kind.bug": "Bug",
   "bugReport.kind.improvement": "Miglioramento",

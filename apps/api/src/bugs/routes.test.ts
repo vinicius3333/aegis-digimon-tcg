@@ -1,6 +1,7 @@
 import type { AddressInfo } from "node:net";
 import express from "express";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { FeedbackStore } from "./FeedbackStore.js";
 import { AccountStore } from "../accounts/AccountStore.js";
 import { installAccountRoutes } from "../accounts/routes.js";
 import { createMemoryPool } from "../db/memoryPool.fixture.js";
@@ -12,6 +13,7 @@ import {
 } from "./GitHubIssueTracker.js";
 
 type Harness = {
+  store: AccountStore;
   url: string;
   cookie: string;
   filed: NewBugReport[];
@@ -43,6 +45,7 @@ async function startHarness(tracker?: IssueTracker, filed: NewBugReport[] = []):
   const session = await store.issueSession(reporter);
 
   return {
+    store,
     url: `http://127.0.0.1:${(server.address() as AddressInfo).port}`,
     cookie: `aegis_session=${session.id}`,
     filed,
@@ -74,6 +77,8 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await harness.close();
+  await harness.store.close();
+  vi.restoreAllMocks();
 });
 
 describe("submitting a bug report", () => {
@@ -223,7 +228,7 @@ describe("submitting a bug report", () => {
     expect(harness.filed[0]!.userAgent).toHaveLength(300);
   });
 
-  it("reports a tracker that refused the issue rather than losing it silently", async () => {
+  it("keeps feedback when the GitHub copy fails", async () => {
     await harness.close();
     harness = await startHarness({
       file: () => Promise.reject(new Error("GitHub refused the issue: 403")),
@@ -231,19 +236,122 @@ describe("submitting a bug report", () => {
     vi.spyOn(console, "error").mockImplementation(() => undefined);
 
     const response = await submit({ summary: "broken", description: "broken" }, harness.cookie);
-    expect(response.status).toBe(502);
-    expect(await response.json()).toEqual({ error: "tracker_unavailable" });
+    expect(response.status).toBe(201);
+    expect(await response.json()).toEqual({ number: 1 });
+    expect((await new FeedbackStore(harness.store).list()).items[0]).toMatchObject({
+      githubStatus: "failed",
+      report: { summary: "broken" },
+    });
     vi.restoreAllMocks();
   });
 
-  it("says reports are unavailable when the deployment configured no tracker", async () => {
+  it("saves feedback without a GitHub tracker", async () => {
     await harness.close();
     harness = await startHarness(undefined);
 
     const response = await submit({ summary: "broken", description: "broken" }, harness.cookie);
+    expect(response.status).toBe(201);
+    expect(await response.json()).toEqual({ number: 1 });
+    expect((await new FeedbackStore(harness.store).list()).items[0]?.githubStatus).toBe("disabled");
+    const limits = (await (await fetch(`${harness.url}/bug-reports/limits`)).json()) as { enabled: boolean };
+    expect(limits.enabled).toBe(true);
+  });
+});
+
+describe("feedback persistence and administrator access", () => {
+  async function adminCookie() {
+    const admin = await harness.store.accountForIdentity("discord", "admin", "Vn");
+    await harness.store.pool.query("UPDATE accounts SET is_admin=true WHERE id=$1", [admin.id]);
+    const session = await harness.store.issueSession(admin);
+    return `aegis_session=${session.id}`;
+  }
+
+  function list(cookie?: string, query = "") {
+    return fetch(`${harness.url}/account/feedback${query}`, {
+      headers: cookie ? { Cookie: cookie } : {},
+    });
+  }
+
+  it("saves anonymous and signed reports with their account and mirror context", async () => {
+    await submit({ summary: "anonymous", description: "details" });
+    await submit(
+      { summary: "signed", description: "details", matchId: "f62249e5-ba6e-4528-b517-63bee8fbbb0f" },
+      harness.cookie,
+    );
+    const response = await list(await adminCookie());
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    const page = await response.json();
+    expect(page).toMatchObject({
+      nextBefore: null,
+      items: [
+        {
+          id: 2,
+          report: { summary: "signed", reporterName: "Tamer", matchId: "f62249e5-ba6e-4528-b517-63bee8fbbb0f" },
+          githubStatus: "sent",
+          githubNumber: 42,
+        },
+        { id: 1, report: { summary: "anonymous" }, githubUrl: "https://github.com/example/repo/issues/42" },
+      ],
+    });
+    const rows = (await harness.store.pool.query("SELECT reporter_account_id FROM feedback_reports ORDER BY id")).rows;
+    expect(rows[0].reporter_account_id).toBeNull();
+    expect(rows[1].reporter_account_id).toBeTruthy();
+  });
+
+  it("rejects guests and ordinary players, including a player named Vn", async () => {
+    await submit({ summary: "private", description: "private" });
+    expect((await list()).status).toBe(401);
+    expect((await list(harness.cookie)).status).toBe(403);
+    const impostor = await harness.store.accountForIdentity("discord", "impostor", "Vn");
+    const session = await harness.store.issueSession(impostor);
+    const response = await list(`aegis_session=${session.id}`);
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ error: "admin_required" });
+  });
+
+  it("rechecks the administrator permission on every read", async () => {
+    const cookie = await adminCookie();
+    expect((await list(cookie)).status).toBe(200);
+    await harness.store.pool.query("UPDATE accounts SET is_admin=false WHERE display_name='Vn'");
+    expect((await list(cookie)).status).toBe(403);
+  });
+
+  it("paginates by ID without repeating reports when new ones arrive", async () => {
+    const store = new FeedbackStore(harness.store);
+    for (let i = 0; i < 52; i++) {
+      await store.save({ kind: "bug", summary: `Report ${i}`, description: "details", cardIds: [] }, undefined, false);
+    }
+    const cookie = await adminCookie();
+    const first = (await (await list(cookie)).json()) as Awaited<ReturnType<FeedbackStore["list"]>>;
+    expect(first.items).toHaveLength(50);
+    expect(first.items[0]!.id).toBe(52);
+    expect(first.nextBefore).toBe(3);
+    await store.save({ kind: "other", summary: "new", description: "new", cardIds: [] }, undefined, false);
+    const second = (await (await list(cookie, `?before=${first.nextBefore}`)).json()) as Awaited<
+      ReturnType<FeedbackStore["list"]>
+    >;
+    expect(second.items.map((item: { id: number }) => item.id)).toEqual([2, 1]);
+    expect(second.nextBefore).toBeNull();
+  });
+
+  it.each(["0", "-1", "abc", "1.5", "2147483648", "1&before=2", ""])("rejects invalid cursor %s", async (cursor) => {
+    expect((await list(await adminCookie(), `?before=${cursor}`)).status).toBe(400);
+  });
+
+  it("does not call GitHub when database persistence fails", async () => {
+    vi.spyOn(FeedbackStore.prototype, "save").mockRejectedValue(new Error("database offline"));
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const response = await submit({ summary: "broken", description: "details" });
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ error: "reports_unavailable" });
-    const limits = (await (await fetch(`${harness.url}/bug-reports/limits`)).json()) as { enabled: boolean };
-    expect(limits.enabled).toBe(false);
+    expect(harness.filed).toHaveLength(0);
+  });
+
+  it("still acknowledges saved feedback when recording the mirror result fails", async () => {
+    vi.spyOn(FeedbackStore.prototype, "recordMirror").mockRejectedValue(new Error("database offline"));
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    expect((await submit({ summary: "saved", description: "details" })).status).toBe(201);
+    expect((await new FeedbackStore(harness.store).list()).items[0]?.githubStatus).toBe("pending");
   });
 });

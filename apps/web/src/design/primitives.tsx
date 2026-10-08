@@ -42,6 +42,7 @@ export type Screen =
   | "tournaments"
   | "settings"
   | "releases"
+  | "feedback"
   | "game";
 
 export function Stage({ children }: { children: ReactNode }) {

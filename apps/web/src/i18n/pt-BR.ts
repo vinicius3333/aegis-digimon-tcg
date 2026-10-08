@@ -18,6 +18,29 @@ import { settingsPtBR } from "./redesign/settings.pt-BR";
 import { shellPtBR } from "./redesign/shell.pt-BR";
 
 export const ptBR: Record<keyof typeof en, string> = {
+  "feedback.title": "Feedbacks dos jogadores",
+  "feedback.subtitle": "Relatos enviados pelo Aegis, dos mais recentes aos mais antigos.",
+  "feedback.restricted": "Somente administradores podem ver os feedbacks.",
+  "feedback.error": "Não foi possível carregar os feedbacks. Tente atualizar.",
+  "feedback.empty": "Nenhum feedback nesta página.",
+  "feedback.refresh": "Atualizar",
+  "feedback.page": "Página {page}",
+  "feedback.pagination": "Páginas de feedbacks",
+  "feedback.newer": "Mais recentes",
+  "feedback.older": "Mais antigos",
+  "feedback.anonymous": "Jogador anônimo",
+  "feedback.context": "Detalhes técnicos",
+  "feedback.match": "ID da partida",
+  "feedback.version": "Versão",
+  "feedback.client": "Cliente",
+  "feedback.server": "Servidor",
+  "feedback.browser": "Navegador",
+  "feedback.github": "Abrir issue #{number} no GitHub",
+  "feedback.mirror.pending": "Aguardando confirmação",
+  "feedback.mirror.sent": "Enviado",
+  "feedback.mirror.failed": "Falha na cópia; feedback salvo",
+  "feedback.mirror.disabled": "Cópia desativada",
+
   "game.dragIntent.reorder": "REORDENAR MÃO",
   "settings.sortHand": "Ordenar mão",
   "settings.sortHandDesc":
@@ -1857,9 +1880,10 @@ export const ptBR: Record<keyof typeof en, string> = {
   "account.avatar.error": "Não foi possível salvar o avatar. Tente novamente.",
   "bugReport.button": "Enviar feedback",
   "bugReport.title": "Enviar feedback",
-  "bugReport.notice.signed": "Vira uma issue pública no GitHub, assinada com seu nome de exibição. Escreva em inglês.",
+  "bugReport.notice.signed":
+    "Seu feedback será salvo com seu nome de exibição e poderá ser publicado no GitHub. Escreva em inglês.",
   "bugReport.notice.anonymous":
-    "Vira uma issue pública no GitHub. Escreva em inglês e entre na sua conta antes se quiser uma resposta.",
+    "Seu feedback será salvo e poderá ser publicado no GitHub. Escreva em inglês e entre na conta antes se quiser uma resposta.",
   "bugReport.kindLabel": "Tipo",
   "bugReport.kind.bug": "Bug",
   "bugReport.kind.improvement": "Melhoria",

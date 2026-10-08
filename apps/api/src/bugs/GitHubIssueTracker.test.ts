@@ -159,3 +159,25 @@ describe("the issue a report becomes", () => {
     expect(body).toContain("`Mozilla/5.0 evil`");
   });
 });
+
+describe("feedback GitHub mirror flag", () => {
+  it.each(["false", "FALSE", " false "])("disables the mirror with %s even with credentials", (flag) => {
+    expect(
+      GitHubIssueTracker.fromEnvironment({
+        GITHUB_TOKEN: "token",
+        GITHUB_BUG_REPOSITORY: "example/repo",
+        FEEDBACK_GITHUB_ENABLED: flag,
+      }),
+    ).toBeUndefined();
+  });
+
+  it.each([undefined, "true"])("keeps dual writes enabled with %s", (flag) => {
+    expect(
+      GitHubIssueTracker.fromEnvironment({
+        GITHUB_TOKEN: "token",
+        GITHUB_BUG_REPOSITORY: "example/repo",
+        FEEDBACK_GITHUB_ENABLED: flag,
+      }),
+    ).toBeDefined();
+  });
+});

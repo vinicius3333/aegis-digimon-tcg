@@ -142,3 +142,13 @@ describe("the player menu", () => {
     expect(props.onNav).toHaveBeenCalledWith("settings");
   });
 });
+
+it("shows the feedback inbox only to signed-in administrators", () => {
+  renderMenu({ signedIn: true });
+  expect(screen.queryByRole("button", { name: "Player feedback" })).toBeNull();
+  cleanup();
+  const props = renderMenu({ signedIn: true, isAdmin: true });
+  fireEvent.click(screen.getByRole("button", { name: "Player feedback" }));
+  expect(props.onNav).toHaveBeenCalledWith("feedback");
+  expect(props.onClose).toHaveBeenCalled();
+});

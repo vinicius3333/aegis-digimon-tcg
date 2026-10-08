@@ -26,6 +26,7 @@ import { SwissProgram } from "../tournaments/swiss/index.js";
 import { BotSeatingStore } from "../tournaments/bots/index.js";
 import { EliminationStore } from "../tournaments/elimination/index.js";
 import { ArbitrationService, installArbitrationRoutes } from "../tournaments/arbitration/index.js";
+import { FeedbackStore } from "../bugs/FeedbackStore.js";
 import { installBugReportRoutes, type IssueTracker } from "../bugs/index.js";
 import { CommunityDeckStore } from "../community/CommunityDeckStore.js";
 import type { DeckReportTracker } from "../community/deckReports.js";
@@ -86,8 +87,8 @@ export function installAccountRoutes(
     arbitration,
     session: sessionFromRequest,
   });
-  // Player bug reports, filed straight to the project's GitHub issues. See src/bugs.
-  installBugReportRoutes({ app, tracker: bugTracker, session: sessionFromRequest });
+  // Feedback is stored locally, with an optional copy in GitHub.
+  installBugReportRoutes({ app, store: new FeedbackStore(store), tracker: bugTracker, session: sessionFromRequest });
   // Public decks, likes and copies. See src/community.
   installCommunityDeckRoutes({
     app,

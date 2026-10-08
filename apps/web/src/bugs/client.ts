@@ -18,8 +18,8 @@ export type BugReportDraft = {
   matchId?: string;
 };
 
-/** The GitHub issue a report became, which the dialog links to. */
-export type FiledBugReport = { number: number; url: string };
+/** Submission receipt, with an optional GitHub mirror. */
+export type FiledBugReport = { number: number; url?: string };
 
 export class BugReportApiError extends Error {
   constructor(

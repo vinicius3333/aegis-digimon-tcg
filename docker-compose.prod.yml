@@ -23,9 +23,9 @@
 # BREVO_API_KEY, BREVO_EMAIL_FROM (sign-in emails fall back to Brevo once Resend
 # reaches its daily limit), RESEND_DAILY_LIMIT and BREVO_DAILY_LIMIT (sends per UTC
 # day; default 100 and 300, the free plans),
-# GITHUB_TOKEN, GITHUB_BUG_REPOSITORY, GITHUB_BUG_LABELS (player bug reports are
-# filed as GitHub issues; without the token and the repository the in-game form
-# tells players to use Discord instead), AEGIS_TRUSTED_PROXY_HOPS (proxies in
+# GITHUB_TOKEN, GITHUB_BUG_REPOSITORY, GITHUB_BUG_LABELS (optional feedback mirror),
+# FEEDBACK_GITHUB_ENABLED (default true; false keeps feedback in Postgres only),
+# AEGIS_TRUSTED_PROXY_HOPS (proxies in
 # front of the API, which is how an anonymous reporter's address is read).
 #
 # For local development use docker-compose.yml instead.
@@ -65,6 +65,7 @@ x-api: &api
     ADMIN_DISPLAY_NAME: ${ADMIN_DISPLAY_NAME:-}
     GITHUB_TOKEN: ${GITHUB_TOKEN:-}
     GITHUB_BUG_REPOSITORY: ${GITHUB_BUG_REPOSITORY:-}
+    FEEDBACK_GITHUB_ENABLED: ${FEEDBACK_GITHUB_ENABLED:-true}
     GITHUB_BUG_LABELS: ${GITHUB_BUG_LABELS:-}
     AEGIS_TRUSTED_PROXY_HOPS: ${AEGIS_TRUSTED_PROXY_HOPS:-2}
     AEGIS_WAITING_ROOM_TIMEOUT_SECONDS: ${AEGIS_WAITING_ROOM_TIMEOUT_SECONDS:-1800}
