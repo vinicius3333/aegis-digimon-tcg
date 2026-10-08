@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 import { cueKey, type SoundKind, type SoundDetails } from "./audioRecipes";
 import { AUDIO_BANK_URL, AUDIO_CUES } from "./audioBank";
 import { DEFAULT_MUSIC_TRACK, isMusicTrack, MUSIC_TRACK_URLS, type MusicTrack } from "./musicTracks";
-import { MediaAudio, needsMediaAudio } from "./mediaAudio";
+import { MediaAudio, needsMediaAudio, splitCueWav } from "./mediaAudio";
 export type { SoundKind, SoundDetails } from "./audioRecipes";
 const clamp = (value: number, fallback = 0) => (Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : fallback);
 
@@ -393,7 +393,38 @@ export function playSound(kind: SoundKind, details?: SoundDetails): void {
   // Offset/duration select a finished original clip. No fetch, decode, render or oscillator graph here.
   node.start(now, cue.offset, cue.duration);
 }
+let attentionClips: Promise<Map<string, string>> | null = null;
+function attentionClipUrls(bytes: ArrayBuffer): Map<string, string> {
+  const urls = new Map<string, string>();
+  for (const [key, clip] of splitCueWav(bytes))
+    urls.set(key, URL.createObjectURL(new Blob([clip], { type: "audio/wav" })));
+  return urls;
+}
+/**
+ * Calls the player back to a hidden tab. Presentation cues stay silent there, and the
+ * suspended AudioContext cannot play, so a hidden tab uses a media element instead.
+ */
+export function playAttentionSound(kind: SoundKind): void {
+  if (!document.hidden) {
+    playSound(kind);
+    return;
+  }
+  const bank = assets.get(AUDIO_BANK_URL);
+  if (!enabled || volume <= 0 || !(unlocked || mediaAudio) || !bank) return;
+  attentionClips ??= bank.then(attentionClipUrls);
+  void attentionClips
+    .then((urls) => {
+      const url = urls.get(cueKey(kind));
+      if (!url) return;
+      const player = new Audio(url);
+      player.volume = volume * SFX_MIX_GAIN;
+      return player.play();
+    })
+    .catch(() => undefined);
+}
 export function disposeAudio(): void {
+  void attentionClips?.then((urls) => urls.forEach((url) => URL.revokeObjectURL(url))).catch(() => undefined);
+  attentionClips = null;
   mediaAudio?.dispose();
   mediaAudio = null;
   epoch++;

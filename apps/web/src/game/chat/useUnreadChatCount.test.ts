@@ -3,11 +3,11 @@
 import { renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Seat } from "@aegis/shared";
-import { playSound } from "../../design/sound";
+import { playAttentionSound } from "../../design/sound";
 import type { ChatEntry } from "./useMatchChat";
 import { useUnreadChatCount } from "./useUnreadChatCount";
 
-vi.mock("../../design/sound", () => ({ playSound: vi.fn<(kind: string) => void>() }));
+vi.mock("../../design/sound", () => ({ playAttentionSound: vi.fn<(kind: string) => void>() }));
 
 function entry(id: number, own: boolean, seat: Seat = own ? 0 : 1): ChatEntry {
   return { id, own, sender: { kind: "player", seat }, message: { kind: "text", text: `message ${id}` } };
@@ -17,7 +17,7 @@ function render(initial: { entries: readonly ChatEntry[]; open: boolean }) {
   return renderHook(({ entries, open }) => useUnreadChatCount(entries, open), { initialProps: initial });
 }
 
-afterEach(() => vi.mocked(playSound).mockClear());
+afterEach(() => vi.mocked(playAttentionSound).mockClear());
 
 describe("useUnreadChatCount", () => {
   it("counts only other senders' messages that arrive while the window is closed", () => {
@@ -48,8 +48,8 @@ describe("useUnreadChatCount", () => {
     hook.rerender({ entries: [entry(0, false)], open: false });
     hook.rerender({ entries: [entry(0, false), entry(1, false)], open: false });
 
-    expect(playSound).toHaveBeenCalledTimes(1);
-    expect(playSound).toHaveBeenCalledWith("prompt");
+    expect(playAttentionSound).toHaveBeenCalledTimes(1);
+    expect(playAttentionSound).toHaveBeenCalledWith("prompt");
   });
 
   it("stays silent for the viewer's own messages", () => {
@@ -57,6 +57,16 @@ describe("useUnreadChatCount", () => {
     hook.rerender({ entries: [entry(0, true)], open: false });
 
     expect(hook.result.current).toBe(0);
-    expect(playSound).not.toHaveBeenCalled();
+    expect(playAttentionSound).not.toHaveBeenCalled();
+  });
+
+  it("counts and chimes for messages that arrive in an open window while the tab is hidden", () => {
+    const hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(true);
+    const hook = render({ entries: [], open: true });
+    hook.rerender({ entries: [entry(0, false), entry(1, false)], open: true });
+
+    expect(hook.result.current).toBe(2);
+    expect(playAttentionSound).toHaveBeenCalledTimes(1);
+    hidden.mockRestore();
   });
 });
