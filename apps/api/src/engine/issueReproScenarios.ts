@@ -25,6 +25,23 @@ type Layout = { players: readonly [PlayerLayout, PlayerLayout]; memory?: number 
 
 // Reduced boards for reported issues. Each runs in the ordinary turn loop.
 const ISSUE_LAYOUTS = {
+  "arena-github-5349-collision-immunity": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "EX13-020", under: ["BT21-036"] }, { card: "BT1-009" }],
+        hand: ["BT16-102", "BT17-077", "BT1-009"],
+        deck: Array(12).fill("BT1-001"),
+        security: Array(5).fill("BT1-001"),
+      },
+      {
+        field: [{ card: "EX13-064" }, { card: "EX13-058", under: ["BT1-009"] }],
+        hand: ["BT1-012", "BT1-009"],
+        deck: Array(12).fill("BT1-001"),
+        security: ["BT1-084", ...Array(4).fill("BT1-001")],
+      },
+    ],
+  },
   "arena-github-5289-ulforce-rina": {
     memory: 10,
     players: [
