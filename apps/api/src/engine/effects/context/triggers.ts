@@ -254,6 +254,8 @@ export interface TriggerInfo {
   byEffectSeat?: Seat;
   /** Printed card ID of the effect that produced the event, when known. */
   byEffectCardId?: string;
+  /** Keyword that actually caused this event, including granted or inherited abilities. */
+  byEffectKeyword?: Keyword;
   /** Printed identity before a Digimon top is trashed and its next source promoted. */
   trashedDigimonTop?: { permanentId: string; controllerSeat: Seat; cardId: string };
   /** Whether the trashed digivolution card was the top card of its stack. */

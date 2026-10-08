@@ -631,15 +631,16 @@ export class CombatController {
               await this.fireSuspended(ally, allySuspended);
               // Alliance suspends its chosen ally as an effect cost (§16-24), so the
               // effect-suspension bus must observe the actual transition after the keyword's
-              // DP/security benefit has been installed. Carry the attacking card as the
-              // producer so watchers such as EX4-032/033/034 can distinguish Alliance from
-              // an unrelated suspension effect.
+              // DP/security benefit has been installed. Carry the resolving keyword as the
+              // cause so inherited watchers also recognize granted Alliance, without confusing
+              // an unrelated suspension effect on an Alliance card for the keyword itself.
               if (allySuspended) {
                 await this.hooks.fireSubTrigger?.("whenEffectSuspends", {
                   subjectPermanentId: ally.permanentId,
                   suspendedPermanentId: ally.permanentId,
                   effectSuspendSeat: attackerSeat,
                   byEffectCardId: attacker.topCard.cardId,
+                  byEffectKeyword: "Alliance",
                 });
               }
             }
@@ -1137,6 +1138,7 @@ export class CombatController {
         suspendedPermanentId: ally.permanentId,
         effectSuspendSeat: attacker.controllerSeat,
         byEffectCardId: attacker.topCard.cardId,
+        byEffectKeyword: "Alliance",
       });
     }
   }
