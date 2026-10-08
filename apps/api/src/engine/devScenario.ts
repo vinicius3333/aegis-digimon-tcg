@@ -393,6 +393,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-piedmon-declined-opt",
   "arena-issue-4893-seiten-evo-cost",
   "arena-issue-4894-jesmon-token-limit",
+  "arena-sakuyamon-maid-option-timing",
   "arena-jesmon-scramble-dp-blocked",
   "arena-jesmon-scramble-dp-allowed",
   "arena-ex11-ryutaro-suspended",
@@ -6910,6 +6911,22 @@ function layIssue4894JesmonTokenLimitScenario(state: GameState, decks: readonly 
   insertCard(human, Zone.Hand, faceDownCard("dev-issue-4894-ciel", "BT10-085", 0));
 }
 
+function laySakuyamonMaidOptionTimingScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT17-032"], "-maid-timing-base"));
+  for (const [index, cardId] of ["BT17-035", "LM-029", "ST22-06", "BT1-102"].entries()) {
+    insertCard(human, Zone.Hand, faceDownCard(`dev-maid-timing-hand-${index}`, cardId, 0));
+  }
+  for (let index = 0; index < 3; index += 1) {
+    insertCard(human, Zone.Deck, faceDownCard(`dev-maid-timing-draw-${index}`, "BT1-009", 0), "top");
+  }
+  placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-maid-timing-high"));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-010"], "-maid-timing-low"));
+}
+
 function layJesmonScrambleDpScenario(
   state: GameState,
   decks: readonly [Decklist, Decklist],
@@ -9404,6 +9421,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-dominimon-security-priority": (state, decks) => layDerivedPriorityScenario(state, decks, "dominimon"),
   "arena-issue-4893-seiten-evo-cost": layIssue4893SeitenEvoCostScenario,
   "arena-issue-4894-jesmon-token-limit": layIssue4894JesmonTokenLimitScenario,
+  "arena-sakuyamon-maid-option-timing": laySakuyamonMaidOptionTimingScenario,
   "arena-jesmon-scramble-dp-blocked": (state, decks) => layJesmonScrambleDpScenario(state, decks, false),
   "arena-jesmon-scramble-dp-allowed": (state, decks) => layJesmonScrambleDpScenario(state, decks, true),
   "arena-ex11-ryutaro-suspended": layEx11RyutaroSuspendedScenario,

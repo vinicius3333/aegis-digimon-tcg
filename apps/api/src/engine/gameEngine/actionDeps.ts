@@ -53,6 +53,7 @@ import {
   wouldBePlayedRuleTrashMaterials,
 } from "./timing.js";
 import {
+  prepareOptionUsed,
   nestedTriggerSourceStillResident,
   parkedEntryCollected,
   pendingWindowCollected,
@@ -681,6 +682,7 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
         engine.optionResolutionDepth = Math.max(0, engine.optionResolutionDepth - 1);
       }
     },
+    prepareOptionUsed: (usedInstanceId, usedOptionCost) => prepareOptionUsed(engine, usedInstanceId, usedOptionCost),
     fireOptionUsed: async (usedInstanceId, usedOptionCost) =>
       engine.primitives.fireOptionUsed(usedInstanceId, usedOptionCost),
     // CR §4-19 Arts Digivolve (Task 4): a rule on DUAL cards, not a per-card effect —

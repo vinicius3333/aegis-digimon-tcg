@@ -910,7 +910,10 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "triggerOptionMatchesFilter": {
       const instanceId = ctx.trigger.subjectPermanentId;
       if (instanceId === undefined || cond.filter === undefined) return false;
-      const candidate = findLooseCandidateByInstance(ctx, instanceId);
+      // The use event precedes Main; its Option is already in the no-area slot.
+      const candidate =
+        ctx.game.state.players.find((player) => player.resolvingOption?.instanceId === instanceId)?.resolvingOption ??
+        findLooseCandidateByInstance(ctx, instanceId);
       return (
         candidate !== undefined && definitionMatches(cond.filter, ctx.game.definitionOf({ cardId: candidate.cardId }))
       );

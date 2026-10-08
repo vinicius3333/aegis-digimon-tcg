@@ -104,6 +104,8 @@ export interface PrimitivesEngine {
     ascensionCandidates: readonly { instanceId: string; seat: Seat }[],
     transientCandidates?: readonly CardInstance[],
   ) => Promise<void>;
+  /** Snapshot the Option-use event before Main; return its deferred activation. */
+  prepareOptionUsed?(usedInstanceId: string, usedOptionCost?: number): () => Promise<void>;
   /**
    * Fire the SubTrigger bus (System B) for an event, running armed watchers whose captured
    * sourceFilter matches the payload (delayed-and-rule-effects). Optional on the port so the

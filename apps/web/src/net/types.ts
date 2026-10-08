@@ -604,6 +604,7 @@ export interface AegisJoinOptions {
     | "arena-piedmon-declined-opt"
     | "arena-issue-4893-seiten-evo-cost"
     | "arena-issue-4894-jesmon-token-limit"
+    | "arena-sakuyamon-maid-option-timing"
     | "arena-jesmon-scramble-dp-blocked"
     | "arena-jesmon-scramble-dp-allowed"
     | "arena-ex11-ryutaro-suspended"
