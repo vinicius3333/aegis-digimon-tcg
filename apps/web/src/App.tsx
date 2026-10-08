@@ -18,7 +18,6 @@ import {
 import type { AegisJoinOptions } from "./net/types";
 import type { SeriesGameTicket } from "./net/useRoom";
 import type { PrivateRoom, StartMode } from "./screens/Lobby";
-import { loadMatchTimerPreference } from "./screens/matchTimerPreference";
 import { loadMatchFormatPreference } from "./screens/matchFormatPreference";
 import { Settings } from "./screens/Settings";
 import { loadIdentity, saveIdentity, loadDecks, saveDecks, loadActiveDeckId, saveActiveDeckId } from "./identity";
@@ -312,7 +311,7 @@ export function AegisClient({
     });
   });
   const [timerOptions, setTimerOptions] = useState(() => ({
-    matchTimer: loadMatchTimerPreference(),
+    matchTimer: true,
     timerStartSeconds: 300,
     timerRefillSeconds: 60,
   }));

@@ -4,7 +4,6 @@ import { createRoot } from "react-dom/client";
 import { Lobby } from "../src/screens/Lobby";
 import { createBlankDeck, type DeckListing } from "../src/game/decks";
 import { I18nProvider } from "../src/i18n";
-import { loadMatchTimerPreference } from "../src/screens/matchTimerPreference";
 import { loadMatchFormatPreference } from "../src/screens/matchFormatPreference";
 import "../src/design/tokens.css";
 import "../src/design/base.css";
@@ -36,7 +35,7 @@ function FormatLobby() {
   const [activeDeckId, setActiveDeckId] = useState(eosmon.id);
   const [request, setRequest] = useState("");
   const [timerOptions, setTimerOptions] = useState(() => ({
-    matchTimer: loadMatchTimerPreference(),
+    matchTimer: true,
     timerStartSeconds: 300,
     timerRefillSeconds: 60,
   }));

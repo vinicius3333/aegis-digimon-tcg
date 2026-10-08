@@ -25,8 +25,10 @@ for (const width of [320, 768, 1024, 1440]) {
   });
 }
 
-test("advanced choices survive collapsing, opponent changes and reload", async ({ page }) => {
+test("timer ignores old opt-outs and resets on reload while session choices survive mode changes", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("aegis:match-timer", "false"));
   await page.goto("/e2e/lobby-formats.html");
+  await expect(page.locator(".lobby-setup__summary")).toContainText("Timer ON");
   const advanced = page.getByText("Advanced settings", { exact: true });
   await advanced.focus();
   await page.keyboard.press("Enter");
@@ -45,6 +47,6 @@ test("advanced choices survive collapsing, opponent changes and reload", async (
   await expect(page.getByRole("textbox", { name: "Enter room code" })).toBeVisible();
   await page.reload();
   await expect(page.locator(".lobby-setup__summary")).toContainText("Best of 3");
-  await expect(page.locator(".lobby-setup__summary")).toContainText("OFF");
+  await expect(page.locator(".lobby-setup__summary")).toContainText("Timer ON");
   await expect(page.getByRole("combobox", { name: "Cards through", exact: true })).not.toBeVisible();
 });

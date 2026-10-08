@@ -43,7 +43,6 @@ import { DeckFormatSelector, deckFormatLabel } from "./DeckFormatSelector";
 import { MatchFormatSettings } from "./MatchFormatSettings";
 import { MatchTimerSettings } from "./MatchTimerSettings";
 import { loadMatchFormatPreference, saveMatchFormatPreference } from "./matchFormatPreference";
-import { loadMatchTimerPreference, saveMatchTimerPreference } from "./matchTimerPreference";
 import "./lobby.css";
 import { lookupPrivateRoom } from "../net/client";
 import { SpectatorPanel } from "./SpectatorPanel";
@@ -221,13 +220,10 @@ export function Lobby({
   const { t } = useTranslation();
   const MODES = modesFor(t);
   const [timer, setTimer] = useState<Required<MatchTimerOptions>>(() => ({
-    matchTimer: timerOptions?.matchTimer ?? loadMatchTimerPreference(),
+    matchTimer: timerOptions?.matchTimer ?? true,
     timerStartSeconds: timerOptions?.timerStartSeconds ?? 300,
     timerRefillSeconds: MATCH_TIMER_REFILL_SECONDS,
   }));
-  useEffect(() => {
-    saveMatchTimerPreference(timer.matchTimer);
-  }, [timer.matchTimer]);
   function changeTimer(options: Required<MatchTimerOptions>) {
     setTimer(options);
     onTimerOptionsChange?.(options);
