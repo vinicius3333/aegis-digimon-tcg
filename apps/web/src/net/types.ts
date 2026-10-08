@@ -218,6 +218,7 @@ export interface AegisJoinOptions {
     | "arena-bt24-sonic-shot-decline-link"
     | "arena-bt26-chronomon-dm-succession"
     | "arena-face-up-security"
+    | "arena-github-5299-ravemon-bottom-security"
     | "arena-bt20-invisimon-security-count"
     | "arena-ex13-grademon-immunity"
     | "arena-diarbbitmon-dual-option-immunity"
