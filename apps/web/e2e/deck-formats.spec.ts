@@ -3,7 +3,10 @@ import { expect, test, type Page } from "@playwright/test";
 class FormatBuilderPage {
   constructor(readonly page: Page) {}
   format() {
-    return this.page.getByRole("combobox", { name: "Format", exact: true });
+    return this.page.getByRole("combobox", { name: "Rules", exact: true });
+  }
+  pool() {
+    return this.page.getByRole("combobox", { name: "Cards through", exact: true });
   }
   async search(card: string) {
     const filters = this.page.getByRole("button", { name: "Filters", exact: true });
@@ -23,8 +26,8 @@ for (const width of [320, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/e2e/deck-builder.html");
     const builder = new FormatBuilderPage(page);
-    await builder.format().selectOption("BT13");
-    await expect(page.getByText(/Card pool through BT13 · Banlist: 2023-07-21/)).toBeVisible();
+    await builder.pool().selectOption("BT13");
+    await expect(page.getByText(/Card pool through BT13\. Banlist: 2023-07-21/)).toBeVisible();
     await builder.search("BT13-012");
     if (width === 1440) {
       await page.getByRole("button", { name: "Card info", exact: true }).click();
@@ -41,7 +44,7 @@ for (const width of [320, 768, 1024, 1440]) {
     const poolStepper = page.getByRole("button", { name: "Add", exact: true });
     for (let i = 0; i < 3; i++) await poolStepper.click();
     await expect(poolStepper).toBeDisabled();
-    await builder.format().selectOption("standard");
+    await builder.pool().selectOption("all");
     const details = page.getByRole("button", { name: /Tap to see more about the deck/ });
     if (await details.isVisible()) await details.click();
     await expect(page.getByText(/GeoGreymon.*4.*1/)).toBeVisible();

@@ -85,6 +85,35 @@ describe("room-scoped deployment affinity", () => {
     );
     expect(greenJoin).not.toHaveBeenCalled();
   });
+  it("routes set Unlimited with the full pool/rules combination and normalizes bot and private flags", async () => {
+    const greenJoin = vi.fn<ColyseusClientPort["joinOrCreate"]>(async () => room("historical"));
+    const create = vi.fn<ColyseusClientPort["create"]>(async () => room("isolated"));
+    const client = router({
+      manifest: { version: 1, active: { slot: "green", revision: "new" }, draining: [] },
+      blue: clientPort(),
+      green: clientPort({ joinOrCreate: greenJoin, create }),
+    });
+    await client.joinOrCreate({ ...OPTIONS, format: "BT13:unlimited" });
+    expect(greenJoin).toHaveBeenCalledWith(
+      "aegis_unlimited",
+      expect.objectContaining({ unlimited: true, format: "BT13:unlimited" }),
+    );
+    await client.createBot({ ...OPTIONS, format: "BT13:unlimited" });
+    expect(create).toHaveBeenLastCalledWith(
+      "aegis_bot",
+      expect.objectContaining({ unlimited: true, format: "BT13:unlimited" }),
+    );
+    await client.createPrivate({ ...OPTIONS, format: "BT13:unlimited" });
+    expect(create).toHaveBeenLastCalledWith(
+      "aegis_private",
+      expect.objectContaining({ unlimited: true, format: "BT13:unlimited" }),
+    );
+    await client.joinOrCreate({ ...OPTIONS, format: "BT13:pauper" });
+    expect(greenJoin).toHaveBeenLastCalledWith(
+      "aegis",
+      expect.objectContaining({ unlimited: false, format: "BT13:pauper" }),
+    );
+  });
   it("calls the bot endpoint without rebinding the browser fetch receiver", async () => {
     const botRoom = room("bot-room");
     const fetcher = vi.fn(function (this: unknown) {

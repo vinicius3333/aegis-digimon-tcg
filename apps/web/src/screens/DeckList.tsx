@@ -1,3 +1,4 @@
+import { deckFormatLabel } from "./DeckFormatSelector";
 /* The deck picker: a hero with the create and import actions, then every saved deck
    as a table row (a card on narrow screens) with its edit, export, activate and
    delete actions. */
@@ -261,15 +262,7 @@ function DeckListRow({
         <div className="deck-list-row__identity">
           <div className="deck-list-row__name">
             <h3>{deck.name}</h3>
-            {deck.format && deck.format !== "standard" ? (
-              <Badge>
-                {deck.format === "pauper"
-                  ? t("deckFormat.pauper")
-                  : deck.format === "unlimited"
-                    ? t("lobby.unlimited")
-                    : deck.format}
-              </Badge>
-            ) : null}
+            {deck.format && deck.format !== "standard" ? <Badge>{deckFormatLabel(deck.format, t)}</Badge> : null}
             {active ? (
               <Badge tone="primary">
                 <Icons.Check size={12} />

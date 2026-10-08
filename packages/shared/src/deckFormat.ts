@@ -2,22 +2,41 @@ import { banlistAsOf, BANLIST_AS_OF_DATE, bannedPairViolations } from "./banlist
 import { allProductLabels, releaseDateForCard, releaseDateForSet } from "./cards/cardPool.js";
 import { getCardDefinition } from "./cards/registry.js";
 
-/** Set formats snapshot the English card pool and banlist on the product's release date. */
-export type DeckFormat = "standard" | "unlimited" | "pauper" | `${"BT" | "EX" | "ST" | "RB" | "AD"}${number}`;
+export type HistoricalDeckSet = `${"BT" | "EX" | "ST" | "RB" | "AD"}${number}`;
+export type DeckRuleMode = "standard" | "unlimited" | "pauper";
+/** Pool and rules are independent. Plain set ids retain their original Standard meaning. */
+export type DeckFormat = DeckRuleMode | HistoricalDeckSet | `${HistoricalDeckSet}:${"pauper" | "unlimited"}`;
 
-export function historicalDeckFormats(asOf = BANLIST_AS_OF_DATE): DeckFormat[] {
+export function historicalDeckFormats(asOf = BANLIST_AS_OF_DATE): HistoricalDeckSet[] {
   return allProductLabels().filter(
     (id) => /^(BT|EX|ST|RB|AD)\d+$/.test(id) && releaseDateForSet(id)! <= asOf,
-  ) as DeckFormat[];
+  ) as HistoricalDeckSet[];
 }
 
 export function isDeckFormat(value: unknown): value is DeckFormat {
+  if (value === "standard" || value === "unlimited" || value === "pauper") return true;
+  if (typeof value !== "string") return false;
+  const [set, rules, extra] = value.split(":");
   return (
-    value === "standard" ||
-    value === "unlimited" ||
-    value === "pauper" ||
-    (typeof value === "string" && historicalDeckFormats().includes(value as DeckFormat))
+    historicalDeckFormats().includes(set as HistoricalDeckSet) &&
+    extra === undefined &&
+    (rules === undefined || rules === "pauper" || rules === "unlimited")
   );
+}
+
+export function deckFormatSettings(format: DeckFormat): { set: HistoricalDeckSet | "all"; rules: DeckRuleMode } {
+  const [set = "all", rules] = format.split(":");
+  return releaseDateForSet(set) === undefined
+    ? { set: "all", rules: format as DeckRuleMode }
+    : { set: set as HistoricalDeckSet, rules: (rules ?? "standard") as DeckRuleMode };
+}
+
+export function createDeckFormat(set: HistoricalDeckSet | "all", rules: DeckRuleMode): DeckFormat {
+  return set === "all" ? rules : rules === "standard" ? set : `${set}:${rules}`;
+}
+
+export function formatIsUnlimited(format: DeckFormat): boolean {
+  return deckFormatSettings(format).rules === "unlimited";
 }
 
 /** Old decks and clients have no format field. */
@@ -26,14 +45,14 @@ export function deckFormat(value: unknown, unlimited = false): DeckFormat {
 }
 
 export function formatBanlistDate(format: DeckFormat): string {
-  return releaseDateForSet(format) ?? BANLIST_AS_OF_DATE;
+  return releaseDateForSet(deckFormatSettings(format).set) ?? BANLIST_AS_OF_DATE;
 }
 
 const formatBanlists = new Map<string, ReturnType<typeof banlistAsOf>>();
 
 export function formatCopyLimit(cardId: string, format: DeckFormat): number {
   const printed = getCardDefinition(cardId)?.maxCountInDeck ?? 4;
-  if (format === "unlimited") return printed;
+  if (formatIsUnlimited(format)) return printed;
   const date = formatBanlistDate(format);
   let list = formatBanlists.get(date);
   if (!list) {
@@ -49,14 +68,15 @@ export function formatCardViolation(cardId: string, format: DeckFormat): string 
   const card = getCardDefinition(cardId);
   if (!card) return `unknown card: ${cardId}`;
   if (card.isToken || card.maxCountInDeck === 0) return `${cardId} cannot be included in a deck`;
-  if (format === "pauper" && card.rarity !== "C" && card.rarity !== "U")
+  const { set, rules } = deckFormatSettings(format);
+  if (rules === "pauper" && card.rarity !== "C" && card.rarity !== "U")
     return `${cardId} is not Common or Uncommon (Pauper allows C/U only)`;
-  const cutoff = releaseDateForSet(format);
+  const cutoff = releaseDateForSet(set);
   if (cutoff !== undefined) {
     // LM combines many products under one id; its date is explicitly unverified.
     const released = card.set === "LM" ? undefined : releaseDateForCard(card);
     if (released === undefined || released > cutoff)
-      return `${cardId} is outside the ${format} card pool (through ${cutoff})`;
+      return `${cardId} is outside the ${set} card pool (through ${cutoff})`;
   }
   return undefined;
 }
@@ -70,5 +90,5 @@ export function formatRestrictionLabel(cardId: string, format: DeckFormat): stri
 }
 
 export function formatPairViolations(cardIds: readonly string[], format: DeckFormat): [string, string][] {
-  return format === "unlimited" ? [] : bannedPairViolations(cardIds, formatBanlistDate(format));
+  return formatIsUnlimited(format) ? [] : bannedPairViolations(cardIds, formatBanlistDate(format));
 }

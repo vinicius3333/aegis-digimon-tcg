@@ -1,7 +1,16 @@
 import type { decksEn } from "./decks.en";
 
 export const decksEs: Record<keyof typeof decksEn, string> = {
-  "deckFormat.label": "Formato",
+  "deckFormat.label": "Reglas",
+  "deckFormat.title": "Cartas y reglas",
+  "deckFormat.pool": "Cartas hasta",
+  "deckFormat.allSets": "Todas las colecciones",
+  "deckFormat.poolHint": "Cartas hasta {set}.",
+  "deckFormat.allSetsHint": "Todas las colecciones disponibles.",
+  "deckFormat.banlistHint": "Lista de restricciones: {date}.",
+  "deckFormat.noBanlist": "Sin lista de restricciones; se mantienen los límites impresos.",
+  "deckFormat.rarityHint": "Solo Comunes y Poco Comunes, incluidos Digi-Huevos.",
+  "deckFormat.current": "actual",
   "deckFormat.standard": "Estándar",
   "deckFormat.pauper": "Pauper · C / U",
   "deckFormat.historical": "Colecciones históricas",

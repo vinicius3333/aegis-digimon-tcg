@@ -1,44 +1,84 @@
 import { useId } from "react";
-import { historicalDeckFormats, releaseDateForSet, type DeckFormat } from "@aegis/shared";
-import { useTranslation } from "../i18n";
+import {
+  createDeckFormat,
+  deckFormatSettings,
+  historicalDeckFormats,
+  releaseDateForSet,
+  type DeckFormat,
+  type DeckRuleMode,
+  type HistoricalDeckSet,
+} from "@aegis/shared";
+import { useTranslation, type Translate } from "../i18n";
 import "./deckFormatSelector.css";
 
-export function DeckFormatSelector({ value, onChange }: { value: DeckFormat; onChange: (format: DeckFormat) => void }) {
+export function deckFormatLabel(value: DeckFormat, t: Translate): string {
+  const { set, rules } = deckFormatSettings(value);
+  const label = t(
+    rules === "unlimited" ? "lobby.unlimited" : rules === "pauper" ? "deckFormat.pauper" : "deckFormat.standard",
+  );
+  return set === "all" ? label : `${set} · ${label}`;
+}
+
+export function DeckFormatSelector({
+  value,
+  onChange,
+  disabled = false,
+}: {
+  value: DeckFormat;
+  onChange: (format: DeckFormat) => void;
+  disabled?: boolean;
+}) {
   const { t } = useTranslation();
   const id = useId();
-  const date = releaseDateForSet(value);
+  const { set, rules } = deckFormatSettings(value);
+  const date = releaseDateForSet(set);
   return (
     <div className="deck-format-selector">
-      <label htmlFor={id}>{t("deckFormat.label")}</label>
-      <select
-        id={id}
-        value={value}
-        onChange={(event) => onChange(event.target.value as DeckFormat)}
-        aria-describedby={`${id}-summary`}
-      >
-        <option value="standard">{t("deckFormat.standard")}</option>
-        <option value="unlimited">{t("lobby.unlimited")}</option>
-        <option value="pauper">{t("deckFormat.pauper")}</option>
-        <optgroup label={t("deckFormat.historical")}>
-          {historicalDeckFormats()
-            .reverse()
-            .map((format) => (
-              <option key={format} value={format}>
-                {format} · {releaseDateForSet(format)}
-              </option>
-            ))}
-        </optgroup>
-      </select>
+      <div className="deck-format-selector__header">
+        <h3>{t("deckFormat.title")}</h3>
+        <span className="deck-format-selector__badge">{deckFormatLabel(value, t)}</span>
+      </div>
+      <div className="deck-format-selector__fields">
+        <div>
+          <label htmlFor={`${id}-pool`}>{t("deckFormat.pool")}</label>
+          <select
+            id={`${id}-pool`}
+            value={set}
+            disabled={disabled}
+            onChange={(event) => onChange(createDeckFormat(event.target.value as HistoricalDeckSet | "all", rules))}
+            aria-describedby={`${id}-summary`}
+          >
+            <option value="all">{t("deckFormat.allSets")}</option>
+            {historicalDeckFormats()
+              .reverse()
+              .map((product) => (
+                <option key={product} value={product}>
+                  {product} · {releaseDateForSet(product)}
+                </option>
+              ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor={`${id}-rules`}>{t("deckFormat.label")}</label>
+          <select
+            id={`${id}-rules`}
+            value={rules}
+            disabled={disabled}
+            onChange={(event) => onChange(createDeckFormat(set, event.target.value as DeckRuleMode))}
+            aria-describedby={`${id}-summary`}
+          >
+            <option value="standard">{t("deckFormat.standard")}</option>
+            <option value="pauper">{t("deckFormat.pauper")}</option>
+            <option value="unlimited">{t("lobby.unlimited")}</option>
+          </select>
+        </div>
+      </div>
       <p id={`${id}-summary`}>
-        {date
-          ? t("deckFormat.snapshot", { set: value, date })
-          : t(
-              value === "pauper"
-                ? "deckFormat.pauperHint"
-                : value === "unlimited"
-                  ? "deckFormat.unlimitedHint"
-                  : "deckFormat.standardHint",
-            )}
+        {date ? t("deckFormat.poolHint", { set }) : t("deckFormat.allSetsHint")}{" "}
+        {rules === "unlimited"
+          ? t("deckFormat.noBanlist")
+          : t("deckFormat.banlistHint", { date: date ?? t("deckFormat.current") })}{" "}
+        {rules === "pauper" ? t("deckFormat.rarityHint") : null}
       </p>
     </div>
   );

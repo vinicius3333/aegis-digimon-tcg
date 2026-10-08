@@ -30,6 +30,7 @@ import {
   type DeckFormat,
   deckFormat,
   isDeckFormat,
+  formatIsUnlimited,
 } from "@aegis/shared";
 import { isDevScenarioId, type DevScenarioId } from "../engine/devScenario.js";
 import { createIssueReproBotPolicy } from "../engine/issueReproBotPolicy.js";
@@ -592,7 +593,7 @@ export class AegisRoom extends Room<{ state: GameState; metadata: { unlimited: b
       throw new ServerError(400, "This room requires Standard format");
     if (format !== "standard" && format !== "unlimited" && options.allowFormatSelection !== true)
       throw new ServerError(400, "Format selection is unavailable in this room");
-    if ((format === "unlimited") !== this.isUnlimitedRoom)
+    if (formatIsUnlimited(format) !== this.isUnlimitedRoom)
       throw new ServerError(400, "Format does not match this room type");
     this.state.format = format;
     this.state.unlimited = this.isUnlimitedRoom;

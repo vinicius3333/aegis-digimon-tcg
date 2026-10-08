@@ -13,6 +13,7 @@ import {
   formatPairViolations,
   formatCopyLimit,
   deckFormat,
+  formatIsUnlimited,
   type DeckFormat,
   getCardDefinition,
   isBetaOnlyCard,
@@ -38,7 +39,7 @@ import { RankedStart } from "../account/RankedStart";
 import { RANKED_ENABLED } from "../features";
 import { DeckColorDots, DeckPicker } from "./DeckPicker";
 import { FamousDeckListDialog } from "./FamousDeckListDialog";
-import { DeckFormatSelector } from "./DeckFormatSelector";
+import { DeckFormatSelector, deckFormatLabel } from "./DeckFormatSelector";
 import { MatchFormatSettings } from "./MatchFormatSettings";
 import { MatchTimerSettings } from "./MatchTimerSettings";
 import { loadMatchFormatPreference, saveMatchFormatPreference } from "./matchFormatPreference";
@@ -238,11 +239,11 @@ export function Lobby({
     onBestOfChange?.(next);
   }
   const [selectedFormat, setSelectedFormat] = useState<DeckFormat>(() =>
-    deckFormat(decks.find((deck) => deck.id === activeDeckId)?.format),
+    privateRoom
+      ? deckFormat(privateRoom.format, privateRoom.unlimited)
+      : deckFormat(decks.find((deck) => deck.id === activeDeckId)?.format),
   );
-  const [mode, setMode] = useState(
-    invitedRoomCode || privateRoom ? "private" : selectedFormat === "unlimited" ? "unlimited" : "casual",
-  );
+  const [mode, setMode] = useState(invitedRoomCode || privateRoom ? "private" : "casual");
   const [betaConfirmation, setBetaConfirmation] = useState<"beta" | "bot" | null>(null);
   const [privateSub, setPrivateSub] = useState<"create" | "join">(invitedRoomCode ? "join" : "create");
   const [roomCodeInput, setRoomCodeInput] = useState(invitedRoomCode ?? "");
@@ -270,24 +271,18 @@ export function Lobby({
       cancelled = true;
     };
   }, [privateGuest, privateRoom, guestCode]);
-  const unlimited =
-    mode === "unlimited" ||
-    ((mode === "casual" || mode === "practice") && selectedFormat === "unlimited") ||
-    (mode === "private" &&
-      (privateRoom
-        ? privateRoom.unlimited === true
-        : privateGuest
-          ? guestRules?.code === guestCode && guestRules.unlimited
-          : selectedFormat === "unlimited"));
-  const format: DeckFormat = unlimited
-    ? "unlimited"
-    : mode === "private" && privateRoom
+  const format: DeckFormat =
+    mode === "private" && privateRoom
       ? deckFormat(privateRoom.format, privateRoom.unlimited)
       : privateGuest
-        ? deckFormat(guestRules?.format)
-        : mode === "casual" || mode === "practice" || mode === "private"
-          ? selectedFormat
-          : "standard";
+        ? deckFormat(guestRules?.format, guestRules?.unlimited)
+        : selectedFormat;
+  const unlimited = formatIsUnlimited(format);
+  function changeFormat(next: DeckFormat) {
+    setSelectedFormat(next);
+    const preset = FAMOUS_DECKS.find((deck) => deck.id === botDeckId);
+    if (preset && !deckLegality(preset, { format: next }).legal) setBotDeckId("");
+  }
   const banlistLimit = (id: string) => formatCopyLimit(id, format);
   const onStart = useCallback(
     (...args: Parameters<typeof onStartRequested>) => {
@@ -295,11 +290,17 @@ export function Lobby({
         onStartRequested("ranked", args[1], args[2], args[3], args[4], false, "standard");
         return;
       }
-      if (format === "unlimited") {
+      if (args[0] === "spectator") {
+        onStartRequested(...args);
+        return;
+      }
+      if (unlimited) {
         const startMode = args[0] === "casual" ? "unlimited" : args[0];
-        if (startMode === "unlimited" && args.length === 1) onStartRequested(startMode);
-        else
-          onStartRequested(startMode, args[1], args[2], args[3], args[4], startMode === "unlimited" ? args[5] : true);
+        if (format === "unlimited") {
+          if (startMode === "unlimited" && args.length === 1) onStartRequested(startMode);
+          else
+            onStartRequested(startMode, args[1], args[2], args[3], args[4], startMode === "unlimited" ? args[5] : true);
+        } else onStartRequested(startMode, args[1], args[2], args[3], args[4], true, format);
         return;
       }
       if (format === "standard") {
@@ -308,7 +309,7 @@ export function Lobby({
       }
       onStartRequested(args[0], args[1], args[2], args[3], args[4], args[5], format);
     },
-    [onStartRequested, format],
+    [onStartRequested, format, unlimited],
   );
   const [randomSelected, setRandomSelected] = useState(false);
   const [randomPoolScope, setRandomPoolScope] = useState<RandomDeckPool>("all");
@@ -472,75 +473,67 @@ export function Lobby({
     [active?.id, betaQueueMode, onStart, randomPool, randomSelected, customBotDeck, unlimited],
   );
   const launch: LaunchAction | null =
-    mode === "unlimited"
+    mode === "private" && privateRoom
       ? {
-          label: t("lobby.enterQueue"),
-          shortLabel: t("lobby.enterQueue"),
+          label: t(privateRoom.host ? "lobby.reopenRoom" : "lobby.rejoinRoom"),
+          shortLabel: t(privateRoom.host ? "redesign.play.short.reopen" : "redesign.play.short.rejoin"),
           icon: Icons.Swords,
           disabled: !selectionLegal,
-          onClick: () => start("unlimited"),
+          onClick: () => start(privateRoom.host ? "private_host" : "private_guest", privateRoom.code),
         }
-      : mode === "private" && privateRoom
+      : mode === "private" && privateSub === "create"
         ? {
-            label: t(privateRoom.host ? "lobby.reopenRoom" : "lobby.rejoinRoom"),
-            shortLabel: t(privateRoom.host ? "redesign.play.short.reopen" : "redesign.play.short.rejoin"),
-            icon: Icons.Swords,
+            label: t("lobby.createRoom"),
+            shortLabel: t("lobby.create"),
+            icon: Icons.Link2,
             disabled: !selectionLegal,
-            onClick: () => start(privateRoom.host ? "private_host" : "private_guest", privateRoom.code),
+            onClick: () => start("private_host"),
           }
-        : mode === "private" && privateSub === "create"
+        : mode === "private"
           ? {
-              label: t("lobby.createRoom"),
-              shortLabel: t("lobby.create"),
-              icon: Icons.Link2,
-              disabled: !selectionLegal,
-              onClick: () => start("private_host"),
+              label: t("lobby.joinRoom"),
+              shortLabel: t("lobby.join"),
+              icon: Icons.LogIn,
+              disabled: !selectionLegal || roomCodeInput.length < 4,
+              onClick: () => start("private_guest", roomCodeInput),
             }
-          : mode === "private"
+          : vsBot
             ? {
-                label: t("lobby.joinRoom"),
-                shortLabel: t("lobby.join"),
-                icon: Icons.LogIn,
-                disabled: !selectionLegal || roomCodeInput.length < 4,
-                onClick: () => start("private_guest", roomCodeInput),
+                label: t("lobby.playVsBot"),
+                shortLabel: t("redesign.play.short.bot"),
+                icon: Icons.Bot,
+                disabled: !selectionLegal,
+                onClick: () =>
+                  betaEnabled
+                    ? setBetaConfirmation("bot")
+                    : start("bot", undefined, botDeckId || undefined, betaOptedIn),
               }
-            : vsBot
+            : betaEnabled || betaOptedIn
               ? {
-                  label: t("lobby.playVsBot"),
-                  shortLabel: t("redesign.play.short.bot"),
-                  icon: Icons.Bot,
+                  label: t("lobby.enterQueue"),
+                  shortLabel: t("redesign.play.short.queue"),
+                  beta: true,
+                  icon: Icons.Swords,
                   disabled: !selectionLegal,
                   onClick: () =>
-                    betaEnabled
-                      ? setBetaConfirmation("bot")
-                      : start("bot", undefined, botDeckId || undefined, betaOptedIn),
+                    betaEnabled ? setBetaConfirmation("beta") : start("beta", undefined, undefined, true),
                 }
-              : betaEnabled || betaOptedIn
-                ? {
+              : RANKED_ENABLED && format === "standard"
+                ? // RankedStart owns its ranked toggle and button, so it stays in the setup panel.
+                  null
+                : {
                     label: t("lobby.enterQueue"),
                     shortLabel: t("redesign.play.short.queue"),
-                    beta: true,
                     icon: Icons.Swords,
                     disabled: !selectionLegal,
-                    onClick: () =>
-                      betaEnabled ? setBetaConfirmation("beta") : start("beta", undefined, undefined, true),
-                  }
-                : RANKED_ENABLED
-                  ? // RankedStart owns its ranked toggle and button, so it stays in the setup panel.
-                    null
-                  : {
-                      label: t("lobby.enterQueue"),
-                      shortLabel: t("redesign.play.short.queue"),
-                      icon: Icons.Swords,
-                      disabled: !selectionLegal,
-                      onClick: () => start("casual"),
-                    };
+                    onClick: () => start(unlimited ? "unlimited" : "casual"),
+                  };
   const deckStatus = deckLegal
     ? { tone: "legal", label: t("redesign.play.legal") }
     : pairViolations.length > 0 || banViolations.length > 0
       ? { tone: "banned", label: t("redesign.play.banlistIssue") }
       : { tone: "draft", label: t("redesign.play.draft") };
-  const modeTitle = mode === "unlimited" ? t("lobby.unlimited") : MODES.find((m) => m.key === mode)?.title;
+  const modeTitle = MODES.find((m) => m.key === mode)?.title;
 
   return (
     <main className="lobby-page">
@@ -579,14 +572,12 @@ export function Lobby({
                     {deckLegal ? <Icons.Check size={13} /> : null}
                     {deckStatus.label}
                   </span>
-                  {bestOf === 3 &&
-                  (mode === "casual" || mode === "unlimited" || (mode === "private" && privateSub === "create")) ? (
+                  {bestOf === 3 && (mode === "casual" || (mode === "private" && privateSub === "create")) ? (
                     <span className="lobby-timer-summary">
                       <Icons.Trophy size={13} /> {t("lobby.format.enabled")}
                     </span>
                   ) : null}
-                  {timer.matchTimer &&
-                  (mode === "casual" || mode === "unlimited" || (mode === "private" && privateSub === "create")) ? (
+                  {timer.matchTimer && (mode === "casual" || (mode === "private" && privateSub === "create")) ? (
                     <span className="lobby-timer-summary">
                       <Icons.Clock size={13} /> {t("lobby.timer.enabled")}
                     </span>
@@ -696,7 +687,7 @@ export function Lobby({
 
         <div className="lobby-modes">
           {MODES.map((m) => {
-            const sel = mode === m.key || (mode === "unlimited" && m.key === "casual");
+            const sel = mode === m.key;
             const Icon = m.icon;
             return (
               <button
@@ -728,6 +719,13 @@ export function Lobby({
           <h2 id="lobby-setup-title" className="lobby-setup__title">
             {t("redesign.play.setupTitle")}
           </h2>
+          {!privateGuest || privateRoom || guestRules?.code === guestCode ? (
+            <DeckFormatSelector
+              value={format}
+              onChange={changeFormat}
+              disabled={(mode === "private" && !!privateRoom) || privateGuest}
+            />
+          ) : null}
           <div className="lobby-setup__body">
             <div className="lobby-setup__column">
               <p className="lobby-setup__notice">
@@ -780,7 +778,7 @@ export function Lobby({
               {mode !== "private" ? (
                 <dl className="lobby-details">
                   {[
-                    [t("lobby.format"), unlimited ? t("lobby.unlimitedMeta") : t("lobby.formatValue")],
+                    [t("lobby.format"), deckFormatLabel(format, t)],
                     [t("lobby.players"), vsBot ? t("lobby.playersBot") : t("lobby.playersHuman")],
                     [t("lobby.identity"), player.name],
                   ].map(([label, value]) => (
@@ -794,29 +792,13 @@ export function Lobby({
             </div>
 
             <div className="lobby-setup__column">
-              {mode === "casual" ||
-              mode === "unlimited" ||
-              mode === "practice" ||
-              (mode === "private" && privateSub === "create" && !privateRoom) ? (
+              {mode === "casual" || (mode === "private" && privateSub === "create" && !privateRoom) ? (
                 <div className="lobby-match-rules">
                   {!vsBot ? (
                     <>
                       <MatchFormatSettings bestOf={bestOf} onChange={changeBestOf} />
                       <MatchTimerSettings options={timer} onChange={changeTimer} privateRoom={mode === "private"} />
                     </>
-                  ) : null}
-                  {mode === "casual" ||
-                  mode === "unlimited" ||
-                  vsBot ||
-                  (mode === "private" && !privateRoom && !privateGuest) ? (
-                    <DeckFormatSelector
-                      value={format}
-                      onChange={(next) => {
-                        setSelectedFormat(next);
-                        if (mode === "casual" || mode === "unlimited")
-                          setMode(next === "unlimited" ? "unlimited" : "casual");
-                      }}
-                    />
                   ) : null}
                 </div>
               ) : mode === "private" ? (
@@ -825,14 +807,7 @@ export function Lobby({
                   <p role="status">
                     {privateRoom || guestRules?.code === guestCode
                       ? t("lobby.hostBanlist", {
-                          mode:
-                            format === "standard"
-                              ? t("lobby.standardBanlist")
-                              : format === "unlimited"
-                                ? t("lobby.unlimited")
-                                : format === "pauper"
-                                  ? t("deckFormat.pauper")
-                                  : format,
+                          mode: format === "standard" ? t("lobby.standardBanlist") : deckFormatLabel(format, t),
                         })
                       : t(guestLookupFailed ? "lobby.roomLookupFailed" : "lobby.roomRulesPending")}
                   </p>
@@ -905,7 +880,11 @@ export function Lobby({
                     {FAMOUS_DECK_GROUPS.map((group) => (
                       <optgroup key={group.collection} label={group.collection}>
                         {group.decks.map((deck) => (
-                          <option key={deck.id} value={deck.id}>
+                          <option
+                            key={deck.id}
+                            value={deck.id}
+                            disabled={!deckLegality(deck, { format }).legal || (!betaAllowed && deckHasBetaCards(deck))}
+                          >
                             {deck.name}
                           </option>
                         ))}
@@ -933,7 +912,7 @@ export function Lobby({
                     </div>
                   ) : null}
                 </div>
-              ) : mode !== "unlimited" && !betaEnabled && !betaOptedIn && RANKED_ENABLED ? (
+              ) : format === "standard" && !betaEnabled && !betaOptedIn && RANKED_ENABLED ? (
                 <RankedStart
                   disabled={!selectionLegal}
                   actionClassName="lobby-setup__launch"

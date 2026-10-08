@@ -11,6 +11,7 @@ import {
   type Intent,
   type DeckFormat,
   deckFormat,
+  formatIsUnlimited,
 } from "@aegis/shared";
 import {
   deploymentEndpoint,
@@ -43,21 +44,30 @@ interface RouterDependencies {
 
 const roomSlots = new WeakMap<AegisRoom, RoomSlot>();
 
+function withDeckRules(options: AegisJoinOptions): AegisJoinOptions {
+  if (options.format === undefined) return options;
+  const format = deckFormat(options.format, options.unlimited);
+  return { ...options, format, unlimited: formatIsUnlimited(format) };
+}
+
 function publicRoomType(options: AegisJoinOptions): string {
-  if (options.unlimited && (options.ranked || options.betaBattleMode))
+  const unlimited = formatIsUnlimited(deckFormat(options.format, options.unlimited));
+  if (unlimited && (options.ranked || options.betaBattleMode))
     throw new Error("Unlimited battles cannot be ranked or beta battles");
-  if (options.unlimited) return ROOM_TYPE_UNLIMITED;
+  if (unlimited) return ROOM_TYPE_UNLIMITED;
   if (options.betaBattleMode && options.ranked) throw new Error("Beta battles cannot be ranked");
   return options.betaBattleMode ? ROOM_TYPE_BETA : options.ranked ? ROOM_TYPE_RANKED : ROOM_TYPE;
 }
 
 /** Queues split on both settings, so each is always sent explicitly. */
 function withQueueFilters(options: AegisJoinOptions): AegisJoinOptions {
+  const format = deckFormat(options.format, options.unlimited);
   return {
     ...options,
     matchTimer: options.matchTimer === true,
     bestOf: options.bestOf === 3 ? 3 : 1,
-    format: deckFormat(options.format, options.unlimited),
+    format,
+    unlimited: formatIsUnlimited(format),
   };
 }
 
@@ -108,14 +118,14 @@ export class AegisConnectionRouter {
   async createPrivate(options: AegisJoinOptions): Promise<AegisRoom> {
     const manifest = await this.dependencies.loadManifest();
     const created = await this.client(manifest.active.slot).create(ROOM_TYPE_PRIVATE, {
-      ...options,
+      ...withDeckRules(options),
       private: true,
     });
     return this.remember(created, manifest.active.slot);
   }
 
   async createBot(options: AegisJoinOptions): Promise<AegisRoom> {
-    return this.createBotWithFreshManifest(options, false);
+    return this.createBotWithFreshManifest(withDeckRules(options), false);
   }
 
   private async createBotWithFreshManifest(options: AegisJoinOptions, retriedAfterDrain: boolean): Promise<AegisRoom> {
@@ -344,14 +354,17 @@ export async function joinWithBot(roomId: string, botDeckId?: string): Promise<v
 export async function createBot(options: AegisJoinOptions): Promise<AegisRoom> {
   if (useProductionRouter()) return getProductionRouter().createBot(options);
   const roomType = options.betaBattleMode ? ROOM_TYPE_BETA_BOT : ROOM_TYPE_BOT;
-  const created = await getLegacyClient().create<GameState>(roomType, options);
+  const created = await getLegacyClient().create<GameState>(roomType, withDeckRules(options));
   return rememberLegacy(created);
 }
 
 /** Create a private room on the active deployment. */
 export async function createPrivate(options: AegisJoinOptions): Promise<AegisRoom> {
   if (useProductionRouter()) return getProductionRouter().createPrivate(options);
-  const created = await getLegacyClient().create<GameState>(ROOM_TYPE_PRIVATE, { ...options, private: true });
+  const created = await getLegacyClient().create<GameState>(ROOM_TYPE_PRIVATE, {
+    ...withDeckRules(options),
+    private: true,
+  });
   return rememberLegacy(created);
 }
 

@@ -1,3 +1,4 @@
+import { deckFormatLabel } from "./DeckFormatSelector";
 import type { CSSProperties, ReactNode } from "react";
 import { deckLegality, getCardDefinition, formatRestrictionLabel, deckFormat, type DeckFormat } from "@aegis/shared";
 import { Badge } from "../design/primitives";
@@ -73,15 +74,7 @@ export function DeckListCard({
             </Badge>
           ) : null}
         </div>
-        {deck.format && deck.format !== "standard" ? (
-          <Badge>
-            {deck.format === "pauper"
-              ? t("deckFormat.pauper")
-              : deck.format === "unlimited"
-                ? t("lobby.unlimited")
-                : deck.format}
-          </Badge>
-        ) : null}
+        {deck.format && deck.format !== "standard" ? <Badge>{deckFormatLabel(deck.format, t)}</Badge> : null}
         {formatViolations.length > 0 ? (
           <div className="deck-list-card__violation">
             {t("deckFormat.violations", { count: formatViolations.length })}

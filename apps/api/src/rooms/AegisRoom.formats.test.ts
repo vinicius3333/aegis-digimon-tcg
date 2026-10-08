@@ -37,6 +37,35 @@ describe("room format boundaries", () => {
       await historical.onAuth(client("historical"), { displayName: "Historical", deck: RED_DECK, format: "BT13" }),
     ).toBe(true);
   });
+  it("separates historical Unlimited from both other sets and the all-card Unlimited queue", async () => {
+    const historical = room("BT13:unlimited", { unlimitedRoom: true });
+    for (const format of ["unlimited", "BT12:unlimited"] as const)
+      expect(
+        await historical.onAuth(client(format), { displayName: "Tamer", deck: RED_DECK, unlimited: true, format }),
+      ).toBe(false);
+    expect(
+      await historical.onAuth(client("match"), {
+        displayName: "Tamer",
+        deck: RED_DECK,
+        unlimited: true,
+        format: "BT13:unlimited",
+      }),
+    ).toBe(true);
+    expect(historical.state.unlimited).toBe(true);
+  });
+  it.each(["BT13:pauper", "BT13:unlimited"] as const)("seats humans and bots under %s host rules", (format) => {
+    const historical = room(format, {
+      botRoom: true,
+      allowUnlimitedSelection: true,
+      unlimited: format === "BT13:unlimited",
+    });
+    const human = client("host");
+    historical.clients.push(human);
+    historical.onJoin(human, { displayName: "Host", deck: playableBotDeck(undefined, false, format), format });
+    expect(historical.addBot()).toBe(true);
+    expect(historical.state.players).toHaveLength(2);
+    expect(historical.privateRoomInfo()).toEqual({ format, unlimited: format === "BT13:unlimited" });
+  });
   it("validates a private guest against fixed host rules despite a forged format", () => {
     const historical = room("BT13", { private: true, betaBattleRoom: true });
     expect(historical.privateRoomInfo()).toMatchObject({ format: "BT13", unlimited: false });
@@ -58,14 +87,14 @@ describe("room format boundaries", () => {
     setSeriesDirectory(directory);
     const nextRoom = vi.fn(async (options: { seriesId: string; seriesNonce: string }) => {
       const record = await seriesDirectory().load(options.seriesId);
-      expect(record?.format).toBe("BT13");
+      expect(record?.format).toBe("BT13:pauper");
       const continuation = new AegisRoom();
       rooms.push(continuation);
       continuation.roomName = "aegis";
       continuation.setMatchmaking = vi.fn(async () => {});
       continuation.setPrivate = vi.fn(async () => {});
       await continuation.onCreate({ ...options, format: "pauper", allowFormatSelection: true });
-      expect(continuation.state.format).toBe("BT13");
+      expect(continuation.state.format).toBe("BT13:pauper");
       return "next-room";
     });
     const port = {
@@ -73,12 +102,20 @@ describe("room format boundaries", () => {
       roomName: "aegis",
       setTimeout: vi.fn(() => ({ clear() {} })),
       setInterval: vi.fn(() => ({ clear() {} })),
-      seatSnapshot: (seat: number) => ({ displayName: `Tamer ${seat}`, deck: RED_DECK }),
+      seatSnapshot: (seat: number) => ({
+        displayName: `Tamer ${seat}`,
+        deck: playableBotDeck(undefined, false, "BT13:pauper"),
+      }),
       sendToSeat: vi.fn(),
       createNextRoom: nextRoom,
       logError: vi.fn(),
     } as unknown as SeriesRoomPort;
-    const series = CasualSeries.begin(port, { bestOf: 3, matchTimer: false, timerStartSeconds: 300, format: "BT13" });
+    const series = CasualSeries.begin(port, {
+      bestOf: 3,
+      matchTimer: false,
+      timerStartSeconds: 300,
+      format: "BT13:pauper",
+    });
     series.recordGame(0, undefined);
     series.handleMessage(1, { action: "chooseTurnOrder", goFirst: true }, false);
     await vi.waitFor(() => expect(nextRoom).toHaveBeenCalledOnce());

@@ -30,8 +30,13 @@ export function defineAegisRooms(gameServer: Pick<Server, "define">): void {
     .define(ROOM_TYPE, AegisRoom, { ...publicMode, allowFormatSelection: true, betaBattleRoom: false })
     .filterBy(["matchTimer", "bestOf", "format"]);
   gameServer
-    .define(ROOM_TYPE_UNLIMITED, AegisRoom, { ...publicMode, unlimitedRoom: true, betaBattleRoom: false })
-    .filterBy(["matchTimer", "bestOf"]);
+    .define(ROOM_TYPE_UNLIMITED, AegisRoom, {
+      ...publicMode,
+      allowFormatSelection: true,
+      unlimitedRoom: true,
+      betaBattleRoom: false,
+    })
+    .filterBy(["matchTimer", "bestOf", "format"]);
   gameServer.define(ROOM_TYPE_BOT, AegisRoom, {
     ...publicMode,
     botRoom: true,

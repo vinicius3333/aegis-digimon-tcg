@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   deckFormat,
+  createDeckFormat,
+  deckFormatSettings,
   formatCardViolation,
   formatCopyLimit,
   formatPairViolations,
@@ -48,5 +50,31 @@ describe("deck formats", () => {
     const deck = { mainDeck: Array<string>(50).fill("BT6-085"), eggDeck: ["BT1-002"] };
     expect(deckLegality(deck, { format: "pauper" }).legal).toBe(true);
     expect(deckLegality({ ...deck, eggDeck: ["BT1-025"] }, { format: "pauper" }).legal).toBe(false);
+  });
+  it("combines every dated set with independent rules and rejects malformed combinations", () => {
+    for (const set of historicalDeckFormats()) {
+      for (const rules of ["standard", "pauper", "unlimited"] as const) {
+        const format = createDeckFormat(set, rules);
+        expect(isDeckFormat(format)).toBe(true);
+        expect(deckFormatSettings(format)).toEqual({ set, rules });
+      }
+    }
+    expect(createDeckFormat("all", "pauper")).toBe("pauper");
+    for (const format of ["BT13:standard", "BT13:invalid", "BT13:pauper:unlimited", "BT999:unlimited", "LM:pauper"])
+      expect(isDeckFormat(format)).toBe(false);
+  });
+  it("BT13 Pauper combines historical restrictions, rarity and card-pool limits", () => {
+    expect(formatCardViolation("BT13-012", "BT13:pauper")).toBeUndefined();
+    expect(formatCopyLimit("BT13-012", "BT13:pauper")).toBe(4);
+    expect(formatCardViolation("BT1-025", "BT13:pauper")).toContain("C/U");
+    expect(formatCardViolation("BT14-033", "BT13:pauper")).toBeDefined();
+    expect(formatPairViolations(["EX5-065", "BT13-102"], "EX5:pauper")).toHaveLength(1);
+  });
+  it("set Unlimited lifts bans while retaining the historical pool and printed limits", () => {
+    expect(formatCopyLimit("BT5-109", "BT13:unlimited")).toBe(4);
+    expect(formatCardViolation("BT5-109", "BT13:unlimited")).toBeUndefined();
+    expect(formatCardViolation("BT14-033", "BT13:unlimited")).toContain("BT13 card pool");
+    expect(formatCopyLimit("BT6-085", "BT13:unlimited")).toBe(50);
+    expect(formatPairViolations(["EX5-065", "BT13-102"], "EX5:unlimited")).toEqual([]);
   });
 });

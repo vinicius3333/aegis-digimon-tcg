@@ -3,7 +3,16 @@ import { en } from "./en";
 // Historical release notes keep their published English text. All interface
 // messages are translated; printed card names and effects remain in English.
 const interfaceMessages = {
-  "deckFormat.label": "Formato",
+  "deckFormat.label": "Regole",
+  "deckFormat.title": "Carte e regole",
+  "deckFormat.pool": "Carte fino a",
+  "deckFormat.allSets": "Tutte le espansioni",
+  "deckFormat.poolHint": "Carte fino a {set}.",
+  "deckFormat.allSetsHint": "Tutte le espansioni disponibili.",
+  "deckFormat.banlistHint": "Lista restrizioni: {date}.",
+  "deckFormat.noBanlist": "Senza restrizioni; restano i limiti stampati.",
+  "deckFormat.rarityHint": "Solo Comuni e Non Comuni, inclusi Digi-Uova.",
+  "deckFormat.current": "attuale",
   "deckFormat.standard": "Standard",
   "deckFormat.pauper": "Pauper · C / U",
   "deckFormat.historical": "Espansioni storiche",

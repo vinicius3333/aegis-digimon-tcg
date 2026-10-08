@@ -41,10 +41,19 @@ describe("authoritative format validation", () => {
     expect(validateDecklist(deck, { format: "BT13" })).toEqual({ ok: true });
     expect(validateDecklist(deck)).toMatchObject({ ok: false });
   });
-  it.each(["BT13", "pauper", "unlimited"] as const)(
+  it.each(["BT13", "pauper", "unlimited", "BT13:pauper", "BT13:unlimited"] as const)(
     "selects a legal bot deck for %s even when the requested preset is incompatible",
     (format) => {
       expect(validateDecklist(playableBotDeck("missing-preset", false, format), { format })).toEqual({ ok: true });
     },
   );
+  it("set Unlimited accepts historical banned cards but never later cards", () => {
+    const deck = deckFor("BT13:unlimited", "BT5-109");
+    expect(validateDecklist(deck, { format: "BT13:unlimited" })).toEqual({ ok: true });
+    expect(validateDecklist(deck, { format: "BT13" })).toMatchObject({ ok: false });
+    deck.mainDeck[0] = "BT14-033";
+    expect(validateDecklist(deck, { format: "BT13:unlimited", betaBattleMode: true, unlimited: true })).toMatchObject({
+      ok: false,
+    });
+  });
 });

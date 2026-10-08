@@ -73,11 +73,15 @@ describe("saved deck format", () => {
     expect(await savedDeck()).toMatchObject({ format: "BT13" });
     expect((await putDeck({ format: "pauper" })).status).toBe(200);
     expect(await savedDeck()).toMatchObject({ format: "pauper" });
+    for (const format of ["BT13:pauper", "BT13:unlimited"]) {
+      expect((await putDeck({ format })).status).toBe(200);
+      expect(await savedDeck()).toMatchObject({ format });
+    }
   });
   it("defaults legacy decks to Standard and rejects malformed formats", async () => {
     expect((await putDeck({})).status).toBe(200);
     expect(await savedDeck()).toMatchObject({ format: "standard" });
-    for (const format of ["BT999", "LM", 13, {}, null]) {
+    for (const format of ["BT999", "LM", "BT13:standard", "BT13:invalid", "BT13:pauper:unlimited", 13, {}, null]) {
       expect((await putDeck({ format })).status).toBe(400);
     }
   });
