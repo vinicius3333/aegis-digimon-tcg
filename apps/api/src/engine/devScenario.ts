@@ -58,6 +58,7 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github5326-sistermon-zero-security",
   "arena-github5307-larva-bt18-breeding",
   "arena-github5307-larva-ex10-breeding",
   "arena-github5308-greymon-security-destination",
@@ -902,6 +903,31 @@ function layDiarbbitmonDualOptionImmunityScenario(state: GameState, decks: reado
   state.turnCount = 2;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 10;
+}
+
+/** GitHub #5326: current behavior at zero security, followed by the nonempty control. */
+function layBt23SistermonZeroSecurityScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-5326-egg-${seat}`, "BT1-003", seat));
+    insertCard(player, Zone.Deck, faceDownCard(`dev-5326-draw-${seat}`, "BT1-009", seat));
+    insertCard(player, Zone.Deck, faceDownCard(`dev-5326-recovery-first-${seat}`, "BT1-010", seat));
+    insertCard(player, Zone.Deck, faceDownCard(`dev-5326-recovery-second-${seat}`, "BT1-011", seat));
+    for (let index = 0; index < 10; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-5326-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    if (seat === 1) {
+      for (let index = 0; index < 5; index += 1) {
+        insertCard(player, Zone.Security, faceDownCard(`dev-5326-security-${index}`, "BT1-009", seat));
+      }
+    }
+  }
+  insertCard(state.players[0]!, Zone.Hand, faceDownCard("dev-5326-blanc-first", "BT23-076", 0));
+  insertCard(state.players[0]!, Zone.Hand, faceDownCard("dev-5326-blanc-second", "BT23-076", 0));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 6;
 }
 
 /** Discord 1556322403456520223: choose the full Hades Force budget, not per-target yes/no. */
@@ -8712,6 +8738,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt22-gabumon-eot-dna": layBt22GabumonEotDnaScenario,
   "arena-5292-hawkmon-craniamon-priority": layHawkmonCraniamonPriorityScenario,
   "arena-bt11-hades-force-target-selection": layBt11HadesForceTargetSelectionScenario,
+  "arena-github5326-sistermon-zero-security": layBt23SistermonZeroSecurityScenario,
   "effects-lab-field-grouping": layEffectsLabFieldGroupingScenario,
   ...(Object.fromEntries([
     ...KEYWORD_PACING_SCENARIOS.map((scenario) => [
