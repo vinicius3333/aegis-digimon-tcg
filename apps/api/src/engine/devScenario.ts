@@ -58,6 +58,7 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-raid-after-dedigivolve",
   "arena-github5331-offense-hand",
   "arena-discord-1557790296379625482-trash-hybrids",
   "arena-discord-1557790296379625482-loweemon-hosts",
@@ -1276,6 +1277,30 @@ function layEx7SeventhFascinationTurnScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = fromTrash ? 10 : 7;
+}
+
+/** Discord 1557815179218128896: Guard removes a queued Raid's printed source. */
+function layRaidAfterDeDigivolveScenario(state: GameState): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-raid-egg-${seat}`, "BT1-001", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-raid-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-raid-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["AD1-014", "AD1-004", "AD1-025"], "-raid-attacker"));
+  placePermanent(human, establishedDigimon(0, ["BT1-086"], "-raid-matt"));
+  placePermanent(human, establishedDigimon(0, ["BT1-089"], "-raid-mimi"));
+  placePermanent(state.players[1]!, establishedDigimon(1, ["BT22-052"], "-raid-target"));
+  placePermanent(state.players[1]!, establishedDigimon(1, ["EX13-052"], "-raid-guard"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /** Discord 1557475935962398842: ＜Raid＞ offers Yes/No/Ask in the [When Attacking] order. */
@@ -9167,6 +9192,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-discord-1557575147119054889-shakkoumon-sukamon": layShakkoumonSukamonDnaScenario,
   "arena-discord-1557575147119054889-shakkoumon-yellow-only": (state, decks) =>
     layShakkoumonSukamonDnaScenario(state, decks, true),
+  "arena-raid-after-dedigivolve": layRaidAfterDeDigivolveScenario,
   "arena-raid-optional-preset": layRaidOptionalPresetScenario,
   "arena-preset-order-no-clicks": layPresetOrderNoClicksScenario,
   "arena-oct06-king-sukamon-assembly": (state, decks) => layOct06LatestScenario(state, decks, "king-sukamon-assembly"),

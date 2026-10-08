@@ -1211,6 +1211,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e ataque a segurança com Examon EX13-045. Na ordem dos efeitos [Ao Atacar], marque Sim para ＜Raid＞ e EX2-040, e Não para BT6-071 e BT9-006. Sem clicar em cada efeito, toque em Resolver: tudo resolve sem outro clique. O ataque muda para o Agumon BT1-013, as 2 cartas do topo do deck vão para a lixeira e sua mão não muda.",
     en: "End breeding and attack security with EX13-045 Examon. In the [When Attacking] order, set Yes for ＜Raid＞ and EX2-040, and No for BT6-071 and BT9-006. Without clicking each effect, press Resolve: everything resolves with no further click. The attack switches to the BT1-013 Agumon, the top 2 deck cards go to trash, and your hand is unchanged.",
   },
+  "arena-raid-after-dedigivolve": {
+    ptBR: "Encerre a criação e ataque o jogador com Omnimon AD1-025. Resolva primeiro a exclusão herdada de WarGreymon AD1-004, escolhendo BT22-052. O oponente usa Guard de Gladimon EX13-052 e escolhe Omnimon para De-Digivolve 1. WarGreymon fica no topo com 14000 DP e Raid, mas o Raid pendente de Omnimon não pode ativar: o ataque continua no jogador e BT22-052 sobrevive. Controle: reinicie e resolva Raid primeiro; a mudança de alvo já realizada permanece após De-Digivolve.",
+    en: "End breeding and attack the player with AD1-025 Omnimon. Resolve AD1-004 WarGreymon's inherited deletion first, choosing BT22-052. The opponent uses EX13-052 Gladimon's Guard and chooses Omnimon for De-Digivolve 1. WarGreymon becomes the top card with 14000 DP and Raid, but Omnimon's pending Raid cannot activate: the attack continues at the player and BT22-052 survives. Control: restart and resolve Raid first; the completed target switch remains after De-Digivolve.",
+  },
   "arena-raid-optional-preset": {
     ptBR: "Encerre a criação e ataque a segurança com Examon EX13-045. Na ordem dos efeitos [Ao Atacar], ＜Raid＞ deve mostrar Sim/Não/Perguntar, não Obrigatório. Marque Não: o ataque continua na segurança, sem pedido de Raid, e o Agumon BT1-013 do bot sobrevive. Reinicie e marque Sim: o alvo muda para o Agumon sem pedido extra, e ele é deletado na batalha.",
     en: "End breeding and attack security with EX13-045 Examon. In the [When Attacking] order, ＜Raid＞ must show Yes/No/Ask, not Mandatory. Set No: the attack stays on security with no Raid prompt, and the bot's BT1-013 Agumon survives. Reset and set Yes: the target switches to the Agumon with no extra prompt, and it is deleted in battle.",
@@ -2695,6 +2699,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex12-siriusmon-group-placement", "EX12 Siriusmon · place two cards at one end"],
   ["arena-ex12-virus-busters-effect-attack", "EX12 Virus Busters · ordered with an effect-driven attack"],
   ["arena-ex7-seventh-fascination-trash-turn", "EX7 Seventh Fascination · trash activation"],
+  ["arena-raid-after-dedigivolve", "Omnimon · pending Raid after Gladimon De-Digivolve"],
   ["arena-raid-optional-preset", "EX13 Examon · Raid Yes/No preset in effect order"],
   ["arena-preset-order-no-clicks", "EX13 Examon · preset effect order resolves in one submit"],
   ["arena-ex13-leopardmon-suspended-target", "EX13 Leopardmon · suspend an already suspended Digimon"],
