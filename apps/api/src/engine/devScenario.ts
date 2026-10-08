@@ -58,6 +58,9 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github5322-metalmamemon-no-cost",
+  "arena-github5322-metalmamemon-paid",
+  "arena-github5322-metalmamemon-strip-zero",
   "arena-github5307-larva-bt18-breeding",
   "arena-github5307-larva-ex10-breeding",
   "arena-github5308-greymon-security-destination",
@@ -8455,6 +8458,25 @@ function layGithub5311ImperialdramonCostScenario(state: GameState): void {
   insertCard(human, Zone.Hand, faceDownCard("github5311-metalgarurumon", "BT1-044", 0));
 }
 
+/** EX9-018 Q4761: the Then return requires the trash placement on either trigger. */
+function layGithub5322MetalMamemonScenario(state: GameState, route: "no-cost" | "paid" | "strip-zero"): void {
+  prepareGithubCardEffectsScenario(state, 10);
+  const human = state.players[0]!;
+  const opponent = state.players[1]!;
+  placePermanent(human, establishedDigimon(0, ["BT1-037"], "-github5322-base"));
+  insertCard(human, Zone.Hand, faceDownCard("github5322-metalmamemon", "EX9-018", 0));
+  if (route !== "no-cost") {
+    insertCard(human, Zone.Trash, faceDownCard("github5322-payment", "BT1-048", 0));
+  } else {
+    insertCard(human, Zone.Trash, faceDownCard("github5322-option", "ST2-16", 0));
+  }
+  if (route !== "strip-zero") {
+    placePermanent(opponent, establishedDigimon(1, ["BT1-010", "BT1-015"], "-github5322-stacked"));
+  }
+  placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-github5322-source-less"));
+  placePermanent(opponent, establishedDigimon(1, ["BT3-093"], "-github5322-tamer"));
+}
+
 function layGithub5318JunomonPrintedCostScenario(state: GameState): void {
   prepareGithubCardEffectsScenario(state, 10);
   const human = state.players[0]!;
@@ -8676,6 +8698,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github5310-grandis-end-of-attack": (state, decks) => layGithub5310GrandisScenario(state, decks, true),
   "arena-github5311-crescemon-cost-scope": layGithub5311CrescemonCostScenario,
   "arena-github5311-imperialdramon-cost-scope": layGithub5311ImperialdramonCostScenario,
+  "arena-github5322-metalmamemon-no-cost": (state) => layGithub5322MetalMamemonScenario(state, "no-cost"),
+  "arena-github5322-metalmamemon-paid": (state) => layGithub5322MetalMamemonScenario(state, "paid"),
+  "arena-github5322-metalmamemon-strip-zero": (state) => layGithub5322MetalMamemonScenario(state, "strip-zero"),
   "arena-github5318-junomon-printed-cost": layGithub5318JunomonPrintedCostScenario,
   "arena-github-5302-kunlun-security-check": (state, decks) => layGithubEndTurnReportScenario(state, decks, "kunlun"),
   "arena-github-5305-gravity-order": (state, decks) => layGithubEndTurnReportScenario(state, decks, "gravity"),
