@@ -1,4 +1,34 @@
 {
+  "releases.1.18.0-beta.summary": {
+    "en": "This minor release adds Unlimited decks for bot and private matches and a Discord picture refresh button, and fixes reported card, effect and table problems.",
+    "pt-BR": "Esta versão minor adiciona decks Unlimited em partidas contra o bot e privadas e um botão para atualizar a foto do Discord, e corrige problemas reportados em cartas, efeitos e na mesa.",
+    "es": "Esta versión menor agrega decks Unlimited en partidas contra el bot y privadas y un botón para actualizar la foto de Discord, y corrige problemas reportados en cartas, efectos y en la mesa."
+  },
+  "releases.1.18.0-beta.feature.unlimited": {
+    "en": "Play Unlimited decks, with no banlist, against the bot and in private matches.",
+    "pt-BR": "Jogue com decks Unlimited, sem banlist, contra o bot e em partidas privadas.",
+    "es": "Juega con decks Unlimited, sin banlist, contra el bot y en partidas privadas."
+  },
+  "releases.1.18.0-beta.feature.avatar": {
+    "en": "Refresh your Discord picture from the player menu. Pictures also update on their own.",
+    "pt-BR": "Atualize sua foto do Discord pelo menu do jogador. As fotos também se atualizam sozinhas.",
+    "es": "Actualiza tu foto de Discord desde el menú del jugador. Las fotos también se actualizan solas."
+  },
+  "releases.1.18.0-beta.feature.effects": {
+    "en": "When only mandatory effects trigger together, you can resolve them all at once.",
+    "pt-BR": "Quando só efeitos obrigatórios disparam juntos, você pode resolvê-los todos de uma vez.",
+    "es": "Cuando solo se activan efectos obligatorios a la vez, puedes resolverlos todos de una vez."
+  },
+  "releases.1.18.0-beta.fix.cards": {
+    "en": "Fixed reported problems with alternate digivolution names, DNA and App Fusion materials, optional digivolution costs, end-of-turn costs, deletion costs, security order, Regulusmon, Cool Boy, Deusmon, Velgrmon and Reppamon.",
+    "pt-BR": "Corrigidos problemas reportados com nomes de digivolução alternativa, materiais de DNA e App Fusion, custos opcionais de digivolução, custos de fim de turno, custos de deleção, ordem da segurança, Regulusmon, Cool Boy, Deusmon, Velgrmon e Reppamon.",
+    "es": "Se corrigieron problemas reportados con nombres de digievolución alternativa, materiales de DNA y App Fusion, costos opcionales de digievolución, costos de fin de turno, costos de eliminación, orden de la seguridad, Regulusmon, Cool Boy, Deusmon, Velgrmon y Reppamon."
+  },
+  "releases.1.18.0-beta.fix.table": {
+    "en": "Effect notices keep their order and timing, hand selection works on mobile, and field overlays and artwork previews no longer cover decisions.",
+    "pt-BR": "Os avisos de efeito mantêm a ordem e o tempo certos, a seleção da mão funciona no celular, e as sobreposições do campo e as prévias de arte não cobrem mais as decisões.",
+    "es": "Los avisos de efecto mantienen su orden y tiempo, la selección de la mano funciona en el móvil, y las superposiciones del campo y las vistas previas de arte ya no tapan las decisiones."
+  },
   "releases.1.17.0-beta.summary": {
     "en": "This minor release adds Italian, Unlimited matchmaking, hand reordering, Japanese alternate arts and clearer effect prompts, and fixes reported card and table problems.",
     "pt-BR": "Esta versão minor adiciona o italiano, partidas Unlimited, reordenação da mão, artes alternativas japonesas e prompts de efeito mais claros, e corrige problemas reportados em cartas e na mesa.",

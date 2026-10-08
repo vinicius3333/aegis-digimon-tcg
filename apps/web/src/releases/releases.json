@@ -1,5 +1,29 @@
 [
   {
+    "version": "1.18.0-beta",
+    "releasedAt": "2026-10-08",
+    "summaryKey": "releases.1.18.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.18.0-beta.feature.unlimited"
+      },
+      {
+        "textKey": "releases.1.18.0-beta.feature.avatar"
+      },
+      {
+        "textKey": "releases.1.18.0-beta.feature.effects"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.18.0-beta.fix.cards"
+      },
+      {
+        "textKey": "releases.1.18.0-beta.fix.table"
+      }
+    ]
+  },
+  {
     "version": "1.17.0-beta",
     "releasedAt": "2026-10-07",
     "summaryKey": "releases.1.17.0-beta.summary",
