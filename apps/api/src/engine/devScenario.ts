@@ -58,6 +58,9 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github5311-crescemon-cost-scope",
+  "arena-github5311-imperialdramon-cost-scope",
+  "arena-github5318-junomon-printed-cost",
   "arena-github-5299-ravemon-bottom-security",
   "arena-github5300-yoshino-cost-payload",
   "arena-github5300-keenan-cost-execute",
@@ -8104,6 +8107,42 @@ function prepareGithubCardEffectsScenario(state: GameState, memory: number): voi
   startEffectsLabTurn(state, memory);
 }
 
+function layGithub5311CrescemonCostScenario(state: GameState): void {
+  prepareGithubCardEffectsScenario(state, 6);
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT1-003", "BT1-028", "BT1-037", "EX5-020"], "-github5311-source"));
+  placePermanent(human, establishedDigimon(0, ["EX5-017"], "-github5311-base"));
+  insertCard(human, Zone.Hand, faceDownCard("github5311-metalgarurumon", "BT1-044", 0));
+  insertCard(human, Zone.Hand, faceDownCard("github5311-crescemon", "EX5-020", 0));
+}
+
+function layGithub5311ImperialdramonCostScenario(state: GameState): void {
+  prepareGithubCardEffectsScenario(state, 8);
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT3-111"], "-github5311-resident-dragon"));
+  placePermanent(human, establishedDigimon(0, ["BT3-027"], "-github5311-paildramon-incoming"));
+  placePermanent(human, establishedDigimon(0, ["BT3-027"], "-github5311-paildramon-control"));
+  insertCard(human, Zone.Hand, faceDownCard("github5311-imperialdramon", "BT3-111", 0));
+  insertCard(human, Zone.Hand, faceDownCard("github5311-metalgarurumon", "BT1-044", 0));
+}
+
+function layGithub5318JunomonPrintedCostScenario(state: GameState): void {
+  prepareGithubCardEffectsScenario(state, 10);
+  const human = state.players[0]!;
+  // Junomon's placement cost removes security during the human's turn, without bot timing.
+  placePermanent(human, establishedDigimon(0, ["BT3-088"], "-github5318-base"));
+  placePermanent(state.players[1]!, establishedDigimon(1, ["BT1-009"], "-github5318-material"));
+  clearZone(human, Zone.Security);
+  for (let index = 0; index < 3; index += 1) {
+    insertCard(human, Zone.Security, faceDownCard(`github5318-security-${index}`, "BT1-010", 0));
+  }
+  insertCard(human, Zone.Hand, faceDownCard("github5318-junomon", "BT25-044", 0));
+  insertCard(human, Zone.Hand, faceDownCard("github5318-venusmon-hand", "BT24-040", 0));
+  insertCard(human, Zone.Trash, faceDownCard("github5318-venusmon-trash", "BT24-040", 0));
+  insertCard(human, Zone.Hand, faceDownCard("github5318-angel", "BT25-034", 0));
+  insertCard(human, Zone.Trash, faceDownCard("github5318-angel-trash", "BT25-034", 0));
+}
+
 function layGithubLordKnightmonScenario(state: GameState): void {
   prepareGithubCardEffectsScenario(state, 10);
   const human = state.players[0]!;
@@ -8252,6 +8291,9 @@ function layGithub5297OmnimonDnaScenario(state: GameState, includeSecondPair: bo
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-github5311-crescemon-cost-scope": layGithub5311CrescemonCostScenario,
+  "arena-github5311-imperialdramon-cost-scope": layGithub5311ImperialdramonCostScenario,
+  "arena-github5318-junomon-printed-cost": layGithub5318JunomonPrintedCostScenario,
   "arena-github-5299-ravemon-bottom-security": layGithub5299RavemonBottomSecurityScenario,
   "arena-github5300-yoshino-cost-payload": layGithub5300YoshinoScenario,
   "arena-github5300-keenan-cost-execute": layGithub5300KeenanScenario,

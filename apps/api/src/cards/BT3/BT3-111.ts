@@ -1,11 +1,10 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
       actions: [
         {
           kind: "Replacement",
@@ -25,6 +24,12 @@ const compiled: CompiledCard = {
             },
           ],
         },
+      ],
+    },
+    {
+      trigger: "Static",
+      keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
+      actions: [
         {
           kind: "GainKeyword",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },

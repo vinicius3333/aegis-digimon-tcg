@@ -7,6 +7,119 @@ import { wouldBePlayedSelfReducersFor } from "../../engine/effects/interpreter/r
 import "../index.js";
 
 describe("BT25-044 Junomon", () => {
+  it.each(["hand", "trash"] as const)("GitHub #5318: accepts the printed-cost-8 boundary from %s", async (zone) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-044", as: "junomon" }],
+          [zone]: [
+            { card: "BT24-040", as: "venusmon" },
+            { card: "EX1-029", as: "boundaryAngel" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 15000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+    await s.ready();
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("boundaryAngel").instanceId,
+    );
+    expect(s.state.players[0]![zone].map((card) => card.instanceId)).toContain(s.inst("venusmon").instanceId);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each([
+    ["hand", 3],
+    ["trash", 3],
+    ["hand", 5],
+    ["trash", 5],
+  ] as const)(
+    "GitHub #5318: plays a legal Angel from %s at %i starting security while excluding Venusmon",
+    async (zone, security) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT25-044", as: "junomon" }],
+            [zone]: [
+              { card: "BT24-040", as: "venusmon" },
+              { card: "BT25-034", as: "angel" },
+            ],
+            security: Array(security).fill("BT1-001"),
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 15000 }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      s.state.memory = 5;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).finishAttack();
+      await s.ready();
+      expect(s.state.players[0]!.security).toHaveLength(security - 1);
+      expect(s.state.players[0]![zone].map((card) => card.instanceId)).toContain(s.inst("venusmon").instanceId);
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+        s.inst("angel").instanceId,
+      );
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-040")).toBe(false);
+      expect(s.state.memory).toBe(5);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
+  it.each(["hand", "trash"] as const)(
+    "GitHub #5318: cannot play printed-cost-12 Venusmon from %s after a security check despite its self discount",
+    async (zone) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT25-044", as: "junomon" }],
+            [zone]: [{ card: "BT24-040", as: "venusmon" }],
+            security: ["BT1-001", "BT1-002", "BT1-003"],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 15000 }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      s.state.memory = 5;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).finishAttack();
+      await s.ready();
+      expect(s.state.players[0]!.security).toHaveLength(2);
+      expect(s.state.players[0]![zone].map((card) => card.instanceId)).toContain(s.inst("venusmon").instanceId);
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT25-044"]);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
   it("registers its Q7004 conditional self play-cost reducer for effect-driven paid plays", () => {
     expect(wouldBePlayedSelfReducersFor("BT25-044")).toContainEqual(
       expect.objectContaining({
