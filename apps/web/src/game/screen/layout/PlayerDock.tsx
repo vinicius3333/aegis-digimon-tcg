@@ -16,6 +16,7 @@ import type { EffectActivation } from "../../effectSource";
 
 export function PlayerDock({
   spectating = false,
+  showRecordedHand = false,
   timer,
   playerName,
   playerAvatarId,
@@ -45,6 +46,8 @@ export function PlayerDock({
   reorderDropBeforeInstanceId,
 }: {
   spectating?: boolean;
+  /** Authorised replay cards can be inspected while every gameplay action stays disabled. */
+  showRecordedHand?: boolean;
   onSortHand?: () => void;
   onMoveHandCard?: (instanceId: string, direction: -1 | 1) => void;
   reorderDropBeforeInstanceId?: string | null;
@@ -114,7 +117,7 @@ export function PlayerDock({
           <div className="game-action-bar game-action-bar--idle" aria-hidden />
         ) : null}
         <div className="game-hand-tray">
-          {spectating ? (
+          {spectating && !showRecordedHand ? (
             <div className="game-spectator-hand" aria-label={t("game.handCount", { count: handCount })}>
               {Array.from({ length: handCount }, (_, index) => (
                 <CardBack key={index} width={40} useSelectedSleeve={false} />
@@ -125,13 +128,13 @@ export function PlayerDock({
               cardWidth={cardWidth}
               minExposure={minExposure}
               cards={cards}
-              onMoveCard={onMoveHandCard}
+              onMoveCard={spectating ? undefined : onMoveHandCard}
               reorderDropBeforeInstanceId={reorderDropBeforeInstanceId}
               selectedInstanceId={selectedInstanceId}
               effectSourceInstanceId={effectSourceInstanceId}
               effectSource={effectSource}
               selection={selection}
-              startDrag={startDrag}
+              startDrag={spectating ? (index) => selectCard(index) : startDrag}
               selectCard={selectCard}
               draggingInstanceId={draggingInstanceId}
               shakeInstanceId={shakeInstanceId}

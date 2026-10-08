@@ -47,6 +47,8 @@ export function MatchStatusOverlays({
   gameOver:
     | {
         spectatorResult?: string;
+        onDownloadReplay?: () => void;
+        replayStatus?: "preparing" | "unavailable";
         result: GameOverOutcome;
         reason: string;
         stats: { value: number; label: string }[];
@@ -81,6 +83,8 @@ export function MatchStatusOverlays({
       {gameOver ? (
         <GameOverOverlay
           spectatorResult={gameOver.spectatorResult}
+          onDownloadReplay={gameOver.onDownloadReplay}
+          replayStatus={gameOver.replayStatus}
           result={gameOver.result}
           reason={gameOver.reason}
           stats={gameOver.stats}

@@ -1,3 +1,4 @@
+import { downloadReplay } from "../replays/files";
 /* The in-game board — the design's letterboxed board layout, driven entirely by
    the synchronized GameState and wired to the server through typed intents. The
    client owns zero rules: every action is an intent the server validates, and the
@@ -137,6 +138,7 @@ export function GameScreen({
   onResetScenario,
   signedIn = false,
   demoConnection,
+  replayMode = false,
   devProbe,
   presentationPacing,
   seriesGame,
@@ -175,6 +177,8 @@ export function GameScreen({
     /** No snapshots either, so the board it shows is always its live state. */
     snapshots?: readonly StateSnapshot[];
   };
+  /** Portable file playback uses the read-only board without live result dialogs. */
+  replayMode?: boolean;
   /** Dev inspector hooks (the effects lab): queue controls, step events, batches, decisions. */
   devProbe?: PresentationProbe;
   presentationPacing?: PresentationPacing;
@@ -187,7 +191,9 @@ export function GameScreen({
 }) {
   const { t } = useTranslation();
   const [handOrder, setHandOrder] = useState<readonly string[]>([]);
-  const [spectating] = useState(() => startMode === "spectator" || loadReconnectSession()?.spectator === true);
+  const [spectating] = useState(
+    () => replayMode || startMode === "spectator" || (!demoConnection && loadReconnectSession()?.spectator === true),
+  );
   const actionConfirmationsEnabled = areActionConfirmationsEnabled();
   const arenaLayout = useArenaLayout();
   const { narrowGameLayout, compactPiles, shortBoard, collapseNotices } = arenaLayout;
@@ -1382,9 +1388,24 @@ export function GameScreen({
       signedIn={signedIn}
       opponentDropped={!spectating && !vsBot && !opp.connected && !state.gameOver}
       gameOver={
-        (state.gameOver || series?.stage === "over") && !cues.resultPending
+        !replayMode && (state.gameOver || series?.stage === "over") && !cues.resultPending
           ? {
               result: series?.outcome ?? gameOverResult,
+              onDownloadReplay:
+                !spectating && liveConnection.replayDownload?.kind === "ready"
+                  ? () => {
+                      if (liveConnection.replayDownload?.kind === "ready")
+                        downloadReplay(liveConnection.replayDownload);
+                    }
+                  : undefined,
+              replayStatus:
+                spectating || demoConnection || joinOptions.devScenario
+                  ? undefined
+                  : liveConnection.replayDownload?.kind === "unavailable"
+                    ? "unavailable"
+                    : liveConnection.replayDownload
+                      ? undefined
+                      : "preparing",
               reason: gameOverReason,
               revealed,
               series: series && {
@@ -1473,6 +1494,7 @@ export function GameScreen({
 
   return (
     <BoardStage
+      replayMode={replayMode}
       onResetScenario={onResetScenario}
       state={state}
       shownState={shownState}

@@ -19,6 +19,7 @@ export const SCREEN_PATHS: Record<Screen, string> = {
   tournaments: "/tournaments",
   settings: "/settings",
   releases: "/whats-new",
+  replays: "/replays",
   game: "/play/game",
 };
 
@@ -33,6 +34,7 @@ export function routeFromPathname(pathname: string): AppRoute | undefined {
   if (normalized === "/community") return { screen: "community" };
   const communityDeck = /^\/community\/decks\/([^/]+)$/.exec(normalized)?.[1];
   if (communityDeck) return { screen: "community", communityDeckId: safeDecode(communityDeck) };
+  if (normalized === "/replays") return { screen: "replays" };
   if (normalized === "/settings") return { screen: "settings" };
   if (normalized === "/whats-new") return { screen: "releases" };
   return undefined;

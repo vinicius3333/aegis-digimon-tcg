@@ -41,6 +41,7 @@ export type Screen =
   | "community"
   | "tournaments"
   | "settings"
+  | "replays"
   | "releases"
   | "game";
 

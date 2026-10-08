@@ -1,0 +1,195 @@
+.replay-import {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-4);
+  min-height: 60vh;
+  padding: var(--ds-space-6);
+  color: var(--ds-text);
+  text-align: center;
+}
+.replay-import h1 {
+  font-family: var(--ds-font-display);
+}
+.replay-import p {
+  max-width: var(--ds-readable-max);
+}
+.replay-import small,
+.replay-player__perspective {
+  color: var(--ds-text-3);
+}
+.replay-import__file {
+  display: grid;
+  gap: var(--ds-space-3);
+  text-align: left;
+}
+.replay-import__file input {
+  max-width: 100%;
+}
+.replay-import [role="alert"] {
+  color: var(--ds-danger);
+}
+.replay-player {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--ds-paper);
+}
+.replay-player__heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-3);
+  align-items: center;
+  padding: var(--ds-space-2) var(--ds-space-4);
+}
+.replay-player__heading h1 {
+  font-size: var(--ds-text-base);
+  margin: 0;
+  flex: 1;
+}
+.replay-player__heading h1 span {
+  color: var(--ds-text-3);
+  font-weight: normal;
+}
+.replay-player__heading > span {
+  font-size: var(--ds-text-xs);
+}
+.replay-player__perspective {
+  margin: 0;
+  padding: 0 var(--ds-space-4) var(--ds-space-2);
+  font-size: var(--ds-text-xs);
+}
+.replay-player__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16rem;
+  flex: 1;
+  min-height: 0;
+}
+.replay-player__board .game-layout {
+  height: 100% !important;
+  min-height: 0 !important;
+}
+.replay-player__board {
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+.replay-history {
+  overflow-y: auto;
+  border-left: 1px solid var(--ds-line);
+  background: var(--ds-sheet);
+}
+.replay-history h2 {
+  font-size: var(--ds-text-sm);
+  margin: 0;
+  padding: var(--ds-space-3);
+  position: sticky;
+  top: 0;
+  background: var(--ds-sheet);
+}
+.replay-history ol {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.replay-history button {
+  border: 0;
+  border-bottom: 1px solid var(--ds-line);
+  padding: var(--ds-space-3);
+  display: grid;
+  gap: var(--ds-space-1);
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  color: var(--ds-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--ds-text-xs);
+}
+.replay-history button small {
+  color: var(--ds-text-3);
+}
+.replay-history button[aria-current] {
+  background: var(--ds-accent-soft);
+  box-shadow: inset 3px 0 var(--ds-accent);
+}
+.replay-controls {
+  background: var(--ds-sheet);
+  border-top: 1px solid var(--ds-line);
+  padding: var(--ds-space-3);
+  display: grid;
+  gap: var(--ds-space-2);
+}
+.replay-controls__timeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-3);
+  align-items: center;
+  font-size: var(--ds-text-xs);
+}
+.replay-controls__timeline input {
+  flex: 1;
+  min-width: 6rem;
+  accent-color: var(--ds-accent);
+}
+.replay-controls__timeline > span {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.replay-controls__buttons {
+  display: flex;
+  gap: var(--ds-space-2);
+  align-items: end;
+  flex-wrap: wrap;
+}
+.replay-controls__buttons label {
+  display: grid;
+  gap: var(--ds-space-1);
+  font-size: var(--ds-text-xs);
+}
+.replay-controls select {
+  background: var(--ds-sheet);
+  color: var(--ds-text);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-sm);
+  padding: var(--ds-space-1);
+  max-width: 12rem;
+  min-height: 2rem;
+}
+.replay-player :focus-visible,
+.replay-import :focus-visible {
+  outline: 2px solid var(--ds-focus);
+  outline-offset: 2px;
+}
+@media (max-width: 1023px) {
+  .replay-player {
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .replay-player__body {
+    display: flex;
+    flex-direction: column;
+    flex: none;
+  }
+  .replay-player__board {
+    height: 65vh;
+    min-height: 32rem;
+  }
+  .replay-history {
+    max-height: 10rem;
+    border-left: 0;
+    border-top: 1px solid var(--ds-line);
+    order: 1;
+  }
+  .replay-controls {
+    position: sticky;
+    bottom: 0;
+    z-index: 30;
+  }
+}

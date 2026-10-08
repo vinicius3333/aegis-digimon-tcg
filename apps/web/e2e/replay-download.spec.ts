@@ -1,0 +1,29 @@
+import { readFile } from "node:fs/promises";
+import { gunzipSync } from "node:zlib";
+import type { MatchReplay } from "@aegis/shared";
+import { expect, test } from "./fixtures";
+
+test("downloads a finished live match and opens it locally after leaving the room", async ({ page, match }) => {
+  await match.start("reconnect");
+  match.opponent.room.onMessage("replay", () => {});
+  match.opponent.room.send("surrender", {});
+  const downloadButton = page.getByRole("button", { name: "Download replay", exact: true });
+  await expect(downloadButton).toBeVisible();
+  const pendingDownload = page.waitForEvent("download");
+  await downloadButton.click();
+  const download = await pendingDownload;
+  expect(download.suggestedFilename()).toMatch(/^aegis-.+-player-1\.aegis-replay$/);
+  const path = await download.path();
+  expect(path).toBeTruthy();
+  const replay = JSON.parse(gunzipSync(await readFile(path!)).toString()) as MatchReplay;
+  expect(replay.viewerSeat).toBe(0);
+  expect(replay.frames[0]!.state.players[0]!.hand.length).toBeGreaterThan(0);
+  expect(replay.frames.every((frame) => frame.state.players[1]!.hand.length === 0)).toBe(true);
+  expect(replay.frames.at(-1)!.state.gameOver).toBe(true);
+  await page.route("**/auth/me", (route) => route.fulfill({ contentType: "application/json", body: "null" }));
+  await page.goto("/replays");
+  await page.getByLabel("Open replay file").setInputFiles(path!);
+  await expect(page.getByRole("heading", { name: "Browser Protagonist vs Observer Opponent" })).toBeVisible();
+  await page.getByRole("button", { name: "Go to end", exact: true }).click();
+  await expect(page.getByText("Replay finished", { exact: true })).toBeVisible();
+});

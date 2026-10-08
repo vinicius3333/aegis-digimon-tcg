@@ -148,6 +148,8 @@ export function MatchOverlays({
   gameOver:
     | {
         spectatorResult?: string;
+        onDownloadReplay?: () => void;
+        replayStatus?: "preparing" | "unavailable";
         result: GameOverOutcome;
         reason: string;
         /** Every hidden zone, once the server reveals them; absent in a tournament set. */

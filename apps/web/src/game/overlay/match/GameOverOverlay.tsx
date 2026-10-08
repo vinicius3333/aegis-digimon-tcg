@@ -88,6 +88,8 @@ function placeBar(bar: HTMLElement): BarPlacement | undefined {
  */
 export function GameOverOverlay({
   spectatorResult,
+  onDownloadReplay,
+  replayStatus,
   result,
   reason,
   stats,
@@ -98,6 +100,8 @@ export function GameOverOverlay({
   series,
 }: {
   spectatorResult?: string;
+  onDownloadReplay?: () => void;
+  replayStatus?: "preparing" | "unavailable";
   result: GameOverOutcome;
   reason: string;
   stats: { value: number | string; label: string }[];
@@ -210,6 +214,14 @@ export function GameOverOverlay({
             </Button>
           </div>
         )}
+        {onDownloadReplay ? (
+          <Button variant="secondary" size="sm" icon={Icons.Download} onClick={onDownloadReplay}>
+            {t("replay.download")}
+          </Button>
+        ) : null}
+        {replayStatus ? (
+          <p role="status">{t(replayStatus === "preparing" ? "replay.preparing" : "replay.unavailable")}</p>
+        ) : null}
         <Button
           className="game-result__view-board"
           variant="ghost"

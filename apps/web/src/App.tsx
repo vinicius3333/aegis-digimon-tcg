@@ -43,6 +43,7 @@ import { isUiPreviewPath } from "./prototype/routes";
 import { SEQUENTIAL_PACING_ENABLED } from "./features";
 import { clearReconnectSession, loadReconnectSession } from "./net/reconnectSession";
 
+const ReplaysScreen = lazy(() => import("./replays/ReplaysScreen").then((m) => ({ default: m.ReplaysScreen })));
 const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
 const ReleasesScreen = lazy(() => import("./releases/ReleasesScreen").then((m) => ({ default: m.ReleasesScreen })));
 const Login = lazy(() => import("./screens/Login").then((m) => ({ default: m.Login })));
@@ -104,7 +105,7 @@ function ScreenFallback() {
   );
 }
 
-const NAV_SCREENS: Screen[] = ["home", "lobby", "deck", "community", "collection", "settings", "releases"];
+const NAV_SCREENS: Screen[] = ["home", "lobby", "deck", "community", "collection", "settings", "releases", "replays"];
 
 export function withAccountAvatar(player: PlayerIdentity, account: RemoteAccount | null): PlayerIdentity {
   return {
@@ -594,6 +595,8 @@ export function AegisClient({
           )}
 
           {screen === "collection" && <Collection />}
+
+          {screen === "replays" && <ReplaysScreen />}
 
           {screen === "releases" && <ReleasesScreen />}
 
