@@ -54771,7 +54771,7 @@
               "kind": "deleteOwn",
               "target": {
                 "filter": {
-                  "controller": "mine",
+                  "controller": "any",
                   "kind": ["Digimon"],
                   "colors": ["Purple"],
                   "levelComparison": { "op": "lte", "value": 4 }
@@ -169114,7 +169114,7 @@
                   "kind": "deleteOwn",
                   "target": {
                     "filter": {
-                      "controller": "mine",
+                      "controller": "any",
                       "excludeSelf": true,
                       "kind": ["Digimon"],
                       "nameOrTrait": [{ "tokens": ["Sukamon"], "match": "name" }]

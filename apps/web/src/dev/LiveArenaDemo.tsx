@@ -1735,6 +1735,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação, jogue Junomon e aceite o efeito. O seletor deve permitir escolher o Digimon do oponente.",
     en: "End breeding, play Junomon, and accept the effect. The target picker must allow the opponent's Digimon.",
   },
+  "arena-bt18-velgrmon-opponent-cost": {
+    ptBR: "Pule a criação e ataque a segurança com Velgrmon. Aceite o efeito de fim do ataque e escolha o KaiserLeomon roxo/amarelo de nível 4 do oponente como custo. Seu Velgrmon e seu KaiserLeomon devem permanecer; o KaiserLeomon do oponente e os dois Digimon de nível 5 devem ser deletados, restando apenas o MetalGarurumon de nível 6 do oponente. Reinicie e recuse o efeito: nenhum Digimon deve ser deletado.",
+    en: "Skip breeding and attack security with Velgrmon. Accept the end-of-attack effect and choose the opponent's purple/yellow level 4 KaiserLeomon as the cost. Your Velgrmon and KaiserLeomon must remain; the opponent's KaiserLeomon and both level 5 Digimon must be deleted, leaving only their level 6 MetalGarurumon. Reset and decline the effect: no Digimon should be deleted.",
+  },
+  "arena-ex5-targetmon-opponent-cost": {
+    ptBR: "Pule a criação e ataque o WarGreymon suspenso com Chirinmon. Aceite a herança do Targetmon e escolha o Sukamon do oponente como custo. Chirinmon deve sobreviver com Targetmon na evolução; seu Sukamon e o WarGreymon devem permanecer, e apenas o Sukamon do oponente deve ser deletado. Reinicie e recuse: Chirinmon e Targetmon vão ao lixo e ambos os Sukamon permanecem.",
+    en: "Skip breeding and attack the suspended WarGreymon with Chirinmon. Accept Targetmon's inherited effect and choose the opponent's Sukamon as the cost. Chirinmon must survive with Targetmon underneath; your Sukamon and WarGreymon must remain, and only the opponent's Sukamon must be deleted. Reset and decline: Chirinmon and Targetmon go to trash and both Sukamon remain.",
+  },
   "arena-ex13-giromon-block-triggers": {
     ptBR: "O bot ataca primeiro. Bloqueie com Giromon para abrir os 6 efeitos simultâneos de Giromon, Guardromon e dos 4 Tai.",
     en: "The bot attacks first. Block with Giromon to open the 6 simultaneous Giromon, Guardromon, and 4 Tai effects.",
@@ -2536,6 +2544,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-jesmon-scramble-dp-blocked", "Jesmon · Red Scramble vs 5000 DP (blocked)"],
   ["arena-jesmon-scramble-dp-allowed", "Jesmon · Red Scramble vs 10000 DP (allowed)"],
   ["arena-junomon-opponent-target", "Junomon · opponent target"],
+  ["arena-bt18-velgrmon-opponent-cost", "BT18 Velgrmon · opponent deletion cost"],
+  ["arena-ex5-targetmon-opponent-cost", "EX5 Targetmon · opponent deletion cost"],
   ["arena-jupitermon-siren", "Jupitermon · Sirenmon + Dan & Kanan"],
   ["arena-security-effect-pacing", "Security effects · pacing"],
   ["arena-magnamon-x", "Magnamon X · Sonic Shot unsuspend"],

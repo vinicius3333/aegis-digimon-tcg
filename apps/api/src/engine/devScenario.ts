@@ -337,6 +337,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-jesmon-scramble-dp-allowed",
   "arena-ex11-ryutaro-suspended",
   "arena-junomon-opponent-target",
+  "arena-bt18-velgrmon-opponent-cost",
+  "arena-ex5-targetmon-opponent-cost",
   "arena-jupitermon-siren",
   "arena-security-effect-pacing",
   "arena-magnamon-x",
@@ -3246,6 +3248,68 @@ function layJunomonOpponentTargetScenario(state: GameState, decks: readonly [Dec
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 10;
+}
+
+/** Discord 1557564616920408185: pay Velgrmon's cost from either field, then find the new lowest level. */
+function layBt18VelgrmonOpponentCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+    clearZone(player, Zone.Security);
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-velgrmon-security-${seat}-${index}`, "BT1-010", seat));
+    }
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT2-067", "BT18-079"], "-velgrmon"));
+    placePermanent(human, establishedDigimon(0, ["BT18-077"], "-velgrmon-own-cost"));
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    placePermanent(opponent, establishedDigimon(1, ["BT18-077"], "-velgrmon-opponent-cost"));
+    placePermanent(opponent, establishedDigimon(1, ["BT1-038"], "-velgrmon-lowest-one"));
+    placePermanent(opponent, establishedDigimon(1, ["BT1-039"], "-velgrmon-lowest-two"));
+    placePermanent(opponent, establishedDigimon(1, ["BT1-044"], "-velgrmon-higher"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/** Same mechanism: Targetmon's inherited replacement may delete an opponent's Sukamon. */
+function layEx5TargetmonOpponentCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX5-046", "BT1-058"], "-targetmon-host"));
+    placePermanent(human, establishedDigimon(0, ["BT11-040"], "-targetmon-own-cost"));
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    const wall = establishedDigimon(1, ["BT1-025"], "-targetmon-wall");
+    wall.isSuspended = true;
+    placePermanent(opponent, wall);
+    placePermanent(opponent, establishedDigimon(1, ["BT11-040"], "-targetmon-opponent-cost"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /** SagaSol regression: HiAndromon reveals Megadramon, which may Assembly from trash. */
@@ -8213,6 +8277,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-jesmon-scramble-dp-allowed": (state, decks) => layJesmonScrambleDpScenario(state, decks, true),
   "arena-ex11-ryutaro-suspended": layEx11RyutaroSuspendedScenario,
   "arena-junomon-opponent-target": layJunomonOpponentTargetScenario,
+  "arena-bt18-velgrmon-opponent-cost": layBt18VelgrmonOpponentCostScenario,
+  "arena-ex5-targetmon-opponent-cost": layEx5TargetmonOpponentCostScenario,
   "arena-jupitermon-siren": layJupitermonSirenScenario,
   "arena-security-effect-pacing": laySecurityEffectPacingScenario,
   "arena-magnamon-x": layMagnamonXScenario,

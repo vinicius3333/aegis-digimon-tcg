@@ -545,6 +545,8 @@ export interface AegisJoinOptions {
     | "arena-jesmon-scramble-dp-allowed"
     | "arena-ex11-ryutaro-suspended"
     | "arena-junomon-opponent-target"
+    | "arena-bt18-velgrmon-opponent-cost"
+    | "arena-ex5-targetmon-opponent-cost"
     | "arena-jupitermon-siren"
     | "arena-security-effect-pacing"
     | "arena-magnamon-x"
