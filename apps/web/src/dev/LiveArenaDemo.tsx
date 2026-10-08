@@ -2127,6 +2127,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e jogue Blastmon da mão com DigiXros. A seleção de materiais deve aceitar 3 cartas [Bagra Army] e parar na terceira: escolha SkullKnightmon, DeadlyAxemon e ChuuChuumon. O custo 13 cai 2 por material, então a memória vai de 7 para 0 e as 3 cartas ficam sob Blastmon. Damemon fica na mão.",
     en: "End breeding and play Blastmon from hand with DigiXros. Material selection must accept 3 [Bagra Army] cards and stop at the third: choose SkullKnightmon, DeadlyAxemon, and ChuuChuumon. The cost of 13 falls by 2 per material, so memory goes from 7 to 0 and all 3 cards end under Blastmon. Damemon stays in hand.",
   },
+  "arena-koto-grademon-pending-piercing": {
+    en: "Reduced Koto control for both seats. End breeding; decline the Tamer's optional placement. Use BT25-057 as Final Judgment on Armalizamon; accept its cost reduction and the Tamer's +3000 DP, then attack the player and Arts Digivolve that attacker into Monarchlizamon. Decline De-Digivolve; accept Battle against BT20-053 Grademon. The defender declines the first EX13-057 prevention, so that Grademon is deleted. Then block with Alphamon and accept EX13-057 prevention: trash exactly one security as payment, keep Alphamon, and perform two checks from the earlier battle's pending Piercing. This is a reduced sequence, not a full historical replay.",
+    ptBR: "Controle reduzido de Koto para os dois assentos. Encerre a criação; recuse colocar carta sob o Tamer. Use BT25-057 como Final Judgment em Armalizamon; aceite a redução de custo e +3000 DP do Tamer, ataque o jogador e faça Arts Digivolve do atacante para Monarchlizamon. Recuse De-Digivolve; aceite Battle contra Grademon BT20-053. O defensor recusa a primeira prevenção EX13-057, deletando esse Grademon. Depois bloqueie com Alphamon e aceite a prevenção EX13-057: descarte só uma segurança como pagamento, mantenha Alphamon e faça duas checagens pelo Piercing pendente da batalha anterior. É uma sequência reduzida, não uma reprodução histórica completa.",
+  },
+  "arena-koto-grademon-no-prior-battle": {
+    en: "Use the same Final Judgment → Arts Digivolve sequence as the pending-Piercing control, but decline Monarchlizamon's Battle effect. Block with Alphamon and accept EX13-057 prevention. Only the top security is trashed as payment; Alphamon survives and there are zero security checks because no opposing Digimon was deleted in battle during this attack.",
+    ptBR: "Faça a mesma sequência Final Judgment → Arts Digivolve do controle de Piercing pendente, mas recuse Battle de Monarchlizamon. Bloqueie com Alphamon e aceite a prevenção EX13-057. Só a segurança do topo vai ao lixo como pagamento; Alphamon sobrevive e não há checagens, pois nenhum Digimon adversário foi deletado em batalha durante este ataque.",
+  },
   "arena-suspend-lock-block": {
     ptBR: "Seu Blocker já começa impedido de suspender. O ataque do bot não deve poder ser bloqueado.",
     en: "Your Blocker starts unable to suspend. It must not be able to block the bot's attack.",
@@ -2936,6 +2944,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-sagasol-etemon-protected-dp", "SagaSol · Etemon vs protected DP"],
   ["arena-sagasol-guard-source", "SagaSol · granted Guard source"],
   ["arena-seven-code-link-dp", "Seven Code · Link DP comparison"],
+  ["arena-koto-grademon-pending-piercing", "Koto · Grademon protected block with pending Piercing"],
+  ["arena-koto-grademon-no-prior-battle", "Koto · Grademon protected block without prior battle"],
   ["arena-suspend-lock-block", "Suspend lock · Blocker legality"],
   ["arena-vortex-target-legality", "Vortex · target legality"],
   ["arena-vortexdramon", "Vortexdramon · optional OPT"],
