@@ -541,6 +541,7 @@ export interface AegisJoinOptions {
     | "arena-bt24-hyogamon-pending-trash-digivolve"
     | "arena-ex10-darkness-bagramon-digixros-interrupt"
     | "arena-ex10-tactimon-digixros-material"
+    | "arena-ex10-bagramon-materials-destination"
     | "arena-hellscythe-onplay-priority"
     | "arena-vikemon-live-source-lock"
     | "arena-rizegreymon-derived-priority"

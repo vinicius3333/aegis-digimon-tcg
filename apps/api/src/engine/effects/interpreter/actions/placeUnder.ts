@@ -287,18 +287,12 @@ export async function runPlaceUnder(
       destId = ctx.selections.get(action.underSelectionRef);
     } else if (action.underFilter) {
       const destTarget: Target = { filter: action.underFilter, count: 1 };
-      let destIds = (await resolvePermanentTargets(ctx, destTarget)).filter((id) => !sourceIds.includes(id));
-      if (destIds.length === 0) {
-        destIds = candidatePermanents(ctx, destTarget)
-          .map((permanent) => permanent.permanentId)
-          .filter((id) => !sourceIds.includes(id))
-          .slice(0, 1);
-      }
-      if (destIds.length === 0) return;
-      destId =
-        destIds.length === 1
-          ? destIds[0]
-          : (await ctx.ask.chooseTargets(ctx, { candidates: destIds, min: 1, max: 1 }))[0];
+      // "Other" excludes the cards being moved before the host choice is offered.
+      // An empty result (including a chosen immune host) must not retarget the move.
+      const destIds = await resolvePermanentTargets(ctx, destTarget, {
+        eligible: (id) => !sourceIds.includes(id),
+      });
+      destId = destIds[0];
     } else {
       unsupported(ctx, action, "PlaceUnder permanent relocation without underFilter/underSelectionRef");
       return;
