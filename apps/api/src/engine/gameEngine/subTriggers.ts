@@ -226,6 +226,25 @@ export function prepareSubTrigger(
   };
 }
 
+/** CR 9-1-9 / Q5422: use triggers before Main, but activation waits for its routing. */
+export function prepareOptionUsed(
+  engine: GameEngine,
+  usedInstanceId: string,
+  usedOptionCost?: number,
+): () => Promise<void> {
+  const payload = { subjectPermanentId: usedInstanceId, usedOptionCost };
+  const armed = armedSubTriggers(engine, engine.subTriggers.subscriptionsFor("whenOptionUsed"), payload);
+  return async () => {
+    const pending = armed.filter((item) => pendingWatcherSourceStillResident(engine, item));
+    if (engine.optionResolutionDepth > 0 || shouldDeferNestedTiming(engine)) {
+      engine.pendingWindowSubTriggers.push(...pending);
+      return;
+    }
+    await withTriggeredMutations(engine, () => runSubTriggersInChosenOrder(engine, pending));
+    await engine.recomputeContinuousEffects();
+  };
+}
+
 /**
  * One rule process can give several permanents the same event at once (CR §6-2: the unsuspend
  * phase flips them all simultaneously), while the bus publishes it one subject at a time. A

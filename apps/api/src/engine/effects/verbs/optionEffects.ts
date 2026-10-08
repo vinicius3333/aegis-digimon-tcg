@@ -162,6 +162,7 @@ export function createOptionEffectsVerbs(pc: PrimitivesContext) {
     let resolvingCard: CardInstance | undefined;
     let wasUnderCard = false;
     let resolutionError: unknown;
+    let activateOptionUsed: (() => Promise<void>) | undefined;
     let usedDefinition: CardDefinition | undefined;
     if (usedCard !== undefined && usedOwner !== undefined) {
       // The schema has one transient slot per player. Do not overwrite an already-resolving
@@ -198,6 +199,7 @@ export function createOptionEffectsVerbs(pc: PrimitivesContext) {
       // physical Option has left its source zone for the no-area resolving slot. Callers use
       // this receipt for `ifThisEffectUsed`; a mere candidate selection is not a successful use.
       ctx.lastOptionUsed = true;
+      activateOptionUsed = engine.prepareOptionUsed?.(usedInstanceId, notifiedUseCost);
       // Announced like an Option used from hand (playCard), so the client docks the card
       // before its [Main] resolves instead of the board changing with nothing on screen.
       engine.emit({
@@ -311,7 +313,8 @@ export function createOptionEffectsVerbs(pc: PrimitivesContext) {
       engine.emit({ kind: "cardsMoved", instanceIds: [resolvingCard.instanceId], from: "various", to: Zone.Trash });
       if (wasUnderCard) applyOverflow(engine.memory, [resolvingCard], state.turnSeat);
     }
-    await fireOptionUsed(usedInstanceId, notifiedUseCost);
+    if (activateOptionUsed !== undefined) await activateOptionUsed();
+    else await fireOptionUsed(usedInstanceId, notifiedUseCost);
     if (resolutionError !== undefined) throw resolutionError;
     return moved;
   };

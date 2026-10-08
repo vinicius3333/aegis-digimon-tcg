@@ -169,7 +169,9 @@ export interface PlayCardDeps {
   finishOptionMain?(): void;
   /** Release the Option-resolution deferral and run the pending rule-process fixpoint. */
   finishOptionResolution?(): Promise<void>;
-  /** Notify armed watchers after a genuine Option use finishes resolving its [Main] effect. */
+  /** Capture listeners at use; activate the captured group after Main and post-use routing. */
+  prepareOptionUsed?(usedInstanceId: string, usedOptionCost?: number): () => Promise<void>;
+  /** Legacy standalone seam for callers without trigger snapshots. */
   fireOptionUsed?(usedInstanceId: string, usedOptionCost?: number): Promise<void>;
   /**
    * Project the Option's rules-relevant use cost before payment and its [Main] effect resolve.
@@ -469,6 +471,7 @@ export async function applyPlayCard(
   // card lands in trash even if the effect throws — a stranded instance would otherwise
   // sit outside every zone permanently.
   setResolvingOption(player, instance);
+  const activateOptionUsed = deps.prepareOptionUsed?.(instance.instanceId, optionUseCost);
   deps.beginOptionResolution?.();
   let routedToTrash = false;
   try {
@@ -533,6 +536,7 @@ export async function applyPlayCard(
         });
       }
     }
+    await activateOptionUsed?.();
   } finally {
     await deps.finishOptionResolution?.();
   }
@@ -544,7 +548,7 @@ export async function applyPlayCard(
   // Carry the rules-relevant use cost: continuous/card-level modifiers have
   // already produced `passiveCost`, while BeforePayCost changes only payment.
   // This distinction implements BT10-032 Q1956/Q1957.
-  await deps.fireOptionUsed?.(instance.instanceId, optionUseCost);
+  if (activateOptionUsed === undefined) await deps.fireOptionUsed?.(instance.instanceId, optionUseCost);
 
   return {
     ok: true,

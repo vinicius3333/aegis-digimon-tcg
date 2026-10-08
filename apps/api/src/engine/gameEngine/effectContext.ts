@@ -71,7 +71,7 @@ import {
   shouldDeferNestedTiming,
   takeLeaveReplacementPending,
 } from "./windows.js";
-import { withPendingSubTriggers } from "./subTriggers.js";
+import { prepareOptionUsed, withPendingSubTriggers } from "./subTriggers.js";
 import type { GameEngine } from "../GameEngine.js";
 
 export function effectAccess(engine: GameEngine): GameAccess {
@@ -627,6 +627,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
             : fireTiming(engine, EffectTiming.OnDestroyedAnyone, deletionTrigger, transientCandidates),
         transientCandidates,
       ),
+    prepareOptionUsed: (usedInstanceId, usedOptionCost) => prepareOptionUsed(engine, usedInstanceId, usedOptionCost),
     fireSubTrigger: (event, payload, sourceScope) => engine.fireSubTrigger(event, payload, sourceScope),
     trashTopSecurityForBarrier: (seat) => payBarrierSecurityCost(engine, seat, false),
     recomputeContinuousEffects: () => engine.recomputeContinuousEffects(),

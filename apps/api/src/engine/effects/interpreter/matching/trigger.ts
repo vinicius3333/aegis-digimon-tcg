@@ -30,7 +30,7 @@ export function matchingSubjectPermanentIds(subCtx: EffectContext, filter: Filte
   }
   // `whenOptionUsed` carries the used Option's instance id, not a battle-area
   // permanent id. Resolve that event directly from the owner's zones so trait/name
-  // source filters remain meaningful for Option-use watchers. A Plug-In that linked
+  // source filters remain meaningful both at use (resolvingOption) and activation. A Plug-In that linked
   // itself (ST22-08) sits among a permanent's linked cards once its effect resolves.
   if (t.usedOptionCost !== undefined && t.subjectPermanentId !== undefined) {
     const allowedSeats = seatsForController(subCtx, filter);
@@ -41,9 +41,13 @@ export function matchingSubjectPermanentIds(subCtx: EffectContext, filter: Filte
         permanent.topCard,
         ...permanent.linked,
       ]);
-      const card = [...player.hand, ...player.trash, ...player.security, ...permanentCards].find(
-        (candidate) => candidate?.instanceId === t.subjectPermanentId,
-      );
+      const card = [
+        player.resolvingOption,
+        ...player.hand,
+        ...player.trash,
+        ...player.security,
+        ...permanentCards,
+      ].find((candidate) => candidate?.instanceId === t.subjectPermanentId);
       if (card !== undefined && definitionMatches(filter, subCtx.game.definitionOf(card)))
         return [t.subjectPermanentId];
     }

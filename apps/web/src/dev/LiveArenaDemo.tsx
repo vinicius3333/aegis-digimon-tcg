@@ -1743,6 +1743,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Ataque com Jesmon tendo um token Atho, René & Por em jogo. O modal não deve oferecer a rota do token: apenas Sistermon Ciel, e nenhum segundo token pode entrar em jogo.",
     en: "Attack with Jesmon while an Atho, René & Por token is in play. The modal must not offer the token route: only Sistermon Ciel, and no second token may enter play.",
   },
+  "arena-sakuyamon-maid-option-timing": {
+    ptBR: "Encerre a criação. Evolua Kyubimon em Taomon BT17-035, aceite usar Yellow Scramble e evolua Taomon em Sakuyamon: Maid Mode ST22-06. Os dois Digimon adversários devem permanecer: a nova Maid não reage à Opção que a evoluiu. Depois use Blade of the True; aceite All Turns da Maid para colocar o menor Digimon na segurança e descartar o topo.",
+    en: "End breeding. Evolve Kyubimon into BT17-035 Taomon, accept Yellow Scramble and evolve Taomon into ST22-06 Sakuyamon: Maid Mode. Both opposing Digimon must remain: the new Maid does not react to the Option that evolved it. Then use Blade of the True; accept Maid's All Turns to place the lowest-DP Digimon into security and trash the top card.",
+  },
   "arena-jesmon-scramble-dp-blocked": {
     ptBR: "Encerre a criação e use Red Scramble. O adversário tem Garurumon com 5000 DP e Analog Youth: Jesmon não deve ser oferecido para evoluir Huckmon. Red Scramble fica no campo, Jesmon na mão e a memória cai de 5 para 3.",
     en: "End breeding and use Red Scramble. The opponent has Garurumon at 5000 DP and Analog Youth: Jesmon must not be offered to evolve Huckmon. Red Scramble stays in play, Jesmon stays in hand, and memory goes from 5 to 3.",
@@ -2861,6 +2865,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-piedmon-declined-opt", "Piedmon · declined OPT retriggers"],
   ["arena-issue-4893-seiten-evo-cost", "#4893 · SeitenGokuumon evo cost"],
   ["arena-issue-4894-jesmon-token-limit", "#4894 · Jesmon token limit"],
+  ["arena-sakuyamon-maid-option-timing", "Sakuyamon: Maid Mode · Option trigger timing"],
   ["arena-jesmon-scramble-dp-blocked", "Jesmon · Red Scramble vs 5000 DP (blocked)"],
   ["arena-jesmon-scramble-dp-allowed", "Jesmon · Red Scramble vs 10000 DP (allowed)"],
   ["arena-junomon-opponent-target", "Junomon · opponent target"],
