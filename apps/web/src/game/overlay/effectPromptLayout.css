@@ -1103,3 +1103,14 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
     flex-direction: row;
   }
 }
+
+/* Physical hand choices must outrank the shared corner and mobile sheet rules,
+   including mobilePromptLayout.css loaded after this file. Combat rails retain
+   their own positioning; only hand selections reserve this measured space. */
+.board-prompt[data-prompt-surface="left"][data-variant="selection"]:not(.combat-prompt) {
+  bottom: calc(var(--decision-hand-clearance, var(--game-hand-h, 11rem)) + var(--ds-space-2)) !important;
+  max-height: calc(
+    100dvh - var(--decision-hand-clearance, var(--game-hand-h, 11rem)) - var(--ds-space-4) -
+      env(safe-area-inset-top, 0px)
+  ) !important;
+}

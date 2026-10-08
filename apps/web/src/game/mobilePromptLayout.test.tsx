@@ -42,7 +42,9 @@ function stubViewport(viewport: Viewport) {
 /** The winning value with the rule it came from, so a failure names the rule to fix. */
 function explain(element: Element, property: string, viewport: Viewport): string {
   const winner = cascadeWinner(element, property, viewport);
-  return winner ? `${property}: ${winner.value} from ${winner.source}` : `${property}: not declared`;
+  return winner
+    ? `${property}: ${winner.value.replace(/\s+/g, " ")} from ${winner.source}`
+    : `${property}: not declared`;
 }
 
 function expectCapped(element: Element, viewport: Viewport) {
@@ -324,6 +326,27 @@ describe.each(PHONE_VIEWPORTS)("long prompts on a phone at $name", (viewport) =>
     expect(endSelection.closest(".board-prompt__actions")).not.toBeNull();
     expectScrolls(rail, "y", viewport);
     expectCapped(rail, viewport);
+  });
+
+  it("Discord 1557581905220730932: reserves the physical hand after all corner and phone overrides", () => {
+    render(
+      <I18nProvider>
+        <BoardSelectionRail
+          sourceCardId="BT20-091"
+          prompt="Select 1 card from your hand."
+          min={0}
+          max={1}
+          pickCount={0}
+          canConfirm={false}
+          onConfirm={() => {}}
+          onNoSelection={() => {}}
+        />
+      </I18nProvider>,
+    );
+    const rail = screen.getByTestId("board-prompt");
+    expect(explain(rail, "bottom", viewport)).toContain("--decision-hand-clearance");
+    expect(explain(rail, "max-height", viewport)).toContain("--decision-hand-clearance");
+    expectScrolls(rail, "y", viewport);
   });
 
   it("keeps Pass reachable beside an alliance with five eligible allies", () => {

@@ -14,8 +14,8 @@ export function readRelative(path: string): string {
  */
 export function readStylesheet(manifest: string): string {
   const source = readRelative(`../${manifest}`);
-  const parts = [...source.matchAll(/@import "\.\/style\/([^"]+)";/g)].map((match) => match[1]);
-  return parts.map((part) => readRelative(`./${part}`)).join("\n");
+  const parts = [...source.matchAll(/@import "\.\/([^"]+\.css)";/g)].map((match) => match[1]);
+  return parts.map((part) => readRelative(`../${part}`)).join("\n");
 }
 
 /**
