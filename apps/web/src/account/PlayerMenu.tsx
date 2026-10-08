@@ -3,6 +3,7 @@
    portrait you play as, and the sections that no longer fit the bottom nav. */
 
 import { useMemo, useState } from "react";
+import { AccountApiError } from "./client";
 import { Avatar, Button, Dialog, type PlayerIdentity, type Screen } from "../design/primitives";
 import { Icons, type IconComponent } from "../design/icons";
 import { useTranslation } from "../i18n";
@@ -15,6 +16,7 @@ export function PlayerMenu({
   signedIn,
   selectedAvatarId,
   onSelectAvatar,
+  onRefreshDiscordAvatar,
   onNav,
   onSignOut,
   onReportBug,
@@ -24,6 +26,8 @@ export function PlayerMenu({
   signedIn: boolean;
   selectedAvatarId: DigimonWorldAvatarId | null;
   onSelectAvatar: (avatarId: DigimonWorldAvatarId | null) => void | Promise<void>;
+  /** Present only for an account that signs in with Discord. */
+  onRefreshDiscordAvatar?: () => Promise<void>;
   onNav: (screen: Screen) => void;
   onSignOut?: () => void;
   onReportBug?: () => void;
@@ -33,6 +37,7 @@ export function PlayerMenu({
   const [query, setQuery] = useState("");
   const [pendingAvatarId, setPendingAvatarId] = useState<DigimonWorldAvatarId | null>();
   const [avatarSaveFailed, setAvatarSaveFailed] = useState(false);
+  const [discordRefresh, setDiscordRefresh] = useState<"idle" | "pending" | "done" | "cooldown" | "failed">("idle");
 
   const avatars = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase();
@@ -55,6 +60,17 @@ export function PlayerMenu({
       setAvatarSaveFailed(true);
     } finally {
       setPendingAvatarId(undefined);
+    }
+  }
+
+  async function refreshDiscordAvatar() {
+    if (!onRefreshDiscordAvatar || discordRefresh === "pending") return;
+    setDiscordRefresh("pending");
+    try {
+      await onRefreshDiscordAvatar();
+      setDiscordRefresh("done");
+    } catch (error) {
+      setDiscordRefresh(error instanceof AccountApiError && error.status === 429 ? "cooldown" : "failed");
     }
   }
 
@@ -138,6 +154,30 @@ export function PlayerMenu({
             {selectedAvatarId === null ? <Icons.Check size={14} /> : null}
           </span>
         </button>
+        {onRefreshDiscordAvatar ? (
+          <div className="player-menu__discord-refresh">
+            <Button
+              size="sm"
+              variant="secondary"
+              icon={Icons.Discord}
+              disabled={discordRefresh === "pending"}
+              onClick={() => void refreshDiscordAvatar()}
+            >
+              {t("playerMenu.refreshDiscordAvatar")}
+            </Button>
+            {discordRefresh === "done" ? (
+              <small role="status">{t("playerMenu.refreshDiscordAvatarDone")}</small>
+            ) : discordRefresh === "cooldown" || discordRefresh === "failed" ? (
+              <small role="alert" className="player-menu__avatar-error">
+                {t(
+                  discordRefresh === "cooldown"
+                    ? "playerMenu.refreshDiscordAvatarCooldown"
+                    : "playerMenu.refreshDiscordAvatarFailed",
+                )}
+              </small>
+            ) : null}
+          </div>
+        ) : null}
         {avatarSaveFailed ? (
           <p role="alert" className="player-menu__avatar-error">
             {t("playerMenu.avatarSaveFailed")}

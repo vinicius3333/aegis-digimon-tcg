@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import type { Screen } from "../design/primitives";
 import type { DigimonWorldAvatarId } from "./avatars";
+import { AccountApiError } from "./client";
 import { PlayerMenu } from "./PlayerMenu";
 
 const player = { name: "Tai Kamiya", color: "Blue", shards: 0, avatarId: "tyrannomon" as const };
@@ -47,6 +48,27 @@ describe("the player menu", () => {
     expect(screen.queryByRole("button", { name: "Sign in" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
     expect(onSignOut).toHaveBeenCalled();
+  });
+
+  it("offers a Discord picture refresh only to Discord accounts", async () => {
+    renderMenu({ signedIn: true });
+    expect(screen.queryByRole("button", { name: "Refresh Discord picture" })).toBeNull();
+    cleanup();
+
+    const onRefreshDiscordAvatar = vi.fn<() => Promise<void>>(async () => undefined);
+    renderMenu({ signedIn: true, onRefreshDiscordAvatar });
+    fireEvent.click(screen.getByRole("button", { name: "Refresh Discord picture" }));
+    expect(await screen.findByText("Discord picture updated.")).toBeTruthy();
+    expect(onRefreshDiscordAvatar).toHaveBeenCalledTimes(1);
+  });
+
+  it("explains the Discord refresh cooldown", async () => {
+    const onRefreshDiscordAvatar = vi.fn<() => Promise<void>>(async () => {
+      throw new AccountApiError(429, "cooldown");
+    });
+    renderMenu({ signedIn: true, onRefreshDiscordAvatar });
+    fireEvent.click(screen.getByRole("button", { name: "Refresh Discord picture" }));
+    expect(await screen.findByText("You just refreshed it. Try again in a minute.")).toBeTruthy();
   });
 
   it("picks a portrait", () => {

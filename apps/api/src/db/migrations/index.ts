@@ -22,6 +22,7 @@ import { communityDecks } from "./019-community-decks.js";
 import { deckSleeve } from "./020-deck-sleeve.js";
 import { deckEggSleeve } from "./021-deck-egg-sleeve.js";
 import { publicDeckHiddenStatus } from "./022-public-deck-hidden-status.js";
+import { accountAvatarCheckedAt } from "./023-account-avatar-checked-at.js";
 
 export const migrations: readonly Migration[] = [
   initialSchema,
@@ -46,4 +47,5 @@ export const migrations: readonly Migration[] = [
   deckSleeve,
   deckEggSleeve,
   publicDeckHiddenStatus,
+  accountAvatarCheckedAt,
 ];
