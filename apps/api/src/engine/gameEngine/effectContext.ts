@@ -163,7 +163,18 @@ async function playForKeywordEffect(
     .map(({ instanceId, cardId, ownerSeat }) => ({ instanceId, cardId, ownerSeat }));
   if (source === undefined) return engine.primitives.playInstances([...instanceIds], { ...opts, payCost: false });
   const ctx = buildEffectContext(engine, cardSourceOf(engine, source), {});
-  return playEffectInstances(ctx, playedCards, { ...opts, payCost: false });
+  // Partition interrupts another player's removal effect. Attribute its plays to the
+  // keyword owner so restrictions such as Crimson Blaze see the player performing them.
+  ctx.fx.enterEffectResolution?.(
+    ctx.source.ownerSeat,
+    getCardDefinition(source.cardId)?.kinds ?? [],
+    ctx.source.permanent()?.permanentId,
+  );
+  try {
+    return await playEffectInstances(ctx, playedCards, { ...opts, payCost: false });
+  } finally {
+    ctx.fx.leaveEffectResolution?.();
+  }
 }
 
 /** Resolve the CardSource for a CardInstance against live state (placement/turn lookup). */
