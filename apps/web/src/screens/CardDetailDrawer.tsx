@@ -46,7 +46,7 @@ export function CardDetailDrawer({
       </div>
       <div className="card-detail-overview">
         <div className="card-detail-preview">
-          <CardFull cardId={def.cardId} artId={selectedArt} width={228} />
+          <CardFull cardId={def.cardId} artId={selectedArt} width={228} zoomOnHover={false} />
         </div>
         {arts.length > 1 ? (
           <div className="card-art-selector" role="group" aria-label={t("library.artworks")}>
@@ -67,7 +67,7 @@ export function CardDetailDrawer({
                       onArtChange?.(art.artId);
                     }}
                   >
-                    <CardFull cardId={cardId} artId={art.artId} width={56} />
+                    <CardFull cardId={cardId} artId={art.artId} width={56} zoomOnHover={false} />
                     <span>{label}</span>
                   </button>
                 );
