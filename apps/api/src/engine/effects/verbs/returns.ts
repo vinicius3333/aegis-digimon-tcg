@@ -340,15 +340,24 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
       collectedBatches.push({ instanceId, cards: collected });
     }
     const moved: CardInstance[] = [];
+    const addedToDeck: CardInstance[] = [];
     const trashedAttachments: CardInstance[] = [];
     for (const { instanceId, cards } of collectedBatches) {
       for (const card of cards) {
         if (card.instanceId === instanceId || cards.length === 1) {
           card.faceUp = false;
           const definition = requireCardDefinition(card.cardId);
+          if (definition.isToken === true) {
+            // CR §4-20-5: a token that successfully leaves the field ceases to exist.
+            // Preserve the processing receipt, as for returnToHand, without adding a
+            // deck card or firing a deck-addition trigger. Prevention has already run.
+            moved.push(card);
+            continue;
+          }
           const deckZone = definition.kinds.includes(CardKind.DigiEgg) ? Zone.EggDeck : Zone.Deck;
           insertCard(player(card.ownerSeat), deckZone, card, toTop ? "top" : "bottom");
           moved.push(card);
+          addedToDeck.push(card);
         } else {
           card.faceUp = true;
           insertCard(player(card.ownerSeat), Zone.Trash, card);
@@ -370,11 +379,11 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
         to: Zone.Trash,
       });
     }
-    if (moved.length > 0) {
+    if (addedToDeck.length > 0) {
       // One movement per deck joined: "3 cards in trashes" (BT26-016) lands in both decks,
       // and each side's client narrates only the return into its own seat's deck.
-      for (const seat of new Set(moved.map((card) => card.ownerSeat))) {
-        const joined = moved.filter((card) => card.ownerSeat === seat);
+      for (const seat of new Set(addedToDeck.map((card) => card.ownerSeat))) {
+        const joined = addedToDeck.filter((card) => card.ownerSeat === seat);
         // The deck hides the cards from here on, so the event is the only place a client
         // can read their names. A hand card stays unnamed: its owner's opponent never saw it.
         const named = joined.every((card) => publicBeforeMove.has(card.instanceId));
@@ -402,7 +411,7 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
       // being restored use the explicit suppression flag because Q6949 says that restoration
       // is not an "add to deck" trigger.
       if (opts?.suppressWhenEffectAddsToDeck !== true) {
-        const recipientSeats = new Set(moved.map((c) => c.ownerSeat));
+        const recipientSeats = new Set(addedToDeck.map((c) => c.ownerSeat));
         for (const seat of recipientSeats) {
           await engine.fireSubTrigger?.("whenEffectAddsToDeck", {
             effectAddedToDeckSeat: seat,
