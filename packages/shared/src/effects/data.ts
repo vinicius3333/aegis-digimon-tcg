@@ -1519,7 +1519,7 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     {
       cost: 0,
       isAlternate: true,
-      names: ["ShineGreymon"],
+      namesExact: ["ShineGreymon"],
       burstDigivolve: { returnTamerNamesExact: ["Marcus Damon"] },
     },
   ],

@@ -27,7 +27,7 @@ describe("BT16-101", () => {
     expect(compiled).toMatchObject({
       coverage: "full",
       residual: [],
-      digivolutionRequirement: [{ names: ["Rapidmon"], cost: 4, isAlternate: true }],
+      digivolutionRequirement: [{ namesExact: ["Rapidmon"], cost: 4, isAlternate: true }],
     });
   });
 

@@ -133,7 +133,7 @@ export const compiled: CompiledCard = {
     {
       cost: 0,
       isAlternate: true,
-      names: ["ShineGreymon"],
+      namesExact: ["ShineGreymon"],
       burstDigivolve: { returnTamerNamesExact: ["Marcus Damon"] },
     },
   ],

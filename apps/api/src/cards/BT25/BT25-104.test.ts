@@ -80,7 +80,7 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
       {
         cost: 0,
         isAlternate: true,
-        names: ["ShineGreymon"],
+        namesExact: ["ShineGreymon"],
         burstDigivolve: { returnTamerNamesExact: ["Marcus Damon"] },
       },
     ]);
@@ -89,7 +89,7 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
       {
         cost: 0,
         isAlternate: true,
-        names: ["ShineGreymon"],
+        namesExact: ["ShineGreymon"],
         burstDigivolve: { returnTamerNamesExact: ["Marcus Damon"] },
       },
     ]);

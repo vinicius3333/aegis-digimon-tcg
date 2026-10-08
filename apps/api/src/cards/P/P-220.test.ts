@@ -263,3 +263,30 @@ describe("P-220 Assembly requirement (Discord: Millenniummon Assembly unavailabl
     expect(result).toEqual({ ok: false, reason: "invalid-material" });
   });
 });
+
+describe("GitHub #5279 Millenniummon self-deletion", () => {
+  it("offers and deletes the just-played Millenniummon itself after De-Digivolve", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "P-220", as: "millennium" }] },
+        1: { battleArea: [{ card: "BT1-020", as: "target", under: ["BT1-010", "BT1-015"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const instanceId = s.inst("millennium").instanceId;
+    preferred.push(instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+    const deletion = s.decisions.filter(({ req }) => req.kind === "chooseTargets").at(-1)!.req;
+    expect(deletion.options?.candidateInstanceIds).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+});

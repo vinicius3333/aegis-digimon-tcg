@@ -36,7 +36,7 @@ describe("effectiveStaticNames", () => {
     expect(effectiveExactNames(panjyamon)).toEqual([panjyamon.nameEn]);
   });
 
-  it.each(["BT21-021", "BT21-027", "BT19-012"])(
+  it.each(["BT21-021", "BT21-027", "BT19-012", "BT11-015"])(
     "excludes DigiXros-only names from ordinary identity gates on %s",
     (cardId) => {
       const definition = getCardDefinition(cardId)!;

@@ -284,3 +284,40 @@ describe("RB1-030 Regulusmon — KB Q&A rulings", () => {
     expect(await hostDpWithGammamonInheritedSource(["RB1-030"], "RB1-010")).toBe(11000 + 2000);
   });
 });
+
+describe("GitHub #5284 Regulusmon shared once-per-turn effect", () => {
+  it("cannot trash a second card when attacking after paying the same effect when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-078", as: "base" }],
+          hand: [{ card: "RB1-030", as: "regulusmon" }, "BT10-094", "BT10-094"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: { security: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("regulusmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "RB1-030" && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT10-094")).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT10-094")).toHaveLength(1);
+    expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT10-094")).toHaveLength(1);
+  });
+});

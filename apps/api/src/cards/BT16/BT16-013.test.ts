@@ -20,7 +20,7 @@ describe("BT16-013", () => {
       trigger: "WhenDigivolving",
       actions: [{ kind: "ModifyDP", amount: -5000 }],
     });
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Silphymon"], cost: 3, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Silphymon"], cost: 3, isAlternate: true }]);
   });
   it("once per turn deletes an opposing 8000 DP or lower Digimon when security is removed, otherwise gains Security Attack +1", () =>
     expect(compiled.effects?.[3]).toMatchObject({

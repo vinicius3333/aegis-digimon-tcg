@@ -968,3 +968,43 @@ it("EX13-064 offers its optional attack again after declining an earlier play", 
   expect(observe(s.engine).hasKeyword(s.perm("lord"), "Collision")).toBe(false);
   expect(s.perm("lord").isSuspended).toBe(false);
 });
+
+describe("GitHub #5286 LordKnightmon EX13 Knightmon picker", () => {
+  it.each(["hand", "trash"] as const)("offers EX13-058 from %s when digivolving", async (zone) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT5-042", as: "base" }],
+          hand: [{ card: "EX13-064", as: "lord" }, ...(zone === "hand" ? [{ card: "EX13-058", as: "knight" }] : [])],
+          ...(zone === "trash" ? { trash: [{ card: "EX13-058", as: "knight" }] } : {}),
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: { security: ["BT1-011", "BT1-012", "BT1-013"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        declinePrompts: ["1 of your [Knightmon] text Digimon may"],
+      },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const knightId = s.inst("knight").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lord").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === knightId) &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.decisions.some(({ req }) => req.options?.candidateInstanceIds?.includes(knightId))).toBe(true);
+    assertNoLoudGap(s);
+  });
+});

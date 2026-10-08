@@ -128,7 +128,7 @@ describe("BT16-031", () => {
   });
 
   it("encodes Salamon as the two-memory alternate evolution requirement", () => {
-    expect(digivolutionRequirementsFor("BT16-031")).toEqual([{ names: ["Salamon"], cost: 2, isAlternate: true }]);
+    expect(digivolutionRequirementsFor("BT16-031")).toEqual([{ namesExact: ["Salamon"], cost: 2, isAlternate: true }]);
   });
 
   it("changes opposing Security Digimon DP without changing battle-area DP", async () => {

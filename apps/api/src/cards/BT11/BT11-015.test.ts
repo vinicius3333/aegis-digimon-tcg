@@ -1,6 +1,5 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT11-012.js";
@@ -24,7 +23,7 @@ describe("BT11-015 OmniShoutmon", () => {
       attributes: ["Data"],
       types: ["Dragonkin", "Xros Heart"],
     });
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Shoutmon"], cost: 4, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Shoutmon"], cost: 4, isAlternate: true }]);
     expect(compiled).toMatchObject({
       effects: [
         { trigger: "Static", actions: [{ kind: "GrantStatic", tokens: ["Shoutmon"], digiXrosOnly: true }] },

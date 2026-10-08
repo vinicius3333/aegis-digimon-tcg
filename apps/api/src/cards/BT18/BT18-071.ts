@@ -102,7 +102,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Seraphimon"],
+      namesExact: ["Seraphimon"],
       cost: 1,
       isAlternate: true,
     },

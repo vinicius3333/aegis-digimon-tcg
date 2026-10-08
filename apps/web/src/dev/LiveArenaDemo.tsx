@@ -17,6 +17,27 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-github-5286-lordknightmon-knightmon": {
+    en: "End breeding and evolve BT5 Knightmon into LordKnightmon using its alternate cost. Choose Play: EX13-058 Knightmon must be selectable from both hand and trash. Play either copy without paying its cost, then decline the optional Rush/Collision attack. Reset to try the other zone.",
+    ptBR: "Encerre a criação e evolua Knightmon BT5 em LordKnightmon pelo custo alternativo. Escolha Jogar: Knightmon EX13-058 deve estar disponível na mão e no lixo. Jogue uma das cópias sem custo e recuse o ataque opcional com Rush/Collision. Reinicie para testar a outra zona.",
+  },
+  "arena-github-5285-examon-battle-win": {
+    en: "End breeding and attack the suspended Muchomon with Examon. Resolve or decline inherited unsuspend, then accept the battle-win effect and choose Wingdramon from hand or Examon’s digivolution cards, or hand Slayerdramon EX13-024 (the production selection). It enters without paying its cost. Reset to try the other zone.",
+    ptBR: "Encerre a criação e ataque Muchomon suspenso com Examon. Resolva ou recuse o efeito herdado de desvirar; aceite o efeito de vencer batalha e escolha Wingdramon da mão ou das cartas de digivolução do Examon, ou Slayerdramon EX13-024 da mão (a escolha em produção). Ele entra sem custo. Reinicie para testar a outra zona.",
+  },
+  "arena-github-5284-regulusmon-shared-opt": {
+    en: "End breeding and evolve GulusGammamon into Regulusmon. Accept its effect and trash one BT10-094 for the cost. Attack security with Regulusmon: the shared once-per-turn effect must not offer another discard, and the second BT10-094 remains in hand.",
+    ptBR: "Encerre a criação e evolua GulusGammamon em Regulusmon. Aceite o efeito e descarte um BT10-094 como custo. Ataque a segurança com Regulusmon: o efeito compartilhado uma vez por turno não deve oferecer outro descarte, e o segundo BT10-094 fica na mão.",
+  },
+  "arena-github-5279-millenniummon-self-delete": {
+    en: "End breeding and play P-220 Millenniummon without Assembly. Resolve De-Digivolve 2 on the opposing Groundramon, then accept deletion and choose your newly played Millenniummon itself. It goes to trash; its On Deletion replay cannot be paid with this board.",
+    ptBR: "Encerre a criação e jogue Millenniummon P-220 sem Assembly. Resolva De-Digivolve 2 no Groundramon adversário; aceite a deleção e escolha o próprio Millenniummon recém-jogado. Ele vai ao lixo; esta mesa não permite pagar a reprodução do On Deletion.",
+  },
+  "arena-github-5267-omnimon-source-count": {
+    en: "End breeding and play AD1 Omnimon without Assembly. The opposing Agumon has zero digivolution cards and returns to the deck bottom. Gallantmon has three sources and must not return; the separate Then clause deletes it to trash. Compare the two destinations.",
+    ptBR: "Encerre a criação e jogue Omnimon AD1 sem Assembly. Agumon adversário não tem cartas de digivolução e volta ao fundo do deck. Gallantmon tem três fontes e não deve voltar; a cláusula Then separada o deleta para o lixo. Compare os destinos.",
+  },
+
   "arena-issue-5266-elecmon-bottom-deck": {
     en: "Production report from KingWows vs RAP SKALYIN: end breeding and evolve Garurumon into AeroVeedramon BT22-023. Elecmon BT25-030 is the only opposing level 4 or lower Digimon, so it must return to the deck bottom automatically. Candlemon under the separate Wisemon must not activate, and all three opposing security cards remain.",
     ptBR: "Relato de produção de KingWows contra RAP SKALYIN: encerre a criação e evolua Garurumon em AeroVeedramon BT22-023. Elecmon BT25-030 é o único Digimon adversário de nível 4 ou menor, então deve voltar automaticamente ao fundo do deck. O Candlemon sob o Wisemon separado não deve ativar, e as três seguranças adversárias permanecem.",
@@ -1908,6 +1929,12 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-github-5286-lordknightmon-knightmon", "GitHub #5286 · LordKnightmon EX13 Knightmon picker"],
+  ["arena-github-5285-examon-battle-win", "GitHub #5285 · Examon battle-win play"],
+  ["arena-github-5284-regulusmon-shared-opt", "GitHub #5284 · Regulusmon shared once per turn"],
+  ["arena-github-5279-millenniummon-self-delete", "GitHub #5279 · Millenniummon self-deletion"],
+  ["arena-github-5267-omnimon-source-count", "GitHub #5267 · Omnimon bottom-deck versus Then deletion"],
+
   ["arena-issue-5266-elecmon-bottom-deck", "GitHub #5266 · AeroVeedramon returns separate Elecmon"],
   ["arena-issue-5266-candlemon-own-host", "GitHub #5265 / #5266 · Candlemon protects only its own host"],
   ["arena-own-field-effects", "Your field effects · Leopardmon Blocker + opposing DP"],
