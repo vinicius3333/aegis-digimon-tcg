@@ -48,7 +48,7 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
       if (action.at === "endOfTurn") {
         // Deferred one-shot ("at the end of your turn, lose 3 memory" — BT1-021). Installed
         // anchor-less so it still fires if this source is deleted first (KB Q882/Q883).
-        ctx.fx.delayedGainMemory?.(seat, amount);
+        ctx.fx.delayedGainMemory?.(seat, amount, ctx);
         return false;
       }
       // A Tamer temporarily treated as a Digimon remains a Tamer for this exception
