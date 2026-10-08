@@ -1808,11 +1808,37 @@ function layEx11PyramidimonFragmentRecoveryScenario(state: GameState, decks: rea
 function layEx5ReppamonOptionalCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   loadShuffledDecks(state, decks);
   const human = state.players[0];
-  if (human !== undefined) placePermanent(human, establishedDigimon(0, ["EX5-029"], "-reppamon-attacker"));
+  if (human !== undefined) {
+    // Main + inherited When Attacking expose the real Ask/Yes/No resolution plan.
+    placePermanent(human, establishedDigimon(0, ["EX5-029", "EX5-029"], "-reppamon-attacker"));
+    for (const suffix of ["a", "b"]) {
+      placePermanent(human, establishedDigimon(0, ["BT1-050"], `-reppamon-base-${suffix}`));
+      insertCard(human, Zone.Hand, faceDownCard(`dev-reppamon-evolution-${suffix}`, "BT1-051", 0));
+    }
+    insertCard(human, Zone.Hand, faceDownCard("dev-reppamon-hand-witness", "BT1-009", 0));
+    // The turn draw and both evolution draws stay unrelated to this consent proof.
+    for (const suffix of ["evolution-b", "evolution-a", "turn"]) {
+      insertCard(human, Zone.Deck, faceDownCard(`dev-reppamon-${suffix}-draw`, "BT1-009", 0), "top");
+    }
+    fillZone(human, Zone.Security, [
+      faceDownCard("dev-reppamon-top-security", "BT1-009", 0),
+      faceDownCard("dev-reppamon-second-security", "BT1-009", 0),
+    ]);
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    // Four total security cards enable inherited -2000 DP even after declining.
+    // Vanilla 3000 DP security cannot delete the 4000 DP attacker or ask another question.
+    fillZone(bot, Zone.Security, [
+      faceDownCard("dev-reppamon-bot-security-a", "BT1-009", 1),
+      faceDownCard("dev-reppamon-bot-security-b", "BT1-009", 1),
+    ]);
+    placePermanent(bot, establishedDigimon(1, ["BT1-019"], "-reppamon-dp-target"));
+  }
   state.turnSeat = 0;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
-  state.memory = 0;
+  state.memory = 6;
 }
 
 /** Discord 1557220124367396915: EX13-006 Dorimon's "By paying 1 cost" is asked before it is paid. */

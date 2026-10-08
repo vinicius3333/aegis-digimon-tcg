@@ -1018,8 +1018,8 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "Attack security with BT23-072 King Drasil_7D6: it stays suspended. Then play EX13-023 UlforceVeedramon from hand (cost 12). Both effects trigger together. Resolve Ulforce's orientation [On Play] first, choose to unsuspend 1 suspended Digimon, and choose King Drasil. King Drasil's [All Turns] effect can then activate: accept suspending King Drasil. Ulforce gains ＜Rush＞, ＜Raid＞, ＜Reboot＞ and ＜Blocker＞ until the opponent's turn ends and can attack right away.",
   },
   "arena-ex5-reppamon-optional-cost": {
-    ptBR: "Encerre a criação e ataque o bot com o EX5-029 Reppamon. O [Ao Atacar] pergunta se você quer lixar a carta do topo da sua segurança: recuse. Sua segurança continua com o mesmo número de cartas, e a próxima digivolução não fica mais barata.",
-    en: "End breeding and attack the bot with EX5-029 Reppamon. Its [When Attacking] asks whether to trash your top security card: decline. Your security keeps the same number of cards, and your next digivolution is not cheaper.",
+    ptBR: "Encerre a criação e ataque a segurança do bot com EX5-029 Reppamon (com outro EX5-029 herdado). Na ordem dos efeitos, resolva os dois e escolha Sim ou Não na linha de lixar o topo da sua segurança; Perguntar abre a confirmação separada. Sim paga exatamente 1 segurança (2→1); Não mantém 2. Nos dois casos, escolha DarkTyrannomon para o herdado: 6000→4000 DP. Depois, digievolua cada Liollmon BT1-050 em um Reppamon BT1-051 da mão: Sim custa 0 e depois 2 (memória 6→6→4); Não custa 2 e depois 2 (6→4→2). Não há novo pagamento de segurança. Reinicie o combate para testar a outra resposta.",
+    en: "End breeding and attack the bot's security with EX5-029 Reppamon (with another EX5-029 inherited). In effect order, resolve both effects and choose Yes or No on the trash-top-security row; Ask opens a separate confirmation. Yes pays exactly 1 security (2→1); No keeps 2. In either case, choose DarkTyrannomon for the inherited effect: 6000→4000 DP. Then evolve each Liollmon BT1-050 into a Reppamon BT1-051 from hand: Yes costs 0 then 2 (memory 6→6→4); No costs 2 then 2 (6→4→2). No further security payment occurs. Reset combat to test the other answer.",
   },
   "arena-ex13-dorimon-optional-cost": {
     ptBR: 'Encerre a criação e ataque o bot com o BT10-086 Omnimon (X Antibody), que tem a EX13-006 Dorimon nas cartas de digivolução. Depois encerre o turno. No [Fim do Seu Turno] da Dorimon, recuse "pagando 1 de custo". A memória não muda (só a passagem de turno a altera) e o Omnimon continua suspenso.',
@@ -2187,7 +2187,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt24-ogremon-ulforce-unsuspend", "BT24 Ogremon · Ulforce can unsuspend by effects"],
   ["arena-bt23-king-drasil-unsuspended-cost", "BT23 King Drasil · pay the suspend cost after Ulforce unsuspends it"],
   ["arena-ex13-leopardmon-unsuspend-lock", "EX13 Leopardmon · locked Digimon can't pay the unsuspend cost"],
-  ["arena-ex5-reppamon-optional-cost", "EX5 Reppamon · decline the security trash on attack"],
+  ["arena-ex5-reppamon-optional-cost", "EX5 Reppamon · Yes/No security cost + two evolutions"],
   ["arena-ex13-dorimon-optional-cost", "EX13 Dorimon · decline the 1-cost unsuspend without paying"],
   ["arena-ex13-giromon-zero-dp-play", "EX13 Giromon · Gotsumon at 0 DP dies before its On Play"],
   ["arena-bt13-kurata-belphemon-play-cost", "BT13 Kurata · deleting Gizmon: AT reduces Belphemon by 6"],

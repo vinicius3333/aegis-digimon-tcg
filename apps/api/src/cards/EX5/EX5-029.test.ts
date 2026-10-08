@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, type DecisionResponse } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -54,7 +54,7 @@ describe("EX5-029 Reppamon", () => {
     });
   });
 
-  it("publicly trashes its top security card and reduces the next yellow evolution by two", async () => {
+  it("publicly trashes its top security card and reduces the next evolution by two", async () => {
     const s = setupEngine(
       {
         0: {
@@ -98,18 +98,123 @@ describe("EX5-029 Reppamon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("Discord 1557251527851114516: declining the When Attacking cost keeps the top security card", async () => {
+  it.each([
+    { simultaneous: false, accept: false },
+    { simultaneous: false, accept: true },
+    { simultaneous: true, accept: false },
+    { simultaneous: true, accept: true },
+  ])(
+    "Discord 1557251527851114516: consent controls security payment and the one-shot reduction (simultaneous=$simultaneous, accept=$accept)",
+    async ({ simultaneous, accept }) => {
+      const options = { autoOrderTriggers: !simultaneous, autoSelectCards: true };
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "EX5-029", as: "reppamon", under: simultaneous ? ["EX5-029"] : [] },
+              { card: "BT1-050", as: "firstBase" },
+              { card: "BT1-050", as: "secondBase" },
+            ],
+            hand: [
+              { card: "BT1-051", as: "firstEvolution" },
+              { card: "BT1-051", as: "secondEvolution" },
+              { card: "BT1-058", as: "handWitness" },
+            ],
+            security: [
+              { card: "BT1-009", as: "topSecurity" },
+              { card: "BT1-010", as: "secondSecurity" },
+            ],
+          },
+          1: {
+            security: ["BT1-009", "BT1-010"],
+            battleArea: [{ card: "BT1-010", as: "target", dp: 5000 }],
+          },
+        },
+        options,
+      );
+      await s.ready();
+      s.state.memory = 6;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("reppamon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === (simultaneous ? "orderTriggers" : "optional"));
+      const decision = s.decisions.at(-1)!.req;
+      expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+        s.inst("topSecurity").instanceId,
+        s.inst("secondSecurity").instanceId,
+      ]);
+
+      const keys = decision.options?.triggerKeys ?? [];
+      const costIndex = decision.options?.triggerDescriptions?.findIndex((text) => text.includes("By trashing")) ?? -1;
+      expect(decision.kind).toBe(simultaneous ? "orderTriggers" : "optional");
+      expect(decision.sourceCardId).toBe("EX5-029");
+      expect(costIndex >= 0).toBe(simultaneous);
+      expect(decision.options?.triggerIsOptional?.[costIndex] ?? false).toBe(simultaneous);
+      const response: DecisionResponse = simultaneous
+        ? { kind: "orderTriggers", order: keys, optionalAnswers: { [keys[costIndex]!]: accept } }
+        : { kind: "optional", accept };
+      expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: decision.decisionId, response })).toEqual({
+        ok: true,
+      });
+      options.autoOrderTriggers = true;
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      const expectedSecurity = accept
+        ? [s.inst("secondSecurity").instanceId]
+        : [s.inst("topSecurity").instanceId, s.inst("secondSecurity").instanceId];
+      expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual(expectedSecurity);
+      expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("topSecurity").instanceId)).toBe(
+        accept,
+      );
+      expect(s.perm("target").currentDP).toBe(simultaneous ? 3000 : 5000);
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("firstBase").permanentId,
+          instanceId: s.inst("firstEvolution").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("firstBase").topCard?.cardId === "BT1-051" && s.state.pendingDecision === undefined);
+      expect(s.state.memory).toBe(accept ? 6 : 4);
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("secondBase").permanentId,
+          instanceId: s.inst("secondEvolution").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("secondBase").topCard?.cardId === "BT1-051" && s.state.pendingDecision === undefined);
+      expect(s.state.memory).toBe(accept ? 4 : 2);
+      expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual(expectedSecurity);
+      expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("handWitness").instanceId);
+      expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX5-029" && req.kind === "optional")).toHaveLength(
+        simultaneous ? 0 : 1,
+      );
+    },
+  );
+
+  it("Discord 1557251527851114516: no security to pay gives no free digivolution reduction", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX5-029", as: "reppamon" }],
-          security: [{ card: "BT1-009", as: "keptSecurity" }],
+          battleArea: [
+            { card: "EX5-029", as: "reppamon" },
+            { card: "BT1-050", as: "evolutionBase" },
+          ],
+          hand: [{ card: "BT1-051", as: "evolving" }],
+          security: [],
         },
         1: { security: ["BT1-009", "BT1-010"] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    s.state.memory = 6;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -118,48 +223,18 @@ describe("EX5-029 Reppamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
-
-    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("keptSecurity").instanceId]);
-    expect(s.decisions.some(({ req }) => req.sourceCardId === "EX5-029" && req.kind === "optional")).toBe(true);
-  });
-
-  it("Discord 1557251527851114516: a 'no' preset in the trigger order keeps the top security card", async () => {
-    const options = { autoOrderTriggers: false, autoSelectCards: true };
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX5-029", as: "reppamon", under: ["EX5-029"] }],
-          security: [{ card: "BT1-009", as: "keptSecurity" }],
-        },
-        1: { security: ["BT1-009", "BT1-010"], battleArea: [{ card: "BT1-010", as: "target" }] },
-      },
-      options,
-    );
-    await s.ready();
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX5-029" && req.kind === "optional")).toHaveLength(0);
     expect(
       s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("reppamon").permanentId,
-        target: { kind: "player" },
+        type: "digivolve",
+        permanentId: s.perm("evolutionBase").permanentId,
+        instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
-    const ordered = s.decisions.at(-1)!.req;
-    const keys = ordered.options!.triggerKeys!;
-    const costIndex = ordered.options!.triggerDescriptions!.findIndex((text) => text.includes("By trashing"));
-    const costKey = keys[costIndex]!;
-    expect(costIndex).toBeGreaterThanOrEqual(0);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: ordered.decisionId,
-        response: { kind: "orderTriggers", order: keys, optionalAnswers: { [costKey]: false } },
-      }),
-    ).toEqual({ ok: true });
-    options.autoOrderTriggers = true;
-    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
-
-    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("keptSecurity").instanceId]);
+    await settle(() => s.perm("evolutionBase").topCard?.cardId === "BT1-051" && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(4);
   });
 
   it.each([
