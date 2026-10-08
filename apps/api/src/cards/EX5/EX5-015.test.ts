@@ -26,8 +26,8 @@ describe("EX5-015 Gabumon (X Antibody)", () => {
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Gabumon"], cost: 0, isAlternate: true },
-      { names: ["Tsunomon"], cost: 0, isAlternate: true },
+      { namesExact: ["Gabumon"], cost: 0, isAlternate: true },
+      { namesExact: ["Tsunomon"], cost: 0, isAlternate: true },
     ]);
     expect(
       compiled.effects?.filter((entry) => entry.trigger === "OnPlay" || entry.trigger === "WhenDigivolving"),

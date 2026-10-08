@@ -51,7 +51,7 @@ describe("EX7-058 LadyDevimon (X Antibody)", () => {
         },
       ],
     });
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["LadyDevimon"], cost: 0, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["LadyDevimon"], cost: 0, isAlternate: true }]);
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(hasRegisteredCompiledCard("EX7-058")).toBe(true);

@@ -150639,7 +150639,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Jellymon"], "cost": 2, "isAlternate": true },
+      { "namesExact": ["Jellymon"], "cost": 2, "isAlternate": true },
       { "level": 3, "traits": ["DS"], "cost": 2, "isAlternate": true }
     ]
   },
@@ -153039,7 +153039,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Angoramon"], "cost": 2, "isAlternate": true },
+      { "namesExact": ["Angoramon"], "cost": 2, "isAlternate": true },
       { "level": 3, "traits": ["NSp"], "cost": 2, "isAlternate": true }
     ]
   },
@@ -166423,7 +166423,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["ShineGreymon"], "cost": 4, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["ShineGreymon"], "cost": 4, "isAlternate": true }]
   },
   "EX5-001": {
     "effects": [
@@ -167192,8 +167192,8 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Gabumon"], "cost": 0, "isAlternate": true },
-      { "names": ["Tsunomon"], "cost": 0, "isAlternate": true }
+      { "namesExact": ["Gabumon"], "cost": 0, "isAlternate": true },
+      { "namesExact": ["Tsunomon"], "cost": 0, "isAlternate": true }
     ]
   },
   "EX5-016": {
@@ -179449,7 +179449,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["LadyDevimon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["LadyDevimon"], "cost": 0, "isAlternate": true }]
   },
   "EX7-059": {
     "effects": [
@@ -179658,7 +179658,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Lilithmon"], "cost": 1, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Lilithmon"], "cost": 1, "isAlternate": true }]
   },
   "EX7-062": {
     "digivolutionRequirement": [
@@ -180805,7 +180805,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gigimon", "Guilmon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gigimon", "Guilmon"], "cost": 0, "isAlternate": true }]
   },
   "EX8-010": {
     "effects": [
@@ -180977,7 +180977,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Growlmon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Growlmon"], "cost": 0, "isAlternate": true }]
   },
   "EX8-013": {
     "effects": [
@@ -181097,7 +181097,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["WarGrowlmon"], "cost": 1, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["WarGrowlmon"], "cost": 1, "isAlternate": true }]
   },
   "EX8-016": {
     "effects": [
@@ -182085,7 +182085,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Renamon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Renamon"], "cost": 0, "isAlternate": true }]
   },
   "EX8-032": {
     "effects": [
@@ -183128,7 +183128,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Cyberdramon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Cyberdramon"], "cost": 0, "isAlternate": true }]
   },
   "EX8-053": {
     "effects": [
@@ -183829,7 +183829,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Barbamon"], "cost": 1, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Barbamon"], "cost": 1, "isAlternate": true }]
   },
   "EX8-064": {
     "dnaDigivolveRequirement": [
@@ -191560,7 +191560,7 @@
     "residual": [],
     "digivolutionRequirement": [
       {
-        "names": ["Agumon"],
+        "namesExact": ["Agumon"],
         "cost": 3,
         "isAlternate": true,
         "whileCondition": {
@@ -191628,7 +191628,7 @@
     "residual": [],
     "digivolutionRequirement": [
       {
-        "names": ["Gabumon"],
+        "namesExact": ["Gabumon"],
         "cost": 3,
         "isAlternate": true,
         "whileCondition": {
@@ -191725,7 +191725,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Sakuyamon"], "cost": 1, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Sakuyamon"], "cost": 1, "isAlternate": true }]
   },
   "LM-024": {
     "effects": [
@@ -199609,7 +199609,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Leomon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Leomon"], "cost": 0, "isAlternate": true }]
   },
   "P-140": {
     "effects": [
@@ -199846,7 +199846,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gotsumon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gotsumon"], "cost": 0, "isAlternate": true }]
   },
   "P-145": {
     "effects": [
@@ -199915,7 +199915,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Myotismon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Myotismon"], "cost": 0, "isAlternate": true }]
   },
   "P-146": {
     "effects": [
@@ -216290,7 +216290,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Sakuyamon"], "cost": 1, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Sakuyamon"], "cost": 1, "isAlternate": true }]
   },
   "ST22-07": {
     "effects": [

@@ -67,7 +67,7 @@ describe("EX8-015", () => {
 
   it("uses the WarGrowlmon route for 1, gains 3000 DP, blocks returns, and deletes at 10000", async () => {
     expect(digivolutionRequirementsFor("EX8-015")).toContainEqual({
-      names: ["WarGrowlmon"],
+      namesExact: ["WarGrowlmon"],
       cost: 1,
       isAlternate: true,
     });

@@ -36,7 +36,7 @@ describe("EX4-074 ShineGreymon: Ruin Mode", () => {
       amount: -5000,
       duration: "untilOpponentNextTurnEnd",
     });
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["ShineGreymon"], cost: 4, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["ShineGreymon"], cost: 4, isAlternate: true }]);
   });
   it("at end of attack deletes itself and an opposing Digimon, adds security, and hatches with a Tamer", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "EndOfAttack")?.actions;

@@ -1542,7 +1542,7 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
   // gate, so the Cost 3 path stood at any security count — KB Q4014/Q4021 say it does not.
   "LM-021": [
     {
-      names: ["Agumon"],
+      namesExact: ["Agumon"],
       cost: 3,
       whileCondition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 2 },
       isAlternate: true,
@@ -1550,7 +1550,7 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
   ],
   "LM-022": [
     {
-      names: ["Gabumon"],
+      namesExact: ["Gabumon"],
       cost: 3,
       whileCondition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 2 },
       isAlternate: true,

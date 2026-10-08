@@ -19,7 +19,7 @@ import { compiled } from "./EX8-031.js";
 
 describe("EX8-031", () => {
   it("recovers a name-only Plug-In through actual Renamon evolution", async () => {
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Renamon"], cost: 0, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Renamon"], cost: 0, isAlternate: true }]);
     const s = setupEngine(
       {
         0: {

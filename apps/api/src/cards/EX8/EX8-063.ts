@@ -65,7 +65,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["Barbamon"], cost: 1, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["Barbamon"], cost: 1, isAlternate: true }],
 };
 
 registerIrCard("EX8-063", compiled);

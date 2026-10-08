@@ -70,7 +70,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["Growlmon"], cost: 0, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["Growlmon"], cost: 0, isAlternate: true }],
 };
 
 registerIrCard("EX8-012", compiled);

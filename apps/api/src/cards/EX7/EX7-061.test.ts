@@ -37,7 +37,7 @@ describe("EX7-061 Lilithmon (X Antibody)", () => {
       attributes: ["Virus"],
       types: ["Demon Lord", "X Antibody", "Seven Great Demon Lords"],
     });
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Lilithmon"], cost: 1, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Lilithmon"], cost: 1, isAlternate: true }]);
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "AllTurns",
       frequency: "OncePerTurn",

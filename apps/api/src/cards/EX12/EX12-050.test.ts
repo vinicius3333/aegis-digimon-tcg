@@ -50,7 +50,7 @@ describe("EX12-050 SymbareAngoramon", () => {
 
   it("retains the Angoramon/NSp evolution routes and inherited DP", () => {
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Angoramon"], cost: 2, isAlternate: true },
+      { namesExact: ["Angoramon"], cost: 2, isAlternate: true },
       { level: 3, traits: ["NSp"], cost: 2, isAlternate: true },
     ]);
     expect(compiled.effects.find((entry) => entry.isInherited)?.actions).toMatchObject([

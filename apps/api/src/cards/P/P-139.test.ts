@@ -29,7 +29,7 @@ describe("P-139 Leomon (X Antibody)", () => {
 
   it("encodes zero-cost Leomon digivolution and inherited Recovery", () => {
     expect(getCompiledCard("P-139")?.digivolutionRequirement).toEqual([
-      { names: ["Leomon"], cost: 0, isAlternate: true },
+      { namesExact: ["Leomon"], cost: 0, isAlternate: true },
     ]);
     expect(getCompiledCard("P-139")?.effects).toEqual(
       expect.arrayContaining([
