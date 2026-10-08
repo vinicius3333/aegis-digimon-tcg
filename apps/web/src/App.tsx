@@ -326,6 +326,7 @@ export function AegisClient({
   const [roomCode, setRoomCode] = useState<string>();
   const [privateRoom, setPrivateRoom] = useState<PrivateRoom>();
   const [botDeckId, setBotDeckId] = useState<string>();
+  const [unlimited, setUnlimited] = useState(false);
   const [betaBattleMode, setBetaBattleMode] = useState(false);
   const [matchDeckId, setMatchDeckId] = useState<string>();
   const [matchNumber, setMatchNumber] = useState(0);
@@ -520,7 +521,14 @@ export function AegisClient({
               invitedRoomCode={invitedRoomCode}
               privateRoom={privateRoom}
               onLeavePrivateRoom={() => setPrivateRoom(undefined)}
-              onStart={(mode, code, requestedBotDeckId, requestedBetaBattleMode, requestedDeckId) => {
+              onStart={(
+                mode,
+                code,
+                requestedBotDeckId,
+                requestedBetaBattleMode,
+                requestedDeckId,
+                requestedUnlimited,
+              ) => {
                 // A lobby start explicitly requests a new match, even if a page
                 // reload left a resumable seat from the previous match in storage.
                 clearReconnectSession();
@@ -530,6 +538,7 @@ export function AegisClient({
                 setRoomCode(code);
                 setBotDeckId(requestedBotDeckId);
                 setBetaBattleMode(requestedBetaBattleMode === true);
+                setUnlimited(requestedUnlimited === true);
                 setMatchDeckId(requestedDeckId);
                 navigateScreen("game");
               }}
@@ -607,6 +616,7 @@ export function AegisClient({
               waitForHost={startMode === "private_guest" && privateRoom?.code === roomCode}
               botDeckId={botDeckId}
               betaBattleMode={betaBattleMode}
+              unlimited={unlimited}
               seriesGame={seriesGame}
               onSeriesNext={(ticket) => {
                 clearReconnectSession();
@@ -620,11 +630,15 @@ export function AegisClient({
                 setSeriesGame(undefined);
                 navigateScreen(next);
               }}
-              onRematch={(privateRoomCode) => {
+              onRematch={(privateRoomCode, roomUnlimited, roomHost) => {
                 clearReconnectSession();
                 setSeriesGame(undefined);
                 if (privateRoomCode) {
-                  setPrivateRoom({ code: privateRoomCode, host: startMode === "private_host" });
+                  setPrivateRoom({
+                    code: privateRoomCode,
+                    host: roomHost ?? startMode === "private_host",
+                    unlimited: roomUnlimited,
+                  });
                   navigateScreen("lobby");
                   return;
                 }

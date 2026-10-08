@@ -129,9 +129,9 @@ export class AegisConnectionRouter {
     const manifest = await this.dependencies.loadManifest();
     const deployments = [manifest.active, ...manifest.draining];
     for (const { slot } of deployments) {
-      const roomId = await this.resolveRoomCode(code, slot);
-      if (!roomId) continue;
-      const joined = await this.client(slot).joinById(roomId, {
+      const rules = await this.resolveRoomCode(code, slot);
+      if (!rules) continue;
+      const joined = await this.client(slot).joinById(rules.roomId, {
         ...options,
         roomCode: code.toUpperCase(),
       });
@@ -218,7 +218,16 @@ export class AegisConnectionRouter {
     }
   }
 
-  private async resolveRoomCode(code: string, slot: DeploymentSlot): Promise<string | undefined> {
+  async lookupPrivateRoom(code: string): Promise<PrivateRoomRules> {
+    const manifest = await this.dependencies.loadManifest();
+    for (const { slot } of [manifest.active, ...manifest.draining]) {
+      const rules = await this.resolveRoomCode(code, slot);
+      if (rules) return rules;
+    }
+    throw new Error("room not found");
+  }
+
+  private async resolveRoomCode(code: string, slot: DeploymentSlot): Promise<PrivateRoomRules | undefined> {
     const { http } = this.dependencies.endpointForSlot(slot);
     const response = await this.fetch(`${http}/room/lookup`, {
       method: "POST",
@@ -227,8 +236,7 @@ export class AegisConnectionRouter {
     });
     if (response.status === 404) return undefined;
     if (!response.ok) throw new Error(`Room lookup failed (${response.status})`);
-    const { roomId } = (await response.json()) as { roomId: string };
-    return roomId;
+    return privateRoomRules(await response.json());
   }
 }
 
@@ -336,6 +344,27 @@ export async function createPrivate(options: AegisJoinOptions): Promise<AegisRoo
   if (useProductionRouter()) return getProductionRouter().createPrivate(options);
   const created = await getLegacyClient().create<GameState>(ROOM_TYPE_PRIVATE, { ...options, private: true });
   return rememberLegacy(created);
+}
+
+export interface PrivateRoomRules {
+  roomId: string;
+  unlimited: boolean;
+}
+
+function privateRoomRules(value: { roomId: string; unlimited?: boolean }): PrivateRoomRules {
+  return { roomId: value.roomId, unlimited: value.unlimited === true };
+}
+
+/** Inspect the host's rules before choosing a guest deck. */
+export async function lookupPrivateRoom(code: string): Promise<PrivateRoomRules> {
+  if (useProductionRouter()) return getProductionRouter().lookupPrivateRoom(code);
+  const response = await fetch(`${legacyEndpoint().replace(/^ws/, "http")}/room/lookup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ roomCode: code.toUpperCase() }),
+  });
+  if (!response.ok) throw new Error("room not found");
+  return privateRoomRules(await response.json());
 }
 
 /** Resolve and join a private room on either the active or draining deployment. */

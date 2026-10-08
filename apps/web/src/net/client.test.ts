@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { Room } from "@colyseus/sdk";
 import type { GameState } from "@aegis/shared";
 import { AegisConnectionRouter, connectionSlot, type ColyseusClientPort } from "./client";
-import type { DeploymentManifest, DeploymentSlot } from "./deployment";
+import type { DeploymentManifest } from "./deployment";
 
 const OPTIONS = { displayName: "Tamer", deck: { mainDeck: [], eggDeck: [] } };
 
@@ -319,4 +319,51 @@ it("reserves code-only spectator access on a draining slot and preserves its rec
     expect.objectContaining({ body: JSON.stringify({ roomCode: "ABCDEF" }) }),
   );
   expect(consume).toHaveBeenCalledWith({ sessionId: "observer", roomId: "watched-match" });
+});
+
+it("preserves Unlimited and beta bot flags on the production and private paths", async () => {
+  const created = room("unlimited-bot");
+  const create = vi.fn<ColyseusClientPort["create"]>(async () => created);
+  const client = router({
+    manifest: { version: 1, active: { slot: "green", revision: "new" }, draining: [] },
+    blue: clientPort(),
+    green: clientPort({ create }),
+  });
+  await client.createBot({ ...OPTIONS, unlimited: true, betaBattleMode: true });
+  expect(create).toHaveBeenLastCalledWith(
+    "aegis_beta_bot",
+    expect.objectContaining({ unlimited: true, betaBattleMode: true }),
+  );
+  await client.createPrivate({ ...OPTIONS, unlimited: true });
+  expect(create).toHaveBeenLastCalledWith("aegis_private", expect.objectContaining({ unlimited: true, private: true }));
+});
+
+it("reads the private host rules from a draining slot before joining there", async () => {
+  const joined = room("private-blue");
+  const joinById = vi.fn<ColyseusClientPort["joinById"]>(async () => joined);
+  const fetcher = vi.fn<typeof fetch>(async (url: RequestInfo | URL) =>
+    String(url).includes("/green/")
+      ? new Response("{}", { status: 404 })
+      : new Response(JSON.stringify({ roomId: joined.roomId, unlimited: true })),
+  );
+  const client = new AegisConnectionRouter({
+    loadManifest: async () => ({
+      version: 1,
+      active: { slot: "green", revision: "new" },
+      draining: [{ slot: "blue", revision: "old" }],
+    }),
+    endpointForSlot: (slot) => ({
+      http: `https://example.test/api/${slot}`,
+      websocket: `wss://example.test/api/${slot}`,
+    }),
+    createClient: (_endpoint, slot) => (slot === "blue" ? clientPort({ joinById }) : clientPort()),
+    fetcher,
+  });
+  expect(await client.lookupPrivateRoom("abc234")).toEqual({ roomId: joined.roomId, unlimited: true });
+  await client.joinPrivateByCode("abc234", { ...OPTIONS, unlimited: true });
+  expect(joinById).toHaveBeenCalledWith(
+    joined.roomId,
+    expect.objectContaining({ unlimited: true, roomCode: "ABC234" }),
+  );
+  expect(connectionSlot(joined)).toBe("blue");
 });

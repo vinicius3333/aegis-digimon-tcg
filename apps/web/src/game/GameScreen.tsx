@@ -131,6 +131,7 @@ export function GameScreen({
   waitForHost,
   botDeckId,
   betaBattleMode,
+  unlimited,
   onExit,
   onRematch,
   onResetScenario,
@@ -153,11 +154,12 @@ export function GameScreen({
   /** Famous-deck preset the seated bot should play; absent means the server picks at random. */
   botDeckId?: string;
   betaBattleMode?: boolean;
+  unlimited?: boolean;
   onExit: (screen: Screen) => void;
   /** Restart a server-backed development scenario from the match controls. */
   onResetScenario?: () => void;
   /** Receives the private room code, so a private match can return to its room. */
-  onRematch?: (privateRoomCode?: string) => void;
+  onRematch?: (privateRoomCode?: string, unlimited?: boolean, privateHost?: boolean) => void;
   /** Only shapes what the report dialog says about follow-up questions; reporting needs no account. */
   signedIn?: boolean;
   demoConnection?: Pick<
@@ -202,11 +204,13 @@ export function GameScreen({
       ...joinOptions,
       spectator: spectating,
       ranked: startMode === "ranked",
-      unlimited: startMode === "unlimited",
+      unlimited:
+        startMode === "unlimited" ||
+        ((startMode === "bot" || startMode === "private_host" || startMode === "private_guest") && unlimited === true),
       betaBattleMode: startMode === "beta" || (startMode === "bot" && betaBattleMode === true),
       presentationPacing,
     }),
-    [joinOptions, startMode, betaBattleMode, presentationPacing, spectating],
+    [joinOptions, startMode, betaBattleMode, unlimited, presentationPacing, spectating],
   );
   const liveConnection = useRoom(roomOptions, matchConfig, demoConnection !== undefined);
   const {
@@ -254,7 +258,7 @@ export function GameScreen({
   }, [leaveForfeits, onLeaveForfeitsChange]);
 
   const vsBot = startMode === "bot";
-  const isPrivateMatch = startMode === "private_host" || startMode === "private_guest";
+  const isPrivateMatch = startMode === "private_host" || startMode === "private_guest" || !!state?.roomCode;
 
   const botCalledRef = useRef(false);
   const [botError, setBotError] = useState<string>();
@@ -1426,7 +1430,12 @@ export function GameScreen({
         spectating
           ? () => onExit("lobby")
           : onRematch
-            ? () => onRematch(isPrivateMatch ? hostRoomCode || roomCode : undefined)
+            ? () =>
+                onRematch(
+                  isPrivateMatch ? state?.roomCode || hostRoomCode || roomCode : undefined,
+                  state?.unlimited,
+                  isPrivateMatch ? viewerSeat === 0 : undefined,
+                )
             : () => onExit("lobby")
       }
     />

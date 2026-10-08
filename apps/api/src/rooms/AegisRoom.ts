@@ -74,6 +74,9 @@ interface RoomCreateOptions extends Partial<SeriesContinuationOptions> {
   rankedRoom?: boolean;
   betaBattleRoom?: boolean;
   unlimitedRoom?: boolean;
+  /** Only the registered bot/private handlers grant this capability. */
+  allowUnlimitedSelection?: boolean;
+  unlimited?: boolean;
   tournamentRoom?: boolean;
   devScenario?: unknown;
 }
@@ -217,7 +220,7 @@ interface OpenBatch {
  * forwards intents to the GameEngine, relays decision requests, and broadcasts the
  * event log. All rules live in the engine (API-CONTRACT.md section 1).
  */
-export class AegisRoom extends Room<{ state: GameState }> {
+export class AegisRoom extends Room<{ state: GameState; metadata: { unlimited: boolean } }> {
   override maxClients = 2;
   private engine!: GameEngine;
   private spectatorClients = new Set<string>();
@@ -401,6 +404,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
     options.presentationPacing = entry.presentationPacing;
     options.ranked = false;
     options.betaBattleMode = this.isBetaBattleRoom;
+    options.unlimited = this.isUnlimitedRoom;
     this.seriesSeatByClient.set(client.sessionId, seat);
     return true;
   }
@@ -493,12 +497,14 @@ export class AegisRoom extends Room<{ state: GameState }> {
     const reopenedCode = options.private && isRoomCode(options.roomCode) ? options.roomCode : undefined;
     if (reopenedCode) return this.reopenUnderCode(options, reopenedCode);
     this.initialize(options);
+    return this.publishRoomRules();
   }
 
   /** Checked before anything is built, so a refused code leaves no half-made room behind. */
   private async reopenUnderCode(options: RoomCreateOptions, code: string): Promise<void> {
     if ((await roomCodes.resolve(code)) !== undefined) throw new ServerError(409, "This room code is still in use.");
     this.initialize(options, code);
+    await this.publishRoomRules();
   }
 
   /**
@@ -514,6 +520,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
       rankedRoom: options.rankedRoom,
       betaBattleRoom: options.betaBattleRoom,
       unlimitedRoom: options.unlimitedRoom,
+      allowUnlimitedSelection: options.allowUnlimitedSelection,
+      unlimited: record.unlimited === true,
       tournamentRoom: options.tournamentRoom,
       matchTimer: record.matchTimer,
       timerStartSeconds: record.timerStartSeconds,
@@ -523,6 +531,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
     if (code && (await roomCodes.resolve(code)) !== undefined)
       throw new ServerError(409, "This room code is still in use.");
     this.initialize(settings, code, record);
+    await this.publishRoomRules();
     // Reachable only by the room id the series hands its two seats, never through matchmaking.
     await this.setPrivate(true);
   }
@@ -554,7 +563,14 @@ export class AegisRoom extends Room<{ state: GameState }> {
     }
     this.isRankedRoom = options.rankedRoom === true;
     this.isBetaBattleRoom = options.betaBattleRoom === true;
-    this.isUnlimitedRoom = options.unlimitedRoom === true && !options.rankedRoom && !options.tournamentRoom;
+    this.isUnlimitedRoom =
+      !options.rankedRoom &&
+      !options.tournamentRoom &&
+      (options.unlimitedRoom === true ||
+        (options.allowUnlimitedSelection === true &&
+          (options.botRoom === true || options.private === true) &&
+          options.unlimited === true));
+    this.state.unlimited = this.isUnlimitedRoom;
     this.isTournamentRoom = options.tournamentRoom === true;
     if (options.private) {
       this.isPrivate = true;
@@ -578,6 +594,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       else if (this.bestOf > 1)
         this.casualSeries = CasualSeries.begin(this.seriesPort(), {
           bestOf: this.bestOf,
+          unlimited: this.isUnlimitedRoom,
           matchTimer: options.matchTimer === true,
           timerStartSeconds: options.timerStartSeconds ?? 300,
           ...(this.isPrivate ? { roomCode: this.state.roomCode } : {}),
@@ -999,6 +1016,17 @@ export class AegisRoom extends Room<{ state: GameState }> {
     if (client.view) this.issuedViews.add(client.view);
   }
 
+  private async publishRoomRules(): Promise<void> {
+    // Standalone room lifecycle consumers have no matchmaker listing to publish into.
+    if (!Reflect.get(this, "_listing")) return;
+    await this.setMatchmaking({ metadata: { ...this.metadata, unlimited: this.isUnlimitedRoom } });
+  }
+
+  /** Fixed host rules, read by the private-code lookup across processes. */
+  privateRoomInfo(): { unlimited: boolean } {
+    return { unlimited: this.isUnlimitedRoom };
+  }
+
   /** Public information only; the HTTP gateway calls this through cluster RPC. */
   spectatorInfo(roomCode?: string): { roomId: string; players: string[]; spectators: number } | null {
     if (
@@ -1273,7 +1301,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       deck.eggDeck.length <= 5 &&
       deck.mainDeck.every((id) => typeof id === "string") &&
       deck.eggDeck.every((id) => typeof id === "string") &&
-      validateDecklist(deck, { betaBattleMode: this.isBetaBattleRoom }).ok
+      validateDecklist(deck, { betaBattleMode: this.isBetaBattleRoom, unlimited: this.isUnlimitedRoom }).ok
     );
   }
 
@@ -1339,6 +1367,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
           displayName: modelOptions === undefined ? "Bot" : "BT26 AI",
           deck,
           betaBattleMode: this.isBetaBattleRoom,
+          unlimited: this.isUnlimitedRoom,
         }),
       );
     } catch (error) {
