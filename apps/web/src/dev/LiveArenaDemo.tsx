@@ -1659,6 +1659,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Unleash the Dragon Gene está no campo desde um turno anterior ao lado de Slayerdramon, e você não tem [Examon] na mão. Encerre a criação e jogue Aqua Viper (BT4-102), devolvendo Slayerdramon. O ＜Delay＞ deve ser oferecido mesmo sem DNA possível: aceite, Unleash the Dragon Gene vai para o lixo e Slayerdramon volta para a mão.",
     en: "Unleash the Dragon Gene has been in the battle area since an earlier turn beside Slayerdramon, and your hand has no [Examon]. End breeding and play Aqua Viper (BT4-102), returning Slayerdramon. The ＜Delay＞ must still be offered with no legal DNA: accept it, Unleash the Dragon Gene goes to the trash, and Slayerdramon returns to your hand.",
   },
+  "arena-bt20-dragon-gene-security": {
+    ptBR: "Discord 1557553612228665396. Encerre a criação e o turno sem jogar cartas. Quando o bot atacar sua segurança, aceite o efeito de BT20-093 e escolha Dracomon BT20-007 da mão ou EX3-037 do lixo: só o escolhido entra em jogo, sem custo. EX3-037 também revela 4 cartas: escolha Coredramon e Examon e ordene as restantes. Unleash the Dragon Gene fica no campo. Reinicie e recuse o efeito, ou aceite e escolha Nenhuma seleção: nenhum Dracomon entra, mas a Option ainda fica no campo. Coredramon não é alvo do efeito de segurança, pois ele exige Dracomon no nome.",
+    en: "Discord 1557553612228665396. End breeding and your turn without playing cards. When the bot attacks your security, accept BT20-093's effect and choose Dracomon BT20-007 from hand or EX3-037 from trash: only the chosen card enters play, for free. EX3-037 also reveals 4 cards: choose Coredramon and Examon and order the rest. Unleash the Dragon Gene stays in the battle area. Restart and decline the effect, or accept and choose No Selection: no Dracomon is played, but the Option still stays in the battle area. Coredramon is not a security-effect target because this effect requires Dracomon in the name.",
+  },
   "arena-bt13-royal-purge-delay-rush": {
     ptBR: "Encerre a criação e resolva o efeito do início da Main de King Drasil. Ative o ＜Delay＞ de Royal Knights of the Purge e escolha BT20-102 Omnimon (X Antibody) entre as cartas de digievolução de King Drasil. Aceite ou recuse a redução de custo e resolva os dois Tamers BT20-091. Omnimon não ativa o Ao Jogar, ganha ＜Rush＞ e deve poder atacar neste turno.",
     en: "End breeding and resolve King Drasil's Start of Main effect. Activate Royal Knights of the Purge's ＜Delay＞ and choose BT20-102 Omnimon (X Antibody) from King Drasil's digivolution cards. Accept or decline the cost reduction and resolve both BT20-091 Tamers. Omnimon's On Play does not activate, it gains ＜Rush＞, and it must be able to attack this turn.",
@@ -2483,6 +2487,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex5-biting-crush-delay", "EX5 Biting Crush · Delay on effect play"],
   ["arena-p108-training-delay-no-target", "P-108 Wisdom Training · Delay with no target"],
   ["arena-bt20-dragon-gene-delay-no-dna", "BT20-093 Unleash the Dragon Gene · Delay with no DNA"],
+  ["arena-bt20-dragon-gene-security", "BT20-093 Unleash the Dragon Gene · Security hand/trash"],
   ["arena-bt13-royal-purge-delay-rush", "BT13 Royal Knights of the Purge · Delay Rush"],
   ["arena-p206-digital-gate-breeding-color", "P-206 Digital Gate Open · breeding-area colour"],
   ["arena-ex13-merciful-mode-attack-order", "EX13 Merciful Mode · match f9505ba7 attack order"],
