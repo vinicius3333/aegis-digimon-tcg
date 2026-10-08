@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { Phase, getCardDefinition } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -108,6 +108,78 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
       "Then, you may link 1 Digimon card from this Digimon's digivolution cards to this Digimon without paying the cost.",
     ]);
   });
+
+  it.each(["appFusion", "digivolve"] as const)(
+    "Discord 1557555301014569070: rejects %s after KingSukamon renames Warudamon without consuming Cometmon",
+    async (intentType) => {
+      const s = setupEngine(
+        {
+          1: {
+            battleArea: [{ card: "EX10-019", as: "host", linked: [{ card: "EX10-030", as: "link" }] }],
+            hand: [{ card: "EX10-073", as: "result" }],
+            deck: ["BT1-010", "BT1-010", "BT1-010"],
+            eggDeck: ["BT1-001"],
+          },
+          0: {
+            battleArea: ["EX13-035", "BT13-065", "EX13-028"],
+            hand: [{ card: "BT11-043", as: "king" }],
+            trash: ["BT11-040", "BT11-040", "BT11-040"],
+            deck: ["BT1-010", "BT1-010", "BT1-010"],
+            eggDeck: ["BT1-001"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 8;
+      const loop = s.engine.startTurnLoop();
+      await settle(() => s.state.phase === Phase.Breeding);
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.perm("host").originalNameOverride === "Sukamon" && s.state.pendingDecision === undefined);
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await settle(() => s.state.turnSeat === 1 && s.state.phase === Phase.Breeding);
+      expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(1);
+
+      const host = s.perm("host");
+      expect(observe(s.engine).effectiveNames(host)).toEqual(["sukamon"]);
+      expect(host.currentDP).toBe(4000);
+      const beforeMemory = s.state.memory;
+      const beforeHand = s.state.players[1]!.hand.map(({ instanceId }) => instanceId);
+      const response = s.engine.applyIntent(
+        1,
+        intentType === "appFusion"
+          ? {
+              type: "appFusion",
+              permanentId: host.permanentId,
+              instanceId: s.inst("result").instanceId,
+              linkedInstanceId: s.inst("link").instanceId,
+            }
+          : {
+              type: "digivolve",
+              permanentId: host.permanentId,
+              instanceId: s.inst("result").instanceId,
+              appFusionLinkInstanceId: s.inst("link").instanceId,
+            },
+      );
+      expect(response).toMatchObject({ ok: false });
+      await settle();
+      expect(host.topCard.cardId).toBe("EX10-019");
+      expect(host.linked.map(({ instanceId }) => instanceId)).toEqual([s.inst("link").instanceId]);
+      expect(host.currentDP).toBe(4000);
+      expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toEqual(beforeHand);
+      expect(s.state.players[1]!.trash).toHaveLength(0);
+      expect(s.state.memory).toBe(beforeMemory);
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(s.events.some((event) => event.kind === "digivolved" && event.cardId === "EX10-073")).toBe(false);
+      expect(s.inst("result").appFusionRoutes).toHaveLength(0);
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
 
   it("＜Link +1＞: both links survive the rule-check sweep at an attack", async () => {
     const s = setupEngine(

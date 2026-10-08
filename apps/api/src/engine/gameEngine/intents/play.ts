@@ -1,4 +1,5 @@
 import { Phase, appFusionCostFor, type Intent, type IntentResult, type Seat } from "@aegis/shared";
+import { effectiveNames } from "../../effects/continuous.js";
 import { lookupDefinition } from "../../cards/cardData.js";
 import {
   applyActivateEffect,
@@ -230,7 +231,8 @@ export function validateAppFusion(
   }
   const linked = source.linked.find(({ instanceId }) => instanceId === intent.linkedInstanceId);
   if (linked === undefined) return { ok: false, reason: "illegal-target" };
-  const topName = lookupDefinition(source.topCard.cardId)?.nameEn;
+  const printedName = lookupDefinition(source.topCard.cardId)?.nameEn;
+  const topNames = printedName === undefined ? [] : effectiveNames(engine.continuous, source, printedName);
   const linkedName = lookupDefinition(linked.cardId)?.nameEn;
   const resultDefinition = lookupDefinition(result.cardId);
   const deps = digivolveDeps(engine);
@@ -243,9 +245,9 @@ export function validateAppFusion(
     return { ok: false, reason: "illegal-target" };
   }
   const printedCost =
-    topName === undefined || linkedName === undefined || resultDefinition === undefined
+    topNames.length === 0 || linkedName === undefined || resultDefinition === undefined
       ? undefined
-      : appFusionCostFor(result.cardId, { topName, linkedNames: [linkedName] });
+      : appFusionCostFor(result.cardId, { topNames, linkedNames: [linkedName] });
   if (printedCost === undefined || resultDefinition === undefined) return { ok: false, reason: "illegal-target" };
   const passiveCost =
     deps.adjustedDigivolveCost?.(engine.state, source, printedCost, resultDefinition, { consumeOnce: false }) ??
