@@ -4411,3 +4411,27 @@ it("uses a concise attack heading even when the engine supplies its forced-attac
   expect(screen.getByRole("heading", { name: "Attack" })).toBeTruthy();
   expect(screen.queryByText("Choose the attack target for the forced attack.")).toBeNull();
 });
+
+it.each([0, 1] as const)("GitHub #5347: seat %i sees P-220's separate optional deletion clause", (seat) => {
+  const { onRespond } = renderDecision({
+    decisionId: "p220-delete",
+    seat,
+    kind: "chooseTargets",
+    promptText: "Millenniummon",
+    sourceCardId: "P-220",
+    options: {
+      timing: "OnPlay",
+      effectText:
+        "[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon. Then, you may delete 1 Digimon.",
+      effectTextPart: "Then, you may delete 1 Digimon.",
+      purpose: "optionalTarget",
+      targetFate: "delete",
+      candidateInstanceIds: ["own", "opponent"],
+      min: 0,
+      max: 1,
+    },
+  });
+  expect(document.querySelector(".decision-overlay__effect-text")?.textContent).toBe("Then, you may delete 1 Digimon.");
+  fireEvent.click(screen.getByRole("button", { name: "None" }));
+  expect(onRespond).toHaveBeenCalledWith({ kind: "chooseTargets", instanceIds: [] });
+});
