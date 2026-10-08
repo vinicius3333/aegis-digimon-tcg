@@ -4,6 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX13-047.js";
+import "./EX13-035.js";
+import "./EX13-056.js";
 
 const CARD_ID = "EX13-047";
 
