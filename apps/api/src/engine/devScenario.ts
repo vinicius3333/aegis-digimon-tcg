@@ -97,6 +97,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-github-5270-hurricane",
   "arena-github-5270-gundramon",
 
+  "arena-discord-1557631388650315826-sukamon-dna-materials",
+  "arena-discord-1557631388650315826-sukamon-dna-control",
   "arena-discord-1557565628439724032-duskmon-dna-colors",
   "arena-discord-1557565628439724032-duskmon-dna-control",
   "arena-discord-1557575147119054889-shakkoumon-sukamon",
@@ -6779,6 +6781,46 @@ function layDuskmonDnaColorsScenario(state: GameState, decks: readonly [Decklist
   state.memory = 9;
 }
 
+/** BT11-043 rewrites the blue slot; DNA level/name treatment cannot supply blue. */
+function laySukamonDnaMaterialsScenario(state: GameState, decks: readonly [Decklist, Decklist], control = false): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Deck);
+    clearZone(player, Zone.EggDeck);
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-sukamon-dna-egg-${seat}`, "ST1-01", seat));
+    fillZone(
+      player,
+      Zone.Deck,
+      Array.from({ length: 12 }, (_, index) =>
+        faceDownCard(`dev-sukamon-dna-filler-${seat}-${index}`, "BT1-010", seat),
+      ),
+    );
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-008", "EX13-021"], "-sukamon-dna-changed"));
+    placePermanent(human, establishedDigimon(0, ["EX13-044"], "-sukamon-dna-green"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-sukamon-dna-examon", "EX13-045", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined && !control) {
+    insertCard(bot, Zone.Hand, faceDownCard("dev-sukamon-dna-color-source", "BT11-043", 1));
+    fillZone(
+      bot,
+      Zone.Trash,
+      [0, 1, 2].map((index) => faceDownCard(`dev-sukamon-dna-trash-${index}`, "BT11-040", 1)),
+    );
+  }
+  state.turnSeat = 1;
+  state.turnCount = 1;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 9;
+}
+
 /** The three printed materials attached to the report, with a yellow-only negative control. */
 function layShakkoumonSukamonDnaScenario(
   state: GameState,
@@ -8601,6 +8643,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github-5270-hurricane": (state, decks) => layGithubRemovalScenario(state, decks, "hurricane"),
   "arena-github-5270-gundramon": (state, decks) => layGithubRemovalScenario(state, decks, "gundramon"),
 
+  "arena-discord-1557631388650315826-sukamon-dna-materials": laySukamonDnaMaterialsScenario,
+  "arena-discord-1557631388650315826-sukamon-dna-control": (state, decks) =>
+    laySukamonDnaMaterialsScenario(state, decks, true),
   "arena-discord-1557565628439724032-duskmon-dna-colors": layDuskmonDnaColorsScenario,
   "arena-discord-1557565628439724032-duskmon-dna-control": (state, decks) =>
     layDuskmonDnaColorsScenario(state, decks, true),

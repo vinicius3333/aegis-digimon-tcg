@@ -3,6 +3,36 @@ import { createEvaluationPolicy, type BotPolicy } from "../bot/policy.js";
 /** Deterministic opponent actions for an arena reproduction, using ordinary intents. */
 export function createIssueReproBotPolicy(scenario: string | undefined): BotPolicy | undefined {
   if (
+    scenario === "arena-discord-1557631388650315826-sukamon-dna-materials" ||
+    scenario === "arena-discord-1557631388650315826-sukamon-dna-control"
+  ) {
+    const fallback = createEvaluationPolicy();
+    return {
+      ...fallback,
+      name: "sukamon-dna-materials-reproduction",
+      chooseBreedingAction: () => ({ type: "endPhase" }),
+      chooseMainAction(view) {
+        const king = view.hand.find((card) => card.cardId === "BT11-043");
+        return king === undefined ? { type: "endPhase" } : { type: "playCard", instanceId: king.instanceId };
+      },
+      answerDecision(view, request) {
+        if (request.sourceCardId === "BT11-043") {
+          if (request.kind === "chooseTargets") {
+            const targetId = "dev-perm-0-sukamon-dna-changed";
+            if (request.options?.candidateInstanceIds?.includes(targetId)) {
+              return {
+                type: "respondDecision",
+                decisionId: request.decisionId,
+                response: { kind: "chooseTargets", instanceIds: [targetId] },
+              };
+            }
+          }
+        }
+        return fallback.answerDecision(view, request);
+      },
+    };
+  }
+  if (
     scenario === "arena-discord-1557565628439724032-duskmon-dna-colors" ||
     scenario === "arena-discord-1557565628439724032-duskmon-dna-control"
   ) {
