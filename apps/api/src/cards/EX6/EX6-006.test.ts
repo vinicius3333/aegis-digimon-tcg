@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { replaceStack } from "../../engine/state/access.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { internalsOf } from "../../engine/testkit/internals.js";
@@ -241,7 +242,12 @@ describe("EX6-006 Gate of Deadly Sins", () => {
     expect(s.decisions).toHaveLength(0);
     expect(await internalsOf(s.engine).primitives.canAffordEffectPlay!(s.inst("nonLord").instanceId)).toBe(false);
 
-    await advance(s.engine).verb.trashDigivolutionCards(s.perm("gate").permanentId, [s.inst("removed").instanceId], 0);
+    // Effects cannot trash breeding-area sources, so the setup removes one directly.
+    const gate = s.perm("gate");
+    replaceStack(
+      gate,
+      gate.stack.filter(({ instanceId }) => instanceId !== s.inst("removed").instanceId),
+    );
     expect(await internalsOf(s.engine).primitives.canAffordEffectPlay!(s.inst("beelzemon").instanceId)).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.decisions).toHaveLength(0);
