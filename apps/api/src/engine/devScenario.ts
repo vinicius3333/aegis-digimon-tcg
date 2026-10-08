@@ -234,6 +234,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex10-close-sunarizamon-without-close",
   "arena-ex11-pyramidimon-fragment-recovery",
   "arena-ex13-rina-suspend-lock",
+  "arena-ex13-rina-modal-title",
   "arena-ex11-vortex-effect-attack",
   "arena-bt24-ogremon-ulforce-unsuspend",
   "arena-bt23-king-drasil-unsuspended-cost",
@@ -370,6 +371,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt24-hyogamon-pending-trash-digivolve",
   "arena-ex10-darkness-bagramon-digixros-interrupt",
   "arena-ex10-tactimon-digixros-material",
+  "arena-ex10-bagramon-materials-destination",
   "arena-hellscythe-onplay-priority",
   "arena-vikemon-live-source-lock",
   "arena-rizegreymon-derived-priority",
@@ -2229,6 +2231,25 @@ function layEx13GiromonZeroDpPlayScenario(state: GameState, decks: readonly [Dec
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Rina's two activation prompts carry distinct printed passages through ordinary Main intents. */
+function layEx13RinaModalTitleScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 6);
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    for (const zone of [Zone.Hand, Zone.Deck, Zone.Security, Zone.EggDeck] as const) clearZone(player, zone);
+    for (let index = 0; index < 12; index++)
+      insertCard(player, Zone.Deck, faceDownCard(`rina-title-deck-${seat}-${index}`, "BT1-085", seat));
+    for (let index = 0; index < 3; index++)
+      insertCard(player, Zone.Security, faceDownCard(`rina-title-security-${seat}-${index}`, "BT1-009", seat));
+  }
+  const human = state.players[0]!;
+  insertCard(human, Zone.EggDeck, faceDownCard("dev-rina-title-egg", "EX13-002", 0));
+  placePermanent(human, establishedDigimon(0, ["EX13-069"], "-rina-title-rina"));
+  placePermanent(human, establishedDigimon(0, ["BT3-021"], "-rina-title-veemon"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-rina-title-sword", "ST8-11", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-rina-title-veedramon", "BT1-115", 0));
 }
 
 /**
@@ -5903,6 +5924,25 @@ function prepareIssueScenario(state: GameState, decks: readonly [Decklist, Deckl
   state.memory = memory;
 }
 
+/** Discord 1557666953748025394: two expanded DigiXros zones, then an explicit other-host choice. */
+function layEx10BagramonMaterialsDestinationScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 2);
+  for (const player of state.players) {
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Deck);
+    for (let index = 0; index < 20; index++)
+      insertCard(player, Zone.Deck, faceDownCard(`dev-bagramon-draw-${player.seat}-${index}`, "BT1-085", player.seat));
+  }
+  const human = state.players[0]!;
+  const opponent = state.players[1]!;
+  placePermanent(human, establishedDigimon(0, ["EX10-058", "BT10-073", "EX10-064"], "-bagramon-expander"));
+  insertCard(human, Zone.Trash, faceUpCard("dev-bagramon-trash-material", "BT10-073", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-bagramon-played", "EX10-056", 0));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-013", "BT1-009"], "-bagramon-victim"));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-014"], "-bagramon-digimon-host"));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-013", "BT1-088"], "-bagramon-tamer-host"));
+}
+
 /** EX11-071 Main exposes two exact physical hand choices without extra On Play effects. */
 function layUiEx11CoolBoyHandSelectionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 6);
@@ -8958,6 +8998,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex10-close-sunarizamon-without-close": layEx10CloseSunarizamonScenario,
   "arena-ex11-pyramidimon-fragment-recovery": layEx11PyramidimonFragmentRecoveryScenario,
   "arena-ex13-rina-suspend-lock": layEx13RinaSuspendLockScenario,
+  "arena-ex13-rina-modal-title": layEx13RinaModalTitleScenario,
   "arena-ex11-vortex-effect-attack": layEx11VortexEffectAttackScenario,
   "arena-bt24-ogremon-ulforce-unsuspend": layBt24OgremonUlforceUnsuspendScenario,
   "arena-bt23-king-drasil-unsuspended-cost": layBt23KingDrasilUnsuspendedCostScenario,
@@ -9103,6 +9144,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt24-hyogamon-pending-trash-digivolve": layBt24HyogamonPendingTrashDigivolveScenario,
   "arena-ex10-darkness-bagramon-digixros-interrupt": layEx10DarknessBagramonDigiXrosInterruptScenario,
   "arena-ex10-tactimon-digixros-material": layEx10TactimonDigiXrosMaterialScenario,
+  "arena-ex10-bagramon-materials-destination": layEx10BagramonMaterialsDestinationScenario,
   "arena-hellscythe-onplay-priority": layHellscytheOnPlayPriorityScenario,
   "arena-piedmon-declined-opt": layPiedmonDeclinedOptScenario,
   "arena-vikemon-live-source-lock": layVikemonLiveSourceLockScenario,

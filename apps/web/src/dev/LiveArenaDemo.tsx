@@ -1239,6 +1239,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: 'Jogue o BT20-084 Sistermon Ciel (Awakened) da mão (custo 5). O [Ao Jogar] pede 1 Digimon ou Tamer do bot: escolha a EX13-069 Rina Shinomiya. Ela não pode suspender até o fim do turno do bot. Encerre seu turno. Na fase de desuspender do bot, o BT3-021 Veemon dele desuspende. A Rina não pode pagar "suspendendo este Tamer": o efeito dela não é oferecido nem ativado, o log não mostra "efeito da Rina Shinomiya resolvido", a Rina continua desvirada e o bot só compra a carta normal do turno.',
     en: "Play BT20-084 Sistermon Ciel (Awakened) from hand (cost 5). Its [On Play] asks for 1 of the bot's Digimon or Tamers: choose EX13-069 Rina Shinomiya. She can't suspend until the end of the bot's turn. End your turn. In the bot's unsuspend phase, its BT3-021 Veemon unsuspends. Rina can't pay \"by suspending this Tamer\": her effect is neither offered nor activated, the log shows no \"Rina Shinomiya's effect resolved\", Rina stays unsuspended, and the bot draws only its normal turn card.",
   },
+  "arena-ex13-rina-modal-title": {
+    ptBR: "Encerre a criação. Ataque a segurança com Veemon BT3-021 (Jamming). Use Victory Sword ST8-11 (custo 3) para desvirar o único Veemon. No modal de Rina, o título deve ser a pergunta localizada normal e o corpo deve mostrar apenas o trecho de virar a Tamer/comprar 1. Aceite: Rina vira e compra 1. No segundo modal, o corpo deve mostrar apenas o trecho de evolução. Aceite: o único Veemon evolui para Veedramon BT1-115 na mão e o custo 3 cai para 1. Recarregue para recusar Rina (sem virar/comprar) ou recusar a evolução após a compra (Veedramon fica na mão).",
+    en: "End breeding. Attack security with BT3-021 Veemon (Jamming). Use ST8-11 Victory Sword (cost 3) to unsuspend the sole Veemon. Rina's modal must keep the normal localized question as its title and show only the suspend-Tamer/draw-1 passage in the body. Accept: Rina suspends and draws 1. The second modal must show only the evolution passage in its body. Accept: the sole Veemon evolves into BT1-115 Veedramon in hand and its cost 3 becomes 1. Reload to decline Rina (no suspend/draw) or decline evolution after drawing (Veedramon stays in hand).",
+  },
   "arena-ex11-vortex-effect-attack": {
     ptBR: "Digivolva o ST20-10 Agumon no ST21-08 Togemon da mão (custo 2). O [Seu Turno] do ST21-09 Lillymon dispara: dê ＜Aliança＞ ao Togemon e ataque o jogador com ele. Na ＜Aliança＞, escolha a Lillymon. O Togemon e a Lillymon suspendem, e o [Todos os Turnos] do seu EX11-074 Vortexdramon (desvirado) pergunta Battle duas vezes. Recuse a primeira. Aceite a segunda e escolha o BT1-009 Monodramon do bot: ele é deletado. Recusar não gasta o [Uma Vez Por Turno], mesmo com o ataque ordenado por um efeito.",
     en: "Digivolve ST20-10 Agumon into ST21-08 Togemon from hand (cost 2). ST21-09 Lillymon's [Your Turn] effect triggers: give Togemon ＜Alliance＞ and attack the player with it. For ＜Alliance＞, choose Lillymon. Togemon and Lillymon suspend, and the [All Turns] effect of your unsuspended EX11-074 Vortexdramon asks Battle twice. Decline the first. Accept the second and choose the bot's BT1-009 Monodramon: it is deleted. Declining does not spend the [Once Per Turn], even when an effect ordered the attack.",
@@ -1554,6 +1558,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-ex10-tactimon-digixros-material": {
     ptBR: "Encerre a criação. Jogue Bagramon da mão por DigiXros, com SkullKnightmon do campo como material. DigiXros não é um efeito, então o efeito de Tactimon (impedir a saída por efeitos) não deve ser oferecido. SkullKnightmon vai para baixo de Bagramon, Tactimon mantém as 2 fontes e a memória vai de 12 para 1.",
     en: "End breeding. Play Bagramon from hand by DigiXros, with SkullKnightmon from the field as the material. A DigiXros is not an effect, so Tactimon's effect (prevent leaving by effects) must not be offered. SkullKnightmon goes under Bagramon, Tactimon keeps its 2 sources, and memory goes from 12 to 1.",
+  },
+  "arena-ex10-bagramon-materials-destination": {
+    ptBR: "Encerre a criação e recuse colocar uma carta sob Yuu & Nene no início da Principal. Jogue EX10-056 Bagramon usando DigiXros: suspenda EX10-064 Yuu & Nene, escolha EX10-058 sob esse Domador e BT10-073 da lixeira. Apenas essas duas cartas vão para Bagramon; BT10-073 sob Yuu & Nene permanece lá. O custo é 9 (memória 2 para -7). Aceite o Ao Jogar e escolha Monodramon do bot. A próxima escolha deve oferecer apenas Kokatorimon e Izzy Izumi do bot: escolha Izzy, ou reinicie para escolher Kokatorimon. Monodramon vai ao fundo das fontes do escolhido e sua fonte vai para a lixeira. Aceite o Todos os Turnos de Bagramon: suas duas fontes são descartadas e a segurança do bot cai de 5 para 4. Reinicie e recuse esse efeito: ambas as fontes e a segurança devem permanecer.",
+    en: "End breeding and decline placing a card under Yuu & Nene at Start of Main. Play EX10-056 Bagramon with DigiXros: suspend EX10-064 Yuu & Nene, select EX10-058 under that Tamer and BT10-073 from trash. Only those two physical cards move under Bagramon; BT10-073 under Yuu & Nene stays there. Pay 9 (memory 2 to -7). Accept On Play and choose the bot's Monodramon. The next choice must offer only the bot's Kokatorimon and Izzy Izumi: choose Izzy, or reset to choose Kokatorimon. Monodramon goes to the chosen host's bottom and its source goes to trash. Accept Bagramon's All Turns: its two sources are trashed and the bot's security falls from 5 to 4. Reset and decline that effect: both sources and security must remain.",
   },
   "arena-bt21-dracomon-start-main": {
     ptBR: "Mova Dracomon X da criação: os dois efeitos devem aparecer juntos. Resolva BT20-007 primeiro, descarte Dracomon EX13-008 e compre Coredramon. Depois resolva BT21-046 e aceite evoluir de graça. Reinicie para testar a ordem inversa: resolver BT21-046 antes da compra consome sua oportunidade.",
@@ -2623,6 +2631,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex10-close-sunarizamon-without-close", "EX10 Close · play Sunarizamon with no Close in hand"],
   ["arena-ex11-pyramidimon-fragment-recovery", "EX11 Pyramidimon · Fragment trash triggers its recovery"],
   ["arena-ex13-rina-suspend-lock", "EX13 Rina · locked Tamer can't pay the suspend cost"],
+  ["arena-ex13-rina-modal-title", "EX13 Rina · localized heading and printed effect body"],
   ["arena-ex11-vortex-effect-attack", "EX11 Vortexdramon · retrigger after a decline in an effect attack"],
   ["arena-ex13-breakdramon-zero-security-check", "EX13 Breakdramon · Security Attack -1 attack checks no card"],
   ["arena-decoy-protect-choice", "Decoy · choose which Digimon to protect"],
@@ -2778,6 +2787,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt24-hyogamon-pending-trash-digivolve", "BT24 Hyogamon · pending inherited digivolve after Plutomon"],
   ["arena-ex10-darkness-bagramon-digixros-interrupt", "EX10 DarknessBagramon · DigiXros material interrupt"],
   ["arena-ex10-tactimon-digixros-material", "EX10 Tactimon · DigiXros material is not an effect"],
+  ["arena-ex10-bagramon-materials-destination", "EX10 Bagramon · DigiXros materials and destination choice"],
   ["arena-hellscythe-onplay-priority", "Flame Hellscythe · MagnaAngemon priority"],
   ["arena-rizegreymon-derived-priority", "RizeGreymon X · derived effect priority"],
   ["arena-trident-derived-priority", "Trident Revolver · deletion and On Play"],
