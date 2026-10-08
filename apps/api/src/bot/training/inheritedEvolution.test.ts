@@ -103,7 +103,9 @@ describe("Kekkomon inherited attack evolution through the asynchronous policy", 
           setup.engine.applyIntent(seat, await policy.answerDecision(buildBotView(setup.state, seat), request)),
         ).toEqual({ ok: true });
       }
-      expect(optionals).toHaveLength(1);
+      expect(optionals.map((window) => window.request?.options?.activationConfirmation)).toEqual(
+        payer < 0 ? [true] : [true, false],
+      );
       expect(modes.map((window) => window.actions.map((action) => action.label))).toEqual(
         evolution === 1
           ? [["Printed digivolution requirement (cost 4)", "Alternate digivolution requirement (cost 3)"]]
