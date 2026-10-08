@@ -192,6 +192,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-aegiochus-dark-assembly",
   "arena-alliance-20",
   "arena-marcus-alliance",
+  "arena-rizegreymon-marcus-security",
   "arena-bt11-analogman-redirect-timing",
   "arena-bt11-rina-ulforce-immunity",
   "arena-bt11-rina-ulforce-effect-choice",
@@ -986,6 +987,30 @@ function layAllianceTwentyScenario(state: GameState, decks: readonly [Decklist, 
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Discord 1557876784681328641: security battle, exact Marcus recovery, and OPT control. */
+function layRizeGreymonMarcusSecurityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    loadDeckInto(player, seat, { mainDeck: Array(40).fill("BT1-009"), eggDeck: decks[seat].eggDeck });
+    setSecurityStack(player);
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT13-015", "ST1-10"], "-rize-host"));
+  placePermanent(human, establishedDigimon(0, ["BT13-008"], "-rize-agumon"));
+  placePermanent(human, establishedDigimon(0, ["BT12-092"], "-rize-marcus-first"));
+  placePermanent(human, establishedDigimon(0, ["BT12-092"], "-rize-marcus-second"));
+  placePermanent(human, establishedDigimon(0, ["BT4-092"], "-rize-marcus-next-turn"));
+  fillZone(
+    state.players[1]!,
+    Zone.Security,
+    Array.from({ length: 5 }, (_, index) => faceDownCard(`dev-rize-opponent-security-${index}`, "BT9-066", 1)),
+  );
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 /** Marcus becomes a Digimon through his printed start-of-main effect, then pays Alliance. */
@@ -9456,6 +9481,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,
   "arena-marcus-alliance": layMarcusAllianceScenario,
+  "arena-rizegreymon-marcus-security": layRizeGreymonMarcusSecurityScenario,
   "arena-bt23-examon-partition-return": layBt23ExamonRemovalScenario,
   "arena-bt24-asuna-return-play": layAsunaReturnPlayScenario,
   "arena-bt23-examon-piercing-end-turn": (state, decks) => layBt23ExamonRemovalScenario(state, decks, true),

@@ -206,6 +206,7 @@ export interface AegisJoinOptions {
     | "arena-mervamon-effect-assembly"
     | "arena-alliance-20"
     | "arena-marcus-alliance"
+    | "arena-rizegreymon-marcus-security"
     | "arena-bt18-candlemon-data-selection"
     | "arena-bt26-monimon-optional-cost"
     | "arena-bt26-cerberusmon-optional-cost"
