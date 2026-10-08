@@ -1755,6 +1755,22 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Wisdom Training está no campo desde um turno anterior e você não tem Digimon. Ative o ＜Delay＞: a carta vai para o lixo e o efeito não faz nada.",
     en: "Wisdom Training has been in the battle area since an earlier turn and you have no Digimon. Activate its ＜Delay＞: the card goes to the trash and the effect does nothing.",
   },
+  "arena-github5306-training-use-memory": {
+    ptBR: "#5306: controle do comportamento atual. Encerre a criação com 1 de memória e use Treadmill Training da mão. O custo 2 leva a memória a 1 do oponente antes da escolha. Escolha Reppamon entre as duas cartas reveladas; Muchomon vai para o fundo e Training fica no campo. Após resolver tudo, o turno passa ao oponente com 1. O Delay não pode ser ativado no turno em que Training foi colocado.",
+    en: "#5306: current-behavior control. End breeding at 1 memory and use Treadmill Training from hand. Its cost of 2 moves memory to the opponent's 1 before the selection. Choose Reppamon among the two revealed cards; Muchomon goes to the bottom and Training stays in play. After everything resolves, the opponent's turn starts at 1. Delay cannot activate on the turn Training was placed.",
+  },
+  "arena-github5306-training-delay-paid": {
+    ptBR: "#5306: controle do comportamento atual. Encerre a criação com 3 de memória. Ative o Delay de Treadmill Training e digievolua Kudamon em Liamon: custo impresso 3 menos 2 = 1, deixando 2 de memória. Training vai para o lixo, Liamon fica sobre Kudamon e você compra 1 carta. Reinicie e recuse a digievolução: Training vai para o lixo, Kudamon fica e a memória continua em 3.",
+    en: "#5306: current-behavior control. End breeding at 3 memory. Activate Treadmill Training's Delay and digivolve Kudamon into Liamon: printed cost 3 minus 2 = 1, leaving 2 memory. Training is trashed, Liamon sits over Kudamon, and you draw 1. Restart and decline digivolution: Training is trashed, Kudamon stays, and memory remains at 3.",
+  },
+  "arena-github5306-training-delay-free": {
+    ptBR: "#5306: controle do comportamento atual. Encerre a criação e ative o Delay para digievoluir Kudamon em Reppamon. O custo 2 menos 2 = 0 mantém a memória em 3; não há ganho de memória. Training vai para o lixo, Reppamon fica sobre Kudamon e você compra 1 carta.",
+    en: "#5306: current-behavior control. End breeding and activate Delay to digivolve Kudamon into Reppamon. Cost 2 minus 2 = 0 keeps memory at 3; no memory is gained. Training is trashed, Reppamon sits over Kudamon, and you draw 1.",
+  },
+  "arena-github5306-training-delay-cost-choice": {
+    ptBR: "#5306: controle com a combinação vista nos logs, sem atribuição ao jogador. Encerre a criação com 3 de memória e ative o Delay para digievoluir Etemon em MetalEtemon. Escolha a exigência impressa de custo 4: paga 2 e deixa 1. Reinicie e escolha a exigência alternativa de custo 3: paga 1 e deixa 2. Training vai para o lixo e a digievolução compra 1 carta; nenhuma opção ganha memória.",
+    en: "#5306: control using a pair observed in logs, without player attribution. End breeding at 3 memory and activate Delay to digivolve Etemon into MetalEtemon. Choose the printed cost-4 requirement: pay 2 and leave 1. Restart and choose the alternate cost-3 requirement: pay 1 and leave 2. Training is trashed and digivolution draws 1; neither choice gains memory.",
+  },
   "arena-bt20-dragon-gene-delay-no-dna": {
     ptBR: "Unleash the Dragon Gene está no campo desde um turno anterior ao lado de Slayerdramon, e você não tem [Examon] na mão. Encerre a criação e jogue Aqua Viper (BT4-102), devolvendo Slayerdramon. O ＜Delay＞ deve ser oferecido mesmo sem DNA possível: aceite, Unleash the Dragon Gene vai para o lixo e Slayerdramon volta para a mão.",
     en: "Unleash the Dragon Gene has been in the battle area since an earlier turn beside Slayerdramon, and your hand has no [Examon]. End breeding and play Aqua Viper (BT4-102), returning Slayerdramon. The ＜Delay＞ must still be offered with no legal DNA: accept it, Unleash the Dragon Gene goes to the trash, and Slayerdramon returns to your hand.",
@@ -2609,6 +2625,10 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex5-attack-priority", "EX5 Etemon · attack trigger priority"],
   ["arena-ex5-biting-crush-delay", "EX5 Biting Crush · Delay on effect play"],
   ["arena-p108-training-delay-no-target", "P-108 Wisdom Training · Delay with no target"],
+  ["arena-github5306-training-use-memory", "#5306 Treadmill Training · use cost and turn pass"],
+  ["arena-github5306-training-delay-paid", "#5306 Treadmill Training · Delay pays 1"],
+  ["arena-github5306-training-delay-free", "#5306 Treadmill Training · Delay costs 0"],
+  ["arena-github5306-training-delay-cost-choice", "#5306 Treadmill Training · printed or alternate cost"],
   ["arena-bt20-dragon-gene-delay-no-dna", "BT20-093 Unleash the Dragon Gene · Delay with no DNA"],
   ["arena-bt20-dragon-gene-security", "BT20-093 Unleash the Dragon Gene · Security hand/trash"],
   ["arena-bt13-royal-purge-delay-rush", "BT13 Royal Knights of the Purge · Delay Rush"],
