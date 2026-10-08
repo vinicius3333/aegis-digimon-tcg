@@ -61,6 +61,10 @@ export const DEV_SCENARIO_IDS = [
   "arena-github5311-crescemon-cost-scope",
   "arena-github5311-imperialdramon-cost-scope",
   "arena-github5318-junomon-printed-cost",
+  "arena-github-5302-kunlun-security-check",
+  "arena-github-5305-gravity-order",
+  "arena-github-5315-homeros-unused",
+  "arena-github-5315-homeros-spent",
   "arena-github-5299-ravemon-bottom-security",
   "arena-github5300-yoshino-cost-payload",
   "arena-github5300-keenan-cost-execute",
@@ -8290,10 +8294,62 @@ function layGithub5297OmnimonDnaScenario(state: GameState, includeSecondPair: bo
   state.memory = 2;
 }
 
+/** GitHub #5302/#5305/#5315: independently reproducible end-of-turn contracts. */
+function layGithubEndTurnReportScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  finding: "kunlun" | "gravity" | "homeros-unused" | "homeros-spent",
+): void {
+  prepareIssueScenario(state, decks, finding === "kunlun" || finding === "homeros-unused" ? 0 : 3);
+  for (const player of state.players) {
+    for (const zone of [Zone.Hand, Zone.Deck, Zone.Security, Zone.EggDeck, Zone.Trash] as const)
+      clearZone(player, zone);
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-eot-egg-${player.seat}`, "BT1-001", player.seat));
+    for (let index = 0; index < 16; index += 1)
+      insertCard(player, Zone.Deck, faceDownCard(`dev-eot-deck-${player.seat}-${index}`, "BT1-009", player.seat));
+    for (let index = 0; index < 2; index += 1)
+      insertCard(
+        player,
+        Zone.Security,
+        faceDownCard(`dev-eot-security-${player.seat}-${index}`, "BT1-009", player.seat),
+      );
+  }
+  const human = state.players[0]!;
+  const opponent = state.players[1]!;
+  const field = (cards: string[], suffix: string) =>
+    placePermanent(human, establishedDigimon(0, cards, `-eot-${suffix}`));
+  const hand = (cardId: string, suffix: string) =>
+    insertCard(human, Zone.Hand, faceDownCard(`dev-eot-${suffix}`, cardId, 0));
+  if (finding === "kunlun") {
+    field(["BT26-104"], "kunlun");
+    field(["EX12-004", "EX12-046"], "shishimamon");
+    hand("EX12-065", "kaguyamon");
+    hand("EX12-070", "arrival");
+    hand("EX12-063", "payment");
+  } else if (finding === "gravity") {
+    field(["BT24-085"], "dan");
+    field(["BT26-103"], "wrath");
+    hand("BT1-090", "gravity");
+    hand("BT25-075", "vulcanus");
+    hand("BT25-102", "factorial");
+    hand("BT25-020", "mars");
+    placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-eot-opponent-a"));
+    placePermanent(opponent, establishedDigimon(1, ["BT1-010"], "-eot-opponent-b"));
+  } else {
+    field(["BT24-102"], "homeros");
+    field(finding === "homeros-spent" ? ["BT25-044"] : ["BT25-044", "BT26-103"], "olympos");
+    if (finding === "homeros-spent") hand("BT26-103", "wrath");
+  }
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github5311-crescemon-cost-scope": layGithub5311CrescemonCostScenario,
   "arena-github5311-imperialdramon-cost-scope": layGithub5311ImperialdramonCostScenario,
   "arena-github5318-junomon-printed-cost": layGithub5318JunomonPrintedCostScenario,
+  "arena-github-5302-kunlun-security-check": (state, decks) => layGithubEndTurnReportScenario(state, decks, "kunlun"),
+  "arena-github-5305-gravity-order": (state, decks) => layGithubEndTurnReportScenario(state, decks, "gravity"),
+  "arena-github-5315-homeros-unused": (state, decks) => layGithubEndTurnReportScenario(state, decks, "homeros-unused"),
+  "arena-github-5315-homeros-spent": (state, decks) => layGithubEndTurnReportScenario(state, decks, "homeros-spent"),
   "arena-github-5299-ravemon-bottom-security": layGithub5299RavemonBottomSecurityScenario,
   "arena-github5300-yoshino-cost-payload": layGithub5300YoshinoScenario,
   "arena-github5300-keenan-cost-execute": layGithub5300KeenanScenario,
