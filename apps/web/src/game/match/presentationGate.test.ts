@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createPresentationGate, observeGateExpiry, waitForGate } from "./presentationGate";
 import type { AnimationStepContext } from "../animationQueue";
 
@@ -21,6 +21,32 @@ describe("waitForGate", () => {
     expect(await waitForGate(gate, context({ skipping: true }), 5_000, "test/skip")).toBe("skipped");
     expect(Date.now() - started).toBeLessThan(200);
     expect(gate.open).toBe(false);
+  });
+
+  it("does not spend a gate's timeout while playback is paused", async () => {
+    vi.useFakeTimers();
+    let paused = false;
+    const gate = createPresentationGate();
+    const pausedContext = context({});
+    Object.defineProperty(pausedContext, "paused", { get: () => paused });
+    let settled = false;
+    const waiting = waitForGate(gate, pausedContext, 5000, "test/replay-pause").then((result) => {
+      settled = true;
+      return result;
+    });
+    try {
+      await vi.advanceTimersByTimeAsync(500);
+      paused = true;
+      await vi.advanceTimersByTimeAsync(10000);
+      expect(settled).toBe(false);
+      paused = false;
+      await vi.advanceTimersByTimeAsync(500);
+      gate.release();
+      expect(await waiting).toBe("released");
+    } finally {
+      gate.release();
+      vi.useRealTimers();
+    }
   });
 
   it("waits for a gate that is still closed", async () => {

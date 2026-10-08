@@ -11,25 +11,10 @@
      expiry, decision budgets, gate ceilings) keep real time. The match screen has no Pixi
      ticker to scale. */
 
-export interface DocumentPlayback {
-  apply(rate: number, paused: boolean): void;
-}
+import { createAnimationPlayback } from "../game/animationPlayback";
 
-export function createDocumentPlayback(): DocumentPlayback {
-  const pausedHere = new WeakSet<Animation>();
-  return {
-    apply(rate, paused) {
-      if (typeof document === "undefined" || typeof document.getAnimations !== "function") return;
-      for (const animation of document.getAnimations()) {
-        if (animation.playbackRate !== rate) animation.updatePlaybackRate(rate);
-        if (paused && animation.playState === "running") {
-          animation.pause();
-          pausedHere.add(animation);
-        } else if (!paused && pausedHere.has(animation)) {
-          pausedHere.delete(animation);
-          if (animation.playState === "paused") animation.play();
-        }
-      }
-    },
-  };
+export function createDocumentPlayback() {
+  return createAnimationPlayback(() =>
+    typeof document !== "undefined" && typeof document.getAnimations === "function" ? document.getAnimations() : [],
+  );
 }

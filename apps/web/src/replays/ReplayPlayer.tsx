@@ -6,15 +6,29 @@ import type { PresentationControls, PresentationProbe } from "../game/presentati
 import { useTranslation } from "../i18n";
 import { Icons } from "../design/icons";
 import { Button } from "../design/primitives";
-import { frameDelay, playbackState, turnPositions } from "./playback";
+import { createPlaybackClock, frameDelay, playbackState, presentationEnd, turnPositions } from "./playback";
+import { SEQUENTIAL_PACING_ENABLED } from "../features";
+import { createAnimationPlayback } from "../game/animationPlayback";
 
 const emptyDeck = { mainDeck: [], eggDeck: [] };
 const acknowledgeDecision = () => undefined;
 
-export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose: () => void }) {
+export function ReplayPlayer({
+  replay,
+  onClose,
+  devProbe,
+}: {
+  replay: MatchReplay;
+  onClose: () => void;
+  devProbe?: PresentationProbe;
+}) {
+  const observer = useRef(devProbe);
+  observer.current = devProbe;
   const { t, locale } = useTranslation();
-  const [cursor, setCursor] = useState({ index: 0, epoch: 0, animate: false });
+  const [cursor, setCursor] = useState({ index: 0, from: 0, epoch: 0, animate: false });
   const [playing, setPlaying] = useState(false);
+  const [settled, setSettled] = useState(true);
+  const clock = useMemo(() => createPlaybackClock(), []);
   const [speed, setSpeed] = useState(1);
   const [showHand, setShowHand] = useState(true);
   const [viewerSeat, setViewerSeat] = useState<Seat>(replay.viewerSeat);
@@ -24,10 +38,26 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
   const historyToggle = useRef<HTMLButtonElement>(null);
   const surface = useRef<HTMLElement>(null);
   const controls = useRef<PresentationControls | undefined>(undefined);
+  const painted = useMemo(
+    () =>
+      createAnimationPlayback(
+        () => surface.current?.querySelector(".replay-player__board")?.getAnimations({ subtree: true }) ?? [],
+      ),
+    [],
+  );
+  useEffect(() => {
+    let frameId: number;
+    const sync = () => {
+      painted.apply(speed, !playing);
+      frameId = requestAnimationFrame(sync);
+    };
+    sync();
+    return () => cancelAnimationFrame(frameId);
+  }, [painted, speed, playing]);
+  useEffect(() => () => painted.release(), [painted]);
   const speedRef = useRef(speed);
   speedRef.current = speed;
   const turns = useMemo(() => turnPositions(replay), [replay]);
-  const frame = replay.frames[cursor.index]!;
   const atEnd = cursor.index === replay.frames.length - 1;
   const state = useMemo(() => playbackState(replay, cursor.index, showHand), [replay, cursor.index, showHand]);
   const probe = useMemo<PresentationProbe>(
@@ -36,6 +66,16 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
         controls.current = next;
         next.queue.setRate(speedRef.current);
         next.queue.resume();
+        observer.current?.onQueue?.(next);
+      },
+      onStep(event) {
+        observer.current?.onStep?.(event);
+      },
+      onBatch(batch) {
+        observer.current?.onBatch?.(batch);
+      },
+      onBoard(board) {
+        observer.current?.onBoard?.(board);
       },
     }),
     [],
@@ -49,21 +89,22 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
       ),
     [replay, t],
   );
+  const presentedFrames = useMemo(
+    () => (cursor.animate ? replay.frames.slice(cursor.from, cursor.index + 1) : []),
+    [replay, cursor],
+  );
   const batches = useMemo(
     () =>
-      cursor.animate
-        ? [
-            {
-              id: frame.events[0]?.batch ?? `replay-${cursor.index}`,
-              stateVersion: frame.state.stateVersion,
-              events: frame.events,
-            },
-          ]
-        : [],
-    [cursor, frame],
+      presentedFrames.map((entry, offset) => ({
+        id: entry.events[0]?.batch ?? `replay-${cursor.from + offset}`,
+        stateVersion: entry.state.stateVersion,
+        events: entry.events,
+      })),
+    [presentedFrames, cursor.from],
   );
-  // The presentation layer receives only this closed batch. The history pane owns the full log.
-  const events = useMemo(() => (cursor.animate ? frame.events : []), [cursor.animate, frame]);
+  // Every dependency in this causal span arrives before the queue waits for it.
+  const events = useMemo(() => presentedFrames.flatMap((entry) => entry.events), [presentedFrames]);
+  const snapshotStart = Math.min(Math.max(0, cursor.index - 39), Math.max(0, cursor.from - 1));
   const connection = useMemo(
     () => ({
       room: undefined,
@@ -74,36 +115,41 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
       decision: undefined,
       acknowledgeDecision,
       error: undefined,
-      snapshots: replay.frames.slice(Math.max(0, cursor.index - 39), cursor.index + 1).map((entry, offset) => ({
+      snapshots: replay.frames.slice(snapshotStart, cursor.index + 1).map((entry, offset) => ({
         stateVersion: entry.state.stateVersion,
-        state: playbackState(replay, Math.max(0, cursor.index - 39) + offset, showHand),
+        state: playbackState(replay, snapshotStart + offset, showHand),
       })),
       sessionId: `replay-seat-${viewerSeat}`,
       roomCode: "",
     }),
-    [state, events, batches, viewerSeat, replay, cursor.index, showHand],
+    [state, events, batches, viewerSeat, replay, cursor.index, snapshotStart, showHand],
   );
 
   useEffect(() => {
+    clock.configure(speed, playing);
     controls.current?.queue.setRate(speed);
-  }, [speed]);
+  }, [clock, speed, playing]);
   useEffect(() => {
-    if (!playing || atEnd) return;
-    const started = performance.now();
+    if (!playing) return;
     const interval = setInterval(() => {
-      if (performance.now() - started < frameDelay(replay, cursor.index, speed) || !controls.current?.queue.isIdle())
+      if (!controls.current?.queue.isIdle()) return;
+      if (atEnd) {
+        setSettled(true);
+        setPlaying(false);
         return;
+      }
+      if (clock.elapsed() < frameDelay(replay, cursor.index, 1)) return;
+      clock.reset();
+      setSettled(false);
       setCursor((current) => ({
         ...current,
-        index: Math.min(replay.frames.length - 1, current.index + 1),
+        from: current.index + 1,
+        index: presentationEnd(replay, current.index + 1),
         animate: true,
       }));
     }, 50);
     return () => clearInterval(interval);
-  }, [playing, atEnd, replay, cursor.index, speed]);
-  useEffect(() => {
-    if (atEnd) setPlaying(false);
-  }, [atEnd]);
+  }, [clock, playing, atEnd, replay, cursor.index]);
   useEffect(() => {
     if (!historyOpen) return;
     history.current?.querySelector<HTMLElement>('[aria-current="step"]')?.scrollIntoView({ block: "nearest" });
@@ -142,9 +188,12 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
 
   function seek(index: number) {
     setPlaying(false);
+    setSettled(true);
+    clock.reset();
     controls.current = undefined;
     setCursor((current) => ({
       index: Math.max(0, Math.min(replay.frames.length - 1, index)),
+      from: Math.max(0, Math.min(replay.frames.length - 1, index)),
       epoch: current.epoch + 1,
       animate: false,
     }));
@@ -155,7 +204,7 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
       setPlaying(false);
       return;
     }
-    if (atEnd) seek(0);
+    if (atEnd && settled) seek(0);
     controls.current?.queue.resume();
     setPlaying(true);
   }
@@ -192,6 +241,7 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
           <GameScreen
             key={`${cursor.epoch}-${viewerSeat}`}
             replayMode
+            presentationPacing={SEQUENTIAL_PACING_ENABLED ? "sequential" : "current"}
             joinOptions={{ displayName: replay.players[viewerSeat], deck: emptyDeck }}
             identityColor="Blue"
             demoConnection={connection}
@@ -281,7 +331,7 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
             aria-label={t("replay.position")}
             onChange={(event) => seek(Number(event.target.value))}
           />
-          <span role="status">{atEnd ? t("replay.finished") : labels[cursor.index]}</span>
+          <span role="status">{atEnd && settled ? t("replay.finished") : labels[cursor.index]}</span>
         </div>
         <div className="replay-controls__buttons">
           <div className="replay-controls__transport">

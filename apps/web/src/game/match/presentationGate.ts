@@ -81,11 +81,14 @@ export async function waitForGate(
     if (queued === "cancelled" || queued === "skipped") return queued;
     if (gate.open) return "released";
   }
-  const deadline = Date.now() + ceilingMs;
+  let remainingMs = ceilingMs;
+  const isPaused = () => context.paused === true;
   // A fast-forward is the viewer asking for the rest of it now. A gate is the one wait
   // that has no clock of its own, so it is also the one a skip has to break out of —
   // otherwise skipping releases every timed beat and leaves the queue sitting on this one.
-  while (!gate.open && !context.cancelled && !context.skipping && Date.now() < deadline) {
+  while (!gate.open && !context.cancelled && !context.skipping && remainingMs > 0) {
+    const began = Date.now();
+    const wasPaused = isPaused();
     let stopPolling = () => {};
     const poll = new Promise<void>((resolve) => {
       const timer = setTimeout(resolve, GATE_POLL_MS);
@@ -96,6 +99,7 @@ export async function waitForGate(
     });
     await Promise.race([gate.opened, poll]);
     stopPolling();
+    if (!wasPaused && !isPaused()) remainingMs -= Math.max(0, Date.now() - began);
   }
   if (gate.open) return "released";
   if (context.cancelled) return "cancelled";
