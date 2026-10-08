@@ -46,7 +46,9 @@ export function ArenaPermanentInspector({
   closeCallback.current = onClose;
   const top = getCardDefinition(detail.cardId);
   const supporting = inspectorCardsTopToBottom(detail.cards).filter((card) => card.role !== "top");
-  const traits = [top?.forms?.[0], top?.attributes?.[0], top?.types?.[0]].filter((trait) => trait && trait !== "-");
+  const traits = [...(top?.forms ?? []), ...(top?.attributes ?? []), ...(top?.types ?? [])].filter(
+    (trait) => trait && trait !== "-",
+  );
   const anchor = useArenaHalfAnchor({
     container: inspection.container,
     half: inspectedArenaHalf(inspection.side),
