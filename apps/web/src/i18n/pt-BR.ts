@@ -1206,6 +1206,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.orderedRestLater": "Os demais serão perguntados depois.",
   "overlay.orderRemaining": "Adicionar o resto na ordem exibida",
   "overlay.orderAllTopToBottom": "Selecionar todos, de cima para baixo",
+  "overlay.orderMandatoryTopToBottom": "Selecionar obrigatórios, de cima para baixo",
   "overlay.presetYesAll": "Sim para todos",
   "overlay.presetNoAll": "Não para todos",
   "overlay.presetReset": "Limpar",

@@ -849,6 +849,7 @@ const interfaceMessages = {
   "overlay.orderedRestLater": "Ti verranno chiesti gli altri in seguito.",
   "overlay.orderRemaining": "Aggiungi gli altri nell'ordine mostrato",
   "overlay.orderAllTopToBottom": "Seleziona tutti, dall'alto in basso",
+  "overlay.orderMandatoryTopToBottom": "Seleziona obbligatori, dall'alto in basso",
   "overlay.presetYesAll": "Sì a tutti",
   "overlay.presetNoAll": "No a tutti",
   "overlay.presetReset": "Azzera",

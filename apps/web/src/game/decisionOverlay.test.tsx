@@ -384,6 +384,94 @@ describe("resolution plan chooser", () => {
     });
   });
 
+  it("Discord 1557582469409144852: appends known mandatory physical copies without accepting optional effects", () => {
+    const mandatoryOne = buildTriggerKey("drasil-1", "BT13-007/ir-1");
+    const mandatoryTwo = buildTriggerKey("drasil-2", "BT13-007/ir-1");
+    const unknown = buildTriggerKey("unknown", "BT13-007/ir-1");
+    const optionalAsk = buildTriggerKey("ask", "EX13-028/ir-1");
+    const { onRespond } = renderDecision({
+      ...planRequest,
+      options: {
+        ...planRequest.options,
+        triggerKeys: [mandatoryOne, keys.beelzemon, mandatoryTwo, keys.sukamon, optionalAsk, unknown],
+        triggerCardIds: ["BT13-007", "BT12-085", "BT13-007", "EX13-028", "EX13-028", "BT13-007"],
+        triggerTimings: undefined,
+        triggerIsOptional: [false, true, false, true, true],
+      },
+    });
+    fireEvent.click(within(screen.getByRole("group", { name: /Beelzemon/ })).getByRole("button", { name: "Yes" }));
+    const sukamonPresets = screen.getAllByRole("group", { name: /Sukamon/ });
+    fireEvent.click(within(sukamonPresets[0]!).getByRole("button", { name: "No" }));
+    const list = screen.getByRole("list", { name: "Order pending effects" });
+    fireEvent.click(within(list).getAllByRole("button", { name: /Sukamon/ })[0]!);
+    fireEvent.click(within(list).getByRole("button", { name: /Beelzemon/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Select mandatory, top to bottom" }));
+    expect(onRespond).not.toHaveBeenCalled();
+    expect(screen.getByText("4 of 6 ordered")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Select mandatory, top to bottom" })).toBeNull();
+    expect(within(sukamonPresets[0]!).getByRole("button", { name: "No" }).getAttribute("aria-pressed")).toBe("true");
+    expect(within(sukamonPresets[1]!).getByRole("button", { name: "Ask" }).getAttribute("aria-pressed")).toBe("true");
+    expect(
+      [...list.querySelectorAll(".trigger-chooser__option[aria-pressed=true]")].map((button) =>
+        button.closest("[data-reorder-id]")?.getAttribute("data-reorder-id"),
+      ),
+    ).toEqual([keys.sukamon, keys.beelzemon, mandatoryOne, mandatoryTwo]);
+    fireEvent.click(screen.getByRole("button", { name: "Resolve in this order" }));
+    expect(onRespond).toHaveBeenCalledWith({
+      kind: "orderTriggers",
+      order: [keys.sukamon, keys.beelzemon, mandatoryOne, mandatoryTwo],
+      optionalAnswers: { [keys.beelzemon]: true, [keys.sukamon]: false },
+    });
+  });
+
+  it("Discord 1557582469409144852: starts a mandatory-only partial plan while optional effects stay on Ask", () => {
+    const { onRespond } = renderDecision(planRequest);
+    fireEvent.click(screen.getByRole("button", { name: "Select mandatory, top to bottom" }));
+    expect(screen.getByText("1 of 3 ordered")).toBeTruthy();
+    expect(screen.getByText("You will be asked about the rest later.")).toBeTruthy();
+    expect(onRespond).not.toHaveBeenCalled();
+    for (const name of [/Beelzemon/, /Sukamon/]) {
+      expect(
+        within(screen.getByRole("group", { name })).getByRole("button", { name: "Ask" }).getAttribute("aria-pressed"),
+      ).toBe("true");
+    }
+    fireEvent.click(screen.getByRole("button", { name: "Resolve next effect" }));
+    expect(onRespond).toHaveBeenCalledWith({ kind: "orderTriggers", order: [keys.creepymon] });
+  });
+
+  it("Discord 1557582469409144852: uses one explicit all control for a mandatory-only batch", () => {
+    const triggerKeys = [1, 2, 3].map((copy) => buildTriggerKey(`drasil-${copy}`, "BT13-007/ir-1"));
+    const { onRespond } = renderDecision({
+      ...planRequest,
+      options: {
+        triggerKeys,
+        triggerCardIds: triggerKeys.map(() => "BT13-007"),
+        triggerIsOptional: [false, false, false],
+        acceptsResolutionPlan: true,
+      },
+    });
+    const all = screen.getByRole("button", { name: "Select all, top to bottom" });
+    expect(all).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Select mandatory, top to bottom" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /copy 3/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Add the rest in shown order" }));
+    expect(screen.getByText("3 of 3 ordered")).toBeTruthy();
+    expect(onRespond).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Resolve in this order" }));
+    expect(onRespond).toHaveBeenCalledWith({
+      kind: "orderTriggers",
+      order: [triggerKeys[2], triggerKeys[0], triggerKeys[1]],
+    });
+  });
+
+  it.each([undefined, [true, true, true]])(
+    "Discord 1557582469409144852: never offers mandatory selection without known mandatory flags (%s)",
+    (triggerIsOptional) => {
+      renderDecision({ ...planRequest, options: { ...planRequest.options, triggerIsOptional } });
+      expect(screen.queryByRole("button", { name: "Select mandatory, top to bottom" })).toBeNull();
+    },
+  );
+
   it("Discord 1557475935962398842: resolves the shown order with presets without clicking each effect", () => {
     const { onRespond } = renderDecision(planRequest);
     fireEvent.click(within(screen.getByRole("group", { name: /Beelzemon/ })).getByRole("button", { name: "Yes" }));
