@@ -31,7 +31,12 @@ export interface ReplacementInstallBase {
    * to skip firing for this cause. The `isBounce` flag lets an "except deletion" prevention
    * (EX6-044) allow a deletion through while still voiding a move.
    */
-  causeAllows?: (cause: RemovalCause, resolvingSeat: Seat | undefined, isBounce: boolean) => boolean;
+  causeAllows?: (
+    cause: RemovalCause,
+    resolvingSeat: Seat | undefined,
+    isBounce: boolean,
+    destination?: ZoneRef,
+  ) => boolean;
   /** Skip this replacement for the player-action material relocation in DigiXros. */
   exceptDigiXros?: boolean;
   expiresOnTurnEndOf?: Seat;

@@ -12418,6 +12418,7 @@
             "mode": "prevent",
             "sourceFilter": { "isSelfRef": true },
             "leaveCause": "byEffect",
+            "leaveDestinations": ["trash", "hand", "deck"],
             "condition": {
               "kind": "selfHasNameContaining",
               "names": ["Greymon", "Omnimon"],
@@ -12515,6 +12516,7 @@
             "mode": "prevent",
             "sourceFilter": { "isSelfRef": true },
             "leaveCause": "byEffect",
+            "leaveDestinations": ["trash", "hand", "deck"],
             "condition": {
               "kind": "selfHasNameContaining",
               "names": ["Greymon", "Omnimon"],
@@ -117625,6 +117627,7 @@
             "event": "wouldLeavePlay",
             "mode": "prevent",
             "leaveCause": "byOpponentEffect",
+            "leaveDestinations": ["trash", "hand", "deck"],
             "sourceFilter": { "isSelfRef": true },
             "cost": {
               "kind": "trash",
@@ -130556,6 +130559,7 @@
             "event": "wouldLeavePlay",
             "mode": "prevent",
             "leaveCause": "byEffect",
+            "leaveDestinations": ["trash", "hand", "deck"],
             "optional": true,
             "sourceFilter": { "isSelfRef": true },
             "condition": {
@@ -159627,6 +159631,7 @@
             "kind": "Replacement",
             "event": "wouldLeavePlay",
             "mode": "prevent",
+            "leaveDestinations": ["trash", "hand", "deck"],
             "sourceFilter": { "isSelfRef": true },
             "cost": {
               "kind": "trash",
@@ -196501,6 +196506,7 @@
             "event": "wouldLeavePlay",
             "mode": "prevent",
             "leaveCause": "byEffect",
+            "leaveDestinations": ["trash", "hand", "deck"],
             "optional": true,
             "sourceFilter": {
               "isSelfRef": true,

@@ -4,8 +4,63 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT11-064.js";
 import "./BT11-069.js";
+import "../ST10/ST10-14.js";
+import "../BT18/BT18-101.js";
 
 describe("BT11-064 Greymon (X Antibody)", () => {
+  it("GitHub #5308: does not protect battle deletion or bottom-deck X Antibody", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-025", as: "host", under: ["BT11-064", "BT9-109"], suspended: true }] },
+        1: { battleArea: [{ card: "BT18-101", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("host").instanceId));
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT9-109");
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT11-064")).toBe(false);
+  });
+  it.each(["BT1-015", "BT1-025"])(
+    "GitHub #5308: cannot protect %s from Chaos Degradation's security placement",
+    async (hostCard) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: ["BT1-045", "BT10-079"], hand: [{ card: "ST10-14", as: "chaos" }] },
+          1: {
+            battleArea: [{ card: hostCard, as: "greymon", under: ["BT11-064", "BT9-109"] }],
+            security: ["BT1-010"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      const greymonId = s.inst("greymon").instanceId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chaos").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("chaos").instanceId));
+      expect(s.state.players[1]!.battleArea).toHaveLength(0);
+      expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([greymonId]);
+      expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT9-109");
+      expect(s.state.players[1]!.deck).toHaveLength(0);
+      expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT11-064")).toHaveLength(
+        0,
+      );
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
   it("maps catalog facts and its scaling evolution plus inherited protection to IR", () => {
     expect(getCardDefinition("BT11-064")).toMatchObject({
       cardId: "BT11-064",
