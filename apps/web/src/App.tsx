@@ -478,7 +478,7 @@ export function AegisClient({
 
       <div
         id="aegis-main"
-        className={`aegis-screen-region${showNav ? " aegis-screen-region--nav" : ""}${screen === "replays" ? " aegis-screen-region--replays" : ""}`}
+        className={`aegis-screen-region${showNav ? " aegis-screen-region--nav" : ""}${screen === "replays" ? " aegis-screen-region--replays" : ""}${screen === "settings" && route.profile ? " aegis-screen-region--profile" : ""}`}
         tabIndex={-1}
       >
         <Suspense fallback={<ScreenFallback />}>

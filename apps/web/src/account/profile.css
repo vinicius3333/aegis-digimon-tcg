@@ -1,3 +1,12 @@
+.aegis-screen-region--profile {
+  height: calc(100% - var(--ds-nav-height-wide));
+}
+@media (width < 960px) {
+  .aegis-screen-region--profile {
+    height: 100%;
+    padding-bottom: calc(var(--ds-nav-height-narrow) + env(safe-area-inset-bottom));
+  }
+}
 .profile-page {
   width: min(100%, 1180px);
   margin: 0 auto;

@@ -63,6 +63,8 @@ export interface NarrationStreamDeps {
     seatOf: (instanceId: string) => Seat | undefined;
     topInstanceOf: (permanentId: string) => string | undefined;
   }>;
+  /** Freeze a queued clause's source against its own recorded board, before later results move it. */
+  cardSiteAtVersion: (version: number | undefined) => { locate: EffectSourceLookup } | undefined;
   effectNarrationTracksRef: MutableRefObject<Map<Seat, string>>;
   heldOriginsRef: MutableRefObject<WeakMap<object, { batchId: string; stateVersion: number; phaseOrder: number }>>;
   enqueuePhaseOrderRef: MutableRefObject<number | undefined>;
@@ -140,6 +142,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
     viewerSeat,
     queue,
     cardSiteRef,
+    cardSiteAtVersion,
     effectNarrationTracksRef,
     heldOriginsRef,
     enqueuePhaseOrderRef,
@@ -180,7 +183,11 @@ export function narrationStream(deps: NarrationStreamDeps) {
   ) {
     const body = item.notice?.body;
     const seat = item.side === "you" ? viewerSeat : otherSeat(viewerSeat);
-    const initialSite = body?.variant === "effect" ? cardSiteRef.current.locate(body.cardId, seat, body) : undefined;
+    const heldOrigin = heldOriginsRef.current.get(item.notice ?? item.panel ?? item);
+    const itemVersion = heldOrigin?.stateVersion ?? batchVersionsRef.current.get(item.batchId);
+    const sourceIndex = cardSiteAtVersion(itemVersion);
+    const initialSite =
+      body?.variant === "effect" ? (sourceIndex ?? cardSiteRef.current).locate(body.cardId, seat, body) : undefined;
     const timing = body?.variant === "effect" ? (body.timing ?? "") : "";
     const reactsToDeletion = body?.variant === "effect" && /delet|destroy/i.test(body.triggerTiming ?? "");
     // The server may close the deletion and its reaction in separate batches. Capture the
@@ -217,8 +224,6 @@ export function narrationStream(deps: NarrationStreamDeps) {
       !pendingCostClause.read.open
         ? pendingCostClause
         : null;
-    const heldOrigin = heldOriginsRef.current.get(item.notice ?? item.panel ?? item);
-    const itemVersion = heldOrigin?.stateVersion ?? batchVersionsRef.current.get(item.batchId);
     // A clause is only the consequence of an announcement from its own batch or an earlier one.
     // A later batch's announcement is queued behind this item — a security dock reads its own
     // clause out ahead of the [On Play] the next batch raised — so waiting on it deadlocks
@@ -472,7 +477,9 @@ export function narrationStream(deps: NarrationStreamDeps) {
               : undefined;
             const site = deletion?.instanceId
               ? { zone: "trash" as const, instanceId: deletion.instanceId }
-              : cardSiteRef.current.locate(body.cardId, seat, body);
+              : sourceIndex
+                ? initialSite
+                : cardSiteRef.current.locate(body.cardId, seat, body);
             if (site && context.mode === "live") {
               activation = {
                 key: ++effectSourceKeyRef.current,

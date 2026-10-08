@@ -136,3 +136,18 @@ test("signed-out profile offers sign-in without leaking account history", async 
   await expect(page.getByRole("button", { name: "Sign in with Discord" })).toBeVisible();
   await expect(page.locator(".profile-matches")).toHaveCount(0);
 });
+
+for (const width of [390, 1440])
+  test(`profile scroll reaches the last replay above navigation at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await setup(page);
+    await page.goto("/profile");
+    const library = page.getByRole("region", { name: "Saved replays", exact: true });
+    await expect(library.getByRole("button", { name: "Delete", exact: true })).toBeVisible();
+    await page.getByRole("main").evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+    });
+    const bottom = await library.boundingBox();
+    const navigation = await page.locator(".aegis-bottom-nav").boundingBox();
+    expect(bottom!.y + bottom!.height).toBeLessThanOrEqual(navigation?.y ?? 844);
+  });

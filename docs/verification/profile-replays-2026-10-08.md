@@ -27,3 +27,11 @@
 - Workspace TypeScript checking, production web build and targeted lint passed. Validation environment: Node 24.21.0 (repository declares Node 26); the build retains its existing large-chunk warning.
 
 Production application deployment and reopening PR #5329 are outside this change. The new additive database migration is `025-replay-sharing-history` and runs through the existing migrator when the updated API starts.
+
+## Follow-up: profile scroll and Execute source
+
+- Reproduced clipped profile scrolling: at maximum scroll the last replay ended 56 px below the viewport on desktop and below mobile navigation. The profile route now subtracts desktop navigation height and reserves the mobile bottom navigation/safe-area inset.
+- Reproduced Execute focusing trash twice in the authoritative `effects-lab-prod-ghost-execute-security` recording. Narration now captures the physical source lookup from its own batch snapshot when queued, instead of consulting the end-of-chain live board. On Deletion retains its trash focus. Orca Browser confirmed the field focus on `dev-perm-0-lab-execute-ghoulmon`.
+- Both new scroll cases and the Execute field/field/trash regression passed. The profile/replay browser run passed 31 of 32 cases; the remaining final-arrival assertion had a protocol-round-trip timing race. After moving its transport assertions into the animation observation's browser task, that case passed separately. All 32 cases therefore passed across those runs.
+- 222 cue/source unit tests and 27 ordering tests passed. One existing Seventh Fascination ordering test times out and contaminates subsequent React `act` calls when run in the full file. A read-only baseline run injecting HEAD's original narration implementation reproduced its timeout; the remaining 27 ordering cases passed with that case excluded. Its underlying cause remains unresolved.
+- Web TypeScript checking, targeted lint, formatting and `git diff --check` passed. Independent review found no concrete important regressions. Same-batch activation plus self-removal is not established by this cross-batch recording regression.

@@ -97,16 +97,24 @@ test("the final frame stays playable until its card arrival settles", async ({ p
   const replay = new ReplayPacingPage(page);
   await replay.open(recording);
   await replay.play();
-  await page.waitForFunction(() =>
-    document
+  // Inspect transport state in the same browser task as the short arrival animation.
+  // A protocol round trip under load can outlive the beat being asserted.
+  const arrival = await page.waitForFunction(() => {
+    const moving = document
       .querySelector(".replay-player__board")
       ?.getAnimations({ subtree: true })
       .some(
         (a) => a.playState === "running" && "animationName" in a && /draw|arrival|flight/.test(String(a.animationName)),
-      ),
-  );
-  await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
-  await expect(page.getByText("Replay finished", { exact: true })).not.toBeVisible();
+      );
+    return moving
+      ? {
+          playing: document.querySelector(".replay-controls__play")?.getAttribute("aria-pressed") === "true",
+          finished:
+            document.querySelector(".replay-controls__timeline [role=status]")?.textContent === "Replay finished",
+        }
+      : null;
+  });
+  expect(await arrival.jsonValue()).toEqual({ playing: true, finished: false });
   await expect(page.getByText("Replay finished", { exact: true })).toBeVisible();
 });
 
@@ -241,4 +249,27 @@ test("a long pause in a complex chain preserves its waits and resumes cleanly", 
   await expect(page.getByText("Replay finished", { exact: true })).toBeVisible({ timeout: 60000 });
   expect((await evidenceFor(page)).failed).toEqual([]);
   expect((await evidenceFor(page)).expiries).toEqual([]);
+});
+
+test("Execute focuses the field before deletion and On Deletion focuses the trash", async ({ page }) => {
+  const replay = new ReplayPacingPage(page);
+  await replay.open(recordingFor("effects-lab-prod-ghost-execute-security"), "4", true);
+  await page.evaluate(() => {
+    const seen = new Map<string, string>();
+    Object.assign(window, { executeSites: () => [...seen.values()] });
+    const observe = () => {
+      for (const element of document.querySelectorAll(
+        '[data-testid="effect-focus"][data-source-card-id="EX11-051"] .game-effect-focus__pulse, .game-pile__effect-card[data-card-id="EX11-051"]',
+      )) {
+        const key = element.getAttribute("data-activation-key")!;
+        if (!seen.has(key)) seen.set(key, element.closest('[data-testid="effect-focus"]') ? "field" : "trash");
+      }
+    };
+    new MutationObserver(observe).observe(document.body, { childList: true, subtree: true, attributes: true });
+  });
+  await replay.play();
+  await expect(page.getByText("Replay finished", { exact: true })).toBeVisible({ timeout: 60000 });
+  const sites = await page.evaluate(() => (window as unknown as { executeSites: () => string[] }).executeSites());
+  expect(sites.slice(0, 2)).toEqual(["field", "field"]);
+  expect(sites.slice(2)).toContain("trash");
 });
