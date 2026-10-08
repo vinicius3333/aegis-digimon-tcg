@@ -1687,7 +1687,7 @@ describe("primitives: deDigivolve", () => {
     expect(p.stack).toHaveLength(0);
   });
 
-  it("stops repeated De-Digivolve when the first peel exposes a non-Digimon top (BT9-109 Q1921)", async () => {
+  it("continues a single De-Digivolve through an Option top (CR 16-12-6)", async () => {
     const h = harness({
       board: {
         0: {
@@ -1709,9 +1709,9 @@ describe("primitives: deDigivolve", () => {
 
     const moved = await h.fx.deDigivolve(p.permanentId, 3);
 
-    expect(moved.map(({ instanceId }) => instanceId)).toEqual([oldTopId]);
-    expect(p.topCard.instanceId).toBe(h.s.inst("xAntibody").instanceId);
-    expect(p.stack.map(({ instanceId }) => instanceId)).toEqual([h.s.inst("level3").instanceId]);
+    expect(moved.map(({ instanceId }) => instanceId)).toEqual([oldTopId, h.s.inst("xAntibody").instanceId]);
+    expect(p.topCard.instanceId).toBe(h.s.inst("level3").instanceId);
+    expect(p.stack).toHaveLength(0);
   });
 });
 

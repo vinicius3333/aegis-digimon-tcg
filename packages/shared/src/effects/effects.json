@@ -129781,12 +129781,9 @@
             "trackPlayedCount": "mamemonPlayed"
           },
           {
-            "kind": "RepeatPerCount",
-            "countSource": "mamemonPlayed",
-            "action": {
-              "kind": "Delete",
-              "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 6 }, "count": 1 }
-            }
+            "kind": "Delete",
+            "scaling": { "unit": "namedCount", "countSource": "mamemonPlayed", "per": 1 },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 6 }, "count": 1 }
           }
         ]
       },
@@ -229063,13 +229060,10 @@
             "trackCount": "trashedSecurity"
           },
           {
-            "kind": "RepeatPerCount",
-            "countSource": "trashedSecurity",
-            "action": {
-              "effectTextPart": "[On Play] [When Digivolving] Trash all of your security cards. For each card this effect trashed, delete 1 of your opponent's Digimon.",
-              "kind": "Delete",
-              "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
-            },
+            "effectTextPart": "[On Play] [When Digivolving] Trash all of your security cards. For each card this effect trashed, delete 1 of your opponent's Digimon.",
+            "kind": "Delete",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "scaling": { "unit": "namedCount", "countSource": "trashedSecurity", "per": 1 },
             "raw": "For each card this effect trashed, delete 1 of your opponent's Digimon"
           },
           {
@@ -229094,13 +229088,10 @@
             "trackCount": "trashedSecurity"
           },
           {
-            "kind": "RepeatPerCount",
-            "countSource": "trashedSecurity",
-            "action": {
-              "effectTextPart": "[On Play] [When Digivolving] Trash all of your security cards. For each card this effect trashed, delete 1 of your opponent's Digimon.",
-              "kind": "Delete",
-              "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
-            },
+            "effectTextPart": "[On Play] [When Digivolving] Trash all of your security cards. For each card this effect trashed, delete 1 of your opponent's Digimon.",
+            "kind": "Delete",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "scaling": { "unit": "namedCount", "countSource": "trashedSecurity", "per": 1 },
             "raw": "For each card this effect trashed, delete 1 of your opponent's Digimon"
           },
           {

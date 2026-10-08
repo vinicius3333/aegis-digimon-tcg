@@ -5,14 +5,11 @@ const opponentDigimon: Target = { filter: { controller: "opponent", kind: ["Digi
 const securityWipeAndDeletes: Action[] = [
   { kind: "SecurityManipulation", op: "trashTop", controller: "mine", leaveCount: 0, trackCount: "trashedSecurity" },
   {
-    kind: "RepeatPerCount",
-    countSource: "trashedSecurity",
-    action: {
-      effectTextPart:
-        "[On Play] [When Digivolving] Trash all of your security cards. For each card this effect trashed, delete 1 of your opponent's Digimon.",
-      kind: "Delete",
-      target: opponentDigimon,
-    },
+    effectTextPart:
+      "[On Play] [When Digivolving] Trash all of your security cards. For each card this effect trashed, delete 1 of your opponent's Digimon.",
+    kind: "Delete",
+    target: opponentDigimon,
+    scaling: { unit: "namedCount", countSource: "trashedSecurity", per: 1 },
     raw: "For each card this effect trashed, delete 1 of your opponent's Digimon",
   },
   {

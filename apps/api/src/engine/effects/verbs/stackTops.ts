@@ -41,11 +41,11 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
       if (permanent.stack.length === 0) break; // no source to revert to
       const currentTopDefinition =
         permanent.topCard !== undefined ? requireCardDefinition(permanent.topCard.cardId) : undefined;
-      // A repeated De-Digivolve can't continue after the first peel exposes a
-      // non-Digimon card such as BT9-109 X Antibody. It is no longer a Digimon
-      // that the remaining repetitions can affect; the rule-process sweep then
-      // trashes that illegal top and all cards still under it (Q1921).
+      // CR 16-12-6: one declared De-Digivolve N continues even when an intermediate
+      // top changes category. Only a NEW instance must start on a Digimon; separate
+      // De-Digivolve 1 repetitions recheck the target between calls (16-12-7/8).
       if (
+        i === 0 &&
         !opts?.stackedCards &&
         currentTopDefinition !== undefined &&
         !currentTopDefinition.kinds.includes(CardKind.Digimon) &&

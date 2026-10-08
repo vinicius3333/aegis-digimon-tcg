@@ -57,6 +57,16 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github-5277-overflow-full-cost",
+  "arena-github-5270-senbon",
+  "arena-github-5282-iron-slash",
+  "arena-github-5282-minervamon",
+  "arena-github-5277-overflow",
+  "arena-github-5276-overflow",
+  "arena-github-5270-junomon",
+  "arena-github-5270-hurricane",
+  "arena-github-5270-gundramon",
+
   "arena-oct06-sukamon-bt11-deletion-search",
   "arena-oct06-sukamon-bt3-deletion-search",
   "arena-oct06-sukamon-ex13-deletion-search",
@@ -7452,7 +7462,94 @@ function layOct06LatestScenario(state: GameState, decks: readonly [Decklist, Dec
   }
 }
 
+/** GitHub removal reports: one action, with explicit simultaneous-protection witnesses. */
+function layGithubRemovalScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  finding:
+    | "iron-slash"
+    | "minervamon"
+    | "overflow"
+    | "junomon"
+    | "hurricane"
+    | "gundramon"
+    | "senbon"
+    | "overflow-full-cost",
+): void {
+  prepareIssueScenario(
+    state,
+    decks,
+    finding === "iron-slash"
+      ? 3
+      : finding === "senbon"
+        ? 9
+        : finding === "overflow" || finding === "overflow-full-cost" || finding === "minervamon"
+          ? 7
+          : 10,
+  );
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  for (const player of [human, opponent]) {
+    for (const zone of [Zone.Hand, Zone.Deck, Zone.Trash, Zone.Security, Zone.EggDeck] as const)
+      clearZone(player, zone);
+    for (let index = 0; index < 20; index++)
+      insertCard(
+        player,
+        Zone.Deck,
+        faceDownCard(`github-removal-deck-${player.seat}-${index}`, "BT1-085", player.seat),
+      );
+    for (let index = 0; index < 3; index++)
+      insertCard(
+        player,
+        Zone.Security,
+        faceDownCard(`github-removal-security-${player.seat}-${index}`, "BT1-009", player.seat),
+      );
+  }
+  insertCard(human, Zone.EggDeck, faceDownCard("github-removal-egg", "EX13-002", 0));
+  const add = (seat: Seat, cards: string[], slot: string) =>
+    placePermanent(state.players[seat]!, establishedDigimon(seat, cards, `-github-removal-${slot}`));
+  const hand = (card: string) => insertCard(human, Zone.Hand, faceDownCard(`github-removal-hand-${card}`, card, 0));
+  if (finding === "iron-slash" || finding === "minervamon") {
+    add(0, [finding === "iron-slash" ? "BT13-063" : "BT24-019"], "support");
+    add(1, ["BT1-009", "EX13-074", "EX13-064"], "rie");
+    hand(finding === "iron-slash" ? "BT25-100" : "BT24-041");
+  } else if (finding === "overflow" || finding === "overflow-full-cost") {
+    hand("BT24-030");
+    add(1, ["BT20-060"], "ace");
+    if (finding === "overflow") add(1, ["BT1-009", "BT1-020"], "other");
+  } else {
+    add(
+      0,
+      finding === "gundramon"
+        ? ["BT25-078", "BT25-082", "BT6-068", "LM-067"]
+        : [finding === "hurricane" ? "EX7-059" : finding === "senbon" ? "BT13-063" : "LM-067"],
+      "attacker",
+    );
+    if (finding !== "gundramon")
+      hand(finding === "hurricane" ? "EX7-071" : finding === "senbon" ? "BT8-106" : "BT26-083");
+    if (finding === "senbon") {
+      for (let index = 0; index < 2; index++)
+        insertCard(human, Zone.Deck, faceDownCard(`github-removal-mamemon-${index}`, "BT6-063", 0), "top");
+      insertCard(human, Zone.Deck, faceDownCard("github-removal-opening-draw", "BT1-085", 0), "top");
+    }
+    for (const [index, card] of ["BT24-019", "BT24-024", "BT24-028", "BT24-030"].entries())
+      add(1, [card], `target-${index}`);
+  }
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-github-5277-overflow-full-cost": (state, decks) =>
+    layGithubRemovalScenario(state, decks, "overflow-full-cost"),
+  "arena-github-5270-senbon": (state, decks) => layGithubRemovalScenario(state, decks, "senbon"),
+  "arena-github-5282-iron-slash": (state, decks) => layGithubRemovalScenario(state, decks, "iron-slash"),
+  "arena-github-5282-minervamon": (state, decks) => layGithubRemovalScenario(state, decks, "minervamon"),
+  "arena-github-5277-overflow": (state, decks) => layGithubRemovalScenario(state, decks, "overflow"),
+  "arena-github-5276-overflow": (state, decks) => layGithubRemovalScenario(state, decks, "overflow"),
+  "arena-github-5270-junomon": (state, decks) => layGithubRemovalScenario(state, decks, "junomon"),
+  "arena-github-5270-hurricane": (state, decks) => layGithubRemovalScenario(state, decks, "hurricane"),
+  "arena-github-5270-gundramon": (state, decks) => layGithubRemovalScenario(state, decks, "gundramon"),
+
   "arena-raid-optional-preset": layRaidOptionalPresetScenario,
   "arena-preset-order-no-clicks": layPresetOrderNoClicksScenario,
   "arena-oct06-king-sukamon-assembly": (state, decks) => layOct06LatestScenario(state, decks, "king-sukamon-assembly"),
