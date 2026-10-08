@@ -631,6 +631,8 @@ export interface AegisJoinOptions {
     | "arena-sagasol-guard-source"
     | "arena-ex13-magnamon-end-turn"
     | "arena-seven-code-link-dp"
+    | "arena-koto-grademon-pending-piercing"
+    | "arena-koto-grademon-no-prior-battle"
     | "arena-suspend-lock-block"
     | "arena-vortex-target-legality"
     | "arena-vortexdramon"

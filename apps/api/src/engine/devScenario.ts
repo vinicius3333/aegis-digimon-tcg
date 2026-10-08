@@ -58,6 +58,8 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-koto-grademon-pending-piercing",
+  "arena-koto-grademon-no-prior-battle",
   "arena-ravemon-burst-hand",
   "arena-raid-after-dedigivolve",
   "arena-github5331-offense-hand",
@@ -5416,6 +5418,36 @@ function laySevenCodeLinkDpScenario(state: GameState, decks: readonly [Decklist,
   state.memory = 0;
 }
 
+/** Reduced Koto control: printed inherited Blocker replaces the historical timed grant. */
+function layKotoGrademonPiercingScenario(
+  state: GameState,
+  _decks: readonly [Decklist, Decklist],
+  earlierBattle: boolean,
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    loadDeckInto(player, seat, { mainDeck: Array(24).fill("BT1-009"), eggDeck: ["BT1-001"] });
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Security);
+    for (let index = 0; index < 4; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-koto-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const attacker = state.players[0]!;
+  placePermanent(attacker, establishedDigimon(0, ["BT25-049"], "-koto-attacker"));
+  const tamer = establishedDigimon(0, ["ST23-13"], "-koto-tamer");
+  pushOnStack(tamer, faceDownCard("dev-koto-tamer-payment", "BT25-046", 0));
+  placePermanent(attacker, tamer);
+  insertCard(attacker, Zone.Hand, faceDownCard("dev-koto-final-judgment", "BT25-057", 0));
+  const defender = state.players[1]!;
+  placePermanent(defender, establishedDigimon(1, ["BT8-063", "EX13-057", "EX13-060"], "-koto-alphamon"));
+  if (earlierBattle) placePermanent(defender, establishedDigimon(1, ["BT20-053"], "-koto-earlier-victim"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
 function laySuspendLockBlockScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
@@ -9707,6 +9739,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-sagasol-guard-source": laySagaSolGuardSourceScenario,
   "arena-ex13-magnamon-end-turn": layEx13MagnamonEndTurnScenario,
   "arena-seven-code-link-dp": laySevenCodeLinkDpScenario,
+  "arena-koto-grademon-pending-piercing": (state, decks) => layKotoGrademonPiercingScenario(state, decks, true),
+  "arena-koto-grademon-no-prior-battle": (state, decks) => layKotoGrademonPiercingScenario(state, decks, false),
   "arena-suspend-lock-block": laySuspendLockBlockScenario,
   "arena-vortex-target-legality": layVortexTargetLegalityScenario,
   "arena-vortexdramon": layVortexdramonScenario,
