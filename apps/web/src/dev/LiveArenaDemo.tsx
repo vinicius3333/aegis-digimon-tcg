@@ -2003,6 +2003,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Pule a criação. No início da Principal, aceite pagar 1 de memória para transformar BT12-092 Marcus Damon em um Digimon de 3000 DP (a memória fica em 4). Ataque a segurança do bot com BT23-020 Seadramon. No Alliance, escolha Marcus: a resposta deve ser aceita, Marcus suspende e Seadramon fica com 8000 DP durante o ataque, checando 2 cartas. A segurança do bot cai de 5 para 3. Ao terminar o ataque, Seadramon volta a 5000 DP. Se recusar a transformação no início da Principal, Marcus não deve aparecer como aliado de Alliance.",
     en: "Skip breeding. At the start of Main, accept paying 1 memory to treat BT12-092 Marcus Damon as a 3000 DP Digimon (memory becomes 4). Attack the bot's security with BT23-020 Seadramon. Choose Marcus for Alliance: the answer must be accepted, Marcus suspends, and Seadramon has 8000 DP during the attack and checks 2 cards. The bot's security drops from 5 to 3. Seadramon returns to 5000 DP after the attack. If you decline the transformation at the start of Main, Marcus must not appear as an Alliance ally.",
   },
+  "arena-rizegreymon-marcus-security": {
+    ptBR: "Pule a criação. Aceite pagar 1 de memória para cada um dos dois BT12-092 Marcus virar um Digimon de 3000 DP. Ataque a segurança de 11000 DP com o primeiro Marcus: ele é deletado, e o herdado de RizeGreymon o coloca no topo da sua segurança virado para baixo (5 → 6). Ataque com o segundo: ele fica no lixo, pois o mesmo herdado já foi usado neste turno. No seu próximo turno, use o efeito Principal de Agumon para transformar BT4-092 Marcus, ataque a segurança e escolha um Marcus do lixo para segurança: o limite por turno foi renovado.",
+    en: "Skip breeding. Accept paying 1 memory for each of the two BT12-092 Marcus to become a 3000 DP Digimon. Attack the 11000 DP security with the first Marcus: he is deleted, and RizeGreymon's inherited effect places him on top of your security face down (5 → 6). Attack with the second: he stays in trash because that inherited effect was already used this turn. On your next turn, use Agumon's Main effect to transform BT4-092 Marcus, attack security, and choose a Marcus from trash for security: the once-per-turn limit has reset.",
+  },
   "arena-alliance-20": {
     ptBR: "Encerre a criação, ataque com Seadramon e escolha 1 dos outros 19 Digimon para Alliance.",
     en: "End breeding, attack with Seadramon, and choose 1 of the other 19 Digimon for Alliance.",
@@ -2658,6 +2662,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-aegiochus-dark-assembly", "Aegiochus Dark · Wizardmon Assembly"],
   ["arena-alliance-20", "Alliance · 20 Digimon"],
   ["arena-marcus-alliance", "Alliance · Marcus treated as a Digimon"],
+  ["arena-rizegreymon-marcus-security", "BT13 RizeGreymon · Marcus security + once per turn"],
   ["arena-bt11-analogman-redirect-timing", "BT11 Analogman · redirect timing"],
   ["arena-bt11-rina-ulforce-effect-choice", "BT11 Rina · EX13 Ulforce effect choice"],
   ["arena-bt11-rina-mailmon-suspended-subject", "BT11 Rina · Mailmon and suspended Digimon"],
