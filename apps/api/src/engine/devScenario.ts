@@ -28,6 +28,7 @@ import {
   type PhasePacingScenarioId,
 } from "@aegis/shared";
 import {
+  clearBattleArea,
   clearZone,
   extractCardAt,
   fillZone,
@@ -280,6 +281,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-chirinmon-cost-choice",
   "arena-ex13-wisemon-witchelny-cost",
   "arena-ex13-flamewizardmon-optional-cost",
+  "arena-bt18-lucemon-optional-hand-cost",
   "arena-ex5-attack-priority",
   "arena-ex5-biting-crush-delay",
   "arena-p108-training-delay-no-target",
@@ -4041,6 +4043,33 @@ function layBt26CerberusmonOptionalCostScenario(state: GameState, decks: readonl
   const opponent = state.players[1];
   if (opponent !== undefined) {
     placePermanent(opponent, establishedDigimon(1, ["BT1-009", "BT1-019"], "-cerberusmon-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
+/** GitHub #5312: independent actor hand-cost and opponent security decisions at both timings. */
+function layBt18LucemonOptionalHandCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+    clearZone(player, Zone.Hand);
+    clearBattleArea(player);
+    clearZone(player, Zone.Trash);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT18-034"], "-lucemon-cost"));
+    insertCard(human, Zone.Hand, faceUpCard("dev-lucemon-onplay", "BT18-034", 0));
+    insertCard(human, Zone.Hand, faceUpCard("dev-lucemon-hand-cost", "BT1-009", 0));
+    insertCard(human, Zone.Hand, faceUpCard("dev-lucemon-other-cost", "BT1-010", 0));
+    insertCard(human, Zone.Deck, faceDownCard("dev-lucemon-recovery", "BT1-011", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-lucemon-turn-draw", "BT1-012", 0), "top");
   }
   state.turnSeat = 0;
   state.turnCount = 0;
@@ -8498,6 +8527,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-chirinmon-cost-choice": layEx13ChirinmonCostChoiceScenario,
   "arena-ex13-wisemon-witchelny-cost": layEx13WisemonWitchelnyCostScenario,
   "arena-ex13-flamewizardmon-optional-cost": layEx13FlameWizardmonOptionalCostScenario,
+  "arena-bt18-lucemon-optional-hand-cost": layBt18LucemonOptionalHandCostScenario,
   "arena-bt26-cerberusmon-optional-cost": layBt26CerberusmonOptionalCostScenario,
   "arena-ex5-attack-priority": layEx5AttackPriorityScenario,
   "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,
