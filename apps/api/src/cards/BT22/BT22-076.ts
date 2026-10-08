@@ -57,6 +57,7 @@ export const compiled: CompiledCard = {
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",
+          ownerSecurity: true,
           source: {
             filter: {
               controllerDefault: "any",
@@ -96,6 +97,7 @@ export const compiled: CompiledCard = {
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",
+          ownerSecurity: true,
           source: {
             filter: {
               controllerDefault: "any",
