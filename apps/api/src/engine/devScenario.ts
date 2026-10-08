@@ -58,6 +58,7 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github5303-magnamon-printed-dp",
   "arena-github-5299-ravemon-bottom-security",
   "arena-github5300-yoshino-cost-payload",
   "arena-github5300-keenan-cost-execute",
@@ -1583,6 +1584,26 @@ function layBt26RavemonNestedOnDeletionScenario(state: GameState, decks: readonl
 }
 
 /** GitHub #5300: optional suspension, then the card's separately printed payload. */
+function layGithub5303MagnamonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    loadDeckInto(player, seat, { mainDeck: Array(40).fill("BT1-009"), eggDeck: decks[seat].eggDeck });
+    setSecurityStack(player);
+  }
+  const human = state.players[0]!;
+  const bot = state.players[1]!;
+  insertCard(human, Zone.Hand, faceDownCard("dev-github5303-magnamon", "EX13-020", 0));
+  insertCard(human, Zone.Trash, faceUpCard("dev-github5303-red", "BT1-009", 0));
+  insertCard(human, Zone.Trash, faceUpCard("dev-github5303-blue", "BT1-027", 0));
+  insertCard(bot, Zone.Trash, faceUpCard("dev-github5303-yellow", "BT1-045", 1));
+  placePermanent(bot, establishedDigimon(1, ["BT12-112"], "-github5303-target"));
+  placePermanent(bot, establishedDigimon(1, ["BT1-020"], "-github5303-control"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
 function layGithub5300TamerScenario(state: GameState, decks: readonly [Decklist, Decklist], keenan: boolean): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
@@ -8253,6 +8274,7 @@ function layGithub5297OmnimonDnaScenario(state: GameState, includeSecondPair: bo
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github-5299-ravemon-bottom-security": layGithub5299RavemonBottomSecurityScenario,
+  "arena-github5303-magnamon-printed-dp": layGithub5303MagnamonScenario,
   "arena-github5300-yoshino-cost-payload": layGithub5300YoshinoScenario,
   "arena-github5300-keenan-cost-execute": layGithub5300KeenanScenario,
   "arena-github-5297-omnimon-main-dna": (state) => layGithub5297OmnimonDnaScenario(state, true),

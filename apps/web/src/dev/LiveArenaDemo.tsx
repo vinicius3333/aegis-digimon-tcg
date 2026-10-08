@@ -17,6 +17,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-github5303-magnamon-printed-dp": {
+    en: "End breeding and play Magnamon without Assembly for 7. Three distinct colors across both trashes give +3000 DP: Magnamon reaches 10000. Choose BT12-112 Shoutmon X7: Superior Mode: it falls from 17000 to 9000 (-4000 twice); Groundramon stays at 6000. Pass without attacking again: the modifiers remain through the opponent's turn and expire when that turn ends. Restart to compare the other target.",
+    ptBR: "Encerre a criação e jogue Magnamon sem Assembly por 7. Três cores diferentes nos dois lixos dão +3000 DP: Magnamon chega a 10000. Escolha Shoutmon X7: Superior Mode BT12-112: ele cai de 17000 para 9000 (-4000 duas vezes); Groundramon permanece com 6000. Passe sem atacar novamente: os modificadores duram até o fim do turno adversário. Reinicie para comparar o outro alvo.",
+  },
   "arena-github-5297-omnimon-main-dna": {
     en: "Skip breeding. During Main, select EX13-016 Omnimon and WarGreymon. Choose DNA and select the MetalGarurumon with Gabumon underneath, then confirm. Pay 0: those two stacks merge into an unsuspended Omnimon and the other MetalGarurumon stays in play. Also try with action confirmations disabled. EX13-077 Merciful Mode has no DNA route; evolve it normally after Omnimon instead.",
     ptBR: "Pule a criação. Na Principal, selecione Omnimon EX13-016 e WarGreymon. Escolha DNA e selecione o MetalGarurumon com Gabumon nas fontes; confirme. Custo 0: as duas pilhas viram um Omnimon não suspenso e o outro MetalGarurumon continua em campo. Teste também com as confirmações de ação desativadas. Merciful Mode EX13-077 não tem rota de DNA; digievolua-o normalmente após Omnimon.",
@@ -2142,6 +2146,7 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-github5303-magnamon-printed-dp", "GitHub #5303 · Magnamon printed DP and expiry"],
   ["arena-github-5297-omnimon-main-dna", "GitHub #5297 · Omnimon Main DNA and physical materials"],
   ["arena-github-5297-omnimon-agumon-dna", "GitHub #5297 · Omnimon Agumon end-of-turn DNA"],
   ["arena-github-5286-lordknightmon-knightmon", "GitHub #5286 · LordKnightmon EX13 Knightmon picker"],
