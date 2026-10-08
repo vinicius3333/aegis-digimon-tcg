@@ -66,7 +66,7 @@ for (const pointer of ["mouse", "touch"] as const) {
       }, testInfo) => {
         await page.setViewportSize(viewport);
         await page.addInitScript(() => localStorage.setItem("aegis:locale", "en"));
-        await page.goto("/e2e/deck-builder.html");
+        await page.goto("/e2e/deck-builder.html", { waitUntil: "domcontentloaded" });
         await searchGaiomon(page);
         await page.getByRole("button", { name: "Add", exact: true }).click();
         const sheet = page.getByRole("button", { name: /Tap to see more about the deck/ });
@@ -123,7 +123,13 @@ for (const pointer of ["mouse", "touch"] as const) {
         await editArt.click();
         const picker = page.getByRole("dialog", { name: "Choose artwork", exact: true });
         await expectReachable(picker.getByRole("button", { name: "Alternate 1", exact: true }));
-        await picker.getByRole("button", { name: "Alternate 1", exact: true }).click();
+        const pickerArt = picker.getByRole("button", { name: "Alternate 1", exact: true });
+        if (pointer === "mouse") await pickerArt.getByRole("img").hover();
+        else await pickerArt.tap();
+        await expectNoFloatingPreview(page);
+        await pickerArt.click();
+        await expect(pickerArt).toHaveAttribute("aria-pressed", "true");
+        await expectNoFloatingPreview(page);
         await picker.getByRole("button", { name: "Done", exact: true }).click();
         await expectNoFloatingPreview(page);
         const close = drawer.getByRole("button", { name: "Close", exact: true });
@@ -139,7 +145,7 @@ for (const pointer of ["mouse", "touch"] as const) {
 test("1557582869973696582: desktop pool hover still previews cards", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.addInitScript(() => localStorage.setItem("aegis:locale", "en"));
-  await page.goto("/e2e/deck-builder.html");
+  await page.goto("/e2e/deck-builder.html", { waitUntil: "domcontentloaded" });
   await searchGaiomon(page);
   await page.getByRole("img", { name: "Gaiomon", exact: true }).hover();
   await expect(page.getByRole("img", { name: "Gaiomon", exact: true })).toHaveCount(2);
