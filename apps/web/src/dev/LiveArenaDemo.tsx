@@ -17,6 +17,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-bt21-satellamon-cost-control": {
+    en: "Freezing report: candidate-match control, not a confirmed reproducer. End breeding, then play one hand Satellamon for 7 (memory 10 to 3). Accept its optional On Play effect. Its cost panel shows 13 hand/trash cards, with 9 eligible Appmon/Three Musketeers cards. Choose the other Satellamon from hand and confirm; choose Monodramon as the receiving Digimon. That copy becomes Monodramon's bottom source, while the played Satellamon stays on the field. The choice closes, and Monodramon gains return/De-Digivolve protection until the opponent's turn ends. You can attack with Monodramon or end the phase. Reload the arena to repeat with an EX7-071 from trash or decline the optional effect; declining leaves every cost card in place. Observe normal effect presentation without skipping; report the exact action, duration and connection status if it stops progressing.",
+    ptBR: "Relato de travamento: controle da partida candidata, sem reprodução confirmada. Encerre a criação e jogue um Satellamon da mão por 7 (memória de 10 para 3). Aceite o efeito opcional On Play. O painel de custo mostra 13 cartas da mão/lixo, com 9 Appmon/Three Musketeers elegíveis. Escolha o outro Satellamon da mão e confirme; escolha Monodramon para receber a carta. Essa cópia vira a fonte inferior de Monodramon; o Satellamon jogado continua em campo. A escolha fecha e Monodramon recebe proteção contra retorno/De-Digivolve até o fim do turno adversário. Você pode atacar com Monodramon ou encerrar a fase. Reinicie a arena para repetir com EX7-071 do lixo ou recusar o efeito opcional; recusar mantém as cartas de custo em seus lugares. Observe a apresentação normal sem pular; se parar, registre ação exata, duração e estado da conexão.",
+  },
   "arena-github5311-imperialdramon-cost-scope": {
     en: "GitHub #5311 same-defect sweep. End breeding. First evolve one Paildramon into the hand BT3-111 Imperialdramon for 3 (printed 5 minus 2): memory goes from 8 to 5. Then evolve the remaining Paildramon into MetalGarurumon for its full printed 3: memory ends at 2. The Imperialdramon copies already in play must not discount this unrelated evolution, and they keep Piercing.",
     ptBR: "GitHub #5311, varredura do mesmo defeito. Encerre a criação. Primeiro evolua um Paildramon em Imperialdramon BT3-111 da mão por 3 (custo impresso 5 menos 2): a memória vai de 8 para 5. Depois evolua o outro Paildramon em MetalGarurumon pelo custo impresso completo 3: a memória termina em 2. As cópias de Imperialdramon já em campo não podem reduzir essa evolução diferente e mantêm Piercing.",
@@ -2230,6 +2234,7 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-bt21-satellamon-cost-control", "BT21 Satellamon · 13-card cost control (Freezing unresolved)"],
   ["arena-github5311-crescemon-cost-scope", "GitHub #5311 · Crescemon incoming versus outgoing cost"],
   ["arena-github5311-imperialdramon-cost-scope", "GitHub #5311 sweep · Imperialdramon intrinsic discount"],
   ["arena-github5318-junomon-printed-cost", "GitHub #5318 · Junomon printed play-cost control"],
