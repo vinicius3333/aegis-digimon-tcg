@@ -299,6 +299,10 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex5-biting-crush-delay",
   "arena-p108-training-delay-no-target",
   "arena-p108-training-delay-with-target",
+  "arena-github5306-training-use-memory",
+  "arena-github5306-training-delay-paid",
+  "arena-github5306-training-delay-free",
+  "arena-github5306-training-delay-cost-choice",
   "arena-bt20-dragon-gene-delay-no-dna",
   "arena-bt20-dragon-gene-security",
   "arena-bt13-royal-purge-delay-rush",
@@ -8283,6 +8287,27 @@ function layGithub5311CrescemonCostScenario(state: GameState): void {
   insertCard(human, Zone.Hand, faceDownCard("github5311-crescemon", "EX5-020", 0));
 }
 
+/** #5306 current-behavior controls: using costs 2; Delay discounts digivolution, never gains memory. */
+function layGithub5306TrainingMemoryScenario(state: GameState, mode: "use" | "paid" | "free" | "cost-choice"): void {
+  prepareGithubCardEffectsScenario(state, mode === "use" ? 1 : 3);
+  const human = state.players[0]!;
+  if (mode === "use") {
+    insertCard(human, Zone.Hand, faceDownCard("github5306-training", "LM-054", 0));
+    // The first card is the turn draw; the next two are the unambiguous Training search.
+    clearZone(human, Zone.Deck);
+    for (const [index, card] of ["BT1-009", "BT1-051", "BT1-013", ...Array(16).fill("BT1-009")].entries()) {
+      insertCard(human, Zone.Deck, faceDownCard(`github5306-deck-${index}`, card, 0));
+    }
+    return;
+  }
+  const training = establishedDigimon(0, ["LM-054"], "-github5306-training");
+  training.placedByEffect = true;
+  placePermanent(human, training);
+  placePermanent(human, establishedDigimon(0, [mode === "cost-choice" ? "BT14-038" : "BT1-046"], "-github5306-host"));
+  const evolution = mode === "cost-choice" ? "EX5-054" : mode === "free" ? "BT1-051" : "BT1-054";
+  insertCard(human, Zone.Hand, faceDownCard("github5306-evolution", evolution, 0));
+}
+
 function layGithub5311ImperialdramonCostScenario(state: GameState): void {
   prepareGithubCardEffectsScenario(state, 8);
   const human = state.players[0]!;
@@ -8804,6 +8829,10 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,
   "arena-p108-training-delay-no-target": (state, decks) => layP108TrainingDelayScenario(state, decks, false),
   "arena-p108-training-delay-with-target": (state, decks) => layP108TrainingDelayScenario(state, decks, true),
+  "arena-github5306-training-use-memory": (state) => layGithub5306TrainingMemoryScenario(state, "use"),
+  "arena-github5306-training-delay-paid": (state) => layGithub5306TrainingMemoryScenario(state, "paid"),
+  "arena-github5306-training-delay-free": (state) => layGithub5306TrainingMemoryScenario(state, "free"),
+  "arena-github5306-training-delay-cost-choice": (state) => layGithub5306TrainingMemoryScenario(state, "cost-choice"),
   "arena-bt20-dragon-gene-delay-no-dna": layBt20DragonGeneDelayNoDnaScenario,
   "arena-bt20-dragon-gene-security": layBt20DragonGeneSecurityScenario,
   "arena-bt13-royal-purge-delay-rush": layBt13RoyalPurgeDelayRushScenario,
