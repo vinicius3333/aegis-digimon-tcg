@@ -287,6 +287,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-github-5323-alphamon-blast-dna",
   "arena-ex13-gotsumon-blocker-search",
   "arena-ex13-magnamon-partition-assembly",
+  "arena-yuugo-omnimon-assembly",
   "arena-ex13-craniamon-assembly",
   "arena-ex13-craniamon-weregarurumon-assembly",
   "arena-p220-millenniummon-assembly",
@@ -4187,6 +4188,35 @@ function layEx13MagnamonPartitionAssemblyScenario(state: GameState, decks: reado
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 5;
+}
+
+function layYuugoOmnimonAssemblyScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-5341-egg-${seat}`, "BT22-005", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-5341-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 3; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-5341-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0]!;
+  for (let index = 0; index < 2; index += 1) {
+    placePermanent(human, establishedDigimon(0, ["BT22-094"], `-5341-yuugo-${index}`));
+  }
+  insertCard(human, Zone.Hand, faceUpCard("dev-5341-omnimon", "EX13-016", 0));
+  insertCard(human, Zone.Hand, faceUpCard("dev-5341-omnimon-x", "BT20-102", 0));
+  ["BT22-013", "BT22-026", "BT22-017", "EX4-038"].forEach((cardId, index) => {
+    insertCard(human, Zone.Trash, faceUpCard(`dev-5341-material-${index}`, cardId, 0));
+  });
+  for (let index = 0; index < 3; index += 1) {
+    placePermanent(state.players[1]!, establishedDigimon(1, ["BT1-020"], `-5341-target-${index}`));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 4;
 }
 
 /**
@@ -9436,6 +9466,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github-5323-alphamon-blast-dna": (state, decks) => layGithub5323DnaScenario(state, decks, true),
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
   "arena-ex13-magnamon-partition-assembly": layEx13MagnamonPartitionAssemblyScenario,
+  "arena-yuugo-omnimon-assembly": layYuugoOmnimonAssemblyScenario,
   "arena-ex13-craniamon-assembly": layEx13CraniamonAssemblyScenario,
   "arena-ex13-craniamon-weregarurumon-assembly": layEx13CraniamonWereGarurumonAssemblyScenario,
   "arena-p220-millenniummon-assembly": layP220MillenniummonAssemblyScenario,

@@ -900,11 +900,16 @@ export function digiXrosDeps(engine: GameEngine): DigiXrosDeps {
  */
 export function assemblyDeps(engine: GameEngine): AssemblyDeps {
   const mem = memoryDepsFromGauge(engine.memory);
+  const play = playCardDeps(engine);
   return {
     maxAffordable: mem.maxAffordable,
     payMemory: mem.payMemory,
     adjustedPlayCost: (_state, seat, definition, base) =>
       engine.modifiers.playCostFor({ def: definition, controllerSeat: seat }, base),
+    finalizePlayCost: play.finalizePlayCost,
+    hasBeforePayCost: play.hasBeforePayCost,
+    minimumDeferredPlayCost: play.minimumDeferredPlayCost,
+    placePendingDigivolution: play.placePendingDigivolution,
     nextPermanentId: () => nextPermanentId(engine),
     placeUnder: (targetPermanentId, instanceIds) => engine.primitives.placeUnder(targetPermanentId, instanceIds),
     fireTiming: async (_state, _seat, timing, sourceInstanceId) =>
