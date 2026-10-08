@@ -1183,6 +1183,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Você tem 5 cards de segurança, BT22-090 Rie Kishibe e EX13-074 Rie Kishibe ([CS]) em campo, e BT19-073 e EX13-064 LordKnightmon na mão. Encerre seu turno. O [Fim do Seu Turno] da BT22-090 deve oferecer deletar a EX13-074: aceite. A EX13-074 vai para a lixeira, mas a BT22-090 não evolui, porque nenhuma LordKnightmon cumpre o requisito com mais de 3 cards de segurança. As duas LordKnightmon ficam na mão.",
     en: "You have 5 security cards, BT22-090 Rie Kishibe and EX13-074 Rie Kishibe ([CS]) in play, and BT19-073 and EX13-064 LordKnightmon in hand. End your turn. BT22-090's [End of Your Turn] must offer to delete EX13-074: accept. EX13-074 goes to the trash, but BT22-090 does not digivolve, because no LordKnightmon meets its requirement with more than 3 security cards. Both LordKnightmon stay in hand.",
   },
+  "arena-bt22-rie-kishibe-legal-digivolve": {
+    ptBR: "GitHub #5290. Você tem 3 cards de segurança, BT22-090 Rie Kishibe e BT22-083 Yuuko Kamishiro ([CS]) em campo, e EX13-064 LordKnightmon na mão. Encerre a criação e depois encerre seu turno. Aceite o [Fim do Seu Turno] da Rie, delete a Yuuko e escolha a LordKnightmon. A Rie evolui para EX13-064 pagando 2 de memória (5 menos 3), compra 1 card e fica como card de evolução. A Yuuko fica na lixeira. Com 4 ou mais cards de segurança, essa evolução é ilegal, mesmo que você aceite pagar a deleção.",
+    en: "GitHub #5290. You have 3 security cards, BT22-090 Rie Kishibe and BT22-083 Yuuko Kamishiro ([CS]) in play, and EX13-064 LordKnightmon in hand. End breeding, then end your turn. Accept Rie's [End of Your Turn], delete Yuuko, and choose LordKnightmon. Rie digivolves into EX13-064 for 2 memory (5 minus 3), draws 1 card, and becomes a digivolution card. Yuuko stays in the trash. At 4 or more security cards, this evolution is illegal even if you accept paying the deletion.",
+  },
   "arena-bt24-skullbaluchimon-simultaneous-delete": {
     ptBR: "Discord 1557502317098573905. Você tem 7 de memória e BT24-075 SkullBaluchimon e um Monodramon na mão. O bot tem Monodramon (nível 3) e Kokatorimon (nível 4). Encerre a criação e jogue o SkullBaluchimon. No [Ao Jogar], aceite descartar o Monodramon e escolha os dois alvos. Os dois Digimon do bot são deletados juntos, numa única deleção, e não um depois do outro.",
     en: "Discord 1557502317098573905. You have 7 memory, and BT24-075 SkullBaluchimon and a Monodramon in hand. The bot has Monodramon (level 3) and Kokatorimon (level 4). End breeding and play SkullBaluchimon. On its [On Play], accept trashing Monodramon and choose both targets. Both of the bot's Digimon are deleted together in a single deletion, not one after the other.",
@@ -2329,6 +2333,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt26-yoshino-trigger-stack", "BT26 Yoshino Fujieda · one trigger per event, readable stack"],
   ["arena-bt26-yoshino-match-b3759aa7", "BT26 Yoshino Fujieda · production match b3759aa7 stack"],
   ["arena-bt22-rie-kishibe-delete-without-digivolve", "BT22 Rie Kishibe · delete without a legal LordKnightmon"],
+  ["arena-bt22-rie-kishibe-legal-digivolve", "BT22 Rie Kishibe · legal LordKnightmon at 3 security (#5290)"],
   ["arena-bt24-skullbaluchimon-simultaneous-delete", "BT24 SkullBaluchimon · level 3 and level 4 deleted together"],
   ["arena-lm-gundramon-simultaneous-delete", "LM Gundramon · trash 3, then delete 3 together"],
   ["arena-bt24-fugamon-self-trash", "BT24 Fugamon · draw only when this card is trashed"],

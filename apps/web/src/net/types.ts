@@ -417,6 +417,7 @@ export interface AegisJoinOptions {
     | "arena-bt26-ravemon-recycled-trigger"
     | "arena-bt26-yoshino-match-b3759aa7"
     | "arena-bt22-rie-kishibe-delete-without-digivolve"
+    | "arena-bt22-rie-kishibe-legal-digivolve"
     | "arena-bt24-skullbaluchimon-simultaneous-delete"
     | "arena-lm-gundramon-simultaneous-delete"
     | "arena-bt24-fugamon-self-trash"

@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT22-090.js";
-import "../index.js";
 
 describe("BT22-090 Rie Kishibe", () => {
   it("gains memory only when the opponent has a Digimon at the start of the main phase", () => {
@@ -189,6 +188,60 @@ describe("BT22-090 Rie Kishibe", () => {
       await loop;
     });
   });
+});
+
+describe("GitHub #5290: Rie Kishibe end-of-turn digivolution through public intents", () => {
+  it.each([
+    { into: "BT22-067", security: 3, sacrifice: "BT22-083", accept: true, evolves: true, deletes: true },
+    { into: "EX13-064", security: 3, sacrifice: "BT22-083", accept: true, evolves: true, deletes: true },
+    { into: "EX13-064", security: 0, sacrifice: "BT22-083", accept: true, evolves: true, deletes: true },
+    { into: "BT22-067", security: 4, sacrifice: "BT22-083", accept: true, evolves: false, deletes: true },
+    { into: "EX13-064", security: 4, sacrifice: "BT22-083", accept: true, evolves: false, deletes: true },
+    { into: "BT19-073", security: 3, sacrifice: "BT22-083", accept: true, evolves: false, deletes: true },
+    { into: "EX13-064", security: 3, sacrifice: "BT1-009", accept: true, evolves: false, deletes: false },
+    { into: "EX13-064", security: 3, sacrifice: "BT22-083", accept: false, evolves: false, deletes: false },
+  ])(
+    "$into at $security security with $sacrifice and accept=$accept: evolves=$evolves, deletes=$deletes",
+    async ({ into, security, sacrifice, accept, evolves, deletes }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT22-090", as: "rie" },
+              { card: sacrifice, as: "payment" },
+            ],
+            hand: [{ card: into, as: "lord" }],
+            eggDeck: ["BT1-001"],
+            deck: Array<string>(10).fill("BT1-009"),
+            security,
+          },
+          1: { deck: Array<string>(10).fill("BT1-009"), security: 5 },
+        },
+        { autoAcceptOptional: accept, autoDeclineOptional: !accept, autoSelectCards: true, declinePrompts: ["Attack"] },
+      );
+      const paymentId = s.inst("payment").instanceId;
+      const lordId = s.inst("lord").instanceId;
+      s.state.memory = 5;
+      const loop = s.engine.startTurnLoop();
+      await settle(() => s.state.phase === Phase.Breeding);
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await settle(() => s.state.turnSeat === 1 && s.state.phase === Phase.Breeding && !s.state.pendingDecision);
+
+      expect(s.perm("rie").topCard.cardId).toBe(evolves ? into : "BT22-090");
+      expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === paymentId)).toBe(deletes);
+      expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === lordId)).toBe(!evolves);
+      const evolutionPayments = s.events.flatMap((event) =>
+        event.kind === "memoryChanged" && event.reason === "digivolve" ? [{ from: event.from, to: event.to }] : [],
+      );
+      expect(evolutionPayments).toEqual(evolves ? [{ from: -3, to: -5 }] : []);
+      expect(s.state.pendingDecision).toBeUndefined();
+
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
 });
 
 describe("BT22-090 Rie Kishibe — KB Q&A rulings", () => {
