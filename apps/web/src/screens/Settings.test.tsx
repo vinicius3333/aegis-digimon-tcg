@@ -10,23 +10,15 @@ const player = { name: "Guest Tamer", color: "Blue", shards: 0, guestAvatarId: n
 describe("settings portrait picker", () => {
   afterEach(() => cleanup());
 
-  it("lets a signed-out player pick a Digimon World portrait", () => {
-    const onSelectAvatar = vi.fn<(avatarId: string) => void>();
+  it("directs identity editing to the profile page", () => {
     render(
       <I18nProvider>
-        <Settings
-          player={player}
-          account={null}
-          dark={false}
-          onToggleDark={() => undefined}
-          onSelectAvatar={onSelectAvatar}
-        />
+        <Settings player={player} account={null} dark={false} onToggleDark={() => undefined} />
       </I18nProvider>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Use Greymon as your avatar" }));
-
-    expect(onSelectAvatar).toHaveBeenCalledWith("greymon");
+    expect(screen.getByRole("link", { name: /Customize/ }).getAttribute("href")).toBe("/profile/customize");
+    expect(screen.queryByRole("button", { name: "Use Greymon as your avatar" })).toBeNull();
   });
 });
 

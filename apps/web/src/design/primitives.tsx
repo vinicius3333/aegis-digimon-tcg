@@ -504,6 +504,7 @@ export function TopNav({
   actions,
   signedIn = false,
   onOpenPlayerMenu,
+  playerMenuOpen,
   dark,
   onToggleDark,
   onOpenTheme,
@@ -514,7 +515,8 @@ export function TopNav({
   player: PlayerIdentity;
   actions?: ReactNode;
   signedIn?: boolean;
-  onOpenPlayerMenu?: () => void;
+  onOpenPlayerMenu?: (anchor: HTMLButtonElement) => void;
+  playerMenuOpen?: boolean;
   /** Opens the palette chooser when available, otherwise toggles light/dark. */
   dark?: boolean;
   onToggleDark?: (dark: boolean) => void;
@@ -579,11 +581,12 @@ export function TopNav({
   const portrait = (size: number) => (
     <button
       className="aegis-portrait-button"
-      onClick={() => {
+      onClick={(event) => {
         playSound("nav");
-        onOpenPlayerMenu?.();
+        onOpenPlayerMenu?.(event.currentTarget);
       }}
-      aria-haspopup="dialog"
+      aria-expanded={playerMenuOpen ?? false}
+      aria-controls={playerMenuOpen ? "player-menu" : undefined}
       aria-label={t("playerMenu.open")}
       title={t("playerMenu.open")}
     >

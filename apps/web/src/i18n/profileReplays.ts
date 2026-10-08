@@ -1,4 +1,17 @@
 export const profileReplayEn = {
+  "profile.matches": "Matches",
+  "profile.customize": "Customize",
+  "profile.preview": "Preview",
+  "profile.previewHint": "How you appear in matches",
+  "profile.save": "Save changes",
+  "profile.saved": "Profile updated.",
+  "profile.discard": "Discard your unsaved profile changes?",
+  "profile.guestHint": "Your name and avatar are saved only on this device. Sign in to keep match history and replays.",
+  "profile.navigation": "Profile sections",
+  "profile.avatar": "Avatar",
+  "profile.help": "Help and community",
+  "profile.defaultAvatar": "Default avatar",
+
   "profile.title": "My profile",
   "profile.history": "Match history",
   "profile.historyHint": "Your 10 most recent completed matches.",
@@ -43,6 +56,20 @@ export const profileReplayEn = {
 } as const;
 
 export const profileReplayPtBR = {
+  "profile.matches": "Partidas",
+  "profile.customize": "Personalizar",
+  "profile.preview": "Prévia",
+  "profile.previewHint": "Como você aparece nas partidas",
+  "profile.save": "Salvar alterações",
+  "profile.saved": "Perfil atualizado.",
+  "profile.discard": "Descartar as alterações não salvas do perfil?",
+  "profile.guestHint":
+    "Seu nome e avatar ficam salvos apenas neste dispositivo. Entre para manter o histórico e os replays.",
+  "profile.navigation": "Seções do perfil",
+  "profile.avatar": "Avatar",
+  "profile.help": "Ajuda e comunidade",
+  "profile.defaultAvatar": "Avatar padrão",
+
   "profile.title": "Meu perfil",
   "profile.history": "Histórico de partidas",
   "profile.historyHint": "Suas 10 partidas concluídas mais recentes.",
@@ -88,6 +115,20 @@ export const profileReplayPtBR = {
 } as const;
 
 export const profileReplayEs = {
+  "profile.matches": "Partidas",
+  "profile.customize": "Personalizar",
+  "profile.preview": "Vista previa",
+  "profile.previewHint": "Cómo apareces en las partidas",
+  "profile.save": "Guardar cambios",
+  "profile.saved": "Perfil actualizado.",
+  "profile.discard": "¿Descartar los cambios del perfil sin guardar?",
+  "profile.guestHint":
+    "Tu nombre y avatar se guardan solo en este dispositivo. Inicia sesión para guardar historial y replays.",
+  "profile.navigation": "Secciones del perfil",
+  "profile.avatar": "Avatar",
+  "profile.help": "Ayuda y comunidad",
+  "profile.defaultAvatar": "Avatar predeterminado",
+
   "profile.title": "Mi perfil",
   "profile.history": "Historial de partidas",
   "profile.historyHint": "Tus 10 partidas completadas más recientes.",
@@ -132,6 +173,20 @@ export const profileReplayEs = {
 } as const;
 
 export const profileReplayIt = {
+  "profile.matches": "Partite",
+  "profile.customize": "Personalizza",
+  "profile.preview": "Anteprima",
+  "profile.previewHint": "Come appari nelle partite",
+  "profile.save": "Salva modifiche",
+  "profile.saved": "Profilo aggiornato.",
+  "profile.discard": "Scartare le modifiche al profilo non salvate?",
+  "profile.guestHint":
+    "Nome e avatar vengono salvati solo su questo dispositivo. Accedi per conservare cronologia e replay.",
+  "profile.navigation": "Sezioni del profilo",
+  "profile.avatar": "Avatar",
+  "profile.help": "Aiuto e community",
+  "profile.defaultAvatar": "Avatar predefinito",
+
   "profile.title": "Il mio profilo",
   "profile.history": "Cronologia partite",
   "profile.historyHint": "Le tue 10 partite completate più recenti.",

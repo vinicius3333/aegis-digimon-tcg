@@ -408,7 +408,14 @@ export class AccountStore {
   }
 
   async updateDisplayName(accountId: string, input: string): Promise<Account | undefined> {
-    const displayName = normalizeDisplayName(input);
+    return this.updateProfile(accountId, { displayName: input });
+  }
+
+  /** Identity changes and registration names commit together, including avatar selection. */
+  async updateProfile(
+    accountId: string,
+    changes: { displayName: string; avatarId?: DigimonWorldAvatarId | null },
+  ): Promise<Account | undefined> {
     return this.transaction(async (client) => {
       const current = (
         await client.query<AccountRow>(
@@ -417,11 +424,15 @@ export class AccountStore {
         )
       ).rows[0];
       if (!current) return undefined;
+      const displayName =
+        changes.displayName === current.display_name ? current.display_name : normalizeDisplayName(changes.displayName);
       try {
         const updated = (
           await client.query<AccountRow>(
-            "UPDATE accounts SET display_name=$1 WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,is_admin",
-            [displayName, accountId],
+            changes.avatarId === undefined
+              ? "UPDATE accounts SET display_name=$1 WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,is_admin"
+              : "UPDATE accounts SET display_name=$1,avatar_id=$3 WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,is_admin",
+            changes.avatarId === undefined ? [displayName, accountId] : [displayName, accountId, changes.avatarId],
           )
         ).rows[0];
         await client.query(

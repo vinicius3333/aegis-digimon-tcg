@@ -2,7 +2,7 @@ import { CustomMusicPicker } from "../design/CustomMusicPicker";
 import { MusicCredits } from "../design/MusicCredits";
 import { InterfaceThemeDialog } from "../design/InterfaceThemePicker";
 import { useState } from "react";
-import { Avatar, Button, Eyebrow, Field, Switch, type PlayerIdentity } from "../design/primitives";
+import { Avatar, Button, Eyebrow, Switch, type PlayerIdentity } from "../design/primitives";
 import { Panel, SectionHeading } from "../design/surfaces";
 import { ArenaLookSettings } from "../design/ArenaLookSettings";
 import { Icons } from "../design/icons";
@@ -36,11 +36,7 @@ import {
 import { setHandAutoSortEnabled, useHandAutoSort } from "../game/handAutoSort";
 import { NOTICE_DURATION_LABELS, NOTICE_DURATIONS, setNoticeDuration, useNoticeDuration } from "../game/noticeDuration";
 import { LOCALES, LOCALE_LABELS, useTranslation, type TranslationKey } from "../i18n";
-import { AccountPanel } from "../account/AccountPanel";
-import { DigimonAvatarPicker } from "../account/DigimonAvatarPicker";
-import type { DigimonWorldAvatarId } from "../account/avatars";
 import type { RemoteAccount } from "../account/client";
-import { SuccessToast } from "../design/SuccessToast";
 import "./settings.css";
 
 const TEXT_SCALE_LABELS: Record<TextScale, TranslationKey> = {
@@ -54,23 +50,15 @@ export function Settings({
   account,
   dark,
   onToggleDark,
-  onRename,
-  onAccountChange,
-  onSelectAvatar,
 }: {
   player: PlayerIdentity;
   account: RemoteAccount | null | undefined;
   dark: boolean;
   onToggleDark: (v: boolean) => void;
-  onRename?: (name: string) => void;
-  onAccountChange?: (account: RemoteAccount) => void;
-  onSelectAvatar?: (avatarId: DigimonWorldAvatarId) => void;
 }) {
   const { t, locale, setLocale } = useTranslation();
   const textScale = useTextScale();
   const [themeOpen, setThemeOpen] = useState(false);
-  const [nameInput, setNameInput] = useState(player.name);
-  const [renameToastKey, setRenameToastKey] = useState<number>();
   const [musicOn, setMusicOn] = useState(isMusicEnabled());
   const [musicVolume, setMusicVolumeChoice] = useState(Math.round(getMusicVolume() * 100));
   const [musicTrack, setMusicTrackChoice] = useState<MusicTrack>(getMusicTrack);
@@ -88,12 +76,6 @@ export function Settings({
   const handAutoSort = useHandAutoSort();
   const effectPromptPosition = useEffectPromptPosition();
   const noticeDuration = useNoticeDuration();
-  function confirmRename() {
-    const name = nameInput.trim();
-    if (!name || name === player.name) return;
-    onRename?.(name);
-    setRenameToastKey((key) => (key ?? 0) + 1);
-  }
   const accountStatus = account ? t("account.connected") : account === null ? t("redesign.settings.guest") : null;
   return (
     <main className="settings-page">
@@ -119,40 +101,10 @@ export function Settings({
         <div className="settings-grid">
           <section className="settings-card settings-card--profile" aria-labelledby="settings-profile-title">
             <SectionHeading id="settings-profile-title" title={t("redesign.settings.profile")} />
-            <div className="settings-block">
-              <AccountPanel account={account} onAccountChange={onAccountChange} />
-            </div>
-
-            {account === null ? (
-              <div className="settings-row settings-row--stack">
-                <div className="settings-row__copy">
-                  <strong>{t("profile.nickname")}</strong>
-                  <small>{t("profile.nameHint")}</small>
-                </div>
-                <div className="settings-name-row">
-                  <Field
-                    className="settings-name-field"
-                    label={t("profile.nickname")}
-                    name="displayName"
-                    autoComplete="nickname"
-                    value={nameInput}
-                    onChange={(e) => setNameInput(e.target.value)}
-                  />
-                  <Button variant="primary" size="sm" onClick={confirmRename}>
-                    {t("common.confirm")}
-                  </Button>
-                </div>
-              </div>
-            ) : null}
-
-            {account === null ? (
-              <div className="settings-block">
-                <DigimonAvatarPicker
-                  selectedAvatarId={player.guestAvatarId ?? null}
-                  onSelect={async (avatarId) => onSelectAvatar?.(avatarId)}
-                />
-              </div>
-            ) : null}
+            <p>{t("profile.previewHint")}</p>
+            <a className="settings-profile-link" href="/profile/customize">
+              {t("profile.customize")} →
+            </a>
           </section>
 
           <section className="settings-card settings-card--appearance" aria-labelledby="settings-appearance-title">
@@ -459,13 +411,7 @@ export function Settings({
           </section>
         </div>
       </div>
-      {renameToastKey ? (
-        <SuccessToast
-          key={renameToastKey}
-          message={t("settings.usernameUpdated")}
-          onDismiss={() => setRenameToastKey(undefined)}
-        />
-      ) : null}
+
       {themeOpen ? (
         <InterfaceThemeDialog dark={dark} onToggleDark={onToggleDark} onClose={() => setThemeOpen(false)} />
       ) : null}

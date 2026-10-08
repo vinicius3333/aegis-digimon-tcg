@@ -291,6 +291,30 @@ export function installAccountRoutes(
       });
     }
   });
+  put("/account/profile", async (req, res) => {
+    const session = await requireSession(req, res, store);
+    if (!session) return;
+    const { displayName, avatarId } = req.body ?? {};
+    if (typeof displayName !== "string") {
+      res.status(400).json({ error: "invalid_display_name" });
+      return;
+    }
+    if (avatarId !== null && !isDigimonWorldAvatarId(avatarId)) {
+      res.status(400).json({ error: "invalid avatar" });
+      return;
+    }
+    if (displayName !== session.account.displayName && !limitDisplayNameChange(session.account.id)) {
+      res.status(429).json({ error: "too_many_requests" });
+      return;
+    }
+    try {
+      res.json(await store.updateProfile(session.account.id, { displayName, avatarId }));
+    } catch (error) {
+      if (error instanceof InvalidDisplayNameError) res.status(400).json({ error: "invalid_display_name" });
+      else if (error instanceof DisplayNameTakenError) res.status(409).json({ error: "display_name_taken" });
+      else throw error;
+    }
+  });
   put("/account/profile/avatar", async (req, res) => {
     const session = await requireSession(req, res, store);
     if (!session) return;

@@ -65,12 +65,28 @@ for (const width of [320, 768, 1024, 1440])
     await dialog.getByRole("radio", { name: /Public/ }).check();
     await dialog.getByRole("button", { name: "Save", exact: true }).click();
     await expect(first.getByRole("button", { name: "Public · Sharing" })).toBeVisible();
+    await page
+      .getByRole("navigation", { name: "Profile sections" })
+      .getByRole("link", { name: /^Replays/ })
+      .click();
     await expect(page.locator(".replay-library").getByRole("button", { name: "Public · Sharing" })).toBeVisible();
+    await page
+      .getByRole("navigation", { name: "Profile sections" })
+      .getByRole("link", { name: "Matches", exact: true })
+      .click();
     await first.getByRole("button", { name: "Public · Sharing" }).click();
     await dialog.getByRole("radio", { name: /Private/ }).check();
     await dialog.getByRole("button", { name: "Save", exact: true }).click();
     await expect(first.getByRole("button", { name: "Private · Sharing" })).toBeVisible();
+    await page
+      .getByRole("navigation", { name: "Profile sections" })
+      .getByRole("link", { name: /^Replays/ })
+      .click();
     await expect(page.locator(".replay-library").getByRole("button", { name: "Private · Sharing" })).toBeVisible();
+    await page
+      .getByRole("navigation", { name: "Profile sections" })
+      .getByRole("link", { name: "Matches", exact: true })
+      .click();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.locator(".profile-page").evaluate((element) => {
       element.scrollTop = 0;
@@ -103,18 +119,19 @@ test("a public link opens without signing in and MP4 opens the export dialog", a
   await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
 });
 
-test("Portuguese mobile profile and editing dialog keep history accessible", async ({ page }, testInfo) => {
+test("Portuguese mobile profile routes editing without a dialog", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(() => localStorage.setItem("aegis:locale", "pt-BR"));
   await setup(page);
   await page.goto("/profile");
   await expect(page.getByRole("heading", { name: "Histórico de partidas" })).toBeVisible();
   await expect(page.locator(".profile-matches > li")).toHaveCount(10);
-  await page.getByRole("button", { name: "Editar perfil" }).click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await page.keyboard.press("Escape");
+  await page.getByRole("link", { name: "Editar perfil" }).click();
+  await expect(page).toHaveURL(/\/profile\/customize$/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Editar perfil" })).toBeFocused();
+  await expect(page.getByRole("button", { name: "Salvar alterações" })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole("heading", { name: "Histórico de partidas" })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("profile-pt-mobile.png") });
 });
 test("profile load failures can be retried and an empty history explains how to save", async ({ page }) => {
@@ -141,7 +158,7 @@ for (const width of [390, 1440])
   test(`profile scroll reaches the last replay above navigation at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await setup(page);
-    await page.goto("/profile");
+    await page.goto("/profile/replays");
     const library = page.getByRole("region", { name: "Saved replays", exact: true });
     await expect(library.getByRole("button", { name: "Delete", exact: true })).toBeVisible();
     await page.getByRole("main").evaluate((element) => {
@@ -151,3 +168,64 @@ for (const width of [390, 1440])
     const navigation = await page.locator(".aegis-bottom-nav").boundingBox();
     expect(bottom!.y + bottom!.height).toBeLessThanOrEqual(navigation?.y ?? 844);
   });
+
+for (const width of [320, 390, 1440])
+  test(`customize stages, cancels, saves, and guards navigation at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await setup(page);
+    let current = { ...account };
+    let saves = 0;
+    await page.route("**/account/profile", (route) => {
+      if (route.request().method() === "PUT") {
+        saves++;
+        current = { ...current, ...route.request().postDataJSON() };
+        return route.fulfill({ json: current });
+      }
+      return route.fulfill({ json: { account: current, stats: {}, decks: [], matches: [] } });
+    });
+    await page.goto("/profile/customize");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    const name = page.getByRole("textbox", { name: /Name|name/ });
+    await name.fill("New Tamer");
+    await page.getByRole("searchbox").fill("Greymon");
+    await page.getByRole("button", { name: "Use Greymon as your avatar", exact: true }).click();
+    expect(saves).toBe(0);
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
+    await expect(name).toHaveValue("Vinicius");
+    await name.fill("New Tamer");
+    page.once("dialog", (dialog) => dialog.dismiss());
+    await page
+      .getByRole("navigation", { name: "Profile sections" })
+      .getByRole("link", { name: "Matches", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/profile\/customize$/);
+    await expect(name).toHaveValue("New Tamer");
+    await page.getByRole("button", { name: "Use Greymon as your avatar", exact: true }).click();
+    await page.getByRole("button", { name: "Save changes" }).click();
+    await expect(page.getByRole("status")).toContainText("Profile updated.");
+    expect(saves).toBe(1);
+    expect(current).toMatchObject({ displayName: "New Tamer", avatarId: "greymon" });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page
+      .getByRole("navigation", { name: "Profile sections" })
+      .getByRole("link", { name: "Matches", exact: true })
+      .click();
+    await page.goBack();
+    await expect(name).toHaveValue("New Tamer");
+    await page.screenshot({ path: `test-results/profile-customize-${width}.png` });
+  });
+
+test("avatar opens a compact keyboard-accessible menu without a modal", async ({ page }) => {
+  await setup(page);
+  await page.goto("/profile");
+  const trigger = page.getByRole("button", { name: "Open the player menu" });
+  await trigger.click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.locator("#player-menu").getByRole("link", { name: "My profile" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#player-menu")).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await page.locator("#player-menu").getByRole("link", { name: "Replays" }).click();
+  await expect(page).toHaveURL(/\/profile\/replays$/);
+});

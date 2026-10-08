@@ -12,6 +12,8 @@ describe("application routes", () => {
     ["/community/decks/abc-123", { screen: "community", communityDeckId: "abc-123" }],
     ["/settings", { screen: "settings" }],
     ["/profile", { screen: "settings", profile: true }],
+    ["/profile/replays", { screen: "settings", profile: true, profileTab: "replays" }],
+    ["/profile/customize", { screen: "settings", profile: true, profileTab: "customize" }],
     ["/replays/saved-id", { screen: "replays", replayId: "saved-id" }],
     ["/whats-new", { screen: "releases" }],
   ])("parses %s", (pathname, expected) => {

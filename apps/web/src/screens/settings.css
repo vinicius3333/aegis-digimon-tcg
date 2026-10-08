@@ -407,3 +407,11 @@
   font-size: var(--ds-text-sm);
   margin-block: var(--ds-space-2) var(--ds-space-3);
 }
+
+.settings-profile-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ds-accent);
+  font-weight: 700;
+}

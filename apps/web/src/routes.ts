@@ -5,6 +5,7 @@ export type TournamentRoute = { kind: "catalog" } | { kind: "create" } | { kind:
 export interface AppRoute {
   screen: Screen;
   profile?: boolean;
+  profileTab?: "matches" | "replays" | "customize";
   replayId?: string;
   tournament?: TournamentRoute;
   /** The public deck open on the community screen; absent on the browse list. */
@@ -37,6 +38,8 @@ export function routeFromPathname(pathname: string): AppRoute | undefined {
   const communityDeck = /^\/community\/decks\/([^/]+)$/.exec(normalized)?.[1];
   if (communityDeck) return { screen: "community", communityDeckId: safeDecode(communityDeck) };
   if (normalized === "/profile") return { screen: "settings", profile: true };
+  if (normalized === "/profile/replays") return { screen: "settings", profile: true, profileTab: "replays" };
+  if (normalized === "/profile/customize") return { screen: "settings", profile: true, profileTab: "customize" };
   const replayId = /^\/replays\/([^/]+)$/.exec(normalized)?.[1];
   if (replayId) return { screen: "replays", replayId: safeDecode(replayId) };
   if (normalized === "/replays") return { screen: "replays" };
@@ -46,7 +49,8 @@ export function routeFromPathname(pathname: string): AppRoute | undefined {
 }
 
 export function pathForRoute(route: AppRoute): string {
-  if (route.screen === "settings" && route.profile) return "/profile";
+  if (route.screen === "settings" && route.profile)
+    return route.profileTab && route.profileTab !== "matches" ? `/profile/${route.profileTab}` : "/profile";
   if (route.screen === "replays" && route.replayId) return `/replays/${encodeURIComponent(route.replayId)}`;
   if (route.screen === "community" && route.communityDeckId)
     return `/community/decks/${encodeURIComponent(route.communityDeckId)}`;

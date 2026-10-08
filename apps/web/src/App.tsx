@@ -34,8 +34,8 @@ import { communityDeckListing } from "./community/communityDeckListing";
 import { usePreferencesSync } from "./account/usePreferencesSync";
 import { BugReportDialog } from "./bugs/BugReportDialog";
 import { LeaveMatchDialog } from "./game/screen/layout/LeaveMatchDialog";
+import { allowProfileNavigation } from "./account/ProfileCustomize";
 import { PlayerMenu } from "./account/PlayerMenu";
-import type { DigimonWorldAvatarId } from "./account/avatars";
 import { pathForRoute, routeFromPathname, type AppRoute } from "./routes";
 import { roomCodeFromSearch } from "./roomInvite";
 import { isBattleLabPath } from "./dev/BattleLab";
@@ -332,7 +332,8 @@ export function AegisClient({
   const [betaBattleMode, setBetaBattleMode] = useState(false);
   const [matchDeckId, setMatchDeckId] = useState<string>();
   const [matchNumber, setMatchNumber] = useState(0);
-  const [playerMenuOpen, setPlayerMenuOpen] = useState(false);
+  const [playerMenuAnchor, setPlayerMenuAnchor] = useState<HTMLElement | null>(null);
+  const playerMenuOpen = playerMenuAnchor !== null;
   const [replayViewing, setReplayViewing] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const [bugReportOpen, setBugReportOpen] = useState(false);
@@ -367,6 +368,10 @@ export function AegisClient({
   useEffect(() => {
     if (initialScreen) return;
     const onPopState = () => {
+      if (!allowProfileNavigation()) {
+        window.history.pushState(null, "", "/profile/customize");
+        return;
+      }
       const nextRoute = routeFromPathname(window.location.pathname);
       const resolvedRoute: AppRoute =
         nextRoute?.screen === "game" && !loadReconnectSession()
@@ -393,6 +398,8 @@ export function AegisClient({
   };
 
   const navigate = (nextRoute: AppRoute) => {
+    if (!allowProfileNavigation()) return;
+    setPlayerMenuAnchor(null);
     if (!initialScreen) {
       const path = pathForRoute(nextRoute);
       if (window.location.pathname !== path) window.history.pushState(null, "", path);
@@ -445,15 +452,6 @@ export function AegisClient({
 
   const showNav = NAV_SCREENS.includes(screen) && !(screen === "replays" && replayViewing);
 
-  const selectAvatar = async (avatarId: DigimonWorldAvatarId | null) => {
-    if (account) {
-      const updated = await accountApi.updateAvatar(avatarId);
-      if (updated) setAccount?.({ ...account, ...updated });
-      return;
-    }
-    setPlayer((p) => ({ ...p, guestAvatarId: avatarId, color: accentForAvatar(avatarId, colorKey(p.color)) }));
-  };
-
   const refreshDiscordAvatar = async () => {
     const updated = await accountApi.refreshDiscordAvatar();
     if (account) setAccount?.({ ...account, ...updated });
@@ -468,7 +466,8 @@ export function AegisClient({
           onNav={navigateScreen}
           player={effectivePlayer}
           signedIn={!!account}
-          onOpenPlayerMenu={() => setPlayerMenuOpen(true)}
+          onOpenPlayerMenu={(anchor) => setPlayerMenuAnchor(playerMenuOpen ? null : anchor)}
+          playerMenuOpen={playerMenuOpen}
           dark={dark}
           onToggleDark={setDark}
           onOpenTheme={() => setThemeOpen(true)}
@@ -614,18 +613,25 @@ export function AegisClient({
           {screen === "releases" && <ReleasesScreen />}
 
           {screen === "settings" && route.profile && (
-            <ProfileScreen account={account} onAccountChange={(updated) => setAccount?.({ ...account, ...updated })} />
+            <ProfileScreen
+              account={account}
+              player={effectivePlayer}
+              tab={route.profileTab ?? "matches"}
+              onTabChange={(profileTab) => navigate({ screen: "settings", profile: true, profileTab })}
+              onAccountChange={(updated) => setAccount?.({ ...account, ...updated })}
+              onGuestChange={(name, avatarId) =>
+                setPlayer((current) => ({
+                  ...current,
+                  name,
+                  guestAvatarId: avatarId,
+                  color: accentForAvatar(avatarId, colorKey(current.color)),
+                }))
+              }
+              onRefreshDiscordAvatar={account?.discordLinked ? refreshDiscordAvatar : undefined}
+            />
           )}
           {screen === "settings" && !route.profile && (
-            <Settings
-              player={effectivePlayer}
-              account={account}
-              dark={dark}
-              onToggleDark={setDark}
-              onRename={(name) => setPlayer((p) => ({ ...p, name }))}
-              onSelectAvatar={(avatarId) => setPlayer((p) => ({ ...p, guestAvatarId: avatarId }))}
-              onAccountChange={(updated) => setAccount?.(updated && { ...account, ...updated })}
-            />
+            <Settings player={effectivePlayer} account={account} dark={dark} onToggleDark={setDark} />
           )}
 
           {screen === "game" && (
@@ -677,13 +683,17 @@ export function AegisClient({
         <PlayerMenu
           player={effectivePlayer}
           signedIn={!!account}
-          selectedAvatarId={effectivePlayer.avatarId ?? null}
-          onSelectAvatar={selectAvatar}
-          onRefreshDiscordAvatar={account?.discordLinked ? refreshDiscordAvatar : undefined}
+          anchor={playerMenuAnchor}
           onNav={navigateScreen}
-          onSignOut={account ? () => void accountApi.logout().then(() => location.reload()) : undefined}
+          onSignOut={
+            account
+              ? () => {
+                  if (allowProfileNavigation()) void accountApi.logout().then(() => location.reload());
+                }
+              : undefined
+          }
           onReportBug={() => setBugReportOpen(true)}
-          onClose={() => setPlayerMenuOpen(false)}
+          onClose={() => setPlayerMenuAnchor(null)}
         />
       ) : null}
 

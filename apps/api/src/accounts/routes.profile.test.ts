@@ -242,3 +242,40 @@ it("links a recent match only to the authenticated owner's saved recording", asy
   await library.remove(owner.id, saved.id);
   expect(await (await profile()).json()).toMatchObject({ matches: [{ replay: null }] });
 });
+
+describe("atomic profile customization", () => {
+  const update = (body: unknown, authenticated = true) =>
+    fetch(`${harness.url}/account/profile`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(authenticated ? { Cookie: harness.cookie } : {}) },
+      body: JSON.stringify(body),
+    });
+  it.each(["Tamer.Name", "Li", "Tamer 🌟"])(
+    "preserves existing provider name %s for avatar changes",
+    async (displayName) => {
+      const account = await harness.store.accountForIdentity("discord", `legacy-${displayName}`, displayName);
+      const session = await harness.store.issueSession(account);
+      harness.cookie = `aegis_session=${session.id}`;
+      const response = await update({ displayName: account.displayName, avatarId: "greymon" });
+      expect(response.status).toBe(200);
+      expect(await response.json()).toMatchObject({ displayName: account.displayName, avatarId: "greymon" });
+    },
+  );
+  it("saves both identity fields and can reset the provider avatar", async () => {
+    const response = await update({ displayName: "New Tamer", avatarId: "greymon" });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ displayName: "New Tamer", avatarId: "greymon" });
+    expect((await update({ displayName: "New Tamer", avatarId: null })).status).toBe(200);
+    const session = await fetch(`${harness.url}/auth/me`, { headers: { Cookie: harness.cookie } });
+    expect(await session.json()).toMatchObject({ displayName: "New Tamer", avatarId: null });
+  });
+  it("rejects unauthorized, invalid, and conflicting changes without partially saving the avatar", async () => {
+    expect((await update({ displayName: "Valid Tamer", avatarId: "greymon" }, false)).status).toBe(401);
+    expect((await update({ displayName: "x", avatarId: "greymon" })).status).toBe(400);
+    expect((await update({ displayName: "Valid Tamer", avatarId: "bad-avatar" })).status).toBe(400);
+    await harness.store.accountForIdentity("discord", "other-customizer", "Taken Tamer");
+    expect((await update({ displayName: "Taken Tamer", avatarId: "greymon" })).status).toBe(409);
+    const session = await fetch(`${harness.url}/auth/me`, { headers: { Cookie: harness.cookie } });
+    expect(await session.json()).toMatchObject({ displayName: "Tamer", avatarId: null });
+  });
+});
