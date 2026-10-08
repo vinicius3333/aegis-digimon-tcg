@@ -83,6 +83,7 @@ export const compiled: CompiledCard = {
           optional: true,
           cost: {
             kind: "place",
+            optional: true,
             target: {
               filter: {
                 controller: "mine",

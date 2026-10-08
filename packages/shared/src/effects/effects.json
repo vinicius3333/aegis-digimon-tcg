@@ -2363,6 +2363,7 @@
                 "optional": true,
                 "cost": {
                   "kind": "suspend",
+                  "optional": true,
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                   "raw": "by suspending this Tamer"
                 },
@@ -19523,6 +19524,7 @@
             "actions": [
               {
                 "kind": "Digivolve",
+                "abortOnDecline": true,
                 "target": { "sourceRef": "triggerSubject", "filter": { "kind": ["Digimon"] }, "count": 1 },
                 "into": {
                   "controllerDefault": "mine",
@@ -19534,6 +19536,7 @@
                 "optional": true,
                 "cost": {
                   "kind": "suspend",
+                  "optional": true,
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                   "raw": "by suspending this Tamer"
                 }
@@ -23226,6 +23229,7 @@
             "optional": true,
             "cost": {
               "kind": "suspend",
+              "optional": true,
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "By suspending this Digimon"
             },
@@ -24908,6 +24912,7 @@
             "optional": true,
             "cost": {
               "kind": "deleteOwn",
+              "optional": true,
               "target": {
                 "filter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"], "colors": ["Purple"] },
                 "count": 1
@@ -24934,6 +24939,7 @@
             "optional": true,
             "cost": {
               "kind": "deleteOwn",
+              "optional": true,
               "target": {
                 "filter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"], "colors": ["Purple"] },
                 "count": 1
@@ -25927,6 +25933,7 @@
             },
             "cost": {
               "kind": "suspend",
+              "optional": true,
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "by suspending this Tamer"
             },
@@ -49010,6 +49017,7 @@
                 "optional": true,
                 "cost": {
                   "kind": "suspend",
+                  "optional": true,
                   "target": {
                     "filter": {
                       "controller": "mine",
@@ -51964,6 +51972,7 @@
             "optional": true,
             "cost": {
               "kind": "placeAsSecurity",
+              "optional": true,
               "target": {
                 "filter": { "controller": "mine", "kind": ["Digimon"], "levels": [6], "zone": "battleArea" },
                 "count": 1
@@ -61114,6 +61123,7 @@
             "optional": true,
             "cost": {
               "kind": "suspend",
+              "optional": true,
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "By suspending this Digimon"
             },
@@ -61569,15 +61579,16 @@
       },
       {
         "trigger": "Main",
-        "optional": true,
         "actions": [
           {
             "kind": "Digivolve",
+            "optional": true,
+            "abortOnDecline": true,
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "into": { "controller": "mine", "kind": ["Digimon"] },
             "from": ["security"],
             "payCost": true,
-            "cost": { "kind": "suspend" }
+            "cost": { "kind": "suspend", "optional": true, "raw": "By suspending this Tamer" }
           },
           {
             "kind": "SecurityManipulation",
@@ -61857,6 +61868,7 @@
             },
             "cost": {
               "kind": "suspend",
+              "optional": true,
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "by suspending this Tamer"
             },
@@ -65972,6 +65984,7 @@
             "optional": true,
             "cost": {
               "kind": "suspend",
+              "optional": true,
               "target": { "filter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] }, "count": 1 },
               "raw": "By suspending 1 of your other Digimon"
             },
@@ -70875,6 +70888,7 @@
                 "optional": true,
                 "cost": {
                   "kind": "suspend",
+                  "optional": true,
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                   "raw": "by suspending this Tamer"
                 },
@@ -70941,6 +70955,7 @@
                 "optional": true,
                 "cost": {
                   "kind": "suspend",
+                  "optional": true,
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                   "raw": "by suspending this Tamer"
                 },
@@ -71586,6 +71601,7 @@
                 "optional": true,
                 "cost": {
                   "kind": "moveToBattleArea",
+                  "optional": true,
                   "target": {
                     "filter": {
                       "zone": "breeding",
@@ -81428,6 +81444,7 @@
         "actions": [
           {
             "kind": "Digivolve",
+            "abortOnDecline": true,
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "into": {
               "controllerDefault": "mine",
@@ -81441,7 +81458,7 @@
             "payCost": true,
             "costDelta": -2,
             "optional": true,
-            "cost": { "kind": "trashSecurityTop", "raw": "By trashing your top security card" }
+            "cost": { "kind": "trashSecurityTop", "optional": true, "raw": "By trashing your top security card" }
           }
         ]
       },
@@ -82310,6 +82327,7 @@
             "optional": true,
             "cost": {
               "kind": "place",
+              "optional": true,
               "target": {
                 "filter": {
                   "zone": "trash",
@@ -85207,6 +85225,7 @@
             "optional": true,
             "cost": {
               "kind": "deleteOwn",
+              "optional": true,
               "target": {
                 "filter": {
                   "controller": "mine",
@@ -85452,6 +85471,7 @@
                 "optional": true,
                 "cost": {
                   "kind": "suspend",
+                  "optional": true,
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                   "raw": "by suspending this Tamer"
                 },
@@ -88745,6 +88765,7 @@
             "optional": true,
             "cost": {
               "kind": "place",
+              "optional": true,
               "targetIsPermanent": true,
               "shedOwnCards": true,
               "target": {
@@ -92493,6 +92514,7 @@
             "optional": true,
             "cost": {
               "kind": "deleteOwn",
+              "optional": true,
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "By deleting this Tamer"
             },
@@ -99790,6 +99812,7 @@
                 "optional": true,
                 "cost": {
                   "kind": "suspend",
+                  "optional": true,
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                   "raw": "by suspending this Tamer"
                 },
@@ -101437,6 +101460,7 @@
             "optional": true,
             "cost": {
               "kind": "trash",
+              "optional": true,
               "target": { "filter": { "controller": "mine", "zone": "security", "position": "top" }, "count": 1 },
               "raw": "By trashing your top security card"
             },
@@ -142163,6 +142187,7 @@
             },
             "cost": {
               "kind": "place",
+              "optional": true,
               "targetIsPermanent": true,
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "by placing this Tamer as the bottom digivolution card of any of your Digimon with [Belphemon] in their names",
@@ -147787,6 +147812,7 @@
                 "optional": true,
                 "cost": {
                   "kind": "suspend",
+                  "optional": true,
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                   "raw": "by suspending this Tamer"
                 },
@@ -170249,6 +170275,7 @@
             "optional": true,
             "cost": {
               "kind": "compound",
+              "optional": true,
               "costs": [
                 { "kind": "suspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } },
                 {
@@ -170282,6 +170309,7 @@
             "optional": true,
             "cost": {
               "kind": "compound",
+              "optional": true,
               "costs": [
                 { "kind": "suspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } },
                 {
@@ -173889,6 +173917,7 @@
             "optional": true,
             "cost": {
               "kind": "deleteOwn",
+              "optional": true,
               "target": {
                 "filter": {
                   "controller": "mine",
@@ -173919,6 +173948,7 @@
             "optional": true,
             "cost": {
               "kind": "deleteOwn",
+              "optional": true,
               "target": {
                 "filter": {
                   "controller": "mine",
@@ -175837,6 +175867,7 @@
                 "optional": true,
                 "cost": {
                   "kind": "suspend",
+                  "optional": true,
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                   "raw": "by suspending this Tamer"
                 },
@@ -179889,6 +179920,7 @@
             },
             "cost": {
               "kind": "suspend",
+              "optional": true,
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "by suspending this Tamer"
             },
@@ -183975,6 +184007,7 @@
                 "optional": true,
                 "cost": {
                   "kind": "suspend",
+                  "optional": true,
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                   "raw": "by suspending this Tamer"
                 },
@@ -185001,6 +185034,7 @@
             "optional": true,
             "cost": {
               "kind": "trash",
+              "optional": true,
               "target": {
                 "filter": {
                   "zone": "digivolutionCards",
@@ -186363,6 +186397,7 @@
             "optional": true,
             "cost": {
               "kind": "place",
+              "optional": true,
               "target": {
                 "filter": {
                   "zone": "trash",
@@ -186736,6 +186771,7 @@
             "optional": true,
             "cost": {
               "kind": "deleteOwn",
+              "optional": true,
               "target": {
                 "filter": {
                   "controller": "mine",
@@ -186769,6 +186805,7 @@
             "optional": true,
             "cost": {
               "kind": "deleteOwn",
+              "optional": true,
               "target": {
                 "filter": {
                   "controller": "mine",
@@ -187930,6 +187967,7 @@
             "optional": true,
             "cost": {
               "kind": "place",
+              "optional": true,
               "target": {
                 "filter": {
                   "zone": "trash",
@@ -187980,6 +188018,7 @@
             "optional": true,
             "cost": {
               "kind": "place",
+              "optional": true,
               "target": {
                 "filter": {
                   "zone": "trash",
@@ -188086,6 +188125,7 @@
             "optional": true,
             "cost": {
               "kind": "place",
+              "optional": true,
               "target": {
                 "filter": {
                   "zone": "trash",
@@ -189779,6 +189819,7 @@
             "optional": true,
             "cost": {
               "kind": "place",
+              "optional": true,
               "target": { "filter": { "controller": "mine", "zone": "hand" }, "count": 1, "from": ["hand"] },
               "host": "target",
               "underFilter": {
@@ -201215,6 +201256,7 @@
             "actions": [
               {
                 "kind": "Digivolve",
+                "abortOnDecline": true,
                 "target": {
                   "filter": {
                     "controller": "mine",
@@ -201235,6 +201277,7 @@
                 "optional": true,
                 "cost": {
                   "kind": "suspend",
+                  "optional": true,
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                   "raw": "by suspending this Tamer"
                 }
@@ -201709,6 +201752,7 @@
                 "optional": true,
                 "cost": {
                   "kind": "suspend",
+                  "optional": true,
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                   "raw": "by suspending this Tamer"
                 },
@@ -216901,6 +216945,7 @@
             "optional": true,
             "cost": {
               "kind": "trashBottomFaceDownUnderTamer",
+              "optional": true,
               "controller": "mine",
               "raw": "By trashing the bottom face-down card from under any of your Tamers"
             },
@@ -218028,6 +218073,7 @@
             "optional": true,
             "cost": {
               "kind": "trash",
+              "optional": true,
               "target": {
                 "filter": {
                   "controller": "mine",
@@ -218772,6 +218818,7 @@
           {
             "effectTextPart": "Then, by trashing 2 bottom face-down cards from under any of your Tamers, this Digimon may digivolve into a [DATA SQUAD] trait Digimon card in the hand without paying the cost.",
             "kind": "Digivolve",
+            "abortOnDecline": true,
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "into": {
               "controllerDefault": "mine",
@@ -218781,9 +218828,9 @@
             "from": ["hand"],
             "payCost": false,
             "optional": true,
-            "payCostBeforeOptional": false,
             "cost": {
               "kind": "trashBottomFaceDownUnderTamer",
+              "optional": true,
               "controller": "mine",
               "count": 2,
               "raw": "by trashing 2 bottom face-down cards from under any of your Tamers"
@@ -218814,6 +218861,7 @@
           {
             "effectTextPart": "Then, by trashing 2 bottom face-down cards from under any of your Tamers, this Digimon may digivolve into a [DATA SQUAD] trait Digimon card in the hand without paying the cost.",
             "kind": "Digivolve",
+            "abortOnDecline": true,
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "into": {
               "controllerDefault": "mine",
@@ -218823,9 +218871,9 @@
             "from": ["hand"],
             "payCost": false,
             "optional": true,
-            "payCostBeforeOptional": false,
             "cost": {
               "kind": "trashBottomFaceDownUnderTamer",
+              "optional": true,
               "controller": "mine",
               "count": 2,
               "raw": "by trashing 2 bottom face-down cards from under any of your Tamers"
@@ -218856,6 +218904,7 @@
           {
             "effectTextPart": "Then, by trashing 2 bottom face-down cards from under any of your Tamers, this Digimon may digivolve into a [DATA SQUAD] trait Digimon card in the hand without paying the cost.",
             "kind": "Digivolve",
+            "abortOnDecline": true,
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "into": {
               "controllerDefault": "mine",
@@ -218865,9 +218914,9 @@
             "from": ["hand"],
             "payCost": false,
             "optional": true,
-            "payCostBeforeOptional": false,
             "cost": {
               "kind": "trashBottomFaceDownUnderTamer",
+              "optional": true,
               "controller": "mine",
               "count": 2,
               "raw": "by trashing 2 bottom face-down cards from under any of your Tamers"
@@ -229735,22 +229784,32 @@
             "sourceFilter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] },
             "actions": [
               {
-                "kind": "Digivolve",
-                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-                "into": {
-                  "filter": {
-                    "controller": "mine",
-                    "zone": "hand",
-                    "nameOrTrait": [{ "tokens": ["Vegetation", "Fairy", "DATA SQUAD"], "match": "trait" }],
-                    "kind": ["Digimon"]
-                  },
-                  "count": 1
+                "kind": "CostGatedBlock",
+                "cost": {
+                  "kind": "suspend",
+                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
                 },
-                "from": ["hand"],
-                "payCost": true,
-                "costDelta": -1,
                 "optional": true,
-                "cost": { "kind": "suspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
+                "abortOnDecline": true,
+                "actions": [
+                  {
+                    "kind": "Digivolve",
+                    "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                    "into": {
+                      "filter": {
+                        "controller": "mine",
+                        "zone": "hand",
+                        "nameOrTrait": [{ "tokens": ["Vegetation", "Fairy", "DATA SQUAD"], "match": "trait" }],
+                        "kind": ["Digimon"]
+                      },
+                      "count": 1
+                    },
+                    "from": ["hand"],
+                    "payCost": true,
+                    "costDelta": -1,
+                    "optional": true
+                  }
+                ]
               }
             ],
             "raw": "When any of your opponent's Digimon or Tamers suspend, by suspending this Tamer, 1 of your Digimon may digivolve into a Vegetation, Fairy, or DATA SQUAD Digimon from hand with cost reduced by 1."
@@ -229762,22 +229821,32 @@
             "hostFilter": { "isSelfRef": true },
             "actions": [
               {
-                "kind": "Digivolve",
-                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-                "into": {
-                  "filter": {
-                    "controller": "mine",
-                    "zone": "hand",
-                    "nameOrTrait": [{ "tokens": ["Vegetation", "Fairy", "DATA SQUAD"], "match": "trait" }],
-                    "kind": ["Digimon"]
-                  },
-                  "count": 1
+                "kind": "CostGatedBlock",
+                "cost": {
+                  "kind": "suspend",
+                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
                 },
-                "from": ["hand"],
-                "payCost": true,
-                "costDelta": -1,
                 "optional": true,
-                "cost": { "kind": "suspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
+                "abortOnDecline": true,
+                "actions": [
+                  {
+                    "kind": "Digivolve",
+                    "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                    "into": {
+                      "filter": {
+                        "controller": "mine",
+                        "zone": "hand",
+                        "nameOrTrait": [{ "tokens": ["Vegetation", "Fairy", "DATA SQUAD"], "match": "trait" }],
+                        "kind": ["Digimon"]
+                      },
+                      "count": 1
+                    },
+                    "from": ["hand"],
+                    "payCost": true,
+                    "costDelta": -1,
+                    "optional": true
+                  }
+                ]
               }
             ],
             "raw": "When effects trash cards from under this Tamer, by suspending this Tamer, 1 of your Digimon may digivolve into a Vegetation, Fairy, or DATA SQUAD Digimon from hand with cost reduced by 1."

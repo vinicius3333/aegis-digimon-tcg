@@ -19,6 +19,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Digivolve",
+          abortOnDecline: true,
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           into: {
             controllerDefault: "mine",
@@ -32,7 +33,7 @@ export const compiled: CompiledCard = {
           payCost: true,
           costDelta: -2,
           optional: true,
-          cost: { kind: "trashSecurityTop", raw: "By trashing your top security card" },
+          cost: { kind: "trashSecurityTop", optional: true, raw: "By trashing your top security card" },
         },
       ],
     },

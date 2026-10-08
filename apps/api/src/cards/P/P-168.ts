@@ -31,6 +31,7 @@ const compiled: CompiledCard = {
           actions: [
             {
               kind: "Digivolve",
+              abortOnDecline: true,
               target: {
                 filter: { controller: "mine", ...aquaOrSeaAnimal },
                 count: 1,
@@ -46,6 +47,7 @@ const compiled: CompiledCard = {
               optional: true,
               cost: {
                 kind: "suspend",
+                optional: true,
                 target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
                 raw: "by suspending this Tamer",
               },

@@ -191,7 +191,7 @@ describe("BT23-088 K", () => {
       },
       // Keeps K on the board: its end-of-turn By-deletion is payable without a digivolution
       // target (CR 15-7-5), and this test is about the Start of Main clause.
-      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Digivolve"] },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Pay cost:", "Digivolve"] },
     );
     const firstId = s.inst("first").instanceId;
     const secondId = s.inst("second").instanceId;

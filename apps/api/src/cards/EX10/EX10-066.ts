@@ -50,6 +50,7 @@ export const compiled: CompiledCard = {
           },
           cost: {
             kind: "place",
+            optional: true,
             targetIsPermanent: true,
             target: {
               filter: {

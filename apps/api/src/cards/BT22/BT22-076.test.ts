@@ -405,7 +405,7 @@ describe("BT22-076 ShinMonzaemon — KB Q&A rulings", () => {
       ).toEqual({ ok: true });
       await settle(() => s.state.pendingDecision?.kind === "optional");
       const choice = s.state.pendingDecision!;
-      options.autoDeclineOptional = true;
+
       expect(
         s.engine.applyIntent(0, {
           type: "respondDecision",
@@ -413,6 +413,16 @@ describe("BT22-076 ShinMonzaemon — KB Q&A rulings", () => {
           response: { kind: "optional", accept: true },
         }),
       ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      options.autoDeclineOptional = true;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toEqual({ ok: true });
+
       await settle();
 
       expect(s.perm("host").topCard.cardId).toBe("BT22-076");

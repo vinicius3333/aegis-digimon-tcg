@@ -58,6 +58,8 @@ import {
  */
 export const DEV_SCENARIO_IDS = [
   "arena-github-5299-ravemon-bottom-security",
+  "arena-github5300-yoshino-cost-payload",
+  "arena-github5300-keenan-cost-execute",
   "arena-github-5297-omnimon-main-dna",
   "arena-github-5297-omnimon-agumon-dna",
   "arena-github-5286-lordknightmon-knightmon",
@@ -1575,12 +1577,56 @@ function layBt26RavemonNestedOnDeletionScenario(state: GameState, decks: readonl
   state.memory = 6;
 }
 
+/** GitHub #5300: optional suspension, then the card's separately printed payload. */
+function layGithub5300TamerScenario(state: GameState, decks: readonly [Decklist, Decklist], keenan: boolean): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, { mainDeck: Array(40).fill("BT1-009"), eggDeck: decks[seat].eggDeck });
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  const bot = state.players[1];
+  if (human !== undefined) {
+    const tamer = establishedDigimon(0, [keenan ? "BT26-094" : "BT26-091"], "-github5300-tamer");
+    pushOnStack(tamer, faceDownCard("dev-github5300-under", "BT1-001", 0));
+    placePermanent(human, tamer);
+    placePermanent(human, establishedDigimon(0, ["BT26-039"], "-github5300-base"));
+    if (keenan) {
+      placePermanent(human, establishedDigimon(0, ["ST24-09"], "-github5300-other-base"));
+      placePermanent(human, establishedDigimon(0, ["BT1-009"], "-github5300-ineligible"));
+    } else insertCard(human, Zone.Hand, faceDownCard("dev-github5300-evolution", "BT26-044", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-github5300-trigger", keenan ? "EX6-049" : "ST24-09", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-github5300-falcomon", "ST24-12", 0));
+    insertCard(human, Zone.Trash, faceDownCard("dev-github5300-recovery", "ST24-08", 0));
+  }
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-github5300-enemy"));
+    if (keenan)
+      for (let i = 0; i < 7; i += 1)
+        insertCard(bot, Zone.Hand, faceDownCard(`dev-github5300-bot-hand-${i}`, "BT1-009", 1));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
+function layGithub5300YoshinoScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  layGithub5300TamerScenario(state, decks, false);
+}
+
+function layGithub5300KeenanScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  layGithub5300TamerScenario(state, decks, true);
+}
+
 /**
  * Discord 1555741214014447737: three Yoshino Fujieda watch the same events. Lilamon suspends 1 of
  * the bot's Digimon and trashes 2 cards from under the first Yoshino in one payment, then
  * Rosemon suspends 2 more at once. Each event triggers each Yoshino once, and the order prompt's
  * "resolve after these" list must leave the offered effects and the resolve button in view.
  */
+
 function layBt26YoshinoTriggerStackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
@@ -8132,6 +8178,8 @@ function layGithub5297OmnimonDnaScenario(state: GameState, includeSecondPair: bo
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github-5299-ravemon-bottom-security": layGithub5299RavemonBottomSecurityScenario,
+  "arena-github5300-yoshino-cost-payload": layGithub5300YoshinoScenario,
+  "arena-github5300-keenan-cost-execute": layGithub5300KeenanScenario,
   "arena-github-5297-omnimon-main-dna": (state) => layGithub5297OmnimonDnaScenario(state, true),
   "arena-github-5297-omnimon-agumon-dna": (state) => layGithub5297OmnimonDnaScenario(state, false),
   "arena-github-5286-lordknightmon-knightmon": layGithubLordKnightmonScenario,

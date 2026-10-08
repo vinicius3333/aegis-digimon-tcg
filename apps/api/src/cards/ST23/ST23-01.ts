@@ -31,6 +31,7 @@ const compiled: CompiledCard = {
           optional: true,
           cost: {
             kind: "trashBottomFaceDownUnderTamer",
+            optional: true,
             controller: "mine",
             raw: "By trashing the bottom face-down card from under any of your Tamers",
           },

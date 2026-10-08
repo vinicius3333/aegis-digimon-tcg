@@ -30,6 +30,7 @@ export const compiled: CompiledCard = {
           optional: true,
           cost: {
             kind: "deleteOwn",
+            optional: true,
             target: {
               filter: {
                 controller: "mine",
@@ -84,6 +85,7 @@ export const compiled: CompiledCard = {
           optional: true,
           cost: {
             kind: "deleteOwn",
+            optional: true,
             target: {
               filter: {
                 controller: "mine",

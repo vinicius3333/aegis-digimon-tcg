@@ -96,6 +96,7 @@ export const compiled: CompiledCard = {
           optional: true,
           cost: {
             kind: "placeAsSecurity",
+            optional: true,
             target: {
               filter: {
                 controller: "mine",

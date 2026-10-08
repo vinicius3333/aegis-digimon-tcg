@@ -62,6 +62,7 @@ export const compiled: CompiledCard = {
           optional: true,
           cost: {
             kind: "deleteOwn",
+            optional: true,
             target: {
               filter: {
                 isSelfRef: true,

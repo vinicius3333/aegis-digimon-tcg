@@ -37,6 +37,7 @@ export const compiled: CompiledCard = {
           optional: true,
           cost: {
             kind: "compound",
+            optional: true,
             costs: [
               {
                 kind: "suspend",
@@ -93,6 +94,7 @@ export const compiled: CompiledCard = {
           optional: true,
           cost: {
             kind: "compound",
+            optional: true,
             costs: [
               {
                 kind: "suspend",

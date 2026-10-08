@@ -202,6 +202,15 @@ describe("BT20-018 Ouryumon", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").topCard.cardId === "BT20-018");
     await settle(() => s.state.pendingDecision?.kind === "optional");
     expect(
