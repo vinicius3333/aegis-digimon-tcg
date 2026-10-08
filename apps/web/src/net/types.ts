@@ -530,6 +530,7 @@ export interface AegisJoinOptions {
     | "arena-ex7-deputymon-option-trash-trigger"
     | "arena-bt22-leopardmon-king-drasil"
     | "arena-bt13-king-drasil-source-count"
+    | "arena-ui-king-drasil-mandatory-order"
     | "arena-bt13-omnimon-later-token-rush"
     | "arena-st12-blanc-rush-second-attack"
     | "arena-bt26-zombie-plutomon-removed-trigger"

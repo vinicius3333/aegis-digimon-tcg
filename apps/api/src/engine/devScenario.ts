@@ -322,6 +322,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex7-deputymon-option-trash-trigger",
   "arena-bt22-leopardmon-king-drasil",
   "arena-bt13-king-drasil-source-count",
+  "arena-ui-king-drasil-mandatory-order",
   "arena-bt13-omnimon-later-token-rush",
   "arena-st12-blanc-rush-second-attack",
   "arena-bt26-zombie-plutomon-removed-trigger",
@@ -6110,6 +6111,14 @@ function layBt13KingDrasilSourceCountScenario(state: GameState, decks: readonly 
   insertCard(human, Zone.Deck, faceDownCard("dev-king-drasil-neutral-draw", "BT1-085", 0), "top");
 }
 
+/** Three physical inherited King Drasil clauses after a genuine Royal Knights Option placement. */
+function layUiKingDrasilMandatoryOrderScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  layBt13KingDrasilSourceCountScenario(state, decks);
+  const human = state.players[0];
+  if (human === undefined) return;
+  insertCard(human, Zone.Hand, faceDownCard("dev-ui-king-drasil-royal-purge", "BT13-110", 0));
+}
+
 /**
  * Reproduce Discord bug 1555593718147448942: Omnimon plays Jesmon from under the breeding King
  * Drasil_7D6, and Jesmon's trigger plays an [Atho, René & Por] Token after Omnimon's effect has
@@ -8422,6 +8431,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex7-deputymon-option-trash-trigger": layEx7DeputymonOptionTrashTriggerScenario,
   "arena-bt22-leopardmon-king-drasil": layLeopardmonKingDrasilScenario,
   "arena-bt13-king-drasil-source-count": layBt13KingDrasilSourceCountScenario,
+  "arena-ui-king-drasil-mandatory-order": layUiKingDrasilMandatoryOrderScenario,
   "arena-bt13-omnimon-later-token-rush": layBt13OmnimonLaterTokenRushScenario,
   "arena-st12-blanc-rush-second-attack": laySt12BlancRushSecondAttackScenario,
   "arena-bt26-zombie-plutomon-removed-trigger": layZombiePlutomonRemovedTriggerScenario,
