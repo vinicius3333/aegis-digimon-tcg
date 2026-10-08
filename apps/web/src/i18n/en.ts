@@ -1,3 +1,4 @@
+import { profileReplayEn } from "./profileReplays";
 import { replayEn } from "./replays";
 import releaseMessages from "../releases/messages.json";
 import { arenaEn } from "./redesign/arena.en";
@@ -17,6 +18,7 @@ import { shellEn } from "./redesign/shell.en";
    error. Placeholders use {name} and are filled by `t(key, params)`. */
 
 export const en = {
+  ...profileReplayEn,
   ...replayEn,
   "game.dragIntent.reorder": "REORDER HAND",
   "settings.sortHand": "Sort hand",

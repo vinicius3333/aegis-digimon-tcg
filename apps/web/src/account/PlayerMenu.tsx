@@ -210,6 +210,11 @@ export function PlayerMenu({
       </section>
 
       <nav className="player-menu__links" aria-label={t("playerMenu.linksAria")}>
+        <a href="/profile">
+          <Icons.User size={18} />
+          <span>{t("profile.title")}</span>
+          <Icons.ChevronRight size={18} />
+        </a>
         {links.map((link) => (
           <button
             key={link.key}

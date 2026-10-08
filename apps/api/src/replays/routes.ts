@@ -61,6 +61,66 @@ export function installReplayRoutes({
       res.send(file.bytes);
     }),
   );
+  app.put(
+    "/account/replays/:id/visibility",
+    route(async (req, res, owner) => {
+      const id = String(req.params.id ?? "");
+      if (!UUID.test(id)) {
+        res.sendStatus(404);
+        return;
+      }
+      const visibility = req.body?.visibility;
+      if (visibility !== "private" && visibility !== "public") {
+        res.status(400).json({ error: "invalid_visibility" });
+        return;
+      }
+      const replay = await library.setVisibility(owner, id, visibility);
+      if (!replay) {
+        res.sendStatus(404);
+        return;
+      }
+      res.json(replay);
+    }),
+  );
+  const publicLimit = tokenBucketLimiter({ capacity: 30, refillMs: 2000 });
+  for (const file of [false, true])
+    app.get(file ? "/replays/:id/file" : "/replays/:id", async (req, res, next) => {
+      res.setHeader("Cache-Control", "private, no-store");
+      res.setHeader("X-Robots-Tag", "noindex, nofollow");
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      try {
+        if (!publicLimit(req.ip ?? "unknown")) {
+          res.sendStatus(429);
+          return;
+        }
+        const id = String(req.params.id ?? "");
+        if (!UUID.test(id)) {
+          res.sendStatus(404);
+          return;
+        }
+        const current = await session(req);
+        if (!file) {
+          const replay = await library.accessible(current?.account.id, id);
+          if (!replay) {
+            res.sendStatus(404);
+            return;
+          }
+          res.json(replay);
+          return;
+        }
+        const found = await library.file(current?.account.id, id);
+        if (!found) {
+          res.sendStatus(404);
+          return;
+        }
+        res.setHeader("Content-Type", "application/gzip");
+        res.setHeader("Content-Disposition", `attachment; filename="aegis-${id}.aegis-replay"`);
+        res.send(found.bytes);
+      } catch (error) {
+        if (error instanceof ReplayLibraryError) res.status(503).json({ error: error.code });
+        else next(error);
+      }
+    });
   app.delete(
     "/account/replays/:id",
     route(async (req, res, owner) => {

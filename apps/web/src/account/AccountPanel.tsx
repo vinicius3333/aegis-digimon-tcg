@@ -120,6 +120,7 @@ export function AccountPanel({
   const stats = profile?.stats;
   return (
     <div className="account-panel">
+      <a href="/profile">{t("profile.history")} →</a>
       <div className="account-panel__identity">
         <Avatar name={account.displayName} avatarId={account.avatarId} avatarUrl={account.avatarUrl} size={56} ring />
         <div className="account-panel__identity-copy">
@@ -229,11 +230,10 @@ export function AccountPanel({
       {visibleMatches.length ? (
         <section className="account-panel__section">
           <SectionHeading level={3} title={t("account.recentMatches")} />
-          {visibleMatches.slice(0, 5).map((match) => (
+          {visibleMatches.slice(0, 10).map((match) => (
             <div key={match.id} className="account-panel__match" data-result={match.result}>
               <span>
-                {match.opponentName} ·{" "}
-                {match.mode === "ranked" ? t("account.mode.ranked") : t("account.mode.tournament")}
+                {match.opponentName} · {t(`replay.mode.${match.mode}`)}
               </span>
               <strong>
                 {match.result === "win"

@@ -8,6 +8,7 @@ import { Icons } from "../design/icons";
 import { Button } from "../design/primitives";
 import { createPlaybackClock, frameDelay, playbackState, presentationEnd, turnPositions } from "./playback";
 import { SEQUENTIAL_PACING_ENABLED } from "../features";
+import { ReplayVideoExport } from "./ReplayVideoExport";
 import { createAnimationPlayback } from "../game/animationPlayback";
 
 const emptyDeck = { mainDeck: [], eggDeck: [] };
@@ -17,16 +18,19 @@ export function ReplayPlayer({
   replay,
   onClose,
   devProbe,
+  exportRequested,
 }: {
   replay: MatchReplay;
   onClose: () => void;
   devProbe?: PresentationProbe;
+  exportRequested?: boolean;
 }) {
   const observer = useRef(devProbe);
   observer.current = devProbe;
   const { t, locale } = useTranslation();
   const [cursor, setCursor] = useState({ index: 0, from: 0, epoch: 0, animate: false });
   const [playing, setPlaying] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [settled, setSettled] = useState(true);
   const clock = useMemo(() => createPlaybackClock(), []);
   const [speed, setSpeed] = useState(1);
@@ -213,7 +217,32 @@ export function ReplayPlayer({
     replay.winnerSeat < 0 ? t("replay.draw") : t("replay.winner", { name: replay.players[replay.winnerSeat]! });
 
   return (
-    <section ref={surface} className="replay-player" aria-label={t("replay.title")}>
+    <section
+      ref={surface}
+      className={`replay-player${exporting ? " replay-player--exporting" : ""}`}
+      aria-label={t("replay.title")}
+    >
+      <ReplayVideoExport
+        replayId={replay.id}
+        requested={exportRequested}
+        finished={atEnd && settled}
+        onPrepare={() => {
+          seek(0);
+          setSpeed(1);
+          setShowHand(true);
+          setHistoryOpen(false);
+          setExporting(true);
+        }}
+        onStart={() => {
+          controls.current?.queue.resume();
+          setPlaying(true);
+        }}
+        onStop={() => {
+          controls.current?.queue.pause();
+          setPlaying(false);
+          setExporting(false);
+        }}
+      />
       <header className="replay-player__heading">
         <Button
           variant="secondary"

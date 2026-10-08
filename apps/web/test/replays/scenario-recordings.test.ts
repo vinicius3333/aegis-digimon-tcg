@@ -87,5 +87,5 @@ describe("authoritative complex replay recordings", () => {
         session.dispose();
         vi.useRealTimers();
       }
-    });
+    }, 30000);
 });

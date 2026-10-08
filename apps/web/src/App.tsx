@@ -43,6 +43,7 @@ import { isUiPreviewPath } from "./prototype/routes";
 import { SEQUENTIAL_PACING_ENABLED } from "./features";
 import { clearReconnectSession, loadReconnectSession } from "./net/reconnectSession";
 
+const ProfileScreen = lazy(() => import("./account/ProfileScreen").then((m) => ({ default: m.ProfileScreen })));
 const ReplaysScreen = lazy(() => import("./replays/ReplaysScreen").then((m) => ({ default: m.ReplaysScreen })));
 const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
 const ReleasesScreen = lazy(() => import("./releases/ReleasesScreen").then((m) => ({ default: m.ReleasesScreen })));
@@ -601,11 +602,21 @@ export function AegisClient({
 
           {screen === "collection" && <Collection />}
 
-          {screen === "replays" && <ReplaysScreen onViewingChange={setReplayViewing} />}
+          {screen === "replays" && (
+            <ReplaysScreen
+              key={route.replayId ?? "library"}
+              replayId={route.replayId}
+              onCloseLink={() => navigate({ screen: "replays" })}
+              onViewingChange={setReplayViewing}
+            />
+          )}
 
           {screen === "releases" && <ReleasesScreen />}
 
-          {screen === "settings" && (
+          {screen === "settings" && route.profile && (
+            <ProfileScreen account={account} onAccountChange={(updated) => setAccount?.({ ...account, ...updated })} />
+          )}
+          {screen === "settings" && !route.profile && (
             <Settings
               player={effectivePlayer}
               account={account}

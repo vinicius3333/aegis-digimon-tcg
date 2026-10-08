@@ -18,6 +18,7 @@ export interface SavedReplay {
   bytes: number;
   savedAt: number;
   status: "pending" | "ready" | "deleting";
+  visibility: "private" | "public";
 }
 
 export type ReplaySaveError = "sign_in" | "limit" | "size" | "unavailable" | "storage_full";

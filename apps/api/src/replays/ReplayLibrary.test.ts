@@ -177,3 +177,58 @@ describe("private account replay library", () => {
     expect(list.replays).toHaveLength(1);
   });
 });
+
+describe("replay link visibility", () => {
+  it("defaults to private, allows public reads and immediately revokes future reads", async () => {
+    const { owner, other, library, storage } = await setup();
+    const saved = await library.save(owner.id, message());
+    expect(saved.visibility).toBe("private");
+    expect(await library.accessible(undefined, saved.id)).toBeUndefined();
+    expect(await library.file(other.id, saved.id)).toBeUndefined();
+    expect(await library.setVisibility(other.id, saved.id, "public")).toBeUndefined();
+    expect((await library.setVisibility(owner.id, saved.id, "public"))?.visibility).toBe("public");
+    expect((await library.file(undefined, saved.id))?.bytes).toBeTruthy();
+    const get = storage.get.bind(storage);
+    storage.get = async (key) => {
+      const bytes = await get(key);
+      await library.setVisibility(owner.id, saved.id, "private");
+      return bytes;
+    };
+    expect(await library.file(undefined, saved.id)).toBeUndefined();
+    expect(await library.accessible(other.id, saved.id)).toBeUndefined();
+    expect((await library.file(owner.id, saved.id))?.bytes).toBeTruthy();
+    await library.remove(owner.id, saved.id);
+    expect(await library.accessible(owner.id, saved.id)).toBeUndefined();
+  });
+  it("authorizes both public endpoints and owner-only mutations with no-store responses", async () => {
+    const { accounts, owner, other, library } = await setup();
+    const saved = await library.save(owner.id, message());
+    const ownerSession = await accounts.issueSession(owner);
+    const otherSession = await accounts.issueSession(other);
+    const app = express();
+    app.use(express.json());
+    installReplayRoutes({ app, library, session: (req) => accounts.session(req.headers.cookie?.split("=")[1]) });
+    const server = createServer(app);
+    servers.push(server);
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
+    const update = (session: string | undefined, visibility: string) =>
+      fetch(`${base}/account/replays/${saved.id}/visibility`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...(session ? { Cookie: `aegis_session=${session}` } : {}) },
+        body: JSON.stringify({ visibility }),
+      });
+    expect((await update(undefined, "public")).status).toBe(401);
+    expect((await update(otherSession.id, "public")).status).toBe(404);
+    expect((await update(ownerSession.id, "invalid")).status).toBe(400);
+    for (const suffix of ["", "/file"]) expect((await fetch(`${base}/replays/${saved.id}${suffix}`)).status).toBe(404);
+    expect((await update(ownerSession.id, "public")).status).toBe(200);
+    for (const suffix of ["", "/file"]) {
+      const response = await fetch(`${base}/replays/${saved.id}${suffix}`);
+      expect(response.status).toBe(200);
+      expect(response.headers.get("cache-control")).toContain("no-store");
+    }
+    expect((await update(ownerSession.id, "private")).status).toBe(200);
+    for (const suffix of ["", "/file"]) expect((await fetch(`${base}/replays/${saved.id}${suffix}`)).status).toBe(404);
+  });
+});

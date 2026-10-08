@@ -1,6 +1,7 @@
 import { gunzipSync } from "node:zlib";
 import { CloseCode, type Client } from "colyseus";
 import { REPLAY_CHANNEL, REPLAY_SAVE_CHANNEL, type MatchReplay, type ReplayDownloadMessage } from "@aegis/shared";
+import type { AccountStore } from "../accounts/AccountStore.js";
 import type { ReplayLibrary } from "../replays/ReplayLibrary.js";
 import { ReplayLibraryError } from "../replays/ReplayLibrary.js";
 import type { SeriesRecord } from "./series/SeriesDirectory.js";
@@ -19,6 +20,9 @@ async function start(bestOf = 1) {
   room.unlock = vi.fn<typeof room.unlock>(async () => {});
   room.setMatchmaking = vi.fn<typeof room.setMatchmaking>(async () => {});
   room.broadcast = vi.fn<typeof room.broadcast>(() => true);
+  Reflect.set(room, "accounts", () => ({
+    recordRecentMatch: vi.fn<AccountStore["recordRecentMatch"]>(async () => {}),
+  }));
   await room.onCreate({ seed: 1, bestOf });
   const players = ["a", "b"].map((sessionId) => ({ sessionId, send: vi.fn<Client["send"]>() }) as unknown as Client);
   for (const [seat, client] of players.entries()) {
@@ -39,6 +43,24 @@ function replayOf(client: Client): MatchReplay | undefined {
 }
 
 describe("room replay delivery", () => {
+  it("records both participants before a quitter's identity is removed during database I/O", async () => {
+    const { room, players } = await start();
+    const identities = Reflect.get(room, "accountByClient") as Map<string, string>;
+    identities.set(players[0]!.sessionId, "owner-zero");
+    identities.set(players[1]!.sessionId, "owner-one");
+    let release!: () => void;
+    const waiting = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const record = vi.fn<AccountStore["recordRecentMatch"]>(async () => waiting);
+    Reflect.set(room, "accounts", () => ({ recordRecentMatch: record }));
+    await room.onLeave(players[1]!, CloseCode.CONSENTED);
+    expect(identities.has(players[1]!.sessionId)).toBe(false);
+    expect(record.mock.calls.map(([owner]) => owner)).toEqual(["owner-zero", "owner-one"]);
+    expect(record.mock.calls[1]?.[2]).toMatchObject({ mode: "casual", result: "loss" });
+    release();
+  });
+
   it("saves only the seated account's authoritative completed export and reports the limit", async () => {
     const { room, players, send } = await start();
     const client = players[0]!;
@@ -74,6 +96,7 @@ describe("room replay delivery", () => {
       bytes: 1,
       savedAt: 1,
       status: "ready",
+      visibility: "private",
     }));
     Reflect.set(room, "replays", () => ({ enabled: true, save }));
     const request = (client: Client) => Reflect.get(room, "saveParticipantReplay").call(room, client) as Promise<void>;

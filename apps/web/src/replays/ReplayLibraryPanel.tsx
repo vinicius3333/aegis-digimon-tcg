@@ -4,9 +4,18 @@ import { AccountApiError } from "../account/client";
 import { Button } from "../design/primitives";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
-import { downloadSavedReplay, replayApi, type ReplayLibraryView } from "./library";
+import { ReplaySharing } from "./ReplaySharing";
+import { downloadSavedReplay, replayApi, replayPath, type ReplayLibraryView } from "./library";
 
-export function ReplayLibraryPanel({ onOpen }: { onOpen: (file: Blob) => Promise<void> }) {
+export function ReplayLibraryPanel({
+  onOpen,
+  onChange,
+  refreshKey = 0,
+}: {
+  refreshKey?: number;
+  onOpen: (file: Blob, id?: string) => Promise<void>;
+  onChange?: () => void;
+}) {
   const { t, locale } = useTranslation();
   const [library, setLibrary] = useState<ReplayLibraryView>();
   const [guest, setGuest] = useState(false);
@@ -15,22 +24,24 @@ export function ReplayLibraryPanel({ onOpen }: { onOpen: (file: Blob) => Promise
   const [busy, setBusy] = useState<string>();
   const [confirmDelete, setConfirmDelete] = useState<string>();
   const alive = useRef(true);
+  const request = useRef(0);
   async function refresh() {
+    const generation = ++request.current;
     setError(false);
     setLoading(true);
     try {
       const next = await replayApi.list();
-      if (alive.current) {
+      if (alive.current && request.current === generation) {
         setLibrary(next);
         setGuest(false);
       }
     } catch (cause) {
-      if (alive.current) {
+      if (alive.current && request.current === generation) {
         if (cause instanceof AccountApiError && cause.status === 401) setGuest(true);
         else setError(true);
       }
     } finally {
-      if (alive.current) setLoading(false);
+      if (alive.current && request.current === generation) setLoading(false);
     }
   }
   useEffect(() => {
@@ -39,7 +50,7 @@ export function ReplayLibraryPanel({ onOpen }: { onOpen: (file: Blob) => Promise
     return () => {
       alive.current = false;
     };
-  }, []);
+  }, [refreshKey]);
   async function act(item: SavedReplay, action: "open" | "download" | "delete") {
     setBusy(item.id);
     setError(false);
@@ -48,9 +59,10 @@ export function ReplayLibraryPanel({ onOpen }: { onOpen: (file: Blob) => Promise
         await replayApi.remove(item.id);
         setConfirmDelete(undefined);
         await refresh();
+        onChange?.();
       } else {
         const file = await replayApi.file(item.id);
-        if (action === "open") await onOpen(file);
+        if (action === "open") await onOpen(file, item.id);
         else downloadSavedReplay(item.id, file);
       }
     } catch {
@@ -126,6 +138,29 @@ export function ReplayLibraryPanel({ onOpen }: { onOpen: (file: Blob) => Promise
                       >
                         {t("replay.openAction")}
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                          location.href = `${replayPath(item.id)}?export=mp4`;
+                        }}
+                      >
+                        MP4
+                      </Button>
+                      <ReplaySharing
+                        replay={item}
+                        onChange={(updated) => {
+                          setLibrary((current) =>
+                            current
+                              ? {
+                                  ...current,
+                                  replays: current.replays.map((entry) => (entry.id === updated.id ? updated : entry)),
+                                }
+                              : current,
+                          );
+                          onChange?.();
+                        }}
+                      />
                       <Button
                         size="sm"
                         variant="secondary"

@@ -1,3 +1,4 @@
+import { profileReplayPtBR } from "./profileReplays";
 import { replayPtBR } from "./replays";
 /* Brazilian Portuguese strings. Typed against the English source, so a new key
    there fails typecheck here until it is translated. Game terms that are printed
@@ -19,6 +20,7 @@ import { settingsPtBR } from "./redesign/settings.pt-BR";
 import { shellPtBR } from "./redesign/shell.pt-BR";
 
 export const ptBR: Record<keyof typeof en, string> = {
+  ...profileReplayPtBR,
   ...replayPtBR,
   "game.dragIntent.reorder": "REORDENAR MÃO",
   "settings.sortHand": "Ordenar mão",

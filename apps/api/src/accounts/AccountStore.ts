@@ -76,7 +76,7 @@ export type DeckStat = DeckSnapshot & {
 export type MatchOutcomeSeat = "player0" | "player1" | "draw";
 export type MatchRecord = {
   id: string;
-  mode: "ranked" | "tournament";
+  mode: import("@aegis/shared").ReplaySummary["mode"];
   opponentName: string;
   opponentKind: "human" | "bot";
   result: "win" | "loss" | "draw";
@@ -706,6 +706,27 @@ export class AccountStore {
     });
   }
 
+  /** Recent noncompetitive metadata is bounded independently from saved replay favorites. */
+  async recordRecentMatch(accountId: string, roomId: string, record: MatchRecord): Promise<void> {
+    await this.transaction(async (client) => {
+      const owner = await client.query("SELECT id FROM accounts WHERE id=$1 FOR UPDATE", [accountId]);
+      if (!owner.rowCount) return;
+      await client.query(
+        "INSERT INTO account_recent_matches (account_id,room_id,match_id,finished_at,record) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (account_id,room_id) DO NOTHING",
+        [accountId, roomId, record.id, record.finishedAt, JSON.stringify(record)],
+      );
+      const older = await client.query<{ room_id: string }>(
+        "SELECT room_id FROM account_recent_matches WHERE account_id=$1 ORDER BY finished_at DESC,room_id DESC OFFSET 10",
+        [accountId],
+      );
+      for (const row of older.rows)
+        await client.query("DELETE FROM account_recent_matches WHERE account_id=$1 AND room_id=$2", [
+          accountId,
+          row.room_id,
+        ]);
+    });
+  }
+
   async profile(accountId: string): Promise<{ stats: PlayerStats; matches: MatchRecord[]; decks: DeckStat[] }> {
     await this.ensureReady();
     const statsResult = await this.pool.query<Record<string, string | number>>(
@@ -727,6 +748,7 @@ export class AccountStore {
     const matchesResult = await this.pool.query<{
       id: string;
       mode: "ranked" | "tournament";
+      room_id: string;
       winner_account_id: string | null;
       outcome: MatchOutcomeSeat | null;
       opponent_kind: "human" | "bot";
@@ -735,9 +757,14 @@ export class AccountStore {
       finished_at: string;
       opponent_name: string;
     }>(
-      "SELECT m.id,m.mode,m.winner_account_id,m.outcome,m.opponent_kind,m.player0_account_id,m.reason,m.finished_at,COALESCE(a.display_name,m.opponent_display_name,'Bot') opponent_name FROM match_records m LEFT JOIN accounts a ON a.id=CASE WHEN m.player0_account_id=$1 THEN m.player1_account_id ELSE m.player0_account_id END WHERE m.player0_account_id=$1 OR m.player1_account_id=$1 ORDER BY m.finished_at DESC LIMIT 50",
+      "SELECT m.id,m.room_id,m.mode,m.winner_account_id,m.outcome,m.opponent_kind,m.player0_account_id,m.reason,m.finished_at,COALESCE(a.display_name,m.opponent_display_name,'Bot') opponent_name FROM match_records m LEFT JOIN accounts a ON a.id=CASE WHEN m.player0_account_id=$1 THEN m.player1_account_id ELSE m.player0_account_id END WHERE m.player0_account_id=$1 OR m.player1_account_id=$1 ORDER BY m.finished_at DESC LIMIT 10",
       [accountId],
     );
+    const recent = await this.pool.query<{ room_id: string; record: MatchRecord }>(
+      "SELECT room_id,record FROM account_recent_matches WHERE account_id=$1 ORDER BY finished_at DESC LIMIT 10",
+      [accountId],
+    );
+    const recentRooms = new Set(recent.rows.map((row) => row.room_id));
     const snapshotResult = await this.pool.query<{
       snapshot_id: string;
       deck_id: string | null;
@@ -770,15 +797,22 @@ export class AccountStore {
     const decks = [...deckMap.values()].sort((a, b) => b.matches - a.matches || a.deckName.localeCompare(b.deckName));
     return {
       stats,
-      matches: matchesResult.rows.map((m) => ({
-        id: m.id,
-        mode: m.mode,
-        opponentName: m.opponent_name,
-        opponentKind: m.opponent_kind,
-        result: resultFor(m, accountId),
-        reason: m.reason,
-        finishedAt: Number(m.finished_at),
-      })),
+      matches: [
+        ...recent.rows.map((row) => row.record),
+        ...matchesResult.rows
+          .filter((m) => !recentRooms.has(m.room_id))
+          .map((m): MatchRecord => ({
+            id: m.id,
+            mode: m.mode,
+            opponentName: m.opponent_name,
+            opponentKind: m.opponent_kind,
+            result: resultFor(m, accountId),
+            reason: m.reason,
+            finishedAt: Number(m.finished_at),
+          })),
+      ]
+        .sort((a, b) => b.finishedAt - a.finishedAt)
+        .slice(0, 10),
       decks,
     };
   }

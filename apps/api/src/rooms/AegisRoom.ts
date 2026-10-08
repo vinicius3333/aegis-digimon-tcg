@@ -637,6 +637,9 @@ export class AegisRoom extends Room<{ state: GameState; metadata: { unlimited: b
           void this.lock().catch((error: unknown) =>
             this.debugError("[AegisRoom] failed to lock finished room", error),
           );
+          void this.recordRecentResults(event).catch((error) =>
+            this.debugError("[AegisRoom] failed to persist recent match", error),
+          );
           void this.recordAuthoritativeResult(event).catch((error) =>
             this.debugError("[AegisRoom] failed to persist match result", error),
           );
@@ -796,6 +799,42 @@ export class AegisRoom extends Room<{ state: GameState; metadata: { unlimited: b
       createNextRoom: async (options) => (await matchMaker.createRoom(this.roomName, options)).roomId,
       logError: (...data) => this.debugError(...data),
     };
+  }
+
+  private async recordRecentResults(
+    event: Extract<import("@aegis/shared").ServerEvent, { kind: "gameOver" }>,
+  ): Promise<void> {
+    if (this.devScenario) return;
+    const finishedAt = Date.now();
+    // Snapshot both identities before I/O: onLeave clears accountByClient synchronously.
+    const participants = ([0, 1] as const).flatMap((seat) => {
+      const player = this.state.players[seat];
+      const owner = player && this.accountByClient.get(player.sessionId);
+      if (!owner) return [];
+      const opponent = this.state.players[seat === 0 ? 1 : 0];
+      return [
+        {
+          owner,
+          record: {
+            id: this.replayRecording?.id ?? this.roomId,
+            mode: this.replayMode(),
+            opponentName: opponent?.displayName ?? "Opponent",
+            opponentKind: this.bots[seat === 0 ? 1 : 0] ? ("bot" as const) : ("human" as const),
+            result:
+              event.result.outcome === "draw"
+                ? ("draw" as const)
+                : event.result.winnerSeat === seat
+                  ? ("win" as const)
+                  : ("loss" as const),
+            reason: event.reason,
+            finishedAt,
+          },
+        },
+      ];
+    });
+    await Promise.all(
+      participants.map(({ owner, record }) => this.accounts().recordRecentMatch(owner, this.roomId, record)),
+    );
   }
 
   /**

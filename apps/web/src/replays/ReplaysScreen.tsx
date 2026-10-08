@@ -6,6 +6,7 @@ import { CardFull } from "../design/cards";
 import { Button } from "../design/primitives";
 import { readReplay, ReplayFileError, type ReplayFileErrorCode } from "./files";
 import { ReplayPlayer } from "./ReplayPlayer";
+import { replayApi } from "./library";
 import { ReplayLibraryPanel } from "./ReplayLibraryPanel";
 import "./replays.css";
 
@@ -19,10 +20,19 @@ class ReplayRenderBoundary extends Component<{ children: ReactNode; fallback: Re
   }
 }
 
-export function ReplaysScreen({ onViewingChange }: { onViewingChange?: (viewing: boolean) => void }) {
+export function ReplaysScreen({
+  onViewingChange,
+  replayId,
+  onCloseLink,
+}: {
+  onViewingChange?: (viewing: boolean) => void;
+  replayId?: string;
+  onCloseLink?: () => void;
+}) {
   const { t } = useTranslation();
   const [replay, setReplay] = useState<MatchReplay>();
   const [error, setError] = useState<ReplayFileErrorCode>();
+  const [linkError, setLinkError] = useState(false);
   const [loading, setLoading] = useState(false);
   const pending = useRef(0);
   const input = useRef<HTMLInputElement>(null);
@@ -45,9 +55,32 @@ export function ReplaysScreen({ onViewingChange }: { onViewingChange?: (viewing:
       if (pending.current === generation) setLoading(false);
     }
   }
+  useEffect(() => {
+    if (!replayId) return;
+    let active = true;
+    setLoading(true);
+    setLinkError(false);
+    setReplay(undefined);
+    void replayApi
+      .sharedFile(replayId)
+      .then(async (file) => {
+        const parsed = await readReplay(file);
+        if (active) setReplay(parsed);
+      })
+      .catch(() => {
+        if (active) setLinkError(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [replayId]);
   const close = () => {
     setReplay(undefined);
     setError(undefined);
+    if (replayId) onCloseLink?.();
   };
   if (replay)
     return (
@@ -60,8 +93,21 @@ export function ReplaysScreen({ onViewingChange }: { onViewingChange?: (viewing:
           </div>
         }
       >
-        <ReplayPlayer replay={replay} onClose={close} />
+        <ReplayPlayer
+          replay={replay}
+          onClose={close}
+          exportRequested={new URLSearchParams(location.search).get("export") === "mp4"}
+        />
       </ReplayRenderBoundary>
+    );
+  if (replayId)
+    return (
+      <section className="replay-import replay-link-state">
+        <h1>{t("replay.title")}</h1>
+        <p role={linkError ? "alert" : "status"}>{t(linkError ? "replay.linkError" : "replay.loading")}</p>
+        <a href="/profile">{t("profile.title")}</a>
+        <Button onClick={close}>{t("replay.back")}</Button>
+      </section>
     );
   return (
     <section className="replay-import">

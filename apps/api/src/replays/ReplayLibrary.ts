@@ -21,6 +21,7 @@ type ReplayRow = {
   checksum: string;
   saved_at: string;
   status: SavedReplay["status"];
+  visibility: SavedReplay["visibility"];
 };
 
 export class ReplayLibraryError extends Error {
@@ -37,6 +38,7 @@ const view = (row: ReplayRow): SavedReplay => ({
   bytes: row.byte_size,
   savedAt: Number(row.saved_at),
   status: row.status,
+  visibility: row.visibility,
 });
 const key = (row: ReplayRow) => `accounts/${row.account_id}/${row.id}.aegis-replay`;
 const checksum = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex");
@@ -121,19 +123,43 @@ export class ReplayLibrary {
     });
   }
 
-  async file(accountId: string, id: string): Promise<{ replay: SavedReplay; bytes: Buffer } | undefined> {
-    if (!this.storage) throw new ReplayLibraryError("unavailable");
+  async setVisibility(
+    accountId: string,
+    id: string,
+    visibility: SavedReplay["visibility"],
+  ): Promise<SavedReplay | undefined> {
     await this.accounts.ensureReady();
-    const row = (
+    const result = await this.accounts.pool.query<ReplayRow>(
+      "UPDATE account_replays SET visibility=$3 WHERE id=$1 AND account_id=$2 AND status='ready' RETURNING *",
+      [id, accountId, visibility],
+    );
+    return result.rows[0] ? view(result.rows[0]) : undefined;
+  }
+
+  async accessible(accountId: string | undefined, id: string): Promise<SavedReplay | undefined> {
+    const row = await this.readable(accountId, id);
+    return row ? view(row) : undefined;
+  }
+
+  private async readable(accountId: string | undefined, id: string): Promise<ReplayRow | undefined> {
+    await this.accounts.ensureReady();
+    return (
       await this.accounts.pool.query<ReplayRow>(
-        "SELECT * FROM account_replays WHERE id=$1 AND account_id=$2 AND status='ready'",
-        [id, accountId],
+        "SELECT * FROM account_replays WHERE id=$1 AND status='ready' AND (account_id=$2 OR visibility='public')",
+        [id, accountId ?? null],
       )
     ).rows[0];
+  }
+
+  async file(accountId: string | undefined, id: string): Promise<{ replay: SavedReplay; bytes: Buffer } | undefined> {
+    const row = await this.readable(accountId, id);
     if (!row) return undefined;
+    if (!this.storage) throw new ReplayLibraryError("unavailable");
     const bytes = await this.storage.get(key(row));
     if (bytes.length !== row.byte_size || checksum(bytes) !== row.checksum)
       throw new Error("Stored replay integrity mismatch");
+    // Check again after object I/O so a revocation during a slow download is respected.
+    if (!(await this.readable(accountId, id))) return undefined;
     return { replay: view(row), bytes };
   }
 

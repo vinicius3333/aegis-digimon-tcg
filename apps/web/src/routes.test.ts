@@ -11,9 +11,16 @@ describe("application routes", () => {
     ["/community", { screen: "community" }],
     ["/community/decks/abc-123", { screen: "community", communityDeckId: "abc-123" }],
     ["/settings", { screen: "settings" }],
+    ["/profile", { screen: "settings", profile: true }],
+    ["/replays/saved-id", { screen: "replays", replayId: "saved-id" }],
     ["/whats-new", { screen: "releases" }],
   ])("parses %s", (pathname, expected) => {
     expect(routeFromPathname(pathname)).toEqual(expected);
+  });
+
+  it("round-trips profile and saved replay links", () => {
+    expect(pathForRoute({ screen: "settings", profile: true })).toBe("/profile");
+    expect(pathForRoute({ screen: "replays", replayId: "saved-id" })).toBe("/replays/saved-id");
   });
 
   it("round-trips a community deck path", () => {

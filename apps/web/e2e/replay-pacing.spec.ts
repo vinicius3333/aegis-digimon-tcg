@@ -59,15 +59,22 @@ test("pause freezes the currently painted card arrival", async ({ page }) => {
   const replay = new ReplayPacingPage(page);
   await replay.open(drawReplayFixture(), "0.5");
   await replay.play();
-  await page.waitForFunction(() =>
-    document
+  // Detect and click in the same browser task: a protocol round trip can outlive a short flight under load.
+  await page.waitForFunction(() => {
+    const moving = document
       .querySelector(".replay-player__board")
       ?.getAnimations({ subtree: true })
       .some(
-        (a) => a.playState === "running" && "animationName" in a && /draw|arrival|flight/.test(String(a.animationName)),
-      ),
-  );
-  await page.getByRole("button", { name: "Pause", exact: true }).click();
+        (animation) =>
+          animation.playState === "running" &&
+          "animationName" in animation &&
+          /draw|arrival|flight/.test(String(animation.animationName)),
+      );
+    if (!moving) return false;
+    document.querySelector<HTMLButtonElement>('.replay-controls__play[aria-pressed="true"]')?.click();
+    return true;
+  });
+  await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
   const motion = await page.evaluate(async () => {
     const animations = document
       .querySelector(".replay-player__board")!

@@ -1,3 +1,4 @@
+import { ReplayLibrary } from "../replays/ReplayLibrary.js";
 import type { AddressInfo } from "node:net";
 import express from "express";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -190,4 +191,54 @@ describe("/account/preferences", () => {
     expect((await putPreferences({ darkMode: true }, false)).status).toBe(401);
     expect((await fetch(`${harness.url}/account/preferences`)).status).toBe(401);
   });
+});
+
+it("links a recent match only to the authenticated owner's saved recording", async () => {
+  const session = await harness.store.session(harness.cookie.split("=")[1]);
+  const owner = session!.account;
+  const library = new ReplayLibrary(harness.store, {
+    async put() {},
+    async get() {
+      return Buffer.from("archive");
+    },
+    async remove() {},
+  });
+  const summary = {
+    id: "recording-id",
+    players: [owner.displayName, "Opponent"] as [string, string],
+    mode: "casual" as const,
+    startedAt: 1,
+    finishedAt: 2,
+    winnerSeat: 0,
+    frameCount: 2,
+  };
+  await harness.store.recordRecentMatch(owner.id, "room-id", {
+    id: summary.id,
+    mode: "casual",
+    opponentName: "Opponent",
+    opponentKind: "human",
+    result: "win",
+    reason: "surrender",
+    finishedAt: 2,
+  });
+  const other = await harness.store.accountForIdentity("email", "other-replay@test.invalid", "Other");
+  await library.save(other.id, {
+    kind: "ready",
+    summary,
+    viewerSeat: 1,
+    data: Buffer.from("archive").toString("base64"),
+  });
+  const profile = () => fetch(`${harness.url}/account/profile`, { headers: { Cookie: harness.cookie } });
+  expect(await (await profile()).json()).toMatchObject({ matches: [{ replay: null }] });
+  const saved = await library.save(owner.id, {
+    kind: "ready",
+    summary,
+    viewerSeat: 0,
+    data: Buffer.from("archive").toString("base64"),
+  });
+  const response = await profile();
+  expect(response.headers.get("cache-control")).toContain("no-store");
+  expect(await response.json()).toMatchObject({ matches: [{ replay: { id: saved.id, visibility: "private" } }] });
+  await library.remove(owner.id, saved.id);
+  expect(await (await profile()).json()).toMatchObject({ matches: [{ replay: null }] });
 });

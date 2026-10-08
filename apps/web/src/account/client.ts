@@ -48,7 +48,8 @@ export type AccountProfile = {
   }>;
   matches: Array<{
     id: string;
-    mode: "ranked" | "tournament";
+    mode: import("@aegis/shared").ReplaySummary["mode"];
+    replay?: import("@aegis/shared").SavedReplay | null;
     opponentName: string;
     result: "win" | "loss" | "draw";
     finishedAt: number;

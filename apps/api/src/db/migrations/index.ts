@@ -25,6 +25,8 @@ import { publicDeckHiddenStatus } from "./022-public-deck-hidden-status.js";
 import { accountAvatarCheckedAt } from "./023-account-avatar-checked-at.js";
 import { accountReplays } from "./024-account-replays.js";
 
+import { replaySharingHistory } from "./025-replay-sharing-history.js";
+
 export const migrations: readonly Migration[] = [
   initialSchema,
   tournamentProgramColumns,
@@ -50,4 +52,5 @@ export const migrations: readonly Migration[] = [
   publicDeckHiddenStatus,
   accountAvatarCheckedAt,
   accountReplays,
+  replaySharingHistory,
 ];

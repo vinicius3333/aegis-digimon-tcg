@@ -1,9 +1,11 @@
+import { profileReplayIt } from "./profileReplays";
 import { replayIt } from "./replays";
 import { en } from "./en";
 
 // Historical release notes keep their published English text. All interface
 // messages are translated; printed card names and effects remain in English.
 const interfaceMessages = {
+  ...profileReplayIt,
   ...replayIt,
   "game.leaveConfirmTitle": "Lasciare questa partita?",
   "game.leaveConfirmBody": "Se esci, la partita termina e conta come una sconfitta.",
