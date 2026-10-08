@@ -18195,14 +18195,14 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "startOfYourMainPhase",
-            "on": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "kind": "GainTriggeredEffect",
+            "gainedTrigger": "StartOfYourMainPhase",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "duration": "untilOpponentTurnEnd",
-            "actions": [
+            "gainedActions": [
               { "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
             ],
-            "raw": "give 1 opposing Digimon '[Start of Your Main Phase] Attack with this Digimon' until its turn ends"
+            "raw": "[Start of Your Main Phase] This Digimon attacks."
           }
         ]
       }
@@ -90002,18 +90002,18 @@
         "trigger": "OnPlay",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "startOfYourMainPhase",
+            "kind": "GainTriggeredEffect",
+            "gainedTrigger": "StartOfYourMainPhase",
             "condition": {
               "kind": "youHave",
               "filter": { "kind": ["Tamer"], "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }] }
             },
-            "on": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "duration": "untilOpponentTurnEnd",
-            "actions": [
+            "gainedActions": [
               { "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
             ],
-            "raw": "give 1 of your opponent's Digimon '[Start of Your Main Phase] This Digimon attacks.' until their turn ends"
+            "raw": "[Start of Your Main Phase] This Digimon attacks."
           }
         ]
       },
@@ -90021,18 +90021,18 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "startOfYourMainPhase",
+            "kind": "GainTriggeredEffect",
+            "gainedTrigger": "StartOfYourMainPhase",
             "condition": {
               "kind": "youHave",
               "filter": { "kind": ["Tamer"], "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }] }
             },
-            "on": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "duration": "untilOpponentTurnEnd",
-            "actions": [
+            "gainedActions": [
               { "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
             ],
-            "raw": "give 1 of your opponent's Digimon '[Start of Your Main Phase] This Digimon attacks.' until their turn ends"
+            "raw": "[Start of Your Main Phase] This Digimon attacks."
           }
         ]
       },
@@ -105474,11 +105474,13 @@
         "trigger": "OnPlay",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "startOfYourMainPhase",
-            "on": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "kind": "GainTriggeredEffect",
+            "gainedTrigger": "StartOfYourMainPhase",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "duration": "untilOpponentTurnEnd",
-            "actions": [{ "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }]
+            "gainedActions": [
+              { "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
+            ]
           }
         ]
       },
@@ -105486,11 +105488,13 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "startOfYourMainPhase",
-            "on": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "kind": "GainTriggeredEffect",
+            "gainedTrigger": "StartOfYourMainPhase",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "duration": "untilOpponentTurnEnd",
-            "actions": [{ "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }]
+            "gainedActions": [
+              { "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
+            ]
           }
         ]
       },
@@ -149686,14 +149690,14 @@
             }
           },
           {
-            "kind": "SubTrigger",
-            "event": "startOfYourMainPhase",
-            "on": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "kind": "GainTriggeredEffect",
+            "gainedTrigger": "StartOfYourMainPhase",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "duration": "untilOpponentTurnEnd",
-            "actions": [
+            "gainedActions": [
               { "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
             ],
-            "raw": "give 1 of their Digimon '[Start of Your Main Phase] This Digimon attacks.' until their turn ends"
+            "raw": "[Start of Your Main Phase] This Digimon attacks."
           }
         ]
       },
@@ -149709,14 +149713,14 @@
             }
           },
           {
-            "kind": "SubTrigger",
-            "event": "startOfYourMainPhase",
-            "on": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "kind": "GainTriggeredEffect",
+            "gainedTrigger": "StartOfYourMainPhase",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "duration": "untilOpponentTurnEnd",
-            "actions": [
+            "gainedActions": [
               { "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
             ],
-            "raw": "give 1 of their Digimon '[Start of Your Main Phase] This Digimon attacks.' until their turn ends"
+            "raw": "[Start of Your Main Phase] This Digimon attacks."
           }
         ]
       },

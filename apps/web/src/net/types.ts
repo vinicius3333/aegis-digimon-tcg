@@ -441,6 +441,8 @@ export interface AegisJoinOptions {
     | "arena-bt24-fugamon-self-trash"
     | "arena-bt2-kurisarimon-repeat-memory"
     | "arena-bt2-kurisarimon-start-main-memory"
+    | "arena-ex12-metalgreymon-forced-attack-play"
+    | "arena-ex12-metalgreymon-forced-attack-digivolve"
     | "arena-ex12-metalgarurumon-trash-then-return"
     | "arena-bt22-palmon-cs-restack"
     | "arena-bt22-mirei-play-cost-floor"

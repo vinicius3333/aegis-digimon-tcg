@@ -27,8 +27,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "startOfYourMainPhase",
+          kind: "GainTriggeredEffect",
+          gainedTrigger: "StartOfYourMainPhase",
           condition: {
             kind: "youHave",
             filter: {
@@ -36,7 +36,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
             },
           },
-          on: {
+          target: {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
@@ -44,7 +44,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           duration: "untilOpponentTurnEnd",
-          actions: [
+          gainedActions: [
             {
               kind: "Attack",
               target: {
@@ -54,7 +54,7 @@ export const compiled: CompiledCard = {
               },
             },
           ],
-          raw: "give 1 of your opponent's Digimon '[Start of Your Main Phase] This Digimon attacks.' until their turn ends",
+          raw: "[Start of Your Main Phase] This Digimon attacks.",
         },
       ],
     },
@@ -62,8 +62,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "startOfYourMainPhase",
+          kind: "GainTriggeredEffect",
+          gainedTrigger: "StartOfYourMainPhase",
           condition: {
             kind: "youHave",
             filter: {
@@ -71,7 +71,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
             },
           },
-          on: {
+          target: {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
@@ -79,7 +79,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           duration: "untilOpponentTurnEnd",
-          actions: [
+          gainedActions: [
             {
               kind: "Attack",
               target: {
@@ -89,7 +89,7 @@ export const compiled: CompiledCard = {
               },
             },
           ],
-          raw: "give 1 of your opponent's Digimon '[Start of Your Main Phase] This Digimon attacks.' until their turn ends",
+          raw: "[Start of Your Main Phase] This Digimon attacks.",
         },
       ],
     },
