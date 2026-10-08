@@ -47,3 +47,13 @@ Exact generation prompt:
 Additional verification covers every pool/rules composition, combined saved formats, historical Unlimited queue separation, bots, private inheritance, best-of-three continuation, deck gating, and switching opponent modes. The production lobby fixture is exercised at 320, 768, 1024, and 1440 pixels.
 
 Follow-up results: 107 focused API tests, 73 frontend tests, 7 shared rules tests, and 11 browser scenarios passed. Workspace type checks and focused type checks for the added/modified format E2E files pass. The optional type check of the entire E2E directory still reports existing errors in unrelated audio/Discord scenarios and missing API build artifacts. Lint reports existing mock-type warnings and no errors; `git diff --check` passes.
+
+## Quick play and banlist details
+
+The Play screen starts with advanced settings collapsed. The visible summary shows the chosen card pool/rules, BO1/BO3, and timer state. The active deck and start action stay prominent; private Create/Join/code and existing-room controls remain outside the disclosure. Card pool/rules, series, timer duration, bot deck, beta opt-in, and random pool controls are available in Advanced settings. Collapsing the panel or switching opponent modes preserves choices. Practice remains the server's untimed single-game mode.
+
+New browser preferences default to timer ON and BO1. Explicit saved timer opt-outs and BO3 preferences remain respected; the App and lobby share the same preference readers and send those settings in match options.
+
+Banlist dates in the shared selector open a tooltip on hover, keyboard focus, or tap. The content comes from the same snapshot and pair interval functions used by validation, listing card ids/names, bans, copy limits, and forbidden pairs. The 2021-01-29 snapshot has no recorded restrictions and shows an explicit empty state. Unlimited has no banlist trigger. The tooltip supports Escape, keyboard scrolling, touch dismissal, and narrow viewports; changing formats closes it.
+
+Follow-up verification: 60 focused frontend tests pass. Eleven existing format browser scenarios and seven new tooltip/quick-play scenarios pass, including 320/768/1024/1440 layouts, single-click queue entry with timer ON/BO1, collapsed controls, keyboard disclosure, saved opt-outs/BO3, private Join essentials, historical restriction/lift/pair snapshots, empty first banlist, Escape/keyboard scrolling, and touch dismissal. Independent review found no important issues. Web and focused format E2E type checks pass; lint has no errors and only existing mock-type warnings.

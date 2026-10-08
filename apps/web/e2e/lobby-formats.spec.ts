@@ -4,6 +4,7 @@ for (const width of [320, 768, 1024, 1440]) {
   test(`historical rules persist across Random, Bot and Private at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto("/e2e/lobby-formats.html");
+    await page.getByText("Advanced settings", { exact: true }).click();
     const pool = page.getByRole("combobox", { name: "Cards through", exact: true });
     const rules = page.getByRole("combobox", { name: "Rules", exact: true });
     await expect(pool).toHaveValue("BT13");
@@ -30,6 +31,7 @@ for (const width of [320, 768, 1024, 1440]) {
 
 test("combined formats gate deck selection and bot/private starts", async ({ page }) => {
   await page.goto("/e2e/lobby-formats.html");
+  await page.getByText("Advanced settings", { exact: true }).click();
   const banned = page.getByRole("button", { name: "Historical banned card", exact: true });
   const later = page.getByRole("button", { name: "Later set card", exact: true });
   await expect(banned).toBeDisabled();
@@ -55,6 +57,7 @@ test("private guests see both fixed host controls", async ({ page }) => {
     route.fulfill({ json: { roomId: "private-room", unlimited: false, format: "BT13:pauper" } }),
   );
   await page.goto("/e2e/lobby-formats.html");
+  await page.getByText("Advanced settings", { exact: true }).click();
   await page.getByRole("button", { name: /Private Match/ }).click();
   await page.getByRole("tab", { name: "Join", exact: true }).click();
   await page.getByRole("textbox", { name: "Enter room code" }).fill("ABC234");

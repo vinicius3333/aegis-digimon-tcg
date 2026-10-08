@@ -4,12 +4,14 @@ import {
   deckFormatSettings,
   historicalDeckFormats,
   releaseDateForSet,
+  formatBanlistDate,
   type DeckFormat,
   type DeckRuleMode,
   type HistoricalDeckSet,
 } from "@aegis/shared";
 import { useTranslation, type Translate } from "../i18n";
 import "./deckFormatSelector.css";
+import { BanlistTooltip } from "./BanlistTooltip";
 
 export function deckFormatLabel(value: DeckFormat, t: Translate): string {
   const { set, rules } = deckFormatSettings(value);
@@ -75,9 +77,15 @@ export function DeckFormatSelector({
       </div>
       <p id={`${id}-summary`}>
         {date ? t("deckFormat.poolHint", { set }) : t("deckFormat.allSetsHint")}{" "}
-        {rules === "unlimited"
-          ? t("deckFormat.noBanlist")
-          : t("deckFormat.banlistHint", { date: date ?? t("deckFormat.current") })}{" "}
+        {rules === "unlimited" ? (
+          t("deckFormat.noBanlist")
+        ) : (
+          <BanlistTooltip
+            key={value}
+            date={formatBanlistDate(value)}
+            label={t("deckFormat.banlistHint", { date: date ?? t("deckFormat.current") })}
+          />
+        )}{" "}
         {rules === "pauper" ? t("deckFormat.rarityHint") : null}
       </p>
     </div>

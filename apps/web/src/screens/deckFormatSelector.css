@@ -63,3 +63,70 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.banlist-tooltip-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0;
+  border: 0;
+  color: var(--ds-text-2);
+  background: transparent;
+  font: inherit;
+  text-decoration: underline dotted;
+  text-underline-offset: 0.25rem;
+  cursor: help;
+}
+.banlist-tooltip-trigger:focus-visible {
+  outline: 2px solid var(--ds-focus);
+  outline-offset: 2px;
+}
+.banlist-tooltip {
+  width: min(28rem, calc(100vw - 1.5rem));
+  max-height: min(24rem, var(--radix-tooltip-content-available-height));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.75rem;
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-sheet);
+  color: var(--ds-text);
+  box-shadow: var(--ds-shadow-overlay);
+  z-index: var(--ds-z-hint);
+  font: 0.75rem / 1.5 var(--ds-font-body);
+}
+.banlist-tooltip__title {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.banlist-tooltip p {
+  margin: 0;
+}
+.banlist-tooltip ul {
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+.banlist-tooltip li {
+  padding: 0.375rem 0;
+  border-bottom: 1px solid var(--ds-line);
+  overflow-wrap: anywhere;
+}
+.banlist-tooltip__cards li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+}
+.banlist-tooltip__restriction {
+  font-weight: 700;
+}
+.banlist-tooltip__pairs li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.5rem;
+}
+.banlist-tooltip__arrow {
+  fill: var(--ds-sheet);
+}

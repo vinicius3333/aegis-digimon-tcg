@@ -3,9 +3,9 @@ const STORAGE_KEY = "aegis:match-timer";
 /** A browser preference shared by casual queues and private hosts, including guests. */
 export function loadMatchTimerPreference(): boolean {
   try {
-    return localStorage.getItem(STORAGE_KEY) === "true";
+    return localStorage.getItem(STORAGE_KEY) !== "false";
   } catch {
-    return false;
+    return true;
   }
 }
 

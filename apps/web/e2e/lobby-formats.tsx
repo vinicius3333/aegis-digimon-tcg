@@ -4,6 +4,8 @@ import { createRoot } from "react-dom/client";
 import { Lobby } from "../src/screens/Lobby";
 import { createBlankDeck, type DeckListing } from "../src/game/decks";
 import { I18nProvider } from "../src/i18n";
+import { loadMatchTimerPreference } from "../src/screens/matchTimerPreference";
+import { loadMatchFormatPreference } from "../src/screens/matchFormatPreference";
 import "../src/design/tokens.css";
 import "../src/design/base.css";
 import "../src/design/layout.css";
@@ -33,6 +35,12 @@ const later: DeckListing = {
 function FormatLobby() {
   const [activeDeckId, setActiveDeckId] = useState(eosmon.id);
   const [request, setRequest] = useState("");
+  const [timerOptions, setTimerOptions] = useState(() => ({
+    matchTimer: loadMatchTimerPreference(),
+    timerStartSeconds: 300,
+    timerRefillSeconds: 60,
+  }));
+  const [bestOf, setBestOf] = useState(loadMatchFormatPreference);
   return (
     <I18nProvider>
       <Lobby
@@ -42,10 +50,17 @@ function FormatLobby() {
         onSelectDeck={setActiveDeckId}
         onCopyDeck={() => {}}
         onNav={() => {}}
+        timerOptions={timerOptions}
+        onTimerOptionsChange={setTimerOptions}
+        bestOf={bestOf}
+        onBestOfChange={setBestOf}
         onStart={(...args) => setRequest(JSON.stringify(args))}
       />
       <output role="status" aria-label="Match request" className="aegis-sr-only">
         {request}
+      </output>
+      <output role="status" aria-label="Match settings" className="aegis-sr-only">
+        {JSON.stringify({ ...timerOptions, bestOf })}
       </output>
     </I18nProvider>
   );

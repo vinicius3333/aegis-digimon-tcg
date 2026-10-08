@@ -15,6 +15,14 @@ const lookupPrivateRoom = vi.hoisted(() =>
 );
 vi.mock("../net/client", () => ({ lookupPrivateRoom }));
 
+// Existing configuration scenarios explicitly enter the advanced panel.
+function renderConfiguredLobby(...args: Parameters<typeof render>) {
+  const view = render(...args);
+  const summary = view.container.querySelector(".lobby-advanced > summary");
+  if (summary) fireEvent.click(summary);
+  return view;
+}
+
 // EX13 is the beta fixture, so the clock stays before its 2026-10-02 release.
 beforeEach(() => {
   lookupPrivateRoom.mockResolvedValue({ roomId: "private-room", unlimited: false });
@@ -39,7 +47,7 @@ describe("famous deck selection", () => {
     const onStart = vi.fn();
     const deck = { ...DECKS[0]!, mainDeck: [...DECKS[0]!.mainDeck] };
     deck.mainDeck.splice(0, 4, ...Array<string>(4).fill("BT5-109"));
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -83,7 +91,7 @@ describe("famous deck selection", () => {
     const human = { ...DECKS[0]!, id: "human", name: "Human" };
     const bot = { ...human, id: "personal-bot", name: "Personal beta bot", mainDeck: [...human.mainDeck] };
     bot.mainDeck[0] = "EX13-007";
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -108,7 +116,7 @@ describe("famous deck selection", () => {
     const onStart = vi.fn();
     const deck = { ...DECKS[0]!, mainDeck: [...DECKS[0]!.mainDeck] };
     deck.mainDeck[0] = "EX13-007";
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -134,7 +142,7 @@ describe("famous deck selection", () => {
     const onNav = vi.fn();
     const valid = { ...DECKS[0]!, id: "valid", name: "Playable build" };
     const invalid = { ...valid, id: "draft", name: "Draft build", mainDeck: [] };
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -167,7 +175,7 @@ describe("famous deck selection", () => {
   });
   it("keeps ordinary decks in the normal queue without a beta checkbox", () => {
     const onStart = vi.fn();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -188,7 +196,7 @@ describe("famous deck selection", () => {
 
   it("keeps a random choice hidden and passes a legal deck only when starting", () => {
     const onStart = vi.fn();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -236,7 +244,7 @@ describe("famous deck selection", () => {
     const beta = { ...DECKS[0]!, id: "beta-personal", mainDeck: [...DECKS[0]!.mainDeck] };
     beta.mainDeck[0] = "EX13-007";
     const onStart = vi.fn();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -260,7 +268,7 @@ describe("famous deck selection", () => {
 
   it("lets an ordinary deck opt into the beta queue without the beta-card warning", () => {
     const onStart = vi.fn();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -283,7 +291,7 @@ describe("famous deck selection", () => {
 
   it("lets an ordinary deck face the beta bot", () => {
     const onStart = vi.fn();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -307,7 +315,7 @@ describe("famous deck selection", () => {
 
   it("hides the beta queue option when no set is in preview", () => {
     vi.setSystemTime(new Date("2026-10-15T12:00:00.000Z"));
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -328,7 +336,7 @@ describe("famous deck selection", () => {
 
   it("routes every mystery draw to the beta queue once the player opts in", () => {
     const onStart = vi.fn();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -354,7 +362,7 @@ describe("famous deck selection", () => {
   it("automatically enables beta for an EX13 deck and still allows private matches", () => {
     const deck = { ...DECKS[0]!, mainDeck: [...DECKS[0]!.mainDeck] };
     deck.mainDeck[0] = "EX13-007";
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -380,7 +388,7 @@ describe("famous deck selection", () => {
     const onStart = vi.fn();
     const deck = { ...DECKS[0]!, mainDeck: [...DECKS[0]!.mainDeck] };
     deck.mainDeck[0] = "EX13-007";
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -405,7 +413,7 @@ describe("famous deck selection", () => {
     expect(onStart).toHaveBeenCalledWith("bot", undefined, undefined, true);
   });
   it("separates personal decks and groups available famous decks by collection", () => {
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -433,7 +441,7 @@ describe("famous deck selection", () => {
 
   it("searches famous decks across collapsed collections and filters by owner", () => {
     const onSelectDeck = vi.fn<(id: string) => void>();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -468,7 +476,7 @@ describe("famous deck selection", () => {
   });
 
   it("narrows famous decks to one collection and ignores it for personal decks", () => {
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -496,7 +504,7 @@ describe("famous deck selection", () => {
 
   it("selects a famous preset without adding it to personal decks", () => {
     const onSelectDeck = vi.fn<(id: string) => void>();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -526,7 +534,7 @@ describe("famous deck selection", () => {
 describe("invite links", () => {
   it("opens the private join form with the invited code filled in", async () => {
     const onStart = vi.fn();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -551,7 +559,7 @@ describe("famous deck list", () => {
   it("shows a famous deck's cards without copying it and can play it from the dialog", () => {
     const onSelectDeck = vi.fn<(id: string) => void>();
     const onCopyDeck = vi.fn();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -587,7 +595,7 @@ describe("famous deck list", () => {
 
 describe("returning to a private room", () => {
   function renderRoom(host: boolean, onStart = vi.fn(), onLeavePrivateRoom = vi.fn()) {
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -629,7 +637,7 @@ describe("optional match timer configuration", () => {
   it("updates host settings, hides them for guests and excludes practice", () => {
     const onTimerOptionsChange =
       vi.fn<(options: { matchTimer: boolean; timerStartSeconds: number; timerRefillSeconds: number }) => void>();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -644,7 +652,14 @@ describe("optional match timer configuration", () => {
       </I18nProvider>,
     );
     const timerSwitch = screen.getByRole("switch", { name: "Match timer" });
+    expect(timerSwitch.getAttribute("aria-checked")).toBe("true");
+    fireEvent.click(timerSwitch);
     expect(timerSwitch.getAttribute("aria-checked")).toBe("false");
+    expect(onTimerOptionsChange).toHaveBeenLastCalledWith({
+      matchTimer: false,
+      timerStartSeconds: 300,
+      timerRefillSeconds: 60,
+    });
     fireEvent.click(timerSwitch);
     expect(timerSwitch.getAttribute("aria-checked")).toBe("true");
     expect(onTimerOptionsChange).toHaveBeenLastCalledWith({
@@ -688,7 +703,7 @@ describe("match format configuration", () => {
 
   it("sits beside the timer, remembers the choice and hides for guests and practice", () => {
     const onBestOfChange = vi.fn<(bestOf: 1 | 3) => void>();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -734,7 +749,7 @@ describe("bot and private Unlimited selection", () => {
     if (options.printedOverflow) deck.mainDeck.splice(0, 5, ...Array<string>(5).fill("BT5-109"));
     if (options.beta) deck.mainDeck[5] = "EX13-007";
     const onStart = vi.fn<Parameters<typeof Lobby>[0]["onStart"]>();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -925,7 +940,7 @@ describe("historical and Pauper format selection", () => {
     const onStart = vi.fn();
     const deck = { ...DECKS[0]!, format: "BT13" as const, mainDeck: [...DECKS[0]!.mainDeck] };
     deck.mainDeck.splice(0, 4, ...Array<string>(4).fill("BT13-012"));
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -959,7 +974,7 @@ describe("independent historical card pool and match rules", () => {
   };
   function setup(privateRoom?: import("./Lobby").PrivateRoom, invitedRoomCode?: string) {
     const onStart = vi.fn<import("react").ComponentProps<typeof Lobby>["onStart"]>();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}

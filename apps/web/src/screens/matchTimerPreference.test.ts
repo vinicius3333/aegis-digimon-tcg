@@ -7,10 +7,10 @@ afterEach(() => {
   localStorage.removeItem("aegis:match-timer");
 });
 
-it("ignores missing and malformed preferences", () => {
-  expect(loadMatchTimerPreference()).toBe(false);
+it("defaults to enabled for missing and malformed preferences", () => {
+  expect(loadMatchTimerPreference()).toBe(true);
   localStorage.setItem("aegis:match-timer", "garbage");
-  expect(loadMatchTimerPreference()).toBe(false);
+  expect(loadMatchTimerPreference()).toBe(true);
 });
 
 it("keeps the lobby usable when storage is blocked or full", () => {
@@ -20,6 +20,13 @@ it("keeps the lobby usable when storage is blocked or full", () => {
   vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
     throw new Error("quota");
   });
-  expect(loadMatchTimerPreference()).toBe(false);
+  expect(loadMatchTimerPreference()).toBe(true);
   expect(() => saveMatchTimerPreference(true)).not.toThrow();
+});
+
+it("remembers an explicit opt-out", () => {
+  saveMatchTimerPreference(false);
+  expect(loadMatchTimerPreference()).toBe(false);
+  saveMatchTimerPreference(true);
+  expect(loadMatchTimerPreference()).toBe(true);
 });
