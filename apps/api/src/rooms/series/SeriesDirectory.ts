@@ -6,6 +6,8 @@ import type { GameResult } from "./seriesRules.js";
 /** What a seat brings to every game of its series. The deck is the one it played game 1 with. */
 export interface SeriesSeat {
   token: string;
+  /** Trusted account identity captured by the first room, never supplied by a client. */
+  accountId?: string;
   displayName: string;
   avatarId?: string;
   deck: SeatJoinOptions["deck"];

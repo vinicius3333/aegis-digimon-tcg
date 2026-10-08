@@ -4,7 +4,9 @@ import type { GameState } from "@aegis/shared";
 import {
   EVENT_CHANNEL,
   REPLAY_CHANNEL,
+  REPLAY_SAVE_CHANNEL,
   type ReplayDownloadMessage,
+  type ReplaySaveMessage,
   DECISION_CHANNEL,
   SERIES_CHANNEL,
   type SequencedServerEvent,
@@ -120,6 +122,8 @@ export interface UseRoomResult {
   /** This seat's claim on the next game of its best-of-three, once the series has handed it out. */
   seriesSeat: Omit<SeriesGameTicket, "roomId"> | undefined;
   replayDownload?: ReplayDownloadMessage;
+  replaySave?: ReplaySaveMessage | { kind: "saving" };
+  saveReplay?: () => void;
 }
 
 /** Where the next game of a series is and how this player takes their seat in it. */
@@ -210,6 +214,8 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
   const answeredDecisionsRef = useRef(new Map<string, DecisionRequest>());
   const [error, setError] = useState<string>();
   const [replayDownload, setReplayDownload] = useState<ReplayDownloadMessage>();
+  const [replaySave, setReplaySave] = useState<UseRoomResult["replaySave"]>();
+  const replaySaveTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [sessionId, setSessionId] = useState<string>();
   const [roomCode, setRoomCode] = useState("");
   const [seriesSeat, setSeriesSeat] = useState<Omit<SeriesGameTicket, "roomId">>();
@@ -253,6 +259,10 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
       stopHeartbeat = () => clearInterval(heartbeat);
 
       room.onMessage<ReplayDownloadMessage>(REPLAY_CHANNEL, setReplayDownload);
+      room.onMessage<ReplaySaveMessage>(REPLAY_SAVE_CHANNEL, (message) => {
+        clearTimeout(replaySaveTimeout.current);
+        setReplaySave(message);
+      });
       const acceptState = (next: GameState) => {
         stateRef.current = next;
         if (next.gameOver) {
@@ -429,6 +439,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
       });
 
     return () => {
+      clearTimeout(replaySaveTimeout.current);
       cancelled = true;
       stopHeartbeat();
       // A reload never runs this cleanup, so only a deliberate exit forgets the seat.
@@ -472,5 +483,13 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
     roomCode,
     seriesSeat,
     replayDownload,
+    replaySave,
+    saveReplay: () => {
+      if (!roomRef.current || replaySave?.kind === "saving") return;
+      setReplaySave({ kind: "saving" });
+      roomRef.current.send(REPLAY_SAVE_CHANNEL, {});
+      clearTimeout(replaySaveTimeout.current);
+      replaySaveTimeout.current = setTimeout(() => setReplaySave({ kind: "failed", reason: "unavailable" }), 30000);
+    },
   };
 }

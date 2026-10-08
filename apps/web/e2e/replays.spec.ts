@@ -6,6 +6,7 @@ class ReplayPage {
   constructor(readonly page: Page) {}
   async open(recording = replayFixture()) {
     await this.page.route("**/auth/me", (route) => route.fulfill({ contentType: "application/json", body: "null" }));
+    await this.page.route("**/account/replays", (route) => route.fulfill({ status: 401, body: "Unauthorized" }));
     await this.page.goto("/replays");
     await this.page.getByLabel("Open replay file").setInputFiles({
       name: "match.aegis-replay",
@@ -13,6 +14,7 @@ class ReplayPage {
       buffer: gzipSync(JSON.stringify(recording)),
     });
     await expect(this.page.getByRole("heading", { name: "Agumon Player vs Gabumon Player" })).toBeVisible();
+    await this.page.getByLabel("Playback options", { exact: true }).click();
   }
   position() {
     return this.page.getByRole("slider", { name: "Replay position" });
@@ -95,15 +97,21 @@ test("rejects malformed files and permits selecting the same file again", async 
   const input = page.getByLabel("Open replay file");
   const badFile = { name: "invalid.json", mimeType: "application/json", buffer: Buffer.from("{broken") };
   await input.setInputFiles(badFile);
-  await expect(page.getByRole("alert")).toHaveText("This file is not a valid, complete Aegis replay.");
+  await expect(page.locator(".replay-import__drop").getByRole("alert")).toHaveText(
+    "This file is not a valid, complete Aegis replay.",
+  );
   await input.setInputFiles(badFile);
-  await expect(page.getByRole("alert")).toHaveText("This file is not a valid, complete Aegis replay.");
+  await expect(page.locator(".replay-import__drop").getByRole("alert")).toHaveText(
+    "This file is not a valid, complete Aegis replay.",
+  );
   await input.setInputFiles({
     name: "old.json",
     mimeType: "application/json",
     buffer: Buffer.from('{"format":"aegis-replay","version":999}'),
   });
-  await expect(page.getByRole("alert")).toHaveText("This replay uses a format this version of Aegis cannot open.");
+  await expect(page.locator(".replay-import__drop").getByRole("alert")).toHaveText(
+    "This replay uses a format this version of Aegis cannot open.",
+  );
 });
 
 test("autoplay presents a drawn card and ordinary pointer inspection stays read-only", async ({ page }) => {

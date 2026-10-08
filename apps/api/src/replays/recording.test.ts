@@ -85,7 +85,7 @@ describe("portable participant replay", () => {
     expect(replay.frames.map((frame) => frame.atMs)).toEqual([0, 100]);
     expect(replay.frames[1]!.state).toMatchObject({ memory: 7, gameOver: true, winnerSeat: 0 });
   });
-  it("exports independent gzip files with only their participant's hand and no private piles or prompts", async () => {
+  it("exports independent gzip files with both recorded hands and no private piles or prompts", async () => {
     const recording = finishedRecording().complete("casual", 200)!;
     const files = await Promise.all(([0, 1] as const).map((seat) => replayDownload(recording, seat)));
     const read = (index: number): MatchReplay => {
@@ -95,11 +95,11 @@ describe("portable participant replay", () => {
     };
     for (const seat of [0, 1] as const) {
       const replay = read(seat);
-      expect(replay.visibleHandSeats).toEqual([seat]);
+      expect(replay.visibleHandSeats).toEqual([0, 1]);
       expect(replay.viewerSeat).toBe(seat);
       for (const frame of replay.frames) {
         expect(frame.state.players[seat]!.hand.length).toBe(1);
-        expect(frame.state.players[1 - seat]!.hand).toEqual([]);
+        expect(frame.state.players[1 - seat]!.hand.length).toBe(1);
         expect(frame.state.players[1 - seat]!.handCount).toBe(1);
       }
       expect(JSON.stringify(replay)).not.toMatch(

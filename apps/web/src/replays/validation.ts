@@ -125,8 +125,10 @@ export function validateReplay(value: unknown): value is MatchReplay {
     !seat(value.viewerSeat) ||
     !Array.isArray(value.visibleHandSeats) ||
     !array(value.visibleHandSeats, seat) ||
-    value.visibleHandSeats.length !== 1 ||
-    value.visibleHandSeats[0] !== value.viewerSeat ||
+    value.visibleHandSeats.length < 1 ||
+    value.visibleHandSeats.length > 2 ||
+    new Set(value.visibleHandSeats).size !== value.visibleHandSeats.length ||
+    !value.visibleHandSeats.includes(value.viewerSeat) ||
     !array(value.players, string) ||
     (value.players as unknown[]).length !== 2 ||
     !string(value.mode) ||
@@ -168,7 +170,9 @@ export function validateReplay(value: unknown): value is MatchReplay {
     const batch = frame.events[0]?.batch;
     if (
       frame.events.some((event: RecordValue) => event.batch !== batch) ||
-      state.players.some((p: RecordValue) => p.seat !== value.viewerSeat && (p.hand as unknown[]).length > 0)
+      state.players.some(
+        (p: RecordValue) => !(value.visibleHandSeats as unknown[]).includes(p.seat) && (p.hand as unknown[]).length > 0,
+      )
     )
       return false;
     // Replay never carries resumable prompts or hidden pile order, including imported files.

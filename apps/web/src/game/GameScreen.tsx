@@ -1391,6 +1391,11 @@ export function GameScreen({
         !replayMode && (state.gameOver || series?.stage === "over") && !cues.resultPending
           ? {
               result: series?.outcome ?? gameOverResult,
+              onSaveReplay:
+                !spectating && liveConnection.replayDownload?.kind === "ready" && liveConnection.replayDownload.canSave
+                  ? liveConnection.saveReplay
+                  : undefined,
+              replaySave: liveConnection.replaySave,
               onDownloadReplay:
                 !spectating && liveConnection.replayDownload?.kind === "ready"
                   ? () => {

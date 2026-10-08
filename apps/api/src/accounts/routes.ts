@@ -1,4 +1,6 @@
 import { randomBytes } from "node:crypto";
+import { ReplayLibrary } from "../replays/ReplayLibrary.js";
+import { installReplayRoutes } from "../replays/routes.js";
 import {
   latestReleasedProductLabel,
   isDigimonWorldAvatarId,
@@ -77,8 +79,10 @@ export function installAccountRoutes(
   mailer?: Mailer,
   deckReports?: DeckReportTracker,
   discordAvatars?: DiscordAvatarSource,
+  replays: ReplayLibrary = new ReplayLibrary(store),
 ): void {
   const sessionFromRequest = (req: Request) => store.session(cookie(req, SESSION_COOKIE));
+  installReplayRoutes({ app, library: replays, session: sessionFromRequest });
   // The organizer's override surface, in its own module. See src/tournaments/arbitration.
   installArbitrationRoutes({
     app,

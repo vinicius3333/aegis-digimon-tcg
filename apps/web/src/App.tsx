@@ -332,6 +332,7 @@ export function AegisClient({
   const [matchDeckId, setMatchDeckId] = useState<string>();
   const [matchNumber, setMatchNumber] = useState(0);
   const [playerMenuOpen, setPlayerMenuOpen] = useState(false);
+  const [replayViewing, setReplayViewing] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const [bugReportOpen, setBugReportOpen] = useState(false);
   const [leaveMatchPromptOpen, setLeaveMatchPromptOpen] = useState(false);
@@ -441,7 +442,7 @@ export function AegisClient({
     [effectivePlayer.name, effectivePlayer.avatarId, matchDeck, timerOptions, bestOf, customBotDeck],
   );
 
-  const showNav = NAV_SCREENS.includes(screen);
+  const showNav = NAV_SCREENS.includes(screen) && !(screen === "replays" && replayViewing);
 
   const selectAvatar = async (avatarId: DigimonWorldAvatarId | null) => {
     if (account) {
@@ -600,7 +601,7 @@ export function AegisClient({
 
           {screen === "collection" && <Collection />}
 
-          {screen === "replays" && <ReplaysScreen />}
+          {screen === "replays" && <ReplaysScreen onViewingChange={setReplayViewing} />}
 
           {screen === "releases" && <ReleasesScreen />}
 

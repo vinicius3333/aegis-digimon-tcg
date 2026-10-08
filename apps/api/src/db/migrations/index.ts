@@ -23,6 +23,7 @@ import { deckSleeve } from "./020-deck-sleeve.js";
 import { deckEggSleeve } from "./021-deck-egg-sleeve.js";
 import { publicDeckHiddenStatus } from "./022-public-deck-hidden-status.js";
 import { accountAvatarCheckedAt } from "./023-account-avatar-checked-at.js";
+import { accountReplays } from "./024-account-replays.js";
 
 export const migrations: readonly Migration[] = [
   initialSchema,
@@ -48,4 +49,5 @@ export const migrations: readonly Migration[] = [
   deckEggSleeve,
   publicDeckHiddenStatus,
   accountAvatarCheckedAt,
+  accountReplays,
 ];

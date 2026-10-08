@@ -19,7 +19,7 @@ const heavySuites = [
 // The transaction lane needs a real Postgres, so it is its own opt-in lane (`pnpm test:postgres`,
 // or POSTGRES_TESTS=1 with POSTGRES_TEST_URL). It is excluded rather than skipped: a suite that
 // cannot run here is not a pending test, and reporting it as one buries a real skip in the noise.
-const postgresLane = "src/db/postgres.atomicity.test.ts";
+const postgresLane = "src/db/postgres.atomicity*.test.ts";
 
 const testFiles = "src/**/*.test.ts";
 // pnpm test may forward a focused path to Vitest; in that case keep the original
@@ -46,7 +46,8 @@ function scanTestFiles(): { viteRunnerFiles: string[]; batchCandidates: string[]
   const needsViteRunner = /\bvi\.(mock|doMock|unmock|hoisted)\(|import\.meta\.vitest/;
   // Hooks and runner state must retain their original file boundary. Ordinary
   // card suites already share a module graph (isolate:false) and can be grouped.
-  const unsafeToBatch = /\b(?:beforeEach|afterEach|beforeAll|afterAll)\s*\(|\bvi\.|\b(?:it|test|describe)\.concurrent\s*\(|process\.env|globalThis\./;
+  const unsafeToBatch =
+    /\b(?:beforeEach|afterEach|beforeAll|afterAll)\s*\(|\bvi\.|\b(?:it|test|describe)\.concurrent\s*\(|process\.env|globalThis\./;
   type Entry = [mtimeMs: number, size: number, needsViteRunner: boolean, batchSafe?: boolean];
   let cache: Record<string, Entry> = {};
   try {

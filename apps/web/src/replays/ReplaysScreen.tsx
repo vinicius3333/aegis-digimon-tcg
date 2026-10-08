@@ -1,4 +1,4 @@
-import { Component, useRef, useState, type ReactNode } from "react";
+import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import type { MatchReplay } from "@aegis/shared";
 import { useTranslation } from "../i18n";
 import { Icons } from "../design/icons";
@@ -6,6 +6,7 @@ import { CardFull } from "../design/cards";
 import { Button } from "../design/primitives";
 import { readReplay, ReplayFileError, type ReplayFileErrorCode } from "./files";
 import { ReplayPlayer } from "./ReplayPlayer";
+import { ReplayLibraryPanel } from "./ReplayLibraryPanel";
 import "./replays.css";
 
 class ReplayRenderBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
@@ -18,7 +19,7 @@ class ReplayRenderBoundary extends Component<{ children: ReactNode; fallback: Re
   }
 }
 
-export function ReplaysScreen() {
+export function ReplaysScreen({ onViewingChange }: { onViewingChange?: (viewing: boolean) => void }) {
   const { t } = useTranslation();
   const [replay, setReplay] = useState<MatchReplay>();
   const [error, setError] = useState<ReplayFileErrorCode>();
@@ -26,7 +27,11 @@ export function ReplaysScreen() {
   const pending = useRef(0);
   const input = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
-  async function open(file: File | undefined) {
+  useEffect(() => {
+    onViewingChange?.(replay !== undefined);
+    return () => onViewingChange?.(false);
+  }, [replay, onViewingChange]);
+  async function open(file: Blob | undefined) {
     if (!file) return;
     const generation = ++pending.current;
     setLoading(true);
@@ -128,6 +133,7 @@ export function ReplaysScreen() {
             </li>
           ))}
         </ol>
+        <ReplayLibraryPanel onOpen={open} />
       </div>
     </section>
   );

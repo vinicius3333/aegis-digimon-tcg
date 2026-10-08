@@ -5,9 +5,13 @@ import { canCreateRoom } from "../deployment/admission.js";
 import { randomBytes, randomUUID } from "node:crypto";
 import { ReplayRecording } from "../replays/recording.js";
 import { replayDownload } from "../replays/download.js";
+import { replayLibrary } from "../replays/runtime.js";
+import { ReplayLibraryError, type ReplayLibrary } from "../replays/ReplayLibrary.js";
 import {
   GameState,
   REPLAY_CHANNEL,
+  REPLAY_SAVE_CHANNEL,
+  type ReplaySaveMessage,
   type ReplaySummary,
   type ReplayDownloadMessage,
   RECONNECT_GRACE_SECONDS,
@@ -244,6 +248,7 @@ export class AegisRoom extends Room<{ state: GameState; metadata: { unlimited: b
   private replayDownloads = new Map<Seat, Promise<ReplayDownloadMessage>>();
   private replayFinished = false;
   private replayRequestTimes = new WeakMap<Client, number>();
+  private replaySaveRequests = new WeakSet<Client>();
   private rankedByClient = new Map<string, boolean>();
   /** Clients that pace chains of triggered effects themselves (`presentationPacing: "sequential"`). */
   private chainPacingClients = new Set<string>();
@@ -416,6 +421,7 @@ export class AegisRoom extends Room<{ state: GameState; metadata: { unlimited: b
     options.betaBattleMode = this.isBetaBattleRoom;
     options.unlimited = this.isUnlimitedRoom;
     this.seriesSeatByClient.set(client.sessionId, seat);
+    if (entry.accountId) this.accountByClient.set(client.sessionId, entry.accountId);
     return true;
   }
 
@@ -705,6 +711,10 @@ export class AegisRoom extends Room<{ state: GameState; metadata: { unlimited: b
     // mutates state, and emits events. Rejections are surfaced as an
     // "actionRejected" event to the offending client only.
     this.onMessage("*", (client, type, payload) => {
+      if (type === REPLAY_SAVE_CHANNEL) {
+        void this.saveParticipantReplay(client);
+        return;
+      }
       if (type === REPLAY_CHANNEL) {
         const now = performance.now();
         if (now - (this.replayRequestTimes.get(client) ?? -Infinity) >= 10_000) {
@@ -767,6 +777,7 @@ export class AegisRoom extends Room<{ state: GameState; metadata: { unlimited: b
         const deck = player ? this.deckByClient.get(player.sessionId) : undefined;
         if (!player || !deck) return undefined;
         return {
+          accountId: this.accountByClient.get(player.sessionId),
           displayName: player.displayName,
           ...(player.avatarId ? { avatarId: player.avatarId } : {}),
           deck: {
@@ -1621,9 +1632,47 @@ export class AegisRoom extends Room<{ state: GameState; metadata: { unlimited: b
     void this.replayDownloads
       .get(seat)!
       .then((message) => {
-        if (this.clients.includes(client)) client.send(REPLAY_CHANNEL, message);
+        if (this.clients.includes(client))
+          client.send(
+            REPLAY_CHANNEL,
+            message.kind === "ready"
+              ? { ...message, canSave: this.replays().enabled && this.accountByClient.has(client.sessionId) }
+              : message,
+          );
       })
       .catch((error: unknown) => this.debugError("[AegisRoom] failed to export replay", error));
+  }
+
+  protected replays(): ReplayLibrary {
+    return replayLibrary;
+  }
+
+  private async saveParticipantReplay(client: Client): Promise<void> {
+    if (this.replaySaveRequests.has(client)) return;
+    this.replaySaveRequests.add(client);
+    let result: ReplaySaveMessage;
+    try {
+      const seat = this.seatByClient.get(client.sessionId);
+      const owner = this.accountByClient.get(client.sessionId);
+      if (
+        seat === undefined ||
+        this.spectatorClients.has(client.sessionId) ||
+        !this.state.gameOver ||
+        !this.replayFinished
+      )
+        throw new ReplayLibraryError("unavailable");
+      if (!owner) throw new ReplayLibraryError("sign_in");
+      this.sendReplayDownload(client);
+      const message = await this.replayDownloads.get(seat);
+      if (message?.kind !== "ready") throw new ReplayLibraryError("unavailable");
+      result = { kind: "saved", replay: await this.replays().save(owner, message) };
+    } catch (error) {
+      result = { kind: "failed", reason: error instanceof ReplayLibraryError ? error.code : "unavailable" };
+      if (!(error instanceof ReplayLibraryError)) this.debugError("[AegisRoom] failed to save replay", error);
+    } finally {
+      this.replaySaveRequests.delete(client);
+    }
+    if (this.clients.includes(client)) client.send(REPLAY_SAVE_CHANNEL, result);
   }
 
   /** The close is part of the batch it ends, so it takes the next `seq` and that batch's id. */

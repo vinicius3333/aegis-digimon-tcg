@@ -18,7 +18,8 @@ test("downloads a finished live match and opens it locally after leaving the roo
   const replay = JSON.parse(gunzipSync(await readFile(path!)).toString()) as MatchReplay;
   expect(replay.viewerSeat).toBe(0);
   expect(replay.frames[0]!.state.players[0]!.hand.length).toBeGreaterThan(0);
-  expect(replay.frames.every((frame) => frame.state.players[1]!.hand.length === 0)).toBe(true);
+  expect(replay.visibleHandSeats).toEqual([0, 1]);
+  expect(replay.frames[0]!.state.players[1]!.hand.length).toBeGreaterThan(0);
   expect(replay.frames.at(-1)!.state.gameOver).toBe(true);
   await page.route("**/auth/me", (route) => route.fulfill({ contentType: "application/json", body: "null" }));
   await page.goto("/replays");

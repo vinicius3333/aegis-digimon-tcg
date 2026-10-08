@@ -114,15 +114,10 @@ export class ReplayRecording {
   }
 }
 
-/** Filters a fresh decompressed payload; unauthorized hand identities never reach the browser. */
+/** Completed participant replays expose both recorded hands, never live-game hidden state. */
 export function projectReplay(replay: MatchReplay, seat: Seat): MatchReplay {
-  const visible: Seat[] = [seat];
-  for (const frame of replay.frames) {
-    for (const player of frame.state.players) {
-      if (!visible.includes(player.seat)) player.hand = [] as never;
-    }
-  }
-  replay.visibleHandSeats = visible;
+  if (!replay.frames.at(-1)?.state.gameOver) throw new Error("Only completed games can expose replay hands");
+  replay.visibleHandSeats = [0, 1];
   replay.viewerSeat = seat;
   return replay;
 }

@@ -18,6 +18,11 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
   const [speed, setSpeed] = useState(1);
   const [showHand, setShowHand] = useState(true);
   const [viewerSeat, setViewerSeat] = useState<Seat>(replay.viewerSeat);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const history = useRef<HTMLElement>(null);
+  const historyToggle = useRef<HTMLButtonElement>(null);
+  const surface = useRef<HTMLElement>(null);
   const controls = useRef<PresentationControls | undefined>(undefined);
   const speedRef = useRef(speed);
   speedRef.current = speed;
@@ -99,6 +104,41 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
   useEffect(() => {
     if (atEnd) setPlaying(false);
   }, [atEnd]);
+  useEffect(() => {
+    if (!historyOpen) return;
+    history.current?.querySelector<HTMLElement>('[aria-current="step"]')?.scrollIntoView({ block: "nearest" });
+  }, [historyOpen, cursor.index]);
+  useEffect(() => {
+    if (!historyOpen) return;
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setHistoryOpen(false);
+        historyToggle.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", escape);
+    return () => window.removeEventListener("keydown", escape);
+  }, [historyOpen]);
+  useEffect(() => {
+    const element = surface.current;
+    if (!element) return;
+    const position = () => {
+      const hand = element.querySelector('[data-testid="hand"]')?.getBoundingClientRect();
+      element.style.setProperty(
+        "--replay-hand-clearance",
+        `${hand ? Math.max(12, window.innerHeight - hand.top + 12) : 12}px`,
+      );
+    };
+    const mutations = new MutationObserver(position);
+    mutations.observe(element.querySelector(".replay-player__board")!, { childList: true, subtree: true });
+    const resize = new ResizeObserver(position);
+    resize.observe(element);
+    position();
+    return () => {
+      mutations.disconnect();
+      resize.disconnect();
+    };
+  }, [cursor.epoch, viewerSeat, showHand]);
 
   function seek(index: number) {
     setPlaying(false);
@@ -124,10 +164,17 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
     replay.winnerSeat < 0 ? t("replay.draw") : t("replay.winner", { name: replay.players[replay.winnerSeat]! });
 
   return (
-    <section className="replay-player" aria-label={t("replay.title")}>
+    <section ref={surface} className="replay-player" aria-label={t("replay.title")}>
       <header className="replay-player__heading">
-        <Button variant="ghost" size="sm" icon={Icons.ChevronLeft} onClick={onClose}>
-          {t("replay.back")}
+        <Button
+          variant="secondary"
+          size="sm"
+          icon={Icons.ChevronLeft}
+          onClick={onClose}
+          aria-label={t("replay.back")}
+          title={t("replay.back")}
+        >
+          <span className="replay-player__back-label">{t("replay.back")}</span>
         </Button>
         <h1>
           {replay.players[0]} <span>vs</span> {replay.players[1]}
@@ -139,9 +186,7 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
           <span className="replay-player__outcome">{outcome}</span>
         </div>
       </header>
-      <p className="replay-player__perspective">
-        {t("replay.perspective", { name: replay.players[replay.viewerSeat] })}
-      </p>
+      <p className="aegis-sr-only">{t("replay.perspective", { name: replay.players[replay.viewerSeat] })}</p>
       <div className="replay-player__body">
         <div className="replay-player__board">
           <GameScreen
@@ -154,30 +199,75 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
             onExit={onClose}
           />
         </div>
-        <aside className="replay-history" aria-label={t("replay.log")}>
-          <h2>{t("replay.log")}</h2>
-          <ol>
-            {labels.map((label, index) => (
-              <li key={index}>
-                <button
-                  type="button"
-                  aria-current={index === cursor.index ? "step" : undefined}
-                  onClick={() => seek(index)}
-                >
-                  <span className="replay-history__number">{index + 1}</span>
-                  <span className="replay-history__entry">
-                    <small>
-                      {t("replay.turn")} {replay.frames[index]!.state.turnCount}
-                    </small>
-                    <span>{label}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ol>
-        </aside>
+        {historyOpen ? (
+          <aside ref={history} id="replay-history" className="replay-history" aria-label={t("replay.log")}>
+            <header>
+              <h2>{t("replay.log")}</h2>
+              <Button
+                size="sm"
+                variant="ghost"
+                icon={Icons.X}
+                aria-label={t("replay.historyClose")}
+                onClick={() => {
+                  setHistoryOpen(false);
+                  historyToggle.current?.focus();
+                }}
+              />
+            </header>
+            <ol>
+              {labels.map((label, index) => (
+                <li key={index}>
+                  <button
+                    type="button"
+                    aria-current={index === cursor.index ? "step" : undefined}
+                    onClick={() => seek(index)}
+                  >
+                    <span className="replay-history__number">{index + 1}</span>
+                    <span className="replay-history__entry">
+                      <small>
+                        {t("replay.turn")} {replay.frames[index]!.state.turnCount}
+                      </small>
+                      <span>{label}</span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </aside>
+        ) : null}
       </div>
-      <div className="replay-controls" role="group" aria-label={t("replay.title")}>
+      <div className="replay-player__tools">
+        <button
+          ref={historyToggle}
+          type="button"
+          className="replay-player__tool"
+          aria-label={t("replay.historyShow")}
+          title={t("replay.historyShow")}
+          aria-expanded={historyOpen}
+          aria-controls="replay-history"
+          onClick={() => setHistoryOpen((open) => !open)}
+        >
+          <Icons.FileText size={20} />
+        </button>
+        <button
+          type="button"
+          className="replay-player__tool"
+          aria-label={t(controlsVisible ? "replay.controlsHide" : "replay.controlsShow")}
+          title={t(controlsVisible ? "replay.controlsHide" : "replay.controlsShow")}
+          aria-expanded={controlsVisible}
+          aria-controls="replay-controls"
+          onClick={() => setControlsVisible((visible) => !visible)}
+        >
+          <Icons.PlayCircle size={20} />
+        </button>
+      </div>
+      <div
+        id="replay-controls"
+        className="replay-controls"
+        role="group"
+        aria-label={t("replay.title")}
+        hidden={!controlsVisible}
+      >
         <div className="replay-controls__timeline">
           <label htmlFor="replay-position">
             {t("replay.action", { current: cursor.index + 1, total: replay.frames.length })}
@@ -243,60 +333,66 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
               <span className="replay-controls__edge" aria-hidden="true" />
             </Button>
           </div>
-          <div className="replay-controls__settings">
-            <label>
-              <span>{t("replay.speedShort")}</span>
-              <select
-                aria-label={t("replay.speed")}
-                value={speed}
-                onChange={(event) => setSpeed(Number(event.target.value))}
-              >
-                {[0.5, 1, 2, 4].map((value) => (
-                  <option key={value} value={value}>
-                    {value}×
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span>{t("replay.turn")}</span>
-              <select
-                aria-label={t("replay.turn")}
-                value={currentTurn.index}
-                onChange={(event) => seek(Number(event.target.value))}
-              >
-                {turns.map((turn) => (
-                  <option key={turn.index} value={turn.index}>
-                    {turn.turn} · {replay.players[turn.seat]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span>{t("replay.hands")}</span>
-              <select
-                aria-label={t("replay.hands")}
-                value={showHand ? "show" : "hide"}
-                onChange={(event) => {
+          <details className="replay-controls__options">
+            <summary aria-label={t("replay.options")}>
+              <Icons.Settings size={20} />
+              <span>{t("replay.options")}</span>
+            </summary>
+            <div className="replay-controls__settings">
+              <label>
+                <span>{t("replay.speedShort")}</span>
+                <select
+                  aria-label={t("replay.speed")}
+                  value={speed}
+                  onChange={(event) => setSpeed(Number(event.target.value))}
+                >
+                  {[0.5, 1, 2, 4].map((value) => (
+                    <option key={value} value={value}>
+                      {value}×
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span>{t("replay.turn")}</span>
+                <select
+                  aria-label={t("replay.turn")}
+                  value={currentTurn.index}
+                  onChange={(event) => seek(Number(event.target.value))}
+                >
+                  {turns.map((turn) => (
+                    <option key={turn.index} value={turn.index}>
+                      {turn.turn} · {replay.players[turn.seat]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span>{t("replay.hands")}</span>
+                <select
+                  aria-label={t("replay.hands")}
+                  value={showHand ? "show" : "hide"}
+                  onChange={(event) => {
+                    seek(cursor.index);
+                    setShowHand(event.target.value === "show");
+                  }}
+                >
+                  <option value="show">{t("replay.hand.show")}</option>
+                  <option value="hide">{t("replay.hand.hide")}</option>
+                </select>
+              </label>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
                   seek(cursor.index);
-                  setShowHand(event.target.value === "show");
+                  setViewerSeat((seat) => (1 - seat) as Seat);
                 }}
               >
-                <option value="show">{t("replay.hand.show")}</option>
-                <option value="hide">{t("replay.hand.hide")}</option>
-              </select>
-            </label>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                seek(cursor.index);
-                setViewerSeat((seat) => (1 - seat) as Seat);
-              }}
-            >
-              {t("replay.flip")}
-            </Button>
-          </div>
+                {t("replay.flip")}
+              </Button>
+            </div>
+          </details>
         </div>
       </div>
     </section>

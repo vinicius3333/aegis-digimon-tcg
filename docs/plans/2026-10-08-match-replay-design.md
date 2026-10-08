@@ -4,7 +4,7 @@
 
 At the end of a real match, each seated player can download their own `.aegis-replay` file. From the player menu, open **Replays**, select that file, and review the match with play/pause, previous/next action, start/end, speeds 0.5×–4×, turn selection, the timeline, hand visibility, and board orientation. The history pane follows the selected action. Recorded cards can be inspected, but gameplay is disabled.
 
-The user requested a new worktree and branch and individual file downloads. The implementation lives on `replay-files` in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/replay-files`. Questions about R2/profile storage were treated as architecture exploration; this feature does not require a database migration, account, bucket, or upload endpoint.
+The user requested a new worktree and branch and individual file downloads. The implementation lives on `replay-files` in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/replay-files`. The subsequent approved account library, VPS storage, fullscreen player and two-hand visibility are specified in [the account-replay design](2026-10-08-account-replays-vps-s3-design.md). Local file playback remains available without an account or storage backend.
 
 ## Research and architecture
 
@@ -16,9 +16,9 @@ Seeking remounts presentation from the selected snapshot, cancelling stale anima
 
 ## Privacy and portability
 
-The server exports two independent gzip JSON payloads on the `replay` channel. Each file contains only its participant's hand. Deck and egg-deck order, hidden security, private decisions, eligible hand counters, session identifiers, room codes, series room tokens, and the postgame full-zone reveal are omitted or redacted. Facedown public cards retain opaque instance identifiers and counts, with their identities removed. Opponent hand counts remain available. Spectators cannot obtain a participant file. Hiding the recorded hand is a local display preference; privacy is enforced before export.
+The server exports two independent gzip JSON payloads on the `replay` channel. New files contain both recorded hands, following the user’s explicit request to show the opponent’s cards after a completed game. Earlier files may contain only their participant’s hand. Deck and egg-deck order, hidden security, private decisions, eligible hand counters, session identifiers, room codes, series room tokens, and the postgame full-zone reveal are omitted or redacted. Facedown public cards retain opaque instance identifiers and counts, with their identities removed. Opponent hand counts remain available. Spectators cannot obtain a participant file. Hiding the recorded hand is a local display preference; privacy is enforced before export.
 
-The browser reads the chosen file locally, without uploading it or joining a gameplay websocket. The website still loads its normal card catalog and artwork. Files can be shared deliberately by their owner and reveal that owner's recorded hand.
+The browser reads the chosen file locally, without uploading it or joining a gameplay websocket. The website still loads its normal card catalog and artwork. Files can be shared deliberately by their owner and reveal the hands declared in `visibleHandSeats`.
 
 Each file uses `format: aegis-replay`, format version 1, participant perspective, summary metadata, and frames containing elapsed time, state, and ordered events. This is a viewing artifact, not an authenticated match report or engine savegame. Replays cover one game per room, including games in a series. Development scenarios are excluded.
 
@@ -26,7 +26,7 @@ Each file uses `format: aegis-replay`, format version 1, participant perspective
 
 Recording is bounded to 5,000 frames and 32 MiB of expanded data, with metadata headroom. An over-limit match drops its recording and reports unavailable, rather than exporting an incomplete replay. Import bounds both file size and gzip expansion, validates the version, board structure, event payloads, frame ordering, participant hand permissions, and terminal state, and provides localized errors. A render boundary permits recovery from malformed or incompatible rendering.
 
-Exports are cached per seat in the live room. Successful reconnects and a client's first completed-state observation can request redelivery; repeated requests are throttled. Download before leaving the result screen: room disposal removes the temporary export, while a downloaded file remains independent of the room. There is no durable server recovery or profile library in this scope. Card artwork and descriptive catalog data still reflect the installed client version.
+Exports are cached per seat in the live room. Successful reconnects and a client's first completed-state observation can request redelivery; repeated requests are throttled. Download before leaving the result screen: room disposal removes the temporary export, while a downloaded file remains independent of the room. Players can also manually save the completed export in their private account library before leaving, as described in the account-replay design. Card artwork and descriptive catalog data still reflect the installed client version.
 
 ## Validation
 

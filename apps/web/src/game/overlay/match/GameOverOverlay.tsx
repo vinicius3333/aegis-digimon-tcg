@@ -5,6 +5,7 @@ import { useTranslation } from "../../../i18n";
 import { gameOverSplash, type GameOverOutcome } from "../../gameOverSplash";
 import type { SeriesView } from "../../seriesModel";
 import { SeriesNextGame, SeriesScore } from "./SeriesStatus";
+import { ReplaySaveButton, type ReplaySaveProps } from "../../../replays/ReplaySaveButton";
 
 /** The best-of-three this game belongs to, for a seated player. */
 export interface SeriesResultProps {
@@ -90,6 +91,8 @@ export function GameOverOverlay({
   spectatorResult,
   onDownloadReplay,
   replayStatus,
+  onSaveReplay,
+  replaySave,
   result,
   reason,
   stats,
@@ -98,7 +101,7 @@ export function GameOverOverlay({
   onRematch,
   returnsToRoom = false,
   series,
-}: {
+}: ReplaySaveProps & {
   spectatorResult?: string;
   onDownloadReplay?: () => void;
   replayStatus?: "preparing" | "unavailable";
@@ -230,6 +233,7 @@ export function GameOverOverlay({
             )}
           </div>
         ) : null}
+        <ReplaySaveButton onSaveReplay={onSaveReplay} replaySave={replaySave} />
         <Button
           className="game-result__view-board"
           variant="ghost"

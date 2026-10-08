@@ -10,6 +10,7 @@ import type { LogLine } from "../../matchLog";
 import type { GameOverOutcome } from "../../gameOverSplash";
 import type { ArenaDeckColors } from "../../../design/arenaPalette";
 import { ArenaLookDialog } from "./ArenaLookDialog";
+import type { ReplaySaveProps } from "../../../replays/ReplaySaveButton";
 
 export function MatchStatusOverlays({
   log,
@@ -45,7 +46,7 @@ export function MatchStatusOverlays({
   opponentDropped: boolean;
   /** The result and its stats, or nothing while the match is still running. */
   gameOver:
-    | {
+    | (ReplaySaveProps & {
         spectatorResult?: string;
         onDownloadReplay?: () => void;
         replayStatus?: "preparing" | "unavailable";
@@ -54,7 +55,7 @@ export function MatchStatusOverlays({
         stats: { value: number; label: string }[];
         cardsRevealed: boolean;
         series?: SeriesResultProps;
-      }
+      })
     | undefined;
   onCloseHistory: () => void;
   onOpenCard: (cardId: string) => void;
@@ -85,6 +86,8 @@ export function MatchStatusOverlays({
           spectatorResult={gameOver.spectatorResult}
           onDownloadReplay={gameOver.onDownloadReplay}
           replayStatus={gameOver.replayStatus}
+          onSaveReplay={gameOver.onSaveReplay}
+          replaySave={gameOver.replaySave}
           result={gameOver.result}
           reason={gameOver.reason}
           stats={gameOver.stats}

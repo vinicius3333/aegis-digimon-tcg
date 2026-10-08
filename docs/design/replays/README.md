@@ -17,3 +17,10 @@ The built-in `image_gen.imagegen` tool generated the [design reference](imagegen
 Changes: local file drop area and keyboard-accessible picker, existing card art as a preview, numbered action history, matchup/date/winner header, grouped transport controls, persistent mobile controls above navigation, and a dedicated result download row. Replay screens account for the desktop navigation height and mobile safe areas.
 
 Validation: production web build, TypeScript, focused lint/format checks, replay and result unit tests, and 11 browser tests, including five viewport sizes, real-match download/import, drag-and-drop, malformed files, and playback controls. A separate code review checked accessibility and layout; its hidden focus and long-name findings were corrected.
+
+## Fullscreen update
+
+The replay viewer now fills the viewport and displays both recorded hands for completed-game exports. Playback controls float above the board, with optional history and collapsible playback settings. The mobile controls sit above the player's cards.
+
+- [Desktop, captured in Orca Browser](fullscreen-desktop.png)
+- [Mobile, captured in Orca Browser](fullscreen-mobile.png)
