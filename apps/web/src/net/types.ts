@@ -492,6 +492,7 @@ export interface AegisJoinOptions {
     | "arena-bt20-omnimon-each-player-survivor"
     | "arena-bt20-ouryuken-reduction-resumes"
     | "arena-bt20-ouryuken-blast-dna-counter"
+    | "arena-github-5346-blast-dna-decision"
     | "arena-github-5323-alphamon-main-dna"
     | "arena-github-5323-alphamon-blast-dna"
     | "arena-bt8-digimon-emperor-breeding-memory"

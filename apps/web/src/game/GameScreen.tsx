@@ -427,8 +427,8 @@ export function GameScreen({
   // `pendingDecision` is, but it answers through its own intent rather than the decision
   // channel — computed here, ahead of `cues`, purely as the barrier's input signal (the actual
   // per-kind payloads used to render the overlays are derived again below). The two can never
-  // both be open at once (the server never opens one of these while a decision is unanswered),
-  // so folding it into the same `decisionPending`/`decisionStateVersion` inputs below is safe.
+  // both require a combat answer at once. An accepted Counter may retain its window while
+  // its effect asks a normal decision; that decision takes priority for the barrier below.
   const openCombatWindowForBarrier = state ? openCombatWindow(events, state, viewerSeat) : null;
   useEffect(() => {
     if (!openCombatWindowForBarrier?.key.startsWith("counter:")) setCounterHandChoice(undefined);
@@ -932,6 +932,7 @@ export function GameScreen({
     viewerSeat,
     isMyTurn,
     mirroredWindow,
+    decisionPending: Boolean(decision || state.pendingDecision),
     openCombatWindow: openCombatWindowForBarrier,
     answeredCombatWindowKeyRef,
     rolledBackRejectionSeqRef,

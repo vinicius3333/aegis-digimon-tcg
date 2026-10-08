@@ -79,7 +79,11 @@ const COMBAT_ANSWER_INTENTS = new Set<string>([
 export function lastRejectedCombatAnswer(events: readonly CombatPromptEvent[]): number | undefined {
   for (let index = events.length - 1; index >= 0; index -= 1) {
     const event = events[index]!;
-    if (event.kind === "actionRejected" && COMBAT_ANSWER_INTENTS.has(event.intent)) return event.seq ?? index + 1;
+    if (event.kind !== "actionRejected" || !COMBAT_ANSWER_INTENTS.has(event.intent)) continue;
+    // An accepted Counter can still be resolving its effect when a duplicate arrives.
+    // That refusal does not invalidate the original answer or permit another Counter.
+    if (event.intent === "respondCounter" && event.reason === "decision-pending") continue;
+    return event.seq ?? index + 1;
   }
   return undefined;
 }
