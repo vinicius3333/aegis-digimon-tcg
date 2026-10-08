@@ -115,6 +115,12 @@ export function DecisionTriggerChooser({
     ? visibleIndexes.filter((index) => triggerIsOptional?.[index] === true).map((index) => triggerKeys[index]!)
     : [];
 
+  // Missing optionality metadata is unknown, never evidence of a mandatory effect.
+  const mandatoryKeys = acceptsResolutionPlan
+    ? visibleIndexes.filter((index) => triggerIsOptional?.[index] === false).map((index) => triggerKeys[index]!)
+    : [];
+  const canSelectMandatory = mandatoryKeys.length < optionCount && mandatoryKeys.some((key) => !order.includes(key));
+
   const toggle = (key: string) => {
     if (!acceptsResolutionPlan) {
       setOrder((current) => (current[0] === key ? [] : [key]));
@@ -124,6 +130,8 @@ export function DecisionTriggerChooser({
   };
   const orderRemaining = () =>
     setOrder((current) => [...current, ...visibleKeys.filter((key) => !current.includes(key))]);
+  const orderMandatory = () =>
+    setOrder((current) => [...current, ...mandatoryKeys.filter((key) => !current.includes(key))]);
   const setPreset = (key: string, preset: Preset | undefined) =>
     setPresets((current) => {
       const { [key]: _previous, ...rest } = current;
@@ -300,16 +308,21 @@ export function DecisionTriggerChooser({
           <div className="trigger-chooser__status" aria-live="polite">
             <span>{t("overlay.orderedCount", { ordered: order.length, total: optionCount })}</span>
             {order.length === 0 ? (
-              <button type="button" className="trigger-chooser__link" onClick={orderRemaining}>
+              <Button size="sm" variant="secondary" onClick={orderRemaining}>
                 {t("overlay.orderAllTopToBottom")}
-              </button>
+              </Button>
+            ) : null}
+            {canSelectMandatory ? (
+              <Button size="sm" variant="secondary" onClick={orderMandatory}>
+                {t("overlay.orderMandatoryTopToBottom")}
+              </Button>
             ) : null}
             {order.length > 0 && order.length < optionCount ? (
               <>
                 <span className="trigger-chooser__status-hint">{t("overlay.orderedRestLater")}</span>
-                <button type="button" className="trigger-chooser__link" onClick={orderRemaining}>
+                <Button size="sm" variant="secondary" onClick={orderRemaining}>
                   {t("overlay.orderRemaining")}
-                </button>
+                </Button>
               </>
             ) : null}
           </div>

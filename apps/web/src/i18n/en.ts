@@ -1181,6 +1181,7 @@ export const en = {
   "overlay.orderedRestLater": "You will be asked about the rest later.",
   "overlay.orderRemaining": "Add the rest in shown order",
   "overlay.orderAllTopToBottom": "Select all, top to bottom",
+  "overlay.orderMandatoryTopToBottom": "Select mandatory, top to bottom",
   "overlay.presetYesAll": "Yes to all",
   "overlay.presetNoAll": "No to all",
   "overlay.presetReset": "Reset",

@@ -1167,6 +1167,7 @@ export const es: Record<keyof typeof en, string> = {
   "overlay.orderedRestLater": "Se te preguntará por el resto más tarde.",
   "overlay.orderRemaining": "Añadir el resto en el orden mostrado",
   "overlay.orderAllTopToBottom": "Seleccionar todos, de arriba abajo",
+  "overlay.orderMandatoryTopToBottom": "Seleccionar obligatorios, de arriba abajo",
   "overlay.presetYesAll": "Sí a todo",
   "overlay.presetNoAll": "No a todo",
   "overlay.presetReset": "Restablecer",
