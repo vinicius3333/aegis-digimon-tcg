@@ -224,6 +224,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-st15-trident-arm-forced-attack-text",
   "arena-ex11-vortex-effect-attack-block",
   "arena-bt17-dexdoru-exact-name",
+  "arena-ex13-veemon-protection-5363",
   "arena-ad1-adventure-tamers-security",
   "arena-lm067-gundramon-free-option",
   "arena-github-5316-shoutmon-rush",
@@ -1594,6 +1595,35 @@ function layLmGundramonSimultaneousDeleteScenario(state: GameState, decks: reado
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/** #5363: WarGreymon deletion against an unsuspended host and an already suspended host. */
+function layEx13VeemonProtection5363Scenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["ST1-09"], "-veemon-base-1"));
+    placePermanent(human, establishedDigimon(0, ["ST1-09"], "-veemon-base-2"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-veemon-wargreymon-1", "AD1-004", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-veemon-wargreymon-2", "AD1-004", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["EX13-017", "BT12-029"], "-veemon-unsuspended"));
+    const suspended = establishedDigimon(1, ["EX13-017", "BT12-029"], "-veemon-suspended");
+    suspended.isSuspended = true;
+    placePermanent(bot, suspended);
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 8;
 }
 
 /** Discord 1557128872544313456: DexDoruGreymon's [Trash] effect answers only an exact [DoruGreymon]. */
@@ -9552,6 +9582,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-st15-trident-arm-forced-attack-text": laySt15TridentArmForcedAttackTextScenario,
   "arena-ex11-vortex-effect-attack-block": layEx11VortexEffectAttackBlockScenario,
   "arena-bt17-dexdoru-exact-name": layBt17DexDoruExactNameScenario,
+  "arena-ex13-veemon-protection-5363": layEx13VeemonProtection5363Scenario,
   "arena-ad1-adventure-tamers-security": layAd1AdventureTamersSecurityScenario,
   "arena-lm067-gundramon-free-option": layLm067GundramonFreeOptionScenario,
   "arena-github-5316-shoutmon-rush": layShoutmonReportedRushScenario,

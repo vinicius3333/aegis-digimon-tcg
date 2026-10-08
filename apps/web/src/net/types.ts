@@ -271,6 +271,7 @@ export interface AegisJoinOptions {
     | "arena-bt22-shinmonzaemon-opponent-security"
     | "arena-ex11-vortex-effect-attack-block"
     | "arena-bt17-dexdoru-exact-name"
+    | "arena-ex13-veemon-protection-5363"
     | "arena-open-bugs-veemon-decline"
     | "arena-open-bugs-lavorvomon-search"
     | "arena-open-bugs-giromon-leave"
