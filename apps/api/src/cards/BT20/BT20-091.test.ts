@@ -1,7 +1,7 @@
 import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, drainMicrotasks } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-091.js";
 import "./index.js";
@@ -121,6 +121,111 @@ describe("BT20-091 [Your Turn] when Royal Knight played/digivolves, suspend to d
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-010"]);
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.memory).toBe(1);
+  });
+
+  it.each(["play", "digivolve"] as const)(
+    "honors separate physical Cool Boy presets after public %s",
+    async (trigger) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: COOL_BOY, as: "firstCoolBoy" },
+              { card: COOL_BOY, as: "secondCoolBoy" },
+              { card: "BT2-027", as: "zudomon" },
+            ],
+            hand: [{ card: "ST8-10", as: "ulforce" }],
+            deck: Array(8).fill("BT1-009"),
+          },
+          1: { security: 5 },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(
+          0,
+          trigger === "play"
+            ? { type: "playCard", instanceId: s.inst("ulforce").instanceId }
+            : {
+                type: "digivolve",
+                permanentId: s.perm("zudomon").permanentId,
+                instanceId: s.inst("ulforce").instanceId,
+              },
+        ),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const request = s.decisions.at(-1)!.req;
+      const keys = request.options!.triggerKeys!;
+      const first = keys.find((key) => key.startsWith(`${s.inst("firstCoolBoy").instanceId}::`))!;
+      const second = keys.find((key) => key.startsWith(`${s.inst("secondCoolBoy").instanceId}::`))!;
+      expect(first).toBeDefined();
+      expect(second).toBeDefined();
+      expect(first).not.toBe(second);
+      const before = {
+        memory: s.state.memory,
+        hand: s.state.players[0]!.hand.length,
+        deck: s.state.players[0]!.deck.length,
+      };
+      // Resolve the declined physical copy first; its refusal must pay nothing.
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: request.decisionId,
+          response: {
+            kind: "orderTriggers",
+            order: [second, first, ...keys.filter((key) => key !== first && key !== second)],
+            optionalAnswers: { [first]: true, [second]: false },
+          },
+        }),
+      ).toEqual({ ok: true });
+      await drainMicrotasks(200);
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(s.perm("firstCoolBoy").isSuspended).toBe(true);
+      expect(s.perm("secondCoolBoy").isSuspended).toBe(false);
+      expect(s.state.memory).toBe(before.memory + 1);
+      expect(s.state.players[0]!.hand).toHaveLength(before.hand + 1);
+      expect(s.state.players[0]!.deck).toHaveLength(before.deck - 1);
+      expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === COOL_BOY)).toHaveLength(0);
+    },
+  );
+
+  it("Ask offers the suspension cost and an explicit refusal keeps Cool Boy active", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: COOL_BOY, as: "coolBoy" }],
+          hand: [{ card: "ST8-10", as: "ulforce" }],
+          deck: Array(4).fill("BT1-009"),
+        },
+        1: { security: 5 },
+      },
+      { autoOrderTriggers: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const before = s.state.players[0]!.deck.length;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ulforce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const request = s.decisions.at(-1)!.req;
+    expect(request.sourceCardId).toBe(COOL_BOY);
+    expect(s.perm("coolBoy").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await drainMicrotasks(200);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.perm("coolBoy").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(-2);
+    expect(s.state.players[0]!.deck).toHaveLength(before);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
   it("does NOT draw when a played Digimon has no [Royal Knight] trait", async () => {

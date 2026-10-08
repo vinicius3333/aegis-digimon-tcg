@@ -19,6 +19,7 @@ const paidDrawAndMemory: Action[] = [
     condition: royalKnightOnYourTurn,
     cost: {
       kind: "suspend" as const,
+      optional: true,
       target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       raw: "by suspending this Tamer",
     },
