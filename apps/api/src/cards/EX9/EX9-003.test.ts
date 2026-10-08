@@ -235,6 +235,16 @@ describe("EX9-003", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    options.autoDeclineOptional = true;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+
     await settle(() => s.perm("host").topCard?.cardId === "EX9-030");
 
     expect(s.perm("host").topCard?.cardId).toBe("EX9-030");

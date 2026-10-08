@@ -26,6 +26,7 @@ const compiled: CompiledCard = {
           effectTextPart:
             "Then, by trashing 2 bottom face-down cards from under any of your Tamers, this Digimon may digivolve into a [DATA SQUAD] trait Digimon card in the hand without paying the cost.",
           kind: "Digivolve",
+          abortOnDecline: true,
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           into: {
             controllerDefault: "mine",
@@ -35,9 +36,10 @@ const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
-          payCostBeforeOptional: false,
+
           cost: {
             kind: "trashBottomFaceDownUnderTamer",
+            optional: true,
             controller: "mine",
             count: 2,
             raw: "by trashing 2 bottom face-down cards from under any of your Tamers",

@@ -60,7 +60,7 @@ describe("EX9-070", () => {
       await settle(() => s.state.pendingDecision?.kind === "optional");
       const choice = s.state.pendingDecision!;
       expect(choice.kind).toBe("optional");
-      options.autoDeclineOptional = true;
+
       expect(
         s.engine.applyIntent(0, {
           type: "respondDecision",
@@ -68,6 +68,16 @@ describe("EX9-070", () => {
           response: { kind: "optional", accept: true },
         }),
       ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      options.autoDeclineOptional = true;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toEqual({ ok: true });
+
       await settle();
       expect(s.perm("host").topCard.cardId).toBe(evolution);
       expect(s.perm("host").stack[0]).toMatchObject({ cardId: "BT1-009", faceUp: false });

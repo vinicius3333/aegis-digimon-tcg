@@ -59,13 +59,14 @@ describe("BT19-084 Winr — catalog", () => {
       },
       {
         trigger: "Main",
-        optional: true,
         actions: [
           {
             kind: "Digivolve",
+            optional: true,
+            abortOnDecline: true,
             from: ["security"],
             payCost: true,
-            cost: { kind: "suspend" },
+            cost: { kind: "suspend", optional: true },
           },
           {
             kind: "SecurityManipulation",
@@ -198,7 +199,7 @@ describe("BT19-084 Winr — [Main] digivolve into a face-up security Digimon", (
     await loop;
   });
 
-  it("does not treat a FACE-DOWN security Digimon as a source, so the [Main] clause is not offered", async () => {
+  it("may pay suspension with only FACE-DOWN security, without using it as a digivolution source (CR15-7-5)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -223,19 +224,13 @@ describe("BT19-084 Winr — [Main] digivolve into a face-up security Digimon", (
     const sourceInstanceId = s.inst("source").instanceId;
     const securityBefore = s.state.players[0]!.security.map((card) => card.instanceId);
 
-    expect(JSON.parse(s.perm("winr").activatableEffectsJson || "[]")).toEqual([]);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.perm("winr").topCard!.instanceId,
-        effectKey: "main-0",
-      }).ok,
-    ).toBe(false);
+    expect(JSON.parse(s.perm("winr").activatableEffectsJson || "[]")).toHaveLength(1);
+    expect(activateMain(s, "winr")).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.perm("source").topCard!.instanceId).toBe(sourceInstanceId);
     expect(s.perm("source").stack).toHaveLength(0);
-    expect(s.perm("winr").isSuspended).toBe(false);
+    expect(s.perm("winr").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT19-045"]);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(securityBefore);
 
