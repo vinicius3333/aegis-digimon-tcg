@@ -23,10 +23,11 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "Main",
-      optional: true,
       actions: [
         {
           kind: "Digivolve",
+          optional: true,
+          abortOnDecline: true,
           target: {
             filter: {
               controller: "mine",
@@ -42,6 +43,8 @@ const compiled: CompiledCard = {
           payCost: true,
           cost: {
             kind: "suspend",
+            optional: true,
+            raw: "By suspending this Tamer",
           },
         },
         {

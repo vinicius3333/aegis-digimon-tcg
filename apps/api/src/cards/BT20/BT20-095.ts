@@ -56,6 +56,7 @@ export const compiled: CompiledCard = {
               optional: true,
               cost: {
                 kind: "moveToBattleArea",
+                optional: true,
                 target: {
                   filter: {
                     zone: "breeding",

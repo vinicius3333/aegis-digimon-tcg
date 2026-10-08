@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-094.js";
 import "../index.js";
 import {
@@ -101,5 +102,140 @@ describe("BT26-094 Keenan Crier — KB Q&A rulings", () => {
     expect(trashed).toMatchObject({ instanceId: placedId, faceUp: true });
     expect(identityVisibility(s, trashed!)).toEqual({ owner: true, opponent: true });
     await finish();
+  });
+});
+
+describe("GitHub #5300 Keenan cost choice and mandatory Execute", () => {
+  for (const channel of ["hand", "under"] as const) {
+    for (const accept of [false, true]) {
+      it(`${channel} trash: ${accept ? "paying the cost mandates Execute" : "declining keeps Keenan active"}`, async () => {
+        const options = { autoSelectCards: true };
+        const s = setupEngine(
+          {
+            0: {
+              battleArea: [
+                {
+                  card: "BT26-094",
+                  as: "keenan",
+                  under: channel === "under" ? [{ card: "BT1-001", faceUp: false }] : [],
+                },
+                { card: "ST24-09", as: "eligible" },
+                { card: "ST24-09", as: "otherEligible" },
+                { card: "BT1-009", as: "ineligible" },
+              ],
+              hand: [{ card: channel === "hand" ? "EX6-049" : "ST24-12", as: "trigger" }],
+              trash: ["ST24-08"],
+            },
+            1: { hand: Array.from({ length: 7 }, () => "BT1-009") },
+          },
+          options,
+        );
+        await s.ready();
+        s.state.memory = 10;
+        expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trigger").instanceId })).toEqual({
+          ok: true,
+        });
+        await settle(() => s.state.pendingDecision?.kind === "optional");
+        if (s.decisions.at(-1)?.req.sourceCardId === "ST24-12") {
+          expect(
+            s.engine.applyIntent(0, {
+              type: "respondDecision",
+              decisionId: s.state.pendingDecision!.decisionId,
+              response: { kind: "optional", accept: true },
+            }),
+          ).toEqual({ ok: true });
+          await settle(() => s.decisions.at(-1)?.req.sourceCardId === "BT26-094");
+        }
+        expect(s.decisions.at(-1)?.req.sourceCardId).toBe("BT26-094");
+        options.autoSelectCards = false;
+        expect(
+          s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: s.state.pendingDecision!.decisionId,
+            response: { kind: "optional", accept },
+          }),
+        ).toEqual({ ok: true });
+        if (accept) {
+          await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+          const decisionId = s.state.pendingDecision!.decisionId;
+          for (const instanceIds of [[], [s.perm("ineligible").permanentId]]) {
+            expect(
+              s.engine.applyIntent(0, {
+                type: "respondDecision",
+                decisionId,
+                response: { kind: "chooseTargets", instanceIds },
+              }).ok,
+            ).toBe(false);
+            expect(s.state.pendingDecision?.decisionId).toBe(decisionId);
+          }
+          expect(
+            s.engine.applyIntent(0, {
+              type: "respondDecision",
+              decisionId,
+              response: { kind: "chooseTargets", instanceIds: [s.perm("eligible").permanentId] },
+            }),
+          ).toEqual({ ok: true });
+        }
+        await settle(() => s.state.pendingDecision === undefined);
+        await drainMicrotasks();
+        expect(s.perm("keenan").isSuspended).toBe(accept);
+        expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Execute")).toBe(accept);
+        expect(observe(s.engine).hasKeyword(s.perm("otherEligible"), "Execute")).toBe(false);
+        expect(observe(s.engine).hasKeyword(s.perm("ineligible"), "Execute")).toBe(false);
+        const target = s.decisions.find(({ req }) => req.sourceCardId === "BT26-094" && req.kind === "chooseTargets");
+        if (accept) {
+          expect(target?.req.options).toMatchObject({ min: 1, max: 1 });
+          expect(target?.req.options?.candidateInstanceIds).not.toContain(s.perm("ineligible").permanentId);
+        } else expect(target).toBeUndefined();
+      });
+    }
+  }
+});
+
+describe("GitHub #5300 Keenan unavailable payload and cost controls", () => {
+  it("can pay the suspension condition even with no DATA SQUAD target (CR15-7-5)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-094", as: "keenan" }], hand: [{ card: "EX6-049", as: "trigger" }] },
+        1: { hand: Array.from({ length: 7 }, () => "BT1-009") },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trigger").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.hand.length === 6 && s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+    expect(s.perm("keenan").isSuspended).toBe(true);
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "BT26-094" && req.kind === "chooseTargets")).toEqual(
+      [],
+    );
+  });
+
+  it("cannot pay an already suspended Keenan's condition", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-094", as: "keenan", suspended: true },
+            { card: "ST24-09", as: "eligible" },
+          ],
+          hand: [{ card: "EX6-049", as: "trigger" }],
+        },
+        1: { hand: Array.from({ length: 7 }, () => "BT1-009") },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trigger").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.hand.length === 6 && s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+    expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Execute")).toBe(false);
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "BT26-094" && req.kind === "optional")).toEqual([]);
   });
 });

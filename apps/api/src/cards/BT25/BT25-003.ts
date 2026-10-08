@@ -30,6 +30,7 @@ export const compiled: CompiledCard = {
           optional: true,
           cost: {
             kind: "trash",
+            optional: true,
             target: {
               filter: {
                 controller: "mine",

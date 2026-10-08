@@ -9,6 +9,7 @@ if (watcher?.kind === "SubTrigger") {
   watcher.sourceFilter = { controller: "mine", kind: ["Digimon"], colorsAll: ["Blue", "Green"], colorCount: 2 };
   watcher.actions[0] = {
     kind: "Digivolve",
+    abortOnDecline: true,
     target: { sourceRef: "triggerSubject", filter: { kind: ["Digimon"] }, count: 1 },
     into: {
       controllerDefault: "mine",
@@ -20,6 +21,7 @@ if (watcher?.kind === "SubTrigger") {
     optional: true,
     cost: {
       kind: "suspend",
+      optional: true,
       target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       raw: "by suspending this Tamer",
     },

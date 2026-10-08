@@ -40,7 +40,8 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     for (const [cardId, accept] of [
-      ["BT20-014", true],
+      ["BT20-014", true], // Suspend the ally.
+      ["BT20-014", true], // Independently accept the printed may digivolve.
       ["BT23-013", false],
       ["BT23-076", true],
     ] as const) {

@@ -416,6 +416,8 @@ export interface AegisJoinOptions {
     | "arena-bt20-dragon-gene-skip-play"
     | "arena-bt26-rosemon-option-digivolve-lock"
     | "arena-bt26-ravemon-nested-on-deletion"
+    | "arena-github5300-yoshino-cost-payload"
+    | "arena-github5300-keenan-cost-execute"
     | "arena-bt26-yoshino-trigger-stack"
     | "arena-bt26-ravemon-recycled-trigger"
     | "arena-bt26-yoshino-match-b3759aa7"

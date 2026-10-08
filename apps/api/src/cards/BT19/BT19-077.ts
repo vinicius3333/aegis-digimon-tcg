@@ -47,6 +47,7 @@ const compiled: CompiledCard = {
           optional: true,
           cost: {
             kind: "suspend",
+            optional: true,
             target: {
               filter: {
                 isSelfRef: true,

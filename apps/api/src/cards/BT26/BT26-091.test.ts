@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import {
   identityVisibility,
   placeAtStartOfMain,
@@ -82,10 +82,23 @@ describe("BT26-091 compiled behavior", () => {
     const actions = compiled.effects.find((effect) => effect.trigger === "YourTurn")?.actions ?? [];
     expect(actions).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ event: "whenSuspended", actions: [expect.objectContaining({ kind: "Digivolve" })] }),
+        expect.objectContaining({
+          event: "whenSuspended",
+          actions: [
+            expect.objectContaining({
+              kind: "CostGatedBlock",
+              actions: [expect.objectContaining({ kind: "Digivolve", optional: true })],
+            }),
+          ],
+        }),
         expect.objectContaining({
           event: "whenDigivolutionTrashed",
-          actions: [expect.objectContaining({ kind: "Digivolve" })],
+          actions: [
+            expect.objectContaining({
+              kind: "CostGatedBlock",
+              actions: [expect.objectContaining({ kind: "Digivolve", optional: true })],
+            }),
+          ],
         }),
       ]),
     );
@@ -281,4 +294,223 @@ describe("Discord October 5 report regressions", () => {
     await settle(() => s.perm("yoshi").isSuspended && s.perm("base").topCard.cardId === "ST24-10");
     expect(s.state.memory).toBe(4);
   });
+});
+
+describe("GitHub #5300 Yoshino separate cost and payload choices", () => {
+  it("can suspend Yoshino after a public suspension trigger, then decline the printed may digivolve", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-091", as: "yoshino" },
+            { card: "BT26-039", as: "base" },
+          ],
+          hand: [
+            { card: "ST24-09", as: "trigger" },
+            { card: "BT26-044", as: "evolution" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "enemy" }] },
+      },
+      {},
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trigger").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    expect(s.decisions.at(-1)?.req.sourceCardId).toBe("ST24-09");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("enemy").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(s.decisions.at(-1)?.req.sourceCardId).toBe("BT26-091");
+    expect(s.perm("enemy").isSuspended).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yoshino").isSuspended);
+    await settle(() => s.state.pendingDecision !== undefined);
+    expect(s.state.pendingDecision?.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("base").topCard.cardId).toBe("BT26-039");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evolution").instanceId);
+    expect(s.state.memory).toBe(6);
+  });
+});
+
+describe("GitHub #5300 Yoshino public trash-under trigger", () => {
+  it.each([
+    { legalPayload: true, acceptPayload: false },
+    { legalPayload: true, acceptPayload: true },
+    { legalPayload: false, acceptPayload: false },
+  ])(
+    "may pay suspension independently (legal=$legalPayload, accept=$acceptPayload)",
+    async ({ legalPayload, acceptPayload }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT26-091", as: "yoshino", under: [{ card: "BT1-001", as: "source", faceUp: false }] },
+              { card: "BT26-039", as: "base" },
+            ],
+            hand: [
+              { card: "ST24-12", as: "trigger" },
+              ...(legalPayload ? [{ card: "BT26-044", as: "evolution" }] : []),
+            ],
+            trash: ["BT26-091"],
+          },
+          1: {},
+        },
+        { autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 10;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trigger").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      expect(s.decisions.at(-1)?.req.sourceCardId).toBe("ST24-12");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.decisions.at(-1)?.req.sourceCardId === "BT26-091" && s.state.pendingDecision?.kind === "optional",
+      );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("yoshino").isSuspended);
+      if (legalPayload) {
+        await settle(() => s.state.pendingDecision?.kind === "optional");
+        expect(
+          s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: s.state.pendingDecision!.decisionId,
+            response: { kind: "optional", accept: acceptPayload },
+          }),
+        ).toEqual({ ok: true });
+      }
+      await drainMicrotasks();
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(s.perm("yoshino").stack).toHaveLength(0);
+      expect(s.perm("yoshino").isSuspended).toBe(true);
+      if (acceptPayload) await settle(() => s.perm("base").topCard.cardId === "BT26-044");
+      expect(s.perm("base").topCard.cardId).toBe(acceptPayload ? "BT26-044" : "BT26-039");
+      expect(s.state.memory).toBe(acceptPayload ? 5 : 7);
+    },
+  );
+});
+
+describe("GitHub #5300 Yoshino cost controls", () => {
+  for (const channel of ["suspend", "under"] as const) {
+    it(`${channel}: declining the suspension condition leaves Yoshino and evolution unchanged`, async () => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              {
+                card: "BT26-091",
+                as: "yoshino",
+                under: channel === "under" ? [{ card: "BT1-001", faceUp: false }] : [],
+              },
+              { card: "BT26-039", as: "base" },
+            ],
+            hand: [
+              { card: channel === "under" ? "ST24-12" : "ST24-09", as: "trigger" },
+              { card: "BT26-044", as: "evolution" },
+            ],
+            trash: ["BT26-091"],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "enemy" }] },
+        },
+        { autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 10;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trigger").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      if (s.decisions.at(-1)?.req.sourceCardId === "ST24-12") {
+        expect(
+          s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: s.state.pendingDecision!.decisionId,
+            response: { kind: "optional", accept: true },
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => s.decisions.at(-1)?.req.sourceCardId === "BT26-091");
+      }
+      expect(s.decisions.at(-1)?.req.sourceCardId).toBe("BT26-091");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.perm("yoshino").isSuspended).toBe(false);
+      expect(s.perm("base").topCard.cardId).toBe("BT26-039");
+      expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evolution").instanceId);
+    });
+  }
+});
+
+it.each(["suspend", "under"] as const)("#5300 Yoshino already suspended: %s cannot pay again", async (channel) => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          {
+            card: "BT26-091",
+            as: "yoshino",
+            suspended: true,
+            under: channel === "under" ? [{ card: "BT1-001", faceUp: false }] : [],
+          },
+          { card: "BT26-039", as: "base" },
+        ],
+        hand: [
+          { card: channel === "under" ? "ST24-12" : "ST24-09", as: "trigger" },
+          { card: "BT26-044", as: "evolution" },
+        ],
+        trash: ["BT26-091"],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "enemy" }] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["top card of your deck"] },
+  );
+  await s.ready();
+  s.state.memory = 10;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trigger").instanceId })).toEqual({ ok: true });
+  await drainMicrotasks();
+  expect(s.decisions.some(({ req }) => req.sourceCardId === "BT26-091")).toBe(false);
+  expect(s.perm("base").topCard.cardId).toBe("BT26-039");
+  expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("evolution").instanceId);
+  expect(s.state.pendingDecision).toBeUndefined();
 });

@@ -17,14 +17,23 @@ const digivolveInto: Filter = {
   kind: ["Digimon"],
 };
 const reactiveDigivolve: Action = {
-  kind: "Digivolve",
-  target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-  into: { filter: { controller: "mine", zone: "hand", ...digivolveInto }, count: 1 },
-  from: ["hand"],
-  payCost: true,
-  costDelta: -1,
-  optional: true,
+  // The optional suspension condition and the printed "may digivolve" are
+  // separate choices (CR 15-7-5 and 15-9-2).
+  kind: "CostGatedBlock",
   cost: { kind: "suspend", target: self },
+  optional: true,
+  abortOnDecline: true,
+  actions: [
+    {
+      kind: "Digivolve",
+      target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+      into: { filter: { controller: "mine", zone: "hand", ...digivolveInto }, count: 1 },
+      from: ["hand"],
+      payCost: true,
+      costDelta: -1,
+      optional: true,
+    },
+  ],
 };
 
 export const compiled: CompiledCard = {
