@@ -63,9 +63,19 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          kind: "SelectBind",
+          condition: { kind: "youHave", filter: { controller: "mine", kind: ["Digimon"] } },
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"] },
+            count: 1,
+            bindAs: "deDigivolveTarget",
+          },
+        },
+        {
           effectTextPart: "Then, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of your Digimon.",
           kind: "DeDigivolve",
           target: {
+            fromSelectionRef: "deDigivolveTarget",
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
@@ -109,9 +119,19 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          kind: "SelectBind",
+          condition: { kind: "youHave", filter: { controller: "mine", kind: ["Digimon"] } },
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"] },
+            count: 1,
+            bindAs: "deDigivolveTarget",
+          },
+        },
+        {
           effectTextPart: "Then, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of your Digimon.",
           kind: "DeDigivolve",
           target: {
+            fromSelectionRef: "deDigivolveTarget",
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
@@ -155,9 +175,19 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          kind: "SelectBind",
+          condition: { kind: "youHave", filter: { controller: "mine", kind: ["Digimon"] } },
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"] },
+            count: 1,
+            bindAs: "deDigivolveTarget",
+          },
+        },
+        {
           effectTextPart: "Then, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of your Digimon.",
           kind: "DeDigivolve",
           target: {
+            fromSelectionRef: "deDigivolveTarget",
             filter: {
               controller: "opponent",
               kind: ["Digimon"],

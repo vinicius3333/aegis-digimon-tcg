@@ -7,6 +7,71 @@ import { compiled as BT24_065 } from "./BT24-065.js";
 import "../index.js";
 
 describe("BT24-065 Diaboromon (X Antibody)", () => {
+  it("Discord 1557624042733969509 mechanism sweep: keeps repeated De-Digivolve on one opponent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-064", as: "base" }, { card: "BT1-009" }],
+          hand: [{ card: "BT24-065", as: "source" }],
+          deck: ["BT1-001"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT21-045", as: "chosen", under: ["BT21-042", "BT21-044"] },
+            { card: "BT21-045", as: "untouched", under: ["BT21-042", "BT21-044"] },
+            { card: "BT1-084", as: "highestCost" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 1, max: 1 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("chosen").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("chosen").topCard.cardId !== "BT21-045" &&
+        (s.state.pendingDecision?.kind === "chooseTargets" ||
+          s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT24-065")),
+    );
+    const repeatedResponse =
+      s.state.pendingDecision?.kind === "chooseTargets"
+        ? s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: s.state.pendingDecision.decisionId,
+            response: { kind: "chooseTargets", instanceIds: [s.perm("untouched").permanentId] },
+          })
+        : undefined;
+    expect(repeatedResponse?.ok ?? true).toBe(true);
+    await settle(
+      () =>
+        s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT24-065") && !s.state.pendingDecision,
+    );
+    expect(s.perm("untouched").topCard.cardId).toBe("BT21-045");
+    expect(s.perm("untouched").stack).toHaveLength(2);
+    expect(s.perm("chosen").topCard.cardId).toBe("BT21-042");
+    expect(s.perm("chosen").stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-084")).toBe(true);
+    expect(
+      s.decisions.filter(({ req }) => req.sourceCardId === "BT24-065" && req.kind === "chooseTargets"),
+    ).toHaveLength(1);
+  });
+
   it("matches the immutable catalog identity", () => {
     expect(getCardDefinition("BT24-065")).toMatchObject({
       cardId: "BT24-065",

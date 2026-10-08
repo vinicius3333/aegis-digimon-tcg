@@ -12,9 +12,10 @@ import "../../cards/EX12/EX12-016.js";
 //   Then, give 1 of their Digimon "[Start of Your Main Phase] This Digimon attacks."
 //   until their turn ends.
 //
-// The fix replaces the placeholder GrantStatic(GRANTEFFECT23TOKEN) with the same
-// startOfYourMainPhase SubTrigger shape used by BT23-056 and BT12-065 — no
-// precondition (unlike BT23-056's [CS] Tamer gate).
+// GainTriggeredEffect installs a recipient-anchored startOfYourMainPhase watcher.
+// Unlike BT23-056, MetalGreymon has no [CS] Tamer precondition.
+// Public turn-loop and visibility coverage lives in forcedAttackGrantVisibility.test.ts
+// and ex12MetalGreymonForcedAttackScenario.test.ts.
 //
 // Assertions:
 //   - resolve() installs a subscribeSubTrigger (delayed grant), NOT an immediate forceAttack.

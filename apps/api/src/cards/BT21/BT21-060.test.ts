@@ -7,6 +7,70 @@ import { compiled } from "./BT21-060.js";
 import "../index.js";
 
 describe("BT21-060 Destromon", () => {
+  it("Discord 1557624042733969509 mechanism sweep: keeps repeated De-Digivolve on one opponent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-056", as: "base", under: ["BT21-056", "BT21-056", "BT21-056"] }],
+          hand: [{ card: "BT21-060", as: "source" }],
+          deck: ["BT1-001"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT21-045", as: "chosen", under: ["BT21-042", "BT21-044"] },
+            { card: "BT21-045", as: "untouched", under: ["BT21-042", "BT21-044"] },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 1, max: 1 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("chosen").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("chosen").topCard.cardId !== "BT21-045" &&
+        (s.state.pendingDecision?.kind === "chooseTargets" ||
+          s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT21-060")),
+    );
+    const repeatedResponse =
+      s.state.pendingDecision?.kind === "chooseTargets"
+        ? s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: s.state.pendingDecision.decisionId,
+            response: { kind: "chooseTargets", instanceIds: [s.perm("untouched").permanentId] },
+          })
+        : undefined;
+    expect(repeatedResponse?.ok ?? true).toBe(true);
+    await settle(
+      () =>
+        s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT21-060") && !s.state.pendingDecision,
+    );
+    expect(s.perm("untouched").topCard.cardId).toBe("BT21-045");
+    expect(s.perm("untouched").stack).toHaveLength(2);
+    expect(s.perm("chosen").topCard.cardId).toBe("BT21-042");
+    expect(s.perm("chosen").stack).toHaveLength(0);
+    expect(
+      s.decisions.filter(({ req }) => req.sourceCardId === "BT21-060" && req.kind === "chooseTargets"),
+    ).toHaveLength(1);
+  });
+
   it("uses the engine's stacked-card trash lock for the Digivolving protection", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving");
     expect(effect?.actions[0]).toEqual({
@@ -68,7 +132,7 @@ describe("BT21-060 Destromon", () => {
 
   it("scales De-Digivolve by Vemmon cards in this Digimon's stack", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving");
-    expect(effect?.actions[1]).toMatchObject({
+    expect(effect?.actions.find((action) => action.kind === "DeDigivolve")).toMatchObject({
       kind: "DeDigivolve",
       amount: 1,
       scaling: {

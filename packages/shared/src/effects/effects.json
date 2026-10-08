@@ -18195,14 +18195,14 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "startOfYourMainPhase",
-            "on": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "kind": "GainTriggeredEffect",
+            "gainedTrigger": "StartOfYourMainPhase",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "duration": "untilOpponentTurnEnd",
-            "actions": [
+            "gainedActions": [
               { "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
             ],
-            "raw": "give 1 opposing Digimon '[Start of Your Main Phase] Attack with this Digimon' until its turn ends"
+            "raw": "[Start of Your Main Phase] This Digimon attacks."
           }
         ]
       }
@@ -75560,9 +75560,27 @@
             "duration": "untilOpponentTurnEnd"
           },
           {
+            "kind": "SelectBind",
+            "condition": {
+              "kind": "digivolutionCardCount",
+              "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "nameExact" }],
+              "op": "gte",
+              "value": 2
+            },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "deDigivolveTarget"
+            }
+          },
+          {
             "effectTextPart": "Then, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for every 2 [Vemmon] in this Digimon's digivolution cards.",
             "kind": "DeDigivolve",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "fromSelectionRef": "deDigivolveTarget",
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1
+            },
             "amount": 1,
             "scaling": {
               "per": 2,
@@ -75646,8 +75664,21 @@
         "trigger": "OnPlay",
         "actions": [
           {
+            "kind": "SelectBind",
+            "condition": { "kind": "zoneColorCount", "cardType": "Tamer", "op": "gte", "value": 2 },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "metalGreymonTarget"
+            }
+          },
+          {
             "kind": "DeDigivolve",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "fromSelectionRef": "metalGreymonTarget",
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1
+            },
             "amount": 1,
             "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
           }
@@ -75657,8 +75688,21 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
+            "kind": "SelectBind",
+            "condition": { "kind": "zoneColorCount", "cardType": "Tamer", "op": "gte", "value": 2 },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "metalGreymonTarget"
+            }
+          },
+          {
             "kind": "DeDigivolve",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "fromSelectionRef": "metalGreymonTarget",
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1
+            },
             "amount": 1,
             "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
           }
@@ -90002,18 +90046,18 @@
         "trigger": "OnPlay",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "startOfYourMainPhase",
+            "kind": "GainTriggeredEffect",
+            "gainedTrigger": "StartOfYourMainPhase",
             "condition": {
               "kind": "youHave",
               "filter": { "kind": ["Tamer"], "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }] }
             },
-            "on": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "duration": "untilOpponentTurnEnd",
-            "actions": [
+            "gainedActions": [
               { "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
             ],
-            "raw": "give 1 of your opponent's Digimon '[Start of Your Main Phase] This Digimon attacks.' until their turn ends"
+            "raw": "[Start of Your Main Phase] This Digimon attacks."
           }
         ]
       },
@@ -90021,18 +90065,18 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "startOfYourMainPhase",
+            "kind": "GainTriggeredEffect",
+            "gainedTrigger": "StartOfYourMainPhase",
             "condition": {
               "kind": "youHave",
               "filter": { "kind": ["Tamer"], "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }] }
             },
-            "on": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "duration": "untilOpponentTurnEnd",
-            "actions": [
+            "gainedActions": [
               { "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
             ],
-            "raw": "give 1 of your opponent's Digimon '[Start of Your Main Phase] This Digimon attacks.' until their turn ends"
+            "raw": "[Start of Your Main Phase] This Digimon attacks."
           }
         ]
       },
@@ -96538,9 +96582,22 @@
             "optional": true
           },
           {
+            "kind": "SelectBind",
+            "condition": { "kind": "youHave", "filter": { "controller": "mine", "kind": ["Digimon"] } },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "deDigivolveTarget"
+            }
+          },
+          {
             "effectTextPart": "Then, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of your Digimon.",
             "kind": "DeDigivolve",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "fromSelectionRef": "deDigivolveTarget",
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1
+            },
             "amount": 1,
             "scaling": { "per": 1, "filter": { "controller": "mine", "kind": ["Digimon"] }, "unit": "cards" }
           }
@@ -96565,9 +96622,22 @@
             "optional": true
           },
           {
+            "kind": "SelectBind",
+            "condition": { "kind": "youHave", "filter": { "controller": "mine", "kind": ["Digimon"] } },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "deDigivolveTarget"
+            }
+          },
+          {
             "effectTextPart": "Then, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of your Digimon.",
             "kind": "DeDigivolve",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "fromSelectionRef": "deDigivolveTarget",
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1
+            },
             "amount": 1,
             "scaling": { "per": 1, "filter": { "controller": "mine", "kind": ["Digimon"] }, "unit": "cards" }
           }
@@ -96592,9 +96662,22 @@
             "optional": true
           },
           {
+            "kind": "SelectBind",
+            "condition": { "kind": "youHave", "filter": { "controller": "mine", "kind": ["Digimon"] } },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "deDigivolveTarget"
+            }
+          },
+          {
             "effectTextPart": "Then, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of your Digimon.",
             "kind": "DeDigivolve",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "fromSelectionRef": "deDigivolveTarget",
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1
+            },
             "amount": 1,
             "scaling": { "per": 1, "filter": { "controller": "mine", "kind": ["Digimon"] }, "unit": "cards" }
           }
@@ -98270,9 +98353,22 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
+            "kind": "SelectBind",
+            "condition": { "kind": "youHave", "filter": { "controller": "mine", "kind": ["Digimon"] } },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "deDigivolveTarget"
+            }
+          },
+          {
             "effectTextPart": "[When Digivolving] To 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of your Digimon.",
             "kind": "DeDigivolve",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "fromSelectionRef": "deDigivolveTarget",
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1
+            },
             "amount": 1,
             "scaling": { "per": 1, "filter": { "controller": "mine", "kind": ["Digimon"] }, "unit": "cards" }
           },
@@ -105474,11 +105570,13 @@
         "trigger": "OnPlay",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "startOfYourMainPhase",
-            "on": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "kind": "GainTriggeredEffect",
+            "gainedTrigger": "StartOfYourMainPhase",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "duration": "untilOpponentTurnEnd",
-            "actions": [{ "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }]
+            "gainedActions": [
+              { "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
+            ]
           }
         ]
       },
@@ -105486,11 +105584,13 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "startOfYourMainPhase",
-            "on": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "kind": "GainTriggeredEffect",
+            "gainedTrigger": "StartOfYourMainPhase",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "duration": "untilOpponentTurnEnd",
-            "actions": [{ "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }]
+            "gainedActions": [
+              { "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
+            ]
           }
         ]
       },
@@ -149686,14 +149786,14 @@
             }
           },
           {
-            "kind": "SubTrigger",
-            "event": "startOfYourMainPhase",
-            "on": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "kind": "GainTriggeredEffect",
+            "gainedTrigger": "StartOfYourMainPhase",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "duration": "untilOpponentTurnEnd",
-            "actions": [
+            "gainedActions": [
               { "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
             ],
-            "raw": "give 1 of their Digimon '[Start of Your Main Phase] This Digimon attacks.' until their turn ends"
+            "raw": "[Start of Your Main Phase] This Digimon attacks."
           }
         ]
       },
@@ -149709,14 +149809,14 @@
             }
           },
           {
-            "kind": "SubTrigger",
-            "event": "startOfYourMainPhase",
-            "on": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "kind": "GainTriggeredEffect",
+            "gainedTrigger": "StartOfYourMainPhase",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "duration": "untilOpponentTurnEnd",
-            "actions": [
+            "gainedActions": [
               { "kind": "Attack", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
             ],
-            "raw": "give 1 of their Digimon '[Start of Your Main Phase] This Digimon attacks.' until their turn ends"
+            "raw": "[Start of Your Main Phase] This Digimon attacks."
           }
         ]
       },

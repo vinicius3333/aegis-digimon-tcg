@@ -29,6 +29,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "GitHub #5318, current behavior control. End breeding. Evolve LadyDevimon into Junomon using the ordinary cost 4 (memory 10 to 6). Accept placing the opponent's Agumon in security and trashing both top security cards. Accept Junomon's security-removal play and choose either Angemon from hand or trash for free; both Venusmon copies must be excluded from that choice. Venusmon's printed play cost is 12, even when its own play payment would be reduced to 7. Memory remains 6.",
     ptBR: "GitHub #5318, controle do comportamento atual. Encerre a criação. Evolua LadyDevimon em Junomon pelo custo normal 4 (memória de 10 para 6). Aceite colocar Agumon adversário na segurança e descartar o topo das duas seguranças. Aceite jogar pelo efeito de Junomon e escolha Angemon da mão ou do lixo grátis; ambas as Venusmon devem ficar fora dessa escolha. O custo impresso de Venusmon é 12, mesmo quando o pagamento dela seria reduzido para 7. A memória permanece em 6.",
   },
+  "arena-ex12-metalgreymon-forced-attack-play": {
+    en: "Skip breeding and play EX12 MetalGreymon without Assembly. Agumon Expert is deleted. Choose the opposing BT1 MetalGreymon for the mandatory attack grant: its badge and Start of Your Main Phase clause appear immediately. End Main; after the opponent skips breeding, that Digimon must attack before normal Main actions. Its controller chooses a legal attack target. The grant expires at that opponent turn's end. Restart to compare the digivolve scenario. Discord 1557600224011096104.",
+    ptBR: "Pule a criação e jogue MetalGreymon EX12 sem Assembly. Agumon Expert é deletado. Escolha MetalGreymon BT1 adversário para receber o ataque obrigatório: o indicador e o texto Início da sua Fase Principal aparecem imediatamente. Encerre a Principal; depois da criação adversária, esse Digimon deve atacar antes das ações normais da Principal. Seu controlador escolhe um alvo legal. O efeito expira no fim desse turno adversário. Reinicie para comparar o cenário de digievolução. Discord 1557600224011096104.",
+  },
+  "arena-ex12-metalgreymon-forced-attack-digivolve": {
+    en: "Skip breeding and evolve EX12 Greymon into hand EX12 MetalGreymon for 3 using the alternate cost. The opposing Agumon Expert is deleted. Choose opposing BT1 MetalGreymon: its badge and granted Start of Your Main Phase clause appear. End Main; the recipient must attack at the opponent's Main start, with a mandatory legal-target choice by its controller. Breeding Digimon cannot receive the grant. It expires at the opponent's turn end. Discord 1557600224011096104.",
+    ptBR: "Pule a criação e digievolua Greymon EX12 em MetalGreymon EX12 da mão pelo custo alternativo 3. Agumon Expert adversário é deletado. Escolha MetalGreymon BT1 adversário: o indicador e o texto concedido de Início da sua Fase Principal aparecem. Encerre a Principal; o alvo deve atacar no início da Principal adversária, com escolha obrigatória de alvo legal pelo controlador. Digimons na criação não podem receber o efeito. Ele expira no fim do turno adversário. Discord 1557600224011096104.",
+  },
   "arena-github-5302-kunlun-security-check": {
     en: "Skip breeding and end Main. Accept Shishimamon's Execute attack against security. When security is removed, evolve into Kaguyamon for 1; decline the other optional plays. Kunlun must remain unsuspended and Sanmyojin Arrival stays in hand: this evolution is after the pre-counter end-of-turn window closed. An evolution before counter timing has a different ruling (Q7190).",
     ptBR: "Pule a criação e encerre a Principal. Aceite o ataque Execute do Shishimamon contra a segurança. Quando a segurança sair, evolua em Kaguyamon por 1; recuse as outras jogadas opcionais. Kunlun deve continuar desvirado e Sanmyojin Arrival fica na mão: essa evolução ocorre após fechar a janela de fim do turno anterior ao contra-ataque. Uma evolução antes do contra-ataque tem outra regra (Q7190).",
@@ -1038,6 +1046,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-bt5-koromon-attack-draw": {
     ptBR: "Encerre a fase de criação e ataque a segurança com Greymon BT12-062. Koromon BT5-001 está na base da pilha: seu efeito herdado deve brilhar e comprar 1 carta antes do escudo quebrar e Gaogamon EX4-017 ser revelado. A compra da fase de compra ocorre antes desse ataque e é separada da compra do Koromon.",
     en: "End breeding and attack security with BT12-062 Greymon. BT5-001 Koromon is at the bottom of its stack: its inherited effect must glow and draw 1 card before the shield breaks and EX4-017 Gaogamon is revealed. The draw-phase card arrives before this attack and is separate from Koromon's draw.",
+  },
+  "arena-bt21-metalgreymon-one-target-two-colors": {
+    ptBR: "Encerre a criação. Com duas cores distintas de Tamers, jogue MetalGreymon BT21-061 e escolha um dos dois Digimon do bot: somente ele perde uma carta do topo. Depois evolua o Greymon BT21-057 para o segundo MetalGreymon e escolha o outro alvo: uma nova ativação pode escolher outro Digimon. Recuse o ataque opcional. Cada ativação oferece um único alvo.",
+    en: "End breeding. With two distinct Tamer colors, play BT21-061 MetalGreymon and choose either opposing Digimon: only that Digimon loses one top card. Then digivolve BT21-057 Greymon into the second MetalGreymon and choose the other opponent: a separate activation may choose a different Digimon. Decline the optional attack. Each activation offers one target choice.",
+  },
+  "arena-bt21-metalgreymon-one-target-four-colors": {
+    ptBR: "Encerre a criação. Os Tamers têm quatro cores distintas. Jogue MetalGreymon BT21-061 e escolha um Digimon do bot: ele sofre De-Digivolve 1 duas vezes e fica em GeoGreymon de nível 4; o outro permanece intacto. Não deve aparecer uma segunda seleção de alvo. Recuse os efeitos opcionais dos Tamers. Depois evolua Greymon para o segundo MetalGreymon e escolha o outro Digimon: esta nova ativação também aplica as duas etapas ao único alvo escolhido. Recuse o ataque opcional.",
+    en: "End breeding. Your Tamers have four distinct colors. Play BT21-061 MetalGreymon and choose one opposing Digimon: De-Digivolve 1 applies twice to it, leaving level 4 GeoGreymon; the other Digimon stays intact. No second target picker should appear. Decline optional Tamer effects. Then digivolve Greymon into the second MetalGreymon and choose the other opponent: this new activation also applies both processes to its one chosen target. Decline the optional attack.",
   },
   "arena-ex7-seventh-fascination-turn": {
     ptBR: "Jogue EX7-072 Seventh Fascination e encerre seu turno. O Digimon do bot deve permanecer em campo, sem pedido de deleção nesse momento. O efeito concedido só deve ativar no fim do turno do bot.",
@@ -2452,6 +2468,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-kotone-digixros-any-tamer-effect", "Kotone · effect DigiXros under any Tamer"],
   ["arena-mervamon-trash-digixros", "Mervamon · DigiXros materials from trash"],
   ["arena-bt5-koromon-attack-draw", "BT5 Koromon · draw before security"],
+  ["arena-bt21-metalgreymon-one-target-two-colors", "BT21 MetalGreymon · one target / two colors"],
+  ["arena-bt21-metalgreymon-one-target-four-colors", "BT21 MetalGreymon · one target / four colors"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
   ["arena-st15-trident-arm-forced-attack-text", "ST15 Trident Arm · granted forced attack text"],
   ["arena-face-down-ace-no-overflow", "Face-down ACE · no Overflow on deletion"],
@@ -2516,6 +2534,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt24-fugamon-self-trash", "BT24 Fugamon · draw only when this card is trashed"],
   ["arena-bt2-kurisarimon-repeat-memory", "BT2 Kurisarimon · Diaboromon + Arata memory"],
   ["arena-bt2-kurisarimon-start-main-memory", "BT2 Kurisarimon · two start-of-main token effects"],
+  ["arena-ex12-metalgreymon-forced-attack-play", "EX12 MetalGreymon · play and mandatory StartMain attack"],
+  ["arena-ex12-metalgreymon-forced-attack-digivolve", "EX12 MetalGreymon · digivolve and mandatory StartMain attack"],
   ["arena-ex12-metalgarurumon-trash-then-return", "EX12 MetalGarurumon · trash sources, then choose the return"],
   ["arena-bt22-palmon-cs-restack", "BT22 Palmon · [CS] restack only on a [CS] host"],
   ["arena-bt22-mirei-play-cost-floor", "BT22 Mirei Mikagura · play cost 4 or higher only"],

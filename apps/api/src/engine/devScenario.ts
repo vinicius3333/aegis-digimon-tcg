@@ -61,10 +61,14 @@ export const DEV_SCENARIO_IDS = [
   "arena-github5311-crescemon-cost-scope",
   "arena-github5311-imperialdramon-cost-scope",
   "arena-github5318-junomon-printed-cost",
+  "arena-ex12-metalgreymon-forced-attack-play",
+  "arena-ex12-metalgreymon-forced-attack-digivolve",
   "arena-github-5302-kunlun-security-check",
   "arena-github-5305-gravity-order",
   "arena-github-5315-homeros-unused",
   "arena-github-5315-homeros-spent",
+  "arena-bt21-metalgreymon-one-target-two-colors",
+  "arena-bt21-metalgreymon-one-target-four-colors",
   "arena-github-5299-ravemon-bottom-security",
   "arena-github5300-yoshino-cost-payload",
   "arena-github5300-keenan-cost-execute",
@@ -996,6 +1000,38 @@ function layThetismonJammingScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/** Discord 1557624042733969509: repeated De-Digivolve 1 stays on one recipient. */
+function layBt21MetalGreymonOneTargetScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  fourColors: boolean,
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Trash);
+    setBreeding(player, undefined);
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT21-057"], "-metalgreymon-base"));
+  for (const [index, cardId] of (fourColors ? ["AD1-019", "AD1-020"] : ["BT1-085", "BT1-086"]).entries()) {
+    placePermanent(human, establishedDigimon(0, [cardId], `-metalgreymon-tamer-${index}`));
+  }
+  insertCard(human, Zone.Hand, faceDownCard("dev-metalgreymon-play", "BT21-061", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-metalgreymon-evolve", "BT21-061", 0));
+  const bot = state.players[1]!;
+  placePermanent(bot, establishedDigimon(1, ["BT21-042", "BT21-044", "BT21-045"], "-metalgreymon-target-a"));
+  placePermanent(bot, establishedDigimon(1, ["BT21-042", "BT21-044", "BT21-045"], "-metalgreymon-target-b"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 function layEx7SeventhFascinationTurnScenario(
@@ -2530,6 +2566,44 @@ function layBt24FugamonSelfTrashScenario(state: GameState, decks: readonly [Deck
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/** Discord 1557600224011096104: a surviving opponent receives the mandatory StartMain attack. */
+function layEx12MetalGreymonForcedAttackScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  digivolve = false,
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    // Stable weak security lets the granted host survive its forced attack.
+    fillZone(
+      player,
+      Zone.Security,
+      Array.from({ length: 5 }, (_, index) =>
+        faceDownCard(`dev-metalgreymon-security-${seat}-${index}`, "BT1-011", seat),
+      ),
+    );
+    setBreeding(player, establishedDigimon(seat, ["BT1-009"], "-metalgreymon-breeding"));
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    if (digivolve) placePermanent(human, establishedDigimon(0, ["EX12-010"], "-metalgreymon-base"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-metalgreymon-hand", "EX12-016", 0));
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    placePermanent(opponent, establishedDigimon(1, ["BT1-011"], "-metalgreymon-delete"));
+    placePermanent(opponent, establishedDigimon(1, ["BT1-021"], "-metalgreymon-recipient"));
+    placePermanent(opponent, establishedDigimon(1, ["BT1-023"], "-metalgreymon-other"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 /**
@@ -8512,6 +8586,10 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-diarbbitmon-dual-option-immunity": layDiarbbitmonDualOptionImmunityScenario,
   "arena-bt5-koromon-attack-draw": layBt5KoromonAttackDrawScenario,
+  "arena-bt21-metalgreymon-one-target-two-colors": (state, decks) =>
+    layBt21MetalGreymonOneTargetScenario(state, decks, false),
+  "arena-bt21-metalgreymon-one-target-four-colors": (state, decks) =>
+    layBt21MetalGreymonOneTargetScenario(state, decks, true),
   "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
   "arena-st15-trident-arm-forced-attack-text": laySt15TridentArmForcedAttackTextScenario,
   "arena-ex11-vortex-effect-attack-block": layEx11VortexEffectAttackBlockScenario,
@@ -8573,6 +8651,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt2-kurisarimon-repeat-memory": layBt2KurisarimonRepeatMemoryScenario,
   "arena-bt2-kurisarimon-start-main-memory": (state, decks) =>
     layBt2KurisarimonRepeatMemoryScenario(state, decks, true),
+  "arena-ex12-metalgreymon-forced-attack-play": layEx12MetalGreymonForcedAttackScenario,
+  "arena-ex12-metalgreymon-forced-attack-digivolve": (state, decks) =>
+    layEx12MetalGreymonForcedAttackScenario(state, decks, true),
   "arena-ex12-metalgarurumon-trash-then-return": layEx12MetalGarurumonTrashThenReturnScenario,
   "arena-bt22-palmon-cs-restack": layBt22PalmonCsRestackScenario,
   "arena-bt22-mirei-play-cost-floor": layBt22MireiPlayCostFloorScenario,
