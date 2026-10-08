@@ -66,6 +66,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-lanamon-tamer-cost",
   "arena-discord-1557790296379625482-trash-hybrids",
   "arena-discord-1557790296379625482-loweemon-hosts",
+  "arena-github5365-jesmon-token",
+  "arena-github5365-jesmon-token-mirrored",
   "arena-github5322-metalmamemon-no-cost",
   "arena-github5322-metalmamemon-paid",
   "arena-github5322-metalmamemon-strip-zero",
@@ -9039,6 +9041,20 @@ function layGithub5311ImperialdramonCostScenario(state: GameState): void {
 }
 
 /** EX9-018 Q4761: the Then return requires the trash placement on either trigger. */
+function layGithub5365JesmonTokenScenario(state: GameState, jesmonSeat: Seat): void {
+  prepareGithubCardEffectsScenario(state, 10);
+  state.turnSeat = jesmonSeat;
+  const metalSeat = jesmonSeat === 0 ? 1 : 0;
+  const jesmon = state.players[jesmonSeat]!;
+  const metal = state.players[metalSeat]!;
+  // The extra sources keep Jesmon ineligible for the source-less return after MetalMamemon
+  // trashes one source, leaving the publicly generated token as the only return candidate.
+  placePermanent(jesmon, establishedDigimon(jesmonSeat, ["BT1-009", "BT1-015", "BT20-014"], "-github5365-savior"));
+  insertCard(jesmon, Zone.Hand, faceDownCard("github5365-jesmon", "BT20-017", jesmonSeat));
+  insertCard(metal, Zone.Hand, faceDownCard("github5365-metal", "EX9-018", metalSeat));
+  insertCard(metal, Zone.Trash, faceDownCard("github5365-payment", "BT1-048", metalSeat));
+}
+
 function layGithub5322MetalMamemonScenario(state: GameState, route: "no-cost" | "paid" | "strip-zero"): void {
   prepareGithubCardEffectsScenario(state, 10);
   const human = state.players[0]!;
@@ -9393,6 +9409,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github5344-revelation-expiry": layRevelationExpiryScenario,
   "arena-github5311-crescemon-cost-scope": layGithub5311CrescemonCostScenario,
   "arena-github5311-imperialdramon-cost-scope": layGithub5311ImperialdramonCostScenario,
+  "arena-github5365-jesmon-token": (state) => layGithub5365JesmonTokenScenario(state, 0),
+  "arena-github5365-jesmon-token-mirrored": (state) => layGithub5365JesmonTokenScenario(state, 1),
   "arena-github5322-metalmamemon-no-cost": (state) => layGithub5322MetalMamemonScenario(state, "no-cost"),
   "arena-github5322-metalmamemon-paid": (state) => layGithub5322MetalMamemonScenario(state, "paid"),
   "arena-github5322-metalmamemon-strip-zero": (state) => layGithub5322MetalMamemonScenario(state, "strip-zero"),

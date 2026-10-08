@@ -469,6 +469,8 @@ export interface AegisJoinOptions {
     | "arena-turn-end-dp-expiry"
     | "arena-github5344-revelation-expiry"
     | "arena-github5311-imperialdramon-cost-scope"
+    | "arena-github5365-jesmon-token"
+    | "arena-github5365-jesmon-token-mirrored"
     | "arena-github5322-metalmamemon-no-cost"
     | "arena-github5322-metalmamemon-paid"
     | "arena-github5322-metalmamemon-strip-zero"
