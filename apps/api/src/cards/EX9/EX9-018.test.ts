@@ -589,3 +589,152 @@ describe("EX9-018 MetalMamemon — KB Q&A rulings", () => {
     expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
   });
 });
+
+describe("issue #5322: EX9-018 Then requires the By placement (official Q4761)", () => {
+  for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+    it.each(["no-digimon-cost", "decline", "paid-strip-zero", "paid-strip-one", "paid-source-remains"] as const)(
+      `${trigger}: %s follows the printed placement and source-less Return requirements`,
+      async (path) => {
+        const paid = path.startsWith("paid-");
+        const sourceCount = path === "paid-strip-zero" ? 0 : path === "paid-source-remains" ? 2 : 1;
+        const s = setupEngine(
+          {
+            0: {
+              battleArea: [{ card: "BT1-037", as: "host" }],
+              hand: [{ card: "EX9-018", as: "source" }],
+              trash: path === "no-digimon-cost" ? ["ST2-16"] : ["BT1-048"],
+              deck: ["BT1-046"],
+            },
+            1: {
+              battleArea: [
+                { card: "BT1-015", as: "target", under: ["BT1-010", "BT1-012"].slice(0, sourceCount) },
+                { card: "BT1-009", as: "sourceLess" },
+                { card: "BT3-093", as: "tamer" },
+              ],
+              deck: ["BT1-049"],
+            },
+          },
+          { autoAcceptOptional: path !== "decline", autoDeclineOptional: path === "decline", autoSelectCards: true },
+        );
+        s.state.memory = 10;
+        await s.ready();
+        const targetId = s.perm("target").permanentId;
+        const sourceLessId = s.perm("sourceLess").permanentId;
+        const tamerId = s.perm("tamer").permanentId;
+        expect(
+          s.engine.applyIntent(
+            0,
+            trigger === "OnPlay"
+              ? { type: "playCard", instanceId: s.inst("source").instanceId }
+              : { type: "digivolve", permanentId: s.perm("host").permanentId, instanceId: s.inst("source").instanceId },
+          ),
+        ).toEqual({ ok: true });
+        await settle();
+
+        const metal = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX9-018")!;
+        expect(metal.stack.map(({ cardId, faceUp }) => ({ cardId, faceUp }))).toEqual([
+          ...(paid ? [{ cardId: "BT1-048", faceUp: false }] : []),
+          ...(trigger === "WhenDigivolving" ? [{ cardId: "BT1-037", faceUp: true }] : []),
+        ]);
+        expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+          paid ? [] : [path === "no-digimon-cost" ? "ST2-16" : "BT1-048"],
+        );
+        expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(
+          paid && sourceCount > 0 ? ["BT1-010"] : [],
+        );
+        const returnPrimary = paid && path !== "paid-source-remains";
+        const returnPeer = path === "paid-source-remains";
+        expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId)).toBe(!returnPrimary);
+        expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === sourceLessId)).toBe(
+          !returnPeer,
+        );
+        expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === tamerId)).toBe(true);
+        expect(
+          s.state.players[1]!.battleArea.find(({ permanentId }) => permanentId === targetId)?.stack.map(
+            ({ cardId }) => cardId,
+          ),
+        ).toEqual(returnPrimary ? undefined : path === "paid-source-remains" ? ["BT1-012"] : ["BT1-010"]);
+        expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual([
+          "BT1-049",
+          ...(returnPrimary ? ["BT1-015"] : returnPeer ? ["BT1-009"] : []),
+        ]);
+        expect(s.state.memory).toBe(trigger === "OnPlay" ? 3 : 6);
+        expect(s.state.pendingDecision).toBeUndefined();
+      },
+    );
+  }
+});
+
+it("issue #5322: public Then picker rejects sourced Digimon, own Digimon, and Tamers after legal payment", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT1-037", as: "own" }],
+        hand: [{ card: "EX9-018", as: "source" }],
+        trash: [{ card: "BT1-048", as: "payment" }],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-015", as: "stacked", under: [{ card: "BT1-010", as: "strip" }, "BT1-012"] },
+          { card: "BT1-009", as: "sourceLess" },
+          { card: "BT1-028", as: "otherSourceLess" },
+          { card: "BT3-093", as: "tamer" },
+        ],
+        deck: ["BT1-049"],
+      },
+    },
+    { autoAcceptOptional: true },
+  );
+  s.state.memory = 10;
+  await s.ready();
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision?.kind === "selectCards");
+  // The sole legal payment and sole sourced opponent are selected automatically.
+  expect(s.state.players[0]!.trash).toHaveLength(0);
+  expect(
+    s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX9-018")!.stack.map(
+      ({ cardId, faceUp }) => ({ cardId, faceUp }),
+    ),
+  ).toEqual([{ cardId: "BT1-048", faceUp: false }]);
+  const strip = s.state.pendingDecision!;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: strip.decisionId,
+      response: { kind: "selectCards", instanceIds: [s.inst("strip").instanceId] },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+  const then = s.decisions.at(-1)!.req;
+  expect(then.options?.candidateInstanceIds).toEqual([
+    s.perm("sourceLess").permanentId,
+    s.perm("otherSourceLess").permanentId,
+  ]);
+  for (const alias of ["stacked", "own", "tamer"]) {
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: then.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm(alias).permanentId] },
+      }).ok,
+    ).toBe(false);
+    expect(s.state.pendingDecision?.decisionId).toBe(then.decisionId);
+  }
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: then.decisionId,
+      response: { kind: "chooseTargets", instanceIds: [s.perm("sourceLess").permanentId] },
+    }),
+  ).toEqual({ ok: true });
+  await settle();
+  expect(s.perm("stacked").stack.map(({ cardId }) => cardId)).toEqual(["BT1-012"]);
+  expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
+  expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-049", "BT1-009"]);
+  expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([
+    "BT1-015",
+    "BT1-028",
+    "BT3-093",
+  ]);
+  expect(s.state.pendingDecision).toBeUndefined();
+});

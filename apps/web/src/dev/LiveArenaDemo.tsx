@@ -53,6 +53,18 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "GitHub #5311. End breeding. First evolve EX5-017 Lekismon into the hand Crescemon for 1: the separate Crescemon with three sources qualifies as support, and memory goes from 6 to 5. Then evolve that original Crescemon into BT1-044 MetalGarurumon for its full printed cost 3: memory ends at 2. Q3569 allows the discount into Crescemon, never from Crescemon.",
     ptBR: "GitHub #5311. Encerre a criação. Primeiro evolua Lekismon EX5-017 no Crescemon da mão por 1: o outro Crescemon com três fontes atende à condição, e a memória vai de 6 para 5. Depois evolua esse Crescemon original em MetalGarurumon BT1-044 pelo custo impresso completo 3: a memória termina em 2. A Q3569 permite reduzir ao evoluir em Crescemon, nunca a partir dele.",
   },
+  "arena-github5322-metalmamemon-no-cost": {
+    ptBR: "Encerre a criação. Jogue MetalMamemon EX9-018 ou evolua o Gorillamon para ele. A lixeira contém somente uma Opção: o custo exige uma carta de Digimon. Nenhuma carta é colocada por baixo, nenhuma evolução do oponente é descartada e nenhum Digimon volta ao fundo do deck, inclusive o Monodramon sem evoluções.",
+    en: "End breeding. Play EX9-018 MetalMamemon or digivolve Gorillamon into it. Trash contains only an Option: the cost requires a Digimon card. No card is placed underneath, no opposing digivolution card is trashed, and no Digimon returns to the deck bottom, including the Monodramon with no digivolution cards.",
+  },
+  "arena-github5322-metalmamemon-paid": {
+    ptBR: "Encerre a criação. Jogue MetalMamemon EX9-018 ou evolua o Gorillamon para ele. Aceite colocar o Patamon da lixeira por baixo, virado para baixo. O Greymon do oponente perde seu Agumon; depois escolha um dos Digimon sem evoluções para voltar ao fundo do deck. Reinicie e recuse o custo: o Patamon fica na lixeira e os dois Digimon do oponente permanecem intactos.",
+    en: "End breeding. Play EX9-018 MetalMamemon or digivolve Gorillamon into it. Accept placing Patamon from trash face down underneath. The opposing Greymon loses its Agumon; then choose either Digimon with no digivolution cards to return to the deck bottom. Reset and decline the cost: Patamon stays in trash and both opposing Digimon stay intact.",
+  },
+  "arena-github5322-metalmamemon-strip-zero": {
+    ptBR: "Encerre a criação. Jogue MetalMamemon EX9-018 ou evolua o Gorillamon para ele. Aceite colocar o Patamon da lixeira por baixo, virado para baixo. O Monodramon do oponente já está sem evoluções: nenhuma carta é descartada, mas ele deve voltar ao fundo do deck. O Tamer permanece em campo.",
+    en: "End breeding. Play EX9-018 MetalMamemon or digivolve Gorillamon into it. Accept placing Patamon from trash face down underneath. The opposing Monodramon already has no digivolution cards: no card is trashed, but it must return to the deck bottom. The Tamer stays in play.",
+  },
   "arena-github5318-junomon-printed-cost": {
     en: "GitHub #5318, current behavior control. End breeding. Evolve LadyDevimon into Junomon using the ordinary cost 4 (memory 10 to 6). Accept placing the opponent's Monodramon in security and trashing both top security cards. Accept Junomon's security-removal play and choose either Angemon from hand or trash for free; both Venusmon copies must be excluded from that choice. Venusmon's printed play cost is 12, even when its own play payment would be reduced to 7. Memory remains 6.",
     ptBR: "GitHub #5318, controle do comportamento atual. Encerre a criação. Evolua LadyDevimon em Junomon pelo custo normal 4 (memória de 10 para 6). Aceite colocar Monodramon adversário na segurança e descartar o topo das duas seguranças. Aceite jogar pelo efeito de Junomon e escolha Angemon da mão ou do lixo grátis; ambas as Venusmon devem ficar fora dessa escolha. O custo impresso de Venusmon é 12, mesmo quando o pagamento dela seria reduzido para 7. A memória permanece em 6.",
@@ -2306,6 +2318,9 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-github5319-murasamemon-spent-cost", "GitHub #5319 · Cougarmon spent-cost control"],
   ["arena-github5311-crescemon-cost-scope", "GitHub #5311 · Crescemon incoming versus outgoing cost"],
   ["arena-github5311-imperialdramon-cost-scope", "GitHub #5311 sweep · Imperialdramon intrinsic discount"],
+  ["arena-github5322-metalmamemon-no-cost", "#5322 MetalMamemon · no trash Digimon"],
+  ["arena-github5322-metalmamemon-paid", "#5322 MetalMamemon · pay or decline placement"],
+  ["arena-github5322-metalmamemon-strip-zero", "#5322 MetalMamemon · paid placement, no sources to strip"],
   ["arena-github5318-junomon-printed-cost", "GitHub #5318 · Junomon printed play-cost control"],
   ["arena-github-5302-kunlun-security-check", "GitHub #5302 · Kunlun after security check"],
   ["arena-github-5305-gravity-order", "GitHub #5305 · Gravity Crush end-turn ordering"],
