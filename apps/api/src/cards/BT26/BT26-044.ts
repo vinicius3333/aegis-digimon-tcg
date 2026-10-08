@@ -12,6 +12,7 @@ const altDigivolve = {
   abortOnDecline: true,
   target: { filter: { isSelfRef: true }, count: 1 },
   into: {
+    controller: "mine",
     kind: ["Digimon"],
     nameOrTrait: [
       { tokens: ["Vegetation"], match: "trait" },

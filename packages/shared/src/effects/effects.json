@@ -6452,7 +6452,7 @@
           {
             "kind": "Digivolve",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "into": { "nameOrTrait": [{ "tokens": ["Sakuyamon"], "match": "name" }] },
+            "into": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Sakuyamon"], "match": "name" }] },
             "from": ["hand"],
             "payCost": true,
             "costOverride": 1,
@@ -19452,6 +19452,7 @@
             "kind": "Digivolve",
             "target": { "fromSelectionRef": "bt12_089_host", "filter": {}, "count": 1, "bindAs": "bt12_089_evolved" },
             "into": {
+              "controller": "mine",
               "location": "hand",
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Gallantmon"], "match": "nameExact" }]
@@ -70577,6 +70578,7 @@
             "condition": { "kind": "securityAtMost", "value": 1 },
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "into": {
+              "controller": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Omnimon (X Antibody)"], "match": "nameExact" }]
             },
@@ -221865,7 +221867,11 @@
                 "kind": "Digivolve",
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                 "from": ["hand"],
-                "into": { "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Chronomon"], "match": "text" }] },
+                "into": {
+                  "controller": "mine",
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [{ "tokens": ["Chronomon"], "match": "text" }]
+                },
                 "payCost": true,
                 "costDelta": -1,
                 "optional": true
@@ -224433,6 +224439,7 @@
             "target": { "count": 1, "filter": { "isSelfRef": true }, "isSelf": true },
             "from": ["hand"],
             "into": {
+              "controller": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [
                 { "tokens": ["Vegetation"], "match": "trait" },
@@ -225309,6 +225316,7 @@
                 "abortOnDecline": true,
                 "target": { "filter": { "isSelfRef": true }, "count": 1 },
                 "into": {
+                  "controller": "mine",
                   "kind": ["Digimon"],
                   "nameOrTrait": [
                     { "tokens": ["Vegetation"], "match": "trait" },
@@ -225334,6 +225342,7 @@
                 "abortOnDecline": true,
                 "target": { "filter": { "isSelfRef": true }, "count": 1 },
                 "into": {
+                  "controller": "mine",
                   "kind": ["Digimon"],
                   "nameOrTrait": [
                     { "tokens": ["Vegetation"], "match": "trait" },

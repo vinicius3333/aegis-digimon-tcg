@@ -16,7 +16,7 @@ export const compiled: CompiledCard = {
               kind: "Digivolve",
               target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
               from: ["hand"],
-              into: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }] },
+              into: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }] },
               payCost: true,
               costDelta: -1,
               optional: true,
