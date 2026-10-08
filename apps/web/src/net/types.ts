@@ -32,6 +32,7 @@ export interface AegisJoinOptions {
     | "arena-github5326-sistermon-zero-security"
     | "arena-github-5324-omnimon-traits"
     | "arena-github5320-alliance-after-evolution"
+    | "arena-terriermon-granted-alliance"
     | "arena-discord-1557631388650315826-sukamon-dna-materials"
     | "arena-discord-1557631388650315826-sukamon-dna-control"
     | "arena-discord-1557790296379625482-trash-hybrids"

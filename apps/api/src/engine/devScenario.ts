@@ -69,6 +69,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-github5332-kekkomon-cost",
   "arena-github-5324-omnimon-traits",
   "arena-github5320-alliance-after-evolution",
+  "arena-terriermon-granted-alliance",
   "arena-github5333-tesla-source-replay",
   "arena-github5307-larva-bt18-breeding",
   "arena-github5307-larva-ex10-breeding",
@@ -9056,6 +9057,28 @@ function layGithub5324OmnimonTraitsScenario(state: GameState): void {
   state.memory = 6;
 }
 
+/** Discord 1557815584748601454: EX4-032 reacts to Alliance granted by Lopmon. */
+function layTerriermonGrantedAllianceScenario(state: GameState): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-terrier-egg-${seat}`, "EX2-004", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-terrier-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-terrier-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["EX4-032", "BT1-073"], "-terrier-host"));
+  placePermanent(human, establishedDigimon(0, ["ST17-03"], "-terrier-lopmon"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-terrier-antylamon", "BT17-049", 0));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
 function layGithub5320AllianceAfterEvolutionScenario(state: GameState): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat]!;
@@ -9156,6 +9179,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github5332-kekkomon-cost": layGithub5332KekkomonCostScenario,
   "arena-github-5324-omnimon-traits": layGithub5324OmnimonTraitsScenario,
   "arena-github5320-alliance-after-evolution": layGithub5320AllianceAfterEvolutionScenario,
+  "arena-terriermon-granted-alliance": layTerriermonGrantedAllianceScenario,
   "arena-github5333-tesla-source-replay": layTesla5333SourceReplayScenario,
   "arena-github5307-larva-bt18-breeding": (state) => layGithub5307LarvaScenario(state, "BT18-101"),
   "arena-github5307-larva-ex10-breeding": (state) => layGithub5307LarvaScenario(state, "EX10-060"),
