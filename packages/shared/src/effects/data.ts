@@ -2088,22 +2088,28 @@ export function assemblyRequirementFor(cardId: string): AssemblyRequirement[] | 
  * app-fusion cost when legal, or `undefined` when the target has no app-fusion requirement
  * or the fusing Digimon does not satisfy it.
  *
- * one of the matched names); the remaining entries are the linked-card names.
+ * `topNames` contains the host's current exact names, including active aliases. Linked
+ * cards supply their own names; case normalization does not permit substring matches.
+ * `topName` remains supported for existing callers with a single host name.
  */
 export function appFusionCostFor(
   targetCardId: string,
-  fusingNames: { topName: string; linkedNames: string[] },
+  fusingNames: { topName?: string; topNames?: readonly string[]; linkedNames: readonly string[] },
 ): number | undefined {
   const requirements =
     APP_FUSION_REQUIREMENT_OVERRIDES[targetCardId] ?? compiledEffects[targetCardId]?.appFusionRequirement;
   if (requirements === undefined || requirements.length === 0) return undefined;
   for (const requirement of requirements) {
     const required = requirement.names ?? [];
-    if (!required.includes(fusingNames.topName)) continue;
-    const linkedMatchesOther = fusingNames.linkedNames.some(
-      (name) => name !== fusingNames.topName && required.includes(name),
-    );
-    if (linkedMatchesOther) return requirement.cost ?? 0;
+    const requiredNames = required.map((name) => name.toLowerCase());
+    const topNames = fusingNames.topNames ?? (fusingNames.topName === undefined ? [] : [fusingNames.topName]);
+    for (const topName of topNames.map((name) => name.toLowerCase())) {
+      if (!requiredNames.includes(topName)) continue;
+      const linkedMatchesOther = fusingNames.linkedNames.some(
+        (name) => name.toLowerCase() !== topName && requiredNames.includes(name.toLowerCase()),
+      );
+      if (linkedMatchesOther) return requirement.cost ?? 0;
+    }
   }
   return undefined;
 }

@@ -1415,6 +1415,30 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Evolua o primeiro MasterTyrannomon para Dinomon e use Ryutaro. Depois, evolua o segundo: o efeito não deve aparecer novamente porque Ryutaro já está suspenso.",
     en: "Digivolve the first MasterTyrannomon into Dinomon and use Ryutaro. Then digivolve the second one: the effect must not appear again because Ryutaro is already suspended.",
   },
+  "arena-deusmon-sukamon-app-fusion": {
+    ptBR: "Espere o bot jogar KingSukamon e transformar seu Warudamon. Termine a Criação no seu turno. Selecione Deusmon: nenhuma rota de App Fusion deve aparecer. Sukamon tem 4000 DP e Cometmon vinculado; mão, memória, fontes, deck e lixo ficam iguais ao cancelar.",
+    en: "Wait for the bot to play KingSukamon and transform your Warudamon. End Breeding on your turn. Select Deusmon: no App Fusion route may appear. Sukamon has 4000 DP with Cometmon linked; cancel and verify unchanged hand, memory, sources, deck and trash.",
+  },
+  "arena-deusmon-healthy-app-fusion": {
+    ptBR: "Termine a Criação. Selecione Deusmon e Warudamon: uma rota de custo 0 usa Cometmon. Cancele uma vez e confirme depois. Recuse os dois vínculos opcionais de Deusmon: Warudamon e Cometmon viram fontes, compra 1, sem pagar memória.",
+    en: "End Breeding. Select Deusmon and Warudamon: one cost-0 route uses Cometmon. Cancel once, then confirm. Decline both optional Deusmon links: Warudamon and Cometmon become sources, draw 1, spend no memory.",
+  },
+  "arena-deusmon-reverse-app-fusion": {
+    ptBR: "Termine a Criação. Use Deusmon sobre Cometmon com Warudamon vinculado: uma rota de custo 0. Recuse os dois vínculos opcionais; fontes são Cometmon e Warudamon, compra 1, custo 0.",
+    en: "End Breeding. App Fuse Deusmon onto Cometmon with Warudamon linked: one cost-0 route. Decline both optional links; sources are Cometmon then Warudamon, draw 1, cost 0.",
+  },
+  "arena-deusmon-wrong-link-app-fusion": {
+    ptBR: "Termine a Criação. Warudamon tem Mienumon vinculado, não Cometmon. Selecione Deusmon: nenhuma rota de App Fusion. Cancele e confira que nenhuma carta ou memória mudou.",
+    en: "End Breeding. Warudamon has Mienumon linked instead of Cometmon. Select Deusmon: no App Fusion route. Cancel and verify no card or memory changed.",
+  },
+  "arena-deusmon-sukamon-effect-fusion": {
+    ptBR: "Espere KingSukamon transformar seu Warudamon; termine a Criação. Passe sem suspender o Tamer. Aceite a App Fusion de BT25-089 e selecione Sukamon se solicitado: Deusmon não é candidato; nenhuma fusão ou compra acontece. Confira antes do fim do turno, pois a transformação expira depois.",
+    en: "Wait for KingSukamon to transform your Warudamon; end Breeding. Pass without suspending the Tamer. Accept BT25-089 App Fusion and select Sukamon if asked: Deusmon is not a candidate; no fusion or draw occurs. Inspect during the effect, because the rewrite expires after turn end.",
+  },
+  "arena-deusmon-healthy-effect-fusion": {
+    ptBR: "Termine a Criação e passe sem suspender o Tamer. Aceite a App Fusion de BT25-089 e selecione Warudamon e Deusmon se solicitado. Recuse os dois vínculos opcionais: Deusmon vira topo com Warudamon e Cometmon como fontes, compra 1 por fusão.",
+    en: "End Breeding and pass without suspending the Tamer. Accept BT25-089 App Fusion and select Warudamon and Deusmon if asked. Decline both optional links: Deusmon becomes top with Warudamon and Cometmon as sources, draw 1 for fusion.",
+  },
   "arena-issue-4888-app-fusion": {
     ptBR: "Selecione Mienumon na mão e use App Fusion no Mirrormon com Copipemon vinculado. O custo deve ser 0.",
     en: "Select Mienumon in hand and App Fuse onto Mirrormon, which has Copipemon as its link card. The cost must be 0.",
@@ -2414,6 +2438,12 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex10-malomyotismon-trash-main", "EX10 MaloMyotismon · [Trash] [Main] activation"],
   ["arena-ex10-blastmon-digixros", "EX10 Blastmon · DigiXros with 3 materials"],
   ["arena-ex11-ryutaro-suspended", "EX11 Ryutaro · suspended activation"],
+  ["arena-deusmon-sukamon-app-fusion", "Deusmon · Sukamon blocks human App Fusion"],
+  ["arena-deusmon-healthy-app-fusion", "Deusmon · healthy human App Fusion"],
+  ["arena-deusmon-reverse-app-fusion", "Deusmon · reverse human App Fusion"],
+  ["arena-deusmon-wrong-link-app-fusion", "Deusmon · wrong linked material"],
+  ["arena-deusmon-sukamon-effect-fusion", "Deusmon · Sukamon blocks Tamer fusion"],
+  ["arena-deusmon-healthy-effect-fusion", "Deusmon · healthy Tamer fusion"],
   ["arena-issue-4888-app-fusion", "#4888 · co-linked App Fusion"],
   ["arena-issue-4889-weregarurumon-dna", "#4889 · WereGarurumon DNA"],
   ["arena-paildramon-dna-inheritance", "Paildramon · DNA inheritance"],

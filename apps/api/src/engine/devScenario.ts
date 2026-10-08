@@ -281,6 +281,12 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex10-god-grade-raising-color",
   "arena-ex10-malomyotismon-trash-main",
   "arena-ex10-blastmon-digixros",
+  "arena-deusmon-sukamon-app-fusion",
+  "arena-deusmon-healthy-app-fusion",
+  "arena-deusmon-reverse-app-fusion",
+  "arena-deusmon-wrong-link-app-fusion",
+  "arena-deusmon-sukamon-effect-fusion",
+  "arena-deusmon-healthy-effect-fusion",
   "arena-issue-4888-app-fusion",
   "arena-issue-4889-weregarurumon-dna",
   "arena-paildramon-dna-inheritance",
@@ -5393,6 +5399,56 @@ function layMobileCardInspectionScenario(state: GameState, decks: readonly [Deck
   placePermanent(opponent, establishedDigimon(1, ["EX13-049"], "-inspection-dorumon-second"));
 }
 
+/** Discord 1557555301014569070: a genuine opponent effect rewrites the human's host. */
+function layDeusmonAppFusionScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  variant: "rewritten" | "healthy" | "reverse" | "wrong-link" | "rewritten-effect" | "healthy-effect",
+): void {
+  const rewritten = variant === "rewritten" || variant === "rewritten-effect";
+  prepareIssueScenario(state, decks, rewritten ? 8 : 3);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  // Fixed draws cannot distract the bot from KingSukamon or remove the human's host.
+  // Neither side has red, so the drawn Gaia Force cannot be used in Main.
+  for (const player of [human, opponent]) {
+    for (const zone of [Zone.Hand, Zone.Deck, Zone.Trash, Zone.Security, Zone.EggDeck] as const)
+      clearZone(player, zone);
+    for (let index = 0; index < 20; index += 1)
+      insertCard(player, Zone.Deck, faceDownCard(`dev-deusmon-deck-${player.seat}-${index}`, "BT1-110", player.seat));
+    for (let index = 0; index < 8; index += 1)
+      insertCard(
+        player,
+        Zone.Security,
+        faceDownCard(`dev-deusmon-security-${player.seat}-${index}`, "BT1-009", player.seat),
+      );
+  }
+  placePermanent(opponent, establishedDigimon(1, ["EX13-035"], "-deusmon-kingetemon"));
+  placePermanent(opponent, establishedDigimon(1, ["BT13-065"], "-deusmon-sukamon"));
+  for (let copy = 0; copy < 3; copy += 1)
+    insertCard(opponent, Zone.Trash, faceUpCard(`dev-deusmon-trash-${copy}`, "BT11-040", 1));
+  if (rewritten) {
+    state.turnSeat = 1;
+    insertCard(opponent, Zone.Hand, faceDownCard("dev-deusmon-king", "BT11-043", 1));
+  } else {
+    placePermanent(opponent, establishedDigimon(1, ["BT11-043"], "-deusmon-king"));
+  }
+  // Keep human Breeding open so the player controls the transition into Main.
+  insertCard(human, Zone.EggDeck, faceDownCard("dev-deusmon-egg", "BT1-001", 0));
+  const reverse = variant === "reverse";
+  const host = establishedDigimon(0, [reverse ? "EX10-030" : "EX10-019"], "-deusmon-host");
+  host.permanentId = "deusmon-sukamon-host";
+  linkEstablishedCard(
+    host,
+    faceUpCard("dev-deusmon-partner", variant === "wrong-link" ? "EX10-017" : reverse ? "EX10-019" : "EX10-030", 0),
+  );
+  placePermanent(human, host);
+  insertCard(human, Zone.Hand, faceDownCard("dev-deusmon-result", "EX10-073", 0));
+  if (variant === "rewritten-effect" || variant === "healthy-effect")
+    placePermanent(human, establishedDigimon(0, ["BT25-089"], "-deusmon-tamer"));
+}
+
 function layIssue4888AppFusionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 0);
   const human = state.players[0];
@@ -7936,6 +7992,13 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
   "arena-ex10-malomyotismon-trash-main": layEx10MaloMyotismonTrashMainScenario,
   "arena-ex10-blastmon-digixros": layEx10BlastmonDigiXrosScenario,
+  "arena-deusmon-sukamon-app-fusion": (state, decks) => layDeusmonAppFusionScenario(state, decks, "rewritten"),
+  "arena-deusmon-healthy-app-fusion": (state, decks) => layDeusmonAppFusionScenario(state, decks, "healthy"),
+  "arena-deusmon-reverse-app-fusion": (state, decks) => layDeusmonAppFusionScenario(state, decks, "reverse"),
+  "arena-deusmon-wrong-link-app-fusion": (state, decks) => layDeusmonAppFusionScenario(state, decks, "wrong-link"),
+  "arena-deusmon-sukamon-effect-fusion": (state, decks) =>
+    layDeusmonAppFusionScenario(state, decks, "rewritten-effect"),
+  "arena-deusmon-healthy-effect-fusion": (state, decks) => layDeusmonAppFusionScenario(state, decks, "healthy-effect"),
   "arena-issue-4888-app-fusion": layIssue4888AppFusionScenario,
   "arena-issue-4889-weregarurumon-dna": layIssue4889WereGarurumonDnaScenario,
   "arena-paildramon-dna-inheritance": layPaildramonDnaInheritanceScenario,
