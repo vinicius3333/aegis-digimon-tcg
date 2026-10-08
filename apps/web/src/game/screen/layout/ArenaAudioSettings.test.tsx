@@ -97,6 +97,22 @@ describe("ArenaAudioSettings", () => {
     expect(screen.getByRole("slider", { name: "Effects volume" })).toHaveProperty("disabled", false);
   });
 
+  it("offers the replacements and shows Cipher's author, license and modifications", () => {
+    const picker = screen.getByRole("combobox", { name: "Soundtrack" });
+    expect(
+      within(picker)
+        .getAllByRole("option")
+        .map((option) => option.textContent),
+    ).toEqual(["Shortcuts", "Electric", "Out There", "Cipher"]);
+    fireEvent.change(picker, { target: { value: "cipher" } });
+    expect(sound.setMusicTrack).toHaveBeenCalledWith("cipher");
+    expect(screen.getByRole("link", { name: "Cipher — Kevin MacLeod" }).getAttribute("href")).toContain("USUAN1100844");
+    expect(screen.getByRole("link", { name: "CC BY 4.0" }).getAttribute("href")).toBe(
+      "https://creativecommons.org/licenses/by/4.0/",
+    );
+    expect(screen.getByText(/Volume adjusted/)).toBeTruthy();
+  });
+
   it("turns sound effects off on its own and leaves music playing", () => {
     fireEvent.click(screen.getByRole("switch", { name: "Sound effects and cues" }));
 

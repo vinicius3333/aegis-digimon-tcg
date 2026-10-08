@@ -1,4 +1,5 @@
 import { CustomMusicPicker } from "../design/CustomMusicPicker";
+import { MusicCredits } from "../design/MusicCredits";
 import { InterfaceThemeDialog } from "../design/InterfaceThemePicker";
 import { useState } from "react";
 import { Avatar, Button, Eyebrow, Field, Switch, type PlayerIdentity } from "../design/primitives";
@@ -343,6 +344,7 @@ export function Settings({
                 })}
               </div>
             </div>
+            <MusicCredits track={musicTrack} />
             <div className="settings-block">
               <Switch
                 checked={actionConfirmationsOn}

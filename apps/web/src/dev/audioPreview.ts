@@ -1,6 +1,7 @@
 import "./audioPreview.css";
 import * as sound from "../design/sound";
 import { AUDIO_BANK_URL, AUDIO_CUES, MUSIC_URL } from "../design/audioBank";
+import { isMusicTrack, MUSIC_TRACK_CREDITS } from "../design/musicTracks";
 import { candidateTracks, comparisonVolume, cueComparisons, type AudioTrack } from "./audioPreviewModel";
 
 const element = <T extends HTMLElement>(id: string) => {
@@ -155,6 +156,18 @@ function addTrack(track: AudioTrack): void {
     element("candidate-status").textContent = `${track.label} is unavailable. The applied game mix remains available.`;
   });
   article.append(heading, player);
+  if (isMusicTrack(track.id)) {
+    const credit = MUSIC_TRACK_CREDITS[track.id];
+    const note = document.createElement("p");
+    const source = document.createElement("a");
+    source.href = credit.sourceUrl;
+    source.textContent = `${credit.title} — ${credit.artist}`;
+    const license = document.createElement("a");
+    license.href = credit.licenseUrl;
+    license.textContent = credit.license;
+    note.append(source, " · ", license, " · ", credit.modifications);
+    article.append(note);
+  }
   element("tracks").append(article);
   players.push(player);
   trackMetrics.set(player, track.metrics);
@@ -180,8 +193,16 @@ function addTrack(track: AudioTrack): void {
 async function loadTracks(): Promise<void> {
   let manifest: unknown;
   try {
-    const response = await fetch("/audio/music-candidates/manifest.json", { cache: "no-store" });
-    if (response.ok && response.headers.get("content-type")?.includes("json")) manifest = await response.json();
+    const response = await fetch("/audio/music/manifest.json", { cache: "no-store" });
+    if (response.ok && response.headers.get("content-type")?.includes("json")) {
+      const licensed = (await response.json()) as { tracks: typeof MUSIC_TRACK_CREDITS };
+      manifest = {
+        candidates: Object.values(licensed.tracks).map((track) => ({
+          ...track,
+          label: `${track.title} — ${track.artist}`,
+        })),
+      };
+    }
   } catch {
     /* Keep the exact runtime fallback playable while new candidates are prepared. */
   }
@@ -195,7 +216,7 @@ async function loadTracks(): Promise<void> {
   });
   for (const track of candidateTracks(manifest, MUSIC_URL)) addTrack(track);
   element("candidate-status").textContent = manifest
-    ? "Original music choices are ready. Reference playback is for comparison."
+    ? "Licensed music choices are ready. Reference playback is for comparison."
     : "New music choices are being prepared. The applied game mix is available.";
   const response = await fetch("/audio/manifest.json", { cache: "no-store" });
   if (response.ok) {

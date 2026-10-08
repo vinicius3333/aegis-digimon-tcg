@@ -91,6 +91,15 @@ describe("AccountStore", () => {
     expect(await store.accountForIdentity("discord", "42", "Other Name")).toEqual(first);
     await store.close();
   });
+  it("refreshes the Discord avatar on each sign-in", async () => {
+    const store = createStore();
+    const first = await store.accountForIdentity("discord", "43", "Tamer");
+    expect(first.avatarUrl).toBeNull();
+    const refreshed = await store.accountForIdentity("discord", "43", "Tamer", "https://cdn.discordapp.com/a.png");
+    expect(refreshed).toEqual({ ...first, avatarUrl: "https://cdn.discordapp.com/a.png" });
+    expect((await store.accountForIdentity("discord", "43", "Tamer", null)).avatarUrl).toBeNull();
+    await store.close();
+  });
   it("reserves account nicknames case-insensitively without suffix collisions", async () => {
     const store = createStore();
     expect((await store.accountForIdentity("discord", "n1", "Tamer")).displayName).toBe("Tamer");

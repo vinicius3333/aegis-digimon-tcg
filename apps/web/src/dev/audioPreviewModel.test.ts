@@ -34,7 +34,7 @@ it("supports generated relative files without inventing missing or invalid measu
     { candidates: [{ id: "candidate", file: "fresh.wav", metrics: { seconds: 30, rms: Number.NaN } }] },
     "/audio/applied.wav",
   );
-  expect(tracks[1]).toMatchObject({ url: "/audio/music-candidates/fresh.wav", seconds: 30, applied: false });
+  expect(tracks[1]).toMatchObject({ url: "/audio/music/fresh.wav", seconds: 30, applied: false });
   expect(tracks[1]!.metrics.rms).toBeUndefined();
   expect(candidateTracks(null, "/audio/applied.wav")).toHaveLength(1);
 });
