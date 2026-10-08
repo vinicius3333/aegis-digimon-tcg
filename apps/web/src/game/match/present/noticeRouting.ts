@@ -184,7 +184,9 @@ export function routeBatchNotices({
         await context.wait(combatLeadInMs);
         await waitForGate(combatCompletionGate, context, CONSEQUENCE_GATE_MAX_MS, "combatNotices/paintedImpact");
         if (context.cancelled) return;
-        narrate(held, heldForCombat, batchId, undefined, { next: true });
+        // Raised once the blow lands, which may be after later effects queued their clauses:
+        // jumping all of them would hold an earlier effect's results behind a later one's.
+        narrate(held, heldForCombat, batchId, undefined, { inBatchOrder: true });
       },
     });
     return routed;

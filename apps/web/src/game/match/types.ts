@@ -176,6 +176,8 @@ export interface SecurityClause {
   own: { notices: readonly MatchNotice[]; panels: readonly SidePanel[] };
   /** False while the dock is still queued behind earlier centre-stage beats. */
   docking: boolean;
+  /** The latest effect announcement when the card docked; a later one supersedes this clause as the cause. */
+  effectAtDock?: PresentationGate | null;
 }
 
 export interface MatchCueAnchors {

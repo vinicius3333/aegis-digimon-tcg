@@ -114,6 +114,22 @@ export function announcedBoardVersion(
   return resultsAfter && !resultsBefore ? stateVersion - 1 : stateVersion;
 }
 
+/**
+ * Whether a security card whose clause is still unread caused the batch now arriving.
+ * An effect announced after the card docked (an [On End of Attack] that deletes the
+ * attacker) caused it instead, so its results wait for that clause, not the dock.
+ */
+export function securityClauseCausesBatch({
+  clause,
+  latestAnnouncement,
+}: {
+  clause: SecurityClause;
+  latestAnnouncement: PresentationGate | null;
+}): boolean {
+  if (clause.gate.open) return false;
+  return clause.effectAtDock === undefined || latestAnnouncement === clause.effectAtDock;
+}
+
 export function presentServerBatch({
   batchId,
   stateVersion,
@@ -404,8 +420,13 @@ export function presentServerBatch({
   // A security card still on its way to the dock caused whatever this batch does, and its
   // clause has not been read out yet.
   // Under sequential pacing the effect that owns this batch already names its cause.
-  if (!unitGate && securityClauseGateRef.current?.gate.open === false)
-    causingEffectGateRef.current = securityClauseGateRef.current.gate;
+  const securityClause = securityClauseGateRef.current;
+  if (
+    !unitGate &&
+    securityClause &&
+    securityClauseCausesBatch({ clause: securityClause, latestAnnouncement: effectAnnounceGateRef.current })
+  )
+    causingEffectGateRef.current = securityClause.gate;
   const precedingArrivalCause = causingEffectGateRef.current;
   // An attack an effect forced ("This Digimon attacks.") is that effect's consequence: the
   // attacker turns, points and calls out only once its clause has been read, so the board
@@ -520,6 +541,9 @@ export function presentServerBatch({
     if (event.kind !== "effectTargetsSelected" || replayingHistory) continue;
     const preceding = effectAnnounceGateRef.current;
     const selected = createPresentationGate();
+    // The targets light up only after the clause that chose them, which may still be queued
+    // behind earlier effects; what waits on the targets starts its ceiling once that clause has.
+    if (preceding && !preceding.open) selected.after = preceding;
     effectAnnounceGateRef.current = selected;
     const key = ++effectSourceKeyRef.current;
     enqueue({
@@ -984,6 +1008,7 @@ export function presentServerBatch({
     setHeldSecurityEffectState,
     securityClauseGateRef,
     causingEffectGateRef,
+    effectAnnounceGateRef,
     heldNoticesRef,
     heldPanelsRef,
     setSecurityBreak,
