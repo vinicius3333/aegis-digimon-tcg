@@ -1,10 +1,153 @@
 import { describe, expect, it } from "vitest";
+import { type Seat } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "./P-119.js";
+import "../BT13/BT13-077.js";
+import "../BT16/BT16-033.js";
 import { handCardIds, playRevealing, selectionFloors } from "./qaRulings3.testSupport.js";
 
 describe("P-119 Hawkmon", () => {
+  it("#5292: automatic turn end after Harpymon's alternate evolution still offers inherited Hawkmon first", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-119", as: "hawkmon" }, "BT16-008"],
+          hand: [{ card: "BT16-033", as: "harpymon" }, "BT16-012"],
+          deck: Array(12).fill("BT1-009"),
+        },
+        1: { battleArea: ["BT13-077"], deck: Array(12).fill("BT1-009") },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("hawkmon").permanentId,
+          instanceId: s.inst("harpymon").instanceId,
+          useAlternateCost: true,
+          alternateRequirementIndex: 0,
+        }),
+      ).toEqual({ ok: true });
+      await turn;
+      expect(s.perm("hawkmon").topCard.cardId).toBe("BT16-033");
+      expect(s.perm("hawkmon").stack.map((card) => card.cardId)).toContain("P-119");
+      expect(s.state.memory).toBe(-1);
+      expect(
+        s.decisions.filter(({ req }) => req.kind === "optional").map(({ seat, req }) => [seat, req.sourceCardId]),
+      ).toEqual([
+        [0, "P-119"],
+        [1, "BT13-077"],
+      ]);
+      expect(s.state.pendingDecision).toBeUndefined();
+      assertNoLoudGap(s);
+    } finally {
+      s.engine.applyIntent(0, { type: "surrender" });
+      await turn;
+    }
+  });
+
+  it.each(["no partner", "no DNA result", "Hawkmon is the top card"])(
+    "#5292 negative: Craniamon acts first when Hawkmon cannot DNA (%s)",
+    async (reason) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              reason === "Hawkmon is the top card" ? "P-119" : { card: "BT8-012", under: ["P-119"] },
+              ...(reason === "no partner" ? [] : ["BT1-070"]),
+            ],
+            hand: reason === "no DNA result" ? [] : ["BT12-028"],
+            deck: Array(12).fill("BT1-009"),
+          },
+          1: { battleArea: ["BT13-077"], deck: Array(12).fill("BT1-009") },
+        },
+        { autoDeclineOptional: true },
+      );
+      await s.ready();
+      const turn = s.engine.runOneTurn();
+      try {
+        await advance(s.engine).waitForMainPhase(0);
+        expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        await turn;
+        expect(
+          s.decisions.filter(({ req }) => req.kind === "optional").map(({ seat, req }) => [seat, req.sourceCardId]),
+        ).toEqual([[1, "BT13-077"]]);
+        expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+        expect(s.state.pendingDecision).toBeUndefined();
+        assertNoLoudGap(s);
+      } finally {
+        s.engine.applyIntent(0, { type: "surrender" });
+        await turn;
+      }
+    },
+  );
+
+  it.each([0, 1] as const)("#5292: seat %i's inherited DNA is offered before opposing Craniamon", async (seat) => {
+    const opponent: Seat = seat === 0 ? 1 : 0;
+    const s = setupEngine({
+      [seat]: {
+        battleArea: [
+          { card: "BT8-012", as: "host", under: ["P-119"] },
+          { card: "BT1-070", as: "partner" },
+        ],
+        hand: [{ card: "BT12-028", as: "dna" }],
+        deck: Array(12).fill("BT1-009"),
+      },
+      [opponent]: {
+        battleArea: [{ card: "BT13-077", as: "craniamon" }],
+        deck: Array(12).fill("BT1-009"),
+      },
+    });
+    s.state.turnSeat = seat;
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    try {
+      await advance(s.engine).waitForMainPhase(seat);
+      expect(s.engine.applyIntent(seat, { type: "endPhase" })).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision !== undefined);
+      const first = s.decisions.at(-1)!;
+      expect(first.seat).toBe(seat);
+      expect(first.req.sourceCardId).toBe("P-119");
+      expect(first.req.kind).toBe("optional");
+      expect(
+        s.engine.applyIntent(seat, {
+          type: "respondDecision",
+          decisionId: first.req.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.state.pendingDecision?.decisionId !== first.req.decisionId && s.state.pendingDecision !== undefined,
+      );
+      const second = s.decisions.at(-1)!;
+      expect(second.seat).toBe(opponent);
+      expect(second.req.sourceCardId).toBe("BT13-077");
+      expect(second.req.kind).toBe("optional");
+      expect(
+        s.engine.applyIntent(opponent, {
+          type: "respondDecision",
+          decisionId: second.req.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      await turn;
+      expect(s.state.players[seat]!.battleArea).toHaveLength(2);
+      expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+      expect(s.state.pendingDecision).toBeUndefined();
+      assertNoLoudGap(s);
+    } finally {
+      s.engine.applyIntent(seat, { type: "surrender" });
+      await turn;
+    }
+  });
+
   it("adds a red/yellow multicolor card and Yolei Inoue, then bottoms the rest", async () => {
     const s = setupEngine(
       {

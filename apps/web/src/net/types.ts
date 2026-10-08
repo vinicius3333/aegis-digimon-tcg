@@ -380,6 +380,7 @@ export interface AegisJoinOptions {
     | "arena-bt10-taiki-x7-xros-heart"
     | "arena-bt10-taiki-reveal-under-self"
     | "arena-bt22-gabumon-eot-dna"
+    | "arena-5292-hawkmon-craniamon-priority"
     | "arena-bt11-hades-force-target-selection"
     | "arena-ex13-sampson-face-down-sources"
     | "arena-ex9-metal-mamemon-face-down-deletion"

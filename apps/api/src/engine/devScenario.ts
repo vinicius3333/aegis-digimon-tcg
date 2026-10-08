@@ -116,6 +116,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-kotone-digixros-any-tamer-effect",
   "arena-mervamon-trash-digixros",
   "arena-bt22-gabumon-eot-dna",
+  "arena-5292-hawkmon-craniamon-priority",
   "arena-bt11-hades-force-target-selection",
   "arena-bt23-examon-partition-return",
   "arena-bt23-examon-piercing-end-turn",
@@ -835,6 +836,31 @@ function layBt11HadesForceTargetSelectionScenario(state: GameState, _decks: read
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 10;
+}
+
+/** GitHub #5292: the turn player's inherited DNA precedes opposing Craniamon. */
+function layHawkmonCraniamonPriorityScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-5292-egg-${seat}`, "BT1-003", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-5292-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-5292-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["P-119", "BT8-012"], "-5292-host"));
+  placePermanent(human, establishedDigimon(0, ["BT1-070"], "-5292-partner"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-5292-dna", "BT12-028", 0));
+  const craniamon = establishedDigimon(1, ["BT13-077"], "-5292-craniamon");
+  craniamon.isSuspended = true;
+  placePermanent(state.players[1]!, craniamon);
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /** Discord 1556299408700735548: match 8ca7da4d, 13:33 UTC, Nokia before MetalGarurumon. */
@@ -7682,6 +7708,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-taiki-digixros-any-tamer-hand": layTaikiAnyTamerDigiXrosScenario,
   "arena-kotone-digixros-any-tamer-effect": (state, decks) => layTaikiAnyTamerDigiXrosScenario(state, decks, true),
   "arena-bt22-gabumon-eot-dna": layBt22GabumonEotDnaScenario,
+  "arena-5292-hawkmon-craniamon-priority": layHawkmonCraniamonPriorityScenario,
   "arena-bt11-hades-force-target-selection": layBt11HadesForceTargetSelectionScenario,
   "effects-lab-field-grouping": layEffectsLabFieldGroupingScenario,
   ...(Object.fromEntries([
