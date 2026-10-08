@@ -37,6 +37,22 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "Skip breeding and evolve EX12 Greymon into hand EX12 MetalGreymon for 3 using the alternate cost. The opposing Agumon Expert is deleted. Choose opposing BT1 MetalGreymon: its badge and granted Start of Your Main Phase clause appear. End Main; the recipient must attack at the opponent's Main start, with a mandatory legal-target choice by its controller. Breeding Digimon cannot receive the grant. It expires at the opponent's turn end. Discord 1557600224011096104.",
     ptBR: "Pule a criação e digievolua Greymon EX12 em MetalGreymon EX12 da mão pelo custo alternativo 3. Agumon Expert adversário é deletado. Escolha MetalGreymon BT1 adversário: o indicador e o texto concedido de Início da sua Fase Principal aparecem. Encerre a Principal; o alvo deve atacar no início da Principal adversária, com escolha obrigatória de alvo legal pelo controlador. Digimons na criação não podem receber o efeito. Ele expira no fim do turno adversário. Discord 1557600224011096104.",
   },
+  "arena-github-5302-kunlun-security-check": {
+    en: "Skip breeding and end Main. Accept Shishimamon's Execute attack against security. When security is removed, evolve into Kaguyamon for 1; decline the other optional plays. Kunlun must remain unsuspended and Sanmyojin Arrival stays in hand: this evolution is after the pre-counter end-of-turn window closed. An evolution before counter timing has a different ruling (Q7190).",
+    ptBR: "Pule a criação e encerre a Principal. Aceite o ataque Execute do Shishimamon contra a segurança. Quando a segurança sair, evolua em Kaguyamon por 1; recuse as outras jogadas opcionais. Kunlun deve continuar desvirado e Sanmyojin Arrival fica na mão: essa evolução ocorre após fechar a janela de fim do turno anterior ao contra-ataque. Uma evolução antes do contra-ataque tem outra regra (Q7190).",
+  },
+  "arena-github-5305-gravity-order": {
+    en: "Skip breeding: Dan and Kanan give you 4 memory. Use Gravity Crush for 0 to reach 6, then play Vulcanusmon for 7 (fewer Digimon than the opponent); decline linking. At -1, choose Gravity Crush's delayed loss before Dan and Kanan. At -3, suspend the Tamer and use Factorial Area for free, then play Marsmon for 4 (both printed reductions apply because Wrath Mode has 16000 DP). Decline battles and attacks. Factorial Area grants Blocker and the opponent starts at 7. Reset and choose Dan and Kanan first: Factorial Area is unavailable at -1 and remains in hand.",
+    ptBR: "Pule a criação: Dan e Kanan deixam você com 4 memórias. Use Gravity Crush por 0 para chegar a 6 e jogue Vulcanusmon por 7 (menos Digimon que o adversário); recuse os links. Em -1, escolha a perda adiada de Gravity Crush antes de Dan e Kanan. Em -3, vire o Tamer e use Factorial Area de graça; jogue Marsmon por 4 (as duas reduções impressas se aplicam porque Wrath Mode tem 16000 DP). Recuse batalhas e ataques. Factorial Area concede Blocker e o adversário começa com 7. Reinicie e escolha Dan e Kanan primeiro: Factorial Area não está disponível em -1 e fica na mão.",
+  },
+  "arena-github-5315-homeros-unused": {
+    en: "Skip breeding and end Main. Suspend Homeros to activate Wrath Mode's unused When Digivolving effect. Trash your top security and recover 2: security increases from 2 to 3. Junomon underneath does not prevent activation.",
+    ptBR: "Pule a criação e encerre a Principal. Vire Homeros para ativar o Quando Digievolui ainda não usado de Wrath Mode. Descarte o topo da segurança e recupere 2: a segurança sobe de 2 para 3. Junomon nas fontes não impede a ativação.",
+  },
+  "arena-github-5315-homeros-spent": {
+    en: "Skip breeding and evolve Junomon into Wrath Mode for 5, crossing from 4 to -1. Its mandatory recovery resolves once and security increases from 2 to 3. At end of turn Homeros cannot repeat that spent Once Per Turn effect (Q6029); security stays at 3. Compare the unused scenario.",
+    ptBR: "Pule a criação e evolua Junomon em Wrath Mode por 5, passando de 4 para -1. A recuperação obrigatória resolve uma vez e a segurança sobe de 2 para 3. No fim do turno, Homeros não pode repetir esse efeito Uma Vez Por Turno já gasto (Q6029); a segurança continua em 3. Compare o cenário de efeito ainda não usado.",
+  },
   "arena-github-5297-omnimon-main-dna": {
     en: "Skip breeding. During Main, select EX13-016 Omnimon and WarGreymon. Choose DNA and select the MetalGarurumon with Gabumon underneath, then confirm. Pay 0: those two stacks merge into an unsuspended Omnimon and the other MetalGarurumon stays in play. Also try with action confirmations disabled. EX13-077 Merciful Mode has no DNA route; evolve it normally after Omnimon instead.",
     ptBR: "Pule a criação. Na Principal, selecione Omnimon EX13-016 e WarGreymon. Escolha DNA e selecione o MetalGarurumon com Gabumon nas fontes; confirme. Custo 0: as duas pilhas viram um Omnimon não suspenso e o outro MetalGarurumon continua em campo. Teste também com as confirmações de ação desativadas. Merciful Mode EX13-077 não tem rota de DNA; digievolua-o normalmente após Omnimon.",
@@ -2165,6 +2181,10 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-github5311-crescemon-cost-scope", "GitHub #5311 · Crescemon incoming versus outgoing cost"],
   ["arena-github5311-imperialdramon-cost-scope", "GitHub #5311 sweep · Imperialdramon intrinsic discount"],
   ["arena-github5318-junomon-printed-cost", "GitHub #5318 · Junomon printed play-cost control"],
+  ["arena-github-5302-kunlun-security-check", "GitHub #5302 · Kunlun after security check"],
+  ["arena-github-5305-gravity-order", "GitHub #5305 · Gravity Crush end-turn ordering"],
+  ["arena-github-5315-homeros-unused", "GitHub #5315 · Homeros / unused Wrath Mode"],
+  ["arena-github-5315-homeros-spent", "GitHub #5315 · Homeros / spent Wrath Mode"],
   ["arena-github-5297-omnimon-main-dna", "GitHub #5297 · Omnimon Main DNA and physical materials"],
   ["arena-github-5297-omnimon-agumon-dna", "GitHub #5297 · Omnimon Agumon end-of-turn DNA"],
   ["arena-github-5286-lordknightmon-knightmon", "GitHub #5286 · LordKnightmon EX13 Knightmon picker"],

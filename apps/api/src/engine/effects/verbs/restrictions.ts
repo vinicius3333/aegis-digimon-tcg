@@ -249,7 +249,7 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
   };
 
   let delayedMemorySequence = 0;
-  const delayedGainMemory = (seat: Seat, amount: number): void => {
+  const delayedGainMemory: NonNullable<Primitives["delayedGainMemory"]> = (seat, amount, activationContext) => {
     // BT1-021 "at the end of your turn, lose 3 memory": a one-shot `endOfTurn` watcher with
     // NO source anchor — per KB Q882/Q883 the delayed loss still fires if the installing
     // Digimon left the field first (the effect "has already activated"), so it must not be
@@ -260,6 +260,10 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
       // Pending processing, not an activated effect: the turn player orders it against the
       // other end-of-turn processing (KB Q5564/Q5566/Q5568), as the delayed deletion is.
       orderedByTurnPlayer: true,
+      // CR 18-1-2: order this pending processing with the printed end-of-turn effects.
+      // Keep its activated context without anchoring it to a card that may leave play;
+      // a contextless watcher would bypass the pending pool and fire only afterwards.
+      activationContext,
       expiresOnTurnEndOf: seat,
       description: `At end of turn, ${amount >= 0 ? "gain" : "lose"} ${Math.abs(amount)} memory (delayed one-shot #${++delayedMemorySequence}).`,
       run: async () => {

@@ -1,5 +1,6 @@
 import type { CardColor, CardDefinition, EffectDuration, Keyword, Seat } from "@aegis/shared";
 import type { EnforcedRestriction } from "../restrictions.js";
+import type { EffectContext } from "../../EffectContext.js";
 
 /**
  * The static-continuous-effects subsystem: grants, prohibitions and stat
@@ -125,7 +126,7 @@ export interface ContinuousPrimitives {
    * your turn, lose 3 memory" — BT1-021). Anchor-less: the delayed change fires at the
    * OnEndTurn window even if the installing permanent left the field first (KB Q882/Q883).
    */
-  delayedGainMemory?(seat: Seat, amount: number): void;
+  delayedGainMemory?(seat: Seat, amount: number, activationContext?: EffectContext): void;
   /** Grant a continuous name/trait alias to a permanent ("also treated as [X]"). */
   grantNameTrait(
     permanentId: string,
