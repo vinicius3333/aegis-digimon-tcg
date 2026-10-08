@@ -108,7 +108,7 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Cherubimon"],
+      namesExact: ["Cherubimon"],
       cost: 2,
       isAlternate: true,
     },

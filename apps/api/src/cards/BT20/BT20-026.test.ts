@@ -56,7 +56,7 @@ describe("BT20-026 MegaSeadramon (X Antibody)", () => {
       types: ["Aquatic", "X Antibody"],
       evoCosts: [{ color: "Blue", level: 4, memoryCost: 3 }],
     });
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["MegaSeadramon"], cost: 0, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["MegaSeadramon"], cost: 0, isAlternate: true }]);
   });
 
   it("bottoms only a level-4-or-lower Digimon and locks another Digimon from effect suspension", async () => {

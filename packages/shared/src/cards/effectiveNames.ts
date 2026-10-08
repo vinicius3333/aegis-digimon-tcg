@@ -69,7 +69,9 @@ function scanStaticNameAliases(def: CardDefinition): StaticNameAliases {
   const text = def.effectText ?? "";
   const result: StaticNameAliases = { exact: [], substring: [] };
   const aliasPhrases = [
-    ...(text.match(/(?:name of )?this card(?:\/(?:Digimon|Tamer))?[^.。]*also treated[^.。]*/gi) ?? []),
+    ...(text.match(
+      /(?:When you would DigiXros,\s*(?:the\s+)?)?(?:name of )?this card(?:\/(?:Digimon|Tamer))?[^.。]*also treated[^.。]*/gi,
+    ) ?? []),
     // BT9-051 predates the standard wording: "Treat this card/Digimon as if it also has [Leomon] in its name."
     ...(text.match(/Treat this card(?:\/(?:Digimon|Tamer))? as if it also has[^.。]*/gi) ?? []),
     // The catalog prints both "(Rule) Name:" and "[Rule] Name:"; KB Q759 applies either in every
@@ -85,7 +87,7 @@ function scanStaticNameAliases(def: CardDefinition): StaticNameAliases {
   ];
   for (const phrase of aliasPhrases) {
     // A material-only alias must not satisfy ordinary evolution or name gates.
-    if (/for\s+(?:a\s+)?DigiXros\b/i.test(phrase)) continue;
+    if (/(?:for\s+(?:a\s+)?|When you would\s+)DigiXros\b/i.test(phrase)) continue;
     // "treated as HAVING [X]" / "[X] IN ITS NAME" is a substring grant only; the bare
     // "treated as [X]" (and "as if its name is [X]") is a full-name identity.
     // "treated as INCLUDING [X]" is the same inclusion grant (EX13-053, Q7377).

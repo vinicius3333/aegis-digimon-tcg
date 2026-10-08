@@ -14,7 +14,7 @@ describe("BT16-014", () => {
       trigger: "WhenAttacking",
       actions: [{ kind: "PlayWithoutCost", payCost: false, optional: true, ignorePlayCostLimit: true }],
     });
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Goldramon"], cost: 2, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Goldramon"], cost: 2, isAlternate: true }]);
   });
   it("grants Goldramon-related effects on all turns", () =>
     expect(compiled.effects?.[3]).toMatchObject({

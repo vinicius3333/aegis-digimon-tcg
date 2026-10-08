@@ -57,7 +57,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["MetalGreymon"], cost: 1, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["MetalGreymon"], cost: 1, isAlternate: true }],
 };
 
 registerIrCard("BT11-069", compiled);

@@ -58,7 +58,7 @@ describe("BT18-071 ShadowSeraphimon", () => {
       coverage: "full",
       residual: [],
       digivolutionRequirement: [
-        { names: ["Seraphimon"], cost: 1, isAlternate: true },
+        { namesExact: ["Seraphimon"], cost: 1, isAlternate: true },
         {
           namesExact: ["Sephirothmon"],
           minNameStackCount: 1,

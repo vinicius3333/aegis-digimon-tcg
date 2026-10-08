@@ -30,7 +30,7 @@ describe("BT16-038", () => {
 
   it("encodes the Gummymon or Terriermon alternate evolution", () => {
     expect(digivolutionRequirementsFor("BT16-038")).toEqual([
-      { names: ["Gummymon", "Terriermon"], cost: 0, isAlternate: true },
+      { namesExact: ["Gummymon", "Terriermon"], cost: 0, isAlternate: true },
     ]);
   });
 

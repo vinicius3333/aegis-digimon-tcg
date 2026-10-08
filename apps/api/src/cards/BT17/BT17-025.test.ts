@@ -169,7 +169,7 @@ describe("BT17-025", () => {
     const printed = getCardDefinition("BT17-025")!.effectText!;
     expect(printed).toContain("[Digivolve][Cerberusmon]: Cost 1");
     expect(printed).toContain("[Rule] Trait: Has the [Dark Animal] type.");
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Cerberusmon"], cost: 1, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Cerberusmon"], cost: 1, isAlternate: true }]);
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
   });

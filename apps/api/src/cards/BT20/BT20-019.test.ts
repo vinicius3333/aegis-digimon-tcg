@@ -68,7 +68,7 @@ describe("BT20-019 Jesmon (X Antibody)", () => {
       types: ["Holy Warrior", "X Antibody", "Royal Knight"],
       evoCosts: [{ color: "Red", level: 5, memoryCost: 4 }],
     });
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Jesmon"], cost: 1, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Jesmon"], cost: 1, isAlternate: true }]);
   });
 
   it("grants temporary opponent-effect immunity when Jesmon is in the evolved stack", async () => {

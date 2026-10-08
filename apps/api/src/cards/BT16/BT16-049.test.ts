@@ -25,7 +25,7 @@ describe("BT16-049", () => {
       isInherited: true,
       actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent" }],
     });
-    expect(digivolutionRequirementsFor("BT16-049")).toEqual([{ names: ["Upamon"], cost: 0, isAlternate: true }]);
+    expect(digivolutionRequirementsFor("BT16-049")).toEqual([{ namesExact: ["Upamon"], cost: 0, isAlternate: true }]);
   });
 
   it("gains memory when another Free Digimon is played", async () => {

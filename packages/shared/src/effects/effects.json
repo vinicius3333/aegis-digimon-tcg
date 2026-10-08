@@ -7461,7 +7461,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["DarkKnightmon"], "cost": 4, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["DarkKnightmon"], "cost": 4, "isAlternate": true }]
   },
   "BT10-070": {
     "effects": [
@@ -10332,7 +10332,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Shoutmon"], "cost": 4, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Shoutmon"], "cost": 4, "isAlternate": true }]
   },
   "BT11-016": {
     "effects": [
@@ -12749,7 +12749,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["MetalGreymon"], "cost": 1, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["MetalGreymon"], "cost": 1, "isAlternate": true }]
   },
   "BT11-070": {
     "effects": [
@@ -37080,7 +37080,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gatomon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gatomon"], "cost": 0, "isAlternate": true }]
   },
   "BT16-010": {
     "effects": [
@@ -37357,7 +37357,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Silphymon"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Silphymon"], "cost": 3, "isAlternate": true }]
   },
   "BT16-014": {
     "effects": [
@@ -37424,7 +37424,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Goldramon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Goldramon"], "cost": 2, "isAlternate": true }]
   },
   "BT16-015": {
     "effects": [
@@ -37583,7 +37583,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Tokomon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Tokomon"], "cost": 0, "isAlternate": true }]
   },
   "BT16-017": {
     "effects": [
@@ -37693,7 +37693,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Veemon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Veemon"], "cost": 2, "isAlternate": true }]
   },
   "BT16-019": {
     "effects": [
@@ -38069,7 +38069,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Angemon"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Angemon"], "cost": 3, "isAlternate": true }]
   },
   "BT16-025": {
     "effects": [
@@ -38521,7 +38521,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Salamon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Salamon"], "cost": 2, "isAlternate": true }]
   },
   "BT16-032": {
     "effects": [
@@ -38837,7 +38837,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gummymon", "Terriermon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gummymon", "Terriermon"], "cost": 0, "isAlternate": true }]
   },
   "BT16-039": {
     "effects": [
@@ -39515,7 +39515,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Upamon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Upamon"], "cost": 0, "isAlternate": true }]
   },
   "BT16-050": {
     "effects": [
@@ -39627,7 +39627,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Hagurumon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Hagurumon"], "cost": 0, "isAlternate": true }]
   },
   "BT16-053": {
     "effects": [
@@ -40611,7 +40611,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Syakomon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Syakomon"], "cost": 0, "isAlternate": true }]
   },
   "BT16-067": {
     "effects": [
@@ -40667,7 +40667,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Kokomon", "Lopmon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Kokomon", "Lopmon"], "cost": 0, "isAlternate": true }]
   },
   "BT16-068": {
     "effects": [
@@ -40794,7 +40794,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gesomon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gesomon"], "cost": 0, "isAlternate": true }]
   },
   "BT16-070": {
     "effects": [
@@ -40860,7 +40860,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Veemon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Veemon"], "cost": 2, "isAlternate": true }]
   },
   "BT16-071": {
     "effects": [
@@ -41400,7 +41400,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Cherubimon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Cherubimon"], "cost": 2, "isAlternate": true }]
   },
   "BT16-080": {
     "effects": [
@@ -42952,7 +42952,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Rapidmon"], "cost": 4, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Rapidmon"], "cost": 4, "isAlternate": true }]
   },
   "BT16-102": {
     "effects": [
@@ -44424,7 +44424,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Cerberusmon"], "cost": 1, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Cerberusmon"], "cost": 1, "isAlternate": true }]
   },
   "BT17-026": {
     "effects": [
@@ -50620,7 +50620,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gazimon", "Gizamon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gazimon", "Gizamon"], "cost": 2, "isAlternate": true }]
   },
   "BT18-014": {
     "effects": [
@@ -54170,7 +54170,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Seraphimon"], "cost": 1, "isAlternate": true },
+      { "namesExact": ["Seraphimon"], "cost": 1, "isAlternate": true },
       {
         "namesExact": ["Sephirothmon"],
         "minNameStackCount": 1,
@@ -66461,7 +66461,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Jesmon"], "cost": 1, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Jesmon"], "cost": 1, "isAlternate": true }]
   },
   "BT20-020": {
     "effects": [
@@ -66970,7 +66970,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["MegaSeadramon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["MegaSeadramon"], "cost": 0, "isAlternate": true }]
   },
   "BT20-027": {
     "effects": [
@@ -69066,7 +69066,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gankoomon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gankoomon"], "cost": 2, "isAlternate": true }]
   },
   "BT20-060": {
     "effects": [
@@ -81588,7 +81588,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Numemon"], "cost": 3, "isAlternate": true },
+      { "namesExact": ["Numemon"], "cost": 3, "isAlternate": true },
       { "level": 4, "traits": ["DM"], "cost": 4, "isAlternate": true }
     ]
   },
@@ -83141,7 +83141,7 @@
     "residual": [],
     "digivolutionRequirement": [
       { "level": 4, "colors": ["Black"], "cost": 4, "isAlternate": false },
-      { "names": ["Vegiemon"], "cost": 3, "isAlternate": true },
+      { "namesExact": ["Vegiemon"], "cost": 3, "isAlternate": true },
       { "level": 4, "traits": ["DM"], "cost": 4, "isAlternate": true }
     ]
   },
@@ -83630,7 +83630,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Koromon", "Agumon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Koromon", "Agumon"], "cost": 0, "isAlternate": true }]
   },
   "BT22-069": {
     "effects": [
@@ -97453,7 +97453,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Keramon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Keramon"], "cost": 0, "isAlternate": true }]
   },
   "BT24-053": {
     "effects": [
@@ -110278,7 +110278,7 @@
       {
         "cost": 0,
         "isAlternate": true,
-        "names": ["ShineGreymon"],
+        "namesExact": ["ShineGreymon"],
         "burstDigivolve": { "returnTamerNamesExact": ["Marcus Damon"] }
       }
     ]
