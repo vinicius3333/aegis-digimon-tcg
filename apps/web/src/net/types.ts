@@ -423,6 +423,7 @@ export interface AegisJoinOptions {
     | "arena-ex10-close-sunarizamon-without-close"
     | "arena-ex11-pyramidimon-fragment-recovery"
     | "arena-ex13-rina-suspend-lock"
+    | "arena-ex13-rina-modal-title"
     | "arena-ex11-vortex-effect-attack"
     | "arena-bt24-ogremon-ulforce-unsuspend"
     | "arena-bt23-king-drasil-unsuspended-cost"

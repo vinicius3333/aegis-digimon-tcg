@@ -223,6 +223,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex10-close-sunarizamon-without-close",
   "arena-ex11-pyramidimon-fragment-recovery",
   "arena-ex13-rina-suspend-lock",
+  "arena-ex13-rina-modal-title",
   "arena-ex11-vortex-effect-attack",
   "arena-bt24-ogremon-ulforce-unsuspend",
   "arena-bt23-king-drasil-unsuspended-cost",
@@ -2159,6 +2160,25 @@ function layEx13GiromonZeroDpPlayScenario(state: GameState, decks: readonly [Dec
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Rina's two activation prompts carry distinct printed passages through ordinary Main intents. */
+function layEx13RinaModalTitleScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 6);
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    for (const zone of [Zone.Hand, Zone.Deck, Zone.Security, Zone.EggDeck] as const) clearZone(player, zone);
+    for (let index = 0; index < 12; index++)
+      insertCard(player, Zone.Deck, faceDownCard(`rina-title-deck-${seat}-${index}`, "BT1-085", seat));
+    for (let index = 0; index < 3; index++)
+      insertCard(player, Zone.Security, faceDownCard(`rina-title-security-${seat}-${index}`, "BT1-009", seat));
+  }
+  const human = state.players[0]!;
+  insertCard(human, Zone.EggDeck, faceDownCard("dev-rina-title-egg", "EX13-002", 0));
+  placePermanent(human, establishedDigimon(0, ["EX13-069"], "-rina-title-rina"));
+  placePermanent(human, establishedDigimon(0, ["BT3-021"], "-rina-title-veemon"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-rina-title-sword", "ST8-11", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-rina-title-veedramon", "BT1-115", 0));
 }
 
 /**
@@ -8823,6 +8843,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex10-close-sunarizamon-without-close": layEx10CloseSunarizamonScenario,
   "arena-ex11-pyramidimon-fragment-recovery": layEx11PyramidimonFragmentRecoveryScenario,
   "arena-ex13-rina-suspend-lock": layEx13RinaSuspendLockScenario,
+  "arena-ex13-rina-modal-title": layEx13RinaModalTitleScenario,
   "arena-ex11-vortex-effect-attack": layEx11VortexEffectAttackScenario,
   "arena-bt24-ogremon-ulforce-unsuspend": layBt24OgremonUlforceUnsuspendScenario,
   "arena-bt23-king-drasil-unsuspended-cost": layBt23KingDrasilUnsuspendedCostScenario,

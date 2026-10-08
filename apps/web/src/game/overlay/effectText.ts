@@ -343,8 +343,12 @@ const DESCRIBED_ACTION_PHRASES: readonly RegExp[] = [
 const INTERNAL_IDENTIFIER_PROMPT = /^[A-Za-z][a-z0-9]*(?:[A-Z][a-z0-9]*)+$/;
 const INTERNAL_ACTION_PROMPT = /^(?:attack|delete|digivolve|draw|play|return|suspend|trash|unsuspend)$/i;
 
-/** The prompt to show above a decision, or undefined when the engine sent an internal identifier. */
-export function playerFacingPromptText(promptText: string | undefined, kind: DecisionKind): string | undefined {
+/** The prompt above a decision, excluding internal summaries and repeated printed passages. */
+export function playerFacingPromptText(
+  promptText: string | undefined,
+  kind: DecisionKind,
+  printedEffectPassage?: string,
+): string | undefined {
   const trimmed = promptText?.trim();
   if (!trimmed) return undefined;
   if (/^select bind$/i.test(trimmed)) return undefined;
@@ -354,6 +358,21 @@ export function playerFacingPromptText(promptText: string | undefined, kind: Dec
   if (/^(?:choose targets?|select cards?|choose one effect to activate|choose the card order)$/i.test(trimmed))
     return undefined;
   if (kind !== "optional") return trimmed;
+  // Watchers can ask with their whole raw clause while the body shows only the current
+  // printed passage. Keep that prose below the localized question, including when a
+  // follow-on sentence comes after the passage or raw omits its final punctuation.
+  if (printedEffectPassage) {
+    const normalize = (text: string) =>
+      text
+        .replace(/^(?:\[[^\]]+\]\s*)+/, "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .replace(/[.!?]+$/, "");
+    const passage = normalize(printedEffectPassage);
+    const prompt = normalize(trimmed);
+    if (passage && (prompt === passage || prompt.startsWith(`${passage}. `) || prompt.startsWith(`${passage} `)))
+      return undefined;
+  }
   // Printed optional clauses belong in the body, below the short activation question.
   if (/^you may\b/i.test(trimmed)) return undefined;
   // A reducer or keyword effect asks with the engine's own summary of what it does
