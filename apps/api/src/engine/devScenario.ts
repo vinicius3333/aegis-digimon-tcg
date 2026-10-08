@@ -253,6 +253,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-p108-training-delay-no-target",
   "arena-p108-training-delay-with-target",
   "arena-bt20-dragon-gene-delay-no-dna",
+  "arena-bt20-dragon-gene-security",
   "arena-bt13-royal-purge-delay-rush",
   "arena-p206-digital-gate-breeding-color",
   "arena-ex13-merciful-mode-attack-order",
@@ -6254,6 +6255,42 @@ function layBt20DragonGeneDelayNoDnaScenario(state: GameState, decks: readonly [
   state.memory = 3;
 }
 
+/** Discord 1557553612228665396: choose a Dracomon from hand/trash after a real security check. */
+function layBt20DragonGeneSecurityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    // Keep both turns and EX3-037's search independent of the selected arena decks.
+    const cardIds =
+      seat === 0
+        ? ["BT1-010", "BT20-023", "EX3-074", ...Array<string>(10).fill("BT1-010")]
+        : Array<string>(13).fill("BT1-010");
+    fillZone(
+      player,
+      Zone.Deck,
+      cardIds.map((cardId, index) => faceDownCard(`dev-dragon-gene-security-deck-${seat}-${index}`, cardId, seat)),
+    );
+    fillZone(player, Zone.EggDeck, [faceDownCard(`dev-dragon-gene-security-egg-${seat}`, "BT1-001", seat)]);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Security, faceDownCard("dev-dragon-gene-security-option", "BT20-093", 0));
+    placePermanent(human, establishedDigimon(0, ["BT1-010"], "-dragon-gene-security-human"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-dragon-gene-security-hand", "BT20-007", 0));
+    insertCard(human, Zone.Trash, faceDownCard("dev-dragon-gene-security-trash", "EX3-037", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-010"], "-dragon-gene-security-attacker"));
+    insertCard(bot, Zone.Security, faceDownCard("dev-dragon-gene-security-bot", "BT1-010", 1));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
 /**
  * BT13-110 Royal Knights of the Purge ＜Delay＞ (Discord bug 1554301049614110770, match
  * dd487753). The Option has waited in the battle area since an earlier turn, and King
@@ -7696,6 +7733,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-p108-training-delay-no-target": (state, decks) => layP108TrainingDelayScenario(state, decks, false),
   "arena-p108-training-delay-with-target": (state, decks) => layP108TrainingDelayScenario(state, decks, true),
   "arena-bt20-dragon-gene-delay-no-dna": layBt20DragonGeneDelayNoDnaScenario,
+  "arena-bt20-dragon-gene-security": layBt20DragonGeneSecurityScenario,
   "arena-bt13-royal-purge-delay-rush": layBt13RoyalPurgeDelayRushScenario,
   "arena-p206-digital-gate-breeding-color": layP206DigitalGateBreedingColorScenario,
   "arena-ex13-merciful-mode-attack-order": layEx13MercifulModeAttackOrderScenario,

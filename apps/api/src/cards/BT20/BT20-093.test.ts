@@ -7,6 +7,8 @@ import { compiled } from "./BT20-093.js";
 import "./index.js";
 import "../ST2/ST2-16.js";
 import "../EX3/EX3-074.js";
+import "../EX3/EX3-037.js";
+import "../BT9/BT9-047.js";
 
 const DECK_FILLER = ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"];
 
@@ -210,6 +212,136 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
     expect(nearName.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
+
+  it.each(["decline", "no-target"] as const)(
+    "Discord 1557553612228665396: Security still places the Option after %s",
+    async (route) => {
+      const s = setupEngine(
+        {
+          0: {
+            security: [{ card: "BT20-093", as: "option" }],
+            hand: [{ card: route === "decline" ? "BT20-007" : "BT1-010", as: "candidate" }],
+            deck: DECK_FILLER,
+          },
+          1: { battleArea: [{ card: "BT1-010", as: "attacker" }], deck: DECK_FILLER },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      const optionId = s.inst("option").instanceId;
+      const candidateId = s.inst("candidate").instanceId;
+      await s.ready();
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await advance(s.engine).waitForMainPhase(1);
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+      expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(true);
+      expect(s.state.players[0]!.hand.some((c) => c.instanceId === candidateId)).toBe(true);
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
+
+  it.each(["hand", "trash"] as const)(
+    "Discord 1557553612228665396: Security waits for explicit consent to play from %s",
+    async (zone) => {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT1-010", as: "attacker" }], deck: DECK_FILLER },
+        1: {
+          security: [{ card: "BT20-093", as: "option" }],
+          [zone]: [{ card: "EX3-037", as: "dracomon" }],
+          deck: DECK_FILLER,
+        },
+      });
+      const optionId = s.inst("option").instanceId;
+      const dracomonId = s.inst("dracomon").instanceId;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision !== undefined);
+      const consent = s.decisions.at(-1)!.req;
+      expect(consent).toMatchObject({ kind: "optional", sourceCardId: "BT20-093" });
+      expect(s.decisions.at(-1)!.seat).toBe(1);
+      expect(s.state.players[1]![zone].some((card) => card.instanceId === dracomonId)).toBe(true);
+      expect(s.state.players[1]!.battleArea).toHaveLength(0);
+      const memoryBefore = s.state.memory;
+      expect(
+        s.engine.applyIntent(1, {
+          type: "respondDecision",
+          decisionId: consent.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.events.some((event) => event.kind === "attackEnded") && s.state.pendingDecision === undefined,
+      );
+      expect(s.state.players[1]!.battleArea.map((p) => p.topCard.instanceId)).toEqual(
+        expect.arrayContaining([dracomonId, optionId]),
+      );
+      expect(s.state.players[1]![zone].some((card) => card.instanceId === dracomonId)).toBe(false);
+      expect(s.state.players[1]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+      expect(s.state.memory).toBe(memoryBefore);
+      expect(
+        s.events.some(
+          (event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-037" && event.timing === "OnPlay",
+        ),
+      ).toBe(true);
+    },
+  );
+
+  it.each(["hand", "trash"] as const)(
+    "Discord 1557553612228665396: Pomumon blocks the %s play but Security still places the Option",
+    async (zone) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT1-010", as: "attacker" }, { card: "BT9-047" }],
+            deck: DECK_FILLER,
+          },
+          1: {
+            security: [{ card: "BT20-093", as: "option" }],
+            [zone]: [{ card: "BT20-007", as: "dracomon" }],
+            deck: DECK_FILLER,
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const optionId = s.inst("option").instanceId;
+      const dracomonId = s.inst("dracomon").instanceId;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.events.some((event) => event.kind === "attackEnded") && s.state.pendingDecision === undefined,
+      );
+      expect(s.state.players[1]![zone].some((card) => card.instanceId === dracomonId)).toBe(true);
+      expect(s.state.players[1]!.battleArea.map((p) => p.topCard.instanceId)).toEqual([optionId]);
+      expect(s.state.players[1]!.security).toHaveLength(0);
+      expect(
+        s.decisions.some(
+          ({ req }) => req.kind === "selectCards" && req.options?.candidateInstanceIds?.includes(dracomonId),
+        ),
+      ).toBe(false);
+    },
+  );
 
   it.each(["accept", "decline"] as const)(
     "resolves printed reactive Delay on %s through a public departure",
