@@ -57,6 +57,8 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-bt21-metalgreymon-one-target-two-colors",
+  "arena-bt21-metalgreymon-one-target-four-colors",
   "arena-github-5299-ravemon-bottom-security",
   "arena-github5300-yoshino-cost-payload",
   "arena-github5300-keenan-cost-execute",
@@ -984,6 +986,38 @@ function layThetismonJammingScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/** Discord 1557624042733969509: repeated De-Digivolve 1 stays on one recipient. */
+function layBt21MetalGreymonOneTargetScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  fourColors: boolean,
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Trash);
+    setBreeding(player, undefined);
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT21-057"], "-metalgreymon-base"));
+  for (const [index, cardId] of (fourColors ? ["AD1-019", "AD1-020"] : ["BT1-085", "BT1-086"]).entries()) {
+    placePermanent(human, establishedDigimon(0, [cardId], `-metalgreymon-tamer-${index}`));
+  }
+  insertCard(human, Zone.Hand, faceDownCard("dev-metalgreymon-play", "BT21-061", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-metalgreymon-evolve", "BT21-061", 0));
+  const bot = state.players[1]!;
+  placePermanent(bot, establishedDigimon(1, ["BT21-042", "BT21-044", "BT21-045"], "-metalgreymon-target-a"));
+  placePermanent(bot, establishedDigimon(1, ["BT21-042", "BT21-044", "BT21-045"], "-metalgreymon-target-b"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 function layEx7SeventhFascinationTurnScenario(
@@ -8339,6 +8373,10 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-diarbbitmon-dual-option-immunity": layDiarbbitmonDualOptionImmunityScenario,
   "arena-bt5-koromon-attack-draw": layBt5KoromonAttackDrawScenario,
+  "arena-bt21-metalgreymon-one-target-two-colors": (state, decks) =>
+    layBt21MetalGreymonOneTargetScenario(state, decks, false),
+  "arena-bt21-metalgreymon-one-target-four-colors": (state, decks) =>
+    layBt21MetalGreymonOneTargetScenario(state, decks, true),
   "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
   "arena-st15-trident-arm-forced-attack-text": laySt15TridentArmForcedAttackTextScenario,
   "arena-ex11-vortex-effect-attack-block": layEx11VortexEffectAttackBlockScenario,

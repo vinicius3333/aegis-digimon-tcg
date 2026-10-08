@@ -18,10 +18,25 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          kind: "SelectBind",
+          condition: {
+            kind: "digivolutionCardCount",
+            nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }],
+            op: "gte",
+            value: 2,
+          },
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"] },
+            count: 1,
+            bindAs: "deDigivolveTarget",
+          },
+        },
+        {
           effectTextPart:
             "Then, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for every 2 [Vemmon] in this Digimon's digivolution cards.",
           kind: "DeDigivolve",
           target: {
+            fromSelectionRef: "deDigivolveTarget",
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
