@@ -1035,6 +1035,25 @@ export class ContinuousEffectLedger {
     }
   }
 
+  /** Effect-gained copies, excluding keywords materialized from printed continuous effects. */
+  gainedKeywordCount(permanentId: string, keyword: string): number {
+    const direct = this.keywordGrants.filter(
+      (grant) =>
+        grant.permanentId === permanentId &&
+        grant.keyword === keyword &&
+        !grant.continuous &&
+        this.keywordGrantIsActive(grant),
+    ).length;
+    const seat = this.controllerSeatOf?.(permanentId);
+    return (
+      direct +
+      this.playerKeywordGrants.filter(
+        (grant) =>
+          grant.seat === seat && grant.keyword === keyword && this.playerKeywordGrantMatches(grant, permanentId),
+      ).length
+    );
+  }
+
   /** Whether a permanent currently has a given keyword from any active grant. */
   hasKeyword(permanentId: string, keyword: string): boolean {
     const result =

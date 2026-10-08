@@ -79,8 +79,16 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
       // independent in the resolver's `resolved` ledger; each is optional and may be declined
       // on its own. `resolveAllianceEffect` re-reads the board when it runs, so an instance
       // ordered after a derived On Play / DNA evolution sees the post-evolution allies.
+      const gainedAllianceCount = engine.continuous.gainedKeywordCount(attacker.permanentId, "Alliance");
+      const allianceSource = cardSourceOf(engine, top);
+      const gainedAllianceSource = {
+        ...allianceSource,
+        gainedOnPermanentId: attacker.permanentId,
+        permanent: () => engine.access.permanentById(attacker.permanentId),
+        isOnBattleArea: () => engine.access.permanentById(attacker.permanentId)?.inBreeding === false,
+      };
       const allianceEffects: CollectedEffect[] = Array.from({ length: allianceCount }, (_, index) => ({
-        source: cardSourceOf(engine, top),
+        source: index < gainedAllianceCount ? gainedAllianceSource : allianceSource,
         timing: EffectTiming.OnUseAttack,
         effect: {
           effectKey: `${top.instanceId}/alliance/${index}`,
@@ -100,7 +108,9 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
           // now (CR §15-4): it takes its place in the ordered set, and the controller may
           // put it after an effect that first creates the ally. `resolveAllianceEffect`
           // re-reads the board and does nothing when no ally is there at resolution time.
-          canActivate: () => true,
+          canActivate: () =>
+            index >= gainedAllianceCount ||
+            engine.continuous.gainedKeywordCount(attacker.permanentId, "Alliance") > index,
           resolve: async (ctx) => engine.combat.resolveAllianceEffect(attacker.permanentId, ctx.presetOptionalAnswer),
         },
       }));

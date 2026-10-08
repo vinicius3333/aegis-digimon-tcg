@@ -13,6 +13,8 @@ import type { Permanent } from "@aegis/shared";
  * supplies per triggering card.
  */
 export interface CardSource {
+  /** Recipient of an effect-gained keyword; its pending state survives stacking (CR 15-13-2). */
+  readonly gainedOnPermanentId?: string;
   readonly instanceId: string;
   readonly cardId: string;
   readonly ownerSeat: Seat;

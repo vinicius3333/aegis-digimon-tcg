@@ -30,6 +30,7 @@ export interface AegisJoinOptions {
   /** Dev-only: ask a bot room for a hand-laid board instead of the pre-game procedure. */
   devScenario?:
     | "arena-github-5324-omnimon-traits"
+    | "arena-github5320-alliance-after-evolution"
     | "arena-discord-1557631388650315826-sukamon-dna-materials"
     | "arena-discord-1557631388650315826-sukamon-dna-control"
     | "arena-discord-1557565628439724032-duskmon-dna-colors"
@@ -452,6 +453,7 @@ export interface AegisJoinOptions {
     | "arena-github5307-larva-bt18-breeding"
     | "arena-github5307-larva-ex10-breeding"
     | "arena-github5308-greymon-security-destination"
+    | "arena-bt21-satellamon-cost-control"
     | "arena-github5311-imperialdramon-cost-scope"
     | "arena-github5322-metalmamemon-no-cost"
     | "arena-github5322-metalmamemon-paid"
