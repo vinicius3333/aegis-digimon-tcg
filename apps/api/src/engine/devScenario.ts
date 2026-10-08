@@ -358,6 +358,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt24-hyogamon-pending-trash-digivolve",
   "arena-ex10-darkness-bagramon-digixros-interrupt",
   "arena-ex10-tactimon-digixros-material",
+  "arena-ex10-bagramon-materials-destination",
   "arena-hellscythe-onplay-priority",
   "arena-vikemon-live-source-lock",
   "arena-rizegreymon-derived-priority",
@@ -5764,6 +5765,25 @@ function prepareIssueScenario(state: GameState, decks: readonly [Decklist, Deckl
   state.memory = memory;
 }
 
+/** Discord 1557666953748025394: two expanded DigiXros zones, then an explicit other-host choice. */
+function layEx10BagramonMaterialsDestinationScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 2);
+  for (const player of state.players) {
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Deck);
+    for (let index = 0; index < 20; index++)
+      insertCard(player, Zone.Deck, faceDownCard(`dev-bagramon-draw-${player.seat}-${index}`, "BT1-085", player.seat));
+  }
+  const human = state.players[0]!;
+  const opponent = state.players[1]!;
+  placePermanent(human, establishedDigimon(0, ["EX10-058", "BT10-073", "EX10-064"], "-bagramon-expander"));
+  insertCard(human, Zone.Trash, faceUpCard("dev-bagramon-trash-material", "BT10-073", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-bagramon-played", "EX10-056", 0));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-013", "BT1-009"], "-bagramon-victim"));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-014"], "-bagramon-digimon-host"));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-013", "BT1-088"], "-bagramon-tamer-host"));
+}
+
 /** EX11-071 Main exposes two exact physical hand choices without extra On Play effects. */
 function layUiEx11CoolBoyHandSelectionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 6);
@@ -8917,6 +8937,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt24-hyogamon-pending-trash-digivolve": layBt24HyogamonPendingTrashDigivolveScenario,
   "arena-ex10-darkness-bagramon-digixros-interrupt": layEx10DarknessBagramonDigiXrosInterruptScenario,
   "arena-ex10-tactimon-digixros-material": layEx10TactimonDigiXrosMaterialScenario,
+  "arena-ex10-bagramon-materials-destination": layEx10BagramonMaterialsDestinationScenario,
   "arena-hellscythe-onplay-priority": layHellscytheOnPlayPriorityScenario,
   "arena-piedmon-declined-opt": layPiedmonDeclinedOptScenario,
   "arena-vikemon-live-source-lock": layVikemonLiveSourceLockScenario,
