@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -40,6 +40,7 @@ describe("BT22-076 ShinMonzaemon", () => {
     for (const trigger of ["WhenDigivolving", "WhenAttacking"]) {
       expect(compiled.effects.find((entry) => entry.trigger === trigger)?.actions[0]).toMatchObject({
         kind: "SecurityManipulation",
+        ownerSecurity: true,
         source: {
           filter: { controllerDefault: "any", kind: ["Digimon"], dp: { op: "lte", relativeToSource: true } },
           count: 1,
@@ -155,9 +156,9 @@ describe("BT22-076 ShinMonzaemon", () => {
         instanceId: s.inst("shin").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === targetId));
+    await settle(() => s.state.players[1]!.security.some((card) => card.instanceId === targetId));
 
-    expect(s.state.players[0]!.security[0]?.instanceId).toBe(targetId);
+    expect(s.state.players[1]!.security[0]?.instanceId).toBe(targetId);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === bottomSourceId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -174,7 +175,7 @@ describe("BT22-076 ShinMonzaemon", () => {
           security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
         },
         1: {
-          battleArea: [{ card: "BT1-013", as: "target" }],
+          battleArea: [{ card: "BT1-013", as: "target", suspended: true }],
           deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017", "BT1-018"],
           security: ["BT1-013", "BT1-014", "BT1-015", "BT1-016"],
         },
@@ -190,12 +191,12 @@ describe("BT22-076 ShinMonzaemon", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("shin").permanentId,
-        target: { kind: "player" },
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === targetId));
+    await settle(() => s.state.players[1]!.security.some((card) => card.instanceId === targetId));
 
-    expect(s.state.players[0]!.security[0]?.instanceId).toBe(targetId);
+    expect(s.state.players[1]!.security[0]?.instanceId).toBe(targetId);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === bottomSourceId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -224,7 +225,7 @@ describe("BT22-076 ShinMonzaemon", () => {
         1: {
           battleArea: [
             { card: "BT1-013", as: "firstTarget" },
-            { card: "BT1-013", as: "secondTarget" },
+            { card: "BT1-013", as: "secondTarget", suspended: true },
           ],
           deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
           security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
@@ -235,50 +236,54 @@ describe("BT22-076 ShinMonzaemon", () => {
     s.state.memory = 10;
     await s.ready();
     const loop = s.engine.startTurnLoop();
-    await advance(s.engine).waitForMainPhase(0);
-    preferInstanceIds.push(s.perm("firstTarget").topCard!.instanceId);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("host").permanentId,
-        instanceId: s.inst("shin").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("host").topCard?.cardId === "BT22-076");
-    expect(s.perm("host").stack.filter((card) => card.cardId === "BT22-037")).toHaveLength(1);
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      preferInstanceIds.push(s.perm("firstTarget").topCard!.instanceId);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst("shin").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("host").topCard?.cardId === "BT22-076");
+      expect(s.perm("host").stack.filter((card) => card.cardId === "BT22-037")).toHaveLength(1);
 
-    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("host").isSuspended);
-    expect(s.perm("host").stack.filter((card) => card.cardId === "BT22-037")).toHaveLength(1);
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+      await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("host").isSuspended);
+      expect(s.perm("host").stack.filter((card) => card.cardId === "BT22-037")).toHaveLength(1);
+      expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await advance(s.engine).waitForMainPhase(1);
-    advance(s.engine).endMainPhaseIfOpen(1);
-    await advance(s.engine).waitForMainPhase(0);
-    preferInstanceIds.push(s.perm("secondTarget").topCard!.instanceId);
-    const secondTargetId = s.perm("secondTarget").topCard!.instanceId;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("host").stack.filter((card) => card.cardId === "BT22-037").length === 0);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.security.some((card) => card.instanceId === secondTargetId)).toBe(true);
-    expect(s.state.pendingDecision).toBeUndefined();
-    expect(observe(s.engine).isAttacking()).toBe(false);
-    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
-    await loop;
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await advance(s.engine).waitForMainPhase(1);
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await advance(s.engine).waitForMainPhase(0);
+      preferInstanceIds.push(s.perm("secondTarget").topCard!.instanceId);
+      const secondTargetId = s.perm("secondTarget").topCard!.instanceId;
+      await advance(s.engine).verb.suspend([s.perm("secondTarget").permanentId]);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("secondTarget").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("host").stack.filter((card) => card.cardId === "BT22-037").length === 0);
+      expect(s.state.players[1]!.battleArea).toHaveLength(0);
+      expect(s.state.players[1]!.security.some((card) => card.instanceId === secondTargetId)).toBe(true);
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(observe(s.engine).isAttacking()).toBe(false);
+    } finally {
+      s.engine.applyIntent(0, { type: "surrender" });
+      await loop;
+    }
   });
 
   it("settles an attack-trigger refusal without trashing a source or moving a target", async () => {
@@ -354,7 +359,7 @@ describe("BT22-076 ShinMonzaemon", () => {
     options.autoAcceptOptional = true;
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT22-076")).toHaveLength(2);
-    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
     const decisions = s.decisions.length;
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.decisions).toHaveLength(decisions);
@@ -438,9 +443,10 @@ describe("BT22-076 ShinMonzaemon — KB Q&A rulings", () => {
         {
           0: {
             battleArea: [
-              { card: "BT22-076", as: "shin", under: [{ card: "BT22-037", faceUp: false }] },
+              { card: "BT22-038", as: "base", under: [{ card: "BT22-037", faceUp: false }] },
               { card: "BT1-009", as: "own" },
             ],
+            hand: [{ card: "BT22-076", as: "shin" }],
             deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
             security: ["BT1-010", "BT1-011"],
           },
@@ -452,6 +458,7 @@ describe("BT22-076 ShinMonzaemon — KB Q&A rulings", () => {
         },
         { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
       );
+      s.state.memory = 8;
       await s.ready();
       const ownId = s.perm("own").topCard.instanceId;
       const opponentId = s.perm("opponent").topCard.instanceId;
@@ -462,12 +469,13 @@ describe("BT22-076 ShinMonzaemon — KB Q&A rulings", () => {
 
       expect(
         s.engine.applyIntent(0, {
-          type: "attack",
-          attackerPermanentId: s.perm("shin").permanentId,
-          target: { kind: "player" },
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("shin").instanceId,
         }),
       ).toEqual({ ok: true });
-      await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === chosenId));
+      const destination = side === "own" ? 0 : 1;
+      await settle(() => s.state.players[destination]!.security.some((card) => card.instanceId === chosenId));
 
       const placementChoice = s.decisions.find(
         ({ req }) =>
@@ -477,8 +485,8 @@ describe("BT22-076 ShinMonzaemon — KB Q&A rulings", () => {
       expect(placementChoice?.req.options?.candidateInstanceIds).toEqual(
         expect.arrayContaining([ownPermanentId, opponentPermanentId]),
       );
-      expect(s.state.players[0]!.security[0]?.instanceId).toBe(chosenId);
-      expect(s.state.players[0]!.security).toHaveLength(3);
+      expect(s.state.players[destination]!.security[0]?.instanceId).toBe(chosenId);
+      expect(s.state.players[destination]!.security).toHaveLength(3);
       expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === ownId)).toBe(
         side === "opponent",
       );
@@ -487,4 +495,154 @@ describe("BT22-076 ShinMonzaemon — KB Q&A rulings", () => {
       );
     }
   });
+});
+
+describe("Discord 1557652222744199228 ShinMonzaemon security ownership", () => {
+  for (const actor of [0, 1] as const) {
+    for (const targetOwner of [0, 1] as const) {
+      it(`digivolution by seat ${actor} places seat ${targetOwner}'s equal-DP target at its owner's top security`, async () => {
+        const preferInstanceIds: string[] = [];
+        const s = setupEngine(
+          {
+            0: { security: ["BT1-009"] },
+            1: { security: ["BT1-010"] },
+          },
+          { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+        );
+        s.putOnBoard(actor, {
+          card: "BT22-038",
+          as: "base",
+          under: [{ card: "EX9-013", as: "payment", faceUp: false }],
+        });
+        s.putOnBoard(targetOwner, {
+          card: "BT1-013",
+          as: "target",
+          dp: 13000,
+          under: [{ card: "BT1-009", as: "attachment" }],
+        });
+        s.give(actor, Zone.Hand, { card: "BT22-076", as: "shin" });
+        s.state.turnSeat = actor;
+        s.state.memory = 8;
+        await s.ready();
+        preferInstanceIds.push(s.inst("target").instanceId);
+        const targetId = s.inst("target").instanceId;
+        const other = targetOwner === 0 ? 1 : 0;
+        const otherSecurity = s.state.players[other]!.security.map((card) => card.instanceId);
+        expect(
+          s.engine.applyIntent(actor, {
+            type: "digivolve",
+            permanentId: s.perm("base").permanentId,
+            instanceId: s.inst("shin").instanceId,
+          }),
+        ).toEqual({ ok: true });
+        await settle(() =>
+          s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT22-076"),
+        );
+        expect(s.state.players[targetOwner]!.security[0]?.instanceId).toBe(targetId);
+        expect(s.state.players[targetOwner]!.security[0]?.faceUp).toBe(false);
+        expect(s.state.players[other]!.security.map((card) => card.instanceId)).toEqual(otherSecurity);
+        expect(
+          s.state.players[targetOwner]!.trash.some((card) => card.instanceId === s.inst("attachment").instanceId),
+        ).toBe(true);
+        expect(s.state.players[actor]!.trash.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(
+          true,
+        );
+        expect(s.state.memory).toBe(5);
+        expect(s.state.pendingDecision).toBeUndefined();
+      });
+    }
+  }
+});
+
+describe("Discord 1557652222744199228 ShinMonzaemon controls", () => {
+  for (const control of ["noSource", "decline", "dpAbove"] as const) {
+    it(`${control} respects payment and the current DP ceiling`, async () => {
+      const preferInstanceIds: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              {
+                card: "BT22-038",
+                as: "base",
+                under: control === "noSource" ? [] : [{ card: "EX9-013", as: "payment", faceUp: false }],
+              },
+            ],
+            hand: [{ card: "BT22-076", as: "shin" }],
+          },
+          1: { battleArea: [{ card: "BT1-013", as: "target", dp: control === "dpAbove" ? 14000 : 13000 }] },
+        },
+        {
+          autoAcceptOptional: control !== "decline",
+          autoDeclineOptional: control === "decline",
+          autoSelectCards: true,
+          preferInstanceIds,
+        },
+      );
+      const targetId = s.inst("target").instanceId;
+      const targetPermanentId = s.perm("target").permanentId;
+      preferInstanceIds.push(targetId);
+      s.state.memory = 8;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("shin").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === targetId)).toBe(true);
+      expect(s.state.players[1]!.security).toHaveLength(0);
+      expect(s.state.memory).toBe(5);
+      expect(s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "overflow")).toHaveLength(0);
+      const faceDownSources = [...s.state.players[0]!.battleArea].flatMap((permanent) =>
+        [...permanent.stack].filter((card) => !card.faceUp),
+      );
+      expect(faceDownSources).toHaveLength(control === "decline" ? 1 : 0);
+      expect(s.state.players[0]!.security[0]?.cardId).toBe(control === "dpAbove" ? "BT22-076" : undefined);
+      expect(s.state.players[1]!.battleArea[0]?.permanentId).toBe(targetPermanentId);
+    });
+  }
+
+  for (const owner of [0, 1] as const) {
+    it(`placing seat ${owner}'s face-up ACE charges only that owner while its face-down ACE attachment stays suppressed`, async () => {
+      const preferInstanceIds: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT22-038", as: "base", under: [{ card: "EX9-013", as: "payment", faceUp: false }] }],
+            hand: [{ card: "BT22-076", as: "shin" }],
+          },
+          1: {},
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+      );
+      s.putOnBoard(owner, {
+        card: "BT14-014",
+        as: "target",
+        under: [{ card: "EX9-013", as: "attachment", faceUp: false }],
+      });
+      s.state.memory = 8;
+      await s.ready();
+      const targetId = s.inst("target").instanceId;
+      preferInstanceIds.push(targetId);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("shin").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.state.players[owner]!.security[0]?.instanceId === targetId && s.state.pendingDecision === undefined,
+      );
+      expect(s.state.memory).toBe(owner === 0 ? 2 : 8);
+      expect(s.state.players[owner]!.trash.some((card) => card.instanceId === s.inst("attachment").instanceId)).toBe(
+        true,
+      );
+      expect(s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "overflow")).toHaveLength(1);
+    });
+  }
 });

@@ -1143,6 +1143,22 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e ataque a segurança com Examon EX13-045. Na ordem dos efeitos [Ao Atacar], ＜Raid＞ deve mostrar Sim/Não/Perguntar, não Obrigatório. Marque Não: o ataque continua na segurança, sem pedido de Raid, e o Agumon BT1-013 do bot sobrevive. Reinicie e marque Sim: o alvo muda para o Agumon sem pedido extra, e ele é deletado na batalha.",
     en: "End breeding and attack security with EX13-045 Examon. In the [When Attacking] order, ＜Raid＞ must show Yes/No/Ask, not Mandatory. Set No: the attack stays on security with no Raid prompt, and the bot's BT1-013 Agumon survives. Reset and set Yes: the target switches to the Agumon with no extra prompt, and it is deleted in battle.",
   },
+  "arena-bt22-vademon-return-tamer": {
+    ptBR: "Encerre a criação e ataque a segurança com Vademon BT22-061. Aceite pagar seu BlitzGreymon ACE EX9-013 virado para baixo e escolha o Tai Kamiya BT1-085 do bot (custo 4). Tai volta à mão do bot e a fonte vai para sua lixeira. A memória continua 3: a fonte virada para baixo não tem Overflow.",
+    en: "End breeding and attack security with BT22-061 Vademon. Accept trashing your face-down EX9-013 BlitzGreymon ACE and choose the bot’s cost-4 BT1-085 Tai Kamiya. Tai returns to the bot’s hand and the source goes to your trash. Memory stays at 3: the face-down source has no Overflow.",
+  },
+  "arena-bt22-vademon-return-ace": {
+    ptBR: "Encerre a criação e ataque o MetalGreymon ACE BT14-014 suspenso do bot com Vademon BT22-061. Aceite pagar sua fonte EX9-013 virada para baixo e devolver o alvo. O ataque termina sem checar a segurança, a memória sobe de 3 para 6 pelo Overflow -3 do ACE do bot, e sua fonte não cobra Overflow.",
+    en: "End breeding and attack the bot’s suspended BT14-014 MetalGreymon ACE with BT22-061 Vademon. Accept trashing your face-down EX9-013 source and returning the target. The attack ends without security checks, memory rises from 3 to 6 from the bot’s ACE Overflow -3, and your source charges no Overflow.",
+  },
+  "arena-bt22-shinmonzaemon-own-security": {
+    ptBR: "Encerre a criação e evolua Monzaemon BT22-038 para ShinMonzaemon BT22-076 (custo 3 após a redução Ver.1). Aceite descartar a fonte EX9-013 virada para baixo e escolha seu Muchomon BT1-013. Muchomon fica no topo da sua segurança virado para baixo, sua fonte Monodramon vai para sua lixeira e a segurança do bot não muda. Memória final: 5.",
+    en: "End breeding and digivolve BT22-038 Monzaemon into BT22-076 ShinMonzaemon (cost 3 after the Ver.1 reduction). Accept trashing the face-down EX9-013 source and choose your BT1-013 Muchomon. Muchomon goes face down to the top of your security, its Monodramon source goes to your trash, and the bot’s security stays unchanged. Final memory: 5.",
+  },
+  "arena-bt22-shinmonzaemon-opponent-security": {
+    ptBR: "Encerre a criação e evolua Monzaemon BT22-038 para ShinMonzaemon BT22-076 (custo 3 após a redução Ver.1). Aceite descartar a fonte EX9-013 virada para baixo e escolha o Muchomon BT1-013 do bot. Muchomon fica no topo da segurança do bot virado para baixo, sua fonte Monodramon vai para a lixeira do bot e sua segurança não muda. Memória final: 5.",
+    en: "End breeding and digivolve BT22-038 Monzaemon into BT22-076 ShinMonzaemon (cost 3 after the Ver.1 reduction). Accept trashing the face-down EX9-013 source and choose the bot’s BT1-013 Muchomon. Muchomon goes face down to the top of the bot’s security, its Monodramon source goes to the bot’s trash, and your security stays unchanged. Final memory: 5.",
+  },
   "arena-face-down-ace-no-overflow": {
     ptBR: "Encerre a fase de criação. Seu MetalTyrannomon EX9-043 tem BlitzGreymon EX9-013 (ACE, Overflow -4) virado para baixo embaixo. Ataque o Digimon suspenso de 13000 DP do bot. MetalTyrannomon perde a batalha e as duas cartas vão para a lixeira. A memória não deve mudar: uma carta virada para baixo não tem informação, então não há Overflow.",
     en: "End breeding. Your EX9-043 MetalTyrannomon has EX9-013 BlitzGreymon (ACE, Overflow -4) face down under it. Attack the bot's suspended 13000-DP Digimon. MetalTyrannomon loses the battle and both cards go to the trash. Memory must not change: a face-down card has no card information, so there is no Overflow.",
@@ -2534,6 +2550,10 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt21-metalgreymon-one-target-four-colors", "BT21 MetalGreymon · one target / four colors"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
   ["arena-st15-trident-arm-forced-attack-text", "ST15 Trident Arm · granted forced attack text"],
+  ["arena-bt22-vademon-return-tamer", "BT22 Vademon · cost-4 Tamer return"],
+  ["arena-bt22-vademon-return-ace", "BT22 Vademon · opponent ACE Overflow"],
+  ["arena-bt22-shinmonzaemon-own-security", "BT22 ShinMonzaemon · own security"],
+  ["arena-bt22-shinmonzaemon-opponent-security", "BT22 ShinMonzaemon · opponent security"],
   ["arena-face-down-ace-no-overflow", "Face-down ACE · no Overflow on deletion"],
   ["arena-ex11-vortex-effect-attack-block", "EX11 Vortexdramon · block after declined battle"],
   ["arena-bt17-dexdoru-exact-name", "BT17 DexDoruGreymon · exact [DoruGreymon] from trash"],
