@@ -209,6 +209,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt26-ravemon-recycled-trigger",
   "arena-bt26-yoshino-match-b3759aa7",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
+  "arena-bt22-rie-kishibe-legal-digivolve",
   "arena-bt24-skullbaluchimon-simultaneous-delete",
   "arena-lm-gundramon-simultaneous-delete",
   "arena-bt24-fugamon-self-trash",
@@ -2229,6 +2230,38 @@ function layBt22RieKishibeDeleteWithoutDigivolveScenario(state: GameState, decks
   const bot = state.players[1];
   if (bot !== undefined) {
     placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-rie-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/** GitHub #5290: the legal three-security Rie -> EX13 LordKnightmon route costs 2. */
+function layBt22RieKishibeLegalDigivolveScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    fillZone(player, Zone.Hand, []);
+    fillZone(
+      player,
+      Zone.Deck,
+      Array.from({ length: 20 }, (_, index) => faceDownCard(`dev-rie-legal-deck-${seat}-${index}`, "BT1-009", seat)),
+    );
+    fillZone(
+      player,
+      Zone.Security,
+      Array.from({ length: seat === 0 ? 3 : 5 }, (_, index) =>
+        faceDownCard(`dev-rie-legal-security-${seat}-${index}`, "BT1-009", seat),
+      ),
+    );
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT22-090"], "-rie-legal-base"));
+    placePermanent(human, establishedDigimon(0, ["BT22-083"], "-rie-legal-payment"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-rie-legal-lordknightmon", "EX13-064", 0));
   }
   state.turnSeat = 0;
   state.turnCount = 0;
@@ -7801,6 +7834,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt26-ravemon-recycled-trigger": layBt26RavemonRecycledTriggerScenario,
   "arena-bt26-yoshino-match-b3759aa7": layBt26YoshinoMatchScenario,
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
+  "arena-bt22-rie-kishibe-legal-digivolve": layBt22RieKishibeLegalDigivolveScenario,
   "arena-bt24-skullbaluchimon-simultaneous-delete": layBt24SkullBaluchimonSimultaneousDeleteScenario,
   "arena-lm-gundramon-simultaneous-delete": layLmGundramonSimultaneousDeleteScenario,
   "arena-bt24-fugamon-self-trash": layBt24FugamonSelfTrashScenario,
