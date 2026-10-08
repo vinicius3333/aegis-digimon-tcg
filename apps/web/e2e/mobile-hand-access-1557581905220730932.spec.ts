@@ -47,12 +47,55 @@ async function expectHandAccess(rail: Locator, card: Locator) {
   }).toPass({ timeout: 3000 });
 }
 
+async function cardBodyPoint(card: Locator) {
+  const point = await card.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const id = element.getAttribute("data-hand-instance-id");
+    for (const [fx, fy] of [
+      [0.5, 0.5],
+      [0.5, 0.8],
+      [0.75, 0.8],
+      [0.25, 0.8],
+    ]) {
+      const x = Math.round(rect.left + rect.width * fx!);
+      const y = Math.round(rect.top + rect.height * fy!);
+      const readButtons = [...element.querySelectorAll("button")].map((button) =>
+        button.getBoundingClientRect().toJSON(),
+      );
+      // Chromium touch targeting can favor a nearby rounded Read control even
+      // when the exact pixel is image. Keep the action inside the card body.
+      if (
+        readButtons.some(
+          (button) => x >= button.left - 8 && x <= button.right + 8 && y >= button.top - 8 && y <= button.bottom + 8,
+        )
+      )
+        continue;
+      const hits = [-2, 0, 2].flatMap((dx) => [-2, 0, 2].map((dy) => document.elementFromPoint(x + dx, y + dy)));
+      if (
+        hits.some(
+          (hit) =>
+            !hit ||
+            hit.closest("[data-hand-instance-id]") !== element ||
+            hit.closest("button, a, input, select, textarea") ||
+            (hit.closest('[role="button"]') && hit.closest('[role="button"]') !== element),
+        )
+      )
+        continue;
+      const hit = document.elementFromPoint(x, y)!;
+      return { x, y, id, tag: hit.tagName, className: hit.getAttribute("class"), readButtons };
+    }
+    return null;
+  });
+  expect(point, "Exact exposed card body must be tappable").not.toBeNull();
+  return point!;
+}
+
 test.describe("coarse touch hand access", () => {
   test.use({ hasTouch: true });
 
   test("Discord 1557581905220730932: a real touch selects and deselects the exposed instance after folding", async ({
     page,
-  }) => {
+  }, testInfo) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.addInitScript(() => localStorage.setItem("aegis:locale", "en"));
@@ -66,13 +109,18 @@ test.describe("coarse touch hand access", () => {
     const card = page.locator(`[data-hand-instance-id="${id}"]`);
     expect(await page.evaluate(() => matchMedia("(pointer: coarse)").matches)).toBe(true);
     await expectHandAccess(rail, card);
-    let bounds = (await card.boundingBox())!;
-    await page.touchscreen.tap(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+    let point = await cardBodyPoint(card);
+    await testInfo.attach("portrait-card-body-target", {
+      body: JSON.stringify(point),
+      contentType: "application/json",
+    });
+    await page.touchscreen.tap(point.x, point.y);
     await expect(card).toHaveAttribute("aria-pressed", "true");
     await page.setViewportSize({ width: 844, height: 390 });
     await expectHandAccess(rail, card);
-    bounds = (await card.boundingBox())!;
-    await page.touchscreen.tap(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+    point = await cardBodyPoint(card);
+    await testInfo.attach("folded-card-body-target", { body: JSON.stringify(point), contentType: "application/json" });
+    await page.touchscreen.tap(point.x, point.y);
     await expect(card).toHaveAttribute("aria-pressed", "false");
     await expect(rail).toBeVisible();
   });
