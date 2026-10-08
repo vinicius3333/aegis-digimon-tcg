@@ -29,6 +29,8 @@ export type NewBugReport = {
   cardIds: readonly string[];
   description: string;
   opponentDeck?: string;
+  /** Correlates the report with the server match log; absent outside a match. */
+  matchId?: string;
   clientRevision?: string;
   userAgent?: string;
 };
@@ -143,6 +145,7 @@ export function issueBody(report: NewBugReport, serverRevision?: string, publicV
   }
   sections.push(isBug ? "### Steps to reproduce" : "### Details", neutralizeMarkdownRefs(description));
   if (opponentDeck) sections.push("", "### Opponent's deck", neutralizeMarkdownRefs(opponentDeck));
+  if (report.matchId) sections.push("", "### Match ID", `\`${code(report.matchId)}\``);
   const credit = reporterName ? `**${neutralizeMarkdownRefs(reporterName)}**` : "an anonymous player";
   sections.push("", "---", `Reported in-game by ${credit}.`, reportContext(report, serverRevision, publicVersion));
   return sections.join("\n");

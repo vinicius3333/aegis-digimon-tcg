@@ -75,6 +75,7 @@ export function BugReportDialog({
         // Cards and the opponent's deck are bug fields; switching away hides them, so they are not sent.
         cardIds: isBug ? cardIds : [],
         description,
+        ...(matchLogId ? { matchId: matchLogId } : {}),
         ...(isBug && opponentDeck.trim() ? { opponentDeck } : {}),
       })
       .then(setFiled)

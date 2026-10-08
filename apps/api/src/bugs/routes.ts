@@ -103,6 +103,7 @@ type SubmitBody = {
   cardIds?: unknown;
   description?: unknown;
   opponentDeck?: unknown;
+  matchId?: unknown;
   clientRevision?: unknown;
   userAgent?: unknown;
 };
@@ -147,6 +148,7 @@ export function validate(body: unknown, reporterName?: string): NewBugReport | {
     cardIds,
     description,
     ...(opponentDeck ? { opponentDeck } : {}),
+    ...optional("matchId", matchId(input.matchId)),
     ...optional("clientRevision", clip(input.clientRevision, MAX_CLIENT_REVISION)),
     ...optional("userAgent", clip(input.userAgent, MAX_USER_AGENT)),
   };
@@ -154,6 +156,14 @@ export function validate(body: unknown, reporterName?: string): NewBugReport | {
 
 function text(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
+/** Room matchLogId is a UUID from randomUUID; malformed optional context must not lose a report. */
+function matchId(value: unknown): string | undefined {
+  const id = text(value);
+  return id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
+    ? id.toLowerCase()
+    : undefined;
 }
 
 function clip(value: unknown, limit: number): string | undefined {
