@@ -441,6 +441,7 @@ export interface AegisJoinOptions {
     | "arena-bt26-ravemon-nested-on-deletion"
     | "arena-github5300-yoshino-cost-payload"
     | "arena-github5311-crescemon-cost-scope"
+    | "arena-github5333-tesla-source-replay"
     | "arena-github5307-larva-bt18-breeding"
     | "arena-github5307-larva-ex10-breeding"
     | "arena-github5308-greymon-security-destination"

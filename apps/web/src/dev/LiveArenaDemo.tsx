@@ -17,6 +17,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-github5333-tesla-source-replay": {
+    en: "#5333: End breeding. Activate TeslaJellymon Main, choose Use an Option and EX8-068. Its Main is now spent. Evolve that Tesla into EX8-024, then BT20-026 using its cost-0 alternate route, then EX8-027. Accept Plesiomon's source play and choose the original Tesla. Open the newly played Tesla: Main must be available again. Use the remaining EX8-068; a third Main activation on that new Digimon must be unavailable.",
+    ptBR: "#5333: Encerre a criação. Ative Main de TeslaJellymon, escolha usar uma Opção e EX8-068. O Main fica gasto. Evolua essa Tesla em EX8-024, depois BT20-026 pela rota alternativa de custo 0 e EX8-027. Aceite jogar uma fonte de Plesiomon e escolha a Tesla original. Abra a Tesla recém-jogada: Main deve estar disponível novamente. Use o EX8-068 restante; uma terceira ativação de Main nesse novo Digimon deve ficar indisponível.",
+  },
   "arena-github5307-larva-bt18-breeding": {
     en: "GitHub #5307, current behavior control. End breeding without moving Larva. Attack the suspended opposing Satan Mode with your BT18 Satan Mode. Both have 16000 DP. Accept Larva's prevention: Larva moves from breeding, your Satan Mode stays, and the opposing Satan Mode is deleted. Reset and decline to compare: your Satan Mode is deleted and Larva stays in breeding.",
     ptBR: "GitHub #5307, controle do comportamento atual. Encerre a criação sem mover Larva. Ataque o Satan Mode adversário suspenso com seu Satan Mode BT18. Ambos têm 16000 DP. Aceite a proteção de Larva: ela sai da criação, seu Satan Mode fica e o adversário é deletado. Reinicie e recuse para comparar: seu Satan Mode é deletado e Larva fica na criação.",
@@ -2250,6 +2254,7 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-github5333-tesla-source-replay", "GitHub #5333 · Tesla Main after source replay"],
   ["arena-github5307-larva-bt18-breeding", "GitHub #5307 · Larva breeding / BT18 Satan Mode"],
   ["arena-github5307-larva-ex10-breeding", "GitHub #5307 · Larva breeding / EX10 Satan Mode"],
   ["arena-github5308-greymon-security-destination", "GitHub #5308 · Greymon X / security versus hand"],

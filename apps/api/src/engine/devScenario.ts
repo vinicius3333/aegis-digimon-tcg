@@ -58,6 +58,7 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github5333-tesla-source-replay",
   "arena-github5307-larva-bt18-breeding",
   "arena-github5307-larva-ex10-breeding",
   "arena-github5308-greymon-security-destination",
@@ -489,6 +490,30 @@ function linkEstablishedCard(permanent: Permanent, card: CardInstance): void {
 }
 
 /** Discord 1557702941106901032 candidate choice shape; a control, not a proven freeze reproducer. */
+/** #5333: use Tesla Main, evolve through MegaSeadramon/X/Plesiomon, replay that Tesla. */
+function layTesla5333SourceReplayScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    for (const zone of [Zone.Hand, Zone.Deck, Zone.Security, Zone.EggDeck] as const) clearZone(player, zone);
+    for (let index = 0; index < 12; index++)
+      insertCard(player, Zone.Deck, faceDownCard(`tesla5333-deck-${seat}-${index}`, "BT1-009", seat));
+    for (let index = 0; index < 5; index++)
+      insertCard(player, Zone.Security, faceDownCard(`tesla5333-security-${seat}-${index}`, "BT1-009", seat));
+  }
+  const human = state.players[0]!;
+  insertCard(human, Zone.EggDeck, faceDownCard("tesla5333-egg", "BT1-001", 0));
+  placePermanent(human, establishedDigimon(0, ["EX12-027"], "-tesla5333"));
+  for (const [alias, cardId] of [
+    ["option1", "EX8-068"],
+    ["option2", "EX8-068"],
+    ["mega", "EX8-024"],
+    ["megaX", "BT20-026"],
+    ["plesi", "EX8-027"],
+  ])
+    insertCard(human, Zone.Hand, faceDownCard(`tesla5333-${alias}`, cardId!, 0));
+}
+
 function laySatellamonCostControlScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat]!;
@@ -8628,6 +8653,7 @@ function layGithubEndTurnReportScenario(
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-github5333-tesla-source-replay": layTesla5333SourceReplayScenario,
   "arena-github5307-larva-bt18-breeding": (state) => layGithub5307LarvaScenario(state, "BT18-101"),
   "arena-github5307-larva-ex10-breeding": (state) => layGithub5307LarvaScenario(state, "EX10-060"),
   "arena-github5308-greymon-security-destination": layGithub5308GreymonScenario,

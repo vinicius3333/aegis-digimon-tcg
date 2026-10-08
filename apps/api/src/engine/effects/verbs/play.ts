@@ -295,6 +295,11 @@ export function createPlayVerbs(pc: PrimitivesContext) {
         continue;
       }
       instance.faceUp = true;
+      // A source played onto a new permanent is a new card (CR 7-1-1, 3-4-4),
+      // so its [X Per Turn] uses reset (15-14-1-5-2). The field-departure event
+      // cannot cover this same-area play. Reset only after extraction succeeds,
+      // before entry effects can spend the new card's use; leave its old host alone.
+      if (originHostByInstance.get(instanceId) !== undefined) engine.forgetCardUses?.([instanceId]);
       const permanent = placePermanent(engine, ownerPlayer, instance, definition, opts?.suspended ?? false);
       if (originByInstance.get(instanceId) === "security") securityOriginSeats.add(ownerPlayer.seat);
       // Breeding: relocate permanent from battle area to breeding slot
