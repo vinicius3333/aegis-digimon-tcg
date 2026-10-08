@@ -23,10 +23,9 @@ describe("P-075 Okuwamon", () => {
     s.state.memory = 10;
     await s.ready();
     expect(
-      advance(s.engine).ledgers.subTriggers.subscriptionsFor(
-        "whenOneOfYoursDigivolves",
-        s.perm("okuwamon").permanentId,
-      ),
+      advance(s.engine)
+        .ledgers.subTriggers.replacementsFor("wouldDigivolve")
+        .filter((replacement) => replacement.sourcePermanentId === s.perm("okuwamon").permanentId),
     ).toHaveLength(1);
 
     expect(
