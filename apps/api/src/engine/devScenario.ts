@@ -281,6 +281,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt20-omnimon-each-player-survivor",
   "arena-bt20-ouryuken-reduction-resumes",
   "arena-bt20-ouryuken-blast-dna-counter",
+  "arena-github-5346-blast-dna-decision",
   "arena-github-5323-alphamon-main-dna",
   "arena-github-5323-alphamon-blast-dna",
   "arena-ex13-gotsumon-blocker-search",
@@ -3149,6 +3150,25 @@ function layBt20OuryukenBlastDnaCounterScenario(state: GameState, decks: readonl
     // A red Option cannot be used with only the blue Lanamon, so the bot attacks first.
     insertCard(bot, Zone.Deck, faceDownCard("dev-ouryuken-bot-draw", "ST1-16", 1), "top");
   }
+}
+
+/** GitHub #5346: three Blast DNA routes followed by Omnimon's normal target decision. */
+function layGithub5346BlastDnaDecisionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["AD1-004"], "-github-5346-war"));
+  placePermanent(human, establishedDigimon(0, ["AD1-014"], "-github-5346-metal"));
+  for (const [name, cardId] of [
+    ["ace", "BT17-078"],
+    ["metal-a", "BT5-031"],
+    ["metal-b", "BT5-031"],
+    ["war-hand", "AD1-004"],
+  ] as const)
+    insertCard(human, Zone.Hand, faceDownCard(`github-5346-${name}`, cardId, 0));
+  const opponent = state.players[1]!;
+  // A passive attacker isolates the reported Counter-to-decision handoff from attack effects.
+  placePermanent(opponent, establishedDigimon(1, ["BT10-008"], "-github-5346-attacker"));
+  insertCard(opponent, Zone.Deck, faceDownCard("github-5346-opponent-draw", "ST2-16", 1), "top");
 }
 
 /** GitHub #5323: separate ordinary DNA and named Counter procedures with the reported cards. */
@@ -9385,6 +9405,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt20-omnimon-each-player-survivor": layBt20OmnimonEachPlayerSurvivorScenario,
   "arena-bt20-ouryuken-reduction-resumes": layBt20OuryukenReductionResumesScenario,
   "arena-bt20-ouryuken-blast-dna-counter": layBt20OuryukenBlastDnaCounterScenario,
+  "arena-github-5346-blast-dna-decision": layGithub5346BlastDnaDecisionScenario,
   "arena-github-5323-alphamon-main-dna": (state, decks) => layGithub5323DnaScenario(state, decks, false),
   "arena-github-5323-alphamon-blast-dna": (state, decks) => layGithub5323DnaScenario(state, decks, true),
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
