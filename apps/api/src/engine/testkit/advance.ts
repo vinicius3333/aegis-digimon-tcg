@@ -219,6 +219,11 @@ export function advance(engine: GameEngine) {
      * permanents are armed, exactly as they would be mid-resolution.
      */
     verb: {
+      /** Supplemental grant-loss control; no printed card currently revokes Alliance directly. */
+      async revokeKeyword(permanentId: string, keyword: string): Promise<void> {
+        internals.primitives.revokeKeyword?.(permanentId, keyword);
+        await internals.recomputeContinuousEffects();
+      },
       async deDigivolve(permanentId: string, count: number): Promise<void> {
         await internals.recomputeContinuousEffects();
         await internals.primitives.deDigivolve(permanentId, count);
