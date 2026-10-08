@@ -28,7 +28,13 @@ for (const viewport of [
         expect(bounds.x + bounds.width / 2).toBeCloseTo(viewport.width / 2, 0);
         expect(bounds.y + bounds.height / 2).toBeCloseTo(viewport.height / 2, 0);
       } else expect(bounds.x).toBeCloseTo(viewport.width < 768 ? 0 : 8, 0);
-      if (viewport.width < 768) {
+      const handSelection = (await panel.getAttribute("data-variant")) === "selection";
+      if (handSelection) {
+        const handCards = page.locator(".game-hand-card[data-hand-instance-id]");
+        const cardTops = await handCards.evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().top));
+        const dock = (await page.locator(".game-hand-dock").boundingBox())!;
+        expect(bounds.y + bounds.height).toBeLessThanOrEqual(Math.min(dock.y, ...cardTops));
+      } else if (viewport.width < 768) {
         const hand = page.locator(".game-hand--selecting");
         if (await hand.count()) {
           const dock = (await page.locator(".game-hand-dock").boundingBox())!;

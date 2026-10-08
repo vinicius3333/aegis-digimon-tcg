@@ -512,11 +512,11 @@ export async function runAppFuse(ctx: EffectContext, action: Extract<Action, { k
   for (const sourceId of sourceIds) {
     const permanent = ctx.game.permanentById(sourceId);
     if (permanent === undefined || permanent.topCard === undefined) continue;
-    const topName = requireCardDefinition(permanent.topCard.cardId).nameEn;
+    const topNames = ctx.game.effectiveNames?.(permanent) ?? [requireCardDefinition(permanent.topCard.cardId).nameEn];
     const linkedNames = Array.from(permanent.linked).map((c) => requireCardDefinition(c.cardId).nameEn);
     // Only fusion-target cards whose app-fusion condition this permanent satisfies are eligible.
     const candidates = candidateLooseInstances(ctx, intoTarget, action.from).filter(
-      (c) => appFusionCostFor(c.cardId, { topName, linkedNames }) !== undefined,
+      (c) => appFusionCostFor(c.cardId, { topNames, linkedNames }) !== undefined,
     );
     if (candidates.length === 0) continue;
     const chosen = await pickLoose(ctx, intoTarget, candidates);

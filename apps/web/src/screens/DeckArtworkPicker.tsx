@@ -105,7 +105,7 @@ export function DeckArtworkPicker({
                 aria-pressed={art.artId === selected}
                 onClick={() => onChoose(art.artId, copy)}
               >
-                <CardFull cardId={cardId} artId={art.artId} width={140} />
+                <CardFull cardId={cardId} artId={art.artId} width={140} zoomOnHover={false} />
                 {japanese ? (
                   <Badge tone="primary" className="deck-art-picker__region">
                     JP

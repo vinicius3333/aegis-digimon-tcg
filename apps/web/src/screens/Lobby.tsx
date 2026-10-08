@@ -41,12 +41,14 @@ import { MatchTimerSettings } from "./MatchTimerSettings";
 import { loadMatchFormatPreference, saveMatchFormatPreference } from "./matchFormatPreference";
 import { loadMatchTimerPreference, saveMatchTimerPreference } from "./matchTimerPreference";
 import "./lobby.css";
+import { lookupPrivateRoom } from "../net/client";
 import { SpectatorPanel } from "./SpectatorPanel";
 
 /** The private room a finished match returns to. Its host reopens it under the same code. */
 export interface PrivateRoom {
   code: string;
   host: boolean;
+  unlimited?: boolean;
 }
 
 export type StartMode =
@@ -196,7 +198,14 @@ export function Lobby({
   onCopyDeck: (deck: DeckListing) => void;
   onEditDeck?: (deck: DeckListing) => void;
   onNav: (s: Screen) => void;
-  onStart: (mode: StartMode, roomCode?: string, botDeckId?: string, betaBattleMode?: boolean, deckId?: string) => void;
+  onStart: (
+    mode: StartMode,
+    roomCode?: string,
+    botDeckId?: string,
+    betaBattleMode?: boolean,
+    deckId?: string,
+    unlimited?: boolean,
+  ) => void;
   /** A code carried in by an invite link; opens the private join form with it filled in. */
   invitedRoomCode?: string;
   privateRoom?: PrivateRoom;
@@ -228,6 +237,38 @@ export function Lobby({
   const [roomCodeInput, setRoomCodeInput] = useState(invitedRoomCode ?? "");
   // "" is the random pool; any other value is a famous-deck preset id the bot will play.
   const [botDeckId, setBotDeckId] = useState("");
+  const [localUnlimited, setLocalUnlimited] = useState(false);
+  const [guestRules, setGuestRules] = useState<{ code: string; unlimited: boolean }>();
+  const [guestLookupFailed, setGuestLookupFailed] = useState(false);
+  const guestCode = privateRoom?.code ?? roomCodeInput;
+  const privateGuest = mode === "private" && (privateRoom ? !privateRoom.host : privateSub === "join");
+  useEffect(() => {
+    if (!privateGuest || privateRoom) return;
+    let cancelled = false;
+    setGuestRules(undefined);
+    setGuestLookupFailed(false);
+    if (guestCode.length === 6) {
+      void lookupPrivateRoom(guestCode)
+        .then((rules) => {
+          if (!cancelled) setGuestRules({ code: guestCode, unlimited: rules.unlimited });
+        })
+        .catch(() => {
+          if (!cancelled) setGuestLookupFailed(true);
+        });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [privateGuest, privateRoom, guestCode]);
+  const unlimited =
+    mode === "unlimited" ||
+    (mode === "practice" && localUnlimited) ||
+    (mode === "private" &&
+      (privateRoom
+        ? privateRoom.unlimited === true
+        : privateGuest
+          ? guestRules?.code === guestCode && guestRules.unlimited
+          : localUnlimited));
   const [randomSelected, setRandomSelected] = useState(false);
   const [randomPoolScope, setRandomPoolScope] = useState<RandomDeckPool>("all");
   const [viewedDeck, setViewedDeck] = useState<DeckListing | null>(null);
@@ -241,11 +282,10 @@ export function Lobby({
     return decks
       .map((deck) => ({
         deck,
-        legal:
-          deckLegality(deck, { unlimited: mode === "unlimited" }).legal && (betaAllowed || !deckHasBetaCards(deck)),
+        legal: deckLegality(deck, { unlimited }).legal && (betaAllowed || !deckHasBetaCards(deck)),
       }))
       .sort((a, b) => Number(b.legal) - Number(a.legal));
-  }, [decks, betaAllowed, mode]);
+  }, [decks, betaAllowed, unlimited]);
   const editDeck = useCallback(
     (deck: DeckListing) => {
       if (onEditDeck) {
@@ -275,7 +315,7 @@ export function Lobby({
   const activeIsBorrowed = borrowedDeck !== undefined && active?.id === borrowedDeck.id;
   const vsBot = mode === "practice";
   const banViolations = useMemo(() => {
-    if (!active || mode === "unlimited") return [];
+    if (!active || unlimited) return [];
     const cardIds = [...active.mainDeck, ...active.eggDeck];
     const counts = new Map<string, number>();
     for (const id of cardIds) counts.set(id, (counts.get(id) ?? 0) + 1);
@@ -289,10 +329,10 @@ export function Lobby({
       if (n > cap) violations.push({ id: members.join(" + "), n, cap });
     }
     return violations;
-  }, [active, mode]);
+  }, [active, unlimited]);
   const pairViolations = useMemo(
-    () => (active && mode !== "unlimited" ? bannedPairViolations([...active.mainDeck, ...active.eggDeck]) : []),
-    [active, mode],
+    () => (active && !unlimited ? bannedPairViolations([...active.mainDeck, ...active.eggDeck]) : []),
+    [active, unlimited],
   );
   const customBotDeck =
     vsBot && botDeckId.startsWith("mine:") ? decks.find((deck) => deck.id === botDeckId.slice(5)) : undefined;
@@ -327,18 +367,21 @@ export function Lobby({
     !!active &&
     active.mainDeck.length === 50 &&
     active.eggDeck.length <= 5 &&
-    deckLegality(active, { unlimited: mode === "unlimited" }).legal &&
+    deckLegality(active, { unlimited }).legal &&
     banViolations.length === 0 &&
     pairViolations.length === 0 &&
     (betaCards.length === 0 || betaAllowed);
   const randomPool = useMemo(
-    () => randomDeckPool(decks, randomPoolScope, betaAllowed, mode === "unlimited"),
-    [decks, randomPoolScope, betaAllowed, mode],
+    () => randomDeckPool(decks, randomPoolScope, betaAllowed, unlimited),
+    [decks, randomPoolScope, betaAllowed, unlimited],
   );
   const randomPoolLabel = t(randomPool.length === 1 ? "lobby.randomPoolOne" : "lobby.randomPool", {
     count: randomPool.length,
   });
-  const selectionLegal = randomSelected ? randomPool.length > 0 : deckLegal;
+  const selectionLegal =
+    (randomSelected ? randomPool.length > 0 : deckLegal) &&
+    (!privateGuest || !!privateRoom || guestRules?.code === guestCode) &&
+    (!customBotDeck || deckLegality(customBotDeck, { unlimited }).legal);
   const selectDeck = useCallback(
     (deckId: string) => {
       setRandomSelected(false);
@@ -359,12 +402,21 @@ export function Lobby({
             ? true
             : requestedBetaBattleMode;
         const queueMode = betaBattleMode && startMode === "casual" ? "beta" : startMode;
-        onStart(queueMode, code, requestedBotDeckId, betaBattleMode, drawn.id);
+        onStart(
+          queueMode,
+          code,
+          requestedBotDeckId,
+          betaBattleMode,
+          drawn.id,
+          ...(unlimited && queueMode !== "unlimited" ? ([true] as const) : []),
+        );
         return;
       }
       const selectedDeckId = active?.id;
       if (!selectedDeckId) return;
-      if (requestedBetaBattleMode !== undefined) {
+      if (unlimited && startMode !== "unlimited") {
+        onStart(startMode, code, requestedBotDeckId, requestedBetaBattleMode, undefined, true);
+      } else if (requestedBetaBattleMode !== undefined) {
         onStart(startMode, code, requestedBotDeckId, requestedBetaBattleMode);
       } else if (requestedBotDeckId !== undefined) {
         onStart(startMode, code, requestedBotDeckId);
@@ -374,7 +426,7 @@ export function Lobby({
         onStart(startMode);
       }
     },
-    [active?.id, betaQueueMode, onStart, randomPool, randomSelected, customBotDeck],
+    [active?.id, betaQueueMode, onStart, randomPool, randomSelected, customBotDeck, unlimited],
   );
   const launch: LaunchAction | null =
     mode === "unlimited"
@@ -680,7 +732,7 @@ export function Lobby({
               {mode !== "private" ? (
                 <dl className="lobby-details">
                   {[
-                    [t("lobby.format"), mode === "unlimited" ? t("lobby.unlimitedMeta") : t("lobby.formatValue")],
+                    [t("lobby.format"), unlimited ? t("lobby.unlimitedMeta") : t("lobby.formatValue")],
                     [t("lobby.players"), vsBot ? t("lobby.playersBot") : t("lobby.playersHuman")],
                     [t("lobby.identity"), player.name],
                   ].map(([label, value]) => (
@@ -696,11 +748,19 @@ export function Lobby({
             <div className="lobby-setup__column">
               {mode === "casual" ||
               mode === "unlimited" ||
+              mode === "practice" ||
               (mode === "private" && privateSub === "create" && !privateRoom) ? (
                 <div className="lobby-match-rules">
-                  <MatchFormatSettings bestOf={bestOf} onChange={changeBestOf} />
-                  <MatchTimerSettings options={timer} onChange={changeTimer} privateRoom={mode === "private"} />
-                  {mode === "casual" || mode === "unlimited" ? (
+                  {!vsBot ? (
+                    <>
+                      <MatchFormatSettings bestOf={bestOf} onChange={changeBestOf} />
+                      <MatchTimerSettings options={timer} onChange={changeTimer} privateRoom={mode === "private"} />
+                    </>
+                  ) : null}
+                  {mode === "casual" ||
+                  mode === "unlimited" ||
+                  vsBot ||
+                  (mode === "private" && !privateRoom && !privateGuest) ? (
                     <div className="lobby-format-settings lobby-unlimited-settings">
                       <div className="lobby-timer-settings__header">
                         <span id="lobby-unlimited-label" className="lobby-timer-settings__label">
@@ -711,29 +771,41 @@ export function Lobby({
                         </span>
                         <div className="lobby-timer-settings__control">
                           <span className="lobby-timer-settings__status">
-                            {t(mode === "unlimited" ? "lobby.timer.on" : "lobby.timer.off")}
+                            {t(unlimited ? "lobby.timer.on" : "lobby.timer.off")}
                           </span>
                           <button
                             type="button"
                             role="switch"
                             className="lobby-timer-switch"
-                            aria-checked={mode === "unlimited"}
+                            aria-checked={unlimited}
                             aria-labelledby="lobby-unlimited-label"
                             aria-describedby="lobby-unlimited-hint"
-                            onClick={() => setMode(mode === "unlimited" ? "casual" : "unlimited")}
+                            onClick={() =>
+                              mode === "casual" || mode === "unlimited"
+                                ? setMode(unlimited ? "casual" : "unlimited")
+                                : setLocalUnlimited(!localUnlimited)
+                            }
                           >
                             <span />
                           </button>
                         </div>
                       </div>
                       <p id="lobby-unlimited-hint" className="lobby-timer-settings__hint">
-                        {t("lobby.unlimitedDesc")} {t("lobby.unlimitedMeta")}
+                        {t(vsBot || mode === "private" ? "lobby.unlimitedLocalDesc" : "lobby.unlimitedDesc")}{" "}
+                        {t("lobby.unlimitedMeta")}
                       </p>
                     </div>
                   ) : null}
                 </div>
               ) : mode === "private" ? (
-                <p className="lobby-timer-hint">{t("lobby.timer.guestHint")}</p>
+                <div>
+                  <p className="lobby-timer-hint">{t("lobby.timer.guestHint")}</p>
+                  <p role="status">
+                    {privateRoom || guestRules?.code === guestCode
+                      ? t("lobby.hostBanlist", { mode: t(unlimited ? "lobby.unlimited" : "lobby.standardBanlist") })
+                      : t(guestLookupFailed ? "lobby.roomLookupFailed" : "lobby.roomRulesPending")}
+                  </p>
+                </div>
               ) : null}
               {betaOptional ? (
                 <label className="lobby-beta-option">
@@ -790,7 +862,11 @@ export function Lobby({
                     <option value="">{t("lobby.botDeckRandom")}</option>
                     <optgroup label={t("lobby.filterMine")}>
                       {decks.map((deck) => (
-                        <option key={deck.id} value={`mine:${deck.id}`} disabled={!deckLegality(deck).legal}>
+                        <option
+                          key={deck.id}
+                          value={`mine:${deck.id}`}
+                          disabled={!deckLegality(deck, { unlimited }).legal}
+                        >
                           {deck.name}
                         </option>
                       ))}

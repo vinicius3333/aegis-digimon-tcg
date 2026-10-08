@@ -8,10 +8,12 @@ import { loadDecks, saveDecks } from "../identity";
 import { type DeckListing } from "../game/decks";
 import { CardDetailDrawer } from "./CardDetailDrawer";
 import { DeckBuilder } from "./DeckBuilder";
+import { DeckArtworkPicker } from "./DeckArtworkPicker";
 
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  vi.restoreAllMocks();
 });
 const cardId = "BT1-010";
 const alternate = () => getCardArts(cardId)[1]!.artId;
@@ -26,6 +28,64 @@ const deck = (): DeckListing => ({
 });
 
 describe("card artwork choices", () => {
+  it("1557582869973696582: per-copy artwork choices do not paint a floating preview over the picker", () => {
+    const originalMatchMedia = window.matchMedia;
+    vi.spyOn(window, "matchMedia").mockImplementation((query) => ({
+      ...originalMatchMedia(query),
+      matches: true,
+    }));
+    const onChoose = vi.fn<(artId: string, copy: number | "all") => void>();
+    const onClose = vi.fn<() => void>();
+    render(
+      <I18nProvider>
+        <DeckArtworkPicker
+          cardId="EX4-048"
+          arts={["EX4-048", "EX4-048"]}
+          count={2}
+          onChoose={onChoose}
+          onClose={onClose}
+        />
+      </I18nProvider>,
+    );
+    const picker = screen.getByRole("dialog", { name: "Choose artwork" });
+    for (const image of within(picker).getAllByAltText("Gaiomon")) {
+      fireEvent.mouseMove(image, { clientX: 320, clientY: 280 });
+      expect(screen.getAllByAltText("Gaiomon").every((element) => picker.contains(element))).toBe(true);
+    }
+    fireEvent.click(within(picker).getByRole("button", { name: "Copy 2" }));
+    fireEvent.click(within(picker).getByRole("button", { name: "Alternate 1" }));
+    expect(onChoose).toHaveBeenCalledWith(getCardArts("EX4-048")[1]!.artId, 1);
+    fireEvent.click(within(picker).getByRole("button", { name: "Done" }));
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("1557582869973696582: detail artwork browsing does not float a duplicate preview over the editor", () => {
+    const originalMatchMedia = window.matchMedia;
+    vi.spyOn(window, "matchMedia").mockImplementation((query) => ({
+      ...originalMatchMedia(query),
+      matches: true,
+    }));
+    const onArtChange = vi.fn<(artId: string) => void>();
+    const onClose = vi.fn<() => void>();
+    render(
+      <I18nProvider>
+        <CardDetailDrawer cardId="EX4-048" onClose={onClose} onArtChange={onArtChange} />
+      </I18nProvider>,
+    );
+    const drawer = screen.getByRole("dialog", { name: "Card detail" });
+    // Exercise the full image and every inline art choice under fine/hover media.
+    for (const image of within(drawer).getAllByAltText("Gaiomon")) {
+      fireEvent.mouseMove(image, { clientX: 320, clientY: 280 });
+      expect(screen.getAllByAltText("Gaiomon").every((element) => drawer.contains(element))).toBe(true);
+    }
+    const alternateButton = within(drawer).getByRole("button", { name: "Alternate 1" });
+    fireEvent.click(alternateButton);
+    expect(alternateButton.getAttribute("aria-pressed")).toBe("true");
+    expect(onArtChange).toHaveBeenCalledWith(getCardArts("EX4-048")[1]!.artId);
+    fireEvent.click(within(drawer).getByRole("button", { name: "Close" }));
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
   it("browses alternate art without changing card identity", () => {
     render(
       <I18nProvider>
@@ -75,6 +135,49 @@ describe("card artwork choices", () => {
     expect(loadDecks()[0]?.mainDeckArts).toEqual([alternate(), alternate()]);
     expect(loadDecks()[0]?.mainDeck).toEqual([cardId, cardId]);
   });
+  it("1557582869973696582: browsing Gaiomon art preserves existing copies and unrelated cards when adding and saving", async () => {
+    const gaiomon = "EX4-048";
+    const gaiomonArts = getCardArts(gaiomon);
+    const existing: DeckListing = {
+      ...deck(),
+      mainDeck: [gaiomon, gaiomon, cardId],
+      mainDeckArts: [gaiomon, gaiomonArts[1]!.artId, cardId],
+    };
+    const onSave = vi.fn<(deck: DeckListing, setActive: boolean) => void>();
+    render(
+      <I18nProvider>
+        <DeckBuilder
+          decks={[existing]}
+          activeDeckId={existing.id}
+          initialEditingDeck={existing}
+          onDeleteDeck={() => undefined}
+          onSelectDeck={() => undefined}
+          onSaveDeck={onSave}
+          onNav={() => undefined}
+        />
+      </I18nProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Gaiomon, 2 in deck" }));
+    const drawer = within(screen.getByRole("dialog", { name: "Card detail" }));
+    fireEvent.click(drawer.getByRole("button", { name: "Alternate 1" }));
+    expect(onSave.mock.lastCall?.[0].mainDeckArts).toEqual(existing.mainDeckArts);
+    fireEvent.click(drawer.getByRole("button", { name: "Add Gaiomon" }));
+    await waitFor(() => {
+      expect(onSave.mock.lastCall?.[0].mainDeck).toEqual([gaiomon, gaiomon, gaiomon, cardId]);
+      expect(onSave.mock.lastCall?.[0].mainDeckArts).toEqual([
+        gaiomon,
+        gaiomonArts[1]!.artId,
+        gaiomonArts[1]!.artId,
+        cardId,
+      ]);
+    });
+    fireEvent.click(drawer.getByRole("button", { name: "Remove Gaiomon" }));
+    await waitFor(() => expect(onSave.mock.lastCall?.[0].mainDeck).toEqual(existing.mainDeck));
+    saveDecks([onSave.mock.lastCall![0]]);
+    expect(loadDecks()[0]?.mainDeck).toEqual(existing.mainDeck);
+    expect(loadDecks()[0]?.mainDeckArts).toEqual(existing.mainDeckArts);
+  });
+
   it("marks Japanese printings with a JP badge", () => {
     render(
       <I18nProvider>

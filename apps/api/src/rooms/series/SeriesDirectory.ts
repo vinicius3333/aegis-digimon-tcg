@@ -27,6 +27,7 @@ export interface SeriesRecord {
   bestOf: MatchBestOf;
   matchTimer: boolean;
   timerStartSeconds: number;
+  unlimited?: boolean;
   /** A private series reopens every game under the same code. */
   roomCode?: string;
   results: GameResult[];

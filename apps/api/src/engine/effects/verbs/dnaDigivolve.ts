@@ -18,7 +18,7 @@ import {
   pushOnStack,
   setTopCard,
 } from "../../state/access.js";
-import { effectiveNames } from "../continuous.js";
+import { effectiveColors, effectiveNames } from "../continuous.js";
 import { matchingDnaDigivolveCost, matchingDnaMaterialOrder } from "../verbs/digivolveCost.js";
 import {
   locateLooseInstance,
@@ -83,6 +83,7 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
         const names = effectiveNames(continuous, mat, printed.nameEn ?? printed.cardId);
         return {
           ...printed,
+          colors: effectiveColors(continuous, mat.permanentId, printed.colors) as typeof printed.colors,
           ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }),
           nameEn: names.join(" | "),
         };
@@ -303,9 +304,9 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
       return undefined;
     // Enforce the fusion-target's app-fusion legality + read its cost (server-authoritative).
     const originalTopId = permanent.topCard.instanceId;
-    const topName = requireCardDefinition(permanent.topCard.cardId).nameEn;
+    const topNames = effectiveNames(continuous, permanent, requireCardDefinition(permanent.topCard.cardId).nameEn);
     const linkedNames = Array.from(permanent.linked).map((c) => requireCardDefinition(c.cardId).nameEn);
-    if (appFusionCostFor(peek.cardId, { topName, linkedNames }) === undefined) return undefined;
+    if (appFusionCostFor(peek.cardId, { topNames, linkedNames }) === undefined) return undefined;
     const seat = permanent.controllerSeat;
     // The fusion requirement identifies which linked physical card is consumed. A merely
     // different name is insufficient when several links are present (and would silently
@@ -314,7 +315,7 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
     const eligiblePartners = permanent.linked.filter(
       (card) =>
         appFusionCostFor(peek.cardId, {
-          topName,
+          topNames,
           linkedNames: [requireCardDefinition(card.cardId).nameEn],
         }) !== undefined,
     );
@@ -353,8 +354,12 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
       return undefined;
     // The selected physical card determines the actual printed route and therefore the cost paid.
     const selectedName = requireCardDefinition(permanent.linked[partnerIndex]!.cardId).nameEn;
-    const selectedCost = costOverride ?? appFusionCostFor(peek.cardId, { topName, linkedNames: [selectedName] });
-    if (selectedCost === undefined || peekLooseInstance(state, resultInstanceId) === undefined) return undefined;
+    const selectedRouteCost = appFusionCostFor(peek.cardId, {
+      topNames: effectiveNames(continuous, permanent, requireCardDefinition(permanent.topCard.cardId).nameEn),
+      linkedNames: [selectedName],
+    });
+    if (selectedRouteCost === undefined || peekLooseInstance(state, resultInstanceId) === undefined) return undefined;
+    const selectedCost = costOverride ?? selectedRouteCost;
     if (opts?.publicEntry !== true) await engine.prepareAppFusion?.(seat, permanent, peek, definition);
     // CR 8-4-2-3: digivolution cost effects also modify App Fusion. Resolve them
     // before moving the pair, while "no digivolution cards" still describes the base.
@@ -395,6 +400,16 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
       afterWouldResult.ownerSeat !== originalResultLocation.ownerSeat ||
       afterWouldResult.zone !== originalResultLocation.zone ||
       afterWouldPartnerIndex < 0
+    )
+      return undefined;
+    // Names can change while link selection, cost effects or would-digivolve decisions
+    // are awaited without changing any physical identity. Revalidate the selected live
+    // pair immediately before payment/material movement, even for a cost override.
+    if (
+      appFusionCostFor(peek.cardId, {
+        topNames: effectiveNames(continuous, permanent, requireCardDefinition(permanent.topCard.cardId).nameEn),
+        linkedNames: [requireCardDefinition(permanent.linked[afterWouldPartnerIndex]!.cardId).nameEn],
+      }) === undefined
     )
       return undefined;
     if (engine.memory.maxCostFor(seat) < effectiveCost) return undefined;

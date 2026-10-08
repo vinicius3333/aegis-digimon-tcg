@@ -606,7 +606,7 @@ export function validateDigivolve(
     appFusionLink === undefined
       ? undefined
       : appFusionCostFor(definition.cardId, {
-          topName: baseDef.nameEn,
+          topNames: [baseDef.nameEn, ...(deps.grantedBaseExactNames?.(state, permanent) ?? [])],
           linkedNames: [definitionOf(appFusionLink.cardId).nameEn],
         });
   // An explicit fusion declaration must never fall back to a normal evolution.

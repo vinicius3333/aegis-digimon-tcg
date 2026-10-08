@@ -31,7 +31,11 @@ export function createTrashStackVerbs(pc: PrimitivesContext) {
     }[] = [];
     for (const { hostPermanentId, instanceId } of selections) {
       const host = access.permanentById(hostPermanentId);
-      if (host === undefined || isRestricted(hostPermanentId, "beTrashed")) return [];
+      if (host === undefined || host.inBreeding || isRestricted(hostPermanentId, "beTrashed")) return [];
+      if (
+        !state.players[host.controllerSeat]?.battleArea.some((permanent) => permanent.permanentId === hostPermanentId)
+      )
+        return [];
       if (opts?.byEffectSeat !== undefined && continuous.stackTrashLocked(hostPermanentId)) {
         if (opts.byEffectSeat !== host.controllerSeat) return [];
       }

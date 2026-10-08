@@ -94,7 +94,7 @@ const compiled: CompiledCard = {
             kind: "deleteOwn",
             target: {
               filter: {
-                controller: "mine",
+                controller: "any",
                 kind: ["Digimon"],
                 colors: ["Purple"],
                 levelComparison: {

@@ -104,10 +104,10 @@ export function createCombatVerbs(pc: PrimitivesContext) {
       // until the security check's own resolver did, and the attacker's inherited draw resolved
       // on top of the flipped card (match 89641815: BT26-015 ordering an attack by BT26-009's
       // host).
-      drainTimingWindow: ((): (() => Promise<void>) | undefined => {
+      drainTimingWindow: ((): ForceAttackOptions["drainTimingWindow"] => {
         const drain = opts?.drainTimingWindow ?? engine.drainPendingAttackTriggers;
         if (drain === undefined) return undefined;
-        return () => engine.resolveAttackTimingWindow?.(drain) ?? drain();
+        return (options) => engine.resolveAttackTimingWindow?.(drain, options) ?? drain(options);
       })(),
       // Counter Timing through End of Attack interrupt the ordering effect (§11-1), so the
       // triggers each step produces resolve as their own windows instead of being parked in

@@ -2,6 +2,45 @@ import { createEvaluationPolicy, type BotPolicy } from "../bot/policy.js";
 
 /** Deterministic opponent actions for an arena reproduction, using ordinary intents. */
 export function createIssueReproBotPolicy(scenario: string | undefined): BotPolicy | undefined {
+  if (
+    scenario === "arena-discord-1557565628439724032-duskmon-dna-colors" ||
+    scenario === "arena-discord-1557565628439724032-duskmon-dna-control"
+  ) {
+    const fallback = createEvaluationPolicy();
+    return {
+      ...fallback,
+      name: "duskmon-dna-colors-reproduction",
+      chooseBreedingAction: () => ({ type: "endPhase" }),
+      chooseMainAction(view) {
+        const duskmon = view.hand.find((card) => card.cardId === "BT18-078");
+        return duskmon === undefined ? { type: "endPhase" } : { type: "playCard", instanceId: duskmon.instanceId };
+      },
+      answerDecision(view, request) {
+        if (request.sourceCardId === "BT18-078") {
+          if (request.kind === "chooseTargets") {
+            const targetId = "dev-perm-0-duskmon-changed";
+            if (request.options?.candidateInstanceIds?.includes(targetId)) {
+              return {
+                type: "respondDecision",
+                decisionId: request.decisionId,
+                response: { kind: "chooseTargets", instanceIds: [targetId] },
+              };
+            }
+          }
+          if (request.kind === "chooseOption") {
+            const optionIndex = request.options?.choices?.indexOf("Red") ?? -1;
+            if (optionIndex >= 0)
+              return {
+                type: "respondDecision",
+                decisionId: request.decisionId,
+                response: { kind: "chooseOption", optionIndex },
+              };
+          }
+        }
+        return fallback.answerDecision(view, request);
+      },
+    };
+  }
   if (scenario === "arena-github-5149-proto-form" || scenario === "arena-github-5144-mastemon-infermon") {
     const fallback = createEvaluationPolicy();
     const cardId = scenario === "arena-github-5149-proto-form" ? "BT6-095" : "BT22-059";

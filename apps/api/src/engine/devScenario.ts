@@ -77,6 +77,10 @@ export const DEV_SCENARIO_IDS = [
   "arena-github-5270-hurricane",
   "arena-github-5270-gundramon",
 
+  "arena-discord-1557565628439724032-duskmon-dna-colors",
+  "arena-discord-1557565628439724032-duskmon-dna-control",
+  "arena-discord-1557575147119054889-shakkoumon-sukamon",
+  "arena-discord-1557575147119054889-shakkoumon-yellow-only",
   "arena-oct06-sukamon-bt11-deletion-search",
   "arena-oct06-sukamon-bt3-deletion-search",
   "arena-oct06-sukamon-ex13-deletion-search",
@@ -206,6 +210,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-crimson-blaze-jesmon-token",
   "arena-p245-kakkinmon-full-hand-suspend",
   "arena-p245-kakkinmon-craniamon-no-target",
+  "arena-ex12-nezhamon-kakkinmon-engage",
+  "arena-ex12-nezhamon-kakkinmon-engage-spare-blocker",
   "arena-ex13-craniamon-dual-play-cost",
   "arena-ex13-alphamon-end-turn-attack",
   "arena-bt20-dragon-gene-skip-play",
@@ -276,6 +282,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-p108-training-delay-no-target",
   "arena-p108-training-delay-with-target",
   "arena-bt20-dragon-gene-delay-no-dna",
+  "arena-bt20-dragon-gene-security",
   "arena-bt13-royal-purge-delay-rush",
   "arena-p206-digital-gate-breeding-color",
   "arena-ex13-merciful-mode-attack-order",
@@ -287,6 +294,12 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex10-god-grade-raising-color",
   "arena-ex10-malomyotismon-trash-main",
   "arena-ex10-blastmon-digixros",
+  "arena-deusmon-sukamon-app-fusion",
+  "arena-deusmon-healthy-app-fusion",
+  "arena-deusmon-reverse-app-fusion",
+  "arena-deusmon-wrong-link-app-fusion",
+  "arena-deusmon-sukamon-effect-fusion",
+  "arena-deusmon-healthy-effect-fusion",
   "arena-issue-4888-app-fusion",
   "arena-issue-4889-weregarurumon-dna",
   "arena-paildramon-dna-inheritance",
@@ -302,11 +315,17 @@ export const DEV_SCENARIO_IDS = [
   "arena-kotone-digixros-pending-attack",
   "arena-bt6-beelstarmon-duplicate-cost",
   "arena-bt20-saviorhuckmon-end-turn-sistermon",
+  "arena-rock-proganomon-breeding-sources",
+  "arena-rock-pyramidimon-breeding-sources",
+  "arena-rock-magneticdramon-breeding-sources",
+  "arena-rock-gravel-hearts-tumblemon-memory",
   "arena-bt25-beelstarmon-option-trash-trigger",
   "arena-bt20-last-guardian-omnimon-wipe",
   "arena-ex7-deputymon-option-trash-trigger",
   "arena-bt22-leopardmon-king-drasil",
   "arena-bt13-king-drasil-source-count",
+  "arena-ui-king-drasil-mandatory-order",
+  "arena-ui-ex11-cool-boy-hand-selection",
   "arena-bt13-omnimon-later-token-rush",
   "arena-st12-blanc-rush-second-attack",
   "arena-bt26-zombie-plutomon-removed-trigger",
@@ -327,6 +346,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-jesmon-scramble-dp-allowed",
   "arena-ex11-ryutaro-suspended",
   "arena-junomon-opponent-target",
+  "arena-bt18-velgrmon-opponent-cost",
+  "arena-ex5-targetmon-opponent-cost",
   "arena-jupitermon-siren",
   "arena-security-effect-pacing",
   "arena-magnamon-x",
@@ -1936,11 +1957,37 @@ function layEx11PyramidimonFragmentRecoveryScenario(state: GameState, decks: rea
 function layEx5ReppamonOptionalCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   loadShuffledDecks(state, decks);
   const human = state.players[0];
-  if (human !== undefined) placePermanent(human, establishedDigimon(0, ["EX5-029"], "-reppamon-attacker"));
+  if (human !== undefined) {
+    // Main + inherited When Attacking expose the real Ask/Yes/No resolution plan.
+    placePermanent(human, establishedDigimon(0, ["EX5-029", "EX5-029"], "-reppamon-attacker"));
+    for (const suffix of ["a", "b"]) {
+      placePermanent(human, establishedDigimon(0, ["BT1-050"], `-reppamon-base-${suffix}`));
+      insertCard(human, Zone.Hand, faceDownCard(`dev-reppamon-evolution-${suffix}`, "BT1-051", 0));
+    }
+    insertCard(human, Zone.Hand, faceDownCard("dev-reppamon-hand-witness", "BT1-009", 0));
+    // The turn draw and both evolution draws stay unrelated to this consent proof.
+    for (const suffix of ["evolution-b", "evolution-a", "turn"]) {
+      insertCard(human, Zone.Deck, faceDownCard(`dev-reppamon-${suffix}-draw`, "BT1-009", 0), "top");
+    }
+    fillZone(human, Zone.Security, [
+      faceDownCard("dev-reppamon-top-security", "BT1-009", 0),
+      faceDownCard("dev-reppamon-second-security", "BT1-009", 0),
+    ]);
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    // Four total security cards enable inherited -2000 DP even after declining.
+    // Vanilla 3000 DP security cannot delete the 4000 DP attacker or ask another question.
+    fillZone(bot, Zone.Security, [
+      faceDownCard("dev-reppamon-bot-security-a", "BT1-009", 1),
+      faceDownCard("dev-reppamon-bot-security-b", "BT1-009", 1),
+    ]);
+    placePermanent(bot, establishedDigimon(1, ["BT1-019"], "-reppamon-dp-target"));
+  }
   state.turnSeat = 0;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
-  state.memory = 0;
+  state.memory = 6;
 }
 
 /** Discord 1557220124367396915: EX13-006 Dorimon's "By paying 1 cost" is asked before it is paid. */
@@ -2195,6 +2242,41 @@ function layP245KakkinmonFullHandSuspendScenario(state: GameState, decks: readon
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Discord 1557557257129037844: Engage exhausts Kakkinmon's only suspension target. */
+function layEx12NezhamonKakkinmonEngageScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    clearZone(player, Zone.Security);
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-engage-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-engage-hand", "BT1-009", 0));
+    placePermanent(human, establishedDigimon(0, ["P-245", "EX12-019"], "-engage-nezhamon"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/** Payable control: Engage leaves an established ST5-08 available for Kakkinmon's cost. */
+function layEx12NezhamonKakkinmonEngageSpareBlockerScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+): void {
+  layEx12NezhamonKakkinmonEngageScenario(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["ST5-08"], "-engage-spare-blocker"));
+  }
 }
 
 /**
@@ -3281,6 +3363,68 @@ function layJunomonOpponentTargetScenario(state: GameState, decks: readonly [Dec
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 10;
+}
+
+/** Discord 1557564616920408185: pay Velgrmon's cost from either field, then find the new lowest level. */
+function layBt18VelgrmonOpponentCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+    clearZone(player, Zone.Security);
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-velgrmon-security-${seat}-${index}`, "BT1-010", seat));
+    }
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT2-067", "BT18-079"], "-velgrmon"));
+    placePermanent(human, establishedDigimon(0, ["BT18-077"], "-velgrmon-own-cost"));
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    placePermanent(opponent, establishedDigimon(1, ["BT18-077"], "-velgrmon-opponent-cost"));
+    placePermanent(opponent, establishedDigimon(1, ["BT1-038"], "-velgrmon-lowest-one"));
+    placePermanent(opponent, establishedDigimon(1, ["BT1-039"], "-velgrmon-lowest-two"));
+    placePermanent(opponent, establishedDigimon(1, ["BT1-044"], "-velgrmon-higher"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/** Same mechanism: Targetmon's inherited replacement may delete an opponent's Sukamon. */
+function layEx5TargetmonOpponentCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX5-046", "BT1-058"], "-targetmon-host"));
+    placePermanent(human, establishedDigimon(0, ["BT11-040"], "-targetmon-own-cost"));
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    const wall = establishedDigimon(1, ["BT1-025"], "-targetmon-wall");
+    wall.isSuspended = true;
+    placePermanent(opponent, wall);
+    placePermanent(opponent, establishedDigimon(1, ["BT11-040"], "-targetmon-opponent-cost"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /** SagaSol regression: HiAndromon reveals Megadramon, which may Assembly from trash. */
@@ -5408,6 +5552,22 @@ function prepareIssueScenario(state: GameState, decks: readonly [Decklist, Deckl
   state.memory = memory;
 }
 
+/** EX11-071 Main exposes two exact physical hand choices without extra On Play effects. */
+function layUiEx11CoolBoyHandSelectionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 6);
+  for (const player of state.players) {
+    clearZone(player, Zone.Deck);
+    for (let index = 0; index < 20; index++)
+      insertCard(player, Zone.Deck, faceDownCard(`ui-cool-boy-deck-${player.seat}-${index}`, "BT1-009", player.seat));
+  }
+  const human = state.players[0];
+  if (human === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["EX11-071"], "-ui-ex11-cool-boy"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-ui-ex11-cool-boy-first", "BT20-050", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-ui-ex11-cool-boy-second", "BT20-050", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-ui-ex11-cool-boy-witness", "EX11-071", 0));
+}
+
 /** October 6 reports: ordinary card procedures reproduce the shared timing boundaries. */
 function layOct06Scenario(
   state: GameState,
@@ -5509,6 +5669,56 @@ function layMobileCardInspectionScenario(state: GameState, decks: readonly [Deck
   // A second copy of the lowest-DP target prevents automatic selection.
   placePermanent(opponent, establishedDigimon(1, ["EX13-049"], "-inspection-dorumon-first"));
   placePermanent(opponent, establishedDigimon(1, ["EX13-049"], "-inspection-dorumon-second"));
+}
+
+/** Discord 1557555301014569070: a genuine opponent effect rewrites the human's host. */
+function layDeusmonAppFusionScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  variant: "rewritten" | "healthy" | "reverse" | "wrong-link" | "rewritten-effect" | "healthy-effect",
+): void {
+  const rewritten = variant === "rewritten" || variant === "rewritten-effect";
+  prepareIssueScenario(state, decks, rewritten ? 8 : 3);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  // Fixed draws cannot distract the bot from KingSukamon or remove the human's host.
+  // Neither side has red, so the drawn Gaia Force cannot be used in Main.
+  for (const player of [human, opponent]) {
+    for (const zone of [Zone.Hand, Zone.Deck, Zone.Trash, Zone.Security, Zone.EggDeck] as const)
+      clearZone(player, zone);
+    for (let index = 0; index < 20; index += 1)
+      insertCard(player, Zone.Deck, faceDownCard(`dev-deusmon-deck-${player.seat}-${index}`, "BT1-110", player.seat));
+    for (let index = 0; index < 8; index += 1)
+      insertCard(
+        player,
+        Zone.Security,
+        faceDownCard(`dev-deusmon-security-${player.seat}-${index}`, "BT1-009", player.seat),
+      );
+  }
+  placePermanent(opponent, establishedDigimon(1, ["EX13-035"], "-deusmon-kingetemon"));
+  placePermanent(opponent, establishedDigimon(1, ["BT13-065"], "-deusmon-sukamon"));
+  for (let copy = 0; copy < 3; copy += 1)
+    insertCard(opponent, Zone.Trash, faceUpCard(`dev-deusmon-trash-${copy}`, "BT11-040", 1));
+  if (rewritten) {
+    state.turnSeat = 1;
+    insertCard(opponent, Zone.Hand, faceDownCard("dev-deusmon-king", "BT11-043", 1));
+  } else {
+    placePermanent(opponent, establishedDigimon(1, ["BT11-043"], "-deusmon-king"));
+  }
+  // Keep human Breeding open so the player controls the transition into Main.
+  insertCard(human, Zone.EggDeck, faceDownCard("dev-deusmon-egg", "BT1-001", 0));
+  const reverse = variant === "reverse";
+  const host = establishedDigimon(0, [reverse ? "EX10-030" : "EX10-019"], "-deusmon-host");
+  host.permanentId = "deusmon-sukamon-host";
+  linkEstablishedCard(
+    host,
+    faceUpCard("dev-deusmon-partner", variant === "wrong-link" ? "EX10-017" : reverse ? "EX10-019" : "EX10-030", 0),
+  );
+  placePermanent(human, host);
+  insertCard(human, Zone.Hand, faceDownCard("dev-deusmon-result", "EX10-073", 0));
+  if (variant === "rewritten-effect" || variant === "healthy-effect")
+    placePermanent(human, establishedDigimon(0, ["BT25-089"], "-deusmon-tamer"));
 }
 
 function layIssue4888AppFusionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
@@ -5827,6 +6037,53 @@ function layBt20LastGuardianOmnimonWipeScenario(state: GameState, decks: readonl
   placePermanent(bot, establishedDigimon(1, ["ST2-06"], "-last-guardian-wiped"));
 }
 
+/** Discord 1557413340161253496: legal battle sources and a protected breeding control. */
+function layRockBreedingSourcesScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  attacker: string,
+): void {
+  prepareIssueScenario(state, decks, 6);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  for (const player of [human, opponent]) {
+    for (const zone of [Zone.Hand, Zone.Deck, Zone.Trash, Zone.Security, Zone.EggDeck] as const)
+      clearZone(player, zone);
+    for (let i = 0; i < 20; i++)
+      insertCard(player, Zone.Deck, faceDownCard(`rock-deck-${player.seat}-${i}`, "BT1-085", player.seat));
+    for (let i = 0; i < 5; i++)
+      insertCard(player, Zone.Security, faceDownCard(`rock-security-${player.seat}-${i}`, "BT1-009", player.seat));
+  }
+  placePermanent(human, establishedDigimon(0, [attacker], "-rock-attacker"));
+  placePermanent(human, establishedDigimon(0, ["BT4-065", "BT4-065", "BT4-065", "BT4-065", "BT4-065"], "-rock-fuel"));
+  const breeding = establishedDigimon(0, ["EX8-005", "EX10-025"], "-rock-breeding");
+  breeding.inBreeding = true;
+  setBreeding(human, breeding);
+  const victim = establishedDigimon(1, ["BT1-009"], "-rock-victim");
+  victim.isSuspended = true;
+  placePermanent(opponent, victim);
+}
+
+/** Real Close suspension -> Gravel Hearts evolution -> Pyramidimon source cost. */
+function layRockGravelHeartsMemoryScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  layRockBreedingSourcesScenario(state, decks, "EX10-032");
+  const human = state.players[0];
+  if (human === undefined) return;
+  const base = human.battleArea.find(({ permanentId }) => permanentId === "dev-perm-0-rock-attacker")!;
+  pushOnStack(base, faceUpCard("dev-rock-tumblemon", "EX8-005", 0));
+  pushOnStack(base, faceUpCard("dev-rock-mineral-1", "BT4-065", 0));
+  pushOnStack(base, faceUpCard("dev-rock-mineral-2", "BT4-065", 0));
+  const fuel = human.battleArea.find(({ permanentId }) => permanentId === "dev-perm-0-rock-fuel")!;
+  replaceStack(fuel, Array.from(fuel.stack).slice(0, 1));
+  placePermanent(human, establishedDigimon(0, ["EX10-063"], "-rock-close"));
+  const emblem = establishedDigimon(0, ["EX10-069"], "-rock-emblem");
+  emblem.placedByEffect = true;
+  placePermanent(human, emblem);
+  insertCard(human, Zone.Hand, faceDownCard("dev-rock-landramon", "EX10-028", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-rock-pyramidimon", "EX11-044", 0));
+}
+
 /**
  * Reproduce Discord bug 1555578375677018193: BT25-085 BeelStarmon's [When Attacking] unsuspend
  * cost trashes EX7-071 Hurricane Screw Shot from digivolution cards, which must fire its
@@ -5915,6 +6172,14 @@ function layBt13KingDrasilSourceCountScenario(state: GameState, decks: readonly 
   insertCard(human, Zone.Hand, faceDownCard("dev-king-drasil-kentaurosmon", "EX13-036", 0));
   insertCard(human, Zone.Hand, faceDownCard("dev-king-drasil-jesmon", "EX13-014", 0));
   insertCard(human, Zone.Deck, faceDownCard("dev-king-drasil-neutral-draw", "BT1-085", 0), "top");
+}
+
+/** Three physical inherited King Drasil clauses after a genuine Royal Knights Option placement. */
+function layUiKingDrasilMandatoryOrderScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  layBt13KingDrasilSourceCountScenario(state, decks);
+  const human = state.players[0];
+  if (human === undefined) return;
+  insertCard(human, Zone.Hand, faceDownCard("dev-ui-king-drasil-royal-purge", "BT13-110", 0));
 }
 
 /**
@@ -6221,6 +6486,75 @@ function layBt26ChronomonDmSuccessionScenario(state: GameState, decks: readonly 
   state.memory = 6;
 }
 
+/** Duskmon changes Wingdramon to red before the human's DNA/normal digivolution choices. */
+function layDuskmonDnaColorsScenario(state: GameState, decks: readonly [Decklist, Decklist], control = false): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Deck);
+    clearZone(player, Zone.EggDeck);
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-duskmon-egg-${seat}`, "ST1-01", seat));
+    fillZone(
+      player,
+      Zone.Deck,
+      Array.from({ length: 12 }, (_, index) => faceDownCard(`dev-duskmon-filler-${seat}-${index}`, "BT1-010", seat)),
+    );
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-008", "EX13-021"], "-duskmon-changed"));
+    placePermanent(human, establishedDigimon(0, ["BT1-081"], "-duskmon-green"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-duskmon-examon", "BT13-059", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-duskmon-slayerdramon", "EX3-024", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined && !control) {
+    insertCard(bot, Zone.Hand, faceDownCard("dev-duskmon-color-source", "BT18-078", 1));
+  }
+  state.turnSeat = 1;
+  state.turnCount = 1;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 9;
+}
+
+/** The three printed materials attached to the report, with a yellow-only negative control. */
+function layShakkoumonSukamonDnaScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  yellowOnly = false,
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Deck);
+    clearZone(player, Zone.EggDeck);
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-shakkoumon-egg-${seat}`, "ST1-01", seat));
+    fillZone(
+      player,
+      Zone.Deck,
+      Array.from({ length: 12 }, (_, index) => faceDownCard(`dev-shakkoumon-filler-${seat}-${index}`, "BT1-010", seat)),
+    );
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-028"], "-shakkoumon-ex13"));
+    if (yellowOnly) {
+      placePermanent(human, establishedDigimon(0, ["EX13-028"], "-shakkoumon-second-yellow"));
+    } else {
+      placePermanent(human, establishedDigimon(0, ["BT11-040"], "-shakkoumon-bt11"));
+      placePermanent(human, establishedDigimon(0, ["EX5-046"], "-shakkoumon-targetmon"));
+    }
+    insertCard(human, Zone.Hand, faceDownCard("dev-shakkoumon-result", "BT23-032", 0));
+  }
+  startEffectsLabTurn(state, 0);
+}
+
 /**
  * Reproduces the EX13 Examon report from a board where its printed DNA action should already
  * be legal. Wingdramon and Groundramon are printed Lv.5s, but each treats itself as the named
@@ -6440,6 +6774,42 @@ function layBt20DragonGeneDelayNoDnaScenario(state: GameState, decks: readonly [
     insertCard(human, Zone.Hand, faceDownCard("dev-bt20-aqua-viper", "BT4-102", 0));
   }
 
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/** Discord 1557553612228665396: choose a Dracomon from hand/trash after a real security check. */
+function layBt20DragonGeneSecurityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    // Keep both turns and EX3-037's search independent of the selected arena decks.
+    const cardIds =
+      seat === 0
+        ? ["BT1-010", "BT20-023", "EX3-074", ...Array<string>(10).fill("BT1-010")]
+        : Array<string>(13).fill("BT1-010");
+    fillZone(
+      player,
+      Zone.Deck,
+      cardIds.map((cardId, index) => faceDownCard(`dev-dragon-gene-security-deck-${seat}-${index}`, cardId, seat)),
+    );
+    fillZone(player, Zone.EggDeck, [faceDownCard(`dev-dragon-gene-security-egg-${seat}`, "BT1-001", seat)]);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Security, faceDownCard("dev-dragon-gene-security-option", "BT20-093", 0));
+    placePermanent(human, establishedDigimon(0, ["BT1-010"], "-dragon-gene-security-human"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-dragon-gene-security-hand", "BT20-007", 0));
+    insertCard(human, Zone.Trash, faceDownCard("dev-dragon-gene-security-trash", "EX3-037", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-010"], "-dragon-gene-security-attacker"));
+    insertCard(bot, Zone.Security, faceDownCard("dev-dragon-gene-security-bot", "BT1-010", 1));
+  }
   state.turnSeat = 0;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
@@ -7828,6 +8198,12 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github-5270-hurricane": (state, decks) => layGithubRemovalScenario(state, decks, "hurricane"),
   "arena-github-5270-gundramon": (state, decks) => layGithubRemovalScenario(state, decks, "gundramon"),
 
+  "arena-discord-1557565628439724032-duskmon-dna-colors": layDuskmonDnaColorsScenario,
+  "arena-discord-1557565628439724032-duskmon-dna-control": (state, decks) =>
+    layDuskmonDnaColorsScenario(state, decks, true),
+  "arena-discord-1557575147119054889-shakkoumon-sukamon": layShakkoumonSukamonDnaScenario,
+  "arena-discord-1557575147119054889-shakkoumon-yellow-only": (state, decks) =>
+    layShakkoumonSukamonDnaScenario(state, decks, true),
   "arena-raid-optional-preset": layRaidOptionalPresetScenario,
   "arena-preset-order-no-clicks": layPresetOrderNoClicksScenario,
   "arena-oct06-king-sukamon-assembly": (state, decks) => layOct06LatestScenario(state, decks, "king-sukamon-assembly"),
@@ -8000,6 +8376,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-crimson-blaze-jesmon-token": layCrimsonBlazeJesmonTokenScenario,
   "arena-p245-kakkinmon-full-hand-suspend": layP245KakkinmonFullHandSuspendScenario,
   "arena-p245-kakkinmon-craniamon-no-target": layP245KakkinmonCraniamonNoTargetScenario,
+  "arena-ex12-nezhamon-kakkinmon-engage": layEx12NezhamonKakkinmonEngageScenario,
+  "arena-ex12-nezhamon-kakkinmon-engage-spare-blocker": layEx12NezhamonKakkinmonEngageSpareBlockerScenario,
   "arena-ex13-craniamon-dual-play-cost": layEx13CraniamonDualPlayCostScenario,
   "arena-ex13-alphamon-end-turn-attack": layEx13AlphamonEndTurnAttackScenario,
   "arena-bt20-dragon-gene-skip-play": layBt20DragonGeneSkipPlayScenario,
@@ -8074,6 +8452,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-p108-training-delay-no-target": (state, decks) => layP108TrainingDelayScenario(state, decks, false),
   "arena-p108-training-delay-with-target": (state, decks) => layP108TrainingDelayScenario(state, decks, true),
   "arena-bt20-dragon-gene-delay-no-dna": layBt20DragonGeneDelayNoDnaScenario,
+  "arena-bt20-dragon-gene-security": layBt20DragonGeneSecurityScenario,
   "arena-bt13-royal-purge-delay-rush": layBt13RoyalPurgeDelayRushScenario,
   "arena-p206-digital-gate-breeding-color": layP206DigitalGateBreedingColorScenario,
   "arena-ex13-merciful-mode-attack-order": layEx13MercifulModeAttackOrderScenario,
@@ -8085,6 +8464,13 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
   "arena-ex10-malomyotismon-trash-main": layEx10MaloMyotismonTrashMainScenario,
   "arena-ex10-blastmon-digixros": layEx10BlastmonDigiXrosScenario,
+  "arena-deusmon-sukamon-app-fusion": (state, decks) => layDeusmonAppFusionScenario(state, decks, "rewritten"),
+  "arena-deusmon-healthy-app-fusion": (state, decks) => layDeusmonAppFusionScenario(state, decks, "healthy"),
+  "arena-deusmon-reverse-app-fusion": (state, decks) => layDeusmonAppFusionScenario(state, decks, "reverse"),
+  "arena-deusmon-wrong-link-app-fusion": (state, decks) => layDeusmonAppFusionScenario(state, decks, "wrong-link"),
+  "arena-deusmon-sukamon-effect-fusion": (state, decks) =>
+    layDeusmonAppFusionScenario(state, decks, "rewritten-effect"),
+  "arena-deusmon-healthy-effect-fusion": (state, decks) => layDeusmonAppFusionScenario(state, decks, "healthy-effect"),
   "arena-issue-4888-app-fusion": layIssue4888AppFusionScenario,
   "arena-issue-4889-weregarurumon-dna": layIssue4889WereGarurumonDnaScenario,
   "arena-paildramon-dna-inheritance": layPaildramonDnaInheritanceScenario,
@@ -8100,11 +8486,18 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-bt6-beelstarmon-duplicate-cost": layBt6BeelStarmonDuplicateCostScenario,
   "arena-bt20-saviorhuckmon-end-turn-sistermon": layBt20SaviorHuckmonEndTurnSistermonScenario,
+  "arena-rock-proganomon-breeding-sources": (state, decks) => layRockBreedingSourcesScenario(state, decks, "EX10-032"),
+  "arena-rock-pyramidimon-breeding-sources": (state, decks) => layRockBreedingSourcesScenario(state, decks, "EX11-044"),
+  "arena-rock-magneticdramon-breeding-sources": (state, decks) =>
+    layRockBreedingSourcesScenario(state, decks, "EX10-036"),
+  "arena-rock-gravel-hearts-tumblemon-memory": layRockGravelHeartsMemoryScenario,
   "arena-bt25-beelstarmon-option-trash-trigger": layBt25BeelStarmonOptionTrashTriggerScenario,
   "arena-bt20-last-guardian-omnimon-wipe": layBt20LastGuardianOmnimonWipeScenario,
   "arena-ex7-deputymon-option-trash-trigger": layEx7DeputymonOptionTrashTriggerScenario,
   "arena-bt22-leopardmon-king-drasil": layLeopardmonKingDrasilScenario,
   "arena-bt13-king-drasil-source-count": layBt13KingDrasilSourceCountScenario,
+  "arena-ui-king-drasil-mandatory-order": layUiKingDrasilMandatoryOrderScenario,
+  "arena-ui-ex11-cool-boy-hand-selection": layUiEx11CoolBoyHandSelectionScenario,
   "arena-bt13-omnimon-later-token-rush": layBt13OmnimonLaterTokenRushScenario,
   "arena-st12-blanc-rush-second-attack": laySt12BlancRushSecondAttackScenario,
   "arena-bt26-zombie-plutomon-removed-trigger": layZombiePlutomonRemovedTriggerScenario,
@@ -8125,6 +8518,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-jesmon-scramble-dp-allowed": (state, decks) => layJesmonScrambleDpScenario(state, decks, true),
   "arena-ex11-ryutaro-suspended": layEx11RyutaroSuspendedScenario,
   "arena-junomon-opponent-target": layJunomonOpponentTargetScenario,
+  "arena-bt18-velgrmon-opponent-cost": layBt18VelgrmonOpponentCostScenario,
+  "arena-ex5-targetmon-opponent-cost": layEx5TargetmonOpponentCostScenario,
   "arena-jupitermon-siren": layJupitermonSirenScenario,
   "arena-security-effect-pacing": laySecurityEffectPacingScenario,
   "arena-magnamon-x": layMagnamonXScenario,

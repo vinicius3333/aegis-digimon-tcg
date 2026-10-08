@@ -13,7 +13,10 @@ import {
 import { CardOpenerProvider } from "./cardLinks";
 import { Hand } from "./piece";
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 const noop = () => {};
 
@@ -22,6 +25,39 @@ function renderIn(node: React.ReactNode) {
 }
 
 describe("BoardSelectionRail", () => {
+  it("reserves a lifted physical card above its dock and remeasures after selection and resize", () => {
+    let cardTop = 580;
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+      if (this.classList.contains("game-hand-card")) return new DOMRect(20, cardTop, 100, 140);
+      if (this.classList.contains("game-hand-dock")) return new DOMRect(0, 600, 400, 168);
+      return new DOMRect();
+    });
+    renderIn(
+      <>
+        <div className="game-hand-dock">
+          <button className="game-hand-card game-hand-card--pickable">Physical hand card</button>
+        </div>
+        <BoardSelectionRail
+          prompt="Select 1 card."
+          min={1}
+          max={1}
+          pickCount={0}
+          canConfirm={false}
+          onConfirm={noop}
+          onNoSelection={noop}
+        />
+      </>,
+    );
+    const rail = screen.getByTestId("board-prompt");
+    expect(rail.style.getPropertyValue("--decision-hand-clearance")).toBe(`${window.innerHeight - 580}px`);
+    cardTop = 560;
+    fireEvent.transitionEnd(screen.getByRole("button", { name: "Physical hand card" }));
+    expect(rail.style.getPropertyValue("--decision-hand-clearance")).toBe(`${window.innerHeight - 560}px`);
+    cardTop = 570;
+    fireEvent(window, new Event("resize"));
+    expect(rail.style.getPropertyValue("--decision-hand-clearance")).toBe(`${window.innerHeight - 570}px`);
+  });
+
   it("shows the server's own prompt and the running count", () => {
     renderIn(
       <BoardSelectionRail

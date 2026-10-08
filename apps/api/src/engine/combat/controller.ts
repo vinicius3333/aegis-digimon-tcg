@@ -433,7 +433,7 @@ export class CombatController {
       /** Resolve an attack-cost payload after attack declaration and before declaration-triggered effects. */
       afterAttackDeclaration?: () => Promise<void>;
       afterAttackTriggers?: () => Promise<void>;
-      drainTimingWindow?: () => Promise<void>;
+      drainTimingWindow?: (options?: { retireUnactivatable?: boolean }) => Promise<void>;
       /**
        * Wrap the Counter Timing -> End of Attack steps. An effect-directed attack supplies this
        * to pause the effect body that ordered the attack, so triggers arising in those steps
@@ -653,7 +653,7 @@ export class CombatController {
       // A flagged forced attack can drain the remainder of its already-open timing
       // window here. Combat stays marked as resolving, so another forced attack from
       // that same simultaneous group is correctly a no-op instead of nesting.
-      if (opts.drainTimingWindow !== undefined) await opts.drainTimingWindow();
+      if (opts.drainTimingWindow !== undefined) await opts.drainTimingWindow({ retireUnactivatable: true });
       // The turn player's pooled attack-declaration effects are done; the non-turn player's
       // attack watchers resolve now, still before Counter Timing so a redirect lands in time.
       // Their eligibility was captured at the declaration (`prepareSubTrigger`), so a target

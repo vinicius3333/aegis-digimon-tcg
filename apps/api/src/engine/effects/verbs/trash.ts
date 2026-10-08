@@ -310,6 +310,16 @@ export function createTrashVerbs(pc: PrimitivesContext) {
     // controller's). Keep other requested cards eligible so "trash the bottom 2" can trash the
     // unprotected one (KB Q1922). Rule-driven identity cleanup uses other seams and is unaffected.
     const hostBeforeTrash = access.permanentById(hostPermanentId);
+    if (
+      hostBeforeTrash === undefined ||
+      hostBeforeTrash.inBreeding ||
+      !state.players[hostBeforeTrash.controllerSeat]?.battleArea.some(
+        (permanent) => permanent.permanentId === hostPermanentId,
+      ) ||
+      new Set(instanceIds).size !== instanceIds.length ||
+      instanceIds.some((instanceId) => !hostBeforeTrash.stack.some((card) => card.instanceId === instanceId))
+    )
+      return [];
     const digiBurstDpBefore = opts?.isDigiBurst
       ? [...state.players].flatMap((seat) =>
           [...seat.battleArea].map(({ permanentId, currentDP }) => ({ permanentId, currentDP })),
@@ -391,7 +401,9 @@ export function createTrashVerbs(pc: PrimitivesContext) {
     return moved;
   };
 
-  const canTrashDigivolutionCard = (instanceId: string): boolean => !continuous.stackCardTrashLocked(instanceId);
+  const canTrashDigivolutionCard = (instanceId: string): boolean =>
+    ![...state.players].some((owner) => owner.breeding?.stack.some((card) => card.instanceId === instanceId)) &&
+    !continuous.stackCardTrashLocked(instanceId);
 
   /**
    * Exact-count multi-host digivolution trash cost. Validation is deliberately a separate

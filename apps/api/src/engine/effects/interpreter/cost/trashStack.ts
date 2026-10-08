@@ -1,7 +1,8 @@
 import type { EffectContext } from "../../EffectContext.js";
 import { redirectDigivolutionTrash } from "../digivolutionTrashRedirect.js";
 import { definitionMatches } from "../matching/definition.js";
-import { LooseCandidate, candidateLooseInstances, pickLoose, zoneList } from "../targeting/loose.js";
+import { LooseCandidate, pickLoose, zoneList } from "../targeting/loose.js";
+import { candidateTrashCostInstances } from "./candidates.js";
 import { getCardDefinition } from "@aegis/shared";
 import type { Cost, Filter } from "@aegis/shared";
 
@@ -39,7 +40,7 @@ export async function payTrashStackCost(
     if (boundHostRef !== undefined) {
       const hostId = ctx.selections?.get(boundHostRef);
       const host = hostId === undefined ? undefined : ctx.game.permanentById(hostId);
-      if (host === undefined) return false;
+      if (host === undefined || host.inBreeding) return false;
       const { zone: _zone, boundTo: _boundTo, ...cardFilter } = cost.target.filter as Filter & { boundTo?: string };
       const candidates = host.stack
         .filter((card) => definitionMatches(cardFilter, ctx.game.definitionOf(card)))
@@ -65,7 +66,7 @@ export async function payTrashStackCost(
     }
     if (cost.target.filter.isSelfRef === true) {
       const self = ctx.source.permanent();
-      if (self === undefined) return false;
+      if (self === undefined || self.inBreeding) return false;
       const isDigiBurst = /Digi-?Burst/i.test(cost.raw ?? "");
       // "<Digi-Burst up to N>" (BT7-040): the controller chooses how many (1..N, capped at
       // the stack size) to trash; at least 1 is required to activate (KB Q1569). The paid
@@ -103,7 +104,7 @@ export async function payTrashStackCost(
       const redirect = await redirectDigivolutionTrash(ctx, [self.permanentId]);
       const hostId = redirect.hostPermanentIds[0] ?? self.permanentId;
       const host = hostId === self.permanentId ? self : ctx.game.permanentById(hostId);
-      if (host === undefined) return false;
+      if (host === undefined || host.inBreeding) return false;
       const n = cost.target.count === "all" ? host.stack.length : cost.target.count;
       if (n <= 0) return false;
       const { zone: _zone, isSelfRef: _isSelfRef, controller: _controller, ...stackCardFilter } = cost.target.filter;
@@ -170,7 +171,7 @@ export async function payTrashStackCost(
     // `count` as a hard requirement made it an all-or-nothing 3 — the `isSelfRef` branch
     // above already reads `upTo` this way.
     const zones = trashStackZone === undefined ? ["digivolutionCards" as const] : zoneList(trashStackZone);
-    let candidates = candidateLooseInstances(ctx, cost.target, zones);
+    let candidates = candidateTrashCostInstances(ctx, cost.target, zones);
     const requested = cost.target.count === "all" ? candidates.length : cost.target.count;
     if (requested <= 0) return false;
     const isUpTo = cost.target.upTo === true;
