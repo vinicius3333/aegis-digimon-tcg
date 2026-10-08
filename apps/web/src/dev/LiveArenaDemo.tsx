@@ -29,6 +29,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "GitHub #5340: end breeding, then evolve the three hand Lanamon onto Rina, the blue level 3, and Calmaramon in that order. Costs are 2, 2, and 0; memory goes 10 → 8 → 6 → 6. The red Takuya is not a legal target. This reduced reproduction does not reconstruct the unavailable reported game.",
     ptBR: "GitHub #5340: encerre a criação e evolua os três Lanamon da mão sobre Rina, o nível 3 azul e Calmaramon, nessa ordem. Os custos são 2, 2 e 0; a memória vai de 10 → 8 → 6 → 6. O Takuya vermelho não é um alvo válido. Esta reprodução reduzida não reconstrói a partida relatada, que está indisponível.",
   },
+  "arena-github5362-shellmon-ts": {
+    ptBR: "#5362: Encerre a criação sem mover Salamon. Evolua Shellmon sobre Salamon na criação por 2 (memória 10 → 8). No campo, evolua outro Shellmon sobre Salamon por 1 graças à redução de Salamon (8 → 7). Evolua sobre Shamanmon vermelho/roxo por 2 (7 → 5) e Elecmon azul sem TS por 2 (5 → 3). Tsukaimon amarelo sem TS e Cyclonemon TS de nível 4 não são bases legais. Cada evolução compra 1 carta.",
+    en: "#5362: End breeding without moving Salamon. Evolve Shellmon over breeding Salamon for 2 (memory 10 → 8). On the battlefield, evolve another Shellmon over Salamon for 1 thanks to Salamon's reduction (8 → 7). Evolve over red/purple Shamanmon for 2 (7 → 5) and blue non-TS Elecmon for 2 (5 → 3). Yellow non-TS Tsukaimon and level-4 TS Cyclonemon are illegal bases. Each evolution draws 1 card.",
+  },
   "arena-github5331-offense-hand": {
     en: "End breeding. Activate the established Offense Training Delay, accept, and choose either of your two Tyrannomon copies. Opposing BetelGammamon must never be offered or consumed. Reset to first use Offense Training from hand, finish its search, then activate the established Delay: choose an own legal red card afresh. Blue Gorillamon and level-5 MetalGreymon are ineligible; the newly placed Training cannot Delay this turn.",
     ptBR: "Encerre a criação. Ative o Delay do Offense Training já em campo, aceite e escolha uma das suas duas cópias de Tyrannomon. BetelGammamon do oponente nunca deve aparecer como opção nem ser usado. Reinicie para primeiro usar Offense Training da mão, concluir a busca e então ativar o Delay já estabelecido: escolha novamente uma carta vermelha válida sua. Gorillamon azul e MetalGreymon nível 5 são inválidos; o Training recém-colocado não pode usar Delay neste turno.",
@@ -2417,6 +2421,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ravemon-burst-hand", "Ravemon: Burst Mode · inspect opponent hand"],
   ["arena-github5326-sistermon-zero-security", "GitHub #5326 · Sistermon Blanc / zero security control"],
   ["arena-lanamon-tamer-cost", "GitHub #5340 · Lanamon Tamer cost"],
+  ["arena-github5362-shellmon-ts", "#5362 Shellmon · TS evolution in breeding and battle"],
   ["arena-github5331-offense-hand", "GitHub #5331 · Offense Training hand ownership"],
   ["arena-github5332-kekkomon-cost", "GitHub #5332 · Kekkomon Tamer cost selection"],
   ["arena-github5333-tesla-source-replay", "GitHub #5333 · Tesla Main after source replay"],

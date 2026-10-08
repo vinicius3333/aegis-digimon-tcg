@@ -63,6 +63,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ravemon-burst-hand",
   "arena-raid-after-dedigivolve",
   "arena-github5331-offense-hand",
+  "arena-github5362-shellmon-ts",
   "arena-lanamon-tamer-cost",
   "arena-discord-1557790296379625482-trash-hybrids",
   "arena-discord-1557790296379625482-loweemon-hosts",
@@ -581,6 +582,33 @@ function layGithub5331OffenseHandScenario(state: GameState, _decks: readonly [De
   }
   insertCard(state.players[1]!, Zone.Hand, faceUpCard("s1-22", "BT21-019", 1));
   placePermanent(state.players[1]!, establishedDigimon(1, ["BT21-019"], "-5331-opponent"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
+/** #5362: Salamon's reduction applies on the battlefield, never in breeding. */
+function layGithub5362ShellmonTsScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-5362-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 3; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-5362-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0]!;
+  const breeding = establishedDigimon(0, ["BT24-033"], "-5362-breeding");
+  breeding.inBreeding = true;
+  setBreeding(human, breeding);
+  for (const card of ["BT24-033", "BT24-009", "BT1-028", "BT1-045", "BT24-011"]) {
+    placePermanent(human, establishedDigimon(0, [card], `-5362-${card}`));
+  }
+  for (let index = 0; index < 4; index += 1) {
+    insertCard(human, Zone.Hand, faceUpCard(`dev-5362-shellmon-${index}`, "BT24-025", 0));
+  }
   state.turnSeat = 0;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
@@ -9388,6 +9416,7 @@ function layGithubEndTurnReportScenario(
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-github5362-shellmon-ts": layGithub5362ShellmonTsScenario,
   "arena-ravemon-burst-hand": layRavemonBurstHandScenario,
   "arena-github5331-offense-hand": layGithub5331OffenseHandScenario,
   "arena-lanamon-tamer-cost": layLanamonTamerCostScenario,
