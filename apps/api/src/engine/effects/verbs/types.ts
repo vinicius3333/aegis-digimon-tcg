@@ -35,7 +35,10 @@ export interface PrimitivesEngine {
   /** Notify the engine that one triggered effect body has completely resolved. */
   finishEffectBody?(): void;
   /** Pause enclosing card bodies while an effect-directed attack drains pending effects. */
-  resolveAttackTimingWindow?(drain: () => Promise<void>): Promise<void>;
+  resolveAttackTimingWindow?(
+    drain: (options?: { retireUnactivatable?: boolean }) => Promise<void>,
+    options?: { retireUnactivatable?: boolean },
+  ): Promise<void>;
   /**
    * Pause enclosing card bodies for the whole Counter -> End of Attack stretch of an
    * effect-directed attack, so each attack step's triggers resolve as their own windows
@@ -356,7 +359,7 @@ export interface CombatPort {
       afterAttackDeclaration?: () => Promise<void>;
       afterAttackTriggers?: () => Promise<void>;
       artsDigivolveOptionInstanceId?: string;
-      drainTimingWindow?: () => Promise<void>;
+      drainTimingWindow?: (options?: { retireUnactivatable?: boolean }) => Promise<void>;
     },
   ): Promise<void>;
   redirectTarget(target: AttackTarget): boolean;

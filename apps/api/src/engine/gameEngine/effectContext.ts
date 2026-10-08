@@ -530,7 +530,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
     drainPendingAttackTriggers: () => drainPendingAttackTriggers(engine),
     awaitBlitzAttackDeclaration: (seat, attackerPermanentId, candidates, provenance) =>
       awaitBlitzAttackDeclaration(engine, seat, attackerPermanentId, candidates, provenance),
-    resolveAttackTimingWindow: async (drain) => {
+    resolveAttackTimingWindow: async (drain, options) => {
       // An effect-directed attack pauses its enclosing effect bodies while the
       // attack's pending effects resolve. State-based rules run between those
       // effects, even though the enclosing card will resume after combat.
@@ -556,6 +556,9 @@ export function buildPrimitives(engine: GameEngine): Primitives {
         await drainPendingAttackTriggers(engine);
         // No declaration effect may become legal later during a block or battle.
         retirePendingAttackWatchers(engine);
+        // Retire the exhausted parent remainder only after rule processing and every
+        // declaration pool have finished; intermediate drains may enable its costs.
+        if (options?.retireUnactivatable) await drain(options);
       } finally {
         engine.effectResolutionDepth = pausedDepth;
         engine.optionResolutionDepth = pausedOptionDepth;

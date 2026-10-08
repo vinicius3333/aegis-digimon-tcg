@@ -185,6 +185,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-crimson-blaze-jesmon-token",
   "arena-p245-kakkinmon-full-hand-suspend",
   "arena-p245-kakkinmon-craniamon-no-target",
+  "arena-ex12-nezhamon-kakkinmon-engage",
+  "arena-ex12-nezhamon-kakkinmon-engage-spare-blocker",
   "arena-ex13-craniamon-dual-play-cost",
   "arena-ex13-alphamon-end-turn-attack",
   "arena-bt20-dragon-gene-skip-play",
@@ -2067,6 +2069,41 @@ function layP245KakkinmonFullHandSuspendScenario(state: GameState, decks: readon
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Discord 1557557257129037844: Engage exhausts Kakkinmon's only suspension target. */
+function layEx12NezhamonKakkinmonEngageScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    clearZone(player, Zone.Security);
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-engage-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-engage-hand", "BT1-009", 0));
+    placePermanent(human, establishedDigimon(0, ["P-245", "EX12-019"], "-engage-nezhamon"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/** Payable control: Engage leaves an established ST5-08 available for Kakkinmon's cost. */
+function layEx12NezhamonKakkinmonEngageSpareBlockerScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+): void {
+  layEx12NezhamonKakkinmonEngageScenario(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["ST5-08"], "-engage-spare-blocker"));
+  }
 }
 
 /**
@@ -7624,6 +7661,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-crimson-blaze-jesmon-token": layCrimsonBlazeJesmonTokenScenario,
   "arena-p245-kakkinmon-full-hand-suspend": layP245KakkinmonFullHandSuspendScenario,
   "arena-p245-kakkinmon-craniamon-no-target": layP245KakkinmonCraniamonNoTargetScenario,
+  "arena-ex12-nezhamon-kakkinmon-engage": layEx12NezhamonKakkinmonEngageScenario,
+  "arena-ex12-nezhamon-kakkinmon-engage-spare-blocker": layEx12NezhamonKakkinmonEngageSpareBlockerScenario,
   "arena-ex13-craniamon-dual-play-cost": layEx13CraniamonDualPlayCostScenario,
   "arena-ex13-alphamon-end-turn-attack": layEx13AlphamonEndTurnAttackScenario,
   "arena-bt20-dragon-gene-skip-play": layBt20DragonGeneSkipPlayScenario,
