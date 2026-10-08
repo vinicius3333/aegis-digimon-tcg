@@ -192,6 +192,9 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex12-virus-busters-effect-attack",
   "arena-ex12-diarbbitmon-option-trigger-timing",
   "arena-bt26-cerberusmon-breeding-arts",
+  "arena-github-5301-bacchusmon-arts",
+  "arena-github-5301-bacchusmon-breeding-arts",
+  "arena-github-5301-bacchusmon-no-arts-base",
   "arena-bt15-leviamon-x-played-subject-left",
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-ex13-leopardmon-suspended-target",
@@ -4366,6 +4369,49 @@ function layBt26CerberusmonBreedingArtsScenario(state: GameState, decks: readonl
   state.memory = 6;
 }
 
+/** GitHub #5301: compare a legal Arts base in either field area with no legal base. */
+function layGithub5301BacchusmonArtsScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  baseZone: "battleArea" | "breeding" | "none",
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    if (baseZone !== "none") {
+      const base = establishedDigimon(0, ["BT25-055"], "-github5301-base");
+      if (baseZone === "breeding") {
+        base.inBreeding = true;
+        setBreeding(human, base);
+      } else {
+        placePermanent(human, base);
+      }
+    } else {
+      placePermanent(human, establishedDigimon(0, ["BT25-086"], "-github5301-ts"));
+    }
+    // Red Lv.5 is not a legal base; the TS card above only waives the Option color requirement.
+    placePermanent(human, establishedDigimon(0, ["BT1-020"], "-github5301-illegal"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-github5301-option", "BT26-080", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    const low = establishedDigimon(1, ["BT1-009"], "-github5301-unsuspend");
+    low.isSuspended = true;
+    placePermanent(bot, low);
+    placePermanent(bot, establishedDigimon(1, ["BT1-020"], "-github5301-higher"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 6;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
+}
+
 /**
  * KB Q4735: the human uses BT2-108 Night Raid to play BT2-067 DemiDevimon from the trash. The
  * bot's EX5-069 Biting Crush ＜Delay＞ plays EX5-063 Leviamon, whose derived [On Play] deletes
@@ -8385,6 +8431,12 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex12-virus-busters-effect-attack": layEx12VirusBustersEffectAttackScenario,
   "arena-ex12-diarbbitmon-option-trigger-timing": layEx12DiarbbitmonOptionTriggerTimingScenario,
   "arena-bt26-cerberusmon-breeding-arts": layBt26CerberusmonBreedingArtsScenario,
+  "arena-github-5301-bacchusmon-arts": (state, decks) =>
+    layGithub5301BacchusmonArtsScenario(state, decks, "battleArea"),
+  "arena-github-5301-bacchusmon-breeding-arts": (state, decks) =>
+    layGithub5301BacchusmonArtsScenario(state, decks, "breeding"),
+  "arena-github-5301-bacchusmon-no-arts-base": (state, decks) =>
+    layGithub5301BacchusmonArtsScenario(state, decks, "none"),
   "arena-bt15-leviamon-x-played-subject-left": layBt15LeviamonXPlayedSubjectLeftScenario,
   "arena-ex7-seventh-fascination-trash-turn": (state, decks) =>
     layEx7SeventhFascinationTurnScenario(state, decks, true),
