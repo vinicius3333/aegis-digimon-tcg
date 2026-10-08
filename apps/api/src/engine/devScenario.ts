@@ -69,6 +69,9 @@ export const DEV_SCENARIO_IDS = [
   "arena-github-5315-homeros-spent",
   "arena-bt21-metalgreymon-one-target-two-colors",
   "arena-bt21-metalgreymon-one-target-four-colors",
+  "arena-github5313-inori-memory-four",
+  "arena-github5313-inori-memory-five",
+  "arena-github5303-magnamon-printed-dp",
   "arena-github-5299-ravemon-bottom-security",
   "arena-github5300-yoshino-cost-payload",
   "arena-github5300-keenan-cost-execute",
@@ -1627,6 +1630,59 @@ function layBt26RavemonNestedOnDeletionScenario(state: GameState, decks: readonl
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 6;
+}
+
+/** GitHub #5313: owner Main memory boundary and security-removal timing controls. */
+function layGithub5313InoriScenario(state: GameState, decks: readonly [Decklist, Decklist], memory: number): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    loadDeckInto(player, seat, { mainDeck: Array(40).fill("BT1-009"), eggDeck: decks[seat].eggDeck });
+    setSecurityStack(player);
+  }
+  const human = state.players[0]!;
+  const bot = state.players[1]!;
+  placePermanent(human, establishedDigimon(0, ["BT24-084"], "-github5313-inori"));
+  placePermanent(human, establishedDigimon(0, ["P-194"], "-github5313-aegiomon"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-github5313-evolution", "BT24-014", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-github5313-unrelated", "BT1-009", 0));
+  clearZone(bot, Zone.Security);
+  insertCard(bot, Zone.Security, faceDownCard("dev-github5313-strong-security", "ST1-10", 1));
+  for (let i = 0; i < 4; i += 1)
+    insertCard(bot, Zone.Security, faceDownCard(`dev-github5313-security-${i}`, "BT1-009", 1));
+  placePermanent(bot, establishedDigimon(1, ["BT1-020"], "-github5313-opponent"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = memory;
+}
+
+function layGithub5313InoriFourScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  layGithub5313InoriScenario(state, decks, 4);
+}
+
+function layGithub5313InoriFiveScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  layGithub5313InoriScenario(state, decks, 5);
+}
+
+/** GitHub #5303: three trash colors reach the second printed DP scaling unit. */
+function layGithub5303MagnamonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    loadDeckInto(player, seat, { mainDeck: Array(40).fill("BT1-009"), eggDeck: decks[seat].eggDeck });
+    setSecurityStack(player);
+  }
+  const human = state.players[0]!;
+  const bot = state.players[1]!;
+  insertCard(human, Zone.Hand, faceDownCard("dev-github5303-magnamon", "EX13-020", 0));
+  insertCard(human, Zone.Trash, faceUpCard("dev-github5303-red", "BT1-009", 0));
+  insertCard(human, Zone.Trash, faceUpCard("dev-github5303-blue", "BT1-027", 0));
+  insertCard(bot, Zone.Trash, faceUpCard("dev-github5303-yellow", "BT1-045", 1));
+  placePermanent(bot, establishedDigimon(1, ["BT12-112"], "-github5303-target"));
+  placePermanent(bot, establishedDigimon(1, ["BT1-020"], "-github5303-control"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 /** GitHub #5300: optional suspension, then the card's separately printed payload. */
@@ -8450,6 +8506,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github-5315-homeros-unused": (state, decks) => layGithubEndTurnReportScenario(state, decks, "homeros-unused"),
   "arena-github-5315-homeros-spent": (state, decks) => layGithubEndTurnReportScenario(state, decks, "homeros-spent"),
   "arena-github-5299-ravemon-bottom-security": layGithub5299RavemonBottomSecurityScenario,
+  "arena-github5313-inori-memory-four": layGithub5313InoriFourScenario,
+  "arena-github5313-inori-memory-five": layGithub5313InoriFiveScenario,
+  "arena-github5303-magnamon-printed-dp": layGithub5303MagnamonScenario,
   "arena-github5300-yoshino-cost-payload": layGithub5300YoshinoScenario,
   "arena-github5300-keenan-cost-execute": layGithub5300KeenanScenario,
   "arena-github-5297-omnimon-main-dna": (state) => layGithub5297OmnimonDnaScenario(state, true),

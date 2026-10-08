@@ -1,12 +1,148 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT24-084.js";
 
 describe("BT24-084 Inori Misono", () => {
+  it.each(
+    ["BT24-084", "BT24-085", "BT25-086", "BT26-090"].flatMap((card) =>
+      ([0, 1] as const).flatMap((seat) => [4, 5].map((memory) => ({ card, seat, memory }))),
+    ),
+  )(
+    "GitHub #5313 sweep: $card seat $seat at $memory gains only on its own Main entry",
+    async ({ card, seat, memory }) => {
+      const s = setupEngine(
+        {
+          [seat]: {
+            battleArea: [{ card, as: "tamer" }],
+            hand: [{ card: "BT1-009", as: "unrelatedPlay" }],
+            deck: ["BT1-009", "BT1-009"],
+          },
+        },
+        { autoDeclineOptional: true },
+      );
+      s.state.turnSeat = seat;
+      s.state.memory = memory;
+      s.state.isFirstPlayersFirstTurn = false;
+      await s.ready();
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(seat);
+      expect(s.state.memory).toBe(5);
+      const startEffects = s.events.filter(
+        (event) => event.kind === "effectTriggered" && event.sourceCardId === card,
+      ).length;
+      expect(s.engine.applyIntent(seat, { type: "playCard", instanceId: s.inst("unrelatedPlay").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[seat]!.battleArea.some((p) => p.topCard.cardId === "BT1-009"));
+      await drainMicrotasks();
+      expect(s.state.memory).toBe(3);
+      expect(s.events.filter((event) => event.kind === "effectTriggered" && event.sourceCardId === card)).toHaveLength(
+        startEffects,
+      );
+      expect(s.state.pendingDecision).toBeUndefined();
+      assertNoLoudGap(s);
+      advance(s.engine).endMainPhaseIfOpen(seat);
+      await turn;
+    },
+  );
+
+  it("GitHub #5313: opponent Main and own security-removal digivolution do not activate the memory clause", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-084", as: "inori" },
+            { card: "BT24-034", as: "aegiomon" },
+          ],
+          hand: [{ card: "BT24-014", as: "aegiochusmon" }],
+          security: ["BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker" }], hand: ["BT1-009"], deck: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    s.state.isFirstPlayersFirstTurn = false;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.memory).toBe(3);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("aegiomon").topCard.cardId === "BT24-014" &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.perm("inori").isSuspended).toBe(true);
+    expect(s.perm("aegiomon").stack.map((c) => c.cardId)).toEqual(["BT24-034"]);
+    expect(s.state.memory).toBe(3);
+    expect(s.events.filter((event) => event.kind === "memoryChanged")).toEqual([]);
+    expect(
+      s.events.filter(
+        (event) =>
+          event.kind === "effectTriggered" && event.sourceCardId === "BT24-084" && event.timing === "OnStartMainPhase",
+      ),
+    ).toEqual([]);
+    assertNoLoudGap(s);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it("GitHub #5313: playing Inori mid-Main and removing opponent security never gains memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-084", as: "inori" }],
+          battleArea: [{ card: "BT1-020", as: "attacker" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-009", "BT1-009"], hand: ["BT1-009"], deck: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    s.state.isFirstPlayersFirstTurn = false;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("inori").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-084"));
+    await drainMicrotasks();
+    expect(s.state.memory).toBe(3);
+    const afterPlay = s.events.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(3);
+    expect(s.events.slice(afterPlay).filter((event) => event.kind === "memoryChanged")).toEqual([]);
+    expect(s.events.filter((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT24-084")).toEqual(
+      [],
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("matches the immutable catalog identity", () => {
     expect(getCardDefinition("BT24-084")).toMatchObject({
       cardId: "BT24-084",

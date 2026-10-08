@@ -8,6 +8,53 @@ import { compiled } from "./EX13-020.js";
 const cardId = "EX13-020";
 
 describe("EX13-020 Magnamon", () => {
+  it("GitHub #5303: public play gives -4000 per 5000 post-buff DP and keeps both modifiers through the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: cardId, as: "magnamon" }],
+          trash: ["BT1-009", "BT1-027"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT12-112", as: "victim" }],
+          trash: ["BT1-045"],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    s.state.isFirstPlayersFirstTurn = false;
+    await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magnamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("victim").currentDP === 9000 && s.state.pendingDecision === undefined);
+    const host = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("magnamon").instanceId)!;
+    expect(host.currentDP).toBe(10000);
+    expect(s.state.memory).toBe(3);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await ownTurn;
+    expect(host.currentDP).toBe(10000);
+    expect(s.perm("victim").currentDP).toBe(9000);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(host.currentDP).toBe(10000);
+    expect(s.perm("victim").currentDP).toBe(9000);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await opponentTurn;
+    expect(host.currentDP).toBe(7000);
+    expect(s.perm("victim").currentDP).toBe(17000);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
   it("matches the catalog identity and printed text", () => {
     expect(getCardDefinition(cardId)).toMatchObject({
       cardId,
