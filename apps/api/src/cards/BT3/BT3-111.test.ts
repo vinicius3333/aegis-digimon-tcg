@@ -1,11 +1,42 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT3-111.js";
+import { compiled as printedCompiled } from "./BT3-111.js";
 
 describe("BT3-111 Imperialdramon: Dragon Mode", () => {
+  it("keeps the shared IR snapshot equal to the executable card module", () => {
+    const snapshot = JSON.parse(
+      readFileSync(new URL("../../../../../packages/shared/src/effects/effects.json", import.meta.url), "utf8"),
+    );
+    expect(snapshot["BT3-111"]).toEqual(printedCompiled);
+  });
+  it("GitHub #5311 same-mechanism sweep: a field Imperialdramon cannot discount Paildramon evolving into MetalGarurumon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT3-111", as: "residentDragon" },
+          { card: "BT3-027", as: "base" },
+        ],
+        hand: [{ card: "BT1-044", as: "next" }],
+      },
+    });
+    await s.ready();
+    s.state.memory = 6;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("next").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT1-044" && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(3);
+    expect(observe(s.engine).hasPierce(s.perm("residentDragon"))).toBe(true);
+  });
+
   it("publishes the named-source reducer, Piercing, and once-per-turn trigger in IR", () => {
     const compiled = runtimeCompiledCard("BT3-111");
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
@@ -13,7 +44,6 @@ describe("BT3-111 Imperialdramon: Dragon Mode", () => {
       expect.arrayContaining([
         expect.objectContaining({
           trigger: "Static",
-          keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
           actions: expect.arrayContaining([
             expect.objectContaining({
               kind: "Replacement",
@@ -33,6 +63,17 @@ describe("BT3-111 Imperialdramon: Dragon Mode", () => {
               ],
             }),
           ]),
+        }),
+        expect.objectContaining({
+          trigger: "Static",
+          keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
+          actions: [
+            expect.objectContaining({
+              kind: "GainKeyword",
+              keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            }),
+          ],
         }),
         expect.objectContaining({
           trigger: "YourTurn",

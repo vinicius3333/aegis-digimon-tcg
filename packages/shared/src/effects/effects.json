@@ -112665,7 +112665,6 @@
     "effects": [
       {
         "trigger": "Static",
-        "keywords": [{ "keyword": "Piercing", "raw": "＜Piercing＞" }],
         "actions": [
           {
             "kind": "Replacement",
@@ -112684,7 +112683,13 @@
                 "raw": "reduce the memory cost of the digivolution by 2"
               }
             ]
-          },
+          }
+        ]
+      },
+      {
+        "trigger": "Static",
+        "keywords": [{ "keyword": "Piercing", "raw": "＜Piercing＞" }],
+        "actions": [
           {
             "kind": "GainKeyword",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
@@ -167499,7 +167504,12 @@
                 }
               }
             ]
-          },
+          }
+        ]
+      },
+      {
+        "trigger": "Static",
+        "actions": [
           {
             "kind": "Replacement",
             "event": "wouldDigivolve",
