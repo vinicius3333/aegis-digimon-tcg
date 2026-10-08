@@ -39,3 +39,15 @@ describe("SecurityDpLedger", () => {
     expect(ledger.deltaForCard(0, false)).toBe(0);
   });
 });
+
+it("preserves permanent and continuous security DP while expiring turn-wide modifiers", () => {
+  const ledger = new SecurityDpLedger();
+  ledger.add(1, 1000, { duration: EffectDuration.Permanent });
+  ledger.add(1, 2000, { continuous: true });
+  ledger.add(1, -5000, { duration: EffectDuration.UntilEachTurnEnd });
+  expect(ledger.deltaFor(1)).toBe(-2000);
+  ledger.sweepTurnEnd(0);
+  expect(ledger.deltaFor(1)).toBe(3000);
+  ledger.sweepTurnEnd(1);
+  expect(ledger.deltaFor(1)).toBe(3000);
+});

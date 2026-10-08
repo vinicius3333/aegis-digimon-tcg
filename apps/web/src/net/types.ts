@@ -462,6 +462,7 @@ export interface AegisJoinOptions {
     | "arena-github5308-greymon-security-destination"
     | "arena-bt21-satellamon-cost-control"
     | "arena-turn-end-dp-expiry"
+    | "arena-github5344-revelation-expiry"
     | "arena-github5311-imperialdramon-cost-scope"
     | "arena-github5322-metalmamemon-no-cost"
     | "arena-github5322-metalmamemon-paid"

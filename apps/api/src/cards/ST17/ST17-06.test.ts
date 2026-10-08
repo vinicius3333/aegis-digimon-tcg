@@ -170,3 +170,39 @@ describe("ST17-06 Rapidmon", () => {
     await nextTurn;
   });
 });
+
+describe("GitHub #5344 mechanism sweep — Rapidmon security DP duration", () => {
+  it("keeps both reductions through the affected opponent's turn", async () => {
+    const deck = ["BT1-009", "BT1-009", "BT1-009"];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST17-06", as: "rapidmon" }], hand: ["BT1-009"], deck },
+        1: { battleArea: [{ card: "BT1-024", as: "target" }], security: ["BT1-009"], deck },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("rapidmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "attackEnded"));
+    expect(s.perm("target").currentDP).toBe(6000);
+    expect(s.state.players[1]!.securityDpDelta).toBe(-4000);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("target").currentDP).toBe(6000);
+    expect(s.state.players[1]!.securityDpDelta).toBe(-4000);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("target").currentDP).toBe(10000);
+    expect(s.state.players[1]!.securityDpDelta).toBe(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});
