@@ -7,13 +7,18 @@ export const DISCORD_AVATAR_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 export const LAZY_REFRESH_TIMEOUT_MS = 1500;
 export const BACKFILL_TIMEOUT_MS = 10_000;
 const BACKFILL_BATCH = 20;
-const BACKFILL_DELAY_MS = 100;
+const BACKFILL_DELAY_MS = 250;
+const BACKFILL_RATE_LIMIT_ATTEMPTS = 5;
 
 export function discordAvatarUrl(discordUserId: string, avatarHash: string | null | undefined): string | null {
   return avatarHash ? `https://cdn.discordapp.com/avatars/${discordUserId}/${avatarHash}.png` : null;
 }
 
-export class DiscordRateLimitError extends Error {}
+export class DiscordRateLimitError extends Error {
+  constructor(readonly retryAfterMs: number) {
+    super("Discord rate limit reached");
+  }
+}
 
 export function discordAvatarSourceFromEnvironment(timeoutMs: number): DiscordAvatarSource | undefined {
   const token = process.env.DISCORD_BOT_TOKEN;
@@ -23,7 +28,8 @@ export function discordAvatarSourceFromEnvironment(timeoutMs: number): DiscordAv
       headers: { Authorization: `Bot ${token}` },
       signal: AbortSignal.timeout(timeoutMs),
     });
-    if (response.status === 429) throw new DiscordRateLimitError("Discord rate limit reached");
+    if (response.status === 429)
+      throw new DiscordRateLimitError(Number(response.headers.get("retry-after") ?? 1) * 1000);
     if (!response.ok) throw new Error(`Discord user lookup failed with ${response.status}`);
     const user = (await response.json()) as { avatar?: string | null };
     return discordAvatarUrl(discordUserId, user.avatar);
@@ -63,7 +69,8 @@ export async function refreshStaleDiscordAvatar(
 /**
  * Fills the avatar of every Discord account that was never checked.
  * A failed account stays claimed, so the daily refresh retries it on the user's next visit. A rate limit
- * stops the backfill and releases the unprocessed claims for the next API start.
+ * waits Discord's `retry-after` and retries the same account; every API replica runs this backfill, and
+ * together they share one Discord bucket.
  */
 export async function backfillDiscordAvatars(
   store: AccountStore,
@@ -75,13 +82,19 @@ export async function backfillDiscordAvatars(
     const checks = await store.claimDiscordAvatarChecks({ staleBefore: 0, limit: BACKFILL_BATCH });
     if (checks.length === 0) return refreshed;
     for (const [index, check] of checks.entries()) {
-      try {
-        await applyCheck(store, source, check);
-        refreshed++;
-      } catch (error) {
-        if (!(error instanceof DiscordRateLimitError)) continue;
-        for (const unchecked of checks.slice(index)) await store.releaseDiscordAvatarCheck(unchecked);
-        return refreshed;
+      for (let attempt = 1; ; attempt++) {
+        try {
+          await applyCheck(store, source, check);
+          refreshed++;
+          break;
+        } catch (error) {
+          if (!(error instanceof DiscordRateLimitError)) break;
+          if (attempt === BACKFILL_RATE_LIMIT_ATTEMPTS) {
+            for (const unchecked of checks.slice(index)) await store.releaseDiscordAvatarCheck(unchecked);
+            return refreshed;
+          }
+          await delay(error.retryAfterMs);
+        }
       }
       await delay(BACKFILL_DELAY_MS);
     }

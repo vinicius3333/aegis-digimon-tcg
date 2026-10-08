@@ -77,14 +77,29 @@ describe("Discord avatars", () => {
     await store.close();
   });
 
-  it("releases unprocessed claims when the backfill hits a rate limit", async () => {
+  it("waits out a rate limit and retries the same account", async () => {
+    const store = createStore();
+    const pool = (store as unknown as { pool: { query: (sql: string) => Promise<unknown> } }).pool;
+    await store.accountForIdentity("discord", "30", "A");
+    await pool.query("UPDATE accounts SET avatar_checked_at=NULL");
+    const source = vi
+      .fn<DiscordAvatarSource>()
+      .mockRejectedValueOnce(new DiscordRateLimitError(2000))
+      .mockResolvedValue("https://cdn.discordapp.com/30.png");
+    const delay = vi.fn<(ms: number) => Promise<void>>(async () => undefined);
+    expect(await backfillDiscordAvatars(store, source, delay)).toBe(1);
+    expect(delay).toHaveBeenCalledWith(2000);
+    await store.close();
+  });
+
+  it("releases unprocessed claims when the rate limit persists", async () => {
     const store = createStore();
     const pool = (store as unknown as { pool: { query: (sql: string) => Promise<unknown> } }).pool;
     await store.accountForIdentity("discord", "10", "A");
     await store.accountForIdentity("discord", "11", "B");
     await pool.query("UPDATE accounts SET avatar_checked_at=NULL");
     const rateLimited = vi.fn<DiscordAvatarSource>(async () => {
-      throw new DiscordRateLimitError("429");
+      throw new DiscordRateLimitError(1000);
     });
     expect(await backfillDiscordAvatars(store, rateLimited, noDelay)).toBe(0);
 
