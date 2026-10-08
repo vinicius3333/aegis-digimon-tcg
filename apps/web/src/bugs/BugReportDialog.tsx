@@ -99,10 +99,7 @@ export function BugReportDialog({
 
       {filed ? (
         <Alert tone="success" title={t("bugReport.success")}>
-          {t("bugReport.successDescription")}{" "}
-          <a href={filed.url} target="_blank" rel="noreferrer noopener">
-            {t("bugReport.successLink", { number: filed.number })}
-          </a>
+          {t("bugReport.successDescription")}
         </Alert>
       ) : (
         <>

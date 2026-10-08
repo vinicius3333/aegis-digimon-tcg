@@ -75,7 +75,7 @@ describe("the feedback modal", () => {
     expect(send.disabled).toBe(false);
   });
 
-  it("sends the attached cards and the description, then links the issue", async () => {
+  it("sends the attached cards and the description, without linking the issue", async () => {
     const fetchMock = mockApi({
       "POST /bug-reports": { status: 201, body: { number: 42, url: "https://github.com/example/repo/issues/42" } },
     });
@@ -89,9 +89,7 @@ describe("the feedback modal", () => {
     fireEvent.click(screen.getByRole("button", { name: "Send" }));
 
     expect(await screen.findByText("Feedback sent")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Open issue #42" }).getAttribute("href")).toBe(
-      "https://github.com/example/repo/issues/42",
-    );
+    expect(screen.queryByRole("link", { name: /issue/i })).toBeNull();
     const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)) as Record<string, unknown>;
     expect(body).toMatchObject({
       kind: "bug",
