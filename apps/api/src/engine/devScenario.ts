@@ -58,6 +58,9 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github5319-bt25-murasamemon-security-option",
+  "arena-github5319-murasamemon-e-pulse",
+  "arena-github5319-murasamemon-spent-cost",
   "arena-github5311-crescemon-cost-scope",
   "arena-github5311-imperialdramon-cost-scope",
   "arena-github5318-junomon-printed-cost",
@@ -8263,6 +8266,40 @@ function layGithub5318JunomonPrintedCostScenario(state: GameState): void {
   insertCard(human, Zone.Trash, faceDownCard("github5318-angel-trash", "BT25-034", 0));
 }
 
+function layGithub5319Bt25MurasamemonScenario(state: GameState): void {
+  prepareGithubCardEffectsScenario(state, 10);
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["ST23-03"], "-github5319-bt25-base"));
+  clearZone(human, Zone.Security);
+  insertCard(human, Zone.Security, faceDownCard("github5319-bt25-e-pulse", "ST23-15", 0));
+  insertCard(human, Zone.Hand, faceDownCard("github5319-bt25-murasamemon", "BT25-041", 0));
+  insertCard(human, Zone.Trash, faceDownCard("github5319-bt25-liollmon", "ST23-02", 0));
+}
+
+function layGithub5319MurasamemonScenario(state: GameState, separateCost: boolean): void {
+  prepareGithubCardEffectsScenario(state, 9);
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["ST23-02"], "-github5319-base"));
+  const tamer = establishedDigimon(0, ["ST23-13"], "-github5319-tamer");
+  // Main start supplies one face-down card; Cougarmon's reduction consumes it.
+  if (separateCost) pushOnStack(tamer, faceDownCard("github5319-separate-cost", "BT1-001", 0));
+  placePermanent(human, tamer);
+  placePermanent(state.players[1]!, establishedDigimon(1, ["BT1-021"], "-github5319-opponent"));
+  clearZone(human, Zone.Security);
+  insertCard(human, Zone.Security, faceDownCard("github5319-e-pulse", "ST23-15", 0));
+  insertCard(human, Zone.Hand, faceDownCard("github5319-cougarmon", "ST23-03", 0));
+  insertCard(human, Zone.Hand, faceDownCard("github5319-murasamemon", "ST23-04", 0));
+  insertCard(human, Zone.Trash, faceDownCard("github5319-liollmon", "ST23-02", 0));
+}
+
+function layGithub5319MurasamemonEPulseScenario(state: GameState): void {
+  layGithub5319MurasamemonScenario(state, true);
+}
+
+function layGithub5319MurasamemonSpentCostScenario(state: GameState): void {
+  layGithub5319MurasamemonScenario(state, false);
+}
+
 function layGithubLordKnightmonScenario(state: GameState): void {
   prepareGithubCardEffectsScenario(state, 10);
   const human = state.players[0]!;
@@ -8459,6 +8496,9 @@ function layGithubEndTurnReportScenario(
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-github5319-bt25-murasamemon-security-option": layGithub5319Bt25MurasamemonScenario,
+  "arena-github5319-murasamemon-e-pulse": layGithub5319MurasamemonEPulseScenario,
+  "arena-github5319-murasamemon-spent-cost": layGithub5319MurasamemonSpentCostScenario,
   "arena-github5311-crescemon-cost-scope": layGithub5311CrescemonCostScenario,
   "arena-github5311-imperialdramon-cost-scope": layGithub5311ImperialdramonCostScenario,
   "arena-github5318-junomon-printed-cost": layGithub5318JunomonPrintedCostScenario,
