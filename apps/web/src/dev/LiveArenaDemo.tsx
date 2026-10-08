@@ -1085,6 +1085,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Use BT20-093 Unleash the Dragon Gene da mão e aceite o [Principal]. A seleção da mão deve oferecer BT20-023 Coredramon e EX3-074 Examon e também o botão Nenhuma seleção. Escolha Nenhuma seleção: nenhum Digimon é jogado, os dois continuam na mão, a Option vai para a área de batalha e a memória cai só 2.",
     en: "Use BT20-093 Unleash the Dragon Gene from hand and accept its [Main]. The hand selection must offer BT20-023 Coredramon and EX3-074 Examon and also the No Selection button. Choose No Selection: no Digimon is played, both stay in hand, the Option goes to the battle area, and memory drops by only 2.",
   },
+  "arena-discord-1557565628439724032-duskmon-dna-colors": {
+    ptBR: "Espere o bot jogar Duskmon BT18-078 e mudar Wingdramon EX13-021 para vermelho. Encerre a criação: Examon BT13-059 não deve oferecer DNA com Wingdramon + HerculesKabuterimon, pois falta azul. Evolua Wingdramon em Slayerdramon EX3-024 pela condição de nome (3 memória): ele continua vermelho e a DNA continua indisponível. Encerre o turno: o Dracomon herdado não deve oferecer DNA ilegal. Para comparar, abra o cenário Duskmon DNA · controle: sem mudança de cor, a mesma dupla pode fazer DNA por 0.",
+    en: "Wait for the bot to play BT18-078 Duskmon and change EX13-021 Wingdramon to red. End breeding: BT13-059 Examon must not offer DNA with Wingdramon + HerculesKabuterimon because blue is missing. Digivolve Wingdramon into EX3-024 Slayerdramon using its named requirement (3 memory): it stays red and DNA remains unavailable. End your turn: inherited Dracomon must not offer illegal DNA. Compare with Duskmon DNA · control: without the color change, the same pair can DNA digivolve for 0.",
+  },
+  "arena-discord-1557565628439724032-duskmon-dna-control": {
+    ptBR: "O bot passa sem jogar Duskmon. Encerre a criação e selecione Examon BT13-059: a DNA com Wingdramon EX13-021 + HerculesKabuterimon BT1-081 deve estar disponível por 0. Faça a DNA; os dois materiais são consumidos e Examon entra não suspenso. Reinicie e evolua Wingdramon em Slayerdramon EX3-024 (3 memória): a DNA continua legal, inclusive pelo Dracomon herdado ao encerrar o turno.",
+    en: "The bot passes without playing Duskmon. End breeding and select BT13-059 Examon: DNA with EX13-021 Wingdramon + BT1-081 HerculesKabuterimon must be available for 0. DNA digivolve; both materials are consumed and Examon enters unsuspended. Reset and digivolve Wingdramon into EX3-024 Slayerdramon (3 memory): DNA stays legal, including inherited Dracomon when ending the turn.",
+  },
   "arena-bt23-examon-opponent-turn-dna": {
     ptBR: "O bot começa o turno com ST2-16 Cocytus Breath na mão e 7 de memória. Você tem BT20-093 Unleash the Dragon Gene no campo, BT20-027 Slayerdramon (suspenso) e BT20-044 Breakdramon, e BT23-047 Examon na mão. Espere o bot usar Cocytus Breath em um dos seus Digimon. Aceite o ＜Delay＞ da Gene e faça a DNA dos dois em Examon. O [Quando Evolui] de Examon suspende o Digimon do bot, mas não deve oferecer o ataque, porque só o jogador do turno pode atacar. A segurança do bot continua igual.",
     en: "The bot starts its turn with ST2-16 Cocytus Breath in hand and 7 memory. You have BT20-093 Unleash the Dragon Gene in play, BT20-027 Slayerdramon (suspended) and BT20-044 Breakdramon, and BT23-047 Examon in hand. Wait for the bot to use Cocytus Breath on one of your Digimon. Accept Gene's ＜Delay＞ and DNA digivolve both into Examon. Examon's [When Digivolving] suspends the bot's Digimon but must not offer the attack, because only the turn player can attack. The bot's security stays the same.",
@@ -2254,6 +2262,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex13-examon", "EX13 Examon · Lv.5 DNA + battle timing"],
   ["arena-ex13-examon-option-dp", "EX13 Examon · DP bonus excludes Options/Tamers"],
   ["arena-ex13-examon-battle-win-timing", "EX13 Examon · win-battle trigger order"],
+  ["arena-discord-1557565628439724032-duskmon-dna-colors", "Duskmon DNA · changed colors persist through evolution"],
+  ["arena-discord-1557565628439724032-duskmon-dna-control", "Duskmon DNA · control"],
   ["arena-bt23-examon-opponent-turn-dna", "BT23 Examon · Delay DNA in opponent's turn, no attack"],
   ["arena-ex13-chirinmon-cost-choice", "EX13 Chirinmon · either-or cost choice"],
   ["arena-ex13-wisemon-witchelny-cost", "EX13 Wisemon · Witchelny cost 3 / 4"],

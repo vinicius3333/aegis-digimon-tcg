@@ -8,7 +8,7 @@ import {
   type Seat,
   type Keyword,
 } from "@aegis/shared";
-import { effectiveNames } from "../continuous.js";
+import { effectiveColors, effectiveNames } from "../continuous.js";
 import type { Primitives } from "../EffectContext.js";
 import { dnaDigivolveCostFor } from "../verbs/digivolveCost.js";
 import { peekLooseInstance } from "../verbs/looseInstances.js";
@@ -109,6 +109,7 @@ export function createGrantsVerbs(pc: PrimitivesContext) {
         const names = effectiveNames(continuous, material, printed.nameEn ?? printed.cardId);
         return {
           ...printed,
+          colors: effectiveColors(continuous, material.permanentId, printed.colors) as typeof printed.colors,
           ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }),
           nameEn: names.join(" | "),
         };

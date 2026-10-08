@@ -4,7 +4,7 @@ import { lookupDefinition, definitionOf, isDigimon, intrinsicDigivolutionCostRed
 import { type IntentRouterDeps } from "../intentRouter.js";
 import { type ActivateEffectDeps } from "../actions/activateEffect.js";
 import { matchingDnaDigivolveCost } from "../effects/primitives.js";
-import { effectiveKinds, effectiveNames } from "../effects/continuous.js";
+import { effectiveColors, effectiveKinds, effectiveNames } from "../effects/continuous.js";
 import { effectiveDigivolutionBase } from "../effects/continuous/effective.js";
 import { digisorptionAmountFor } from "../cards/digisorptionDigivolve.js";
 import { type ResolutionDeps } from "../effects/index.js";
@@ -973,6 +973,7 @@ export function dnaDigivolveDeps(engine: GameEngine): DnaDigivolveDeps {
         const names = effectiveNames(engine.continuous, material, printed.nameEn ?? printed.cardId);
         return {
           ...printed,
+          colors: effectiveColors(engine.continuous, material.permanentId, printed.colors) as typeof printed.colors,
           ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }),
           nameEn: names.join(" | "),
         };
