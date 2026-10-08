@@ -1,7 +1,7 @@
 import { ContinuousEffectScope } from "./effects/ContinuousEffectScope.js";
 import { CardKind, EffectTiming, GameState, type CardInstance, type Seat } from "@aegis/shared";
 import { buildCombatHooks } from "./gameEngine/combatHooks.js";
-import type { CardColor, Permanent } from "@aegis/shared";
+import type { CardColor, Permanent, ZoneRef } from "@aegis/shared";
 import type { Client } from "colyseus";
 import type { DevScenarioId } from "./devScenario.js";
 import type { VisibilityZone } from "./state/access.js";
@@ -734,6 +734,7 @@ export class GameEngine {
     resolvingSeat?: Seat,
     opts?: {
       isBounce?: boolean;
+      destination?: ZoneRef;
       insteadOnly?: boolean;
       playerAction?: boolean;
       isDigiXros?: boolean;

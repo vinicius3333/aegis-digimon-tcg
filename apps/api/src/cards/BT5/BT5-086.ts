@@ -36,6 +36,7 @@ const compiled: CompiledCard = {
           event: "wouldLeavePlay",
           mode: "prevent",
           leaveCause: "byOpponentEffect",
+          leaveDestinations: ["trash", "hand", "deck"],
           sourceFilter: {
             isSelfRef: true,
           },

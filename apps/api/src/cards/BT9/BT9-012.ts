@@ -11,6 +11,7 @@ export const compiled: CompiledCard = {
           event: "wouldLeavePlay",
           mode: "prevent",
           leaveCause: "byEffect",
+          leaveDestinations: ["trash", "hand", "deck"],
           optional: true,
           sourceFilter: { isSelfRef: true },
           condition: {

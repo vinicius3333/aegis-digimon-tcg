@@ -258,6 +258,7 @@ export async function engineConsultLeavePrevention(
   resolvingSeat?: Seat,
   opts?: {
     isBounce?: boolean;
+    destination?: ZoneRef;
     insteadOnly?: boolean;
     playerAction?: boolean;
     isDigiXros?: boolean;
@@ -465,6 +466,7 @@ export async function engineConsultLeavePrevention(
     resolvingSeat,
     {
       isBounce: opts?.isBounce,
+      destination: opts?.destination,
       playerAction: opts?.playerAction,
       isDigiXros: opts?.isDigiXros,
       insteadOnly: opts?.insteadOnly,

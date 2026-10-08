@@ -1,6 +1,7 @@
 // Effects that replace or prevent an event before it happens.
 
 import type { Filter, Target } from "../filters/filter.js";
+import type { ZoneRef } from "../filters/zones.js";
 import type { EffectDurationRef } from "../durations.js";
 import type { Condition } from "../predicates/conditions.js";
 import type { Scaling } from "../predicates/scaling.js";
@@ -92,6 +93,8 @@ export interface ReplacementAction extends ActionBase {
    * matching leave, per `event`.
    */
   exceptDeletion?: boolean;
+  /** Printed removal destinations this prevention covers; deletion uses `trash`. Unknown moves do not match. */
+  leaveDestinations?: ZoneRef[];
   /** For leave-prevention effects, do not apply while a field material is being DigiXros-relocated. */
   exceptDigiXros?: boolean;
   /**

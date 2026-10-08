@@ -264,7 +264,13 @@ export interface PrimitivesEngine {
     permanentIds: string[],
     cause: import("../EffectContext.js").RemovalCause,
     resolvingSeat?: Seat,
-    opts?: { isBounce?: boolean; playerAction?: boolean; includeEvade?: boolean; includeArmorPurge?: boolean },
+    opts?: {
+      isBounce?: boolean;
+      destination?: ZoneRef;
+      playerAction?: boolean;
+      includeEvade?: boolean;
+      includeArmorPurge?: boolean;
+    },
   ) => Promise<Set<string>>;
   /** The shared memory gauge (memory-gauge subsystem); single owner of memory math. */
   readonly memory: MemoryPort;
