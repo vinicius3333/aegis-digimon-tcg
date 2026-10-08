@@ -28,6 +28,7 @@ export interface SeriesRecord {
   matchTimer: boolean;
   timerStartSeconds: number;
   unlimited?: boolean;
+  format?: import("@aegis/shared").DeckFormat;
   /** A private series reopens every game under the same code. */
   roomCode?: string;
   results: GameResult[];

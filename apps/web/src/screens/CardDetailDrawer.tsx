@@ -1,7 +1,14 @@
 /* The card detail drawer: the full card, its printed numbers and its effect text. */
 
 import { useState, type ReactNode } from "react";
-import { effectiveCopyLimit, getCardDefinition, getCardArts, resolveCardArt, restrictionLabel } from "@aegis/shared";
+import {
+  formatCopyLimit,
+  type DeckFormat,
+  getCardDefinition,
+  getCardArts,
+  resolveCardArt,
+  formatRestrictionLabel,
+} from "@aegis/shared";
 import { Eyebrow } from "../design/primitives";
 import { CardFull } from "../design/cards";
 import { formLabel, kindOf } from "../design/theme";
@@ -11,12 +18,14 @@ import "./cardLibrary.css";
 /* ---------- the shared right detail drawer ---------- */
 export function CardDetailDrawer({
   cardId,
+  format = "standard",
   onClose,
   footer,
   artId,
   onArtChange,
 }: {
   cardId: string;
+  format?: DeckFormat;
   onClose: () => void;
   footer?: ReactNode;
   artId?: string;
@@ -32,8 +41,8 @@ export function CardDetailDrawer({
   const def = getCardDefinition(cardId);
   if (!def) return null;
   const isDigi = kindOf(def) === "Digimon";
-  const copyLimit = effectiveCopyLimit(cardId);
-  const banLabel = restrictionLabel(cardId);
+  const copyLimit = formatCopyLimit(cardId, format);
+  const banLabel = formatRestrictionLabel(cardId, format);
   return (
     <aside aria-labelledby="card-detail-title" aria-modal="true" className="card-detail-drawer" role="dialog">
       <div className="card-detail-header">

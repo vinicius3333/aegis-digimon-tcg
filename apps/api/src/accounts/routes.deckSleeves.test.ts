@@ -65,3 +65,20 @@ describe("PUT /account/decks/:id sleeves", () => {
     expect((await putDeck({ eggSleeveId: value })).status).toBe(400);
   });
 });
+
+describe("saved deck format", () => {
+  it("round-trips historical and Pauper format preferences through create, update and list", async () => {
+    const first = await putDeck({ format: "BT13" });
+    expect(first.status).toBe(200);
+    expect(await savedDeck()).toMatchObject({ format: "BT13" });
+    expect((await putDeck({ format: "pauper" })).status).toBe(200);
+    expect(await savedDeck()).toMatchObject({ format: "pauper" });
+  });
+  it("defaults legacy decks to Standard and rejects malformed formats", async () => {
+    expect((await putDeck({})).status).toBe(200);
+    expect(await savedDeck()).toMatchObject({ format: "standard" });
+    for (const format of ["BT999", "LM", 13, {}, null]) {
+      expect((await putDeck({ format })).status).toBe(400);
+    }
+  });
+});

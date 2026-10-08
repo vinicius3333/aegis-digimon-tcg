@@ -1,4 +1,17 @@
 export const decksEn = {
+  "deckFormat.label": "Format",
+  "deckFormat.standard": "Standard",
+  "deckFormat.pauper": "Pauper · C / U",
+  "deckFormat.historical": "Historical sets",
+  "deckFormat.snapshot":
+    "Card pool through {set} · Banlist: {date}. Earlier sets, starters, and eligible promos included.",
+  "deckFormat.pauperHint": "Common and Uncommon cards only, including Digi-Eggs. Current banlist applies.",
+  "deckFormat.unlimitedHint": "All cards with printed copy limits. Banlist restrictions are lifted.",
+  "deckFormat.standardHint": "All cards with the current banlist.",
+  "deckFormat.outside": "Outside this format",
+  "deckFormat.violations":
+    "{count} card(s) in this deck are outside the selected format. Remove them or change format.",
+
   "redesign.decks.list.statDecks": "Decks",
   "redesign.decks.list.statActive": "Active deck",
   "redesign.decks.list.statReady": "Ready to play",

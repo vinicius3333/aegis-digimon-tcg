@@ -50,7 +50,14 @@ describe("famous deck selection", () => {
         />
       </I18nProvider>,
     );
-    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Format" }), {
+      target: {
+        value:
+          (screen.getByRole("combobox", { name: "Format" }) as HTMLSelectElement).value === "unlimited"
+            ? "standard"
+            : "unlimited",
+      },
+    });
     const launch = screen.getByRole("button", { name: "Enter queue" });
     expect((launch as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(launch);
@@ -58,8 +65,15 @@ describe("famous deck selection", () => {
     expect(screen.getByRole("button", { name: /Quick Match/ }).getAttribute("aria-pressed")).toBe("true");
     expect(screen.queryByRole("button", { name: /^Unlimited/ })).toBeNull();
     expect(screen.getByRole("switch", { name: "Match timer" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
-    expect(screen.getByRole("switch", { name: "Unlimited" }).getAttribute("aria-checked")).toBe("false");
+    fireEvent.change(screen.getByRole("combobox", { name: "Format" }), {
+      target: {
+        value:
+          (screen.getByRole("combobox", { name: "Format" }) as HTMLSelectElement).value === "unlimited"
+            ? "standard"
+            : "unlimited",
+      },
+    });
+    expect(screen.getByRole("combobox", { name: "Format" })).toHaveProperty("value", "standard");
     expect(screen.getByRole("button", { name: "Enter queue" })).toHaveProperty("disabled", true);
   });
   it("GitHub #5236: a personal beta bot deck routes random human practice through the beta room", () => {
@@ -741,20 +755,54 @@ describe("bot and private Unlimited selection", () => {
     const botSelect = screen.getByLabelText("Bot's deck");
     expect(within(botSelect).getByRole("option", { name: deck.name })).toHaveProperty("disabled", true);
     expect(screen.getByRole("button", { name: "Play vs Bot" })).toHaveProperty("disabled", true);
-    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Format" }), {
+      target: {
+        value:
+          (screen.getByRole("combobox", { name: "Format" }) as HTMLSelectElement).value === "unlimited"
+            ? "standard"
+            : "unlimited",
+      },
+    });
     expect(within(botSelect).getByRole("option", { name: deck.name })).toHaveProperty("disabled", false);
     fireEvent.change(botSelect, { target: { value: `mine:${deck.id}` } });
     fireEvent.click(screen.getByRole("button", { name: "Play vs Bot" }));
     expect(onStart).toHaveBeenCalledWith("bot", undefined, `mine:${deck.id}`, false, undefined, true);
-    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Format" }), {
+      target: {
+        value:
+          (screen.getByRole("combobox", { name: "Format" }) as HTMLSelectElement).value === "unlimited"
+            ? "standard"
+            : "unlimited",
+      },
+    });
     expect(screen.getByRole("button", { name: "Play vs Bot" })).toHaveProperty("disabled", true);
+  });
+
+  it("keeps Unlimited when moving between Casual and Practice", () => {
+    const { onStart } = setup();
+    fireEvent.change(screen.getByRole("combobox", { name: "Format" }), { target: { value: "unlimited" } });
+    fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
+    expect(screen.getByRole("button", { name: "Play vs Bot" })).toHaveProperty("disabled", false);
+    fireEvent.click(screen.getByRole("button", { name: "Play vs Bot" }));
+    expect(onStart).toHaveBeenLastCalledWith("bot", undefined, undefined, false, undefined, true);
+    fireEvent.click(screen.getByRole("button", { name: /Quick Match/ }));
+    expect(screen.getByRole("combobox", { name: "Format" })).toHaveProperty("value", "unlimited");
+    fireEvent.click(screen.getByRole("button", { name: "Enter queue" }));
+    expect(onStart.mock.lastCall?.[0]).toBe("unlimited");
   });
 
   it("exposes the existing selector for private hosts and sends the selected mode", () => {
     const { onStart } = setup();
     fireEvent.click(screen.getByRole("button", { name: /Private Match/ }));
     expect(screen.getByRole("button", { name: "Create Room" })).toHaveProperty("disabled", true);
-    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Format" }), {
+      target: {
+        value:
+          (screen.getByRole("combobox", { name: "Format" }) as HTMLSelectElement).value === "unlimited"
+            ? "standard"
+            : "unlimited",
+      },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Create Room" }));
     expect(onStart).toHaveBeenCalledWith("private_host", undefined, undefined, undefined, undefined, true);
   });
@@ -762,7 +810,7 @@ describe("bot and private Unlimited selection", () => {
   it("loads the guest host mode before allowing a banned deck and gives no override", async () => {
     lookupPrivateRoom.mockResolvedValue({ roomId: "private-room", unlimited: true });
     const { onStart } = setup({ invitedRoomCode: "ABC234" });
-    expect(screen.queryByRole("switch", { name: "Unlimited" })).toBeNull();
+    expect(screen.queryByRole("combobox", { name: "Format" })).toBeNull();
     expect(screen.getByRole("button", { name: "Join Room" })).toHaveProperty("disabled", true);
     await screen.findByText("Host banlist: Unlimited");
     fireEvent.click(screen.getByRole("button", { name: "Join Room" }));
@@ -833,14 +881,28 @@ describe("bot and private Unlimited selection", () => {
   it("retains printed limits when Unlimited is selected", () => {
     setup({ printedOverflow: true });
     fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
-    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Format" }), {
+      target: {
+        value:
+          (screen.getByRole("combobox", { name: "Format" }) as HTMLSelectElement).value === "unlimited"
+            ? "standard"
+            : "unlimited",
+      },
+    });
     expect(screen.getByRole("button", { name: "Play vs Bot" })).toHaveProperty("disabled", true);
   });
 
   it("keeps beta bot confirmation and Unlimited independent", () => {
     const { onStart } = setup({ beta: true });
     fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
-    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Format" }), {
+      target: {
+        value:
+          (screen.getByRole("combobox", { name: "Format" }) as HTMLSelectElement).value === "unlimited"
+            ? "standard"
+            : "unlimited",
+      },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Play vs Bot" }));
     fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
     expect(onStart).toHaveBeenCalledWith("bot", undefined, undefined, true, undefined, true);
@@ -851,5 +913,33 @@ describe("bot and private Unlimited selection", () => {
     lookupPrivateRoom.mockResolvedValue({ roomId: "private-room", unlimited: true });
     setup({ invitedRoomCode: "ABC234" });
     expect(await screen.findByText("Lista do anfitrião: Unlimited")).toBeTruthy();
+  });
+});
+
+describe("historical and Pauper format selection", () => {
+  it("starts a saved BT13 deck in that format and rejects cards released later", () => {
+    const onStart = vi.fn();
+    const deck = { ...DECKS[0]!, format: "BT13" as const, mainDeck: [...DECKS[0]!.mainDeck] };
+    deck.mainDeck.splice(0, 4, ...Array<string>(4).fill("BT13-012"));
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[deck]}
+          activeDeckId={deck.id}
+          onSelectDeck={() => {}}
+          onCopyDeck={() => {}}
+          onNav={() => {}}
+          onStart={onStart}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByRole("combobox", { name: "Format" })).toHaveProperty("value", "BT13");
+    fireEvent.click(screen.getByRole("button", { name: "Enter queue" }));
+    expect(onStart).toHaveBeenCalledWith("casual", undefined, undefined, undefined, undefined, undefined, "BT13");
+    fireEvent.change(screen.getByRole("combobox", { name: "Format" }), { target: { value: "standard" } });
+    expect(screen.getByRole("button", { name: "Enter queue" })).toHaveProperty("disabled", true);
+    fireEvent.change(screen.getByRole("combobox", { name: "Format" }), { target: { value: "pauper" } });
+    expect(screen.getByRole("button", { name: "Enter queue" })).toHaveProperty("disabled", true);
   });
 });

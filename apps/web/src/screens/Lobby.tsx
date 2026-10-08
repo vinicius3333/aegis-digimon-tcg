@@ -10,8 +10,10 @@ import {
   MATCH_TIMER_REFILL_SECONDS,
   type MatchBestOf,
   type MatchTimerOptions,
-  bannedPairViolations,
-  effectiveCopyLimit as banlistLimit,
+  formatPairViolations,
+  formatCopyLimit,
+  deckFormat,
+  type DeckFormat,
   getCardDefinition,
   isBetaOnlyCard,
   sharedCardNumberGroups,
@@ -36,6 +38,7 @@ import { RankedStart } from "../account/RankedStart";
 import { RANKED_ENABLED } from "../features";
 import { DeckColorDots, DeckPicker } from "./DeckPicker";
 import { FamousDeckListDialog } from "./FamousDeckListDialog";
+import { DeckFormatSelector } from "./DeckFormatSelector";
 import { MatchFormatSettings } from "./MatchFormatSettings";
 import { MatchTimerSettings } from "./MatchTimerSettings";
 import { loadMatchFormatPreference, saveMatchFormatPreference } from "./matchFormatPreference";
@@ -49,6 +52,7 @@ export interface PrivateRoom {
   code: string;
   host: boolean;
   unlimited?: boolean;
+  format?: DeckFormat;
 }
 
 export type StartMode =
@@ -74,11 +78,12 @@ export function randomDeckPool(
   scope: RandomDeckPool,
   betaAllowed = false,
   unlimited = false,
+  format?: DeckFormat,
 ): DeckListing[] {
   const candidates =
     scope === "mine" ? personalDecks : scope === "famous" ? FAMOUS_DECKS : selectableDecks(personalDecks);
   const eligible = candidates.filter(
-    (deck) => deckLegality(deck, { unlimited }).legal && (betaAllowed || !deckHasBetaCards(deck)),
+    (deck) => deckLegality(deck, { unlimited, format }).legal && (betaAllowed || !deckHasBetaCards(deck)),
   );
   return [...new Map(eligible.map((deck) => [deck.id, deck])).values()];
 }
@@ -172,7 +177,7 @@ export function Lobby({
   onCopyDeck,
   onEditDeck,
   onNav,
-  onStart,
+  onStart: onStartRequested,
   invitedRoomCode,
   privateRoom,
   onLeavePrivateRoom,
@@ -205,6 +210,7 @@ export function Lobby({
     betaBattleMode?: boolean,
     deckId?: string,
     unlimited?: boolean,
+    format?: DeckFormat,
   ) => void;
   /** A code carried in by an invite link; opens the private join form with it filled in. */
   invitedRoomCode?: string;
@@ -231,14 +237,18 @@ export function Lobby({
     saveMatchFormatPreference(next);
     onBestOfChange?.(next);
   }
-  const [mode, setMode] = useState(invitedRoomCode || privateRoom ? "private" : "casual");
+  const [selectedFormat, setSelectedFormat] = useState<DeckFormat>(() =>
+    deckFormat(decks.find((deck) => deck.id === activeDeckId)?.format),
+  );
+  const [mode, setMode] = useState(
+    invitedRoomCode || privateRoom ? "private" : selectedFormat === "unlimited" ? "unlimited" : "casual",
+  );
   const [betaConfirmation, setBetaConfirmation] = useState<"beta" | "bot" | null>(null);
   const [privateSub, setPrivateSub] = useState<"create" | "join">(invitedRoomCode ? "join" : "create");
   const [roomCodeInput, setRoomCodeInput] = useState(invitedRoomCode ?? "");
   // "" is the random pool; any other value is a famous-deck preset id the bot will play.
   const [botDeckId, setBotDeckId] = useState("");
-  const [localUnlimited, setLocalUnlimited] = useState(false);
-  const [guestRules, setGuestRules] = useState<{ code: string; unlimited: boolean }>();
+  const [guestRules, setGuestRules] = useState<{ code: string; unlimited: boolean; format?: DeckFormat }>();
   const [guestLookupFailed, setGuestLookupFailed] = useState(false);
   const guestCode = privateRoom?.code ?? roomCodeInput;
   const privateGuest = mode === "private" && (privateRoom ? !privateRoom.host : privateSub === "join");
@@ -250,7 +260,7 @@ export function Lobby({
     if (guestCode.length === 6) {
       void lookupPrivateRoom(guestCode)
         .then((rules) => {
-          if (!cancelled) setGuestRules({ code: guestCode, unlimited: rules.unlimited });
+          if (!cancelled) setGuestRules({ code: guestCode, unlimited: rules.unlimited, format: rules.format });
         })
         .catch(() => {
           if (!cancelled) setGuestLookupFailed(true);
@@ -262,19 +272,52 @@ export function Lobby({
   }, [privateGuest, privateRoom, guestCode]);
   const unlimited =
     mode === "unlimited" ||
-    (mode === "practice" && localUnlimited) ||
+    ((mode === "casual" || mode === "practice") && selectedFormat === "unlimited") ||
     (mode === "private" &&
       (privateRoom
         ? privateRoom.unlimited === true
         : privateGuest
           ? guestRules?.code === guestCode && guestRules.unlimited
-          : localUnlimited));
+          : selectedFormat === "unlimited"));
+  const format: DeckFormat = unlimited
+    ? "unlimited"
+    : mode === "private" && privateRoom
+      ? deckFormat(privateRoom.format, privateRoom.unlimited)
+      : privateGuest
+        ? deckFormat(guestRules?.format)
+        : mode === "casual" || mode === "practice" || mode === "private"
+          ? selectedFormat
+          : "standard";
+  const banlistLimit = (id: string) => formatCopyLimit(id, format);
+  const onStart = useCallback(
+    (...args: Parameters<typeof onStartRequested>) => {
+      if (args[0] === "ranked") {
+        onStartRequested("ranked", args[1], args[2], args[3], args[4], false, "standard");
+        return;
+      }
+      if (format === "unlimited") {
+        const startMode = args[0] === "casual" ? "unlimited" : args[0];
+        if (startMode === "unlimited" && args.length === 1) onStartRequested(startMode);
+        else
+          onStartRequested(startMode, args[1], args[2], args[3], args[4], startMode === "unlimited" ? args[5] : true);
+        return;
+      }
+      if (format === "standard") {
+        onStartRequested(...args);
+        return;
+      }
+      onStartRequested(args[0], args[1], args[2], args[3], args[4], args[5], format);
+    },
+    [onStartRequested, format],
+  );
   const [randomSelected, setRandomSelected] = useState(false);
   const [randomPoolScope, setRandomPoolScope] = useState<RandomDeckPool>("all");
   const [viewedDeck, setViewedDeck] = useState<DeckListing | null>(null);
   const [betaQueueChosen, setBetaQueueChosen] = useState(false);
   // Which modes route an unreleased-card deck into the separate beta queue.
-  const betaQueueMode = mode === "casual" || mode === "practice";
+  const betaQueueMode =
+    (format === "standard" && (mode === "casual" || mode === "practice")) ||
+    (format === "unlimited" && mode === "practice");
   // A private room is invite-only and both seats opt in by sharing the code, so it takes
   // an unreleased-card deck without the queue routing a public match needs.
   const betaAllowed = betaQueueMode || mode === "private";
@@ -282,10 +325,10 @@ export function Lobby({
     return decks
       .map((deck) => ({
         deck,
-        legal: deckLegality(deck, { unlimited }).legal && (betaAllowed || !deckHasBetaCards(deck)),
+        legal: deckLegality(deck, { unlimited, format }).legal && (betaAllowed || !deckHasBetaCards(deck)),
       }))
       .sort((a, b) => Number(b.legal) - Number(a.legal));
-  }, [decks, betaAllowed, unlimited]);
+  }, [decks, betaAllowed, unlimited, format]);
   const editDeck = useCallback(
     (deck: DeckListing) => {
       if (onEditDeck) {
@@ -329,10 +372,10 @@ export function Lobby({
       if (n > cap) violations.push({ id: members.join(" + "), n, cap });
     }
     return violations;
-  }, [active, unlimited]);
+  }, [active, unlimited, format]);
   const pairViolations = useMemo(
-    () => (active && !unlimited ? bannedPairViolations([...active.mainDeck, ...active.eggDeck]) : []),
-    [active, unlimited],
+    () => (active && !unlimited ? formatPairViolations([...active.mainDeck, ...active.eggDeck], format) : []),
+    [active, unlimited, format],
   );
   const customBotDeck =
     vsBot && botDeckId.startsWith("mine:") ? decks.find((deck) => deck.id === botDeckId.slice(5)) : undefined;
@@ -367,13 +410,13 @@ export function Lobby({
     !!active &&
     active.mainDeck.length === 50 &&
     active.eggDeck.length <= 5 &&
-    deckLegality(active, { unlimited }).legal &&
+    deckLegality(active, { unlimited, format }).legal &&
     banViolations.length === 0 &&
     pairViolations.length === 0 &&
     (betaCards.length === 0 || betaAllowed);
   const randomPool = useMemo(
-    () => randomDeckPool(decks, randomPoolScope, betaAllowed, unlimited),
-    [decks, randomPoolScope, betaAllowed, unlimited],
+    () => randomDeckPool(decks, randomPoolScope, betaAllowed, unlimited, format),
+    [decks, randomPoolScope, betaAllowed, unlimited, format],
   );
   const randomPoolLabel = t(randomPool.length === 1 ? "lobby.randomPoolOne" : "lobby.randomPool", {
     count: randomPool.length,
@@ -381,7 +424,7 @@ export function Lobby({
   const selectionLegal =
     (randomSelected ? randomPool.length > 0 : deckLegal) &&
     (!privateGuest || !!privateRoom || guestRules?.code === guestCode) &&
-    (!customBotDeck || deckLegality(customBotDeck, { unlimited }).legal);
+    (!customBotDeck || deckLegality(customBotDeck, { unlimited, format }).legal);
   const selectDeck = useCallback(
     (deckId: string) => {
       setRandomSelected(false);
@@ -710,6 +753,11 @@ export function Lobby({
                   {t("lobby.betaRequiredHint")}
                 </Alert>
               ) : null}
+              {active && deckLegality(active, { format }).formatViolations.length > 0 ? (
+                <Alert tone="warning">
+                  {t("deckFormat.violations", { count: deckLegality(active, { format }).formatViolations.length })}
+                </Alert>
+              ) : null}
               {banViolations.length > 0 ? (
                 <Alert className="lobby-alert" tone="danger" title={t("lobby.banlistTitle")}>
                   {banViolations.map(({ id, n, cap }) => (
@@ -761,40 +809,14 @@ export function Lobby({
                   mode === "unlimited" ||
                   vsBot ||
                   (mode === "private" && !privateRoom && !privateGuest) ? (
-                    <div className="lobby-format-settings lobby-unlimited-settings">
-                      <div className="lobby-timer-settings__header">
-                        <span id="lobby-unlimited-label" className="lobby-timer-settings__label">
-                          <span aria-hidden="true">
-                            <Icons.Swords size={20} />
-                          </span>
-                          {t("lobby.unlimited")}
-                        </span>
-                        <div className="lobby-timer-settings__control">
-                          <span className="lobby-timer-settings__status">
-                            {t(unlimited ? "lobby.timer.on" : "lobby.timer.off")}
-                          </span>
-                          <button
-                            type="button"
-                            role="switch"
-                            className="lobby-timer-switch"
-                            aria-checked={unlimited}
-                            aria-labelledby="lobby-unlimited-label"
-                            aria-describedby="lobby-unlimited-hint"
-                            onClick={() =>
-                              mode === "casual" || mode === "unlimited"
-                                ? setMode(unlimited ? "casual" : "unlimited")
-                                : setLocalUnlimited(!localUnlimited)
-                            }
-                          >
-                            <span />
-                          </button>
-                        </div>
-                      </div>
-                      <p id="lobby-unlimited-hint" className="lobby-timer-settings__hint">
-                        {t(vsBot || mode === "private" ? "lobby.unlimitedLocalDesc" : "lobby.unlimitedDesc")}{" "}
-                        {t("lobby.unlimitedMeta")}
-                      </p>
-                    </div>
+                    <DeckFormatSelector
+                      value={format}
+                      onChange={(next) => {
+                        setSelectedFormat(next);
+                        if (mode === "casual" || mode === "unlimited")
+                          setMode(next === "unlimited" ? "unlimited" : "casual");
+                      }}
+                    />
                   ) : null}
                 </div>
               ) : mode === "private" ? (
@@ -802,7 +824,16 @@ export function Lobby({
                   <p className="lobby-timer-hint">{t("lobby.timer.guestHint")}</p>
                   <p role="status">
                     {privateRoom || guestRules?.code === guestCode
-                      ? t("lobby.hostBanlist", { mode: t(unlimited ? "lobby.unlimited" : "lobby.standardBanlist") })
+                      ? t("lobby.hostBanlist", {
+                          mode:
+                            format === "standard"
+                              ? t("lobby.standardBanlist")
+                              : format === "unlimited"
+                                ? t("lobby.unlimited")
+                                : format === "pauper"
+                                  ? t("deckFormat.pauper")
+                                  : format,
+                        })
                       : t(guestLookupFailed ? "lobby.roomLookupFailed" : "lobby.roomRulesPending")}
                   </p>
                 </div>
@@ -865,7 +896,7 @@ export function Lobby({
                         <option
                           key={deck.id}
                           value={`mine:${deck.id}`}
-                          disabled={!deckLegality(deck, { unlimited }).legal}
+                          disabled={!deckLegality(deck, { unlimited, format }).legal}
                         >
                           {deck.name}
                         </option>
@@ -917,6 +948,7 @@ export function Lobby({
 
         <DeckPicker
           ownDecks={userDecks}
+          format={format}
           activeDeckId={activeDeckId}
           randomSelected={randomSelected}
           randomPoolSize={randomPool.length}

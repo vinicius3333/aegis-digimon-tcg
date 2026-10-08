@@ -30,6 +30,7 @@ export type Deck = {
   sleeveId?: string;
   /** The Digi-Egg deck's sleeve id, stored the same way as `sleeveId`. */
   eggSleeveId?: string;
+  format?: import("@aegis/shared").DeckFormat;
   revision: number;
   updatedAt: number;
 };
@@ -494,9 +495,10 @@ export class AccountStore {
       cover_card_id: string | null;
       sleeve_id: string | null;
       egg_sleeve_id: string | null;
+      format: import("@aegis/shared").DeckFormat;
       updated_at: string | number;
     }>(
-      "SELECT id,name,main_deck,egg_deck,main_deck_arts,egg_deck_arts,cover_card_id,sleeve_id,egg_sleeve_id,revision,updated_at FROM saved_decks WHERE account_id=$1 ORDER BY updated_at DESC",
+      "SELECT id,name,main_deck,egg_deck,main_deck_arts,egg_deck_arts,cover_card_id,sleeve_id,egg_sleeve_id,format,revision,updated_at FROM saved_decks WHERE account_id=$1 ORDER BY updated_at DESC",
       [accountId],
     );
     return result.rows.map((row) => ({
@@ -509,6 +511,7 @@ export class AccountStore {
       coverCardId: row.cover_card_id ?? undefined,
       sleeveId: row.sleeve_id ?? undefined,
       eggSleeveId: row.egg_sleeve_id ?? undefined,
+      format: row.format,
       revision: row.revision,
       updatedAt: Number(row.updated_at),
     }));
@@ -536,7 +539,7 @@ export class AccountStore {
       const updatedAt = Date.now();
       if (current.rows[0])
         await client.query(
-          "UPDATE saved_decks SET name=$1,main_deck=$2,egg_deck=$3,revision=$4,updated_at=$5,main_deck_arts=$8,egg_deck_arts=$9,cover_card_id=$10,sleeve_id=$11,egg_sleeve_id=$12 WHERE account_id=$6 AND id=$7",
+          "UPDATE saved_decks SET name=$1,main_deck=$2,egg_deck=$3,revision=$4,updated_at=$5,main_deck_arts=$8,egg_deck_arts=$9,cover_card_id=$10,sleeve_id=$11,egg_sleeve_id=$12,format=$13 WHERE account_id=$6 AND id=$7",
           [
             input.name,
             JSON.stringify(input.mainDeck),
@@ -550,6 +553,7 @@ export class AccountStore {
             coverCardId ?? null,
             input.sleeveId ?? null,
             input.eggSleeveId ?? null,
+            input.format ?? "standard",
           ],
         );
       else {
@@ -560,7 +564,7 @@ export class AccountStore {
         if (Number(count.rows[0]?.count) >= MAX_SAVED_DECKS)
           throw new DeckLimitError(`accounts may save at most ${MAX_SAVED_DECKS} decks`);
         await client.query(
-          "INSERT INTO saved_decks (id,account_id,name,main_deck,egg_deck,revision,updated_at,main_deck_arts,egg_deck_arts,cover_card_id,sleeve_id,egg_sleeve_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)",
+          "INSERT INTO saved_decks (id,account_id,name,main_deck,egg_deck,revision,updated_at,main_deck_arts,egg_deck_arts,cover_card_id,sleeve_id,egg_sleeve_id,format) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
           [
             id,
             accountId,
@@ -574,6 +578,7 @@ export class AccountStore {
             coverCardId ?? null,
             input.sleeveId ?? null,
             input.eggSleeveId ?? null,
+            input.format ?? "standard",
           ],
         );
       }
@@ -587,6 +592,7 @@ export class AccountStore {
         coverCardId,
         sleeveId: input.sleeveId,
         eggSleeveId: input.eggSleeveId,
+        format: input.format ?? "standard",
         revision,
         updatedAt,
       };

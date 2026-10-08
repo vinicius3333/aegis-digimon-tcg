@@ -1,3 +1,4 @@
+import { isDeckFormat, type DeckFormat } from "@aegis/shared";
 import { randomBytes } from "node:crypto";
 import {
   latestReleasedProductLabel,
@@ -215,17 +216,20 @@ export function installAccountRoutes(
   put("/account/decks{/:id}", async (req, res) => {
     const session = await requireSession(req, res, store);
     if (!session) return;
-    const { name, mainDeck, eggDeck, mainDeckArts, eggDeckArts, coverCardId, sleeveId, eggSleeveId } = req.body as {
-      name?: unknown;
-      mainDeck?: unknown;
-      eggDeck?: unknown;
-      mainDeckArts?: unknown;
-      eggDeckArts?: unknown;
-      coverCardId?: unknown;
-      sleeveId?: unknown;
-      eggSleeveId?: unknown;
-    };
+    const { name, mainDeck, eggDeck, mainDeckArts, eggDeckArts, coverCardId, sleeveId, eggSleeveId, format } =
+      req.body as {
+        name?: unknown;
+        mainDeck?: unknown;
+        eggDeck?: unknown;
+        mainDeckArts?: unknown;
+        eggDeckArts?: unknown;
+        coverCardId?: unknown;
+        sleeveId?: unknown;
+        eggSleeveId?: unknown;
+        format?: unknown;
+      };
     if (
+      (format !== undefined && !isDeckFormat(format)) ||
       typeof name !== "string" ||
       !Array.isArray(mainDeck) ||
       !Array.isArray(eggDeck) ||
@@ -258,6 +262,7 @@ export function installAccountRoutes(
           coverCardId: (coverCardId as string | null | undefined) ?? undefined,
           sleeveId: (sleeveId as string | null | undefined) ?? undefined,
           eggSleeveId: (eggSleeveId as string | null | undefined) ?? undefined,
+          format: format as DeckFormat | undefined,
         }),
       );
     } catch (error) {

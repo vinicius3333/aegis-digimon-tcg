@@ -359,7 +359,11 @@ it("reads the private host rules from a draining slot before joining there", asy
     createClient: (_endpoint, slot) => (slot === "blue" ? clientPort({ joinById }) : clientPort()),
     fetcher,
   });
-  expect(await client.lookupPrivateRoom("abc234")).toEqual({ roomId: joined.roomId, unlimited: true });
+  expect(await client.lookupPrivateRoom("abc234")).toEqual({
+    roomId: joined.roomId,
+    unlimited: true,
+    format: "unlimited",
+  });
   await client.joinPrivateByCode("abc234", { ...OPTIONS, unlimited: true });
   expect(joinById).toHaveBeenCalledWith(
     joined.roomId,

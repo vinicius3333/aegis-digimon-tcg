@@ -24,6 +24,8 @@ import { deckEggSleeve } from "./021-deck-egg-sleeve.js";
 import { publicDeckHiddenStatus } from "./022-public-deck-hidden-status.js";
 import { accountAvatarCheckedAt } from "./023-account-avatar-checked-at.js";
 
+import { savedDeckFormat } from "./024-deck-format.js";
+
 export const migrations: readonly Migration[] = [
   initialSchema,
   tournamentProgramColumns,
@@ -48,4 +50,5 @@ export const migrations: readonly Migration[] = [
   deckEggSleeve,
   publicDeckHiddenStatus,
   accountAvatarCheckedAt,
+  savedDeckFormat,
 ];

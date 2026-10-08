@@ -3,6 +3,19 @@ import { en } from "./en";
 // Historical release notes keep their published English text. All interface
 // messages are translated; printed card names and effects remain in English.
 const interfaceMessages = {
+  "deckFormat.label": "Formato",
+  "deckFormat.standard": "Standard",
+  "deckFormat.pauper": "Pauper · C / U",
+  "deckFormat.historical": "Espansioni storiche",
+  "deckFormat.snapshot":
+    "Carte fino a {set} · Lista restrizioni: {date}. Include espansioni precedenti, starter e promo idonee.",
+  "deckFormat.pauperHint":
+    "Solo carte Comuni e Non Comuni, incluse le Digi-Uova. Si applica la lista restrizioni attuale.",
+  "deckFormat.unlimitedHint": "Tutte le carte con i limiti stampati. Nessuna lista restrizioni.",
+  "deckFormat.standardHint": "Tutte le carte con la lista restrizioni attuale.",
+  "deckFormat.outside": "Fuori da questo formato",
+  "deckFormat.violations":
+    "{count} carta/e di questo mazzo sono fuori dal formato selezionato. Rimuovile o cambia formato.",
   "game.leaveConfirmTitle": "Lasciare questa partita?",
   "game.leaveConfirmBody": "Se esci, la partita termina e conta come una sconfitta.",
   "library.japaneseArt": "{label}, edizione giapponese",

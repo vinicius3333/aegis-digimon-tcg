@@ -3,7 +3,13 @@
    delete actions. */
 
 import { useState } from "react";
-import { deckLegality, getCardDefinition, restrictionLabel, type CommunityPublication } from "@aegis/shared";
+import {
+  deckLegality,
+  getCardDefinition,
+  formatRestrictionLabel,
+  deckFormat,
+  type CommunityPublication,
+} from "@aegis/shared";
 import { useCommunityPublications } from "../community/useCommunityPublications";
 import { Badge, Button, ColorDot, Eyebrow, Field } from "../design/primitives";
 import { Panel, SectionHeading, StatStrip } from "../design/surfaces";
@@ -82,7 +88,7 @@ export function DeckList({
   };
 
   const activeDeck = decks.find((deck) => deck.id === activeDeckId);
-  const readyCount = decks.filter((deck) => deckLegality(deck).legal).length;
+  const readyCount = decks.filter((deck) => deckLegality(deck, { format: deck.format }).legal).length;
 
   return (
     <div className="deck-list-page">
@@ -236,7 +242,7 @@ function DeckListRow({
   onPublishAction: (mode: PublishMode) => void;
 }) {
   const { t } = useTranslation();
-  const { legal, banViolations, pairViolations } = deckLegality(deck);
+  const { legal, banViolations, pairViolations } = deckLegality(deck, { format: deck.format });
   const colors = deckColors(deck);
   const blurb = deckBlurbLabel(t, deck.blurb);
 
@@ -255,6 +261,15 @@ function DeckListRow({
         <div className="deck-list-row__identity">
           <div className="deck-list-row__name">
             <h3>{deck.name}</h3>
+            {deck.format && deck.format !== "standard" ? (
+              <Badge>
+                {deck.format === "pauper"
+                  ? t("deckFormat.pauper")
+                  : deck.format === "unlimited"
+                    ? t("lobby.unlimited")
+                    : deck.format}
+              </Badge>
+            ) : null}
             {active ? (
               <Badge tone="primary">
                 <Icons.Check size={12} />
@@ -290,7 +305,7 @@ function DeckListRow({
             <p className="deck-list-row__violation">
               {banViolations.map(([id]) => (
                 <span key={id}>
-                  {getCardDefinition(id)?.nameEn ?? id} ({restrictionLabel(id)}){" "}
+                  {getCardDefinition(id)?.nameEn ?? id} ({formatRestrictionLabel(id, deckFormat(deck.format))}){" "}
                 </span>
               ))}
             </p>
@@ -349,7 +364,7 @@ function DeckListRow({
           <div className="deck-list-row__publish">
             {publication?.status === "hidden" ? null : publication ? (
               <>
-                {publication.outdated && legal ? (
+                {publication.outdated && deckLegality(deck).legal ? (
                   <Button size="sm" variant="secondary" icon={Icons.Users} onClick={() => onPublishAction("update")}>
                     {t("community.publish.update")}
                   </Button>
@@ -358,7 +373,7 @@ function DeckListRow({
                   {t("community.publish.unpublish")}
                 </Button>
               </>
-            ) : legal ? (
+            ) : deckLegality(deck).legal ? (
               <Button size="sm" variant="ghost" icon={Icons.Users} onClick={() => onPublishAction("publish")}>
                 {t("community.publish.action")}
               </Button>

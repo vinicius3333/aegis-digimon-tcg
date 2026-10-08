@@ -106,6 +106,7 @@ export const accountApi = {
           coverCardId?: string;
           sleeveId?: string;
           eggSleeveId?: string;
+          format?: import("@aegis/shared").DeckFormat;
           updatedAt?: number;
         }>
       >("/account/decks")
@@ -122,6 +123,7 @@ export const accountApi = {
         coverCardId: deck.coverCardId,
         sleeveId: deck.sleeveId ?? null,
         eggSleeveId: deck.eggSleeveId ?? null,
+        format: deck.format ?? "standard",
       }),
     }),
   deleteDeck: async (id: string): Promise<void> => {

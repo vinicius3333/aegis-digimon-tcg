@@ -3,13 +3,15 @@
 
 import { useMemo, useState, useEffect, useRef } from "react";
 import {
-  bannedPairViolations,
+  formatPairViolations,
+  formatCardViolation,
+  formatCopyLimit,
+  deckFormat,
+  type DeckFormat,
   getCardArts,
   getCardDefinition,
   resolveCardArt,
   type CardDefinition,
-  isBanned,
-  effectiveCopyLimit as banlistLimit,
   sharedCardNumberCount,
   sharedCardNumberGroups,
 } from "@aegis/shared";
@@ -19,6 +21,7 @@ import { Icons } from "../design/icons";
 import { Panel, SectionHeading } from "../design/surfaces";
 import { CardDetailDrawer } from "./CardDetailDrawer";
 import { DeckSleevePicker } from "./DeckSleevePicker";
+import { DeckFormatSelector } from "./DeckFormatSelector";
 import { FilterRail } from "./FilterRail";
 import { sortSearchResults, useCardFilter } from "./cardFilters";
 import {
@@ -76,7 +79,11 @@ export function DeckEditor({
   onNav: (s: Screen) => void;
 }) {
   const { t } = useTranslation();
-  const pool = useMemo<CardDefinition[]>(() => activeCollectionCards(), []);
+  const [format, setFormat] = useState<DeckFormat>(() => deckFormat(deck.format));
+  const pool = useMemo<CardDefinition[]>(
+    () => activeCollectionCards().filter((card) => !formatCardViolation(card.cardId, format)),
+    [format],
+  );
   const { deckSort } = useDeckBuilderPreferences();
   const filter = useCardFilter(pool, {
     colorFilterMode: "all",
@@ -113,13 +120,13 @@ export function DeckEditor({
     [main, egg],
   );
 
-  const [unlimited, setUnlimited] = useState(false);
-  const copyLimit = (id: string): number =>
-    unlimited ? (getCardDefinition(id)?.maxCountInDeck ?? 4) : banlistLimit(id);
+  const copyLimit = (id: string): number => formatCopyLimit(id, format);
+  const outsideFormat = [...new Set(deckCardIds)].filter((id) => formatCardViolation(id, format));
   const add = (cardId: string) => {
     const def = getCardDefinition(cardId);
     if (!def) return;
-    if (!unlimited && isBanned(cardId)) return;
+    if (formatCardViolation(cardId, format) || copyLimit(cardId) === 0) return;
+    if (formatPairViolations([...deckCardIds, cardId], format).length > 0) return;
     const eggCard = isEggCard(def);
     const map = eggCard ? egg : main;
     const cur = map[cardId] ?? 0;
@@ -164,11 +171,11 @@ export function DeckEditor({
       if (count > cap) violations.push({ cardId: members.join(" + "), count, cap });
     }
     return violations;
-  }, [main, egg, deckCardIds, unlimited]);
+  }, [main, egg, deckCardIds, format]);
 
   const pairViolations = useMemo(
-    () => (unlimited ? [] : bannedPairViolations([...Object.keys(main), ...Object.keys(egg)])),
-    [main, egg, unlimited],
+    () => formatPairViolations([...Object.keys(main), ...Object.keys(egg)], format),
+    [main, egg, format],
   );
   const pairedCardIds = useMemo(() => new Set(pairViolations.flat()), [pairViolations]);
 
@@ -185,6 +192,7 @@ export function DeckEditor({
         coverCardId,
         sleeveId,
         eggSleeveId,
+        format,
         mainDeckArts: Object.entries(main).flatMap(([id, count]) =>
           Array.from({ length: count }, (_, i) => resolveCardArt(id, arts[id]?.[i]).artId),
         ),
@@ -198,7 +206,7 @@ export function DeckEditor({
 
   useEffect(() => {
     persist(false);
-  }, [main, egg, name, coverCardId, sleeveId, eggSleeveId, arts]);
+  }, [main, egg, name, coverCardId, sleeveId, eggSleeveId, arts, format]);
 
   const play = () => {
     persist(true);
@@ -206,7 +214,7 @@ export function DeckEditor({
   };
 
   const handleImport = (text: string) => {
-    const result = parseDeckList(text);
+    const result = parseDeckList(text, format);
     setArts(artsByCard(result));
     setMain(toCountMap(result.mainDeck));
     setEgg(toCountMap(result.eggDeck));
@@ -221,7 +229,8 @@ export function DeckEditor({
   const selectedAtMax =
     !sel ||
     !selectedDefinition ||
-    (!unlimited && isBanned(sel)) ||
+    copyLimit(sel) === 0 ||
+    !!formatCardViolation(sel, format) ||
     pairedCardIds.has(sel) ||
     sharedCardNumberCount(deckCardIds, sel) >= Math.min(selectedDefinition.maxCountInDeck, copyLimit(sel));
 
@@ -256,19 +265,13 @@ export function DeckEditor({
         extra={
           <>
             <p className="deck-builder-hint">{t("deck.builderHint")}</p>
-            <div className="deck-format-panel">
-              <label>
-                <input type="checkbox" checked={unlimited} onChange={(event) => setUnlimited(event.target.checked)} />
-                {t("lobby.unlimited")}
-              </label>
-              <p>{t("lobby.unlimitedDesc")}</p>
-            </div>
           </>
         }
       />
 
       <div className="deck-workspace" ref={workspace} style={deckShare.style}>
         <div className="deck-card-pool" onScroll={onPoolScroll}>
+          <DeckFormatSelector value={format} onChange={setFormat} />
           <SectionHeading
             title={t("redesign.decks.editor.pool")}
             action={
@@ -285,6 +288,7 @@ export function DeckEditor({
                 <PoolCard
                   key={card.cardId}
                   cardId={card.cardId}
+                  format={format}
                   inDeck={inDeck}
                   atMax={sharedCardNumberCount(deckCardIds, card.cardId) >= cap}
                   pairConflict={pairedCardIds.has(card.cardId)}
@@ -376,6 +380,7 @@ export function DeckEditor({
           <div className="deck-current__body">
             <DeckPreviewSections
               view={view}
+              format={format}
               main={main}
               egg={egg}
               coverCardId={coverCardId}
@@ -396,6 +401,12 @@ export function DeckEditor({
               sleeveIds={{ main: sleeveId, egg: eggSleeveId }}
               onChange={(part, next) => (part === "main" ? setSleeveId : setEggSleeveId)(next)}
             />
+            {outsideFormat.length > 0 ? (
+              <div className="deck-current__violations" role="status">
+                {t("deckFormat.violations", { count: outsideFormat.length })}
+                <div>{outsideFormat.join(", ")}</div>
+              </div>
+            ) : null}
             {banlistViolations.length > 0 ? (
               <div className="deck-current__violations">
                 <strong>{t("deck.banlistTitle")}</strong>
@@ -423,7 +434,9 @@ export function DeckEditor({
               <Button
                 size="sm"
                 icon={Icons.Swords}
-                disabled={!validMain || banlistViolations.length > 0 || pairViolations.length > 0}
+                disabled={
+                  !validMain || outsideFormat.length > 0 || banlistViolations.length > 0 || pairViolations.length > 0
+                }
                 onClick={play}
               >
                 {t("common.play")}
@@ -467,6 +480,7 @@ export function DeckEditor({
         <CardDetailDrawer
           key={sel}
           cardId={sel}
+          format={format}
           artId={chosenArt[sel] ?? arts[sel]?.[0]}
           onArtChange={(artId) => {
             setChosenArt((previous) => ({ ...previous, [sel]: artId }));
@@ -486,8 +500,8 @@ export function DeckEditor({
                   />
                 </div>
               ) : (
-                <Button full icon={Icons.Plus} disabled={!unlimited && isBanned(sel)} onClick={() => add(sel)}>
-                  {!unlimited && isBanned(sel) ? t("common.banned") : t("deck.addToDeck")}
+                <Button full icon={Icons.Plus} disabled={selectedAtMax} onClick={() => add(sel)}>
+                  {copyLimit(sel) === 0 ? t("common.banned") : t("deck.addToDeck")}
                 </Button>
               )}
               {selectedCount > 0 && getCardArts(sel).length > 1 ? (

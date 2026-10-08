@@ -1,6 +1,19 @@
 import type { decksEn } from "./decks.en";
 
 export const decksPtBR: Record<keyof typeof decksEn, string> = {
+  "deckFormat.label": "Formato",
+  "deckFormat.standard": "Padrão",
+  "deckFormat.pauper": "Pauper · C / U",
+  "deckFormat.historical": "Coleções históricas",
+  "deckFormat.snapshot":
+    "Cartas até {set} · Lista de restrições: {date}. Inclui coleções anteriores, iniciais e promos elegíveis.",
+  "deckFormat.pauperHint": "Apenas cartas Comuns e Incomuns, incluindo Digi-Ovos. Aplica a lista de restrições atual.",
+  "deckFormat.unlimitedHint": "Todas as cartas com os limites impressos. Sem lista de restrições.",
+  "deckFormat.standardHint": "Todas as cartas com a lista de restrições atual.",
+  "deckFormat.outside": "Fora deste formato",
+  "deckFormat.violations":
+    "{count} carta(s) deste deck estão fora do formato selecionado. Remova-as ou altere o formato.",
+
   "redesign.decks.list.statDecks": "Decks",
   "redesign.decks.list.statActive": "Deck ativo",
   "redesign.decks.list.statReady": "Prontos para jogar",

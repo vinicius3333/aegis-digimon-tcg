@@ -1,0 +1,28 @@
+.deck-format-selector {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--ds-line);
+}
+.deck-format-selector label {
+  font-weight: 700;
+}
+.deck-format-selector select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.625rem 0.75rem;
+  font: inherit;
+  color: var(--ds-text);
+  background: var(--ds-sheet);
+  border: 1px solid var(--ds-line);
+  border-radius: 0.375rem;
+}
+.deck-format-selector p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--ds-text-3);
+}
+.deck-format-selector select:focus-visible {
+  outline: 2px solid var(--ds-focus);
+  outline-offset: 2px;
+}

@@ -9,6 +9,8 @@ import {
   ROOM_TYPE_BETA,
   ROOM_TYPE_BETA_BOT,
   type Intent,
+  type DeckFormat,
+  deckFormat,
 } from "@aegis/shared";
 import {
   deploymentEndpoint,
@@ -51,7 +53,12 @@ function publicRoomType(options: AegisJoinOptions): string {
 
 /** Queues split on both settings, so each is always sent explicitly. */
 function withQueueFilters(options: AegisJoinOptions): AegisJoinOptions {
-  return { ...options, matchTimer: options.matchTimer === true, bestOf: options.bestOf === 3 ? 3 : 1 };
+  return {
+    ...options,
+    matchTimer: options.matchTimer === true,
+    bestOf: options.bestOf === 3 ? 3 : 1,
+    format: deckFormat(options.format, options.unlimited),
+  };
 }
 
 export function connectionSlot(room: AegisRoom): RoomSlot {
@@ -134,6 +141,8 @@ export class AegisConnectionRouter {
       const joined = await this.client(slot).joinById(rules.roomId, {
         ...options,
         roomCode: code.toUpperCase(),
+        unlimited: rules.unlimited,
+        format: rules.format,
       });
       return this.remember(joined, slot);
     }
@@ -349,10 +358,15 @@ export async function createPrivate(options: AegisJoinOptions): Promise<AegisRoo
 export interface PrivateRoomRules {
   roomId: string;
   unlimited: boolean;
+  format: DeckFormat;
 }
 
-function privateRoomRules(value: { roomId: string; unlimited?: boolean }): PrivateRoomRules {
-  return { roomId: value.roomId, unlimited: value.unlimited === true };
+function privateRoomRules(value: { roomId: string; unlimited?: boolean; format?: DeckFormat }): PrivateRoomRules {
+  return {
+    roomId: value.roomId,
+    unlimited: value.unlimited === true,
+    format: deckFormat(value.format, value.unlimited),
+  };
 }
 
 /** Inspect the host's rules before choosing a guest deck. */
@@ -380,10 +394,13 @@ export async function joinPrivateByCode(code: string, options: AegisJoinOptions)
     const body = await response.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error ?? "room not found");
   }
-  const { roomId } = (await response.json()) as { roomId: string };
+  const rules = privateRoomRules(await response.json());
+  const { roomId } = rules;
   const joined = await getLegacyClient().joinById<GameState>(roomId, {
     ...options,
     roomCode: code.toUpperCase(),
+    unlimited: rules.unlimited,
+    format: rules.format,
   });
   return rememberLegacy(joined);
 }

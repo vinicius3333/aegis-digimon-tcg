@@ -1,4 +1,10 @@
-import { effectiveCopyLimit as banlistLimit, getCardDefinition, isBanned, restrictionLabel } from "@aegis/shared";
+import {
+  formatCopyLimit,
+  getCardDefinition,
+  formatCardViolation,
+  formatRestrictionLabel,
+  type DeckFormat,
+} from "@aegis/shared";
 import { CardFull } from "../design/cards";
 import { ColorDot } from "../design/primitives";
 import { colorKey, kindOf } from "../design/theme";
@@ -48,6 +54,7 @@ export function DeckViewToggle({ view, onView }: { view: DeckView; onView: (view
 
 interface DeckPreviewSectionsProps {
   view: DeckView;
+  format?: DeckFormat;
   arts?: Record<string, string[]>;
   main: CountMap;
   egg: CountMap;
@@ -72,6 +79,7 @@ function countCards(cards: CountMap): number {
 /** Current-deck preview, arranged around how a player builds an evolution line. */
 export function DeckPreviewSections({
   view,
+  format = "standard",
   main,
   egg,
   arts,
@@ -153,6 +161,7 @@ export function DeckPreviewSections({
               <Entry
                 key={cardId}
                 cardId={cardId}
+                format={format}
                 artId={arts?.[cardId]?.[0]}
                 count={section.cards[cardId]!}
                 isCover={coverCardId === cardId}
@@ -175,6 +184,7 @@ function countCardsFromIds(cards: CountMap, cardIds: readonly string[]): number 
 
 interface DeckEntryProps {
   cardId: string;
+  format?: DeckFormat;
   artId?: string;
   count: number;
   isCover: boolean;
@@ -184,13 +194,13 @@ interface DeckEntryProps {
   onRemove: () => void;
 }
 
-function entryLimits(cardId: string, count: number, pairConflict: boolean, pairLabel: string) {
+function entryLimits(cardId: string, count: number, pairConflict: boolean, pairLabel: string, format: DeckFormat) {
   const definition = getCardDefinition(cardId)!;
-  const cap = Math.min(definition.maxCountInDeck, banlistLimit(cardId));
-  const banned = isBanned(cardId) || pairConflict;
+  const cap = Math.min(definition.maxCountInDeck, formatCopyLimit(cardId, format));
+  const banned = cap === 0 || !!formatCardViolation(cardId, format) || pairConflict;
   return {
     definition,
-    banLabel: pairConflict ? pairLabel : restrictionLabel(cardId),
+    banLabel: pairConflict ? pairLabel : formatRestrictionLabel(cardId, format),
     banned,
     addDisabled: banned || count >= cap,
   };
@@ -223,10 +233,26 @@ export function DeckStepper({
   );
 }
 
-function DeckGridCard({ cardId, artId, count, isCover, pairConflict, onOpen, onAdd, onRemove }: DeckEntryProps) {
+function DeckGridCard({
+  cardId,
+  format = "standard",
+  artId,
+  count,
+  isCover,
+  pairConflict,
+  onOpen,
+  onAdd,
+  onRemove,
+}: DeckEntryProps) {
   const { t } = useTranslation();
   if (!getCardDefinition(cardId)) return null;
-  const { definition, banLabel, banned, addDisabled } = entryLimits(cardId, count, pairConflict, t("deck.pairBadge"));
+  const { definition, banLabel, banned, addDisabled } = entryLimits(
+    cardId,
+    count,
+    pairConflict,
+    t("deck.pairBadge"),
+    format,
+  );
   return (
     <div className="deck-grid-card" data-copies={Math.min(count, 3)}>
       <button
@@ -252,10 +278,26 @@ function DeckGridCard({ cardId, artId, count, isCover, pairConflict, onOpen, onA
   );
 }
 
-function DeckListRow({ cardId, artId, count, isCover, pairConflict, onOpen, onAdd, onRemove }: DeckEntryProps) {
+function DeckListRow({
+  cardId,
+  format = "standard",
+  artId,
+  count,
+  isCover,
+  pairConflict,
+  onOpen,
+  onAdd,
+  onRemove,
+}: DeckEntryProps) {
   const { t } = useTranslation();
   if (!getCardDefinition(cardId)) return null;
-  const { definition, banLabel, banned, addDisabled } = entryLimits(cardId, count, pairConflict, t("deck.pairBadge"));
+  const { definition, banLabel, banned, addDisabled } = entryLimits(
+    cardId,
+    count,
+    pairConflict,
+    t("deck.pairBadge"),
+    format,
+  );
   const kind = kindOf(definition);
   const typeLabel = kind === "Digimon" && definition.level != null ? `Lv.${definition.level}` : kind;
   return (
