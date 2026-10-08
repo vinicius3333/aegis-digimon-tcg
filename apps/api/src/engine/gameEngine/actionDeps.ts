@@ -360,6 +360,8 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
       }
       return liveReduction + intrinsicReduction;
     },
+    // A DUAL card's color waiver belongs to its Option use requirement (rule 16-42).
+    // It cannot waive the Digimon side's printed digivolution colors.
     // Color-requirement waiver at the digivolve site (WaiveColorRequirement, LOCKED Q3):
     // when the evolving instance is waived, the EvoCost is matched on level alone. This is
     // the consuming read of the color-waiver store on the digivolve path. BUT while a
@@ -369,6 +371,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
     // levels") — so the waiver is suppressed and the color test is re-enforced. This is the
     // consuming read of `cannotIgnoreDigivolution` (WR-01).
     colorWaived: (state, instance) =>
+      definitionOf(instance.cardId).isDualCard !== true &&
       engine.continuous.hasColorWaiver(instance.instanceId) &&
       !engine.continuous.cannotIgnoreDigivolution(state.turnSeat),
     // The base permanent's effective colors (printed ∪ continuously-derived) gate the

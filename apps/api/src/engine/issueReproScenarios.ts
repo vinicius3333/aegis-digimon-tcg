@@ -25,6 +25,127 @@ type Layout = { players: readonly [PlayerLayout, PlayerLayout]; memory?: number 
 
 // Reduced boards for reported issues. Each runs in the ordinary turn loop.
 const ISSUE_LAYOUTS = {
+  "arena-github-5289-ulforce-rina": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "BT11-032" }, { card: "EX13-069" }],
+        hand: ["BT12-029", "BT12-029"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-github-5289-ulforce-exact-base": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "BT12-029" }, { card: "BT11-032", suspended: true }],
+        hand: ["BT12-029"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      {},
+    ],
+  },
+  "arena-github-5274-siriusmon-vb-cost": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "EX12-032" }],
+        hand: ["EX12-018"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      {},
+    ],
+  },
+  "arena-github-5273-two-ouryumon-dna": {
+    memory: 3,
+    players: [
+      {
+        field: [{ card: "BT20-018" }, { card: "BT20-018" }],
+        hand: ["BT20-060"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      { security: ["BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-github-5272-kyubimon-moving": {
+    memory: 5,
+    players: [
+      {
+        breeding: { card: "ST22-03", under: ["ST22-02"] },
+        deck: ["BT1-009", "ST22-02", "BT1-010", "BT1-011", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      {},
+    ],
+  },
+  "arena-github-5269-kyubimon-digivolving": {
+    memory: 5,
+    players: [
+      {
+        field: [{ card: "ST22-02" }],
+        hand: ["ST22-03"],
+        deck: ["BT1-009", "BT1-010", "ST22-02", "BT1-011", "BT1-012", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      {},
+    ],
+  },
+  "arena-github-5268-blue-card-chaos-mode": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "EX10-052" }, { card: "EX2-060" }],
+        hand: ["EX2-072"],
+        deck: ["BT1-009", "EX10-052", "EX2-066", "EX2-067", "EX2-068", "EX2-069", "BT1-009", "BT1-009"],
+      },
+      {},
+    ],
+  },
+  "arena-github-5268-blue-card-lucemon": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "EX10-013" }, { card: "EX2-060" }],
+        hand: ["EX2-072"],
+        deck: ["BT1-009", "EX10-052", "EX2-066", "EX2-067", "EX2-068", "EX2-069", "BT1-009", "BT1-009"],
+      },
+      {},
+    ],
+  },
+  "arena-github-5283-wargreymon-modal-warp": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "BT1-010" }, { card: "BT5-092" }],
+        hand: ["BT22-013"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      { field: [{ card: "BT1-010" }], security: ["BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-github-5283-metalgarurumon-modal-warp": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "BT1-029" }, { card: "BT5-092" }],
+        hand: ["BT22-026"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      { field: [{ card: "BT1-010" }], security: ["BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-github-5283-wargreymon-mandatory-delete": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "ST20-10" }],
+        hand: ["ST20-11"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      { field: [{ card: "BT1-010" }, { card: "ST2-10" }], security: ["BT1-009", "BT1-009"] },
+    ],
+  },
+
   "arena-issue-5266-elecmon-bottom-deck": {
     memory: 3,
     players: [

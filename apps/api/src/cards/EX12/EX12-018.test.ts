@@ -7,6 +7,81 @@ import { registeredCompiledCards } from "../../engine/effects/interpreter/compil
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "../index.js";
 
+it("GitHub #5274: evolves from the VB WereGarurumon for 3, without selecting a normal cost", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "EX12-032", as: "weregarurumon" }],
+        hand: [{ card: "EX12-018", as: "siriusmon" }],
+        deck: ["BT1-009"],
+      },
+    },
+    { autoDeclineOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 10;
+  await s.ready();
+  expect(s.inst("siriusmon").digivolveRoutes.length).toBeGreaterThan(0);
+  expect(s.inst("siriusmon").digivolveRoutes.every((r) => r.projectedCost === 3)).toBe(true);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("weregarurumon").permanentId,
+      instanceId: s.inst("siriusmon").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.engine.mainVerbContinuationsInFlight === 0 && s.state.pendingDecision === undefined);
+  expect(s.perm("weregarurumon").topCard.cardId).toBe("EX12-018");
+  expect(s.state.memory).toBe(7);
+});
+
+it("GitHub #5274: Use Req does not create an off-color route from a non-VB level 5", async () => {
+  const s = setupEngine({
+    0: {
+      battleArea: [{ card: "BT1-038", as: "base" }, "EX12-007"],
+      hand: [{ card: "EX12-018", as: "siriusmon" }],
+    },
+  });
+  s.state.memory = 10;
+  await s.ready();
+  expect(s.inst("siriusmon").digivolveRoutes.some((r) => r.permanentId === s.perm("base").permanentId)).toBe(false);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("siriusmon").instanceId,
+    }),
+  ).toEqual({ ok: false, reason: "invalid-evolution" });
+  expect(s.state.memory).toBe(10);
+});
+
+it.each([false, true])(
+  "GitHub #5274: a red VB base retains both printed routes (alternate %s)",
+  async (useAlternateCost) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-014", as: "base" }],
+          hand: [{ card: "EX12-018", as: "siriusmon" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("siriusmon").instanceId,
+        useAlternateCost,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.engine.mainVerbContinuationsInFlight === 0 && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(useAlternateCost ? 7 : 6);
+  },
+);
+
 describe("EX12-018 Siriusmon", () => {
   it("places up to two matching cards on digivolving and reduces an opposing Digimon by the full stack count", async () => {
     const s = setupEngine(
