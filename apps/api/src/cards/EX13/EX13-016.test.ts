@@ -7,6 +7,129 @@ import { compiled } from "./EX13-016.js";
 import "../index.js";
 
 describe("EX13-016 Omnimon", () => {
+  it.each(["BT17-007", "BT22-008"])(
+    "#5297 keeps Agumon %s end-of-turn DNA consistent with ordinary DNA",
+    async (agumon) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT22-013", as: "grey", under: [agumon] },
+              { card: "BT22-026", as: "garuru" },
+            ],
+            hand: [{ card: "EX13-016", as: "omnimon" }],
+            deck: Array(8).fill("BT1-009"),
+            security: ["BT1-011"],
+          },
+          1: { deck: Array(8).fill("BT1-011"), security: ["BT1-012"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 2;
+      await s.ready();
+      const loop = s.engine.startTurnLoop();
+      try {
+        await advance(s.engine).waitForMainPhase(0);
+        expect(s.inst("omnimon").dnaDigivolveRoutes).toHaveLength(1);
+        expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        await settle(
+          () =>
+            s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX13-016") &&
+            s.state.pendingDecision === undefined,
+        );
+        expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual([
+          "BT22-026",
+          agumon,
+          "BT22-013",
+        ]);
+        expect(
+          s.events.some(
+            (event) => event.kind === "effectTriggered" && event.sourceCardId === agumon && event.isInherited,
+          ),
+        ).toBe(true);
+      } finally {
+        s.engine.applyIntent(0, { type: "surrender" });
+        await loop;
+      }
+    },
+  );
+
+  it.each([
+    ["BT22-013", "BT22-026", "BT22-008"],
+    ["BT17-015", "BT17-027", "BT17-007"],
+    ["BT2-065", "BT2-081", "BT22-008"],
+  ])(
+    "#5297 projects the physical %s/%s DNA pair and accepts Main DNA with %s inherited",
+    async (grey, garuru, agumon) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: grey, as: "grey", under: [agumon] },
+              { card: garuru, as: "garuru" },
+            ],
+            hand: [{ card: "EX13-016", as: "omnimon" }],
+            deck: Array(8).fill("BT1-009"),
+            security: ["BT1-011"],
+          },
+          1: { deck: Array(8).fill("BT1-011"), security: ["BT1-012"] },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 2;
+      await s.ready();
+      const materialPermanentIds = [s.perm("grey").permanentId, s.perm("garuru").permanentId];
+      expect(
+        [...s.inst("omnimon").dnaDigivolveRoutes].map((route) => ({
+          materials: JSON.parse(route.materialPermanentIdsJson),
+          cost: route.projectedCost,
+        })),
+      ).toEqual([{ materials: materialPermanentIds, cost: 0 }]);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "dnaDigivolve",
+          instanceId: s.inst("omnimon").instanceId,
+          materialPermanentIds,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+      expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("EX13-016");
+      expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual([garuru, agumon, grey]);
+      expect(s.state.memory).toBe(2);
+      expect(s.events.some((event) => event.kind === "cardPlayed" && event.mechanic === "dna")).toBe(true);
+    },
+  );
+
+  it.each([
+    ["EX13-077", "BT22-013", "BT22-026"],
+    ["EX13-016", "BT22-012", "BT22-026"],
+    ["EX13-016", "BT22-013", "BT1-026"],
+  ])("#5297 rejects %s DNA with invalid printed materials %s/%s", async (result, grey, garuru) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: grey, as: "grey" },
+          { card: garuru, as: "garuru" },
+        ],
+        hand: [{ card: result, as: "result" }],
+        deck: Array(8).fill("BT1-009"),
+        security: ["BT1-011"],
+      },
+      1: { deck: Array(8).fill("BT1-011"), security: ["BT1-012"] },
+    });
+    await s.ready();
+    expect(s.inst("result").dnaDigivolveRoutes).toHaveLength(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        instanceId: s.inst("result").instanceId,
+        materialPermanentIds: [s.perm("grey").permanentId, s.perm("garuru").permanentId],
+      }).ok,
+    ).toBe(false);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([grey, garuru]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain(result);
+  });
+
   it("matches the catalog and encodes every printed timing and requirement", () => {
     expect(getCardDefinition("EX13-016")).toMatchObject({
       cardId: "EX13-016",

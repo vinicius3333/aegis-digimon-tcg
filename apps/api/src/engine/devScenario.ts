@@ -57,6 +57,8 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github-5297-omnimon-main-dna",
+  "arena-github-5297-omnimon-agumon-dna",
   "arena-github-5286-lordknightmon-knightmon",
   "arena-github-5285-examon-battle-win",
   "arena-github-5284-regulusmon-shared-opt",
@@ -7696,7 +7698,34 @@ function layGithubRemovalScenario(
   }
 }
 
+function layGithub5297OmnimonDnaScenario(state: GameState, includeSecondPair: boolean): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-5297-egg-${seat}`, "BT1-001", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-5297-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-5297-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT22-008", "BT22-013"], "-5297-grey"));
+  placePermanent(human, establishedDigimon(0, ["BT17-027"], "-5297-garuru"));
+  if (includeSecondPair) {
+    placePermanent(human, establishedDigimon(0, ["BT1-029", "BT22-026"], "-5297-garuru-second"));
+  }
+  insertCard(human, Zone.Hand, faceDownCard("dev-5297-omnimon", "EX13-016", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-5297-merciful", "EX13-077", 0));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 2;
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-github-5297-omnimon-main-dna": (state) => layGithub5297OmnimonDnaScenario(state, true),
+  "arena-github-5297-omnimon-agumon-dna": (state) => layGithub5297OmnimonDnaScenario(state, false),
   "arena-github-5286-lordknightmon-knightmon": layGithubLordKnightmonScenario,
   "arena-github-5285-examon-battle-win": layGithubExamonScenario,
   "arena-github-5284-regulusmon-shared-opt": layGithubRegulusmonScenario,
