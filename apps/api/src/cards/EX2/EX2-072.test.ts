@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX2-072.js";
+import "../EX6/EX6-054.js";
+import "../EX10/EX10-013.js";
+import "../EX10/EX10-052.js";
 import "./EX2-014.js";
 import "./EX2-019.js";
 import "./EX2-021.js";
@@ -12,6 +15,65 @@ import "./EX2-072.js";
 
 const inertDeck = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const inertSecurity = ["BT1-009", "BT1-013"];
+
+it.each(["EX10-052", "EX6-054"])("GitHub #5268: Blue Card cannot evolve Chaos Mode into %s", async (revealedCard) => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "EX10-052", as: "base" }, "EX2-060"],
+        hand: [{ card: "EX2-072", as: "option" }],
+        deck: [{ card: revealedCard, as: "revealed" }, "EX2-066", "EX2-067", "EX2-068", "EX2-069", "BT1-009"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true, autoOrderTriggers: true },
+  );
+  s.state.memory = 10;
+  await s.ready();
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+  await settle(() => s.engine.mainVerbContinuationsInFlight === 0 && s.state.pendingDecision === undefined);
+  expect(s.perm("base").topCard.instanceId).toBe(s.inst("base").instanceId);
+  expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("revealed").instanceId)).toBe(true);
+  expect(s.events.some((e) => e.kind === "digivolved")).toBe(false);
+});
+
+it.each(["EX10-052", "EX6-054"])(
+  "GitHub #5268: Blue Card still evolves exact Lucemon into %s for free",
+  async (revealedCard) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX10-013", as: "base" }, "EX2-060"],
+          hand: [{ card: "EX2-072", as: "option" }],
+          deck: [
+            { card: revealedCard, as: "revealed" },
+            "EX2-066",
+            "EX2-067",
+            "EX2-068",
+            "EX2-069",
+            "BT1-009",
+            "BT1-009",
+          ],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoOrderCards: true,
+        autoOrderTriggers: true,
+        declinePrompts: ["By trashing 1 card"],
+      },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.engine.mainVerbContinuationsInFlight === 0 && s.state.pendingDecision === undefined);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("revealed").instanceId);
+    expect(s.perm("base").stack.map((c) => c.cardId)).toEqual(["EX10-013"]);
+    expect(s.state.memory).toBe(7);
+  },
+);
 
 describe("EX2-072 Blue Card", () => {
   it("matches the catalog, Q3362-Q3365, and typed compiled IR", () => {

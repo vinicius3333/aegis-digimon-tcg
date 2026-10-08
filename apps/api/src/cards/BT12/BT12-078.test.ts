@@ -9,7 +9,7 @@ import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/
 describe("BT12-078 Wizardmon (X Antibody)", () => {
   it("publicly digivolves for 0 from Wizardmon and takes the Blocker replacement", async () => {
     expect(digivolutionRequirementsFor("BT12-078")).toContainEqual({
-      names: ["Wizardmon"],
+      namesExact: ["Wizardmon"],
       cost: 0,
       isAlternate: true,
     });

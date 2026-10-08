@@ -1,4 +1,10 @@
 import { getCompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-export default registerIrCard("BT12-073", getCompiledCard("BT12-073")!);
+const compiled = structuredClone(getCompiledCard("BT12-073")!);
+compiled.digivolutionRequirement = compiled.digivolutionRequirement?.map(({ names, ...requirement }) => ({
+  ...requirement,
+  ...(names === undefined ? {} : { namesExact: names }),
+}));
+
+export default registerIrCard("BT12-073", compiled);
