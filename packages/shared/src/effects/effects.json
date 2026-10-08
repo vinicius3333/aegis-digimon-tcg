@@ -131910,7 +131910,7 @@
         ]
       },
       {
-        "trigger": "WhenAttacking",
+        "trigger": "EndOfAttack",
         "actions": [
           {
             "kind": "Suspend",
@@ -196646,14 +196646,11 @@
         "trigger": "YourTurn",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "whenOneOfYoursDigivolves",
-            "once": true,
-            "sourceFilter": {
-              "isSelfRef": true,
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Insectoid"], "match": "trait" }]
-            },
+            "kind": "Replacement",
+            "event": "wouldDigivolve",
+            "mode": "instead",
+            "sourceFilter": { "isSelfRef": true, "kind": ["Digimon"] },
+            "into": { "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Insectoid"], "match": "trait" }] },
             "actions": [
               {
                 "kind": "GainTriggeredEffect",

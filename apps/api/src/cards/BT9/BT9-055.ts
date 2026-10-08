@@ -52,7 +52,7 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "WhenAttacking",
+      trigger: "EndOfAttack",
       actions: [
         {
           kind: "Suspend",
