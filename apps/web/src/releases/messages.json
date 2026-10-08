@@ -1,4 +1,44 @@
 {
+  "releases.1.17.0-beta.summary": {
+    "en": "This minor release adds Italian, Unlimited matchmaking, hand reordering, Japanese alternate arts and clearer effect prompts, and fixes reported card and table problems.",
+    "pt-BR": "Esta versão minor adiciona o italiano, partidas Unlimited, reordenação da mão, artes alternativas japonesas e prompts de efeito mais claros, e corrige problemas reportados em cartas e na mesa.",
+    "es": "Esta versión menor agrega el italiano, partidas Unlimited, reordenar la mano, artes alternativas japonesas y avisos de efecto más claros, y corrige problemas reportados en cartas y en la mesa."
+  },
+  "releases.1.17.0-beta.feature.language": {
+    "en": "Play in Italian, with local battle music and new hand display options.",
+    "pt-BR": "Jogue em italiano, com música de batalha local e novas opções de exibição da mão.",
+    "es": "Juega en italiano, con música de batalla local y nuevas opciones para mostrar la mano."
+  },
+  "releases.1.17.0-beta.feature.match": {
+    "en": "Find Unlimited matches, play your own decks against the bot, and see unread chat messages on the chat button.",
+    "pt-BR": "Encontre partidas Unlimited, jogue seus próprios decks contra o bot e veja mensagens não lidas no botão do chat.",
+    "es": "Busca partidas Unlimited, juega tus propios decks contra el bot y ve los mensajes no leídos en el botón del chat."
+  },
+  "releases.1.17.0-beta.feature.hand": {
+    "en": "Drag cards or use Alt+arrow keys to reorder your hand, or keep it sorted. Ending your turn now asks for confirmation, which you can turn off.",
+    "pt-BR": "Arraste cartas ou use Alt+setas para reordenar a mão, ou mantenha-a ordenada. Encerrar o turno agora pede confirmação, que você pode desativar.",
+    "es": "Arrastra cartas o usa Alt+flechas para reordenar tu mano, o mantenla ordenada. Terminar el turno ahora pide confirmación, que puedes desactivar."
+  },
+  "releases.1.17.0-beta.feature.effects": {
+    "en": "Effect prompts can be moved, keywords explain their official rules, active field effects show in the corners, and a preset effect order resolves in one click.",
+    "pt-BR": "Os prompts de efeito podem ser movidos, as palavras-chave explicam suas regras oficiais, os efeitos de campo ativos aparecem nos cantos e uma ordem de efeitos pré-definida resolve com um clique.",
+    "es": "Los avisos de efecto se pueden mover, las palabras clave explican sus reglas oficiales, los efectos de campo activos aparecen en las esquinas y un orden de efectos predefinido se resuelve con un clic."
+  },
+  "releases.1.17.0-beta.feature.arts": {
+    "en": "Pick from 6,801 Japanese alternate arts, and report community decks to moderators.",
+    "pt-BR": "Escolha entre 6.801 artes alternativas japonesas e denuncie decks da comunidade aos moderadores.",
+    "es": "Elige entre 6.801 artes alternativas japonesas y reporta decks de la comunidad a los moderadores."
+  },
+  "releases.1.17.0-beta.fix.cards": {
+    "en": "Effects that delete several groups now delete them at the same time, Arts Digivolve works on a Digimon in the breeding area, and reported problems with Delay, DNA, optional costs, Gammamon, Imperialdramon, Kyubimon and P-204 are fixed.",
+    "pt-BR": "Efeitos que deletam vários grupos agora os deletam ao mesmo tempo, a Arts Digivolve funciona em um Digimon na área de criação, e problemas reportados com Delay, DNA, custos opcionais, Gammamon, Imperialdramon, Kyubimon e P-204 foram corrigidos.",
+    "es": "Los efectos que eliminan varios grupos ahora los eliminan al mismo tiempo, la Arts Digivolve funciona en un Digimon en el área de crianza, y se corrigieron problemas reportados con Delay, DNA, costos opcionales, Gammamon, Imperialdramon, Kyubimon y P-204."
+  },
+  "releases.1.17.0-beta.fix.table": {
+    "en": "Dropped players keep their seat for a short time, spectators reload correctly, effect notices follow their triggers, and field controls stay clear of cards on mobile.",
+    "pt-BR": "Jogadores desconectados mantêm o lugar por um curto tempo, espectadores recarregam corretamente, avisos de efeito seguem seus gatilhos e os controles do campo ficam livres das cartas no celular.",
+    "es": "Los jugadores desconectados mantienen su lugar por un breve tiempo, los espectadores recargan correctamente, los avisos de efecto siguen a sus activadores y los controles del campo no tapan las cartas en el móvil."
+  },
   "releases.1.16.0-beta.summary": {
     "en": "This minor release adds match chat, a Spanish locale, a text size setting, per-deck sleeves and deck list tools, and fixes reported card and table problems.",
     "pt-BR": "Esta versão minor adiciona chat nas partidas, o idioma espanhol, uma opção de tamanho de texto, capas por deck e ferramentas de listas de deck, e corrige problemas reportados em cartas e na mesa.",
