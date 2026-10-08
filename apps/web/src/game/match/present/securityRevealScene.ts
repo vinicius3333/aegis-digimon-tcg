@@ -57,6 +57,8 @@ export interface SecurityRevealSceneDeps {
   securityClauseGateRef: MutableRefObject<SecurityClause | null>;
   /** Mutated: pointed at the clause gate, so this batch's consequences wait for it too. */
   causingEffectGateRef: MutableRefObject<PresentationGate | null>;
+  /** The latest effect announcement, which a later batch's cause is compared against. */
+  effectAnnounceGateRef?: MutableRefObject<PresentationGate | null>;
   heldNoticesRef: MutableRefObject<readonly MatchNotice[]>;
   heldPanelsRef: MutableRefObject<readonly SidePanel[]>;
   setSecurityBreak: Dispatch<SetStateAction<SecurityBreakCue | null>>;
@@ -106,6 +108,7 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
     setHeldSecurityEffectState,
     securityClauseGateRef,
     causingEffectGateRef,
+    effectAnnounceGateRef,
     heldNoticesRef,
     heldPanelsRef,
     setSecurityBreak,
@@ -277,6 +280,7 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
       releaseBoard: () => releaseBoard(),
       own,
       docking: false,
+      effectAtDock: effectAnnounceGateRef?.current,
     };
     securityClauseGateRef.current?.releaseBoard();
     securityClauseGateRef.current = clause;

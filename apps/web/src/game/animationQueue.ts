@@ -68,6 +68,11 @@ export interface AnimationStep {
    * it belongs to. Ordering among front-queued steps is the order they were enqueued in.
    */
   next?: boolean;
+  /**
+   * Queue in front of the first waiting step this matches, or at the back when none does.
+   * A cue raised late for an earlier batch uses it to keep its place among later batches.
+   */
+  ahead?: (queued: AnimationStep) => boolean;
   /** Defaults to true. A step that carries something to read sets false and keeps its time. */
   skippable?: boolean;
   /** Informational steps can remain visible without holding the presented board snapshot. */
@@ -411,9 +416,13 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
       const track = trackNamed(name);
       if (steps.some((candidate) => candidate.replace === true)) cancelTrack(track);
       const next = steps.some((candidate) => candidate.next === true);
+      const ahead = first.ahead;
       if (next) {
         const behindFrontQueued = track.queued.findIndex((entry) => !entry.next);
         track.queued.splice(behindFrontQueued < 0 ? track.queued.length : behindFrontQueued, 0, { steps, next });
+      } else if (ahead) {
+        const later = track.queued.findIndex((entry) => entry.steps.some(ahead));
+        track.queued.splice(later < 0 ? track.queued.length : later, 0, { steps, next });
       } else track.queued.push({ steps, next });
       for (const candidate of steps)
         options.onStep?.({
