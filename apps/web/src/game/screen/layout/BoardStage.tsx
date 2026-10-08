@@ -28,6 +28,7 @@ import { useEndTurnConfirmation } from "../hooks/useEndTurnConfirmation";
 import { SurrenderDialog } from "./SurrenderDialog";
 import { useTranslation } from "../../../i18n";
 import { CardOpenerProvider } from "../../cardLinks";
+import { OpponentSelectingPill } from "../../BoardDecisionRail";
 import { NarrationStack } from "../../NarrationStack";
 import { AttackAnnouncementBanner } from "../../SidePanelStack";
 import { TargetingSpotlight } from "../../TargetingSpotlight";
@@ -355,18 +356,27 @@ export function BoardStage({
           {/* One moment at a time. The portrait phone folds both sides into a single
               centred slot; everywhere else the viewer reads the left corner and the
               opponent's moments arrive in the right one. */}
-          {!resultShown ? (
-            <NarrationStack
-              narration={cues.narration}
-              rejection={cues.rejection}
-              compact={layout.collapseNotices}
-              promptSourceCardId={promptSourceCardId}
-              securityDockActive={cues.securityBranch !== null || cues.optionBranch !== null}
-              onAdvance={cues.advanceNarration}
-              onDismissRejection={cues.dismissRejection}
-              onHold={cues.holdNarration}
-            />
-          ) : null}
+          <div className="game-board-notices">
+            {state.pendingDecision &&
+            state.pendingDecision.seat !== viewerSeat &&
+            !state.gameOver &&
+            !cues.zoneShowcase &&
+            !cues.revealShowcase ? (
+              <OpponentSelectingPill />
+            ) : null}
+            {!resultShown ? (
+              <NarrationStack
+                narration={cues.narration}
+                rejection={cues.rejection}
+                compact={layout.collapseNotices}
+                promptSourceCardId={promptSourceCardId}
+                securityDockActive={cues.securityBranch !== null || cues.optionBranch !== null}
+                onAdvance={cues.advanceNarration}
+                onDismissRejection={cues.dismissRejection}
+                onHold={cues.holdNarration}
+              />
+            ) : null}
+          </div>
 
           {cues.attackAnnouncement && !resultShown ? (
             <AttackAnnouncementBanner announcement={cues.attackAnnouncement} />

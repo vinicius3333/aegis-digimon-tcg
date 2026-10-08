@@ -271,13 +271,6 @@ export function MatchOverlays({
         min={decisionView.decisionMin}
         max={decisionView.decisionMax}
         triggerDetails={triggerDetails}
-        opponentSelecting={
-          Boolean(state.pendingDecision) &&
-          state.pendingDecision?.seat !== viewerSeat &&
-          !state.gameOver &&
-          !scenes.zoneShowcase &&
-          !scenes.revealShowcase
-        }
         opponentSecurityCount={opponent.securityCount}
         onTogglePick={onTogglePick}
         onRespond={intents.respondDecision}

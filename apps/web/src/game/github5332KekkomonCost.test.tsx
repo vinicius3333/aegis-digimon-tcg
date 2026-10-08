@@ -108,7 +108,6 @@ it.each([390, 1024])("#5332 cost picker maps Tamer tops and dispatches payment a
           min={view.decisionMin}
           max={view.decisionMax}
           triggerDetails={[]}
-          opponentSelecting={false}
           opponentSecurityCount={2}
           onTogglePick={toggle}
           onRespond={(response: DecisionResponse) => intents.respondDecision(room, request.decisionId, response)}

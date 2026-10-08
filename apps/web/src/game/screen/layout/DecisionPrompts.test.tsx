@@ -31,7 +31,6 @@ it.each([false, true])(
           min={0}
           max={1}
           triggerDetails={[]}
-          opponentSelecting={false}
           opponentSecurityCount={5}
           onTogglePick={() => {}}
           onRespond={onRespond}
@@ -76,7 +75,6 @@ it("reuses the Assembly material overlay for an effect-driven play", () => {
         min={0}
         max={1}
         triggerDetails={[]}
-        opponentSelecting={false}
         opponentSecurityCount={5}
         onTogglePick={() => {}}
         onRespond={onRespond}
@@ -120,7 +118,6 @@ it("reuses the DigiXros material overlay for an effect-driven play", () => {
         min={0}
         max={1}
         triggerDetails={[]}
-        opponentSelecting={false}
         opponentSecurityCount={5}
         onTogglePick={() => {}}
         onRespond={onRespond}
@@ -161,7 +158,6 @@ it("labels a player-only attack target as an attack target instead of a hand sel
         min={1}
         max={1}
         triggerDetails={[]}
-        opponentSelecting={false}
         opponentSecurityCount={5}
         onTogglePick={() => {}}
         onRespond={() => {}}
@@ -202,7 +198,6 @@ it("Discord 1555307552223264829: names the attacker and its only target, and con
         min={1}
         max={1}
         triggerDetails={[]}
-        opponentSelecting={false}
         opponentSecurityCount={5}
         onTogglePick={() => {}}
         onRespond={onRespond}
@@ -238,7 +233,6 @@ it("shows Taiki and the DigiXros instruction when selecting a material-zone Tame
         min={0}
         max={1}
         triggerDetails={[]}
-        opponentSelecting={false}
         opponentSecurityCount={5}
         onTogglePick={() => {}}
         onRespond={() => {}}
@@ -283,7 +277,6 @@ it("asks for a source host on the board, filters its cards, and returns without 
     min: 0,
     max: 1,
     triggerDetails: [],
-    opponentSelecting: false,
     opponentSecurityCount: 5,
     onTogglePick: vi.fn<(instanceId: string) => void>(),
     onRespond,

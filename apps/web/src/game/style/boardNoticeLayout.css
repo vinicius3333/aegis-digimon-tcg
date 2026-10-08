@@ -1,0 +1,73 @@
+/* Keep waiting status and effect narration in one layout, rather than two
+   independently positioned overlays competing with the utility labels. */
+.game-board-notices {
+  display: contents;
+}
+
+@media (max-width: 1023px) and (orientation: portrait) {
+  .aegis-arena .game-board {
+    grid-template-rows:
+      var(--arena-header-height)
+      auto
+      minmax(0, 1fr)
+      calc(var(--arena-hand-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .aegis-arena .game-board-notices {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    padding-inline: max(8px, env(safe-area-inset-left, 0px)) max(8px, env(safe-area-inset-right, 0px));
+    z-index: var(--ds-z-notice);
+  }
+
+  .aegis-arena .game-board .game-board-notices .narration-slot[data-slot="narration"] {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    max-height: min(31rem, 30dvh);
+    overflow-y: auto;
+    animation: none;
+  }
+
+  .aegis-arena .game-board .game-board-notices .narration-slot[data-slot="narration"]:has(.narration-peek) {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .aegis-arena .game-board-notices > .board-opponent-pill {
+    position: relative;
+    inset: auto;
+    align-self: center;
+    max-width: 100%;
+    translate: none;
+    animation: none;
+  }
+}
+
+/* At tablet landscape widths the left and right utility rails still need their
+   own space. Stack the waiting pill above the text notice in the center lane. */
+@media (min-width: 1024px) and (max-width: 1199px) and (min-height: 520px) {
+  .aegis-arena .game-board-notices {
+    position: absolute;
+    top: 72px;
+    left: 120px;
+    right: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    z-index: var(--ds-z-notice);
+    pointer-events: none;
+  }
+
+  .aegis-arena .game-board-notices > .board-opponent-pill,
+  .aegis-arena .game-board-notices > .narration-slot {
+    position: relative;
+    inset: auto;
+    translate: none;
+    animation: none;
+    max-width: 100%;
+  }
+}
