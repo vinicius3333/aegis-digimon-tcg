@@ -397,6 +397,11 @@ export const DEV_SCENARIO_IDS = [
   "security-battle",
   "security-chain",
   "arena-face-down-ace-no-overflow",
+  "arena-bt22-vademon-return-tamer",
+  "arena-bt22-vademon-return-ace",
+  "arena-bt22-shinmonzaemon-own-security",
+  "arena-bt22-shinmonzaemon-opponent-security",
+
   "arena-raid-optional-preset",
   "arena-preset-order-no-clicks",
 ] as const;
@@ -1132,6 +1137,48 @@ function layEx11VortexEffectAttackBlockScenario(state: GameState, decks: readonl
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 7;
+}
+
+/** Discord 1557652222744199228: payment facing, return Overflow and security ownership. */
+function layBt22DmReturnSecurityScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  finding: "tamer" | "ace" | "own-security" | "opponent-security",
+): void {
+  prepareIssueScenario(state, decks, finding.endsWith("security") ? 8 : 3);
+  const human = state.players[0]!;
+  const opponent = state.players[1]!;
+  // Fixed, harmless decks/security keep attack checks and turn-loop draws reproducible.
+  for (const player of [human, opponent]) {
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Deck);
+    clearZone(player, Zone.Security);
+    clearZone(player, Zone.EggDeck);
+    for (let index = 0; index < 20; index++)
+      insertCard(player, Zone.Deck, faceDownCard(`dev-dm-deck-${player.seat}-${index}`, "BT1-009", player.seat));
+    for (let index = 0; index < 5; index++)
+      insertCard(
+        player,
+        Zone.Security,
+        faceDownCard(`dev-dm-security-${player.seat}-${index}`, "BT1-009", player.seat),
+      );
+  }
+  insertCard(human, Zone.EggDeck, faceDownCard("dev-dm-egg", "BT1-001", 0));
+  if (finding === "tamer" || finding === "ace") {
+    const host = establishedDigimon(0, ["BT22-061"], "-dm-vademon");
+    pushOnStack(host, faceDownCard("dev-dm-payment", "EX9-013", 0));
+    placePermanent(human, host);
+    const target = establishedDigimon(1, [finding === "tamer" ? "BT1-085" : "BT14-014"], "-dm-target");
+    target.isSuspended = true;
+    placePermanent(opponent, target);
+  } else {
+    const host = establishedDigimon(0, ["BT22-038"], "-dm-monzaemon");
+    pushOnStack(host, faceDownCard("dev-dm-payment", "EX9-013", 0));
+    placePermanent(human, host);
+    const owner = finding === "own-security" ? 0 : 1;
+    placePermanent(state.players[owner]!, establishedDigimon(owner, ["BT1-009", "BT1-013"], "-dm-target"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-dm-shin", "BT22-076", 0));
+  }
 }
 
 /** Discord 1557475629010518016: a face-down ACE digivolution card has no <Overflow> (CR §4-7-9). */
@@ -8858,6 +8905,12 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "security-battle": layDelayedSecurityBattleScenario,
   "security-chain": laySecurityChainScenario,
   "arena-face-down-ace-no-overflow": layFaceDownAceNoOverflowScenario,
+  "arena-bt22-vademon-return-tamer": (state, decks) => layBt22DmReturnSecurityScenario(state, decks, "tamer"),
+  "arena-bt22-vademon-return-ace": (state, decks) => layBt22DmReturnSecurityScenario(state, decks, "ace"),
+  "arena-bt22-shinmonzaemon-own-security": (state, decks) =>
+    layBt22DmReturnSecurityScenario(state, decks, "own-security"),
+  "arena-bt22-shinmonzaemon-opponent-security": (state, decks) =>
+    layBt22DmReturnSecurityScenario(state, decks, "opponent-security"),
 };
 
 export function layDevScenario(scenario: DevScenarioId, state: GameState, decks: readonly [Decklist, Decklist]): void {
