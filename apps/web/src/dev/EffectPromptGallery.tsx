@@ -734,7 +734,6 @@ function GalleryPrompt({
       min={request.options?.min ?? 1}
       max={request.options?.max ?? 1}
       triggerDetails={[]}
-      opponentSelecting={false}
       opponentSecurityCount={5}
       onTogglePick={(id) =>
         setPicks((selected) => (selected.includes(id) ? selected.filter((entry) => entry !== id) : [...selected, id]))

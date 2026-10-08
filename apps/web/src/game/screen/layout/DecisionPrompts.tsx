@@ -1,8 +1,7 @@
 /* The viewer's open decision, in whichever surface answers it.
 
    Field targets use the physical cards and a confirmation rail. Selections from other
-   zones use the dialog, after choosing any digivolution-card host on the field. The pill tells the viewer
-   when the opponent has a question open. */
+   zones use the dialog, after choosing any digivolution-card host on the field. */
 
 import {
   assemblyRequirementFor,
@@ -12,12 +11,7 @@ import {
   type Permanent,
 } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
-import {
-  BoardOptionalPrompt,
-  BoardSelectionRail,
-  BoardSourceHostPrompt,
-  OpponentSelectingPill,
-} from "../../BoardDecisionRail";
+import { BoardOptionalPrompt, BoardSelectionRail, BoardSourceHostPrompt } from "../../BoardDecisionRail";
 import { cardDisplayName } from "../../cardLinks";
 import { decisionPermanentDetails, decisionSourceCounts, type CandidateZone } from "../../decisionModel";
 import { attackTargetPrompt } from "../model/attackTargetPrompt";
@@ -56,7 +50,6 @@ export function DecisionPrompts({
   min,
   max,
   triggerDetails,
-  opponentSelecting,
   opponentSecurityCount,
   onTogglePick,
   onRespond,
@@ -76,8 +69,6 @@ export function DecisionPrompts({
   min: number;
   max: number;
   triggerDetails: readonly TriggerDetail[];
-  /** The opponent has a question open and the viewer is waiting on their answer. */
-  opponentSelecting: boolean;
   /** Whether attacking the opponent is a Security Attack or a Direct Attack. */
   opponentSecurityCount: number;
   onTogglePick: (instanceId: string) => void;
@@ -295,11 +286,6 @@ export function DecisionPrompts({
           onOpenDialog={onOpenDialog}
         />
       ) : null}
-
-      {/* Held back while a played card is still showcased centre-screen, so the
-          effect notice (queued behind that showcase) is readable before the wait
-          it explains is announced. */}
-      {opponentSelecting ? <OpponentSelectingPill /> : null}
     </>
   );
 }

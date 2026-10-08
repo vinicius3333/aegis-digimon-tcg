@@ -3,8 +3,16 @@
    match screen fed a fabricated connection, the same way the arena demo drives it. */
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Phase, type DecisionRequest, type GameState } from "@aegis/shared";
+import {
+  PendingDecision,
+  Phase,
+  getCardDefinition,
+  type ServerEvent,
+  type DecisionRequest,
+  type GameState,
+} from "@aegis/shared";
 import { useTranslation, type Locale } from "../i18n";
+import { singleServerBatch } from "../net/serverBatches";
 import { GameScreen } from "../game/GameScreen";
 import { CardOpenerProvider } from "../game/cardLinks";
 import { CardMini } from "../design/cards";
@@ -309,7 +317,9 @@ function NarrationHandSelectionSpecimen({ locale }: { locale: Locale }) {
 function MatchSpecimen({
   configure,
   decision,
+  previewEvents = [],
 }: {
+  previewEvents?: ServerEvent[];
   configure?: (state: GameState) => void;
   decision?: DecisionRequest;
 }) {
@@ -318,25 +328,37 @@ function MatchSpecimen({
     configure?.(next);
     return next;
   });
+  const [batches, setBatches] = useState<ReturnType<typeof singleServerBatch>[]>([]);
   return (
-    <GameScreen
-      joinOptions={{ displayName: "Mobile lab", deck: { mainDeck: [], eggDeck: [] } }}
-      identityColor="Red"
-      onExit={noop}
-      demoConnection={{
-        room: undefined,
-        status: "connected",
-        state,
-        events: [],
-        batches: [],
-        decision,
-        respondDecision: noop,
-        acknowledgeDecision: noop,
-        error: undefined,
-        sessionId: "arena-demo-0",
-        roomCode: "",
-      }}
-    />
+    <>
+      {previewEvents.length > 0 && batches.length === 0 ? (
+        <button
+          type="button"
+          style={{ position: "fixed", top: "50%", left: "25%", zIndex: 1000 }}
+          onClick={() => setBatches([singleServerBatch(previewEvents)])}
+        >
+          Show opponent effect
+        </button>
+      ) : null}
+      <GameScreen
+        joinOptions={{ displayName: "Mobile lab", deck: { mainDeck: [], eggDeck: [] } }}
+        identityColor="Red"
+        onExit={noop}
+        demoConnection={{
+          room: undefined,
+          status: "connected",
+          state,
+          events: batches.flatMap((batch) => batch.events),
+          batches,
+          decision,
+          respondDecision: noop,
+          acknowledgeDecision: noop,
+          error: undefined,
+          sessionId: "arena-demo-0",
+          roomCode: "",
+        }}
+      />
+    </>
   );
 }
 
@@ -603,6 +625,34 @@ export const SPECIMENS: readonly Specimen[] = [
     render: () => <TurnBanner transition={{ endingSeat: 1, nextSeat: 0, turnCount: 6 }} viewerSeat={0} />,
   },
 
+  {
+    id: "board-opponent-narration",
+    group: "Board",
+    title: "Opponent effect while selecting cards",
+    surface: "match",
+    render: () => (
+      <MatchSpecimen
+        configure={(state) => {
+          state.turnSeat = 1;
+          state.pendingDecision = Object.assign(new PendingDecision(), {
+            decisionId: "lab-opponent-selection",
+            seat: 1,
+            kind: "selectCards",
+          });
+        }}
+        previewEvents={[
+          {
+            kind: "effectTriggered",
+            timing: "Main",
+            seat: 1,
+            sourceCardId: "EX12-041",
+            effectKey: "main",
+            description: getCardDefinition("EX12-041")?.effectText ?? "",
+          },
+        ]}
+      />
+    ),
+  },
   {
     id: "board-main",
     group: "Board",
