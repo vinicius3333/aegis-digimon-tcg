@@ -58,6 +58,8 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github5310-okuwamon-grandis-memory",
+  "arena-github5310-grandis-end-of-attack",
   "arena-github5311-crescemon-cost-scope",
   "arena-github5311-imperialdramon-cost-scope",
   "arena-github5318-junomon-printed-cost",
@@ -2541,6 +2543,44 @@ function layBt2KurisarimonRepeatMemoryScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = startMain ? 3 : 1;
+}
+
+/** GitHub #5310: two independently verified printed timing contracts. */
+function layGithub5310GrandisScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  endOfAttack = false,
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    fillZone(player, Zone.Hand, []);
+    fillZone(
+      player,
+      Zone.Deck,
+      Array.from({ length: 20 }, (_, index) => faceDownCard(`dev-5310-deck-${seat}-${index}`, "BT1-009", seat)),
+    );
+    fillZone(
+      player,
+      Zone.Security,
+      Array.from({ length: 5 }, (_, index) => faceDownCard(`dev-5310-security-${seat}-${index}`, "BT1-009", seat)),
+    );
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(
+      human,
+      establishedDigimon(0, endOfAttack ? ["P-075", "BT1-083", "BT9-055"] : ["P-075"], "-5310-host"),
+    );
+    if (!endOfAttack) insertCard(human, Zone.Hand, faceUpCard("dev-5310-grandis", "BT9-055", 0));
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-5310-opponent"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /** BT24-013 Fugamon draws only when that Fugamon itself is trashed from the hand. */
@@ -8417,6 +8457,8 @@ function layGithubEndTurnReportScenario(
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-github5310-okuwamon-grandis-memory": layGithub5310GrandisScenario,
+  "arena-github5310-grandis-end-of-attack": (state, decks) => layGithub5310GrandisScenario(state, decks, true),
   "arena-github5311-crescemon-cost-scope": layGithub5311CrescemonCostScenario,
   "arena-github5311-imperialdramon-cost-scope": layGithub5311ImperialdramonCostScenario,
   "arena-github5318-junomon-printed-cost": layGithub5318JunomonPrintedCostScenario,

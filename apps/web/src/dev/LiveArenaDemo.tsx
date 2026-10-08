@@ -1311,6 +1311,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Reproduz o bug de Oxxo: você tem 1 de memória, Infermon com Kurisarimon BT2-059 nas fontes, Arata BT5-090 em campo e Diaboromon EX6-043 na mão. Pule a criação e evolua o Infermon para Diaboromon (custo 3). Resolva primeiro o [Quando Evolui], aceitando o token, e depois aceite suspender Arata para jogar outro token. Kurisarimon deve ganhar 1 de memória por cada token: -2 → -1 → 0. Seu turno continua com dois tokens e Arata suspenso.",
     en: "Reproduces Oxxo's bug: you have 1 memory, Infermon with BT2-059 Kurisarimon in its sources, BT5-090 Arata in play, and EX6-043 Diaboromon in hand. Skip breeding and digivolve Infermon into Diaboromon (cost 3). Resolve [When Digivolving] first, accepting its token, then accept suspending Arata to play another token. Kurisarimon must gain 1 memory for each token: -2 → -1 → 0. Your turn continues with two tokens and a suspended Arata.",
   },
+  "arena-github5310-okuwamon-grandis-memory": {
+    ptBR: "Pule a criação. Com 3 de memória, evolua Okuwamon P-075 para GrandisKuwagamon BT9-055 pelo custo impresso de 4. Escolha o Monodramon do bot no [Quando Evolui]. Okuwamon concede o efeito antes de evoluir: a suspensão deve ganhar exatamente 1 de memória, de -1 para 0, mantendo seu turno. Grandis fica com 16000 DP e não deve repetir a suspensão. Este cenário verifica o contrato atual; o relato de 56 ativações ainda não foi reproduzido.",
+    en: "Skip breeding. With 3 memory, digivolve P-075 Okuwamon into BT9-055 GrandisKuwagamon for its printed cost of 4. Choose the bot's Monodramon for [When Digivolving]. Okuwamon grants the effect before digivolving: that suspension must gain exactly 1 memory, from -1 to 0, keeping your turn. Grandis stays at 16000 DP and must not repeat the suspension. This scenario verifies the current contract; the reported 56 activations remain unproven.",
+  },
+  "arena-github5310-grandis-end-of-attack": {
+    ptBR: "Pule a criação e ataque a segurança com GrandisKuwagamon BT9-055, que tem GranKuwagamon e Okuwamon P-075 nas fontes. Grandis deve continuar suspenso durante a checagem de segurança e só depois, no [Fim do Ataque], suspender o Monodramon do bot e voltar à posição ativa. Ataque a segurança uma segunda vez: o limite de uma vez por turno deve deixá-lo suspenso ao final. O efeito de memória de Okuwamon não está armado neste cenário; sua herdada concede Perfurante.",
+    en: "Skip breeding and attack security with BT9-055 GrandisKuwagamon, with GranKuwagamon and P-075 Okuwamon in its sources. Grandis must stay suspended during the security check, then suspend the bot's Monodramon and unsuspend only at [End of Attack]. Attack security a second time: the once-per-turn limit must leave Grandis suspended afterward. Okuwamon's memory effect is not armed in this scenario; its inherited effect grants Piercing.",
+  },
   "arena-bt2-kurisarimon-start-main-memory": {
     ptBR: "Você tem 3 de memória e dois Diaboromon EX6-043, um com Kurisarimon BT2-059 nas fontes. Pule a criação e aceite os dois efeitos de início da Fase Principal para jogar um token de cada vez. Resolva a herdada de Kurisarimon após cada token: a memória deve subir de 3 para 4 e depois para 5. Dois efeitos separados geram dois ganhos; dois tokens simultâneos de um único efeito geram apenas um.",
     en: "You have 3 memory and two EX6-043 Diaboromon, one with BT2-059 Kurisarimon in its sources. Skip breeding and accept both start-of-main effects to play one token at a time. Resolve Kurisarimon's inherited effect after each token: memory must rise from 3 to 4, then to 5. Two separate effects produce two gains; two simultaneous tokens from one effect produce only one.",
@@ -2533,6 +2541,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-lm-gundramon-simultaneous-delete", "LM Gundramon · trash 3, then delete 3 together"],
   ["arena-bt24-fugamon-self-trash", "BT24 Fugamon · draw only when this card is trashed"],
   ["arena-bt2-kurisarimon-repeat-memory", "BT2 Kurisarimon · Diaboromon + Arata memory"],
+  ["arena-github5310-okuwamon-grandis-memory", "GitHub #5310 · Okuwamon → Grandis · one memory gain"],
+  ["arena-github5310-grandis-end-of-attack", "GitHub #5310 · Grandis · End of Attack timing"],
   ["arena-bt2-kurisarimon-start-main-memory", "BT2 Kurisarimon · two start-of-main token effects"],
   ["arena-ex12-metalgreymon-forced-attack-play", "EX12 MetalGreymon · play and mandatory StartMain attack"],
   ["arena-ex12-metalgreymon-forced-attack-digivolve", "EX12 MetalGreymon · digivolve and mandatory StartMain attack"],
