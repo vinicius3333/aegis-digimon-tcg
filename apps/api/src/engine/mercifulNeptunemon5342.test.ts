@@ -1,4 +1,4 @@
-import { EffectDuration, type Seat } from "@aegis/shared";
+import { EffectDuration, Phase, type Seat } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import "../cards/index.js";
 import { advance } from "./testkit/advance.js";
@@ -10,6 +10,99 @@ const sixColors = ["BT1-009", "BT1-028", "BT1-045", "BT1-064", "BT2-055"];
 describe("#5342 Merciful Mode battles Neptunemon", () => {
   for (const seat of [0, 1] as const) {
     const opponent: Seat = seat === 0 ? 1 : 0;
+    it.each([false, true])(
+      `seat ${seat}: Oracle candidate Divermon grant paid %s survives evolution and expires after the opposing turn`,
+      async (payProtection) => {
+        // Candidate log Assembly IDs mapped through its initial deck snapshot.
+        const materials = ["EX13-077", "AD1-025", "ST20-09", "ST21-10", "ST20-02", "ST20-10"];
+        const s = setupEngine(
+          {
+            [opponent]: {
+              battleArea: [{ card: "BT24-022", as: "host", under: ["BT24-002"] }],
+              hand: [
+                { card: "BT24-028", as: "divermon" },
+                { card: "BT24-030", as: "neptunemon" },
+                { card: "BT24-020", as: "cost" },
+              ],
+              deck: Array.from({ length: 20 }, () => "BT1-009"),
+              security: 5,
+              eggDeck: ["BT1-001"],
+            },
+            [seat]: {
+              battleArea: ["EX13-073"],
+              hand: [{ card: "EX13-077", as: "merciful" }],
+              trash: materials.map((card, index) => ({ card, as: `material${index}` })),
+              deck: Array.from({ length: 20 }, () => "BT1-009"),
+              security: 5,
+              eggDeck: ["BT1-001"],
+            },
+          },
+          {
+            autoAcceptOptional: true,
+            autoSelectCards: true,
+            autoChooseOption: true,
+            declinePrompts: ["By suspending", ...(payProtection ? [] : ["By paying: By placing"])],
+          },
+        );
+        s.state.turnSeat = opponent;
+        s.state.memory = 10;
+        await s.ready();
+        const hostId = s.perm("host").permanentId;
+        const loop = s.engine.startTurnLoop();
+        await settle(() => s.state.phase === Phase.Breeding);
+        expect(s.engine.applyIntent(opponent, { type: "endPhase" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(opponent);
+        expect(
+          s.engine.applyIntent(opponent, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+        ).toEqual({ ok: true });
+        await settleAcrossTimers(() => s.events.some((event) => event.kind === "attackEnded"));
+        expect(
+          s.engine.applyIntent(opponent, {
+            type: "digivolve",
+            permanentId: hostId,
+            instanceId: s.inst("divermon").instanceId,
+          }),
+        ).toEqual({ ok: true });
+        await settleAcrossTimers(() =>
+          s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT24-028"),
+        );
+        expect(observe(s.engine).isRestricted(s.perm("host"), "beDeletedInBattle")).toBe(payProtection);
+        expect(s.engine.applyIntent(opponent, { type: "endPhase" })).toEqual({ ok: true });
+        await settleAcrossTimers(() => s.state.turnSeat === seat && s.state.phase === Phase.Breeding);
+        expect(s.perm("host").topCard.cardId).toBe("BT24-030");
+        expect(observe(s.engine).isRestricted(s.perm("host"), "beDeletedInBattle")).toBe(payProtection);
+        expect(s.engine.applyIntent(seat, { type: "endPhase" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(seat);
+        const before = s.events.length;
+        expect(
+          s.engine.applyIntent(seat, {
+            type: "playCard",
+            instanceId: s.inst("merciful").instanceId,
+            assembly: { materialInstanceIds: materials.map((_, index) => s.inst(`material${index}`).instanceId) },
+          }),
+        ).toEqual({ ok: true });
+        if (payProtection) {
+          await settleAcrossTimers(() => observe(s.engine).blockingSeat() === opponent);
+          expect(s.engine.applyIntent(opponent, { type: "declareBlock", blockerPermanentId: hostId })).toEqual({
+            ok: true,
+          });
+        }
+        await settleAcrossTimers(() => s.state.turnSeat === opponent && s.state.phase === Phase.Breeding);
+        const battles = s.events.slice(before).filter((event) => event.kind === "battleCompared");
+        expect(battles.filter((event) => event.effectBattle)).toHaveLength(payProtection ? 3 : 1);
+        expect(battles.filter((event) => !event.effectBattle)).toHaveLength(payProtection ? 1 : 0);
+        expect(battles.map((event) => event.loserPermanentIds)).toEqual(payProtection ? [[], [], [], []] : [[hostId]]);
+        expect(s.state.players[opponent]!.battleArea).toHaveLength(payProtection ? 1 : 0);
+        const survivingHost = s.state.players[opponent]!.battleArea.find((p) => p.permanentId === hostId);
+        expect(survivingHost ? observe(s.engine).isRestricted(survivingHost, "beDeletedInBattle") : false).toBe(false);
+        expect(s.state.pendingDecision).toBeUndefined();
+        expect(s.engine.applyIntent(opponent, { type: "endPhase" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(opponent);
+        expect(s.engine.applyIntent(seat, { type: "surrender" })).toEqual({ ok: true });
+        await loop;
+      },
+    );
+
     it(`seat ${seat}: On Play battles Neptunemon despite Merciful Mode being newly played`, async () => {
       const s = setupEngine(
         {
