@@ -323,7 +323,12 @@ export async function runReplacement(
       exceptDigiXros: action.exceptDigiXros,
       affectsAll: action.affectsAll,
       description: action.raw ?? ctx.activeEffectText ?? nestedCostModifier?.raw ?? "",
-      causeAllows: (cause, resolvingSeat, isBounce) => {
+      causeAllows: (cause, resolvingSeat, isBounce, destination) => {
+        if (
+          action.leaveDestinations !== undefined &&
+          (destination === undefined || !action.leaveDestinations.includes(destination))
+        )
+          return false;
         // "Can't leave EXCEPT by deletion" (EX6-044): a deletion (a non-bounce removal) is
         // allowed through; only a move/bounce is prevented (KB EX6-044 Q3771).
         if (exceptDeletion && !isBounce) return false;

@@ -231,7 +231,12 @@ export interface ReplacementSubscriptionBase {
    * reaction may fire (e.g. "by an opponent's effect" must NOT fire on the controller's own
    * deletion). Absent => the reaction fires regardless of cause.
    */
-  causeAllows?: (cause: RemovalCause, resolvingSeat: Seat | undefined, isBounce: boolean) => boolean;
+  causeAllows?: (
+    cause: RemovalCause,
+    resolvingSeat: Seat | undefined,
+    isBounce: boolean,
+    destination?: ZoneRef,
+  ) => boolean;
   /** Skip this replacement for the player-action material relocation in DigiXros. */
   exceptDigiXros?: boolean;
   /**

@@ -28,6 +28,7 @@ export const compiled: CompiledCard = {
           mode: "prevent",
           sourceFilter: { isSelfRef: true },
           leaveCause: "byEffect",
+          leaveDestinations: ["trash", "hand", "deck"],
           condition: {
             kind: "selfHasNameContaining",
             names: ["Greymon", "Omnimon"],

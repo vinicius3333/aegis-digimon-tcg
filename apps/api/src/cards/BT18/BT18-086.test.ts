@@ -4,8 +4,65 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-086.js";
 import "./BT18-019.js";
 import "./BT18-101.js";
+import "../EX10/EX10-060.js";
+import "../ST10/ST10-14.js";
 
 describe("BT18-086 Lucemon: Larva", () => {
+  it.each([
+    ["declined", "BT18-101", true],
+    ["different name", "BT18-082", false],
+    ["Larva in battle", "BT18-101", false],
+  ])("GitHub #5307: does not prevent leaving when %s", async (control, targetCard, offered) => {
+    const larva = { card: "BT18-086", as: "larva" };
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT1-045", "BT10-079"], hand: [{ card: "ST10-14", as: "chaos" }] },
+        1: {
+          ...(control === "Larva in battle" ? {} : { breeding: larva }),
+          battleArea: [{ card: targetCard, as: "target" }, ...(control === "Larva in battle" ? [larva] : [])],
+          security: ["BT1-010"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const targetId = s.inst("target").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chaos").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("chaos").instanceId));
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard.instanceId === targetId)).toBe(false);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([targetId]);
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT18-086")).toBe(offered);
+    expect(s.state.players[1]!.breeding?.topCard.cardId).toBe(control === "Larva in battle" ? undefined : "BT18-086");
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+  it.each(["BT18-101", "EX10-060"])(
+    "GitHub #5307: breeding Larva offers to prevent %s leaving for security",
+    async (satanCard) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: ["BT1-045", "BT10-079"], hand: [{ card: "ST10-14", as: "chaos" }] },
+          1: {
+            breeding: { card: "BT18-086", as: "larva" },
+            battleArea: [{ card: satanCard, as: "satan" }],
+            security: ["BT1-010"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chaos").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("chaos").instanceId));
+      expect(s.state.players[1]!.breeding).toBeUndefined();
+      expect(s.state.players[1]!.battleArea.map((perm) => perm.topCard.cardId)).toEqual([satanCard, "BT18-086"]);
+      expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-010"]);
+      expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT18-086")).toBe(true);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
   it("covers security play, breeding replacement, and 0 DP protection", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);

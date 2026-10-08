@@ -104,6 +104,7 @@ export const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldLeavePlay",
           mode: "prevent",
+          leaveDestinations: ["trash", "hand", "deck"],
           sourceFilter: {
             isSelfRef: true,
           },

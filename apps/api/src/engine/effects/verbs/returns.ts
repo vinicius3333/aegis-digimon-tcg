@@ -54,7 +54,7 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
       }),
     );
     const partitionCandidates = partition.captureReturns(instanceIds, opts?.byEffectSeat);
-    instanceIds = await filterBouncePrevented(instanceIds);
+    instanceIds = await filterBouncePrevented(instanceIds, "hand");
     await partition.resolve(partitionCandidates);
     // Bind each battle-area target to the permanent identity selected by the return effect.
     // A would-be-returned reaction can replace that Digimon with a new permanent (BT20-074
@@ -268,7 +268,7 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
       }),
     );
     const partitionCandidates = partition.captureReturns(instanceIds, opts?.byEffectSeat);
-    instanceIds = await filterBouncePrevented(instanceIds);
+    instanceIds = await filterBouncePrevented(instanceIds, "deck");
     await partition.resolve(partitionCandidates);
     const toTop = opts?.toTop ?? false;
     const returnedFromTrashById = new Map<string, Seat>();

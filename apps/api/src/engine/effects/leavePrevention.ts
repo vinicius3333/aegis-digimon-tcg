@@ -1,4 +1,4 @@
-import type { Permanent, PreventionKeyword, Seat } from "@aegis/shared";
+import type { Permanent, PreventionKeyword, Seat, ZoneRef } from "@aegis/shared";
 import type { EffectContext, RemovalCause } from "./EffectContext.js";
 import type { ReplacementSubscription, SubTriggerRegistry } from "./subtriggers.js";
 function replacementActivationKey(replacement: ReplacementSubscription): string {
@@ -88,6 +88,8 @@ export async function consultLeavePrevention(
   resolvingSeat: Seat | undefined,
   opts: {
     isBounce?: boolean;
+    /** Actual movement destination, separate from the removal's cause. */
+    destination?: ZoneRef;
     /** DigiXros/material declarations are player actions, not an effect owned by the player. */
     playerAction?: boolean;
     /** DigiXros material relocation is a player action that bypasses "other than DigiXros" clauses. */
@@ -142,7 +144,16 @@ export async function consultLeavePrevention(
       const activationKey = replacementActivationKey(repl);
       if (opts.reentryGuard.activeReplacementKeys.has(activationKey)) continue;
       if (repl.sourcePermanentId === undefined && repl.sourceInstanceId === undefined) continue;
-      if (repl.causeAllows && !repl.causeAllows(cause, seat, opts.isBounce === true)) continue;
+      if (
+        repl.causeAllows &&
+        !repl.causeAllows(
+          cause,
+          seat,
+          opts.isBounce === true,
+          opts.destination ?? (opts.isBounce === true ? undefined : "trash"),
+        )
+      )
+        continue;
       const srcPerm = repl.sourcePermanentId === undefined ? undefined : host.permanentById(repl.sourcePermanentId);
       if (srcPerm === undefined && repl.sourceInstanceId === undefined) continue;
       if (srcPerm !== undefined && srcPerm.topCard === undefined) continue;
