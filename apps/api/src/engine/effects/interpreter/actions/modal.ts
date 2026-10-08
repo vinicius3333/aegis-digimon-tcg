@@ -1,6 +1,8 @@
 // Choosing between the options of a modal action.
 
 import type { EffectContext } from "../../EffectContext.js";
+import { createCardSource } from "../../../cards/CardSource.js";
+import { runtimeCompiledCard } from "../compiledCards.js";
 import { evaluateCondition } from "../conditions.js";
 import { canPayCost } from "../costs.js";
 import { describeAction } from "../describe.js";
@@ -17,7 +19,78 @@ import {
   playableTokenRefs,
 } from "./play.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
-import { printedModalBullets, splitPrintedClauses, type Action } from "@aegis/shared";
+import { printedModalBullets, splitPrintedClauses, type Action, type CardInstance } from "@aegis/shared";
+
+/** Read a prospective hand card's printed waiver without installing a color grant. */
+function prospectiveColorWaiver(ctx: EffectContext, card: CardInstance): boolean {
+  const source = createCardSource(card, {
+    permanentOf: () => undefined,
+    isOnBattleArea: () => false,
+    isInHand: () => true,
+    isSeatsTurn: (seat) => ctx.game.state.turnSeat === seat,
+  });
+  const cardCtx = { ...ctx, source };
+  return (
+    runtimeCompiledCard(card.cardId)?.effects.some((effect) => {
+      if (effect.trigger !== "Static" && effect.trigger !== "Rule") return false;
+      // Mirror colorWaiverStatic's supported shape; ordinary or mixed Static
+      // bodies need their on-field guard and cannot grant a loose-card waiver.
+      if (
+        effect.actions.length === 0 ||
+        !effect.actions.every(
+          (action) =>
+            action.kind === "WaiveColorRequirement" &&
+            (action.target === undefined || action.target.isSelf === true || action.target.filter.isSelfRef === true),
+        )
+      )
+        return false;
+      if (effect.condition !== undefined && !evaluateCondition(cardCtx, effect.condition)) return false;
+      return effect.actions.some(
+        (action) =>
+          action.kind === "WaiveColorRequirement" &&
+          action.color === undefined &&
+          (action.condition === undefined || evaluateCondition(cardCtx, action.condition)),
+      );
+    }) === true
+  );
+}
+
+function ownTopSecurityHandPayment(
+  action: Extract<Action, { kind: "Modal" }>,
+  merged: Extract<Action, { kind: "PlayWithoutCost" }>,
+): boolean {
+  const cost = action.cost;
+  const zones = merged.from ?? DEFAULT_PLAY_ZONES;
+  return (
+    cost?.kind === "securityToHand" &&
+    (cost.controller === undefined || cost.controller === "mine") &&
+    cost.position !== "bottom" &&
+    !/\btop\s+or\s+bottom\b|\bbottom\s+or\s+top\b/i.test(cost.raw ?? "") &&
+    zones.length === 1 &&
+    zones[0] === "hand"
+  );
+}
+
+/** A read-only requirement view; resolution receipts still belong to the real context. */
+function withPrintedHandColorWaivers(ctx: EffectContext, onlyInstanceId?: string): EffectContext {
+  const owner = ctx.source.ownerSeat;
+  const game = {
+    ...ctx.game,
+    optionColorRequirementMet: (
+      seat: typeof owner,
+      instanceId: string,
+      definition: Parameters<NonNullable<typeof ctx.game.optionColorRequirementMet>>[2],
+    ) => {
+      if (ctx.game.optionColorRequirementMet?.(seat, instanceId, definition) !== false) return true;
+      if (seat !== owner || (onlyInstanceId !== undefined && instanceId !== onlyInstanceId)) return false;
+      const card = ctx.game.player(owner).hand.find((candidate) => candidate.instanceId === instanceId);
+      return card !== undefined && prospectiveColorWaiver(ctx, card);
+    },
+  };
+  return new Proxy(ctx, {
+    get: (target, key) => (key === "game" ? game : Reflect.get(target, key, target)),
+  });
+}
 
 /**
  * Whether any option of a modal can currently be attempted. A modal whose every option is
@@ -26,7 +99,32 @@ import { printedModalBullets, splitPrintedClauses, type Action } from "@aegis/sh
  */
 export function modalHasAvailableOption(ctx: EffectContext, action: Extract<Action, { kind: "Modal" }>): boolean {
   const merged = mergedPlayOrUseAction(action);
-  if (merged !== undefined) return canAttemptModalAction(ctx, merged);
+  if (merged !== undefined) {
+    if (canAttemptModalAction(ctx, merged)) return true;
+    const cost = action.cost;
+    if (!ownTopSecurityHandPayment(action, merged) || cost === undefined || !canPayCost(ctx, cost)) return false;
+    const owner = ctx.source.ownerSeat;
+    const player = ctx.game.player(owner);
+    const top = player.security[0];
+    if (top === undefined) return false;
+    // BT25-041's payment can supply the only playable card. Project just that
+    // top card into hand for the existing guards; payment and selection still
+    // run against authoritative state after the player accepts the effect.
+    const projectedHand = [...player.hand, top];
+    const projectedPlayer = new Proxy(player, {
+      get(target, key, receiver) {
+        return key === "hand" ? projectedHand : Reflect.get(target, key, receiver);
+      },
+    });
+    const projectedCtx: EffectContext = {
+      ...ctx,
+      game: {
+        ...ctx.game,
+        player: (seat) => (seat === owner ? projectedPlayer : ctx.game.player(seat)),
+      },
+    };
+    return canAttemptModalAction(withPrintedHandColorWaivers(projectedCtx, top.instanceId), merged);
+  }
   return action.options.some((option, idx) => optionIsAvailable(ctx, action, option, idx));
 }
 
@@ -226,7 +324,10 @@ export async function runModal(ctx: EffectContext, action: Extract<Action, { kin
   }
   const merged = mergedPlayOrUseAction(action);
   if (merged !== undefined) {
-    await runAction(ctx, merged);
+    // The paid security card is now really in hand, but the continuous color
+    // ledger may not have recomputed yet. Recheck its printed self waiver for
+    // the real selection, without projecting cards into execution or granting colors.
+    await runAction(ownTopSecurityHandPayment(action, merged) ? withPrintedHandColorWaivers(ctx) : ctx, merged);
     return false;
   }
   const availableIndices = availableOptionIndices(ctx, action);
