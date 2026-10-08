@@ -60,7 +60,7 @@ describe("BT25-043 Habakirimon", () => {
     expect(s.perm("yellowBase").stack.map((card) => card.cardId)).toEqual(["BT1-058"]);
   });
 
-  it("uses the ordinary purple-only Lv.5 evolution at its printed cost 4 when Glowing Dawn is present", async () => {
+  it("GitHub #5274: does not use the Option waiver for ordinary purple-only evolution", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
@@ -80,10 +80,11 @@ describe("BT25-043 Habakirimon", () => {
         permanentId: s.perm("purpleBase").permanentId,
         instanceId: s.inst("habakiri").instanceId,
       }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("purpleBase").topCard.cardId === "BT25-043");
-    expect(s.state.memory).toBe(2);
-    expect(s.perm("purpleBase").stack.map((card) => card.cardId)).toEqual(["BT24-076"]);
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("purpleBase").topCard.cardId).toBe("BT24-076");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("habakiri").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
   it("recovers first, then trashes the top security of a player with the most security", () => {
