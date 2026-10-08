@@ -51912,23 +51912,30 @@
         "trigger": "StartOfYourMainPhase",
         "actions": [
           {
-            "kind": "Trash",
-            "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
-            "raw": "By trashing 1 card in your hand"
-          },
-          {
-            "kind": "SecurityManipulation",
-            "op": "trashTop",
-            "controller": "opponent",
-            "amount": 1,
-            "optionalFor": "opponent",
-            "bindResultAs": "opponentTrashedSecurity"
-          },
-          {
-            "kind": "Recover",
-            "amount": 1,
-            "optional": false,
-            "condition": { "kind": "lastEffectDidNotAct", "raw": "opponent didn't trash security" }
+            "kind": "CostGatedBlock",
+            "optional": true,
+            "abortOnDecline": true,
+            "cost": {
+              "kind": "trash",
+              "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
+              "raw": "By trashing 1 card in your hand"
+            },
+            "actions": [
+              {
+                "kind": "SecurityManipulation",
+                "op": "trashTop",
+                "controller": "opponent",
+                "amount": 1,
+                "optionalFor": "opponent",
+                "bindResultAs": "opponentTrashedSecurity"
+              },
+              {
+                "kind": "Recover",
+                "amount": 1,
+                "optional": false,
+                "condition": { "kind": "lastEffectDidNotAct", "raw": "opponent didn't trash security" }
+              }
+            ]
           }
         ]
       },
@@ -51936,23 +51943,30 @@
         "trigger": "OnPlay",
         "actions": [
           {
-            "kind": "Trash",
-            "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
-            "raw": "By trashing 1 card in your hand"
-          },
-          {
-            "kind": "SecurityManipulation",
-            "op": "trashTop",
-            "controller": "opponent",
-            "amount": 1,
-            "optionalFor": "opponent",
-            "bindResultAs": "opponentTrashedSecurity"
-          },
-          {
-            "kind": "Recover",
-            "amount": 1,
-            "optional": false,
-            "condition": { "kind": "lastEffectDidNotAct", "raw": "opponent didn't trash security" }
+            "kind": "CostGatedBlock",
+            "optional": true,
+            "abortOnDecline": true,
+            "cost": {
+              "kind": "trash",
+              "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
+              "raw": "By trashing 1 card in your hand"
+            },
+            "actions": [
+              {
+                "kind": "SecurityManipulation",
+                "op": "trashTop",
+                "controller": "opponent",
+                "amount": 1,
+                "optionalFor": "opponent",
+                "bindResultAs": "opponentTrashedSecurity"
+              },
+              {
+                "kind": "Recover",
+                "amount": 1,
+                "optional": false,
+                "condition": { "kind": "lastEffectDidNotAct", "raw": "opponent didn't trash security" }
+              }
+            ]
           }
         ]
       },
@@ -112669,7 +112683,6 @@
     "effects": [
       {
         "trigger": "Static",
-        "keywords": [{ "keyword": "Piercing", "raw": "＜Piercing＞" }],
         "actions": [
           {
             "kind": "Replacement",
@@ -112688,7 +112701,13 @@
                 "raw": "reduce the memory cost of the digivolution by 2"
               }
             ]
-          },
+          }
+        ]
+      },
+      {
+        "trigger": "Static",
+        "keywords": [{ "keyword": "Piercing", "raw": "＜Piercing＞" }],
+        "actions": [
           {
             "kind": "GainKeyword",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
@@ -167503,7 +167522,12 @@
                 }
               }
             ]
-          },
+          }
+        ]
+      },
+      {
+        "trigger": "Static",
+        "actions": [
           {
             "kind": "Replacement",
             "event": "wouldDigivolve",

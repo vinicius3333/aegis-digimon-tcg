@@ -17,6 +17,18 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-github5311-imperialdramon-cost-scope": {
+    en: "GitHub #5311 same-defect sweep. End breeding. First evolve one Paildramon into the hand BT3-111 Imperialdramon for 3 (printed 5 minus 2): memory goes from 8 to 5. Then evolve the remaining Paildramon into MetalGarurumon for its full printed 3: memory ends at 2. The Imperialdramon copies already in play must not discount this unrelated evolution, and they keep Piercing.",
+    ptBR: "GitHub #5311, varredura do mesmo defeito. Encerre a criação. Primeiro evolua um Paildramon em Imperialdramon BT3-111 da mão por 3 (custo impresso 5 menos 2): a memória vai de 8 para 5. Depois evolua o outro Paildramon em MetalGarurumon pelo custo impresso completo 3: a memória termina em 2. As cópias de Imperialdramon já em campo não podem reduzir essa evolução diferente e mantêm Piercing.",
+  },
+  "arena-github5311-crescemon-cost-scope": {
+    en: "GitHub #5311. End breeding. First evolve EX5-017 Lekismon into the hand Crescemon for 1: the separate Crescemon with three sources qualifies as support, and memory goes from 6 to 5. Then evolve that original Crescemon into BT1-044 MetalGarurumon for its full printed cost 3: memory ends at 2. Q3569 allows the discount into Crescemon, never from Crescemon.",
+    ptBR: "GitHub #5311. Encerre a criação. Primeiro evolua Lekismon EX5-017 no Crescemon da mão por 1: o outro Crescemon com três fontes atende à condição, e a memória vai de 6 para 5. Depois evolua esse Crescemon original em MetalGarurumon BT1-044 pelo custo impresso completo 3: a memória termina em 2. A Q3569 permite reduzir ao evoluir em Crescemon, nunca a partir dele.",
+  },
+  "arena-github5318-junomon-printed-cost": {
+    en: "GitHub #5318, current behavior control. End breeding. Evolve LadyDevimon into Junomon using the ordinary cost 4 (memory 10 to 6). Accept placing the opponent's Agumon in security and trashing both top security cards. Accept Junomon's security-removal play and choose either Angemon from hand or trash for free; both Venusmon copies must be excluded from that choice. Venusmon's printed play cost is 12, even when its own play payment would be reduced to 7. Memory remains 6.",
+    ptBR: "GitHub #5318, controle do comportamento atual. Encerre a criação. Evolua LadyDevimon em Junomon pelo custo normal 4 (memória de 10 para 6). Aceite colocar Agumon adversário na segurança e descartar o topo das duas seguranças. Aceite jogar pelo efeito de Junomon e escolha Angemon da mão ou do lixo grátis; ambas as Venusmon devem ficar fora dessa escolha. O custo impresso de Venusmon é 12, mesmo quando o pagamento dela seria reduzido para 7. A memória permanece em 6.",
+  },
   "arena-ex12-metalgreymon-forced-attack-play": {
     en: "Skip breeding and play EX12 MetalGreymon without Assembly. Agumon Expert is deleted. Choose the opposing BT1 MetalGreymon for the mandatory attack grant: its badge and Start of Your Main Phase clause appear immediately. End Main; after the opponent skips breeding, that Digimon must attack before normal Main actions. Its controller chooses a legal attack target. The grant expires at that opponent turn's end. Restart to compare the digivolve scenario. Discord 1557600224011096104.",
     ptBR: "Pule a criação e jogue MetalGreymon EX12 sem Assembly. Agumon Expert é deletado. Escolha MetalGreymon BT1 adversário para receber o ataque obrigatório: o indicador e o texto Início da sua Fase Principal aparecem imediatamente. Encerre a Principal; depois da criação adversária, esse Digimon deve atacar antes das ações normais da Principal. Seu controlador escolhe um alvo legal. O efeito expira no fim desse turno adversário. Reinicie para comparar o cenário de digievolução. Discord 1557600224011096104.",
@@ -24,6 +36,22 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-ex12-metalgreymon-forced-attack-digivolve": {
     en: "Skip breeding and evolve EX12 Greymon into hand EX12 MetalGreymon for 3 using the alternate cost. The opposing Agumon Expert is deleted. Choose opposing BT1 MetalGreymon: its badge and granted Start of Your Main Phase clause appear. End Main; the recipient must attack at the opponent's Main start, with a mandatory legal-target choice by its controller. Breeding Digimon cannot receive the grant. It expires at the opponent's turn end. Discord 1557600224011096104.",
     ptBR: "Pule a criação e digievolua Greymon EX12 em MetalGreymon EX12 da mão pelo custo alternativo 3. Agumon Expert adversário é deletado. Escolha MetalGreymon BT1 adversário: o indicador e o texto concedido de Início da sua Fase Principal aparecem. Encerre a Principal; o alvo deve atacar no início da Principal adversária, com escolha obrigatória de alvo legal pelo controlador. Digimons na criação não podem receber o efeito. Ele expira no fim do turno adversário. Discord 1557600224011096104.",
+  },
+  "arena-github-5302-kunlun-security-check": {
+    en: "Skip breeding and end Main. Accept Shishimamon's Execute attack against security. When security is removed, evolve into Kaguyamon for 1; decline the other optional plays. Kunlun must remain unsuspended and Sanmyojin Arrival stays in hand: this evolution is after the pre-counter end-of-turn window closed. An evolution before counter timing has a different ruling (Q7190).",
+    ptBR: "Pule a criação e encerre a Principal. Aceite o ataque Execute do Shishimamon contra a segurança. Quando a segurança sair, evolua em Kaguyamon por 1; recuse as outras jogadas opcionais. Kunlun deve continuar desvirado e Sanmyojin Arrival fica na mão: essa evolução ocorre após fechar a janela de fim do turno anterior ao contra-ataque. Uma evolução antes do contra-ataque tem outra regra (Q7190).",
+  },
+  "arena-github-5305-gravity-order": {
+    en: "Skip breeding: Dan and Kanan give you 4 memory. Use Gravity Crush for 0 to reach 6, then play Vulcanusmon for 7 (fewer Digimon than the opponent); decline linking. At -1, choose Gravity Crush's delayed loss before Dan and Kanan. At -3, suspend the Tamer and use Factorial Area for free, then play Marsmon for 4 (both printed reductions apply because Wrath Mode has 16000 DP). Decline battles and attacks. Factorial Area grants Blocker and the opponent starts at 7. Reset and choose Dan and Kanan first: Factorial Area is unavailable at -1 and remains in hand.",
+    ptBR: "Pule a criação: Dan e Kanan deixam você com 4 memórias. Use Gravity Crush por 0 para chegar a 6 e jogue Vulcanusmon por 7 (menos Digimon que o adversário); recuse os links. Em -1, escolha a perda adiada de Gravity Crush antes de Dan e Kanan. Em -3, vire o Tamer e use Factorial Area de graça; jogue Marsmon por 4 (as duas reduções impressas se aplicam porque Wrath Mode tem 16000 DP). Recuse batalhas e ataques. Factorial Area concede Blocker e o adversário começa com 7. Reinicie e escolha Dan e Kanan primeiro: Factorial Area não está disponível em -1 e fica na mão.",
+  },
+  "arena-github-5315-homeros-unused": {
+    en: "Skip breeding and end Main. Suspend Homeros to activate Wrath Mode's unused When Digivolving effect. Trash your top security and recover 2: security increases from 2 to 3. Junomon underneath does not prevent activation.",
+    ptBR: "Pule a criação e encerre a Principal. Vire Homeros para ativar o Quando Digievolui ainda não usado de Wrath Mode. Descarte o topo da segurança e recupere 2: a segurança sobe de 2 para 3. Junomon nas fontes não impede a ativação.",
+  },
+  "arena-github-5315-homeros-spent": {
+    en: "Skip breeding and evolve Junomon into Wrath Mode for 5, crossing from 4 to -1. Its mandatory recovery resolves once and security increases from 2 to 3. At end of turn Homeros cannot repeat that spent Once Per Turn effect (Q6029); security stays at 3. Compare the unused scenario.",
+    ptBR: "Pule a criação e evolua Junomon em Wrath Mode por 5, passando de 4 para -1. A recuperação obrigatória resolve uma vez e a segurança sobe de 2 para 3. No fim do turno, Homeros não pode repetir esse efeito Uma Vez Por Turno já gasto (Q6029); a segurança continua em 3. Compare o cenário de efeito ainda não usado.",
   },
   "arena-github-5297-omnimon-main-dna": {
     en: "Skip breeding. During Main, select EX13-016 Omnimon and WarGreymon. Choose DNA and select the MetalGarurumon with Gabumon underneath, then confirm. Pay 0: those two stacks merge into an unsuspended Omnimon and the other MetalGarurumon stays in play. Also try with action confirmations disabled. EX13-077 Merciful Mode has no DNA route; evolve it normally after Omnimon instead.",
@@ -1475,6 +1503,18 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e use o lado Opção de Cerberusmon: Werewolf Mode (Inferno Divide). Descarte 1 carta e De-Digivolva 3 o Digimon do bot. Depois, a Digievolução Arts deve oferecer o Guardromon da sua área de criação: escolha-o. Cerberusmon fica na área de criação e não vai para o lixo.",
     en: "End breeding and use Cerberusmon: Werewolf Mode's Option side (Inferno Divide). Trash 1 card and De-Digivolve 3 the bot's Digimon. Arts Digivolve must then offer Guardromon in your breeding area: choose it. Cerberusmon stays in the breeding area and is not trashed.",
   },
+  "arena-github-5301-bacchusmon-arts": {
+    en: "End breeding. Use BT26-080 Bacchusmon's Option side (Reversal of the Dead) for 5; Deramon's TS trait waives the Purple color requirement. Unsuspend the bot's Agumon: it is then deleted as the lowest-DP unsuspended Digimon. Arts Digivolve must offer only Deramon, not the red Groundramon. Choose Deramon: Bacchusmon evolves for free and draws 1; decline its optional When Digivolving attack. Restart and decline Arts instead: the Option is trashed and Deramon stays.",
+    ptBR: "Encerre a criação. Use o lado Opção de Bacchusmon BT26-080 (Reversal of the Dead) por 5; o traço TS de Deramon dispensa a cor roxa. Desvire Agumon do bot: ele é deletado como o Digimon desvirado de menor DP. Digievolução Arts deve oferecer só Deramon, não Groundramon vermelho. Escolha Deramon: Bacchusmon evolui de graça e compra 1; recuse o ataque opcional de Quando Digivolve. Reinicie e recuse Arts: a Opção vai ao lixo e Deramon fica.",
+  },
+  "arena-github-5301-bacchusmon-breeding-arts": {
+    en: "End breeding without moving Deramon. Use BT26-080's Option side for 5; Deramon's TS trait in breeding waives the Purple requirement. Unsuspend the bot's Agumon and resolve its deletion. Arts Digivolve must offer Deramon in breeding, excluding the red Groundramon. Choose Deramon: Bacchusmon stays in breeding, draws 1, and is not trashed. Its When Digivolving effect does not activate in breeding.",
+    ptBR: "Encerre a criação sem mover Deramon. Use o lado Opção de BT26-080 por 5; o traço TS de Deramon na criação dispensa a cor roxa. Desvire Agumon do bot e resolva sua deleção. Digievolução Arts deve oferecer Deramon na criação, excluindo Groundramon vermelho. Escolha Deramon: Bacchusmon fica na criação, compra 1 e não vai ao lixo. Seu Quando Digivolve não ativa na criação.",
+  },
+  "arena-github-5301-bacchusmon-no-arts-base": {
+    en: "End breeding. Use BT26-080's Option side for 5; Dan Yuki's TS trait waives the Purple requirement. Unsuspend the bot's Agumon, which is then deleted. Groundramon is red Lv.5 and Dan is a Tamer: neither meets Bacchusmon's printed evolution requirement. No Arts choice is offered; the Option is trashed. Compare with the legal-base scenarios.",
+    ptBR: "Encerre a criação. Use o lado Opção de BT26-080 por 5; o traço TS de Dan Yuki dispensa a cor roxa. Desvire Agumon do bot, que é deletado em seguida. Groundramon é nível 5 vermelho e Dan é Domador: nenhum atende ao requisito impresso de Bacchusmon. Arts não é oferecida; a Opção vai ao lixo. Compare com os cenários de base válida.",
+  },
   "arena-bt15-leviamon-x-played-subject-left": {
     ptBR: "Encerre a criação e use Night Raid para jogar DemiDevimon do lixo. O ＜Atraso＞ do Biting Crush do bot joga Leviamon, cujo Ao Jogar apaga seus Digimon (DemiDevimon incluso). Mesmo assim, o Leviamon (X Antibody) do lixo do bot deve digievoluir Leviamon (Q4735).",
     en: "End breeding and use Night Raid to play DemiDevimon from the trash. The bot's Biting Crush ＜Delay＞ plays Leviamon, whose On Play deletes your Digimon (DemiDevimon included). The bot's Leviamon (X Antibody) in the trash must still digivolve Leviamon (Q4735).",
@@ -1658,6 +1698,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-bt26-cerberusmon-optional-cost": {
     ptBR: "Discord 1556544429438013471, partida f659486e de taurusfire110 contra bageko3 (05:47:53 UTC). Encerre a criação e evolua o Digimon Nv.4 TS em Cerberusmon BT26-074 pela rota alternativa (custo 3). Na seleção do descarte, confirme sem escolher cartas: a mão e a lixeira ficam iguais e a memória fica em 7. Ataque o bot com Cerberusmon: a seleção volta porque recusar não gastou o Uma Vez Por Turno. Descarte uma carta, aceite usar a Opção e escolha Cerberusmon: Werewolf Mode BT26-056 da lixeira. Inferno Divide custa 1 (3 menos 2); descarte outra carta para a Opção e o DarkTyrannomon Nv.4 do bot regride para Monodramon Nv.3. Reinicie para testar Ao Jogar (custo 7), ou recuse usar a Opção depois de pagar: o descarte continua pago e consome o uso do turno.",
     en: "Discord 1556544429438013471, match f659486e: taurusfire110 vs bageko3 (05:47:53 UTC). End breeding and digivolve the level 4 TS Digimon into BT26-074 Cerberusmon through its alternate route (cost 3). Confirm the trash selection with no cards: hand and trash stay unchanged and memory stays at 7. Attack the bot with Cerberusmon: the selection returns because declining preserved Once Per Turn. Trash a card, accept using the Option and select BT26-056 Cerberusmon: Werewolf Mode from the trash. Inferno Divide costs 1 (3 minus 2); trash another hand card for the Option and the bot's level 4 DarkTyrannomon de-digivolves into level 3 Monodramon. Restart to test On Play (cost 7), or decline using the Option after paying: the card stays trashed and the turn's use is consumed.",
+  },
+  "arena-bt18-lucemon-optional-hand-cost": {
+    ptBR: "Pule a criação. No início da fase principal, escolha Nenhuma seleção para recusar o custo do Lucemon: nenhuma carta vai ao lixo, o oponente não escolhe e você não recupera segurança. Reinicie e descarte Monodramon: se o oponente recusar descartar segurança, você recupera 1; se aceitar, ele descarta a segurança do topo e você não recupera. Depois jogue o Lucemon da mão por 10 e repita o teste do On Play.",
+    en: "Skip breeding. At Start of Main, choose No Selection to decline Lucemon's cost: no card is trashed, the opponent gets no choice, and you recover no security. Reset and discard Monodramon: if the opponent declines to trash security, recover 1; if they accept, they trash their top security and you do not recover. Then play the Lucemon in hand for 10 and repeat the On Play test.",
   },
   "arena-ex13-flamewizardmon-optional-cost": {
     ptBR: "Evolua o BT18-030 em EX13-029 FlameWizardmon (custo 2). O [Quando Evolui] deve perguntar se você quer descartar a carta do topo da segurança: recuse. Sua segurança continua com 4 cartas e o Digimon do bot continua com 6000 DP. Depois ataque o bot com o FlameWizardmon: a mesma pergunta volta, porque a recusa não gastou o [Uma Vez Por Turno]. Aceite: o topo da segurança vai para a lixeira, o Digimon do bot cai para 2000 DP e, com 3 cartas na segurança, é deletado.",
@@ -2134,6 +2178,13 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-github5311-crescemon-cost-scope", "GitHub #5311 · Crescemon incoming versus outgoing cost"],
+  ["arena-github5311-imperialdramon-cost-scope", "GitHub #5311 sweep · Imperialdramon intrinsic discount"],
+  ["arena-github5318-junomon-printed-cost", "GitHub #5318 · Junomon printed play-cost control"],
+  ["arena-github-5302-kunlun-security-check", "GitHub #5302 · Kunlun after security check"],
+  ["arena-github-5305-gravity-order", "GitHub #5305 · Gravity Crush end-turn ordering"],
+  ["arena-github-5315-homeros-unused", "GitHub #5315 · Homeros / unused Wrath Mode"],
+  ["arena-github-5315-homeros-spent", "GitHub #5315 · Homeros / spent Wrath Mode"],
   ["arena-github-5297-omnimon-main-dna", "GitHub #5297 · Omnimon Main DNA and physical materials"],
   ["arena-github-5297-omnimon-agumon-dna", "GitHub #5297 · Omnimon Agumon end-of-turn DNA"],
   ["arena-github-5286-lordknightmon-knightmon", "GitHub #5286 · LordKnightmon EX13 Knightmon picker"],
@@ -2374,6 +2425,9 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt11-rina-ulforce-immunity", "BT11 Rina · Ulforce return vs Digimon immunity"],
   ["arena-ex12-diarbbitmon-option-trigger-timing", "EX12 Diarbbitmon · Option triggers wait for Arts"],
   ["arena-bt26-cerberusmon-breeding-arts", "BT26 Cerberusmon · Arts Digivolve in breeding"],
+  ["arena-github-5301-bacchusmon-arts", "#5301 Bacchusmon · Option to Arts / decline"],
+  ["arena-github-5301-bacchusmon-breeding-arts", "#5301 Bacchusmon · Arts in breeding"],
+  ["arena-github-5301-bacchusmon-no-arts-base", "#5301 Bacchusmon · no legal Arts base"],
   ["arena-bt15-leviamon-x-played-subject-left", "BT15 Leviamon X · trigger survives a deleted played Digimon"],
   ["arena-ex3-wingdramon-evade-suspend-lock", "EX3 Wingdramon · Evade cannot pay suspend"],
   ["arena-ex13-wingdramon-evade-suspend-lock", "EX13 Wingdramon · Evade cannot pay suspend"],
@@ -2523,6 +2577,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt18-candlemon-data-selection", "BT18 Candlemon · yellow Data / Witchelny selection"],
   ["arena-bt26-monimon-optional-cost", "BT26 Monimon · optional source-trash cost"],
   ["arena-ex13-flamewizardmon-optional-cost", "EX13 FlameWizardmon · optional security cost"],
+  ["arena-bt18-lucemon-optional-hand-cost", "BT18 Lucemon · optional hand cost (#5312)"],
   ["arena-bt26-cerberusmon-optional-cost", "BT26 Cerberusmon · optional hand-trash cost"],
   ["arena-sukamon-transform-digivolve", "EX13 KingSukamon · white Sukamon can't take green digivolve"],
   ["arena-sukamon-transform-digivolve-viewer", "Sukamon rewrite · your Blossomon refused"],

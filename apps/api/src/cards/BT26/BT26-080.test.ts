@@ -8,6 +8,188 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT26-080 compiled behavior", () => {
+  it.each(["BT25-055", "BT26-074", "BT1-077", "BT2-063", "BT25-077"])(
+    "#5301 offers Arts after Option resolution onto legal base %s, paying only the Option's 5",
+    async (baseCard) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: baseCard, as: "base", suspended: true },
+              { card: "BT25-086", as: "ts" },
+            ],
+            hand: [{ card: "BT26-080", as: "option" }],
+            deck: ["BT1-009"],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "deleted" }] },
+        },
+        { autoDeclineOptional: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      const optionId = s.inst("option").instanceId;
+      const baseId = s.perm("base").topCard.instanceId;
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId, useAs: "option" })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision?.promptText.includes("Arts Digivolve") === true);
+      const arts = s.state.pendingDecision!;
+      expect(arts.kind).toBe("selectCards");
+      const request = s.decisions.find(({ req }) => req.decisionId === arts.decisionId)!.req;
+      expect(request).toMatchObject({
+        kind: "selectCards",
+        sourceCardId: "BT26-080",
+        sourceInstanceId: optionId,
+        options: { candidateInstanceIds: [baseId], min: 0, max: 1 },
+      });
+      expect(s.state.players[1]!.battleArea).toHaveLength(0);
+      expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
+      expect(s.state.memory).toBe(0);
+      expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId)).toBe(false);
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: arts.decisionId,
+          response: { kind: "selectCards", instanceIds: [baseId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.instanceId === optionId && s.state.pendingDecision === undefined);
+      expect(s.perm("base").stack.some(({ instanceId }) => instanceId === baseId)).toBe(true);
+      expect(s.perm("base").isSuspended).toBe(true);
+      expect(s.state.memory).toBe(0);
+      expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+      expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId)).toBe(false);
+    },
+  );
+
+  it("#5301 lets the player decline an offered Arts choice and then trashes the used Option", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-055", as: "base" }],
+          hand: [{ card: "BT26-080", as: "option" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.promptText.includes("Arts Digivolve") === true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-080") && s.state.pendingDecision === undefined,
+    );
+    expect(s.decisions.filter(({ req }) => req.promptText.includes("Arts Digivolve"))).toHaveLength(1);
+    expect(s.perm("base").topCard.cardId).toBe("BT25-055");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("#5301 preserves the Option color gate even with a legal green Lv.5 Arts base", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-077", as: "base" }], hand: [{ card: "BT26-080", as: "option" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" }),
+    ).toEqual({ ok: false, reason: "color-requirement-unmet" });
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT26-080"]);
+    expect(s.decisions).toHaveLength(0);
+  });
+
+  it("#5301 offers Arts before turn handoff even when Option payment crosses zero", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-055", as: "base" }],
+          hand: [{ card: "BT26-080", as: "option" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.promptText.includes("Arts Digivolve") === true);
+    expect(s.state.memory).toBe(-2);
+    expect(s.state.pendingDecision!.seat).toBe(0);
+    expect(s.state.turnSeat).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.perm("base").topCard.instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT26-080" && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(-2);
+  });
+
+  it("#5301 uses and trashes the Option with only a TS Tamer and no Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-086", as: "ts" }], hand: [{ card: "BT26-080", as: "option" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-080") && s.state.pendingDecision === undefined,
+    );
+    expect(s.decisions.some(({ req }) => req.promptText.includes("Arts Digivolve"))).toBe(false);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it.each(["BT1-020", "BT2-071", "BT26-080"])(
+    "#5301 does not offer Arts when %s is the only Digimon and fails the printed base requirement",
+    async (baseCard) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: baseCard, as: "illegal" },
+              { card: "BT25-086", as: "ts" },
+            ],
+            hand: [{ card: "BT26-080", as: "option" }],
+          },
+        },
+        { autoDeclineOptional: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      const optionId = s.inst("option").instanceId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId, useAs: "option" })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () =>
+          s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId) &&
+          s.state.pendingDecision === undefined,
+      );
+      expect(s.decisions.some(({ req }) => req.promptText.includes("Arts Digivolve"))).toBe(false);
+      expect(s.perm("illegal").topCard.cardId).toBe(baseCard);
+      expect(s.state.memory).toBe(0);
+    },
+  );
+
   it("proves dual-card keywords and Bacchusmon evolution", () => {
     expect(getCardDefinition("BT26-080")).toMatchObject({
       nameEn: "Bacchusmon",

@@ -28,6 +28,7 @@ import {
   type PhasePacingScenarioId,
 } from "@aegis/shared";
 import {
+  clearBattleArea,
   clearZone,
   extractCardAt,
   fillZone,
@@ -57,8 +58,15 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github5311-crescemon-cost-scope",
+  "arena-github5311-imperialdramon-cost-scope",
+  "arena-github5318-junomon-printed-cost",
   "arena-ex12-metalgreymon-forced-attack-play",
   "arena-ex12-metalgreymon-forced-attack-digivolve",
+  "arena-github-5302-kunlun-security-check",
+  "arena-github-5305-gravity-order",
+  "arena-github-5315-homeros-unused",
+  "arena-github-5315-homeros-spent",
   "arena-github-5299-ravemon-bottom-security",
   "arena-github5300-yoshino-cost-payload",
   "arena-github5300-keenan-cost-execute",
@@ -193,6 +201,9 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex12-virus-busters-effect-attack",
   "arena-ex12-diarbbitmon-option-trigger-timing",
   "arena-bt26-cerberusmon-breeding-arts",
+  "arena-github-5301-bacchusmon-arts",
+  "arena-github-5301-bacchusmon-breeding-arts",
+  "arena-github-5301-bacchusmon-no-arts-base",
   "arena-bt15-leviamon-x-played-subject-left",
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-ex13-leopardmon-suspended-target",
@@ -279,6 +290,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-chirinmon-cost-choice",
   "arena-ex13-wisemon-witchelny-cost",
   "arena-ex13-flamewizardmon-optional-cost",
+  "arena-bt18-lucemon-optional-hand-cost",
   "arena-ex5-attack-priority",
   "arena-ex5-biting-crush-delay",
   "arena-p108-training-delay-no-target",
@@ -4085,6 +4097,33 @@ function layBt26CerberusmonOptionalCostScenario(state: GameState, decks: readonl
   state.memory = 10;
 }
 
+/** GitHub #5312: independent actor hand-cost and opponent security decisions at both timings. */
+function layBt18LucemonOptionalHandCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+    clearZone(player, Zone.Hand);
+    clearBattleArea(player);
+    clearZone(player, Zone.Trash);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT18-034"], "-lucemon-cost"));
+    insertCard(human, Zone.Hand, faceUpCard("dev-lucemon-onplay", "BT18-034", 0));
+    insertCard(human, Zone.Hand, faceUpCard("dev-lucemon-hand-cost", "BT1-009", 0));
+    insertCard(human, Zone.Hand, faceUpCard("dev-lucemon-other-cost", "BT1-010", 0));
+    insertCard(human, Zone.Deck, faceDownCard("dev-lucemon-recovery", "BT1-011", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-lucemon-turn-draw", "BT1-012", 0), "top");
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
 /**
  * EX13-029 FlameWizardmon's "By trashing your top security card" is optional (Discord
  * 1555472780571705354, KB Q7291). Declining on digivolve must keep the security stack and the
@@ -4375,6 +4414,49 @@ function layBt26CerberusmonBreedingArtsScenario(state: GameState, decks: readonl
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 6;
+}
+
+/** GitHub #5301: compare a legal Arts base in either field area with no legal base. */
+function layGithub5301BacchusmonArtsScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  baseZone: "battleArea" | "breeding" | "none",
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    if (baseZone !== "none") {
+      const base = establishedDigimon(0, ["BT25-055"], "-github5301-base");
+      if (baseZone === "breeding") {
+        base.inBreeding = true;
+        setBreeding(human, base);
+      } else {
+        placePermanent(human, base);
+      }
+    } else {
+      placePermanent(human, establishedDigimon(0, ["BT25-086"], "-github5301-ts"));
+    }
+    // Red Lv.5 is not a legal base; the TS card above only waives the Option color requirement.
+    placePermanent(human, establishedDigimon(0, ["BT1-020"], "-github5301-illegal"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-github5301-option", "BT26-080", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    const low = establishedDigimon(1, ["BT1-009"], "-github5301-unsuspend");
+    low.isSuspended = true;
+    placePermanent(bot, low);
+    placePermanent(bot, establishedDigimon(1, ["BT1-020"], "-github5301-higher"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 6;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
 }
 
 /**
@@ -8069,6 +8151,42 @@ function prepareGithubCardEffectsScenario(state: GameState, memory: number): voi
   startEffectsLabTurn(state, memory);
 }
 
+function layGithub5311CrescemonCostScenario(state: GameState): void {
+  prepareGithubCardEffectsScenario(state, 6);
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT1-003", "BT1-028", "BT1-037", "EX5-020"], "-github5311-source"));
+  placePermanent(human, establishedDigimon(0, ["EX5-017"], "-github5311-base"));
+  insertCard(human, Zone.Hand, faceDownCard("github5311-metalgarurumon", "BT1-044", 0));
+  insertCard(human, Zone.Hand, faceDownCard("github5311-crescemon", "EX5-020", 0));
+}
+
+function layGithub5311ImperialdramonCostScenario(state: GameState): void {
+  prepareGithubCardEffectsScenario(state, 8);
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT3-111"], "-github5311-resident-dragon"));
+  placePermanent(human, establishedDigimon(0, ["BT3-027"], "-github5311-paildramon-incoming"));
+  placePermanent(human, establishedDigimon(0, ["BT3-027"], "-github5311-paildramon-control"));
+  insertCard(human, Zone.Hand, faceDownCard("github5311-imperialdramon", "BT3-111", 0));
+  insertCard(human, Zone.Hand, faceDownCard("github5311-metalgarurumon", "BT1-044", 0));
+}
+
+function layGithub5318JunomonPrintedCostScenario(state: GameState): void {
+  prepareGithubCardEffectsScenario(state, 10);
+  const human = state.players[0]!;
+  // Junomon's placement cost removes security during the human's turn, without bot timing.
+  placePermanent(human, establishedDigimon(0, ["BT3-088"], "-github5318-base"));
+  placePermanent(state.players[1]!, establishedDigimon(1, ["BT1-009"], "-github5318-material"));
+  clearZone(human, Zone.Security);
+  for (let index = 0; index < 3; index += 1) {
+    insertCard(human, Zone.Security, faceDownCard(`github5318-security-${index}`, "BT1-010", 0));
+  }
+  insertCard(human, Zone.Hand, faceDownCard("github5318-junomon", "BT25-044", 0));
+  insertCard(human, Zone.Hand, faceDownCard("github5318-venusmon-hand", "BT24-040", 0));
+  insertCard(human, Zone.Trash, faceDownCard("github5318-venusmon-trash", "BT24-040", 0));
+  insertCard(human, Zone.Hand, faceDownCard("github5318-angel", "BT25-034", 0));
+  insertCard(human, Zone.Trash, faceDownCard("github5318-angel-trash", "BT25-034", 0));
+}
+
 function layGithubLordKnightmonScenario(state: GameState): void {
   prepareGithubCardEffectsScenario(state, 10);
   const human = state.players[0]!;
@@ -8216,7 +8334,62 @@ function layGithub5297OmnimonDnaScenario(state: GameState, includeSecondPair: bo
   state.memory = 2;
 }
 
+/** GitHub #5302/#5305/#5315: independently reproducible end-of-turn contracts. */
+function layGithubEndTurnReportScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  finding: "kunlun" | "gravity" | "homeros-unused" | "homeros-spent",
+): void {
+  prepareIssueScenario(state, decks, finding === "kunlun" || finding === "homeros-unused" ? 0 : 3);
+  for (const player of state.players) {
+    for (const zone of [Zone.Hand, Zone.Deck, Zone.Security, Zone.EggDeck, Zone.Trash] as const)
+      clearZone(player, zone);
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-eot-egg-${player.seat}`, "BT1-001", player.seat));
+    for (let index = 0; index < 16; index += 1)
+      insertCard(player, Zone.Deck, faceDownCard(`dev-eot-deck-${player.seat}-${index}`, "BT1-009", player.seat));
+    for (let index = 0; index < 2; index += 1)
+      insertCard(
+        player,
+        Zone.Security,
+        faceDownCard(`dev-eot-security-${player.seat}-${index}`, "BT1-009", player.seat),
+      );
+  }
+  const human = state.players[0]!;
+  const opponent = state.players[1]!;
+  const field = (cards: string[], suffix: string) =>
+    placePermanent(human, establishedDigimon(0, cards, `-eot-${suffix}`));
+  const hand = (cardId: string, suffix: string) =>
+    insertCard(human, Zone.Hand, faceDownCard(`dev-eot-${suffix}`, cardId, 0));
+  if (finding === "kunlun") {
+    field(["BT26-104"], "kunlun");
+    field(["EX12-004", "EX12-046"], "shishimamon");
+    hand("EX12-065", "kaguyamon");
+    hand("EX12-070", "arrival");
+    hand("EX12-063", "payment");
+  } else if (finding === "gravity") {
+    field(["BT24-085"], "dan");
+    field(["BT26-103"], "wrath");
+    hand("BT1-090", "gravity");
+    hand("BT25-075", "vulcanus");
+    hand("BT25-102", "factorial");
+    hand("BT25-020", "mars");
+    placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-eot-opponent-a"));
+    placePermanent(opponent, establishedDigimon(1, ["BT1-010"], "-eot-opponent-b"));
+  } else {
+    field(["BT24-102"], "homeros");
+    field(finding === "homeros-spent" ? ["BT25-044"] : ["BT25-044", "BT26-103"], "olympos");
+    if (finding === "homeros-spent") hand("BT26-103", "wrath");
+  }
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-github5311-crescemon-cost-scope": layGithub5311CrescemonCostScenario,
+  "arena-github5311-imperialdramon-cost-scope": layGithub5311ImperialdramonCostScenario,
+  "arena-github5318-junomon-printed-cost": layGithub5318JunomonPrintedCostScenario,
+  "arena-github-5302-kunlun-security-check": (state, decks) => layGithubEndTurnReportScenario(state, decks, "kunlun"),
+  "arena-github-5305-gravity-order": (state, decks) => layGithubEndTurnReportScenario(state, decks, "gravity"),
+  "arena-github-5315-homeros-unused": (state, decks) => layGithubEndTurnReportScenario(state, decks, "homeros-unused"),
+  "arena-github-5315-homeros-spent": (state, decks) => layGithubEndTurnReportScenario(state, decks, "homeros-spent"),
   "arena-github-5299-ravemon-bottom-security": layGithub5299RavemonBottomSecurityScenario,
   "arena-github5300-yoshino-cost-payload": layGithub5300YoshinoScenario,
   "arena-github5300-keenan-cost-execute": layGithub5300KeenanScenario,
@@ -8396,6 +8569,12 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex12-virus-busters-effect-attack": layEx12VirusBustersEffectAttackScenario,
   "arena-ex12-diarbbitmon-option-trigger-timing": layEx12DiarbbitmonOptionTriggerTimingScenario,
   "arena-bt26-cerberusmon-breeding-arts": layBt26CerberusmonBreedingArtsScenario,
+  "arena-github-5301-bacchusmon-arts": (state, decks) =>
+    layGithub5301BacchusmonArtsScenario(state, decks, "battleArea"),
+  "arena-github-5301-bacchusmon-breeding-arts": (state, decks) =>
+    layGithub5301BacchusmonArtsScenario(state, decks, "breeding"),
+  "arena-github-5301-bacchusmon-no-arts-base": (state, decks) =>
+    layGithub5301BacchusmonArtsScenario(state, decks, "none"),
   "arena-bt15-leviamon-x-played-subject-left": layBt15LeviamonXPlayedSubjectLeftScenario,
   "arena-ex7-seventh-fascination-trash-turn": (state, decks) =>
     layEx7SeventhFascinationTurnScenario(state, decks, true),
@@ -8489,6 +8668,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-chirinmon-cost-choice": layEx13ChirinmonCostChoiceScenario,
   "arena-ex13-wisemon-witchelny-cost": layEx13WisemonWitchelnyCostScenario,
   "arena-ex13-flamewizardmon-optional-cost": layEx13FlameWizardmonOptionalCostScenario,
+  "arena-bt18-lucemon-optional-hand-cost": layBt18LucemonOptionalHandCostScenario,
   "arena-bt26-cerberusmon-optional-cost": layBt26CerberusmonOptionalCostScenario,
   "arena-ex5-attack-priority": layEx5AttackPriorityScenario,
   "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,
