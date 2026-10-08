@@ -90,7 +90,7 @@ describe("EX8-063", () => {
   });
   it("exposes the Barbamon-name evolution route for cost 1", () =>
     expect(digivolutionRequirementsFor("EX8-063")).toContainEqual({
-      names: ["Barbamon"],
+      namesExact: ["Barbamon"],
       cost: 1,
       isAlternate: true,
     }));

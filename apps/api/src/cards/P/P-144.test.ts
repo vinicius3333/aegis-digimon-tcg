@@ -41,7 +41,7 @@ describe("P-144 Gotsumon (X Antibody)", () => {
         }),
       ]),
     );
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Gotsumon"], cost: 0, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Gotsumon"], cost: 0, isAlternate: true }]);
   });
 
   it("applies the inherited +1000 DP to Blocker Digimon", async () => {

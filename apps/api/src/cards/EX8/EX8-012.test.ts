@@ -84,7 +84,7 @@ describe("EX8-012", () => {
 
   it("publishes the exact Growlmon alternate route", () => {
     expect(digivolutionRequirementsFor("EX8-012")).toContainEqual({
-      names: ["Growlmon"],
+      namesExact: ["Growlmon"],
       cost: 0,
       isAlternate: true,
     });

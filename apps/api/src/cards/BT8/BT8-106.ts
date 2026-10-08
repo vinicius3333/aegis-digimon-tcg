@@ -31,18 +31,15 @@ const compiled: CompiledCard = {
           trackPlayedCount: "mamemonPlayed",
         },
         {
-          kind: "RepeatPerCount",
-          countSource: "mamemonPlayed",
-          action: {
-            kind: "Delete",
-            target: {
-              filter: {
-                controller: "opponent",
-                kind: ["Digimon"],
-                playCostLte: 6,
-              },
-              count: 1,
+          kind: "Delete",
+          scaling: { unit: "namedCount", countSource: "mamemonPlayed", per: 1 },
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              playCostLte: 6,
             },
+            count: 1,
           },
         },
       ],

@@ -81,7 +81,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["WarGrowlmon"],
+      namesExact: ["WarGrowlmon"],
       cost: 1,
       isAlternate: true,
     },

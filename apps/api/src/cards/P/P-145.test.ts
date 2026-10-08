@@ -68,7 +68,7 @@ describe("P-145 Myotismon (X Antibody)", () => {
 
   it("encodes zero-cost Myotismon digivolution and conditional level-6 revival", () => {
     const compiled = runtimeCompiledCard("P-145")!;
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Myotismon"], cost: 0, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Myotismon"], cost: 0, isAlternate: true }]);
     expect(compiled.effects).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ trigger: "WhenDigivolving", actions: [expect.objectContaining({ kind: "Delete" })] }),
@@ -172,7 +172,9 @@ describe("P-145 Myotismon (X Antibody) — KB Q&A rulings", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId));
     await settle(() => s.state.pendingDecision === undefined);
-    const revived = s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("level6").instanceId);
+    const revived = s.state.players[0]!.battleArea.some(
+      ({ topCard }) => topCard.instanceId === s.inst("level6").instanceId,
+    );
     const securityTop = s.state.players[0]!.security[0]?.cardId;
     advance(s.engine).endMainPhaseIfOpen(1);
     await turn;

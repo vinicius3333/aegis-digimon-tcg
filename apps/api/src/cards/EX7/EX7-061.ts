@@ -78,7 +78,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["Lilithmon"], cost: 1, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["Lilithmon"], cost: 1, isAlternate: true }],
 };
 
 registerIrCard("EX7-061", compiled);

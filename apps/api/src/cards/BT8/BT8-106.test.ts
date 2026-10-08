@@ -37,7 +37,7 @@ describe("BT8-106 Senbon Dokkān", () => {
     ]);
   });
 
-  it("plays revealed Mamemon cards within the 15-cost budget and deletes once per card played", async () => {
+  it("#5270 sweep: plays revealed Mamemon within the budget and deletes their targets simultaneously", async () => {
     const s = setupEngine(
       {
         0: {
@@ -72,6 +72,9 @@ describe("BT8-106 Senbon Dokkān", () => {
     ).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("remainder").instanceId)).toBe(true);
+    const deletions = s.events.filter((event) => event.kind === "cardsMoved" && event.deletedPermanents !== undefined);
+    expect(deletions).toHaveLength(1);
+    expect(deletions[0]).toMatchObject({ deletedPermanents: [{ cardId: "BT8-023" }, { cardId: "BT8-026" }] });
   });
 });
 

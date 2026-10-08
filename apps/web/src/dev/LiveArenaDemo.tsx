@@ -1803,6 +1803,42 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "End breeding, play BT26-085, select all 5 trash materials in the Assembly dialog and confirm. Decline optional effects to finish. Five different levels with Chronomon text/Shaman trait, including the level 2 Digi-Egg. Seven Code alone is insufficient.",
     ptBR: "Encerre a criação, jogue BT26-085, selecione os 5 materiais do lixo na janela Assembly e confirme. Recuse efeitos opcionais para concluir. Cinco níveis diferentes com Chronomon no texto/Shaman, incluindo Digi-Egg nível 2. Só Seven Code não basta.",
   },
+  "arena-github-5270-senbon": {
+    en: "End breeding and use Senbon Dokkan. Play both revealed BigMamemon (total cost 14), then select two opposing TS Digimon together. Accept Neptunemon’s suspend protection once: both survive. This additional matching defect was found by the removal sweep.",
+    ptBR: "Encerre a criação e use Senbon Dokkan. Jogue os dois BigMamemon revelados (custo total 14), então selecione juntos dois TS adversários. Aceite uma vez a proteção de Neptunemon ao suspendê-lo: ambos sobrevivem. Este defeito adicional foi encontrado na varredura de exclusão.",
+  },
+  "arena-github-5282-iron-slash": {
+    en: "End breeding and use Iron Slash. Select LordKnightmon and choose De-Digivolve 2. LordKnightmon and Rie must both be trashed, exposing Monodramon. Decline the optional link.",
+    ptBR: "Encerre a criação e use Iron Slash. Selecione LordKnightmon e escolha De-Digivolve 2. LordKnightmon e Rie devem ir ao lixo, expondo Monodramon. Recuse o vínculo opcional.",
+  },
+  "arena-github-5282-minervamon": {
+    en: "End breeding and play Minervamon. Choose LordKnightmon for the first De-Digivolve 1. It exposes Rie; the next instance cannot start on a Tamer, so Rie and Monodramon remain.",
+    ptBR: "Encerre a criação e jogue Minervamon. Escolha LordKnightmon para o primeiro De-Digivolve 1. Ele expõe Rie; a próxima instância não pode iniciar num Tamer, então Rie e Monodramon permanecem.",
+  },
+  "arena-github-5277-overflow-full-cost": {
+    en: "End breeding and play Neptunemon. With only one opposing Digimon its cost stays 12: memory moves from 7 to -5. Bottom-deck Alphamon: Ouryuken ACE; Overflow 5 moves -5 to 0. A final gauge of 0 includes Overflow in this case, as in the production candidate action.",
+    ptBR: "Encerre a criação e jogue Neptunemon. Com apenas um Digimon adversário, o custo continua 12: a memória vai de 7 a -5. Envie Alphamon: Ouryuken ACE ao fundo do deck; Overflow 5 leva -5 a 0. Aqui, a memória final 0 inclui Overflow, como na ação candidata dos logs.",
+  },
+  "arena-github-5277-overflow": {
+    en: "End breeding and play Neptunemon for 7 memory. Bottom-deck the opponent’s source-free Alphamon: Ouryuken ACE. Its Overflow 5 must apply once immediately, leaving you at 5 memory. This report passes in the current baseline.",
+    ptBR: "Encerre a criação e jogue Neptunemon por 7 de memória. Envie Alphamon: Ouryuken ACE, sem fontes, ao fundo do deck adversário. Overflow 5 deve ocorrer uma vez imediatamente, deixando 5 de memória. Este relato já passa na base atual.",
+  },
+  "arena-github-5276-overflow": {
+    en: "End breeding and play Neptunemon for 7 memory. Bottom-deck the opponent’s source-free Alphamon: Ouryuken ACE. Its Overflow 5 must apply once immediately, leaving you at 5 memory. This report passes in the current baseline.",
+    ptBR: "Encerre a criação e jogue Neptunemon por 7 de memória. Envie Alphamon: Ouryuken ACE, sem fontes, ao fundo do deck adversário. Overflow 5 deve ocorrer uma vez imediatamente, deixando 5 de memória. Este relato já passa na base atual.",
+  },
+  "arena-github-5270-junomon": {
+    en: "End breeding and play Junomon: Hysteric Mode without Assembly. Trash all 3 security and select the opposing level 3, 4 and 5 TS Digimon together. Accept Neptunemon’s suspend protection: all three survive one deletion batch. Recover 3 security.",
+    ptBR: "Encerre a criação e jogue Junomon: Hysteric Mode sem Assembly. Descarte as 3 seguranças e selecione juntos os TS de nível 3, 4 e 5 adversários. Aceite a proteção de Neptunemon ao suspendê-lo: os três sobrevivem a um único lote de exclusão. Recupere 3 seguranças.",
+  },
+  "arena-github-5270-hurricane": {
+    en: "End breeding and use Hurricane Screw Shot. Select the opposing level 3, 4 and 5 Digimon. Accept Neptunemon’s suspend protection once: all three survive the simultaneous deletion. This interaction already passes in the baseline.",
+    ptBR: "Encerre a criação e use Hurricane Screw Shot. Selecione os Digimon adversários de nível 3, 4 e 5. Aceite uma vez a proteção de Neptunemon ao suspendê-lo: os três sobrevivem à exclusão simultânea. Esta interação já passa na base.",
+  },
+  "arena-github-5270-gundramon": {
+    en: "End breeding and attack security with Gundramon. Trash all 3 Three Musketeers sources and select the opposing level 3, 4 and 5 Digimon together. Accept Neptunemon’s suspend protection once: all survive. This interaction already passes in the baseline.",
+    ptBR: "Encerre a criação e ataque a segurança com Gundramon. Descarte as 3 fontes Three Musketeers e selecione juntos os Digimon adversários de nível 3, 4 e 5. Aceite uma vez a proteção de Neptunemon ao suspendê-lo: todos sobrevivem. Esta interação já passa na base.",
+  },
   "arena-github-5160-super-hacking": {
     en: "Use Happy Bullet Showering to delete the opposing Agumon. Accept Super Hacking and link the trash Appmon to Gatchmon.",
     ptBR: "Use Happy Bullet Showering para deletar Agumon. Aceite Super Hacking e vincule o Appmon do lixo ao Gatchmon.",
@@ -2436,6 +2472,15 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-5140-merciful", "#5140 \u00b7 merciful"],
   ["arena-issue-5154-dantemon", "#5154 \u00b7 dantemon"],
   ["arena-issue-5156-giant-slayer", "#5156 \u00b7 giant-slayer"],
+  ["arena-github-5270-senbon", "GitHub #5270 · Senbon Dokkan sweep"],
+  ["arena-github-5282-iron-slash", "GitHub #5282 · iron-slash"],
+  ["arena-github-5282-minervamon", "GitHub #5282 · minervamon"],
+  ["arena-github-5277-overflow-full-cost", "GitHub #5277 · full-cost Overflow control"],
+  ["arena-github-5277-overflow", "GitHub #5277 · overflow"],
+  ["arena-github-5276-overflow", "GitHub #5276 · overflow"],
+  ["arena-github-5270-junomon", "GitHub #5270 · junomon"],
+  ["arena-github-5270-hurricane", "GitHub #5270 · hurricane"],
+  ["arena-github-5270-gundramon", "GitHub #5270 · gundramon"],
   ["arena-github-5160-super-hacking", "GitHub #5160 \u00b7 super-hacking"],
   ["arena-github-5162-gym-security", "GitHub #5162 \u00b7 gym-security"],
   ["arena-github-5162-gym-empty", "GitHub #5162 \u00b7 gym-empty"],

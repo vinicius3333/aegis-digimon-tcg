@@ -23,7 +23,7 @@ describe("BT26-083 compiled fidelity", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(card?.effects?.find((effect) => effect.trigger === trigger)?.actions).toMatchObject([
         { kind: "SecurityManipulation", op: "trashTop", leaveCount: 0, trackCount: "trashedSecurity" },
-        { kind: "RepeatPerCount", countSource: "trashedSecurity", action: { kind: "Delete" } },
+        { kind: "Delete", scaling: { unit: "namedCount", countSource: "trashedSecurity", per: 1 } },
         { kind: "SecurityManipulation", op: "placeFromDeck", amount: 3 },
       ]);
     }
@@ -172,7 +172,7 @@ describe("BT26-083 compiled fidelity", () => {
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-083");
   });
 
-  it("trashes all own security, deletes one opposing Digimon per card, and recovers three", async () => {
+  it("#5270: trashes all security, deletes the opposing targets together, and recovers three", async () => {
     const s = setupEngine(
       {
         0: {
@@ -199,6 +199,9 @@ describe("BT26-083 compiled fidelity", () => {
 
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    const deletions = s.events.filter((event) => event.kind === "cardsMoved" && event.deletedPermanents !== undefined);
+    expect(deletions).toHaveLength(1);
+    expect(deletions[0]).toMatchObject({ deletedPermanents: [{ cardId: "BT1-010" }, { cardId: "BT1-011" }] });
   });
 
   it("CR 15-11-2-2: its On Deletion Security A. -1 also reaches opposing Digimon that enter afterwards", async () => {

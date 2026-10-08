@@ -411,7 +411,7 @@ describe("EX12-027 TeslaJellymon", () => {
     expect(card?.effectText).toContain("play or use 1 card");
     expect(card?.inheritedEffectText).toContain("Then, if your hand has 7 or more cards");
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Jellymon"], cost: 2, isAlternate: true },
+      { namesExact: ["Jellymon"], cost: 2, isAlternate: true },
       { level: 3, traits: ["DS"], cost: 2, isAlternate: true },
     ]);
     const effect = compiled.effects.find((entry) => entry.trigger === "Main")!;
@@ -449,7 +449,7 @@ describe("EX12-027 TeslaJellymon", () => {
 
   it("uses both normal colors and the Jellymon-name and DS-trait evolution routes", async () => {
     expect(digivolutionRequirementsFor("EX12-027")).toEqual([
-      { names: ["Jellymon"], cost: 2, isAlternate: true },
+      { namesExact: ["Jellymon"], cost: 2, isAlternate: true },
       { level: 3, traits: ["DS"], cost: 2, isAlternate: true },
     ]);
 
