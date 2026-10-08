@@ -4,6 +4,26 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-054.js";
 
+it("GitHub #5268 sweep: the alternate Lucemon route rejects Chaos Mode", async () => {
+  const s = setupEngine({
+    0: {
+      battleArea: [{ card: "EX6-054", as: "base" }],
+      hand: [{ card: "EX6-054", as: "chaos" }],
+    },
+  });
+  s.state.memory = 10;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("chaos").instanceId,
+    }),
+  ).toEqual({ ok: false, reason: "invalid-evolution" });
+  expect(s.perm("base").topCard.instanceId).toBe(s.inst("base").instanceId);
+  expect(s.state.memory).toBe(10);
+});
+
 describe("EX6-054 Lucemon: Chaos Mode", () => {
   it("deletes an opposing Digimon/Tamer, or trashes security and grants Recovery when deletion fails", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([

@@ -12,7 +12,7 @@ describe("BT12-072 Chaosdramon (X Antibody)", () => {
     ["BT11-072", "Machinedramon"],
   ])("digivolves for 2 from %s (%s) through the public intent", async (base, name) => {
     expect(digivolutionRequirementsFor("BT12-072")).toContainEqual({
-      names: [name],
+      namesExact: [name],
       cost: 2,
       isAlternate: true,
     });

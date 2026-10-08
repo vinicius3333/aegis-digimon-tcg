@@ -43,4 +43,9 @@ if (aura?.kind === "Aura") {
   };
 }
 
+compiled.digivolutionRequirement = compiled.digivolutionRequirement?.map(({ names, ...requirement }) => ({
+  ...requirement,
+  ...(names === undefined ? {} : { namesExact: names }),
+}));
+
 export default registerIrCard("BT12-082", compiled);

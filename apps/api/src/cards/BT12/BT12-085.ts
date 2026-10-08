@@ -51,7 +51,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["Beelzemon"], cost: 1, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["Beelzemon"], cost: 1, isAlternate: true }],
 };
 
 export default registerIrCard("BT12-085", compiled);

@@ -28,6 +28,8 @@ if (returned?.kind === "Return") {
   };
 }
 
+compiled.digivolutionRequirement = [{ namesExact: ["UlforceVeedramon"], cost: 1, isAlternate: true }];
+
 const module = registerIrCard("BT12-029", compiled);
 
 export default module;

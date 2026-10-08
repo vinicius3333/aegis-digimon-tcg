@@ -16672,7 +16672,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["UlforceVeedramon"], "cost": 1, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["UlforceVeedramon"], "cost": 1, "isAlternate": true }]
   },
   "BT12-030": {
     "effects": [
@@ -18454,8 +18454,8 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Machinedramon"], "cost": 2, "isAlternate": true },
-      { "names": ["Chaosdramon"], "cost": 2, "isAlternate": true }
+      { "cost": 2, "isAlternate": true, "namesExact": ["Machinedramon"] },
+      { "cost": 2, "isAlternate": true, "namesExact": ["Chaosdramon"] }
     ]
   },
   "BT12-073": {
@@ -18525,7 +18525,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Impmon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "cost": 0, "isAlternate": true, "namesExact": ["Impmon"] }]
   },
   "BT12-074": {
     "effects": [
@@ -18749,7 +18749,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Wizardmon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "cost": 0, "isAlternate": true, "namesExact": ["Wizardmon"] }]
   },
   "BT12-079": { "effects": [], "coverage": "full", "residual": [] },
   "BT12-080": {
@@ -18957,7 +18957,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Baalmon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "cost": 0, "isAlternate": true, "namesExact": ["Baalmon"] }]
   },
   "BT12-083": {
     "effects": [
@@ -19182,7 +19182,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Beelzemon"], "cost": 1, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Beelzemon"], "cost": 1, "isAlternate": true }]
   },
   "BT12-086": {
     "effects": [
@@ -140942,7 +140942,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Lucemon"], "cost": 5, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Lucemon"], "cost": 5, "isAlternate": true }]
   },
   "EX10-053": {
     "effects": [
@@ -175043,7 +175043,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Lucemon"], "cost": 6, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Lucemon"], "cost": 6, "isAlternate": true }]
   },
   "EX6-055": {
     "effects": [

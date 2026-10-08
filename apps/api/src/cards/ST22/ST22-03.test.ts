@@ -3,6 +3,33 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
+it("GitHub #5269/#5272: evolution inside breeding does not activate Kyubimon's search", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        breeding: { card: "ST22-02", as: "base" },
+        hand: [{ card: "ST22-03", as: "kyubimon" }],
+        deck: ["BT1-009", { card: "ST22-02", as: "searchTarget" }, "BT1-010", "BT1-011"],
+      },
+    },
+    { autoSelectCards: true, autoOrderCards: true },
+  );
+  s.state.memory = 5;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("kyubimon").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision === undefined && s.engine.mainVerbContinuationsInFlight === 0);
+  expect(s.state.players[0]!.breeding!.topCard.instanceId).toBe(s.inst("kyubimon").instanceId);
+  expect(s.state.players[0]!.deck).toHaveLength(3);
+  expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("searchTarget").instanceId)).toBe(false);
+  expect(s.events.some((e) => e.kind === "effectTriggered" && e.sourceCardId === "ST22-03")).toBe(false);
+});
+
 describe("ST22-03 Kyubimon", () => {
   it("GitHub #5196: displays the official search timings", () => {
     const text = getCardDefinition("ST22-03")!.effectText;

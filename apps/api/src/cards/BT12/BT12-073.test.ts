@@ -7,7 +7,7 @@ import "./BT12-073.js";
 describe("BT12-073 Impmon (X Antibody)", () => {
   it("digivolves for 0 from Impmon and resolves the paid recovery trigger", async () => {
     expect(digivolutionRequirementsFor("BT12-073")).toContainEqual({
-      names: ["Impmon"],
+      namesExact: ["Impmon"],
       cost: 0,
       isAlternate: true,
     });

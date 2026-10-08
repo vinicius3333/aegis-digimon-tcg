@@ -47,7 +47,7 @@ describe("EX10-052 Lucemon: Chaos Mode", () => {
   it("compiles every printed clause: the two triggers, the leave replacement and the alternate route", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Lucemon"], cost: 5, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Lucemon"], cost: 5, isAlternate: true }]);
     for (const trigger of ["WhenDigivolving", "WhenAttacking"]) {
       expect(compiled.effects?.find((effect) => effect.trigger === trigger)).toMatchObject({
         cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine" }, count: 1 } },

@@ -38,6 +38,51 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e jogue Omnimon AD1 sem Assembly. Agumon adversário não tem cartas de digivolução e volta ao fundo do deck. Gallantmon tem três fontes e não deve voltar; a cláusula Then separada o deleta para o lixo. Compare os destinos.",
   },
 
+  "arena-github-5289-ulforce-rina": {
+    en: "End breeding and attack security with Ulforce BT11-032 so it is suspended. Then evolve it into one hand Ulforce X for 1, choosing to unsuspend the Digimon. Accept EX13-069 Rina: she suspends and draws one, but the remaining hand Ulforce X must not be offered to evolve onto the field X. The first X remains the top card.",
+    ptBR: "Encerre a criação e ataque a segurança com Ulforce BT11-032 para virá-lo. Depois evolua em um Ulforce X da mão por 1, escolhendo desvirar o Digimon. Aceite Rina EX13-069: ela vira e compra uma carta, mas o Ulforce X restante na mão não pode ser oferecido sobre o X do campo. O primeiro X permanece no topo.",
+  },
+  "arena-github-5289-ulforce-exact-base": {
+    en: "End breeding and select hand UlforceVeedramon (X Antibody) BT12-029. The field X Antibody copy must not be an evolution target. Evolve the separate suspended UlforceVeedramon BT11-032 for 1: it unsuspends and memory becomes 9.",
+    ptBR: "Encerre a criação e selecione UlforceVeedramon (X Antibody) BT12-029 na mão. A cópia X Antibody do campo não pode ser alvo de digivolução. Evolua o UlforceVeedramon BT11-032 suspenso separado por 1: ele desvira e a memória fica em 9.",
+  },
+  "arena-github-5274-siriusmon-vb-cost": {
+    en: "End breeding and evolve WereGarurumon EX12-032 into Siriusmon EX12-018. The only legal cost is 3, leaving 7 memory. Decline placing cards under it. Planet Punch’s Option Use Req must not create a cost-4 Digimon route.",
+    ptBR: "Encerre a criação e evolua WereGarurumon EX12-032 em Siriusmon EX12-018. O único custo legal é 3, deixando 7 memórias. Recuse colocar cartas sob ele. O Use Req da opção Planet Punch não cria uma rota de digivolução por 4.",
+  },
+  "arena-github-5273-two-ouryumon-dna": {
+    en: "End breeding and select Alphamon: Ouryuken BT20-060 from hand. Choose DNA and select both physical BT20-018 Ouryumon stacks, then confirm the cost-0 route. Ordinary DNA accepts their black and red colors; Blast DNA instead requires Alphamon plus Ouryumon.",
+    ptBR: "Encerre a criação e selecione Alphamon: Ouryuken BT20-060 na mão. Escolha DNA e selecione os dois Ouryumon BT20-018 no campo, depois confirme a rota de custo 0. A DNA normal aceita as cores preta e vermelha; Blast DNA exige Alphamon mais Ouryumon.",
+  },
+  "arena-github-5272-kyubimon-moving": {
+    en: "Move Kyubimon ST22-03 from breeding to the battle area. Its mandatory search reveals three cards. Add Renamon ST22-02 to hand and return the other two to the deck bottom. No evolution is needed for When Moving.",
+    ptBR: "Mova Kyubimon ST22-03 da criação para a área de batalha. Sua busca obrigatória revela três cartas. Adicione Renamon ST22-02 à mão e devolva as outras duas ao fundo do deck. When Moving não exige digivolução.",
+  },
+  "arena-github-5269-kyubimon-digivolving": {
+    en: "End breeding and evolve the field Renamon into Kyubimon ST22-03 for 2. After the bonus draw, reveal three cards, add the revealed Renamon to hand and bottom-deck the other two. Effects do not activate for evolution inside breeding.",
+    ptBR: "Encerre a criação e evolua Renamon do campo em Kyubimon ST22-03 por 2. Após comprar pela digivolução, revele três cartas, adicione o Renamon revelado à mão e devolva as outras duas ao fundo do deck. Efeitos não ativam na digivolução dentro da criação.",
+  },
+  "arena-github-5268-blue-card-chaos-mode": {
+    en: "End breeding and use Blue Card. The revealed Lucemon: Chaos Mode EX10-052 cannot evolve onto the field Chaos Mode: its alternate route requires exactly Lucemon. Add the revealed Chaos Mode to hand instead and bottom-deck the four Options. Only the Option cost of 3 is paid.",
+    ptBR: "Encerre a criação e use Blue Card. O Lucemon: Chaos Mode EX10-052 revelado não pode evoluir sobre Chaos Mode: a rota alternativa exige exatamente Lucemon. Adicione Chaos Mode revelado à mão e devolva as quatro opções ao fundo do deck. Pague somente o custo 3 da opção.",
+  },
+  "arena-github-5268-blue-card-lucemon": {
+    en: "End breeding and use Blue Card. Accept evolving the field Lucemon EX10-013 into the revealed Chaos Mode for free. Bottom-deck the four Options, take the evolution draw and decline trashing a hand card. Memory remains 7.",
+    ptBR: "Encerre a criação e use Blue Card. Aceite evoluir Lucemon EX10-013 do campo em Chaos Mode revelado sem custo. Devolva as quatro opções ao fundo do deck, compre pela evolução e recuse descartar carta da mão. A memória fica em 7.",
+  },
+  "arena-github-5283-wargreymon-modal-warp": {
+    en: "End breeding and activate WarGreymon BT22-013’s hand Main effect with Nokia in play. Decline Nokia’s reduction. Choose the partner-evolution bullet although there is no Gabumon: it legally resolves without deletion (Q2743 analogous wording). Reset and choose the deletion bullet to delete the lowest-DP opposing Digimon.",
+    ptBR: "Encerre a criação e ative o efeito Main da mão de WarGreymon BT22-013 com Nokia em campo. Recuse a redução da Nokia. Escolha a digivolução do parceiro mesmo sem Gabumon: o efeito legalmente termina sem deleção (texto equivalente ao Q2743). Reinicie e escolha a deleção para deletar o Digimon adversário de menor DP.",
+  },
+  "arena-github-5283-metalgarurumon-modal-warp": {
+    en: "End breeding and activate MetalGarurumon BT22-026’s hand Main effect with Nokia in play. Decline Nokia’s reduction. Choosing the partner-evolution bullet with no Agumon legally resolves without returning a Digimon (Q2773 analogous wording). Reset and choose the return bullet to return the lowest-level opposing Digimon to hand.",
+    ptBR: "Encerre a criação e ative o efeito Main da mão de MetalGarurumon BT22-026 com Nokia em campo. Recuse a redução da Nokia. Escolher a digivolução do parceiro sem Agumon legalmente termina sem devolver Digimon (texto equivalente ao Q2773). Reinicie e escolha a devolução para devolver à mão o Digimon adversário de menor nível.",
+  },
+  "arena-github-5283-wargreymon-mandatory-delete": {
+    en: "End breeding and warp Agumon ST20-10 into WarGreymon ST20-11 for 4; the opposing 10000-DP Digimon enables the warp. Resolve the immunity effect first with no Tamers: it has no targets. The separate lowest-DP deletion must still resolve, deleting the opposing rookie.",
+    ptBR: "Encerre a criação e faça warp de Agumon ST20-10 em WarGreymon ST20-11 por 4; o Digimon adversário de 10000 DP permite o warp. Resolva a imunidade primeiro sem Tamers: não há alvos. A deleção separada de menor DP ainda deve resolver, deletando o Digimon rookie adversário.",
+  },
+
   "arena-issue-5266-elecmon-bottom-deck": {
     en: "Production report from KingWows vs RAP SKALYIN: end breeding and evolve Garurumon into AeroVeedramon BT22-023. Elecmon BT25-030 is the only opposing level 4 or lower Digimon, so it must return to the deck bottom automatically. Candlemon under the separate Wisemon must not activate, and all three opposing security cards remain.",
     ptBR: "Relato de produção de KingWows contra RAP SKALYIN: encerre a criação e evolua Garurumon em AeroVeedramon BT22-023. Elecmon BT25-030 é o único Digimon adversário de nível 4 ou menor, então deve voltar automaticamente ao fundo do deck. O Candlemon sob o Wisemon separado não deve ativar, e as três seguranças adversárias permanecem.",
@@ -1934,6 +1979,18 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-github-5284-regulusmon-shared-opt", "GitHub #5284 · Regulusmon shared once per turn"],
   ["arena-github-5279-millenniummon-self-delete", "GitHub #5279 · Millenniummon self-deletion"],
   ["arena-github-5267-omnimon-source-count", "GitHub #5267 · Omnimon bottom-deck versus Then deletion"],
+
+  ["arena-github-5289-ulforce-rina", "GitHub #5289 · Rina cannot evolve Ulforce X onto X"],
+  ["arena-github-5289-ulforce-exact-base", "GitHub #5289 · Ulforce X exact evolution base"],
+  ["arena-github-5274-siriusmon-vb-cost", "GitHub #5274 · Siriusmon costs 3 from VB WereGarurumon"],
+  ["arena-github-5273-two-ouryumon-dna", "GitHub #5273 · Two Ouryumon ordinary DNA"],
+  ["arena-github-5272-kyubimon-moving", "GitHub #5272 · Kyubimon When Moving search"],
+  ["arena-github-5269-kyubimon-digivolving", "GitHub #5269 / #5272 · Kyubimon When Digivolving search"],
+  ["arena-github-5268-blue-card-chaos-mode", "GitHub #5268 · Blue Card rejects Chaos onto Chaos"],
+  ["arena-github-5268-blue-card-lucemon", "GitHub #5268 · Blue Card retains legal Lucemon evolution"],
+  ["arena-github-5283-wargreymon-modal-warp", "GitHub #5283 · WarGreymon modal warp rulings"],
+  ["arena-github-5283-metalgarurumon-modal-warp", "GitHub #5283 · MetalGarurumon modal warp rulings"],
+  ["arena-github-5283-wargreymon-mandatory-delete", "GitHub #5283 · Starter WarGreymon mandatory deletion"],
 
   ["arena-issue-5266-elecmon-bottom-deck", "GitHub #5266 · AeroVeedramon returns separate Elecmon"],
   ["arena-issue-5266-candlemon-own-host", "GitHub #5265 / #5266 · Candlemon protects only its own host"],

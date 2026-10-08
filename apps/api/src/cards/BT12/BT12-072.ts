@@ -12,4 +12,9 @@ const deletionEffect = compiled.effects.find(
 );
 const deletionTrigger = deletionEffect?.actions[0];
 if (deletionTrigger?.kind === "SubTrigger") deletionTrigger.sourceFilter = { isSelfRef: true };
+compiled.digivolutionRequirement = compiled.digivolutionRequirement?.map(({ names, ...requirement }) => ({
+  ...requirement,
+  ...(names === undefined ? {} : { namesExact: names }),
+}));
+
 export default registerIrCard("BT12-072", compiled);

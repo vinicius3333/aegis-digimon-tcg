@@ -11,6 +11,79 @@ import "../BT26/index.js";
 import "../BT12/BT12-024.js";
 import "../EX13/EX13-060.js";
 import "./index.js";
+import "../ST21/ST21-11.js";
+
+it("GitHub #5273: two red/black BT20 Ouryumon meet the printed DNA requirements", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT20-018", as: "first" },
+          { card: "BT20-018", as: "second" },
+        ],
+        hand: [{ card: "BT20-060", as: "ace" }],
+        deck: ["BT1-009", "BT1-009"],
+      },
+      1: { security: ["BT1-009", "BT1-009"] },
+    },
+    { autoSelectCards: true, autoOrderTriggers: true },
+  );
+  s.state.memory = 3;
+  await s.ready();
+  expect(s.inst("ace").dnaDigivolveRoutes).toHaveLength(1);
+  expect(JSON.parse(s.inst("ace").dnaDigivolveRoutes[0]!.materialPermanentIdsJson)).toEqual([
+    s.perm("first").permanentId,
+    s.perm("second").permanentId,
+  ]);
+  expect(s.inst("ace").dnaDigivolveRoutes[0]!.projectedCost).toBe(0);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "dnaDigivolve",
+      instanceId: s.inst("ace").instanceId,
+      materialPermanentIds: [s.perm("first").permanentId, s.perm("second").permanentId],
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.engine.mainVerbContinuationsInFlight === 0 && s.state.pendingDecision === undefined);
+  expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  expect(s.state.players[0]!.battleArea[0]!.stack.map((c) => c.cardId)).toEqual(["BT20-018", "BT20-018"]);
+  expect(s.state.players[1]!.security).toHaveLength(1);
+  expect(s.state.players[0]!.security).toHaveLength(1);
+});
+
+it("GitHub #5273: Blast DNA requires Alphamon plus Ouryumon, not two Ouryumon", async () => {
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+      1: {
+        battleArea: [{ card: "BT20-018", as: "ouryumon" }, { card: "ST21-09" }],
+        hand: [{ card: "BT20-060", as: "ace" }, { card: "BT20-018", as: "partner" }, { card: "ST21-11" }],
+        security: ["BT1-010"],
+      },
+    },
+    { autoSelectCards: true },
+  );
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.events.some((e) => e.kind === "counterWindowOpened"));
+  const opened = s.events.find((e) => e.kind === "counterWindowOpened");
+  if (opened?.kind !== "counterWindowOpened") throw new Error("Counter did not open");
+  expect(opened.eligibleCounters.some((c) => c.instanceId === s.inst("ace").instanceId)).toBe(false);
+  expect(
+    s.engine.applyIntent(1, {
+      type: "respondCounter",
+      sourceInstanceId: s.inst("ace").instanceId,
+      effectKey: `blast-dna-digivolve:${JSON.stringify([s.perm("ouryumon").permanentId, s.inst("ouryumon").instanceId, s.inst("partner").instanceId, 0])}`,
+    }),
+  ).toEqual({ ok: false, reason: "illegal-target" });
+  expect(s.engine.applyIntent(1, { type: "respondCounter" })).toEqual({ ok: true });
+  await settle(() => !observe(s.engine).isAttacking());
+});
 
 describe("BT20-060 Alphamon: Ouryuken", () => {
   it("Discord 1556343982546755625: Blast DNA against Lanamon consumes the selected copies from four legal combinations", async () => {
