@@ -17,6 +17,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-ravemon-burst-hand": {
+    ptBR: "Faça Burst Digivolve de Ravemon em Ravemon: Burst Mode por 0, devolvendo Keenan Crier à mão. Veja as duas cartas da mão adversária e escolha uma para descartar. A carta escolhida vai ao lixo e o topo da segurança adversária vai à mão, sem revelar sua identidade.",
+    en: "Burst Digivolve Ravemon into Ravemon: Burst Mode for 0 by returning Keenan Crier to hand. Inspect both opponent hand cards and choose one to trash. The chosen card enters trash, then the opponent adds top security to hand without revealing its identity.",
+  },
   "arena-github5326-sistermon-zero-security": {
     en: "GitHub #5326, current behavior control. You start with 0 security and 6 memory. End breeding, then play either BT23 Sistermon Blanc for 3. Its mandatory On Play recovers 1 from the deck even though no security card could be added to hand; security becomes 1 and memory becomes 3. Play the second Blanc for 3: the previous security card goes to hand, then the next deck card becomes your face-down security. Security stays 1 and memory becomes 0. No payment or optional confirmation is required for either On Play effect.",
     ptBR: "GitHub #5326, controle do comportamento atual. Você começa com 0 segurança e 6 de memória. Encerre a criação e jogue qualquer Sistermon Blanc BT23 por 3. O Ao Jogar obrigatório recupera 1 do deck mesmo sem segurança para adicionar à mão; a segurança passa a 1 e a memória a 3. Jogue a segunda Blanc por 3: a segurança anterior vai para a mão e a próxima carta do deck vira sua segurança virada para baixo. A segurança continua em 1 e a memória passa a 0. Nenhum pagamento ou confirmação opcional é necessário para os efeitos Ao Jogar.",
@@ -2386,6 +2390,7 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-ravemon-burst-hand", "Ravemon: Burst Mode · inspect opponent hand"],
   ["arena-github5326-sistermon-zero-security", "GitHub #5326 · Sistermon Blanc / zero security control"],
   ["arena-lanamon-tamer-cost", "GitHub #5340 · Lanamon Tamer cost"],
   ["arena-github5331-offense-hand", "GitHub #5331 · Offense Training hand ownership"],

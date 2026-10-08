@@ -207,6 +207,8 @@ export interface TrashAction extends ActionBase {
    * "trash 1 card in your opponent's hand without looking" (BT14-075 Q2445).
    */
   blind?: boolean;
+  /** Privately show hand candidates to the chooser when the printed effect says to look/search. */
+  revealHand?: boolean;
 }
 
 export interface ReturnAction extends ActionBase {

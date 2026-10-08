@@ -13785,6 +13785,7 @@
         "actions": [
           {
             "kind": "Trash",
+            "revealHand": true,
             "target": { "filter": { "zone": "hand", "controller": "opponent" }, "count": 1 },
             "condition": {
               "kind": "opponentHas",
@@ -13812,6 +13813,7 @@
         "actions": [
           {
             "kind": "Trash",
+            "revealHand": true,
             "target": { "filter": { "zone": "hand", "controller": "opponent" }, "count": 1 },
             "condition": {
               "kind": "opponentHas",
@@ -25550,6 +25552,7 @@
           {
             "effectTextPart": "[When Digivolving] Search your opponent's hand, and trash 1 card among it.",
             "kind": "Trash",
+            "revealHand": true,
             "target": { "filter": { "controller": "opponent", "zone": "hand" }, "count": 1 }
           },
           {

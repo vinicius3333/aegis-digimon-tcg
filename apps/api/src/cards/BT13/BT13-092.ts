@@ -9,6 +9,7 @@ export const compiled: CompiledCard = {
         {
           effectTextPart: "[When Digivolving] Search your opponent's hand, and trash 1 card among it.",
           kind: "Trash",
+          revealHand: true,
           target: { filter: { controller: "opponent", zone: "hand" }, count: 1 },
         },
         {
