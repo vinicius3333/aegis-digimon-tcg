@@ -207918,6 +207918,7 @@
       {
         "trigger": "WhenDigivolving",
         "frequency": "OncePerTurn",
+        "sharedUseKey": "grant-on-deletion",
         "actions": [
           {
             "kind": "GrantStatic",
@@ -207943,6 +207944,7 @@
       {
         "trigger": "WhenAttacking",
         "frequency": "OncePerTurn",
+        "sharedUseKey": "grant-on-deletion",
         "actions": [
           {
             "kind": "GrantStatic",

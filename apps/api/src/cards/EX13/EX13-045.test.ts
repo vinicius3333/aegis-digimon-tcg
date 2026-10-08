@@ -1095,3 +1095,45 @@ describe("EX13-045 Examon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
   });
 });
+
+describe("GitHub #5285 Examon battle-win play", () => {
+  it.each([
+    ["EX13-021", "hand"],
+    ["EX13-021", "sources"],
+    ["EX13-024", "hand"],
+    ["EX13-024", "sources"],
+  ] as const)("plays %s from %s after winning a real battle", async (playedCard, zone) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX13-045",
+              as: "examon",
+              ...(zone === "sources" ? { under: [{ card: playedCard, as: "played" }] } : {}),
+            },
+          ],
+          hand: zone === "hand" ? [{ card: playedCard, as: "played" }] : [],
+        },
+        1: {
+          battleArea: [{ card: "BT1-013", as: "victim", suspended: true }],
+          security: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const playedId = s.inst("played").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("examon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === playedId)).toBe(true);
+    expect(s.state.memory).toBe(5);
+  });
+});

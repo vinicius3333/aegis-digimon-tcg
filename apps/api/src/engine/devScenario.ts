@@ -57,6 +57,11 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github-5286-lordknightmon-knightmon",
+  "arena-github-5285-examon-battle-win",
+  "arena-github-5284-regulusmon-shared-opt",
+  "arena-github-5279-millenniummon-self-delete",
+  "arena-github-5267-omnimon-source-count",
   "arena-oct06-sukamon-bt11-deletion-search",
   "arena-oct06-sukamon-bt3-deletion-search",
   "arena-oct06-sukamon-ex13-deletion-search",
@@ -7452,7 +7457,73 @@ function layOct06LatestScenario(state: GameState, decks: readonly [Decklist, Dec
   }
 }
 
+/** Neutral draws and security keep each report's printed contract isolated. */
+function prepareGithubCardEffectsScenario(state: GameState, memory: number): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`github-effects-egg-${seat}`, "BT1-003", seat));
+    for (let index = 0; index < 20; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`github-effects-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`github-effects-security-${seat}-${index}`, "BT1-010", seat));
+    }
+  }
+  startEffectsLabTurn(state, memory);
+}
+
+function layGithubLordKnightmonScenario(state: GameState): void {
+  prepareGithubCardEffectsScenario(state, 10);
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT5-042"], "-github-lord-base"));
+  insertCard(human, Zone.Hand, faceDownCard("github-lord", "EX13-064", 0));
+  insertCard(human, Zone.Hand, faceDownCard("github-knight-hand", "EX13-058", 0));
+  insertCard(human, Zone.Trash, faceDownCard("github-knight-trash", "EX13-058", 0));
+}
+
+function layGithubExamonScenario(state: GameState): void {
+  prepareGithubCardEffectsScenario(state, 5);
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["EX13-021", "EX13-045"], "-github-examon"));
+  insertCard(human, Zone.Hand, faceDownCard("github-wing-hand", "EX13-021", 0));
+  insertCard(human, Zone.Hand, faceDownCard("github-slayer-hand", "EX13-024", 0));
+  const victim = establishedDigimon(1, ["BT1-013"], "-github-examon-victim");
+  victim.isSuspended = true;
+  placePermanent(state.players[1]!, victim);
+}
+
+function layGithubRegulusmonScenario(state: GameState): void {
+  prepareGithubCardEffectsScenario(state, 10);
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT10-078"], "-github-regulus-base"));
+  insertCard(human, Zone.Hand, faceDownCard("github-regulus", "RB1-030", 0));
+  for (let index = 0; index < 2; index += 1) {
+    insertCard(human, Zone.Hand, faceDownCard(`github-regulus-cost-${index}`, "BT10-094", 0));
+  }
+}
+
+function layGithubMillenniummonScenario(state: GameState): void {
+  prepareGithubCardEffectsScenario(state, 10);
+  insertCard(state.players[0]!, Zone.Hand, faceDownCard("github-millennium", "P-220", 0));
+  placePermanent(state.players[1]!, establishedDigimon(1, ["BT1-010", "BT1-015", "BT1-020"], "-github-de-digivolve"));
+}
+
+function layGithubOmnimonScenario(state: GameState): void {
+  prepareGithubCardEffectsScenario(state, 10);
+  insertCard(state.players[0]!, Zone.Hand, faceDownCard("github-omnimon", "AD1-025", 0));
+  placePermanent(
+    state.players[1]!,
+    establishedDigimon(1, ["BT1-009", "BT1-015", "BT1-020", "BT2-020"], "-github-gallant"),
+  );
+  placePermanent(state.players[1]!, establishedDigimon(1, ["BT1-010"], "-github-bottom-deck"));
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-github-5286-lordknightmon-knightmon": layGithubLordKnightmonScenario,
+  "arena-github-5285-examon-battle-win": layGithubExamonScenario,
+  "arena-github-5284-regulusmon-shared-opt": layGithubRegulusmonScenario,
+  "arena-github-5279-millenniummon-self-delete": layGithubMillenniummonScenario,
+  "arena-github-5267-omnimon-source-count": layGithubOmnimonScenario,
   "arena-raid-optional-preset": layRaidOptionalPresetScenario,
   "arena-preset-order-no-clicks": layPresetOrderNoClicksScenario,
   "arena-oct06-king-sukamon-assembly": (state, decks) => layOct06LatestScenario(state, decks, "king-sukamon-assembly"),

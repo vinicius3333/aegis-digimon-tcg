@@ -356,3 +356,61 @@ describe("AD1-025 Omnimon — KB Q&A rulings", () => {
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "P-039")).toBe(true);
   });
 });
+
+describe("GitHub #5267 Omnimon source-count ceiling", () => {
+  it("never bottom-decks a Gallantmon with more sources, but still offers the printed Then deletion", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "AD1-025", as: "omnimon" }] },
+        1: {
+          battleArea: [{ card: "BT2-020", as: "gallantmon", under: ["BT1-009", "BT1-015", "BT1-020"] }],
+          security: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const gallantId = s.inst("gallantmon").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).not.toContain(gallantId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(gallantId);
+  });
+
+  it("offers the Then deletion against protected Gallantmon X after bottom-decking only the zero-source Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-083", as: "fodder" }],
+          hand: [{ card: "AD1-025", as: "omnimon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "EX2-008", as: "guilmon" },
+            { card: "EX13-015", as: "gallantmon", under: ["EX2-008", "BT1-015", "BT1-020"] },
+          ],
+          security: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const gallantId = s.inst("gallantmon").instanceId;
+    const guilmonId = s.inst("guilmon").instanceId;
+    const fodderId = s.inst("fodder").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === fodderId));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toContain(guilmonId);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).not.toContain(gallantId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([gallantId]);
+    expect(s.perm("gallantmon").stack).toHaveLength(3);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(fodderId);
+  });
+});

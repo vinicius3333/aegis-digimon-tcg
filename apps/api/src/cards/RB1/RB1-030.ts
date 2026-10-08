@@ -6,6 +6,7 @@ const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       frequency: "OncePerTurn",
+      sharedUseKey: "grant-on-deletion",
       actions: [
         {
           kind: "GrantStatic",
@@ -37,6 +38,7 @@ const compiled: CompiledCard = {
     {
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",
+      sharedUseKey: "grant-on-deletion",
       actions: [
         {
           kind: "GrantStatic",
