@@ -7,9 +7,46 @@ import "../index.js";
 import { compiled } from "./BT15-012.js";
 
 describe("BT15-012 Shoutmon X2 [On Play] suspend", () => {
+  it.each([0, 1, 2])("GitHub #5316 secondary finding: printed DigiXros -1 pays 5 minus %s materials", async (count) => {
+    const s = setup(
+      {
+        0: {
+          hand: [
+            { card: "BT15-012", as: "host" },
+            { card: "BT21-021", as: "omni" },
+            { card: "BT19-051", as: "atlur" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("host").instanceId,
+        ...(count > 0
+          ? {
+              digiXros: {
+                materialInstanceIds: [s.inst("omni").instanceId, s.inst("atlur").instanceId].slice(0, count),
+              },
+            }
+          : {}),
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT15-012") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.memory).toBe(10 - (5 - count));
+    expect(s.perm("host").stack).toHaveLength(count);
+  });
+
   it("encodes deletion prevention, the DigiXros restriction, and both treated-as names", () => {
     expect(digiXrosRequirementFor("BT15-012")).toEqual([
-      { materials: [{ names: ["Shoutmon"] }, { names: ["Ballistamon"] }], count: 2 },
+      { materials: [{ names: ["Shoutmon"] }, { names: ["Ballistamon"] }], count: 1 },
     ]);
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "Static",
