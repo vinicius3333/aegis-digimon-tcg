@@ -134,98 +134,119 @@ describe("#5333 TeslaJellymon source replay", () => {
     },
   );
 
-  it("separates inherited OPT from Main and preserves the inherited use through normal host evolution", async () => {
-    const preferred: string[] = [];
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX8-024", as: "host", under: [{ card: "EX12-027", as: "source" }] },
-            { card: "BT1-088", as: "green" },
-          ],
-          hand: [
-            { card: "BT1-112", as: "unsuspend" },
-            { card: "BT20-026", as: "evo" },
-            { card: "ST2-15", as: "nail" },
-            { card: "EX8-068", as: "option" },
-          ],
-          deck: Array.from({ length: 10 }, () => "BT1-009"),
-          security: 5,
+  it.each([false, true])(
+    "preserves inherited OPT through host evolution or blocked source play (blocked: %s)",
+    async (blocked) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "EX8-024", as: "host", under: [{ card: "EX12-027", as: "source" }] },
+              { card: "BT1-088", as: "green" },
+            ],
+            hand: [
+              { card: "BT1-112", as: "unsuspend" },
+              { card: "BT20-026", as: "evo" },
+              { card: "ST2-15", as: "nail" },
+              { card: "EX8-068", as: "option" },
+            ],
+            deck: Array.from({ length: 10 }, () => "BT1-009"),
+            security: 5,
+          },
+          1: {
+            battleArea: [
+              { card: "BT1-023", as: "target1", dp: 1000, suspended: true },
+              { card: "BT1-023", as: "target2", dp: 1000, suspended: true },
+              ...(blocked ? [{ card: "BT9-047", as: "pomumon" }] : []),
+            ],
+          },
         },
-        1: {
-          battleArea: [
-            { card: "BT1-023", as: "target1", dp: 1000, suspended: true },
-            { card: "BT1-023", as: "target2", dp: 1000, suspended: true },
-          ],
+        {
+          autoAcceptOptional: true,
+          autoChooseOption: true,
+          preferOptionIndex: 1,
+          autoSelectCards: true,
+          preferInstanceIds: preferred,
         },
-      },
-      {
-        autoAcceptOptional: true,
-        autoChooseOption: true,
-        preferOptionIndex: 1,
-        autoSelectCards: true,
-        preferInstanceIds: preferred,
-      },
-    );
-    s.state.memory = 10;
-    await s.ready();
-    const sourceId = s.inst("source").instanceId;
-    const optionId = s.inst("option").instanceId;
-    const hostId = s.perm("host").permanentId;
-    const inheritedActivations = () =>
-      s.events.filter((e) => e.kind === "effectResolved" && e.sourceCardId === "EX12-027" && e.isInherited === true)
-        .length;
-    preferred.push(sourceId);
-    const attack = async (alias: string) => {
-      const targetId = s.perm(alias).permanentId;
-      expect(
-        s.engine.applyIntent(0, {
-          type: "attack",
-          attackerPermanentId: hostId,
-          target: { kind: "permanent", permanentId: targetId },
-        }),
-      ).toEqual({ ok: true });
-      await settle(
-        () =>
-          !observe(s.engine).isAttacking() && !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId),
       );
-    };
-    const unsuspendId = s.inst("unsuspend").instanceId;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: unsuspendId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((c) => c.instanceId === unsuspendId) && !s.state.pendingDecision);
-    await attack("target1");
-    expect(inheritedActivations()).toBe(1);
-    expect(s.state.players[0]!.hand).toHaveLength(4);
-    expect(s.perm("host").isSuspended).toBe(false);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: hostId,
-        instanceId: s.inst("evo").instanceId,
-        useAlternateCost: true,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("host").topCard.cardId === "BT20-026" && !s.state.pendingDecision);
-    const handBeforeSecondAttack = s.state.players[0]!.hand.length;
-    await attack("target2");
-    expect(inheritedActivations()).toBe(1);
-    expect(s.state.players[0]!.hand).toHaveLength(handBeforeSecondAttack);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nail").instanceId })).toEqual({ ok: true });
-    await settle(
-      () => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === sourceId) && !s.state.pendingDecision,
-    );
-    const replay = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === sourceId)!;
-    expect(replay.permanentId).not.toBe(hostId);
-    const main = observe(s.engine)
-      .activatableEffects(replay)
-      .find((e) => e.effectKey.startsWith("EX12-027/"))!;
-    expect(main).toBeDefined();
-    expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: sourceId, effectKey: main.effectKey }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.some((c) => c.instanceId === optionId));
-    expect(observe(s.engine).activatableEffects(replay)).toEqual([]);
-  });
+      s.state.memory = 10;
+      await s.ready();
+      const sourceId = s.inst("source").instanceId;
+      const optionId = s.inst("option").instanceId;
+      const hostId = s.perm("host").permanentId;
+      const inheritedActivations = () =>
+        s.events.filter((e) => e.kind === "effectResolved" && e.sourceCardId === "EX12-027" && e.isInherited === true)
+          .length;
+      preferred.push(sourceId);
+      const attack = async (alias: string) => {
+        const targetId = s.perm(alias).permanentId;
+        expect(
+          s.engine.applyIntent(0, {
+            type: "attack",
+            attackerPermanentId: hostId,
+            target: { kind: "permanent", permanentId: targetId },
+          }),
+        ).toEqual({ ok: true });
+        await settle(
+          () =>
+            !observe(s.engine).isAttacking() && !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId),
+        );
+      };
+      const unsuspendId = s.inst("unsuspend").instanceId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: unsuspendId })).toEqual({ ok: true });
+      await settle(
+        () => s.state.players[0]!.trash.some((c) => c.instanceId === unsuspendId) && !s.state.pendingDecision,
+      );
+      await attack("target1");
+      expect(inheritedActivations()).toBe(1);
+      expect(s.state.players[0]!.hand).toHaveLength(4);
+      expect(s.perm("host").isSuspended).toBe(false);
+      const tryBlockedPlay = async () => {
+        const nailId = s.inst("nail").instanceId;
+        expect(s.engine.applyIntent(0, { type: "playCard", instanceId: nailId })).toEqual({ ok: true });
+        await settle(() => s.state.players[0]!.trash.some((c) => c.instanceId === nailId) && !s.state.pendingDecision);
+        // Pomumon blocks the actual source play, so the source and its spent use stay on this host.
+        expect(s.perm("host").stack.some((c) => c.instanceId === sourceId)).toBe(true);
+        expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === sourceId)).toBe(false);
+        expect(s.events.filter((e) => e.kind === "cardPlayed" && e.cardId === "EX12-027")).toEqual([]);
+      };
+      const evolveHost = async () => {
+        expect(
+          s.engine.applyIntent(0, {
+            type: "digivolve",
+            permanentId: hostId,
+            instanceId: s.inst("evo").instanceId,
+            useAlternateCost: true,
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => s.perm("host").topCard.cardId === "BT20-026" && !s.state.pendingDecision);
+      };
+      await (blocked ? tryBlockedPlay : evolveHost)();
+      const handBeforeSecondAttack = s.state.players[0]!.hand.length;
+      await attack("target2");
+      expect(inheritedActivations()).toBe(1);
+      expect(s.state.players[0]!.hand).toHaveLength(handBeforeSecondAttack);
+      if (blocked) return;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nail").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === sourceId) && !s.state.pendingDecision,
+      );
+      const replay = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === sourceId)!;
+      expect(replay.permanentId).not.toBe(hostId);
+      const main = observe(s.engine)
+        .activatableEffects(replay)
+        .find((e) => e.effectKey.startsWith("EX12-027/"))!;
+      expect(main).toBeDefined();
+      expect(
+        s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: sourceId, effectKey: main.effectKey }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.security.some((c) => c.instanceId === optionId));
+      expect(observe(s.engine).activatableEffects(replay)).toEqual([]);
+    },
+  );
 
   it("plays the #5333 arena setup through the real turn loop", async () => {
     const preferred = ["tesla5333-option1"];

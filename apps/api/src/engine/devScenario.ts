@@ -489,7 +489,6 @@ function linkEstablishedCard(permanent: Permanent, card: CardInstance): void {
   permanent.currentDP += getCardDefinition(card.cardId)?.linkDp ?? 0;
 }
 
-/** Discord 1557702941106901032 candidate choice shape; a control, not a proven freeze reproducer. */
 /** #5333: use Tesla Main, evolve through MegaSeadramon/X/Plesiomon, replay that Tesla. */
 function layTesla5333SourceReplayScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 10);
@@ -514,6 +513,7 @@ function layTesla5333SourceReplayScenario(state: GameState, decks: readonly [Dec
     insertCard(human, Zone.Hand, faceDownCard(`tesla5333-${alias}`, cardId!, 0));
 }
 
+/** Discord 1557702941106901032 candidate choice shape; a control, not a proven freeze reproducer. */
 function laySatellamonCostControlScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat]!;
