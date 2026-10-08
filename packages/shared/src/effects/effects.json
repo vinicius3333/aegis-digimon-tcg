@@ -197915,7 +197915,7 @@
             "kind": "Digivolve",
             "optional": true,
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "into": { "kind": ["Digimon"], "colors": ["Red"] },
+            "into": { "controller": "mine", "kind": ["Digimon"], "colors": ["Red"] },
             "costDelta": -2,
             "payCost": true,
             "from": ["hand"]
@@ -197950,7 +197950,7 @@
             "kind": "Digivolve",
             "optional": true,
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "into": { "kind": ["Digimon"], "colors": ["Blue"] },
+            "into": { "controller": "mine", "kind": ["Digimon"], "colors": ["Blue"] },
             "costDelta": -2,
             "payCost": true,
             "from": ["hand"]

@@ -58,6 +58,7 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github5331-offense-hand",
   "arena-github5322-metalmamemon-no-cost",
   "arena-github5322-metalmamemon-paid",
   "arena-github5322-metalmamemon-strip-zero",
@@ -508,6 +509,41 @@ function establishedDigimon(seat: Seat, cardIds: readonly string[], slot = ""): 
 function linkEstablishedCard(permanent: Permanent, card: CardInstance): void {
   linkCard(permanent, card, "bottom");
   permanent.currentDP += getCardDefinition(card.cardId)?.linkDp ?? 0;
+}
+
+/** #5331: own red destinations remain distinct from the opposing BetelGammamon hand. */
+function layGithub5331OffenseHandScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-5331-egg-${seat}`, "BT1-001", seat));
+    const deck = ["BT1-009", "BT1-015", "BT1-037", ...Array<string>(9).fill("BT1-009")];
+    deck.forEach((cardId, index) =>
+      insertCard(player, Zone.Deck, faceDownCard(`dev-5331-deck-${seat}-${index}`, cardId, seat)),
+    );
+    for (let index = 0; index < 3; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-5331-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT1-009"], "-5331-host"));
+  const training = establishedDigimon(0, ["P-103"], "-5331-delay");
+  training.placedByEffect = true;
+  placePermanent(human, training);
+  for (const [instanceId, cardId] of [
+    ["s0-22", "BT1-016"],
+    ["s0-20", "BT1-016"],
+    ["s0-21", "BT1-021"],
+    ["s0-23", "BT1-037"],
+    ["s0-24", "P-103"],
+  ] as const) {
+    insertCard(human, Zone.Hand, faceUpCard(instanceId, cardId, 0));
+  }
+  insertCard(state.players[1]!, Zone.Hand, faceUpCard("s1-22", "BT21-019", 1));
+  placePermanent(state.players[1]!, establishedDigimon(1, ["BT21-019"], "-5331-opponent"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 /** Reduced #5332 cost-choice control with a helper attack to suspend both Tamers lawfully. */
@@ -8985,6 +9021,7 @@ function layGithubEndTurnReportScenario(
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-github5331-offense-hand": layGithub5331OffenseHandScenario,
   "arena-github5332-kekkomon-cost": layGithub5332KekkomonCostScenario,
   "arena-github-5324-omnimon-traits": layGithub5324OmnimonTraitsScenario,
   "arena-github5320-alliance-after-evolution": layGithub5320AllianceAfterEvolutionScenario,

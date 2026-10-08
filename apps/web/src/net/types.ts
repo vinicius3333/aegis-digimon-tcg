@@ -190,6 +190,7 @@ export interface AegisJoinOptions {
     | "arena-bt23-examon-piercing-end-turn"
     | import("@aegis/shared").KeywordPacingScenarioId
     | import("@aegis/shared").PhasePacingScenarioId
+    | "arena-github5331-offense-hand"
     | "arena-github5332-kekkomon-cost"
     | "battle"
     | "field-grouping"
