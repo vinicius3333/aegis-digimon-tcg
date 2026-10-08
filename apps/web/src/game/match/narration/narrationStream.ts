@@ -51,6 +51,8 @@ export interface NarrationPlacement {
    * clause in behind the very dock that was waiting to see it.
    */
   beside?: boolean;
+  /** Queue ahead of clauses from later batches only, rather than at the back of the track. */
+  inBatchOrder?: boolean;
 }
 
 export interface NarrationStreamDeps {
@@ -321,6 +323,12 @@ export function narrationStream(deps: NarrationStreamDeps) {
       origin,
       track,
       ...(opts?.next === true ? { next: true } : {}),
+      ...(opts?.inBatchOrder === true && itemVersion !== undefined
+        ? {
+            ahead: (step: AnimationStep) =>
+              step.origin?.stateVersion !== undefined && step.origin.stateVersion > itemVersion,
+          }
+        : {}),
       holdsBoard: false,
       blocksDecision: false,
       onDiscard() {

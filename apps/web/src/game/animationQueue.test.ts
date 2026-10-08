@@ -308,6 +308,32 @@ describe("front-of-track queueing", () => {
       "later:start",
     ]);
   });
+
+  it("queues an `ahead` step in front of the first waiting step it matches only", async () => {
+    const { log, step } = recorder();
+    const queue = createAnimationQueue();
+    const atVersion = (stateVersion: number) => ({ batchId: `batch-${stateVersion}`, stateVersion });
+    queue.enqueue(step("holding", 100, { track: "narration" }));
+    await vi.advanceTimersByTimeAsync(0);
+    queue.enqueue(step("earlier-result", 10, { track: "narration", origin: atVersion(3) }));
+    queue.enqueue(step("later-result", 10, { track: "narration", origin: atVersion(7) }));
+    queue.enqueue(
+      step("late-notice", 10, {
+        track: "narration",
+        origin: atVersion(5),
+        ahead: (queued) => (queued.origin?.stateVersion ?? 0) > 5,
+      }),
+    );
+    await vi.advanceTimersByTimeAsync(200);
+    await queue.idle();
+
+    expect(log.filter((entry) => entry.endsWith(":start"))).toEqual([
+      "holding:start",
+      "earlier-result:start",
+      "late-notice:start",
+      "later-result:start",
+    ]);
+  });
 });
 
 describe("playback controls", () => {
