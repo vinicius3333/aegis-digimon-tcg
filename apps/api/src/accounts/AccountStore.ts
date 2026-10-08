@@ -210,7 +210,15 @@ export class AccountStore {
             "SELECT a.id, a.display_name, a.avatar_url, a.avatar_id, a.is_admin FROM accounts a JOIN login_identities i ON i.account_id=a.id WHERE i.provider=$1 AND i.subject=$2",
             [provider, normalized],
           );
-          if (existing.rows[0]) return toAccount(existing.rows[0]);
+          const row = existing.rows[0];
+          if (row) {
+            // Discord avatar URLs embed a hash that changes with every upload, so refresh it on each login.
+            if (provider === "discord" && row.avatar_url !== avatarUrl) {
+              await client.query("UPDATE accounts SET avatar_url=$1 WHERE id=$2", [avatarUrl, row.id]);
+              return toAccount({ ...row, avatar_url: avatarUrl });
+            }
+            return toAccount(row);
+          }
           const account: Account = {
             id: randomUUID(),
             displayName: await this.uniqueName(client, displayName),
