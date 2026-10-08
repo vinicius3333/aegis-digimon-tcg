@@ -13,6 +13,10 @@ import { buildEffectContext, cardSourceOf, effectEnvironment } from "./effectCon
 import * as rules from "./ruleProcess.js";
 import * as timing from "./timing.js";
 
+// API suites share their module graph. Re-import the engine through this suite's
+// mock boundary even when an earlier room suite has already loaded it.
+vi.hoisted(() => vi.resetModules());
+
 vi.mock("../effects/primitives.js", async (importOriginal) => ({
   ...(await importOriginal<typeof primitives>()),
 }));
