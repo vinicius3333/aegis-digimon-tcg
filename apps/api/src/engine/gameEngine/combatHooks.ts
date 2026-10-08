@@ -1,6 +1,6 @@
 import { EffectDuration, EffectTiming, type CardInstance } from "@aegis/shared";
 import { effectiveColorsOf } from "./matchLifecycle.js";
-import { resolveKeywords } from "../combat/keywords.js";
+import { printedKeywordsOf, resolveKeywords } from "../combat/keywords.js";
 import { buildResolutionEnv, permanentIdentityOf } from "../effects/index.js";
 import { effectsOf } from "../effects/collect.js";
 import type { CollectedEffect } from "../effects/collect.js";
@@ -81,14 +81,14 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
       // ordered after a derived On Play / DNA evolution sees the post-evolution allies.
       const gainedAllianceCount = engine.continuous.gainedKeywordCount(attacker.permanentId, "Alliance");
       const allianceSource = cardSourceOf(engine, top);
-      const gainedAllianceSource = {
+      const gainedKeywordSource = {
         ...allianceSource,
         gainedOnPermanentId: attacker.permanentId,
         permanent: () => engine.access.permanentById(attacker.permanentId),
         isOnBattleArea: () => engine.access.permanentById(attacker.permanentId)?.inBreeding === false,
       };
       const allianceEffects: CollectedEffect[] = Array.from({ length: allianceCount }, (_, index) => ({
-        source: index < gainedAllianceCount ? gainedAllianceSource : allianceSource,
+        source: index < gainedAllianceCount ? gainedKeywordSource : allianceSource,
         timing: EffectTiming.OnUseAttack,
         effect: {
           effectKey: `${top.instanceId}/alliance/${index}`,
@@ -118,11 +118,22 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
       // against the printed effects (Q4926, Q5444), and the opponent's [Opponent's Turn]
       // redirect waits for it under turn-player priority (Q2118). `resolveRaidEffect`
       // re-checks the keyword, so an attacker that lost it meanwhile does nothing (Q5444).
+      // The single Raid choice may also be backed by inherited/continuous or gained
+      // copies. Keep only copies present at declaration: a newly revealed printed
+      // Raid cannot replace Omnimon's discarded pending copy (§15-4-4-3/4).
+      const retainsRaidGrant = engine.continuous.capturePendingKeywordGrants(attacker.permanentId, "Raid");
+      let pendingPrintedRaid = printedKeywordsOf(allianceSource.definition.effectText).includes("Raid");
+      const retainsDeclaredRaid = () => {
+        pendingPrintedRaid &&=
+          engine.access.permanentById(attacker.permanentId)?.topCard?.instanceId === top.instanceId;
+        const grantRetained = retainsRaidGrant?.() === true;
+        return pendingPrintedRaid || grantRetained;
+      };
       const raidEffects: CollectedEffect[] =
         opts.raidTriggered === true
           ? [
               {
-                source: cardSourceOf(engine, top),
+                source: retainsRaidGrant !== undefined ? gainedKeywordSource : cardSourceOf(engine, top),
                 timing: EffectTiming.OnUseAttack,
                 effect: {
                   effectKey: `${top.instanceId}/keyword/Raid`,
@@ -136,7 +147,7 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
                   isLinked: false,
                   maxPerTurn: -1,
                   canTrigger: () => true,
-                  canActivate: () => engine.combat.canResolveRaid(attacker.permanentId),
+                  canActivate: () => retainsDeclaredRaid() && engine.combat.canResolveRaid(attacker.permanentId),
                   announce: () => engine.combat.hasRaidTarget(attacker.permanentId),
                   resolve: async (ctx) =>
                     engine.combat.resolveRaidEffect(attacker.permanentId, ctx.presetOptionalAnswer),

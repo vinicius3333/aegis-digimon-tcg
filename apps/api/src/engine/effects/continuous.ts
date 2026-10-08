@@ -1054,6 +1054,37 @@ export class ContinuousEffectLedger {
     );
   }
 
+  /** Capture only the grants that may sustain a keyword already pending activation. */
+  capturePendingKeywordGrants(permanentId: string, keyword: string): (() => boolean) | undefined {
+    // One-shot grants retain object identity across recomputes. Continuous grants
+    // are rebuilt, so retain their physical source and clause instead. A new grant
+    // cannot stand in for one removed before its pending keyword activates.
+    const active = () =>
+      this.keywordGrants.filter(
+        (grant) => grant.permanentId === permanentId && grant.keyword === keyword && this.keywordGrantIsActive(grant),
+      );
+    const continuousKey = (grant: KeywordGrant) =>
+      JSON.stringify([grant.sourceInstanceId, grant.sourceCardId, grant.sourceEffectText]);
+    let direct = active().filter((grant) => !grant.continuous);
+    let continuous = active()
+      .filter((grant) => grant.continuous)
+      .map(continuousKey);
+    const playerMatches = (grant: PlayerKeywordGrant) =>
+      grant.seat === this.controllerSeatOf?.(permanentId) &&
+      grant.keyword === keyword &&
+      this.playerKeywordGrantMatches(grant, permanentId);
+    let player = this.playerKeywordGrants.filter(playerMatches);
+    if (direct.length + continuous.length + player.length === 0) return undefined;
+    return () => {
+      const live = active();
+      direct = direct.filter((grant) => live.includes(grant));
+      const liveContinuous = new Set(live.filter((grant) => grant.continuous).map(continuousKey));
+      continuous = continuous.filter((key) => liveContinuous.has(key));
+      player = player.filter((grant) => this.playerKeywordGrants.includes(grant) && playerMatches(grant));
+      return direct.length + continuous.length + player.length > 0;
+    };
+  }
+
   /** Whether a permanent currently has a given keyword from any active grant. */
   hasKeyword(permanentId: string, keyword: string): boolean {
     const result =
