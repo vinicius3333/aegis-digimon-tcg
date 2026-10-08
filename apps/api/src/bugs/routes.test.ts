@@ -126,6 +126,22 @@ describe("submitting a bug report", () => {
     ]);
   });
 
+  it("carries a valid match ID into the issue tracker", async () => {
+    const matchId = "f62249e5-ba6e-4528-b517-63bee8fbbb0f";
+    const response = await submit({ summary: "broken", description: "broken", matchId: ` ${matchId} ` });
+    expect(response.status).toBe(201);
+    expect(harness.filed[0]).toHaveProperty("matchId", matchId);
+  });
+
+  it.each([undefined, null, 123, "", "room-123", "@everyone\n#42", "f62249e5-ba6e-4528-b517-63bee8fbbb0f extra"])(
+    "ignores invalid optional match context (%s)",
+    async (matchId) => {
+      const response = await submit({ summary: "broken", description: "broken", matchId });
+      expect(response.status).toBe(201);
+      expect(harness.filed[0]).not.toHaveProperty("matchId");
+    },
+  );
+
   // Clients cached from before feedback kinds existed still send bare bug reports.
   it("files a report that names no kind as a bug", async () => {
     const response = await submit({ summary: "memory desyncs", description: "it desyncs" }, harness.cookie);

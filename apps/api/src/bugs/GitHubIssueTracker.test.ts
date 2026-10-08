@@ -69,9 +69,10 @@ describe("filing an issue", () => {
       fetch: fetchMock,
     });
 
-    await tracker.file(report({ clientRevision: "web-3a1" }));
+    await tracker.file(report({ clientRevision: "web-3a1", matchId: "f62249e5-ba6e-4528-b517-63bee8fbbb0f" }));
 
     const body = JSON.parse(String(fetchMock.mock.calls[0]![1]!.body)) as { body: string };
+    expect(body.body).toContain("### Match ID\n`f62249e5-ba6e-4528-b517-63bee8fbbb0f`");
     expect(body.body).toContain("client `web-3a1`");
     expect(body.body).toContain("server `api-9f2`");
     expect(body.body).toContain("version `v1.0.0-BETA`");
@@ -117,6 +118,7 @@ describe("the issue a report becomes", () => {
     expect(body).toContain("### Steps to reproduce");
     expect(body).toContain("Play it, nothing happens");
     expect(body).toContain("**Tamer**");
+    expect(body).not.toContain("### Match ID");
   });
 
   it("says so when the report names no card", () => {

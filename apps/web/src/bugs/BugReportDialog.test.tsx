@@ -19,10 +19,10 @@ function mockApi(routes: Record<string, Route>) {
   return fetchMock;
 }
 
-function renderDialog(signedIn = true) {
+function renderDialog(signedIn = true, matchLogId?: string) {
   return render(
     <I18nProvider>
-      <BugReportDialog signedIn={signedIn} onClose={() => undefined} />
+      <BugReportDialog signedIn={signedIn} matchLogId={matchLogId} onClose={() => undefined} />
     </I18nProvider>,
   );
 }
@@ -102,6 +102,23 @@ describe("the feedback modal", () => {
     expect(body.clientRevision).toBeTruthy();
     expect(body.userAgent).toBeTruthy();
   });
+
+  it.each([undefined, "f62249e5-ba6e-4528-b517-63bee8fbbb0f"])(
+    "carries the current match ID when available (%s)",
+    async (matchId) => {
+      const fetchMock = mockApi({
+        "POST /bug-reports": { status: 201, body: { number: 42, url: "https://github.com/example/repo/issues/42" } },
+      });
+      renderDialog(false, matchId);
+      fireEvent.change(screen.getByLabelText("Title"), { target: { value: "broken" } });
+      fireEvent.change(screen.getByLabelText("What happened?"), { target: { value: "broken" } });
+      fireEvent.click(screen.getByRole("button", { name: "Send" }));
+      await screen.findByText("Feedback sent");
+      const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)) as Record<string, unknown>;
+      expect(body.matchId).toBe(matchId);
+      expect(Object.hasOwn(body, "matchId")).toBe(matchId !== undefined);
+    },
+  );
 
   it("starts on Bug, with the card and opponent fields", () => {
     renderDialog();
