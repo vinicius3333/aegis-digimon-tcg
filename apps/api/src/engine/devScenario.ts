@@ -57,6 +57,8 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github-5297-omnimon-main-dna",
+  "arena-github-5297-omnimon-agumon-dna",
   "arena-github-5286-lordknightmon-knightmon",
   "arena-github-5285-examon-battle-win",
   "arena-github-5284-regulusmon-shared-opt",
@@ -231,6 +233,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt20-ouryuken-reduction-resumes",
   "arena-bt20-ouryuken-blast-dna-counter",
   "arena-ex13-gotsumon-blocker-search",
+  "arena-ex13-magnamon-partition-assembly",
   "arena-ex13-craniamon-assembly",
   "arena-ex13-craniamon-weregarurumon-assembly",
   "arena-p220-millenniummon-assembly",
@@ -3508,6 +3511,38 @@ function layEx13GotsumonPromoKnightmonScenario(state: GameState, decks: readonly
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/** GitHub #5294: Partition may declare Assembly even though its play is free (CR 7-3-2-10). */
+function layEx13MagnamonPartitionAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    fillZone(player, Zone.Hand, []);
+    fillZone(
+      player,
+      Zone.Deck,
+      Array.from({ length: 20 }, (_, index) => faceDownCard(`dev-magnamon-neutral-${seat}-${index}`, "BT1-009", seat)),
+    );
+    fillZone(
+      player,
+      Zone.Security,
+      Array.from({ length: 5 }, (_, index) => faceDownCard(`dev-magnamon-security-${seat}-${index}`, "BT1-009", seat)),
+    );
+  }
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human !== undefined && opponent !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT12-021", "EX13-020", "BT1-071", "AD1-011"], "-magnamon-partition"));
+    insertCard(human, Zone.Trash, faceUpCard("dev-magnamon-veemon", "BT2-021", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-magnamon-decoy", "BT1-009", 0));
+    insertCard(opponent, Zone.Security, faceDownCard("dev-magnamon-gaia", "ST1-16", 1), "top");
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
 }
 
 /**
@@ -8007,7 +8042,34 @@ function layGithubRemovalScenario(
   }
 }
 
+function layGithub5297OmnimonDnaScenario(state: GameState, includeSecondPair: boolean): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-5297-egg-${seat}`, "BT1-001", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-5297-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-5297-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT22-008", "BT22-013"], "-5297-grey"));
+  placePermanent(human, establishedDigimon(0, ["BT17-027"], "-5297-garuru"));
+  if (includeSecondPair) {
+    placePermanent(human, establishedDigimon(0, ["BT1-029", "BT22-026"], "-5297-garuru-second"));
+  }
+  insertCard(human, Zone.Hand, faceDownCard("dev-5297-omnimon", "EX13-016", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-5297-merciful", "EX13-077", 0));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 2;
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-github-5297-omnimon-main-dna": (state) => layGithub5297OmnimonDnaScenario(state, true),
+  "arena-github-5297-omnimon-agumon-dna": (state) => layGithub5297OmnimonDnaScenario(state, false),
   "arena-github-5286-lordknightmon-knightmon": layGithubLordKnightmonScenario,
   "arena-github-5285-examon-battle-win": layGithubExamonScenario,
   "arena-github-5284-regulusmon-shared-opt": layGithubRegulusmonScenario,
@@ -8229,6 +8291,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt20-ouryuken-reduction-resumes": layBt20OuryukenReductionResumesScenario,
   "arena-bt20-ouryuken-blast-dna-counter": layBt20OuryukenBlastDnaCounterScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
+  "arena-ex13-magnamon-partition-assembly": layEx13MagnamonPartitionAssemblyScenario,
   "arena-ex13-craniamon-assembly": layEx13CraniamonAssemblyScenario,
   "arena-ex13-craniamon-weregarurumon-assembly": layEx13CraniamonWereGarurumonAssemblyScenario,
   "arena-p220-millenniummon-assembly": layP220MillenniummonAssemblyScenario,

@@ -17,6 +17,14 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-github-5297-omnimon-main-dna": {
+    en: "Skip breeding. During Main, select EX13-016 Omnimon and WarGreymon. Choose DNA and select the MetalGarurumon with Gabumon underneath, then confirm. Pay 0: those two stacks merge into an unsuspended Omnimon and the other MetalGarurumon stays in play. Also try with action confirmations disabled. EX13-077 Merciful Mode has no DNA route; evolve it normally after Omnimon instead.",
+    ptBR: "Pule a criação. Na Principal, selecione Omnimon EX13-016 e WarGreymon. Escolha DNA e selecione o MetalGarurumon com Gabumon nas fontes; confirme. Custo 0: as duas pilhas viram um Omnimon não suspenso e o outro MetalGarurumon continua em campo. Teste também com as confirmações de ação desativadas. Merciful Mode EX13-077 não tem rota de DNA; digievolua-o normalmente após Omnimon.",
+  },
+  "arena-github-5297-omnimon-agumon-dna": {
+    en: "Skip breeding. Leave EX13-016 Omnimon in hand and end Main. Accept Agumon's inherited End of Your Turn effect and select MetalGarurumon and EX13-016. Both stacks merge into an unsuspended Omnimon for 0 before the opponent's turn. EX13-077 Merciful Mode cannot be chosen for DNA. Restart and perform the same DNA directly during Main to compare.",
+    ptBR: "Pule a criação. Deixe Omnimon EX13-016 na mão e encerre a Principal. Aceite o efeito herdado de Agumon no fim do turno; selecione MetalGarurumon e EX13-016. As duas pilhas viram um Omnimon não suspenso por 0 antes do turno adversário. Merciful Mode EX13-077 não pode ser escolhido para DNA. Reinicie e faça o mesmo DNA diretamente na Principal para comparar.",
+  },
   "arena-github-5286-lordknightmon-knightmon": {
     en: "End breeding and evolve BT5 Knightmon into LordKnightmon using its alternate cost. Choose Play: EX13-058 Knightmon must be selectable from both hand and trash. Play either copy without paying its cost, then decline the optional Rush/Collision attack. Reset to try the other zone.",
     ptBR: "Encerre a criação e evolua Knightmon BT5 em LordKnightmon pelo custo alternativo. Escolha Jogar: Knightmon EX13-058 deve estar disponível na mão e no lixo. Jogue uma das cópias sem custo e recuse o ataque opcional com Rush/Collision. Reinicie para testar a outra zona.",
@@ -1555,6 +1563,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Compre a carta do turno e encerre a criação. Jogue Craniamon (EX13-062): selecione WereGarurumon BT23-056 (Lv.5), Guardromon EX13-051 (Lv.4) e Gotsumon EX13-047 (Lv.3) no lixo. WereGarurumon deve estar habilitado. Bokomon (Blocker só herdado) e Monmon (azul) não podem ser selecionados. Confirme Assembly: Craniamon custa 7, recebe os três materiais e a memória vai para 7 do oponente.",
     en: "Draw the turn card and end breeding. Play Craniamon (EX13-062): select WereGarurumon BT23-056 (Lv.5), Guardromon EX13-051 (Lv.4), and Gotsumon EX13-047 (Lv.3) from the trash. WereGarurumon must be selectable. Bokomon (inherited-only Blocker) and Monmon (blue) must stay disabled. Confirm Assembly: Craniamon costs 7, receives all three materials, and memory goes to 7 on the opponent's side.",
   },
+  "arena-ex13-magnamon-partition-assembly": {
+    ptBR: "Encerre a criação e ataque a segurança com Paildramon (AD1-011). Gaia Force na segurança tentará deletá-lo. Aceite Partition para jogar Magnamon EX13-020 e Vegiemon sem pagar custo. Na escolha de Assembly do Magnamon, selecione o Veemon do seu lixo; Monodramon não deve ser elegível. Magnamon entra com Veemon em suas cartas de digievolução e a memória continua em 5. Você também pode recusar Assembly: Magnamon entra sem Veemon e continua gratuito.",
+    en: "End breeding and attack security with Paildramon (AD1-011). The security Gaia Force attempts to delete it. Accept Partition to play EX13-020 Magnamon and Vegiemon without paying their costs. For Magnamon's Assembly, select the Veemon in your trash; Monodramon must not be eligible. Magnamon enters with Veemon in its digivolution cards and memory stays at 5. You may also decline Assembly: Magnamon enters without Veemon and remains free.",
+  },
   "arena-ex13-craniamon-assembly": {
     ptBR: "Compre a carta do turno e encerre a criação. Jogue Craniamon (EX13-062) com a memória em 0: o seletor de Assembly deve abrir. Somente Bulbmon (Lv.5), Guardromon (Lv.4) e Gotsumon (Lv.3) devem ser elegíveis; Bokomon (Blocker só herdado) e Monmon (azul) não. Escolha os três: Craniamon custa 7 e a memória vai para 7 do oponente.",
     en: "Draw the turn card and end breeding. Play Craniamon (EX13-062) with memory at 0: the Assembly picker must open. Only Bulbmon (Lv.5), Guardromon (Lv.4), and Gotsumon (Lv.3) may be eligible; Bokomon (inherited-only Blocker) and Monmon (blue) may not. Pick all three: Craniamon costs 7 and memory goes to 7 on the opponent's side.",
@@ -2094,6 +2106,8 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-github-5297-omnimon-main-dna", "GitHub #5297 · Omnimon Main DNA and physical materials"],
+  ["arena-github-5297-omnimon-agumon-dna", "GitHub #5297 · Omnimon Agumon end-of-turn DNA"],
   ["arena-github-5286-lordknightmon-knightmon", "GitHub #5286 · LordKnightmon EX13 Knightmon picker"],
   ["arena-github-5285-examon-battle-win", "GitHub #5285 · Examon battle-win play"],
   ["arena-github-5284-regulusmon-shared-opt", "GitHub #5284 · Regulusmon shared once per turn"],
@@ -2436,6 +2450,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
     "BT20 Alphamon: Ouryuken via King Drasil or Royal Knights of the Purge vs BT26 Aegiochusmon: Holy",
   ],
   ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],
+  ["arena-ex13-magnamon-partition-assembly", "#5294 Magnamon · Partition + free Assembly"],
   ["arena-ex13-craniamon-assembly", "EX13 Craniamon · Assembly with printed Blocker"],
   ["arena-ex13-craniamon-weregarurumon-assembly", "EX13 Craniamon · WereGarurumon Assembly"],
   ["arena-p220-millenniummon-assembly", "P-220 Millenniummon · Assembly with different levels"],
