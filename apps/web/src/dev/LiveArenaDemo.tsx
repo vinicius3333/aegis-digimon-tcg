@@ -89,6 +89,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "GitHub #5311. End breeding. First evolve EX5-017 Lekismon into the hand Crescemon for 1: the separate Crescemon with three sources qualifies as support, and memory goes from 6 to 5. Then evolve that original Crescemon into BT1-044 MetalGarurumon for its full printed cost 3: memory ends at 2. Q3569 allows the discount into Crescemon, never from Crescemon.",
     ptBR: "GitHub #5311. Encerre a criação. Primeiro evolua Lekismon EX5-017 no Crescemon da mão por 1: o outro Crescemon com três fontes atende à condição, e a memória vai de 6 para 5. Depois evolua esse Crescemon original em MetalGarurumon BT1-044 pelo custo impresso completo 3: a memória termina em 2. A Q3569 permite reduzir ao evoluir em Crescemon, nunca a partir dele.",
   },
+  "arena-github5365-jesmon-token": {
+    en: "GitHub #5365. End breeding, evolve SaviorHuckmon into BT20-017 Jesmon, accept the Atho, René & Por token, and decline the optional attack. Pass the turn. The opponent can play EX9-018 MetalMamemon and pay with Patamon from trash: it strips one Jesmon source, then removes the source-less token. The token must never enter any deck, hand, trash, or security; after surrender, the final deck reveal must contain no token.",
+    ptBR: "GitHub #5365. Encerre a criação, evolua SaviorHuckmon em Jesmon BT20-017, aceite o token Atho, René & Por e recuse o ataque opcional. Passe o turno. O oponente pode jogar MetalMamemon EX9-018 e pagar com Patamon da lixeira: remove uma evolução de Jesmon e depois remove o token sem evoluções. O token não entra em deck, mão, lixeira ou segurança; após desistir, a revelação final dos decks não deve mostrar nenhum token.",
+  },
+  "arena-github5365-jesmon-token-mirrored": {
+    en: "GitHub #5365, reversed seats. The opponent starts with SaviorHuckmon and BT20-017 Jesmon in hand. After it evolves and creates the token, end your breeding phase, play EX9-018 MetalMamemon and accept placing Patamon from trash face down underneath. Strip any one Jesmon source, then remove its token. Finish the match and check the opponent's revealed deck: the token must be absent.",
+    ptBR: "GitHub #5365, posições invertidas. O oponente começa com SaviorHuckmon e Jesmon BT20-017 na mão. Depois que evoluir e criar o token, encerre sua criação, jogue MetalMamemon EX9-018 e aceite colocar Patamon da lixeira por baixo, virado para baixo. Remova uma evolução de Jesmon e depois seu token. Termine a partida e confira o deck revelado do oponente: o token deve estar ausente.",
+  },
   "arena-github5322-metalmamemon-no-cost": {
     ptBR: "Encerre a criação. Jogue MetalMamemon EX9-018 ou evolua o Gorillamon para ele. A lixeira contém somente uma Opção: o custo exige uma carta de Digimon. Nenhuma carta é colocada por baixo, nenhuma evolução do oponente é descartada e nenhum Digimon volta ao fundo do deck, inclusive o Monodramon sem evoluções.",
     en: "End breeding. Play EX9-018 MetalMamemon or digivolve Gorillamon into it. Trash contains only an Option: the cost requires a Digimon card. No card is placed underneath, no opposing digivolution card is trashed, and no Digimon returns to the deck bottom, including the Monodramon with no digivolution cards.",
@@ -2407,6 +2415,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-turn-end-dp-expiry", "Turn-end DP expiry · Active phase handoff"],
   ["arena-github5311-crescemon-cost-scope", "GitHub #5311 · Crescemon incoming versus outgoing cost"],
   ["arena-github5311-imperialdramon-cost-scope", "GitHub #5311 sweep · Imperialdramon intrinsic discount"],
+  ["arena-github5365-jesmon-token", "#5365 Jesmon token · generate then bottom deck"],
+  ["arena-github5365-jesmon-token-mirrored", "#5365 Jesmon token · reversed seats"],
   ["arena-github5322-metalmamemon-no-cost", "#5322 MetalMamemon · no trash Digimon"],
   ["arena-github5322-metalmamemon-paid", "#5322 MetalMamemon · pay or decline placement"],
   ["arena-github5322-metalmamemon-strip-zero", "#5322 MetalMamemon · paid placement, no sources to strip"],

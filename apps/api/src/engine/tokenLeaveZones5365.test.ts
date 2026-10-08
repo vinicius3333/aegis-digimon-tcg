@@ -64,38 +64,34 @@ describe("#5365 token deck return lifecycle through public intents", () => {
       { option: "ST2-16", sources: ["BT1-028"], destination: "hand" },
       { option: "ST1-16", sources: ["BT1-009"], destination: "deletion" },
       { option: "ST10-14", sources: ["BT1-045", "BT10-079"], destination: "security" },
-    ])(
-      `seat ${seat}: token removal to $destination stays outside every game zone`,
-      async ({ option, sources, destination }) => {
-        const s = setupEngine(
-          {
-            [seat]: { battleArea: sources, hand: [{ card: option, as: "option" }] },
-            [opponent]: { battleArea: [{ card: TOKEN, as: "target" }], security: ["BT1-046"], deck: ["BT1-046"] },
-          },
-          { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
-        );
-        s.state.turnSeat = seat;
-        s.state.memory = 10;
-        await s.ready();
-        const targetId = s.inst("target").instanceId;
-        const securityBefore = s.state.players[opponent]!.security.map(({ instanceId }) => instanceId);
-        expect(s.engine.applyIntent(seat, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
-          ok: true,
-        });
-        await settle();
-        expect(s.state.players[opponent]!.battleArea).toHaveLength(0);
-        for (const player of s.state.players) {
-          for (const zone of [player.hand, player.deck, player.eggDeck, player.security, player.trash]) {
-            expect(zone.some(({ instanceId }) => instanceId === targetId)).toBe(false);
-          }
+    ])(`seat ${seat}: token removal to $destination stays outside every game zone`, async ({ option, sources }) => {
+      const s = setupEngine(
+        {
+          [seat]: { battleArea: sources, hand: [{ card: option, as: "option" }] },
+          [opponent]: { battleArea: [{ card: TOKEN, as: "target" }], security: ["BT1-046"], deck: ["BT1-046"] },
+        },
+        { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = seat;
+      s.state.memory = 10;
+      await s.ready();
+      const targetId = s.inst("target").instanceId;
+      const securityBefore = s.state.players[opponent]!.security.map(({ instanceId }) => instanceId);
+      expect(s.engine.applyIntent(seat, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+      expect(s.state.players[opponent]!.battleArea).toHaveLength(0);
+      for (const player of s.state.players) {
+        for (const zone of [player.hand, player.deck, player.eggDeck, player.security, player.trash]) {
+          expect(zone.some(({ instanceId }) => instanceId === targetId)).toBe(false);
         }
-        // A vanished token was never added to security, so Chaos Degradation's "If you do"
-        // does not trash an unrelated existing security card.
-        if (destination === "security")
-          expect(s.state.players[opponent]!.security.map(({ instanceId }) => instanceId)).toEqual(securityBefore);
-        expect(s.state.pendingDecision).toBeUndefined();
-      },
-    );
+      }
+      // A vanished token was never added to security, so Chaos Degradation's "If you do"
+      // does not trash an unrelated existing security card.
+      expect(s.state.players[opponent]!.security.map(({ instanceId }) => instanceId)).toEqual(securityBefore);
+      expect(s.state.pendingDecision).toBeUndefined();
+    });
     it.each([false, true])(
       `seat ${seat}: Rosemon token return pays processing condition, prevented=%s`,
       async (prevented) => {
