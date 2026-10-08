@@ -1,4 +1,4 @@
-import { getCompiledCard } from "@aegis/shared";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,8 +6,11 @@ import "../P/P-075.js";
 import "./BT9-055.js";
 
 describe("GitHub #5310 separate GrandisKuwagamon timing finding", () => {
-  it("keeps Grandis's shared snapshot identical to its registered compiled IR", () => {
-    expect(getCompiledCard("BT9-055")).toEqual(runtimeCompiledCard("BT9-055"));
+  it("keeps the committed BT9-055 snapshot identical to its registered compiled IR", () => {
+    const snapshot = JSON.parse(
+      readFileSync(new URL("../../../../../packages/shared/src/effects/effects.json", import.meta.url), "utf8"),
+    ) as Record<string, unknown>;
+    expect(snapshot["BT9-055"]).toEqual(runtimeCompiledCard("BT9-055"));
   });
   it("GitHub #5310 separate timing finding: unsuspends at End of Attack after security, not When Attacking", async () => {
     const s = setupEngine(
