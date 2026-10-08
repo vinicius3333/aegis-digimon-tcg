@@ -8,6 +8,7 @@ import { loadDecks, saveDecks } from "../identity";
 import { type DeckListing } from "../game/decks";
 import { CardDetailDrawer } from "./CardDetailDrawer";
 import { DeckBuilder } from "./DeckBuilder";
+import { DeckArtworkPicker } from "./DeckArtworkPicker";
 
 afterEach(() => {
   cleanup();
@@ -27,6 +28,37 @@ const deck = (): DeckListing => ({
 });
 
 describe("card artwork choices", () => {
+  it("1557582869973696582: per-copy artwork choices do not paint a floating preview over the picker", () => {
+    const originalMatchMedia = window.matchMedia;
+    vi.spyOn(window, "matchMedia").mockImplementation((query) => ({
+      ...originalMatchMedia(query),
+      matches: true,
+    }));
+    const onChoose = vi.fn<(artId: string, copy: number | "all") => void>();
+    const onClose = vi.fn<() => void>();
+    render(
+      <I18nProvider>
+        <DeckArtworkPicker
+          cardId="EX4-048"
+          arts={["EX4-048", "EX4-048"]}
+          count={2}
+          onChoose={onChoose}
+          onClose={onClose}
+        />
+      </I18nProvider>,
+    );
+    const picker = screen.getByRole("dialog", { name: "Choose artwork" });
+    for (const image of within(picker).getAllByAltText("Gaiomon")) {
+      fireEvent.mouseMove(image, { clientX: 320, clientY: 280 });
+      expect(screen.getAllByAltText("Gaiomon").every((element) => picker.contains(element))).toBe(true);
+    }
+    fireEvent.click(within(picker).getByRole("button", { name: "Copy 2" }));
+    fireEvent.click(within(picker).getByRole("button", { name: "Alternate 1" }));
+    expect(onChoose).toHaveBeenCalledWith(getCardArts("EX4-048")[1]!.artId, 1);
+    fireEvent.click(within(picker).getByRole("button", { name: "Done" }));
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
   it("1557582869973696582: detail artwork browsing does not float a duplicate preview over the editor", () => {
     const originalMatchMedia = window.matchMedia;
     vi.spyOn(window, "matchMedia").mockImplementation((query) => ({
