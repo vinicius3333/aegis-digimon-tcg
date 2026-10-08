@@ -61,7 +61,7 @@ describe("resolveBanlistPolicy", () => {
     const createdAt = Date.parse("2026-01-01");
     const beforeLift = resolveBanlistPolicy({ mode: "as_of_set", setId: "BT10" }, createdAt);
     const afterLift = resolveBanlistPolicy({ mode: "current" }, Date.parse("2024-01-01"));
-    // SaviorHuckmon was restricted in 2021 and lifted on 2023-11-17.
+    // SaviorHuckmon was restricted at the English BT8 release and lifted on 2023-11-17.
     expect(statusOf(beforeLift, "BT6-015")?.status).toBe("restricted");
     expect(statusOf(afterLift, "BT6-015")).toBeUndefined();
   });

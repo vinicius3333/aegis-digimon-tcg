@@ -7,8 +7,8 @@
   },
   "banlist": {
     "url": "https://world.digimoncard.com/rule/restriction_card/",
-    "events": 68,
-    "current": 58,
+    "events": 77,
+    "current": 60,
     "cached": false,
     "fetchedAt": "2026-09-10T17:50:14.852Z"
   },
