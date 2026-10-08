@@ -347,11 +347,11 @@ describe("EX12-016 MetalGreymon", () => {
             target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } } },
           },
           {
-            kind: "SubTrigger",
-            event: "startOfYourMainPhase",
-            on: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+            kind: "GainTriggeredEffect",
+            gainedTrigger: "StartOfYourMainPhase",
+            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
             duration: "untilOpponentTurnEnd",
-            actions: [{ kind: "Attack", target: { filter: { isSelfRef: true }, isSelf: true } }],
+            gainedActions: [{ kind: "Attack", target: { filter: { isSelfRef: true }, isSelf: true } }],
           },
         ],
       });

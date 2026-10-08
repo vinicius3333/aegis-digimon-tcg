@@ -17,6 +17,14 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-ex12-metalgreymon-forced-attack-play": {
+    en: "Skip breeding and play EX12 MetalGreymon without Assembly. Agumon Expert is deleted. Choose the opposing BT1 MetalGreymon for the mandatory attack grant: its badge and Start of Your Main Phase clause appear immediately. End Main; after the opponent skips breeding, that Digimon must attack before normal Main actions. Its controller chooses a legal attack target. The grant expires at that opponent turn's end. Restart to compare the digivolve scenario. Discord 1557600224011096104.",
+    ptBR: "Pule a criação e jogue MetalGreymon EX12 sem Assembly. Agumon Expert é deletado. Escolha MetalGreymon BT1 adversário para receber o ataque obrigatório: o indicador e o texto Início da sua Fase Principal aparecem imediatamente. Encerre a Principal; depois da criação adversária, esse Digimon deve atacar antes das ações normais da Principal. Seu controlador escolhe um alvo legal. O efeito expira no fim desse turno adversário. Reinicie para comparar o cenário de digievolução. Discord 1557600224011096104.",
+  },
+  "arena-ex12-metalgreymon-forced-attack-digivolve": {
+    en: "Skip breeding and evolve EX12 Greymon into hand EX12 MetalGreymon for 3 using the alternate cost. The opposing Agumon Expert is deleted. Choose opposing BT1 MetalGreymon: its badge and granted Start of Your Main Phase clause appear. End Main; the recipient must attack at the opponent's Main start, with a mandatory legal-target choice by its controller. Breeding Digimon cannot receive the grant. It expires at the opponent's turn end. Discord 1557600224011096104.",
+    ptBR: "Pule a criação e digievolua Greymon EX12 em MetalGreymon EX12 da mão pelo custo alternativo 3. Agumon Expert adversário é deletado. Escolha MetalGreymon BT1 adversário: o indicador e o texto concedido de Início da sua Fase Principal aparecem. Encerre a Principal; o alvo deve atacar no início da Principal adversária, com escolha obrigatória de alvo legal pelo controlador. Digimons na criação não podem receber o efeito. Ele expira no fim do turno adversário. Discord 1557600224011096104.",
+  },
   "arena-github-5297-omnimon-main-dna": {
     en: "Skip breeding. During Main, select EX13-016 Omnimon and WarGreymon. Choose DNA and select the MetalGarurumon with Gabumon underneath, then confirm. Pay 0: those two stacks merge into an unsuspended Omnimon and the other MetalGarurumon stays in play. Also try with action confirmations disabled. EX13-077 Merciful Mode has no DNA route; evolve it normally after Omnimon instead.",
     ptBR: "Pule a criação. Na Principal, selecione Omnimon EX13-016 e WarGreymon. Escolha DNA e selecione o MetalGarurumon com Gabumon nas fontes; confirme. Custo 0: as duas pilhas viram um Omnimon não suspenso e o outro MetalGarurumon continua em campo. Teste também com as confirmações de ação desativadas. Merciful Mode EX13-077 não tem rota de DNA; digievolua-o normalmente após Omnimon.",
@@ -2462,6 +2470,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt24-fugamon-self-trash", "BT24 Fugamon · draw only when this card is trashed"],
   ["arena-bt2-kurisarimon-repeat-memory", "BT2 Kurisarimon · Diaboromon + Arata memory"],
   ["arena-bt2-kurisarimon-start-main-memory", "BT2 Kurisarimon · two start-of-main token effects"],
+  ["arena-ex12-metalgreymon-forced-attack-play", "EX12 MetalGreymon · play and mandatory StartMain attack"],
+  ["arena-ex12-metalgreymon-forced-attack-digivolve", "EX12 MetalGreymon · digivolve and mandatory StartMain attack"],
   ["arena-ex12-metalgarurumon-trash-then-return", "EX12 MetalGarurumon · trash sources, then choose the return"],
   ["arena-bt22-palmon-cs-restack", "BT22 Palmon · [CS] restack only on a [CS] host"],
   ["arena-bt22-mirei-play-cost-floor", "BT22 Mirei Mikagura · play cost 4 or higher only"],

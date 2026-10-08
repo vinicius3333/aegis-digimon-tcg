@@ -57,6 +57,8 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-ex12-metalgreymon-forced-attack-play",
+  "arena-ex12-metalgreymon-forced-attack-digivolve",
   "arena-github-5299-ravemon-bottom-security",
   "arena-github5300-yoshino-cost-payload",
   "arena-github5300-keenan-cost-execute",
@@ -2518,6 +2520,44 @@ function layBt24FugamonSelfTrashScenario(state: GameState, decks: readonly [Deck
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/** Discord 1557600224011096104: a surviving opponent receives the mandatory StartMain attack. */
+function layEx12MetalGreymonForcedAttackScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  digivolve = false,
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    // Stable weak security lets the granted host survive its forced attack.
+    fillZone(
+      player,
+      Zone.Security,
+      Array.from({ length: 5 }, (_, index) =>
+        faceDownCard(`dev-metalgreymon-security-${seat}-${index}`, "BT1-011", seat),
+      ),
+    );
+    setBreeding(player, establishedDigimon(seat, ["BT1-009"], "-metalgreymon-breeding"));
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    if (digivolve) placePermanent(human, establishedDigimon(0, ["EX12-011"], "-metalgreymon-base"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-metalgreymon-hand", "EX12-016", 0));
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    placePermanent(opponent, establishedDigimon(1, ["BT1-011"], "-metalgreymon-delete"));
+    placePermanent(opponent, establishedDigimon(1, ["BT1-021"], "-metalgreymon-recipient"));
+    placePermanent(opponent, establishedDigimon(1, ["BT1-023"], "-metalgreymon-other"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 /**
@@ -8394,6 +8434,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt2-kurisarimon-repeat-memory": layBt2KurisarimonRepeatMemoryScenario,
   "arena-bt2-kurisarimon-start-main-memory": (state, decks) =>
     layBt2KurisarimonRepeatMemoryScenario(state, decks, true),
+  "arena-ex12-metalgreymon-forced-attack-play": layEx12MetalGreymonForcedAttackScenario,
+  "arena-ex12-metalgreymon-forced-attack-digivolve": (state, decks) =>
+    layEx12MetalGreymonForcedAttackScenario(state, decks, true),
   "arena-ex12-metalgarurumon-trash-then-return": layEx12MetalGarurumonTrashThenReturnScenario,
   "arena-bt22-palmon-cs-restack": layBt22PalmonCsRestackScenario,
   "arena-bt22-mirei-play-cost-floor": layBt22MireiPlayCostFloorScenario,

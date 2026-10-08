@@ -76,9 +76,9 @@ const compiled: CompiledCard = {
           },
         },
         {
-          kind: "SubTrigger",
-          event: "startOfYourMainPhase",
-          on: {
+          kind: "GainTriggeredEffect",
+          gainedTrigger: "StartOfYourMainPhase",
+          target: {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
@@ -86,7 +86,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           duration: "untilOpponentTurnEnd",
-          actions: [
+          gainedActions: [
             {
               kind: "Attack",
               target: {
@@ -96,7 +96,7 @@ const compiled: CompiledCard = {
               },
             },
           ],
-          raw: "give 1 of their Digimon '[Start of Your Main Phase] This Digimon attacks.' until their turn ends",
+          raw: "[Start of Your Main Phase] This Digimon attacks.",
         },
       ],
     },
@@ -119,9 +119,9 @@ const compiled: CompiledCard = {
           },
         },
         {
-          kind: "SubTrigger",
-          event: "startOfYourMainPhase",
-          on: {
+          kind: "GainTriggeredEffect",
+          gainedTrigger: "StartOfYourMainPhase",
+          target: {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
@@ -129,7 +129,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           duration: "untilOpponentTurnEnd",
-          actions: [
+          gainedActions: [
             {
               kind: "Attack",
               target: {
@@ -139,7 +139,7 @@ const compiled: CompiledCard = {
               },
             },
           ],
-          raw: "give 1 of their Digimon '[Start of Your Main Phase] This Digimon attacks.' until their turn ends",
+          raw: "[Start of Your Main Phase] This Digimon attacks.",
         },
       ],
     },
