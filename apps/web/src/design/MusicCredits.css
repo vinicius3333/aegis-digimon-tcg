@@ -1,0 +1,18 @@
+.music-credits {
+  margin: 0;
+  padding-block: var(--ds-space-2);
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-sm);
+  overflow-wrap: anywhere;
+}
+
+.music-credits a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.music-credits a:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}

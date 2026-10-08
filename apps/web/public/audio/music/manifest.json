@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "preparedAt": "2026-10-07",
+  "defaultTrack": "digitalBattle",
+  "preparation": "Full compositions; gain adjustment, 50 ms opening fade, 150 ms closing fade, stereo 44.1 kHz 128 kbps MP3",
+  "ffmpegVersion": "ffmpeg version 9.0.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "tracks": {
+    "digitalBattle": {
+      "id": "digitalBattle",
+      "file": "shortcuts.mp3",
+      "title": "Shortcuts",
+      "artist": "Zane Little Music",
+      "sourceUrl": "https://opengameart.org/content/shortcuts",
+      "downloadUrl": "https://opengameart.org/sites/default/files/shortcuts.ogg",
+      "license": "CC0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "url": "/audio/music/shortcuts.mp3?v=f7905c8a178b",
+      "sourceSha256": "e15b26fa2cd33fb29913bef8fe2acf99388e96420ff660193479220dbe685bd5",
+      "sha256": "f7905c8a178b3a98c51a2b1d2aa1f8faff3c2910a158b8bcb7b16a45260ea760",
+      "bytes": 4632284,
+      "sourceSeconds": 289.458322,
+      "gainDb": -24.688228000000002,
+      "modifications": "Volume adjusted; opening and closing fades; MP3 conversion",
+      "metrics": {
+        "seconds": 289.458322,
+        "sampleRate": 44100,
+        "channels": 2,
+        "peakDbFS": -24.524139,
+        "rmsDbFS": -36.931523,
+        "peak": 0.05940090339876954,
+        "rms": 0.014237175874764875
+      }
+    },
+    "digitalAscent": {
+      "id": "digitalAscent",
+      "file": "electric.mp3",
+      "title": "Electric",
+      "artist": "Sudocolon",
+      "sourceUrl": "https://opengameart.org/content/electric-0",
+      "downloadUrl": "https://opengameart.org/sites/default/files/Electric.mp3",
+      "license": "CC0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "url": "/audio/music/electric.mp3?v=1fe76e61a5eb",
+      "sourceSha256": "0708443fcc4aad2231a12e862312b191d6245c57a698108a5f14444b2f441180",
+      "sha256": "1fe76e61a5eb503d0e03cbf1550d3cf6afd63ac0a5c3695f23c4dc3eeaf3b1fb",
+      "bytes": 3221254,
+      "sourceSeconds": 201.27345,
+      "gainDb": -24.10581,
+      "modifications": "Volume adjusted; opening and closing fades; MP3 conversion",
+      "metrics": {
+        "seconds": 201.273469,
+        "sampleRate": 44100,
+        "channels": 2,
+        "peakDbFS": -23.733043,
+        "rmsDbFS": -41.560549,
+        "peak": 0.06506506230588878,
+        "rms": 0.008355502048087103
+      }
+    },
+    "warmDrive": {
+      "id": "warmDrive",
+      "file": "out-there.mp3",
+      "title": "Out There",
+      "artist": "yd",
+      "sourceUrl": "https://opengameart.org/content/space-music-out-there",
+      "downloadUrl": "https://opengameart.org/sites/default/files/OutThere_0.ogg",
+      "license": "CC0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "url": "/audio/music/out-there.mp3?v=5e46dd3bac68",
+      "sourceSha256": "6e02a32d963b84061cdeec66cc852e731e367c93ef572aa169b1baadbcdc20ba",
+      "sha256": "5e46dd3bac68411ec4a5aa3fed7846fa0795c50a6ab20193aabe2d7978c95e9f",
+      "bytes": 3873270,
+      "sourceSeconds": 242.004172,
+      "gainDb": -15.696394,
+      "modifications": "Volume adjusted; opening and closing fades; MP3 conversion",
+      "metrics": {
+        "seconds": 242.004172,
+        "sampleRate": 44100,
+        "channels": 2,
+        "peakDbFS": -24.588864,
+        "rmsDbFS": -44.205254,
+        "peak": 0.05895990838201863,
+        "rms": 0.0061622214304380574
+      }
+    },
+    "cipher": {
+      "id": "cipher",
+      "file": "cipher.mp3",
+      "title": "Cipher",
+      "artist": "Kevin MacLeod",
+      "sourceUrl": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100844",
+      "downloadUrl": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Cipher2.mp3",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "/audio/music/cipher.mp3?v=261f46a44912",
+      "sourceSha256": "d3d0614535a61d748e2fd8d5117fc4d781022a7624794802a2462d8af3fdd522",
+      "sha256": "261f46a44912a5bef686bfe3eb79a38eee5607969225539395635cc0db755fa3",
+      "bytes": 3701071,
+      "sourceSeconds": 231.26205,
+      "gainDb": -23.926105,
+      "modifications": "Volume adjusted; opening and closing fades; MP3 conversion",
+      "metrics": {
+        "seconds": 231.262041,
+        "sampleRate": 44100,
+        "channels": 2,
+        "peakDbFS": -27.144261,
+        "rmsDbFS": -43.914682,
+        "peak": 0.043932604425404885,
+        "rms": 0.006371855230413984
+      }
+    }
+  }
+}

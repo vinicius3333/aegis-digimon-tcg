@@ -71,7 +71,7 @@ export function comparisonVolume(volume: number, metrics: AudioTrack["metrics"],
   return volume * Math.min(1, 0.015 / metrics.rms, 0.5 / metrics.peak);
 }
 
-/** Only original same-origin audio assets can be designated as the game's track. */
+/** Only same-origin audio assets can be designated as the game's track. */
 export function candidateTracks(manifest: unknown, runtimeUrl: string): AudioTrack[] {
   const root = record(manifest);
   const entries = Array.isArray(root.candidates) ? root.candidates : [];
@@ -79,7 +79,7 @@ export function candidateTracks(manifest: unknown, runtimeUrl: string): AudioTra
   for (const entry of entries) {
     const row = record(entry);
     const path = typeof row.url === "string" ? row.url : typeof row.file === "string" ? row.file : "";
-    const url = path.startsWith("/") ? path : `/audio/music-candidates/${path}`;
+    const url = path.startsWith("/") ? path : `/audio/music/${path}`;
     if (!/^\/audio\/[\w./-]+(?:\?v=[\w-]+)?$/.test(url) || url.includes("..") || !path) continue;
     const metrics = record(row.metrics);
     tracks.push({

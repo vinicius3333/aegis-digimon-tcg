@@ -3,21 +3,11 @@ import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { AUDIO_BANK_URL, AUDIO_CUES } from "./audioBank";
 import {
-  MUSIC_BPM,
-  musicRecipe,
   SOUND_KINDS,
   audioRecipe,
   bankRecipes,
   cueKey,
   renderCue,
-  renderMusic,
-  renderScore,
-  renderBattleScore,
-  BATTLE_BPM,
-  BATTLE_BARS,
-  SCORE_BPM,
-  SCORE_BARS,
-  SCORE_PEAK,
   decodeSourceWav,
   type FoleyKind,
 } from "./audioRecipes";
@@ -185,10 +175,6 @@ describe("authored original bank", () => {
     const manifest = JSON.parse(readFileSync(new URL("manifest.json", root), "utf8"));
     const source = readFileSync(new URL("audioRecipes.ts", import.meta.url));
     expect(manifest.rendererSha256).toBe(createHash("sha256").update(source).digest("hex"));
-    const score = renderMusic();
-    const scoreWav = readFileSync(new URL("aegis-music-v2.wav", root));
-    for (let i = 0; i < score.length; i += 313)
-      expect(scoreWav.readInt16LE(44 + i * 2)).toBe(Math.round(score[i]! * 32767) || 0);
     const wav = readFileSync(new URL("aegis-cues-v2.wav", root));
     for (const [kind, details] of [
       ["draw", {}],
@@ -199,51 +185,6 @@ describe("authored original bank", () => {
       const offset = Math.round(AUDIO_CUES[cueKey(kind, details)]!.offset * 48000);
       for (let i = 0; i < samples.length; i += 31)
         expect(wav.readInt16LE(44 + (offset + i) * 2)).toBe(Math.round(samples[i]! * 32767) || 0);
-    }
-  });
-  it.each([
-    { file: "aegis-music-v4.wav", bpm: SCORE_BPM, bars: SCORE_BARS, render: renderScore, expectedBpm: 112 },
-    { file: "aegis-music-v5.wav", bpm: BATTLE_BPM, bars: BATTLE_BARS, render: renderBattleScore, expectedBpm: 144 },
-  ])(
-    "ships $file as a seamless 16-bar stereo loop under the music ceiling",
-    ({ file, bpm, bars, render, expectedBpm }) => {
-      expect(bpm).toBe(expectedBpm);
-      expect(bars).toBe(16);
-      const [left, right] = render();
-      expect(left!.length).toBe(Math.round(((bars * 4 * 60) / bpm) * 48000));
-      expect(left).not.toEqual(right);
-      let peak = 0;
-      for (const channel of [left!, right!]) {
-        for (const sample of channel) peak = Math.max(peak, Math.abs(sample));
-        expect(Math.abs(channel[0]! - channel.at(-1)!)).toBeLessThan(0.01);
-      }
-      expect(peak).toBeCloseTo(SCORE_PEAK, 6);
-      const shipped = readFileSync(new URL(`../../public/audio/${file}`, import.meta.url));
-      for (let i = 0; i < left!.length; i += 397) {
-        expect(shipped.readInt16LE(44 + i * 4)).toBe(Math.round(left![i]! * 32767) || 0);
-        expect(shipped.readInt16LE(46 + i * 4)).toBe(Math.round(right![i]! * 32767) || 0);
-      }
-    },
-  );
-  it("keeps an 96 BPM pulse and progressing melody present from the beginning with a quiet circular seam", () => {
-    expect(MUSIC_BPM).toBe(96);
-    const layers = musicRecipe();
-    expect(
-      layers.some((layer) => layer.texture === "paper" || layer.texture === "grain" || layer.texture === "air"),
-    ).toBe(false);
-    expect(layers.filter((layer) => layer.texture === "body").map((layer) => layer.at)).toEqual(
-      Array.from({ length: 32 }, (_, i) => i * 0.625),
-    );
-    expect(layers.some((layer) => layer.texture === "pluck" && layer.at < 0.25)).toBe(true);
-    for (const rate of [44100, 48000]) {
-      const music = renderMusic(rate),
-        measured = measures(music);
-      expect(music.length).toBe(rate * 20);
-      expect(measured.peak).toBeLessThan(0.08);
-      expect(measured.energy).toBeGreaterThan(1);
-      expect(Math.abs(measured.mean)).toBeLessThan(0.00001);
-      expect(Math.abs(music[0]! - music.at(-1)!)).toBeLessThan(0.001);
-      expect(music.slice(rate, rate * 2)).not.toEqual(music.slice(rate * 9, rate * 10));
     }
   });
 });
