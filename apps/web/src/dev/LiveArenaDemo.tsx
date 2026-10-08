@@ -17,6 +17,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-github-5324-omnimon-traits": {
+    en: "End breeding. Open the field details for Omnimon (X Antibody): all four types must appear — Holy Warrior, X Antibody, Royal Knight and LIBERATOR. Compare regular Omnimon: Holy Warrior and Royal Knight only. Play Cool Boy for 2 and select the revealed Omnimon (X Antibody); regular Omnimon and Agumon cannot be selected. Then evolve regular Omnimon into the copy of Omnimon (X Antibody) already in hand for 2. Choose the evolved Digimon as your survivor for the deletion effect; the other field Omnimon X is deleted. Accept Cool Boy's suspension to gain 1 memory and draw 1. Open the evolved Digimon's details and check all four types again.",
+    ptBR: "Encerre a criação. Abra os detalhes de Omnimon (X Antibody) em campo: os quatro tipos devem aparecer — Holy Warrior, X Antibody, Royal Knight e LIBERATOR. Compare Omnimon normal: apenas Holy Warrior e Royal Knight. Jogue Cool Boy por 2 e selecione Omnimon (X Antibody) revelado; Omnimon normal e Agumon não podem ser selecionados. Depois evolua Omnimon normal na cópia de Omnimon (X Antibody) que já estava na mão por 2. Escolha o Digimon evoluído como sobrevivente do efeito de deleção; o outro Omnimon X em campo é deletado. Aceite virar Cool Boy para ganhar 1 memória e comprar 1 carta. Abra os detalhes do Digimon evoluído e confira os quatro tipos novamente.",
+  },
   "arena-github5307-larva-bt18-breeding": {
     en: "GitHub #5307, current behavior control. End breeding without moving Larva. Attack the suspended opposing Satan Mode with your BT18 Satan Mode. Both have 16000 DP. Accept Larva's prevention: Larva moves from breeding, your Satan Mode stays, and the opposing Satan Mode is deleted. Reset and decline to compare: your Satan Mode is deleted and Larva stays in breeding.",
     ptBR: "GitHub #5307, controle do comportamento atual. Encerre a criação sem mover Larva. Ataque o Satan Mode adversário suspenso com seu Satan Mode BT18. Ambos têm 16000 DP. Aceite a proteção de Larva: ela sai da criação, seu Satan Mode fica e o adversário é deletado. Reinicie e recuse para comparar: seu Satan Mode é deletado e Larva fica na criação.",
@@ -2310,6 +2314,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-github5313-inori-memory-four", "GitHub #5313 · Inori 4-memory timing"],
   ["arena-github5313-inori-memory-five", "GitHub #5313 · Inori 5-memory control"],
   ["arena-github5303-magnamon-printed-dp", "GitHub #5303 · Magnamon printed DP and expiry"],
+  ["arena-github-5324-omnimon-traits", "GitHub #5324 · Omnimon X full traits and Cool Boy search"],
   ["arena-github-5297-omnimon-main-dna", "GitHub #5297 · Omnimon Main DNA and physical materials"],
   ["arena-github-5297-omnimon-agumon-dna", "GitHub #5297 · Omnimon Agumon end-of-turn DNA"],
   ["arena-github-5286-lordknightmon-knightmon", "GitHub #5286 · LordKnightmon EX13 Knightmon picker"],
