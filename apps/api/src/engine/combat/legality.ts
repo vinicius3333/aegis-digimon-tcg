@@ -118,6 +118,18 @@ function hasRush(permanent: Permanent, reader: ContinuousLegalityReader | undefi
   return hasPrintedKeyword(permanent, "Rush");
 }
 
+/** Collision's Blocker grant affects Digimon (CR 16-30-4), so opponent-effect immunity stops it. */
+export function canGainCollisionBlocker(
+  attacker: Permanent,
+  recipient: Permanent,
+  reader: ContinuousLegalityReader | undefined,
+): boolean {
+  return (
+    hasCollision(attacker, reader) &&
+    reader?.hasRestriction(recipient.permanentId, "beAffected", "Digimon", { byOpponentEffect: true }) !== true
+  );
+}
+
 /**
  * Whether `permanent` is summoning-sick (Comprehensive Rules §7-1-2-1): it entered the field
  * on the current turn and has no ＜Rush＞, so it may not declare an ordinary attack.
@@ -333,7 +345,7 @@ export function canAttackTarget(
  * the `block` "can't block" restriction. Without a reader the base behavior stands
  * (any unsuspended opponent Digimon may block) so the pure unit tests are unchanged.
  * ＜Collision＞ on the attacker (§16-30) grants every opponent Digimon ＜Blocker＞ for
- * this purpose, so a non-Blocker blocker is still eligible while the attacker has it.
+ * this purpose, unless immune to the attacking Digimon's effects (CR 16-30-4).
  *
  * The companion "forced to block whenever possible" half of ＜Collision＞ is NOT a
  * target-legality question (it doesn't change who CAN block) — it is enforced where the
@@ -390,7 +402,7 @@ export function canBlock(
     if (reader.hasRestriction(blocker.permanentId, "suspend")) {
       return "illegal-target";
     }
-    if (!hasBlocker(access, blocker, reader) && !hasCollision(attacker, reader)) {
+    if (!hasBlocker(access, blocker, reader) && !canGainCollisionBlocker(attacker, blocker, reader)) {
       return "illegal-target"; // §16-5: a block requires ＜Blocker＞, unless the attacker's ＜Collision＞ grants it (§16-30)
     }
   }

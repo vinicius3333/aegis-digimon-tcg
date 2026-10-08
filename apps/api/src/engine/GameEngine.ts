@@ -35,7 +35,7 @@ import type { VisibilityPort } from "./state/access.js";
 import { GameStateAccess, markRoutedUsedOption } from "./state/access.js";
 import { CombatController } from "./combat/controller.js";
 import { printedKeywordsOf } from "./combat/keywords.js";
-import { hasCollision } from "./combat/legality.js";
+import { canGainCollisionBlocker } from "./combat/legality.js";
 import { WinCheck } from "./security/index.js";
 import { SecurityDpLedger } from "./security/securityDp.js";
 import { DeletionMaxDpLedger } from "./deletionMaxDp.js";
@@ -908,7 +908,7 @@ export class GameEngine {
   }
 }
 
-/** ＜Collision＞ (§16-30): during its attack, every Digimon of the attacker's opponent has ＜Blocker＞ (Q2601). */
+/** ＜Collision＞ (§16-30): during its attack, affected opposing Digimon gain ＜Blocker＞ (CR 16-30-4). */
 function collisionGrantsBlocker(engine: GameEngine, permanentId: string): boolean {
   const attackerId = engine.combat?.currentAttackerId;
   if (attackerId === undefined || attackerId === permanentId) return false;
@@ -917,5 +917,7 @@ function collisionGrantsBlocker(engine: GameEngine, permanentId: string): boolea
   if (attacker === undefined || permanent === undefined) return false;
   if (permanent.controllerSeat === attacker.controllerSeat) return false;
   const definition = lookupDefinition(permanent.topCard.cardId);
-  return definition !== undefined && isDigimon(definition) && hasCollision(attacker, engine.continuous);
+  return (
+    definition !== undefined && isDigimon(definition) && canGainCollisionBlocker(attacker, permanent, engine.continuous)
+  );
 }
