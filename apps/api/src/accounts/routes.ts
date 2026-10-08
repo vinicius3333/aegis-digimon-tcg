@@ -35,7 +35,7 @@ import { TopCutProgram } from "../tournaments/topcut/index.js";
 import { tokenBucketLimiter, type TokenBucketOptions } from "../http/rateLimit.js";
 import { EmailQuotaExceededError, type Mailer } from "../email/mailer.js";
 import { TOURNAMENT_RULES_PRESETS, type TournamentRulesPreset } from "../tournaments/rules/index.js";
-import { type DiscordAvatarSource, discordAvatarUrl, refreshStaleDiscordAvatar } from "./discordAvatars.js";
+import { type DiscordAvatarSource, discordAvatarUrl, refreshDiscordAvatarNow } from "./discordAvatars.js";
 import {
   AccountStore,
   DeckLimitError,
@@ -49,6 +49,7 @@ import {
 
 const SESSION_COOKIE = "aegis_session";
 const DISPLAY_NAME_RATE_LIMIT: TokenBucketOptions = { capacity: 10, refillMs: 3_000 };
+const DISCORD_AVATAR_REFRESH_RATE_LIMIT: TokenBucketOptions = { capacity: 5, refillMs: 1_000 };
 
 // Rejections that are the caller asking for something that does not exist, rather than a conflict
 // with the tournament's current state.
@@ -101,12 +102,28 @@ export function installAccountRoutes(
   const limitDisplayNameChange = tokenBucketLimiter(DISPLAY_NAME_RATE_LIMIT);
   get("/auth/me", async (req, res) => {
     const account = (await store.session(cookie(req, SESSION_COOKIE)))?.account;
-    if (!account || !discordAvatars) {
-      res.json(account ?? null);
+    res.json(account ? { ...account, discordLinked: Boolean(await store.discordUserId(account.id)) } : null);
+  });
+  // Every replica shares one Discord bot bucket of about 30 requests per window.
+  const limitDiscordAvatarRefresh = tokenBucketLimiter(DISCORD_AVATAR_REFRESH_RATE_LIMIT);
+  post("/account/avatar/discord", async (req, res) => {
+    const session = await requireSession(req, res, store);
+    if (!session) return;
+    if (!discordAvatars) {
+      res.status(503).json({ error: "discord_unavailable" });
       return;
     }
-    const avatarUrl = await refreshStaleDiscordAvatar(store, discordAvatars, account.id);
-    res.json(avatarUrl === undefined ? account : { ...account, avatarUrl });
+    if (!limitDiscordAvatarRefresh("global")) {
+      res.status(429).json({ error: "too_many_requests" });
+      return;
+    }
+    const result = await refreshDiscordAvatarNow(store, discordAvatars, session.account.id);
+    if (result.status === "refreshed") {
+      res.json({ ...session.account, avatarUrl: result.avatarUrl, discordLinked: true });
+      return;
+    }
+    const failures = { not_discord: 404, cooldown: 429, rate_limited: 429, failed: 502 } as const;
+    res.status(failures[result.status]).json({ error: result.status });
   });
   post("/auth/logout", async (req, res) => {
     await store.revokeSession(cookie(req, SESSION_COOKIE));

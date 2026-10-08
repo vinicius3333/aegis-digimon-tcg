@@ -444,10 +444,15 @@ export function AegisClient({
   const selectAvatar = async (avatarId: DigimonWorldAvatarId | null) => {
     if (account) {
       const updated = await accountApi.updateAvatar(avatarId);
-      if (updated) setAccount?.(updated);
+      if (updated) setAccount?.({ ...account, ...updated });
       return;
     }
     setPlayer((p) => ({ ...p, guestAvatarId: avatarId, color: accentForAvatar(avatarId, colorKey(p.color)) }));
+  };
+
+  const refreshDiscordAvatar = async () => {
+    const updated = await accountApi.refreshDiscordAvatar();
+    if (account) setAccount?.({ ...account, ...updated });
   };
 
   return (
@@ -591,7 +596,7 @@ export function AegisClient({
               onToggleDark={setDark}
               onRename={(name) => setPlayer((p) => ({ ...p, name }))}
               onSelectAvatar={(avatarId) => setPlayer((p) => ({ ...p, guestAvatarId: avatarId }))}
-              onAccountChange={(updated) => setAccount?.(updated)}
+              onAccountChange={(updated) => setAccount?.(updated && { ...account, ...updated })}
             />
           )}
 
@@ -641,6 +646,7 @@ export function AegisClient({
           signedIn={!!account}
           selectedAvatarId={effectivePlayer.avatarId ?? null}
           onSelectAvatar={selectAvatar}
+          onRefreshDiscordAvatar={account?.discordLinked ? refreshDiscordAvatar : undefined}
           onNav={navigateScreen}
           onSignOut={account ? () => void accountApi.logout().then(() => location.reload()) : undefined}
           onReportBug={() => setBugReportOpen(true)}

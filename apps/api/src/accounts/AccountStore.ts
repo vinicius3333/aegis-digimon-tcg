@@ -304,6 +304,14 @@ export class AccountStore {
     }
     return claims;
   }
+  async discordUserId(accountId: string): Promise<string | undefined> {
+    await this.ensureReady();
+    const result = await this.pool.query<{ subject: string }>(
+      "SELECT subject FROM login_identities WHERE provider='discord' AND account_id=$1",
+      [accountId],
+    );
+    return result.rows[0]?.subject;
+  }
   async releaseDiscordAvatarCheck(check: DiscordAvatarCheck): Promise<void> {
     await this.ensureReady();
     await this.pool.query("UPDATE accounts SET avatar_checked_at=$1 WHERE id=$2", [

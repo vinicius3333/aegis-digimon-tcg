@@ -3,8 +3,8 @@ import type { AccountStore, DiscordAvatarCheck } from "./AccountStore.js";
 /** Resolves a Discord user's current avatar URL, or null when they have none. Throws when Discord can't answer. */
 export type DiscordAvatarSource = (discordUserId: string) => Promise<string | null>;
 
-export const DISCORD_AVATAR_MAX_AGE_MS = 24 * 60 * 60 * 1000;
-export const LAZY_REFRESH_TIMEOUT_MS = 1500;
+export const MANUAL_REFRESH_COOLDOWN_MS = 60_000;
+export const MANUAL_REFRESH_TIMEOUT_MS = 5000;
 export const BACKFILL_TIMEOUT_MS = 10_000;
 const BACKFILL_BATCH = 20;
 const BACKFILL_DELAY_MS = 250;
@@ -42,33 +42,37 @@ async function applyCheck(store: AccountStore, source: DiscordAvatarSource, chec
   return avatarUrl;
 }
 
+export type ManualRefreshResult =
+  | { status: "refreshed"; avatarUrl: string | null }
+  | { status: "not_discord" | "cooldown" | "rate_limited" | "failed" };
+
 /**
- * Refreshes one account's Discord avatar when its last check is older than a day.
- * Returns the new URL, or undefined when nothing was checked. A failed lookup keeps the old avatar and
- * waits for the next day rather than retrying on every request.
+ * Refreshes one account's Discord avatar on the player's request. The `avatar_checked_at` claim doubles as the
+ * per-account cooldown, so it holds across API replicas.
  */
-export async function refreshStaleDiscordAvatar(
+export async function refreshDiscordAvatarNow(
   store: AccountStore,
   source: DiscordAvatarSource,
   accountId: string,
   now = Date.now(),
-): Promise<string | null | undefined> {
+): Promise<ManualRefreshResult> {
   const [check] = await store.claimDiscordAvatarChecks({
-    staleBefore: now - DISCORD_AVATAR_MAX_AGE_MS,
+    staleBefore: now - MANUAL_REFRESH_COOLDOWN_MS,
     limit: 1,
     accountId,
   });
-  if (!check) return undefined;
+  if (!check) return { status: (await store.discordUserId(accountId)) ? "cooldown" : "not_discord" };
   try {
-    return await applyCheck(store, source, check);
-  } catch {
-    return undefined;
+    return { status: "refreshed", avatarUrl: await applyCheck(store, source, check) };
+  } catch (error) {
+    await store.releaseDiscordAvatarCheck(check);
+    return { status: error instanceof DiscordRateLimitError ? "rate_limited" : "failed" };
   }
 }
 
 /**
  * Fills the avatar of every Discord account that was never checked.
- * A failed account stays claimed, so the daily refresh retries it on the user's next visit. A rate limit
+ * A failed account stays claimed; the player can refresh it from the player menu. A rate limit
  * waits Discord's `retry-after` and retries the same account; every API replica runs this backfill, and
  * together they share one Discord bucket.
  */

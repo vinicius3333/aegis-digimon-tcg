@@ -10,6 +10,8 @@ export type RemoteAccount = {
   avatarUrl: string | null;
   avatarId: DigimonWorldAvatarId | null;
   isAdmin: boolean;
+  /** Sent by `/auth/me` and the Discord avatar refresh; other account responses omit it. */
+  discordLinked?: boolean;
 };
 export type AccountPreferences = {
   darkMode?: boolean;
@@ -82,6 +84,7 @@ export const accountApi = {
   profile: () => request<AccountProfile>("/account/profile"),
   updateAvatar: (avatarId: DigimonWorldAvatarId | null) =>
     request<RemoteAccount>("/account/profile/avatar", { method: "PUT", body: JSON.stringify({ avatarId }) }),
+  refreshDiscordAvatar: () => request<RemoteAccount>("/account/avatar/discord", { method: "POST" }),
   updateDisplayName: (displayName: string) =>
     request<RemoteAccount>("/account/profile/display-name", { method: "PUT", body: JSON.stringify({ displayName }) }),
   preferences: () => request<AccountPreferences>("/account/preferences"),

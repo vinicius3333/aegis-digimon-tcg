@@ -2,11 +2,11 @@ import { newDb } from "pg-mem";
 import { describe, expect, it, vi } from "vitest";
 import { AccountStore } from "./AccountStore.js";
 import {
-  DISCORD_AVATAR_MAX_AGE_MS,
+  MANUAL_REFRESH_COOLDOWN_MS,
   type DiscordAvatarSource,
   DiscordRateLimitError,
   backfillDiscordAvatars,
-  refreshStaleDiscordAvatar,
+  refreshDiscordAvatarNow,
 } from "./discordAvatars.js";
 
 function createStore(): AccountStore {
@@ -15,34 +15,46 @@ function createStore(): AccountStore {
 const noDelay = async () => undefined;
 
 describe("Discord avatars", () => {
-  it("refreshes an avatar only once it is a day old", async () => {
+  it("refreshes on request, then waits out the per-account cooldown", async () => {
     const store = createStore();
     const account = await store.accountForIdentity("discord", "7", "Tamer", "https://cdn.discordapp.com/old.png");
     const source = vi.fn<DiscordAvatarSource>(async () => "https://cdn.discordapp.com/new.png");
 
-    expect(await refreshStaleDiscordAvatar(store, source, account.id)).toBeUndefined();
+    expect(await refreshDiscordAvatarNow(store, source, account.id)).toEqual({ status: "cooldown" });
     expect(source).not.toHaveBeenCalled();
 
-    const tomorrow = Date.now() + DISCORD_AVATAR_MAX_AGE_MS + 1;
-    expect(await refreshStaleDiscordAvatar(store, source, account.id, tomorrow)).toBe(
-      "https://cdn.discordapp.com/new.png",
-    );
+    const later = Date.now() + MANUAL_REFRESH_COOLDOWN_MS + 1;
+    expect(await refreshDiscordAvatarNow(store, source, account.id, later)).toEqual({
+      status: "refreshed",
+      avatarUrl: "https://cdn.discordapp.com/new.png",
+    });
     expect(source).toHaveBeenCalledWith("7");
-    expect(await refreshStaleDiscordAvatar(store, source, account.id, tomorrow)).toBeUndefined();
+    expect(await refreshDiscordAvatarNow(store, source, account.id, later)).toEqual({ status: "cooldown" });
     expect(source).toHaveBeenCalledTimes(1);
     await store.close();
   });
 
-  it("keeps the old avatar when Discord fails", async () => {
+  it("rejects accounts without a Discord login", async () => {
+    const store = createStore();
+    const account = await store.accountForIdentity("email", "a@example.com", "Mail");
+    const source = vi.fn<DiscordAvatarSource>(async () => null);
+    expect(await refreshDiscordAvatarNow(store, source, account.id)).toEqual({ status: "not_discord" });
+    expect(source).not.toHaveBeenCalled();
+    await store.close();
+  });
+
+  it("keeps the old avatar and frees the cooldown when Discord fails", async () => {
     const store = createStore();
     const account = await store.accountForIdentity("discord", "8", "Tamer", "https://cdn.discordapp.com/old.png");
-    const failing = vi.fn<DiscordAvatarSource>(async () => {
-      throw new Error("down");
-    });
-    const tomorrow = Date.now() + DISCORD_AVATAR_MAX_AGE_MS + 1;
-    expect(await refreshStaleDiscordAvatar(store, failing, account.id, tomorrow)).toBeUndefined();
-    expect(await refreshStaleDiscordAvatar(store, failing, account.id, tomorrow)).toBeUndefined();
-    expect(failing).toHaveBeenCalledTimes(1);
+    const later = Date.now() + MANUAL_REFRESH_COOLDOWN_MS + 1;
+    const failing = vi
+      .fn<DiscordAvatarSource>()
+      .mockRejectedValueOnce(new DiscordRateLimitError(1000))
+      .mockRejectedValueOnce(new Error("down"))
+      .mockResolvedValue("https://cdn.discordapp.com/new.png");
+    expect(await refreshDiscordAvatarNow(store, failing, account.id, later)).toEqual({ status: "rate_limited" });
+    expect(await refreshDiscordAvatarNow(store, failing, account.id, later)).toEqual({ status: "failed" });
+    expect(await refreshDiscordAvatarNow(store, failing, account.id, later)).toMatchObject({ status: "refreshed" });
     await store.close();
   });
 

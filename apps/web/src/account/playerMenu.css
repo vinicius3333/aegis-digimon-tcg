@@ -147,6 +147,19 @@
   color: var(--ds-accent);
 }
 
+.player-menu__discord-refresh {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-3);
+  margin: calc(var(--ds-space-2) * -1) 0 var(--ds-space-4);
+}
+
+.player-menu__discord-refresh small {
+  color: var(--ds-text-3);
+  font-size: var(--ds-text-xs);
+}
+
 .player-menu__avatar-error {
   color: var(--ds-danger);
   font-size: var(--ds-text-xs);
