@@ -64,7 +64,7 @@ describe("BT18-079 Velgrmon", () => {
                 filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestLevel" },
                 count: "all",
               },
-              cost: { kind: "deleteOwn" },
+              cost: { kind: "deleteOwn", target: { filter: { controller: "any" } } },
               optional: true,
               abortOnDecline: true,
             },
@@ -212,6 +212,152 @@ describe("BT18-079 Velgrmon", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it.each(["BT2-067", "BT18-077"])(
+    "Discord 1557564616920408185: pays with an opponent's %s and recalculates the remaining lowest level",
+    async (costCard) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT18-079", as: "velgr" },
+              { card: "BT18-077", as: "ownCost" },
+            ],
+          },
+          1: {
+            security: ["BT1-010"],
+            battleArea: [
+              { card: costCard, as: "opponentCost" },
+              { card: "BT1-038", as: "lowestOne" },
+              { card: "BT1-039", as: "lowestTwo" },
+              { card: "BT1-044", as: "higher" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true },
+      );
+      await s.ready();
+      s.state.memory = 3;
+      const velgrId = s.perm("velgr").permanentId;
+      const costId = s.perm("opponentCost").permanentId;
+      const higherId = s.perm("higher").permanentId;
+      expect(
+        s.engine.applyIntent(0, { type: "attack", attackerPermanentId: velgrId, target: { kind: "player" } }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+      const costDecision = s.decisions.at(-1)!.req;
+      expect(costDecision.options?.candidateInstanceIds).toEqual(expect.arrayContaining([velgrId, costId]));
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: costDecision.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [costId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+        velgrId,
+        s.perm("ownCost").permanentId,
+      ]);
+      expect(s.state.players[0]!.trash).toHaveLength(0);
+      expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([higherId]);
+      expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(
+        expect.arrayContaining([costCard, "BT1-038", "BT1-039"]),
+      );
+      assertNoLoudGap(s);
+    },
+  );
+
+  it("Discord 1557564616920408185: excludes wrong colors/levels/Tamers/breeding and can delete Velgrmon itself", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT18-079", as: "velgr" },
+          { card: "BT18-077", as: "ownCost" },
+        ],
+        breeding: { card: "BT2-067", as: "breeding" },
+      },
+      1: {
+        security: ["BT1-010"],
+        battleArea: [
+          { card: "BT18-077", as: "opponentCost" },
+          { card: "BT1-032", as: "wrongColor" },
+          { card: "BT18-080", as: "tooHigh" },
+          { card: "BT7-091", as: "tamer" },
+        ],
+      },
+    });
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("velgr").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const decision = s.decisions.at(-1)!.req;
+    expect(decision.options?.candidateInstanceIds?.toSorted()).toEqual(
+      [s.perm("velgr").permanentId, s.perm("ownCost").permanentId, s.perm("opponentCost").permanentId].toSorted(),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("velgr").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT18-077"]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT18-080", "BT7-091"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT18-079"]);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT1-010", "BT18-077", "BT1-032"]),
+    );
+    assertNoLoudGap(s);
+  });
+
+  it("Discord 1557564616920408185: declining the optional cost deletes neither player's Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT18-079", as: "velgr" }] },
+      1: { security: ["BT1-010"], battleArea: [{ card: "BT18-077", as: "opponentCost" }] },
+    });
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("velgr").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
     assertNoLoudGap(s);
   });
 });

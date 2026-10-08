@@ -255,6 +255,49 @@ describe("EX5-046 Targetmon", () => {
     await turn;
   });
 
+  it("Discord 1557564616920408185 mechanism sweep: inherited Targetmon deletes an opponent's Sukamon to save its host (Q2073 wording)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-058", under: ["EX5-046"], as: "host", suspended: true },
+            { card: "BT11-040", as: "ownSukamon" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-025", as: "attacker" },
+            { card: "BT11-040", as: "opponentSukamon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const ownId = s.perm("ownSukamon").permanentId;
+    const opponentId = s.perm("opponentSukamon").permanentId;
+    const opponentCardId = s.inst("opponentSukamon").instanceId;
+    preferred.push(opponentCardId);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([hostId, ownId]);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === opponentId)).toBe(false);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(opponentCardId);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["EX5-046"]);
+  });
+
   it("evolves legally from a yellow level-three source and rejects a red source", async () => {
     const legal = setupEngine(
       { 0: { battleArea: [{ card: "BT1-045", as: "base" }], hand: [{ card: "EX5-046", as: "targetmon" }] } },
