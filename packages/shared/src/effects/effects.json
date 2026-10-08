@@ -31655,7 +31655,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "names": ["Shoutmon"] }, { "names": ["Ballistamon"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "names": ["Shoutmon"] }, { "names": ["Ballistamon"] }], "count": 1 }]
   },
   "BT15-013": {
     "effects": [

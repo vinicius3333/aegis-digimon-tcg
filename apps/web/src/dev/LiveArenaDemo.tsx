@@ -1067,6 +1067,22 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre seu turno. A fonte EX12-001 Nyaromon oferece a DNA: aceite e junte BetelGammamon com Garurumon em EX12-032 WereGarurumon, depois aceite atacar. A escolha de ordem deve listar juntos o Virus Busters EX12-069 da segurança, o [Quando Evolui] e o [Ao Atacar] de WereGarurumon e o [Ao Atacar] herdado de Garurumon. Resolva o Virus Busters por último: ele ainda deve oferecer jogar um Digimon [VB] do mesmo nível.",
     en: "End your turn. The EX12-001 Nyaromon source offers its DNA: accept, combine BetelGammamon and Garurumon into EX12-032 WereGarurumon, then accept the attack. The order prompt must list together EX12-069 Virus Busters from security, WereGarurumon's [When Digivolving] and [When Attacking], and Garurumon's inherited [When Attacking]. Resolve Virus Busters last: it must still offer to play a same-level [VB] Digimon.",
   },
+  "arena-github-5316-shoutmon-rush": {
+    ptBR: "Entre na Principal. Jogue BT15-012 Shoutmon X2 com DigiXros usando BT21-021 OmniShoutmon e BT19-051 AtlurBallistamon da mão. Suspenda o Digimon do bot. O custo é 3 (DigiXros −1 por material), deixando 7 de memória. X2 não pode atacar neste turno: seu tipo é Enhancement, sem Xros Heart, exigido pelo Rush herdado de OmniShoutmon. Reprodução #5316; resultado esperado pelas regras.",
+    en: "Enter Main. Play BT15-012 Shoutmon X2 by DigiXros using BT21-021 OmniShoutmon and BT19-051 AtlurBallistamon from hand. Suspend the bot's Digimon. Pay 3 (DigiXros −1 per material), leaving 7 memory. X2 cannot attack this turn: it is Enhancement and lacks Xros Heart, which OmniShoutmon's inherited Rush requires. Report #5316; this result follows the printed rules.",
+  },
+  "arena-github-5316-shoutmon-rush-control": {
+    ptBR: "Entre na Principal. Jogue BT21-027 Shoutmon DX por DigiXros com BT21-021 OmniShoutmon e AD1-013 ZeigGreymon. Resolva os efeitos de entrada e ataque a segurança. DX tem Xros Heart, portanto recebe Rush herdado e pode atacar no turno em que foi jogado. Controle positivo de #5316.",
+    en: "Enter Main. Play BT21-027 Shoutmon DX by DigiXros using BT21-021 OmniShoutmon and AD1-013 ZeigGreymon. Resolve its entry effects and attack security. DX has Xros Heart, so it inherits Rush and can attack the turn it was played. Positive control for #5316.",
+  },
+  "arena-github-5317-shoutmon-material-save-evolved": {
+    ptBR: "No início do turno, aceite eliminar BT15-012 Shoutmon X2 para ganhar 1 de memória (3 → 4). OmniShoutmon e AtlurBallistamon vão à lixeira junto com X2: não haverá Material Save. Seus nomes Shoutmon/Ballistamon valem somente para DigiXros, não para Material Save (Q3105). Os efeitos principais [Ao Ser Eliminado] das fontes não ativam. Entre na Principal para inspecionar a lixeira e Taiki sem fontes. Reprodução #5317; resultado esperado pelas regras.",
+    en: "At turn start, accept deleting BT15-012 Shoutmon X2 to gain 1 memory (3 → 4). OmniShoutmon and AtlurBallistamon go to trash with X2; Material Save is not offered. Their Shoutmon/Ballistamon names apply only to DigiXros, not Material Save (Q3105). The sources' main [On Deletion] effects do not activate. Enter Main to inspect trash and Taiki's empty sources. Report #5317; this result follows the printed rules.",
+  },
+  "arena-github-5317-shoutmon-material-save-printed": {
+    ptBR: "No início do turno, aceite eliminar BT15-012 Shoutmon X2. Aceite Material Save 2 e escolha BT10-008 Shoutmon e BT10-049 Ballistamon para colocar sob Taiki. X2 vai à lixeira, os dois materiais ficam sob Taiki e a memória passa de 3 para 4. Entre na Principal e confira as fontes. Controle positivo de #5317: os nomes impressos qualificam os materiais.",
+    en: "At turn start, accept deleting BT15-012 Shoutmon X2. Accept Material Save 2 and choose BT10-008 Shoutmon and BT10-049 Ballistamon to place under Taiki. X2 goes to trash, both materials remain under Taiki, and memory rises from 3 to 4. Enter Main and inspect the sources. Positive control for #5317: the printed names qualify these materials.",
+  },
   "arena-bt10-taiki-x7-xros-heart": {
     ptBR: "Entre na Fase Principal e jogue BT10-087 Taiki Kudo da mão. Na revelação de BT21-083, P-224, AD1-006 e BT8-097, escolha P-224 Kotone Amano para a mão. AD1-006 Shoutmon X7 deve ser colocado sob o Taiki jogado, mesmo sendo o único Digimon Xros Heart revelado. Ordene BT21-083 e BT8-097 para o fundo. A memória termina em 2. Reprodução da partida 802ba658, bug 1555932180322975924.",
     en: "Enter Main and play BT10-087 Taiki Kudo from hand. From the revealed BT21-083, P-224, AD1-006 and BT8-097, choose P-224 Kotone Amano for your hand. AD1-006 Shoutmon X7 must go under the played Taiki, even though it is the only revealed Xros Heart Digimon. Order BT21-083 and BT8-097 to the bottom. Memory ends at 2. Reproduces match 802ba658, bug 1555932180322975924.",
@@ -2593,6 +2609,10 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-github-5299-ravemon-bottom-security", "GitHub #5299 · Ravemon face-up bottom security"],
   ["arena-bt20-invisimon-security-count", "BT20 Invisimon · face-up security count"],
   ["arena-ex13-grademon-immunity", "EX13 Alphamon · Assembly from trash"],
+  ["arena-github-5316-shoutmon-rush", "#5316 Shoutmon X2 · Rush trait requirement"],
+  ["arena-github-5316-shoutmon-rush-control", "#5316 Shoutmon DX · legal inherited Rush"],
+  ["arena-github-5317-shoutmon-material-save-evolved", "#5317 Shoutmon X2 · DigiXros-only names"],
+  ["arena-github-5317-shoutmon-material-save-printed", "#5317 Shoutmon X2 · legal Material Save 2"],
   ["arena-bt10-taiki-x7-xros-heart", "BT10 Taiki · Shoutmon X7 Xros Heart"],
   ["arena-bt22-gabumon-eot-dna", "BT22 Gabumon · DNA no fim do turno"],
   ["arena-5292-hawkmon-craniamon-priority", "#5292 Hawkmon / Craniamon · prioridade no fim do turno"],
