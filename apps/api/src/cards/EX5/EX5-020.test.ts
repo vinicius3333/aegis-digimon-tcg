@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
@@ -7,6 +8,57 @@ import { compiled } from "./EX5-020.js";
 import "../index.js";
 
 describe("EX5-020 Crescemon", () => {
+  it("keeps the shared IR snapshot equal to the executable card module", () => {
+    // registerIrCard overrides the shared resolver, so compare the committed artifact directly.
+    const snapshot = JSON.parse(
+      readFileSync(new URL("../../../../../packages/shared/src/effects/effects.json", import.meta.url), "utf8"),
+    );
+    expect(snapshot["EX5-020"]).toEqual(compiled);
+  });
+  it("GitHub #5311: charges the printed cost when evolving from Crescemon with three sources (Q3569)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX5-020", as: "base", under: ["BT1-009", "BT1-010", "EX5-017"] }],
+        hand: [{ card: "BT1-044", as: "next" }],
+      },
+    });
+    await s.ready();
+    s.state.memory = 6;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("next").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT1-044" && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("GitHub #5311: a qualifying Crescemon on another stack cannot discount MetalGarurumon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX5-020", as: "support", under: ["BT1-009", "BT1-010", "EX5-017"] },
+          { card: "BT1-038", as: "base" },
+        ],
+        hand: [{ card: "BT1-044", as: "next" }],
+      },
+    });
+    await s.ready();
+    s.state.memory = 6;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("next").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT1-044" && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("support").topCard.cardId).toBe("EX5-020");
+  });
+
   it("matches the catalog and encodes every printed clause", () => {
     expect(getCardDefinition("EX5-020")).toMatchObject({
       cardId: "EX5-020",
@@ -26,7 +78,7 @@ describe("EX5-020 Crescemon", () => {
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     const statics = compiled.effects?.filter((entry) => entry.trigger === "Static");
-    expect(statics).toHaveLength(1);
+    expect(statics).toHaveLength(2);
     expect(statics?.[0]?.actions).toMatchObject([
       {
         kind: "Replacement",
@@ -34,6 +86,8 @@ describe("EX5-020 Crescemon", () => {
         sourceFilter: { isSelfRef: true },
         actions: [{ kind: "Replacement", event: "wouldBePlayed", mode: "reduceCost", amount: 2 }],
       },
+    ]);
+    expect(statics?.[1]?.actions).toMatchObject([
       {
         kind: "Replacement",
         event: "wouldDigivolve",
@@ -181,7 +235,7 @@ describe("EX5-020 Crescemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("crescemon").topCard?.cardId === "BT1-044");
-    expect(s.state.memory).toBe(3);
+    expect(s.state.memory).toBe(1);
     expect(s.perm("crescemon").stack.map((card) => card.cardId)).toEqual([
       "EX5-017",
       "BT1-009",
