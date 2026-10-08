@@ -7,11 +7,14 @@ const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "whenOneOfYoursDigivolves",
-          once: true,
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          mode: "instead",
           sourceFilter: {
             isSelfRef: true,
+            kind: ["Digimon"],
+          },
+          into: {
             kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["Insectoid"], match: "trait" }],
           },

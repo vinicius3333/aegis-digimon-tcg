@@ -456,6 +456,8 @@ export interface AegisJoinOptions {
     | "arena-bt24-skullbaluchimon-simultaneous-delete"
     | "arena-lm-gundramon-simultaneous-delete"
     | "arena-bt24-fugamon-self-trash"
+    | "arena-github5310-okuwamon-grandis-memory"
+    | "arena-github5310-grandis-end-of-attack"
     | "arena-bt2-kurisarimon-repeat-memory"
     | "arena-bt2-kurisarimon-start-main-memory"
     | "arena-ex12-metalgreymon-forced-attack-play"

@@ -30,7 +30,7 @@ describe("BT9-055 GrandisKuwagamon", () => {
           ],
         },
         { trigger: "YourTurn", actions: [{ kind: "ModifyDP", amount: 4000, duration: "permanent" }] },
-        { trigger: "WhenAttacking", frequency: "OncePerTurn", actions: [{ kind: "Suspend" }, { kind: "Unsuspend" }] },
+        { trigger: "EndOfAttack", frequency: "OncePerTurn", actions: [{ kind: "Suspend" }, { kind: "Unsuspend" }] },
       ],
     });
   });
