@@ -31,7 +31,12 @@ import { mailerFromEnv } from "./email/mailer.js";
 import { createClusterRuntime } from "./cluster/runtime.js";
 import { roomCodeDirectory, setRoomCodeDirectory } from "./rooms/AegisRoom.js";
 import { createSeriesDirectory, setSeriesDirectory } from "./rooms/series/SeriesDirectory.js";
-import { backfillDiscordAvatars, discordAvatarSourceFromEnvironment } from "./accounts/discordAvatars.js";
+import {
+  BACKFILL_TIMEOUT_MS,
+  LAZY_REFRESH_TIMEOUT_MS,
+  backfillDiscordAvatars,
+  discordAvatarSourceFromEnvironment,
+} from "./accounts/discordAvatars.js";
 import { startBotInference, stopBotInference } from "./bot/inferenceRuntime.js";
 
 const app = express();
@@ -60,7 +65,8 @@ app.set("trust proxy", Number(process.env.AEGIS_TRUSTED_PROXY_HOPS ?? 2));
 // callers of the same transition.
 // The bug and deck report trackers and the mailer are read from the environment here, at the edge,
 // so a test can install the routes with its own — or with none at all.
-const discordAvatars = discordAvatarSourceFromEnvironment();
+const discordAvatars = discordAvatarSourceFromEnvironment(LAZY_REFRESH_TIMEOUT_MS);
+const discordAvatarBackfill = discordAvatarSourceFromEnvironment(BACKFILL_TIMEOUT_MS);
 installAccountRoutes(
   app,
   accountStore,
@@ -76,7 +82,7 @@ installAccountRoutes(
   GitHubDeckReportTracker.fromEnvironment(),
   discordAvatars,
 );
-if (discordAvatars) void backfillDiscordAvatars(accountStore, discordAvatars).catch(() => undefined);
+if (discordAvatarBackfill) void backfillDiscordAvatars(accountStore, discordAvatarBackfill).catch(() => undefined);
 
 const cluster = createClusterRuntime();
 setRoomCodeDirectory(cluster.roomCodes);

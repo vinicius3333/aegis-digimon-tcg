@@ -4,7 +4,8 @@ import type { AccountStore, DiscordAvatarCheck } from "./AccountStore.js";
 export type DiscordAvatarSource = (discordUserId: string) => Promise<string | null>;
 
 export const DISCORD_AVATAR_MAX_AGE_MS = 24 * 60 * 60 * 1000;
-const LAZY_REFRESH_TIMEOUT_MS = 1500;
+export const LAZY_REFRESH_TIMEOUT_MS = 1500;
+export const BACKFILL_TIMEOUT_MS = 10_000;
 const BACKFILL_BATCH = 20;
 const BACKFILL_DELAY_MS = 100;
 
@@ -12,14 +13,17 @@ export function discordAvatarUrl(discordUserId: string, avatarHash: string | nul
   return avatarHash ? `https://cdn.discordapp.com/avatars/${discordUserId}/${avatarHash}.png` : null;
 }
 
-export function discordAvatarSourceFromEnvironment(): DiscordAvatarSource | undefined {
+export class DiscordRateLimitError extends Error {}
+
+export function discordAvatarSourceFromEnvironment(timeoutMs: number): DiscordAvatarSource | undefined {
   const token = process.env.DISCORD_BOT_TOKEN;
   if (!token) return undefined;
   return async (discordUserId) => {
     const response = await fetch(`https://discord.com/api/v10/users/${discordUserId}`, {
       headers: { Authorization: `Bot ${token}` },
-      signal: AbortSignal.timeout(LAZY_REFRESH_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
     });
+    if (response.status === 429) throw new DiscordRateLimitError("Discord rate limit reached");
     if (!response.ok) throw new Error(`Discord user lookup failed with ${response.status}`);
     const user = (await response.json()) as { avatar?: string | null };
     return discordAvatarUrl(discordUserId, user.avatar);
@@ -56,7 +60,11 @@ export async function refreshStaleDiscordAvatar(
   }
 }
 
-/** Fills the avatar of every Discord account that was never checked. Stops at the first failure, such as a rate limit. */
+/**
+ * Fills the avatar of every Discord account that was never checked.
+ * A failed account stays claimed, so the daily refresh retries it on the user's next visit. A rate limit
+ * stops the backfill and releases the unprocessed claims for the next API start.
+ */
 export async function backfillDiscordAvatars(
   store: AccountStore,
   source: DiscordAvatarSource,
@@ -70,7 +78,8 @@ export async function backfillDiscordAvatars(
       try {
         await applyCheck(store, source, check);
         refreshed++;
-      } catch {
+      } catch (error) {
+        if (!(error instanceof DiscordRateLimitError)) continue;
         for (const unchecked of checks.slice(index)) await store.releaseDiscordAvatarCheck(unchecked);
         return refreshed;
       }

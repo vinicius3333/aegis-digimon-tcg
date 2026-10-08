@@ -4,6 +4,7 @@ import { AccountStore } from "./AccountStore.js";
 import {
   DISCORD_AVATAR_MAX_AGE_MS,
   type DiscordAvatarSource,
+  DiscordRateLimitError,
   backfillDiscordAvatars,
   refreshStaleDiscordAvatar,
 } from "./discordAvatars.js";
@@ -61,14 +62,29 @@ describe("Discord avatars", () => {
     await store.close();
   });
 
-  it("releases unprocessed claims when the backfill stops on a failure", async () => {
+  it("skips a failed account and keeps backfilling the rest", async () => {
+    const store = createStore();
+    const pool = (store as unknown as { pool: { query: (sql: string) => Promise<unknown> } }).pool;
+    await store.accountForIdentity("discord", "20", "A");
+    await store.accountForIdentity("discord", "21", "B");
+    await pool.query("UPDATE accounts SET avatar_checked_at=NULL");
+    const source = vi.fn<DiscordAvatarSource>(async (id) => {
+      if (id === "20") throw new Error("timeout");
+      return `https://cdn.discordapp.com/${id}.png`;
+    });
+    expect(await backfillDiscordAvatars(store, source, noDelay)).toBe(1);
+    expect(source).toHaveBeenCalledTimes(2);
+    await store.close();
+  });
+
+  it("releases unprocessed claims when the backfill hits a rate limit", async () => {
     const store = createStore();
     const pool = (store as unknown as { pool: { query: (sql: string) => Promise<unknown> } }).pool;
     await store.accountForIdentity("discord", "10", "A");
     await store.accountForIdentity("discord", "11", "B");
     await pool.query("UPDATE accounts SET avatar_checked_at=NULL");
     const rateLimited = vi.fn<DiscordAvatarSource>(async () => {
-      throw new Error("429");
+      throw new DiscordRateLimitError("429");
     });
     expect(await backfillDiscordAvatars(store, rateLimited, noDelay)).toBe(0);
 
