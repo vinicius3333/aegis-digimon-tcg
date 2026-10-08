@@ -7,32 +7,36 @@ export const compiled: CompiledCard = {
       trigger: "StartOfYourMainPhase",
       actions: [
         {
-          kind: "Trash",
-          target: {
-            filter: {
-              zone: "hand",
-              controller: "mine",
+          kind: "CostGatedBlock",
+          optional: true,
+          abortOnDecline: true,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: { zone: "hand", controller: "mine" },
+              count: 1,
             },
-            count: 1,
+            raw: "By trashing 1 card in your hand",
           },
-          raw: "By trashing 1 card in your hand",
-        },
-        {
-          kind: "SecurityManipulation",
-          op: "trashTop",
-          controller: "opponent",
-          amount: 1,
-          optionalFor: "opponent",
-          bindResultAs: "opponentTrashedSecurity",
-        },
-        {
-          kind: "Recover",
-          amount: 1,
-          optional: false,
-          condition: {
-            kind: "lastEffectDidNotAct",
-            raw: "opponent didn't trash security",
-          },
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+              amount: 1,
+              optionalFor: "opponent",
+              bindResultAs: "opponentTrashedSecurity",
+            },
+            {
+              kind: "Recover",
+              amount: 1,
+              optional: false,
+              condition: {
+                kind: "lastEffectDidNotAct",
+                raw: "opponent didn't trash security",
+              },
+            },
+          ],
         },
       ],
     },
@@ -40,32 +44,36 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "Trash",
-          target: {
-            filter: {
-              zone: "hand",
-              controller: "mine",
+          kind: "CostGatedBlock",
+          optional: true,
+          abortOnDecline: true,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: { zone: "hand", controller: "mine" },
+              count: 1,
             },
-            count: 1,
+            raw: "By trashing 1 card in your hand",
           },
-          raw: "By trashing 1 card in your hand",
-        },
-        {
-          kind: "SecurityManipulation",
-          op: "trashTop",
-          controller: "opponent",
-          amount: 1,
-          optionalFor: "opponent",
-          bindResultAs: "opponentTrashedSecurity",
-        },
-        {
-          kind: "Recover",
-          amount: 1,
-          optional: false,
-          condition: {
-            kind: "lastEffectDidNotAct",
-            raw: "opponent didn't trash security",
-          },
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+              amount: 1,
+              optionalFor: "opponent",
+              bindResultAs: "opponentTrashedSecurity",
+            },
+            {
+              kind: "Recover",
+              amount: 1,
+              optional: false,
+              condition: {
+                kind: "lastEffectDidNotAct",
+                raw: "opponent didn't trash security",
+              },
+            },
+          ],
         },
       ],
     },
