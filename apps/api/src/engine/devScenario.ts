@@ -58,6 +58,7 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github5332-kekkomon-cost",
   "arena-github5307-larva-bt18-breeding",
   "arena-github5307-larva-ex10-breeding",
   "arena-github5308-greymon-security-destination",
@@ -486,6 +487,37 @@ function establishedDigimon(seat: Seat, cardIds: readonly string[], slot = ""): 
 function linkEstablishedCard(permanent: Permanent, card: CardInstance): void {
   linkCard(permanent, card, "bottom");
   permanent.currentDP += getCardDefinition(card.cardId)?.linkDp ?? 0;
+}
+
+/** Reduced #5332 cost-choice control with a helper attack to suspend both Tamers lawfully. */
+function layGithub5332KekkomonCostScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-5332-egg-${seat}`, "ST23-01", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-5332-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 3; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-5332-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["ST23-01", "ST23-06"], "-5332-gecko"));
+  placePermanent(human, establishedDigimon(0, ["ST23-01", "ST23-02"], "-5332-helper"));
+  ["ST23-13", "BT25-090"].forEach((cardId, index) => {
+    const tamer = establishedDigimon(0, [cardId], `-5332-tamer-${index}`);
+    tamer.isSuspended = true;
+    pushOnStack(tamer, faceDownCard(`dev-5332-bottom-${index}`, "ST23-02", 0));
+    pushOnStack(tamer, faceDownCard(`dev-5332-next-${index}`, "ST23-06", 0));
+    placePermanent(human, tamer);
+  });
+  for (let index = 0; index < 2; index += 1) {
+    insertCard(human, Zone.Hand, faceUpCard(`dev-5332-evolution-${index}`, "ST23-07", 0));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 /** Discord 1557702941106901032 candidate choice shape; a control, not a proven freeze reproducer. */
@@ -8628,6 +8660,7 @@ function layGithubEndTurnReportScenario(
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-github5332-kekkomon-cost": layGithub5332KekkomonCostScenario,
   "arena-github5307-larva-bt18-breeding": (state) => layGithub5307LarvaScenario(state, "BT18-101"),
   "arena-github5307-larva-ex10-breeding": (state) => layGithub5307LarvaScenario(state, "EX10-060"),
   "arena-github5308-greymon-security-destination": layGithub5308GreymonScenario,

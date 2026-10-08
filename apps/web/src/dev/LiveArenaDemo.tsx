@@ -17,6 +17,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-github5332-kekkomon-cost": {
+    en: "GitHub #5332, current behavior control; the reported phone stall remains unconfirmed. End breeding and decline ST23-13's deck placement. First attack security with Liollmon. Accept its Kekkomon inherited, select ST23-13 to pay, then DECLINE evolution. Accept ST23-13's suspension/DP offer and give Liollmon +3000 DP. Accept BT25-090's suspension/place-under offer. The helper attack completes and both Tamers are suspended with face-down sources remaining. Now attack security with the fresh Gekkomon and accept its Kekkomon inherited. Select either suspended Tamer on the field and confirm targets: this pays its bottom face-down card, not a hand evolution card. Accept the separate evolution offer, select a hand Armalizamon and end selection. Gekkomon evolves for zero memory, checks one security and finishes the attack. Reset to compare the other Tamer. Observe normal effect presentation; this reduced setup is not the complete historical match.",
+    ptBR: "GitHub #5332, controle atual; o travamento relatado no celular ainda não foi confirmado. Encerre a criação e recuse colocar carta sob ST23-13. Primeiro ataque a segurança com Liollmon. Aceite a herdada de Kekkomon, selecione ST23-13 para pagar e RECUSE evoluir. Aceite suspender ST23-13 e dê +3000 DP a Liollmon. Aceite suspender BT25-090 e colocar cartas sob ele. O ataque auxiliar termina e ambos os Tamers ficam suspensos com fontes viradas para baixo restantes. Agora ataque a segurança com Gekkomon e aceite a herdada de Kekkomon. Selecione um Tamer suspenso no campo e confirme os alvos: isso paga a carta inferior dele, não uma evolução da mão. Aceite a oferta separada de evolução, selecione Armalizamon da mão e encerre a seleção. Gekkomon evolui por zero memória, verifica uma segurança e termina o ataque. Reinicie para comparar o outro Tamer. Observe a apresentação normal; este cenário reduzido não é a partida histórica completa.",
+  },
   "arena-github5307-larva-bt18-breeding": {
     en: "GitHub #5307, current behavior control. End breeding without moving Larva. Attack the suspended opposing Satan Mode with your BT18 Satan Mode. Both have 16000 DP. Accept Larva's prevention: Larva moves from breeding, your Satan Mode stays, and the opposing Satan Mode is deleted. Reset and decline to compare: your Satan Mode is deleted and Larva stays in breeding.",
     ptBR: "GitHub #5307, controle do comportamento atual. Encerre a criação sem mover Larva. Ataque o Satan Mode adversário suspenso com seu Satan Mode BT18. Ambos têm 16000 DP. Aceite a proteção de Larva: ela sai da criação, seu Satan Mode fica e o adversário é deletado. Reinicie e recuse para comparar: seu Satan Mode é deletado e Larva fica na criação.",
@@ -2250,6 +2254,7 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-github5332-kekkomon-cost", "GitHub #5332 · Kekkomon Tamer cost selection"],
   ["arena-github5307-larva-bt18-breeding", "GitHub #5307 · Larva breeding / BT18 Satan Mode"],
   ["arena-github5307-larva-ex10-breeding", "GitHub #5307 · Larva breeding / EX10 Satan Mode"],
   ["arena-github5308-greymon-security-destination", "GitHub #5308 · Greymon X / security versus hand"],
