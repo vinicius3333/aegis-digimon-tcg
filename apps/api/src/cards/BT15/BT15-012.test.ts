@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, digiXrosRequirementFor, type Seat } from "@aegis/shared";
+import { EffectTiming, Phase, digiXrosRequirementFor, type Seat } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -7,6 +7,116 @@ import "../index.js";
 import { compiled } from "./BT15-012.js";
 
 describe("BT15-012 Shoutmon X2 [On Play] suspend", () => {
+  it("GitHub #5316: OmniShoutmon and AtlurBallistamon legally DigiXros into X2 without inherited Rush", async () => {
+    const s = setup(
+      {
+        0: {
+          hand: [
+            { card: "BT15-012", as: "host" },
+            { card: "BT21-021", as: "omni" },
+            { card: "BT19-051", as: "atlur" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("host").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("omni").instanceId, s.inst("atlur").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT15-012") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.memory).toBe(7);
+    expect(s.perm("host").stack.map((c) => c.cardId)).toEqual(["BT19-051", "BT21-021"]);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Rush")).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.events.filter((e) => e.kind === "attackDeclared")).toHaveLength(0);
+  });
+
+  it.each([
+    ["BT21-021", "BT19-051", []],
+    ["BT10-008", "BT10-049", ["BT10-008", "BT10-049"]],
+    ["BT21-021", "BT10-049", ["BT10-049"]],
+    ["BT10-008", "BT19-051", ["BT10-008"]],
+  ] as const)(
+    "GitHub #5317: actual start-turn deletion saves only eligible sources after public DigiXros (%s, %s)",
+    async (shoutmon, ballistamon, saved) => {
+      const s = setup(
+        {
+          0: {
+            battleArea: [{ card: "BT10-087", as: "tamer" }],
+            hand: [
+              { card: "BT15-012", as: "host" },
+              { card: shoutmon, as: "shoutmon" },
+              { card: ballistamon, as: "ballistamon" },
+            ],
+            deck: ["BT1-009", "BT1-009", "BT1-009"],
+            eggDeck: ["BT1-001"],
+          },
+          1: { deck: ["BT1-009", "BT1-009", "BT1-009"], eggDeck: ["BT1-001"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: s.inst("host").instanceId,
+          digiXros: { materialInstanceIds: [s.inst("shoutmon").instanceId, s.inst("ballistamon").instanceId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT15-012") &&
+          s.state.pendingDecision === undefined,
+      );
+      await s.ready();
+      const memoryBefore = s.state.memory;
+      const loop = s.engine.startTurnLoop();
+      try {
+        await settle(() => s.state.phase === Phase.Breeding && s.state.pendingDecision === undefined);
+        expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(0);
+        expect(s.state.memory).toBe(memoryBefore + 1);
+        expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT15-012")).toBe(false);
+        expect(
+          s
+            .perm("tamer")
+            .stack.map((c) => c.cardId)
+            .sort(),
+        ).toEqual([...saved].sort());
+        const savedIds = new Set<string>(saved);
+        expect(s.state.players[0]!.trash.map((c) => c.cardId).sort()).toEqual(
+          ["BT15-012", ...[shoutmon, ballistamon].filter((c) => !savedIds.has(c))].sort(),
+        );
+        const saveOffers = s.decisions.filter(({ req }) => req.promptText?.includes("Material Save"));
+        expect(saveOffers.length > 0).toBe(saved.length > 0);
+      } finally {
+        s.engine.applyIntent(0, { type: "surrender" });
+        await loop;
+      }
+    },
+  );
+
   it.each([0, 1, 2])("GitHub #5316 secondary finding: printed DigiXros -1 pays 5 minus %s materials", async (count) => {
     const s = setup(
       {
