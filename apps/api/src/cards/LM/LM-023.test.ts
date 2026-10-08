@@ -10,6 +10,62 @@ import "./LM-023.js";
 import { activateDelay, setupTraining } from "../P/qaRulings2.testSupport.js";
 
 describe("LM-023 Sakuyamon: Maid Mode", () => {
+  it("rejects EX4-030's in-name alias through public digivolution intents (Q3475)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX4-030", as: "kuzuhamon" }],
+        hand: [{ card: "LM-023", as: "maid" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    const instanceId = s.inst("maid").instanceId;
+    const permanentId = s.perm("kuzuhamon").permanentId;
+
+    for (const route of [{}, { alternateRequirementIndex: 0 }]) {
+      expect(s.engine.applyIntent(0, { type: "digivolve", instanceId, permanentId, ...route })).toEqual({
+        ok: false,
+        reason: "invalid-evolution",
+      });
+      expect(s.perm("kuzuhamon").topCard.cardId).toBe("EX4-030");
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === instanceId)).toBe(true);
+      expect(s.state.memory).toBe(3);
+      expect(s.state.pendingDecision).toBeUndefined();
+    }
+  });
+
+  it("preserves the ordinary yellow level-5 route at cost 3", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-023", as: "taomon" }],
+          hand: [{ card: "LM-023", as: "maid" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const instanceId = s.inst("maid").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        instanceId,
+        permanentId: s.perm("taomon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("taomon").topCard.instanceId === instanceId &&
+        !s.state.pendingDecision &&
+        s.engine.mainVerbContinuationsInFlight === 0,
+    );
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
+  });
+
   it("places an eligible yellow Tamer from hand on top of security and reveals it, per Q4024/Q4025", async () => {
     const s = setupEngine(
       {
