@@ -82,6 +82,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-github5319-murasamemon-e-pulse",
   "arena-github5319-murasamemon-spent-cost",
   "arena-turn-end-dp-expiry",
+  "arena-github5344-revelation-expiry",
   "arena-github5311-crescemon-cost-scope",
   "arena-github5311-imperialdramon-cost-scope",
   "arena-github5318-junomon-printed-cost",
@@ -661,6 +662,30 @@ function laySatellamonCostControlScenario(state: GameState, _decks: readonly [De
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 10;
+}
+
+/** Revelation must expire on its effect owner's handoff, after Mistymon's pending attack. */
+function layRevelationExpiryScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-revelation-egg-${seat}`, "BT1-003", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-revelation-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 5; index += 1) {
+      const cardId = seat === 0 ? (index === 0 ? "BT15-092" : "BT1-009") : "BT1-024";
+      insertCard(player, Zone.Security, faceDownCard(`dev-revelation-security-${seat}-${index}`, cardId, seat));
+    }
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT18-036"], "-revelation-host"));
+  placePermanent(state.players[1]!, establishedDigimon(1, ["BT15-053"], "-revelation-target"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-revelation-mistymon", "EX13-033", 0));
+  insertCard(state.players[1]!, Zone.Hand, faceDownCard("dev-revelation-late", "BT1-024", 1));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
 }
 
 /** A printed turn-long DP gain expires before the next Active phase's memory setter. */
@@ -9247,6 +9272,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github5319-murasamemon-e-pulse": layGithub5319MurasamemonEPulseScenario,
   "arena-github5319-murasamemon-spent-cost": layGithub5319MurasamemonSpentCostScenario,
   "arena-turn-end-dp-expiry": layTurnEndDpExpiryScenario,
+  "arena-github5344-revelation-expiry": layRevelationExpiryScenario,
   "arena-github5311-crescemon-cost-scope": layGithub5311CrescemonCostScenario,
   "arena-github5311-imperialdramon-cost-scope": layGithub5311ImperialdramonCostScenario,
   "arena-github5322-metalmamemon-no-cost": (state) => layGithub5322MetalMamemonScenario(state, "no-cost"),

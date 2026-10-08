@@ -14,7 +14,7 @@ import { revealPrivateRequirementPicks } from "../targeting/privateReveal.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { resolvePermanentTargets, topInstanceIds } from "../targeting/permanents.js";
 import { extractCardAt, insertCard } from "../../../state/access.js";
-import { Zone, type Action, type Filter, type Seat, type Target, type ZoneRef } from "@aegis/shared";
+import { EffectDuration, Zone, type Action, type Filter, type Seat, type Target, type ZoneRef } from "@aegis/shared";
 
 /**
  * A face-up placement is already public, so it needs no separate reveal. `revealChosen`
@@ -715,7 +715,14 @@ export async function runSecurityAction(ctx: EffectContext, action: Action, scop
       // ST1-14's [Security] effect) or a window lasting through the opponent's
       // next turn (its [Main] effect). Preserve the IR duration in the ledger;
       // omitting it incorrectly defaulted every triggered delta to one turn.
-      ctx.fx.modifySecurityDp(seat, delta, { duration: toDuration(action.duration) });
+      // The security ledger frames relative durations from the affected seat;
+      // printed "your"/"their" refers to the resolving effect's controller.
+      let duration = toDuration(action.duration);
+      if (seat !== ctx.source.ownerSeat) {
+        if (duration === EffectDuration.UntilOwnerTurnEnd) duration = EffectDuration.UntilOpponentTurnEnd;
+        else if (duration === EffectDuration.UntilOpponentTurnEnd) duration = EffectDuration.UntilOwnerTurnEnd;
+      }
+      ctx.fx.modifySecurityDp(seat, delta, { duration });
       return false;
     }
     case "SecurityAttackInvert": {
