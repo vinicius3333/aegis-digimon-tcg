@@ -4,6 +4,7 @@ import {
   GameState,
   Phase,
   PlayerState,
+  getCardDefinition,
   type DecisionRequest,
   type DecisionResponse,
 } from "@aegis/shared";
@@ -34,7 +35,15 @@ function handDecision(
   };
 }
 
-function renderDecision(initial = handDecision(), viewport?: Viewport) {
+function renderDecision(
+  initial = handDecision(),
+  viewport?: Viewport,
+  cards: readonly (readonly [string, string])[] = [
+    ["copy-first", "ST1-07"],
+    ["copy-second", "ST1-07"],
+    ["ineligible", "ST1-09"],
+  ],
+) {
   const originalMatchMedia = window.matchMedia;
   const originalWidth = window.innerWidth;
   const originalHeight = window.innerHeight;
@@ -57,11 +66,7 @@ function renderDecision(initial = handDecision(), viewport?: Viewport) {
     player.sessionId = `session-${seat}`;
     state.players.push(player);
   }
-  for (const [instanceId, cardId] of [
-    ["copy-first", "ST1-07"],
-    ["copy-second", "ST1-07"],
-    ["ineligible", "ST1-09"],
-  ] as const) {
+  for (const [instanceId, cardId] of cards) {
     const card = new CardInstance();
     card.instanceId = instanceId;
     card.cardId = cardId;
@@ -69,7 +74,7 @@ function renderDecision(initial = handDecision(), viewport?: Viewport) {
     card.projectedPlayCost = 2;
     state.players[0]!.hand.push(card);
   }
-  state.players[0]!.handCount = 3;
+  state.players[0]!.handCount = cards.length;
   const respond = vi.fn<(response: DecisionResponse) => void>();
   const acknowledge = vi.fn<() => void>();
   const view = (decision: DecisionRequest | undefined, status: "connected" | "reconnecting" = "connected") => (
@@ -109,6 +114,51 @@ function renderDecision(initial = handDecision(), viewport?: Viewport) {
     },
   };
 }
+
+it("Discord 1557581905220730932: preserves the reported Cool Boy Main clause and exact physical copy", () => {
+  // The screenshot's Main clause is EX11-071. BT20-091's Omekamon response is
+  // another consumer of this rail, covered by the coordinator's live arena.
+  const effectText = getCardDefinition("EX11-071")!.effectText!;
+  const clause = effectText.slice(effectText.indexOf("[Main]"));
+  const request = {
+    ...handDecision("selectCards", {
+      candidateInstanceIds: ["copy-first", "copy-second", "eligible-cool-boy", "omekamon-witness"],
+      min: 0,
+      max: 1,
+      timing: "Main",
+      effectText: clause,
+    }),
+    sourceCardId: "EX11-071",
+  };
+  const game = renderDecision(request, PHONE_VIEWPORTS[1], [
+    ["copy-first", "BT13-075"], // Alphamon, the leftmost card in the recording
+    ["copy-second", "BT13-075"],
+    ["eligible-cool-boy", "BT20-091"], // the play-cost-4 Cool Boy is eligible
+    ["ineligible", "EX11-071"], // another Cool Boy does not meet the play-cost floor
+    ["omekamon-witness", "BT20-083"],
+    ["unrelated-witness", "ST1-09"],
+  ]);
+  try {
+    const rail = screen.getByRole("region", { name: "Hand selection" });
+    expect(rail.textContent).toContain("with the play cost reduced by 2.");
+    expect(game.physical("copy-first").getAttribute("aria-pressed")).toBe("false");
+    expect(game.physical("ineligible").getAttribute("aria-disabled")).toBe("true");
+    expect(game.physical("unrelated-witness").getAttribute("aria-disabled")).toBe("true");
+    expect(game.physical("eligible-cool-boy").getAttribute("aria-disabled")).toBeNull();
+    expect(game.physical("omekamon-witness").getAttribute("aria-disabled")).toBeNull();
+    fireEvent.click(game.physical("copy-first"));
+    fireEvent.click(game.physical("copy-first"));
+    expect(game.physical("copy-first").getAttribute("aria-pressed")).toBe("false");
+    fireEvent.keyDown(game.physical("copy-second"), { key: "Enter" });
+    expect(game.physical("copy-second").getAttribute("aria-pressed")).toBe("true");
+    expect(game.respond).not.toHaveBeenCalled();
+    fireEvent.click(within(rail).getByRole("button", { name: "End Selection" }));
+    expect(game.respond).toHaveBeenCalledExactlyOnceWith({ kind: "selectCards", instanceIds: ["copy-second"] });
+    expect(game.physical("ineligible").getAttribute("data-hand-instance-id")).toBe("ineligible");
+  } finally {
+    game.restore();
+  }
+});
 
 it.each(["selectCards", "chooseTargets"] as const)(
   "highlights physical hand copies and confirms the exact %s response",

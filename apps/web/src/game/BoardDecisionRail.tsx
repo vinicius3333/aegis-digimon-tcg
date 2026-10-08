@@ -217,14 +217,30 @@ export function BoardSelectionRail({
     if (fieldSelection || attackSelection || isViewingBoard) return;
     const hand = document.querySelector<HTMLElement>(".game-hand-dock");
     if (!hand) return;
-    const update = () => setHandClearance(Math.max(0, window.innerHeight - hand.getBoundingClientRect().top));
+    const update = () => {
+      // The fan and selected cards can rise above the dock's layout box.
+      // Reserve their painted bounds as well as the dock's scroll controls.
+      const cardTops = [...hand.querySelectorAll<HTMLElement>(".game-hand-card")]
+        .map((card) => card.getBoundingClientRect())
+        .filter((bounds) => bounds.width > 0 && bounds.height > 0)
+        .map((bounds) => bounds.top);
+      const top = Math.min(hand.getBoundingClientRect().top, ...cardTops);
+      setHandClearance(Math.max(0, window.innerHeight - top));
+    };
     update();
     const observer = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(update);
     observer?.observe(hand);
+    const mutations = new MutationObserver(update);
+    mutations.observe(hand, { attributes: true, childList: true, subtree: true });
     window.addEventListener("resize", update);
+    hand.addEventListener("transitionend", update);
+    hand.addEventListener("scroll", update, true);
     return () => {
       observer?.disconnect();
+      mutations.disconnect();
       window.removeEventListener("resize", update);
+      hand.removeEventListener("transitionend", update);
+      hand.removeEventListener("scroll", update, true);
     };
   }, [fieldSelection, attackSelection, isViewingBoard]);
 
