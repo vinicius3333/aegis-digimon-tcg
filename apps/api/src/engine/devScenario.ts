@@ -58,6 +58,7 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-bt21-satellamon-cost-control",
   "arena-github5311-crescemon-cost-scope",
   "arena-github5311-imperialdramon-cost-scope",
   "arena-github5318-junomon-printed-cost",
@@ -467,6 +468,35 @@ function establishedDigimon(seat: Seat, cardIds: readonly string[], slot = ""): 
 function linkEstablishedCard(permanent: Permanent, card: CardInstance): void {
   linkCard(permanent, card, "bottom");
   permanent.currentDP += getCardDefinition(card.cardId)?.linkDp ?? 0;
+}
+
+/** Discord 1557702941106901032 candidate choice shape; a control, not a proven freeze reproducer. */
+function laySatellamonCostControlScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-satellamon-egg-${seat}`, "BT1-003", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-satellamon-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-satellamon-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0]!;
+  // The real turn draw supplies the sixth visible hand card after Satellamon is played.
+  insertCard(human, Zone.Deck, faceDownCard("dev-satellamon-draw", "BT25-083", 0), "top");
+  insertCard(human, Zone.Hand, faceDownCard("dev-satellamon-source", "BT21-074", 0));
+  ["BT21-074", "LM-067", "EX7-073", "BT25-085", "EX7-071"].forEach((cardId, index) => {
+    insertCard(human, Zone.Hand, faceDownCard(`dev-satellamon-hand-${index}`, cardId, 0));
+  });
+  ["EX7-008", "BT25-078", "BT25-085", "EX7-071", "EX7-071", "EX7-071", "BT25-005"].forEach((cardId, index) => {
+    insertCard(human, Zone.Trash, faceUpCard(`dev-satellamon-trash-${index}`, cardId, 0));
+  });
+  placePermanent(human, establishedDigimon(0, ["BT1-009"], "-satellamon-host"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 /**
@@ -8383,6 +8413,7 @@ function layGithubEndTurnReportScenario(
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-bt21-satellamon-cost-control": laySatellamonCostControlScenario,
   "arena-github5311-crescemon-cost-scope": layGithub5311CrescemonCostScenario,
   "arena-github5311-imperialdramon-cost-scope": layGithub5311ImperialdramonCostScenario,
   "arena-github5318-junomon-printed-cost": layGithub5318JunomonPrintedCostScenario,

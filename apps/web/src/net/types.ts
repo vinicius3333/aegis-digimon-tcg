@@ -432,6 +432,7 @@ export interface AegisJoinOptions {
     | "arena-bt26-ravemon-nested-on-deletion"
     | "arena-github5300-yoshino-cost-payload"
     | "arena-github5311-crescemon-cost-scope"
+    | "arena-bt21-satellamon-cost-control"
     | "arena-github5311-imperialdramon-cost-scope"
     | "arena-github5318-junomon-printed-cost"
     | "arena-github5300-keenan-cost-execute"
