@@ -31,6 +31,8 @@ export interface AegisJoinOptions {
   devScenario?:
     | "arena-discord-1557565628439724032-duskmon-dna-colors"
     | "arena-discord-1557565628439724032-duskmon-dna-control"
+    | "arena-discord-1557575147119054889-shakkoumon-sukamon"
+    | "arena-discord-1557575147119054889-shakkoumon-yellow-only"
     | "arena-issue-5176-king-drasil-ace"
     | "arena-issue-5166-dna-material-pairs"
     | "arena-issue-5173-cyber-engage"

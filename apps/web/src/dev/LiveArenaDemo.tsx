@@ -1155,6 +1155,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Use BT20-093 Unleash the Dragon Gene da mão e aceite o [Principal]. A seleção da mão deve oferecer BT20-023 Coredramon e EX3-074 Examon e também o botão Nenhuma seleção. Escolha Nenhuma seleção: nenhum Digimon é jogado, os dois continuam na mão, a Option vai para a área de batalha e a memória cai só 2.",
     en: "Use BT20-093 Unleash the Dragon Gene from hand and accept its [Main]. The hand selection must offer BT20-023 Coredramon and EX3-074 Examon and also the No Selection button. Choose No Selection: no Digimon is played, both stay in hand, the Option goes to the battle area, and memory drops by only 2.",
   },
+  "arena-discord-1557575147119054889-shakkoumon-sukamon": {
+    ptBR: "Encerre a criação. Você tem 0 de memória e as três cartas anexadas ao relato: EX13-028 Sukamon (amarelo), BT11-040 Sukamon e EX5-046 Targetmon (ambos amarelo/preto), todos Nv.4. Selecione BT23-032 Shakkoumon na mão, escolha DNA e use EX13-028 + BT11-040. Deve custar 0, consumir só os dois escolhidos e criar Shakkoumon ativo; Targetmon permanece. Reinicie para testar EX13-028 + Targetmon e BT11-040 + Targetmon. Cada par deve funcionar, inclusive na ordem inversa. O requisito [CS] vale para a digivolução normal alternativa de custo 3; o DNA não exige [CS] nem nomes específicos.",
+    en: "End breeding. You have 0 memory and the three cards attached to the report: EX13-028 Sukamon (yellow), BT11-040 Sukamon and EX5-046 Targetmon (both yellow/black), all Lv.4. Select BT23-032 Shakkoumon in hand, choose DNA, and use EX13-028 + BT11-040. It should cost 0, consume only the selected two, and create unsuspended Shakkoumon; Targetmon stays. Reset to test EX13-028 + Targetmon and BT11-040 + Targetmon. Every pair should work, including reversed selection. The [CS] requirement belongs to the alternate normal digivolution costing 3; DNA requires neither [CS] nor specific names.",
+  },
+  "arena-discord-1557575147119054889-shakkoumon-yellow-only": {
+    ptBR: "Encerre a criação. Seus dois EX13-028 Sukamon são amarelos Nv.4. Selecione BT23-032 Shakkoumon: nenhuma combinação de DNA deve aparecer, pois falta um material preto ou azul Nv.4. Uma única carta multicolorida também não ocupa os dois lugares do DNA. A mão, os dois Sukamon e a memória devem permanecer sem alterações. Use o cenário Shakkoumon DNA · materiais do relato para comparar com pares válidos.",
+    en: "End breeding. Both of your EX13-028 Sukamon are yellow Lv.4. Select BT23-032 Shakkoumon: no DNA combination should appear because a black or blue Lv.4 material is missing. A single multicolor card also cannot fill both DNA slots. Your hand, both Sukamon, and memory should remain unchanged. Use Shakkoumon DNA · reported materials to compare with legal pairs.",
+  },
   "arena-discord-1557565628439724032-duskmon-dna-colors": {
     ptBR: "Espere o bot jogar Duskmon BT18-078 e mudar Wingdramon EX13-021 para vermelho. Encerre a criação: Examon BT13-059 não deve oferecer DNA com Wingdramon + HerculesKabuterimon, pois falta azul. Evolua Wingdramon em Slayerdramon EX3-024 pela condição de nome (3 memória): ele continua vermelho e a DNA continua indisponível. Encerre o turno: o Dracomon herdado não deve oferecer DNA ilegal. Para comparar, abra o cenário Duskmon DNA · controle: sem mudança de cor, a mesma dupla pode fazer DNA por 0.",
     en: "Wait for the bot to play BT18-078 Duskmon and change EX13-021 Wingdramon to red. End breeding: BT13-059 Examon must not offer DNA with Wingdramon + HerculesKabuterimon because blue is missing. Digivolve Wingdramon into EX3-024 Slayerdramon using its named requirement (3 memory): it stays red and DNA remains unavailable. End your turn: inherited Dracomon must not offer illegal DNA. Compare with Duskmon DNA · control: without the color change, the same pair can DNA digivolve for 0.",
@@ -2418,6 +2426,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex13-examon-battle-win-timing", "EX13 Examon · win-battle trigger order"],
   ["arena-discord-1557565628439724032-duskmon-dna-colors", "Duskmon DNA · changed colors persist through evolution"],
   ["arena-discord-1557565628439724032-duskmon-dna-control", "Duskmon DNA · control"],
+  ["arena-discord-1557575147119054889-shakkoumon-sukamon", "Shakkoumon DNA · reported materials"],
+  ["arena-discord-1557575147119054889-shakkoumon-yellow-only", "Shakkoumon DNA · yellow-only control"],
   ["arena-bt23-examon-opponent-turn-dna", "BT23 Examon · Delay DNA in opponent's turn, no attack"],
   ["arena-ex13-chirinmon-cost-choice", "EX13 Chirinmon · either-or cost choice"],
   ["arena-ex13-wisemon-witchelny-cost", "EX13 Wisemon · Witchelny cost 3 / 4"],

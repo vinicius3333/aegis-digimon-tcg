@@ -74,6 +74,8 @@ export const DEV_SCENARIO_IDS = [
 
   "arena-discord-1557565628439724032-duskmon-dna-colors",
   "arena-discord-1557565628439724032-duskmon-dna-control",
+  "arena-discord-1557575147119054889-shakkoumon-sukamon",
+  "arena-discord-1557575147119054889-shakkoumon-yellow-only",
   "arena-oct06-sukamon-bt11-deletion-search",
   "arena-oct06-sukamon-bt3-deletion-search",
   "arena-oct06-sukamon-ex13-deletion-search",
@@ -6195,6 +6197,41 @@ function layDuskmonDnaColorsScenario(state: GameState, decks: readonly [Decklist
   state.memory = 9;
 }
 
+/** The three printed materials attached to the report, with a yellow-only negative control. */
+function layShakkoumonSukamonDnaScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  yellowOnly = false,
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Deck);
+    clearZone(player, Zone.EggDeck);
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-shakkoumon-egg-${seat}`, "ST1-01", seat));
+    fillZone(
+      player,
+      Zone.Deck,
+      Array.from({ length: 12 }, (_, index) => faceDownCard(`dev-shakkoumon-filler-${seat}-${index}`, "BT1-010", seat)),
+    );
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-028"], "-shakkoumon-ex13"));
+    if (yellowOnly) {
+      placePermanent(human, establishedDigimon(0, ["EX13-028"], "-shakkoumon-second-yellow"));
+    } else {
+      placePermanent(human, establishedDigimon(0, ["BT11-040"], "-shakkoumon-bt11"));
+      placePermanent(human, establishedDigimon(0, ["EX5-046"], "-shakkoumon-targetmon"));
+    }
+    insertCard(human, Zone.Hand, faceDownCard("dev-shakkoumon-result", "BT23-032", 0));
+  }
+  startEffectsLabTurn(state, 0);
+}
+
 /**
  * Reproduces the EX13 Examon report from a board where its printed DNA action should already
  * be legal. Wingdramon and Groundramon are printed Lv.5s, but each treats itself as the named
@@ -7775,6 +7812,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-discord-1557565628439724032-duskmon-dna-colors": layDuskmonDnaColorsScenario,
   "arena-discord-1557565628439724032-duskmon-dna-control": (state, decks) =>
     layDuskmonDnaColorsScenario(state, decks, true),
+  "arena-discord-1557575147119054889-shakkoumon-sukamon": layShakkoumonSukamonDnaScenario,
+  "arena-discord-1557575147119054889-shakkoumon-yellow-only": (state, decks) =>
+    layShakkoumonSukamonDnaScenario(state, decks, true),
   "arena-raid-optional-preset": layRaidOptionalPresetScenario,
   "arena-preset-order-no-clicks": layPresetOrderNoClicksScenario,
   "arena-oct06-king-sukamon-assembly": (state, decks) => layOct06LatestScenario(state, decks, "king-sukamon-assembly"),
