@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import manifest from "../../public/audio/music/manifest.json";
+import manifest from "./musicManifest.json";
 import { MUSIC_URL as BANK_MUSIC_URL } from "./audioBank";
 import { DEFAULT_MUSIC_TRACK, MUSIC_TRACKS, MUSIC_TRACK_URLS, MUSIC_URL } from "./musicTracks";
 
@@ -28,6 +28,10 @@ describe("licensed full-length soundtrack", () => {
 
   it("keeps the soundtrack metadata and exported runtime default in sync", () => {
     const bank = JSON.parse(readFileSync(new URL("../../public/audio/manifest.json", import.meta.url), "utf8"));
+    const publicManifest = JSON.parse(
+      readFileSync(new URL("../../public/audio/music/manifest.json", import.meta.url), "utf8"),
+    );
+    expect(publicManifest).toEqual(manifest);
     expect(manifest.defaultTrack).toBe(DEFAULT_MUSIC_TRACK);
     expect(manifest.tracks[DEFAULT_MUSIC_TRACK].title).toBe("Shortcuts");
     expect(BANK_MUSIC_URL).toBe(MUSIC_URL);

@@ -1,4 +1,4 @@
-import manifest from "../../public/audio/music/manifest.json";
+import manifest from "./musicManifest.json";
 
 // Keep the first three storage identities so existing preferences select their replacements.
 export const MUSIC_TRACKS = ["digitalBattle", "digitalAscent", "warmDrive", "cipher"] as const;

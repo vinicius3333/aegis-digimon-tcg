@@ -137,6 +137,11 @@ try {
     );
   }
   await writeFile(new URL("manifest.json", output), `${JSON.stringify(manifest, null, 2)}\n`);
+  // Vite's public assets are served as-is; import the identical generated catalog from src.
+  await writeFile(
+    new URL("../../apps/web/src/design/musicManifest.json", import.meta.url),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+  );
   const bankUrl = new URL("../manifest.json", output);
   const bank = JSON.parse(await readFile(bankUrl, "utf8"));
   const selected = manifest.tracks[manifest.defaultTrack];
