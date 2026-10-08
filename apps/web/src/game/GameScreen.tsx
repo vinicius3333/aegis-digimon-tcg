@@ -94,6 +94,7 @@ import { type Screen } from "../design/primitives";
 import type { DigimonWorldAvatarId } from "../account/avatars";
 import type { ColorName } from "../design/theme";
 import { playSound } from "../design/sound";
+import { useTurnAttentionSound } from "./useTurnAttentionSound";
 import { usePresentationAudio, useReadoutAudio } from "./usePresentationAudio";
 import { audioBoardFromPresentedSeats } from "./match/present/presentationAudio";
 import { areActionConfirmationsEnabled } from "../design/actionConfirmation";
@@ -573,6 +574,7 @@ export function GameScreen({
         })
       : undefined;
   usePresentationAudio(cues, seats ? audioBoardFromPresentedSeats(seats, viewerSeat) : undefined);
+  useTurnAttentionSound(!spectating && !!state && !state.gameOver && state.turnSeat === viewerSeat);
   const viewerTimerRunning =
     !spectating && state?.matchTimer === true && !state.gameOver && state.timerActiveSeat === viewerSeat;
   const viewerPromptKey = cues.decisionAnimationsPending
