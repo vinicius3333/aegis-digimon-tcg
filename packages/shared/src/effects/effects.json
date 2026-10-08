@@ -131910,7 +131910,7 @@
         ]
       },
       {
-        "trigger": "WhenAttacking",
+        "trigger": "EndOfAttack",
         "actions": [
           {
             "kind": "Suspend",

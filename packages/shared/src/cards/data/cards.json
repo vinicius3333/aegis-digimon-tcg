@@ -67043,7 +67043,7 @@
     "forms": ["Mega"],
     "attributes": ["Virus"],
     "types": ["Insectoid", "X Antibody"],
-    "effectText": "Digivolve: 1 from [GranKuwagamon][When Digivolving] Suspend 1 of your opponent's Digimon. Then, if this Digimon is attacking, you may switch the target of attack to 1 of your opponent’s suspended Digimon. [Your Turn] This Digimon gets +4000 DP. [When Attacking][Once Per Turn] If [GranKuwagamon] or [X Antibody] is in this Digimon’s digivolution cards, suspend 1 of your opponent’s Digimon and unsuspend this Digimon.",
+    "effectText": "Digivolve: 1 from [GranKuwagamon][When Digivolving] Suspend 1 of your opponent's Digimon. Then, if this Digimon is attacking, you may switch the target of attack to 1 of your opponent’s suspended Digimon. [Your Turn] This Digimon gets +4000 DP. [End of Attack][Once Per Turn] If [GranKuwagamon] or [X Antibody] is in this Digimon’s digivolution cards, suspend 1 of your opponent’s Digimon and unsuspend this Digimon.",
     "rarity": "SR",
     "maxCountInDeck": 4,
     "imageId": "BT9-055",
