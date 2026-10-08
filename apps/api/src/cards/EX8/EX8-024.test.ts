@@ -4,6 +4,13 @@ import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./EX8-024.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT19/BT19-024.js";
+import "../BT19/BT19-028.js";
+import "../BT19/BT19-018.js";
+import "../BT1/BT1-112.js";
+import "../EX5/EX5-016.js";
+import "../EX5/EX5-025.js";
+import "../ST2/ST2-15.js";
 
 describe("EX8-024", () => {
   it("matches the catalog identity and every printed text field", () => {
@@ -315,4 +322,178 @@ describe("EX8-024", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await nextTurn;
   });
+});
+
+// #5352 names these inherited effects but supplies no host or replay route.
+// Kaiser Nail / Xiangpengmon exercise a real source play and reinsertion on the same host.
+describe("GitHub #5352 inherited source OPT identity", () => {
+  for (const sourceCard of ["EX8-024", "BT19-024"] as const) {
+    for (const seat of [0, 1] as const) {
+      it.each(["replay", "evolution", "reorder"] as const)(`${sourceCard}, seat ${seat}: %s`, async (route) => {
+        const opponent = seat === 0 ? 1 : 0;
+        const preferred: string[] = [];
+        const declined: string[] = [];
+        const s = setupEngine(
+          {
+            [seat]: {
+              battleArea: [
+                {
+                  card: route === "reorder" ? "EX5-025" : "BT1-038",
+                  as: "host",
+                  under: [
+                    { card: sourceCard, as: "source" },
+                    { card: "BT19-018", as: "payload1" },
+                    { card: "BT19-018", as: "payload2" },
+                    { card: "BT19-018", as: "payload3" },
+                    ...(route === "reorder"
+                      ? [
+                          { card: "EX5-016", as: "lunamon" },
+                          { card: "BT1-038", as: "revealedHost" },
+                        ]
+                      : []),
+                  ],
+                },
+                { card: "BT1-088", as: "green" },
+                { card: "BT1-009", as: "fodder1" },
+                { card: "BT1-009", as: "fodder2" },
+                { card: "BT1-009", as: "fodder3" },
+              ],
+              hand: [
+                { card: "BT1-112", as: "scissor" },
+                ...(route === "replay" ? [{ card: "ST2-15", as: "nail" }] : []),
+                ...(route !== "reorder" ? [{ card: "BT19-028", as: "evolution" }] : []),
+              ],
+              deck: Array.from({ length: 8 }, () => "BT1-009"),
+              security: ["BT1-009"],
+            },
+            [opponent]: {
+              battleArea: [
+                { card: "BT1-009", as: "target1", suspended: true },
+                { card: "BT1-009", as: "target2", suspended: true },
+                { card: "BT1-009", as: "target3", suspended: true },
+              ],
+              security: ["BT1-009"],
+            },
+          },
+          {
+            autoAcceptOptional: true,
+            autoSelectCards: true,
+            preferInstanceIds: preferred,
+            declinePrompts: declined,
+          },
+        );
+        s.state.turnSeat = seat;
+        s.state.memory = 10;
+        await s.ready();
+        const player = s.state.players[seat]!;
+        const sourceId = s.inst("source").instanceId;
+        const host = s.perm("host");
+        const hostId = host.permanentId;
+        const originalTopId = host.topCard.instanceId;
+        const turn = s.state.turnCount;
+        const activations = () =>
+          s.events.filter(
+            (event) => event.kind === "effectResolved" && event.sourceInstanceId === sourceId && event.isInherited,
+          ).length;
+        const attack = async (target: string) => {
+          const targetId = s.perm(target).permanentId;
+          expect(
+            s.engine.applyIntent(seat, {
+              type: "attack",
+              attackerPermanentId: hostId,
+              target: { kind: "permanent", permanentId: targetId },
+            }),
+          ).toEqual({ ok: true });
+          await settle(
+            () =>
+              !observe(s.engine).isAttacking() &&
+              !s.state.pendingDecision &&
+              !s.state.players[opponent]!.battleArea.some((p) => p.permanentId === targetId),
+          );
+        };
+        // An actual Option supplies repeat attacks; no direct unsuspend or usage reset.
+        preferred.push(originalTopId);
+        const scissorId = s.inst("scissor").instanceId;
+        expect(s.engine.applyIntent(seat, { type: "playCard", instanceId: scissorId })).toEqual({
+          ok: true,
+        });
+        await settle(() => player.trash.some((c) => c.instanceId === scissorId) && !s.state.pendingDecision);
+        preferred.splice(0, preferred.length, s.inst("fodder1").instanceId, s.inst("payload1").instanceId);
+        await attack("target1");
+        expect(activations()).toBe(1);
+        if (sourceCard === "EX8-024") {
+          expect(host.stack.some((c) => c.instanceId === s.inst("fodder1").instanceId)).toBe(true);
+        } else {
+          expect(player.battleArea.some((p) => p.topCard.instanceId === s.inst("payload1").instanceId)).toBe(true);
+        }
+        expect(host.isSuspended).toBe(false);
+
+        if (route === "replay") {
+          preferred.splice(0, preferred.length, sourceId, originalTopId);
+          // Decline MarineBullmon's unrelated On Play hand placement only for this play.
+          declined.push("");
+          const nailId = s.inst("nail").instanceId;
+          expect(s.engine.applyIntent(seat, { type: "playCard", instanceId: nailId })).toEqual({ ok: true });
+          await settle(() => player.trash.some((c) => c.instanceId === nailId) && !s.state.pendingDecision);
+          declined.length = 0;
+          const replay = player.battleArea.find((p) => p.topCard.instanceId === sourceId);
+          expect(replay).toBeDefined();
+          expect(replay?.permanentId).not.toBe(hostId);
+          expect(replay?.enterFieldTurnCount).toBe(turn);
+          expect(host.stack.some((c) => c.instanceId === sourceId)).toBe(false);
+          expect(s.events.filter((e) => e.kind === "cardPlayed" && e.cardId === sourceCard)).toHaveLength(1);
+        }
+        if (route === "reorder") {
+          const stackBefore = host.stack.map((c) => c.instanceId);
+          const main = observe(s.engine)
+            .activatableEffects(host)
+            .find((effect) => effect.effectKey.startsWith("EX5-016/"));
+          expect(main).toBeDefined();
+          expect(
+            s.engine.applyIntent(seat, {
+              type: "activateEffect",
+              sourceInstanceId: s.inst("lunamon").instanceId,
+              effectKey: main!.effectKey,
+            }),
+          ).toEqual({ ok: true });
+          await settle(() => host.topCard.instanceId === s.inst("revealedHost").instanceId && !s.state.pendingDecision);
+          expect(host.stack.map((c) => c.instanceId)).toEqual([originalTopId, ...stackBefore.slice(0, -1)]);
+        } else {
+          preferred.splice(0, preferred.length, sourceId, originalTopId);
+          // In the control, decline Xiangpengmon's placement: the source never leaves.
+          if (route === "evolution") declined.push("");
+          expect(
+            s.engine.applyIntent(seat, {
+              type: "digivolve",
+              permanentId: hostId,
+              instanceId: s.inst("evolution").instanceId,
+            }),
+          ).toEqual({ ok: true });
+          await settle(() => host.topCard.instanceId === s.inst("evolution").instanceId && !s.state.pendingDecision);
+          declined.length = 0;
+        }
+        expect(host.permanentId).toBe(hostId);
+        expect(host.stack.filter((c) => c.instanceId === sourceId)).toHaveLength(1);
+        expect(player.battleArea.some((p) => p.topCard.instanceId === sourceId)).toBe(false);
+        expect(activations()).toBe(1);
+        preferred.splice(0, preferred.length, s.inst("fodder2").instanceId, s.inst("payload2").instanceId);
+        await attack("target2");
+        expect(activations()).toBe(route === "replay" ? 2 : 1);
+        if (sourceCard === "EX8-024") {
+          expect(host.stack.some((c) => c.instanceId === s.inst("fodder2").instanceId)).toBe(route === "replay");
+        } else {
+          expect(player.battleArea.some((p) => p.topCard.instanceId === s.inst("payload2").instanceId)).toBe(
+            route === "replay",
+          );
+        }
+        // The refreshed residency still has only one use, despite another legal attack.
+        preferred.splice(0, preferred.length, s.inst("fodder3").instanceId, s.inst("payload3").instanceId);
+        await attack("target3");
+        expect(activations()).toBe(route === "replay" ? 2 : 1);
+        expect(s.state.turnSeat).toBe(seat);
+        expect(s.state.turnCount).toBe(turn);
+        expect(s.state.pendingDecision).toBeUndefined();
+      });
+    }
+  }
 });
