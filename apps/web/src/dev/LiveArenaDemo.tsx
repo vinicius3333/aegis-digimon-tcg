@@ -17,6 +17,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-github5326-sistermon-zero-security": {
+    en: "GitHub #5326, current behavior control. You start with 0 security and 6 memory. End breeding, then play either BT23 Sistermon Blanc for 3. Its mandatory On Play recovers 1 from the deck even though no security card could be added to hand; security becomes 1 and memory becomes 3. Play the second Blanc for 3: the previous security card goes to hand, then the next deck card becomes your face-down security. Security stays 1 and memory becomes 0. No payment or optional confirmation is required for either On Play effect.",
+    ptBR: "GitHub #5326, controle do comportamento atual. Você começa com 0 segurança e 6 de memória. Encerre a criação e jogue qualquer Sistermon Blanc BT23 por 3. O Ao Jogar obrigatório recupera 1 do deck mesmo sem segurança para adicionar à mão; a segurança passa a 1 e a memória a 3. Jogue a segunda Blanc por 3: a segurança anterior vai para a mão e a próxima carta do deck vira sua segurança virada para baixo. A segurança continua em 1 e a memória passa a 0. Nenhum pagamento ou confirmação opcional é necessário para os efeitos Ao Jogar.",
+  },
   "arena-github5307-larva-bt18-breeding": {
     en: "GitHub #5307, current behavior control. End breeding without moving Larva. Attack the suspended opposing Satan Mode with your BT18 Satan Mode. Both have 16000 DP. Accept Larva's prevention: Larva moves from breeding, your Satan Mode stays, and the opposing Satan Mode is deleted. Reset and decline to compare: your Satan Mode is deleted and Larva stays in breeding.",
     ptBR: "GitHub #5307, controle do comportamento atual. Encerre a criação sem mover Larva. Ataque o Satan Mode adversário suspenso com seu Satan Mode BT18. Ambos têm 16000 DP. Aceite a proteção de Larva: ela sai da criação, seu Satan Mode fica e o adversário é deletado. Reinicie e recuse para comparar: seu Satan Mode é deletado e Larva fica na criação.",
@@ -2278,6 +2282,7 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-github5326-sistermon-zero-security", "GitHub #5326 · Sistermon Blanc / zero security control"],
   ["arena-github5307-larva-bt18-breeding", "GitHub #5307 · Larva breeding / BT18 Satan Mode"],
   ["arena-github5307-larva-ex10-breeding", "GitHub #5307 · Larva breeding / EX10 Satan Mode"],
   ["arena-github5308-greymon-security-destination", "GitHub #5308 · Greymon X / security versus hand"],
