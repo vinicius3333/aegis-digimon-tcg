@@ -434,6 +434,7 @@ export interface AegisJoinOptions {
     | "arena-bt20-ouryuken-blast-dna-counter"
     | "arena-bt8-digimon-emperor-breeding-memory"
     | "arena-ex13-gotsumon-blocker-search"
+    | "arena-ex13-magnamon-partition-assembly"
     | "arena-ex13-craniamon-assembly"
     | "arena-ex13-craniamon-weregarurumon-assembly"
     | "arena-p220-millenniummon-assembly"

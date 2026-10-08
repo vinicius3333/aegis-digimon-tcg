@@ -225,6 +225,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt20-ouryuken-reduction-resumes",
   "arena-bt20-ouryuken-blast-dna-counter",
   "arena-ex13-gotsumon-blocker-search",
+  "arena-ex13-magnamon-partition-assembly",
   "arena-ex13-craniamon-assembly",
   "arena-ex13-craniamon-weregarurumon-assembly",
   "arena-p220-millenniummon-assembly",
@@ -3366,6 +3367,38 @@ function layEx13GotsumonPromoKnightmonScenario(state: GameState, decks: readonly
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/** GitHub #5294: Partition may declare Assembly even though its play is free (CR 7-3-2-10). */
+function layEx13MagnamonPartitionAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    fillZone(player, Zone.Hand, []);
+    fillZone(
+      player,
+      Zone.Deck,
+      Array.from({ length: 20 }, (_, index) => faceDownCard(`dev-magnamon-neutral-${seat}-${index}`, "BT1-009", seat)),
+    );
+    fillZone(
+      player,
+      Zone.Security,
+      Array.from({ length: 5 }, (_, index) => faceDownCard(`dev-magnamon-security-${seat}-${index}`, "BT1-009", seat)),
+    );
+  }
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human !== undefined && opponent !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT12-021", "EX13-020", "BT1-071", "AD1-011"], "-magnamon-partition"));
+    insertCard(human, Zone.Trash, faceUpCard("dev-magnamon-veemon", "BT2-021", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-magnamon-decoy", "BT1-009", 0));
+    insertCard(opponent, Zone.Security, faceDownCard("dev-magnamon-gaia", "ST1-16", 1), "top");
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
 }
 
 /**
@@ -7877,6 +7910,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt20-ouryuken-reduction-resumes": layBt20OuryukenReductionResumesScenario,
   "arena-bt20-ouryuken-blast-dna-counter": layBt20OuryukenBlastDnaCounterScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
+  "arena-ex13-magnamon-partition-assembly": layEx13MagnamonPartitionAssemblyScenario,
   "arena-ex13-craniamon-assembly": layEx13CraniamonAssemblyScenario,
   "arena-ex13-craniamon-weregarurumon-assembly": layEx13CraniamonWereGarurumonAssemblyScenario,
   "arena-p220-millenniummon-assembly": layP220MillenniummonAssemblyScenario,
