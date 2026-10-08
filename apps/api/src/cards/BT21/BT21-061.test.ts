@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-061.js";
 import "../index.js";
@@ -133,6 +133,238 @@ describe("BT21-061 MetalGreymon", () => {
     });
     await settle(() => s.perm("opponent").topCard.cardId === "BT21-044");
     expect(s.perm("opponent").stack.map((card) => card.cardId)).toEqual(["BT21-042"]);
+  });
+
+  it.each([
+    ["play", 2],
+    ["play", 4],
+    ["digivolve", 2],
+    ["digivolve", 4],
+  ] as const)("Discord 1557624042733969509: %s with %i Tamer colors fixes one recipient", async (intent, colors) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-061", as: "metalgreymon" }],
+          battleArea: [
+            { card: "BT21-057", as: "base" },
+            ...(colors === 4
+              ? [
+                  { card: "AD1-019", as: "dualTamer" },
+                  { card: "AD1-020", as: "tricolorTamer" },
+                ]
+              : [
+                  { card: "BT1-085", as: "redTamer" },
+                  { card: "BT1-086", as: "blueTamer" },
+                ]),
+          ],
+          deck: ["BT1-001"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT21-045", as: "chosen", under: ["BT21-042", "BT21-044"] },
+            { card: "BT21-045", as: "untouched", under: ["BT21-042", "BT21-044"] },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const result =
+      intent === "play"
+        ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metalgreymon").instanceId })
+        : s.engine.applyIntent(0, {
+            type: "digivolve",
+            permanentId: s.perm("base").permanentId,
+            instanceId: s.inst("metalgreymon").instanceId,
+            alternateRequirementIndex: 0,
+          });
+    expect(result).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const decision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 1, max: 1 });
+    // Public decision responses clamp surplus ids to max:1; they cannot fan out.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: {
+          kind: "chooseTargets",
+          instanceIds: [s.perm("chosen").permanentId, s.perm("untouched").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("chosen").topCard.cardId !== "BT21-045" &&
+        (s.state.pendingDecision?.kind === "chooseTargets" ||
+          s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT21-061")),
+    );
+    // On the broken implementation this second picker legally accepts the other Digimon.
+    const repeatedResponse =
+      s.state.pendingDecision?.kind === "chooseTargets"
+        ? s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: s.state.pendingDecision.decisionId,
+            response: { kind: "chooseTargets", instanceIds: [s.perm("untouched").permanentId] },
+          })
+        : undefined;
+    expect(repeatedResponse?.ok ?? true).toBe(true);
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT21-061") &&
+        !s.state.pendingDecision,
+    );
+    expect(s.perm("untouched").topCard.cardId).toBe("BT21-045");
+    expect(s.perm("untouched").stack).toHaveLength(2);
+    expect(s.perm("chosen").topCard.cardId).toBe(colors === 4 ? "BT21-042" : "BT21-044");
+    expect(s.perm("chosen").stack).toHaveLength(colors === 4 ? 0 : 1);
+    expect(
+      s.decisions.filter(({ req }) => req.sourceCardId === "BT21-061" && req.kind === "chooseTargets"),
+    ).toHaveLength(1);
+  });
+
+  it("Discord 1557624042733969509: separate On Play and When Digivolving activations may choose different opponents", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-061", as: "played" },
+            { card: "BT21-061", as: "evolved" },
+          ],
+          battleArea: [{ card: "BT21-057", as: "base" }, { card: "BT1-085" }, { card: "BT1-086" }],
+          deck: ["BT1-001"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT21-045", as: "first", under: ["BT21-042", "BT21-044"] },
+            { card: "BT21-045", as: "second", under: ["BT21-042", "BT21-044"] },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("first").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("first").topCard.cardId === "BT21-044" && !s.state.pendingDecision);
+    preferred.splice(0, preferred.length, s.perm("second").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolved").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("second").topCard.cardId === "BT21-044" && !s.state.pendingDecision);
+    const activations = s.events.filter(
+      (event) =>
+        event.kind === "effectTriggered" &&
+        event.sourceCardId === "BT21-061" &&
+        (event.timing === "OnPlay" || event.timing === "WhenDigivolving"),
+    );
+    expect(activations).toHaveLength(2);
+    expect(s.perm("first").stack).toHaveLength(1);
+    expect(s.perm("second").stack).toHaveLength(1);
+  });
+
+  it("Q4568 checks newly exposed immunity between De-Digivolve 1 processes without retargeting", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-061", as: "metalgreymon" }],
+          battleArea: [{ card: "AD1-019" }, { card: "AD1-020" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT21-045", as: "protected", under: ["BT21-042", "BT15-047"], suspended: true },
+            { card: "BT21-045", as: "untouched", under: ["BT21-042", "BT21-044"] },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("protected").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metalgreymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT21-061") &&
+        !s.state.pendingDecision,
+    );
+    expect(s.perm("protected").topCard.cardId).toBe("BT15-047");
+    expect(s.perm("protected").stack).toHaveLength(1);
+    expect(s.perm("untouched").topCard.cardId).toBe("BT21-045");
+    expect(
+      s.decisions.filter(({ req }) => req.sourceCardId === "BT21-061" && req.kind === "chooseTargets"),
+    ).toHaveLength(1);
+  });
+
+  it.each(["BT21-042", "BT1-085"])("does not retarget when the chosen stack ends at %s", async (bottom) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT21-061", as: "source" }], battleArea: [{ card: "AD1-019" }, { card: "AD1-020" }] },
+        1: {
+          battleArea: [
+            { card: "BT21-045", as: "chosen", under: [bottom] },
+            { card: "BT21-045", as: "untouched", under: ["BT21-042", "BT21-044"] },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chosen").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT21-061") &&
+        !s.state.pendingDecision,
+    );
+    expect(s.perm("chosen").topCard.cardId).toBe(bottom);
+    expect(s.perm("chosen").stack).toHaveLength(0);
+    expect(s.perm("untouched").topCard.cardId).toBe("BT21-045");
+    expect(
+      s.decisions.filter(({ req }) => req.kind === "chooseTargets" && req.sourceCardId === "BT21-061"),
+    ).toHaveLength(1);
+  });
+
+  it.each([0, 1])("does not choose a recipient with %i distinct Tamer colors", async (colors) => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT21-061", as: "metalgreymon" }],
+        battleArea: colors === 0 ? [] : [{ card: "BT1-085" }, { card: "BT1-085" }],
+      },
+      1: {
+        battleArea: [
+          { card: "BT21-045", as: "first", under: ["BT21-042", "BT21-044"] },
+          { card: "BT21-045", as: "second", under: ["BT21-042", "BT21-044"] },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metalgreymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await drainMicrotasks();
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.decisions).toHaveLength(0);
+    expect(s.perm("first").topCard.cardId).toBe("BT21-045");
+    expect(s.perm("second").topCard.cardId).toBe("BT21-045");
   });
 
   it("Q4565 grants Alliance mandatorily while Q4567 allows the attack to be declined", async () => {

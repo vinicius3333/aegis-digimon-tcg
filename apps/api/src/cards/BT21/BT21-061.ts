@@ -7,8 +7,19 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          kind: "SelectBind",
+          // The printed "to 1" fixes the recipient for every De-Digivolve 1 (Q4568).
+          condition: { kind: "zoneColorCount", cardType: "Tamer", op: "gte", value: 2 },
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"] },
+            count: 1,
+            bindAs: "metalGreymonTarget",
+          },
+        },
+        {
           kind: "DeDigivolve",
           target: {
+            fromSelectionRef: "metalGreymonTarget",
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
@@ -31,8 +42,19 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          kind: "SelectBind",
+          // The printed "to 1" fixes the recipient for every De-Digivolve 1 (Q4568).
+          condition: { kind: "zoneColorCount", cardType: "Tamer", op: "gte", value: 2 },
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"] },
+            count: 1,
+            bindAs: "metalGreymonTarget",
+          },
+        },
+        {
           kind: "DeDigivolve",
           target: {
+            fromSelectionRef: "metalGreymonTarget",
             filter: {
               controller: "opponent",
               kind: ["Digimon"],

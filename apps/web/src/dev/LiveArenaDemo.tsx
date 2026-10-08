@@ -1047,6 +1047,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a fase de criação e ataque a segurança com Greymon BT12-062. Koromon BT5-001 está na base da pilha: seu efeito herdado deve brilhar e comprar 1 carta antes do escudo quebrar e Gaogamon EX4-017 ser revelado. A compra da fase de compra ocorre antes desse ataque e é separada da compra do Koromon.",
     en: "End breeding and attack security with BT12-062 Greymon. BT5-001 Koromon is at the bottom of its stack: its inherited effect must glow and draw 1 card before the shield breaks and EX4-017 Gaogamon is revealed. The draw-phase card arrives before this attack and is separate from Koromon's draw.",
   },
+  "arena-bt21-metalgreymon-one-target-two-colors": {
+    ptBR: "Encerre a criação. Com duas cores distintas de Tamers, jogue MetalGreymon BT21-061 e escolha um dos dois Digimon do bot: somente ele perde uma carta do topo. Depois evolua o Greymon BT21-057 para o segundo MetalGreymon e escolha o outro alvo: uma nova ativação pode escolher outro Digimon. Recuse o ataque opcional. Cada ativação oferece um único alvo.",
+    en: "End breeding. With two distinct Tamer colors, play BT21-061 MetalGreymon and choose either opposing Digimon: only that Digimon loses one top card. Then digivolve BT21-057 Greymon into the second MetalGreymon and choose the other opponent: a separate activation may choose a different Digimon. Decline the optional attack. Each activation offers one target choice.",
+  },
+  "arena-bt21-metalgreymon-one-target-four-colors": {
+    ptBR: "Encerre a criação. Os Tamers têm quatro cores distintas. Jogue MetalGreymon BT21-061 e escolha um Digimon do bot: ele sofre De-Digivolve 1 duas vezes e fica no nível 3; o outro permanece intacto. Não deve aparecer uma segunda seleção de alvo. Recuse os efeitos opcionais dos Tamers. Depois evolua Greymon para o segundo MetalGreymon e escolha o outro Digimon: esta nova ativação também aplica as duas etapas ao único alvo escolhido. Recuse o ataque opcional.",
+    en: "End breeding. Your Tamers have four distinct colors. Play BT21-061 MetalGreymon and choose one opposing Digimon: De-Digivolve 1 applies twice to it, leaving a level 3; the other Digimon stays intact. No second target picker should appear. Decline optional Tamer effects. Then digivolve Greymon into the second MetalGreymon and choose the other opponent: this new activation also applies both processes to its one chosen target. Decline the optional attack.",
+  },
   "arena-ex7-seventh-fascination-turn": {
     ptBR: "Jogue EX7-072 Seventh Fascination e encerre seu turno. O Digimon do bot deve permanecer em campo, sem pedido de deleção nesse momento. O efeito concedido só deve ativar no fim do turno do bot.",
     en: "Play EX7-072 Seventh Fascination and end your turn. The bot's Digimon should stay in play, with no deletion prompt yet. The granted effect should activate only at the end of the bot's turn.",
@@ -2460,6 +2468,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-kotone-digixros-any-tamer-effect", "Kotone · effect DigiXros under any Tamer"],
   ["arena-mervamon-trash-digixros", "Mervamon · DigiXros materials from trash"],
   ["arena-bt5-koromon-attack-draw", "BT5 Koromon · draw before security"],
+  ["arena-bt21-metalgreymon-one-target-two-colors", "BT21 MetalGreymon · one target / two colors"],
+  ["arena-bt21-metalgreymon-one-target-four-colors", "BT21 MetalGreymon · one target / four colors"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
   ["arena-st15-trident-arm-forced-attack-text", "ST15 Trident Arm · granted forced attack text"],
   ["arena-face-down-ace-no-overflow", "Face-down ACE · no Overflow on deletion"],
