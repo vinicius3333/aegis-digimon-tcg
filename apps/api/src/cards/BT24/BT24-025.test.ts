@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, type Seat } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -21,6 +21,7 @@ describe("BT24-025 Shellmon", () => {
       types: ["Mollusk", "Iliad", "TS", "Aquatic"],
       evoCosts: [{ color: "Blue", level: 3, memoryCost: 2 }],
     });
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["TS"], cost: 2, isAlternate: true }]);
   });
 
   it("digivolves on another blue TS Digimon's unsuspend, ignoring only level", () => {
@@ -351,6 +352,55 @@ describe("BT24-025 Shellmon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
+  });
+
+  describe("#5362 printed TS alternate evolution", () => {
+    for (const seat of [0, 1] as const) {
+      for (const zone of ["battleArea", "breeding"] as const) {
+        it.each([
+          ["BT24-033", zone === "battleArea" ? 1 : 2, true],
+          ["BT24-009", 2, true],
+          ["BT1-028", 2, true],
+          ["BT1-045", 0, false],
+          ["BT24-011", 0, false],
+        ] as const)(`seat ${seat} ${zone}: %s route costs %i and legal=%s`, async (card, cost, legal) => {
+          const s = setupEngine({
+            [seat]: {
+              ...(zone === "breeding" ? { breeding: { card, as: "base" } } : { battleArea: [{ card, as: "base" }] }),
+              hand: [{ card: "BT24-025", as: "shellmon" }],
+              deck: [{ card: "BT1-009", as: "bonusDraw" }],
+            },
+          });
+          s.state.turnSeat = seat as Seat;
+          s.state.memory = 5;
+          await s.ready();
+          const before = s.state.memory;
+          const routes = s.inst("shellmon").digivolveRoutes.filter((r) => r.permanentId === s.perm("base").permanentId);
+          expect(s.inst("shellmon").digivolveTargetPermanentIds.includes(s.perm("base").permanentId)).toBe(legal);
+          expect(routes.some((r) => r.projectedCost === cost)).toBe(legal);
+          const result = s.engine.applyIntent(seat, {
+            type: "digivolve",
+            permanentId: s.perm("base").permanentId,
+            instanceId: s.inst("shellmon").instanceId,
+          });
+          expect(result).toEqual(legal ? { ok: true } : { ok: false, reason: "invalid-evolution" });
+          if (legal) {
+            await settle(() => s.perm("base").topCard.cardId === "BT24-025" && s.state.pendingDecision === undefined);
+          }
+          expect(s.state.memory).toBe(before - cost);
+          expect(s.perm("base").topCard.cardId).toBe(legal ? "BT24-025" : card);
+          expect(s.perm("base").stack.map((entry) => entry.instanceId)).toEqual(
+            legal ? [s.inst("base").instanceId] : [],
+          );
+          expect(s.state.players[seat]!.hand.map((entry) => entry.instanceId)).toContain(
+            s.inst(legal ? "bonusDraw" : "shellmon").instanceId,
+          );
+          expect(
+            s.state.players[seat]!.deck.map((entry) => entry.instanceId).includes(s.inst("bonusDraw").instanceId),
+          ).toBe(!legal);
+        });
+      }
+    }
   });
 
   it("rejects a normal evolution into Venusmon and preserves the zones and memory", async () => {

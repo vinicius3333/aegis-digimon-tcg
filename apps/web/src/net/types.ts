@@ -195,6 +195,7 @@ export interface AegisJoinOptions {
     | import("@aegis/shared").PhasePacingScenarioId
     | "arena-ravemon-burst-hand"
     | "arena-github5331-offense-hand"
+    | "arena-github5362-shellmon-ts"
     | "arena-lanamon-tamer-cost"
     | "arena-github5332-kekkomon-cost"
     | "battle"

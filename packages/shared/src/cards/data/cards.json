@@ -42491,7 +42491,7 @@
     "forms": ["Champion"],
     "attributes": ["Data"],
     "types": ["Mollusk", "Iliad", "TS", "Aquatic"],
-    "effectText": "[Your Turn] When any of your other blue Digimon with the [TS] trait unsuspend, this Digimon may digivolve into [Venusmon] in the hand, ignoring level.\n[End of Your Turn] [Once Per Turn] 1 of your other Digimon with the [TS] trait may unsuspend.\n[Rule] Trait: Has [Aquatic] Type.",
+    "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2\n[Your Turn] When any of your other blue Digimon with the [TS] trait unsuspend, this Digimon may digivolve into [Venusmon] in the hand, ignoring level.\n[End of Your Turn] [Once Per Turn] 1 of your other Digimon with the [TS] trait may unsuspend.\n[Rule] Trait: Has [Aquatic] Type.",
     "inheritedEffectText": "＜Jamming＞",
     "rarity": "R",
     "maxCountInDeck": 4,
