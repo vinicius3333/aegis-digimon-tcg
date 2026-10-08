@@ -37,7 +37,7 @@ const compiled: CompiledCard = {
         {
           kind: "Digivolve",
           target: self,
-          into: { nameOrTrait: [{ tokens: ["Sakuyamon"], match: "name" }] },
+          into: { controller: "mine", nameOrTrait: [{ tokens: ["Sakuyamon"], match: "name" }] },
           from: ["hand"],
           payCost: true,
           costOverride: 1,

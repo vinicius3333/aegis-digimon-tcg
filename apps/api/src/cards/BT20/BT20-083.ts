@@ -25,6 +25,7 @@ export const compiled: CompiledCard = {
             isSelf: true,
           },
           into: {
+            controller: "mine",
             kind: ["Digimon"],
             nameOrTrait: [
               {

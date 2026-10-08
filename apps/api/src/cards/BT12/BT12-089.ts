@@ -72,6 +72,7 @@ const compiled: CompiledCard = {
           kind: "Digivolve",
           target: { fromSelectionRef: "bt12_089_host", filter: {}, count: 1, bindAs: "bt12_089_evolved" },
           into: {
+            controller: "mine",
             location: "hand",
             kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["Gallantmon"], match: "nameExact" }],

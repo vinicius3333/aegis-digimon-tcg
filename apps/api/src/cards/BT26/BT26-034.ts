@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
           target: { count: 1, filter: { isSelfRef: true }, isSelf: true },
           from: ["hand"],
           into: {
+            controller: "mine",
             kind: ["Digimon"],
             nameOrTrait: [
               { tokens: ["Vegetation"], match: "trait" },
