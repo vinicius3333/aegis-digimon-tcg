@@ -58,6 +58,8 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-github5313-inori-memory-four",
+  "arena-github5313-inori-memory-five",
   "arena-github5303-magnamon-printed-dp",
   "arena-github-5299-ravemon-bottom-security",
   "arena-github5300-yoshino-cost-payload",
@@ -1583,7 +1585,39 @@ function layBt26RavemonNestedOnDeletionScenario(state: GameState, decks: readonl
   state.memory = 6;
 }
 
-/** GitHub #5300: optional suspension, then the card's separately printed payload. */
+/** GitHub #5313: owner Main memory boundary and security-removal timing controls. */
+function layGithub5313InoriScenario(state: GameState, decks: readonly [Decklist, Decklist], memory: number): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    loadDeckInto(player, seat, { mainDeck: Array(40).fill("BT1-009"), eggDeck: decks[seat].eggDeck });
+    setSecurityStack(player);
+  }
+  const human = state.players[0]!;
+  const bot = state.players[1]!;
+  placePermanent(human, establishedDigimon(0, ["BT24-084"], "-github5313-inori"));
+  placePermanent(human, establishedDigimon(0, ["P-194"], "-github5313-aegiomon"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-github5313-evolution", "BT24-014", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-github5313-unrelated", "BT1-009", 0));
+  clearZone(bot, Zone.Security);
+  insertCard(bot, Zone.Security, faceDownCard("dev-github5313-strong-security", "ST1-10", 1));
+  for (let i = 0; i < 4; i += 1)
+    insertCard(bot, Zone.Security, faceDownCard(`dev-github5313-security-${i}`, "BT1-009", 1));
+  placePermanent(bot, establishedDigimon(1, ["BT1-020"], "-github5313-opponent"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = memory;
+}
+
+function layGithub5313InoriFourScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  layGithub5313InoriScenario(state, decks, 4);
+}
+
+function layGithub5313InoriFiveScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  layGithub5313InoriScenario(state, decks, 5);
+}
+
+/** GitHub #5303: three trash colors reach the second printed DP scaling unit. */
 function layGithub5303MagnamonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat]!;
@@ -1604,6 +1638,7 @@ function layGithub5303MagnamonScenario(state: GameState, decks: readonly [Deckli
   state.memory = 10;
 }
 
+/** GitHub #5300: optional suspension, then the card's separately printed payload. */
 function layGithub5300TamerScenario(state: GameState, decks: readonly [Decklist, Decklist], keenan: boolean): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
@@ -8274,6 +8309,8 @@ function layGithub5297OmnimonDnaScenario(state: GameState, includeSecondPair: bo
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github-5299-ravemon-bottom-security": layGithub5299RavemonBottomSecurityScenario,
+  "arena-github5313-inori-memory-four": layGithub5313InoriFourScenario,
+  "arena-github5313-inori-memory-five": layGithub5313InoriFiveScenario,
   "arena-github5303-magnamon-printed-dp": layGithub5303MagnamonScenario,
   "arena-github5300-yoshino-cost-payload": layGithub5300YoshinoScenario,
   "arena-github5300-keenan-cost-execute": layGithub5300KeenanScenario,

@@ -17,6 +17,14 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-github5313-inori-memory-four": {
+    en: "End breeding: Inori gains 1 memory at the start of YOUR Main, from 4 to 5. Play Monodramon for 2: memory becomes 3, with no extra Inori gain. Attack security with P-194 Aegiomon, accept Barrier, then suspend Inori and choose hand Aegiochusmon. This free evolution and the extra security check leave memory at 3. Pass: Inori must not gain memory at the start of the opponent's Main. Reset to compare the 5-memory control.",
+    ptBR: "Encerre a criação: Inori ganha 1 memória no início da SUA Principal, de 4 para 5. Jogue Monodramon por 2: a memória fica em 3, sem novo ganho de Inori. Ataque a segurança com Aegiomon P-194, aceite Barrier, suspenda Inori e escolha Aegiochusmon da mão. A evolução gratuita e a checagem extra mantêm a memória em 3. Passe: Inori não deve ganhar memória no início da Principal adversária. Reinicie para comparar o controle com 5 memórias.",
+  },
+  "arena-github5313-inori-memory-five": {
+    en: "End breeding: starting at 5 memory, Inori gains nothing. Play Monodramon for 2: falling to 3 during Main does not retrigger Inori. Attack security with P-194 Aegiomon, accept Barrier and Inori's suspend cost, and choose Aegiochusmon from hand. Memory stays at 3 through the free evolution and extra security check. Pass: the opponent's Main does not activate Inori's memory effect. Compare the 4-memory arena for the positive control.",
+    ptBR: "Encerre a criação: começando com 5 memórias, Inori não ganha nada. Jogue Monodramon por 2: cair para 3 durante a Principal não reativa Inori. Ataque a segurança com Aegiomon P-194, aceite Barrier e o custo de suspender Inori, e escolha Aegiochusmon da mão. A memória permanece em 3 durante a evolução gratuita e a checagem extra. Passe: a Principal adversária não ativa o efeito de memória de Inori. Compare com a arena de 4 memórias para o controle positivo.",
+  },
   "arena-github5303-magnamon-printed-dp": {
     en: "End breeding and play Magnamon without Assembly for 7. Three distinct colors across both trashes give +3000 DP: Magnamon reaches 10000. Choose BT12-112 Shoutmon X7: Superior Mode: it falls from 17000 to 9000 (-4000 twice); Groundramon stays at 6000. Pass without attacking again: the modifiers remain through the opponent's turn and expire when that turn ends. Restart to compare the other target.",
     ptBR: "Encerre a criação e jogue Magnamon sem Assembly por 7. Três cores diferentes nos dois lixos dão +3000 DP: Magnamon chega a 10000. Escolha Shoutmon X7: Superior Mode BT12-112: ele cai de 17000 para 9000 (-4000 duas vezes); Groundramon permanece com 6000. Passe sem atacar novamente: os modificadores duram até o fim do turno adversário. Reinicie para comparar o outro alvo.",
@@ -2146,6 +2154,8 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-github5313-inori-memory-four", "GitHub #5313 · Inori 4-memory timing"],
+  ["arena-github5313-inori-memory-five", "GitHub #5313 · Inori 5-memory control"],
   ["arena-github5303-magnamon-printed-dp", "GitHub #5303 · Magnamon printed DP and expiry"],
   ["arena-github-5297-omnimon-main-dna", "GitHub #5297 · Omnimon Main DNA and physical materials"],
   ["arena-github-5297-omnimon-agumon-dna", "GitHub #5297 · Omnimon Agumon end-of-turn DNA"],
