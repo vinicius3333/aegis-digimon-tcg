@@ -135,7 +135,7 @@ export interface SubTriggerAction extends ActionBase {
   linkedCardFilter?: Filter;
   /** Restrict the card whose effect produced the event ("by [Rasenmon]'s effect"). */
   effectSourceFilter?: Filter;
-  /** Restrict an effect-driven event to a producer whose printed text carries this keyword. */
+  /** Restrict an event to the resolving keyword that caused it, including granted or inherited abilities. */
   bySourceKeyword?: string;
   /** Require the triggering event to carry effect attribution. */
   requireByEffect?: boolean;
