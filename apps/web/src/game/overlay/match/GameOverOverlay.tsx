@@ -214,13 +214,21 @@ export function GameOverOverlay({
             </Button>
           </div>
         )}
-        {onDownloadReplay ? (
-          <Button variant="secondary" size="sm" icon={Icons.Download} onClick={onDownloadReplay}>
-            {t("replay.download")}
-          </Button>
-        ) : null}
-        {replayStatus ? (
-          <p role="status">{t(replayStatus === "preparing" ? "replay.preparing" : "replay.unavailable")}</p>
+        {onDownloadReplay || replayStatus ? (
+          <div className="game-result__replay">
+            <Icons.PlayCircle size={28} />
+            <div className="game-result__replay-copy">
+              <strong>{t("replay.match")}</strong>
+              <small>{t("replay.saveHint")}</small>
+            </div>
+            {onDownloadReplay ? (
+              <Button size="sm" icon={Icons.Download} onClick={onDownloadReplay}>
+                {t("replay.download")}
+              </Button>
+            ) : (
+              <small role="status">{t(replayStatus === "preparing" ? "replay.preparing" : "replay.unavailable")}</small>
+            )}
+          </div>
         ) : null}
         <Button
           className="game-result__view-board"

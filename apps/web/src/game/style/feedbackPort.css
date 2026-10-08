@@ -883,6 +883,44 @@
   overflow-wrap: anywhere;
 }
 
+.game-result__replay {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-sheet);
+  color: var(--ds-text);
+  text-align: left;
+}
+.game-result__replay > svg {
+  color: var(--ds-accent);
+  flex: none;
+}
+.game-result__replay-copy {
+  flex: 1;
+  min-width: 120px;
+  display: grid;
+  gap: 4px;
+}
+.game-result__replay-copy strong {
+  font-size: var(--ds-text-sm);
+}
+.game-result__replay small {
+  font-size: var(--ds-text-xs);
+  color: var(--ds-text-3);
+  line-height: 1.4;
+}
+.game-result__replay > [role="status"] {
+  flex-basis: 100%;
+}
+.game-result__replay > button {
+  min-height: 40px;
+}
+
 /* The theme's ghost text is tuned for light paper; the splash scrim is always dark. */
 .game-result .game-result__view-board {
   color: rgb(226 232 240 / 82%);

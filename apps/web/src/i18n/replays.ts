@@ -1,4 +1,11 @@
 export const replayEn = {
+  "replay.speedShort": "Speed",
+  "replay.headline": "Review every play.",
+  "replay.drop": "Drop your replay file here",
+  "replay.openAction": "Open replay",
+  "replay.watch": "Watch the match",
+  "replay.match": "Match replay",
+  "replay.saveHint": "Save this match to watch it again.",
   "replay.title": "Replays",
   "replay.open": "Open replay file",
   "replay.openAnother": "Open another file",
@@ -33,6 +40,13 @@ export const replayEn = {
   "replay.draw": "Draw",
 } as const;
 export const replayPtBR: Record<keyof typeof replayEn, string> = {
+  "replay.speedShort": "Velocidade",
+  "replay.headline": "Reveja cada jogada.",
+  "replay.drop": "Arraste seu arquivo de replay aqui",
+  "replay.openAction": "Abrir replay",
+  "replay.watch": "Rever a partida",
+  "replay.match": "Replay da partida",
+  "replay.saveHint": "Salve esta partida para assistir de novo.",
   "replay.title": "Replays",
   "replay.open": "Abrir arquivo de replay",
   "replay.openAnother": "Abrir outro arquivo",
@@ -69,6 +83,13 @@ export const replayPtBR: Record<keyof typeof replayEn, string> = {
   "replay.draw": "Empate",
 };
 export const replayEs: Record<keyof typeof replayEn, string> = {
+  "replay.speedShort": "Velocidad",
+  "replay.headline": "Revive cada jugada.",
+  "replay.drop": "Arrastra tu archivo de replay aquí",
+  "replay.openAction": "Abrir replay",
+  "replay.watch": "Ver la partida",
+  "replay.match": "Replay de la partida",
+  "replay.saveHint": "Guarda esta partida para volver a verla.",
   "replay.title": "Replays",
   "replay.open": "Abrir archivo de replay",
   "replay.openAnother": "Abrir otro archivo",
@@ -104,6 +125,13 @@ export const replayEs: Record<keyof typeof replayEn, string> = {
   "replay.draw": "Empate",
 };
 export const replayIt: Record<keyof typeof replayEn, string> = {
+  "replay.speedShort": "Velocità",
+  "replay.headline": "Rivedi ogni azione.",
+  "replay.drop": "Trascina qui il tuo file replay",
+  "replay.openAction": "Apri replay",
+  "replay.watch": "Rivedi la partita",
+  "replay.match": "Replay della partita",
+  "replay.saveHint": "Salva questa partita per rivederla.",
   "replay.title": "Replay",
   "replay.open": "Apri file replay",
   "replay.openAnother": "Apri un altro file",

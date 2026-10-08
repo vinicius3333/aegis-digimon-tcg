@@ -4,6 +4,7 @@ import { GameScreen } from "../game/GameScreen";
 import { buildMatchLog } from "../game/matchLog";
 import type { PresentationControls, PresentationProbe } from "../game/presentationProbe";
 import { useTranslation } from "../i18n";
+import { Icons } from "../design/icons";
 import { Button } from "../design/primitives";
 import { frameDelay, playbackState, turnPositions } from "./playback";
 
@@ -125,15 +126,18 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
   return (
     <section className="replay-player" aria-label={t("replay.title")}>
       <header className="replay-player__heading">
-        <Button variant="ghost" size="sm" onClick={onClose}>
+        <Button variant="ghost" size="sm" icon={Icons.ChevronLeft} onClick={onClose}>
           {t("replay.back")}
         </Button>
         <h1>
           {replay.players[0]} <span>vs</span> {replay.players[1]}
         </h1>
-        <span>
-          {new Date(replay.startedAt).toLocaleDateString(locale)} · {outcome}
-        </span>
+        <div className="replay-player__metadata">
+          <time dateTime={new Date(replay.startedAt).toISOString()}>
+            {new Date(replay.startedAt).toLocaleDateString(locale)}
+          </time>
+          <span className="replay-player__outcome">{outcome}</span>
+        </div>
       </header>
       <p className="replay-player__perspective">
         {t("replay.perspective", { name: replay.players[replay.viewerSeat] })}
@@ -160,10 +164,13 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
                   aria-current={index === cursor.index ? "step" : undefined}
                   onClick={() => seek(index)}
                 >
-                  <small>
-                    {index + 1} · {t("replay.turn")} {replay.frames[index]!.state.turnCount}
-                  </small>
-                  <span>{label}</span>
+                  <span className="replay-history__number">{index + 1}</span>
+                  <span className="replay-history__entry">
+                    <small>
+                      {t("replay.turn")} {replay.frames[index]!.state.turnCount}
+                    </small>
+                    <span>{label}</span>
+                  </span>
                 </button>
               </li>
             ))}
@@ -187,97 +194,109 @@ export function ReplayPlayer({ replay, onClose }: { replay: MatchReplay; onClose
           <span role="status">{atEnd ? t("replay.finished") : labels[cursor.index]}</span>
         </div>
         <div className="replay-controls__buttons">
-          <Button
-            size="sm"
-            variant="secondary"
-            disabled={cursor.index === 0}
-            onClick={() => seek(0)}
-            aria-label={t("replay.start")}
-          >
-            |‹
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            disabled={cursor.index === 0}
-            onClick={() => seek(cursor.index - 1)}
-            aria-label={t("replay.previous")}
-          >
-            ‹
-          </Button>
-          <Button size="sm" onClick={togglePlay} aria-pressed={playing}>
-            {t(playing ? "replay.pause" : "replay.play")}
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            disabled={atEnd}
-            onClick={() => seek(cursor.index + 1)}
-            aria-label={t("replay.next")}
-          >
-            ›
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            disabled={atEnd}
-            onClick={() => seek(replay.frames.length - 1)}
-            aria-label={t("replay.end")}
-          >
-            ›|
-          </Button>
-          <label>
-            {t("replay.speed")}
-            <select
-              aria-label={t("replay.speed")}
-              value={speed}
-              onChange={(event) => setSpeed(Number(event.target.value))}
+          <div className="replay-controls__transport">
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={cursor.index === 0}
+              onClick={() => seek(0)}
+              aria-label={t("replay.start")}
             >
-              {[0.5, 1, 2, 4].map((value) => (
-                <option key={value} value={value}>
-                  {value}×
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            {t("replay.turn")}
-            <select
-              aria-label={t("replay.turn")}
-              value={currentTurn.index}
-              onChange={(event) => seek(Number(event.target.value))}
+              <Icons.ChevronLeft size={18} />
+              <span className="replay-controls__edge" aria-hidden="true" />
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={cursor.index === 0}
+              onClick={() => seek(cursor.index - 1)}
+              aria-label={t("replay.previous")}
             >
-              {turns.map((turn) => (
-                <option key={turn.index} value={turn.index}>
-                  {turn.turn} · {replay.players[turn.seat]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            {t("replay.hands")}
-            <select
-              aria-label={t("replay.hands")}
-              value={showHand ? "show" : "hide"}
-              onChange={(event) => {
+              <Icons.ChevronLeft size={18} />
+            </Button>
+            <Button
+              className="replay-controls__play"
+              size="sm"
+              icon={playing ? Icons.Pause : Icons.Play}
+              onClick={togglePlay}
+              aria-pressed={playing}
+            >
+              <span className="replay-controls__play-label">{t(playing ? "replay.pause" : "replay.play")}</span>
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={atEnd}
+              onClick={() => seek(cursor.index + 1)}
+              aria-label={t("replay.next")}
+            >
+              <Icons.ChevronRight size={18} />
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={atEnd}
+              onClick={() => seek(replay.frames.length - 1)}
+              aria-label={t("replay.end")}
+            >
+              <Icons.ChevronRight size={18} />
+              <span className="replay-controls__edge" aria-hidden="true" />
+            </Button>
+          </div>
+          <div className="replay-controls__settings">
+            <label>
+              <span>{t("replay.speedShort")}</span>
+              <select
+                aria-label={t("replay.speed")}
+                value={speed}
+                onChange={(event) => setSpeed(Number(event.target.value))}
+              >
+                {[0.5, 1, 2, 4].map((value) => (
+                  <option key={value} value={value}>
+                    {value}×
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>{t("replay.turn")}</span>
+              <select
+                aria-label={t("replay.turn")}
+                value={currentTurn.index}
+                onChange={(event) => seek(Number(event.target.value))}
+              >
+                {turns.map((turn) => (
+                  <option key={turn.index} value={turn.index}>
+                    {turn.turn} · {replay.players[turn.seat]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>{t("replay.hands")}</span>
+              <select
+                aria-label={t("replay.hands")}
+                value={showHand ? "show" : "hide"}
+                onChange={(event) => {
+                  seek(cursor.index);
+                  setShowHand(event.target.value === "show");
+                }}
+              >
+                <option value="show">{t("replay.hand.show")}</option>
+                <option value="hide">{t("replay.hand.hide")}</option>
+              </select>
+            </label>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
                 seek(cursor.index);
-                setShowHand(event.target.value === "show");
+                setViewerSeat((seat) => (1 - seat) as Seat);
               }}
             >
-              <option value="show">{t("replay.hand.show")}</option>
-              <option value="hide">{t("replay.hand.hide")}</option>
-            </select>
-          </label>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              seek(cursor.index);
-              setViewerSeat((seat) => (1 - seat) as Seat);
-            }}
-          >
-            {t("replay.flip")}
-          </Button>
+              {t("replay.flip")}
+            </Button>
+          </div>
         </div>
       </div>
     </section>

@@ -35,6 +35,12 @@ for (const viewport of [
     const replay = new ReplayPage(page);
     await replay.open();
     await expect(replay.position()).toHaveValue("0");
+    if (viewport.width >= 1024) {
+      const controls = await page.locator(".replay-controls").boundingBox();
+      expect(controls!.y + controls!.height).toBeLessThanOrEqual(viewport.height);
+      expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    }
+
     await expect(page.getByTestId("hand").getByRole("button", { name: /Agumon/i })).toBeVisible();
     await page.getByLabel("Recorded hand", { exact: true }).selectOption("hide");
     await expect(page.getByTestId("hand")).toHaveCount(0);
@@ -129,4 +135,19 @@ test("autoplay resolves a security battle after its attacker has left the record
   await expect(page.getByText("Replay finished", { exact: true })).toBeVisible();
   await expect(page.locator('[data-permanent-id="agumon"]')).toHaveCount(0);
   expect(errors).toEqual([]);
+});
+
+test("opens a replay dropped on the file area", async ({ page }) => {
+  await page.route("**/auth/me", (route) => route.fulfill({ contentType: "application/json", body: "null" }));
+  await page.goto("/replays");
+  const data = await page.evaluateHandle((contents) => {
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([contents], "match.json", { type: "application/json" }));
+    return transfer;
+  }, JSON.stringify(replayFixture()));
+  await page.locator(".replay-import__drop").dispatchEvent("dragover", { dataTransfer: data });
+  await expect(page.locator(".replay-import__drop")).toHaveClass(/--active/);
+  await page.locator(".replay-import__drop").dispatchEvent("drop", { dataTransfer: data });
+  await expect(page.getByRole("heading", { name: "Agumon Player vs Gabumon Player" })).toBeVisible();
+  await data.dispose();
 });
