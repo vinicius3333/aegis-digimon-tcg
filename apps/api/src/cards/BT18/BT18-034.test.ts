@@ -1,9 +1,265 @@
+/* oxlint-disable vitest/no-conditional-expect -- Table inputs select fixed contracts; branches never depend on observed game state. */
 import { describe, expect, it } from "vitest";
+import { Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-034.js";
 
 describe("BT18-034 Lucemon", () => {
+  it.each(["On Play", "Start of Main"])(
+    "GitHub #5312 still offers decline with exactly one hand card at %s",
+    async (timing) => {
+      const s = setupEngine({
+        0: {
+          hand: [
+            ...(timing === "On Play" ? [{ card: "BT18-034", as: "lucemon" }] : []),
+            { card: "BT1-009", as: "cost" },
+          ],
+          battleArea: timing === "Start of Main" ? [{ card: "BT18-034", as: "lucemon" }] : [],
+          eggDeck: ["BT1-001"],
+          deck: ["BT1-010"],
+          security: ["BT1-011"],
+        },
+        1: { security: ["BT1-012"] },
+      });
+      s.state.memory = 10;
+      await s.ready();
+      s.state.isFirstPlayersFirstTurn = true;
+      if (timing === "On Play") {
+        expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lucemon").instanceId })).toEqual({
+          ok: true,
+        });
+      } else {
+        s.engine.startTurnLoop();
+        await settle(() => s.state.phase === Phase.Breeding);
+        expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(0);
+      }
+      await settle(() => s.state.pendingDecision?.kind === "selectCards");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("cost").instanceId);
+      expect(s.state.players[0]!.trash).toHaveLength(0);
+      expect(s.state.players[0]!.security).toHaveLength(1);
+      expect(s.decisions.some(({ seat }) => seat === 1)).toBe(false);
+      assertNoLoudGap(s);
+    },
+  );
+
+  it("GitHub #5312 cannot resolve the security/recovery clause without a payable hand cost", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT18-034", as: "lucemon" }], deck: ["BT1-010"], security: ["BT1-011"] },
+      1: { security: ["BT1-012"] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lucemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+    expect(s.decisions).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    assertNoLoudGap(s);
+  });
+
+  it("GitHub #5312 Start of Main cannot resolve rewards with zero cards in hand", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT18-034", as: "lucemon" }], deck: ["BT1-010"], security: ["BT1-011"] },
+      1: { security: ["BT1-012"] },
+    });
+    s.state.isFirstPlayersFirstTurn = true;
+    s.state.memory = 10;
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.decisions.some(({ seat, req }) => seat === 1 || req.kind === "selectCards")).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it.each(["On Play", "Start of Main"])(
+    "GitHub #5312 allows declining the %s hand-trash condition without resolving its rewards",
+    async (timing) => {
+      const s = setupEngine({
+        0: {
+          hand: [
+            ...(timing === "On Play" ? [{ card: "BT18-034", as: "lucemon" }] : []),
+            { card: "BT1-009", as: "cost" },
+            { card: "BT1-013", as: "otherCost" },
+          ],
+          battleArea: timing === "Start of Main" ? [{ card: "BT18-034", as: "lucemon" }] : [],
+          eggDeck: ["BT1-001"],
+          deck: ["BT1-014", { card: "BT1-010", as: "recovery" }],
+          security: ["BT1-011"],
+        },
+        1: { security: ["BT1-012"] },
+      });
+      s.state.memory = 10;
+      s.state.isFirstPlayersFirstTurn = true;
+      await s.ready();
+      if (timing === "On Play") {
+        expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lucemon").instanceId })).toEqual({
+          ok: true,
+        });
+      } else {
+        s.engine.startTurnLoop();
+        await settle(() => s.state.phase === Phase.Breeding);
+        expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(0);
+      }
+      await settle(() => s.state.pendingDecision !== undefined);
+      expect(s.state.pendingDecision?.kind).toBe("selectCards");
+      const request = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision!.decisionId)!.req;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }),
+      ).toEqual({ ok: true });
+      expect(request.options?.min).toBe(0);
+      expect(request.options?.max).toBe(1);
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
+      expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("otherCost").instanceId);
+      expect(s.state.players[0]!.trash).toHaveLength(0);
+      expect(s.state.players[0]!.security).toHaveLength(1);
+      expect(s.state.players[1]!.security).toHaveLength(1);
+      expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("recovery").instanceId);
+      expect(s.decisions.some(({ seat }) => seat === 1)).toBe(false);
+      assertNoLoudGap(s);
+    },
+  );
+
+  it.each(
+    ["On Play", "Start of Main"].flatMap((timing) =>
+      [1, 2].flatMap((handCount) => [false, true].map((opponentAccepts) => ({ timing, handCount, opponentAccepts }))),
+    ),
+  )(
+    "GitHub #5312 pays exactly one of $handCount hand cards at $timing and opponent accept=$opponentAccepts",
+    async ({ timing, handCount, opponentAccepts }) => {
+      const s = setupEngine({
+        0: {
+          hand: [
+            ...(timing === "On Play" ? [{ card: "BT18-034", as: "lucemon" }] : []),
+            { card: "BT1-009", as: "cost" },
+            ...(handCount === 2 ? [{ card: "BT1-013", as: "otherCost" }] : []),
+          ],
+          battleArea: timing === "Start of Main" ? [{ card: "BT18-034", as: "lucemon" }] : [],
+          eggDeck: ["BT1-001"],
+          deck: [{ card: "BT1-010", as: "recovery" }],
+          security: ["BT1-011"],
+        },
+        1: { security: [{ card: "BT1-012", as: "opponentTop" }] },
+      });
+      s.state.memory = 10;
+      s.state.isFirstPlayersFirstTurn = true;
+      await s.ready();
+      if (timing === "On Play") {
+        expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lucemon").instanceId })).toEqual({
+          ok: true,
+        });
+      } else {
+        s.engine.startTurnLoop();
+        await settle(() => s.state.phase === Phase.Breeding);
+        expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(0);
+      }
+      await settle(() => s.state.pendingDecision?.kind === "selectCards");
+      const ownRequest = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision!.decisionId)!;
+      expect(ownRequest.seat).toBe(0);
+      expect(ownRequest.req.options?.candidateInstanceIds).toHaveLength(handCount);
+      expect(
+        s.engine.applyIntent(1, {
+          type: "respondDecision",
+          decisionId: ownRequest.req.decisionId,
+          response: { kind: "selectCards", instanceIds: [s.inst("cost").instanceId] },
+        }).ok,
+      ).toBe(false);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: ownRequest.req.decisionId,
+          response: { kind: "selectCards", instanceIds: [s.inst("cost").instanceId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const opponentRequest = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision!.decisionId)!;
+      expect(opponentRequest.seat).toBe(1);
+      expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
+      expect(s.state.players[0]!.security).toHaveLength(1);
+      expect(
+        s.engine.applyIntent(1, {
+          type: "respondDecision",
+          decisionId: opponentRequest.req.decisionId,
+          response: { kind: "optional", accept: opponentAccepts },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.state.players[0]!.security).toHaveLength(opponentAccepts ? 1 : 2);
+      expect(s.state.players[1]!.security).toHaveLength(opponentAccepts ? 0 : 1);
+      if (opponentAccepts) {
+        expect(s.state.players[1]!.trash[0]!.instanceId).toBe(s.inst("opponentTop").instanceId);
+        expect(s.state.players[0]!.deck[0]!.instanceId).toBe(s.inst("recovery").instanceId);
+      } else {
+        expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("recovery").instanceId);
+      }
+      if (handCount === 2) expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("otherCost").instanceId);
+      assertNoLoudGap(s);
+    },
+  );
+
+  it.each(["On Play", "Start of Main"])(
+    "GitHub #5312 %s pays the cost and recovers even with no opponent security",
+    async (timing) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              ...(timing === "On Play" ? [{ card: "BT18-034", as: "lucemon" }] : []),
+              { card: "BT1-009", as: "cost" },
+            ],
+            battleArea: timing === "Start of Main" ? [{ card: "BT18-034", as: "lucemon" }] : [],
+            deck: [{ card: "BT1-010", as: "recovery" }],
+            security: ["BT1-011"],
+          },
+          1: { security: [] },
+        },
+        { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.inst("cost").instanceId);
+      s.state.memory = 10;
+      s.state.isFirstPlayersFirstTurn = true;
+      await s.ready();
+      if (timing === "On Play") {
+        expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lucemon").instanceId })).toEqual({
+          ok: true,
+        });
+        await settle(() => s.state.players[0]!.security.length === 2 && s.state.pendingDecision === undefined);
+      } else {
+        await advance(s.engine).runTurn(0);
+      }
+      expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
+      expect(s.state.players[0]!.security).toHaveLength(2);
+      expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("recovery").instanceId);
+      expect(s.state.players[1]!.security).toHaveLength(0);
+      expect(s.state.pendingDecision).toBeUndefined();
+      assertNoLoudGap(s);
+    },
+  );
+
   it("keeps the alternate digivolution requirement and the Q4999 exclusion visible in the compiled IR", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
@@ -39,7 +295,12 @@ describe("BT18-034 Lucemon", () => {
         },
         1: { security: ["BT1-010"] },
       },
-      { autoSelectCards: true, autoDeclineOptional: true, preferInstanceIds: preferred },
+      {
+        autoSelectCards: true,
+        autoAcceptOptional: true,
+        declinePrompts: ["Trash 1 of opponent"],
+        preferInstanceIds: preferred,
+      },
     );
     await s.ready();
     preferred.push(s.inst("cost").instanceId);
@@ -50,6 +311,7 @@ describe("BT18-034 Lucemon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("lucemon").instanceId),
     );
+    await settle(() => s.state.pendingDecision === undefined);
     await settle(() => s.state.players[0]!.security.length === 2 && s.state.players[1]!.security.length === 1);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
@@ -196,7 +458,7 @@ describe("BT18-034 Lucemon — KB Q&A rulings", () => {
         },
         opponentTrashesSecurity
           ? { autoSelectCards: true, autoAcceptOptional: true }
-          : { autoSelectCards: true, autoDeclineOptional: true },
+          : { autoSelectCards: true, autoAcceptOptional: true, declinePrompts: ["Trash 1 of opponent"] },
       );
       s.state.memory = 10;
       await s.ready();

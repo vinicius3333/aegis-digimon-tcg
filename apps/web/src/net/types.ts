@@ -484,6 +484,7 @@ export interface AegisJoinOptions {
     | "arena-ex13-chirinmon-cost-choice"
     | "arena-ex13-wisemon-witchelny-cost"
     | "arena-ex13-flamewizardmon-optional-cost"
+    | "arena-bt18-lucemon-optional-hand-cost"
     | "arena-sukamon-transform-digivolve"
     | "arena-sukamon-transform-digivolve-viewer"
     | "arena-ex5-attack-priority"
