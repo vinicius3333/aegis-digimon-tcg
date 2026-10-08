@@ -1,9 +1,11 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, type Seat } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX13-047.js";
+import "./EX13-035.js";
+import "./EX13-056.js";
 
 const CARD_ID = "EX13-047";
 
@@ -552,4 +554,119 @@ describe("EX13-047 Gotsumon", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
+});
+
+// EX13-035 is the only catalog KingEtemon with a continuous board-wide -3000 DP.
+// The report omits IDs; EX13-047 and Giromon's reveal/play are explicit repro assumptions.
+describe("Discord 1557356892794388541: Gotsumon under printed KingEtemon auras", () => {
+  for (const seat of [0, 1] as const) {
+    for (const mode of ["normal", "effect"] as const) {
+      it.each([
+        { kings: 1, active: true, expectedDP: 0 },
+        { kings: 2, active: true, expectedDP: -3000 },
+        { kings: 2, active: false, expectedDP: 3000 },
+      ])(`${mode} play, seat ${seat}, $kings kings, aura active=$active`, async ({ kings, active, expectedDP }) => {
+        const opponent: Seat = seat === 0 ? 1 : 0;
+        const s = setupEngine(
+          {
+            [opponent]: {
+              battleArea: [
+                { card: "EX13-035", as: "king" },
+                ...(kings === 2 ? [{ card: "EX13-035" }] : []),
+                ...(active ? Array.from({ length: 3 - kings }, () => ({ card: "BT11-041" })) : []),
+              ],
+              security: [INERT],
+            },
+            [seat]: {
+              hand: mode === "normal" ? [{ card: CARD_ID, as: "entrant" }] : [],
+              battleArea: mode === "effect" ? [{ card: "EX13-056", as: "giromon" }] : [],
+              deck: [
+                ...(mode === "effect"
+                  ? [
+                      { card: CARD_ID, as: "entrant" },
+                      { card: INERT, as: "revealRestA" },
+                      { card: INERT, as: "revealRestB" },
+                    ]
+                  : []),
+                { card: ROYAL_KNIGHT, as: "knight" },
+                { card: BLOCKER, as: "blocker" },
+                { card: INERT, as: "rest" },
+                { card: INERT, as: "tail" },
+              ],
+              security: [INERT, INERT],
+            },
+          },
+          { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+        );
+        s.state.turnSeat = mode === "normal" ? seat : opponent;
+        // Memory is relative to the turn player, including seat 1.
+        s.state.memory = 10;
+        await s.ready();
+        const player = s.state.players[seat]!;
+        const entrantId = s.inst("entrant").instanceId;
+        const lethal = expectedDP <= 0;
+        if (mode === "effect") {
+          // Giromon must survive the aura long enough to legally block and resolve its effect.
+          expect(s.perm("giromon").currentDP).toBe(active ? 7000 - kings * 3000 : 7000);
+          expect(
+            s.engine.applyIntent(opponent, {
+              type: "attack",
+              attackerPermanentId: s.perm("king").permanentId,
+              target: { kind: "player" },
+            }),
+          ).toEqual({ ok: true });
+          await settle(() => observe(s.engine).blockingSeat() === seat, 5000);
+          expect(
+            s.engine.applyIntent(seat, {
+              type: "declareBlock",
+              blockerPermanentId: s.perm("giromon").permanentId,
+            }),
+          ).toEqual({ ok: true });
+          await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined, 5000);
+          expect(player.trash.map(({ instanceId }) => instanceId)).toEqual(
+            expect.arrayContaining([s.inst("revealRestA").instanceId, s.inst("revealRestB").instanceId]),
+          );
+        } else {
+          expect(s.engine.applyIntent(seat, { type: "playCard", instanceId: entrantId })).toEqual({ ok: true });
+          await settle(
+            () =>
+              s.state.pendingDecision === undefined &&
+              (lethal
+                ? player.trash.some(({ instanceId }) => instanceId === entrantId)
+                : player.hand.some(({ instanceId }) => instanceId === s.inst("knight").instanceId)),
+            5000,
+          );
+        }
+        expect(s.events.filter((event) => event.kind === "cardPlayed" && event.cardId === CARD_ID)).toHaveLength(1);
+        const activations = s.events.filter(
+          (event) => event.kind === "effectTriggered" && event.sourceCardId === CARD_ID,
+        );
+        expect(activations).toHaveLength(lethal ? 0 : 1);
+        expect(s.decisions.filter(({ req }) => req.sourceCardId === CARD_ID)).toHaveLength(lethal ? 0 : 2);
+        expect(player.trash.some(({ instanceId }) => instanceId === entrantId)).toBe(lethal);
+        const entrant = player.battleArea.find(({ topCard }) => topCard.instanceId === entrantId);
+        if (lethal) {
+          expect(entrant).toBeUndefined();
+          expect(player.hand).toHaveLength(0);
+          expect(player.deck.map(({ instanceId }) => instanceId)).toEqual([
+            s.inst("knight").instanceId,
+            s.inst("blocker").instanceId,
+            s.inst("rest").instanceId,
+            s.inst("tail").instanceId,
+          ]);
+        } else {
+          expect(entrant?.currentDP).toBe(expectedDP);
+          expect(player.hand.map(({ instanceId }) => instanceId)).toEqual([
+            s.inst("knight").instanceId,
+            s.inst("blocker").instanceId,
+          ]);
+          expect(player.deck.map(({ instanceId }) => instanceId)).toEqual([
+            s.inst("tail").instanceId,
+            s.inst("rest").instanceId,
+          ]);
+        }
+        assertNoLoudGap(s);
+      });
+    }
+  }
 });
