@@ -33,6 +33,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "#5333: End breeding. Activate TeslaJellymon Main, choose Use an Option and EX8-068. Its Main is now spent. Evolve that Tesla into EX8-024, then BT20-026 using its cost-0 alternate route, then EX8-027. Accept Plesiomon's source play and choose the original Tesla. Open the newly played Tesla: Main must be available again. Use the remaining EX8-068; a third Main activation on that new Digimon must be unavailable.",
     ptBR: "#5333: Encerre a criação. Ative Main de TeslaJellymon, escolha usar uma Opção e EX8-068. O Main fica gasto. Evolua essa Tesla em EX8-024, depois BT20-026 pela rota alternativa de custo 0 e EX8-027. Aceite jogar uma fonte de Plesiomon e escolha a Tesla original. Abra a Tesla recém-jogada: Main deve estar disponível novamente. Use o EX8-068 restante; uma terceira ativação de Main nesse novo Digimon deve ficar indisponível.",
   },
+  "arena-turn-end-dp-expiry": {
+    en: "Skip breeding. Evolve Kokatorimon into EX13 WarGrowlmon for 3 (4→1 memory): with no opposing Digimon to delete, it reaches 11000 DP for the turn. Use Wall Training for 2 and select either revealed Monodramon. Decline Engage at end of turn. WarGrowlmon returns to 8000 DP; opposing Davis sets memory to 3. Active, Draw and Breeding must proceed in order without an idle stall. Use normal sequential effects without skipping. This diagnoses a turn-end DP presentation cycle, not a confirmed replay of the Freezing reporter's match.",
+    ptBR: "Pule a criação. Evolua Kokatorimon em WarGrowlmon EX13 por 3 (memória 4→1): sem Digimon adversário para deletar, ele fica com 11000 DP neste turno. Use Wall Training por 2 e escolha qualquer Monodramon revelado. Recuse Engage no fim do turno. WarGrowlmon volta a 8000 DP; Davis adversário ajusta a memória para 3. Ativa, Compra e Criação devem avançar em ordem, sem pausa travada. Use efeitos sequenciais normais, sem pular animações. Este cenário diagnostica um ciclo na apresentação da expiração de DP, não reproduz uma partida confirmada do autor de Freezing.",
+  },
   "arena-github5307-larva-bt18-breeding": {
     en: "GitHub #5307, current behavior control. End breeding without moving Larva. Attack the suspended opposing Satan Mode with your BT18 Satan Mode. Both have 16000 DP. Accept Larva's prevention: Larva moves from breeding, your Satan Mode stays, and the opposing Satan Mode is deleted. Reset and decline to compare: your Satan Mode is deleted and Larva stays in breeding.",
     ptBR: "GitHub #5307, controle do comportamento atual. Encerre a criação sem mover Larva. Ataque o Satan Mode adversário suspenso com seu Satan Mode BT18. Ambos têm 16000 DP. Aceite a proteção de Larva: ela sai da criação, seu Satan Mode fica e o adversário é deletado. Reinicie e recuse para comparar: seu Satan Mode é deletado e Larva fica na criação.",
@@ -2348,6 +2352,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-github5319-bt25-murasamemon-security-option", "GitHub #5319 · BT25-041 security payment supplies e-Pulse"],
   ["arena-github5319-murasamemon-e-pulse", "GitHub #5319 · Murasamemon uses e-Pulse after security pickup"],
   ["arena-github5319-murasamemon-spent-cost", "GitHub #5319 · Cougarmon spent-cost control"],
+  ["arena-turn-end-dp-expiry", "Turn-end DP expiry · Active phase handoff"],
   ["arena-github5311-crescemon-cost-scope", "GitHub #5311 · Crescemon incoming versus outgoing cost"],
   ["arena-github5311-imperialdramon-cost-scope", "GitHub #5311 sweep · Imperialdramon intrinsic discount"],
   ["arena-github5322-metalmamemon-no-cost", "#5322 MetalMamemon · no trash Digimon"],

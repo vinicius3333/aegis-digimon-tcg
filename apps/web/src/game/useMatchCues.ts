@@ -1284,7 +1284,10 @@ export function useMatchCues({
         gate:
           stateVersion > effectSequence.observedVersion()
             ? effectSequence.causeOfLiveChange(stateVersion)
-            : (effectSequence.causeOfObservedChange(stateVersion - 1) ?? causingEffectGateRef.current),
+            : // A retained snapshot names an exact revision, not the whole coalesced
+              // patch. Turn-end DP expiry has no effect owner and must not wait on a
+              // later Active clause whose ribbon is itself waiting for that pulse.
+              (effectSequence.causeOfObservedChange(stateVersion - 1, stateVersion) ?? null),
         ...(batch ? { origin: { batchId: batch.id, stateVersion, phaseOrder: phaseOrderFor(batch.events) } } : {}),
       };
     },

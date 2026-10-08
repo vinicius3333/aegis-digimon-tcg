@@ -238,8 +238,9 @@ export interface EffectSequence {
    * The cause of a change a watcher sees across batches already observed: several batches can
    * reach the screen in one frame, and their board with them. The change is pinned to the
    * earliest of them an effect owns, the one the watcher's previous board had not seen yet.
+   * A retained snapshot supplies `throughVersion` so a later effect cannot own its change.
    */
-  causeOfObservedChange(sinceVersion: number): PresentationGate | undefined;
+  causeOfObservedChange(sinceVersion: number, throughVersion?: number): PresentationGate | undefined;
   /** The newest batch revision observed, so a watcher can tell a change whose batch is still ahead. */
   observedVersion(): number;
   /** A batch at this revision was presented, whatever the pacing: the causes it carried are known. */
@@ -504,10 +505,14 @@ export function createEffectSequence(options: EffectSequenceOptions = {}): Effec
       causes.set(version, { gate, started });
       return gate;
     },
-    causeOfObservedChange(sinceVersion) {
+    causeOfObservedChange(sinceVersion, throughVersion = latestVersion) {
       let earliest: number | undefined;
       for (const version of ownerByVersion.keys())
-        if (version > sinceVersion && version <= latestVersion && (earliest === undefined || version < earliest))
+        if (
+          version > sinceVersion &&
+          version <= Math.min(throughVersion, latestVersion) &&
+          (earliest === undefined || version < earliest)
+        )
           earliest = version;
       return earliest === undefined ? undefined : ownerByVersion.get(earliest)!.announced;
     },

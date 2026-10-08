@@ -66,6 +66,18 @@ describe("effect sequence", () => {
     expect(sequence.causeOfObservedChange(4)).toBeUndefined();
   });
 
+  it("keeps an observed turn-end revision independent of a later turn-start effect", () => {
+    const sequence = createEffectSequence();
+    sequence.observeBatch("end", 124, [{ kind: "turnEnded", endingSeat: 1, nextSeat: 0, turnCount: 5 }]);
+    const setter = sequence.observeBatch("setter", 126, [triggered("memory")]).opened[0]!.unit;
+    sequence.observeBatch("closed", 127, [resolved("memory")]);
+
+    expect(sequence.causeOfObservedChange(123, 124)).toBeUndefined();
+    expect(sequence.causeOfObservedChange(125, 126)).toBe(setter.announced);
+    // A caller observing the whole patch still waits on the effect it contains.
+    expect(sequence.causeOfObservedChange(123)).toBe(setter.announced);
+  });
+
   it("announces the same effect repeated right after itself as one unit", () => {
     const sequence = createEffectSequence();
     const unit = sequence.observeBatch("b1", 1, [copy("first", "effectTriggered"), draw]).opened[0]!.unit;
