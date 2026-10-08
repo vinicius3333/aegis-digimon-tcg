@@ -58,6 +58,8 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-discord-1557790296379625482-trash-hybrids",
+  "arena-discord-1557790296379625482-loweemon-hosts",
   "arena-github5322-metalmamemon-no-cost",
   "arena-github5322-metalmamemon-paid",
   "arena-github5322-metalmamemon-strip-zero",
@@ -8633,6 +8635,49 @@ function prepareGithubCardEffectsScenario(state: GameState, memory: number): voi
   startEffectsLabTurn(state, memory);
 }
 
+/** Observed host stacks and loose cards from the bounded Jerry/Bot capture. */
+function layLoweemonObservedHostsScenario(state: GameState): void {
+  prepareGithubCardEffectsScenario(state, 2);
+  const human = state.players[0]!;
+  for (const [cards, permanentId] of [
+    [["ST14-11"], "perm-2"],
+    [["BT15-006", "BT11-076"], "perm-1"],
+    [["BT18-094", "BT18-076"], "perm-5"],
+  ] as const) {
+    const host = establishedDigimon(0, [...cards], `-observed-${permanentId}`);
+    host.permanentId = permanentId;
+    if (permanentId === "perm-5") {
+      host.topCard.instanceId = "s0-18";
+      host.stack[0]!.instanceId = "s0-41";
+    }
+    placePermanent(human, host);
+  }
+  for (const [cardId, instanceId] of [
+    ["BT18-079", "s0-20"],
+    ["BT18-077", "s0-12"],
+    ["BT16-082", "observed-ukkomon"],
+  ] as const) {
+    insertCard(human, Zone.Trash, faceUpCard(instanceId, cardId, 0));
+  }
+}
+
+/** Two-stage attack evolution: select a legal board host, then a trash destination. */
+function layDuskmonTrashEvolutionScenario(state: GameState): void {
+  prepareGithubCardEffectsScenario(state, 2);
+  const human = state.players[0]!;
+  for (const [cardId, suffix] of [
+    ["BT18-078", "duskmon"],
+    ["BT18-076", "loweemon"],
+    ["BT2-067", "rookie"],
+    ["BT16-082", "ukkomon"],
+  ] as const) {
+    placePermanent(human, establishedDigimon(0, [cardId], `-trash-hybrids-${suffix}`));
+  }
+  for (const cardId of ["BT18-079", "BT18-077", "BT16-082"]) {
+    insertCard(human, Zone.Trash, faceUpCard(`trash-hybrids-${cardId}`, cardId, 0));
+  }
+}
+
 function layGithub5307LarvaScenario(state: GameState, satanCard: string): void {
   prepareGithubCardEffectsScenario(state, 10);
   const human = state.players[0]!;
@@ -9060,6 +9105,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-discord-1557631388650315826-sukamon-dna-materials": laySukamonDnaMaterialsScenario,
   "arena-discord-1557631388650315826-sukamon-dna-control": (state, decks) =>
     laySukamonDnaMaterialsScenario(state, decks, true),
+  "arena-discord-1557790296379625482-trash-hybrids": layDuskmonTrashEvolutionScenario,
+  "arena-discord-1557790296379625482-loweemon-hosts": layLoweemonObservedHostsScenario,
   "arena-discord-1557565628439724032-duskmon-dna-colors": layDuskmonDnaColorsScenario,
   "arena-discord-1557565628439724032-duskmon-dna-control": (state, decks) =>
     layDuskmonDnaColorsScenario(state, decks, true),

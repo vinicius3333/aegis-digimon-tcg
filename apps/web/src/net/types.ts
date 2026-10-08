@@ -34,6 +34,8 @@ export interface AegisJoinOptions {
     | "arena-github5320-alliance-after-evolution"
     | "arena-discord-1557631388650315826-sukamon-dna-materials"
     | "arena-discord-1557631388650315826-sukamon-dna-control"
+    | "arena-discord-1557790296379625482-trash-hybrids"
+    | "arena-discord-1557790296379625482-loweemon-hosts"
     | "arena-discord-1557565628439724032-duskmon-dna-colors"
     | "arena-discord-1557565628439724032-duskmon-dna-control"
     | "arena-discord-1557575147119054889-shakkoumon-sukamon"
