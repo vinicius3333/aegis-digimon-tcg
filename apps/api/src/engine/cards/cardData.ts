@@ -577,6 +577,14 @@ export function matchingAlternateDigivolutionRequirement(
     // [Agunimon], a Digimon) must not be shadowed by the generic derived path below.
     const named = matchGatedRequirement(requirements, baseDef, baseEffectiveNames, options, true);
     if (named) return named;
+    // An indexed declaration must match that printed route. Only a matching generic
+    // Tamer entry may use the derived price; a failed named route must not fall back.
+    if (
+      options?.requirementIndex !== undefined &&
+      matchGatedRequirement(requirements, baseDef, baseEffectiveNames, options, false) === undefined
+    ) {
+      return undefined;
+    }
     if (!isTamer(baseDef)) return undefined;
     const tamerColors = tamerOntoDigivolveColors(evolvingId);
     if (tamerColors !== undefined && !tamerColors.some((color) => baseDef.colors.includes(color as CardColor))) {

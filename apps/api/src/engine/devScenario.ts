@@ -60,6 +60,7 @@ import {
 export const DEV_SCENARIO_IDS = [
   "arena-raid-after-dedigivolve",
   "arena-github5331-offense-hand",
+  "arena-lanamon-tamer-cost",
   "arena-discord-1557790296379625482-trash-hybrids",
   "arena-discord-1557790296379625482-loweemon-hosts",
   "arena-github5322-metalmamemon-no-cost",
@@ -515,6 +516,30 @@ function establishedDigimon(seat: Seat, cardIds: readonly string[], slot = ""): 
 function linkEstablishedCard(permanent: Permanent, card: CardInstance): void {
   linkCard(permanent, card, "bottom");
   permanent.currentDP += getCardDefinition(card.cardId)?.linkDp ?? 0;
+}
+
+/** #5340: distinct printed Tamer, normal level-3, and named slide evolution costs. */
+function layLanamonTamerCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0]!;
+  for (const [suffix, cardId] of [
+    ["rina", "BT11-112"],
+    ["rookie", "BT12-021"],
+    ["calmaramon", "BT12-025"],
+    ["red-tamer", "BT12-088"],
+  ] as const) {
+    placePermanent(human, establishedDigimon(0, [cardId], `-5340-${suffix}`));
+  }
+  for (let index = 0; index < 3; index += 1) {
+    insertCard(human, Zone.Hand, faceUpCard(`dev-5340-lanamon-${index}`, "BT12-024", 0));
+  }
+  // Red draws keep the optional blue-rookie placement from obscuring the memory comparison.
+  for (const seat of [0, 1] as const) {
+    clearZone(state.players[seat]!, Zone.Deck);
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(state.players[seat]!, Zone.Deck, faceDownCard(`dev-5340-draw-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
 }
 
 /** #5331: own red destinations remain distinct from the opposing BetelGammamon hand. */
@@ -9153,6 +9178,7 @@ function layGithubEndTurnReportScenario(
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github5331-offense-hand": layGithub5331OffenseHandScenario,
+  "arena-lanamon-tamer-cost": layLanamonTamerCostScenario,
   "arena-github5332-kekkomon-cost": layGithub5332KekkomonCostScenario,
   "arena-github-5324-omnimon-traits": layGithub5324OmnimonTraitsScenario,
   "arena-github5320-alliance-after-evolution": layGithub5320AllianceAfterEvolutionScenario,

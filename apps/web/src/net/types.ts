@@ -193,6 +193,7 @@ export interface AegisJoinOptions {
     | import("@aegis/shared").KeywordPacingScenarioId
     | import("@aegis/shared").PhasePacingScenarioId
     | "arena-github5331-offense-hand"
+    | "arena-lanamon-tamer-cost"
     | "arena-github5332-kekkomon-cost"
     | "battle"
     | "field-grouping"

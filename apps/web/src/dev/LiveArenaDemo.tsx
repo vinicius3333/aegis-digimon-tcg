@@ -21,6 +21,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "GitHub #5326, current behavior control. You start with 0 security and 6 memory. End breeding, then play either BT23 Sistermon Blanc for 3. Its mandatory On Play recovers 1 from the deck even though no security card could be added to hand; security becomes 1 and memory becomes 3. Play the second Blanc for 3: the previous security card goes to hand, then the next deck card becomes your face-down security. Security stays 1 and memory becomes 0. No payment or optional confirmation is required for either On Play effect.",
     ptBR: "GitHub #5326, controle do comportamento atual. Você começa com 0 segurança e 6 de memória. Encerre a criação e jogue qualquer Sistermon Blanc BT23 por 3. O Ao Jogar obrigatório recupera 1 do deck mesmo sem segurança para adicionar à mão; a segurança passa a 1 e a memória a 3. Jogue a segunda Blanc por 3: a segurança anterior vai para a mão e a próxima carta do deck vira sua segurança virada para baixo. A segurança continua em 1 e a memória passa a 0. Nenhum pagamento ou confirmação opcional é necessário para os efeitos Ao Jogar.",
   },
+  "arena-lanamon-tamer-cost": {
+    en: "GitHub #5340: end breeding, then evolve the three hand Lanamon onto Rina, the blue level 3, and Calmaramon in that order. Costs are 2, 2, and 0; memory goes 10 → 8 → 6 → 6. The red Takuya is not a legal target. This reduced reproduction does not reconstruct the unavailable reported game.",
+    ptBR: "GitHub #5340: encerre a criação e evolua os três Lanamon da mão sobre Rina, o nível 3 azul e Calmaramon, nessa ordem. Os custos são 2, 2 e 0; a memória vai de 10 → 8 → 6 → 6. O Takuya vermelho não é um alvo válido. Esta reprodução reduzida não reconstrói a partida relatada, que está indisponível.",
+  },
   "arena-github5331-offense-hand": {
     en: "End breeding. Activate the established Offense Training Delay, accept, and choose either of your two Tyrannomon copies. Opposing BetelGammamon must never be offered or consumed. Reset to first use Offense Training from hand, finish its search, then activate the established Delay: choose an own legal red card afresh. Blue Gorillamon and level-5 MetalGreymon are ineligible; the newly placed Training cannot Delay this turn.",
     ptBR: "Encerre a criação. Ative o Delay do Offense Training já em campo, aceite e escolha uma das suas duas cópias de Tyrannomon. BetelGammamon do oponente nunca deve aparecer como opção nem ser usado. Reinicie para primeiro usar Offense Training da mão, concluir a busca e então ativar o Delay já estabelecido: escolha novamente uma carta vermelha válida sua. Gorillamon azul e MetalGreymon nível 5 são inválidos; o Training recém-colocado não pode usar Delay neste turno.",
@@ -2371,6 +2375,7 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-github5326-sistermon-zero-security", "GitHub #5326 · Sistermon Blanc / zero security control"],
+  ["arena-lanamon-tamer-cost", "GitHub #5340 · Lanamon Tamer cost"],
   ["arena-github5331-offense-hand", "GitHub #5331 · Offense Training hand ownership"],
   ["arena-github5332-kekkomon-cost", "GitHub #5332 · Kekkomon Tamer cost selection"],
   ["arena-github5333-tesla-source-replay", "GitHub #5333 · Tesla Main after source replay"],
