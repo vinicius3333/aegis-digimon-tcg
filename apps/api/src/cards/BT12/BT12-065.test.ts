@@ -19,11 +19,11 @@ import "../BT16/BT16-088.js";
 describe("BT12-065 Sephirothmon", () => {
   it("compiles the delayed forced attack as a targeted start-of-main sub-trigger", () => {
     expect(compiled.effects[0]?.actions[0]).toMatchObject({
-      kind: "SubTrigger",
-      event: "startOfYourMainPhase",
-      on: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+      kind: "GainTriggeredEffect",
+      gainedTrigger: "StartOfYourMainPhase",
+      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
       duration: "untilOpponentTurnEnd",
-      actions: [{ kind: "Attack", target: { filter: { isSelfRef: true }, isSelf: true } }],
+      gainedActions: [{ kind: "Attack", target: { filter: { isSelfRef: true }, isSelf: true } }],
     });
   });
 

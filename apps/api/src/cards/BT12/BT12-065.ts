@@ -6,17 +6,17 @@ const whenDigivolving = compiled.effects.find((effect) => effect.trigger === "Wh
 if (whenDigivolving !== undefined) {
   whenDigivolving.actions = [
     {
-      kind: "SubTrigger",
-      event: "startOfYourMainPhase",
-      on: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+      kind: "GainTriggeredEffect",
+      gainedTrigger: "StartOfYourMainPhase",
+      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
       duration: "untilOpponentTurnEnd",
-      actions: [
+      gainedActions: [
         {
           kind: "Attack",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         },
       ],
-      raw: "give 1 opposing Digimon '[Start of Your Main Phase] Attack with this Digimon' until its turn ends",
+      raw: "[Start of Your Main Phase] This Digimon attacks.",
     },
   ];
 }

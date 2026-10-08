@@ -182,10 +182,10 @@ describe("BT25-054 GreatGrizzlymon", () => {
       card?.effects.some((effect) =>
         effect.actions?.some(
           (action) =>
-            action.kind === "SubTrigger" &&
-            action.event === "startOfYourMainPhase" &&
+            action.kind === "GainTriggeredEffect" &&
+            action.gainedTrigger === "StartOfYourMainPhase" &&
             action.duration === "untilOpponentTurnEnd" &&
-            action.on?.filter?.controller === "opponent",
+            action.target?.filter?.controller === "opponent",
         ),
       ),
     ).toBe(true);

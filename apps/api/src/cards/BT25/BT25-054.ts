@@ -17,9 +17,9 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "startOfYourMainPhase",
-          on: {
+          kind: "GainTriggeredEffect",
+          gainedTrigger: "StartOfYourMainPhase",
+          target: {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
@@ -27,7 +27,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           duration: "untilOpponentTurnEnd",
-          actions: [
+          gainedActions: [
             {
               kind: "Attack",
               target: {
@@ -46,9 +46,9 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "startOfYourMainPhase",
-          on: {
+          kind: "GainTriggeredEffect",
+          gainedTrigger: "StartOfYourMainPhase",
+          target: {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
@@ -56,7 +56,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           duration: "untilOpponentTurnEnd",
-          actions: [
+          gainedActions: [
             {
               kind: "Attack",
               target: {

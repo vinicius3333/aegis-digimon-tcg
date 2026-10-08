@@ -1440,6 +1440,7 @@ export async function runGainTriggeredEffect(
   const targetIds = await resolvePermanentTargets(ctx, action.target, { preserveUnaffectableSelection: true });
   const attacksAtStartOfMainPhase =
     action.gainedTrigger === "StartOfYourMainPhase" && action.gainedActions.some((gained) => gained.kind === "Attack");
+  const forcedAttackClause = "[Start of Your Main Phase] This Digimon attacks.";
   const grantingSeat = ctx.source.ownerSeat;
   const grantingKinds = (ctx.effectSourceKinds ?? effectProvenanceKinds(ctx)).filter(
     (kind) => kind === "Digimon" || kind === "Option",
@@ -1545,11 +1546,17 @@ export async function runGainTriggeredEffect(
             // This clause belongs to the effect granted onto the recipient, not to the
             // recipient's own printed text. The client strips the marker and presents the
             // supplied clause beside the recipient instead of looking it up on the wrong card.
-            printedClause: "[Granted] [Start of Your Main Phase] This Digimon attacks.",
+            printedClause: `[Granted] ${forcedAttackClause}`,
           }
         : {}),
       description: action.raw ?? `GainTriggeredEffect(${action.gainedTrigger}) on ${targetPermanentId}`,
       run: async (subCtx) => {
+        // The target prompt belongs to the recipient's granted effect. Subscription
+        // labels alone do not reach decisions opened by its nested Attack action.
+        if (attacksAtStartOfMainPhase) {
+          subCtx.activeTiming = "[Start of Your Main Phase]";
+          subCtx.activeEffectText = forcedAttackClause;
+        }
         for (const a of gainedActions) {
           const abort = await runAction(subCtx, a);
           if (abort) break;
