@@ -108,8 +108,12 @@ export interface EffectContext {
     count(instanceId: string, effectKey: string): number;
     register(instanceId: string, effectKey: string): void;
   };
-  /** Re-entrantly resolves the remaining effects from the current timing window. */
-  drainCurrentTimingWindow?: () => Promise<void>;
+  /**
+   * Re-entrantly resolves the current timing window. Only the completed pre-Counter
+   * attack drain retires its unactivatable remainder; ordinary drains leave it pending
+   * while an unfinished effect can still make a processing cost payable.
+   */
+  drainCurrentTimingWindow?: (options?: { retireUnactivatable?: boolean }) => Promise<void>;
   /**
    * Resume the remaining actions of this effect immediately after an effect-driven attack is
    * declared. Combat invokes this before declaration-triggered effects and before Counter Timing.

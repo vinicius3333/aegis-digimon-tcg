@@ -20,7 +20,7 @@ export interface ForceAttackOptions {
   afterAttackDeclaration?: () => Promise<void>;
   afterAttackTriggers?: () => Promise<void>;
   artsDigivolveOptionInstanceId?: string;
-  drainTimingWindow?: () => Promise<void>;
+  drainTimingWindow?: (options?: { retireUnactivatable?: boolean }) => Promise<void>;
   decisionProvenance?: AttackDecisionProvenance;
 }
 

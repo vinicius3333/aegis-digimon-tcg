@@ -310,7 +310,8 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
   let passBudget = MAX_RESOLUTION_PASSES;
   let stopAttempts = 0;
 
-  // A re-entrant drain runs inside an effect that may still create a legal outcome (Q2889), so
+  // A re-entrant drain runs inside an effect whose derived processing can still enable a
+  // pending effect (CR 15-4-3-4, 15-4-5-2/3), so
   // only the outermost drain, with nothing in progress, reports what stayed without one.
   const reportedWithoutLegalOutcome = new Set<string>();
   const reportWithoutLegalOutcome = (collectedThisPass: readonly CollectedEffect[]): void => {
@@ -330,7 +331,7 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
     }
   };
 
-  const drainCurrentTimingWindow = async (): Promise<void> => {
+  const drainCurrentTimingWindow = async (options?: { retireUnactivatable?: boolean }): Promise<void> => {
     while (true) {
       if (env.isGameOver()) return;
 
@@ -379,6 +380,15 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
         return activatable;
       });
       if (active.length === 0) {
+        // At the completed pre-Counter boundary the parent window is exhausted. A cost
+        // that becomes payable during security cannot revive this occurrence. Ordinary
+        // re-entrant drains leave it pending: an unfinished effect may still enable it.
+        if (options?.retireUnactivatable) {
+          for (const c of collectedThisPass) {
+            const key = declineKey(c);
+            if (!inProgress.has(key)) departed.add(key);
+          }
+        }
         if (inProgress.size === 0) reportWithoutLegalOutcome(collectedThisPass);
         return;
       }
@@ -545,7 +555,7 @@ async function resolveOne(
   timing: EffectTiming,
   plan: ResolutionPlan,
   onDeclined: () => void,
-  drainCurrentTimingWindow: () => Promise<void>,
+  drainCurrentTimingWindow: NonNullable<EffectContext["drainCurrentTimingWindow"]>,
 ): Promise<boolean> {
   const { source, effect } = collected;
   const ctx = env.makeContext(collected);

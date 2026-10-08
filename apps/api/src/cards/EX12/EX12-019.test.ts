@@ -9,6 +9,47 @@ import "../BT10/BT10-087.js";
 import "../BT16/BT16-042.js";
 
 describe("EX12-019 Nezhamon", () => {
+  it.each([false, true])(
+    "Discord 1557557257129037844: Engage first never revives Kakkinmon after checks (spare blocker=%s)",
+    async (spareBlocker) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "EX12-019", as: "nezha", under: ["P-245"] },
+              ...(spareBlocker ? [{ card: "ST5-08", as: "spare" }] : []),
+            ],
+            hand: ["BT1-009"],
+            deck: Array(12).fill("BT1-009"),
+          },
+          1: { security: ["BT1-009", "BT1-009"], deck: Array(12).fill("BT1-009") },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["EX12-019"] },
+      );
+      await s.ready();
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      const handBefore = s.state.players[0]!.hand.length;
+      const eventsBefore = s.events.length;
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await turn;
+
+      const events = s.events.slice(eventsBefore);
+      const check = events.findIndex((event) => event.kind === "securityChecked");
+      const kakkinmon = events.findIndex((event) => event.kind === "effectResolved" && event.sourceCardId === "P-245");
+      expect(check).toBeGreaterThanOrEqual(0);
+      expect(kakkinmon >= 0).toBe(spareBlocker);
+      expect(kakkinmon).toBeLessThan(check);
+      expect(
+        s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST5-08")?.isSuspended,
+      ).toBe(spareBlocker ? true : undefined);
+      expect(s.state.players[0]!.hand).toHaveLength(handBefore + (spareBlocker ? 1 : 0));
+      expect(s.perm("nezha").isSuspended).toBe(false);
+      expect(s.state.players[1]!.security).toHaveLength(1);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
   it("gains Digimon-source immunity and +4000 when an attack target switches, once per turn", async () => {
     const s = setupEngine({
       0: {

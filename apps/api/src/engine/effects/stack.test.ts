@@ -338,6 +338,50 @@ describe("resolveTiming: ordering and single-trigger resolution", () => {
     expect(optionalCalls).toBe(1);
   });
 
+  it.each([false, true])(
+    "only a completed attack drain retires an unpayable remainder (retire=%s)",
+    async (retireUnactivatable) => {
+      let payable = false;
+      const order: string[] = [];
+      const attack = fakeEffect("attack", {
+        onResolve: async (ctx) => {
+          await ctx.drainCurrentTimingWindow?.({ retireUnactivatable });
+          // Security can unsuspend the attacker's only cost target after this drain.
+          payable = true;
+          order.push("security");
+        },
+      });
+      const cost = fakeEffect("cost", {
+        canActivate: () => payable,
+        onResolve: () => order.push("cost"),
+      });
+      const { env } = envOver([collected(0, "a", attack), collected(0, "b", cost)]);
+      await resolveTiming(EffectTiming.EndOfYourTurn, env);
+      expect(order).toEqual(retireUnactivatable ? ["security"] : ["security", "cost"]);
+    },
+  );
+
+  it("keeps an initially unpayable cost pending while earlier effects can enable it", async () => {
+    let payable = false;
+    const order: string[] = [];
+    const attack = fakeEffect("attack", {
+      onResolve: async (ctx) => {
+        await ctx.drainCurrentTimingWindow?.({ retireUnactivatable: true });
+        order.push("security");
+      },
+    });
+    const cost = fakeEffect("cost", { canActivate: () => payable, onResolve: () => order.push("cost") });
+    const draw = fakeEffect("draw", {
+      onResolve: () => {
+        payable = true;
+        order.push("draw");
+      },
+    });
+    const { env } = envOver([collected(0, "a", attack), collected(0, "b", cost), collected(0, "c", draw)]);
+    await resolveTiming(EffectTiming.EndOfYourTurn, env);
+    expect(order).toEqual(["draw", "cost", "security"]);
+  });
+
   it("propagates a drained effect error and clears the outer effect's in-progress guard", async () => {
     const order: string[] = [];
     let shouldThrow = true;
