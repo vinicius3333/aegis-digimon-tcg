@@ -58,6 +58,7 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-ravemon-burst-hand",
   "arena-raid-after-dedigivolve",
   "arena-github5331-offense-hand",
   "arena-lanamon-tamer-cost",
@@ -1912,6 +1913,35 @@ function layBt26RavemonRecycledTriggerScenario(state: GameState, decks: readonly
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 8;
+}
+
+/** Discord 1557873736131154071: privately inspect the opponent hand during Burst Digivolution. */
+function layRavemonBurstHandScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    loadDeckInto(player, seat, decks[seat]);
+    clearZone(player, Zone.Hand);
+    clearBattleArea(player);
+    fillZone(
+      player,
+      Zone.Deck,
+      Array.from({ length: 20 }, (_, index) => faceDownCard(`ravemon-burst-deck-${seat}-${index}`, "BT1-009", seat)),
+    );
+    fillZone(player, Zone.Security, [
+      faceDownCard(`ravemon-burst-security-${seat}-0`, "ST1-07", seat),
+      faceDownCard(`ravemon-burst-security-${seat}-1`, "BT1-010", seat),
+    ]);
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT13-089"], "-ravemon-burst-host"));
+  placePermanent(human, establishedDigimon(0, ["BT13-102"], "-ravemon-burst-keenan"));
+  insertCard(human, Zone.Hand, faceDownCard("ravemon-burst-card", "BT13-092", 0));
+  insertCard(state.players[1]!, Zone.Hand, faceDownCard("ravemon-burst-hand-first", "BT1-009", 1));
+  insertCard(state.players[1]!, Zone.Hand, faceDownCard("ravemon-burst-hand-second", "BT1-010", 1));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /** GitHub #5299: face-up bottom security must remain behind the existing top. */
@@ -9255,6 +9285,7 @@ function layGithubEndTurnReportScenario(
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-ravemon-burst-hand": layRavemonBurstHandScenario,
   "arena-github5331-offense-hand": layGithub5331OffenseHandScenario,
   "arena-lanamon-tamer-cost": layLanamonTamerCostScenario,
   "arena-github5332-kekkomon-cost": layGithub5332KekkomonCostScenario,

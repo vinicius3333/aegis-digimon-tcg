@@ -4,6 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const enter: Action[] = [
   {
     kind: "Trash",
+    revealHand: true,
     target: { filter: { zone: "hand", controller: "opponent" }, count: 1 },
     condition: { kind: "opponentHas", filter: { zone: "battleArea", kind: ["Digimon"] }, countMax: 1 },
   },

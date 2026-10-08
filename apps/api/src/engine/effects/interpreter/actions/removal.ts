@@ -511,7 +511,14 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         // (the controller reaching into a hand, e.g. "trash 1 of your opponent's cards in
         // their hand") is unchanged.
         const asker = action.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
-        const visible = action.blind === true ? [] : undefined;
+        // Only an explicit printed look/search permission exposes an opponent hand.
+        // Blind selections take precedence and keep their opaque handles.
+        const visible =
+          action.blind === true
+            ? []
+            : action.revealHand === true
+              ? candidateLooseInstances(ctx, action.target, ["hand"]).map((card) => card.instanceId)
+              : undefined;
         let chosen: string[];
         if (action.target.untilHandSize !== undefined) {
           // "Trash cards from your hand until you have untilHandSize left" (BT20-077).

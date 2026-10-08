@@ -193,6 +193,7 @@ export interface AegisJoinOptions {
     | "arena-bt23-examon-piercing-end-turn"
     | import("@aegis/shared").KeywordPacingScenarioId
     | import("@aegis/shared").PhasePacingScenarioId
+    | "arena-ravemon-burst-hand"
     | "arena-github5331-offense-hand"
     | "arena-lanamon-tamer-cost"
     | "arena-github5332-kekkomon-cost"
