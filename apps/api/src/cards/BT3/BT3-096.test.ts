@@ -34,6 +34,8 @@ describe("BT3-096 Mimi Tachikawa", () => {
     );
     s.state.memory = 0;
 
+    await s.ready();
+
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -150,6 +152,8 @@ describe("BT3-096 Mimi Tachikawa — KB Q&A rulings", () => {
       },
     });
     s.state.memory = 0;
+
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hammerSpark").instanceId })).toEqual({
       ok: true,

@@ -80,6 +80,8 @@ describe("BT1-102 Blade of the True — KB Q&A rulings", () => {
     s.state.memory = 2;
     const option = s.inst("option");
 
+    await s.ready();
+
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: option.instanceId })).toEqual({ ok: true });
     await settle(
       () => s.state.players[0]!.trash.some((entry) => entry.instanceId === option.instanceId) && s.state.memory === 2,

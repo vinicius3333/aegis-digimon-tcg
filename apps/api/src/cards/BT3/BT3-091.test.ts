@@ -50,6 +50,8 @@ describe("BT3-091 Lilithmon", () => {
     );
     s.state.memory = 5;
 
+    await s.ready();
+
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -116,6 +118,8 @@ describe("BT3-091 Lilithmon — KB Q&A rulings", () => {
     const player = s.state.players[0] as PlayerState;
     const optionId = s.inst("option").instanceId;
     s.state.memory = 5;
+
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision !== undefined);

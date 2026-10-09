@@ -144,9 +144,9 @@ export interface EngineSetup {
   /** Put a permanent on the battle area mid-test. */
   putOnBoard(seat: Seat, spec: PermanentSpec | string): Permanent;
   /**
-   * Await the board's continuous recompute. `setupEngine` already starts one, and its
-   * installation work lands synchronously, so this is only needed by a test that wants the
-   * guarantee stated rather than relied upon — or that arranges more board mid-test.
+   * Install continuous effects after arranging the board, turn, and phase. `setupEngine`
+   * does not recompute them; await this before the first intent when the scenario needs
+   * a hand-laid board's auras, replacements, or event watchers.
    */
   ready(): Promise<void>;
 }

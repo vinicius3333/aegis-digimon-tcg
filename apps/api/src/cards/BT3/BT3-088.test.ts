@@ -44,6 +44,8 @@ describe("BT3-088 LadyDevimon", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 3;
+    await s.ready();
+
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
@@ -117,6 +119,8 @@ describe("BT3-088 LadyDevimon — KB Q&A rulings", () => {
     );
     s.state.memory = 3;
     const optionId = s.inst("spiderShooter").instanceId;
+    await s.ready();
+
     expect(s.perm("target").topCard.cardId).toBe("BT3-083");
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });

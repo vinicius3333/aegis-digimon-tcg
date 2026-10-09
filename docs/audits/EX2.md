@@ -4418,6 +4418,8 @@ Remaining gate: coordinator focused EX2-071 suite and final quality gates.
 
 ### EX2-072 — Blue Card
 
+Regression verification (2026-10-08): The Renamon-to-Kyubimon case charges the catalog use cost of 3. Renamon acquires its inherited Option-use watcher during Main, after the use event, so this newly acquired effect cannot refund that same Option (CR 9-1-9; Q3305/Q5422; `prepareOptionUsed`). Bonus draw, revealed cards, and remaining deck assertions are retained. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/EX2/EX2-072.test.ts --maxWorkers=1 --no-file-parallelism`. No card IR or engine behavior changed.
+
 #### Scope and source evidence
 
 EX2-072 is a white Option with play cost 3 and no evolution cost. Its catalog

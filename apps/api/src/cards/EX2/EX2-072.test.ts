@@ -218,7 +218,9 @@ describe("EX2-072 Blue Card", () => {
 
     expect(s.perm("renamon").topCard.cardId).toBe("EX2-021");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
-    expect(s.state.memory).toBe(memoryBefore - 2);
+    // Renamon gains its inherited watcher during this Option's Main effect,
+    // after the use event; it cannot refund this Blue Card's printed cost of 3.
+    expect(s.state.memory).toBe(memoryBefore - 3);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX2-066");
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toHaveLength(3);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(

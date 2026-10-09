@@ -479,17 +479,16 @@ async function opponentBagramonPlacesBoutmonUnderAnotherDigimon(): Promise<Engin
   await s.ready();
 
   void advance(s.engine).fire(EffectTiming.OnPlay, s.perm("bagramon"));
-  for (const alias of ["boutmon", "otherDigimon"]) {
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-    const choice = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(1, {
-        type: "respondDecision",
-        decisionId: choice.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [s.perm(alias).permanentId] },
-      }),
-    ).toEqual({ ok: true });
-  }
+  await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+  const choice = s.state.pendingDecision!;
+  expect(
+    s.engine.applyIntent(1, {
+      type: "respondDecision",
+      decisionId: choice.decisionId,
+      response: { kind: "chooseTargets", instanceIds: [s.perm("boutmon").permanentId] },
+    }),
+  ).toEqual({ ok: true });
+  // The only other Digimon is selected as the host without a second prompt.
   await settle(() => s.state.pendingDecision === undefined);
   await drainMicrotasks();
   return s;

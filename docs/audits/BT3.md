@@ -2081,6 +2081,8 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-
 
 ### BT3-088 — LadyDevimon
 
+Regression verification (2026-10-08): Q1110 and the inherited deletion case initialize the arranged board with `ready()` before Option use. The existing positive, timing, once-per-turn, and Delay negative assertions are retained. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/BT3/BT3-088.test.ts --maxWorkers=1 --no-file-parallelism`. No card IR or engine behavior changed.
+
 Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-088.test.ts`.
 
 2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-088.test.ts` contains “draws two then trashes two cards”; “deletes an opposing level 3 when its host uses an Option”; “allows the inherited Option-use deletion once per turn and resets on the next own turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
@@ -2134,6 +2136,8 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-
 - **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-091 — Lilithmon
+
+Regression verification (2026-10-08): Q1117 and the first Option-use case initialize the arranged board with `ready()` before Option use. The existing 2-memory, after-Main timing, once-per-turn, and Security/Delay negative assertions are retained. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/BT3/BT3-091.test.ts --maxWorkers=1 --no-file-parallelism`. No card IR or engine behavior changed.
 
 Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-091.test.ts`.
 
@@ -2351,6 +2355,8 @@ No evolution stack is needed for this Tamer's condition.
 No unresolved implementation ambiguity was found.
 
 ### BT3-096 — Mimi Tachikawa
+
+Regression verification (2026-10-08): Q1127 and the first Option-use case initialize the arranged board with `ready()` before Option use. The unchanged assertions prove suspension and memory gain after Main, including the optional decision. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/BT3/BT3-096.test.ts --maxWorkers=1 --no-file-parallelism`. No card IR or engine behavior changed.
 
 Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-096.test.ts`.
 

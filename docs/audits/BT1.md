@@ -5769,6 +5769,8 @@ not run; delivery gates remain unreleased.
 
 ### BT1-102 — Blade of the True
 
+Regression verification (2026-10-08): Q966 now initializes the arranged board with `ready()` before using the Option. The unchanged assertions prove no draw with one security card while the preexisting Lilithmon still gains 2 memory. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/BT1/BT1-102.test.ts --maxWorkers=1 --no-file-parallelism`. No card IR or engine behavior changed.
+
 Score: 8/10. ActivateMain Security correction with red/green proof and exact suspend boundaries; focused green; collection/typecheck/style/diff gates green. Source: `docs/audits/BT1-REAUDIT-LEDGER.md`, 2026-09-10.
 Static pass score: 10/10 (`docs/audits/BT1-STATIC-AUDIT.md`, 2026-09-02).
 
