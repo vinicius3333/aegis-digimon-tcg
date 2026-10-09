@@ -85715,7 +85715,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "underFilter": {
               "controller": "mine",
-              "zone": "breeding",
+              "zone": "battleArea",
               "nameOrTrait": [{ "tokens": ["Mother Eater"], "match": "name" }]
             },
             "position": "bottom"

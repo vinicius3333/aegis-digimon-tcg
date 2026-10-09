@@ -87,7 +87,7 @@ export const compiled: CompiledCard = {
           },
           underFilter: {
             controller: "mine",
-            zone: "breeding",
+            zone: "battleArea",
             nameOrTrait: [
               {
                 tokens: ["Mother Eater"],
