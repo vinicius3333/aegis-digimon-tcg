@@ -17,6 +17,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-growlmon-deletion-5361": {
+    en: "#5361: End breeding. Evolve Growlmon into Growlmon (X Antibody) for 0, then trash a non-Guilmon card after drawing. Attack the opponent's security: the 12000 DP Digimon deletes your 6000 DP attacker. Accept its gained On Deletion and choose the Guilmon that just entered trash from its stack; Guilmon is played for free. Reset and decline to leave Guilmon in trash. A Guilmon held only in hand cannot be chosen.",
+    ptBR: "#5361: Encerre a criação. Evolua Growlmon para Growlmon (X Antibody) por 0 e descarte uma carta sem Guilmon no nome depois da compra. Ataque a segurança adversária: o Digimon de 12000 DP deleta seu atacante de 6000 DP. Aceite o Ao Deletar recebido e escolha o Guilmon que acabou de ir da pilha ao lixo; ele entra em campo sem custo. Reinicie e recuse para deixar Guilmon no lixo. Guilmon apenas na mão não pode ser escolhido.",
+  },
   "arena-ravemon-burst-hand": {
     ptBR: "Faça Burst Digivolve de Ravemon em Ravemon: Burst Mode por 0, devolvendo Keenan Crier à mão. Veja as duas cartas da mão adversária e escolha uma para descartar. A carta escolhida vai ao lixo e o topo da segurança adversária vai à mão, sem revelar sua identidade.",
     en: "Burst Digivolve Ravemon into Ravemon: Burst Mode for 0 by returning Keenan Crier to hand. Inspect both opponent hand cards and choose one to trash. The chosen card enters trash, then the opponent adds top security to hand without revealing its identity.",
@@ -2418,6 +2422,7 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-growlmon-deletion-5361", "#5361 Growlmon X · security deletion / stack Guilmon"],
   ["arena-ravemon-burst-hand", "Ravemon: Burst Mode · inspect opponent hand"],
   ["arena-github5326-sistermon-zero-security", "GitHub #5326 · Sistermon Blanc / zero security control"],
   ["arena-lanamon-tamer-cost", "GitHub #5340 · Lanamon Tamer cost"],

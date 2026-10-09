@@ -344,8 +344,12 @@ export function ex4CardBehaviorTests(cardId: string): void {
         expect(observe(s.engine).subscriptions("onDeletionOf", s.perm("subject").permanentId)).toHaveLength(1);
         expect(observe(s.engine).subscriptions("onDeletionOf", s.perm("ally").permanentId)).toHaveLength(1);
         expect(observe(s.engine).subscriptions("onDeletionOf", s.perm("highAlly").permanentId)).toHaveLength(0);
+        const replayInstanceId = s.perm("subject").topCard.instanceId;
         await advance(s.engine).verb.deletePermanent([s.perm("subject").permanentId], "byEffect");
-        expect(s.state.players[0]!.trash.some((card) => card.cardId === cardId)).toBe(true);
+        expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === replayInstanceId)).toBe(
+          true,
+        );
+        expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === replayInstanceId)).toBe(false);
         return;
       case "EX4-060":
         s = setupEngine(

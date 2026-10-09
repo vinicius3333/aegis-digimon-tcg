@@ -1,12 +1,117 @@
-import { digivolutionRequirementsFor, getCardDefinition, Phase } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition, Phase, type Seat } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { settle, settleAcrossTimers, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../ST1/ST1-16.js";
 import { compiled } from "./EX8-012.js";
 import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("EX8-012", () => {
+  for (const seat of [0, 1] as const) {
+    it.each([
+      { mode: "trash", recovers: true },
+      { mode: "discarded", recovers: true },
+      { mode: "stack", recovers: true },
+      { mode: "xAntibody", recovers: true },
+      { mode: "handOnly", recovers: false },
+      { mode: "noGate", recovers: false },
+      { mode: "decline", recovers: false },
+      { mode: "survives", recovers: false },
+    ])(
+      "#5361 seat " + seat + ": security battle recovery with $mode Guilmon eligibility",
+      async ({ mode, recovers }) => {
+        const opponent: Seat = seat === 0 ? 1 : 0;
+        const alternate = mode !== "noGate" && mode !== "xAntibody";
+        const preferInstanceIds: string[] = [];
+        const s = setupEngine(
+          {
+            [seat]: {
+              battleArea: [
+                {
+                  card: alternate ? "BT2-013" : "BT1-009",
+                  as: "growlmon",
+                  under:
+                    mode === "stack" ? [{ card: "EX8-009", as: "guilmon" }] : mode === "xAntibody" ? ["BT9-109"] : [],
+                },
+              ],
+              hand: [
+                { card: "EX8-012", as: "xGrowlmon" },
+                { card: "BT1-010", as: "discard" },
+                ...(mode === "handOnly" || mode === "discarded" ? [{ card: "EX8-009", as: "guilmon" }] : []),
+              ],
+              trash:
+                mode === "stack" || mode === "handOnly" || mode === "discarded"
+                  ? []
+                  : [{ card: "EX8-009", as: "guilmon" }],
+              deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+            },
+            [opponent]: {
+              security: [{ card: mode === "survives" ? "BT1-009" : "BT1-084", as: "securityDigimon" }, "BT1-010"],
+            },
+          },
+          {
+            autoAcceptOptional: mode !== "decline",
+            autoDeclineOptional: mode === "decline",
+            autoSelectCards: true,
+            preferInstanceIds,
+          },
+        );
+        s.state.turnSeat = seat;
+        s.state.memory = alternate ? 0 : 10;
+        await s.ready();
+        preferInstanceIds.push(s.inst(mode === "discarded" ? "guilmon" : "discard").instanceId);
+        const attackerId = s.perm("growlmon").permanentId;
+        expect(
+          s.engine.applyIntent(seat, {
+            type: "digivolve",
+            permanentId: attackerId,
+            instanceId: s.inst("xGrowlmon").instanceId,
+            useAlternateCost: alternate,
+          }),
+        ).toEqual({ ok: true });
+        await settleAcrossTimers(
+          () =>
+            s.state.players[seat]!.trash.some(({ instanceId }) => instanceId === preferInstanceIds[0]) &&
+            s.state.pendingDecision === undefined,
+        );
+        expect(s.state.memory).toBe(alternate ? 0 : 7);
+        expect(s.state.players[seat]!.hand).toHaveLength(mode === "handOnly" || mode === "discarded" ? 3 : 2);
+        expect(s.state.players[seat]!.hand.some(({ instanceId }) => instanceId === s.inst("guilmon").instanceId)).toBe(
+          mode === "handOnly",
+        );
+
+        expect(
+          s.engine.applyIntent(seat, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+        ).toEqual({ ok: true });
+        await settleAcrossTimers(
+          () => s.events.some(({ kind }) => kind === "attackEnded") && s.state.pendingDecision === undefined,
+        );
+        expect(
+          s.state.players[seat]!.trash.some(({ instanceId }) => instanceId === s.inst("xGrowlmon").instanceId),
+        ).toBe(mode !== "survives");
+        expect(s.state.players[seat]!.battleArea.some(({ permanentId }) => permanentId === attackerId)).toBe(
+          mode === "survives",
+        );
+        expect(s.state.players[seat]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual(
+          recovers ? [s.inst("guilmon").instanceId] : mode === "survives" ? [s.inst("xGrowlmon").instanceId] : [],
+        );
+        expect(s.state.players[seat]!.trash.some(({ instanceId }) => instanceId === s.inst("guilmon").instanceId)).toBe(
+          !recovers && mode !== "handOnly",
+        );
+        expect(s.state.players[opponent]!.security).toHaveLength(1);
+        expect(
+          s.state.players[opponent]!.trash.some(
+            ({ instanceId }) => instanceId === s.inst("securityDigimon").instanceId,
+          ),
+        ).toBe(true);
+        expect(s.state.players[opponent]!.battleArea).toHaveLength(0);
+        expect(s.events.filter(({ kind }) => kind === "securityChecked")).toHaveLength(1);
+        expect(observe(s.engine).isAttacking()).toBe(false);
+      },
+    );
+  }
+
   it("matches the catalog identity and every printed text field", () => {
     expect(getCardDefinition("EX8-012")).toMatchObject({
       cardId: "EX8-012",
