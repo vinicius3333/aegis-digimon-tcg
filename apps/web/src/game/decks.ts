@@ -11,6 +11,7 @@ import {
   type CardDefinition,
   type DeckFormat,
   formatCopyLimit,
+  isDeckFormat,
   type FamousDeck,
 } from "@aegis/shared";
 import { colorKey, kindOf, type ColorName } from "../design/theme";
@@ -94,7 +95,21 @@ export interface FamousDeckListingGroup {
   decks: readonly DeckListing[];
 }
 
+function exceedsStandardCopyLimits(cards: readonly string[]): boolean {
+  const counts = new Map<string, number>();
+  for (const cardId of cards) counts.set(cardId, (counts.get(cardId) ?? 0) + 1);
+  return [...counts].some(([cardId, count]) => count > formatCopyLimit(cardId, "standard"));
+}
+
+/** A preset that later restrictions made illegal stays playable under its anchor set's historical rules. */
+function famousDeckFormat(deck: FamousDeck): DeckFormat | undefined {
+  const cards = [...deck.decklist.mainDeck, ...deck.decklist.eggDeck];
+  if (!exceedsStandardCopyLimits(cards) || !isDeckFormat(deck.anchorProduct)) return undefined;
+  return deck.anchorProduct;
+}
+
 function famousDeckListing(deck: FamousDeck): DeckListing {
+  const format = famousDeckFormat(deck);
   const coverCardId = [...deck.decklist.mainDeck]
     .reverse()
     .find((cardId) => getCardDefinition(cardId)?.level !== undefined);
@@ -106,6 +121,7 @@ function famousDeckListing(deck: FamousDeck): DeckListing {
     mainDeck: [...deck.decklist.mainDeck],
     eggDeck: [...deck.decklist.eggDeck],
     coverCardId,
+    ...(format ? { format } : {}),
   };
 }
 
