@@ -205,6 +205,7 @@ export interface AegisJoinOptions {
     | "arena-field-grouping-dense"
     | "arena"
     | "arena-match-timer"
+    | "arena-chronomon-engage-order"
     | "arena-aegiochus-dark-assembly"
     | "arena-mervamon-effect-assembly"
     | "arena-alliance-20"

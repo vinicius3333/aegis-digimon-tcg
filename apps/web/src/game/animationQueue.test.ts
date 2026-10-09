@@ -20,6 +20,30 @@ function recorder() {
 }
 
 describe("animation queue", () => {
+  it("filtered catch-up preserves running and later security beats until an explicit skip", async () => {
+    const { log, step } = recorder();
+    const queue = createAnimationQueue();
+    queue.enqueue(step("security-first", 100));
+    queue.enqueue(step("cosmetic", 100));
+    await vi.advanceTimersByTimeAsync(0);
+    queue.skip((candidate) => !candidate.id.startsWith("security-"));
+    queue.enqueue(step("security-second", 100));
+    await vi.advanceTimersByTimeAsync(99);
+    expect(log).toEqual(["security-first:start"]);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(log).toEqual([
+      "security-first:start",
+      "security-first:end",
+      "cosmetic:start",
+      "cosmetic:end",
+      "security-second:start",
+    ]);
+    await vi.advanceTimersByTimeAsync(99);
+    expect(log).not.toContain("security-second:end");
+    queue.skip();
+    await queue.idle();
+    expect(log.at(-1)).toBe("security-second:end");
+  });
   it("reports replaced queued steps, cancelled running steps and fast-forwarded completion", async () => {
     const events: import("./animationQueue").AnimationStepEvent[] = [];
     const { step } = recorder();

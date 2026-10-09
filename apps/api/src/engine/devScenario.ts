@@ -196,6 +196,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-field-grouping-dense",
   "arena",
   "arena-match-timer",
+  "arena-chronomon-engage-order",
   "arena-aegiochus-dark-assembly",
   "arena-alliance-20",
   "arena-marcus-alliance",
@@ -9693,6 +9694,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-field-grouping-dense": layDenseFieldGroupingScenario,
   arena: layArenaScenario,
   "arena-match-timer": layMatchTimerScenario,
+  "arena-chronomon-engage-order": layChronomonEngageOrderScenario,
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,
   "arena-marcus-alliance": layMarcusAllianceScenario,
@@ -9986,4 +9988,22 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
 
 export function layDevScenario(scenario: DevScenarioId, state: GameState, decks: readonly [Decklist, Decklist]): void {
   LAYOUTS[scenario](state, decks);
+}
+
+// Discord 1557926494536466514: first security must be shown before Engage.
+function layChronomonEngageOrderScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 2);
+  for (const seat of [0, 1] as const) {
+    const p = state.players[seat]!;
+    for (const zone of [Zone.Hand, Zone.Trash, Zone.Deck, Zone.Security] as const) clearZone(p, zone);
+    for (let i = 0; i < 20; i++) insertCard(p, Zone.Deck, faceDownCard(`engage-deck-${seat}-${i}`, "BT1-009", seat));
+    for (let i = 0; i < 5; i++) insertCard(p, Zone.Security, faceDownCard(`engage-sec-${seat}-${i}`, "BT1-009", seat));
+  }
+  const p = state.players[0]!;
+  placePermanent(p, establishedDigimon(0, ["BT26-001", "BT26-009", "BT26-013"], "-engage-host"));
+  insertCard(p, Zone.Hand, faceDownCard("engage-buten", "BT26-015", 0));
+  insertCard(p, Zone.Hand, faceDownCard("engage-holy", "BT26-016", 0));
+  for (let i = 0; i < 6; i++) insertCard(p, Zone.Hand, faceDownCard(`engage-filler-${i}`, "BT1-009", 0));
+  for (let i = 0; i < 4; i++) insertCard(p, Zone.Trash, faceUpCard(`engage-trash-${i}`, "BT1-009", 0));
+  placePermanent(state.players[1]!, establishedDigimon(1, ["BT1-010"], "-engage-opponent"));
 }

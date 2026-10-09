@@ -443,7 +443,7 @@ export function GameScreen({
   // an answer the server refused.
   const mirroredWindow = state ? mirroredCombatWindow(state, viewerSeat) : null;
   const decisionPendingForViewer = decision?.seat === viewerSeat && decision.kind !== "mulligan";
-  const timedViewerAnswer =
+  const timedViewerQuestion =
     state?.matchTimer === true && (decisionPendingForViewer || openCombatWindowForBarrier !== null);
 
   // Every cue the server provokes: sounds, panels, banners, the security clash,
@@ -467,6 +467,9 @@ export function GameScreen({
       ? decision.stateVersion
       : (openCombatWindowForBarrier?.stateVersion ?? undefined),
     ...(decisionPendingForViewer && decision.sourceCardId ? { decisionSourceCardId: decision.sourceCardId } : {}),
+    ...(decisionPendingForViewer && typeof decision.options?.timing === "string"
+      ? { decisionTiming: decision.options.timing }
+      : {}),
     targetDecision:
       decisionPendingForViewer &&
       isFieldTargetDecision(
@@ -511,6 +514,9 @@ export function GameScreen({
   });
   // Answering on the live board also requires live cards: presentation holds can
   // hide a newly played target or paint a security reveal over the selection.
+  // An end-of-turn answer belongs after the preceding attack. Keep its finite
+  // security scene visible before offering Engage, even when the match is timed.
+  const timedViewerAnswer = timedViewerQuestion && !presentationCues.securityRevealPending;
   const cues = timedViewerAnswer
     ? {
         ...presentationCues,

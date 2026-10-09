@@ -26,6 +26,8 @@ export type SecurityClashResolution = "pending" | "battle" | "effect" | "trashed
 
 /** The attack the check belongs to, remembered from the last `attackDeclared`. */
 export interface SecurityClashAttacker {
+  /** Its effect-directed declaration must reach the board before its check starts. */
+  presentationReady?: import("./match/presentationGate").PresentationGate;
   /** A rapid declaration can close in the server log before its check is painted. */
   attackArrow?: TrackingArrow;
   seat: Seat;

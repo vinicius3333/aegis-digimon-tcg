@@ -132,6 +132,7 @@ export function useMatchCues({
   narrationLimit = NARRATION_QUEUE_LIMIT,
   decisionStateVersion,
   decisionSourceCardId,
+  decisionTiming,
   targetDecision,
   anchors,
   onActionRejected,
@@ -169,6 +170,8 @@ export function useMatchCues({
   decisionStateVersion?: number;
   /** The card whose effect the viewer's open decision is about, when it names one. */
   decisionSourceCardId?: string;
+  /** End-of-turn choices follow the preceding attack's security presentation. */
+  decisionTiming?: string;
   /** A new clause waits for this viewer-owned field-target selection to be confirmed. */
   targetDecision?: DecisionRequest | undefined;
   anchors: MatchCueAnchors;
@@ -1258,21 +1261,32 @@ export function useMatchCues({
   // may be almost empty. Catch the board up and release the security hold as soon
   // as the question arrives, without asking the server for additional free time.
   const timedDecisionPending = state?.matchTimer === true && decisionPending;
+  const timedSecurityPending = timedDecisionPending && decisionTiming === "EndOfYourTurn" && pendingRevealKey !== null;
   useEffect(() => {
     if (!timedDecisionPending) return;
     const revision = decisionStateVersion ?? state?.stateVersion;
     if (revision !== undefined) progress.raiseFloor(revision);
-    if (pendingRevealKey !== null) {
+    if (pendingRevealKey !== null && decisionTiming !== "EndOfYourTurn") {
       handOverSecurityBlow(pendingRevealKey);
       const held = securityHoldRef.current;
       if (held?.key === pendingRevealKey) held.handedOver = true;
       setPendingRevealKey(null);
     }
     setDecisionBarrier(null);
-    fastForward();
+    // Catch up cosmetic tracks without truncating a security verdict or a later
+    // check queued before those tracks become idle. Explicit user skips stay broad.
+    fastForwardWithFilter((step) => !step.id.startsWith("security-"));
     // The queue and progress are stable; the other helpers read current refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timedDecisionPending, decisionStateVersion, state?.stateVersion, pendingRevealKey, queue, progress]);
+  }, [
+    timedDecisionPending,
+    decisionTiming,
+    decisionStateVersion,
+    state?.stateVersion,
+    pendingRevealKey,
+    queue,
+    progress,
+  ]);
 
   useDpPulses({
     state,
@@ -1441,16 +1455,20 @@ export function useMatchCues({
    * to be read is dropped rather than narrated. The match log keeps all of them, so a
    * player who asked to fast-forward loses nothing they cannot read back.
    */
-  function fastForward() {
+  function fastForwardWithFilter(eligible?: (step: AnimationStep) => boolean) {
     presentationTelemetry.countSkip();
     narrationSkipRef.current = true;
     targetClausesRef.current.clear();
+    effectSequence.skipClauses();
     narrationPhaseOrdersRef.current.clear();
     setNarration(new Map());
-    queue.skip();
+    queue.skip(eligible);
     void queue.idle().then(() => {
       narrationSkipRef.current = false;
     });
+  }
+  function fastForward() {
+    fastForwardWithFilter();
   }
   fastForwardRef.current = fastForward;
 
@@ -1581,9 +1599,10 @@ export function useMatchCues({
     securityBreak,
     securityBranch,
     optionBranch,
-    securityRevealPending: pendingRevealKey !== null && !timedDecisionPending,
+    securityRevealPending: pendingRevealKey !== null && (!timedDecisionPending || timedSecurityPending),
     decisionBarrierPending: decisionBarrier !== null && !timedDecisionPending,
-    decisionAnimationsPending: decisionAnimationsPending && !decisionStalled && !timedDecisionPending,
+    decisionAnimationsPending:
+      timedSecurityPending || (decisionAnimationsPending && !decisionStalled && !timedDecisionPending),
     presentedStateVersion,
     presenting: presentedStateVersion !== undefined || pendingPhaseBanners > 0,
     resultPending,

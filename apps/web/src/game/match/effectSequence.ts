@@ -214,6 +214,8 @@ export interface EffectSequence {
   deferClause(notice: object): void;
   /** The clause is on screen, including an own-card toast returned after its dialog. */
   showClause(notice: object | undefined): void;
+  /** Discarded clauses cannot be owed again when their answered effect resumes. */
+  skipClauses(): void;
   /** A returned clause, or the same effect's dialog still open, makes its resume readable. */
   resumedClauseReady(unit: EffectUnit, decisionPending: boolean): PresentationGate;
   /**
@@ -472,6 +474,10 @@ export function createEffectSequence(options: EffectSequenceOptions = {}): Effec
     },
     showClause(notice) {
       if (notice) notices.get(notice)?.clauseVisible.release();
+    },
+    skipClauses() {
+      for (const unit of new Set([...open, ...pending])) unit.clauseVisible.release();
+      for (const ready of resumedClauses.values()) ready.release();
     },
     resumedClauseReady(unit, decisionPending) {
       const ready = createPresentationGate();

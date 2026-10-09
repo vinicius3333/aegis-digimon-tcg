@@ -108,8 +108,8 @@ export interface AnimationStepEvent {
 export interface AnimationQueue {
   /** A single step, or an array run as one parallel group on the first step's track. */
   enqueue(step: AnimationStep | readonly AnimationStep[]): void;
-  /** Fast-forward: collapse every skippable wait until the queue runs dry. */
-  skip(): void;
+  /** Fast-forward eligible waits until idle; a filter can preserve selected scenes. */
+  skip(eligible?: (step: AnimationStep) => boolean): void;
   setMode(mode: AnimationQueueMode): void;
   getMode(): AnimationQueueMode;
   /** Cancel everything in flight and drop what is queued behind it. */
@@ -189,6 +189,7 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
   const idleResolvers: (() => void)[] = [];
   let mode: AnimationQueueMode = options.mode ?? "live";
   let fastForward = false;
+  let skipEligible: ((step: AnimationStep) => boolean) | undefined;
   let rate = 1;
   let paused = false;
   let stepPermit = false;
@@ -207,17 +208,21 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
     return step.mode ?? mode;
   }
 
+  function skipping(step: AnimationStep): boolean {
+    return fastForward && (skipEligible?.(step) ?? true);
+  }
+
   function collapses(step: AnimationStep, run: StepRun): boolean {
     const stepMode = modeOf(step);
     if (run.cancelled || stepMode === "replay") return true;
-    return isSkippable(step) && (stepMode === "drain" || fastForward);
+    return isSkippable(step) && (stepMode === "drain" || skipping(step));
   }
 
   function contextFor(step: AnimationStep, run: StepRun): AnimationStepContext {
     return {
       signal: run.cancellation.signal,
       get skipping() {
-        return fastForward;
+        return skipping(step);
       },
       get paused() {
         return frozen(run);
@@ -285,8 +290,9 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
     for (const waiter of [...run.waiters]) if (!skippableOnly || waiter.skippable) waiter.settle();
   }
 
-  function releaseWaiters(skippableOnly: boolean) {
-    for (const track of tracks.values()) for (const run of track.running) settleWaiters(run, skippableOnly);
+  function releaseWaiters(skippableOnly: boolean, eligible?: (step: AnimationStep) => boolean) {
+    for (const track of tracks.values())
+      for (const run of track.running) if (eligible?.(run.step) ?? true) settleWaiters(run, skippableOnly);
   }
 
   function cancelTrack(track: Track) {
@@ -302,7 +308,7 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
           phase: "dropped",
           mode: modeOf(step),
           cancelled: true,
-          skipping: fastForward,
+          skipping: skipping(step),
           failed: false,
         });
       }
@@ -334,6 +340,7 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
   function announceIdle() {
     if (!isIdle()) return;
     fastForward = false;
+    skipEligible = undefined;
     const resolvers = idleResolvers.splice(0, idleResolvers.length);
     for (const resolve of resolvers) resolve();
   }
@@ -370,7 +377,7 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
               phase: "started",
               mode: modeOf(step),
               cancelled: false,
-              skipping: fastForward,
+              skipping: skipping(step),
               failed,
             });
             try {
@@ -388,7 +395,7 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
                 durationMs: performance.now() - started,
                 mode: modeOf(step),
                 cancelled: run.cancelled,
-                skipping: fastForward,
+                skipping: skipping(step),
                 failed,
               });
             }
@@ -430,15 +437,16 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
           phase: "queued",
           mode: modeOf(candidate),
           cancelled: false,
-          skipping: fastForward,
+          skipping: skipping(candidate),
           failed: false,
         });
       void runTrack(name, track);
       options.onChange?.();
     },
-    skip() {
+    skip(eligible) {
       fastForward = true;
-      releaseWaiters(true);
+      skipEligible = eligible;
+      releaseWaiters(true, eligible);
     },
     setMode(next) {
       mode = next;
