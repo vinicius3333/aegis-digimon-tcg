@@ -1,11 +1,226 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, Phase, type Seat } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "../index.js";
 
 describe("EX12-006 Kakamon", () => {
+  describe("GitHub #5351 public start-of-main decisions", () => {
+    for (const seat of [0, 1] as const) {
+      for (const memory of [-1, 2]) {
+        it(`draws and gains memory at seat ${seat}, resolving relative gauge ${memory}`, async () => {
+          const s = setupEngine({
+            [seat]: {
+              battleArea: [{ card: "EX12-006", as: "source" }],
+              hand: [
+                { card: "EX12-022", as: "cost" },
+                { card: "BT1-009", as: "wrong" },
+              ],
+              deck: ["BT1-010", "BT1-011", "BT1-012"],
+            },
+          });
+          s.state.turnSeat = seat;
+          s.state.isFirstPlayersFirstTurn = false;
+          s.state.memory = 2;
+          const loop = s.engine.startTurnLoop();
+          try {
+            await advance(s.engine).waitForMainPhase(seat);
+            const pending = s.state.pendingDecision!;
+            const request = s.decisions.at(-1)!.req;
+            expect(pending.kind).toBe("selectCards");
+            expect(request.sourceCardId).toBe("EX12-006");
+            expect(request.seat).toBe(seat);
+            expect(request.options).toMatchObject({
+              min: 0,
+              max: 1,
+              candidateInstanceIds: [s.inst("cost").instanceId],
+            });
+            // Supplemental gauge boundary: a negative opening gauge skips Main legally.
+            // Set the sign only once the real start-of-main resolution is awaiting input.
+            s.state.memory = memory;
+            expect(
+              s.engine.applyIntent(seat === 0 ? 1 : 0, {
+                type: "respondDecision",
+                decisionId: pending.decisionId,
+                response: { kind: "selectCards", instanceIds: [s.inst("cost").instanceId] },
+              }),
+            ).toMatchObject({ ok: false });
+            expect(
+              s.engine.applyIntent(seat, {
+                type: "respondDecision",
+                decisionId: pending.decisionId,
+                response: { kind: "selectCards", instanceIds: [s.inst("cost").instanceId] },
+              }),
+            ).toEqual({ ok: true });
+            await advance(s.engine).waitForMainPhase(seat);
+            expect(s.state.pendingDecision).toBeUndefined();
+            expect(s.state.players[seat]!.trash.map((card) => card.instanceId)).toEqual([s.inst("cost").instanceId]);
+            expect(s.state.players[seat]!.hand.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010", "BT1-011"]);
+            expect(s.state.players[seat]!.deck.map((card) => card.cardId)).toEqual(["BT1-012"]);
+            expect(s.state.memory).toBe(memory + 1);
+            expect(s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "gainMemory")).toEqual(
+              [{ kind: "memoryChanged", from: memory, to: memory + 1, reason: "gainMemory" }],
+            );
+          } finally {
+            s.engine.applyIntent(seat, { type: "surrender" });
+            await loop;
+          }
+        });
+      }
+
+      for (const response of ["decline", "nonSW"] as const) {
+        it(`gets neither benefit for public ${response} cost response at seat ${seat}`, async () => {
+          const s = setupEngine({
+            [seat]: {
+              battleArea: ["EX12-006"],
+              hand: [
+                { card: "EX12-022", as: "cost" },
+                { card: "BT1-009", as: "wrong" },
+              ],
+              deck: ["BT1-010", "BT1-011", "BT1-012"],
+            },
+          });
+          s.state.turnSeat = seat;
+          s.state.isFirstPlayersFirstTurn = false;
+          s.state.memory = 2;
+          const loop = s.engine.startTurnLoop();
+          try {
+            await advance(s.engine).waitForMainPhase(seat);
+            expect(
+              s.engine.applyIntent(seat, {
+                type: "respondDecision",
+                decisionId: s.state.pendingDecision!.decisionId,
+                response: {
+                  kind: "selectCards",
+                  instanceIds: response === "decline" ? [] : [s.inst("wrong").instanceId],
+                },
+              }),
+            ).toEqual({ ok: true });
+            await advance(s.engine).waitForMainPhase(seat);
+            expect(s.state.pendingDecision).toBeUndefined();
+            expect(s.state.players[seat]!.trash).toHaveLength(0);
+            expect(s.state.players[seat]!.hand.map((card) => card.cardId)).toEqual(["EX12-022", "BT1-009", "BT1-010"]);
+            expect(s.state.players[seat]!.deck.map((card) => card.cardId)).toEqual(["BT1-011", "BT1-012"]);
+            expect(s.state.memory).toBe(2);
+          } finally {
+            s.engine.applyIntent(seat, { type: "surrender" });
+            await loop;
+          }
+        });
+      }
+
+      for (const blocker of ["BT3-077", "BT6-021"]) {
+        for (const location of ["opponent", "mine", "breeding"] as const) {
+          it(`draws with ${blocker} in ${location} at seat ${seat}; only opposing battle-area effects block memory`, async () => {
+            const opponent: Seat = seat === 0 ? 1 : 0;
+            const s = setupEngine({
+              [seat]: {
+                battleArea: ["EX12-006", ...(location === "mine" ? [blocker] : [])],
+                hand: [{ card: "EX12-022", as: "cost" }],
+                deck: ["BT1-010", "BT1-011", "BT1-012"],
+              },
+              [opponent]:
+                location === "breeding"
+                  ? { breeding: blocker }
+                  : {
+                      battleArea: location === "opponent" ? [blocker] : [],
+                    },
+            });
+            s.state.turnSeat = seat;
+            s.state.isFirstPlayersFirstTurn = false;
+            s.state.memory = 2;
+            const loop = s.engine.startTurnLoop();
+            try {
+              await advance(s.engine).waitForMainPhase(seat);
+              expect(
+                s.engine.applyIntent(seat, {
+                  type: "respondDecision",
+                  decisionId: s.state.pendingDecision!.decisionId,
+                  response: { kind: "selectCards", instanceIds: [s.inst("cost").instanceId] },
+                }),
+              ).toEqual({ ok: true });
+              await advance(s.engine).waitForMainPhase(seat);
+              expect(s.state.pendingDecision).toBeUndefined();
+              expect(s.state.players[seat]!.trash.map((card) => card.instanceId)).toEqual([s.inst("cost").instanceId]);
+              expect(s.state.players[seat]!.hand.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-011"]);
+              expect(s.state.players[seat]!.deck.map((card) => card.cardId)).toEqual(["BT1-012"]);
+              expect(s.state.memory).toBe(location === "opponent" ? 2 : 3);
+              expect(
+                s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "gainMemory"),
+              ).toHaveLength(location === "opponent" ? 0 : 1);
+              // A normal play cost still moves the gauge: the restriction is effect-only.
+              expect(
+                s.engine.applyIntent(seat, {
+                  type: "playCard",
+                  instanceId: s.state.players[seat]!.hand[0]!.instanceId,
+                }),
+              ).toEqual({ ok: true });
+              await settle(() =>
+                s.events.some((event) => event.kind === "memoryChanged" && event.reason === "playCard"),
+              );
+              expect(s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "playCard")).toEqual(
+                [
+                  {
+                    kind: "memoryChanged",
+                    from: location === "opponent" ? 2 : 3,
+                    to: location === "opponent" ? -1 : 0,
+                    reason: "playCard",
+                  },
+                ],
+              );
+            } finally {
+              s.engine.applyIntent(seat, { type: "surrender" });
+              await loop;
+            }
+          });
+        }
+      }
+
+      for (const location of ["inherited", "breeding", "unpayable"] as const) {
+        it(`offers no Kakamon draw/memory decision for ${location} at seat ${seat}`, async () => {
+          const s = setupEngine({
+            [seat]: {
+              battleArea:
+                location === "inherited"
+                  ? [{ card: "BT1-014", under: ["EX12-006"] }]
+                  : location === "unpayable"
+                    ? ["EX12-006"]
+                    : [],
+              ...(location === "breeding" ? { breeding: "EX12-006" } : {}),
+              hand: [location === "unpayable" ? "EX12-011" : "EX12-022"],
+              deck: ["BT1-010", "BT1-011", "BT1-012"],
+            },
+          });
+          s.state.turnSeat = seat;
+          s.state.isFirstPlayersFirstTurn = false;
+          s.state.memory = 2;
+          const loop = s.engine.startTurnLoop();
+          try {
+            if (location === "breeding") {
+              await settle(() => s.state.phase === Phase.Breeding);
+            }
+            const breedingResponse =
+              location === "breeding" ? s.engine.applyIntent(seat, { type: "endPhase" }) : { ok: true };
+            expect(breedingResponse).toEqual({ ok: true });
+            await advance(s.engine).waitForMainPhase(seat);
+            expect(s.state.pendingDecision).toBeUndefined();
+            expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX12-006")).toHaveLength(0);
+            expect(s.state.players[seat]!.trash).toHaveLength(0);
+            expect(s.state.players[seat]!.hand.map((card) => card.cardId)).toEqual([
+              location === "unpayable" ? "EX12-011" : "EX12-022",
+              "BT1-010",
+            ]);
+            expect(s.state.players[seat]!.deck.map((card) => card.cardId)).toEqual(["BT1-011", "BT1-012"]);
+            expect(s.state.memory).toBe(2);
+          } finally {
+            s.engine.applyIntent(seat, { type: "surrender" });
+            await loop;
+          }
+        });
+      }
+    }
+  });
   it("pays the start-of-main SW cost through the public turn loop", async () => {
     const s = setupEngine(
       {
