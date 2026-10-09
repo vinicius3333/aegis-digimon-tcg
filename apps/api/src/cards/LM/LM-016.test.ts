@@ -73,7 +73,7 @@ describe("LM-016 Gammamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT15-001", as: "stack", under: ["LM-016"] }],
+          battleArea: [{ card: "BT1-009", as: "stack", under: ["LM-016"] }],
           hand: [{ card: "BT21-080", as: "hiro" }],
         },
       },
@@ -90,7 +90,7 @@ describe("LM-016 Gammamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT15-001", as: "stack", under: ["LM-016"] }],
+          battleArea: [{ card: "BT1-009", as: "stack", under: ["LM-016"] }],
           hand: [{ card: "BT21-080", as: "hiro" }],
         },
       },
