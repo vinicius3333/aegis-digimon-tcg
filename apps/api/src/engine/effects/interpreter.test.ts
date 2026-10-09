@@ -1051,7 +1051,7 @@ function makeContext(opts: {
       rec.calls.push({ verb: "placeUnder", args: a });
       return [];
     },
-    hatch: (...a) => {
+    hatch: async (...a) => {
       rec.calls.push({ verb: "hatch", args: a });
       return undefined;
     },

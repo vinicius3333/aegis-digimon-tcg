@@ -238,7 +238,7 @@ export interface BoardPrimitives {
    * Digi-Egg deck is empty or the breeding slot is already occupied (breeding is
    * single-occupancy). NOT the breeding-phase player verb (no Phase.Breeding gate).
    */
-  hatch(seat: Seat): Permanent | undefined;
+  hatch(seat: Seat): Promise<Permanent | undefined>;
   /**
    * Place the TOP card of `seat`'s Digi-Egg deck under `targetPermanentId` as a digivolution
    * card (BT13-007 / EX6-006 "place the top card of your Digi-Egg deck as this Digimon's

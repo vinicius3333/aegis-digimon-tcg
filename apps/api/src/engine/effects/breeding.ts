@@ -54,7 +54,7 @@ export interface BreedingEngine {
 }
 
 export interface BreedingVerbs {
-  hatch: (seat: Seat) => Permanent | undefined;
+  hatch: (seat: Seat) => Promise<Permanent | undefined>;
   placeUnderFromEggDeck: (
     targetPermanentId: string,
     seat: Seat,
@@ -76,7 +76,7 @@ export function createBreedingVerbs(engine: BreedingEngine): BreedingVerbs {
    * the breeding permanent's top card (face-up, unsuspended, inBreeding), seeded with the
    * definition DP (0 for a Digi-Egg, which has no DP).
    */
-  const hatch = (seat: Seat): Permanent | undefined => {
+  const hatch = async (seat: Seat): Promise<Permanent | undefined> => {
     const owner = playerOf(seat);
     if (owner === undefined) return undefined;
     if (owner.breeding !== undefined) return undefined; // breeding slot occupied
@@ -102,6 +102,9 @@ export function createBreedingVerbs(engine: BreedingEngine): BreedingVerbs {
       from: Zone.EggDeck,
       to: Zone.Breeding,
     });
+    // Effect hatches open the same watcher window as the breeding-phase intent.
+    // Await it so nested decisions finish before the parent effect continues.
+    await engine.fireSubTrigger?.("whenHatch", { subjectPermanentId: permanent.permanentId });
     return permanent;
   };
 

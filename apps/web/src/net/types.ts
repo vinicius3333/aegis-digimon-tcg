@@ -206,6 +206,8 @@ export interface AegisJoinOptions {
     | "arena"
     | "arena-match-timer"
     | "arena-chronomon-engage-order"
+    | "arena-tai-kari-ukkomon-hatch"
+    | "arena-tai-kari-promo-ukkomon-hatch"
     | "arena-aegiochus-dark-assembly"
     | "arena-mervamon-effect-assembly"
     | "arena-alliance-20"

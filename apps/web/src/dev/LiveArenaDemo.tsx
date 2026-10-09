@@ -1095,6 +1095,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Mesa de fim de partida: 21 permanentes por lado, 12 fontes no Vulcanusmon, 2 links e 8 cartas salvas no Watchmaker. Cada lado conserva as 50 cartas do deck principal. Role as duas fileiras, inspecione as fontes e gire a tela.",
     en: "Late-game board: 21 permanents per side, 12 Vulcanusmon sources, 2 links and 8 saved Watchmaker cards. Each side conserves its 50-card main deck. Scroll both lanes, inspect sources and rotate the screen.",
   },
+  "arena-tai-kari-ukkomon-hatch": {
+    ptBR: "Discord 1557959345033969705. Mova Monodramon da criação ao campo. Resolva Ukkomon BT16: adicione uma das 3 cartas reveladas e aceite chocar. Tai & Kari BT17 devem oferecer suspender para ganhar 1 memória: aceite. O ovo fica na criação, o Tamer suspenso e a memória termina em 4, sem travar a animação.",
+    en: "Discord 1557959345033969705. Move Monodramon from breeding to battle. Resolve BT16 Ukkomon: add one of the 3 revealed cards and accept hatching. BT17 Tai & Kari must offer to suspend for 1 memory: accept. The egg remains in breeding, the Tamer is suspended and memory ends at 4 with no animation stall.",
+  },
+  "arena-tai-kari-promo-ukkomon-hatch": {
+    ptBR: "Mova Monodramon da criação ao campo. Aceite chocar pelo Ukkomon P-123 e suspender Tai & Kari BT17. A memória termina em 5: 1 de Tai & Kari e 1 do Ukkomon. Recusando chocar, só Ukkomon ganha memória e Tai & Kari permanecem desuspensos.",
+    en: "Move Monodramon from breeding to battle. Accept P-123 Ukkomon's hatch and suspend BT17 Tai & Kari. Memory ends at 5: 1 from Tai & Kari and 1 from Ukkomon. Declining the hatch gains only Ukkomon's memory and leaves Tai & Kari unsuspended.",
+  },
   "arena-chronomon-engage-order": {
     ptBR: "Discord 1557926494536466514, partida com cronômetro. Encerre a criação. Evolua Musyamon para Butenmon pelo custo alternativo 3. Aceite devolver 1 card do lixo e resolva Butenmon antes de Yokomon; ataque a segurança. Então aceite Yokomon e evolua para Chronomon: Holy Mode. Resolva Hyokomon devolvendo uma carta da mão, aceite a recuperação de Holy Mode devolvendo 3 do lixo e aceite desvirar por Butenmon herdado. O primeiro check de segurança precisa terminar na tela antes da pergunta de Engage. Aceite Engage para fazer o segundo ataque: a segurança do bot termina em 3, e só então o turno passa.",
     en: "Discord 1557926494536466514, timed match. End breeding. Digivolve Musyamon into Butenmon for its alternate cost of 3. Accept returning 1 trash card and resolve Butenmon before Yokomon; attack security. Then accept Yokomon and digivolve into Chronomon: Holy Mode. Resolve Hyokomon by returning a hand card, accept Holy Mode recovery by returning 3 trash cards and accept inherited Butenmon unsuspending. The first security check must finish on screen before the Engage prompt opens. Accept Engage for the second attack: the bot ends with 3 security, then the turn passes.",
@@ -2716,6 +2724,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt23-examon-piercing-end-turn", "BT23 Examon · end-turn DNA and Piercing"],
   ["arena", "Attack steps · Counter/Blocker"],
   ["arena-field-grouping-dense", "Field grouping · late-game density, deep sources and links"],
+  ["arena-tai-kari-ukkomon-hatch", "Tai & Kari · Hatch por Ukkomon BT16"],
+  ["arena-tai-kari-promo-ukkomon-hatch", "Tai & Kari · Hatch por Ukkomon promo"],
   ["arena-chronomon-engage-order", "Chronomon · Engage depois do check / after security (timed)"],
   ["arena-match-timer", "Timer · vs bot (300s + 60s/30s)"],
   ["arena-aegiochus-dark-assembly", "Aegiochus Dark · Wizardmon Assembly"],

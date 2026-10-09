@@ -197,6 +197,8 @@ export const DEV_SCENARIO_IDS = [
   "arena",
   "arena-match-timer",
   "arena-chronomon-engage-order",
+  "arena-tai-kari-ukkomon-hatch",
+  "arena-tai-kari-promo-ukkomon-hatch",
   "arena-aegiochus-dark-assembly",
   "arena-alliance-20",
   "arena-marcus-alliance",
@@ -9695,6 +9697,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   arena: layArenaScenario,
   "arena-match-timer": layMatchTimerScenario,
   "arena-chronomon-engage-order": layChronomonEngageOrderScenario,
+  "arena-tai-kari-ukkomon-hatch": layTaiKariUkkomonHatchScenario,
+  "arena-tai-kari-promo-ukkomon-hatch": (state, decks) => layTaiKariUkkomonHatchScenario(state, decks, true),
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,
   "arena-marcus-alliance": layMarcusAllianceScenario,
@@ -10006,4 +10010,19 @@ function layChronomonEngageOrderScenario(state: GameState, decks: readonly [Deck
   for (let i = 0; i < 6; i++) insertCard(p, Zone.Hand, faceDownCard(`engage-filler-${i}`, "BT1-009", 0));
   for (let i = 0; i < 4; i++) insertCard(p, Zone.Trash, faceUpCard(`engage-trash-${i}`, "BT1-009", 0));
   placePermanent(state.players[1]!, establishedDigimon(1, ["BT1-010"], "-engage-opponent"));
+}
+
+// Discord 1557959345033969705: effect hatching must notify Tai & Kari.
+function layTaiKariUkkomonHatchScenario(state: GameState, decks: readonly [Decklist, Decklist], promo = false): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0]!;
+  clearZone(human, Zone.Hand);
+  clearZone(human, Zone.Deck);
+  clearZone(human, Zone.EggDeck);
+  for (let i = 0; i < 12; i++) insertCard(human, Zone.Deck, faceDownCard(`tai-kari-draw-${i}`, "BT1-009", 0));
+  insertCard(human, Zone.EggDeck, faceDownCard("tai-kari-egg", "BT1-001", 0));
+  setBreeding(human, establishedDigimon(0, ["BT1-009"], "-tai-kari-raised"));
+  human.breeding!.inBreeding = true;
+  placePermanent(human, establishedDigimon(0, [promo ? "P-123" : "BT16-082"], "-tai-kari-ukko"));
+  placePermanent(human, establishedDigimon(0, ["BT17-093"], "-tai-kari-tamer"));
 }

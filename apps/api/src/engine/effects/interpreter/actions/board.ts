@@ -204,7 +204,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       // "Hatch a Digi-Egg" into the controller's empty breeding slot (BT8-091 [On Play]).
       // The primitive no-ops when the Digi-Egg deck is empty or the breeding slot is
       // occupied (Comprehensive Rules §4-17/§6-4) — a faithful no-op, not a loud gap.
-      ctx.fx.hatch(ctx.source.ownerSeat);
+      await ctx.fx.hatch(ctx.source.ownerSeat);
       return false;
     }
     case "ModifyDP": {
