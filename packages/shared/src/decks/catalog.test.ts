@@ -248,7 +248,7 @@ describe("famous deck catalog", () => {
       // Adapted twice: Jack Raid in 2025, then Analog Youth on 2026-09-01.
       ["bt7-dgo-2022-04-23-5-lilithmon", 3],
       ["bt4-dgo-2021-06-26-2-wargreymon", 2],
-      ["bt4-dgo-2021-06-26-3-imperialdramon", 3],
+      ["bt4-dgo-2021-06-26-3-imperialdramon", 2],
     ]);
 
     for (const [deckId, revision] of adaptedIds) {
