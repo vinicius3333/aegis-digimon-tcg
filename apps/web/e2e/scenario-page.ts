@@ -32,7 +32,8 @@ export class ScenarioPage {
       if (message.type() === "error") this.errors.push(message.text());
     });
   }
-  async open(id: string, speed: "normal" | "slow" = "normal", breeding: "end" | "move" = "end") {
+  /** `none`: the scenario opens on the opponent's turn, or the engine passes this Breeding phase itself. */
+  async open(id: string, speed: "normal" | "slow" = "normal", breeding: "end" | "move" | "none" = "end") {
     this.speed = speed;
     await this.page.addInitScript(
       ({ id: scenarioId, speed: effectSpeed, deck }) => {
@@ -55,7 +56,8 @@ export class ScenarioPage {
       const slot = this.page.locator('[data-drop="breeding-you"]');
       await slot.focus();
       await slot.press("Enter");
-    } else await this.page.getByRole("button", { name: /^end breeding$/i }).click();
+    } else if (breeding === "end") await this.page.getByRole("button", { name: /^end breeding$/i }).click();
+    else await this.page.waitForFunction(() => typeof window.browserTestSnapshot === "function");
   }
   snapshot() {
     return this.page.evaluate(() => window.browserTestSnapshot());
