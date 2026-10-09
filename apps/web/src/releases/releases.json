@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.20.1-beta",
+    "releasedAt": "2026-10-09",
+    "summaryKey": "releases.1.20.1-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.20.1-beta.fix.publimon"
+      },
+      {
+        "textKey": "releases.1.20.1-beta.fix.endOfBattle"
+      }
+    ]
+  },
+  {
     "version": "1.20.0-beta",
     "releasedAt": "2026-10-09",
     "summaryKey": "releases.1.20.0-beta.summary",

@@ -1726,5 +1726,23 @@
     "pt-BR": "As fontes de efeito ficam no campo durante a batalha de segurança, os avisos no tablet não cobrem mais o confronto e a arte das cartas não é mais arrastada sem querer.",
     "es": "Las fuentes de efecto se quedan en el campo durante la batalla de seguridad, los avisos en la tableta ya no tapan el enfrentamiento y el arte de las cartas ya no se arrastra sin querer.",
     "it": "Le fonti degli effetti restano sul campo durante la battaglia di sicurezza, gli avvisi sul tablet non coprono più lo scontro e l'arte delle carte non si trascina più per sbaglio."
+  },
+  "releases.1.20.1-beta.summary": {
+    "en": "This patch fixes Publimon returning to security after other Digimon attack, and security Digimon that were played before their battle.",
+    "pt-BR": "Este patch corrige o Publimon voltando para a segurança após ataques de outros Digimon e os Digimon de segurança que entravam em jogo antes da batalha.",
+    "es": "Este parche corrige que Publimon volviera a la seguridad tras los ataques de otros Digimon y los Digimon de seguridad que se jugaban antes de su batalla.",
+    "it": "Questa patch corregge Publimon che tornava nella sicurezza dopo gli attacchi di altri Digimon e i Digimon di sicurezza giocati prima della loro battaglia."
+  },
+  "releases.1.20.1-beta.fix.publimon": {
+    "en": "LM-007 Publimon's [End of Attack] now activates only at the end of its own attack, not after any Digimon's attack.",
+    "pt-BR": "O [Fim do Ataque] de Publimon LM-007 agora ativa apenas no fim do próprio ataque, e não após o ataque de qualquer Digimon.",
+    "es": "El [Fin del Ataque] de Publimon LM-007 ahora se activa solo al final de su propio ataque, no tras el ataque de cualquier Digimon.",
+    "it": "Il [Fine dell'Attacco] di Publimon LM-007 ora si attiva solo alla fine del suo attacco, non dopo l'attacco di qualsiasi Digimon."
+  },
+  "releases.1.20.1-beta.fix.endOfBattle": {
+    "en": "Security Digimon that read \"At the end of the battle, play this card\" now battle the attacker first and enter play after the battle: LM-007, BT18-035, RB1-028, ST21-03, EX10-024, P-165, BT22-050 and ST20-05.",
+    "pt-BR": "Os Digimon de segurança com \"No fim da batalha, jogue esta carta\" agora batalham com o atacante primeiro e entram em jogo depois da batalha: LM-007, BT18-035, RB1-028, ST21-03, EX10-024, P-165, BT22-050 e ST20-05.",
+    "es": "Los Digimon de seguridad con \"Al final de la batalla, juega esta carta\" ahora combaten primero contra el atacante y entran en juego después de la batalla: LM-007, BT18-035, RB1-028, ST21-03, EX10-024, P-165, BT22-050 y ST20-05.",
+    "it": "I Digimon di sicurezza con \"Alla fine della battaglia, gioca questa carta\" ora combattono prima contro l'attaccante ed entrano in gioco dopo la battaglia: LM-007, BT18-035, RB1-028, ST21-03, EX10-024, P-165, BT22-050 e ST20-05."
   }
 }
