@@ -187,7 +187,11 @@ export function createDeckVerbs(pc: PrimitivesContext) {
         setTopCard(permanent, promoted);
         continuous.reanchorCustomEffectGrants(detached.instanceId, promoted.instanceId);
         const promotedDefinition = requireCardDefinition(promoted.cardId);
-        permanent.baseDP = promotedDefinition.kinds.includes(CardKind.Digimon) ? promotedDefinition.dp : 0;
+        permanent.baseDP =
+          promotedDefinition.kinds.includes(CardKind.Digimon) || promotedDefinition.kinds.includes(CardKind.DigiEgg)
+            ? promotedDefinition.dp
+            : 0;
+        permanent.invalidNoDpStackTop = pc.promotedTopNeedsInvalidRuleTrash(promotedDefinition);
         // The Digimon stays in play after its top card is placed in security.
         // Keep temporary grants on that permanent, including Security Attack
         // for the remaining checks of this attack. Continuous printed effects
