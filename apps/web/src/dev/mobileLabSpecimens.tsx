@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
+  CombatWindow,
   PendingDecision,
   Phase,
   getCardDefinition,
@@ -650,6 +651,19 @@ export const SPECIMENS: readonly Specimen[] = [
             description: getCardDefinition("EX12-041")?.effectText ?? "",
           },
         ]}
+      />
+    ),
+  },
+  {
+    id: "board-opponent-block",
+    group: "Board",
+    title: "Opponent deciding whether to block",
+    surface: "match",
+    render: () => (
+      <MatchSpecimen
+        configure={(state) => {
+          state.combatWindow = Object.assign(new CombatWindow(), { kind: "block", seat: 1 });
+        }}
       />
     ),
   },

@@ -29,6 +29,7 @@ import { SurrenderDialog } from "./SurrenderDialog";
 import { useTranslation } from "../../../i18n";
 import { CardOpenerProvider } from "../../cardLinks";
 import { OpponentSelectingPill } from "../../BoardDecisionRail";
+import { opponentStatusKey } from "../../opponentStatus";
 import { NarrationStack } from "../../NarrationStack";
 import { AttackAnnouncementBanner } from "../../SidePanelStack";
 import { TargetingSpotlight } from "../../TargetingSpotlight";
@@ -278,6 +279,10 @@ export function BoardStage({
     />
   );
   const resultShown = state.gameOver && !cues.resultPending;
+  const opponentStatus = opponentStatusKey(state, viewerSeat);
+  // An open turn reads as thinking only once the board has caught up; while the
+  // opponent's last action still plays, the board itself is the feedback.
+  const opponentIdle = !!state.pendingDecision || !!state.combatWindow || !cues.presenting;
 
   return (
     // Every surface that names a card — notices, side panels, combat prompts,
@@ -357,12 +362,8 @@ export function BoardStage({
               centred slot; everywhere else the viewer reads the left corner and the
               opponent's moments arrive in the right one. */}
           <div className="game-board-notices">
-            {state.pendingDecision &&
-            state.pendingDecision.seat !== viewerSeat &&
-            !state.gameOver &&
-            !cues.zoneShowcase &&
-            !cues.revealShowcase ? (
-              <OpponentSelectingPill />
+            {opponentStatus && opponentIdle && !cues.zoneShowcase && !cues.revealShowcase ? (
+              <OpponentSelectingPill status={opponentStatus} />
             ) : null}
             {!resultShown ? (
               <NarrationStack

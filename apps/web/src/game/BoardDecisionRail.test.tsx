@@ -357,6 +357,12 @@ describe("OpponentSelectingPill", () => {
     const pill = screen.getByTestId("opponent-selecting-pill");
     expect(pill.textContent).toBe("The opponent is selecting cards.");
   });
+
+  it("shows the status it is given", () => {
+    renderIn(<OpponentSelectingPill status="game.opponentIsThinking" />);
+    const pill = screen.getByTestId("opponent-selecting-pill");
+    expect(pill.textContent).toBe("The opponent is thinking…");
+  });
 });
 
 describe("Hand in selection mode", () => {
