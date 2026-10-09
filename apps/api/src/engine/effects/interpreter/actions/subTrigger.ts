@@ -1529,7 +1529,10 @@ export async function runGainTriggeredEffect(
             printedClause: `[Granted] ${triggerLabel(action.gainedTrigger)}: ${ctx.source.definition.nameEn}`,
           }),
       ...(matches ? { matches } : {}),
-      ...(grantedPermanentDeletionGate !== undefined ? { watchesSelf: true } : {}),
+      // A gained [On Deletion] activates after the recipient and its stack reach
+      // trash (CR 15-13-3), alongside the ordinary deletion effects. watchesSelf
+      // instead denotes a "when this Digimon is deleted" reaction that runs before
+      // leave prevention (Q2212); using it here makes stack cards unavailable.
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       ...(attacksAtStartOfMainPhase
         ? {

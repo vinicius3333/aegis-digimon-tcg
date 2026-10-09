@@ -58,6 +58,7 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-growlmon-deletion-5361",
   "arena-koto-grademon-pending-piercing",
   "arena-koto-grademon-no-prior-battle",
   "arena-ravemon-burst-hand",
@@ -586,6 +587,28 @@ function layGithub5331OffenseHandScenario(state: GameState, _decks: readonly [De
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 10;
+}
+
+/** #5361: the gained On Deletion can replay Guilmon from the deleted stack. */
+function layGrowlmonDeletion5361Scenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-5361-egg-${seat}`, "BT1-001", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-5361-deck-${seat}-${index}`, "BT1-010", seat));
+    }
+    for (let index = 0; index < 3; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-5361-security-${seat}-${index}`, "BT1-084", seat));
+    }
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["EX8-009", "BT2-013"], "-5361-growlmon"));
+  insertCard(human, Zone.Hand, faceUpCard("dev-5361-xgrowlmon", "EX8-012", 0));
+  insertCard(human, Zone.Hand, faceUpCard("dev-5361-discard", "BT1-010", 0));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /** #5362: Salamon's reduction applies on the battlefield, never in breeding. */
@@ -9416,6 +9439,7 @@ function layGithubEndTurnReportScenario(
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-growlmon-deletion-5361": layGrowlmonDeletion5361Scenario,
   "arena-github5362-shellmon-ts": layGithub5362ShellmonTsScenario,
   "arena-ravemon-burst-hand": layRavemonBurstHandScenario,
   "arena-github5331-offense-hand": layGithub5331OffenseHandScenario,
