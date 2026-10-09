@@ -26,10 +26,9 @@ export interface BuilderOptions {
   /**
    * Attack-event subject for `whenAttacking`: `self` means the Digimon carrying
    * this effect; `ally` is for observers such as Tamers whose text says "one of
-   * your Digimon attacks"; `any` fires on every attack regardless of attacker (LM-007's
-   * `[End of Attack]`, KB Q3997). Defaults to the overwhelmingly common self scope.
+   * your Digimon attacks". Defaults to the overwhelmingly common self scope.
    */
-  attackScope?: "self" | "ally" | "opponent" | "any";
+  attackScope?: "self" | "ally" | "opponent";
   when?: (ctx: EffectContext) => boolean; // EXTRA trigger condition (ANDed with the timing guard)
   canActivate?: (ctx: EffectContext) => boolean; // optional extra activation guard
   /**
@@ -161,7 +160,7 @@ export const whenAttacking = (opts: BuilderOptions): Effect =>
       const attackerId = ctx.trigger?.attackerPermanentId;
       // Direct card tests and legacy timing drives may omit the combat payload;
       // production combat always supplies it. Card-specific gates still apply.
-      if (attackerId === undefined || opts.attackScope === "any") return true;
+      if (attackerId === undefined) return true;
       if (opts.attackScope === "ally") {
         const attacker = ctx.game.permanentById(attackerId);
         return attacker?.controllerSeat === opts.source.ownerSeat;
@@ -272,7 +271,7 @@ export const endOfAttack = (opts: BuilderOptions): Effect =>
     baseGuard: (ctx) => {
       if (!onField(ctx)) return false;
       const attackerId = ctx.trigger?.attackerPermanentId;
-      if (attackerId === undefined || opts.attackScope === "any") return true;
+      if (attackerId === undefined) return true;
       return ctx.source.permanent()?.permanentId === attackerId;
     },
   });

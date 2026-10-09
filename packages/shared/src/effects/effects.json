@@ -190956,7 +190956,6 @@
       },
       {
         "trigger": "EndOfAttack",
-        "attackScope": "any",
         "actions": [
           {
             "kind": "SecurityManipulation",

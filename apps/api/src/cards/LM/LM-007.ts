@@ -21,7 +21,6 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "EndOfAttack",
-      attackScope: "any",
       actions: [
         {
           kind: "SecurityManipulation",

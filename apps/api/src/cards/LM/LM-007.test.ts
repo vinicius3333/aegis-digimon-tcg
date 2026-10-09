@@ -2,10 +2,11 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./LM-007.js";
 
 describe("LM-007 Publimon", () => {
-  it("plays itself from security for free when it is checked, then returns on top of security", async () => {
+  it("Discord 1558210190376050858: plays itself from security and stays in the battle area after the opponent's attack", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-080", as: "attacker" }] },
@@ -23,12 +24,43 @@ describe("LM-007 Publimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved"), 3000);
+    await settle(() => !observe(s.engine).isAttacking() && !s.state.pendingDecision, 3000);
 
     expect(s.events.map((event) => event.kind)).toContain("cardPlayed");
     expect(s.state.players[1]!.trash).toHaveLength(0);
-    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["LM-007"]);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["LM-007"]);
+  });
+
+  it("Discord 1558210190376050858: stays in the battle area when another of its owner's Digimon attacks", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "LM-007", as: "publimon" },
+            { card: "BT1-080", as: "attacker" },
+          ],
+          security: [{ card: "BT1-027" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const publimonId = s.perm("publimon").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && !s.state.pendingDecision, 3000);
+
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-027"]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === publimonId)).toBe(true);
   });
 
   it("places itself on top of its owner's security stack at the end of an attack", async () => {
