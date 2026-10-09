@@ -1,4 +1,4 @@
-import { Zone, EffectDuration, requireCardDefinition, CardInstance, type Seat } from "@aegis/shared";
+import { CardKind, Zone, EffectDuration, requireCardDefinition, CardInstance, type Seat } from "@aegis/shared";
 import { extractCardAt, insertCard } from "../../state/access.js";
 import { isTimingActivationDisabled } from "../timingActivation.js";
 import type { Primitives } from "../EffectContext.js";
@@ -89,8 +89,19 @@ export function createResourcesVerbs(pc: PrimitivesContext) {
 
   const isPlayProhibited: Primitives["isPlayProhibited"] = (seat, cardId, mode, fromZone) => {
     const def = requireCardDefinition(cardId);
-    // Pass effectPlay=true so byEffectOnly prohibitions are honored on the effect-play path.
-    return continuous.isPlayBlocked(seat, def, mode, true, fromZone);
+    // CR 4-6: a DUAL used as an Option has Option information, not its Digimon kind/DP.
+    // Keep genuine Option prohibitions and the original definition on actual play/move paths.
+    const activeDefinition =
+      mode === "useOption"
+        ? {
+            ...def,
+            kinds: [CardKind.Option],
+            colors: def.optionColorRequirements ?? def.colors,
+            dp: 0,
+            level: undefined,
+          }
+        : def;
+    return continuous.isPlayBlocked(seat, activeDefinition, mode === "useOption" ? "play" : mode, true, fromZone);
   };
 
   const disableSecurityEffect: Primitives["disableSecurityEffect"] = (attackerPermanentId, sourceKind, duration) => {

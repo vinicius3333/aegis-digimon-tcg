@@ -33,6 +33,7 @@ import {
   materializeLevelComparisonScaling,
   materializePlayCostLteScaling,
   ownStackPlayCandidates,
+  isEffectPlayProhibited,
   playableCandidates,
   runPlayAction,
 } from "./play.js";
@@ -958,7 +959,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         staticPreflightTarget,
         candidateLooseInstances(ctx, staticPreflightTarget, zones),
         action.chooseDualMode,
-      ).filter((candidate) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, candidate.cardId, "play"));
+      ).filter((candidate) => !isEffectPlayProhibited(ctx, candidate));
       // A return-cost clause can define the play target's color dynamically. Preflight the
       // pair transactionally: at least one currently returnable card must share a color with
       // at least one currently playable card, otherwise paying the return first would strand

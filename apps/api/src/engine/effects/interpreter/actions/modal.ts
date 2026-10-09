@@ -15,6 +15,7 @@ import { canAttemptDnaDigivolve } from "./dna.js";
 import {
   applyPlayCostCeiling,
   candidatesAllowedBySameNameRestriction,
+  isEffectPlayProhibited,
   playableCandidates,
   playableTokenRefs,
 } from "./play.js";
@@ -423,7 +424,7 @@ function canAttemptModalAction(ctx: EffectContext, action: Action): boolean {
       ctx,
       playableCandidates(ctx, target, candidateLooseInstances(ctx, target, zones), action.chooseDualMode),
     );
-    return candidates.some((candidate) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, candidate.cardId, "play"));
+    return candidates.some((candidate) => !isEffectPlayProhibited(ctx, candidate));
   }
   return action.kind !== "RawUnparsed";
 }
