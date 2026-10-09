@@ -31,7 +31,7 @@ export function installNotificationRoutes({ app, store, session }: NotificationR
     };
 
   app.get(
-    "/notifications",
+    ["/notifications", "/account/notifications"],
     route(async (req, res, auth) => {
       const raw = req.query.before;
       const before = raw === undefined ? undefined : parseId(raw);
@@ -44,14 +44,14 @@ export function installNotificationRoutes({ app, store, session }: NotificationR
   );
 
   app.get(
-    "/notifications/unread-count",
+    ["/notifications/unread-count", "/account/notifications/unread-count"],
     route(async (_req, res, auth) => {
       res.json({ unread: await store.unreadCount(auth.account.id) });
     }),
   );
 
   app.post(
-    "/notifications/read",
+    ["/notifications/read", "/account/notifications/read"],
     route(async (req, res, auth) => {
       const body = (req.body ?? {}) as { ids?: unknown; all?: unknown };
       if (body.all === true) {

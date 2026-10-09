@@ -59,12 +59,12 @@ export function installFeedbackTriageRoutes({ app, store, session }: FeedbackTri
     }
     res.json(await store.list(filter));
   });
-  app.get("/admin/feedback", list);
+  app.get(["/admin/feedback", "/account/admin/feedback"], list);
   // The address the first admin inbox used; kept so an open tab from before the triage release still loads.
   app.get("/account/feedback", list);
 
   app.get(
-    "/admin/feedback/:id",
+    ["/admin/feedback/:id", "/account/admin/feedback/:id"],
     route(async (req, res) => {
       if (!(await admin(req, res))) return;
       const id = parseId(req.params.id);
@@ -78,7 +78,7 @@ export function installFeedbackTriageRoutes({ app, store, session }: FeedbackTri
   );
 
   app.patch(
-    "/admin/feedback/:id",
+    ["/admin/feedback/:id", "/account/admin/feedback/:id"],
     route(async (req, res) => {
       const auth = await admin(req, res);
       if (!auth) return;
@@ -106,7 +106,7 @@ export function installFeedbackTriageRoutes({ app, store, session }: FeedbackTri
   );
 
   app.get(
-    "/feedback/mine",
+    ["/feedback/mine", "/account/feedback/mine"],
     route(async (req, res) => {
       const auth = await signedIn(req, res);
       if (!auth) return;
@@ -121,7 +121,7 @@ export function installFeedbackTriageRoutes({ app, store, session }: FeedbackTri
   );
 
   app.get(
-    "/feedback/mine/:id",
+    ["/feedback/mine/:id", "/account/feedback/mine/:id"],
     route(async (req, res) => {
       const auth = await signedIn(req, res);
       if (!auth) return;
@@ -137,7 +137,7 @@ export function installFeedbackTriageRoutes({ app, store, session }: FeedbackTri
   );
 
   app.post(
-    "/feedback/mine/:id/reopen",
+    ["/feedback/mine/:id/reopen", "/account/feedback/mine/:id/reopen"],
     route(async (req, res) => {
       const auth = await signedIn(req, res);
       if (!auth) return;

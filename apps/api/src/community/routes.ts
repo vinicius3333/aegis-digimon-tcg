@@ -149,7 +149,7 @@ export function installCommunityDeckRoutes({
   };
 
   app.post(
-    "/admin/community/decks/:id/moderation",
+    ["/admin/community/decks/:id/moderation", "/account/admin/community/decks/:id/moderation"],
     route(async (req, res) => {
       if (!(await requireAdmin(req, res))) return;
       const action = COMMUNITY_MODERATION_ACTIONS.find((value) => value === req.body?.action);
@@ -169,7 +169,7 @@ export function installCommunityDeckRoutes({
   );
 
   app.get(
-    "/admin/community/reports",
+    ["/admin/community/reports", "/account/admin/community/reports"],
     route(async (req, res) => {
       res.set("Cache-Control", "no-store");
       if (await requireAdmin(req, res)) res.json({ decks: await reportStore.queue() });
@@ -177,7 +177,7 @@ export function installCommunityDeckRoutes({
   );
 
   app.get(
-    "/admin/community/decks/:id/reports",
+    ["/admin/community/decks/:id/reports", "/account/admin/community/decks/:id/reports"],
     route(async (req, res) => {
       res.set("Cache-Control", "no-store");
       if (!(await requireAdmin(req, res))) return;
@@ -190,7 +190,7 @@ export function installCommunityDeckRoutes({
   );
 
   app.post(
-    "/admin/community/decks/:id/reports/dismiss",
+    ["/admin/community/decks/:id/reports/dismiss", "/account/admin/community/decks/:id/reports/dismiss"],
     route(async (req, res) => {
       if (!(await requireAdmin(req, res))) return;
       if (!isUuid(req.params.id!)) {

@@ -73,18 +73,26 @@ export async function listFeedback(
   if (filter.before !== undefined) query.set("before", String(filter.before));
   const suffix = query.toString() ? `?${query}` : "";
   return read(
-    await fetch(`${accountApi.base}/admin/feedback${suffix}`, { credentials: "include", cache: "no-store", signal }),
+    await fetch(`${accountApi.base}/account/admin/feedback${suffix}`, {
+      credentials: "include",
+      cache: "no-store",
+      signal,
+    }),
   );
 }
 
 export async function getFeedback(id: number, signal?: AbortSignal): Promise<FeedbackDetail> {
   return read(
-    await fetch(`${accountApi.base}/admin/feedback/${id}`, { credentials: "include", cache: "no-store", signal }),
+    await fetch(`${accountApi.base}/account/admin/feedback/${id}`, {
+      credentials: "include",
+      cache: "no-store",
+      signal,
+    }),
   );
 }
 
 export async function triageFeedback(id: number, update: FeedbackTriageUpdate): Promise<FeedbackDetail> {
-  const response = await fetch(`${accountApi.base}/admin/feedback/${id}`, {
+  const response = await fetch(`${accountApi.base}/account/admin/feedback/${id}`, {
     method: "PATCH",
     credentials: "include",
     headers: { "Content-Type": "application/json" },

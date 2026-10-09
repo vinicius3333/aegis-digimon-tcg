@@ -65,16 +65,19 @@ export const bugReportApi = {
 /** The signed-in reporter's own reports and what the team answered. */
 export const ownFeedbackApi = {
   list: async (before?: number, signal?: AbortSignal): Promise<OwnFeedbackPage> => {
-    const response = await fetch(`${accountApi.base}/feedback/mine${before === undefined ? "" : `?before=${before}`}`, {
-      credentials: "include",
-      cache: "no-store",
-      signal,
-    });
+    const response = await fetch(
+      `${accountApi.base}/account/feedback/mine${before === undefined ? "" : `?before=${before}`}`,
+      {
+        credentials: "include",
+        cache: "no-store",
+        signal,
+      },
+    );
     if (!response.ok) throw new BugReportApiError(response.status);
     return response.json() as Promise<OwnFeedbackPage>;
   },
   read: async (id: number, signal?: AbortSignal): Promise<OwnFeedbackReport> => {
-    const response = await fetch(`${accountApi.base}/feedback/mine/${id}`, {
+    const response = await fetch(`${accountApi.base}/account/feedback/mine/${id}`, {
       credentials: "include",
       cache: "no-store",
       signal,
@@ -84,7 +87,7 @@ export const ownFeedbackApi = {
   },
   /** Tells the team the closing answer did not solve it; allowed once per report. */
   reopen: async (id: number, comment: string): Promise<OwnFeedbackReport> => {
-    const response = await fetch(`${accountApi.base}/feedback/mine/${id}/reopen`, {
+    const response = await fetch(`${accountApi.base}/account/feedback/mine/${id}/reopen`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },

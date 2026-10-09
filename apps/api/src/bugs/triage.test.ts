@@ -297,6 +297,16 @@ describe("reporter's own feedback", () => {
     expect((await call("GET", "/feedback/mine/abc", harness.reporter)).status).toBe(404);
     expect((await call("GET", "/feedback/mine")).status).toBe(401);
   });
+
+  it("serves the reporter's feedback under /account, the prefix the production gateway forwards", async () => {
+    const mine = await report("mine", harness.reporter);
+    const page = await json<{ items: OwnFeedbackReport[] }>(
+      await call("GET", "/account/feedback/mine", harness.reporter),
+    );
+    expect(page.items.map((item) => item.id)).toEqual([mine]);
+    expect((await call("GET", `/account/feedback/mine/${mine}`, harness.reporter)).status).toBe(200);
+    expect((await call("GET", "/account/feedback/mine")).status).toBe(401);
+  });
 });
 
 describe("confirmed bug points", () => {
