@@ -18,7 +18,7 @@
 ## What it does
 
 - **1v1 matches** against a live opponent, a friend by invite code, or the bot.
-- **Full card pool**: 4,388 cards across 65 sets, searchable by color, type, level, trait and cost.
+- **Full card pool**: 4,480 cards across 66 sets, searchable by color, type, level, trait and cost.
 - **Deck builder** with legality checks, level curve, color balance, import and export.
 - **Tournaments** with fixed rules, a frozen ban list and a server-owned clock.
 - **Server-authoritative rules**: the API decides every legal play, so a patched client changes nothing.
@@ -46,7 +46,7 @@ flowchart LR
     room["AegisRoom"]
     engine["GameEngine"]
     stack["Effect stack and decisions"]
-    cards["4,217 card modules"]
+    cards["4,480 card modules"]
     db[("Postgres")]
   end
 
@@ -99,9 +99,9 @@ runs as a single process, which is what `pnpm dev` does.
 
 |                       |                                                            |
 | --------------------- | ---------------------------------------------------------- |
-| Cards in the catalog  | 4,388 across 65 sets                                       |
-| Card behavior modules | 4,217 under `apps/api/src/cards/`                          |
-| Test files            | 3,694                                                      |
+| Cards in the catalog  | 4,480 across 66 sets                                       |
+| Card behavior modules | 4,480 under `apps/api/src/cards/`                          |
+| Test files            | 6,180                                                      |
 | Rules knowledge base  | official rules, rulings, errata and ban list in `data/kb/` |
 
 ## Play in your browser
@@ -166,13 +166,29 @@ Each card is one TypeScript module:
 apps/api/src/cards/<SET>/<CARD-ID>.ts
 ```
 
-A module carries either a hand-written `EffectModule` built from effect
-primitives, or a declarative `CompiledCard` the shared runtime interprets.
-Importing `apps/api/src/cards/index.ts` registers every module at boot. No
-generator sits between the card text and the code.
+The module declares a `CompiledCard` and registers it with
+`registerIrCard(cardId, compiled)`. The engine's interpreter runs that
+declaration. Importing `apps/api/src/cards/index.ts` registers every module at
+boot. No generator sits between the card text and the code. Do not add a
+`registerCard` registration for a card: it exists only for legacy
+compatibility, engine tests and justified internal seams.
 
-Tests live beside the module and assert observable game state, not internals.
-`data/kb/` supplies the official rulings and errata that decide the hard cases.
+After you change a card module, sync and check its effect snapshot:
+
+```bash
+node tools/sync-effects-from-card-modules.mjs --set <SET>
+node tools/sync-effects-from-card-modules.mjs --set <SET> --check
+```
+
+Put tests where they belong:
+
+- Card behavior: beside the module in `apps/api/src/cards/<SET>/`.
+- Game scenarios and bug regressions: `apps/api/src/engine/scenarios/<behavior>.test.ts`.
+- Engine mechanisms: beside their implementation.
+
+Tests drive public intents through `engine/testkit` and assert observable game
+state. `data/kb/` supplies the official rulings and errata that decide the hard
+cases. Query it with `node tools/kb/query.mjs card <CARD-ID> --json`.
 
 ## Hosting and donations
 
@@ -188,11 +204,12 @@ here, open an issue, fix a card, or bring a friend to a match.
 
 ## Contributing
 
-Pull requests are welcome. Before you open one:
+Pull requests are welcome. [AGENTS.md](./AGENTS.md) holds the repository
+rules for card changes, rules research and tests. Before you open a PR:
 
 1. Keep rules and state transitions in the API.
 2. Add or update tests for observable behavior.
-3. Run `pnpm ci`.
+3. Run `pnpm ci` and `git diff --check`.
 4. Keep commits focused, and say what changed for players or for the rules.
 
 ## Releasing

@@ -41,24 +41,30 @@ legal.
 Every supported card has a module under `apps/api/src/cards/<SET>/<ID>.ts`.
 Importing `apps/api/src/cards/index.ts` registers those modules at boot.
 
-Cards use one of two runtime representations:
+Each module declares a `CompiledCard` and registers it with
+`registerIrCard(cardId, compiled)`. The interpreter in
+`apps/api/src/engine/effects/interpreter/` runs that declaration; the IR types
+live in `packages/shared/src/effects/ir/`. The card module is the authoring
+source: no generator creates card behavior.
 
-- a hand-written `EffectModule` composed from builders and effect primitives;
-- a declarative `CompiledCard` object embedded directly in its TypeScript
-  module and interpreted by the shared runtime.
+`registerCard` takes a hand-written `EffectModule`. It remains only for legacy
+compatibility, engine tests, and justified internal seams. A card must not have
+both registrations.
 
-Both representations are maintained directly in the card module. Card modules
-are the authoring source; there is no separate generator that creates their
-behavior.
+The committed `packages/shared/src/effects/effects.json` is runtime data for
+shared card requirements and client/server lookups. It is a generated snapshot,
+not an authoring source. After you change a card module, sync and check its set:
 
-The committed `packages/shared/src/effects/effects.json` remains runtime data
-for shared card requirements and client/server lookups. It is a generated
-runtime snapshot, not an authoring source. Use `pnpm effects:sync:set -- --set
-<SET> --base <GIT-REF>` to synchronize one set from its authoritative modules,
-restore byte formatting outside that set, and reject out-of-scope semantic
-changes. Use
-`pnpm effects:check:set -- --set <SET> --base <GIT-REF>` to verify catalog-key
-parity, idempotence, and semantic/byte scope.
+```bash
+node tools/sync-effects-from-card-modules.mjs --set <SET>
+node tools/sync-effects-from-card-modules.mjs --set <SET> --check
+```
+
+`--check` fails when the set's records are stale or its keys differ from the
+card catalog. Add `--base <GIT-REF>` to compare against that ref and reject
+semantic or byte changes outside the set. Without `--check`, `--base` also
+restores the ref's bytes for every other set, and refuses if any of them differ
+in meaning.
 
 ## State and effects
 
@@ -145,6 +151,8 @@ pnpm test:tools
 pnpm test
 ```
 
-Card behavior tests assert observable state changes. Engine conformance tests
-cover shared rules, and web scenarios exercise rendered flows through a real
-room.
+Card behavior tests live beside their module and assert observable state.
+Scenario and bug-regression tests live in `apps/api/src/engine/scenarios/` and
+drive public intents through `engine/testkit`. Engine conformance tests cover
+shared rules and cite the KB. Browser specs in `apps/web/e2e/` exercise rendered
+flows through a real room. [AGENTS.md](../AGENTS.md) has the full test rules.
