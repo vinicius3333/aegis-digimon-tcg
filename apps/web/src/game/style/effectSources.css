@@ -456,10 +456,12 @@ body:has([aria-modal="true"]) .game-hand-hover {
   place-items: center;
 }
 
-/* The pile beside it carries its own z-index in the arena layouts, up to 6. */
+/* The pile beside it carries its own z-index in the arena layouts, up to 6. The label
+   sits over the pile on phones, so it must let a tap through to the attack target. */
 .game-security-shield__attack-label {
   position: absolute;
   z-index: 7;
+  pointer-events: none;
   bottom: -0.9rem;
   left: 50%;
   padding: 1px 7px;
