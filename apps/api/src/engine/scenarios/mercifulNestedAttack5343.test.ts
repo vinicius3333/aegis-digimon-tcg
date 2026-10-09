@@ -114,7 +114,9 @@ describe("#5343 recovered nested Merciful On Play sequence (Q2859)", () => {
         await pick("ST21-07", "selectCards", [s.inst("discard").instanceId]);
         await optional("AD1-022");
         await optional("AD1-022");
-        // Palmon -> Togemon is the only legal evolution; Togemon has no follow-up evolution target.
+        // Palmon -> Togemon is the only legal evolution, but after paying the suspend cost the
+        // destination is still asked so it can be declined (#5411). Togemon has no follow-up target.
+        await pick("AD1-022", "selectCards", [s.inst("togemon").instanceId]);
         await optional("AD1-019");
         await pick("AD1-019", "selectCards", [s.inst("merciful").instanceId]);
         const assembly = await decision("AD1-019", "selectCards");

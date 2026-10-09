@@ -527,18 +527,32 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
     // Re-read the pool per base: an earlier iteration consumed a card out of it.
     const candidates = legalIntoForBase(pid, intoPool());
     if (candidates.length === 0) continue;
-    const chosen = await pickLoose(
-      ctx,
-      // "May digivolve" preserves the destination choice after a processing
-      // cost is paid, including a private hand containing one legal card.
-      action.optional === true || (action.amongPreviousSearch && ctx.pickingAcceptedOptional)
-        ? { ...intoTarget, upTo: true }
-        : intoTarget,
-      candidates,
-      undefined,
-      ctx.ask,
-      visibleDigivolveSourceIds(ctx, action, zones, candidates),
-    );
+    // Paying an optional evolution's processing cost accepts its "you may", yet the
+    // destination pick must still allow backing out (#5411). The decision API turns
+    // that into an `acceptedOptional` pick with a zero floor for the controller.
+    const paidOptional = action.optional === true && action.cost !== undefined;
+    const outerPickingAcceptedOptional = ctx.pickingAcceptedOptional;
+    if (paidOptional) ctx.pickingAcceptedOptional = true;
+    let chosen: Awaited<ReturnType<typeof pickLoose>>;
+    try {
+      chosen = await pickLoose(
+        ctx,
+        // A private search followed by "may digivolve" must remain declinable
+        // after inspection, including when there is only one legal evolution.
+        // A paid one is asked even with a single card, so it can still be declined.
+        action.amongPreviousSearch && ctx.pickingAcceptedOptional
+          ? { ...intoTarget, upTo: true }
+          : paidOptional
+            ? { ...intoTarget, forceSelection: true }
+            : intoTarget,
+        candidates,
+        undefined,
+        ctx.ask,
+        visibleDigivolveSourceIds(ctx, action, zones, candidates),
+      );
+    } finally {
+      ctx.pickingAcceptedOptional = outerPickingAcceptedOptional;
+    }
     if (chosen.length === 0) continue;
     // Older compiled IR carries the folded reduction as positive `reduceCost` (the
     // current runtime record emits the SIGNED `costDelta`); accept both so in-tree IR
