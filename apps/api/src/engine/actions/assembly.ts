@@ -93,6 +93,8 @@ export interface AssemblyDeps extends Pick<
   payMemory(state: GameState, seat: Seat, cost: number): void;
   /** Apply continuous play-cost modifiers to the printed cost (before the Assembly reduction). */
   adjustedPlayCost?(state: GameState, seat: Seat, definition: CardDefinition, base: number): number;
+  /** Seat-level prohibitions suppress the discount without preventing material placement. */
+  canReducePlayCost?(state: GameState, seat: Seat): boolean;
   nextPermanentId(): string;
   /** Fire On Play for the placed permanent through the effect stack. */
   fireTiming(state: GameState, seat: Seat, timing: EffectTiming, sourceInstanceId: string): Promise<void>;
@@ -114,7 +116,10 @@ export function validateAssembly(
   state: GameState,
   seat: Seat,
   intent: AssemblyIntent,
-  deps: Pick<AssemblyDeps, "maxAffordable" | "adjustedPlayCost" | "hasBeforePayCost" | "minimumDeferredPlayCost">,
+  deps: Pick<
+    AssemblyDeps,
+    "maxAffordable" | "adjustedPlayCost" | "canReducePlayCost" | "hasBeforePayCost" | "minimumDeferredPlayCost"
+  >,
 ): AssemblyCheck {
   if (state.gameOver) return { ok: false, reason: "game-over" };
   if (state.pendingDecision !== undefined) return { ok: false, reason: "decision-pending" };
@@ -152,7 +157,8 @@ export function validateAssembly(
 
   const printed = normalizeCost(definition.playCost);
   const base = deps.adjustedPlayCost ? Math.max(0, deps.adjustedPlayCost(state, seat, definition, printed)) : printed;
-  const cost = Math.max(0, base - requirement.reduceCost);
+  const reduction = deps.canReducePlayCost?.(state, seat) === false ? 0 : requirement.reduceCost;
+  const cost = Math.max(0, base - reduction);
   if (deps.maxAffordable(state, seat) < cost) {
     const minimum = deps.minimumDeferredPlayCost?.(instance, cost);
     if (

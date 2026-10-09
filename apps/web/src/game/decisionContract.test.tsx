@@ -68,6 +68,7 @@ const OPTION_CONSUMERS: Record<DecisionOptionKey, string | null> = {
   // already offers the same No Selection answer for every min-0 prompt.
   purpose: "decisionPresentation.ts",
   assemblyCardId: "screen/layout/DecisionPrompts.tsx",
+  playCostReductionBlocked: "screen/layout/DecisionPrompts.tsx",
   digiXrosCardId: "screen/layout/DecisionPrompts.tsx",
 };
 

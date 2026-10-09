@@ -48,6 +48,7 @@ function assemblySlotLabel(slot: AssemblyRequirement["materials"][number], t: Tr
 export function AssemblyMaterialOverlay({
   playingCardId,
   requirements,
+  playCostReductionBlocked = false,
   candidates,
   onConfirm,
   onSkip,
@@ -55,6 +56,7 @@ export function AssemblyMaterialOverlay({
 }: {
   playingCardId: string;
   requirements: readonly AssemblyRequirement[];
+  playCostReductionBlocked?: boolean;
   candidates: AssemblyCandidate[];
   /** Play with the picked trash materials, in pick order (§7-3-2-6 stacking order). */
   onConfirm: (materialInstanceIds: string[]) => void;
@@ -78,7 +80,7 @@ export function AssemblyMaterialOverlay({
   const recipeLabels = requirements.map((requirement) =>
     requirement.materials.map((slot) => assemblySlotLabel(slot, t)).join(" × "),
   );
-  const reduction = (completed ?? requirements[0])?.reduceCost ?? 0;
+  const reduction = playCostReductionBlocked ? 0 : ((completed ?? requirements[0])?.reduceCost ?? 0);
   const reducedCost = Math.max(0, (playing?.playCost ?? 0) - reduction);
 
   const toggle = (instanceId: string) => {

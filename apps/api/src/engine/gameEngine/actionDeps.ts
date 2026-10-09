@@ -906,6 +906,7 @@ export function assemblyDeps(engine: GameEngine): AssemblyDeps {
     payMemory: mem.payMemory,
     adjustedPlayCost: (_state, seat, definition, base) =>
       engine.modifiers.playCostFor({ def: definition, controllerSeat: seat }, base),
+    canReducePlayCost: (_state, seat) => !engine.continuous.blocksCostReduction(seat, "play"),
     finalizePlayCost: play.finalizePlayCost,
     hasBeforePayCost: play.hasBeforePayCost,
     minimumDeferredPlayCost: play.minimumDeferredPlayCost,

@@ -71,6 +71,8 @@ export class CardInstance extends Schema {
   // pay time, and resolving those means prompting the player and mutating the board, so they
   // are deliberately not simulated here. The client presents it as a prediction.
   @type("int8") projectedPlayCost = -1;
+  /** Seat-level prohibition: material placement remains legal, but cannot reduce the play cost. */
+  @type("boolean") playCostReductionBlocked = false;
   // Own permanents this hand card may legally digivolve onto right now.
   @type(["string"]) digivolveTargetPermanentIds = new ArraySchema<string>();
   // Own battle-area Digimon this card may legally be linked to right now (§6-5-1-4 /

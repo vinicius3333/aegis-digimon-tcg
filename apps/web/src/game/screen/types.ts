@@ -159,6 +159,7 @@ export interface EvoCostChoice {
 
 /** An Assembly play whose materials the viewer has still to pick. */
 export interface AssemblyPick {
+  playCostReductionBlocked?: boolean;
   instanceId: string;
   cardId: string;
   requirements: AssemblyRequirement[];
@@ -167,6 +168,7 @@ export interface AssemblyPick {
 
 /** A DigiXros play whose materials and expanders the viewer has still to pick. */
 export interface DigiXrosPick {
+  playCostReductionBlocked?: boolean;
   instanceId: string;
   cardId: string;
   requirements: DigiXrosRequirement[];
