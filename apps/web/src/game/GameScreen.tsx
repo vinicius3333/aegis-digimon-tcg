@@ -958,7 +958,7 @@ export function GameScreen({
     viewerSeat,
     isMyTurn,
     mirroredWindow,
-    decisionPending: Boolean(decision || state.pendingDecision),
+    decision,
     openCombatWindow: openCombatWindowForBarrier,
     answeredCombatWindowKeyRef,
     rolledBackRejectionSeqRef,

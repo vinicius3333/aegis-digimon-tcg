@@ -41,7 +41,7 @@ export function combatWindowsFor({
   viewerSeat,
   isMyTurn,
   mirroredWindow,
-  decisionPending = state.pendingDecision !== undefined,
+  decision,
   openCombatWindow,
   answeredCombatWindowKeyRef,
   rolledBackRejectionSeqRef,
@@ -51,8 +51,8 @@ export function combatWindowsFor({
   viewerSeat: Seat;
   isMyTurn: boolean;
   mirroredWindow: MirroredCombatWindow | null;
-  /** Also accepts the direct decision message before its synchronized state patch arrives. */
-  decisionPending?: boolean;
+  /** The direct decision message, which can arrive before its synchronized state patch. */
+  decision?: { seat: Seat } | undefined;
   /** The window the server currently has open, which is what an answer is recorded against. */
   openCombatWindow: OpenCombatWindow | null;
   /** Mutated: the window key this viewer has answered, cleared when the window closes. */
@@ -131,7 +131,10 @@ export function combatWindowsFor({
   // Counter closes only after its asynchronous effect resolves. A nested decision proves
   // its answer was accepted, including after reconnect when the local answer ref is lost.
   // Keep that answer between successive effect decisions until counterResolved arrives.
-  if (counterWindowRaw && decisionPending) {
+  // Only the viewer's own decision counts: the opponent's answered decision can still sit in
+  // synchronized state when the Counter event arrives, and must not hide the window.
+  const viewerDecisionPending = decision?.seat === viewerSeat || state.pendingDecision?.seat === viewerSeat;
+  if (counterWindowRaw && viewerDecisionPending) {
     answeredCombatWindowKeyRef.current = answerKey(`counter:${counterWindowRaw.attackerPermanentId}`);
   }
 

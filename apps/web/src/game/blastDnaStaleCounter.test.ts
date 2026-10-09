@@ -26,7 +26,7 @@ function fixture() {
       viewerSeat: 0,
       isMyTurn: false,
       mirroredWindow: null,
-      decisionPending,
+      decision: decisionPending ? { seat: 0 } : undefined,
       openCombatWindow: openCombatWindow(events, state, 0),
       answeredCombatWindowKeyRef: answered,
       rolledBackRejectionSeqRef: rolledBack,
