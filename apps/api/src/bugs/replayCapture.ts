@@ -9,6 +9,8 @@ export const DEFAULT_REPLAY_CAPTURE_TIMEOUT_MS = 3_000;
 // Scans read the shared log directory; a few at once is plenty for hand-typed reports, and the cap
 // keeps a burst of reports from many accounts from turning into a burst of full-directory reads.
 const DEFAULT_MAX_CONCURRENT_CAPTURES = 2;
+// A full real match serializes to tens of kilobytes; this leaves ample room for long games.
+export const DEFAULT_MAX_RECORD_CHARS = 2_000_000;
 // The log writer prunes a segment once its last write is 12 hours old (see localLogWriter.ts). A
 // segment older than that cannot hold a match a player is reporting from now, even if pruning lags.
 const SCAN_WINDOW_MS = 12 * 60 * 60 * 1000;
@@ -21,6 +23,7 @@ export type ReplayCapturerOptions = {
   logDir: string;
   timeoutMs?: number;
   maxConcurrent?: number;
+  maxRecordChars?: number;
   /** Replaces the log scan, so a test can stall or fail it. */
   extract?: ReplayExtractor;
   now?: () => number;
@@ -36,11 +39,14 @@ export class ReplayCapturer {
   private running = 0;
   private readonly timeoutMs: number;
   private readonly maxConcurrent: number;
+  /** Largest serialized record kept (`AEGIS_REPLAY_MAX_CHARS`). */
+  readonly maxRecordChars: number;
   private readonly extract: ReplayExtractor;
 
   constructor(options: ReplayCapturerOptions) {
     this.timeoutMs = options.timeoutMs ?? DEFAULT_REPLAY_CAPTURE_TIMEOUT_MS;
     this.maxConcurrent = options.maxConcurrent ?? DEFAULT_MAX_CONCURRENT_CAPTURES;
+    this.maxRecordChars = options.maxRecordChars ?? DEFAULT_MAX_RECORD_CHARS;
     const now = options.now ?? Date.now;
     this.extract =
       options.extract ??
@@ -55,7 +61,9 @@ export class ReplayCapturer {
   static fromEnvironment(env: NodeJS.ProcessEnv = process.env): ReplayCapturer | undefined {
     if (env.AEGIS_REPLAY_CAPTURE_ENABLED?.trim().toLowerCase() === "false") return undefined;
     const timeout = Number(env.AEGIS_REPLAY_CAPTURE_TIMEOUT_MS);
+    const maxChars = Number(env.AEGIS_REPLAY_MAX_CHARS);
     return new ReplayCapturer({
+      maxRecordChars: Number.isFinite(maxChars) && maxChars > 0 ? maxChars : DEFAULT_MAX_RECORD_CHARS,
       logDir: env.AEGIS_LOG_DIR ?? logDirectory,
       timeoutMs: Number.isFinite(timeout) && timeout > 0 ? timeout : DEFAULT_REPLAY_CAPTURE_TIMEOUT_MS,
     });
@@ -109,6 +117,11 @@ export async function captureReportReplay(
     if ("failure" in captured) {
       outcome = { saved: false, reason: captured.failure };
       detail = captured.detail;
+    } else if (JSON.stringify(captured).length > capturer.maxRecordChars) {
+      // Nested intent fields (a decision response, a DigiXros plan) are copied as sent, so a
+      // client could inflate them; a real match is far below this.
+      outcome = { saved: false, reason: "too_large" };
+      detail = `${captured.inputs.length} inputs`;
     } else {
       await store.saveReplay(reportId, captured);
       outcome = { saved: true, reportId, inputCount: captured.inputs.length };

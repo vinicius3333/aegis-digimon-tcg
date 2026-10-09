@@ -18,6 +18,54 @@ import {
 /** The room's JSONL log segments (`localLogWriter.ts`). */
 const SEGMENT = /^api-.*\.jsonl$/;
 
+/**
+ * The fields each intent type defines (`packages/shared/src/protocol/intents.ts`). The room builds an
+ * intent by spreading the client's payload, so a client can add fields the engine never reads; a
+ * replay outlives the logs, so it keeps only these. Typed against `Intent` so a renamed or removed
+ * field fails to compile; a NEW field must be added here or replays will drop it (the round-trip
+ * tests then diverge).
+ */
+const INTENT_FIELDS: { [T in Intent["type"]]: readonly Exclude<keyof Extract<Intent, { type: T }>, "type">[] } = {
+  ready: [],
+  mulligan: ["keep"],
+  playCard: ["instanceId", "useAs", "targetSlot", "digiXros", "assembly"],
+  appFusion: ["permanentId", "instanceId", "linkedInstanceId"],
+  digivolve: [
+    "permanentId",
+    "instanceId",
+    "useAlternateCost",
+    "appFusionLinkedInstanceId",
+    "alternateRequirementIndex",
+    "useBlastDigivolve",
+    "appFusionLinkInstanceId",
+  ],
+  hatchEgg: [],
+  moveFromBreeding: ["permanentId"],
+  activateEffect: ["sourceInstanceId", "effectKey"],
+  linkCard: ["instanceId", "targetPermanentId"],
+  dnaDigivolve: ["materialPermanentIds", "instanceId", "useBlastDigivolve"],
+  endPhase: [],
+  attack: ["attackerPermanentId", "target", "vortex"],
+  declareBlock: ["blockerPermanentId"],
+  declineBlock: [],
+  respondCounter: ["sourceInstanceId", "effectKey"],
+  respondAlliance: ["allyPermanentId"],
+  respondEvade: ["permanentId", "accept"],
+  respondBarrier: ["permanentId", "accept"],
+  respondDecision: ["decisionId", "response"],
+  surrender: [],
+};
+
+/** Keep only the fields the intent's type defines; an unknown type keeps only its `type`. */
+export function sanitizeIntent(intent: { type: string } & Record<string, unknown>): Intent {
+  const fields: readonly string[] = Object.hasOwn(INTENT_FIELDS, intent.type)
+    ? INTENT_FIELDS[intent.type as Intent["type"]]
+    : [];
+  const kept: Record<string, unknown> = { type: intent.type };
+  for (const field of fields) if (intent[field] !== undefined) kept[field] = structuredClone(intent[field]);
+  return kept as Intent;
+}
+
 export class ReplayExtractionError extends Error {
   override name = "ReplayExtractionError";
 }
@@ -174,7 +222,13 @@ function buildRecord(entries: Entry[], matchId: string): ReplayRecord {
         : failures.has(replaySeq)
           ? { threw: true as const }
           : {};
-      inputs.push({ kind: "intent", seat, intent: structuredClone(intent) as Intent, ...outcome, ...placed });
+      inputs.push({
+        kind: "intent",
+        seat,
+        intent: sanitizeIntent(intent as { type: string } & Record<string, unknown>),
+        ...outcome,
+        ...placed,
+      });
     } else if (name === "replay.input") {
       const site =
         typeof payload.site === "string" && SITES.has(payload.site) ? (payload.site as ReplaySite) : undefined;

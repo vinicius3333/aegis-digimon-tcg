@@ -132,6 +132,7 @@ matchmaking state, and each one advertises the public path where clients reach i
 | `AEGIS_REPLAY_CAPTURE_ENABLED`    | `false` stops saving a match replay with bug reports filed from a match.                                                                     |
 | `AEGIS_REPLAY_CAPTURE_TIMEOUT_MS` | Time budget for copying a reported match's replay out of the logs (default 3000).                                                            |
 | `AEGIS_REPLAY_RETENTION_DAYS`     | Days a saved replay is kept (default 30).                                                                                                    |
+| `AEGIS_REPLAY_MAX_CHARS`          | Largest serialized replay kept with a report (default 2000000).                                                                              |
 | `AEGIS_STRICT_EFFECTS`            | `1` makes unsupported card effects throw, `0` makes them log and continue. Unset: throw unless `NODE_ENV=production`.                        |
 
 Two consequences follow from rooms living on one process each:

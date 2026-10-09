@@ -167,6 +167,16 @@ describe("capturing the replay of a reported match", () => {
     expect(filed!.body).not.toMatch(/mainDeck|intent|seat/i);
   });
 
+  it("keeps no replay larger than its size cap and says so on the issue", async () => {
+    const h = await startHarness({ replays: new ReplayCapturer({ logDir, maxRecordChars: 1_000 }) });
+
+    const response = await submit(h, { matchId: match.matchId });
+
+    expect(response.status).toBe(201);
+    expect(await storedReplays(h)).toEqual([]);
+    expect(h.filed[0]!.body).toContain("### Replay\nReplay not available: too large to keep.");
+  });
+
   it("files the report and says the replay is unavailable when the match is not in the logs", async () => {
     const h = await startHarness({ replays: new ReplayCapturer({ logDir }) });
 

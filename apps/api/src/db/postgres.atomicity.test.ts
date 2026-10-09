@@ -2,6 +2,9 @@ import { randomUUID } from "node:crypto";
 import { Pool, type PoolClient } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AccountStore } from "../accounts/AccountStore.js";
+import { FeedbackStore } from "../bugs/FeedbackStore.js";
+import { fetchReplayFromDb } from "../replay/tools/fetch.js";
+import { REPLAY_FORMAT, type ReplayRecord } from "../replay/types.js";
 import { RED_DECK } from "../engine/testDecks.js";
 import { appendTournamentEvent, readTournamentEvents } from "../tournaments/audit/index.js";
 import { inProcessTournamentLock, ParticipantStore } from "../tournaments/participants/index.js";
@@ -346,3 +349,65 @@ async function roundIdOf(pool: Pool, tournamentId: string, number: number): Prom
   if (!row) throw new Error(`round ${number} was never published`);
   return row.id;
 }
+
+describe.skipIf(!ENABLED)("feedback report replays against a real Postgres", () => {
+  const schema = `${SCHEMA}_replays`;
+  let admin: Pool;
+  const DAY = 24 * 60 * 60 * 1000;
+  const record: ReplayRecord = {
+    format: REPLAY_FORMAT,
+    matchId: "00000000-0000-4000-8000-000000000001",
+    seed: 4242,
+    rules: { deckFormat: "standard", unlimited: false, betaBattle: false },
+    seats: [
+      { deck: { mainDeck: ["BT1-009"], eggDeck: ["BT1-001"] } },
+      { deck: { mainDeck: ["BT1-010"], eggDeck: ["BT1-002"] }, bot: true },
+    ],
+    inputs: [
+      { kind: "intent", seat: 0, intent: { type: "ready" }, ok: true, stateVersion: 0, engineEvents: 0 },
+      { kind: "startMatch", stateVersion: 0, engineEvents: 0 },
+    ],
+  };
+
+  beforeAll(async () => {
+    admin = new Pool({ connectionString: CONNECTION });
+    await admin.query(`CREATE SCHEMA IF NOT EXISTS ${schema}`);
+  });
+
+  afterAll(async () => {
+    await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);
+    await admin.end();
+  });
+
+  it("stores, lists, serves, expires and cascades replays, and the CLI reads the same rows", async () => {
+    const pool = new Pool({ connectionString: CONNECTION, options: `-c search_path=${schema}` });
+    let now = 1_000 * DAY;
+    const feedback = new FeedbackStore(new AccountStore(pool), { replayRetentionMs: 30 * DAY, now: () => now });
+    try {
+      const report = { kind: "bug" as const, summary: "s", description: "d", cardIds: [] };
+      const withReplay = await feedback.save(report, undefined, false);
+      const without = await feedback.save(report, undefined, false);
+      await feedback.saveReplay(withReplay, record);
+
+      // jsonb round-trips the record exactly, and the LEFT JOIN marks only the report that has one.
+      expect(await feedback.replay(withReplay)).toEqual(record);
+      const listed = (await feedback.list()).items;
+      expect(listed.find((item) => item.id === withReplay)).toMatchObject({ hasReplay: true, replayInputs: 2 });
+      expect(listed.find((item) => item.id === without)).toMatchObject({ hasReplay: false, replayInputs: null });
+      expect((await fetchReplayFromDb(pool, withReplay, now - 30 * DAY)).record).toEqual(record);
+
+      // Past the window: the CLI treats it as gone even before a prune, and listing prunes it.
+      now += 31 * DAY;
+      await expect(fetchReplayFromDb(pool, withReplay, now - 30 * DAY)).rejects.toThrow(/No replay/);
+      expect((await feedback.list()).items.find((item) => item.id === withReplay)).toMatchObject({ hasReplay: false });
+      expect((await pool.query("SELECT 1 FROM feedback_report_replays")).rowCount).toBe(0);
+
+      // A replay goes with its report.
+      await feedback.saveReplay(without, record);
+      await pool.query("DELETE FROM feedback_reports WHERE id=$1", [without]);
+      expect((await pool.query("SELECT 1 FROM feedback_report_replays")).rowCount).toBe(0);
+    } finally {
+      await pool.end();
+    }
+  });
+});

@@ -39,7 +39,7 @@ export type NewBugReport = {
 export type FiledBugReport = { number: number; url: string };
 
 /** Why a report filed from a match has no saved replay, in words safe for a public issue. */
-export type ReplayFailure = "logs_not_found" | "timed_out" | "error" | "busy";
+export type ReplayFailure = "logs_not_found" | "timed_out" | "error" | "busy" | "too_large";
 
 /**
  * What happened to the replay of the match a report was filed from. Only the outcome travels to
@@ -181,6 +181,7 @@ const REPLAY_FAILURE_TEXT: Record<ReplayFailure, string> = {
   timed_out: "timed out",
   error: "error",
   busy: "server busy",
+  too_large: "too large to keep",
 };
 
 /**

@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { extractReplay, extractReplayFromLogDir, ReplayExtractionError } from "./extract.js";
+import { extractReplay, extractReplayFromLogDir, ReplayExtractionError, sanitizeIntent } from "./extract.js";
 import { CHAT_TEXT, HUMAN_NAME, HUMAN_SESSION, recordRoomMatch, type RecordedRoomMatch } from "./roomMatch.fixture.js";
 import { REPLAY_FORMAT } from "./types.js";
 
@@ -62,6 +62,29 @@ describe("extractReplay", () => {
     expect(first.lines.join("\n")).toContain(HUMAN_SESSION);
     const secrets = [CHAT_TEXT, HUMAN_SESSION, HUMAN_NAME, "sessionId", "displayName", "roomCode", "chat", ...roomIds];
     expect(secrets.filter((secret) => serialized.includes(secret as string))).toEqual([]);
+  });
+
+  it("keeps only the fields each intent type defines, so a client cannot stuff extra data in", () => {
+    const stuffed = first.lines.map((line) => {
+      const parsed = JSON.parse(line) as { data: [string, { intent?: Record<string, unknown> }] };
+      if (parsed.data[0] !== "intent.received" || !parsed.data[1].intent) return line;
+      parsed.data[1].intent = { ...parsed.data[1].intent, note: "my email is someone@example.com" };
+      return JSON.stringify(parsed);
+    });
+    expect(stuffed.join("\n")).toContain("someone@example.com"); // the room logs what the client sent
+
+    const record = extractReplay(stuffed, first.matchId);
+
+    expect(JSON.stringify(record)).not.toContain("someone@example.com");
+    expect(record).toEqual(extractReplay(first.lines, first.matchId));
+    expect(sanitizeIntent({ type: "notAnIntent", payload: "x" })).toEqual({ type: "notAnIntent" });
+    expect(sanitizeIntent({ type: "attack", attackerPermanentId: "p1", target: { kind: "player" }, extra: 1 })).toEqual(
+      {
+        type: "attack",
+        attackerPermanentId: "p1",
+        target: { kind: "player" },
+      },
+    );
   });
 
   it("fails clearly without the header that carries the seed", () => {

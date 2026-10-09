@@ -189,6 +189,7 @@ describe("the issue a report becomes", () => {
       ["timed_out", "timed out"],
       ["error", "error"],
       ["busy", "server busy"],
+      ["too_large", "too large to keep"],
     ] as const)("names a %s capture failure in plain words", (reason, text) => {
       const body = issueBody(report({ matchId }), undefined, undefined, { replay: { saved: false, reason } });
       expect(body).toContain(`### Replay\nReplay not available: ${text}.`);
