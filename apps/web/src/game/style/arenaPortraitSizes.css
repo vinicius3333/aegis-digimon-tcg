@@ -10,7 +10,6 @@
     --arena-hand-width: 72px;
     --arena-hand-height: 156px;
     --arena-hand-reserved: 36px;
-    --arena-hand-lift: 6px;
     --arena-source-step: 2px;
     --arena-source-top: 2px;
   }
@@ -34,7 +33,6 @@
     --arena-hand-width: 52px;
     --arena-hand-height: 124px;
     --arena-hand-reserved: 36px;
-    --arena-hand-lift: 6px;
     --arena-header-height: 44px;
     --arena-source-step: 1.25px;
     --arena-source-top: 2px;
