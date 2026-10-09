@@ -15,6 +15,7 @@ import type { GameStateAccess } from "../state/access.js";
 import type { SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
 import { canPaySuspendCost, eligibleBlockers, hasCollision } from "./legality.js";
 import { fragmentCountOf } from "./keywords.js";
+import { inheritedDigimonHost } from "../effects/kernel.js";
 import { resolvePermanentBattle } from "./resolve.js";
 import { recordDigimonAttack } from "../turnActivity.js";
 import type {
@@ -1634,6 +1635,12 @@ export class CombatController {
               permanentId,
               controllerSeat: permanent.controllerSeat,
               topCardId: permanent.topCard.cardId,
+              inheritedHostIsDigimon: inheritedDigimonHost({
+                definition: getCardDefinition(permanent.topCard.cardId)!,
+                effectiveKinds: this.effectiveKindsOf(permanent),
+                inBattleArea: !permanent.inBreeding,
+              }),
+              stackInstanceIds: permanent.stack.map((card) => card.instanceId),
               faceDownSourceInstanceIds: [...permanent.stack, ...permanent.linked]
                 .filter((card) => !card.faceUp)
                 .map((card) => card.instanceId),

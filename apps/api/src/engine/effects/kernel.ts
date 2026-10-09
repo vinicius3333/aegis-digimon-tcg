@@ -1,4 +1,4 @@
-import { CardKind } from "@aegis/shared";
+import { CardKind, type CardDefinition } from "@aegis/shared";
 import type { Effect } from "./Effect.js";
 import type { EffectContext } from "./EffectContext.js";
 
@@ -86,6 +86,32 @@ function wasHiddenAtDeletion(ctx: EffectContext): boolean {
   );
 }
 
+/** The shared host-category contract for live and event-time inherited placement. */
+export function inheritedDigimonHost({
+  definition,
+  effectiveKinds,
+  inBattleArea,
+}: {
+  definition: Pick<CardDefinition, "kinds" | "dp">;
+  effectiveKinds: readonly CardKind[];
+  inBattleArea: boolean;
+}): boolean {
+  return (
+    effectiveKinds.includes(CardKind.Digimon) ||
+    (inBattleArea && definition.kinds.includes(CardKind.DigiEgg) && (definition.dp ?? 0) > 0)
+  );
+}
+
+/** An inherited card's host had to confer the effect before deletion moved both cards. */
+function inheritedHostInvalidAtDeletion(ctx: EffectContext): boolean {
+  return (
+    ctx.trigger?.deletedPermanentSnapshots?.some(
+      (snapshot) =>
+        snapshot.stackInstanceIds?.includes(ctx.source.instanceId) && snapshot.inheritedHostIsDigimon === false,
+    ) === true
+  );
+}
+
 /**
  * Whether this effect's source card is currently placed such that an
  * inherited/linked effect may activate:
@@ -104,6 +130,10 @@ function wasHiddenAtDeletion(ctx: EffectContext): boolean {
  */
 export function passesPlacementGuard(effect: Effect, ctx: EffectContext): boolean {
   if (wasHiddenAtDeletion(ctx)) return false;
+  // CR 15-3-1: cards under a Tamer confer no inherited effects. Once deletion
+  // moves that host to trash, generic stack membership cannot prove a Digimon
+  // inherited the effect; preserve the host's event-time effective category.
+  if (effect.isInherited && inheritedHostInvalidAtDeletion(ctx)) return false;
   // Gained keywords belong to the recipient Digimon, rather than its former top card.
   // Preserve activation across ordinary evolution, but never after that permanent leaves.
   if (ctx.source.gainedOnPermanentId !== undefined) {
@@ -198,9 +228,11 @@ export function passesPlacementGuard(effect: Effect, ctx: EffectContext): boolea
     if (!isLinkedCard && !permanent.stack.some((card) => card.instanceId === ctx.source.instanceId)) return false;
     const def = ctx.game.definitionOf(permanent.topCard);
     const effectiveHostKinds = ctx.game.effectiveKinds?.(permanent.permanentId, def.kinds) ?? def.kinds;
-    const isBattleAreaDigimon =
-      effectiveHostKinds.includes(CardKind.Digimon) ||
-      (ctx.source.isOnBattleArea() && def.kinds.includes(CardKind.DigiEgg) && typeof def.dp === "number" && def.dp > 0);
+    const isBattleAreaDigimon = inheritedDigimonHost({
+      definition: def,
+      effectiveKinds: effectiveHostKinds,
+      inBattleArea: ctx.source.isOnBattleArea(),
+    });
     // The breeding area has one rules-defined exception to the ordinary Digimon-host
     // requirement: BT13-007 King Drasil_7D6 is a Digi-Egg whose inherited effect is active
     // from its digivolution cards while it remains in breeding. In the battle area, the
@@ -227,6 +259,10 @@ export function passesPlacementGuard(effect: Effect, ctx: EffectContext): boolea
  */
 export function canTrigger(effect: Effect, ctx: EffectContext, tracker: UseTracker): boolean {
   if (wasHiddenAtDeletion(ctx)) return false;
+  // CR 15-3-1: cards under a Tamer confer no inherited effects. Once deletion
+  // moves that host to trash, generic stack membership cannot prove a Digimon
+  // inherited the effect; preserve the host's event-time effective category.
+  if (effect.isInherited && inheritedHostInvalidAtDeletion(ctx)) return false;
   if (isOverMaxPerTurn(effect, tracker, ctx.source.instanceId)) return false;
   return effect.canTrigger(ctx);
 }
