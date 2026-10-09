@@ -1,6 +1,9 @@
+import { mkdtempSync, rmSync } from "node:fs";
 import type { AddressInfo } from "node:net";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import express from "express";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { FeedbackStore } from "./FeedbackStore.js";
 import { AccountStore } from "../accounts/AccountStore.js";
 import { installAccountRoutes } from "../accounts/routes.js";
@@ -21,6 +24,21 @@ type Harness = {
 };
 
 let harness: Harness;
+
+// The account routes capture a reported match's replay from the log directory; point them at an
+// empty one so reports carrying a match ID never read a developer's real logs. Replay capture
+// itself is covered in replayCapture.test.ts.
+const previousLogDir = process.env.AEGIS_LOG_DIR;
+let emptyLogDir: string;
+beforeAll(() => {
+  emptyLogDir = mkdtempSync(join(tmpdir(), "aegis-bug-routes-"));
+  process.env.AEGIS_LOG_DIR = emptyLogDir;
+});
+afterAll(() => {
+  if (previousLogDir === undefined) delete process.env.AEGIS_LOG_DIR;
+  else process.env.AEGIS_LOG_DIR = previousLogDir;
+  rmSync(emptyLogDir, { recursive: true, force: true });
+});
 
 async function startHarness(tracker?: IssueTracker, filed: NewBugReport[] = []): Promise<Harness> {
   const store = new AccountStore(createMemoryPool());

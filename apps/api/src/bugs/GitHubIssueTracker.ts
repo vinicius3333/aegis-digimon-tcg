@@ -38,12 +38,29 @@ export type NewBugReport = {
 /** What the reporter gets back: the issue their report became. */
 export type FiledBugReport = { number: number; url: string };
 
+/** Why a report filed from a match has no saved replay, in words safe for a public issue. */
+export type ReplayFailure = "logs_not_found" | "timed_out" | "error" | "busy" | "too_large";
+
+/**
+ * What happened to the replay of the match a report was filed from. Only the outcome travels to
+ * the tracker: the record itself (both decks, every action) stays private in the database.
+ */
+export type ReplayOutcome =
+  | { saved: true; reportId: number; inputCount: number }
+  | { saved: false; reason: ReplayFailure };
+
+/** Server-side facts about a report that are not part of what the reporter submitted. */
+export type IssueContext = {
+  /** Absent when no capture was attempted (no match ID, or capture is switched off). */
+  replay?: ReplayOutcome;
+};
+
 /**
  * Where a bug report goes. The routes depend on this rather than on the GitHub client so a test can
  * file a report without a network or a token.
  */
 export type IssueTracker = {
-  file(report: NewBugReport): Promise<FiledBugReport>;
+  file(report: NewBugReport, context?: IssueContext): Promise<FiledBugReport>;
 };
 
 export type GitHubIssueTrackerOptions = {
@@ -96,14 +113,14 @@ export class GitHubIssueTracker implements IssueTracker {
     });
   }
 
-  async file(report: NewBugReport): Promise<FiledBugReport> {
+  async file(report: NewBugReport, context: IssueContext = {}): Promise<FiledBugReport> {
     const response = await this.fetch(`${GITHUB_API}/repos/${this.options.repository}/issues`, {
       method: "POST",
       signal: AbortSignal.timeout(10_000),
       headers: githubHeaders(this.options.token),
       body: JSON.stringify({
         title: issueTitle(report),
-        body: issueBody(report, this.options.serverRevision, this.options.publicVersion),
+        body: issueBody(report, this.options.serverRevision, this.options.publicVersion, context),
         labels: [...(this.options.labels ?? []), KIND_LABELS[report.kind]],
       }),
     });
@@ -131,7 +148,12 @@ export function issueTitle({ summary, cardIds }: NewBugReport): string {
   return truncate(`${prefix}${summary}`, ISSUE_TITLE_LIMIT);
 }
 
-export function issueBody(report: NewBugReport, serverRevision?: string, publicVersion?: string): string {
+export function issueBody(
+  report: NewBugReport,
+  serverRevision?: string,
+  publicVersion?: string,
+  context: IssueContext = {},
+): string {
   const { reporterName, kind, cardIds, description, opponentDeck } = report;
   const isBug = kind === "bug";
   const sections: string[] = [];
@@ -148,9 +170,28 @@ export function issueBody(report: NewBugReport, serverRevision?: string, publicV
   sections.push(isBug ? "### Steps to reproduce" : "### Details", neutralizeMarkdownRefs(description));
   if (opponentDeck) sections.push("", "### Opponent's deck", neutralizeMarkdownRefs(opponentDeck));
   if (report.matchId) sections.push("", "### Match ID", `\`${code(report.matchId)}\``);
+  if (report.matchId && context.replay) sections.push("", "### Replay", replayNote(context.replay));
   const credit = reporterName ? `**${neutralizeMarkdownRefs(reporterName)}**` : "an anonymous player";
   sections.push("", "---", `Reported in-game by ${credit}.`, reportContext(report, serverRevision, publicVersion));
   return sections.join("\n");
+}
+
+const REPLAY_FAILURE_TEXT: Record<ReplayFailure, string> = {
+  logs_not_found: "logs not found",
+  timed_out: "timed out",
+  error: "error",
+  busy: "server busy",
+  too_large: "too large to keep",
+};
+
+/**
+ * Where the replay is, never what is in it. The report number sits in a code span because a bare
+ * `#12` would cross-link GitHub issue 12, which has nothing to do with feedback report 12.
+ */
+function replayNote(replay: ReplayOutcome): string {
+  if (!replay.saved) return `Replay not available: ${REPLAY_FAILURE_TEXT[replay.reason]}.`;
+  const inputs = `${replay.inputCount} input${replay.inputCount === 1 ? "" : "s"}`;
+  return `Saved privately with report \`#${replay.reportId}\` (${inputs}). Maintainers: \`pnpm replay fetch ${replay.reportId}\`.`;
 }
 
 /** The build and browser the reporter was on, which they should never have to type. */

@@ -46,15 +46,31 @@ export function serializeLog(value: unknown): string {
   }
 }
 
+/** In-process observers of every log line, e.g. a test reading what a room recorded. */
+const sinks = new Set<(line: string) => void>();
+
+/**
+ * Observe every log line this process writes, as the exact JSON text the log files receive
+ * (without the trailing newline). Under test, INFO lines are still produced for sinks even
+ * though nothing is written to stdout or disk. Returns the function that stops observing.
+ */
+export function addLogSink(sink: (line: string) => void): () => void {
+  sinks.add(sink);
+  return () => sinks.delete(sink);
+}
+
 function write(level: "INFO" | "ERROR", ...args: unknown[]): void {
-  if (UNDER_TEST && level !== "ERROR") return;
-  const line =
-    serializeLog({
-      timestamp: new Date().toISOString(),
-      level,
-      ...context.getStore(),
-      data: args.map((value) => (value instanceof Error ? { message: value.message, stack: value.stack } : value)),
-    }) + "\n";
+  const silenced = UNDER_TEST && level !== "ERROR";
+  if (silenced && sinks.size === 0) return;
+  const record = serializeLog({
+    timestamp: new Date().toISOString(),
+    level,
+    ...context.getStore(),
+    data: args.map((value) => (value instanceof Error ? { message: value.message, stack: value.stack } : value)),
+  });
+  for (const sink of sinks) sink(record);
+  if (silenced) return;
+  const line = record + "\n";
   process[level === "ERROR" ? "stderr" : "stdout"].write(line);
   writer?.write(line);
   if (level === "ERROR") errorAlerts?.report(args, line);

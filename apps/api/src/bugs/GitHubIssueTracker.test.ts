@@ -78,6 +78,20 @@ describe("filing an issue", () => {
     expect(body.body).toContain("version `v1.0.0-BETA`");
   });
 
+  it("says in the issue whether the reported match's replay was kept", async () => {
+    const fetchMock = vi.fn<typeof globalThis.fetch>(async () => okResponse());
+    const tracker = new GitHubIssueTracker({ repository: "example/repo", token: "secret", fetch: fetchMock });
+
+    await tracker.file(report({ matchId: "f62249e5-ba6e-4528-b517-63bee8fbbb0f" }), {
+      replay: { saved: true, reportId: 12, inputCount: 340 },
+    });
+
+    const body = JSON.parse(String(fetchMock.mock.calls[0]![1]!.body)) as { body: string };
+    expect(body.body).toContain(
+      "### Match ID\n`f62249e5-ba6e-4528-b517-63bee8fbbb0f`\n\n### Replay\nSaved privately with report `#12` (340 inputs). Maintainers: `pnpm replay fetch 12`.",
+    );
+  });
+
   it("throws when GitHub refuses, so the route can tell the reporter", async () => {
     const tracker = new GitHubIssueTracker({
       repository: "example/repo",
@@ -152,6 +166,42 @@ describe("the issue a report becomes", () => {
     expect(neutralizeMarkdownRefs("hey @maintainer see #123")).toBe("hey `@maintainer` see `#123`");
     expect(neutralizeMarkdownRefs("plain text with an email a@b")).toContain("`@b`");
     expect(neutralizeMarkdownRefs("# heading stays")).toBe("# heading stays");
+  });
+
+  describe("the Replay section", () => {
+    const matchId = "f62249e5-ba6e-4528-b517-63bee8fbbb0f";
+
+    it("points maintainers at the private copy, keeping the report number from cross-linking an issue", () => {
+      const body = issueBody(report({ matchId }), undefined, undefined, {
+        replay: { saved: true, reportId: 7, inputCount: 1 },
+      });
+      expect(body).toContain(
+        "### Replay\nSaved privately with report `#7` (1 input). Maintainers: `pnpm replay fetch 7`.",
+      );
+      expect(body).not.toMatch(/(^|[^`])#7\b/);
+      // It sits with the match context, above the reporter credit.
+      expect(body.indexOf("### Replay")).toBeGreaterThan(body.indexOf("### Match ID"));
+      expect(body.indexOf("### Replay")).toBeLessThan(body.indexOf("Reported in-game by"));
+    });
+
+    it.each([
+      ["logs_not_found", "logs not found"],
+      ["timed_out", "timed out"],
+      ["error", "error"],
+      ["busy", "server busy"],
+      ["too_large", "too large to keep"],
+    ] as const)("names a %s capture failure in plain words", (reason, text) => {
+      const body = issueBody(report({ matchId }), undefined, undefined, { replay: { saved: false, reason } });
+      expect(body).toContain(`### Replay\nReplay not available: ${text}.`);
+    });
+
+    it("is absent when no capture was attempted or the report has no match", () => {
+      expect(issueBody(report({ matchId }))).not.toContain("### Replay");
+      expect(issueBody(report({ matchId }), undefined, undefined, {})).not.toContain("### Replay");
+      expect(
+        issueBody(report(), undefined, undefined, { replay: { saved: true, reportId: 7, inputCount: 3 } }),
+      ).not.toContain("### Replay");
+    });
   });
 
   it("keeps a backtick in the user agent from breaking out of its code span", () => {

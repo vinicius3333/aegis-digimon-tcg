@@ -30,9 +30,12 @@ import type { Action } from "@aegis/shared";
 /**
  * When true, an unsupported action throws (so tests/dev surface the gap); when
  * false (production), it logs and continues so one un-implemented clause cannot crash
- * a live match. Defaults to throwing unless NODE_ENV === "production".
+ * a live match. Defaults to throwing unless NODE_ENV === "production". `AEGIS_STRICT_EFFECTS`
+ * ("1" or "0") overrides the default, so a replay of a production match can run as production did.
  */
-const STRICT = process.env.NODE_ENV !== "production";
+const STRICT =
+  process.env.AEGIS_STRICT_EFFECTS === "1" ||
+  (process.env.AEGIS_STRICT_EFFECTS !== "0" && process.env.NODE_ENV !== "production");
 
 /**
  * Keywords whose "gain" performs a VERB (a one-shot action) rather than conferring a

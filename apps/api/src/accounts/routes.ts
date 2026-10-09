@@ -28,7 +28,7 @@ import { BotSeatingStore } from "../tournaments/bots/index.js";
 import { EliminationStore } from "../tournaments/elimination/index.js";
 import { ArbitrationService, installArbitrationRoutes } from "../tournaments/arbitration/index.js";
 import { FeedbackStore } from "../bugs/FeedbackStore.js";
-import { installBugReportRoutes, type IssueTracker } from "../bugs/index.js";
+import { installBugReportRoutes, ReplayCapturer, type IssueTracker } from "../bugs/index.js";
 import { CommunityDeckStore } from "../community/CommunityDeckStore.js";
 import type { DeckReportTracker } from "../community/deckReports.js";
 import { installCommunityDeckRoutes } from "../community/routes.js";
@@ -88,8 +88,15 @@ export function installAccountRoutes(
     arbitration,
     session: sessionFromRequest,
   });
-  // Feedback is stored locally, with an optional copy in GitHub.
-  installBugReportRoutes({ app, store: new FeedbackStore(store), tracker: bugTracker, session: sessionFromRequest });
+  // Feedback is stored locally, with an optional copy in GitHub. A report filed from a match also
+  // keeps a private copy of the match's replay (see bugs/replayCapture).
+  installBugReportRoutes({
+    app,
+    store: new FeedbackStore(store),
+    tracker: bugTracker,
+    session: sessionFromRequest,
+    replays: ReplayCapturer.fromEnvironment(),
+  });
   // Public decks, likes and copies. See src/community.
   installCommunityDeckRoutes({
     app,

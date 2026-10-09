@@ -61,3 +61,6 @@ apps/web/.motion-reference/
 
 # Local UI concept images and browser captures
 .local/mobile-toast-prototypes/
+
+# Match replays fetched or extracted for local debugging (pnpm replay); hold decklists and actions
+/replays/
