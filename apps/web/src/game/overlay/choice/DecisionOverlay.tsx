@@ -334,12 +334,14 @@ export function DecisionOverlay({
                   {isResolutionPlan ? t("overlay.orderPendingEffects") : promptText}
                 </h2>
               </div>
-              {!isOrderTriggers && displayedEffectText && onChangeSourceHost === undefined ? (
-                <p className="decision-overlay__effect-text">{displayedEffectText}</p>
-              ) : null}
-              {isOptional && request.options?.promptKey === "attackAlreadyResolving" && sourceEffectText ? (
-                <p className="decision-overlay__effect-text">{specificPrompt}</p>
-              ) : null}
+              <div className="decision-overlay__clauses">
+                {!isOrderTriggers && displayedEffectText && onChangeSourceHost === undefined ? (
+                  <p className="decision-overlay__effect-text">{displayedEffectText}</p>
+                ) : null}
+                {isOptional && request.options?.promptKey === "attackAlreadyResolving" && sourceEffectText ? (
+                  <p className="decision-overlay__effect-text">{specificPrompt}</p>
+                ) : null}
+              </div>
               {onChangeSourceHost ? (
                 <Button size="sm" variant="ghost" icon={Icons.ArrowLeft} onClick={onChangeSourceHost}>
                   {t("overlay.chooseAnotherSourceHost")}

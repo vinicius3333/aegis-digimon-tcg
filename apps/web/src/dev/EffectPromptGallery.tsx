@@ -48,6 +48,7 @@ import "./effectPromptGallery.css";
 
 export const EFFECT_PROMPT_CASES = [
   ["optional-field", "Optional effect · field", "left"],
+  ["optional-attack-resolving", "Paildramon · attack already resolving", "left"],
   ["optional-hidden", "Optional effect · hidden/revealed", "left"],
   ["millennium-depth", "Millenniummon · De-Digivolve depth", "left"],
   ["millennium-delete", "Millenniummon · optional deletion / field highlight", "left"],
@@ -583,6 +584,16 @@ function GalleryPrompt({
     options: { timing: "OnUseAttack", effectText: getCardDefinition(CARDS.champion)?.effectText, min: 0, max: 2 },
   };
   if (caseId.startsWith("optional-")) candidates = [];
+  if (caseId === "optional-attack-resolving") {
+    request.sourceCardId = "BT20-016";
+    request.options = {
+      timing: "OnPlay",
+      effectText: getCardDefinition("BT20-016")?.effectText,
+      effectTextPart: "Then, this Digimon may attack.",
+      promptKey: "attackAlreadyResolving",
+      activationConfirmation: true,
+    };
+  }
   if (["trash-recovery", "revealed-search"].includes(caseId) || caseId.startsWith("sukamon-")) {
     const trash = caseId === "trash-recovery";
     const sukamon = caseId.startsWith("sukamon-");

@@ -421,3 +421,27 @@ for (const viewport of [
     expect((await empty.boundingBox())!.height).toBeLessThan(300);
   });
 }
+
+for (const width of [390, 720, 1440]) {
+  for (const dark of [false, true]) {
+    test(`Paildramon's attack clause and pending attack notice do not overlap (${width}px, dark=${dark})`, async ({
+      page,
+    }, info) => {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.addInitScript((enabled) => localStorage.setItem("aegis:darkMode", String(enabled)), dark);
+      const panel = await new MobilePromptPreview(page).open("optional-attack-resolving", "en");
+      await page.evaluate((enabled) => document.documentElement.classList.toggle("dark", enabled), dark);
+      const paragraphs = panel.locator(".decision-overlay__effect-text");
+      await expect(paragraphs).toHaveCount(2);
+      await expect(paragraphs.nth(0)).toHaveText("Then, this Digimon may attack.");
+      const clause = (await paragraphs.nth(0).boundingBox())!;
+      const notice = (await paragraphs.nth(1).boundingBox())!;
+      expect(clause.y + clause.height, "notice must sit below the printed clause").toBeLessThanOrEqual(notice.y);
+      const art = (await panel.locator(".decision-overlay__source-art").boundingBox())!;
+      for (const text of [clause, notice]) {
+        expect(text.x + text.width, "text must leave room for the card artwork").toBeLessThanOrEqual(art.x + 1);
+      }
+      await page.screenshot({ path: info.outputPath("paildramon-prompt.png") });
+    });
+  }
+}

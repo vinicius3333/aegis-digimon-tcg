@@ -1032,7 +1032,7 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
 }
 .game-modal__panel.effect-prompt-family[data-prompt-surface]
   .decision-overlay__header:has(.decision-overlay__effect-text)
-  .decision-overlay__effect-text,
+  .decision-overlay__clauses,
 .game-modal__panel.effect-prompt-family[data-prompt-surface] .action-confirmation__detail {
   grid-area: clause;
 }
@@ -1118,4 +1118,13 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
     100dvh - var(--decision-hand-clearance, var(--game-hand-h, 11rem)) - var(--ds-space-4) -
       env(safe-area-inset-top, 0px)
   ) !important;
+}
+
+/* An attack already in progress adds a notice below the printed clause. Keep
+   both paragraphs in one grid item instead of stacking them in the same cell. */
+.decision-overlay__clauses {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  min-width: 0;
 }
