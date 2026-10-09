@@ -1,6 +1,6 @@
 import { CardInstance, Permanent } from "@aegis/shared";
 import { expect, it } from "vitest";
-import { findDnaMaterialCombination, handCardEvolutionRoute } from "./digivolveModel";
+import { findDnaMaterialCombination, getDigivolveCostOptions, handCardEvolutionRoute } from "./digivolveModel";
 import { dnaFieldChoice } from "./screen/model/dnaMaterialSelection";
 
 it("GitHub #5273: identical Ouryumon cards remain two selectable physical DNA materials", () => {
@@ -22,4 +22,15 @@ it("GitHub #5273: identical Ouryumon cards remain two selectable physical DNA ma
   expect(first.selected).toBeUndefined();
   expect(dnaFieldChoice(routes, copies, ids).selected).toEqual(routes[0]);
   expect(dnaFieldChoice(routes, copies.slice(0, 1), ids).selected).toBeUndefined();
+});
+
+it("GitHub #5393: ZeigGreymon offers AD1-006 Shoutmon X7's [Blue Flare] digivolve for cost 2", () => {
+  // BT11-031's catalog record spells the trait "BlueFlare"; Shoutmon X7 prints [Blue Flare].
+  const zeigGreymon = Object.assign(new Permanent(), {
+    permanentId: "zeiggreymon",
+    topCard: Object.assign(new CardInstance(), { instanceId: "zeiggreymon-top", cardId: "BT11-031" }),
+  });
+  expect(getDigivolveCostOptions("AD1-006", zeigGreymon)).toContainEqual(
+    expect.objectContaining({ type: "alternate", cost: 2 }),
+  );
 });

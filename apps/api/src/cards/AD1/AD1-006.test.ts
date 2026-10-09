@@ -85,7 +85,8 @@ describe("AD1-006 Shoutmon X7", () => {
   });
 
   it("allows level-6 Xros Heart and Blue Flare digivolution routes for cost 2", async () => {
-    for (const baseCardId of ["BT10-015", "BT19-026"]) {
+    // BT11-031 ZeigGreymon's catalog record spells its trait "BlueFlare" (issue #5393).
+    for (const baseCardId of ["BT10-015", "BT19-026", "BT11-031"]) {
       const s = setupEngine({
         0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "AD1-006", as: "x7" }], deck: ["BT1-009"] },
       });

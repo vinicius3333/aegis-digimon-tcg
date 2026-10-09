@@ -1,4 +1,10 @@
-import { digiXrosRequirementFor, effectiveExactNames, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import {
+  digiXrosRequirementFor,
+  effectiveExactNames,
+  getCardDefinition,
+  getCompiledCard,
+  sameTrait,
+} from "@aegis/shared";
 import type { CardColor, CardDefinition, Keyword, Permanent } from "@aegis/shared";
 
 const PRINTED_MATCHERS: ReadonlyArray<readonly [Keyword, RegExp]> = [
@@ -278,7 +284,7 @@ export function digiXrosMatches(hostCardId: string, stackCardId: string): boolea
       if (slot.names?.length && !slot.names.some((name) => stackNames.includes(name.toLowerCase()))) return false;
       if (
         slot.traits?.length &&
-        !slot.traits.some((trait) => (stack.types ?? []).some((type) => type.toLowerCase() === trait.toLowerCase()))
+        !slot.traits.some((trait) => (stack.types ?? []).some((type) => sameTrait(type, trait)))
       )
         return false;
       if (slot.colors?.length && !slot.colors.some((color) => stack.colors.includes(color as CardColor))) return false;
