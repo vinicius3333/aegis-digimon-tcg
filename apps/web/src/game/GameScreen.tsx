@@ -59,6 +59,7 @@ import {
   retainHandOrder,
   reorderedHandInstanceIds,
 } from "./screen/model/handEntries";
+import { useAutoHatch } from "./screen/hooks/useAutoHatch";
 import { useHandAutoSort } from "./handAutoSort";
 import { dnaFieldChoice, dnaMaterialPicks, toggleDnaMaterial } from "./screen/model/dnaMaterialSelection";
 import { presentedSeats } from "./screen/model/presentedSeats";
@@ -137,6 +138,7 @@ export function GameScreen({
   onRematch,
   onResetScenario,
   signedIn = false,
+  autoHatchReady = true,
   demoConnection,
   devProbe,
   presentationPacing,
@@ -163,6 +165,8 @@ export function GameScreen({
   onRematch?: (privateRoomCode?: string, unlimited?: boolean, privateHost?: boolean) => void;
   /** Only shapes what the report dialog says about follow-up questions; reporting needs no account. */
   signedIn?: boolean;
+  /** Automated hatching waits for the current account’s preferences to load. */
+  autoHatchReady?: boolean;
   demoConnection?: Pick<
     UseRoomResult,
     "room" | "status" | "state" | "events" | "decision" | "acknowledgeDecision" | "error" | "sessionId" | "roomCode"
@@ -767,6 +771,17 @@ export function GameScreen({
     permFacesRef,
     permCardIdsRef,
     opponentSecurityRef: oppSecRef,
+  });
+
+  useAutoHatch({
+    room,
+    state,
+    viewer: you,
+    viewerSeat,
+    ready: autoHatchReady && status === "connected" && !!state && bothSeated(state),
+    decisionOpen: Boolean(decision || state?.pendingDecision),
+    presenting: cues.presenting,
+    phasePresentationPending: cues.phaseTransitionPending || turnTransition !== null || phaseBanner !== null,
   });
 
   // ----- pre-match / connection gates -----

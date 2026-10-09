@@ -217,7 +217,7 @@ function AppShell() {
   useEffect(applyDarkMode, []);
   useEffect(applyTextScale, []);
 
-  usePreferencesSync({ accountId: account?.id, dark, setDark });
+  const preferencesReady = usePreferencesSync({ accountId: account?.id, dark, setDark });
 
   const saveDeck = (deck: DeckListing, setActive: boolean) => {
     const filtered = { ...filterDeckToKnownCards(deck), updatedAt: Date.now() };
@@ -240,6 +240,7 @@ function AppShell() {
   };
 
   const shared = {
+    preferencesReady: account !== undefined && preferencesReady,
     player,
     setPlayer,
     account,
@@ -257,6 +258,7 @@ function AppShell() {
 }
 
 interface ClientProps {
+  preferencesReady?: boolean;
   player: PlayerIdentity;
   setPlayer: (update: (p: PlayerIdentity) => PlayerIdentity) => void;
   account?: RemoteAccount | null;
@@ -272,6 +274,7 @@ interface ClientProps {
 }
 
 export function AegisClient({
+  preferencesReady = true,
   player,
   setPlayer,
   account = null,
@@ -613,6 +616,7 @@ export function AegisClient({
 
           {screen === "game" && (
             <GameScreen
+              autoHatchReady={preferencesReady}
               key={matchNumber}
               joinOptions={joinOptions}
               identityColor={identityColor}

@@ -751,12 +751,11 @@ function isSleeveId(value: unknown): value is string {
  */
 function parsePreferences(value: unknown): AccountPreferences | undefined {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return undefined;
-  const { darkMode, locale, sleeve, eggSleeve, deckShare, deckView, deckSort, ...unknownKeys } = value as Record<
-    string,
-    unknown
-  >;
+  const { autoHatch, darkMode, locale, sleeve, eggSleeve, deckShare, deckView, deckSort, ...unknownKeys } =
+    value as Record<string, unknown>;
   if (Object.keys(unknownKeys).length > 0) return undefined;
   const isShortText = (text: unknown) => typeof text === "string" && text.length <= MAX_PREFERENCE_LENGTH;
+  if (autoHatch !== undefined && typeof autoHatch !== "boolean") return undefined;
   if (darkMode !== undefined && typeof darkMode !== "boolean") return undefined;
   if (locale !== undefined && !isShortText(locale)) return undefined;
   if (sleeve !== undefined && !isShortText(sleeve)) return undefined;
@@ -765,6 +764,7 @@ function parsePreferences(value: unknown): AccountPreferences | undefined {
   if (deckView !== undefined && deckView !== "grid" && deckView !== "list") return undefined;
   if (deckSort !== undefined && !isShortText(deckSort)) return undefined;
   return {
+    ...(autoHatch !== undefined && { autoHatch }),
     ...(darkMode !== undefined && { darkMode }),
     ...(locale !== undefined && { locale: locale as string }),
     ...(sleeve !== undefined && { sleeve: sleeve as string }),

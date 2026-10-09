@@ -14,14 +14,16 @@ import {
   setDeckBuilderPreferences,
   useDeckBuilderPreferences,
 } from "../screens/deckBuilderPreferences";
+import { setAutoHatchEnabled, useAutoHatch } from "../game/autoHatch";
 import { useTranslation } from "../i18n";
 import { isLocale } from "../i18n/locales";
 import { accountApi, type AccountPreferences } from "./client";
 
 /**
- * Keeps the theme, language, sleeves and deck builder layout in step with the signed-in account.
+ * Keeps the theme, language, sleeves, auto hatch and deck builder layout in step with the signed-in account.
  * localStorage stays the instant source, so guests and the first render never wait on the network.
  * On sign-in the account's stored values win; keys the account lacks are backfilled from this device.
+ * Auto hatch defaults to false for accounts without a saved choice.
  */
 export function usePreferencesSync({
   accountId,
@@ -31,8 +33,9 @@ export function usePreferencesSync({
   accountId: string | undefined;
   dark: boolean;
   setDark: (dark: boolean) => void;
-}): void {
+}): boolean {
   const { locale, setLocale } = useTranslation();
+  const autoHatch = useAutoHatch();
   const sleeve = useSyncExternalStore(subscribeCardSleeve, getCardSleeveId, () => DEFAULT_CARD_SLEEVE.id);
   const eggSleeve = useSyncExternalStore(subscribeCardSleeve, getEggSleeveId, () => DEFAULT_EGG_SLEEVE.id);
   const { deckShare, deckView, deckSort } = useDeckBuilderPreferences();
@@ -51,6 +54,7 @@ export function usePreferencesSync({
         if (preferences.sleeve && getCardSleeveId() !== CUSTOM_CARD_SLEEVE_ID) setCardSleeveId(preferences.sleeve);
         if (preferences.eggSleeve && getEggSleeveId() !== CUSTOM_CARD_SLEEVE_ID) setEggSleeveId(preferences.eggSleeve);
         setDeckBuilderPreferences(sanitizeDeckBuilderPreferences(preferences));
+        setAutoHatchEnabled(preferences.autoHatch === true);
         setSynced({ accountId, preferences });
       })
       .catch(() => undefined);
@@ -62,6 +66,7 @@ export function usePreferencesSync({
   useEffect(() => {
     if (!accountId || !stored) return;
     const current: AccountPreferences = {
+      ...(autoHatch || stored.autoHatch !== undefined ? { autoHatch } : {}),
       darkMode: dark,
       locale,
       ...(sleeve !== CUSTOM_CARD_SLEEVE_ID && { sleeve }),
@@ -80,5 +85,6 @@ export function usePreferencesSync({
       .updatePreferences(changes)
       .then((preferences) => setSynced({ accountId, preferences }))
       .catch(() => undefined);
-  }, [accountId, stored, dark, locale, sleeve, eggSleeve, deckShare, deckView, deckSort]);
+  }, [accountId, stored, autoHatch, dark, locale, sleeve, eggSleeve, deckShare, deckView, deckSort]);
+  return !accountId || stored !== undefined;
 }

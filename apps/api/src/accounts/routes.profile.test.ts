@@ -161,6 +161,13 @@ describe("/account/preferences", () => {
     expect((await putPreferences({ eggSleeve: "x".repeat(65) })).status).toBe(400);
   });
 
+  it("stores and restores the auto hatch preference, including false", async () => {
+    expect((await putPreferences({ autoHatch: true })).status).toBe(200);
+    expect(await getPreferences()).toEqual({ autoHatch: true });
+    expect((await putPreferences({ autoHatch: false })).status).toBe(200);
+    expect(await getPreferences()).toEqual({ autoHatch: false });
+  });
+
   it("stores the deck builder layout", async () => {
     const layout = { deckShare: 0.6, deckView: "list", deckSort: "level" };
     expect((await putPreferences(layout)).status).toBe(200);
@@ -170,6 +177,9 @@ describe("/account/preferences", () => {
   it("rejects wrong types, unknown keys and long values without changing anything", async () => {
     await putPreferences({ darkMode: true });
     for (const invalid of [
+      { autoHatch: "true" },
+      { autoHatch: 1 },
+      { autoHatch: null },
       { darkMode: "yes" },
       { theme: "dark" },
       { locale: "x".repeat(65) },

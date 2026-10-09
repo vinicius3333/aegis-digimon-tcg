@@ -14,6 +14,7 @@ export type RemoteAccount = {
   discordLinked?: boolean;
 };
 export type AccountPreferences = {
+  autoHatch?: boolean;
   darkMode?: boolean;
   locale?: string;
   sleeve?: string;

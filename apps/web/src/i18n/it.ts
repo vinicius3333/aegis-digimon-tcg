@@ -61,6 +61,9 @@ const interfaceMessages = {
   "settings.sortHand": "Ordina la mano",
   "settings.sortHandDesc":
     "Ordina la mano attuale per livello dei Digimon, poi Tamer e Option. Le nuove carte restano in fondo finché non ordini di nuovo.",
+  "settings.autoHatch": "Schiusa automatica",
+  "settings.autoHatchDesc":
+    "Schiude automaticamente un Digi-Uovo durante la tua fase di allevamento quando l’area è vuota. Salvato nel tuo account.",
   "settings.handAutoSort": "Mantieni la mano ordinata",
   "settings.handAutoSortDesc":
     "Riordina la mano ogni volta che una carta entra o esce: Digimon per livello, poi Tamer, poi Option, dal costo più basso. Le carte che trascini restano al loro posto finché la mano non cambia.",

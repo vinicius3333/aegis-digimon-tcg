@@ -34,6 +34,7 @@ export type Deck = {
   updatedAt: number;
 };
 export type AccountPreferences = {
+  autoHatch?: boolean;
   darkMode?: boolean;
   locale?: string;
   sleeve?: string;

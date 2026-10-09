@@ -13,6 +13,7 @@ import {
 import { getDeckBuilderPreferences, setDeckBuilderPreferences } from "../screens/deckBuilderPreferences";
 import { I18nProvider, useTranslation } from "../i18n";
 import { accountApi, type AccountPreferences } from "./client";
+import { isAutoHatchEnabled, setAutoHatchEnabled } from "../game/autoHatch";
 import { usePreferencesSync } from "./usePreferencesSync";
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -23,8 +24,8 @@ function renderSync(accountId: string | undefined) {
   return renderHook(
     ({ id }) => {
       const [dark, setDark] = useState(false);
-      usePreferencesSync({ accountId: id, dark, setDark });
-      return { dark, setDark, locale: useTranslation().locale };
+      const preferencesReady = usePreferencesSync({ accountId: id, dark, setDark });
+      return { dark, setDark, preferencesReady, locale: useTranslation().locale };
     },
     { wrapper, initialProps: { id: accountId } },
   );
@@ -39,6 +40,7 @@ function echoUpdates(stored: AccountPreferences) {
 }
 
 beforeEach(() => {
+  setAutoHatchEnabled(false);
   clearCustomCardSleeve();
   localStorage.clear();
   setCardSleeveId("digimon-standard");
@@ -132,4 +134,47 @@ describe("usePreferencesSync", () => {
     act(() => setEggSleeveId("digimon-egg"));
     await waitFor(() => expect(update).toHaveBeenLastCalledWith({ eggSleeve: "digimon-egg" }));
   });
+});
+
+it("loads auto hatch from the account and syncs enabling and disabling it", async () => {
+  const stored = { autoHatch: true };
+  vi.spyOn(accountApi, "preferences").mockResolvedValue(stored);
+  const update = echoUpdates(stored);
+  renderSync("account-1");
+  await waitFor(() => expect(isAutoHatchEnabled()).toBe(true));
+  await waitFor(() => expect(update).toHaveBeenCalled());
+  act(() => setAutoHatchEnabled(false));
+  await waitFor(() => expect(update).toHaveBeenLastCalledWith({ autoHatch: false }));
+  act(() => setAutoHatchEnabled(true));
+  await waitFor(() => expect(update).toHaveBeenLastCalledWith({ autoHatch: true }));
+});
+
+it("defaults missing auto hatch to false when switching accounts", async () => {
+  vi.spyOn(accountApi, "preferences").mockResolvedValueOnce({ autoHatch: true }).mockResolvedValueOnce({});
+  echoUpdates({ autoHatch: true });
+  const { rerender } = renderSync("account-1");
+  await waitFor(() => expect(isAutoHatchEnabled()).toBe(true));
+  rerender({ id: "account-2" });
+  await waitFor(() => expect(isAutoHatchEnabled()).toBe(false));
+});
+
+it("blocks automation while a new account's preferences are loading", async () => {
+  setAutoHatchEnabled(true);
+  let resolvePreferences!: (value: AccountPreferences) => void;
+  vi.spyOn(accountApi, "preferences").mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        resolvePreferences = resolve;
+      }),
+  );
+  echoUpdates({});
+  const { result, rerender } = renderSync("account-1");
+  expect(result.current.preferencesReady).toBe(false);
+  await act(async () => resolvePreferences({ autoHatch: true }));
+  expect(result.current.preferencesReady).toBe(true);
+  rerender({ id: "account-2" });
+  expect(result.current.preferencesReady).toBe(false);
+  await act(async () => resolvePreferences({ autoHatch: false }));
+  expect(result.current.preferencesReady).toBe(true);
+  expect(isAutoHatchEnabled()).toBe(false);
 });
