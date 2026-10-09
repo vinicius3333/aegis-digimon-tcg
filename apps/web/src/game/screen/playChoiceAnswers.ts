@@ -87,6 +87,7 @@ export function playChoiceAnswers({
   };
 
   return {
+    actionBlocked: mainActionBlocked,
     onDualPlay: (useAs: "digimon" | "option") => {
       if (!dualPlay || mainActionBlocked || !room) return;
       if (!handEntries.some((entry) => entry.instanceId === dualPlay.instanceId)) {

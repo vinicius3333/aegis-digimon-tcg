@@ -13,6 +13,7 @@ export function DnaMaterialChoiceOverlay({
   routes,
   permanents,
   pickedPermanentIds,
+  disabled = false,
   onConfirm,
   onNormalEvolution,
   onCancel,
@@ -20,6 +21,7 @@ export function DnaMaterialChoiceOverlay({
   routes: readonly ProjectedDnaDigivolveRoute[];
   permanents: readonly Permanent[];
   pickedPermanentIds: readonly string[];
+  disabled?: boolean;
   onConfirm: (materialPermanentIds: string[]) => void;
   onNormalEvolution?: () => void;
   onCancel: () => void;
@@ -57,7 +59,7 @@ export function DnaMaterialChoiceOverlay({
           {t("common.cancel")}
         </Button>
         <Button
-          disabled={!choice.selected}
+          disabled={disabled || !choice.selected}
           onClick={() => choice.selected && onConfirm([...choice.selected.materialPermanentIds])}
         >
           {t("overlay.confirmDna")}

@@ -96,3 +96,28 @@ it("#5166: supports cancellation and normal evolution without consuming a DNA pa
   expect(onCancel).toHaveBeenCalledOnce();
   expect(onConfirm).not.toHaveBeenCalled();
 });
+
+it("waits for the live action guard before confirming a selected DNA pair", () => {
+  const onConfirm = vi.fn<(ids: string[]) => void>();
+  const prompt = (disabled: boolean) => (
+    <I18nProvider>
+      <DnaMaterialChoiceOverlay
+        routes={routes}
+        permanents={permanents}
+        pickedPermanentIds={routes[0]!.materialPermanentIds}
+        disabled={disabled}
+        onConfirm={onConfirm}
+        onCancel={vi.fn<() => void>()}
+      />
+    </I18nProvider>
+  );
+  const view = render(prompt(true));
+  const confirm = screen.getByRole("button", { name: "DNA Digivolve" }) as HTMLButtonElement;
+  expect(confirm.disabled).toBe(true);
+  fireEvent.click(confirm);
+  expect(onConfirm).not.toHaveBeenCalled();
+  view.rerender(prompt(false));
+  expect(confirm.disabled).toBe(false);
+  fireEvent.click(confirm);
+  expect(onConfirm).toHaveBeenCalledExactlyOnceWith(["yellow", "first-purple"]);
+});

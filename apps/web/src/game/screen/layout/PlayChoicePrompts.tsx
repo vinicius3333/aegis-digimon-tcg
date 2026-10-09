@@ -29,6 +29,7 @@ import type { PendingActionConfirmation } from "../types";
 export function PlayChoicePrompts({
   dualPlay,
   actionConfirm,
+  actionBlocked,
   dnaRoutes,
   dnaPermanents,
   dnaPickedPermanentIds,
@@ -56,6 +57,7 @@ export function PlayChoicePrompts({
 }: {
   dualPlay: { instanceId: string; cardId: string } | null;
   actionConfirm: PendingActionConfirmation | null;
+  actionBlocked: boolean;
   dnaRoutes: readonly ProjectedDnaDigivolveRoute[];
   dnaPermanents: readonly Permanent[];
   dnaPickedPermanentIds: readonly string[];
@@ -112,6 +114,7 @@ export function PlayChoicePrompts({
           routes={dnaRoutes}
           permanents={dnaPermanents}
           pickedPermanentIds={dnaPickedPermanentIds}
+          disabled={actionBlocked}
           onConfirm={onConfirmAction}
           onNormalEvolution={onDigivolveNormally}
           onCancel={onConfirmCancel}

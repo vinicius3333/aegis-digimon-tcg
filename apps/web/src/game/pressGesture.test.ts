@@ -55,3 +55,17 @@ describe("the click that follows a tap", () => {
     expect(seen).toHaveBeenCalledOnce();
   });
 });
+
+describe("independent input after a completed card gesture", () => {
+  it.each(["pointerdown", "keydown"])("does not swallow a fresh %s action when no trailing click arrived", (kind) => {
+    const target = document.createElement("button");
+    const seen = vi.fn<() => void>();
+    target.addEventListener("click", seen);
+    document.body.append(target);
+    swallowNextClick();
+    target.dispatchEvent(new Event(kind, { bubbles: true }));
+    target.click();
+    expect(seen).toHaveBeenCalledExactlyOnceWith(expect.any(MouseEvent));
+    target.remove();
+  });
+});

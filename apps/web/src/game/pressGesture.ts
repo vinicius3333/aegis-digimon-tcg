@@ -37,10 +37,21 @@ export function pressGesture({
  * it was ever read.
  */
 export function swallowNextClick(): void {
+  const disarm = () => {
+    window.removeEventListener("click", swallow, { capture: true });
+    window.removeEventListener("pointerdown", disarm, { capture: true });
+    window.removeEventListener("keydown", disarm, { capture: true });
+    window.clearTimeout(timeout);
+  };
   const swallow = (event: MouseEvent) => {
+    disarm();
     event.stopPropagation();
     event.preventDefault();
   };
+  // Some drags produce no trailing click. A new press belongs to the next
+  // action and must not spend the suppression left by the previous gesture.
   window.addEventListener("click", swallow, { capture: true, once: true });
-  window.setTimeout(() => window.removeEventListener("click", swallow, { capture: true }), 400);
+  window.addEventListener("pointerdown", disarm, { capture: true, once: true });
+  window.addEventListener("keydown", disarm, { capture: true, once: true });
+  const timeout = window.setTimeout(disarm, 400);
 }
