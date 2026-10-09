@@ -182,7 +182,10 @@
     flex: 1 1 0;
     min-height: 0;
     height: auto !important;
-    padding-block: 0 6px !important;
+    /* The selected fan rises 34px, then its picked lift, scale and badge rise
+       farther. Extend the scrollport upward without moving the dock or cards. */
+    padding-block: 64px 6px !important;
+    margin-top: -64px;
     scrollbar-width: thin;
     scrollbar-color: var(--arena-cyan) var(--arena-ink);
   }
