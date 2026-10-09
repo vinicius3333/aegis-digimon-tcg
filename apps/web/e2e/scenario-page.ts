@@ -1,7 +1,7 @@
 import { writeFile } from "node:fs/promises";
 import { expect, test as base, type Page, type Locator, type TestInfo } from "@playwright/test";
 import { RED_DECK } from "../../api/dist/engine/testDecks.js";
-import { getCardDefinition, type DecisionRequest } from "@aegis/shared";
+import { getCardDefinition, type DecisionRequest, type Intent } from "@aegis/shared";
 import { startBrowserServer } from "./server";
 import type {} from "./harness";
 
@@ -317,11 +317,18 @@ export const test = base.extend<{
   scenario: ScenarioPage;
   botOptionalScript: { sourceCardId: string; answers: boolean[] } | undefined;
   holdBotAfterTurn: number;
+  botMainIntents: Intent[] | undefined;
 }>({
   botOptionalScript: [undefined, { option: true }],
   holdBotAfterTurn: [2, { option: true }],
-  scenario: async ({ page, botOptionalScript, holdBotAfterTurn }, use, info) => {
-    const server = await startBrowserServer({ holdBotAllTurns: false, botOptionalScript, holdBotAfterTurn });
+  botMainIntents: [undefined, { option: true }],
+  scenario: async ({ page, botOptionalScript, holdBotAfterTurn, botMainIntents }, use, info) => {
+    const server = await startBrowserServer({
+      holdBotAllTurns: false,
+      botOptionalScript,
+      holdBotAfterTurn,
+      botMainIntents,
+    });
     const scenario = new ScenarioPage(page);
     try {
       await use(scenario);

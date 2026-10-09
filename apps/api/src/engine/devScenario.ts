@@ -1,3 +1,5 @@
+import { CARDS_TURNS_SCENARIO_IDS, layCardsTurnsScenario } from "./cardsTurnsScenarios.js";
+import { GITHUB_TIMING_SCENARIO_IDS, layGithubTimingScenario } from "./githubTimingScenarios.js";
 import { ISSUE_REPRO_SCENARIO_IDS, layIssueReproScenario } from "./issueReproScenarios.js";
 import {
   CATALOG_DECKS,
@@ -58,6 +60,8 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  ...CARDS_TURNS_SCENARIO_IDS,
+  ...GITHUB_TIMING_SCENARIO_IDS,
   "arena-raid-immune-atratusmon",
   "arena-shota-start-main-once",
   "arena-heat-training-option-freeze",
@@ -9565,6 +9569,18 @@ function layGithubEndTurnReportScenario(
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  ...(Object.fromEntries(
+    CARDS_TURNS_SCENARIO_IDS.map((id) => [
+      id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) => layCardsTurnsScenario(id, state, decks),
+    ]),
+  ) as Record<import("./cardsTurnsScenarios.js").CardsTurnsScenarioId, typeof layBattleScenario>),
+  ...(Object.fromEntries(
+    GITHUB_TIMING_SCENARIO_IDS.map((id) => [
+      id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) => layGithubTimingScenario(id, state, decks),
+    ]),
+  ) as Record<import("./githubTimingScenarios.js").GithubTimingScenarioId, typeof layBattleScenario>),
   "arena-raid-immune-atratusmon": (state, decks) => layNewCardReportScenario(state, decks, "raid"),
   "arena-shota-start-main-once": (state, decks) => layNewCardReportScenario(state, decks, "shota"),
   "arena-heat-training-option-freeze": (state, decks) => layNewCardReportScenario(state, decks, "heat"),

@@ -1,3 +1,4 @@
+import { CARDS_TURNS_SCENARIO_NOTES, CARDS_TURNS_SCENARIO_OPTIONS } from "./cardsTurnsScenarioNotes";
 import { useMemo, useState } from "react";
 import { CATALOG_DECKS } from "@aegis/shared";
 import { colorKey } from "../design/theme";
@@ -17,6 +18,93 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-github-5374-up-to-four-trash": {
+    en: "Attack with Fanglongmon and select zero, one, or four Deva cards from trash. All allowed counts must finish without a stuck decision. This exercises the generic chooser; the reported Lucemon card was not identified.",
+    ptBR: "Ataque com Fanglongmon e selecione zero, um ou quatro cartas Deva do lixo. Todas as quantidades permitidas devem resolver sem decisão travada. Este é um teste do seletor; a carta Lucemon relatada não foi identificada.",
+  },
+  "arena-github-5410-tamer-inherited-deletion": {
+    en: "Play All Delete and return Omnimon to delete your own Rie. DarkKnightmon under the Tamer must not activate its inherited On Deletion effect.",
+    ptBR: "Jogue All Delete e devolva Omnimon para deletar sua própria Rie. DarkKnightmon sob o Tamer não deve ativar On Deletion herdado.",
+  },
+  "arena-github-5412-kapurimon-illegal-colors": {
+    en: "Attack Omnimon with MetalGreymon. The reported MetalMamemon pair lacks Purple/Yellow and cannot DNA evolve into MetalGarurumon.",
+    ptBR: "Ataque Omnimon com MetalGreymon. A dupla relatada com MetalMamemon não tem Roxo/Amarelo e não pode evoluir por DNA para MetalGarurumon.",
+  },
+  "arena-github-5416-ulforce-unsuspend": {
+    en: "Attack security with UlforceVeedramon and accept its own unsuspend effect. Its attack continues and checks security.",
+    ptBR: "Ataque segurança com UlforceVeedramon e aceite o efeito de desvirar. O ataque continua e verifica segurança.",
+  },
+  "arena-github-5417-mobile-assembly": {
+    en: "At a narrow viewport, play UlforceVeedramon by Assembly with Veemon, Veedramon and AeroVeedramon. The page width and scale must remain stable.",
+    ptBR: "Em tela estreita, jogue UlforceVeedramon via Assembly com Veemon, Veedramon e AeroVeedramon. A largura e a escala da página devem permanecer estáveis.",
+  },
+
+  "arena-github-5378-imperialdramon-no-bounce": {
+    en: "Attack security with Imperialdramon. It remains on the field with both sources. This is a control: the original report provides no card number or match ID.",
+    ptBR: "Ataque segurança com Imperialdramon. Ele permanece em campo com as duas fontes. Este é um controle: o relato original não informa número da carta nem ID da partida.",
+  },
+  "arena-github-5378-imperialdramon-security-bounce": {
+    en: "Attack into Cocytus Breath in security. Its printed Security effect returns Imperialdramon to hand and trashes both sources. This legitimate return is a comparative control.",
+    ptBR: "Ataque Cocytus Breath na segurança. O efeito impresso devolve Imperialdramon à mão e descarta as duas fontes. Esse retorno legítimo é um controle comparativo.",
+  },
+  ...CARDS_TURNS_SCENARIO_NOTES,
+  "arena-github-5371-examon-battle-before-raid": {
+    en: "DNA digivolve Rosemon and MetalGarurumon into Examon for 0. Attack security; accept the immediate battle against Monodramon, then accept Raid against Agumon. The effect battle precedes Raid; Piercing checks two security cards.",
+    ptBR: "Evolua Rosemon e MetalGarurumon por DNA para Examon por 0. Ataque segurança; aceite a batalha imediata com Monodramon, depois Raid em Agumon. A batalha do efeito precede Raid; Piercing verifica duas seguranças.",
+  },
+  "arena-github5399-cerberus-first-option": {
+    en: "Digivolve Dobermon into Cerberusmon (3). Accept; trash Dark Field, then use that same copy for 1. Decline free play. Dark Field stays face up in security; memory 6.",
+    ptBR: "Evolua Dobermon para Cerberusmon (3). Aceite; descarte Dark Field e use a mesma cópia por 1. Recuse jogar. Dark Field fica aberta na segurança; memória 6.",
+  },
+  "arena-github5400-dark-field-replacement": {
+    en: "Use Dark Field with another face-up copy in security; decline play. Old copy returns to hand; new copy stays face up in security; memory 2.",
+    ptBR: "Use Dark Field com outra cópia aberta na segurança; recuse jogar. A antiga volta à mão; a nova fica na segurança; memória 2.",
+  },
+  "arena-github5403-rie-any-card": {
+    en: "Play Knightmon; accept Rie and place either Rie Kishibe BT22-090 or Fist of Athena BT18-099 from trash. Draw 1; unrelated Monodramon remains in trash.",
+    ptBR: "Jogue Knightmon; aceite Rie e coloque Rie Kishibe BT22-090 ou Fist of Athena BT18-099 do lixo sob ela. Compre 1; Monodramon permanece no lixo.",
+  },
+  "arena-github5411-savior-empty-hand-selection": {
+    en: "End turn; accept SaviorHuckmon and suspend Monodramon. Pass the Jesmon selection. Cost stays paid; Savior does not evolve; Jesmon stays in hand.",
+    ptBR: "Encerre turno; aceite SaviorHuckmon e suspenda Monodramon. Passe a seleção de Jesmon. Custo pago; Savior não evolui; Jesmon fica na mão.",
+  },
+  "arena-github5419-dark-masters-security": {
+    en: "Attack security with Puppetmon, then Machinedramon. Each loses to MetalEtemon and becomes the bottom face-up security card; purple Piedmon does not prevent either.",
+    ptBR: "Ataque a segurança com Puppetmon e depois Machinedramon. Cada um perde para MetalEtemon e vira a segurança inferior aberta; o Piedmon roxo não impede.",
+  },
+  "arena-github5419-kongou-prevention": {
+    en: "First attack with Agumon to reveal Kongou, then attack with Puppetmon and Machinedramon. Both On Deletion effects activate, but Kongou keeps both in trash.",
+    ptBR: "Ataque primeiro com Agumon para revelar Kongou; depois com Puppetmon e Machinedramon. Os efeitos de exclusão ativam, mas Kongou mantém ambos no lixo.",
+  },
+  "arena-github5420-metalgaruru-gallantmon": {
+    en: "Evolve WereGarurumon into MetalGarurumon. Trash four Gallantmon sources, then return Gallantmon to deck bottom and trash its remaining egg.",
+    ptBR: "Evolua WereGarurumon para MetalGarurumon. Descarte quatro fontes de Gallantmon, devolva-o ao fundo do deck e descarte o ovo restante.",
+  },
+  "arena-github5420-omnimon-gallantmon": {
+    en: "Evolve MetalGarurumon into Omnimon. Gallantmon has five sources, Omnimon six: return Gallantmon to deck bottom and trash all five sources.",
+    ptBR: "Evolua MetalGarurumon para Omnimon. Gallantmon tem cinco fontes e Omnimon seis: Gallantmon volta ao fundo do deck e as cinco fontes vão ao lixo.",
+  },
+  "arena-github5421-skullmammoth-hand": {
+    en: "Play Fangmon and discard Agumon. SkullMammothmon in hand must stay inactive.",
+    ptBR: "Jogue Fangmon e descarte Agumon. SkullMammothmon na mão não deve ativar.",
+  },
+  "arena-github5421-skullmammoth-field": {
+    en: "Play Fangmon and discard Agumon. SkullMammothmon in the battle area offers the free level-four purple play.",
+    ptBR: "Jogue Fangmon e descarte Agumon. SkullMammothmon na batalha oferece jogar o roxo nível quatro sem custo.",
+  },
+  "arena-github5418-zeig-shoutmon-evolution": {
+    en: "Digivolve ZeigGreymon into Shoutmon X7 using Blue Flare cost 2. Decline optional effects. Sources stay in order; memory 8.",
+    ptBR: "Evolua ZeigGreymon para Shoutmon X7 por 2 via Blue Flare. Recuse efeitos opcionais. Fontes mantêm ordem; memória 8.",
+  },
+
+  "arena-github-5408-ruin-mode-hatch": {
+    en: "End breeding without hatching. Attack with Ruin Mode; delete the opposing Digimon, recover, and hatch the egg while Tai remains in play.",
+    ptBR: "Termine a criação sem chocar. Ataque com Ruin Mode; exclua o Digimon oponente, recupere e choque o ovo enquanto Tai permanece em campo.",
+  },
+  "arena-github-5372-progress-protection": {
+    en: "Attack with the Progress Digimon. Accept Blastmon's deletion effect: its source is trashed, but the attacker survives and checks security. This is a protection control, since the report names no attacking card.",
+    ptBR: "Ataque com o Digimon com Progress. Aceite a exclusão de Blastmon: a fonte vai ao lixo, mas o atacante sobrevive e verifica segurança. Este é um controle de proteção, pois o relato não identifica o atacante.",
+  },
   "arena-raid-immune-atratusmon": {
     en: "Raid into immune Atratusmon; security must stay at five.",
     ptBR: "Raid em Atratusmon imune; a segurança deve permanecer em cinco.",
@@ -2226,8 +2314,8 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "End breeding, open the trash viewer, and activate MaloMyotismon's [Main] effect by deleting Arukenimon and Mummymon. The trash card must be offered at memory 1 and play for 3.",
   },
   "arena-ex10-blastmon-digixros": {
-    ptBR: "Encerre a criação e jogue Blastmon da mão com DigiXros. A seleção de materiais deve aceitar 3 cartas [Bagra Army] e parar na terceira: escolha SkullKnightmon, DeadlyAxemon e ChuuChuumon. O custo 13 cai 2 por material, então a memória vai de 7 para 0 e as 3 cartas ficam sob Blastmon. Damemon fica na mão.",
-    en: "End breeding and play Blastmon from hand with DigiXros. Material selection must accept 3 [Bagra Army] cards and stop at the third: choose SkullKnightmon, DeadlyAxemon, and ChuuChuumon. The cost of 13 falls by 2 per material, so memory goes from 7 to 0 and all 3 cards end under Blastmon. Damemon stays in hand.",
+    ptBR: "Encerre a criação e jogue Blastmon da mão com DigiXros. A seleção de materiais deve aceitar 3 cartas [Bagra Army] e parar na terceira: escolha SkullKnightmon, DeadlyAxemon e ChuuChuumon. O custo 13 cai 2 por material, então a memória vai de 7 para 0 e as 3 cartas ficam sob Blastmon. Blastmon fica na mão.",
+    en: "End breeding and play Blastmon from hand with DigiXros. Material selection must accept 3 [Bagra Army] cards and stop at the third: choose SkullKnightmon, DeadlyAxemon, and ChuuChuumon. The cost of 13 falls by 2 per material, so memory goes from 7 to 0 and all 3 cards end under Blastmon. Blastmon stays in hand.",
   },
   "arena-koto-grademon-pending-piercing": {
     en: "Reduced Koto control for both seats. End breeding; decline the Tamer's optional placement. Use BT25-057 as Final Judgment on Armalizamon; accept its cost reduction and the Tamer's +3000 DP, then attack the player and Arts Digivolve that attacker into Monarchlizamon. Decline De-Digivolve; accept Battle against BT20-053 Grademon. The defender declines the first EX13-057 prevention, so that Grademon is deleted. Then block with Alphamon and accept EX13-057 prevention: trash exactly one security as payment, keep Alphamon, and perform two checks from the earlier battle's pending Piercing. This is a reduced sequence, not a full historical replay.",
@@ -2504,6 +2592,30 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-github-5374-up-to-four-trash", "#5374 · Up to four trash selection control"],
+  ["arena-github-5410-tamer-inherited-deletion", "Rie deletion inherited gate"],
+  ["arena-github-5412-kapurimon-illegal-colors", "Kapurimon DNA color refusal"],
+  ["arena-github-5416-ulforce-unsuspend", "Ulforce attack after unsuspend"],
+  ["arena-github-5417-mobile-assembly", "Mobile Assembly viewport"],
+
+  ["arena-github-5378-imperialdramon-no-bounce", "#5378 · Imperialdramon remains in play"],
+  ["arena-github-5378-imperialdramon-security-bounce", "#5378 · Imperialdramon lawful security return"],
+  ...CARDS_TURNS_SCENARIO_OPTIONS,
+  ["arena-github-5371-examon-battle-before-raid", "#5371 · Examon immediate battle before Raid"],
+  ["arena-github5399-cerberus-first-option", "Cerberusmon: discard then use Titan Option"],
+  ["arena-github5400-dark-field-replacement", "Dark Field: exact-copy replacement"],
+  ["arena-github5403-rie-any-card", "Rie: Knightmon-text card placement"],
+  ["arena-github5411-savior-empty-hand-selection", "SaviorHuckmon: decline after payment"],
+  ["arena-github5418-zeig-shoutmon-evolution", "ZeigGreymon → Shoutmon X7 (2)"],
+  ["arena-github5419-dark-masters-security", "GitHub #5419 · Dark Masters security"],
+  ["arena-github5419-kongou-prevention", "GitHub #5419 · Kongou prevention"],
+  ["arena-github5420-metalgaruru-gallantmon", "GitHub #5420 · MetalGarurumon vs Gallantmon"],
+  ["arena-github5420-omnimon-gallantmon", "GitHub #5420 · Omnimon vs Gallantmon"],
+  ["arena-github5421-skullmammoth-hand", "GitHub #5421 · SkullMammothmon in hand"],
+  ["arena-github5421-skullmammoth-field", "GitHub #5421 · SkullMammothmon in battle"],
+
+  ["arena-github-5408-ruin-mode-hatch", "#5408 · Ruin Mode recovery and hatch"],
+  ["arena-github-5372-progress-protection", "#5372 · Progress protection control"],
   ["arena-growlmon-deletion-5361", "#5361 Growlmon X · security deletion / stack Guilmon"],
   ["arena-ravemon-burst-hand", "Ravemon: Burst Mode · inspect opponent hand"],
   ["arena-github5326-sistermon-zero-security", "GitHub #5326 · Sistermon Blanc / zero security control"],

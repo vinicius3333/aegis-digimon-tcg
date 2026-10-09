@@ -16,15 +16,20 @@ export async function startBrowserServer({
   edgePort = EDGE_PORT,
   serverPort = SERVER_PORT,
   botOptionalScript,
+  botMainIntents,
   holdBotAfterTurn = Infinity,
 }: {
   holdBotAllTurns?: boolean;
   edgePort?: number;
   serverPort?: number;
   botOptionalScript?: { sourceCardId: string; answers: boolean[] };
+  /** Deterministic opponent actions; the ordinary bot scheduler still enforces engine readiness. */
+  botMainIntents?: Intent[];
   holdBotAfterTurn?: number;
 } = {}) {
   const scriptedAnswers = [...(botOptionalScript?.answers ?? [])];
+  const scriptedMainIntents = botMainIntents === undefined ? undefined : [...botMainIntents];
+  const scriptedBots = new WeakSet<object>();
   const queued: { bot: BotPlayer; request: DecisionRequest }[] = [];
   const originalDecision = BotPlayer.prototype.onDecisionRequested;
   const phases = BotPlayer.prototype as unknown as { onOwnPhase(phase: string, turn: number): void };
@@ -40,6 +45,11 @@ export async function startBrowserServer({
     return this.state.turnCount < holdBotAfterTurn ? originalBreeding.call(this) : Promise.resolve();
   };
   autonomous.startMainPhaseLoop = function () {
+    if (scriptedMainIntents !== undefined && !scriptedBots.has(this)) {
+      scriptedBots.add(this);
+      const bot = this as unknown as { policy: { chooseMainAction(): Intent } };
+      bot.policy.chooseMainAction = () => scriptedMainIntents.shift() ?? { type: "endPhase" };
+    }
     if (this.state.turnCount < holdBotAfterTurn) originalMain.call(this);
   };
   // Pause only autonomous opponent turns after the tested turn transfer; reactive

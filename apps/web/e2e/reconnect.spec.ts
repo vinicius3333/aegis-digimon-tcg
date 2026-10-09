@@ -174,6 +174,7 @@ test("resumes the same seat after retrying an edge outage within the reconnect g
 });
 
 test("a reload late in a long match resumes the same seat", async ({ page, match }) => {
+  await page.addInitScript(() => localStorage.setItem("aegis.skip-end-turn-confirmation", "true"));
   await page.clock.install();
   const game = new GamePage(page);
   await match.start("reconnect");
@@ -186,6 +187,25 @@ test("a reload late in a long match resumes the same seat", async ({ page, match
 
   await expect(page.getByTestId("hand")).toBeVisible({ timeout: 20_000 });
   await expect.poll(() => persistedRoomId(page)).toBe(roomId);
+  await page.getByRole("button", { name: /^end turn$/i }).click();
+  await expect.poll(() => match.state().turnSeat).toBe(1);
+});
+
+test("#5375 a mobile tab resumes input after screen suspension and a socket drop", async ({ page, match }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(() => localStorage.setItem("aegis.skip-end-turn-confirmation", "true"));
+  await match.start("reconnect");
+  await new GamePage(page).endBreeding();
+  const roomId = match.opponent.room.roomId;
+  const session = await page.context().newCDPSession(page);
+  await session.send("Page.setWebLifecycleState", { state: "frozen" });
+  await match.server.edge.stop();
+  await session.send("Page.setWebLifecycleState", { state: "active" });
+  await expect(page.getByText("Reconnecting…")).toBeVisible();
+  await match.server.edge.start();
+  await expect(page.getByRole("button", { name: /^end turn$/i })).toBeEnabled({ timeout: 15_000 });
+  await expect(page.getByText("Reconnecting…")).toHaveCount(0);
+  expect(await persistedRoomId(page)).toBe(roomId);
   await page.getByRole("button", { name: /^end turn$/i }).click();
   await expect.poll(() => match.state().turnSeat).toBe(1);
 });
