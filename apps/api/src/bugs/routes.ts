@@ -3,6 +3,7 @@ import { getCardDefinition } from "@aegis/shared";
 import type { Express, Request, Response } from "express";
 import type { AuthSession } from "../accounts/AccountStore.js";
 import { tokenBucketLimiter, type TokenBucketOptions } from "../http/rateLimit.js";
+import { captureReportReplay, type ReplayCapturer } from "./replayCapture.js";
 import {
   FEEDBACK_KINDS,
   MAX_BUG_REPORT_CARDS,
@@ -12,6 +13,7 @@ import {
   type FeedbackKind,
   type IssueTracker,
   type NewBugReport,
+  type ReplayOutcome,
 } from "./GitHubIssueTracker.js";
 
 // A report is typed by hand, so a handful per minute is already far above human pace. The limit is
@@ -34,10 +36,15 @@ export type BugReportRouteDeps = {
   tracker?: IssueTracker;
   /** The session lookup the account routes already own, so there is one cookie reader. */
   session: (req: Request) => Promise<AuthSession | undefined>;
+  /**
+   * Copies the reported match's replay out of the logs; absent means reports are filed without one.
+   * Only accepted reports (past the rate limit and validation) ever reach it.
+   */
+  replays?: ReplayCapturer;
 };
 
 /** Public submissions persist before mirroring; only authenticated admins can read them. */
-export function installBugReportRoutes({ app, store, tracker, session }: BugReportRouteDeps): void {
+export function installBugReportRoutes({ app, store, tracker, session, replays }: BugReportRouteDeps): void {
   const limitAccount = tokenBucketLimiter(SIGNED_IN_RATE_LIMIT);
   const limitAddress = tokenBucketLimiter(ANONYMOUS_RATE_LIMIT);
 
@@ -59,17 +66,27 @@ export function installBugReportRoutes({ app, store, tracker, session }: BugRepo
     list(req, res).catch(next);
   });
 
-  async function list(req: Request, res: Response): Promise<void> {
+  app.get("/account/feedback/:id/replay", (req, res, next) => {
+    downloadReplay(req, res).catch(next);
+  });
+
+  /** Sets `no-store` and answers 401/403 unless the caller is an administrator right now. */
+  async function admin(req: Request, res: Response): Promise<boolean> {
     res.set("Cache-Control", "no-store");
     const auth = await session(req);
     if (!auth) {
       res.status(401).json({ error: "authentication_required" });
-      return;
+      return false;
     }
     if (!auth.account.isAdmin) {
       res.status(403).json({ error: "admin_required" });
-      return;
+      return false;
     }
+    return true;
+  }
+
+  async function list(req: Request, res: Response): Promise<void> {
+    if (!(await admin(req, res))) return;
     const raw = req.query.before;
     const before = raw === undefined ? undefined : Number(raw);
     if (
@@ -84,6 +101,23 @@ export function installBugReportRoutes({ app, store, tracker, session }: BugRepo
       return;
     }
     res.json(await store.list(before));
+  }
+
+  /** The private replay saved with a report: both decks and every action, so admins only. */
+  async function downloadReplay(req: Request, res: Response): Promise<void> {
+    if (!(await admin(req, res))) return;
+    const raw = req.params.id;
+    const id = Number(raw);
+    if (typeof raw !== "string" || !/^\d+$/.test(raw) || !Number.isSafeInteger(id) || id <= 0 || id > 2147483647) {
+      res.status(400).json({ error: "invalid_id" });
+      return;
+    }
+    const record = await store.replay(id);
+    if (!record) {
+      res.status(404).json({ error: "replay_not_found" });
+      return;
+    }
+    res.json(record);
   }
 
   async function submit(req: Request, res: Response): Promise<void> {
@@ -108,13 +142,18 @@ export function installBugReportRoutes({ app, store, tracker, session }: BugRepo
       res.status(503).json({ error: "reports_unavailable" });
       return;
     }
+    // The replay is captured before the GitHub copy so the public issue can say whether one was
+    // kept. It is bounded by the capturer's time budget and never throws, so it can delay the
+    // response by at most that budget and can never fail it.
+    let replay: ReplayOutcome | undefined;
+    if (report.matchId && replays) replay = await captureReportReplay(store, replays, id, report.matchId);
     if (!tracker) {
       res.status(201).json({ number: id });
       return;
     }
     let issue;
     try {
-      issue = await tracker.file(report);
+      issue = await tracker.file(report, replay ? { replay } : {});
     } catch (failure) {
       console.error("[bug-reports] saved feedback but GitHub mirror failed", failure);
     }
