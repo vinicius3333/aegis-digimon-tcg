@@ -136,18 +136,20 @@ test("viewing the board preserves the selected pending effect", async ({ page })
   await expect(panel.getByRole("button", { name: /resolve next effect/i })).toBeEnabled();
 });
 
-test("hand selection keeps every card undimmed and preserves picks when viewing the board", async ({ page }) => {
+test("hand selection dims only the cards it cannot take and preserves picks when viewing the board", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const panel = await new MobilePromptPreview(page).open("select-cost-budget");
   const cards = page.locator(".game-hand-card");
   for (const card of await cards.all()) {
     await expect(card).toBeInViewport({ ratio: 1 });
-    await expect(card).toHaveCSS("opacity", "1");
+    const blocked = (await card.getAttribute("aria-disabled")) === "true";
     expect(
       await card.evaluate((element) =>
         [...element.children].every((child) => getComputedStyle(child).filter === "none"),
       ),
-    ).toBe(true);
+    ).toBe(!blocked);
   }
   await expect(page.locator('.board-prompt-scrim[data-variant="selection"]')).toBeHidden();
   const eligible = page.locator('[data-hand-instance-id="hand-0"]');

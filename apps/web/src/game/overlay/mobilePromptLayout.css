@@ -5,8 +5,9 @@
 .board-prompt.keyword-save-overlay[data-prompt-surface] .board-prompt__actions > button:last-child {
   grid-column: 1 / -1;
 }
-/* Static mobile prompts fit their contents and leave a selecting hand visible.
-   Candidate lists scroll independently of the actions that answer the decision. */
+/* Static mobile prompts fit their contents and leave a selecting hand visible,
+   with cards the decision cannot take dimmed as on desktop. Candidate lists
+   scroll independently of the actions that answer the decision. */
 @media (width < 768px), (height < 520px) and (orientation: landscape) {
   .board-prompt-scrim[data-variant="selection"] {
     display: none;
@@ -15,12 +16,9 @@
   .effect-prompt-layer {
     bottom: var(--mobile-prompt-hand-clearance, 0px) !important;
   }
+  /* The fanned strip has no room to spare, so a blocked card dims without shrinking. */
   .game-hand--selecting .game-hand-card--unpickable {
-    opacity: 1;
     scale: 1;
-  }
-  .game-hand--selecting .game-hand-card--unpickable > * {
-    filter: none;
   }
   .game-modal__panel.effect-prompt-family[data-prompt-surface],
   .game-modal__panel.effect-prompt-family.decision-overlay--wide[data-prompt-surface],
