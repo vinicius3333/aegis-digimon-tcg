@@ -30,6 +30,14 @@ const later: DeckListing = {
   name: "Later set card",
   mainDeck: ["BT14-033", ...eosmon.mainDeck.slice(1)],
 };
+const sakuyamon: DeckListing = {
+  ...eosmon,
+  id: "sakuyamon",
+  name: "Sakuyamon",
+  format: "standard",
+  coverCardId: "BT20-037",
+  mainDeck: ["BT20-037", "BT17-035", "EX8-037", ...eosmon.mainDeck.slice(3)],
+};
 
 function FormatLobby() {
   const [activeDeckId, setActiveDeckId] = useState(eosmon.id);
@@ -44,7 +52,7 @@ function FormatLobby() {
     <I18nProvider>
       <Lobby
         player={{ name: "Format Tester", color: "Green", shards: 0 }}
-        decks={[eosmon, banned, later]}
+        decks={[eosmon, banned, later, sakuyamon]}
         activeDeckId={activeDeckId}
         onSelectDeck={setActiveDeckId}
         onCopyDeck={() => {}}

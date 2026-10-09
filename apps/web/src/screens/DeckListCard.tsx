@@ -68,13 +68,15 @@ export function DeckListCard({
             {subtitle ? <span className="deck-list-card__subtitle">{subtitle}</span> : null}
           </div>
           {active ? (
-            <Badge tone="primary">
+            <Badge tone="primary" className="deck-list-card__active">
               <Icons.Check size={12} />
               {t("deck.active")}
             </Badge>
           ) : null}
         </div>
-        {deck.format && deck.format !== "standard" ? <Badge>{deckFormatLabel(deck.format, t)}</Badge> : null}
+        {deck.format && deck.format !== "standard" ? (
+          <Badge className="deck-list-card__format">{deckFormatLabel(deck.format, t)}</Badge>
+        ) : null}
         {formatViolations.length > 0 ? (
           <div className="deck-list-card__violation">
             {t("deckFormat.violations", { count: formatViolations.length })}
