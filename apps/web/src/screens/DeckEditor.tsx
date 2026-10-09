@@ -19,6 +19,7 @@ import { Button, type Screen } from "../design/primitives";
 import { CoverThumb } from "../design/cards";
 import { Icons } from "../design/icons";
 import { Panel, SectionHeading } from "../design/surfaces";
+import { useMediaQuery } from "../design/useMediaQuery";
 import { CardDetailDrawer } from "./CardDetailDrawer";
 import { DeckSleevePicker } from "./DeckSleevePicker";
 import { DeckFormatSelector } from "./DeckFormatSelector";
@@ -102,10 +103,23 @@ export function DeckEditor({
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [deckInfoOpen, setDeckInfoOpen] = useState(false);
+  const [deckInfoExpanded, setDeckInfoExpanded] = useState(false);
+  const narrow = useMediaQuery("(width < 960px)");
+  const sheet = useRef<HTMLElement>(null);
+  const sheetTrigger = useRef<HTMLButtonElement>(null);
   const onSaveRef = useRef(onSave);
   const workspace = useRef<HTMLDivElement>(null);
   const deckShare = useDeckShare();
   const { view, setView } = useDeckView();
+
+  function closeDeckInfo() {
+    setDeckInfoOpen(false);
+    sheetTrigger.current?.focus();
+  }
+
+  useEffect(() => {
+    if (deckInfoOpen && narrow) sheet.current?.querySelector<HTMLButtonElement>("button")?.focus();
+  }, [deckInfoOpen, narrow]);
 
   useEffect(() => {
     onSaveRef.current = onSave;
@@ -311,21 +325,32 @@ export function DeckEditor({
         <DeckSplitHandle workspace={workspace} share={deckShare.share} onShare={deckShare.setShare} />
 
         {deckInfoOpen ? (
-          <button
-            type="button"
-            className="deck-info-backdrop"
-            aria-label={t("common.close")}
-            onClick={() => setDeckInfoOpen(false)}
-          />
+          <button type="button" className="deck-info-backdrop" aria-label={t("common.close")} onClick={closeDeckInfo} />
         ) : null}
         <aside
-          className={`deck-current${deckInfoOpen ? " deck-current--open" : ""}`}
+          ref={sheet}
+          className={`deck-current${deckInfoOpen ? " deck-current--open" : ""}${deckInfoExpanded ? " deck-current--expanded" : ""}`}
           aria-label={t("deck.detailsTitle")}
+          onKeyDown={(event) => {
+            if (narrow && event.key === "Escape" && !event.defaultPrevented) {
+              event.preventDefault();
+              closeDeckInfo();
+            }
+          }}
         >
           <div className="deck-info-sheet-handle">
-            <span />
+            <button
+              type="button"
+              aria-label={t(
+                deckInfoExpanded ? "redesign.decks.editor.collapseSheet" : "redesign.decks.editor.expandSheet",
+              )}
+              aria-pressed={deckInfoExpanded}
+              onClick={() => setDeckInfoExpanded((previous) => !previous)}
+            >
+              {deckInfoExpanded ? <Icons.Minimize size={18} /> : <Icons.Maximize size={18} />}
+            </button>
             <strong>{t("deck.detailsTitle")}</strong>
-            <button type="button" aria-label={t("common.close")} onClick={() => setDeckInfoOpen(false)}>
+            <button type="button" aria-label={t("redesign.decks.editor.closeSheet")} onClick={closeDeckInfo}>
               ×
             </button>
           </div>
@@ -428,7 +453,7 @@ export function DeckEditor({
                 {t("common.export")}
               </Button>
               <span className="deck-current__row-spacer" />
-              <Button variant="secondary" size="sm" icon={Icons.ArrowLeft} onClick={onClose}>
+              <Button variant="secondary" size="sm" icon={Icons.ArrowLeft} onClick={narrow ? closeDeckInfo : onClose}>
                 {t("common.close")}
               </Button>
               <Button
@@ -449,10 +474,15 @@ export function DeckEditor({
       <button
         type="button"
         className="deck-info-trigger"
-        onClick={() => setDeckInfoOpen(true)}
+        ref={sheetTrigger}
+        aria-label={t("deck.detailsCta")}
+        onClick={() => {
+          setDeckInfoExpanded(false);
+          setDeckInfoOpen(true);
+        }}
         aria-expanded={deckInfoOpen}
       >
-        <span>{t("deck.detailsCta")}</span>
+        <span>{t("redesign.decks.editor.openSheet")}</span>
         <span className="deck-info-trigger__counts">
           {mainCount}/{MAIN_TARGET} · {eggCount}/{EGG_TARGET}
         </span>

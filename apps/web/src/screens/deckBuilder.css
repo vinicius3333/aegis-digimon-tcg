@@ -93,6 +93,10 @@
   margin-bottom: var(--ds-space-5);
 }
 
+.deck-card-pool > .deck-format-selector {
+  margin-bottom: var(--ds-space-3);
+}
+
 .deck-card-pool__count {
   flex: none;
   color: var(--ds-text-3);
@@ -921,6 +925,10 @@
 /* Below 960px the pool keeps the width beside the filter rail, and the deck opens as a
    bottom sheet from a fixed trigger. Side by side, the deck panel would clip off screen. */
 @media (width < 960px) {
+  .aegis-stage:has(.deck-current--open) .aegis-bottom-nav {
+    display: none;
+  }
+
   .deck-builder-page {
     --deck-info-trigger-height: 48px;
 
@@ -950,7 +958,7 @@
     position: fixed;
     z-index: 42;
     right: 0;
-    bottom: calc(var(--ds-nav-height-narrow) + env(safe-area-inset-bottom));
+    bottom: 0;
     left: 0;
     width: 100%;
     min-width: 0;
@@ -970,27 +978,26 @@
     visibility: visible;
   }
 
+  .deck-current--expanded {
+    height: calc(100dvh - env(safe-area-inset-top) - var(--ds-space-3));
+    max-height: none;
+  }
+
   .deck-info-sheet-handle {
     display: grid;
     flex-shrink: 0;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: var(--ds-touch-target) minmax(0, 1fr) var(--ds-touch-target);
+    gap: var(--ds-space-2);
     align-items: center;
     padding: var(--ds-space-2) var(--ds-space-4);
     border-bottom: 1px solid var(--ds-line);
     background: var(--ds-sheet);
   }
 
-  .deck-info-sheet-handle > span {
-    width: 36px;
-    height: 4px;
-    justify-self: start;
-    border-radius: var(--ds-radius-pill);
-    background: var(--ds-line-strong);
-  }
-
   .deck-info-sheet-handle strong {
     color: var(--ds-text);
     font: 700 var(--ds-text-sm) / 1.2 var(--ds-font-display);
+    text-align: center;
   }
 
   .deck-info-sheet-handle button {
@@ -1003,12 +1010,79 @@
     font-size: var(--ds-text-2xl);
     border: 0;
     background: transparent;
+    cursor: pointer;
+    border-radius: var(--ds-radius-sm);
+  }
+
+  .deck-info-sheet-handle button:focus-visible {
+    outline: 2px solid var(--ds-focus);
+    outline-offset: -2px;
+  }
+
+  .deck-current__identity {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) var(--ds-touch-target);
+    gap: var(--ds-space-2) var(--ds-space-3);
+  }
+
+  .deck-current__cover-text {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .deck-current__random-cover {
+    grid-column: 3;
+    grid-row: 1;
+    width: var(--ds-touch-target);
+    height: var(--ds-touch-target);
+  }
+
+  .deck-current__counts {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .deck-current__toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .deck-current__toolbar .deck-kind-counts {
+    grid-column: 1 / -1;
+  }
+
+  .deck-current__toolbar .deck-segmented > button {
+    min-width: var(--ds-touch-target);
+    min-height: var(--ds-touch-target);
+  }
+
+  .deck-current__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .deck-current__row-spacer {
+    display: none;
+  }
+
+  .deck-current__row > button {
+    min-height: var(--ds-touch-target);
+    padding-inline: var(--ds-space-2);
+  }
+
+  .deck-current .deck-stepper {
+    width: 100%;
+    grid-template-columns: var(--ds-touch-target) minmax(24px, 1fr) var(--ds-touch-target);
+  }
+
+  .deck-current .deck-stepper > button {
+    min-height: var(--ds-touch-target);
   }
 
   .deck-info-backdrop {
     position: fixed;
     z-index: 41;
-    inset: 0 0 calc(var(--ds-nav-height-narrow) + env(safe-area-inset-bottom));
+    inset: 0;
     display: block;
     border: 0;
     background: var(--ds-scrim);
@@ -1042,6 +1116,10 @@
     font: 600 11px / 1 var(--ds-font-mono);
   }
 
+  .deck-current__footer {
+    padding-bottom: calc(var(--ds-space-2) + env(safe-area-inset-bottom));
+  }
+
   .deck-info-trigger > span:first-child {
     overflow: hidden;
     font-size: var(--ds-text-sm);
@@ -1070,7 +1148,7 @@
   }
 
   .deck-current {
-    height: calc(100dvh - var(--ds-nav-height-narrow) - env(safe-area-inset-bottom) - var(--ds-space-3));
+    height: calc(100dvh - env(safe-area-inset-top) - var(--ds-space-3));
     max-height: none;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -1106,6 +1184,7 @@
 
   .deck-card-pool {
     min-height: 65vh;
+    padding: var(--ds-space-3);
   }
 
   .deck-card-grid {
@@ -1115,6 +1194,34 @@
 
   .deck-card-pool .aegis-section-heading__title {
     font-size: var(--ds-text-lg);
+  }
+
+  .deck-current .deck-current__header,
+  .deck-current__toolbar,
+  .deck-current__footer,
+  .deck-info-sheet-handle {
+    padding-inline: var(--ds-space-3);
+  }
+
+  .deck-current__footer .deck-sleeves {
+    gap: var(--ds-space-2);
+  }
+
+  .deck-current__footer .deck-sleeves__list {
+    flex-wrap: nowrap;
+    gap: var(--ds-space-2);
+  }
+
+  .deck-current__footer .deck-sleeves__item {
+    flex: 1 1 0;
+  }
+
+  .deck-current__footer .deck-sleeve-thumb {
+    width: 24px;
+  }
+
+  .deck-current__footer .deck-sleeves > button {
+    min-height: var(--ds-touch-target);
   }
 }
 

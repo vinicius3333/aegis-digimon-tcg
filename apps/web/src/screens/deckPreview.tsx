@@ -6,6 +6,7 @@ import {
   type DeckFormat,
 } from "@aegis/shared";
 import { CardFull } from "../design/cards";
+import { useMediaQuery } from "../design/useMediaQuery";
 import { ColorDot } from "../design/primitives";
 import { colorKey, kindOf } from "../design/theme";
 import { Icons } from "../design/icons";
@@ -90,6 +91,9 @@ export function DeckPreviewSections({
   onRemove,
 }: DeckPreviewSectionsProps) {
   const { t } = useTranslation();
+  const phone = useMediaQuery("(width < 600px)");
+  const smallPhone = useMediaQuery("(width < 360px)");
+  const cardWidth = phone ? (smallPhone ? 112 : 132) : GRID_CARD_WIDTH;
   const byLevel = new Map<number, string[]>();
   const tamers: string[] = [];
   const options: string[] = [];
@@ -161,6 +165,7 @@ export function DeckPreviewSections({
               <Entry
                 key={cardId}
                 cardId={cardId}
+                cardWidth={cardWidth}
                 format={format}
                 artId={arts?.[cardId]?.[0]}
                 count={section.cards[cardId]!}
@@ -183,6 +188,7 @@ function countCardsFromIds(cards: CountMap, cardIds: readonly string[]): number 
 }
 
 interface DeckEntryProps {
+  cardWidth?: number;
   cardId: string;
   format?: DeckFormat;
   artId?: string;
@@ -235,6 +241,7 @@ export function DeckStepper({
 
 function DeckGridCard({
   cardId,
+  cardWidth = GRID_CARD_WIDTH,
   format = "standard",
   artId,
   count,
@@ -261,7 +268,7 @@ function DeckGridCard({
         aria-label={t("deck.openCard", { name: definition.nameEn, count })}
         onClick={onOpen}
       >
-        <CardFull cardId={cardId} artId={artId} width={GRID_CARD_WIDTH} count={count} />
+        <CardFull cardId={cardId} artId={artId} width={cardWidth} count={count} />
         {banLabel ? (
           <span className="deck-grid-card__restriction" data-tone={banned ? "danger" : "warning"}>
             {banLabel}

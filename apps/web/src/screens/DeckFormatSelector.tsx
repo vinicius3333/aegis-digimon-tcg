@@ -10,6 +10,7 @@ import {
   type HistoricalDeckSet,
 } from "@aegis/shared";
 import { useTranslation, type Translate } from "../i18n";
+import { useMediaQuery } from "../design/useMediaQuery";
 import "./deckFormatSelector.css";
 import { BanlistTooltip } from "./BanlistTooltip";
 
@@ -32,6 +33,7 @@ export function DeckFormatSelector({
 }) {
   const { t } = useTranslation();
   const id = useId();
+  const compact = useMediaQuery("(width < 600px)");
   const { set, rules } = deckFormatSettings(value);
   const date = releaseDateForSet(set);
   return (
@@ -50,12 +52,12 @@ export function DeckFormatSelector({
             onChange={(event) => onChange(createDeckFormat(event.target.value as HistoricalDeckSet | "all", rules))}
             aria-describedby={`${id}-summary`}
           >
-            <option value="all">{t("deckFormat.allSets")}</option>
+            <option value="all">{t(compact ? "deckFormat.allSetsShort" : "deckFormat.allSets")}</option>
             {historicalDeckFormats()
               .reverse()
               .map((product) => (
                 <option key={product} value={product}>
-                  {product} · {releaseDateForSet(product)}
+                  {compact ? product : `${product} · ${releaseDateForSet(product)}`}
                 </option>
               ))}
           </select>
@@ -70,13 +72,15 @@ export function DeckFormatSelector({
             aria-describedby={`${id}-summary`}
           >
             <option value="standard">{t("deckFormat.standard")}</option>
-            <option value="pauper">{t("deckFormat.pauper")}</option>
+            <option value="pauper">{t(compact ? "deckFormat.pauperShort" : "deckFormat.pauper")}</option>
             <option value="unlimited">{t("lobby.unlimited")}</option>
           </select>
         </div>
       </div>
       <p id={`${id}-summary`}>
-        {date ? t("deckFormat.poolHint", { set }) : t("deckFormat.allSetsHint")}{" "}
+        <span className="deck-format-selector__pool-hint">
+          {date ? t("deckFormat.poolHint", { set }) : t("deckFormat.allSetsHint")}
+        </span>{" "}
         {rules === "unlimited" ? (
           t("deckFormat.noBanlist")
         ) : (

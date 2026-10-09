@@ -58,9 +58,29 @@
   outline: 2px solid var(--ds-focus);
   outline-offset: 2px;
 }
-@media (max-width: 639px) {
+@media (width < 600px) {
+  .deck-format-selector {
+    gap: var(--ds-space-2);
+    padding: var(--ds-space-3);
+  }
   .deck-format-selector__fields {
-    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ds-space-2);
+  }
+  .deck-format-selector label {
+    font-size: var(--ds-text-xs);
+    line-height: var(--ds-leading-body);
+  }
+  .deck-format-selector__pool-hint {
+    display: none;
+  }
+  .deck-format-selector select {
+    min-height: var(--ds-touch-target);
+    padding: var(--ds-space-2);
+    font-size: var(--ds-text-sm);
+  }
+  .deck-format-selector__badge {
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 }
 
