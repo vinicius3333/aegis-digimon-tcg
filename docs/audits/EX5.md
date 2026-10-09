@@ -792,7 +792,7 @@ engine change is needed.
 
 #### Verification
 
-- `pnpm --filter @aegis/api exec vitest run src/cards/EX5/EX5-007.test.ts src/engine/q3528OncePerTurnIdentity.test.ts --maxWorkers=1 --no-file-parallelism` — **passed: 2 files, 7 tests** (6 card tests and 1 engine mechanism regression).
+- `pnpm --filter @aegis/api exec vitest run src/cards/EX5/EX5-007.test.ts src/engine/scenarios/q3528OncePerTurnIdentity.test.ts --maxWorkers=1 --no-file-parallelism` — **passed: 2 files, 7 tests** (6 card tests and 1 engine mechanism regression).
 - `pnpm exec oxlint apps/api/src/cards/EX5/EX5-007.ts apps/api/src/cards/EX5/EX5-007.test.ts` — passed.
 - `pnpm exec oxfmt --check apps/api/src/cards/EX5/EX5-007.ts apps/api/src/cards/EX5/EX5-007.test.ts docs/audits/EX5-reaudit/EX5-007.md` — passed.
 - `git diff --check -- apps/api/src/cards/EX5/EX5-007.ts apps/api/src/cards/EX5/EX5-007.test.ts docs/audits/EX5-reaudit/EX5-007.md` — passed.

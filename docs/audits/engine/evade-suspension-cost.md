@@ -29,7 +29,7 @@ Alliance paths now exclude that ally. A paired unrestricted ally still pays
 Alliance by suspending. Attack-declaration suspension remains on its existing
 rules path.
 
-Proof: `apps/api/src/engine/evadeCannotSuspendScenario.test.ts` runs public
+Proof: `apps/api/src/engine/scenarios/evadeCannotSuspendScenario.test.ts` runs public
 `playCard` and `attack` intents for the printed cards, including the dev arena
 layout. It covers unrestricted Evade, restricted effect-deletion Evade,
 restricted Raid-battle Evade, restricted Alliance, and unrestricted Alliance.

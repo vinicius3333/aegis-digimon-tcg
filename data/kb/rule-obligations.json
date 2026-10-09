@@ -16411,7 +16411,7 @@
           "precondition": "Magnamon and a Reboot Digimon are suspended when the owner ends the turn.",
           "decisions": "Answer Magnamon optional activation true and advance into the opponent turn.",
           "expectedResult": "Magnamon resolves or is declined before the turn changes; Reboot waits for the opponent Active phase.",
-          "testPath": "apps/api/src/engine/ex13MagnamonEndTurnScenario.test.ts",
+          "testPath": "apps/api/src/engine/scenarios/ex13MagnamonEndTurnScenario.test.ts",
           "testName": "EX13 Magnamon end-of-turn arena scenario resolves Magnamon before changing turns (accept=true), then Reboot in Active",
           "status": "proven",
           "reason": null
@@ -16422,7 +16422,7 @@
           "precondition": "Magnamon and a Reboot Digimon are suspended when the owner ends the turn.",
           "decisions": "Answer Magnamon optional activation false and advance into the opponent turn.",
           "expectedResult": "Magnamon resolves or is declined before the turn changes; Reboot waits for the opponent Active phase.",
-          "testPath": "apps/api/src/engine/ex13MagnamonEndTurnScenario.test.ts",
+          "testPath": "apps/api/src/engine/scenarios/ex13MagnamonEndTurnScenario.test.ts",
           "testName": "EX13 Magnamon end-of-turn arena scenario resolves Magnamon before changing turns (accept=false), then Reboot in Active",
           "status": "proven",
           "reason": null
@@ -18246,7 +18246,7 @@
           "precondition": "Two physical EX5-007 copies can rotate through the same EX5-008 host.",
           "decisions": "Use each copy, attempt same-turn reuse, then advance through both players' turns and use again.",
           "expectedResult": "Each physical copy has a separate use; same-turn reuse is unavailable and next-own-turn use gains exactly two memory.",
-          "testPath": "apps/api/src/engine/q3528OncePerTurnIdentity.test.ts",
+          "testPath": "apps/api/src/engine/scenarios/q3528OncePerTurnIdentity.test.ts",
           "testName": "Q3528 inherited Once Per Turn identity keeps the activation record on the host through stack rotation and resets next own turn",
           "status": "proven",
           "reason": null
@@ -18323,7 +18323,7 @@
           "precondition": "Two physical EX5-007 copies can rotate through the same EX5-008 host.",
           "decisions": "Use each copy, attempt same-turn reuse, then advance through both players' turns and use again.",
           "expectedResult": "Each physical copy has a separate use; same-turn reuse is unavailable and next-own-turn use gains exactly two memory.",
-          "testPath": "apps/api/src/engine/q3528OncePerTurnIdentity.test.ts",
+          "testPath": "apps/api/src/engine/scenarios/q3528OncePerTurnIdentity.test.ts",
           "testName": "Q3528 inherited Once Per Turn identity keeps the activation record on the host through stack rotation and resets next own turn",
           "status": "proven",
           "reason": null
