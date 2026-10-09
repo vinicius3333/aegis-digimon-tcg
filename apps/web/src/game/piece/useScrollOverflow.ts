@@ -17,11 +17,16 @@ export function useScrollOverflow(element: HTMLElement | null, revision: number)
       return;
     }
     const measure = () => {
+      // A fanned hand can extend visually without being a scrolling strip.
+      // Its rotated corners and selected-card lift must not advertise scrolling.
+      const overflowX = getComputedStyle(element).overflowX;
+      const scrollable = overflowX === "auto" || overflowX === "scroll";
       // Sub-pixel layout leaves a scrollLeft a hair off both ends, so a cue is
       // only claimed for a full pixel of hidden content.
       const hidden = element.scrollWidth - element.clientWidth;
       const left = element.scrollLeft;
-      setOverflow({ start: left > 1, end: left < hidden - 1 });
+      const next = { start: scrollable && left > 1, end: scrollable && left < hidden - 1 };
+      setOverflow((previous) => (previous.start === next.start && previous.end === next.end ? previous : next));
     };
     measure();
     element.addEventListener("scroll", measure, { passive: true });

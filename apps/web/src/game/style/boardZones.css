@@ -217,6 +217,7 @@
 /* --- Hand: oversized fan clipped at the screen's bottom edge ------------- */
 
 .game-hand-dock {
+  position: relative;
   overflow: visible;
 }
 
@@ -225,6 +226,32 @@
    by the dock itself and must not gain a box between them. */
 .game-hand-scroller {
   display: contents;
+}
+
+.game-hand-scroll-cue {
+  position: absolute;
+  /* Above every hand card: the row stacks them at 10 + index, the hovered one
+     at 40 and the selected one at 50, and all of them paint over the strip. */
+  z-index: 60;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  translate: 0 -50%;
+  color: var(--ds-on-accent);
+  border: none;
+  border-radius: var(--ds-radius-pill);
+  background: var(--ds-accent);
+  opacity: 0.86;
+  box-shadow: var(--ds-shadow-raise);
+}
+.game-hand-scroll-cue--start {
+  left: 0;
+}
+.game-hand-scroll-cue--end {
+  right: 0;
 }
 
 .game-hand {

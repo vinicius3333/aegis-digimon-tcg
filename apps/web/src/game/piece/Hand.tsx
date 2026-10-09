@@ -88,10 +88,8 @@ export function Hand({
   const rowWidth = useElementWidth(rowEl);
   const drawn = useEnterAnimation(cards.map((entry) => entry.instanceId));
   const arrivalArtReady = useHandArrivalArt(rowEl, drawn);
-  // Touch layouts use arrow cues; pointer layouts use the dock's scrollbar
-  // when a large selection spreads its cards beyond the available width.
+  // Both pointer and touch layouts indicate cards beyond either scroll edge.
   const touchLayout = useMediaQuery(TOUCH_LAYOUT_QUERY);
-  const overflow = useScrollOverflow(touchLayout ? rowEl : null, n);
   const scrollByCard = (direction: -1 | 1) => {
     if (!rowEl) return;
     const step = direction * (cardWidth + HAND_TOUCH_GAP);
@@ -103,6 +101,7 @@ export function Hand({
   // simply grew past the board and painted over the sidebar.
   const overlap = spreadSelection ? 0 : handOverlap(n, rowWidth, cardWidth, minExposure);
   const handOverflows = rowWidth > 0 && n * cardWidth - overlap * Math.max(0, n - 1) > rowWidth - HAND_TILT_BLEED * 2;
+  const overflow = useScrollOverflow(rowEl, n * 2 + Number(handOverflows));
   const { pointerPicked, tapSelection, inspect, beginPick, movePick, finishPick, cancelPick } =
     useHandPickGesture(selection);
   return (
@@ -364,8 +363,8 @@ export function Hand({
           }
         />
       ) : null}
-      {touchLayout && overflow.start ? <HandScrollCue direction="start" onClick={() => scrollByCard(-1)} /> : null}
-      {touchLayout && overflow.end ? <HandScrollCue direction="end" onClick={() => scrollByCard(1)} /> : null}
+      {overflow.start ? <HandScrollCue direction="start" onClick={() => scrollByCard(-1)} /> : null}
+      {overflow.end ? <HandScrollCue direction="end" onClick={() => scrollByCard(1)} /> : null}
     </div>
   );
 }

@@ -922,15 +922,15 @@ describe("the phone hand strip during a board-mode selection", () => {
     // `display: contents` everywhere else: the pointer fan must not gain a box.
     expect(gameCss).toMatch(/\.game-hand-scroller \{\s*display:\s*contents/);
     expect(portraitRules).toMatch(/\.game-hand-scroller \{[^}]*display:\s*block[^}]*position:\s*relative/);
-    expect(portraitRules).toMatch(/\.game-hand-scroll-cue \{[^}]*position:\s*absolute[^}]*top:\s*50%/);
-    expect(portraitRules).toMatch(/\.game-hand-scroll-cue--start \{\s*left:\s*0/);
-    expect(portraitRules).toMatch(/\.game-hand-scroll-cue--end \{\s*right:\s*0/);
+    expect(gameCss).toMatch(/\.game-hand-scroll-cue \{[^}]*position:\s*absolute[^}]*top:\s*50%/);
+    expect(gameCss).toMatch(/\.game-hand-scroll-cue--start \{\s*left:\s*0/);
+    expect(gameCss).toMatch(/\.game-hand-scroll-cue--end \{\s*right:\s*0/);
   });
 
-  it("mounts the cues only on the touch layout, and only where cards are hidden", () => {
+  it("mounts the cues on either layout only where cards are hidden", () => {
     expect(boardPiecesSource).toMatch(/useMediaQuery\(TOUCH_LAYOUT_QUERY\)/);
-    expect(boardPiecesSource).toMatch(/touchLayout && overflow\.start \?/);
-    expect(boardPiecesSource).toMatch(/touchLayout && overflow\.end \?/);
+    expect(boardPiecesSource).toMatch(/overflow\.start \?/);
+    expect(boardPiecesSource).toMatch(/overflow\.end \?/);
     // Scrolling and resizing both change the answer, so both are watched.
     expect(boardPiecesSource).toMatch(/addEventListener\("scroll", measure/);
     expect(boardPiecesSource).toMatch(/new ResizeObserver\(measure\)/);
