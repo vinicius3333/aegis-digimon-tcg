@@ -149,7 +149,9 @@ describe("§16-22 <Evade> (comprehensive-0241)", () => {
     expect(p0.trash).toHaveLength(0);
     expect(s.events.some((event) => event.kind === "cardsMoved")).toBe(false);
 
-    expect(s.engine.applyIntent(0, { type: "respondEvade", permanentId: evaderId, accept: true })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "respondEvade", permanentId: evaderId, accept: true })).toEqual({
+      ok: true,
+    });
     expect(await deletion).toBe(0);
     expect(s.perm("evader").isSuspended).toBe(true);
     expect(p0.trash).toHaveLength(0);
@@ -171,9 +173,9 @@ describe("§16-22 <Evade> (comprehensive-0241)", () => {
 
     const deletion = advance(s.engine).verb.deletePermanent([evader.permanentId], "byEffect");
     await settle(() => s.events.some((event) => event.kind === "evadePrompt"));
-    expect(
-      s.engine.applyIntent(0, { type: "respondEvade", permanentId: evader.permanentId, accept: false }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "respondEvade", permanentId: evader.permanentId, accept: false })).toEqual({
+      ok: true,
+    });
 
     expect(await deletion).toBe(1);
     expect(p0.battleArea.some((p) => p.permanentId === evader.permanentId)).toBe(false);
@@ -585,6 +587,57 @@ describe("§16-31 <Blast DNA Digivolve> (comprehensive-0250)", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("16-31-5: Blast DNA keeps the printed DNA requirement for both the field Digimon and the hand card", async () => {
+    cite(
+      "comprehensive-0250",
+      "16-31-5: a Digimon card's DNA digivolution requirements can't be ignored for Blast DNA; BT20-045 needs Green Lv.6 + Blue Lv.6.",
+      "f83a0b26b61506f865dec9beedad6b6e2e7580d6ce91b8142027334aa746f496",
+    );
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: "BT20-027", as: "slayer" }], // Blue/Red Lv.6 [Slayerdramon]
+          hand: [
+            { card: "BT1-026", as: "redBreak" }, // Red Lv.6 [Breakdramon]: misses the green slot
+            { card: "BT20-044", as: "greenBreak" }, // Green/Red Lv.6 [Breakdramon]
+            { card: "BT20-045", as: "examon" },
+          ],
+          deck: ["BT20-001"],
+        },
+        1: { battleArea: [{ card: "AD1-001", as: "attacker" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const keyFor = (handAlias: string) =>
+      `blast-dna-digivolve:${JSON.stringify([s.perm("slayer").permanentId, s.inst("slayer").instanceId, s.inst(handAlias).instanceId, 1])}`;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("Counter did not open");
+    expect(
+      opened.eligibleCounters
+        .filter((entry) => entry.instanceId === s.inst("examon").instanceId)
+        .map((entry) => entry.effectKey),
+    ).toEqual([keyFor("greenBreak")]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: s.inst("examon").instanceId,
+        effectKey: keyFor("redBreak"),
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT20-027"]);
+    expect(s.state.players[0]!.hand).toHaveLength(3);
+  });
+
   it("16-31-1 control: a plain (non-<Blast>) card DNA digivolves normally when its printed requirement matches", () => {
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
@@ -789,8 +842,7 @@ describe("§16-34 <Overclock> (comprehensive-0253)", () => {
       (event) => event.kind === "effectTriggered" && event.sourceCardId === OVERCLOCKER && event.timing === "OnEndTurn",
     );
     const tokenDeleted = indexOf(
-      (event) =>
-        event.kind === "cardsMoved" && (event.deletedPermanents ?? []).some((p) => p.permanentId === fodderId),
+      (event) => event.kind === "cardsMoved" && (event.deletedPermanents ?? []).some((p) => p.permanentId === fodderId),
     );
     const attackIndex = indexOf((event) => event.kind === "attackDeclared");
     const turnEnded = indexOf((event) => event.kind === "turnEnded");

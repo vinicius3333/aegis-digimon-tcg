@@ -15,7 +15,13 @@ import {
   validateDigivolve,
   validateRespondCounter,
 } from "../../actions/index.js";
-import { attackDeps, digivolveDeps, dnaDigivolveDeps, respondCounterDeps } from "../actionDeps.js";
+import {
+  attackDeps,
+  digivolveDeps,
+  dnaDigivolveDeps,
+  effectiveDnaMaterialDefinition,
+  respondCounterDeps,
+} from "../actionDeps.js";
 import type { GameEngine } from "../../GameEngine.js";
 import { buildEffectContext, cardSourceOf } from "../effectContext.js";
 import { checkTurnEndAfterVerb, isNewlyPlayedRushAttacker } from "./turnEnd.js";
@@ -241,5 +247,7 @@ export function blastDnaCounterChoices(engine: GameEngine, seat: Seat) {
   return blastDnaChoices(engine.state, seat, {
     names: (permanent, definition) => effectiveNames(engine.continuous, permanent, definition.nameEn),
     restricted: (permanent, definition) => deps.materialsRestricted?.(engine.state, [permanent], definition) === true,
+    effectiveMaterialDefinition: (permanent, result) => effectiveDnaMaterialDefinition(engine, permanent, result),
+    matchingCost: deps.matchingCost,
   });
 }

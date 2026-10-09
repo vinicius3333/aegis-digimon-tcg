@@ -1,4 +1,4 @@
-import { EffectTiming, type CardInstance, type ServerEvent } from "@aegis/shared";
+import { EffectTiming, type CardDefinition, type CardInstance, type Permanent, type ServerEvent } from "@aegis/shared";
 import { rollTurnActivity } from "../turnActivity.js";
 import { lookupDefinition, definitionOf, isDigimon, intrinsicDigivolutionCostReduction } from "../cards/cardData.js";
 import { type IntentRouterDeps } from "../intentRouter.js";
@@ -970,6 +970,23 @@ export function linkCardDeps(engine: GameEngine): LinkCardDeps {
   };
 }
 
+/** A field DNA material as its current colors, DNA level and names present it (CR 8-2). */
+export function effectiveDnaMaterialDefinition(
+  engine: GameEngine,
+  material: Permanent,
+  result: CardDefinition,
+): CardDefinition {
+  const printed = lookupDefinition(material.topCard!.cardId)!;
+  const effectiveLevel = engine.continuous.dnaLevelFor(material.permanentId, result);
+  const names = effectiveNames(engine.continuous, material, printed.nameEn ?? printed.cardId);
+  return {
+    ...printed,
+    colors: effectiveColors(engine.continuous, material.permanentId, printed.colors) as typeof printed.colors,
+    ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }),
+    nameEn: names.join(" | "),
+  };
+}
+
 /** Main DNA requires printed DNA requirements; effect-driven DNA keeps its separate cost rules. */
 export function dnaDigivolveDeps(engine: GameEngine): DnaDigivolveDeps {
   const mem = memoryDepsFromGauge(engine.memory);
@@ -977,17 +994,7 @@ export function dnaDigivolveDeps(engine: GameEngine): DnaDigivolveDeps {
     maxAffordable: mem.maxAffordable,
     matchingCost: (definition, materials) => matchingDnaDigivolveCost(definition, materials),
     effectiveMaterialDefinitions: (_state, materials, definition) =>
-      materials.map((material) => {
-        const printed = lookupDefinition(material.topCard!.cardId)!;
-        const effectiveLevel = engine.continuous.dnaLevelFor(material.permanentId, definition);
-        const names = effectiveNames(engine.continuous, material, printed.nameEn ?? printed.cardId);
-        return {
-          ...printed,
-          colors: effectiveColors(engine.continuous, material.permanentId, printed.colors) as typeof printed.colors,
-          ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }),
-          nameEn: names.join(" | "),
-        };
-      }),
+      materials.map((material) => effectiveDnaMaterialDefinition(engine, material, definition)),
     adjustedCost: (_state, materials, definition, printedCost) => {
       let cost = printedCost;
       const target = materials[0];

@@ -12,13 +12,19 @@ export interface BlastDnaChoice {
   extraMaterialsOnBottom: boolean;
 }
 
-/** CR 16-31: one field Digimon and one hand card; CR 8-2-2-2: printed left material on top. */
+/**
+ * CR 16-31: one field Digimon and one hand card; CR 8-2-2-2: printed left material on top.
+ * CR 16-31-5: the pair must also meet one of the card's printed DNA digivolution requirements,
+ * judged on the field Digimon's current state and the hand card's printed information.
+ */
 export function blastDnaChoices(
   state: GameState,
   seat: Seat,
   deps: {
     names(permanent: Permanent, definition: CardDefinition): readonly string[];
     restricted(permanent: Permanent, result: CardDefinition): boolean;
+    effectiveMaterialDefinition(permanent: Permanent, result: CardDefinition): CardDefinition;
+    matchingCost(result: CardDefinition, materials: CardDefinition[]): number | undefined;
   },
 ): BlastDnaChoice[] {
   const player = state.players[seat];
@@ -34,12 +40,14 @@ export function blastDnaChoices(
       const fieldDefinition = definitionOf(field.topCard.cardId);
       if (!fieldDefinition.kinds.includes(CardKind.Digimon) || deps.restricted(field, resultDefinition)) continue;
       const fieldNames = deps.names(field, fieldDefinition).map((name) => name.toLowerCase());
+      const fieldMaterial = deps.effectiveMaterialDefinition(field, resultDefinition);
       for (const hand of player.hand) {
         if (hand.instanceId === result.instanceId) continue;
         const handDefinition = definitionOf(hand.cardId);
         if (!handDefinition.kinds.includes(CardKind.Digimon)) continue;
         // Battle-area name treatment never changes a card in hand.
         const handName = handDefinition.nameEn.toLowerCase();
+        if (deps.matchingCost(resultDefinition, [fieldMaterial, handDefinition]) === undefined) continue;
         for (const fieldSlot of [0, 1] as const) {
           if (!fieldNames.includes(required[fieldSlot]!.toLowerCase())) continue;
           if (handName !== required[1 - fieldSlot]!.toLowerCase()) continue;
