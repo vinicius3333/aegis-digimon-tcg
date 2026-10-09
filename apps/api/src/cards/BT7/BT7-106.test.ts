@@ -46,6 +46,33 @@ describe("BT7-106 Brave Metal", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+
+  it("keeps a higher-cost [X Antibody] Digimon out of the non-X alternative when the catalog spells it with a space", async () => {
+    // BT10-080's catalog trait is "X Antibody"; the card prints [X-Antibody].
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT7-056",
+              under: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+            },
+          ],
+          hand: [{ card: "BT7-106", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT10-080", as: "xAntibodyTarget" }] },
+      },
+      { autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 8;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT7-106"));
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT10-080"]);
+  });
 });
 
 describe("BT7-106 Brave Metal — KB Q&A rulings", () => {
