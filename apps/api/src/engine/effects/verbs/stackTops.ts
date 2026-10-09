@@ -54,8 +54,8 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
         break;
       // De-Digivolve may promote a level-N card, then must stop once that card is
       // the current top. Checking the prospective new top stopped one step too
-      // early (a level-4 top never reached level 3) and, without an explicit
-      // stopAtLevel, repeated De-Digivolve could incorrectly promote a Digi-Egg.
+      // early (a level-4 top never reached level 3). An unusually ordered stack
+      // may legally expose a Digi-Egg before a buried level-3 card is reached.
       const currentTopLevel = currentTopDefinition?.level;
       if (!opts?.stackedCards && currentTopLevel !== undefined && currentTopLevel <= levelFloor) break;
       const oldTop = permanent.topCard;
@@ -71,7 +71,9 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
       const def = requireCardDefinition(newTop.cardId);
       const dp = def.kinds.includes(CardKind.Digimon) || def.kinds.includes(CardKind.DigiEgg) ? def.dp : 0;
       permanent.baseDP = dp;
-      if (opts?.stackedCards) permanent.invalidNoDpStackTop = promotedTopNeedsInvalidRuleTrash(def);
+      // De-Digivolve can expose a no-DP Digi-Egg in an unusually ordered stack.
+      // CR 17-1-3-2-1 trashes that remnant by rule; it is not a zero-DP deletion.
+      permanent.invalidNoDpStackTop = promotedTopNeedsInvalidRuleTrash(def);
       ledger.recomputeDP(state, permanent.permanentId);
       if (oldTop !== undefined) {
         // Publish the real physical move before yielding. An intermediate patch must
@@ -147,7 +149,8 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
     oldTop.faceUp = true;
     insertCard(player(oldTop.ownerSeat), Zone.Trash, oldTop);
     const def = requireCardDefinition(newTop.cardId);
-    permanent.baseDP = def.kinds.includes(CardKind.Digimon) ? def.dp : 0;
+    permanent.baseDP = def.kinds.includes(CardKind.Digimon) || def.kinds.includes(CardKind.DigiEgg) ? def.dp : 0;
+    permanent.invalidNoDpStackTop = promotedTopNeedsInvalidRuleTrash(def);
     ledger.recomputeDP(state, permanentId);
     // Publish the physical move before yielding: a continuous-effect recalculation can
     // send another batch whose patch already exposes the promoted top.

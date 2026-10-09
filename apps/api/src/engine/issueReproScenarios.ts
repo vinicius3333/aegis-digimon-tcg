@@ -25,6 +25,22 @@ type Layout = { players: readonly [PlayerLayout, PlayerLayout]; memory?: number 
 
 // Reduced boards for reported issues. Each runs in the ordinary turn loop.
 const ISSUE_LAYOUTS = {
+  "arena-github-5350-dedigivolve-egg": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "BT1-021" }, { card: "BT1-036" }, { card: "BT1-036" }],
+        hand: ["AD1-009"],
+        deck: Array(12).fill("BT1-009"),
+        security: Array(5).fill("BT1-009"),
+      },
+      {
+        field: [{ card: "BT26-060", under: ["BT26-016", "BT26-015", "BT26-011", "BT26-009", "BT26-001", "BT26-085"] }],
+        deck: Array(12).fill("BT1-009"),
+        security: Array(5).fill("BT1-009"),
+      },
+    ],
+  },
   "arena-github-5349-collision-immunity": {
     memory: 10,
     players: [
