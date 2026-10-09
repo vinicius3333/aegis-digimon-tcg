@@ -1,0 +1,208 @@
+.aegis-notifications {
+  position: relative;
+}
+
+.aegis-notifications__button {
+  position: relative;
+}
+
+.aegis-notifications__button[aria-expanded="true"] {
+  color: var(--ds-on-ink);
+  border-color: color-mix(in srgb, var(--ds-ink-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--ds-on-ink) 8%, transparent);
+}
+
+.aegis-notifications__badge {
+  position: absolute;
+  top: 4px;
+  right: 2px;
+  display: grid;
+  min-width: 18px;
+  height: 18px;
+  place-items: center;
+  padding-inline: 4px;
+  color: var(--ds-on-accent);
+  font-family: var(--ds-font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1;
+  border: 2px solid var(--ds-ink);
+  border-radius: var(--ds-radius-pill);
+  background: var(--ds-accent);
+}
+
+/* The panel opens out of the navy band onto paper, so it restates the paper text colors. */
+.aegis-notifications__panel {
+  position: absolute;
+  z-index: var(--ds-z-sheet);
+  top: calc(100% + var(--ds-space-2));
+  right: 0;
+  display: grid;
+  width: min(400px, calc(100vw - 2 * var(--ds-gutter-phone)));
+  max-height: min(560px, 75vh);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  color: var(--ds-text);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-sheet);
+  box-shadow: var(--ds-shadow-overlay);
+  text-align: start;
+}
+
+.aegis-notifications__header,
+.aegis-notifications__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3) var(--ds-space-4);
+}
+
+.aegis-notifications__header {
+  border-bottom: 1px solid var(--ds-line);
+}
+
+.aegis-notifications__header h2 {
+  margin: 0;
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-text-base);
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
+}
+
+.aegis-notifications__footer {
+  justify-content: center;
+  border-top: 1px solid var(--ds-line);
+}
+
+.aegis-notifications__text-button {
+  display: inline-flex;
+  min-height: var(--ds-touch-target);
+  align-items: center;
+  gap: var(--ds-space-1);
+  padding: 0 var(--ds-space-2);
+  color: var(--ds-accent);
+  font: inherit;
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+  border: 0;
+  border-radius: var(--ds-radius-sm);
+  background: none;
+  cursor: pointer;
+}
+
+.aegis-notifications__text-button:disabled {
+  color: var(--ds-text-off);
+  cursor: default;
+}
+
+.aegis-notifications__more {
+  justify-self: center;
+}
+
+.aegis-notifications__state {
+  margin: 0;
+  padding: var(--ds-space-6) var(--ds-space-4);
+  color: var(--ds-text-2);
+  text-align: center;
+}
+
+.aegis-notifications__list {
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.aegis-notifications__list li + li {
+  border-top: 1px solid var(--ds-line);
+}
+
+.aegis-notifications__item {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3) var(--ds-space-4);
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.aegis-notifications__item:hover {
+  background: var(--ds-fill);
+}
+
+.aegis-notifications__item[data-unread] {
+  background: var(--ds-accent-soft);
+}
+
+.aegis-notifications__dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 7px;
+  border-radius: 50%;
+}
+
+.aegis-notifications__item[data-unread] .aegis-notifications__dot {
+  background: var(--ds-accent);
+}
+
+.aegis-notifications__copy {
+  display: grid;
+  gap: var(--ds-space-1);
+  overflow-wrap: anywhere;
+}
+
+.aegis-notifications__headline {
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading-tight);
+}
+
+.aegis-notifications__item[data-unread] .aegis-notifications__headline {
+  font-weight: 600;
+}
+
+.aegis-notifications__excerpt {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-sm);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.aegis-notifications__copy time {
+  color: var(--ds-text-3);
+  font-size: var(--ds-text-xs);
+}
+
+.aegis-notifications__text-button:focus-visible,
+.aegis-notifications__item:focus-visible {
+  outline: 2px solid var(--ds-focus);
+  outline-offset: -2px;
+}
+
+/* Under the mobile bar the panel spans the screen instead of hanging off a 44px button. */
+@media (width < 960px) {
+  .aegis-notifications__panel {
+    position: fixed;
+    top: calc(var(--ds-mobile-bar-height) + env(safe-area-inset-top) + var(--ds-space-2));
+    right: var(--ds-gutter-phone);
+    left: var(--ds-gutter-phone);
+    width: auto;
+    max-height: calc(100dvh - var(--ds-mobile-bar-height) - var(--ds-nav-height-narrow) - 2 * var(--ds-space-4));
+  }
+}
+
+.aegis-notifications__bonus {
+  color: var(--ds-success);
+  font-size: var(--ds-text-xs);
+  font-weight: 700;
+}

@@ -16,3 +16,4 @@ export * from "./dev/phasePacing.js";
 export * from "./matchTimer.js";
 export * from "./matchFormat.js";
 export * from "./deckFormat.js";
+export * from "./feedback/index.js";

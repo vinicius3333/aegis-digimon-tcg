@@ -3,6 +3,7 @@ import { getCardDefinition } from "@aegis/shared";
 import type { Express, Request, Response } from "express";
 import type { AuthSession } from "../accounts/AccountStore.js";
 import { tokenBucketLimiter, type TokenBucketOptions } from "../http/rateLimit.js";
+import { installFeedbackTriageRoutes } from "./triageRoutes.js";
 import {
   FEEDBACK_KINDS,
   MAX_BUG_REPORT_CARDS,
@@ -36,7 +37,7 @@ export type BugReportRouteDeps = {
   session: (req: Request) => Promise<AuthSession | undefined>;
 };
 
-/** Public submissions persist before mirroring; only authenticated admins can read them. */
+/** Public submissions persist before mirroring. Admins triage them; signed-in reporters follow their own. */
 export function installBugReportRoutes({ app, store, tracker, session }: BugReportRouteDeps): void {
   const limitAccount = tokenBucketLimiter(SIGNED_IN_RATE_LIMIT);
   const limitAddress = tokenBucketLimiter(ANONYMOUS_RATE_LIMIT);
@@ -48,6 +49,8 @@ export function installBugReportRoutes({ app, store, tracker, session }: BugRepo
       maxDescription: MAX_BUG_REPORT_DESCRIPTION,
       maxOpponentDeck: MAX_BUG_REPORT_OPPONENT_DECK,
       enabled: true,
+      // The form tells reporters whether their words may end up on a public repository.
+      publicMirror: tracker !== undefined,
     });
   });
 
@@ -55,36 +58,7 @@ export function installBugReportRoutes({ app, store, tracker, session }: BugRepo
     submit(req, res).catch(next);
   });
 
-  app.get("/account/feedback", (req, res, next) => {
-    list(req, res).catch(next);
-  });
-
-  async function list(req: Request, res: Response): Promise<void> {
-    res.set("Cache-Control", "no-store");
-    const auth = await session(req);
-    if (!auth) {
-      res.status(401).json({ error: "authentication_required" });
-      return;
-    }
-    if (!auth.account.isAdmin) {
-      res.status(403).json({ error: "admin_required" });
-      return;
-    }
-    const raw = req.query.before;
-    const before = raw === undefined ? undefined : Number(raw);
-    if (
-      raw !== undefined &&
-      (typeof raw !== "string" ||
-        !/^\d+$/.test(raw) ||
-        !Number.isSafeInteger(before) ||
-        before! <= 0 ||
-        before! > 2147483647)
-    ) {
-      res.status(400).json({ error: "invalid_cursor" });
-      return;
-    }
-    res.json(await store.list(before));
-  }
+  installFeedbackTriageRoutes({ app, store, session });
 
   async function submit(req: Request, res: Response): Promise<void> {
     const auth = await session(req);

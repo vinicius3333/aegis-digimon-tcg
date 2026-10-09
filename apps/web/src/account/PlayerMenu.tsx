@@ -52,6 +52,15 @@ export function PlayerMenu({
     { key: "settings", label: t("menu.settings"), icon: Icons.Settings, action: () => onNav("settings") },
   ];
 
+  if (signedIn) {
+    links.push({
+      key: "myFeedback",
+      label: t("myFeedback.title"),
+      icon: Icons.Megaphone,
+      action: () => onNav("myFeedback"),
+    });
+  }
+
   if (signedIn && isAdmin) {
     links.push({
       key: "feedback",

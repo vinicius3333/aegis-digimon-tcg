@@ -1,3 +1,4 @@
+import type { OwnFeedbackPage, OwnFeedbackReport } from "@aegis/shared";
 import { accountApi } from "../account/client";
 
 export const MAX_BUG_REPORT_CARDS = 20;
@@ -40,6 +41,12 @@ function reportContext(): { clientRevision: string; userAgent?: string } {
 }
 
 export const bugReportApi = {
+  /** Whether this deployment also publishes reports on GitHub. */
+  publicMirror: async (signal?: AbortSignal): Promise<boolean> => {
+    const response = await fetch(`${accountApi.base}/bug-reports/limits`, { cache: "no-store", signal });
+    if (!response.ok) throw new BugReportApiError(response.status);
+    return ((await response.json()) as { publicMirror?: boolean }).publicMirror === true;
+  },
   submit: async (draft: BugReportDraft): Promise<FiledBugReport> => {
     const response = await fetch(`${accountApi.base}/bug-reports`, {
       method: "POST",
@@ -52,5 +59,41 @@ export const bugReportApi = {
       throw new BugReportApiError(response.status, body.error);
     }
     return response.json() as Promise<FiledBugReport>;
+  },
+};
+
+/** The signed-in reporter's own reports and what the team answered. */
+export const ownFeedbackApi = {
+  list: async (before?: number, signal?: AbortSignal): Promise<OwnFeedbackPage> => {
+    const response = await fetch(`${accountApi.base}/feedback/mine${before === undefined ? "" : `?before=${before}`}`, {
+      credentials: "include",
+      cache: "no-store",
+      signal,
+    });
+    if (!response.ok) throw new BugReportApiError(response.status);
+    return response.json() as Promise<OwnFeedbackPage>;
+  },
+  read: async (id: number, signal?: AbortSignal): Promise<OwnFeedbackReport> => {
+    const response = await fetch(`${accountApi.base}/feedback/mine/${id}`, {
+      credentials: "include",
+      cache: "no-store",
+      signal,
+    });
+    if (!response.ok) throw new BugReportApiError(response.status);
+    return response.json() as Promise<OwnFeedbackReport>;
+  },
+  /** Tells the team the closing answer did not solve it; allowed once per report. */
+  reopen: async (id: number, comment: string): Promise<OwnFeedbackReport> => {
+    const response = await fetch(`${accountApi.base}/feedback/mine/${id}/reopen`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ comment }),
+    });
+    if (!response.ok) {
+      const body = (await response.json().catch(() => ({}))) as { error?: string };
+      throw new BugReportApiError(response.status, body.error);
+    }
+    return response.json() as Promise<OwnFeedbackReport>;
   },
 };

@@ -30,6 +30,8 @@ describe("022-public-deck-hidden-status", () => {
   });
 
   it("refuses statuses it does not know", async () => {
-    await expect(pool.query("UPDATE public_decks SET status='gone' WHERE id=$1", [DECK])).rejects.toThrow(/check constraint/);
+    await expect(pool.query("UPDATE public_decks SET status='gone' WHERE id=$1", [DECK])).rejects.toThrow(
+      /check constraint/,
+    );
   });
 });

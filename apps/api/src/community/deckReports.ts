@@ -1,5 +1,5 @@
 import type { CommunityReportReason } from "@aegis/shared";
-import { GITHUB_API, githubHeaders, neutralizeMarkdownRefs } from "../bugs/GitHubIssueTracker.js";
+import { GITHUB_API, githubHeaders, isEnabled, neutralizeMarkdownRefs } from "../bugs/GitHubIssueTracker.js";
 
 export const DECK_REPORT_LABEL = "deck-report";
 
@@ -50,8 +50,12 @@ export class GitHubDeckReportTracker implements DeckReportTracker {
     this.fetch = options.fetch ?? globalThis.fetch;
   }
 
-  /** Shares the bug tracker's token and repository; undefined when the deployment has none. */
+  /**
+   * Shares the bug tracker's token and repository. Off unless DECK_REPORTS_GITHUB_ENABLED is
+   * "true": reports are stored in Postgres either way, and this only adds a public copy.
+   */
   static fromEnvironment(env: NodeJS.ProcessEnv = process.env): GitHubDeckReportTracker | undefined {
+    if (!isEnabled(env.DECK_REPORTS_GITHUB_ENABLED)) return undefined;
     const token = env.GITHUB_TOKEN;
     const repository = env.GITHUB_BUG_REPOSITORY;
     if (!token || !repository) return undefined;

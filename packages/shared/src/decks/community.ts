@@ -74,5 +74,23 @@ export interface CommunityReportInput {
   details?: string;
 }
 
+/** One open report on a public deck, as a moderator sees it. */
+export interface CommunityDeckReport {
+  reason: CommunityReportReason;
+  details: string | null;
+  reporterName: string | null;
+  createdAt: number;
+}
+
+/** A deck with reports a moderator has not handled yet, for the moderation queue. */
+export interface ReportedCommunityDeck {
+  id: string;
+  name: string;
+  authorName: string;
+  status: CommunityPublicationStatus;
+  openReports: number;
+  lastReportedAt: number;
+}
+
 export const COMMUNITY_MODERATION_ACTIONS = ["hide", "restore"] as const;
 export type CommunityModerationAction = (typeof COMMUNITY_MODERATION_ACTIONS)[number];

@@ -276,6 +276,18 @@ const Bell = (p: IconProps) => (
     <path d="M13.73 21a2 2 0 0 1-3.46 0" />
   </Svg>
 );
+const RotateCcw = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+    <path d="M3 3v5h5" />
+  </Svg>
+);
+const Lock = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="4" y="11" width="16" height="10" rx="2" />
+    <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+  </Svg>
+);
 const Search = (p: IconProps) => (
   <Svg {...p}>
     <circle cx="11" cy="11" r="8" />
@@ -636,6 +648,8 @@ export const Icons = {
   PanelSplit,
   PanelDeck,
   Bell,
+  Lock,
+  RotateCcw,
   Search,
   Plus,
   Check,

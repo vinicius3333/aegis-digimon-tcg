@@ -79,8 +79,9 @@ export class GitHubIssueTracker implements IssueTracker {
    * Reads the tracker the environment configures, or undefined when this deployment has none — a
    * local run without a token still boots, and the route answers that reports are unavailable.
    */
+  /** Off unless FEEDBACK_GITHUB_ENABLED is "true": the admin triage in Postgres is the record. */
   static fromEnvironment(env: NodeJS.ProcessEnv = process.env): GitHubIssueTracker | undefined {
-    if (env.FEEDBACK_GITHUB_ENABLED?.trim().toLowerCase() === "false") return undefined;
+    if (!isEnabled(env.FEEDBACK_GITHUB_ENABLED)) return undefined;
     const token = env.GITHUB_TOKEN;
     const repository = env.GITHUB_BUG_REPOSITORY;
     if (!token || !repository) return undefined;
@@ -113,6 +114,11 @@ export class GitHubIssueTracker implements IssueTracker {
     const issue = (await response.json()) as { number: number; html_url: string };
     return { number: issue.number, url: issue.html_url };
   }
+}
+
+/** GitHub writes are opt-in per feature; anything but an explicit "true" leaves them off. */
+export function isEnabled(flag: string | undefined): boolean {
+  return flag?.trim().toLowerCase() === "true";
 }
 
 export function githubHeaders(token: string): Record<string, string> {
