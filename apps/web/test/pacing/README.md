@@ -2,7 +2,8 @@
 
 The harness measures how the match screen paces triggered effects. It plays each effects-lab
 scenario on the real server and the real client cue pipeline, on one fake clock. A full run
-contains 119 rows and typically takes about a minute. Its fake-clock measurements are deterministic.
+contains 119 rows. Its fake-clock measurements are deterministic and do not depend on run order.
+One sequential run takes about a minute, so the budget test splits the rows across 4 workers.
 The interactive effects lab always uses the match's stacked timing and ignores obsolete saved
 tuning. Alternative pacing styles remain harness comparisons; the lab retains speed controls.
 
@@ -26,11 +27,11 @@ tuning. Alternative pacing styles remain harness comparisons; the lab retains sp
 
 ## Run it
 
-| Command                                                                      | What it does                                                                                                                                                                                                                                   |
-| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm --filter @aegis/web pacing:measure`                                    | Runs every scenario under `current`, and under each pacing style (`sequential`, `stacked`) at Slow, Normal and Fast. Writes `apps/web/.pacing-report/` (`summary.md`, `summary.json`, `runs.json`) and prints what moved against the baseline. |
-| `pnpm --filter @aegis/web pacing:baseline`                                   | The same, then overwrites `pacing-baseline.json` with the new numbers.                                                                                                                                                                         |
-| `pnpm --filter @aegis/web exec vitest run test/pacing/pacing.budget.test.ts` | The budget test. It also runs in the ordinary web test suite.                                                                                                                                                                                  |
+| Command                                                              | What it does                                                                                                                                                                                                                                   |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm --filter @aegis/web pacing:measure`                            | Runs every scenario under `current`, and under each pacing style (`sequential`, `stacked`) at Slow, Normal and Fast. Writes `apps/web/.pacing-report/` (`summary.md`, `summary.json`, `runs.json`) and prints what moved against the baseline. |
+| `pnpm --filter @aegis/web pacing:baseline`                           | The same, then overwrites `pacing-baseline.json` with the new numbers.                                                                                                                                                                         |
+| `pnpm --filter @aegis/web exec vitest run test/pacing/pacing.budget` | The budget test, in 4 shard files (`pacing.budget.<n>.test.ts`, see `budgetSuite.ts`) that Vitest runs in parallel. It also runs in the ordinary web test suite.                                                                               |
 
 ## Read the table
 
@@ -77,11 +78,11 @@ Every paced row had zero early results, unreadable or missing clauses, gate expi
 
 | Scenario suffix          | Sequential shown / ceiling (ms) | Stacked shown / ceiling (ms) |
 | ------------------------ | ------------------------------: | ---------------------------: |
-| `ghost-execute`          |                 51,312 / 59,000 |              42,272 / 49,000 |
-| `ghost-execute-security` |                 57,616 / 66,000 |              48,592 / 55,000 |
-| `attack-stack`           |                 40,496 / 51,000 |              26,208 / 36,000 |
-| `security-removed`       |                 14,480 / 16,000 |              11,328 / 13,000 |
-| `titan-cascade`          |                 17,360 / 23,000 |              11,936 / 17,000 |
+| `ghost-execute`          |                 54,224 / 59,000 |              34,320 / 49,000 |
+| `ghost-execute-security` |                 58,624 / 66,000 |              38,288 / 55,000 |
+| `attack-stack`           |                 45,584 / 51,000 |              32,960 / 36,000 |
+| `security-removed`       |                 16,832 / 18,500 |              12,336 / 13,000 |
+| `titan-cascade`          |                 18,624 / 23,000 |              13,824 / 17,000 |
 
 The ceilings allow approximately 10% headroom, rounded for clarity. Some rise above the old
 ceilings because each clause now gets a safe headline reading floor, exact physical sources
@@ -89,6 +90,19 @@ receive their focus before printed source costs, and resumed clauses precede the
 the viewer's answer. Field arrivals, hand counts, DP and memory also wait for their own clause.
 These longer sequences retain strict zero-failure invariants; the duration allowance cannot
 authorize an early result or a rescued gate.
+
+The 2026-10-09 refresh follows two card fixes that made "by suspending this Tamer" costs
+optional, so the chains now hold more viewer questions. A bisect found no presentation change
+that moved these rows.
+
+- Cool Boy (BT20-091, commit 46542e3c2) now asks once per copy. `royal-knights` presents
+  4 effects one after another, with 3 questions between them, instead of all at once.
+- Violet Inboots (BT20-088) and Inori Misono (BT24-084) (commit 6973d4b13) ask for the
+  suspension and then for the digivolution. In `ghost-execute` and `ghost-execute-security`,
+  the later answer moves the last result into the turn handover. The chain then settles only
+  after the following turn's banners, which adds 8,240 ms at Sequential Normal; the other
+  rows change by about 1 s. `security-removed` gains the second question's beats (+1,024 ms),
+  so its Sequential ceiling rises from 16,000 to 18,500 ms (10% over the measured time).
 
 The 2026-10-03 refresh gives visible toasts their own arrival clock, including during
 questions. Field deletions use 260 ms shard motion plus 90 ms spread (350 ms total), and
