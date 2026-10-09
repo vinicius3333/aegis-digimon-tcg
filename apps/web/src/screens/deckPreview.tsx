@@ -93,7 +93,7 @@ export function DeckPreviewSections({
   const { t } = useTranslation();
   const phone = useMediaQuery("(width < 600px)");
   const smallPhone = useMediaQuery("(width < 360px)");
-  const cardWidth = phone ? (smallPhone ? 112 : 132) : GRID_CARD_WIDTH;
+  const cardWidth = phone ? (smallPhone ? 96 : 112) : GRID_CARD_WIDTH;
   const byLevel = new Map<number, string[]>();
   const tamers: string[] = [];
   const options: string[] = [];
