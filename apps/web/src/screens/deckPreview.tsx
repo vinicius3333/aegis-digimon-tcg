@@ -318,18 +318,20 @@ function DeckListRow({
         <span className="deck-list-row__art" aria-hidden="true">
           <CardFull cardId={cardId} artId={artId} width={LIST_ART_WIDTH} />
         </span>
-        <ColorDot color={colorKey(definition.colors[0])} size={8} />
-        <span className="deck-list-row__type">{typeLabel}</span>
-        <span className="deck-list-row__name">
-          {definition.nameEn}
-          {isCover ? <Icons.Star size={11} /> : null}
-        </span>
-        {banLabel ? (
-          <span className="deck-tag" data-tone={banned ? "danger" : "warning"}>
-            {banLabel}
+        <span className="deck-list-row__details">
+          <ColorDot color={colorKey(definition.colors[0])} size={8} />
+          <span className="deck-list-row__type">{typeLabel}</span>
+          <span className="deck-list-row__name">
+            {definition.nameEn}
+            {isCover ? <Icons.Star size={11} /> : null}
           </span>
-        ) : null}
-        <span className="deck-list-row__id">{cardId}</span>
+          {banLabel ? (
+            <span className="deck-tag" data-tone={banned ? "danger" : "warning"}>
+              {banLabel}
+            </span>
+          ) : null}
+          <span className="deck-list-row__id">{cardId}</span>
+        </span>
       </button>
       <DeckStepper name={definition.nameEn} count={count} addDisabled={addDisabled} onAdd={onAdd} onRemove={onRemove} />
     </div>

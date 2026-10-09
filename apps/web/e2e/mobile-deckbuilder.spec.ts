@@ -2,6 +2,48 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 
 test.use({ hasTouch: true });
 
+for (const viewport of [
+  { width: 320, height: 740 },
+  { width: 390, height: 844 },
+  { width: 768, height: 1024 },
+  { width: 844, height: 390 },
+  { width: 1024, height: 900 },
+  { width: 1440, height: 900 },
+]) {
+  test(`deck list keeps names and quantity controls separate at ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    const builder = new MobileDeckbuilderPage(page);
+    await builder.open();
+    await builder.edit();
+    if (viewport.width < 960) {
+      await page.getByRole("button", { name: "Toque para ver mais sobre o deck", exact: true }).tap();
+      await builder.sheet().getByRole("button", { name: "Ampliar painel do deck" }).tap();
+    }
+    const sheet = builder.sheet();
+    await sheet.getByRole("button", { name: "Lista", exact: true }).tap();
+    const row = sheet.locator(".deck-list-row").first();
+    await row.scrollIntoViewIfNeeded();
+    const open = row.getByRole("button").first();
+    const name = row.locator(".deck-list-row__name");
+    const remove = row.getByRole("button", { name: "Remover Bebydomon", exact: true });
+    const add = row.getByRole("button", { name: "Adicionar Bebydomon", exact: true });
+    const nameBounds = await name.boundingBox();
+    expect(nameBounds!.width).toBeGreaterThan(60);
+    const openBounds = await open.boundingBox();
+    const removeBounds = await remove.boundingBox();
+    expect(removeBounds!.x).toBeGreaterThanOrEqual(openBounds!.x + openBounds!.width);
+    await builder.checkBounds(remove);
+    await builder.checkBounds(add);
+    await remove.tap();
+    await expect(row.getByLabel("3 no deck", { exact: true })).toBeVisible();
+    await add.tap();
+    await expect(row.getByLabel("4 no deck", { exact: true })).toBeVisible();
+    await page.screenshot({ path: test.info().outputPath(`deck-list-${viewport.width}.png`) });
+  });
+}
+
 class MobileDeckbuilderPage {
   constructor(readonly page: Page) {}
   async open() {
