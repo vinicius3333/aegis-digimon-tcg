@@ -102,6 +102,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-github5319-murasamemon-e-pulse",
   "arena-github5319-murasamemon-spent-cost",
   "arena-turn-end-dp-expiry",
+  "arena-discord1558122159-drasil-turn-handoff",
   "arena-github5344-revelation-expiry",
   "arena-github5311-crescemon-cost-scope",
   "arena-github5311-imperialdramon-cost-scope",
@@ -759,6 +760,34 @@ function layRevelationExpiryScenario(state: GameState, _decks: readonly [Decklis
   insertCard(human, Zone.Hand, faceDownCard("dev-revelation-mistymon", "EX13-033", 0));
   insertCard(state.players[1]!, Zone.Hand, faceDownCard("dev-revelation-late", "BT1-024", 1));
   state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/**
+ * Discord 1558122159975567360: the opposing Gallantmon's [Your Turn] +5000 DP expires at its
+ * turn end, then the human's King Drasil_7D6 triggers [Start of Your Main Phase] from breeding.
+ */
+function layDrasilTurnHandoffScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    for (let index = 0; index < 3; index += 1) {
+      insertCard(player, Zone.EggDeck, faceDownCard(`dev-drasil-egg-${seat}-${index}`, "BT1-003", seat));
+    }
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-drasil-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-drasil-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0]!;
+  const drasil = establishedDigimon(0, ["BT13-007"], "-drasil-breeding");
+  drasil.inBreeding = true;
+  setBreeding(human, drasil);
+  placePermanent(state.players[1]!, establishedDigimon(1, ["BT12-089", "AD1-008"], "-drasil-gallantmon"));
+  state.turnSeat = 1;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
@@ -9568,6 +9597,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github5319-murasamemon-e-pulse": layGithub5319MurasamemonEPulseScenario,
   "arena-github5319-murasamemon-spent-cost": layGithub5319MurasamemonSpentCostScenario,
   "arena-turn-end-dp-expiry": layTurnEndDpExpiryScenario,
+  "arena-discord1558122159-drasil-turn-handoff": layDrasilTurnHandoffScenario,
   "arena-github5344-revelation-expiry": layRevelationExpiryScenario,
   "arena-github5311-crescemon-cost-scope": layGithub5311CrescemonCostScenario,
   "arena-github5311-imperialdramon-cost-scope": layGithub5311ImperialdramonCostScenario,

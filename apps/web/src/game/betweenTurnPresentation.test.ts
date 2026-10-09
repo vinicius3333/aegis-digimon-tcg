@@ -329,3 +329,94 @@ it("still waits for the owning WarGrowlmon clause before presenting its DP gain"
   expect(view.result.current.dpPulses.size).toBe(0);
   view.unmount();
 });
+
+it.each([0, 1] as const)(
+  "Discord 1558122159975567360: viewer %s does not hold the turn start behind King Drasil for Gallantmon's DP expiry",
+  async (viewerSeat) => {
+    const before = snapshotGameState(createArenaDemoState());
+    before.stateVersion = 395;
+    before.turnSeat = 1;
+    before.phase = Phase.Main;
+    const gallantmon = before.players[1]!.battleArea[0]!;
+    gallantmon.topCard.cardId = "AD1-008";
+    gallantmon.currentDP = 17_000;
+    const unsuspended = before.players[0]!.battleArea[0]!.permanentId;
+    const ended = snapshotGameState(before);
+    ended.stateVersion = 398;
+    ended.players[1]!.battleArea[0]!.currentDP = 12_000;
+    const after = snapshotGameState(ended);
+    after.stateVersion = 404;
+    after.turnSeat = 0;
+    after.phase = Phase.Main;
+    const drasil = {
+      seat: 0,
+      sourceCardId: "BT13-007",
+      sourceInstanceId: "s0-52",
+      sourcePermanentId: "perm-3",
+      effectKey: "BT13-007/ir-1-0",
+      timing: "StartOfYourMainPhase",
+      description:
+        "[Breeding][Start of Your Main Phase] Reveal the top card of your Digi-Egg deck, then place that card and all of your [Royal Knight] trait Digimon as this Digimon's bottom digivolution cards.",
+    } as const;
+    // Public order from match c1d0b47b, batches 514..522 (14:17:31 UTC): production v1.18.0
+    // held seat 0's Draw banner and draw behind this DP pulse for about 28 seconds.
+    const script: ServerEvent[][] = [
+      [{ kind: "turnEnded", endingSeat: 1, nextSeat: 0, turnCount: 11 }],
+      [{ kind: "phaseChanged", phase: Phase.Active, turnSeat: 0, turnCount: 11 }],
+      [{ kind: "cardsMoved", instanceIds: [unsuspended], from: "suspended", to: "unsuspended" }],
+      [{ kind: "phaseChanged", phase: Phase.Draw, turnSeat: 0, turnCount: 12 }],
+      [{ kind: "phaseChanged", phase: Phase.Breeding, turnSeat: 0, turnCount: 12 }],
+      [{ kind: "phaseChanged", phase: Phase.Main, turnSeat: 0, turnCount: 12 }],
+      [{ kind: "effectTriggered", ...drasil }],
+      [{ kind: "effectResolved", ...drasil }],
+    ];
+    const versions = [396, 397, 398, 399, 400, 401, 402, 404];
+    const batches = script.map((events, index) => singleServerBatch(events, versions[index]!));
+    const expired: string[] = [];
+    const stop = observeGateExpiry(({ label }) => expired.push(label));
+    let controls: PresentationControls | undefined;
+    const view = renderHook(
+      ({ fed, state }: { fed: readonly ServerBatch[]; state: GameState }) =>
+        useMatchCues({
+          batches: fed,
+          state,
+          snapshots: [
+            { stateVersion: 395, state: before },
+            { stateVersion: 398, state: ended },
+            { stateVersion: 404, state: after },
+          ],
+          viewerSeat,
+          mulliganOpen: false,
+          anchors: {
+            board: { current: null },
+            permanentCenter: () => ({ x: 120, y: 80 }),
+            yourDeck: { current: null },
+            oppDeck: { current: null },
+            yourHandDock: { current: null },
+            oppHandStrip: { current: null },
+            yourSecurity: { current: null },
+            oppSecurity: { current: null },
+          },
+          presentationPacing: "sequential",
+          onActionRejected: vi.fn<(reason: string) => void>(),
+          devProbe: {
+            onQueue: (next) => {
+              controls = next;
+            },
+          },
+        }),
+      { initialProps: { fed: [] as readonly ServerBatch[], state: before } },
+    );
+    try {
+      view.rerender({ fed: batches, state: after });
+      await advance(15_000);
+      expect(view.result.current.phaseTransitionPending).toBe(false);
+      expect(controls?.queue.isIdle()).toBe(true);
+      expect(expired).toEqual([]);
+    } finally {
+      view.unmount();
+      await advance(32);
+      stop();
+    }
+  },
+);
