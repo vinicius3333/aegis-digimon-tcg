@@ -1843,6 +1843,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Compre a carta do turno e encerre a criação. Jogue Craniamon (EX13-062): selecione WereGarurumon BT23-056 (Lv.5), Guardromon EX13-051 (Lv.4) e Gotsumon EX13-047 (Lv.3) no lixo. WereGarurumon deve estar habilitado. Bokomon (Blocker só herdado) e Monmon (azul) não podem ser selecionados. Confirme Assembly: Craniamon custa 7, recebe os três materiais e a memória vai para 7 do oponente.",
     en: "Draw the turn card and end breeding. Play Craniamon (EX13-062): select WereGarurumon BT23-056 (Lv.5), Guardromon EX13-051 (Lv.4), and Gotsumon EX13-047 (Lv.3) from the trash. WereGarurumon must be selectable. Bokomon (inherited-only Blocker) and Monmon (blue) must stay disabled. Confirm Assembly: Craniamon costs 7, receives all three materials, and memory goes to 7 on the opponent's side.",
   },
+  "arena-crimson-partition": {
+    ptBR: "Encerre a criação. Use Crimson Blaze e jogue Monodramon BT1-009. Aceite o efeito de Atho, René & Por EX13-014 para deletar Imperialdramon ST9-06. Mesmo aceitando Partition herdado de Paildramon BT16-025, ExVeemon e Stingmon não podem ser jogados e vão para o lixo com Imperialdramon. O efeito de Atho ainda pode jogar seu próprio Token. Reinicie e pule Crimson Blaze para o controle: Partition deve jogar os dois materiais.",
+    en: "End breeding. Use Crimson Blaze, then play BT1-009 Monodramon. Accept EX13-014 Atho, René & Por's effect to delete ST9-06 Imperialdramon. Even if you accept BT16-025 Paildramon's inherited Partition, ExVeemon and Stingmon cannot be played and go to trash with Imperialdramon. Atho's effect may still play its own Token. Restart and skip Crimson Blaze for the control: Partition must play both materials.",
+  },
   "arena-ex13-magnamon-partition-assembly": {
     ptBR: "Encerre a criação e ataque a segurança com Paildramon (AD1-011). Gaia Force na segurança tentará deletá-lo. Aceite Partition para jogar Magnamon EX13-020 e Vegiemon sem pagar custo. Na escolha de Assembly do Magnamon, selecione o Veemon do seu lixo; Monodramon não deve ser elegível. Magnamon entra com Veemon em suas cartas de digievolução e a memória continua em 5. Você também pode recusar Assembly: Magnamon entra sem Veemon e continua gratuito.",
     en: "End breeding and attack security with Paildramon (AD1-011). The security Gaia Force attempts to delete it. Accept Partition to play EX13-020 Magnamon and Vegiemon without paying their costs. For Magnamon's Assembly, select the Veemon in your trash; Monodramon must not be eligible. Magnamon enters with Veemon in its digivolution cards and memory stays at 5. You may also decline Assembly: Magnamon enters without Veemon and remains free.",
@@ -2829,6 +2833,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
     "BT20 Alphamon: Ouryuken via King Drasil or Royal Knights of the Purge vs BT26 Aegiochusmon: Holy",
   ],
   ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],
+  ["arena-crimson-partition", "#5354/#5355 Crimson Blaze · inherited Partition"],
   ["arena-ex13-magnamon-partition-assembly", "#5294 Magnamon · Partition + free Assembly"],
   ["arena-yuugo-omnimon-assembly", "Yuugo · Omnimon Assembly cost (#5341)"],
   ["arena-ex13-craniamon-assembly", "EX13 Craniamon · Assembly with printed Blocker"],

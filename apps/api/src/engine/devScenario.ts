@@ -59,6 +59,7 @@ import {
  */
 export const DEV_SCENARIO_IDS = [
   "arena-growlmon-deletion-5361",
+  "arena-crimson-partition",
   "arena-koto-grademon-pending-piercing",
   "arena-koto-grademon-no-prior-battle",
   "arena-ravemon-burst-hand",
@@ -4347,6 +4348,37 @@ function layEx13GotsumonPromoKnightmonScenario(state: GameState, decks: readonly
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/** GitHub #5354/#5355: Crimson Blaze prevents inherited Partition material plays. */
+function layCrimsonPartitionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  for (const player of state.players) {
+    clearZone(player, Zone.Hand);
+    fillZone(
+      player,
+      Zone.Deck,
+      Array.from({ length: 20 }, (_, index) =>
+        faceDownCard(`dev-crimson-draw-${player.seat}-${index}`, "BT1-009", player.seat),
+      ),
+    );
+    fillZone(
+      player,
+      Zone.Security,
+      Array.from({ length: 5 }, (_, index) =>
+        faceDownCard(`dev-crimson-security-${player.seat}-${index}`, "BT1-009", player.seat),
+      ),
+    );
+  }
+  const human = state.players[0]!;
+  const opponent = state.players[1]!;
+  placePermanent(human, establishedDigimon(0, ["EX13-014"], "-crimson-atho"));
+  placePermanent(
+    opponent,
+    establishedDigimon(1, ["BT12-002", "BT12-022", "BT12-050", "BT16-025", "ST9-06"], "-crimson-imperialdramon"),
+  );
+  insertCard(human, Zone.Hand, faceDownCard("dev-crimson-blaze", "BT8-097", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-crimson-monodramon", "BT1-009", 0));
 }
 
 /** GitHub #5294: Partition may declare Assembly even though its play is free (CR 7-3-2-10). */
@@ -9732,6 +9764,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-github-5323-alphamon-main-dna": (state, decks) => layGithub5323DnaScenario(state, decks, false),
   "arena-github-5323-alphamon-blast-dna": (state, decks) => layGithub5323DnaScenario(state, decks, true),
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
+  "arena-crimson-partition": layCrimsonPartitionScenario,
   "arena-ex13-magnamon-partition-assembly": layEx13MagnamonPartitionAssemblyScenario,
   "arena-yuugo-omnimon-assembly": layYuugoOmnimonAssemblyScenario,
   "arena-ex13-craniamon-assembly": layEx13CraniamonAssemblyScenario,

@@ -509,6 +509,7 @@ export interface AegisJoinOptions {
     | "arena-github-5323-alphamon-blast-dna"
     | "arena-bt8-digimon-emperor-breeding-memory"
     | "arena-ex13-gotsumon-blocker-search"
+    | "arena-crimson-partition"
     | "arena-ex13-magnamon-partition-assembly"
     | "arena-yuugo-omnimon-assembly"
     | "arena-ex13-craniamon-assembly"
