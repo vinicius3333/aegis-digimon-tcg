@@ -2,6 +2,35 @@ import { createEvaluationPolicy, type BotPolicy } from "../bot/policy.js";
 
 /** Deterministic opponent actions for an arena reproduction, using ordinary intents. */
 export function createIssueReproBotPolicy(scenario: string | undefined): BotPolicy | undefined {
+  if (scenario === "arena-koto-grademon-pending-piercing" || scenario === "arena-koto-grademon-no-prior-battle") {
+    const fallback = createEvaluationPolicy();
+    return {
+      ...fallback,
+      name: "koto-protected-block-reproduction",
+      chooseBlockResponse(view, context) {
+        const blocker = view.board.find(
+          (p) => p.cardId === "EX13-060" && context.eligibleBlockerIds.includes(p.permanentId),
+        );
+        return blocker
+          ? { type: "declareBlock", blockerPermanentId: blocker.permanentId }
+          : fallback.chooseBlockResponse(view, context);
+      },
+    };
+  }
+  if (scenario === "arena-github-5346-blast-dna-decision") {
+    const fallback = createEvaluationPolicy();
+    return {
+      ...fallback,
+      name: "blast-dna-decision-reproduction",
+      chooseBreedingAction: () => ({ type: "endPhase" }),
+      chooseMainAction(view) {
+        const attacker = view.board.find((p) => p.canAttackPlayer && !p.suspended);
+        return attacker
+          ? { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "player" } }
+          : { type: "endPhase" };
+      },
+    };
+  }
   if (
     scenario === "arena-discord-1557631388650315826-sukamon-dna-materials" ||
     scenario === "arena-discord-1557631388650315826-sukamon-dna-control"

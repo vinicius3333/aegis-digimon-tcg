@@ -5,7 +5,7 @@ import { ROOM_TYPE, ROOM_TYPE_BOT } from "@aegis/shared";
 import { AegisRoom, roomRegistry } from "../../api/dist/rooms/AegisRoom.js";
 import "../../api/dist/cards/index.js";
 import { BotPlayer } from "../../api/dist/bot/BotPlayer.js";
-import type { DecisionRequest } from "@aegis/shared";
+import type { DecisionRequest, GameState, Intent } from "@aegis/shared";
 import { Edge } from "./edge";
 
 const EDGE_PORT = Number(process.env.AEGIS_E2E_EDGE_PORT ?? 2569);
@@ -15,9 +15,38 @@ export async function startBrowserServer({
   holdBotAllTurns = true,
   edgePort = EDGE_PORT,
   serverPort = SERVER_PORT,
+  botOptionalScript,
+  holdBotAfterTurn = Infinity,
+}: {
+  holdBotAllTurns?: boolean;
+  edgePort?: number;
+  serverPort?: number;
+  botOptionalScript?: { sourceCardId: string; answers: boolean[] };
+  holdBotAfterTurn?: number;
 } = {}) {
+  const scriptedAnswers = [...(botOptionalScript?.answers ?? [])];
   const queued: { bot: BotPlayer; request: DecisionRequest }[] = [];
   const originalDecision = BotPlayer.prototype.onDecisionRequested;
+  const phases = BotPlayer.prototype as unknown as { onOwnPhase(phase: string, turn: number): void };
+  const originalPhase = phases.onOwnPhase;
+  const autonomous = BotPlayer.prototype as unknown as {
+    state: GameState;
+    runBreedingPhase(): Promise<void>;
+    startMainPhaseLoop(): void;
+  };
+  const originalBreeding = autonomous.runBreedingPhase;
+  const originalMain = autonomous.startMainPhaseLoop;
+  autonomous.runBreedingPhase = function () {
+    return this.state.turnCount < holdBotAfterTurn ? originalBreeding.call(this) : Promise.resolve();
+  };
+  autonomous.startMainPhaseLoop = function () {
+    if (this.state.turnCount < holdBotAfterTurn) originalMain.call(this);
+  };
+  // Pause only autonomous opponent turns after the tested turn transfer; reactive
+  // answers and all public engine intents still run normally.
+  phases.onOwnPhase = function (phase, turn) {
+    if (turn < holdBotAfterTurn) originalPhase.call(this, phase, turn);
+  };
   const http = createServer();
   const server = new Server({ transport: new WebSocketTransport({ server: http }) });
   // Colyseus 404s unknown routes itself, so a second request listener would double-respond.
@@ -34,7 +63,23 @@ export async function startBrowserServer({
   await edge.start();
   // Test pacing only: hold each reactive answer until the browser has inspected the scene.
   BotPlayer.prototype.onDecisionRequested = function (request) {
-    if (holdBotAllTurns && request.options?.timing === "AllTurns") queued.push({ bot: this, request });
+    // Script only the opponent's legal yes/no choices; game rules and the human UI stay real.
+    if (
+      request.kind === "optional" &&
+      request.sourceCardId === botOptionalScript?.sourceCardId &&
+      scriptedAnswers.length
+    ) {
+      const accept = scriptedAnswers.shift()!;
+      setTimeout(
+        () =>
+          (this as unknown as { act(intent: Intent): void }).act({
+            type: "respondDecision",
+            decisionId: request.decisionId,
+            response: { kind: "optional", accept },
+          }),
+        0,
+      );
+    } else if (holdBotAllTurns && request.options?.timing === "AllTurns") queued.push({ bot: this, request });
     else originalDecision.call(this, request);
   };
 
@@ -50,6 +95,9 @@ export async function startBrowserServer({
     },
     close: async () => {
       BotPlayer.prototype.onDecisionRequested = originalDecision;
+      phases.onOwnPhase = originalPhase;
+      autonomous.runBreedingPhase = originalBreeding;
+      autonomous.startMainPhaseLoop = originalMain;
       await edge.stop();
       await server.gracefullyShutdown(false);
     },
