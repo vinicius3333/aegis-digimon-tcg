@@ -13,9 +13,7 @@ for (const viewport of [
     }) => {
       await page.setViewportSize(viewport);
       await page.emulateMedia({ reducedMotion: "reduce" });
-      await page.goto(
-        `/dev/mobile?specimen=board-opponent-narration&frame=1&locale=en${timer ? "&timer=on" : ""}`,
-      );
+      await page.goto(`/dev/mobile?specimen=board-opponent-narration&frame=1&locale=en${timer ? "&timer=on" : ""}`);
       await expect(page.getByTestId("opponent-selecting-pill")).toBeVisible();
       await expect(page.locator(".narration-peek, .match-notice")).toHaveCount(0);
       const utilitiesBefore = await opponentUtilityBoxes(page);
