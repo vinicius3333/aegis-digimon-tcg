@@ -58,6 +58,10 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-raid-immune-atratusmon",
+  "arena-shota-start-main-once",
+  "arena-heat-training-option-freeze",
+  "arena-crescemon-hexeblaumon-cost",
   "arena-neptunemon-holy-cost",
   "arena-wargrowlmon-evaded-block",
   "arena-toropiamon-vortex-control",
@@ -9532,6 +9536,10 @@ function layGithubEndTurnReportScenario(
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-raid-immune-atratusmon": (state, decks) => layNewCardReportScenario(state, decks, "raid"),
+  "arena-shota-start-main-once": (state, decks) => layNewCardReportScenario(state, decks, "shota"),
+  "arena-heat-training-option-freeze": (state, decks) => layNewCardReportScenario(state, decks, "heat"),
+  "arena-crescemon-hexeblaumon-cost": (state, decks) => layNewCardReportScenario(state, decks, "cresce"),
   "arena-neptunemon-holy-cost": (state, decks) => layRecentReportScenario(state, decks, "neptune"),
   "arena-wargrowlmon-evaded-block": (state, decks) => layRecentReportScenario(state, decks, "war"),
   "arena-toropiamon-vortex-control": (state, decks) => layRecentReportScenario(state, decks, "toro"),
@@ -10094,5 +10102,47 @@ function layRecentReportScenario(
       establishedDigimon(0, [mode === "chuu" ? "BT12-060" : "BT12-064", "BT12-081"], "-report-tuwarmon-host"),
     );
     placePermanent(bot, establishedDigimon(1, ["AD1-001"], "-report-tuwarmon-attacker"));
+  }
+}
+
+function layNewCardReportScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  mode: "raid" | "shota" | "heat" | "cresce",
+): void {
+  prepareIssueScenario(state, decks, 6);
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    for (const zone of [Zone.Hand, Zone.Trash, Zone.Deck, Zone.Security, Zone.EggDeck] as const)
+      clearZone(player, zone);
+    insertCard(player, Zone.EggDeck, faceDownCard(`new-report-${seat}-egg`, "BT1-001", seat));
+    for (let i = 0; i < 20; i++)
+      insertCard(player, Zone.Deck, faceDownCard(`new-report-${seat}-deck-${i}`, "BT1-009", seat));
+    for (let i = 0; i < 5; i++)
+      insertCard(player, Zone.Security, faceDownCard(`new-report-${seat}-sec-${i}`, "BT1-009", seat));
+  }
+  const own = state.players[0]!;
+  const opponent = state.players[1]!;
+  insertCard(own, Zone.Hand, faceDownCard("new-report-reserve", "BT1-009", 0));
+  if (mode === "raid") {
+    placePermanent(own, establishedDigimon(0, ["BT26-033"], "-new-report-jupiter"));
+    placePermanent(own, establishedDigimon(0, ["BT1-009"], "-new-report-fodder"));
+    placePermanent(opponent, establishedDigimon(1, ["ST23-08"], "-new-report-atratus"));
+    insertCard(opponent, Zone.Hand, faceDownCard("new-report-atratus-hand", "ST23-09", 1));
+    state.turnSeat = 1;
+    state.turnCount = 1;
+    state.memory = 6;
+  } else if (mode === "shota") {
+    for (let i = 0; i < 2; i++) placePermanent(own, establishedDigimon(0, ["BT26-092"], `-new-report-shota-${i}`));
+    for (let i = 0; i < 4; i++) insertCard(own, Zone.Hand, faceDownCard(`new-report-ts-${i}`, "BT25-093", 0));
+  } else if (mode === "heat") {
+    insertCard(own, Zone.Hand, faceDownCard("new-report-heat", "LM-059", 0));
+    // The turn draw consumes the last card; reveal Agumon and a yellow Lv.3.
+    insertCard(own, Zone.Deck, faceDownCard("new-report-yellow", "BT19-042", 0), "top");
+    insertCard(own, Zone.Deck, faceDownCard("new-report-red", "BT1-009", 0), "top");
+    insertCard(own, Zone.Deck, faceDownCard("new-report-turn-draw", "BT1-010", 0), "top");
+  } else {
+    placePermanent(own, establishedDigimon(0, ["BT1-009", "BT1-010", "EX5-017", "EX5-020"], "-new-report-cresce"));
+    insertCard(own, Zone.Hand, faceDownCard("new-report-hexe", "EX7-023", 0));
   }
 }

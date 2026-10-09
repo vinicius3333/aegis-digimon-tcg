@@ -5,6 +5,10 @@ export function createIssueReproBotPolicy(scenario: string | undefined): BotPoli
   if (
     scenario &&
     [
+      "arena-raid-immune-atratusmon",
+      "arena-shota-start-main-once",
+      "arena-heat-training-option-freeze",
+      "arena-crescemon-hexeblaumon-cost",
       "arena-neptunemon-holy-cost",
       "arena-wargrowlmon-evaded-block",
       "arena-toropiamon-vortex-control",
@@ -20,6 +24,12 @@ export function createIssueReproBotPolicy(scenario: string | undefined): BotPoli
       name: "recent-card-report-control",
       chooseBreedingAction: () => ({ type: "endPhase" }),
       chooseMainAction(view) {
+        if (scenario === "arena-raid-immune-atratusmon") {
+          const card = view.hand.find((c) => c.cardId === "ST23-09");
+          const base = view.board.find((p) => p.cardId === "ST23-08");
+          if (card && base) return { type: "digivolve", instanceId: card.instanceId, permanentId: base.permanentId };
+        }
+
         if (scenario === "arena-sukamon-opponent-cost") {
           const gaia = view.hand.find((card) => card.cardId === "ST1-16");
           if (gaia) return { type: "playCard", instanceId: gaia.instanceId };

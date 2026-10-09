@@ -17,6 +17,23 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-raid-immune-atratusmon": {
+    en: "Raid into immune Atratusmon; security must stay at five.",
+    ptBR: "Raid em Atratusmon imune; a segurança deve permanecer em cinco.",
+  },
+  "arena-shota-start-main-once": {
+    en: "Each of two Shota copies pays once at Main entry. No activation remains afterward.",
+    ptBR: "Cada cópia de Shota paga uma vez na entrada de Main. Nenhuma ativação fica disponível depois.",
+  },
+  "arena-heat-training-option-freeze": {
+    en: "Use Heat Training, select a revealed card, then play Monodramon. Animations and input must finish normally.",
+    ptBR: "Use Heat Training, escolha uma carta revelada e jogue Monodramon. As animações devem terminar e liberar os controles.",
+  },
+  "arena-crescemon-hexeblaumon-cost": {
+    en: "Evolve Crescemon with three sources into Hexeblaumon: pay four, leaving two memory.",
+    ptBR: "Evolua Crescemon com três fontes em Hexeblaumon: pague quatro, ficando com duas memórias.",
+  },
+
   "arena-chuuchuumon-opponent-blocker": {
     en: "End turn and block with Astamon: ChuuChuumon grants Blocker only on the opponent turn, just like Tuwarmon.",
     ptBR: "Encerre o turno e bloqueie com Astamon: ChuuChuumon concede Blocker apenas no turno adversário, assim como Tuwarmon.",
@@ -2753,6 +2770,10 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt23-examon-piercing-end-turn", "BT23 Examon · end-turn DNA and Piercing"],
   ["arena", "Attack steps · Counter/Blocker"],
   ["arena-field-grouping-dense", "Field grouping · late-game density, deep sources and links"],
+  ["arena-raid-immune-atratusmon", "#5391 Raid / Atratusmon"],
+  ["arena-shota-start-main-once", "#5389 Shota / Main"],
+  ["arena-heat-training-option-freeze", "#5388 Heat Training / freezing"],
+  ["arena-crescemon-hexeblaumon-cost", "#5387 Crescemon / Hexeblaumon"],
   ["arena-neptunemon-holy-cost", "#5385 Neptunemon / Holy"],
   ["arena-wargrowlmon-evaded-block", "#5384 WarGrowlmon / Evade"],
   ["arena-toropiamon-vortex-control", "#5382 Toropiamon / Vortex"],
