@@ -149,7 +149,8 @@ function persistedRoomId(page: import("@playwright/test").Page) {
   });
 }
 
-test("resumes the same seat after an edge outage longer than the old retry budget", async ({ page, match }) => {
+test("resumes the same seat after retrying an edge outage within the reconnect grace", async ({ page, match }) => {
+  await page.addInitScript(() => localStorage.setItem("aegis.skip-end-turn-confirmation", "true"));
   test.setTimeout(180_000);
   const game = new GamePage(page);
   await match.start("reconnect");
@@ -157,9 +158,12 @@ test("resumes the same seat after an edge outage longer than the old retry budge
   const roomId = match.opponent.room.roomId;
   await expect.poll(() => persistedRoomId(page)).toBe(roomId);
 
+  await page.clock.install();
   await match.server.edge.stop();
   await expect(page.getByText("Reconnecting…")).toBeVisible();
-  await page.waitForTimeout(50_000);
+  // The live grace is 30 s. Exercise retry timers inside it without a fixed real-time sleep.
+  await page.clock.runFor(25_000);
+  await expect(page.getByText("Reconnecting…")).toBeVisible();
   await match.server.edge.start();
 
   await expect(page.getByTestId("hand")).toBeVisible({ timeout: 15_000 });

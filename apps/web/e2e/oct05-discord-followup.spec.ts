@@ -8,6 +8,7 @@ class DiscordFollowupArena {
     await this.page.addInitScript(() => {
       localStorage.setItem("aegis:locale", "en");
       localStorage.setItem("aegis.action-confirmation.enabled", "false");
+      localStorage.setItem("aegis.skip-end-turn-confirmation", "true");
     });
     // Card art is cosmetic; keep this regression independent of external mirrors.
     await this.page.route("**/assets/card-images/**", (route) =>
@@ -38,7 +39,7 @@ for (const [scenario, note] of [
   ["arena-discord-1556772689731915896-fly-bullet-hand", "Gallantmon X must be deleted"],
   ["arena-discord-1556772689731915896-fly-bullet-sources", "Gallantmon X must be deleted"],
   ["arena-discord-1556782829713621082-digilab-breeding", "keep Veemon in breeding"],
-]) {
+] as const) {
   test(`${scenario} opens the configured board and reaches Main`, async ({ page }) => {
     const server = await startBrowserServer();
     try {
@@ -242,8 +243,9 @@ for (const accepted of [true, false]) {
       await expect(partition.getByRole("img", { name: "Groundramon", exact: true })).toBeVisible();
       await expect(partition.getByRole("img", { name: "Wingdramon", exact: true })).toBeVisible();
       await expect(partition.getByRole("button", { name: "Confirm targets", exact: true })).toHaveCount(0);
-      // Observe longer than the 1.901s Oracle response, without submitting any choice.
-      await page.waitForTimeout(2200);
+      // Exercise the old response interval without waiting in real time or submitting a choice.
+      await page.clock.install();
+      await page.clock.runFor(2200);
       await expect(partition.getByRole("heading", { name: "Do you want to activate Partition?" })).toBeVisible();
       await partition.getByRole("button", { name: accepted ? "Yes, activate" : "No, decline", exact: true }).click();
       await expect(partition).toHaveCount(0);
