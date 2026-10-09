@@ -310,7 +310,13 @@ export function createOptionEffectsVerbs(pc: PrimitivesContext) {
       setResolvingOption(usedOwner, undefined);
       insertCard(player(resolvingCard.ownerSeat), Zone.Trash, resolvingCard);
       moved = [resolvingCard];
-      engine.emit({ kind: "cardsMoved", instanceIds: [resolvingCard.instanceId], from: "various", to: Zone.Trash });
+      engine.emit({
+        kind: "cardsMoved",
+        instanceIds: [resolvingCard.instanceId],
+        from: "various",
+        to: Zone.Trash,
+        optionUsed: true,
+      });
       if (wasUnderCard) applyOverflow(engine.memory, [resolvingCard], state.turnSeat);
     }
     if (activateOptionUsed !== undefined) await activateOptionUsed();

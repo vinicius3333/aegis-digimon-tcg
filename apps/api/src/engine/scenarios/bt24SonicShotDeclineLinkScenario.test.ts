@@ -53,6 +53,14 @@ describe("BT24 Sonic Shot Link recipient arena scenario", () => {
       expect(hosts[1]!.linked).toHaveLength(0);
       expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === "dev-sonic-shot-option")).toBe(!link);
       expect(s.events).toContainEqual(expect.objectContaining({ kind: "effectResolved", sourceCardId: "BT24-095" }));
+      expect(s.events).toContainEqual(
+        expect.objectContaining({
+          kind: "cardsMoved",
+          instanceIds: ["dev-sonic-shot-option"],
+          to: link ? "linkedCards" : "trash",
+          optionUsed: true,
+        }),
+      );
       expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
 
       expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
