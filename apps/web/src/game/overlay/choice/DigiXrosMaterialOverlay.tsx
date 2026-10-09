@@ -26,6 +26,7 @@ import "../effectPromptFamily.css";
  */
 export function DigiXrosMaterialOverlay({
   playingCardId,
+  playCostReductionBlocked = false,
   requirements,
   candidates,
   lockedCandidates,
@@ -38,6 +39,7 @@ export function DigiXrosMaterialOverlay({
 }: {
   /** The card about to be played. */
   playingCardId: string;
+  playCostReductionBlocked?: boolean;
   /** DigiXros requirements for the card (at least one entry). */
   requirements: DigiXrosRequirement[];
   /** Eligible material candidates (hand + battle area top cards). */
@@ -69,8 +71,9 @@ export function DigiXrosMaterialOverlay({
   const focusProps = useEffectPromptFocus(isViewingBoard || pendingExpander !== undefined);
 
   const req = requirements[0]!;
-  const reductionLabel =
-    req.count === "∞"
+  const reductionLabel = playCostReductionBlocked
+    ? t("overlay.xrosReductionPerPlaced", { count: 0 })
+    : req.count === "∞"
       ? req.costReduction !== undefined
         ? t("overlay.xrosReductionPerCard", { count: req.costReduction })
         : t("overlay.xrosReductionVariable")

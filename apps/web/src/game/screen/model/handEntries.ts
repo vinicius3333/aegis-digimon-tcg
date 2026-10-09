@@ -32,6 +32,7 @@ export function handEntriesOf({
     activatableEffectsJson: ci.activatableEffectsJson,
     playableFromHand: ci.playableFromHand,
     projectedPlayCost: ci.projectedPlayCost,
+    playCostReductionBlocked: ci.playCostReductionBlocked,
     digivolveTargetPermanentIds: [...ci.digivolveTargetPermanentIds],
     linkTargetPermanentIds: [...ci.linkTargetPermanentIds],
     digivolveRoutes: [...(ci.digivolveRoutes ?? [])].map((route) => ({

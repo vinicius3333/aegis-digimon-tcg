@@ -1,7 +1,7 @@
 // Matching a filter against a CARD DEFINITION, with no board state involved.
 
 import { runtimeCompiledCard } from "../compiledCards.js";
-import { isPrintedKeywordToken, textPrintsKeyword } from "@aegis/shared";
+import { isPrintedKeywordToken, textPrintsKeyword, traitKey } from "@aegis/shared";
 import { COLOR_MAP, KIND_MAP } from "../maps.js";
 import {
   CardColor,
@@ -425,7 +425,7 @@ export function matchNameOrTrait(
     ...(def.cardId ? effectiveExactNames(def as CardDefinition).map(normalizeName) : []),
     ...(def.nameAliases ?? []).map(normalizeName),
   ];
-  const normalizeTrait = (value: string) => value.toLowerCase().replace(/[\s-]+/g, "");
+  const normalizeTrait = traitKey;
   const traits = staticTraitsOf(def as CardDefinition).map(normalizeTrait);
   const text = [
     def.effectText,

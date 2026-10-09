@@ -21,6 +21,7 @@ export type PrePlayPrompt =
   | { kind: "dna"; instanceId: string; cardId: string; routes: NonNullable<HandEntry["dnaDigivolveRoutes"]> }
   | {
       kind: "digiXros";
+      playCostReductionBlocked?: boolean;
       instanceId: string;
       cardId: string;
       requirements: DigiXrosRequirement[];
@@ -31,6 +32,7 @@ export type PrePlayPrompt =
     }
   | {
       kind: "assembly";
+      playCostReductionBlocked?: boolean;
       instanceId: string;
       cardId: string;
       requirements: AssemblyRequirement[];
@@ -70,6 +72,7 @@ export function prePlayPromptFor({
   if (requirements && requirements.length > 0)
     return {
       kind: "digiXros",
+      playCostReductionBlocked: entry.playCostReductionBlocked,
       instanceId,
       cardId,
       requirements: [...requirements],
@@ -87,7 +90,14 @@ export function prePlayPromptFor({
       return definition ? [{ instanceId: candidate.instanceId, definition }] : [];
     });
     if (assemblyPossible(assemblyRequirements, candidateDefinitions, getCardDefinition(cardId)))
-      return { kind: "assembly", instanceId, cardId, requirements: [...assemblyRequirements], candidates };
+      return {
+        kind: "assembly",
+        instanceId,
+        cardId,
+        requirements: [...assemblyRequirements],
+        candidates,
+        playCostReductionBlocked: entry.playCostReductionBlocked,
+      };
   }
   if (routes.length > 0) return { kind: "dna", instanceId, cardId, routes };
   if (confirmDrop && actionConfirmationsEnabled) return { kind: DragKind.Play, instanceId, cardId };

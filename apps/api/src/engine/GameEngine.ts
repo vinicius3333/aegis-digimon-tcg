@@ -457,7 +457,7 @@ export class GameEngine {
         this.hooks.requestDecision(seat, req);
       },
     });
-    this.decisionApi = createDecisionApi(this.decisions);
+    this.decisionApi = createDecisionApi(this.decisions, (seat) => this.continuous.blocksCostReduction(seat, "play"));
     this.resolverDecisions = createResolverDecisions(
       this.decisions,
       () => this.recomputeContinuousEffects(),

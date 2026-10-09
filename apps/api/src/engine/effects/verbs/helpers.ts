@@ -13,6 +13,8 @@ import type { Restriction } from "../EffectContext.js";
 import { normalizeCost } from "../verbs/cardPlacement.js";
 import { hostOfStackInstance } from "../verbs/looseInstances.js";
 
+import { inheritedDigimonHost } from "../kernel.js";
+import { effectiveKinds } from "../continuous/effective.js";
 import type { PrimitivesContext } from "./context.js";
 
 /**
@@ -118,6 +120,16 @@ export function createSharedHelpers(pc: PrimitivesContext) {
               permanentId,
               controllerSeat: permanent.controllerSeat,
               topCardId: permanent.topCard.cardId,
+              inheritedHostIsDigimon: inheritedDigimonHost({
+                definition: requireCardDefinition(permanent.topCard.cardId),
+                effectiveKinds: effectiveKinds(
+                  continuous,
+                  permanentId,
+                  requireCardDefinition(permanent.topCard.cardId).kinds,
+                ),
+                inBattleArea: !permanent.inBreeding,
+              }),
+              stackInstanceIds: permanent.stack.map((card) => card.instanceId),
               faceDownSourceInstanceIds: [...permanent.stack, ...permanent.linked]
                 .filter((card) => !card.faceUp)
                 .map((card) => card.instanceId),

@@ -213,6 +213,7 @@ export function DecisionPrompts({
         <AssemblyMaterialOverlay
           playingCardId={assemblyCardId}
           requirements={assemblyRequirements}
+          playCostReductionBlocked={decision.options?.playCostReductionBlocked}
           candidates={candidates.flatMap((candidate) =>
             candidate.cardId
               ? [{ instanceId: candidate.instanceId, cardId: candidate.cardId, artId: candidate.artId }]
@@ -228,6 +229,7 @@ export function DecisionPrompts({
           key={decision.decisionId}
           playingCardId={digiXrosCardId}
           requirements={digiXrosRequirements}
+          playCostReductionBlocked={decision.options?.playCostReductionBlocked}
           candidates={candidates.flatMap<DigiXrosCandidate>((candidate) => {
             if (!candidate.cardId || (candidate.zone !== "hand" && candidate.zone !== "battle")) return [];
             const permanent = permanents.find((entry) => entry.topCard?.instanceId === candidate.instanceId);

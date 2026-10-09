@@ -190,7 +190,7 @@ describe("BT22-090 Rie Kishibe", () => {
   });
 });
 
-describe("GitHub #5290: Rie Kishibe end-of-turn digivolution through public intents", () => {
+describe("GitHub #5290 / #5398: Rie Kishibe end-of-turn digivolution through public intents", () => {
   it.each([
     { into: "BT22-067", security: 3, sacrifice: "BT22-083", accept: true, evolves: true, deletes: true },
     { into: "EX13-064", security: 3, sacrifice: "BT22-083", accept: true, evolves: true, deletes: true },

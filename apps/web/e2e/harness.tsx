@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Client, type Room } from "@colyseus/sdk";
 import { DECISION_CHANNEL, type DecisionRequest, type SequencedServerEvent, type GameState } from "@aegis/shared";
 import { GameScreen } from "../src/game/GameScreen";
+import { applyDarkMode } from "../src/design/darkMode";
 import { SEQUENTIAL_PACING_ENABLED } from "../src/features";
 import { I18nProvider } from "../src/i18n";
 import type { AegisJoinOptions } from "../src/net/types";
@@ -35,6 +36,9 @@ declare global {
     };
   }
 }
+
+// Match App bootstrap so actual saved theme preferences reach production CSS.
+applyDarkMode();
 
 const presentationSteps: {
   id: string;

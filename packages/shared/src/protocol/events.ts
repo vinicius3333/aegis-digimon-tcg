@@ -800,6 +800,8 @@ export interface DecisionRequest {
     purpose?: "cost" | "acceptedOptional" | "optionalTarget";
     /** Effect-driven play awaiting the existing Assembly material picker for this card. */
     assemblyCardId?: string;
+    /** Authoritative prohibition applied to this effect-driven material declaration. */
+    playCostReductionBlocked?: boolean;
     /** Effect-driven play awaiting the existing DigiXros material picker for this card. */
     digiXrosCardId?: string;
   };

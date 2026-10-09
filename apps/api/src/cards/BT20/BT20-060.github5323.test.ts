@@ -9,7 +9,7 @@ import "../ST17/index.js";
 
 const options = { autoSelectCards: true, autoOrderTriggers: true, autoDeclineOptional: true };
 
-describe("GitHub #5323: printed Alphamon/Ouryumon DNA routes on the accepted baseline", () => {
+describe("GitHub #5323 / #5409: printed Alphamon/Ouryumon DNA routes on the accepted baseline", () => {
   it.each([false, true])(
     "offers and accepts ordinary Main DNA with named battle-area materials (reverse %s)",
     async (reverse) => {

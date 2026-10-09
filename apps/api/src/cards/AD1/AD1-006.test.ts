@@ -7,6 +7,59 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../../cards/index.js";
 
 describe("AD1-006 Shoutmon X7", () => {
+  it.each(["BT11-031", "BT10-024"])(
+    "GitHub #5418: preserves Blue Flare trait evolution eligibility for %s",
+    async (base) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: base, as: "base", under: ["BT10-019"] }],
+            hand: [{ card: "AD1-006", as: "x7" }],
+            deck: ["BT1-009"],
+          },
+        },
+        { autoSelectCards: true, autoDeclineOptional: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      const routes = s
+        .inst("x7")
+        .digivolveRoutes.filter(({ permanentId }) => permanentId === s.perm("base").permanentId);
+      expect(routes.map(({ projectedCost }) => projectedCost)).toContain(base === "BT11-031" ? 2 : 5);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("x7").instanceId,
+          useAlternateCost: base === "BT11-031",
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.engine.mainVerbContinuationsInFlight === 0 && !s.state.pendingDecision);
+      expect(s.perm("base").topCard.cardId).toBe("AD1-006");
+      expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT10-019", base]);
+      expect(s.state.memory).toBe(base === "BT11-031" ? 8 : 5);
+    },
+  );
+
+  it("GitHub #5418: rejects a rookie without the printed level or trait requirement", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-010", as: "base" }], hand: [{ card: "AD1-006", as: "x7" }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.inst("x7").digivolveRoutes).toHaveLength(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("x7").instanceId,
+        useAlternateCost: true,
+      }).ok,
+    ).toBe(false);
+    expect(s.perm("base").topCard.cardId).toBe("BT1-010");
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("x7").instanceId)).toBe(true);
+  });
+
   it("bottom-decks an opposing Digimon within its DP ceiling when played", async () => {
     const s = setupEngine(
       {
@@ -85,7 +138,8 @@ describe("AD1-006 Shoutmon X7", () => {
   });
 
   it("allows level-6 Xros Heart and Blue Flare digivolution routes for cost 2", async () => {
-    for (const baseCardId of ["BT10-015", "BT19-026"]) {
+    // BT11-031 ZeigGreymon's catalog record spells its trait "BlueFlare" (issue #5393).
+    for (const baseCardId of ["BT10-015", "BT19-026", "BT11-031"]) {
       const s = setupEngine({
         0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "AD1-006", as: "x7" }], deck: ["BT1-009"] },
       });

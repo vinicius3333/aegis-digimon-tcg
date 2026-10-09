@@ -78,7 +78,7 @@ describe("EX13-074 Rie Kishibe", () => {
               target: {
                 count: 1,
                 from: ["hand", "trash"],
-                filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Knightmon"], match: "text" }] },
+                filter: { nameOrTrait: [{ tokens: ["Knightmon"], match: "text" }] },
               },
             },
           },
@@ -219,6 +219,32 @@ describe("EX13-074 Rie Kishibe", () => {
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
+
+  it.each(["BT22-090", "BT18-099"])(
+    "GitHub #5403: places a Knightmon-text %s card regardless of card kind",
+    async (placed) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: CARD_ID, as: "rie" }],
+            hand: [{ card: "ST13-12", as: "played" }],
+            trash: [{ card: placed, as: "placed" }, "BT1-009"],
+            deck: ["BT1-010", "BT1-011"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 8;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.engine.mainVerbContinuationsInFlight === 0 && s.state.pendingDecision === undefined);
+      expect(s.perm("rie").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("placed").instanceId]);
+      expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+      expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
+    },
+  );
 
   it("Q7454: places the paid card at the bottom of an existing Tamer stack", async () => {
     const s = setupEngine(

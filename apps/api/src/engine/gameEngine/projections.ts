@@ -648,6 +648,7 @@ export class BoardProjection {
     projectedRouteInstances.clear();
     for (const player of this.deps.state.players) {
       for (const instance of player.hand) {
+        instance.playCostReductionBlocked = this.deps.continuous.blocksCostReduction(player.seat, "play");
         const definition =
           active !== undefined && player === active.player ? lookupDefinition(instance.cardId) : undefined;
         if (active === undefined || definition === undefined) {

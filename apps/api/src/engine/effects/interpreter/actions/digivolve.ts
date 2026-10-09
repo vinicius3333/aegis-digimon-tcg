@@ -529,9 +529,11 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
     if (candidates.length === 0) continue;
     const chosen = await pickLoose(
       ctx,
-      // A private search followed by "may digivolve" must remain declinable
-      // after inspection, including when there is only one legal evolution.
-      action.amongPreviousSearch && ctx.pickingAcceptedOptional ? { ...intoTarget, upTo: true } : intoTarget,
+      // "May digivolve" preserves the destination choice after a processing
+      // cost is paid, including a private hand containing one legal card.
+      action.optional === true || (action.amongPreviousSearch && ctx.pickingAcceptedOptional)
+        ? { ...intoTarget, upTo: true }
+        : intoTarget,
       candidates,
       undefined,
       ctx.ask,

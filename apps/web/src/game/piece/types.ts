@@ -11,6 +11,8 @@ export interface HandEntry {
   playableFromHand: boolean;
   /** Server projection: memory this play would cost with active reducers applied; -1 if not projected. */
   projectedPlayCost: number;
+  /** Server projection: play cost reduction effects are prohibited. */
+  playCostReductionBlocked?: boolean;
   /** Server projection: own permanents this card may digivolve onto right now. */
   digivolveTargetPermanentIds: readonly string[];
   /** Server projection: own battle-area Digimon this card may be linked to right now. */

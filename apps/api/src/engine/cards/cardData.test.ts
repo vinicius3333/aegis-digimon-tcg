@@ -59,6 +59,14 @@ describe("derived static facts", () => {
     expect(cardHasTrait("BT26-056", "Dark Animal")).toBe(true);
     expect(cardHasTrait("BT26-029", "Fallen Angel")).toBe(false);
   });
+  it("matches traits the catalog spells without their printed space (BlueFlare = [Blue Flare])", () => {
+    // BT11-031 ZeigGreymon's catalog record spells the trait "BlueFlare"; card text prints [Blue Flare].
+    expect(cardHasTrait("BT11-031", "Blue Flare")).toBe(true);
+    expect(cardHasTrait("BT11-031", "Blue")).toBe(false);
+  });
+  it("lets ZeigGreymon digivolve into AD1-006 Shoutmon X7 via its [Blue Flare] path (issue #5393)", () => {
+    expect(matchingAlternateDigivolutionRequirement("AD1-006", "BT11-031")).toBeDefined();
+  });
   it("reads colors / level / DP / play cost for a Tamer (BT7-089)", () => {
     expect(colorsOf("BT7-089")).toEqual([CardColor.Green]);
     expect(hasColor("BT7-089", CardColor.Green)).toBe(true);

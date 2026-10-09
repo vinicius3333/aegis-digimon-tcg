@@ -8,9 +8,8 @@ const knightmonTextDigimonOnBoard: Filter = {
   printedTextOnly: true,
 };
 
-const knightmonTextDigimonCard: Filter = {
+const knightmonTextCard: Filter = {
   controller: "mine",
-  kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Knightmon"], match: "text" }],
 };
 
@@ -21,7 +20,7 @@ const placeThenDraw: Action = {
   cost: {
     kind: "place",
     target: {
-      filter: knightmonTextDigimonCard,
+      filter: knightmonTextCard,
       count: 1,
       from: ["hand", "trash"],
     },

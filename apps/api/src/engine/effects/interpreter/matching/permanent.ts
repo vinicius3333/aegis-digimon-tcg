@@ -8,7 +8,7 @@ import { COLOR_MAP, KIND_MAP } from "../maps.js";
 import { scaleFactor } from "../scaling.js";
 import { definitionMatches, matchNameOrTrait, textHasKeyword } from "./definition.js";
 import { selfTargetPermanent } from "./selfTarget.js";
-import { CardKind, effectiveExactNames } from "@aegis/shared";
+import { CardKind, effectiveExactNames, traitKey } from "@aegis/shared";
 import type { CardColor, CardDefinition, Condition, Filter, Permanent, Seat } from "@aegis/shared";
 
 /**
@@ -808,16 +808,19 @@ export function permanentMatchesFilter(
   // Trait predicates on a LIVE permanent observe continuously granted traits as well as
   // printed ones. `nameOrTrait` is an OR-list, so one matching runtime trait satisfies the
   // complete clause; other name/text alternatives remain definition-matched when it does not.
-  if (filter.nameOrTrait?.some((reference) => reference.match === "trait")) {
+  // A negated reference ("without [X-Antibody] in its traits", BT7-106) excludes rather than
+  // qualifies, so it never short-circuits the clause; matchNameOrTrait applies its negation.
+  const isPositiveTrait = (reference: { match: string; negate?: boolean }) =>
+    reference.match === "trait" && reference.negate !== true;
+  if (filter.nameOrTrait?.some(isPositiveTrait)) {
     const effectiveTraits = ctx.game.effectiveTraits?.(permanent.permanentId) ?? [
       ...(def.forms ?? []),
       ...(def.attributes ?? []),
       ...(def.types ?? []),
     ];
-    const normalized = new Set(effectiveTraits.map((trait) => trait.toLowerCase()));
+    const normalized = new Set(effectiveTraits.map(traitKey));
     const matchesGrantedTrait = filter.nameOrTrait.some(
-      (reference) =>
-        reference.match === "trait" && reference.tokens.some((token) => normalized.has(token.toLowerCase())),
+      (reference) => isPositiveTrait(reference) && reference.tokens.some((token) => normalized.has(traitKey(token))),
     );
     if (matchesGrantedTrait) {
       const { nameOrTrait: _nameOrTrait, ...rest } = filter;
