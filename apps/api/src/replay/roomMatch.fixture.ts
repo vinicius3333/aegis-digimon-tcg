@@ -1,4 +1,4 @@
-import { CloseCode, type Client } from "colyseus";
+import { ClientState, CloseCode, type Client } from "colyseus";
 import type { GameState, Intent } from "@aegis/shared";
 import { vi } from "vitest";
 import { AegisRoom } from "../rooms/AegisRoom.js";
@@ -17,6 +17,12 @@ import "../cards/index.js";
  * back through `onLeave`. A {@link BotPlayer} decides its moves. Seat 1 is the room's own bot,
  * seated by `addBot`. Time is faked, so the bots' think delays and the room's timeouts (the
  * combat-window answer timeout included) elapse instantly but in their real order.
+ *
+ * With `clock: "real"` nothing is faked: the room is initialised the way Colyseus' matchmaker
+ * creates one (`room.__init()` before `onCreate`, `MatchMaker.mjs` `handleCreateRoom`), so the
+ * room's own `patchRate` interval calls `broadcastPatch()` every 50 ms, which ticks the room
+ * clock at whatever async boundary it lands on, exactly as in production. The bots still think
+ * for seconds per action then; a test that uses the real clock shortens their pacing itself.
  */
 
 export const HUMAN_NAME = "Replay Person";
@@ -34,6 +40,14 @@ export interface RoomMatchOptions {
   dropAtTurn?: number;
   /** Seat 0 leaves for good (a consented leave) at this turn. */
   leaveAtTurn?: number;
+  /** "fake" (the default) drives fake timers by hand; "real" runs on Node's timers (see above). */
+  clock?: "fake" | "real";
+  /** Replaces the room's combat-window answer timeout, so a real clock can reach it. */
+  combatWindowTimeoutSeconds?: number;
+  /** How long a dropped seat stays away before it reconnects. Defaults to 3 s. */
+  reconnectAfterMs?: number;
+  /** Real clock only: fail if the match has not ended after this much wall time. */
+  wallTimeoutMs?: number;
 }
 
 export interface RecordedRoomMatch {
@@ -58,8 +72,16 @@ function macrotask(): Promise<void> {
   return new Promise<void>((resolve) => setImmediate(resolve));
 }
 
-function fakeClient(sessionId: string): Client {
-  return { sessionId, send: vi.fn<() => void>(), view: undefined } as unknown as Client;
+function fakeClient(sessionId: string, joined = false): Client {
+  const client = { sessionId, send: vi.fn<() => void>(), view: undefined };
+  // A JOINED client, with sinks for its frames, has its view encoded by every real patch.
+  if (joined)
+    Object.assign(client, { state: ClientState.JOINED, raw: vi.fn<() => void>(), enqueueRaw: vi.fn<() => void>() });
+  return client as unknown as Client;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
 type RoomInternals = {
@@ -67,28 +89,47 @@ type RoomInternals = {
   bots: (BotPlayer | undefined)[];
   handleIntent(client: Client, intent: Intent): void;
   handleChat(client: Client, payload: unknown): void;
+  COMBAT_WINDOW_TIMEOUT_SECONDS: number;
 };
+
+/**
+ * What Colyseus' matchmaker does to a room before `onCreate` (`@colyseus/core` `Room.mjs` `__init`):
+ * arm the `patchRate` interval and start the clock.
+ */
+function initLikeMatchmaker(room: AegisRoom): void {
+  (Reflect.get(room, "__init") as () => void).call(room);
+}
+
+/** Colyseus' own dispose: `onDispose`, then the patch interval, auto-dispose timeout and clock are cleared. */
+function disposeLikeColyseus(room: AegisRoom): void {
+  (Reflect.get(room, "_events") as { emit(event: "dispose"): void }).emit("dispose");
+}
 
 export async function recordRoomMatch(options: RoomMatchOptions): Promise<RecordedRoomMatch> {
   const lines: string[] = [];
   const stopCapture = addLogSink((line) => lines.push(line));
-  // Timers and clocks are fake; `setImmediate` and the microtask queue stay real. Every fake timer
+  const realClock = options.clock === "real";
+  // On the fake clock, timers and clocks are fake; `setImmediate` and the microtask queue stay real. Every fake timer
   // is fired on its own, after a real macrotask turn has drained all pending promise work, as in
   // Node. (`advanceTimersByTimeAsync` can fire a timer while a deep promise chain is still
   // resolving, which no real timer can do, and would record inputs at impossible moments.)
-  vi.useFakeTimers({
-    toFake: ["setTimeout", "clearTimeout", "setInterval", "clearInterval", "Date", "performance"],
-  });
+  if (!realClock)
+    vi.useFakeTimers({
+      toFake: ["setTimeout", "clearTimeout", "setInterval", "clearInterval", "Date", "performance"],
+    });
   const room = new AegisRoom();
   const internals = room as unknown as RoomInternals;
   try {
+    if (options.combatWindowTimeoutSeconds !== undefined)
+      internals.COMBAT_WINDOW_TIMEOUT_SECONDS = options.combatWindowTimeoutSeconds;
     room.lock = vi.fn<() => Promise<void>>(async () => {});
     room.unlock = vi.fn<() => Promise<void>>(async () => {});
     room.setMatchmaking = vi.fn<() => Promise<void>>(async () => {});
     room.broadcast = vi.fn<() => boolean>(() => true) as AegisRoom["broadcast"];
+    if (realClock) initLikeMatchmaker(room);
     room.onCreate({ botRoom: true, seed: options.seed });
 
-    const human = fakeClient(HUMAN_SESSION);
+    const human = fakeClient(HUMAN_SESSION, realClock);
     room.clients.push(human);
     room.onJoin(human, {
       displayName: HUMAN_NAME,
@@ -122,7 +163,15 @@ export async function recordRoomMatch(options: RoomMatchOptions): Promise<Record
       unsettledDepartures += 1;
       departures.push(departure.finally(() => (unsettledDepartures -= 1)));
     };
+    const reconnectAfterMs = options.reconnectAfterMs ?? 3_000;
+    const deadline = Date.now() + (options.wallTimeoutMs ?? 50_000);
     const advance = async () => {
+      if (realClock) {
+        if (Date.now() > deadline) throw new Error(`the real-clock match did not end in time (seed ${options.seed})`);
+        // Only watch; the room's patch interval and the bots' timers move the match.
+        await sleep(10);
+        return;
+      }
       await macrotask();
       if (vi.getTimerCount() > 0) vi.advanceTimersToNextTimer();
       else vi.advanceTimersByTime(1_000);
@@ -132,7 +181,10 @@ export async function recordRoomMatch(options: RoomMatchOptions): Promise<Record
       if (!dropped && room.state.turnCount >= options.dropAtTurn!) {
         dropped = true;
         room.allowReconnection = vi.fn<() => Promise<Client>>(
-          () => new Promise<Client>((resolve) => setTimeout(() => resolve(fakeClient(HUMAN_SESSION)), 3_000)),
+          () =>
+            new Promise<Client>((resolve) =>
+              setTimeout(() => resolve(fakeClient(HUMAN_SESSION, realClock)), reconnectAfterMs),
+            ),
         ) as unknown as AegisRoom["allowReconnection"];
         depart(room.onLeave(human, CloseCode.ABNORMAL_CLOSURE));
       }
@@ -160,8 +212,11 @@ export async function recordRoomMatch(options: RoomMatchOptions): Promise<Record
       gameOver: room.state.gameOver,
     };
   } finally {
-    room.onDispose();
-    room.clock.stop();
+    if (realClock) disposeLikeColyseus(room);
+    else {
+      room.onDispose();
+      room.clock.stop();
+    }
     stopCapture();
     vi.useRealTimers();
   }
