@@ -25,6 +25,8 @@ export interface OptionDockHold {
   routedAtVersion?: number;
   /** The permanent the Option placed itself under (EX7-071), which the card flies into. */
   routedUnderPermanentId?: string;
+  /** A DUAL card now in battle resolves Digimon effects under the same card id. */
+  routedToBattle?: boolean;
   /** Released once the card has left the dock; what the server did after it waits for this. */
   settled: PresentationGate;
 }
@@ -43,6 +45,7 @@ export function enqueueOptionDock({
   revealed,
   optionRouted,
   routedUnderPermanentId,
+  routedToBattle,
   viewerSeat,
   optionDockKeyRef,
   optionDockRef,
@@ -62,6 +65,7 @@ export function enqueueOptionDock({
   optionRouted: boolean;
   /** Where that same batch placed the card, if it went under a permanent. */
   routedUnderPermanentId: string | undefined;
+  routedToBattle?: boolean;
   viewerSeat: Seat;
   /** Mutated: incremented per dock so a new Option restarts the presentation. */
   optionDockKeyRef: MutableRefObject<number>;
@@ -97,6 +101,7 @@ export function enqueueOptionDock({
     closed: optionRouted,
     settled,
     ...(optionRouted ? { routedAtVersion: stateVersion } : {}),
+    ...(routedToBattle ? { routedToBattle: true } : {}),
     ...(routedUnderPermanentId !== undefined ? { routedUnderPermanentId } : {}),
   };
   // The clause and its visible results finish before the execution slot closes.
@@ -122,7 +127,10 @@ export function enqueueOptionDock({
   };
   const ownDecisionPending = () =>
     decisionPendingRef.current &&
-    (decisionSourceCardIdRef?.current === undefined || decisionSourceCardIdRef.current === usedOption.cardId);
+    !optionDockRef.current?.routedToBattle &&
+    // Trigger ordering and combat windows have no source card. Once routing is
+    // confirmed, those questions belong to the next effects, not this Option.
+    decisionSourceCardIdRef?.current === usedOption.cardId;
   enqueue({
     id: `option-dock-in-${key}`,
     track: CueTrack.OptionDock,

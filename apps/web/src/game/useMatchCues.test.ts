@@ -2409,19 +2409,22 @@ describe("match cues", () => {
     expect(result.current.optionBranch).toBeNull();
   });
 
-  it("closes a routed Option while a different effect is asking its question", async () => {
-    const { result, rerender } = renderCuesAwaitingAnswer();
-    await advance(0);
-    rerender({ events: [OPTION_USE, OPTION_ROUTED], decisionPending: true, decisionSourceCardId: "EX13-028" });
-    await advance(
-      SHOWCASE_TOTAL_MS +
-        SECURITY_BRANCH_IN_MS +
-        TIMINGS.optionDockHold +
-        TIMINGS.securityDockPoll +
-        SECURITY_DOCK_CLOSE_MS,
-    );
-    expect(result.current.optionBranch).toBeNull();
-  });
+  it.each(["EX13-028", undefined])(
+    "closes a routed Option while another effect or trigger order is asking (%s)",
+    async (decisionSourceCardId) => {
+      const { result, rerender } = renderCuesAwaitingAnswer();
+      await advance(0);
+      rerender({ events: [OPTION_USE, OPTION_ROUTED], decisionPending: true, decisionSourceCardId });
+      await advance(
+        SHOWCASE_TOTAL_MS +
+          SECURITY_BRANCH_IN_MS +
+          TIMINGS.optionDockHold +
+          TIMINGS.securityDockPoll +
+          SECURITY_DOCK_CLOSE_MS,
+      );
+      expect(result.current.optionBranch).toBeNull();
+    },
+  );
 
   // The dock's hold is open-ended by design: it ends when the viewer answers the Option's
   // own prompts. A phase ribbon that waited for it would wait for an answer that cannot
@@ -4224,6 +4227,28 @@ describe("server-named signals", () => {
 });
 
 describe("security a card effect trashes", () => {
+  it("finishes a security payment before presenting the following Piercing check", async () => {
+    const payment: ServerEvent = {
+      kind: "cardsMoved",
+      instanceIds: ["paid-security"],
+      from: "security",
+      to: "trash",
+      cardIds: ["BT1-010"],
+      seat: 0,
+    };
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([payment]);
+    await advance(100);
+    rerender([payment, SECOND_REVEAL, SECOND_CHECK]);
+    await advance(SECURITY_BREAK_TOTAL_MS - 100);
+    expect(result.current.securityClash?.cause).toBe("destruction");
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-010");
+    await advance(SECURITY_DESTROY_TOTAL_MS + SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-011");
+    await advance(CLASH_TOTAL_MS + TIMINGS.securityCardExit);
+  });
+
   it("plays one scene per card, naming each card the stack lost", async () => {
     const { result, rerender } = renderCuesOverBoard(TRASHED_SECURITY_BOARD);
     await advance(0);
