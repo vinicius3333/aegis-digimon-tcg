@@ -2479,7 +2479,7 @@ describe("match cues", () => {
 
   // The reference client docks a card with a [Security] effect in its brainstorm slot and
   // keeps it there for the WHOLE resolution — every target pick, every optional yes/no —
-  // closing the slot only once the card is disposed (CardController.cs:4062-4232).
+  // closing the slot only once the card is disposed.
   it("docks a card whose [Security] effect the server is still resolving", async () => {
     const { result, rerender } = renderCues();
     await advance(0);

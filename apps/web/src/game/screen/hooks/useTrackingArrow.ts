@@ -15,7 +15,7 @@ import { permanentVisualElement } from "../dropZones";
 import type { TrackingArrowGeometry } from "../types";
 
 /**
- * The live target arrow (`TargetArrow.cs`).
+ * The live target arrow.
  *
  * What it points at is protocol truth — the declared attack still open, or the targets the
  * viewer has picked for the effect currently asking. Where those cards *are* changes

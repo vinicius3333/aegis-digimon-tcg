@@ -1,4 +1,4 @@
-/* Card names in the play log are links (`PlayLog.cs`): clicking one opens the
+/* Card names in the play log are links: clicking one opens the
    card. The log lines are already built as translated sentences, so rather than
    rebuilding every line as a template, each line carries the cards it names and
    this module finds those names inside the finished text.

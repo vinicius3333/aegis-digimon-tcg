@@ -1,4 +1,4 @@
-/* What a security stack says about itself (`SecurityObject.cs`): a badge when it
+/* What a security stack says about itself: a badge when it
    holds a card that has been turned face-up, and — while it is a legal thing to
    attack — the label for what attacking it would actually be. The reference client
    distinguishes the two: a stack with cards left is a Security Attack, an empty

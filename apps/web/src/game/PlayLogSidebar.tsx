@@ -12,7 +12,7 @@ function LogLineText({ line, onOpenCard }: { line: LogLine; onOpenCard?: (cardId
 }
 
 /**
- * The play log (`PlayLog.cs` in a `SideBar.cs` drawer): every action the match has
+ * The play log: every action the match has
  * narrated, newest first, in a panel that slides out of the board's right edge and
  * back into it. Card names are links — clicking one opens the card, which is how
  * the reference client lets a player check what just hit them without leaving the

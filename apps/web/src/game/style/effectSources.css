@@ -9,7 +9,7 @@
    the deletion shatter and the landing bounce.
    ========================================================================= */
 
-/* --- Per-zone effect activation (`Effects.cs:204-460`) -------------------- */
+/* --- Per-zone effect activation -------------------- */
 
 /* Cover the complete board, including both hands and the raising area, while
    opening the mask around the source's measured face. Notices stay above it. */
@@ -385,7 +385,7 @@ body:has([aria-modal="true"]) .game-hand-hover {
   }
 }
 
-/* --- Persistent target arrow (`TargetArrow.cs`) --------------------------- */
+/* --- Persistent target arrow --------------------------- */
 
 /* Each 155 ms cycle extends for 85 ms and holds for 70 ms. The caller keeps
    another 70 ms before proceeding, while the completed arrow follows its endpoints. */
@@ -438,7 +438,7 @@ body:has([aria-modal="true"]) .game-hand-hover {
   }
 }
 
-/* --- Security-stack chrome (`SecurityObject.cs`) -------------------------- */
+/* --- Security-stack chrome -------------------------- */
 
 .game-security-shield__face-up {
   position: absolute;
@@ -496,7 +496,7 @@ body:has([aria-modal="true"]) .game-hand-hover {
   }
 }
 
-/* --- Deck thickness and riffle (`Player.cs:406-458, 295-325`) ------------- */
+/* --- Deck thickness and riffle ------------- */
 
 .game-pile--riffling .game-pile__layer,
 .game-pile__shuffle-face {
@@ -546,7 +546,7 @@ body:has([aria-modal="true"]) .game-hand-hover {
   }
 }
 
-/* --- Deletion shatter (`Effects.cs:1693-1788`) ---------------------------- */
+/* --- Deletion shatter ---------------------------- */
 
 .game-card-shatter {
   position: absolute;
@@ -590,7 +590,7 @@ body:has([aria-modal="true"]) .game-hand-hover {
   inset: -20%;
 }
 
-/* --- Landing bounce and dust (`Effects.cs:533-608`) ----------------------- */
+/* --- Landing bounce and dust ----------------------- */
 
 /* Field deletion uses the authored 41-piece mesh. All pieces start together,
    keep their printed scale/opacity and accelerate twentyfold after 100 ms. */
@@ -700,7 +700,7 @@ body:has([aria-modal="true"]) .game-hand-hover {
   animation: battle-egg-landing var(--t-landing-bounce, 100ms) both;
 }
 
-/* --- Permanent inspector's computed state (`PermanentDetail.cs`) ---------- */
+/* --- Permanent inspector's computed state ---------- */
 
 .opponent-permanent-inspector header span em {
   margin-left: 0.4rem;
@@ -882,7 +882,7 @@ body:has([aria-modal="true"]) .game-hand-hover {
   }
 }
 
-/* --- Security battle outcome (`Effects.cs:1942-2030, 2033-2164`) ---------- */
+/* --- Security battle outcome ---------- */
 
 /* Destroyed stack cards and losing attackers fragment at their own departure;
    a checked card keeps its separate narrow/upward disposal. */

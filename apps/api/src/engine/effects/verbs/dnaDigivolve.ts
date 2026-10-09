@@ -128,7 +128,7 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
     const materialStackCards: CardInstance[] = [];
     const trashedLinked: CardInstance[] = [];
     // The materials' own top cards, kept for the `cardPlayed` announcement: the cut-in flanks
-    // the result with the two faces that merged (JogressEffectObject.cs:24), and they are about
+    // the result with the two faces that merged, and they are about
     // to be buried in the new stack where the client can no longer tell them from older cards.
     const materialSourceCardIds: string[] = [];
     const materialSourceArtIds: string[] = [];

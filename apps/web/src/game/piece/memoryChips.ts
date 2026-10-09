@@ -1,4 +1,4 @@
-/** Total length of the reference client's tab sweep (MemoryObject.cs:113): the marker move. */
+/** Total length of the reference client's tab sweep: the marker move. */
 export const MEMORY_SWEEP_MS = 200;
 export const MEMORY_SWEEP_CHIP_MS = 120;
 

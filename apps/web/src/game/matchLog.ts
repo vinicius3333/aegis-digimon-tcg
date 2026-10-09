@@ -10,8 +10,8 @@ export interface LogLine {
   text: string;
   kind: LogKind;
   /**
-   * The cards this line names, so the play log can turn their names into links
-   * (`PlayLog.cs`). The names are already inside `text`; this says which card each
+   * The cards this line names, so the play log can turn their names into links.
+   * The names are already inside `text`; this says which card each
    * one is, rather than making the reader guess from the printed name.
    *
    * Listed in the order the sentence names them: two cards can share a printed name,

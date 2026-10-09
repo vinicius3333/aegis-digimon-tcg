@@ -50,7 +50,7 @@
   display: none;
 }
 
-/* The play log drawer (`PlayLog.cs` inside `SideBar.cs`): it slides out of the
+/* The play log drawer: it slides out of the
    board's right edge and back into it, rather than opening as a centred sheet. */
 .play-log {
   position: fixed;

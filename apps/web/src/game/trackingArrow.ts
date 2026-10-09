@@ -1,4 +1,4 @@
-/* The target arrow that stays up (`TargetArrow.cs`). The reference client does not
+/* The target arrow that stays up. The reference client does not
    draw an attack arrow once and drop it: the arrow advances twice,
    then persists, re-solving both ends every frame so it keeps pointing at the
    cards as they move, suspend and resize.

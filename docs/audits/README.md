@@ -13,7 +13,6 @@ docs/audits/
     dna-digivolve-into-filter.md
     intrinsic-evo-key-design.md
     vortex-timing.md
-    engine-reference-sequencing.md
 ```
 
 ## Rules

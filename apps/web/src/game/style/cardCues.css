@@ -871,8 +871,8 @@
 }
 
 /* --- Shield break --------------------------------------------------------
-   The reference client arms the defender's security glass at declaration (the blue
-   material, AttackProcess.cs:134) and shatters the pane on the check itself
+   The reference client arms the defender's security glass at declaration and shatters
+   the pane on the check itself
    (SecurityBreakGlass, ≈250 ms). The web port reads that as: the shield pulses blue,
    its face breaks into shards that fly apart, and the light washes in from the
    defender's edge of the screen. */
@@ -1034,7 +1034,7 @@
 
 /* A check the server is still resolving docks the card and leaves it there for as long
    as that takes, so the slide in and the exit are two animations with no clock between
-   them (CardController.cs:4062, the brainstorm slot). */
+   them. */
 .battle-security-branch[data-state="docked"] {
   animation: battle-security-branch-in var(--t-security-branch-in, 120ms) ease-out both;
 }
@@ -1251,8 +1251,8 @@
   );
   border-top: 1px solid rgb(255 255 255 / 30%);
   border-bottom: 1px solid rgb(255 255 255 / 30%);
-  /* The reference client's banner is ~620ms end to end (ShowTurnPlayerObject.cs: 300ms hold plus
-     the in/out clips). 1s keeps it readable in a browser without stalling. */
+  /* The reference client's banner is ~620ms end to end.
+     1s keeps it readable in a browser without stalling. */
   animation: battle-banner var(--t-turn-banner, 1000ms) ease-in-out both;
 }
 
@@ -1267,7 +1267,7 @@
   animation: battle-banner-text var(--t-turn-banner, 1000ms) cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* The reference client's two exact band colours (ShowTurnPlayerObject.cs:24, :31),
+/* The reference client's two exact band colours,
    taken down to the translucency the band is read through. */
 .game-turn-banner--opp {
   --battle-banner-tint: rgb(255 131 121 / 62%);

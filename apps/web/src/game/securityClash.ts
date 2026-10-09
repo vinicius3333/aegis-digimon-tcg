@@ -175,7 +175,7 @@ export interface SecurityBreakScene {
 /**
  * How the docked card is currently behaving.
  * - `docked` — the server is still resolving the check, so the card stays put for as
- *   long as that takes (the reference client's brainstorm slot, `CardController.cs:4062`).
+ *   long as that takes.
  * - `closing` — the check has closed: the card holds a beat and then leaves.
  * - `settled` — the whole detour is one fixed animation, which is what a check whose
  *   reveal and close arrived together (or a server that sends no reveal hints) gets.
@@ -411,8 +411,7 @@ export function buildSecurityDestructionScene({
  * moment the server's patch lands, which is seconds before the scene that shows the
  * card leaving has played — so the count fell while the shield was still intact. A
  * scene holding a card it has not shown leaving publishes the figure it started with,
- * and the shield keeps whichever is higher until the card is seen to go (the reference
- * client reduces the stack only after `EnterSecurityCardEffect`, `CardController.cs:4008`).
+ * and the shield keeps whichever is higher until the card is seen to go.
  *
  * `max` rather than the held figure outright: a recovery that lands mid-scene is an
  * increase, and the shield has no reason to hide one.

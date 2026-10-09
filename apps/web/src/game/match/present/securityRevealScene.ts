@@ -257,7 +257,7 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
    * Parks the revealed card at the side of the screen and LEAVES it there. The reference
    * client docks a card with a `[Security]` effect in its brainstorm slot and resolves the
    * effect — every target pick, every optional yes/no — with the card still on screen,
-   * closing the slot only once the card is disposed (`CardController.cs:4062-4232`).
+   * closing the slot only once the card is disposed.
    *
    * The dock is therefore open-ended, and the centre-stage track is serial, so it is
    * bounded in every direction it can be: it ends on the matching `securityChecked`, on a

@@ -1,7 +1,5 @@
 /* The jolt a permanent takes when an effect locks it down: a short shake the moment
-   "this Digimon can't attack" or "can't block" starts applying to it
-   (`Effects.cs:1612 FreezePermanentEffect`, 0.2 s, under the heading
-   「攻撃・ブロック不可付与エフェクト」 — the grant-a-restriction effect).
+   "this Digimon can't attack" or "can't block" starts applying to it.
 
    The driver is the synchronized `Permanent.cannotAttack` / `cannotBlock`, diffed
    between two commits. Those are server truth: the engine projects them from the same

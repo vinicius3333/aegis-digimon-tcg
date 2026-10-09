@@ -1,4 +1,4 @@
-/* How a deck pile reads (`Player.cs:406-458, 295-325`). The reference client
+/* How a deck pile reads. The reference client
    draws a deck as a physical stack: its thickness follows the count, so a pile
    thinning out over the match is the de-facto deck-out warning, and it disappears
    entirely at zero rather than leaving an empty rectangle behind. A shuffle

@@ -53,7 +53,7 @@ export const TIMINGS = {
   securityHit: 350,
   /**
    * The defender's shield arming — the blue glass the reference client switches to.
-   * It arms at the declaration there (`AttackProcess.cs:134`), not at the check, so
+   * It arms at the declaration there, not at the check, so
    * this is only the beat the web needs for the change of glass to register.
    */
   securityArm: 120,
@@ -63,7 +63,7 @@ export const TIMINGS = {
   shieldFlash: 320,
   /**
    * The beat held between the shatter and the reveal. The reference client holds
-   * 60 + 170 + 100 ms there (`Effects.cs:1671-1689`, `CardController.cs:4002`), but it
+   * 60 + 170 + 100 ms there, but it
    * spends them spawning a colour burst *after* the glass; the web port fires its burst
    * with the shatter, so those frames would be a stall with the centre of the screen
    * still empty. What is left is the remainder the 350 ms shield shake needs past the
@@ -118,7 +118,7 @@ export const TIMINGS = {
   clashHold: 470,
   /**
    * The outcome beat: the reference client's parallel 250ms claw and shake, then its 100ms
-   * settle (`Effects.cs:2039-2160`).
+   * settle.
    */
   clashOutcome: 350,
   /** The scene fading back out, on the turn banner's 160ms wipe. */
@@ -230,7 +230,7 @@ export const TIMINGS = {
   drawFlightStagger: 110,
   /** The defender's attack label flashing. */
   arrowFlash: 85,
-  /** Each of the target arrow's two extensions (`TargetArrow.cs`). */
+  /** Each of the target arrow's two extensions. */
   arrowExtend: 85,
   /** The hold after an extension, also used for the final settle. */
   arrowHold: 70,
@@ -321,7 +321,7 @@ export const CLASH_OUTCOME_AT_MS = CLASH_REVEAL_AT_MS + TIMINGS.clashReveal + TI
 /**
  * When the revealed card has finished growing into place. The card has left the stack by
  * then, so this is the beat the defender's shield finally drops its figure — the reference
- * client reduces the stack right after the same clip (`CardController.cs:4008-4012`).
+ * client reduces the stack right after the same clip.
  */
 export const CLASH_REVEAL_SHOWN_AT_MS = CLASH_REVEAL_AT_MS + TIMINGS.clashReveal;
 

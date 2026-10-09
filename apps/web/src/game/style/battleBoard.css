@@ -350,7 +350,7 @@
 }
 
 /* The reference client lights every tab the memory value travelled across for the length of the
-   marker move (MemoryObject.cs:96-102). The per-chip delay is set inline so the
+   marker move. The per-chip delay is set inline so the
    sweep runs outward in the direction memory actually moved. */
 .game-memory-coin--swept {
   animation: battle-memory-sweep var(--t-memory-sweep, 120ms) cubic-bezier(0.33, 1, 0.68, 1) both;

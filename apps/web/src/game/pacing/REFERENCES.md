@@ -49,33 +49,6 @@ estimates; it is background, not a specification for the new implementation.
 | Digimon TCG (rules)        | Simultaneous triggers: turn player first; each player picks the next effect one at a time; new triggers form a new list.                                                          | none found                                                                       | https://digimoncard.io/article/effect-resolution-and-trigger-timings-guide-63                                                                         |
 | General (essay)            | "If your game needs a skip button, it's too slow." Compares a ~5 s attack with a ~1.5 s version.                                                                                  | estimate: 5 s vs 1.5 s (author measurement)                                      | https://parryeverything.com/2022/01/21/if-your-game-needs-a-skip-animations-option-its-too-slow/                                                      |
 
-## Animation reference (source code)
-
-The reference simulator provides the animation baseline. Numbers were collected from source snapshot `541bc287a`, with paths under `Assets/Scripts/Script/`.
-
-| Pattern                                                                                                                             | Timing / number                                                 | Source file                            |
-| ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | -------------------------------------- |
-| Lockstep: both clients run the engine; opponent effects play with the same animations as your own.                                  | none                                                            | architecture                           |
-| Turn player's triggers resolve first; the owner picks the next effect each time; the opponent sees a "choosing" message.            | none                                                            | `MultipleSkills.cs:31-56, :272, :314`  |
-| New triggers resolve depth-first before the rest of the list.                                                                       | none                                                            | `MultipleSkills.cs:406-414`            |
-| Source card grows to 1.1x with an orange outline.                                                                                   | cited: 0.06 s                                                   | `ICardEffect.cs:1112-1263`             |
-| Field source: sound + particle. Hand source: grow + hold. Trash source.                                                             | cited: 0.48 s; 0.25 + 0.25 s; ~0.83 s                           | `ICardEffect.cs`, `Effects.cs`         |
-| Fixed pause after every effect's presentation.                                                                                      | cited: 0.4 s                                                    | `ICardEffect.cs:1158`                  |
-| Total before a field effect's results run.                                                                                          | cited: ~0.95 s                                                  | derived from the rows above            |
-| Results play one after another: DP buff / debuff, draw, memory, bounce, security reveal.                                            | cited: 0.1 s (0.4 s if DP <= 0); ~0.4 s; 0.2 s; 0.25 s; ~0.37 s | `Effects.cs`                           |
-| Cause always comes before its results (coroutines).                                                                                 | none                                                            | `ICardEffect.cs`                       |
-| Effect text popup (card image + text) slides in and stays; popups stack while resolution continues at ~1 s per effect; not awaited. | cited: 0.1 s in, 5.5 s on screen                                | `ShowEffectDiscriptionObject.cs:38,50` |
-| A DP pulse already playing on a card skips the next one.                                                                            | cited: up to 5 s                                                | `Effects.cs:1456-1461`                 |
-| No grouping of identical effects; no speed setting, skip, auto-pass or time scale. Disabling cut-ins still waits 1.45 s.            | cited: 1.45 s                                                   | source-wide search                     |
-| Play log is text only, trimmed, and records activations but not results.                                                            | cited: 11k characters                                           | log code                               |
-
-What this means for us (estimates, to verify with the harness):
-
-- Our Normal sequential benchmark beats (720 ms focus + 700 ms announce + 300 ms settle, about 1.72 s plus results) are already slower per effect than the reference (about 0.95 s plus results).
-- The reference keeps text readable by retaining and stacking it while the board moves on.
-- The reference keeps cause before result. We must keep it too.
-- The reference coalesces repeated DP pulses on one card. Grouping repeated effects (×N) goes further.
-
 ## 2. General UX timing guidance
 
 | Guideline                                                       | Number                                                                                                                       | Source                                                                                                                                         |

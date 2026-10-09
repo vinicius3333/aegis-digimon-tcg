@@ -13,7 +13,7 @@ const INSPECTOR_WIDTH = 440;
 const INSPECTOR_HEIGHT = 640;
 
 /**
- * The permanent inspector (`PermanentDetail.cs`): the position as it stands right
+ * The permanent inspector: the position as it stands right
  * now — its live DP against the printed figure, the keywords the server resolved,
  * the whole stack, and the fate an open effect has already pinned to it.
  *

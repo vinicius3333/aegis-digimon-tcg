@@ -1,5 +1,5 @@
-/* Where an effect activated from, so the board can play the right moment for it
-   (`Effects.cs:204-460`). The reference client does not play one generic sparkle:
+/* Where an effect activated from, so the board can play the right moment for it.
+   The reference client does not play one generic sparkle:
    a field permanent glows in place, a card in the trash flies up out of the pile
    with an orange outline and a punch, and an Option rises out of the hand fan.
 

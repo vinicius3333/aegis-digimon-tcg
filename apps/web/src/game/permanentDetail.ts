@@ -1,4 +1,4 @@
-/* What the permanent inspector reads out (`PermanentDetail.cs`): not the printed
+/* What the permanent inspector reads out: not the printed
    card, but the position as it stands right now — its live DP against the printed
    figure, the keywords the server resolved for it, and every card in the stack.
 

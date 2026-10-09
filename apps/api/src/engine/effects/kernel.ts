@@ -4,11 +4,8 @@ import type { EffectContext } from "./EffectContext.js";
 
 /**
  * The effect-framework kernel: the cross-cutting `CanTrigger` / `CanActivate`
- * logic the upstream `ICardEffect` base class applied to EVERY effect, plus the
- * per-turn use limit. Keeping it here lets the timing builders (builders.ts) and
- * each card file stay purely declarative — exactly as the source centralized this
- * in the abstract base class (ICardEffect.cs `CanTrigger`/`CanActivate`,
- * CEntity_EffectController.cs `isOverMaxCountPerTurn`).
+ * logic shared by every effect, plus the per-turn use limit. Keeping it here
+ * lets the timing builders (builders.ts) and each card file stay declarative.
  *
  * Pure and side-effect free: every function takes the data it needs. The only
  * mutable piece, the per-turn use ledger, is an explicit object (UseTracker) the
@@ -91,8 +88,7 @@ function wasHiddenAtDeletion(ctx: EffectContext): boolean {
 
 /**
  * Whether this effect's source card is currently placed such that an
- * inherited/linked effect may activate. Mirrors the inherited/linked branch of
- * ICardEffect.CanActivate (ICardEffect.cs lines ~386-415):
+ * inherited/linked effect may activate:
  *
  *  - An INHERITED effect's source must be a digivolution card; a LINKED effect's source
  *    must be a linked card. Neither may come from the permanent's top card.
