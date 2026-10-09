@@ -162,7 +162,12 @@ export function GameScreen({
   /** Restart a server-backed development scenario from the match controls. */
   onResetScenario?: () => void;
   /** Receives the private room code, so a private match can return to its room. */
-  onRematch?: (privateRoomCode?: string, unlimited?: boolean, privateHost?: boolean) => void;
+  onRematch?: (
+    privateRoomCode?: string,
+    unlimited?: boolean,
+    privateHost?: boolean,
+    format?: import("@aegis/shared").DeckFormat,
+  ) => void;
   /** Only shapes what the report dialog says about follow-up questions; reporting needs no account. */
   signedIn?: boolean;
   /** Automated hatching waits for the current account’s preferences to load. */
@@ -1459,6 +1464,7 @@ export function GameScreen({
                   isPrivateMatch ? state?.roomCode || hostRoomCode || roomCode : undefined,
                   state?.unlimited,
                   isPrivateMatch ? viewerSeat === 0 : undefined,
+                  state?.format as import("@aegis/shared").DeckFormat | undefined,
                 )
             : () => onExit("lobby")
       }

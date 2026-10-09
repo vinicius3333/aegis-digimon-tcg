@@ -1,3 +1,4 @@
+import { deckLegality } from "@aegis/shared";
 /* Unified battle-deck picker for the lobby. One search box, one collection
    filter and one segmented owner filter cover both the player's own decks and
    the famous presets, so a query like "Jupitermon" finds a preset even when its
@@ -78,6 +79,7 @@ function SetCover({ collection }: { collection: string }) {
 
 function DeckPickerView({
   ownDecks,
+  format,
   activeDeckId,
   randomSelected,
   randomPoolSize,
@@ -92,6 +94,7 @@ function DeckPickerView({
   accountId,
 }: {
   ownDecks: OwnDeckEntry[];
+  format?: import("@aegis/shared").DeckFormat;
   activeDeckId: string;
   randomSelected: boolean;
   randomPoolSize: number;
@@ -251,6 +254,7 @@ function DeckPickerView({
               <div className="lobby-decks">
                 {visibleOwnDecks.map(({ deck, legal }) => (
                   <DeckListCard
+                    format={format}
                     key={deck.id}
                     deck={deck}
                     active={!randomSelected && deck.id === activeDeckId}
@@ -319,9 +323,11 @@ function DeckPickerView({
                         const active = !randomSelected && deck.id === activeDeckId;
                         return (
                           <DeckListCard
+                            format={format}
                             key={deck.id}
                             deck={deck}
                             active={active}
+                            disabled={!deckLegality(deck, { format }).legal}
                             onSelect={() => onSelectDeck(deck.id)}
                             actions={
                               <>

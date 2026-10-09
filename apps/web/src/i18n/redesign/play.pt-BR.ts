@@ -6,6 +6,8 @@ export const playPtBR: Record<keyof typeof playEn, string> = {
   "redesign.play.draft": "Rascunho",
   "redesign.play.banlistIssue": "Problema de banlist",
   "redesign.play.setupTitle": "Configurar partida",
+  "redesign.play.advancedSettings": "Configurações avançadas",
+  "redesign.play.timerOff": "Timer desligado",
   "redesign.play.short.queue": "Fila",
   "redesign.play.short.bot": "Jogar",
   "redesign.play.short.reopen": "Reabrir",

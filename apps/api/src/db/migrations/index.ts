@@ -25,6 +25,7 @@ import { publicDeckHiddenStatus } from "./022-public-deck-hidden-status.js";
 import { accountAvatarCheckedAt } from "./023-account-avatar-checked-at.js";
 
 import { feedbackReports } from "./024-feedback-reports.js";
+import { savedDeckFormat } from "./025-deck-format.js";
 
 export const migrations: readonly Migration[] = [
   initialSchema,
@@ -51,4 +52,5 @@ export const migrations: readonly Migration[] = [
   publicDeckHiddenStatus,
   accountAvatarCheckedAt,
   feedbackReports,
+  savedDeckFormat,
 ];

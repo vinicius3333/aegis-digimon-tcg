@@ -128,4 +128,5 @@ export class GameState extends Schema {
 
   /** Authoritative banlist choice, including after reconnect. Append to preserve field indexes. */
   @type("boolean") unlimited = false;
+  @type("string") format = "standard";
 }

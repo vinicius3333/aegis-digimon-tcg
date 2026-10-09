@@ -6,12 +6,22 @@ import { Lobby, deckHasBetaCards, randomDeckPool } from "./Lobby";
 import { DECKS, selectableDecks } from "../game/decks";
 
 const lookupPrivateRoom = vi.hoisted(() =>
-  vi.fn<() => Promise<{ roomId: string; unlimited: boolean }>>(async () => ({
-    roomId: "private-room",
-    unlimited: false,
-  })),
+  vi.fn<() => Promise<{ roomId: string; unlimited: boolean; format?: import("@aegis/shared").DeckFormat }>>(
+    async () => ({
+      roomId: "private-room",
+      unlimited: false,
+    }),
+  ),
 );
 vi.mock("../net/client", () => ({ lookupPrivateRoom }));
+
+// Existing configuration scenarios explicitly enter the advanced panel.
+function renderConfiguredLobby(...args: Parameters<typeof render>) {
+  const view = render(...args);
+  const summary = view.container.querySelector(".lobby-advanced > summary");
+  if (summary) fireEvent.click(summary);
+  return view;
+}
 
 // EX13 is the beta fixture, so the clock stays before its 2026-10-02 release.
 beforeEach(() => {
@@ -37,7 +47,7 @@ describe("famous deck selection", () => {
     const onStart = vi.fn();
     const deck = { ...DECKS[0]!, mainDeck: [...DECKS[0]!.mainDeck] };
     deck.mainDeck.splice(0, 4, ...Array<string>(4).fill("BT5-109"));
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -50,7 +60,14 @@ describe("famous deck selection", () => {
         />
       </I18nProvider>,
     );
-    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Rules" }), {
+      target: {
+        value:
+          (screen.getByRole("combobox", { name: "Rules" }) as HTMLSelectElement).value === "unlimited"
+            ? "standard"
+            : "unlimited",
+      },
+    });
     const launch = screen.getByRole("button", { name: "Enter queue" });
     expect((launch as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(launch);
@@ -58,8 +75,15 @@ describe("famous deck selection", () => {
     expect(screen.getByRole("button", { name: /Quick Match/ }).getAttribute("aria-pressed")).toBe("true");
     expect(screen.queryByRole("button", { name: /^Unlimited/ })).toBeNull();
     expect(screen.getByRole("switch", { name: "Match timer" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
-    expect(screen.getByRole("switch", { name: "Unlimited" }).getAttribute("aria-checked")).toBe("false");
+    fireEvent.change(screen.getByRole("combobox", { name: "Rules" }), {
+      target: {
+        value:
+          (screen.getByRole("combobox", { name: "Rules" }) as HTMLSelectElement).value === "unlimited"
+            ? "standard"
+            : "unlimited",
+      },
+    });
+    expect(screen.getByRole("combobox", { name: "Rules" })).toHaveProperty("value", "standard");
     expect(screen.getByRole("button", { name: "Enter queue" })).toHaveProperty("disabled", true);
   });
   it("GitHub #5236: a personal beta bot deck routes random human practice through the beta room", () => {
@@ -67,7 +91,7 @@ describe("famous deck selection", () => {
     const human = { ...DECKS[0]!, id: "human", name: "Human" };
     const bot = { ...human, id: "personal-bot", name: "Personal beta bot", mainDeck: [...human.mainDeck] };
     bot.mainDeck[0] = "EX13-007";
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -92,7 +116,7 @@ describe("famous deck selection", () => {
     const onStart = vi.fn();
     const deck = { ...DECKS[0]!, mainDeck: [...DECKS[0]!.mainDeck] };
     deck.mainDeck[0] = "EX13-007";
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -118,7 +142,7 @@ describe("famous deck selection", () => {
     const onNav = vi.fn();
     const valid = { ...DECKS[0]!, id: "valid", name: "Playable build" };
     const invalid = { ...valid, id: "draft", name: "Draft build", mainDeck: [] };
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -151,7 +175,7 @@ describe("famous deck selection", () => {
   });
   it("keeps ordinary decks in the normal queue without a beta checkbox", () => {
     const onStart = vi.fn();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -172,7 +196,7 @@ describe("famous deck selection", () => {
 
   it("keeps a random choice hidden and passes a legal deck only when starting", () => {
     const onStart = vi.fn();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -220,7 +244,7 @@ describe("famous deck selection", () => {
     const beta = { ...DECKS[0]!, id: "beta-personal", mainDeck: [...DECKS[0]!.mainDeck] };
     beta.mainDeck[0] = "EX13-007";
     const onStart = vi.fn();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -244,7 +268,7 @@ describe("famous deck selection", () => {
 
   it("lets an ordinary deck opt into the beta queue without the beta-card warning", () => {
     const onStart = vi.fn();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -267,7 +291,7 @@ describe("famous deck selection", () => {
 
   it("lets an ordinary deck face the beta bot", () => {
     const onStart = vi.fn();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -291,7 +315,7 @@ describe("famous deck selection", () => {
 
   it("hides the beta queue option when no set is in preview", () => {
     vi.setSystemTime(new Date("2026-10-15T12:00:00.000Z"));
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -312,7 +336,7 @@ describe("famous deck selection", () => {
 
   it("routes every mystery draw to the beta queue once the player opts in", () => {
     const onStart = vi.fn();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -338,7 +362,7 @@ describe("famous deck selection", () => {
   it("automatically enables beta for an EX13 deck and still allows private matches", () => {
     const deck = { ...DECKS[0]!, mainDeck: [...DECKS[0]!.mainDeck] };
     deck.mainDeck[0] = "EX13-007";
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -364,7 +388,7 @@ describe("famous deck selection", () => {
     const onStart = vi.fn();
     const deck = { ...DECKS[0]!, mainDeck: [...DECKS[0]!.mainDeck] };
     deck.mainDeck[0] = "EX13-007";
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -389,7 +413,7 @@ describe("famous deck selection", () => {
     expect(onStart).toHaveBeenCalledWith("bot", undefined, undefined, true);
   });
   it("separates personal decks and groups available famous decks by collection", () => {
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -417,7 +441,7 @@ describe("famous deck selection", () => {
 
   it("searches famous decks across collapsed collections and filters by owner", () => {
     const onSelectDeck = vi.fn<(id: string) => void>();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -452,7 +476,7 @@ describe("famous deck selection", () => {
   });
 
   it("narrows famous decks to one collection and ignores it for personal decks", () => {
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -480,7 +504,7 @@ describe("famous deck selection", () => {
 
   it("selects a famous preset without adding it to personal decks", () => {
     const onSelectDeck = vi.fn<(id: string) => void>();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -510,7 +534,7 @@ describe("famous deck selection", () => {
 describe("invite links", () => {
   it("opens the private join form with the invited code filled in", async () => {
     const onStart = vi.fn();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -535,7 +559,7 @@ describe("famous deck list", () => {
   it("shows a famous deck's cards without copying it and can play it from the dialog", () => {
     const onSelectDeck = vi.fn<(id: string) => void>();
     const onCopyDeck = vi.fn();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -571,7 +595,7 @@ describe("famous deck list", () => {
 
 describe("returning to a private room", () => {
   function renderRoom(host: boolean, onStart = vi.fn(), onLeavePrivateRoom = vi.fn()) {
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -613,7 +637,7 @@ describe("optional match timer configuration", () => {
   it("updates host settings, hides them for guests and excludes practice", () => {
     const onTimerOptionsChange =
       vi.fn<(options: { matchTimer: boolean; timerStartSeconds: number; timerRefillSeconds: number }) => void>();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -628,7 +652,14 @@ describe("optional match timer configuration", () => {
       </I18nProvider>,
     );
     const timerSwitch = screen.getByRole("switch", { name: "Match timer" });
+    expect(timerSwitch.getAttribute("aria-checked")).toBe("true");
+    fireEvent.click(timerSwitch);
     expect(timerSwitch.getAttribute("aria-checked")).toBe("false");
+    expect(onTimerOptionsChange).toHaveBeenLastCalledWith({
+      matchTimer: false,
+      timerStartSeconds: 300,
+      timerRefillSeconds: 60,
+    });
     fireEvent.click(timerSwitch);
     expect(timerSwitch.getAttribute("aria-checked")).toBe("true");
     expect(onTimerOptionsChange).toHaveBeenLastCalledWith({
@@ -672,7 +703,7 @@ describe("match format configuration", () => {
 
   it("sits beside the timer, remembers the choice and hides for guests and practice", () => {
     const onBestOfChange = vi.fn<(bestOf: 1 | 3) => void>();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -718,7 +749,7 @@ describe("bot and private Unlimited selection", () => {
     if (options.printedOverflow) deck.mainDeck.splice(0, 5, ...Array<string>(5).fill("BT5-109"));
     if (options.beta) deck.mainDeck[5] = "EX13-007";
     const onStart = vi.fn<Parameters<typeof Lobby>[0]["onStart"]>();
-    render(
+    renderConfiguredLobby(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
@@ -741,20 +772,54 @@ describe("bot and private Unlimited selection", () => {
     const botSelect = screen.getByLabelText("Bot's deck");
     expect(within(botSelect).getByRole("option", { name: deck.name })).toHaveProperty("disabled", true);
     expect(screen.getByRole("button", { name: "Play vs Bot" })).toHaveProperty("disabled", true);
-    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Rules" }), {
+      target: {
+        value:
+          (screen.getByRole("combobox", { name: "Rules" }) as HTMLSelectElement).value === "unlimited"
+            ? "standard"
+            : "unlimited",
+      },
+    });
     expect(within(botSelect).getByRole("option", { name: deck.name })).toHaveProperty("disabled", false);
     fireEvent.change(botSelect, { target: { value: `mine:${deck.id}` } });
     fireEvent.click(screen.getByRole("button", { name: "Play vs Bot" }));
     expect(onStart).toHaveBeenCalledWith("bot", undefined, `mine:${deck.id}`, false, undefined, true);
-    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Rules" }), {
+      target: {
+        value:
+          (screen.getByRole("combobox", { name: "Rules" }) as HTMLSelectElement).value === "unlimited"
+            ? "standard"
+            : "unlimited",
+      },
+    });
     expect(screen.getByRole("button", { name: "Play vs Bot" })).toHaveProperty("disabled", true);
+  });
+
+  it("keeps Unlimited when moving between Casual and Practice", () => {
+    const { onStart } = setup();
+    fireEvent.change(screen.getByRole("combobox", { name: "Rules" }), { target: { value: "unlimited" } });
+    fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
+    expect(screen.getByRole("button", { name: "Play vs Bot" })).toHaveProperty("disabled", false);
+    fireEvent.click(screen.getByRole("button", { name: "Play vs Bot" }));
+    expect(onStart).toHaveBeenLastCalledWith("bot", undefined, undefined, false, undefined, true);
+    fireEvent.click(screen.getByRole("button", { name: /Quick Match/ }));
+    expect(screen.getByRole("combobox", { name: "Rules" })).toHaveProperty("value", "unlimited");
+    fireEvent.click(screen.getByRole("button", { name: "Enter queue" }));
+    expect(onStart.mock.lastCall?.[0]).toBe("unlimited");
   });
 
   it("exposes the existing selector for private hosts and sends the selected mode", () => {
     const { onStart } = setup();
     fireEvent.click(screen.getByRole("button", { name: /Private Match/ }));
     expect(screen.getByRole("button", { name: "Create Room" })).toHaveProperty("disabled", true);
-    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Rules" }), {
+      target: {
+        value:
+          (screen.getByRole("combobox", { name: "Rules" }) as HTMLSelectElement).value === "unlimited"
+            ? "standard"
+            : "unlimited",
+      },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Create Room" }));
     expect(onStart).toHaveBeenCalledWith("private_host", undefined, undefined, undefined, undefined, true);
   });
@@ -762,7 +827,7 @@ describe("bot and private Unlimited selection", () => {
   it("loads the guest host mode before allowing a banned deck and gives no override", async () => {
     lookupPrivateRoom.mockResolvedValue({ roomId: "private-room", unlimited: true });
     const { onStart } = setup({ invitedRoomCode: "ABC234" });
-    expect(screen.queryByRole("switch", { name: "Unlimited" })).toBeNull();
+    expect(screen.queryByRole("combobox", { name: "Rules" })).toBeNull();
     expect(screen.getByRole("button", { name: "Join Room" })).toHaveProperty("disabled", true);
     await screen.findByText("Host banlist: Unlimited");
     fireEvent.click(screen.getByRole("button", { name: "Join Room" }));
@@ -779,9 +844,11 @@ describe("bot and private Unlimited selection", () => {
 
   it.each([false, true])("ignores an older lookup arriving after the new host mode (%s)", async (unlimited) => {
     let resolveOld!: (rules: { roomId: string; unlimited: boolean }) => void;
-    const oldLookup = new Promise<{ roomId: string; unlimited: boolean }>((resolve) => {
-      resolveOld = resolve;
-    });
+    const oldLookup = new Promise<{ roomId: string; unlimited: boolean; format?: import("@aegis/shared").DeckFormat }>(
+      (resolve) => {
+        resolveOld = resolve;
+      },
+    );
     lookupPrivateRoom.mockResolvedValue({ roomId: "new-room", unlimited });
     lookupPrivateRoom.mockReturnValueOnce(oldLookup);
     const { onStart, deck } = setup({ invitedRoomCode: "ABC234" });
@@ -833,14 +900,28 @@ describe("bot and private Unlimited selection", () => {
   it("retains printed limits when Unlimited is selected", () => {
     setup({ printedOverflow: true });
     fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
-    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Rules" }), {
+      target: {
+        value:
+          (screen.getByRole("combobox", { name: "Rules" }) as HTMLSelectElement).value === "unlimited"
+            ? "standard"
+            : "unlimited",
+      },
+    });
     expect(screen.getByRole("button", { name: "Play vs Bot" })).toHaveProperty("disabled", true);
   });
 
   it("keeps beta bot confirmation and Unlimited independent", () => {
     const { onStart } = setup({ beta: true });
     fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
-    fireEvent.click(screen.getByRole("switch", { name: "Unlimited" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Rules" }), {
+      target: {
+        value:
+          (screen.getByRole("combobox", { name: "Rules" }) as HTMLSelectElement).value === "unlimited"
+            ? "standard"
+            : "unlimited",
+      },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Play vs Bot" }));
     fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
     expect(onStart).toHaveBeenCalledWith("bot", undefined, undefined, true, undefined, true);
@@ -851,5 +932,149 @@ describe("bot and private Unlimited selection", () => {
     lookupPrivateRoom.mockResolvedValue({ roomId: "private-room", unlimited: true });
     setup({ invitedRoomCode: "ABC234" });
     expect(await screen.findByText("Lista do anfitrião: Unlimited")).toBeTruthy();
+  });
+});
+
+describe("historical and Pauper format selection", () => {
+  it("starts a saved BT13 deck in that format and rejects cards released later", () => {
+    const onStart = vi.fn();
+    const deck = { ...DECKS[0]!, format: "BT13" as const, mainDeck: [...DECKS[0]!.mainDeck] };
+    deck.mainDeck.splice(0, 4, ...Array<string>(4).fill("BT13-012"));
+    renderConfiguredLobby(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[deck]}
+          activeDeckId={deck.id}
+          onSelectDeck={() => {}}
+          onCopyDeck={() => {}}
+          onNav={() => {}}
+          onStart={onStart}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByRole("combobox", { name: "Cards through" })).toHaveProperty("value", "BT13");
+    fireEvent.click(screen.getByRole("button", { name: "Enter queue" }));
+    expect(onStart).toHaveBeenCalledWith("casual", undefined, undefined, undefined, undefined, undefined, "BT13");
+    fireEvent.change(screen.getByRole("combobox", { name: "Cards through" }), { target: { value: "all" } });
+    expect(screen.getByRole("button", { name: "Enter queue" })).toHaveProperty("disabled", true);
+    fireEvent.change(screen.getByRole("combobox", { name: "Rules" }), { target: { value: "pauper" } });
+    expect(screen.getByRole("button", { name: "Enter queue" })).toHaveProperty("disabled", true);
+  });
+});
+
+describe("independent historical card pool and match rules", () => {
+  const pauperDeck = {
+    ...DECKS[0]!,
+    id: "historical-eosmon",
+    name: "Historical Eosmon",
+    format: "BT13:pauper" as const,
+    mainDeck: Array<string>(50).fill("BT6-085"),
+    eggDeck: ["BT1-002"],
+  };
+  function setup(privateRoom?: import("./Lobby").PrivateRoom, invitedRoomCode?: string) {
+    const onStart = vi.fn<import("react").ComponentProps<typeof Lobby>["onStart"]>();
+    renderConfiguredLobby(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[pauperDeck]}
+          activeDeckId={pauperDeck.id}
+          onSelectDeck={() => {}}
+          onCopyDeck={() => {}}
+          onNav={() => {}}
+          onStart={onStart}
+          privateRoom={privateRoom}
+          invitedRoomCode={invitedRoomCode}
+        />
+      </I18nProvider>,
+    );
+    return onStart;
+  }
+  it.each([
+    ["Quick Match", "Enter queue", "casual", "pauper"],
+    ["Practice vs AI", "Play vs Bot", "bot", "pauper"],
+    ["Private Match", "Create Room", "private_host", "pauper"],
+    ["Quick Match", "Enter queue", "unlimited", "unlimited"],
+    ["Practice vs AI", "Play vs Bot", "bot", "unlimited"],
+    ["Private Match", "Create Room", "private_host", "unlimited"],
+  ] as const)("starts %s in BT13 with %s (%s, %s)", (opponent, launch, mode, rules) => {
+    const onStart = setup();
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(opponent) }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Rules" }), { target: { value: rules } });
+    expect(screen.getByRole("combobox", { name: "Cards through" })).toHaveProperty("value", "BT13");
+    expect(screen.getByRole("button", { name: launch })).toHaveProperty("disabled", false);
+    fireEvent.click(screen.getByRole("button", { name: launch }));
+    expect(onStart.mock.lastCall?.[0]).toBe(mode);
+    expect(onStart.mock.lastCall?.[5] === true).toBe(rules === "unlimited");
+    expect(onStart.mock.lastCall?.[6]).toBe(`BT13:${rules}`);
+  });
+  it("retains each axis while changing the other and switching all opponent modes", () => {
+    setup();
+    fireEvent.change(screen.getByRole("combobox", { name: "Cards through" }), { target: { value: "BT12" } });
+    expect(screen.getByRole("combobox", { name: "Rules" })).toHaveProperty("value", "pauper");
+    fireEvent.change(screen.getByRole("combobox", { name: "Rules" }), { target: { value: "unlimited" } });
+    for (const opponent of ["Practice vs AI", "Private Match", "Quick Match"]) {
+      fireEvent.click(screen.getByRole("button", { name: new RegExp(opponent) }));
+      expect(screen.getByRole("combobox", { name: "Cards through" })).toHaveProperty("value", "BT12");
+      expect(screen.getByRole("combobox", { name: "Rules" })).toHaveProperty("value", "unlimited");
+    }
+    fireEvent.change(screen.getByRole("combobox", { name: "Cards through" }), { target: { value: "all" } });
+    expect(screen.getByRole("combobox", { name: "Rules" })).toHaveProperty("value", "unlimited");
+  });
+  it("filters random decks against the combined rules", () => {
+    const rareDeck = { ...pauperDeck, id: "rare", mainDeck: [...pauperDeck.mainDeck] };
+    rareDeck.mainDeck[0] = "BT5-109";
+    const laterDeck = { ...pauperDeck, id: "later", mainDeck: [...pauperDeck.mainDeck] };
+    laterDeck.mainDeck[0] = "BT14-033";
+    expect(
+      randomDeckPool([pauperDeck, rareDeck, laterDeck], "mine", false, false, "BT13:pauper").map((deck) => deck.id),
+    ).toEqual([pauperDeck.id]);
+    expect(
+      randomDeckPool([pauperDeck, rareDeck, laterDeck], "mine", false, true, "BT13:unlimited").map((deck) => deck.id),
+    ).toEqual([pauperDeck.id, rareDeck.id]);
+  });
+  it("shows fixed pool and rules to a returning private guest", () => {
+    const onStart = setup({ code: "ABC234", host: false, format: "BT13:unlimited", unlimited: true });
+    expect(screen.getByRole("combobox", { name: "Cards through" })).toHaveProperty("disabled", true);
+    expect(screen.getByRole("combobox", { name: "Rules" })).toHaveProperty("disabled", true);
+    expect(screen.getByRole("combobox", { name: "Cards through" })).toHaveProperty("value", "BT13");
+    fireEvent.click(screen.getByRole("button", { name: "Rejoin room" }));
+    expect(onStart).toHaveBeenCalledWith(
+      "private_guest",
+      "ABC234",
+      undefined,
+      undefined,
+      undefined,
+      true,
+      "BT13:unlimited",
+    );
+  });
+  it("inherits a code lookup's historical Pauper rules", async () => {
+    lookupPrivateRoom.mockResolvedValue({ roomId: "private-room", unlimited: false, format: "BT13:pauper" });
+    const onStart = setup(undefined, "ABC234");
+    await screen.findByText("Host banlist: BT13 · Pauper · C / U");
+    expect(screen.getByRole("combobox", { name: "Rules" })).toHaveProperty("disabled", true);
+    fireEvent.click(screen.getByRole("button", { name: "Join Room" }));
+    expect(onStart).toHaveBeenCalledWith(
+      "private_guest",
+      "ABC234",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "BT13:pauper",
+    );
+  });
+  it("lets a returning private host configure an independent bot match", () => {
+    setup({ code: "ABC234", host: true, format: "BT13:unlimited", unlimited: true });
+    fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
+    expect(screen.getByRole("combobox", { name: "Cards through" })).toHaveProperty("value", "BT13");
+    expect(screen.getByRole("combobox", { name: "Rules" })).toHaveProperty("disabled", false);
+    fireEvent.change(screen.getByRole("combobox", { name: "Rules" }), { target: { value: "pauper" } });
+    expect(screen.getByRole("combobox", { name: "Cards through" })).toHaveProperty("value", "BT13");
+    fireEvent.click(screen.getByRole("button", { name: /Private Match/ }));
+    expect(screen.getByRole("combobox", { name: "Rules" })).toHaveProperty("value", "unlimited");
+    expect(screen.getByRole("combobox", { name: "Rules" })).toHaveProperty("disabled", true);
   });
 });

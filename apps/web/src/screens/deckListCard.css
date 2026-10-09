@@ -176,10 +176,16 @@
   padding-right: 86px;
 }
 
-.deck-list-card.is-compact .aegis-badge {
+.deck-list-card.is-compact .deck-list-card__active {
   position: absolute;
   top: var(--ds-space-4);
   right: var(--ds-space-4);
+}
+
+.deck-list-card__format {
+  align-self: flex-start;
+  max-width: 100%;
+  white-space: normal;
 }
 
 .deck-list-card.is-compact .deck-list-card__identity h3 {
@@ -242,7 +248,7 @@
     padding-right: 0;
   }
 
-  .deck-list-card.is-compact .aegis-badge {
+  .deck-list-card.is-compact .deck-list-card__active {
     position: static;
   }
 

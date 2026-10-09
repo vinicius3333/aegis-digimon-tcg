@@ -23,6 +23,7 @@ export interface AegisJoinOptions {
   ranked?: boolean;
   betaBattleMode?: boolean;
   unlimited?: boolean;
+  format?: import("@aegis/shared").DeckFormat;
   botDeck?: AegisJoinOptions["deck"];
   authTicket?: string;
   /** How this client paces a chain of triggered effects; a bot opponent follows `sequential` pacing. */

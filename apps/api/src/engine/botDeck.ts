@@ -1,4 +1,12 @@
-import { ALL_FAMOUS_DECKS, famousDeckById, isFamousDeckAvailable } from "@aegis/shared";
+import {
+  ALL_FAMOUS_DECKS,
+  famousDeckById,
+  allCards,
+  CardKind,
+  formatCardViolation,
+  formatCopyLimit,
+  type DeckFormat,
+} from "@aegis/shared";
 import { validateDecklist } from "./deckValidation.js";
 import { BOT_DECKS, type Decklist } from "./testDecks.js";
 
@@ -15,25 +23,37 @@ import { BOT_DECKS, type Decklist } from "./testDecks.js";
  * This runs the authoritative gate for both requested and random presets. If the
  * requested preset cannot be played, the bot draws from the same legal catalog pool.
  */
-export function playableBotDeck(requestedDeckId: string | undefined, betaBattleMode: boolean): Decklist {
+export function playableBotDeck(
+  requestedDeckId: string | undefined,
+  betaBattleMode: boolean,
+  format: DeckFormat = "standard",
+): Decklist {
   const requested = requestedDeckId === undefined ? undefined : famousDeckById(requestedDeckId);
-  if (requested && isFamousDeckAvailable(requested) && validateDecklist(requested.decklist, { betaBattleMode }).ok) {
+  if (requested && validateDecklist(requested.decklist, { betaBattleMode, format }).ok) {
     return { mainDeck: [...requested.decklist.mainDeck], eggDeck: [...requested.decklist.eggDeck] };
   }
 
   const candidates = ALL_FAMOUS_DECKS.filter(
-    (preset) => isFamousDeckAvailable(preset) && validateDecklist(preset.decklist, { betaBattleMode }).ok,
+    (preset) => validateDecklist(preset.decklist, { betaBattleMode, format }).ok,
   );
   if (candidates.length > 0) {
     const selected = candidates[Math.floor(Math.random() * candidates.length)]!;
     return { mainDeck: [...selected.decklist.mainDeck], eggDeck: [...selected.decklist.eggDeck] };
   }
 
-  const fallback = BOT_DECKS.find((deck) => validateDecklist(deck, { betaBattleMode }).ok);
+  const fallback = BOT_DECKS.find((deck) => validateDecklist(deck, { betaBattleMode, format }).ok);
   if (fallback === undefined) {
     // The built-in pool is asserted legal at module load, so this is unreachable short of
     // a banlist edit that outlaws a starter deck. Surfacing it as an explicit failure beats
     // seating a deck the engine will reject mid-deal.
+    const mainDeck: string[] = [];
+    for (const card of allCards()) {
+      if (card.kinds.includes(CardKind.DigiEgg) || formatCardViolation(card.cardId, format)) continue;
+      const count = Math.min(formatCopyLimit(card.cardId, format), 50 - mainDeck.length);
+      mainDeck.push(...Array(count).fill(card.cardId));
+      if (mainDeck.length === 50 && validateDecklist({ mainDeck, eggDeck: [] }, { betaBattleMode, format }).ok)
+        return { mainDeck, eggDeck: [] };
+    }
     throw new Error("no legal bot deck available");
   }
   return fallback;

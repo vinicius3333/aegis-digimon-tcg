@@ -534,7 +534,7 @@
       "name": "SaviorHuckmon",
       "status": "restricted",
       "count": 1,
-      "effectiveDate": "2021-04-01",
+      "effectiveDate": "2022-05-13",
       "action": "restrict"
     },
     {
@@ -542,8 +542,80 @@
       "name": "Eyesmon",
       "status": "restricted",
       "count": 1,
-      "effectiveDate": "2021-04-01",
+      "effectiveDate": "2022-05-13",
       "action": "restrict"
+    },
+    {
+      "cardId": "P-029",
+      "name": "Agunimon",
+      "status": "restricted",
+      "count": 1,
+      "effectiveDate": "2025-03-28",
+      "action": "restrict"
+    },
+    {
+      "cardId": "P-030",
+      "name": "Lobomon",
+      "status": "restricted",
+      "count": 1,
+      "effectiveDate": "2025-03-28",
+      "action": "restrict"
+    },
+    {
+      "cardId": "EX5-065",
+      "name": "Sayo & Koh",
+      "status": "banned_pair",
+      "count": 0,
+      "effectiveDate": "2024-01-19",
+      "action": "restrict"
+    },
+    {
+      "cardId": "P-097",
+      "name": "Zubamon",
+      "status": "banned_pair",
+      "count": 0,
+      "effectiveDate": "2024-01-19",
+      "action": "restrict"
+    },
+    {
+      "cardId": "P-097",
+      "name": "Zubamon",
+      "status": "banned_pair",
+      "count": 0,
+      "effectiveDate": "2025-09-01",
+      "action": "lift"
+    },
+    {
+      "cardId": "BT13-102",
+      "name": "Keenan Crier",
+      "status": "banned_pair",
+      "count": 0,
+      "effectiveDate": "2024-01-19",
+      "action": "restrict"
+    },
+    {
+      "cardId": "BT13-102",
+      "name": "Keenan Crier",
+      "status": "banned_pair",
+      "count": 0,
+      "effectiveDate": "2025-09-01",
+      "action": "lift"
+    },
+    {
+      "cardId": "ST16-14",
+      "name": "Matt Ishida",
+      "status": "banned_pair",
+      "count": 0,
+      "effectiveDate": "2024-01-19",
+      "action": "restrict"
+    },
+    {
+      "cardId": "ST16-14",
+      "name": "Matt Ishida",
+      "status": "banned_pair",
+      "count": 0,
+      "effectiveDate": "2025-09-01",
+      "action": "lift"
     }
   ],
   "current": {
@@ -557,13 +629,6 @@
     "BT3-103": {
       "cardId": "BT3-103",
       "name": "Hidden Potential Discovered!",
-      "status": "restricted",
-      "count": 1,
-      "effectiveDate": "2021-04-01"
-    },
-    "BT7-072": {
-      "cardId": "BT7-072",
-      "name": "Eyesmon",
       "status": "restricted",
       "count": 1,
       "effectiveDate": "2021-04-01"
@@ -588,6 +653,13 @@
       "status": "restricted",
       "count": 1,
       "effectiveDate": "2022-02-25"
+    },
+    "BT7-072": {
+      "cardId": "BT7-072",
+      "name": "Eyesmon",
+      "status": "restricted",
+      "count": 1,
+      "effectiveDate": "2022-05-13"
     },
     "BT7-038": {
       "cardId": "BT7-038",
@@ -672,6 +744,13 @@
       "status": "restricted",
       "count": 1,
       "effectiveDate": "2023-11-17"
+    },
+    "EX5-065": {
+      "cardId": "EX5-065",
+      "name": "Sayo & Koh",
+      "status": "banned",
+      "count": 0,
+      "effectiveDate": "2025-09-01"
     },
     "BT14-002": {
       "cardId": "BT14-002",
@@ -813,12 +892,19 @@
       "count": 0,
       "effectiveDate": "2025-03-28"
     },
-    "EX5-065": {
-      "cardId": "EX5-065",
-      "name": "Sayo & Koh",
-      "status": "banned",
-      "count": 0,
-      "effectiveDate": "2025-09-01"
+    "P-029": {
+      "cardId": "P-029",
+      "name": "Agunimon",
+      "status": "restricted",
+      "count": 1,
+      "effectiveDate": "2025-03-28"
+    },
+    "P-030": {
+      "cardId": "P-030",
+      "name": "Lobomon",
+      "status": "restricted",
+      "count": 1,
+      "effectiveDate": "2025-03-28"
     },
     "BT1-090": {
       "cardId": "BT1-090",

@@ -65,7 +65,8 @@ describe("responsive application state", () => {
 
   afterEach(() => cleanup());
 
-  it("restores both timer choices after remounting the app", async () => {
+  it("starts every app session with the timer enabled even after a saved opt-out", async () => {
+    localStorage.setItem("aegis:match-timer", "false");
     const view = () => (
       <I18nProvider>
         <AegisClient
@@ -83,17 +84,21 @@ describe("responsive application state", () => {
       </I18nProvider>
     );
     let rendered = render(view());
+    fireEvent.click(await screen.findByText("Advanced settings", { exact: true }));
     const timerSwitch = await screen.findByRole("switch", { name: "Match timer" });
-    expect(timerSwitch.getAttribute("aria-checked")).toBe("false");
+    expect(timerSwitch.getAttribute("aria-checked")).toBe("true");
     fireEvent.click(timerSwitch);
+    expect(timerSwitch.getAttribute("aria-checked")).toBe("false");
     rendered.unmount();
     rendered = render(view());
+    fireEvent.click(await screen.findByText("Advanced settings", { exact: true }));
     const restored = await screen.findByRole("switch", { name: "Match timer" });
     expect(restored.getAttribute("aria-checked")).toBe("true");
     fireEvent.click(restored);
     rendered.unmount();
     render(view());
-    expect((await screen.findByRole("switch", { name: "Match timer" })).getAttribute("aria-checked")).toBe("false");
+    fireEvent.click(await screen.findByText("Advanced settings", { exact: true }));
+    expect((await screen.findByRole("switch", { name: "Match timer" })).getAttribute("aria-checked")).toBe("true");
   });
 
   it("shows a simple empty state when the player has no decks", async () => {

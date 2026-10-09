@@ -14,13 +14,10 @@
 
 import { textOf, parseDate } from "./html.mjs";
 import { SOURCES } from "./paths.mjs";
+import { releaseDateForSet } from "../../../packages/shared/src/cards/cardPool.ts";
 
 const TOKEN_RE = new RegExp(
-  [
-    "<h4[^>]*>([\\s\\S]*?)<\\/h4>",
-    "<h5[^>]*>([\\s\\S]*?)<\\/h5>",
-    "<dd>\\s*([A-Z0-9]+-\\d+[A-Z0-9]*)\\s*<br\\s*\\/?>([\\s\\S]*?)<\\/dd>",
-  ].join("|"),
+  ["<h4[^>]*>([\\s\\S]*?)<\\/h4>", "<h5[^>]*>([\\s\\S]*?)<\\/h5>", "<dd[^>]*>([\\s\\S]*?)<\\/dd>"].join("|"),
   "g",
 );
 
@@ -47,7 +44,10 @@ export function parseBanlist(html) {
   while ((match = TOKEN_RE.exec(html))) {
     if (match[1] !== undefined) {
       const text = textOf(match[1]);
-      if (/effective on/i.test(text)) {
+      if (/effective at the time of BT-0?8 release/i.test(text)) {
+        effectiveDate = releaseDateForSet("BT8");
+        action = "restrict";
+      } else if (/effective on/i.test(text)) {
         effectiveDate = parseDate(text);
         action = "restrict";
       } else if (/will be lifted|lifted/i.test(text)) {
@@ -60,14 +60,19 @@ export function parseBanlist(html) {
         count = classified.count;
       }
     } else if (match[3] !== undefined) {
-      events.push({
-        cardId: match[3],
-        name: textOf(match[4]),
-        status,
-        count,
-        effectiveDate,
-        action,
-      });
+      const text = textOf(match[3]);
+      const cards = [...text.matchAll(/\b([A-Z0-9]+-\d+[A-Z0-9]*)\b/g)];
+      for (const [index, card] of cards.entries()) {
+        const end = cards[index + 1]?.index ?? text.length;
+        events.push({
+          cardId: card[1],
+          name: text.slice(card.index + card[0].length, end).trim(),
+          status,
+          count,
+          effectiveDate,
+          action,
+        });
+      }
     }
   }
 

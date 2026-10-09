@@ -8,8 +8,9 @@ import {
   resolveCardArt,
   famousDeckGroups,
   getCardDefinition,
-  effectiveCopyLimit as banlistLimit,
   type CardDefinition,
+  type DeckFormat,
+  formatCopyLimit,
   type FamousDeck,
 } from "@aegis/shared";
 import { colorKey, kindOf, type ColorName } from "../design/theme";
@@ -85,6 +86,7 @@ export interface DeckListing {
   sleeveId?: string;
   /** This deck's Digi-Egg sleeve; absent means the global egg sleeve from Settings. */
   eggSleeveId?: string;
+  format?: DeckFormat;
 }
 
 export interface FamousDeckListingGroup {
@@ -384,7 +386,7 @@ function textEntries(text: string): ImportEntry[] {
  * banlist-aware per-card limit across the whole list. Main deck is capped at 50,
  * egg deck at 5.
  */
-export function parseDeckList(text: string): DeckParseResult {
+export function parseDeckList(text: string, format: DeckFormat = "standard"): DeckParseResult {
   const trimmedText = text.trim();
   const entries = tabletopEntries(trimmedText) ?? textEntries(trimmedText);
   const mainDeck: string[] = [];
@@ -403,7 +405,7 @@ export function parseDeckList(text: string): DeckParseResult {
       continue;
     }
     const artId = resolveCardArt(cardId, artCode).artId;
-    const cap = Math.min(def.maxCountInDeck, banlistLimit(cardId));
+    const cap = Math.min(def.maxCountInDeck, formatCopyLimit(cardId, format));
     const isEgg = kindOf(def) === "DigiEgg";
     const [target, targetArts, targetLimit] = isEgg
       ? [eggDeck, eggDeckArts, IMPORT_EGG_LIMIT]

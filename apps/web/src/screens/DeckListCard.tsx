@@ -1,5 +1,6 @@
+import { deckFormatLabel } from "./DeckFormatSelector";
 import type { CSSProperties, ReactNode } from "react";
-import { deckLegality, getCardDefinition, restrictionLabel } from "@aegis/shared";
+import { deckLegality, getCardDefinition, formatRestrictionLabel, deckFormat, type DeckFormat } from "@aegis/shared";
 import { Badge } from "../design/primitives";
 import { CoverThumb } from "../design/cards";
 import { COLORS } from "../design/theme";
@@ -10,6 +11,7 @@ import "./deckListCard.css";
 
 export function DeckListCard({
   deck,
+  format: selectedFormat,
   active,
   disabled = false,
   onSelect,
@@ -17,6 +19,7 @@ export function DeckListCard({
   actions,
 }: {
   deck: DeckListing;
+  format?: DeckFormat;
   active: boolean;
   disabled?: boolean;
   onSelect?: () => void;
@@ -25,7 +28,8 @@ export function DeckListCard({
 }) {
   const { t } = useTranslation();
   const color = COLORS[deck.color];
-  const { banViolations, pairViolations } = deckLegality(deck);
+  const format = deckFormat(selectedFormat ?? deck.format);
+  const { banViolations, pairViolations, formatViolations } = deckLegality(deck, { format });
 
   return (
     <article
@@ -64,17 +68,25 @@ export function DeckListCard({
             {subtitle ? <span className="deck-list-card__subtitle">{subtitle}</span> : null}
           </div>
           {active ? (
-            <Badge tone="primary">
+            <Badge tone="primary" className="deck-list-card__active">
               <Icons.Check size={12} />
               {t("deck.active")}
             </Badge>
           ) : null}
         </div>
+        {deck.format && deck.format !== "standard" ? (
+          <Badge className="deck-list-card__format">{deckFormatLabel(deck.format, t)}</Badge>
+        ) : null}
+        {formatViolations.length > 0 ? (
+          <div className="deck-list-card__violation">
+            {t("deckFormat.violations", { count: formatViolations.length })}
+          </div>
+        ) : null}
         {banViolations.length > 0 ? (
           <div className="deck-list-card__violation">
             {banViolations.map(([id]) => (
               <span key={id}>
-                {getCardDefinition(id)?.nameEn ?? id} ({restrictionLabel(id)}){" "}
+                {getCardDefinition(id)?.nameEn ?? id} ({formatRestrictionLabel(id, format)}){" "}
               </span>
             ))}
           </div>

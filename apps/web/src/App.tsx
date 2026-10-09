@@ -18,7 +18,6 @@ import {
 import type { AegisJoinOptions } from "./net/types";
 import type { SeriesGameTicket } from "./net/useRoom";
 import type { PrivateRoom, StartMode } from "./screens/Lobby";
-import { loadMatchTimerPreference } from "./screens/matchTimerPreference";
 import { loadMatchFormatPreference } from "./screens/matchFormatPreference";
 import { Settings } from "./screens/Settings";
 import { loadIdentity, saveIdentity, loadDecks, saveDecks, loadActiveDeckId, saveActiveDeckId } from "./identity";
@@ -316,7 +315,7 @@ export function AegisClient({
     });
   });
   const [timerOptions, setTimerOptions] = useState(() => ({
-    matchTimer: loadMatchTimerPreference(),
+    matchTimer: true,
     timerStartSeconds: 300,
     timerRefillSeconds: 60,
   }));
@@ -331,6 +330,7 @@ export function AegisClient({
   const [privateRoom, setPrivateRoom] = useState<PrivateRoom>();
   const [botDeckId, setBotDeckId] = useState<string>();
   const [unlimited, setUnlimited] = useState(false);
+  const [deckFormat, setDeckFormat] = useState<import("@aegis/shared").DeckFormat>("standard");
   const [betaBattleMode, setBetaBattleMode] = useState(false);
   const [matchDeckId, setMatchDeckId] = useState<string>();
   const [matchNumber, setMatchNumber] = useState(0);
@@ -422,6 +422,7 @@ export function AegisClient({
     () => ({
       ...timerOptions,
       bestOf,
+      format: deckFormat,
       displayName: effectivePlayer.name,
       avatarId: effectivePlayer.avatarId ?? undefined,
       deckId: matchDeck?.id,
@@ -441,7 +442,7 @@ export function AegisClient({
         eggDeckArts: matchDeck?.eggDeckArts,
       },
     }),
-    [effectivePlayer.name, effectivePlayer.avatarId, matchDeck, timerOptions, bestOf, customBotDeck],
+    [effectivePlayer.name, effectivePlayer.avatarId, matchDeck, timerOptions, bestOf, customBotDeck, deckFormat],
   );
 
   const showNav = NAV_SCREENS.includes(screen);
@@ -538,6 +539,7 @@ export function AegisClient({
                 requestedBetaBattleMode,
                 requestedDeckId,
                 requestedUnlimited,
+                requestedFormat,
               ) => {
                 // A lobby start explicitly requests a new match, even if a page
                 // reload left a resumable seat from the previous match in storage.
@@ -549,6 +551,9 @@ export function AegisClient({
                 setBotDeckId(requestedBotDeckId);
                 setBetaBattleMode(requestedBetaBattleMode === true);
                 setUnlimited(requestedUnlimited === true);
+                setDeckFormat(
+                  requestedFormat ?? (mode === "unlimited" || requestedUnlimited ? "unlimited" : "standard"),
+                );
                 setMatchDeckId(requestedDeckId);
                 navigateScreen("game");
               }}
@@ -641,7 +646,7 @@ export function AegisClient({
                 setSeriesGame(undefined);
                 navigateScreen(next);
               }}
-              onRematch={(privateRoomCode, roomUnlimited, roomHost) => {
+              onRematch={(privateRoomCode, roomUnlimited, roomHost, roomFormat) => {
                 clearReconnectSession();
                 setSeriesGame(undefined);
                 if (privateRoomCode) {
@@ -649,6 +654,7 @@ export function AegisClient({
                     code: privateRoomCode,
                     host: roomHost ?? startMode === "private_host",
                     unlimited: roomUnlimited,
+                    format: roomFormat,
                   });
                   navigateScreen("lobby");
                   return;

@@ -43,6 +43,7 @@ export interface SeatJoinOptions {
    */
   betaBattleMode?: boolean;
   unlimited?: boolean;
+  format?: import("@aegis/shared").DeckFormat;
 }
 
 export type AppFusionValidation =

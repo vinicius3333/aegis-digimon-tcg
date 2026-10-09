@@ -1,12 +1,15 @@
 import {
-  bannedPairViolations,
+  deckFormat,
+  formatCopyLimit,
+  formatCardViolation,
+  formatPairViolations,
+  type DeckFormat,
   getCardDefinition,
   isBetaOnlyCard,
   sharedCardNumberGroups,
   CardKind,
 } from "@aegis/shared";
 import { MAIN_DECK_SIZE, MAX_EGG_DECK_SIZE } from "./testDecks.js";
-import { effectiveCopyLimit } from "./banlistRestrictions.js";
 
 /**
  * Server-authoritative deck-legality gate (subsystem: deck-and-setup; BLK-05.2 /
@@ -42,11 +45,15 @@ interface ReadonlyDecklist {
  */
 export function validateDecklist(
   deck: ReadonlyDecklist,
-  options?: { betaBattleMode?: boolean; unlimited?: boolean },
+  options?: { betaBattleMode?: boolean; unlimited?: boolean; format?: DeckFormat },
 ): DecklistValidation {
   const betaBattleMode = options?.betaBattleMode ?? false;
-  const copyLimit = (cardId: string): number =>
-    options?.unlimited ? (getCardDefinition(cardId)?.maxCountInDeck ?? 4) : effectiveCopyLimit(cardId);
+  const format = deckFormat(options?.format, options?.unlimited);
+  const copyLimit = (cardId: string): number => formatCopyLimit(cardId, format);
+  for (const cardId of [...deck.mainDeck, ...deck.eggDeck]) {
+    const reason = formatCardViolation(cardId, format);
+    if (reason) return { ok: false, reason };
+  }
   for (const cardId of deck.mainDeck) {
     const def = getCardDefinition(cardId);
     if (def === undefined) {
@@ -113,7 +120,7 @@ export function validateDecklist(
     }
   }
 
-  const pairViolation = options?.unlimited ? undefined : bannedPairViolations(allCards)[0];
+  const pairViolation = formatPairViolations(allCards, format)[0];
   if (pairViolation !== undefined) {
     const [cardId, partnerCardId] = pairViolation;
     return {

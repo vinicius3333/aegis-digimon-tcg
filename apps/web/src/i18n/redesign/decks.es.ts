@@ -1,6 +1,40 @@
 import type { decksEn } from "./decks.en";
 
 export const decksEs: Record<keyof typeof decksEn, string> = {
+  "deckFormat.label": "Reglas",
+  "deckFormat.title": "Cartas y reglas",
+  "deckFormat.pool": "Cartas hasta",
+  "deckFormat.allSets": "Todas las colecciones",
+  "deckFormat.allSetsShort": "Todas",
+  "deckFormat.pauperShort": "Pauper C/U",
+  "redesign.decks.editor.expandSheet": "Ampliar panel del deck",
+  "redesign.decks.editor.collapseSheet": "Reducir panel del deck",
+  "redesign.decks.editor.openSheet": "Ver deck",
+  "redesign.decks.editor.closeSheet": "Cerrar panel del deck",
+  "deckFormat.poolHint": "Cartas hasta {set}.",
+  "deckFormat.allSetsHint": "Todas las colecciones disponibles.",
+  "deckFormat.banlistHint": "Lista de restricciones: {date}.",
+  "deckFormat.banlistTitle": "Lista de restricciones · {date}",
+  "deckFormat.banlistEmpty": "No hay cartas prohibidas o restringidas en esta fecha.",
+  "deckFormat.banlistBanned": "Prohibida",
+  "deckFormat.banlistLimited": "Límite {count}",
+  "deckFormat.banlistPairs": "Combinaciones prohibidas",
+  "deckFormat.noBanlist": "Sin lista de restricciones; se mantienen los límites impresos.",
+  "deckFormat.rarityHint": "Solo Comunes y Poco Comunes, incluidos Digi-Huevos.",
+  "deckFormat.current": "actual",
+  "deckFormat.standard": "Estándar",
+  "deckFormat.pauper": "Pauper · C / U",
+  "deckFormat.historical": "Colecciones históricas",
+  "deckFormat.snapshot":
+    "Cartas hasta {set} · Lista de restricciones: {date}. Incluye colecciones anteriores, iniciales y promos elegibles.",
+  "deckFormat.pauperHint":
+    "Solo cartas Comunes y Poco Comunes, incluidos Digi-Huevos. Se aplica la lista de restricciones actual.",
+  "deckFormat.unlimitedHint": "Todas las cartas con los límites impresos. Sin lista de restricciones.",
+  "deckFormat.standardHint": "Todas las cartas con la lista de restricciones actual.",
+  "deckFormat.outside": "Fuera de este formato",
+  "deckFormat.violations":
+    "{count} carta(s) de este mazo están fuera del formato seleccionado. Elimínalas o cambia el formato.",
+
   "redesign.decks.list.statDecks": "Decks",
   "redesign.decks.list.statActive": "Deck activo",
   "redesign.decks.list.statReady": "Listos para jugar",

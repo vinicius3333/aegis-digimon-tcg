@@ -51,6 +51,7 @@ export function seatPlayer(engine: GameEngine, seat: Seat, sessionId: string, op
     const verdict = validateDecklist(options.deck, {
       betaBattleMode: options.betaBattleMode === true,
       unlimited: options.unlimited === true,
+      format: options.format,
     });
     if (!verdict.ok) throw new Error(`illegal deck: ${verdict.reason}`);
   }

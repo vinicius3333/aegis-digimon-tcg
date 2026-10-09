@@ -1,0 +1,58 @@
+import { expect, test } from "@playwright/test";
+
+test("snapshot tooltip shows restrictions, lifts, pairs and the empty first banlist", async ({ page }) => {
+  await page.goto("/e2e/lobby-formats.html");
+  await page.getByText("Advanced settings", { exact: true }).click();
+  const pool = page.getByRole("combobox", { name: "Cards through", exact: true });
+  const rules = page.getByRole("combobox", { name: "Rules", exact: true });
+  const content = page.locator(".banlist-tooltip");
+  await pool.selectOption("ST1");
+  await page.getByRole("button", { name: "Banlist: 2021-01-29." }).hover();
+  await expect(content).toBeVisible();
+  await expect(content).toContainText("No banned or restricted cards on this date.");
+  await pool.selectOption("BT13");
+  await expect(content).toHaveCount(0);
+  const trigger = page.getByRole("button", { name: "Banlist: 2023-07-21." });
+  await trigger.focus();
+  await expect(content).toBeVisible();
+  await expect(content.locator("li", { hasText: "BT6-015" }).first()).toContainText("Limit 1");
+  await expect(content.locator("li", { hasText: "BT5-109" }).first()).toContainText("Banned");
+  await expect(content).not.toContainText("BT13-012");
+  await page.keyboard.press("Escape");
+  await expect(content).toHaveCount(0);
+  await pool.selectOption("EX5");
+  await page.getByRole("button", { name: /Banlist: 2024-01-19/ }).hover();
+  await expect(content.locator(".banlist-tooltip__pairs")).toContainText("EX5-065");
+  await expect(content.locator(".banlist-tooltip__pairs")).toContainText("BT13-102");
+  await pool.selectOption("all");
+  await page.getByRole("button", { name: "Banlist: current." }).focus();
+  await expect(content.locator("li", { hasText: "BT13-012" }).first()).toContainText("Limit 1");
+  await expect(content).not.toContainText("BT6-015");
+  await expect(content.locator(".banlist-tooltip__pairs")).not.toContainText("EX5-065");
+  await page.keyboard.press("PageDown");
+  expect(await content.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  await rules.selectOption("unlimited");
+  await expect(content).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Banlist:/ })).toHaveCount(0);
+});
+
+test("banlist supports tap, dismissal and narrow viewports", async ({ browser }) => {
+  const context = await browser.newContext({ hasTouch: true, viewport: { width: 320, height: 800 } });
+  const page = await context.newPage();
+  await page.goto(test.info().project.use.baseURL + "/e2e/lobby-formats.html");
+  await page.getByText("Advanced settings", { exact: true }).tap();
+  const trigger = page.getByRole("button", { name: "Banlist: 2023-07-21." });
+  await trigger.tap();
+  const content = page.locator(".banlist-tooltip");
+  await expect(content).toBeVisible();
+  const bounds = await content.boundingBox();
+  expect(bounds!.x).toBeGreaterThanOrEqual(0);
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(320);
+  await trigger.tap();
+  await expect(content).toHaveCount(0);
+  await trigger.tap();
+  await expect(content).toBeVisible();
+  await page.getByText("Advanced settings", { exact: true }).tap();
+  await expect(content).toHaveCount(0);
+  await context.close();
+});

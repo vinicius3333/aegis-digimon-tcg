@@ -37,6 +37,7 @@ export interface SeriesSettings {
   matchTimer: boolean;
   timerStartSeconds: number;
   unlimited?: boolean;
+  format?: import("@aegis/shared").DeckFormat;
   roomCode?: string;
 }
 
@@ -259,6 +260,7 @@ export class CasualSeries {
       matchTimer: this.settings.matchTimer,
       timerStartSeconds: this.settings.timerStartSeconds,
       unlimited: this.settings.unlimited === true,
+      format: this.settings.format,
       ...(this.settings.roomCode ? { roomCode: this.settings.roomCode } : {}),
       results: [...this.results],
       seats: [

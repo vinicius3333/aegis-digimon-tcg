@@ -31,7 +31,7 @@ interface BanlistEvent extends BanlistEntry {
  * Every restriction event, oldest first, replicated from `banlist.json` `events`.
  * The list is the history, not a snapshot: the effective banlist is resolved for a
  * date. The default is today, so the latest restrictions published by the official
- * banlist apply even while the card pool itself is historical.
+ * banlist apply unless a format supplies its own historical date.
  */
 const BANLIST_EVENTS: readonly BanlistEvent[] = [
   {
@@ -55,7 +55,7 @@ const BANLIST_EVENTS: readonly BanlistEvent[] = [
     name: "SaviorHuckmon",
     status: "restricted",
     count: 1,
-    effectiveDate: "2021-04-01",
+    effectiveDate: "2022-05-13",
     action: "restrict",
   },
   {
@@ -63,7 +63,7 @@ const BANLIST_EVENTS: readonly BanlistEvent[] = [
     name: "Eyesmon",
     status: "restricted",
     count: 1,
-    effectiveDate: "2021-04-01",
+    effectiveDate: "2022-05-13",
     action: "restrict",
   },
   {
@@ -325,6 +325,15 @@ const BANLIST_EVENTS: readonly BanlistEvent[] = [
     action: "restrict",
   },
   {
+    cardId: "P-029",
+    name: "Agunimon",
+    status: "restricted",
+    count: 1,
+    effectiveDate: "2025-03-28",
+    action: "restrict",
+  },
+  { cardId: "P-030", name: "Lobomon", status: "restricted", count: 1, effectiveDate: "2025-03-28", action: "restrict" },
+  {
     cardId: "BT17-069",
     name: "Fenriloogamon",
     status: "restricted",
@@ -564,6 +573,55 @@ const BANLIST_EVENTS: readonly BanlistEvent[] = [
     effectiveDate: "2026-09-01",
     action: "restrict",
   },
+  {
+    cardId: "EX5-065",
+    name: "Sayo & Koh",
+    status: "banned_pair",
+    count: 0,
+    effectiveDate: "2024-01-19",
+    action: "restrict",
+  },
+  {
+    cardId: "P-097",
+    name: "Zubamon",
+    status: "banned_pair",
+    count: 0,
+    effectiveDate: "2024-01-19",
+    action: "restrict",
+  },
+  { cardId: "P-097", name: "Zubamon", status: "banned_pair", count: 0, effectiveDate: "2025-09-01", action: "lift" },
+  {
+    cardId: "BT13-102",
+    name: "Keenan Crier",
+    status: "banned_pair",
+    count: 0,
+    effectiveDate: "2024-01-19",
+    action: "restrict",
+  },
+  {
+    cardId: "BT13-102",
+    name: "Keenan Crier",
+    status: "banned_pair",
+    count: 0,
+    effectiveDate: "2025-09-01",
+    action: "lift",
+  },
+  {
+    cardId: "ST16-14",
+    name: "Matt Ishida",
+    status: "banned_pair",
+    count: 0,
+    effectiveDate: "2024-01-19",
+    action: "restrict",
+  },
+  {
+    cardId: "ST16-14",
+    name: "Matt Ishida",
+    status: "banned_pair",
+    count: 0,
+    effectiveDate: "2025-09-01",
+    action: "lift",
+  },
 ];
 
 /**
@@ -609,14 +667,22 @@ export const banlistCurrent: Readonly<Record<string, BanlistEntry>> = banlistAsO
  * `banlist.json` records the status but not the partner linkage).
  */
 export const BANNED_PAIRS: ReadonlyArray<
-  Readonly<{ cardId: string; conflictsWith: readonly string[]; effectiveDate: string }>
+  Readonly<{ cardId: string; conflictsWith: readonly string[]; effectiveDate: string; untilDate?: string }>
 > = [
+  {
+    cardId: "EX5-065",
+    conflictsWith: ["P-097", "BT13-102", "ST16-14"],
+    effectiveDate: "2024-01-19",
+    untilDate: "2025-09-01",
+  },
   { cardId: "BT20-037", conflictsWith: ["BT17-035", "EX8-037"], effectiveDate: "2025-09-01" }, // Chaosmon: Valdur Arm
   { cardId: "EX2-007", conflictsWith: ["EX7-064"], effectiveDate: "2025-03-28" }, // Mother D-Reaper / Shoto Kazama
 ];
 
 function pairsInForce(asOf: string): typeof BANNED_PAIRS {
-  return BANNED_PAIRS.filter((pair) => pair.effectiveDate <= asOf);
+  return BANNED_PAIRS.filter(
+    (pair) => pair.effectiveDate <= asOf && (pair.untilDate === undefined || asOf < pair.untilDate),
+  );
 }
 
 /** Every card that may not share a deck with `cardId` (the relation is symmetric). */

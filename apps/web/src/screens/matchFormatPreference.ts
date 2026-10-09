@@ -2,7 +2,7 @@ import type { MatchBestOf } from "@aegis/shared";
 
 const STORAGE_KEY = "aegis:match-format";
 
-/** Kept beside the timer preference: the same browser choice for casual queues and private hosts. */
+/** The same browser choice for casual queues and private hosts. */
 export function loadMatchFormatPreference(): MatchBestOf {
   try {
     return localStorage.getItem(STORAGE_KEY) === "3" ? 3 : 1;

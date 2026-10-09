@@ -1,7 +1,7 @@
 /* One card in the builder's pool, with the steppers that add or remove copies. */
 
 import { useState } from "react";
-import { isBanned, restrictionLabel } from "@aegis/shared";
+import { formatCopyLimit, formatRestrictionLabel, type DeckFormat } from "@aegis/shared";
 import { CardFull } from "../design/cards";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
@@ -9,6 +9,7 @@ import "./deckBuilder.css";
 
 export function PoolCard({
   cardId,
+  format = "standard",
   inDeck,
   atMax,
   pairConflict,
@@ -18,6 +19,7 @@ export function PoolCard({
   selected,
 }: {
   cardId: string;
+  format?: DeckFormat;
   inDeck: number;
   atMax: boolean;
   pairConflict: boolean;
@@ -28,8 +30,8 @@ export function PoolCard({
 }) {
   const { t } = useTranslation();
   const [hover, setHover] = useState(false);
-  const banLabel = pairConflict ? t("deck.pairBadge") : restrictionLabel(cardId);
-  const banned = isBanned(cardId);
+  const banLabel = pairConflict ? t("deck.pairBadge") : formatRestrictionLabel(cardId, format);
+  const banned = formatCopyLimit(cardId, format) === 0;
   const blocked = banned || pairConflict;
   const hasCopies = inDeck > 0;
   return (
@@ -47,7 +49,7 @@ export function PoolCard({
           count={hasCopies ? inDeck : undefined}
           dim={banned}
           onClick={() => {
-            if (!banned && !atMax) onAdd();
+            if (!blocked && !atMax) onAdd();
           }}
         />
         {blocked ? <div className="deck-pool-card__tint" /> : null}

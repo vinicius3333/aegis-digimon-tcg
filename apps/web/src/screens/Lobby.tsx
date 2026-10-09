@@ -10,8 +10,11 @@ import {
   MATCH_TIMER_REFILL_SECONDS,
   type MatchBestOf,
   type MatchTimerOptions,
-  bannedPairViolations,
-  effectiveCopyLimit as banlistLimit,
+  formatPairViolations,
+  formatCopyLimit,
+  deckFormat,
+  formatIsUnlimited,
+  type DeckFormat,
   getCardDefinition,
   isBetaOnlyCard,
   sharedCardNumberGroups,
@@ -36,10 +39,10 @@ import { RankedStart } from "../account/RankedStart";
 import { RANKED_ENABLED } from "../features";
 import { DeckColorDots, DeckPicker } from "./DeckPicker";
 import { FamousDeckListDialog } from "./FamousDeckListDialog";
+import { DeckFormatSelector, deckFormatLabel } from "./DeckFormatSelector";
 import { MatchFormatSettings } from "./MatchFormatSettings";
 import { MatchTimerSettings } from "./MatchTimerSettings";
 import { loadMatchFormatPreference, saveMatchFormatPreference } from "./matchFormatPreference";
-import { loadMatchTimerPreference, saveMatchTimerPreference } from "./matchTimerPreference";
 import "./lobby.css";
 import { lookupPrivateRoom } from "../net/client";
 import { SpectatorPanel } from "./SpectatorPanel";
@@ -49,6 +52,7 @@ export interface PrivateRoom {
   code: string;
   host: boolean;
   unlimited?: boolean;
+  format?: DeckFormat;
 }
 
 export type StartMode =
@@ -74,11 +78,12 @@ export function randomDeckPool(
   scope: RandomDeckPool,
   betaAllowed = false,
   unlimited = false,
+  format?: DeckFormat,
 ): DeckListing[] {
   const candidates =
     scope === "mine" ? personalDecks : scope === "famous" ? FAMOUS_DECKS : selectableDecks(personalDecks);
   const eligible = candidates.filter(
-    (deck) => deckLegality(deck, { unlimited }).legal && (betaAllowed || !deckHasBetaCards(deck)),
+    (deck) => deckLegality(deck, { unlimited, format }).legal && (betaAllowed || !deckHasBetaCards(deck)),
   );
   return [...new Map(eligible.map((deck) => [deck.id, deck])).values()];
 }
@@ -172,7 +177,7 @@ export function Lobby({
   onCopyDeck,
   onEditDeck,
   onNav,
-  onStart,
+  onStart: onStartRequested,
   invitedRoomCode,
   privateRoom,
   onLeavePrivateRoom,
@@ -205,6 +210,7 @@ export function Lobby({
     betaBattleMode?: boolean,
     deckId?: string,
     unlimited?: boolean,
+    format?: DeckFormat,
   ) => void;
   /** A code carried in by an invite link; opens the private join form with it filled in. */
   invitedRoomCode?: string;
@@ -214,13 +220,10 @@ export function Lobby({
   const { t } = useTranslation();
   const MODES = modesFor(t);
   const [timer, setTimer] = useState<Required<MatchTimerOptions>>(() => ({
-    matchTimer: timerOptions?.matchTimer ?? loadMatchTimerPreference(),
+    matchTimer: timerOptions?.matchTimer ?? true,
     timerStartSeconds: timerOptions?.timerStartSeconds ?? 300,
     timerRefillSeconds: MATCH_TIMER_REFILL_SECONDS,
   }));
-  useEffect(() => {
-    saveMatchTimerPreference(timer.matchTimer);
-  }, [timer.matchTimer]);
   function changeTimer(options: Required<MatchTimerOptions>) {
     setTimer(options);
     onTimerOptionsChange?.(options);
@@ -231,14 +234,18 @@ export function Lobby({
     saveMatchFormatPreference(next);
     onBestOfChange?.(next);
   }
+  const [selectedFormat, setSelectedFormat] = useState<DeckFormat>(() =>
+    privateRoom
+      ? deckFormat(privateRoom.format, privateRoom.unlimited)
+      : deckFormat(decks.find((deck) => deck.id === activeDeckId)?.format),
+  );
   const [mode, setMode] = useState(invitedRoomCode || privateRoom ? "private" : "casual");
   const [betaConfirmation, setBetaConfirmation] = useState<"beta" | "bot" | null>(null);
   const [privateSub, setPrivateSub] = useState<"create" | "join">(invitedRoomCode ? "join" : "create");
   const [roomCodeInput, setRoomCodeInput] = useState(invitedRoomCode ?? "");
   // "" is the random pool; any other value is a famous-deck preset id the bot will play.
   const [botDeckId, setBotDeckId] = useState("");
-  const [localUnlimited, setLocalUnlimited] = useState(false);
-  const [guestRules, setGuestRules] = useState<{ code: string; unlimited: boolean }>();
+  const [guestRules, setGuestRules] = useState<{ code: string; unlimited: boolean; format?: DeckFormat }>();
   const [guestLookupFailed, setGuestLookupFailed] = useState(false);
   const guestCode = privateRoom?.code ?? roomCodeInput;
   const privateGuest = mode === "private" && (privateRoom ? !privateRoom.host : privateSub === "join");
@@ -250,7 +257,7 @@ export function Lobby({
     if (guestCode.length === 6) {
       void lookupPrivateRoom(guestCode)
         .then((rules) => {
-          if (!cancelled) setGuestRules({ code: guestCode, unlimited: rules.unlimited });
+          if (!cancelled) setGuestRules({ code: guestCode, unlimited: rules.unlimited, format: rules.format });
         })
         .catch(() => {
           if (!cancelled) setGuestLookupFailed(true);
@@ -260,21 +267,54 @@ export function Lobby({
       cancelled = true;
     };
   }, [privateGuest, privateRoom, guestCode]);
-  const unlimited =
-    mode === "unlimited" ||
-    (mode === "practice" && localUnlimited) ||
-    (mode === "private" &&
-      (privateRoom
-        ? privateRoom.unlimited === true
-        : privateGuest
-          ? guestRules?.code === guestCode && guestRules.unlimited
-          : localUnlimited));
+  const format: DeckFormat =
+    mode === "private" && privateRoom
+      ? deckFormat(privateRoom.format, privateRoom.unlimited)
+      : privateGuest
+        ? deckFormat(guestRules?.format, guestRules?.unlimited)
+        : selectedFormat;
+  const unlimited = formatIsUnlimited(format);
+  function changeFormat(next: DeckFormat) {
+    setSelectedFormat(next);
+    const preset = FAMOUS_DECKS.find((deck) => deck.id === botDeckId);
+    if (preset && !deckLegality(preset, { format: next }).legal) setBotDeckId("");
+  }
+  const banlistLimit = (id: string) => formatCopyLimit(id, format);
+  const onStart = useCallback(
+    (...args: Parameters<typeof onStartRequested>) => {
+      if (args[0] === "ranked") {
+        onStartRequested("ranked", args[1], args[2], args[3], args[4], false, "standard");
+        return;
+      }
+      if (args[0] === "spectator") {
+        onStartRequested(...args);
+        return;
+      }
+      if (unlimited) {
+        const startMode = args[0] === "casual" ? "unlimited" : args[0];
+        if (format === "unlimited") {
+          if (startMode === "unlimited" && args.length === 1) onStartRequested(startMode);
+          else
+            onStartRequested(startMode, args[1], args[2], args[3], args[4], startMode === "unlimited" ? args[5] : true);
+        } else onStartRequested(startMode, args[1], args[2], args[3], args[4], true, format);
+        return;
+      }
+      if (format === "standard") {
+        onStartRequested(...args);
+        return;
+      }
+      onStartRequested(args[0], args[1], args[2], args[3], args[4], args[5], format);
+    },
+    [onStartRequested, format, unlimited],
+  );
   const [randomSelected, setRandomSelected] = useState(false);
   const [randomPoolScope, setRandomPoolScope] = useState<RandomDeckPool>("all");
   const [viewedDeck, setViewedDeck] = useState<DeckListing | null>(null);
   const [betaQueueChosen, setBetaQueueChosen] = useState(false);
   // Which modes route an unreleased-card deck into the separate beta queue.
-  const betaQueueMode = mode === "casual" || mode === "practice";
+  const betaQueueMode =
+    (format === "standard" && (mode === "casual" || mode === "practice")) ||
+    (format === "unlimited" && mode === "practice");
   // A private room is invite-only and both seats opt in by sharing the code, so it takes
   // an unreleased-card deck without the queue routing a public match needs.
   const betaAllowed = betaQueueMode || mode === "private";
@@ -282,10 +322,10 @@ export function Lobby({
     return decks
       .map((deck) => ({
         deck,
-        legal: deckLegality(deck, { unlimited }).legal && (betaAllowed || !deckHasBetaCards(deck)),
+        legal: deckLegality(deck, { unlimited, format }).legal && (betaAllowed || !deckHasBetaCards(deck)),
       }))
       .sort((a, b) => Number(b.legal) - Number(a.legal));
-  }, [decks, betaAllowed, unlimited]);
+  }, [decks, betaAllowed, unlimited, format]);
   const editDeck = useCallback(
     (deck: DeckListing) => {
       if (onEditDeck) {
@@ -329,10 +369,10 @@ export function Lobby({
       if (n > cap) violations.push({ id: members.join(" + "), n, cap });
     }
     return violations;
-  }, [active, unlimited]);
+  }, [active, unlimited, format]);
   const pairViolations = useMemo(
-    () => (active && !unlimited ? bannedPairViolations([...active.mainDeck, ...active.eggDeck]) : []),
-    [active, unlimited],
+    () => (active && !unlimited ? formatPairViolations([...active.mainDeck, ...active.eggDeck], format) : []),
+    [active, unlimited, format],
   );
   const customBotDeck =
     vsBot && botDeckId.startsWith("mine:") ? decks.find((deck) => deck.id === botDeckId.slice(5)) : undefined;
@@ -367,13 +407,13 @@ export function Lobby({
     !!active &&
     active.mainDeck.length === 50 &&
     active.eggDeck.length <= 5 &&
-    deckLegality(active, { unlimited }).legal &&
+    deckLegality(active, { unlimited, format }).legal &&
     banViolations.length === 0 &&
     pairViolations.length === 0 &&
     (betaCards.length === 0 || betaAllowed);
   const randomPool = useMemo(
-    () => randomDeckPool(decks, randomPoolScope, betaAllowed, unlimited),
-    [decks, randomPoolScope, betaAllowed, unlimited],
+    () => randomDeckPool(decks, randomPoolScope, betaAllowed, unlimited, format),
+    [decks, randomPoolScope, betaAllowed, unlimited, format],
   );
   const randomPoolLabel = t(randomPool.length === 1 ? "lobby.randomPoolOne" : "lobby.randomPool", {
     count: randomPool.length,
@@ -381,7 +421,7 @@ export function Lobby({
   const selectionLegal =
     (randomSelected ? randomPool.length > 0 : deckLegal) &&
     (!privateGuest || !!privateRoom || guestRules?.code === guestCode) &&
-    (!customBotDeck || deckLegality(customBotDeck, { unlimited }).legal);
+    (!customBotDeck || deckLegality(customBotDeck, { unlimited, format }).legal);
   const selectDeck = useCallback(
     (deckId: string) => {
       setRandomSelected(false);
@@ -429,75 +469,67 @@ export function Lobby({
     [active?.id, betaQueueMode, onStart, randomPool, randomSelected, customBotDeck, unlimited],
   );
   const launch: LaunchAction | null =
-    mode === "unlimited"
+    mode === "private" && privateRoom
       ? {
-          label: t("lobby.enterQueue"),
-          shortLabel: t("lobby.enterQueue"),
+          label: t(privateRoom.host ? "lobby.reopenRoom" : "lobby.rejoinRoom"),
+          shortLabel: t(privateRoom.host ? "redesign.play.short.reopen" : "redesign.play.short.rejoin"),
           icon: Icons.Swords,
           disabled: !selectionLegal,
-          onClick: () => start("unlimited"),
+          onClick: () => start(privateRoom.host ? "private_host" : "private_guest", privateRoom.code),
         }
-      : mode === "private" && privateRoom
+      : mode === "private" && privateSub === "create"
         ? {
-            label: t(privateRoom.host ? "lobby.reopenRoom" : "lobby.rejoinRoom"),
-            shortLabel: t(privateRoom.host ? "redesign.play.short.reopen" : "redesign.play.short.rejoin"),
-            icon: Icons.Swords,
+            label: t("lobby.createRoom"),
+            shortLabel: t("lobby.create"),
+            icon: Icons.Link2,
             disabled: !selectionLegal,
-            onClick: () => start(privateRoom.host ? "private_host" : "private_guest", privateRoom.code),
+            onClick: () => start("private_host"),
           }
-        : mode === "private" && privateSub === "create"
+        : mode === "private"
           ? {
-              label: t("lobby.createRoom"),
-              shortLabel: t("lobby.create"),
-              icon: Icons.Link2,
-              disabled: !selectionLegal,
-              onClick: () => start("private_host"),
+              label: t("lobby.joinRoom"),
+              shortLabel: t("lobby.join"),
+              icon: Icons.LogIn,
+              disabled: !selectionLegal || roomCodeInput.length < 4,
+              onClick: () => start("private_guest", roomCodeInput),
             }
-          : mode === "private"
+          : vsBot
             ? {
-                label: t("lobby.joinRoom"),
-                shortLabel: t("lobby.join"),
-                icon: Icons.LogIn,
-                disabled: !selectionLegal || roomCodeInput.length < 4,
-                onClick: () => start("private_guest", roomCodeInput),
+                label: t("lobby.playVsBot"),
+                shortLabel: t("redesign.play.short.bot"),
+                icon: Icons.Bot,
+                disabled: !selectionLegal,
+                onClick: () =>
+                  betaEnabled
+                    ? setBetaConfirmation("bot")
+                    : start("bot", undefined, botDeckId || undefined, betaOptedIn),
               }
-            : vsBot
+            : betaEnabled || betaOptedIn
               ? {
-                  label: t("lobby.playVsBot"),
-                  shortLabel: t("redesign.play.short.bot"),
-                  icon: Icons.Bot,
+                  label: t("lobby.enterQueue"),
+                  shortLabel: t("redesign.play.short.queue"),
+                  beta: true,
+                  icon: Icons.Swords,
                   disabled: !selectionLegal,
                   onClick: () =>
-                    betaEnabled
-                      ? setBetaConfirmation("bot")
-                      : start("bot", undefined, botDeckId || undefined, betaOptedIn),
+                    betaEnabled ? setBetaConfirmation("beta") : start("beta", undefined, undefined, true),
                 }
-              : betaEnabled || betaOptedIn
-                ? {
+              : RANKED_ENABLED && format === "standard"
+                ? // RankedStart owns its ranked toggle and button, so it stays in the setup panel.
+                  null
+                : {
                     label: t("lobby.enterQueue"),
                     shortLabel: t("redesign.play.short.queue"),
-                    beta: true,
                     icon: Icons.Swords,
                     disabled: !selectionLegal,
-                    onClick: () =>
-                      betaEnabled ? setBetaConfirmation("beta") : start("beta", undefined, undefined, true),
-                  }
-                : RANKED_ENABLED
-                  ? // RankedStart owns its ranked toggle and button, so it stays in the setup panel.
-                    null
-                  : {
-                      label: t("lobby.enterQueue"),
-                      shortLabel: t("redesign.play.short.queue"),
-                      icon: Icons.Swords,
-                      disabled: !selectionLegal,
-                      onClick: () => start("casual"),
-                    };
+                    onClick: () => start(unlimited ? "unlimited" : "casual"),
+                  };
   const deckStatus = deckLegal
     ? { tone: "legal", label: t("redesign.play.legal") }
     : pairViolations.length > 0 || banViolations.length > 0
       ? { tone: "banned", label: t("redesign.play.banlistIssue") }
       : { tone: "draft", label: t("redesign.play.draft") };
-  const modeTitle = mode === "unlimited" ? t("lobby.unlimited") : MODES.find((m) => m.key === mode)?.title;
+  const modeTitle = MODES.find((m) => m.key === mode)?.title;
 
   return (
     <main className="lobby-page">
@@ -536,14 +568,12 @@ export function Lobby({
                     {deckLegal ? <Icons.Check size={13} /> : null}
                     {deckStatus.label}
                   </span>
-                  {bestOf === 3 &&
-                  (mode === "casual" || mode === "unlimited" || (mode === "private" && privateSub === "create")) ? (
+                  {bestOf === 3 && (mode === "casual" || (mode === "private" && privateSub === "create")) ? (
                     <span className="lobby-timer-summary">
                       <Icons.Trophy size={13} /> {t("lobby.format.enabled")}
                     </span>
                   ) : null}
-                  {timer.matchTimer &&
-                  (mode === "casual" || mode === "unlimited" || (mode === "private" && privateSub === "create")) ? (
+                  {timer.matchTimer && (mode === "casual" || (mode === "private" && privateSub === "create")) ? (
                     <span className="lobby-timer-summary">
                       <Icons.Clock size={13} /> {t("lobby.timer.enabled")}
                     </span>
@@ -653,7 +683,7 @@ export function Lobby({
 
         <div className="lobby-modes">
           {MODES.map((m) => {
-            const sel = mode === m.key || (mode === "unlimited" && m.key === "casual");
+            const sel = mode === m.key;
             const Icon = m.icon;
             return (
               <button
@@ -685,6 +715,21 @@ export function Lobby({
           <h2 id="lobby-setup-title" className="lobby-setup__title">
             {t("redesign.play.setupTitle")}
           </h2>
+          <div className="lobby-setup__summary" aria-label={t("redesign.play.setupTitle")}>
+            <span>{deckFormatLabel(format, t)}</span>
+            {!privateGuest && !privateRoom ? (
+              <>
+                <span>
+                  <Icons.Trophy size={14} />{" "}
+                  {t(vsBot || bestOf === 1 ? "lobby.format.bestOf1" : "lobby.format.bestOf3")}
+                </span>
+                <span>
+                  <Icons.Clock size={14} />{" "}
+                  {t(!vsBot && timer.matchTimer ? "lobby.timer.enabled" : "redesign.play.timerOff")}
+                </span>
+              </>
+            ) : null}
+          </div>
           <div className="lobby-setup__body">
             <div className="lobby-setup__column">
               <p className="lobby-setup__notice">
@@ -710,6 +755,11 @@ export function Lobby({
                   {t("lobby.betaRequiredHint")}
                 </Alert>
               ) : null}
+              {active && deckLegality(active, { format }).formatViolations.length > 0 ? (
+                <Alert tone="warning">
+                  {t("deckFormat.violations", { count: deckLegality(active, { format }).formatViolations.length })}
+                </Alert>
+              ) : null}
               {banViolations.length > 0 ? (
                 <Alert className="lobby-alert" tone="danger" title={t("lobby.banlistTitle")}>
                   {banViolations.map(({ id, n, cap }) => (
@@ -729,115 +779,19 @@ export function Lobby({
                   ))}
                 </Alert>
               ) : null}
-              {mode !== "private" ? (
-                <dl className="lobby-details">
-                  {[
-                    [t("lobby.format"), unlimited ? t("lobby.unlimitedMeta") : t("lobby.formatValue")],
-                    [t("lobby.players"), vsBot ? t("lobby.playersBot") : t("lobby.playersHuman")],
-                    [t("lobby.identity"), player.name],
-                  ].map(([label, value]) => (
-                    <div key={label} className="lobby-details__row">
-                      <dt>{label}</dt>
-                      <dd>{value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              ) : null}
             </div>
 
             <div className="lobby-setup__column">
-              {mode === "casual" ||
-              mode === "unlimited" ||
-              mode === "practice" ||
-              (mode === "private" && privateSub === "create" && !privateRoom) ? (
-                <div className="lobby-match-rules">
-                  {!vsBot ? (
-                    <>
-                      <MatchFormatSettings bestOf={bestOf} onChange={changeBestOf} />
-                      <MatchTimerSettings options={timer} onChange={changeTimer} privateRoom={mode === "private"} />
-                    </>
-                  ) : null}
-                  {mode === "casual" ||
-                  mode === "unlimited" ||
-                  vsBot ||
-                  (mode === "private" && !privateRoom && !privateGuest) ? (
-                    <div className="lobby-format-settings lobby-unlimited-settings">
-                      <div className="lobby-timer-settings__header">
-                        <span id="lobby-unlimited-label" className="lobby-timer-settings__label">
-                          <span aria-hidden="true">
-                            <Icons.Swords size={20} />
-                          </span>
-                          {t("lobby.unlimited")}
-                        </span>
-                        <div className="lobby-timer-settings__control">
-                          <span className="lobby-timer-settings__status">
-                            {t(unlimited ? "lobby.timer.on" : "lobby.timer.off")}
-                          </span>
-                          <button
-                            type="button"
-                            role="switch"
-                            className="lobby-timer-switch"
-                            aria-checked={unlimited}
-                            aria-labelledby="lobby-unlimited-label"
-                            aria-describedby="lobby-unlimited-hint"
-                            onClick={() =>
-                              mode === "casual" || mode === "unlimited"
-                                ? setMode(unlimited ? "casual" : "unlimited")
-                                : setLocalUnlimited(!localUnlimited)
-                            }
-                          >
-                            <span />
-                          </button>
-                        </div>
-                      </div>
-                      <p id="lobby-unlimited-hint" className="lobby-timer-settings__hint">
-                        {t(vsBot || mode === "private" ? "lobby.unlimitedLocalDesc" : "lobby.unlimitedDesc")}{" "}
-                        {t("lobby.unlimitedMeta")}
-                      </p>
-                    </div>
-                  ) : null}
-                </div>
-              ) : mode === "private" ? (
+              {mode === "private" && (privateGuest || privateRoom) ? (
                 <div>
                   <p className="lobby-timer-hint">{t("lobby.timer.guestHint")}</p>
                   <p role="status">
                     {privateRoom || guestRules?.code === guestCode
-                      ? t("lobby.hostBanlist", { mode: t(unlimited ? "lobby.unlimited" : "lobby.standardBanlist") })
+                      ? t("lobby.hostBanlist", {
+                          mode: format === "standard" ? t("lobby.standardBanlist") : deckFormatLabel(format, t),
+                        })
                       : t(guestLookupFailed ? "lobby.roomLookupFailed" : "lobby.roomRulesPending")}
                   </p>
-                </div>
-              ) : null}
-              {betaOptional ? (
-                <label className="lobby-beta-option">
-                  <input
-                    type="checkbox"
-                    checked={betaQueueChosen}
-                    onChange={(event) => setBetaQueueChosen(event.target.checked)}
-                  />
-                  <span>
-                    <strong>{t("lobby.betaQueueOption")}</strong>
-                    <span className="lobby-beta-option__description">
-                      {t(vsBot ? "lobby.betaQueueOptionBotHint" : "lobby.betaQueueOptionHint")}
-                    </span>
-                  </span>
-                </label>
-              ) : null}
-              {randomSelected ? (
-                <div className="lobby-random-pool">
-                  <span id="lobby-random-pool-label">{t("lobby.randomPoolLabel")}</span>
-                  <div role="group" aria-labelledby="lobby-random-pool-label">
-                    {(["mine", "famous", "all"] as const).map((scope) => (
-                      <button
-                        type="button"
-                        key={scope}
-                        className={randomPoolScope === scope ? "is-selected" : undefined}
-                        aria-pressed={randomPoolScope === scope}
-                        onClick={() => setRandomPoolScope(scope)}
-                      >
-                        {t(`lobby.filter${scope === "mine" ? "Mine" : scope === "famous" ? "Famous" : "All"}`)}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               ) : null}
               {mode === "private" && privateRoom ? (
@@ -850,59 +804,7 @@ export function Lobby({
                   roomCode={roomCodeInput}
                   onRoomCode={setRoomCodeInput}
                 />
-              ) : vsBot ? (
-                <div className="lobby-bot-deck">
-                  <label htmlFor="lobby-bot-deck">{t("lobby.botDeck")}</label>
-                  <select
-                    id="lobby-bot-deck"
-                    className="lobby-bot-deck-select"
-                    value={botDeckId}
-                    onChange={(event) => setBotDeckId(event.target.value)}
-                  >
-                    <option value="">{t("lobby.botDeckRandom")}</option>
-                    <optgroup label={t("lobby.filterMine")}>
-                      {decks.map((deck) => (
-                        <option
-                          key={deck.id}
-                          value={`mine:${deck.id}`}
-                          disabled={!deckLegality(deck, { unlimited }).legal}
-                        >
-                          {deck.name}
-                        </option>
-                      ))}
-                    </optgroup>
-                    {FAMOUS_DECK_GROUPS.map((group) => (
-                      <optgroup key={group.collection} label={group.collection}>
-                        {group.decks.map((deck) => (
-                          <option key={deck.id} value={deck.id}>
-                            {deck.name}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                  {botPreview ? (
-                    <div className="lobby-bot-preview">
-                      <span className="lobby-active-strip__thumb">
-                        <CoverThumb
-                          coverCardId={displayCoverCard(botPreview)}
-                          sigilColor={botPreview.color}
-                          sigilSize={22}
-                        />
-                      </span>
-                      <div className="lobby-bot-preview__copy">
-                        <strong>{botPreview.name}</strong>
-                        <small>
-                          {t("redesign.play.deckCounts", {
-                            main: botPreview.mainDeck.length,
-                            egg: botPreview.eggDeck.length,
-                          })}
-                        </small>
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-              ) : mode !== "unlimited" && !betaEnabled && !betaOptedIn && RANKED_ENABLED ? (
+              ) : !vsBot && format === "standard" && !betaEnabled && !betaOptedIn && RANKED_ENABLED ? (
                 <RankedStart
                   disabled={!selectionLegal}
                   actionClassName="lobby-setup__launch"
@@ -913,10 +815,147 @@ export function Lobby({
               ) : null}
             </div>
           </div>
+          <details className="lobby-advanced">
+            <summary>
+              {t("redesign.play.advancedSettings")} <Icons.ChevronDown size={16} />
+            </summary>
+            <div className="lobby-advanced__content">
+              {!privateGuest || privateRoom || guestRules?.code === guestCode ? (
+                <DeckFormatSelector
+                  value={format}
+                  onChange={changeFormat}
+                  disabled={(mode === "private" && !!privateRoom) || privateGuest}
+                />
+              ) : null}
+              <div className="lobby-setup__body">
+                <div className="lobby-setup__column">
+                  {mode === "casual" || (mode === "private" && privateSub === "create" && !privateRoom) ? (
+                    <div className="lobby-match-rules">
+                      {!vsBot ? (
+                        <>
+                          <MatchFormatSettings bestOf={bestOf} onChange={changeBestOf} />
+                          <MatchTimerSettings options={timer} onChange={changeTimer} privateRoom={mode === "private"} />
+                        </>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+                <div className="lobby-setup__column">
+                  {vsBot ? (
+                    <div className="lobby-bot-deck">
+                      <label htmlFor="lobby-bot-deck">{t("lobby.botDeck")}</label>
+                      <select
+                        id="lobby-bot-deck"
+                        className="lobby-bot-deck-select"
+                        value={botDeckId}
+                        onChange={(event) => setBotDeckId(event.target.value)}
+                      >
+                        <option value="">{t("lobby.botDeckRandom")}</option>
+                        <optgroup label={t("lobby.filterMine")}>
+                          {decks.map((deck) => (
+                            <option
+                              key={deck.id}
+                              value={`mine:${deck.id}`}
+                              disabled={!deckLegality(deck, { unlimited, format }).legal}
+                            >
+                              {deck.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                        {FAMOUS_DECK_GROUPS.map((group) => (
+                          <optgroup key={group.collection} label={group.collection}>
+                            {group.decks.map((deck) => (
+                              <option
+                                key={deck.id}
+                                value={deck.id}
+                                disabled={
+                                  !deckLegality(deck, { format }).legal || (!betaAllowed && deckHasBetaCards(deck))
+                                }
+                              >
+                                {deck.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                      {botPreview ? (
+                        <div className="lobby-bot-preview">
+                          <span className="lobby-active-strip__thumb">
+                            <CoverThumb
+                              coverCardId={displayCoverCard(botPreview)}
+                              sigilColor={botPreview.color}
+                              sigilSize={22}
+                            />
+                          </span>
+                          <div className="lobby-bot-preview__copy">
+                            <strong>{botPreview.name}</strong>
+                            <small>
+                              {t("redesign.play.deckCounts", {
+                                main: botPreview.mainDeck.length,
+                                egg: botPreview.eggDeck.length,
+                              })}
+                            </small>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  {betaOptional ? (
+                    <label className="lobby-beta-option">
+                      <input
+                        type="checkbox"
+                        checked={betaQueueChosen}
+                        onChange={(event) => setBetaQueueChosen(event.target.checked)}
+                      />
+                      <span>
+                        <strong>{t("lobby.betaQueueOption")}</strong>
+                        <span className="lobby-beta-option__description">
+                          {t(vsBot ? "lobby.betaQueueOptionBotHint" : "lobby.betaQueueOptionHint")}
+                        </span>
+                      </span>
+                    </label>
+                  ) : null}
+                  {randomSelected ? (
+                    <div className="lobby-random-pool">
+                      <span id="lobby-random-pool-label">{t("lobby.randomPoolLabel")}</span>
+                      <div role="group" aria-labelledby="lobby-random-pool-label">
+                        {(["mine", "famous", "all"] as const).map((scope) => (
+                          <button
+                            type="button"
+                            key={scope}
+                            className={randomPoolScope === scope ? "is-selected" : undefined}
+                            aria-pressed={randomPoolScope === scope}
+                            onClick={() => setRandomPoolScope(scope)}
+                          >
+                            {t(`lobby.filter${scope === "mine" ? "Mine" : scope === "famous" ? "Famous" : "All"}`)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                  {mode !== "private" ? (
+                    <dl className="lobby-details">
+                      {[
+                        [t("lobby.format"), deckFormatLabel(format, t)],
+                        [t("lobby.players"), vsBot ? t("lobby.playersBot") : t("lobby.playersHuman")],
+                        [t("lobby.identity"), player.name],
+                      ].map(([label, value]) => (
+                        <div key={label} className="lobby-details__row">
+                          <dt>{label}</dt>
+                          <dd>{value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </details>
         </section>
 
         <DeckPicker
           ownDecks={userDecks}
+          format={format}
           activeDeckId={activeDeckId}
           randomSelected={randomSelected}
           randomPoolSize={randomPool.length}
