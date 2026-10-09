@@ -44,21 +44,19 @@ describe("GitHub #5354/#5355: Crimson Blaze blocks Paildramon Partition", () => 
           const holderId = s.perm("holder").permanentId;
           const blueId = s.inst("blue").instanceId;
           const greenId = s.inst("green").instanceId;
-          if (useBlaze) {
-            expect(
-              s.engine.applyIntent(actingSeat, { type: "playCard", instanceId: s.inst("blaze").instanceId }),
-            ).toEqual({ ok: true });
+          async function useOption(alias: "blaze" | "gaia") {
+            const instanceId = s.inst(alias).instanceId;
+            expect(s.engine.applyIntent(actingSeat, { type: "playCard", instanceId })).toEqual({ ok: true });
             await settle(
               () =>
-                s.state.players[actingSeat]!.trash.some((card) => card.cardId === "BT8-097") &&
+                s.state.players[actingSeat]!.trash.some((card) => card.instanceId === instanceId) &&
                 s.state.pendingDecision === undefined,
             );
-            // Printed DP is above 6000: Blaze installs the restriction, Gaia causes departure.
-            expect(s.state.players[opponent]!.battleArea.some((p) => p.permanentId === holderId)).toBe(true);
           }
-          expect(s.engine.applyIntent(actingSeat, { type: "playCard", instanceId: s.inst("gaia").instanceId })).toEqual(
-            { ok: true },
-          );
+          if (useBlaze) await useOption("blaze");
+          // Printed DP is above 6000: Blaze installs the restriction, Gaia causes departure.
+          expect(s.state.players[opponent]!.battleArea.some((p) => p.permanentId === holderId)).toBe(true);
+          await useOption("gaia");
           await settle(
             () =>
               !s.state.players[opponent]!.battleArea.some((p) => p.permanentId === holderId) &&
@@ -68,7 +66,12 @@ describe("GitHub #5354/#5355: Crimson Blaze blocks Paildramon Partition", () => 
             useBlaze ? [] : [blueId, greenId].sort(),
           );
           expect(
-            s.events.filter((event) => event.kind === "cardPlayed" && [blueId, greenId].includes(event.instanceId)),
+            s.events.filter(
+              (event) =>
+                event.kind === "cardPlayed" &&
+                event.instanceId !== undefined &&
+                [blueId, greenId].includes(event.instanceId),
+            ),
           ).toHaveLength(useBlaze ? 0 : 2);
           expect(s.state.players[opponent]!.trash.some((card) => card.instanceId === blueId)).toBe(useBlaze);
           expect(s.state.players[opponent]!.trash.some((card) => card.instanceId === greenId)).toBe(useBlaze);
@@ -76,5 +79,67 @@ describe("GitHub #5354/#5355: Crimson Blaze blocks Paildramon Partition", () => 
         },
       );
     }
+  }
+
+  for (const actingSeat of [0, 1] as const) {
+    const opponent = (1 - actingSeat) as Seat;
+    it.each([false, true])(
+      `Oracle match: seat ${actingSeat}, Crimson Blaze=%s, Atho removes Imperialdramon`,
+      async (useBlaze) => {
+        const s = setupEngine(
+          {
+            [actingSeat]: {
+              battleArea: [{ card: "EX13-014", as: "atho" }],
+              hand: [
+                { card: "BT8-097", as: "blaze" },
+                { card: "BT1-009", as: "monodramon" },
+              ],
+            },
+            [opponent]: {
+              battleArea: [
+                {
+                  card: "ST9-06",
+                  as: "imperialdramon",
+                  under: ["BT12-002", { card: "BT12-022", as: "blue" }, { card: "BT12-050", as: "green" }, "BT16-025"],
+                },
+              ],
+            },
+          },
+          { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+        );
+        s.state.turnSeat = actingSeat;
+        s.state.memory = 10;
+        await s.ready();
+        const holderId = s.perm("imperialdramon").permanentId;
+        const materials = [s.inst("blue").instanceId, s.inst("green").instanceId];
+        async function play(alias: "blaze" | "monodramon") {
+          expect(s.engine.applyIntent(actingSeat, { type: "playCard", instanceId: s.inst(alias).instanceId })).toEqual({
+            ok: true,
+          });
+          await settle();
+        }
+        if (useBlaze) await play("blaze");
+        await play("monodramon");
+        await settle(
+          () =>
+            !s.state.players[opponent]!.battleArea.some((p) => p.permanentId === holderId) &&
+            s.state.pendingDecision === undefined,
+        );
+        expect(s.state.players[opponent]!.battleArea.map((p) => p.topCard.instanceId).sort()).toEqual(
+          useBlaze ? [] : [...materials].sort(),
+        );
+        // Restore the interrupted source seat: Atho's remaining effect may play its own token.
+        expect(
+          s.state.players[actingSeat]!.battleArea.some((p) => p.topCard.cardId === "TOKEN-AthoRenePor-Token"),
+        ).toBe(true);
+        expect(
+          s.events.filter(
+            (event) =>
+              event.kind === "cardPlayed" && event.instanceId !== undefined && materials.includes(event.instanceId),
+          ),
+        ).toHaveLength(useBlaze ? 0 : 2);
+        assertNoLoudGap(s);
+      },
+    );
   }
 });
