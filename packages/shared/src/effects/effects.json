@@ -237266,11 +237266,7 @@
                 "cost": {
                   "kind": "place",
                   "target": {
-                    "filter": {
-                      "controller": "mine",
-                      "kind": ["Digimon"],
-                      "nameOrTrait": [{ "tokens": ["Knightmon"], "match": "text" }]
-                    },
+                    "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Knightmon"], "match": "text" }] },
                     "count": 1,
                     "from": ["hand", "trash"]
                   },
@@ -237303,11 +237299,7 @@
                 "cost": {
                   "kind": "place",
                   "target": {
-                    "filter": {
-                      "controller": "mine",
-                      "kind": ["Digimon"],
-                      "nameOrTrait": [{ "tokens": ["Knightmon"], "match": "text" }]
-                    },
+                    "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Knightmon"], "match": "text" }] },
                     "count": 1,
                     "from": ["hand", "trash"]
                   },
