@@ -623,14 +623,14 @@
     },
     {
       "id": "ex7-dgo-2024-10-12-2-ancientgarurumon",
-      "revision": 2,
+      "revision": 3,
       "name": "EX7 AncientGarurumon",
       "archetype": "AncientGarurumon",
       "collection": "EX7",
       "formatBlock": "EX7",
       "colors": ["Blue", "Yellow", "White"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Bokomon BT7-081 to 2.",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Bokomon BT7-081 to 2. Adapted to the current banlist (2025-03-28): Lobomon P-030 to 1; the freed copies reinforce Bokomon BT7-081 to 4.",
       "tournament": {
         "name": "Regionals — Organized Play Events",
         "date": "2024-10-12",
@@ -664,7 +664,7 @@
         {
           "cardId": "BT7-081",
           "name": "Bokomon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -676,7 +676,7 @@
         {
           "cardId": "P-030",
           "name": "Lobomon",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {

@@ -555,14 +555,14 @@
     },
     {
       "id": "bt18-dgo-2024-11-16-4-ancientgreymon",
-      "revision": 2,
+      "revision": 3,
       "name": "BT18 AncientGreymon",
       "archetype": "AncientGreymon",
       "collection": "BT18",
       "formatBlock": "BT18-19",
       "colors": ["Red", "White", "Purple", "Yellow", "Blue"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Takuya Kanbara BT17-079 to 4, Takuya Kanbara & Koji Minamoto BT18-088 to 4, Takuya Kanbara BT12-088 to 2.",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Takuya Kanbara BT17-079 to 4, Takuya Kanbara & Koji Minamoto BT18-088 to 4, Takuya Kanbara BT12-088 to 2. Adapted to the current banlist (2025-03-28): Agunimon P-029 to 1; the freed copies reinforce Agunimon BT18-011 to 4.",
       "tournament": {
         "name": "TAK Games Ultimate Cup",
         "date": "2024-11-16",
@@ -606,7 +606,7 @@
         {
           "cardId": "P-029",
           "name": "Agunimon",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -624,7 +624,7 @@
         {
           "cardId": "BT18-011",
           "name": "Agunimon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {

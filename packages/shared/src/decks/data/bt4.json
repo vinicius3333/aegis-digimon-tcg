@@ -275,14 +275,14 @@
     },
     {
       "id": "bt4-dgo-2021-06-26-3-imperialdramon",
-      "revision": 2,
+      "revision": 3,
       "name": "BT4 Imperialdramon",
       "archetype": "Imperialdramon",
       "collection": "BT4",
       "formatBlock": "BT4",
       "colors": ["Blue"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist: ST2-13 was reduced to 1; the freed slots reinforce existing blue Digimon lines.",
+      "approximation": "Adapted to the current banlist: ST2-13 was reduced to 1; the freed slots reinforce existing blue Digimon lines. Adapted to the current banlist (2025-03-28): Lobomon P-030 to 1; the freed copies reinforce Lobomon BT4-025 to 4 and AncientGarurumon BT4-114 to 3.",
       "tournament": {
         "name": "Online Premier TO event",
         "date": "2021-06-26",
@@ -324,13 +324,13 @@
         {
           "cardId": "BT4-025",
           "name": "Lobomon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "P-030",
           "name": "Lobomon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -360,7 +360,7 @@
         {
           "cardId": "BT4-114",
           "name": "AncientGarurumon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
