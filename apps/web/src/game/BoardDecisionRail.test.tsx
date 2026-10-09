@@ -312,18 +312,10 @@ describe("BoardOptionalPrompt", () => {
     expect(onDecline).toHaveBeenCalledTimes(1);
   });
 
-  it("asks the engine's own question when it sent one", () => {
-    renderIn(
-      <BoardOptionalPrompt
-        sourceCardId="ST1-07"
-        prompt="Activate Blitz?"
-        clause="Draw 1 card."
-        onUse={noop}
-        onDecline={noop}
-      />,
-    );
-    expect(screen.getByText("Activate Blitz?")).toBeTruthy();
-    expect(screen.queryByText("Use this effect?")).toBeNull();
+  it("keeps the standard activation question above the clause", () => {
+    renderIn(<BoardOptionalPrompt sourceCardId="ST1-07" clause="Draw 1 card." onUse={noop} onDecline={noop} />);
+    expect(screen.getByText("Use this effect?")).toBeTruthy();
+    expect(screen.getByText("Draw 1 card.")).toBeTruthy();
   });
 
   it("offers no way into the dialog beyond Escape, since the dialog shows nothing more", () => {

@@ -274,10 +274,12 @@ export function DecisionPrompts({
         <BoardOptionalPrompt
           key={decision.decisionId}
           sourceCardId={sourceCardId}
-          prompt={
+          contextText={
             decision.options?.promptKey === "attackAlreadyResolving"
               ? t("overlay.attackAlreadyResolving")
-              : playerFacingPromptText(decision.promptText, decision.kind)
+              : clause
+                ? undefined
+                : playerFacingPromptText(decision.promptText, decision.kind)
           }
           sourcePermanentId={decision.sourcePermanentId}
           clause={clause}

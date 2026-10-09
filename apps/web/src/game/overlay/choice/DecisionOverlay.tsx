@@ -222,15 +222,21 @@ export function DecisionOverlay({
           request.options?.effectTextPart ? sourceEffectText : undefined,
         );
   const promptText =
-    request.options?.selectionContext === "attackTarget"
-      ? t("overlay.declareAttack")
-      : isPartitionActivation
-        ? t("overlay.activatePartitionPrompt")
-        : request.options?.promptKey === "activateBlitz"
-          ? t("overlay.activateBlitzPrompt")
-          : !specificPrompt || (sourceCardId && specificPrompt === printedCardName(sourceCardId))
-            ? genericPrompt
-            : specificPrompt;
+    isOptional || (isChoose && declineIndex !== undefined)
+      ? t("overlay.useEffectPrompt")
+      : request.options?.selectionContext === "attackTarget"
+        ? t("overlay.declareAttack")
+        : isPartitionActivation
+          ? t("overlay.activatePartitionPrompt")
+          : request.options?.promptKey === "activateBlitz"
+            ? t("overlay.activateBlitzPrompt")
+            : !specificPrompt || (sourceCardId && specificPrompt === printedCardName(sourceCardId))
+              ? genericPrompt
+              : specificPrompt;
+
+  // Older decisions may carry their only effect description in the question.
+  // Keep that context in the body while all activations share the same heading.
+  const displayedEffectText = sourceEffectText ?? (isOptional ? specificPrompt : undefined);
 
   const boardReturn = isViewingBoard ? (
     <DecisionBoardReturn returnControlRef={returnControlRef} onReturn={() => setIsViewingBoard(false)} />
@@ -328,8 +334,11 @@ export function DecisionOverlay({
                   {isResolutionPlan ? t("overlay.orderPendingEffects") : promptText}
                 </h2>
               </div>
-              {!isOrderTriggers && sourceEffectText && onChangeSourceHost === undefined ? (
-                <p className="decision-overlay__effect-text">{sourceEffectText}</p>
+              {!isOrderTriggers && displayedEffectText && onChangeSourceHost === undefined ? (
+                <p className="decision-overlay__effect-text">{displayedEffectText}</p>
+              ) : null}
+              {isOptional && request.options?.promptKey === "attackAlreadyResolving" && sourceEffectText ? (
+                <p className="decision-overlay__effect-text">{specificPrompt}</p>
               ) : null}
               {onChangeSourceHost ? (
                 <Button size="sm" variant="ghost" icon={Icons.ArrowLeft} onClick={onChangeSourceHost}>

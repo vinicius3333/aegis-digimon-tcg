@@ -435,7 +435,7 @@ export function BoardSourceHostPrompt({
 export function BoardOptionalPrompt({
   sourceCardId,
   sourcePermanentId,
-  prompt,
+  contextText,
   clause,
   onUse,
   onDecline,
@@ -443,8 +443,8 @@ export function BoardOptionalPrompt({
 }: {
   sourceCardId?: string;
   sourcePermanentId?: string;
-  /** The engine's question, already filtered of internal summaries; falls back to a generic one. */
-  prompt?: string;
+  /** Additional decision context belongs below the standard activation heading. */
+  contextText?: string;
   clause?: string;
   onUse: () => void;
   onDecline: () => void;
@@ -462,8 +462,9 @@ export function BoardOptionalPrompt({
       // The art is the card, so the name below it would only repeat the picture. The link
       // is kept when there is no art to show instead.
       art={sourceCardId}
-      prompt={prompt ?? t("overlay.useEffectPrompt")}
-      clause={clause}
+      prompt={t("overlay.useEffectPrompt")}
+      clause={clause ?? contextText}
+      detail={clause ? contextText : undefined}
       // The dialog shows nothing the rail does not, so Escape is the only way back to it.
       onOpenDialog={onOpenDialog}
     >

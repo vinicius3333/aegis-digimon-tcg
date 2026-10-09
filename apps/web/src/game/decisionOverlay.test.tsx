@@ -19,6 +19,23 @@ import { choiceLabel } from "./overlay/choice/decisionChoiceLabels";
 
 afterEach(() => cleanup());
 
+it("keeps Sakuyamon's optional cost in the clause under the standard activation heading", () => {
+  const cost = "By placing 1 of your opponent's Digimon with the lowest DP as the bottom security card";
+  const clause =
+    "[All Turns] [Once Per Turn] When you use Option cards or your security stack is removed from, by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card, trash their top security card.";
+  renderDecision({
+    decisionId: "sakuyamon-optional-cost",
+    seat: 0,
+    kind: "optional",
+    sourceCardId: "ST22-06",
+    promptText: cost,
+    options: { timing: "AllTurns", effectTextPart: clause },
+  });
+  expect(screen.getByRole("heading", { name: "Use this effect?" })).toBeTruthy();
+  expect(screen.queryByRole("heading", { name: cost })).toBeNull();
+  expect(document.querySelector(".decision-overlay__effect-text")?.textContent).toBe(clause);
+});
+
 it.each([
   ["EX13-015", 1],
   ["AD1-003", 1],
@@ -1357,7 +1374,7 @@ describe("EX3-063 Imperialdramon: Dragon Mode decisions", () => {
     expect(screen.getByRole("button", { name: "Yes, activate" })).toBeTruthy();
   });
 
-  it("uses the friendly Blitz question and activates it from Dragon Mode", () => {
+  it("uses the standard activation question for Dragon Mode's Blitz", () => {
     const { onRespond } = renderDecision({
       decisionId: "dragon-mode-blitz",
       seat: 0,
@@ -1367,7 +1384,7 @@ describe("EX3-063 Imperialdramon: Dragon Mode decisions", () => {
       options: { promptKey: "activateBlitz", timing: "WhenDigivolving", effectText: dnaText },
     });
 
-    expect(screen.getByText("Do you want to activate Blitz?")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Use this effect?" })).toBeTruthy();
     expect(screen.getByText(cardEffectClauseForTiming("EX3-063", "WhenDigivolving")!)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Yes, activate" }));
     expect(onRespond).toHaveBeenCalledWith({ kind: "optional", accept: true });
@@ -1443,7 +1460,7 @@ describe("EX3-065 Hina Kurihara decisions", () => {
     });
 
     expect(screen.getByText(cardEffectClauseForTiming("EX3-065", "YourTurn")!)).toBeTruthy();
-    expect(screen.getByText("Activate Hina Kurihara's effect?")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Use this effect?" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "No, decline" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Yes, activate" }));
     expect(onRespond).toHaveBeenCalledWith({ kind: "optional", accept: true });
@@ -1603,7 +1620,7 @@ describe("EX3-068 God Flame decisions", () => {
     });
 
     expect(screen.getByText(mainText)).toBeTruthy();
-    expect(screen.getByText("Return 1 to hand?")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Use this effect?" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "No, decline" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Yes, activate" })).toBeTruthy();
   });
@@ -1956,7 +1973,7 @@ describe("EX3-040 Parasaurmon decisions", () => {
       options: { timing: "YourTurn", effectText },
     });
 
-    expect(screen.getByText("Suspend Parasaurmon to reduce this green Digimon's play cost by 1?")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Use this effect?" })).toBeTruthy();
     expect(screen.getByText(effectText)).toBeTruthy();
     expect(screen.getByRole("button", { name: "No, decline" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Yes, activate" })).toBeTruthy();
@@ -2268,8 +2285,6 @@ describe("EX3-041 Groundramon decisions", () => {
   it("shows only the friendly end-turn DNA clause and both optional actions", () => {
     const fullText =
       "Digivolve: 3 from [Coredramon]＜Blocker＞ (When an opponent's Digimon attacks, you may suspend this Digimon to force the opponent to attack it instead.) [Your Turn] [Examon] in your hand can treat this Digimon as level 6 for DNA digivolution.[End of Your Turn] This Digimon and 1 of your other Digimon with [Dramon] in its name may DNA digivolve into a Digimon card in your hand by paying its DNA digivolve cost.";
-    const endTurnClause =
-      "[End of Your Turn] This Digimon and 1 of your other Digimon with [Dramon] in its name may DNA digivolve into a Digimon card in your hand by paying its DNA digivolve cost.";
     renderDecision({
       decisionId: "groundramon-end-turn-dna",
       seat: 0,
@@ -2353,9 +2368,7 @@ describe("EX3-043 Entmon decisions", () => {
       options: { timing: "Static", effectText: digisorptionEffect },
     });
 
-    expect(
-      screen.getByText("＜Digisorption -3＞: suspend 1 Digimon to reduce the digivolution cost by 3?"),
-    ).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Use this effect?" })).toBeTruthy();
     expect(
       screen.getByText(getCardDefinition("EX3-043")!.effectText!.match(/＜Digisorption[^＞]*＞/)![0]),
     ).toBeTruthy();
@@ -2402,8 +2415,6 @@ describe("EX3-044 Breakdramon decisions", () => {
   it("shows only the friendly suspension clause and exposes the opposing Digimon action", () => {
     const fullText =
       "Digivolve: 3 from [Groundramon] or [Wingdramon][All Turns][Once Per Turn] When this Digimon becomes suspended, suspend 1 of your opponent's Digimon.[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.";
-    const suspensionClause =
-      "[All Turns][Once Per Turn] When this Digimon becomes suspended, suspend 1 of your opponent's Digimon.";
 
     render(
       <I18nProvider>
@@ -2450,7 +2461,7 @@ describe("EX3-045 Hydramon decisions", () => {
       options: { timing: "WhenDigivolving", effectText },
     });
 
-    expect(screen.getByText("Activate Hydramon's effect?")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Use this effect?" })).toBeTruthy();
     expect(screen.getByText(effectText)).toBeTruthy();
     expect(screen.getByRole("button", { name: "No, decline" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Yes, activate" })).toBeTruthy();
@@ -3568,7 +3579,7 @@ describe("decision board preview", () => {
     // The art says which card asked; the sheet no longer spells its name out above the clause.
     expect(screen.queryByText("BetelGammamon · effect")).toBeNull();
     expect(screen.getByRole("dialog", { name: "BetelGammamon · effect" })).toBeTruthy();
-    expect(screen.getByText("Do you want to activate Blitz?")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Use this effect?" })).toBeTruthy();
     expect(screen.getByText(/\[When Digivolving\].*Blitz/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Yes, activate" }));
     expect(onRespond).toHaveBeenCalledWith({ kind: "optional", accept: true });
