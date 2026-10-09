@@ -590,6 +590,7 @@ export interface AegisJoinOptions {
     | "arena-issue-4892-effect-digixros"
     | "arena-moon-pending-source-deleted"
     | "arena-mirage-hidden-hand"
+    | "arena-kanan-jupiter-pomumon"
     | "arena-bt22-akemi-battle-mother"
     | "arena-p224-kotone-own-source"
     | "arena-bt25-ceresmon-homeros-suspend"

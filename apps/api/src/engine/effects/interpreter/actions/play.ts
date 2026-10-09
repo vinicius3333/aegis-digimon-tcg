@@ -104,6 +104,20 @@ export function candidatesAllowedBySameNameRestriction<T extends { cardId: strin
   });
 }
 
+/** DUAL candidates that reach play-or-use resolve as Options, never as played Digimon. */
+export function isEffectPlayProhibited(ctx: EffectContext, card: { cardId: string }): boolean {
+  const isProhibited = ctx.fx.isPlayProhibited;
+  if (isProhibited === undefined) return false;
+  const definition = ctx.game.definitionOf({ cardId: card.cardId } as never);
+  return (
+    isProhibited(
+      ctx.source.ownerSeat,
+      card.cardId,
+      definition.kinds.includes(CardKind.Option) ? "useOption" : "play",
+    ) === true
+  );
+}
+
 export function playableCandidates<T extends { instanceId: string; cardId: string }>(
   ctx: EffectContext,
   target: Target | undefined,
@@ -621,7 +635,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // Seat-level RestrictPlay: drop candidates the resolving effect's owner is forbidden
       // from playing (the effect is attributed to ctx.source.ownerSeat, so the prohibition on
       // THAT seat applies — Q4676; the source player's own effects are unaffected — Q4675).
-      candidates = candidates.filter((c) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, c.cardId, "play"));
+      candidates = candidates.filter((c) => !isEffectPlayProhibited(ctx, c));
       if (action.target?.filter?.excludeSameNameAsOwnTamers === true) {
         const ownTamerNames = new Set<string>();
         for (const permanent of ctx.game.player(ctx.source.ownerSeat).battleArea) {

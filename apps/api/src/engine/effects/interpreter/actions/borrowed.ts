@@ -525,7 +525,7 @@ function optionUseCandidates(
       ctx.game.optionColorRequirementMet?.(seat, candidate.instanceId, def) === false
     )
       return;
-    if (ctx.fx.isPlayProhibited?.(seat, candidate.cardId, "play") === true) return;
+    if (ctx.fx.isPlayProhibited?.(seat, candidate.cardId, "useOption") === true) return;
     candidates.push(candidate.instanceId);
   };
   for (const zone of zones) {

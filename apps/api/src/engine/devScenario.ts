@@ -378,6 +378,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-issue-4892-effect-digixros",
   "arena-moon-pending-source-deleted",
   "arena-mirage-hidden-hand",
+  "arena-kanan-jupiter-pomumon",
   "arena-bt22-akemi-battle-mother",
   "arena-p224-kotone-own-source",
   "arena-bt25-ceresmon-homeros-suspend",
@@ -6898,6 +6899,39 @@ function layBt25CeresmonHomerosSuspendScenario(state: GameState, decks: readonly
   }
 }
 
+/** Discord 1557920953437261854: Pomumon must not block a DUAL's Option face. */
+function layKananJupiterPomumonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 5);
+  for (const player of state.players) {
+    clearBattleArea(player);
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Security);
+    setBreeding(player, undefined);
+    for (let index = 0; index < 3; index += 1) {
+      insertCard(
+        player,
+        Zone.Security,
+        faceDownCard(`dev-kanan-security-${player.seat}-${index}`, "BT1-009", player.seat),
+      );
+    }
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT26-090"], "-kanan"));
+  placePermanent(human, establishedDigimon(0, ["BT9-047"], "-pomumon"));
+  const raising = establishedDigimon(0, ["BT1-010"], "-kanan-raising");
+  raising.inBreeding = true;
+  setBreeding(human, raising);
+  insertCard(human, Zone.Hand, faceDownCard("dev-kanan-jupiter-1", "BT26-033", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-kanan-jupiter-2", "BT26-033", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-kanan-central", "BT24-094", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-kanan-titamon", "BT1-080", 0));
+  // Neutral draws keep Kanan's picker limited to the three intended Options.
+  for (let index = 0; index < 2; index += 1) {
+    insertCard(human, Zone.Deck, faceDownCard(`dev-kanan-draw-${index}`, "BT1-085", 0), "top");
+  }
+  placePermanent(state.players[1]!, establishedDigimon(1, ["BT1-020"], "-kanan-enemy"));
+}
+
 /** Discord 1556113288599834624, match 9b9ea6cc: X7 needs DigiXros at zero memory. */
 /** #5370: Akemi must target battle Mother Eaters even with an identical breeding copy. */
 function layBt22AkemiBattleMotherScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
@@ -9864,6 +9898,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,
   "arena-moon-pending-source-deleted": layMoonPendingSourceDeletedScenario,
   "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
+  "arena-kanan-jupiter-pomumon": layKananJupiterPomumonScenario,
   "arena-bt22-akemi-battle-mother": layBt22AkemiBattleMotherScenario,
   "arena-p224-kotone-own-source": layP224KotoneOwnSourceScenario,
   "arena-bt25-ceresmon-homeros-suspend": layBt25CeresmonHomerosSuspendScenario,

@@ -1587,6 +1587,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Discord 1556518401655054436. Encerre a criação e resolva Homeros: memória de 6 para 7, ele suspende e compra 1. Nenhuma Ceresmon deve ativar, nem a BT25-059 nem a recebida por Succession da BT26-032; Omnimon continua com 17000 DP. Ataque a segurança com Muchomon BT1-013: agora as duas Ceresmon ativam. Escolha Omnimon para ambas. Há 2 Digimon suspensos (Muchomon e Omnimon), então cada efeito dá -6000 DP e Omnimon fica com 5000 DP. Homeros não conta nem consome o uma vez por turno.",
     en: "Discord 1556518401655054436. End breeding and resolve Homeros: memory rises from 6 to 7, it suspends and draws 1. Neither BT25-059 Ceresmon nor its effect received through BT26-032 Succession should trigger; Omnimon stays at 17000 DP. Attack security with Muchomon BT1-013: both Ceresmon effects now trigger. Choose Omnimon for both. With 2 suspended Digimon (Muchomon and Omnimon), each effect gives -6000 DP, leaving Omnimon at 5000 DP. Homeros does not count or spend the once-per-turn effects.",
   },
+  "arena-kanan-jupiter-pomumon": {
+    ptBR: "Encerre a criação sem mover o Agumon. Com 5 de memória, jogue Titamon BT1-080 da mão pelo custo 10: o adversário recebe 5. Aceite suspender Kanan Yuki no Fim do Seu Turno. As duas Jupitermon BT26-033 e Central Town devem aparecer como escolhas, mesmo com Pomumon em campo. Selecione uma Jupitermon para usar Wide Plasment: custo 2 + 3 seguranças − 5 de memória adversária = 0. O Monochromon do bot é deletado, sua segurança sobe para 4, a Option vai ao lixo e a outra Jupitermon permanece na mão. Pomumon continua em campo.",
+    en: "End breeding without moving Agumon. At 5 memory, play BT1-080 Titamon from hand for 10: the opponent gets 5. Accept suspending Kanan Yuki at End of Your Turn. Both BT26-033 Jupitermon copies and Central Town must be offered despite Pomumon on the field. Choose one Jupitermon to use Wide Plasment: cost 2 + 3 security − 5 opponent memory = 0. The bot's Monochromon is deleted, your security increases to 4, the Option goes to trash, and the other Jupitermon remains in hand. Pomumon stays in play.",
+  },
   "arena-bt22-akemi-battle-mother": {
     ptBR: "GitHub #5370. Aguarde a Principal: a criação avança automaticamente porque Mother Eater não tem DP para sair. Ative o [Principal] de Akemi Suedou. Somente os dois Mother Eater no campo podem ser escolhidos; a cópia na criação fica excluída. Escolha o Mother Eater com Eater (Species Form) nas fontes. Akemi deve ficar como a fonte inferior, abaixo de Eater (Species Form), enquanto a pilha na criação fica intacta.",
     en: "GitHub #5370. Wait for Main: breeding skips automatically because Mother Eater has no DP to move. Activate Akemi Suedou's [Main]. Only the two battle-area Mother Eaters are eligible; the breeding copy is excluded. Choose the Mother Eater with Eater (Species Form) in its sources. Akemi must become its bottom source, below Eater (Species Form), while the breeding stack stays intact.",
@@ -2941,6 +2945,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-vikemon-live-source-lock", "Vikemon ACE · live source-count lock"],
   ["arena-bt25-ceresmon-homeros-suspend", "BT25 Ceresmon · Homeros e Succession / suspension"],
   ["arena-bt24-homeros-neptunemon-timing-choice", "BT24 Homeros · Neptunemon timing choice"],
+  ["arena-kanan-jupiter-pomumon", "Kanan · Jupitermon Option com Pomumon / under Pomumon"],
   ["arena-bt22-akemi-battle-mother", "BT22 Akemi · Mother Eater no campo / battle area"],
   ["arena-p224-kotone-own-source", "P-224 Kotone · X7 das próprias fontes / own sources"],
   ["arena-kotone-digixros-pending-attack", "Kotone · DigiXros + EX6 pending attack"],

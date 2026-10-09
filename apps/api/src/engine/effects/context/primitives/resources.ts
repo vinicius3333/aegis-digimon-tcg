@@ -37,9 +37,10 @@ export interface ResourcePrimitives {
    * right now by an active RestrictPlay prohibition? Used by the interpreter to gate an
    * EFFECT-driven play attributed to the resolving effect's owner seat — so a "your opponent
    * can't play <X>" effect blocks the opponent's effects (Q4676) but not the source player's
-   * (Q4675, including token plays under Q3834). Optional on the port (test fakes skip).
+   * (Q4675, including token plays under Q3834). `useOption` evaluates only the Option face
+   * of a DUAL card. Optional on the port (test fakes skip).
    */
-  isPlayProhibited?(seat: Seat, cardId: string, mode: "play" | "move", fromZone?: ZoneRef): boolean;
+  isPlayProhibited?(seat: Seat, cardId: string, mode: "play" | "move" | "useOption", fromZone?: ZoneRef): boolean;
   /**
    * Record a security-effect disable on `attackerPermanentId` (the security half of the
    * source rule implementation split): while that permanent is the attacker, a flipped
