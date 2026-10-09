@@ -315,6 +315,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt20-omnimon-each-player-survivor",
   "arena-bt20-ouryuken-reduction-resumes",
   "arena-bt20-ouryuken-blast-dna-counter",
+  "arena-ex13-gallantmon-counter-after-opponent-decision",
   "arena-github-5346-blast-dna-decision",
   "arena-github-5323-alphamon-main-dna",
   "arena-github-5323-alphamon-blast-dna",
@@ -3417,6 +3418,28 @@ function layBt20OuryukenBlastDnaCounterScenario(state: GameState, decks: readonl
     placePermanent(bot, establishedDigimon(1, ["BT12-024"], "-ouryuken-lanamon"));
     // A red Option cannot be used with only the blue Lanamon, so the bot attacks first.
     insertCard(bot, Zone.Deck, faceDownCard("dev-ouryuken-bot-draw", "ST1-16", 1), "top");
+  }
+}
+
+/**
+ * Discord 1558162472945586388: the attacker answers its own [When Attacking] prompt and the
+ * defender's field ＜Counter＞ opens a moment later, before the attacker's decision has left
+ * the defender's synchronized state.
+ */
+function layEx13GallantmonCounterAfterOpponentDecisionScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-007", "EX13-010", "EX13-015"], "-counter-gallantmon"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    // Elecmon's inherited [When Attacking] asks the bot an optional question right before Counter Timing.
+    placePermanent(bot, establishedDigimon(1, ["BT24-031", "BT26-081"], "-counter-mervamon"));
+    insertCard(bot, Zone.Deck, faceDownCard("dev-counter-bot-draw", "ST1-16", 1), "top");
   }
 }
 
@@ -9886,6 +9909,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt20-omnimon-each-player-survivor": layBt20OmnimonEachPlayerSurvivorScenario,
   "arena-bt20-ouryuken-reduction-resumes": layBt20OuryukenReductionResumesScenario,
   "arena-bt20-ouryuken-blast-dna-counter": layBt20OuryukenBlastDnaCounterScenario,
+  "arena-ex13-gallantmon-counter-after-opponent-decision": layEx13GallantmonCounterAfterOpponentDecisionScenario,
   "arena-github-5346-blast-dna-decision": layGithub5346BlastDnaDecisionScenario,
   "arena-github-5323-alphamon-main-dna": (state, decks) => layGithub5323DnaScenario(state, decks, false),
   "arena-github-5323-alphamon-blast-dna": (state, decks) => layGithub5323DnaScenario(state, decks, true),

@@ -552,6 +552,7 @@ export interface AegisJoinOptions {
     | "arena-bt20-omnimon-each-player-survivor"
     | "arena-bt20-ouryuken-reduction-resumes"
     | "arena-bt20-ouryuken-blast-dna-counter"
+    | "arena-ex13-gallantmon-counter-after-opponent-decision"
     | "arena-github-5346-blast-dna-decision"
     | "arena-github-5349-collision-immunity"
     | "arena-github-5350-dedigivolve-egg"
