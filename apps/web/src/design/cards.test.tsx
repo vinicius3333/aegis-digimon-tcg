@@ -2,7 +2,7 @@
 
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { CardMini } from "./cards";
+import { CardFull, CardMini } from "./cards";
 
 afterEach(() => cleanup());
 
@@ -15,4 +15,10 @@ describe("CardMini orientation", () => {
     expect(card.style.rotate).toBe("90deg");
     expect(card.style.transformOrigin).toBe("center");
   });
+});
+
+// The arena uses pointer gestures even while play is gated between phases.
+it.each([CardFull, CardMini])("#5394: artwork cannot start a browser-native image drag", (Card) => {
+  render(<Card cardId="ST1-02" zoomOnHover={false} />);
+  expect((screen.getByRole("img") as HTMLImageElement).draggable).toBe(false);
 });

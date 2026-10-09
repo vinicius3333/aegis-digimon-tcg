@@ -108,9 +108,9 @@ export function CardBack({
     >
       {sleeve.src ? (
         <img
+          draggable={false}
           src={sleeve.src}
           alt=""
-          draggable={false}
           style={{ width: "100%", height: "100%", objectFit: "cover", userSelect: "none" }}
         />
       ) : (
@@ -210,6 +210,7 @@ function CardZoomPreview({
         </div>
       ) : (
         <img
+          draggable={false}
           src={urls[idx]}
           alt={def?.nameEn}
           onError={() => setExtra((e) => e + 1)}
@@ -303,6 +304,7 @@ export function CardFull({
         </div>
       ) : (
         <img
+          draggable={false}
           src={urls[urlIndex]}
           alt={def.nameEn}
           onError={() => setUrlIndex((i) => i + 1)}
@@ -358,6 +360,7 @@ export function CoverThumb({
   if (urlIndex >= urls.length) return <Sigil emblem="crest" color={sigilColor} size={sigilSize} />;
   return (
     <img
+      draggable={false}
       src={urls[urlIndex]}
       onError={() => setUrlIndex((i) => i + 1)}
       style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
@@ -599,6 +602,7 @@ export function CardMini({
         </div>
       ) : (
         <img
+          draggable={false}
           src={urls[urlIndex]}
           alt={def.nameEn}
           onError={() => setUrlIndex((i) => i + 1)}
