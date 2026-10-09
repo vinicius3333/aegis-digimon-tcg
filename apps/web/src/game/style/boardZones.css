@@ -289,6 +289,20 @@
     box-shadow 150ms var(--ds-ease-standard);
 }
 
+/* Selecting lifts the slot up to 48px (34px lift plus the fan's 14px drop). A click near
+   its bottom edge would then leave the slot mid-lift and drop the hover face halfway
+   through the motion, so the selected slot keeps its original hit area below it. This is
+   ::after because a covered slot hides its ::before from the pointer. */
+@media (hover: hover) and (pointer: fine) {
+  .game-hand-card[aria-pressed="true"]:not(.game-hand-card--drawn)::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    height: 48px;
+  }
+}
+
 .game-hand-card--playable {
   box-shadow:
     0 0 0 1.5px var(--ds-rim-ready),
