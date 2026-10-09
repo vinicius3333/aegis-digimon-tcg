@@ -8,6 +8,7 @@
     "prepare": "git config core.hooksPath .githooks || true",
     "test:deploy": "node --test tools/deploy/*.test.mjs",
     "logs:match": "node tools/match-logs.mjs",
+    "replay": "pnpm --silent --filter @aegis/api replay",
     "motion:reference": "node tools/diagnostics/prepare-motion-reference.mjs",
     "motion:capture": "node tools/diagnostics/capture-field-focus.mjs",
     "motion:probe:field-light": "node tools/diagnostics/probe-field-activation-light.mjs",

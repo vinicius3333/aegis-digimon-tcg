@@ -19,6 +19,7 @@ Requires Node 26 and pnpm 10. Run commands from the repository root.
 | Full CI suite                                      | `pnpm ci`               |
 | Repository tool tests                              | `pnpm test:tools`       |
 | Simulator verification gate                        | `pnpm verify:simulator` |
+| Replay a reported match (see `AGENTS.md`)          | `pnpm replay --help`    |
 
 ### API tests (`apps/api`)
 

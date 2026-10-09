@@ -35,6 +35,22 @@
   node tools/sync-effects-from-card-modules.mjs --set <SET> --check
   ```
 
+## Reproduce from a replay
+
+- When a report has a "Replay" section or a match ID, reproduce the match exactly before guessing. Build `@aegis/shared` first; use `pnpm -s replay … --json` to parse output.
+
+  ```sh
+  pnpm replay fetch <reportId>                    # saved with the report; DATABASE_URL, or --url with AEGIS_SESSION
+  pnpm replay extract <matchId> --log-dir <dir>   # from api-*.jsonl logs, for a match without a report
+  pnpm replay inputs replays/<file>.json          # find the input where the bug shows
+  pnpm replay run replays/<file>.json --until <N> # position and boards as input N arrived
+  pnpm replay scaffold replays/<file>.json --until <N> --out apps/api/src/engine/scenarios/<behavior>.test.ts --issue <id>
+  ```
+
+- `run` exits 1 on a divergence. One before input N means the code differs from the server that played the match (`serverRevision`); resolve it before trusting the repro.
+- Replace the scaffold's `it.todo` with the expected behaviour (Oxlint rejects `.todo`), confirm it fails, fix, confirm it passes.
+- Replays hold both decklists and every action, no names or chat. `replays/` is git-ignored; a committed fixture is the scaffold's trimmed record and nothing else.
+
 ## Tests
 
 - Put game scenarios and bug regressions in `apps/api/src/engine/scenarios/<behavior>.test.ts`, card tests in `apps/api/src/cards/<SET>/`, and mechanism tests beside their implementation. Keep issue IDs in descriptions or comments.

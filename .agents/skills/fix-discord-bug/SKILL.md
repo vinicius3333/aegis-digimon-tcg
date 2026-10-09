@@ -1,6 +1,6 @@
 ---
 name: fix-discord-bug
-description: Audit, fix, and test an Aegis bug reported in the Discord bug channel. Reads the report, checks the production logs on the Oracle VPS, confirms the printed card text, fixes the card IR or engine in a fix/ worktree branch, sweeps for other affected cards, and adds a playable dev arena scenario. Use when the user asks to fix a new or specific Discord bug.
+description: Audit, fix, and test an Aegis bug reported in the Discord bug channel. Reads the report, reproduces the match from its replay (or checks the production logs on the Oracle VPS), confirms the printed card text, fixes the card IR or engine in a fix/ worktree branch, sweeps for other affected cards, and adds a playable dev arena scenario. Use when the user asks to fix a new or specific Discord bug.
 ---
 
 # Fix a Discord bug
@@ -27,8 +27,36 @@ pnpm install --frozen-lockfile && pnpm --filter @aegis/shared build
 Worktree guard: run plain, single git commands with `/usr/bin/git`. Pipes, `-C`, or `xargs`
 around git are refused.
 
-## 3. Check the production logs
+## 3. Reproduce the match
 
+Try the replay first; it replays the reported match exactly, with no log scan on the VPS.
+See "Reproduce from a replay" in `AGENTS.md` for the commands.
+
+1. **Replay saved with the report.** A report filed in-game links a GitHub issue whose
+   "Replay" section reads `Saved privately with report #<id> (<n> inputs)`. Fetch it with
+   `pnpm replay fetch <id>`: it reads `feedback_report_replays` through `DATABASE_URL`
+   (production access follows the host's instructions), or the admin endpoint with
+   `--url <apiBase>` and `AEGIS_SESSION`.
+2. **Match ID without a replay.** Find the match's segments with the queries below and
+   stream only its lines into a scratchpad directory:
+   `ssh oracle-vps 'cd /opt/aegis-rollout/logs && aegis-safe grep -h "<matchId>" <files>' > <dir>/api-<matchId>.jsonl`.
+   Then `pnpm replay extract <matchId> --log-dir <dir>`. Those raw lines include names and
+   chat; delete them in step 9. A match from before replay recording has no
+   `replay.header` and fails with a clear message; read its logs directly.
+3. `pnpm replay inputs <file>` to find the input where the bug shows, then
+   `pnpm replay run <file> --until <N>` to see the position as it arrived. A divergence
+   before N means today's code no longer plays the match the same way; say so in the report.
+4. `pnpm replay scaffold <file> --until <N> --out <test path> --issue <id>` writes the
+   regression test (step 5) and its fixture.
+
+Privacy: a replay holds both players' decklists and every action (no names, chat or
+accounts). Keep full records in `replays/` (git-ignored) or the scratchpad. A committed
+fixture is only the scaffold's record trimmed to `--until`; never add log lines, names or
+anything else from the report to it, and never paste a record into a public issue.
+
+### Fall back to the production logs
+
+When there is no replay and no usable match ID, search the logs.
 The VPS runs the live game on 4 cores, and its rules are in `/opt/aegis-rollout/AGENTS.md`.
 Run every log query through `aegis-safe` (1 GiB, one core, idle priority, 5 minutes), narrow
 by time first, and stream: never load whole log files into memory. A full-day scan script
@@ -43,9 +71,9 @@ ssh oracle-vps 'cd /opt/aegis-rollout/logs && aegis-safe grep -h "<CARD-ID>" <fi
 
 - If `aegis-safe` kills a command (exit 137 or 124), make the query smaller. Do not bypass it.
 - Containers restart on every deploy, so `docker logs` is short. The JSONL files in
-  `/opt/aegis-rollout/logs` persist across deploys.
+  `/opt/aegis-rollout/logs` persist across deploys, for 12 hours.
 - Match the report's time (UTC) and player name to a `matchId`, then read that match's
-  events around the failing action.
+  events around the failing action, or extract its replay as above.
 - No log hit is still a result. Say so in the report.
 
 ## 4. Establish the printed contract
@@ -72,6 +100,9 @@ sometimes missing from `cards.json`. They need both the catalog text and the IR 
   way, and check that the wider change does not open an illegal choice elsewhere.
 - Write the regression test first in `<ID>.test.ts`, drive it through public intents
   (`applyIntent`), and confirm it fails without the fix (red), then passes (green).
+  With a replay, start from the scaffold: replace its `it.todo` with the expected
+  behaviour at input N. Keep or replace it with a minimal testkit board, whichever states
+  the rule more clearly.
   Name the Discord bug id in the test title.
 - After changing a card module, sync its IR snapshot with Node 26:
 
