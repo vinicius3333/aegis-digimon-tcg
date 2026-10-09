@@ -1684,5 +1684,47 @@
     "en": "Counter decisions that time out can finish without leaving the match waiting for an unanswered response.",
     "pt-BR": "Decisões de Counter que expiram podem terminar sem deixar a partida aguardando uma resposta.",
     "es": "Las decisiones de Counter que agotan el tiempo pueden terminar sin dejar la partida esperando una respuesta que nunca llega."
+  },
+  "releases.1.20.0-beta.summary": {
+    "en": "This minor release adds feedback tracking with notifications and deck reports, shows what your opponent is doing, and fixes a Counter prompt that could stay hidden plus reported card and table problems.",
+    "pt-BR": "Esta versão minor adiciona o acompanhamento de feedback com notificações e denúncias de decks, mostra o que o oponente está fazendo e corrige um prompt de Counter que podia ficar escondido, além de problemas reportados em cartas e na mesa.",
+    "es": "Esta versión menor agrega el seguimiento de comentarios con notificaciones y denuncias de decks, muestra lo que hace tu oponente y corrige un aviso de Counter que podía quedar oculto, además de problemas reportados en cartas y en la mesa.",
+    "it": "Questa versione minor aggiunge il monitoraggio dei feedback con notifiche e segnalazioni dei mazzi, mostra cosa sta facendo l'avversario e corregge un prompt di Counter che poteva restare nascosto, oltre a problemi segnalati su carte e tavolo."
+  },
+  "releases.1.20.0-beta.feature.feedback": {
+    "en": "Follow your reports in My feedback and get a notification when their status changes. Public decks can now be reported for moderation.",
+    "pt-BR": "Acompanhe seus reports em Meu feedback e receba uma notificação quando o status mudar. Decks públicos agora podem ser denunciados para moderação.",
+    "es": "Sigue tus reportes en Mis comentarios y recibe una notificación cuando cambie su estado. Ahora los decks públicos se pueden denunciar para moderación.",
+    "it": "Segui le tue segnalazioni in I miei feedback e ricevi una notifica quando cambia il loro stato. Ora i mazzi pubblici si possono segnalare alla moderazione."
+  },
+  "releases.1.20.0-beta.feature.opponentStatus": {
+    "en": "The board says what your opponent is doing: selecting cards, choosing targets or effect order, making a combat choice, or thinking on their turn.",
+    "pt-BR": "A mesa mostra o que o oponente está fazendo: selecionando cartas, escolhendo alvos ou a ordem dos efeitos, fazendo uma escolha de combate ou pensando no turno dele.",
+    "es": "La mesa muestra lo que hace tu oponente: seleccionar cartas, elegir objetivos o el orden de los efectos, tomar una decisión de combate o pensar en su turno.",
+    "it": "Il tavolo mostra cosa sta facendo l'avversario: seleziona carte, sceglie bersagli o l'ordine degli effetti, fa una scelta di combattimento o pensa nel suo turno."
+  },
+  "releases.1.20.0-beta.feature.mobile": {
+    "en": "On phones, notices float over the board without moving it, match clocks stay in the header, and hand cards a selection cannot take are dimmed.",
+    "pt-BR": "No celular, os avisos flutuam sobre a mesa sem movê-la, os relógios da partida ficam no cabeçalho e as cartas da mão que a seleção não aceita ficam esmaecidas.",
+    "es": "En el móvil, los avisos flotan sobre la mesa sin moverla, los relojes de la partida quedan en la cabecera y las cartas de la mano que la selección no admite se atenúan.",
+    "it": "Sul telefono gli avvisi fluttuano sul tavolo senza spostarlo, gli orologi della partita restano nell'intestazione e le carte della mano che la selezione non può prendere sono attenuate."
+  },
+  "releases.1.20.0-beta.fix.counter": {
+    "en": "The Counter prompt now opens right after the attacker's decision, instead of staying hidden while your clock ran down.",
+    "pt-BR": "O prompt de Counter agora abre logo após a decisão do atacante, em vez de ficar escondido enquanto o seu relógio corria.",
+    "es": "El aviso de Counter ahora se abre justo después de la decisión del atacante, en lugar de quedar oculto mientras corría tu reloj.",
+    "it": "Il prompt di Counter ora si apre subito dopo la decisione dell'attaccante, invece di restare nascosto mentre il tuo orologio scorreva."
+  },
+  "releases.1.20.0-beta.fix.cards": {
+    "en": "Fixed Blast DNA requirements, Rie Kishibe's payment, inherited effects on deletion, Assembly cost reductions, optional evolutions after a paid cost and trait matching.",
+    "pt-BR": "Corrigidos os requisitos de Blast DNA, o pagamento da Rie Kishibe, efeitos herdados na deleção, reduções de custo de Assembly, evoluções opcionais após um custo pago e a leitura de traços.",
+    "es": "Se corrigieron los requisitos de Blast DNA, el pago de Rie Kishibe, los efectos heredados al ser eliminado, las reducciones de coste de Assembly, las evoluciones opcionales tras pagar un coste y la lectura de rasgos.",
+    "it": "Corretti i requisiti di Blast DNA, il pagamento di Rie Kishibe, gli effetti ereditati all'eliminazione, le riduzioni di costo di Assembly, le evoluzioni facoltative dopo un costo pagato e il riconoscimento dei tratti."
+  },
+  "releases.1.20.0-beta.fix.table": {
+    "en": "Effect sources stay on the field during a security battle, tablet notices no longer cover the clash, and card art can no longer be dragged by accident.",
+    "pt-BR": "As fontes de efeito ficam no campo durante a batalha de segurança, os avisos no tablet não cobrem mais o confronto e a arte das cartas não é mais arrastada sem querer.",
+    "es": "Las fuentes de efecto se quedan en el campo durante la batalla de seguridad, los avisos en la tableta ya no tapan el enfrentamiento y el arte de las cartas ya no se arrastra sin querer.",
+    "it": "Le fonti degli effetti restano sul campo durante la battaglia di sicurezza, gli avvisi sul tablet non coprono più lo scontro e l'arte delle carte non si trascina più per sbaglio."
   }
 }

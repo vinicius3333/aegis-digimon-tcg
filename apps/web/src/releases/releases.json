@@ -1,5 +1,32 @@
 [
   {
+    "version": "1.20.0-beta",
+    "releasedAt": "2026-10-09",
+    "summaryKey": "releases.1.20.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.20.0-beta.feature.feedback"
+      },
+      {
+        "textKey": "releases.1.20.0-beta.feature.opponentStatus"
+      },
+      {
+        "textKey": "releases.1.20.0-beta.feature.mobile"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.20.0-beta.fix.counter"
+      },
+      {
+        "textKey": "releases.1.20.0-beta.fix.cards"
+      },
+      {
+        "textKey": "releases.1.20.0-beta.fix.table"
+      }
+    ]
+  },
+  {
     "version": "1.19.0-beta",
     "releasedAt": "2026-10-09",
     "summaryKey": "releases.1.19.0-beta.summary",
