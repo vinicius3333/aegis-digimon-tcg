@@ -1,6 +1,7 @@
+import releaseMessages from "../releases/messages.json";
 import { en } from "./en";
 
-// Historical release notes keep their published English text. All interface
+// Release notes before v1.19.0 keep their published English text. All interface
 // messages are translated; printed card names and effects remain in English.
 const interfaceMessages = {
   "feedback.title": "Feedback dei giocatori",
@@ -1893,4 +1894,8 @@ const interfaceMessages = {
   "overlay.series.reason.aborted": "Impossibile avviare la prossima partita.",
 } satisfies Record<Exclude<keyof typeof en, `releases.${string}`>, string>;
 
-export const it: Record<keyof typeof en, string> = { ...en, ...interfaceMessages };
+const releaseTranslations = Object.fromEntries(
+  Object.entries(releaseMessages).flatMap(([key, message]) => ("it" in message ? [[key, message.it]] : [])),
+);
+
+export const it: Record<keyof typeof en, string> = { ...en, ...interfaceMessages, ...releaseTranslations };

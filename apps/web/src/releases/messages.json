@@ -1,4 +1,40 @@
 {
+  "releases.1.19.0-beta.summary": {
+    "en": "This minor release adds historical and Pauper deck formats, a better phone deck builder and an account-synced auto hatch setting, and fixes reported card, effect and table problems.",
+    "pt-BR": "Esta versão minor adiciona formatos de deck históricos e Pauper, um construtor de decks melhor no celular e uma opção de auto hatch sincronizada com a conta, e corrige problemas reportados em cartas, efeitos e na mesa.",
+    "es": "Esta versión menor agrega formatos de deck históricos y Pauper, un constructor de decks mejor en el móvil y una opción de auto hatch sincronizada con la cuenta, y corrige problemas reportados en cartas, efectos y en la mesa.",
+    "it": "Questa versione minor aggiunge formati di mazzo storici e Pauper, un costruttore di mazzi migliore sul telefono e un'opzione di auto hatch sincronizzata con l'account, e corregge problemi segnalati su carte, effetti e tavolo."
+  },
+  "releases.1.19.0-beta.feature.formats": {
+    "en": "Build decks for a past card pool with the ban list of its release, or for Pauper with Common and Uncommon cards only.",
+    "pt-BR": "Monte decks com o card pool de uma coleção antiga e a banlist da época, ou no Pauper só com cartas Comuns e Incomuns.",
+    "es": "Arma decks con el card pool de una colección antigua y la banlist de su época, o en Pauper solo con cartas Comunes y Poco Comunes.",
+    "it": "Costruisci mazzi con il card pool di un'espansione passata e la sua banlist dell'epoca, oppure in Pauper solo con carte Comuni e Non Comuni."
+  },
+  "releases.1.19.0-beta.feature.mobile": {
+    "en": "The deck builder fits phones better, with smaller card previews, cleaner deck rows and readable format warnings.",
+    "pt-BR": "O construtor de decks se ajusta melhor ao celular, com prévias de carta menores, linhas de deck mais limpas e avisos de formato legíveis.",
+    "es": "El constructor de decks se adapta mejor al móvil, con vistas previas de carta más pequeñas, filas de deck más limpias y avisos de formato legibles.",
+    "it": "Il costruttore di mazzi si adatta meglio al telefono, con anteprime delle carte più piccole, righe del mazzo più pulite e avvisi di formato leggibili."
+  },
+  "releases.1.19.0-beta.feature.hatch": {
+    "en": "Your auto hatch setting now follows your account across devices.",
+    "pt-BR": "Sua opção de auto hatch agora acompanha sua conta em todos os dispositivos.",
+    "es": "Tu opción de auto hatch ahora sigue a tu cuenta en todos los dispositivos.",
+    "it": "La tua opzione di auto hatch ora segue il tuo account su tutti i dispositivi."
+  },
+  "releases.1.19.0-beta.fix.cards": {
+    "en": "Fixed reported problems with Akemi Suedou, Partition plays, gained On Deletion effects, eggs with no DP, DUAL Option restrictions, effect hatches, Save with Blocker, trait-based digivolution costs and the Olympos XII preset.",
+    "pt-BR": "Corrigidos problemas reportados com Akemi Suedou, jogadas de Partition, efeitos On Deletion ganhos, ovos sem DP, restrições de Options DUAL, hatch por efeito, Save com Blocker, custos de digivolução por traço e o preset Olympos XII.",
+    "es": "Se corrigieron problemas reportados con Akemi Suedou, jugadas de Partition, efectos On Deletion ganados, huevos sin DP, restricciones de Options DUAL, hatch por efecto, Save con Blocker, costos de digievolución por rasgo y el preset Olympos XII.",
+    "it": "Corretti problemi segnalati con Akemi Suedou, giocate di Partition, effetti On Deletion ottenuti, Digi-Uova senza DP, restrizioni delle Option DUAL, hatch tramite effetto, Save con Blocker, costi di digievoluzione per tratto e il preset Olympos XII."
+  },
+  "releases.1.19.0-beta.fix.table": {
+    "en": "Effect clauses and attack notices stack in order, Option animations no longer block decisions, and hand, drag and dark mode controls behave correctly.",
+    "pt-BR": "As cláusulas de efeito e os avisos de ataque se empilham em ordem, as animações de Option não bloqueiam mais as decisões, e os controles da mão, de arrastar e do modo escuro funcionam corretamente.",
+    "es": "Las cláusulas de efecto y los avisos de ataque se apilan en orden, las animaciones de Option ya no bloquean las decisiones, y los controles de la mano, de arrastre y del modo oscuro funcionan correctamente.",
+    "it": "Le clausole degli effetti e gli avvisi di attacco si impilano in ordine, le animazioni delle Option non bloccano più le decisioni, e i controlli della mano, del trascinamento e della modalità scura funzionano correttamente."
+  },
   "releases.1.18.0-beta.summary": {
     "en": "This minor release adds Unlimited decks for bot and private matches and a Discord picture refresh button, and fixes reported card, effect and table problems.",
     "pt-BR": "Esta versão minor adiciona decks Unlimited em partidas contra o bot e privadas e um botão para atualizar a foto do Discord, e corrige problemas reportados em cartas, efeitos e na mesa.",

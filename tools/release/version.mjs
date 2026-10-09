@@ -7,6 +7,8 @@ const root = resolve(import.meta.dirname, "../..");
 const manifests = ["package.json", "apps/api/package.json", "apps/web/package.json", "packages/shared/package.json"];
 const pattern = /^(\d+)\.(\d+)\.(\d+)-beta$/;
 const messageLocales = ["en", "pt-BR", "es"];
+/** Italian release notes start here; older releases keep their published English text. */
+const ITALIAN_SINCE = "1.19.0-beta";
 
 export function displayVersion(version) {
   if (!pattern.test(version)) throw new Error(`Invalid beta version: ${version}`);
@@ -43,10 +45,12 @@ function validate() {
       new Date(`${release.releasedAt}T00:00:00Z`).toISOString().slice(0, 10) !== release.releasedAt
     )
       throw new Error(`Invalid release date: ${release.releasedAt}`);
-    if (!hasEveryLocale(messages[release.summaryKey])) throw new Error(`Missing i18n summary: ${release.version}`);
+    if (!hasEveryLocale(messages[release.summaryKey], release.version))
+      throw new Error(`Missing i18n summary: ${release.version}`);
     for (const item of [...release.features, ...release.fixes]) {
       if (Object.keys(item).some((key) => !itemKeys.includes(key))) throw new Error("Unknown release item fields");
-      if (!hasEveryLocale(messages[item.textKey])) throw new Error(`Missing i18n release item: ${release.version}`);
+      if (!hasEveryLocale(messages[item.textKey], release.version))
+        throw new Error(`Missing i18n release item: ${release.version}`);
       if (item.issue !== undefined && (!Number.isInteger(item.issue) || item.issue <= 0))
         throw new Error("Invalid issue number");
     }
@@ -54,8 +58,9 @@ function validate() {
   return version;
 }
 
-function hasEveryLocale(message) {
-  return messageLocales.every((locale) => typeof message?.[locale] === "string" && message[locale] !== "");
+function hasEveryLocale(message, version) {
+  const locales = compare(version, ITALIAN_SINCE) >= 0 ? [...messageLocales, "it"] : messageLocales;
+  return locales.every((locale) => typeof message?.[locale] === "string" && message[locale] !== "");
 }
 
 function compare(left, right) {

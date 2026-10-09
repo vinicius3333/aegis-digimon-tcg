@@ -1,5 +1,29 @@
 [
   {
+    "version": "1.19.0-beta",
+    "releasedAt": "2026-10-09",
+    "summaryKey": "releases.1.19.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.19.0-beta.feature.formats"
+      },
+      {
+        "textKey": "releases.1.19.0-beta.feature.mobile"
+      },
+      {
+        "textKey": "releases.1.19.0-beta.feature.hatch"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.19.0-beta.fix.cards"
+      },
+      {
+        "textKey": "releases.1.19.0-beta.fix.table"
+      }
+    ]
+  },
+  {
     "version": "1.18.0-beta",
     "releasedAt": "2026-10-08",
     "summaryKey": "releases.1.18.0-beta.summary",

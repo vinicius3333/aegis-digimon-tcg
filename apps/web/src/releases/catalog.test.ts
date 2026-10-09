@@ -5,9 +5,9 @@ import messages from "./messages.json";
 
 describe("release catalog", () => {
   it("exposes the latest beta as the current release", () => {
-    expect(currentRelease().version).toBe("1.18.0-beta");
-    expect(displayVersion(currentRelease().version)).toBe("v1.18.0-BETA");
-    expect(allReleases()).toHaveLength(49);
+    expect(currentRelease().version).toBe("1.19.0-beta");
+    expect(displayVersion(currentRelease().version)).toBe("v1.19.0-BETA");
+    expect(allReleases()).toHaveLength(50);
   });
 
   it.each(LOCALES)("resolves every release message through the %s translator", (locale) => {
@@ -19,9 +19,17 @@ describe("release catalog", () => {
         ...release.fixes.map((item) => item.textKey),
       ];
       for (const key of keys) {
-        expect(t(key as TranslationKey)).toBe(messages[key as keyof typeof messages][locale === "it" ? "en" : locale]);
+        const message: Record<string, string> = messages[key as keyof typeof messages];
+        // Italian release notes start at v1.19.0; older ones keep their English text.
+        expect(t(key as TranslationKey)).toBe(message[locale] ?? message.en);
       }
     }
+  });
+
+  it("translates the v1.19.0 notes into Italian", () => {
+    expect(translator("it")("releases.1.19.0-beta.feature.hatch" as TranslationKey)).toBe(
+      messages["releases.1.19.0-beta.feature.hatch"].it,
+    );
   });
 
   it("builds public GitHub issue links", () => {
