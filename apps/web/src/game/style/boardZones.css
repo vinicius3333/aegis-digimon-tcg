@@ -388,8 +388,9 @@
   place-items: center;
   width: 1.5rem;
   height: 1.5rem;
+  min-height: 0;
   padding: 0;
-  color: var(--ds-ink);
+  color: var(--ds-text);
   border: 2px solid var(--ds-sheet);
   border-radius: 999px;
   background: var(--ds-sheet);
