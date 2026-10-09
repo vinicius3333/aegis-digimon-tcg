@@ -530,6 +530,9 @@ export function buildPrimitives(engine: GameEngine): Primitives {
   const getCombat = () => engine.combat;
   return createPrimitives({
     state: engine.state,
+    // Effects that shuffle (security) draw from the seat's match-seeded stream, so a match stays
+    // reproducible from its seed. Read lazily: the streams exist only once the match is set up.
+    rngForSeat: (seat) => engine.rngForSeat?.(seat) ?? Math.random,
     artsDigivolve: (seat, instance, definition, duringAttack) =>
       engine.digivolveSupport.resolveArtsDigivolve(seat, instance, definition, duringAttack),
     beginEffectBody: () => {

@@ -1,5 +1,5 @@
 import { famousDeckById } from "@aegis/shared";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { extractReplay } from "./extract.js";
 import { runReplay } from "./run.js";
 import type { ReplayInput } from "./types.js";
@@ -32,6 +32,15 @@ const MATCHES: (RoomMatchOptions & { name: string; expects: (inputs: ReplayInput
     },
   },
   {
+    // BT1-087's [On Play] shuffles security at input #26. That shuffle once drew from Math.random,
+    // so this match could not be replayed.
+    name: "a match whose effects shuffle security",
+    seed: 99,
+    humanDeck: deck("bt10-xros-heart"),
+    botDeck: deck("bt5-lordknightmon"),
+    expects: () => {},
+  },
+  {
     name: "an uninterrupted match",
     seed: 20260914,
     expects: (inputs) => {
@@ -52,7 +61,17 @@ const MATCHES: (RoomMatchOptions & { name: string; expects: (inputs: ReplayInput
 describe("match replay round trip through a real room", () => {
   for (const { name, expects, ...match } of MATCHES) {
     it(`seed ${match.seed}: ${name}`, async () => {
-      const recorded = await recordRoomMatch(match);
+      const random = vi.spyOn(Math, "random");
+      let unseededDraws: number;
+      let recorded: Awaited<ReturnType<typeof recordRoomMatch>>;
+      try {
+        recorded = await recordRoomMatch(match);
+      } finally {
+        unseededDraws = random.mock.calls.length;
+        random.mockRestore();
+      }
+      // A match is reproducible from its seed only if nothing in it draws unseeded randomness.
+      expect(unseededDraws, "the room drew unseeded randomness, which no replay can reproduce").toBe(0);
       expect(recorded.gameOver).toBe(true);
 
       const record = extractReplay(recorded.lines, recorded.matchId);
