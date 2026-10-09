@@ -86,6 +86,18 @@ for (const speed of ["normal", "slow"] as const) {
       await scramble.focus();
       await scramble.press("Enter");
       await endSelection.click();
+      // Taomon must hand off to the Option decision without waiting for the
+      // Option dock, which stays open until that decision is answered.
+      await expect
+        .poll(() =>
+          page.evaluate(() => {
+            const settled = window
+              .browserTestPresentation()
+              .steps.find((step) => step.id.startsWith("effect-unit-resettle-") && step.phase === "finished");
+            return settled?.durationMs;
+          }),
+        )
+        .toBeLessThan(speed === "slow" ? 3_000 : 2_000);
       await scenario.activate("Yellow Scramble");
 
       // Observe the complete automatic evolution and draw before answering later

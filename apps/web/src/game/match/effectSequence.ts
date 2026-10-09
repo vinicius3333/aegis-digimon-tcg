@@ -598,6 +598,11 @@ function resultsPendingOf(unit: EffectUnit, deps: EffectUnitStepsDeps): () => bo
     queue.hasPendingStep((step) => {
       if (step.track === EFFECT_UNIT_TRACK || sequence.isClauseStep(step.id)) return false;
       if (step.track === CueTrack.SecurityDock || step.track === CueTrack.SecurityHold) return false;
+      // An effect-used Option waits in its dock for the viewer's next answer.
+      // That decision waits for this unit to settle, so waiting for the hold
+      // here would make both wait until the results ceiling expires. The dock's
+      // entrance still counts as a result and must finish before the handoff.
+      if (step.track === CueTrack.OptionDockHold) return false;
       // A turn or phase ribbon the unit's closing batch also carried is the turn moving on,
       // not a result of the effect.
       if (TURN_TRACKS.has(step.track ?? "") || step.track?.startsWith("turnDrawFlight-")) return false;

@@ -382,12 +382,19 @@ describe("settling a unit around a nested effect", () => {
     expect(waitedMs).toBeLessThan(DEFAULT_PACING.resultsMaxMs);
   });
 
-  it("still waits for results the unit caused itself", async () => {
+  it("hands off to an effect-used Option without waiting for its decision-dependent dock", async () => {
+    const sequence = createEffectSequence();
+    const [opened] = sequence.observeBatch("b1", 1, [triggered("taomon"), resolved("taomon")]).opened;
+    const waitedMs = await settleWaitMs(opened!.unit, sequence, [
+      { id: "option-dock-hold-1", track: "optionDockHold", batch: "b1" },
+    ]);
+    expect(waitedMs).toBeLessThan(DEFAULT_PACING.resultsMaxMs);
+  });
+
+  it.each(["deleteBurst-1", "optionDock"])("still waits for the unit's %s results", async (track) => {
     const sequence = createEffectSequence();
     const [unit] = sequence.observeBatch("b1", 1, [triggered("a"), deletion, resolved("a")]).opened;
-    const waitedMs = await settleWaitMs(unit!.unit, sequence, [
-      { id: "delete-burst", track: "deleteBurst-1", batch: "b1" },
-    ]);
+    const waitedMs = await settleWaitMs(unit!.unit, sequence, [{ id: "owned-result", track, batch: "b1" }]);
     expect(waitedMs).toBeGreaterThanOrEqual(DEFAULT_PACING.resultsMaxMs);
   });
 });
