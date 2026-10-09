@@ -20,7 +20,10 @@ const gameScreenSource = [
 describe("presentation cues and board actions", () => {
   it("does not install a presentation-owned input shield", () => {
     expect(gameScreenSource).not.toContain("BoardInputLock");
-    expect(gameScreenSource).not.toContain("securityRevealPending");
+    // A pending security scene may only delay a timed answer, never lock board input.
+    expect(gameScreenSource.match(/.*securityRevealPending.*/g)).toEqual([
+      "  const timedViewerAnswer = timedViewerQuestion && !presentationCues.securityRevealPending;",
+    ]);
     expect(gameScreenSource).not.toContain("cues.narrationLock");
   });
 

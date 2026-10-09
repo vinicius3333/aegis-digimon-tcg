@@ -20,6 +20,7 @@ import { DEFAULT_PACING, setBasePacing } from "./pacing";
 
 vi.mock("../design/sound", () => ({
   playSound: vi.fn<(kind: string) => void>(),
+  playAttentionSound: vi.fn<(kind: string) => void>(),
   startMusic: vi.fn<() => void>(),
   stopMusic: vi.fn<() => void>(),
 }));

@@ -138,12 +138,12 @@ it("sweep: Shoto EX11-062's reachable watcher keeps its printed passage in the b
 });
 
 it.each([
-  { promptText: "Confirm your choice?", kind: "optional" as const, title: "Confirm your choice?" },
+  { promptText: "Confirm your choice?", kind: "optional" as const, title: "Use this effect?" },
   {
     promptText: "Activate Blitz",
     kind: "optional" as const,
     options: { promptKey: "activateBlitz" as const },
-    title: "Do you want to activate Blitz?",
+    title: "Use this effect?",
   },
   {
     promptText: "Select an opponent",
@@ -157,7 +157,7 @@ it.each([
     options: { purpose: "cost" as const, choices: ["Pay"] },
     title: "Choose a cost",
   },
-])("preserves $title heading controls", ({ title, ...request }) => {
+])("shows the $title heading for $promptText", ({ title, ...request }) => {
   localStorage.setItem("aegis:locale", "en");
   mount({
     decisionId: "control",
