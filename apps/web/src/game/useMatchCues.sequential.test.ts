@@ -301,6 +301,66 @@ describe("sequential pacing plays one effect at a time", () => {
 });
 
 describe("resumed effect results", () => {
+  it("Discord 1557926494536466514: timed Engage resumes before its security check without an expired clause gate", async () => {
+    const anchors = geometry();
+    const state = { ...BOARD, matchTimer: true } as GameState;
+    const view = renderHook(
+      ({ fed, question }: { fed: readonly ServerBatch[]; question: boolean }) =>
+        useMatchCues({
+          batches: fed,
+          state,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: () => {},
+          presentationPacing: "sequential",
+          decisionPending: question,
+          decisionSourceCardId: question ? "AD1-002" : undefined,
+          decisionTiming: "EndOfYourTurn",
+        }),
+      { initialProps: { fed: [] as readonly ServerBatch[], question: false } },
+    );
+    await advance(0);
+    const first = singleServerBatch([triggered("AD1-002", "src-a", "engage")], 1);
+    view.rerender({ fed: [first], question: true });
+    await advance(1000);
+    const attack: ServerEvent = {
+      kind: "attackDeclared",
+      seat: 0,
+      attackerPermanentId: "perm-a",
+      attackerCardId: "AD1-002",
+      target: { kind: "player" },
+    };
+    const reveal: ServerEvent = {
+      kind: "securityRevealed",
+      seat: 1,
+      revealedCardId: "BT1-010",
+      attackerPermanentId: "perm-a",
+      attackerDP: 12000,
+      securityCardDP: 3000,
+      hasSecurityEffect: false,
+      isDigimon: true,
+      securityCountBefore: 4,
+    };
+    const check: ServerEvent = { kind: "securityChecked", seat: 1, revealedCardId: "BT1-010", resolution: "battle" };
+    view.rerender({
+      fed: [
+        first,
+        singleServerBatch([attack], 2),
+        singleServerBatch([reveal], 3),
+        singleServerBatch([check, resolved("AD1-002", "src-a", "engage")], 4),
+      ],
+      question: false,
+    });
+    await advance(0);
+    expect(view.result.current.attackAwaitingCause).toBe(true);
+    expect(view.result.current.securityBreak).toBeNull();
+    await advance(TIMINGS.effectAnnounce + activePacing().resumeAnnounceMs + 100);
+    expect(view.result.current.attackAwaitingCause).toBe(false);
+    expect(view.result.current.securityBreak !== null || view.result.current.securityClash !== null).toBe(true);
+    await advance(10_000);
+    expect(view.result.current.securityRevealPending).toBe(false);
+  });
   it("expires a previous copy's toast while the new copy waits for target confirmation", async () => {
     setBasePacing(PACING_BY_STYLE.stacked);
     const anchors = geometry();

@@ -175,13 +175,16 @@ describe("room clock enforcement", () => {
     expect(game.state.gameOver).toBe(false);
   });
 
-  it("enables the named development bot scenario with the standard timer policy", () => {
-    const game = room({ botRoom: true, devScenario: "arena-match-timer" });
-    expect(game.state.matchTimer).toBe(true);
-    expect(game.state.timerStartSeconds).toBe(300);
-    expect(game.state.timerRefillSeconds).toBe(60);
-    expect(room({ botRoom: true, devScenario: "arena", matchTimer: true }).state.matchTimer).toBe(false);
-  });
+  it.each(["arena-match-timer", "arena-chronomon-engage-order"] as const)(
+    "enables %s with the standard timer policy",
+    (devScenario) => {
+      const game = room({ botRoom: true, devScenario });
+      expect(game.state.matchTimer).toBe(true);
+      expect(game.state.timerStartSeconds).toBe(300);
+      expect(game.state.timerRefillSeconds).toBe(60);
+      expect(room({ botRoom: true, devScenario: "arena", matchTimer: true }).state.matchTimer).toBe(false);
+    },
+  );
 
   it("disables crafted ranked, tournament and bot clock options", () => {
     for (const mode of [{ rankedRoom: true }, { tournamentRoom: true }, { botRoom: true }]) {

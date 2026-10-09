@@ -987,13 +987,25 @@ export function presentServerBatch({
     cardSiteRef,
     securityAttackerRef,
   });
+  if (securityAttack && attackReady && securityAttackerRef.current)
+    securityAttackerRef.current.presentationReady = attackReady;
   // Shield, reveal and dock share the serial centre-stage track. The source clause
   // reads after docking, then deferred arrivals present what it played. This order
   // holds for split, same-batch and close-only checks; ordinary battles retain their
   // outcome beat. A first shield break replaces the preceding central showcase.
   const stage = securityRevealScene({
     queue,
-    enqueue,
+    enqueue: (step) =>
+      enqueue(
+        securityAttackerRef.current?.presentationReady && step.track === CueTrack.CenterStage
+          ? afterGate(
+              step,
+              securityAttackerRef.current.presentationReady,
+              CONSEQUENCE_GATE_MAX_MS,
+              "security/attackReady",
+            )
+          : step,
+      ),
     viewerSeat,
     replayingHistory,
     stateVersion,

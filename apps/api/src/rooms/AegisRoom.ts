@@ -709,7 +709,7 @@ export class AegisRoom extends Room<{ state: GameState; metadata: { unlimited: b
     });
 
     // Optional clocks belong to casual/private rooms. Ignore crafted ranked/tournament options.
-    const devTimer = this.devScenario === "arena-match-timer";
+    const devTimer = this.devScenario === "arena-match-timer" || this.devScenario === "arena-chronomon-engage-order";
     this.matchClock = new MatchClock(
       this.state,
       {
@@ -1384,7 +1384,7 @@ export class AegisRoom extends Room<{ state: GameState; metadata: { unlimited: b
     // has no seatByClient entry for applyIntent to route through) — starting the
     // match directly here is the bot seat's stand-in for readiness.
     // Legacy bot joins can promote a waiting casual room to practice mode.
-    if (this.devScenario !== "arena-match-timer") {
+    if (this.devScenario !== "arena-match-timer" && this.devScenario !== "arena-chronomon-engage-order") {
       this.state.matchTimer = false;
       this.state.timerActiveSeat = -1;
       this.matchClockInterval?.clear();

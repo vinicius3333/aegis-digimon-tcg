@@ -13,6 +13,99 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+it.each([false, true])(
+  "Discord 1557926494536466514: timed Engage follows the first security check (split: %s)",
+  async (split) => {
+    vi.useFakeTimers();
+    const state = createArenaDemoState();
+    state.matchTimer = true;
+    const attacker = state.players[0]!.battleArea[0]!;
+    const respondDecision = vi.fn<(response: DecisionResponse) => void>();
+    const decision: DecisionRequest = {
+      decisionId: "engage-after-check",
+      seat: 0,
+      kind: "optional",
+      stateVersion: 2,
+      promptText: "Engage after the first attack",
+      options: { timing: "EndOfYourTurn" },
+    };
+    const events: ServerEvent[] = [
+      {
+        kind: "securityRevealed",
+        seat: 1,
+        revealedCardId: "BT1-010",
+        attackerPermanentId: attacker.permanentId,
+        attackerDP: 12000,
+        securityCardDP: 3000,
+        securityCountBefore: 5,
+        isDigimon: true,
+        hasSecurityEffect: false,
+      },
+      {
+        kind: "securityChecked",
+        seat: 1,
+        revealedCardId: "BT1-010",
+        resolution: "battle",
+        battle: { attackerDP: 12000, securityCardDP: 3000, attackerDeleted: false, securityDigimonDeleted: true },
+      },
+      { kind: "attackEnded", seat: 0, attackerPermanentId: attacker.permanentId },
+    ];
+    const view = (batches: readonly ServerBatch[], pending?: DecisionRequest) => (
+      <I18nProvider>
+        <GameScreen
+          joinOptions={{ displayName: "You", deck: { mainDeck: [], eggDeck: [] } }}
+          identityColor="Red"
+          onExit={() => {}}
+          demoConnection={{
+            room: undefined,
+            status: "connected",
+            state,
+            batches,
+            events: batches.flatMap((batch) => batch.events),
+            decision: pending,
+            acknowledgeDecision: () => {},
+            respondDecision,
+            error: undefined,
+            sessionId: state.players[0]!.sessionId,
+            roomCode: "",
+          }}
+        />
+      </I18nProvider>
+    );
+    const rendered = render(view([]));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    const batches = [singleServerBatch(events, 1)];
+    rendered.rerender(view(batches, split ? undefined : decision));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    if (split) rendered.rerender(view(batches, decision));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(screen.queryByText(decision.promptText!)).toBeNull();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(400);
+    });
+    expect(screen.getByTestId("security-clash")).toBeTruthy();
+    expect(screen.queryByText(decision.promptText!)).toBeNull();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1100);
+    });
+    expect(screen.getByTestId("security-clash").textContent).toContain("Battles the attacker");
+    expect(screen.queryByText(decision.promptText!)).toBeNull();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000);
+    });
+    expect(screen.queryByTestId("security-clash")).toBeNull();
+    expect(screen.getByText(decision.promptText!)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /^Yes, activate$/ }));
+    expect(respondDecision).toHaveBeenCalledWith({ kind: "optional", accept: true });
+  },
+);
+
 async function pendingTriggerDecision(split: boolean, timed: boolean) {
   vi.useFakeTimers();
   const state = createArenaDemoState();

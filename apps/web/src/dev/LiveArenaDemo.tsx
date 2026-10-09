@@ -1095,6 +1095,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Mesa de fim de partida: 21 permanentes por lado, 12 fontes no Vulcanusmon, 2 links e 8 cartas salvas no Watchmaker. Cada lado conserva as 50 cartas do deck principal. Role as duas fileiras, inspecione as fontes e gire a tela.",
     en: "Late-game board: 21 permanents per side, 12 Vulcanusmon sources, 2 links and 8 saved Watchmaker cards. Each side conserves its 50-card main deck. Scroll both lanes, inspect sources and rotate the screen.",
   },
+  "arena-chronomon-engage-order": {
+    ptBR: "Discord 1557926494536466514, partida com cronômetro. Encerre a criação. Evolua Musyamon para Butenmon pelo custo alternativo 3. Aceite devolver 1 card do lixo e resolva Butenmon antes de Yokomon; ataque a segurança. Então aceite Yokomon e evolua para Chronomon: Holy Mode. Resolva Hyokomon devolvendo uma carta da mão, aceite a recuperação de Holy Mode devolvendo 3 do lixo e aceite desvirar por Butenmon herdado. O primeiro check de segurança precisa terminar na tela antes da pergunta de Engage. Aceite Engage para fazer o segundo ataque: a segurança do bot termina em 3, e só então o turno passa.",
+    en: "Discord 1557926494536466514, timed match. End breeding. Digivolve Musyamon into Butenmon for its alternate cost of 3. Accept returning 1 trash card and resolve Butenmon before Yokomon; attack security. Then accept Yokomon and digivolve into Chronomon: Holy Mode. Resolve Hyokomon by returning a hand card, accept Holy Mode recovery by returning 3 trash cards and accept inherited Butenmon unsuspending. The first security check must finish on screen before the Engage prompt opens. Accept Engage for the second attack: the bot ends with 3 security, then the turn passes.",
+  },
   "arena-match-timer": {
     ptBR: "Timer real: 300 s iniciais por jogador, +60 s no seu turno e +30 s no turno do oponente, até 300 s. Encerre a criação e jogue contra o bot. Só conta o tempo de quem precisa responder; efeitos e animações pausam a contagem. Fique sem agir para testar a derrota por timeout. Reiniciar combate restaura os relógios.",
     en: "Live timer: 300 sec initially per player, +60 sec on your turn and +30 sec on the opponent's, capped at 300 sec. End breeding and play against the bot. Only the required responder's time counts; effects and animations pause it. Stop acting to test defeat by timeout. Reset combat restores the clocks.",
@@ -2712,6 +2716,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt23-examon-piercing-end-turn", "BT23 Examon · end-turn DNA and Piercing"],
   ["arena", "Attack steps · Counter/Blocker"],
   ["arena-field-grouping-dense", "Field grouping · late-game density, deep sources and links"],
+  ["arena-chronomon-engage-order", "Chronomon · Engage depois do check / after security (timed)"],
   ["arena-match-timer", "Timer · vs bot (300s + 60s/30s)"],
   ["arena-aegiochus-dark-assembly", "Aegiochus Dark · Wizardmon Assembly"],
   ["arena-alliance-20", "Alliance · 20 Digimon"],
