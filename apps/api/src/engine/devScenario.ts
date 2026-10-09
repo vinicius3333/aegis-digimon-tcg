@@ -378,6 +378,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-issue-4892-effect-digixros",
   "arena-moon-pending-source-deleted",
   "arena-mirage-hidden-hand",
+  "arena-bt22-akemi-battle-mother",
   "arena-p224-kotone-own-source",
   "arena-bt25-ceresmon-homeros-suspend",
   "arena-bt24-homeros-neptunemon-timing-choice",
@@ -6898,6 +6899,21 @@ function layBt25CeresmonHomerosSuspendScenario(state: GameState, decks: readonly
 }
 
 /** Discord 1556113288599834624, match 9b9ea6cc: X7 needs DigiXros at zero memory. */
+/** #5370: Akemi must target battle Mother Eaters even with an identical breeding copy. */
+function layBt22AkemiBattleMotherScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0]!;
+  // Keep the reproduction focused on Akemi, without Mother Eater restacking at Start of Main.
+  clearZone(human, Zone.EggDeck);
+  insertCard(human, Zone.Hand, faceDownCard("dev-5370-hand", "BT1-009", 0));
+  placePermanent(human, establishedDigimon(0, ["BT22-095"], "-5370-akemi"));
+  placePermanent(human, establishedDigimon(0, ["BT22-079", "BT22-007"], "-5370-battle"));
+  placePermanent(human, establishedDigimon(0, ["BT22-007"], "-5370-second"));
+  const breeding = establishedDigimon(0, ["BT22-079", "BT22-007"], "-5370-breeding");
+  breeding.inBreeding = true;
+  setBreeding(human, breeding);
+}
+
 function layP224KotoneOwnSourceScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 3);
   const human = state.players[0];
@@ -9848,6 +9864,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,
   "arena-moon-pending-source-deleted": layMoonPendingSourceDeletedScenario,
   "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
+  "arena-bt22-akemi-battle-mother": layBt22AkemiBattleMotherScenario,
   "arena-p224-kotone-own-source": layP224KotoneOwnSourceScenario,
   "arena-bt25-ceresmon-homeros-suspend": layBt25CeresmonHomerosSuspendScenario,
   "arena-bt24-homeros-neptunemon-timing-choice": layBt24HomerosNeptunemonTimingChoiceScenario,
