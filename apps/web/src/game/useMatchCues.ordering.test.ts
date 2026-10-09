@@ -839,6 +839,40 @@ describe("a security battle's outcome comes before the attacker's death", () => 
     expect(held?.trash.map((card) => card.instanceId)).not.toContain("s0-27");
   });
 
+  it("shows the outcome before the attacker's deletion when both arrive in one batch", async () => {
+    // A tied security battle deletes both Digimon; the server sends the attacker's trash move
+    // and the outcome in a single batch (Gallantmon 12000 vs BT26-079 12000).
+    const tie: ServerEvent = {
+      ...CHECKED,
+      battle: { securityDigimonDeleted: true, attackerDeleted: true, attackerDP: 12000, securityCardDP: 12000 },
+    } as ServerEvent;
+    const view = renderOrderingCues(boardAt(1));
+    await advance(0);
+    view.feedBatch([ATTACK]);
+    await advance(16);
+    view.feedBatch([REVEAL]);
+    await advance(16);
+    view.feedBatch([ATTACKER_TRASHED, tie], boardAt(2, { attacker: false }));
+    await advance(16);
+    const held = view.result.current.heldBlowState?.players[VIEWER];
+    expect(held?.battleArea.map((permanent) => permanent.permanentId)).toContain("perm-3");
+    expect(held?.trash.map((card) => card.instanceId)).not.toContain("s0-27");
+    const order = await firstSeenOrder(
+      {
+        outcome: settled(view),
+        shatter: () => view.result.current.deleteBursts.length > 0,
+        deletedNotice: () =>
+          view.result.current.notices.some(
+            (notice) =>
+              notice.body.variant === "deletion" && notice.body.cards.some((card) => card.cardId === "AD1-002"),
+          ),
+      },
+      8000,
+    );
+    expect(order.indexOf("outcome")).toBe(0);
+    expect(order).toEqual(expect.arrayContaining(["outcome", "shatter", "deletedNotice"]));
+  });
+
   it("shatters the first attacker when the next check is staged before its outcome", async () => {
     const SECOND_ATTACK: ServerEvent = { ...ATTACK, attackerPermanentId: "perm-4", attackerCardId: "BT18-015" };
     const SECOND_REVEAL: ServerEvent = {

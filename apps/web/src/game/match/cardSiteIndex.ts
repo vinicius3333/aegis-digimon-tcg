@@ -60,7 +60,15 @@ export function buildCardSiteIndex(state: GameState): {
         const host = hosts.get(`${seat}:${source.sourcePermanentId}`);
         if (host) return host;
       }
-      if (source?.sourceInstanceId) return instances.get(`${seat}:${source.sourceInstanceId}`);
+      if (source?.sourceInstanceId) {
+        const instance = instances.get(`${seat}:${source.sourceInstanceId}`);
+        // This index reads live state, which can already hold the source's later deletion
+        // while the board still presents it in play. A field effect stays on its permanent;
+        // [On Deletion] effects locate the trash through their own deletion record.
+        if (source.sourcePermanentId && instance?.zone !== "field")
+          return { zone: "field", permanentId: source.sourcePermanentId };
+        return instance;
+      }
       if (source?.sourcePermanentId) return undefined;
       return sites.get(`${seat}:${cardId}`);
     },

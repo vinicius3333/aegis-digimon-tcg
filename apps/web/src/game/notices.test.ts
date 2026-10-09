@@ -520,6 +520,21 @@ describe("inherited effect source", () => {
     expect(notice?.body).not.toHaveProperty("artId");
   });
 
+  it("keeps a field effect on its permanent after live state has already trashed it", () => {
+    // Gallantmon's [When Attacking] is narrated while the presented board still shows it in
+    // combat, but the live state already holds the tied security battle that trashed it.
+    const trashed = structuredClone(state);
+    const [deleted] = trashed.players[0]!.battleArea.splice(0, 1);
+    trashed.players[0]!.trash.push(deleted!.topCard);
+    const { locate } = buildCardSiteIndex(trashed);
+    expect(
+      locate(deleted!.topCard.cardId, 0, {
+        sourceInstanceId: deleted!.topCard.instanceId,
+        sourcePermanentId: deleted!.permanentId,
+      }),
+    ).toEqual({ zone: "field", permanentId: deleted!.permanentId });
+  });
+
   it("still lights the host permanent the inherited card lives in", () => {
     const { locate } = buildCardSiteIndex(state);
     expect(locate("EX9-018", 0, { sourceInstanceId: "s0-25", sourcePermanentId: "perm-1" })).toEqual({
