@@ -1,13 +1,137 @@
 import { describe, expect, it } from "vitest";
 import { Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
 import "./index.js";
 import "../BT6/BT6-016.js";
+import "../ST12/ST12-13.js";
+import "../EX13/EX13-075.js";
+import "../EX13/EX13-014.js";
 
 describe("issue #5356: hard-played SaviorHuckmon at end of turn", () => {
   for (const seat of [0, 1] as const) {
     const opponent = seat === 0 ? 1 : 0;
+    it(`#5356 matched production sequence, seat ${seat}: declining the trash offer preserves Savior's end-turn effect`, async () => {
+      const s = setupEngine(
+        {
+          [seat]: {
+            battleArea: [
+              { card: "ST12-13", as: "ciel" },
+              { card: "EX13-075", as: "tamer" },
+            ],
+            hand: [
+              { card: "BT20-014", as: "savior" },
+              { card: "EX13-014", as: "jesmon" },
+            ],
+            trash: [{ card: "BT20-084", as: "awakened" }],
+            deck: ["BT1-009", "BT1-009", "BT1-009"],
+          },
+          [opponent]: { deck: ["BT1-009", "BT1-009"] },
+        },
+        { autoSelectCards: true, autoOrderTriggers: false },
+      );
+      s.state.turnSeat = seat;
+      s.state.memory = 3;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(seat);
+      expect(s.perm("ciel").isSuspended).toBe(false);
+      expect(s.engine.applyIntent(seat, { type: "playCard", instanceId: s.inst("savior").instanceId })).toEqual({
+        ok: true,
+      });
+      await settleAcrossTimers(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const playOrder = s.decisions.at(-1)!.req;
+      expect(playOrder.options?.triggerCardIds).toEqual(expect.arrayContaining(["BT20-014", "BT20-084"]));
+      const onPlayKey = playOrder.options!.triggerKeys!.find((key) => key.includes(s.inst("savior").instanceId))!;
+      expect(
+        s.engine.applyIntent(seat, {
+          type: "respondDecision",
+          decisionId: playOrder.decisionId,
+          response: { kind: "orderTriggers", order: [onPlayKey] },
+        }),
+      ).toEqual({ ok: true });
+      await settleAcrossTimers(() => s.state.pendingDecision?.kind === "optional");
+      const trashOffer = s.decisions.at(-1)!.req;
+      expect(trashOffer.sourceCardId).toBe("BT20-084");
+      expect(s.state.memory).toBe(-4);
+      expect(s.perm("ciel").isSuspended).toBe(false);
+      expect(
+        s.engine.applyIntent(seat, {
+          type: "respondDecision",
+          decisionId: trashOffer.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      await settleAcrossTimers(
+        () => s.state.pendingDecision !== undefined && s.decisions.at(-1)!.req.decisionId !== trashOffer.decisionId,
+      );
+      const endOrder = s.decisions.at(-1)!.req;
+      if (endOrder.kind === "orderTriggers") {
+        expect(endOrder.options?.triggerCardIds).toContain("BT20-014");
+        expect(
+          s.engine.applyIntent(seat, {
+            type: "respondDecision",
+            decisionId: endOrder.decisionId,
+            response: { kind: "orderTriggers", order: endOrder.options!.triggerKeys! },
+          }),
+        ).toEqual({ ok: true });
+      }
+      await settleAcrossTimers(() => s.state.pendingDecision?.kind === "optional");
+      const saviorOffer = s.decisions.at(-1)!.req;
+      expect(saviorOffer.sourceCardId).toBe("BT20-014");
+      expect(
+        s.engine.applyIntent(seat, {
+          type: "respondDecision",
+          decisionId: saviorOffer.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toEqual({ ok: true });
+      await settleAcrossTimers(
+        () => s.state.pendingDecision !== undefined && s.decisions.at(-1)!.req.decisionId !== saviorOffer.decisionId,
+      );
+      const suspensionOffer = s.decisions.at(-1)!.req;
+      expect(suspensionOffer.kind).toBe("optional");
+      expect(suspensionOffer.sourceCardId).toBe("BT20-014");
+      expect(
+        s.engine.applyIntent(seat, {
+          type: "respondDecision",
+          decisionId: suspensionOffer.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toEqual({ ok: true });
+      // Jesmon's own evolution window remains independently answerable after recovery.
+      await settleAcrossTimers(
+        () =>
+          s.state.pendingDecision !== undefined && s.decisions.at(-1)!.req.decisionId !== suspensionOffer.decisionId,
+      );
+      const jesmonOrder = s.decisions.at(-1)!.req;
+      if (jesmonOrder.kind === "orderTriggers") {
+        expect(
+          s.engine.applyIntent(seat, {
+            type: "respondDecision",
+            decisionId: jesmonOrder.decisionId,
+            response: { kind: "orderTriggers", order: jesmonOrder.options!.triggerKeys! },
+          }),
+        ).toEqual({ ok: true });
+        await settleAcrossTimers(() => s.state.pendingDecision?.kind === "optional");
+      }
+      const jesmonOffer = s.decisions.at(-1)!.req;
+      expect(jesmonOffer.kind).toBe("optional");
+      expect(jesmonOffer.sourceCardId).toBe("EX13-014");
+      expect(
+        s.engine.applyIntent(seat, {
+          type: "respondDecision",
+          decisionId: jesmonOffer.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      await turn;
+      expect(s.perm("savior").topCard.cardId).toBe("EX13-014");
+      expect(s.perm("ciel").isSuspended).toBe(true);
+      expect(s.perm("tamer").isSuspended).toBe(false);
+      expect(s.state.players[seat]!.trash.some((card) => card.instanceId === s.inst("awakened").instanceId)).toBe(true);
+      expect(s.state.memory).toBe(-4);
+      expect(s.state.pendingDecision).toBeUndefined();
+    });
     it.each([
       "eligible",
       "freshAlly",
