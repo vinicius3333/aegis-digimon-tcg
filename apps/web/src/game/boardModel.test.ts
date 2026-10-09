@@ -802,6 +802,26 @@ function permOf(cardId: string): Permanent {
   } as unknown as Permanent;
 }
 
+it("GitHub #5385 keeps Neptunemon's TS route index onto Holy instead of an invalid Aqua route", () => {
+  const base = permOf("BT26-029");
+  const options = getDigivolveCostOptions("BT24-030", base, undefined, undefined, [
+    { permanentId: base.permanentId, alternateRequirementIndex: -1, projectedCost: 4 },
+    { permanentId: base.permanentId, alternateRequirementIndex: 2, projectedCost: 3 },
+  ]);
+  expect(options.filter((option) => option.type === "alternate")).toEqual([
+    expect.objectContaining({ cost: 3, alternateRequirementIndex: 2 }),
+  ]);
+});
+
+it.each(["BT10-023", "BT2-029", "BT24-028"])(
+  "GitHub #5385 preserves Neptunemon's Aqua substring route onto %s",
+  (cardId) => {
+    expect(getDigivolveCostOptions("BT24-030", permOf(cardId))).toContainEqual(
+      expect.objectContaining({ type: "alternate", cost: 3, alternateRequirementIndex: 0 }),
+    );
+  },
+);
+
 function permWithStack(cardId: string, under: string[]): Permanent {
   return {
     ...permOf(cardId),

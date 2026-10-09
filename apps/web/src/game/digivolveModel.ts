@@ -211,6 +211,7 @@ function requirementHasGate(req: DigivolutionRequirement): boolean {
     req.levelMin !== undefined ||
     req.levelMax !== undefined ||
     (req.traits !== undefined && req.traits.length > 0) ||
+    (req.traitSubstrings !== undefined && req.traitSubstrings.length > 0) ||
     (req.names !== undefined && req.names.length > 0) ||
     (req.namesExact !== undefined && req.namesExact.length > 0) ||
     (req.texts !== undefined && req.texts.length > 0) ||
@@ -231,7 +232,8 @@ function requirementHasIdentityGate(req: DigivolutionRequirement): boolean {
     (req.names !== undefined && req.names.length > 0) ||
     (req.namesExact !== undefined && req.namesExact.length > 0) ||
     (req.texts !== undefined && req.texts.length > 0) ||
-    (req.traits !== undefined && req.traits.length > 0)
+    (req.traits !== undefined && req.traits.length > 0) ||
+    (req.traitSubstrings !== undefined && req.traitSubstrings.length > 0)
   );
 }
 
@@ -312,6 +314,11 @@ function altRequirementMatches(
   if (req.levelMin !== undefined && (baseLevel === undefined || baseLevel < req.levelMin)) return false;
   if (req.levelMax !== undefined && (baseLevel === undefined || baseLevel > req.levelMax)) return false;
   if (req.traits && req.traits.length > 0 && !req.traits.some((t) => cardHasTrait(baseDef, t))) return false;
+  if (
+    req.traitSubstrings?.length &&
+    !req.traitSubstrings.some((token) => effectiveStaticTraits(baseDef).some((trait) => trait.includes(token)))
+  )
+    return false;
   // Name gates read the base's EFFECTIVE names (printed name + aliases such as AD1-020's
   // "Tommy, Takuya, & Zoe" answering to [Takuya Kanbara]) — same source as the server.
   // The substring gate reads the alias union; the exact gate reads the exact channel only, so a
@@ -735,11 +742,13 @@ function alternateCostLabel(req: DigivolutionRequirement, baseLevel: number | un
     ? "onto a Tamer"
     : req.traits && req.traits.length > 0
       ? `[${req.traits.join("/")}] trait`
-      : req.names && req.names.length > 0
-        ? req.names.join("/")
-        : req.namesExact && req.namesExact.length > 0
-          ? req.namesExact.join("/")
-          : "alternate";
+      : req.traitSubstrings?.length
+        ? `[${req.traitSubstrings.join("/")}] in trait`
+        : req.names && req.names.length > 0
+          ? req.names.join("/")
+          : req.namesExact && req.namesExact.length > 0
+            ? req.namesExact.join("/")
+            : "alternate";
   const levelLabel = req.baseIsTamer
     ? ""
     : req.level !== undefined
