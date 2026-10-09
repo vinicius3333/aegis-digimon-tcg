@@ -389,6 +389,7 @@ export async function resolvePermanentTargets(
     allowPendingRotationHost?: boolean;
     /** Let an otherwise fixed-count selection answer an optional processing condition with zero picks. */
     allowDecline?: boolean;
+    promptKey?: "digivolveHost";
   },
 ): Promise<string[]> {
   // SourceRef: resolve to the permanent that triggered this SubTrigger event.
@@ -528,7 +529,13 @@ export async function resolvePermanentTargets(
   const min = target.upTo || opts?.allowDecline === true ? 0 : Math.min(want, candidates.length);
   const max = Math.min(want, candidates.length);
   const asker = target.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
-  const chosen = await asker.chooseTargets(ctx, { candidates: ids, visible: visibleIds, min, max });
+  const chosen = await asker.chooseTargets(ctx, {
+    candidates: ids,
+    visible: visibleIds,
+    min,
+    max,
+    ...(opts?.promptKey !== undefined ? { promptKey: opts.promptKey } : {}),
+  });
   const affectableChosen = finalize(chosen);
   ctx.lastResolvedPermanentIds = affectableChosen;
   return affectableChosen;

@@ -1175,6 +1175,7 @@ export const es: Record<keyof typeof en, string> = {
   "overlay.digivolutionCardsBottom": "Parte inferior de las cartas de digievolución",
   "overlay.securityTop": "Parte superior de la pila de seguridad",
   "overlay.securityBottom": "Parte inferior de la pila de seguridad",
+  "overlay.digivolveHostPrompt": "Elige la carta que va a digievolucionar.",
   "overlay.dispositionHand": "Añadir a la mano",
   "overlay.digivolutionRequirementPrinted": "Requisito de digievolución impreso (costo {cost})",
   "overlay.digivolutionRequirementAlternate": "Requisito de digievolución alternativo (costo {cost})",

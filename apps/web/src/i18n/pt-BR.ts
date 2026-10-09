@@ -1216,6 +1216,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.digivolutionCardsBottom": "Fundo das cartas de digievolução",
   "overlay.securityTop": "Topo da pilha de segurança",
   "overlay.securityBottom": "Fundo da pilha de segurança",
+  "overlay.digivolveHostPrompt": "Escolha a carta que vai digivolver.",
   "overlay.dispositionHand": "Adicionar à mão",
   "overlay.digivolutionRequirementPrinted": "Requisito de digivolução impresso (custo {cost})",
   "overlay.digivolutionRequirementAlternate": "Requisito de digivolução alternativo (custo {cost})",

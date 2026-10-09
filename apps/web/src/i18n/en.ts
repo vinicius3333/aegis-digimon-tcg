@@ -1191,6 +1191,7 @@ export const en = {
   "overlay.digivolutionCardsBottom": "Bottom of the digivolution cards",
   "overlay.securityTop": "Top of the security stack",
   "overlay.securityBottom": "Bottom of the security stack",
+  "overlay.digivolveHostPrompt": "Choose the card that will digivolve.",
   "overlay.dispositionHand": "Add to the hand",
   "overlay.digivolutionRequirementPrinted": "Printed digivolution requirement (cost {cost})",
   "overlay.digivolutionRequirementAlternate": "Alternate digivolution requirement (cost {cost})",

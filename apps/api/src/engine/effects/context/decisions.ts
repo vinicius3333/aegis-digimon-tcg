@@ -61,6 +61,7 @@ export interface SeatScopedDecisionApi {
       visible?: string[];
       maxTotalPlayCost?: number;
       maxTotalDP?: number;
+      promptKey?: "digivolveHost";
     },
   ): Promise<string[]>;
   selectCards(

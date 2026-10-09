@@ -61,7 +61,7 @@ async function attack(s: EngineSetup) {
   await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
   const req = s.decisions.at(-1)!.req;
   expect(req.options?.candidateInstanceIds).toEqual([s.perm("attacker").permanentId, s.perm("rookie").permanentId]);
-  expect(req.options).toMatchObject({ min: 0, max: 1 });
+  expect(req.options).toMatchObject({ min: 0, max: 1, promptKey: "digivolveHost" });
   return req;
 }
 

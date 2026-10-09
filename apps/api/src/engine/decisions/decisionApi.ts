@@ -152,6 +152,7 @@ function buildSeatScopedApi(
         visible?: string[];
         maxTotalPlayCost?: number;
         maxTotalDP?: number;
+        promptKey?: "digivolveHost";
       },
     ): Promise<string[]> {
       const min = pickMinimum(ctx, opts.min, opts.max);
@@ -170,6 +171,7 @@ function buildSeatScopedApi(
           max: opts.max,
           ...(opts.maxTotalPlayCost !== undefined ? { maxTotalPlayCost: opts.maxTotalPlayCost } : {}),
           ...(opts.maxTotalDP !== undefined ? { maxTotalDP: opts.maxTotalDP } : {}),
+          ...(opts.promptKey !== undefined ? { promptKey: opts.promptKey } : {}),
           // What the running action will do to whatever is picked here, so the board
           // can badge a chosen target rather than parse the prompt's English.
           ...(ctx.activeTargetFate !== undefined ? { targetFate: ctx.activeTargetFate } : {}),

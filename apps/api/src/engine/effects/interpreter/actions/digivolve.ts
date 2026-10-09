@@ -510,6 +510,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
   const permanentIds = await resolvePermanentTargets(ctx, action.target, {
     allowPendingRotationHost: ctx.pendingRotationHostPermanentId !== undefined,
     eligible: (pid) => intoTarget === undefined || legalIntoForBase(pid, availableIntoPool).length > 0,
+    promptKey: "digivolveHost",
   });
   if (permanentIds.length === 0) return;
   // `bindAs` on the digivolve TARGET records which Digimon was chosen to digivolve, so a

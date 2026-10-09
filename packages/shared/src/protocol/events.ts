@@ -783,7 +783,8 @@ export interface DecisionRequest {
     targetFate?: TargetFate;
     /** Public board permanents already selected by the effect that opened this follow-up decision. */
     affectedPermanentIds?: string[];
-    promptKey?: "activateBlitz" | "attackAlreadyResolving";
+    /** Client-translated prompt text; `digivolveHost` asks which card an effect digivolves. */
+    promptKey?: "activateBlitz" | "attackAlreadyResolving" | "digivolveHost";
     /**
      * Why the engine is asking. `"cost"` means the selection IS the payment of a cost the
      * resolving clause charges, so declining it (an empty selection on a `min: 0` request)

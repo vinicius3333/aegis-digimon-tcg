@@ -230,9 +230,11 @@ export function DecisionOverlay({
           ? t("overlay.activatePartitionPrompt")
           : request.options?.promptKey === "activateBlitz"
             ? t("overlay.activateBlitzPrompt")
-            : !specificPrompt || (sourceCardId && specificPrompt === printedCardName(sourceCardId))
-              ? genericPrompt
-              : specificPrompt;
+            : request.options?.promptKey === "digivolveHost"
+              ? t("overlay.digivolveHostPrompt")
+              : !specificPrompt || (sourceCardId && specificPrompt === printedCardName(sourceCardId))
+                ? genericPrompt
+                : specificPrompt;
 
   // Older decisions may carry their only effect description in the question.
   // Keep that context in the body while all activations share the same heading.

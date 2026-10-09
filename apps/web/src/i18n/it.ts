@@ -881,6 +881,7 @@ const interfaceMessages = {
   "overlay.digivolutionCardsBottom": "Fondo delle carte di digievoluzione",
   "overlay.securityTop": "Cima della sicurezza",
   "overlay.securityBottom": "Fondo della sicurezza",
+  "overlay.digivolveHostPrompt": "Scegli la carta che digievolverà.",
   "overlay.dispositionHand": "Aggiungi alla mano",
   "overlay.digivolutionRequirementPrinted": "Requisito di digievoluzione stampato (costo {cost})",
   "overlay.digivolutionRequirementAlternate": "Requisito di digievoluzione alternativo (costo {cost})",
