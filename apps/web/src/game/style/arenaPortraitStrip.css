@@ -211,10 +211,6 @@
     height: 12px;
   }
 
-  .game-hand-scroll-cue {
-    display: none;
-  }
-
   .game-board .game-player-dock [data-testid="hand"]::-webkit-scrollbar {
     height: 6px;
   }

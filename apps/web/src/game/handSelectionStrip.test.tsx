@@ -6,7 +6,10 @@ import { I18nProvider } from "../i18n";
 import { Hand, type HandEntry } from "./piece";
 import { HAND_INSPECT_HOLD_MS } from "./piece/useHandPickGesture";
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  document.querySelector("#hand-scroll-test-style")?.remove();
+});
 
 const entry = (instanceId: string, cardId = "BT1-010"): HandEntry => ({
   instanceId,
@@ -57,6 +60,10 @@ function renderHand(selection?: Parameters<typeof Hand>[0]["selection"]) {
 }
 
 beforeEach(() => {
+  const style = document.createElement("style");
+  style.id = "hand-scroll-test-style";
+  style.textContent = '[data-testid="hand"] { overflow-x: auto; }';
+  document.head.append(style);
   matchTouchLayout(true);
   stubStripGeometry({ scrollLeft: 0, scrollWidth: 900, clientWidth: 300 });
 });
@@ -107,10 +114,32 @@ describe("hand strip scroll cues", () => {
     expect(queryByTestId("hand-scroll-forward")).toBeNull();
   });
 
-  it("stays off the pointer layout, where the fan is whole", () => {
+  it("also indicates hidden cards on the pointer layout", () => {
     matchTouchLayout(false);
     const { queryByTestId } = renderHand();
+    expect(queryByTestId("hand-scroll-forward")).not.toBeNull();
+  });
+
+  it("does not show arrows for visual overflow in a non-scrolling fan", () => {
+    matchTouchLayout(false);
+    document.querySelector("#hand-scroll-test-style")!.textContent = '[data-testid="hand"] { overflow-x: visible; }';
+    const { queryByTestId } = renderHand();
+    expect(queryByTestId("hand-scroll-start")).toBeNull();
     expect(queryByTestId("hand-scroll-forward")).toBeNull();
+  });
+
+  it("updates both directions as the desktop hand scrolls to the end and back", () => {
+    matchTouchLayout(false);
+    const { getByTestId, queryByTestId } = renderHand();
+    const strip = getByTestId("hand");
+    strip.scrollLeft = 600;
+    fireEvent.scroll(strip);
+    expect(queryByTestId("hand-scroll-start")).not.toBeNull();
+    expect(queryByTestId("hand-scroll-forward")).toBeNull();
+    strip.scrollLeft = 0;
+    fireEvent.scroll(strip);
+    expect(queryByTestId("hand-scroll-start")).toBeNull();
+    expect(queryByTestId("hand-scroll-forward")).not.toBeNull();
   });
 
   it("scrolls the strip by one card when a cue is tapped", () => {
