@@ -40,3 +40,57 @@ describe("effect-caused security destruction", () => {
     queue.clear();
   });
 });
+
+it("#5409: a DNA card arrival completes before its effect trashes security", async () => {
+  const landing = createPresentationGate();
+  const order: string[] = [];
+  const cancelled: string[] = [];
+  const queue = createAnimationQueue({
+    onStep: (event) => {
+      if (event.cancelled) cancelled.push(event.step.id);
+    },
+  });
+  queue.enqueue({
+    id: "zone-change-dna",
+    track: "centerStage",
+    async run(context) {
+      await landing.opened;
+      if (!context.cancelled) order.push("arrival");
+    },
+  });
+  const noop = () => {};
+  const setSecurityBreak = vi.fn<(value: unknown) => void>(() => {
+    order.push("shield");
+  });
+  try {
+    enqueueSecurityDestructions({
+      fresh: [
+        { kind: "cardsMoved", from: "security", to: "trash", seat: 1, instanceIds: ["top"], cardIds: ["BT1-020"] },
+      ],
+      viewerSeat: 0,
+      replayingHistory: false,
+      causingEffectGate: null,
+      queue,
+      sidePanelLookupRef: { current: { cardId: () => undefined, seat: () => undefined } },
+      securityClashKeyRef: { current: 0 },
+      pendingDestructionsRef: { current: 0 },
+      setSecurityBreak,
+      setSecurityHitSeat: noop,
+      setSecurityClash: noop,
+      setPendingRevealKey: noop,
+      securityCountOf: () => 5,
+      holdSecurityCard: noop,
+      releaseSecurityCard: noop,
+      releaseSecurityCardWhenIdle: noop,
+      releaseSecurityPresentation: noop,
+      enqueue: (step) => queue.enqueue(step),
+    });
+    landing.release();
+    await vi.waitFor(() => expect(setSecurityBreak).toHaveBeenCalled());
+    expect(order.slice(0, 2)).toEqual(["arrival", "shield"]);
+    expect(cancelled).not.toContain("zone-change-dna");
+  } finally {
+    landing.release();
+    queue.clear();
+  }
+});

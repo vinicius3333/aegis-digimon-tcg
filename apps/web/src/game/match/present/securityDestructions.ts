@@ -87,7 +87,9 @@ export function enqueueSecurityDestructions({
       trashedSeat: destruction.seat,
       viewerSeat,
     });
-    // Only the first card takes the centre of the screen off whatever held it; the rest queue
+    // An arriving card must land before its effects destroy security. The first shield
+    // break may retire an older security scene, but cannot replace that arrival.
+    // The rest queue
     // behind their predecessor on the same track — including a predecessor from an EARLIER
     // batch: a chained effect delivers one trash per batch, and replacing would cancel the
     // previous card's scene mid-play.
@@ -97,7 +99,10 @@ export function enqueueSecurityDestructions({
         setSecurityBreak,
         setSecurityHitSeat,
         scene: buildSecurityBreakScene({ key, defenderSeat: destruction.seat, viewerSeat }),
-        replace: index === 0 && pendingDestructionsRef.current === 0,
+        replace:
+          index === 0 &&
+          pendingDestructionsRef.current === 0 &&
+          !queue.hasPendingStep((step) => step.track === CueTrack.CenterStage && step.id.startsWith("zone-change-")),
         causingEffectGate,
       }),
     );
