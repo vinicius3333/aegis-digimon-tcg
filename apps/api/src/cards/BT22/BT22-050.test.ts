@@ -7,7 +7,20 @@ describe("BT22-050 Roamon", () => {
   it("plays itself at the end of the battle when revealed from security", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({
       timing: "endOfBattle",
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, isSelf: true }, payCost: false }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: { filter: { isSelfRef: true }, isSelf: true },
+              from: ["trash"],
+              payCost: false,
+            },
+          ],
+        },
+      ],
     });
   });
 

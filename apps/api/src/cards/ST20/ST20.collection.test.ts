@@ -108,7 +108,13 @@ describe("ST20 collection audit proof", () => {
     expect(effects("ST20-05").find((effect) => effect.trigger === "Security")).toMatchObject({
       isSecurity: true,
       timing: "endOfBattle",
-      actions: [{ kind: "PlayWithoutCost", payCost: false }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false }],
+        },
+      ],
     });
   });
 

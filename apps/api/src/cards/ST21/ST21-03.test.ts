@@ -8,7 +8,11 @@ describe("ST21-03", () => {
   it("matches the catalog and executable security clause", () => {
     expect(getCardDefinition("ST21-03")?.effectText).toContain("At the end of the battle");
     const effect = runtimeCompiledCard("ST21-03")?.effects.find((x) => x.trigger === "Security");
-    expect(effect?.actions[0]).toMatchObject({ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } });
+    expect(effect?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenSecurityBattleEnded",
+      actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, target: { isSelf: true } }],
+    });
   });
   it("restricts only opponent Digimon without evolution cards after removing two sources", () => {
     const effect = runtimeCompiledCard("ST21-03")?.effects.find((x) => x.trigger === "OnPlay");

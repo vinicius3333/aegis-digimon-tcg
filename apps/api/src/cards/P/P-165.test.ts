@@ -16,7 +16,13 @@ describe("P-165 ShoeShoemon", () => {
     expect(compiled.effects[0]).toMatchObject({
       trigger: "Security",
       timing: "endOfBattle",
-      actions: [{ kind: "PlayWithoutCost", from: ["security"], payCost: false }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false }],
+        },
+      ],
     });
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
@@ -42,7 +48,10 @@ describe("P-165 ShoeShoemon", () => {
   it("uses the Familiar Token's own deletion effect and encodes inherited Barrier", () => {
     const compiled = runtimeCompiledCard("P-165")!;
     expect(
-      compiled.effects.some((effect) => (effect.actions ?? []).some((action) => action.kind === "SubTrigger")),
+      compiled.effects.some(
+        (effect) =>
+          effect.trigger !== "Security" && (effect.actions ?? []).some((action) => action.kind === "SubTrigger"),
+      ),
     ).toBe(false);
     expect(compiled.effects).toEqual(
       expect.arrayContaining([

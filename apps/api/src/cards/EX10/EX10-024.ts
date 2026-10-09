@@ -24,7 +24,19 @@ const compiled: CompiledCard = {
     {
       trigger: "Security",
       actions: [
-        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          once: true,
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              from: ["trash"],
+              payCost: false,
+            },
+          ],
+        },
       ],
       isSecurity: true,
     },

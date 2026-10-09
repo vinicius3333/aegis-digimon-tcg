@@ -9,7 +9,13 @@ describe("BT18-035 Piddomon", () => {
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects[0]).toMatchObject({
       trigger: "Security",
-      actions: [{ kind: "PlayWithoutCost", from: ["security"], payCost: false, target: { isSelf: true } }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, target: { isSelf: true } }],
+        },
+      ],
     });
     const s = setupEngine(
       {

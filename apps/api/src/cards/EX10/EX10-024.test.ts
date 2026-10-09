@@ -34,9 +34,16 @@ describe("EX10-024 Kabemon", () => {
           isSecurity: true,
           actions: [
             expect.objectContaining({
-              kind: "PlayWithoutCost",
-              payCost: false,
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              kind: "SubTrigger",
+              event: "whenSecurityBattleEnded",
+              actions: [
+                expect.objectContaining({
+                  kind: "PlayWithoutCost",
+                  from: ["trash"],
+                  payCost: false,
+                  target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                }),
+              ],
             }),
           ],
         }),
