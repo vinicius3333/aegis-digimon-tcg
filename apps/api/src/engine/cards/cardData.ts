@@ -27,7 +27,7 @@ import {
   tamerOntoDigivolveLevel,
 } from "./tamerOntoDigivolve.js";
 import type { GameAccess } from "../effects/EffectContext.js";
-import { textMatchesToken } from "@aegis/shared";
+import { sameTrait, textMatchesToken } from "@aegis/shared";
 
 /**
  * Engine-side card-data-model access layer.
@@ -321,11 +321,10 @@ export function staticTraitsOf(def: CardDefinition | string): string[] {
  * (the Digimon TCG "trait" = forms ∪ attributes ∪ types).
  */
 export function cardHasTrait(def: CardDefinition | string, trait: string): boolean {
-  // Case-insensitive identity: printed text and card data occasionally disagree on the casing of
-  // a trait token (e.g. text "[NSP]" vs data "NSp"). Trait values are whole-token identities, so a
-  // case-folded equality cannot over-match (it never collapses "App" into "Appmon").
-  const want = trait.toLowerCase();
-  return staticTraitsOf(def).some((candidate) => candidate.toLowerCase() === want);
+  // Printed text and card data occasionally disagree on the casing or spacing of a trait token
+  // (text "[NSP]" vs data "NSp", text "[Blue Flare]" vs data "BlueFlare"). Trait values are
+  // whole-token identities, so this equality cannot over-match (it never collapses "App" into "Appmon").
+  return staticTraitsOf(def).some((candidate) => sameTrait(candidate, trait));
 }
 
 /** Match a live permanent against its printed and continuously granted traits. */
@@ -333,8 +332,7 @@ export function permanentHasTrait(game: GameAccess, permanent: Permanent, trait:
   if (permanent.topCard === undefined) return false;
   const effective = game.effectiveTraits?.(permanent.permanentId);
   if (effective === undefined) return cardHasTrait(game.definitionOf(permanent.topCard), trait);
-  const wanted = trait.toLowerCase();
-  return effective.some((candidate) => candidate.toLowerCase() === wanted);
+  return effective.some((candidate) => sameTrait(candidate, trait));
 }
 
 /**

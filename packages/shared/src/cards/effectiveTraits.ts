@@ -1,6 +1,21 @@
 import type { CardDefinition } from "./types.js";
 
 /**
+ * Comparison key for a trait token. The catalog spells some traits differently from their
+ * printed text: "BlueFlare" for [Blue Flare], "X-Antibody" for [X Antibody], "NSp" for [NSP].
+ * A trait is a whole-token identity, and no two distinct traits differ only by case, spaces or
+ * hyphens, so folding those cannot merge separate traits.
+ */
+export function traitKey(trait: string): string {
+  return trait.toLowerCase().replace(/[\s-]+/g, "");
+}
+
+/** True when two trait tokens name the same trait (see {@link traitKey}). */
+export function sameTrait(a: string, b: string): boolean {
+  return traitKey(a) === traitKey(b);
+}
+
+/**
  * Every "Trait:" clause of a printed Rule line. The catalog prints several phrasings, and each
  * applies in every zone: "[Rule] Trait: Has the [X] type", "(Rule) Trait: Has [X] and [Y]",
  * "(Rule) Also treated as Name: [N] and has Trait: [X]" (BT24-086), and

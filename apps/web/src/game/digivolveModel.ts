@@ -9,6 +9,7 @@ import {
   effectiveStaticNames,
   effectiveStaticTraits,
   nameIncludesToken,
+  sameTrait,
   textMatchesToken,
   tamerOntoDigivolveSpec,
   baseGrantedDigivolveFor,
@@ -65,7 +66,7 @@ export function findDnaMaterialCombination(cardId: string, permanents: readonly 
         if (!spec.namesInText.some((token) => text.includes(token.toLowerCase()))) return false;
       }
       const traits = effectiveStaticTraits(def);
-      if (spec.traits?.length && !spec.traits.some((trait) => traits.includes(trait))) return false;
+      if (spec.traits?.length && !spec.traits.some((trait) => traits.some((t) => sameTrait(t, trait)))) return false;
       return true;
     };
     const assign = (slot: number, used: Set<string>, result: string[]): string[] | undefined => {
@@ -169,13 +170,12 @@ export function digivolveBasePermanentIds(
   return battleArea.filter((permanent) => bases.has(permanent.permanentId)).map((permanent) => permanent.permanentId);
 }
 
-/** True when `def` has `trait` in its printed or Rule traits. Case-insensitive to tolerate
- * printed-text vs card-data casing drift (e.g. "[NSP]" vs "NSp"); mirrors the server's
- * cardHasTrait. Trait values are whole-token identities, so case folding cannot over-match. */
+/** True when `def` has `trait` in its printed or Rule traits. Tolerates printed-text vs card-data
+ * casing and spacing drift ("[NSP]" vs "NSp", "[Blue Flare]" vs "BlueFlare"); mirrors the server's
+ * cardHasTrait. Trait values are whole-token identities, so this folding cannot over-match. */
 function cardHasTrait(def: ReturnType<typeof getCardDefinition>, trait: string): boolean {
   if (!def) return false;
-  const want = trait.toLowerCase();
-  return effectiveStaticTraits(def).some((t) => t.toLowerCase() === want);
+  return effectiveStaticTraits(def).some((t) => sameTrait(t, trait));
 }
 
 /** How many of `player`'s hand+trash cards satisfy an alternate requirement's `placementCost`

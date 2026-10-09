@@ -1,4 +1,4 @@
-import { effectiveStaticTraits } from "./effectiveTraits.js";
+import { effectiveStaticTraits, sameTrait } from "./effectiveTraits.js";
 import type { CardDefinition } from "./types.js";
 
 /**
@@ -31,8 +31,7 @@ export interface DigiXrosZoneExpander {
 }
 
 function cardHasTrait(def: CardDefinition, trait: string): boolean {
-  const want = trait.toLowerCase();
-  return effectiveStaticTraits(def).some((t) => t.toLowerCase() === want);
+  return effectiveStaticTraits(def).some((t) => sameTrait(t, trait));
 }
 
 const hasAnyTrait = (def: CardDefinition, traits: string[]): boolean => traits.some((t) => cardHasTrait(def, t));
