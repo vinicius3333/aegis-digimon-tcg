@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { effectiveCopyLimit } from "../banlist.js";
+import { formatCopyLimit, isDeckFormat } from "../deckFormat.js";
 import { getCardDefinition } from "../cards/registry.js";
 import { CardColor } from "../schema/enums.js";
 import {
@@ -258,14 +259,19 @@ describe("famous deck catalog", () => {
     }
   });
 
-  it("trims every stored recipe to the current copy caps", () => {
+  it("keeps every stored recipe within the copy caps of the format it plays in", () => {
+    // A recipe a later restriction broke stays as printed and plays under its anchor set's
+    // historical format; every other recipe must fit the current caps.
     for (const deck of CATALOG_DECKS.filter(isFamousDeckAvailable)) {
       const counts = new Map<string, number>();
       for (const cardId of [...deck.decklist.mainDeck, ...deck.decklist.eggDeck]) {
         counts.set(cardId, (counts.get(cardId) ?? 0) + 1);
       }
-      const overCap = [...counts].filter(([cardId, count]) => count > effectiveCopyLimit(cardId));
-      expect({ deckId: deck.deckId, overCap }).toEqual({ deckId: deck.deckId, overCap: [] });
+      const breaksCurrentCaps = [...counts].some(([cardId, count]) => count > effectiveCopyLimit(cardId));
+      const format = breaksCurrentCaps && isDeckFormat(deck.anchorProduct) ? deck.anchorProduct : undefined;
+      const limit = (cardId: string) => (format ? formatCopyLimit(cardId, format) : effectiveCopyLimit(cardId));
+      const overCap = [...counts].filter(([cardId, count]) => count > limit(cardId));
+      expect({ deckId: deck.deckId, format, overCap }).toEqual({ deckId: deck.deckId, format, overCap: [] });
     }
   });
 });
