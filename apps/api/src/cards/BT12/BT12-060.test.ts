@@ -38,19 +38,21 @@ describe("BT12-060 ChuuChuumon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
-  it("gives Blocker to a Save-text host on its controller's turn", async () => {
+  it("official printing: gives Blocker to a Save-text host on the opponent turn", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT12-063", as: "host", under: ["BT12-060"] }] } });
+    s.state.turnSeat = 1;
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
   });
 
   it("does not give Blocker to a host without Save in its text", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT12-060"] }] } });
+    s.state.turnSeat = 1;
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(false);
 
     const offTurn = setupEngine({ 0: { battleArea: [{ card: "BT12-063", as: "host", under: ["BT12-060"] }] } });
-    offTurn.state.turnSeat = 1;
+    offTurn.state.turnSeat = 0;
     await offTurn.ready();
     expect(observe(offTurn.engine).hasKeyword(offTurn.perm("host"), "Blocker")).toBe(false);
   });

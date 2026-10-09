@@ -115,17 +115,18 @@ describe("BT12-064 Tuwarmon", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([sourceId]);
   });
 
-  it("grants Blocker only to a Save-text host on its controller's turn", async () => {
+  it("Discord 1557955113648136222: grants Blocker only to a Save-text host on the opponent's turn", async () => {
     const own = setupEngine({ 0: { battleArea: [{ card: "BT12-063", as: "host", under: ["BT12-064"] }] } });
     await own.ready();
-    expect(observe(own.engine).hasKeyword(own.perm("host"), "Blocker")).toBe(true);
+    expect(observe(own.engine).hasKeyword(own.perm("host"), "Blocker")).toBe(false);
 
     const off = setupEngine({ 0: { battleArea: [{ card: "BT12-063", as: "host", under: ["BT12-064"] }] } });
     off.state.turnSeat = 1;
     await off.ready();
-    expect(observe(off.engine).hasKeyword(off.perm("host"), "Blocker")).toBe(false);
+    expect(observe(off.engine).hasKeyword(off.perm("host"), "Blocker")).toBe(true);
 
     const plain = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT12-064"] }] } });
+    plain.state.turnSeat = 1;
     await plain.ready();
     expect(observe(plain.engine).hasKeyword(plain.perm("host"), "Blocker")).toBe(false);
   });

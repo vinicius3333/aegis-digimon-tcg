@@ -17978,7 +17978,7 @@
         "keywords": [{ "keyword": "Save", "raw": "＜Save＞" }]
       },
       {
-        "trigger": "YourTurn",
+        "trigger": "OpponentsTurn",
         "actions": [
           {
             "kind": "Aura",
@@ -18196,7 +18196,7 @@
         "keywords": []
       },
       {
-        "trigger": "YourTurn",
+        "trigger": "OpponentsTurn",
         "actions": [
           {
             "kind": "Aura",
