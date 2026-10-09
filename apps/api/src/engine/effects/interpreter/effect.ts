@@ -289,6 +289,8 @@ function isColorWaiverStatic(effect: CardEffect): boolean {
 const HAND_TRASH_ANCHOR_LESS_EVENTS = new Set(["whenTrashedFromHand"]);
 
 function isHandTrashWatcherHost(effect: CardEffect): boolean {
+  // Only "when this card is trashed" has a hand-resident source. Ordinary reactions
+  // to another hand card being trashed (ST16-13, BT6-081) need a live battle-area host.
   // Inherited reactions only exist while their card is in a Digimon's stack. Routing them
   // through the hand-resident builder makes loose copies in hand/trash install phantom
   // watchers (BT6-006/-069/-073), so a later discard can trigger cards that were never in play.
@@ -303,7 +305,7 @@ function isHandTrashWatcherHost(effect: CardEffect): boolean {
   const actions = effect.actions ?? [];
   if (actions.length === 0) return false;
   return actions.every(
-    (a) => a.kind === "SubTrigger" && HAND_TRASH_ANCHOR_LESS_EVENTS.has((a as { event?: string }).event ?? ""),
+    (a) => a.kind === "SubTrigger" && HAND_TRASH_ANCHOR_LESS_EVENTS.has(a.event) && a.sourceFilter?.isSelfRef === true,
   );
 }
 
