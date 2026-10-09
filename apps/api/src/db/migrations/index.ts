@@ -26,6 +26,9 @@ import { accountAvatarCheckedAt } from "./023-account-avatar-checked-at.js";
 
 import { feedbackReports } from "./024-feedback-reports.js";
 import { savedDeckFormat } from "./025-deck-format.js";
+import { feedbackTriage } from "./026-feedback-triage.js";
+import { communityDeckReports } from "./027-community-deck-reports.js";
+import { resetFeedbackBaseline } from "./028-reset-feedback-baseline.js";
 
 export const migrations: readonly Migration[] = [
   initialSchema,
@@ -53,4 +56,7 @@ export const migrations: readonly Migration[] = [
   accountAvatarCheckedAt,
   feedbackReports,
   savedDeckFormat,
+  feedbackTriage,
+  communityDeckReports,
+  resetFeedbackBaseline,
 ];

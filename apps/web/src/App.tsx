@@ -34,6 +34,8 @@ import { usePreferencesSync } from "./account/usePreferencesSync";
 import { BugReportDialog } from "./bugs/BugReportDialog";
 import { LeaveMatchDialog } from "./game/screen/layout/LeaveMatchDialog";
 import { PlayerMenu } from "./account/PlayerMenu";
+import { NotificationBell } from "./notifications/NotificationBell";
+import { useNotificationInbox } from "./notifications/useNotificationInbox";
 import type { DigimonWorldAvatarId } from "./account/avatars";
 import { pathForRoute, routeFromPathname, type AppRoute } from "./routes";
 import { roomCodeFromSearch } from "./roomInvite";
@@ -43,6 +45,7 @@ import { SEQUENTIAL_PACING_ENABLED } from "./features";
 import { clearReconnectSession, loadReconnectSession } from "./net/reconnectSession";
 
 const FeedbackScreen = lazy(() => import("./bugs/FeedbackScreen").then((m) => ({ default: m.FeedbackScreen })));
+const MyFeedbackScreen = lazy(() => import("./bugs/MyFeedbackScreen").then((m) => ({ default: m.MyFeedbackScreen })));
 const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
 const ReleasesScreen = lazy(() => import("./releases/ReleasesScreen").then((m) => ({ default: m.ReleasesScreen })));
 const Login = lazy(() => import("./screens/Login").then((m) => ({ default: m.Login })));
@@ -104,7 +107,17 @@ function ScreenFallback() {
   );
 }
 
-const NAV_SCREENS: Screen[] = ["home", "lobby", "deck", "community", "collection", "settings", "releases", "feedback"];
+const NAV_SCREENS: Screen[] = [
+  "home",
+  "lobby",
+  "deck",
+  "community",
+  "collection",
+  "settings",
+  "releases",
+  "feedback",
+  "myFeedback",
+];
 
 export function withAccountAvatar(player: PlayerIdentity, account: RemoteAccount | null): PlayerIdentity {
   return {
@@ -446,6 +459,9 @@ export function AegisClient({
   );
 
   const showNav = NAV_SCREENS.includes(screen);
+  // Kept outside the nav so the count survives a match, where the nav is hidden.
+  const inbox = useNotificationInbox(account?.id);
+  const openOwnFeedback = (feedbackId?: number) => navigate({ screen: "myFeedback", feedbackId });
 
   const selectAvatar = async (avatarId: DigimonWorldAvatarId | null) => {
     if (account) {
@@ -475,6 +491,7 @@ export function AegisClient({
           onToggleDark={setDark}
           onOpenTheme={() => setThemeOpen(true)}
           onSendFeedback={() => setBugReportOpen(true)}
+          notifications={account ? <NotificationBell inbox={inbox} onOpenFeedback={openOwnFeedback} /> : undefined}
         />
       ) : null}
 
@@ -493,7 +510,24 @@ export function AegisClient({
             />
           )}
 
-          {screen === "feedback" && <FeedbackScreen key={account?.id ?? "guest"} isAdmin={account?.isAdmin === true} />}
+          {screen === "feedback" && (
+            <FeedbackScreen
+              key={account?.id ?? "guest"}
+              isAdmin={account?.isAdmin === true}
+              selectedId={route.feedbackId}
+              onSelect={(feedbackId) => navigate({ screen: "feedback", feedbackId })}
+              onOpenDeck={(communityDeckId) => navigate({ screen: "community", communityDeckId })}
+            />
+          )}
+          {screen === "myFeedback" && (
+            <MyFeedbackScreen
+              key={account?.id ?? "guest"}
+              signedIn={!!account}
+              focusId={route.feedbackId}
+              onSignIn={() => navigateScreen("login")}
+              onSendFeedback={() => setBugReportOpen(true)}
+            />
+          )}
           {screen === "login" && <Login onBack={() => navigateScreen("home")} />}
 
           {screen === "lobby" && (

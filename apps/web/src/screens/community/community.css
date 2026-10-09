@@ -526,3 +526,54 @@ button.community-report-link:hover {
   padding-inline: 4px;
   border-color: transparent;
 }
+
+/* ---- Moderator view of open reports ---- */
+
+.community-reports {
+  display: grid;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4);
+  border: 1px solid color-mix(in srgb, var(--ds-warning) 40%, var(--ds-line));
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-warning-soft);
+}
+
+.community-reports h2 {
+  margin: 0;
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-text-base);
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
+}
+
+.community-reports ul {
+  display: grid;
+  gap: var(--ds-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.community-reports li {
+  display: grid;
+  gap: var(--ds-space-1);
+  overflow-wrap: anywhere;
+}
+
+.community-reports li p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.community-reports small,
+.community-reports__actions span {
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-sm);
+}
+
+.community-reports__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-3);
+}

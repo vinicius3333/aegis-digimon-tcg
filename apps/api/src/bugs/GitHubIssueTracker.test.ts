@@ -89,11 +89,14 @@ describe("filing an issue", () => {
 });
 
 describe("reading the tracker from the environment", () => {
-  it("is absent until both the token and the repository are configured", () => {
-    expect(GitHubIssueTracker.fromEnvironment({})).toBeUndefined();
-    expect(GitHubIssueTracker.fromEnvironment({ GITHUB_TOKEN: "t" })).toBeUndefined();
-    expect(GitHubIssueTracker.fromEnvironment({ GITHUB_BUG_REPOSITORY: "a/b" })).toBeUndefined();
-    expect(GitHubIssueTracker.fromEnvironment({ GITHUB_TOKEN: "t", GITHUB_BUG_REPOSITORY: "a/b" })).toBeDefined();
+  it("is absent until the flag, the token and the repository are all configured", () => {
+    const enabled = { FEEDBACK_GITHUB_ENABLED: "true" };
+    expect(GitHubIssueTracker.fromEnvironment(enabled)).toBeUndefined();
+    expect(GitHubIssueTracker.fromEnvironment({ ...enabled, GITHUB_TOKEN: "t" })).toBeUndefined();
+    expect(GitHubIssueTracker.fromEnvironment({ ...enabled, GITHUB_BUG_REPOSITORY: "a/b" })).toBeUndefined();
+    expect(
+      GitHubIssueTracker.fromEnvironment({ ...enabled, GITHUB_TOKEN: "t", GITHUB_BUG_REPOSITORY: "a/b" }),
+    ).toBeDefined();
   });
 });
 
@@ -161,17 +164,20 @@ describe("the issue a report becomes", () => {
 });
 
 describe("feedback GitHub mirror flag", () => {
-  it.each(["false", "FALSE", " false "])("disables the mirror with %s even with credentials", (flag) => {
-    expect(
-      GitHubIssueTracker.fromEnvironment({
-        GITHUB_TOKEN: "token",
-        GITHUB_BUG_REPOSITORY: "example/repo",
-        FEEDBACK_GITHUB_ENABLED: flag,
-      }),
-    ).toBeUndefined();
-  });
+  it.each([undefined, "", "false", "FALSE", "1", "yes"])(
+    "keeps the mirror off with %s even with credentials",
+    (flag) => {
+      expect(
+        GitHubIssueTracker.fromEnvironment({
+          GITHUB_TOKEN: "token",
+          GITHUB_BUG_REPOSITORY: "example/repo",
+          FEEDBACK_GITHUB_ENABLED: flag,
+        }),
+      ).toBeUndefined();
+    },
+  );
 
-  it.each([undefined, "true"])("keeps dual writes enabled with %s", (flag) => {
+  it.each(["true", "TRUE", " true "])("turns dual writes on only when asked with %s", (flag) => {
     expect(
       GitHubIssueTracker.fromEnvironment({
         GITHUB_TOKEN: "token",

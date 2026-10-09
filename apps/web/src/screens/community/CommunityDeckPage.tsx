@@ -11,6 +11,7 @@ import { useTranslation } from "../../i18n";
 import { DeckImageButton } from "../DeckImageButton";
 import { deckSections } from "../deckSections";
 import { LikeButton } from "./LikeButton";
+import { DeckReportsPanel } from "./DeckReportsPanel";
 import { ReportDeckDialog } from "./ReportDeckDialog";
 
 type Load = { status: "loading" } | { status: "missing" } | { status: "ready"; deck: CommunityDeck };
@@ -173,6 +174,8 @@ export function CommunityDeckPage({
           </div>
         </Panel>
         {moderationFailed ? <Alert tone="danger">{t("community.moderation.error")}</Alert> : null}
+        {/* Keyed by status: hiding the deck closes its reports on the server, so the panel reloads. */}
+        {isAdmin ? <DeckReportsPanel key={deck.status} deckId={deck.id} /> : null}
         {reporting ? (
           <ReportDeckDialog
             deckId={deck.id}

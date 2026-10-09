@@ -1,11 +1,18 @@
 import type { AddressInfo } from "node:net";
-import { ALL_FAMOUS_DECKS, isFamousDeckAvailable, type CommunityDeck, type CommunityDeckPage } from "@aegis/shared";
+import {
+  ALL_FAMOUS_DECKS,
+  isFamousDeckAvailable,
+  type CommunityDeck,
+  type CommunityDeckPage,
+  type CommunityDeckReport,
+  type ReportedCommunityDeck,
+} from "@aegis/shared";
 import express from "express";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AccountStore } from "../accounts/AccountStore.js";
 import { installAccountRoutes } from "../accounts/routes.js";
 import { createMemoryPool } from "../db/memoryPool.fixture.js";
-import type { NewDeckReport } from "./deckReports.js";
+import type { DeckReportTracker, NewDeckReport } from "./deckReports.js";
 
 type Player = { id: string; cookie: string };
 type Harness = { url: string; store: AccountStore; reports: NewDeckReport[]; close: () => Promise<void> };
@@ -17,12 +24,16 @@ const [redList, otherList] = legalDecks;
 
 let harness: Harness;
 
-async function startHarness(): Promise<Harness> {
+/** `null` runs without a public copy, the default deployment. */
+async function startHarness(override?: DeckReportTracker | null): Promise<Harness> {
   const store = new AccountStore(createMemoryPool());
   const reports: NewDeckReport[] = [];
   const app = express();
   app.use(express.json());
-  const tracker = { report: async (report: NewDeckReport) => void reports.push(report) };
+  const tracker =
+    override === null
+      ? undefined
+      : (override ?? { report: async (report: NewDeckReport) => void reports.push(report) });
   installAccountRoutes(
     app,
     store,
@@ -267,6 +278,96 @@ describe("reports", () => {
     for (let attempt = 0; attempt < 6; attempt += 1)
       statuses.push((await call(`/community/decks/${id}/reports`, "POST", reporter, { reason: "spam" })).status);
     expect(statuses).toEqual([204, 204, 204, 204, 204, 429]);
+  });
+});
+
+describe("the moderation queue of reported decks", () => {
+  const queue = async (player: Player) =>
+    ((await (await call("/admin/community/reports", "GET", player)).json()) as { decks: ReportedCommunityDeck[] })
+      .decks;
+  const openReports = async (id: string, player: Player) =>
+    (
+      (await (await call(`/admin/community/decks/${id}/reports`, "GET", player)).json()) as {
+        reports: CommunityDeckReport[];
+      }
+    ).reports;
+
+  it("stores reports, one open report per reporter, for admins to read", async () => {
+    const author = await signIn("Author");
+    const first = await signIn("First");
+    const second = await signIn("Second");
+    const admin = await signIn("Admin", { admin: true });
+    const { id } = await saveAndPublish(author, "custom-1", "Reported deck");
+
+    await call(`/community/decks/${id}/reports`, "POST", first, { reason: "spam" });
+    await call(`/community/decks/${id}/reports`, "POST", first, { reason: "offensive_name", details: "worse" });
+    await call(`/community/decks/${id}/reports`, "POST", second, { reason: "other" });
+
+    expect(await queue(admin)).toEqual([
+      expect.objectContaining({ id, name: "Reported deck", authorName: "Author", status: "public", openReports: 2 }),
+    ]);
+    const reports = await openReports(id, admin);
+    expect(reports.map(({ reason, details, reporterName }) => [reason, details, reporterName])).toEqual([
+      ["other", null, "Second"],
+      ["offensive_name", "worse", "First"],
+    ]);
+  });
+
+  it("closes the reports when the deck is hidden or they are dismissed", async () => {
+    const author = await signIn("Author");
+    const reporter = await signIn("Reporter");
+    const admin = await signIn("Admin", { admin: true });
+    const hidden = await saveAndPublish(author, "custom-1", "Hidden deck");
+    const fine = await saveAndPublish(author, "custom-2", "Fine deck");
+    await call(`/community/decks/${hidden.id}/reports`, "POST", reporter, { reason: "spam" });
+    await call(`/community/decks/${fine.id}/reports`, "POST", reporter, { reason: "spam" });
+
+    await call(`/admin/community/decks/${hidden.id}/moderation`, "POST", admin, { action: "hide" });
+    expect((await queue(admin)).map((deck) => deck.id)).toEqual([fine.id]);
+
+    const dismissed = await call(`/admin/community/decks/${fine.id}/reports/dismiss`, "POST", admin);
+    expect(await dismissed.json()).toEqual({ dismissed: 1 });
+    expect(await queue(admin)).toEqual([]);
+
+    await call(`/community/decks/${fine.id}/reports`, "POST", reporter, { reason: "other" });
+    expect((await queue(admin))[0]).toMatchObject({ id: fine.id, openReports: 1 });
+  });
+
+  it("is for admins only", async () => {
+    const author = await signIn("Author");
+    const { id } = await saveAndPublish(author, "custom-1", "Deck");
+    for (const [path, method] of [
+      ["/admin/community/reports", "GET"],
+      [`/admin/community/decks/${id}/reports`, "GET"],
+      [`/admin/community/decks/${id}/reports/dismiss`, "POST"],
+    ] as const) {
+      expect((await call(path, method)).status).toBe(401);
+      expect((await call(path, method, author)).status).toBe(403);
+    }
+  });
+
+  it("keeps the stored report when the public copy fails", async () => {
+    await harness.close();
+    harness = await startHarness({
+      report: () => Promise.reject(new Error("GitHub refused the issue: 403")),
+    });
+    const quiet = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const author = await signIn("Author");
+    const reporter = await signIn("Reporter");
+    const admin = await signIn("Admin", { admin: true });
+    const { id } = await saveAndPublish(author, "custom-1", "Deck");
+    expect((await call(`/community/decks/${id}/reports`, "POST", reporter, { reason: "spam" })).status).toBe(204);
+    expect((await queue(admin))[0]).toMatchObject({ id, openReports: 1 });
+    quiet.mockRestore();
+  });
+
+  it("works with no public copy at all", async () => {
+    await harness.close();
+    harness = await startHarness(null);
+    const author = await signIn("Author");
+    const reporter = await signIn("Reporter");
+    const { id } = await saveAndPublish(author, "custom-1", "Deck");
+    expect((await call(`/community/decks/${id}/reports`, "POST", reporter, { reason: "spam" })).status).toBe(204);
   });
 });
 

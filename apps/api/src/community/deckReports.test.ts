@@ -87,3 +87,20 @@ describe("the issue text", () => {
     expect(body).toContain("> ping `@maintainer` about `#12`\n> &lt;!-- aegis-deck:other --&gt;");
   });
 });
+
+describe("deck report GitHub copy flag", () => {
+  const credentials = { GITHUB_TOKEN: "token", GITHUB_BUG_REPOSITORY: "example/repo" };
+
+  it.each([undefined, "", "false", "1"])("stays off with %s even with credentials", (flag) => {
+    expect(
+      GitHubDeckReportTracker.fromEnvironment({ ...credentials, DECK_REPORTS_GITHUB_ENABLED: flag }),
+    ).toBeUndefined();
+  });
+
+  it("turns on only when asked and configured", () => {
+    expect(
+      GitHubDeckReportTracker.fromEnvironment({ ...credentials, DECK_REPORTS_GITHUB_ENABLED: "true" }),
+    ).toBeDefined();
+    expect(GitHubDeckReportTracker.fromEnvironment({ DECK_REPORTS_GITHUB_ENABLED: "true" })).toBeUndefined();
+  });
+});

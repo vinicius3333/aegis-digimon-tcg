@@ -3,7 +3,7 @@
    asked, because a typed version number is a wrong version number. */
 
 import { MatchLogId } from "../game/MatchLogId";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Icons, type IconComponent } from "../design/icons";
 import { Alert, Button, Dialog } from "../design/primitives";
 import { useTranslation, type TranslationKey } from "../i18n";
@@ -63,7 +63,18 @@ export function BugReportDialog({
   const [submitting, setSubmitting] = useState(false);
   const [filed, setFiled] = useState<FiledBugReport>();
   const [error, setError] = useState<TranslationKey>();
+  // Until the server says otherwise, assume the public copy is on: never understate where words go.
+  const [publicMirror, setPublicMirror] = useState(true);
   const isBug = kind === "bug";
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void bugReportApi
+      .publicMirror(controller.signal)
+      .then(setPublicMirror)
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, []);
 
   const submit = () => {
     setSubmitting(true);
@@ -93,14 +104,24 @@ export function BugReportDialog({
           <Icons.Megaphone size={20} />
           <h2 id={titleId}>{t("bugReport.title")}</h2>
         </span>
-        <p>{t(signedIn ? "bugReport.notice.signed" : "bugReport.notice.anonymous")}</p>
+        <p>
+          {t(
+            publicMirror
+              ? signedIn
+                ? "bugReport.notice.signed"
+                : "bugReport.notice.anonymous"
+              : signedIn
+                ? "bugReport.notice.signedPrivate"
+                : "bugReport.notice.anonymousPrivate",
+          )}
+        </p>
       </header>
 
       {matchLogId ? <MatchLogId id={matchLogId} /> : null}
 
       {filed ? (
         <Alert tone="success" title={t("bugReport.success")}>
-          {t("bugReport.successDescription")}
+          {t(signedIn ? "bugReport.successTracked" : "bugReport.successDescription")}
         </Alert>
       ) : (
         <>

@@ -43,6 +43,7 @@ export type Screen =
   | "settings"
   | "releases"
   | "feedback"
+  | "myFeedback"
   | "game";
 
 export function Stage({ children }: { children: ReactNode }) {
@@ -508,11 +509,14 @@ export function TopNav({
   onToggleDark,
   onOpenTheme,
   onSendFeedback,
+  notifications,
 }: {
   screen: Screen;
   onNav: (s: Screen) => void;
   player: PlayerIdentity;
   actions?: ReactNode;
+  /** The signed-in player's notification bell; rendered in both the wide and the mobile bar. */
+  notifications?: ReactNode;
   signedIn?: boolean;
   onOpenPlayerMenu?: () => void;
   /** Opens the palette chooser when available, otherwise toggles light/dark. */
@@ -612,6 +616,7 @@ export function TopNav({
         </div>
         <div className="aegis-top-nav__account">
           {actions}
+          {notifications}
           {feedback}
           {themeToggle}
           <button
@@ -635,6 +640,7 @@ export function TopNav({
           <AegisLogo size={30} />
         </button>
         <div className="aegis-mobile-bar__actions">
+          {notifications}
           {feedback}
           {themeToggle}
           {signIn}

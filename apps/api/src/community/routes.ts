@@ -12,13 +12,14 @@ import {
 import type { Express, NextFunction, Request, Response } from "express";
 import type { AuthSession } from "../accounts/AccountStore.js";
 import { tokenBucketLimiter, type TokenBucketOptions } from "../http/rateLimit.js";
-import type { CommunityDeckStore } from "./CommunityDeckStore.js";
+import { isUuid, type CommunityDeckStore } from "./CommunityDeckStore.js";
 import type { DeckReportTracker } from "./deckReports.js";
+import type { DeckReportStore } from "./DeckReportStore.js";
 
 // Generous for a person clicking hearts while browsing, tight for a script.
 const LIKE_RATE_LIMIT: TokenBucketOptions = { capacity: 30, refillMs: 2_000 };
 const PUBLISH_RATE_LIMIT: TokenBucketOptions = { capacity: 10, refillMs: 30_000 };
-// Every accepted report becomes a public issue or comment, so the budget is a few per minute.
+// A report is typed by hand and may also become a public issue, so the budget is a few per minute.
 const REPORT_RATE_LIMIT: TokenBucketOptions = { capacity: 5, refillMs: 60_000 };
 const MAX_SEARCH = 60;
 const MAX_PAGE = 200;
@@ -29,7 +30,8 @@ export type CommunityDeckRouteDeps = {
   store: CommunityDeckStore;
   /** The session lookup the account routes already own, so there is one cookie reader. */
   session: (req: Request) => Promise<AuthSession | undefined>;
-  /** Absent when this deployment has no GitHub token; reporting then answers 503. */
+  reportStore: DeckReportStore;
+  /** Optional public copy of each report; Postgres is always the record. */
   reports?: DeckReportTracker;
 };
 
@@ -37,10 +39,16 @@ export type CommunityDeckRouteDeps = {
  * Public decks. Reading is open to everyone, guests included; publishing, liking and counting a
  * copy need an account, because those are the numbers the ranking is built on.
  *
- * Reporting a deck also needs an account. Aegis keeps no report of its own: each one becomes a
- * GitHub issue, and an admin acts on it by hiding the deck through the moderation route.
+ * Reporting a deck also needs an account. Reports are stored for the admins' moderation queue;
+ * hiding the deck or dismissing its reports closes them.
  */
-export function installCommunityDeckRoutes({ app, store, session, reports }: CommunityDeckRouteDeps): void {
+export function installCommunityDeckRoutes({
+  app,
+  store,
+  session,
+  reportStore,
+  reports,
+}: CommunityDeckRouteDeps): void {
   const limitLike = tokenBucketLimiter(LIKE_RATE_LIMIT);
   const limitPublish = tokenBucketLimiter(PUBLISH_RATE_LIMIT);
   const limitReport = tokenBucketLimiter(REPORT_RATE_LIMIT);
@@ -106,10 +114,6 @@ export function installCommunityDeckRoutes({ app, store, session, reports }: Com
   app.post(
     "/community/decks/:id/reports",
     route(async (req, res) => {
-      if (!reports) {
-        res.status(503).json({ error: "reports_unavailable" });
-        return;
-      }
       const current = await requireSession(req, res);
       if (!current) return;
       const input = parseReport(req.body);
@@ -126,33 +130,74 @@ export function installCommunityDeckRoutes({ app, store, session, reports }: Com
         res.status(target.error === "own_deck" ? 403 : 404).json({ error: target.error });
         return;
       }
-      await reports.report({
-        deckId: target.deck.id,
-        deckName: target.deck.name,
-        authorName: target.deck.authorName,
-        ...input,
-      });
+      await reportStore.record(current.account.id, target.deck.id, input);
+      // The public copy must never turn a stored report into a failed one.
+      await reports
+        ?.report({ deckId: target.deck.id, deckName: target.deck.name, authorName: target.deck.authorName, ...input })
+        .catch((failure: unknown) => console.error("[deck-reports] saved report but GitHub mirror failed", failure));
       res.sendStatus(204);
     }),
   );
 
+  const requireAdmin = async (req: Request, res: Response) => {
+    const current = await requireSession(req, res);
+    if (current && !current.account.isAdmin) {
+      res.status(403).json({ error: "admin_required" });
+      return undefined;
+    }
+    return current;
+  };
+
   app.post(
     "/admin/community/decks/:id/moderation",
     route(async (req, res) => {
-      const current = await requireSession(req, res);
-      if (!current) return;
-      if (!current.account.isAdmin) {
-        res.status(403).json({ error: "admin_required" });
-        return;
-      }
+      if (!(await requireAdmin(req, res))) return;
       const action = COMMUNITY_MODERATION_ACTIONS.find((value) => value === req.body?.action);
       if (!action) {
         res.status(400).json({ error: "invalid_action" });
         return;
       }
       const status = await store.moderate(req.params.id!, action);
-      if (status) res.json({ status });
-      else res.sendStatus(404);
+      if (!status) {
+        res.sendStatus(404);
+        return;
+      }
+      // Hiding is the moderator acting on the reports, so they leave the queue.
+      if (action === "hide") await reportStore.dismiss(req.params.id!);
+      res.json({ status });
+    }),
+  );
+
+  app.get(
+    "/admin/community/reports",
+    route(async (req, res) => {
+      res.set("Cache-Control", "no-store");
+      if (await requireAdmin(req, res)) res.json({ decks: await reportStore.queue() });
+    }),
+  );
+
+  app.get(
+    "/admin/community/decks/:id/reports",
+    route(async (req, res) => {
+      res.set("Cache-Control", "no-store");
+      if (!(await requireAdmin(req, res))) return;
+      if (!isUuid(req.params.id!)) {
+        res.sendStatus(404);
+        return;
+      }
+      res.json({ reports: await reportStore.openReports(req.params.id!) });
+    }),
+  );
+
+  app.post(
+    "/admin/community/decks/:id/reports/dismiss",
+    route(async (req, res) => {
+      if (!(await requireAdmin(req, res))) return;
+      if (!isUuid(req.params.id!)) {
+        res.sendStatus(404);
+        return;
+      }
+      res.json({ dismissed: await reportStore.dismiss(req.params.id!) });
     }),
   );
 

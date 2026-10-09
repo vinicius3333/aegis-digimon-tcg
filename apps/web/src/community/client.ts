@@ -1,6 +1,7 @@
 import type {
   CommunityDeck,
   CommunityDeckPage,
+  CommunityDeckReport,
   CommunityLikeResult,
   CommunityModerationAction,
   CommunityPeriod,
@@ -8,6 +9,7 @@ import type {
   CommunityPublicationStatus,
   CommunityReportInput,
   CommunitySort,
+  ReportedCommunityDeck,
 } from "@aegis/shared";
 import { AccountApiError, accountApi, request } from "../account/client";
 
@@ -58,4 +60,12 @@ export const communityApi = {
       `/admin/community/decks/${encodeURIComponent(id)}/moderation`,
       { method: "POST", body: JSON.stringify({ action }) },
     ),
+  reportedDecks: async () => (await request<{ decks: ReportedCommunityDeck[] }>("/admin/community/reports")).decks,
+  openReports: async (id: string) =>
+    (await request<{ reports: CommunityDeckReport[] }>(`/admin/community/decks/${encodeURIComponent(id)}/reports`))
+      .reports,
+  dismissReports: (id: string) =>
+    request<{ dismissed: number }>(`/admin/community/decks/${encodeURIComponent(id)}/reports/dismiss`, {
+      method: "POST",
+    }),
 };

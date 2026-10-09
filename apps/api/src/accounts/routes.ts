@@ -29,9 +29,12 @@ import { EliminationStore } from "../tournaments/elimination/index.js";
 import { ArbitrationService, installArbitrationRoutes } from "../tournaments/arbitration/index.js";
 import { FeedbackStore } from "../bugs/FeedbackStore.js";
 import { installBugReportRoutes, type IssueTracker } from "../bugs/index.js";
+import { NotificationStore } from "../notifications/NotificationStore.js";
+import { installNotificationRoutes } from "../notifications/routes.js";
 import { CommunityDeckStore } from "../community/CommunityDeckStore.js";
 import type { DeckReportTracker } from "../community/deckReports.js";
 import { installCommunityDeckRoutes } from "../community/routes.js";
+import { DeckReportStore } from "../community/DeckReportStore.js";
 import { openEliminationEvent } from "../tournaments/lifecycle/openEliminationEvent.js";
 import { TopCutProgram } from "../tournaments/topcut/index.js";
 import { tokenBucketLimiter, type TokenBucketOptions } from "../http/rateLimit.js";
@@ -90,11 +93,14 @@ export function installAccountRoutes(
   });
   // Feedback is stored locally, with an optional copy in GitHub.
   installBugReportRoutes({ app, store: new FeedbackStore(store), tracker: bugTracker, session: sessionFromRequest });
+  // The signed-in player's inbox; feedback triage is its first producer. See src/notifications.
+  installNotificationRoutes({ app, store: new NotificationStore(store), session: sessionFromRequest });
   // Public decks, likes and copies. See src/community.
   installCommunityDeckRoutes({
     app,
     store: new CommunityDeckStore(store),
     session: sessionFromRequest,
+    reportStore: new DeckReportStore(store),
     reports: deckReports,
   });
   const get = (path: string, handler: AsyncHandler) => app.get(path, asyncRoute(handler));
