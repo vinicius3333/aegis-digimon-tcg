@@ -174,10 +174,14 @@ export class ScenarioPage {
             });
             await expect(confirm).toBeVisible();
             const pickedIds =
-              selection.instanceIds ??
-              (selection.instanceId || selection.cardId
-                ? [instanceId!]
-                : candidates.slice(0, Math.max(1, decision.options.min ?? 1)));
+              decision.options.selectionContext === "attackTarget" &&
+              candidates.length === 1 &&
+              (decision.options.min ?? 0) >= 1
+                ? [] // The mandatory single attack target is already selected by the UI.
+                : (selection.instanceIds ??
+                  (selection.instanceId || selection.cardId
+                    ? [instanceId!]
+                    : candidates.slice(0, Math.max(1, decision.options.min ?? 1))));
             for (const pickedId of pickedIds) {
               const modal = this.page.getByRole("dialog").locator(`[data-instance-id="${pickedId}"]`);
               if (await modal.count()) {

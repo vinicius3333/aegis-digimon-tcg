@@ -17,6 +17,35 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-chuuchuumon-opponent-blocker": {
+    en: "End turn and block with Astamon: ChuuChuumon grants Blocker only on the opponent turn, just like Tuwarmon.",
+    ptBR: "Encerre o turno e bloqueie com Astamon: ChuuChuumon concede Blocker apenas no turno adversário, assim como Tuwarmon.",
+  },
+  "arena-neptunemon-holy-cost": {
+    en: "Evolve Neptunemon onto Aegiochusmon: Holy for 3 using TS.",
+    ptBR: "Evolua Neptunemon sobre Aegiochusmon: Holy por 3 pela rota TS.",
+  },
+  "arena-wargrowlmon-evaded-block": {
+    en: "Attack security. Ulforce blocks, Rina unsuspends it, then it evades. End of Attack plays Takato.",
+    ptBR: "Ataque a segurança. Ulforce bloqueia, Rina o desvira e ele usa Evade. Fim do Ataque joga Takato.",
+  },
+  "arena-toropiamon-vortex-control": {
+    en: "End turn and accept Vortex. Attack suspension is by the rules, so Toropiamon does not free-evolve.",
+    ptBR: "Encerre o turno e aceite Vortex. Suspender para atacar ocorre pelas regras e não ativa a evolução gratuita de Toropiamon.",
+  },
+  "arena-climbmon-pistmon-play": {
+    en: "Evolve into Climbmon, trash a filler, and play Pistmon. At 3 security both printed branches resolve, including Pistmon On Play.",
+    ptBR: "Evolua em Climbmon, descarte uma carta comum e jogue Pistmon. Com 3 seguranças ambas as condições resolvem, incluindo Ao Jogar de Pistmon.",
+  },
+  "arena-sukamon-opponent-cost": {
+    en: "End turn. When Gaia Force targets Gallantmon, pay its inherited prevention with the opposing PlatinumSukamon.",
+    ptBR: "Encerre o turno. Quando Gaia Force escolher Gallantmon, pague a proteção herdada com o PlatinumSukamon adversário.",
+  },
+  "arena-tuwarmon-opponent-blocker": {
+    en: "Astamon has no inherited Blocker on your turn. End turn and use it to block during the opponent turn.",
+    ptBR: "Astamon não tem Blocker herdado no seu turno. Encerre o turno e bloqueie com ele no turno adversário.",
+  },
+
   "arena-growlmon-deletion-5361": {
     en: "#5361: End breeding. Evolve Growlmon into Growlmon (X Antibody) for 0, then trash a non-Guilmon card after drawing. Attack the opponent's security: the 12000 DP Digimon deletes your 6000 DP attacker. Accept its gained On Deletion and choose the Guilmon that just entered trash from its stack; Guilmon is played for free. Reset and decline to leave Guilmon in trash. A Guilmon held only in hand cannot be chosen.",
     ptBR: "#5361: Encerre a criação. Evolua Growlmon para Growlmon (X Antibody) por 0 e descarte uma carta sem Guilmon no nome depois da compra. Ataque a segurança adversária: o Digimon de 12000 DP deleta seu atacante de 6000 DP. Aceite o Ao Deletar recebido e escolha o Guilmon que acabou de ir da pilha ao lixo; ele entra em campo sem custo. Reinicie e recuse para deixar Guilmon no lixo. Guilmon apenas na mão não pode ser escolhido.",
@@ -2724,6 +2753,13 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt23-examon-piercing-end-turn", "BT23 Examon · end-turn DNA and Piercing"],
   ["arena", "Attack steps · Counter/Blocker"],
   ["arena-field-grouping-dense", "Field grouping · late-game density, deep sources and links"],
+  ["arena-neptunemon-holy-cost", "#5385 Neptunemon / Holy"],
+  ["arena-wargrowlmon-evaded-block", "#5384 WarGrowlmon / Evade"],
+  ["arena-toropiamon-vortex-control", "#5382 Toropiamon / Vortex"],
+  ["arena-climbmon-pistmon-play", "#5381 Climbmon / Pistmon"],
+  ["arena-sukamon-opponent-cost", "#5379 Sukamon / opposing payment"],
+  ["arena-chuuchuumon-opponent-blocker", "ChuuChuumon / opponent Blocker"],
+  ["arena-tuwarmon-opponent-blocker", "Discord Tuwarmon / opponent Blocker"],
   ["arena-tai-kari-ukkomon-hatch", "Tai & Kari · Hatch por Ukkomon BT16"],
   ["arena-tai-kari-promo-ukkomon-hatch", "Tai & Kari · Hatch por Ukkomon promo"],
   ["arena-chronomon-engage-order", "Chronomon · Engage depois do check / after security (timed)"],

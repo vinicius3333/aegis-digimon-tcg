@@ -58,6 +58,14 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-neptunemon-holy-cost",
+  "arena-wargrowlmon-evaded-block",
+  "arena-toropiamon-vortex-control",
+  "arena-climbmon-pistmon-play",
+  "arena-sukamon-opponent-cost",
+  "arena-tuwarmon-opponent-blocker",
+  "arena-chuuchuumon-opponent-blocker",
+
   "arena-growlmon-deletion-5361",
   "arena-crimson-partition",
   "arena-koto-grademon-pending-piercing",
@@ -9524,6 +9532,14 @@ function layGithubEndTurnReportScenario(
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-neptunemon-holy-cost": (state, decks) => layRecentReportScenario(state, decks, "neptune"),
+  "arena-wargrowlmon-evaded-block": (state, decks) => layRecentReportScenario(state, decks, "war"),
+  "arena-toropiamon-vortex-control": (state, decks) => layRecentReportScenario(state, decks, "toro"),
+  "arena-climbmon-pistmon-play": (state, decks) => layRecentReportScenario(state, decks, "climb"),
+  "arena-sukamon-opponent-cost": (state, decks) => layRecentReportScenario(state, decks, "suka"),
+  "arena-tuwarmon-opponent-blocker": (state, decks) => layRecentReportScenario(state, decks, "tuwa"),
+  "arena-chuuchuumon-opponent-blocker": (state, decks) => layRecentReportScenario(state, decks, "chuu"),
+
   "arena-growlmon-deletion-5361": layGrowlmonDeletion5361Scenario,
   "arena-github5362-shellmon-ts": layGithub5362ShellmonTsScenario,
   "arena-ravemon-burst-hand": layRavemonBurstHandScenario,
@@ -10025,4 +10041,58 @@ function layTaiKariUkkomonHatchScenario(state: GameState, decks: readonly [Deckl
   human.breeding!.inBreeding = true;
   placePermanent(human, establishedDigimon(0, [promo ? "P-123" : "BT16-082"], "-tai-kari-ukko"));
   placePermanent(human, establishedDigimon(0, ["BT17-093"], "-tai-kari-tamer"));
+}
+
+/** Public-intent controls for GitHub #5379–5385 and Discord Tuwarmon. */
+function layRecentReportScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  mode: "neptune" | "war" | "toro" | "climb" | "suka" | "tuwa" | "chuu",
+): void {
+  prepareIssueScenario(state, decks, mode === "climb" ? 8 : 6);
+  for (const seat of [0, 1] as const) {
+    const p = state.players[seat]!;
+    for (const zone of [Zone.Hand, Zone.Trash, Zone.Deck, Zone.Security, Zone.EggDeck] as const) clearZone(p, zone);
+    insertCard(p, Zone.EggDeck, faceDownCard(`report-${seat}-egg`, "BT1-001", seat));
+    for (let i = 0; i < 20; i++) insertCard(p, Zone.Deck, faceDownCard(`report-${seat}-deck-${i}`, "BT1-009", seat));
+    for (let i = 0; i < (mode === "climb" && seat === 0 ? 3 : 5); i++)
+      insertCard(p, Zone.Security, faceDownCard(`report-${seat}-sec-${i}`, "BT1-009", seat));
+  }
+  const human = state.players[0]!;
+  const bot = state.players[1]!;
+  if (mode === "neptune") {
+    placePermanent(human, establishedDigimon(0, ["BT26-029"], "-report-neptune-base"));
+    insertCard(human, Zone.Hand, faceDownCard("report-neptune-hand", "BT24-030", 0));
+    placePermanent(bot, establishedDigimon(1, ["BT1-010"], "-report-neptune-target"));
+  } else if (mode === "war") {
+    placePermanent(human, establishedDigimon(0, ["EX13-013"], "-report-war"));
+    insertCard(human, Zone.Hand, faceDownCard("report-takato", "BT17-080", 0));
+    const ulforce = establishedDigimon(1, ["EX13-023"], "-report-ulforce");
+    ulforce.baseDP = ulforce.currentDP = 8000;
+    placePermanent(bot, ulforce);
+    placePermanent(bot, establishedDigimon(1, ["BT11-112"], "-report-rina"));
+  } else if (mode === "toro") {
+    placePermanent(human, establishedDigimon(0, ["EX9-042"], "-report-toro"));
+    insertCard(human, Zone.Hand, faceDownCard("report-hydra", "EX9-044", 0));
+    insertCard(human, Zone.Security, faceUpCard("report-wind-guardians", "BT21-095", 0));
+    const target = establishedDigimon(1, ["BT1-010"], "-report-vortex-target");
+    target.isSuspended = true;
+    placePermanent(bot, target);
+  } else if (mode === "climb") {
+    placePermanent(human, establishedDigimon(0, ["BT16-043"], "-report-climb-base"));
+    insertCard(human, Zone.Hand, faceDownCard("report-climb-hand", "BT16-074", 0));
+    insertCard(human, Zone.Trash, faceUpCard("report-pistmon", "BT16-044", 0));
+    placePermanent(bot, establishedDigimon(1, ["AD1-001"], "-report-pistmon-target"));
+  } else if (mode === "suka") {
+    placePermanent(human, establishedDigimon(0, ["EX13-028", "EX13-015"], "-report-sukamon-host"));
+    placePermanent(bot, establishedDigimon(1, ["BT3-060"], "-report-sukamon-fodder"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-015"], "-report-gaia-source"));
+    insertCard(bot, Zone.Hand, faceDownCard("report-gaia", "ST1-16", 1));
+  } else {
+    placePermanent(
+      human,
+      establishedDigimon(0, [mode === "chuu" ? "BT12-060" : "BT12-064", "BT12-081"], "-report-tuwarmon-host"),
+    );
+    placePermanent(bot, establishedDigimon(1, ["AD1-001"], "-report-tuwarmon-attacker"));
+  }
 }
