@@ -57,7 +57,7 @@ import { DragGhost } from "./DragGhost";
 import { FieldClashGhosts } from "./FieldClashGhosts";
 import { LeftPileColumn } from "./LeftPileColumn";
 import { LogTicker } from "./LogTicker";
-import { DecisionMatchTimer, MatchTimer, SeriesBadge } from "../../MatchTimer";
+import { DecisionMatchTimer, MatchTimer, SeriesBadge, viewerDecisionTimed } from "../../MatchTimer";
 import { MemoryBand } from "./MemoryBand";
 import { OpponentBar } from "./OpponentBar";
 import { OpponentBattleRow } from "./OpponentBattleRow";
@@ -300,7 +300,7 @@ export function BoardStage({
           className="game-board aegis-arena-surface"
           ref={anchors.board}
           data-art={look.hasArt || undefined}
-          data-timer-decision={(state.matchTimer && !state.gameOver && !!state.pendingDecision) || undefined}
+          data-timer-decision={viewerDecisionTimed(state, viewerSeat) || undefined}
           style={{
             ...({
               "--arena-raising-width": `${layout.arenaRaisingWidth}px`,

@@ -110,19 +110,15 @@
     height: 14px;
   }
 }
+/* The portrait header is one fixed-height row. A clock wrapped under the name
+   spilled past it and over the opponent's zones, so the name gives way instead. */
 @media (max-width: 1023px) and (orientation: portrait) {
   .aegis-arena .game-board .game-opponent-bar > .game-player-line[data-timed] {
-    grid-template-columns: 18px minmax(0, 1fr);
-    row-gap: 2px;
+    max-width: 44vw;
   }
   .game-opponent-bar .game-player-line[data-timed] > button.game-player-line__name {
     min-height: 0;
     padding: 0;
-  }
-  .game-opponent-bar .game-player-line[data-timed] .match-timer {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-self: start;
   }
   .aegis-arena .game-board .game-player-dock > .game-player-line[data-timed] {
     column-gap: 4px;

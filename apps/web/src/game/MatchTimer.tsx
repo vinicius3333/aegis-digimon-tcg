@@ -62,9 +62,16 @@ export function SeriesBadge({ state, viewerSeat }: { state: GameState; viewerSea
   );
 }
 
-/** Keep both clocks visible while a decision sheet covers the player identities. */
+export function viewerDecisionTimed(state: GameState, seat: Seat): boolean {
+  return state.matchTimer && !state.gameOver && state.pendingDecision?.seat === seat;
+}
+
+/**
+ * Keep both clocks visible while the viewer's decision sheet covers the player
+ * identities. The opponent's decision opens no sheet, so the header clocks stay.
+ */
 export function DecisionMatchTimer({ state, seat }: { state: GameState; seat: Seat }) {
-  if (!state.matchTimer || state.gameOver || !state.pendingDecision || typeof document === "undefined") return null;
+  if (!viewerDecisionTimed(state, seat) || typeof document === "undefined") return null;
   return createPortal(
     <div className="game-decision-clocks">
       <MatchTimer state={state} seat={(1 - seat) as Seat} opponent />

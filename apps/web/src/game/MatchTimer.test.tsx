@@ -33,11 +33,11 @@ describe("match timer readouts", () => {
     expect(screen.queryByText("Your action")).toBeNull();
     expect(screen.getAllByText("300")).toHaveLength(2);
   });
-  it("keeps both clocks above decision sheets without disappearing during pauses", () => {
+  it("keeps both clocks above the viewer's decision sheet only", () => {
     const state = new GameState();
     state.matchTimer = true;
     const decision = new PendingDecision();
-    decision.seat = 1;
+    decision.seat = 0;
     state.pendingDecision = decision;
     const view = () => (
       <I18nProvider>
@@ -46,6 +46,9 @@ describe("match timer readouts", () => {
     );
     const { rerender } = render(view());
     expect(document.body.querySelector(".game-decision-clocks")?.querySelectorAll("[role=timer]")).toHaveLength(2);
+    decision.seat = 1;
+    rerender(view());
+    expect(screen.queryByRole("timer")).toBeNull();
     state.pendingDecision = undefined;
     rerender(view());
     expect(screen.queryByRole("timer")).toBeNull();
