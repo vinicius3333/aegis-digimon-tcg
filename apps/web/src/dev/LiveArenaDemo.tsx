@@ -415,6 +415,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue Arukenimon e delete DemiDevimon para reduzir o custo. Resolva o efeito nativo de DemiDevimon: coloque-o sob Arukenimon e evolua para MaloMyotismon. Seu efeito herdado não pode ativar retroativamente; Agumon adversário e sua carta na mão permanecem.",
     en: "Play Arukenimon and delete DemiDevimon to reduce its cost. Resolve DemiDevimon’s native effect: place it under Arukenimon and evolve into MaloMyotismon. Its inherited effect cannot activate retroactively; the opposing Agumon and your hand card remain.",
   },
+  "arena-issue-5353-imperialdramon-nested-blitz": {
+    en: "End breeding. DNA digivolve Flamedramon + Shadramon into BT16-077. Play BT20-016 from trash, grant it Rush, and attack security; give it the Paildramon boost and accept its second attack (already suspended, so no extra attack). Play Titamon for 10 to move memory from 2 to -8. Accept Flamedramon's inherited End of Your Turn DNA into EX3-063. Accept Blitz, then select Imperialdramon and attack security before the turn changes. Accepting Blitz alone does not declare the attack. Repeat and decline Blitz to pass without attacking.",
+    ptBR: "Encerre a criação. Faça DNA de Flamedramon + Shadramon para BT16-077. Jogue BT20-016 do lixo, dê-lhe Rush e ataque a segurança; aplique o bônus de Paildramon nele e aceite o segundo ataque (já suspenso, sem outro ataque). Jogue Titamon por 10 para mover a memória de 2 para -8. Aceite o DNA herdado de Flamedramon no fim do turno para EX3-063. Aceite Blitz, depois selecione Imperialdramon e ataque a segurança antes da troca de turno. Aceitar Blitz sozinho não declara o ataque. Repita recusando Blitz para passar sem atacar.",
+  },
   "arena-issue-5179-imperialdramon-blitz": {
     ptBR: "Encerre a criação. Evolua Paildramon para Imperialdramon EX3-063 por 4, passando a memória ao oponente. Aceite Blitz e ataque a segurança. Os dois Digimon adversários devem permanecer: a remoção exige DNA, Blitz não.",
     en: "End breeding. Digivolve Paildramon into EX3-063 Imperialdramon for 4, passing memory. Accept Blitz and attack security. Both opposing Digimon remain: deletion requires DNA, Blitz does not.",
@@ -2525,6 +2529,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-5127-opponent-survival", "GitHub #5127 · Opposing survival cost"],
   ["arena-issue-5168-alter-s-simultaneous", "GitHub #5168 · alter-s-simultaneous"],
   ["arena-issue-5169-demidevimon-native", "GitHub #5169 · demidevimon-native"],
+  ["arena-issue-5353-imperialdramon-nested-blitz", "GitHub #5353 · Imperialdramon nested end-turn Blitz"],
   ["arena-issue-5179-imperialdramon-blitz", "GitHub #5179 \u00b7 Imperialdramon ordinary-evolution Blitz"],
   ["arena-issue-5190-tapmon-bootmon", "GitHub #5190 / #5192 \u00b7 Tapmon, Bootmon and Shutmon"],
   ["arena-issue-5232-icemon-egg", "GitHub #5232 \u00b7 icemon-egg"],

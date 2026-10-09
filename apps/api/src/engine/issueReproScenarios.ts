@@ -401,6 +401,18 @@ const ISSUE_LAYOUTS = {
       {},
     ],
   },
+  "arena-issue-5353-imperialdramon-nested-blitz": {
+    memory: 2,
+    players: [
+      {
+        field: [{ card: "EX3-008" }, { card: "P-110" }],
+        hand: ["BT16-077", "EX3-063", "BT1-080"],
+        trash: ["BT20-016"],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+      },
+      { field: [{ card: "BT1-028" }], security: ["BT1-009", "BT1-010", "BT1-011"] },
+    ],
+  },
   "arena-issue-5179-imperialdramon-blitz": {
     memory: 2,
     players: [

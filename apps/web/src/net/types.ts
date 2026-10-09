@@ -122,6 +122,7 @@ export interface AegisJoinOptions {
     | "arena-issue-5168-alter-s-simultaneous"
     | "arena-issue-5169-demidevimon-native"
     | "arena-issue-5179-imperialdramon-blitz"
+    | "arena-issue-5353-imperialdramon-nested-blitz"
     | "arena-issue-5190-tapmon-bootmon"
     | "arena-issue-5232-icemon-egg"
     | "arena-issue-5246-savior-decline"
