@@ -5,8 +5,8 @@
     {
       "id": "bt24-dgo-2026-02-14-1-olympus-xii",
       "revision": 1,
-      "name": "BT24 Olympus XII",
-      "archetype": "Olympus XII",
+      "name": "BT24 Olympos XII",
+      "archetype": "Olympos XII",
       "collection": "BT24",
       "formatBlock": "BT24",
       "colors": ["Red", "Blue", "Yellow", "Green", "White", "Black"],
@@ -879,8 +879,8 @@
     {
       "id": "bt24-dgo-2026-03-15-2-olympus-xii",
       "revision": 1,
-      "name": "BT24 Olympus XII",
-      "archetype": "Olympus XII",
+      "name": "BT24 Olympos XII",
+      "archetype": "Olympos XII",
       "collection": "BT24",
       "formatBlock": "BT24",
       "colors": ["Blue", "Green", "Yellow", "Red", "Black", "Purple", "White"],

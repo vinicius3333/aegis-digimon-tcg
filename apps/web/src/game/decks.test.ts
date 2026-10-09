@@ -61,6 +61,11 @@ describe("active card pool deck filtering", () => {
 });
 
 describe("famous deck presets", () => {
+  it("GitHub #5390: available presets use the printed Olympos XII spelling", () => {
+    const decks = FAMOUS_DECKS.filter((d) => d.id.includes("olympus-xii"));
+    expect(decks).toHaveLength(2);
+    expect(decks.map((d) => d.name)).toEqual(Array(2).fill("Olympos XII"));
+  });
   it("uses only the deck archetype as the displayed name", () => {
     expect(FAMOUS_DECKS.find((deck) => deck.id === "ex2-gallantmon-eto")?.name).toBe("Gallantmon");
     expect(FAMOUS_DECKS.every((deck) => !deck.name.includes(" — "))).toBe(true);
