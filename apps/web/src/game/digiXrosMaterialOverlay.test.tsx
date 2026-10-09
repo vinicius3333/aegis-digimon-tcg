@@ -187,7 +187,7 @@ describe("DigiXros Tamer effect choice", () => {
     expect(
       screen.getByRole("dialog", { name: "Taiki Kudo · effect" }).classList.contains("decision-overlay--side"),
     ).toBe(true);
-    expect(screen.getByRole("heading", { name: "Use Taiki Kudo's effect?" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Use this effect?" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Greymon (under Tamer)" })).toBeNull();
     expect(screen.queryByRole("checkbox")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Yes, activate" }));
@@ -209,9 +209,9 @@ describe("DigiXros Tamer effect choice", () => {
 
   it("keeps the chosen copy separate when two Taikis can use their effects", () => {
     const { onConfirm } = renderTamerChoice(["first", "second"]);
-    expect(screen.getByRole("heading", { name: "Use Taiki Kudo (copy 1 of 2)'s effect?" })).toBeTruthy();
+    expect(screen.getByText(/^Taiki Kudo \(copy 1 of 2\):/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Yes, activate" }));
-    expect(screen.getByRole("heading", { name: "Use Taiki Kudo (copy 2 of 2)'s effect?" })).toBeTruthy();
+    expect(screen.getByText(/^Taiki Kudo \(copy 2 of 2\):/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "No, decline" }));
     fireEvent.click(screen.getByRole("button", { name: "Greymon (under Tamer)" }));
     fireEvent.click(screen.getByRole("button", { name: "DigiXros (1 card)" }));
