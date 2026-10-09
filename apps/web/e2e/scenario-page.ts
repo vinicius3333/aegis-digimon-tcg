@@ -1,5 +1,5 @@
 import { writeFile } from "node:fs/promises";
-import { expect, test as base, type Page, type TestInfo } from "@playwright/test";
+import { expect, test as base, type Page, type Locator, type TestInfo } from "@playwright/test";
 import { RED_DECK } from "../../api/dist/engine/testDecks.js";
 import { getCardDefinition, type DecisionRequest } from "@aegis/shared";
 import { startBrowserServer } from "./server";
@@ -12,6 +12,7 @@ type Decision = NonNullable<Snapshot["pendingDecision"]> &
   };
 type Selection = {
   accept?: boolean;
+  decisionBudgetMs?: number;
   cardId?: string;
   instanceId?: string;
   instanceIds?: string[];
@@ -23,6 +24,8 @@ export type DecisionPolicy = (decision: Decision) => Selection | Promise<Selecti
 /** Drives only visible controls; snapshots and probes are read-only evidence. */
 export class ScenarioPage {
   readonly errors: string[] = [];
+  readonly decisionTimings: { decisionId: string; kind: string; sourceCardId?: string; delayMs: number }[] = [];
+  private speed: "normal" | "slow" = "normal";
   constructor(readonly page: Page) {
     page.on("pageerror", (error) => this.errors.push(error.message));
     page.on("console", (message) => {
@@ -30,6 +33,7 @@ export class ScenarioPage {
     });
   }
   async open(id: string, speed: "normal" | "slow" = "normal", breeding: "end" | "move" = "end") {
+    this.speed = speed;
     await this.page.addInitScript(
       ({ id: scenarioId, speed: effectSpeed, deck }) => {
         localStorage.setItem("aegis:locale", "en");
@@ -82,6 +86,27 @@ export class ScenarioPage {
     await this.page.getByRole("button", { name: "Attack", exact: true }).click();
     await this.page.getByRole("button", { name: /^Opponent security/ }).click();
   }
+  // An upper bound from server receipt to the test observing the visible control.
+  // Selection and response time come after this sample. Manually handled combat
+  // windows outside resolveUntil are covered by the queue checks, not this metric.
+  private async decisionReady(control: Locator, decision: Decision, budgetMs = this.speed === "slow" ? 8_000 : 6_000) {
+    await expect(control).toBeVisible({ timeout: budgetMs });
+    const delayMs = await this.page.evaluate((decisionId) => {
+      const receipt = window.browserTestPresentation().decisionReceipts.find((r) => r.decisionId === decisionId);
+      return receipt ? performance.now() - receipt.at : undefined;
+    }, decision.decisionId);
+    expect(delayMs, `receipt for ${decision.decisionId}`).toBeDefined();
+    this.decisionTimings.push({
+      decisionId: decision.decisionId,
+      kind: decision.kind,
+      sourceCardId: decision.sourceCardId,
+      delayMs: delayMs!,
+    });
+    expect(
+      delayMs,
+      `${decision.kind} ${decision.sourceCardId ?? ""}: server decision to observed visible control`,
+    ).toBeLessThan(budgetMs);
+  }
   async resolveUntil(
     done: (state: Snapshot) => boolean,
     policy: DecisionPolicy = () => ({}),
@@ -92,7 +117,15 @@ export class ScenarioPage {
         .poll(
           async () => {
             const state = await this.snapshot();
-            return done(state) || !!state.pendingDecision;
+            if (done(state)) return true;
+            // The shared snapshot also carries the bot's transient decisions.
+            // Only the requests received on our connection are ours to answer.
+            return (
+              !!state.pendingDecision &&
+              (await this.presentation()).decisions.some(
+                (request) => request.decisionId === state.pendingDecision!.decisionId,
+              )
+            );
           },
           { timeout: 10_000 },
         )
@@ -102,8 +135,10 @@ export class ScenarioPage {
         if (!state.pendingDecision && !state.combatWindow) await this.idle(presentationTimeout);
         return;
       }
-      const pending = state.pendingDecision!;
+      const pending = state.pendingDecision;
+      if (!pending) continue;
       const request = (await this.presentation()).decisions.find((d) => d.decisionId === pending.decisionId);
+      if (!request) continue;
       const decision = {
         ...pending,
         ...request,
@@ -112,14 +147,17 @@ export class ScenarioPage {
       const selection = await policy(decision);
       await base.step(`${decision.kind}: ${decision.promptText}`, async () => {
         if (decision.kind === "optional") {
-          await this.page
-            .getByRole("button", { name: selection.accept === false ? "No, decline" : "Yes, activate", exact: true })
-            .click();
+          const answer = this.page.getByRole("button", {
+            name: selection.accept === false ? "No, decline" : "Yes, activate",
+            exact: true,
+          });
+          await this.decisionReady(answer, decision, selection.decisionBudgetMs);
+          await answer.click();
         } else if (decision.kind === "orderTriggers") {
           const panel = this.page
             .getByRole("dialog")
             .filter({ has: this.page.getByRole("heading", { name: "Order pending effects", exact: true }) });
-          await expect(panel).toBeVisible();
+          await this.decisionReady(panel, decision, selection.decisionBudgetMs);
           if (selection.triggerCardId) {
             const name = getCardDefinition(selection.triggerCardId)!.nameEn;
             await panel
@@ -132,21 +170,27 @@ export class ScenarioPage {
           }
           await panel.getByRole("button", { name: /^Resolve (next effect|in this order|effect)$/ }).click();
         } else if (decision.kind === "orderCards") {
-          await this.page.getByRole("button", { name: "Confirm order", exact: true }).click();
+          const confirmOrder = this.page.getByRole("button", { name: "Confirm order", exact: true });
+          await this.decisionReady(confirmOrder, decision, selection.decisionBudgetMs);
+          await confirmOrder.click();
         } else if (decision.kind === "chooseOption") {
           const index = selection.choice ?? (selection.accept === false ? decision.options.declineIndex : 0) ?? 0;
-          if (decision.options.digivolveCostChoice)
-            await this.page.locator(".digivolve-cost-choice__option").nth(index).click();
-          else
-            await this.page
-              .getByRole("dialog")
-              .getByRole("button", { name: decision.options.choices![index]!, exact: true })
-              .click();
+          const choice = decision.options.digivolveCostChoice
+            ? this.page.locator(".digivolve-cost-choice__option").nth(index)
+            : this.page
+                .getByRole("dialog")
+                .getByRole("button", { name: decision.options.choices![index]!, exact: true });
+          await this.decisionReady(choice, decision, selection.decisionBudgetMs);
+          await choice.click();
         } else if (decision.kind === "selectCards" && decision.options.digiXrosCardId) {
-          await this.page.getByRole("button", { name: "Play without DigiXros", exact: true }).click();
+          const noXros = this.page.getByRole("button", { name: "Play without DigiXros", exact: true });
+          await this.decisionReady(noXros, decision, selection.decisionBudgetMs);
+          await noXros.click();
         } else if (decision.kind === "selectCards" || decision.kind === "chooseTargets") {
           if (selection.accept === false && decision.options.min === 0) {
-            await this.page.getByRole("button", { name: /^(No selection|Pass · no selection|Pass)$/i }).click();
+            const pass = this.page.getByRole("button", { name: /^(No selection|Pass · no selection|Pass)$/i });
+            await this.decisionReady(pass, decision, selection.decisionBudgetMs);
+            await pass.click();
           } else {
             const candidates = decision.options.candidateInstanceIds!;
             const cards = [
@@ -172,7 +216,7 @@ export class ScenarioPage {
             const confirm = this.page.getByRole("button", {
               name: /^(Confirm targets|End Selection|Confirm|Declare attack|Attack)$/i,
             });
-            await expect(confirm).toBeVisible();
+            await this.decisionReady(confirm, decision, selection.decisionBudgetMs);
             const pickedIds =
               decision.options.selectionContext === "attackTarget" &&
               candidates.length === 1 &&
@@ -214,7 +258,10 @@ export class ScenarioPage {
     }
     throw new Error("Scenario exceeded 40 decisions");
   }
-  async healthy({ timedCatchUp = false }: { timedCatchUp?: boolean } = {}) {
+  async healthy({
+    timedCatchUp = false,
+    resumedEffectBudgets = {},
+  }: { timedCatchUp?: boolean; resumedEffectBudgets?: Record<string, number> } = {}) {
     await this.idle();
     const probe = await this.presentation();
     expect(this.errors).toEqual([]);
@@ -233,6 +280,18 @@ export class ScenarioPage {
     // Even non-blocking execution slots must finish; a 45 s ceiling is not success.
     for (const step of finished.filter((s) => s.id.startsWith("draw-presentation-") || s.id.startsWith("zone-change-")))
       expect(step.durationMs, step.id).toBeLessThan(6_000);
+    // Bound resumed effects as well as individual flights. A scenario that
+    // deliberately waits through several consecutive security scenes may supply
+    // its own aggregate budget; individual flights keep their checks above.
+    for (const id of Object.keys(resumedEffectBudgets))
+      expect(
+        finished.some((step) => step.id === id),
+        `aggregate budget refers to a completed step: ${id}`,
+      ).toBe(true);
+    for (const step of finished.filter((s) => s.id.startsWith("effect-unit-resettle-")))
+      expect(step.durationMs, step.id).toBeLessThan(
+        resumedEffectBudgets[step.id] ?? (this.speed === "slow" ? 7_500 : 6_000),
+      );
     expect(
       probe.steps
         .filter((s) => s.phase === "started")
@@ -248,7 +307,7 @@ export class ScenarioPage {
         : { unavailable: true },
     );
     const path = info.outputPath("presentation-timings.json");
-    await writeFile(path, JSON.stringify(evidence, null, 2));
+    await writeFile(path, JSON.stringify({ ...evidence, decisionTimings: this.decisionTimings }, null, 2));
     await info.attach("presentation-timings", { path, contentType: "application/json" });
   }
 }

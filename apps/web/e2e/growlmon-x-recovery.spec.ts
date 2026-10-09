@@ -12,7 +12,10 @@ for (const accept of [true, false]) {
     await scenario.attack("dev-perm-0-5361-growlmon");
     await scenario.resolveUntil(
       (s) => !s.combatWindow && !s.pendingDecision && s.players[0]!.trash.some((c) => c.cardId === "EX8-012"),
-      (d) => (d.sourceCardId === "EX8-012" ? { accept, cardId: "EX8-009" } : { accept: false }),
+      // This On Deletion question follows both the security reveal and deletion
+      // burst. Its aggregate receipt-to-visible time is longer than either scene.
+      (d) =>
+        d.sourceCardId === "EX8-012" ? { accept, cardId: "EX8-009", decisionBudgetMs: 8_000 } : { accept: false },
     );
     const final = await scenario.snapshot();
     expect(final.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX8-009")).toBe(accept);

@@ -70,6 +70,8 @@ for (const attack of [true, false]) {
     expect(probe.events.map((e) => e.kind).lastIndexOf("attackEnded")).toBeLessThan(
       probe.events.map((e) => e.kind).lastIndexOf("turnEnded"),
     );
-    await scenario.healthy();
+    // The accepted Blitz resolves two consecutive security battle scenes inside
+    // one resumed effect. Bound that aggregate while retaining per-flight limits.
+    await scenario.healthy({ resumedEffectBudgets: attack ? { "effect-unit-resettle-4": 12_000 } : {} });
   });
 }

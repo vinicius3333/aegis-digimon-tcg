@@ -7,7 +7,13 @@ test("GitHub #5384: WarGrowlmon plays Takato at End of Attack after Ulforce evad
   await scenario.resolveUntil(
     (s) =>
       s.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT17-080") && !s.pendingDecision && !s.combatWindow,
-    (d) => (d.kind === "selectCards" ? { cardId: "BT17-080" } : {}),
+    // End of Attack is presented after the blocked battle and Evade clauses.
+    (d) =>
+      d.kind === "selectCards"
+        ? { cardId: "BT17-080" }
+        : d.sourceCardId === "EX13-013" && d.options.timing === "EndOfAttack"
+          ? { decisionBudgetMs: 8_000 }
+          : {},
   );
   const final = await scenario.snapshot();
   expect(final.players[1]!.battleArea.some((p) => p.topCard.cardId === "EX13-023")).toBe(true);

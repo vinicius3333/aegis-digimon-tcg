@@ -21,6 +21,8 @@ test("Koto preserves pending Piercing through a protected block and pays one sec
       if (d.kind === "chooseTargets") return { cardId: "BT20-053" };
       return {};
     },
+    // Protection payment, effect battle and two Piercing checks are consecutive.
+    25_000,
   );
   const final = await scenario.snapshot();
   const probe = await scenario.presentation();
@@ -37,5 +39,5 @@ test("Koto preserves pending Piercing through a protected block and pays one sec
     1,
   );
   expect(probe.visible?.players[1].securityCount).toBe(1);
-  await scenario.healthy();
+  await scenario.healthy({ resumedEffectBudgets: { "effect-unit-resettle-4": 12_000 } });
 });

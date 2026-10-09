@@ -29,6 +29,7 @@ declare global {
       boards: typeof boards;
       events: readonly SequencedServerEvent[];
       decisions: readonly DecisionRequest[];
+      decisionReceipts: readonly { decisionId: string; at: number }[];
       gateExpiries: readonly GateExpiry[];
       counters: ReturnType<typeof presentationTelemetry.read>["counters"];
     };
@@ -47,6 +48,7 @@ const presentationSteps: {
 const boards: { at: number; visible: VisibleBoard }[] = [];
 const gateExpiries: GateExpiry[] = [];
 const decisions: DecisionRequest[] = [];
+const decisionReceipts: { decisionId: string; at: number }[] = [];
 const batches = new Map<string, readonly SequencedServerEvent[]>();
 let presentationControls: PresentationControls | undefined;
 let visible: VisibleBoard | undefined;
@@ -82,6 +84,7 @@ window.browserTestPresentation = () => ({
   boards,
   events: [...batches.values()].flat(),
   decisions,
+  decisionReceipts,
   gateExpiries,
   counters: presentationTelemetry.read().counters,
 });
@@ -91,7 +94,10 @@ for (const method of ["joinOrCreate", "create", "reconnect"] as const) {
   const original = Client.prototype[method];
   Client.prototype[method] = async function (this: Client, ...args: unknown[]) {
     const room = (await (original as Function).apply(this, args)) as Room<GameState>;
-    room.onMessage<DecisionRequest>(DECISION_CHANNEL, (request) => decisions.push(request));
+    room.onMessage<DecisionRequest>(DECISION_CHANNEL, (request) => {
+      decisions.push(request);
+      decisionReceipts.push({ decisionId: request.decisionId, at: performance.now() });
+    });
     window.browserTestSnapshot = () => room.state.toJSON();
     return room;
   } as typeof original;
