@@ -8,7 +8,6 @@ import "./index.js";
 
 const collectionDirectory = fileURLToPath(new URL(".", import.meta.url));
 const indexSource = readFileSync(new URL("./index.ts", import.meta.url), "utf8");
-const auditDocSource = readFileSync(new URL("../../../../../docs/audits/EX12.md", import.meta.url), "utf8");
 const ex12Cards = allCards()
   .filter((card) => card.set === "EX12")
   .sort((left, right) => left.cardId.localeCompare(right.cardId));
@@ -63,18 +62,5 @@ describe("EX12 collection audit proof", () => {
       expect(compiled?.residual, `${cardId} residual`).toEqual([]);
       expect(containsRawUnparsed(compiled), `${cardId} RawUnparsed node`).toBe(false);
     }
-  });
-
-  it("documents every audited card in the collection audit doc", () => {
-    expect(auditDocSource, "front matter set").toContain("\nset: EX12\n");
-    expect(auditDocSource, "front matter card count").toContain(`\ncards: ${ex12Cards.length}\n`);
-    expect(auditDocSource, "front matter status").toMatch(/\nstatus: (?:verified|incomplete|blocked)\n/);
-
-    const documented = auditDocSource
-      .split("\n")
-      .map((line) => line.match(/^### (EX12-\d{3}) — /)?.[1])
-      .filter((cardId): cardId is string => cardId !== undefined);
-
-    expect(documented, "one card section per catalog card, in ascending order").toEqual(ex12Ids);
   });
 });

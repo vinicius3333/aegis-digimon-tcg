@@ -26,7 +26,7 @@ export function matchingDigivolveCost(evolving: CardDefinition, base: CardDefini
  * (EX12-003 offering EX12-059 Machinedramon). That fallback existed only because the pre-EX9
  * card imports dropped the printed DNA header; `dnaDigivolutionCoverage.test.ts` now holds all 72
  * DNA destinations to a structured requirement, so a missing recipe means the card genuinely has
- * none. See docs/audits/engine/dna-digivolve-into-filter.md.
+ * none. See docs/engine/dna-digivolve-into-filter.md.
  */
 export function dnaDigivolveCostFor(evolving: CardDefinition, materials: CardDefinition[]): number | undefined {
   return matchingDnaDigivolveCost(evolving, materials);

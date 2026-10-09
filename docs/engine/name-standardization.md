@@ -147,8 +147,8 @@ client/server matching, legal final evolution or proof-scope blocker.
 The first full API run completed with only an introduced P-009 missing module
 link failure (42261 passed, one failed, three expected failures; 42265 total,
 5108 files, 165.49 seconds). Both exact links were restored. The old score
-verifier then rejected a legitimate five-part current eight; its correction
-and review evidence are owned by [ledger-score-integrity.md](ledger-score-integrity.md).
+verifier then rejected a legitimate five-part current eight; that verifier
+has since been removed with the audit ledgers.
 Final corrected card/layout/score selection passes four files / forty tests.
 The previous failed full run is not a green gate. Final full confirmation
 after all score changes passed 5108 files, 42279 tests and three declared

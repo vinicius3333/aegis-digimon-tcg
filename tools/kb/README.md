@@ -106,7 +106,7 @@ UI evidence here uses jsdom, React, and the existing real-room/WebSocket scenari
 harness. It proves rendered choices and responses through the client/server flow;
 it does not prove browser layout, clipping, touch geometry, or visual appearance.
 Those require a separate real-browser verification. Audit conclusions for this
-scope belong in `docs/audits/engine/trigger-ordering.md`.
+scope belong in `docs/engine/trigger-ordering.md`.
 
 ## Play and digivolution route matrix
 
@@ -135,7 +135,7 @@ The runner includes the matrix in its report. Its source-zone columns refer to t
 card being played/digivolved, not the location or timing of the effect's source:
 a Security effect playing from hand belongs to `effect-hand`. Cross-set evidence
 and the reviewed exclusion rationale live in
-`docs/audits/engine/effect-play-route-matrix.md`.
+`docs/engine/effect-play-route-matrix.md`.
 
 ## UI rule flows
 
@@ -172,4 +172,4 @@ NODE_OPTIONS=--max-old-space-size=2048 TEST_MAX_THREADS=1 pnpm exec vitest run t
 
 This suite uses jsdom and reduced motion; it does not prove physical browser
 layout or animation timing. The reviewed evidence and remaining gaps live in
-`docs/audits/engine/ui-rule-flows.md`.
+`docs/engine/ui-rule-flows.md`.

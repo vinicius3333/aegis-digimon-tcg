@@ -70,7 +70,6 @@
     "check:cards:style": "pnpm lint:cards && pnpm format:cards:check",
     "start": "pnpm --filter @aegis/api start",
     "clean": "pnpm -r exec rm -rf dist",
-    "audit:index": "node tools/audit-docs/build-index.mjs",
     "release:check": "node tools/release/version.mjs check",
     "release:set": "node tools/release/version.mjs set",
     "release:current": "node tools/release/version.mjs current",

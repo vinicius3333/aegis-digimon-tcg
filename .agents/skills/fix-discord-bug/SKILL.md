@@ -57,7 +57,7 @@ ssh oracle-vps 'cd /opt/aegis-rollout/logs && aegis-safe grep -h "<CARD-ID>" <fi
 3. digimoncard.io (secondary; it can drop lines):
    `curl -sL 'https://digimoncard.io/api-public/search?card=<CARD-ID>'`
 4. Rulings: `node tools/kb/query.mjs card <CARD-ID>`, `data/kb/qa.json`,
-   `data/kb/rules/manual.md`, and `docs/audits/engine/*.md`.
+   `data/kb/rules/manual.md`, and `docs/engine/*.md`.
 
 Special rule lines (`[Digivolve]`, `[DNA Digivolve]`, `[DigiXros]`, `[Assembly]`) are
 sometimes missing from `cards.json`. They need both the catalog text and the IR field
@@ -135,7 +135,7 @@ pnpm exec oxfmt --check <changed files>
 
 ## 9. Finish
 
-- Do not add bug reports to `docs/audits/*.md`.
+- Do not add bug reports to `docs/engine/*.md`.
 - Delete every scratch file and folder you created (dumps, images, scan copies).
 - Commit only when the user asks: conventional commits, one concern each, no AI
   attribution.
