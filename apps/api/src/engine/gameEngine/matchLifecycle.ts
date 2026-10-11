@@ -21,7 +21,7 @@ import { colorsOf } from "../cards/cardData.js";
 import { effectiveColors } from "../effects/continuous.js";
 import { linkMax } from "../effects/mindLink.js";
 import { logError } from "../../logger.js";
-import { runSetup, finalizeSecurity, mulliganRedraw, type Decklist } from "../setup.js";
+import { runSetup, finalizeSecurity, mulliganRedraw, makeRng, seatSeed, type Decklist } from "#api/engine/setup";
 import { layScenarioFixture, type ScenarioFixture } from "../scenario/fixture.js";
 import { validateDecklist } from "../deckValidation.js";
 import type { SeatJoinOptions } from "./types.js";
@@ -142,6 +142,8 @@ export async function runMatch(engine: GameEngine): Promise<void> {
 export function startScenarioFixture(engine: GameEngine, fixture: ScenarioFixture): void {
   const decks = collectStagedDecks(engine);
   if (decks === undefined) return;
+  const random = [makeRng(seatSeed(engine.hooks.seed, 0)), makeRng(seatSeed(engine.hooks.seed, 1))];
+  engine.rngForSeat = (seat) => random[seat]!;
   const references = layScenarioFixture(engine.state, fixture, decks);
   engine.matchSetupStarted = true;
   applyScenarioEffects(engine, fixture, references);

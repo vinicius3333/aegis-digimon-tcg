@@ -38,6 +38,8 @@ export interface MatchOptions {
   turnLimit?: number;
   /** Keep the public event stream for deterministic presentation analysis. */
   captureEvents?: boolean;
+  captureEventFilter?: (event: ServerEvent) => boolean;
+  measureDecisionLatencies?: boolean;
   /** Decode both client projections after each action and check hidden zones. */
   verifyProjections?: boolean;
 }
@@ -92,6 +94,30 @@ function emptyStats(label: string): SeatStats {
   };
 }
 
+function decodeProjection(decoder: Decoder<GameState>, bytes: Uint8Array, seat: Seat): void {
+  // Decoder recovery can log a missing refId and continue without throwing.
+  // Capture diagnostics only around its synchronous call: any such patch makes
+  // the game invalid, even if the later hidden-zone checks happen to pass.
+  const error = console.error;
+  const warn = console.warn;
+  const diagnostics: string[] = [];
+  console.error = (...args) => {
+    diagnostics.push(String(args[0]));
+    error(...args);
+  };
+  console.warn = (...args) => {
+    diagnostics.push(String(args[0]));
+    warn(...args);
+  };
+  try {
+    decoder.decode(bytes);
+  } finally {
+    console.error = error;
+    console.warn = warn;
+  }
+  if (diagnostics.length > 0) throw new Error(`projection seat ${seat}: decoder diagnostic: ${diagnostics[0]}`);
+}
+
 /** Run one complete match between two bot seats and report what happened. */
 export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
   const turnLimit = options.turnLimit ?? DEFAULT_TURN_LIMIT;
@@ -128,7 +154,7 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
     },
     emit: (event: ServerEvent) => {
       if (closed) return;
-      events?.push(structuredClone(event));
+      if (events !== undefined && (options.captureEventFilter?.(event) ?? true)) events.push(structuredClone(event));
       recordEvent(event, state, stats);
       if (event.kind === "gameOver") {
         finished = true;
@@ -184,7 +210,10 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
       config.policy ??
       createEvaluationPolicy({ profile: resolveBotProfile(config.profile), seed });
     bots[seat] = new BotPlayer(seat, state, send, {
-      policy: timed(policy, stats[seat].decisionLatenciesMs, () => !closed),
+      policy:
+        options.measureDecisionLatencies === false
+          ? policy
+          : timed(policy, stats[seat].decisionLatenciesMs, () => !closed),
       seed,
       thinkDelay: microtask,
       ...(config.policyTimeoutMs === undefined ? {} : { policyTimeoutMs: config.policyTimeoutMs }),
@@ -223,10 +252,12 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
         const sharedOffset = iterator.offset;
         for (const target of targets) {
           iterator.offset = sharedOffset;
-          target.decoder.decode(
+          decodeProjection(
+            target.decoder,
             full
               ? encoder.encodeAllView(target.view, sharedOffset, iterator)
               : encoder.encodeView(target.view, sharedOffset, iterator),
+            target.seat,
           );
           const projected = target.decoder.state as GameState;
           for (const ownerSeat of [0, 1] as const) {

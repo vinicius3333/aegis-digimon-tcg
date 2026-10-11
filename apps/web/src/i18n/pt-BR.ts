@@ -823,6 +823,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "lobby.identity": "Identidade",
   "lobby.playVsBot": "Jogar contra o bot",
   "lobby.botDeck": "Deck do bot",
+  "bot.identity.label": "Bot",
   "lobby.botDeckRandom": "Aleatório",
   "lobby.enterQueue": "Entrar na fila",
   "lobby.create": "Criar",

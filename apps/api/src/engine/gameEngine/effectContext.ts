@@ -531,9 +531,13 @@ export function buildPrimitives(engine: GameEngine): Primitives {
   const getCombat = () => engine.combat;
   return createPrimitives({
     state: engine.state,
-    // Effects that shuffle (security) draw from the seat's match-seeded stream, so a match stays
-    // reproducible from its seed. Read lazily: the streams exist only once the match is set up.
-    rngForSeat: (seat) => engine.rngForSeat?.(seat) ?? Math.random,
+    // Match setup installs the streams after this adapter is constructed.
+    // Resolve them at effect execution so security shuffles replay the match seed.
+    rngForSeat: (seat) => {
+      const random = engine.rngForSeat?.(seat);
+      if (!random) throw new Error("Security shuffle requires an initialized match random stream");
+      return random;
+    },
     artsDigivolve: (seat, instance, definition, duringAttack) =>
       engine.digivolveSupport.resolveArtsDigivolve(seat, instance, definition, duringAttack),
     beginEffectBody: () => {

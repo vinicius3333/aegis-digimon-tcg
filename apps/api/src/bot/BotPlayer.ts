@@ -245,18 +245,26 @@ export class BotPlayer {
       // A decision can finish a combat or effect that also ends the turn. The new
       // phaseChanged event owns the next turn; this stale callback must not act in it.
       if (this.state.turnCount !== requestedTurnCount || this.state.turnSeat !== this.seat) return;
+      if (
+        request.options?.promptKey === "activateBlitz" &&
+        intent.type === "respondDecision" &&
+        intent.response.kind === "optional" &&
+        intent.response.accept
+      ) {
+        this.declareBlitzAttack();
+        return;
+      }
       if (this.state.phase === Phase.Breeding) this.runBreedingPhase();
       else if (this.state.phase === Phase.Main) this.startMainPhaseLoop();
-      else if (request.options?.promptKey === "activateBlitz") this.declareBlitzAttackOutsideMain();
     });
   }
 
   /**
    * An activated ＜Blitz＞ attacks inside the effect that processed it, and that effect can
-   * resolve outside Main ([End of Your Turn]). It waits for this seat's attack declaration,
-   * which the Main loop is not running to send.
+   * resolve inside or outside Main. Declare its attack directly: the ordinary Main
+   * readiness gate waits for that effect to finish and cannot drive this declaration.
    */
-  private declareBlitzAttackOutsideMain(): void {
+  private declareBlitzAttack(): void {
     const view = this.view();
     const attack = view === undefined ? undefined : attackCandidates(view)[0];
     if (attack !== undefined) this.act(attack.intent);

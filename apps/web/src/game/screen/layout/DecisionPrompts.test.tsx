@@ -316,6 +316,59 @@ it("asks for a source host on the board, filters its cards, and returns without 
   expect(onRespond).not.toHaveBeenCalled();
 });
 
+it("respects engine DigiXros trash quotas without restricting hand materials", () => {
+  const onRespond = vi.fn<(response: DecisionResponse) => void>();
+  render(
+    <I18nProvider>
+      <DecisionPrompts
+        decision={{
+          decisionId: "limited-digixros",
+          seat: 0,
+          kind: "selectCards",
+          promptText: "DigiXros materials",
+          options: {
+            candidateInstanceIds: ["shoutmon-trash", "ballistamon-trash", "dorulumon-hand"],
+            min: 0,
+            max: 4,
+            digiXrosCardId: "BT10-009",
+            digiXrosMaterialLimits: [{ candidateInstanceIds: ["shoutmon-trash", "ballistamon-trash"], max: 1 }],
+          },
+        }}
+        answerOnBoard={false}
+        permanents={[]}
+        sourceCardId="BT10-087"
+        candidates={[
+          { instanceId: "shoutmon-trash", cardId: "BT10-008", zone: "trash" },
+          { instanceId: "ballistamon-trash", cardId: "BT10-049", zone: "trash" },
+          { instanceId: "dorulumon-hand", cardId: "BT10-034", zone: "hand" },
+        ]}
+        allowsPick={() => true}
+        picks={[]}
+        min={0}
+        max={4}
+        triggerDetails={[]}
+        opponentSecurityCount={5}
+        onTogglePick={() => {}}
+        onRespond={onRespond}
+        onOpenDialog={() => {}}
+      />
+    </I18nProvider>,
+  );
+  const shoutmon = screen.getByRole("button", { name: "Shoutmon (trash)" }) as HTMLButtonElement;
+  const ballistamon = screen.getByRole("button", { name: "Ballistamon (trash)" }) as HTMLButtonElement;
+  const dorulumon = screen.getByRole("button", { name: "Dorulumon (hand)" }) as HTMLButtonElement;
+  expect(ballistamon.disabled).toBe(false);
+  fireEvent.click(shoutmon);
+  expect(ballistamon.disabled).toBe(true);
+  expect(dorulumon.disabled).toBe(false);
+  fireEvent.click(dorulumon);
+  fireEvent.click(shoutmon);
+  expect(ballistamon.disabled).toBe(false);
+  fireEvent.click(ballistamon);
+  fireEvent.click(screen.getByRole("button", { name: /DigiXros \(2 cards\)/ }));
+  expect(onRespond).toHaveBeenCalledWith({ kind: "selectCards", instanceIds: ["dorulumon-hand", "ballistamon-trash"] });
+});
+
 it("retains pending physical-source provenance through the shared gallery adapter", () => {
   const onTogglePick = vi.fn<(instanceId: string) => void>();
   render(

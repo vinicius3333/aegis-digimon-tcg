@@ -6,6 +6,16 @@
   "type": "module",
   "main": "./dist/index.js",
   "imports": {
+    "#api/bot/evolution/programs/certified-pilots.json": {
+      "types": "./src/bot/evolution/programs/certified-pilots.json",
+      "development": "./src/bot/evolution/programs/certified-pilots.json",
+      "default": "./dist/bot/evolution/programs/certified-pilots.json"
+    },
+    "#api/bot/evolution/programs/certified-balanced.json": {
+      "types": "./src/bot/evolution/programs/certified-balanced.json",
+      "development": "./src/bot/evolution/programs/certified-balanced.json",
+      "default": "./dist/bot/evolution/programs/certified-balanced.json"
+    },
     "#api/*": {
       "types": "./src/*.ts",
       "development": "./src/*.ts",

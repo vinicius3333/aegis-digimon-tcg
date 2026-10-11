@@ -1,5 +1,5 @@
 import { fileURLToPath } from "node:url";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import { configDefaults } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
@@ -9,10 +9,24 @@ const requestedTestMaxThreads = Number(process.env.TEST_MAX_THREADS ?? 4);
 const testMaxThreads =
   Number.isInteger(requestedTestMaxThreads) && requestedTestMaxThreads > 0 ? requestedTestMaxThreads : 4;
 
+/** Match the gateway's directory-index behavior for generated public guide pages. */
+function strategyGuideDirectories(): Plugin {
+  return {
+    name: "strategy-guide-directories",
+    configureServer(server) {
+      server.middlewares.use((request, _response, next) => {
+        request.url = request.url?.replace(/^(\/strategy-guides\/(?:[a-z0-9-]+\/)?)(?=\?|$)/, "$1index.html");
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    strategyGuideDirectories(),
     motionReferenceAssets(fileURLToPath(new URL("./.motion-reference", import.meta.url)), ["MuhkUzGAeHA"]),
   ],
   resolve: {

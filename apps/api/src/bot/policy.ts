@@ -307,10 +307,16 @@ function pickInstances(view: BotView | undefined, request: DecisionRequest): str
   const opponentUnits = indexUnits(view.opponentBoard);
   const ownUnits = indexUnits(view.breeding === undefined ? view.board : [...view.board, view.breeding]);
   const ownHand = new Map(view.hand.map((card) => [card.instanceId, card]));
+  const unsuspending = request.options?.targetFate === "unsuspend" && request.options?.purpose !== "cost";
 
   const ranked = [...candidates].sort((left, right) => rank(right) - rank(left));
 
   if (min > 0) return ranked.slice(0, min);
+  if (unsuspending) {
+    const useful = ranked.filter((instanceId) => ownUnits.get(instanceId)?.suspended);
+    // Keep the single-target fallback when the protocol carries aggregate constraints.
+    return useful.slice(0, Math.min(1, request.options?.max ?? 1));
+  }
   // The bot already accepted this "you may" clause; its pick floor of zero only exists so a
   // human can back out.
   if (request.options?.purpose === "acceptedOptional") return ranked.slice(0, 1);
@@ -334,6 +340,11 @@ function pickInstances(view: BotView | undefined, request: DecisionRequest): str
 
   function rank(instanceId: string): number {
     const enemy = opponentUnits.get(instanceId);
+    if (unsuspending) {
+      const mine = ownUnits.get(instanceId);
+      if (mine) return mine.suspended ? 1_000 + bodyValue(mine) : 0;
+      if (enemy) return enemy.suspended ? -1_000 - bodyValue(enemy) : 0;
+    }
     // Suspending an already suspended Digimon is legal (Q1782) but changes nothing.
     if (enemy !== undefined && enemy.suspended && request.options?.targetFate === "suspend") {
       return 500 + bodyValue(enemy);

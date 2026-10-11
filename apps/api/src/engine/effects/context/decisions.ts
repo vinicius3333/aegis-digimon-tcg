@@ -78,6 +78,7 @@ export interface SeatScopedDecisionApi {
       distinctNames?: boolean;
       assemblyCardId?: string;
       digiXrosCardId?: string;
+      digiXrosMaterialLimits?: { candidateInstanceIds: string[]; max: number }[];
       /** Paid source cards that will enter trash before this DigiXros is placed. */
       digiXrosRuleTrashInstanceIds?: string[];
     },

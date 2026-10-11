@@ -240,6 +240,7 @@ function buildSeatScopedApi(
         distinctNames?: boolean;
         assemblyCardId?: string;
         digiXrosCardId?: string;
+        digiXrosMaterialLimits?: { candidateInstanceIds: string[]; max: number }[];
         /** Paid source cards that will enter trash before this DigiXros is placed. */
         digiXrosRuleTrashInstanceIds?: string[];
       },
@@ -269,6 +270,7 @@ function buildSeatScopedApi(
             ? { playCostReductionBlocked: playCostReductionBlocked(resolveSeat(ctx)) }
             : {}),
           digiXrosCardId: opts.digiXrosCardId,
+          digiXrosMaterialLimits: opts.digiXrosMaterialLimits,
           digiXrosRuleTrashInstanceIds: opts.digiXrosRuleTrashInstanceIds,
           ...provenance(ctx),
           ...backOutPurpose(min, opts.min),

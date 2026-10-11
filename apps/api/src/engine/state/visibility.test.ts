@@ -15,7 +15,16 @@ import {
   type Seat,
 } from "@aegis/shared";
 import { buildStateView, refreshStateView, syncPublicCounts, privateZoneSnapshot } from "./visibility.js";
-import { clearZone, extractCardAt, fillZone, insertCard, installVisibilityPort, placePermanent } from "./access.js";
+import {
+  clearZone,
+  extractCardAt,
+  extractPermanentAt,
+  fillZone,
+  insertCard,
+  installVisibilityPort,
+  placePermanent,
+  setTopCard,
+} from "./access.js";
 import { exposeCardInZone, finalRevealOf, forgetWithheldCards } from "./visibility.js";
 import { Zone } from "@aegis/shared";
 
@@ -999,6 +1008,83 @@ describe("a card that moves out of a viewer's sight", () => {
     extractCardAt(player, Zone.Trash, player.trash.indexOf(card));
     insertCard(player, zone, card);
   }
+
+  it.each([Zone.Hand, Zone.Deck, Zone.EggDeck, Zone.Security] as const)(
+    "keeps both player slots when a new top card returns to %s before its first board patch",
+    (destination) => {
+      const player = state.players[0]!;
+      const permanent = new Permanent();
+      permanent.permanentId = "returned-before-patch";
+      permanent.controllerSeat = 0;
+      permanent.topCard = makeCard("old-public-top", 0);
+      placePermanent(player, permanent);
+      patch();
+
+      const previousTop = permanent.topCard;
+      const newTop = extractCardAt(player, Zone.Hand, 0)!;
+      setTopCard(permanent, newTop);
+      extractPermanentAt(player, player.battleArea.indexOf(permanent));
+      insertCard(player, Zone.Trash, previousTop);
+      newTop.faceUp = false;
+      insertCard(player, destination, newTop);
+      patch();
+
+      expect(decoderErrors).toEqual([]);
+      for (const seat of [0, 1] as const) {
+        expect(seenBy(seat).players.map((entry) => entry.seat)).toEqual([0, 1]);
+        expect(seenBy(seat).players[0]!.battleArea).toHaveLength(0);
+        expect(seenBy(seat).players[0]!.trash[0]!.instanceId).toBe(previousTop.instanceId);
+      }
+      expect(seenBy(0).players[0]!.hand.map((entry) => entry.instanceId)).toEqual(
+        player.hand.map((entry) => entry.instanceId),
+      );
+      expect(seenBy(1).players[0]!.hand).toHaveLength(0);
+      expectNoHiddenSecurityIdentity();
+    },
+  );
+
+  it("forgets a previously delivered card before another unseen board round trip", () => {
+    const card = trashCardSeenByBothSeats("delivered-then-hidden");
+    moveOutOfTrash(card, Zone.Hand);
+    patch();
+
+    const player = state.players[0]!;
+    extractCardAt(player, Zone.Hand, player.hand.indexOf(card));
+    const transient = new Permanent();
+    transient.permanentId = "unseen-round-trip";
+    transient.controllerSeat = 0;
+    transient.topCard = card;
+    placePermanent(player, transient);
+    extractPermanentAt(player, player.battleArea.indexOf(transient));
+    insertCard(player, Zone.Hand, card);
+    patch();
+
+    expect(decoderErrors).toEqual([]);
+    expect(seenBy(1).players[0]!.hand).toHaveLength(0);
+    expect(seenBy(1).players[0]!.battleArea).toHaveLength(0);
+    expect(seenBy(0).players[0]!.hand.find((entry) => entry.instanceId === card.instanceId)?.cardId).toBe("TEST-001");
+  });
+
+  it("re-exposes a cancelled board arrival when the card reaches trash in the same patch", () => {
+    const player = state.players[0]!;
+    const card = extractCardAt(player, Zone.Hand, 0)!;
+    const transient = new Permanent();
+    transient.permanentId = "cancelled-then-public";
+    transient.controllerSeat = 0;
+    transient.topCard = card;
+    placePermanent(player, transient);
+    extractPermanentAt(player, player.battleArea.indexOf(transient));
+    insertCard(player, Zone.Hand, card);
+    extractCardAt(player, Zone.Hand, player.hand.indexOf(card));
+    insertCard(player, Zone.Trash, card);
+    patch();
+
+    expect(decoderErrors).toEqual([]);
+    for (const seat of [0, 1] as const) {
+      expect(seenBy(seat).players.map((entry) => entry.seat)).toEqual([0, 1]);
+      expect(seenBy(seat).players[0]!.trash[0]).toMatchObject({ instanceId: card.instanceId, cardId: "TEST-001" });
+    }
+  });
 
   it("sends nothing for a deck card revealed after both seats saw it", () => {
     const card = trashCardSeenByBothSeats("returned-to-deck");

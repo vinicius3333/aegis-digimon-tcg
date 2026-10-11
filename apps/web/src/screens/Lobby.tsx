@@ -46,6 +46,7 @@ import { loadMatchFormatPreference, saveMatchFormatPreference } from "./matchFor
 import "./lobby.css";
 import { lookupPrivateRoom } from "../net/client";
 import { SpectatorPanel } from "./SpectatorPanel";
+import { BotOpponentPreview } from "@/bot/personas/BotOpponentPreview";
 
 /** The private room a finished match returns to. Its host reopens it under the same code. */
 export interface PrivateRoom {
@@ -815,6 +816,7 @@ export function Lobby({
               ) : null}
             </div>
           </div>
+          {vsBot ? <BotOpponentPreview deck={botPreview} /> : null}
           <details className="lobby-advanced">
             <summary>
               <Icons.Settings size={18} className="lobby-advanced__icon" />
@@ -883,26 +885,6 @@ export function Lobby({
                           </optgroup>
                         ))}
                       </select>
-                      {botPreview ? (
-                        <div className="lobby-bot-preview">
-                          <span className="lobby-active-strip__thumb">
-                            <CoverThumb
-                              coverCardId={displayCoverCard(botPreview)}
-                              sigilColor={botPreview.color}
-                              sigilSize={22}
-                            />
-                          </span>
-                          <div className="lobby-bot-preview__copy">
-                            <strong>{botPreview.name}</strong>
-                            <small>
-                              {t("redesign.play.deckCounts", {
-                                main: botPreview.mainDeck.length,
-                                egg: botPreview.eggDeck.length,
-                              })}
-                            </small>
-                          </div>
-                        </div>
-                      ) : null}
                     </div>
                   ) : null}
                   {betaOptional ? (

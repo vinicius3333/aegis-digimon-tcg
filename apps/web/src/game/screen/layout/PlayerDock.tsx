@@ -21,6 +21,7 @@ export function PlayerDock({
   timer,
   playerName,
   playerAvatarId,
+  playerBotPersonaId,
   breedingDock,
   pileDock,
   handDockRef,
@@ -58,6 +59,7 @@ export function PlayerDock({
   /** The viewer's name for the line over the tray, when the screen knows it. */
   playerName?: string;
   playerAvatarId?: string;
+  playerBotPersonaId?: string;
   /** The board is showing the viewer's own turn, so their line does not wait. */
   /** The raising area, when this screen puts it here rather than in the field. */
   breedingDock: ReactNode;
@@ -107,7 +109,15 @@ export function PlayerDock({
       }}
     >
       {breedingDock}
-      {playerName ? <PlayerLine name={playerName} avatarId={playerAvatarId} side="player" timer={timer} /> : null}
+      {playerName ? (
+        <PlayerLine
+          name={playerName}
+          avatarId={playerAvatarId}
+          botPersonaId={playerBotPersonaId}
+          side="player"
+          timer={timer}
+        />
+      ) : null}
       <div className="game-hand-dock" ref={handDockRef} style={{ flex: 1, minWidth: 0, padding: "8px 20px 12px" }}>
         {actionBar ? (
           <ActionBar

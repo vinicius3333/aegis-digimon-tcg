@@ -140,4 +140,5 @@ export class PlayerState extends Schema {
    * resolving face-up is public information, same as the battle area or trash.
    */
   @type(CardInstance) resolvingOption?: CardInstance;
+  @type("string") botPersonaId = "";
 }

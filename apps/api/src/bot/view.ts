@@ -34,6 +34,8 @@ export interface BotUnit {
   inBreeding: boolean;
   cannotDigivolve: boolean;
   keywords: readonly string[];
+  /** Engine-projected check count, including Security Attack grants. */
+  securityAttack?: number;
   /** Engine-projected: may this Digimon attack the opponent right now? */
   canAttackPlayer: boolean;
   /** Engine-projected: opposing permanents this Digimon may legally attack right now. */
@@ -120,6 +122,7 @@ function toUnit(permanent: PermanentLike): BotUnit {
     inBreeding: permanent.inBreeding === true,
     cannotDigivolve: permanent.cannotDigivolve === true,
     keywords: toArray(permanent.keywords),
+    securityAttack: permanent.securityAttack ?? 1,
     canAttackPlayer: permanent.canAttackPlayer === true,
     attackablePermanentIds: toArray(permanent.attackablePermanentIds),
     activatableEffects: parseActivatable(permanent.activatableEffectsJson),
@@ -222,6 +225,7 @@ interface PermanentLike {
   inBreeding?: boolean;
   cannotDigivolve?: boolean;
   keywords?: ArrayLike<string>;
+  securityAttack?: number;
   canAttackPlayer?: boolean;
   attackablePermanentIds?: ArrayLike<string>;
   activatableEffectsJson?: string;

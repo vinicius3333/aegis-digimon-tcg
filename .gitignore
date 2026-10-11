@@ -44,8 +44,13 @@ apps/web/playwright-report/
 
 # Local bot datasets, checkpoints, and Python environments
 artifacts/bot-training/
+artifacts/bot-strength-probe/
 tools/bot-training/.venv/
 tools/bot-training/__pycache__/
+artifacts/bot-evolution/
+tools/bot-evolution/.venv/
+tools/bot-evolution/__pycache__/
+tools/bot-evolution/.pytest_cache/
 
 # Digimon World game art used only for local background tests; owned by Bandai, never commit
 apps/web/public/battlefield/test-dw/

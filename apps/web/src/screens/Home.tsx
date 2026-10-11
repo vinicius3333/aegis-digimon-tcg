@@ -9,6 +9,7 @@ import { BetaBanner } from "../design/BetaBanner";
 import { DISCORD_INVITE_URL, GITHUB_REPO_URL } from "../community";
 import { useTranslation } from "../i18n";
 import { currentRelease, displayVersion } from "../releases/catalog";
+import strategyGuides from "../guides/catalog.json";
 import "./home.css";
 
 export function Home({
@@ -87,6 +88,14 @@ export function Home({
             </Button>
           </section>
         )}
+
+        {strategyGuides.some((guide) => "strictVerified" in guide && guide.strictVerified === true) ? (
+          <a className="home-guides" href="/strategy-guides/">
+            <Icons.BookOpen size={20} aria-hidden="true" />
+            <span>{t("home.strategyGuides")}</span>
+            <Icons.ArrowRight size={16} aria-hidden="true" />
+          </a>
+        ) : null}
 
         <BetaBanner />
       </div>

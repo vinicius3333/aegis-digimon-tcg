@@ -254,6 +254,7 @@ export function comparableState(state: GameState): unknown {
     delete player.sessionId;
     delete player.displayName;
     delete player.avatarId;
+    delete player.botPersonaId;
   }
   return json;
 }

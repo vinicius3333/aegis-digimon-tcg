@@ -1,8 +1,36 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { Decoder } from "@colyseus/schema";
 import { ALL_FAMOUS_DECKS } from "@aegis/shared";
+import type { GameState } from "@aegis/shared/schema/GameState";
 import { runBotMatch } from "./matchHarness.js";
 
 describe("bot match client projections", () => {
+  it("records a decoder warning as a projection failure even if both players survive", async () => {
+    const decode = Decoder.prototype.decode;
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const injected = vi.spyOn(Decoder.prototype, "decode").mockImplementationOnce(function (
+      this: Decoder<GameState>,
+      ...args
+    ) {
+      const changes = decode.apply(this, args);
+      console.warn("projection decoder regression diagnostic");
+      return changes;
+    });
+    try {
+      const result = await runBotMatch({
+        seed: 20260922,
+        seats: [{ profile: "balanced" }, { profile: "balanced" }],
+        turnLimit: 2,
+        verifyProjections: true,
+      });
+      expect(result.errors).toContain(
+        "projection: Error: projection seat 0: decoder diagnostic: projection decoder regression diagnostic",
+      );
+    } finally {
+      injected.mockRestore();
+      warning.mockRestore();
+    }
+  });
   it.each([262603, 262614])(
     "keeps later draws private after recovery in a BT26 Abbadomon mirror (seed %i)",
     async (seed) => {

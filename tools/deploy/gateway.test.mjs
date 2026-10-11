@@ -170,6 +170,70 @@ test("feedback API reaches the API while the admin screen reaches the web app", 
   assert.equal(isApiPath("/admin/feedback", { accept: "text/html" }), false);
 });
 
+test("static guides coexist with replay API routing and missing guides do not become SPA pages", async (t) => {
+  const state = mkdtempSync(`${tmpdir()}/aegis-guide-gateway-`);
+  mkdirSync(`${state}/routing`, { recursive: true });
+  const web = `${state}/releases/web-v1/web`;
+  mkdirSync(`${web}/strategy-guides/glowing-dawn`, { recursive: true });
+  writeFileSync(`${web}/index.html`, "React application");
+  writeFileSync(`${web}/strategy-guides/index.html`, "Guide catalog");
+  writeFileSync(`${web}/strategy-guides/glowing-dawn/index.html`, "Glowing Dawn guide");
+  writeFileSync(`${web}/strategy-guides/guides.css`, "body { color: black; }");
+  writeFileSync(`${web}/strategy-guides/sitemap.xml`, "<urlset />");
+  writeFileSync(`${web}/robots.txt`, "Sitemap: https://aegis-digi.online/strategy-guides/sitemap.xml\n");
+  writeFileSync(`${web}/strategy-guides/evidence.json`, '{"simulations":256}');
+  writeFileSync(
+    `${state}/routing/manifest.json`,
+    JSON.stringify({
+      version: 1,
+      active: { slot: "blue", revision: "api-v1" },
+      draining: [],
+      webRevision: "web-v1",
+    }),
+  );
+  const upstream = createServer((request, response) => {
+    response.setHeader("content-type", "application/json");
+    response.end(JSON.stringify({ path: request.url }));
+  });
+  const upstreamOrigin = await listen(upstream);
+  const gateway = createGateway({ state, upstreamFor: () => upstreamOrigin });
+  t.after(async () => {
+    await new Promise((done) => gateway.close(done));
+    await new Promise((done) => upstream.close(done));
+    rmSync(state, { recursive: true });
+  });
+  const origin = await listen(gateway);
+  for (const path of ["/strategy-guides", "/strategy-guides/"]) {
+    const response = await fetch(origin + path);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-type"), "text/html; charset=utf-8");
+    assert.equal(await response.text(), "Guide catalog");
+  }
+  const guide = await fetch(`${origin}/strategy-guides/glowing-dawn/?utm_source=home`);
+  assert.equal(await guide.text(), "Glowing Dawn guide");
+  const head = await fetch(`${origin}/strategy-guides/glowing-dawn/`, { method: "HEAD" });
+  assert.equal(head.status, 200);
+  assert.equal(head.headers.get("content-length"), String(Buffer.byteLength("Glowing Dawn guide")));
+  assert.equal(await head.text(), "");
+  assert.equal((await fetch(`${origin}/strategy-guides/missing/`)).status, 404);
+  assert.equal(await (await fetch(`${origin}/play?utm_source=strategy-guides`)).text(), "React application");
+  const replay = await fetch(`${origin}/replays/example`, { headers: { accept: "application/json" } });
+  assert.deepEqual(await replay.json(), { path: "/replays/example" });
+  assert.equal(
+    await (await fetch(`${origin}/replays/example`, { headers: { accept: "text/html" } })).text(),
+    "React application",
+  );
+  const css = await fetch(`${origin}/strategy-guides/guides.css`);
+  assert.equal(css.headers.get("content-type"), "text/css; charset=utf-8");
+  const sitemap = await fetch(`${origin}/strategy-guides/sitemap.xml`);
+  assert.equal(sitemap.headers.get("content-type"), "application/xml; charset=utf-8");
+  const robots = await fetch(`${origin}/robots.txt`);
+  assert.equal(robots.status, 200);
+  assert.equal(robots.headers.get("content-type"), "text/plain; charset=utf-8");
+  assert.match(await robots.text(), /^Sitemap: https:\/\/aegis-digi\.online\/strategy-guides\/sitemap\.xml\n$/);
+  assert.deepEqual(await (await fetch(`${origin}/strategy-guides/evidence.json`)).json(), { simulations: 256 });
+});
+
 test("shared replay API calls reach the API while page navigation gets the web app", () => {
   assert.equal(isApiPath("/replays/replay-1", { accept: "application/json" }), true);
   assert.equal(isApiPath("/replays/replay-1/file", {}), true);

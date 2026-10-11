@@ -72,8 +72,8 @@ export async function startBrowserServer({
   // Colyseus 404s unknown routes itself, so a second request listener would double-respond.
   server.router = createRouter({
     botJoin: createEndpoint("/bot/join", { method: "POST" }, async (context) => {
-      const { roomId } = context.body as { roomId: string };
-      return new Response("{}", { status: roomRegistry.get(roomId)?.addBot() ? 200 : 400 });
+      const { roomId, botDeckId } = context.body as { roomId: string; botDeckId?: string };
+      return new Response("{}", { status: roomRegistry.get(roomId)?.addBot(botDeckId) ? 200 : 400 });
     }),
   });
   server.define(ROOM_TYPE, AegisRoom, { botRoom: false });

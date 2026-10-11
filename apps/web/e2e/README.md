@@ -52,7 +52,53 @@ One worker uses loopback ports 4175 (Vite), 2569 (a TCP edge that stands in for 
 at once. Each test starts a new server/room and browser context. The Node heap is
 limited to 2048 MB; Chromium consumes additional memory. No CI is configured.
 
+The default browser is Chromium. Both the game and published-guide configurations
+also accept `AEGIS_E2E_BROWSER=firefox`. Install Firefox before selecting it:
+
+```sh
+pnpm --filter @aegis/web exec playwright install firefox
+AEGIS_E2E_BROWSER=firefox NODE_OPTIONS=--max-old-space-size=2048 \
+  pnpm --filter @aegis/web exec playwright test discord-x7-digixros-zones.spec.ts
+```
+
+Use the direct command only when the shared and API builds already match the
+checkout; it does not rebuild them. This is necessary while evolution games use
+the pinned compiled engine. A Firefox pass proves Firefox behavior only.
+On the Tailscale desktop, Chromium 153.0.8010.12 failed to produce animation
+frames or click a button even on an empty page, in both headless and virtual-display
+runs. Firefox 155 passed that probe and the real Shoutmon X7 DigiXros regression.
+The Chromium environment remains unverified; product input guards were unchanged.
+
 ## Coverage and boundaries
+
+### Published strategy guides
+
+`strategy-guides.spec.ts` uses the production web build served through the deployment
+gateway. It requires the three real published guides and their benchmark evidence;
+it fails when the catalog is empty. This lane is separate from the game harness
+and does not rebuild the API while evolution games are running.
+
+Run on the Tailscale desktop with one browser instance, after publishing the
+validated evolution run and building the web client:
+
+```sh
+AEGIS_GUIDES_BASE_URL=http://127.0.0.1:4176 AEGIS_E2E_BROWSER=firefox NODE_OPTIONS=--max-old-space-size=2048 \
+  pnpm --filter @aegis/web exec playwright test -c playwright.guides.config.ts
+```
+
+Point the URL at a gateway serving that build and a running API. The lane checks all three guides
+at 390px and 1440px in light and dark modes, keyboard access, horizontal overflow,
+benchmark access, the Home entry, and the practice link into the real guest lobby.
+It starts a bot match, keeps the opening hand, and reaches the player's main phase
+through visible controls. Screenshots are saved with each test.
+
+`acquisition-practice.spec.ts` independently exercises the same destination through
+the real product App at `/play?utm_source=strategy-guides&utm_content=fundamentals`,
+with a real Colyseus server and autonomous bot. It supplies no scenario, stored
+deck, account, or mocked request. It runs at 390px and 1440px in light and dark
+modes, checks horizontal overflow, and captures the player's main phase.
+This verifies the guest practice flow before a
+validated guide run is available; it does not prove that guides have been published.
 
 - `security.spec.ts`: the actual security-chain board. The test server temporarily
   holds the bot's reactive decision callbacks, releasing the real bot policy once
@@ -70,7 +116,8 @@ limited to 2048 MB; Chromium consumes additional memory. No CI is configured.
   than 5 bot clauses reach the screen. It catches presentation wait cycles that
   only close under real browser timing, which the jsdom pacing harness misses.
 
-These cover desktop Chromium. They do not claim full lobby/account coverage,
+The default lane targets desktop Chromium; runs selecting Firefox establish
+Firefox coverage instead. They do not claim full lobby/account coverage,
 mobile-device validation, cross-browser parity, or screenshot baseline comparison.
 
 `replay-video-export.spec.ts` requires `ffmpeg` on `PATH`. It decodes every packet

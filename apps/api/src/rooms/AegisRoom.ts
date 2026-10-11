@@ -54,7 +54,10 @@ import { createFixtureBotPolicy } from "../engine/scenario/botPolicy.js";
 import { GameEngine, type SeatJoinOptions } from "../engine/GameEngine.js";
 import { finalRevealOf, type VisibilityPort } from "../engine/state/index.js";
 import { BotPlayer, type BotOptions } from "../bot/BotPlayer.js";
+import { defaultBotOptions } from "#api/bot/defaultBotOptions";
+import { botPersonaForDeck } from "@aegis/shared/bot/personas/botPersonaForDeck";
 import { trainedBotOptions } from "../bot/inferenceRuntime.js";
+import { evolvedBotOptions } from "../bot/evolution/livePolicy.js";
 import { playableBotDeck } from "../engine/botDeck.js";
 import { accountStore } from "../accounts/runtime.js";
 import type { AccountStore, DeckSnapshot } from "../accounts/AccountStore.js";
@@ -1109,9 +1112,9 @@ export class AegisRoom extends Room<{ state: GameState; metadata: { unlimited: b
         this.rebuildClientViews();
         return result;
       },
-      input.botOptions,
+      defaultBotOptions({ engine: this.engine, seat, deck, options: input.botOptions }),
     );
-    this.withBatch(() =>
+    this.withBatch(() => {
       this.engine.seatPlayer(seat, `bot:${participantId}`, {
         displayName,
         deck: {
@@ -1120,8 +1123,9 @@ export class AegisRoom extends Room<{ state: GameState; metadata: { unlimited: b
           mainDeckArts: deck.mainDeckArts?.slice(),
           eggDeckArts: deck.eggDeckArts?.slice(),
         },
-      }),
-    );
+      });
+      this.state.players[seat]!.botPersonaId = botPersonaForDeck({ deck }).id;
+    });
     this.recordReplaySeat(seat, deck, {}, true);
     // The bot announces readiness through the ordinary intent, so the ready gate closes for the
     // usual reason rather than being bypassed. Against a person that means the match starts when
@@ -1533,17 +1537,26 @@ export class AegisRoom extends Room<{ state: GameState; metadata: { unlimited: b
     }
 
     const humanDeck = this.engine.stagedDecks[0];
+    const persona = botPersonaForDeck({ deckId: botDeckId, deck });
     const modelOptions =
       this.devScenario === undefined && humanDeck !== undefined
-        ? trainedBotOptions({
+        ? (evolvedBotOptions({
+            engine: this.engine,
+            seat: this.BOT_SEAT,
+            seed: this.engine.hooks.seed,
+            decks: [humanDeck, deck],
+          }) ??
+          trainedBotOptions({
             engine: this.engine,
             seat: this.BOT_SEAT,
             decks: [humanDeck, deck],
-          })
+          }))
         : undefined;
     const scenarioPolicy = createFixtureBotPolicy(this.scenarioFixture?.presentation?.opponent);
     const baseBotOptions: BotOptions | undefined =
-      scenarioPolicy === undefined ? modelOptions : { policy: scenarioPolicy };
+      scenarioPolicy === undefined
+        ? (modelOptions ?? defaultBotOptions({ engine: this.engine, seat: this.BOT_SEAT, deck }))
+        : { policy: scenarioPolicy };
     const clientPacesChains = this.clients.some((client) => this.chainPacingClients.has(client.sessionId));
     const botOptions: BotOptions | undefined = clientPacesChains
       ? { ...baseBotOptions, clientPacesChains }
@@ -1565,15 +1578,16 @@ export class AegisRoom extends Room<{ state: GameState; metadata: { unlimited: b
 
     this.debug("bot.seated", { seat: this.BOT_SEAT, deck, clientPacesChains });
     try {
-      this.withBatch(() =>
+      this.withBatch(() => {
         this.engine.seatPlayer(this.BOT_SEAT, "bot", {
-          displayName: modelOptions === undefined ? "Bot" : "BT26 AI",
+          displayName: persona.displayName,
           deck,
           betaBattleMode: this.isBetaBattleRoom,
           unlimited: this.isUnlimitedRoom,
           format: this.state.format as DeckFormat,
-        }),
-      );
+        });
+        this.state.players[this.BOT_SEAT]!.botPersonaId = persona.id;
+      });
       this.recordReplaySeat(
         this.BOT_SEAT,
         deck,

@@ -284,3 +284,23 @@
     transition: none;
   }
 }
+
+.home-guides {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4);
+  background: var(--ds-sheet);
+  color: var(--ds-accent-strong);
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+}
+.home-guides > span {
+  flex: 1;
+}
+.home-guides:focus-visible {
+  outline: 3px solid var(--ds-focus);
+  outline-offset: 3px;
+}

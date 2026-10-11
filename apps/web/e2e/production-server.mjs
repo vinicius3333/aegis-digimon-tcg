@@ -12,7 +12,7 @@ const shared = {
   build: {
     outDir,
     emptyOutDir: true,
-    rollupOptions: { input: `${root}e2e/harness.html` },
+    rollupOptions: { input: { app: `${root}index.html`, harness: `${root}e2e/harness.html` } },
   },
 };
 await build(shared);
