@@ -1,10 +1,10 @@
 {
   "fetchedAt": "2026-10-16T13:45:11.694Z",
   "language": "ja",
-  "catalogCards": 4516,
+  "catalogCards": 4519,
   "sourceCards": 4477,
-  "translatedCards": 4322,
-  "translatedFields": 6824,
+  "translatedCards": 4325,
+  "translatedFields": 6830,
   "missing": [
     {
       "cardId": "BT12-002",
@@ -15709,6 +15709,18 @@
     "BT27-015": {
       "effectText": "https://x.com/digimon_tcg/status/2113608952378446317",
       "inheritedEffectText": "https://x.com/digimon_tcg/status/2113608952378446317"
+    },
+    "BT27-087": {
+      "effectText": "data/card-images/BT27-087-J.webp",
+      "securityEffectText": "data/card-images/BT27-087-J.webp"
+    },
+    "BT27-096": {
+      "effectText": "data/card-images/BT27-096-J.webp",
+      "securityEffectText": "data/card-images/BT27-096-J.webp"
+    },
+    "BT27-101": {
+      "effectText": "data/card-images/BT27-101-J.webp",
+      "securityEffectText": "data/card-images/BT27-101-J.webp"
     }
   }
 }

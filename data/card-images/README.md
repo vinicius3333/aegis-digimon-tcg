@@ -80,3 +80,15 @@ SAMPLE watermark.
 | BT27-015                           | [Official English reveal](https://x.com/digimon_tcg_EN/status/2113608882606223567) |
 | BT27-008-J, BT27-009-J, BT27-013-J | [Official Japanese reveal](https://x.com/digimon_tcg/status/2113510813256593622)   |
 | BT27-015-J                         | [Official Japanese reveal](https://x.com/digimon_tcg/status/2113608952378446317)   |
+
+## BT27 Yuji Musya, Keenan Crier and Silver-Winged Yaksha, 2026-10-24
+
+These scans are cropped to the card edge (868 x 1213 px, without the white
+image margin) and encoded as WebP with quality 90. They retain the source
+SAMPLE watermark. The Japanese scans are also the source of the Japanese card
+text.
+
+| Files                              | Source                                     |
+| ---------------------------------- | ------------------------------------------ |
+| BT27-087, BT27-096, BT27-101       | User-provided official English reveal art  |
+| BT27-087-J, BT27-096-J, BT27-101-J | User-provided official Japanese reveal art |

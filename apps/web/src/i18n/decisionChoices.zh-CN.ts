@@ -80,6 +80,8 @@ export const decisionChoicesZhCN = {
   "decision.choice.useSquad": "使用1张拥有“拯救队”特征的选项卡牌",
   "decision.choice.playChronicleTamer": "登场1张拥有“Chronicle”特征的驯兽师",
   "decision.choice.useChronicleOption": "使用1张拥有“Chronicle”特征的选项卡牌",
+  "decision.choice.revealXAntibodyOrChronicle": "翻开3张卡牌，加入1张“X抗体”或拥有“Chronicle”特征的卡牌",
+  "decision.choice.playChronicleLevelThreeBreeding": "将1张拥有“Chronicle”特征的Lv.3数码宝贝登场至培育区",
   "decision.choice.returnDeckTop": "放回卡组最上方",
   "decision.choice.returnDeckBottom": "放回卡组最下方",
   "decision.choice.declareDigimon": "宣言类别：数码宝贝",

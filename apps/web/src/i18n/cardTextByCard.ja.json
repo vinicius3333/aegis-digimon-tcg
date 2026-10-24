@@ -15462,5 +15462,17 @@
   "BT27-015": {
     "[Digivolve][Hisyaryumon]/Lv.5w/[Chronicle]trait:Cost3[Assembly-5]Lv.5×Lv.4×Lv.3,allw/[Chronicle]trait<Piercing><Reboot><Blocker>[OnPlay][WhenDigivolving]Delete1ofyouropponent'sDigimonwithasmuchDPas1ofyourDigimonorless.Then,ifduringanattack,trashtheirtopsecuritycard.[AllTurns][OncePerTurn]Whensecuritystacksareremovedfrom,youmayplayoruse1[Chronicle]traitTamerorOptioncardfromyourhandwithoutpayingthecost.": "〔進化〕「ヒシャリュウモン」/特徴「クロニクル」を持つLv.5:コスト3\n\nアセンブリ-5:特徴「クロニクル」を持つ、Lv.5×Lv.4×Lv.3\n\n≪貫通≫ ≪再起動≫ ≪ブロッカー≫\n【登場時】【進化時】自分のデジモン1体のDP以下の相手のデジモン1体を消滅させる。その後、アタック中なら、相手のセキュリティを上から1枚破棄する。\n【お互いのターン】［ターン1回］セキュリティが減ったとき、自分の手札から、特徴「クロニクル」を持つテイマーカード/オプションカード1枚をコストを支払わず登場/使用できる。",
     "[AllTurns][OncePerTurn]Whensecuritystacksareremovedfrom,this[Alphamon:Ouryuken]mayunsuspend.": "【お互いのターン】［ターン1回］セキュリティが減ったとき、この「アルファモン：王竜剣」をアクティブにできる。"
+  },
+  "BT27-087": {
+    "[StartofYourMainPhase]IfyouhaveaDigimonwiththe[Chronicle]trait,gain1memory.[OnPlay]Activate1oftheeffectsbelow:・Revealthetop3cardsofyourdeck.Add1[XAntibody]or[Chronicle]traitcardamongthemtothehand.Trashtherest.・Youmayplay1level3[Chronicle]traitDigimoncardfromyourhandtoyourbreedingareawithoutpayingthecost.": "【自分のメインフェイズ開始時】特徴「クロニクル」を持つ自分のデジモンがいるなら、メモリー+1。\n【登場時】以下の効果から1つを発揮する。\n・自分のデッキの上から3枚オープンする。その中の「X抗体」か特徴「クロニクル」を持つカード1枚を手札に加える。残りは破棄する。\n・自分の手札から、特徴「クロニクル」を持つLv.3のデジモンカード1枚を育成エリアにコストを支払わず登場できる。",
+    "[Security]Playthiscardwithoutpayingthecost.": "【セキュリティ】このカードをコストを支払わず登場させる。"
+  },
+  "BT27-096": {
+    "[StartofYourTurn]Ifyouhave2orlessmemory,setitto3.[AllTurns]Whenhandsaretrashedfrom,bysuspendingthisTamer,youmayplacethetop2cardsofyourdeckfacedownunderthisTamer.[Main][OncePerTurn]Bytrashing5bottomface-downcardsfromunderanyofyourTamers,youmayuse1Optioncardwith[Ravemon]initstextfromyourtrashwithoutpayingthecost.": "【自分のターン開始時】メモリーが2以下なら、3にする。\n【お互いのターン】手札が破棄されたとき、このテイマーをレストさせることで、自分のデッキの上から2枚をこのテイマーの下に裏向きで置ける。\n【メイン】［ターン1回］自分のテイマーの下にある裏向きのカードを下から5枚破棄することで、自分のトラッシュから、「レイヴモン」の記述があるオプションカード1枚をコストを支払わず使用できる。",
+    "[Security]Playthiscardwithoutpayingthecost.": "【セキュリティ】このカードをコストを支払わず登場させる。"
+  },
+  "BT27-101": {
+    "Whenthiscardwouldbeused,bytrashingthebottomface-downcardfromunderanyofyourTamers,reducethecostby2.[Main]Byplacing1[Peckmon]and1[Crowmon]fromyourtrashas1ofyour[Falcomon]'sbottomdigivolutioncards,thatDigimonmaydigivolveinto[Ravemon]inthetrash,ignoringdigivolutionrequirementsandwithoutpayingthecost.": "このカードを使用するとき、自分のテイマーの下にある裏向きのカードを下から1枚破棄することで、支払うコスト-2。\n【メイン】自分のトラッシュから、「ペックモン」と「ヤタガラモン」1枚ずつを自分の「ファルコモン」1体の進化元の下に置くことで、そのデジモンをトラッシュの「レイヴモン」に進化条件を無視してコストを支払わず進化できる。",
+    "[Security]Youmayplay1[Falcomon]or[KeenanCrier]fromyourhandortrashwithoutpayingthecost.Then,addthiscardtothehand.": "【セキュリティ】自分の手札/トラッシュから、「ファルコモン」/「イクト」1枚をコストを支払わず登場できる。その後、このカードを手札に加える。"
   }
 }

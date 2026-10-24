@@ -82,6 +82,8 @@ export const decisionChoicesEn = {
   "decision.choice.useSquad": "Use a DATA SQUAD Option",
   "decision.choice.playChronicleTamer": "Play a [Chronicle] Tamer",
   "decision.choice.useChronicleOption": "Use a [Chronicle] Option",
+  "decision.choice.revealXAntibodyOrChronicle": "Reveal 3 for an [X Antibody] or [Chronicle] card",
+  "decision.choice.playChronicleLevelThreeBreeding": "Play a level 3 [Chronicle] Digimon to breeding",
   "decision.choice.returnDeckTop": "Return to the top of the deck",
   "decision.choice.returnDeckBottom": "Return to the bottom of the deck",
   "decision.choice.declareDigimon": "Declare category: Digimon",
