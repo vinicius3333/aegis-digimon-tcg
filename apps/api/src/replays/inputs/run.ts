@@ -156,6 +156,10 @@ export async function runReplay(record: ReplayRecord, options: RunReplayOptions 
       if (liveHooks) return liveHooks.requestDecision(seat, request);
       options.onDecision?.(request);
       pendingRequest = request;
+      if (!record.seats[seat].bot) {
+        engine.syncCounts();
+        engine.flushHandAffordances();
+      }
       progress += 1;
       applyDueAt("decisionRequest");
     },
