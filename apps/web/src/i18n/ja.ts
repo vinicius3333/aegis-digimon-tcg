@@ -10,6 +10,14 @@ import { learnJa } from "@/i18n/learn/learn.ja";
 import { learnDrillsJa } from "@/i18n/learn/drills.ja";
 
 const interfaceMessages = {
+  "replay.timeline.turn": "ターン {turn} · {name} · アクション {action}",
+  "replay.timeline.security": "{name}：セキュリティ {amount} 枚減少 · アクション {action}",
+  "replay.timeline.securityShort": "セキュリティ減少",
+  "replay.timeline.events": "タイムラインのイベント",
+  "replay.timeline.group": "アクション {action} 付近の {count} 件のイベント",
+  "replay.timeline.detail": "ターン {turn} · 試合時間 {time}",
+  "replay.timeline.seek": "アクション {action} へ移動",
+
   ...manualEn,
   "settings.arenaInput": "キーボードとコントローラー",
   "settings.arenaInputDesc": "矢印キーやコントローラーでカーソルを動かし、各操作のボタンを表示します。",

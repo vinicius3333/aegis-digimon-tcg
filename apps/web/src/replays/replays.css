@@ -669,3 +669,119 @@
   top: calc(100% + 8px);
   bottom: auto;
 }
+
+.replay-controls__timeline > .replay-timeline {
+  grid-column: 1 / -1;
+}
+.replay-timeline {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 2px 8px;
+  min-width: 0;
+}
+.replay-timeline__legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ds-text-3);
+  font-size: 10px;
+}
+.replay-timeline__track {
+  position: relative;
+  grid-column: 1 / -1;
+  height: 28px;
+  margin-inline: 14px;
+}
+.replay-timeline__marker {
+  position: absolute;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid var(--ds-line);
+  background: transparent;
+  color: var(--ds-text-2);
+  cursor: pointer;
+}
+.replay-timeline__marker small {
+  font-size: 8px;
+}
+.replay-timeline__marker:hover,
+.replay-timeline__marker[aria-current],
+.replay-timeline__marker[aria-expanded="true"] {
+  color: var(--ds-accent);
+  border-color: var(--ds-accent);
+  background: var(--ds-accent-soft);
+}
+.replay-timeline button:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 2px;
+}
+.replay-timeline > input {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+.replay-timeline__events {
+  position: absolute;
+  z-index: 2;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  max-height: min(180px, 35dvh, var(--replay-options-height, 180px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px;
+  border: 1px solid var(--ds-line);
+  border-radius: 8px;
+  background: var(--ds-sheet);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 18%);
+}
+.replay-timeline__events button {
+  display: block;
+  width: 100%;
+  min-height: 36px;
+  padding: 8px;
+  text-align: left;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ds-text);
+  font: inherit;
+  cursor: pointer;
+}
+.replay-timeline__events button:hover,
+.replay-timeline__events button[aria-current] {
+  background: var(--ds-accent-soft);
+}
+@media (max-width: 480px) {
+  .replay-timeline__legend {
+    grid-column: 1 / -1;
+  }
+}
+.replay-controls[data-options-below] .replay-timeline__events {
+  top: 100%;
+  bottom: auto;
+}
+.replay-timeline__event {
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+  border-bottom: 1px solid var(--ds-line);
+  color: var(--ds-text);
+}
+.replay-timeline__event:last-child {
+  border-bottom: 0;
+}
+.replay-timeline__event > span {
+  color: var(--ds-text-2);
+}
+.replay-timeline__event > button {
+  color: var(--ds-accent);
+}

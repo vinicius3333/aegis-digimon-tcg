@@ -7,7 +7,6 @@ import { findCardArtForLanguage } from "@aegis/shared/cards/findCardArtForLangua
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CardDefinition } from "@aegis/shared";
-import { getCardArts } from "@aegis/shared";
 import { Eyebrow } from "../design/primitives";
 import { Panel, SectionHeading, StatStrip } from "../design/surfaces";
 import { CardFull } from "../design/cards";
@@ -100,11 +99,6 @@ export function Collection() {
                       selected={selected === c.cardId}
                       onClick={() => setSelected((s) => (s === c.cardId ? null : c.cardId))}
                     />
-                    {getCardArts(c.cardId).length > 1 ? (
-                      <button type="button" className="collection-art-count" onClick={() => setSelected(c.cardId)}>
-                        {t("library.artworks")} · {getCardArts(c.cardId).length}
-                      </button>
-                    ) : null}
                   </div>
                 ))}
               </div>

@@ -11,6 +11,7 @@ import { SEQUENTIAL_PACING_ENABLED } from "../features";
 import { createAnimationPlayback } from "../game/animationPlayback";
 import { ReplayRecording } from "./ReplayRecording";
 import { ReplayControls } from "@/replays/ReplayControls";
+import { ReplayTimeline } from "@/replays/ReplayTimeline";
 
 const emptyDeck = { mainDeck: [], eggDeck: [] };
 const acknowledgeDecision = () => undefined;
@@ -324,18 +325,7 @@ export function ReplayPlayer({
       </div>
       <ReplayControls visible={controlsVisible}>
         <div className="replay-controls__timeline">
-          <label htmlFor="replay-position">
-            {t("replay.action", { current: cursor.index + 1, total: replay.frames.length })}
-          </label>
-          <input
-            id="replay-position"
-            type="range"
-            min={0}
-            max={replay.frames.length - 1}
-            value={cursor.index}
-            aria-label={t("replay.position")}
-            onChange={(event) => seek(Number(event.target.value))}
-          />
+          <ReplayTimeline replay={replay} index={cursor.index} onSeek={seek} />
           <span role="status" title={atEnd && settled ? t("replay.finished") : labels[cursor.index]}>
             {atEnd && settled ? t("replay.finished") : labels[cursor.index]}
           </span>

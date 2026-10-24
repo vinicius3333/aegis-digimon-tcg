@@ -10,6 +10,14 @@ import { learnId } from "@/i18n/learn/learn.id";
 import { learnDrillsId } from "@/i18n/learn/drills.id";
 
 const interfaceMessages = {
+  "replay.timeline.turn": "Giliran {turn} · {name} · Aksi {action}",
+  "replay.timeline.security": "{name}: {amount} security dihapus · Aksi {action}",
+  "replay.timeline.securityShort": "Security dihapus",
+  "replay.timeline.events": "Peristiwa linimasa",
+  "replay.timeline.group": "{count} peristiwa di dekat aksi {action}",
+  "replay.timeline.detail": "Giliran {turn} · Waktu pertandingan {time}",
+  "replay.timeline.seek": "Ke aksi {action}",
+
   ...manualEn,
   "settings.arenaInput": "Keyboard dan pengontrol",
   "settings.arenaInputDesc":

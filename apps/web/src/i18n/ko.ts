@@ -10,6 +10,14 @@ import { learnKo } from "@/i18n/learn/learn.ko";
 import { learnDrillsKo } from "@/i18n/learn/drills.ko";
 
 const interfaceMessages = {
+  "replay.timeline.turn": "턴 {turn} · {name} · 행동 {action}",
+  "replay.timeline.security": "{name}: 시큐리티 {amount}장 제거 · 행동 {action}",
+  "replay.timeline.securityShort": "시큐리티 제거",
+  "replay.timeline.events": "타임라인 이벤트",
+  "replay.timeline.group": "행동 {action} 근처의 이벤트 {count}개",
+  "replay.timeline.detail": "턴 {turn} · 경기 시간 {time}",
+  "replay.timeline.seek": "행동 {action}(으)로 이동",
+
   ...manualEn,
   "settings.arenaInput": "키보드 및 컨트롤러",
   "settings.arenaInputDesc": "방향키나 컨트롤러로 커서를 움직이고 각 동작의 버튼을 표시합니다.",

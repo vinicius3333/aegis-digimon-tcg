@@ -11,6 +11,14 @@ import { learnZhCN } from "@/i18n/learn/learn.zh-CN";
 import { learnDrillsZhCN } from "@/i18n/learn/drills.zh-CN";
 
 const interfaceMessages = {
+  "replay.timeline.turn": "回合 {turn} · {name} · 操作 {action}",
+  "replay.timeline.security": "{name}：移除 {amount} 张安防 · 操作 {action}",
+  "replay.timeline.securityShort": "安防移除",
+  "replay.timeline.events": "时间轴事件",
+  "replay.timeline.group": "操作 {action} 附近的 {count} 个事件",
+  "replay.timeline.detail": "回合 {turn} · 比赛时间 {time}",
+  "replay.timeline.seek": "跳转至操作 {action}",
+
   ...manualEn,
   "settings.arenaInput": "键盘与手柄",
   "settings.arenaInputDesc": "使用方向键或手柄移动光标，并显示每个操作的按键。",

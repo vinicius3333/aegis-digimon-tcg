@@ -10,6 +10,14 @@ import { learnDe } from "@/i18n/learn/learn.de";
 import { learnDrillsDe } from "@/i18n/learn/drills.de";
 
 const interfaceMessages = {
+  "replay.timeline.turn": "Zug {turn} · {name} · Aktion {action}",
+  "replay.timeline.security": "{name}: {amount} Security entfernt · Aktion {action}",
+  "replay.timeline.securityShort": "Security entfernt",
+  "replay.timeline.events": "Ereignisse der Zeitleiste",
+  "replay.timeline.group": "{count} Ereignisse bei Aktion {action}",
+  "replay.timeline.detail": "Zug {turn} · Spielzeit {time}",
+  "replay.timeline.seek": "Zu Aktion {action}",
+
   ...manualEn,
   "settings.arenaInput": "Tastatur und Controller",
   "settings.arenaInputDesc":
