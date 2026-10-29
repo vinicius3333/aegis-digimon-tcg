@@ -8,7 +8,9 @@ import { PackOpeningProgress } from "@/packOpening/PackOpeningProgress";
 import { listPackAlternateArts } from "@/packOpening/listPackAlternateArts";
 import { getPackCardRarity } from "@/packOpening/getPackCardRarity";
 import { getPackCardKey } from "@/packOpening/getPackCardKey";
-import { Button } from "@/design/primitives";
+import { Button, IconButton } from "@/design/primitives";
+import { Icons } from "@/design/icons";
+import { useFullscreen } from "@/game/screen/hooks/useFullscreen";
 import { motionPreference } from "@/design/motion/motionPreference";
 import { createCarouselState } from "@/packOpening/carousel/createCarouselState";
 import { getAngleForPack } from "@/packOpening/carousel/getAngleForPack";
@@ -45,6 +47,9 @@ function isControl(target: EventTarget): boolean {
 export function PackOpening() {
   const { progress, saveFailed, recordPacks, ensurePlannedBox, startBox, startNextBox } = useBoosterProgress();
   const opening = useRef(false);
+  const fullscreen = useFullscreen();
+  const [immersive, setImmersive] = useState(false);
+  const wasFullscreen = useRef(false);
   const [skipAnimations, setSkipAnimations] = useState(false);
   const [foilEnabled, setFoilEnabled] = useState(true);
   const sets = useMemo(listBoosterSets, []);
@@ -320,9 +325,28 @@ export function PackOpening() {
   }
 
   useEffect(() => {
+    if (wasFullscreen.current && !fullscreen.active) {
+      setImmersive(false);
+    }
+    wasFullscreen.current = fullscreen.active;
+  }, [fullscreen.active]);
+
+  function toggleImmersive() {
+    const entering = !immersive;
+    setImmersive(entering);
+    if (fullscreen.supported && entering !== fullscreen.active) {
+      fullscreen.toggle();
+    }
+  }
+
+  useEffect(() => {
     function handleKey(event: KeyboardEvent) {
       if (event.key === "Escape" && inspectedIndex !== undefined) {
         setInspectedIndex(undefined);
+        return;
+      }
+      if (event.key === "Escape" && immersive) {
+        setImmersive(false);
         return;
       }
       if (
@@ -350,7 +374,7 @@ export function PackOpening() {
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [phase, revealNext, rotateBy, openFrontPack, inspectedIndex]);
+  }, [phase, revealNext, rotateBy, openFrontPack, inspectedIndex, immersive]);
 
   const summaryOffset = phase === PackOpeningPhase.SUMMARY.value ? summaryPage * 12 : 0;
   const sceneCards = useMemo(
@@ -378,6 +402,7 @@ export function PackOpening() {
         className="pack-opening"
         data-dragging={choosing || undefined}
         data-inspecting={inspectedIndex !== undefined || undefined}
+        data-immersive={immersive || undefined}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -421,7 +446,8 @@ export function PackOpening() {
         ) : null}
         {inspectedIndex !== undefined ? (
           <p className="pack-opening__zoom-hint" aria-hidden="true">
-            Drag to turn the card · Scroll to zoom
+            <span className="pack-opening__zoom-hint-mouse">Drag to turn the card · Scroll to zoom</span>
+            <span className="pack-opening__zoom-hint-touch">Drag to turn · Pinch to zoom and move</span>
           </p>
         ) : null}
         <header className="pack-opening__top" hidden={inspectedIndex !== undefined}>
@@ -432,25 +458,31 @@ export function PackOpening() {
             </h2>
           </div>
           <div className="pack-opening__settings">
-            <label className="pack-opening__skip">
-              <input
-                type="checkbox"
-                checked={skipAnimations}
-                onChange={(event) => {
-                  setSkipAnimations(event.target.checked);
-                  if (event.target.checked && batch.length > 0) {
-                    revealAll();
-                  } else if (event.target.checked && phase === PackOpeningPhase.INTRO.value) {
-                    setPhase(PackOpeningPhase.CHOOSING.value);
-                  }
-                }}
-              />{" "}
-              Skip animations
-            </label>
-            <label className="pack-opening__skip">
-              <input type="checkbox" checked={foilEnabled} onChange={(event) => setFoilEnabled(event.target.checked)} />{" "}
-              Foil effects
-            </label>
+            <div className="pack-opening__toggles">
+              <label className="pack-opening__skip">
+                <input
+                  type="checkbox"
+                  checked={skipAnimations}
+                  onChange={(event) => {
+                    setSkipAnimations(event.target.checked);
+                    if (event.target.checked && batch.length > 0) {
+                      revealAll();
+                    } else if (event.target.checked && phase === PackOpeningPhase.INTRO.value) {
+                      setPhase(PackOpeningPhase.CHOOSING.value);
+                    }
+                  }}
+                />{" "}
+                Skip animations
+              </label>
+              <label className="pack-opening__skip">
+                <input
+                  type="checkbox"
+                  checked={foilEnabled}
+                  onChange={(event) => setFoilEnabled(event.target.checked)}
+                />{" "}
+                Foil effects
+              </label>
+            </div>
             <label className="pack-opening__set">
               <span>Set</span>
               <select
@@ -470,6 +502,16 @@ export function PackOpening() {
                 ))}
               </select>
             </label>
+            <IconButton
+              label={immersive ? "Exit full screen" : "Full screen"}
+              variant="secondary"
+              sound={false}
+              className="pack-opening__fullscreen"
+              aria-pressed={immersive}
+              onClick={toggleImmersive}
+            >
+              {immersive ? <Icons.Minimize size={18} /> : <Icons.Maximize size={18} />}
+            </IconButton>
           </div>
         </header>
 

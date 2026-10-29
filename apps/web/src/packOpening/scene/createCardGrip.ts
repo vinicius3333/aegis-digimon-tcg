@@ -2,6 +2,9 @@ export interface CardGrip {
   yaw: number;
   pitch: number;
   zoom: number;
+  panX: number;
+  panY: number;
+  pinching: boolean;
   yawVelocity: number;
   pitchVelocity: number;
   pointerId: number | undefined;
@@ -17,6 +20,9 @@ export function createCardGrip(): CardGrip {
     yaw: 0,
     pitch: 0,
     zoom: 1,
+    panX: 0,
+    panY: 0,
+    pinching: false,
     yawVelocity: 0,
     pitchVelocity: 0,
     pointerId: undefined,
