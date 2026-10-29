@@ -133,6 +133,13 @@ export const accountApi = {
   updateAvatar: (avatarId: AvatarChoice) =>
     request<RemoteAccount>("/account/profile/avatar", { method: "PUT", body: JSON.stringify({ avatarId }) }),
   refreshDiscordAvatar: () => request<RemoteAccount>("/account/avatar/discord", { method: "POST" }),
+  uploadAvatarImage: (image: Blob) =>
+    request<RemoteAccount>("/account/profile/avatar/image", {
+      method: "PUT",
+      body: image,
+      headers: { "Content-Type": image.type },
+    }),
+  clearAvatarImage: () => request<RemoteAccount>("/account/profile/avatar/image", { method: "DELETE" }),
   updateDisplayName: (displayName: string) =>
     request<RemoteAccount>("/account/profile/display-name", { method: "PUT", body: JSON.stringify({ displayName }) }),
   preferences: () => request<AccountPreferences>("/account/preferences"),
