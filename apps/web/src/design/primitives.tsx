@@ -22,6 +22,7 @@ import { useTranslation } from "../i18n";
 import { digimonAvatarUrl, type DigimonWorldAvatarId } from "../account/avatars";
 import { AegisLogo } from "./AegisLogo";
 import { AccountRoleBadge } from "@/account/roles/AccountRoleBadge";
+import { AccountRoleTooltip } from "@/account/roles/AccountRoleTooltip";
 import type { AccountRoleDefinition } from "@/account/roles/highestAccountRole";
 import { BrowserSupportNotice } from "./BrowserSupportNotice";
 
@@ -663,7 +664,7 @@ export function TopNav({
   ) : null;
 
   const portraitLabel = role ? `${t("playerMenu.open")} (${t(role.labelKey)})` : t("playerMenu.open");
-  const portrait = (size: number) => (
+  const portraitButton = (size: number) => (
     <button
       className="aegis-portrait-button"
       onClick={(event) => {
@@ -673,7 +674,7 @@ export function TopNav({
       aria-expanded={playerMenuOpen ?? false}
       aria-controls={playerMenuOpen ? "player-menu" : undefined}
       aria-label={portraitLabel}
-      title={portraitLabel}
+      title={role ? undefined : portraitLabel}
     >
       <Avatar
         name={player.name}
@@ -685,6 +686,8 @@ export function TopNav({
       {role ? <AccountRoleBadge role={role.value} /> : null}
     </button>
   );
+  const portrait = (size: number) =>
+    role ? <AccountRoleTooltip role={role}>{portraitButton(size)}</AccountRoleTooltip> : portraitButton(size);
 
   return (
     <>

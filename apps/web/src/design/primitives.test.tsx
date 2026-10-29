@@ -143,6 +143,23 @@ describe("design primitives", () => {
     expect(container.querySelectorAll('.account-role-badge[data-role="judge"]')).toHaveLength(2);
   });
 
+  it("explains the account role in a tooltip on the portrait", async () => {
+    render(
+      <I18nProvider>
+        <TopNav
+          screen="home"
+          onNav={vi.fn<(screen: Screen) => void>()}
+          role={AccountRole.ORGANIZER}
+          player={{ name: "Tai Kamiya", color: "Blue", shards: 0, avatarId: "tyrannomon" }}
+        />
+      </I18nProvider>,
+    );
+
+    fireEvent.focus(screen.getAllByRole("button", { name: "Open the player menu (Official organizer)" })[0]!);
+
+    expect((await screen.findByRole("tooltip")).textContent).toContain("Creates official tournaments and circuits.");
+  });
+
   it("keeps tournaments out of the primary nav and marks Community active on the tournaments screen", () => {
     render(
       <I18nProvider>
