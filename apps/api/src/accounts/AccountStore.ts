@@ -1,3 +1,12 @@
+import { getDeckStatsMatchLimit } from "@aegis/shared/decks/getDeckStatsMatchLimit";
+import { grantTournamentTrophies } from "#api/achievements/grantTournamentTrophies";
+import { isTournamentSpectatorPolicy } from "@aegis/shared/tournaments/isTournamentSpectatorPolicy";
+import { TournamentSpectatorPolicy } from "@aegis/shared/tournaments/TournamentSpectatorPolicy";
+import { TournamentCategory } from "@aegis/shared/tournaments/TournamentCategory";
+import { isTournamentDeletable } from "#api/tournaments/lifecycle/isTournamentDeletable";
+import { recordRankedResult } from "#api/ranked/recordRankedResult";
+import { recordCompetitiveFacts } from "#api/ranked/recordCompetitiveFacts";
+import type { DeckFormat } from "@aegis/shared/deckFormat";
 import type { DeckPerformanceRecord } from "@aegis/shared/decks/DeckPerformanceRecord";
 import { getDeckPerformanceRecords } from "#api/accounts/getDeckPerformanceRecords";
 import { buildDeckCompositionSignature } from "#api/accounts/buildDeckCompositionSignature";
@@ -8,6 +17,9 @@ import { getDeckRecentResults } from "#api/accounts/getDeckRecentResults";
 import { getDeckMatchWinRate } from "#api/accounts/getDeckMatchWinRate";
 import { buildDeckCompositionKey } from "#api/accounts/buildDeckCompositionKey";
 import type { SpectatorAccess } from "@aegis/shared/account/SpectatorAccess";
+import type { AccountRole } from "@aegis/shared/account/AccountRole";
+import { isAccountRole } from "@aegis/shared/account/isAccountRole";
+import { hasAccountCapability } from "@aegis/shared/account/hasAccountCapability";
 import type { UsedDeck } from "@aegis/shared/decks/UsedDeck";
 import type { CardImageLanguage } from "@aegis/shared/cards/CardImageLanguage";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
@@ -38,6 +50,7 @@ export type Account = {
   avatarUrl: string | null;
   avatarId: DigimonWorldAvatarId | null;
   avatarSource: AvatarSource;
+  roles: AccountRole[];
   isAdmin: boolean;
 };
 export type Deck = {
@@ -68,6 +81,7 @@ export type AccountPreferences = {
   deckView?: "grid" | "list";
   deckSort?: string;
   profileStats?: boolean;
+  profileTrophies?: boolean;
   shareProfileStats?: boolean;
   shareDeckAfterMatch?: boolean;
   listLiveMatches?: boolean;
@@ -120,8 +134,14 @@ export type StoredMatchRecord = MatchRecord &
     opponentDeckOwnerAccountId?: string;
   };
 export type Tournament = {
+  category: TournamentCategory;
+  format: DeckFormat;
+  passwordProtected: boolean;
+  discordAnnounce: boolean;
+  spectatorPolicy: TournamentSpectatorPolicy;
   id: string;
   name: string;
+  description: string;
   block: string;
   status: "registration" | "in_progress" | "finished";
   startsAt: number;
@@ -129,6 +149,8 @@ export type Tournament = {
   createdBy: string;
   winnerAccountId: string | null;
   registrations: number;
+  circuitId: string | null;
+  autoStart: boolean;
 } & TournamentProgram;
 // The tournament-program columns (migrations 002 and 003), read back as the shared contract shapes.
 // Legacy rows carry exactly what the backfills gave them, so this is never partially populated.
@@ -138,8 +160,7 @@ export type TournamentProgram = {
   topCutEnabled: boolean;
   topCutSize: number | null;
   allowBots: boolean;
-  rulesetPreset: string;
-  rulesetVersion: string | null;
+  randomBotStyles: boolean;
   rules: TournamentRules | null;
   banlistPolicy: BanlistPolicy;
   banlistCards: TournamentBanlistCard[];
@@ -147,15 +168,28 @@ export type TournamentProgram = {
 // The program fields are optional and default to the pre-program bracket — single elimination,
 // best-of-one, no Top Cut, no bots, no banlist enforcement — which is also what migration 003
 // backfills legacy rows to. A caller that omits them creates exactly what it always created.
-export type CreateTournamentRecord = { name: string; block: string; startsAt: number; maxPlayers: number } & Partial<
-  Omit<TournamentProgram, "topCutSize" | "rulesetVersion">
->;
-export const LEGACY_TOURNAMENT_PROGRAM: Omit<TournamentProgram, "topCutSize" | "rulesetVersion"> = {
+export type CreateTournamentRecord = {
+  category?: TournamentCategory;
+  format?: DeckFormat;
+  passwordHash?: string | null;
+  description?: string;
+  name: string;
+  block: string;
+  startsAt: number;
+  maxPlayers: number;
+  id?: string;
+  circuitId?: string;
+  autoStart?: boolean;
+  registrationClosesAt?: number;
+  checkInOpensAt?: number;
+  checkInClosesAt?: number;
+} & Partial<Omit<TournamentProgram, "topCutSize">>;
+export const LEGACY_TOURNAMENT_PROGRAM: Omit<TournamentProgram, "topCutSize"> = {
   structure: "single_elimination",
   bestOf: 1,
   topCutEnabled: false,
   allowBots: false,
-  rulesetPreset: "aegis_lightning",
+  randomBotStyles: false,
   rules: null,
   banlistPolicy: { mode: "none" },
   banlistCards: [],
@@ -183,11 +217,17 @@ type AccountRow = {
   display_name: string;
   avatar_url: string | null;
   avatar_id: AvatarChoice;
-  is_admin: boolean;
+  roles: string[];
 };
+
+export const ROOM_TICKET_LIFETIME_MS = 60_000;
+export const ROOM_TICKET_RETENTION_MS = 24 * 60 * 60 * 1000;
+const ROOM_TICKET_CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
+const ROOM_TICKET_CLEANUP_BATCH = 5_000;
 
 export class AccountStore {
   private lastMagicLinkCleanup = 0;
+  private lastRoomTicketCleanup = 0;
   // Exposed so sibling domain stores (see src/tournaments/participants) can share one connection
   // pool and one migration run instead of opening a second pool against the same database.
   readonly pool: Pool;
@@ -248,7 +288,7 @@ export class AccountStore {
       try {
         return await this.transaction(async (client) => {
           const existing = await client.query<AccountRow>(
-            "SELECT a.id, a.display_name, a.avatar_url, a.avatar_id, a.is_admin FROM accounts a JOIN login_identities i ON i.account_id=a.id WHERE i.provider=$1 AND i.subject=$2",
+            "SELECT a.id, a.display_name, a.avatar_url, a.avatar_id, a.roles FROM accounts a JOIN login_identities i ON i.account_id=a.id WHERE i.provider=$1 AND i.subject=$2",
             [provider, normalized],
           );
           const row = existing.rows[0];
@@ -268,6 +308,7 @@ export class AccountStore {
             avatarUrl,
             avatarId: null,
             avatarSource: avatarUrl ? "discord" : "initials",
+            roles: [],
             isAdmin: false,
           };
           const now = Date.now();
@@ -304,7 +345,7 @@ export class AccountStore {
     if (!id) return undefined;
     await this.ensureReady();
     const result = await this.pool.query<AccountRow & { session_id: string; expires_at: string }>(
-      "SELECT s.id session_id, s.expires_at, a.id, a.display_name, a.avatar_url, a.avatar_id, a.is_admin FROM sessions s JOIN accounts a ON a.id=s.account_id WHERE s.id=$1 AND s.revoked_at IS NULL AND s.expires_at>$2",
+      "SELECT s.id session_id, s.expires_at, a.id, a.display_name, a.avatar_url, a.avatar_id, a.roles FROM sessions s JOIN accounts a ON a.id=s.account_id WHERE s.id=$1 AND s.revoked_at IS NULL AND s.expires_at>$2",
       [id, Date.now()],
     );
     const row = result.rows[0];
@@ -373,10 +414,15 @@ export class AccountStore {
 
   async createRoomTicket(accountId: string, tournamentMatchId: string | null = null): Promise<string> {
     await this.ensureReady();
+    const now = Date.now();
+    if (now - this.lastRoomTicketCleanup >= ROOM_TICKET_CLEANUP_INTERVAL_MS) {
+      this.lastRoomTicketCleanup = now;
+      await removeExpiredRoomTickets(this.pool, now - ROOM_TICKET_RETENTION_MS);
+    }
     const token = randomBytes(32).toString("base64url");
     await this.pool.query(
       "INSERT INTO room_tickets (token_hash, account_id, tournament_match_id, expires_at) VALUES ($1,$2,$3,$4)",
-      [hash(token), accountId, tournamentMatchId, Date.now() + 60_000],
+      [hash(token), accountId, tournamentMatchId, now + ROOM_TICKET_LIFETIME_MS],
     );
     return token;
   }
@@ -415,10 +461,9 @@ export class AccountStore {
       if (!ticket) return undefined;
       await client.query("UPDATE room_tickets SET consumed_at=$1 WHERE token_hash=$2", [now, hash(token)]);
       const row = (
-        await client.query<AccountRow>(
-          "SELECT id,display_name,avatar_url,avatar_id,is_admin FROM accounts WHERE id=$1",
-          [ticket.account_id],
-        )
+        await client.query<AccountRow>("SELECT id,display_name,avatar_url,avatar_id,roles FROM accounts WHERE id=$1", [
+          ticket.account_id,
+        ])
       ).rows[0];
       return row ? { account: toAccount(row), tournamentMatchId: ticket.tournament_match_id } : undefined;
     });
@@ -427,10 +472,9 @@ export class AccountStore {
   async account(accountId: string): Promise<Account | undefined> {
     await this.ensureReady();
     const row = (
-      await this.pool.query<AccountRow>(
-        "SELECT id,display_name,avatar_url,avatar_id,is_admin FROM accounts WHERE id=$1",
-        [accountId],
-      )
+      await this.pool.query<AccountRow>("SELECT id,display_name,avatar_url,avatar_id,roles FROM accounts WHERE id=$1", [
+        accountId,
+      ])
     ).rows[0];
     return row ? toAccount(row) : undefined;
   }
@@ -438,7 +482,7 @@ export class AccountStore {
     await this.ensureReady();
     const row = (
       await this.pool.query<AccountRow>(
-        "UPDATE accounts SET avatar_id=$1 WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,is_admin",
+        "UPDATE accounts SET avatar_id=$1 WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,roles",
         [avatarId, accountId],
       )
     ).rows[0];
@@ -482,7 +526,7 @@ export class AccountStore {
     return this.transaction(async (client) => {
       const current = (
         await client.query<AccountRow>(
-          "SELECT id,display_name,avatar_url,avatar_id,is_admin FROM accounts WHERE id=$1 FOR UPDATE",
+          "SELECT id,display_name,avatar_url,avatar_id,roles FROM accounts WHERE id=$1 FOR UPDATE",
           [accountId],
         )
       ).rows[0];
@@ -493,8 +537,8 @@ export class AccountStore {
         const updated = (
           await client.query<AccountRow>(
             changes.avatarId === undefined
-              ? "UPDATE accounts SET display_name=$1 WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,is_admin"
-              : "UPDATE accounts SET display_name=$1,avatar_id=$3 WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,is_admin",
+              ? "UPDATE accounts SET display_name=$1 WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,roles"
+              : "UPDATE accounts SET display_name=$1,avatar_id=$3 WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,roles",
             changes.avatarId === undefined ? [displayName, accountId] : [displayName, accountId, changes.avatarId],
           )
         ).rows[0];
@@ -760,6 +804,9 @@ export class AccountStore {
     input: {
       roomId: string;
       mode: "ranked" | "tournament";
+      rankedPairId?: string;
+      matchLogId?: string;
+      format?: DeckFormat;
       playerAccountIds: [string, string | null];
       winnerAccountId?: string;
       outcome?: MatchOutcomeSeat;
@@ -854,6 +901,29 @@ export class AccountStore {
             result,
           ],
         );
+      }
+      if (input.rankedPairId) {
+        await recordRankedResult({
+          db: client,
+          pairId: input.rankedPairId,
+          roomId: input.roomId,
+          matchId,
+          matchLogId: input.matchLogId,
+          winnerAccountId,
+        });
+      }
+      if (input.format && input.deckSnapshots && opponentKind === "human" && input.playerAccountIds[1]) {
+        await recordCompetitiveFacts({
+          db: client,
+          matchId,
+          roomId: input.roomId,
+          origin: input.mode,
+          format: input.format,
+          accountIds: [input.playerAccountIds[0], input.playerAccountIds[1]],
+          decks: input.deckSnapshots,
+          winnerAccountId,
+          finishedAt,
+        });
       }
       return true;
     };
@@ -984,11 +1054,19 @@ export class AccountStore {
           db: this.pool,
           accountId,
           filter,
-          compositionKey: buildDeckCompositionKey(deck),
+          compositionSignature: buildDeckCompositionSignature({ compositionKey: buildDeckCompositionKey(deck) }),
           changedAt: Number(changed.rows[0]?.cards_changed_at ?? 0),
         });
       }
-      deckStats = { total: await getDeckMatchWinRate({ db: this.pool, accountId, filter }), sinceChange };
+      deckStats = {
+        total: await getDeckMatchWinRate({
+          db: this.pool,
+          accountId,
+          filter,
+          matchLimit: getDeckStatsMatchLimit(filter.deckWindow),
+        }),
+        sinceChange,
+      };
       recentDeckResults = await getDeckRecentResults({ db: this.pool, accountId, filter });
     }
     if (filter.result) conditions.push(`record->>'result'=$${params.push(filter.result)}`);
@@ -1014,7 +1092,13 @@ export class AccountStore {
       decks: [...decksById.values()],
       deckRecords: filter.deckId
         ? undefined
-        : await getDeckPerformanceRecords({ db: this.pool, accountId, filter, decks: [...decksById.values()] }),
+        : await getDeckPerformanceRecords({
+            db: this.pool,
+            accountId,
+            filter,
+            decks: [...decksById.values()],
+            matchLimit: getDeckStatsMatchLimit(filter.deckWindow),
+          }),
       deckDetails,
       recentDeckResults,
       deckStats,
@@ -1135,9 +1219,9 @@ export class AccountStore {
   async createTournament(createdBy: string, record: CreateTournamentRecord): Promise<Tournament> {
     await this.ensureReady();
     const input = { ...LEGACY_TOURNAMENT_PROGRAM, ...record };
-    const id = randomUUID();
+    const id = record.id ?? randomUUID();
     await this.pool.query(
-      "INSERT INTO tournaments (id,name,block,status,starts_at,max_players,created_by,created_at,structure,best_of,top_cut_enabled,allow_bots,ruleset_preset,ruleset_version,rules_snapshot,banlist_policy,banlist_cards) VALUES ($1,$2,$3,'registration',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)",
+      "INSERT INTO tournaments (id,name,block,status,starts_at,max_players,created_by,created_at,structure,best_of,top_cut_enabled,allow_bots,rules_snapshot,banlist_policy,banlist_cards,description,password_hash,format,category,random_bot_styles,circuit_id,auto_start,registration_closes_at,check_in_opens_at,check_in_closes_at) VALUES ($1,$2,$3,'registration',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24) ON CONFLICT DO NOTHING",
       [
         id,
         input.name,
@@ -1150,18 +1234,28 @@ export class AccountStore {
         input.bestOf,
         input.topCutEnabled,
         input.allowBots,
-        input.rulesetPreset,
-        input.rules?.version ?? null,
         JSON.stringify(input.rules),
         JSON.stringify(input.banlistPolicy),
         JSON.stringify(input.banlistCards),
+        input.description ?? "",
+        input.passwordHash ?? null,
+        input.format ?? "standard",
+        input.category ?? TournamentCategory.COMMUNITY.value,
+        input.allowBots && input.randomBotStyles,
+        input.circuitId ?? null,
+        input.autoStart === true,
+        input.registrationClosesAt ?? null,
+        input.checkInOpensAt ?? null,
+        input.checkInClosesAt ?? null,
       ],
     );
     return (await this.tournament(id))!;
   }
   async tournaments(): Promise<Tournament[]> {
     await this.ensureReady();
-    const result = await this.pool.query<TournamentRow>("SELECT * FROM tournaments ORDER BY starts_at DESC");
+    const result = await this.pool.query<TournamentRow>(`SELECT * FROM tournaments
+        ORDER BY CASE WHEN status IN ('finished','cancelled') THEN 1 ELSE 0 END,
+        CASE WHEN status IN ('finished','cancelled') THEN -starts_at ELSE starts_at END ASC`);
     return Promise.all(
       result.rows.map(async (row) =>
         toTournament({
@@ -1169,7 +1263,15 @@ export class AccountStore {
           registrations:
             (
               await this.pool.query<{ count: string }>(
-                "SELECT COUNT(*) count FROM tournament_registrations WHERE tournament_id=$1",
+                `SELECT COUNT(*) count FROM (
+                  SELECT COALESCE(account_id,id) AS entrant FROM tournament_participants
+                  WHERE tournament_id=$1 AND status IN ('registered','checked_in','active')
+                  UNION
+                  SELECT account_id AS entrant FROM tournament_registrations
+                  WHERE tournament_id=$1 AND account_id NOT IN (
+                    SELECT account_id FROM tournament_participants WHERE tournament_id=$1 AND account_id IS NOT NULL
+                  )
+                ) entrants`,
                 [row.id],
               )
             ).rows[0]?.count ?? 0,
@@ -1177,6 +1279,15 @@ export class AccountStore {
       ),
     );
   }
+  async hasOpenTournamentCreatedBy(accountId: string): Promise<boolean> {
+    await this.ensureReady();
+    const found = await this.pool.query(
+      "SELECT 1 FROM tournaments WHERE created_by=$1 AND status NOT IN ('finished','cancelled') LIMIT 1",
+      [accountId],
+    );
+    return (found.rowCount ?? 0) > 0;
+  }
+
   async tournament(id: string): Promise<Tournament | undefined> {
     await this.ensureReady();
     const row = (await this.pool.query<TournamentRow>("SELECT * FROM tournaments WHERE id=$1", [id])).rows[0];
@@ -1184,7 +1295,15 @@ export class AccountStore {
     const registrations =
       (
         await this.pool.query<{ count: string }>(
-          "SELECT COUNT(*) count FROM tournament_registrations WHERE tournament_id=$1",
+          `SELECT COUNT(*) count FROM (
+                  SELECT COALESCE(account_id,id) AS entrant FROM tournament_participants
+                  WHERE tournament_id=$1 AND status IN ('registered','checked_in','active')
+                  UNION
+                  SELECT account_id AS entrant FROM tournament_registrations
+                  WHERE tournament_id=$1 AND account_id NOT IN (
+                    SELECT account_id FROM tournament_participants WHERE tournament_id=$1 AND account_id IS NOT NULL
+                  )
+                ) entrants`,
           [id],
         )
       ).rows[0]?.count ?? 0;
@@ -1193,12 +1312,12 @@ export class AccountStore {
   async registerTournament(id: string, accountId: string): Promise<boolean> {
     return this.transaction(async (client) => {
       const t = (
-        await client.query<{ status: string; max_players: number }>(
-          "SELECT status,max_players FROM tournaments WHERE id=$1 FOR UPDATE",
+        await client.query<{ status: string; max_players: number; password_hash: string | null }>(
+          "SELECT status,max_players,password_hash FROM tournaments WHERE id=$1 FOR UPDATE",
           [id],
         )
       ).rows[0];
-      if (!t || t.status !== "registration") return false;
+      if (!t || t.status !== "registration" || t.password_hash) return false;
       const registrations = await client.query<{ count: string }>(
         "SELECT COUNT(*) count FROM tournament_registrations WHERE tournament_id=$1",
         [id],
@@ -1217,6 +1336,16 @@ export class AccountStore {
   // Hard delete, allowed only to the creator and only before the event starts: once it is running
   // or finished the tournament is a record other players appear in, not a draft. Children go first,
   // deepest FK first, so a stray row in any child table cannot leave the transaction half-applied.
+  async setTournamentCategory(id: string, category: TournamentCategory): Promise<boolean> {
+    await this.ensureReady();
+    const result = await this.pool.query("UPDATE tournaments SET category=$2 WHERE id=$1", [id, category]);
+    return result.rowCount === 1;
+  }
+  async setTournamentDiscordAnnounce(id: string, announce: boolean): Promise<boolean> {
+    await this.ensureReady();
+    const result = await this.pool.query("UPDATE tournaments SET discord_announce=$2 WHERE id=$1", [id, announce]);
+    return result.rowCount === 1;
+  }
   async deleteTournament(
     id: string,
     organizerId: string,
@@ -1231,7 +1360,7 @@ export class AccountStore {
       ).rows[0];
       if (!t) return "not_found";
       if (!canDeleteAny && t.created_by !== organizerId) return "forbidden";
-      if (!["draft", "registration", "check_in"].includes(t.status)) return "already_started";
+      if (!isTournamentDeletable(t.status)) return "already_started";
       await client.query(
         "DELETE FROM tournament_game_authorizations WHERE game_id IN (SELECT g.id FROM tournament_games g JOIN match_series s ON s.id=g.series_id JOIN tournament_matches m ON m.id=s.tournament_match_id WHERE m.tournament_id=$1)",
         [id],
@@ -1257,6 +1386,10 @@ export class AccountStore {
       await client.query("DELETE FROM tournament_event_sequences WHERE tournament_id=$1", [id]);
       await client.query("DELETE FROM tournament_participants WHERE tournament_id=$1", [id]);
       await client.query("DELETE FROM tournament_registrations WHERE tournament_id=$1", [id]);
+      await client.query("DELETE FROM tournament_discord_rounds WHERE tournament_id=$1", [id]);
+      await client.query("DELETE FROM tournament_discord_placements WHERE tournament_id=$1", [id]);
+      await client.query("DELETE FROM tournament_discord_posts WHERE tournament_id=$1", [id]);
+      await client.query("DELETE FROM tournament_spectators WHERE tournament_id=$1", [id]);
       await client.query("DELETE FROM tournaments WHERE id=$1", [id]);
       return "deleted";
     });
@@ -1413,6 +1546,7 @@ export class AccountStore {
         tournamentId,
       ]);
       await client.query("UPDATE player_stats SET tournaments_won=tournaments_won+1 WHERE account_id=$1", [winner]);
+      await grantTournamentTrophies({ db: client, tournamentId, standings: async () => [], now: Date.now() });
       return;
     }
     const column = match.position % 2 === 0 ? "player0_account_id" : "player1_account_id";
@@ -1473,6 +1607,15 @@ function removeBotExperiment({
 }: StoredMatchRecord): MatchRecord {
   return { ...record, ...(ownDeckName ? { deckName: ownDeckName } : {}), canAddOpponent: Boolean(opponentAccountId) };
 }
+async function removeExpiredRoomTickets(db: Queryable, expiredBefore: number): Promise<void> {
+  for (;;) {
+    const result = await db.query(
+      "DELETE FROM room_tickets WHERE token_hash IN (SELECT token_hash FROM room_tickets WHERE expires_at < $1 LIMIT $2)",
+      [expiredBefore, ROOM_TICKET_CLEANUP_BATCH],
+    );
+    if ((result.rowCount ?? 0) < ROOM_TICKET_CLEANUP_BATCH) return;
+  }
+}
 function isUniqueViolation(error: unknown): boolean {
   return (
     typeof error === "object" && error !== null && "code" in error && (error as { code?: unknown }).code === "23505"
@@ -1492,7 +1635,6 @@ async function addToHistory(
       opponentKind: record.opponentKind,
       opponentName: record.opponentName,
       result: record.result,
-      ownDeckKey: record.ownDeckKey,
       ownDeckSignature: record.ownDeckKey
         ? buildDeckCompositionSignature({ compositionKey: record.ownDeckKey })
         : undefined,
@@ -1524,13 +1666,15 @@ async function addToHistory(
 function toAccount(row: AccountRow): Account {
   const avatarId = isDigimonWorldAvatarId(row.avatar_id) ? row.avatar_id : null;
   const avatarUrl = row.avatar_id === INITIALS_AVATAR ? null : row.avatar_url;
+  const roles = row.roles.filter(isAccountRole);
   return {
     id: row.id,
     displayName: row.display_name,
     avatarUrl,
     avatarId,
     avatarSource: avatarId ? "digimon" : avatarUrl ? "discord" : "initials",
-    isAdmin: row.is_admin,
+    roles,
+    isAdmin: hasAccountCapability({ roles, capability: "canAdminister" }),
   };
 }
 function normalizeDisplayName(input: string): string {
@@ -1544,6 +1688,14 @@ function toTournament(row: TournamentRow): Tournament {
   return {
     id: String(row.id),
     name: String(row.name),
+    description: String(row.description ?? ""),
+    passwordProtected: Boolean(row.password_hash),
+    discordAnnounce: row.discord_announce === true,
+    spectatorPolicy: isTournamentSpectatorPolicy(row.spectator_policy)
+      ? row.spectator_policy
+      : TournamentSpectatorPolicy.NOBODY.value,
+    category: (row.category ?? TournamentCategory.COMMUNITY.value) as TournamentCategory,
+    format: (row.format ?? "standard") as DeckFormat,
     block: String(row.block),
     status: String(row.status) as Tournament["status"],
     startsAt: Number(row.starts_at),
@@ -1551,6 +1703,8 @@ function toTournament(row: TournamentRow): Tournament {
     createdBy: String(row.created_by),
     winnerAccountId: row.winner_account_id == null ? null : String(row.winner_account_id),
     registrations: Number(row.registrations),
+    circuitId: row.circuit_id == null ? null : String(row.circuit_id),
+    autoStart: row.auto_start === true,
     ...toTournamentProgram(row),
   };
 }
@@ -1563,8 +1717,7 @@ function toTournamentProgram(row: TournamentRow): TournamentProgram {
     topCutEnabled: row.top_cut_enabled === true,
     topCutSize: row.top_cut_size == null ? null : Number(row.top_cut_size),
     allowBots: row.allow_bots === true,
-    rulesetPreset: row.ruleset_preset == null ? "aegis_lightning" : String(row.ruleset_preset),
-    rulesetVersion: row.ruleset_version == null ? null : String(row.ruleset_version),
+    randomBotStyles: row.random_bot_styles === true,
     rules: parseJson<TournamentRules>(row.rules_snapshot) ?? null,
     banlistPolicy: parseJson<BanlistPolicy>(row.banlist_policy) ?? { mode: "none" },
     banlistCards: parseJson<TournamentBanlistCard[]>(row.banlist_cards) ?? [],

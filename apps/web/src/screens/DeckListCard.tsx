@@ -1,5 +1,5 @@
+import { deckFormatLabel } from "@/screens/deckFormatLabel";
 import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
-import { deckFormatLabel } from "./DeckFormatSelector";
 import type { CSSProperties, ReactNode } from "react";
 import { deckLegality, formatRestrictionLabel, deckFormat, type DeckFormat } from "@aegis/shared";
 import { Badge } from "../design/primitives";

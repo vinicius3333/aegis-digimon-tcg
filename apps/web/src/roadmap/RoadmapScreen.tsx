@@ -8,6 +8,7 @@ type RoadmapScreenParams = {
   onSignIn: () => void;
   onOpen: (id?: number) => void;
   onDecks: () => void;
+  onTournaments: () => void;
   onSuggest: () => void;
 };
 
@@ -18,6 +19,7 @@ export function RoadmapScreen({
   onSignIn,
   onOpen,
   onDecks,
+  onTournaments,
   onSuggest,
 }: RoadmapScreenParams) {
   if (itemId !== undefined)
@@ -32,6 +34,13 @@ export function RoadmapScreen({
       />
     );
   return (
-    <RoadmapBoard signedIn={signedIn} onSignIn={onSignIn} onOpen={onOpen} onDecks={onDecks} onSuggest={onSuggest} />
+    <RoadmapBoard
+      signedIn={signedIn}
+      onSignIn={onSignIn}
+      onOpen={onOpen}
+      onDecks={onDecks}
+      onTournaments={onTournaments}
+      onSuggest={onSuggest}
+    />
   );
 }

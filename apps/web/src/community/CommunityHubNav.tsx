@@ -6,13 +6,15 @@ type CommunityHubNavParams = {
   section: CommunityHubSection;
   onDecks: () => void;
   onRoadmap: () => void;
+  onTournaments: () => void;
 };
 
-export function CommunityHubNav({ section, onDecks, onRoadmap }: CommunityHubNavParams) {
+export function CommunityHubNav({ section, onDecks, onRoadmap, onTournaments }: CommunityHubNavParams) {
   const { t } = useTranslation();
   const tabs = [
     { section: CommunityHubSection.DECKS.value, label: t("roadmap.hub.decks"), onSelect: onDecks },
     { section: CommunityHubSection.ROADMAP.value, label: t("roadmap.hub.roadmap"), onSelect: onRoadmap },
+    { section: CommunityHubSection.TOURNAMENTS.value, label: t("nav.tournaments"), onSelect: onTournaments },
   ];
   return (
     <nav className="community-hub-nav" aria-label={t("roadmap.hub.label")}>

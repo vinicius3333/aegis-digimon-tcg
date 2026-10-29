@@ -1,12 +1,14 @@
 import type { DeckPerformanceRecord } from "@aegis/shared/decks/DeckPerformanceRecord";
 import type { MatchHistoryFilter, MatchWinRate } from "@aegis/shared/replays";
 import type { Queryable } from "#api/db/migrator";
+import { getDeckMatchWinRate } from "#api/accounts/getDeckMatchWinRate";
 
 type Params = {
   db: Queryable;
   accountId: string;
   filter: MatchHistoryFilter;
   decks: Array<{ id: string; name: string }>;
+  matchLimit?: number;
 };
 
 export async function getDeckPerformanceRecords({
@@ -14,6 +16,7 @@ export async function getDeckPerformanceRecords({
   accountId,
   filter,
   decks,
+  matchLimit,
 }: Params): Promise<DeckPerformanceRecord[]> {
   const params: unknown[] = [accountId];
   const conditions = ["account_id=$1", "record->>'opponentKind'='human'", "record->>'mode'<>'bot'"];
@@ -31,9 +34,15 @@ export async function getDeckPerformanceRecords({
     FROM account_deck_matches WHERE ${conditions.join(" AND ")} GROUP BY deck_id ORDER BY matches DESC,deck_id`,
     params,
   );
-  return result.rows.map(({ deck_id, matches, wins, losses, draws }) => ({
-    deckId: deck_id,
-    name: decks.find((deck) => deck.id === deck_id)?.name ?? deck_id,
-    stats: { matches, wins, losses, draws },
-  }));
+  const records = await Promise.all(
+    result.rows.map(async ({ deck_id, matches, wins, losses, draws }) => ({
+      deckId: deck_id,
+      name: decks.find((deck) => deck.id === deck_id)?.name ?? deck_id,
+      stats:
+        matchLimit === undefined
+          ? { matches, wins, losses, draws }
+          : await getDeckMatchWinRate({ db, accountId, filter: { ...filter, deckId: deck_id }, matchLimit }),
+    })),
+  );
+  return records;
 }

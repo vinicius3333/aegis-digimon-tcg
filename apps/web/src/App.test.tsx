@@ -235,6 +235,7 @@ describe("responsive application state", () => {
       avatarSource: "digimon",
       avatarUrl: "https://example.com/discord-avatar.png",
       isAdmin: false,
+      roles: [],
       discordLinked: true,
     };
     window.history.replaceState(null, "", "/profile/customize");

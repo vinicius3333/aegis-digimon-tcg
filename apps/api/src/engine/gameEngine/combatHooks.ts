@@ -338,6 +338,7 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
         const activeAtDeletion = grant.isActive?.() ?? true;
         return { ...grant, isActive: () => activeAtDeletion };
       }),
+    snapshotStackEffectConferrals: () => [...engine.continuous.listStackEffectConferrals()],
     checkSecurity: async (defenderSeat, attackerPermanentId, reason, options) =>
       engineRunSecurityCheck(engine, defenderSeat, attackerPermanentId, reason, options),
     // The pierce read seam: combat consults both the temporary modifier ledger and

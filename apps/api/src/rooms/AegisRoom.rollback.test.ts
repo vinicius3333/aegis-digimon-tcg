@@ -6,6 +6,7 @@ import { AegisRoom } from "#api/rooms/AegisRoom";
 import { RED_DECK, BLUE_DECK } from "#api/engine/testDecks";
 import fixture from "#api/engine/scenarios/matchRollback.fixture";
 import decisionRollbackFixture from "#api/engine/scenarios/decisionRollbackHandAffordances.fixture";
+import playCostReductionRollbackFixture from "#api/engine/scenarios/playCostReductionRollbackHandAffordances.fixture";
 import { addLogSink } from "#api/logger";
 import { extractReplay } from "#api/replays/inputs/extract";
 import { runReplay } from "#api/replays/inputs/run";
@@ -575,5 +576,28 @@ describe("consensual match rollback", () => {
     await idle();
     expect(room.state.players[0]!.security).toHaveLength(3);
     expect(room.state.pendingDecision).toBeUndefined();
+  });
+
+  it("undoes accepting a play cost reduction whose prompt opened over current hand affordances", async () => {
+    const { room, clients } = await start({ betaBattleRoom: true }, playCostReductionRollbackFixture);
+    await main(room);
+    const card = room.state.players[0]!.hand.find((entry) => entry.cardId === "BT13-080")!;
+    expect(send(room, 0, { type: "playCard", instanceId: card.instanceId })).toEqual({ ok: true });
+    await idle();
+    const decision = room.state.pendingDecision!;
+    expect(decision.kind).toBe("optional");
+    expect(
+      send(room, 0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await idle();
+    expect(room.state.pendingDecision?.kind).toBe("selectCards");
+    await request(room, clients[0]!, RollbackKind.ACTION.value);
+    await answer(room, clients[1]!, true);
+    expect(room.state.rollbackRevision).toBe(1);
+    expect(room.state.pendingDecision?.decisionId).toBe(decision.decisionId);
   });
 });

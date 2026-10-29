@@ -1,16 +1,24 @@
 import type { DeckPerformanceRecord } from "@aegis/shared/decks/DeckPerformanceRecord";
+import type { DeckStatsWindow } from "@aegis/shared/decks/DeckStatsWindow";
+import { DeckStatsWindowSelect } from "@/account/DeckStatsWindowSelect";
 import { useTranslation } from "@/i18n/useTranslation";
 import "@/account/deckPerformanceCollection.css";
 
-type Props = { records: DeckPerformanceRecord[]; onSelect: (deckId: string) => void };
+type Props = {
+  records: DeckPerformanceRecord[];
+  statsWindow: DeckStatsWindow;
+  onWindowChange: (statsWindow: DeckStatsWindow) => void;
+  onSelect: (deckId: string) => void;
+};
 
-export function DeckPerformanceCollection({ records, onSelect }: Props) {
+export function DeckPerformanceCollection({ records, statsWindow, onWindowChange, onSelect }: Props) {
   const { t, locale } = useTranslation();
   const format = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
   return (
     <details className="profile-deck-records" open>
       <summary>{t("profile.deckRecords.title")}</summary>
       <p>{t("profile.deckRecords.hint")}</p>
+      <DeckStatsWindowSelect value={statsWindow} onChange={onWindowChange} />
       <ul>
         {records.map(({ deckId, name, stats }) => (
           <li key={deckId}>

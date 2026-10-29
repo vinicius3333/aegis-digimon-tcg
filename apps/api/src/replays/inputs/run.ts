@@ -145,6 +145,7 @@ export async function runReplay(record: ReplayRecord, options: RunReplayOptions 
     ...(record.firstSeat !== undefined ? { firstSeat: record.firstSeat } : {}),
     beforeTurn: (turn) => {
       if (liveHooks) return liveHooks.beforeTurn?.(turn);
+      applyDueAt("beforeTurn");
       if (turn !== options.stopBeforeTurn) return;
       reachedTurn = turn;
       resumeBatchOffset = batch && batch.emitted > 0 ? 1 : 0;
@@ -307,6 +308,9 @@ export async function runReplay(record: ReplayRecord, options: RunReplayOptions 
         return undefined;
       case "clearReady":
         withBatch(() => engine.clearReady(input.seat));
+        return undefined;
+      case "expireRankedRound":
+        withBatch(() => engine.win.declareDraw("timeout"));
         return undefined;
       case "expireMatchTimer":
         withBatch(() => engine.expireMatchTimer(input.seat));

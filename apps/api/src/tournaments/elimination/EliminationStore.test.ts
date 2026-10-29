@@ -1,3 +1,4 @@
+import { TrophyStore } from "#api/achievements/TrophyStore";
 import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
 import { AccountStore } from "../../accounts/AccountStore.js";
@@ -186,6 +187,9 @@ describe("advancing", () => {
       (seat) => seat.participantId === settled.championParticipantId,
     )!.accountId!;
     expect((await statsOf(championAccount)).tournaments_won).toBe(1);
+    expect((await new TrophyStore(accounts).getTrophies(championAccount)).items).toMatchObject([
+      { award: "tournament_champion", tier: "gold", source: { tournamentId } },
+    ]);
   });
 
   it("does not award the championship twice when the final is resolved again", async () => {
@@ -202,6 +206,9 @@ describe("advancing", () => {
       (seat) => seat.participantId === settled.championParticipantId,
     )!.accountId!;
     expect((await statsOf(championAccount)).tournaments_won).toBe(1);
+    expect((await new TrophyStore(accounts).getTrophies(championAccount)).items).toMatchObject([
+      { award: "tournament_champion", tier: "gold", source: { tournamentId } },
+    ]);
   });
 
   it("never rewrites a pairing that was already published", async () => {

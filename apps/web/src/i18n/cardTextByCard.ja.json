@@ -2321,7 +2321,7 @@
     "[OnPlay]Trashthebottomdigivolutioncardof1ofyouropponent'sDigimon.Then,ifyouropponenthasnoDigimonwithdigivolutioncards,<Draw1>(Draw1cardfromyourdeck).": "【登場時】相手のデジモン1体の進化元を下から1枚破棄する。その後、進化元を持つ相手のデジモンがいないなら、≪1ドロー≫。"
   },
   "BT15-020": {
-    "[StartofYourMainPhase]1ofyourDigimongains<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget)untiltheendofyouropponent'sturn.Then,ifyouhaveaTamerwith[MattIshida]&#160;initsname,<Draw1>(Draw1cardfromyourdeck).": "〔進化〕「ツノモン」:コスト0\n\n【自分のメインフェイズ開始時】相手のターン終了まで、自分のデジモン1体は≪ブロッカー≫を得る。その後、名称に「石田ヤマト」を含む自分のテイマーがいるなら、≪1ドロー≫。",
+    "[StartofYourMainPhase]1ofyourDigimongains<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget)untiltheendofyouropponent'sturn.Then,ifyouhaveaTamerwith[MattIshida]initsname,<Draw1>(Draw1cardfromyourdeck).": "〔進化〕「ツノモン」:コスト0\n\n【自分のメインフェイズ開始時】相手のターン終了まで、自分のデジモン1体は≪ブロッカー≫を得る。その後、名称に「石田ヤマト」を含む自分のテイマーがいるなら、≪1ドロー≫。",
     "[WhenAttacking][OncePerTurn]<Draw1>(Draw1cardfromyourdeck).": "【アタック時】［ターンに1回］≪1ドロー≫（自分のデッキからカードを1枚引く）"
   },
   "BT15-021": {
@@ -2371,7 +2371,7 @@
     "<Barrier>(WhenthisDigimonwouldbedeletedinbattle,bytrashingthetopcardofyoursecuritystack,preventthatdeletion).": "≪防壁≫（このデジモンがバトルで消滅するとき、自分のセキュリティを上から1枚破棄することで、消滅しない）"
   },
   "BT15-034": {
-    "[StartofYourMainPhase]Ifyouhave3ormoresecuritycards,youmayaddthetopcardofyoursecuritystacktothehand.Ifyouhave2orfewer,youmayplace1yellowDigimoncardwiththe[Vaccine]&#160;traitfromyourhandatthetoporbottomofyoursecuritystack.": "【自分のメインフェイズ開始時】自分のセキュリティが3枚以上なら、自分のセキュリティを上から1枚手札に加えられる。自分のセキュリティが2枚以下なら、自分の手札から、特徴に「ワクチン種」を持つ黄のデジモンカード1枚をセキュリティの上か下に置ける。",
+    "[StartofYourMainPhase]Ifyouhave3ormoresecuritycards,youmayaddthetopcardofyoursecuritystacktothehand.Ifyouhave2orfewer,youmayplace1yellowDigimoncardwiththe[Vaccine]traitfromyourhandatthetoporbottomofyoursecuritystack.": "【自分のメインフェイズ開始時】自分のセキュリティが3枚以上なら、自分のセキュリティを上から1枚手札に加えられる。自分のセキュリティが2枚以下なら、自分の手札から、特徴に「ワクチン種」を持つ黄のデジモンカード1枚をセキュリティの上か下に置ける。",
     "[AllTurns][OncePerTurn]Whenacardisremovedfromyoursecuritystack,1ofyouropponent'sDigimongets-2000DPfortheturn.": "【お互いのターン】［ターンに1回］自分のセキュリティが減ったとき、ターン終了まで、相手のデジモン1体をDP-2000。"
   },
   "BT15-035": {
@@ -2457,7 +2457,7 @@
     "[OnDeletion]Youmayplay1Digimoncardwith[Numemon]initsnamefromyourtrashwithoutpayingthecost.": "【消滅時】自分のトラッシュから、名称に「ヌメモン」を含むデジモンカード1枚をコストを支払わずに登場できる。"
   },
   "BT15-058": {
-    "[Digivolve]Lv.3w/[XAntibody]/[DigiPolice]trait:Cost2<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[OnPlay][WhenDigivolving]Suspend1ofyouropponent'sDigimon.IfaTamercardwiththe[DigiPolice]&#160;traitisinthisDigimon'sdigivolutioncards,thatDigimoncan'tunsuspenduntiltheendoftheirturn.": "〔進化〕特徴に「X抗体」/「デジ対」を持つLv.3:コスト2\n\n≪ブロッカー≫\n【登場時】【進化時】相手のデジモン1体をレストさせる。このデジモンの進化元に特徴に「デジ対」を持つテイマーカードがあるなら、相手のターン終了まで、そのデジモンはアクティブにならない。",
+    "[Digivolve]Lv.3w/[XAntibody]/[DigiPolice]trait:Cost2<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[OnPlay][WhenDigivolving]Suspend1ofyouropponent'sDigimon.IfaTamercardwiththe[DigiPolice]traitisinthisDigimon'sdigivolutioncards,thatDigimoncan'tunsuspenduntiltheendoftheirturn.": "〔進化〕特徴に「X抗体」/「デジ対」を持つLv.3:コスト2\n\n≪ブロッカー≫\n【登場時】【進化時】相手のデジモン1体をレストさせる。このデジモンの進化元に特徴に「デジ対」を持つテイマーカードがあるなら、相手のターン終了まで、そのデジモンはアクティブにならない。",
     "[AllTurns][OncePerTurn]WhenthisDigimonbecomessuspended,suspend1ofyouropponent'sDigimonorTamerswithaplaycostlessthanorequaltothisDigimon'splaycost.": "【お互いのターン】［ターンに1回］このデジモンがレストしたとき、このデジモンの登場コスト以下の相手のデジモン/テイマー1体をレストさせる。"
   },
   "BT15-059": {
@@ -2465,23 +2465,23 @@
     "<Reboot>(UnsuspendthisDigimonduringyouropponent'sunsuspendphase).": "≪再起動≫（このデジモンは相手のアクティブフェイズでもアクティブになる）"
   },
   "BT15-060": {
-    "[DigiXros-1][Agumon]/[Greymon]x[Gabumon]/[Garurumon]Whilethiscardisrevealedfromthedeck,itsnameisalsotreatedas[Omnimon].<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[OnPlay]Ifit'syourturn,1ofyourotherDigimonmaydigivolveintoablackDigimoncardwith[Greymon]/[Garurumon]&#160;initsnameinyourhandwiththedigivolutioncostreducedby2.": "デジクロス-1:「アグモン」/「グレイモン」×「ガブモン」/「ガルルモン」登場するとき、手札/バトルエリアからこのカードの下に置ける。1枚ごとに登場コストをマイナスする\n\nこのカードがデッキからオープンされている間、このカードの名称は「オメガモン」としても扱う。\n≪ブロッカー≫\n【登場時】自分のターンなら、他の自分のデジモン1体を、手札の名称に「グレイモン」/「ガルルモン」を含む黒のデジモンカードに支払う進化コスト-2で進化できる。",
+    "[DigiXros-1][Agumon]/[Greymon]x[Gabumon]/[Garurumon]Whilethiscardisrevealedfromthedeck,itsnameisalsotreatedas[Omnimon].<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[OnPlay]Ifit'syourturn,1ofyourotherDigimonmaydigivolveintoablackDigimoncardwith[Greymon]/[Garurumon]initsnameinyourhandwiththedigivolutioncostreducedby2.": "デジクロス-1:「アグモン」/「グレイモン」×「ガブモン」/「ガルルモン」登場するとき、手札/バトルエリアからこのカードの下に置ける。1枚ごとに登場コストをマイナスする\n\nこのカードがデッキからオープンされている間、このカードの名称は「オメガモン」としても扱う。\n≪ブロッカー≫\n【登場時】自分のターンなら、他の自分のデジモン1体を、手札の名称に「グレイモン」/「ガルルモン」を含む黒のデジモンカードに支払う進化コスト-2で進化できる。",
     "[WhenAttacking][OncePerTurn]<De-Digivolve1>1ofyouropponent'sDigimon(Trashthetopcard.Youcan'ttrashpastlevel3cards).": "【アタック時】［ターンに1回］相手のデジモン1体を≪退化1≫。"
   },
   "BT15-061": {
-    "<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[OnPlay][WhenDigivolving]Bytrashing1cardwiththe[Machine]/[Cyborg]&#160;traitinyourhand,1ofyourDigimoncan'tbedeletedbyyouropponent'seffectsuntiltheendoftheirturn.[YourTurn]WhileyouropponenthasnoDigimon,thisDigimoncan'tattack.": "≪ブロッカー≫\n【登場時】【進化時】自分の手札から、特徴に「マシーン型」/「サイボーグ型」を持つカード1枚を破棄することで、相手のターン終了まで、自分のデジモン1体は相手の効果では消滅しない。\n【自分のターン】相手のデジモンがいない間、このデジモンはアタックできない。",
+    "<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[OnPlay][WhenDigivolving]Bytrashing1cardwiththe[Machine]/[Cyborg]traitinyourhand,1ofyourDigimoncan'tbedeletedbyyouropponent'seffectsuntiltheendoftheirturn.[YourTurn]WhileyouropponenthasnoDigimon,thisDigimoncan'tattack.": "≪ブロッカー≫\n【登場時】【進化時】自分の手札から、特徴に「マシーン型」/「サイボーグ型」を持つカード1枚を破棄することで、相手のターン終了まで、自分のデジモン1体は相手の効果では消滅しない。\n【自分のターン】相手のデジモンがいない間、このデジモンはアタックできない。",
     "<Reboot>(UnsuspendthisDigimonduringyouropponent'sunsuspendphase).": "≪再起動≫（このデジモンは相手のアクティブフェイズでもアクティブになる）"
   },
   "BT15-062": {
-    "[OnPlay]Revealthetop4cardsofyourdeck.Add2level6orhighercardsamongthemtothehand.Returntheresttothebottomofthedeck.[EndofYourTurn]Bydeleting1ofyourDigimon,youmayplay1Digimoncardwiththe[DarkMasters]&#160;traitfromyourhandtoanemptyspaceinyourbreedingareawithoutpayingthecost.": "【登場時】自分のデッキの上から4枚オープンする。その中のLv.6以上のカード2枚を手札に加える。残りはデッキの下に戻す。\n【自分のターン終了時】自分のデジモン1体を消滅させることで、自分の手札から、特徴に「ダークマスターズ」を持つデジモンカード1枚を空いている自分の育成エリアにコストを支払わずに登場できる。",
+    "[OnPlay]Revealthetop4cardsofyourdeck.Add2level6orhighercardsamongthemtothehand.Returntheresttothebottomofthedeck.[EndofYourTurn]Bydeleting1ofyourDigimon,youmayplay1Digimoncardwiththe[DarkMasters]traitfromyourhandtoanemptyspaceinyourbreedingareawithoutpayingthecost.": "【登場時】自分のデッキの上から4枚オープンする。その中のLv.6以上のカード2枚を手札に加える。残りはデッキの下に戻す。\n【自分のターン終了時】自分のデジモン1体を消滅させることで、自分の手札から、特徴に「ダークマスターズ」を持つデジモンカード1枚を空いている自分の育成エリアにコストを支払わずに登場できる。",
     "<Reboot>(UnsuspendthisDigimonduringyouropponent'sunsuspendphase).": "≪再起動≫（このデジモンは相手のアクティブフェイズでもアクティブになる）"
   },
   "BT15-063": {
-    "[Digivolve]Lv.4w/[XAntibody]/[DigiPolice]trait:Cost3<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[AllTurns]WhenaneffectsuspendsanotherDigimonorTamer,ifaTamercardwiththe[DigiPolice]&#160;traitisinthisDigimon'sdigivolutioncards,thisDigimonmaydigivolveintoaDigimoncardwiththe[BeastDragon]/[DigiPolice]&#160;traitinyourhandwithoutpayingthecost.": "〔進化〕特徴に「X抗体」/「デジ対」を持つLv.4:コスト3\n\n≪ブロッカー≫\n【お互いのターン】効果で他のデジモン/テイマーがレストしたとき、このデジモンの進化元に特徴に「デジ対」を持つテイマーカードがあるなら、このデジモンを手札の特徴に「獣竜型」/「デジ対」を持つデジモンカードにコストを支払わずに進化できる。",
+    "[Digivolve]Lv.4w/[XAntibody]/[DigiPolice]trait:Cost3<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[AllTurns]WhenaneffectsuspendsanotherDigimonorTamer,ifaTamercardwiththe[DigiPolice]traitisinthisDigimon'sdigivolutioncards,thisDigimonmaydigivolveintoaDigimoncardwiththe[BeastDragon]/[DigiPolice]traitinyourhandwithoutpayingthecost.": "〔進化〕特徴に「X抗体」/「デジ対」を持つLv.4:コスト3\n\n≪ブロッカー≫\n【お互いのターン】効果で他のデジモン/テイマーがレストしたとき、このデジモンの進化元に特徴に「デジ対」を持つテイマーカードがあるなら、このデジモンを手札の特徴に「獣竜型」/「デジ対」を持つデジモンカードにコストを支払わずに進化できる。",
     "[AllTurns][OncePerTurn]WhenaneffectsuspendsanotherDigimonorTamer,unsuspend1ofyourDigimonwiththe[BeastDragon]/[DigiPolice]trait.": "【お互いのターン】［ターンに1回］効果で他のデジモン/テイマーがレストしたとき、特徴に「獣竜型」/「デジ対」を持つ自分のデジモン1体をアクティブにする。"
   },
   "BT15-064": {
-    "[Digivolve]Lv.4w/[SoC]trait:Cost3[OnPlay][WhenDigivolving]Revealthetop3cardsofyourdeck.Amongthem,place1[Machine]/[Cyborg]/[SoC]traitcardasthisDigimon'sbottomdigivolutioncard,andadd1suchcardtothehand.Trashtherest.[WhenAttacking]Ifan[SoC]&#160;traitTamercardisinthisDigimon'sdigivolutioncards,delete1ofyouropponent'splaycost3orlowerDigimonorTamers.": "〔進化〕特徴に「SoC」を持つLv.4:コスト3\n\n【登場時】【進化時】自分のデッキの上から3枚オープンする。その中の特徴に「マシーン型」/「サイボーグ型」/「SoC」を持つカード1枚をこのデジモンの進化元の下に置き、1枚を手札に加える。残りは破棄する。\n【アタック時】このデジモンの進化元に特徴に「SoC」を持つテイマーカードがあるなら、登場コスト3以下の相手のデジモン/テイマー1体を消滅させる。",
+    "[Digivolve]Lv.4w/[SoC]trait:Cost3[OnPlay][WhenDigivolving]Revealthetop3cardsofyourdeck.Amongthem,place1[Machine]/[Cyborg]/[SoC]traitcardasthisDigimon'sbottomdigivolutioncard,andadd1suchcardtothehand.Trashtherest.[WhenAttacking]Ifan[SoC]traitTamercardisinthisDigimon'sdigivolutioncards,delete1ofyouropponent'splaycost3orlowerDigimonorTamers.": "〔進化〕特徴に「SoC」を持つLv.4:コスト3\n\n【登場時】【進化時】自分のデッキの上から3枚オープンする。その中の特徴に「マシーン型」/「サイボーグ型」/「SoC」を持つカード1枚をこのデジモンの進化元の下に置き、1枚を手札に加える。残りは破棄する。\n【アタック時】このデジモンの進化元に特徴に「SoC」を持つテイマーカードがあるなら、登場コスト3以下の相手のデジモン/テイマー1体を消滅させる。",
     "[WhenAttacking][OncePerTurn]<De-Digivolve1>1ofyouropponent'sDigimon(Trashthetopcard.Youcan'ttrashpastlevel3cards).": "【アタック時】［ターンに1回］相手のデジモン1体を≪退化1≫。"
   },
   "BT15-065": {
@@ -2489,11 +2489,11 @@
     "[YourTurn]WhilethisDigimonhas[Monzaemon]/[Numemon]initsname,itgains<SecurityAttack+1>(ThisDigimonchecks1additionalsecuritycard).": "【自分のターン】このデジモンが名称に「もんざえモン」/「ヌメモン」を含む間、このデジモンは≪Sアタック+1≫を得る。"
   },
   "BT15-066": {
-    "[OnPlay][WhenAttacking]<De-Digivolve2>1ofyouropponent'sDigimon(Trashupto2cardsfromthetop.Youcan'ttrashpastlevel3cards).[YourTurn]ThisDigimoncanonlydigivolveintowhiteDigimon.[EndofOpponent'sTurn]DeletethisDigimon.Then,youmayplay1Digimoncardwiththe[DarkMasters]&#160;trait,otherthan[Machinedramon],fromyourhandwithoutpayingthecost.": "【登場時】【アタック時】相手のデジモン1体を≪退化2≫。\n【自分のターン】このデジモンは白のデジモンにしか進化できない。\n【相手のターン終了時】このデジモンを消滅させる。その後、自分の手札から、「ムゲンドラモン」以外の特徴に「ダークマスターズ」を持つデジモンカード1枚をコストを支払わずに登場できる。",
+    "[OnPlay][WhenAttacking]<De-Digivolve2>1ofyouropponent'sDigimon(Trashupto2cardsfromthetop.Youcan'ttrashpastlevel3cards).[YourTurn]ThisDigimoncanonlydigivolveintowhiteDigimon.[EndofOpponent'sTurn]DeletethisDigimon.Then,youmayplay1Digimoncardwiththe[DarkMasters]trait,otherthan[Machinedramon],fromyourhandwithoutpayingthecost.": "【登場時】【アタック時】相手のデジモン1体を≪退化2≫。\n【自分のターン】このデジモンは白のデジモンにしか進化できない。\n【相手のターン終了時】このデジモンを消滅させる。その後、自分の手札から、「ムゲンドラモン」以外の特徴に「ダークマスターズ」を持つデジモンカード1枚をコストを支払わずに登場できる。",
     "<Reboot>(UnsuspendthisDigimonduringyouropponent'sunsuspendphase).": "≪再起動≫（このデジモンは相手のアクティブフェイズでもアクティブになる）"
   },
   "BT15-067": {
-    "[Digivolve]Lv.5w/[XAntibody]/[DigiPolice]trait:Cost4<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[WhenDigivolving]IfaTamercardwiththe[DigiPolice]traitisinthisDigimon'sdigivolutioncards,return1ofyouropponent'ssuspendedDigimonorTamerstothebottomofthedeck.[AllTurns][OncePerTurn]WhenthisDigimonbecomessuspended,youmayplay1Digimoncardwiththe[BeastDragon]/[DigiPolice]&#160;traitand5000DPorlessfromyourhandwithoutpayingthecost.": "〔進化〕特徴に「X抗体」/「デジ対」を持つLv.5:コスト4\n\n≪ブロッカー≫\n【進化時】このデジモンの進化元に特徴に「デジ対」を持つテイマーカードがあるなら、レスト状態の相手のデジモン/テイマー1体をデッキの下に戻す。\n【お互いのターン】［ターンに1回］このデジモンがレストしたとき、自分の手札から、特徴に「獣竜型」/「デジ対」を持つDP5000以下のデジモンカード1枚をコストを支払わずに登場できる。"
+    "[Digivolve]Lv.5w/[XAntibody]/[DigiPolice]trait:Cost4<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[WhenDigivolving]IfaTamercardwiththe[DigiPolice]traitisinthisDigimon'sdigivolutioncards,return1ofyouropponent'ssuspendedDigimonorTamerstothebottomofthedeck.[AllTurns][OncePerTurn]WhenthisDigimonbecomessuspended,youmayplay1Digimoncardwiththe[BeastDragon]/[DigiPolice]traitand5000DPorlessfromyourhandwithoutpayingthecost.": "〔進化〕特徴に「X抗体」/「デジ対」を持つLv.5:コスト4\n\n≪ブロッカー≫\n【進化時】このデジモンの進化元に特徴に「デジ対」を持つテイマーカードがあるなら、レスト状態の相手のデジモン/テイマー1体をデッキの下に戻す。\n【お互いのターン】［ターンに1回］このデジモンがレストしたとき、自分の手札から、特徴に「獣竜型」/「デジ対」を持つDP5000以下のデジモンカード1枚をコストを支払わずに登場できる。"
   },
   "BT15-068": {
     "[OnPlay]Untiltheendofyouropponent'sturn,1oftheirDigimongains\"[OnDeletion]Lose1memory.\"": "【登場時】相手のターン終了まで、相手のデジモン1体に「【消滅時】メモリー-1。」の効果を与える。",
@@ -2511,7 +2511,7 @@
     "[EndofAttack][OncePerTurn]Ifyouropponenthas1ormorememory,gain1memory.": "【アタック終了時】［ターンに1回］メモリーが相手側の1以上なら、メモリー+1。"
   },
   "BT15-072": {
-    "<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[AllTurns]Whenoneofyour[Apocalymon]orDigimonwiththe[DarkMasters]&#160;traitwouldleavethebattleareaotherthanbyoneofyoureffects,bydeletingthisDigimon,prevent1ofthoseDigimonfromleaving.": "≪ブロッカー≫\n【お互いのターン】自分の「アポカリモン」か特徴に「ダークマスターズ」を持つ自分のデジモンが自分の効果以外でバトルエリアを離れるとき、このデジモンを消滅させることで、そのデジモン1体は離れない。"
+    "<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[AllTurns]Whenoneofyour[Apocalymon]orDigimonwiththe[DarkMasters]traitwouldleavethebattleareaotherthanbyoneofyoureffects,bydeletingthisDigimon,prevent1ofthoseDigimonfromleaving.": "≪ブロッカー≫\n【お互いのターン】自分の「アポカリモン」か特徴に「ダークマスターズ」を持つ自分のデジモンが自分の効果以外でバトルエリアを離れるとき、このデジモンを消滅させることで、そのデジモン1体は離れない。"
   },
   "BT15-073": {
     "[WhenDigivolving][OnDeletion]<Draw1>(Draw1cardfromyourdeck).Then,trash1cardinyourhand.": "【進化時】【消滅時】≪1ドロー≫。その後、自分の手札を1枚破棄する。",
@@ -2603,8 +2603,8 @@
     "[Security]Suspend1ofyouropponent'sDigimon.Then,addthiscardtothehand.": "【セキュリティ】相手のデジモン1体をレストさせる。その後、このカードを手札に加える。"
   },
   "BT15-096": {
-    "[Main]Revealthetop5cardsofyourdeck.Amongthem,add1cardwiththe[Machine]/[Cyborg]traittothehandandtrash1suchcard.Returntheresttothetopofthedeck.Then,placethiscardinthebattlearea.[Main]<Delay>(Afterthiscardisplaced,bytrashingitthenextturnorlater,activatetheeffectbelow.)•Youmayplay1level5orhigherDigimoncardwiththe[Machine]/[Cyborg]&#160;traitfromyourhandwiththeplaycostreducedby3.": "【メイン】自分のデッキの上から5枚オープンする。その中の特徴に「マシーン型」/「サイボーグ型」を持つカード1枚を手札に加え、1枚を破棄する。残りはデッキの上に戻す。その後、このカードをバトルエリアに置く。\n【メイン】≪ディレイ≫\n・自分の手札から、特徴に「マシーン型」/「サイボーグ型」を持つLv.5以上のデジモンカード1枚を支払う登場コスト-3で登場できる。",
-    "[Security]Revealthetop5cardsofyourdeck.Amongthem,add1cardwiththe[Machine]/[Cyborg]&#160;traittothehandandtrash1suchcard.Returntheresttothetopofthedeck.Then,placethiscardinthebattlearea.": "【セキュリティ】自分のデッキの上から5枚オープンする。その中の特徴に「マシーン型」/「サイボーグ型」を持つカード1枚を手札に加え、1枚を破棄する。残りはデッキの上に戻す。その後、このカードをバトルエリアに置く。"
+    "[Main]Revealthetop5cardsofyourdeck.Amongthem,add1cardwiththe[Machine]/[Cyborg]traittothehandandtrash1suchcard.Returntheresttothetopofthedeck.Then,placethiscardinthebattlearea.[Main]<Delay>(Afterthiscardisplaced,bytrashingitthenextturnorlater,activatetheeffectbelow.)•Youmayplay1level5orhigherDigimoncardwiththe[Machine]/[Cyborg]traitfromyourhandwiththeplaycostreducedby3.": "【メイン】自分のデッキの上から5枚オープンする。その中の特徴に「マシーン型」/「サイボーグ型」を持つカード1枚を手札に加え、1枚を破棄する。残りはデッキの上に戻す。その後、このカードをバトルエリアに置く。\n【メイン】≪ディレイ≫\n・自分の手札から、特徴に「マシーン型」/「サイボーグ型」を持つLv.5以上のデジモンカード1枚を支払う登場コスト-3で登場できる。",
+    "[Security]Revealthetop5cardsofyourdeck.Amongthem,add1cardwiththe[Machine]/[Cyborg]traittothehandandtrash1suchcard.Returntheresttothetopofthedeck.Then,placethiscardinthebattlearea.": "【セキュリティ】自分のデッキの上から5枚オープンする。その中の特徴に「マシーン型」/「サイボーグ型」を持つカード1枚を手札に加え、1枚を破棄する。残りはデッキの上に戻す。その後、このカードをバトルエリアに置く。"
   },
   "BT15-097": {
     "[Main]Bytrashing1Digimoncardwiththe[Machine]/[Cyborg]/[SoC]traitinyourhand,delete1ofyouropponent'sDigimonorTamerswiththelowestplaycost.": "【メイン】自分の手札から、特徴に「マシーン型」/「サイボーグ型」/「SoC」を持つデジモンカード1枚を破棄することで、最も登場コストの低い相手のデジモン/テイマー1体を消滅させる。",
@@ -13004,7 +13004,7 @@
     "<Rush>.<SecurityA.+1>[OnPlay][WhenDigivolving]Youmayplace1level4orlower[DM]traitDigimoncardfromyourtrashasthisDigimon'stopdigivolutioncard.Then,delete1ofyouropponent'sDigimonwiththesamecolorasanyofthisDigimon'sdigivolutioncards.IfthisDigimonhas6ormorecolorsinitsdigivolutioncards,insteaddelete1ofeachofyouropponent'sDigimonwithdifferentcolors.[AllTurns]ThisDigimongets+1000DPforeachcolorinitsdigivolutioncards.[Assembly-7]7level4[DM]traitDigimoncardsw/differentnames": "アセンブリ-7:名称の異なる特徴に「DM」を持つLv.4のデジモンカード7枚\n登場するとき、トラッシュから指定の枚数このカードの下に置くことで、登場コストをマイナスする\n\n≪速攻≫≪Sアタック+1≫\n【登場時】【進化時】自分のトラッシュから、特徴に「DM」を持つLv.4以下のデジモンカード1枚をこのデジモンの進化元の上に置ける。その後、このデジモンの進化元と同じ色の相手のデジモン1体を消滅させる。このデジモンの進化元が6色以上なら、代わりに色の異なる相手のデジモン1体ずつを消滅させる。\n【お互いのターン】このデジモンの進化元の色1色ごとに、このデジモンをDP+1000。"
   },
   "LM-001": {
-    "[Digivolve]Lv.5w/[Gammamon]intext:Cost4[Hand][Counter]<BlastDigivolve>(YourDigimonmaydigivolveintothiscardwithoutpayingthecost).[OnPlay][WhenDigivolving]Youmayplace1cardwith[Gammamon]&#160;initstextfromyourhandasthisDigimon'sbottomdigivolutioncard.Then,delete1ofyouropponent'sDigimonwith8000DPorless.ForeachcolorinthisDigimon'sdigivolutioncards,add1000tothisDPdeletioneffect'smaximum.[AllTurns][OncePerTurn]WhenanotherDigimonisdeleted,gain1memory.": "〔進化〕「ガンマモン」の記述があるLv.5:コスト4\n\n［手札］【カウンター】≪ブラスト進化≫（自分のデジモンをこのカードにコストを支払わずに進化できる）\n【登場時】【進化時】自分の手札から、「ガンマモン」の記述があるカード1枚をこのデジモンの進化元の下に置ける。その後、DP8000以下の相手のデジモン1体を消滅させる。このデジモンの進化元の色1色ごとに、このDP消滅効果の上限+1000。\n【お互いのターン】［ターンに1回］他のデジモンが消滅したとき、メモリー+1。\n\n≪オーバーフロー《-4》≫（バトルエリアかカードの下から、それ以外の場所に送られる場合、メモリー-4）"
+    "[Digivolve]Lv.5w/[Gammamon]intext:Cost4[Hand][Counter]<BlastDigivolve>(YourDigimonmaydigivolveintothiscardwithoutpayingthecost).[OnPlay][WhenDigivolving]Youmayplace1cardwith[Gammamon]initstextfromyourhandasthisDigimon'sbottomdigivolutioncard.Then,delete1ofyouropponent'sDigimonwith8000DPorless.ForeachcolorinthisDigimon'sdigivolutioncards,add1000tothisDPdeletioneffect'smaximum.[AllTurns][OncePerTurn]WhenanotherDigimonisdeleted,gain1memory.": "〔進化〕「ガンマモン」の記述があるLv.5:コスト4\n\n［手札］【カウンター】≪ブラスト進化≫（自分のデジモンをこのカードにコストを支払わずに進化できる）\n【登場時】【進化時】自分の手札から、「ガンマモン」の記述があるカード1枚をこのデジモンの進化元の下に置ける。その後、DP8000以下の相手のデジモン1体を消滅させる。このデジモンの進化元の色1色ごとに、このDP消滅効果の上限+1000。\n【お互いのターン】［ターンに1回］他のデジモンが消滅したとき、メモリー+1。\n\n≪オーバーフロー《-4》≫（バトルエリアかカードの下から、それ以外の場所に送られる場合、メモリー-4）"
   },
   "LM-002": {
     "[StartofYourMainPhase]Ifyouhave7orfewercardsinyourhand,<Draw1>(Draw1cardfromyourdeck).": "【自分のメインフェイズ開始時】自分の手札が7枚以下なら、≪1ドロー≫。",
@@ -13016,10 +13016,10 @@
   },
   "LM-004": {
     "[OnPlay][WhenDigivolving]Bytrashing2bluecardsinyourhand,unsuspend1ofyourDigimonand1ofyour[KiyoshiroHigashimitarai],andthisDigimongains<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget)untiltheendofyouropponent'sturn.": "【登場時】【進化時】自分の手札から、青のカード2枚を破棄することで、自分のデジモンと自分の「東御手洗清司郎」1体ずつをアクティブにし、相手のターン終了まで、このデジモンは≪ブロッカー≫を得る。",
-    "[AllTurns][OncePerTurn]Whenacardwith[Jellymon]&#160;initstextistrashedfromyourhand,youmayunsuspendthisDigimon.": "【お互いのターン】［ターンに1回］自分の手札から、「ジェリーモン」の記述があるカードが破棄されたとき、このデジモンをアクティブにできる。"
+    "[AllTurns][OncePerTurn]Whenacardwith[Jellymon]initstextistrashedfromyourhand,youmayunsuspendthisDigimon.": "【お互いのターン】［ターンに1回］自分の手札から、「ジェリーモン」の記述があるカードが破棄されたとき、このデジモンをアクティブにできる。"
   },
   "LM-005": {
-    "[Hand][Counter]<BlastDigivolve>(YourDigimonmaydigivolveintothiscardwithoutpayingthecost).[OnPlay][WhenDigivolving]Youmaytrashupto4bluecardsinyourhand.Foreachone,trashany1cardunderyouropponent'sDigimonorTamers.Then,return1oftheirDigimonorTamerswithoutcardsunderittothehand.[WhenAttacking]Byreturning3cardswith[Jellymon]&#160;intheirtextsfromyourtrashtothebottomofthedeck,thisDigimongains<SecurityAttack+1>(ThisDigimonchecks1additionalsecuritycard)fortheturn.": "［手札］【カウンター】≪ブラスト進化≫（自分のデジモンをこのカードにコストを支払わずに進化できる）\n【登場時】【進化時】自分の手札の青のカードを4枚まで破棄できる。破棄した1枚ごとに、相手のデジモン/テイマーの下から選んで1枚破棄する。その後、下にカードが無い相手のデジモン/テイマー1体を手札に戻す。\n【アタック時】自分のトラッシュから、「ジェリーモン」の記述があるカード3枚をデッキの下に戻すことで、ターン終了まで、このデジモンは≪Sアタック+1≫を得る。\n\n≪オーバーフロー《-4》≫（バトルエリアかカードの下から、それ以外の場所に送られる場合、メモリー-4）"
+    "[Hand][Counter]<BlastDigivolve>(YourDigimonmaydigivolveintothiscardwithoutpayingthecost).[OnPlay][WhenDigivolving]Youmaytrashupto4bluecardsinyourhand.Foreachone,trashany1cardunderyouropponent'sDigimonorTamers.Then,return1oftheirDigimonorTamerswithoutcardsunderittothehand.[WhenAttacking]Byreturning3cardswith[Jellymon]intheirtextsfromyourtrashtothebottomofthedeck,thisDigimongains<SecurityAttack+1>(ThisDigimonchecks1additionalsecuritycard)fortheturn.": "［手札］【カウンター】≪ブラスト進化≫（自分のデジモンをこのカードにコストを支払わずに進化できる）\n【登場時】【進化時】自分の手札の青のカードを4枚まで破棄できる。破棄した1枚ごとに、相手のデジモン/テイマーの下から選んで1枚破棄する。その後、下にカードが無い相手のデジモン/テイマー1体を手札に戻す。\n【アタック時】自分のトラッシュから、「ジェリーモン」の記述があるカード3枚をデッキの下に戻すことで、ターン終了まで、このデジモンは≪Sアタック+1≫を得る。\n\n≪オーバーフロー《-4》≫（バトルエリアかカードの下から、それ以外の場所に送られる場合、メモリー-4）"
   },
   "LM-006": {
     "[Trash][Main]Byreturning1ofyourTamerstothebottomofthedeck,playthiscardwiththeplaycostreducedbytheplaycostofthereturnedTamer.[OnPlay][WhenDigivolving]Trashthebottom3digivolutioncardsof1ofyouropponent'sDigimon.Then,untiltheendoftheirturn,noneoftheirDigimonwithnodigivolutioncardscanattack.": "［トラッシュ］【メイン】自分のテイマー1体をデッキの下に戻すことで、このカードを、戻したテイマーの登場コスト分、支払う登場コストをマイナスして登場させる。\n【登場時】【進化時】相手のデジモン1体の進化元を下から3枚破棄する。その後、相手のターン終了まで、進化元を持たない相手のデジモン全てはアタックできない。"
@@ -13029,24 +13029,24 @@
   },
   "LM-008": {
     "[StartofYourMainPhase]IfyouhaveaTamer,gain1memory.": "【自分のメインフェイズ開始時】自分のテイマーがいるなら、メモリー＋1。",
-    "[YourTurn]WhilethisDigimonhas[Angoramon]&#160;initstext,itgets+2000DP.": "【自分のターン】このデジモンに「アンゴラモン」の記述がある間、このデジモンをDP+2000。"
+    "[YourTurn]WhilethisDigimonhas[Angoramon]initstext,itgets+2000DP.": "【自分のターン】このデジモンに「アンゴラモン」の記述がある間、このデジモンをDP+2000。"
   },
   "LM-009": {
-    "[YourTurn]Whenacardwith[Angoramon]&#160;initstextwouldbeplayedoroneofyourDigimonwoulddigivolveintosuchacard,bysuspendingthisDigimon,reducetheplayordigivolutioncostby2.[YourTurn]WhenthisDigimonbecomessuspended,1ofyourDigimonwith[Angoramon]&#160;initstextgains<Rush>(ThisDigimoncanattacktheturnitcomesintoplay)fortheturn.": "【自分のターン】「アンゴラモン」の記述があるカードが登場するときか、自分のデジモンが「アンゴラモン」の記述があるカードに進化するとき、このデジモンをレストさせることで、支払う登場/進化コスト-2。\n【自分のターン】このデジモンがレストしたとき、ターン終了まで、「アンゴラモン」の記述がある自分のデジモン1体は≪速攻≫を得る。"
+    "[YourTurn]Whenacardwith[Angoramon]initstextwouldbeplayedoroneofyourDigimonwoulddigivolveintosuchacard,bysuspendingthisDigimon,reducetheplayordigivolutioncostby2.[YourTurn]WhenthisDigimonbecomessuspended,1ofyourDigimonwith[Angoramon]initstextgains<Rush>(ThisDigimoncanattacktheturnitcomesintoplay)fortheturn.": "【自分のターン】「アンゴラモン」の記述があるカードが登場するときか、自分のデジモンが「アンゴラモン」の記述があるカードに進化するとき、このデジモンをレストさせることで、支払う登場/進化コスト-2。\n【自分のターン】このデジモンがレストしたとき、ターン終了まで、「アンゴラモン」の記述がある自分のデジモン1体は≪速攻≫を得る。"
   },
   "LM-010": {
     "[OnPlay]Suspend1Tamer.Noneofyouropponent'sTamerscanunsuspenduntiltheendoftheirturn.[AllTurns]ForeachsuspendedTamer,thisDigimongets+1000DP.": "【登場時】テイマー1体をレストさせる。相手のターン終了まで、相手のテイマー全てはアクティブにならない。\n【お互いのターン】レスト状態のテイマー1体ごとに、このデジモンをDP+1000。"
   },
   "LM-011": {
     "[OnPlay][WhenDigivolving]Suspend1ofyouropponent'sDigimon.Then,iftheyhavenounsuspendedDigimon,1ofyourDigimongains<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget)untiltheendofyouropponent'sturn.": "【登場時】【進化時】相手のデジモン1体をレストさせる。その後、アクティブ状態の相手のデジモンがいないなら、相手のターン終了まで、自分のデジモン1体は≪ブロッカー≫を得る。",
-    "[YourTurn]WhilethisDigimonhas[Angoramon]&#160;initstext,itgets+2000DP.": "【自分のターン】このデジモンに「アンゴラモン」の記述がある間、このデジモンをDP+2000。"
+    "[YourTurn]WhilethisDigimonhas[Angoramon]initstext,itgets+2000DP.": "【自分のターン】このデジモンに「アンゴラモン」の記述がある間、このデジモンをDP+2000。"
   },
   "LM-012": {
     "[OnPlay][WhenDigivolving]Suspend1ofyouropponent'sDigimon.Then,iftheyhavenounsuspendedDigimon,1oftheirDigimoncan'tunsuspenduntiltheendoftheirturn.": "【登場時】【進化時】相手のデジモン1体をレストさせる。その後、アクティブ状態の相手のデジモンがいないなら、相手のターン終了まで、相手のデジモン1体はアクティブにならない。",
     "[AllTurns][OncePerTurn]WhenoneofyourDigimonwith[Angoramon]intheirtextsdeletesanopponent'sDigimoninbattle,trashthetopcardoftheirsecuritystack.": "【お互いのターン】［ターンに1回］「アンゴラモン」の記述がある自分のデジモンがバトルで相手のデジモンを消滅させたとき、相手のセキュリティを上から1枚破棄する。"
   },
   "LM-013": {
-    "[Hand][Counter]<BlastDigivolve>(YourDigimonmaydigivolveintothiscardwithoutpayingthecost).[OnPlay][WhenDigivolving]Suspend1ofyouropponent'sDigimon.Then,iftheyhavenounsuspendedDigimon,gain2memory.[WhenAttacking]Youmayplay1Digimoncardwith[Angoramon]&#160;initstextfromyourhandwithoutpayingthecost.Attheendofyouropponent'sturn,returnthatDigimontothehand.": "［手札］【カウンター】≪ブラスト進化≫（自分のデジモンをこのカードにコストを支払わずに進化できる）\n【登場時】【進化時】相手のデジモン1体をレストさせる。その後、アクティブ状態の相手のデジモンがいないなら、メモリー+2。\n【アタック時】自分の手札から、「アンゴラモン」の記述があるデジモンカード1枚をコストを支払わずに登場できる。次の相手のターン終了時、そのデジモンを手札に戻す。\n\n≪オーバーフロー《-4》≫（バトルエリアかカードの下から、それ以外の場所に送られる場合、メモリー-4）"
+    "[Hand][Counter]<BlastDigivolve>(YourDigimonmaydigivolveintothiscardwithoutpayingthecost).[OnPlay][WhenDigivolving]Suspend1ofyouropponent'sDigimon.Then,iftheyhavenounsuspendedDigimon,gain2memory.[WhenAttacking]Youmayplay1Digimoncardwith[Angoramon]initstextfromyourhandwithoutpayingthecost.Attheendofyouropponent'sturn,returnthatDigimontothehand.": "［手札］【カウンター】≪ブラスト進化≫（自分のデジモンをこのカードにコストを支払わずに進化できる）\n【登場時】【進化時】相手のデジモン1体をレストさせる。その後、アクティブ状態の相手のデジモンがいないなら、メモリー+2。\n【アタック時】自分の手札から、「アンゴラモン」の記述があるデジモンカード1枚をコストを支払わずに登場できる。次の相手のターン終了時、そのデジモンを手札に戻す。\n\n≪オーバーフロー《-4》≫（バトルエリアかカードの下から、それ以外の場所に送られる場合、メモリー-4）"
   },
   "LM-014": {
     "[OnPlay]Revealthetop3cardsofyourdeck.Add1cardwith<Blocker>or1Tamercardamongthemtothehand.Returntheresttothebottomofthedeck.": "【登場時】自分のデッキの上から3枚オープンする。その中の≪ブロッカー≫を持つカードかテイマーカード1枚を手札に加える。残りはデッキの下に戻す。",
@@ -13054,20 +13054,20 @@
   },
   "LM-015": {
     "[WhenAttacking]IfyouhaveaTamer,thisDigimonmaydigivolveinto[Ginryumon]inyourhandwithoutpayingthecost.": "【アタック時】自分のテイマーがいるなら、このデジモンを手札の「ギンリュウモン」にコストを支払わずに進化できる。",
-    "[YourTurn]WhilethisDigimonhasthe[XAntibody]&#160;trait,itgets+1000DP.": "【自分のターン】このデジモンが特徴に「X抗体」を持つ間、このデジモンをDP+1000。"
+    "[YourTurn]WhilethisDigimonhasthe[XAntibody]trait,itgets+1000DP.": "【自分のターン】このデジモンが特徴に「X抗体」を持つ間、このデジモンをDP+1000。"
   },
   "LM-016": {
-    "[AllTurns][OncePerTurn]WhenaneffectdeletesoneofyourotherDigimon,thisDigimonmaydigivolveintoaDigimoncardwith[Gammamon]&#160;initstextinyourtrashwithoutpayingthecost.": "〔進化〕「グリモン」:コスト0\n\n【お互いのターン】［ターンに1回］他の自分のデジモンが効果で消滅したとき、このデジモンをトラッシュの「ガンマモン」の記述があるデジモンカードにコストを支払わずに進化できる。",
+    "[AllTurns][OncePerTurn]WhenaneffectdeletesoneofyourotherDigimon,thisDigimonmaydigivolveintoaDigimoncardwith[Gammamon]initstextinyourtrashwithoutpayingthecost.": "〔進化〕「グリモン」:コスト0\n\n【お互いのターン】［ターンに1回］他の自分のデジモンが効果で消滅したとき、このデジモンをトラッシュの「ガンマモン」の記述があるデジモンカードにコストを支払わずに進化できる。",
     "[OnDeletion]Youmayplay1[HiroAmanokawa]fromyourhandwithoutpayingthecost.": "【消滅時】自分の手札から、「天ノ河宙」1枚をコストを支払わずに登場できる。"
   },
   "LM-017": {
-    "[Digivolve]Lv.4w/[Gammamon]inname:Cost3[Hand][Counter]<BlastDigivolve>(YourDigimonmaydigivolveintothiscardwithoutpayingthecost).[OnPlay][WhenDigivolving]Trash1cardinyourhand.Then,youmayplace1cardwith[Gammamon]&#160;initstextfromyourtrashasthisDigimon'sbottomdigivolutioncard.[AllTurns][OncePerTurn]WhenaneffectaddsdigivolutioncardstothisDigimon,bydeleting1level4orlowerDigimon,youmayplay1level4orlowerDigimoncardfromyourtrashwithoutpayingthecost.": "〔進化〕名称に「ガンマモン」を含むLv.4:コスト3\n\n［手札］【カウンター】≪ブラスト進化≫（自分のデジモンをこのカードにコストを支払わずに進化できる）\n【登場時】【進化時】自分の手札を1枚破棄する。その後、自分のトラッシュから、「ガンマモン」の記述があるカード1枚をこのデジモンの進化元の下に置ける。\n【お互いのターン】［ターンに1回］このデジモンの進化元が効果で増えたとき、Lv.4以下のデジモン1体を消滅させることで、自分のトラッシュから、Lv.4以下のデジモンカード1枚をコストを支払わずに登場できる。\n\n≪オーバーフロー《-3》≫（バトルエリアかカードの下から、それ以外の場所に送られる場合、メモリー-3）"
+    "[Digivolve]Lv.4w/[Gammamon]inname:Cost3[Hand][Counter]<BlastDigivolve>(YourDigimonmaydigivolveintothiscardwithoutpayingthecost).[OnPlay][WhenDigivolving]Trash1cardinyourhand.Then,youmayplace1cardwith[Gammamon]initstextfromyourtrashasthisDigimon'sbottomdigivolutioncard.[AllTurns][OncePerTurn]WhenaneffectaddsdigivolutioncardstothisDigimon,bydeleting1level4orlowerDigimon,youmayplay1level4orlowerDigimoncardfromyourtrashwithoutpayingthecost.": "〔進化〕名称に「ガンマモン」を含むLv.4:コスト3\n\n［手札］【カウンター】≪ブラスト進化≫（自分のデジモンをこのカードにコストを支払わずに進化できる）\n【登場時】【進化時】自分の手札を1枚破棄する。その後、自分のトラッシュから、「ガンマモン」の記述があるカード1枚をこのデジモンの進化元の下に置ける。\n【お互いのターン】［ターンに1回］このデジモンの進化元が効果で増えたとき、Lv.4以下のデジモン1体を消滅させることで、自分のトラッシュから、Lv.4以下のデジモンカード1枚をコストを支払わずに登場できる。\n\n≪オーバーフロー《-3》≫（バトルエリアかカードの下から、それ以外の場所に送られる場合、メモリー-3）"
   },
   "LM-018": {
     "[OnPlay]Delete1level4orlowerDigimon.Ifyoudid,youmayplay1[Gyuukimon]Tokenwithoutpayingthecost(Digimon/Cost7/Lv.5/Purple/Ultimate/Virus/DarkAnimal/3000DP).": "【登場時】Lv.4以下のデジモン1体を消滅させる。そうしたなら、「ギュウキモン」（デジモン・7コスト・Lv.5・紫・完全体・ウィルス種・魔獣型・DP3000）のトークン1体をコストを支払わずに登場できる。"
   },
   "LM-019": {
-    "[OnPlay]Revealthetop4cardsofyourdeck.Add1cardwith[Gammamon]&#160;initstextamongthemtothehand.Returntheresttothebottomofthedeck.[AllTurns]WhenoneofyourDigimonwith[Gammamon]&#160;initstext,otherthan[Bokomon],wouldleavethebattleareaotherthanbyoneofyoureffects,bydeletingthisDigimon,preventitfromleaving.": "【登場時】自分のデッキの上から4枚オープンする。その中の「ガンマモン」の記述があるカード1枚を手札に加える。残りはデッキの下に戻す。\n【お互いのターン】「ボコモン」以外の「ガンマモン」の記述がある自分のデジモンが自分の効果以外でバトルエリアを離れるとき、このデジモンを消滅させることで、離れない。"
+    "[OnPlay]Revealthetop4cardsofyourdeck.Add1cardwith[Gammamon]initstextamongthemtothehand.Returntheresttothebottomofthedeck.[AllTurns]WhenoneofyourDigimonwith[Gammamon]initstext,otherthan[Bokomon],wouldleavethebattleareaotherthanbyoneofyoureffects,bydeletingthisDigimon,preventitfromleaving.": "【登場時】自分のデッキの上から4枚オープンする。その中の「ガンマモン」の記述があるカード1枚を手札に加える。残りはデッキの下に戻す。\n【お互いのターン】「ボコモン」以外の「ガンマモン」の記述がある自分のデジモンが自分の効果以外でバトルエリアを離れるとき、このデジモンを消滅させることで、離れない。"
   },
   "LM-020": {
     "[WhenDigivolving]Byplacing1Digimonontopofitsowner'ssecuritystack,revealallofyouropponent'ssecuritycards,andplace1cardamongthemontopofyouropponent'sdeck.Shuffletherestandreturnthemtothesecuritystack.[StartofOpponent'sTurn]Declare1cardcategory.Then,revealthetopcardofyouropponent'sdeck.Ifthatcardisofthedeclaredcategory,thisDigimonisn'taffectedbytheeffectsofthatcardcategoryfortheturn.Returntherevealedcardtothetoporthebottomofyouropponent'sdeck.": "【進化時】デジモン1体を持ち主のセキュリティの上に置くことで、相手のセキュリティ全てをオープンし、その中から1枚を相手のデッキの上に置く。残りはシャッフルしてセキュリティに戻す。\n【相手のターン開始時】カードカテゴリー1つを宣言する。その後、相手のデッキの上から1枚オープンし、そのカードが宣言したカードカテゴリーなら、ターン終了まで、このデジモンは宣言したカードカテゴリーの効果を受けない。オープンしたカードは相手のデッキの上か下に戻す。"

@@ -95,6 +95,20 @@
 		import api_upstreams
 	}
 
+	@ranked_api {
+		path /ranked/*
+		not header Accept *text/html*
+	}
+	handle @ranked_api {
+		import api_upstreams
+	}
+	handle /achievements/* {
+		import api_upstreams
+	}
+	handle /tournament-circuits* {
+		import api_upstreams
+	}
+
 	# Recovery endpoint for clients that retained HTML from an older release.
 	# It clears only the caller's HTTP cache; cookies and local storage are preserved.
 	handle /reset-web-cache {

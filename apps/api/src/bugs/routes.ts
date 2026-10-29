@@ -1,5 +1,6 @@
 import type { FeedbackStore } from "./FeedbackStore.js";
-import { getCardDefinition, isFeedbackKind } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
+import { isSubmittableFeedbackKind } from "@aegis/shared/feedback/isSubmittableFeedbackKind";
 import type { Express, Request, Response } from "express";
 import type { AuthSession } from "../accounts/AccountStore.js";
 import { tokenBucketLimiter, type TokenBucketOptions } from "../http/rateLimit.js";
@@ -147,7 +148,7 @@ export function validate(body: unknown, reporterName?: string): NewBugReport | {
 
   // Clients from before feedback kinds existed send none, and everything they sent was a bug.
   const kind = input.kind ?? "bug";
-  if (!isFeedbackKind(kind)) return { error: "invalid_kind" };
+  if (!isSubmittableFeedbackKind(kind)) return { error: "invalid_kind" };
 
   const summary = text(input.summary);
   if (!summary) return { error: "empty_summary" };

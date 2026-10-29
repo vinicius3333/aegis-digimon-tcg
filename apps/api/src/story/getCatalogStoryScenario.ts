@@ -4,6 +4,7 @@ import { catalogStoryBattles } from "@aegis/shared/story/catalogStoryBattles";
 import { getStoryBattleDifficulty } from "@aegis/shared/story/getStoryBattleDifficulty";
 import { StoryDifficulty } from "@aegis/shared/story/StoryDifficulty";
 import { getStoryScenarioDeck } from "#api/story/getStoryScenarioDeck";
+import { seitenGokuumonStoryDeck } from "#api/story/decks/seitenGokuumonStoryDeck";
 import { buildStoryOpponentPermanent } from "#api/story/buildStoryOpponentPermanent";
 
 type Params = { battleId: string };
@@ -50,7 +51,7 @@ export function getCatalogStoryScenario({ battleId }: Params): ScenarioFixture |
     board: {
       0: createSeat({ deck: getStoryScenarioDeck({ ref: battle.playerDeckRef }), security: difficulty.playerSecurity }),
       1: createSeat({
-        deck: getStoryScenarioDeck({ ref: battle.opponentDeckRef }),
+        deck: battle.id === "bb13" ? seitenGokuumonStoryDeck : getStoryScenarioDeck({ ref: battle.opponentDeckRef }),
         security: difficulty.opponentSecurity,
         level: difficulty.opponentLevel,
         opponent: battle.opponent,

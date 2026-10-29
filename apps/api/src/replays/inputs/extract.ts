@@ -1,3 +1,4 @@
+import type { TournamentBanlistCard } from "@aegis/shared/tournaments/index";
 import { GameMode } from "@aegis/shared/manual/GameMode";
 import { serializeScenarioFixture } from "../../engine/scenario/serialize.js";
 import { createReadStream } from "node:fs";
@@ -83,7 +84,14 @@ interface Entry {
   position: number;
 }
 
-const SITES = new Set<string>(["bothReady", "batchClose", "decisionRequest", "matchStarted", "afterIntent"]);
+const SITES = new Set<string>([
+  "beforeTurn",
+  "bothReady",
+  "batchClose",
+  "decisionRequest",
+  "matchStarted",
+  "afterIntent",
+]);
 const ROOM_INPUT_KINDS = new Set([
   "startMatch",
   "startDevScenario",
@@ -91,6 +99,7 @@ const ROOM_INPUT_KINDS = new Set([
   "disconnect",
   "reconnect",
   "clearReady",
+  "expireRankedRound",
   "expireMatchTimer",
   "expireMulliganWindow",
   "expireCombatWindow",
@@ -302,6 +311,8 @@ function roomInputOf(
       return typeof payload.scenario === "string"
         ? { kind, scenario: payload.scenario as string, ...placed }
         : undefined;
+    case "expireRankedRound":
+      return { kind, ...placed };
     case "disconnect":
       return seat === undefined ? undefined : { kind, seat, final: payload.final === true, ...placed };
     case "reconnect":
@@ -339,9 +350,33 @@ function deckRulesOf(value: unknown): ReplayDeckRules {
     ...(typeof value.betaBattleMode === "boolean" ? { betaBattleMode: value.betaBattleMode } : {}),
     ...(typeof value.unlimited === "boolean" ? { unlimited: value.unlimited } : {}),
     ...(typeof value.format === "string" ? { format: value.format as DeckFormat } : {}),
+    ...(Array.isArray(value.banlistCards) ? { banlistCards: value.banlistCards.map(parseBanlistCard) } : {}),
   };
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parseBanlistCard(value: unknown): TournamentBanlistCard {
+  if (
+    !isObject(value) ||
+    typeof value.cardId !== "string" ||
+    typeof value.allowedCopies !== "number" ||
+    !Number.isInteger(value.allowedCopies) ||
+    value.allowedCopies < 0 ||
+    (value.status !== "banned" && value.status !== "restricted" && value.status !== "banned_pair")
+  ) {
+    throw new Error("Invalid frozen tournament banlist in replay");
+  }
+  const pairPartnerIds = value.pairPartnerIds === undefined ? undefined : stringArray(value.pairPartnerIds);
+  if (value.pairPartnerIds !== undefined && !pairPartnerIds) {
+    throw new Error("Invalid frozen tournament banned pair in replay");
+  }
+  return {
+    cardId: value.cardId,
+    allowedCopies: value.allowedCopies,
+    status: value.status,
+    ...(pairPartnerIds ? { pairPartnerIds } : {}),
+  };
 }

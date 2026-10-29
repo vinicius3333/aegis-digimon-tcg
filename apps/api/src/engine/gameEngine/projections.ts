@@ -694,6 +694,12 @@ export class BoardProjection {
     this.projectHandAffordances();
   }
 
+  refreshHandAffordances(): void {
+    if (this.deps.omitHandAffordances === true) return;
+    this.handAffordancesStale = false;
+    this.projectHandAffordances();
+  }
+
   private projectHandAffordances(): void {
     const seat = this.deps.state.turnSeat;
     const turnPlayer =

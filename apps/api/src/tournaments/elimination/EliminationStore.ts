@@ -1,3 +1,4 @@
+import { grantTournamentTrophies } from "#api/achievements/grantTournamentTrophies";
 import { randomUUID } from "node:crypto";
 import type { LedgerEntry, MatchOutcome, ParticipantKind, PhaseKind } from "@aegis/shared";
 import type { PoolClient } from "pg";
@@ -519,7 +520,7 @@ export class EliminationStore {
       await client.query("UPDATE tournament_phases SET status='finished' WHERE id=$1", [phase.id]);
       // Only on the transition. The update is guarded on the tournament not already being finished,
       // so a retried advancement writes neither a second statistic nor a second event.
-      if (finished.rowCount === 1)
+      if (finished.rowCount === 1) {
         await appendTournamentEvent(client, {
           tournamentId,
           actorKind: "system",
@@ -534,6 +535,13 @@ export class EliminationStore {
           participantId: winner.participantId,
           after: { winnerParticipantId: winner.participantId, winnerAccountId: winner.accountId },
         });
+        await grantTournamentTrophies({
+          db: client,
+          tournamentId,
+          standings: async () => [],
+          now: Date.now(),
+        });
+      }
       // A bot champion updates no player statistic: there is no account to credit, and inventing
       // one would put a non-person in the standings.
       if (finished.rowCount === 1 && winner.accountId)

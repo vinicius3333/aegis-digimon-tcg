@@ -21,6 +21,7 @@ const account: RemoteAccount = {
   avatarId: null,
   avatarSource: "initials",
   isAdmin: false,
+  roles: [],
 };
 
 describe("settings layout", () => {
@@ -107,14 +108,14 @@ describe("settings effect speed", () => {
 
   it("stays hidden while sequential pacing is off", async () => {
     vi.resetModules();
-    vi.doMock("../features", () => ({ RANKED_ENABLED: false, SEQUENTIAL_PACING_ENABLED: false }));
+    vi.doMock("../features", () => ({ SEQUENTIAL_PACING_ENABLED: false }));
     await renderSettings();
     expect(screen.queryByRole("group", { name: "Effect speed" })).toBeNull();
   });
 
   it("sets the effect speed when sequential pacing is on", async () => {
     vi.resetModules();
-    vi.doMock("../features", () => ({ RANKED_ENABLED: false, SEQUENTIAL_PACING_ENABLED: true }));
+    vi.doMock("../features", () => ({ SEQUENTIAL_PACING_ENABLED: true }));
     const pacing = await renderSettings();
     fireEvent.click(screen.getByRole("button", { name: "Fast" }));
     expect(pacing.getEffectSpeed()).toBe("fast");

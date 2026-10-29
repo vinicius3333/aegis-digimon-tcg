@@ -775,3 +775,43 @@ describe("concurrency", () => {
     expect((await fixture.store.series(series.id))?.wins).toEqual([1, 0]);
   });
 });
+
+it("publishes roster identities and the winning seat for a bot confrontation", async () => {
+  const { accounts, store, tournamentId, matchId, alice, bob } = fixture;
+  const roster = (
+    await accounts.pool.query<{ id: string; account_id: string }>(
+      "SELECT id,account_id FROM tournament_participants WHERE tournament_id=$1",
+      [tournamentId],
+    )
+  ).rows;
+  const humanId = roster.find((participant) => participant.account_id === alice)!.id;
+  const botId = roster.find((participant) => participant.account_id === bob)!.id;
+  await accounts.pool.query("UPDATE tournament_participants SET kind='bot',account_id=NULL WHERE id=$1", [botId]);
+  await accounts.pool.query(
+    "UPDATE tournament_matches SET player0_participant_id=$1,player1_participant_id=$2,player1_account_id=NULL WHERE id=$3",
+    [humanId, botId, matchId],
+  );
+  expect((await store.scoreViews(tournamentId))[0]).toMatchObject({
+    participantIds: [humanId, botId],
+    participant0Id: alice,
+    participant1Id: null,
+    winnerSeat: null,
+  });
+  const resolved = await store.overrideResolution({
+    tournamentId,
+    matchId,
+    mode: "decide",
+    outcome: { officialResult: "participant1" },
+    reason: "Bot won the confrontation",
+    winsRequired: 2,
+    seriesDurationMs: null,
+    commandId: randomUUID(),
+    now: START,
+  });
+  expect(resolved.ok).toBe(true);
+  expect((await store.scoreViews(tournamentId))[0]).toMatchObject({
+    participantIds: [humanId, botId],
+    winnerSeat: 1,
+    winnerParticipantId: null,
+  });
+});

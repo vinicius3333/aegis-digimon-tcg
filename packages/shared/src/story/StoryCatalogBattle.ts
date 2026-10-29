@@ -8,6 +8,7 @@ export type StoryCatalogBattle = {
   protagonist?: string;
   opponents?: readonly string[];
   playerDeckRefs: readonly (keyof typeof storyCatalogDecks)[];
+  opponentCoverCardId?: string;
   opponentDeckRef: keyof typeof storyCatalogDecks;
   sourceUrl: string;
   isOptional?: boolean;

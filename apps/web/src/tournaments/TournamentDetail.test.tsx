@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
+import { TournamentMatchHistory } from "@/tournaments/TournamentMatchHistory";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { TournamentPairingControls } from "@/tournaments/TournamentPairingControls";
+import { TournamentMatchActions } from "@/tournaments/TournamentMatchActions";
 import { I18nProvider } from "../i18n";
 import { resetServerClock } from "./serverClock";
 import { TournamentDetail } from "./TournamentDetail";
 import type { TournamentDetail as TournamentDetailPayload } from "./types";
+import { TournamentTab } from "@/tournaments/TournamentTab";
 import { loadDictionary } from "@/i18n/loadDictionary";
 import { loadCardTranslations } from "@/i18n/loadCardTranslations";
 import { translator } from "@/i18n/translator";
@@ -18,8 +22,6 @@ const DETAIL: TournamentDetailPayload = {
   topCutSize: null,
   bestOf: 3,
   allowBots: false,
-  rulesetPreset: "bandai_general",
-  rulesetVersion: "bandai_general/1.0.0",
   startsAt: Date.parse("2026-08-13T18:00:00.000Z"),
   maxPlayers: 32,
   registeredCount: 2,
@@ -35,7 +37,7 @@ const DETAIL: TournamentDetailPayload = {
   ],
   matches: [],
   participants: [
-    { id: "p-1", kind: "human", displayName: "Tamer One", status: "checked_in", seed: 1 },
+    { id: "p-1", accountId: "acc-player", kind: "human", displayName: "Tamer One", status: "checked_in", seed: 1 },
     { id: "p-2", kind: "bot", displayName: "Bot Two", status: "registered", seed: null },
   ],
 };
@@ -61,11 +63,13 @@ function mockDetail(
   );
 }
 
-function renderDetail(accountId?: string, accountDisplayName?: string, accountIsAdmin = false) {
+function renderDetail(accountId?: string, accountDisplayName?: string, accountIsAdmin = false, tab?: TournamentTab) {
   return render(
     <I18nProvider>
       <TournamentDetail
         id="t-1"
+        tab={tab}
+        onTabChange={() => undefined}
         accountId={accountId}
         accountDisplayName={accountDisplayName}
         accountIsAdmin={accountIsAdmin}
@@ -83,6 +87,23 @@ afterEach(() => {
 });
 
 describe("tournament detail", () => {
+  it("keeps the Discord channel link available after the tournament finishes", async () => {
+    const discordUrl = "https://discord.com/channels/1525646227608178798/1564793178366673027";
+    mockDetail({ status: "finished", discordUrl });
+    renderDetail();
+    const link = await screen.findByRole("link", { name: "Open tournament on Discord" });
+    expect(link.getAttribute("href")).toBe(discordUrl);
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+  });
+
+  it("does not offer a Discord link before a channel exists", async () => {
+    mockDetail({ discordUrl: null });
+    renderDetail();
+    await screen.findByText("Regional qualifier");
+    expect(screen.queryByRole("link", { name: "Open tournament on Discord" })).toBeNull();
+  });
+
   it("blocks participation and offers the sign-in call to action when signed out", async () => {
     mockDetail({}, { "GET /auth/me": { body: null } });
     renderDetail(undefined);
@@ -95,9 +116,17 @@ describe("tournament detail", () => {
     expect(screen.queryByRole("button", { name: "Drop out" })).toBeNull();
   });
 
+  it("hides dropping for an account without a tournament registration", async () => {
+    mockDetail();
+    renderDetail("acc-spectator");
+
+    await screen.findByRole("heading", { name: "Your entry" });
+    expect(screen.queryByRole("button", { name: "Drop out" })).toBeNull();
+  });
+
   it("renders the frozen banlist with card names, status and allowed copies", async () => {
     mockDetail();
-    renderDetail("acc-player");
+    renderDetail("acc-player", undefined, false, TournamentTab.RULES.value);
 
     const banlist = (await screen.findByRole("heading", { name: "Banned cards in this event" })).closest(
       ".aegis-panel",
@@ -118,13 +147,13 @@ describe("tournament detail", () => {
 
   it("says there are no restrictions when the policy is unrestricted", async () => {
     mockDetail({ banlistPolicy: { mode: "none" }, banlistCards: [] });
-    renderDetail("acc-player");
+    renderDetail("acc-player", undefined, false, TournamentTab.RULES.value);
     expect(await screen.findByText("No restrictions here: bring any legal deck.")).toBeTruthy();
   });
 
   it("lists participants with their status and marks bots", async () => {
     mockDetail();
-    renderDetail("acc-player");
+    renderDetail("acc-player", undefined, false, TournamentTab.PLAYERS.value);
     const participants = (await screen.findByRole("heading", { name: "Players" })).closest(
       ".aegis-panel",
     ) as HTMLElement;
@@ -136,7 +165,7 @@ describe("tournament detail", () => {
 
   it("shows the standings empty state until the server sends standings", async () => {
     mockDetail();
-    renderDetail("acc-player");
+    renderDetail("acc-player", undefined, false, TournamentTab.BRACKET.value);
     expect(await screen.findByText("Standings show up after the first round is scored.")).toBeTruthy();
   });
 
@@ -156,7 +185,7 @@ describe("tournament detail", () => {
         },
       ],
     });
-    renderDetail("acc-player");
+    renderDetail("acc-player", undefined, false, TournamentTab.BRACKET.value);
     const standings = (await screen.findByRole("heading", { name: "Standings" })).closest(
       ".aegis-panel",
     ) as HTMLElement;
@@ -164,26 +193,66 @@ describe("tournament detail", () => {
     expect(within(standings).getByText("9 points")).toBeTruthy();
   });
 
+  it("shows the official badge to players without endorsement controls", async () => {
+    mockDetail({ category: "official" });
+    renderDetail("acc-player");
+    expect(await screen.findByText("Official Aegis")).toBeTruthy();
+    expect(screen.queryByRole("switch", { name: /Official Aegis/ })).toBeNull();
+  });
+
+  it("lets platform administrators endorse an existing event", async () => {
+    mockDetail(
+      { category: "community" },
+      {
+        "POST /tournaments/t-1/category": { body: { category: "official" } },
+      },
+    );
+    renderDetail("acc-admin", undefined, true, TournamentTab.ORGANIZE.value);
+    fireEvent.click(await screen.findByRole("switch", { name: /Official Aegis/ }));
+    await waitFor(() => {
+      const request = vi
+        .mocked(fetch)
+        .mock.calls.find(
+          ([url, init]) => new URL(String(url)).pathname === "/tournaments/t-1/category" && init?.method === "POST",
+        );
+      expect(JSON.parse(String(request?.[1]?.body))).toEqual({ category: "official" });
+    });
+  });
+
   it("shows organizer controls only to the creator", async () => {
     mockDetail();
-    const player = renderDetail("acc-player");
-    await screen.findByRole("heading", { name: "Players" });
+    const player = renderDetail("acc-player", undefined, false, TournamentTab.ORGANIZE.value);
+    await screen.findByRole("heading", { name: "Your entry" });
+    expect(screen.queryByRole("link", { name: "Organize" })).toBeNull();
     expect(screen.queryByRole("heading", { name: "Organizer controls" })).toBeNull();
     player.unmount();
 
-    renderDetail("acc-organizer");
+    renderDetail("acc-organizer", undefined, false, TournamentTab.ORGANIZE.value);
     expect(await screen.findByRole("heading", { name: "Organizer controls" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Close check-in" })).toBeTruthy();
   });
 
   it("shows only the delete control to an admin who is not the creator", async () => {
     mockDetail();
-    renderDetail("acc-admin", undefined, true);
+    renderDetail("acc-admin", undefined, true, TournamentTab.ORGANIZE.value);
 
     expect(await screen.findByRole("heading", { name: "Admin controls" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Delete tournament" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Close check-in" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Save schedule" })).toBeNull();
+  });
+
+  it("sends the event password with registration and explains a refusal", async () => {
+    mockDetail(
+      { status: "registration", participants: [], passwordProtected: true },
+      { "POST /tournaments/t-1/participants": { status: 409, body: { error: "incorrect_password" } } },
+    );
+    renderDetail("acc-player");
+    fireEvent.change(await screen.findByLabelText("Event password"), { target: { value: "community-secret" } });
+    fireEvent.click(screen.getByRole("button", { name: "Sign up" }));
+    expect(await screen.findByText("The event password is incorrect.")).toBeTruthy();
+    const request = vi.mocked(fetch).mock.calls.find(([, init]) => init?.method === "POST");
+    expect(JSON.parse(String(request?.[1]?.body))).toMatchObject({ password: "community-secret" });
   });
 
   it("renders a participant failure code when registration is refused", async () => {
@@ -200,7 +269,9 @@ describe("tournament detail", () => {
     // check_in with the player already checked in: nothing to register, nothing to check into.
     mockDetail({
       status: "check_in",
-      participants: [{ id: "p-1", kind: "human", displayName: "Tamer One", status: "checked_in", seed: 1 }],
+      participants: [
+        { id: "p-1", accountId: "acc-player", kind: "human", displayName: "Tamer One", status: "checked_in", seed: 1 },
+      ],
     });
     const checkedIn = renderDetail("acc-player", "Tamer One");
     await screen.findByRole("heading", { name: "Your entry" });
@@ -278,9 +349,12 @@ describe("tournament detail", () => {
           },
         },
       );
-      renderDetail("acc-player", "Tamer One");
+      const rules = renderDetail("acc-player", "Tamer One", false, TournamentTab.RULES.value);
       expect(await screen.findByText("五彩兽", { selector: ".tournaments-banlist__name" })).toBeTruthy();
       expect(screen.getByText(t("tournaments.detail.pairWith", { cards: "劲力三叉爪" }))).toBeTruthy();
+      rules.unmount();
+      renderDetail("acc-player", "Tamer One");
+      await screen.findByRole("button", { name: t("tournaments.detail.register") });
       fireEvent.click(screen.getByRole("button", { name: t("tournaments.detail.register") }));
       expect(
         await screen.findByText(t("tournaments.violation.overCopyLimit", { card: "五彩兽", copies: 5, allowed: 4 })),
@@ -314,11 +388,228 @@ describe("tournament detail", () => {
     });
     renderDetail("acc-player");
     const panel = (await screen.findByRole("heading", { name: "My match" })).closest(".aegis-panel") as HTMLElement;
-    expect(within(panel).getByText("2")).toBeTruthy();
+    expect(within(panel).getByText("Round 2 · Table 1")).toBeTruthy();
     expect(within(panel).getByText("acc-rival")).toBeTruthy();
     expect(within(panel).getByText("Not reported yet")).toBeTruthy();
     expect(within(panel).getByText("Not started, first to 2 wins")).toBeTruthy();
     expect(within(panel).getByText("No deadline")).toBeTruthy();
-    expect(within(panel).getByText("No deadline set")).toBeTruthy();
   });
+
+  it("links every section tab to its own address and hides the organizer tab from players", async () => {
+    mockDetail();
+    renderDetail("acc-player");
+    const tabs = within(await screen.findByRole("navigation", { name: "Event sections" }));
+    expect(tabs.getByRole("link", { name: "Overview" }).getAttribute("aria-current")).toBe("page");
+    expect(tabs.getByRole("link", { name: "Rounds" }).getAttribute("href")).toBe("/tournaments/t-1/bracket");
+    expect(tabs.getByRole("link", { name: "Players" }).getAttribute("href")).toBe("/tournaments/t-1/players");
+    expect(tabs.queryByRole("link", { name: "Organize" })).toBeNull();
+  });
+
+  it("draws a single-elimination bracket on the overview with the player's own match marked", async () => {
+    mockDetail({
+      structure: "single_elimination",
+      status: "running",
+      participants: [
+        { id: "p-1", accountId: "acc-player", kind: "human", displayName: "Tamer One", status: "active", seed: 1 },
+        { id: "p-2", kind: "bot", displayName: "Bot Two", status: "active", seed: null },
+      ],
+      phases: [
+        {
+          id: "phase-1",
+          kind: "single_elimination",
+          status: "running",
+          plannedRounds: 1,
+          rounds: [
+            {
+              number: 1,
+              status: "published",
+              publishedAt: null,
+              matches: [
+                {
+                  matchId: "m-1",
+                  seriesId: null,
+                  status: "scheduled",
+                  participantIds: ["p-1", "p-2"],
+                  winnerSeat: null,
+                  participant0Id: "acc-player",
+                  participant1Id: null,
+                  wins0: 0,
+                  wins1: 0,
+                  currentGameIndex: null,
+                  joinDeadlineAt: null,
+                  seriesDeadlineAt: 1,
+                  winnerParticipantId: null,
+                  pairingReason: null,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    renderDetail("acc-player");
+    const bracket = (await screen.findByRole("heading", { name: "Bracket" })).closest(".aegis-panel") as HTMLElement;
+    const final = within(bracket).getByRole("heading", { name: "Final" }).parentElement!;
+    const [match] = [...final.querySelectorAll("li")];
+    expect(match!.getAttribute("data-mine")).toBe("true");
+    expect(match!.textContent).toContain("Tamer One");
+    expect(match!.textContent).toContain("Bot Two");
+    expect(within(bracket).getByText("Champion")).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Standings" })).toBeNull();
+  });
+});
+
+describe("tournament match entry", () => {
+  it("confirms presence before entering the authorized next game", async () => {
+    const ticket = {
+      tournamentId: "t-1",
+      matchId: "m-1",
+      seriesId: "s-1",
+      gameId: "g-1",
+      token: "seat-token",
+      expiresAt: Date.now() + 60_000,
+    };
+    mockDetail(
+      {},
+      {
+        "POST /tournaments/t-1/matches/m-1/present": { body: {} },
+        "POST /series/s-1/authorize-game": { body: ticket },
+      },
+    );
+    const onJoinGame = vi.fn();
+    const onChanged = vi.fn();
+    const view = render(
+      <I18nProvider>
+        <TournamentMatchActions
+          tournamentId="t-1"
+          matchId="m-1"
+          seriesId={null}
+          onJoinGame={onJoinGame}
+          onChanged={onChanged}
+        />
+      </I18nProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "I am ready" }));
+    expect(await screen.findByText("Waiting for the opponent to confirm presence.")).toBeTruthy();
+    expect(onChanged).toHaveBeenCalledOnce();
+    expect(onJoinGame).not.toHaveBeenCalled();
+    view.rerender(
+      <I18nProvider>
+        <TournamentMatchActions
+          tournamentId="t-1"
+          matchId="m-1"
+          seriesId="s-1"
+          onJoinGame={onJoinGame}
+          onChanged={onChanged}
+        />
+      </I18nProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Enter game" }));
+    await waitFor(() => expect(onJoinGame).toHaveBeenCalledWith(ticket));
+  });
+});
+
+describe("organizer pairing controls", () => {
+  it("sends selected seats and retains the command id when retrying a failed request", async () => {
+    mockDetail(
+      {},
+      { "POST /tournaments/t-1/arbitration/pairings/swap": { status: 500, body: { error: "temporary_failure" } } },
+    );
+    const matches: TournamentDetailPayload["matches"] = [
+      {
+        id: "m-1",
+        round: 1,
+        position: 0,
+        player0AccountId: "a",
+        player1AccountId: "b",
+        winnerAccountId: null,
+        status: "pending",
+      },
+      {
+        id: "m-2",
+        round: 1,
+        position: 1,
+        player0AccountId: "c",
+        player1AccountId: "d",
+        winnerAccountId: null,
+        status: "pending",
+      },
+    ];
+    const onChanged = vi.fn<() => void>();
+    render(
+      <I18nProvider>
+        <TournamentPairingControls detail={{ ...DETAIL, matches }} onChanged={onChanged} />
+      </I18nProvider>,
+    );
+    fireEvent.change(screen.getByLabelText("First player"), { target: { value: "m-1:0" } });
+    fireEvent.change(screen.getByLabelText("Second player"), { target: { value: "m-2:1" } });
+    fireEvent.change(screen.getByLabelText("Reason for the change"), { target: { value: "Correct seating" } });
+    fireEvent.click(screen.getByRole("button", { name: "Swap players" }));
+    await screen.findByText(/temporary_failure/);
+    fireEvent.click(screen.getByRole("button", { name: "Swap players" }));
+    await waitFor(() =>
+      expect(vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(2),
+    );
+    const bodies = vi
+      .mocked(fetch)
+      .mock.calls.filter(([, init]) => init?.method === "POST")
+      .map(([, init]) => JSON.parse(String(init?.body)));
+    expect(bodies[0]).toMatchObject({
+      firstMatchId: "m-1",
+      firstSeat: 0,
+      secondMatchId: "m-2",
+      secondSeat: 1,
+      reason: "Correct seating",
+    });
+    expect(bodies[0].commandId).toBeTruthy();
+    expect(bodies[1]).toEqual(bodies[0]);
+    expect(onChanged).not.toHaveBeenCalled();
+  });
+});
+
+it("shows the players, final score and authoritative winner, including bot seats", () => {
+  render(
+    <I18nProvider>
+      <TournamentMatchHistory
+        detail={{
+          participants: [
+            { id: "human", accountId: "account", displayName: "Alice", kind: "human", status: "active", seed: null },
+            { id: "bot", accountId: null, displayName: "Community Bot", kind: "bot", status: "active", seed: null },
+          ],
+          matches: [
+            {
+              id: "match",
+              round: 2,
+              position: 0,
+              player0AccountId: "account",
+              player1AccountId: null,
+              winnerAccountId: null,
+              status: "finished",
+            },
+          ],
+          series: [
+            {
+              matchId: "match",
+              seriesId: "series",
+              status: "resolved",
+              participantIds: ["human", "bot"],
+              winnerSeat: 1,
+              participant0Id: "account",
+              participant1Id: null,
+              wins0: 1,
+              wins1: 2,
+              currentGameIndex: null,
+              joinDeadlineAt: null,
+              seriesDeadlineAt: null,
+              winnerParticipantId: null,
+            },
+          ],
+        }}
+      />
+    </I18nProvider>,
+  );
+  expect(screen.getByText("Alice · Community Bot")).toBeTruthy();
+  expect(screen.getByText("1 - 2")).toBeTruthy();
+  expect(screen.getByText("Winner: Community Bot")).toBeTruthy();
+  expect(screen.getByText("Round 2, table 1")).toBeTruthy();
 });

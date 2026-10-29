@@ -53,6 +53,7 @@ export function seatPlayer(engine: GameEngine, seat: Seat, sessionId: string, op
       betaBattleMode: options.betaBattleMode === true,
       unlimited: options.unlimited === true,
       format: options.format,
+      banlistCards: options.banlistCards,
     });
     if (!verdict.ok) throw new Error(`illegal deck: ${verdict.reason}`);
   }

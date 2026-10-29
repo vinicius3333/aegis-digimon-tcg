@@ -1816,6 +1816,7 @@ export class CombatController {
           ];
     });
     const customEffectGrantsSnapshot = this.hooks.snapshotCustomEffectGrants?.(departingInstanceIds);
+    const stackEffectConferralsSnapshot = this.hooks.snapshotStackEffectConferrals?.();
     const tokenDeletionCandidates = postCardPreventionDeletedIds.flatMap((permanentId) => {
       const top = this.access.permanentById(permanentId)?.topCard;
       return top !== undefined && getCardDefinition(top.cardId)?.isToken === true ? [top] : [];
@@ -1926,6 +1927,7 @@ export class CombatController {
         deletedLinkHostInstanceByLinkedInstanceId,
         deletedHostInstanceByInstanceId,
         ...(customEffectGrantsSnapshot === undefined ? {} : { customEffectGrantsSnapshot }),
+        ...(stackEffectConferralsSnapshot === undefined ? {} : { stackEffectConferralsSnapshot }),
         fortitudeInstanceIds: [...fortitudeReplayInstanceIds.values()].filter((instanceId) =>
           deletedInstanceIds.includes(instanceId),
         ),

@@ -53,9 +53,35 @@ describe("application routes", () => {
     expect(pathForRoute({ screen: "myFeedback" })).toBe("/feedback");
   });
 
-  it("rejects unknown paths, tournaments included while the feature is hidden", () => {
+  it("rejects unknown paths", () => {
     expect(routeFromPathname("/unknown")).toBeUndefined();
     expect(routeFromPathname("/feedback/abc")).toBeUndefined();
-    expect(routeFromPathname("/tournaments")).toBeUndefined();
+    expect(routeFromPathname("/tournaments")).toEqual({ screen: "tournaments", tournament: { kind: "catalog" } });
+    expect(routeFromPathname("/tournaments/new")).toEqual({ screen: "tournaments", tournament: { kind: "create" } });
+    const route = { screen: "tournaments", tournament: { kind: "detail", id: "community-cup" } } as const;
+    expect(routeFromPathname(pathForRoute(route))).toEqual(route);
+  });
+
+  it("round-trips circuit creation and circuit detail paths", () => {
+    const create = { screen: "tournaments", tournament: { kind: "createCircuit" } } as const;
+    const detail = { screen: "tournaments", tournament: { kind: "circuit", id: "weekly-circuit" } } as const;
+    expect(pathForRoute(create)).toBe("/tournaments/circuits/new");
+    expect(pathForRoute(detail)).toBe("/tournaments/circuits/weekly-circuit");
+    expect(routeFromPathname("/tournaments/circuits/new")).toEqual(create);
+    expect(routeFromPathname("/tournaments/circuits/weekly-circuit")).toEqual(detail);
+  });
+
+  it("keeps a tournament tab in the path and leaves the overview at the event root", () => {
+    const bracket = {
+      screen: "tournaments",
+      tournament: { kind: "detail", id: "community-cup", tab: "bracket" },
+    } as const;
+    expect(pathForRoute(bracket)).toBe("/tournaments/community-cup/bracket");
+    expect(routeFromPathname("/tournaments/community-cup/bracket")).toEqual(bracket);
+    expect(
+      pathForRoute({ screen: "tournaments", tournament: { kind: "detail", id: "community-cup", tab: "overview" } }),
+    ).toBe("/tournaments/community-cup");
+    expect(routeFromPathname("/tournaments/community-cup/overview")).toBeUndefined();
+    expect(routeFromPathname("/tournaments/community-cup/constructor")).toBeUndefined();
   });
 });

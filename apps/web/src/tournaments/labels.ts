@@ -110,6 +110,7 @@ const REASON_KEYS = new Set<string>([
   ...TOURNAMENT_VALIDATION_CODES,
   "network_error",
   "tournament_already_started",
+  "tournament_limit_reached",
 ]);
 
 /** The key for a reason code, or undefined when the server sent one this build does not know. */

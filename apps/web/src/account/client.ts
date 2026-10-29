@@ -1,3 +1,4 @@
+import type { AccountRole } from "@aegis/shared/account/AccountRole";
 import type { SpectatorAccess } from "@aegis/shared/account/SpectatorAccess";
 import type { UsedDeck } from "@aegis/shared/decks/UsedDeck";
 import type { CardImageLanguage } from "@aegis/shared/cards/CardImageLanguage";
@@ -12,6 +13,7 @@ import type {
   PlaytestMembership,
 } from "@aegis/shared";
 import type { DigimonWorldAvatarId } from "./avatars";
+import type { MatchHistoryExport } from "@aegis/shared/replays/MatchHistoryExport";
 
 // The match overlay imports this module, so it must also load where `location` is absent (Node tests).
 const fallbackHost = typeof location === "undefined" ? "localhost" : location.hostname;
@@ -23,6 +25,7 @@ export type RemoteAccount = {
   avatarUrl: string | null;
   avatarId: DigimonWorldAvatarId | null;
   avatarSource: AvatarSource;
+  roles: AccountRole[];
   isAdmin: boolean;
   /** Sent by `/auth/me` and the Discord avatar refresh; other account responses omit it. */
   discordLinked?: boolean;
@@ -39,6 +42,7 @@ export type AccountPreferences = {
   deckView?: "grid" | "list";
   deckSort?: string;
   profileStats?: boolean;
+  profileTrophies?: boolean;
   shareProfileStats?: boolean;
   shareDeckAfterMatch?: boolean;
   listLiveMatches?: boolean;
@@ -103,7 +107,15 @@ export const accountApi = {
   playtest: () => request<PlaytestMembership>("/account/playtest"),
   setPlaytest: (member: boolean) =>
     request<PlaytestMembership>("/account/playtest", { method: "PUT", body: JSON.stringify({ member }) }),
-  matches: ({ page, limit, result, mode, opponent, deckId }: { page: number; limit: number } & MatchHistoryFilter) =>
+  matches: ({
+    page,
+    limit,
+    result,
+    mode,
+    opponent,
+    deckId,
+    deckWindow,
+  }: { page: number; limit: number } & MatchHistoryFilter) =>
     request<MatchHistoryPage>(
       `/account/matches?${new URLSearchParams({
         page: String(page),
@@ -112,8 +124,10 @@ export const accountApi = {
         ...(mode ? { mode } : {}),
         ...(opponent ? { opponent } : {}),
         ...(deckId ? { deckId } : {}),
+        ...(deckWindow ? { deckWindow } : {}),
       })}`,
     ),
+  matchHistoryExport: () => request<MatchHistoryExport>("/account/matches/export"),
   updateProfile: (changes: { displayName: string; avatarId: AvatarChoice }) =>
     request<RemoteAccount>("/account/profile", { method: "PUT", body: JSON.stringify(changes) }),
   updateAvatar: (avatarId: AvatarChoice) =>

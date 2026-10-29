@@ -3,7 +3,7 @@ import type { LiveMatch } from "@aegis/shared/protocol/LiveMatch";
 import { Badge, Button } from "@/design/primitives";
 import { Icons } from "@/design/icons";
 import { useTranslation } from "@/i18n/useTranslation";
-import { deckFormatLabel } from "./DeckFormatSelector";
+import { deckFormatLabel } from "@/screens/deckFormatLabel";
 
 export function LiveMatchList({
   matches,

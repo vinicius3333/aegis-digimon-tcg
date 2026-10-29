@@ -1,3 +1,5 @@
+import { grantTournamentTrophies } from "#api/achievements/grantTournamentTrophies";
+import { buildTournamentRules } from "#api/tournaments/rules/buildTournamentRules";
 import { randomUUID } from "node:crypto";
 import type {
   LedgerEntry,
@@ -15,7 +17,7 @@ import type { Queryable } from "../../db/migrator.js";
 import { appendTournamentEvent } from "../audit/index.js";
 import { pairSwissRound, type PairingParticipant, type SwissPairingResult } from "../pairing/index.js";
 import { type AcquireTournamentLock, inProcessTournamentLock } from "../participants/index.js";
-import { BANDAI_GENERAL_PRESET, freezeStructure } from "../rules/index.js";
+import { freezeStructure } from "../rules/index.js";
 import type { SeriesStore } from "../series/index.js";
 import { computeStandings } from "../standings/index.js";
 
@@ -214,6 +216,12 @@ export class SwissProgram {
         phaseId: phase.id,
         participantId: winner?.participantId ?? null,
         after: { winnerParticipantId: winner?.participantId ?? null, winnerAccountId },
+        now,
+      });
+      await grantTournamentTrophies({
+        db: client,
+        tournamentId: tournament.id,
+        standings: async () => standings,
         now,
       });
       return ok({ kind: "tournament_finished", winnerParticipantId: winner?.participantId ?? null } as const);
@@ -846,7 +854,7 @@ export function standingsConfig(
   rules: TournamentRules | null,
   tournamentId = "unknown-tournament",
 ): TournamentRules["standings"] {
-  const standings = rules?.standings ?? BANDAI_GENERAL_PRESET.standings;
+  const standings = rules?.standings ?? buildTournamentRules({ bestOf: 3 }).standings;
   const translated = standings.tiebreakers.map((tiebreaker) => TIEBREAKER_ALIASES[tiebreaker] ?? tiebreaker);
   const usable = translated.filter((tiebreaker) => KNOWN_TIEBREAKERS.has(tiebreaker));
   if (usable.length !== translated.length && !reportedUnknownTiebreakers.has(tournamentId)) {
@@ -860,7 +868,7 @@ export function standingsConfig(
 }
 
 function joinGraceMs(rules: TournamentRules | null): number {
-  return rules?.attendance.joinGraceMs ?? BANDAI_GENERAL_PRESET.attendance.joinGraceMs;
+  return rules?.attendance.joinGraceMs ?? buildTournamentRules({ bestOf: 3 }).attendance.joinGraceMs;
 }
 
 /**

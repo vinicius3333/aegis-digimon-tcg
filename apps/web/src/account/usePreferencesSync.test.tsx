@@ -1,3 +1,5 @@
+import { profileTrophiesStore } from "@/achievements/profileTrophiesStore";
+import { setProfileTrophiesShown } from "@/achievements/setProfileTrophiesShown";
 import { setTamerGroupingEnabled } from "@/design/tamerGrouping/setTamerGroupingEnabled";
 import { tamerGroupingStore } from "@/design/tamerGrouping/tamerGroupingStore";
 import { getCardImageLanguage } from "@/screens/cardLanguage/getCardImageLanguage";
@@ -167,6 +169,27 @@ it("defaults missing auto hatch to false when switching accounts", async () => {
   await waitFor(() => expect(isAutoHatchEnabled()).toBe(true));
   rerender({ id: "account-2" });
   await waitFor(() => expect(isAutoHatchEnabled()).toBe(false));
+});
+
+it("loads trophy visibility from the account and syncs changes", async () => {
+  setProfileTrophiesShown(true);
+  const stored = { profileTrophies: false };
+  vi.spyOn(accountApi, "preferences").mockResolvedValue(stored);
+  const update = echoUpdates(stored);
+  renderSync("account-1");
+  await waitFor(() => expect(profileTrophiesStore.shown).toBe(false));
+  act(() => setProfileTrophiesShown(true));
+  await waitFor(() => expect(update).toHaveBeenLastCalledWith({ profileTrophies: true }));
+});
+
+it("shows trophies by default without saving an unsolicited preference", async () => {
+  setProfileTrophiesShown(false);
+  vi.spyOn(accountApi, "preferences").mockResolvedValue({});
+  const update = echoUpdates({});
+  renderSync("account-1");
+  await waitFor(() => expect(profileTrophiesStore.shown).toBe(true));
+  await waitFor(() => expect(update).toHaveBeenCalled());
+  expect(update.mock.calls.some(([changes]) => "profileTrophies" in changes)).toBe(false);
 });
 
 it("loads the profile stats choice from the account and syncs changes", async () => {

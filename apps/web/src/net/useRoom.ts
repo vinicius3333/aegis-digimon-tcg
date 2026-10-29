@@ -1,3 +1,4 @@
+import type { TournamentSpectateTarget } from "@/tournaments/TournamentSpectateTarget";
 import { SPECTATOR_ACCESS_REVOKED_CLOSE_CODE } from "@aegis/shared/protocol/spectatorAccessRevokedCloseCode";
 import { ClientErrorKind } from "@aegis/shared/clientErrors/ClientErrorKind";
 import { ConnectionErrorCode } from "@aegis/shared/protocol/ConnectionErrorCode";
@@ -171,6 +172,7 @@ export interface MatchConfig {
   waitForHost?: boolean;
   /** The `series` mode's seat in a later game of a best-of-three. */
   seriesGame?: SeriesGameTicket;
+  tournamentMatch?: TournamentSpectateTarget;
 }
 
 const HOST_REOPEN_POLL_MS = 2000;
@@ -200,9 +202,13 @@ function connectRoom(
   options: AegisJoinOptions,
   match: MatchConfig | undefined,
   isCancelled: () => boolean,
+  signal?: AbortSignal,
 ): Promise<AegisRoom> {
   switch (match?.mode) {
     case "spectator":
+      if (match.tournamentMatch) {
+        return spectate(match.tournamentMatch);
+      }
       if (!match.roomCode) throw new Error("roomCode required for spectator");
       return spectate({
         roomCode: match.roomCode,
@@ -224,7 +230,7 @@ function connectRoom(
       if (match.waitForHost) return joinWhenHostReopens(match.roomCode, options, isCancelled);
       return joinPrivateByCode(match.roomCode, options);
     default:
-      return joinOrCreate(options);
+      return joinOrCreate(options, signal);
   }
 }
 
@@ -264,6 +270,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
     setUsedDeck(undefined);
     setOpponentDeck(undefined);
 
+    const queueAbort = new AbortController();
     let stopHeartbeat = () => {};
     let stopLiveness = () => {};
     let stopMessageRecovery = () => {};
@@ -500,7 +507,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
       }
       if (cancelled) throw new Error("cancelled");
       setStatus("connecting");
-      return connectRoom(options, match, () => cancelled);
+      return connectRoom(options, match, () => cancelled, queueAbort.signal);
     };
 
     resumeOrConnect()
@@ -525,6 +532,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
 
     return () => {
       cancelled = true;
+      queueAbort.abort();
       stopMessageRecovery();
       stopHeartbeat();
       stopLiveness();

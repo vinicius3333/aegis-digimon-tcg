@@ -48,6 +48,35 @@ function router({
 }
 
 describe("room-scoped deployment affinity", () => {
+  it("routes tournament authorizations without adding a conflicting account ticket", async () => {
+    setRoomTicketAccount(true);
+    onTestFinished(() => setRoomTicketAccount(false));
+    const tournamentRoom = room("tournament-game-room");
+    const greenJoin = vi.fn<() => Promise<Room<GameState>>>(async () => tournamentRoom);
+    const client = router({
+      manifest: { version: 1, active: { slot: "green", revision: "new" }, draining: [] },
+      blue: clientPort(),
+      green: clientPort({ joinOrCreate: greenJoin }),
+    });
+    await expect(
+      client.joinOrCreate({
+        ...OPTIONS,
+        tournamentGameId: "game-1",
+        tournamentGameToken: "token-1",
+        authTicket: "stale",
+      }),
+    ).resolves.toBe(tournamentRoom);
+    expect(greenJoin).toHaveBeenCalledWith(
+      "aegis_tournament",
+      expect.objectContaining({
+        tournamentGameId: "game-1",
+        tournamentGameToken: "token-1",
+        authTicket: undefined,
+      }),
+    );
+    expect(connectionSlot(tournamentRoom)).toBe("green");
+  });
+
   it("routes an opted-in beta match to the production beta queue", async () => {
     const betaRoom = room("beta-room");
     const greenJoin = vi.fn(async () => betaRoom);

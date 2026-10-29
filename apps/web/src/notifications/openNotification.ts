@@ -6,6 +6,9 @@ type OpenNotificationParams = {
 };
 
 export function openNotification({ notification, onOpenFeedback }: OpenNotificationParams): void {
+  if (notification.kind === "ranked_report_ruling") {
+    return;
+  }
   if (notification.kind === "playtest_study") {
     if (notification.payload.closesAt > Date.now()) {
       window.open(notification.payload.link, "_blank", "noopener");

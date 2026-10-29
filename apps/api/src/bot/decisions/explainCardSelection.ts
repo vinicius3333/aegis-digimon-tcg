@@ -276,6 +276,16 @@ function keepDistinctCards(context: SelectionContext, ordered: readonly string[]
   });
 }
 
+function selectOpponentTargets(context: SelectionContext, ranked: readonly string[], max: number): string[] {
+  const suspending = context.request.options?.targetFate === "suspend";
+  return ranked
+    .filter((instanceId) => {
+      const unit = context.opponentUnits.get(instanceId);
+      return unit !== undefined && !(suspending && unit.suspended);
+    })
+    .slice(0, max);
+}
+
 function explainUnforcedSelection(context: SelectionContext, ranked: readonly string[]): CardSelection {
   const options = context.request.options;
   const max = options?.max ?? 1;
@@ -307,7 +317,7 @@ function explainUnforcedSelection(context: SelectionContext, ranked: readonly st
     return { instanceIds: pool.slice(0, max), basis: DecisionBasis.SCORED.value };
   }
   if (ranked[0] !== undefined && context.opponentUnits.has(ranked[0])) {
-    return { instanceIds: ranked.slice(0, 1), basis: DecisionBasis.SCORED.value };
+    return { instanceIds: selectOpponentTargets(context, ranked, max), basis: DecisionBasis.SCORED.value };
   }
   return explainOwnOptionalSelection(context, ranked);
 }

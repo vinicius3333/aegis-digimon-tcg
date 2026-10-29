@@ -200,6 +200,9 @@
   border-color: var(--ds-accent);
 }
 .profile-stats-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-3) var(--ds-space-5);
   margin-top: var(--ds-space-5);
   padding-top: var(--ds-space-4);
   border-top: 1px solid var(--ds-line);
@@ -519,6 +522,9 @@
   background: none;
   font: 600 var(--ds-text-sm) var(--ds-font-body);
   cursor: pointer;
+}
+.profile-deck-window {
+  margin-bottom: var(--ds-space-3);
 }
 .profile-filter button[aria-pressed="true"] {
   color: var(--ds-accent);
@@ -867,13 +873,15 @@
     flex: 1;
     padding: 0 var(--ds-space-2);
   }
-  .profile-page .profile-open-file {
+  .profile-page .profile-open-file,
+  .profile-page .profile-export-history {
     width: var(--ds-touch-target);
     min-width: var(--ds-touch-target);
     padding: 0;
     font-size: 0;
   }
-  .profile-page .profile-open-file > svg {
+  .profile-page .profile-open-file > svg,
+  .profile-page .profile-export-history > svg {
     margin: 0;
   }
   .profile-matches > li {

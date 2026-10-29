@@ -73,7 +73,7 @@ describe("BT15-034", () => {
         .map(({ req }) => req.options?.effectTextPart),
     ).toEqual([
       "[Start of Your Main Phase] If you have 3 or more security cards, you may add the top card of your security stack to the hand.",
-      "If you have 2 or fewer, you may place 1 yellow Digimon card with the [Vaccine]&#160;trait from your hand at the top or bottom of your security stack.",
+      "If you have 2 or fewer, you may place 1 yellow Digimon card with the [Vaccine] trait from your hand at the top or bottom of your security stack.",
     ]);
   });
 

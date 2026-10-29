@@ -7,7 +7,7 @@
 
 .lobby-content {
   display: grid;
-  width: min(100%, calc(1120px + 2 * var(--ds-gutter-desktop)));
+  width: min(100%, calc(1440px + 2 * var(--ds-gutter-desktop)));
   gap: var(--ds-space-6);
   margin-inline: auto;
   padding: var(--ds-space-5) var(--ds-gutter-desktop) var(--ds-space-12);
@@ -166,8 +166,39 @@ button.lobby-active-strip__jump {
   margin-top: var(--ds-space-2);
 }
 
+.lobby-header .aegis-section-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+}
+
+.lobby-header__copy {
+  min-width: 0;
+}
+
 .lobby-header .aegis-section-heading__title {
-  font-size: clamp(var(--ds-text-xl), 2.4vw, var(--ds-text-3xl));
+  max-width: none;
+  font-size: clamp(var(--ds-text-2xl), 3vw, var(--ds-text-4xl));
+}
+
+.lobby-header__copy p {
+  margin: var(--ds-space-2) 0 0;
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-sm);
+}
+
+.lobby-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-1);
+}
+
+.lobby-header__actions .aegis-button {
+  padding-inline: var(--ds-space-3);
+  font-size: var(--ds-text-xs);
 }
 
 /* Game modes: one selectable card each. */
@@ -588,7 +619,7 @@ button.lobby-active-strip__jump {
 }
 
 .lobby-setup__launch {
-  margin-top: var(--ds-space-3);
+  margin-top: 0;
 }
 
 .lobby-beta-confirm-actions {
@@ -596,6 +627,65 @@ button.lobby-active-strip__jump {
   justify-content: flex-end;
   gap: var(--ds-space-3);
   margin-top: var(--ds-space-4);
+}
+
+.lobby-setup__notices {
+  display: grid;
+  gap: var(--ds-space-3);
+}
+
+.lobby-setup__controls {
+  display: grid;
+  gap: var(--ds-space-4);
+  min-width: 0;
+}
+
+.lobby-setup__direct-launch:empty {
+  display: none;
+}
+
+.lobby-queue-setup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--ds-space-6);
+}
+
+.lobby-queue-setup .ranked-start {
+  min-width: 0;
+  gap: var(--ds-space-3);
+  margin: 0;
+}
+
+.lobby-queue-setup .ranked-start__action {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: var(--ds-space-4);
+  padding-left: var(--ds-space-6);
+  border-left: 1px solid var(--ds-line);
+}
+
+.lobby-queue-setup .lobby-setup__summary > span {
+  min-height: var(--ds-touch-target);
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.lobby-queue-setup .ranked-start__choice {
+  padding: var(--ds-space-4);
+}
+
+.lobby-setup__direct-launch {
+  max-width: 640px;
+}
+
+.lobby-setup .lobby-launch__label {
+  display: inline;
+}
+
+.lobby-setup .lobby-launch__short {
+  display: none;
 }
 
 @media (width < 960px) {
@@ -647,6 +737,18 @@ button.lobby-active-strip__jump {
   .lobby-setup__body {
     grid-auto-flow: row;
   }
+
+  .lobby-queue-setup {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ds-space-4);
+  }
+
+  .lobby-queue-setup .ranked-start__action {
+    padding-top: var(--ds-space-4);
+    padding-left: 0;
+    border-top: 1px solid var(--ds-line);
+    border-left: 0;
+  }
 }
 
 @media (width < 600px) {
@@ -684,6 +786,27 @@ button.lobby-active-strip__jump {
 
   .lobby-launch__short {
     display: inline;
+  }
+
+  .lobby-change-deck {
+    max-width: 44%;
+    white-space: normal;
+  }
+
+  .lobby-header__actions {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lobby-header__actions .aegis-button {
+    justify-content: flex-start;
+    white-space: normal;
+    text-align: left;
+  }
+
+  .lobby-queue-setup .ranked-start__choices {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .lobby-setup {
@@ -738,12 +861,6 @@ button.lobby-active-strip__jump {
 .lobby-bot-preview__copy small {
   color: var(--ds-text-3);
 }
-@media (min-width: 769px) and (max-width: 1024px) {
-  .lobby-modes {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 .lobby-setup__header {
   display: flex;
   flex-wrap: wrap;

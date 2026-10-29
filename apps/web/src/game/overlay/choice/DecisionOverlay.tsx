@@ -1,3 +1,4 @@
+import "@/game/overlay/choice/sourceCardPicker.css";
 import { getCardTextField } from "@/i18n/getCardTextField";
 import { useTranslatedCardText } from "@/i18n/useTranslatedCardText";
 import { EffectText } from "@/game/EffectText";
@@ -81,6 +82,7 @@ export function DecisionOverlay({
   onTogglePick,
   onRespond,
   onChangeSourceHost,
+  sourcePicker = onChangeSourceHost !== undefined,
   confirmLabel,
   contextText,
 }: {
@@ -99,6 +101,7 @@ export function DecisionOverlay({
    * only those cards, without the effect text, and offers to go back to choosing a Digimon.
    */
   onChangeSourceHost?: () => void;
+  sourcePicker?: boolean;
 }) {
   const getCardName = useTranslatedCardName();
   const { t, locale } = useTranslation();
@@ -106,6 +109,10 @@ export function DecisionOverlay({
   const effectPromptPosition = useEffectPromptPosition();
   const openCard = useCardOpener();
   const wideDialog = useMediaQuery(WIDE_DIALOG_QUERY);
+  const selectedSourceHostCardId = sourcePicker
+    ? candidates.find((candidate) => candidate.hostCardId)?.hostCardId
+    : undefined;
+  const headerCardId = selectedSourceHostCardId ?? sourceCardId;
   const min = decisionSelectionMin(request);
   const max = request.options?.max ?? 1;
   const choices = request.options?.choices ?? [];
@@ -291,6 +298,14 @@ export function DecisionOverlay({
     />
   ) : undefined;
 
+  let headerTitle = translateCardText({ text: promptText, cardId: request.options?.effectTextCardId ?? sourceCardId });
+  if (isResolutionPlan) {
+    headerTitle = t("overlay.orderPendingEffects");
+  }
+  if (selectedSourceHostCardId) {
+    headerTitle = getCardName(selectedSourceHostCardId);
+  }
+
   const boardReturn = isViewingBoard ? (
     <DecisionBoardReturn returnControlRef={returnControlRef} onReturn={() => setIsViewingBoard(false)} />
   ) : null;
@@ -338,7 +353,7 @@ export function DecisionOverlay({
           data-effect-activation={draggableActivation || undefined}
           data-prompt-dragged={(draggableActivation && drag.position !== undefined) || undefined}
           data-source-clear={sourceClear?.["data-source-clear"]}
-          className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isCardChoice ? " decision-overlay--card-choice" : ""}${isOrdering ? " decision-overlay--ordering" : ""}${isSecurityChoice ? " decision-overlay--security-choice" : ""}${isSelect ? " decision-overlay--selection" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}${isResolutionPlan ? " decision-overlay--resolution-plan" : ""}${docksOnRail ? " decision-overlay--side" : ""}`}
+          className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isCardChoice ? " decision-overlay--card-choice" : ""}${isOrdering ? " decision-overlay--ordering" : ""}${isSecurityChoice ? " decision-overlay--security-choice" : ""}${isSelect ? " decision-overlay--selection" : ""}${sourcePicker ? " decision-overlay--source-picker" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}${isResolutionPlan ? " decision-overlay--resolution-plan" : ""}${docksOnRail ? " decision-overlay--side" : ""}`}
           onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
           /* Geometry, surface and entrance all live in game.css: inline values could not be
          overridden by the phone bottom-sheet rules, and an inline `animation` shorthand
@@ -361,41 +376,37 @@ export function DecisionOverlay({
         >
           {/* Artwork and the question share the same compact header as combat prompts. */}
           <div className="decision-overlay__header">
-            {sourceCardId ? (
+            {headerCardId ? (
               /* The art is now the only mention of the card, so it carries the link that the
              spelled-out name used to: same route to the full card, one less line to read. */
               openCard ? (
                 <button
                   type="button"
                   className="decision-overlay__source-art"
-                  aria-label={t("feed.openCard", { card: getCardName(sourceCardId) })}
-                  onClick={() => openCard(sourceCardId)}
+                  aria-label={t("feed.openCard", { card: getCardName(headerCardId) })}
+                  onClick={() => openCard(headerCardId)}
                 >
                   <span className="mobile-prompt-art">
-                    <CardMini cardId={sourceCardId} width={DECISION_SOURCE_ART_WIDTH} zoomOnHover={false} />
+                    <CardMini cardId={headerCardId} width={DECISION_SOURCE_ART_WIDTH} zoomOnHover={false} />
                   </span>
                 </button>
               ) : (
                 <span className="decision-overlay__source-art" aria-hidden="true">
                   <span className="mobile-prompt-art">
-                    <CardMini cardId={sourceCardId} width={DECISION_SOURCE_ART_WIDTH} zoomOnHover={false} />
+                    <CardMini cardId={headerCardId} width={DECISION_SOURCE_ART_WIDTH} zoomOnHover={false} />
                   </span>
                 </span>
               )
             ) : null}
             <div className="decision-overlay__question">
               <div className="decision-overlay__heading">
-                <h2 className="decision-overlay__title">
-                  {isResolutionPlan
-                    ? t("overlay.orderPendingEffects")
-                    : translateCardText({
-                        text: promptText,
-                        cardId: request.options?.effectTextCardId ?? sourceCardId,
-                      })}
-                </h2>
+                <h2 className="decision-overlay__title">{headerTitle}</h2>
               </div>
+              {selectedSourceHostCardId ? (
+                <p className="decision-overlay__source-picker-label">{t("overlay.candidateZone.digivolutionCards")}</p>
+              ) : null}
               <div className="decision-overlay__clauses">
-                {!isOrderTriggers && displayedEffectText && onChangeSourceHost === undefined ? (
+                {!isOrderTriggers && displayedEffectText && !sourcePicker ? (
                   <p className="decision-overlay__effect-text">
                     {locale === "zh-CN" ? (
                       <EffectText
@@ -442,7 +453,7 @@ export function DecisionOverlay({
               withinPlayCostBudget={withinPlayCostBudget}
               maxTotalDP={maxTotalDP}
               selectedDP={selectedDP}
-              wideDialog={wideDialog}
+              sourcePicker={sourcePicker}
               fateBadge={fateBadge}
               onTogglePick={onTogglePick}
             />
@@ -516,9 +527,15 @@ export function DecisionOverlay({
               onNone={() =>
                 onRespond({ kind: request.kind === "selectCards" ? "selectCards" : "chooseTargets", instanceIds: [] })
               }
+              cancelLabel={sourcePicker ? t("common.cancel") : undefined}
               onCancelActivation={
-                request.kind === "chooseTargets" && request.options?.canCancelActivation === true
-                  ? () => onRespond({ kind: "chooseTargets", instanceIds: [] })
+                (request.kind === "chooseTargets" && request.options?.canCancelActivation === true) ||
+                (sourcePicker && (request.options?.declinesCost === true || min === 0))
+                  ? () =>
+                      onRespond({
+                        kind: request.kind === "selectCards" ? "selectCards" : "chooseTargets",
+                        instanceIds: [],
+                      })
                   : undefined
               }
               onDeclineCost={

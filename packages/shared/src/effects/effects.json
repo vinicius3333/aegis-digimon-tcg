@@ -18515,7 +18515,8 @@
             "filter": {
               "controllerDefault": "mine",
               "nameOrTrait": [{ "tokens": ["Machinedramon", "Chaosdramon"], "match": "name" }]
-            }
+            },
+            "excludeInherited": true
           }
         ]
       },
@@ -32108,7 +32109,7 @@
             "duration": "untilOpponentTurnEnd"
           },
           {
-            "effectTextPart": "Then, if you have a Tamer with [Matt Ishida]&#160;in its name,  (Draw 1 card from your deck).",
+            "effectTextPart": "Then, if you have a Tamer with [Matt Ishida] in its name,  (Draw 1 card from your deck).",
             "kind": "Draw",
             "controller": "mine",
             "amount": 1,
@@ -32826,7 +32827,7 @@
           },
           {
             "kind": "SecurityManipulation",
-            "effectTextPart": "If you have 2 or fewer, you may place 1 yellow Digimon card with the [Vaccine]&#160;trait from your hand at the top or bottom of your security stack.",
+            "effectTextPart": "If you have 2 or fewer, you may place 1 yellow Digimon card with the [Vaccine] trait from your hand at the top or bottom of your security stack.",
             "op": "placeAsSecurity",
             "controller": "mine",
             "source": {
@@ -34706,7 +34707,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
           },
           {
-            "effectTextPart": "Then, you may play 1 Digimon card with the [Dark Masters]&#160;trait, other than [Machinedramon], from your hand without paying the cost.",
+            "effectTextPart": "Then, you may play 1 Digimon card with the [Dark Masters] trait, other than [Machinedramon], from your hand without paying the cost.",
             "kind": "PlayWithoutCost",
             "target": {
               "filter": {
@@ -40401,6 +40402,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
             "filter": { "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] },
+            "excludeInherited": true,
             "duration": "permanent"
           }
         ]
@@ -40413,6 +40415,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
             "filter": { "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] },
+            "excludeInherited": true,
             "duration": "permanent"
           }
         ],
@@ -190905,7 +190908,7 @@
         "trigger": "OnPlay",
         "actions": [
           {
-            "effectTextPart": "[On Play] [When Digivolving] You may place 1 card with [Gammamon]&#160;in its text from your hand as this Digimon's bottom digivolution card.",
+            "effectTextPart": "[On Play] [When Digivolving] You may place 1 card with [Gammamon] in its text from your hand as this Digimon's bottom digivolution card.",
             "kind": "PlaceUnder",
             "target": {
               "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "text" }] },
@@ -190938,7 +190941,7 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "effectTextPart": "[On Play] [When Digivolving] You may place 1 card with [Gammamon]&#160;in its text from your hand as this Digimon's bottom digivolution card.",
+            "effectTextPart": "[On Play] [When Digivolving] You may place 1 card with [Gammamon] in its text from your hand as this Digimon's bottom digivolution card.",
             "kind": "PlaceUnder",
             "target": {
               "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "text" }] },
@@ -191484,7 +191487,7 @@
       },
       {
         "trigger": "YourTurn",
-        "description": "[Your Turn] When this Digimon becomes suspended, 1 of your Digimon with [Angoramon]&#160;in its text gains ＜Rush＞ (This Digimon can attack the turn it comes into play) for the turn.",
+        "description": "[Your Turn] When this Digimon becomes suspended, 1 of your Digimon with [Angoramon] in its text gains ＜Rush＞ (This Digimon can attack the turn it comes into play) for the turn.",
         "actions": [
           {
             "kind": "SubTrigger",
@@ -191914,7 +191917,7 @@
           },
           {
             "kind": "PlaceUnder",
-            "effectTextPart": "Then, you may place 1 card with [Gammamon]&#160;in its text from your trash as this Digimon's bottom digivolution card.",
+            "effectTextPart": "Then, you may place 1 card with [Gammamon] in its text from your trash as this Digimon's bottom digivolution card.",
             "target": {
               "filter": {
                 "zone": "trash",
@@ -191939,7 +191942,7 @@
           },
           {
             "kind": "PlaceUnder",
-            "effectTextPart": "Then, you may place 1 card with [Gammamon]&#160;in its text from your trash as this Digimon's bottom digivolution card.",
+            "effectTextPart": "Then, you may place 1 card with [Gammamon] in its text from your trash as this Digimon's bottom digivolution card.",
             "target": {
               "filter": {
                 "zone": "trash",
@@ -220553,7 +220556,10 @@
           {
             "kind": "TrashDigivolution",
             "target": { "filter": { "isSelfRef": true, "digivolutionCards": "hasAny" }, "count": 1, "isSelf": true },
-            "amount": 2
+            "amount": 2,
+            "choose": true,
+            "abortOnDecline": true,
+            "raw": "＜Digi-Burst 2＞"
           },
           { "kind": "Suspend", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } }
         ],
@@ -245759,5 +245765,208 @@
     "digivolutionRequirement": [{ "namesExact": ["Dracomon"], "cost": 0, "isAlternate": true }],
     "coverage": "full",
     "residual": []
+  },
+  "BT27-034": {
+    "effects": [
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [
+          { "keyword": "Raid" },
+          { "keyword": "Piercing" },
+          { "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security A. +1＞" },
+          { "keyword": "Blocker" },
+          { "keyword": "Evade" }
+        ]
+      },
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [
+          { "keyword": "Decode", "raw": "＜Decode (Green Lv.5)＞" },
+          { "keyword": "Decode", "raw": "＜Decode (Blue Lv.5)＞" }
+        ]
+      },
+      {
+        "trigger": "AllTurns",
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "leaveCause": "otherThanBattle",
+            "sourceFilter": { "isSelfRef": true },
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": { "controller": "mine", "kind": ["Digimon"], "levels": [5], "colors": ["Green"] },
+                  "count": 1
+                },
+                "fromOwnDigivolutionStack": true,
+                "payCost": false,
+                "optional": true,
+                "playedByDecode": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "trigger": "AllTurns",
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "leaveCause": "otherThanBattle",
+            "sourceFilter": { "isSelfRef": true },
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": { "controller": "mine", "kind": ["Digimon"], "levels": [5], "colors": ["Blue"] },
+                  "count": 1
+                },
+                "fromOwnDigivolutionStack": true,
+                "payCost": false,
+                "optional": true,
+                "playedByDecode": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "trigger": "WhenDigivolving",
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "BT27-034/suspend-activate-main",
+        "actions": [
+          {
+            "kind": "Suspend",
+            "effectTextPart": "You may suspend up to 3 Digimon or Tamers.",
+            "target": {
+              "filter": { "controllerDefault": "any", "kind": ["Digimon", "Tamer"] },
+              "count": 3,
+              "upTo": true
+            },
+            "optional": true
+          },
+          {
+            "kind": "CostGatedBlock",
+            "effectTextPart": "Then, by trashing 1 [Examon] or [X Antibody] from this Digimon's digivolution cards, activate 1 [Main] effect on this card's Option side.",
+            "optional": true,
+            "cost": {
+              "kind": "trash",
+              "target": {
+                "filter": {
+                  "isSelfRef": true,
+                  "zone": "digivolutionCards",
+                  "nameOrTrait": [{ "tokens": ["Examon", "X Antibody"], "match": "nameExact" }]
+                },
+                "count": 1
+              }
+            },
+            "actions": [{ "kind": "ActivateMain" }]
+          }
+        ]
+      },
+      {
+        "trigger": "WhenAttacking",
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "BT27-034/suspend-activate-main",
+        "actions": [
+          {
+            "kind": "Suspend",
+            "effectTextPart": "You may suspend up to 3 Digimon or Tamers.",
+            "target": {
+              "filter": { "controllerDefault": "any", "kind": ["Digimon", "Tamer"] },
+              "count": 3,
+              "upTo": true
+            },
+            "optional": true
+          },
+          {
+            "kind": "CostGatedBlock",
+            "effectTextPart": "Then, by trashing 1 [Examon] or [X Antibody] from this Digimon's digivolution cards, activate 1 [Main] effect on this card's Option side.",
+            "optional": true,
+            "cost": {
+              "kind": "trash",
+              "target": {
+                "filter": {
+                  "isSelfRef": true,
+                  "zone": "digivolutionCards",
+                  "nameOrTrait": [{ "tokens": ["Examon", "X Antibody"], "match": "nameExact" }]
+                },
+                "count": 1
+              }
+            },
+            "actions": [{ "kind": "ActivateMain" }]
+          }
+        ]
+      },
+      {
+        "trigger": "Counter",
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "BT27-034/suspend-activate-main",
+        "actions": [
+          {
+            "kind": "Suspend",
+            "effectTextPart": "You may suspend up to 3 Digimon or Tamers.",
+            "target": {
+              "filter": { "controllerDefault": "any", "kind": ["Digimon", "Tamer"] },
+              "count": 3,
+              "upTo": true
+            },
+            "optional": true
+          },
+          {
+            "kind": "CostGatedBlock",
+            "effectTextPart": "Then, by trashing 1 [Examon] or [X Antibody] from this Digimon's digivolution cards, activate 1 [Main] effect on this card's Option side.",
+            "optional": true,
+            "cost": {
+              "kind": "trash",
+              "target": {
+                "filter": {
+                  "isSelfRef": true,
+                  "zone": "digivolutionCards",
+                  "nameOrTrait": [{ "tokens": ["Examon", "X Antibody"], "match": "nameExact" }]
+                },
+                "count": 1
+              }
+            },
+            "actions": [{ "kind": "ActivateMain" }]
+          }
+        ]
+      },
+      {
+        "trigger": "Main",
+        "actions": [
+          {
+            "kind": "Delete",
+            "effectTextPart": "[Main] Delete up to 9000 DP's total worth of your opponent's Digimon. For each of their Digimon and Tamers, add 3000 to this effect's DP maximum.",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": "all",
+              "upTo": true,
+              "totalDpCap": 9000
+            },
+            "totalDpCapScaling": {
+              "per": 1,
+              "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] },
+              "unit": "cards",
+              "amount": 3000
+            }
+          },
+          {
+            "kind": "Trash",
+            "effectTextPart": "If this effect didn't delete, trash 1 of their Option cards in the battle area.",
+            "target": { "filter": { "zone": "battleArea", "controller": "opponent", "kind": ["Option"] }, "count": 1 },
+            "condition": { "kind": "ifThisEffectDidNotDelete", "raw": "this effect didn't delete" }
+          }
+        ]
+      }
+    ],
+    "coverage": "full",
+    "residual": [],
+    "digivolutionRequirement": [{ "namesExact": ["Examon"], "cost": 2, "isAlternate": true }]
   }
 }

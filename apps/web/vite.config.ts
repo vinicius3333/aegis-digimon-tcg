@@ -44,6 +44,11 @@ export default defineConfig({
   },
   test: {
     projects: [
+      { extends: true, test: { name: "ranked-ui", include: ["src/ranked/**/*.test.tsx"], environment: "jsdom" } },
+      {
+        extends: true,
+        test: { name: "achievements-ui", include: ["src/achievements/**/*.test.tsx"], environment: "jsdom" },
+      },
       {
         extends: true,
         test: {
@@ -118,6 +123,22 @@ export default defineConfig({
       {
         extends: true,
         test: {
+          name: "tournament-reports-ui",
+          include: ["src/tournaments/TournamentReportButton.test.tsx", "src/bugs/ReportedTournamentsPanel.test.tsx"],
+          environment: "jsdom",
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "tournament-leaderboard-ui",
+          include: ["src/tournaments/TournamentLeaderboard.test.tsx"],
+          environment: "jsdom",
+        },
+      },
+      {
+        extends: true,
+        test: {
           name: "default",
           exclude: [
             "src/game/screen/hooks/useBoardMeasurements.test.tsx",
@@ -126,6 +147,8 @@ export default defineConfig({
             "src/i18n/useCardTranslationState.test.tsx",
             ...configDefaults.exclude,
             "e2e/**",
+            "src/ranked/**/*.test.tsx",
+            "src/achievements/**/*.test.tsx",
             "src/bot/personas/**/*.test.tsx",
             "src/design/motion/**/*.test.ts",
             "src/game/cardConfirmation/**/*.test.ts",
@@ -133,6 +156,9 @@ export default defineConfig({
             "src/game/input/**/*.test.tsx",
             "src/screens/cardLanguage/**/*.test.tsx",
             "src/clientErrors/**/*.test.tsx",
+            "src/tournaments/TournamentReportButton.test.tsx",
+            "src/bugs/ReportedTournamentsPanel.test.tsx",
+            "src/tournaments/TournamentLeaderboard.test.tsx",
             "src/story/**/*.test.tsx",
             "src/design/tokenArt/**/*.test.tsx",
             "src/screens/community/**/*.test.tsx",
@@ -232,6 +258,11 @@ export default defineConfig({
       output: {
         sourcemapExcludeSources: true,
         manualChunks(id) {
+          if (
+            /node_modules\/(three|@react-three|postprocessing|react-reconciler|react-use-measure|its-fine)\//.test(id)
+          ) {
+            return "three-vendor";
+          }
           if (
             id.includes("node_modules/react") ||
             id.includes("node_modules/react-dom") ||

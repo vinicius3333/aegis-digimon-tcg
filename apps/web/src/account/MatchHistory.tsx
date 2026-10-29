@@ -2,6 +2,7 @@ import { ReplayDeckIcons } from "@/replays/ReplayDeckIcons";
 import { DeckPerformanceCollection } from "@/account/DeckPerformanceCollection";
 import { MatchOwnDeckAction } from "@/account/MatchOwnDeckAction";
 import { DeckHistoryStats } from "@/account/DeckHistoryStats";
+import { DeckStatsWindow } from "@aegis/shared/decks/DeckStatsWindow";
 import { AddFriendButton } from "@/friends/AddFriendButton";
 import type { DeckListing } from "@/game/decks";
 import { MatchOpponentDeckAction } from "@/account/MatchOpponentDeckAction";
@@ -21,6 +22,7 @@ import {
 import { Avatar, Button } from "../design/primitives";
 import { Icons } from "../design/icons";
 import { useTranslation, type TranslationKey } from "../i18n";
+import { ExportMatchHistory } from "@/account/ExportMatchHistory";
 import { AccountApiError, accountApi } from "./client";
 import { ReplaySharing } from "../replays/ReplaySharing";
 import { replayApi, replayPath } from "../replays/library";
@@ -202,6 +204,7 @@ export function MatchHistory({
           </span>
         ) : null}
         <OpenReplayFile onOpen={onOpenFile} opening={opening} />
+        <ExportMatchHistory onError={() => setNotice({ key: "profile.exportHistoryFailed", alert: true })} />
         <div className="profile-filters">
           <select
             className="profile-filters__mode"
@@ -264,6 +267,8 @@ export function MatchHistory({
       {!filter.deckId && ready?.deckRecords?.length ? (
         <DeckPerformanceCollection
           records={ready.deckRecords}
+          statsWindow={filter.deckWindow ?? DeckStatsWindow.ALL.value}
+          onWindowChange={(deckWindow) => changeFilter({ ...filter, deckWindow })}
           onSelect={(deckId) => changeFilter({ ...filter, deckId })}
         />
       ) : null}
@@ -274,6 +279,8 @@ export function MatchHistory({
           details={ready.deckDetails}
           recentResults={ready.recentDeckResults}
           deckName={decks.find((deck) => deck.id === filter.deckId)?.name}
+          statsWindow={filter.deckWindow ?? DeckStatsWindow.ALL.value}
+          onWindowChange={(deckWindow) => changeFilter({ ...filter, deckWindow })}
         />
       ) : null}
       {openError ? (

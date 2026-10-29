@@ -1,6 +1,13 @@
 import type { Screen } from "./design/primitives";
+import { isTournamentTab } from "@/tournaments/isTournamentTab";
+import { TournamentTab } from "@/tournaments/TournamentTab";
 
-export type TournamentRoute = { kind: "catalog" } | { kind: "create" } | { kind: "detail"; id: string };
+export type TournamentRoute =
+  | { kind: "catalog" }
+  | { kind: "create" }
+  | { kind: "detail"; id: string; tab?: TournamentTab }
+  | { kind: "createCircuit" }
+  | { kind: "circuit"; id: string };
 
 export interface AppRoute {
   screen: Screen;
@@ -15,6 +22,7 @@ export interface AppRoute {
   feedbackId?: number;
   roadmapItemId?: number;
   matchSettings?: boolean;
+  rankedQueue?: boolean;
 }
 
 export const SCREEN_PATHS: Record<Screen, string> = {
@@ -23,6 +31,7 @@ export const SCREEN_PATHS: Record<Screen, string> = {
   myFeedback: "/feedback",
   notifications: "/notifications",
   home: "/",
+  booster: "/booster",
   login: "/login",
   lobby: "/play",
   story: "/play/story",
@@ -34,6 +43,7 @@ export const SCREEN_PATHS: Record<Screen, string> = {
   community: "/community",
   roadmap: "/roadmap",
   tournaments: "/tournaments",
+  ranked: "/ranked",
   settings: "/settings",
   releases: "/whats-new",
   replays: "/replays",
@@ -43,6 +53,9 @@ export const SCREEN_PATHS: Record<Screen, string> = {
 
 export function routeFromPathname(pathname: string): AppRoute | undefined {
   const normalized = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+  if (/^\/(?:booster|dev\/pack-opening)$/i.test(normalized)) {
+    return { screen: "booster" };
+  }
   if (normalized === "/admin/feedback") return { screen: "feedback" };
   const triagedFeedback = /^\/admin\/feedback\/(\d{1,9})$/.exec(normalized)?.[1];
   if (triagedFeedback) return { screen: "feedback", feedbackId: Number(triagedFeedback) };
@@ -54,6 +67,8 @@ export function routeFromPathname(pathname: string): AppRoute | undefined {
   if (normalized === "/") return { screen: "home" };
   if (normalized === "/login") return { screen: "login" };
   if (normalized === "/play/story") return { screen: "story" };
+  if (normalized === "/ranked") return { screen: "ranked" };
+  if (normalized === "/play/ranked") return { screen: "lobby", rankedQueue: true, matchSettings: true };
   if (normalized === "/learn") return { screen: "learn" };
   if (normalized === "/learn/rules") return { screen: "rules" };
   if (normalized === "/play") return { screen: "lobby" };
@@ -62,6 +77,30 @@ export function routeFromPathname(pathname: string): AppRoute | undefined {
   if (normalized === "/decks") return { screen: "deck" };
   if (normalized === "/collection") return { screen: "collection" };
   if (normalized === "/community") return { screen: "community" };
+  if (normalized === "/tournaments") {
+    return { screen: "tournaments", tournament: { kind: "catalog" } };
+  }
+  if (normalized === "/tournaments/new") {
+    return { screen: "tournaments", tournament: { kind: "create" } };
+  }
+  if (normalized === "/tournaments/circuits/new") {
+    return { screen: "tournaments", tournament: { kind: "createCircuit" } };
+  }
+  const circuitId = /^\/tournaments\/circuits\/([^/]+)$/.exec(normalized)?.[1];
+  if (circuitId) {
+    return { screen: "tournaments", tournament: { kind: "circuit", id: safeDecode(circuitId) } };
+  }
+  const tournamentId = /^\/tournaments\/([^/]+)$/.exec(normalized)?.[1];
+  if (tournamentId) {
+    return { screen: "tournaments", tournament: { kind: "detail", id: safeDecode(tournamentId) } };
+  }
+  const tournamentTab = /^\/tournaments\/([^/]+)\/([^/]+)$/.exec(normalized);
+  if (tournamentTab && isTournamentTab(tournamentTab[2]) && tournamentTab[2] !== TournamentTab.OVERVIEW.value) {
+    return {
+      screen: "tournaments",
+      tournament: { kind: "detail", id: safeDecode(tournamentTab[1]!), tab: tournamentTab[2] },
+    };
+  }
   if (normalized === "/roadmap") return { screen: "roadmap" };
   const roadmapItem = /^\/roadmap\/(\d{1,9})$/.exec(normalized)?.[1];
   if (roadmapItem) return { screen: "roadmap", roadmapItemId: Number(roadmapItem) };
@@ -79,6 +118,7 @@ export function routeFromPathname(pathname: string): AppRoute | undefined {
 }
 
 export function pathForRoute(route: AppRoute): string {
+  if (route.screen === "lobby" && route.rankedQueue) return "/play/ranked";
   if (route.screen === "settings" && route.profile) return "/profile";
   if (route.screen === "replays") return route.replayId ? `/replays/${encodeURIComponent(route.replayId)}` : "/profile";
   if (route.screen === "community" && route.communityDeckId)
@@ -88,8 +128,20 @@ export function pathForRoute(route: AppRoute): string {
     return `${SCREEN_PATHS[route.screen]}/${route.feedbackId}`;
   if (route.screen !== "tournaments") return SCREEN_PATHS[route.screen];
   if (route.tournament?.kind === "create") return "/tournaments/new";
-  if (route.tournament?.kind === "detail") return `/tournaments/${encodeURIComponent(route.tournament.id)}`;
+  if (route.tournament?.kind === "createCircuit") return "/tournaments/circuits/new";
+  if (route.tournament?.kind === "circuit") return `/tournaments/circuits/${encodeURIComponent(route.tournament.id)}`;
+  if (route.tournament?.kind === "detail") {
+    return getTournamentDetailPath(route.tournament);
+  }
   return SCREEN_PATHS.tournaments;
+}
+
+function getTournamentDetailPath({ id, tab }: { id: string; tab?: TournamentTab }): string {
+  const base = `/tournaments/${encodeURIComponent(id)}`;
+  if (!tab || tab === TournamentTab.OVERVIEW.value) {
+    return base;
+  }
+  return `${base}/${tab}`;
 }
 
 function safeDecode(segment: string): string {

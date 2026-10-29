@@ -1,3 +1,4 @@
+import type { DeckStatsWindow } from "#shared/decks/DeckStatsWindow";
 import type { ReplayDecks } from "#shared/replays/ReplayDeck";
 import type { DeckPerformanceRecord } from "#shared/decks/DeckPerformanceRecord";
 import type { DeckHistoryDetails } from "#shared/decks/DeckHistoryDetails";
@@ -69,6 +70,7 @@ export interface MatchHistoryFilter {
   mode?: ReplaySummary["mode"];
   opponent?: string;
   deckId?: string;
+  deckWindow?: DeckStatsWindow;
 }
 
 /** One finished match from the account's point of view. */

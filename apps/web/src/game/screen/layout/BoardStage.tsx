@@ -496,6 +496,7 @@ export function BoardStage({
             handStripRef={anchors.opponentHandStrip}
             opponentName={opponentName}
             opponentAvatarId={opponent.avatarId}
+            opponentEquippedRankedTier={opponent.equippedRankedTier}
             opponentBotPersonaId={opponent.botPersonaId}
             viewerSeat={viewerSeat}
             displayedTurnSeat={readouts.displayedTurnSeat}
@@ -774,6 +775,7 @@ export function BoardStage({
             timer={state.matchTimer ? <MatchTimer state={state} seat={viewerSeat} /> : undefined}
             playerName={spectating ? viewerName : viewer.displayName || t("game.you")}
             playerAvatarId={viewer.avatarId}
+            playerEquippedRankedTier={viewer.equippedRankedTier}
             playerBotPersonaId={viewer.botPersonaId}
             actingLabel={actingPlateKeys.viewer ? t(actingPlateKeys.viewer) : undefined}
             breedingDock={!layout.portraitArena ? breedingDock : null}

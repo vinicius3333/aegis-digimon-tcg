@@ -1,3 +1,5 @@
+import { useProfileTrophiesShown } from "@/achievements/useProfileTrophiesShown";
+import { setProfileTrophiesShown } from "@/achievements/setProfileTrophiesShown";
 import { useId, useRef, useState, type FormEvent } from "react";
 import type { MatchHistorySummary, MatchWinRate } from "@aegis/shared";
 import { Avatar, Badge, Switch, type PlayerIdentity } from "../design/primitives";
@@ -39,6 +41,7 @@ export function ProfileIdentity({
 }) {
   const { t, locale } = useTranslation();
   const statsShown = useProfileStatsShown();
+  const trophiesShown = useProfileTrophiesShown();
   const hintId = useId();
   const avatarButton = useRef<HTMLButtonElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -204,6 +207,7 @@ export function ProfileIdentity({
       {account ? (
         <div className="profile-stats-toggle">
           <Switch checked={statsShown} label={t("profile.showStats")} onChange={setProfileStatsShown} />
+          <Switch checked={trophiesShown} label={t("achievements.trophies.show")} onChange={setProfileTrophiesShown} />
         </div>
       ) : null}
       {account && statsShown ? (

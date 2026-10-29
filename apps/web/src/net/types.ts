@@ -6,6 +6,11 @@ import type { GameMode } from "@aegis/shared/manual/GameMode";
  * must agree on it.
  */
 export interface AegisJoinOptions {
+  rankedPairId?: string;
+  rankedToken?: string;
+  rankedRegion?: import("@aegis/shared/ranked/RankedRegion").RankedRegion;
+  tournamentGameId?: string;
+  tournamentGameToken?: string;
   gameMode?: GameMode;
   storyBattleId?: string;
   storyGuestToken?: string;

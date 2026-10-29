@@ -45,7 +45,12 @@ function renderIn(node: React.ReactNode) {
 }
 
 describe("BoardSelectionRail", () => {
-  it("reserves a lifted physical card above its dock and remeasures after selection and resize", () => {
+  it("reserves selection lift without moving confirmation buttons when cards are picked", () => {
+    vi.stubGlobal("matchMedia", () => ({
+      matches: true,
+      addEventListener: vi.fn<() => void>(),
+      removeEventListener: vi.fn<() => void>(),
+    }));
     let cardTop = 580;
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
       if (this.classList.contains("game-hand-card")) return new DOMRect(20, cardTop, 100, 140);
@@ -69,13 +74,14 @@ describe("BoardSelectionRail", () => {
       </>,
     );
     const rail = screen.getByTestId("board-prompt");
-    expect(rail.style.getPropertyValue("--decision-hand-clearance")).toBe(`${window.innerHeight - 580}px`);
+    expect(rail.style.getPropertyValue("--decision-hand-clearance")).toBe(`${window.innerHeight - 548}px`);
     cardTop = 560;
     fireEvent.transitionEnd(screen.getByRole("button", { name: "Physical hand card" }));
-    expect(rail.style.getPropertyValue("--decision-hand-clearance")).toBe(`${window.innerHeight - 560}px`);
+    expect(rail.style.getPropertyValue("--decision-hand-clearance")).toBe(`${window.innerHeight - 548}px`);
+    expect(rail.style.getPropertyValue("--mobile-prompt-hand-clearance")).toBe(`${window.innerHeight - 548}px`);
     cardTop = 570;
     fireEvent(window, new Event("resize"));
-    expect(rail.style.getPropertyValue("--decision-hand-clearance")).toBe(`${window.innerHeight - 570}px`);
+    expect(rail.style.getPropertyValue("--decision-hand-clearance")).toBe(`${window.innerHeight - 538}px`);
   });
 
   it("starts expanded on mobile and restores the full effect when resized to desktop", () => {

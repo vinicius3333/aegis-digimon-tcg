@@ -1,3 +1,4 @@
+import { hashTournamentPassword } from "#api/tournaments/access/hashTournamentPassword";
 import { getCardArts, type TournamentBanlistCard } from "@aegis/shared";
 import type { Pool } from "pg";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -57,6 +58,43 @@ describe("ParticipantStore registration", () => {
     fixture = await createMigratedFixture();
   });
 
+  it("counts competitive entries and releases the displayed place after a drop", async () => {
+    const { store, participants } = fixture;
+    const player = await createPlayer(store, "Alice");
+    const savedDeckId = await saveLegalDeck(store, player.id);
+    const tournamentId = await createTournament(store, player.id);
+    await participants.register({ tournamentId, accountId: player.id, savedDeckId, now: T0 });
+    expect((await store.tournament(tournamentId))?.registrations).toBe(1);
+    expect((await store.tournaments()).find((entry) => entry.id === tournamentId)?.registrations).toBe(1);
+    await participants.drop({ tournamentId, accountId: player.id, now: T0 + 1 });
+    expect((await store.tournament(tournamentId))?.registrations).toBe(0);
+  });
+
+  it("requires the event password and rejects legacy registration bypasses", async () => {
+    const { store, participants } = fixture;
+    const player = await createPlayer(store, "Alice");
+    const savedDeckId = await saveLegalDeck(store, player.id);
+    const passwordHash = await hashTournamentPassword("community-secret");
+    const tournament = await store.createTournament(player.id, {
+      name: "Private Cup",
+      block: "BT10",
+      startsAt: T0,
+      maxPlayers: 8,
+      passwordHash,
+    });
+    expect(tournament.passwordProtected).toBe(true);
+    expect(tournament).not.toHaveProperty("passwordHash");
+    const input = { tournamentId: tournament.id, accountId: player.id, savedDeckId, now: T0 };
+    expect(await participants.register(input)).toEqual({ ok: false, reason: "incorrect_password" });
+    expect(await participants.register({ ...input, password: "incorrect" })).toEqual({
+      ok: false,
+      reason: "incorrect_password",
+    });
+    expect(await store.registerTournament(tournament.id, player.id)).toBe(false);
+    expect(await participants.participants(tournament.id)).toEqual([]);
+    expect((await participants.register({ ...input, password: "community-secret" })).ok).toBe(true);
+  });
+
   it("registers a player who owns a legal saved deck", async () => {
     const { store, participants } = fixture;
     const player = await createPlayer(store, "Alice");
@@ -72,6 +110,7 @@ describe("ParticipantStore registration", () => {
         displayName: "Alice",
         status: "registered",
         seed: null,
+        botStyle: null,
         // Null for bots; a human carries the account the match rows are keyed by.
         accountId: player.id,
       },

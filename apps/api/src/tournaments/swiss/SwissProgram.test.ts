@@ -1,3 +1,5 @@
+import { TrophyStore } from "#api/achievements/TrophyStore";
+import { buildTournamentRules } from "#api/tournaments/rules/buildTournamentRules";
 import { randomUUID } from "node:crypto";
 import type { PhaseView, StandingsRow } from "@aegis/shared";
 import type { Pool } from "pg";
@@ -8,13 +10,13 @@ import { snapshotFixtures } from "../../db/snapshotFixture.js";
 import { RED_DECK } from "../../engine/testDecks.js";
 import { pairSwissRound } from "../pairing/index.js";
 import { ParticipantStore } from "../participants/index.js";
-import { BANDAI_GENERAL_PRESET, rulesSnapshot } from "../rules/index.js";
+
 import { SeriesStore } from "../series/index.js";
 import { computeStandings } from "../standings/index.js";
 import { standingsConfig, SwissProgram } from "./SwissProgram.js";
 
 const T0 = 1_000_000;
-const JOIN_GRACE_MS = BANDAI_GENERAL_PRESET.attendance.joinGraceMs;
+const JOIN_GRACE_MS = buildTournamentRules({ bestOf: 3 }).attendance.joinGraceMs;
 
 type Player = { accountId: string; participantId: string; name: string };
 
@@ -103,8 +105,7 @@ async function buildOn(pool: Pool, playerCount: number, topCut: boolean): Promis
     structure: "swiss",
     bestOf: 3,
     topCutEnabled: options.topCut === true,
-    rulesetPreset: BANDAI_GENERAL_PRESET.id,
-    rules: rulesSnapshot(BANDAI_GENERAL_PRESET, 3),
+    rules: buildTournamentRules({ bestOf: 3 }),
   });
 
   for (const name of names) {
@@ -437,7 +438,7 @@ describe("SwissProgram round closing", () => {
     const points = new Map(
       computeStandings({
         ledger,
-        standings: standingsConfig(rulesSnapshot(BANDAI_GENERAL_PRESET, 3)),
+        standings: standingsConfig(buildTournamentRules({ bestOf: 3 })),
         participants: roster.map((row) => ({ id: row.id, seed: row.seed })),
       }).map((row) => [row.participantId, row.points]),
     );
@@ -524,6 +525,9 @@ describe("SwissProgram completion", () => {
     const standings = await fixture.swiss.standings(fixture.tournamentId);
     expect(standings[0]!.rank).toBe(1);
     expect(tournament.winnerAccountId).toBe(fixture.byParticipant.get(standings[0]!.participantId)!.accountId);
+    expect((await new TrophyStore(fixture.accounts).getTrophies(tournament.winnerAccountId!)).items).toMatchObject([
+      { award: "tournament_champion", tier: "gold", source: { tournamentId: fixture.tournamentId } },
+    ]);
     // Twelve entries: four participants across three rounds, one row each.
     expect(await fixture.swiss.ledger(fixture.tournamentId)).toHaveLength(12);
   });
@@ -839,17 +843,17 @@ describe("standingsConfig bridges frozen snapshots to the projection", () => {
   const CANONICAL = ["points", "match_win_rate", "opponent_match_win_rate", "head_to_head", "judge_random_draw"];
 
   it("passes a snapshot frozen under the current presets through unchanged", () => {
-    const rules = rulesSnapshot(BANDAI_GENERAL_PRESET, 3);
+    const rules = buildTournamentRules({ bestOf: 3 });
     expect(rules.standings.tiebreakers).toEqual(CANONICAL);
     expect(standingsConfig(rules).tiebreakers).toEqual(CANONICAL);
   });
 
   it("translates a snapshot frozen under the 1.0.0 presets to the same criteria", () => {
     const existing = {
-      ...rulesSnapshot(BANDAI_GENERAL_PRESET, 3),
+      ...buildTournamentRules({ bestOf: 3 }),
       version: "bandai_general/1.0.0",
       standings: {
-        ...BANDAI_GENERAL_PRESET.standings,
+        ...buildTournamentRules({ bestOf: 3 }).standings,
         tiebreakers: [
           "match_points",
           "own_match_win_rate",
@@ -863,7 +867,7 @@ describe("standingsConfig bridges frozen snapshots to the projection", () => {
   });
 
   it("drops a criterion no projection can resolve rather than taking the standings offline", () => {
-    const rules = rulesSnapshot(BANDAI_GENERAL_PRESET, 3);
+    const rules = buildTournamentRules({ bestOf: 3 });
     const broken = { ...rules, standings: { ...rules.standings, tiebreakers: ["points", "no_such_criterion"] } };
     expect(standingsConfig(broken, "tournament-with-a-bad-tiebreaker").tiebreakers).toEqual(["points"]);
   });

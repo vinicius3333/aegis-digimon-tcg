@@ -121,6 +121,7 @@ export interface CombatTrigger {
   deletedHostInstanceByInstanceId?: Record<string, string>;
   /** Event-time custom grants, captured before battle deletion drops recipient availability. */
   customEffectGrantsSnapshot?: TriggerInfo["customEffectGrantsSnapshot"];
+  stackEffectConferralsSnapshot?: TriggerInfo["stackEffectConferralsSnapshot"];
 }
 
 /**
@@ -235,6 +236,7 @@ export interface CombatHooks {
   dropPermanentSubscriptions?: (permanentId: string) => void;
   /** Capture custom named-effect grants while battle recipients are still live. */
   snapshotCustomEffectGrants?: (departingInstanceIds: readonly string[]) => TriggerInfo["customEffectGrantsSnapshot"];
+  snapshotStackEffectConferrals?: () => TriggerInfo["stackEffectConferralsSnapshot"];
   /**
    * Resolve a successful, unblocked player-directed attack against `defenderSeat`
    * by running the security check (subsystem: security-and-win-check). The engine

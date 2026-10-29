@@ -18,6 +18,7 @@ export function CommunityScreen({
   onOpenDeck,
   onBack,
   onRoadmap,
+  onTournaments,
   onPlay,
   onCopy,
 }: {
@@ -28,6 +29,7 @@ export function CommunityScreen({
   onOpenDeck: (id: string) => void;
   onBack: () => void;
   onRoadmap: () => void;
+  onTournaments: () => void;
   onPlay: (deck: CommunityDeck) => void;
   onCopy: (deck: CommunityDeck) => void;
 }) {
@@ -67,6 +69,7 @@ export function CommunityScreen({
           accountId={accountId}
           onOpenDeck={onOpenDeck}
           onRoadmap={onRoadmap}
+          onTournaments={onTournaments}
           onPlay={withDeck(onPlay)}
           onCopy={withDeck(copy)}
         />

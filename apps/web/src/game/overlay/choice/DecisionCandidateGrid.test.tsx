@@ -25,7 +25,6 @@ function grid(candidates: DecisionCandidate[], maxTotalDP?: number) {
         withinPlayCostBudget
         selectedDP={0}
         maxTotalDP={maxTotalDP}
-        wideDialog={false}
         onTogglePick={pick}
       />
     </I18nProvider>,
@@ -73,7 +72,6 @@ function BlindHandSelection() {
       selectedPlayCost={0}
       withinPlayCostBudget
       selectedDP={0}
-      wideDialog={false}
       onTogglePick={(instanceId) => setPicks((current) => (current.includes(instanceId) ? [] : [instanceId]))}
     />
   );
@@ -112,7 +110,6 @@ function SingleCardSelection() {
       selectedPlayCost={0}
       withinPlayCostBudget
       selectedDP={0}
-      wideDialog={false}
       onTogglePick={(instanceId) => setPicks((current) => (current.includes(instanceId) ? [] : [instanceId]))}
     />
   );
@@ -172,32 +169,38 @@ it("places cards within the DP budget before cards that cannot be selected", () 
   expect((buttons[1] as HTMLButtonElement).disabled).toBe(true);
 });
 
-it("opens a known revealed card without selecting it and never offers inspection for a hidden identity", () => {
-  const open = vi.fn();
-  const pick = vi.fn();
-  render(
-    <I18nProvider>
-      <CardOpenerProvider onOpenCard={open}>
-        <DecisionCandidateGrid
-          candidates={[
-            { instanceId: "revealed", cardId: "EX7-071", artId: "alternate" },
-            { instanceId: "security:1", zone: "security" },
-          ]}
-          picks={[]}
-          min={0}
-          max={1}
-          selectedPlayCost={0}
-          withinPlayCostBudget
-          selectedDP={0}
-          wideDialog={false}
-          onTogglePick={pick}
-        />
-      </CardOpenerProvider>
-    </I18nProvider>,
-  );
-  const buttons = screen.getAllByRole("button", { name: /Open.*Hurricane/i });
-  expect(buttons).toHaveLength(1);
-  fireEvent.click(buttons[0]!);
-  expect(open).toHaveBeenCalledWith("EX7-071", "alternate");
-  expect(pick).not.toHaveBeenCalled();
-});
+it.each([false, true])(
+  "names revealed cards and opens them from an icon without selecting or exposing hidden cards: %s",
+  (sourcePicker) => {
+    const open = vi.fn<(cardId: string, artId?: string) => void>();
+    const pick = vi.fn<(instanceId: string) => void>();
+    render(
+      <I18nProvider>
+        <CardOpenerProvider onOpenCard={open}>
+          <DecisionCandidateGrid
+            candidates={[
+              { instanceId: "revealed", cardId: "EX7-071", artId: "alternate" },
+              { instanceId: "security:1", zone: "security" },
+            ]}
+            picks={[]}
+            min={0}
+            max={1}
+            selectedPlayCost={0}
+            withinPlayCostBudget
+            selectedDP={0}
+            sourcePicker={sourcePicker}
+            onTogglePick={pick}
+          />
+        </CardOpenerProvider>
+      </I18nProvider>,
+    );
+    const buttons = screen.getAllByRole("button", { name: /Open.*Hurricane/i });
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0]!.querySelector("svg")).not.toBeNull();
+    expect(buttons[0]!.textContent?.trim()).toBe("");
+    expect(document.querySelectorAll(".decision-overlay__candidate-name")).toHaveLength(1);
+    fireEvent.click(buttons[0]!);
+    expect(open).toHaveBeenCalledWith("EX7-071", "alternate");
+    expect(pick).not.toHaveBeenCalled();
+  },
+);

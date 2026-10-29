@@ -6,7 +6,7 @@ import { COLORS } from "@/design/theme";
 import { usedDeckListing } from "@/game/usedDeckListing";
 import { displayCoverCard, displayCoverArt } from "@/game/decks";
 import { FamousDeckListDialog } from "@/screens/FamousDeckListDialog";
-import { deckFormatLabel } from "@/screens/DeckFormatSelector";
+import { deckFormatLabel } from "@/screens/deckFormatLabel";
 import { useTranslation } from "@/i18n/useTranslation";
 
 type Props = { details: DeckHistoryDetails };

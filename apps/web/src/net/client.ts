@@ -1,6 +1,8 @@
+import type { TournamentSpectateTarget } from "@/tournaments/TournamentSpectateTarget";
+import { connectRankedMatch } from "@/ranked/connectRankedMatch";
 import type { BotSettings } from "@aegis/shared/bot/BotSettings";
 import { GameMode } from "@aegis/shared/manual/GameMode";
-import { ROOM_TYPE_MANUAL, ROOM_TYPE_MANUAL_PRIVATE } from "@aegis/shared/protocol/messages";
+import { ROOM_TYPE_MANUAL, ROOM_TYPE_MANUAL_PRIVATE, ROOM_TYPE_TOURNAMENT } from "@aegis/shared/protocol/messages";
 import { Client, type Room } from "@colyseus/sdk";
 import {
   GameState,
@@ -56,6 +58,9 @@ function withDeckRules(options: AegisJoinOptions): AegisJoinOptions {
 }
 
 function publicRoomType(options: AegisJoinOptions): string {
+  if (options.tournamentGameId && options.tournamentGameToken) {
+    return ROOM_TYPE_TOURNAMENT;
+  }
   if (options.gameMode === GameMode.MANUAL.value) {
     return ROOM_TYPE_MANUAL;
   }
@@ -91,7 +96,27 @@ export class AegisConnectionRouter {
 
   constructor(private readonly dependencies: RouterDependencies) {}
 
-  async joinOrCreate(options: AegisJoinOptions): Promise<AegisRoom> {
+  async joinOrCreate(options: AegisJoinOptions, signal?: AbortSignal): Promise<AegisRoom> {
+    if (options.ranked) {
+      publicRoomType(options);
+      const manifest = await this.dependencies.loadManifest();
+      const slot = manifest.active.slot;
+      const { http } = this.dependencies.endpointForSlot(slot);
+      return connectRankedMatch({
+        http,
+        options,
+        signal,
+        fetcher: this.dependencies.fetcher,
+        joinRoom: async (reservation) => {
+          const joined = await this.client(slot).joinById(reservation.roomId!, {
+            ...(await this.withRoomTicket(options, slot)),
+            rankedPairId: reservation.pairId,
+            rankedToken: reservation.token,
+          });
+          return this.remember(joined, slot);
+        },
+      });
+    }
     return this.joinOrCreateWithFreshManifest(withQueueFilters(options), false);
   }
 
@@ -180,13 +205,13 @@ export class AegisConnectionRouter {
     return this.remember(await this.client(slot).joinById(roomId, options), slot);
   }
 
-  async spectate(target: SpectateTarget): Promise<AegisRoom> {
+  async spectate(target: SpectateTarget | TournamentSpectateTarget): Promise<AegisRoom> {
     const manifest = await this.dependencies.loadManifest();
     const deployments = [manifest.active, ...manifest.draining];
     for (const { slot } of deployments) {
       const { http } = this.dependencies.endpointForSlot(slot);
       const response = await this.fetch(
-        `${http}/spectate/${target.accountId ? "friend" : "join"}`,
+        `${http}${spectatePath(target)}`,
         spectatorJoinRequest(
           target,
           (await this.withRoomTicket({ displayName: "", deck: { mainDeck: [], eggDeck: [] } }, slot)).authTicket,
@@ -263,6 +288,9 @@ export class AegisConnectionRouter {
 
   /** Every seat a signed-in player takes carries their account, so the match joins their history. */
   private async withRoomTicket(options: AegisJoinOptions, slot: DeploymentSlot): Promise<AegisJoinOptions> {
+    if (options.tournamentGameId && options.tournamentGameToken) {
+      return { ...options, authTicket: undefined };
+    }
     if (!options.ranked && !hasRoomTicketAccount()) return options;
     try {
       const { http } = this.dependencies.endpointForSlot(slot);
@@ -357,8 +385,25 @@ function rememberLegacy(room: AegisRoom): AegisRoom {
 }
 
 /** Join an existing public/ranked match or create one on the active deployment. */
-export async function joinOrCreate(options: AegisJoinOptions): Promise<AegisRoom> {
-  if (useProductionRouter()) return getProductionRouter().joinOrCreate(options);
+export async function joinOrCreate(options: AegisJoinOptions, signal?: AbortSignal): Promise<AegisRoom> {
+  if (useProductionRouter()) return getProductionRouter().joinOrCreate(options, signal);
+  if (options.ranked) {
+    publicRoomType(options);
+    const http = legacyEndpoint().replace(/^ws/, "http");
+    return connectRankedMatch({
+      http,
+      options,
+      signal,
+      joinRoom: async (reservation) => {
+        const joined = await getLegacyClient().joinById<GameState>(reservation.roomId!, {
+          ...(await withLegacyRoomTicket(options)),
+          rankedPairId: reservation.pairId,
+          rankedToken: reservation.token,
+        });
+        return rememberLegacy(joined);
+      },
+    });
+  }
   const authenticatedOptions = await withLegacyRoomTicket(withQueueFilters(options));
   const joined = await getLegacyClient().joinOrCreate<GameState>(publicRoomType(options), authenticatedOptions);
   return rememberLegacy(joined);
@@ -479,6 +524,9 @@ export async function joinPrivateByCode(code: string, options: AegisJoinOptions)
 }
 
 async function withLegacyRoomTicket(options: AegisJoinOptions): Promise<AegisJoinOptions> {
+  if (options.tournamentGameId && options.tournamentGameToken) {
+    return { ...options, authTicket: undefined };
+  }
   if (!options.ranked && !hasRoomTicketAccount()) return options;
   try {
     const response = await fetch(`${legacyEndpoint().replace(/^ws/, "http")}/auth/room-ticket`, {
@@ -523,7 +571,12 @@ export interface SpectateTarget {
   displayName?: string;
 }
 
-function spectatorJoinRequest(target: SpectateTarget, authTicket?: string): RequestInit {
+function spectatePath(target: SpectateTarget | TournamentSpectateTarget): string {
+  if ("tournamentId" in target) return "/spectate/tournament";
+  return target.accountId ? "/spectate/friend" : "/spectate/join";
+}
+
+function spectatorJoinRequest(target: SpectateTarget | TournamentSpectateTarget, authTicket?: string): RequestInit {
   return {
     method: "POST",
     credentials: "include",
@@ -543,10 +596,10 @@ export async function liveMatches(limit: number): Promise<LiveMatchPage> {
   return fetchLiveMatches(legacyEndpoint().replace(/^ws/, "http"), limit, fetch);
 }
 
-export async function spectate(target: SpectateTarget): Promise<AegisRoom> {
+export async function spectate(target: SpectateTarget | TournamentSpectateTarget): Promise<AegisRoom> {
   if (useProductionRouter()) return getProductionRouter().spectate(target);
   const response = await fetch(
-    `${legacyEndpoint().replace(/^ws/, "http")}/spectate/${target.accountId ? "friend" : "join"}`,
+    `${legacyEndpoint().replace(/^ws/, "http")}${spectatePath(target)}`,
     spectatorJoinRequest(
       target,
       (await withLegacyRoomTicket({ displayName: "", deck: { mainDeck: [], eggDeck: [] } })).authTicket,

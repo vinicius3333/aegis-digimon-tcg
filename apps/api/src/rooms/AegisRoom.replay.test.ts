@@ -157,7 +157,7 @@ describe("room replay delivery", () => {
       ],
     } as SeriesRecord;
     const options = { seriesToken: "trusted-series-token", accountId: "forged-client-account" };
-    expect(Reflect.get(room, "authorizeSeriesSeat").call(room, client, options, record)).toBe(true);
+    expect(await Reflect.get(room, "authorizeSeriesSeat").call(room, client, options, record)).toBe(true);
     series.seatForToken = original;
     const index = indexWith(room, async () => "index-id");
     send(players[1]!, "surrender");

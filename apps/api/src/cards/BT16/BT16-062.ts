@@ -87,6 +87,7 @@ const compiled: CompiledCard = {
           filter: {
             nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }],
           },
+          excludeInherited: true,
           duration: "permanent",
         },
       ],
@@ -107,6 +108,7 @@ const compiled: CompiledCard = {
           filter: {
             nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }],
           },
+          excludeInherited: true,
           duration: "permanent",
         },
       ],

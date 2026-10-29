@@ -181,6 +181,14 @@ describe("/account/preferences", () => {
     expect(await getPreferences()).toEqual({ autoHatch: false });
   });
 
+  it("stores and restores trophy visibility and rejects non-boolean values", async () => {
+    expect((await putPreferences({ profileTrophies: true })).status).toBe(200);
+    expect(await getPreferences()).toEqual({ profileTrophies: true });
+    expect((await putPreferences({ profileTrophies: false })).status).toBe(200);
+    expect(await getPreferences()).toEqual({ profileTrophies: false });
+    expect((await putPreferences({ profileTrophies: "false" })).status).toBe(400);
+  });
+
   it("stores and restores the profile stats choice, including false", async () => {
     expect((await putPreferences({ profileStats: true })).status).toBe(200);
     expect(await getPreferences()).toEqual({ profileStats: true });

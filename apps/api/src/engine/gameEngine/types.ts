@@ -1,3 +1,4 @@
+import type { TournamentBanlistCard } from "@aegis/shared/tournaments/index";
 import type {
   CardDefinition,
   CardInstance,
@@ -36,6 +37,7 @@ export interface GameEngineHooks {
  * additionally carries a private-room code the engine never needs) extends this instead.
  */
 export interface SeatJoinOptions {
+  banlistCards?: readonly TournamentBanlistCard[];
   displayName: string;
   /** The joiner's Digimon World portrait, shown beside their name. Unknown ids are dropped. */
   avatarId?: string;

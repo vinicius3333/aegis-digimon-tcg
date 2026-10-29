@@ -17,7 +17,7 @@
 
 .home-hero {
   display: grid;
-  padding-block: var(--ds-space-8) var(--ds-space-10);
+  padding-block: var(--ds-space-8) var(--ds-space-4);
 }
 
 .home-hero__copy {
@@ -309,4 +309,159 @@
 .home-guides:focus-visible {
   outline: 3px solid var(--ds-focus);
   outline-offset: 3px;
+}
+
+.home-booster {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--ds-space-6);
+  min-height: 168px;
+  overflow: hidden;
+  padding: var(--ds-space-6) var(--ds-space-8);
+  border: 1px solid color-mix(in srgb, var(--ds-on-ink) 10%, transparent);
+  border-radius: var(--ds-radius-lg);
+  background:
+    radial-gradient(60% 120% at 82% 60%, color-mix(in srgb, var(--ds-ink-accent) 26%, transparent), transparent 70%),
+    linear-gradient(120deg, var(--ds-ink) 40%, var(--ds-ink-raised));
+  color: var(--ds-on-ink);
+  text-decoration: none;
+  transition:
+    border-color var(--ds-motion-fast),
+    transform 100ms ease-out;
+}
+
+.home-booster:hover {
+  border-color: color-mix(in srgb, var(--ds-ink-accent) 60%, transparent);
+}
+
+.home-booster:active {
+  transform: translateY(1px);
+}
+
+.home-booster:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.home-booster__copy {
+  display: grid;
+  justify-items: start;
+  gap: var(--ds-space-2);
+  max-width: 44ch;
+}
+
+.home-booster__tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ds-ink-accent) 18%, transparent);
+  color: var(--ds-ink-accent);
+  font-size: var(--ds-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.home-booster__copy > strong {
+  font-family: var(--ds-font-display);
+  font-size: clamp(var(--ds-text-lg), 2.2vw, 1.5rem);
+  line-height: 1.15;
+}
+
+.home-booster__copy > span:not([class]) {
+  color: color-mix(in srgb, var(--ds-on-ink) 70%, transparent);
+  font-size: var(--ds-text-sm);
+  line-height: 1.5;
+}
+
+.home-booster__action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-2);
+  padding: var(--ds-space-2) var(--ds-space-4);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-on-ink);
+  color: var(--ds-ink);
+  font-size: var(--ds-text-sm);
+  font-weight: 700;
+  transition: background-color var(--ds-motion-fast);
+}
+
+.home-booster:hover .home-booster__action {
+  background: color-mix(in srgb, var(--ds-on-ink) 88%, var(--ds-ink-accent));
+}
+
+.home-booster__action svg {
+  transition: transform var(--ds-motion-fast);
+}
+
+.home-booster:hover .home-booster__action svg {
+  transform: translateX(3px);
+}
+
+.home-booster__packs {
+  position: relative;
+  align-self: stretch;
+  width: 220px;
+  margin: calc(var(--ds-space-6) * -1) var(--ds-space-2) calc(var(--ds-space-6) * -1) 0;
+}
+
+.home-booster__packs img {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  width: 84px;
+  aspect-ratio: 1 / 2;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5);
+  transform-origin: 50% 100%;
+  transition: transform 250ms ease-out;
+}
+
+.home-booster__packs img:nth-child(1) {
+  transform: translateX(-118%) rotate(-12deg);
+}
+
+.home-booster__packs img:nth-child(2) {
+  z-index: 1;
+  transform: translateX(-50%) translateY(-14px);
+}
+
+.home-booster__packs img:nth-child(3) {
+  transform: translateX(18%) rotate(12deg);
+}
+
+.home-booster:hover .home-booster__packs img:nth-child(1) {
+  transform: translateX(-126%) rotate(-17deg);
+}
+
+.home-booster:hover .home-booster__packs img:nth-child(2) {
+  transform: translateX(-50%) translateY(-26px);
+}
+
+.home-booster:hover .home-booster__packs img:nth-child(3) {
+  transform: translateX(26%) rotate(17deg);
+}
+
+@media (max-width: 599px) {
+  .home-booster {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+    padding: var(--ds-space-5);
+  }
+
+  .home-booster__packs {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-booster,
+  .home-booster__packs img,
+  .home-booster__action,
+  .home-booster__action svg {
+    transition: none;
+  }
 }

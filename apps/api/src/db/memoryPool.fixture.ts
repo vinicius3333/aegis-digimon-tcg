@@ -26,5 +26,11 @@ export function createMemoryPool(): Pool {
     returns: DataType.text,
     implementation: (value: Buffer, format: BufferEncoding) => Buffer.from(value).toString(format),
   });
+  db.public.registerFunction({
+    name: "strpos",
+    args: [DataType.text, DataType.text],
+    returns: DataType.integer,
+    implementation: (value: string, part: string) => value.indexOf(part) + 1,
+  });
   return new (db.adapters.createPg().Pool)() as Pool;
 }

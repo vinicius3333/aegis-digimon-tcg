@@ -185,6 +185,9 @@ export class GameState extends Schema {
   @type("boolean") canRollbackTurn = false;
   @type("int8") undoActionSeat = -1;
   @type("int8") rollbackTurnSeat = -1;
+  @type("float64") rankedDeadlineAt = 0;
+  @type("uint16") rankedRemainingSeconds = 0;
+  @type("int32") rankedOvertimeTurn = -1;
   @type("string") gameMode: GameMode = GameMode.AUTOMATIC.value;
   @type(ManualTable) manual = new ManualTable();
 }

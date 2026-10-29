@@ -300,7 +300,7 @@ it("asks for a source host on the board, filters its cards, and returns without 
   fireEvent.click(screen.getByRole("button", { name: "View board" }));
   expect(screen.queryByRole("region", { name: "Choose a Digimon" })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Return to decision" }));
-  fireEvent.click(screen.getByRole("button", { name: "No Selection" }));
+  fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
   expect(onRespond).toHaveBeenCalledExactlyOnceWith({ kind: "selectCards", instanceIds: [] });
   expect(onChooseHost).not.toHaveBeenCalled();
   onRespond.mockClear();

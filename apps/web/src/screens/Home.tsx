@@ -13,6 +13,8 @@ import { currentRelease, displayVersion } from "../releases/catalog";
 import strategyGuides from "../guides/catalog.json";
 import "./home.css";
 
+const BOOSTER_COVERS = ["/sets/BT24.jpg", "/sets/BT26.jpg", "/sets/BT25.jpg"];
+
 export function Home({
   collectionSize,
   signedIn,
@@ -75,6 +77,23 @@ export function Home({
             onClick={onOpenCollection}
           />
         </nav>
+
+        <a className="home-booster" href="/booster">
+          <span className="home-booster__copy">
+            <span className="home-booster__tag">{t("home.booster.eyebrow")}</span>
+            <strong>{t("home.booster.title")}</strong>
+            <span>{t("home.booster.copy")}</span>
+            <span className="home-booster__action">
+              {t("home.booster.action")}
+              <Icons.ArrowRight size={16} aria-hidden="true" />
+            </span>
+          </span>
+          <span className="home-booster__packs" aria-hidden="true">
+            {BOOSTER_COVERS.map((cover) => (
+              <img key={cover} src={cover} alt="" loading="lazy" decoding="async" />
+            ))}
+          </span>
+        </a>
 
         {signedIn ? null : (
           <section className="home-signin">

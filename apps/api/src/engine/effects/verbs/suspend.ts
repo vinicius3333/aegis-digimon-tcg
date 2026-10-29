@@ -86,7 +86,7 @@ export function createSuspendVerbs(pc: PrimitivesContext) {
   ): Promise<string[]> {
     const suspendedPermanentIds: string[] = [];
     for (const permanentId of permanentIds) {
-      if (!canSuspend(permanentId)) continue;
+      if (!canSuspend(permanentId, opts?.byEffectSeat)) continue;
       suspendedPermanentIds.push(permanentId);
     }
     emitEffectTargetsSelected({ pc, permanentIds: suspendedPermanentIds });

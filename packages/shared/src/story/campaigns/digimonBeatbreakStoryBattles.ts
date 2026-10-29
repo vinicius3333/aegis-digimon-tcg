@@ -136,6 +136,7 @@ export const digimonBeatbreakStoryBattles: readonly StoryCatalogBattle[] = [
     title: "Two hearts — clash with Seitengokuwmon — Glowing Dawn; Tomoro and Asuka vs. Seitengokuwmon",
     protagonist: "Glowing Dawn; Tomoro and Asuka",
     opponents: ["Seitengokuwmon"],
+    opponentCoverCardId: "EX12-048",
     playerDeckRefs: ["WMD80"],
     opponentDeckRef: "WMD42",
     sourceUrl: "https://lineup.toei-anim.co.jp/ja/tv/digimon_beatbreak/episode/48/",

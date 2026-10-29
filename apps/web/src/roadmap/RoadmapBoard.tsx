@@ -21,10 +21,11 @@ type RoadmapBoardParams = {
   onSignIn: () => void;
   onOpen: (id: number) => void;
   onDecks: () => void;
+  onTournaments: () => void;
   onSuggest: () => void;
 };
 
-export function RoadmapBoard({ signedIn, onSignIn, onOpen, onDecks, onSuggest }: RoadmapBoardParams) {
+export function RoadmapBoard({ signedIn, onSignIn, onOpen, onDecks, onTournaments, onSuggest }: RoadmapBoardParams) {
   const { t } = useTranslation();
   const [items, setItems] = useState<RoadmapItem[]>();
   const [failed, setFailed] = useState(false);
@@ -56,7 +57,12 @@ export function RoadmapBoard({ signedIn, onSignIn, onOpen, onDecks, onSuggest }:
               {t("roadmap.suggest")}
             </Button>
           </div>
-          <CommunityHubNav section={CommunityHubSection.ROADMAP.value} onDecks={onDecks} onRoadmap={() => undefined} />
+          <CommunityHubNav
+            section={CommunityHubSection.ROADMAP.value}
+            onDecks={onDecks}
+            onRoadmap={() => undefined}
+            onTournaments={onTournaments}
+          />
         </Panel>
         <p className="roadmap-note">{t("roadmap.note", { count: ROADMAP_COLUMN_LIMIT })}</p>
         {failed ? (

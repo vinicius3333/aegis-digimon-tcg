@@ -1,0 +1,183 @@
+.create-tournament {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-5);
+  min-width: 0;
+}
+
+.create-tournament__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
+}
+
+.create-tournament__head h2 {
+  margin: 0;
+  color: var(--ds-text);
+  font: 800 var(--ds-text-2xl) / var(--ds-leading-tight) var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-display);
+  text-transform: uppercase;
+}
+
+.create-tournament__head .tournaments-note {
+  margin: 0;
+  font-size: var(--ds-text-sm);
+}
+
+.create-tournament__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+  align-items: start;
+  gap: var(--ds-space-5);
+}
+
+.create-tournament__sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
+  min-width: 0;
+}
+
+.create-tournament__section-title,
+.create-tournament__summary-title {
+  margin: 0 0 var(--ds-space-4);
+  color: var(--ds-text);
+  font: 800 var(--ds-text-lg) / var(--ds-leading-tight) var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-display);
+  text-transform: uppercase;
+}
+
+.create-tournament__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--ds-space-4) var(--ds-space-5);
+}
+
+.create-tournament__grid > .aegis-field {
+  margin: 0;
+  min-width: 0;
+}
+
+.create-tournament__wide {
+  grid-column: 1 / -1;
+}
+
+.create-tournament__toggle {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
+  min-width: 0;
+}
+
+.create-tournament .deck-format-selector {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.create-tournament .deck-format-selector__fields {
+  gap: var(--ds-space-4) var(--ds-space-5);
+}
+
+.create-tournament .deck-format-selector__fields > div {
+  gap: var(--ds-space-2);
+}
+
+.create-tournament .deck-format-selector label {
+  font-size: var(--ds-text-sm);
+}
+
+.create-tournament .deck-format-selector select {
+  min-height: var(--ds-touch-target);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  font: var(--ds-text-sm) / 1.25 var(--ds-font-body);
+  border-radius: var(--ds-radius-md);
+}
+
+.create-tournament .tournaments-clocks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ds-space-4) var(--ds-space-5);
+  padding-top: var(--ds-space-4);
+  border-top: 1px solid var(--ds-line);
+}
+
+.create-tournament .tournaments-clocks > :first-child {
+  grid-column: 1 / -1;
+}
+
+.create-tournament__summary {
+  position: sticky;
+  top: 0;
+  min-width: 0;
+}
+
+.create-tournament__summary-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
+  max-height: calc(100dvh - var(--ds-nav-height-wide) - var(--ds-space-8));
+}
+
+.create-tournament__summary-panel > * {
+  flex: none;
+}
+
+.create-tournament__summary-panel > .tournaments-preview {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.create-tournament__summary-panel .create-tournament__summary-title {
+  margin: 0;
+}
+
+.create-tournament__summary-panel .tournaments-estimates p,
+.create-tournament__summary-panel .tournaments-preview p {
+  margin: 0 0 var(--ds-space-1);
+  font-size: var(--ds-text-sm);
+}
+
+.create-tournament__summary-panel .tournaments-estimates .tournaments-note {
+  margin-top: var(--ds-space-2);
+  font-size: var(--ds-text-xs);
+}
+
+.create-tournament__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  padding-top: var(--ds-space-4);
+  border-top: 1px solid var(--ds-line);
+}
+
+@media (max-width: 1023px) {
+  .create-tournament__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .create-tournament__summary {
+    position: static;
+  }
+
+  .create-tournament__summary-panel {
+    max-height: none;
+  }
+
+  .create-tournament__summary-panel > .tournaments-preview {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 599px) {
+  .create-tournament__grid,
+  .create-tournament .tournaments-clocks {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .create-tournament .deck-format-selector__fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

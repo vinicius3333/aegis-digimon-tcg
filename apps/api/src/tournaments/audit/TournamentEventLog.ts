@@ -12,6 +12,7 @@ export type TournamentSubjectKind = "tournament" | "phase" | "round" | "match" |
 export type TournamentCommandName =
   // Organizer arbitration (this slice).
   | "decide_series"
+  | "swap_pairings"
   | "concede_match"
   | "disqualify"
   | "cancel_tournament"

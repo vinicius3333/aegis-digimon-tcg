@@ -980,6 +980,10 @@ export class GameEngine {
     this.projection.flushHandAffordances();
   }
 
+  refreshHandAffordances(): void {
+    this.projection.refreshHandAffordances();
+  }
+
   handleReconnect(seat: Seat): void {
     this.snapshotContinuation.recordInput({
       engine: this,

@@ -147,8 +147,11 @@ export function DecisionPrompts({
           sourceCardId={sourceCardId}
           clause={clause}
           clauseEmphasis={decision.options?.effectTextEmphasis}
-          onNoSelection={
-            min === 0 && boardSelectionKind ? () => onRespond({ kind: boardSelectionKind, instanceIds: [] }) : undefined
+          onCancel={
+            boardSelectionKind &&
+            (min === 0 || decision.options?.declinesCost === true || decision.options?.canCancelActivation === true)
+              ? () => onRespond({ kind: boardSelectionKind, instanceIds: [] })
+              : undefined
           }
         />
       ) : null}
@@ -192,7 +195,10 @@ export function DecisionPrompts({
                 triggerDetails={triggerDetails}
                 onTogglePick={onTogglePick}
                 onRespond={onRespond}
-                {...(sourceHost?.cardIds ? { onChangeSourceHost: sourceHost.onChangeHost } : {})}
+                sourcePicker={sourceHost !== undefined}
+                {...(sourceHost?.cardIds && sourceHost.hostPermanentIds.length > 1
+                  ? { onChangeSourceHost: sourceHost.onChangeHost }
+                  : {})}
               />
             );
           })()

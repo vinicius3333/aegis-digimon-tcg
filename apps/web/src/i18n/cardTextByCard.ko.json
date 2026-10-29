@@ -2196,7 +2196,7 @@
     "[OnPlay]Trashthebottomdigivolutioncardof1ofyouropponent'sDigimon.Then,ifyouropponenthasnoDigimonwithdigivolutioncards,<Draw1>(Draw1cardfromyourdeck).": "【등장 시】상대의 디지몬 1마리의 진화원을 아래에서부터 1장 파기한다. 그 후, 진화원을 가진 상대의 디지몬이 없다면, 《1 드로우》."
   },
   "BT15-020": {
-    "[StartofYourMainPhase]1ofyourDigimongains<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget)untiltheendofyouropponent'sturn.Then,ifyouhaveaTamerwith[MattIshida]&#160;initsname,<Draw1>(Draw1cardfromyourdeck).": "〔진화〕「뿔몬」 : 코스트 0【자신의 메인 페이즈 개시 시】상대의 턴 종료까지 자신의 디지몬 1마리는 《블로커》를 얻는다. 그 후, 명칭에 「매튜」를 포함하는 자신의 테이머가 있다면, 《1 드로우》.",
+    "[StartofYourMainPhase]1ofyourDigimongains<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget)untiltheendofyouropponent'sturn.Then,ifyouhaveaTamerwith[MattIshida]initsname,<Draw1>(Draw1cardfromyourdeck).": "〔진화〕「뿔몬」 : 코스트 0【자신의 메인 페이즈 개시 시】상대의 턴 종료까지 자신의 디지몬 1마리는 《블로커》를 얻는다. 그 후, 명칭에 「매튜」를 포함하는 자신의 테이머가 있다면, 《1 드로우》.",
     "[WhenAttacking][OncePerTurn]<Draw1>(Draw1cardfromyourdeck).": "【어택 시】[턴에 1회]《1 드로우》(자신의 덱에서 카드를 1장 뽑는다)"
   },
   "BT15-021": {
@@ -2239,7 +2239,7 @@
     "<Barrier>(WhenthisDigimonwouldbedeletedinbattle,bytrashingthetopcardofyoursecuritystack,preventthatdeletion).": "《방벽》(이 디지몬이 배틀에서 소멸할 때, 자신의 시큐리티를 위에서부터 1장 파기하는 것으로, 소멸하지 않는다)"
   },
   "BT15-034": {
-    "[StartofYourMainPhase]Ifyouhave3ormoresecuritycards,youmayaddthetopcardofyoursecuritystacktothehand.Ifyouhave2orfewer,youmayplace1yellowDigimoncardwiththe[Vaccine]&#160;traitfromyourhandatthetoporbottomofyoursecuritystack.": "【자신의 메인 페이즈 개시 시】자신의 시큐리티가 3장 이상이라면, 자신의 시큐리티를 위에서부터 1장 패에 추가할 수 있다. 그 후, 자신의 시큐리티가 2장 이하라면, 자신의 패에서 특징으로 「백신종」을 가진 옐로인 디지몬 카드 1장을 시큐리티 위 또는 아래에 놓을 수 있다.",
+    "[StartofYourMainPhase]Ifyouhave3ormoresecuritycards,youmayaddthetopcardofyoursecuritystacktothehand.Ifyouhave2orfewer,youmayplace1yellowDigimoncardwiththe[Vaccine]traitfromyourhandatthetoporbottomofyoursecuritystack.": "【자신의 메인 페이즈 개시 시】자신의 시큐리티가 3장 이상이라면, 자신의 시큐리티를 위에서부터 1장 패에 추가할 수 있다. 그 후, 자신의 시큐리티가 2장 이하라면, 자신의 패에서 특징으로 「백신종」을 가진 옐로인 디지몬 카드 1장을 시큐리티 위 또는 아래에 놓을 수 있다.",
     "[AllTurns][OncePerTurn]Whenacardisremovedfromyoursecuritystack,1ofyouropponent'sDigimongets-2000DPfortheturn.": "【서로의 턴】[턴에 1회]자신의 시큐리티가 줄어들었을 때, 턴 종료까지 상대의 디지몬 1마리를 DP -2000."
   },
   "BT15-035": {
@@ -2325,7 +2325,7 @@
     "[OnDeletion]Youmayplay1Digimoncardwith[Numemon]initsnamefromyourtrashwithoutpayingthecost.": "【소멸 시】자신의 트래시에서 명칭에 「워매몬」을 포함하는 디지몬 카드 1장을 코스트를 지불하지 않고 등장시킬 수 있다."
   },
   "BT15-058": {
-    "[Digivolve]Lv.3w/[XAntibody]/[DigiPolice]trait:Cost2<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[OnPlay][WhenDigivolving]Suspend1ofyouropponent'sDigimon.IfaTamercardwiththe[DigiPolice]&#160;traitisinthisDigimon'sdigivolutioncards,thatDigimoncan'tunsuspenduntiltheendoftheirturn.": "〔진화〕특징으로 「X항체」/「디지대」를 가진 Lv.3 : 코스트 2《블로커》 【등장 시】【진화 시】상대의 디지몬 1마리를 레스트시킨다. 이 디지몬의 진화원에 특징으로 「디지대」를 가진 테이머 카드가 있다면, 상대의 턴 종료까지 그 디지몬은 액티브가 되지 않는다.",
+    "[Digivolve]Lv.3w/[XAntibody]/[DigiPolice]trait:Cost2<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[OnPlay][WhenDigivolving]Suspend1ofyouropponent'sDigimon.IfaTamercardwiththe[DigiPolice]traitisinthisDigimon'sdigivolutioncards,thatDigimoncan'tunsuspenduntiltheendoftheirturn.": "〔진화〕특징으로 「X항체」/「디지대」를 가진 Lv.3 : 코스트 2《블로커》 【등장 시】【진화 시】상대의 디지몬 1마리를 레스트시킨다. 이 디지몬의 진화원에 특징으로 「디지대」를 가진 테이머 카드가 있다면, 상대의 턴 종료까지 그 디지몬은 액티브가 되지 않는다.",
     "[AllTurns][OncePerTurn]WhenthisDigimonbecomessuspended,suspend1ofyouropponent'sDigimonorTamerswithaplaycostlessthanorequaltothisDigimon'splaycost.": "【서로의 턴】[턴에 1회]이 디지몬이 레스트했을 때, 이 디지몬의 등장 코스트 이하의 상대의 디지몬/테이머 1마리(명)를 레스트시킨다."
   },
   "BT15-059": {
@@ -2333,23 +2333,23 @@
     "<Reboot>(UnsuspendthisDigimonduringyouropponent'sunsuspendphase).": "《재기동》(이 디지몬은 상대의 액티브 페이즈에도 액티브가 된다)"
   },
   "BT15-060": {
-    "[DigiXros-1][Agumon]/[Greymon]x[Gabumon]/[Garurumon]Whilethiscardisrevealedfromthedeck,itsnameisalsotreatedas[Omnimon].<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[OnPlay]Ifit'syourturn,1ofyourotherDigimonmaydigivolveintoablackDigimoncardwith[Greymon]/[Garurumon]&#160;initsnameinyourhandwiththedigivolutioncostreducedby2.": "이 카드가 덱에서 오픈되어 있는 동안, 이 카드의 명칭은 「오메가몬」으로도 취급한다. 《블로커》 【등장 시】자신의 턴이라면, 다른 자신의 디지몬 1마리를 패의 명칭에 「그레이몬」/「가루몬」을 포함하는 블랙인 디지몬 카드로 지불하는 진화 코스트 -2 하여 진화시킬 수 있다.디지크로스 -1: 「아구몬」/「그레이몬」×「파피몬」/「가루몬」 등장할 때, 패/배틀 에어리어에서 이 카드 아래에 놓을 수 있다. 1장마다 등장 코스트를 마이너스한다",
+    "[DigiXros-1][Agumon]/[Greymon]x[Gabumon]/[Garurumon]Whilethiscardisrevealedfromthedeck,itsnameisalsotreatedas[Omnimon].<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[OnPlay]Ifit'syourturn,1ofyourotherDigimonmaydigivolveintoablackDigimoncardwith[Greymon]/[Garurumon]initsnameinyourhandwiththedigivolutioncostreducedby2.": "이 카드가 덱에서 오픈되어 있는 동안, 이 카드의 명칭은 「오메가몬」으로도 취급한다. 《블로커》 【등장 시】자신의 턴이라면, 다른 자신의 디지몬 1마리를 패의 명칭에 「그레이몬」/「가루몬」을 포함하는 블랙인 디지몬 카드로 지불하는 진화 코스트 -2 하여 진화시킬 수 있다.디지크로스 -1: 「아구몬」/「그레이몬」×「파피몬」/「가루몬」 등장할 때, 패/배틀 에어리어에서 이 카드 아래에 놓을 수 있다. 1장마다 등장 코스트를 마이너스한다",
     "[WhenAttacking][OncePerTurn]<De-Digivolve1>1ofyouropponent'sDigimon(Trashthetopcard.Youcan'ttrashpastlevel3cards).": "【어택 시】[턴에 1회]상대의 디지몬 1마리를 《퇴화 1》."
   },
   "BT15-061": {
-    "<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[OnPlay][WhenDigivolving]Bytrashing1cardwiththe[Machine]/[Cyborg]&#160;traitinyourhand,1ofyourDigimoncan'tbedeletedbyyouropponent'seffectsuntiltheendoftheirturn.[YourTurn]WhileyouropponenthasnoDigimon,thisDigimoncan'tattack.": "《블로커》 【등장 시】【진화 시】자신의 패에서 특징으로 「머신형」/「사이보그형」을 가진 카드 1장을 파기하는 것으로, 상대의 턴 종료까지 자신의 디지몬 1마리는 상대의 효과로 소멸하지 않는다. 【자신의 턴】상대의 디지몬이 없는 동안, 이 디지몬은 어택할 수 없다.",
+    "<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[OnPlay][WhenDigivolving]Bytrashing1cardwiththe[Machine]/[Cyborg]traitinyourhand,1ofyourDigimoncan'tbedeletedbyyouropponent'seffectsuntiltheendoftheirturn.[YourTurn]WhileyouropponenthasnoDigimon,thisDigimoncan'tattack.": "《블로커》 【등장 시】【진화 시】자신의 패에서 특징으로 「머신형」/「사이보그형」을 가진 카드 1장을 파기하는 것으로, 상대의 턴 종료까지 자신의 디지몬 1마리는 상대의 효과로 소멸하지 않는다. 【자신의 턴】상대의 디지몬이 없는 동안, 이 디지몬은 어택할 수 없다.",
     "<Reboot>(UnsuspendthisDigimonduringyouropponent'sunsuspendphase).": "《재기동》(이 디지몬은 상대의 액티브 페이즈에도 액티브가 된다)"
   },
   "BT15-062": {
-    "[OnPlay]Revealthetop4cardsofyourdeck.Add2level6orhighercardsamongthemtothehand.Returntheresttothebottomofthedeck.[EndofYourTurn]Bydeleting1ofyourDigimon,youmayplay1Digimoncardwiththe[DarkMasters]&#160;traitfromyourhandtoanemptyspaceinyourbreedingareawithoutpayingthecost.": "【등장 시】자신의 덱 위에서부터 4장 오픈한다. 그중 Lv.6 이상의 카드 2장을 패에 추가한다. 나머지는 덱 아래로 되돌린다. 【자신의 턴 종료 시】자신의 디지몬 1마리를 소멸시키는 것으로, 자신의 패에서 특징으로 「어둠의 4천왕」을 가진 디지몬 카드 1장을 육성 에어리어에 코스트를 지불하지 않고 등장시킬 수 있다.",
+    "[OnPlay]Revealthetop4cardsofyourdeck.Add2level6orhighercardsamongthemtothehand.Returntheresttothebottomofthedeck.[EndofYourTurn]Bydeleting1ofyourDigimon,youmayplay1Digimoncardwiththe[DarkMasters]traitfromyourhandtoanemptyspaceinyourbreedingareawithoutpayingthecost.": "【등장 시】자신의 덱 위에서부터 4장 오픈한다. 그중 Lv.6 이상의 카드 2장을 패에 추가한다. 나머지는 덱 아래로 되돌린다. 【자신의 턴 종료 시】자신의 디지몬 1마리를 소멸시키는 것으로, 자신의 패에서 특징으로 「어둠의 4천왕」을 가진 디지몬 카드 1장을 육성 에어리어에 코스트를 지불하지 않고 등장시킬 수 있다.",
     "<Reboot>(UnsuspendthisDigimonduringyouropponent'sunsuspendphase).": "《재기동》(이 디지몬은 상대의 액티브 페이즈에도 액티브가 된다)"
   },
   "BT15-063": {
-    "[Digivolve]Lv.4w/[XAntibody]/[DigiPolice]trait:Cost3<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[AllTurns]WhenaneffectsuspendsanotherDigimonorTamer,ifaTamercardwiththe[DigiPolice]&#160;traitisinthisDigimon'sdigivolutioncards,thisDigimonmaydigivolveintoaDigimoncardwiththe[BeastDragon]/[DigiPolice]&#160;traitinyourhandwithoutpayingthecost.": "〔진화〕특징으로 「X항체」/「디지대」를 가진 Lv.4 : 코스트 3《블로커》 【서로의 턴】다른 디지몬/테이머가 효과로 레스트했을 때, 이 디지몬의 진화원에 특징으로 「디지대」를 가진 테이머 카드가 있다면, 이 디지몬을 패의 특징으로 「수룡형」/「디지대」를 가진 디지몬 카드로 코스트를 지불하지 않고 진화시킬 수 있다.",
+    "[Digivolve]Lv.4w/[XAntibody]/[DigiPolice]trait:Cost3<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[AllTurns]WhenaneffectsuspendsanotherDigimonorTamer,ifaTamercardwiththe[DigiPolice]traitisinthisDigimon'sdigivolutioncards,thisDigimonmaydigivolveintoaDigimoncardwiththe[BeastDragon]/[DigiPolice]traitinyourhandwithoutpayingthecost.": "〔진화〕특징으로 「X항체」/「디지대」를 가진 Lv.4 : 코스트 3《블로커》 【서로의 턴】다른 디지몬/테이머가 효과로 레스트했을 때, 이 디지몬의 진화원에 특징으로 「디지대」를 가진 테이머 카드가 있다면, 이 디지몬을 패의 특징으로 「수룡형」/「디지대」를 가진 디지몬 카드로 코스트를 지불하지 않고 진화시킬 수 있다.",
     "[AllTurns][OncePerTurn]WhenaneffectsuspendsanotherDigimonorTamer,unsuspend1ofyourDigimonwiththe[BeastDragon]/[DigiPolice]trait.": "【서로의 턴】[턴에 1회]다른 디지몬/테이머가 효과로 레스트했을 때, 특징으로 「수룡형」/「디지대」를 가진 자신의 디지몬 1마리를 액티브로 한다."
   },
   "BT15-064": {
-    "[Digivolve]Lv.4w/[SoC]trait:Cost3[OnPlay][WhenDigivolving]Revealthetop3cardsofyourdeck.Amongthem,place1[Machine]/[Cyborg]/[SoC]traitcardasthisDigimon'sbottomdigivolutioncard,andadd1suchcardtothehand.Trashtherest.[WhenAttacking]Ifan[SoC]&#160;traitTamercardisinthisDigimon'sdigivolutioncards,delete1ofyouropponent'splaycost3orlowerDigimonorTamers.": "〔진화〕특징으로 「SoC」를 가진 Lv.4 : 코스트 3【등장 시】【진화 시】자신의 덱 위에서부터 3장 오픈한다. 그중 특징으로 「머신형」/「사이보그형」/「SoC」를 가진 카드 1장을 이 디지몬의 진화원 아래에 놓고, 1장을 패에 추가한다. 나머지는 파기한다. 【어택 시】이 디지몬의 진화원에 특징으로 「SoC」를 가진 테이머 카드가 있다면, 등장 코스트 3 이하의 상대의 디지몬/테이머 1마리(명)를 소멸시킨다.",
+    "[Digivolve]Lv.4w/[SoC]trait:Cost3[OnPlay][WhenDigivolving]Revealthetop3cardsofyourdeck.Amongthem,place1[Machine]/[Cyborg]/[SoC]traitcardasthisDigimon'sbottomdigivolutioncard,andadd1suchcardtothehand.Trashtherest.[WhenAttacking]Ifan[SoC]traitTamercardisinthisDigimon'sdigivolutioncards,delete1ofyouropponent'splaycost3orlowerDigimonorTamers.": "〔진화〕특징으로 「SoC」를 가진 Lv.4 : 코스트 3【등장 시】【진화 시】자신의 덱 위에서부터 3장 오픈한다. 그중 특징으로 「머신형」/「사이보그형」/「SoC」를 가진 카드 1장을 이 디지몬의 진화원 아래에 놓고, 1장을 패에 추가한다. 나머지는 파기한다. 【어택 시】이 디지몬의 진화원에 특징으로 「SoC」를 가진 테이머 카드가 있다면, 등장 코스트 3 이하의 상대의 디지몬/테이머 1마리(명)를 소멸시킨다.",
     "[WhenAttacking][OncePerTurn]<De-Digivolve1>1ofyouropponent'sDigimon(Trashthetopcard.Youcan'ttrashpastlevel3cards).": "【어택 시】[턴에 1회]상대의 디지몬 1마리를 《퇴화 1》."
   },
   "BT15-065": {
@@ -2357,11 +2357,11 @@
     "[YourTurn]WhilethisDigimonhas[Monzaemon]/[Numemon]initsname,itgains<SecurityAttack+1>(ThisDigimonchecks1additionalsecuritycard).": "【자신의 턴】명칭에 「퍼펫몬」/「워매몬」을 포함하는 이 디지몬은 《S 어택 +1》을 얻는다."
   },
   "BT15-066": {
-    "[OnPlay][WhenAttacking]<De-Digivolve2>1ofyouropponent'sDigimon(Trashupto2cardsfromthetop.Youcan'ttrashpastlevel3cards).[YourTurn]ThisDigimoncanonlydigivolveintowhiteDigimon.[EndofOpponent'sTurn]DeletethisDigimon.Then,youmayplay1Digimoncardwiththe[DarkMasters]&#160;trait,otherthan[Machinedramon],fromyourhandwithoutpayingthecost.": "【등장 시】【어택 시】상대의 디지몬 1마리를 《퇴화 2》. 【자신의 턴】이 디지몬은 화이트인 디지몬으로만 진화할 수 있다. 【상대의 턴 종료 시】이 디지몬을 소멸시킨다. 그 후, 자신의 패에서 「파워드라몬」 이외의 특징으로 「어둠의 4천왕」을 가진 디지몬 카드 1장을 코스트를 지불하지 않고 등장시킬 수 있다.",
+    "[OnPlay][WhenAttacking]<De-Digivolve2>1ofyouropponent'sDigimon(Trashupto2cardsfromthetop.Youcan'ttrashpastlevel3cards).[YourTurn]ThisDigimoncanonlydigivolveintowhiteDigimon.[EndofOpponent'sTurn]DeletethisDigimon.Then,youmayplay1Digimoncardwiththe[DarkMasters]trait,otherthan[Machinedramon],fromyourhandwithoutpayingthecost.": "【등장 시】【어택 시】상대의 디지몬 1마리를 《퇴화 2》. 【자신의 턴】이 디지몬은 화이트인 디지몬으로만 진화할 수 있다. 【상대의 턴 종료 시】이 디지몬을 소멸시킨다. 그 후, 자신의 패에서 「파워드라몬」 이외의 특징으로 「어둠의 4천왕」을 가진 디지몬 카드 1장을 코스트를 지불하지 않고 등장시킬 수 있다.",
     "<Reboot>(UnsuspendthisDigimonduringyouropponent'sunsuspendphase).": "《재기동》(이 디지몬은 상대의 액티브 페이즈에도 액티브가 된다)"
   },
   "BT15-067": {
-    "[Digivolve]Lv.5w/[XAntibody]/[DigiPolice]trait:Cost4<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[WhenDigivolving]IfaTamercardwiththe[DigiPolice]traitisinthisDigimon'sdigivolutioncards,return1ofyouropponent'ssuspendedDigimonorTamerstothebottomofthedeck.[AllTurns][OncePerTurn]WhenthisDigimonbecomessuspended,youmayplay1Digimoncardwiththe[BeastDragon]/[DigiPolice]&#160;traitand5000DPorlessfromyourhandwithoutpayingthecost.": "〔진화〕특징으로 「X항체」/「디지대」를 가진 Lv.5 : 코스트 4《블로커》 【진화 시】이 디지몬의 진화원에 특징으로 「디지대」를 가진 테이머 카드가 있다면, 레스트 상태인 상대의 디지몬/테이머 1마리(명)를 덱 아래로 되돌린다. 【서로의 턴】[턴에 1회]이 디지몬이 레스트했을 때, 자신의 패에서 특징으로 「수룡형」/「디지대」를 가진 DP 5000 이하의 디지몬 카드 1장을 코스트를 지불하지 않고 등장시킬 수 있다."
+    "[Digivolve]Lv.5w/[XAntibody]/[DigiPolice]trait:Cost4<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[WhenDigivolving]IfaTamercardwiththe[DigiPolice]traitisinthisDigimon'sdigivolutioncards,return1ofyouropponent'ssuspendedDigimonorTamerstothebottomofthedeck.[AllTurns][OncePerTurn]WhenthisDigimonbecomessuspended,youmayplay1Digimoncardwiththe[BeastDragon]/[DigiPolice]traitand5000DPorlessfromyourhandwithoutpayingthecost.": "〔진화〕특징으로 「X항체」/「디지대」를 가진 Lv.5 : 코스트 4《블로커》 【진화 시】이 디지몬의 진화원에 특징으로 「디지대」를 가진 테이머 카드가 있다면, 레스트 상태인 상대의 디지몬/테이머 1마리(명)를 덱 아래로 되돌린다. 【서로의 턴】[턴에 1회]이 디지몬이 레스트했을 때, 자신의 패에서 특징으로 「수룡형」/「디지대」를 가진 DP 5000 이하의 디지몬 카드 1장을 코스트를 지불하지 않고 등장시킬 수 있다."
   },
   "BT15-068": {
     "[OnPlay]Untiltheendofyouropponent'sturn,1oftheirDigimongains\"[OnDeletion]Lose1memory.\"": "【등장 시】상대의 턴 종료까지 상대의 디지몬 1마리에게 「【소멸 시】메모리 -1.」의 효과를 준다.",
@@ -2378,7 +2378,7 @@
     "[EndofAttack][OncePerTurn]Ifyouropponenthas1ormorememory,gain1memory.": "【어택 종료 시】[턴에 1회]메모리가 상대 쪽의 1 이상이라면, 메모리 +1."
   },
   "BT15-072": {
-    "<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[AllTurns]Whenoneofyour[Apocalymon]orDigimonwiththe[DarkMasters]&#160;traitwouldleavethebattleareaotherthanbyoneofyoureffects,bydeletingthisDigimon,prevent1ofthoseDigimonfromleaving.": "《블로커》 【서로의 턴】자신의 「아포카리몬」 또는 특징으로 「어둠의 4천왕」을 가진 자신의 디지몬이 자신의 효과 이외로 배틀 에어리어를 벗어날 때, 이 디지몬을 소멸시키는 것으로, 그 디지몬 1마리는 벗어나지 않는다."
+    "<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget).[AllTurns]Whenoneofyour[Apocalymon]orDigimonwiththe[DarkMasters]traitwouldleavethebattleareaotherthanbyoneofyoureffects,bydeletingthisDigimon,prevent1ofthoseDigimonfromleaving.": "《블로커》 【서로의 턴】자신의 「아포카리몬」 또는 특징으로 「어둠의 4천왕」을 가진 자신의 디지몬이 자신의 효과 이외로 배틀 에어리어를 벗어날 때, 이 디지몬을 소멸시키는 것으로, 그 디지몬 1마리는 벗어나지 않는다."
   },
   "BT15-073": {
     "[WhenDigivolving][OnDeletion]<Draw1>(Draw1cardfromyourdeck).Then,trash1cardinyourhand.": "【진화 시】【소멸 시】《1 드로우》. 그 후, 자신의 패 1장을 파기한다.",
@@ -2470,8 +2470,8 @@
     "[Security]Suspend1ofyouropponent'sDigimon.Then,addthiscardtothehand.": "【시큐리티】상대의 디지몬 1마리를 레스트시킨다. 그 후, 이 카드를 패에 추가한다."
   },
   "BT15-096": {
-    "[Main]Revealthetop5cardsofyourdeck.Amongthem,add1cardwiththe[Machine]/[Cyborg]traittothehandandtrash1suchcard.Returntheresttothetopofthedeck.Then,placethiscardinthebattlearea.[Main]<Delay>(Afterthiscardisplaced,bytrashingitthenextturnorlater,activatetheeffectbelow.)•Youmayplay1level5orhigherDigimoncardwiththe[Machine]/[Cyborg]&#160;traitfromyourhandwiththeplaycostreducedby3.": "【메인】자신의 덱 위에서부터 5장 오픈한다. 그중 특징으로 「머신형」/「사이보그형」을 가진 카드 1장을 패에 추가하고, 1장을 파기한다. 나머지는 덱 위로 되돌린다. 그 후, 이 카드를 배틀 에어리어에 놓는다. 【메인】《딜레이》 ・자신의 패에서 특징으로 「머신형」/「사이보그형」을 가진 Lv.5 이상의 디지몬 카드 1장을 지불하는 등장 코스트 -3 하여 등장시킬 수 있다.",
-    "[Security]Revealthetop5cardsofyourdeck.Amongthem,add1cardwiththe[Machine]/[Cyborg]&#160;traittothehandandtrash1suchcard.Returntheresttothetopofthedeck.Then,placethiscardinthebattlearea.": "【시큐리티】자신의 덱 위에서부터 5장 오픈한다. 그중 특징으로 「머신형」/「사이보그형」을 가진 카드 1장을 패에 추가하고, 1장을 파기한다. 나머지는 덱 위로 되돌린다. 그 후, 이 카드를 배틀 에어리어에 놓는다."
+    "[Main]Revealthetop5cardsofyourdeck.Amongthem,add1cardwiththe[Machine]/[Cyborg]traittothehandandtrash1suchcard.Returntheresttothetopofthedeck.Then,placethiscardinthebattlearea.[Main]<Delay>(Afterthiscardisplaced,bytrashingitthenextturnorlater,activatetheeffectbelow.)•Youmayplay1level5orhigherDigimoncardwiththe[Machine]/[Cyborg]traitfromyourhandwiththeplaycostreducedby3.": "【메인】자신의 덱 위에서부터 5장 오픈한다. 그중 특징으로 「머신형」/「사이보그형」을 가진 카드 1장을 패에 추가하고, 1장을 파기한다. 나머지는 덱 위로 되돌린다. 그 후, 이 카드를 배틀 에어리어에 놓는다. 【메인】《딜레이》 ・자신의 패에서 특징으로 「머신형」/「사이보그형」을 가진 Lv.5 이상의 디지몬 카드 1장을 지불하는 등장 코스트 -3 하여 등장시킬 수 있다.",
+    "[Security]Revealthetop5cardsofyourdeck.Amongthem,add1cardwiththe[Machine]/[Cyborg]traittothehandandtrash1suchcard.Returntheresttothetopofthedeck.Then,placethiscardinthebattlearea.": "【시큐리티】자신의 덱 위에서부터 5장 오픈한다. 그중 특징으로 「머신형」/「사이보그형」을 가진 카드 1장을 패에 추가하고, 1장을 파기한다. 나머지는 덱 위로 되돌린다. 그 후, 이 카드를 배틀 에어리어에 놓는다."
   },
   "BT15-097": {
     "[Main]Bytrashing1Digimoncardwiththe[Machine]/[Cyborg]/[SoC]traitinyourhand,delete1ofyouropponent'sDigimonorTamerswiththelowestplaycost.": "【메인】자신의 패에서 특징으로 「머신형」/「사이보그형」/「SoC」를 가진 디지몬 카드 1장을 파기하는 것으로, 가장 등장 코스트가 낮은 상대의 디지몬/테이머 1마리(명)를 소멸시킨다.",
@@ -10737,7 +10737,7 @@
     "<Rush>.<SecurityA.+1>[OnPlay][WhenDigivolving]Youmayplace1level4orlower[DM]traitDigimoncardfromyourtrashasthisDigimon'stopdigivolutioncard.Then,delete1ofyouropponent'sDigimonwiththesamecolorasanyofthisDigimon'sdigivolutioncards.IfthisDigimonhas6ormorecolorsinitsdigivolutioncards,insteaddelete1ofeachofyouropponent'sDigimonwithdifferentcolors.[AllTurns]ThisDigimongets+1000DPforeachcolorinitsdigivolutioncards.[Assembly-7]7level4[DM]traitDigimoncardsw/differentnames": "《속공》《S 어택 +1》 【등장 시】【진화 시】자신의 트래시에서 특징 「DM」를 가진 Lv.4 이하의 디지몬 카드 1장을 이 디지몬의 진화원 위에 놓을 수 있다. 그 후, 이 디지몬의 진화원과 같은 색의 상대의 디지몬 1마리를 소멸시킨다. 이 디지몬의 진화원이 6색 이상이라면, 대신 색이 서로 다른 상대의 디지몬 1마리씩을 소멸시킨다. 【서로의 턴】이 디지몬의 진화원의 색 1색마다 이 디지몬을 DP +1000."
   },
   "LM-001": {
-    "[Digivolve]Lv.5w/[Gammamon]intext:Cost4[Hand][Counter]<BlastDigivolve>(YourDigimonmaydigivolveintothiscardwithoutpayingthecost).[OnPlay][WhenDigivolving]Youmayplace1cardwith[Gammamon]&#160;initstextfromyourhandasthisDigimon'sbottomdigivolutioncard.Then,delete1ofyouropponent'sDigimonwith8000DPorless.ForeachcolorinthisDigimon'sdigivolutioncards,add1000tothisDPdeletioneffect'smaximum.[AllTurns][OncePerTurn]WhenanotherDigimonisdeleted,gain1memory.": "〔진화〕「감마몬」이 기술되어 있는 Lv.5 : 코스트 4[패]【카운터】《블래스트 진화》(자신의 디지몬을 이 카드로 코스트를 지불하지 않고 진화시킬 수 있다) 【등장 시】【진화 시】자신의 패에서 「감마몬」이 기술되어 있는 카드 1장을 이 디지몬의 진화원 아래에 놓을 수 있다. 그 후, DP 8000 이하의 상대의 디지몬 1마리를 소멸시킨다. 이 디지몬의 진화원의 색 1색마다 이 DP 소멸 효과의 상한 +1000. 【서로의 턴】[턴에 1회]다른 디지몬이 소멸했을 때, 메모리 +1."
+    "[Digivolve]Lv.5w/[Gammamon]intext:Cost4[Hand][Counter]<BlastDigivolve>(YourDigimonmaydigivolveintothiscardwithoutpayingthecost).[OnPlay][WhenDigivolving]Youmayplace1cardwith[Gammamon]initstextfromyourhandasthisDigimon'sbottomdigivolutioncard.Then,delete1ofyouropponent'sDigimonwith8000DPorless.ForeachcolorinthisDigimon'sdigivolutioncards,add1000tothisDPdeletioneffect'smaximum.[AllTurns][OncePerTurn]WhenanotherDigimonisdeleted,gain1memory.": "〔진화〕「감마몬」이 기술되어 있는 Lv.5 : 코스트 4[패]【카운터】《블래스트 진화》(자신의 디지몬을 이 카드로 코스트를 지불하지 않고 진화시킬 수 있다) 【등장 시】【진화 시】자신의 패에서 「감마몬」이 기술되어 있는 카드 1장을 이 디지몬의 진화원 아래에 놓을 수 있다. 그 후, DP 8000 이하의 상대의 디지몬 1마리를 소멸시킨다. 이 디지몬의 진화원의 색 1색마다 이 DP 소멸 효과의 상한 +1000. 【서로의 턴】[턴에 1회]다른 디지몬이 소멸했을 때, 메모리 +1."
   },
   "LM-002": {
     "[StartofYourMainPhase]Ifyouhave7orfewercardsinyourhand,<Draw1>(Draw1cardfromyourdeck).": "【자신의 메인 페이즈 개시 시】자신의 패가 7장 이하라면, 《1 드로우》.",
@@ -10749,10 +10749,10 @@
   },
   "LM-004": {
     "[OnPlay][WhenDigivolving]Bytrashing2bluecardsinyourhand,unsuspend1ofyourDigimonand1ofyour[KiyoshiroHigashimitarai],andthisDigimongains<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget)untiltheendofyouropponent'sturn.": "【등장 시】【진화 시】자신의 패에서 블루인 카드 2장을 파기하는 것으로, 자신의 디지몬 1마리와 자신의 「이청솔」 1명을 액티브로 하고, 상대의 턴 종료까지 이 디지몬은 《블로커》를 얻는다.",
-    "[AllTurns][OncePerTurn]Whenacardwith[Jellymon]&#160;initstextistrashedfromyourhand,youmayunsuspendthisDigimon.": "【서로의 턴】[턴에 1회]자신의 패에서 「젤리몬」이 기술되어 있는 카드가 파기되었을 때, 이 디지몬을 액티브로 할 수 있다."
+    "[AllTurns][OncePerTurn]Whenacardwith[Jellymon]initstextistrashedfromyourhand,youmayunsuspendthisDigimon.": "【서로의 턴】[턴에 1회]자신의 패에서 「젤리몬」이 기술되어 있는 카드가 파기되었을 때, 이 디지몬을 액티브로 할 수 있다."
   },
   "LM-005": {
-    "[Hand][Counter]<BlastDigivolve>(YourDigimonmaydigivolveintothiscardwithoutpayingthecost).[OnPlay][WhenDigivolving]Youmaytrashupto4bluecardsinyourhand.Foreachone,trashany1cardunderyouropponent'sDigimonorTamers.Then,return1oftheirDigimonorTamerswithoutcardsunderittothehand.[WhenAttacking]Byreturning3cardswith[Jellymon]&#160;intheirtextsfromyourtrashtothebottomofthedeck,thisDigimongains<SecurityAttack+1>(ThisDigimonchecks1additionalsecuritycard)fortheturn.": "[패]【카운터】《블래스트 진화》(자신의 디지몬을 이 카드로 코스트를 지불하지 않고 진화시킬 수 있다) 【등장 시】【진화 시】자신의 패에서 블루인 카드 4장까지를 파기할 수 있다. 파기한 1장마다 상대의 디지몬/테이머 아래에서 선택하여 1장 파기한다. 그 후, 아래에 카드가 없는 상대의 디지몬/테이머 1마리(명)를 패로 되돌린다. 【어택 시】자신의 트래시에서 「젤리몬」이 기술되어 있는 카드 3장을 덱 아래로 되돌리는 것으로, 턴 종료까지 이 디지몬은 《S 어택 +1》을 얻는다."
+    "[Hand][Counter]<BlastDigivolve>(YourDigimonmaydigivolveintothiscardwithoutpayingthecost).[OnPlay][WhenDigivolving]Youmaytrashupto4bluecardsinyourhand.Foreachone,trashany1cardunderyouropponent'sDigimonorTamers.Then,return1oftheirDigimonorTamerswithoutcardsunderittothehand.[WhenAttacking]Byreturning3cardswith[Jellymon]intheirtextsfromyourtrashtothebottomofthedeck,thisDigimongains<SecurityAttack+1>(ThisDigimonchecks1additionalsecuritycard)fortheturn.": "[패]【카운터】《블래스트 진화》(자신의 디지몬을 이 카드로 코스트를 지불하지 않고 진화시킬 수 있다) 【등장 시】【진화 시】자신의 패에서 블루인 카드 4장까지를 파기할 수 있다. 파기한 1장마다 상대의 디지몬/테이머 아래에서 선택하여 1장 파기한다. 그 후, 아래에 카드가 없는 상대의 디지몬/테이머 1마리(명)를 패로 되돌린다. 【어택 시】자신의 트래시에서 「젤리몬」이 기술되어 있는 카드 3장을 덱 아래로 되돌리는 것으로, 턴 종료까지 이 디지몬은 《S 어택 +1》을 얻는다."
   },
   "LM-006": {
     "[Trash][Main]Byreturning1ofyourTamerstothebottomofthedeck,playthiscardwiththeplaycostreducedbytheplaycostofthereturnedTamer.[OnPlay][WhenDigivolving]Trashthebottom3digivolutioncardsof1ofyouropponent'sDigimon.Then,untiltheendoftheirturn,noneoftheirDigimonwithnodigivolutioncardscanattack.": "[트래시]【메인】자신의 테이머 1명을 덱 아래로 되돌리는 것으로, 이 카드를 되돌린 테이머의 등장 코스트의 수치만큼 지불하는 등장 코스트를 마이너스하여 등장시킨다. 【등장 시】【진화 시】상대의 디지몬 1마리의 진화원을 아래에서부터 3장 파기한다. 그 후, 상대의 턴 종료까지 진화원을 갖지 않은 상대의 디지몬 전부는 어택할 수 없다."
@@ -10762,24 +10762,24 @@
   },
   "LM-008": {
     "[StartofYourMainPhase]IfyouhaveaTamer,gain1memory.": "【자신의 메인 페이즈 개시 시】자신의 테이머가 있다면, 메모리 +1.",
-    "[YourTurn]WhilethisDigimonhas[Angoramon]&#160;initstext,itgets+2000DP.": "【자신의 턴】「앙고라몬」이 기술되어 있는 이 디지몬을 DP +2000."
+    "[YourTurn]WhilethisDigimonhas[Angoramon]initstext,itgets+2000DP.": "【자신의 턴】「앙고라몬」이 기술되어 있는 이 디지몬을 DP +2000."
   },
   "LM-009": {
-    "[YourTurn]Whenacardwith[Angoramon]&#160;initstextwouldbeplayedoroneofyourDigimonwoulddigivolveintosuchacard,bysuspendingthisDigimon,reducetheplayordigivolutioncostby2.[YourTurn]WhenthisDigimonbecomessuspended,1ofyourDigimonwith[Angoramon]&#160;initstextgains<Rush>(ThisDigimoncanattacktheturnitcomesintoplay)fortheturn.": "【자신의 턴】「앙고라몬」이 기술되어 있는 카드가 등장할 때 또는 자신의 디지몬이 「앙고라몬」이 기술되어 있는 카드로 진화할 때, 이 디지몬을 레스트시키는 것으로, 지불하는 등장/진화 코스트 -2. 【자신의 턴】이 디지몬이 레스트했을 때, 턴 종료까지 「앙고라몬」이 기술되어 있는 자신의 디지몬 1마리는 《속공》을 얻는다."
+    "[YourTurn]Whenacardwith[Angoramon]initstextwouldbeplayedoroneofyourDigimonwoulddigivolveintosuchacard,bysuspendingthisDigimon,reducetheplayordigivolutioncostby2.[YourTurn]WhenthisDigimonbecomessuspended,1ofyourDigimonwith[Angoramon]initstextgains<Rush>(ThisDigimoncanattacktheturnitcomesintoplay)fortheturn.": "【자신의 턴】「앙고라몬」이 기술되어 있는 카드가 등장할 때 또는 자신의 디지몬이 「앙고라몬」이 기술되어 있는 카드로 진화할 때, 이 디지몬을 레스트시키는 것으로, 지불하는 등장/진화 코스트 -2. 【자신의 턴】이 디지몬이 레스트했을 때, 턴 종료까지 「앙고라몬」이 기술되어 있는 자신의 디지몬 1마리는 《속공》을 얻는다."
   },
   "LM-010": {
     "[OnPlay]Suspend1Tamer.Noneofyouropponent'sTamerscanunsuspenduntiltheendoftheirturn.[AllTurns]ForeachsuspendedTamer,thisDigimongets+1000DP.": "【등장 시】테이머 1명을 레스트시킨다. 상대의 턴 종료까지 상대의 테이머 전부는 액티브가 되지 않는다. 【서로의 턴】레스트 상태인 테이머 1명마다 이 디지몬을 DP +1000."
   },
   "LM-011": {
     "[OnPlay][WhenDigivolving]Suspend1ofyouropponent'sDigimon.Then,iftheyhavenounsuspendedDigimon,1ofyourDigimongains<Blocker>(Atblockertiming,bysuspendingthisDigimon,itbecomestheattacktarget)untiltheendofyouropponent'sturn.": "【등장 시】【진화 시】상대의 디지몬 1마리를 레스트시킨다. 그 후, 액티브 상태인 상대의 디지몬이 없다면, 상대의 턴 종료까지 자신의 디지몬 1마리는 《블로커》를 얻는다.",
-    "[YourTurn]WhilethisDigimonhas[Angoramon]&#160;initstext,itgets+2000DP.": "【자신의 턴】「앙고라몬」이 기술되어 있는 이 디지몬을 DP +2000."
+    "[YourTurn]WhilethisDigimonhas[Angoramon]initstext,itgets+2000DP.": "【자신의 턴】「앙고라몬」이 기술되어 있는 이 디지몬을 DP +2000."
   },
   "LM-012": {
     "[OnPlay][WhenDigivolving]Suspend1ofyouropponent'sDigimon.Then,iftheyhavenounsuspendedDigimon,1oftheirDigimoncan'tunsuspenduntiltheendoftheirturn.": "【등장 시】【진화 시】상대의 디지몬 1마리를 레스트시킨다. 그 후, 액티브 상태인 상대의 디지몬이 없다면, 상대의 턴 종료까지 상대의 디지몬 1마리는 액티브가 되지 않는다.",
     "[AllTurns][OncePerTurn]WhenoneofyourDigimonwith[Angoramon]intheirtextsdeletesanopponent'sDigimoninbattle,trashthetopcardoftheirsecuritystack.": "【서로의 턴】[턴에 1회]「앙고라몬」이 기술되어 있는 자신의 디지몬이 배틀에서 상대의 디지몬을 소멸시켰을 때, 상대의 시큐리티를 위에서부터 1장 파기한다."
   },
   "LM-013": {
-    "[Hand][Counter]<BlastDigivolve>(YourDigimonmaydigivolveintothiscardwithoutpayingthecost).[OnPlay][WhenDigivolving]Suspend1ofyouropponent'sDigimon.Then,iftheyhavenounsuspendedDigimon,gain2memory.[WhenAttacking]Youmayplay1Digimoncardwith[Angoramon]&#160;initstextfromyourhandwithoutpayingthecost.Attheendofyouropponent'sturn,returnthatDigimontothehand.": "[패]【카운터】《블래스트 진화》(자신의 디지몬을 이 카드로 코스트를 지불하지 않고 진화시킬 수 있다) 【등장 시】【진화 시】상대의 디지몬 1마리를 레스트시킨다. 그 후, 액티브 상태인 상대의 디지몬이 없다면, 메모리 +2. 【어택 시】자신의 패에서 「앙고라몬」이 기술되어 있는 디지몬 카드 1장을 코스트를 지불하지 않고 등장시킬 수 있다. 다음 상대의 턴 종료 시, 그 디지몬을 패로 되돌린다."
+    "[Hand][Counter]<BlastDigivolve>(YourDigimonmaydigivolveintothiscardwithoutpayingthecost).[OnPlay][WhenDigivolving]Suspend1ofyouropponent'sDigimon.Then,iftheyhavenounsuspendedDigimon,gain2memory.[WhenAttacking]Youmayplay1Digimoncardwith[Angoramon]initstextfromyourhandwithoutpayingthecost.Attheendofyouropponent'sturn,returnthatDigimontothehand.": "[패]【카운터】《블래스트 진화》(자신의 디지몬을 이 카드로 코스트를 지불하지 않고 진화시킬 수 있다) 【등장 시】【진화 시】상대의 디지몬 1마리를 레스트시킨다. 그 후, 액티브 상태인 상대의 디지몬이 없다면, 메모리 +2. 【어택 시】자신의 패에서 「앙고라몬」이 기술되어 있는 디지몬 카드 1장을 코스트를 지불하지 않고 등장시킬 수 있다. 다음 상대의 턴 종료 시, 그 디지몬을 패로 되돌린다."
   },
   "LM-014": {
     "[OnPlay]Revealthetop3cardsofyourdeck.Add1cardwith<Blocker>or1Tamercardamongthemtothehand.Returntheresttothebottomofthedeck.": "【등장 시】자신의 덱 위에서부터 3장 오픈한다. 그중 테이머 카드 1장 또는 《블로커》를 가진 카드 1장을 패에 추가한다. 나머지는 덱 아래로 되돌린다.",
@@ -10787,16 +10787,16 @@
   },
   "LM-015": {
     "[WhenAttacking]IfyouhaveaTamer,thisDigimonmaydigivolveinto[Ginryumon]inyourhandwithoutpayingthecost.": "【어택 시】자신의 테이머가 있다면, 이 디지몬을 패의 「긴류우몬」으로 코스트를 지불하지 않고 진화시킬 수 있다.",
-    "[YourTurn]WhilethisDigimonhasthe[XAntibody]&#160;trait,itgets+1000DP.": "【자신의 턴】특징으로 「X항체」를 가진 이 디지몬을 DP +1000."
+    "[YourTurn]WhilethisDigimonhasthe[XAntibody]trait,itgets+1000DP.": "【자신의 턴】특징으로 「X항체」를 가진 이 디지몬을 DP +1000."
   },
   "LM-017": {
-    "[Digivolve]Lv.4w/[Gammamon]inname:Cost3[Hand][Counter]<BlastDigivolve>(YourDigimonmaydigivolveintothiscardwithoutpayingthecost).[OnPlay][WhenDigivolving]Trash1cardinyourhand.Then,youmayplace1cardwith[Gammamon]&#160;initstextfromyourtrashasthisDigimon'sbottomdigivolutioncard.[AllTurns][OncePerTurn]WhenaneffectaddsdigivolutioncardstothisDigimon,bydeleting1level4orlowerDigimon,youmayplay1level4orlowerDigimoncardfromyourtrashwithoutpayingthecost.": "〔진화〕명칭에 「감마몬」을 포함하는 Lv.4 : 코스트 3[패]【카운터】《블래스트 진화》(자신의 디지몬을 이 카드로 코스트를 지불하지 않고 진화시킬 수 있다) 【등장 시】【진화 시】자신의 패 1장을 파기한다. 그 후, 자신의 트래시에서 「감마몬」이 기술되어 있는 카드 1장을 이 디지몬의 진화원 아래에 놓을 수 있다. 【서로의 턴】[턴에 1회]이 디지몬의 진화원이 효과로 늘어났을 때, Lv.4 이하의 디지몬 1마리를 소멸시키는 것으로, 자신의 트래시에서 Lv.4 이하의 디지몬 카드 1장을 코스트를 지불하지 않고 등장시킬 수 있다."
+    "[Digivolve]Lv.4w/[Gammamon]inname:Cost3[Hand][Counter]<BlastDigivolve>(YourDigimonmaydigivolveintothiscardwithoutpayingthecost).[OnPlay][WhenDigivolving]Trash1cardinyourhand.Then,youmayplace1cardwith[Gammamon]initstextfromyourtrashasthisDigimon'sbottomdigivolutioncard.[AllTurns][OncePerTurn]WhenaneffectaddsdigivolutioncardstothisDigimon,bydeleting1level4orlowerDigimon,youmayplay1level4orlowerDigimoncardfromyourtrashwithoutpayingthecost.": "〔진화〕명칭에 「감마몬」을 포함하는 Lv.4 : 코스트 3[패]【카운터】《블래스트 진화》(자신의 디지몬을 이 카드로 코스트를 지불하지 않고 진화시킬 수 있다) 【등장 시】【진화 시】자신의 패 1장을 파기한다. 그 후, 자신의 트래시에서 「감마몬」이 기술되어 있는 카드 1장을 이 디지몬의 진화원 아래에 놓을 수 있다. 【서로의 턴】[턴에 1회]이 디지몬의 진화원이 효과로 늘어났을 때, Lv.4 이하의 디지몬 1마리를 소멸시키는 것으로, 자신의 트래시에서 Lv.4 이하의 디지몬 카드 1장을 코스트를 지불하지 않고 등장시킬 수 있다."
   },
   "LM-018": {
     "[OnPlay]Delete1level4orlowerDigimon.Ifyoudid,youmayplay1[Gyuukimon]Tokenwithoutpayingthecost(Digimon/Cost7/Lv.5/Purple/Ultimate/Virus/DarkAnimal/3000DP).": "【등장 시】Lv.4 이하의 디지몬 1마리를 소멸시킨다. 그렇게 했다면, 「규우키몬」(디지몬・7코스트・Lv.5・퍼플・완전체・바이러스종・마수형・DP 3000) 토큰 1마리를 코스트를 지불하지 않고 등장시킬 수 있다."
   },
   "LM-019": {
-    "[OnPlay]Revealthetop4cardsofyourdeck.Add1cardwith[Gammamon]&#160;initstextamongthemtothehand.Returntheresttothebottomofthedeck.[AllTurns]WhenoneofyourDigimonwith[Gammamon]&#160;initstext,otherthan[Bokomon],wouldleavethebattleareaotherthanbyoneofyoureffects,bydeletingthisDigimon,preventitfromleaving.": "【등장 시】자신의 덱 위에서부터 4장 오픈한다. 그중 「감마몬」이 기술되어 있는 카드 1장을 패에 추가한다. 나머지는 덱 아래로 되돌린다. 【서로의 턴】「보코몬」 이외의 「감마몬」이 기술되어 있는 자신의 디지몬이 자신의 효과 이외로 배틀 에어리어를 벗어날 때, 이 디지몬을 소멸시키는 것으로, 벗어나지 않는다."
+    "[OnPlay]Revealthetop4cardsofyourdeck.Add1cardwith[Gammamon]initstextamongthemtothehand.Returntheresttothebottomofthedeck.[AllTurns]WhenoneofyourDigimonwith[Gammamon]initstext,otherthan[Bokomon],wouldleavethebattleareaotherthanbyoneofyoureffects,bydeletingthisDigimon,preventitfromleaving.": "【등장 시】자신의 덱 위에서부터 4장 오픈한다. 그중 「감마몬」이 기술되어 있는 카드 1장을 패에 추가한다. 나머지는 덱 아래로 되돌린다. 【서로의 턴】「보코몬」 이외의 「감마몬」이 기술되어 있는 자신의 디지몬이 자신의 효과 이외로 배틀 에어리어를 벗어날 때, 이 디지몬을 소멸시키는 것으로, 벗어나지 않는다."
   },
   "LM-020": {
     "[WhenDigivolving]Byplacing1Digimonontopofitsowner'ssecuritystack,revealallofyouropponent'ssecuritycards,andplace1cardamongthemontopofyouropponent'sdeck.Shuffletherestandreturnthemtothesecuritystack.[StartofOpponent'sTurn]Declare1cardcategory.Then,revealthetopcardofyouropponent'sdeck.Ifthatcardisofthedeclaredcategory,thisDigimonisn'taffectedbytheeffectsofthatcardcategoryfortheturn.Returntherevealedcardtothetoporthebottomofyouropponent'sdeck.": "【진화 시】디지몬 1마리를 시큐리티 위에 놓는 것으로, 상대의 시큐리티 전부를 오픈하고, 그중 1장을 덱 위에 놓는다. 나머지는 셔플하여 시큐리티로 되돌린다. 【상대의 턴 개시 시】카드 카테고리 1개를 선언한다. 그 후, 상대의 덱 위에서부터 1장 오픈하고, 그 카드가 선언한 카드 카테고리라면, 턴 종료까지 이 디지몬은 이 디지몬 이외의 선언한 카드 카테고리의 효과를 받지 않는다. 오픈한 카드는 상대의 덱 위 또는 아래로 되돌린다."

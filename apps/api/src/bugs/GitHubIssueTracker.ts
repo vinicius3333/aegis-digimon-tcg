@@ -10,6 +10,7 @@ const KIND_LABELS: Record<FeedbackKind, string> = {
   bug: "bug",
   improvement: "enhancement",
   other: "feedback",
+  official_tournament: "tournament",
 };
 
 export const GITHUB_API = "https://api.github.com";
@@ -28,6 +29,7 @@ export type NewBugReport = {
   opponentDeck?: string;
   /** Correlates the report with the server match log; absent outside a match. */
   matchId?: string;
+  tournamentId?: string;
   clientRevision?: string;
   userAgent?: string;
 };

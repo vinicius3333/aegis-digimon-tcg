@@ -1161,7 +1161,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       !allowsOptionalProcessingCostWithoutTarget(action) &&
       !canAttemptDigivolveBeforeCost(ctx, action)
     ) {
-      return unavailableAction(ctx, action);
+      ctx.lastDigivolveResult = false;
+      return unavailableAction(ctx, action, action.abortOnDecline === true);
     }
     if (
       action.kind === "DnaDigivolve" &&

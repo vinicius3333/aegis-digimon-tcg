@@ -77,6 +77,7 @@ describe.each(["zh-CN", "zh-TW"] as const)("%s game terminology", (locale) => {
 const literalFrenchMistranslations =
   /\b(?:[Pp]onts?|[Tt]errasses?|[Pp]latines?|[Tt]rappe|[Pp]oubelle|[Rr]eproduction|[Cc]orrespondance|[Dd]ompteurs?|[Rr]ediffusions?|[Pp]ieux?|[Rr]ebondir|[Tt]irages)\b|Digi-(?:Egg|[Oo]euf)/;
 const informalFrenchAddress = /(?<!\p{L})(?:[Tt]u|[Tt]on|[Tt]a|[Tt]es|[Tt]oi)(?!\p{L})/u;
+const platinumTierKeys = new Set(["ranked.tier.platinum"]);
 const googleDriveTrashKeys = new Set([
   "replay.trashOffer",
   "replay.trashConfirm",
@@ -87,7 +88,9 @@ const googleDriveTrashKeys = new Set([
 describe("fr game terminology", () => {
   it("avoids literal mistranslations of deck, hatch, breeding, trash, match and Tamer", () => {
     const mistranslated = Object.entries(dictionaries.fr)
-      .filter(([, value]) => literalFrenchMistranslations.test(value))
+      .filter(([key, value]) =>
+        literalFrenchMistranslations.test(platinumTierKeys.has(key) ? value.replace(/\bPlatine\b/, "") : value),
+      )
       .map(([key, value]) => ({ key, value }));
     expect(mistranslated).toEqual([]);
   });

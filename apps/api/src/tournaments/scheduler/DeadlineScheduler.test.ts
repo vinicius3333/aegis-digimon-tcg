@@ -1,3 +1,4 @@
+import { buildTournamentRules } from "#api/tournaments/rules/buildTournamentRules";
 import { randomUUID } from "node:crypto";
 import type { TournamentRules, TournamentStructure } from "@aegis/shared";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -6,7 +7,7 @@ import { createMemoryPool } from "../../db/memoryPool.fixture.js";
 import type { Pool } from "pg";
 import { snapshotFixtures } from "../../db/snapshotFixture.js";
 import { inProcessTournamentLock } from "../participants/index.js";
-import { AEGIS_LIGHTNING_PRESET, BANDAI_GENERAL_PRESET, rulesSnapshot } from "../rules/index.js";
+
 import { SeriesStore } from "../series/index.js";
 import { DeadlineQueue, type DeadlineKind } from "./DeadlineQueue.js";
 import { DeadlineScheduler } from "./DeadlineScheduler.js";
@@ -50,13 +51,13 @@ import { startDeadlineWorker } from "./worker.js";
  */
 
 const PUBLISHED_AT = 1_000_000;
-const GRACE_MS = BANDAI_GENERAL_PRESET.attendance.joinGraceMs;
-const GAME_LOSS_MS = BANDAI_GENERAL_PRESET.attendance.gameLossAtMs!;
-const MATCH_LOSS_MS = BANDAI_GENERAL_PRESET.attendance.matchLossAtMs;
+const GRACE_MS = buildTournamentRules({ bestOf: 3 }).attendance.joinGraceMs;
+const GAME_LOSS_MS = buildTournamentRules({ bestOf: 3 }).attendance.gameLossAtMs!;
+const MATCH_LOSS_MS = buildTournamentRules({ bestOf: 3 }).attendance.matchLossAtMs;
 const JOIN_DEADLINE_AT = PUBLISHED_AT + GRACE_MS;
 const GAME_LOSS_AT = PUBLISHED_AT + GAME_LOSS_MS;
 const MATCH_LOSS_AT = PUBLISHED_AT + MATCH_LOSS_MS;
-const SWISS_RULES = rulesSnapshot(BANDAI_GENERAL_PRESET, 3);
+const SWISS_RULES = buildTournamentRules({ bestOf: 3 });
 const SWISS_DURATION_MS = SWISS_RULES.match.swissDurationMs!;
 
 type Fixture = {
@@ -359,7 +360,7 @@ describe("a double no-show", () => {
   });
 
   it("escalates in elimination instead of inventing who advances", async () => {
-    fixture = await build({ structure: "single_elimination", rules: rulesSnapshot(AEGIS_LIGHTNING_PRESET, 3) });
+    fixture = await build({ structure: "single_elimination", rules: buildTournamentRules({ bestOf: 3 }) });
     await publishRound();
     await fixture.scheduler.processDueDeadlines(GAME_LOSS_AT);
 
@@ -442,7 +443,7 @@ describe("the shared clock", () => {
   });
 
   it("parks a tied elimination series for an organizer instead of picking a winner", async () => {
-    fixture = await build({ structure: "single_elimination", rules: rulesSnapshot(AEGIS_LIGHTNING_PRESET, 3) });
+    fixture = await build({ structure: "single_elimination", rules: buildTournamentRules({ bestOf: 3 }) });
     await arrive(fixture.alice, PUBLISHED_AT);
     await arrive(fixture.bob, PUBLISHED_AT + 1_000);
     const series = await fixture.series.seriesForMatch(fixture.matchId);

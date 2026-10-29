@@ -1,3 +1,4 @@
+import { setProfileTrophiesShown } from "@/achievements/setProfileTrophiesShown";
 import { copyDeckPreset, type DeckListing } from "@/game/decks";
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
@@ -36,6 +37,7 @@ const ACCOUNT: RemoteAccount = {
   avatarId: null,
   avatarSource: "discord",
   isAdmin: false,
+  roles: [],
   discordLinked: true,
 };
 const PLAYER = { name: "Guest Tamer", color: "Blue", shards: 0 };
@@ -109,6 +111,7 @@ beforeEach(() => {
   vi.spyOn(accountApi, "profile").mockResolvedValue(PROFILE);
   vi.spyOn(accountApi, "playtest").mockResolvedValue({ member: false, since: null });
   setProfileStatsShown(true);
+  setProfileTrophiesShown(true);
 });
 afterEach(() => {
   cleanup();
@@ -146,6 +149,18 @@ it("shows the identity header with totals and no tabs", async () => {
   expect(screen.queryByRole("navigation", { name: "Profile sections" })).toBeNull();
   expect(screen.queryByRole("link", { name: "Edit profile" })).toBeNull();
   expect(await screen.findByRole("heading", { name: "Your completed matches will appear here." })).toBeTruthy();
+});
+
+it("lets the player hide and restore trophies from the profile", async () => {
+  vi.spyOn(accountApi, "matches").mockResolvedValue(page([]));
+  renderProfile();
+  expect(await screen.findByRole("heading", { name: "Trophies" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("switch", { name: "Show trophies" }));
+  expect(screen.queryByRole("heading", { name: "Trophies" })).toBeNull();
+  expect(localStorage.getItem("aegis.profile-trophies")).toBe("false");
+  expect(screen.getByRole("switch", { name: "Show trophies" }).getAttribute("aria-checked")).toBe("false");
+  fireEvent.click(screen.getByRole("switch", { name: "Show trophies" }));
+  expect(screen.getByRole("heading", { name: "Trophies" })).toBeTruthy();
 });
 
 it("lets the player show hidden match stats from the profile", async () => {
@@ -503,6 +518,7 @@ it("opens an available opponent list from history and copies its exact cards and
 });
 
 it("reports an unavailable opponent deck and permits retry without opening a stale list", async () => {
+  setProfileTrophiesShown(false);
   vi.spyOn(accountApi, "matches").mockResolvedValue(page([{ ...match(2), hasOpponentDeck: true }]));
   const load = vi.spyOn(accountApi, "matchOpponentDeck").mockRejectedValue(new AccountApiError(404));
   renderProfile({ onCopyDeck: vi.fn<(deck: DeckListing) => void>() });
@@ -543,6 +559,30 @@ it("filters by deck and displays both deck win rates independently of result sel
   expect(await screen.findByText("62.5%")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
   await waitFor(() => expect(matches).toHaveBeenLastCalledWith({ page: 1, limit: 25 }));
+});
+
+it("counts a deck's last 100 matches when the player picks that window", async () => {
+  const response = page([match(0)], {
+    decks: [{ id: "blue", name: "Blue Flare" }],
+    deckStats: {
+      total: { matches: 8, wins: 5, losses: 2, draws: 1 },
+      sinceChange: { matches: 4, wins: 3, losses: 1, draws: 0 },
+    },
+  });
+  const matches = vi.spyOn(accountApi, "matches").mockResolvedValue(response);
+  renderProfile();
+  fireEvent.change(await screen.findByRole("combobox", { name: "Deck" }), { target: { value: "blue" } });
+  expect(await screen.findByRole("heading", { name: "Deck win rate" })).toBeTruthy();
+  const windows = screen.getByRole("group", { name: "Matches counted" });
+  expect(within(windows).getByRole("button", { name: "All" }).getAttribute("aria-pressed")).toBe("true");
+
+  fireEvent.click(within(windows).getByRole("button", { name: "Last 100" }));
+
+  await waitFor(() =>
+    expect(matches).toHaveBeenLastCalledWith(expect.objectContaining({ deckId: "blue", deckWindow: "last100" })),
+  );
+  expect(await screen.findByRole("heading", { name: "Last 100 matches" })).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "Since last card change" })).toBeTruthy();
 });
 
 it("shows deck identity, opens its current card list and keeps the played deck name on history rows", async () => {
@@ -605,6 +645,7 @@ it("opens both participants' decks from a match row without requiring a copy act
 });
 
 it("reports an unavailable historical own deck and lets the player retry", async () => {
+  setProfileTrophiesShown(false);
   vi.spyOn(accountApi, "matches").mockResolvedValue(
     page([{ ...match(0), deckName: "Historical Blue", hasOwnDeck: true }]),
   );

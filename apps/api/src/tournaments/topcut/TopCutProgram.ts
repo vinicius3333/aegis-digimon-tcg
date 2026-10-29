@@ -1,3 +1,4 @@
+import { grantTournamentTrophies } from "#api/achievements/grantTournamentTrophies";
 import { randomUUID } from "node:crypto";
 import type { LedgerEntry, MatchOutcome, ParticipantKind, StandingsRow, TournamentRules } from "@aegis/shared";
 import type { PoolClient } from "pg";
@@ -249,6 +250,22 @@ export class TopCutProgram {
         "UPDATE tournaments SET status='finished', winner_account_id=$1 WHERE id=$2 AND status<>'finished'",
         [winnerAccountId, tournamentId],
       );
+      await appendTournamentEvent(client, {
+        tournamentId,
+        actorKind: "system",
+        actorId: "system",
+        command: "tournament_finished",
+        commandId: `tournament_finished:${tournamentId}`,
+        reason: "fewer than two eligible participants remain for Top Cut",
+        reasonCode: "finished_without_cut",
+        subjectKind: "tournament",
+        subjectId: tournamentId,
+        phaseId: swissPhase.id,
+        participantId: winner?.participantId ?? null,
+        after: { winnerParticipantId: winner?.participantId ?? null, winnerAccountId },
+        now,
+      });
+      await grantTournamentTrophies({ db: client, tournamentId, standings: async () => standings, now });
       return { ok: true, value: { kind: "finished_without_cut", winnerParticipantId: winner?.participantId ?? null } };
     }
 

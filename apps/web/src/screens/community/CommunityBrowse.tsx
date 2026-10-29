@@ -33,6 +33,7 @@ export function CommunityBrowse({
   accountId,
   onOpenDeck,
   onRoadmap,
+  onTournaments,
   onPlay,
   onCopy,
 }: {
@@ -40,6 +41,7 @@ export function CommunityBrowse({
   accountId: string | undefined;
   onOpenDeck: (id: string) => void;
   onRoadmap: () => void;
+  onTournaments: () => void;
   onPlay: (id: string) => void;
   onCopy: (id: string) => void;
 }) {
@@ -116,7 +118,12 @@ export function CommunityBrowse({
               />
             </label>
           </div>
-          <CommunityHubNav section={CommunityHubSection.DECKS.value} onDecks={() => undefined} onRoadmap={onRoadmap} />
+          <CommunityHubNav
+            section={CommunityHubSection.DECKS.value}
+            onDecks={() => undefined}
+            onRoadmap={onRoadmap}
+            onTournaments={onTournaments}
+          />
           <div className="community-toolbar">
             <div className="community-segmented" role="group" aria-label={t("community.sortLabel")}>
               {SORTS.map((option) => (

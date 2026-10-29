@@ -31,6 +31,6 @@ export function toCatalogStoryBattle(battle: StoryCatalogBattle): StoryBattle {
     adapted: true,
     chapters: [],
     sourceUrl: battle.sourceUrl,
-    coverImageUrl: `/assets/card-images/${storyDeckCoverCards[battle.opponentDeckRef]}.webp`,
+    coverImageUrl: `/assets/card-images/${battle.opponentCoverCardId ?? storyDeckCoverCards[battle.opponentDeckRef]}.webp`,
   };
 }

@@ -76,12 +76,15 @@ describe("room format boundaries", () => {
     ).toThrow(/BT13 card pool/);
     expect(historical.state.players).toHaveLength(0);
   });
-  it.each([{ rankedRoom: true }, { tournamentRoom: true }, { betaBattleRoom: true }])(
+  it.each([{ rankedRoom: true }, { betaBattleRoom: true }])(
     "keeps competitive and beta queues on Standard (%j)",
     (options) => {
       expect(() => room("pauper", options)).toThrow(/requires Standard/);
     },
   );
+  it("takes a tournament room format only from its tournament game", () => {
+    expect(() => room("pauper", { tournamentRoom: true })).toThrow(/must come from its game/);
+  });
   it("freezes the format in a best-of-three and restores it in the next room", async () => {
     const directory = createSeriesDirectory(new LocalPresence());
     setSeriesDirectory(directory);

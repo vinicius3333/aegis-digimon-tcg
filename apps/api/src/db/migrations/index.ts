@@ -1,3 +1,10 @@
+import { tournamentDiscordGuild } from "#api/db/migrations/048-tournament-discord-guild";
+import { slimDeckMatchLedger } from "#api/db/migrations/049-slim-deck-match-ledger";
+import { accountRoles } from "#api/db/migrations/050-account-roles";
+import { tournamentDiscordChannels } from "#api/db/migrations/047-tournament-discord-channels";
+import { removeTournamentPresets } from "#api/db/migrations/046-remove-tournament-presets";
+import { communityTournaments } from "#api/db/migrations/044-community-tournaments";
+import { tournamentSpectators } from "#api/db/migrations/045-tournament-spectators";
 import { deckCompositionMatchups } from "#api/db/migrations/043-deck-composition-matchups";
 import { deckHistory } from "#api/db/migrations/042-deck-history";
 import { friendsSystem } from "#api/db/migrations/041-friends-system";
@@ -90,4 +97,11 @@ export const migrations: readonly Migration[] = [
   friendsSystem,
   deckHistory,
   deckCompositionMatchups,
+  communityTournaments,
+  tournamentSpectators,
+  removeTournamentPresets,
+  tournamentDiscordChannels,
+  tournamentDiscordGuild,
+  slimDeckMatchLedger,
+  accountRoles,
 ];

@@ -126,6 +126,23 @@ describe("design primitives", () => {
     expect(onOpenPlayerMenu).toHaveBeenCalled();
   });
 
+  it("keeps tournaments out of the primary nav and marks Community active on the tournaments screen", () => {
+    render(
+      <I18nProvider>
+        <TopNav
+          screen="tournaments"
+          onNav={vi.fn<(screen: Screen) => void>()}
+          player={{ name: "Tai Kamiya", color: "Blue", shards: 0, avatarId: "tyrannomon" }}
+        />
+      </I18nProvider>,
+    );
+
+    expect(screen.queryByRole("button", { name: "Tournaments" })).toBeNull();
+    const community = screen.getAllByRole("button", { name: "Community" });
+    expect(community).toHaveLength(2);
+    community.forEach((button) => expect(button.getAttribute("aria-current")).toBe("page"));
+  });
+
   it("offers a guest a way in and drops it once they are signed in", () => {
     const player = { name: "Tai Kamiya", color: "Blue", shards: 0, avatarId: "tyrannomon" as const };
     const onNav = vi.fn<(screen: Screen) => void>();

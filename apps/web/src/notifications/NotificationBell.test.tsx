@@ -197,6 +197,43 @@ describe("notification bell", () => {
     openSpy.mockRestore();
   });
 
+  it("tells a reported opponent that a ranked game was voided and how their Elo changed", async () => {
+    const ruling: AccountNotification = {
+      id: 14,
+      kind: "ranked_report_ruling",
+      payload: {
+        reportId: "00000000-0000-4000-8000-000000000001",
+        status: "confirmed",
+        seasonId: 1,
+        format: "BT10",
+        opponentName: "Tai",
+        reporter: false,
+        ratingChange: -16,
+      },
+      createdAt: Date.now() - 60_000,
+      readAt: null,
+    };
+    const page: NotificationPage = { items: [ruling], nextBefore: null, unread: 1 };
+    const fetchMock = mockApi((url) => {
+      if (url.endsWith("/notifications/unread-count")) return [200, { unread: 1 }];
+      if (url.endsWith("/notifications/read")) return [200, { unread: 0 }];
+      if (url.includes("/notifications")) return [200, page];
+      return [404, {}];
+    });
+    const onOpenFeedback = vi.fn<(id?: number) => void>();
+    render(<Harness accountId="a1" onOpenFeedback={onOpenFeedback} />);
+    fireEvent.click(await screen.findByRole("button", { name: /Notifications/ }));
+    const item = await screen.findByRole("button", {
+      name: /A report on your game against Tai was confirmed\. The game was voided\./,
+    });
+    expect(item.textContent).toContain("Elo change: -16");
+    fireEvent.click(item);
+    await waitFor(() =>
+      expect(fetchMock.mock.calls.some(([input]) => String(input).endsWith("/notifications/read"))).toBe(true),
+    );
+    expect(onOpenFeedback).not.toHaveBeenCalled();
+  });
+
   it("labels a closed study and does not open its link", async () => {
     const invite: AccountNotification = {
       id: 13,

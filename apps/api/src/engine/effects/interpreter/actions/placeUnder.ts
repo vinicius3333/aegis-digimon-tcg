@@ -842,7 +842,7 @@ export async function runTrashDigivolution(
   // remaining cards and abort the payload. Mandatory trash effects still do as much as
   // possible, including after a BT10-084 redirect.
   if (
-    action.optional === true &&
+    (action.optional === true || isDigiBurst) &&
     action.abortOnDecline === true &&
     typeof amount === "number" &&
     permanentIds.some((pid) => (ctx.game.permanentById(pid)?.stack.filter(stackCardMatches).length ?? 0) < amount)
@@ -886,11 +886,14 @@ export async function runTrashDigivolution(
       ids =
         candidateIds.length <= take && action.upTo !== true
           ? candidateIds
-          : await chooser.selectCards(ctx, {
-              candidates: candidateIds,
-              min: action.upTo === true ? Math.min(action.minAmount ?? 1, candidateIds.length) : take,
-              max: take,
-            });
+          : await chooser.selectCards(
+              isDigiBurst && action.abortOnDecline === true ? { ...ctx, payingDeclinableCost: true } : ctx,
+              {
+                candidates: candidateIds,
+                min: action.upTo === true ? Math.min(action.minAmount ?? 1, candidateIds.length) : take,
+                max: take,
+              },
+            );
     } else {
       ids = [];
       for (let i = 0; i < take; i++) {

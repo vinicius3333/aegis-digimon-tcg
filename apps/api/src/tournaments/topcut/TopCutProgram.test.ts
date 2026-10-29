@@ -1,3 +1,5 @@
+import { TrophyStore } from "#api/achievements/TrophyStore";
+import { buildTournamentRules } from "#api/tournaments/rules/buildTournamentRules";
 import { randomUUID } from "node:crypto";
 import type { PhaseView } from "@aegis/shared";
 import type { Pool } from "pg";
@@ -8,13 +10,13 @@ import { readTournamentEvents } from "../audit/index.js";
 import { RED_DECK } from "../../engine/testDecks.js";
 import { EliminationStore } from "../elimination/index.js";
 import { ParticipantStore } from "../participants/index.js";
-import { BANDAI_GENERAL_PRESET, rulesSnapshot, seriesDurationFor } from "../rules/index.js";
+import { seriesDurationFor } from "../rules/index.js";
 import { matchClockContext, SeriesStore } from "../series/index.js";
 import { SwissProgram } from "../swiss/index.js";
 import { TopCutProgram } from "./TopCutProgram.js";
 
 const T0 = 1_000_000;
-const RULES = rulesSnapshot(BANDAI_GENERAL_PRESET, 3);
+const RULES = buildTournamentRules({ bestOf: 3 });
 const SWISS_MS = RULES.match.swissDurationMs!;
 const TOP_CUT_MS = RULES.match.topCutDurationMs!;
 const OVERTIME_MS = RULES.match.overtimeMs;
@@ -70,7 +72,6 @@ async function buildPlayedField(pool: Pool, playerCount: number, topCut: boolean
     structure: "swiss",
     bestOf: 3,
     topCutEnabled: topCut,
-    rulesetPreset: BANDAI_GENERAL_PRESET.id,
     rules: RULES,
   });
 
@@ -133,7 +134,6 @@ async function buildFrozenField(
     structure: "swiss",
     bestOf: 3,
     topCutEnabled: true,
-    rulesetPreset: BANDAI_GENERAL_PRESET.id,
     rules: RULES,
   });
   await base.accounts.ensureReady();
@@ -338,6 +338,10 @@ describe("cutting a played-out Swiss event", () => {
     expect(await seriesDurationOfMatch(final.matchId)).toBeNull();
     await resolveMatch(final, 0, T0);
     await fixture.elimination.onSeriesResolvedById((await fixture.series.seriesForMatch(final.matchId))!.id);
+    const championAccountId = (await fixture.accounts.tournament(fixture.tournamentId))!.winnerAccountId!;
+    expect((await new TrophyStore(fixture.accounts).getTrophies(championAccountId)).items).toMatchObject([
+      { award: "tournament_champion", tier: "gold", source: { tournamentId: fixture.tournamentId } },
+    ]);
 
     expect(await statusOf()).toBe("finished");
     expect((await phaseOf("top_cut"))!.status).toBe("finished");
@@ -577,6 +581,10 @@ describe("seeding the cut", () => {
     expect(await statusOf()).toBe("finished");
     // The evidence is frozen even when no bracket follows: the final order is the result.
     expect(await fixture.topCut.snapshot(fixture.tournamentId)).toHaveLength(12);
+    const winnerAccountId = await winnerAccountOf();
+    expect((await new TrophyStore(fixture.accounts).getTrophies(winnerAccountId!)).items).toMatchObject([
+      { award: "tournament_champion", tier: "gold", awardedAt: T0, source: { tournamentId: fixture.tournamentId } },
+    ]);
   });
 });
 

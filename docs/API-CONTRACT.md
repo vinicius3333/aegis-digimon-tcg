@@ -70,6 +70,40 @@ cannot be merged correctly across slots.
 Watching a listed match still goes through `POST /spectate/join` with the
 spectator code, which rechecks admission on the room's own process.
 
+## Tournament spectating
+
+Tournament rooms are never listed and have no spectator code. The organizer
+sets a spectator policy on each tournament:
+
+| Policy      | Who can watch                                  |
+| ----------- | ---------------------------------------------- |
+| `nobody`    | The organizer and site admins (default)        |
+| `allowlist` | The organizer, site admins and listed accounts |
+| `signed_in` | Any signed-in account                          |
+
+Every policy refuses an account that is still in the event (`registered`,
+`checked_in` or `active`), so a player cannot scout another table. Spectators
+get the same public view as casual spectators: hands stay hidden.
+
+Organizer and admin routes (signed in, `organizer_required` otherwise) return a
+`TournamentSpectatorSettings`:
+
+- `GET /tournaments/:id/spectators`
+- `PUT /tournaments/:id/spectators/policy` with `{ policy }`
+- `POST /tournaments/:id/spectators` with `{ displayName }`. An unknown name
+  returns `404 spectator_account_not_found`; more than 50 entries returns
+  `409 spectator_limit_reached`.
+- `DELETE /tournaments/:id/spectators/:accountId`
+
+`GET /tournaments/:id` adds `spectatorPolicy` and `canSpectate` for the
+current viewer. To watch, the client posts
+`{ tournamentId, matchId, authTicket }` to `POST /spectate/tournament` on each
+active and draining slot. The slot that hosts the game's `playing` room
+consumes the ticket, checks the policy, and reserves a spectator seat with a
+fresh room ticket. The room consumes that ticket and checks the policy again
+before it admits the socket, so a forged join cannot skip the check. A slot
+without the room answers `404 match_not_live`.
+
 ## Optional rollback
 
 `allowRollback` defaults to `false`. Casual random queues, including Beta and

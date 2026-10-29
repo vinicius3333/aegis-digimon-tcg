@@ -4,6 +4,8 @@ import { useCardOpener } from "@/game/cardLinks";
 import { useTranslation } from "@/i18n";
 import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
 
+import { Icons } from "@/design/icons";
+
 type Params = { cardId?: string; artId?: string };
 
 export function OpenDecisionCardButton({ cardId, artId }: Params) {
@@ -19,6 +21,8 @@ export function OpenDecisionCardButton({ cardId, artId }: Params) {
       <button
         type="button"
         className="decision-card-inspect"
+        aria-label={t("feed.openCard", { card: getCardName(cardId) })}
+        title={t("feed.openCard", { card: getCardName(cardId) })}
         onClick={() => {
           if (openCard) {
             openCard(cardId, artId);
@@ -27,7 +31,7 @@ export function OpenDecisionCardButton({ cardId, artId }: Params) {
           }
         }}
       >
-        {t("feed.openCard", { card: getCardName(cardId) })}
+        <Icons.Search size={18} aria-hidden="true" />
       </button>
       {inspecting ? <CardZoomOverlay cardId={cardId} artId={artId} onClose={() => setInspecting(false)} /> : null}
     </>

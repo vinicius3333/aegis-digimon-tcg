@@ -377,7 +377,7 @@ describe("extracting a replay from raw log segments for the replay tool", () => 
 describe("downloading a saved replay", () => {
   async function adminCookie(h: Harness): Promise<string> {
     const admin = await h.accounts.accountForIdentity("discord", "admin", "Vn");
-    await h.accounts.pool.query("UPDATE accounts SET is_admin=true WHERE id=$1", [admin.id]);
+    await h.accounts.pool.query("UPDATE accounts SET roles=ARRAY['admin'] WHERE id=$1", [admin.id]);
     return `aegis_session=${(await h.accounts.issueSession(admin)).id}`;
   }
 

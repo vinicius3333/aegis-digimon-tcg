@@ -22,6 +22,7 @@ export function PlayerDock({
   timer,
   playerName,
   playerAvatarId,
+  playerEquippedRankedTier,
   playerBotPersonaId,
   actingLabel,
   breedingDock,
@@ -61,6 +62,7 @@ export function PlayerDock({
   /** The viewer's name for the line over the tray, when the screen knows it. */
   playerName?: string;
   playerAvatarId?: string;
+  playerEquippedRankedTier?: string;
   playerBotPersonaId?: string;
   actingLabel?: string;
   /** The raising area, when this screen puts it here rather than in the field. */
@@ -115,6 +117,7 @@ export function PlayerDock({
         <PlayerLine
           name={playerName}
           avatarId={playerAvatarId}
+          equippedRankedTier={playerEquippedRankedTier}
           botPersonaId={playerBotPersonaId}
           side="player"
           timer={timer}

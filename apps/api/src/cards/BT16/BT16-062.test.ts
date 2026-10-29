@@ -204,4 +204,17 @@ describe("BT16-062 Zanmetsumon — KB Q&A rulings", () => {
     expect(await digivolveOntoBetelGammamon("BT16-062")).toBe(true);
     expect(await digivolveOntoBetelGammamon("BT1-020")).toBe(false);
   });
+
+  it.each([
+    { clause: "main", host: { card: "BT16-062", as: "host", under: ["EX12-007"] }, expectedDP: 10000 },
+    { clause: "inherited", host: { card: "RB1-036", as: "host", under: ["EX12-007", "BT16-062"] }, expectedDP: 17000 },
+  ])(
+    "does not grant a Gammamon source's inherited effect a second time through its $clause clause",
+    async ({ host, expectedDP }) => {
+      const s = setupEngine({ 0: { battleArea: [host] } });
+      await s.ready();
+
+      expect(s.perm("host").currentDP).toBe(expectedDP);
+    },
+  );
 });

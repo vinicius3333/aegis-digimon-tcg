@@ -61,7 +61,7 @@ async function startHarness(override?: DeckReportTracker | null): Promise<Harnes
 
 async function signIn(name: string, { admin = false } = {}): Promise<Player> {
   const account = await harness.store.accountForIdentity("discord", name, name);
-  if (admin) await harness.store.pool.query("UPDATE accounts SET is_admin=true WHERE id=$1", [account.id]);
+  if (admin) await harness.store.pool.query("UPDATE accounts SET roles=ARRAY['admin'] WHERE id=$1", [account.id]);
   const session = await harness.store.issueSession(account);
   return { id: account.id, cookie: `aegis_session=${session.id}` };
 }

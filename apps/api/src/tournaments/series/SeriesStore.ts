@@ -1,3 +1,4 @@
+import { recordTournamentGameFacts } from "#api/ranked/recordTournamentGameFacts";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type {
   GameStatus,
@@ -585,6 +586,13 @@ export class SeriesStore {
           game.id,
         ],
       );
+      await recordTournamentGameFacts({
+        db: client,
+        game,
+        series,
+        result: outcome.result,
+        finishedAt: input.finishedAt,
+      });
       const winner = outcome.result === "participant0" ? 0 : outcome.result === "participant1" ? 1 : undefined;
       if (winner === undefined) return ok(await this.reread(client, series.id));
 
@@ -1128,6 +1136,8 @@ function toScoreView(match: MatchDetails, series: SeriesRecord | undefined): Ser
     matchId: match.matchId,
     seriesId: series?.id ?? null,
     status: matchStatusOf(match, series),
+    participantIds: series?.participantIds ?? match.participantIds,
+    winnerSeat: series?.officialResult === "participant0" ? 0 : series?.officialResult === "participant1" ? 1 : null,
     participant0Id: match.participantAccountIds[0],
     participant1Id: match.participantAccountIds[1],
     wins0: series?.wins[0] ?? 0,
