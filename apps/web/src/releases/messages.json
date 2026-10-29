@@ -1,4 +1,76 @@
 {
+  "releases.1.42.0-beta.summary": {
+    "en": "Weekly and monthly tournament circuits, account roles, match history export, and a booster opening lab.",
+    "pt-BR": "Circuitos semanais e mensais de torneios, cargos de conta, exportação do histórico de partidas e um laboratório de abertura de boosters.",
+    "es": "Circuitos semanales y mensuales de torneos, roles de cuenta, exportación del historial de partidas y un laboratorio de apertura de sobres.",
+    "it": "Circuiti settimanali e mensili dei tornei, ruoli account, esportazione dello storico partite e un laboratorio di apertura bustine."
+  },
+  "releases.1.42.0-beta.feature.circuits": {
+    "en": "Tournaments can run weekly and monthly circuits, open check-in one hour before start, link Discord channels, and let allowed users watch live matches.",
+    "pt-BR": "Torneios podem ter circuitos semanais e mensais, abrem o check-in uma hora antes do início, vinculam canais do Discord e permitem que usuários autorizados assistam às partidas ao vivo.",
+    "es": "Los torneos pueden tener circuitos semanales y mensuales, abren el check-in una hora antes del inicio, vinculan canales de Discord y permiten que usuarios autorizados vean las partidas en vivo.",
+    "it": "I tornei possono avere circuiti settimanali e mensili, aprono il check-in un'ora prima dell'inizio, collegano canali Discord e permettono agli utenti autorizzati di guardare le partite dal vivo."
+  },
+  "releases.1.42.0-beta.feature.roles": {
+    "en": "Add admin, judge, and organizer account roles. Judges review ranked reports and organizers can mark events as official.",
+    "pt-BR": "Adiciona os cargos de admin, juiz e organizador. Juízes analisam denúncias de partidas ranqueadas e organizadores podem marcar eventos como oficiais.",
+    "es": "Añade los roles de admin, juez y organizador. Los jueces revisan los reportes de partidas clasificatorias y los organizadores pueden marcar eventos como oficiales.",
+    "it": "Aggiunge i ruoli admin, giudice e organizzatore. I giudici esaminano le segnalazioni delle partite classificate e gli organizzatori possono rendere ufficiali gli eventi."
+  },
+  "releases.1.42.0-beta.feature.history": {
+    "en": "Export your match history as CSV. Deck records on your profile now count your last 100 matches.",
+    "pt-BR": "Exporte seu histórico de partidas em CSV. Os registros de decks no seu perfil agora contam suas últimas 100 partidas.",
+    "es": "Exporta tu historial de partidas en CSV. Los registros de mazos en tu perfil ahora cuentan tus últimas 100 partidas.",
+    "it": "Esporta lo storico partite in CSV. I record dei mazzi nel profilo ora contano le ultime 100 partite."
+  },
+  "releases.1.42.0-beta.feature.booster": {
+    "en": "Try the new 3D booster pack opening lab from the home screen.",
+    "pt-BR": "Experimente o novo laboratório de abertura de boosters em 3D na tela inicial.",
+    "es": "Prueba el nuevo laboratorio de apertura de sobres en 3D desde la pantalla de inicio.",
+    "it": "Prova il nuovo laboratorio di apertura bustine in 3D dalla schermata iniziale."
+  },
+  "releases.1.42.0-beta.feature.cards": {
+    "en": "Add BT27 Examon (X Antibody) with its full translations.",
+    "pt-BR": "Adiciona Examon (X Antibody) de BT27 com todas as traduções.",
+    "es": "Añade Examon (X Antibody) de BT27 con todas sus traducciones.",
+    "it": "Aggiunge Examon (X Antibody) di BT27 con tutte le traduzioni."
+  },
+  "releases.1.42.0-beta.feature.indicators": {
+    "en": "Turn and target indicators are easier to see.",
+    "pt-BR": "Os indicadores de turno e de alvo estão mais fáceis de ver.",
+    "es": "Los indicadores de turno y de objetivo son más fáciles de ver.",
+    "it": "Gli indicatori di turno e di bersaglio sono più visibili."
+  },
+  "releases.1.42.0-beta.fix.prompts": {
+    "en": "Card choice prompts, source selection, and cancel buttons now work the same way everywhere, and confirm controls stay in place.",
+    "pt-BR": "As escolhas de cartas, a seleção de fontes e os botões de cancelar agora funcionam igual em todo lugar, e os controles de confirmação ficam no lugar.",
+    "es": "Las elecciones de cartas, la selección de fuentes y los botones de cancelar ahora funcionan igual en todas partes, y los controles de confirmación se quedan en su sitio.",
+    "it": "Le scelte delle carte, la selezione delle fonti e i pulsanti annulla ora funzionano allo stesso modo ovunque, e i controlli di conferma restano al loro posto."
+  },
+  "releases.1.42.0-beta.fix.rules": {
+    "en": "Fix several rules cases: Evade can suspend immune Digimon, gained effects stay on battle deletion, inherited effects are not granted twice, and impossible by-digivolving payoffs stop.",
+    "pt-BR": "Corrige vários casos de regras: Evade pode suspender Digimon imunes, efeitos ganhos permanecem na deleção em batalha, efeitos herdados não são concedidos duas vezes e bônus impossíveis de digivolução param.",
+    "es": "Corrige varios casos de reglas: Evade puede suspender Digimon inmunes, los efectos ganados se mantienen al ser eliminados en batalla, los efectos heredados no se otorgan dos veces y se detienen los bonos imposibles de digievolución.",
+    "it": "Corregge diversi casi di regole: Evade può sospendere Digimon immuni, gli effetti ottenuti restano con l'eliminazione in battaglia, gli effetti ereditati non vengono concessi due volte e i bonus impossibili di digievoluzione si fermano."
+  },
+  "releases.1.42.0-beta.fix.cards": {
+    "en": "Fix HerculesKabuterimon Digi-Burst sources, bot target picks for up-to effects, and stray &#160; symbols in card text.",
+    "pt-BR": "Corrige as fontes de Digi-Burst de HerculesKabuterimon, a escolha de alvos do bot em efeitos \"até\" e símbolos &#160; soltos no texto das cartas.",
+    "es": "Corrige las fuentes de Digi-Burst de HerculesKabuterimon, la elección de objetivos del bot en efectos \"hasta\" y símbolos &#160; sueltos en el texto de las cartas.",
+    "it": "Corregge le fonti Digi-Burst di HerculesKabuterimon, la scelta dei bersagli del bot negli effetti \"fino a\" e i simboli &#160; nel testo delle carte."
+  },
+  "releases.1.42.0-beta.fix.layout": {
+    "en": "Fix game layout on devices with side safe areas, a duplicate turn indicator, and field piles that changed width in zoomed windows.",
+    "pt-BR": "Corrige o layout do jogo em aparelhos com áreas seguras laterais, um indicador de turno duplicado e pilhas do campo que mudavam de largura com zoom.",
+    "es": "Corrige el diseño del juego en dispositivos con áreas seguras laterales, un indicador de turno duplicado y pilas del campo que cambiaban de ancho con zoom.",
+    "it": "Corregge il layout di gioco sui dispositivi con aree sicure laterali, un indicatore di turno duplicato e le pile del campo che cambiavano larghezza con lo zoom."
+  },
+  "releases.1.42.0-beta.fix.stability": {
+    "en": "Fix rollback desyncs and clean up expired room tickets.",
+    "pt-BR": "Corrige dessincronizações ao desfazer jogadas e limpa tickets de sala expirados.",
+    "es": "Corrige desincronizaciones al deshacer jugadas y limpia los tickets de sala caducados.",
+    "it": "Corregge le desincronizzazioni dell'annullamento e rimuove i ticket di stanza scaduti."
+  },
   "releases.1.41.3-beta.summary": {
     "en": "Complete the Chinese translation for BT27 Dracomon (X Antibody).",
     "pt-BR": "Completa a tradução em chinês de Dracomon (X Antibody) de BT27.",
