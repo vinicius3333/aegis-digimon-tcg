@@ -4,9 +4,18 @@ import { Avatar, Dialog } from "../design/primitives";
 import { Icons } from "../design/icons";
 import { useTranslation, type TranslationKey } from "../i18n";
 import { AccountApiError } from "./client";
+import { decodeAvatarFile } from "./normalizeAvatarImage";
+import { AvatarCropDialog } from "./AvatarCropDialog";
 import { DIGIMON_WORLD_AVATARS, digimonAvatarUrl, type DigimonWorldAvatarId } from "./avatars";
 
 export type AvatarSelection = DigimonWorldAvatarId | "default" | "discord";
+
+function uploadFailureKey(failure: unknown): TranslationKey {
+  if (!(failure instanceof AccountApiError)) return "account.avatar.uploadError";
+  if (failure.status === 422) return "account.avatar.blocked";
+  if (failure.status === 503) return "account.avatar.reviewUnavailable";
+  return "account.avatar.uploadError";
+}
 
 /** Anchored under the avatar on wide screens; the stylesheet turns it into a bottom sheet on phones. */
 export function AvatarMenu({
@@ -16,6 +25,7 @@ export function AvatarMenu({
   selected,
   discordLinked,
   onSelect,
+  onUpload,
   onRefreshDiscordAvatar,
   onClose,
 }: {
@@ -25,13 +35,15 @@ export function AvatarMenu({
   selected: AvatarSelection;
   discordLinked: boolean;
   onSelect: (selection: AvatarSelection) => Promise<void>;
+  onUpload?: (image: Blob) => Promise<void>;
   onRefreshDiscordAvatar?: () => Promise<void>;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
   const titleId = useId();
   const [query, setQuery] = useState("");
-  const [pending, setPending] = useState<AvatarSelection | "refresh">();
+  const [pending, setPending] = useState<AvatarSelection | "refresh" | "upload">();
+  const [cropImage, setCropImage] = useState<ImageBitmap>();
   const [status, setStatus] = useState<{ key: TranslationKey; alert: boolean }>();
   const [position, setPosition] = useState<CSSProperties>();
   useLayoutEffect(() => {
@@ -65,6 +77,35 @@ export function AvatarMenu({
       setPending(undefined);
     }
   }
+  /**
+   * Step one of an upload: decode the file and hand the player a crop window. Nothing leaves the
+   * browser yet — `upload` sends exactly what that window showed.
+   */
+  async function choosePicture(file: File) {
+    if (pending || !onUpload) return;
+    setStatus(undefined);
+    try {
+      setCropImage(await decodeAvatarFile(file));
+    } catch {
+      setStatus({ key: "account.avatar.uploadError", alert: true });
+    }
+  }
+  async function upload(blob: Blob) {
+    if (pending || !onUpload) return;
+    setPending("upload");
+    setStatus(undefined);
+    try {
+      await onUpload(blob);
+      cropImage?.close();
+      setCropImage(undefined);
+      onClose();
+    } catch (failure) {
+      cropImage?.close();
+      setCropImage(undefined);
+      setStatus({ key: uploadFailureKey(failure), alert: true });
+      setPending(undefined);
+    }
+  }
   async function refresh() {
     if (pending || !onRefreshDiscordAvatar) return;
     setPending("refresh");
@@ -86,6 +127,20 @@ export function AvatarMenu({
   }
 
   const busy = pending !== undefined;
+  // The crop window replaces the menu rather than stacking a second dialog on top of it.
+  if (cropImage) {
+    return (
+      <AvatarCropDialog
+        image={cropImage}
+        busy={pending === "upload"}
+        onCancel={() => {
+          cropImage.close();
+          setCropImage(undefined);
+        }}
+        onConfirm={upload}
+      />
+    );
+  }
   return (
     <Dialog className="profile-avatar-menu" labelledBy={titleId} onClose={onClose} style={position}>
       <span className="profile-avatar-menu__handle" aria-hidden="true" />
@@ -159,6 +214,22 @@ export function AvatarMenu({
           <button type="button" className="profile-avatar-menu__refresh" disabled={busy} onClick={() => void refresh()}>
             {t("playerMenu.refreshDiscordAvatar")}
           </button>
+        ) : null}
+        {onUpload ? (
+          <label className="profile-avatar-menu__upload">
+            <input
+              type="file"
+              accept="image/png,image/jpeg"
+              disabled={busy}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) void choosePicture(file);
+              }}
+            />
+            <span>{t("account.avatar.upload")}</span>
+            <small>{t("account.avatar.uploadHint")}</small>
+          </label>
         ) : null}
       </div>
       {busy && pending !== "refresh" ? <p role="status">{t("account.avatar.saving")}</p> : null}

@@ -1,3 +1,4 @@
+import { AccountRole } from "@aegis/shared/account/AccountRole";
 import express from "express";
 import type { Server } from "node:http";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -61,11 +62,11 @@ afterEach(async () => {
   await accounts.close();
 });
 
-async function signIn(name: string, isAdmin: boolean): Promise<void> {
+async function signIn(name: string, isAdmin: boolean, roles: AccountRole[] = []): Promise<void> {
   const account = await accounts.accountForIdentity("email", name, name);
   current = {
     id: name,
-    account: { ...account, isAdmin },
+    account: { ...account, isAdmin, roles },
     expiresAt: NOW + DAY,
   };
 }
@@ -85,10 +86,24 @@ async function send(path: string, body?: unknown): Promise<{ status: number; bod
 }
 
 describe("tournament circuit routes", () => {
-  it("lets only admins create circuits", async () => {
-    expect((await send("/tournament-circuits", circuitBody)).status).toBe(401);
-    await signIn("player", false);
-    expect(await send("/tournament-circuits", circuitBody)).toEqual({
+  it.each([{ roles: [] }, { roles: [AccountRole.JUDGE.value] }])(
+    "rejects circuit creation without organizer permission for roles $roles",
+    async ({ roles }) => {
+      expect((await send("/tournament-circuits", circuitBody)).status).toBe(401);
+      await signIn("player", false, roles);
+      expect(await send("/tournament-circuits", circuitBody)).toEqual({
+        status: 403,
+        body: { error: "tournament_circuit_requires_organizer" },
+      });
+    },
+  );
+
+  it("lets an organizer create a circuit without admin access", async () => {
+    await signIn("organizer", false, [AccountRole.ORGANIZER.value]);
+    const created = await send("/tournament-circuits", circuitBody);
+    expect(created.status).toBe(201);
+    expect(created.body.createdBy).toBe(current?.account.id);
+    expect(await send(`/tournament-circuits/${created.body.id}/cancel`, {})).toEqual({
       status: 403,
       body: { error: "tournament_circuit_requires_admin" },
     });

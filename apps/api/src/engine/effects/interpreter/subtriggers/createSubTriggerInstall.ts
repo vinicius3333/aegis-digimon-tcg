@@ -1157,6 +1157,11 @@ export function createSubTriggerInstall({
   // CR 15-8-3-9-2: the watcher triggers even while its activation condition is false and stays
   // pending, so a simultaneous effect resolved first can still satisfy it (BT24-078).
   const activationCondition = action.activationCondition;
+  const leadingCostGate = parsedBody[0]?.kind === "CostGatedBlock" ? parsedBody[0] : undefined;
+  const bodyNeedsLeadingCost =
+    leadingCostGate !== undefined &&
+    (leadingCostGate.abortOnDecline === true || parsedBody.length === 1) &&
+    leadingCostGate.cost.optional !== true;
   const fireGates = [
     ...(delayArmedIntrinsic
       ? [
@@ -1191,12 +1196,13 @@ export function createSubTriggerInstall({
     ...(bindsPrintedSource && isLinkedSource ? { isLinkedSource: true } : {}),
     ...(sourceFilter?.isSelfRef === true ? { watchesSelf: true } : {}),
     ...(fireGates.length === 0 ? {} : { canFire: (subCtx) => fireGates.every((gate) => gate(subCtx)) }),
-    ...(costFreeOptionalBody || requiresSelfSuspend || activationCondition !== undefined
+    ...(costFreeOptionalBody || requiresSelfSuspend || activationCondition !== undefined || bodyNeedsLeadingCost
       ? {
           hasLegalOutcome: (subCtx: EffectContext) =>
             (!requiresSelfSuspend || selfSuspendPayable(subCtx)) &&
             (activationCondition === undefined || evaluateCondition(subCtx, activationCondition)) &&
-            (!costFreeOptionalBody || canActivateEffect(subCtx, { actions: action.actions })),
+            (!costFreeOptionalBody || canActivateEffect(subCtx, { actions: action.actions })) &&
+            (!bodyNeedsLeadingCost || canPayCost(subCtx, leadingCostGate.cost)),
         }
       : {}),
     // Preserve the exact printed source. Discard contexts carry placement proof for that

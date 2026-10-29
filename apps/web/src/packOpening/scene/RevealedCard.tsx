@@ -27,6 +27,8 @@ type Props = {
   stackPosition: Vector;
   focusPosition: Vector;
   focusScale: number;
+  inspectPosition: Vector;
+  inspectScale: number;
   slotPosition: Vector;
   slotScale: number;
   phaseStartedAt: RefObject<number>;
@@ -83,6 +85,8 @@ export function RevealedCard({
   stackPosition,
   focusPosition,
   focusScale,
+  inspectPosition,
+  inspectScale,
   slotPosition,
   slotScale,
   phaseStartedAt,
@@ -210,8 +214,8 @@ export function RevealedCard({
         grip.pitchVelocity *= decay;
       }
       const hover = pointerTilt && grip.pointerId === undefined;
-      target.set(focusPosition[0], focusPosition[1] + 0.05, focusPosition[2] + 0.6);
-      scale = focusScale * 1.3 * grip.zoom;
+      target.set(inspectPosition[0] + grip.panX, inspectPosition[1] + grip.panY, inspectPosition[2]);
+      scale = inspectScale * grip.zoom;
       rotationX = grip.pitch + (hover ? -state.pointer.y * 0.18 : 0);
       rotationY = restTurn + grip.yaw + (hover ? state.pointer.x * 0.25 : 0);
       haloLevel = foiled ? 0.45 : 0;
@@ -274,6 +278,9 @@ export function RevealedCard({
       return;
     }
     event.stopPropagation();
+    if (grip.pointerId !== undefined || grip.pinching) {
+      return;
+    }
     (event.target as Element).setPointerCapture(event.pointerId);
     Object.assign(grip, {
       pointerId: event.pointerId,

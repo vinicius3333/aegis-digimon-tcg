@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
+import { AccountRole } from "@aegis/shared/account/AccountRole";
 import { Alert, Avatar, Badge, Dialog, Field, Switch, TopNav, type Screen } from "./primitives";
 
 describe("design primitives", () => {
@@ -124,6 +125,39 @@ describe("design primitives", () => {
 
     fireEvent.click(screen.getAllByRole("button", { name: "Open the player menu" })[0]!);
     expect(onOpenPlayerMenu).toHaveBeenCalled();
+  });
+
+  it("marks the portrait with the player's highest account role", () => {
+    const { container } = render(
+      <I18nProvider>
+        <TopNav
+          screen="home"
+          onNav={vi.fn<(screen: Screen) => void>()}
+          role={AccountRole.JUDGE}
+          player={{ name: "Tai Kamiya", color: "Blue", shards: 0, avatarId: "tyrannomon" }}
+        />
+      </I18nProvider>,
+    );
+
+    expect(screen.getAllByRole("button", { name: "Open the player menu (Judge)" })).toHaveLength(2);
+    expect(container.querySelectorAll('.account-role-badge[data-role="judge"]')).toHaveLength(2);
+  });
+
+  it("explains the account role in a tooltip on the portrait", async () => {
+    render(
+      <I18nProvider>
+        <TopNav
+          screen="home"
+          onNav={vi.fn<(screen: Screen) => void>()}
+          role={AccountRole.ORGANIZER}
+          player={{ name: "Tai Kamiya", color: "Blue", shards: 0, avatarId: "tyrannomon" }}
+        />
+      </I18nProvider>,
+    );
+
+    fireEvent.focus(screen.getAllByRole("button", { name: "Open the player menu (Official organizer)" })[0]!);
+
+    expect((await screen.findByRole("tooltip")).textContent).toContain("Creates official tournaments and circuits.");
   });
 
   it("keeps tournaments out of the primary nav and marks Community active on the tournaments screen", () => {

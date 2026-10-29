@@ -50,6 +50,8 @@ export type Account = {
   avatarUrl: string | null;
   avatarId: DigimonWorldAvatarId | null;
   avatarSource: AvatarSource;
+  /** Present when the player uploaded their own picture; the public URL embeds it to bust caches. */
+  avatarImageVersion: number | null;
   roles: AccountRole[];
   isAdmin: boolean;
 };
@@ -217,6 +219,7 @@ type AccountRow = {
   display_name: string;
   avatar_url: string | null;
   avatar_id: AvatarChoice;
+  avatar_image_version: string | null;
   roles: string[];
 };
 
@@ -288,7 +291,7 @@ export class AccountStore {
       try {
         return await this.transaction(async (client) => {
           const existing = await client.query<AccountRow>(
-            "SELECT a.id, a.display_name, a.avatar_url, a.avatar_id, a.roles FROM accounts a JOIN login_identities i ON i.account_id=a.id WHERE i.provider=$1 AND i.subject=$2",
+            "SELECT a.id, a.display_name, a.avatar_url, a.avatar_id, a.avatar_image_version, a.roles FROM accounts a JOIN login_identities i ON i.account_id=a.id WHERE i.provider=$1 AND i.subject=$2",
             [provider, normalized],
           );
           const row = existing.rows[0];
@@ -308,6 +311,7 @@ export class AccountStore {
             avatarUrl,
             avatarId: null,
             avatarSource: avatarUrl ? "discord" : "initials",
+            avatarImageVersion: null,
             roles: [],
             isAdmin: false,
           };
@@ -345,7 +349,7 @@ export class AccountStore {
     if (!id) return undefined;
     await this.ensureReady();
     const result = await this.pool.query<AccountRow & { session_id: string; expires_at: string }>(
-      "SELECT s.id session_id, s.expires_at, a.id, a.display_name, a.avatar_url, a.avatar_id, a.roles FROM sessions s JOIN accounts a ON a.id=s.account_id WHERE s.id=$1 AND s.revoked_at IS NULL AND s.expires_at>$2",
+      "SELECT s.id session_id, s.expires_at, a.id, a.display_name, a.avatar_url, a.avatar_id, a.avatar_image_version, a.roles FROM sessions s JOIN accounts a ON a.id=s.account_id WHERE s.id=$1 AND s.revoked_at IS NULL AND s.expires_at>$2",
       [id, Date.now()],
     );
     const row = result.rows[0];
@@ -461,9 +465,10 @@ export class AccountStore {
       if (!ticket) return undefined;
       await client.query("UPDATE room_tickets SET consumed_at=$1 WHERE token_hash=$2", [now, hash(token)]);
       const row = (
-        await client.query<AccountRow>("SELECT id,display_name,avatar_url,avatar_id,roles FROM accounts WHERE id=$1", [
-          ticket.account_id,
-        ])
+        await client.query<AccountRow>(
+          "SELECT id,display_name,avatar_url,avatar_id,avatar_image_version,roles FROM accounts WHERE id=$1",
+          [ticket.account_id],
+        )
       ).rows[0];
       return row ? { account: toAccount(row), tournamentMatchId: ticket.tournament_match_id } : undefined;
     });
@@ -472,9 +477,10 @@ export class AccountStore {
   async account(accountId: string): Promise<Account | undefined> {
     await this.ensureReady();
     const row = (
-      await this.pool.query<AccountRow>("SELECT id,display_name,avatar_url,avatar_id,roles FROM accounts WHERE id=$1", [
-        accountId,
-      ])
+      await this.pool.query<AccountRow>(
+        "SELECT id,display_name,avatar_url,avatar_id,avatar_image_version,roles FROM accounts WHERE id=$1",
+        [accountId],
+      )
     ).rows[0];
     return row ? toAccount(row) : undefined;
   }
@@ -482,11 +488,56 @@ export class AccountStore {
     await this.ensureReady();
     const row = (
       await this.pool.query<AccountRow>(
-        "UPDATE accounts SET avatar_id=$1 WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,roles",
+        "UPDATE accounts SET avatar_id=$1,avatar_image=NULL,avatar_image_type=NULL,avatar_image_version=NULL WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,avatar_image_version,roles",
         [avatarId, accountId],
       )
     ).rows[0];
     return row ? toAccount(row) : undefined;
+  }
+
+  /**
+   * Stores bytes that already passed `inspectAvatarImage`. The uploaded picture wins over a preset,
+   * and the version bump retires every cached URL in one step.
+   */
+  async setAvatarImage(accountId: string, image: { bytes: Buffer; contentType: string }): Promise<Account | undefined> {
+    await this.ensureReady();
+    const row = (
+      await this.pool.query<AccountRow>(
+        `UPDATE accounts SET avatar_image=$1,avatar_image_type=$2,
+           avatar_image_version=COALESCE(avatar_image_version,0)+1,avatar_id=NULL
+         WHERE id=$3
+         RETURNING id,display_name,avatar_url,avatar_id,avatar_image_version,roles`,
+        [image.bytes, image.contentType, accountId],
+      )
+    ).rows[0];
+    return row ? toAccount(row) : undefined;
+  }
+
+  async clearAvatarImage(accountId: string): Promise<Account | undefined> {
+    await this.ensureReady();
+    const row = (
+      await this.pool.query<AccountRow>(
+        `UPDATE accounts SET avatar_image=NULL,avatar_image_type=NULL,avatar_image_version=NULL
+         WHERE id=$1
+         RETURNING id,display_name,avatar_url,avatar_id,avatar_image_version,roles`,
+        [accountId],
+      )
+    ).rows[0];
+    return row ? toAccount(row) : undefined;
+  }
+
+  /** The public bytes of an uploaded picture, for the route that serves it. */
+  async avatarImage(accountId: string): Promise<{ bytes: Buffer; contentType: string; version: number } | undefined> {
+    await this.ensureReady();
+    const row = (
+      await this.pool.query<{
+        avatar_image: Buffer | null;
+        avatar_image_type: string | null;
+        avatar_image_version: string | null;
+      }>("SELECT avatar_image,avatar_image_type,avatar_image_version FROM accounts WHERE id=$1", [accountId])
+    ).rows[0];
+    if (!row?.avatar_image || !row.avatar_image_type || row.avatar_image_version == null) return undefined;
+    return { bytes: row.avatar_image, contentType: row.avatar_image_type, version: Number(row.avatar_image_version) };
   }
 
   async preferences(accountId: string): Promise<AccountPreferences> {
@@ -526,7 +577,7 @@ export class AccountStore {
     return this.transaction(async (client) => {
       const current = (
         await client.query<AccountRow>(
-          "SELECT id,display_name,avatar_url,avatar_id,roles FROM accounts WHERE id=$1 FOR UPDATE",
+          "SELECT id,display_name,avatar_url,avatar_id,avatar_image_version,roles FROM accounts WHERE id=$1 FOR UPDATE",
           [accountId],
         )
       ).rows[0];
@@ -537,8 +588,8 @@ export class AccountStore {
         const updated = (
           await client.query<AccountRow>(
             changes.avatarId === undefined
-              ? "UPDATE accounts SET display_name=$1 WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,roles"
-              : "UPDATE accounts SET display_name=$1,avatar_id=$3 WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,roles",
+              ? "UPDATE accounts SET display_name=$1 WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,avatar_image_version,roles"
+              : "UPDATE accounts SET display_name=$1,avatar_id=$3 WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,avatar_image_version,roles",
             changes.avatarId === undefined ? [displayName, accountId] : [displayName, accountId, changes.avatarId],
           )
         ).rows[0];
@@ -1665,14 +1716,18 @@ async function addToHistory(
 /** Choosing initials hides a linked Discord picture from every reader, so the url never leaves the store. */
 function toAccount(row: AccountRow): Account {
   const avatarId = isDigimonWorldAvatarId(row.avatar_id) ? row.avatar_id : null;
-  const avatarUrl = row.avatar_id === INITIALS_AVATAR ? null : row.avatar_url;
+  const avatarImageVersion = row.avatar_image_version == null ? null : Number(row.avatar_image_version);
+  // The version in the URL is what makes an immutable cache safe: a new upload yields a new URL.
+  const uploadedUrl = avatarImageVersion === null ? null : `/account/avatar/${row.id}/image?v=${avatarImageVersion}`;
+  const avatarUrl = uploadedUrl ?? (row.avatar_id === INITIALS_AVATAR ? null : row.avatar_url);
   const roles = row.roles.filter(isAccountRole);
   return {
     id: row.id,
     displayName: row.display_name,
     avatarUrl,
     avatarId,
-    avatarSource: avatarId ? "digimon" : avatarUrl ? "discord" : "initials",
+    avatarSource: uploadedUrl ? "upload" : avatarId ? "digimon" : avatarUrl ? "discord" : "initials",
+    avatarImageVersion,
     roles,
     isAdmin: hasAccountCapability({ roles, capability: "canAdminister" }),
   };

@@ -2,6 +2,9 @@ export const staffRolesDe = {
   "account.roles.admin": "Admin",
   "account.roles.judge": "Schiedsrichter",
   "account.roles.organizer": "Offizieller Veranstalter",
+  "account.roles.adminDescription": "Verwaltet die Website, Konten und Rollen.",
+  "account.roles.judgeDescription": "Entscheidet über Ranglisten-Meldungen und kann jedes Turnier leiten.",
+  "account.roles.organizerDescription": "Erstellt offizielle Turniere und Turnierserien.",
   "account.roles.title": "Rollen",
   "account.roles.help":
     "Admins verwalten die Website. Schiedsrichter entscheiden über gewertete Meldungen und können in jedem Turnier schlichten. Offizielle Veranstalter erstellen offizielle Turniere.",

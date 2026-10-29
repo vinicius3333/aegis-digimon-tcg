@@ -37,8 +37,8 @@ export const tournamentCircuitsJa = {
   "tournaments.circuits.error.load": "このサーキットを読み込めませんでした",
   "tournaments.circuits.error.invalid": "次の項目を確認してください",
   "tournaments.circuits.error.create": "サーキットを作成できませんでした",
-  "tournaments.circuits.adminOnlyTitle": "管理者のみ",
-  "tournaments.circuits.adminOnly": "サーキットを作成できるのはAegis管理者のみです。",
+  "tournaments.circuits.organizerOnlyTitle": "管理者と主催者のみ",
+  "tournaments.circuits.organizerOnly": "サーキットを作成できるのはAegis管理者と主催者のみです。",
   "tournaments.circuits.createTitle": "新しいサーキット",
   "tournaments.circuits.createHelp":
     "期間と毎週または毎月の開催枠を設定します。Aegisが各イベントを作成し、受付を開始し、時間どおりに開始します。",

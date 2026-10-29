@@ -21,6 +21,9 @@ import { playSound, type SoundKind } from "./sound";
 import { useTranslation } from "../i18n";
 import { digimonAvatarUrl, type DigimonWorldAvatarId } from "../account/avatars";
 import { AegisLogo } from "./AegisLogo";
+import { AccountRoleBadge } from "@/account/roles/AccountRoleBadge";
+import { AccountRoleTooltip } from "@/account/roles/AccountRoleTooltip";
+import type { AccountRoleDefinition } from "@/account/roles/highestAccountRole";
 import { BrowserSupportNotice } from "./BrowserSupportNotice";
 
 /** The lightweight identity carried across screens (name + accent color). */
@@ -571,6 +574,7 @@ export function TopNav({
   player,
   actions,
   signedIn = false,
+  role,
   onOpenPlayerMenu,
   playerMenuOpen,
   dark,
@@ -589,6 +593,7 @@ export function TopNav({
   notifications?: ReactNode;
   friends?: ReactNode;
   signedIn?: boolean;
+  role?: AccountRoleDefinition;
   onOpenPlayerMenu?: (anchor: HTMLButtonElement) => void;
   playerMenuOpen?: boolean;
   /** Opens the palette chooser when available, otherwise toggles light/dark. */
@@ -658,7 +663,8 @@ export function TopNav({
     </button>
   ) : null;
 
-  const portrait = (size: number) => (
+  const portraitLabel = role ? `${t("playerMenu.open")} (${t(role.labelKey)})` : t("playerMenu.open");
+  const portraitButton = (size: number) => (
     <button
       className="aegis-portrait-button"
       onClick={(event) => {
@@ -667,8 +673,8 @@ export function TopNav({
       }}
       aria-expanded={playerMenuOpen ?? false}
       aria-controls={playerMenuOpen ? "player-menu" : undefined}
-      aria-label={t("playerMenu.open")}
-      title={t("playerMenu.open")}
+      aria-label={portraitLabel}
+      title={role ? undefined : portraitLabel}
     >
       <Avatar
         name={player.name}
@@ -677,8 +683,11 @@ export function TopNav({
         avatarUrl={player.avatarUrl}
         size={size}
       />
+      {role ? <AccountRoleBadge role={role.value} /> : null}
     </button>
   );
+  const portrait = (size: number) =>
+    role ? <AccountRoleTooltip role={role}>{portraitButton(size)}</AccountRoleTooltip> : portraitButton(size);
 
   return (
     <>

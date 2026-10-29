@@ -2,6 +2,10 @@ export const staffRolesId = {
   "account.roles.admin": "Admin",
   "account.roles.judge": "Judge",
   "account.roles.organizer": "Penyelenggara resmi",
+  "account.roles.adminDescription": "Mengelola situs, akun, dan peran.",
+  "account.roles.judgeDescription":
+    "Memutuskan laporan pertandingan peringkat dan dapat menjadi wasit di turnamen mana pun.",
+  "account.roles.organizerDescription": "Membuat turnamen dan sirkuit resmi.",
   "account.roles.title": "Peran",
   "account.roles.help":
     "Admin mengelola situs. Judge memutuskan laporan ranked dan dapat melakukan arbitrase di turnamen mana pun. Penyelenggara resmi membuat turnamen resmi.",

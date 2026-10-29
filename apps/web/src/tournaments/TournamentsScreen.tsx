@@ -78,7 +78,7 @@ export function TournamentsScreen({
         <div className="community-column aegis-page-sheet">
           <TournamentCatalog
             accountId={account?.id}
-            accountIsAdmin={account?.isAdmin === true}
+            canCreateCircuit={account?.isAdmin === true || account?.canCreateOfficial === true}
             onOpen={(id) => setView({ kind: "detail", id })}
             onCreate={() => setView({ kind: "create" })}
             onOpenCircuit={(id) => setView({ kind: "circuit", id })}
@@ -115,16 +115,16 @@ export function TournamentsScreen({
           </Alert>
         ) : null}
 
-        {activeView.kind === "createCircuit" && account?.isAdmin ? (
+        {activeView.kind === "createCircuit" && account && (account.isAdmin || account.canCreateOfficial) ? (
           <CreateCircuitForm
             onCreated={(circuit) => setView({ kind: "circuit", id: circuit.id })}
             onCancel={() => setView({ kind: "catalog" })}
           />
         ) : null}
 
-        {activeView.kind === "createCircuit" && account && !account.isAdmin ? (
-          <Alert tone="warning" title={t("tournaments.circuits.adminOnlyTitle")}>
-            {t("tournaments.circuits.adminOnly")}
+        {activeView.kind === "createCircuit" && account && !account.isAdmin && !account.canCreateOfficial ? (
+          <Alert tone="warning" title={t("tournaments.circuits.organizerOnlyTitle")}>
+            {t("tournaments.circuits.organizerOnly")}
           </Alert>
         ) : null}
 

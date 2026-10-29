@@ -995,3 +995,53 @@
   display: block;
   white-space: normal;
 }
+
+/* Crop window shown before an uploaded picture is sent: the square stage draws exactly the region
+   that will be exported, so the preview is the upload. */
+.aegis-dialog.avatar-crop {
+  --aegis-dialog-pad: var(--ds-space-5);
+
+  display: grid;
+  gap: var(--ds-space-3);
+  width: min(380px, calc(100% - 32px));
+}
+.avatar-crop h2 {
+  font: 800 var(--ds-text-xl) var(--ds-font-display);
+}
+.avatar-crop__hint {
+  margin: 0;
+  color: var(--ds-text-3);
+  font-size: 0.8125rem;
+}
+.avatar-crop__stage {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-fill);
+  box-shadow: 0 0 0 1px var(--ds-line) inset;
+  cursor: grab;
+  touch-action: none;
+}
+.avatar-crop__stage:active {
+  cursor: grabbing;
+}
+.avatar-crop__stage:focus-visible {
+  outline: 2px solid var(--ds-focus);
+  outline-offset: 2px;
+}
+.avatar-crop__zoom {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  color: var(--ds-text-3);
+  font-size: 0.75rem;
+}
+.avatar-crop__zoom input {
+  flex: 1;
+}
+.avatar-crop footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ds-space-2);
+}

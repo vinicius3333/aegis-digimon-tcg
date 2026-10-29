@@ -11,6 +11,7 @@ import { friendsSystem } from "#api/db/migrations/041-friends-system";
 import { deckProviders } from "#api/db/migrations/037-deck-providers";
 import { storyGuestProgress } from "#api/db/migrations/039-story-guest-progress";
 import { communityDeckModeration } from "#api/db/migrations/040-community-deck-moderation";
+import { accountAvatarImage } from "#api/db/migrations/051-account-avatar-image";
 import { storyProgress } from "#api/db/migrations/038-story-progress";
 import type { Migration } from "../migrator.js";
 import { initialSchema } from "./001-initial-schema.js";
@@ -104,4 +105,5 @@ export const migrations: readonly Migration[] = [
   tournamentDiscordGuild,
   slimDeckMatchLedger,
   accountRoles,
+  accountAvatarImage,
 ];

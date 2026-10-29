@@ -2243,6 +2243,17 @@ const interfaceMessages = {
   "account.avatar.saving": "Enregistrement…",
   "account.avatar.empty": "Aucun Digimon trouvé.",
   "account.avatar.error": "Impossible d'enregistrer votre avatar. Réessayez.",
+  "account.avatar.upload": "Envoyer une photo",
+  "account.avatar.uploadHint": "PNG ou JPEG, réduite automatiquement",
+  "account.avatar.uploadError": "Impossible d'utiliser cette photo. Essayez un PNG ou JPEG.",
+  "account.avatar.cropTitle": "Ajustez votre image",
+  "account.avatar.cropHint": "Faites glisser pour déplacer, faites défiler ou utilisez le curseur pour zoomer.",
+  "account.avatar.cropStage": "Zone de recadrage",
+  "account.avatar.cropZoom": "Zoom",
+  "account.avatar.cropSave": "Utiliser cette image",
+  "account.avatar.blocked": "Cette image ne peut pas servir d'avatar. Choisissez-en une autre.",
+  "account.avatar.reviewUnavailable":
+    "Impossible de vérifier cette image pour le moment. Réessayez dans quelques minutes.",
   "bugReport.button": "Envoyer des commentaires",
   "bugReport.title": "Envoyer des commentaires",
   "bugReport.notice.signed":

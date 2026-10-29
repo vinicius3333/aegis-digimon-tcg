@@ -279,6 +279,8 @@ function CardSpread({
           stackPosition={layout.stackPosition}
           focusPosition={layout.focusPosition}
           focusScale={layout.focusScale}
+          inspectPosition={layout.inspectPosition}
+          inspectScale={layout.inspectScale}
           slotPosition={layout.cardSlots[index] ?? layout.stackPosition}
           slotScale={layout.cardScale}
           phaseStartedAt={phaseStartedAt}
@@ -376,7 +378,12 @@ function StageContents(props: StageProps) {
         reducedMotion={reducedMotion}
       />
       <CarouselDriver carousel={carousel} count={packCount} />
-      <CardGripControls grip={props.grip} inspectedIndex={props.inspectedIndex} />
+      <CardGripControls
+        grip={props.grip}
+        inspectedIndex={props.inspectedIndex}
+        inspectDepth={layout.inspectPosition[2]}
+        inspectScale={layout.inspectScale}
+      />
       <PhaseDirector
         playbackRate={props.playbackRate}
         phase={phase}

@@ -101,6 +101,10 @@ export function ProfileIdentity({
     onAccountChange?.({ ...account, ...(await accountApi.updateAvatar(avatarChoice(selection, true))) });
   }
 
+  async function uploadAvatar(image: Blob) {
+    onAccountChange?.(await accountApi.uploadAvatarImage(image));
+  }
+
   const winRate = rate?.matches
     ? new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 }).format(
         rate.wins / (rate.wins + rate.losses + rate.draws),
@@ -231,6 +235,7 @@ export function ProfileIdentity({
           selected={selected}
           discordLinked={account?.discordLinked === true}
           onSelect={selectAvatar}
+          onUpload={account ? uploadAvatar : undefined}
           onRefreshDiscordAvatar={onRefreshDiscordAvatar}
           onClose={() => setMenuOpen(false)}
         />
