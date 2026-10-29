@@ -1,4 +1,5 @@
 import { hasAccountCapability } from "@aegis/shared/account/hasAccountCapability";
+import { highestAccountRole } from "@/account/roles/highestAccountRole";
 import type { TournamentSpectateTarget } from "@/tournaments/TournamentSpectateTarget";
 import { RankedScreen } from "@/ranked/RankedScreen";
 import { useRankedConfig } from "@/ranked/useRankedConfig";
@@ -803,6 +804,7 @@ function LoadedAegisClient({
             onNav={navigateScreen}
             player={effectivePlayer}
             signedIn={!!account}
+            role={highestAccountRole(account?.roles ?? [])}
             onOpenPlayerMenu={(anchor) => setPlayerMenuAnchor(playerMenuOpen ? null : anchor)}
             playerMenuOpen={playerMenuOpen}
             dark={dark}

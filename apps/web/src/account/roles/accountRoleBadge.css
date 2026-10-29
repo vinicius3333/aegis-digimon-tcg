@@ -1,0 +1,24 @@
+.account-role-badge {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border: 2px solid var(--ds-ink);
+  border-radius: var(--ds-radius-pill);
+  background: var(--ds-accent);
+  color: var(--ds-on-accent);
+  pointer-events: none;
+}
+
+.account-role-badge[data-role="admin"] {
+  background: var(--ds-danger);
+  color: var(--ds-on-status);
+}
+
+.account-role-badge[data-role="organizer"] {
+  background: var(--ds-success);
+  color: var(--ds-on-status);
+}
