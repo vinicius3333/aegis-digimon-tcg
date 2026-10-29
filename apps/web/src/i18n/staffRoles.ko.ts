@@ -2,6 +2,9 @@ export const staffRolesKo = {
   "account.roles.admin": "관리자",
   "account.roles.judge": "저지",
   "account.roles.organizer": "공식 주최자",
+  "account.roles.adminDescription": "사이트, 계정, 역할을 관리합니다.",
+  "account.roles.judgeDescription": "랭크 신고를 판정하고 모든 토너먼트를 심판할 수 있습니다.",
+  "account.roles.organizerDescription": "공식 토너먼트와 서킷을 만듭니다.",
   "account.roles.title": "역할",
   "account.roles.help":
     "관리자는 사이트를 관리합니다. 저지는 랭크 신고를 판정하고 모든 대회에서 중재할 수 있습니다. 공식 주최자는 공식 대회를 만듭니다.",

@@ -651,6 +651,7 @@
 }
 
 .aegis-portrait-button {
+  position: relative;
   display: grid;
   width: var(--ds-touch-target);
   height: var(--ds-touch-target);

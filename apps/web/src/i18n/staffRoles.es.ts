@@ -2,6 +2,9 @@ export const staffRolesEs = {
   "account.roles.admin": "Admin",
   "account.roles.judge": "Juez",
   "account.roles.organizer": "Organizador oficial",
+  "account.roles.adminDescription": "Gestiona el sitio, las cuentas y los roles.",
+  "account.roles.judgeDescription": "Resuelve los reportes de clasificatorias y puede arbitrar cualquier torneo.",
+  "account.roles.organizerDescription": "Crea torneos y circuitos oficiales.",
   "account.roles.title": "Roles",
   "account.roles.help":
     "Los admins gestionan el sitio. Los jueces resuelven reportes de clasificatoria y pueden arbitrar cualquier torneo. Los organizadores oficiales crean torneos oficiales.",
