@@ -1,4 +1,46 @@
 {
+  "releases.1.43.0-beta.summary": {
+    "en": "Upload and crop your own profile picture, staff role badges, and a full-screen booster lab on phones.",
+    "pt-BR": "Envie e recorte sua própria foto de perfil, selos de cargo da equipe e um laboratório de boosters em tela cheia no celular.",
+    "es": "Sube y recorta tu propia foto de perfil, insignias de rol del equipo y un laboratorio de sobres a pantalla completa en el móvil.",
+    "it": "Carica e ritaglia la tua immagine del profilo, badge dei ruoli dello staff e un laboratorio bustine a schermo intero sul telefono."
+  },
+  "releases.1.43.0-beta.feature.avatar": {
+    "en": "Upload a PNG or JPEG as your profile picture and crop it before saving. Every picture is checked for explicit content first.",
+    "pt-BR": "Envie um PNG ou JPEG como foto de perfil e recorte antes de salvar. Toda foto passa antes por uma verificação de conteúdo explícito.",
+    "es": "Sube un PNG o JPEG como foto de perfil y recórtalo antes de guardar. Cada foto se revisa antes para detectar contenido explícito.",
+    "it": "Carica un PNG o JPEG come immagine del profilo e ritaglialo prima di salvare. Ogni immagine viene prima controllata per contenuti espliciti."
+  },
+  "releases.1.43.0-beta.feature.roles": {
+    "en": "Admins, judges, and organizers now show a role badge on their avatar, with a tooltip that explains the role.",
+    "pt-BR": "Admins, juízes e organizadores agora exibem um selo de cargo no avatar, com uma dica que explica o cargo.",
+    "es": "Los admins, jueces y organizadores ahora muestran una insignia de rol en su avatar, con un aviso que explica el rol.",
+    "it": "Admin, giudici e organizzatori ora mostrano un badge del ruolo sull’avatar, con un suggerimento che spiega il ruolo."
+  },
+  "releases.1.43.0-beta.feature.booster": {
+    "en": "On phones, booster lab cards are larger, inspected cards support pinch to zoom, and a full-screen mode is available.",
+    "pt-BR": "No celular, as cartas do laboratório de boosters estão maiores, a carta inspecionada aceita pinça para zoom e há um modo tela cheia.",
+    "es": "En el móvil, las cartas del laboratorio de sobres son más grandes, la carta inspeccionada admite pellizcar para hacer zoom y hay un modo a pantalla completa.",
+    "it": "Sul telefono, le carte del laboratorio bustine sono più grandi, la carta ispezionata supporta il pizzico per lo zoom ed è disponibile la modalità a schermo intero."
+  },
+  "releases.1.43.0-beta.feature.circuits": {
+    "en": "Organizers can now create tournament circuits.",
+    "pt-BR": "Organizadores agora podem criar circuitos de torneios.",
+    "es": "Los organizadores ahora pueden crear circuitos de torneos.",
+    "it": "Gli organizzatori ora possono creare circuiti di tornei."
+  },
+  "releases.1.43.0-beta.fix.cards": {
+    "en": "BT18-088 Takuya & Koji's end-of-turn attack is optional again.",
+    "pt-BR": "O ataque de fim de turno de BT18-088 Takuya & Koji voltou a ser opcional.",
+    "es": "El ataque de fin de turno de BT18-088 Takuya & Koji vuelve a ser opcional.",
+    "it": "L’attacco di fine turno di BT18-088 Takuya & Koji è di nuovo facoltativo."
+  },
+  "releases.1.43.0-beta.fix.prompts": {
+    "en": "Saying Yes to a trigger no longer also answers a later \"you may\" choice in the same effect, and effects whose cost you cannot pay are no longer offered.",
+    "pt-BR": "Dizer Sim a um gatilho não responde mais também uma escolha posterior de \"você pode\" no mesmo efeito, e efeitos cujo custo você não pode pagar não são mais oferecidos.",
+    "es": "Decir Sí a un activador ya no responde también una elección posterior de \"puedes\" en el mismo efecto, y ya no se ofrecen efectos cuyo coste no puedes pagar.",
+    "it": "Rispondere Sì a un innesco non risponde più anche a una scelta successiva \"puoi\" nello stesso effetto, e gli effetti di cui non puoi pagare il costo non vengono più proposti."
+  },
   "releases.1.42.1-beta.summary": {
     "en": "Fix the booster lab layout on phones.",
     "pt-BR": "Corrige o layout do laboratório de boosters no celular.",

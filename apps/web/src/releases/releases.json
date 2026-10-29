@@ -1,5 +1,32 @@
 [
   {
+    "version": "1.43.0-beta",
+    "releasedAt": "2026-10-29",
+    "summaryKey": "releases.1.43.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.43.0-beta.feature.avatar"
+      },
+      {
+        "textKey": "releases.1.43.0-beta.feature.roles"
+      },
+      {
+        "textKey": "releases.1.43.0-beta.feature.booster"
+      },
+      {
+        "textKey": "releases.1.43.0-beta.feature.circuits"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.43.0-beta.fix.cards"
+      },
+      {
+        "textKey": "releases.1.43.0-beta.fix.prompts"
+      }
+    ]
+  },
+  {
     "version": "1.42.1-beta",
     "releasedAt": "2026-10-29",
     "summaryKey": "releases.1.42.1-beta.summary",
