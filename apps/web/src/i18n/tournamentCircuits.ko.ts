@@ -38,8 +38,8 @@ export const tournamentCircuitsKo = {
   "tournaments.circuits.error.load": "이 서킷을 불러오지 못했습니다",
   "tournaments.circuits.error.invalid": "다음 항목을 확인하세요",
   "tournaments.circuits.error.create": "서킷을 만들지 못했습니다",
-  "tournaments.circuits.adminOnlyTitle": "관리자 전용",
-  "tournaments.circuits.adminOnly": "Aegis 관리자만 서킷을 만들 수 있습니다.",
+  "tournaments.circuits.organizerOnlyTitle": "관리자 및 주최자 전용",
+  "tournaments.circuits.organizerOnly": "Aegis 관리자와 주최자만 서킷을 만들 수 있습니다.",
   "tournaments.circuits.createTitle": "새 서킷",
   "tournaments.circuits.createHelp":
     "기간과 주간 또는 월간 일정을 정하세요. Aegis가 각 이벤트를 만들고, 신청을 열고, 제시간에 시작합니다.",

@@ -39,8 +39,8 @@ export const tournamentCircuitsFr = {
   "tournaments.circuits.error.load": "Impossible de charger ce circuit",
   "tournaments.circuits.error.invalid": "Vérifiez ces champs",
   "tournaments.circuits.error.create": "Impossible de créer le circuit",
-  "tournaments.circuits.adminOnlyTitle": "Admins uniquement",
-  "tournaments.circuits.adminOnly": "Seuls les admins d’Aegis peuvent créer des circuits.",
+  "tournaments.circuits.organizerOnlyTitle": "Admins et organisateurs uniquement",
+  "tournaments.circuits.organizerOnly": "Seuls les admins et les organisateurs d’Aegis peuvent créer des circuits.",
   "tournaments.circuits.createTitle": "Nouveau circuit",
   "tournaments.circuits.createHelp":
     "Choisissez une période et un calendrier hebdomadaire ou mensuel. Aegis crée chaque événement, ouvre les inscriptions et le lance à l’heure.",

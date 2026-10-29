@@ -1,3 +1,4 @@
+import { hasAccountCapability } from "@aegis/shared/account/hasAccountCapability";
 import type { Express, NextFunction, Request, Response } from "express";
 import type { AccountStore, AuthSession } from "#api/accounts/AccountStore";
 import { isUuid } from "#api/community/CommunityDeckStore";
@@ -92,8 +93,16 @@ export function installTournamentCircuitRoutes({ app, accounts, participants, se
   app.post(
     "/tournament-circuits",
     handle(async (req, res) => {
-      const auth = await requireAdmin(req, res);
+      const auth = await session(req);
       if (!auth) {
+        res.status(401).json({ error: "authentication_required" });
+        return;
+      }
+      if (
+        !auth.account.isAdmin &&
+        !hasAccountCapability({ roles: auth.account.roles, capability: "canOrganizeOfficialTournaments" })
+      ) {
+        res.status(403).json({ error: "tournament_circuit_requires_organizer" });
         return;
       }
       const parsed = parseCreateTournamentCircuit(req.body);

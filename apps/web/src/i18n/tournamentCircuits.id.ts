@@ -37,8 +37,8 @@ export const tournamentCircuitsId = {
   "tournaments.circuits.error.load": "Sirkuit ini tidak dapat dimuat",
   "tournaments.circuits.error.invalid": "Periksa kolom berikut",
   "tournaments.circuits.error.create": "Sirkuit tidak dapat dibuat",
-  "tournaments.circuits.adminOnlyTitle": "Khusus admin",
-  "tournaments.circuits.adminOnly": "Hanya admin Aegis yang dapat membuat sirkuit.",
+  "tournaments.circuits.organizerOnlyTitle": "Khusus admin dan penyelenggara",
+  "tournaments.circuits.organizerOnly": "Hanya admin dan penyelenggara Aegis yang dapat membuat sirkuit.",
   "tournaments.circuits.createTitle": "Sirkuit baru",
   "tournaments.circuits.createHelp":
     "Tentukan periode dan jadwal mingguan atau bulanan. Aegis membuat setiap event, membuka pendaftaran, dan memulainya tepat waktu.",

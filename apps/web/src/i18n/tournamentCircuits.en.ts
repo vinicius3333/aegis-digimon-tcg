@@ -37,8 +37,8 @@ export const tournamentCircuitsEn = {
   "tournaments.circuits.error.load": "Could not load this circuit",
   "tournaments.circuits.error.invalid": "Check these fields",
   "tournaments.circuits.error.create": "Could not create the circuit",
-  "tournaments.circuits.adminOnlyTitle": "Admins only",
-  "tournaments.circuits.adminOnly": "Only Aegis admins can create circuits.",
+  "tournaments.circuits.organizerOnlyTitle": "Admins and organizers only",
+  "tournaments.circuits.organizerOnly": "Only Aegis admins and organizers can create circuits.",
   "tournaments.circuits.createTitle": "New circuit",
   "tournaments.circuits.createHelp":
     "Set a period and a weekly or monthly schedule. Aegis creates each event, opens sign-ups and starts it on time.",
