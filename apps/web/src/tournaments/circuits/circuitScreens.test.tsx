@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { AccountRole } from "@aegis/shared/account/AccountRole";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type {
@@ -139,6 +140,23 @@ describe("circuit screens", () => {
     });
   });
 
+  it.each([AccountRole.ADMIN.value, AccountRole.ORGANIZER.value])(
+    "shows circuit creation in an empty catalog for %s",
+    async (role) => {
+      mockApi({
+        "GET /tournaments": { body: [] },
+        "GET /tournament-circuits": { body: { items: [] } },
+        "GET /auth/me": {
+          body: { id: "creator-1", displayName: "Creator", isAdmin: role === AccountRole.ADMIN.value, roles: [role] },
+        },
+      });
+      const onViewChange = vi.fn<(view: TournamentRoute) => void>();
+      renderScreen({ kind: "catalog" }, onViewChange);
+      fireEvent.click(await screen.findByRole("button", { name: "New circuit" }));
+      expect(onViewChange).toHaveBeenCalledWith({ kind: "createCircuit" });
+    },
+  );
+
   it("shows the schedule, events and leaderboard with the viewer's row highlighted", async () => {
     mockApi({
       "GET /tournament-circuits/circuit-1": { body: CIRCUIT },
@@ -212,31 +230,36 @@ describe("circuit screens", () => {
     });
   });
 
-  it("sends monthly slots as days of the month", async () => {
-    const fetchMock = mockApi({
-      "POST /tournament-circuits": { status: 201, body: CIRCUIT },
-      "GET /auth/me": { body: { id: "admin-1", displayName: "Admin", isAdmin: true, roles: ["admin"] } },
-    });
-    renderScreen({ kind: "createCircuit" });
-    fireEvent.change(await screen.findByLabelText("Name"), { target: { value: "Monthly Cup" } });
-    fireEvent.change(screen.getByLabelText("Repeats"), { target: { value: "monthly" } });
-    expect(screen.getByText("Days 29 to 31 move to the last day of shorter months.")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Add slot" }));
-    fireEvent.change(screen.getAllByLabelText("Day of the month")[1]!, { target: { value: "31" } });
-    fireEvent.click(screen.getByRole("button", { name: "Create circuit" }));
-    await waitFor(() => expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST")).toBe(true));
-    const [, init] = fetchMock.mock.calls.find(([, request]) => request?.method === "POST") ?? [];
-    expect(JSON.parse(String(init?.body))).toMatchObject({
-      name: "Monthly Cup",
-      schedule: {
-        cadence: "monthly",
-        slots: [
-          { monthDay: 1, localTime: "18:00" },
-          { monthDay: 31, localTime: "18:00" },
-        ],
-      },
-    });
-  });
+  it.each([AccountRole.ADMIN.value, AccountRole.ORGANIZER.value])(
+    "lets %s create a circuit with monthly slots",
+    async (role) => {
+      const fetchMock = mockApi({
+        "POST /tournament-circuits": { status: 201, body: CIRCUIT },
+        "GET /auth/me": {
+          body: { id: "creator-1", displayName: "Creator", isAdmin: role === AccountRole.ADMIN.value, roles: [role] },
+        },
+      });
+      renderScreen({ kind: "createCircuit" });
+      fireEvent.change(await screen.findByLabelText("Name"), { target: { value: "Monthly Cup" } });
+      fireEvent.change(screen.getByLabelText("Repeats"), { target: { value: "monthly" } });
+      expect(screen.getByText("Days 29 to 31 move to the last day of shorter months.")).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: "Add slot" }));
+      fireEvent.change(screen.getAllByLabelText("Day of the month")[1]!, { target: { value: "31" } });
+      fireEvent.click(screen.getByRole("button", { name: "Create circuit" }));
+      await waitFor(() => expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST")).toBe(true));
+      const [, init] = fetchMock.mock.calls.find(([, request]) => request?.method === "POST") ?? [];
+      expect(JSON.parse(String(init?.body))).toMatchObject({
+        name: "Monthly Cup",
+        schedule: {
+          cadence: "monthly",
+          slots: [
+            { monthDay: 1, localTime: "18:00" },
+            { monthDay: 31, localTime: "18:00" },
+          ],
+        },
+      });
+    },
+  );
 
   it("shows a monthly circuit's days in its schedule", async () => {
     mockApi({
@@ -251,13 +274,18 @@ describe("circuit screens", () => {
     expect(screen.getByText("America/Sao_Paulo")).toBeTruthy();
   });
 
-  it("tells a signed-in player that only admins create circuits", async () => {
-    mockApi({
-      "GET /auth/me": {
-        body: { id: "acc-1", displayName: "Tamer", isAdmin: false, roles: [] },
-      },
-    });
-    renderScreen({ kind: "createCircuit" });
-    await waitFor(() => expect(screen.getByText("Only Aegis admins can create circuits.")).toBeTruthy());
-  });
+  it.each([{ roles: [] }, { roles: [AccountRole.JUDGE.value] }])(
+    "rejects the creation form without organizer permission for roles $roles",
+    async ({ roles }) => {
+      mockApi({
+        "GET /auth/me": {
+          body: { id: "acc-1", displayName: "Tamer", isAdmin: false, roles },
+        },
+      });
+      renderScreen({ kind: "createCircuit" });
+      await waitFor(() =>
+        expect(screen.getByText("Only Aegis admins and organizers can create circuits.")).toBeTruthy(),
+      );
+    },
+  );
 });

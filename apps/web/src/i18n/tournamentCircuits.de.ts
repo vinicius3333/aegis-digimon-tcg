@@ -38,8 +38,8 @@ export const tournamentCircuitsDe = {
   "tournaments.circuits.error.load": "Dieser Circuit konnte nicht geladen werden",
   "tournaments.circuits.error.invalid": "Bitte diese Felder prüfen",
   "tournaments.circuits.error.create": "Der Circuit konnte nicht erstellt werden",
-  "tournaments.circuits.adminOnlyTitle": "Nur Admins",
-  "tournaments.circuits.adminOnly": "Nur Aegis-Admins können Circuits erstellen.",
+  "tournaments.circuits.organizerOnlyTitle": "Nur Admins und Organisatoren",
+  "tournaments.circuits.organizerOnly": "Nur Aegis-Admins und Organisatoren können Circuits erstellen.",
   "tournaments.circuits.createTitle": "Neuer Circuit",
   "tournaments.circuits.createHelp":
     "Lege einen Zeitraum und einen wöchentlichen oder monatlichen Plan fest. Aegis erstellt jedes Event, öffnet die Anmeldung und startet es pünktlich.",

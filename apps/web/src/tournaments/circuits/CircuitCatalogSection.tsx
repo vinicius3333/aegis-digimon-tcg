@@ -10,14 +10,14 @@ import { formatCircuitSchedule } from "@/tournaments/circuits/formatCircuitSched
 import "@/tournaments/circuits/circuits.css";
 
 type Props = {
-  isAdmin: boolean;
+  canCreate: boolean;
   onOpen: (id: string) => void;
   onCreate: () => void;
 };
 
 const POLL_MS = 60_000;
 
-export function CircuitCatalogSection({ isAdmin, onOpen, onCreate }: Props) {
+export function CircuitCatalogSection({ canCreate, onOpen, onCreate }: Props) {
   const { t, locale } = useTranslation();
   const headingId = useId();
   const [circuits, setCircuits] = useState<TournamentCircuitSummary[]>([]);
@@ -28,7 +28,7 @@ export function CircuitCatalogSection({ isAdmin, onOpen, onCreate }: Props) {
     }
   }, []);
   usePolledRequest(load, apply, POLL_MS);
-  if (circuits.length === 0 && !isAdmin) {
+  if (circuits.length === 0 && !canCreate) {
     return null;
   }
   const dateFormat = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
@@ -43,7 +43,7 @@ export function CircuitCatalogSection({ isAdmin, onOpen, onCreate }: Props) {
           <h2 id={headingId}>{t("tournaments.circuits.title")}</h2>
           <p>{t("tournaments.circuits.subtitle")}</p>
         </div>
-        {isAdmin ? (
+        {canCreate ? (
           <Button variant="secondary" icon={Icons.Plus} onClick={onCreate}>
             {t("tournaments.circuits.create")}
           </Button>

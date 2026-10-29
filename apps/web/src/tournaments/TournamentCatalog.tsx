@@ -23,7 +23,7 @@ import { CircuitCatalogSection } from "@/tournaments/circuits/CircuitCatalogSect
 
 type Props = {
   accountId: string | undefined;
-  accountIsAdmin?: boolean;
+  canCreateCircuit?: boolean;
   onOpen: (id: string) => void;
   onCreate: () => void;
   onOpenCircuit?: (id: string) => void;
@@ -35,7 +35,7 @@ const POLL_MS = 15000;
 
 export function TournamentCatalog({
   accountId,
-  accountIsAdmin = false,
+  canCreateCircuit = false,
   onOpen,
   onCreate,
   onOpenCircuit = () => undefined,
@@ -187,7 +187,7 @@ export function TournamentCatalog({
         />
       ) : null}
       {tab === TournamentCatalogTab.UPCOMING.value ? (
-        <CircuitCatalogSection isAdmin={accountIsAdmin} onOpen={onOpenCircuit} onCreate={onCreateCircuit} />
+        <CircuitCatalogSection canCreate={canCreateCircuit} onOpen={onOpenCircuit} onCreate={onCreateCircuit} />
       ) : null}
       <div className="tournaments-agenda-heading">
         <h2>{heading}</h2>
