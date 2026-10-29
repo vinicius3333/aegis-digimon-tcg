@@ -24,6 +24,16 @@ error status, a malformed answer, or a timeout.
 Outside production, an API with no key and no model stores pictures unscreened, so
 local development needs neither. In production the same setup refuses every upload.
 
+## Storage
+
+Migration 051 stores an accepted picture in the `accounts` row itself: `avatar_image`,
+`avatar_image_type` and `avatar_image_version`.
+
+- No player-supplied path reaches the file system, and no volume needs to stay in sync.
+- Deleting the account deletes the picture.
+- `avatar_image_version` changes on every upload, so the public URL can be cached
+  immutably.
+
 ## Configuration
 
 | Variable                       | Default                              | Purpose                                |
