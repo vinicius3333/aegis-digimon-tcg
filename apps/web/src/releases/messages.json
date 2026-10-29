@@ -1,4 +1,16 @@
 {
+  "releases.1.42.1-beta.summary": {
+    "en": "Fix the booster lab layout on phones.",
+    "pt-BR": "Corrige o layout do laboratório de boosters no celular.",
+    "es": "Corrige el diseño del laboratorio de sobres en el móvil.",
+    "it": "Corregge il layout del laboratorio bustine sul telefono."
+  },
+  "releases.1.42.1-beta.fix.booster": {
+    "en": "On phones, the booster lab settings and buttons no longer cover the cards or run off the screen.",
+    "pt-BR": "No celular, as opções e os botões do laboratório de boosters não cobrem mais as cartas nem saem da tela.",
+    "es": "En el móvil, las opciones y los botones del laboratorio de sobres ya no tapan las cartas ni se salen de la pantalla.",
+    "it": "Sul telefono, le opzioni e i pulsanti del laboratorio bustine non coprono più le carte e non escono dallo schermo."
+  },
   "releases.1.42.0-beta.summary": {
     "en": "Weekly and monthly tournament circuits, account roles, match history export, and a booster opening lab.",
     "pt-BR": "Circuitos semanais e mensais de torneios, cargos de conta, exportação do histórico de partidas e um laboratório de abertura de boosters.",
