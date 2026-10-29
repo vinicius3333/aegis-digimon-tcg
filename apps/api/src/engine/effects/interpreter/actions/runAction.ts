@@ -1689,6 +1689,12 @@ function isTrashCostPaidWithoutSelection(ctx: EffectContext, cost: Cost): boolea
   return candidateLooseInstances(ctx, target, zones).length === target.count;
 }
 
+function asksIndependentlyOfYesPreset(ctx: EffectContext, action: Action): boolean {
+  return (
+    action.kind === "CostGatedBlock" && ctx.presetOptionalAnswer === true && ctx.oncePerTurnActivationChosen === true
+  );
+}
+
 type AskOptionalWithPrintedCostParams = {
   ctx: EffectContext;
   chooser: DecisionApi;
@@ -1717,9 +1723,12 @@ async function askOptionalWithPrintedCost({
     ctx.activeEffectTextPart = ctx.activeEffectText;
     ctx.activeEffectTextEmphasis = printedCost;
   }
+  const outerPresetOptionalAnswer = ctx.presetOptionalAnswer;
+  if (asksIndependentlyOfYesPreset(ctx, action)) ctx.presetOptionalAnswer = undefined;
   try {
     return await chooser.optional(ctx, describeAction(action));
   } finally {
+    ctx.presetOptionalAnswer = outerPresetOptionalAnswer;
     ctx.activeEffectTextPart = outerEffectTextPart;
     ctx.activeEffectTextEmphasis = outerEffectTextEmphasis;
   }
