@@ -125,7 +125,7 @@ describe("BT2-101 through BT2-110 IR coverage", () => {
         actions: [
           {
             effectTextPart:
-              "[Main] Trigger ＜De-Digivolve 1＞ on 1 of your opponent's Digimon. (Trash 1 card from the top of one of your opponent's Digimon. If it has no digivolution cards， or becomes a level 3 Digimon， you can't trash any more cards.)",
+              "[Main] Trigger ＜De-Digivolve 1＞ on 1 of your opponent's Digimon. (Trash 1 card from the top of one of your opponent's Digimon. If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards.)",
             kind: "DeDigivolve",
             target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
             amount: 1,
@@ -141,7 +141,7 @@ describe("BT2-101 through BT2-110 IR coverage", () => {
         actions: [
           {
             effectTextPart:
-              "[Main] Trigger ＜De-Digivolve 4＞ on 1 of your opponent's Digimon. (Trash up to 4 cards from the top of one of your opponent's Digimon. If it has no digivolution cards， or becomes a level 3 Digimon， you can't trash any more cards.)",
+              "[Main] Trigger ＜De-Digivolve 4＞ on 1 of your opponent's Digimon. (Trash up to 4 cards from the top of one of your opponent's Digimon. If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards.)",
             kind: "DeDigivolve",
             target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
             amount: 4,

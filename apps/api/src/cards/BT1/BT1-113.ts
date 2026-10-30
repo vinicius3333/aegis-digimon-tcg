@@ -7,7 +7,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           effectTextPart:
-            "[Main] Until the end of your opponent's next turn， 1 of your opponent's Digimon can't attack or block.",
+            "[Main] Until the end of your opponent's next turn, 1 of your opponent's Digimon can't attack or block.",
           kind: "Restrict",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           restriction: "attack",
@@ -15,7 +15,7 @@ export const compiled: CompiledCard = {
         },
         {
           effectTextPart:
-            "[Main] Until the end of your opponent's next turn， 1 of your opponent's Digimon can't attack or block.",
+            "[Main] Until the end of your opponent's next turn, 1 of your opponent's Digimon can't attack or block.",
           kind: "Restrict",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, sameTarget: true },
           restriction: "block",

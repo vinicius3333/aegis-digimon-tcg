@@ -4077,7 +4077,7 @@
         "trigger": "Main",
         "actions": [
           { "effectTextPart": "[Main] Gain 2 memory.", "kind": "GainMemory", "amount": 2 },
-          { "effectTextPart": "At end of turn， lose 2 memory.", "kind": "GainMemory", "amount": -2, "at": "endOfTurn" }
+          { "effectTextPart": "At end of turn, lose 2 memory.", "kind": "GainMemory", "amount": -2, "at": "endOfTurn" }
         ]
       }
     ],
@@ -4569,7 +4569,7 @@
         "trigger": "Main",
         "actions": [
           {
-            "effectTextPart": "[Main] Suspend 1 of your opponent's Digimon， or 2 of your opponent's Digimon with 5000 DP or less.",
+            "effectTextPart": "[Main] Suspend 1 of your opponent's Digimon, or 2 of your opponent's Digimon with 5000 DP or less.",
             "kind": "ConditionalBranch",
             "condition": {
               "kind": "opponentHas",
@@ -4617,7 +4617,7 @@
         "trigger": "Security",
         "actions": [
           {
-            "effectTextPart": "[Main] Suspend 1 of your opponent's Digimon， or 2 of your opponent's Digimon with 5000 DP or less.",
+            "effectTextPart": "[Main] Suspend 1 of your opponent's Digimon, or 2 of your opponent's Digimon with 5000 DP or less.",
             "kind": "ConditionalBranch",
             "condition": {
               "kind": "opponentHas",
@@ -4693,14 +4693,14 @@
         "trigger": "Main",
         "actions": [
           {
-            "effectTextPart": "[Main] Until the end of your opponent's next turn， 1 of your opponent's Digimon can't attack or block.",
+            "effectTextPart": "[Main] Until the end of your opponent's next turn, 1 of your opponent's Digimon can't attack or block.",
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "restriction": "attack",
             "duration": "untilOpponentTurnEnd"
           },
           {
-            "effectTextPart": "[Main] Until the end of your opponent's next turn， 1 of your opponent's Digimon can't attack or block.",
+            "effectTextPart": "[Main] Until the end of your opponent's next turn, 1 of your opponent's Digimon can't attack or block.",
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "sameTarget": true },
             "restriction": "block",
@@ -65160,7 +65160,7 @@
         "trigger": "Main",
         "actions": [
           {
-            "effectTextPart": "[Main] Delete 1 of your opponent's Digimon with 5000 DP or less. If you have a red Tamer in play， delete 1 of your opponent's Digimon with 8000 DP or less instead.",
+            "effectTextPart": "[Main] Delete 1 of your opponent's Digimon with 5000 DP or less. If you have a red Tamer in play, delete 1 of your opponent's Digimon with 8000 DP or less instead.",
             "kind": "Delete",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 8000 } },
@@ -65173,7 +65173,7 @@
             }
           },
           {
-            "effectTextPart": "[Main] Delete 1 of your opponent's Digimon with 5000 DP or less. If you have a red Tamer in play， delete 1 of your opponent's Digimon with 8000 DP or less instead.",
+            "effectTextPart": "[Main] Delete 1 of your opponent's Digimon with 5000 DP or less. If you have a red Tamer in play, delete 1 of your opponent's Digimon with 8000 DP or less instead.",
             "kind": "Delete",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 5000 } },
@@ -65491,7 +65491,7 @@
         "trigger": "Main",
         "actions": [
           {
-            "effectTextPart": "[Main] Trigger ＜De-Digivolve 1＞ on 1 of your opponent's Digimon. (Trash 1 card from the top of one of your opponent's Digimon. If it has no digivolution cards， or becomes a level 3 Digimon， you can't trash any more cards.)",
+            "effectTextPart": "[Main] Trigger ＜De-Digivolve 1＞ on 1 of your opponent's Digimon. (Trash 1 card from the top of one of your opponent's Digimon. If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards.)",
             "kind": "DeDigivolve",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": 1
@@ -65509,7 +65509,7 @@
         "trigger": "Main",
         "actions": [
           {
-            "effectTextPart": "[Main] Trigger ＜De-Digivolve 4＞ on 1 of your opponent's Digimon. (Trash up to 4 cards from the top of one of your opponent's Digimon. If it has no digivolution cards， or becomes a level 3 Digimon， you can't trash any more cards.)",
+            "effectTextPart": "[Main] Trigger ＜De-Digivolve 4＞ on 1 of your opponent's Digimon. (Trash up to 4 cards from the top of one of your opponent's Digimon. If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards.)",
             "kind": "DeDigivolve",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": 4
@@ -113084,13 +113084,13 @@
         "trigger": "Main",
         "actions": [
           {
-            "effectTextPart": "[Main] Trigger ＜De-Digivolve 1＞ on 1 of your opponent's Digimon. (Trash a card from the top of one of your opponent's Digimon. If it has no digivolution cards， or becomes a level 3 Digimon， you can't trash any more cards.)",
+            "effectTextPart": "[Main] Trigger ＜De-Digivolve 1＞ on 1 of your opponent's Digimon. (Trash a card from the top of one of your opponent's Digimon. If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards.)",
             "kind": "DeDigivolve",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": 1
           },
           {
-            "effectTextPart": "Then， if that Digimon's play cost is 4 or less， delete it.",
+            "effectTextPart": "Then, if that Digimon's play cost is 4 or less, delete it.",
             "kind": "Delete",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 4 },
@@ -194563,7 +194563,7 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 yellow or black card among them to the hand. Return the rest to the bottom of deck.",
+            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 yellow or black card among them to the hand. Return the rest to the bottom of the deck.",
             "revealCount": 2,
             "add": [
               { "filter": { "controllerDefault": "mine", "colors": ["Yellow", "Black"] }, "count": 1, "to": "hand" }
@@ -194577,7 +194577,7 @@
         "trigger": "Main",
         "actions": [
           {
-            "effectTextPart": "1 of your Digimon may digivolve into a yellow or black Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
+            "effectTextPart": "1 of your Digimon may digivolve into a yellow or black Digimon card in the hand with the digivolution cost reduced by 2.",
             "kind": "Digivolve",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "into": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Yellow", "Black"] },
@@ -194594,7 +194594,7 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Security] Reveal the top 2 cards of your deck. Add 1 yellow or black card among them to the hand. Return the rest to the bottom of deck.",
+            "effectTextPart": "[Security] Reveal the top 2 cards of your deck. Add 1 yellow or black card among them to the hand. Return the rest to the bottom of the deck.",
             "revealCount": 2,
             "add": [
               { "filter": { "controllerDefault": "mine", "colors": ["Yellow", "Black"] }, "count": 1, "to": "hand" }
@@ -194634,7 +194634,7 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 green or red card among them to the hand. Return the rest to the bottom of deck.",
+            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 green or red card among them to the hand. Return the rest to the bottom of the deck.",
             "revealCount": 2,
             "add": [
               { "filter": { "controllerDefault": "mine", "colors": ["Green", "Red"] }, "count": 1, "to": "hand" }
@@ -194648,7 +194648,7 @@
         "trigger": "Main",
         "actions": [
           {
-            "effectTextPart": "1 of your Digimon may digivolve into a green or red Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
+            "effectTextPart": "1 of your Digimon may digivolve into a green or red Digimon card in the hand with the digivolution cost reduced by 2.",
             "kind": "Digivolve",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "into": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Green", "Red"] },
@@ -194665,7 +194665,7 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Security] Reveal the top 2 cards of your deck. Add 1 green or red card among them to the hand. Return the rest to the bottom of deck.",
+            "effectTextPart": "[Security] Reveal the top 2 cards of your deck. Add 1 green or red card among them to the hand. Return the rest to the bottom of the deck.",
             "revealCount": 2,
             "add": [
               { "filter": { "controllerDefault": "mine", "colors": ["Green", "Red"] }, "count": 1, "to": "hand" }
@@ -194705,7 +194705,7 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 blue or purple card among them to the hand. Return the rest to the bottom of deck.",
+            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 purple or blue card among them to the hand. Return the rest to the bottom of the deck.",
             "revealCount": 2,
             "add": [
               { "filter": { "controllerDefault": "mine", "colors": ["Blue", "Purple"] }, "count": 1, "to": "hand" }
@@ -194719,7 +194719,7 @@
         "trigger": "Main",
         "actions": [
           {
-            "effectTextPart": "1 of your Digimon may digivolve into a blue or purple Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
+            "effectTextPart": "1 of your Digimon may digivolve into a purple or blue Digimon card in the hand with the digivolution cost reduced by 2.",
             "kind": "Digivolve",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "into": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Blue", "Purple"] },
@@ -194736,7 +194736,7 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Security] Reveal the top 2 cards of your deck. Add 1 blue or purple card among them to the hand. Return the rest to the bottom of deck.",
+            "effectTextPart": "[Security] Reveal the top 2 cards of your deck. Add 1 purple or blue card among them to the hand. Return the rest to the bottom of the deck.",
             "revealCount": 2,
             "add": [
               { "filter": { "controllerDefault": "mine", "colors": ["Blue", "Purple"] }, "count": 1, "to": "hand" }
@@ -194776,7 +194776,7 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 red or blue card among them to the hand. Return the rest to the bottom of deck.",
+            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 red or blue card among them to the hand. Return the rest to the bottom of the deck.",
             "revealCount": 2,
             "add": [{ "filter": { "controllerDefault": "mine", "colors": ["Red", "Blue"] }, "count": 1, "to": "hand" }],
             "rest": "deckBottom"
@@ -194788,7 +194788,7 @@
         "trigger": "Main",
         "actions": [
           {
-            "effectTextPart": "1 of your Digimon may digivolve into a red or blue Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
+            "effectTextPart": "1 of your Digimon may digivolve into a red or blue Digimon card in the hand with the cost reduced by 2.",
             "kind": "Digivolve",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "into": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Red", "Blue"] },
@@ -194805,7 +194805,7 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Security] Reveal the top 2 cards of your deck. Add 1 red or blue card among them to the hand. Return the rest to the bottom of deck.",
+            "effectTextPart": "[Security] Reveal the top 2 cards of your deck. Add 1 red or blue card among them to the hand. Return the rest to the bottom of the deck.",
             "revealCount": 2,
             "add": [{ "filter": { "controllerDefault": "mine", "colors": ["Red", "Blue"] }, "count": 1, "to": "hand" }],
             "rest": "deckBottom"
@@ -194843,7 +194843,7 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 blue or green card among them to the hand. Return the rest to the bottom of deck.",
+            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 blue or green card among them to the hand. Return the rest to the bottom of the deck.",
             "revealCount": 2,
             "add": [
               { "filter": { "controllerDefault": "mine", "colors": ["Blue", "Green"] }, "count": 1, "to": "hand" }
@@ -194857,7 +194857,7 @@
         "trigger": "Main",
         "actions": [
           {
-            "effectTextPart": "1 of your Digimon may digivolve into a blue or green Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
+            "effectTextPart": "1 of your Digimon may digivolve into a blue or green Digimon card in the hand with the cost reduced by 2.",
             "kind": "Digivolve",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "into": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Blue", "Green"] },
@@ -194874,7 +194874,7 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Security] Reveal the top 2 cards of your deck. Add 1 blue or green card among them to the hand. Return the rest to the bottom of deck.",
+            "effectTextPart": "[Security] Reveal the top 2 cards of your deck. Add 1 blue or green card among them to the hand. Return the rest to the bottom of the deck.",
             "revealCount": 2,
             "add": [
               { "filter": { "controllerDefault": "mine", "colors": ["Blue", "Green"] }, "count": 1, "to": "hand" }
@@ -194914,7 +194914,7 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 yellow or red card among them to the hand. Return the rest to the bottom of deck.",
+            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 yellow or red card among them to the hand. Return the rest to the bottom of the deck.",
             "revealCount": 2,
             "add": [
               { "filter": { "controllerDefault": "mine", "colors": ["Yellow", "Red"] }, "count": 1, "to": "hand" }
@@ -194928,7 +194928,7 @@
         "trigger": "Main",
         "actions": [
           {
-            "effectTextPart": "1 of your Digimon may digivolve into a yellow or red Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
+            "effectTextPart": "1 of your Digimon may digivolve into a yellow or red Digimon card in the hand with the cost reduced by 2.",
             "kind": "Digivolve",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "into": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Yellow", "Red"] },
@@ -194945,7 +194945,7 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Security] Reveal the top 2 cards of your deck. Add 1 yellow or red card among them to the hand. Return the rest to the bottom of deck.",
+            "effectTextPart": "[Security] Reveal the top 2 cards of your deck. Add 1 yellow or red card among them to the hand. Return the rest to the bottom of the deck.",
             "revealCount": 2,
             "add": [
               { "filter": { "controllerDefault": "mine", "colors": ["Yellow", "Red"] }, "count": 1, "to": "hand" }
@@ -194985,7 +194985,7 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 green or purple card among them to the hand. Return the rest to the bottom of deck.",
+            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 green or purple card among them to the hand. Return the rest to the bottom of the deck.",
             "revealCount": 2,
             "add": [
               { "filter": { "controllerDefault": "mine", "colors": ["Green", "Purple"] }, "count": 1, "to": "hand" }
@@ -194999,7 +194999,7 @@
         "trigger": "Main",
         "actions": [
           {
-            "effectTextPart": "1 of your Digimon may digivolve into a green or purple Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
+            "effectTextPart": "1 of your Digimon may digivolve into a green or purple Digimon card in the hand with the cost reduced by 2.",
             "kind": "Digivolve",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "into": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Green", "Purple"] },
@@ -195016,7 +195016,7 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Security] Reveal the top 2 cards of your deck. Add 1 green or purple card among them to the hand. Return the rest to the bottom of deck.",
+            "effectTextPart": "[Security] Reveal the top 2 cards of your deck. Add 1 green or purple card among them to the hand. Return the rest to the bottom of the deck.",
             "revealCount": 2,
             "add": [
               { "filter": { "controllerDefault": "mine", "colors": ["Green", "Purple"] }, "count": 1, "to": "hand" }
@@ -195056,7 +195056,7 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 black or red card among them to the hand. Return the rest to the bottom of deck.",
+            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 black or red card among them to the hand. Return the rest to the bottom of the deck.",
             "revealCount": 2,
             "add": [
               { "filter": { "controllerDefault": "mine", "colors": ["Black", "Red"] }, "count": 1, "to": "hand" }
@@ -195070,7 +195070,7 @@
         "trigger": "Main",
         "actions": [
           {
-            "effectTextPart": "1 of your Digimon may digivolve into a black or red Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
+            "effectTextPart": "1 of your Digimon may digivolve into a black or red Digimon card in the hand with the cost reduced by 2.",
             "kind": "Digivolve",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "into": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Black", "Red"] },
@@ -195087,7 +195087,7 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Security] Reveal the top 2 cards of your deck. Add 1 black or red card among them to the hand. Return the rest to the bottom of deck.",
+            "effectTextPart": "[Security] Reveal the top 2 cards of your deck. Add 1 black or red card among them to the hand. Return the rest to the bottom of the deck.",
             "revealCount": 2,
             "add": [
               { "filter": { "controllerDefault": "mine", "colors": ["Black", "Red"] }, "count": 1, "to": "hand" }
@@ -198816,12 +198816,12 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 red card among them to your hand. Place the rest at the bottom of your deck in any order.",
+            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 red card among them to the hand. Return the rest to the bottom of the deck in any order.",
             "revealCount": 2,
             "add": [{ "filter": { "colors": ["Red"] }, "count": 1, "to": "hand" }],
             "rest": "deckBottom"
           },
-          { "kind": "PlaceInBattleAreaSelf", "effectTextPart": "Then, place this card into your battle area." }
+          { "kind": "PlaceInBattleAreaSelf", "effectTextPart": "Then, place this card in the battle area." }
         ]
       },
       {
@@ -198852,12 +198852,12 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 blue card among them to your hand. Place the rest at the bottom of your deck in any order.",
+            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 blue card among them to the hand. Return the rest to the bottom of the deck in any order.",
             "revealCount": 2,
             "add": [{ "filter": { "colors": ["Blue"] }, "count": 1, "to": "hand" }],
             "rest": "deckBottom"
           },
-          { "kind": "PlaceInBattleAreaSelf", "effectTextPart": "Then, place this card into your battle area." }
+          { "kind": "PlaceInBattleAreaSelf", "effectTextPart": "Then, place this card in the battle area." }
         ]
       },
       {
@@ -198888,12 +198888,12 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 yellow card among them to your hand. Place the rest at the bottom of your deck in any order.",
+            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 yellow card among them to the hand. Return the rest to the bottom of the deck in any order.",
             "revealCount": 2,
             "add": [{ "filter": { "controllerDefault": "mine", "colors": ["Yellow"] }, "count": 1, "to": "hand" }],
             "rest": "deckBottom"
           },
-          { "kind": "PlaceInBattleAreaSelf", "effectTextPart": "Then, place this card into your battle area." }
+          { "kind": "PlaceInBattleAreaSelf", "effectTextPart": "Then, place this card in the battle area." }
         ]
       },
       {
@@ -198924,12 +198924,12 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 green card among them to your hand. Place the rest at the bottom of your deck in any order.",
+            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 green card among them to the hand. Return the rest to the bottom of the deck in any order.",
             "revealCount": 2,
             "add": [{ "filter": { "controllerDefault": "mine", "colors": ["Green"] }, "count": 1, "to": "hand" }],
             "rest": "deckBottomAnyOrder"
           },
-          { "kind": "PlaceInBattleAreaSelf", "effectTextPart": "Then, place this card into your battle area." }
+          { "kind": "PlaceInBattleAreaSelf", "effectTextPart": "Then, place this card in the battle area." }
         ]
       },
       {
@@ -198960,12 +198960,12 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 black card among them to your hand. Place the rest at the bottom of your deck in any order.",
+            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 black card among them to the hand. Return the rest to the bottom of the deck in any order.",
             "revealCount": 2,
             "add": [{ "filter": { "controllerDefault": "mine", "colors": ["Black"] }, "count": 1, "to": "hand" }],
             "rest": "deckBottom"
           },
-          { "kind": "PlaceInBattleAreaSelf", "effectTextPart": "Then, place this card into your battle area." }
+          { "kind": "PlaceInBattleAreaSelf", "effectTextPart": "Then, place this card in the battle area." }
         ]
       },
       {
@@ -198997,12 +198997,12 @@
         "actions": [
           {
             "kind": "RevealAdd",
-            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 purple card among them to your hand. Place the rest at the bottom of your deck in any order.",
+            "effectTextPart": "[Main] Reveal the top 2 cards of your deck. Add 1 purple card among them to the hand. Return the rest to the bottom of the deck in any order.",
             "revealCount": 2,
             "add": [{ "filter": { "controllerDefault": "mine", "colors": ["Purple"] }, "count": 1, "to": "hand" }],
             "rest": "deckBottom"
           },
-          { "kind": "PlaceInBattleAreaSelf", "effectTextPart": "Then, place this card into your battle area." }
+          { "kind": "PlaceInBattleAreaSelf", "effectTextPart": "Then, place this card in the battle area." }
         ]
       },
       {

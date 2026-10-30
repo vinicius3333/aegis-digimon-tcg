@@ -8,7 +8,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           effectTextPart:
-            "[Main] Trigger ＜De-Digivolve 1＞ on 1 of your opponent's Digimon. (Trash a card from the top of one of your opponent's Digimon. If it has no digivolution cards， or becomes a level 3 Digimon， you can't trash any more cards.)",
+            "[Main] Trigger ＜De-Digivolve 1＞ on 1 of your opponent's Digimon. (Trash a card from the top of one of your opponent's Digimon. If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards.)",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -20,7 +20,7 @@ const compiled: CompiledCard = {
           amount: 1,
         },
         {
-          effectTextPart: "Then， if that Digimon's play cost is 4 or less， delete it.",
+          effectTextPart: "Then, if that Digimon's play cost is 4 or less, delete it.",
           kind: "Delete",
           target: {
             filter: {

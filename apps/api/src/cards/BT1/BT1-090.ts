@@ -6,7 +6,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         { effectTextPart: "[Main] Gain 2 memory.", kind: "GainMemory", amount: 2 },
-        { effectTextPart: "At end of turn， lose 2 memory.", kind: "GainMemory", amount: -2, at: "endOfTurn" },
+        { effectTextPart: "At end of turn, lose 2 memory.", kind: "GainMemory", amount: -2, at: "endOfTurn" },
       ],
     },
   ],

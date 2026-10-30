@@ -8,7 +8,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           effectTextPart:
-            "[Main] Delete 1 of your opponent's Digimon with 5000 DP or less. If you have a red Tamer in play， delete 1 of your opponent's Digimon with 8000 DP or less instead.",
+            "[Main] Delete 1 of your opponent's Digimon with 5000 DP or less. If you have a red Tamer in play, delete 1 of your opponent's Digimon with 8000 DP or less instead.",
           kind: "Delete",
           target: {
             filter: {
@@ -34,7 +34,7 @@ const compiled: CompiledCard = {
         },
         {
           effectTextPart:
-            "[Main] Delete 1 of your opponent's Digimon with 5000 DP or less. If you have a red Tamer in play， delete 1 of your opponent's Digimon with 8000 DP or less instead.",
+            "[Main] Delete 1 of your opponent's Digimon with 5000 DP or less. If you have a red Tamer in play, delete 1 of your opponent's Digimon with 8000 DP or less instead.",
           kind: "Delete",
           target: {
             filter: {
