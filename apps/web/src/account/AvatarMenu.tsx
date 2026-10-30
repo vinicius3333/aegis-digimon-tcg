@@ -185,6 +185,7 @@ export function AvatarMenu({
       <div className="profile-avatar-menu__sources">
         <button
           type="button"
+          className="profile-avatar-menu__source"
           aria-pressed={selected === "default"}
           disabled={busy}
           onClick={() => void choose("default")}
@@ -196,27 +197,37 @@ export function AvatarMenu({
           <Icons.ChevronRight size={18} aria-hidden="true" />
         </button>
         {discordLinked ? (
-          <button
-            type="button"
-            className="profile-avatar-menu__discord"
-            aria-pressed={selected === "discord"}
-            disabled={busy}
-            onClick={() => void choose("discord")}
-          >
-            <span className="profile-avatar-menu__discord-mark" aria-hidden="true">
-              <Icons.Discord size={20} />
-            </span>
-            <span>{t("profile.avatarMenu.discord")}</span>
-            <Icons.ChevronRight size={18} aria-hidden="true" />
-          </button>
-        ) : null}
-        {discordLinked && onRefreshDiscordAvatar ? (
-          <button type="button" className="profile-avatar-menu__refresh" disabled={busy} onClick={() => void refresh()}>
-            {t("playerMenu.refreshDiscordAvatar")}
-          </button>
+          <div className="profile-avatar-menu__discord">
+            <button
+              type="button"
+              className="profile-avatar-menu__source"
+              aria-pressed={selected === "discord"}
+              disabled={busy}
+              onClick={() => void choose("discord")}
+            >
+              <span className="profile-avatar-menu__discord-mark" aria-hidden="true">
+                <Icons.Discord size={20} />
+              </span>
+              <span>{t("profile.avatarMenu.discord")}</span>
+              <Icons.ChevronRight size={18} aria-hidden="true" />
+            </button>
+            {onRefreshDiscordAvatar ? (
+              <button
+                type="button"
+                className="profile-avatar-menu__refresh"
+                aria-label={t("playerMenu.refreshDiscordAvatar")}
+                title={t("playerMenu.refreshDiscordAvatar")}
+                aria-busy={pending === "refresh" || undefined}
+                disabled={busy}
+                onClick={() => void refresh()}
+              >
+                <Icons.RotateCcw size={18} aria-hidden="true" />
+              </button>
+            ) : null}
+          </div>
         ) : null}
         {onUpload ? (
-          <label className="profile-avatar-menu__upload">
+          <label className="profile-avatar-menu__source profile-avatar-menu__upload">
             <input
               type="file"
               accept="image/png,image/jpeg"
@@ -227,8 +238,14 @@ export function AvatarMenu({
                 if (file) void choosePicture(file);
               }}
             />
-            <span>{t("account.avatar.upload")}</span>
-            <small>{t("account.avatar.uploadHint")}</small>
+            <span className="profile-avatar-menu__upload-mark" aria-hidden="true">
+              <Icons.Upload size={18} />
+            </span>
+            <span className="profile-avatar-menu__upload-text">
+              <span>{t("account.avatar.upload")}</span>
+              <small>{t("account.avatar.uploadHint")}</small>
+            </span>
+            <Icons.ChevronRight size={18} aria-hidden="true" />
           </label>
         ) : null}
       </div>
