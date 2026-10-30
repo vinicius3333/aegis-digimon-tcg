@@ -979,6 +979,7 @@ const interfaceMessages = {
   "settings.cardConfirmationAlways": "總是詢問",
   "settings.cardConfirmationSkipPlayOnly": "跳過僅可登場的卡牌",
   "settings.cardConfirmationNever": "從不詢問",
+  "overlay.moveReturnToDecision": "移動決策列",
   "overlay.moveEffectPrompt": "移動效果提示",
   "overlay.moveEffectPromptHelp": "拖曳進行移動，或使用箭頭鍵。按 Home 重置位置。",
   "settings.effectPromptPosition": "效果提示位置",

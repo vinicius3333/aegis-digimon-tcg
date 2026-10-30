@@ -805,6 +805,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "settings.cardConfirmationAlways": "Sempre perguntar",
   "settings.cardConfirmationSkipPlayOnly": "Pular cartas que só podem ser jogadas",
   "settings.cardConfirmationNever": "Nunca perguntar",
+  "overlay.moveReturnToDecision": "Mover barra de decisão",
   "overlay.moveEffectPrompt": "Mover painel de efeito",
   "overlay.moveEffectPromptHelp": "Arraste para mover ou use as setas. Pressione Home para restaurar a posição.",
   "settings.effectPromptPosition": "Posição dos efeitos",

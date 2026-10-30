@@ -1024,6 +1024,7 @@ const interfaceMessages = {
   "settings.cardConfirmationAlways": "常に確認",
   "settings.cardConfirmationSkipPlayOnly": "登場のみのカードは省略",
   "settings.cardConfirmationNever": "確認しない",
+  "overlay.moveReturnToDecision": "決定バーを移動",
   "overlay.moveEffectPrompt": "効果の確認ウィンドウを移動",
   "overlay.moveEffectPromptHelp": "ドラッグするか矢印キーで移動します。Homeキーで位置をリセットします。",
   "settings.effectPromptPosition": "効果の確認ウィンドウの位置",

@@ -516,6 +516,13 @@ raising areas. View board removes the shade until Return to decision; desktop
 side rails retain their clear field. `node tools/diagnostics/probe-decision-backdrop.mjs`
 checks production decision/ordering components over Arena and live Effects Lab boards.
 
+While the board is in view, the Return to decision bar opens on the left edge, level
+with the View board button that was pressed. The grip handle moves it by pointer or
+arrow keys. The moved position is saved in `localStorage`
+(`aegis.decisionReturn.position`) and reused, clamped to the viewport, every time the
+bar opens. Home clears the saved position. Phones keep the full-width strip below the
+opponent bar.
+
 Field return-to-deck now moves the whole upright physical stack for 250 ms with
 OutQuad easing, keeps its responsive size constant, then hides field chrome and
 fades the printed face for 160 ms. It targets the owner's actual Aegis pile.

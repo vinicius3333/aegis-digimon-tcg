@@ -1046,6 +1046,7 @@ const interfaceMessages = {
   "settings.cardConfirmationAlways": "Immer fragen",
   "settings.cardConfirmationSkipPlayOnly": "Nur ausspielbare überspringen",
   "settings.cardConfirmationNever": "Nie fragen",
+  "overlay.moveReturnToDecision": "Entscheidungsleiste verschieben",
   "overlay.moveEffectPrompt": "Effektabfrage verschieben",
   "overlay.moveEffectPromptHelp":
     "Zum Verschieben ziehen oder die Pfeiltasten verwenden. Pos1 setzt die Position zurück.",
