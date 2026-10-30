@@ -797,6 +797,7 @@ export const es: Record<keyof typeof en, string> = {
   "settings.cardConfirmationAlways": "Preguntar siempre",
   "settings.cardConfirmationSkipPlayOnly": "Omitir cartas solo jugables",
   "settings.cardConfirmationNever": "No preguntar nunca",
+  "overlay.moveReturnToDecision": "Mover barra de decisión",
   "overlay.moveEffectPrompt": "Mover panel de efecto",
   "overlay.moveEffectPromptHelp": "Arrastra para mover o usa las flechas. Pulsa Inicio para restaurar la posición.",
   "settings.effectPromptPosition": "Posición de los efectos",

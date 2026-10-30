@@ -476,7 +476,7 @@
   body:has(.narration-peek) .decision-board-return {
     top: calc(env(safe-area-inset-top, 0px) + 8.5rem) !important;
   }
-  .decision-board-return > button {
+  .decision-board-return > button:not(.decision-board-return__move-handle) {
     min-height: 44px;
     flex: 1;
   }
@@ -493,7 +493,7 @@
     width: 44px;
     padding: 0;
   }
-  .decision-board-return--selection > button:last-of-type {
+  .decision-board-return--selection > button:nth-of-type(2) {
     flex: 1 1 0;
     min-width: 0;
     padding-inline: var(--ds-space-2);

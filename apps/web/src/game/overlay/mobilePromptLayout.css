@@ -444,7 +444,8 @@
 }
 
 .decision-overlay__move-handle,
-.board-prompt__move-handle {
+.board-prompt__move-handle,
+.decision-board-return__move-handle {
   display: grid;
   place-items: center;
   flex: none;
@@ -463,12 +464,15 @@
 .decision-overlay__move-handle:hover,
 .decision-overlay__move-handle:focus-visible,
 .board-prompt__move-handle:hover,
-.board-prompt__move-handle:focus-visible {
+.board-prompt__move-handle:focus-visible,
+.decision-board-return__move-handle:hover,
+.decision-board-return__move-handle:focus-visible {
   opacity: 1;
   background: var(--ds-fill);
 }
 .decision-overlay__move-handle:active,
-.board-prompt__move-handle:active {
+.board-prompt__move-handle:active,
+.decision-board-return__move-handle:active {
   cursor: grabbing;
 }
 

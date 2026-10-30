@@ -1023,6 +1023,7 @@ const interfaceMessages = {
   "settings.cardConfirmationAlways": "Selalu tanya",
   "settings.cardConfirmationSkipPlayOnly": "Lewati kartu yang hanya bisa dimainkan",
   "settings.cardConfirmationNever": "Jangan pernah tanya",
+  "overlay.moveReturnToDecision": "Pindahkan bilah keputusan",
   "overlay.moveEffectPrompt": "Pindahkan prompt efek",
   "overlay.moveEffectPromptHelp":
     "Seret untuk memindahkan, atau gunakan tombol panah. Tekan Home untuk mereset posisi.",

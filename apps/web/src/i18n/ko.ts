@@ -1013,6 +1013,7 @@ const interfaceMessages = {
   "settings.cardConfirmationAlways": "항상 확인",
   "settings.cardConfirmationSkipPlayOnly": "등장만 가능한 카드 건너뛰기",
   "settings.cardConfirmationNever": "확인 안 함",
+  "overlay.moveReturnToDecision": "결정 막대 이동",
   "overlay.moveEffectPrompt": "효과 창 이동",
   "overlay.moveEffectPromptHelp": "드래그하거나 화살표 키로 이동하세요. Home 키를 누르면 위치가 초기화됩니다.",
   "settings.effectPromptPosition": "효과 창 위치",

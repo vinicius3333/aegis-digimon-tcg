@@ -632,14 +632,20 @@
   box-shadow: var(--ds-shadow-raise);
   animation: aegis-rise 180ms ease-out;
 }
-/* Centred on the View board button that opened the board (DecisionBoardReturn). Phones
+/* Left edge, level with the View board button, or the viewer's saved spot (DecisionBoardReturn). Phones
    keep the full-width strip from responsivePhoneStrip.css. */
 @media (width >= 600px) and (not ((height < 520px) and (orientation: landscape))) {
-  .decision-board-return[data-anchored] {
+  .decision-board-return[data-docked] {
     top: var(--decision-return-top);
     right: auto;
     left: var(--decision-return-left);
   }
+}
+html body .decision-board-return[data-dragged] {
+  top: var(--decision-return-drag-top) !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: var(--decision-return-drag-left) !important;
 }
 .decision-board-return__status {
   padding-left: var(--ds-space-2);

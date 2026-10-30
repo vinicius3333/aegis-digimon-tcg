@@ -13,9 +13,10 @@ type PromptMoveHandleProps = {
   drag: ReturnType<typeof useDraggableWindow>;
   className: string;
   tabIndex?: number;
+  label?: string;
 };
 
-export function PromptMoveHandle({ drag, className, tabIndex }: PromptMoveHandleProps) {
+export function PromptMoveHandle({ drag, className, tabIndex, label }: PromptMoveHandleProps) {
   const { t } = useTranslation();
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
     const step = KEYBOARD_STEPS[event.key];
@@ -35,7 +36,7 @@ export function PromptMoveHandle({ drag, className, tabIndex }: PromptMoveHandle
       type="button"
       className={className}
       tabIndex={tabIndex}
-      aria-label={t("overlay.moveEffectPrompt")}
+      aria-label={label ?? t("overlay.moveEffectPrompt")}
       title={t("overlay.moveEffectPromptHelp")}
       onKeyDown={handleKeyDown}
     >

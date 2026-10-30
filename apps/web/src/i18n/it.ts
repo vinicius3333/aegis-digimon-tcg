@@ -907,6 +907,7 @@ const interfaceMessages = {
   "settings.cardConfirmationAlways": "Chiedi sempre",
   "settings.cardConfirmationSkipPlayOnly": "Salta le carte solo giocabili",
   "settings.cardConfirmationNever": "Non chiedere mai",
+  "overlay.moveReturnToDecision": "Sposta la barra della decisione",
   "overlay.moveEffectPrompt": "Sposta il pannello dell’effetto",
   "overlay.moveEffectPromptHelp": "Trascina per spostare o usa le frecce. Premi Home per ripristinare la posizione.",
   "settings.effectPromptPosition": "Posizione degli effetti",

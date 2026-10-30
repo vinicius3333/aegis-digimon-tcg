@@ -1038,6 +1038,7 @@ const interfaceMessages = {
   "settings.cardConfirmationAlways": "Toujours demander",
   "settings.cardConfirmationSkipPlayOnly": "Ignorer les cartes seulement jouables",
   "settings.cardConfirmationNever": "Ne jamais demander",
+  "overlay.moveReturnToDecision": "Déplacer la barre de décision",
   "overlay.moveEffectPrompt": "Déplacer la fenêtre d'effet",
   "overlay.moveEffectPromptHelp":
     "Faites glisser pour la déplacer ou utilisez les touches fléchées. Appuyez sur Origine pour réinitialiser la position.",

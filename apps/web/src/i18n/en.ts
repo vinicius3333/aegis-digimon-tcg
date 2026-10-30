@@ -803,6 +803,7 @@ export const en = {
   "settings.cardConfirmationAlways": "Always ask",
   "settings.cardConfirmationSkipPlayOnly": "Skip play-only cards",
   "settings.cardConfirmationNever": "Never ask",
+  "overlay.moveReturnToDecision": "Move decision bar",
   "overlay.moveEffectPrompt": "Move effect prompt",
   "overlay.moveEffectPromptHelp": "Drag to move, or use the arrow keys. Press Home to reset the position.",
   "settings.effectPromptPosition": "Effect prompt position",
