@@ -60,7 +60,7 @@ again.
 
 ### First batch
 
-The first batch of 501 scans was user-provided on 2026-10-30 as 430 x 600 PNG
+The first batch of 501 scans was provided by **Rukasu** on 2026-10-30 as 430 x 600 PNG
 files named by UUID. Each file was matched to its printing by image similarity
 against the watermarked mirror image, then encoded as WebP at quality 90. It
 covers BT22, BT23, EX10, EX11 and their alternate arts, alternate arts from
