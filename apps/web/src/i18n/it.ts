@@ -1663,7 +1663,7 @@ const interfaceMessages = {
   "game.phaseBanner.end": "Fine del turno",
   "feed.noHistory": "Ancora nessuna azione",
   "feed.closeLog": "Chiudi il registro delle azioni",
-  "feed.logTitle": "Registro delle azioni",
+  "feed.showFieldReferences": "Mostra l'ID accanto al nome delle carte",
   "feed.openCard": "Apri {card}",
   "showcase.opponentPlayed": "L'avversario ha giocato {card}",
   "showcase.youPlayed": "Hai giocato {card}",

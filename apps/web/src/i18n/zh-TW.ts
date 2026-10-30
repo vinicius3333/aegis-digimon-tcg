@@ -1712,7 +1712,7 @@ const interfaceMessages = {
   "game.phaseBanner.end": "回合結束",
   "feed.noHistory": "尚無操作",
   "feed.closeLog": "關閉對局日誌",
-  "feed.logTitle": "對局日誌",
+  "feed.showFieldReferences": "在卡牌名稱旁顯示 ID",
   "feed.openCard": "查看{card}",
   "showcase.opponentPlayed": "對手登場了{card}",
   "showcase.youPlayed": "你登場了{card}",

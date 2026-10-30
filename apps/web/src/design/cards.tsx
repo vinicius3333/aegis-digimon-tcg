@@ -281,9 +281,10 @@ type TokenInfoParams = {
   dp?: number;
   dpDelta?: number;
   renderDpDelta?: (node: ReactNode) => ReactNode;
+  reference?: string;
 };
 
-function TokenInfo({ def, width, dp, dpDelta, renderDpDelta }: TokenInfoParams) {
+function TokenInfo({ def, width, dp, dpDelta, renderDpDelta, reference }: TokenInfoParams) {
   const translations = useCardTranslations();
   const scale = width / 92;
   const px = (n: number) => Math.round(n * scale);
@@ -447,6 +448,20 @@ function TokenInfo({ def, width, dp, dpDelta, renderDpDelta }: TokenInfoParams) 
               textShadow: "0 1px 2px rgba(0,0,0,0.6)",
             }}
           >
+            {reference ? (
+              <span
+                data-field-reference
+                style={{
+                  fontFamily: "var(--ds-font-mono)",
+                  fontSize: "0.92em",
+                  fontWeight: 700,
+                  opacity: 0.8,
+                  marginInlineEnd: px(3),
+                }}
+              >
+                {reference}
+              </span>
+            ) : null}
             {getTranslatedCardName({ name: def.nameEn, translations })}
           </span>
           {!stacked ? dpReadout : null}
@@ -473,6 +488,7 @@ export function CardMini({
   dpDelta,
   renderDpDelta,
   identity,
+  reference,
   zoomOnHover = true,
   useSelectedSleeve = true,
 }: {
@@ -492,6 +508,7 @@ export function CardMini({
   renderDpDelta?: (node: ReactNode) => ReactNode;
   /** Original name and colors an effect imposed (KingSukamon), shown instead of the printed ones. */
   identity?: { name: string; colors: readonly CardColor[] };
+  reference?: string;
   /** Show the floating full-card preview on hover. */
   zoomOnHover?: boolean;
   useSelectedSleeve?: boolean;
@@ -569,7 +586,16 @@ export function CardMini({
         />
       )}
 
-      {info ? <TokenInfo def={def} width={width} dp={dp} dpDelta={dpDelta} renderDpDelta={renderDpDelta} /> : null}
+      {info ? (
+        <TokenInfo
+          def={def}
+          width={width}
+          dp={dp}
+          dpDelta={dpDelta}
+          renderDpDelta={renderDpDelta}
+          reference={reference}
+        />
+      ) : null}
 
       {zoomEnabled && zoomOnHover && mousePos ? (
         <CardZoomPreview cardId={def.cardId} artId={artId} x={mousePos.x} y={mousePos.y} fallbackIndex={urlIndex} />

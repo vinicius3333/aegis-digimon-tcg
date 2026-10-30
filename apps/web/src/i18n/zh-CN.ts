@@ -1706,7 +1706,7 @@ const interfaceMessages = {
   "game.phaseBanner.end": "回合结束",
   "feed.noHistory": "暂无操作记录",
   "feed.closeLog": "关闭对战日志",
-  "feed.logTitle": "对战日志",
+  "feed.showFieldReferences": "在卡牌名称旁显示 ID",
   "feed.openCard": "查看{card}",
   "showcase.opponentPlayed": "对手登场了{card}",
   "showcase.youPlayed": "你登场了{card}",

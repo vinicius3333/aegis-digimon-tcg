@@ -4,6 +4,7 @@ import { PermanentDpDeltaHint } from "@/game/piece/PermanentDpDeltaHint";
 import { CardAceBadge } from "@/design/CardAceBadge";
 import { useRef, type CSSProperties } from "react";
 import { useCardTranslations } from "@/i18n/useCardTranslations";
+import { useFieldReferenceVisible } from "@/design/fieldReference/useFieldReferenceVisible";
 import { getTranslatedCardName } from "@/i18n/getTranslatedCardName";
 import { getCardDefinition, type Permanent } from "@aegis/shared";
 import { CardMini } from "../../design/cards";
@@ -141,11 +142,13 @@ export function PermanentView({
   const { t } = useTranslation();
   const translations = useCardTranslations();
   const beginInspection = usePermanentInspection(onInspect);
+  const fieldReferenceVisible = useFieldReferenceVisible();
   const movedEntrance = useRef<string | undefined>(undefined);
   const fieldIdentity = entranceKey ?? perm.permanentId;
-  const fieldReference = (fieldReferenceIds ?? [perm.permanentId])
-    .map((id) => `#${id.replace(/^perm-/, "")}`)
-    .join(", ");
+  const fieldReferences = (fieldReferenceIds ?? [perm.permanentId]).map((id) => `#${id.replace(/^perm-/, "")}`);
+  const fieldReference = fieldReferences.join(", ");
+  const shortFieldReference =
+    fieldReferences.length > 1 ? `${fieldReferences[0]} +${fieldReferences.length - 1}` : fieldReferences[0];
   const landingBurst = burst?.moveFromBreeding ? undefined : burst;
   if (burst?.moveFromBreeding) movedEntrance.current = fieldIdentity;
   else if (landingBurst) movedEntrance.current = undefined;
@@ -288,15 +291,17 @@ export function PermanentView({
           : "transform 160ms, opacity 160ms, margin-inline-start 200ms, margin-inline-end 200ms",
       }}
     >
-      <span
-        className="game-permanent__field-reference"
-        title={t("game.fieldReference", { reference: fieldReference })}
-        aria-label={t("game.fieldReference", {
-          reference: fieldReference,
-        })}
-      >
-        {fieldReference}
-      </span>
+      {def || !fieldReferenceVisible ? null : (
+        <span
+          className="game-permanent__field-reference"
+          title={t("game.fieldReference", { reference: fieldReference })}
+          aria-label={t("game.fieldReference", {
+            reference: fieldReference,
+          })}
+        >
+          {shortFieldReference}
+        </span>
+      )}
       {copies > 1 ? (
         <PermanentCopyEdges
           cardId={faceDown ? "" : (topId ?? "")}
@@ -363,6 +368,7 @@ export function PermanentView({
             </PermanentDpDeltaHint>
           )}
           identity={transformation}
+          reference={fieldReferenceVisible ? shortFieldReference : undefined}
           info
           zoomOnHover={false}
         />

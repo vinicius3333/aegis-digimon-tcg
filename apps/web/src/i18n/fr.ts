@@ -1805,7 +1805,7 @@ const interfaceMessages = {
   "game.phaseBanner.end": "Fin du tour",
   "feed.noHistory": "Aucune action pour l'instant",
   "feed.closeLog": "Fermer le journal de partie",
-  "feed.logTitle": "Journal de partie",
+  "feed.showFieldReferences": "Afficher l'ID à côté du nom des cartes",
   "feed.openCard": "Ouvrir {card}",
   "showcase.opponentPlayed": "L'adversaire a joué {card}",
   "showcase.youPlayed": "Vous avez joué {card}",
