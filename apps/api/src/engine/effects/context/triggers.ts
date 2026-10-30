@@ -142,6 +142,7 @@ export interface TriggerInfo {
   battleOpponentPermanentIdByInstanceId?: Record<string, string>;
   /** Snapshot of effective battle-deletion Retaliation holders and their opponents. */
   retaliationTargetsByInstanceId?: Record<string, string>;
+  retaliationCountsByInstanceId?: Record<string, number>;
   /** Event-time Fortitude holders that had digivolution cards when deleted. */
   fortitudeInstanceIds?: string[];
   /** Deleted host top-card identity for every card moved with it; pending effects require that host in trash. */
