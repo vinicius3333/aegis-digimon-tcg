@@ -1326,3 +1326,30 @@ it("remembers difficulty and style and sends them when starting practice", () =>
   expect(screen.getByRole("combobox", { name: "Difficulty" })).toHaveProperty("value", "beginner");
   expect(screen.getByRole("combobox", { name: "Style" })).toHaveProperty("value", "defensive");
 });
+
+describe("quick match launch", () => {
+  beforeEach(() => vi.setSystemTime(BEFORE_EX13_RELEASE));
+  afterEach(() => vi.useRealTimers());
+
+  it("keeps the queue button in the battle deck strip", () => {
+    const onStart = vi.fn();
+    renderConfiguredLobby(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[DECKS[0]!]}
+          activeDeckId={DECKS[0]!.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={onStart}
+        />
+      </I18nProvider>,
+    );
+    const strip = screen.getByRole("region", { name: "Battle deck" });
+    const launch = within(strip).getByRole("button", { name: "Enter queue" });
+    expect(screen.getAllByRole("button", { name: "Enter queue" })).toHaveLength(1);
+    fireEvent.click(launch);
+    expect(onStart).toHaveBeenCalledWith("casual");
+  });
+});

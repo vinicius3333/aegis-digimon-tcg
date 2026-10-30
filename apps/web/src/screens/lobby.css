@@ -640,10 +640,6 @@ button.lobby-active-strip__jump {
   min-width: 0;
 }
 
-.lobby-setup__direct-launch:empty {
-  display: none;
-}
-
 .lobby-queue-setup {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -674,18 +670,6 @@ button.lobby-active-strip__jump {
 
 .lobby-queue-setup .ranked-start__choice {
   padding: var(--ds-space-4);
-}
-
-.lobby-setup__direct-launch {
-  max-width: 640px;
-}
-
-.lobby-setup .lobby-launch__label {
-  display: inline;
-}
-
-.lobby-setup .lobby-launch__short {
-  display: none;
 }
 
 @media (width < 960px) {
@@ -786,11 +770,6 @@ button.lobby-active-strip__jump {
 
   .lobby-launch__short {
     display: inline;
-  }
-
-  .lobby-change-deck {
-    max-width: 44%;
-    white-space: normal;
   }
 
   .lobby-header__actions {
