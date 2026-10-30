@@ -268,7 +268,8 @@
     "[Security]Trigger<Draw1>.(Draw1cardfromyourdeck.)Then,addthiscardtoyourhand.": "【시큐리티】 《1 드로우》 (자신의 덱에서 카드를 1장 드로우한다). 그 후, 이 카드를 패에 추가한다."
   },
   "BT1-104": {
-    "[Main]AllofyourDigimongainthefollowingeffectfortheturn:“[WhenAttacking]1ofyouropponent'sDigimongets-2000DPfortheturn.“": "【메인】 이 턴 동안, 자신의 디지몬 전부는, 「【어택 시】 이 턴 동안, 상대의 디지몬 1마리의 DP를 -2000 한다.」의 효과를 얻는다."
+    "[Main]AllofyourDigimongainthefollowingeffectfortheturn:“[WhenAttacking]1ofyouropponent'sDigimongets-2000DPfortheturn.“": "【메인】 이 턴 동안, 자신의 디지몬 전부는, 「【어택 시】 이 턴 동안, 상대의 디지몬 1마리의 DP를 -2000 한다.」의 효과를 얻는다.",
+    "[Main]AllofyourDigimongainthefollowingeffectfortheturn:“[WhenAttacking]1ofyouropponent'sDigimongets-2000DPfortheturn.”": "【메인】 이 턴 동안, 자신의 디지몬 전부는, 「【어택 시】 이 턴 동안, 상대의 디지몬 1마리의 DP를 -2000 한다.」의 효과를 얻는다."
   },
   "BT1-105": {
     "[Main]ChangetheoriginalDPof1ofyouropponent'sDigimonto3000untiltheendofyouropponent'snextturn.": "【메인】 다음 상대의 턴 종료시까지, 상대의 디지몬 1마리의 원래 DP를 3000으로 변경한다."
@@ -285,7 +286,8 @@
     "[Security]Suspend1ofyouropponent'sDigimon.Thenaddthiscarditsowner'shand.": "【시큐리티】 상대의 디지몬 1마리를 레스트시킨다. 그 후, 이 카드를 패에 추가한다."
   },
   "BT1-109": {
-    "[Main]Fortheturn，thenexttimeyouwoulddigivoLv.eoneofyourgreenDigimonfromlevel5tolevel6，decreasethedigivolutioncostby4.": "【메인】 이 턴 동안, 다음에 그린인 자신의 디지몬이 Lv.5에서 Lv.6으로 진화할 때에 지불하는 진화 코스트를 -4 한다."
+    "[Main]Fortheturn，thenexttimeyouwoulddigivoLv.eoneofyourgreenDigimonfromlevel5tolevel6，decreasethedigivolutioncostby4.": "【메인】 이 턴 동안, 다음에 그린인 자신의 디지몬이 Lv.5에서 Lv.6으로 진화할 때에 지불하는 진화 코스트를 -4 한다.",
+    "[Main]Fortheturn,thenexttimeyouwoulddigivolveoneofyourgreenDigimonfromlevel5tolevel6,decreasethedigivolutioncostby4.": "【메인】 이 턴 동안, 다음에 그린인 자신의 디지몬이 Lv.5에서 Lv.6으로 진화할 때에 지불하는 진화 코스트를 -4 한다."
   },
   "BT1-110": {
     "[Main]Suspend1ofyouropponent'sDigimon.": "【메인】 상대의 디지몬 1마리를 레스트시킨다.",
@@ -297,7 +299,8 @@
   },
   "BT1-112": {
     "[Main]1ofyourDigimongainsthefollowingeffectfortheturn:“WhenthisDigimondeletesanopponent'sDigimoninbattleandsurvives，unsuspendit.“": "【메인】 이 턴 동안, 자신의 디지몬 1마리는, 「이 디지몬이 배틀에서 상대의 디지몬만을 소멸시켰을 때, 이 디지몬을 액티브로 한다.」의 효과를 얻는다.",
-    "[Security]Addthiscardtoitsowner'shand.": "【시큐리티】 이 카드를 패에 추가한다."
+    "[Security]Addthiscardtoitsowner'shand.": "【시큐리티】 이 카드를 패에 추가한다.",
+    "[Main]1ofyourDigimongainsthefollowingeffectfortheturn:“WhenthisDigimondeletesanopponent'sDigimoninbattleandsurvives,unsuspendit.”": "【메인】 이 턴 동안, 자신의 디지몬 1마리는, 「이 디지몬이 배틀에서 상대의 디지몬만을 소멸시켰을 때, 이 디지몬을 액티브로 한다.」의 효과를 얻는다."
   },
   "BT1-113": {
     "[Main]Untiltheendofyouropponent'snextturn，1ofyouropponent'sDigimoncan'tattackorblock.": "【메인】 다음 상대의 턴 종료시까지, 상대의 디지몬 1마리는 어택과 블록을 할 수 없다.",
@@ -1375,7 +1378,8 @@
   },
   "BT12-109": {
     "[Main]WhileyouhaveaTamerwitha[Hunter]traitinplay,youmayusethiscardwithoutmeetingitscolorrequirements.Digivolve1ofyourDigimonintoaDigimoncardwith<Save>initstextunderoneofyourTamersforitsdigivolutioncost.": "특징으로 「헌터」를 가진 자신의 테이머가 있는 동안, 이 카드는 색 조건을 무시할 수 있다. 【메인】자신의 디지몬 1마리를 자신의 테이머 아래에 있는 《세이브》가 기술되어 있는 디지몬 카드로 진화시킨다.",
-    "[Security]Addthiscardtoitsowner'shand.": "【시큐리티】이 카드를 패에 추가한다."
+    "[Security]Addthiscardtoitsowner'shand.": "【시큐리티】이 카드를 패에 추가한다.",
+    "WhileyouhaveaTamerwiththe[Hunter]traitinplay,youmayusethiscardwithoutmeetingitscolorrequirements.[Main]Digivolve1ofyourDigimonintoaDigimoncardwith<Save>initstextunderoneofyourTamersforitsdigivolutioncost.": "특징으로 「헌터」를 가진 자신의 테이머가 있는 동안, 이 카드는 색 조건을 무시할 수 있다. 【메인】자신의 디지몬 1마리를 자신의 테이머 아래에 있는 《세이브》가 기술되어 있는 디지몬 카드로 진화시킨다."
   },
   "BT12-110": {
     "[Trash][YourTurn]IfoneofyourDigimondigivolvesinto[Beelzemon(XAntibody)],byreturningthiscardtothebottomofyourdeck,delete1ofyouropponent’sDigimonwiththelowestlevel.[Main]Delete1ofyouropponent’sDigimonwiththelowestlevel.": "[트래시]【자신의 턴】자신의 디지몬이 「베르제브몬 X항체」로 진화할 때, 이 카드를 덱 아래로 되돌리는 것으로 가장 Lv.이 낮은 상대의 디지몬 1마리를 소멸시킨다. 【메인】가장 Lv.이 낮은 상대의 디지몬 1마리를 소멸시킨다.",
@@ -3566,7 +3570,8 @@
   },
   "BT18-100": {
     "[Main]YourDigimoninthebreedingareamaydigivolveinto[Lucemon]fromyourtrashwithoutpayingthecost.Then,placethiscardinthebattlearea.[Main]<Delay>・Bydigivolving1ofyourDigimonwith[Lucemon]initsnameintoaDigimoncardwith[Lucemon]initsnamefromyourtrashwiththedigivolutioncostreducedby3,trash1Optioncardinyouropponent'sbattlearea.": "【메인】육성 에어리어의 자신의 디지몬을 트래시의 「루체몬」으로 코스트를 지불하지 않고 진화시킬 수 있다. 그 후, 이 카드를 배틀 에어리어에 놓는다. 【메인】《딜레이》 ・명칭에 「루체몬」을 포함하는 자신의 디지몬 1마리를 트래시의 명칭에 「루체몬」을 포함하는 디지몬 카드로 진화시키는 것으로, 배틀 에어리어의 상대의 옵션 카드 1장을 파기한다. 이 효과로 진화할 때, 지불하는 진화 코스트 -3.",
-    "[Security]Placethiscardinthebattlearea.": "【시큐리티】이 카드를 배틀 에어리어에 놓는다."
+    "[Security]Placethiscardinthebattlearea.": "【시큐리티】이 카드를 배틀 에어리어에 놓는다.",
+    "[Main]YourDigimoninthebreedingareamaydigivolveinto[Lucemon]inyourtrashwithoutpayingthecost.Then,placethiscardinthebattlearea.[Main]<Delay>・Bydigivolving1ofyourDigimonwith[Lucemon]initsnameintoaDigimoncardwith[Lucemon]initsnameinthetrashwiththedigivolutioncostreducedby3,trash1ofyouropponent'sOptioncardsinthebattlearea.": "【메인】육성 에어리어의 자신의 디지몬을 트래시의 「루체몬」으로 코스트를 지불하지 않고 진화시킬 수 있다. 그 후, 이 카드를 배틀 에어리어에 놓는다. 【메인】《딜레이》 ・명칭에 「루체몬」을 포함하는 자신의 디지몬 1마리를 트래시의 명칭에 「루체몬」을 포함하는 디지몬 카드로 진화시키는 것으로, 배틀 에어리어의 상대의 옵션 카드 1장을 파기한다. 이 효과로 진화할 때, 지불하는 진화 코스트 -3."
   },
   "BT18-101": {
     "[Digivolve][Lucemon:ChaosMode]:Cost6[WhenDigivolving]Byplaying1[Lucemon:Larva]fromyourtrashtoyouremptybreedingareawithoutpayingthecost,delete1ofyouropponent'sDigimonorTamers.[EndofAllTurns][OncePerTurn]Trashyouropponent'stopsecuritycard.Ifthiseffectdidn'ttrash,delete1ofyouropponent'sDigimonand1oftheirTamers.": "〔진화〕「루체몬 : 폴다운 모드」 : 코스트 6【진화 시】자신의 트래시에서 「루체몬: 라르바」 1장을 육성 에어리어에 코스트를 지불하지 않고 등장시키는 것으로, 상대의 디지몬/테이머 1마리(명)를 소멸시킨다. 【서로의 턴 종료 시】[턴에 1회]상대의 시큐리티를 위에서부터 1장 파기한다. 이 효과로 파기하지 않았다면, 상대의 디지몬과 테이머 1마리(명)씩을 소멸시킨다."
@@ -4211,7 +4216,8 @@
   },
   "BT2-097": {
     "[Main]3ofyouropponent’slevel3Digimonget-4000DPfortheturn.": "【메인】 이 턴 동안, Lv.3인 상대의 디지몬 3마리의 DP를 -4000 한다.",
-    "[Security]Activatethiscard's[Main]effect.": "【시큐리티】 이 카드의 【메인】 효과를 발휘한다."
+    "[Security]Activatethiscard's[Main]effect.": "【시큐리티】 이 카드의 【메인】 효과를 발휘한다.",
+    "[Main]3ofyouropponent'slevel3Digimonget-4000DPfortheturn.": "【메인】 이 턴 동안, Lv.3인 상대의 디지몬 3마리의 DP를 -4000 한다."
   },
   "BT2-098": {
     "[Main]Trigger<Draw1>.(Draw1cardfromyourdeck.)Then,1ofyouropponent'sDigimongets-1000DPforeachcardinyourhandfortheturn.": "【메인】 《1 드로우》 (자신의 덱에서 카드를 1장 드로우한다). 그 후, 이 턴 동안 자신의 패 1장마다, 상대의 디지몬 1마리의 DP를 -1000 한다.",
@@ -6055,7 +6061,8 @@
     "[Security]Addthiscardtoyourhand.": "【시큐리티】 이 카드를 패에 추가한다."
   },
   "BT3-109": {
-    "[Main]1ofyourDigimongains“[OnDeletion]Playthiscardwithoutpayingitsmemorycost.Any[OnPlay]effectsonDigimonplayedwiththiseffectdon'tactivate“fortheturn.": "【메인】 이 턴 동안, 자신의 디지몬 1마리는 「【소멸 시】 이 카드를 코스트를 지불하지 않고 등장시킨다. 이 효과로 등장한 디지몬의 【등장 시】 효과는 발휘하지 않는다.」의 효과를 얻는다."
+    "[Main]1ofyourDigimongains“[OnDeletion]Playthiscardwithoutpayingitsmemorycost.Any[OnPlay]effectsonDigimonplayedwiththiseffectdon'tactivate“fortheturn.": "【메인】 이 턴 동안, 자신의 디지몬 1마리는 「【소멸 시】 이 카드를 코스트를 지불하지 않고 등장시킨다. 이 효과로 등장한 디지몬의 【등장 시】 효과는 발휘하지 않는다.」의 효과를 얻는다.",
+    "[Main]1ofyourDigimongains“[OnDeletion]Playthiscardwithoutpayingitsmemorycost.Any[OnPlay]effectsonDigimonplayedwiththiseffectdon'tactivate”fortheturn.": "【메인】 이 턴 동안, 자신의 디지몬 1마리는 「【소멸 시】 이 카드를 코스트를 지불하지 않고 등장시킨다. 이 효과로 등장한 디지몬의 【등장 시】 효과는 발휘하지 않는다.」의 효과를 얻는다."
   },
   "BT3-110": {
     "[Main]Play1level5purpleDigimoncardfromyourtrashwithoutpayingitsmemorycost.Any[OnPlay]effectsonDigimonplayedwiththiseffectdon'tactivate.": "【메인】 자신의 트래시에서, 퍼플인 Lv.5 디지몬 카드 1장을 코스트를 지불하지 않고 등장시킨다. 이 효과로 등장한 디지몬의 【등장 시】 효과는 발휘하지 않는다.",
@@ -11469,7 +11476,8 @@
   },
   "P-161": {
     "Whileyoudon'thave[BishopDevice],youmayignorethiscard'scolorrequirements.Whenaneffecttrashesthiscardinyourbattlearea,Whenthiscardistrashedfromthebattlearea,untiltheendofyouropponent'sturn,1oftheirDigimonorTamerscan'tSuspend.[Main]Untiltheendofyouropponent'sturn,1oftheirDigimonorTamerscan'tsuspend.Then,placethiscardinthebattlearea.": "자신의 「비숍 디바이스」가 배틀 에어리어에 없는 동안, 이 카드는 색 조건을 무시할 수 있다. 이 카드가 배틀 에어리어에서 파기되었을 때, 상대의 턴 종료까지 상대의 디지몬/테이머 1마리(명)는 레스트할 수 없다. 【메인】상대의 턴 종료까지 상대의 디지몬/테이머 1마리(명)는 레스트할 수 없다. 그 후, 이 카드를 배틀 에어리어에 놓는다.",
-    "[Security]Return1ofyouropponent'slevel5orlowerDigimontothebottomofthedeck.Then,addthiscardtothehand.": "【시큐리티】Lv.5 이하의 상대의 디지몬 1마리를 덱 아래로 되돌린다. 그 후, 이 카드를 패에 추가한다."
+    "[Security]Return1ofyouropponent'slevel5orlowerDigimontothebottomofthedeck.Then,addthiscardtothehand.": "【시큐리티】Lv.5 이하의 상대의 디지몬 1마리를 덱 아래로 되돌린다. 그 후, 이 카드를 패에 추가한다.",
+    "Whileyoudon'thave[BishopDevice]inthebattlearea,youmayignorethiscard'scolorrequirements.Whenthiscardistrashedfromthebattlearea,untiltheendofyouropponent'sturn,1oftheirDigimonorTamerscan'tsuspend.[Main]Untiltheendofyouropponent'sturn,1oftheirDigimonorTamerscan'tsuspend.Then,placethiscardinthebattlearea.": "자신의 「비숍 디바이스」가 배틀 에어리어에 없는 동안, 이 카드는 색 조건을 무시할 수 있다. 이 카드가 배틀 에어리어에서 파기되었을 때, 상대의 턴 종료까지 상대의 디지몬/테이머 1마리(명)는 레스트할 수 없다. 【메인】상대의 턴 종료까지 상대의 디지몬/테이머 1마리(명)는 레스트할 수 없다. 그 후, 이 카드를 배틀 에어리어에 놓는다."
   },
   "P-162": {
     "[Digivolve]Lv.3w/[DS]trait:Cost2[OnPlay][WhenDigivolving]1ofyour[DS]traitDigimoncan'thaveitsDPreducedorbeaffectedbyyouropponent's<De-Digivolve>effectsuntiltheendoftheirturn.": "〔진화〕특징 「DS」를 가진 Lv.3 : 코스트 2【등장 시】【진화 시】상대의 턴 종료까지 특징 「DS」를 가진 자신의 디지몬 1마리는 상대의 효과로 DP가 마이너스되지 않고, 《퇴화》의 효과를 받지 않는다.",
