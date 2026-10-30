@@ -291,17 +291,35 @@ describe("ParticipantStore check-in", () => {
     await expect(
       participants.setWindows(tournamentId, { checkInOpensAt: T0 + 20, checkInClosesAt: T0 + 10 }),
     ).rejects.toThrow(/checkInOpensAt must not be after checkInClosesAt/);
-    await expect(
-      participants.setWindows(tournamentId, { registrationClosesAt: T0 + 30, checkInOpensAt: T0 + 20 }),
-    ).rejects.toThrow(/checkInOpensAt must not be before registrationClosesAt/);
-    await expect(
-      participants.setWindows(tournamentId, { registrationClosesAt: T0 + 30, checkInClosesAt: T0 + 20 }),
-    ).rejects.toThrow(/checkInClosesAt must not be before registrationClosesAt/);
     expect(await participants.windows(tournamentId)).toEqual({
       registrationClosesAt: null,
       checkInOpensAt: null,
       checkInClosesAt: null,
     });
+  });
+
+  it("lets a latecomer register and check in while check-in is already open", async () => {
+    const { store, participants } = fixture;
+    const latecomer = await createPlayer(store, "Latecomer");
+    const latecomerDeckId = await saveLegalDeck(store, latecomer.id, BLUE_DECK);
+    expect(
+      await participants.setWindows(tournamentId, {
+        registrationClosesAt: T0 + 30,
+        checkInOpensAt: T0 + 10,
+        checkInClosesAt: T0 + 30,
+      }),
+    ).toBe(true);
+    expect(
+      (
+        await participants.register({
+          tournamentId,
+          accountId: latecomer.id,
+          savedDeckId: latecomerDeckId,
+          now: T0 + 25,
+        })
+      ).ok,
+    ).toBe(true);
+    expect((await participants.checkIn({ tournamentId, accountId: latecomer.id, now: T0 + 26 })).ok).toBe(true);
   });
 
   it("accepts a schedule that merely touches at the boundaries", async () => {

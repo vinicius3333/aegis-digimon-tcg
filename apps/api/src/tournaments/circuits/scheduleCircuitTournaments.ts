@@ -81,7 +81,7 @@ async function createOccurrence({
     id,
     circuitId: circuit.id,
     autoStart: true,
-    registrationClosesAt: checkInOpensAt,
+    registrationClosesAt: occurrenceAt,
     checkInOpensAt,
     checkInClosesAt: occurrenceAt,
     category: TournamentCategory.OFFICIAL.value,
