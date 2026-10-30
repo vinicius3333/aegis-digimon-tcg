@@ -126,3 +126,24 @@ Japanese reveal scans. Each 951 x 1295 px attachment is cropped to
 `(41, 41, 909, 1254)`, producing 868 x 1213 px WebP images at quality 90
 without the white outer margin. The SAMPLE watermark is preserved. The
 Japanese scan supplies the Japanese name transcription.
+
+## BT27 Chessmon royals and DATA SQUAD Tamer, 2026-10-30
+
+BT27-042, BT27-057, BT27-061, BT27-066, BT27-069 and BT27-093 and their `-J`
+printings come from the user-provided official English and Japanese reveal
+scans. The SAMPLE watermark is preserved and each crop is encoded as WebP at
+quality 90 without the white outer margin.
+
+| Files                                        | Source scan    | Crop box                | Output     |
+| -------------------------------------------- | -------------- | ----------------------- | ---------- |
+| BT27-057, BT27-061, BT27-066, and their `-J` | 951 x 1295 px  | `(41, 41, 909, 1254)`   | 868 x 1213 |
+| BT27-093-J                                   | 951 x 1295 px  | `(41, 41, 909, 1254)`   | 868 x 1213 |
+| BT27-093                                     | 881 x 1200 px  | `(38, 37, 842, 1162)`   | 804 x 1125 |
+| BT27-042 (left half of the paired reveal)    | 1819 x 1295 px | `(41, 41, 909, 1254)`   | 868 x 1213 |
+| BT27-069 (right half of the paired reveal)   | 1819 x 1295 px | `(908, 41, 1776, 1254)` | 868 x 1213 |
+| BT27-042-J (left half of the paired reveal)  | 1289 x 918 px  | `(30, 29, 644, 888)`    | 614 x 859  |
+| BT27-069-J (right half of the paired reveal) | 1289 x 918 px  | `(643, 29, 1260, 888)`  | 617 x 859  |
+
+KingChessmon and QueenChessmon were revealed as one paired image. Each card is
+cut at the seam between the two rounded card edges. The Japanese scans supply
+the Japanese name and text transcriptions.

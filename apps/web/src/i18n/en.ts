@@ -1915,7 +1915,11 @@ export const en = {
   "tournaments.countdown.warning1": "Under 1 minute",
   "tournaments.countdown.expired": "Time is up",
 
-  "tournaments.reason.unknown": "The server turned that down ({code}).",
+  "tournaments.reason.unknown": "Something went wrong. Try again in a moment. (Code: {code})",
+  "tournaments.reason.signedOut": "Your session has ended. Sign in again to continue.",
+  "tournaments.reason.forbidden": "You do not have permission to do that.",
+  "tournaments.reason.notFound": "We could not find that. It may have been removed.",
+  "tournaments.reason.tooManyRequests": "Too many attempts. Wait a moment and try again.",
   "tournaments.reason.nameTooShort": "That name is too short.",
   "tournaments.reason.nameTooLong": "That name is too long.",
   "tournaments.reason.structureInvalid": "Choose Swiss or single elimination.",
@@ -1938,6 +1942,9 @@ export const en = {
   "tournaments.reason.checkInClosed": "Check-in is already closed.",
   "tournaments.reason.alreadyCheckedIn": "You are already checked in.",
   "tournaments.reason.alreadyDropped": "You already dropped out.",
+  "tournaments.reason.checkInWindowInverted": "Check-in must open before it closes. Pick a later closing time.",
+  "tournaments.reason.windowTimestampInvalid":
+    "One of the schedule dates is not valid. Check the fields and try again.",
   "tournaments.reason.tournamentAlreadyStarted": "The event has already started, so it can no longer be deleted.",
   "tournaments.reason.networkError": "We could not reach the server. Check your connection and try again.",
 

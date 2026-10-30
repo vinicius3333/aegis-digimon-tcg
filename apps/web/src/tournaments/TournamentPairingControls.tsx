@@ -2,6 +2,7 @@ import { useId, useRef, useState } from "react";
 import { Alert, Button, Field, Panel } from "@/design/primitives";
 import { useTranslation } from "@/i18n/useTranslation";
 import { tournamentApi, type ApiError } from "@/tournaments/client";
+import { reasonKey } from "@/tournaments/labels";
 import type { TournamentDetail } from "@/tournaments/types";
 
 type Props = { detail: TournamentDetail; onChanged: () => void };
@@ -112,7 +113,7 @@ export function TournamentPairingControls({ detail, onChanged }: Props) {
       </Button>
       {error ? (
         <Alert tone="danger" title={t("tournaments.error.action")}>
-          {t("tournaments.reason.unknown", { code: error.code })}
+          {t(reasonKey(error.code) ?? "tournaments.reason.unknown", { code: error.code })}
         </Alert>
       ) : null}
     </Panel>

@@ -1881,7 +1881,11 @@ export const es: Record<keyof typeof en, string> = {
   "tournaments.countdown.warning2": "Menos de 2 minutos",
   "tournaments.countdown.warning1": "Menos de 1 minuto",
   "tournaments.countdown.expired": "Se acabó el tiempo",
-  "tournaments.reason.unknown": "El servidor lo rechazó ({code}).",
+  "tournaments.reason.unknown": "Algo salió mal. Inténtalo de nuevo en un momento. (Código: {code})",
+  "tournaments.reason.signedOut": "Tu sesión terminó. Vuelve a iniciar sesión para continuar.",
+  "tournaments.reason.forbidden": "No tienes permiso para hacer eso.",
+  "tournaments.reason.notFound": "No encontramos eso. Puede que se haya eliminado.",
+  "tournaments.reason.tooManyRequests": "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
   "tournaments.reason.nameTooShort": "Ese nombre es demasiado corto.",
   "tournaments.reason.nameTooLong": "Ese nombre es demasiado largo.",
   "tournaments.reason.structureInvalid": "Elige suizo o eliminación directa.",
@@ -1904,6 +1908,10 @@ export const es: Record<keyof typeof en, string> = {
   "tournaments.reason.checkInClosed": "El check-in ya está cerrado.",
   "tournaments.reason.alreadyCheckedIn": "Ya hiciste check-in.",
   "tournaments.reason.alreadyDropped": "Ya abandonaste.",
+  "tournaments.reason.checkInWindowInverted":
+    "El check-in debe abrir antes de cerrar. Elige una hora de cierre más tarde.",
+  "tournaments.reason.windowTimestampInvalid":
+    "Una de las fechas del calendario no es válida. Revisa los campos e inténtalo de nuevo.",
   "tournaments.reason.tournamentAlreadyStarted": "El evento ya empezó, así que ya no se puede eliminar.",
   "tournaments.reason.networkError": "No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.",
   "tournaments.detail.noActions":

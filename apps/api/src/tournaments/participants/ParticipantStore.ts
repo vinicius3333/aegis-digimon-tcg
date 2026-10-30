@@ -163,20 +163,10 @@ export class ParticipantStore {
     return row && toWindows(row);
   }
 
-  /**
-   * Rejects a schedule that cannot happen in the order the tournament runs — check-in opening
-   * after it closes, or either check-in bound falling before registration has closed.
-   */
   static windowOrderError(windows: TournamentWindows): string | undefined {
-    const { registrationClosesAt, checkInOpensAt, checkInClosesAt } = windows;
+    const { checkInOpensAt, checkInClosesAt } = windows;
     if (checkInOpensAt !== null && checkInClosesAt !== null && checkInOpensAt > checkInClosesAt)
-      return "checkInOpensAt must not be after checkInClosesAt";
-    if (registrationClosesAt === null) return undefined;
-    for (const [name, value] of [
-      ["checkInOpensAt", checkInOpensAt],
-      ["checkInClosesAt", checkInClosesAt],
-    ] as const)
-      if (value !== null && value < registrationClosesAt) return `${name} must not be before registrationClosesAt`;
+      return "check_in_window_inverted";
     return undefined;
   }
 

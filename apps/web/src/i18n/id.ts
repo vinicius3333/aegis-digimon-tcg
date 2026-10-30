@@ -2128,7 +2128,11 @@ const interfaceMessages = {
   "tournaments.countdown.warning2": "Di bawah 2 menit",
   "tournaments.countdown.warning1": "Di bawah 1 menit",
   "tournaments.countdown.expired": "Waktu habis",
-  "tournaments.reason.unknown": "Server menolaknya ({code}).",
+  "tournaments.reason.unknown": "Terjadi kesalahan. Coba lagi sebentar lagi. (Kode: {code})",
+  "tournaments.reason.signedOut": "Sesi Anda telah berakhir. Masuk lagi untuk melanjutkan.",
+  "tournaments.reason.forbidden": "Anda tidak punya izin untuk melakukan itu.",
+  "tournaments.reason.notFound": "Kami tidak menemukannya. Mungkin sudah dihapus.",
+  "tournaments.reason.tooManyRequests": "Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.",
   "tournaments.reason.nameTooShort": "Nama itu terlalu pendek.",
   "tournaments.reason.nameTooLong": "Nama itu terlalu panjang.",
   "tournaments.reason.structureInvalid": "Pilih Swiss atau eliminasi tunggal.",
@@ -2151,6 +2155,10 @@ const interfaceMessages = {
   "tournaments.reason.checkInClosed": "Check-in sudah ditutup.",
   "tournaments.reason.alreadyCheckedIn": "Anda sudah check-in.",
   "tournaments.reason.alreadyDropped": "Anda sudah keluar.",
+  "tournaments.reason.checkInWindowInverted":
+    "Check-in harus dibuka sebelum ditutup. Pilih waktu tutup yang lebih lambat.",
+  "tournaments.reason.windowTimestampInvalid":
+    "Salah satu tanggal jadwal tidak valid. Periksa kolomnya lalu coba lagi.",
   "tournaments.reason.tournamentAlreadyStarted": "Acara sudah dimulai, jadi tidak bisa dihapus lagi.",
   "tournaments.reason.networkError": "Kami tidak bisa menjangkau server. Cek koneksimu dan coba lagi.",
   "tournaments.detail.noActions":

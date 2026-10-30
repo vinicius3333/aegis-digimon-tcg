@@ -1,4 +1,28 @@
 {
+  "releases.1.43.2-beta.summary": {
+    "en": "BT27 Chessmon royals, tournament sign-ups that stay open during check-in, and clearer tournament error messages.",
+    "pt-BR": "Os reais Chessmon do BT27, inscrições de torneio abertas durante o check-in e mensagens de erro de torneio mais claras.",
+    "es": "La realeza Chessmon de BT27, inscripciones de torneo abiertas durante el check-in y mensajes de error de torneo más claros.",
+    "it": "I reali Chessmon di BT27, iscrizioni ai tornei aperte durante il check-in e messaggi di errore dei tornei più chiari."
+  },
+  "releases.1.43.2-beta.feature.chessmon": {
+    "en": "Play the BT27 Chessmon royals: KingChessmon, QueenChessmon, RookChessmon, KnightChessmon, PawnChessmon, and Miki Kurosaki & Megumi Shirakawa.",
+    "pt-BR": "Jogue com os reais Chessmon do BT27: KingChessmon, QueenChessmon, RookChessmon, KnightChessmon, PawnChessmon e Miki Kurosaki & Megumi Shirakawa.",
+    "es": "Juega con la realeza Chessmon de BT27: KingChessmon, QueenChessmon, RookChessmon, KnightChessmon, PawnChessmon y Miki Kurosaki & Megumi Shirakawa.",
+    "it": "Gioca con i reali Chessmon di BT27: KingChessmon, QueenChessmon, RookChessmon, KnightChessmon, PawnChessmon e Miki Kurosaki & Megumi Shirakawa."
+  },
+  "releases.1.43.2-beta.feature.registration": {
+    "en": "Organizers can open check-in early, and tournament sign-ups now stay open until the event starts.",
+    "pt-BR": "Organizadores podem abrir o check-in mais cedo, e as inscrições do torneio agora ficam abertas até o início do evento.",
+    "es": "Los organizadores pueden abrir el check-in antes, y las inscripciones del torneo ahora siguen abiertas hasta que empieza el evento.",
+    "it": "Gli organizzatori possono aprire il check-in in anticipo, e le iscrizioni al torneo ora restano aperte fino all’inizio dell’evento."
+  },
+  "releases.1.43.2-beta.fix.messages": {
+    "en": "Tournament errors now show a clear, translated message instead of raw server text.",
+    "pt-BR": "Os erros de torneio agora mostram uma mensagem clara e traduzida em vez do texto bruto do servidor.",
+    "es": "Los errores de torneo ahora muestran un mensaje claro y traducido en lugar del texto en bruto del servidor.",
+    "it": "Gli errori dei tornei ora mostrano un messaggio chiaro e tradotto invece del testo grezzo del server."
+  },
   "releases.1.43.1-beta.summary": {
     "en": "RB-01 reprints in RB1 packs, a new avatar picker, and fixes for uploads, the queue button, and translated pages.",
     "pt-BR": "Reimpressões RB-01 nos pacotes RB1, um novo seletor de avatar e correções no envio de fotos, no botão de fila e em páginas traduzidas.",

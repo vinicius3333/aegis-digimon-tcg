@@ -2158,7 +2158,11 @@ const interfaceMessages = {
   "tournaments.countdown.warning2": "Moins de 2 minutes",
   "tournaments.countdown.warning1": "Moins d'une minute",
   "tournaments.countdown.expired": "Le temps est écoulé",
-  "tournaments.reason.unknown": "Le serveur a refusé cela ({code}).",
+  "tournaments.reason.unknown": "Un problème est survenu. Réessaie dans un instant. (Code : {code})",
+  "tournaments.reason.signedOut": "Ta session a expiré. Reconnecte-toi pour continuer.",
+  "tournaments.reason.forbidden": "Tu n'as pas la permission de faire ça.",
+  "tournaments.reason.notFound": "Introuvable. Cet élément a peut-être été supprimé.",
+  "tournaments.reason.tooManyRequests": "Trop de tentatives. Patiente un instant et réessaie.",
   "tournaments.reason.nameTooShort": "Ce nom est trop court.",
   "tournaments.reason.nameTooLong": "Ce nom est trop long.",
   "tournaments.reason.structureInvalid": "Choisissez les rondes suisses ou l’élimination directe.",
@@ -2182,6 +2186,10 @@ const interfaceMessages = {
   "tournaments.reason.checkInClosed": "Le check-in est déjà clôturé.",
   "tournaments.reason.alreadyCheckedIn": "Vous avez déjà fait votre check-in.",
   "tournaments.reason.alreadyDropped": "Vous vous êtes déjà retiré.",
+  "tournaments.reason.checkInWindowInverted":
+    "Le check-in doit ouvrir avant de fermer. Choisis une heure de clôture plus tardive.",
+  "tournaments.reason.windowTimestampInvalid":
+    "Une des dates du programme n'est pas valide. Vérifie les champs et réessaie.",
   "tournaments.reason.tournamentAlreadyStarted": "L'événement a déjà commencé, il ne peut donc plus être supprimé.",
   "tournaments.reason.networkError": "Nous n'avons pas pu accéder au serveur. Vérifiez votre connexion et réessayez.",
   "tournaments.detail.noActions":
