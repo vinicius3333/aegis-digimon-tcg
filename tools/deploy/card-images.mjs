@@ -1,6 +1,6 @@
 // Mirrors the card images the client requests into the gateway's shared assets directory,
 // so production serves them from /assets/card-images instead of a third-party host.
-// It never re-downloads or replaces a real image; a sample follows its local scan when that changes.
+// It never re-downloads an origin image; a clean or sample local scan replaces the mirror copy when it changes.
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -15,6 +15,8 @@ export const CARD_IMAGE_ORIGINS = [
 const TOKEN_ID_PREFIX = "TOKEN-";
 
 export const LOCAL_CARD_IMAGES = "data/card-images";
+
+export const LOCAL_CLEAN_CARD_IMAGES = `${LOCAL_CARD_IMAGES}/clean`;
 
 /**
  * Each printing the client can show, with the image ids `cardImageUrls` in @aegis/shared tries
@@ -65,7 +67,8 @@ async function download(fetch, name) {
 }
 
 /**
- * Downloads `<id>.webp` for each id. Without it, stores `<id>-Sample.webp` from the local scans
+ * Stores each clean local scan as `<id>.webp`, replacing a watermarked origin copy. Downloads
+ * `<id>.webp` for every other id. Without it, stores `<id>-Sample.webp` from the local scans
  * (rewritten whenever the committed scan changes) or, failing that, from an origin's sample scan.
  * A sample never blocks the real image: the next sync still looks for `<id>.webp`.
  */
@@ -81,6 +84,19 @@ export async function syncCardImages({ source, destination, fetch = globalThis.f
     renameSync(temporary, `${destination}/${name}`);
   };
   const syncOne = async (id) => {
+    const clean = `${source}/${LOCAL_CLEAN_CARD_IMAGES}/${id}.webp`;
+    if (existsSync(clean)) {
+      const scan = readFileSync(clean);
+      const mirrored = `${destination}/${id}.webp`;
+      rmSync(`${destination}/${id}-Sample.webp`, { force: true });
+      if (existsSync(mirrored) && readFileSync(mirrored).equals(scan)) {
+        result.present += 1;
+        return;
+      }
+      write(`${id}.webp`, scan);
+      result.downloaded += 1;
+      return;
+    }
     if (existsSync(`${destination}/${id}.webp`)) {
       result.present += 1;
       return;

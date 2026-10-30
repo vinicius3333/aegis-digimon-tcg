@@ -1,6 +1,7 @@
 import { StoryCampaignId } from "#shared/story/StoryCampaignId";
 import type { StoryBattle } from "#shared/story/StoryBattle";
 import { StoryBattleKind } from "#shared/story/StoryBattleKind";
+import { mirroredCardImageUrl } from "#shared/cards/mirroredCardImageUrl";
 
 export const worldStoryBattles: readonly StoryBattle[] = [
   {
@@ -18,7 +19,7 @@ export const worldStoryBattles: readonly StoryBattle[] = [
       "https://almarsguides.com/retro/walkthroughs/PS1/Games/DigimonWorld/FullPlaythrough/RecruitableDigimon/NativeForest/",
     playable: true,
     adapted: true,
-    coverImageUrl: "/assets/card-images/EX11-007.webp",
+    coverImageUrl: mirroredCardImageUrl("EX11-007"),
     kind: StoryBattleKind.NARRATIVE.value,
   },
   {
@@ -36,7 +37,7 @@ export const worldStoryBattles: readonly StoryBattle[] = [
       "https://almarsguides.com/retro/walkthroughs/PS1/Games/DigimonWorld/FullPlaythrough/RecruitableDigimon/NativeForest/",
     playable: true,
     adapted: true,
-    coverImageUrl: "/assets/card-images/ST21-07.webp",
+    coverImageUrl: mirroredCardImageUrl("ST21-07"),
     kind: StoryBattleKind.NARRATIVE.value,
   },
   {
@@ -54,7 +55,7 @@ export const worldStoryBattles: readonly StoryBattle[] = [
       "https://almarsguides.com/retro/walkthroughs/PS1/Games/DigimonWorld/FullPlaythrough/RecruitableDigimon/NativeForest/",
     playable: true,
     adapted: true,
-    coverImageUrl: "/assets/card-images/EX9-034.webp",
+    coverImageUrl: mirroredCardImageUrl("EX9-034"),
     kind: StoryBattleKind.NARRATIVE.value,
   },
   {
@@ -71,7 +72,7 @@ export const worldStoryBattles: readonly StoryBattle[] = [
     sourceUrl: "https://gamefaqs.gamespot.com/ps/913684-digimon-world/faqs/71504",
     playable: true,
     adapted: true,
-    coverImageUrl: "/assets/card-images/BT24-045.webp",
+    coverImageUrl: mirroredCardImageUrl("BT24-045"),
     kind: StoryBattleKind.NARRATIVE.value,
   },
   {
@@ -88,7 +89,7 @@ export const worldStoryBattles: readonly StoryBattle[] = [
     sourceUrl: "https://gamefaqs.gamespot.com/ps/913684-digimon-world/faqs/71504",
     playable: true,
     adapted: true,
-    coverImageUrl: "/assets/card-images/BT24-045.webp",
+    coverImageUrl: mirroredCardImageUrl("BT24-045"),
     kind: StoryBattleKind.NARRATIVE.value,
   },
   {
@@ -105,7 +106,7 @@ export const worldStoryBattles: readonly StoryBattle[] = [
     sourceUrl: "https://gamefaqs.gamespot.com/ps/913684-digimon-world/faqs/71504",
     playable: true,
     adapted: true,
-    coverImageUrl: "/assets/card-images/BT24-045.webp",
+    coverImageUrl: mirroredCardImageUrl("BT24-045"),
     kind: StoryBattleKind.NARRATIVE.value,
   },
   {
@@ -122,7 +123,7 @@ export const worldStoryBattles: readonly StoryBattle[] = [
     sourceUrl: "https://gamefaqs.gamespot.com/ps/913684-digimon-world/faqs/71504",
     playable: true,
     adapted: true,
-    coverImageUrl: "/assets/card-images/BT24-045.webp",
+    coverImageUrl: mirroredCardImageUrl("BT24-045"),
     kind: StoryBattleKind.NARRATIVE.value,
   },
 ];

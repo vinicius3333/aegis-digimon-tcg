@@ -1023,6 +1023,7 @@ const interfaceMessages = {
   "settings.cardConfirmationAlways": "Selalu tanya",
   "settings.cardConfirmationSkipPlayOnly": "Lewati kartu yang hanya bisa dimainkan",
   "settings.cardConfirmationNever": "Jangan pernah tanya",
+  "overlay.moveReturnToDecision": "Pindahkan bilah keputusan",
   "overlay.moveEffectPrompt": "Pindahkan prompt efek",
   "overlay.moveEffectPromptHelp":
     "Seret untuk memindahkan, atau gunakan tombol panah. Tekan Home untuk mereset posisi.",
@@ -1109,6 +1110,9 @@ const interfaceMessages = {
   "game.shareCode": "Kirim tautan ini ke teman, atau bagikan kode {code}.",
   "game.creatingRoom": "Membuat ruang pribadi…",
   "game.connectingPrivate": "Menghubungkan ke ruang pribadi…",
+  "game.waitingSpectate": "Bergabung sebagai penonton…",
+  "game.spectateDetail":
+    "Anda menonton pertandingan ini, bukan bermain. Anda tidak sedang dalam antrean, dan keluar tidak memengaruhi rekor Anda.",
   "game.queuedDetail":
     "Anda masuk antrean sebagai {name}. Pertandingan dimulai saat pemain lain bergabung. Membatalkan sebelum lawan bergabung tidak dihitung sebagai kekalahan.",
   "game.clickToCopy": "Klik untuk menyalin",
@@ -1775,7 +1779,7 @@ const interfaceMessages = {
   "game.phaseBanner.end": "Akhir giliran",
   "feed.noHistory": "Belum ada aksi",
   "feed.closeLog": "Tutup log permainan",
-  "feed.logTitle": "Log permainan",
+  "feed.showFieldReferences": "Tampilkan ID di samping nama kartu",
   "feed.openCard": "Buka {card}",
   "showcase.opponentPlayed": "Lawan memainkan {card}",
   "showcase.youPlayed": "Anda memainkan {card}",

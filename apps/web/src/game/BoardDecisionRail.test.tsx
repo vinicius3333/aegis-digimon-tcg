@@ -632,16 +632,20 @@ it("focuses the left optional dialog and keeps Tab within its controls", () => {
 });
 
 describe("Return to decision position", () => {
-  const pressedButton = new DOMRect(300, 540, 200, 40);
-  const returnControl = new DOMRect(0, 0, 320, 56);
+  const promptRect = new DOMRect(300, 400, 400, 180);
+  const returnControlRect = new DOMRect(0, 0, 320, 56);
 
   function pressAndFindReturn(name: string) {
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
-      return this.classList.contains("decision-board-return") ? returnControl : pressedButton;
+      if (this.classList.contains("decision-board-return")) return returnControlRect;
+      if (this.classList.contains("board-prompt")) return promptRect;
+      return new DOMRect(300, 540, 200, 40);
     });
     fireEvent.click(screen.getByRole("button", { name }));
     return screen.getByRole("button", { name: "Return to decision" }).parentElement!;
   }
+
+  afterEach(() => localStorage.clear());
 
   it.each([
     [
@@ -667,14 +671,27 @@ describe("Return to decision position", () => {
       />,
       "Select on board",
     ],
-  ])("opens the %s return control centred on the button that was pressed", (_, prompt, buttonName) => {
+  ])("opens the %s return control on the left edge, level with the pressed button", (_, prompt, buttonName) => {
     renderIn(prompt);
 
     const control = pressAndFindReturn(buttonName);
 
-    expect(control.hasAttribute("data-anchored")).toBe(true);
-    expect(control.style.getPropertyValue("--decision-return-left")).toBe("240px");
+    expect(control.hasAttribute("data-docked")).toBe(true);
+    expect(control.style.getPropertyValue("--decision-return-left")).toBe("16px");
     expect(control.style.getPropertyValue("--decision-return-top")).toBe("532px");
+  });
+
+  it("moves the return control with its handle without returning to the decision", () => {
+    const onDecline = vi.fn<() => void>();
+    renderIn(<BoardOptionalPrompt sourceCardId="ST1-07" onUse={noop} onDecline={onDecline} />);
+    const control = pressAndFindReturn("View board");
+
+    fireEvent.keyDown(screen.getByRole("button", { name: "Move decision bar" }), { key: "ArrowDown" });
+
+    expect(control.hasAttribute("data-dragged")).toBe(true);
+    expect(control.style.getPropertyValue("--decision-return-drag-top")).toBe("20px");
+    expect(screen.getByRole("button", { name: "Return to decision" })).toBeTruthy();
+    expect(onDecline).not.toHaveBeenCalled();
   });
 });
 

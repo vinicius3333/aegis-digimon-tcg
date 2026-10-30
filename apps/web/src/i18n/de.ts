@@ -1046,6 +1046,7 @@ const interfaceMessages = {
   "settings.cardConfirmationAlways": "Immer fragen",
   "settings.cardConfirmationSkipPlayOnly": "Nur ausspielbare überspringen",
   "settings.cardConfirmationNever": "Nie fragen",
+  "overlay.moveReturnToDecision": "Entscheidungsleiste verschieben",
   "overlay.moveEffectPrompt": "Effektabfrage verschieben",
   "overlay.moveEffectPromptHelp":
     "Zum Verschieben ziehen oder die Pfeiltasten verwenden. Pos1 setzt die Position zurück.",
@@ -1139,6 +1140,9 @@ const interfaceMessages = {
   "game.shareCode": "Senden Sie diesen Link an einen Freund oder teilen Sie den Code {code}.",
   "game.creatingRoom": "Privater Raum wird erstellt…",
   "game.connectingPrivate": "Verbindung zum privaten Raum…",
+  "game.waitingSpectate": "Beitritt als Zuschauer…",
+  "game.spectateDetail":
+    "Sie sehen diesem Match zu und spielen nicht mit. Sie stehen nicht in der Warteschlange, und das Verlassen wirkt sich nicht auf Ihre Bilanz aus.",
   "game.queuedDetail":
     "Sie stehen als {name} in der Warteschlange. Das Match beginnt, wenn ein anderer Spieler beitritt. Ein Abbruch, bevor ein Gegner beitritt, zählt nicht als Niederlage.",
   "game.clickToCopy": "Zum Kopieren klicken",
@@ -1811,7 +1815,7 @@ const interfaceMessages = {
   "game.phaseBanner.end": "Zugende",
   "feed.noHistory": "Noch keine Aktionen",
   "feed.closeLog": "Spielprotokoll schließen",
-  "feed.logTitle": "Spielprotokoll",
+  "feed.showFieldReferences": "IDs neben Kartennamen anzeigen",
   "feed.openCard": "{card} öffnen",
   "showcase.opponentPlayed": "Der Gegner hat {card} ausgespielt",
   "showcase.youPlayed": "Sie haben {card} ausgespielt",

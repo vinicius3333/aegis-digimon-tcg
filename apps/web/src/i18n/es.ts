@@ -797,6 +797,7 @@ export const es: Record<keyof typeof en, string> = {
   "settings.cardConfirmationAlways": "Preguntar siempre",
   "settings.cardConfirmationSkipPlayOnly": "Omitir cartas solo jugables",
   "settings.cardConfirmationNever": "No preguntar nunca",
+  "overlay.moveReturnToDecision": "Mover barra de decisión",
   "overlay.moveEffectPrompt": "Mover panel de efecto",
   "overlay.moveEffectPromptHelp": "Arrastra para mover o usa las flechas. Pulsa Inicio para restaurar la posición.",
   "settings.effectPromptPosition": "Posición de los efectos",
@@ -886,6 +887,9 @@ export const es: Record<keyof typeof en, string> = {
   "game.shareLink": "Compartir enlace",
   "game.cancelInvite": "Cancelar y volver al lobby",
   "game.connectingPrivate": "Conectando a la sala privada…",
+  "game.waitingSpectate": "Entrando como espectador…",
+  "game.spectateDetail":
+    "Estás viendo esta partida, no jugándola. No estás en la cola, y salir no afecta a tu historial.",
   "game.queuedDetail":
     "Estás en la cola como {name}. La partida empieza cuando se una otro jugador. Cancelar antes de que se una un oponente no cuenta como derrota.",
   "game.clickToCopy": "Haz clic para copiar",
@@ -1527,7 +1531,7 @@ export const es: Record<keyof typeof en, string> = {
   "game.phaseBanner.end": "Fin del turno",
   "feed.noHistory": "Aún no hay acciones",
   "feed.closeLog": "Cerrar el registro de jugadas",
-  "feed.logTitle": "Registro de jugadas",
+  "feed.showFieldReferences": "Mostrar ID junto al nombre de las cartas",
   "feed.openCard": "Abrir {card}",
   "showcase.opponentPlayed": "El oponente jugó {card}",
   "showcase.youPlayed": "Jugaste {card}",

@@ -16,6 +16,78 @@ deletes the sample. Delete the file here then.
 | P-147 (the wiki's P-147_P1 scan), BT21-005_P1, BT21-018_P2, BT21-023_P2, BT24-011_P2, BT24-059_P2, BT25-041_P2, BT25-053_P2, EX8-055_P2 (the wiki's EX8-055_P3) | DigimonCardGame Wiki, `https://static.wikia.nocookie.net/digimoncardgame/images/`         |
 | LM-063 to LM-068, ST24-11_P2, ST24-11_P3                                                                                                                        | `https://images.digimoncard.io/images/cards/`                                             |
 
+## Clean scans
+
+`clean/` holds scans without the SAMPLE watermark. The sync stores each one in
+the gateway mirror as `<id>.webp`. It replaces the origin copy, which often
+carries the watermark, and deletes any `<id>-Sample.webp`. The sync rewrites
+the mirror file whenever the committed scan changes. A printing keeps either a
+clean scan or a sample scan here, never both.
+
+### Add, update, or remove clean scans
+
+Run the importer on a folder of scans in any file names:
+
+```sh
+pnpm card-images:import <folder> --dry-run
+pnpm card-images:import <folder> --map <mapping.json>
+```
+
+The importer needs `cwebp` and `dwebp` from libwebp. It reads the card sets
+from the top-level folder names (`BT22 Alter Art` is BT22, `Promo` is P), or
+from `--sets BT22,EX10,P`. It compares each scan with the image each English
+printing shows today and caches downloaded images in
+`.local/card-image-references/`. It then writes each confident match to
+`clean/<id>.webp` at WebP quality 90 and deletes the sample scan with the same
+id. An existing clean scan is overwritten, which updates it.
+
+The importer skips a scan when the best score is below 0.75, when the next
+printing scores within 0.03, or when two scans pick the same printing. It
+lists each skipped scan and writes every decision to
+`.local/card-image-import/report.json`. Check those scans by eye, then pass a
+mapping file that names the printing for each scan, or `null` to skip it:
+
+```json
+{ "Promo/aec65ba9.png": "P-206", "BT23/ddf4b114.png": null }
+```
+
+Printings that differ only by a stamp, such as WINNER promos, always need a
+mapping. The fingerprint cannot tell them apart.
+
+### Browser cache
+
+Browsers cache card images for one year. To make every player download the
+images again after you add, update, or remove scans, change
+`CARD_IMAGE_CACHE_VERSION` in `packages/shared/src/cards/mirroredCardImageUrl.ts`
+to today's date. Every image URL carries it as `?v=<version>`, so the next web
+release requests new URLs. Each change makes players download every card image
+they view once more, so change it only when images change.
+
+To remove a clean scan, delete its file. The next sync keeps the old mirror
+copy; delete `<id>.webp` from the gateway mirror to download the origin image
+again.
+
+### First batch
+
+The first batch of 501 scans was provided by **Karasu Komadreja** on 2026-10-30 as 430 x 600 PNG
+files named by UUID. Each file was matched to its printing by image similarity
+against the watermarked mirror image, then encoded as WebP at quality 90. It
+covers BT22, BT23, EX10, EX11 and their alternate arts, alternate arts from
+AD1, BT21 and BT24, and promotion cards. These matches needed manual review:
+
+| File        | Decision                                                                                                              |
+| ----------- | --------------------------------------------------------------------------------------------------------------------- |
+| BT23-099    | The scan from the alternate-art folder. Bandai's English card list shows this art for the base printing.              |
+| BT23-099_P1 | The scan from the base folder. The upstream image for BT23-099 shows the base art, and no upstream \_P1 image exists. |
+| P-206       | The unstamped scan. The upstream P-206 image is the full art of P-206_P2.                                             |
+| ST22-11     | The scan from the ST23 folder. Its printed number is ST22-11.                                                         |
+
+A Sistermon Noir scan printed as BT23-077 was not added. The card data has no
+printing for it.
+
+The clean scans replace the BT24-086_P1, EX10-023_P2, EX10-059_P2, EX10-060_P2
+and EX10-061_P2 sample scans.
+
 ## Official card list gaps, 2026-10-14
 
 A comparison with every product page of Bandai's English card list found 65

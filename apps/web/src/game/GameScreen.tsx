@@ -982,6 +982,7 @@ function GameScreenSession({
               botError,
               error,
               vsBot,
+              spectating,
               hasOpponent: !!state && bothSeated(state),
               startMode,
               hostRoomCode,

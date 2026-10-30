@@ -559,19 +559,19 @@ describe("digivolution requirement choice", () => {
     expect(onRespond).toHaveBeenCalledWith({ kind: "chooseOption", optionIndex: 1 });
   });
 
-  it("opens Return to decision centred on its View board button", () => {
+  it("opens Return to decision on the left edge, level with View board", () => {
     renderDecision(request);
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
-      return this.classList.contains("decision-board-return")
-        ? new DOMRect(0, 0, 320, 56)
-        : new DOMRect(300, 540, 200, 40);
+      if (this.classList.contains("decision-board-return")) return new DOMRect(0, 0, 320, 56);
+      if (this.classList.contains("game-modal__panel")) return new DOMRect(300, 200, 400, 360);
+      return new DOMRect(300, 540, 200, 40);
     });
 
     fireEvent.click(screen.getByRole("button", { name: "View board" }));
 
     const control = screen.getByRole("button", { name: "Return to decision" }).parentElement!;
-    expect(control.hasAttribute("data-anchored")).toBe(true);
-    expect(control.style.getPropertyValue("--decision-return-left")).toBe("240px");
+    expect(control.hasAttribute("data-docked")).toBe(true);
+    expect(control.style.getPropertyValue("--decision-return-left")).toBe("16px");
     expect(control.style.getPropertyValue("--decision-return-top")).toBe("532px");
   });
 });
@@ -4093,7 +4093,6 @@ describe("decision board preview", () => {
     expect(returnButton.closest("#aegis-stage")).toBeNull();
     expect(returnButton.parentElement?.parentElement).toBe(document.body);
     expect(returnButton.parentElement?.style.position).toBe("fixed");
-    expect(returnButton.parentElement?.hasAttribute("data-anchored")).toBe(true);
   });
 
   it("returns to the same decision without submitting a response", () => {

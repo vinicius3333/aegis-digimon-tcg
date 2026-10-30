@@ -1038,6 +1038,7 @@ const interfaceMessages = {
   "settings.cardConfirmationAlways": "Toujours demander",
   "settings.cardConfirmationSkipPlayOnly": "Ignorer les cartes seulement jouables",
   "settings.cardConfirmationNever": "Ne jamais demander",
+  "overlay.moveReturnToDecision": "Déplacer la barre de décision",
   "overlay.moveEffectPrompt": "Déplacer la fenêtre d'effet",
   "overlay.moveEffectPromptHelp":
     "Faites glisser pour la déplacer ou utilisez les touches fléchées. Appuyez sur Origine pour réinitialiser la position.",
@@ -1130,6 +1131,9 @@ const interfaceMessages = {
   "game.shareCode": "Envoyez ce lien à un ami ou partagez le code {code}.",
   "game.creatingRoom": "Création du salon privé…",
   "game.connectingPrivate": "Connexion au salon privé…",
+  "game.waitingSpectate": "Connexion en tant que spectateur…",
+  "game.spectateDetail":
+    "Vous regardez cette partie, vous n'y jouez pas. Vous n'êtes pas dans la file d'attente, et partir n'affecte pas votre bilan.",
   "game.queuedDetail":
     "Vous êtes en file d'attente sous le nom {name}. Le match commence dès qu'un autre joueur vous rejoint. Annuler avant qu’un adversaire rejoigne la partie ne compte pas comme une défaite.",
   "game.clickToCopy": "Cliquez pour copier",
@@ -1801,7 +1805,7 @@ const interfaceMessages = {
   "game.phaseBanner.end": "Fin du tour",
   "feed.noHistory": "Aucune action pour l'instant",
   "feed.closeLog": "Fermer le journal de partie",
-  "feed.logTitle": "Journal de partie",
+  "feed.showFieldReferences": "Afficher l'ID à côté du nom des cartes",
   "feed.openCard": "Ouvrir {card}",
   "showcase.opponentPlayed": "L'adversaire a joué {card}",
   "showcase.youPlayed": "Vous avez joué {card}",

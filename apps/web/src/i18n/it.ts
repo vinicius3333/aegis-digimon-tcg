@@ -907,6 +907,7 @@ const interfaceMessages = {
   "settings.cardConfirmationAlways": "Chiedi sempre",
   "settings.cardConfirmationSkipPlayOnly": "Salta le carte solo giocabili",
   "settings.cardConfirmationNever": "Non chiedere mai",
+  "overlay.moveReturnToDecision": "Sposta la barra della decisione",
   "overlay.moveEffectPrompt": "Sposta il pannello dell’effetto",
   "overlay.moveEffectPromptHelp": "Trascina per spostare o usa le frecce. Premi Home per ripristinare la posizione.",
   "settings.effectPromptPosition": "Posizione degli effetti",
@@ -994,6 +995,9 @@ const interfaceMessages = {
   "game.shareCode": "Invia questo link a un amico o condividi il codice {code}.",
   "game.creatingRoom": "Creazione della stanza privata…",
   "game.connectingPrivate": "Connessione alla stanza privata…",
+  "game.waitingSpectate": "Ingresso come spettatore…",
+  "game.spectateDetail":
+    "Stai guardando questa partita, non giocando. Non sei in coda e uscire non influisce sul tuo record.",
   "game.queuedDetail":
     "Sei in coda come {name}. La partita inizia quando entra un altro giocatore. Annullare prima che un avversario si unisca non conta come sconfitta.",
   "game.clickToCopy": "Clicca per copiare",
@@ -1659,7 +1663,7 @@ const interfaceMessages = {
   "game.phaseBanner.end": "Fine del turno",
   "feed.noHistory": "Ancora nessuna azione",
   "feed.closeLog": "Chiudi il registro delle azioni",
-  "feed.logTitle": "Registro delle azioni",
+  "feed.showFieldReferences": "Mostra l'ID accanto al nome delle carte",
   "feed.openCard": "Apri {card}",
   "showcase.opponentPlayed": "L'avversario ha giocato {card}",
   "showcase.youPlayed": "Hai giocato {card}",

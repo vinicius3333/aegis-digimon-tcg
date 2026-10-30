@@ -27,6 +27,7 @@ export function pendingMatchNotice({
   botError,
   error,
   vsBot,
+  spectating = false,
   hasOpponent = false,
   startMode,
   hostRoomCode,
@@ -37,6 +38,7 @@ export function pendingMatchNotice({
   botError: string | undefined;
   error: string | undefined;
   vsBot: boolean;
+  spectating?: boolean;
   hasOpponent?: boolean;
   startMode: StartMode;
   hostRoomCode: string | undefined;
@@ -63,6 +65,9 @@ export function pendingMatchNotice({
       actionLabel: t("game.returnToLobby"),
       exitTo: "lobby",
     };
+  }
+  if (spectating) {
+    return { title: t("game.waitingSpectate"), detail: t("game.spectateDetail"), spinner: true };
   }
   if (startMode === "ranked") {
     return {

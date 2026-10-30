@@ -97,6 +97,10 @@ export function OpponentBattleRow({
           ...dropIntentAttrs("perm-opp", p.permanentId),
         }}
         candidate={isCandidate(p)}
+        picked={
+          chrome.decisionPickedInstanceIds.has(p.permanentId) ||
+          chrome.decisionPickedInstanceIds.has(p.topCard.instanceId)
+        }
         {...groupChrome(members, chrome)}
         highlight={
           chrome.decisionHighlightPermanentId === p.permanentId ||

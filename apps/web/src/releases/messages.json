@@ -1,4 +1,34 @@
 {
+  "releases.1.43.3-beta.summary": {
+    "en": "Clearer match decisions, cleaner card scans, and fixes for repeated Retaliation effects.",
+    "pt-BR": "Decisões de partida mais claras, imagens de cartas mais limpas e correções para múltiplos efeitos de Retaliation.",
+    "es": "Decisiones de partida más claras, imágenes de cartas más limpias y correcciones para múltiples efectos de Retaliation.",
+    "it": "Decisioni di partita più chiare, immagini delle carte più pulite e correzioni per effetti multipli di Retaliation."
+  },
+  "releases.1.43.3-beta.feature.scans": {
+    "en": "501 clean card scans improve card readability.",
+    "pt-BR": "501 imagens limpas de cartas melhoram a leitura.",
+    "es": "501 imágenes limpias de cartas mejoran la lectura.",
+    "it": "501 immagini pulite delle carte migliorano la leggibilità."
+  },
+  "releases.1.43.3-beta.feature.decisions": {
+    "en": "Selected targets are easier to distinguish, card names show field references, and the match log is clearer.",
+    "pt-BR": "Os alvos selecionados ficam mais fáceis de distinguir, os nomes das cartas mostram referências de campo e o histórico da partida fica mais claro.",
+    "es": "Los objetivos seleccionados se distinguen mejor, los nombres de las cartas muestran referencias de campo y el registro de la partida es más claro.",
+    "it": "I bersagli selezionati sono più facili da distinguere, i nomi delle carte mostrano i riferimenti sul campo e il registro della partita è più chiaro."
+  },
+  "releases.1.43.3-beta.fix.retaliation": {
+    "en": "Each copy of Retaliation now activates separately, including when the first deletion is prevented.",
+    "pt-BR": "Cada cópia de Retaliation agora ativa separadamente, inclusive quando a primeira exclusão é impedida.",
+    "es": "Cada copia de Retaliation ahora se activa por separado, incluso si se evita la primera eliminación.",
+    "it": "Ogni copia di Retaliation ora si attiva separatamente, anche quando viene impedita la prima eliminazione."
+  },
+  "releases.1.43.3-beta.fix.prompts": {
+    "en": "The return-to-decision bar stays clear of the hand, spectators see the correct joining notice, and keyword hints recognize lowercase names.",
+    "pt-BR": "A barra de retorno à decisão não cobre a mão, espectadores veem o aviso correto ao entrar e as dicas de palavras-chave reconhecem nomes em minúsculas.",
+    "es": "La barra para volver a la decisión no tapa la mano, los espectadores ven el aviso correcto al entrar y las pistas de palabras clave reconocen nombres en minúsculas.",
+    "it": "La barra per tornare alla decisione non copre la mano, gli spettatori vedono l’avviso corretto durante l’ingresso e i suggerimenti delle parole chiave riconoscono i nomi in minuscolo."
+  },
   "releases.1.43.2-beta.summary": {
     "en": "BT27 Chessmon royals, tournament sign-ups that stay open during check-in, and clearer tournament error messages.",
     "pt-BR": "Os reais Chessmon do BT27, inscrições de torneio abertas durante o check-in e mensagens de erro de torneio mais claras.",

@@ -803,6 +803,7 @@ export const en = {
   "settings.cardConfirmationAlways": "Always ask",
   "settings.cardConfirmationSkipPlayOnly": "Skip play-only cards",
   "settings.cardConfirmationNever": "Never ask",
+  "overlay.moveReturnToDecision": "Move decision bar",
   "overlay.moveEffectPrompt": "Move effect prompt",
   "overlay.moveEffectPromptHelp": "Drag to move, or use the arrow keys. Press Home to reset the position.",
   "settings.effectPromptPosition": "Effect prompt position",
@@ -888,6 +889,9 @@ export const en = {
   "game.shareCode": "Send this link to a friend, or share the code {code}.",
   "game.creatingRoom": "Creating private room…",
   "game.connectingPrivate": "Connecting to the private room…",
+  "game.waitingSpectate": "Joining as a spectator…",
+  "game.spectateDetail":
+    "You're watching this match, not playing. You are not in the queue, and leaving does not affect your record.",
   "game.queuedDetail":
     "You're queued as {name}. The match starts when another player joins. Cancelling before an opponent joins does not count as a loss.",
   "game.clickToCopy": "Click to copy",
@@ -1551,7 +1555,7 @@ export const en = {
   "game.phaseBanner.end": "End of turn",
   "feed.noHistory": "No actions yet",
   "feed.closeLog": "Close the play log",
-  "feed.logTitle": "Play log",
+  "feed.showFieldReferences": "Show IDs next to card names",
   "feed.openCard": "Open {card}",
 
   "showcase.opponentPlayed": "Opponent played {card}",

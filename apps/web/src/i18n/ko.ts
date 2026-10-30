@@ -1013,6 +1013,7 @@ const interfaceMessages = {
   "settings.cardConfirmationAlways": "항상 확인",
   "settings.cardConfirmationSkipPlayOnly": "등장만 가능한 카드 건너뛰기",
   "settings.cardConfirmationNever": "확인 안 함",
+  "overlay.moveReturnToDecision": "결정 막대 이동",
   "overlay.moveEffectPrompt": "효과 창 이동",
   "overlay.moveEffectPromptHelp": "드래그하거나 화살표 키로 이동하세요. Home 키를 누르면 위치가 초기화됩니다.",
   "settings.effectPromptPosition": "효과 창 위치",
@@ -1098,6 +1099,9 @@ const interfaceMessages = {
   "game.shareCode": "이 링크를 친구에게 보내거나 {code} 코드를 공유하세요.",
   "game.creatingRoom": "비공개 방을 만드는 중…",
   "game.connectingPrivate": "비공개 방에 연결하는 중…",
+  "game.waitingSpectate": "관전자로 참가하는 중…",
+  "game.spectateDetail":
+    "이 대전을 관전 중이며 플레이하지 않습니다. 대기열에 있지 않으며, 나가도 전적에 영향을 주지 않습니다.",
   "game.queuedDetail":
     "{name}(으)로 대기 중입니다. 다른 플레이어가 참가하면 대전이 시작됩니다. 상대가 참가하기 전에 취소하면 패배로 처리되지 않습니다.",
   "game.clickToCopy": "클릭해서 복사",
@@ -1753,7 +1757,7 @@ const interfaceMessages = {
   "game.phaseBanner.end": "턴 종료",
   "feed.noHistory": "아직 행동이 없습니다",
   "feed.closeLog": "플레이 로그 닫기",
-  "feed.logTitle": "플레이 로그",
+  "feed.showFieldReferences": "카드 이름 옆에 ID 표시",
   "feed.openCard": "{card} 열기",
   "showcase.opponentPlayed": "상대가 {card}을(를) 등장시켰습니다",
   "showcase.youPlayed": "{card}을(를) 등장시켰습니다",
