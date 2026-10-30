@@ -1,5 +1,23 @@
 [
   {
+    "version": "1.43.2-beta",
+    "releasedAt": "2026-10-30",
+    "summaryKey": "releases.1.43.2-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.43.2-beta.feature.chessmon"
+      },
+      {
+        "textKey": "releases.1.43.2-beta.feature.registration"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.43.2-beta.fix.messages"
+      }
+    ]
+  },
+  {
     "version": "1.43.1-beta",
     "releasedAt": "2026-10-30",
     "summaryKey": "releases.1.43.1-beta.summary",
