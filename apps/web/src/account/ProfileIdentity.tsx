@@ -1,6 +1,6 @@
 import { useProfileTrophiesShown } from "@/achievements/useProfileTrophiesShown";
 import { setProfileTrophiesShown } from "@/achievements/setProfileTrophiesShown";
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
 import type { MatchHistorySummary, MatchWinRate } from "@aegis/shared";
 import { Avatar, Badge, Switch, type PlayerIdentity } from "../design/primitives";
 import { Icons } from "../design/icons";
@@ -45,7 +45,6 @@ export function ProfileIdentity({
   const statsShown = useProfileStatsShown();
   const trophiesShown = useProfileTrophiesShown();
   const hintId = useId();
-  const avatarButton = useRef<HTMLButtonElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
@@ -126,7 +125,6 @@ export function ProfileIdentity({
     <section className="profile-identity" aria-label={t("profile.title")}>
       <div className="profile-identity__main">
         <button
-          ref={avatarButton}
           type="button"
           className="profile-identity__avatar"
           aria-label={t("profile.changeAvatar")}
@@ -235,9 +233,10 @@ export function ProfileIdentity({
       ) : null}
       {menuOpen ? (
         <AvatarMenu
-          anchor={avatarButton.current}
           name={name}
           color={player.color}
+          avatarId={account ? account.avatarId : guestAvatar}
+          avatarUrl={account?.avatarUrl ?? null}
           selected={selected}
           discordLinked={account?.discordLinked === true}
           onSelect={selectAvatar}

@@ -328,9 +328,12 @@ for (const width of [390, 1440])
     const menu = page.getByRole("dialog", { name: "Choose avatar" });
     await expect(menu.getByRole("searchbox", { name: "Search Digimon" })).toBeVisible();
     const box = (await menu.boundingBox())!;
-    const anchor = (await trigger.boundingBox())!;
     if (width < 600) expect(Math.round(box.y + box.height)).toBe(844);
-    else expect(box.y).toBeGreaterThan(anchor.y + anchor.height);
+    else {
+      expect(Math.abs(box.x + box.width / 2 - width / 2)).toBeLessThanOrEqual(1);
+      expect(box.y).toBeGreaterThanOrEqual(0);
+      expect(box.y + box.height).toBeLessThanOrEqual(844);
+    }
     expect(box.x).toBeGreaterThanOrEqual(0);
     expect(box.x + box.width).toBeLessThanOrEqual(width);
     await expect
@@ -342,7 +345,7 @@ for (const width of [390, 1440])
       )
       .toBe(true);
     const tiles = await menu
-      .locator(".profile-avatar-menu__grid button")
+      .locator(".avatar-picker__grid button")
       .evaluateAll((buttons) =>
         buttons.slice(0, 8).map((button) => button.getBoundingClientRect().toJSON() as DOMRect),
       );
@@ -361,7 +364,7 @@ for (const width of [390, 1440])
     await expect(trigger).toBeFocused();
     expect(writes).toContainEqual({ path: "/account/profile/avatar", body: { avatarId: "greymon" } });
     await trigger.click();
-    await page.getByRole("button", { name: "Use default avatar" }).click();
+    await page.getByRole("button", { name: "Use initials instead" }).click();
     await expect(menu).toHaveCount(0);
     expect(writes).toContainEqual({ path: "/account/profile/avatar", body: { avatarId: "initials" } });
     await trigger.click();
