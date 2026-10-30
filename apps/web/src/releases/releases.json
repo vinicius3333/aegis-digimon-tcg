@@ -1,5 +1,32 @@
 [
   {
+    "version": "1.43.1-beta",
+    "releasedAt": "2026-10-30",
+    "summaryKey": "releases.1.43.1-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.43.1-beta.feature.reprints"
+      },
+      {
+        "textKey": "releases.1.43.1-beta.feature.avatar"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.43.1-beta.fix.upload"
+      },
+      {
+        "textKey": "releases.1.43.1-beta.fix.queue"
+      },
+      {
+        "textKey": "releases.1.43.1-beta.fix.translation"
+      },
+      {
+        "textKey": "releases.1.43.1-beta.fix.landscape"
+      }
+    ]
+  },
+  {
     "version": "1.43.0-beta",
     "releasedAt": "2026-10-29",
     "summaryKey": "releases.1.43.0-beta.summary",

@@ -1,13 +1,4 @@
-/** Longest edge of the picture the client sends; the API allows more, this keeps uploads small. */
-export const AVATAR_EDGE = 512;
-
-/** Fits a picture inside `AVATAR_EDGE` without stretching it, and never enlarges a small one. */
-export function fitAvatarSize(width: number, height: number): { width: number; height: number } {
-  const longest = Math.max(width, height);
-  if (longest <= 0) throw new Error("empty_image");
-  const scale = Math.min(1, AVATAR_EDGE / longest);
-  return { width: Math.max(1, Math.round(width * scale)), height: Math.max(1, Math.round(height * scale)) };
-}
+import { encodeAvatarWithinLimit, type AvatarEncoding } from "./encodeAvatarWithinLimit";
 
 /** What the player adjusted in the crop window: a zoom factor and where the window sits. */
 export type AvatarCrop = {
@@ -95,22 +86,38 @@ export async function decodeAvatarFile(file: File): Promise<ImageBitmap> {
   return createImageBitmap(file);
 }
 
-/**
- * Rasterises the chosen crop to a square PNG. `edge` is what the API receives: the canvas drops
- * EXIF, ICC and every other metadata block as a side effect of drawing.
- */
-export async function renderAvatarCrop(image: ImageBitmap, crop: AvatarCrop, edge = AVATAR_EDGE): Promise<Blob> {
-  const { sx, sy, side } = cropSourceRect(crop, image.width, image.height);
+function canvasToBlob(
+  width: number,
+  height: number,
+  encoding: AvatarEncoding,
+  draw: (context: CanvasRenderingContext2D) => void,
+): Promise<Blob> {
   const canvas = document.createElement("canvas");
-  canvas.width = edge;
-  canvas.height = edge;
+  canvas.width = width;
+  canvas.height = height;
   const context = canvas.getContext("2d");
   if (!context) throw new Error("canvas_unavailable");
   context.imageSmoothingQuality = "high";
-  context.drawImage(image, sx, sy, side, side, 0, 0, edge, edge);
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
-  if (!blob) throw new Error("encode_failed");
-  return blob;
+  if (encoding.type === "image/jpeg") {
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, width, height);
+  }
+  draw(context);
+  const quality = encoding.type === "image/jpeg" ? encoding.quality : undefined;
+  return new Promise((resolve, reject) =>
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("encode_failed"))), encoding.type, quality),
+  );
+}
+
+/**
+ * Rasterises the chosen crop to a square picture under the API byte limit: PNG when it fits, then
+ * JPEG at falling quality, then a smaller edge. Drawing drops EXIF, ICC and every other metadata block.
+ */
+export function renderAvatarCrop(image: ImageBitmap, crop: AvatarCrop): Promise<Blob> {
+  const { sx, sy, side } = cropSourceRect(crop, image.width, image.height);
+  return encodeAvatarWithinLimit((edge, encoding) =>
+    canvasToBlob(edge, edge, encoding, (context) => context.drawImage(image, sx, sy, side, side, 0, 0, edge, edge)),
+  );
 }
 
 /**
@@ -121,16 +128,12 @@ export async function renderAvatarCrop(image: ImageBitmap, crop: AvatarCrop, edg
 export async function normalizeAvatarImage(file: File): Promise<Blob> {
   const bitmap = await decodeAvatarFile(file);
   try {
-    const size = fitAvatarSize(bitmap.width, bitmap.height);
-    const canvas = document.createElement("canvas");
-    canvas.width = size.width;
-    canvas.height = size.height;
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("canvas_unavailable");
-    context.drawImage(bitmap, 0, 0, size.width, size.height);
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
-    if (!blob) throw new Error("encode_failed");
-    return blob;
+    return await encodeAvatarWithinLimit((edge, encoding) => {
+      const scale = Math.min(1, edge / Math.max(bitmap.width, bitmap.height));
+      const width = Math.max(1, Math.round(bitmap.width * scale));
+      const height = Math.max(1, Math.round(bitmap.height * scale));
+      return canvasToBlob(width, height, encoding, (context) => context.drawImage(bitmap, 0, 0, width, height));
+    });
   } finally {
     bitmap.close();
   }

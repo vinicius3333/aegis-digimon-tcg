@@ -1,4 +1,46 @@
 {
+  "releases.1.43.1-beta.summary": {
+    "en": "RB-01 reprints in RB1 packs, a new avatar picker, and fixes for uploads, the queue button, and translated pages.",
+    "pt-BR": "Reimpressões RB-01 nos pacotes RB1, um novo seletor de avatar e correções no envio de fotos, no botão de fila e em páginas traduzidas.",
+    "es": "Reimpresiones RB-01 en los sobres RB1, un nuevo selector de avatar y correcciones en la subida de fotos, el botón de cola y las páginas traducidas.",
+    "it": "Ristampe RB-01 nelle bustine RB1, un nuovo selettore di avatar e correzioni per i caricamenti, il pulsante della coda e le pagine tradotte."
+  },
+  "releases.1.43.1-beta.feature.reprints": {
+    "en": "RB1 packs can now pull the official English RB-01 reprints, with their original card art and rarity.",
+    "pt-BR": "Os pacotes RB1 agora podem trazer as reimpressões oficiais em inglês do RB-01, com a arte e a raridade originais.",
+    "es": "Los sobres RB1 ahora pueden traer las reimpresiones oficiales en inglés de RB-01, con su arte y rareza originales.",
+    "it": "Le bustine RB1 ora possono contenere le ristampe ufficiali inglesi di RB-01, con la loro illustrazione e rarità originali."
+  },
+  "releases.1.43.1-beta.feature.avatar": {
+    "en": "Open the avatar picker from the navigation bar and preview your choice before saving.",
+    "pt-BR": "Abra o seletor de avatar pela barra de navegação e veja uma prévia da escolha antes de salvar.",
+    "es": "Abre el selector de avatar desde la barra de navegación y previsualiza tu elección antes de guardar.",
+    "it": "Apri il selettore di avatar dalla barra di navigazione e visualizza un’anteprima della scelta prima di salvare."
+  },
+  "releases.1.43.1-beta.fix.upload": {
+    "en": "Large profile pictures are now shrunk before upload instead of being rejected.",
+    "pt-BR": "Fotos de perfil grandes agora são reduzidas antes do envio em vez de serem recusadas.",
+    "es": "Las fotos de perfil grandes ahora se reducen antes de subirlas en lugar de ser rechazadas.",
+    "it": "Le immagini del profilo grandi ora vengono ridotte prima del caricamento invece di essere rifiutate."
+  },
+  "releases.1.43.1-beta.fix.queue": {
+    "en": "The queue button is back in the lobby deck bar.",
+    "pt-BR": "O botão de fila voltou para a barra de deck do lobby.",
+    "es": "El botón de cola vuelve a estar en la barra de mazo del lobby.",
+    "it": "Il pulsante della coda è tornato nella barra del mazzo della lobby."
+  },
+  "releases.1.43.1-beta.fix.translation": {
+    "en": "The page no longer crashes when the browser translates it.",
+    "pt-BR": "A página não trava mais quando o navegador a traduz.",
+    "es": "La página ya no falla cuando el navegador la traduce.",
+    "it": "La pagina non si blocca più quando il browser la traduce."
+  },
+  "releases.1.43.1-beta.fix.landscape": {
+    "en": "Revealed cards in effect prompts now show in full on phones in landscape.",
+    "pt-BR": "As cartas reveladas nos avisos de efeito agora aparecem inteiras no celular na horizontal.",
+    "es": "Las cartas reveladas en los avisos de efecto ahora se ven completas en el móvil en horizontal.",
+    "it": "Le carte rivelate nei prompt degli effetti ora si vedono per intero sul telefono in orizzontale."
+  },
   "releases.1.43.0-beta.summary": {
     "en": "Upload and crop your own profile picture, staff role badges, and a full-screen booster lab on phones.",
     "pt-BR": "Envie e recorte sua própria foto de perfil, selos de cargo da equipe e um laboratório de boosters em tela cheia no celular.",

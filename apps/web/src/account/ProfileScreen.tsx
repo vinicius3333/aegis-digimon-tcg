@@ -25,6 +25,7 @@ export function ProfileScreen({
   onRefreshDiscordAvatar,
   onViewingChange,
   onCopyDeck,
+  avatarMenuRequest,
 }: {
   onCopyDeck?: (deck: DeckListing) => void;
   account: RemoteAccount | null | undefined;
@@ -34,6 +35,7 @@ export function ProfileScreen({
   onRefreshDiscordAvatar?: () => Promise<void>;
   /** Playback covers the whole screen, so the app hides its navigation meanwhile. */
   onViewingChange?: (viewing: boolean) => void;
+  avatarMenuRequest?: number;
 }) {
   const { t } = useTranslation();
   const trophiesShown = useProfileTrophiesShown();
@@ -82,6 +84,7 @@ export function ProfileScreen({
         onAccountChange={onAccountChange}
         onGuestChange={onGuestChange}
         onRefreshDiscordAvatar={onRefreshDiscordAvatar}
+        avatarMenuRequest={avatarMenuRequest}
       />
       {account === undefined ? (
         <p role="status">{t("account.loading")}</p>
