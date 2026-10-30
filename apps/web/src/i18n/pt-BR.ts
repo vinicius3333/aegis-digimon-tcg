@@ -899,6 +899,9 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.shareLink": "Compartilhar link",
   "game.cancelInvite": "Cancelar e voltar ao lobby",
   "game.connectingPrivate": "Conectando à sala privada…",
+  "game.waitingSpectate": "Entrando como espectador…",
+  "game.spectateDetail":
+    "Você está assistindo a esta partida, não jogando. Você não está na fila, e sair não afeta seu histórico.",
   "game.queuedDetail":
     "Você está na fila como {name}. A partida começa quando outro jogador entrar. Cancelar antes de um oponente entrar não conta como derrota.",
   "game.clickToCopy": "Clique para copiar",

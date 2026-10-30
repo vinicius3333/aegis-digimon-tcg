@@ -1060,6 +1060,8 @@ const interfaceMessages = {
   "game.shareCode": "將此連結傳送給朋友，或分享代碼 {code}。",
   "game.creatingRoom": "正在建立私人房間…",
   "game.connectingPrivate": "正在連接私人房間…",
+  "game.waitingSpectate": "正在以觀戰者身分加入…",
+  "game.spectateDetail": "你正在觀看這場對局，而非參與對戰。你不在配對佇列中，離開也不會影響你的戰績。",
   "game.queuedDetail": "你正以 {name} 的身分排隊。另一名玩家加入後對局開始。 在對手加入前取消不會計為敗北。",
   "game.clickToCopy": "點選複製",
   "game.copyInviteLink": "複製邀請連結",

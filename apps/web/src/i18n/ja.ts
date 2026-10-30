@@ -1109,6 +1109,9 @@ const interfaceMessages = {
   "game.shareCode": "このリンクを友達に送るか、コード{code}を共有してください。",
   "game.creatingRoom": "プライベートルームを作成中…",
   "game.connectingPrivate": "プライベートルームに接続中…",
+  "game.waitingSpectate": "観戦者として参加中…",
+  "game.spectateDetail":
+    "この対戦を観戦しています。プレイはしていません。キューには入っておらず、退出しても戦績には影響しません。",
   "game.queuedDetail":
     "{name}としてキューに登録されています。他のプレイヤーが参加すると対戦が始まります。 対戦相手が参加する前にキャンセルしても敗北にはなりません。",
   "game.clickToCopy": "クリックしてコピー",

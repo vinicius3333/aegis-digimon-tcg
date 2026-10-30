@@ -994,6 +994,9 @@ const interfaceMessages = {
   "game.shareCode": "Invia questo link a un amico o condividi il codice {code}.",
   "game.creatingRoom": "Creazione della stanza privata…",
   "game.connectingPrivate": "Connessione alla stanza privata…",
+  "game.waitingSpectate": "Ingresso come spettatore…",
+  "game.spectateDetail":
+    "Stai guardando questa partita, non giocando. Non sei in coda e uscire non influisce sul tuo record.",
   "game.queuedDetail":
     "Sei in coda come {name}. La partita inizia quando entra un altro giocatore. Annullare prima che un avversario si unisca non conta come sconfitta.",
   "game.clickToCopy": "Clicca per copiare",

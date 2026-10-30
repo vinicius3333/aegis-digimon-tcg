@@ -1139,6 +1139,9 @@ const interfaceMessages = {
   "game.shareCode": "Senden Sie diesen Link an einen Freund oder teilen Sie den Code {code}.",
   "game.creatingRoom": "Privater Raum wird erstellt…",
   "game.connectingPrivate": "Verbindung zum privaten Raum…",
+  "game.waitingSpectate": "Beitritt als Zuschauer…",
+  "game.spectateDetail":
+    "Sie sehen diesem Match zu und spielen nicht mit. Sie stehen nicht in der Warteschlange, und das Verlassen wirkt sich nicht auf Ihre Bilanz aus.",
   "game.queuedDetail":
     "Sie stehen als {name} in der Warteschlange. Das Match beginnt, wenn ein anderer Spieler beitritt. Ein Abbruch, bevor ein Gegner beitritt, zählt nicht als Niederlage.",
   "game.clickToCopy": "Zum Kopieren klicken",

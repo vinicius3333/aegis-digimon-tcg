@@ -75,3 +75,12 @@ describe("matchmaking cancellation", () => {
 it("does not offer cancelling a search once both players are seated", () => {
   expect(getNotice({ status: "connected", hasOpponent: true }).actionLabel).toBeUndefined();
 });
+
+describe("spectator notice", () => {
+  it("tells a spectator they are watching instead of queued", () => {
+    const notice = getNotice({ status: "connecting", startMode: "spectator", spectating: true });
+    expect(notice).toMatchObject({ title: "Joining as a spectator…", spinner: true });
+    expect(notice.detail).toContain("You are not in the queue");
+    expect(notice.actionLabel).toBeUndefined();
+  });
+});
