@@ -2014,7 +2014,11 @@ const interfaceMessages = {
   "tournaments.countdown.warning2": "Meno di 2 minuti",
   "tournaments.countdown.warning1": "Meno di 1 minuto",
   "tournaments.countdown.expired": "Tempo scaduto",
-  "tournaments.reason.unknown": "Il server ha rifiutato la richiesta ({code}).",
+  "tournaments.reason.unknown": "Qualcosa è andato storto. Riprova tra un attimo. (Codice: {code})",
+  "tournaments.reason.signedOut": "La sessione è scaduta. Accedi di nuovo per continuare.",
+  "tournaments.reason.forbidden": "Non hai il permesso di farlo.",
+  "tournaments.reason.notFound": "Non l'abbiamo trovato. Potrebbe essere stato rimosso.",
+  "tournaments.reason.tooManyRequests": "Troppi tentativi. Aspetta un momento e riprova.",
   "tournaments.reason.nameTooShort": "Il nome è troppo corto.",
   "tournaments.reason.nameTooLong": "Il nome è troppo lungo.",
   "tournaments.reason.structureInvalid": "Scegli sistema svizzero o eliminazione diretta.",
@@ -2038,6 +2042,10 @@ const interfaceMessages = {
   "tournaments.reason.checkInClosed": "Il check-in è già chiuso.",
   "tournaments.reason.alreadyCheckedIn": "Hai già effettuato il check-in.",
   "tournaments.reason.alreadyDropped": "Ti sei già ritirato.",
+  "tournaments.reason.checkInWindowInverted":
+    "Il check-in deve aprirsi prima di chiudersi. Scegli un orario di chiusura più tardi.",
+  "tournaments.reason.windowTimestampInvalid":
+    "Una delle date del programma non è valida. Controlla i campi e riprova.",
   "tournaments.reason.tournamentAlreadyStarted": "L'evento è già iniziato e non può più essere eliminato.",
   "tournaments.reason.networkError": "Impossibile raggiungere il server. Controlla la connessione e riprova.",
   "tournaments.detail.noActions": "Nessuna azione disponibile ora: l'evento non accetta iscrizioni, check-in o ritiri.",

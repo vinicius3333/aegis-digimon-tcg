@@ -789,7 +789,7 @@ export function installAccountRoutes(
       const value = (req.body as Record<string, unknown>)[key];
       if (value === undefined) continue;
       if (value !== null && !Number.isFinite(value)) {
-        res.status(400).json({ error: `${key} must be a timestamp or null` });
+        res.status(400).json({ error: "window_timestamp_invalid" });
         return;
       }
       windows[key] = value === null ? null : Number(value);

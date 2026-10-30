@@ -2167,7 +2167,11 @@ const interfaceMessages = {
   "tournaments.countdown.warning2": "Unter 2 Minuten",
   "tournaments.countdown.warning1": "Unter 1 Minute",
   "tournaments.countdown.expired": "Die Zeit ist abgelaufen",
-  "tournaments.reason.unknown": "Der Server hat dies abgelehnt ({code}).",
+  "tournaments.reason.unknown": "Etwas ist schiefgelaufen. Versuchen Sie es gleich noch einmal. (Code: {code})",
+  "tournaments.reason.signedOut": "Ihre Sitzung ist abgelaufen. Melden Sie sich erneut an, um fortzufahren.",
+  "tournaments.reason.forbidden": "Sie haben keine Berechtigung dafür.",
+  "tournaments.reason.notFound": "Das wurde nicht gefunden. Es wurde möglicherweise entfernt.",
+  "tournaments.reason.tooManyRequests": "Zu viele Versuche. Warten Sie kurz und versuchen Sie es erneut.",
   "tournaments.reason.nameTooShort": "Dieser Name ist zu kurz.",
   "tournaments.reason.nameTooLong": "Dieser Name ist zu lang.",
   "tournaments.reason.structureInvalid": "Wähle Schweizer System oder K.-o.-System.",
@@ -2191,6 +2195,10 @@ const interfaceMessages = {
   "tournaments.reason.checkInClosed": "Der Check-in ist bereits geschlossen.",
   "tournaments.reason.alreadyCheckedIn": "Sie sind bereits eingecheckt.",
   "tournaments.reason.alreadyDropped": "Sie sind bereits ausgestiegen.",
+  "tournaments.reason.checkInWindowInverted":
+    "Der Check-in muss öffnen, bevor er schließt. Wählen Sie eine spätere Schlusszeit.",
+  "tournaments.reason.windowTimestampInvalid":
+    "Eines der Daten im Zeitplan ist ungültig. Prüfen Sie die Felder und versuchen Sie es erneut.",
   "tournaments.reason.tournamentAlreadyStarted":
     "Das Turnier hat bereits begonnen und kann daher nicht mehr gelöscht werden.",
   "tournaments.reason.networkError":

@@ -139,7 +139,7 @@ describe("circuit scheduling", () => {
         starts_at: FIRST_WEDNESDAY,
         check_in_opens_at: checkInOpensAt,
         check_in_closes_at: FIRST_WEDNESDAY,
-        registration_closes_at: checkInOpensAt,
+        registration_closes_at: FIRST_WEDNESDAY,
       },
     ]);
   });
