@@ -1924,7 +1924,11 @@ export const ptBR: Record<keyof typeof en, string> = {
   "tournaments.countdown.warning1": "Menos de 1 minuto",
   "tournaments.countdown.expired": "Acabou o tempo",
 
-  "tournaments.reason.unknown": "O servidor recusou ({code}).",
+  "tournaments.reason.unknown": "Algo deu errado. Tente de novo em instantes. (Código: {code})",
+  "tournaments.reason.signedOut": "Sua sessão terminou. Entre de novo para continuar.",
+  "tournaments.reason.forbidden": "Você não tem permissão para fazer isso.",
+  "tournaments.reason.notFound": "Não encontramos isso. Talvez tenha sido removido.",
+  "tournaments.reason.tooManyRequests": "Muitas tentativas. Espere um pouco e tente de novo.",
   "tournaments.reason.nameTooShort": "Esse nome é curto demais.",
   "tournaments.reason.nameTooLong": "Esse nome é longo demais.",
   "tournaments.reason.structureInvalid": "Escolha suíço ou eliminação simples.",
@@ -1948,6 +1952,10 @@ export const ptBR: Record<keyof typeof en, string> = {
   "tournaments.reason.checkInClosed": "O check-in já fechou.",
   "tournaments.reason.alreadyCheckedIn": "Você já fez check-in.",
   "tournaments.reason.alreadyDropped": "Você já desistiu.",
+  "tournaments.reason.checkInWindowInverted":
+    "O check-in precisa abrir antes de fechar. Escolha um horário de fechamento mais tarde.",
+  "tournaments.reason.windowTimestampInvalid":
+    "Uma das datas do cronograma não é válida. Confira os campos e tente de novo.",
   "tournaments.reason.tournamentAlreadyStarted": "O evento já começou, então não dá mais para excluir.",
   "tournaments.reason.networkError": "Não conseguimos falar com o servidor. Confira sua conexão e tente de novo.",
 

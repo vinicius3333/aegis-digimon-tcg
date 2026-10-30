@@ -166,7 +166,7 @@ export class ParticipantStore {
   static windowOrderError(windows: TournamentWindows): string | undefined {
     const { checkInOpensAt, checkInClosesAt } = windows;
     if (checkInOpensAt !== null && checkInClosesAt !== null && checkInOpensAt > checkInClosesAt)
-      return "checkInOpensAt must not be after checkInClosesAt";
+      return "check_in_window_inverted";
     return undefined;
   }
 

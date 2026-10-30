@@ -290,7 +290,7 @@ describe("ParticipantStore check-in", () => {
     const { participants } = fixture;
     await expect(
       participants.setWindows(tournamentId, { checkInOpensAt: T0 + 20, checkInClosesAt: T0 + 10 }),
-    ).rejects.toThrow(/checkInOpensAt must not be after checkInClosesAt/);
+    ).rejects.toThrow(/check_in_window_inverted/);
     expect(await participants.windows(tournamentId)).toEqual({
       registrationClosesAt: null,
       checkInOpensAt: null,

@@ -111,11 +111,21 @@ const REASON_KEYS = new Set<string>([
   "network_error",
   "tournament_already_started",
   "tournament_limit_reached",
+  "check_in_window_inverted",
+  "window_timestamp_invalid",
 ]);
+
+const HTTP_STATUS_REASON_KEYS: Readonly<Record<string, TranslationKey>> = {
+  "401": "tournaments.reason.signedOut",
+  "403": "tournaments.reason.forbidden",
+  "404": "tournaments.reason.notFound",
+  "429": "tournaments.reason.tooManyRequests",
+};
 
 /** The key for a reason code, or undefined when the server sent one this build does not know. */
 export function reasonKey(code: string): TranslationKey | undefined {
-  return REASON_KEYS.has(code) ? (`tournaments.reason.${camelCase(code)}` as TranslationKey) : undefined;
+  if (REASON_KEYS.has(code)) return `tournaments.reason.${camelCase(code)}` as TranslationKey;
+  return HTTP_STATUS_REASON_KEYS[code];
 }
 
 /** The key and interpolation params for one deck-legality violation. */

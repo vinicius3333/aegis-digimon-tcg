@@ -2120,7 +2120,11 @@ const interfaceMessages = {
   "tournaments.countdown.warning2": "2分以内",
   "tournaments.countdown.warning1": "1分以内",
   "tournaments.countdown.expired": "時間切れです",
-  "tournaments.reason.unknown": "サーバーに拒否されました（{code}）。",
+  "tournaments.reason.unknown": "問題が発生しました。しばらくしてからもう一度お試しください。（コード: {code}）",
+  "tournaments.reason.signedOut": "セッションが終了しました。続けるにはもう一度ログインしてください。",
+  "tournaments.reason.forbidden": "この操作を行う権限がありません。",
+  "tournaments.reason.notFound": "見つかりませんでした。削除された可能性があります。",
+  "tournaments.reason.tooManyRequests": "試行回数が多すぎます。少し待ってからもう一度お試しください。",
   "tournaments.reason.nameTooShort": "名前が短すぎます。",
   "tournaments.reason.nameTooLong": "名前が長すぎます。",
   "tournaments.reason.structureInvalid": "スイスドローまたはシングルエリミネーションを選択してください。",
@@ -2144,6 +2148,10 @@ const interfaceMessages = {
   "tournaments.reason.checkInClosed": "チェックインはすでに終了しています。",
   "tournaments.reason.alreadyCheckedIn": "すでにチェックイン済みです。",
   "tournaments.reason.alreadyDropped": "すでにドロップしています。",
+  "tournaments.reason.checkInWindowInverted":
+    "チェックインは締め切りより前に開始する必要があります。締め切りをもっと遅い時刻にしてください。",
+  "tournaments.reason.windowTimestampInvalid":
+    "スケジュールの日時に無効なものがあります。入力内容を確認して、もう一度お試しください。",
   "tournaments.reason.tournamentAlreadyStarted": "イベントはすでに始まっているため、削除できません。",
   "tournaments.reason.networkError": "サーバーに接続できませんでした。接続を確認して、もう一度お試しください。",
   "tournaments.detail.noActions":
