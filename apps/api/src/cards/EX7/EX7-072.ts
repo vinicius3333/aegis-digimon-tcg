@@ -35,6 +35,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            '[Main] All your opponent\'s Digimon gain "[End of Your Turn] Delete 1 of your Digimon." until end of their turn.',
           kind: "GainTriggeredEffect",
           includeLaterEntrants: true,
           once: true,
