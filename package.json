@@ -7,6 +7,7 @@
   "scripts": {
     "prepare": "git config core.hooksPath .githooks || true",
     "test:deploy": "node --test tools/deploy/*.test.mjs",
+    "card-images:import": "node tools/import-clean-card-images.mjs",
     "logs:match": "node tools/match-logs.mjs",
     "client-error": "node tools/client-errors/client-error.mjs",
     "replay": "pnpm --silent --filter @aegis/api replay",
