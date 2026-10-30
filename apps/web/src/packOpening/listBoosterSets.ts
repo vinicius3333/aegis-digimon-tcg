@@ -1,11 +1,12 @@
-import type { CardDefinition } from "@aegis/shared";
 import { activeCollectionCards } from "@/game/decks";
+import { listBoosterReprints } from "@/packOpening/listBoosterReprints";
+import type { PackCard } from "@/packOpening/PackCard";
 import { PackRarity } from "@/packOpening/PackRarity";
 
 export interface BoosterSet {
   setId: string;
   coverUrl: string;
-  cards: CardDefinition[];
+  cards: PackCard[];
 }
 
 const BOOSTER_COVER_SET_IDS = [
@@ -18,10 +19,11 @@ const BOOSTER_COVER_SET_IDS = [
 const PACK_RARITIES = new Set<string>(Object.values(PackRarity).map((entry) => entry.value));
 
 export function listBoosterSets(): BoosterSet[] {
-  const cards = activeCollectionCards().filter((card) => card.rarity && PACK_RARITIES.has(card.rarity));
+  const collection = activeCollectionCards();
+  const cards = collection.filter((card) => card.rarity && PACK_RARITIES.has(card.rarity));
   return BOOSTER_COVER_SET_IDS.map((setId) => ({
     setId,
     coverUrl: `/sets/${setId}.jpg`,
-    cards: cards.filter((card) => card.set === setId),
+    cards: [...cards.filter((card) => card.set === setId), ...listBoosterReprints({ setId, cards: collection })],
   })).filter((set) => set.cards.some((card) => card.rarity === PackRarity.COMMON.value));
 }

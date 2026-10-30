@@ -30,8 +30,8 @@ it.each(["Atacar", "攻擊"])(
       const translated = document.createElement("font");
       translated.style.verticalAlign = "inherit";
       translated.textContent = translatedLabel;
-      button.insertBefore(translated, text);
-      button.removeChild(text);
+      text.before(translated);
+      text.remove();
       await act(async () => root.render(<View label="End turn" before />));
       expect(button.textContent).toBe("BeforeEnd turn1");
     } finally {
@@ -62,8 +62,8 @@ it("#4943 keeps React removals and insertions working after browser translation 
     const translated = document.createElement("font");
     translated.style.verticalAlign = "inherit";
     translated.textContent = "Atacar";
-    button.insertBefore(translated, text);
-    button.removeChild(text);
+    text.before(translated);
+    text.remove();
     await Promise.resolve();
     await act(async () => root.render(<View show={false} />));
     expect(container.querySelector("button")!.textContent).toBe("1");
@@ -133,8 +133,8 @@ it.each([true, false])("removes a translated label inserted after detachment wit
     const translated = document.createElement("font");
     translated.style.verticalAlign = "inherit";
     translated.textContent = "진화";
-    parent.removeChild(text);
-    parent.appendChild(translated);
+    text.remove();
+    parent.append(translated);
     await Promise.resolve();
     if (update) {
       await act(async () => root.render(<View show label="Choose a card" />));
@@ -143,6 +143,97 @@ it.each([true, false])("removes a translated label inserted after detachment wit
     await act(async () => root.render(<View show={false} />));
     expect(parent.querySelector("font")).toBeNull();
     expect(parent.querySelector("svg")).not.toBeNull();
+  } finally {
+    await act(async () => root.unmount());
+    dispose();
+    container.remove();
+  }
+});
+
+it("keeps React updates working when a translator swaps a Text node for another Text node", async () => {
+  const container = document.createElement("div");
+  document.body.append(container);
+  const dispose = installTranslationCompatibility(container);
+  const root = createRoot(container);
+  function View({ label, show = true }: { label: string; show?: boolean }) {
+    return (
+      <header>
+        <span>
+          <svg />
+          {show && label}
+          <b>1</b>
+        </span>
+      </header>
+    );
+  }
+  try {
+    await act(async () => root.render(<View label="Your turn" />));
+    const parent = container.querySelector("span")!;
+    const text = parent.childNodes[1]!;
+    parent.replaceChild(document.createTextNode("당신의 차례"), text);
+    await Promise.resolve();
+    await act(async () => root.render(<View label="Opponent's turn" />));
+    expect(parent.textContent).toBe("Opponent's turn1");
+    await act(async () => root.render(<View label="Opponent's turn" show={false} />));
+    expect(parent.textContent).toBe("1");
+    await act(async () => root.render(<View label="Digivolve" />));
+    expect(parent.textContent).toBe("Digivolve1");
+  } finally {
+    await act(async () => root.unmount());
+    dispose();
+    container.remove();
+  }
+});
+
+it("keeps React insertions working when a translator merges several Text nodes into one", async () => {
+  const container = document.createElement("div");
+  document.body.append(container);
+  const dispose = installTranslationCompatibility(container);
+  const root = createRoot(container);
+  function View({ turn, prefix }: { turn: number; prefix?: boolean }) {
+    return (
+      <span>
+        {prefix && <i>!</i>}
+        Turn {turn}
+      </span>
+    );
+  }
+  try {
+    await act(async () => root.render(<View turn={3} />));
+    const parent = container.querySelector("span")!;
+    parent.replaceChildren(document.createTextNode("턴 3"));
+    await Promise.resolve();
+    await act(async () => root.render(<View turn={4} prefix />));
+    expect(parent.querySelector("i")).not.toBeNull();
+  } finally {
+    await act(async () => root.unmount());
+    dispose();
+    container.remove();
+  }
+});
+
+it("inserts at the vacated position when a translator removes a Text node without a replacement", async () => {
+  const container = document.createElement("div");
+  document.body.append(container);
+  const dispose = installTranslationCompatibility(container);
+  const root = createRoot(container);
+  function View({ badge }: { badge?: boolean }) {
+    return (
+      <span>
+        <i>A</i>
+        {badge && <b>B</b>}
+        {"Level 3"}
+        <u>C</u>
+      </span>
+    );
+  }
+  try {
+    await act(async () => root.render(<View />));
+    const parent = container.querySelector("span")!;
+    parent.childNodes[1]!.remove();
+    await Promise.resolve();
+    await act(async () => root.render(<View badge />));
+    expect([...parent.children].map((child) => child.tagName)).toEqual(["I", "B", "U"]);
   } finally {
     await act(async () => root.unmount());
     dispose();
