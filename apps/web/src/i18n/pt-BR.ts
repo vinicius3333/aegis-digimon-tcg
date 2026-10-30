@@ -1561,7 +1561,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.phaseBanner.end": "Fim do turno",
   "feed.noHistory": "Nenhuma ação ainda",
   "feed.closeLog": "Fechar o registro de jogadas",
-  "feed.logTitle": "Registro de jogadas",
+  "feed.showFieldReferences": "Mostrar ID ao lado do nome das cartas",
   "feed.openCard": "Abrir {card}",
 
   "showcase.opponentPlayed": "O oponente jogou {card}",

@@ -1814,7 +1814,7 @@ const interfaceMessages = {
   "game.phaseBanner.end": "Zugende",
   "feed.noHistory": "Noch keine Aktionen",
   "feed.closeLog": "Spielprotokoll schließen",
-  "feed.logTitle": "Spielprotokoll",
+  "feed.showFieldReferences": "IDs neben Kartennamen anzeigen",
   "feed.openCard": "{card} öffnen",
   "showcase.opponentPlayed": "Der Gegner hat {card} ausgespielt",
   "showcase.youPlayed": "Sie haben {card} ausgespielt",

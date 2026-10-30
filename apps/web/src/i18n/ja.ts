@@ -1771,7 +1771,7 @@ const interfaceMessages = {
   "game.phaseBanner.end": "ターン終了",
   "feed.noHistory": "まだ行動はありません",
   "feed.closeLog": "プレイログを閉じる",
-  "feed.logTitle": "プレイログ",
+  "feed.showFieldReferences": "カード名の横にIDを表示",
   "feed.openCard": "{card}を開く",
   "showcase.opponentPlayed": "相手は{card}を登場させました",
   "showcase.youPlayed": "あなたは{card}を登場させました",

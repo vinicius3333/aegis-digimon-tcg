@@ -1554,7 +1554,7 @@ export const en = {
   "game.phaseBanner.end": "End of turn",
   "feed.noHistory": "No actions yet",
   "feed.closeLog": "Close the play log",
-  "feed.logTitle": "Play log",
+  "feed.showFieldReferences": "Show IDs next to card names",
   "feed.openCard": "Open {card}",
 
   "showcase.opponentPlayed": "Opponent played {card}",

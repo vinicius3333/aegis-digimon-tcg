@@ -1778,7 +1778,7 @@ const interfaceMessages = {
   "game.phaseBanner.end": "Akhir giliran",
   "feed.noHistory": "Belum ada aksi",
   "feed.closeLog": "Tutup log permainan",
-  "feed.logTitle": "Log permainan",
+  "feed.showFieldReferences": "Tampilkan ID di samping nama kartu",
   "feed.openCard": "Buka {card}",
   "showcase.opponentPlayed": "Lawan memainkan {card}",
   "showcase.youPlayed": "Anda memainkan {card}",

@@ -1756,7 +1756,7 @@ const interfaceMessages = {
   "game.phaseBanner.end": "턴 종료",
   "feed.noHistory": "아직 행동이 없습니다",
   "feed.closeLog": "플레이 로그 닫기",
-  "feed.logTitle": "플레이 로그",
+  "feed.showFieldReferences": "카드 이름 옆에 ID 표시",
   "feed.openCard": "{card} 열기",
   "showcase.opponentPlayed": "상대가 {card}을(를) 등장시켰습니다",
   "showcase.youPlayed": "{card}을(를) 등장시켰습니다",
