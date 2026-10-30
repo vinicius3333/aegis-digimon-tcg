@@ -170,25 +170,6 @@ export function AvatarMenu({
           </span>
           <strong>{name}</strong>
         </div>
-        <section className="avatar-picker__contexts" aria-hidden="true">
-          <h3>{t("account.avatar.previewTitle")}</h3>
-          <span>{t("account.avatar.preview.navbar")}</span>
-          <div className="avatar-picker__context avatar-picker__context--navbar">
-            <Avatar name={name} avatarId={avatarId} avatarUrl={avatarUrl} color={color} size={28} />
-            <span>{name}</span>
-            <Icons.ChevronDown size={14} aria-hidden="true" />
-          </div>
-          <span>{t("account.avatar.preview.match")}</span>
-          <div className="avatar-picker__context avatar-picker__context--match">
-            <Avatar name={name} avatarId={avatarId} avatarUrl={avatarUrl} color={color} size={36} ring />
-            <span>{name}</span>
-          </div>
-          <span>{t("account.avatar.preview.friends")}</span>
-          <div className="avatar-picker__context">
-            <Avatar name={name} avatarId={avatarId} avatarUrl={avatarUrl} color={color} size={32} />
-            <span>{name}</span>
-          </div>
-        </section>
         <button
           type="button"
           className="avatar-picker__row"
