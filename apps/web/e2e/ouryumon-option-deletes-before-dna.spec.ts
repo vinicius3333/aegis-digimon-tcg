@@ -8,7 +8,7 @@ test("keeps a used Option's DNA choice independent of an accepted Ouryumon resol
   scenario,
   page,
 }) => {
-  await page.route(/\/assets\/card-images\/BT27-(015|103)(?:-Sample)?\.webp$/, (route) => {
+  await page.route(/\/assets\/card-images\/BT27-(015|103)(?:-Sample)?\.webp(?:\?.*)?$/, (route) => {
     const cardId = new URL(route.request().url()).pathname.split("/").pop()!.replace("-Sample", "");
     return route.fulfill({
       contentType: "image/webp",

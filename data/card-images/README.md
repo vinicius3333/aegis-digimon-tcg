@@ -54,13 +54,22 @@ mapping file that names the printing for each scan, or `null` to skip it:
 Printings that differ only by a stamp, such as WINNER promos, always need a
 mapping. The fingerprint cannot tell them apart.
 
+### Browser cache
+
+Browsers cache card images for one year. To make every player download the
+images again after you add, update, or remove scans, change
+`CARD_IMAGE_CACHE_VERSION` in `packages/shared/src/cards/mirroredCardImageUrl.ts`
+to today's date. Every image URL carries it as `?v=<version>`, so the next web
+release requests new URLs. Each change makes players download every card image
+they view once more, so change it only when images change.
+
 To remove a clean scan, delete its file. The next sync keeps the old mirror
 copy; delete `<id>.webp` from the gateway mirror to download the origin image
 again.
 
 ### First batch
 
-The first batch of 501 scans was provided by **Rukasu** on 2026-10-30 as 430 x 600 PNG
+The first batch of 501 scans was provided by **Karasu Komadreja** on 2026-10-30 as 430 x 600 PNG
 files named by UUID. Each file was matched to its printing by image similarity
 against the watermarked mirror image, then encoded as WebP at quality 90. It
 covers BT22, BT23, EX10, EX11 and their alternate arts, alternate arts from
