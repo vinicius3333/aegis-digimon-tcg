@@ -31,8 +31,8 @@ export function getPackPullRates({ setId }: Params): PackPullRates {
     alternateArtsPerBox = 2;
     superRaresPerBox = 2;
     secretRaresPerBox = 1;
-    label = "RB1 new-card approximation";
-    limitation = "New cards only; the catalog omits RB1 reprints and promo slots.";
+    label = "RB1 approximation";
+    limitation = "Includes the English RB-01 reprints; promo-rarity reprints and box promotion slots are omitted.";
   }
   if (hasUltimateRare) {
     label = `${setId} estimate`;
