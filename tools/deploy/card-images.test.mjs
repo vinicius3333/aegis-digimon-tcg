@@ -2,7 +2,13 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { CARD_IMAGE_ORIGINS, LOCAL_CARD_IMAGES, cardImageIds, syncCardImages } from "./card-images.mjs";
+import {
+  CARD_IMAGE_ORIGINS,
+  LOCAL_CARD_IMAGES,
+  LOCAL_CLEAN_CARD_IMAGES,
+  cardImageIds,
+  syncCardImages,
+} from "./card-images.mjs";
 
 const webp = (label) => Buffer.concat([Buffer.from("RIFF\0\0\0\0WEBP"), Buffer.from(label)]);
 
@@ -154,11 +160,42 @@ test("refreshes a sample when its local scan changes", async (t) => {
   assert.equal(readFileSync(`${paths.destination}/BT27-040-Sample.webp`, "utf8").slice(12), "cropped");
 });
 
-test("keeps only local scans the card catalog still references", () => {
+test("replaces a watermarked mirror image and its sample with the clean local scan", async (t) => {
+  const paths = fixture(t, [{ cardId: "BT22-029" }]);
+  const scan = `${paths.source}/${LOCAL_CLEAN_CARD_IMAGES}/BT22-029.webp`;
+  mkdirSync(`${paths.source}/${LOCAL_CLEAN_CARD_IMAGES}`, { recursive: true });
+  mkdirSync(paths.destination, { recursive: true });
+  writeFileSync(scan, webp("clean"));
+  writeFileSync(`${paths.destination}/BT22-029.webp`, webp("watermarked"));
+  writeFileSync(`${paths.destination}/BT22-029-Sample.webp`, webp("sample"));
+  const { fetch, requests } = fakeFetch({ [`${bucket}/BT22-029.webp`]: webp("watermarked") });
+
+  assert.deepEqual(await syncCardImages({ ...paths, fetch }), { present: 0, downloaded: 1, missing: [] });
+  assert.equal(readFileSync(`${paths.destination}/BT22-029.webp`, "utf8").slice(12), "clean");
+  assert.equal(existsSync(`${paths.destination}/BT22-029-Sample.webp`), false);
+  assert.deepEqual(requests, []);
+
+  assert.deepEqual(await syncCardImages({ ...paths, fetch }), { present: 1, downloaded: 0, missing: [] });
+
+  writeFileSync(scan, webp("recropped"));
+  assert.deepEqual(await syncCardImages({ ...paths, fetch }), { present: 0, downloaded: 1, missing: [] });
+  assert.equal(readFileSync(`${paths.destination}/BT22-029.webp`, "utf8").slice(12), "recropped");
+});
+
+for (const directory of [LOCAL_CARD_IMAGES, LOCAL_CLEAN_CARD_IMAGES]) {
+  test(`keeps only ${directory} scans the card catalog still references`, () => {
+    const root = new URL("../..", import.meta.url).pathname;
+    const referenced = new Set(cardImageIds(root));
+    const orphans = readdirSync(`${root}/${directory}`)
+      .filter((name) => name.endsWith(".webp"))
+      .filter((name) => !referenced.has(name.slice(0, -".webp".length)));
+    assert.deepEqual(orphans, []);
+  });
+}
+
+test("keeps no sample scan for a printing that has a clean scan", () => {
   const root = new URL("../..", import.meta.url).pathname;
-  const referenced = new Set(cardImageIds(root));
-  const orphans = readdirSync(`${root}/${LOCAL_CARD_IMAGES}`)
-    .filter((name) => name.endsWith(".webp"))
-    .filter((name) => !referenced.has(name.slice(0, -".webp".length)));
-  assert.deepEqual(orphans, []);
+  const clean = new Set(readdirSync(`${root}/${LOCAL_CLEAN_CARD_IMAGES}`));
+  const superseded = readdirSync(`${root}/${LOCAL_CARD_IMAGES}`).filter((name) => clean.has(name));
+  assert.deepEqual(superseded, []);
 });
