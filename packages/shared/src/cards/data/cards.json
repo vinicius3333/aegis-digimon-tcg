@@ -110572,5 +110572,175 @@
     "maxCountInDeck": 4,
     "imageId": "BT27-034",
     "nameJp": "エグザモンX抗体"
+  },
+  {
+    "cardId": "BT27-042",
+    "set": "BT27",
+    "nameEn": "KingChessmon",
+    "nameJp": "キングチェスモン",
+    "colors": ["Yellow", "Black"],
+    "kinds": ["Digimon"],
+    "level": 6,
+    "playCost": 13,
+    "dp": 11000,
+    "evoCosts": [
+      {
+        "color": "Yellow",
+        "level": 5,
+        "memoryCost": 3
+      },
+      {
+        "color": "Black",
+        "level": 5,
+        "memoryCost": 3
+      }
+    ],
+    "forms": ["Mega"],
+    "attributes": ["Virus"],
+    "types": ["Puppet", "DATA SQUAD"],
+    "effectText": "[Digivolve] Lv.5 w/[Chessmon] in name or w/[DATA SQUAD] trait: Cost 3\n[Assembly -5] Lv.5 × Lv.4 × Lv.3, all w/[Chessmon] in name\n\n[On Play] [When Digivolving] You may play 1 play cost 7 or lower Digimon card with [Chessmon] in its name from your hand without paying the cost.\n[On Deletion] ＜Recovery +1＞. Then, by suspending 1 of your [QueenChessmon], you may play this card from your trash to the breeding area without paying the cost.",
+    "rarity": "R",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-042"
+  },
+  {
+    "cardId": "BT27-057",
+    "set": "BT27",
+    "nameEn": "PawnChessmon",
+    "nameJp": "ポーンチェスモン",
+    "colors": ["Black", "Yellow"],
+    "kinds": ["Digimon"],
+    "level": 3,
+    "playCost": 3,
+    "dp": 2000,
+    "evoCosts": [
+      {
+        "color": "Black",
+        "level": 2,
+        "memoryCost": 1
+      },
+      {
+        "color": "Yellow",
+        "level": 2,
+        "memoryCost": 1
+      }
+    ],
+    "forms": ["Rookie"],
+    "attributes": ["Virus"],
+    "types": ["Puppet", "DATA SQUAD"],
+    "effectText": "[Digivolve] Lv.2 w/[Chessmon] in text or w/[DATA SQUAD] trait: Cost 0\n[Start of Your Main Phase] By trashing 1 card with [Chessmon] in its text from your hand, ＜Draw 1＞ and gain 1 memory.",
+    "inheritedEffectText": "[On Deletion] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
+    "rarity": "C",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-057"
+  },
+  {
+    "cardId": "BT27-061",
+    "set": "BT27",
+    "nameEn": "KnightChessmon",
+    "nameJp": "ナイトチェスモン",
+    "colors": ["Black", "Yellow"],
+    "kinds": ["Digimon"],
+    "level": 4,
+    "playCost": 4,
+    "dp": 4000,
+    "evoCosts": [
+      {
+        "color": "Black",
+        "level": 3,
+        "memoryCost": 3
+      },
+      {
+        "color": "Yellow",
+        "level": 3,
+        "memoryCost": 3
+      }
+    ],
+    "forms": ["Champion"],
+    "attributes": ["Virus"],
+    "types": ["Puppet", "DATA SQUAD"],
+    "effectText": "[Digivolve] Lv.3 w/[Chessmon] in name or w/[DATA SQUAD] trait: Cost 2\n＜Blocker＞\n[On Deletion] You may play 1 play cost 4 or lower Digimon card with [Chessmon] in its name from your hand without paying the cost.",
+    "inheritedEffectText": "[On Deletion] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
+    "rarity": "C",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-061"
+  },
+  {
+    "cardId": "BT27-066",
+    "set": "BT27",
+    "nameEn": "RookChessmon",
+    "nameJp": "ルークチェスモン",
+    "colors": ["Black", "Yellow"],
+    "kinds": ["Digimon"],
+    "level": 5,
+    "playCost": 7,
+    "dp": 7000,
+    "evoCosts": [
+      {
+        "color": "Black",
+        "level": 4,
+        "memoryCost": 4
+      },
+      {
+        "color": "Yellow",
+        "level": 4,
+        "memoryCost": 4
+      }
+    ],
+    "forms": ["Ultimate"],
+    "attributes": ["Virus"],
+    "types": ["Puppet", "DATA SQUAD"],
+    "effectText": "[Digivolve] Lv.4 w/[Chessmon] in name or w/[DATA SQUAD] trait: Cost 3\n＜Reboot＞\n＜Blocker＞\n[On Play] [On Deletion] To 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of your other Digimon with [Chessmon] in their names. Then, delete 1 of your opponent's Digimon with a play cost of 5 or less.",
+    "inheritedEffectText": "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to this Digimon.",
+    "rarity": "U",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-066"
+  },
+  {
+    "cardId": "BT27-069",
+    "set": "BT27",
+    "nameEn": "QueenChessmon",
+    "nameJp": "クイーンチェスモン",
+    "colors": ["Black", "Yellow"],
+    "kinds": ["Digimon"],
+    "level": 6,
+    "playCost": 12,
+    "dp": 12000,
+    "evoCosts": [
+      {
+        "color": "Black",
+        "level": 5,
+        "memoryCost": 4
+      },
+      {
+        "color": "Yellow",
+        "level": 5,
+        "memoryCost": 4
+      }
+    ],
+    "forms": ["Mega"],
+    "attributes": ["Virus"],
+    "types": ["Puppet", "DATA SQUAD"],
+    "effectText": "[Digivolve] Lv.5 w/[Chessmon] in name or w/[DATA SQUAD] trait: Cost 3\n[Assembly -5] Lv.5 × Lv.4 × Lv.3, all w/[Chessmon] in name\n\n＜Rush＞\n＜Overclock ([Chessmon] in name)＞\n＜Blocker＞\n[On Play] [When Digivolving] ＜De-Digivolve 3＞ 1 of your opponent's Digimon.\n[All Turns] [Once Per Turn] When any of your other Digimon with [Chessmon] in their names are deleted, delete 1 of your opponent's lowest play cost Digimon. If this effect didn't delete, trash their top security card.",
+    "rarity": "R",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-069"
+  },
+  {
+    "cardId": "BT27-093",
+    "set": "BT27",
+    "nameEn": "Miki Kurosaki & Megumi Shirakawa",
+    "nameJp": "黒崎美樹＆白川恵",
+    "colors": ["Black", "Yellow"],
+    "kinds": ["Tamer"],
+    "playCost": 4,
+    "dp": 0,
+    "evoCosts": [],
+    "types": ["DATA SQUAD"],
+    "effectText": "[Start of Your Main Phase] By placing 1 card with [Chessmon] in its text from your hand face down under this Tamer, ＜Draw 1＞ and gain 1 memory.\n[Main] By suspending this Tamer and trashing 2 bottom face-down cards from under any of your Tamers, 1 of your Digimon may digivolve into a Digimon card with [Chessmon] in its name in the hand with the cost reduced by 2.",
+    "securityEffectText": "[Security] Play this card without paying the cost.",
+    "rarity": "C",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-093"
   }
 ]
