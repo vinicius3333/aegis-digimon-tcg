@@ -1,6 +1,6 @@
 import { useProfileTrophiesShown } from "@/achievements/useProfileTrophiesShown";
 import { setProfileTrophiesShown } from "@/achievements/setProfileTrophiesShown";
-import { useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import type { MatchHistorySummary, MatchWinRate } from "@aegis/shared";
 import { Avatar, Badge, Switch, type PlayerIdentity } from "../design/primitives";
 import { Icons } from "../design/icons";
@@ -30,6 +30,7 @@ export function ProfileIdentity({
   onAccountChange,
   onGuestChange,
   onRefreshDiscordAvatar,
+  avatarMenuRequest,
 }: {
   account: RemoteAccount | null | undefined;
   player: PlayerIdentity;
@@ -38,6 +39,7 @@ export function ProfileIdentity({
   onAccountChange?: (account: RemoteAccount) => void;
   onGuestChange?: (name: string, avatarId: DigimonWorldAvatarId | null) => void;
   onRefreshDiscordAvatar?: () => Promise<void>;
+  avatarMenuRequest?: number;
 }) {
   const { t, locale } = useTranslation();
   const statsShown = useProfileStatsShown();
@@ -49,6 +51,10 @@ export function ProfileIdentity({
   const [draft, setDraft] = useState("");
   const [saving, setSaving] = useState(false);
   const [nameError, setNameError] = useState<TranslationKey>();
+  const accountLoaded = account !== undefined;
+  useEffect(() => {
+    if (avatarMenuRequest !== undefined && accountLoaded) setMenuOpen(true);
+  }, [avatarMenuRequest, accountLoaded]);
   const name = account?.displayName ?? player.name;
   const guestAvatar = player.guestAvatarId ?? player.avatarId ?? null;
   const selected: AvatarSelection = account

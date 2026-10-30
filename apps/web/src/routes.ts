@@ -12,6 +12,7 @@ export type TournamentRoute =
 export interface AppRoute {
   screen: Screen;
   profile?: boolean;
+  avatarMenuRequest?: number;
   settingsSectionId?: string;
   /** Only shared replay links open the replays screen; `/replays` itself redirects to the profile. */
   replayId?: string;

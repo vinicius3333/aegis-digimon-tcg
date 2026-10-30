@@ -1112,6 +1112,7 @@ function LoadedAegisClient({
                     }))
                   }
                   onRefreshDiscordAvatar={account?.discordLinked ? refreshDiscordAvatar : undefined}
+                  avatarMenuRequest={route.avatarMenuRequest}
                 />
               )}
               {screen === "settings" && !route.profile && (
@@ -1234,6 +1235,7 @@ function LoadedAegisClient({
             isAdmin={account?.isAdmin === true}
             onNav={navigateScreen}
             onProfile={() => navigate({ screen: "settings", profile: true })}
+            onChangeAvatar={() => navigate({ screen: "settings", profile: true, avatarMenuRequest: Date.now() })}
             onSignOut={
               account
                 ? () => {
