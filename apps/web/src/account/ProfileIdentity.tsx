@@ -1,6 +1,6 @@
 import { useProfileTrophiesShown } from "@/achievements/useProfileTrophiesShown";
 import { setProfileTrophiesShown } from "@/achievements/setProfileTrophiesShown";
-import { useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
 import type { MatchHistorySummary, MatchWinRate } from "@aegis/shared";
 import { Avatar, Badge, Switch, type PlayerIdentity } from "../design/primitives";
 import { Icons } from "../design/icons";
@@ -30,6 +30,7 @@ export function ProfileIdentity({
   onAccountChange,
   onGuestChange,
   onRefreshDiscordAvatar,
+  avatarMenuRequest,
 }: {
   account: RemoteAccount | null | undefined;
   player: PlayerIdentity;
@@ -38,17 +39,21 @@ export function ProfileIdentity({
   onAccountChange?: (account: RemoteAccount) => void;
   onGuestChange?: (name: string, avatarId: DigimonWorldAvatarId | null) => void;
   onRefreshDiscordAvatar?: () => Promise<void>;
+  avatarMenuRequest?: number;
 }) {
   const { t, locale } = useTranslation();
   const statsShown = useProfileStatsShown();
   const trophiesShown = useProfileTrophiesShown();
   const hintId = useId();
-  const avatarButton = useRef<HTMLButtonElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
   const [saving, setSaving] = useState(false);
   const [nameError, setNameError] = useState<TranslationKey>();
+  const accountLoaded = account !== undefined;
+  useEffect(() => {
+    if (avatarMenuRequest !== undefined && accountLoaded) setMenuOpen(true);
+  }, [avatarMenuRequest, accountLoaded]);
   const name = account?.displayName ?? player.name;
   const guestAvatar = player.guestAvatarId ?? player.avatarId ?? null;
   const selected: AvatarSelection = account
@@ -120,7 +125,6 @@ export function ProfileIdentity({
     <section className="profile-identity" aria-label={t("profile.title")}>
       <div className="profile-identity__main">
         <button
-          ref={avatarButton}
           type="button"
           className="profile-identity__avatar"
           aria-label={t("profile.changeAvatar")}
@@ -229,9 +233,10 @@ export function ProfileIdentity({
       ) : null}
       {menuOpen ? (
         <AvatarMenu
-          anchor={avatarButton.current}
           name={name}
           color={player.color}
+          avatarId={account ? account.avatarId : guestAvatar}
+          avatarUrl={account?.avatarUrl ?? null}
           selected={selected}
           discordLinked={account?.discordLinked === true}
           onSelect={selectAvatar}

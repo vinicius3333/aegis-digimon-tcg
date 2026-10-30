@@ -231,6 +231,7 @@ it("saves avatar choices immediately, including initials over a linked Discord p
   fireEvent.click(screen.getByRole("button", { name: "Change avatar" }));
   let menu = screen.getByRole("dialog", { name: "Choose avatar" });
   expect(within(menu).getByRole("button", { name: "Use Discord avatar" }).getAttribute("aria-pressed")).toBe("true");
+  fireEvent.click(within(menu).getByRole("tab", { name: "Digimon" }));
   fireEvent.change(within(menu).getByRole("searchbox", { name: "Search Digimon" }), { target: { value: "grey" } });
   expect(within(menu).queryByRole("button", { name: "Use Numemon as your avatar" })).toBeNull();
   fireEvent.click(within(menu).getByRole("button", { name: "Use Greymon as your avatar" }));
@@ -240,7 +241,7 @@ it("saves avatar choices immediately, including initials over a linked Discord p
 
   fireEvent.click(screen.getByRole("button", { name: "Change avatar" }));
   menu = screen.getByRole("dialog", { name: "Choose avatar" });
-  fireEvent.click(within(menu).getByRole("button", { name: "Use default avatar" }));
+  fireEvent.click(within(menu).getByRole("button", { name: "Use initials instead" }));
   await waitFor(() => expect(updateAvatar).toHaveBeenLastCalledWith("initials"));
 });
 
@@ -271,7 +272,7 @@ it("lets a guest rename and pick an avatar on this device", async () => {
   expect(within(menu).getByRole("button", { name: "Use Greymon as your avatar" }).getAttribute("aria-pressed")).toBe(
     "true",
   );
-  fireEvent.click(within(menu).getByRole("button", { name: "Use default avatar" }));
+  fireEvent.click(within(menu).getByRole("button", { name: "Use initials instead" }));
   await waitFor(() => expect(onGuestChange).toHaveBeenCalledWith("Guest Tamer", null));
   fireEvent.click(screen.getByRole("button", { name: "Edit name: Guest Tamer" }));
   fireEvent.change(screen.getByRole("textbox", { name: "Nickname" }), { target: { value: "  Tai   Kamiya " } });

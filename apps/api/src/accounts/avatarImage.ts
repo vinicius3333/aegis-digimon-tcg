@@ -1,3 +1,5 @@
+import { MAX_AVATAR_BYTES } from "@aegis/shared/account/maxAvatarBytes";
+
 /** Bytes of a profile picture after validation, with every metadata segment removed. */
 export type AvatarImage = {
   bytes: Buffer;
@@ -16,8 +18,6 @@ export class AvatarImageError extends Error {
   }
 }
 
-/** The client compresses before uploading; this is the ceiling the API enforces, not a suggestion. */
-export const MAX_AVATAR_BYTES = 256 * 1024;
 /** Guards the decoder and the browser; a portrait larger than this is scaled down client-side. */
 export const MAX_AVATAR_DIMENSION = 1024;
 

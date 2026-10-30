@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Dialog } from "../design/primitives";
 import { useTranslation } from "../i18n";
+import { AVATAR_EDGE } from "./encodeAvatarWithinLimit";
 import {
-  AVATAR_EDGE,
   CENTRED_AVATAR_CROP,
   MAX_AVATAR_ZOOM,
   MIN_AVATAR_ZOOM,
