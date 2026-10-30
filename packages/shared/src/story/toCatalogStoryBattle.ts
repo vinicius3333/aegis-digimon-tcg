@@ -4,6 +4,7 @@ import type { StoryCatalogBattle } from "#shared/story/StoryCatalogBattle";
 import { worldStoryBattles } from "#shared/story/worldStoryBattles";
 import { storyDeckCoverCards } from "#shared/story/storyDeckCoverCards";
 import { storyCanonicalDefeatBattleIds } from "#shared/story/storyCanonicalDefeatBattleIds";
+import { mirroredCardImageUrl } from "#shared/cards/mirroredCardImageUrl";
 
 export function toCatalogStoryBattle(battle: StoryCatalogBattle): StoryBattle {
   const existing = worldStoryBattles.find((entry) => entry.id === battle.id.toLowerCase());
@@ -31,6 +32,6 @@ export function toCatalogStoryBattle(battle: StoryCatalogBattle): StoryBattle {
     adapted: true,
     chapters: [],
     sourceUrl: battle.sourceUrl,
-    coverImageUrl: `/assets/card-images/${battle.opponentCoverCardId ?? storyDeckCoverCards[battle.opponentDeckRef]}.webp`,
+    coverImageUrl: mirroredCardImageUrl(battle.opponentCoverCardId ?? storyDeckCoverCards[battle.opponentDeckRef]),
   };
 }

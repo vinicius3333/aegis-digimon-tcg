@@ -1,8 +1,6 @@
 import { resolveCardArt } from "./arts.js";
+import { mirroredCardImageUrl } from "./mirroredCardImageUrl.js";
 import { TOKEN_ID_PREFIX } from "./tokens.js";
-
-/** Mirrored by tools/deploy/card-images.mjs; the dev server proxies it to the upstream bucket. */
-const CARD_IMAGE_BASE = "/assets/card-images";
 
 /**
  * An errata printing's own image plus the pre-errata one, so a card whose errata art is
@@ -34,6 +32,6 @@ export function cardImageUrls(cardId: string | undefined, artId?: string): strin
   const selected = imageCandidates(resolveCardArt(cardId, artId).imageId);
   const base = imageCandidates(resolveCardArt(cardId).imageId);
   const ids = [...new Set([...selected, ...base])];
-  const mirrored = ids.flatMap((id) => [`${CARD_IMAGE_BASE}/${id}.webp`, `${CARD_IMAGE_BASE}/${id}-Sample.webp`]);
+  const mirrored = ids.flatMap((id) => [mirroredCardImageUrl(id), mirroredCardImageUrl(`${id}-Sample`)]);
   return [...mirrored, `https://world.digimoncard.com/images/cardlist/card/${cardId}.png`];
 }

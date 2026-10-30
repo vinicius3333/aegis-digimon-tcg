@@ -10,7 +10,7 @@ for (const viewport of [
   test(`DATA SQUAD birds place, discard, recruit and pay Tamer cards at ${viewport.width}px`, async ({ scenario }) => {
     await scenario.page.setViewportSize(viewport);
     await stubCardArtwork(scenario.page);
-    await scenario.page.route(/\/assets\/card-images\/BT27-(074|078|081)(?:-Sample)?\.webp$/, (route) => {
+    await scenario.page.route(/\/assets\/card-images\/BT27-(074|078|081)(?:-Sample)?\.webp(?:\?.*)?$/, (route) => {
       const cardId = new URL(route.request().url()).pathname.split("/").pop()!.replace("-Sample", "");
       return route.fulfill({
         contentType: "image/webp",
