@@ -15528,5 +15528,27 @@
   },
   "BT27-052": {
     "[Digivolve]Lv.5w/[GlowingDawn]trait:Cost4[Digivolve][Atratusmon]w/oplaycost:Cost2<SecurityA.+1><Reboot><Blocker>[OnPlay][WhenDigivolving][WhenAttacking][OncePerTurn]ThisDigimonmaybattle1ofyouropponent'sDigimon.[OnPlay][WhenDigivolving]Bytrashing2bottomface-downcardsfromunderanyofyourTamers,youmayplayoruse1playorusecost6orlower[GlowingDawn]traitcardfromyourhandoryourDigimon'sdigivolutioncardswithoutpayingthecost.[Assembly-5]Lv.5×Lv.4×Lv.3,allw/[GlowingDawn]trait": "〔進化〕特徴「グローイングドーン」を持つLv.5:コスト4\n〔進化〕登場コストを持たない「アトラタスモン」:コスト2\n≪Sアタック+1≫ ≪再起動≫ ≪ブロッカー≫\n【登場時】【進化時】【アタック時】【ターンに1回】このデジモンと相手のデジモン1体でバトルできる。\n【登場時】【進化時】自分のテイマーの下にある裏向きのカードを下から2枚破棄することで、自分の手札かデジモンの進化元から、特徴「グローイングドーン」を持つ登場/使用コスト6以下のカード1枚をコストを支払わずに登場/使用できる。\n≪アセンブリ-5≫ 特徴「グローイングドーン」を持つLv.5×Lv.4×Lv.3"
+  },
+  "BT27-042": {
+    "[Digivolve]Lv.5w/[Chessmon]innameorw/[DATASQUAD]trait:Cost3[Assembly-5]Lv.5×Lv.4×Lv.3,allw/[Chessmon]inname[OnPlay][WhenDigivolving]Youmayplay1playcost7orlowerDigimoncardwith[Chessmon]initsnamefromyourhandwithoutpayingthecost.[OnDeletion]<Recovery+1>.Then,bysuspending1ofyour[QueenChessmon],youmayplaythiscardfromyourtrashtothebreedingareawithoutpayingthecost.": "〔進化〕名称に「チェスモン」を含むLv.5/特徴「セイバーズ」を持つLv.5:コスト3\nアセンブリ-5:名称に「チェスモン」を含む、Lv.5×Lv.4×Lv.3\n\n【登場時】【進化時】自分の手札から、名称に「チェスモン」を含む登場コスト7以下のデジモンカード1枚をコストを支払わず登場できる。\n【消滅時】≪リカバリー+1≫。その後、自分の「クイーンチェスモン」1体をレストさせることで、自分のトラッシュから、このカードを育成エリアにコストを支払わず登場できる。"
+  },
+  "BT27-057": {
+    "[Digivolve]Lv.2w/[Chessmon]intextorw/[DATASQUAD]trait:Cost0[StartofYourMainPhase]Bytrashing1cardwith[Chessmon]initstextfromyourhand,<Draw1>andgain1memory.": "〔進化〕「チェスモン」の記述があるLv.2/特徴「セイバーズ」を持つLv.2:コスト0\n【自分のメインフェイズ開始時】自分の手札から、「チェスモン」の記述があるカード1枚を破棄することで、≪1ドロー≫、メモリー+1。",
+    "[OnDeletion]<De-Digivolve1>1ofyouropponent'sDigimon.": "【消滅時】相手のデジモン1体を≪退化1≫。"
+  },
+  "BT27-061": {
+    "[Digivolve]Lv.3w/[Chessmon]innameorw/[DATASQUAD]trait:Cost2<Blocker>[OnDeletion]Youmayplay1playcost4orlowerDigimoncardwith[Chessmon]initsnamefromyourhandwithoutpayingthecost.": "〔進化〕名称に「チェスモン」を含むLv.3/特徴「セイバーズ」を持つLv.3:コスト2\n≪ブロッカー≫\n【消滅時】自分の手札から、名称に「チェスモン」を含む登場コスト4以下のデジモンカード1枚をコストを支払わず登場できる。",
+    "[OnDeletion]<De-Digivolve1>1ofyouropponent'sDigimon.": "【消滅時】相手のデジモン1体を≪退化1≫。"
+  },
+  "BT27-066": {
+    "[Digivolve]Lv.4w/[Chessmon]innameorw/[DATASQUAD]trait:Cost3<Reboot><Blocker>[OnPlay][OnDeletion]To1ofyouropponent'sDigimon,<De-Digivolve1>foreachofyourotherDigimonwith[Chessmon]intheirnames.Then,delete1ofyouropponent'sDigimonwithaplaycostof5orless.": "〔進化〕名称に「チェスモン」を含むLv.4/特徴「セイバーズ」を持つLv.4:コスト3\n≪再起動≫≪ブロッカー≫\n【登場時】【消滅時】相手のデジモン1体を名称に「チェスモン」を含む他の自分のデジモン1体ごとに、≪退化1≫。その後、登場コスト5以下の相手のデジモン1体を消滅させる。",
+    "[Opponent'sTurn][OncePerTurn]Whenoneofyouropponent'sDigimonattacks,youmaychangetheattacktargettothisDigimon.": "【相手のターン】[ターン1回]相手のデジモンがアタックしたとき、アタックの対象をこのデジモンに変更できる。"
+  },
+  "BT27-069": {
+    "[Digivolve]Lv.5w/[Chessmon]innameorw/[DATASQUAD]trait:Cost3[Assembly-5]Lv.5×Lv.4×Lv.3,allw/[Chessmon]inname<Rush><Overclock([Chessmon]inname)><Blocker>[OnPlay][WhenDigivolving]<De-Digivolve3>1ofyouropponent'sDigimon.[AllTurns][OncePerTurn]WhenanyofyourotherDigimonwith[Chessmon]intheirnamesaredeleted,delete1ofyouropponent'slowestplaycostDigimon.Ifthiseffectdidn'tdelete,trashtheirtopsecuritycard.": "〔進化〕名称に「チェスモン」を含むLv.5/特徴「セイバーズ」を持つLv.5:コスト3\nアセンブリ-5:名称に「チェスモン」を含む、Lv.5×Lv.4×Lv.3\n\n≪速攻≫≪オーバークロック《名称に「チェスモン」を含む》≫≪ブロッカー≫\n【登場時】【進化時】相手のデジモン1体を≪退化3≫。\n【お互いのターン】[ターン1回]名称に「チェスモン」を含む他の自分のデジモンが消滅したとき、最も登場コストの低い相手のデジモン1体を消滅させる。この効果で消滅しなかったなら、相手のセキュリティを上から1枚破棄する。"
+  },
+  "BT27-093": {
+    "[StartofYourMainPhase]Byplacing1cardwith[Chessmon]initstextfromyourhandfacedownunderthisTamer,<Draw1>andgain1memory.[Main]BysuspendingthisTamerandtrashing2bottomface-downcardsfromunderanyofyourTamers,1ofyourDigimonmaydigivolveintoaDigimoncardwith[Chessmon]initsnameinthehandwiththecostreducedby2.": "【自分のメインフェイズ開始時】自分の手札から、「チェスモン」の記述があるカード1枚をこのテイマーの下に裏向きで置くことで、≪1ドロー≫、メモリー+1。\n【メイン】このテイマーをレストさせ、自分のテイマーの下にある裏向きのカードを下から2枚破棄することで、自分のデジモン1体を手札の名称に「チェスモン」を含むデジモンカードに支払うコスト-2で進化できる。",
+    "[Security]Playthiscardwithoutpayingthecost.": "【セキュリティ】このカードをコストを支払わず登場させる。"
   }
 }
