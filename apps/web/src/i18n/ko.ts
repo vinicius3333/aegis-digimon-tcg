@@ -1098,6 +1098,9 @@ const interfaceMessages = {
   "game.shareCode": "이 링크를 친구에게 보내거나 {code} 코드를 공유하세요.",
   "game.creatingRoom": "비공개 방을 만드는 중…",
   "game.connectingPrivate": "비공개 방에 연결하는 중…",
+  "game.waitingSpectate": "관전자로 참가하는 중…",
+  "game.spectateDetail":
+    "이 대전을 관전 중이며 플레이하지 않습니다. 대기열에 있지 않으며, 나가도 전적에 영향을 주지 않습니다.",
   "game.queuedDetail":
     "{name}(으)로 대기 중입니다. 다른 플레이어가 참가하면 대전이 시작됩니다. 상대가 참가하기 전에 취소하면 패배로 처리되지 않습니다.",
   "game.clickToCopy": "클릭해서 복사",

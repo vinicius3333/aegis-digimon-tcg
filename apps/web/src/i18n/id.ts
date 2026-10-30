@@ -1109,6 +1109,9 @@ const interfaceMessages = {
   "game.shareCode": "Kirim tautan ini ke teman, atau bagikan kode {code}.",
   "game.creatingRoom": "Membuat ruang pribadi…",
   "game.connectingPrivate": "Menghubungkan ke ruang pribadi…",
+  "game.waitingSpectate": "Bergabung sebagai penonton…",
+  "game.spectateDetail":
+    "Anda menonton pertandingan ini, bukan bermain. Anda tidak sedang dalam antrean, dan keluar tidak memengaruhi rekor Anda.",
   "game.queuedDetail":
     "Anda masuk antrean sebagai {name}. Pertandingan dimulai saat pemain lain bergabung. Membatalkan sebelum lawan bergabung tidak dihitung sebagai kekalahan.",
   "game.clickToCopy": "Klik untuk menyalin",

@@ -888,6 +888,9 @@ export const en = {
   "game.shareCode": "Send this link to a friend, or share the code {code}.",
   "game.creatingRoom": "Creating private room…",
   "game.connectingPrivate": "Connecting to the private room…",
+  "game.waitingSpectate": "Joining as a spectator…",
+  "game.spectateDetail":
+    "You're watching this match, not playing. You are not in the queue, and leaving does not affect your record.",
   "game.queuedDetail":
     "You're queued as {name}. The match starts when another player joins. Cancelling before an opponent joins does not count as a loss.",
   "game.clickToCopy": "Click to copy",

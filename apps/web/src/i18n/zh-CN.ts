@@ -1054,6 +1054,8 @@ const interfaceMessages = {
   "game.shareCode": "把这个链接发给朋友，或分享房间码 {code}。",
   "game.creatingRoom": "正在创建私人房间…",
   "game.connectingPrivate": "正在连接私人房间…",
+  "game.waitingSpectate": "正在以观战者身份加入…",
+  "game.spectateDetail": "你正在观看这场对局，而不是参与对战。你不在匹配队列中，离开也不会影响你的战绩。",
   "game.queuedDetail": "你已排队，身份为 {name}。另一位玩家加入后对局开始。 在对手加入前取消不会计为失败。",
   "game.clickToCopy": "点击复制",
   "game.copyInviteLink": "复制邀请链接",

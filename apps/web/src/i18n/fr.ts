@@ -1130,6 +1130,9 @@ const interfaceMessages = {
   "game.shareCode": "Envoyez ce lien à un ami ou partagez le code {code}.",
   "game.creatingRoom": "Création du salon privé…",
   "game.connectingPrivate": "Connexion au salon privé…",
+  "game.waitingSpectate": "Connexion en tant que spectateur…",
+  "game.spectateDetail":
+    "Vous regardez cette partie, vous n'y jouez pas. Vous n'êtes pas dans la file d'attente, et partir n'affecte pas votre bilan.",
   "game.queuedDetail":
     "Vous êtes en file d'attente sous le nom {name}. Le match commence dès qu'un autre joueur vous rejoint. Annuler avant qu’un adversaire rejoigne la partie ne compte pas comme une défaite.",
   "game.clickToCopy": "Cliquez pour copier",
