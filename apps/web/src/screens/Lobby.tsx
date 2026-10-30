@@ -147,18 +147,6 @@ function scrollToActiveDeckCard() {
   scroller.scrollTop += Math.min(centringOffset, cardBox.top - visibleTop);
 }
 
-function scrollToDeckPicker() {
-  const picker = document.querySelector<HTMLElement>(".lobby-content .deck-picker");
-  const scroller = picker?.closest<HTMLElement>(".lobby-page");
-  if (!picker || !scroller) {
-    return;
-  }
-  const strip = scroller.querySelector<HTMLElement>(".lobby-active-strip");
-  const stripBottom = strip ? (Number.parseFloat(getComputedStyle(strip).top) || 0) + strip.offsetHeight : 0;
-  scroller.scrollTop +=
-    picker.getBoundingClientRect().top - scroller.getBoundingClientRect().top - stripBottom - ACTIVE_DECK_CARD_GAP;
-}
-
 const modesFor = (t: Translate): Mode[] => [
   {
     key: "casual",
@@ -845,21 +833,30 @@ export function Lobby({
               <Icons.FileText size={16} />
             </IconButton>
           </div>
-          {active || randomSelected ? (
-            <Button
-              className="lobby-change-deck"
-              size="sm"
-              variant="secondary"
-              icon={Icons.ChevronDown}
-              onClick={scrollToDeckPicker}
-            >
-              {t("lobby.pickDeck")}
-            </Button>
-          ) : null}
           {!randomSelected && !active ? (
             <Button size="sm" variant="secondary" icon={Icons.Plus} onClick={() => onNav("deck")}>
               {t("lobby.buildDeck")}
             </Button>
+          ) : null}
+          {launch ? (
+            <div className="lobby-launch">
+              <Button
+                icon={launch.icon}
+                disabled={launch.disabled}
+                aria-label={launch.beta ? t("lobby.enterBetaQueue") : launch.label}
+                onClick={launch.onClick}
+              >
+                <span className="lobby-launch__label">{launch.label}</span>
+                <span className="lobby-launch__short" aria-hidden="true">
+                  {launch.shortLabel}
+                </span>
+              </Button>
+              {launch.beta ? (
+                <span className="lobby-launch__beta" aria-hidden="true">
+                  {t("beta.tag")}
+                </span>
+              ) : null}
+            </div>
           ) : null}
         </Panel>
 
@@ -1027,30 +1024,6 @@ export function Lobby({
                 onStart={(isRanked) => start(isRanked ? "ranked" : "casual")}
               />
             ) : null}
-            <div className="lobby-setup__direct-launch">
-              {launch ? (
-                <div className="lobby-launch">
-                  <Button
-                    size="lg"
-                    full
-                    icon={launch.icon}
-                    disabled={launch.disabled}
-                    aria-label={launch.beta ? t("lobby.enterBetaQueue") : launch.label}
-                    onClick={launch.onClick}
-                  >
-                    <span className="lobby-launch__label">{launch.label}</span>
-                    <span className="lobby-launch__short" aria-hidden="true">
-                      {launch.shortLabel}
-                    </span>
-                  </Button>
-                  {launch.beta ? (
-                    <span className="lobby-launch__beta" aria-hidden="true">
-                      {t("beta.tag")}
-                    </span>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
           </div>
           {vsBot ? <BotOpponentPreview deck={botPreview} settings={botSettings} /> : null}
           <details className="lobby-advanced">
