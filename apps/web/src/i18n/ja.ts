@@ -2441,6 +2441,7 @@ const interfaceMessages = {
   "redesign.decks.list.statDecks": "デッキ",
   "redesign.decks.list.statActive": "使用中のデッキ",
   "redesign.decks.list.statReady": "対戦に使用可能",
+  "redesign.decks.list.statPublished": "コミュニティで公開中",
   "redesign.decks.list.saved": "保存したデッキ",
   "redesign.decks.list.columnDeck": "デッキ",
   "redesign.decks.list.columnColors": "色",

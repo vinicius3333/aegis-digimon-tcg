@@ -2357,6 +2357,7 @@ const interfaceMessages = {
   "redesign.decks.list.statDecks": "卡組",
   "redesign.decks.list.statActive": "目前卡組",
   "redesign.decks.list.statReady": "可以對戰",
+  "redesign.decks.list.statPublished": "已在社群公開",
   "redesign.decks.list.saved": "已儲存的卡組",
   "redesign.decks.list.columnDeck": "卡組",
   "redesign.decks.list.columnColors": "顏色",

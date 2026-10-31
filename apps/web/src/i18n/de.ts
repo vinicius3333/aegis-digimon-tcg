@@ -2499,6 +2499,7 @@ const interfaceMessages = {
   "redesign.decks.list.statDecks": "Decks",
   "redesign.decks.list.statActive": "Aktives Deck",
   "redesign.decks.list.statReady": "Bereit zum Spielen",
+  "redesign.decks.list.statPublished": "In der Community",
   "redesign.decks.list.saved": "Gespeicherte Decks",
   "redesign.decks.list.columnDeck": "Deck",
   "redesign.decks.list.columnColors": "Farben",

@@ -2417,6 +2417,7 @@ const interfaceMessages = {
   "redesign.decks.list.statDecks": "덱",
   "redesign.decks.list.statActive": "사용 중인 덱",
   "redesign.decks.list.statReady": "플레이 준비 완료",
+  "redesign.decks.list.statPublished": "커뮤니티 공개",
   "redesign.decks.list.saved": "저장된 덱",
   "redesign.decks.list.columnDeck": "덱",
   "redesign.decks.list.columnColors": "색상",
