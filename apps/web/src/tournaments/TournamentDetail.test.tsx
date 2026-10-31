@@ -793,7 +793,7 @@ it("shows the frozen registered deck without replacement controls", async () => 
     </I18nProvider>,
   );
   expect(screen.getByText("Frozen list")).toBeTruthy();
-  expect(screen.queryByRole("combobox")).toBeNull();
+  expect(screen.queryByRole("button", { name: "Change deck" })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "View registered list" }));
   expect(await screen.findByRole("dialog")).toBeTruthy();
 });
@@ -877,7 +877,16 @@ it("lets an entrant replace a registered deck that was deleted from the library"
           eggDeck: [],
           revision: 0,
         }}
-        decks={[{ id: "replacement", name: "New list", mainDeck: [], eggDeck: [], color: "Red", blurb: "" }]}
+        decks={[
+          {
+            id: "replacement",
+            name: "New list",
+            mainDeck: Array.from({ length: 50 }, () => "BT1-010"),
+            eggDeck: [],
+            color: "Red",
+            blurb: "",
+          },
+        ]}
         canChange
         onChanged={onChanged}
         onDecks={vi.fn<() => void>()}
@@ -885,7 +894,36 @@ it("lets an entrant replace a registered deck that was deleted from the library"
     </I18nProvider>,
   );
   expect(screen.getByRole("button", { name: "View registered list" }).hasAttribute("disabled")).toBe(true);
-  fireEvent.change(screen.getByRole("combobox"), { target: { value: "replacement" } });
+  fireEvent.click(screen.getByRole("button", { name: "Change deck" }));
+  fireEvent.click(screen.getByRole("radio", { name: /New list/ }));
   fireEvent.click(screen.getByRole("button", { name: "Save registered deck" }));
   await waitFor(() => expect(onChanged).toHaveBeenCalledOnce());
+});
+
+it("lists legal decks before incomplete ones when changing the registered deck", () => {
+  render(
+    <I18nProvider>
+      <TournamentRegisteredDeck
+        tournamentId="t-1"
+        deck={{ savedDeckId: "current", locked: false, name: "Current", mainDeck: [], eggDeck: [], revision: 1 }}
+        decks={[
+          { id: "draft", name: "Draft list", mainDeck: [], eggDeck: [], color: "Red", blurb: "" },
+          {
+            id: "ready",
+            name: "Ready list",
+            mainDeck: Array.from({ length: 50 }, () => "BT1-010"),
+            eggDeck: [],
+            color: "Blue",
+            blurb: "",
+          },
+        ]}
+        canChange
+        onChanged={vi.fn<() => void>()}
+        onDecks={vi.fn<() => void>()}
+      />
+    </I18nProvider>,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Change deck" }));
+  const names = screen.getAllByRole("radio").map((radio) => radio.closest("label")?.querySelector("b")?.textContent);
+  expect(names).toEqual(["Ready list", "Draft list"]);
 });

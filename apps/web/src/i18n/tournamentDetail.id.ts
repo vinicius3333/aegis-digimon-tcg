@@ -117,4 +117,5 @@ export const tournamentDetailId = {
   "tournaments.signup.readyCopy": "Pairing diumumkan saat acara dimulai: {time}.",
   "tournaments.signup.dropHint": "Memberikan kursi Anda ke pemain lain.",
   "tournaments.signup.closed": "Pendaftaran acara ini sudah ditutup.",
+  "tournaments.signup.changeDeck": "Ganti deck",
 };

@@ -116,4 +116,5 @@ export const tournamentDetailIt = {
   "tournaments.signup.readyCopy": "Gli abbinamenti escono all’inizio dell’evento: {time}.",
   "tournaments.signup.dropHint": "Libera il tuo posto per un altro giocatore.",
   "tournaments.signup.closed": "Le iscrizioni a questo evento sono chiuse.",
+  "tournaments.signup.changeDeck": "Cambia mazzo",
 };

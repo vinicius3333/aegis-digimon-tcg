@@ -115,4 +115,5 @@ export const tournamentDetailEs = {
   "tournaments.signup.readyCopy": "Los emparejamientos salen cuando empiece el evento: {time}.",
   "tournaments.signup.dropHint": "Libera tu plaza para otro jugador.",
   "tournaments.signup.closed": "Las inscripciones de este evento están cerradas.",
+  "tournaments.signup.changeDeck": "Cambiar deck",
 };

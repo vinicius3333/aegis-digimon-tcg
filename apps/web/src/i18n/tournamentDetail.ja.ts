@@ -112,4 +112,5 @@ export const tournamentDetailJa = {
   "tournaments.signup.readyCopy": "対戦組み合わせはイベント開始時に発表されます: {time}。",
   "tournaments.signup.dropHint": "あなたの枠を他のプレイヤーに譲ります。",
   "tournaments.signup.closed": "このイベントの参加登録は締め切られました。",
+  "tournaments.signup.changeDeck": "デッキを変更",
 };

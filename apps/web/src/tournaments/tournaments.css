@@ -1291,6 +1291,53 @@
   margin: 0;
 }
 
+.tournaments-registered-deck__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-fill);
+}
+
+.tournaments-registered-deck__summary .tournaments-deck-option__cover {
+  width: 48px;
+  flex: none;
+}
+
+.tournaments-registered-deck__copy {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tournaments-registered-deck__copy strong {
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tournaments-registered-deck__copy small {
+  color: var(--ds-text-3);
+  font-size: 12.5px;
+}
+
+.tournaments-registered-deck__change {
+  display: grid;
+  gap: var(--ds-space-3);
+  padding-top: var(--ds-space-3);
+  border-top: 1px solid var(--ds-line);
+}
+
+.tournaments-registered-deck__buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ds-space-2);
+}
+
 .tournaments-signup-flow {
   display: flex;
   flex-direction: column;

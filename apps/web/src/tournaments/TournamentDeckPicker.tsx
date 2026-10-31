@@ -23,7 +23,10 @@ export function TournamentDeckPicker({ decks, banlistCards, value, onChange, onD
   const id = useId();
   const [query, setQuery] = useState("");
   const search = query.trim().toLocaleLowerCase();
-  const visible = decks.filter((deck) => deck.name.toLocaleLowerCase().includes(search));
+  const visible = decks
+    .filter((deck) => deck.name.toLocaleLowerCase().includes(search))
+    .map((deck) => ({ deck, violations: tournamentDeckViolations({ deck, banlistCards }) }))
+    .sort((first, second) => Number(first.violations.length > 0) - Number(second.violations.length > 0));
 
   if (decks.length === 0) {
     return (
@@ -61,8 +64,7 @@ export function TournamentDeckPicker({ decks, banlistCards, value, onChange, onD
         </span>
       </div>
       <div className="tournaments-deck-picker__list">
-        {visible.map((deck) => {
-          const violations = tournamentDeckViolations({ deck, banlistCards });
+        {visible.map(({ deck, violations }) => {
           const firstViolation = violations[0];
           const incomplete = violations.some(
             (violation) => violation.kind === "main_deck_size" || violation.kind === "egg_deck_size",

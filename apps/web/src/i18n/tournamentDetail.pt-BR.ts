@@ -113,4 +113,5 @@ export const tournamentDetailPtBR = {
   "tournaments.signup.readyCopy": "Os pareamentos saem quando o evento começar: {time}.",
   "tournaments.signup.dropHint": "Libera sua vaga para outro jogador.",
   "tournaments.signup.closed": "As inscrições deste evento estão fechadas.",
+  "tournaments.signup.changeDeck": "Trocar deck",
 };

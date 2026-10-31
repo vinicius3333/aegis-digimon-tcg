@@ -111,4 +111,5 @@ export const tournamentDetailEn = {
   "tournaments.signup.readyCopy": "Pairings go out when the event starts: {time}.",
   "tournaments.signup.dropHint": "Frees your seat for another player.",
   "tournaments.signup.closed": "Sign-ups are closed for this event.",
+  "tournaments.signup.changeDeck": "Change deck",
 };

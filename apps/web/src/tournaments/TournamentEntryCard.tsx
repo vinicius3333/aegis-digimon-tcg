@@ -108,6 +108,7 @@ export function TournamentEntryCard({
               tournamentId={detail.id}
               deck={detail.ownDeck}
               decks={decks}
+              banlistCards={detail.banlistCards}
               canChange={own.status === "registered" || own.status === "checked_in"}
               onChanged={onDeckChanged}
               onDecks={onDecks}

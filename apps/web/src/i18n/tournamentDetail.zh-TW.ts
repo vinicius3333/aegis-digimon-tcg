@@ -104,4 +104,5 @@ export const tournamentDetailZhTW = {
   "tournaments.signup.readyCopy": "對陣將在賽事開始時公布：{time}。",
   "tournaments.signup.dropHint": "把你的名額讓給其他玩家。",
   "tournaments.signup.closed": "本賽事報名已截止。",
+  "tournaments.signup.changeDeck": "更換卡組",
 };

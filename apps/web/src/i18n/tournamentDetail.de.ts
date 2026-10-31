@@ -117,4 +117,5 @@ export const tournamentDetailDe = {
   "tournaments.signup.readyCopy": "Die Paarungen erscheinen zum Start des Events: {time}.",
   "tournaments.signup.dropHint": "Gibt Ihren Platz für einen anderen Spieler frei.",
   "tournaments.signup.closed": "Die Anmeldung für dieses Event ist geschlossen.",
+  "tournaments.signup.changeDeck": "Deck wechseln",
 };

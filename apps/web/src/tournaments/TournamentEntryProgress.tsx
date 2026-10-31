@@ -101,6 +101,7 @@ export function TournamentEntryProgress({
             tournamentId={detail.id}
             deck={detail.ownDeck}
             decks={decks}
+            banlistCards={detail.banlistCards}
             canChange={canChangeDeck}
             onChanged={onDeckChanged}
             onDecks={onDecks}

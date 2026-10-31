@@ -117,4 +117,5 @@ export const tournamentDetailFr = {
   "tournaments.signup.readyCopy": "Les appariements sont publiés au début de l’événement : {time}.",
   "tournaments.signup.dropHint": "Libère votre place pour un autre joueur.",
   "tournaments.signup.closed": "Les inscriptions à cet événement sont fermées.",
+  "tournaments.signup.changeDeck": "Changer de deck",
 };

@@ -113,4 +113,5 @@ export const tournamentDetailKo = {
   "tournaments.signup.readyCopy": "대진은 이벤트 시작 시 공개됩니다: {time}.",
   "tournaments.signup.dropHint": "자리를 다른 플레이어에게 넘깁니다.",
   "tournaments.signup.closed": "이 이벤트의 참가 신청이 마감되었습니다.",
+  "tournaments.signup.changeDeck": "덱 변경",
 };
