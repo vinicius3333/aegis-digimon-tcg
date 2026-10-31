@@ -2447,6 +2447,7 @@ const interfaceMessages = {
   "redesign.decks.list.statDecks": "Deck",
   "redesign.decks.list.statActive": "Deck aktif",
   "redesign.decks.list.statReady": "Siap dimainkan",
+  "redesign.decks.list.statPublished": "Di komunitas",
   "redesign.decks.list.saved": "Deck yang disimpan",
   "redesign.decks.list.columnDeck": "Deck",
   "redesign.decks.list.columnColors": "Warna",

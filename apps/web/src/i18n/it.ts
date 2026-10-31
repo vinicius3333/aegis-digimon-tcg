@@ -2310,6 +2310,7 @@ const interfaceMessages = {
   "redesign.decks.list.statDecks": "Mazzi",
   "redesign.decks.list.statActive": "Mazzo attivo",
   "redesign.decks.list.statReady": "Pronti per giocare",
+  "redesign.decks.list.statPublished": "Nella community",
   "redesign.decks.list.saved": "Mazzi salvati",
   "redesign.decks.list.columnDeck": "Mazzo",
   "redesign.decks.list.columnColors": "Colori",
