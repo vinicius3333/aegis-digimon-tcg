@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { Phase } from "@aegis/shared/schema/enums";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { PlayLogSidebar } from "@/game/log/PlayLogSidebar";
+import { fieldReferenceStore } from "@/design/fieldReference/fieldReferenceStore";
+import { setFieldReferenceVisible } from "@/design/fieldReference/setFieldReferenceVisible";
 import type { LogTurnGroup } from "@/game/log/LogEntry";
 
 const turns: LogTurnGroup[] = [
@@ -30,7 +32,10 @@ const turns: LogTurnGroup[] = [
   },
 ];
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  setFieldReferenceVisible(false);
+});
 
 function renderPanel(onClose = vi.fn<() => void>()) {
   return render(
@@ -47,6 +52,15 @@ function renderPanel(onClose = vi.fn<() => void>()) {
 }
 
 describe("searchable chronological play log", () => {
+  it("toggles field references next to card names, off by default", () => {
+    renderPanel();
+    const toggle = screen.getByRole("switch", { name: "Show IDs next to card names" });
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    fireEvent.click(toggle);
+    expect(fieldReferenceStore.visible).toBe(true);
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+  });
+
   it("shows named turn and phase headings and signed memory chips", () => {
     renderPanel();
     expect(screen.getByRole("heading", { name: "Turn 1 · Alice" })).toBeTruthy();

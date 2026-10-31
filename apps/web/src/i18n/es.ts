@@ -1531,7 +1531,7 @@ export const es: Record<keyof typeof en, string> = {
   "game.phaseBanner.end": "Fin del turno",
   "feed.noHistory": "Aún no hay acciones",
   "feed.closeLog": "Cerrar el registro de jugadas",
-  "feed.logTitle": "Registro de jugadas",
+  "feed.showFieldReferences": "Mostrar ID junto al nombre de las cartas",
   "feed.openCard": "Abrir {card}",
   "showcase.opponentPlayed": "El oponente jugó {card}",
   "showcase.youPlayed": "Jugaste {card}",

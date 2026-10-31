@@ -15,6 +15,8 @@ describe("keyword reminders", () => {
     expect(keywordBaseName("<Link +1>")).toBe("Link");
     expect(keywordBaseName("<Partition (blue Lv.4 & green Lv.4)>")).toBe("Partition");
     expect(keywordBaseName("<Blast DNA Digivolve>")).toBe("BlastDNADigivolve");
+    expect(keywordBaseName("＜Ice Clad＞")).toBe("Iceclad");
+    expect(keywordBaseName("<Iceclad>")).toBe("Iceclad");
   });
 
   it("explains Security Attack with the modifier the permanent carries or the card prints", () => {

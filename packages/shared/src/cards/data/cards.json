@@ -110742,5 +110742,67 @@
     "rarity": "C",
     "maxCountInDeck": 4,
     "imageId": "BT27-093"
+  },
+  {
+    "cardId": "BT27-060",
+    "set": "BT27",
+    "nameEn": "Thundermon (X Antibody)",
+    "nameJp": "サンダーボールモンX抗体",
+    "colors": ["Black"],
+    "kinds": ["Digimon"],
+    "level": 4,
+    "playCost": 5,
+    "dp": 5000,
+    "evoCosts": [
+      {
+        "color": "Yellow",
+        "level": 3,
+        "memoryCost": 2
+      },
+      {
+        "color": "Black",
+        "level": 3,
+        "memoryCost": 2
+      }
+    ],
+    "forms": ["Champion"],
+    "attributes": ["Data"],
+    "types": ["Mutant", "X Antibody"],
+    "effectText": "[Digivolve] [Thundermon]: Cost 0\n[On Play] [When Digivolving] [On Deletion] Until your opponent's turn ends, 1 of your Digimon with [Mamemon] in its name gains ＜Blocker＞ and their effects can't return it to hands or decks.\n[Rule] Name: Treated as including [Mamemon].",
+    "inheritedEffectText": "＜Blocker＞ (This Digimon can block in the blocker timing.)",
+    "rarity": "C",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-060"
+  },
+  {
+    "cardId": "BT27-065",
+    "set": "BT27",
+    "nameEn": "Mamemon (X Antibody)",
+    "nameJp": "マメモンX抗体",
+    "colors": ["Black", "Red"],
+    "kinds": ["Digimon"],
+    "level": 5,
+    "playCost": 7,
+    "dp": 7000,
+    "evoCosts": [
+      {
+        "color": "Black",
+        "level": 4,
+        "memoryCost": 4
+      },
+      {
+        "color": "Red",
+        "level": 4,
+        "memoryCost": 4
+      }
+    ],
+    "forms": ["Ultimate"],
+    "attributes": ["Data"],
+    "types": ["Mutant", "X Antibody"],
+    "effectText": "[Digivolve] Lv.5 w/[Mamemon] in name w/o [X Antibody] trait: Cost 1\n[When Digivolving] If a card with [Mamemon] in its name is in this Digimon's digivolution cards, 1 of your Digimon with [Mamemon] in its name may gain ＜Rush＞ for the turn and attack. At the end of that attack, delete it.\n[On Deletion] Delete 1 of your opponent's lowest DP Digimon. If this effect didn't delete, trash their top security card.",
+    "inheritedEffectText": "[All Turns] [Once Per Turn] When any of your other Digimon with [Mamemon] in their names are deleted, delete 1 of your opponent's Digimon with the lowest play cost.",
+    "rarity": "U",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-065"
   }
 ]
