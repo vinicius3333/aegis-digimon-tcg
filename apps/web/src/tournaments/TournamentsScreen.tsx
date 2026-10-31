@@ -146,6 +146,7 @@ export function TournamentsScreen({
         {activeView.kind === "detail" ? (
           <TournamentDetail
             id={activeView.id}
+            onDecks={onDecks}
             onJoinGame={onJoinGame}
             onWatchMatch={onWatchMatch}
             accountId={account?.id}

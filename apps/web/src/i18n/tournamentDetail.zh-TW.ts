@@ -1,4 +1,6 @@
+import { tournamentControlsEn } from "@/i18n/tournamentControls.en";
 export const tournamentDetailZhTW = {
+  ...tournamentControlsEn,
   "tournaments.tabs.label": "賽事分區",
   "tournaments.tab.overview": "概覽",
   "tournaments.tab.bracket": "對陣圖",

@@ -1,4 +1,6 @@
+import { tournamentControlsEn } from "@/i18n/tournamentControls.en";
 export const tournamentDetailId = {
+  ...tournamentControlsEn,
   "tournaments.tabs.label": "Bagian acara",
   "tournaments.tab.overview": "Ringkasan",
   "tournaments.tab.bracket": "Bagan",

@@ -276,6 +276,7 @@ async function runSweeps(now: number): Promise<number> {
     ["auto_start", () => circuitSweep.start(now)],
     ["swiss", () => swissProgram.sweepOpenTournaments(now)],
     ["top_cut", () => topCutProgram.sweepFrozenSwissPhases(now)],
+    ["bracket_rounds", () => eliminationStore.sweepAutomaticRounds(now)],
     ["bots", () => driveBotMatches(now)],
     ["discord", () => syncTournamentDiscord(now)],
     ["results", () => recordTournamentResults(now)],
