@@ -10,22 +10,22 @@ type BoosterOddsCardParams = {
 type DescribeOddsParams = {
   odds: BoosterOdds;
   t: Translate;
-  format: (value: number) => string;
 };
 
-function describeOdds({ odds, t, format }: DescribeOddsParams) {
+function describeOdds({ odds, t }: DescribeOddsParams) {
   if ("slotsPerPack" in odds) {
     const key = odds.isMinimum
       ? "redesign.collection.booster.odds.atLeast"
       : "redesign.collection.booster.odds.perPack";
     return <>{t(key, { count: odds.slotsPerPack })}</>;
   }
-  return <>{t("redesign.collection.booster.odds.oneIn", { count: Math.round(BOOSTER_BOX_PACK_COUNT / odds.perBox) })}</>;
+  return (
+    <>{t("redesign.collection.booster.odds.oneIn", { count: Math.round(BOOSTER_BOX_PACK_COUNT / odds.perBox) })}</>
+  );
 }
 
 export function BoosterOddsCard({ odds }: BoosterOddsCardParams) {
-  const { t, locale } = useTranslation();
-  const formatter = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
+  const { t } = useTranslation();
   return (
     <section className="booster-card" aria-labelledby="booster-odds-title">
       <header className="booster-card__header">
@@ -37,7 +37,7 @@ export function BoosterOddsCard({ odds }: BoosterOddsCardParams) {
           {odds.map((entry) => (
             <div key={entry.kind.value}>
               <dt>{t(entry.kind.labelKey)}</dt>
-              <dd>{describeOdds({ odds: entry, t, format: (value) => formatter.format(value) })}</dd>
+              <dd>{describeOdds({ odds: entry, t })}</dd>
             </div>
           ))}
         </dl>

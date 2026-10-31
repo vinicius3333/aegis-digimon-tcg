@@ -11,12 +11,7 @@ type BoosterPackHeroParams = {
   onOpen?: () => void;
 };
 
-export function BoosterPackHero({
-  boosterSet,
-  sets,
-  onSelectSet,
-  onOpen,
-}: BoosterPackHeroParams) {
+export function BoosterPackHero({ boosterSet, sets, onSelectSet, onOpen }: BoosterPackHeroParams) {
   const { t } = useTranslation();
   return (
     <div className="booster-hero">
