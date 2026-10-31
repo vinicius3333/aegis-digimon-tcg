@@ -512,7 +512,6 @@ export const en = {
   "releases.current": "Current version",
   "releases.features": "What's new",
   "releases.fixes": "Improvements and fixes",
-  "releases.reported": "You reported it, we fixed it · #{issue}",
 
   "playerMenu.open": "Open the player menu",
   "playerMenu.guest": "Guest · saved on this device",

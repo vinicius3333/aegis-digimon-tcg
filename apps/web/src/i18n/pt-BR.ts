@@ -515,7 +515,6 @@ export const ptBR: Record<keyof typeof en, string> = {
   "releases.current": "Vers\u00e3o atual",
   "releases.features": "Novidades",
   "releases.fixes": "Melhorias e corre\u00e7\u00f5es",
-  "releases.reported": "Voc\u00ea reportou, n\u00f3s corrigimos · #{issue}",
 
   "playerMenu.open": "Abrir o menu do jogador",
   "playerMenu.guest": "Convidado · salvo neste aparelho",

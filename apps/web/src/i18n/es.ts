@@ -508,7 +508,6 @@ export const es: Record<keyof typeof en, string> = {
   "releases.current": "Versión actual",
   "releases.features": "Novedades",
   "releases.fixes": "Mejoras y correcciones",
-  "releases.reported": "Tú lo reportaste, nosotros lo corregimos · #{issue}",
   "playerMenu.open": "Abrir el menú del jugador",
   "playerMenu.guest": "Invitado · guardado en este dispositivo",
   "playerMenu.signedIn": "Sesión iniciada con Discord",
