@@ -1,4 +1,16 @@
 {
+  "releases.1.43.6-beta.summary": {
+    "en": "Completes Chinese translations for the new BT27 cards so the pending release can deploy.",
+    "pt-BR": "Completa as traduções em chinês das novas cartas BT27 para permitir o deploy da versão pendente.",
+    "es": "Completa las traducciones al chino de las nuevas cartas BT27 para permitir el despliegue de la versión pendiente.",
+    "it": "Completa le traduzioni cinesi delle nuove carte BT27 per consentire il rilascio della versione in attesa."
+  },
+  "releases.1.43.6-beta.fix.translations": {
+    "en": "Adds the missing card name and effect translations for MirageGaogamon, Solarmon, Meramon, SkullMeramon and PrinceMamemon (X Antibody). Includes the features and fixes announced in v1.43.5.",
+    "pt-BR": "Adiciona as traduções ausentes de nome e efeitos de MirageGaogamon, Solarmon, Meramon, SkullMeramon e PrinceMamemon (X Antibody). Inclui os recursos e as correções anunciados na v1.43.5.",
+    "es": "Añade las traducciones faltantes de nombre y efectos de MirageGaogamon, Solarmon, Meramon, SkullMeramon y PrinceMamemon (X Antibody). Incluye las funciones y correcciones anunciadas en v1.43.5.",
+    "it": "Aggiunge le traduzioni mancanti di nome ed effetti di MirageGaogamon, Solarmon, Meramon, SkullMeramon e PrinceMamemon (X Antibody). Include le funzionalità e le correzioni annunciate nella v1.43.5."
+  },
   "releases.1.43.5-beta.summary": {
     "en": "Five new BT27 cards, tournament controls, and fixes for blind discards, Ogudomon payments and required card reveals.",
     "pt-BR": "Cinco novas cartas BT27, controles de torneio e correções para descartes às cegas, pagamentos de Ogudomon e revelação de cartas exigidas.",
