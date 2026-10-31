@@ -71,12 +71,7 @@ export function TournamentAgendaItem({ tournament, onOpen }: TournamentAgendaIte
             <span style={{ width: `${capacity}%` }} />
           </span>
         </div>
-        <Button
-          className="tournaments-row__open"
-          size="sm"
-          variant="secondary"
-          onClick={() => onOpen(tournament.id)}
-        >
+        <Button className="tournaments-row__open" size="sm" variant="secondary" onClick={() => onOpen(tournament.id)}>
           {full && tournament.status === "registration" ? t("tournaments.catalog.full") : t("tournaments.catalog.view")}
         </Button>
       </article>
