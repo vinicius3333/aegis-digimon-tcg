@@ -26,7 +26,7 @@ it("arena keeps seven links after PAD, the forced attack, and the turn change", 
   await advance(s.engine).waitForMainPhase(0);
   const pad = s.state.players[0]!.hand.find(({ cardId }) => cardId === "BT26-102")!;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: pad.instanceId })).toEqual({ ok: true });
-  await settle(() => s.state.turnSeat === 1 && s.state.phase === Phase.Breeding, 5000);
+  await settle(() => s.state.turnSeat === 1 && s.state.phase === Phase.Breeding);
   expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
   await advance(s.engine).waitForMainPhase(1);
   const dantemon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT26-086")!;
