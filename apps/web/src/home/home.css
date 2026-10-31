@@ -993,6 +993,10 @@
     order: 6;
   }
 
+  .home-decks {
+    order: 7;
+  }
+
   .home-card {
     border-radius: 14px;
   }

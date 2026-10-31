@@ -64,6 +64,14 @@ export function Home(params: HomeParams) {
               onViewAll={params.onOpenTournaments}
               onCreate={signedIn ? params.onCreateTournament : undefined}
             />
+            <HomeDecksCard
+              decks={params.decks}
+              activeDeckId={params.activeDeckId}
+              onEdit={params.onEditDeck}
+              onPlay={params.onPlayDeck}
+              onBuild={params.onBuildDeck}
+              onViewAll={params.onOpenDecks}
+            />
           </div>
 
           <aside className="home-board__rail">
@@ -101,15 +109,6 @@ export function Home(params: HomeParams) {
             )}
           </aside>
         </div>
-
-        <HomeDecksCard
-          decks={params.decks}
-          activeDeckId={params.activeDeckId}
-          onEdit={params.onEditDeck}
-          onPlay={params.onPlayDeck}
-          onBuild={params.onBuildDeck}
-          onViewAll={params.onOpenDecks}
-        />
 
         {hasStrategyGuides ? (
           <a className="home-card home-guides" href="/strategy-guides/">
