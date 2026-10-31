@@ -155,7 +155,7 @@ describe("responsive application state", () => {
     expect(screen.queryByRole("heading", { name: "Xros Heart" })).toBeNull();
   });
 
-  it("lands a first-time visitor straight on the home pitch", async () => {
+  it("lands a first-time visitor straight on the home dashboard", async () => {
     window.history.replaceState(null, "", "/");
     render(
       <I18nProvider>
@@ -173,7 +173,7 @@ describe("responsive application state", () => {
       </I18nProvider>,
     );
 
-    expect(await screen.findByRole("heading", { name: "Build a deck and play live. Free." })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: "Home" })).toBeTruthy();
     expect(window.location.pathname).toBe("/");
   });
 
@@ -195,7 +195,7 @@ describe("responsive application state", () => {
       </I18nProvider>,
     );
 
-    await screen.findByRole("heading", { name: "Build a deck and play live. Free." });
+    await screen.findByRole("heading", { level: 1, name: "Home" });
     fireEvent.click(screen.getAllByRole("button", { name: "Sign in" })[0]!);
 
     expect(await screen.findByRole("heading", { name: "Sign in to Aegis" })).toBeTruthy();
@@ -219,7 +219,7 @@ describe("responsive application state", () => {
       </I18nProvider>,
     );
 
-    await screen.findByRole("heading", { name: "Build a deck and play live. Free." });
+    await screen.findByRole("heading", { level: 1, name: "Home" });
     fireEvent.click(screen.getAllByRole("button", { name: "Open the player menu" })[0]!);
 
     expect(await screen.findByRole("link", { name: "My profile" })).toBeTruthy();
