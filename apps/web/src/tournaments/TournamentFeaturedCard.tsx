@@ -1,6 +1,6 @@
 import "@/tournaments/tournamentCatalog.css";
 import { TournamentCategory } from "@aegis/shared/tournaments/TournamentCategory";
-import { Button } from "@/design/primitives";
+import { Badge, Button } from "@/design/primitives";
 import { Icons } from "@/design/icons";
 import { useTranslation } from "@/i18n/useTranslation";
 import { deckFormatLabel } from "@/screens/deckFormatLabel";
@@ -27,18 +27,17 @@ export function TournamentFeaturedCard({ tournament, onOpen }: TournamentFeature
   }).format(tournament.startsAt);
 
   return (
-    <section className="tournaments-card tournaments-feature" aria-label={t("tournaments.catalog.featured")}>
-      <div className="tournaments-feature__banner" data-official={official || undefined}>
-        <Icons.Trophy size={88} aria-hidden="true" />
-        <div className="tournaments-feature__badges">
-          <span className="tournaments-glass">{t("tournaments.catalog.featured")}</span>
-          <span className="tournaments-glass">
-            {t(official ? "tournaments.category.official" : "tournaments.category.community")}
-          </span>
-          {tournament.circuitId ? <span className="tournaments-glass">{t("tournaments.circuits.badge")}</span> : null}
-        </div>
-      </div>
+    <section
+      className="tournaments-card tournaments-feature"
+      aria-label={t("tournaments.catalog.featured")}
+      data-official={official || undefined}
+    >
       <div className="tournaments-feature__body">
+        <div className="tournaments-feature__badges">
+          <Badge tone="primary">{t("tournaments.catalog.featured")}</Badge>
+          <Badge>{t(official ? "tournaments.category.official" : "tournaments.category.community")}</Badge>
+          {tournament.circuitId ? <Badge>{t("tournaments.circuits.badge")}</Badge> : null}
+        </div>
         <div className="tournaments-feature__heading">
           <strong className="tournaments-feature__name">{tournament.name}</strong>
           <span className="tournaments-feature__status">{t(statusKey(tournament.status))}</span>
@@ -68,6 +67,8 @@ export function TournamentFeaturedCard({ tournament, onOpen }: TournamentFeature
             </span>
           ) : null}
         </div>
+      </div>
+      <div className="tournaments-feature__side">
         <div className="tournaments-capacity">
           <div className="tournaments-capacity__label">
             <span>{t("home.tournaments.players")}</span>
