@@ -54,8 +54,14 @@ const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "SelectBind", target: { ...machineOrCyborg, count: 1, bindAs: "chosenMachine" } },
         {
+          effectTextPart: "[Main] Choose 1 of your Digimon with a [Machine] or [Cyborg] trait.",
+          kind: "SelectBind",
+          target: { ...machineOrCyborg, count: 1, bindAs: "chosenMachine" },
+        },
+        {
+          effectTextPart:
+            "Delete 1 of your opponent's Digimon with DP less than or equal to that Digimon and delete your chosen Digimon.",
           kind: "Delete",
           target: {
             filter: {

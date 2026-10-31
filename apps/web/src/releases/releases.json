@@ -1,5 +1,34 @@
 [
   {
+    "version": "1.43.4-beta",
+    "releasedAt": "2026-10-31",
+    "summaryKey": "releases.1.43.4-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.43.4-beta.feature.bt27"
+      },
+      {
+        "textKey": "releases.1.43.4-beta.feature.optionClauses"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.43.4-beta.fix.fascination",
+        "issue": 6312
+      },
+      {
+        "textKey": "releases.1.43.4-beta.fix.adventure",
+        "issue": 6309
+      },
+      {
+        "textKey": "releases.1.43.4-beta.fix.effects"
+      },
+      {
+        "textKey": "releases.1.43.4-beta.fix.cardText"
+      }
+    ]
+  },
+  {
     "version": "1.43.3-beta",
     "releasedAt": "2026-10-30",
     "summaryKey": "releases.1.43.3-beta.summary",
