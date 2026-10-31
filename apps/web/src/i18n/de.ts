@@ -68,9 +68,9 @@ const interfaceMessages = {
   ...advancedBattlesDe,
   "settings.cardImageLanguage": "Sprache der Kartenbilder",
   "settings.cardImageLanguageDesc":
-    "Wähle die Standardsprache für die Sammlung und neue Kartenexemplare in Decks. Die Schaltfläche ersetzt auch alternative Bilder in bestehenden Decks. Karten ohne diese Sprache behalten ihr aktuelles Bild.",
+    "Wählen Sie die Standardsprache für die Sammlung und neue Kartenexemplare in Decks. Die Schaltfläche ersetzt auch alternative Bilder in bestehenden Decks. Karten ohne diese Sprache behalten ihr aktuelles Bild.",
   "settings.cardImageLanguageApply": "Auf alle meine Decks anwenden",
-  "settings.cardImageLanguageLoading": "Warten auf die Decks. Falls dies anhält, lade die Seite neu.",
+  "settings.cardImageLanguageLoading": "Warten auf die Decks. Falls dies anhält, laden Sie die Seite neu.",
   "settings.cardImageLanguageEmpty": "Keine eigenen Decks zum Aktualisieren.",
   "settings.cardImageLanguageProgress": "Decks werden aktualisiert: {completed}/{total}",
   "settings.cardImageLanguageResult":
@@ -94,7 +94,7 @@ const interfaceMessages = {
   "story.character": "Charakter",
   "story.start": "Kampf starten",
   "story.replay": "Erneut spielen",
-  "story.locked": "Schließe den vorherigen Kampf ab",
+  "story.locked": "Schließen Sie den vorherigen Kampf ab",
   "story.pending": "Szenario in Vorbereitung",
   "story.completed": "Abgeschlossen",
   "story.ready": "Verfügbar",
@@ -155,7 +155,7 @@ const interfaceMessages = {
   "settings.shareDeckAfterMatchDesc":
     "Erlauben Sie Ihrem Gegner, Ihre ursprüngliche Deckliste nach dem Spiel anzusehen und zu kopieren. Standardmäßig aktiviert.",
   "settings.shareDeckAfterMatchFailed":
-    "Diese Einstellung konnte nicht geladen oder gespeichert werden. Versuche es erneut oder öffne die Einstellungen neu.",
+    "Diese Einstellung konnte nicht geladen oder gespeichert werden. Versuchen Sie es erneut oder öffnen Sie die Einstellungen neu.",
   "overlay.useNegamon": "Negamon verwenden",
   "overlay.negamonPlayDetail":
     "Aktivieren Sie Negamons Effekt im Aufzuchtbereich, um ein Digimon mit reduzierten Kosten zu spielen und Negamon darunterzulegen. Die Karte wählen Sie im nächsten Schritt des Effekts.",
@@ -679,7 +679,7 @@ const interfaceMessages = {
   "game.timer.matchLabel": "Partie",
   "game.timer.decisionAndMatch": "Entscheidung: {decision}s. Partie: {match}s.",
   "game.timer.inactivity": "Jetzt spielen",
-  "game.timer.inactivityWarning": "Spiele innerhalb von {seconds}s oder verliere wegen Inaktivität.",
+  "game.timer.inactivityWarning": "Spielen Sie innerhalb von {seconds}s oder verlieren Sie wegen Inaktivität.",
   "game.timer.you": "Ihre Zeit",
   "game.timer.opponent": "Gegner",
   "game.timer.active": "Ihre Aktion",
@@ -991,7 +991,7 @@ const interfaceMessages = {
   "deck.exportPng": "PNG exportieren",
   "deck.exportFormat": "Format",
   "deck.exportTcgplayerHint":
-    "Wähle Digimon Card Game in TCGplayer Mass Entry und füge diese Liste ein. Digi-Eier sind enthalten; die Illustrationen können variieren.",
+    "Wählen Sie Digimon Card Game in TCGplayer Mass Entry und fügen Sie diese Liste ein. Digi-Eier sind enthalten; die Illustrationen können variieren.",
   "deck.exportUnsupportedCards":
     "TCGplayer-Export nicht verfügbar für: {cards}. Kopieren ist deaktiviert, bis diese Karten ein unterstütztes Set haben.",
   "deck.exportTabText": "Deckliste",
@@ -2179,8 +2179,8 @@ const interfaceMessages = {
   "tournaments.reason.tooManyRequests": "Zu viele Versuche. Warten Sie kurz und versuchen Sie es erneut.",
   "tournaments.reason.nameTooShort": "Dieser Name ist zu kurz.",
   "tournaments.reason.nameTooLong": "Dieser Name ist zu lang.",
-  "tournaments.reason.structureInvalid": "Wähle Schweizer System oder K.-o.-System.",
-  "tournaments.reason.bestOfInvalid": "Wähle Best-of-One oder Best-of-Three.",
+  "tournaments.reason.structureInvalid": "Wählen Sie Schweizer System oder K.-o.-System.",
+  "tournaments.reason.bestOfInvalid": "Wählen Sie Best-of-One oder Best-of-Three.",
   "tournaments.reason.topCutRequiresSwiss": "Ein Top Cut ist nur bei einem Turnier im Schweizer System möglich.",
   "tournaments.reason.banlistModeUnknown": "Diese Option für verbotene Karten kennen wir nicht.",
   "tournaments.reason.banlistSetUnknown": "Für dieses Set gibt es kein bestätigtes Erscheinungsdatum.",
@@ -2283,7 +2283,7 @@ const interfaceMessages = {
   "account.avatar.cropStage": "Zuschnitt",
   "account.avatar.cropZoom": "Zoom",
   "account.avatar.cropSave": "Dieses Bild verwenden",
-  "account.avatar.blocked": "Dieses Bild kann nicht als Profilbild verwendet werden. Wähle ein anderes.",
+  "account.avatar.blocked": "Dieses Bild kann nicht als Profilbild verwendet werden. Wählen Sie ein anderes.",
   "account.avatar.reviewUnavailable":
     "Dieses Bild kann gerade nicht geprüft werden. Versuchen Sie es in ein paar Minuten erneut.",
   "bugReport.button": "Feedback senden",
@@ -2769,7 +2769,7 @@ const interfaceMessages = {
   "overlay.rematch.incomingNew": "{name} möchte ein neues Best of 3 starten",
   "overlay.rematch.accept": "Annehmen",
   "overlay.rematch.decline": "Ablehnen",
-  "overlay.rematch.waiting": "Warte auf die Antwort von {name}…",
+  "overlay.rematch.waiting": "Warten auf die Antwort von {name}…",
   "overlay.rematch.declined": "Die Revanche wurde abgelehnt.",
   "overlay.rematch.closed": "Die Revanche ist nicht mehr verfügbar.",
   "overlay.rematch.deckTitle": "Wählen Sie Ihr Deck für Spiel 1",
@@ -2859,7 +2859,7 @@ const interfaceMessages = {
   "profile.deckStats.overview": "Deck-Leistung",
   "profile.deckStats.recent": "Letzte Spiele gegen Menschen",
   "profile.deckStats.newestFirst": "Neueste zuerst",
-  "profile.matchDeckFailed": "Das in diesem Spiel verwendete Deck ist nicht verfügbar. Versuche es erneut.",
+  "profile.matchDeckFailed": "Das in diesem Spiel verwendete Deck ist nicht verfügbar. Versuchen Sie es erneut.",
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
