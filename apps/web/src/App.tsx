@@ -52,6 +52,8 @@ import { accountApi, type RemoteAccount } from "./account/client";
 import { communityApi } from "./community/client";
 import { SeriesDeckDialog } from "@/game/overlay/match/SeriesDeckDialog";
 import { communityDeckListing } from "./community/communityDeckListing";
+import { CommunitySection } from "@/community/CommunitySection";
+import { getCommunitySectionRoute } from "@/community/getCommunitySectionRoute";
 import { usePreferencesSync } from "./account/usePreferencesSync";
 import { setDeckFavorite } from "@/screens/favoriteDecks/setDeckFavorite";
 import { LeaveMatchDialog } from "./game/screen/layout/LeaveMatchDialog";
@@ -1034,13 +1036,15 @@ function LoadedAegisClient({
               {screen === "community" && (
                 <CommunityScreen
                   deckId={route.communityDeckId}
+                  section={route.communityMeta ? CommunitySection.META.value : CommunitySection.DECKS.value}
+                  metaAvailable={rankedConfig?.enabled}
                   signedIn={!!account}
                   accountId={account?.id}
                   isAdmin={account?.isAdmin === true}
                   onOpenDeck={(id) => navigate({ screen: "community", communityDeckId: id })}
                   onBack={() => navigate({ screen: "community" })}
-                  onRoadmap={() => navigate({ screen: "roadmap" })}
-                  onTournaments={() => navigate({ screen: "tournaments" })}
+                  onSectionChange={(section) => navigate(getCommunitySectionRoute(section))}
+                  onOpenRanked={() => navigateScreen("ranked")}
                   onPlay={(deck) => {
                     const listing = communityDeckListing(deck);
                     setBorrowedDeck(listing);
@@ -1104,10 +1108,10 @@ function LoadedAegisClient({
                   itemId={route.roadmapItemId}
                   signedIn={!!account}
                   isAdmin={account?.isAdmin === true}
+                  metaAvailable={rankedConfig?.enabled === true}
                   onSignIn={() => navigateScreen("login")}
                   onOpen={(id) => navigate({ screen: "roadmap", roadmapItemId: id })}
-                  onDecks={() => navigate({ screen: "community" })}
-                  onTournaments={() => navigate({ screen: "tournaments" })}
+                  onSectionChange={(section) => navigate(getCommunitySectionRoute(section))}
                   onSuggest={() => setBugReportOpen(true)}
                 />
               )}

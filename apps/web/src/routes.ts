@@ -20,6 +20,7 @@ export interface AppRoute {
   tournament?: TournamentRoute;
   /** The public deck open on the community screen; absent on the browse list. */
   communityDeckId?: string;
+  communityMeta?: boolean;
   /** The report open on the admin triage or the reporter's own feedback screen. */
   feedbackId?: number;
   roadmapItemId?: number;
@@ -80,6 +81,7 @@ export function routeFromPathname(pathname: string): AppRoute | undefined {
   if (normalized === "/decks") return { screen: "deck" };
   if (normalized === "/collection") return { screen: "collection" };
   if (normalized === "/community") return { screen: "community" };
+  if (normalized === "/community/meta") return { screen: "community", communityMeta: true };
   if (normalized === "/tournaments") {
     return { screen: "tournaments", tournament: { kind: "catalog" } };
   }
@@ -126,6 +128,7 @@ export function pathForRoute(route: AppRoute): string {
   if (route.screen === "replays") return route.replayId ? `/replays/${encodeURIComponent(route.replayId)}` : "/profile";
   if (route.screen === "community" && route.communityDeckId)
     return `/community/decks/${encodeURIComponent(route.communityDeckId)}`;
+  if (route.screen === "community" && route.communityMeta) return "/community/meta";
   if (route.screen === "roadmap" && route.roadmapItemId !== undefined) return `/roadmap/${route.roadmapItemId}`;
   if ((route.screen === "feedback" || route.screen === "myFeedback") && route.feedbackId !== undefined)
     return `${SCREEN_PATHS[route.screen]}/${route.feedbackId}`;
