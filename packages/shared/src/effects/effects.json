@@ -181309,10 +181309,7 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "gainedTrigger": "EndOfYourTurn",
             "gainedActions": [
-              {
-                "kind": "Delete",
-                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1, "chooser": "opponent" }
-              }
+              { "kind": "Delete", "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 } }
             ],
             "duration": "untilOpponentTurnEnd",
             "raw": "[End of Your Turn] Delete 1 of your Digimon."
