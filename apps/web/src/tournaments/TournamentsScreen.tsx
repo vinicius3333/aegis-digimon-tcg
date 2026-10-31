@@ -161,6 +161,10 @@ export function TournamentsScreen({
             tab={activeView.tab}
             onTabChange={(tab) => setView({ kind: "detail", id: activeView.id, tab })}
             onBack={backToCatalog}
+            onMyTournaments={() => {
+              setCatalogTab(TournamentCatalogTab.MINE.value);
+              backToCatalog();
+            }}
           />
         ) : null}
       </div>
