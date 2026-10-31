@@ -213,8 +213,12 @@
 
 .home-live__grid,
 .home-events__grid {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--ds-space-4);
+}
+
+.home-live__grid {
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
 }
 
 .home-live__match {
@@ -232,22 +236,52 @@
 
 .home-live__arena {
   position: relative;
-  display: grid;
-  min-height: 132px;
-  align-content: space-between;
-  gap: var(--ds-space-3);
-  padding: 10px;
+  max-width: 100%;
+  aspect-ratio: 16 / 5;
+  overflow: hidden;
   color: #ffffff;
-  background:
-    radial-gradient(70% 120% at 0% 100%, color-mix(in srgb, var(--ds-accent) 45%, transparent), transparent 65%),
-    radial-gradient(70% 120% at 100% 0%, color-mix(in srgb, #2563eb 40%, transparent), transparent 65%), var(--ds-ink);
+  background: var(--ds-ink);
+}
+
+.home-live__arena::after {
+  position: absolute;
+  background: linear-gradient(to top, rgb(7 21 43 / 55%), transparent 55%);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+}
+
+.home-live__artwork {
+  position: absolute;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  inset: 0;
+}
+
+.home-live__art {
+  display: grid;
+  overflow: hidden;
+  place-items: center;
+  mask-image: linear-gradient(to right, #000000 72%, transparent);
+}
+
+.home-live__art:last-child {
+  mask-image: linear-gradient(to left, #000000 72%, transparent);
+}
+
+.home-live__art img {
+  transform: scale(1.45);
+  transform-origin: 50% 30%;
 }
 
 .home-live__top {
+  position: absolute;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--ds-space-2);
+  inset: 10px 10px auto;
 }
 
 .home-live-chip {
@@ -303,14 +337,15 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  gap: var(--ds-space-2);
+  gap: 10px;
+  padding: 14px 14px 10px;
 }
 
 .home-live__player {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: var(--ds-space-2);
+  gap: 10px;
 }
 
 .home-live__player:last-child {
@@ -318,21 +353,33 @@
   text-align: right;
 }
 
-.home-live__player b {
+.home-live__identity {
+  display: grid;
+  min-width: 0;
+}
+
+.home-live__identity b,
+.home-live__identity small {
   overflow: hidden;
-  font-size: 14px;
-  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.home-live__identity b {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.home-live__identity small {
+  color: var(--ds-text-3);
+  font-size: 12px;
+}
+
 .home-live__versus {
-  padding: 4px 10px;
-  font: 700 12px / 1 var(--ds-font-display);
+  color: var(--ds-text-3);
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0.12em;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: var(--ds-radius-pill);
-  background: rgba(7, 21, 43, 0.6);
 }
 
 .home-live__foot {
@@ -340,7 +387,9 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 14px;
+  margin-top: auto;
   padding: 10px 14px 14px;
+  border-top: 1px dashed var(--ds-line);
   color: var(--ds-text-3);
   font-size: 12.5px;
 }
@@ -960,6 +1009,23 @@
   .home-live__match,
   .home-event {
     scroll-snap-align: start;
+  }
+
+  .home-live__top .home-glass-badge {
+    display: none;
+  }
+
+  .home-live__duel {
+    gap: 6px;
+    padding: 12px 12px 8px;
+  }
+
+  .home-live__identity b {
+    font-size: 13px;
+  }
+
+  .home-live__identity small {
+    font-size: 11px;
   }
 
   .home-event__foot .aegis-button {
