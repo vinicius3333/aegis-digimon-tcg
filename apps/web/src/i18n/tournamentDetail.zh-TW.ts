@@ -105,4 +105,13 @@ export const tournamentDetailZhTW = {
   "tournaments.signup.dropHint": "把你的名額讓給其他玩家。",
   "tournaments.signup.closed": "本賽事報名已截止。",
   "tournaments.signup.changeDeck": "更換卡組",
+  "tournaments.closeCheckIn.hint": "立即開始比賽。未報到的玩家會被移出。",
+  "tournaments.closeCheckIn.confirmTitle": "現在關閉報到嗎？",
+  "tournaments.closeCheckIn.counts": "已報到 {checkedIn} 人 · 仍在等待 {waiting} 人",
+  "tournaments.closeCheckIn.starts": "比賽會立即開始，參賽名單將被鎖定。",
+  "tournaments.closeCheckIn.noShows": "未報到的玩家會因缺席被移出。",
+  "tournaments.closeCheckIn.bots": "空位會用機器人補滿到對戰表規模。",
+  "tournaments.closeCheckIn.blocked": "還沒有人報到，比賽無法開始。",
+  "tournaments.closeCheckIn.needsPlayer": "至少還需要 1 名玩家報到。單淘汰賽需要 2 名已報到玩家，否則比賽會被取消。",
+  "tournaments.closeCheckIn.confirmStart": "關閉報到並開始",
 };

@@ -113,4 +113,14 @@ export const tournamentDetailJa = {
   "tournaments.signup.dropHint": "あなたの枠を他のプレイヤーに譲ります。",
   "tournaments.signup.closed": "このイベントの参加登録は締め切られました。",
   "tournaments.signup.changeDeck": "デッキを変更",
+  "tournaments.closeCheckIn.hint": "今すぐ大会を開始します。チェックインしていないプレイヤーは除外されます。",
+  "tournaments.closeCheckIn.confirmTitle": "今すぐチェックインを締め切りますか？",
+  "tournaments.closeCheckIn.counts": "チェックイン済み {checkedIn} 人 · 待機中 {waiting} 人",
+  "tournaments.closeCheckIn.starts": "大会はすぐに始まり、参加者は確定します。",
+  "tournaments.closeCheckIn.noShows": "チェックインしていないプレイヤーは欠席として除外されます。",
+  "tournaments.closeCheckIn.bots": "空き枠はトーナメント表のサイズまでボットで埋められます。",
+  "tournaments.closeCheckIn.blocked": "まだ誰もチェックインしていないため、大会を開始できません。",
+  "tournaments.closeCheckIn.needsPlayer":
+    "あと1人以上のチェックインが必要です。シングルエリミネーションはチェックイン済み2人が必要で、足りないと大会は中止されます。",
+  "tournaments.closeCheckIn.confirmStart": "締め切って開始",
 };

@@ -39,6 +39,7 @@ import { TournamentEntrySummary } from "@/tournaments/TournamentEntrySummary";
 import { TournamentEntryView } from "@/tournaments/TournamentEntryView";
 import { TournamentSignupFlow } from "@/tournaments/TournamentSignupFlow";
 import { ownParticipant } from "@/tournaments/ownParticipant";
+import { TournamentCloseCheckIn } from "@/tournaments/TournamentCloseCheckIn";
 import { usePolledRequest } from "./hooks";
 import { banlistModeKey, participantStatusKey, restrictionKey, statusKey, structureKey, windowKey } from "./labels";
 import { MyMatchPanel } from "./MyMatchPanel";
@@ -479,6 +480,10 @@ export function TournamentDetail({
             discordAnnounce={detail.discordAnnounce === true}
             category={detail.category}
             checkInOpen={isCheckInOpen({ status: detail.status, windows: detail.windows, now: serverNow() })}
+            structure={detail.structure}
+            allowBots={detail.allowBots}
+            checkedIn={detail.participants.filter((participant) => participant.status === "checked_in").length}
+            waiting={detail.participants.filter((participant) => participant.status === "registered").length}
             onChanged={refresh}
             onDeleted={onBack}
           />
@@ -513,6 +518,10 @@ function OrganizerControls({
   discordAnnounce,
   category,
   checkInOpen,
+  structure,
+  allowBots,
+  checkedIn,
+  waiting,
   onChanged,
   onDeleted,
 }: {
@@ -523,6 +532,10 @@ function OrganizerControls({
   discordAnnounce: boolean;
   category?: TournamentCategory;
   checkInOpen: boolean;
+  structure: TournamentDetailPayload["structure"];
+  allowBots: boolean;
+  checkedIn: number;
+  waiting: number;
   onChanged: () => void;
   onDeleted: () => void;
 }) {
@@ -581,23 +594,22 @@ function OrganizerControls({
             >
               {t("tournaments.detail.saveWindows")}
             </Button>
-            {checkInOpen ? (
-              <Button
-                variant="secondary"
-                onClick={() =>
-                  void tournamentApi.closeCheckIn(id).then((result) => {
-                    if (result.ok) {
-                      setError(undefined);
-                      onChanged();
-                    } else setError(result.error);
-                  })
-                }
-              >
-                {t("tournaments.detail.closeCheckIn")}
-              </Button>
-            ) : null}
           </div>
           {saved ? <p role="status">{t("tournaments.detail.windowsSaved")}</p> : null}
+          {checkInOpen ? (
+            <TournamentCloseCheckIn
+              id={id}
+              structure={structure}
+              allowBots={allowBots}
+              checkedIn={checkedIn}
+              waiting={waiting}
+              onClosed={() => {
+                setError(undefined);
+                onChanged();
+              }}
+              onError={setError}
+            />
+          ) : null}
         </section>
       ) : null}
       {isAdmin ? (

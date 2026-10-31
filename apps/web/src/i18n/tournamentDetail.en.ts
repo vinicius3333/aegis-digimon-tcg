@@ -112,4 +112,14 @@ export const tournamentDetailEn = {
   "tournaments.signup.dropHint": "Frees your seat for another player.",
   "tournaments.signup.closed": "Sign-ups are closed for this event.",
   "tournaments.signup.changeDeck": "Change deck",
+  "tournaments.closeCheckIn.hint": "Starts the tournament now. Players who have not checked in are dropped.",
+  "tournaments.closeCheckIn.confirmTitle": "Close check-in now?",
+  "tournaments.closeCheckIn.counts": "{checkedIn} checked in · {waiting} still waiting",
+  "tournaments.closeCheckIn.starts": "The tournament starts right away and the field is locked.",
+  "tournaments.closeCheckIn.noShows": "Players who have not checked in are dropped as no-shows.",
+  "tournaments.closeCheckIn.bots": "Empty seats are filled with bots up to the bracket size.",
+  "tournaments.closeCheckIn.blocked": "Nobody has checked in yet, so the tournament cannot start.",
+  "tournaments.closeCheckIn.needsPlayer":
+    "At least one more player needs to check in. Single elimination needs 2 checked-in players, or the tournament is cancelled.",
+  "tournaments.closeCheckIn.confirmStart": "Close check-in and start",
 };

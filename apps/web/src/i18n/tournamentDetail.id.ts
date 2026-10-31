@@ -118,4 +118,14 @@ export const tournamentDetailId = {
   "tournaments.signup.dropHint": "Memberikan kursi Anda ke pemain lain.",
   "tournaments.signup.closed": "Pendaftaran acara ini sudah ditutup.",
   "tournaments.signup.changeDeck": "Ganti deck",
+  "tournaments.closeCheckIn.hint": "Memulai turnamen sekarang. Pemain yang belum check-in akan dikeluarkan.",
+  "tournaments.closeCheckIn.confirmTitle": "Tutup check-in sekarang?",
+  "tournaments.closeCheckIn.counts": "{checkedIn} sudah check-in · {waiting} masih menunggu",
+  "tournaments.closeCheckIn.starts": "Turnamen langsung dimulai dan daftar pemain dikunci.",
+  "tournaments.closeCheckIn.noShows": "Pemain yang belum check-in dikeluarkan karena tidak hadir.",
+  "tournaments.closeCheckIn.bots": "Kursi kosong diisi bot hingga ukuran bagan.",
+  "tournaments.closeCheckIn.blocked": "Belum ada yang check-in, jadi turnamen tidak bisa dimulai.",
+  "tournaments.closeCheckIn.needsPlayer":
+    "Minimal satu pemain lagi harus check-in. Sistem gugur butuh 2 pemain yang sudah check-in, atau turnamen dibatalkan.",
+  "tournaments.closeCheckIn.confirmStart": "Tutup check-in dan mulai",
 };

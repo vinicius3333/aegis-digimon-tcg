@@ -114,4 +114,14 @@ export const tournamentDetailKo = {
   "tournaments.signup.dropHint": "자리를 다른 플레이어에게 넘깁니다.",
   "tournaments.signup.closed": "이 이벤트의 참가 신청이 마감되었습니다.",
   "tournaments.signup.changeDeck": "덱 변경",
+  "tournaments.closeCheckIn.hint": "지금 대회를 시작합니다. 체크인하지 않은 플레이어는 제외됩니다.",
+  "tournaments.closeCheckIn.confirmTitle": "지금 체크인을 마감할까요?",
+  "tournaments.closeCheckIn.counts": "체크인 {checkedIn}명 · 대기 {waiting}명",
+  "tournaments.closeCheckIn.starts": "대회가 바로 시작되고 참가자가 확정됩니다.",
+  "tournaments.closeCheckIn.noShows": "체크인하지 않은 플레이어는 불참으로 제외됩니다.",
+  "tournaments.closeCheckIn.bots": "빈 자리는 대진표 크기까지 봇으로 채워집니다.",
+  "tournaments.closeCheckIn.blocked": "아직 아무도 체크인하지 않아 대회를 시작할 수 없습니다.",
+  "tournaments.closeCheckIn.needsPlayer":
+    "최소 1명이 더 체크인해야 합니다. 싱글 엘리미네이션은 체크인한 플레이어 2명이 필요하며, 부족하면 대회가 취소됩니다.",
+  "tournaments.closeCheckIn.confirmStart": "마감하고 시작",
 };

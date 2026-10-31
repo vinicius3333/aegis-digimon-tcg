@@ -114,4 +114,14 @@ export const tournamentDetailPtBR = {
   "tournaments.signup.dropHint": "Libera sua vaga para outro jogador.",
   "tournaments.signup.closed": "As inscrições deste evento estão fechadas.",
   "tournaments.signup.changeDeck": "Trocar deck",
+  "tournaments.closeCheckIn.hint": "Inicia o torneio agora. Quem não fez check-in sai do torneio.",
+  "tournaments.closeCheckIn.confirmTitle": "Fechar o check-in agora?",
+  "tournaments.closeCheckIn.counts": "{checkedIn} com check-in · {waiting} ainda aguardando",
+  "tournaments.closeCheckIn.starts": "O torneio começa na hora e a lista de jogadores é travada.",
+  "tournaments.closeCheckIn.noShows": "Quem não fez check-in sai do torneio por ausência.",
+  "tournaments.closeCheckIn.bots": "Vagas vazias são preenchidas com bots até o tamanho da chave.",
+  "tournaments.closeCheckIn.blocked": "Ninguém fez check-in ainda, então o torneio não pode começar.",
+  "tournaments.closeCheckIn.needsPlayer":
+    "Pelo menos mais um jogador precisa fazer check-in. Eliminação simples precisa de 2 jogadores com check-in, senão o torneio é cancelado.",
+  "tournaments.closeCheckIn.confirmStart": "Fechar check-in e começar",
 };

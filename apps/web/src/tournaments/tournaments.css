@@ -1076,6 +1076,89 @@
   margin-top: 0;
 }
 
+.tournaments-organizer > .aegis-button,
+.tournaments-organizer__danger > .aegis-button {
+  align-self: flex-start;
+}
+
+.tournaments-organizer > .aegis-field {
+  max-width: 24rem;
+}
+
+.tournaments-close-check-in {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-fill);
+}
+
+.tournaments-close-check-in p {
+  margin: 2px 0 0;
+}
+
+.tournaments-close-check-in[data-confirming] {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.tournaments-close-check-in__trigger {
+  display: inline-flex;
+  border-radius: var(--ds-radius-md);
+  cursor: not-allowed;
+}
+
+.tournaments-close-check-in__trigger:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.tournaments-tooltip {
+  z-index: var(--ds-z-hint);
+  max-width: 280px;
+  padding: 8px 10px;
+  color: var(--ds-text);
+  font-size: 12.5px;
+  line-height: 1.45;
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-sheet);
+  box-shadow: var(--ds-shadow-overlay);
+}
+
+.tournaments-tooltip__arrow {
+  fill: var(--ds-sheet);
+}
+
+.tournaments-close-check-in__body {
+  display: grid;
+  gap: var(--ds-space-2);
+}
+
+.tournaments-close-check-in__counts {
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+}
+
+.tournaments-close-check-in ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 1.1em;
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-sm);
+}
+
+.tournaments-close-check-in .tournaments-detail__actions {
+  justify-content: flex-end;
+  margin: 0;
+}
+
 .tournaments-organizer__fields {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));

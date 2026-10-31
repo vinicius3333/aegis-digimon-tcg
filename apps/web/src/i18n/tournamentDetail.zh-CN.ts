@@ -105,4 +105,13 @@ export const tournamentDetailZhCN = {
   "tournaments.signup.dropHint": "把你的席位让给其他玩家。",
   "tournaments.signup.closed": "本赛事报名已截止。",
   "tournaments.signup.changeDeck": "更换卡组",
+  "tournaments.closeCheckIn.hint": "立即开始比赛。未签到的玩家将被移出。",
+  "tournaments.closeCheckIn.confirmTitle": "现在关闭签到吗？",
+  "tournaments.closeCheckIn.counts": "已签到 {checkedIn} 人 · 仍在等待 {waiting} 人",
+  "tournaments.closeCheckIn.starts": "比赛会立即开始，参赛名单将被锁定。",
+  "tournaments.closeCheckIn.noShows": "未签到的玩家会因缺席被移出。",
+  "tournaments.closeCheckIn.bots": "空位会用机器人补满到对阵表规模。",
+  "tournaments.closeCheckIn.blocked": "还没有人签到，比赛无法开始。",
+  "tournaments.closeCheckIn.needsPlayer": "至少还需要 1 名玩家签到。单淘汰赛需要 2 名已签到玩家，否则比赛会被取消。",
+  "tournaments.closeCheckIn.confirmStart": "关闭签到并开始",
 };

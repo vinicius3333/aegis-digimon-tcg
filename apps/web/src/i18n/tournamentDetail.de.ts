@@ -118,4 +118,14 @@ export const tournamentDetailDe = {
   "tournaments.signup.dropHint": "Gibt Ihren Platz für einen anderen Spieler frei.",
   "tournaments.signup.closed": "Die Anmeldung für dieses Event ist geschlossen.",
   "tournaments.signup.changeDeck": "Deck wechseln",
+  "tournaments.closeCheckIn.hint": "Startet das Turnier jetzt. Wer nicht eingecheckt hat, scheidet aus.",
+  "tournaments.closeCheckIn.confirmTitle": "Check-in jetzt schließen?",
+  "tournaments.closeCheckIn.counts": "{checkedIn} eingecheckt · {waiting} warten noch",
+  "tournaments.closeCheckIn.starts": "Das Turnier beginnt sofort und das Teilnehmerfeld wird gesperrt.",
+  "tournaments.closeCheckIn.noShows": "Wer nicht eingecheckt hat, scheidet wegen Abwesenheit aus.",
+  "tournaments.closeCheckIn.bots": "Freie Plätze werden bis zur Bracket-Größe mit Bots gefüllt.",
+  "tournaments.closeCheckIn.blocked": "Noch niemand hat eingecheckt, daher kann das Turnier nicht starten.",
+  "tournaments.closeCheckIn.needsPlayer":
+    "Mindestens ein weiterer Spieler muss einchecken. Einfaches K.-o.-System braucht 2 eingecheckte Spieler, sonst wird das Turnier abgesagt.",
+  "tournaments.closeCheckIn.confirmStart": "Check-in schließen und starten",
 };
