@@ -177407,7 +177407,6 @@
               "target": {
                 "filter": {
                   "controller": "mine",
-                  "kind": ["Digimon"],
                   "nameOrTrait": [{ "tokens": ["Seven Great Demon Lords"], "match": "trait" }],
                   "zone": "digivolutionCards",
                   "sameHost": true
