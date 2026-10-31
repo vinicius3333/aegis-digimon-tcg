@@ -56,4 +56,39 @@ export const tournamentDetailId = {
   "feedback.reportedTournaments.started":
     "Acara ini sudah dimulai sehingga tidak dapat dihapus. Abaikan laporan atau kelola acara dari halaman acara.",
   "feedback.reportedTournaments.failed": "Tidak dapat memperbarui laporan ini. Coba lagi.",
+  "tournaments.catalog.explore": "Jelajahi",
+  "tournaments.catalog.featured": "Unggulan",
+  "tournaments.catalog.hostTitle": "Selenggarakan turnamen",
+  "tournaments.catalog.hostCopy": "Swiss atau eliminasi tunggal, dengan check-in, bagan, dan meja langsung.",
+  "tournaments.catalog.mineEntries": "Terdaftar",
+  "tournaments.catalog.mineOrganized": "Diselenggarakan oleh Anda",
+  "tournaments.catalog.mineEmpty":
+    "Anda belum bergabung atau menyelenggarakan acara. Jelajahi daftar untuk menemukannya.",
+  "tournaments.detail.copyLink": "Salin tautan",
+  "tournaments.detail.linkCopied": "Tautan disalin",
+  "tournaments.detail.spotsLeft": "sisa {count}",
+  "tournaments.detail.passwordNote":
+    "Acara ini memerlukan kata sandi. Mintalah kepada penyelenggara sebelum Anda mendaftar.",
+  "tournaments.detail.registrationCloses": "Pendaftaran ditutup {time}",
+  "tournaments.detail.dropConfirm": "Keluar dari {name}?",
+  "tournaments.detail.dropConfirmCopy":
+    "Kursi Anda diberikan ke pemain lain. Anda dapat mendaftar lagi selama masih ada kursi.",
+  "tournaments.detail.dropConfirmYes": "Ya, keluar",
+  "tournaments.detail.deckFilter": "Filter deck berdasarkan nama",
+  "tournaments.detail.deckFilterEmpty": "Tidak ada deck dengan nama itu.",
+  "tournaments.create.sections": "Bagian formulir",
+  "tournaments.create.category": "Kategori",
+  "tournaments.create.sectionHint.basics": "Cara acara tampil di daftar.",
+  "tournaments.create.sectionHint.schedule": "Kapan dimulai dan berapa kursi yang tersedia.",
+  "tournaments.create.sectionHint.format": "Pasangan, durasi pertandingan, dan kartu yang diizinkan.",
+  "tournaments.create.sectionHint.bots": "Opsional. Berguna saat kursi kosong.",
+  "tournaments.create.sectionHint.admin": "Siapa yang dapat bergabung ke acara.",
+  "tournaments.create.structureHint.swiss":
+    "Semua pemain bermain setiap ronde. Pemain dengan skor sama saling berhadapan.",
+  "tournaments.create.structureHint.singleElimination":
+    "Kalah sekali langsung keluar. Lebih cepat, cocok untuk sedikit pemain.",
+  "tournaments.create.fewerPlayers": "Lebih sedikit pemain",
+  "tournaments.create.morePlayers": "Lebih banyak pemain",
+  "tournaments.create.commonSizes": "Ukuran umum",
+  "tournaments.create.previewCard": "Pratinjau kartu acara",
 };

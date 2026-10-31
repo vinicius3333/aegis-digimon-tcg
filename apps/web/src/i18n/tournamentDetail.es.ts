@@ -56,4 +56,38 @@ export const tournamentDetailEs = {
   "feedback.reportedTournaments.started":
     "Este evento ya empezó, así que no se puede eliminar. Descarta las denuncias o gestiona el evento desde su página.",
   "feedback.reportedTournaments.failed": "No se pudieron actualizar estas denuncias. Inténtalo de nuevo.",
+  "tournaments.catalog.explore": "Explorar",
+  "tournaments.catalog.featured": "Destacado",
+  "tournaments.catalog.hostTitle": "Organiza un torneo",
+  "tournaments.catalog.hostCopy": "Suizo o eliminación directa, con check-in, cuadros y mesas en vivo listas.",
+  "tournaments.catalog.mineEntries": "Inscrito",
+  "tournaments.catalog.mineOrganized": "Organizados por ti",
+  "tournaments.catalog.mineEmpty":
+    "Aún no te has unido ni has organizado ningún evento. Explora la lista para encontrar uno.",
+  "tournaments.detail.copyLink": "Copiar enlace",
+  "tournaments.detail.linkCopied": "Enlace copiado",
+  "tournaments.detail.spotsLeft": "quedan {count}",
+  "tournaments.detail.passwordNote": "Este evento requiere contraseña. Pídela al organizador antes de inscribirte.",
+  "tournaments.detail.registrationCloses": "Las inscripciones cierran {time}",
+  "tournaments.detail.dropConfirm": "¿Abandonar {name}?",
+  "tournaments.detail.dropConfirmCopy":
+    "Tu plaza pasa a otro jugador. Puedes volver a inscribirte mientras queden plazas.",
+  "tournaments.detail.dropConfirmYes": "Sí, abandonar",
+  "tournaments.detail.deckFilter": "Filtrar decks por nombre",
+  "tournaments.detail.deckFilterEmpty": "Ningún deck coincide con ese nombre.",
+  "tournaments.create.sections": "Secciones del formulario",
+  "tournaments.create.category": "Categoría",
+  "tournaments.create.sectionHint.basics": "Cómo aparece el evento en la lista.",
+  "tournaments.create.sectionHint.schedule": "Cuándo empieza y cuántas plazas tiene.",
+  "tournaments.create.sectionHint.format": "Emparejamientos, duración de las partidas y cartas permitidas.",
+  "tournaments.create.sectionHint.bots": "Opcional. Útil cuando faltan jugadores.",
+  "tournaments.create.sectionHint.admin": "Quién puede unirse al evento.",
+  "tournaments.create.structureHint.swiss":
+    "Todos juegan todas las rondas. Se enfrentan jugadores con la misma puntuación.",
+  "tournaments.create.structureHint.singleElimination":
+    "Quien pierde queda fuera. Más rápido, ideal para pocos jugadores.",
+  "tournaments.create.fewerPlayers": "Menos jugadores",
+  "tournaments.create.morePlayers": "Más jugadores",
+  "tournaments.create.commonSizes": "Tamaños comunes",
+  "tournaments.create.previewCard": "Vista previa de la tarjeta del evento",
 };
