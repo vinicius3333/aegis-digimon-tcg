@@ -235,7 +235,9 @@
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
+  gap: 3px;
   padding: 3px;
+  border: 1px solid var(--ds-line);
   border-radius: var(--ds-radius-md);
   background: var(--ds-fill);
 }
@@ -253,10 +255,19 @@
   cursor: pointer;
 }
 
+.create-tournament__segmented button:hover {
+  color: var(--ds-text);
+}
+
 .create-tournament__segmented button[aria-pressed="true"] {
   color: var(--ds-text);
   background: var(--ds-sheet);
   box-shadow: var(--ds-shadow-card);
+}
+
+.dark .create-tournament__segmented button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--ds-text) 12%, var(--ds-fill));
+  box-shadow: none;
 }
 
 .create-tournament__segmented button:focus-visible {
@@ -405,17 +416,65 @@
 }
 
 .create-tournament__preview {
-  overflow: hidden;
-}
-
-.create-tournament__preview-banner {
-  min-height: 104px;
-}
-
-.create-tournament__preview-body {
+  position: relative;
   display: grid;
-  gap: 10px;
-  padding: 14px 16px 16px;
+  gap: 14px;
+  overflow: hidden;
+  padding: 16px 16px 16px 19px;
+}
+
+.create-tournament__preview::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  content: "";
+  background: var(--ds-line-strong);
+}
+
+.create-tournament__preview[data-official]::before {
+  background: var(--ds-accent);
+}
+
+.create-tournament__preview-eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.create-tournament__preview-eyebrow > small {
+  color: var(--ds-text-3);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.create-tournament__preview-facts {
+  display: grid;
+  margin: 0;
+}
+
+.create-tournament__preview-facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 13px;
+  border-top: 1px solid var(--ds-line);
+}
+
+.create-tournament__preview-facts dt {
+  color: var(--ds-text-3);
+}
+
+.create-tournament__preview-facts dd {
+  margin: 0;
+  color: var(--ds-text);
+  font-weight: 500;
+  text-align: right;
 }
 
 .create-tournament__preview-name {

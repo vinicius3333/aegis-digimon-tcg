@@ -1,5 +1,6 @@
 import "@/tournaments/tournamentCatalog.css";
 import type { TournamentStructure } from "@aegis/shared";
+import { Badge } from "@/design/primitives";
 import { Icons } from "@/design/icons";
 import { useTranslation } from "@/i18n/useTranslation";
 import { structureKey } from "@/tournaments/labels";
@@ -37,56 +38,55 @@ export function TournamentEventPreview({
       }).format(startsAt)
     : "";
   return (
-    <section className="tournaments-card create-tournament__preview" aria-label={t("tournaments.create.previewCard")}>
-      <div
-        className="tournaments-feature__banner create-tournament__preview-banner"
-        data-official={official || undefined}
-      >
-        <Icons.Trophy size={56} aria-hidden="true" />
-        <div className="tournaments-feature__badges">
-          <span className="tournaments-glass">
-            {t(official ? "tournaments.category.official" : "tournaments.category.community")}
-          </span>
-          {passwordProtected ? (
-            <span className="tournaments-glass">
-              <Icons.Lock size={11} aria-hidden="true" />
-              {t("tournaments.catalog.withPassword")}
-            </span>
-          ) : null}
-        </div>
+    <section
+      className="tournaments-card create-tournament__preview"
+      aria-label={t("tournaments.create.previewCard")}
+      data-official={official || undefined}
+    >
+      <div className="create-tournament__preview-eyebrow">
+        <small>{t("tournaments.create.previewCard")}</small>
+        <Badge tone={official ? "primary" : "neutral"}>
+          {t(official ? "tournaments.category.official" : "tournaments.category.community")}
+        </Badge>
+        {passwordProtected ? (
+          <Badge>
+            <Icons.Lock size={11} aria-hidden="true" />
+            {t("tournaments.catalog.withPassword")}
+          </Badge>
+        ) : null}
       </div>
-      <div className="create-tournament__preview-body">
-        <strong className="create-tournament__preview-name" data-placeholder={trimmed ? undefined : true}>
-          {trimmed || t("tournaments.create.title")}
-        </strong>
-        <div className="tournaments-feature__facts">
-          {when ? (
-            <span>
-              <Icons.Calendar size={14} aria-hidden="true" />
-              {when}
-            </span>
-          ) : null}
-          <span>
-            <Icons.LayoutGrid size={14} aria-hidden="true" />
+      <strong className="create-tournament__preview-name" data-placeholder={trimmed ? undefined : true}>
+        {trimmed || t("tournaments.create.title")}
+      </strong>
+      <dl className="create-tournament__preview-facts">
+        {when ? (
+          <div>
+            <dt>{t("tournaments.create.startsAt")}</dt>
+            <dd>{when}</dd>
+          </div>
+        ) : null}
+        <div>
+          <dt>{t("tournaments.create.structure")}</dt>
+          <dd>
             {t(structureKey(structure))}
             {topCut ? ` + ${t("tournaments.badge.topCut")}` : ""}
-          </span>
+          </dd>
+        </div>
+        <div>
+          <dt>{t("tournaments.create.bestOf")}</dt>
+          <dd>{t("tournaments.bestOf", { count: bestOf })}</dd>
+        </div>
+      </dl>
+      <div className="tournaments-capacity">
+        <div className="tournaments-capacity__label">
+          <span>{t("home.tournaments.players")}</span>
           <span>
-            <Icons.Swords size={14} aria-hidden="true" />
-            {t("tournaments.bestOf", { count: bestOf })}
+            <b>0</b> / {maxPlayers}
           </span>
         </div>
-        <div className="tournaments-capacity">
-          <div className="tournaments-capacity__label">
-            <span>{t("home.tournaments.players")}</span>
-            <span>
-              <b>0</b> / {maxPlayers}
-            </span>
-          </div>
-          <span className="tournaments-progress" aria-hidden="true">
-            <span style={{ width: 0 }} />
-          </span>
-        </div>
+        <span className="tournaments-progress" aria-hidden="true">
+          <span style={{ width: 0 }} />
+        </span>
       </div>
     </section>
   );
