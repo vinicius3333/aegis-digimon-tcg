@@ -403,9 +403,17 @@ function getEmptyCopy({ hasEvents, signedIn, t }: EmptyCopyParams): string {
   return t("tournaments.catalog.emptyReadOnly");
 }
 
+const FEATURED_MINIMUM_EVENTS = 2;
+
 function getFeaturedTournament(tournaments: readonly TournamentListing[]): TournamentListing | undefined {
-  return tournaments
-    .filter((event) => event.status === "registration" || event.status === "check_in" || event.status === "running")
+  const active = tournaments.filter(
+    (event) => event.status === "registration" || event.status === "check_in" || event.status === "running",
+  );
+  if (active.length < FEATURED_MINIMUM_EVENTS) {
+    return undefined;
+  }
+  return active
+    .filter((event) => !event.myEntry)
     .sort(
       (first, second) =>
         getFeaturedRank(first) - getFeaturedRank(second) ||

@@ -139,7 +139,7 @@ function HomeTournament({ tournament, onOpen }: HomeTournamentParams) {
         </div>
       </div>
       <div className="home-event__foot">
-        <Button size="sm" variant={action.primary ? "primary" : "secondary"} full onClick={() => onOpen(tournament.id)}>
+        <Button size="sm" variant={action.primary ? "primary" : "secondary"} onClick={() => onOpen(tournament.id)}>
           {t(action.labelKey)}
         </Button>
       </div>

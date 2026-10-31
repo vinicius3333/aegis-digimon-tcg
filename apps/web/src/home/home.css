@@ -465,6 +465,7 @@
 
 .home-event__foot {
   display: flex;
+  justify-content: flex-end;
   margin-top: auto;
 }
 
@@ -953,6 +954,10 @@
   .home-live__match,
   .home-event {
     scroll-snap-align: start;
+  }
+
+  .home-event__foot .aegis-button {
+    width: 100%;
   }
 
   .home-agenda__item {

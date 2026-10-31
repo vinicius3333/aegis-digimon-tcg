@@ -19,7 +19,6 @@ export function TournamentAgendaItem({ tournament, onOpen }: TournamentAgendaIte
   const capacity = Math.min(100, Math.max(0, (tournament.registeredCount / tournament.maxPlayers) * 100));
   const closed = isTournamentClosed(tournament);
   const full = tournament.registeredCount >= tournament.maxPlayers;
-  const open = tournament.status === "registration" && !full;
 
   return (
     <li>
@@ -75,7 +74,7 @@ export function TournamentAgendaItem({ tournament, onOpen }: TournamentAgendaIte
         <Button
           className="tournaments-row__open"
           size="sm"
-          variant={open ? "primary" : "secondary"}
+          variant="secondary"
           onClick={() => onOpen(tournament.id)}
         >
           {full && tournament.status === "registration" ? t("tournaments.catalog.full") : t("tournaments.catalog.view")}
