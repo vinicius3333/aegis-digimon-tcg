@@ -66,6 +66,7 @@ const interfaceMessages = {
   ...lessonCatalogFr,
   ...rulesLayoutFr,
   ...advancedBattlesFr,
+  "digilab.eggs": "Digi-Œufs",
   "digilab.cardCounts": "{main} cartes principales · {eggs} Digi-Œufs",
   "settings.cardImageLanguage": "Langue des images des cartes",
   "settings.cardImageLanguageDesc":
@@ -2163,8 +2164,8 @@ const interfaceMessages = {
   "tournaments.countdown.warning1": "Moins d'une minute",
   "tournaments.countdown.expired": "Le temps est écoulé",
   "tournaments.reason.unknown": "Un problème est survenu. Réessaie dans un instant. (Code : {code})",
-  "tournaments.reason.signedOut": "Ta session a expiré. Reconnecte-toi pour continuer.",
-  "tournaments.reason.forbidden": "Tu n'as pas la permission de faire ça.",
+  "tournaments.reason.signedOut": "Votre session a expiré. Reconnectez-vous pour continuer.",
+  "tournaments.reason.forbidden": "Vous n'avez pas la permission de faire cela.",
   "tournaments.reason.notFound": "Introuvable. Cet élément a peut-être été supprimé.",
   "tournaments.reason.tooManyRequests": "Trop de tentatives. Patiente un instant et réessaie.",
   "tournaments.reason.nameTooShort": "Ce nom est trop court.",

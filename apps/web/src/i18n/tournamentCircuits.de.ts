@@ -47,7 +47,7 @@ export const tournamentCircuitsDe = {
   "tournaments.circuits.startDate": "Erster Tag",
   "tournaments.circuits.endDate": "Letzter Tag",
   "tournaments.circuits.timeZone": "Zeitzone",
-  "tournaments.circuits.cadence": "Wiederholung",
+  "tournaments.circuits.cadence": "Rhythmus",
   "tournaments.circuits.cadence.weekly": "Jede Woche",
   "tournaments.circuits.cadence.monthly": "Jeden Monat",
   "tournaments.circuits.slotsLabel": "Termine",

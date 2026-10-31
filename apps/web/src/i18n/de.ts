@@ -19,7 +19,8 @@ import { learnDrillsDe } from "@/i18n/learn/drills.de";
 
 const interfaceMessages = {
   "home.booster.title": "Ein paar Booster öffnen",
-  "home.booster.copy": "Wähle ein Set und schau, was du ziehst. Nur zum Spaß, nichts landet in deiner Sammlung.",
+  "home.booster.copy":
+    "Wählen Sie ein Set und sehen Sie, was Sie ziehen. Nur zum Spaß, nichts landet in Ihrer Sammlung.",
   "home.booster.eyebrow": "Neu",
   "home.booster.action": "Loslegen",
   "replay.skipThinking": "Denkzeit überspringen",
@@ -50,7 +51,7 @@ const interfaceMessages = {
   "bot.line.lastStand": "Keine Security mehr ... aber ich gebe nicht auf!",
   "bot.line.victory": "Gutes Spiel! Trainieren Sie und versuchen Sie es erneut.",
   "bot.line.defeat": "Diesmal waren Sie stärker. Gutes Spiel!",
-  "home.strategyGuides": "Lerne mit unseren Strategie-Guides, wie du ein Deck spielst",
+  "home.strategyGuides": "Lernen Sie mit unseren Strategie-Guides, wie Sie ein Deck spielen",
   ...decisionChoicesEn,
   "overlay.cancelActivation": "Effekt abbrechen",
   "overlay.deleteThisDigimon": "Delete this Digimon",
@@ -74,7 +75,7 @@ const interfaceMessages = {
   "settings.cardImageLanguageProgress": "Decks werden aktualisiert: {completed}/{total}",
   "settings.cardImageLanguageResult":
     "Aktualisierte Decks: {saved}. Fehlgeschlagen: {failed}. Exemplare ohne diese Sprache: {unavailable}. Erneut anwenden, um fehlgeschlagene Decks nochmals zu versuchen.",
-  "story.tagline": "Wähle deinen Charakter. Erlebe die Kämpfe.",
+  "story.tagline": "Wählen Sie Ihren Charakter. Erleben Sie die Kämpfe.",
   "story.adaptation": "Adaption",
   "story.adaptationHint": "Fehlende Details der Geschichte werden für diese spielbare Adaption rekonstruiert.",
   "story.notice":
@@ -98,7 +99,7 @@ const interfaceMessages = {
   "story.completed": "Abgeschlossen",
   "story.ready": "Verfügbar",
   "story.signin":
-    "Du spielst als Gast. Der Fortschritt bleibt mit diesem Browser verknüpft; nach der Anmeldung gilt dein Kontofortschritt.",
+    "Sie spielen als Gast. Der Fortschritt bleibt mit diesem Browser verknüpft; nach der Anmeldung gilt Ihr Kontofortschritt.",
   "story.progress": "{completed} / {total} Kämpfe abgeschlossen",
   "story.backToCampaigns": "Zurück zu den Kampagnen",
   "story.source": "Offizieller Kampfbericht",
@@ -157,7 +158,7 @@ const interfaceMessages = {
     "Diese Einstellung konnte nicht geladen oder gespeichert werden. Versuche es erneut oder öffne die Einstellungen neu.",
   "overlay.useNegamon": "Negamon verwenden",
   "overlay.negamonPlayDetail":
-    "Aktiviere Negamons Effekt im Aufzuchtbereich, um ein Digimon mit reduzierten Kosten zu spielen und Negamon darunterzulegen. Die Karte wählst du im nächsten Schritt des Effekts.",
+    "Aktivieren Sie Negamons Effekt im Aufzuchtbereich, um ein Digimon mit reduzierten Kosten zu spielen und Negamon darunterzulegen. Die Karte wählen Sie im nächsten Schritt des Effekts.",
   "overlay.playNormally": "Normal spielen",
   "profile.opponentDeckFailed": "Dieses Deck ist nicht verfügbar oder sein Besitzer hat die Freigabe deaktiviert.",
   "overlay.viewOpponentDeck": "Gegnerisches Deck ansehen",
@@ -625,7 +626,7 @@ const interfaceMessages = {
   "spectator.back": "Zurück zur Lobby",
   "settings.hideIdentityFromSpectators": "Meine Identität vor Zuschauern verbergen",
   "settings.hideIdentityFromSpectatorsDesc":
-    "In zukünftigen Spielen sehen Zuschauer eine Spielernummer statt deines Namens und Avatars. Dein Gegner sieht weiterhin deine Identität.",
+    "In zukünftigen Spielen sehen Zuschauer eine Spielernummer statt Ihres Namens und Avatars. Ihr Gegner sieht weiterhin Ihre Identität.",
   "spectator.audience": "Zuschauer",
   "spectator.anonymousCount": "Gäste: {count}",
   "settings.listLiveMatches": "Meine Matches für Zuschauer listen",

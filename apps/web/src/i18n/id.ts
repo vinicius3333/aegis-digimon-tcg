@@ -19,7 +19,8 @@ import { learnDrillsId } from "@/i18n/learn/drills.id";
 
 const interfaceMessages = {
   "home.booster.title": "Buka beberapa booster",
-  "home.booster.copy": "Pilih set dan lihat kartu yang kamu dapat. Cuma untuk seru-seruan, tidak masuk ke koleksimu.",
+  "home.booster.copy":
+    "Pilih set dan lihat kartu yang Anda dapat. Cuma untuk seru-seruan, tidak masuk ke koleksi Anda.",
   "home.booster.eyebrow": "Baru",
   "home.booster.action": "Mulai",
   "replay.skipThinking": "Lewati waktu berpikir",
@@ -78,7 +79,7 @@ const interfaceMessages = {
   "story.adaptation": "Adaptasi",
   "story.adaptationHint": "Detail cerita yang hilang direkonstruksi untuk adaptasi yang dapat dimainkan ini.",
   "story.notice":
-    "Bab resmi tetap dalam bahasa aslinya. Adaptasi merekonstruksi arena, dek dan perubahan fiktif menggunakan aturan kartu dalam simulator.",
+    "Bab resmi tetap dalam bahasa aslinya. Adaptasi merekonstruksi arena, deck dan perubahan fiktif menggunakan aturan kartu dalam simulator.",
 
   "story.title": "Mode cerita",
   "story.optionalChallenge": "Tantangan opsional",
@@ -154,7 +155,7 @@ const interfaceMessages = {
   "settings.shareDeckAfterMatchFailed": "Gagal memuat atau menyimpan pengaturan. Coba lagi atau buka ulang pengaturan.",
   "overlay.useNegamon": "Gunakan Negamon",
   "overlay.negamonPlayDetail":
-    "Aktifkan efek Negamon di area pembiakan untuk memainkan Digimon dengan biaya lebih rendah, lalu letakkan Negamon di bawahnya. Pilih kartu pada langkah efek berikutnya.",
+    "Aktifkan efek Negamon di breeding area untuk memainkan Digimon dengan biaya lebih rendah, lalu letakkan Negamon di bawahnya. Pilih kartu pada langkah efek berikutnya.",
   "overlay.playNormally": "Mainkan biasa",
   "profile.opponentDeckFailed": "Deck ini tidak tersedia atau pemiliknya menonaktifkan berbagi.",
   "overlay.viewOpponentDeck": "Lihat deck lawan",
@@ -1318,7 +1319,7 @@ const interfaceMessages = {
   "settings.transparencyClear": "Transparan",
   "settings.resetArenaAppearance": "Atur ulang tampilan papan",
   "game.restriction.protectedFromBattleDeletion": "Perlindungan pertempuran",
-  "redesign.arena.restriction.protectedFromBattleDeletion": "Digimon ini tidak dapat dihapus dalam pertempuran.",
+  "redesign.arena.restriction.protectedFromBattleDeletion": "Digimon ini tidak dapat di-delete dalam pertempuran.",
   "game.restriction.protectedFromEffectDeletion": "Terlindungi dari delete oleh efek lawan",
   "game.protectionBadge.protectedFromEffectDeletion": "Perlindungan delete",
   "game.restriction.protectedFromEffectReturn": "Terlindungi dari dikembalikan ke tangan atau deck oleh efek lawan",
