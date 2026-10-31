@@ -19,7 +19,8 @@ import { learnDrillsId } from "@/i18n/learn/drills.id";
 
 const interfaceMessages = {
   "home.booster.title": "Buka beberapa booster",
-  "home.booster.copy": "Pilih set dan lihat kartu yang kamu dapat. Cuma untuk seru-seruan, tidak masuk ke koleksimu.",
+  "home.booster.copy":
+    "Pilih set dan lihat kartu yang Anda dapat. Cuma untuk seru-seruan, tidak masuk ke koleksi Anda.",
   "home.booster.eyebrow": "Baru",
   "home.booster.action": "Mulai",
   "replay.skipThinking": "Lewati waktu berpikir",
@@ -74,11 +75,11 @@ const interfaceMessages = {
   "settings.cardImageLanguageProgress": "Memperbarui deck: {completed}/{total}",
   "settings.cardImageLanguageResult":
     "Deck diperbarui: {saved}. Gagal: {failed}. Salinan tanpa bahasa ini: {unavailable}. Terapkan lagi untuk mencoba ulang deck yang gagal.",
-  "story.tagline": "Pilih karaktermu. Hidupkan kembali pertarungannya.",
+  "story.tagline": "Pilih karakter Anda. Hidupkan kembali pertarungannya.",
   "story.adaptation": "Adaptasi",
   "story.adaptationHint": "Detail cerita yang hilang direkonstruksi untuk adaptasi yang dapat dimainkan ini.",
   "story.notice":
-    "Bab resmi tetap dalam bahasa aslinya. Adaptasi merekonstruksi arena, dek dan perubahan fiktif menggunakan aturan kartu dalam simulator.",
+    "Bab resmi tetap dalam bahasa aslinya. Adaptasi merekonstruksi arena, deck dan perubahan fiktif menggunakan aturan kartu dalam simulator.",
 
   "story.title": "Mode cerita",
   "story.optionalChallenge": "Tantangan opsional",
@@ -154,7 +155,7 @@ const interfaceMessages = {
   "settings.shareDeckAfterMatchFailed": "Gagal memuat atau menyimpan pengaturan. Coba lagi atau buka ulang pengaturan.",
   "overlay.useNegamon": "Gunakan Negamon",
   "overlay.negamonPlayDetail":
-    "Aktifkan efek Negamon di area pembiakan untuk memainkan Digimon dengan biaya lebih rendah, lalu letakkan Negamon di bawahnya. Pilih kartu pada langkah efek berikutnya.",
+    "Aktifkan efek Negamon di breeding area untuk memainkan Digimon dengan biaya lebih rendah, lalu letakkan Negamon di bawahnya. Pilih kartu pada langkah efek berikutnya.",
   "overlay.playNormally": "Mainkan biasa",
   "profile.opponentDeckFailed": "Deck ini tidak tersedia atau pemiliknya menonaktifkan berbagi.",
   "overlay.viewOpponentDeck": "Lihat deck lawan",
@@ -420,7 +421,7 @@ const interfaceMessages = {
     "Pilih orientasi terlebih dahulu. Mulai perekam perangkat, kembali ke sini, lalu ketuk Mulai replay. Kontrol replay akan disembunyikan.",
   "replay.video.nativeStart": "Mulai replay untuk perekaman perangkat",
   "replay.video.finishMode": "Akhiri mode perekaman",
-  "replay.video.nativeDone": "Hentikan perekam perangkatmu",
+  "replay.video.nativeDone": "Hentikan perekam perangkat Anda",
   "replay.video.nativeDoneHint":
     "Berhenti merekam menggunakan kontrol perangkat Anda. Temukan video di Foto atau galeri Anda dan bagikan dari sana. Aegis tidak dapat menyimpan atau menghentikan perekam perangkat.",
   "replay.video.error.denied": "Berbagi layar dibatalkan atau ditolak. Coba lagi atau gunakan perekam perangkat.",
@@ -606,12 +607,12 @@ const interfaceMessages = {
   "spectator.winner": "Pemenang: {name}",
   "spectator.draw": "Seri",
   "spectator.back": "Kembali ke lobi",
-  "settings.hideIdentityFromSpectators": "Sembunyikan identitasku dari penonton",
+  "settings.hideIdentityFromSpectators": "Sembunyikan identitas saya dari penonton",
   "settings.hideIdentityFromSpectatorsDesc":
-    "Pada pertandingan berikutnya, penonton melihat nomor pemain, bukan nama dan avatarmu. Lawan tetap melihat identitasmu.",
+    "Pada pertandingan berikutnya, penonton melihat nomor pemain, bukan nama dan avatar Anda. Lawan tetap melihat identitas Anda.",
   "spectator.audience": "Penonton",
   "spectator.anonymousCount": "Tamu: {count}",
-  "settings.listLiveMatches": "Tampilkan pertandinganku untuk penonton",
+  "settings.listLiveMatches": "Tampilkan pertandingan saya untuk penonton",
   "settings.listLiveMatchesDesc":
     "Aktif secara default. Pertandingan kasual tampil di daftar langsung kecuali salah satu pemain menonaktifkannya. Pertandingan privat tidak ditampilkan. Berlaku untuk pertandingan baru.",
   "settings.listLiveMatchesFailed": "Gagal memuat atau menyimpan pengaturan ini. Coba lagi.",
@@ -631,7 +632,7 @@ const interfaceMessages = {
   "spectator.codeTitle": "Punya kode?",
   "spectator.codeHint": "Masukkan kode yang dibagikan pemain.",
   "spectator.liveOptIn":
-    "Ingin muncul di sini? Aktifkan “Tampilkan pertandinganku untuk penonton” di Pengaturan pertandingan pada layar Main.",
+    "Ingin muncul di sini? Aktifkan “Tampilkan pertandingan saya untuk penonton” di Pengaturan pertandingan pada layar Main.",
   "spectator.liveCount": "{count} pertandingan langsung",
   "spectator.liveOpenSettings": "Buka pengaturan pertandingan",
   "spectator.backToPlay": "Kembali ke Main",
@@ -663,7 +664,7 @@ const interfaceMessages = {
   "game.timer.inactivityWarning": "Bertindak dalam {seconds}d atau kalah karena tidak aktif.",
   "game.timer.you": "Waktu Anda",
   "game.timer.opponent": "Lawan",
-  "game.timer.active": "Aksimu",
+  "game.timer.active": "Aksi Anda",
   "game.timer.paused": "Dijeda",
   "game.timer.mulligan": "Mulligan",
   "game.timer.low": "Waktu hampir habis",
@@ -787,7 +788,7 @@ const interfaceMessages = {
   "lobby.searchDecksPlaceholder": "Cari berdasarkan nama, set atau warna…",
   "lobby.filterLabel": "Tampilkan deck",
   "lobby.filterAll": "Semua",
-  "lobby.filterMine": "Milikku",
+  "lobby.filterMine": "Milik saya",
   "lobby.filterFamous": "Terkenal",
   "lobby.useDeck": "Gunakan deck",
   "lobby.randomDeck": "Deck misteri",
@@ -992,7 +993,7 @@ const interfaceMessages = {
   "settings.playmatTooLarge": "Gambar itu terlalu besar untuk disimpan. Coba yang lebih kecil.",
   "settings.tokenArt": "Gambar token",
   "settings.tokenArtDesc":
-    "Unggah gambar untuk setiap token. Disimpan hanya di browser ini dan hanya terlihat olehmu, di kedua sisi arena. Gambar vertikal paling cocok.",
+    "Unggah gambar untuk setiap token. Disimpan hanya di browser ini dan hanya terlihat oleh Anda, di kedua sisi arena. Gambar vertikal paling cocok.",
   "settings.cardSleeve": "Sleeve kartu",
   "settings.sleeveUpload": "Unggah gambar sleeve",
   "settings.sleeveReplace": "Ganti gambar sleeve",
@@ -1085,9 +1086,9 @@ const interfaceMessages = {
   "game.reconnectingDetail": "Koneksi terputus. Mencoba melanjutkan pertandingan Anda.",
   "game.connectionLost": "Koneksi terputus",
   "game.connectionLostDetail": "Koneksi ke pertandingan terputus. Coba hubungkan kembali.",
-  "game.messageTooLarge": "Pilihanmu terlalu besar untuk dikirim. Coba selesaikan lebih sedikit efek sekaligus.",
+  "game.messageTooLarge": "Pilihan Anda terlalu besar untuk dikirim. Coba selesaikan lebih sedikit efek sekaligus.",
   "game.messageTooLargeReconnecting":
-    "Pilihanmu terlalu besar untuk dikirim. Menghubungkan ulang untuk memulihkan pilihan yang tertunda.",
+    "Pilihan Anda terlalu besar untuk dikirim. Menghubungkan ulang untuk memulihkan pilihan yang tertunda.",
   "game.reconnectFailed": "Pertandingan ini tidak dapat dilanjutkan. Kembali ke lobi dan coba lagi.",
   "game.sessionExpired": "Pertandingan ini tidak bisa dilanjutkan lagi. Kembali ke lobi.",
   "game.tooManyMessages": "Terlalu banyak aksi dikirim sekaligus. Tunggu sebentar, lalu kembali ke lobi.",
@@ -1318,7 +1319,7 @@ const interfaceMessages = {
   "settings.transparencyClear": "Transparan",
   "settings.resetArenaAppearance": "Atur ulang tampilan papan",
   "game.restriction.protectedFromBattleDeletion": "Perlindungan pertempuran",
-  "redesign.arena.restriction.protectedFromBattleDeletion": "Digimon ini tidak dapat dihapus dalam pertempuran.",
+  "redesign.arena.restriction.protectedFromBattleDeletion": "Digimon ini tidak dapat di-delete dalam pertempuran.",
   "game.restriction.protectedFromEffectDeletion": "Terlindungi dari delete oleh efek lawan",
   "game.protectionBadge.protectedFromEffectDeletion": "Perlindungan delete",
   "game.restriction.protectedFromEffectReturn": "Terlindungi dari dikembalikan ke tangan atau deck oleh efek lawan",
@@ -2015,7 +2016,7 @@ const interfaceMessages = {
   "tournaments.catalog.empty": "Belum ada acara di sini. Jadilah orang pertama yang membuatnya.",
   "tournaments.catalog.emptyReadOnly": "Turnamen baru diumumkan di sini. Periksa kembali nanti.",
   "tournaments.error.load": "Kami tidak bisa memuat turnamen. Coba lagi sebentar lagi.",
-  "tournaments.error.create": "Kami tidak bisa membuat turnamenmu.",
+  "tournaments.error.create": "Kami tidak bisa membuat turnamen Anda.",
   "tournaments.error.action": "Kami tidak bisa melakukan itu",
   "tournaments.create.title": "Turnamen baru",
   "tournaments.reason.descriptionTooLong": "Description must contain at most 1,000 characters.",
@@ -2164,7 +2165,7 @@ const interfaceMessages = {
   "tournaments.reason.windowTimestampInvalid":
     "Salah satu tanggal jadwal tidak valid. Periksa kolomnya lalu coba lagi.",
   "tournaments.reason.tournamentAlreadyStarted": "Acara sudah dimulai, jadi tidak bisa dihapus lagi.",
-  "tournaments.reason.networkError": "Kami tidak bisa menjangkau server. Cek koneksimu dan coba lagi.",
+  "tournaments.reason.networkError": "Kami tidak bisa menjangkau server. Cek koneksi Anda dan coba lagi.",
   "tournaments.detail.noActions":
     "Tidak ada yang bisa dilakukan di sini saat ini: acara ini tidak menerima pendaftaran, check-in, atau drop.",
   "tournaments.detail.yourStatus": "Entri Anda: {status}",
@@ -2201,7 +2202,7 @@ const interfaceMessages = {
   "account.emailLabel": "Email",
   "account.emailPlaceholder": "nama@email.com",
   "account.sendMagicLink": "Kirim tautan masuk",
-  "account.magicLinkSent": "Cek emailmu untuk masuk. Kalau tidak ada di kotak masuk, periksa folder Spam atau Junk.",
+  "account.magicLinkSent": "Cek email Anda untuk masuk. Kalau tidak ada di kotak masuk, periksa folder Spam atau Junk.",
   "account.magicLinkDailyLimit":
     "Batas email masuk hari ini sudah tercapai. Masuk dengan Discord, atau coba lagi besok.",
   "account.magicLinkError": "Tidak bisa mengirim email untuk masuk. Coba lagi.",

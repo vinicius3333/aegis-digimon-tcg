@@ -36,6 +36,8 @@ export type SeriesTimeoutPolicy = { kind: "swiss"; onTie: SwissTimeoutPolicy } |
 
 export type SeriesFailure =
   | "match_not_found"
+  | "match_not_ready"
+  | "tournament_cancelled"
   | "not_a_participant"
   | "series_not_found"
   | "series_already_resolved"
@@ -342,6 +344,12 @@ export class SeriesStore {
     return this.mutate(input.matchId, async (client) => {
       const match = await lockMatch(client, input.matchId);
       if (!match || match.tournamentId !== input.tournamentId) return failure("match_not_found");
+      if (await this.isTournamentCancelled({ db: client, tournamentId: match.tournamentId })) {
+        return failure("tournament_cancelled");
+      }
+      if (match.status === "waiting") {
+        return failure("match_not_ready");
+      }
       const seat = seatOf(match, holder);
       if (seat === undefined) return failure("not_a_participant");
 
@@ -385,6 +393,9 @@ export class SeriesStore {
     return this.mutate(input.seriesId, async (client) => {
       const series = await lockSeries(client, input.seriesId);
       if (!series) return failure("series_not_found");
+      if (await this.isTournamentCancelled({ db: client, tournamentId: series.tournamentId })) {
+        return failure("tournament_cancelled");
+      }
       if (CLOSED_SERIES_STATUSES.includes(series.status)) return failure("series_already_resolved");
       const seat = seatOfSeries(series, holder);
       if (seat === undefined) return failure("not_a_participant");
@@ -507,6 +518,9 @@ export class SeriesStore {
     if (!game) return failure("game_not_found");
     const series = await readSeries(db, game.seriesId);
     if (!series) return failure("series_not_found");
+    if (await this.isTournamentCancelled({ db, tournamentId: series.tournamentId })) {
+      return failure("tournament_cancelled");
+    }
     if (game.status === "finished" || game.status === "voided") return failure("game_already_finished");
     if (game.roomId !== null && game.roomId !== input.roomId) return failure("game_already_claimed");
     if (!authorization.account_id && !authorization.participant_id) return failure("not_a_participant");
@@ -566,6 +580,9 @@ export class SeriesStore {
       if (!game) return failure("game_not_found");
       const series = await lockSeries(client, game.seriesId);
       if (!series) return failure("series_not_found");
+      if (await this.isTournamentCancelled({ db: client, tournamentId: series.tournamentId })) {
+        return failure("tournament_cancelled");
+      }
       if (game.roomId !== input.roomId) return failure("room_mismatch");
 
       const outcome = gameResultOf(input, series);
@@ -638,6 +655,9 @@ export class SeriesStore {
     const result = await this.mutate<SeriesResult<SeriesRecord>>(input.seriesId, async (client) => {
       const series = await lockSeries(client, input.seriesId);
       if (!series) return failure("series_not_found");
+      if (await this.isTournamentCancelled({ db: client, tournamentId: series.tournamentId })) {
+        return failure("tournament_cancelled");
+      }
       if (CLOSED_SERIES_STATUSES.includes(series.status)) return ok(series);
       if (series.seriesDeadlineAt === null) return failure("no_deadline");
       if (now < series.seriesDeadlineAt) return failure("deadline_not_reached");
@@ -685,6 +705,9 @@ export class SeriesStore {
     const result = await this.mutate<SeriesResult<SeriesRecord>>(input.matchId, async (client) => {
       const match = await lockMatch(client, input.matchId);
       if (!match || match.tournamentId !== input.tournamentId) return failure("match_not_found");
+      if (await this.isTournamentCancelled({ db: client, tournamentId: match.tournamentId })) {
+        return failure("tournament_cancelled");
+      }
       const loserSeat = seatOf(match, { kind: "account", accountId: input.loserAccountId });
       if (loserSeat === undefined) return failure("not_a_participant");
       if (!presenceMatches(match, input)) return failure("presence_changed");
@@ -745,6 +768,9 @@ export class SeriesStore {
     const result = await this.mutate<SeriesResult<SeriesRecord>>(input.matchId, async (client) => {
       const match = await lockMatch(client, input.matchId);
       if (!match || match.tournamentId !== input.tournamentId) return failure("match_not_found");
+      if (await this.isTournamentCancelled({ db: client, tournamentId: match.tournamentId })) {
+        return failure("tournament_cancelled");
+      }
       if (!presenceMatches(match, input)) return failure("presence_changed");
 
       const series = await this.ensureSeries(client, match, input.winsRequired, input.seriesDurationMs, now);
@@ -809,6 +835,9 @@ export class SeriesStore {
     const result = await this.mutate<SeriesResult<SeriesRecord>>(input.matchId, async (client) => {
       const match = await lockMatch(client, input.matchId);
       if (!match || match.tournamentId !== input.tournamentId) return failure("match_not_found");
+      if (await this.isTournamentCancelled({ db: client, tournamentId: match.tournamentId })) {
+        return failure("tournament_cancelled");
+      }
       const before = await this.ensureSeries(client, match, input.winsRequired, input.seriesDurationMs, now);
       if (input.mode === "decide" && before.status === "resolved") return failure("series_already_resolved");
       if (input.mode === "correct" && before.status !== "resolved") return failure("series_not_found");
@@ -1024,6 +1053,12 @@ export class SeriesStore {
     // over is this module's business; moving the bracket on account of it is the manager's, and
     // the legacy column still carries the single-elimination vocabulary the old bracket advances
     // through. The series row is the authority on the confrontation's outcome.
+  }
+
+  private async isTournamentCancelled({ db, tournamentId }: TournamentStateParams): Promise<boolean> {
+    const row = (await db.query<{ status: string }>("SELECT status FROM tournaments WHERE id=$1", [tournamentId]))
+      .rows[0];
+    return row?.status === "cancelled";
   }
 
   private async reread(client: PoolClient, seriesId: string): Promise<SeriesRecord> {
@@ -1242,16 +1277,18 @@ async function hasLiveAuthorization(
 }
 
 const MATCH_COLUMNS =
-  "id, tournament_id, player0_account_id, player1_account_id, player0_participant_id, player1_participant_id, player0_present_at, player1_present_at, join_deadline_at, pairing_reason";
+  "id, status, tournament_id, player0_account_id, player1_account_id, player0_participant_id, player1_participant_id, player0_present_at, player1_present_at, join_deadline_at, pairing_reason";
 const SERIES_COLUMNS =
   "id, tournament_match_id, wins_required, wins0, wins1, status, started_at, series_deadline_at, official_result, resolution_reason, resolved_at, version";
 const GAME_COLUMNS =
   "id, series_id, game_index, room_id, status, result, result_reason, allocated_at, claimed_at, finished_at, player0_deck_snapshot, player1_deck_snapshot";
 
 type Queryable = Pick<PoolClient, "query">;
+type TournamentStateParams = { db: Queryable; tournamentId: string };
 
 type MatchRow = {
   id: string;
+  status: string;
   tournament_id: string;
   player0_account_id: string | null;
   player1_account_id: string | null;
@@ -1265,6 +1302,7 @@ type MatchRow = {
 
 type MatchDetails = {
   matchId: string;
+  status: string;
   tournamentId: string;
   participantAccountIds: [string | null, string | null];
   participantIds: [string | null, string | null];
@@ -1386,6 +1424,7 @@ async function hydrate(db: Queryable, row: SeriesRow): Promise<SeriesRecord> {
 function toMatch(row: MatchRow): MatchDetails {
   return {
     matchId: row.id,
+    status: row.status,
     tournamentId: row.tournament_id,
     participantAccountIds: [row.player0_account_id, row.player1_account_id],
     participantIds: [row.player0_participant_id, row.player1_participant_id],

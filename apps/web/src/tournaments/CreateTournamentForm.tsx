@@ -1,3 +1,5 @@
+import { TournamentRoundStartMode } from "@aegis/shared/tournaments/TournamentRoundStartMode";
+import { isTournamentRoundStartMode } from "@aegis/shared/tournaments/isTournamentRoundStartMode";
 import { TournamentCategory } from "@aegis/shared/tournaments/TournamentCategory";
 import type { DeckFormat } from "@aegis/shared/deckFormat";
 import { DeckFormatSelector } from "@/screens/DeckFormatSelector";
@@ -59,6 +61,9 @@ export function CreateTournamentForm({
   const [startsAt, setStartsAt] = useState(defaultStartsAt);
   const [maxPlayers, setMaxPlayers] = useState(16);
   const [structure, setStructure] = useState<TournamentStructure>("single_elimination");
+  const [roundStartMode, setRoundStartMode] = useState<TournamentRoundStartMode>(
+    TournamentRoundStartMode.AUTOMATIC.value,
+  );
   const [bestOf, setBestOf] = useState<1 | 3>(1);
   const [topCut, setTopCut] = useState(false);
   const [allowBots, setAllowBots] = useState(false);
@@ -98,6 +103,7 @@ export function CreateTournamentForm({
       format,
       clocks,
       structure,
+      roundStartMode,
       topCut,
       bestOf,
       startsAt: new Date(startsAt).getTime(),
@@ -177,6 +183,27 @@ export function CreateTournamentForm({
           </CreateFormSection>
 
           <CreateFormSection title={t("tournaments.create.section.format")}>
+            <div className="aegis-field">
+              <label className="aegis-field__label" htmlFor={`${formId}-round-mode`}>
+                {t("tournaments.controls.mode")}
+              </label>
+              <select
+                id={`${formId}-round-mode`}
+                className="aegis-field__control"
+                value={roundStartMode}
+                onChange={(event) => {
+                  if (isTournamentRoundStartMode(event.target.value)) {
+                    setRoundStartMode(event.target.value);
+                  }
+                }}
+              >
+                {Object.values(TournamentRoundStartMode).map((entry) => (
+                  <option key={entry.name} value={entry.value}>
+                    {t(`tournaments.controls.${entry.value}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="aegis-field">
               <label className="aegis-field__label" htmlFor={`${formId}-structure`}>
                 {t("tournaments.create.structure")}

@@ -1,4 +1,6 @@
+import { tournamentControlsEn } from "@/i18n/tournamentControls.en";
 export const tournamentDetailZhCN = {
+  ...tournamentControlsEn,
   "tournaments.tabs.label": "赛事分区",
   "tournaments.tab.overview": "概览",
   "tournaments.tab.bracket": "对阵图",
