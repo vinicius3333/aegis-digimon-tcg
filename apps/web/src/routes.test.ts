@@ -11,6 +11,9 @@ describe("application routes", () => {
     ["/play/watch", { screen: "watch" }],
     ["/decks", { screen: "deck" }],
     ["/collection", { screen: "collection" }],
+    ["/collection/boosters", { screen: "collection", collectionTab: "boosters" }],
+    ["/booster", { screen: "booster" }],
+    ["/dev/pack-opening", { screen: "booster" }],
     ["/community", { screen: "community" }],
     ["/community/decks/abc-123", { screen: "community", communityDeckId: "abc-123" }],
     ["/roadmap", { screen: "roadmap" }],
@@ -40,6 +43,13 @@ describe("application routes", () => {
   it("round-trips a community deck path", () => {
     expect(pathForRoute({ screen: "community", communityDeckId: "abc-123" })).toBe("/community/decks/abc-123");
     expect(pathForRoute({ screen: "community" })).toBe("/community");
+  });
+
+  it("round-trips the collection tabs", () => {
+    expect(pathForRoute({ screen: "collection" })).toBe("/collection");
+    expect(pathForRoute({ screen: "collection", collectionTab: "cards" })).toBe("/collection");
+    expect(pathForRoute({ screen: "collection", collectionTab: "boosters" })).toBe("/collection/boosters");
+    expect(pathForRoute({ screen: "booster" })).toBe("/booster");
   });
 
   it("round-trips roadmap links", () => {
