@@ -1,3 +1,5 @@
+import { TournamentRegisteredDeck } from "@/tournaments/TournamentRegisteredDeck";
+import { TournamentRuntimeControls } from "@/tournaments/TournamentRuntimeControls";
 // @vitest-environment jsdom
 import { TournamentMatchHistory } from "@/tournaments/TournamentMatchHistory";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
@@ -476,8 +478,8 @@ describe("tournament match entry", () => {
         "POST /series/s-1/authorize-game": { body: ticket },
       },
     );
-    const onJoinGame = vi.fn();
-    const onChanged = vi.fn();
+    const onJoinGame = vi.fn<() => void>();
+    const onChanged = vi.fn<() => void>();
     const view = render(
       <I18nProvider>
         <TournamentMatchActions
@@ -612,4 +614,137 @@ it("shows the players, final score and authoritative winner, including bot seats
   expect(screen.getByText("1 - 2")).toBeTruthy();
   expect(screen.getByText("Winner: Community Bot")).toBeTruthy();
   expect(screen.getByText("Round 2, table 1")).toBeTruthy();
+});
+
+it("refuses an HTML authorization response instead of joining a casual game", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(
+      async () =>
+        new Response("<html>site</html>", {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        }),
+    ),
+  );
+  const onJoinGame = vi.fn<() => void>();
+  render(
+    <I18nProvider>
+      <TournamentMatchActions tournamentId="t-1" matchId="m-1" seriesId="s-1" onJoinGame={onJoinGame} />
+    </I18nProvider>,
+  );
+  fireEvent.click(screen.getByRole("button"));
+  await screen.findByRole("alert");
+  expect(onJoinGame).not.toHaveBeenCalled();
+});
+
+it("shows the frozen registered deck without replacement controls", async () => {
+  render(
+    <I18nProvider>
+      <TournamentRegisteredDeck
+        tournamentId="t-1"
+        deck={{ savedDeckId: "registered", locked: true, name: "Frozen list", mainDeck: [], eggDeck: [], revision: 1 }}
+        decks={[]}
+        canChange={false}
+        onChanged={vi.fn<() => void>()}
+        onDecks={vi.fn<() => void>()}
+      />
+    </I18nProvider>,
+  );
+  expect(screen.getByText("Frozen list")).toBeTruthy();
+  expect(screen.queryByRole("combobox")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "View registered list" }));
+  expect(await screen.findByRole("dialog")).toBeTruthy();
+});
+
+it("lets the organizer release manual rounds and cancel with a reason", async () => {
+  mockDetail(
+    {},
+    {
+      "POST /tournaments/t-1/next-round": { body: { started: true } },
+      "POST /tournaments/t-1/arbitration/cancel": { body: { result: { status: "cancelled" } } },
+    },
+  );
+  const onChanged = vi.fn<() => void>();
+  render(
+    <I18nProvider>
+      <TournamentRuntimeControls
+        detail={{ ...DETAIL, status: "running", roundStartMode: "manual" }}
+        onChanged={onChanged}
+      />
+    </I18nProvider>,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Start next round" }));
+  await waitFor(() => expect(onChanged).toHaveBeenCalledTimes(1));
+  fireEvent.click(screen.getByRole("button", { name: "Cancel tournament" }));
+  const confirm = screen.getByRole("button", { name: "Confirm cancellation" });
+  expect(confirm.hasAttribute("disabled")).toBe(true);
+  fireEvent.change(screen.getByLabelText("Reason for cancellation"), { target: { value: "Judge intervention" } });
+  fireEvent.click(confirm);
+  await waitFor(() => expect(onChanged).toHaveBeenCalledTimes(2));
+  expect(
+    vi
+      .mocked(fetch)
+      .mock.calls.some(
+        ([input, init]) =>
+          String(input).endsWith("/arbitration/cancel") &&
+          JSON.parse(String(init?.body)).reason === "Judge intervention",
+      ),
+  ).toBe(true);
+});
+
+it("accepts HTTP 204 after deleting an unstarted event", async () => {
+  const onBack = vi.fn<() => void>();
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      if (init?.method === "DELETE") {
+        return new Response(null, { status: 204 });
+      }
+      return new Response(JSON.stringify(DETAIL), { status: 200, headers: { "Content-Type": "application/json" } });
+    }),
+  );
+  render(
+    <I18nProvider>
+      <TournamentDetail
+        id="t-1"
+        accountId="acc-organizer"
+        tab={TournamentTab.ORGANIZE.value}
+        decks={[]}
+        onBack={onBack}
+      />
+    </I18nProvider>,
+  );
+  fireEvent.click(await screen.findByRole("button", { name: "Delete tournament" }));
+  fireEvent.click(screen.getByRole("button", { name: "Yes, delete it" }));
+  await waitFor(() => expect(onBack).toHaveBeenCalledOnce());
+});
+
+it("lets an entrant replace a registered deck that was deleted from the library", async () => {
+  mockDetail({}, { "POST /tournaments/t-1/own-deck": { body: {} } });
+  const onChanged = vi.fn<() => void>();
+  render(
+    <I18nProvider>
+      <TournamentRegisteredDeck
+        tournamentId="t-1"
+        deck={{
+          savedDeckId: "deleted",
+          available: false,
+          locked: false,
+          name: "",
+          mainDeck: [],
+          eggDeck: [],
+          revision: 0,
+        }}
+        decks={[{ id: "replacement", name: "New list", mainDeck: [], eggDeck: [], color: "Red", blurb: "" }]}
+        canChange
+        onChanged={onChanged}
+        onDecks={vi.fn<() => void>()}
+      />
+    </I18nProvider>,
+  );
+  expect(screen.getByRole("button", { name: "View registered list" }).hasAttribute("disabled")).toBe(true);
+  fireEvent.change(screen.getByRole("combobox"), { target: { value: "replacement" } });
+  fireEvent.click(screen.getByRole("button", { name: "Save registered deck" }));
+  await waitFor(() => expect(onChanged).toHaveBeenCalledOnce());
 });

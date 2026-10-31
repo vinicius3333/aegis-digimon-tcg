@@ -1,4 +1,6 @@
+import { tournamentControlsEn } from "@/i18n/tournamentControls.en";
 export const tournamentDetailKo = {
+  ...tournamentControlsEn,
   "tournaments.tabs.label": "이벤트 메뉴",
   "tournaments.tab.overview": "개요",
   "tournaments.tab.bracket": "대진표",

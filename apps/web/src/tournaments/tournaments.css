@@ -1299,3 +1299,15 @@
   height: 85%;
   object-fit: contain;
 }
+
+.tournaments-registered-deck {
+  display: grid;
+  gap: var(--ds-space-3);
+  margin-top: var(--ds-space-4);
+}
+
+.tournaments-registered-deck h4,
+.tournaments-registered-deck p,
+.tournaments-registered-deck .tournaments-detail__actions {
+  margin: 0;
+}
