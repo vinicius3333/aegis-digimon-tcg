@@ -1,5 +1,31 @@
 [
   {
+    "version": "1.44.0-beta",
+    "releasedAt": "2026-10-31",
+    "summaryKey": "releases.1.44.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.44.0-beta.feature.dashboard"
+      },
+      {
+        "textKey": "releases.1.44.0-beta.feature.play"
+      },
+      {
+        "textKey": "releases.1.44.0-beta.feature.decks"
+      },
+      {
+        "textKey": "releases.1.44.0-beta.feature.collection"
+      },
+      {
+        "textKey": "releases.1.44.0-beta.feature.community"
+      },
+      {
+        "textKey": "releases.1.44.0-beta.feature.tournaments"
+      }
+    ],
+    "fixes": []
+  },
+  {
     "version": "1.43.7-beta",
     "releasedAt": "2026-10-31",
     "summaryKey": "releases.1.43.7-beta.summary",
