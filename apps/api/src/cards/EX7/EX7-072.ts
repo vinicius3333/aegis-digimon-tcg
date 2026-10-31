@@ -43,7 +43,7 @@ export const compiled: CompiledCard = {
           gainedActions: [
             {
               kind: "Delete",
-              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, chooser: "opponent" },
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
             },
           ],
           duration: "untilOpponentTurnEnd",
