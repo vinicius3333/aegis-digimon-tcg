@@ -3010,7 +3010,7 @@ export class AegisRoom extends Room<{
 
   private async sendSpectatorReplay(client: Client): Promise<void> {
     const owner = this.spectatorIdentities.get(client.sessionId)?.id;
-    if (!owner || !this.state.gameOver || !this.replayFinished || !this.replayRecording) {
+    if (!this.state.gameOver || !this.replayFinished || !this.replayRecording) {
       return;
     }
     if (
@@ -3041,6 +3041,9 @@ export class AegisRoom extends Room<{
         decks: buildReplayDecks({ decks: this.initialDeckBySeat, sharedSeats }),
       });
       if (!file) {
+        if (this.clients.includes(client)) {
+          client.send(REPLAY_CHANNEL, { kind: "unavailable", reason: "recording_limit" });
+        }
         return;
       }
       pending = replayDownload(file, SPECTATOR_REPLAY_SEAT);
@@ -3057,7 +3060,7 @@ export class AegisRoom extends Room<{
     ) {
       return;
     }
-    const indexId = await this.replayIndex(SPECTATOR_REPLAY_SEAT, owner, message);
+    const indexId = owner ? await this.replayIndex(SPECTATOR_REPLAY_SEAT, owner, message) : undefined;
     if (this.clients.includes(client)) {
       client.send(REPLAY_CHANNEL, { ...message, ...(indexId ? { indexId } : {}) });
     }
