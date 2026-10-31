@@ -864,7 +864,6 @@ function LoadedAegisClient({
                   onOpenTournaments={() => navigate({ screen: "tournaments", tournament: { kind: "catalog" } })}
                   onCreateTournament={() => navigate({ screen: "tournaments", tournament: { kind: "create" } })}
                   onOpenBooster={() => navigateScreen("booster")}
-                  onOpenFriends={() => navigateScreen("friends")}
                   onEditDeck={(deck) => {
                     setEditingDeck(deck);
                     navigateScreen("deck");

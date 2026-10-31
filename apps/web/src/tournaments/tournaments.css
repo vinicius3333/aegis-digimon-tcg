@@ -12,7 +12,7 @@
   border: 1px solid var(--ds-line);
   border-radius: 10px;
   background: var(--ds-sheet);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
 }
 
 .tournaments-card__header {
@@ -352,7 +352,7 @@
 
 .tournaments-detail .aegis-panel {
   border-radius: 10px;
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
 }
 
 .tournaments-detail.aegis-panel {

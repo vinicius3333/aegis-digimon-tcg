@@ -51,7 +51,7 @@
 .roadmap-switch button[aria-pressed="true"] {
   color: var(--ds-text);
   background: var(--ds-sheet);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
 }
 
 .roadmap-switch button:focus-visible {
@@ -140,7 +140,7 @@
   border: 1px solid var(--ds-line);
   border-radius: 10px;
   background: var(--ds-sheet);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
   transition: border-color var(--ds-motion-fast) var(--ds-ease-standard);
 }
 

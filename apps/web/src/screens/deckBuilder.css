@@ -52,7 +52,7 @@
   border: 1px solid var(--ds-line);
   border-radius: 10px;
   background: var(--ds-sheet);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
 }
 
 .deck-builder-body > .card-filter-trigger {
@@ -195,7 +195,7 @@
   letter-spacing: 0.05em;
   border-radius: var(--ds-radius-sm);
   background: var(--ds-rim-attention);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
 }
 
 .deck-pool-card__restriction[data-tone="danger"] {
@@ -271,7 +271,7 @@
   border: 0;
   border-radius: var(--ds-radius-md);
   background: var(--ds-accent);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
   cursor: pointer;
   pointer-events: auto;
 }
@@ -293,7 +293,7 @@
   border: 1px solid var(--ds-line-strong);
   border-radius: var(--ds-radius-md);
   background: var(--ds-sheet);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
 }
 
 .deck-pool-card-stepper button {
@@ -775,7 +775,7 @@
   padding: 1px 5px;
   font: 700 9px / 1.4 var(--ds-font-mono);
   border-radius: var(--ds-radius-sm);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
 }
 
 .deck-grid-card__badges {

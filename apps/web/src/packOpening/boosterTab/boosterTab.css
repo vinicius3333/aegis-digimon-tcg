@@ -28,7 +28,7 @@
   border: 1px solid var(--ds-line);
   border-radius: 10px;
   background: var(--ds-sheet);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
 }
 
 .booster-card__header {

@@ -32,7 +32,6 @@ function renderHome(overrides: Partial<Parameters<typeof Home>[0]> = {}) {
     onOpenTournaments: vi.fn<() => void>(),
     onCreateTournament: vi.fn<() => void>(),
     onOpenBooster: vi.fn<() => void>(),
-    onOpenFriends: vi.fn<() => void>(),
     onEditDeck: vi.fn<(deck: DeckListing) => void>(),
     onPlayDeck: vi.fn<(deck: DeckListing) => void>(),
     onBuildDeck: vi.fn<() => void>(),

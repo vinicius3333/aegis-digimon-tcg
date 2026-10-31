@@ -19,7 +19,7 @@
   border: 1px solid var(--ds-line);
   border-radius: 10px;
   background: var(--ds-sheet);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
 }
 
 .collection-hero {
@@ -254,7 +254,7 @@
     max-height: calc(100dvh - var(--ds-nav-height-wide) - 2 * var(--ds-space-4));
     box-sizing: border-box;
     border-radius: 10px;
-    box-shadow: var(--ds-shadow-raise);
+    box-shadow: var(--ds-shadow-card);
   }
 }
 

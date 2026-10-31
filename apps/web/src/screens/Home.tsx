@@ -7,7 +7,6 @@ import type { DeckListing } from "@/game/decks";
 import { HomeAgendaCard } from "@/home/HomeAgendaCard";
 import { HomeBoosterCard } from "@/home/HomeBoosterCard";
 import { HomeDecksCard } from "@/home/HomeDecksCard";
-import { HomeFriendsCard } from "@/home/HomeFriendsCard";
 import { HomeLiveMatchesCard } from "@/home/HomeLiveMatchesCard";
 import type { HomeMatchQueue } from "@/home/HomeMatchQueue";
 import { HomeNextMatchCard } from "@/home/HomeNextMatchCard";
@@ -34,7 +33,6 @@ type HomeParams = {
   onOpenTournaments: () => void;
   onCreateTournament: () => void;
   onOpenBooster: () => void;
-  onOpenFriends: () => void;
   onEditDeck: (deck: DeckListing) => void;
   onPlayDeck: (deck: DeckListing) => void;
   onBuildDeck: () => void;
@@ -85,15 +83,12 @@ export function Home(params: HomeParams) {
             />
             <HomeBoosterCard onOpen={params.onOpenBooster} />
             {params.accountId ? (
-              <>
-                <HomeFriendsCard onOpenFriends={params.onOpenFriends} />
-                <HomeAgendaCard
-                  tournaments={tournaments}
-                  accountId={params.accountId}
-                  onOpen={params.onOpenTournament}
-                  onViewAll={params.onOpenTournaments}
-                />
-              </>
+              <HomeAgendaCard
+                tournaments={tournaments}
+                accountId={params.accountId}
+                onOpen={params.onOpenTournament}
+                onViewAll={params.onOpenTournaments}
+              />
             ) : (
               <section className="home-card home-signin">
                 <span className="home-signin__icon" aria-hidden="true">

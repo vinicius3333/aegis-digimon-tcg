@@ -27,7 +27,7 @@
   border: 1px solid var(--ds-line);
   border-radius: 10px;
   background: var(--ds-sheet);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
 }
 
 .community-card__header {
@@ -95,7 +95,7 @@
   border: 1px solid var(--ds-line);
   border-radius: var(--ds-radius-sm);
   background: var(--ds-sheet);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
 }
 
 .community-field:focus-within {
@@ -142,7 +142,7 @@
 .community-switch button[aria-pressed="true"] {
   color: var(--ds-text);
   background: var(--ds-sheet);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
 }
 
 .community-switch button:focus-visible,

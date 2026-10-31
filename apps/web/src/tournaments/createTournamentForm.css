@@ -256,7 +256,7 @@
 .create-tournament__segmented button[aria-pressed="true"] {
   color: var(--ds-text);
   background: var(--ds-sheet);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
 }
 
 .create-tournament__segmented button:focus-visible {
@@ -283,7 +283,7 @@
   border: 1px solid var(--ds-line);
   border-radius: var(--ds-radius-md);
   background: var(--ds-sheet);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
 }
 
 .create-tournament__stepper:focus-within {

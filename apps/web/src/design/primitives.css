@@ -150,7 +150,7 @@
 }
 .aegis-panel[data-hover="true"]:hover {
   border-color: var(--ds-line-strong);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
 }
 
 /* ---- Buttons ---- */
@@ -435,7 +435,7 @@
   height: 22px;
   border-radius: 50%;
   background: var(--ds-sheet);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
   transition: transform var(--ds-motion-fast) var(--ds-ease-standard);
 }
 .aegis-switch[aria-checked="true"] .aegis-switch__track {
@@ -545,7 +545,7 @@
 }
 
 .aegis-panel--raised {
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
 }
 
 .aegis-page-title {
@@ -624,7 +624,7 @@
   border: 1px solid transparent;
   border-radius: var(--ds-radius-md);
   background: var(--ds-accent);
-  box-shadow: var(--ds-shadow-raise);
+  box-shadow: var(--ds-shadow-card);
   cursor: pointer;
   transition:
     background var(--ds-motion-fast),
@@ -646,26 +646,34 @@
   display: grid;
   flex: none;
   place-items: center;
-  margin-left: var(--ds-space-1);
-  padding: 2px;
+  margin-left: var(--ds-space-2);
+  padding: 0;
   border: 0;
-  border-radius: 10px;
+  border-radius: 30%;
   background: transparent;
   cursor: pointer;
   transition:
     box-shadow var(--ds-motion-fast),
     transform var(--ds-motion-instant);
 }
-.aegis-portrait-button:hover,
+.aegis-portrait-button:hover {
+  box-shadow:
+    0 0 0 2px var(--ds-sheet),
+    0 0 0 3px color-mix(in srgb, var(--ds-accent) 45%, transparent);
+}
 .aegis-portrait-button[aria-expanded="true"] {
-  box-shadow: 0 0 0 2px var(--ds-accent);
+  box-shadow:
+    0 0 0 2px var(--ds-sheet),
+    0 0 0 3px var(--ds-accent);
 }
 .aegis-portrait-button:active {
   transform: scale(0.96);
 }
 .aegis-portrait-button:focus-visible {
   outline: none;
-  box-shadow: var(--ds-focus-ring);
+  box-shadow:
+    0 0 0 2px var(--ds-sheet),
+    0 0 0 4px var(--ds-focus);
 }
 
 .aegis-brand-button,

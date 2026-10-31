@@ -30,29 +30,27 @@ export function HomeTournamentsCard({ tournaments, onOpen, onViewAll, onCreate }
       className="home-events"
       title={t("home.tournaments.title")}
       description={t("home.tournaments.description")}
-      tools={
-        <div className="home-filters">
-          <div className="home-segmented" role="group" aria-label={t("home.tournaments.filterAria")}>
-            {Object.values(HomeTournamentFilter).map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                aria-pressed={filter === option.value}
-                onClick={() => setFilter(option.value)}
-              >
-                {t(option.labelKey)}
-              </button>
-            ))}
-          </div>
-          {onCreate ? (
-            <Button size="sm" variant="secondary" icon={Icons.Plus} onClick={onCreate}>
-              {t("tournaments.catalog.create")}
-            </Button>
-          ) : null}
-        </div>
-      }
       action={{ label: t("home.viewAll"), onClick: onViewAll }}
     >
+      <div className="home-filters">
+        <div className="home-segmented" role="group" aria-label={t("home.tournaments.filterAria")}>
+          {Object.values(HomeTournamentFilter).map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={filter === option.value}
+              onClick={() => setFilter(option.value)}
+            >
+              {t(option.labelKey)}
+            </button>
+          ))}
+        </div>
+        {onCreate ? (
+          <Button size="sm" variant="ghost" icon={Icons.Plus} onClick={onCreate}>
+            {t("tournaments.catalog.create")}
+          </Button>
+        ) : null}
+      </div>
       {visible.length === 0 ? (
         <div className="home-empty">
           <Icons.Trophy size={22} aria-hidden="true" />
