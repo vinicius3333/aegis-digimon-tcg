@@ -2649,7 +2649,6 @@ const interfaceMessages = {
   "releases.current": "当前版本",
   "releases.features": "新功能",
   "releases.fixes": "改进与修复",
-  "releases.reported": "你报告的问题，我们已修复 · #{issue}",
   ...rankedZhCn,
   ...tournamentDetailZhCN,
   ...tournamentSpectatorsZhCN,

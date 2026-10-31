@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allReleases, currentRelease, displayVersion, issueUrl, parseCatalog } from "@/releases/catalog";
+import { allReleases, currentRelease, displayVersion, parseCatalog } from "@/releases/catalog";
 import { LOCALES } from "@/i18n/locales";
 import messages from "@/releases/messages.json";
 import { translateReleaseMessage } from "@/releases/translateReleaseMessage";
@@ -30,10 +30,6 @@ describe("release catalog", () => {
     expect(translateReleaseMessage({ key: "releases.1.19.0-beta.feature.hatch", locale: "it" })).toBe(
       messages["releases.1.19.0-beta.feature.hatch"].it,
     );
-  });
-
-  it("builds public GitHub issue links", () => {
-    expect(issueUrl(4894)).toMatch(/issues\/4894$/);
   });
 
   it("rejects malformed bundled release data", () => {
