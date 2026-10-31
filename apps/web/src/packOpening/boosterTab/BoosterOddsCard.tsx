@@ -20,12 +20,7 @@ function describeOdds({ odds, t, format }: DescribeOddsParams) {
       : "redesign.collection.booster.odds.perPack";
     return <>{t(key, { count: odds.slotsPerPack })}</>;
   }
-  return (
-    <>
-      {t("redesign.collection.booster.odds.oneIn", { count: Math.round(BOOSTER_BOX_PACK_COUNT / odds.perBox) })}
-      <small>{t("redesign.collection.booster.odds.perBox", { count: format(odds.perBox) })}</small>
-    </>
-  );
+  return <>{t("redesign.collection.booster.odds.oneIn", { count: Math.round(BOOSTER_BOX_PACK_COUNT / odds.perBox) })}</>;
 }
 
 export function BoosterOddsCard({ odds }: BoosterOddsCardParams) {

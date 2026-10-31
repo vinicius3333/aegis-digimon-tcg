@@ -25,7 +25,6 @@ export const homeEs: Record<keyof typeof homeEn, string> = {
   "home.next.find": "Buscar partida",
   "home.next.bot": "Contra bot",
   "home.next.room": "Crear sala",
-  "home.booster.progress": "{opened} de {total} sobres abiertos · {set}",
   "home.booster.free": "Sobres gratis, una caja nueva cada vez.",
   "home.booster.open": "Abrir",
   "home.agenda.title": "Tu agenda",

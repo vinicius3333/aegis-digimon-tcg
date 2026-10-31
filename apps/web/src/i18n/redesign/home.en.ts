@@ -23,7 +23,6 @@ export const homeEn = {
   "home.next.find": "Find match",
   "home.next.bot": "Vs bot",
   "home.next.room": "Create room",
-  "home.booster.progress": "{opened} of {total} packs opened · {set}",
   "home.booster.free": "Free packs, a new box every time.",
   "home.booster.open": "Open",
   "home.agenda.title": "Your schedule",

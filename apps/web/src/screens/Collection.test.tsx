@@ -67,7 +67,7 @@ it("switches between the card library and the free booster tabs", () => {
   expect(screen.getByRole("heading", { name: "Odds per pack" })).toBeTruthy();
 });
 
-it("shows the saved box progress and opens the 3D booster for the same box", () => {
+it("shows the last opened pack and opens the 3D booster for the same box", () => {
   saveOpenedBox("BT12", 3);
   const onOpenBooster = vi.fn<() => void>();
   render(
@@ -77,7 +77,7 @@ it("shows the saved box progress and opens the 3D booster for the same box", () 
   );
 
   expect(screen.getByRole("heading", { name: "BT12 · Booster pack" })).toBeTruthy();
-  expect(screen.getByRole("progressbar", { name: "Packs opened" }).getAttribute("aria-valuenow")).toBe("3");
+  expect(screen.queryByRole("progressbar", { name: "Packs opened" })).toBeNull();
   expect(screen.getByRole("heading", { name: "Last opened pack" })).toBeTruthy();
 
   fireEvent.click(screen.getByRole("button", { name: "Open packs" }));
@@ -85,7 +85,7 @@ it("shows the saved box progress and opens the 3D booster for the same box", () 
   expect(readBoosterProgress().activeBox?.packs).toHaveLength(3);
 });
 
-it("warns before a different set replaces the box in progress", () => {
+it("starts a fresh box when another set is opened", () => {
   saveOpenedBox("BT12", 2);
   const onOpenBooster = vi.fn<() => void>();
   render(
@@ -95,7 +95,6 @@ it("warns before a different set replaces the box in progress", () => {
   );
 
   fireEvent.change(screen.getByRole("combobox", { name: "Set" }), { target: { value: "BT11" } });
-  expect(screen.getByRole("note").textContent).toContain("replaces your BT12 box (2 of 24 packs opened)");
   expect(readBoosterProgress().activeBox?.setId).toBe("BT12");
 
   fireEvent.click(screen.getByRole("button", { name: "Open packs" }));

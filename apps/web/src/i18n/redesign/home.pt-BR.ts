@@ -25,7 +25,6 @@ export const homePtBR: Record<keyof typeof homeEn, string> = {
   "home.next.find": "Encontrar partida",
   "home.next.bot": "Contra bot",
   "home.next.room": "Criar sala",
-  "home.booster.progress": "{opened} de {total} pacotes abertos · {set}",
   "home.booster.free": "Pacotes grátis, uma caixa nova sempre.",
   "home.booster.open": "Abrir",
   "home.agenda.title": "Sua agenda",

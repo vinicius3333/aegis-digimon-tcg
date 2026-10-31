@@ -153,24 +153,6 @@
   gap: 5px;
 }
 
-.booster-hero__count {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin: 0;
-}
-
-.booster-hero__count b {
-  color: var(--ds-accent);
-  font: 700 34px / 1 var(--ds-font-display);
-  font-variant-numeric: tabular-nums;
-}
-
-.booster-hero__count span {
-  color: var(--ds-text-3);
-  font-size: 13px;
-}
-
 .booster-hero__actions {
   display: flex;
   flex-wrap: wrap;
@@ -201,22 +183,6 @@
   outline: none;
   border-color: var(--ds-accent);
   box-shadow: var(--ds-focus-ring);
-}
-
-.booster-hero__warning {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  margin: 0;
-  color: var(--ds-text-2);
-  font-size: 12.5px;
-  line-height: 1.4;
-}
-
-.booster-hero__warning svg {
-  flex: none;
-  margin-top: 2px;
-  color: var(--ds-accent);
 }
 
 .booster-last-pack {
@@ -287,63 +253,6 @@
 .booster-last-pack__card[data-best] .booster-rarity-tag {
   color: #07152b;
   background: #f5c451;
-}
-
-.booster-box {
-  display: grid;
-  gap: 14px;
-}
-
-.booster-capacity {
-  display: grid;
-  gap: 6px;
-}
-
-.booster-capacity__label {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--ds-space-3);
-  color: var(--ds-text-3);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-}
-
-.booster-capacity__label b {
-  color: var(--ds-text);
-  font-weight: 500;
-}
-
-.booster-capacity__bar {
-  height: 6px;
-  overflow: hidden;
-  border-radius: var(--ds-radius-pill);
-  background: var(--ds-fill);
-}
-
-.booster-capacity__bar span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--ds-accent);
-}
-
-.booster-box__note {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin: 0;
-  padding: 10px 12px;
-  color: var(--ds-text-2);
-  font-size: 12.5px;
-  line-height: 1.45;
-  border-radius: var(--ds-radius-md);
-  background: var(--ds-fill);
-}
-
-.booster-box__note svg {
-  flex: none;
-  margin-top: 1px;
-  color: var(--ds-accent);
 }
 
 .booster-best {
@@ -495,14 +404,7 @@
     grid-row: 1 / span 4;
   }
 
-  .booster-hero__info > :not(.booster-hero__actions, .booster-hero__warning) {
-    grid-column: 2;
-  }
-
   .booster-hero__actions,
-  .booster-hero__warning {
-    grid-column: 1 / -1;
-  }
 
   .booster-hero__actions > .aegis-button {
     flex: 1;
@@ -520,10 +422,6 @@
 
   .booster-facts span:nth-child(2) {
     display: none;
-  }
-
-  .booster-hero__count b {
-    font-size: 26px;
   }
 
   .booster-last-pack {

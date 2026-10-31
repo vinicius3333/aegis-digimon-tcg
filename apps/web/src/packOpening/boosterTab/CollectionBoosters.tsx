@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "@/i18n/useTranslation";
 import { BOOSTER_BOX_PACK_COUNT } from "@/packOpening/BoosterProgress";
 import { BoosterBestPulls } from "@/packOpening/boosterTab/BoosterBestPulls";
-import { BoosterBoxCard } from "@/packOpening/boosterTab/BoosterBoxCard";
 import { BoosterLastPack } from "@/packOpening/boosterTab/BoosterLastPack";
 import { BoosterOddsCard } from "@/packOpening/boosterTab/BoosterOddsCard";
 import { BoosterPackHero } from "@/packOpening/boosterTab/BoosterPackHero";
@@ -46,20 +45,13 @@ export function CollectionBoosters({ onOpen }: CollectionBoostersParams) {
 
   const box = activeBox?.setId === boosterSet.setId ? activeBox : undefined;
   const packs = box?.packs ?? [];
-  const remaining = BOOSTER_BOX_PACK_COUNT - packs.length;
-  const replacedBox =
-    activeBox && !box && activeBox.packs.length > 0 && activeBox.packs.length < BOOSTER_BOX_PACK_COUNT
-      ? activeBox
-      : undefined;
-  const seenKeys = new Set(packs.flatMap((pack) => pack.cards.map(getPackCardKey)));
-  const seen = [...seenKeys].filter((key) => eligible.has(key)).length;
   const lastPack = packs.at(-1);
   const lastPackCards = lastPack ? listOpenedPackCards({ pack: lastPack, eligible }) : [];
   const bestPulls = listBestBoxPulls({ packs, eligible, limit: BEST_PULL_LIMIT });
 
   const boosterSetId = boosterSet.setId;
   const openPacks = () => {
-    if (!box) {
+    if (!box || box.packs.length >= BOOSTER_BOX_PACK_COUNT) {
       startBox(boosterSetId);
     }
     onOpen?.();
@@ -72,11 +64,8 @@ export function CollectionBoosters({ onOpen }: CollectionBoostersParams) {
           <BoosterPackHero
             boosterSet={boosterSet}
             sets={sets}
-            remaining={remaining}
-            replacedBox={replacedBox}
             onSelectSet={setSelectedSetId}
             onOpen={onOpen ? openPacks : undefined}
-            onNewBox={() => startBox(boosterSet.setId)}
           />
           {lastPackCards.length > 0 ? (
             <BoosterLastPack cards={lastPackCards} bestPull={findBestPull(lastPackCards)} packNumber={packs.length} />
@@ -84,7 +73,6 @@ export function CollectionBoosters({ onOpen }: CollectionBoostersParams) {
         </section>
       </div>
       <aside className="booster-tab__rail">
-        <BoosterBoxCard setId={boosterSet.setId} opened={packs.length} seen={seen} eligible={eligible.size} />
         <BoosterBestPulls pulls={bestPulls} />
         <BoosterOddsCard odds={odds} />
       </aside>

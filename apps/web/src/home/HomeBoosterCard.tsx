@@ -1,6 +1,5 @@
 import { Button } from "@/design/primitives";
 import { useTranslation } from "@/i18n/useTranslation";
-import { BOOSTER_BOX_PACK_COUNT } from "@/packOpening/BoosterProgress";
 import { readBoosterProgress } from "@/packOpening/readBoosterProgress";
 
 const DEFAULT_BOOSTER_SET_ID = "BT26";
@@ -13,7 +12,6 @@ export function HomeBoosterCard({ onOpen }: HomeBoosterCardParams) {
   const { t } = useTranslation();
   const box = readBoosterProgress().activeBox;
   const setId = box?.setId ?? DEFAULT_BOOSTER_SET_ID;
-  const opened = box?.packs.length ?? 0;
   return (
     <section className="home-card home-booster">
       <div className="home-booster__body">
@@ -24,11 +22,7 @@ export function HomeBoosterCard({ onOpen }: HomeBoosterCardParams) {
         </span>
         <div className="home-booster__copy">
           <b>{t("home.booster.title")}</b>
-          <small>
-            {box
-              ? t("home.booster.progress", { opened, total: BOOSTER_BOX_PACK_COUNT, set: setId })
-              : t("home.booster.free")}
-          </small>
+          <small>{t("home.booster.free")}</small>
         </div>
         <Button size="sm" onClick={onOpen}>
           {t("home.booster.open")}
