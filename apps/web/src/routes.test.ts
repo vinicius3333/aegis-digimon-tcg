@@ -7,6 +7,7 @@ describe("application routes", () => {
     ["/login", { screen: "login" }],
     ["/play", { screen: "lobby" }],
     ["/play/story", { screen: "story" }],
+    ["/play/rooms", { screen: "watch" }],
     ["/play/watch", { screen: "watch" }],
     ["/decks", { screen: "deck" }],
     ["/collection", { screen: "collection" }],

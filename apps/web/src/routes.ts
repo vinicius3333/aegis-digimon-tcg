@@ -40,7 +40,7 @@ export const SCREEN_PATHS: Record<Screen, string> = {
   story: "/play/story",
   learn: "/learn",
   rules: "/learn/rules",
-  watch: "/play/watch",
+  watch: "/play/rooms",
   deck: "/decks",
   collection: "/collection",
   community: "/community",
@@ -76,7 +76,7 @@ export function routeFromPathname(pathname: string): AppRoute | undefined {
   if (normalized === "/learn/rules") return { screen: "rules" };
   if (normalized === "/play") return { screen: "lobby" };
   if (normalized === "/play/game") return { screen: "game" };
-  if (normalized === "/play/watch") return { screen: "watch" };
+  if (normalized === "/play/rooms" || normalized === "/play/watch") return { screen: "watch" };
   if (normalized === "/decks") return { screen: "deck" };
   if (normalized === "/collection") return { screen: "collection" };
   if (normalized === "/community") return { screen: "community" };
