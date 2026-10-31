@@ -50009,6 +50009,34 @@
     "imageId": "BT27-031"
   },
   {
+    "cardId": "BT27-032",
+    "set": "BT27",
+    "nameEn": "MirageGaogamon",
+    "colors": ["Blue"],
+    "kinds": ["Digimon", "Option"],
+    "level": 6,
+    "playCost": 5,
+    "dp": 12000,
+    "evoCosts": [
+      {
+        "color": "Blue",
+        "level": 5,
+        "memoryCost": 4
+      }
+    ],
+    "forms": ["Mega"],
+    "attributes": ["Data"],
+    "types": ["Beast Knight", "DATA SQUAD"],
+    "effectText": "[Digivolve] Lv.5 w/[Gaogamon] in name or w/[DATA SQUAD] trait: Cost 3\n＜Reboot＞ ＜Blocker＞ ＜Evade＞\n[When Digivolving] For every 4 cards your opponent's hand has, 1 of their Digimon or Tamers can't suspend until their turn ends.\n[All Turns] [Once Per Turn] When effects add to your opponent's hand, or effects trash cards under your Tamers, you may activate 1 [Main] effect on this card's Option side.",
+    "rarity": "R",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-032",
+    "isDualCard": true,
+    "dualEffect": "Full Moon Blaster",
+    "optionColorRequirements": ["Blue"],
+    "optionEffect": "Use Req. ＜[DATA SQUAD] trait＞\n[Main] Return 1 of your opponent's highest level Digimon to the hand.\n＜Arts Digivolve＞"
+  },
+  {
     "cardId": "BT27-095",
     "set": "BT27",
     "nameEn": "Homer Yushima",
