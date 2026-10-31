@@ -1,5 +1,34 @@
 [
   {
+    "version": "1.43.5-beta",
+    "releasedAt": "2026-10-31",
+    "summaryKey": "releases.1.43.5-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.43.5-beta.feature.bt27"
+      },
+      {
+        "textKey": "releases.1.43.5-beta.feature.tournaments"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.43.5-beta.fix.blindDiscard",
+        "issue": 6320
+      },
+      {
+        "textKey": "releases.1.43.5-beta.fix.ogudomon",
+        "issue": 6321
+      },
+      {
+        "textKey": "releases.1.43.5-beta.fix.reveal"
+      },
+      {
+        "textKey": "releases.1.43.5-beta.fix.tournamentEntry"
+      }
+    ]
+  },
+  {
     "version": "1.43.4-beta",
     "releasedAt": "2026-10-31",
     "summaryKey": "releases.1.43.4-beta.summary",

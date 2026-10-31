@@ -1,4 +1,46 @@
 {
+  "releases.1.43.5-beta.summary": {
+    "en": "Five new BT27 cards, tournament controls, and fixes for blind discards, Ogudomon payments and required card reveals.",
+    "pt-BR": "Cinco novas cartas BT27, controles de torneio e correções para descartes às cegas, pagamentos de Ogudomon e revelação de cartas exigidas.",
+    "es": "Cinco nuevas cartas BT27, controles de torneos y correcciones para descartes a ciegas, pagos de Ogudomon y revelación de cartas requeridas.",
+    "it": "Cinque nuove carte BT27, controlli dei tornei e correzioni per scarti alla cieca, pagamenti di Ogudomon e rivelazione delle carte richieste."
+  },
+  "releases.1.43.5-beta.feature.bt27": {
+    "en": "Solarmon, Meramon, SkullMeramon, PrinceMamemon (X Antibody) and MirageGaogamon / Full Moon Blaster from BT27 are now available.",
+    "pt-BR": "Solarmon, Meramon, SkullMeramon, PrinceMamemon (X Antibody) e MirageGaogamon / Full Moon Blaster de BT27 agora estão disponíveis.",
+    "es": "Solarmon, Meramon, SkullMeramon, PrinceMamemon (X Antibody) y MirageGaogamon / Full Moon Blaster de BT27 ya están disponibles.",
+    "it": "Solarmon, Meramon, SkullMeramon, PrinceMamemon (X Antibody) e MirageGaogamon / Full Moon Blaster di BT27 sono ora disponibili."
+  },
+  "releases.1.43.5-beta.feature.tournaments": {
+    "en": "Inspect your registered tournament deck and change it before check-in closes. Organizers can choose automatic or manual round starts and cancel an event with a reason.",
+    "pt-BR": "Consulte seu deck registrado no torneio e altere-o antes do encerramento do check-in. Organizadores podem escolher o início automático ou manual das rodadas e cancelar um evento informando o motivo.",
+    "es": "Consulta tu mazo registrado en el torneo y cámbialo antes del cierre del check-in. Los organizadores pueden elegir el inicio automático o manual de las rondas y cancelar un evento indicando el motivo.",
+    "it": "Consulta il mazzo registrato al torneo e cambialo prima della chiusura del check-in. Gli organizzatori possono scegliere l’avvio automatico o manuale dei turni e annullare un evento indicando il motivo."
+  },
+  "releases.1.43.5-beta.fix.blindDiscard": {
+    "en": "DanDevimon and Barbamon now keep every opposing hand card hidden during a blind discard, including cards revealed earlier.",
+    "pt-BR": "DanDevimon e Barbamon agora mantêm todas as cartas da mão adversária ocultas durante um descarte às cegas, incluindo cartas reveladas anteriormente.",
+    "es": "DanDevimon y Barbamon ahora mantienen ocultas todas las cartas de la mano rival durante un descarte a ciegas, incluidas las reveladas antes.",
+    "it": "DanDevimon e Barbamon ora nascondono tutte le carte della mano avversaria durante uno scarto alla cieca, comprese quelle rivelate in precedenza."
+  },
+  "releases.1.43.5-beta.fix.ogudomon": {
+    "en": "Ogudomon can now return Seven Great Demon Lords Option cards as part of its seven differently named cards payment.",
+    "pt-BR": "Ogudomon agora pode devolver cartas Option de Seven Great Demon Lords como parte do pagamento de sete cartas com nomes diferentes.",
+    "es": "Ogudomon ahora puede devolver cartas Option de Seven Great Demon Lords como parte del pago de siete cartas con nombres distintos.",
+    "it": "Ogudomon ora può restituire carte Option Seven Great Demon Lords come parte del pagamento di sette carte con nomi diversi."
+  },
+  "releases.1.43.5-beta.fix.reveal": {
+    "en": "Cards paid face down under Tamers now reveal their identity first when a printed requirement must be verified, while the placed stack remains face down.",
+    "pt-BR": "Cartas pagas viradas para baixo sob Tamers agora revelam sua identidade antes quando um requisito impresso precisa ser verificado, mantendo a pilha virada para baixo após a colocação.",
+    "es": "Las cartas pagadas boca abajo bajo Tamers ahora revelan primero su identidad cuando debe verificarse un requisito impreso, y permanecen boca abajo después de colocarse.",
+    "it": "Le carte pagate a faccia in giù sotto i Tamer ora rivelano prima la propria identità quando occorre verificare un requisito stampato, restando a faccia in giù dopo il posizionamento."
+  },
+  "releases.1.43.5-beta.fix.tournamentEntry": {
+    "en": "Tournament games now require a valid tournament authorization and use the registered frozen deck instead of falling back to casual matchmaking.",
+    "pt-BR": "Partidas de torneio agora exigem uma autorização válida e usam o deck registrado e congelado, sem cair no pareamento casual.",
+    "es": "Las partidas de torneo ahora exigen una autorización válida y usan el mazo registrado y congelado, sin pasar al emparejamiento casual.",
+    "it": "Le partite di torneo ora richiedono un’autorizzazione valida e usano il mazzo registrato e bloccato, senza passare all’abbinamento casuale."
+  },
   "releases.1.43.4-beta.summary": {
     "en": "Clearer Option decisions, two new BT27 cards, and fixes for granted deletion choices and the Adventure opening deck.",
     "pt-BR": "Decisões de Option mais claras, duas novas cartas BT27 e correções na escolha de exclusão concedida e no deck inicial de Adventure.",
