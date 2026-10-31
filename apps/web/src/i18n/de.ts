@@ -2829,7 +2829,6 @@ const interfaceMessages = {
   "releases.current": "Aktuelle Version",
   "releases.features": "Neuigkeiten",
   "releases.fixes": "Verbesserungen und Fehlerbehebungen",
-  "releases.reported": "Sie haben es gemeldet, wir haben es behoben · #{issue}",
   ...rankedDe,
   ...tournamentDetailDe,
   ...tournamentSpectatorsDe,

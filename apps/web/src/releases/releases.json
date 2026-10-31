@@ -1,5 +1,24 @@
 [
   {
+    "version": "1.43.7-beta",
+    "releasedAt": "2026-10-31",
+    "summaryKey": "releases.1.43.7-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.43.7-beta.fix.faceDown",
+        "issue": 6339
+      },
+      {
+        "textKey": "releases.1.43.7-beta.fix.decode",
+        "issue": 6326
+      },
+      {
+        "textKey": "releases.1.43.7-beta.fix.releaseNotes"
+      }
+    ]
+  },
+  {
     "version": "1.43.6-beta",
     "releasedAt": "2026-10-31",
     "summaryKey": "releases.1.43.6-beta.summary",

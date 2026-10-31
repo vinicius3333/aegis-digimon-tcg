@@ -2769,7 +2769,6 @@ const interfaceMessages = {
   "releases.current": "Versi saat ini",
   "releases.features": "Yang baru",
   "releases.fixes": "Peningkatan dan perbaikan",
-  "releases.reported": "Anda melaporkannya, kami memperbaikinya · #{issue}",
   ...rankedId,
   ...tournamentDetailId,
   ...tournamentSpectatorsId,

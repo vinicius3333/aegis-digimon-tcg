@@ -2655,7 +2655,6 @@ const interfaceMessages = {
   "releases.current": "目前版本",
   "releases.features": "新功能",
   "releases.fixes": "改進與修正",
-  "releases.reported": "你回報的問題，我們已修正 · #{issue}",
   ...rankedZhTw,
   ...tournamentDetailZhTW,
   ...tournamentSpectatorsZhTW,

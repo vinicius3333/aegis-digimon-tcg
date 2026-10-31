@@ -1,4 +1,28 @@
 {
+  "releases.1.43.7-beta.summary": {
+    "en": "Fixes face-down card cleanup and Examon X’s two Decode choices.",
+    "pt-BR": "Corrige o descarte de cartas viradas para baixo e as duas escolhas de Decode de Examon X.",
+    "es": "Corrige el descarte de cartas boca abajo y las dos opciones de Decode de Examon X.",
+    "it": "Corregge lo scarto delle carte coperte e le due scelte Decode di Examon X."
+  },
+  "releases.1.43.7-beta.fix.faceDown": {
+    "en": "Reapermon exposed face down by De-Digivolve is now trashed without activating On Deletion. Hidden tops also clean up correctly at zero DP and in the breeding area.",
+    "pt-BR": "Reapermon exposto virado para baixo por De-Digivolve agora é descartado sem ativar On Deletion. Cartas ocultas no topo também são removidas corretamente com zero DP e na área de criação.",
+    "es": "Reapermon expuesto boca abajo por De-Digivolve ahora se descarta sin activar On Deletion. Las cartas ocultas en la parte superior también se retiran correctamente con cero DP y en el área de crianza.",
+    "it": "Reapermon esposto coperto da De-Digivolve viene ora scartato senza attivare On Deletion. Le carte coperte in cima vengono rimosse correttamente anche a zero DP e nell’area di allevamento."
+  },
+  "releases.1.43.7-beta.fix.decode": {
+    "en": "Examon X now shows its green and blue Decode effects as separate choices. Both dragons can be played before Unleash the Dragon Gene resolves, allowing the intended DNA digivolution.",
+    "pt-BR": "Examon X agora exibe os efeitos Decode verde e azul como escolhas separadas. Os dois dragões podem entrar em campo antes de Unleash the Dragon Gene resolver, permitindo a digivolução DNA esperada.",
+    "es": "Examon X ahora muestra sus efectos Decode verde y azul como opciones separadas. Ambos dragones pueden entrar en juego antes de resolver Unleash the Dragon Gene, permitiendo la digievolución ADN prevista.",
+    "it": "Examon X mostra ora gli effetti Decode verde e blu come scelte separate. Entrambi i draghi possono entrare in gioco prima che si risolva Unleash the Dragon Gene, consentendo la digievoluzione DNA prevista."
+  },
+  "releases.1.43.7-beta.fix.releaseNotes": {
+    "en": "Release notes now focus on player-facing changes without reported-issue badges or links.",
+    "pt-BR": "As notas de versão agora focam nas mudanças para jogadores, sem indicadores ou links de problemas relatados.",
+    "es": "Las notas de versión ahora se centran en los cambios para jugadores, sin etiquetas ni enlaces a incidencias reportadas.",
+    "it": "Le note di rilascio si concentrano ora sulle novità per i giocatori, senza etichette o collegamenti ai problemi segnalati."
+  },
   "releases.1.43.6-beta.summary": {
     "en": "Completes Chinese translations for the new BT27 cards so the pending release can deploy.",
     "pt-BR": "Completa as traduções em chinês das novas cartas BT27 para permitir o deploy da versão pendente.",

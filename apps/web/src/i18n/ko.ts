@@ -2725,7 +2725,6 @@ const interfaceMessages = {
   "releases.current": "현재 버전",
   "releases.features": "새로운 기능",
   "releases.fixes": "개선 및 수정",
-  "releases.reported": "신고해 주신 문제를 수정했습니다 · #{issue}",
   ...rankedKo,
   ...tournamentDetailKo,
   ...tournamentSpectatorsKo,

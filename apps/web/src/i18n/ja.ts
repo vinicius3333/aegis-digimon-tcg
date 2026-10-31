@@ -2752,7 +2752,6 @@ const interfaceMessages = {
   "releases.current": "現在のバージョン",
   "releases.features": "新機能",
   "releases.fixes": "改善と修正",
-  "releases.reported": "報告いただいた問題を修正しました · #{issue}",
   ...rankedJa,
   ...tournamentDetailJa,
   ...tournamentSpectatorsJa,
