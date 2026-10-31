@@ -126,6 +126,6 @@ export const tournamentDetailDe = {
   "tournaments.closeCheckIn.bots": "Freie Plätze werden bis zur Bracket-Größe mit Bots gefüllt.",
   "tournaments.closeCheckIn.blocked": "Noch niemand hat eingecheckt, daher kann das Turnier nicht starten.",
   "tournaments.closeCheckIn.needsPlayer":
-    "Mindestens ein weiterer Spieler muss einchecken. Einfaches K.-o.-System braucht 2 eingecheckte Spieler, sonst wird das Turnier abgesagt.",
+    "Mindestens ein weiterer Spieler muss einchecken. Einfaches K.-o.-System braucht 2 eingecheckte Spieler.",
   "tournaments.closeCheckIn.confirmStart": "Check-in schließen und starten",
 };

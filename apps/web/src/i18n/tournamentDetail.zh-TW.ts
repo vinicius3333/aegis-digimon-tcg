@@ -112,6 +112,6 @@ export const tournamentDetailZhTW = {
   "tournaments.closeCheckIn.noShows": "未報到的玩家會因缺席被移出。",
   "tournaments.closeCheckIn.bots": "空位會用機器人補滿到對戰表規模。",
   "tournaments.closeCheckIn.blocked": "還沒有人報到，比賽無法開始。",
-  "tournaments.closeCheckIn.needsPlayer": "至少還需要 1 名玩家報到。單淘汰賽需要 2 名已報到玩家，否則比賽會被取消。",
+  "tournaments.closeCheckIn.needsPlayer": "至少還需要 1 名玩家報到。單淘汰賽需要 2 名已報到玩家。",
   "tournaments.closeCheckIn.confirmStart": "關閉報到並開始",
 };

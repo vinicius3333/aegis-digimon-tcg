@@ -112,6 +112,6 @@ export const tournamentDetailZhCN = {
   "tournaments.closeCheckIn.noShows": "未签到的玩家会因缺席被移出。",
   "tournaments.closeCheckIn.bots": "空位会用机器人补满到对阵表规模。",
   "tournaments.closeCheckIn.blocked": "还没有人签到，比赛无法开始。",
-  "tournaments.closeCheckIn.needsPlayer": "至少还需要 1 名玩家签到。单淘汰赛需要 2 名已签到玩家，否则比赛会被取消。",
+  "tournaments.closeCheckIn.needsPlayer": "至少还需要 1 名玩家签到。单淘汰赛需要 2 名已签到玩家。",
   "tournaments.closeCheckIn.confirmStart": "关闭签到并开始",
 };

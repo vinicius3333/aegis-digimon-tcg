@@ -120,6 +120,6 @@ export const tournamentDetailEn = {
   "tournaments.closeCheckIn.bots": "Empty seats are filled with bots up to the bracket size.",
   "tournaments.closeCheckIn.blocked": "Nobody has checked in yet, so the tournament cannot start.",
   "tournaments.closeCheckIn.needsPlayer":
-    "At least one more player needs to check in. Single elimination needs 2 checked-in players, or the tournament is cancelled.",
+    "At least one more player needs to check in. Single elimination needs 2 checked-in players.",
   "tournaments.closeCheckIn.confirmStart": "Close check-in and start",
 };

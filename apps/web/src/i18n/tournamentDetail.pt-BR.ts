@@ -122,6 +122,6 @@ export const tournamentDetailPtBR = {
   "tournaments.closeCheckIn.bots": "Vagas vazias são preenchidas com bots até o tamanho da chave.",
   "tournaments.closeCheckIn.blocked": "Ninguém fez check-in ainda, então o torneio não pode começar.",
   "tournaments.closeCheckIn.needsPlayer":
-    "Pelo menos mais um jogador precisa fazer check-in. Eliminação simples precisa de 2 jogadores com check-in, senão o torneio é cancelado.",
+    "Pelo menos mais um jogador precisa fazer check-in. Eliminação simples precisa de 2 jogadores com check-in.",
   "tournaments.closeCheckIn.confirmStart": "Fechar check-in e começar",
 };

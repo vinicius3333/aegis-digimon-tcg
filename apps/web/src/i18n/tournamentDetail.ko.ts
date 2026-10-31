@@ -122,6 +122,6 @@ export const tournamentDetailKo = {
   "tournaments.closeCheckIn.bots": "빈 자리는 대진표 크기까지 봇으로 채워집니다.",
   "tournaments.closeCheckIn.blocked": "아직 아무도 체크인하지 않아 대회를 시작할 수 없습니다.",
   "tournaments.closeCheckIn.needsPlayer":
-    "최소 1명이 더 체크인해야 합니다. 싱글 엘리미네이션은 체크인한 플레이어 2명이 필요하며, 부족하면 대회가 취소됩니다.",
+    "최소 1명이 더 체크인해야 합니다. 싱글 엘리미네이션은 체크인한 플레이어 2명이 필요합니다.",
   "tournaments.closeCheckIn.confirmStart": "마감하고 시작",
 };

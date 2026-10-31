@@ -121,6 +121,6 @@ export const tournamentDetailJa = {
   "tournaments.closeCheckIn.bots": "空き枠はトーナメント表のサイズまでボットで埋められます。",
   "tournaments.closeCheckIn.blocked": "まだ誰もチェックインしていないため、大会を開始できません。",
   "tournaments.closeCheckIn.needsPlayer":
-    "あと1人以上のチェックインが必要です。シングルエリミネーションはチェックイン済み2人が必要で、足りないと大会は中止されます。",
+    "あと1人以上のチェックインが必要です。シングルエリミネーションにはチェックイン済みのプレイヤーが2人必要です。",
   "tournaments.closeCheckIn.confirmStart": "締め切って開始",
 };

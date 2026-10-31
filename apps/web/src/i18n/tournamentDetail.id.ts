@@ -126,6 +126,6 @@ export const tournamentDetailId = {
   "tournaments.closeCheckIn.bots": "Kursi kosong diisi bot hingga ukuran bagan.",
   "tournaments.closeCheckIn.blocked": "Belum ada yang check-in, jadi turnamen tidak bisa dimulai.",
   "tournaments.closeCheckIn.needsPlayer":
-    "Minimal satu pemain lagi harus check-in. Sistem gugur butuh 2 pemain yang sudah check-in, atau turnamen dibatalkan.",
+    "Minimal satu pemain lagi harus check-in. Sistem gugur butuh 2 pemain yang sudah check-in.",
   "tournaments.closeCheckIn.confirmStart": "Tutup check-in dan mulai",
 };

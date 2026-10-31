@@ -126,6 +126,6 @@ export const tournamentDetailFr = {
   "tournaments.closeCheckIn.bots": "Les places libres sont complétées par des bots jusqu'à la taille du tableau.",
   "tournaments.closeCheckIn.blocked": "Personne n'a encore fait son check-in, le tournoi ne peut donc pas commencer.",
   "tournaments.closeCheckIn.needsPlayer":
-    "Au moins un autre joueur doit faire son check-in. L'élimination directe exige 2 joueurs avec check-in, sinon le tournoi est annulé.",
+    "Au moins un autre joueur doit faire son check-in. L'élimination directe exige 2 joueurs avec check-in.",
   "tournaments.closeCheckIn.confirmStart": "Fermer le check-in et lancer",
 };
