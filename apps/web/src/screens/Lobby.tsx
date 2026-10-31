@@ -5,6 +5,7 @@ import { isBotDifficulty } from "@aegis/shared/bot/isBotDifficulty";
 import { isBotStyle } from "@aegis/shared/bot/isBotStyle";
 import { readBotSettings } from "@/bot/readBotSettings";
 import { GameModeSwitch } from "@/screens/GameModeSwitch";
+import { LobbyMode } from "@/screens/LobbyMode";
 import { GameMode } from "@aegis/shared/manual/GameMode";
 import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
 
@@ -147,6 +148,18 @@ function scrollToActiveDeckCard() {
   scroller.scrollTop += Math.min(centringOffset, cardBox.top - visibleTop);
 }
 
+type InitialLobbyModeParams = {
+  initialMode: LobbyMode | undefined;
+  privateEntry: boolean;
+};
+
+function getInitialLobbyMode({ initialMode, privateEntry }: InitialLobbyModeParams): LobbyMode {
+  if (privateEntry) {
+    return LobbyMode.PRIVATE.value;
+  }
+  return initialMode ?? LobbyMode.CASUAL.value;
+}
+
 const modesFor = (t: Translate): Mode[] => [
   {
     key: "casual",
@@ -201,6 +214,7 @@ export function Lobby({
   onGameModeChange,
   openMatchSettings = false,
   initialRanked = false,
+  initialMode,
   challengeFriendName,
   onCancelChallenge,
 }: {
@@ -210,6 +224,7 @@ export function Lobby({
   onGameModeChange?: (mode: GameMode) => void;
   openMatchSettings?: boolean;
   initialRanked?: boolean;
+  initialMode?: LobbyMode;
   allowRollback?: boolean;
   onAllowRollbackChange?: (allow: boolean) => void;
   timerOptions?: MatchTimerOptions;
@@ -269,7 +284,9 @@ export function Lobby({
       ? deckFormat(privateRoom.format, privateRoom.unlimited)
       : deckFormat(decks.find((deck) => deck.id === activeDeckId)?.format),
   );
-  const [mode, setMode] = useState(invitedRoomCode || privateRoom || challengeFriendName ? "private" : "casual");
+  const [mode, setMode] = useState<string>(() =>
+    getInitialLobbyMode({ initialMode, privateEntry: Boolean(invitedRoomCode || privateRoom || challengeFriendName) }),
+  );
   const [betaConfirmationOpen, setBetaConfirmationOpen] = useState(false);
   const [privateSub, setPrivateSub] = useState<"create" | "join">(invitedRoomCode ? "join" : "create");
   const [roomCodeInput, setRoomCodeInput] = useState(invitedRoomCode ?? "");

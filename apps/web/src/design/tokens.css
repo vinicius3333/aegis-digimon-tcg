@@ -85,9 +85,9 @@
   --ds-gutter-phone: 16px;
   --ds-gutter-tablet: 24px;
   --ds-gutter-desktop: 36px;
-  --ds-nav-height-wide: 80px;
+  --ds-nav-height-wide: 64px;
   --ds-nav-height-narrow: 68px;
-  --ds-mobile-bar-height: 60px;
+  --ds-mobile-bar-height: 56px;
 
   /* Shape and depth. */
   --ds-radius-sm: 4px;

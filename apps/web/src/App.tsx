@@ -2,6 +2,8 @@ import { hasAccountCapability } from "@aegis/shared/account/hasAccountCapability
 import { highestAccountRole } from "@/account/roles/highestAccountRole";
 import type { TournamentSpectateTarget } from "@/tournaments/TournamentSpectateTarget";
 import { RankedScreen } from "@/ranked/RankedScreen";
+import { HomeMatchQueue } from "@/home/HomeMatchQueue";
+import { LobbyMode } from "@/screens/LobbyMode";
 import { useRankedConfig } from "@/ranked/useRankedConfig";
 import type { TournamentGameTicket } from "@aegis/shared/tournaments/TournamentGameTicket";
 import { FriendsDrawer } from "@/messages/FriendsDrawer";
@@ -841,10 +843,39 @@ function LoadedAegisClient({
               {screen === "home" && (
                 <Home
                   collectionSize={collectionSize}
-                  signedIn={!!account}
+                  accountId={account?.id}
+                  decks={decks}
+                  activeDeck={matchDeck}
+                  activeDeckId={activeDeckId}
+                  rankedEnabled={rankedConfig?.enabled === true}
                   onPlay={() => navigate({ screen: "lobby", rankedQueue: true, matchSettings: true })}
+                  onFindMatch={(queue) =>
+                    navigate({
+                      screen: "lobby",
+                      rankedQueue: queue === HomeMatchQueue.RANKED.value,
+                      matchSettings: true,
+                    })
+                  }
+                  onPractice={() => navigate({ screen: "lobby", lobbyMode: LobbyMode.PRACTICE.value })}
+                  onPrivateMatch={() => navigate({ screen: "lobby", lobbyMode: LobbyMode.PRIVATE.value })}
+                  onChangeDeck={() => navigateScreen("lobby")}
+                  onWatchLive={(code) => startMatch("spectator", code)}
+                  onOpenWatch={() => navigateScreen("watch")}
+                  onOpenTournament={(id) => navigate({ screen: "tournaments", tournament: { kind: "detail", id } })}
+                  onOpenTournaments={() => navigate({ screen: "tournaments", tournament: { kind: "catalog" } })}
+                  onCreateTournament={() => navigate({ screen: "tournaments", tournament: { kind: "create" } })}
+                  onOpenBooster={() => navigateScreen("booster")}
+                  onOpenFriends={() => navigateScreen("friends")}
+                  onEditDeck={(deck) => {
+                    setEditingDeck(deck);
+                    navigateScreen("deck");
+                  }}
+                  onPlayDeck={(deck) => {
+                    setActiveDeckId(deck.id);
+                    navigate({ screen: "lobby", matchSettings: true });
+                  }}
                   onBuildDeck={() => navigateScreen("deck")}
-                  onOpenCollection={() => navigateScreen("collection")}
+                  onOpenDecks={() => navigateScreen("deck")}
                   onSignIn={() => navigateScreen("login")}
                   onReportBug={() => setBugReportOpen(true)}
                   onOpenReleases={() => navigateScreen("releases")}
@@ -924,6 +955,7 @@ function LoadedAegisClient({
               {screen === "lobby" && (
                 <Lobby
                   initialRanked={route.rankedQueue === true}
+                  initialMode={route.lobbyMode}
                   player={effectivePlayer}
                   decks={decks}
                   borrowedDeck={borrowedDeck}

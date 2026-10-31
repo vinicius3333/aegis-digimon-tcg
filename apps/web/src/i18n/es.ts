@@ -492,13 +492,6 @@ export const es: Record<keyof typeof en, string> = {
   "home.signInAction": "Conectar",
   "home.footer.discord": "Comunidad en Discord",
   "home.footer.github": "GitHub",
-  "home.shortcuts.aria": "Accesos directos",
-  "home.shortcuts.play.title": "Partidas en vivo",
-  "home.shortcuts.play.copy": "Encuentra un oponente ahora",
-  "home.shortcuts.decks.title": "Constructor de decks",
-  "home.shortcuts.decks.copy": "Empieza con una lista inicial",
-  "home.shortcuts.collection.title": "{count} cartas",
-  "home.shortcuts.collection.copy": "Explora la colección",
   "home.footer.legal":
     "Proyecto de fans gratuito, sin afiliación con Bandai. Digimon, el Digimon Card Game y las imágenes de las cartas pertenecen a Bandai y a sus respectivos dueños. Si disfrutas Aegis, apoya el juego oficial. Puedes transmitir, grabar, editar, publicar y compartir partidas de Aegis en cualquier plataforma, incluido contenido monetizado. No necesitas autorización previa, pagar ni dar créditos a Aegis.",
   "releases.nav": "Novedades",

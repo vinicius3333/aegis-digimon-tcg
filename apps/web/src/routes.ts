@@ -1,6 +1,7 @@
 import type { Screen } from "./design/primitives";
 import { isTournamentTab } from "@/tournaments/isTournamentTab";
 import { TournamentTab } from "@/tournaments/TournamentTab";
+import type { LobbyMode } from "@/screens/LobbyMode";
 
 export type TournamentRoute =
   | { kind: "catalog" }
@@ -24,6 +25,7 @@ export interface AppRoute {
   roadmapItemId?: number;
   matchSettings?: boolean;
   rankedQueue?: boolean;
+  lobbyMode?: LobbyMode;
 }
 
 export const SCREEN_PATHS: Record<Screen, string> = {
