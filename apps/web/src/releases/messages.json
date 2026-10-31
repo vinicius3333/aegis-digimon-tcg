@@ -1,4 +1,46 @@
 {
+  "releases.1.43.4-beta.summary": {
+    "en": "Clearer Option decisions, two new BT27 cards, and fixes for granted deletion choices and the Adventure opening deck.",
+    "pt-BR": "Decisões de Option mais claras, duas novas cartas BT27 e correções na escolha de exclusão concedida e no deck inicial de Adventure.",
+    "es": "Decisiones de Option más claras, dos nuevas cartas BT27 y correcciones en la elección de eliminación otorgada y el mazo inicial de Adventure.",
+    "it": "Decisioni Option più chiare, due nuove carte BT27 e correzioni alla scelta di eliminazione concessa e al mazzo iniziale di Adventure."
+  },
+  "releases.1.43.4-beta.feature.bt27": {
+    "en": "Thundermon (X Antibody) and Mamemon (X Antibody) from BT27 are now available.",
+    "pt-BR": "Thundermon (X Antibody) e Mamemon (X Antibody) de BT27 agora estão disponíveis.",
+    "es": "Thundermon (X Antibody) y Mamemon (X Antibody) de BT27 ya están disponibles.",
+    "it": "Thundermon (X Antibody) e Mamemon (X Antibody) di BT27 sono ora disponibili."
+  },
+  "releases.1.43.4-beta.feature.optionClauses": {
+    "en": "Option prompts highlight the printed clause currently being resolved.",
+    "pt-BR": "Os prompts de Option destacam o trecho do efeito que está sendo resolvido.",
+    "es": "Los mensajes de Option resaltan la cláusula del efecto que se está resolviendo.",
+    "it": "Le richieste Option evidenziano la clausola dell’effetto attualmente in risoluzione."
+  },
+  "releases.1.43.4-beta.fix.fascination": {
+    "en": "The player controlling a Digimon affected by Seventh Fascination now chooses which of their own Digimon to delete.",
+    "pt-BR": "O jogador que controla um Digimon afetado por Seventh Fascination agora escolhe qual dos próprios Digimon excluir.",
+    "es": "El jugador que controla un Digimon afectado por Seventh Fascination ahora elige cuál de sus propios Digimon eliminar.",
+    "it": "Il giocatore che controlla un Digimon influenzato da Seventh Fascination ora sceglie quale dei propri Digimon eliminare."
+  },
+  "releases.1.43.4-beta.fix.adventure": {
+    "en": "Greymon vs. Shellmon in Adventure now gives the player the WarGreymon deck with the Agumon evolution line.",
+    "pt-BR": "Greymon contra Shellmon em Adventure agora oferece ao jogador o deck de WarGreymon com a linha evolutiva de Agumon.",
+    "es": "Greymon contra Shellmon en Adventure ahora ofrece al jugador el mazo de WarGreymon con la línea evolutiva de Agumon.",
+    "it": "Greymon contro Shellmon in Adventure ora assegna al giocatore il mazzo WarGreymon con la linea evolutiva di Agumon."
+  },
+  "releases.1.43.4-beta.fix.effects": {
+    "en": "Skipping an optional first action no longer cancels an independent Then clause that can still resolve.",
+    "pt-BR": "Recusar uma primeira ação opcional não cancela mais um trecho independente de Then que ainda pode ser resolvido.",
+    "es": "Omitir una primera acción opcional ya no cancela una cláusula Then independiente que aún puede resolverse.",
+    "it": "Saltare una prima azione facoltativa non annulla più una clausola Then indipendente che può ancora risolversi."
+  },
+  "releases.1.43.4-beta.fix.cardText": {
+    "en": "Card wording, clause boundaries and translations are more accurate, including the new BT27 card text.",
+    "pt-BR": "Os textos de cartas, a separação dos efeitos e as traduções estão mais precisos, incluindo os textos das novas cartas BT27.",
+    "es": "Los textos de las cartas, la separación de cláusulas y las traducciones son más precisos, incluidos los textos de las nuevas cartas BT27.",
+    "it": "I testi delle carte, i confini delle clausole e le traduzioni sono più accurati, compresi i testi delle nuove carte BT27."
+  },
   "releases.1.43.3-beta.summary": {
     "en": "Clearer match decisions, cleaner card scans, and fixes for repeated Retaliation effects.",
     "pt-BR": "Decisões de partida mais claras, imagens de cartas mais limpas e correções para múltiplos efeitos de Retaliation.",
