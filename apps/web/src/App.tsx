@@ -1072,8 +1072,7 @@ function LoadedAegisClient({
               {screen === "tournaments" && (
                 <TournamentsScreen
                   decks={decks}
-                  onDecks={() => navigate({ screen: "community" })}
-                  onRoadmap={() => navigate({ screen: "roadmap" })}
+                  onDecks={() => navigate({ screen: "deck" })}
                   view={route.tournament ?? { kind: "catalog" }}
                   onViewChange={(tournament) => navigate({ screen: "tournaments", tournament })}
                   onWatchMatch={(target) => {

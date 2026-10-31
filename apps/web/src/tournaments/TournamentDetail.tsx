@@ -24,6 +24,13 @@ import { TournamentBracket } from "@/tournaments/TournamentBracket";
 import { TournamentBotPortrait } from "@/tournaments/TournamentBotPortrait";
 import { TournamentTab } from "@/tournaments/TournamentTab";
 import { TournamentReportButton } from "@/tournaments/TournamentReportButton";
+import { TournamentCopyLinkButton } from "@/tournaments/TournamentCopyLinkButton";
+import { TournamentCrumb } from "@/tournaments/TournamentCrumb";
+import { TournamentDeckPicker } from "@/tournaments/TournamentDeckPicker";
+import { TournamentDropControl } from "@/tournaments/TournamentDropControl";
+import { TournamentScheduleTimeline } from "@/tournaments/TournamentScheduleTimeline";
+import { formatTournamentTime } from "@/tournaments/formatTournamentTime";
+import { isTournamentClosed } from "@/tournaments/isTournamentClosed";
 import { AccountPanel } from "../account/AccountPanel";
 import { Alert, Badge, Button, Field, Panel } from "../design/primitives";
 import type { DeckListing } from "../game/decks";
@@ -73,7 +80,7 @@ export function TournamentDetail({
   onJoinGame?: (ticket: TournamentGameTicket) => void;
   onWatchMatch?: (target: TournamentSpectateTarget) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const getCardName = useTranslatedCardName();
   const [detail, setDetail] = useState<TournamentDetailPayload>();
   const [loadError, setLoadError] = useState<ApiError>();
@@ -191,9 +198,8 @@ export function TournamentDetail({
   const schedulePanel = (
     <Panel>
       <h3>{t("tournaments.detail.schedule")}</h3>
-      <dl>
-        <dt>{t("tournaments.startsAt")}</dt>
-        <dd>{formatStart(detail.startsAt)}</dd>
+      <TournamentScheduleTimeline startsAt={detail.startsAt} windows={detail.windows} />
+      <dl className="tournaments-detail__kv">
         <dt>{t("tournaments.slotsLabel")}</dt>
         <dd>{t("tournaments.slots", { registered: detail.registeredCount, max: detail.maxPlayers })}</dd>
         {botCount > 0 ? (
@@ -208,15 +214,33 @@ export function TournamentDetail({
           </>
         ) : null}
       </dl>
-      {detail.status === "draft" || detail.status === "registration" || detail.status === "check_in" ? (
+      {(detail.status === "draft" || detail.status === "registration" || detail.status === "check_in") &&
+      (detail.windows?.checkInOpensAt ?? null) === null ? (
         <p className="tournaments-note">{t("tournaments.detail.windowsPending")}</p>
       ) : null}
     </Panel>
   );
 
+  const spotsLeft = Math.max(0, detail.maxPlayers - detail.registeredCount);
+  const capacity = Math.min(100, Math.max(0, (detail.registeredCount / detail.maxPlayers) * 100));
+  const registrationClosesAt = detail.windows?.registrationClosesAt ?? null;
+  const checkInClosesAt = detail.windows?.checkInClosesAt ?? null;
+
   const entryPanel = (
     <Panel className="tournaments-entry">
       <h3>{t("tournaments.detail.actions")}</h3>
+      <div className="tournaments-capacity">
+        <div className="tournaments-capacity__label">
+          <span>{t("tournaments.slotsLabel")}</span>
+          <span>
+            <b>{detail.registeredCount}</b> / {detail.maxPlayers} ·{" "}
+            {t("tournaments.detail.spotsLeft", { count: spotsLeft })}
+          </span>
+        </div>
+        <span className="tournaments-progress" aria-hidden="true">
+          <span style={{ width: `${capacity}%` }} />
+        </span>
+      </div>
       {accountId === undefined ? (
         <div className="tournaments-detail__signin">
           <p>{t("tournaments.detail.signInRequired")}</p>
@@ -225,7 +249,8 @@ export function TournamentDetail({
       ) : (
         <>
           {own ? (
-            <p className="tournaments-note">
+            <p className="tournaments-entry__status" data-status={own.status}>
+              <Icons.CircleCheck size={16} aria-hidden="true" />
               {t("tournaments.detail.yourStatus", { status: t(participantStatusKey(own.status)) })}
             </p>
           ) : null}
@@ -240,72 +265,68 @@ export function TournamentDetail({
               onDecks={onDecks}
             />
           ) : null}
-          {actions.register ? (
-            <div className="aegis-field">
-              <label className="aegis-field__label" htmlFor="tournament-deck">
-                {t("tournaments.detail.deck")}
-              </label>
-              <select
-                id="tournament-deck"
-                className="aegis-field__control"
-                value={savedDeckId}
-                onChange={(event) => setSavedDeckId(event.target.value)}
-                disabled={decks.length === 0}
+          {actions.checkIn ? (
+            <div className="tournaments-checkin">
+              <div>
+                <small>{t("tournaments.catalog.checkInOpen")}</small>
+                {checkInClosesAt !== null ? (
+                  <strong>
+                    {t("tournaments.catalog.until", {
+                      time: formatTournamentTime({ epochMs: checkInClosesAt, locale }),
+                    })}
+                  </strong>
+                ) : null}
+              </div>
+              <Button
+                icon={Icons.Check}
+                disabled={busy}
+                onClick={() => void run(() => tournamentApi.checkIn(detail.id))}
               >
-                {decks.map((deck) => (
-                  <option key={deck.id} value={deck.id}>
-                    {deck.name}
-                  </option>
-                ))}
-              </select>
-              {decks.length === 0 ? (
-                <span className="aegis-field__message" data-error>
-                  {t("tournaments.detail.needDeck")}
-                </span>
-              ) : null}
+                {t("tournaments.detail.checkIn")}
+              </Button>
             </div>
           ) : null}
-          {actions.register && detail.passwordProtected ? (
-            <Field
-              label={t("tournaments.detail.password")}
-              type="password"
-              autoComplete="off"
-              maxLength={128}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-          ) : null}
-          {actions.register || actions.checkIn ? (
-            <div className="tournaments-detail__actions">
-              {actions.register ? (
-                <Button
-                  disabled={busy || !savedDeckId}
-                  onClick={() => void run(() => tournamentApi.register(detail.id, savedDeckId, password))}
-                >
-                  {t("tournaments.detail.register")}
-                </Button>
+          {actions.register ? (
+            <div className="tournaments-signup">
+              {detail.passwordProtected ? (
+                <p className="tournaments-callout">
+                  <Icons.Lock size={15} aria-hidden="true" />
+                  {t("tournaments.detail.passwordNote")}
+                </p>
               ) : null}
-              {actions.checkIn ? (
-                <Button
-                  variant="secondary"
-                  disabled={busy}
-                  onClick={() => void run(() => tournamentApi.checkIn(detail.id))}
-                >
-                  {t("tournaments.detail.checkIn")}
-                </Button>
+              <TournamentDeckPicker decks={decks} value={savedDeckId} onChange={setSavedDeckId} onDecks={onDecks} />
+              {detail.passwordProtected ? (
+                <Field
+                  className="tournaments-signup__password"
+                  label={t("tournaments.detail.password")}
+                  type="password"
+                  autoComplete="off"
+                  maxLength={128}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+              ) : null}
+              <Button
+                size="lg"
+                full
+                disabled={busy || !savedDeckId}
+                onClick={() => void run(() => tournamentApi.register(detail.id, savedDeckId, password))}
+              >
+                {t("tournaments.detail.register")}
+              </Button>
+              {registrationClosesAt !== null ? (
+                <p className="tournaments-note tournaments-signup__closes">
+                  {t("tournaments.detail.registrationCloses", { time: formatStart(registrationClosesAt) })}
+                </p>
               ) : null}
             </div>
           ) : null}
           {actions.drop ? (
-            <Button
-              className="tournaments-entry__drop"
-              variant="ghost"
-              size="sm"
-              disabled={busy}
-              onClick={() => void run(() => tournamentApi.drop(detail.id))}
-            >
-              {t("tournaments.detail.drop")}
-            </Button>
+            <TournamentDropControl
+              tournamentName={detail.name}
+              busy={busy}
+              onDrop={() => void run(() => tournamentApi.drop(detail.id))}
+            />
           ) : null}
           {!actions.register && !actions.checkIn && !actions.drop ? (
             <p className="tournaments-note">{t("tournaments.detail.noActions")}</p>
@@ -411,38 +432,54 @@ export function TournamentDetail({
   return (
     <div className="tournaments-detail">
       <header className="tournaments-detail__head">
-        <Button className="tournaments-detail__back" variant="ghost" size="sm" icon={Icons.ArrowLeft} onClick={onBack}>
-          {t("tournaments.back")}
-        </Button>
-        <div className="tournaments-detail__title">
-          <h2>{detail.name}</h2>
-          <Badge tone="primary">{t(statusKey(detail.status))}</Badge>
-          <TournamentReportButton
-            tournamentId={detail.id}
-            tournamentName={detail.name}
-            organizerId={detail.createdBy}
-            accountId={accountId}
-          />
+        <TournamentCrumb onBack={onBack} />
+        <div className="tournaments-detail__title-row">
+          <div className="tournaments-detail__title">
+            <h1>{detail.name}</h1>
+            <Badge tone={isTournamentClosed(detail) ? "neutral" : "success"}>{t(statusKey(detail.status))}</Badge>
+          </div>
+          <div className="tournaments-detail__head-actions">
+            <TournamentCopyLinkButton tournamentId={detail.id} />
+            {detail.discordUrl ? (
+              <a
+                className="aegis-button aegis-button--secondary aegis-button--sm"
+                href={detail.discordUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Icons.Discord size={16} aria-hidden="true" />
+                {t("tournaments.detail.openDiscord")}
+              </a>
+            ) : null}
+            <TournamentReportButton
+              tournamentId={detail.id}
+              tournamentName={detail.name}
+              organizerId={detail.createdBy}
+              accountId={accountId}
+            />
+          </div>
         </div>
         <div className="tournaments-detail__facts">
           <TournamentCategoryBadge category={detail.category} />
-          <span>{t(structureKey(detail.structure))}</span>
-          <span>{formatStart(detail.startsAt)}</span>
-          <span>{t("tournaments.slots", { registered: detail.registeredCount, max: detail.maxPlayers })}</span>
+          <span>
+            <Icons.Calendar size={14} aria-hidden="true" />
+            {formatStart(detail.startsAt)}
+          </span>
+          <span>
+            <Icons.LayoutGrid size={14} aria-hidden="true" />
+            {t(structureKey(detail.structure))}
+            {detail.topCutEnabled ? ` + ${t("tournaments.badge.topCut")}` : ""}
+          </span>
+          <span>
+            <Icons.Swords size={14} aria-hidden="true" />
+            {t("tournaments.bestOf", { count: detail.bestOf })}
+          </span>
+          <span>
+            <Icons.Users size={14} aria-hidden="true" />
+            {t("tournaments.slots", { registered: detail.registeredCount, max: detail.maxPlayers })}
+          </span>
         </div>
         {detail.description ? <p className="tournaments-description">{detail.description}</p> : null}
-        {detail.discordUrl ? (
-          <div>
-            <a
-              className="aegis-button aegis-button--secondary aegis-button--sm"
-              href={detail.discordUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {t("tournaments.detail.openDiscord")}
-            </a>
-          </div>
-        ) : null}
       </header>
 
       <nav className="tournaments-detail__tabs" aria-label={t("tournaments.tabs.label")}>
@@ -469,10 +506,10 @@ export function TournamentDetail({
             {isElimination ? null : <TopCutBracket detail={detail} accountId={accountId} />}
           </div>
           <aside className="tournaments-detail__rail">
+            {entryPanel}
             {schedulePanel}
             <TournamentSpectatingPanel detail={detail} isActiveParticipant={isActiveParticipant} />
             {formatPanel}
-            {entryPanel}
           </aside>
         </div>
       ) : null}
