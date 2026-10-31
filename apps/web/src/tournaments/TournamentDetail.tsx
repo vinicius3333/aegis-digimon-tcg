@@ -143,7 +143,7 @@ export function TournamentDetail({
   const canOrganize = isOrganizer || accountIsAdmin;
   const own = ownParticipant({ participants: detail.participants, accountId });
   const isActiveParticipant = own !== undefined && own.status !== "dropped" && own.status !== "disqualified";
-  const actions = entryActions(detail, own);
+  const actions = entryActions({ detail, own, signedIn: accountId !== undefined });
   const banlistLabel =
     detail.banlistPolicy.mode === "as_of_set"
       ? t("tournaments.banlist.asOfSet", { set: detail.banlistPolicy.setId })

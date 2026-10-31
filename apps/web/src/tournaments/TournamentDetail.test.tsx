@@ -293,18 +293,25 @@ describe("tournament detail", () => {
     expect(screen.getByText(/Nothing to do here right now/)).toBeTruthy();
   });
 
-  it("still offers the action when the display name cannot identify the player", async () => {
-    // Two humans share a name, so the payload cannot prove membership: the server decides.
+  it("never offers check-in to a signed-in player who is not signed up", async () => {
     mockDetail({
-      status: "registration",
+      status: "check_in",
       participants: [
         { id: "p-1", kind: "human", displayName: "Twin", status: "registered", seed: null },
         { id: "p-2", kind: "human", displayName: "Twin", status: "registered", seed: null },
       ],
     });
+    const checkIn = renderDetail("acc-player", "Twin");
+    await screen.findByRole("heading", { name: "Your entry" });
+    expect(screen.queryByRole("button", { name: "Check in" })).toBeNull();
+    expect(screen.queryByText("Signed up · Check-in is open")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Drop out" })).toBeNull();
+    checkIn.unmount();
+
+    mockDetail({ status: "registration", participants: [] });
     renderDetail("acc-player", "Twin");
     expect(await screen.findByRole("button", { name: "Sign up" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Check in" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Check in" })).toBeNull();
   });
 
   it("translates deck-legality violations instead of printing raw kinds", async () => {
