@@ -1009,9 +1009,22 @@ function LoadedAegisClient({
               {screen === "watch" && (
                 <WatchScreen
                   initialCode={sharedSpectatorCode}
+                  rankedEnabled={rankedConfig?.enabled === true}
                   onWatch={(code) => startMatch("spectator", code)}
-                  onBack={() => navigateScreen("lobby")}
+                  onNav={navigateScreen}
                   onOpenMatchSettings={() => navigate({ screen: "lobby", matchSettings: true })}
+                  onCreateRoom={() => {
+                    setInvitedRoomCode(undefined);
+                    setPrivateRoom(undefined);
+                    setChallengeTarget(undefined);
+                    navigate({ screen: "lobby", lobbyMode: LobbyMode.PRIVATE.value });
+                  }}
+                  onJoinRoom={(code) => {
+                    setPrivateRoom(undefined);
+                    setChallengeTarget(undefined);
+                    setInvitedRoomCode(code);
+                    navigateScreen("lobby");
+                  }}
                 />
               )}
 
@@ -1066,6 +1079,7 @@ function LoadedAegisClient({
                   signedIn={Boolean(account)}
                   canJudge={canJudge}
                   onPlay={() => navigate({ screen: "lobby", rankedQueue: true, matchSettings: true })}
+                  onNav={navigateScreen}
                 />
               )}
 
