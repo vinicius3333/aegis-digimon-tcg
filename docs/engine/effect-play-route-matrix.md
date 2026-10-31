@@ -273,3 +273,15 @@ Compared with the reviewed catalog at `4763de3067`, no card is added or removed.
 This ordinary evolution correction also permits Arts Digivolve onto a purple level-6 base, as covered by `arts-digivolve-purple-level-six.test.ts`. It introduces no DNA, App Fusion or Burst effect provider and changes no recipient source zone. The 22 covered cells, eight reviewed provider absences, candidate lists, scenario evidence and rule-source fingerprint remain applicable.
 
 After this bounded semantic review, the catalog fingerprint changes from `92c3b9e01cdbd6193dca0a369524d9c139d9ab28b1e4dacf88589e85b1b4c70d` to `86b3f0dcd41c4ffc8d08a709ef99d2c0f6a139da7f06a08080634de3e00ae71f`. Catalog drift remains an error; no validator or test expectation is weakened.
+
+### Catalog review after printed-text corrections (2026-10-31)
+
+PR #6314 reproduced the catalog-drift failure in `node --test tools/kb/rule-obligations.test.mjs`. Compared with the reviewed catalog at `63e8463749`, no card is added or removed and no non-text field changes. 127 text fields on 113 cards change, all checked against the official card images:
+
+- Punctuation only: full-width commas become ASCII commas, wrong closing quotes are fixed (BT1-104, BT1-112, BT3-109), and BT2-111 gains a paragraph break before `[When Digivolving]`.
+- Spelling: "digivoLv.e" becomes "digivolve" on BT1-078, BT1-109, BT2-062 and BT2-111, and BT2-097's DP modifier spacing is fixed. BT1-078 keeps its existing revealed-deck digivolution.
+- Wording that keeps the same recipient zone: LM-054 to LM-062 digivolve into a card "in the hand" with the cost reduced by 2 (LM-056 lists purple before blue). BT18-100 keeps its trash digivolutions. BT12-109 keeps digivolving into a card under the Tamers. P-103 to P-108 change only their reveal-and-add sentence. P-161 removes a duplicated trash trigger.
+
+Re-running the three absence searches (`DNA digivolv`, `app fus`, `burst digivolv`) over the effect fields returns the same card sets as the reviewed catalog (134, 38 and 7 cards). No change introduces a DNA, App Fusion or Burst provider or a new recipient zone, so the 22 covered cells, eight reviewed provider absences, candidate lists, scenario evidence and rule-source fingerprint remain applicable.
+
+After this bounded review, the catalog fingerprint changes from `6d0c162bcf8ee07b48bc32e573159e683d2dd0e69748d91b1039b51fd5aca307` to `2c2aadcbb89ce3de9ae9f097a2328fa124a4237781b0965a0a5ddf23ef575894`. Catalog drift remains an error; no validator or test expectation is weakened.
