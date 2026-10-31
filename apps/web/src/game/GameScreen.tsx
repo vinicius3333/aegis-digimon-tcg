@@ -1629,7 +1629,7 @@ function GameScreenSession({
                   : undefined,
               replayFile: liveConnection.replayDownload?.kind === "ready" ? liveConnection.replayDownload : undefined,
               replayStatus:
-                spectating || demoConnection || joinOptions.devScenario
+                demoConnection || joinOptions.devScenario
                   ? undefined
                   : liveConnection.replayDownload?.kind === "unavailable"
                     ? "unavailable"

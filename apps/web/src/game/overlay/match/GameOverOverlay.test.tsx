@@ -1,3 +1,4 @@
+import { SPECTATOR_REPLAY_SEAT } from "@aegis/shared/replays/spectatorReplaySeat";
 import { UsedDeckDialog } from "@/game/UsedDeckDialog";
 import { DECKS, copyDeckPreset, type DeckListing } from "@/game/decks";
 import { saveDecks, loadDecks } from "@/identity";
@@ -474,4 +475,41 @@ it("identifies both deck names on the result screen", () => {
   );
   expect(screen.getByText("Competitive Blue")).toBeTruthy();
   expect(screen.getByText("Xros Heart")).toBeTruthy();
+});
+
+it.each([false, true])("offers a finished spectator replay download with signedIn=%s", (signedIn) => {
+  const download = vi.fn<() => void>();
+  render(
+    <I18nProvider>
+      <GameOverOverlay
+        result="win"
+        reason="security"
+        spectatorResult="Nova wins"
+        stats={[]}
+        signedIn={signedIn}
+        onMenu={() => {}}
+        onRematch={() => {}}
+        onDownloadReplay={download}
+        replayFile={{
+          kind: "ready",
+          summary: {
+            id: "spectated-match",
+            players: ["Nova", "Tai"],
+            mode: "casual",
+            startedAt: 0,
+            finishedAt: 1,
+            winnerSeat: 0,
+            frameCount: 1,
+          },
+          viewerSeat: SPECTATOR_REPLAY_SEAT,
+          data: btoa("replay"),
+        }}
+      />
+    </I18nProvider>,
+  );
+  expect(screen.getByRole("heading", { name: "Match complete" })).toBeTruthy();
+  expect(screen.getByText("Nova wins")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Download file" }));
+  expect(download).toHaveBeenCalledOnce();
+  expect(screen.queryByRole("button", { name: "Add friend" })).toBeNull();
 });
