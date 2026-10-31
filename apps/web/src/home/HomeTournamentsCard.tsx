@@ -117,28 +117,32 @@ function HomeTournament({ tournament, onOpen }: HomeTournamentParams) {
           </span>
         ) : null}
       </div>
-      <div className="home-capacity">
-        <div className="home-capacity__label">
-          <span>{t("home.tournaments.players")}</span>
-          <span>
-            <b>{tournament.registeredCount}</b> / {tournament.maxPlayers}
-          </span>
-        </div>
-        <div
-          className="home-progress"
-          role="progressbar"
-          aria-valuenow={tournament.registeredCount}
-          aria-valuemin={0}
-          aria-valuemax={tournament.maxPlayers}
-          aria-label={t("tournaments.slots", {
-            registered: tournament.registeredCount,
-            max: tournament.maxPlayers,
-          })}
-        >
-          <span style={{ width: `${capacity}%` }} />
-        </div>
-      </div>
       <div className="home-event__foot">
+        <div className="home-capacity">
+          <div className="home-capacity__label">
+            <span>
+              {t("tournaments.slots", { registered: tournament.registeredCount, max: tournament.maxPlayers })}
+            </span>
+            <span>
+              {t("tournaments.detail.spotsLeft", {
+                count: Math.max(0, tournament.maxPlayers - tournament.registeredCount),
+              })}
+            </span>
+          </div>
+          <div
+            className="home-progress"
+            role="progressbar"
+            aria-valuenow={tournament.registeredCount}
+            aria-valuemin={0}
+            aria-valuemax={tournament.maxPlayers}
+            aria-label={t("tournaments.slots", {
+              registered: tournament.registeredCount,
+              max: tournament.maxPlayers,
+            })}
+          >
+            <span style={{ width: `${capacity}%` }} />
+          </div>
+        </div>
         <Button size="sm" variant={action.primary ? "primary" : "secondary"} onClick={() => onOpen(tournament.id)}>
           {t(action.labelKey)}
         </Button>

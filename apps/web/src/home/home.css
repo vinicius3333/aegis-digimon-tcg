@@ -465,8 +465,14 @@
 
 .home-event__foot {
   display: flex;
-  justify-content: flex-end;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--ds-space-3) var(--ds-space-5);
   margin-top: auto;
+}
+
+.home-event__foot .home-capacity {
+  flex: 1 1 200px;
 }
 
 .home-next__deck {
