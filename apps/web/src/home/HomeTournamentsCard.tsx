@@ -4,7 +4,9 @@ import { Icons } from "@/design/icons";
 import { HomeCard } from "@/home/HomeCard";
 import { HomeTournamentFilter } from "@/home/HomeTournamentFilter";
 import { useTranslation } from "@/i18n/useTranslation";
-import { statusKey, structureKey } from "@/tournaments/labels";
+import { getHomeTournamentAction } from "@/home/getHomeTournamentAction";
+import { participantStatusKey, statusKey, structureKey } from "@/tournaments/labels";
+import { serverNow } from "@/tournaments/serverClock";
 import type { TournamentListing } from "@/tournaments/types";
 
 const HOME_TOURNAMENT_COUNT = 4;
@@ -77,7 +79,7 @@ type HomeTournamentParams = {
 function HomeTournament({ tournament, onOpen }: HomeTournamentParams) {
   const { t, locale } = useTranslation();
   const open = tournament.status === "registration" || tournament.status === "check_in";
-  const full = tournament.registeredCount >= tournament.maxPlayers;
+  const action = getHomeTournamentAction({ tournament, now: serverNow() });
   const capacity = Math.min(100, Math.max(0, (tournament.registeredCount / tournament.maxPlayers) * 100));
   const startsAt = new Intl.DateTimeFormat(locale, {
     weekday: "short",
@@ -88,7 +90,12 @@ function HomeTournament({ tournament, onOpen }: HomeTournamentParams) {
     <li className="home-event">
       <div className="home-event__head">
         <h3>{tournament.name}</h3>
-        <Badge tone={open ? "success" : "primary"}>{t(statusKey(tournament.status))}</Badge>
+        <span className="home-event__badges">
+          {tournament.myEntry ? (
+            <Badge tone="primary">{t(participantStatusKey(tournament.myEntry.status))}</Badge>
+          ) : null}
+          <Badge tone={open ? "success" : "primary"}>{t(statusKey(tournament.status))}</Badge>
+        </span>
       </div>
       <div className="home-facts">
         <span>
@@ -132,26 +139,10 @@ function HomeTournament({ tournament, onOpen }: HomeTournamentParams) {
         </div>
       </div>
       <div className="home-event__foot">
-        <Button size="sm" variant={open && !full ? "primary" : "secondary"} full onClick={() => onOpen(tournament.id)}>
-          {getTournamentActionLabel({ open, full, t })}
+        <Button size="sm" variant={action.primary ? "primary" : "secondary"} full onClick={() => onOpen(tournament.id)}>
+          {t(action.labelKey)}
         </Button>
       </div>
     </li>
   );
-}
-
-type TournamentActionLabelParams = {
-  open: boolean;
-  full: boolean;
-  t: ReturnType<typeof useTranslation>["t"];
-};
-
-function getTournamentActionLabel({ open, full, t }: TournamentActionLabelParams): string {
-  if (open && full) {
-    return t("tournaments.catalog.full");
-  }
-  if (open) {
-    return t("home.tournaments.signUp");
-  }
-  return t("tournaments.catalog.view");
 }
