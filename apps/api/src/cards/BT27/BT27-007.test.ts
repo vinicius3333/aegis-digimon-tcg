@@ -8,6 +8,38 @@ import "#api/cards/BT27/BT27-007";
 import "#api/cards/BT27/BT27-010";
 
 describe("Solarmon Flame rule and start-of-main cost", () => {
+  it.each([
+    ["BT1-001", true],
+    ["BT22-005", true],
+    ["BT1-004", false],
+  ] as const)("checks the printed zero-cost evolution from %s in breeding", async (base, valid) => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: base, as: "base" },
+        hand: [{ card: "BT27-007", as: "rookie" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("rookie").instanceId,
+      }).ok,
+    ).toBe(valid);
+    if (valid) {
+      await settle(() => s.perm("base").topCard.cardId === "BT27-007" && !s.state.pendingDecision);
+    }
+    expect(s.perm("base").topCard.cardId).toBe(valid ? "BT27-007" : base);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(valid ? [base] : []);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(valid ? ["BT1-009"] : ["BT27-007"]);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.turnSeat).toBe(0);
+    assertNoLoudGap(s);
+  });
+
   it("has both Machine and Flame traits through its printed rule", () => {
     expect(effectiveStaticTraits(requireCardDefinition("BT27-007"))).toEqual(
       expect.arrayContaining(["Machine", "Flame"]),
