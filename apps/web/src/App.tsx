@@ -54,6 +54,7 @@ import { SeriesDeckDialog } from "@/game/overlay/match/SeriesDeckDialog";
 import { communityDeckListing } from "./community/communityDeckListing";
 import { usePreferencesSync } from "./account/usePreferencesSync";
 import { setDeckFavorite } from "@/screens/favoriteDecks/setDeckFavorite";
+import { CollectionTab } from "@/screens/CollectionTab";
 import { LeaveMatchDialog } from "./game/screen/layout/LeaveMatchDialog";
 import { PlayerMenu } from "./account/PlayerMenu";
 import { MusicMenu } from "@/design/MusicMenu";
@@ -882,7 +883,11 @@ function LoadedAegisClient({
                 />
               )}
 
-              {screen === "booster" && <PackOpening />}
+              {screen === "booster" && (
+                <PackOpening
+                  onBack={() => navigate({ screen: "collection", collectionTab: CollectionTab.BOOSTERS.value })}
+                />
+              )}
 
               {screen === "feedback" && (
                 <FeedbackScreen
@@ -1114,7 +1119,13 @@ function LoadedAegisClient({
 
               {screen === "friends" && <FriendsScreen signedIn={!!account} onSignIn={() => navigateScreen("login")} />}
 
-              {screen === "collection" && <Collection />}
+              {screen === "collection" && (
+                <Collection
+                  tab={route.collectionTab ?? CollectionTab.CARDS.value}
+                  onTabChange={(collectionTab) => navigate({ screen: "collection", collectionTab })}
+                  onOpenBooster={() => navigateScreen("booster")}
+                />
+              )}
 
               {screen === "replays" && route.replayId && (
                 <ReplaysScreen
