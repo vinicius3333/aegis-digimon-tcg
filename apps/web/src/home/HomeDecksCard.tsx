@@ -6,7 +6,7 @@ import { displayCoverArt, displayCoverCard, type DeckListing } from "@/game/deck
 import { HomeCard } from "@/home/HomeCard";
 import { useTranslation } from "@/i18n/useTranslation";
 
-const HOME_DECK_COUNT = 3;
+const HOME_DECK_COUNT = 4;
 
 type HomeDecksCardParams = {
   decks: readonly DeckListing[];
