@@ -176040,6 +176040,7 @@
           },
           {
             "kind": "Trash",
+            "blind": true,
             "target": { "count": 1, "filter": { "controller": "opponent", "zone": "hand" } },
             "condition": { "kind": "ifThisEffectDidNotAct", "raw": "you didn't" }
           }
@@ -176061,6 +176062,7 @@
           },
           {
             "kind": "Trash",
+            "blind": true,
             "target": { "count": 1, "filter": { "controller": "opponent", "zone": "hand" } },
             "condition": { "kind": "ifThisEffectDidNotAct", "raw": "you didn't" }
           }
@@ -176327,13 +176329,21 @@
       {
         "trigger": "OnPlay",
         "actions": [
-          { "kind": "Trash", "target": { "count": 1, "filter": { "controller": "opponent", "zone": "hand" } } }
+          {
+            "kind": "Trash",
+            "target": { "count": 1, "filter": { "controller": "opponent", "zone": "hand" } },
+            "blind": true
+          }
         ]
       },
       {
         "trigger": "WhenDigivolving",
         "actions": [
-          { "kind": "Trash", "target": { "count": 1, "filter": { "controller": "opponent", "zone": "hand" } } }
+          {
+            "kind": "Trash",
+            "target": { "count": 1, "filter": { "controller": "opponent", "zone": "hand" } },
+            "blind": true
+          }
         ]
       },
       {
