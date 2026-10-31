@@ -484,25 +484,12 @@ export const en = {
 
   "nav.signIn": "Sign in",
 
-  "home.eyebrow": "Digimon TCG in your browser",
-  "home.title": "Build a deck and play live. Free.",
-  "home.lede":
-    "Deck builder, a {count} card collection and live matches against other players. Nothing to install, no sign-up.",
-  "home.playNow": "Play now",
   "home.buildDeck": "Build a deck",
-  "home.guestNote": "You play as a guest. Decks stay saved on this device.",
   "home.signInTitle": "Playing on more than one device?",
   "home.signInCopy": "Connect Discord to keep your decks and stats on your account.",
   "home.signInAction": "Connect",
   "home.footer.discord": "Discord community",
   "home.footer.github": "GitHub",
-  "home.shortcuts.aria": "Shortcuts",
-  "home.shortcuts.play.title": "Live matches",
-  "home.shortcuts.play.copy": "Find an opponent now",
-  "home.shortcuts.decks.title": "Deck builder",
-  "home.shortcuts.decks.copy": "Start from a starter list",
-  "home.shortcuts.collection.title": "{count} cards",
-  "home.shortcuts.collection.copy": "Browse the collection",
   "home.footer.legal":
     "Free fan project with no affiliation to Bandai. Digimon, the Digimon Card Game and the card images belong to Bandai and their respective owners. If you enjoy Aegis, support the official game. You are welcome to stream, record, edit, upload and share Aegis gameplay on any platform, including monetized content. No prior permission, payment or credit to Aegis is required.",
   "releases.nav": "What's new",

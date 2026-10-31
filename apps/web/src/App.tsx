@@ -2,6 +2,8 @@ import { hasAccountCapability } from "@aegis/shared/account/hasAccountCapability
 import { highestAccountRole } from "@/account/roles/highestAccountRole";
 import type { TournamentSpectateTarget } from "@/tournaments/TournamentSpectateTarget";
 import { RankedScreen } from "@/ranked/RankedScreen";
+import { HomeMatchQueue } from "@/home/HomeMatchQueue";
+import { LobbyMode } from "@/screens/LobbyMode";
 import { useRankedConfig } from "@/ranked/useRankedConfig";
 import type { TournamentGameTicket } from "@aegis/shared/tournaments/TournamentGameTicket";
 import { FriendsDrawer } from "@/messages/FriendsDrawer";
@@ -26,7 +28,6 @@ import { AegisEmblem } from "./design/AegisLogo";
 import { PixelBackdrop } from "./design/PixelBackdrop";
 import { colorKey, type ColorName } from "./design/theme";
 import {
-  activeCollectionCards,
   copyDeckPreset,
   deckById,
   filterDeckToKnownCards,
@@ -50,8 +51,11 @@ import { accountApi, type RemoteAccount } from "./account/client";
 import { communityApi } from "./community/client";
 import { SeriesDeckDialog } from "@/game/overlay/match/SeriesDeckDialog";
 import { communityDeckListing } from "./community/communityDeckListing";
+import { CommunitySection } from "@/community/CommunitySection";
+import { getCommunitySectionRoute } from "@/community/getCommunitySectionRoute";
 import { usePreferencesSync } from "./account/usePreferencesSync";
 import { setDeckFavorite } from "@/screens/favoriteDecks/setDeckFavorite";
+import { CollectionTab } from "@/screens/CollectionTab";
 import { LeaveMatchDialog } from "./game/screen/layout/LeaveMatchDialog";
 import { PlayerMenu } from "./account/PlayerMenu";
 import { MusicMenu } from "@/design/MusicMenu";
@@ -675,7 +679,6 @@ function LoadedAegisClient({
   useEffect(() => setDeckSleeveId(matchSleeveId), [matchSleeveId]);
   const matchEggSleeveId = screen === "game" ? matchDeck?.eggSleeveId : undefined;
   useEffect(() => setDeckEggSleeveId(matchEggSleeveId), [matchEggSleeveId]);
-  const collectionSize = useMemo(() => activeCollectionCards().length, []);
   const identityColor: ColorName = colorKey(player.color);
 
   const customBotDeck =
@@ -840,18 +843,48 @@ function LoadedAegisClient({
             <Suspense fallback={<ScreenFallback />}>
               {screen === "home" && (
                 <Home
-                  collectionSize={collectionSize}
-                  signedIn={!!account}
-                  onPlay={() => navigate({ screen: "lobby", rankedQueue: true, matchSettings: true })}
+                  accountId={account?.id}
+                  decks={decks}
+                  activeDeck={matchDeck}
+                  activeDeckId={activeDeckId}
+                  rankedEnabled={rankedConfig?.enabled === true}
+                  onFindMatch={(queue) =>
+                    navigate({
+                      screen: "lobby",
+                      rankedQueue: queue === HomeMatchQueue.RANKED.value,
+                      matchSettings: true,
+                    })
+                  }
+                  onPractice={() => navigate({ screen: "lobby", lobbyMode: LobbyMode.PRACTICE.value })}
+                  onPrivateMatch={() => navigate({ screen: "lobby", lobbyMode: LobbyMode.PRIVATE.value })}
+                  onChangeDeck={() => navigateScreen("lobby")}
+                  onWatchLive={(code) => startMatch("spectator", code)}
+                  onOpenWatch={() => navigateScreen("watch")}
+                  onOpenTournament={(id) => navigate({ screen: "tournaments", tournament: { kind: "detail", id } })}
+                  onOpenTournaments={() => navigate({ screen: "tournaments", tournament: { kind: "catalog" } })}
+                  onCreateTournament={() => navigate({ screen: "tournaments", tournament: { kind: "create" } })}
+                  onOpenBooster={() => navigateScreen("booster")}
+                  onEditDeck={(deck) => {
+                    setEditingDeck(deck);
+                    navigateScreen("deck");
+                  }}
+                  onPlayDeck={(deck) => {
+                    setActiveDeckId(deck.id);
+                    navigate({ screen: "lobby", matchSettings: true });
+                  }}
                   onBuildDeck={() => navigateScreen("deck")}
-                  onOpenCollection={() => navigateScreen("collection")}
+                  onOpenDecks={() => navigateScreen("deck")}
                   onSignIn={() => navigateScreen("login")}
                   onReportBug={() => setBugReportOpen(true)}
                   onOpenReleases={() => navigateScreen("releases")}
                 />
               )}
 
-              {screen === "booster" && <PackOpening />}
+              {screen === "booster" && (
+                <PackOpening
+                  onBack={() => navigate({ screen: "collection", collectionTab: CollectionTab.BOOSTERS.value })}
+                />
+              )}
 
               {screen === "feedback" && (
                 <FeedbackScreen
@@ -924,6 +957,7 @@ function LoadedAegisClient({
               {screen === "lobby" && (
                 <Lobby
                   initialRanked={route.rankedQueue === true}
+                  initialMode={route.lobbyMode}
                   player={effectivePlayer}
                   decks={decks}
                   borrowedDeck={borrowedDeck}
@@ -977,9 +1011,22 @@ function LoadedAegisClient({
               {screen === "watch" && (
                 <WatchScreen
                   initialCode={sharedSpectatorCode}
+                  rankedEnabled={rankedConfig?.enabled === true}
                   onWatch={(code) => startMatch("spectator", code)}
-                  onBack={() => navigateScreen("lobby")}
+                  onNav={navigateScreen}
                   onOpenMatchSettings={() => navigate({ screen: "lobby", matchSettings: true })}
+                  onCreateRoom={() => {
+                    setInvitedRoomCode(undefined);
+                    setPrivateRoom(undefined);
+                    setChallengeTarget(undefined);
+                    navigate({ screen: "lobby", lobbyMode: LobbyMode.PRIVATE.value });
+                  }}
+                  onJoinRoom={(code) => {
+                    setPrivateRoom(undefined);
+                    setChallengeTarget(undefined);
+                    setInvitedRoomCode(code);
+                    navigateScreen("lobby");
+                  }}
                 />
               )}
 
@@ -1002,13 +1049,15 @@ function LoadedAegisClient({
               {screen === "community" && (
                 <CommunityScreen
                   deckId={route.communityDeckId}
+                  section={route.communityMeta ? CommunitySection.META.value : CommunitySection.DECKS.value}
+                  metaAvailable={rankedConfig?.enabled}
                   signedIn={!!account}
                   accountId={account?.id}
                   isAdmin={account?.isAdmin === true}
                   onOpenDeck={(id) => navigate({ screen: "community", communityDeckId: id })}
                   onBack={() => navigate({ screen: "community" })}
-                  onRoadmap={() => navigate({ screen: "roadmap" })}
-                  onTournaments={() => navigate({ screen: "tournaments" })}
+                  onSectionChange={(section) => navigate(getCommunitySectionRoute(section))}
+                  onOpenRanked={() => navigateScreen("ranked")}
                   onPlay={(deck) => {
                     const listing = communityDeckListing(deck);
                     setBorrowedDeck(listing);
@@ -1034,14 +1083,14 @@ function LoadedAegisClient({
                   signedIn={Boolean(account)}
                   canJudge={canJudge}
                   onPlay={() => navigate({ screen: "lobby", rankedQueue: true, matchSettings: true })}
+                  onNav={navigateScreen}
                 />
               )}
 
               {screen === "tournaments" && (
                 <TournamentsScreen
                   decks={decks}
-                  onDecks={() => navigate({ screen: "community" })}
-                  onRoadmap={() => navigate({ screen: "roadmap" })}
+                  onDecks={() => navigate({ screen: "deck" })}
                   view={route.tournament ?? { kind: "catalog" }}
                   onViewChange={(tournament) => navigate({ screen: "tournaments", tournament })}
                   onWatchMatch={(target) => {
@@ -1072,17 +1121,23 @@ function LoadedAegisClient({
                   itemId={route.roadmapItemId}
                   signedIn={!!account}
                   isAdmin={account?.isAdmin === true}
+                  metaAvailable={rankedConfig?.enabled === true}
                   onSignIn={() => navigateScreen("login")}
                   onOpen={(id) => navigate({ screen: "roadmap", roadmapItemId: id })}
-                  onDecks={() => navigate({ screen: "community" })}
-                  onTournaments={() => navigate({ screen: "tournaments" })}
+                  onSectionChange={(section) => navigate(getCommunitySectionRoute(section))}
                   onSuggest={() => setBugReportOpen(true)}
                 />
               )}
 
               {screen === "friends" && <FriendsScreen signedIn={!!account} onSignIn={() => navigateScreen("login")} />}
 
-              {screen === "collection" && <Collection />}
+              {screen === "collection" && (
+                <Collection
+                  tab={route.collectionTab ?? CollectionTab.CARDS.value}
+                  onTabChange={(collectionTab) => navigate({ screen: "collection", collectionTab })}
+                  onOpenBooster={() => navigateScreen("booster")}
+                />
+              )}
 
               {screen === "replays" && route.replayId && (
                 <ReplaysScreen

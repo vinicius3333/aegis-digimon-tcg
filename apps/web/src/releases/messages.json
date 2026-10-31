@@ -1,4 +1,46 @@
 {
+  "releases.1.44.0-beta.summary": {
+    "en": "A new Aegis layout with a home dashboard and redesigned play, decks, collection, community and tournament screens.",
+    "pt-BR": "Novo layout do Aegis com painel inicial e telas renovadas de jogo, decks, coleção, comunidade e torneios.",
+    "es": "Un nuevo diseño de Aegis con un panel de inicio y pantallas renovadas de juego, mazos, colección, comunidad y torneos.",
+    "it": "Un nuovo layout di Aegis con una dashboard iniziale e schermate rinnovate per gioco, mazzi, collezione, community e tornei."
+  },
+  "releases.1.44.0-beta.feature.dashboard": {
+    "en": "Find live matches, tournaments, your next match, free boosters, your schedule and saved decks on the new home dashboard. Shared page headers and mobile navigation make sections easier to reach.",
+    "pt-BR": "Encontre partidas ao vivo, torneios, sua próxima partida, boosters grátis, agenda e decks salvos no novo painel inicial. Cabeçalhos padronizados e navegação para celular facilitam o acesso às seções.",
+    "es": "Encuentra partidas en directo, torneos, tu próxima partida, sobres gratis, agenda y mazos guardados en el nuevo panel de inicio. Los encabezados compartidos y la navegación móvil facilitan el acceso a las secciones.",
+    "it": "Trova partite in diretta, tornei, la prossima partita, buste gratuite, il calendario e i mazzi salvati nella nuova dashboard. Intestazioni comuni e navigazione mobile rendono le sezioni più accessibili."
+  },
+  "releases.1.44.0-beta.feature.play": {
+    "en": "Play now groups Match, Ranked and Rooms into tabs, with private rooms, live matches and spectating by code together in Rooms.",
+    "pt-BR": "Jogar agora reúne Partida, Ranqueada e Salas em abas, com salas privadas, partidas ao vivo e acesso de espectador por código na aba Salas.",
+    "es": "Jugar ahora agrupa Partida, Clasificatoria y Salas en pestañas, con salas privadas, partidas en directo y acceso como espectador por código en Salas.",
+    "it": "Gioca ora riunisce Partita, Classificata e Stanze in schede, con stanze private, partite in diretta e accesso come spettatore tramite codice in Stanze."
+  },
+  "releases.1.44.0-beta.feature.decks": {
+    "en": "Browse saved decks in the new list layout and build them in a three-column editor, with deck progress in a mobile dock. Play with any legal deck directly from the list.",
+    "pt-BR": "Navegue pelos decks salvos na nova lista e monte seus decks no editor de três colunas, com progresso em uma barra no celular. Jogue com qualquer deck válido diretamente da lista.",
+    "es": "Explora los mazos guardados en la nueva lista y constrúyelos en un editor de tres columnas, con el progreso en una barra móvil. Juega con cualquier mazo válido directamente desde la lista.",
+    "it": "Sfoglia i mazzi salvati nel nuovo elenco e costruiscili in un editor a tre colonne, con i progressi in una barra mobile. Gioca con qualsiasi mazzo valido direttamente dall’elenco."
+  },
+  "releases.1.44.0-beta.feature.collection": {
+    "en": "Collection now has Cards and Free booster tabs. Browse cards and open free boosters with the existing 3D pack opening in one place.",
+    "pt-BR": "A Coleção agora tem abas de Cartas e Booster grátis. Consulte cartas e abra boosters gratuitos com a abertura 3D no mesmo lugar.",
+    "es": "La Colección ahora tiene pestañas de Cartas y Sobre gratis. Consulta cartas y abre sobres gratuitos con la apertura 3D en un solo lugar.",
+    "it": "La Collezione ora include le schede Carte e Busta gratuita. Sfoglia le carte e apri buste gratuite con l’apertura 3D nello stesso posto."
+  },
+  "releases.1.44.0-beta.feature.community": {
+    "en": "Community brings Decks, Meta and Roadmap together in tabs, with trending decks, matchup data and ranked metagame information when ranked is available.",
+    "pt-BR": "A Comunidade reúne Decks, Meta e Roadmap em abas, com decks em destaque, dados de confrontos e informações do metagame quando a ranqueada está disponível.",
+    "es": "La Comunidad reúne Mazos, Meta y Hoja de ruta en pestañas, con mazos destacados, datos de enfrentamientos e información del metajuego cuando la clasificatoria está disponible.",
+    "it": "La Community riunisce Mazzi, Meta e Roadmap in schede, con mazzi di tendenza, dati sugli abbinamenti e informazioni sul metagame quando la classificata è disponibile."
+  },
+  "releases.1.44.0-beta.feature.tournaments": {
+    "en": "Explore tournaments, your events and circuits in the redesigned catalog. Sign up through password, deck and review steps, change your registered deck from a visual list, and follow check-in progress. Organizers get a creation preview and clearer check-in closing controls.",
+    "pt-BR": "Explore torneios, seus eventos e circuitos no catálogo renovado. Inscreva-se pelas etapas de senha, deck e revisão, altere o deck registrado em uma lista visual e acompanhe o check-in. Organizadores contam com prévia na criação e controles mais claros para encerrar o check-in.",
+    "es": "Explora torneos, tus eventos y circuitos en el catálogo renovado. Inscríbete mediante pasos de contraseña, mazo y revisión, cambia el mazo registrado desde una lista visual y sigue el check-in. Los organizadores disponen de una vista previa al crear y controles más claros para cerrar el check-in.",
+    "it": "Esplora tornei, i tuoi eventi e circuiti nel catalogo rinnovato. Iscriviti attraverso i passaggi password, mazzo e riepilogo, cambia il mazzo registrato da un elenco visivo e segui il check-in. Gli organizzatori hanno un’anteprima durante la creazione e controlli più chiari per chiudere il check-in."
+  },
   "releases.1.43.7-beta.summary": {
     "en": "Fixes face-down card cleanup and Examon X’s two Decode choices.",
     "pt-BR": "Corrige o descarte de cartas viradas para baixo e as duas escolhas de Decode de Examon X.",
