@@ -629,7 +629,7 @@ export function TopNav({
   };
   const entries: Record<"home" | "lobby" | "tournaments" | "deck" | "collection" | "community", NavEntry> = {
     home: { key: "home", label: t("nav.home"), icon: Icons.House },
-    lobby: { key: "lobby", label: t("nav.play"), icon: Icons.Gamepad },
+    lobby: { key: "lobby", label: t("nav.play"), icon: Icons.Swords },
     tournaments: { key: "tournaments", label: t("nav.tournaments"), icon: Icons.Trophy },
     deck: { key: "deck", label: t("nav.decks"), icon: Icons.Cards },
     collection: { key: "collection", label: t("nav.collection"), icon: Icons.BookOpen },

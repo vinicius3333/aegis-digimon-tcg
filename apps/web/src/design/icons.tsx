@@ -444,12 +444,6 @@ const Globe = (p: IconProps) => (
     <path d="M12 3a14 14 0 0 0 0 18" />
   </Svg>
 );
-const Gamepad = (p: IconProps) => (
-  <Svg {...p}>
-    <path d="M6 11h4M8 9v4M15 12h.01M18 10h.01" />
-    <path d="M17.3 5H6.7a4 4 0 0 0-4 3.6l-.6 6A3 3 0 0 0 5 18c1 0 2-.5 2.6-1.4L9 15h6l1.4 1.6c.6.9 1.6 1.4 2.6 1.4a3 3 0 0 0 2.9-3.4l-.6-6A4 4 0 0 0 17.3 5Z" />
-  </Svg>
-);
 const Cards = (p: IconProps) => (
   <Svg {...p}>
     <rect x="3" y="6" width="12" height="16" rx="2" />
@@ -758,7 +752,6 @@ export const Icons = {
   Clock,
   House,
   Globe,
-  Gamepad,
   Cards,
   Package,
   Trophy,

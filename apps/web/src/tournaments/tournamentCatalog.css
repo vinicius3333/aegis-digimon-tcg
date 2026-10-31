@@ -208,20 +208,6 @@
     var(--ds-sheet);
 }
 
-.tournaments-feature::before {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 3px;
-  content: "";
-  background: var(--ds-line-strong);
-}
-
-.tournaments-feature[data-official]::before {
-  background: var(--ds-accent);
-}
-
 .tournaments-feature__badges {
   display: flex;
   flex-wrap: wrap;

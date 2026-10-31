@@ -868,6 +868,14 @@
   .aegis-mobile-bar:has(.aegis-sign-in-button, .friends-drawer-button) .aegis-brand-logo__wordmark {
     display: none;
   }
+
+  .aegis-mobile-bar .aegis-theme-toggle {
+    display: none;
+  }
+
+  .aegis-mobile-bar .aegis-icon-button {
+    min-width: 34px;
+  }
 }
 
 @media (width < 380px) {
