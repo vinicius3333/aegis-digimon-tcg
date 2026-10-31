@@ -312,7 +312,10 @@ export async function reactivateOnPlay(
   ]
     .filter(({ effect }) => !effect.isSecurity)
     .filter(({ effect, ctx }) => opts?.outsideTriggerWindow === true || canTrigger(effect, ctx, engine.tracker));
-  const availableCandidates = candidates.filter(({ ctx, timing }) => {
+  const availableCandidates = candidates.filter(({ effect, ctx, timing }) => {
+    if (opts?.outsideTriggerWindow === true && !canActivate(effect, ctx, engine.tracker)) {
+      return false;
+    }
     if (timing === undefined) return true;
     const sourcePermanentId = ctx.source.permanent()?.permanentId;
     return sourcePermanentId === undefined || !isTimingActivationDisabled(engine.continuous, sourcePermanentId, timing);
