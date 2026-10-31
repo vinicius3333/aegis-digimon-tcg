@@ -1,6 +1,7 @@
 import { printedSentence } from "#api/engine/decisions/printedSentence";
 import { OptionalActivationCancelled } from "#api/engine/effects/OptionalActivationCancelled";
 import { canCancelOptionalActivation } from "#api/engine/effects/interpreter/canCancelOptionalActivation";
+import { keepsFollowUpAfterDeclinedTarget } from "#api/engine/effects/interpreter/keepsFollowUpAfterDeclinedTarget";
 import { getSingleHandActionCostBenefit } from "#api/engine/effects/interpreter/getSingleHandActionCostBenefit";
 import { getSingleHandCostBenefit } from "#api/engine/effects/interpreter/getSingleHandCostBenefit";
 import { getDecisionActionSummary } from "#api/engine/effects/interpreter/getDecisionActionSummary";
@@ -714,12 +715,19 @@ async function runEffectInner(ctx: EffectContext, effect: CardEffect): Promise<v
   // Restrictions belong to this effect resolution only, so the inherited set is swapped for a clone
   // and put back afterwards: a nested or subsequent effect must not retain this card's restriction.
   const outerCancellation = ctxWithSelections.optionalActivationCancellation;
-  ctxWithSelections.optionalActivationCancellation =
+  const activationIsTentative =
     canCancelOptionalActivation({ effect }) &&
     ctx.oncePerTurnActivationChosen !== true &&
-    ctx.isActivationPending?.() !== false
-      ? { available: true }
-      : undefined;
+    ctx.isActivationPending?.() !== false;
+  const declinedTargetKeepsFollowUp =
+    activationIsTentative && keepsFollowUpAfterDeclinedTarget({ ctx: ctxWithSelections, effect });
+  ctxWithSelections.optionalActivationCancellation =
+    activationIsTentative && !declinedTargetKeepsFollowUp ? { available: true } : undefined;
+  if (declinedTargetKeepsFollowUp) {
+    ctxWithSelections.onActivationChosen?.();
+    ctxWithSelections.oncePerTurnActivationChosen = true;
+    ctxWithSelections.oncePerTurnActivationDeclined = false;
+  }
   const outerRestrictions = ctxWithSelections.effectRestrictions;
   ctxWithSelections.effectRestrictions = new Set(ctx.effectRestrictions ?? []);
   const sourceDefinition = ctx.source.definition ?? ctx.game.definitionOf({ cardId: ctx.source.cardId } as never);
