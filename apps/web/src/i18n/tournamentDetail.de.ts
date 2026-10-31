@@ -56,4 +56,39 @@ export const tournamentDetailDe = {
   "feedback.reportedTournaments.started":
     "Dieses Turnier hat bereits begonnen und kann nicht gelöscht werden. Verwerfen Sie die Meldungen oder verwalten Sie das Turnier auf seiner Seite.",
   "feedback.reportedTournaments.failed": "Die Meldungen konnten nicht aktualisiert werden. Versuchen Sie es erneut.",
+  "tournaments.catalog.explore": "Entdecken",
+  "tournaments.catalog.featured": "Empfohlen",
+  "tournaments.catalog.hostTitle": "Turnier veranstalten",
+  "tournaments.catalog.hostCopy": "Schweizer System oder K.-o.-System, mit Check-in, Turnierbaum und Live-Tischen.",
+  "tournaments.catalog.mineEntries": "Angemeldet",
+  "tournaments.catalog.mineOrganized": "Von Ihnen organisiert",
+  "tournaments.catalog.mineEmpty":
+    "Sie haben noch an keinem Turnier teilgenommen oder eines organisiert. Durchsuchen Sie die Liste, um eines zu finden.",
+  "tournaments.detail.copyLink": "Link kopieren",
+  "tournaments.detail.linkCopied": "Link kopiert",
+  "tournaments.detail.spotsLeft": "noch {count} frei",
+  "tournaments.detail.passwordNote":
+    "Für dieses Turnier ist ein Passwort nötig. Fragen Sie den Veranstalter, bevor Sie sich anmelden.",
+  "tournaments.detail.registrationCloses": "Anmeldeschluss {time}",
+  "tournaments.detail.dropConfirm": "Aus {name} aussteigen?",
+  "tournaments.detail.dropConfirmCopy":
+    "Ihr Platz geht an einen anderen Spieler. Sie können sich erneut anmelden, solange Plätze frei sind.",
+  "tournaments.detail.dropConfirmYes": "Ja, aussteigen",
+  "tournaments.detail.deckFilter": "Decks nach Namen filtern",
+  "tournaments.detail.deckFilterEmpty": "Kein Deck passt zu diesem Namen.",
+  "tournaments.create.sections": "Formularabschnitte",
+  "tournaments.create.category": "Kategorie",
+  "tournaments.create.sectionHint.basics": "So erscheint das Turnier in der Liste.",
+  "tournaments.create.sectionHint.schedule": "Wann es beginnt und wie viele Plätze es gibt.",
+  "tournaments.create.sectionHint.format": "Paarungen, Matchlänge und erlaubte Karten.",
+  "tournaments.create.sectionHint.bots": "Optional. Nützlich, wenn Plätze frei bleiben.",
+  "tournaments.create.sectionHint.admin": "Wer am Turnier teilnehmen kann.",
+  "tournaments.create.structureHint.swiss":
+    "Alle spielen jede Runde. Spieler mit gleicher Punktzahl treten gegeneinander an.",
+  "tournaments.create.structureHint.singleElimination":
+    "Wer verliert, scheidet aus. Schneller, ideal für kleine Teilnehmerfelder.",
+  "tournaments.create.fewerPlayers": "Weniger Spieler",
+  "tournaments.create.morePlayers": "Mehr Spieler",
+  "tournaments.create.commonSizes": "Übliche Größen",
+  "tournaments.create.previewCard": "Vorschau der Turnierkarte",
 };

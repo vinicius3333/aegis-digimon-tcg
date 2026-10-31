@@ -56,4 +56,38 @@ export const tournamentDetailIt = {
   "feedback.reportedTournaments.started":
     "Questo evento è già iniziato e non può essere eliminato. Archivia le segnalazioni o gestisci l'evento dalla sua pagina.",
   "feedback.reportedTournaments.failed": "Impossibile aggiornare queste segnalazioni. Riprova.",
+  "tournaments.catalog.explore": "Esplora",
+  "tournaments.catalog.featured": "In evidenza",
+  "tournaments.catalog.hostTitle": "Organizza un torneo",
+  "tournaments.catalog.hostCopy": "Svizzera o eliminazione diretta, con check-in, tabellone e tavoli dal vivo.",
+  "tournaments.catalog.mineEntries": "Iscritto",
+  "tournaments.catalog.mineOrganized": "Organizzati da te",
+  "tournaments.catalog.mineEmpty":
+    "Non hai ancora partecipato né organizzato un evento. Esplora l'elenco per trovarne uno.",
+  "tournaments.detail.copyLink": "Copia link",
+  "tournaments.detail.linkCopied": "Link copiato",
+  "tournaments.detail.spotsLeft": "{count} rimasti",
+  "tournaments.detail.passwordNote":
+    "Questo evento richiede una password. Chiedila all'organizzatore prima di iscriverti.",
+  "tournaments.detail.registrationCloses": "Le iscrizioni chiudono {time}",
+  "tournaments.detail.dropConfirm": "Ritirarti da {name}?",
+  "tournaments.detail.dropConfirmCopy":
+    "Il tuo posto passa a un altro giocatore. Puoi iscriverti di nuovo finché ci sono posti.",
+  "tournaments.detail.dropConfirmYes": "Sì, ritirati",
+  "tournaments.detail.deckFilter": "Filtra i mazzi per nome",
+  "tournaments.detail.deckFilterEmpty": "Nessun mazzo corrisponde a quel nome.",
+  "tournaments.create.sections": "Sezioni del modulo",
+  "tournaments.create.category": "Categoria",
+  "tournaments.create.sectionHint.basics": "Come appare l'evento nell'elenco.",
+  "tournaments.create.sectionHint.schedule": "Quando inizia e quanti posti ha.",
+  "tournaments.create.sectionHint.format": "Abbinamenti, durata dei match e carte consentite.",
+  "tournaments.create.sectionHint.bots": "Facoltativo. Utile quando mancano giocatori.",
+  "tournaments.create.sectionHint.admin": "Chi può partecipare all'evento.",
+  "tournaments.create.structureHint.swiss":
+    "Tutti giocano ogni turno. Si affrontano giocatori con lo stesso punteggio.",
+  "tournaments.create.structureHint.singleElimination": "Chi perde è fuori. Più veloce, ideale per pochi giocatori.",
+  "tournaments.create.fewerPlayers": "Meno giocatori",
+  "tournaments.create.morePlayers": "Più giocatori",
+  "tournaments.create.commonSizes": "Dimensioni comuni",
+  "tournaments.create.previewCard": "Anteprima della scheda evento",
 };

@@ -1943,7 +1943,7 @@ const interfaceMessages = {
   "tournaments.violation.outsideFormat": "{card} is not allowed in this format.",
   "tournaments.catalog.subtitle": "Find your next challenge.",
   "tournaments.catalog.upcoming": "Upcoming",
-  "tournaments.catalog.mine": "My tournaments",
+  "tournaments.catalog.mine": "我的錦標賽",
   "tournaments.catalog.finished": "Past events",
   "tournaments.catalog.views": "Tournament lists",
   "tournaments.catalog.search": "Search tournaments",

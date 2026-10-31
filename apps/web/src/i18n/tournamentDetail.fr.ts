@@ -56,4 +56,39 @@ export const tournamentDetailFr = {
   "feedback.reportedTournaments.started":
     "Cet événement a déjà commencé et ne peut pas être supprimé. Classez les signalements ou gérez l'événement depuis sa page.",
   "feedback.reportedTournaments.failed": "Impossible de mettre à jour ces signalements. Réessayez.",
+  "tournaments.catalog.explore": "Explorer",
+  "tournaments.catalog.featured": "À la une",
+  "tournaments.catalog.hostTitle": "Organiser un tournoi",
+  "tournaments.catalog.hostCopy": "Rondes suisses ou élimination directe, avec check-in, tableau et tables en direct.",
+  "tournaments.catalog.mineEntries": "Inscrit",
+  "tournaments.catalog.mineOrganized": "Organisés par vous",
+  "tournaments.catalog.mineEmpty":
+    "Vous n'avez encore rejoint ni organisé aucun événement. Parcourez la liste pour en trouver un.",
+  "tournaments.detail.copyLink": "Copier le lien",
+  "tournaments.detail.linkCopied": "Lien copié",
+  "tournaments.detail.spotsLeft": "{count} restantes",
+  "tournaments.detail.passwordNote":
+    "Cet événement exige un mot de passe. Demandez-le à l'organisateur avant de vous inscrire.",
+  "tournaments.detail.registrationCloses": "Fin des inscriptions {time}",
+  "tournaments.detail.dropConfirm": "Se retirer de {name} ?",
+  "tournaments.detail.dropConfirmCopy":
+    "Votre place revient à un autre joueur. Vous pouvez vous réinscrire tant qu'il reste des places.",
+  "tournaments.detail.dropConfirmYes": "Oui, me retirer",
+  "tournaments.detail.deckFilter": "Filtrer les decks par nom",
+  "tournaments.detail.deckFilterEmpty": "Aucun deck ne correspond à ce nom.",
+  "tournaments.create.sections": "Sections du formulaire",
+  "tournaments.create.category": "Catégorie",
+  "tournaments.create.sectionHint.basics": "Comment l'événement apparaît dans la liste.",
+  "tournaments.create.sectionHint.schedule": "Quand il commence et combien de places il propose.",
+  "tournaments.create.sectionHint.format": "Appariements, durée des matchs et cartes autorisées.",
+  "tournaments.create.sectionHint.bots": "Facultatif. Utile quand des places restent vides.",
+  "tournaments.create.sectionHint.admin": "Qui peut rejoindre l'événement.",
+  "tournaments.create.structureHint.swiss":
+    "Tout le monde joue chaque ronde. Les joueurs à égalité de points s'affrontent.",
+  "tournaments.create.structureHint.singleElimination":
+    "Une défaite et vous êtes éliminé. Plus rapide, idéal pour peu de joueurs.",
+  "tournaments.create.fewerPlayers": "Moins de joueurs",
+  "tournaments.create.morePlayers": "Plus de joueurs",
+  "tournaments.create.commonSizes": "Tailles courantes",
+  "tournaments.create.previewCard": "Aperçu de la carte de l'événement",
 };
