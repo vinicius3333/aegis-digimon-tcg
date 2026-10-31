@@ -50009,6 +50009,34 @@
     "imageId": "BT27-031"
   },
   {
+    "cardId": "BT27-032",
+    "set": "BT27",
+    "nameEn": "MirageGaogamon",
+    "colors": ["Blue"],
+    "kinds": ["Digimon", "Option"],
+    "level": 6,
+    "playCost": 5,
+    "dp": 12000,
+    "evoCosts": [
+      {
+        "color": "Blue",
+        "level": 5,
+        "memoryCost": 4
+      }
+    ],
+    "forms": ["Mega"],
+    "attributes": ["Data"],
+    "types": ["Beast Knight", "DATA SQUAD"],
+    "effectText": "[Digivolve] Lv.5 w/[Gaogamon] in name or w/[DATA SQUAD] trait: Cost 3\n＜Reboot＞ ＜Blocker＞ ＜Evade＞\n[When Digivolving] For every 4 cards your opponent's hand has, 1 of their Digimon or Tamers can't suspend until their turn ends.\n[All Turns] [Once Per Turn] When effects add to your opponent's hand, or effects trash cards under your Tamers, you may activate 1 [Main] effect on this card's Option side.",
+    "rarity": "R",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-032",
+    "isDualCard": true,
+    "dualEffect": "Full Moon Blaster",
+    "optionColorRequirements": ["Blue"],
+    "optionEffect": "Use Req. ＜[DATA SQUAD] trait＞\n[Main] Return 1 of your opponent's highest level Digimon to the hand.\n＜Arts Digivolve＞"
+  },
+  {
     "cardId": "BT27-095",
     "set": "BT27",
     "nameEn": "Homer Yushima",
@@ -110804,5 +110832,113 @@
     "rarity": "U",
     "maxCountInDeck": 4,
     "imageId": "BT27-065"
+  },
+  {
+    "cardId": "BT27-007",
+    "set": "BT27",
+    "nameEn": "Solarmon",
+    "nameJp": "ソーラーモン",
+    "colors": ["Red"],
+    "kinds": ["Digimon"],
+    "level": 3,
+    "playCost": 3,
+    "dp": 2000,
+    "evoCosts": [
+      {
+        "color": "Red",
+        "level": 2,
+        "memoryCost": 0
+      }
+    ],
+    "forms": ["Rookie"],
+    "attributes": ["Vaccine"],
+    "types": ["Machine"],
+    "rarity": "C",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-007",
+    "effectText": "[Digivolve] Lv.2 w/[Flame] trait: Cost 0\n\n[Start of Your Main Phase] By trashing 1 card with the [Flame] or [Machine] trait from your hand, ＜Draw 1＞ and gain 1 memory.\n[Rule] Trait: Has [Flame] Type.",
+    "inheritedEffectText": "[On Deletion] Delete 1 of your opponent's Digimon with 6000 DP or less."
+  },
+  {
+    "cardId": "BT27-010",
+    "set": "BT27",
+    "nameEn": "Meramon",
+    "nameJp": "メラモン",
+    "colors": ["Red"],
+    "kinds": ["Digimon"],
+    "level": 4,
+    "playCost": 5,
+    "dp": 5000,
+    "evoCosts": [
+      {
+        "color": "Red",
+        "level": 3,
+        "memoryCost": 2
+      }
+    ],
+    "forms": ["Champion"],
+    "attributes": ["Data"],
+    "types": ["Flame"],
+    "rarity": "C",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-010",
+    "effectText": "[Main] [Once Per Turn] By paying 1 cost, you may activate 1 of this Digimon's [On Deletion] effects.\n[On Deletion] Delete 1 of your opponent's Digimon with 6000 DP or less.",
+    "inheritedEffectText": "[On Deletion] Delete 1 of your opponent's Digimon with 6000 DP or less."
+  },
+  {
+    "cardId": "BT27-012",
+    "set": "BT27",
+    "nameEn": "SkullMeramon",
+    "nameJp": "デスメラモン",
+    "colors": ["Red", "Purple"],
+    "kinds": ["Digimon"],
+    "level": 5,
+    "playCost": 7,
+    "dp": 7000,
+    "evoCosts": [
+      {
+        "color": "Red",
+        "level": 4,
+        "memoryCost": 4
+      },
+      {
+        "color": "Purple",
+        "level": 4,
+        "memoryCost": 4
+      }
+    ],
+    "forms": ["Ultimate"],
+    "attributes": ["Data"],
+    "types": ["Flame"],
+    "rarity": "C",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-012",
+    "effectText": "[Digivolve] Lv.4 w/[Flame] trait: Cost 3\n\n[Main] [Once Per Turn] By paying 1 cost, you may activate 1 of this Digimon's [On Deletion] effects.\n[On Deletion] Delete 1 of your opponent's Digimon with the lowest level.",
+    "inheritedEffectText": "[On Deletion] Trash your opponent's top security card."
+  },
+  {
+    "cardId": "BT27-072",
+    "set": "BT27",
+    "nameEn": "PrinceMamemon (X Antibody)",
+    "nameJp": "プリンスマメモンX抗体",
+    "colors": ["Black"],
+    "kinds": ["Digimon"],
+    "level": 6,
+    "playCost": 12,
+    "dp": 12000,
+    "evoCosts": [
+      {
+        "color": "Black",
+        "level": 5,
+        "memoryCost": 3
+      }
+    ],
+    "forms": ["Mega"],
+    "attributes": ["Data"],
+    "types": ["Mutant", "X Antibody"],
+    "rarity": "R",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-072",
+    "effectText": "[Digivolve] Lv.6 w/[Mamemon] in name w/o [X Antibody] trait: Cost 1\n\n[When Digivolving] [When Attacking] [Once Per Turn] Activate 1 [On Deletion] effect on 1 Digimon card with [Mamemon] in its name in this Digimon's digivolution cards as this Digimon's effect.\n[All Turns] All of your Digimon with [Mamemon] in their names gain ＜Alliance＞, ＜Reboot＞ and ＜Blocker＞."
   }
 ]

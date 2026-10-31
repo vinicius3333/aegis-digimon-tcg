@@ -620,3 +620,13 @@ describe("events the scheduler must not act on", () => {
     expect(await fixture.scheduler.armPendingJoinLadders(PUBLISHED_AT + 2)).toBe(0);
   });
 });
+
+it("retires attendance deadlines without penalties after cancellation", async () => {
+  await publishRound();
+  await arrive(fixture.alice, PUBLISHED_AT);
+  await fixture.accounts.pool.query("UPDATE tournaments SET status='cancelled' WHERE id=$1", [fixture.tournamentId]);
+  await fixture.scheduler.processDueDeadlines(MATCH_LOSS_AT);
+  expect(await resultOf("join_game_loss")).toBe("skipped_tournament_closed");
+  expect(await fixture.series.seriesForMatch(fixture.matchId)).toBeUndefined();
+  expect((await fixture.accounts.tournament(fixture.tournamentId))?.status).toBe("cancelled");
+});

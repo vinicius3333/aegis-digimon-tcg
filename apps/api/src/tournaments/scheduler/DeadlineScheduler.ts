@@ -35,6 +35,7 @@ export type DeadlineResultCode =
   | "cancelled_both_present"
   | "cancelled_series_closed"
   | "skipped_no_rules_snapshot"
+  | "skipped_tournament_closed"
   | "skipped_no_join_deadline"
   | "skipped_subject_missing"
   | "skipped_no_opponent"
@@ -292,6 +293,9 @@ export class DeadlineScheduler {
 
   private async execute(deadline: DeadlineRecord, now: number): Promise<Outcome> {
     const tournament = await this.accounts.tournament(deadline.tournamentId);
+    if (tournament && (tournament.status === "finished" || tournament.status === "cancelled")) {
+      return TERMINAL("skipped_tournament_closed");
+    }
     // Terminal, not retryable: a rules snapshot is frozen at creation and cannot appear later, so
     // an event without one will never grow one and retrying would spin for ever.
     if (!tournament?.rules) return TERMINAL("skipped_no_rules_snapshot");

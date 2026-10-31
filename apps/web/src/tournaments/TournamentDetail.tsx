@@ -1,3 +1,5 @@
+import { TournamentRegisteredDeck } from "@/tournaments/TournamentRegisteredDeck";
+import { TournamentRuntimeControls } from "@/tournaments/TournamentRuntimeControls";
 import type { TournamentCategory } from "@aegis/shared/tournaments/TournamentCategory";
 import { TournamentCategoryBadge } from "@/tournaments/TournamentCategoryBadge";
 import { TournamentCategorySwitch } from "@/tournaments/TournamentCategorySwitch";
@@ -48,6 +50,7 @@ import type { TournamentDetail as TournamentDetailPayload, TournamentWindows } f
 const DETAIL_POLL_MS = 5_000;
 
 export function TournamentDetail({
+  onDecks = () => undefined,
   id,
   accountId,
   accountIsAdmin = false,
@@ -66,6 +69,7 @@ export function TournamentDetail({
   accountIsAdmin?: boolean;
   decks: readonly DeckListing[];
   onBack: () => void;
+  onDecks?: () => void;
   onJoinGame?: (ticket: TournamentGameTicket) => void;
   onWatchMatch?: (target: TournamentSpectateTarget) => void;
 }) {
@@ -224,6 +228,17 @@ export function TournamentDetail({
             <p className="tournaments-note">
               {t("tournaments.detail.yourStatus", { status: t(participantStatusKey(own.status)) })}
             </p>
+          ) : null}
+          {own && detail.ownDeck ? (
+            <TournamentRegisteredDeck
+              key={id}
+              tournamentId={id}
+              deck={detail.ownDeck}
+              decks={decks}
+              canChange={own.status === "registered" || own.status === "checked_in"}
+              onChanged={refresh}
+              onDecks={onDecks}
+            />
           ) : null}
           {actions.register ? (
             <div className="aegis-field">
@@ -484,6 +499,7 @@ export function TournamentDetail({
 
       {activeTab === TournamentTab.ORGANIZE.value ? (
         <div className="tournaments-detail__stack">
+          <TournamentRuntimeControls detail={detail} onChanged={refresh} />
           <OrganizerControls
             id={detail.id}
             status={detail.status}

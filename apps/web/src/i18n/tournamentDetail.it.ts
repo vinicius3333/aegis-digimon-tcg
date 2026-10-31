@@ -1,4 +1,6 @@
+import { tournamentControlsIt } from "@/i18n/tournamentControls.it";
 export const tournamentDetailIt = {
+  ...tournamentControlsIt,
   "tournaments.tabs.label": "Sezioni dell'evento",
   "tournaments.tab.overview": "Panoramica",
   "tournaments.tab.bracket": "Tabellone",
