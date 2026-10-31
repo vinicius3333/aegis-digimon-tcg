@@ -33,7 +33,7 @@ export function createInsteadReplacementInstall({
     activationIdentity,
     mode: "instead",
     exceptDigiXros: action.exceptDigiXros,
-    description: action.raw ?? ctx.activeEffectText ?? event,
+    description: action.raw ?? decodeText ?? ctx.activeEffectText ?? event,
     digisorptionRedirect: action.digisorptionRedirect,
     causeAllows: (cause, resolvingSeat) => {
       switch (action.leaveCause ?? "any") {
