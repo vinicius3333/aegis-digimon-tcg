@@ -480,13 +480,7 @@ export const es: Record<keyof typeof en, string> = {
   "beta.dismiss": "Entendido",
   "beta.dismissAria": "Cerrar el aviso de beta",
   "nav.signIn": "Iniciar sesión",
-  "home.eyebrow": "Digimon TCG en tu navegador",
-  "home.title": "Arma un deck y juega en vivo. Gratis.",
-  "home.lede":
-    "Constructor de decks, una colección de {count} cartas y partidas en vivo contra otros jugadores. Sin instalar nada y sin registro.",
-  "home.playNow": "Jugar ahora",
   "home.buildDeck": "Armar un deck",
-  "home.guestNote": "Juegas como invitado. Los decks se guardan en este dispositivo.",
   "home.signInTitle": "¿Juegas en más de un dispositivo?",
   "home.signInCopy": "Conecta Discord para guardar tus decks y estadísticas en tu cuenta.",
   "home.signInAction": "Conectar",

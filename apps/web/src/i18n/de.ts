@@ -778,13 +778,7 @@ const interfaceMessages = {
   "beta.dismiss": "Verstanden",
   "beta.dismissAria": "Beta-Hinweis schließen",
   "nav.signIn": "Anmelden",
-  "home.eyebrow": "Digimon TCG in Ihrem Browser",
-  "home.title": "Bauen Sie ein Deck und spielen Sie live. Kostenlos.",
-  "home.lede":
-    "Deckbauer, eine Sammlung mit {count} Karten und Live-Matches gegen andere Spieler. Keine Installation, keine Registrierung.",
-  "home.playNow": "Jetzt spielen",
   "home.buildDeck": "Deck bauen",
-  "home.guestNote": "Sie spielen als Gast. Decks bleiben auf diesem Gerät gespeichert.",
   "home.signInTitle": "Spielen Sie auf mehr als einem Gerät?",
   "home.signInCopy": "Verbinden Sie Discord, um Ihre Decks und Statistiken in Ihrem Konto zu behalten.",
   "home.signInAction": "Verbinden",

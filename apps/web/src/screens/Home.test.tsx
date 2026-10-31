@@ -18,12 +18,10 @@ const deck: DeckListing = {
 
 function renderHome(overrides: Partial<Parameters<typeof Home>[0]> = {}) {
   const props: Parameters<typeof Home>[0] = {
-    collectionSize: 4388,
     decks: [deck],
     activeDeck: deck,
     activeDeckId: deck.id,
     rankedEnabled: true,
-    onPlay: vi.fn<() => void>(),
     onFindMatch: vi.fn<(queue: HomeMatchQueue) => void>(),
     onPractice: vi.fn<() => void>(),
     onPrivateMatch: vi.fn<() => void>(),
@@ -64,32 +62,21 @@ afterEach(() => {
 });
 
 describe("the home screen", () => {
-  it("pitches the game to a guest with the two first actions", () => {
-    const props = renderHome();
-
-    expect(screen.getByRole("heading", { name: "Build a deck and play live. Free." })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Play now" }));
-    fireEvent.click(screen.getByRole("button", { name: "Build a deck" }));
-
-    expect(props.onPlay).toHaveBeenCalled();
-    expect(props.onBuildDeck).toHaveBeenCalled();
-  });
-
-  it("names the collection size the pitch is promising", () => {
-    renderHome({ collectionSize: 4388 });
-    expect(screen.getByText(/4,388 card collection/)).toBeTruthy();
-  });
-
   it("nudges a guest to connect an account", () => {
     const props = renderHome();
     fireEvent.click(screen.getByRole("button", { name: "Connect" }));
     expect(props.onSignIn).toHaveBeenCalled();
   });
 
-  it("drops the pitch and the nudge once the player is signed in", () => {
+  it("drops the nudge once the player is signed in", () => {
     renderHome({ accountId: "account-1" });
     expect(screen.queryByRole("button", { name: "Connect" })).toBeNull();
-    expect(screen.queryByRole("heading", { name: "Build a deck and play live. Free." })).toBeNull();
+  });
+
+  it("goes straight to the dashboard without a welcome banner", () => {
+    renderHome();
+    expect(screen.getByRole("heading", { level: 1, name: "Home" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Play now" })).toBeNull();
   });
 
   it("queues the selected deck for a ranked match", () => {

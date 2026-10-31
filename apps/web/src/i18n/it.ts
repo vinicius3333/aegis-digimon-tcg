@@ -653,13 +653,7 @@ const interfaceMessages = {
   "beta.dismiss": "Ho capito",
   "beta.dismissAria": "Chiudi l'avviso sulla beta",
   "nav.signIn": "Accedi",
-  "home.eyebrow": "Digimon TCG nel tuo browser",
-  "home.title": "Crea un mazzo e gioca online. Gratis.",
-  "home.lede":
-    "Editor dei mazzi, una collezione di {count} carte e partite online contro altri giocatori. Nessuna installazione né registrazione.",
-  "home.playNow": "Gioca ora",
   "home.buildDeck": "Crea un mazzo",
-  "home.guestNote": "Giochi come ospite. I mazzi vengono salvati su questo dispositivo.",
   "home.signInTitle": "Giochi su più dispositivi?",
   "home.signInCopy": "Collega Discord per conservare mazzi e statistiche nel tuo account.",
   "home.signInAction": "Collega",

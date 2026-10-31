@@ -759,13 +759,7 @@ const interfaceMessages = {
   "beta.dismiss": "Mengerti",
   "beta.dismissAria": "Tutup pemberitahuan beta",
   "nav.signIn": "Masuk",
-  "home.eyebrow": "Digimon TCG di browser Anda",
-  "home.title": "Buat deck dan main langsung. Gratis.",
-  "home.lede":
-    "Deck builder, koleksi {count} kartu, dan pertandingan langsung melawan pemain lain. Tanpa instalasi, tanpa pendaftaran.",
-  "home.playNow": "Main sekarang",
   "home.buildDeck": "Buat deck",
-  "home.guestNote": "Anda bermain sebagai tamu. Deck tetap tersimpan di perangkat ini.",
   "home.signInTitle": "Main di lebih dari satu perangkat?",
   "home.signInCopy": "Hubungkan Discord untuk menyimpan deck dan statistik di akun Anda.",
   "home.signInAction": "Hubungkan",

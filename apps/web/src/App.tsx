@@ -28,7 +28,6 @@ import { AegisEmblem } from "./design/AegisLogo";
 import { PixelBackdrop } from "./design/PixelBackdrop";
 import { colorKey, type ColorName } from "./design/theme";
 import {
-  activeCollectionCards,
   copyDeckPreset,
   deckById,
   filterDeckToKnownCards,
@@ -680,7 +679,6 @@ function LoadedAegisClient({
   useEffect(() => setDeckSleeveId(matchSleeveId), [matchSleeveId]);
   const matchEggSleeveId = screen === "game" ? matchDeck?.eggSleeveId : undefined;
   useEffect(() => setDeckEggSleeveId(matchEggSleeveId), [matchEggSleeveId]);
-  const collectionSize = useMemo(() => activeCollectionCards().length, []);
   const identityColor: ColorName = colorKey(player.color);
 
   const customBotDeck =
@@ -845,13 +843,11 @@ function LoadedAegisClient({
             <Suspense fallback={<ScreenFallback />}>
               {screen === "home" && (
                 <Home
-                  collectionSize={collectionSize}
                   accountId={account?.id}
                   decks={decks}
                   activeDeck={matchDeck}
                   activeDeckId={activeDeckId}
                   rankedEnabled={rankedConfig?.enabled === true}
-                  onPlay={() => navigate({ screen: "lobby", rankedQueue: true, matchSettings: true })}
                   onFindMatch={(queue) =>
                     navigate({
                       screen: "lobby",

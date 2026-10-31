@@ -763,13 +763,7 @@ const interfaceMessages = {
   "beta.dismiss": "わかりました",
   "beta.dismissAria": "ベータのお知らせを閉じる",
   "nav.signIn": "サインイン",
-  "home.eyebrow": "ブラウザでデジモンカードゲーム",
-  "home.title": "デッキを組んで、リアルタイムで対戦。無料です。",
-  "home.lede":
-    "デッキビルダー、{count}枚のカードコレクション、他のプレイヤーとのリアルタイム対戦。インストールも登録も不要です。",
-  "home.playNow": "今すぐプレイ",
   "home.buildDeck": "デッキを作成",
-  "home.guestNote": "ゲストとしてプレイします。デッキはこのデバイスに保存されます。",
   "home.signInTitle": "複数のデバイスでプレイしますか？",
   "home.signInCopy": "Discordに接続すると、デッキと戦績がアカウントに保存されます。",
   "home.signInAction": "接続する",

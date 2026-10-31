@@ -487,13 +487,7 @@ export const ptBR: Record<keyof typeof en, string> = {
 
   "nav.signIn": "Entrar",
 
-  "home.eyebrow": "Digimon TCG no navegador",
-  "home.title": "Monte seu deck e jogue ao vivo. Gr\u00e1tis.",
-  "home.lede":
-    "Construtor de decks, cole\u00e7\u00e3o com {count} cartas e partidas ao vivo contra outros jogadores. Sem instalar nada e sem cadastro.",
-  "home.playNow": "Jogar agora",
   "home.buildDeck": "Montar um deck",
-  "home.guestNote": "Voc\u00ea entra como convidado. Os decks ficam salvos neste aparelho.",
   "home.signInTitle": "Jogando em mais de um aparelho?",
   "home.signInCopy": "Conecte o Discord para guardar decks e estat\u00edsticas na sua conta.",
   "home.signInAction": "Conectar",

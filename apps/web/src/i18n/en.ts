@@ -484,13 +484,7 @@ export const en = {
 
   "nav.signIn": "Sign in",
 
-  "home.eyebrow": "Digimon TCG in your browser",
-  "home.title": "Build a deck and play live. Free.",
-  "home.lede":
-    "Deck builder, a {count} card collection and live matches against other players. Nothing to install, no sign-up.",
-  "home.playNow": "Play now",
   "home.buildDeck": "Build a deck",
-  "home.guestNote": "You play as a guest. Decks stay saved on this device.",
   "home.signInTitle": "Playing on more than one device?",
   "home.signInCopy": "Connect Discord to keep your decks and stats on your account.",
   "home.signInAction": "Connect",

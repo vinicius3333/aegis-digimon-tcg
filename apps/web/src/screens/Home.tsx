@@ -19,13 +19,11 @@ import strategyGuides from "@/guides/catalog.json";
 import "@/home/home.css";
 
 type HomeParams = {
-  collectionSize: number;
   accountId?: string;
   decks: readonly DeckListing[];
   activeDeck: DeckListing | undefined;
   activeDeckId: string;
   rankedEnabled: boolean;
-  onPlay: () => void;
   onFindMatch: (queue: HomeMatchQueue) => void;
   onPractice: () => void;
   onPrivateMatch: () => void;
@@ -55,7 +53,7 @@ export function Home(params: HomeParams) {
   return (
     <main className="home-page">
       <div className="home-wrap">
-        {signedIn ? null : <HomeGuestWelcome {...params} />}
+        <h1 className="aegis-sr-only">{t("nav.home")}</h1>
 
         <div className="home-board">
           <div className="home-board__main">
@@ -153,25 +151,5 @@ export function Home(params: HomeParams) {
         <ProviderCredit />
       </footer>
     </main>
-  );
-}
-
-function HomeGuestWelcome({ collectionSize, onPlay, onBuildDeck }: HomeParams) {
-  const { t } = useTranslation();
-  return (
-    <section className="home-hero">
-      <span className="aegis-eyebrow">{t("home.eyebrow")}</span>
-      <h1>{t("home.title")}</h1>
-      <p className="home-hero__lede">{t("home.lede", { count: collectionSize.toLocaleString() })}</p>
-      <div className="home-hero__actions">
-        <Button size="lg" icon={Icons.Play} onClick={onPlay}>
-          {t("home.playNow")}
-        </Button>
-        <Button size="lg" variant="secondary" onClick={onBuildDeck}>
-          {t("home.buildDeck")}
-        </Button>
-      </div>
-      <p className="home-hero__note">{t("home.guestNote")}</p>
-    </section>
   );
 }

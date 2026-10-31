@@ -773,13 +773,7 @@ const interfaceMessages = {
   "beta.dismiss": "Compris",
   "beta.dismissAria": "Fermer l'avis bêta",
   "nav.signIn": "Se connecter",
-  "home.eyebrow": "Digimon TCG dans votre navigateur",
-  "home.title": "Construisez un deck et jouez en direct. Gratuit.",
-  "home.lede":
-    "Constructeur de deck, collection de {count} cartes et matchs en direct contre d'autres joueurs. Rien à installer, aucune inscription.",
-  "home.playNow": "Jouer maintenant",
   "home.buildDeck": "Construire un deck",
-  "home.guestNote": "Vous jouez en tant qu'invité. Les decks restent enregistrés sur cet appareil.",
   "home.signInTitle": "Vous jouez sur plusieurs appareils ?",
   "home.signInCopy": "Connectez Discord pour conserver vos decks et statistiques sur votre compte.",
   "home.signInAction": "Se connecter",
