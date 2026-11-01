@@ -1,5 +1,6 @@
 import { tournamentCircuitsEn } from "@/i18n/tournamentCircuits.en";
 import { tournamentOfficialRequestEn } from "@/i18n/tournamentOfficialRequest.en";
+import { matchQueueEn } from "@/i18n/matchQueue.en";
 import { staffRolesEn } from "@/i18n/staffRoles.en";
 import { tournamentDetailEn } from "@/i18n/tournamentDetail.en";
 import { tournamentSpectatorsEn } from "@/i18n/tournamentSpectators.en";
@@ -2115,6 +2116,7 @@ export const en = {
   ...tournamentSpectatorsEn,
   ...tournamentCircuitsEn,
   ...tournamentOfficialRequestEn,
+  ...matchQueueEn,
   ...staffRolesEn,
   ...achievementsEn,
   ...learnEn,

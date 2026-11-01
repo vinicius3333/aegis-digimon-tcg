@@ -1,5 +1,6 @@
 import { tournamentCircuitsId } from "@/i18n/tournamentCircuits.id";
 import { tournamentOfficialRequestId } from "@/i18n/tournamentOfficialRequest.id";
+import { matchQueueId } from "@/i18n/matchQueue.id";
 import { staffRolesId } from "@/i18n/staffRoles.id";
 import { tournamentDetailId } from "@/i18n/tournamentDetail.id";
 import { tournamentSpectatorsId } from "@/i18n/tournamentSpectators.id";
@@ -2844,6 +2845,7 @@ const interfaceMessages = {
   ...tournamentSpectatorsId,
   ...tournamentCircuitsId,
   ...tournamentOfficialRequestId,
+  ...matchQueueId,
   ...staffRolesId,
   ...achievementsId,
   "profile.filter.deck": "Deck",

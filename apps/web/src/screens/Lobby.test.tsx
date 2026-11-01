@@ -27,7 +27,13 @@ const lookupPrivateRoom = vi.hoisted(() =>
 const liveMatches = vi.hoisted(() =>
   vi.fn<(limit: number) => Promise<{ matches: never[]; total: number }>>(async () => ({ matches: [], total: 0 })),
 );
-vi.mock("../net/client", () => ({ lookupPrivateRoom, liveMatches }));
+const matchQueueCounts = vi.hoisted(() =>
+  vi.fn<() => Promise<import("@aegis/shared/matchmaking/MatchQueueCounts").MatchQueueCounts>>(async () => ({
+    buckets: [],
+    waiting: [],
+  })),
+);
+vi.mock("../net/client", () => ({ lookupPrivateRoom, liveMatches, matchQueueCounts }));
 
 // Existing configuration scenarios explicitly enter the advanced panel.
 function renderConfiguredLobby(...args: Parameters<typeof render>) {
@@ -90,6 +96,7 @@ beforeEach(() => {
   randomCommunityDeck.mockResolvedValue({ deck: null, eligibleCount: 0 });
   lookupPrivateRoom.mockResolvedValue({ roomId: "private-room", unlimited: false });
   liveMatches.mockResolvedValue({ matches: [], total: 0 });
+  matchQueueCounts.mockResolvedValue({ buckets: [], waiting: [] });
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date("2026-09-15T12:00:00.000Z"));
 });
@@ -1351,5 +1358,63 @@ describe("quick match launch", () => {
     expect(screen.getAllByRole("button", { name: "Enter queue" })).toHaveLength(1);
     fireEvent.click(launch);
     expect(onStart).toHaveBeenCalledWith("casual");
+  });
+  it("shows how many players search with the selected queue settings and updates when they change", async () => {
+    matchQueueCounts.mockResolvedValue({
+      buckets: [
+        { queue: "casual", format: "standard", matchTimer: true, bestOf: 1, allowRollback: false, searching: 2 },
+        { queue: "casual", format: "standard", matchTimer: false, bestOf: 1, allowRollback: false, searching: 1 },
+      ],
+      waiting: [],
+    });
+    renderConfiguredLobby(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[DECKS[0]!]}
+          activeDeckId={DECKS[0]!.id}
+          bestOf={1}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={() => undefined}
+        />
+      </I18nProvider>,
+    );
+    const setup = screen.getByRole("region", { name: "Match setup" });
+    expect(await within(setup).findByText("Searching now: 2 with these settings, 3 in all queues")).toBeTruthy();
+    fireEvent.click(screen.getByRole("switch", { name: "Match timer" }));
+    expect(within(setup).getByText("Searching now: 1 with these settings, 3 in all queues")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
+    expect(within(setup).queryByText(/Searching now/)).toBeNull();
+  });
+
+  it("enters the queue with the settings of a waiting-room table challenged from the rooms tab", async () => {
+    const onStart = vi.fn<Parameters<typeof Lobby>[0]["onStart"]>();
+    const onBestOfChange = vi.fn<(bestOf: 1 | 3) => void>();
+    const onQueueChallengeHandled = vi.fn<() => void>();
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[DECKS[0]!]}
+          activeDeckId={DECKS[0]!.id}
+          bestOf={1}
+          onBestOfChange={onBestOfChange}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={onStart}
+          queueChallenge={{ queue: "casual", format: "standard", matchTimer: false, bestOf: 3, allowRollback: false }}
+          onQueueChallengeHandled={onQueueChallengeHandled}
+        />
+      </I18nProvider>,
+    );
+
+    await waitFor(() => expect(onStart).toHaveBeenCalledTimes(1));
+    expect(onStart.mock.calls[0]![0]).toBe("casual");
+    expect(onBestOfChange).toHaveBeenCalledWith(3);
+    expect(onQueueChallengeHandled).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("region", { name: "Waiting room" })).toBeNull();
   });
 });

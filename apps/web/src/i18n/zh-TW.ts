@@ -1,5 +1,6 @@
 import { tournamentCircuitsZhTW } from "@/i18n/tournamentCircuits.zh-TW";
 import { tournamentOfficialRequestZhTW } from "@/i18n/tournamentOfficialRequest.zh-TW";
+import { matchQueueZhTW } from "@/i18n/matchQueue.zh-TW";
 import { staffRolesZhTW } from "@/i18n/staffRoles.zh-TW";
 import { tournamentDetailZhTW } from "@/i18n/tournamentDetail.zh-TW";
 import { tournamentSpectatorsZhTW } from "@/i18n/tournamentSpectators.zh-TW";
@@ -2731,6 +2732,7 @@ const interfaceMessages = {
   ...tournamentSpectatorsZhTW,
   ...tournamentCircuitsZhTW,
   ...tournamentOfficialRequestZhTW,
+  ...matchQueueZhTW,
   ...staffRolesZhTW,
   ...achievementsZhTw,
   "profile.filter.deck": "卡組",

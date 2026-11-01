@@ -5,6 +5,8 @@ import type { BotSettings } from "@aegis/shared/bot/BotSettings";
 import { GameMode } from "@aegis/shared/manual/GameMode";
 import { getDecisionMaterialSelectionOrder } from "@/game/screen/model/getDecisionMaterialSelectionOrder";
 import { UsedDeckDialog } from "@/game/UsedDeckDialog";
+import { MatchQueueActivity } from "@/matchmaking/MatchQueueActivity";
+import { getMatchQueueSelection } from "@/matchmaking/getMatchQueueSelection";
 import { collectViewerCardArtIds } from "@/screens/cardLanguage/collectViewerCardArtIds";
 import { ViewerCardArtIdsContext } from "@/screens/cardLanguage/ViewerCardArtIdsContext";
 import type { DeckListing } from "@/game/decks";
@@ -1014,6 +1016,22 @@ function GameScreenSession({
         spinner={notice.spinner}
         actionLabel={notice.actionLabel}
         roomCode={notice.roomCode}
+        status={
+          "searchingQueue" in notice && notice.searchingQueue ? (
+            <MatchQueueActivity
+              className="waiting-dialog__queue-activity"
+              viewerQueued
+              selection={getMatchQueueSelection({
+                options: {
+                  ...joinOptions,
+                  ranked: startMode === "ranked",
+                  betaBattleMode: startMode === "beta",
+                  unlimited: startMode === "unlimited" || joinOptions.unlimited,
+                },
+              })}
+            />
+          ) : undefined
+        }
         onAction={notice.exitTo ? () => onExit(notice.exitTo!) : undefined}
         onCancel={() => onExit("lobby")}
       />
