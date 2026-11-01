@@ -61,6 +61,37 @@ afterEach(() => {
 });
 
 describe("the home screen", () => {
+  it("renders live player portraits and public card previews without changing the watch action", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          total: 1,
+          matches: [
+            {
+              spectatorCode: "ABCDEF",
+              players: ["Taichi", "Sora"],
+              format: "standard",
+              startedAt: Date.now(),
+              spectators: 2,
+              playerPreviews: [
+                { avatarId: "greymon", cardId: "BT1-010" },
+                { avatarUrl: "/account/avatar/sora/image?v=1", cardId: "BT1-001" },
+              ],
+            },
+          ],
+        }),
+      ),
+    );
+    const props = renderHome();
+    const watch = await screen.findByRole("button", { name: "Watch Taichi vs Sora" });
+    const match = watch.closest("li")!;
+    expect(match.querySelectorAll(".home-live__art img")).toHaveLength(2);
+    expect(match.querySelectorAll(".home-live__player img")).toHaveLength(2);
+    expect(match.querySelector('.home-live__player img[src="/account/avatar/sora/image?v=1"]')).toBeTruthy();
+    fireEvent.click(watch);
+    expect(props.onWatchLive).toHaveBeenCalledWith("ABCDEF");
+  });
+
   it("nudges a guest to connect an account", () => {
     const props = renderHome();
     fireEvent.click(screen.getByRole("button", { name: "Connect" }));

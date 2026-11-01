@@ -249,11 +249,13 @@ export function CoverThumb({
   artId,
   sigilColor = "Neutral",
   sigilSize = 64,
+  objectPosition = "top",
 }: {
   coverCardId?: string;
   artId?: string;
   sigilColor?: string;
   sigilSize?: number;
+  objectPosition?: string;
 }) {
   const urls = useCardImageUrls({ cardId: coverCardId, artId });
   const [urlIndex, setUrlIndex] = useState(0);
@@ -266,7 +268,7 @@ export function CoverThumb({
       src={urls[urlIndex]}
       decoding="async"
       onError={() => setUrlIndex((i) => i + 1)}
-      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
+      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition }}
     />
   );
 }

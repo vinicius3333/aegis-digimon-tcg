@@ -1,3 +1,4 @@
+import { getLiveMatchPlayerPreview } from "#api/rooms/getLiveMatchPlayerPreview";
 import { RankedRewardStore } from "#api/ranked/RankedRewardStore";
 import type { RankedTier } from "@aegis/shared/ranked/RankedTier";
 import { claimAccountRoom } from "#api/ranked/claimAccountRoom";
@@ -307,7 +308,10 @@ export interface AegisJoinOptions extends SeatJoinOptions {
  * Who a validated join belongs to, and the exclusive claim to take once every other check passes.
  * `commit` returning false is a rejection like any other.
  */
-type JoinIdentity = { account: { id: string; displayName: string } | undefined; commit: () => Promise<boolean> };
+type JoinIdentity = {
+  account: { id: string; displayName: string; avatarUrl?: string | null } | undefined;
+  commit: () => Promise<boolean>;
+};
 
 /**
  * Registry of all live AegisRoom instances, keyed by roomId. Used by the HTTP
@@ -404,6 +408,8 @@ export class AegisRoom extends Room<{
   /** Clients that pace chains of triggered effects themselves (`presentationPacing: "sequential"`). */
   private chainPacingClients = new Set<string>();
   private deckStartedAtBySeat = new Map<Seat, number>();
+  private livePreferredCardBySeat = new Map<Seat, string>();
+  private liveAvatarUrlByClient = new Map<string, string>();
   private initialDeckBySeat = new Map<Seat, UsedDeck>();
   private readonly spectatorPrivacySubscriptions = new Map<string, (event: SocialEvent) => void>();
   private deckOwnerBySeat = new Map<Seat, string>();
@@ -665,6 +671,9 @@ export class AegisRoom extends Room<{
     }
     if (account) {
       this.accountByClient.set(client.sessionId, account.id);
+      if (account.avatarUrl) {
+        this.liveAvatarUrlByClient.set(client.sessionId, account.avatarUrl);
+      }
       await this.loadEquippedRankedTier(client.sessionId, account.id);
     }
     return true;
@@ -928,6 +937,9 @@ export class AegisRoom extends Room<{
     this.state.matchLogId = randomUUID();
     this.clock.setInterval(() => {
       void this.publishSocialPresence().catch(() => undefined);
+      if (!this.state.gameOver) {
+        this.refreshLiveListing();
+      }
     }, 10_000);
     const { seed, randomKey } = getRoomRandomness({ seed: options.seed });
     this.debug("room.created", {
@@ -1842,6 +1854,14 @@ export class AegisRoom extends Room<{
     return {
       spectatorCode: this.state.spectatorCode,
       players: this.state.players.map((player) => (player.hideIdentityFromSpectators ? "" : player.displayName)),
+      playerPreviews: this.state.players.map((player) =>
+        getLiveMatchPlayerPreview({
+          player,
+          avatarUrl: this.liveAvatarUrlByClient.get(player.sessionId),
+          deck: this.initialDeckBySeat.get(player.seat),
+          preferredCardId: this.livePreferredCardBySeat.get(player.seat),
+        }),
+      ),
       format: this.state.format as DeckFormat,
       gameMode: this.state.gameMode,
       startedAt: this.liveListingStartedAt,
@@ -1878,6 +1898,20 @@ export class AegisRoom extends Room<{
       await this.publishRoomRules();
       return;
     }
+    await Promise.all(
+      this.state.players.map(async (player) => {
+        this.livePreferredCardBySeat.delete(player.seat);
+        const deck = this.initialDeckBySeat.get(player.seat);
+        const owner = this.deckOwnerBySeat.get(player.seat);
+        if (!owner || !deck?.deckId || player.hideIdentityFromSpectators) {
+          return;
+        }
+        const savedDeck = (await this.accounts().decks(owner)).find((entry) => entry.id === deck.deckId);
+        if (savedDeck?.coverCardId) {
+          this.livePreferredCardBySeat.set(player.seat, savedDeck.coverCardId);
+        }
+      }),
+    );
     this.liveListingStartedAt ??= Date.now();
     await this.publishRoomRules();
   }
@@ -2320,6 +2354,7 @@ export class AegisRoom extends Room<{
         this.casualSeries?.departed(seriesSeat, false);
       }
       this.accountByClient.delete(client.sessionId);
+      this.liveAvatarUrlByClient.delete(client.sessionId);
       this.equippedRankedTierByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
       this.chainPacingClients.delete(client.sessionId);
@@ -2340,6 +2375,7 @@ export class AegisRoom extends Room<{
       this.concede(seat);
       if (countsAsDodge && accountId) await this.accounts().recordRankedDodge(this.roomId, accountId);
       this.accountByClient.delete(client.sessionId);
+      this.liveAvatarUrlByClient.delete(client.sessionId);
       this.equippedRankedTierByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
       this.chainPacingClients.delete(client.sessionId);
@@ -2393,6 +2429,7 @@ export class AegisRoom extends Room<{
       this.concede(seat);
       if (countsAsDodge && accountId) await this.accounts().recordRankedDodge(this.roomId, accountId);
       this.accountByClient.delete(client.sessionId);
+      this.liveAvatarUrlByClient.delete(client.sessionId);
       this.equippedRankedTierByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
       this.chainPacingClients.delete(client.sessionId);
