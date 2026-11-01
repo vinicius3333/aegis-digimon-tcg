@@ -257,7 +257,7 @@ const interfaceMessages = {
   "profile.preferences": "Preferensi",
   "profile.showStats": "Tampilkan statistik pertandingan",
   "profile.showStatsDesc":
-    "Tampilkan pertandingan, kemenangan, tingkat kemenangan, rekor deck, dan replay tersimpan di profil Anda. Disimpan ke akun Anda.",
+    "Tampilkan pertandingan, kemenangan, tingkat kemenangan, dan replay tersimpan di bagian atas profil Anda. Disimpan ke akun Anda.",
   "profile.avatarMenu.title": "Pilih avatar",
   "profile.avatarMenu.default": "Gunakan avatar bawaan",
   "profile.avatarMenu.discord": "Gunakan avatar Discord",

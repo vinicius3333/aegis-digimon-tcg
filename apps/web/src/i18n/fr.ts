@@ -261,7 +261,7 @@ const interfaceMessages = {
   "profile.preferences": "Préférences",
   "profile.showStats": "Afficher les statistiques de match",
   "profile.showStatsDesc":
-    "Affiche vos matchs, victoires, taux de victoire, bilans par deck et replays enregistrés sur votre profil. Enregistré sur votre compte.",
+    "Affiche vos matchs, victoires, taux de victoire et replays enregistrés en haut de votre profil. Enregistré sur votre compte.",
   "profile.avatarMenu.title": "Choisir un avatar",
   "profile.avatarMenu.default": "Utiliser l'avatar par défaut",
   "profile.avatarMenu.discord": "Utiliser l'avatar Discord",

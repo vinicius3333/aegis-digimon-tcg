@@ -72,7 +72,7 @@ export const profileReplayEn = {
   "profile.preferences": "Preferences",
   "profile.showStats": "Show match stats",
   "profile.showStatsDesc":
-    "Show your matches, wins, win rates, deck records and saved replays on your profile. Saved to your account.",
+    "Show your matches, wins, win rate and saved replays at the top of your profile. Saved to your account.",
   "profile.avatarMenu.title": "Choose avatar",
   "profile.avatarMenu.default": "Use default avatar",
   "profile.avatarMenu.discord": "Use Discord avatar",
@@ -182,7 +182,7 @@ export const profileReplayPtBR = {
   "profile.preferences": "Preferências",
   "profile.showStats": "Mostrar estatísticas de partidas",
   "profile.showStatsDesc":
-    "Mostra suas partidas, vitórias, taxas de vitória, recordes por deck e replays salvos no seu perfil. Salvo na sua conta.",
+    "Mostra suas partidas, vitórias, taxa de vitória e replays salvos no topo do seu perfil. Salvo na sua conta.",
   "profile.avatarMenu.title": "Escolher avatar",
   "profile.avatarMenu.default": "Usar avatar padrão",
   "profile.avatarMenu.discord": "Usar avatar do Discord",
@@ -293,7 +293,7 @@ export const profileReplayEs = {
   "profile.preferences": "Preferencias",
   "profile.showStats": "Mostrar estadísticas de partidas",
   "profile.showStatsDesc":
-    "Muestra tus partidas, victorias, tasas de victorias, registros por mazo y replays guardados en tu perfil. Se guarda en tu cuenta.",
+    "Muestra tus partidas, victorias, tasa de victorias y replays guardados en la parte superior de tu perfil. Se guarda en tu cuenta.",
   "profile.avatarMenu.title": "Elegir avatar",
   "profile.avatarMenu.default": "Usar avatar predeterminado",
   "profile.avatarMenu.discord": "Usar avatar de Discord",
@@ -404,7 +404,7 @@ export const profileReplayIt = {
   "profile.preferences": "Preferenze",
   "profile.showStats": "Mostra statistiche delle partite",
   "profile.showStatsDesc":
-    "Mostra partite, vittorie, percentuali di vittorie, record dei mazzi e replay salvati nel tuo profilo. Salvato nel tuo account.",
+    "Mostra partite, vittorie, percentuale di vittorie e replay salvati in cima al tuo profilo. Salvato nel tuo account.",
   "profile.avatarMenu.title": "Scegli avatar",
   "profile.avatarMenu.default": "Usa avatar predefinito",
   "profile.avatarMenu.discord": "Usa avatar di Discord",

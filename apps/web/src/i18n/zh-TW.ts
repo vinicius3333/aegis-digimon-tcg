@@ -249,7 +249,7 @@ const interfaceMessages = {
   "profile.nameRules": "3–32 個字元 · 字母、數字、空格、- 和 _",
   "profile.preferences": "偏好設定",
   "profile.showStats": "顯示對戰統計",
-  "profile.showStatsDesc": "在個人資料中顯示對戰數、勝場、勝率、各卡組戰績和已儲存的重播。儲存到你的帳戶。",
+  "profile.showStatsDesc": "在個人資料頂部顯示對戰數、勝場、勝率和已儲存的重播。儲存到你的帳戶。",
   "profile.avatarMenu.title": "選擇頭像",
   "profile.avatarMenu.default": "使用預設頭像",
   "profile.avatarMenu.discord": "使用Discord頭像",

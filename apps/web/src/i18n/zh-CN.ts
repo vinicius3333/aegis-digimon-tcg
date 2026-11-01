@@ -250,7 +250,7 @@ const interfaceMessages = {
   "profile.nameRules": "3–32 个字符 · 字母、数字、空格、- 和 _",
   "profile.preferences": "偏好设置",
   "profile.showStats": "显示对战统计",
-  "profile.showStatsDesc": "在个人资料中显示对战数、胜场、胜率、各卡组战绩和已保存的回放。保存到你的帐户。",
+  "profile.showStatsDesc": "在个人资料顶部显示对战数、胜场、胜率和已保存的回放。保存到你的帐户。",
   "profile.avatarMenu.title": "选择头像",
   "profile.avatarMenu.default": "使用默认头像",
   "profile.avatarMenu.discord": "使用 Discord 头像",

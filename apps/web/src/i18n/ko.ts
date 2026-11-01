@@ -260,8 +260,7 @@ const interfaceMessages = {
   "profile.nameRules": "3~32자 · 문자, 숫자, 공백, -, _",
   "profile.preferences": "환경설정",
   "profile.showStats": "대전 통계 표시",
-  "profile.showStatsDesc":
-    "프로필에 대전 수, 승리 수, 승률, 덱별 전적, 저장한 리플레이를 표시합니다. 계정에 저장됩니다.",
+  "profile.showStatsDesc": "프로필 상단에 대전 수, 승리 수, 승률, 저장한 리플레이를 표시합니다. 계정에 저장됩니다.",
   "profile.avatarMenu.title": "아바타 선택",
   "profile.avatarMenu.default": "기본 아바타 사용",
   "profile.avatarMenu.discord": "Discord 아바타 사용",
