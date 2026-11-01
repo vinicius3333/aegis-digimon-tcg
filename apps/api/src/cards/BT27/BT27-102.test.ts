@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-import { unregisterCard } from "../../engine/effects/registry.js";
+import { unregisterIrCard } from "#api/engine/effects/interpreter/registration/unregisterIrCard";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle, type BoardSpec } from "../../engine/testkit/harness.js";
@@ -133,7 +133,7 @@ describe("BT27-102 Bio Hybrid Digivolution", () => {
 describe("BT27-102 Bio Hybrid Digivolution — Delay digivolution", () => {
   beforeEach(registerBioHybrid);
   afterEach(() => {
-    for (const id of syntheticDefinitions.keys()) unregisterCard(id);
+    for (const id of syntheticDefinitions.keys()) unregisterIrCard(id);
     syntheticDefinitions.clear();
   });
 
