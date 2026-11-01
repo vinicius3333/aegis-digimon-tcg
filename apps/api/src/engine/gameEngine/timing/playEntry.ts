@@ -3,6 +3,7 @@ import { EffectTiming, Permanent, type Seat, type ZoneRef } from "@aegis/shared"
 import { definitionOf } from "../../cards/cardData.js";
 import { canActivate, canTrigger } from "../../effects/kernel.js";
 import { effectsOf, type CollectedEffect } from "../../effects/collect.js";
+import { effectProvenanceKinds } from "#api/engine/effects/effectProvenance";
 import type { EffectContext, TriggerInfo } from "../../effects/EffectContext.js";
 import { digivolvedFromTamerBase } from "../subTriggerIdentity.js";
 import { findInstance } from "../intents.js";
@@ -332,7 +333,7 @@ export async function reactivateOnPlay(
         isTimingActivationDisabled(engine.continuous, sourcePermanentId, timing)
       )
         continue;
-      await effect.resolve(ctx);
+      await resolveReactivatedEffect({ effect, ctx });
       activatedAny = true;
     }
     await engine.recomputeContinuousEffects();
@@ -358,7 +359,29 @@ export async function reactivateOnPlay(
     chosen.ctx.continueEffectAfterAttackDeclaration = opts.continueEffectAfterAttackDeclaration;
   // KB Q4963: an effect activated by another effect still spends its [Once Per Turn].
   engine.tracker.register(chosen.source.instanceId, chosen.effect.effectKey);
-  await chosen.effect.resolve(chosen.ctx);
+  await resolveReactivatedEffect({ effect: chosen.effect, ctx: chosen.ctx });
   await engine.recomputeContinuousEffects();
   return true;
+}
+
+type ResolveReactivatedEffectParams = {
+  effect: CollectedEffect["effect"];
+  ctx: EffectContext;
+};
+
+async function resolveReactivatedEffect({ effect, ctx }: ResolveReactivatedEffectParams): Promise<void> {
+  const outerSourceKinds = ctx.effectSourceKinds;
+  const sourceKinds = effectProvenanceKinds(ctx, { isLinked: effect.isLinked });
+  ctx.effectSourceKinds = sourceKinds;
+  ctx.fx.enterEffectResolution?.(
+    ctx.source.ownerSeat,
+    sourceKinds,
+    ctx.conferredToPermanentId ?? ctx.source.permanent()?.permanentId,
+  );
+  try {
+    await effect.resolve(ctx);
+  } finally {
+    ctx.fx.leaveEffectResolution?.();
+    ctx.effectSourceKinds = outerSourceKinds;
+  }
 }

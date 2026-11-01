@@ -928,6 +928,7 @@ const interfaceMessages = {
   "library.rowRarity": "レアリティ",
   "library.mainEffect": "効果",
   "library.inheritedEffect": "進化元効果",
+  "library.linkEffect": "リンク効果",
   "library.securityEffect": "セキュリティ効果",
   "library.kind.Digimon": "デジモン",
   "library.kind.DigiEgg": "デジタマ",

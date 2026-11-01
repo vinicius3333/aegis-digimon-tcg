@@ -946,6 +946,7 @@ const interfaceMessages = {
   "library.rowRarity": "Seltenheit",
   "library.mainEffect": "Haupteffekt",
   "library.inheritedEffect": "Vererbter Effekt (ESS)",
+  "library.linkEffect": "Link-Effekt",
   "library.securityEffect": "Security-Effekt",
   "library.kind.Digimon": "Digimon",
   "library.kind.DigiEgg": "Digi-Ei",

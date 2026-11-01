@@ -291,3 +291,11 @@ After this bounded review, the catalog fingerprint changes from `6d0c162bcf8ee07
 Compared with `develop` at `4f2ddbbcba`, this branch adds only BT27-032 MirageGaogamon. Existing card records are unchanged. Its ordinary blue level-5 evolution and alternate Gaogamon-name or DATA SQUAD evolution do not introduce DNA, App Fusion or Burst providers. Full Moon Blaster returns an opposing highest-level Digimon to hand; Arts Digivolve uses the resolving DUAL Option as its recipient. Neither clause creates a provider for any excluded security or deck-reveal route.
 
 The 22 covered route cells, eight reviewed provider absences, candidate lists, scenario evidence and rule-source fingerprint remain applicable. After this bounded review, the catalog fingerprint changes from `20a69972d246e0c19110acdf319bb6003ea4473ea8abdfe9942da67dc6b47068` to `c6a63b269c518ad5cfa19c27d52cbe0054d00b95ca6f1d339801fa91c60560ec`. Catalog drift remains an error; no validator or test expectation is weakened.
+
+### Catalog review after Solarmon's black evolution correction (2026-10-31)
+
+Compared with the reviewed catalog at `6d1c0502c3`, all 4,552 card identities remain unchanged. The only changed field is BT27-007 Solarmon's `evoCosts`: it adds the printed black level-2 cost-0 requirement alongside the existing red requirement. Its alternate Flame evolution, effect text, inherited deletion and all other catalog fields are unchanged.
+
+This correction adds an ordinary Digi-Egg evolution base. It does not introduce an effect provider or change a recipient source zone. Comparing the DNA, App Fusion and Burst searches over all five effect text fields produces the same candidate sets as the reviewed catalog (134, 38 and 7 cards). All 22 covered cells, eight reviewed provider absences, candidate lists, scenario evidence and the rule-source fingerprint remain applicable.
+
+After this bounded semantic review, the catalog fingerprint changes from `c6a63b269c518ad5cfa19c27d52cbe0054d00b95ca6f1d339801fa91c60560ec` to `e193fee1e406c425a23ed90a544164bf5daab362dea2956556cff18dacca2149`. Catalog drift remains an error; no validator or test expectation is weakened.

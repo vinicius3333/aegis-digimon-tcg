@@ -886,6 +886,7 @@ const interfaceMessages = {
   "library.rowRarity": "稀有度",
   "library.mainEffect": "主要效果",
   "library.inheritedEffect": "繼承效果（ESS）",
+  "library.linkEffect": "連結效果",
   "library.securityEffect": "安防效果",
   "library.kind.Digimon": "數碼寶貝",
   "library.kind.DigiEgg": "數碼蛋",

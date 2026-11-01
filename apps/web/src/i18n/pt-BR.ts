@@ -675,6 +675,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "library.rowRarity": "Raridade",
   "library.mainEffect": "Efeito principal",
   "library.inheritedEffect": "Herdado (ESS)",
+  "library.linkEffect": "Efeito de Link",
   "library.securityEffect": "Efeito de segurança",
   "library.kind.Digimon": "Digimon",
   "library.kind.DigiEgg": "Digi-Egg",
