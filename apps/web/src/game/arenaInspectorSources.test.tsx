@@ -113,24 +113,27 @@ it.each([true, false])("keeps hidden sources unreadable and unzoomable at wide=%
   expect(onZoom).not.toHaveBeenCalled();
 });
 
-it.each([true, false])("marks only the source whose once-per-turn effect was used at wide=%s", (wide) => {
-  renderInspector({
-    wide,
-    cards: [
-      { cardId: "ST1-11", role: "top" },
-      { cardId: "EX12-064", role: "stack", oncePerTurnUsed: true },
-      { cardId: "EX12-064", role: "stack" },
-    ],
-  });
-  if (wide) {
-    const marks = document.querySelectorAll(".arena-permanent-inspector__used-effect");
-    expect(marks).toHaveLength(1);
-    expect(marks[0]!.textContent).toBe("Used this turn");
-  } else {
-    const strip = screen.getByRole("group", { name: "2 sources" });
-    expect(within(strip).getAllByRole("button", { name: /Used this turn/ })).toHaveLength(1);
-    expect(strip.querySelectorAll('[data-once-per-turn-used="true"]')).toHaveLength(1);
-  }
+const megadramonSources: StackCard[] = [
+  { cardId: "ST1-11", role: "top" },
+  { cardId: "EX12-064", role: "stack", oncePerTurnUsed: true },
+  { cardId: "EX12-064", role: "stack" },
+];
+
+it("replaces the inherited role with a used pill and dims the spent inherited effect on wide screens", () => {
+  renderInspector({ wide: true, cards: megadramonSources });
+  const marks = document.querySelectorAll(".arena-permanent-inspector__used-effect");
+  expect(marks).toHaveLength(1);
+  expect(marks[0]!.textContent).toBe("Inherited · used this turn");
+  const source = marks[0]!.closest(".arena-permanent-inspector__effect--source");
+  expect(source?.getAttribute("data-once-per-turn-used")).toBe("true");
+  expect(source?.querySelector(".arena-permanent-inspector__effect-label")?.textContent).not.toContain("· Inherited");
+});
+
+it("names the source with a used inherited effect in the narrow strip", () => {
+  renderInspector({ wide: false, cards: megadramonSources });
+  const strip = screen.getByRole("group", { name: "2 sources" });
+  expect(within(strip).getAllByRole("button", { name: /Inherited · used this turn/ })).toHaveLength(1);
+  expect(strip.querySelectorAll('[data-once-per-turn-used="true"]')).toHaveLength(1);
 });
 
 it.each([true, false])("draws hidden sources without the local sleeve at wide=%s", (wide) => {

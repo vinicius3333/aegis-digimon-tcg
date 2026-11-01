@@ -177,7 +177,7 @@ export function DecisionCandidateGrid({
                   cand.pendingEffect && cand.cardId && (cand.zone === "trash" || cand.zone === "opponentTrash")
                     ? t("overlay.pendingEffect")
                     : undefined;
-                const usedLabel = cand.oncePerTurnUsed && cand.cardId ? t("overlay.oncePerTurnUsed") : undefined;
+                const usedLabel = cand.oncePerTurnUsed && cand.cardId ? t("overlay.inheritedUsed") : undefined;
                 const copyLabel = cardCopyLabels.get(cand.instanceId);
                 const sourceLabel =
                   cand.sourceCount === undefined
