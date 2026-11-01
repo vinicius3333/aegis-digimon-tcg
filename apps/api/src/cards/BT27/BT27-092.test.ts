@@ -3,7 +3,7 @@ import { EffectTiming, getCardDefinition, type CardInstance } from "@aegis/share
 import { effectsOf } from "#api/engine/effects/collect";
 import type { CardSource } from "#api/engine/effects/CardSource";
 import { registerIrCard } from "#api/engine/effects/interpreter";
-import { unregisterCard } from "#api/engine/effects/registry";
+import { unregisterIrCard } from "#api/engine/effects/interpreter/registration/unregisterIrCard";
 import { advance } from "#api/engine/testkit/advance";
 import { assertNoLoudGap, setupEngine, settle } from "#api/engine/testkit/harness";
 import { syntheticDefinitions } from "#api/engine/testkit/syntheticDefinitions";
@@ -48,7 +48,7 @@ const faceDownPair = [
 
 describe("BT27-092 Nanami, Kouki, & Ivan", () => {
   afterEach(() => {
-    for (const id of syntheticDefinitions.keys()) unregisterCard(id);
+    for (const id of syntheticDefinitions.keys()) unregisterIrCard(id);
     syntheticDefinitions.clear();
   });
 
