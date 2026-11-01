@@ -100,6 +100,7 @@ import { ViewerPiles } from "./ViewerPiles";
 import { EffectConfirmButton } from "../../EffectConfirmButton";
 import { useBreedingTransferOrigins } from "../../breedingTransfer";
 import { useFieldShatterOrigins } from "../../fieldShatter";
+import type { EffectSourceMark } from "@/game/effectMarks/EffectSourceMark";
 import type { NarrationItem } from "../../narration";
 
 const HIDDEN_NARRATION: ReadonlyMap<string, NarrationItem> = new Map();
@@ -176,6 +177,7 @@ export interface HandDockInputs {
   onSortHand: (mode: HandSortMode) => void;
   effectSourceInstanceId: string | undefined;
   effectSource?: EffectActivation;
+  effectSourceMarks?: ReadonlyMap<string, EffectSourceMark>;
   shakeInstanceId: string | undefined;
   selection:
     | {
@@ -814,6 +816,7 @@ export function BoardStage({
             selectedInstanceId={selection.handSel ?? undefined}
             effectSourceInstanceId={handDock.effectSourceInstanceId}
             effectSource={handDock.effectSource}
+            effectSourceMarks={handDock.effectSourceMarks}
             selection={handDock.selection}
             draggingInstanceId={drag.isPlay && drag.state?.kind === DragKind.Play ? drag.state.instanceId : undefined}
             shakeInstanceId={handDock.shakeInstanceId}

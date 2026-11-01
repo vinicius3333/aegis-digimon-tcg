@@ -160,6 +160,7 @@ import { TIMINGS } from "./timings";
 import { loadReconnectSession } from "../net/reconnectSession";
 import { pendingFateBadges } from "./pendingFate";
 import { useEffectConfirmationHold } from "./effectConfirmationHold";
+import { findEffectSourceMarks } from "@/game/effectMarks/findEffectSourceMarks";
 
 export type SeriesDeckPickerParams = Pick<
   SeriesDeckDialogProps,
@@ -1491,9 +1492,21 @@ function GameScreenSession({
     decision: viewerDecision,
     viewer: you,
     opponent: opp,
-    handInstanceIds,
+    handInstanceIds: shownHandEntries.map((entry) => entry.instanceId),
     t,
   });
+  const effectSourceMarks = findEffectSourceMarks({
+    events,
+    presentedStateVersion: cues.presentedStateVersion,
+    viewerDecision,
+  });
+  const trashChrome = (seat: Seat): string | undefined => {
+    const trash = seat === viewerSeat ? shownYou.trash : shownOpp.trash;
+    const marked = trash.some((card) => effectSourceMarks.has(card.instanceId));
+    return (
+      [trashEffectSource(seat), marked ? "game-pile--effect-marked" : undefined].filter(Boolean).join(" ") || undefined
+    );
+  };
 
   const appFusion = appFusionLive({
     choice: appFusionChoice,
@@ -1765,6 +1778,7 @@ function GameScreenSession({
       linkTargetsOfPermanent={linkTargetsOfPermanent}
       handEntries={handEntries}
       shownHandEntries={shownHandEntries}
+      effectSourceMarks={effectSourceMarks}
       viewerTurnOrder={viewerTurnOrder}
       boardRef={boardRef}
       permanentRefs={permRefs}
@@ -1916,7 +1930,13 @@ function GameScreenSession({
           (pickingSourceHost && sourceHostChoice?.cardIdsByHost.has(perm.permanentId) === true) ||
           (fieldDecision && decisionAllowsPermanent(perm)),
       }}
-      chrome={{ permanentChrome, unsuspendStagger, dropIntentAttrs, baseDropIntentAttrs, trashEffectSource }}
+      chrome={{
+        permanentChrome,
+        unsuspendStagger,
+        dropIntentAttrs,
+        baseDropIntentAttrs,
+        trashEffectSource: trashChrome,
+      }}
       handDock={{
         handSortMode,
         onSortHand: (mode: HandSortMode) => {
@@ -1936,6 +1956,7 @@ function GameScreenSession({
         effectSource: handEffectSource,
         effectSourceInstanceId:
           handEffectSourceInstanceId?.zone === "hand" ? handEffectSourceInstanceId.instanceId : undefined,
+        effectSourceMarks,
         shakeInstanceId: shakeHandInstanceId,
         selection: dnaChoosing
           ? {

@@ -52,6 +52,7 @@ import type { CombatWindows } from "../model/combatWindows";
 import type { DecisionView } from "../model/decisionView";
 import type { TriggerDetail } from "../../overlay";
 import type { ArenaDeckColors } from "../../../design/arenaPalette";
+import type { EffectSourceMark } from "@/game/effectMarks/EffectSourceMark";
 
 export function MatchOverlays({
   state,
@@ -105,6 +106,7 @@ export function MatchOverlays({
   linkTargetsOfPermanent,
   handEntries,
   shownHandEntries,
+  effectSourceMarks,
   viewerTurnOrder,
   boardRef,
   permanentRefs,
@@ -209,6 +211,7 @@ export function MatchOverlays({
   linkTargetsOfPermanent: (perm: Permanent) => readonly string[];
   handEntries: HandEntry[];
   shownHandEntries: HandEntry[];
+  effectSourceMarks?: ReadonlyMap<string, EffectSourceMark>;
   viewerTurnOrder: TurnOrder | undefined;
   boardRef: RefObject<HTMLDivElement | null>;
   permanentRefs: RefObject<Record<string, HTMLDivElement | null>>;
@@ -499,6 +502,7 @@ export function MatchOverlays({
         revealedZoneView={overlays.revealedZoneView}
         sheet={narrowGameLayout}
         trashActivatable={isMyTurn && !mainActionBlocked}
+        effectSourceMarks={effectSourceMarks}
         onActivateTrashEffect={(effect) => {
           overlays.setTrashView(null);
           intents.activateEffect(effect.instanceId, effect.effectKey);

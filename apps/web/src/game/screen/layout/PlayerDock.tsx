@@ -15,6 +15,7 @@ import { ActionBar } from "./ActionBar";
 import { HandSortControl } from "./HandSortControl";
 import { PlayerLine } from "./PlayerLine";
 import type { EffectActivation } from "../../effectSource";
+import type { EffectSourceMark } from "@/game/effectMarks/EffectSourceMark";
 
 export function PlayerDock({
   spectating = false,
@@ -34,6 +35,7 @@ export function PlayerDock({
   selectedInstanceId,
   effectSourceInstanceId,
   effectSource,
+  effectSourceMarks,
   selection,
   draggingInstanceId,
   shakeInstanceId,
@@ -76,6 +78,7 @@ export function PlayerDock({
   selectedInstanceId?: string;
   effectSourceInstanceId?: string;
   effectSource?: EffectActivation;
+  effectSourceMarks?: ReadonlyMap<string, EffectSourceMark>;
   selection?: {
     selectableInstanceIds: readonly string[];
     pickedInstanceIds: readonly string[];
@@ -157,6 +160,7 @@ export function PlayerDock({
               selectedInstanceId={selectedInstanceId}
               effectSourceInstanceId={effectSourceInstanceId}
               effectSource={effectSource}
+              effectSourceMarks={effectSourceMarks}
               selection={selection}
               startDrag={spectating ? (index) => selectCard(index) : startDrag}
               selectCard={selectCard}
