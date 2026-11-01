@@ -292,6 +292,10 @@ test("achievement API calls reach the API", () => {
   assert.equal(isApiPath("/achievementsish", { accept: "*/*" }), false);
 });
 
+test("trophy images reach the web app", () => {
+  assert.equal(isApiPath("/trophies/trophy-gold-128.webp", { accept: "image/webp" }), false);
+});
+
 test("friends API calls reach the API while friends navigation gets the web app", () => {
   for (const path of ["/friends", "/friends/requests", "/friends/account-1/detail", "/friends/account-1/replays"]) {
     assert.equal(isApiPath(path, { accept: "application/json" }), true);

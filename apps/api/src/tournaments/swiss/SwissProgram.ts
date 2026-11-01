@@ -422,6 +422,7 @@ export class SwissProgram {
       ledger,
       standings: standingsConfig(tournament.rules, tournament.id),
       participants: roster.map((participant) => ({ id: participant.id, seed: participant.seed })),
+      drawSeed: tournament.id,
     });
   }
 

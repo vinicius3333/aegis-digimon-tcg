@@ -1083,9 +1083,9 @@ export function canActivateEffect(
     if (action.kind === "DigivolveViaPlacement") return canAttemptDigivolveViaPlacement(ctx, action);
     if (action.kind === "MindLink") return canAttemptMindLink(ctx, action);
     if (isDetachTopAction(action)) return canDetachPermanentTop(ctx, action);
-    return action.kind === "DnaDigivolve"
-      ? canAttemptDnaDigivolve(ctx, action)
-      : action.kind !== "Link" || canAttemptLink(ctx, action);
+    if (action.kind === "DnaDigivolve")
+      return allowsOptionalProcessingCostWithoutTarget(action) || canAttemptDnaDigivolve(ctx, action);
+    return action.kind !== "Link" || canAttemptLink(ctx, action);
   };
   // Board-targeted actions gate activation: an action that names live battle-area (or
   // breeding) permanents resolves to nothing when the board holds no candidate. An effect
