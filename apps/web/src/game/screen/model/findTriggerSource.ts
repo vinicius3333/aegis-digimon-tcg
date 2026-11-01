@@ -3,7 +3,8 @@ import type { Permanent } from "@aegis/shared/schema/Permanent";
 import type { PlayerState } from "@aegis/shared/schema/PlayerState";
 
 export type TriggerSource =
-  | { zone: Zone.BattleArea | Zone.Hand; position: number }
+  | { zone: Zone.Hand; position: number }
+  | { zone: Zone.BattleArea; hostCardId: string; inherited: boolean; copy: number; copies: number }
   | { zone: Zone.Breeding | Zone.Trash | Zone.Delay | Zone.Security };
 
 type Params = {
@@ -27,9 +28,17 @@ export function findTriggerSource({ instanceId, players, handInstanceIds }: Para
 }
 
 function findPlayerTriggerSource(instanceId: string, player: PlayerState): TriggerSource | undefined {
-  const slot = player.battleArea.findIndex((permanent) => isInPermanent(instanceId, permanent));
-  if (slot !== -1) {
-    return { zone: Zone.BattleArea, position: slot + 1 };
+  const host = player.battleArea.find((permanent) => isInPermanent(instanceId, permanent));
+  if (host?.topCard) {
+    const hostCardId = host.topCard.cardId;
+    const twins = player.battleArea.filter((permanent) => permanent?.topCard?.cardId === hostCardId);
+    return {
+      zone: Zone.BattleArea,
+      hostCardId,
+      inherited: host.topCard.instanceId !== instanceId,
+      copy: twins.indexOf(host) + 1,
+      copies: twins.length,
+    };
   }
   if (isInPermanent(instanceId, player.breeding)) {
     return { zone: Zone.Breeding };
