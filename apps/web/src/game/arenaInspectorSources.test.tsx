@@ -348,3 +348,30 @@ it("opens a keyword explanation from the keyboard", () => {
   fireEvent.keyDown(screen.getByRole("button", { name: "＜Blocker＞" }), { key: "Enter" });
   expect(document.querySelector(".game-badge-hint")?.textContent).toContain("Blocker");
 });
+
+it.each([
+  ["[DNA Digivolve] Blue Lv.4 + Green Lv.4: Cost 0", "[DNA Digivolve]", "8-2"],
+  ["[DNA Digivolution] Red Lv.4 + yellow Lv.4: Cost 0", "[DNA Digivolution]", "8-2"],
+  ["[App Fusion] [Gatchmon] & [Navimon]: Cost 0", "[App Fusion]", "8-4"],
+  ["[DigiXros -2] 1 Lv.5 or lower Digimon card", "[DigiXros -2]", "7-2"],
+  ["[Assembly -2] Lv.4 or lower [TB] trait card", "[Assembly -2]", "7-3"],
+])("explains the %s requirement with its rule", (text, marker, rule) => {
+  render(
+    <I18nProvider>
+      <EffectText inspector text={text} />
+    </I18nProvider>,
+  );
+  fireEvent.keyDown(screen.getByRole("button", { name: marker }), { key: "Enter" });
+  const hint = document.querySelector(".game-badge-hint");
+  expect(hint?.textContent).toContain(marker);
+  expect(hint?.textContent).toContain(`Comprehensive Rules ${rule}`);
+});
+
+it("keeps ordinary timing markers without an explanation", () => {
+  render(
+    <I18nProvider>
+      <EffectText inspector text="[On Play] [Gatchmon]" />
+    </I18nProvider>,
+  );
+  expect(screen.queryByRole("button")).toBeNull();
+});
