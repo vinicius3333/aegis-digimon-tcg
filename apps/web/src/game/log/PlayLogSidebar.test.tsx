@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Phase } from "@aegis/shared/schema/enums";
+import { Phase, type Seat } from "@aegis/shared/schema/enums";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { PlayLogSidebar } from "@/game/log/PlayLogSidebar";
 import { fieldReferenceStore } from "@/design/fieldReference/fieldReferenceStore";
@@ -102,5 +102,69 @@ describe("searchable chronological play log", () => {
     renderPanel();
     await waitFor(() => expect(document.activeElement).toBe(screen.getByRole("searchbox")));
     spy.mockRestore();
+  });
+});
+
+describe("play log entries by acting player", () => {
+  const twoTurns: LogTurnGroup[] = [
+    {
+      turnCount: 1,
+      turnSeat: 0,
+      phases: [
+        {
+          phase: Phase.Main,
+          entries: [{ id: "a", text: "Alice attacked", kind: "opp", turnCount: 1, turnSeat: 0, phase: Phase.Main }],
+        },
+      ],
+    },
+    {
+      turnCount: 1,
+      turnSeat: 1,
+      phases: [
+        {
+          phase: Phase.Main,
+          entries: [{ id: "b", text: "Bob blocked", kind: "you", turnCount: 1, turnSeat: 1, phase: Phase.Main }],
+        },
+      ],
+    },
+  ];
+
+  function renderFromSeat(viewerSeat?: Seat) {
+    render(
+      <I18nProvider>
+        <PlayLogSidebar
+          turns={twoTurns}
+          playerNames={{ 0: "Alice", 1: "Bob" }}
+          viewerSeat={viewerSeat}
+          onClose={vi.fn<() => void>()}
+        />
+      </I18nProvider>,
+    );
+  }
+
+  function getEntryTone(text: string) {
+    return screen.getByText(text).closest(".play-log__line")?.getAttribute("data-kind");
+  }
+
+  function getTurnTone(name: string) {
+    return screen.getByRole("heading", { name }).closest("section")?.getAttribute("data-tone");
+  }
+
+  it("marks each entry as the viewer's or the opponent's", () => {
+    renderFromSeat(1);
+    expect(getEntryTone("Bob blocked")).toBe("you");
+    expect(getEntryTone("Alice attacked")).toBe("opp");
+  });
+
+  it("tones the viewer's own turns as theirs when they sit in the second seat", () => {
+    renderFromSeat(1);
+    expect(getTurnTone("Turn 1 · Bob")).toBe("you");
+    expect(getTurnTone("Turn 1 · Alice")).toBe("opp");
+  });
+
+  it("tones the first seat as the viewer's for spectators", () => {
+    renderFromSeat(undefined);
+    expect(getTurnTone("Turn 1 · Alice")).toBe("you");
+    expect(getTurnTone("Turn 1 · Bob")).toBe("opp");
   });
 });

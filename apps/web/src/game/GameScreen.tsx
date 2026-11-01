@@ -942,7 +942,17 @@ function GameScreenSession({
       }),
     [playerName0, playerName1, spectating, viewerSeat, replayPlayers, t],
   );
-  const { turns: logTurns, recent: log } = useMatchLogHistory({
+  const playerAvatar0 = state?.players[0]?.avatarId;
+  const playerAvatar1 = state?.players[1]?.avatarId;
+  const seatAvatars = useMemo(
+    () => ({ 0: playerAvatar0 || undefined, 1: playerAvatar1 || undefined }),
+    [playerAvatar0, playerAvatar1],
+  );
+  const {
+    turns: logTurns,
+    recent: log,
+    entries: logEntries,
+  } = useMatchLogHistory({
     events: historyEvents ?? events,
     initialTurn: state
       ? { turnCount: Math.max(1, state.turnCount), turnSeat: state.turnSeat, phase: state.phase }
@@ -1603,6 +1613,7 @@ function GameScreenSession({
       collapseNotices={collapseNotices}
       logTurns={logTurns}
       seatNames={seatNames}
+      seatAvatars={seatAvatars}
       logViewerSeat={spectating ? undefined : viewerSeat}
       signedIn={signedIn}
       opponentDropped={!spectating && !vsBot && !opp.connected && !state.gameOver}
@@ -1814,7 +1825,16 @@ function GameScreenSession({
         mainActionBlocked: guards.mainActionBlocked || dnaChoosing,
         endPhaseBlocked: guards.endPhaseBlocked || dnaChoosing,
       }}
-      readouts={{ memory, memoryPrediction, displayedTurnSeat, displayedTurnCount, log }}
+      readouts={{
+        memory,
+        memoryPrediction,
+        displayedTurnSeat,
+        displayedTurnCount,
+        log,
+        logEntries,
+        seatNames,
+        seatAvatars,
+      }}
       targeting={{
         spotlight,
         spotlightSubjects,
