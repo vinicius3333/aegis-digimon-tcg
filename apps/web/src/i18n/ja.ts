@@ -1241,6 +1241,7 @@ const interfaceMessages = {
   "game.dragIntent.use": "使用",
   "game.dragIntent.attack": "アタック",
   "game.matchLog": "対戦ログ",
+  "game.matchLogUnread": "対戦ログ、新着{count}件",
   "game.fullscreen.enter": "全画面表示",
   "game.fullscreen.exit": "全画面表示を終了",
   "game.skipPresentation": "アニメーションをスキップ",

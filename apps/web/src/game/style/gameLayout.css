@@ -139,6 +139,13 @@
 .play-log__line[data-kind="opp"] {
   --play-log-tone: var(--ds-danger);
 }
+.play-log__line:is([data-kind="you"], [data-kind="opp"]) {
+  background: color-mix(in srgb, var(--play-log-tone) 7%, transparent);
+  box-shadow: inset 2px 0 0 color-mix(in srgb, var(--play-log-tone) 70%, transparent);
+}
+.play-log__line:is([data-kind="you"], [data-kind="opp"]):hover {
+  background: color-mix(in srgb, var(--play-log-tone) 12%, transparent);
+}
 .play-log__marker {
   width: 6px;
   height: 6px;
@@ -247,10 +254,10 @@
   background: var(--ds-accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-accent) 25%, transparent);
 }
-.play-log__list section[data-seat="1"] .play-log__turn-heading {
+.play-log__list section[data-tone="opp"] .play-log__turn-heading {
   background: color-mix(in srgb, var(--ds-sheet) 90%, var(--ds-danger));
 }
-.play-log__list section[data-seat="1"] .play-log__turn-heading::before {
+.play-log__list section[data-tone="opp"] .play-log__turn-heading::before {
   background: var(--ds-danger);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-danger) 25%, transparent);
 }

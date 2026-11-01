@@ -1230,6 +1230,7 @@ const interfaceMessages = {
   "game.dragIntent.use": "사용",
   "game.dragIntent.attack": "어택",
   "game.matchLog": "대전 로그",
+  "game.matchLogUnread": "대전 로그, 새 항목 {count}개",
   "game.fullscreen.enter": "전체 화면",
   "game.fullscreen.exit": "전체 화면 종료",
   "game.skipPresentation": "애니메이션 건너뛰기",

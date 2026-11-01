@@ -1,5 +1,5 @@
 import { Phase, type Seat } from "@aegis/shared/schema/enums";
-import type { LogTurnGroup } from "@/game/log/LogEntry";
+import type { LogKind, LogTurnGroup } from "@/game/log/LogEntry";
 import type { SeatNames } from "@/game/log/SeatNames";
 import { PlayLogEntry } from "@/game/log/PlayLogEntry";
 import { formatPlayLogTurnHeading } from "@/game/log/formatPlayLogTurnHeading";
@@ -23,10 +23,20 @@ const phaseKeys: Record<Phase, TranslationKey> = {
   [Phase.None]: "game.matchLog",
 };
 
+type TurnToneParams = { turnSeat: Seat; viewerSeat?: Seat };
+
+function getTurnTone({ turnSeat, viewerSeat = 0 }: TurnToneParams): LogKind {
+  return turnSeat === viewerSeat ? "you" : "opp";
+}
+
 export function PlayLogTurnGroup({ turn, playerNames, viewerSeat, highlight, onOpenCard }: Props) {
   const { t } = useTranslation();
   return (
-    <section data-seat={turn.turnSeat} data-viewer={turn.turnSeat === viewerSeat || undefined}>
+    <section
+      data-seat={turn.turnSeat}
+      data-viewer={turn.turnSeat === viewerSeat || undefined}
+      data-tone={getTurnTone({ turnSeat: turn.turnSeat, viewerSeat })}
+    >
       <h3 className="play-log__turn-heading">{formatPlayLogTurnHeading({ ...turn, playerNames, t })}</h3>
       {turn.phases.map((phase, index) => (
         <div className="play-log__phase" key={`${phase.phase}:${index}`}>

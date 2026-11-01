@@ -1183,6 +1183,7 @@ const interfaceMessages = {
   "game.dragIntent.use": "使用",
   "game.dragIntent.attack": "攻击",
   "game.matchLog": "对局记录",
+  "game.matchLogUnread": "对局记录，{count} 条新记录",
   "game.fullscreen.enter": "全屏",
   "game.fullscreen.exit": "退出全屏",
   "game.skipPresentation": "跳过动画",

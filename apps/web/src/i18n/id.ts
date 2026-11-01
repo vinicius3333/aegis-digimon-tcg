@@ -1243,6 +1243,7 @@ const interfaceMessages = {
   "game.dragIntent.use": "GUNAKAN",
   "game.dragIntent.attack": "SERANG",
   "game.matchLog": "Log pertandingan",
+  "game.matchLogUnread": "Log pertandingan, {count} baru",
   "game.fullscreen.enter": "Layar penuh",
   "game.fullscreen.exit": "Keluar dari layar penuh",
   "game.skipPresentation": "Lewati animasi",

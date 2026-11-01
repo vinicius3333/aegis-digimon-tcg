@@ -1273,6 +1273,7 @@ const interfaceMessages = {
   "game.dragIntent.use": "VERWENDEN",
   "game.dragIntent.attack": "ANGRIFF",
   "game.matchLog": "Match-Protokoll",
+  "game.matchLogUnread": "Match-Protokoll, {count} neu",
   "game.fullscreen.enter": "Vollbild",
   "game.fullscreen.exit": "Vollbild beenden",
   "game.skipPresentation": "Animationen überspringen",

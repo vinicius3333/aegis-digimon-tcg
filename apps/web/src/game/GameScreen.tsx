@@ -934,7 +934,11 @@ function GameScreenSession({
       }),
     [playerName0, playerName1, spectating, viewerSeat, replayPlayers, t],
   );
-  const { turns: logTurns, recent: log } = useMatchLogHistory({
+  const {
+    turns: logTurns,
+    recent: log,
+    entries: logEntries,
+  } = useMatchLogHistory({
     events: historyEvents ?? events,
     initialTurn: state
       ? { turnCount: Math.max(1, state.turnCount), turnSeat: state.turnSeat, phase: state.phase }
@@ -1806,7 +1810,7 @@ function GameScreenSession({
         mainActionBlocked: guards.mainActionBlocked || dnaChoosing,
         endPhaseBlocked: guards.endPhaseBlocked || dnaChoosing,
       }}
-      readouts={{ memory, memoryPrediction, displayedTurnSeat, displayedTurnCount, log }}
+      readouts={{ memory, memoryPrediction, displayedTurnSeat, displayedTurnCount, log, logEntries }}
       targeting={{
         spotlight,
         spotlightSubjects,

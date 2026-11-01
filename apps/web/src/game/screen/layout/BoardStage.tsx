@@ -43,7 +43,8 @@ import { createPortal } from "react-dom";
 import type { GameState, Permanent, PlayerState, Seat } from "@aegis/shared";
 import type { RevealedZones } from "../model/gameOutcome";
 import { canAttackPlayerWith, canAttackWith, otherSeat } from "../../boardModel";
-import type { LogLine } from "@/game/log/LogEntry";
+import type { LogEntry, LogLine } from "@/game/log/LogEntry";
+import { useUnreadLogCount } from "@/game/log/useUnreadLogCount";
 import { intents } from "../../../net/intents";
 import { EndTurnDialog } from "./EndTurnDialog";
 import { useEndTurnConfirmation } from "../hooks/useEndTurnConfirmation";
@@ -130,6 +131,7 @@ export interface BoardReadouts {
   displayedTurnSeat: Seat;
   displayedTurnCount: number;
   log: LogLine[];
+  logEntries: readonly LogEntry[];
 }
 
 /** What the board lights, outlines or points at while a choice is open. */
@@ -285,6 +287,7 @@ export function BoardStage({
   const other = otherSeat(viewerSeat);
   const [chatOpen, setChatOpen] = useState(false);
   const chatUnread = useUnreadChatCount(chat?.entries, chatOpen);
+  const logUnread = useUnreadLogCount({ entries: readouts.logEntries, open: overlays.historyOpen });
   const endTurnConfirmation = useEndTurnConfirmation({
     phase: displayPhase,
     turnCount: state.turnCount,
@@ -532,6 +535,7 @@ export function BoardStage({
             onToggleChat={chat ? () => setChatOpen((open) => !open) : undefined}
             chatOpen={chatOpen}
             chatUnread={chatUnread}
+            logUnread={logUnread}
             gameOver={state.gameOver}
             onSurrender={
               spectating || state.gameOver ? () => onLeaveSpectator?.() : () => overlays.setSurrenderConfirmOpen(true)

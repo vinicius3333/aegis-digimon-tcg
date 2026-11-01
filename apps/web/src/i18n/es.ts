@@ -978,6 +978,7 @@ export const es: Record<keyof typeof en, string> = {
   "game.dragIntent.use": "USAR",
   "game.dragIntent.attack": "ATACAR",
   "game.matchLog": "Registro de la partida",
+  "game.matchLogUnread": "Registro de la partida, {count} nuevas",
   "game.fullscreen.enter": "Pantalla completa",
   "game.fullscreen.exit": "Salir de pantalla completa",
   "game.skipPresentation": "Omitir animaciones",

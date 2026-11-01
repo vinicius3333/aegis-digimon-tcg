@@ -1136,6 +1136,7 @@ const interfaceMessages = {
   "game.dragIntent.use": "USA",
   "game.dragIntent.attack": "ATTACCA",
   "game.matchLog": "Registro della partita",
+  "game.matchLogUnread": "Registro della partita, {count} nuove",
   "game.fullscreen.enter": "Schermo intero",
   "game.fullscreen.exit": "Esci dallo schermo intero",
   "game.skipPresentation": "Salta le animazioni",

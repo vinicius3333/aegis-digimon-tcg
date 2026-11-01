@@ -987,6 +987,7 @@ export const en = {
   "game.dragIntent.use": "USE",
   "game.dragIntent.attack": "ATTACK",
   "game.matchLog": "Match log",
+  "game.matchLogUnread": "Match log, {count} new",
   "game.fullscreen.enter": "Full screen",
   "game.fullscreen.exit": "Exit full screen",
   "game.skipPresentation": "Skip animations",

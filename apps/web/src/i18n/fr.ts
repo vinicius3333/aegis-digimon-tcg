@@ -1263,6 +1263,7 @@ const interfaceMessages = {
   "game.dragIntent.use": "UTILISER",
   "game.dragIntent.attack": "ATTAQUE",
   "game.matchLog": "Journal du match",
+  "game.matchLogUnread": "Journal du match, {count} nouvelle(s)",
   "game.fullscreen.enter": "Plein écran",
   "game.fullscreen.exit": "Quitter le plein écran",
   "game.skipPresentation": "Passer les animations",
