@@ -317,3 +317,15 @@ Compared with the reviewed catalog after BanchoLeomon (`1d88003359`), no card is
 Re-running the three absence searches (`DNA digivolv`, `app fus`, `burst digivolv`) over the effect fields returns the same card sets as the reviewed catalog (134, 38 and 7 cards). No change introduces a provider or a new recipient zone, so the 22 covered cells, eight reviewed provider absences, candidate lists, scenario evidence and rule-source fingerprint remain applicable.
 
 After this bounded review, the catalog fingerprint changes from `ba3ccd7642198d024e5dd17b79b88ef480eaa434809d5e269ca929374aec7199` to `66359d05278a5f652017fb71f9ebb1e1caa250e5f44d105386a2de7510c0a1d3`. Catalog drift remains an error; no validator or test expectation is weakened.
+
+### Catalog review after Spencer and Kurata's Army cards (2026-11-01)
+
+Compared with the reviewed catalog after the bracket corrections (`373533af17`), this branch adds three cards. Existing card records are unchanged.
+
+- BT27-090 Spencer Damon places itself under a played Digimon and grants protection. It plays and digivolves nothing.
+- BT27-092 Nanami, Kouki, & Ivan lets this Tamer digivolve into a Kurata's Army Digimon from the hand or trash through that card's printed requirement. Hand and trash recipients are already covered cells.
+- BT27-102 Bio Hybrid Digivolution plays a Tamer from the hand or trash, and its Delay lets a Tamer digivolve from the hand or trash without paying the cost. Its Security effect plays a card from the hand or trash. None of these routes reads from security or a revealed deck.
+
+Re-running the three absence searches (`DNA digivolv`, `app fus`, `burst digivolv`) over the effect fields returns the same counts as the reviewed catalog (134, 38 and 7 cards). No new card provides DNA, App Fusion, Burst, or a security or deck-reveal recipient, so the 22 covered cells, eight reviewed provider absences, candidate lists, scenario evidence and rule-source fingerprint remain applicable.
+
+After this bounded review, the catalog fingerprint changes from `66359d05278a5f652017fb71f9ebb1e1caa250e5f44d105386a2de7510c0a1d3` to `af81130a84a6fec753e17a6b92dfe531029233ee13399a430a1583529b45c995`. Catalog drift remains an error; no validator or test expectation is weakened.
