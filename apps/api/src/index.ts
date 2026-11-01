@@ -3,6 +3,9 @@ import { createTournamentResultSweep } from "#api/tournaments/results/createTour
 import { createTournamentCircuitSweep } from "#api/tournaments/circuits/createTournamentCircuitSweep";
 import { startRankedMaintenance } from "#api/ranked/startRankedMaintenance";
 import { installQuickMatchPreference } from "#api/rooms/installQuickMatchPreference";
+import { installMatchQueueRoutes } from "#api/matchmaking/installMatchQueueRoutes";
+import { countRankedSearchers } from "#api/ranked/countRankedSearchers";
+import { getRankedConfig } from "#api/ranked/getRankedConfig";
 import { DirectMessageStore } from "#api/messages/DirectMessageStore";
 import { socialRuntime } from "#api/social/socialRuntime";
 import { SocialService } from "#api/social/SocialService";
@@ -198,6 +201,12 @@ installBotRoutes(app);
 installPrivateRoomRoutes(app);
 
 installSpectatorRoutes(app);
+
+installMatchQueueRoutes({
+  app,
+  countRankedSearchers: async () =>
+    getRankedConfig().enabled ? countRankedSearchers({ accounts: accountStore, slot: configuredSlot }) : [],
+});
 app.use(handleGameRequestError);
 
 const httpServer = createServer(app);

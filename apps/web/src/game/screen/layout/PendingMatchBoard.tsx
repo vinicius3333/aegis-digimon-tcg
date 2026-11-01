@@ -4,7 +4,7 @@
    The private host gets an invite panel beside the wait: a copyable link, the native
    share sheet where the browser offers one, and the room code as letter tiles. */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Button } from "../../../design/primitives";
 import { Icons } from "../../../design/icons";
 import { useTranslation } from "../../../i18n";
@@ -22,6 +22,7 @@ export function PendingMatchBoard({
   roomCode,
   guestRequest,
   onAnswerGuest,
+  status,
   onAction,
   onCancel,
 }: {
@@ -34,6 +35,7 @@ export function PendingMatchBoard({
   roomCode?: string;
   guestRequest?: GuestApprovalRequest;
   onAnswerGuest?: (accept: boolean) => void;
+  status?: ReactNode;
   onAction?: () => void;
   /** Leaves the wait without an opponent, offered while the private host is inviting. */
   onCancel?: () => void;
@@ -48,6 +50,7 @@ export function PendingMatchBoard({
         detail={detail}
         actionLabel={actionLabel}
         onAction={onAction}
+        status={status}
         aside={getAside({ roomCode, guestRequest, onAnswerGuest })}
         cancelLabel={cancellable && onCancel ? t("game.cancelInvite") : undefined}
         onCancel={cancellable ? onCancel : undefined}

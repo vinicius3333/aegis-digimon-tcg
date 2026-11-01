@@ -1,5 +1,6 @@
 import { tournamentCircuitsPtBR } from "@/i18n/tournamentCircuits.pt-BR";
 import { tournamentOfficialRequestPtBR } from "@/i18n/tournamentOfficialRequest.pt-BR";
+import { matchQueuePtBR } from "@/i18n/matchQueue.pt-BR";
 import { staffRolesPtBR } from "@/i18n/staffRoles.pt-BR";
 import { tournamentDetailPtBR } from "@/i18n/tournamentDetail.pt-BR";
 import { tournamentSpectatorsPtBR } from "@/i18n/tournamentSpectators.pt-BR";
@@ -658,6 +659,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "library.sort.type": "Ordenar: Tipo",
   "library.sort.cardNumber": "Ordenar: Número da carta",
   "library.sort.random": "Ordenar: Aleatório",
+  "library.keywords": "Palavras-chave",
   "library.traitAttribute": "Traço / atributo",
   "library.traitAttributePlaceholder": "Buscar traços ou atributos…",
   "library.set": "Set",
@@ -675,6 +677,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "library.rowRarity": "Raridade",
   "library.mainEffect": "Efeito principal",
   "library.inheritedEffect": "Herdado (ESS)",
+  "library.linkEffect": "Efeito de Link",
   "library.securityEffect": "Efeito de segurança",
   "library.kind.Digimon": "Digimon",
   "library.kind.DigiEgg": "Digi-Egg",
@@ -795,7 +798,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.moveEffectPrompt": "Mover painel de efeito",
   "overlay.moveEffectPromptHelp": "Arraste para mover ou use as setas. Pressione Home para restaurar a posição.",
   "settings.effectPromptPosition": "Posição dos efeitos",
-  "settings.effectPromptPositionDesc": "Escolha onde aparecem as perguntas de ativação. Os alvos continuam no campo.",
+  "settings.effectPromptPositionDesc":
+    "Escolha onde aparecem as perguntas de ativação e confirmação. Os alvos continuam no campo.",
   "settings.effectPromptCenter": "Centro",
   "settings.effectPromptLeft": "Canto inferior esquerdo (padrão)",
   "settings.effectSpeed": "Velocidade dos efeitos",
@@ -848,7 +852,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "settings.communityDesc": "Novidades, partidas e papo de deck no nosso servidor do Discord.",
   "settings.joinDiscord": "Entrar no Discord",
   "settings.language": "Idioma",
-  "settings.languageDesc": "Idioma da interface. Nomes e textos das cartas continuam em inglês.",
+  "settings.languageDesc":
+    "Idioma da interface. Em japonês, coreano e chinês simplificado, nomes e textos das cartas usam a tradução oficial quando ela existe. Nos outros idiomas, e em cartas sem tradução, continuam em inglês. As imagens das cartas seguem a configuração Idioma das imagens das cartas.",
 
   "game.reconnecting": "Reconectando…",
   "game.reconnectingDetail": "A conexão caiu. Tentando retomar sua partida.",
@@ -1006,6 +1011,15 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.dragIntent.use": "USAR",
   "game.dragIntent.attack": "ATACAR",
   "game.matchLog": "Registro da partida",
+  "game.matchLogUnread": "Registro da partida, {count} novas",
+  "game.matchLogExpand": "Expandir registro da partida",
+  "game.matchLogDrag": "Arraste para mover",
+  "settings.matchLogDisplay": "Exibição do registro da partida",
+  "settings.matchLogDisplayDesc":
+    "Escolha como a partida mostra o que aconteceu: popups curtos sobre o tabuleiro, um registro fixo na borda do tabuleiro ou ambos. No celular, os popups continuam e o registro fica no botão.",
+  "settings.matchLogDisplayPopups": "Popups",
+  "settings.matchLogDisplayPanel": "Registro fixo",
+  "settings.matchLogDisplayBoth": "Ambos",
   "game.fullscreen.enter": "Tela cheia",
   "game.fullscreen.exit": "Sair da tela cheia",
   "game.skipPresentation": "Pular animações",
@@ -2131,6 +2145,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   ...tournamentSpectatorsPtBR,
   ...tournamentCircuitsPtBR,
   ...tournamentOfficialRequestPtBR,
+  ...matchQueuePtBR,
   ...staffRolesPtBR,
   ...achievementsPt,
   ...learnPtBR,

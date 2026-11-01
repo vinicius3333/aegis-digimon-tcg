@@ -1,5 +1,6 @@
 import { tournamentCircuitsId } from "@/i18n/tournamentCircuits.id";
 import { tournamentOfficialRequestId } from "@/i18n/tournamentOfficialRequest.id";
+import { matchQueueId } from "@/i18n/matchQueue.id";
 import { staffRolesId } from "@/i18n/staffRoles.id";
 import { tournamentDetailId } from "@/i18n/tournamentDetail.id";
 import { tournamentSpectatorsId } from "@/i18n/tournamentSpectators.id";
@@ -908,6 +909,7 @@ const interfaceMessages = {
   "library.sort.type": "Urutkan: Jenis",
   "library.sort.cardNumber": "Urutkan: Nomor Kartu",
   "library.sort.random": "Urutkan: Acak",
+  "library.keywords": "Kata kunci",
   "library.traitAttribute": "Trait / atribut",
   "library.traitAttributePlaceholder": "Cari trait atau atribut…",
   "library.set": "Set",
@@ -925,6 +927,7 @@ const interfaceMessages = {
   "library.rowRarity": "Kelangkaan",
   "library.mainEffect": "Efek utama",
   "library.inheritedEffect": "Inherited (ESS)",
+  "library.linkEffect": "Efek Link",
   "library.securityEffect": "Efek security",
   "library.kind.Digimon": "Digimon",
   "library.kind.DigiEgg": "Digi-Egg",
@@ -1046,7 +1049,8 @@ const interfaceMessages = {
   "overlay.moveEffectPromptHelp":
     "Seret untuk memindahkan, atau gunakan tombol panah. Tekan Home untuk mereset posisi.",
   "settings.effectPromptPosition": "Posisi prompt efek",
-  "settings.effectPromptPositionDesc": "Pilih tempat prompt aktivasi muncul. Target di field tetap berada di papan.",
+  "settings.effectPromptPositionDesc":
+    "Pilih tempat prompt aktivasi dan konfirmasi muncul. Target di field tetap berada di papan.",
   "settings.effectPromptCenter": "Tengah",
   "settings.effectPromptLeft": "Kiri bawah (default)",
   "settings.effectSpeed": "Kecepatan efek",
@@ -1098,7 +1102,8 @@ const interfaceMessages = {
   "settings.communityDesc": "Berita, cari lawan, dan diskusi deck di server Discord kami.",
   "settings.joinDiscord": "Gabung ke Discord",
   "settings.language": "Bahasa",
-  "settings.languageDesc": "Bahasa antarmuka. Nama kartu dan teks kartu tetap dalam bahasa Inggris.",
+  "settings.languageDesc":
+    "Bahasa antarmuka. Dalam bahasa Jepang, Korea, dan Mandarin Sederhana, nama dan teks kartu memakai terjemahan resmi jika tersedia. Dalam bahasa lain, dan untuk kartu tanpa terjemahan, keduanya tetap dalam bahasa Inggris. Gambar kartu mengikuti pengaturan Bahasa gambar kartu.",
   "game.reconnecting": "Menghubungkan kembali…",
   "game.reconnectingDetail": "Koneksi terputus. Mencoba melanjutkan pertandingan Anda.",
   "game.connectionLost": "Koneksi terputus",
@@ -1258,6 +1263,15 @@ const interfaceMessages = {
   "game.dragIntent.use": "GUNAKAN",
   "game.dragIntent.attack": "SERANG",
   "game.matchLog": "Log pertandingan",
+  "game.matchLogUnread": "Log pertandingan, {count} baru",
+  "game.matchLogExpand": "Perbesar log pertandingan",
+  "game.matchLogDrag": "Seret untuk memindahkan",
+  "settings.matchLogDisplay": "Tampilan log pertandingan",
+  "settings.matchLogDisplayDesc":
+    "Pilih cara pertandingan menampilkan apa yang terjadi: popup singkat di atas papan, log tetap di tepi papan, atau keduanya. Di ponsel, popup tetap tampil dan log dibuka dari tombol.",
+  "settings.matchLogDisplayPopups": "Popup",
+  "settings.matchLogDisplayPanel": "Log tetap",
+  "settings.matchLogDisplayBoth": "Keduanya",
   "game.fullscreen.enter": "Layar penuh",
   "game.fullscreen.exit": "Keluar dari layar penuh",
   "game.skipPresentation": "Lewati animasi",
@@ -2846,6 +2860,7 @@ const interfaceMessages = {
   ...tournamentSpectatorsId,
   ...tournamentCircuitsId,
   ...tournamentOfficialRequestId,
+  ...matchQueueId,
   ...staffRolesId,
   ...achievementsId,
   "profile.filter.deck": "Deck",

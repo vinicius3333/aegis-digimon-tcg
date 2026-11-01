@@ -6,6 +6,7 @@ import { useFieldReferenceVisible } from "@/design/fieldReference/useFieldRefere
 import { useTranslation } from "@/i18n/useTranslation";
 import type { LogTurnGroup } from "@/game/log/LogEntry";
 import type { SeatNames } from "@/game/log/SeatNames";
+import type { SeatAvatars } from "@/game/log/SeatAvatars";
 import { filterMatchLog } from "@/game/log/filterMatchLog";
 import { PlayLogSearchField } from "@/game/log/PlayLogSearchField";
 import { PlayLogTurnGroup } from "@/game/log/PlayLogTurnGroup";
@@ -15,11 +16,12 @@ type Props = {
   turns: readonly LogTurnGroup[];
   viewerSeat?: Seat;
   playerNames: SeatNames;
+  playerAvatars?: SeatAvatars;
   onClose: () => void;
   onOpenCard?: (cardId: string) => void;
 };
 
-export function PlayLogSidebar({ turns, viewerSeat, playerNames, onClose, onOpenCard }: Props) {
+export function PlayLogSidebar({ turns, viewerSeat, playerNames, playerAvatars, onClose, onOpenCard }: Props) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const fieldReferenceVisible = useFieldReferenceVisible();
@@ -60,6 +62,7 @@ export function PlayLogSidebar({ turns, viewerSeat, playerNames, onClose, onOpen
             turn={turn}
             viewerSeat={viewerSeat}
             playerNames={playerNames}
+            playerAvatars={playerAvatars}
             highlight={query}
             onOpenCard={onOpenCard}
           />

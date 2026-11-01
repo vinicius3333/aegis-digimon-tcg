@@ -1,5 +1,6 @@
 import { tournamentCircuitsEn } from "@/i18n/tournamentCircuits.en";
 import { tournamentOfficialRequestEn } from "@/i18n/tournamentOfficialRequest.en";
+import { matchQueueEn } from "@/i18n/matchQueue.en";
 import { staffRolesEn } from "@/i18n/staffRoles.en";
 import { tournamentDetailEn } from "@/i18n/tournamentDetail.en";
 import { tournamentSpectatorsEn } from "@/i18n/tournamentSpectators.en";
@@ -655,6 +656,7 @@ export const en = {
   "library.sort.type": "Sort: Type",
   "library.sort.cardNumber": "Sort: Card Number",
   "library.sort.random": "Sort: Random",
+  "library.keywords": "Keywords",
   "library.traitAttribute": "Trait / attribute",
   "library.traitAttributePlaceholder": "Search traits or attributes…",
   "library.set": "Set",
@@ -672,6 +674,7 @@ export const en = {
   "library.rowRarity": "Rarity",
   "library.mainEffect": "Main effect",
   "library.inheritedEffect": "Inherited (ESS)",
+  "library.linkEffect": "Link effect",
   "library.securityEffect": "Security effect",
   "library.kind.Digimon": "Digimon",
   "library.kind.DigiEgg": "Digi-Egg",
@@ -793,7 +796,8 @@ export const en = {
   "overlay.moveEffectPrompt": "Move effect prompt",
   "overlay.moveEffectPromptHelp": "Drag to move, or use the arrow keys. Press Home to reset the position.",
   "settings.effectPromptPosition": "Effect prompt position",
-  "settings.effectPromptPositionDesc": "Choose where activation prompts appear. Field targets stay on the board.",
+  "settings.effectPromptPositionDesc":
+    "Choose where activation and confirmation prompts appear. Field targets stay on the board.",
   "settings.effectPromptCenter": "Center",
   "settings.effectPromptLeft": "Lower left (default)",
   "settings.effectSpeed": "Effect speed",
@@ -845,7 +849,8 @@ export const en = {
   "settings.communityDesc": "News, matchmaking and deck talk on our Discord server.",
   "settings.joinDiscord": "Join Discord",
   "settings.language": "Language",
-  "settings.languageDesc": "Interface language. Card names and card text stay in English.",
+  "settings.languageDesc":
+    "Interface language. In Japanese, Korean and Simplified Chinese, card names and text use the official translation where one exists. In other languages, and for cards without a translation, they stay in English. Card images follow the card image language setting.",
 
   "game.reconnecting": "Reconnecting…",
   "game.reconnectingDetail": "The connection dropped. Trying to resume your match.",
@@ -1002,6 +1007,15 @@ export const en = {
   "game.dragIntent.use": "USE",
   "game.dragIntent.attack": "ATTACK",
   "game.matchLog": "Match log",
+  "game.matchLogUnread": "Match log, {count} new",
+  "game.matchLogExpand": "Expand match log",
+  "game.matchLogDrag": "Drag to move",
+  "settings.matchLogDisplay": "Match log display",
+  "settings.matchLogDisplayDesc":
+    "Choose how the match shows what happened: short popups over the board, a fixed log at the board's edge, or both. Phones keep the popups and use the log button.",
+  "settings.matchLogDisplayPopups": "Popups",
+  "settings.matchLogDisplayPanel": "Fixed log",
+  "settings.matchLogDisplayBoth": "Both",
   "game.fullscreen.enter": "Full screen",
   "game.fullscreen.exit": "Exit full screen",
   "game.skipPresentation": "Skip animations",
@@ -2117,6 +2131,7 @@ export const en = {
   ...tournamentSpectatorsEn,
   ...tournamentCircuitsEn,
   ...tournamentOfficialRequestEn,
+  ...matchQueueEn,
   ...staffRolesEn,
   ...achievementsEn,
   ...learnEn,

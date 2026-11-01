@@ -1,5 +1,6 @@
 import { tournamentCircuitsIt } from "@/i18n/tournamentCircuits.it";
 import { tournamentOfficialRequestIt } from "@/i18n/tournamentOfficialRequest.it";
+import { matchQueueIt } from "@/i18n/matchQueue.it";
 import { staffRolesIt } from "@/i18n/staffRoles.it";
 import { tournamentDetailIt } from "@/i18n/tournamentDetail.it";
 import { tournamentSpectatorsIt } from "@/i18n/tournamentSpectators.it";
@@ -801,6 +802,7 @@ const interfaceMessages = {
   "library.sort.type": "Ordine: tipo",
   "library.sort.cardNumber": "Ordine: numero della carta",
   "library.sort.random": "Ordine: casuale",
+  "library.keywords": "Parole chiave",
   "library.traitAttribute": "Tratto / attributo",
   "library.traitAttributePlaceholder": "Cerca tratti o attributi…",
   "library.set": "Espansione",
@@ -818,6 +820,7 @@ const interfaceMessages = {
   "library.rowRarity": "Rarità",
   "library.mainEffect": "Effetto principale",
   "library.inheritedEffect": "Effetto ereditato (ESS)",
+  "library.linkEffect": "Effetto Link",
   "library.securityEffect": "Effetto di sicurezza",
   "library.kind.Digimon": "Digimon",
   "library.kind.DigiEgg": "Digi-Egg",
@@ -939,7 +942,7 @@ const interfaceMessages = {
   "overlay.moveEffectPromptHelp": "Trascina per spostare o usa le frecce. Premi Home per ripristinare la posizione.",
   "settings.effectPromptPosition": "Posizione degli effetti",
   "settings.effectPromptPositionDesc":
-    "Scegli dove visualizzare le richieste di attivazione. I bersagli restano sul campo.",
+    "Scegli dove visualizzare le richieste di attivazione e conferma. I bersagli restano sul campo.",
   "settings.effectPromptCenter": "Centro",
   "settings.effectPromptLeft": "Angolo inferiore sinistro (predefinito)",
   "settings.effectSpeed": "Velocità degli effetti",
@@ -992,7 +995,8 @@ const interfaceMessages = {
   "settings.communityDesc": "Notizie, ricerca di avversari e discussioni sui mazzi sul nostro server Discord.",
   "settings.joinDiscord": "Entra su Discord",
   "settings.language": "Lingua",
-  "settings.languageDesc": "Lingua dell'interfaccia. Nomi e testo delle carte rimangono in inglese.",
+  "settings.languageDesc":
+    "Lingua dell'interfaccia. In giapponese, coreano e cinese semplificato, nomi e testo delle carte usano la traduzione ufficiale quando esiste. Nelle altre lingue, e per le carte senza traduzione, rimangono in inglese. Le immagini delle carte seguono l'impostazione Lingua delle immagini delle carte.",
   "game.reconnecting": "Riconnessione…",
   "game.reconnectingDetail": "La connessione si è interrotta. Tentativo di riprendere la partita.",
   "game.connectionLost": "Connessione persa",
@@ -1151,6 +1155,15 @@ const interfaceMessages = {
   "game.dragIntent.use": "USA",
   "game.dragIntent.attack": "ATTACCA",
   "game.matchLog": "Registro della partita",
+  "game.matchLogUnread": "Registro della partita, {count} nuove",
+  "game.matchLogExpand": "Espandi registro della partita",
+  "game.matchLogDrag": "Trascina per spostare",
+  "settings.matchLogDisplay": "Visualizzazione del registro",
+  "settings.matchLogDisplayDesc":
+    "Scegli come la partita mostra cosa è successo: avvisi brevi sul tabellone, un registro fisso sul bordo del tabellone o entrambi. Sul telefono restano gli avvisi e il registro si apre dal pulsante.",
+  "settings.matchLogDisplayPopups": "Avvisi",
+  "settings.matchLogDisplayPanel": "Registro fisso",
+  "settings.matchLogDisplayBoth": "Entrambi",
   "game.fullscreen.enter": "Schermo intero",
   "game.fullscreen.exit": "Esci dallo schermo intero",
   "game.skipPresentation": "Salta le animazioni",
@@ -2597,6 +2610,7 @@ const interfaceMessages = {
   ...tournamentSpectatorsIt,
   ...tournamentCircuitsIt,
   ...tournamentOfficialRequestIt,
+  ...matchQueueIt,
   ...staffRolesIt,
   ...achievementsIt,
 } satisfies Record<Exclude<keyof typeof en, `releases.${string}`>, string>;

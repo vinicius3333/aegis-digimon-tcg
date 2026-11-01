@@ -129,3 +129,20 @@ describe("private room guest approval notice", () => {
     });
   });
 });
+
+describe("queue activity on the waiting screen", () => {
+  it.each(["casual", "ranked", "unlimited", "beta"] as const)("marks the %s wait as a queue search", (startMode) => {
+    expect(getNotice({ status: "connected", startMode }).searchingQueue).toBe(true);
+  });
+
+  it("does not mark private, bot, tournament, seated or failed waits as queue searches", () => {
+    expect(getNotice({ status: "connected", startMode: "private_host" }).searchingQueue).toBeFalsy();
+    expect(getNotice({ status: "connected", startMode: "bot", vsBot: true }).searchingQueue).toBeFalsy();
+    expect(
+      getNotice({ status: "connected", joinOptions: { displayName: "Tamer", tournamentGameId: "game" } })
+        .searchingQueue,
+    ).toBeFalsy();
+    expect(getNotice({ status: "connected", hasOpponent: true }).searchingQueue).toBeFalsy();
+    expect(getNotice({ status: "error" }).searchingQueue).toBeFalsy();
+  });
+});
