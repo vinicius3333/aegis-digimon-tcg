@@ -776,6 +776,7 @@ const interfaceMessages = {
   "resumeMatch.title": "Votre partie est toujours en cours",
   "resumeMatch.copy": "Continuez-la ici. Votre autre appareil quitte la partie.",
   "resumeMatch.action": "Reprendre la partie",
+  "resumeMatch.graceLeft": "Place réservée pendant {time}",
   "resumeMatch.failed": "Impossible de transférer la partie sur cet appareil. Elle est peut-être terminée.",
   "home.footer.discord": "Communauté Discord",
   "home.footer.github": "GitHub",

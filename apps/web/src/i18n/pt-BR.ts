@@ -494,6 +494,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "resumeMatch.title": "Sua partida ainda está em andamento",
   "resumeMatch.copy": "Continue aqui. O outro aparelho sai da partida.",
   "resumeMatch.action": "Retomar partida",
+  "resumeMatch.graceLeft": "Lugar reservado por {time}",
   "resumeMatch.failed": "Não foi possível trazer a partida para este aparelho. Ela pode ter terminado.",
   "home.footer.discord": "Comunidade no Discord",
   "home.footer.github": "GitHub",

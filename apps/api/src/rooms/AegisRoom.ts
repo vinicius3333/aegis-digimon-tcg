@@ -2532,7 +2532,18 @@ export class AegisRoom extends Room<{
   findAccountSeat(accountId: string): ActiveMatch | null {
     const sessionId = this.findTransferableSession(accountId);
     const seat = sessionId === undefined ? undefined : this.seatByClient.get(sessionId);
-    return seat === undefined ? null : { roomId: this.roomId, seat };
+    if (sessionId === undefined || seat === undefined) {
+      return null;
+    }
+    const hold = this.heldReconnections.get(sessionId);
+    if (!hold) {
+      return { roomId: this.roomId, seat };
+    }
+    return {
+      roomId: this.roomId,
+      seat,
+      reconnectGraceMs: Math.max(0, hold.deadline.expiresAt - this.clock.currentTime),
+    };
   }
 
   async transferAccountSeat(accountId: string): Promise<ActiveMatchClaim | null> {

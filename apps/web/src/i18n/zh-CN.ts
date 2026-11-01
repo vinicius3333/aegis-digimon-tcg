@@ -723,6 +723,7 @@ const interfaceMessages = {
   "resumeMatch.title": "你的对战仍在进行",
   "resumeMatch.copy": "在这里继续。另一台设备将退出对战。",
   "resumeMatch.action": "继续对战",
+  "resumeMatch.graceLeft": "座位保留 {time}",
   "resumeMatch.failed": "无法将对战转到这台设备。对战可能已经结束。",
   "home.footer.discord": "Discord 社区",
   "home.footer.github": "GitHub",

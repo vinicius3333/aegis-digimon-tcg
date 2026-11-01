@@ -758,6 +758,7 @@ const interfaceMessages = {
   "resumeMatch.title": "대전이 아직 진행 중입니다",
   "resumeMatch.copy": "이 기기에서 이어서 진행하세요. 다른 기기는 대전에서 나갑니다.",
   "resumeMatch.action": "대전 재개",
+  "resumeMatch.graceLeft": "좌석 유지 {time} 남음",
   "resumeMatch.failed": "대전을 이 기기로 옮기지 못했습니다. 대전이 끝났을 수 있습니다.",
   "home.footer.discord": "Discord 커뮤니티",
   "home.footer.github": "GitHub",

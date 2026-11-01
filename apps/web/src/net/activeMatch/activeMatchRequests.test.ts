@@ -17,6 +17,21 @@ describe("active match requests", () => {
     });
   });
 
+  it("keeps the reconnect grace left on a dropped seat and ignores an invalid one", async () => {
+    const held = respond(200, { roomId: "room-1", seat: 1, reconnectGraceMs: 42_000 });
+    const invalid = respond(200, { roomId: "room-1", seat: 1, reconnectGraceMs: -5 });
+
+    expect(await requestActiveMatch({ http: "https://api.test", fetcher: held })).toEqual({
+      roomId: "room-1",
+      seat: 1,
+      reconnectGraceMs: 42_000,
+    });
+    expect(await requestActiveMatch({ http: "https://api.test", fetcher: invalid })).toEqual({
+      roomId: "room-1",
+      seat: 1,
+    });
+  });
+
   it.each([
     [404, { error: "not_found" }],
     [200, { roomId: "room-1", seat: 2 }],

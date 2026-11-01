@@ -171,6 +171,21 @@ describe("continuing a live match on another device", () => {
     expect(room.state.players[1]!.connected).toBe(true);
   });
 
+  it("reports how long a dropped seat stays held for reconnection", async () => {
+    const { room, owner } = createStartedMatch();
+    room.clients.splice(room.clients.indexOf(owner), 1);
+    void room.onLeave(owner, CloseCode.ABNORMAL_CLOSURE);
+    await flushPromises();
+
+    room.clock.currentTime += 15_000;
+
+    const held = room.findAccountSeat("account-b");
+    expect(held).toMatchObject({ roomId: room.roomId, seat: 1 });
+    expect(held?.reconnectGraceMs).toBeGreaterThan(44_000);
+    expect(held?.reconnectGraceMs).toBeLessThanOrEqual(45_000);
+    expect(room.findAccountSeat("account-a")).toEqual({ roomId: room.roomId, seat: 0 });
+  });
+
   it("never gives the opponent's account the other seat", async () => {
     const { room, owner, opponent } = createStartedMatch();
 

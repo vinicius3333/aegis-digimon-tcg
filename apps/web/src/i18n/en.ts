@@ -491,6 +491,7 @@ export const en = {
   "resumeMatch.title": "Your match is still in progress",
   "resumeMatch.copy": "Continue it here. Your other device leaves the match.",
   "resumeMatch.action": "Resume match",
+  "resumeMatch.graceLeft": "Seat held for {time}",
   "resumeMatch.failed": "We could not move the match to this device. It may have ended.",
   "home.footer.discord": "Discord community",
   "home.footer.github": "GitHub",

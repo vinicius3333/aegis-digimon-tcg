@@ -766,6 +766,7 @@ const interfaceMessages = {
   "resumeMatch.title": "対戦はまだ続いています",
   "resumeMatch.copy": "このデバイスで続行できます。もう一方のデバイスは対戦から退出します。",
   "resumeMatch.action": "対戦を再開",
+  "resumeMatch.graceLeft": "席の保持 残り {time}",
   "resumeMatch.failed": "対戦をこのデバイスに移せませんでした。対戦が終了した可能性があります。",
   "home.footer.discord": "Discordコミュニティ",
   "home.footer.github": "GitHub",

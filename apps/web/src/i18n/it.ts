@@ -656,6 +656,7 @@ const interfaceMessages = {
   "resumeMatch.title": "La tua partita è ancora in corso",
   "resumeMatch.copy": "Continuala qui. L'altro dispositivo esce dalla partita.",
   "resumeMatch.action": "Riprendi partita",
+  "resumeMatch.graceLeft": "Posto riservato per {time}",
   "resumeMatch.failed": "Non è stato possibile spostare la partita su questo dispositivo. Potrebbe essere terminata.",
   "home.footer.discord": "Community Discord",
   "home.footer.github": "GitHub",

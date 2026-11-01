@@ -835,6 +835,17 @@
   color: var(--ds-text-3);
 }
 
+.home-resume-match__grace {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  color: var(--ds-text-2);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 @media (max-width: 559px) {
   .home-resume-match {
     display: grid;
@@ -852,6 +863,7 @@
     margin-top: 6px;
   }
 
+  .home-resume-match__grace,
   .home-resume-match > button {
     grid-column: 2;
     justify-self: start;

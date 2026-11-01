@@ -14,9 +14,12 @@ export async function requestActiveMatch({ http, fetcher }: Params): Promise<Act
   if (typeof body !== "object" || body === null) {
     return undefined;
   }
-  const { roomId, seat } = body as Partial<ActiveMatch>;
+  const { roomId, seat, reconnectGraceMs } = body as Partial<ActiveMatch>;
   if (typeof roomId !== "string" || !roomId || (seat !== 0 && seat !== 1)) {
     return undefined;
   }
-  return { roomId, seat };
+  if (typeof reconnectGraceMs !== "number" || !Number.isFinite(reconnectGraceMs) || reconnectGraceMs < 0) {
+    return { roomId, seat };
+  }
+  return { roomId, seat, reconnectGraceMs };
 }

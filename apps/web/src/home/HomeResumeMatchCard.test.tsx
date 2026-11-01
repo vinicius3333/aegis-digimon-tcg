@@ -55,6 +55,21 @@ describe("resuming a live match from another device", () => {
     expect(loadReconnectSession()).toMatchObject({ reconnectionToken: "room-1:fresh-token", roomId: "room-1" });
   });
 
+  it("counts down the time the dropped seat stays held", async () => {
+    findActiveMatch.mockResolvedValue({ ...match, reconnectGraceMs: 42_000 });
+    renderCard();
+
+    expect((await screen.findByRole("timer")).textContent).toBe("Seat held for 0:42");
+  });
+
+  it("shows no countdown while the other device is still connected", async () => {
+    findActiveMatch.mockResolvedValue(match);
+    renderCard();
+
+    await screen.findByRole("button", { name: "Resume match" });
+    expect(screen.queryByRole("timer")).toBeNull();
+  });
+
   it("shows nothing when the account has no live match", async () => {
     findActiveMatch.mockResolvedValue(undefined);
     renderCard();
