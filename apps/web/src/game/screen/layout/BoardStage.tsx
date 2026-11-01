@@ -38,6 +38,7 @@ import { MatchChatWindow } from "../../chat/MatchChatWindow";
 import type { MatchChat } from "../../chat/useMatchChat";
 import { useUnreadChatCount } from "../../chat/useUnreadChatCount";
 import type { ArenaBoardLook } from "../../arenaLook";
+import type { HandSortDirection } from "@/game/HandSortDirection";
 import type { HandSortMode } from "../../handSortMode";
 import { createPortal } from "react-dom";
 import type { GameState, Permanent, PlayerState, Seat } from "@aegis/shared";
@@ -174,7 +175,8 @@ export interface HandDockInputs {
   reorderDropBeforeInstanceId?: string | null;
   onMoveHandCard: (instanceId: string, direction: -1 | 1) => void;
   handSortMode: HandSortMode;
-  onSortHand: (mode: HandSortMode) => void;
+  handSortDirection: HandSortDirection;
+  onSortHand: (mode: HandSortMode, direction: HandSortDirection) => void;
   effectSourceInstanceId: string | undefined;
   effectSource?: EffectActivation;
   effectSourceMarks?: ReadonlyMap<string, EffectSourceMark>;
@@ -797,6 +799,7 @@ export function BoardStage({
           <PlayerDock
             spectating={spectating}
             handSortMode={handDock.handSortMode}
+            handSortDirection={handDock.handSortDirection}
             showRecordedHand={replayMode && seats.shownHandEntries.length > 0}
             onSortHand={handDock.onSortHand}
             onMoveHandCard={handDock.onMoveHandCard}

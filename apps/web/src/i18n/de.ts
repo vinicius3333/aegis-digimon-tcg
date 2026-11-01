@@ -624,6 +624,10 @@ const interfaceMessages = {
   "game.handSort.cost": "Nach Kosten",
   "game.handSort.color": "Nach Farbe",
   "game.handSort.choose": "Sortierung wählen",
+  "game.handSort.ascending": "Aufsteigend",
+  "game.handSort.descending": "Absteigend",
+  "game.handSort.orderGroup": "Sortieren nach",
+  "game.handSort.directionGroup": "Richtung",
   "settings.sortHand": "Hand sortieren",
   "settings.sortHandDesc":
     "Sortiert die aktuelle Hand in der gewählten Reihenfolge. Neu gezogene Karten bleiben am Ende, bis Sie erneut sortieren.",

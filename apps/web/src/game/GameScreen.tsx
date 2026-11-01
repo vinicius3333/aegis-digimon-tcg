@@ -80,6 +80,8 @@ import { clientErrorReporter } from "@/clientErrors/clientErrorReporter";
 import { ClientErrorKind } from "@aegis/shared/clientErrors/ClientErrorKind";
 import { useHandAutoSort } from "./handAutoSort";
 import { setHandSortMode, useHandSortMode, type HandSortMode } from "./handSortMode";
+import type { HandSortDirection } from "@/game/HandSortDirection";
+import { setHandSortDirection, useHandSortDirection } from "@/game/handSortDirectionPreference";
 import { dnaFieldChoice, dnaMaterialPicks, toggleDnaMaterial } from "./screen/model/dnaMaterialSelection";
 import { presentedSeats } from "./screen/model/presentedSeats";
 import { visibleBoard } from "./screen/model/visibleBoard";
@@ -927,14 +929,17 @@ function GameScreenSession({
   const presentedHandKey = presentedHand?.map((card) => `${card.instanceId}\u0001${card.cardId}`).join("\0");
   const handAutoSort = useHandAutoSort();
   const handSortMode = useHandSortMode();
+  const handSortDirection = useHandSortDirection();
   useEffect(() => {
     if (presentedHandKey === undefined) return;
     const hand = presentedHandKey.split("\0").map((card) => {
       const [instanceId = "", cardId = ""] = card.split("\u0001");
       return { instanceId, cardId };
     });
-    setHandOrder((order) => (handAutoSort ? sortedHandInstanceIds(hand, handSortMode) : retainHandOrder(order, hand)));
-  }, [presentedHandKey, handAutoSort, handSortMode]);
+    setHandOrder((order) =>
+      handAutoSort ? sortedHandInstanceIds(hand, handSortMode, handSortDirection) : retainHandOrder(order, hand),
+    );
+  }, [presentedHandKey, handAutoSort, handSortMode, handSortDirection]);
 
   const instanceIndex = state ? buildInstanceIndex(state, viewerSeat) : new Map<string, string>();
   const playerName0 = state?.players[0]?.displayName;
@@ -1939,9 +1944,11 @@ function GameScreenSession({
       }}
       handDock={{
         handSortMode,
-        onSortHand: (mode: HandSortMode) => {
+        handSortDirection,
+        onSortHand: (mode: HandSortMode, direction: HandSortDirection) => {
           setHandSortMode(mode);
-          setHandOrder(sortedHandInstanceIds(shownHandEntries, mode));
+          setHandSortDirection(direction);
+          setHandOrder(sortedHandInstanceIds(shownHandEntries, mode, direction));
         },
         reorderDropBeforeInstanceId: hoveredDragIntent === "reorder" ? (dragHover?.id ?? null) : undefined,
         onMoveHandCard: (instanceId, direction) => {

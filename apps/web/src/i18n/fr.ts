@@ -620,6 +620,10 @@ const interfaceMessages = {
   "game.handSort.cost": "Par coût",
   "game.handSort.color": "Par couleur",
   "game.handSort.choose": "Choisissez l'ordre de tri",
+  "game.handSort.ascending": "Croissant",
+  "game.handSort.descending": "Décroissant",
+  "game.handSort.orderGroup": "Trier par",
+  "game.handSort.directionGroup": "Sens",
   "settings.sortHand": "Trier la main",
   "settings.sortHandDesc":
     "Trie la main actuelle dans l’ordre choisi. Les cartes piochées ensuite restent à la fin jusqu'au prochain tri.",
