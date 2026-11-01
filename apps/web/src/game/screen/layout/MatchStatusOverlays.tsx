@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { BugReportDialog } from "../../../bugs/BugReportDialog";
 import { PlayLogSidebar } from "@/game/log/PlayLogSidebar";
 import { CardZoomOverlay, GameOverOverlay, OpponentDroppedOverlay } from "../../overlay";
-import type { SeriesResultProps } from "../../overlay/match/GameOverOverlay";
+import type { PostGameChat, SeriesResultProps } from "../../overlay/match/GameOverOverlay";
 import type { RematchProps } from "@/game/overlay/match/RematchPanel";
 import type { LogTurnGroup } from "@/game/log/LogEntry";
 import type { SeatNames } from "@/game/log/SeatNames";
@@ -72,6 +72,7 @@ export function MatchStatusOverlays({
         series?: SeriesResultProps;
         rematch?: RematchProps;
         friendMatchId?: string;
+        chat?: PostGameChat;
       })
     | undefined;
   onCloseHistory: () => void;
@@ -134,6 +135,7 @@ export function MatchStatusOverlays({
           series={gameOver.series}
           rematch={gameOver.rematch}
           friendMatchId={gameOver.friendMatchId}
+          chat={gameOver.chat}
         />
       ) : null}
     </>
