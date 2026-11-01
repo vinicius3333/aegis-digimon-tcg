@@ -1,7 +1,18 @@
+import { fileURLToPath } from "node:url";
 import { expect, it, vi } from "vitest";
 import { evolutionDeck } from "./decks.js";
 import { runResidualMatch } from "./residualMatch.js";
 import { SEED_RESIDUAL } from "./residualPolicy.js";
+
+const workspaceRoot = fileURLToPath(new URL("../../../../../", import.meta.url));
+const testFile = fileURLToPath(import.meta.url);
+
+function isApplicationCall(stack: string): boolean {
+  return stack
+    .split("\n")
+    .slice(1)
+    .some((frame) => frame.includes(workspaceRoot) && !frame.includes("/node_modules/") && !frame.includes(testFile));
+}
 
 it("keeps client projections valid when Ulforce returns a just-evolved top card before the next patch", async () => {
   const decks = [
@@ -41,7 +52,12 @@ it("replays effect-driven security shuffles from the match seed without ambient 
     evolutionDeck("bt5-lordknightmon").deck,
     evolutionDeck("bt24-dgo-2026-02-14-13-jupitermon").deck,
   ] as const;
+  const ambientRandom = Math.random;
+  const escapedCalls: string[] = [];
   const ambient = vi.spyOn(Math, "random").mockImplementation(() => {
+    const stack = new Error().stack ?? "";
+    if (!isApplicationCall(stack)) return ambientRandom();
+    escapedCalls.push(stack);
     throw new Error("Match escaped its seeded random stream");
   });
   try {
@@ -58,7 +74,7 @@ it("replays effect-driven security shuffles from the match seed without ambient 
       expect(result.turnCount).toBe(results[0]!.turnCount);
       expect(result.events).toEqual(results[0]!.events);
     }
-    expect(ambient).not.toHaveBeenCalled();
+    expect(escapedCalls).toEqual([]);
   } finally {
     ambient.mockRestore();
   }
