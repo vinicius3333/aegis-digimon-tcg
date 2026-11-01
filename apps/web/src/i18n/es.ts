@@ -665,6 +665,7 @@ export const es: Record<keyof typeof en, string> = {
   "library.rowRarity": "Rareza",
   "library.mainEffect": "Efecto principal",
   "library.inheritedEffect": "Heredado (ESS)",
+  "library.linkEffect": "Efecto de Link",
   "library.securityEffect": "Efecto de seguridad",
   "library.kind.Digimon": "Digimon",
   "library.kind.DigiEgg": "Digi-Egg",

@@ -925,6 +925,7 @@ const interfaceMessages = {
   "library.rowRarity": "Kelangkaan",
   "library.mainEffect": "Efek utama",
   "library.inheritedEffect": "Inherited (ESS)",
+  "library.linkEffect": "Efek Link",
   "library.securityEffect": "Efek security",
   "library.kind.Digimon": "Digimon",
   "library.kind.DigiEgg": "Digi-Egg",
