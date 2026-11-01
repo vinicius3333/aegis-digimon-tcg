@@ -1582,6 +1582,7 @@ const interfaceMessages = {
   "overlay.dpBudget": "DP total : {selected} / {max}",
   "overlay.card": "Carte",
   "overlay.pendingEffect": "Effet en attente",
+  "overlay.oncePerTurnUsed": "Utilisé ce tour",
   "overlay.cardCopy": "exemplaire {index} sur {total}",
   "overlay.yourSecurity": "Votre sécurité",
   "overlay.opponentSecurity": "Sécurité de l'adversaire",

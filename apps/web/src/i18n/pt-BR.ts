@@ -1311,6 +1311,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.dpBudget": "DP total: {selected} / {max}",
   "overlay.card": "Carta",
   "overlay.pendingEffect": "Efeito pendente",
+  "overlay.oncePerTurnUsed": "Usado neste turno",
   "overlay.cardCopy": "cópia {index} de {total}",
   "overlay.yourSecurity": "Sua segurança",
   "overlay.opponentSecurity": "Segurança do oponente",

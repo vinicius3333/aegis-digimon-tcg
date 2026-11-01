@@ -1560,6 +1560,7 @@ const interfaceMessages = {
   "overlay.dpBudget": "Total DP: {selected} / {max}",
   "overlay.card": "Kartu",
   "overlay.pendingEffect": "Efek tertunda",
+  "overlay.oncePerTurnUsed": "Sudah dipakai giliran ini",
   "overlay.cardCopy": "salinan {index} dari {total}",
   "overlay.yourSecurity": "Security Anda",
   "overlay.opponentSecurity": "Security lawan",

@@ -52,6 +52,9 @@ export function ArenaInspectorSourceEffect({ card, onZoom, showThumbnail }: Para
           {card.cardId && !card.faceDown
             ? ` · ${t(card.role === "linked" ? "overlay.role.linked" : "overlay.role.inherited")}`
             : null}
+          {card.oncePerTurnUsed && card.cardId && !card.faceDown ? (
+            <span className="arena-permanent-inspector__used-effect">{t("overlay.oncePerTurnUsed")}</span>
+          ) : null}
         </span>
         {card.cardId && !card.faceDown ? (
           <p>

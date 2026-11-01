@@ -1554,6 +1554,7 @@ const interfaceMessages = {
   "overlay.dpBudget": "合計DP: {selected} / {max}",
   "overlay.card": "カード",
   "overlay.pendingEffect": "処理待ちの効果",
+  "overlay.oncePerTurnUsed": "このターン使用済み",
   "overlay.cardCopy": "{total}枚中{index}枚目",
   "overlay.yourSecurity": "あなたのセキュリティ",
   "overlay.opponentSecurity": "相手のセキュリティ",

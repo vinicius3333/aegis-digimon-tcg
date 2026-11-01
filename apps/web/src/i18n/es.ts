@@ -1293,6 +1293,7 @@ export const es: Record<keyof typeof en, string> = {
   "overlay.dpBudget": "DP total: {selected} / {max}",
   "overlay.card": "Carta",
   "overlay.pendingEffect": "Efecto pendiente",
+  "overlay.oncePerTurnUsed": "Usado este turno",
   "overlay.cardCopy": "copia {index} de {total}",
   "overlay.yourSecurity": "Tu seguridad",
   "overlay.opponentSecurity": "Seguridad del oponente",

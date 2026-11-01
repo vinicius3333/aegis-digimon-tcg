@@ -1305,6 +1305,7 @@ export const en = {
   "overlay.dpBudget": "Total DP: {selected} / {max}",
   "overlay.card": "Card",
   "overlay.pendingEffect": "Pending effect",
+  "overlay.oncePerTurnUsed": "Used this turn",
   "overlay.cardCopy": "copy {index} of {total}",
   "overlay.yourSecurity": "Your security",
   "overlay.opponentSecurity": "Opponent security",

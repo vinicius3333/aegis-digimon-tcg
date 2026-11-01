@@ -1487,6 +1487,7 @@ const interfaceMessages = {
   "overlay.dpBudget": "DP 合计：{selected} / {max}",
   "overlay.card": "卡牌",
   "overlay.pendingEffect": "待处理效果",
+  "overlay.oncePerTurnUsed": "本回合已使用",
   "overlay.cardCopy": "第 {index} / {total} 张",
   "overlay.yourSecurity": "你的安防",
   "overlay.opponentSecurity": "对手的安防",

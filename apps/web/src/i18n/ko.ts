@@ -1540,6 +1540,7 @@ const interfaceMessages = {
   "overlay.dpBudget": "DP 합계: {selected} / {max}",
   "overlay.card": "카드",
   "overlay.pendingEffect": "대기 중인 효과",
+  "overlay.oncePerTurnUsed": "이번 턴 사용함",
   "overlay.cardCopy": "{total}장 중 {index}번째",
   "overlay.yourSecurity": "내 시큐리티",
   "overlay.opponentSecurity": "상대 시큐리티",
