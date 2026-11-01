@@ -26,6 +26,12 @@ import {
 } from "./deployment";
 import type { AegisJoinOptions } from "./types";
 import type { LiveMatchPage } from "@aegis/shared/protocol/LiveMatch";
+import {
+  MATCH_QUEUE_COUNTS_PATH,
+  type MatchQueueCount,
+  type MatchQueueCounts,
+} from "@aegis/shared/matchmaking/MatchQueueCounts";
+import { getMatchQueueKey } from "@aegis/shared/matchmaking/getMatchQueueKey";
 import { sortLiveMatches } from "@aegis/shared/protocol/sortLiveMatches";
 import type { ReconnectSession } from "./reconnectSession";
 import { hasRoomTicketAccount } from "./roomAccount";
@@ -239,6 +245,19 @@ export class AegisConnectionRouter {
       matches: sortLiveMatches(loaded.flatMap((page) => page.matches)).slice(0, limit),
       total: loaded.reduce((total, page) => total + page.total, 0),
     };
+  }
+
+  async matchQueueCounts(): Promise<MatchQueueCounts> {
+    const manifest = await this.dependencies.loadManifest();
+    const deployments = [manifest.active, ...manifest.draining];
+    const results = await Promise.allSettled(
+      deployments.map(({ slot }) =>
+        fetchMatchQueueCounts(this.dependencies.endpointForSlot(slot).http, this.dependencies.fetcher),
+      ),
+    );
+    const loaded = results.flatMap((result) => (result.status === "fulfilled" ? [result.value] : []));
+    if (loaded.length === 0) throw new Error("Queue counts are unavailable");
+    return sumMatchQueueCounts(loaded);
   }
 
   async reconnect(reconnectionToken: string, slot: DeploymentSlot): Promise<AegisRoom> {
@@ -589,6 +608,27 @@ async function fetchLiveMatches(http: string, limit: number, fetcher: typeof fet
   const response = await fetcher(`${http}/spectate/live?limit=${limit}`);
   if (!response.ok) throw new Error("Live matches are unavailable");
   return (await response.json()) as LiveMatchPage;
+}
+
+async function fetchMatchQueueCounts(http: string, fetcher: typeof fetch): Promise<MatchQueueCounts> {
+  const response = await fetcher(`${http}${MATCH_QUEUE_COUNTS_PATH}`);
+  if (!response.ok) throw new Error("Queue counts are unavailable");
+  return (await response.json()) as MatchQueueCounts;
+}
+
+function sumMatchQueueCounts(slots: MatchQueueCounts[]): MatchQueueCounts {
+  const buckets = new Map<string, MatchQueueCount>();
+  for (const bucket of slots.flatMap((slot) => slot.buckets)) {
+    const key = getMatchQueueKey(bucket);
+    const existing = buckets.get(key);
+    buckets.set(key, existing ? { ...existing, searching: existing.searching + bucket.searching } : bucket);
+  }
+  return { buckets: [...buckets.values()] };
+}
+
+export async function matchQueueCounts(): Promise<MatchQueueCounts> {
+  if (useProductionRouter()) return getProductionRouter().matchQueueCounts();
+  return fetchMatchQueueCounts(legacyEndpoint().replace(/^ws/, "http"), fetch);
 }
 
 export async function liveMatches(limit: number): Promise<LiveMatchPage> {

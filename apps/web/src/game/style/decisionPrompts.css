@@ -1100,6 +1100,10 @@ body:has(.decision-overlay--selection) .narration-slot {
   font-size: var(--ds-text-sm);
   line-height: 1.55;
 }
+.waiting-dialog p.waiting-dialog__queue-activity {
+  margin-top: var(--ds-space-3);
+  color: var(--ds-text-2);
+}
 .waiting-dialog__handle {
   display: none;
 }

@@ -8,6 +8,8 @@ import { GameModeSwitch } from "@/screens/GameModeSwitch";
 import { LobbyMode } from "@/screens/LobbyMode";
 import { GameMode } from "@aegis/shared/manual/GameMode";
 import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
+import { MatchQueueActivity } from "@/matchmaking/MatchQueueActivity";
+import { getMatchQueueSelection } from "@/matchmaking/getMatchQueueSelection";
 
 import { communityApi } from "@/community/client";
 import { communityDeckListing } from "@/community/communityDeckListing";
@@ -717,6 +719,24 @@ export function Lobby({
       ) : null}
     </div>
   );
+  const queueActivity =
+    mode === LobbyMode.CASUAL.value ? (
+      <MatchQueueActivity
+        className="lobby-queue-activity"
+        selection={getMatchQueueSelection({
+          options: {
+            gameMode: manualMatch ? GameMode.MANUAL.value : GameMode.AUTOMATIC.value,
+            ranked: selectedRankedQueue,
+            betaBattleMode: betaEnabled || betaOptedIn,
+            format,
+            unlimited,
+            matchTimer: timer.matchTimer,
+            bestOf,
+            allowRollback,
+          },
+        })}
+      />
+    ) : null;
 
   return (
     <main className="aegis-page play-page lobby-page">
@@ -1001,7 +1021,12 @@ export function Lobby({
               ) : null}
             </div>
             <div className="lobby-setup__controls">
-              {launch ? <div className="lobby-setup__rules">{matchSummary}</div> : null}
+              {launch ? (
+                <div className="lobby-setup__rules">
+                  {matchSummary}
+                  {queueActivity}
+                </div>
+              ) : null}
               {mode === "private" && (privateGuest || privateRoom) ? (
                 <div>
                   <p className="lobby-timer-hint">{t("lobby.timer.guestHint")}</p>
@@ -1033,7 +1058,12 @@ export function Lobby({
                   rankedDisabled={randomSelected || Boolean(borrowedDeck)}
                   disabled={!selectionLegal}
                   className="lobby-queue-setup"
-                  matchSummary={matchSummary}
+                  matchSummary={
+                    <>
+                      {matchSummary}
+                      {queueActivity}
+                    </>
+                  }
                   actionClassName="lobby-setup__launch"
                   buttonLabel={t("lobby.enterQueue")}
                   onOpenSettings={() => onNav("settings")}

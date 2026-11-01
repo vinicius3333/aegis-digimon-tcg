@@ -20,6 +20,7 @@ export interface PendingMatchNotice {
   roomCode?: string;
   /** The screen the action returns to, when the notice offers one. */
   exitTo?: "lobby";
+  searchingQueue?: boolean;
 }
 
 export function pendingMatchNotice({
@@ -76,6 +77,7 @@ export function pendingMatchNotice({
       spinner: true,
       actionLabel: t("ranked.season.cancel"),
       exitTo: "lobby",
+      searchingQueue: true,
     };
   }
   if (joinOptions.tournamentGameId) {
@@ -102,6 +104,7 @@ export function pendingMatchNotice({
     spinner: true,
     actionLabel: canCancelSearch ? t("game.cancelSearch") : undefined,
     exitTo: canCancelSearch ? "lobby" : undefined,
+    searchingQueue: canCancelSearch,
     roomCode: startMode === "private_host" ? hostRoomCode : undefined,
   };
 }
