@@ -13,8 +13,15 @@ import { ArenaAudioSettings } from "./ArenaAudioSettings";
 import { ArenaBoardSettings } from "./ArenaBoardSettings";
 import { InterfaceThemePicker } from "../../../design/InterfaceThemePicker";
 import { setDarkMode, useDarkMode } from "../../../design/darkMode";
+import { DeviceHandoffSettings } from "@/game/handoff/DeviceHandoffSettings";
 
-export function ArenaLookDialog({ deckColors, onClose }: { deckColors: ArenaDeckColors; onClose: () => void }) {
+type ArenaLookDialogParams = {
+  deckColors: ArenaDeckColors;
+  onClose: () => void;
+  handoffUrl?: string;
+};
+
+export function ArenaLookDialog({ deckColors, onClose, handoffUrl }: ArenaLookDialogParams) {
   const { t } = useTranslation();
   const titleId = useId();
   const themeTitleId = useId();
@@ -36,6 +43,7 @@ export function ArenaLookDialog({ deckColors, onClose }: { deckColors: ArenaDeck
           <Icons.X size={18} />
         </button>
       </header>
+      {handoffUrl ? <DeviceHandoffSettings url={handoffUrl} /> : null}
       <ArenaAudioSettings />
       <ArenaBoardSettings />
       <section className="game-arena-theme-settings" aria-labelledby={themeTitleId}>

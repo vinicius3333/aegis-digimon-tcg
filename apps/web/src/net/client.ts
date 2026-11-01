@@ -36,6 +36,10 @@ import { MATCH_QUEUE_WAITING_LIMIT } from "@aegis/shared/matchmaking/MatchQueueW
 import { sortLiveMatches } from "@aegis/shared/protocol/sortLiveMatches";
 import type { ReconnectSession } from "./reconnectSession";
 import { hasRoomTicketAccount } from "./roomAccount";
+import type { ActiveMatchClaim } from "@aegis/shared/protocol/ActiveMatchClaim";
+import type { ResumableMatch } from "@/net/activeMatch/ResumableMatch";
+import { requestActiveMatch } from "@/net/activeMatch/requestActiveMatch";
+import { requestActiveMatchClaim } from "@/net/activeMatch/requestActiveMatchClaim";
 
 export type AegisRoom = Room<GameState>;
 export type RoomSlot = DeploymentSlot | "legacy";
@@ -266,6 +270,21 @@ export class AegisConnectionRouter {
     return this.remember(reconnected, slot);
   }
 
+  async findActiveMatch(): Promise<ResumableMatch | undefined> {
+    const manifest = await this.dependencies.loadManifest();
+    for (const { slot } of [manifest.active, ...manifest.draining]) {
+      const { http } = this.dependencies.endpointForSlot(slot);
+      const match = await requestActiveMatch({ http, fetcher: this.dependencies.fetcher });
+      if (match) return { ...match, slot };
+    }
+    return undefined;
+  }
+
+  async claimActiveMatch(roomId: string, slot: DeploymentSlot): Promise<ActiveMatchClaim | undefined> {
+    const { http } = this.dependencies.endpointForSlot(slot);
+    return requestActiveMatchClaim({ http, fetcher: this.dependencies.fetcher, roomId });
+  }
+
   async joinWithBot(roomId: string, botDeckId?: string, botSettings?: BotSettings): Promise<void> {
     const room = this.roomsById.get(roomId)?.deref();
     if (!room) throw new Error("Bot join requires a connected room");
@@ -447,6 +466,25 @@ export async function resumeReconnectSession(session: ReconnectSession): Promise
     return rememberLegacy(await getLegacyClient().reconnect<GameState>(session.reconnectionToken));
   }
   return getProductionRouter().reconnect(session.reconnectionToken, session.slot);
+}
+
+export async function findActiveMatch(): Promise<ResumableMatch | undefined> {
+  if (useProductionRouter()) return getProductionRouter().findActiveMatch();
+  const match = await requestActiveMatch({ http: legacyEndpoint().replace(/^ws/, "http"), fetcher: fetch });
+  return match && { ...match, slot: "legacy" };
+}
+
+export async function claimActiveMatch(match: ResumableMatch): Promise<ReconnectSession | undefined> {
+  const claim =
+    match.slot === "legacy"
+      ? await requestActiveMatchClaim({
+          http: legacyEndpoint().replace(/^ws/, "http"),
+          fetcher: fetch,
+          roomId: match.roomId,
+        })
+      : await getProductionRouter().claimActiveMatch(match.roomId, match.slot);
+  if (!claim) return undefined;
+  return { reconnectionToken: claim.reconnectionToken, roomId: claim.roomId, slot: match.slot, savedAt: Date.now() };
 }
 
 /** Ask the owning server to seat a bot as the second player. */
