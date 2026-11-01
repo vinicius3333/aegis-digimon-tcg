@@ -159,8 +159,7 @@
 .play-log__avatar {
   display: inline-flex;
   align-self: start;
-  border-radius: 50%;
-  box-shadow: 0 0 0 1.5px var(--play-log-tone);
+  border-radius: 30%;
 }
 .play-log__body {
   display: grid;
@@ -182,14 +181,13 @@
   border: 0;
   border-radius: var(--ds-radius-sm);
   background: var(--ds-fill);
-  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--play-log-tone) 70%, transparent);
 }
 button.play-log__card {
   cursor: pointer;
 }
-button.play-log__card:hover,
 button.play-log__card:focus-visible {
-  box-shadow: 0 0 0 2px var(--play-log-tone);
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
 }
 .play-log__card img {
   display: block;
