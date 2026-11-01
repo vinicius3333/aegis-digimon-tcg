@@ -15553,5 +15553,19 @@
   },
   "BT27-053": {
     "[Digivolve]Lv.5w/[Leomon]innameorw/[DATASQUAD]trait:Cost4Whenthiscardwouldbeplayed,ifyouropponenthasaDigimonwith11000DPormore,reducethecostby6.<Blocker><Fortitude>[OnPlay][WhenDigivolving][WhenAttacking][OncePerTurn]ThisDigimonmaybattle1ofyouropponent'sDigimon.[OnDeletion]Youmayplayoruse1TamerorOptioncardwiththe[Boss]or[DATASQUAD]traitfromyourhandwithoutpayingthecost.": "〔進化〕名称に「レオモン」を含むLv.5/特徴「セイバーズ」を持つLv.5:コスト4\nこのカードが登場するとき、DP11000以上の相手のデジモンがいるなら、支払うコスト-6。\n≪ブロッカー≫ ≪不屈≫\n【登場時】【進化時】【アタック時】【ターンに1回】このデジモンと相手のデジモン1体でバトルできる。\n【消滅時】自分の手札から、特徴「バンチョー」/「セイバーズ」を持つテイマーカード/オプションカード1枚をコストを支払わず登場/使用できる。"
+  },
+  "BT27-090": {
+    "[StartofYourTurn]Ifyouhave2orlessmemory,setitto3.[AllTurns]WhenanyofyourDigimonwith[Leomon]intheirnamesorthe[Boss]or[DATASQUAD]traitareplayed,byplacingthisTamerasanyofthoseDigimon'sbottomdigivolutioncard,youropponent'seffectscan'treturn1ofyourDigimontohandsordecks,ortrashitsstackedcardsuntiltheirturnends.": "【自分のターン開始時】メモリーが2以下なら、3にする。\n【お互いのターン】名称に「レオモン」を含むか特徴「バンチョー」/「セイバーズ」を持つ自分のデジモンが登場したとき、このテイマーをそのデジモンの進化元の下に置くことで、相手のターン終了まで、自分のデジモン1体は相手の効果で手札/デッキに戻らず、重ねられているカードは破棄されない。",
+    "[AllTurns]ThisDigimonwith[Leomon]initsnameorthe[Boss]or[DATASQUAD]traitgets+3000DP.": "【お互いのターン】名称に「レオモン」を含むか特徴「バンチョー」/「セイバーズ」を持つこのデジモンをDP+3000。",
+    "[Security]Playthiscardwithoutpayingthecost.": "【セキュリティ】このカードをコストを支払わず登場させる。"
+  },
+  "BT27-092": {
+    "[StartofYourMainPhase]Byplacing1[Kurata'sArmy]traitcardfromyourhandfacedownunderthisTamer,<Draw1>andgain1memory.[Main][OncePerTurn]Bytrashing2bottomface-downcardsfromunderanyofyourTamers,thisTamermaydigivolveintoa[Kurata'sArmy]traitDigimoncardinthehandortrashwiththecostreducedby2.": "【自分のメインフェイズ開始時】自分の手札から、特徴「倉田軍団」を持つカード1枚をこのテイマーの下に裏向きで置くことで、≪1ドロー≫、メモリー+1。\n【メイン】[ターン1回]自分のテイマーの下にある裏向きのカードを下から2枚破棄することで、このテイマーを手札/トラッシュの特徴「倉田軍団」を持つデジモンカードに支払うコスト-2で進化できる。",
+    "[EndofAttack][OncePerTurn]Bychoosing1ofyourDigimon,deleteitand1ofyouropponent'sDigimonwithasmuchDPasthisDigimonorless.": "【アタック終了時】[ターン1回]自分のデジモン1体を選ぶことで、このデジモンのDP以下の相手のデジモン1体と選んだ自分のデジモンを消滅させる。",
+    "[Security]Playthiscardwithoutpayingthecost.": "【セキュリティ】このカードをコストを支払わず登場させる。"
+  },
+  "BT27-102": {
+    "[Main]Youmayplay1[Kurata'sArmy]traitTamercardfromyourhandortrashwithoutpayingthecost.Then,placethiscardinthebattlearea.[AllTurns]WhenanyDigimononthefieldaredeleted,<Delay>・1ofyourTamersmaydigivolveintoa[Kurata'sArmy]traitDigimoncardinthehandortrashwithoutpayingthecost.": "【メイン】自分の手札/トラッシュから、特徴「倉田軍団」を持つテイマーカード1枚をコストを支払わず登場できる。その後、このカードをバトルエリアに置く。\n【お互いのターン】エリアのデジモンが消滅したとき、≪ディレイ≫。\n・自分のテイマー1体を手札/トラッシュの特徴「倉田軍団」を持つデジモンカードにコストを支払わず進化できる。",
+    "[Security]Youmayplay1playcost5orlower[Kurata'sArmy]traitcardfromyourhandortrashwithoutpayingthecost.": "【セキュリティ】自分の手札/トラッシュから、特徴「倉田軍団」を持つ登場コスト5以下のカード1枚をコストを支払わず登場できる。"
   }
 }

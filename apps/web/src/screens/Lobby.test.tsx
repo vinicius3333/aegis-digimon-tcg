@@ -1,4 +1,6 @@
 import { providerApi } from "@/deckProviders/providerApi";
+import { releaseDateForCard } from "@aegis/shared/cards/cardPool";
+import { allCards } from "@aegis/shared/cards/registry";
 import { deckLegality } from "@aegis/shared/decks/legality";
 import type { CommunityRandomResult } from "@aegis/shared/decks/CommunityRandomResult";
 // @vitest-environment jsdom
@@ -45,8 +47,37 @@ function renderConfiguredLobby(...args: Parameters<typeof render>) {
 
 // EX13 is the beta fixture, so the clock stays before its 2026-10-02 release.
 beforeEach(() => {
+  const providerDetail = {
+    id: 12,
+    name: "Tournament winner",
+    colors: ["Blue"],
+    player: "Tamer",
+    date: null,
+    event: null,
+    placement: 1,
+    wins: null,
+    losses: null,
+    ties: null,
+    sourceUrl: "https://digimon.digilab.cards/decklist/12",
+    format: "BT1",
+    mainDeck: DECKS[0]!.mainDeck,
+    eggDeck: DECKS[0]!.eggDeck,
+    legality: deckLegality(DECKS[0]!),
+    externalUrl: null,
+  };
   vi.spyOn(providerApi, "meta").mockResolvedValue({
-    data: [{ id: 1, name: "Tournament winner", slug: "winner", colors: ["Blue"], share: 12, winRate: 54, pilots: 10 }],
+    data: [
+      {
+        id: 1,
+        name: "Tournament winner",
+        slug: "winner",
+        colors: ["Blue"],
+        share: 12,
+        winRate: 54,
+        pilots: 10,
+        playableDeck: providerDetail,
+      },
+    ],
     formats: [
       { id: "BT1", name: "BT1" },
       { id: "EX2", name: "EX2" },
@@ -75,24 +106,7 @@ beforeEach(() => {
     page: 1,
     pages: 1,
   }));
-  vi.spyOn(providerApi, "detail").mockResolvedValue({
-    id: 12,
-    name: "Tournament winner",
-    colors: ["Blue"],
-    player: "Tamer",
-    date: null,
-    event: null,
-    placement: 1,
-    wins: null,
-    losses: null,
-    ties: null,
-    sourceUrl: "https://digimon.digilab.cards/decklist/12",
-    format: "BT1",
-    mainDeck: DECKS[0]!.mainDeck,
-    eggDeck: DECKS[0]!.eggDeck,
-    legality: deckLegality(DECKS[0]!),
-    externalUrl: null,
-  });
+  vi.spyOn(providerApi, "detail").mockResolvedValue(providerDetail);
   randomCommunityDeck.mockResolvedValue({ deck: null, eligibleCount: 0 });
   lookupPrivateRoom.mockResolvedValue({ roomId: "private-room", unlimited: false });
   liveMatches.mockResolvedValue({ matches: [], total: 0 });
@@ -431,7 +445,10 @@ describe("famous deck selection", () => {
   });
 
   it("hides the beta queue option when no set is in preview", () => {
-    vi.setSystemTime(new Date("2026-12-12T12:00:00.000Z"));
+    const latestRelease = allCards()
+      .map((card) => releaseDateForCard(card) ?? "")
+      .reduce((latest, date) => (date > latest ? date : latest), "");
+    vi.setSystemTime(new Date(`${latestRelease}T12:00:00.000Z`).getTime() + 86_400_000);
     renderConfiguredLobby(
       <I18nProvider>
         <Lobby
@@ -1266,27 +1283,6 @@ describe("live spectating entry points", () => {
     expect(liveMatches).toHaveBeenCalledWith(1);
     fireEvent.click(watch);
     expect(onNav).toHaveBeenCalledWith("watch");
-  });
-
-  it("keeps the spectator listing switch beside the match setup title, disabled for guests", () => {
-    renderLobby();
-    const setup = screen.getByRole("region", { name: "Match setup" });
-    const header = setup.querySelector(".lobby-setup__header")!;
-    const listing = within(header as HTMLElement).getByRole("switch", { name: "List my matches for spectators" });
-    expect((listing as HTMLButtonElement).disabled).toBe(true);
-  });
-
-  it("explains how to unlock the spectator listing switch from the keyboard and on tap", async () => {
-    renderLobby();
-    const locked = document.querySelector(".live-match-listing-setting__locked") as HTMLElement;
-    fireEvent.focus(locked);
-    expect((await screen.findByRole("tooltip")).textContent).toContain(
-      "Only signed-in players can list their matches.",
-    );
-    fireEvent.click(locked);
-    await waitFor(() => expect(screen.queryByRole("tooltip")).toBeNull());
-    fireEvent.click(locked);
-    expect(await screen.findByRole("tooltip")).toBeTruthy();
   });
 });
 

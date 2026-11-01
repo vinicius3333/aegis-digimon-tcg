@@ -20853,7 +20853,8 @@
                 ],
                 "count": 1
               },
-              "bindResultAs": "trashedMachine"
+              "bindResultAs": "trashedMachine",
+              "raw": "By trashing 1 card with a [Cyborg] or [Machine] trait from your hand"
             },
             "optional": true,
             "abortOnDecline": true
@@ -171282,7 +171283,8 @@
               },
               "target": { "filter": { "kind": ["Digimon"] }, "count": 1 },
               "sameLevelAsHost": true,
-              "bindResultAs": "ex5-065-played"
+              "bindResultAs": "ex5-065-played",
+              "raw": "By playing 1 card with the same level as one of your [Night Claw]/[Light Fang] trait Digimon from that Digimon's digivolution cards without paying the cost"
             },
             "optional": true,
             "abortOnDecline": true
@@ -231033,7 +231035,11 @@
             "payCost": true,
             "reduceCostByOpponentMemory": true,
             "optional": true,
-            "cost": { "kind": "suspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } },
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "By suspending this Tamer"
+            },
             "raw": "For each point of memory your opponent has, reduce this effect's paid cost by 1."
           }
         ]
@@ -232422,7 +232428,11 @@
             "from": ["hand"],
             "payCost": false,
             "optional": true,
-            "cost": { "kind": "suspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "by suspending this Tamer"
+            }
           }
         ]
       },
@@ -241900,7 +241910,12 @@
               },
               "count": 1
             },
-            "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine", "count": 1 },
+            "cost": {
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 1,
+              "raw": "by trashing the bottom face-down card from under any of your Tamers"
+            },
             "optional": true
           }
         ]
@@ -241928,7 +241943,12 @@
               },
               "count": 1
             },
-            "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine", "count": 1 },
+            "cost": {
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 1,
+              "raw": "by trashing the bottom face-down card from under any of your Tamers"
+            },
             "optional": true
           }
         ]
@@ -247683,6 +247703,289 @@
     "digivolutionRequirement": [
       { "level": 5, "names": ["Leomon"], "cost": 4, "isAlternate": true },
       { "level": 5, "traits": ["DATA SQUAD"], "cost": 4, "isAlternate": true }
+    ],
+    "coverage": "full",
+    "residual": []
+  },
+  "BT27-090": {
+    "effects": [
+      {
+        "trigger": "StartOfYourTurn",
+        "actions": [{ "kind": "SetMemory", "value": 3, "condition": { "kind": "memoryAtMost", "value": 2 } }]
+      },
+      {
+        "trigger": "AllTurns",
+        "actions": [
+          {
+            "kind": "SubTrigger",
+            "event": "whenPlayed",
+            "sourceFilter": {
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [
+                { "tokens": ["Leomon"], "match": "name" },
+                { "tokens": ["Boss", "DATA SQUAD"], "match": "trait" }
+              ]
+            },
+            "optional": true,
+            "cost": {
+              "kind": "place",
+              "targetIsPermanent": true,
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "destination": "digivolutionStack",
+              "position": "bottom",
+              "host": "triggerSource",
+              "raw": "by placing this Tamer as any of those Digimon's bottom digivolution card"
+            },
+            "actions": [
+              {
+                "kind": "SelectBind",
+                "effectTextPart": "your opponent's effects can't return 1 of your Digimon to hands or decks, or trash its stacked cards until their turn ends.",
+                "target": {
+                  "filter": { "controller": "mine", "kind": ["Digimon"] },
+                  "count": 1,
+                  "bindAs": "spencerProtectedDigimon"
+                }
+              },
+              {
+                "kind": "Restrict",
+                "target": { "fromSelectionRef": "spencerProtectedDigimon", "filter": {}, "count": 1 },
+                "restriction": "cannotReturnToHandOrDeck",
+                "byOpponentEffectsOnly": true,
+                "duration": "untilOpponentTurnEnd"
+              },
+              {
+                "kind": "StackTrashLock",
+                "target": { "fromSelectionRef": "spencerProtectedDigimon", "filter": {}, "count": 1 },
+                "duration": "untilOpponentTurnEnd"
+              }
+            ],
+            "raw": "When any of your Digimon with [Leomon] in their names or the [Boss] or [DATA SQUAD] trait are played, by placing this Tamer as any of those Digimon's bottom digivolution card, your opponent's effects can't return 1 of your Digimon to hands or decks, or trash its stacked cards until their turn ends."
+          }
+        ]
+      },
+      {
+        "trigger": "AllTurns",
+        "isInherited": true,
+        "actions": [
+          {
+            "kind": "ModifyDP",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "amount": 3000,
+            "duration": "permanent",
+            "condition": {
+              "kind": "selfTopHasText",
+              "filter": {
+                "nameOrTrait": [
+                  { "tokens": ["Leomon"], "match": "name" },
+                  { "tokens": ["Boss", "DATA SQUAD"], "match": "trait" }
+                ]
+              },
+              "raw": "this Digimon has [Leomon] in its name or the [Boss] or [DATA SQUAD] trait"
+            }
+          }
+        ]
+      },
+      {
+        "trigger": "Security",
+        "isSecurity": true,
+        "actions": [
+          {
+            "kind": "PlayWithoutCost",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "payCost": false
+          }
+        ]
+      }
+    ],
+    "coverage": "full",
+    "residual": []
+  },
+  "BT27-092": {
+    "effects": [
+      {
+        "trigger": "StartOfYourMainPhase",
+        "actions": [
+          {
+            "kind": "CostGatedBlock",
+            "cost": {
+              "kind": "place",
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "zone": "hand",
+                  "nameOrTrait": [{ "tokens": ["Kurata's Army"], "match": "trait" }]
+                },
+                "count": 1
+              },
+              "underFilter": { "isSelfRef": true },
+              "host": "self",
+              "destination": "digivolutionStack",
+              "position": "bottom",
+              "faceDown": true,
+              "raw": "By placing 1 [Kurata's Army] trait card from your hand face down under this Tamer"
+            },
+            "optional": true,
+            "abortOnDecline": true,
+            "actions": [
+              { "kind": "Draw", "controller": "mine", "amount": 1 },
+              { "kind": "GainMemory", "amount": 1 }
+            ]
+          }
+        ]
+      },
+      {
+        "trigger": "Main",
+        "frequency": "OncePerTurn",
+        "actions": [
+          {
+            "kind": "CostGatedBlock",
+            "cost": {
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 2,
+              "raw": "By trashing 2 bottom face-down cards from under any of your Tamers"
+            },
+            "optional": true,
+            "abortOnDecline": true,
+            "actions": [
+              {
+                "effectTextPart": "this Tamer may digivolve into a [Kurata's Army] trait Digimon card in the hand or trash with the cost reduced by 2.",
+                "kind": "Digivolve",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                "into": {
+                  "controllerDefault": "mine",
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [{ "tokens": ["Kurata's Army"], "match": "trait" }]
+                },
+                "from": ["hand", "trash"],
+                "reduceCost": 2,
+                "payCost": true,
+                "optional": true,
+                "abortOnDecline": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "trigger": "EndOfAttack",
+        "isInherited": true,
+        "frequency": "OncePerTurn",
+        "actions": [
+          {
+            "kind": "SelectBind",
+            "effectTextPart": "By choosing 1 of your Digimon",
+            "target": {
+              "filter": { "controller": "mine", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "chosenDigimon"
+            },
+            "optional": true,
+            "abortOnDecline": true
+          },
+          {
+            "kind": "Delete",
+            "effectTextPart": "delete it and 1 of your opponent's Digimon with as much DP as this Digimon or less.",
+            "target": { "filter": {}, "fromSelectionRef": "chosenDigimon", "count": 1 },
+            "additionalSimultaneousTargets": [
+              {
+                "filter": {
+                  "controller": "opponent",
+                  "kind": ["Digimon"],
+                  "dp": { "op": "lte", "relativeToSource": true }
+                },
+                "count": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "trigger": "Security",
+        "isSecurity": true,
+        "actions": [
+          {
+            "kind": "PlayWithoutCost",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "payCost": false
+          }
+        ]
+      }
+    ],
+    "coverage": "full",
+    "residual": []
+  },
+  "BT27-102": {
+    "effects": [
+      {
+        "trigger": "Main",
+        "actions": [
+          {
+            "effectTextPart": "[Main] You may play 1 [Kurata's Army] trait Tamer card from your hand or trash without paying the cost.",
+            "kind": "PlayWithoutCost",
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": ["Tamer"],
+                "nameOrTrait": [{ "tokens": ["Kurata's Army"], "match": "trait" }]
+              },
+              "count": 1
+            },
+            "from": ["hand", "trash"],
+            "payCost": false,
+            "optional": true
+          },
+          { "kind": "PlaceInBattleAreaSelf" }
+        ]
+      },
+      {
+        "trigger": "AllTurns",
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
+        "actions": [
+          {
+            "kind": "SubTrigger",
+            "event": "onDeletionOf",
+            "sourceFilter": { "controller": "any", "kind": ["Digimon"] },
+            "actions": [
+              {
+                "effectTextPart": "1 of your Tamers may digivolve into a [Kurata's Army] trait Digimon card in the hand or trash without paying the cost.",
+                "kind": "Digivolve",
+                "target": { "filter": { "controller": "mine", "kind": ["Tamer"] }, "count": 1 },
+                "into": {
+                  "controllerDefault": "mine",
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [{ "tokens": ["Kurata's Army"], "match": "trait" }]
+                },
+                "from": ["hand", "trash"],
+                "payCost": false,
+                "optional": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "trigger": "Security",
+        "isSecurity": true,
+        "actions": [
+          {
+            "kind": "PlayWithoutCost",
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": ["Digimon", "Tamer"],
+                "playCostLte": 5,
+                "nameOrTrait": [{ "tokens": ["Kurata's Army"], "match": "trait" }]
+              },
+              "count": 1
+            },
+            "from": ["hand", "trash"],
+            "payCost": false,
+            "optional": true
+          }
+        ]
+      }
     ],
     "coverage": "full",
     "residual": []

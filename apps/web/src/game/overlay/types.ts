@@ -15,6 +15,7 @@ export interface StackCard {
   cardId: string;
   artId?: string;
   faceDown?: boolean;
+  oncePerTurnUsed?: true;
   role: "top" | "stack" | "linked";
 }
 

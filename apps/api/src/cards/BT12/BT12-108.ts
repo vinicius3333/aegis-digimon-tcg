@@ -92,6 +92,7 @@ const compiled: CompiledCard = {
             kind: "trash",
             target: { ...handMachineOrCyborg, count: 1 },
             bindResultAs: "trashedMachine",
+            raw: "By trashing 1 card with a [Cyborg] or [Machine] trait from your hand",
           },
           optional: true,
           abortOnDecline: true,
