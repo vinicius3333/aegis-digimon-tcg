@@ -299,3 +299,9 @@ Compared with the reviewed catalog at `6d1c0502c3`, all 4,552 card identities re
 This correction adds an ordinary Digi-Egg evolution base. It does not introduce an effect provider or change a recipient source zone. Comparing the DNA, App Fusion and Burst searches over all five effect text fields produces the same candidate sets as the reviewed catalog (134, 38 and 7 cards). All 22 covered cells, eight reviewed provider absences, candidate lists, scenario evidence and the rule-source fingerprint remain applicable.
 
 After this bounded semantic review, the catalog fingerprint changes from `c6a63b269c518ad5cfa19c27d52cbe0054d00b95ca6f1d339801fa91c60560ec` to `e193fee1e406c425a23ed90a544164bf5daab362dea2956556cff18dacca2149`. Catalog drift remains an error; no validator or test expectation is weakened.
+
+### Catalog review after BanchoLeomon (2026-11-01)
+
+Compared with `develop` at `f7ed44fc4e`, this branch adds only BT27-053 BanchoLeomon. Existing card records are unchanged. Its ordinary green or yellow level-5 evolution and alternate Leomon-name or DATA SQUAD evolution do not introduce DNA, App Fusion or Burst providers. Its On Deletion effect plays a Tamer or uses an Option from the hand, so it adds no Digimon recipient and no security or deck-reveal source zone. Comparing the DNA, App Fusion and Burst searches over all five effect text fields produces the same candidate sets as the reviewed catalog (134, 38 and 7 cards).
+
+The 22 covered route cells, eight reviewed provider absences, candidate lists, scenario evidence and rule-source fingerprint remain applicable. After this bounded review, the catalog fingerprint changes from `e193fee1e406c425a23ed90a544164bf5daab362dea2956556cff18dacca2149` to `ba3ccd7642198d024e5dd17b79b88ef480eaa434809d5e269ca929374aec7199`. Catalog drift remains an error; no validator or test expectation is weakened.
