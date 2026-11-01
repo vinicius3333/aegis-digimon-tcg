@@ -299,3 +299,15 @@ Compared with the reviewed catalog at `6d1c0502c3`, all 4,552 card identities re
 This correction adds an ordinary Digi-Egg evolution base. It does not introduce an effect provider or change a recipient source zone. Comparing the DNA, App Fusion and Burst searches over all five effect text fields produces the same candidate sets as the reviewed catalog (134, 38 and 7 cards). All 22 covered cells, eight reviewed provider absences, candidate lists, scenario evidence and the rule-source fingerprint remain applicable.
 
 After this bounded semantic review, the catalog fingerprint changes from `c6a63b269c518ad5cfa19c27d52cbe0054d00b95ca6f1d339801fa91c60560ec` to `e193fee1e406c425a23ed90a544164bf5daab362dea2956556cff18dacca2149`. Catalog drift remains an error; no validator or test expectation is weakened.
+
+### Catalog review after unmatched-bracket text corrections (2026-10-31)
+
+Compared with the reviewed catalog at `f7ed44fc4e`, no card is added or removed and no non-text field changes. Three `effectText` fields change, each checked against the official card image:
+
+- BT3-093 Davis Motomiya: a line break and the opening bracket return before `[On Play]`. The Start of Your Turn and On Play effects were already separate in the card module.
+- EX8-027 Plesiomon: a stray closing bracket after "DNA digivolve" is removed. The effect still DNA digivolves 2 Digimon into a [DS] card in the hand.
+- RB1-018 Monzaemon: a stray `on]` after `[When Digivolving]` is removed.
+
+Re-running the three absence searches (`DNA digivolv`, `app fus`, `burst digivolv`) over the effect fields returns the same card sets as the reviewed catalog (134, 38 and 7 cards). No change introduces a provider or a new recipient zone, so the 22 covered cells, eight reviewed provider absences, candidate lists, scenario evidence and rule-source fingerprint remain applicable.
+
+After this bounded review, the catalog fingerprint changes from `e193fee1e406c425a23ed90a544164bf5daab362dea2956556cff18dacca2149` to `459fcde317a732bc80d7bf8d6bb0d254b86c8c5ec7308dd4768293637f1e11a3`. Catalog drift remains an error; no validator or test expectation is weakened.
