@@ -992,7 +992,8 @@ const interfaceMessages = {
   "settings.communityDesc": "Notizie, ricerca di avversari e discussioni sui mazzi sul nostro server Discord.",
   "settings.joinDiscord": "Entra su Discord",
   "settings.language": "Lingua",
-  "settings.languageDesc": "Lingua dell'interfaccia. Nomi e testo delle carte rimangono in inglese.",
+  "settings.languageDesc":
+    "Lingua dell'interfaccia. In giapponese, coreano e cinese semplificato, nomi e testo delle carte usano la traduzione ufficiale quando esiste. Nelle altre lingue, e per le carte senza traduzione, rimangono in inglese. Le immagini delle carte seguono l'impostazione Lingua delle immagini delle carte.",
   "game.reconnecting": "Riconnessione…",
   "game.reconnectingDetail": "La connessione si è interrotta. Tentativo di riprendere la partita.",
   "game.connectionLost": "Connessione persa",

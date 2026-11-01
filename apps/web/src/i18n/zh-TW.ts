@@ -1052,7 +1052,8 @@ const interfaceMessages = {
   "settings.communityDesc": "在我們的 Discord 伺服器上取得新聞、尋找對手、討論卡組。",
   "settings.joinDiscord": "加入 Discord",
   "settings.language": "語言",
-  "settings.languageDesc": "介面語言。卡名和卡片文字仍為英文。",
+  "settings.languageDesc":
+    "介面語言。選擇日文、韓文或簡體中文時，有官方譯文的卡名和卡片文字會以該語言顯示。其他語言（包括繁體中文）及沒有官方譯文的卡片仍為英文。卡牌圖片依照「卡牌圖片語言」設定。",
   "game.reconnecting": "正在重新連線…",
   "game.reconnectingDetail": "連線已中斷。正在嘗試恢復對局。",
   "game.connectionLost": "連線中斷",

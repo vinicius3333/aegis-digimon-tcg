@@ -1046,7 +1046,8 @@ const interfaceMessages = {
   "settings.communityDesc": "在我们的 Discord 服务器查看消息、匹配对局和卡组讨论。",
   "settings.joinDiscord": "加入 Discord",
   "settings.language": "语言",
-  "settings.languageDesc": "界面语言。卡牌名称和卡牌文字保持英文。",
+  "settings.languageDesc":
+    "界面语言。选择日语、韩语或简体中文时，有官方译文的卡牌名称和卡牌文字会以该语言显示。其他语言及没有官方译文的卡牌保持英文。卡牌图片遵循“卡牌图片语言”设置。",
   "game.reconnecting": "重新连接中…",
   "game.reconnectingDetail": "连接已中断，正在尝试恢复你的对局。",
   "game.connectionLost": "连接已断开",

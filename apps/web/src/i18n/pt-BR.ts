@@ -848,7 +848,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "settings.communityDesc": "Novidades, partidas e papo de deck no nosso servidor do Discord.",
   "settings.joinDiscord": "Entrar no Discord",
   "settings.language": "Idioma",
-  "settings.languageDesc": "Idioma da interface. Nomes e textos das cartas continuam em inglês.",
+  "settings.languageDesc":
+    "Idioma da interface. Em japonês, coreano e chinês simplificado, nomes e textos das cartas usam a tradução oficial quando ela existe. Nos outros idiomas, e em cartas sem tradução, continuam em inglês. As imagens das cartas seguem a configuração Idioma das imagens das cartas.",
 
   "game.reconnecting": "Reconectando…",
   "game.reconnectingDetail": "A conexão caiu. Tentando retomar sua partida.",

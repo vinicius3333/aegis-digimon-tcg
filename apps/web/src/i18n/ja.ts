@@ -1098,7 +1098,8 @@ const interfaceMessages = {
   "settings.communityDesc": "Discordサーバーでニュース、対戦相手探し、デッキの話題。",
   "settings.joinDiscord": "Discordに参加",
   "settings.language": "言語",
-  "settings.languageDesc": "インターフェースの言語です。カード名とカードテキストは英語のままです。",
+  "settings.languageDesc":
+    "インターフェースの言語です。日本語、韓国語、簡体字中国語では、公式訳があるカード名とカードテキストをその言語で表示します。その他の言語や公式訳がないカードは英語のままです。カード画像は「カード画像の言語」の設定に従います。",
   "game.reconnecting": "再接続中…",
   "game.reconnectingDetail": "接続が切れました。対戦に復帰しようとしています。",
   "game.connectionLost": "接続が切れました",
