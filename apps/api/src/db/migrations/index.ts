@@ -55,6 +55,7 @@ import { playtestGroup } from "#api/db/migrations/035-playtest-group";
 import { publicDeckGuide } from "#api/db/migrations/036-public-deck-guide";
 
 import { tournamentRoundStartMode } from "#api/db/migrations/052-tournament-round-start-mode";
+import { publicReplayListing } from "#api/db/migrations/053-public-replay-listing";
 
 export const migrations: readonly Migration[] = [
   initialSchema,
@@ -109,4 +110,5 @@ export const migrations: readonly Migration[] = [
   accountRoles,
   accountAvatarImage,
   tournamentRoundStartMode,
+  publicReplayListing,
 ];

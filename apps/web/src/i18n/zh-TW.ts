@@ -4,6 +4,7 @@ import { matchQueueZhTW } from "@/i18n/matchQueue.zh-TW";
 import { staffRolesZhTW } from "@/i18n/staffRoles.zh-TW";
 import { tournamentDetailZhTW } from "@/i18n/tournamentDetail.zh-TW";
 import { tournamentSpectatorsZhTW } from "@/i18n/tournamentSpectators.zh-TW";
+import { publicReplaysZhTW } from "@/i18n/publicReplays.zh-TW";
 import { achievementsZhTw } from "@/i18n/achievements.zh-TW";
 import { rankedZhTw } from "@/i18n/ranked.zh-TW";
 import { friendsEn } from "@/i18n/friends.en";
@@ -274,7 +275,7 @@ const interfaceMessages = {
   "replay.public": "公開",
   "replay.privateHint": "只有你在登入後才能開啟此連結。",
   "replay.publicHint":
-    "任何擁有連結的人都可以觀看和下載此重播，包括雙方錄製的手牌。該 Google 雲端硬碟檔案也會對任何擁有其雲端硬碟連結的人開放讀取。",
+    "任何擁有連結的人都可以觀看和下載此重播，包括雙方錄製的手牌。該 Google 雲端硬碟檔案也會對任何擁有其雲端硬碟連結的人開放讀取。它也可能出現在首頁的公開重播列表中。",
   "replay.revokeHint": "切換為私密後將阻止之後的存取。已下載的檔案仍會保留在接收者手中。",
   "replay.copyLink": "複製連結",
   "replay.copied": "連結已複製",
@@ -2760,6 +2761,7 @@ const interfaceMessages = {
   ...rankedZhTw,
   ...tournamentDetailZhTW,
   ...tournamentSpectatorsZhTW,
+  ...publicReplaysZhTW,
   ...tournamentCircuitsZhTW,
   ...tournamentOfficialRequestZhTW,
   ...matchQueueZhTW,

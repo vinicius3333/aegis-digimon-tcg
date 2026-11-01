@@ -4,6 +4,7 @@ import { matchQueueZhCN } from "@/i18n/matchQueue.zh-CN";
 import { staffRolesZhCN } from "@/i18n/staffRoles.zh-CN";
 import { tournamentDetailZhCN } from "@/i18n/tournamentDetail.zh-CN";
 import { tournamentSpectatorsZhCN } from "@/i18n/tournamentSpectators.zh-CN";
+import { publicReplaysZhCN } from "@/i18n/publicReplays.zh-CN";
 import { achievementsZhCn } from "@/i18n/achievements.zh-CN";
 import { rankedZhCn } from "@/i18n/ranked.zh-CN";
 import { friendsEn } from "@/i18n/friends.en";
@@ -275,7 +276,7 @@ const interfaceMessages = {
   "replay.public": "公开",
   "replay.privateHint": "只有当前回放所属的账号可以打开此链接。",
   "replay.publicHint":
-    "任何持有链接的人都能观看和下载回放，包括录制的双方手牌。Google Drive 文件也会向持有其链接的人开放。",
+    "任何持有链接的人都能观看和下载回放，包括录制的双方手牌。Google Drive 文件也会向持有其链接的人开放。它也可能出现在首页的公开回放列表中。",
   "replay.revokeHint": "改为私密后将阻止后续访问，已经下载的文件仍由接收者持有。",
   "replay.copyLink": "复制链接",
   "replay.copied": "链接已复制",
@@ -2754,6 +2755,7 @@ const interfaceMessages = {
   ...rankedZhCn,
   ...tournamentDetailZhCN,
   ...tournamentSpectatorsZhCN,
+  ...publicReplaysZhCN,
   ...tournamentCircuitsZhCN,
   ...tournamentOfficialRequestZhCN,
   ...matchQueueZhCN,

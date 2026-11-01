@@ -4,6 +4,7 @@ import { matchQueueFr } from "@/i18n/matchQueue.fr";
 import { staffRolesFr } from "@/i18n/staffRoles.fr";
 import { tournamentDetailFr } from "@/i18n/tournamentDetail.fr";
 import { tournamentSpectatorsFr } from "@/i18n/tournamentSpectators.fr";
+import { publicReplaysFr } from "@/i18n/publicReplays.fr";
 import { achievementsFr } from "@/i18n/achievements.fr";
 import { rankedFr } from "@/i18n/ranked.fr";
 import { friendsEn } from "@/i18n/friends.en";
@@ -286,7 +287,7 @@ const interfaceMessages = {
   "replay.public": "Public",
   "replay.privateHint": "Vous seul pouvez ouvrir ce lien lorsque vous êtes connecté.",
   "replay.publicHint":
-    "Toute personne disposant du lien peut regarder et télécharger ce replay, y compris les deux mains enregistrées. Le fichier Google Drive devient également lisible par toute personne disposant de son lien Drive.",
+    "Toute personne disposant du lien peut regarder et télécharger ce replay, y compris les deux mains enregistrées. Le fichier Google Drive devient également lisible par toute personne disposant de son lien Drive. Il peut aussi apparaître dans la liste des replays publics de l’accueil.",
   "replay.revokeHint":
     "Le passage à un accès privé bloque les accès futurs. Les fichiers déjà téléchargés restent chez leurs destinataires.",
   "replay.copyLink": "Copier le lien",
@@ -2921,6 +2922,7 @@ const interfaceMessages = {
   ...rankedFr,
   ...tournamentDetailFr,
   ...tournamentSpectatorsFr,
+  ...publicReplaysFr,
   ...tournamentCircuitsFr,
   ...tournamentOfficialRequestFr,
   ...matchQueueFr,

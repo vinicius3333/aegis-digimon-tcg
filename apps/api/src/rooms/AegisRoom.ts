@@ -3346,7 +3346,10 @@ export class AegisRoom extends Room<{
     let pending = this.replayIndexes.get(key);
     if (!pending) {
       pending = this.replays()
-        .record(owner, message)
+        .record(owner, message, {
+          format: this.state.format as DeckFormat,
+          playerAccountIds: [this.deckOwnerBySeat.get(0) ?? null, this.deckOwnerBySeat.get(1) ?? null],
+        })
         .catch((error: unknown) => {
           this.replayIndexes.delete(key);
           this.debugError("[AegisRoom] failed to index replay", error);

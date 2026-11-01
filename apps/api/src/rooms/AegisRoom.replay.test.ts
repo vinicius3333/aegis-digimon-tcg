@@ -116,15 +116,35 @@ describe("room replay delivery", () => {
     expect(readyMessage(spectator)!.indexId).toBeUndefined();
     expect(readyMessage(spectator)!.viewerSeat).toBe(SPECTATOR_REPLAY_SEAT);
     expect(record).toHaveBeenCalledOnce();
-    const [owner, exported] = record.mock.calls[0]!;
+    const [owner, exported, context] = record.mock.calls[0]!;
     expect(owner).toBe("trusted-owner");
     expect(exported).toMatchObject({ kind: "ready", viewerSeat: 0 });
+    expect(context).toEqual({ format: room.state.format, playerAccountIds: [null, null] });
     expect(JSON.parse(gunzipSync(Buffer.from(exported.data, "base64")).toString())).toEqual(replayOf(signedIn));
     Reflect.get(room, "sendReplayDownload").call(room, signedIn);
     await vi.waitFor(() =>
       expect(vi.mocked(signedIn.send).mock.calls.filter(([channel]) => channel === REPLAY_CHANNEL)).toHaveLength(2),
     );
     expect(record).toHaveBeenCalledOnce();
+  });
+  it("indexes the room format and both seated accounts so public listings can recheck identity privacy", async () => {
+    const { room, players, send } = await start();
+    const [signedIn, opponent] = players as [Client, Client];
+    signIn(room, signedIn, "trusted-owner");
+    const owners = Reflect.get(room, "deckOwnerBySeat") as Map<number, string>;
+    owners.set(0, "trusted-owner");
+    owners.set(1, "opponent-account");
+    Reflect.set(room, "accounts", () => ({
+      preferences: vi.fn<AccountStore["preferences"]>(async () => ({})),
+      recordRecentMatch: vi.fn<AccountStore["recordRecentMatch"]>(async () => {}),
+    }));
+    const record = indexWith(room, async () => "index-id");
+    send(opponent, "surrender");
+    await vi.waitFor(() => expect(readyMessage(signedIn)?.indexId).toBe("index-id"));
+    expect(record).toHaveBeenCalledExactlyOnceWith("trusted-owner", expect.objectContaining({ viewerSeat: 0 }), {
+      format: room.state.format,
+      playerAccountIds: ["trusted-owner", "opponent-account"],
+    });
   });
   it("still delivers the file without an index id when the index write fails, and retries later", async () => {
     const { room, players, send } = await start();
@@ -168,7 +188,11 @@ describe("room replay delivery", () => {
     const index = indexWith(room, async () => "index-id");
     send(players[1]!, "surrender");
     await vi.waitFor(() => expect(readyMessage(client)?.indexId).toBe("index-id"));
-    expect(index).toHaveBeenCalledWith("original-account", expect.objectContaining({ kind: "ready" }));
+    expect(index).toHaveBeenCalledWith(
+      "original-account",
+      expect.objectContaining({ kind: "ready" }),
+      expect.objectContaining({ format: room.state.format }),
+    );
   });
   it("starts at the ready-gated match and sends participant hands only to participants", async () => {
     const { room, players, send } = await start();
@@ -272,6 +296,7 @@ describe("spectator replay saving", () => {
     expect(record).toHaveBeenCalledExactlyOnceWith(
       "spectator-owner",
       expect.objectContaining({ viewerSeat: SPECTATOR_REPLAY_SEAT }),
+      { format: room.state.format, playerAccountIds: [null, null] },
     );
     const original = readyMessage(spectator)!;
     vi.mocked(spectator.send).mockClear();
