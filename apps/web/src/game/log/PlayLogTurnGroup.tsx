@@ -1,6 +1,7 @@
 import { Phase, type Seat } from "@aegis/shared/schema/enums";
 import type { LogKind, LogTurnGroup } from "@/game/log/LogEntry";
 import type { SeatNames } from "@/game/log/SeatNames";
+import type { SeatAvatars } from "@/game/log/SeatAvatars";
 import { PlayLogEntry } from "@/game/log/PlayLogEntry";
 import { formatPlayLogTurnHeading } from "@/game/log/formatPlayLogTurnHeading";
 import { useTranslation } from "@/i18n/useTranslation";
@@ -9,6 +10,7 @@ import type { TranslationKey } from "@/i18n/translationTypes";
 type Props = {
   turn: LogTurnGroup;
   playerNames: SeatNames;
+  playerAvatars?: SeatAvatars;
   viewerSeat?: Seat;
   highlight?: string;
   onOpenCard?: (cardId: string) => void;
@@ -29,7 +31,7 @@ function getTurnTone({ turnSeat, viewerSeat = 0 }: TurnToneParams): LogKind {
   return turnSeat === viewerSeat ? "you" : "opp";
 }
 
-export function PlayLogTurnGroup({ turn, playerNames, viewerSeat, highlight, onOpenCard }: Props) {
+export function PlayLogTurnGroup({ turn, playerNames, playerAvatars, viewerSeat, highlight, onOpenCard }: Props) {
   const { t } = useTranslation();
   return (
     <section
@@ -42,7 +44,15 @@ export function PlayLogTurnGroup({ turn, playerNames, viewerSeat, highlight, onO
         <div className="play-log__phase" key={`${phase.phase}:${index}`}>
           <h4 className="play-log__phase-heading">{t(phaseKeys[phase.phase])}</h4>
           {phase.entries.map((entry) => (
-            <PlayLogEntry key={entry.id} entry={entry} highlight={highlight} onOpenCard={onOpenCard} />
+            <PlayLogEntry
+              key={entry.id}
+              entry={entry}
+              playerNames={playerNames}
+              playerAvatars={playerAvatars}
+              viewerSeat={viewerSeat}
+              highlight={highlight}
+              onOpenCard={onOpenCard}
+            />
           ))}
         </div>
       ))}
