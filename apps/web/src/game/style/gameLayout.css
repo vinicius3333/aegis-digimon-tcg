@@ -172,6 +172,34 @@
   flex-wrap: wrap;
   gap: var(--ds-space-1);
 }
+.play-log__card {
+  display: block;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-fill);
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--play-log-tone) 70%, transparent);
+}
+button.play-log__card {
+  cursor: pointer;
+}
+button.play-log__card:hover,
+button.play-log__card:focus-visible {
+  box-shadow: 0 0 0 2px var(--play-log-tone);
+}
+.play-log__card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 22%;
+  transform: scale(1.6);
+  transform-origin: 50% 22%;
+}
 .play-log__line p {
   margin: 0;
   color: var(--ds-text-2);

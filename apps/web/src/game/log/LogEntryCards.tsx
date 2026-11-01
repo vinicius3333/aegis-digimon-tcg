@@ -1,7 +1,6 @@
-import { CardFull } from "@/design/cards";
+import { LogCardThumbnail } from "@/game/log/LogCardThumbnail";
 
 const MAX_THUMBNAILS = 4;
-const THUMBNAIL_WIDTH = 34;
 
 type Props = { cardIds: readonly string[] | undefined; onOpenCard?: (cardId: string) => void };
 
@@ -13,13 +12,7 @@ export function LogEntryCards({ cardIds, onOpenCard }: Props) {
   return (
     <span className="play-log__cards">
       {shown.map((cardId) => (
-        <CardFull
-          key={cardId}
-          cardId={cardId}
-          width={THUMBNAIL_WIDTH}
-          zoomOnHover={false}
-          onClick={onOpenCard ? () => onOpenCard(cardId) : undefined}
-        />
+        <LogCardThumbnail key={cardId} cardId={cardId} onOpenCard={onOpenCard} />
       ))}
     </span>
   );
