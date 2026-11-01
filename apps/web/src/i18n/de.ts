@@ -1125,7 +1125,8 @@ const interfaceMessages = {
   "settings.communityDesc": "Neuigkeiten, Matchmaking und Deck-Diskussionen auf unserem Discord-Server.",
   "settings.joinDiscord": "Discord beitreten",
   "settings.language": "Sprache",
-  "settings.languageDesc": "Sprache der Benutzeroberfläche. Kartennamen und Kartentexte bleiben auf Englisch.",
+  "settings.languageDesc":
+    "Sprache der Benutzeroberfläche. Auf Japanisch, Koreanisch und vereinfachtem Chinesisch verwenden Kartennamen und Kartentexte die offizielle Übersetzung, sofern vorhanden. In anderen Sprachen und bei Karten ohne Übersetzung bleiben sie auf Englisch. Kartenbilder folgen der Einstellung „Sprache der Kartenbilder“.",
   "game.reconnecting": "Verbindung wird wiederhergestellt…",
   "game.reconnectingDetail": "Die Verbindung wurde unterbrochen. Ihr Match wird fortgesetzt, sobald möglich.",
   "game.connectionLost": "Verbindung verloren",
