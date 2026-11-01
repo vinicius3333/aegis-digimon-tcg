@@ -6,11 +6,18 @@ const REFRESH_INTERVAL_MS = 10_000;
 
 type Params = {
   load?: () => Promise<MatchQueueCounts>;
+  enabled?: boolean;
 };
 
-export function useMatchQueueCounts({ load = matchQueueCounts }: Params = {}): MatchQueueCounts | undefined {
+export function useMatchQueueCounts({ load = matchQueueCounts, enabled = true }: Params = {}):
+  | MatchQueueCounts
+  | undefined {
   const [counts, setCounts] = useState<MatchQueueCounts>();
   useEffect(() => {
+    if (!enabled) {
+      setCounts(undefined);
+      return;
+    }
     let mounted = true;
     function refresh() {
       void load()
@@ -42,6 +49,6 @@ export function useMatchQueueCounts({ load = matchQueueCounts }: Params = {}): M
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [load]);
+  }, [load, enabled]);
   return counts;
 }

@@ -41,6 +41,7 @@ function waitingRoom({ metadata, ...overrides }: Record<string, unknown> = {}) {
     locked: false,
     private: false,
     clients: 1,
+    createdAt: new Date(0),
     ...overrides,
     metadata: {
       format: "standard",
@@ -106,6 +107,50 @@ describe("matchmaking queue counts", () => {
 
     expect(body).not.toContain("secret-room");
     expect(body).not.toContain("Tai");
+  });
+
+  it("lists each waiting public room anonymously, longest wait first, with its settings", async () => {
+    vi.mocked(matchMaker.query).mockResolvedValue([
+      waitingRoom({ createdAt: new Date(50_000), metadata: { bestOf: 3 } }),
+      waitingRoom({ roomId: "secret-room", createdAt: new Date(10_000), metadata: { players: ["Tai"] } }),
+      waitingRoom({ name: "aegis_manual", createdAt: new Date(80_000) }),
+      waitingRoom({ locked: true, createdAt: new Date(0) }),
+    ] as never);
+
+    const body = await readCounts({ now: () => 100_000 });
+
+    expect(body.waiting).toEqual([
+      { queue: "casual", format: "standard", matchTimer: true, bestOf: 1, allowRollback: false, waitingSeconds: 90 },
+      { queue: "casual", format: "standard", matchTimer: true, bestOf: 3, allowRollback: false, waitingSeconds: 50 },
+      { queue: "manual", format: "standard", matchTimer: true, bestOf: 1, allowRollback: false, waitingSeconds: 20 },
+    ]);
+    expect(JSON.stringify(body)).not.toContain("secret-room");
+    expect(JSON.stringify(body)).not.toContain("Tai");
+  });
+
+  it("caps the waiting list at the longest twenty waits", async () => {
+    vi.mocked(matchMaker.query).mockResolvedValue(
+      Array.from({ length: 25 }, (_, index) => waitingRoom({ createdAt: new Date(index * 1_000) })) as never,
+    );
+
+    const { waiting, buckets } = await readCounts({ now: () => 60_000 });
+
+    expect(waiting).toHaveLength(20);
+    expect(waiting[0]?.waitingSeconds).toBe(60);
+    expect(waiting[19]?.waitingSeconds).toBe(41);
+    expect(buckets[0]?.searching).toBe(25);
+  });
+
+  it("keeps wait times current while serving a cached room listing", async () => {
+    let time = 10_000;
+    vi.mocked(matchMaker.query).mockResolvedValue([waitingRoom({ createdAt: new Date(4_000) })] as never);
+
+    await withServer({ now: () => time }, async (get) => {
+      expect(((await (await get()).json()) as MatchQueueCounts).waiting[0]?.waitingSeconds).toBe(6);
+      time += 3_000;
+      expect(((await (await get()).json()) as MatchQueueCounts).waiting[0]?.waitingSeconds).toBe(9);
+      expect(matchMaker.query).toHaveBeenCalledTimes(1);
+    });
   });
 
   it("adds ranked searchers per format", async () => {

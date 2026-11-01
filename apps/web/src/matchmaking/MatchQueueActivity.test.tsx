@@ -15,7 +15,7 @@ const casualTimed = {
 } as const;
 
 function counts(...buckets: MatchQueueCounts["buckets"]): MatchQueueCounts {
-  return { buckets };
+  return { buckets, waiting: [] };
 }
 
 afterEach(() => {

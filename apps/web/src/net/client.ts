@@ -32,6 +32,7 @@ import {
   type MatchQueueCounts,
 } from "@aegis/shared/matchmaking/MatchQueueCounts";
 import { getMatchQueueKey } from "@aegis/shared/matchmaking/getMatchQueueKey";
+import { MATCH_QUEUE_WAITING_LIMIT } from "@aegis/shared/matchmaking/MatchQueueWaitingPlayer";
 import { sortLiveMatches } from "@aegis/shared/protocol/sortLiveMatches";
 import type { ReconnectSession } from "./reconnectSession";
 import { hasRoomTicketAccount } from "./roomAccount";
@@ -613,7 +614,8 @@ async function fetchLiveMatches(http: string, limit: number, fetcher: typeof fet
 async function fetchMatchQueueCounts(http: string, fetcher: typeof fetch): Promise<MatchQueueCounts> {
   const response = await fetcher(`${http}${MATCH_QUEUE_COUNTS_PATH}`);
   if (!response.ok) throw new Error("Queue counts are unavailable");
-  return (await response.json()) as MatchQueueCounts;
+  const counts = (await response.json()) as Partial<MatchQueueCounts>;
+  return { buckets: counts.buckets ?? [], waiting: counts.waiting ?? [] };
 }
 
 function sumMatchQueueCounts(slots: MatchQueueCounts[]): MatchQueueCounts {
@@ -623,7 +625,11 @@ function sumMatchQueueCounts(slots: MatchQueueCounts[]): MatchQueueCounts {
     const existing = buckets.get(key);
     buckets.set(key, existing ? { ...existing, searching: existing.searching + bucket.searching } : bucket);
   }
-  return { buckets: [...buckets.values()] };
+  const waiting = slots
+    .flatMap((slot) => slot.waiting)
+    .sort((first, second) => second.waitingSeconds - first.waitingSeconds)
+    .slice(0, MATCH_QUEUE_WAITING_LIMIT);
+  return { buckets: [...buckets.values()], waiting };
 }
 
 export async function matchQueueCounts(): Promise<MatchQueueCounts> {
