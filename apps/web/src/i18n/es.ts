@@ -1,5 +1,6 @@
 import { tournamentCircuitsEs } from "@/i18n/tournamentCircuits.es";
 import { tournamentOfficialRequestEs } from "@/i18n/tournamentOfficialRequest.es";
+import { matchQueueEs } from "@/i18n/matchQueue.es";
 import { staffRolesEs } from "@/i18n/staffRoles.es";
 import { tournamentDetailEs } from "@/i18n/tournamentDetail.es";
 import { tournamentSpectatorsEs } from "@/i18n/tournamentSpectators.es";
@@ -485,6 +486,17 @@ export const es: Record<keyof typeof en, string> = {
   "home.signInTitle": "¿Juegas en más de un dispositivo?",
   "home.signInCopy": "Conecta Discord para guardar tus decks y estadísticas en tu cuenta.",
   "home.signInAction": "Conectar",
+  "resumeMatch.title": "Tu partida sigue en curso",
+  "resumeMatch.copy": "Continúala aquí. Tu otro dispositivo sale de la partida.",
+  "resumeMatch.action": "Reanudar partida",
+  "resumeMatch.graceLeft": "Asiento reservado durante {time}",
+  "game.handoff.title": "Continuar en otro dispositivo",
+  "game.handoff.hint":
+    "Escanéalo con un móvil u ordenador con esta cuenta iniciada y toca Reanudar partida. Este dispositivo saldrá de la partida.",
+  "game.handoff.show": "Mostrar código QR",
+  "game.handoff.hide": "Ocultar código QR",
+  "game.handoff.qrLabel": "Código QR que abre Aegis para reanudar esta partida",
+  "resumeMatch.failed": "No pudimos pasar la partida a este dispositivo. Puede que haya terminado.",
   "home.footer.discord": "Comunidad en Discord",
   "home.footer.github": "GitHub",
   "home.footer.legal":
@@ -649,6 +661,7 @@ export const es: Record<keyof typeof en, string> = {
   "library.sort.type": "Ordenar: Tipo",
   "library.sort.cardNumber": "Ordenar: Número de carta",
   "library.sort.random": "Ordenar: Aleatorio",
+  "library.keywords": "Palabras clave",
   "library.traitAttribute": "Rasgo / atributo",
   "library.traitAttributePlaceholder": "Buscar rasgos o atributos…",
   "library.set": "Set",
@@ -666,6 +679,7 @@ export const es: Record<keyof typeof en, string> = {
   "library.rowRarity": "Rareza",
   "library.mainEffect": "Efecto principal",
   "library.inheritedEffect": "Heredado (ESS)",
+  "library.linkEffect": "Efecto de Link",
   "library.securityEffect": "Efecto de seguridad",
   "library.kind.Digimon": "Digimon",
   "library.kind.DigiEgg": "Digi-Egg",
@@ -789,7 +803,7 @@ export const es: Record<keyof typeof en, string> = {
   "overlay.moveEffectPromptHelp": "Arrastra para mover o usa las flechas. Pulsa Inicio para restaurar la posición.",
   "settings.effectPromptPosition": "Posición de los efectos",
   "settings.effectPromptPositionDesc":
-    "Elige dónde aparecen las preguntas de activación. Los objetivos siguen en el campo.",
+    "Elige dónde aparecen las preguntas de activación y confirmación. Los objetivos siguen en el campo.",
   "settings.effectPromptCenter": "Centro",
   "settings.effectPromptLeft": "Esquina inferior izquierda (predeterminada)",
   "settings.effectSpeed": "Velocidad de efectos",
@@ -835,7 +849,8 @@ export const es: Record<keyof typeof en, string> = {
   "settings.communityDesc": "Noticias, partidas y charlas de decks en nuestro servidor de Discord.",
   "settings.joinDiscord": "Unirse a Discord",
   "settings.language": "Idioma",
-  "settings.languageDesc": "Idioma de la interfaz. Los nombres y textos de las cartas siguen en inglés.",
+  "settings.languageDesc":
+    "Idioma de la interfaz. En japonés, coreano y chino simplificado, los nombres y textos de las cartas usan la traducción oficial cuando existe. En los demás idiomas, y en cartas sin traducción, siguen en inglés. Las imágenes de las cartas siguen el ajuste Idioma de las imágenes de cartas.",
   "game.reconnecting": "Reconectando…",
   "game.reconnectingDetail": "Se perdió la conexión. Intentando retomar tu partida.",
   "game.connectionLost": "Conexión perdida",
@@ -845,6 +860,7 @@ export const es: Record<keyof typeof en, string> = {
     "Tu selección era demasiado grande para enviarla. Reconectando para restaurar la elección pendiente.",
   "game.reconnectFailed": "No pudimos reanudar esta partida. Vuelve al lobby e inténtalo de nuevo.",
   "game.sessionExpired": "Esta partida ya no se puede reanudar. Vuelve al lobby.",
+  "game.seatTransferred": "Continuaste esta partida en otro dispositivo.",
   "game.tooManyMessages": "Se enviaron demasiadas acciones a la vez. Espera un momento y vuelve al lobby.",
   "game.serverUnavailable": "El servidor del juego no está disponible temporalmente. Inténtalo de nuevo en breve.",
   "game.opponentDisconnected": "Oponente desconectado",
@@ -873,6 +889,21 @@ export const es: Record<keyof typeof en, string> = {
   "game.inviteShareTitle": "Juega conmigo en Aegis",
   "game.shareLink": "Compartir enlace",
   "game.cancelInvite": "Cancelar y volver al lobby",
+  "game.guestApproval.requestTitle": "Solicitud para entrar",
+  "game.guestApproval.requestDetail":
+    "{name} quiere entrar en tu sala. Acepta para empezar la partida o rechaza para liberar el puesto.",
+  "game.guestApproval.guestOffline": "Desconectado",
+  "game.guestApproval.accept": "Aceptar",
+  "game.guestApproval.decline": "Rechazar",
+  "game.guestApproval.waitingTitle": "Esperando al anfitrión",
+  "game.guestApproval.waitingDetail": "El anfitrión debe aceptarte antes de que empiece la partida.",
+  "game.guestApproval.declinedTitle": "Solicitud rechazada",
+  "game.guestApproval.declined": "El anfitrión rechazó tu solicitud para entrar en esta sala.",
+  "game.guestApproval.hostLeftTitle": "Sala cerrada",
+  "game.guestApproval.hostLeft": "El anfitrión salió de la sala antes de que empezara la partida.",
+  "lobby.approval.label": "Requerir aprobación",
+  "lobby.approval.hint":
+    "Cuando alguien entre con tu código, verás quién es y podrás aceptarlo o rechazarlo antes de que empiece la partida.",
   "game.connectingPrivate": "Conectando a la sala privada…",
   "game.waitingSpectate": "Entrando como espectador…",
   "game.spectateDetail":
@@ -979,6 +1010,15 @@ export const es: Record<keyof typeof en, string> = {
   "game.dragIntent.use": "USAR",
   "game.dragIntent.attack": "ATACAR",
   "game.matchLog": "Registro de la partida",
+  "game.matchLogUnread": "Registro de la partida, {count} nuevas",
+  "game.matchLogExpand": "Ampliar registro de la partida",
+  "game.matchLogDrag": "Arrastra para mover",
+  "settings.matchLogDisplay": "Visualización del registro",
+  "settings.matchLogDisplayDesc":
+    "Elige cómo muestra la partida lo que pasó: avisos breves sobre el tablero, un registro fijo en el borde del tablero o ambos. En el móvil se mantienen los avisos y el registro queda en el botón.",
+  "settings.matchLogDisplayPopups": "Avisos",
+  "settings.matchLogDisplayPanel": "Registro fijo",
+  "settings.matchLogDisplayBoth": "Ambos",
   "game.fullscreen.enter": "Pantalla completa",
   "game.fullscreen.exit": "Salir de pantalla completa",
   "game.skipPresentation": "Omitir animaciones",
@@ -2317,6 +2357,7 @@ export const es: Record<keyof typeof en, string> = {
   ...publicReplaysEs,
   ...tournamentCircuitsEs,
   ...tournamentOfficialRequestEs,
+  ...matchQueueEs,
   ...staffRolesEs,
   ...achievementsEs,
   ...learnEs,

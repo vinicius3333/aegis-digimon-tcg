@@ -322,6 +322,10 @@ button.lobby-active-strip__jump {
   gap: var(--ds-space-2);
 }
 
+.lobby-setup__rules .lobby-queue-activity {
+  margin-top: var(--ds-space-2);
+}
+
 .lobby-setup__summary > span {
   display: inline-flex;
   align-items: center;

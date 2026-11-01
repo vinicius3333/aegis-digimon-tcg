@@ -168,6 +168,7 @@ export default defineConfig({
             "src/deckProviders/**/*.test.tsx",
             "src/learn/**/*.test.tsx",
             "src/game/tutorial/**/*.test.tsx",
+            "src/game/screen/layout/GuestApprovalPanel.test.tsx",
           ],
         },
       },
@@ -186,6 +187,14 @@ export default defineConfig({
       {
         extends: true,
         test: { name: "match-log-ui", include: ["src/game/log/**/*.test.tsx"], environment: "jsdom" },
+      },
+      {
+        extends: true,
+        test: {
+          name: "guest-approval-ui",
+          include: ["src/game/screen/layout/GuestApprovalPanel.test.tsx"],
+          environment: "jsdom",
+        },
       },
     ],
     exclude: [...configDefaults.exclude, "e2e/**"],

@@ -1,5 +1,6 @@
 import { tournamentCircuitsJa } from "@/i18n/tournamentCircuits.ja";
 import { tournamentOfficialRequestJa } from "@/i18n/tournamentOfficialRequest.ja";
+import { matchQueueJa } from "@/i18n/matchQueue.ja";
 import { staffRolesJa } from "@/i18n/staffRoles.ja";
 import { tournamentDetailJa } from "@/i18n/tournamentDetail.ja";
 import { tournamentSpectatorsJa } from "@/i18n/tournamentSpectators.ja";
@@ -764,6 +765,17 @@ const interfaceMessages = {
   "home.signInTitle": "複数のデバイスでプレイしますか？",
   "home.signInCopy": "Discordに接続すると、デッキと戦績がアカウントに保存されます。",
   "home.signInAction": "接続する",
+  "resumeMatch.title": "対戦はまだ続いています",
+  "resumeMatch.copy": "このデバイスで続行できます。もう一方のデバイスは対戦から退出します。",
+  "resumeMatch.action": "対戦を再開",
+  "resumeMatch.graceLeft": "席の保持 残り {time}",
+  "game.handoff.title": "別のデバイスで続ける",
+  "game.handoff.hint":
+    "このアカウントでログインしたスマホやPCでスキャンし、「対戦を再開」をタップしてください。このデバイスは対戦から退出します。",
+  "game.handoff.show": "QRコードを表示",
+  "game.handoff.hide": "QRコードを隠す",
+  "game.handoff.qrLabel": "この対戦を再開するためにAegisを開くQRコード",
+  "resumeMatch.failed": "対戦をこのデバイスに移せませんでした。対戦が終了した可能性があります。",
   "home.footer.discord": "Discordコミュニティ",
   "home.footer.github": "GitHub",
   "home.footer.legal":
@@ -912,6 +924,7 @@ const interfaceMessages = {
   "library.sort.type": "並べ替え: タイプ",
   "library.sort.cardNumber": "並べ替え: カード番号",
   "library.sort.random": "並べ替え: ランダム",
+  "library.keywords": "キーワード",
   "library.traitAttribute": "特徴/属性",
   "library.traitAttributePlaceholder": "特徴または属性を検索…",
   "library.set": "セット",
@@ -929,6 +942,7 @@ const interfaceMessages = {
   "library.rowRarity": "レアリティ",
   "library.mainEffect": "効果",
   "library.inheritedEffect": "進化元効果",
+  "library.linkEffect": "リンク効果",
   "library.securityEffect": "セキュリティ効果",
   "library.kind.Digimon": "デジモン",
   "library.kind.DigiEgg": "デジタマ",
@@ -1047,7 +1061,8 @@ const interfaceMessages = {
   "overlay.moveEffectPrompt": "効果の確認ウィンドウを移動",
   "overlay.moveEffectPromptHelp": "ドラッグするか矢印キーで移動します。Homeキーで位置をリセットします。",
   "settings.effectPromptPosition": "効果の確認ウィンドウの位置",
-  "settings.effectPromptPositionDesc": "効果の発動確認を表示する場所を選びます。場の対象は盤面上に残ります。",
+  "settings.effectPromptPositionDesc":
+    "効果の発動確認や確認ダイアログを表示する場所を選びます。場の対象は盤面上に残ります。",
   "settings.effectPromptCenter": "中央",
   "settings.effectPromptLeft": "左下（デフォルト）",
   "settings.effectSpeed": "効果の表示速度",
@@ -1099,7 +1114,8 @@ const interfaceMessages = {
   "settings.communityDesc": "Discordサーバーでニュース、対戦相手探し、デッキの話題。",
   "settings.joinDiscord": "Discordに参加",
   "settings.language": "言語",
-  "settings.languageDesc": "インターフェースの言語です。カード名とカードテキストは英語のままです。",
+  "settings.languageDesc":
+    "インターフェースの言語です。日本語、韓国語、簡体字中国語では、公式訳があるカード名とカードテキストをその言語で表示します。その他の言語や公式訳がないカードは英語のままです。カード画像は「カード画像の言語」の設定に従います。",
   "game.reconnecting": "再接続中…",
   "game.reconnectingDetail": "接続が切れました。対戦に復帰しようとしています。",
   "game.connectionLost": "接続が切れました",
@@ -1109,6 +1125,7 @@ const interfaceMessages = {
     "選択内容が大きすぎて送信できませんでした。保留中の選択を復元するため再接続しています。",
   "game.reconnectFailed": "対戦を再開できませんでした。ロビーに戻って再試行してください。",
   "game.sessionExpired": "この対戦は再開できません。ロビーに戻ってください。",
+  "game.seatTransferred": "この対戦は別のデバイスで続行されました。",
   "game.tooManyMessages": "一度に送信された操作が多すぎます。少し待ってからロビーに戻ってください。",
   "game.serverUnavailable": "ゲームサーバーを一時的に利用できません。しばらくしてから再試行してください。",
   "game.opponentDisconnected": "対戦相手の接続が切れました",
@@ -1143,6 +1160,20 @@ const interfaceMessages = {
   "game.inviteShareTitle": "Aegisで対戦しよう",
   "game.shareLink": "リンクを共有",
   "game.cancelInvite": "キャンセルしてロビーに戻る",
+  "game.guestApproval.requestTitle": "参加リクエスト",
+  "game.guestApproval.requestDetail":
+    "{name} がルームへの参加を希望しています。承認すると対戦が始まります。拒否すると席が空きます。",
+  "game.guestApproval.guestOffline": "切断中",
+  "game.guestApproval.accept": "承認",
+  "game.guestApproval.decline": "拒否",
+  "game.guestApproval.waitingTitle": "ホストの承認待ち",
+  "game.guestApproval.waitingDetail": "対戦を始めるにはホストの承認が必要です。",
+  "game.guestApproval.declinedTitle": "リクエストが拒否されました",
+  "game.guestApproval.declined": "ホストがこのルームへの参加リクエストを拒否しました。",
+  "game.guestApproval.hostLeftTitle": "ルームが閉じられました",
+  "game.guestApproval.hostLeft": "対戦開始前にホストがルームを退出しました。",
+  "lobby.approval.label": "参加を承認制にする",
+  "lobby.approval.hint": "コードで誰かが参加すると、相手を確認して対戦開始前に承認または拒否できます。",
   "game.opponent": "対戦相手",
   "game.you": "あなた",
   "game.activeKeywords": "有効なキーワード",
@@ -1242,6 +1273,15 @@ const interfaceMessages = {
   "game.dragIntent.use": "使用",
   "game.dragIntent.attack": "アタック",
   "game.matchLog": "対戦ログ",
+  "game.matchLogUnread": "対戦ログ、新着{count}件",
+  "game.matchLogExpand": "対戦ログを拡大",
+  "game.matchLogDrag": "ドラッグして移動",
+  "settings.matchLogDisplay": "対戦ログの表示",
+  "settings.matchLogDisplayDesc":
+    "起きたことの表示方法を選びます：盤面上の短いポップアップ、盤面の端に固定されたログ、またはその両方。スマートフォンではポップアップのまま、ログはボタンから開きます。",
+  "settings.matchLogDisplayPopups": "ポップアップ",
+  "settings.matchLogDisplayPanel": "固定ログ",
+  "settings.matchLogDisplayBoth": "両方",
   "game.fullscreen.enter": "全画面表示",
   "game.fullscreen.exit": "全画面表示を終了",
   "game.skipPresentation": "アニメーションをスキップ",
@@ -2817,6 +2857,7 @@ const interfaceMessages = {
   ...publicReplaysJa,
   ...tournamentCircuitsJa,
   ...tournamentOfficialRequestJa,
+  ...matchQueueJa,
   ...staffRolesJa,
   ...achievementsJa,
   "profile.filter.deck": "デッキ",

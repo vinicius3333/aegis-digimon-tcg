@@ -1,5 +1,6 @@
 import { tournamentCircuitsKo } from "@/i18n/tournamentCircuits.ko";
 import { tournamentOfficialRequestKo } from "@/i18n/tournamentOfficialRequest.ko";
+import { matchQueueKo } from "@/i18n/matchQueue.ko";
 import { staffRolesKo } from "@/i18n/staffRoles.ko";
 import { tournamentDetailKo } from "@/i18n/tournamentDetail.ko";
 import { tournamentSpectatorsKo } from "@/i18n/tournamentSpectators.ko";
@@ -756,6 +757,17 @@ const interfaceMessages = {
   "home.signInTitle": "여러 기기에서 플레이하시나요?",
   "home.signInCopy": "Discord를 연결하면 덱과 통계를 계정에 보관할 수 있습니다.",
   "home.signInAction": "연결",
+  "resumeMatch.title": "대전이 아직 진행 중입니다",
+  "resumeMatch.copy": "이 기기에서 이어서 진행하세요. 다른 기기는 대전에서 나갑니다.",
+  "resumeMatch.action": "대전 재개",
+  "resumeMatch.graceLeft": "좌석 유지 {time} 남음",
+  "game.handoff.title": "다른 기기에서 계속하기",
+  "game.handoff.hint":
+    "이 계정으로 로그인한 휴대폰이나 컴퓨터로 스캔한 뒤 대전 재개를 누르세요. 이 기기는 대전에서 나갑니다.",
+  "game.handoff.show": "QR 코드 보기",
+  "game.handoff.hide": "QR 코드 숨기기",
+  "game.handoff.qrLabel": "이 대전을 재개하도록 Aegis를 여는 QR 코드",
+  "resumeMatch.failed": "대전을 이 기기로 옮기지 못했습니다. 대전이 끝났을 수 있습니다.",
   "home.footer.discord": "Discord 커뮤니티",
   "home.footer.github": "GitHub",
   "home.footer.legal":
@@ -902,6 +914,7 @@ const interfaceMessages = {
   "library.sort.type": "정렬: 카드 종류",
   "library.sort.cardNumber": "정렬: 카드 번호",
   "library.sort.random": "정렬: 랜덤",
+  "library.keywords": "키워드",
   "library.traitAttribute": "특징 / 속성",
   "library.traitAttributePlaceholder": "특징 또는 속성 검색…",
   "library.set": "세트",
@@ -919,6 +932,7 @@ const interfaceMessages = {
   "library.rowRarity": "레어리티",
   "library.mainEffect": "메인 효과",
   "library.inheritedEffect": "진화원 효과",
+  "library.linkEffect": "링크 효과",
   "library.securityEffect": "시큐리티 효과",
   "library.kind.Digimon": "디지몬",
   "library.kind.DigiEgg": "디지타마",
@@ -1038,7 +1052,7 @@ const interfaceMessages = {
   "overlay.moveEffectPromptHelp": "드래그하거나 화살표 키로 이동하세요. Home 키를 누르면 위치가 초기화됩니다.",
   "settings.effectPromptPosition": "효과 창 위치",
   "settings.effectPromptPositionDesc":
-    "발동 확인 창이 표시될 위치를 선택합니다. 필드의 대상 선택은 보드에 그대로 표시됩니다.",
+    "발동 및 확인 창이 표시될 위치를 선택합니다. 필드의 대상 선택은 보드에 그대로 표시됩니다.",
   "settings.effectPromptCenter": "가운데",
   "settings.effectPromptLeft": "왼쪽 아래 (기본값)",
   "settings.effectSpeed": "효과 속도",
@@ -1090,7 +1104,8 @@ const interfaceMessages = {
   "settings.communityDesc": "Discord 서버에서 소식, 대전 상대 찾기, 덱 이야기를 나눕니다.",
   "settings.joinDiscord": "Discord 참가",
   "settings.language": "언어",
-  "settings.languageDesc": "인터페이스 언어입니다. 카드 이름과 카드 텍스트는 영어로 표시됩니다.",
+  "settings.languageDesc":
+    "인터페이스 언어입니다. 일본어, 한국어, 중국어(간체)에서는 공식 번역이 있는 카드 이름과 카드 텍스트를 해당 언어로 표시합니다. 다른 언어나 공식 번역이 없는 카드는 영어로 표시됩니다. 카드 이미지는 '카드 이미지 언어' 설정을 따릅니다.",
   "game.reconnecting": "다시 연결하는 중…",
   "game.reconnectingDetail": "연결이 끊어졌습니다. 대전을 다시 이어 가는 중입니다.",
   "game.connectionLost": "연결 끊김",
@@ -1100,6 +1115,7 @@ const interfaceMessages = {
     "선택한 내용이 너무 커서 전송하지 못했습니다. 대기 중인 선택을 복원하기 위해 다시 연결하고 있습니다.",
   "game.reconnectFailed": "대전을 재개하지 못했습니다. 로비로 돌아가 다시 시도해 주세요.",
   "game.sessionExpired": "이 대전은 더 이상 재개할 수 없습니다. 로비로 돌아가 주세요.",
+  "game.seatTransferred": "다른 기기에서 이 대전을 이어서 진행했습니다.",
   "game.tooManyMessages": "한 번에 너무 많은 동작을 전송했습니다. 잠시 기다린 후 로비로 돌아가 주세요.",
   "game.serverUnavailable": "게임 서버를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
   "game.opponentDisconnected": "상대 연결 끊김",
@@ -1133,6 +1149,20 @@ const interfaceMessages = {
   "game.inviteShareTitle": "Aegis에서 함께 대전하세요",
   "game.shareLink": "링크 공유",
   "game.cancelInvite": "취소하고 로비로 돌아가기",
+  "game.guestApproval.requestTitle": "참가 요청",
+  "game.guestApproval.requestDetail":
+    "{name} 님이 방에 참가하려고 합니다. 수락하면 대전이 시작되고, 거절하면 자리가 비워집니다.",
+  "game.guestApproval.guestOffline": "연결 끊김",
+  "game.guestApproval.accept": "수락",
+  "game.guestApproval.decline": "거절",
+  "game.guestApproval.waitingTitle": "방장 승인 대기 중",
+  "game.guestApproval.waitingDetail": "대전을 시작하려면 방장이 수락해야 합니다.",
+  "game.guestApproval.declinedTitle": "요청이 거절되었습니다",
+  "game.guestApproval.declined": "방장이 이 방의 참가 요청을 거절했습니다.",
+  "game.guestApproval.hostLeftTitle": "방이 닫혔습니다",
+  "game.guestApproval.hostLeft": "대전이 시작되기 전에 방장이 방을 나갔습니다.",
+  "lobby.approval.label": "참가 승인 필요",
+  "lobby.approval.hint": "누군가 코드로 참가하면 누구인지 확인하고 대전 시작 전에 수락하거나 거절할 수 있습니다.",
   "game.opponent": "상대",
   "game.you": "나",
   "game.activeKeywords": "적용 중인 키워드",
@@ -1231,6 +1261,15 @@ const interfaceMessages = {
   "game.dragIntent.use": "사용",
   "game.dragIntent.attack": "어택",
   "game.matchLog": "대전 로그",
+  "game.matchLogUnread": "대전 로그, 새 항목 {count}개",
+  "game.matchLogExpand": "대전 로그 확대",
+  "game.matchLogDrag": "드래그하여 이동",
+  "settings.matchLogDisplay": "대전 로그 표시",
+  "settings.matchLogDisplayDesc":
+    "일어난 일을 보여 주는 방식을 고릅니다: 보드 위의 짧은 팝업, 보드 가장자리의 고정 로그, 또는 둘 다. 휴대폰에서는 팝업이 유지되고 로그는 버튼으로 엽니다.",
+  "settings.matchLogDisplayPopups": "팝업",
+  "settings.matchLogDisplayPanel": "고정 로그",
+  "settings.matchLogDisplayBoth": "둘 다",
   "game.fullscreen.enter": "전체 화면",
   "game.fullscreen.exit": "전체 화면 종료",
   "game.skipPresentation": "애니메이션 건너뛰기",
@@ -2791,6 +2830,7 @@ const interfaceMessages = {
   ...publicReplaysKo,
   ...tournamentCircuitsKo,
   ...tournamentOfficialRequestKo,
+  ...matchQueueKo,
   ...staffRolesKo,
   ...achievementsKo,
   "profile.filter.deck": "덱",

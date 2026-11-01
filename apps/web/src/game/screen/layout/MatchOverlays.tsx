@@ -34,6 +34,7 @@ import type { RematchProps } from "@/game/overlay/match/RematchPanel";
 import type { TurnOrder } from "../../overlay";
 import type { LogTurnGroup } from "@/game/log/LogEntry";
 import type { SeatNames } from "@/game/log/SeatNames";
+import type { SeatAvatars } from "@/game/log/SeatAvatars";
 import type { PendingFateBadge } from "../../pendingFate";
 import type { HandEntry } from "../../piece";
 import type { AppFusionRoute } from "../../AppFusionChoiceOverlay";
@@ -80,8 +81,10 @@ export function MatchOverlays({
   collapseNotices,
   logTurns,
   seatNames,
+  seatAvatars,
   logViewerSeat,
   signedIn,
+  handoffUrl,
   opponentDropped,
   gameOver,
   overlays,
@@ -156,8 +159,10 @@ export function MatchOverlays({
   collapseNotices: boolean;
   logTurns: readonly LogTurnGroup[];
   seatNames: SeatNames;
+  seatAvatars: SeatAvatars;
   logViewerSeat?: Seat;
   signedIn: boolean;
+  handoffUrl?: string;
   opponentDropped: boolean;
   gameOver:
     | (ReplaySaveProps & {
@@ -353,6 +358,7 @@ export function MatchOverlays({
       <MatchStatusOverlays
         turns={logTurns}
         playerNames={seatNames}
+        playerAvatars={seatAvatars}
         viewerSeat={logViewerSeat}
         historyOpen={overlays.historyOpen}
         zoomCardId={overlays.zoomCardId}
@@ -360,7 +366,7 @@ export function MatchOverlays({
         bugReportOpen={overlays.bugReportOpen}
         arenaLook={
           overlays.arenaLookOpen
-            ? { deckColors: arenaDeckColors, onClose: () => overlays.setArenaLookOpen(false) }
+            ? { deckColors: arenaDeckColors, onClose: () => overlays.setArenaLookOpen(false), handoffUrl }
             : undefined
         }
         matchLogId={state.matchLogId}

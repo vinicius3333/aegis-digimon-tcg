@@ -10,6 +10,7 @@ describe("keyword reminders", () => {
     expect(keywordBaseName("＜Armor Purge＞")).toBe("ArmorPurge");
     expect(keywordBaseName("De-Digivolve 1")).toBe("DeDigivolve");
     expect(keywordBaseName("Security A. +1")).toBe("SecurityAttack");
+    expect(keywordBaseName("＜S Attack +1＞")).toBe("SecurityAttack");
     expect(keywordBaseName("Decoy (Black)")).toBe("Decoy");
     expect(keywordBaseName("<Use Req.>")).toBe("UseReq");
     expect(keywordBaseName("<Link +1>")).toBe("Link");

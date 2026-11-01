@@ -4,6 +4,7 @@ import type { TournamentSpectateTarget } from "@/tournaments/TournamentSpectateT
 import { RankedScreen } from "@/ranked/RankedScreen";
 import { HomeMatchQueue } from "@/home/HomeMatchQueue";
 import { LobbyMode } from "@/screens/LobbyMode";
+import type { MatchQueueSelection } from "@aegis/shared/matchmaking/MatchQueueSelection";
 import { useRankedConfig } from "@/ranked/useRankedConfig";
 import type { TournamentGameTicket } from "@aegis/shared/tournaments/TournamentGameTicket";
 import { FriendsDrawer } from "@/messages/FriendsDrawer";
@@ -517,6 +518,7 @@ function LoadedAegisClient({
   }));
   const [gameMode, setGameMode] = useState<GameMode>(GameMode.AUTOMATIC.value);
   const [allowRollback, setAllowRollback] = useState(false);
+  const [requireGuestApproval, setRequireGuestApproval] = useState(false);
   const [bestOf, setBestOf] = useState(loadMatchFormatPreference);
   /** Set between the games of a best-of-three: the next GameScreen takes this seat. */
   const [seriesGame, setSeriesGame] = useState<SeriesGameTicket>();
@@ -530,6 +532,7 @@ function LoadedAegisClient({
   const [roomCode, setRoomCode] = useState<string>();
   const [spectatorFriendId, setSpectatorFriendId] = useState<string>();
   const [challengeTarget, setChallengeTarget] = useState<Friend>();
+  const [queueChallenge, setQueueChallenge] = useState<MatchQueueSelection>();
   const [privateRoom, setPrivateRoom] = useState<PrivateRoom>();
   const [botDeckId, setBotDeckId] = useState<string>();
   const [botSettings, setBotSettings] = useState<BotSettings>();
@@ -675,6 +678,18 @@ function LoadedAegisClient({
     navigateScreen("game");
   };
 
+  const resumeMatchFromAnotherDevice = () => {
+    setSeriesGame(undefined);
+    setTournamentGame(undefined);
+    setSpectatedTournamentMatch(undefined);
+    setStoryBattleId(undefined);
+    setSpectatorFriendId(undefined);
+    setRoomCode(undefined);
+    setStartMode("casual");
+    setMatchNumber((current) => current + 1);
+    navigateScreen("game");
+  };
+
   const startLesson = (lessonId: string) => {
     startMatch("bot");
     setStoryBattleId(lessonId);
@@ -708,6 +723,7 @@ function LoadedAegisClient({
       storyGuestToken: storyBattleId ? getStoryGuestToken() : undefined,
       gameMode: effectiveGameMode,
       allowRollback: effectiveGameMode !== GameMode.MANUAL.value && allowRollback,
+      ...(startMode === "private_host" && requireGuestApproval ? { requireApproval: true } : {}),
       bestOf: effectiveGameMode === GameMode.MANUAL.value ? 1 : bestOf,
       format: deckFormat,
       displayName: effectivePlayer.name,
@@ -742,6 +758,7 @@ function LoadedAegisClient({
       customBotDeck,
       deckFormat,
       allowRollback,
+      requireGuestApproval,
       effectiveGameMode,
     ],
   );
@@ -890,6 +907,7 @@ function LoadedAegisClient({
                   onSignIn={() => navigateScreen("login")}
                   onReportBug={() => setBugReportOpen(true)}
                   onOpenReleases={() => navigateScreen("releases")}
+                  onResumeMatch={resumeMatchFromAnotherDevice}
                 />
               )}
 
@@ -1008,6 +1026,8 @@ function LoadedAegisClient({
                   onGameModeChange={setGameMode}
                   allowRollback={allowRollback}
                   onAllowRollbackChange={setAllowRollback}
+                  requireGuestApproval={requireGuestApproval}
+                  onRequireGuestApprovalChange={setRequireGuestApproval}
                   bestOf={bestOf}
                   onBestOfChange={setBestOf}
                   invitedRoomCode={invitedRoomCode}
@@ -1018,6 +1038,8 @@ function LoadedAegisClient({
                   onLeavePrivateRoom={() => setPrivateRoom(undefined)}
                   onStart={startMatch}
                   openMatchSettings={route.matchSettings === true}
+                  queueChallenge={queueChallenge}
+                  onQueueChallengeHandled={() => setQueueChallenge(undefined)}
                 />
               )}
 
@@ -1039,6 +1061,13 @@ function LoadedAegisClient({
                     setChallengeTarget(undefined);
                     setInvitedRoomCode(code);
                     navigateScreen("lobby");
+                  }}
+                  onChallengeQueue={(selection) => {
+                    setInvitedRoomCode(undefined);
+                    setPrivateRoom(undefined);
+                    setChallengeTarget(undefined);
+                    setQueueChallenge(selection);
+                    navigate({ screen: "lobby", lobbyMode: LobbyMode.CASUAL.value });
                   }}
                 />
               )}

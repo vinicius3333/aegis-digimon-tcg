@@ -1,5 +1,6 @@
 import { tournamentCircuitsEn } from "@/i18n/tournamentCircuits.en";
 import { tournamentOfficialRequestEn } from "@/i18n/tournamentOfficialRequest.en";
+import { matchQueueEn } from "@/i18n/matchQueue.en";
 import { staffRolesEn } from "@/i18n/staffRoles.en";
 import { tournamentDetailEn } from "@/i18n/tournamentDetail.en";
 import { tournamentSpectatorsEn } from "@/i18n/tournamentSpectators.en";
@@ -489,6 +490,17 @@ export const en = {
   "home.signInTitle": "Playing on more than one device?",
   "home.signInCopy": "Connect Discord to keep your decks and stats on your account.",
   "home.signInAction": "Connect",
+  "resumeMatch.title": "Your match is still in progress",
+  "resumeMatch.copy": "Continue it here. Your other device leaves the match.",
+  "resumeMatch.action": "Resume match",
+  "resumeMatch.graceLeft": "Seat held for {time}",
+  "game.handoff.title": "Continue on another device",
+  "game.handoff.hint":
+    "Scan this with a phone or computer signed in to this account, then tap Resume match. This device then leaves the match.",
+  "game.handoff.show": "Show QR code",
+  "game.handoff.hide": "Hide QR code",
+  "game.handoff.qrLabel": "QR code that opens Aegis to resume this match",
+  "resumeMatch.failed": "We could not move the match to this device. It may have ended.",
   "home.footer.discord": "Discord community",
   "home.footer.github": "GitHub",
   "home.footer.legal":
@@ -656,6 +668,7 @@ export const en = {
   "library.sort.type": "Sort: Type",
   "library.sort.cardNumber": "Sort: Card Number",
   "library.sort.random": "Sort: Random",
+  "library.keywords": "Keywords",
   "library.traitAttribute": "Trait / attribute",
   "library.traitAttributePlaceholder": "Search traits or attributes…",
   "library.set": "Set",
@@ -673,6 +686,7 @@ export const en = {
   "library.rowRarity": "Rarity",
   "library.mainEffect": "Main effect",
   "library.inheritedEffect": "Inherited (ESS)",
+  "library.linkEffect": "Link effect",
   "library.securityEffect": "Security effect",
   "library.kind.Digimon": "Digimon",
   "library.kind.DigiEgg": "Digi-Egg",
@@ -794,7 +808,8 @@ export const en = {
   "overlay.moveEffectPrompt": "Move effect prompt",
   "overlay.moveEffectPromptHelp": "Drag to move, or use the arrow keys. Press Home to reset the position.",
   "settings.effectPromptPosition": "Effect prompt position",
-  "settings.effectPromptPositionDesc": "Choose where activation prompts appear. Field targets stay on the board.",
+  "settings.effectPromptPositionDesc":
+    "Choose where activation and confirmation prompts appear. Field targets stay on the board.",
   "settings.effectPromptCenter": "Center",
   "settings.effectPromptLeft": "Lower left (default)",
   "settings.effectSpeed": "Effect speed",
@@ -846,7 +861,8 @@ export const en = {
   "settings.communityDesc": "News, matchmaking and deck talk on our Discord server.",
   "settings.joinDiscord": "Join Discord",
   "settings.language": "Language",
-  "settings.languageDesc": "Interface language. Card names and card text stay in English.",
+  "settings.languageDesc":
+    "Interface language. In Japanese, Korean and Simplified Chinese, card names and text use the official translation where one exists. In other languages, and for cards without a translation, they stay in English. Card images follow the card image language setting.",
 
   "game.reconnecting": "Reconnecting…",
   "game.reconnectingDetail": "The connection dropped. Trying to resume your match.",
@@ -857,6 +873,7 @@ export const en = {
     "Your selection was too large to send. Reconnecting to restore the pending choice.",
   "game.reconnectFailed": "We could not resume this match. Return to the lobby and try again.",
   "game.sessionExpired": "This match can no longer be resumed. Return to the lobby.",
+  "game.seatTransferred": "You continued this match on another device.",
   "game.tooManyMessages": "Too many actions were sent at once. Wait a moment, then return to the lobby.",
   "game.serverUnavailable": "The game server is temporarily unavailable. Please try again shortly.",
   "game.opponentDisconnected": "Opponent disconnected",
@@ -890,6 +907,21 @@ export const en = {
   "game.inviteShareTitle": "Play me on Aegis",
   "game.shareLink": "Share link",
   "game.cancelInvite": "Cancel and return to lobby",
+  "game.guestApproval.requestTitle": "Join request",
+  "game.guestApproval.requestDetail":
+    "{name} wants to join your room. Accept to start the match, or decline to free the seat.",
+  "game.guestApproval.guestOffline": "Disconnected",
+  "game.guestApproval.accept": "Accept",
+  "game.guestApproval.decline": "Decline",
+  "game.guestApproval.waitingTitle": "Waiting for the host",
+  "game.guestApproval.waitingDetail": "The host must accept you before the match starts.",
+  "game.guestApproval.declinedTitle": "Request declined",
+  "game.guestApproval.declined": "The host declined your request to join this room.",
+  "game.guestApproval.hostLeftTitle": "Room closed",
+  "game.guestApproval.hostLeft": "The host left the room before the match started.",
+  "lobby.approval.label": "Require approval",
+  "lobby.approval.hint":
+    "When someone joins with your code, you see who it is and accept or decline them before the match starts.",
   "game.opponent": "Opponent",
   "game.you": "You",
   "game.activeKeywords": "Active keywords",
@@ -988,6 +1020,15 @@ export const en = {
   "game.dragIntent.use": "USE",
   "game.dragIntent.attack": "ATTACK",
   "game.matchLog": "Match log",
+  "game.matchLogUnread": "Match log, {count} new",
+  "game.matchLogExpand": "Expand match log",
+  "game.matchLogDrag": "Drag to move",
+  "settings.matchLogDisplay": "Match log display",
+  "settings.matchLogDisplayDesc":
+    "Choose how the match shows what happened: short popups over the board, a fixed log at the board's edge, or both. Phones keep the popups and use the log button.",
+  "settings.matchLogDisplayPopups": "Popups",
+  "settings.matchLogDisplayPanel": "Fixed log",
+  "settings.matchLogDisplayBoth": "Both",
   "game.fullscreen.enter": "Full screen",
   "game.fullscreen.exit": "Exit full screen",
   "game.skipPresentation": "Skip animations",
@@ -2104,6 +2145,7 @@ export const en = {
   ...publicReplaysEn,
   ...tournamentCircuitsEn,
   ...tournamentOfficialRequestEn,
+  ...matchQueueEn,
   ...staffRolesEn,
   ...achievementsEn,
   ...learnEn,
