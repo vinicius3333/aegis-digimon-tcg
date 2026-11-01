@@ -1,5 +1,6 @@
 import { tournamentCircuitsZhTW } from "@/i18n/tournamentCircuits.zh-TW";
 import { tournamentOfficialRequestZhTW } from "@/i18n/tournamentOfficialRequest.zh-TW";
+import { matchQueueZhTW } from "@/i18n/matchQueue.zh-TW";
 import { staffRolesZhTW } from "@/i18n/staffRoles.zh-TW";
 import { tournamentDetailZhTW } from "@/i18n/tournamentDetail.zh-TW";
 import { tournamentSpectatorsZhTW } from "@/i18n/tournamentSpectators.zh-TW";
@@ -869,6 +870,7 @@ const interfaceMessages = {
   "library.sort.type": "排序：類型",
   "library.sort.cardNumber": "排序：卡片編號",
   "library.sort.random": "排序：隨機",
+  "library.keywords": "關鍵字",
   "library.traitAttribute": "特徵/屬性",
   "library.traitAttributePlaceholder": "搜尋特徵或屬性...",
   "library.set": "卡包",
@@ -886,6 +888,7 @@ const interfaceMessages = {
   "library.rowRarity": "稀有度",
   "library.mainEffect": "主要效果",
   "library.inheritedEffect": "繼承效果（ESS）",
+  "library.linkEffect": "連結效果",
   "library.securityEffect": "安防效果",
   "library.kind.Digimon": "數碼寶貝",
   "library.kind.DigiEgg": "數碼蛋",
@@ -1002,7 +1005,7 @@ const interfaceMessages = {
   "overlay.moveEffectPrompt": "移動效果提示",
   "overlay.moveEffectPromptHelp": "拖曳進行移動，或使用箭頭鍵。按 Home 重置位置。",
   "settings.effectPromptPosition": "效果提示位置",
-  "settings.effectPromptPositionDesc": "選擇發動提示出現的位置。場上的目標仍在場地上選擇。",
+  "settings.effectPromptPositionDesc": "選擇發動提示和確認提示出現的位置。場上的目標仍在場地上選擇。",
   "settings.effectPromptCenter": "置中",
   "settings.effectPromptLeft": "左下（預設）",
   "settings.effectSpeed": "效果速度",
@@ -1052,7 +1055,8 @@ const interfaceMessages = {
   "settings.communityDesc": "在我們的 Discord 伺服器上取得新聞、尋找對手、討論卡組。",
   "settings.joinDiscord": "加入 Discord",
   "settings.language": "語言",
-  "settings.languageDesc": "介面語言。卡名和卡片文字仍為英文。",
+  "settings.languageDesc":
+    "介面語言。選擇日文、韓文或簡體中文時，有官方譯文的卡名和卡片文字會以該語言顯示。其他語言（包括繁體中文）及沒有官方譯文的卡片仍為英文。卡牌圖片依照「卡牌圖片語言」設定。",
   "game.reconnecting": "正在重新連線…",
   "game.reconnectingDetail": "連線已中斷。正在嘗試恢復對局。",
   "game.connectionLost": "連線中斷",
@@ -1189,6 +1193,15 @@ const interfaceMessages = {
   "game.dragIntent.use": "使用",
   "game.dragIntent.attack": "攻擊",
   "game.matchLog": "對局日誌",
+  "game.matchLogUnread": "對局日誌，{count} 條新紀錄",
+  "game.matchLogExpand": "展開對局日誌",
+  "game.matchLogDrag": "拖曳以移動",
+  "settings.matchLogDisplay": "對局日誌顯示方式",
+  "settings.matchLogDisplayDesc":
+    "選擇對局如何顯示發生的事情：棋盤上的簡短彈窗、棋盤邊緣的固定日誌，或兩者皆有。手機上保留彈窗，日誌透過按鈕開啟。",
+  "settings.matchLogDisplayPopups": "彈窗",
+  "settings.matchLogDisplayPanel": "固定日誌",
+  "settings.matchLogDisplayBoth": "兩者",
   "game.fullscreen.enter": "全螢幕",
   "game.fullscreen.exit": "退出全螢幕",
   "game.skipPresentation": "跳過動畫",
@@ -2725,6 +2738,7 @@ const interfaceMessages = {
   ...tournamentSpectatorsZhTW,
   ...tournamentCircuitsZhTW,
   ...tournamentOfficialRequestZhTW,
+  ...matchQueueZhTW,
   ...staffRolesZhTW,
   ...achievementsZhTw,
   "profile.filter.deck": "卡組",

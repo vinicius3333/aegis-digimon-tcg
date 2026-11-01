@@ -1,5 +1,6 @@
 import { tournamentCircuitsJa } from "@/i18n/tournamentCircuits.ja";
 import { tournamentOfficialRequestJa } from "@/i18n/tournamentOfficialRequest.ja";
+import { matchQueueJa } from "@/i18n/matchQueue.ja";
 import { staffRolesJa } from "@/i18n/staffRoles.ja";
 import { tournamentDetailJa } from "@/i18n/tournamentDetail.ja";
 import { tournamentSpectatorsJa } from "@/i18n/tournamentSpectators.ja";
@@ -911,6 +912,7 @@ const interfaceMessages = {
   "library.sort.type": "並べ替え: タイプ",
   "library.sort.cardNumber": "並べ替え: カード番号",
   "library.sort.random": "並べ替え: ランダム",
+  "library.keywords": "キーワード",
   "library.traitAttribute": "特徴/属性",
   "library.traitAttributePlaceholder": "特徴または属性を検索…",
   "library.set": "セット",
@@ -928,6 +930,7 @@ const interfaceMessages = {
   "library.rowRarity": "レアリティ",
   "library.mainEffect": "効果",
   "library.inheritedEffect": "進化元効果",
+  "library.linkEffect": "リンク効果",
   "library.securityEffect": "セキュリティ効果",
   "library.kind.Digimon": "デジモン",
   "library.kind.DigiEgg": "デジタマ",
@@ -1046,7 +1049,8 @@ const interfaceMessages = {
   "overlay.moveEffectPrompt": "効果の確認ウィンドウを移動",
   "overlay.moveEffectPromptHelp": "ドラッグするか矢印キーで移動します。Homeキーで位置をリセットします。",
   "settings.effectPromptPosition": "効果の確認ウィンドウの位置",
-  "settings.effectPromptPositionDesc": "効果の発動確認を表示する場所を選びます。場の対象は盤面上に残ります。",
+  "settings.effectPromptPositionDesc":
+    "効果の発動確認や確認ダイアログを表示する場所を選びます。場の対象は盤面上に残ります。",
   "settings.effectPromptCenter": "中央",
   "settings.effectPromptLeft": "左下（デフォルト）",
   "settings.effectSpeed": "効果の表示速度",
@@ -1098,7 +1102,8 @@ const interfaceMessages = {
   "settings.communityDesc": "Discordサーバーでニュース、対戦相手探し、デッキの話題。",
   "settings.joinDiscord": "Discordに参加",
   "settings.language": "言語",
-  "settings.languageDesc": "インターフェースの言語です。カード名とカードテキストは英語のままです。",
+  "settings.languageDesc":
+    "インターフェースの言語です。日本語、韓国語、簡体字中国語では、公式訳があるカード名とカードテキストをその言語で表示します。その他の言語や公式訳がないカードは英語のままです。カード画像は「カード画像の言語」の設定に従います。",
   "game.reconnecting": "再接続中…",
   "game.reconnectingDetail": "接続が切れました。対戦に復帰しようとしています。",
   "game.connectionLost": "接続が切れました",
@@ -1241,6 +1246,15 @@ const interfaceMessages = {
   "game.dragIntent.use": "使用",
   "game.dragIntent.attack": "アタック",
   "game.matchLog": "対戦ログ",
+  "game.matchLogUnread": "対戦ログ、新着{count}件",
+  "game.matchLogExpand": "対戦ログを拡大",
+  "game.matchLogDrag": "ドラッグして移動",
+  "settings.matchLogDisplay": "対戦ログの表示",
+  "settings.matchLogDisplayDesc":
+    "起きたことの表示方法を選びます：盤面上の短いポップアップ、盤面の端に固定されたログ、またはその両方。スマートフォンではポップアップのまま、ログはボタンから開きます。",
+  "settings.matchLogDisplayPopups": "ポップアップ",
+  "settings.matchLogDisplayPanel": "固定ログ",
+  "settings.matchLogDisplayBoth": "両方",
   "game.fullscreen.enter": "全画面表示",
   "game.fullscreen.exit": "全画面表示を終了",
   "game.skipPresentation": "アニメーションをスキップ",
@@ -2821,6 +2835,7 @@ const interfaceMessages = {
   ...tournamentSpectatorsJa,
   ...tournamentCircuitsJa,
   ...tournamentOfficialRequestJa,
+  ...matchQueueJa,
   ...staffRolesJa,
   ...achievementsJa,
   "profile.filter.deck": "デッキ",

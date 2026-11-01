@@ -1,5 +1,6 @@
 import { tournamentCircuitsEs } from "@/i18n/tournamentCircuits.es";
 import { tournamentOfficialRequestEs } from "@/i18n/tournamentOfficialRequest.es";
+import { matchQueueEs } from "@/i18n/matchQueue.es";
 import { staffRolesEs } from "@/i18n/staffRoles.es";
 import { tournamentDetailEs } from "@/i18n/tournamentDetail.es";
 import { tournamentSpectatorsEs } from "@/i18n/tournamentSpectators.es";
@@ -648,6 +649,7 @@ export const es: Record<keyof typeof en, string> = {
   "library.sort.type": "Ordenar: Tipo",
   "library.sort.cardNumber": "Ordenar: Número de carta",
   "library.sort.random": "Ordenar: Aleatorio",
+  "library.keywords": "Palabras clave",
   "library.traitAttribute": "Rasgo / atributo",
   "library.traitAttributePlaceholder": "Buscar rasgos o atributos…",
   "library.set": "Set",
@@ -665,6 +667,7 @@ export const es: Record<keyof typeof en, string> = {
   "library.rowRarity": "Rareza",
   "library.mainEffect": "Efecto principal",
   "library.inheritedEffect": "Heredado (ESS)",
+  "library.linkEffect": "Efecto de Link",
   "library.securityEffect": "Efecto de seguridad",
   "library.kind.Digimon": "Digimon",
   "library.kind.DigiEgg": "Digi-Egg",
@@ -788,7 +791,7 @@ export const es: Record<keyof typeof en, string> = {
   "overlay.moveEffectPromptHelp": "Arrastra para mover o usa las flechas. Pulsa Inicio para restaurar la posición.",
   "settings.effectPromptPosition": "Posición de los efectos",
   "settings.effectPromptPositionDesc":
-    "Elige dónde aparecen las preguntas de activación. Los objetivos siguen en el campo.",
+    "Elige dónde aparecen las preguntas de activación y confirmación. Los objetivos siguen en el campo.",
   "settings.effectPromptCenter": "Centro",
   "settings.effectPromptLeft": "Esquina inferior izquierda (predeterminada)",
   "settings.effectSpeed": "Velocidad de efectos",
@@ -834,7 +837,8 @@ export const es: Record<keyof typeof en, string> = {
   "settings.communityDesc": "Noticias, partidas y charlas de decks en nuestro servidor de Discord.",
   "settings.joinDiscord": "Unirse a Discord",
   "settings.language": "Idioma",
-  "settings.languageDesc": "Idioma de la interfaz. Los nombres y textos de las cartas siguen en inglés.",
+  "settings.languageDesc":
+    "Idioma de la interfaz. En japonés, coreano y chino simplificado, los nombres y textos de las cartas usan la traducción oficial cuando existe. En los demás idiomas, y en cartas sin traducción, siguen en inglés. Las imágenes de las cartas siguen el ajuste Idioma de las imágenes de cartas.",
   "game.reconnecting": "Reconectando…",
   "game.reconnectingDetail": "Se perdió la conexión. Intentando retomar tu partida.",
   "game.connectionLost": "Conexión perdida",
@@ -978,6 +982,15 @@ export const es: Record<keyof typeof en, string> = {
   "game.dragIntent.use": "USAR",
   "game.dragIntent.attack": "ATACAR",
   "game.matchLog": "Registro de la partida",
+  "game.matchLogUnread": "Registro de la partida, {count} nuevas",
+  "game.matchLogExpand": "Ampliar registro de la partida",
+  "game.matchLogDrag": "Arrastra para mover",
+  "settings.matchLogDisplay": "Visualización del registro",
+  "settings.matchLogDisplayDesc":
+    "Elige cómo muestra la partida lo que pasó: avisos breves sobre el tablero, un registro fijo en el borde del tablero o ambos. En el móvil se mantienen los avisos y el registro queda en el botón.",
+  "settings.matchLogDisplayPopups": "Avisos",
+  "settings.matchLogDisplayPanel": "Registro fijo",
+  "settings.matchLogDisplayBoth": "Ambos",
   "game.fullscreen.enter": "Pantalla completa",
   "game.fullscreen.exit": "Salir de pantalla completa",
   "game.skipPresentation": "Omitir animaciones",
@@ -2321,6 +2334,7 @@ export const es: Record<keyof typeof en, string> = {
   ...tournamentSpectatorsEs,
   ...tournamentCircuitsEs,
   ...tournamentOfficialRequestEs,
+  ...matchQueueEs,
   ...staffRolesEs,
   ...achievementsEs,
   ...learnEs,

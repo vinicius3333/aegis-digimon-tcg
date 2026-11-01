@@ -8,6 +8,12 @@ import { GameModeSwitch } from "@/screens/GameModeSwitch";
 import { LobbyMode } from "@/screens/LobbyMode";
 import { GameMode } from "@aegis/shared/manual/GameMode";
 import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
+import { MatchQueue } from "@aegis/shared/matchmaking/MatchQueue";
+import type { MatchQueueSelection } from "@aegis/shared/matchmaking/MatchQueueSelection";
+import { MatchQueueActivitySummary } from "@/matchmaking/MatchQueueActivitySummary";
+import { getMatchQueueKey } from "@aegis/shared/matchmaking/getMatchQueueKey";
+import { useMatchQueueCounts } from "@/matchmaking/useMatchQueueCounts";
+import { getMatchQueueSelection } from "@/matchmaking/getMatchQueueSelection";
 
 import { communityApi } from "@/community/client";
 import { communityDeckListing } from "@/community/communityDeckListing";
@@ -219,7 +225,11 @@ export function Lobby({
   initialMode,
   challengeFriendName,
   onCancelChallenge,
+  queueChallenge,
+  onQueueChallengeHandled,
 }: {
+  queueChallenge?: MatchQueueSelection;
+  onQueueChallengeHandled?: () => void;
   challengeFriendName?: string;
   onCancelChallenge?: () => void;
   gameMode?: GameMode;
@@ -408,6 +418,8 @@ export function Lobby({
   const rankedEnabled = rankedConfig?.enabled === true;
   const rankedFormatEnabled = rankedConfig?.formats.includes(format) === true;
   const [rankedQueue, setRankedQueue] = useState(initialRanked);
+  const [rankedStartResets, setRankedStartResets] = useState(0);
+  const [pendingChallengeKey, setPendingChallengeKey] = useState<string>();
   const [randomDrawing, setRandomDrawing] = useState(false);
   const [randomError, setRandomError] = useState(false);
   const [randomSelected, setRandomSelected] = useState(false);
@@ -717,6 +729,71 @@ export function Lobby({
       ) : null}
     </div>
   );
+  const queueCounts = useMatchQueueCounts({ enabled: mode === LobbyMode.CASUAL.value });
+  const queueSelection = getMatchQueueSelection({
+    options: {
+      gameMode: manualMatch ? GameMode.MANUAL.value : GameMode.AUTOMATIC.value,
+      ranked: selectedRankedQueue,
+      betaBattleMode: betaEnabled || betaOptedIn,
+      format,
+      unlimited,
+      matchTimer: timer.matchTimer,
+      bestOf,
+      allowRollback,
+    },
+  });
+  const queueActivity =
+    mode === LobbyMode.CASUAL.value && queueCounts ? (
+      <MatchQueueActivitySummary className="lobby-queue-activity" counts={queueCounts} selection={queueSelection} />
+    ) : null;
+  function applyQueueSettings(selection: MatchQueueSelection) {
+    const manual = selection.queue === MatchQueue.MANUAL.value;
+    if (rankedQueue) {
+      setRankedQueue(false);
+      setRankedStartResets((resets) => resets + 1);
+    }
+    onGameModeChange?.(manual ? GameMode.MANUAL.value : GameMode.AUTOMATIC.value);
+    changeFormat(selection.format);
+    setBetaQueueChosen(selection.queue === MatchQueue.BETA.value);
+    if (manual) {
+      return;
+    }
+    changeTimer({ ...timer, matchTimer: selection.matchTimer });
+    changeBestOf(selection.bestOf);
+    onAllowRollbackChange?.(selection.allowRollback);
+  }
+  function challengeQueue(selection: MatchQueueSelection) {
+    applyQueueSettings(selection);
+    setPendingChallengeKey(getMatchQueueKey(selection));
+  }
+  const queueChallengeHandled = useRef(false);
+  useEffect(() => {
+    if (!queueChallenge || queueChallengeHandled.current) {
+      return;
+    }
+    queueChallengeHandled.current = true;
+    onQueueChallengeHandled?.();
+    setMode(LobbyMode.CASUAL.value);
+    challengeQueue(queueChallenge);
+  });
+  useEffect(() => {
+    if (!pendingChallengeKey) {
+      return;
+    }
+    setPendingChallengeKey(undefined);
+    if (getMatchQueueKey(queueSelection) !== pendingChallengeKey || !selectionLegal) {
+      return;
+    }
+    if (queueSelection.queue === MatchQueue.BETA.value) {
+      if (betaEnabled) {
+        setBetaConfirmationOpen(true);
+      } else {
+        void start("beta", undefined, undefined, true);
+      }
+      return;
+    }
+    void start(unlimited ? "unlimited" : "casual");
+  }, [pendingChallengeKey, queueSelection, selectionLegal, betaEnabled, start, unlimited]);
 
   return (
     <main className="aegis-page play-page lobby-page">
@@ -1001,7 +1078,12 @@ export function Lobby({
               ) : null}
             </div>
             <div className="lobby-setup__controls">
-              {launch ? <div className="lobby-setup__rules">{matchSummary}</div> : null}
+              {launch ? (
+                <div className="lobby-setup__rules">
+                  {matchSummary}
+                  {queueActivity}
+                </div>
+              ) : null}
               {mode === "private" && (privateGuest || privateRoom) ? (
                 <div>
                   <p className="lobby-timer-hint">{t("lobby.timer.guestHint")}</p>
@@ -1026,14 +1108,19 @@ export function Lobby({
                 />
               ) : !launch && !vsBot && rankedFormatEnabled && !betaEnabled && !betaOptedIn && rankedEnabled ? (
                 <RankedStart
-                  key={initialRanked ? "ranked" : "casual"}
-                  initialRanked={initialRanked}
+                  key={`${initialRanked ? "ranked" : "casual"}-${rankedStartResets}`}
+                  initialRanked={initialRanked && rankedStartResets === 0}
                   onRankedChange={setRankedQueue}
                   format={format}
                   rankedDisabled={randomSelected || Boolean(borrowedDeck)}
                   disabled={!selectionLegal}
                   className="lobby-queue-setup"
-                  matchSummary={matchSummary}
+                  matchSummary={
+                    <>
+                      {matchSummary}
+                      {queueActivity}
+                    </>
+                  }
                   actionClassName="lobby-setup__launch"
                   buttonLabel={t("lobby.enterQueue")}
                   onOpenSettings={() => onNav("settings")}

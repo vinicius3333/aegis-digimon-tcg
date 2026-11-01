@@ -83,7 +83,6 @@ export function decisionPresentation({
     : "dialog";
 }
 
-/** Activation prompts follow the preference; costs and card galleries keep their own surfaces. */
 export function isEffectActivationDecision(decision: DecisionRequest): boolean {
   if (decision.options?.purpose === "cost" || decision.options?.digivolveCostChoice !== undefined) return false;
   return (
@@ -94,14 +93,25 @@ export function isEffectActivationDecision(decision: DecisionRequest): boolean {
   );
 }
 
+const CARD_GALLERY_DECISION_KINDS: readonly DecisionRequest["kind"][] = [
+  "chooseTargets",
+  "selectCards",
+  "orderCards",
+  "orderTriggers",
+  "mulligan",
+];
+
 export function effectDecisionSurface(
   decision: DecisionRequest,
   position: "left" | "center" = "left",
 ): "left" | "center" {
-  if (isEffectActivationDecision(decision)) return position;
-  return ["chooseTargets", "selectCards", "orderCards", "orderTriggers", "mulligan"].includes(decision.kind)
-    ? "center"
-    : "left";
+  if (isEffectActivationDecision(decision)) {
+    return position;
+  }
+  if (CARD_GALLERY_DECISION_KINDS.includes(decision.kind)) {
+    return "center";
+  }
+  return position;
 }
 
 /**

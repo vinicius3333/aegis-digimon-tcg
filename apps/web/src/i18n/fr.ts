@@ -1,5 +1,6 @@
 import { tournamentCircuitsFr } from "@/i18n/tournamentCircuits.fr";
 import { tournamentOfficialRequestFr } from "@/i18n/tournamentOfficialRequest.fr";
+import { matchQueueFr } from "@/i18n/matchQueue.fr";
 import { staffRolesFr } from "@/i18n/staffRoles.fr";
 import { tournamentDetailFr } from "@/i18n/tournamentDetail.fr";
 import { tournamentSpectatorsFr } from "@/i18n/tournamentSpectators.fr";
@@ -922,6 +923,7 @@ const interfaceMessages = {
   "library.sort.type": "Trier : Type",
   "library.sort.cardNumber": "Trier : Numéro de carte",
   "library.sort.random": "Trier : aléatoire",
+  "library.keywords": "Mots-clés",
   "library.traitAttribute": "Trait / attribut",
   "library.traitAttributePlaceholder": "Rechercher des traits ou des attributs…",
   "library.set": "Extension",
@@ -939,6 +941,7 @@ const interfaceMessages = {
   "library.rowRarity": "Rareté",
   "library.mainEffect": "Effet principal",
   "library.inheritedEffect": "Effet hérité (ESS)",
+  "library.linkEffect": "Effet de Link",
   "library.securityEffect": "Effet de sécurité",
   "library.kind.Digimon": "Digimon",
   "library.kind.DigiEgg": "Digi-Œuf",
@@ -1062,7 +1065,7 @@ const interfaceMessages = {
     "Faites glisser pour la déplacer ou utilisez les touches fléchées. Appuyez sur Origine pour réinitialiser la position.",
   "settings.effectPromptPosition": "Position de la fenêtre d'effet",
   "settings.effectPromptPositionDesc":
-    "Choisissez où apparaissent les fenêtres d'activation. Les cibles sur le terrain restent sur le plateau.",
+    "Choisissez où apparaissent les fenêtres d'activation et de confirmation. Les cibles sur le terrain restent sur le plateau.",
   "settings.effectPromptCenter": "Centre",
   "settings.effectPromptLeft": "En bas à gauche (par défaut)",
   "settings.effectSpeed": "Vitesse des effets",
@@ -1117,7 +1120,8 @@ const interfaceMessages = {
     "Actualités, recherche d'adversaires et discussions sur les decks sur notre serveur Discord.",
   "settings.joinDiscord": "Rejoindre Discord",
   "settings.language": "Langue",
-  "settings.languageDesc": "Langue de l'interface. Les noms et le texte des cartes restent en anglais.",
+  "settings.languageDesc":
+    "Langue de l'interface. En japonais, coréen et chinois simplifié, les noms et le texte des cartes utilisent la traduction officielle lorsqu'elle existe. Dans les autres langues, et pour les cartes sans traduction, ils restent en anglais. Les images des cartes suivent le réglage Langue des images des cartes.",
   "game.reconnecting": "Reconnexion…",
   "game.reconnectingDetail": "La connexion a été interrompue. Tentative de reprise de votre match.",
   "game.connectionLost": "Connexion perdue",
@@ -1263,6 +1267,15 @@ const interfaceMessages = {
   "game.dragIntent.use": "UTILISER",
   "game.dragIntent.attack": "ATTAQUE",
   "game.matchLog": "Journal du match",
+  "game.matchLogUnread": "Journal du match, {count} nouvelle(s)",
+  "game.matchLogExpand": "Agrandir le journal du match",
+  "game.matchLogDrag": "Faites glisser pour déplacer",
+  "settings.matchLogDisplay": "Affichage du journal",
+  "settings.matchLogDisplayDesc":
+    "Choisissez comment le match montre ce qui s'est passé : de courtes notifications sur le plateau, un journal fixe au bord du plateau, ou les deux. Sur téléphone, les notifications restent et le journal s'ouvre avec le bouton.",
+  "settings.matchLogDisplayPopups": "Notifications",
+  "settings.matchLogDisplayPanel": "Journal fixe",
+  "settings.matchLogDisplayBoth": "Les deux",
   "game.fullscreen.enter": "Plein écran",
   "game.fullscreen.exit": "Quitter le plein écran",
   "game.skipPresentation": "Passer les animations",
@@ -2883,6 +2896,7 @@ const interfaceMessages = {
   ...tournamentSpectatorsFr,
   ...tournamentCircuitsFr,
   ...tournamentOfficialRequestFr,
+  ...matchQueueFr,
   ...staffRolesFr,
   ...achievementsFr,
   "profile.filter.deck": "Deck",

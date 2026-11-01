@@ -4,6 +4,7 @@ import type { TournamentSpectateTarget } from "@/tournaments/TournamentSpectateT
 import { RankedScreen } from "@/ranked/RankedScreen";
 import { HomeMatchQueue } from "@/home/HomeMatchQueue";
 import { LobbyMode } from "@/screens/LobbyMode";
+import type { MatchQueueSelection } from "@aegis/shared/matchmaking/MatchQueueSelection";
 import { useRankedConfig } from "@/ranked/useRankedConfig";
 import type { TournamentGameTicket } from "@aegis/shared/tournaments/TournamentGameTicket";
 import { FriendsDrawer } from "@/messages/FriendsDrawer";
@@ -524,6 +525,7 @@ function LoadedAegisClient({
   const [roomCode, setRoomCode] = useState<string>();
   const [spectatorFriendId, setSpectatorFriendId] = useState<string>();
   const [challengeTarget, setChallengeTarget] = useState<Friend>();
+  const [queueChallenge, setQueueChallenge] = useState<MatchQueueSelection>();
   const [privateRoom, setPrivateRoom] = useState<PrivateRoom>();
   const [botDeckId, setBotDeckId] = useState<string>();
   const [botSettings, setBotSettings] = useState<BotSettings>();
@@ -1005,6 +1007,8 @@ function LoadedAegisClient({
                   onLeavePrivateRoom={() => setPrivateRoom(undefined)}
                   onStart={startMatch}
                   openMatchSettings={route.matchSettings === true}
+                  queueChallenge={queueChallenge}
+                  onQueueChallengeHandled={() => setQueueChallenge(undefined)}
                 />
               )}
 
@@ -1026,6 +1030,13 @@ function LoadedAegisClient({
                     setChallengeTarget(undefined);
                     setInvitedRoomCode(code);
                     navigateScreen("lobby");
+                  }}
+                  onChallengeQueue={(selection) => {
+                    setInvitedRoomCode(undefined);
+                    setPrivateRoom(undefined);
+                    setChallengeTarget(undefined);
+                    setQueueChallenge(selection);
+                    navigate({ screen: "lobby", lobbyMode: LobbyMode.CASUAL.value });
                   }}
                 />
               )}

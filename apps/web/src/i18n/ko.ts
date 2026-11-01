@@ -1,5 +1,6 @@
 import { tournamentCircuitsKo } from "@/i18n/tournamentCircuits.ko";
 import { tournamentOfficialRequestKo } from "@/i18n/tournamentOfficialRequest.ko";
+import { matchQueueKo } from "@/i18n/matchQueue.ko";
 import { staffRolesKo } from "@/i18n/staffRoles.ko";
 import { tournamentDetailKo } from "@/i18n/tournamentDetail.ko";
 import { tournamentSpectatorsKo } from "@/i18n/tournamentSpectators.ko";
@@ -901,6 +902,7 @@ const interfaceMessages = {
   "library.sort.type": "정렬: 카드 종류",
   "library.sort.cardNumber": "정렬: 카드 번호",
   "library.sort.random": "정렬: 랜덤",
+  "library.keywords": "키워드",
   "library.traitAttribute": "특징 / 속성",
   "library.traitAttributePlaceholder": "특징 또는 속성 검색…",
   "library.set": "세트",
@@ -918,6 +920,7 @@ const interfaceMessages = {
   "library.rowRarity": "레어리티",
   "library.mainEffect": "메인 효과",
   "library.inheritedEffect": "진화원 효과",
+  "library.linkEffect": "링크 효과",
   "library.securityEffect": "시큐리티 효과",
   "library.kind.Digimon": "디지몬",
   "library.kind.DigiEgg": "디지타마",
@@ -1037,7 +1040,7 @@ const interfaceMessages = {
   "overlay.moveEffectPromptHelp": "드래그하거나 화살표 키로 이동하세요. Home 키를 누르면 위치가 초기화됩니다.",
   "settings.effectPromptPosition": "효과 창 위치",
   "settings.effectPromptPositionDesc":
-    "발동 확인 창이 표시될 위치를 선택합니다. 필드의 대상 선택은 보드에 그대로 표시됩니다.",
+    "발동 및 확인 창이 표시될 위치를 선택합니다. 필드의 대상 선택은 보드에 그대로 표시됩니다.",
   "settings.effectPromptCenter": "가운데",
   "settings.effectPromptLeft": "왼쪽 아래 (기본값)",
   "settings.effectSpeed": "효과 속도",
@@ -1089,7 +1092,8 @@ const interfaceMessages = {
   "settings.communityDesc": "Discord 서버에서 소식, 대전 상대 찾기, 덱 이야기를 나눕니다.",
   "settings.joinDiscord": "Discord 참가",
   "settings.language": "언어",
-  "settings.languageDesc": "인터페이스 언어입니다. 카드 이름과 카드 텍스트는 영어로 표시됩니다.",
+  "settings.languageDesc":
+    "인터페이스 언어입니다. 일본어, 한국어, 중국어(간체)에서는 공식 번역이 있는 카드 이름과 카드 텍스트를 해당 언어로 표시합니다. 다른 언어나 공식 번역이 없는 카드는 영어로 표시됩니다. 카드 이미지는 '카드 이미지 언어' 설정을 따릅니다.",
   "game.reconnecting": "다시 연결하는 중…",
   "game.reconnectingDetail": "연결이 끊어졌습니다. 대전을 다시 이어 가는 중입니다.",
   "game.connectionLost": "연결 끊김",
@@ -1230,6 +1234,15 @@ const interfaceMessages = {
   "game.dragIntent.use": "사용",
   "game.dragIntent.attack": "어택",
   "game.matchLog": "대전 로그",
+  "game.matchLogUnread": "대전 로그, 새 항목 {count}개",
+  "game.matchLogExpand": "대전 로그 확대",
+  "game.matchLogDrag": "드래그하여 이동",
+  "settings.matchLogDisplay": "대전 로그 표시",
+  "settings.matchLogDisplayDesc":
+    "일어난 일을 보여 주는 방식을 고릅니다: 보드 위의 짧은 팝업, 보드 가장자리의 고정 로그, 또는 둘 다. 휴대폰에서는 팝업이 유지되고 로그는 버튼으로 엽니다.",
+  "settings.matchLogDisplayPopups": "팝업",
+  "settings.matchLogDisplayPanel": "고정 로그",
+  "settings.matchLogDisplayBoth": "둘 다",
   "game.fullscreen.enter": "전체 화면",
   "game.fullscreen.exit": "전체 화면 종료",
   "game.skipPresentation": "애니메이션 건너뛰기",
@@ -2795,6 +2808,7 @@ const interfaceMessages = {
   ...tournamentSpectatorsKo,
   ...tournamentCircuitsKo,
   ...tournamentOfficialRequestKo,
+  ...matchQueueKo,
   ...staffRolesKo,
   ...achievementsKo,
   "profile.filter.deck": "덱",

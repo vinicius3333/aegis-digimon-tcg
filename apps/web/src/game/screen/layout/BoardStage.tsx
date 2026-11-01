@@ -43,7 +43,10 @@ import { createPortal } from "react-dom";
 import type { GameState, Permanent, PlayerState, Seat } from "@aegis/shared";
 import type { RevealedZones } from "../model/gameOutcome";
 import { canAttackPlayerWith, canAttackWith, otherSeat } from "../../boardModel";
-import type { LogLine } from "@/game/log/LogEntry";
+import type { LogEntry, LogLine } from "@/game/log/LogEntry";
+import { useUnreadLogCount } from "@/game/log/useUnreadLogCount";
+import type { SeatNames } from "@/game/log/SeatNames";
+import type { SeatAvatars } from "@/game/log/SeatAvatars";
 import { intents } from "../../../net/intents";
 import { EndTurnDialog } from "./EndTurnDialog";
 import { useEndTurnConfirmation } from "../hooks/useEndTurnConfirmation";
@@ -82,6 +85,8 @@ import { DragGhost } from "./DragGhost";
 import { FieldClashGhosts } from "./FieldClashGhosts";
 import { LeftPileColumn } from "./LeftPileColumn";
 import { LogTicker } from "./LogTicker";
+import { FixedMatchLog } from "@/game/log/FixedMatchLog";
+import { useMatchLogDisplay } from "@/game/log/useMatchLogDisplay";
 import { DecisionMatchTimer, MatchTimer, SeriesBadge, viewerDecisionTimed } from "../../MatchTimer";
 import { MemoryBand } from "./MemoryBand";
 import { OpponentBar } from "./OpponentBar";
@@ -96,6 +101,9 @@ import { EffectConfirmButton } from "../../EffectConfirmButton";
 import { useBreedingTransferOrigins } from "../../breedingTransfer";
 import { useFieldShatterOrigins } from "../../fieldShatter";
 import type { EffectSourceMark } from "@/game/effectMarks/EffectSourceMark";
+import type { NarrationItem } from "../../narration";
+
+const HIDDEN_NARRATION: ReadonlyMap<string, NarrationItem> = new Map();
 
 export interface BoardAnchors {
   board: RefObject<HTMLDivElement | null>;
@@ -131,6 +139,9 @@ export interface BoardReadouts {
   displayedTurnSeat: Seat;
   displayedTurnCount: number;
   log: LogLine[];
+  logEntries: readonly LogEntry[];
+  seatNames: SeatNames;
+  seatAvatars: SeatAvatars;
 }
 
 /** What the board lights, outlines or points at while a choice is open. */
@@ -287,6 +298,10 @@ export function BoardStage({
   const other = otherSeat(viewerSeat);
   const [chatOpen, setChatOpen] = useState(false);
   const chatUnread = useUnreadChatCount(chat?.entries, chatOpen);
+  const logUnread = useUnreadLogCount({ entries: readouts.logEntries, open: overlays.historyOpen });
+  const matchLogDisplay = useMatchLogDisplay();
+  const showsFixedLog = matchLogDisplay.showsPanel && !layout.narrowGameLayout;
+  const shownNarration = matchLogDisplay.showsPopups || layout.narrowGameLayout ? cues.narration : HIDDEN_NARRATION;
   const endTurnConfirmation = useEndTurnConfirmation({
     phase: displayPhase,
     turnCount: state.turnCount,
@@ -534,6 +549,7 @@ export function BoardStage({
             onToggleChat={chat ? () => setChatOpen((open) => !open) : undefined}
             chatOpen={chatOpen}
             chatUnread={chatUnread}
+            logUnread={logUnread}
             gameOver={state.gameOver}
             onSurrender={
               spectating || state.gameOver ? () => onLeaveSpectator?.() : () => overlays.setSurrenderConfirmOpen(true)
@@ -551,7 +567,7 @@ export function BoardStage({
             ) : null}
             {!resultShown ? (
               <NarrationStack
-                narration={cues.narration}
+                narration={shownNarration}
                 rejection={cues.rejection}
                 compact={layout.collapseNotices}
                 promptSourceCardId={promptSourceCardId}
@@ -580,6 +596,17 @@ export function BoardStage({
               displayedTurnSeat={readouts.displayedTurnSeat}
               displayedTurnCount={readouts.displayedTurnCount}
               memory={readouts.memory}
+            />
+          ) : null}
+
+          {showsFixedLog ? (
+            <FixedMatchLog
+              entries={readouts.logEntries}
+              viewerSeat={spectating ? undefined : viewerSeat}
+              playerNames={readouts.seatNames}
+              playerAvatars={readouts.seatAvatars}
+              onExpand={() => overlays.setHistoryOpen(true)}
+              onOpenCard={overlays.setZoomCardId}
             />
           ) : null}
 

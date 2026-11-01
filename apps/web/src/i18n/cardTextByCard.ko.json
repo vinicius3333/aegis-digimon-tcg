@@ -5992,7 +5992,7 @@
     "<Piercing>(WhenthisDigimonattacksanddeletesanopponent'sDigimonandsurvivesthebattle,itperformsanysecuritychecksitnormallywould.)[AllTurns]WhenanotherDigimonisdeleted,gain1memoryforeachDigimondeleted.": "《관통》 (이 디지몬이 어택한 배틀에서 상대의 디지몬만을 소멸시켰을 때, 이 디지몬은 시큐리티를 체크한다) 【서로의 턴】 다른 자신의 디지몬 또는 상대의 디지몬이 소멸했을 때, 소멸한 디지몬 1마리마다 메모리를 +1 한다."
   },
   "BT3-093": {
-    "[StartofYourTurn]Ifyouhave2memoryorless,setyourmemoryto3.OnPlay]Revealthetop3cardsofyourdeck.Add1blueand1greenDigimoncardamongthemtoyourhand.Placetheremainingcardsatthebottomofyourdeckinanyorder.": "【자신의 턴 개시 시】 자신의 메모리가 2 이하일 때, 3으로 한다.\n【등장 시】 자신의 덱 위에서부터 3장 오픈한다. 그 중 블루와 그린의 디지몬 카드를 1장씩 패에 추가한다. 남은 카드는 원하는 순서대로 덱 아래로 되돌린다.",
+    "[StartofYourTurn]Ifyouhave2memoryorless,setyourmemoryto3.[OnPlay]Revealthetop3cardsofyourdeck.Add1blueand1greenDigimoncardamongthemtoyourhand.Placetheremainingcardsatthebottomofyourdeckinanyorder.": "【자신의 턴 개시 시】 자신의 메모리가 2 이하일 때, 3으로 한다.\n【등장 시】 자신의 덱 위에서부터 3장 오픈한다. 그 중 블루와 그린의 디지몬 카드를 1장씩 패에 추가한다. 남은 카드는 원하는 순서대로 덱 아래로 되돌린다.",
     "[Security]Playthiscardwithoutpayingitsmemorycost.": "【시큐리티】 이 카드를 코스트를 지불하지 않고 등장시킨다."
   },
   "BT3-094": {
@@ -10292,7 +10292,7 @@
     "[Digivolve]Lv.5w/[DS]trait:Cost3[Hand][Counter]<BlastDigivolve>[OnPlay][WhenDigivolving]<De-Digivolve1>1ofyouropponent'sDigimon.Then,return1ofyouropponent'sDigimonwithaplaycostof7orlesstothebottomofthedeck.[AllTurns]Whileyouhave1ormorememory,noneofyouropponent'sDigimoncansuspend.[Rule]Trait:Hasthe[Aquatic]type.": "〔진화〕특징으로 「DS」를 가진 Lv.5 : 코스트 3[패]【카운터】《블래스트 진화》(자신의 디지몬을 이 카드로 코스트를 지불하지 않고 진화시킬 수 있다) 【등장 시】【진화 시】상대의 디지몬 1마리를 《퇴화 1》. 그 후, 등장 코스트 7 이하의 상대의 디지몬 1마리를 덱 아래로 되돌린다. 【서로의 턴】메모리가 1 이상인 동안, 상대의 디지몬 전부는 레스트할 수 없다. 〈룰〉특징: 유형 「수생형」을 가진다."
   },
   "EX8-027": {
-    "[Digivolve]Lv.5w/[DS]trait:Cost3[WhenDigivolving]Youmayplay1level4orlowerDigimoncardfromthisDigimon'sdigivolutioncardswithoutpayingthecost.[YourTurn][OncePerTurn]WhenanyofyourDigimonareplayedordigivolve,ifanyofthemhavethe[DS]trait,2ofyourDigimonmayDNAdigivolve]intoaDigimoncardwiththe[DS]traitinthehand.Then,thatDNAdigivolvedDigimonmayattack.": "〔진화〕특징으로 「DS」를 가진 Lv.5 : 코스트 3【진화 시】이 디지몬의 진화원에서 Lv.4 이하의 디지몬 카드 1장을 코스트를 지불하지 않고 등장시킬 수 있다. 【자신의 턴】[턴에 1회]자신의 디지몬이 등장/진화했을 때, 그 디지몬이 특징으로 「DS」를 가진다면, 자신의 디지몬 2마리로 패의 특징으로 「DS」를 가진 디지몬 카드로 조그레스 진화할 수 있다. 그 후, 조그레스 진화한 그 디지몬으로 어택할 수 있다."
+    "[Digivolve]Lv.5w/[DS]trait:Cost3[WhenDigivolving]Youmayplay1level4orlowerDigimoncardfromthisDigimon'sdigivolutioncardswithoutpayingthecost.[YourTurn][OncePerTurn]WhenanyofyourDigimonareplayedordigivolve,ifanyofthemhavethe[DS]trait,2ofyourDigimonmayDNAdigivolveintoaDigimoncardwiththe[DS]traitinthehand.Then,thatDNAdigivolvedDigimonmayattack.": "〔진화〕특징으로 「DS」를 가진 Lv.5 : 코스트 3【진화 시】이 디지몬의 진화원에서 Lv.4 이하의 디지몬 카드 1장을 코스트를 지불하지 않고 등장시킬 수 있다. 【자신의 턴】[턴에 1회]자신의 디지몬이 등장/진화했을 때, 그 디지몬이 특징으로 「DS」를 가진다면, 자신의 디지몬 2마리로 패의 특징으로 「DS」를 가진 디지몬 카드로 조그레스 진화할 수 있다. 그 후, 조그레스 진화한 그 디지몬으로 어택할 수 있다."
   },
   "EX8-028": {
     "[Digivolve]Lv.5w/[Ice-Snow]trait:Cost3<IceClad>.<Barrier>[WhenDigivolving]Youmayplay1level4orlower[Ice-Snow]traitDigimoncardfromyourhandwithoutpayingthecost.Foreachofyouropponent'sDigimonwithnodigivolutioncards,add1tothiseffect'slevelmaximum.[WhenDigivolving][WhenAttacking][OncePerTurn]Byplacing1Digimonwithnodigivolutioncardsasthebottomsecuritycard,thisDigimonunsuspends.": "〔진화〕특징으로 「빙설형」을 가진 Lv.5 : 코스트 3《빙장》《방벽》 【진화 시】자신의 패에서 특징으로 「빙설형」을 가진 Lv.4 이하의 디지몬 카드 1장을 코스트를 지불하지 않고 등장시킬 수 있다. 진화원을 갖지 않은 상대의 디지몬 1마리마다 이 효과의 Lv. 상한 +1. 【진화 시】【어택 시】[턴에 1회]진화원을 갖지 않은 디지몬 1마리를 시큐리티 아래에 놓는 것으로, 이 디지몬을 액티브로 한다."
@@ -11644,7 +11644,7 @@
     "[Opponent'sTurn]WhilethisDigimonhas[Monzaemon]or[Numemon]initsname,itgains<Blocker>.": "【상대의 턴】명칭에 「퍼펫몬」/「워매몬」을 포함하는 이 디지몬은 《블로커》를 얻는다."
   },
   "RB1-018": {
-    "Digivolve:3fromLv.4w/[Numemon]inname[OnPlay]Byplacing1Digimoncardwith[Numemon]initsnamefromyourtrashasthisDigimon'sbottomdigivolutioncard,gain2memory.[OnPlay][WhenDigivolving]on]1ofyouropponent’sDigimongets-3000DPandgains<SecurityAttack-1>untiltheendoftheirturn.": "〔진화〕명칭에 「워매몬」을 포함하는 Lv.4 : 코스트 3【등장 시】자신의 트래시에서 명칭에 「워매몬」을 포함하는 디지몬 카드 1장을 이 디지몬의 진화원 아래에 놓는 것으로, 메모리 +2. 【등장 시】【진화 시】상대의 턴 종료까지 상대의 디지몬 1마리에게 《S 어택 -1》을 주고, DP -3000.",
+    "Digivolve:3fromLv.4w/[Numemon]inname[OnPlay]Byplacing1Digimoncardwith[Numemon]initsnamefromyourtrashasthisDigimon'sbottomdigivolutioncard,gain2memory.[OnPlay][WhenDigivolving]1ofyouropponent’sDigimongets-3000DPandgains<SecurityAttack-1>untiltheendoftheirturn.": "〔진화〕명칭에 「워매몬」을 포함하는 Lv.4 : 코스트 3【등장 시】자신의 트래시에서 명칭에 「워매몬」을 포함하는 디지몬 카드 1장을 이 디지몬의 진화원 아래에 놓는 것으로, 메모리 +2. 【등장 시】【진화 시】상대의 턴 종료까지 상대의 디지몬 1마리에게 《S 어택 -1》을 주고, DP -3000.",
     "[YourTurn]WhilethisDigimonhas[Monzaemon]or[Numemon]initsname,itgains<SecurityAttack+1>.": "【자신의 턴】명칭에 「퍼펫몬」/「워매몬」을 포함하는 이 디지몬은 《S 어택 +1》를 얻는다."
   },
   "RB1-019": {

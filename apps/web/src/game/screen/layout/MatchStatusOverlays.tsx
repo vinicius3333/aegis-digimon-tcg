@@ -10,6 +10,7 @@ import type { SeriesResultProps } from "../../overlay/match/GameOverOverlay";
 import type { RematchProps } from "@/game/overlay/match/RematchPanel";
 import type { LogTurnGroup } from "@/game/log/LogEntry";
 import type { SeatNames } from "@/game/log/SeatNames";
+import type { SeatAvatars } from "@/game/log/SeatAvatars";
 import type { Seat } from "@aegis/shared/schema/enums";
 import type { GameOverOutcome } from "../../gameOverSplash";
 import type { ArenaDeckColors } from "../../../design/arenaPalette";
@@ -19,6 +20,7 @@ import type { ReplaySaveProps } from "../../../replays/ReplaySavePrompt";
 export function MatchStatusOverlays({
   turns,
   playerNames,
+  playerAvatars,
   viewerSeat,
   historyOpen,
   zoomCardId,
@@ -40,6 +42,7 @@ export function MatchStatusOverlays({
 }: {
   turns: readonly LogTurnGroup[];
   playerNames: SeatNames;
+  playerAvatars?: SeatAvatars;
   viewerSeat?: Seat;
   historyOpen: boolean;
   zoomCardId: string | null;
@@ -87,6 +90,7 @@ export function MatchStatusOverlays({
         <PlayLogSidebar
           turns={turns}
           playerNames={playerNames}
+          playerAvatars={playerAvatars}
           viewerSeat={viewerSeat}
           onClose={onCloseHistory}
           onOpenCard={onOpenCard}
