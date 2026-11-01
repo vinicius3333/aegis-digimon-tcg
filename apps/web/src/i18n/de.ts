@@ -929,6 +929,7 @@ const interfaceMessages = {
   "library.sort.type": "Sortieren: Typ",
   "library.sort.cardNumber": "Sortieren: Kartennummer",
   "library.sort.random": "Sortieren: Zufällig",
+  "library.keywords": "Schlüsselwörter",
   "library.traitAttribute": "Merkmal / Attribut",
   "library.traitAttributePlaceholder": "Merkmale oder Attribute suchen…",
   "library.set": "Set",

@@ -908,6 +908,7 @@ const interfaceMessages = {
   "library.sort.type": "Urutkan: Jenis",
   "library.sort.cardNumber": "Urutkan: Nomor Kartu",
   "library.sort.random": "Urutkan: Acak",
+  "library.keywords": "Kata kunci",
   "library.traitAttribute": "Trait / atribut",
   "library.traitAttributePlaceholder": "Cari trait atau atribut…",
   "library.set": "Set",

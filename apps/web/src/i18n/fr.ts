@@ -922,6 +922,7 @@ const interfaceMessages = {
   "library.sort.type": "Trier : Type",
   "library.sort.cardNumber": "Trier : Numéro de carte",
   "library.sort.random": "Trier : aléatoire",
+  "library.keywords": "Mots-clés",
   "library.traitAttribute": "Trait / attribut",
   "library.traitAttributePlaceholder": "Rechercher des traits ou des attributs…",
   "library.set": "Extension",
