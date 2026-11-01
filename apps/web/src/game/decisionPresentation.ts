@@ -152,35 +152,6 @@ export function triggerClauseSummary(
   return `${cut.replace(/[,.;:]$/, "")}…`;
 }
 
-export type TriggerSource = { zone: "field"; position: number } | { zone: "hand" } | { zone: "unknown" };
-
-/**
- * Where a pending trigger fires from, as the chooser labels it. `position` is
- * the 1-based slot in the battle area, matching the "Field:1" wording the
- * reference client uses.
- */
-export function triggerSource(
-  instanceId: string,
-  zones: { fieldSlots: readonly (readonly string[])[]; handInstanceIds: readonly string[] },
-): TriggerSource {
-  const slot = zones.fieldSlots.findIndex((instanceIds) => instanceIds.includes(instanceId));
-  if (slot !== -1) return { zone: "field", position: slot + 1 };
-  return zones.handInstanceIds.includes(instanceId) ? { zone: "hand" } : { zone: "unknown" };
-}
-
-/**
- * One entry per battle-area slot, listing every instance id that slot holds (top
- * card first), so a trigger raised by an inherited effect still resolves to the
- * permanent's slot rather than to no zone at all.
- */
-export function fieldSlots(permanents: readonly Permanent[]): string[][] {
-  return permanents.map((permanent) => {
-    const top = permanent.topCard?.instanceId;
-    const under = permanent.stack.map((card) => card.instanceId);
-    return top === undefined ? under : [top, ...under];
-  });
-}
-
 /** Mirror the server's shortage rule using the offered candidates, including hidden ones. */
 export function decisionSelectionMin(decision: DecisionRequest | undefined): number {
   const min = decision?.options?.min ?? 1;

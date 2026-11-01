@@ -4,10 +4,8 @@ import {
   decisionPresentation,
   effectDecisionSurface,
   isFieldTargetDecision,
-  fieldSlots,
   sourcePermanentIdOf,
   triggerClauseSummary,
-  triggerSource,
 } from "./decisionPresentation";
 
 function decision(overrides: Partial<DecisionRequest> = {}): DecisionRequest {
@@ -238,29 +236,6 @@ describe("triggerClauseSummary", () => {
 
   it("hard-cuts a single word longer than the budget", () => {
     expect(triggerClauseSummary("A".repeat(100), 10)).toBe(`${"A".repeat(10)}…`);
-  });
-});
-
-describe("triggerSource", () => {
-  const slots = fieldSlots([permanent("p1", "ST1-07"), permanent("p2", "ST1-09", ["ST1-03"])]);
-
-  it("names the 1-based battle-area slot of a face-up source", () => {
-    expect(triggerSource("p2-top", { fieldSlots: slots, handInstanceIds: [] })).toEqual({ zone: "field", position: 2 });
-  });
-
-  it("resolves an inherited source to the slot that carries it", () => {
-    expect(triggerSource("p2-under-0", { fieldSlots: slots, handInstanceIds: [] })).toEqual({
-      zone: "field",
-      position: 2,
-    });
-  });
-
-  it("recognizes a hand source", () => {
-    expect(triggerSource("h1", { fieldSlots: slots, handInstanceIds: ["h1"] })).toEqual({ zone: "hand" });
-  });
-
-  it("reports an unplaced source rather than guessing", () => {
-    expect(triggerSource("gone", { fieldSlots: slots, handInstanceIds: [] })).toEqual({ zone: "unknown" });
   });
 });
 
