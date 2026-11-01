@@ -801,6 +801,7 @@ const interfaceMessages = {
   "library.sort.type": "Ordine: tipo",
   "library.sort.cardNumber": "Ordine: numero della carta",
   "library.sort.random": "Ordine: casuale",
+  "library.keywords": "Parole chiave",
   "library.traitAttribute": "Tratto / attributo",
   "library.traitAttributePlaceholder": "Cerca tratti o attributi…",
   "library.set": "Espansione",

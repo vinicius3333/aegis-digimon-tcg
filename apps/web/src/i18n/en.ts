@@ -655,6 +655,7 @@ export const en = {
   "library.sort.type": "Sort: Type",
   "library.sort.cardNumber": "Sort: Card Number",
   "library.sort.random": "Sort: Random",
+  "library.keywords": "Keywords",
   "library.traitAttribute": "Trait / attribute",
   "library.traitAttributePlaceholder": "Search traits or attributes…",
   "library.set": "Set",

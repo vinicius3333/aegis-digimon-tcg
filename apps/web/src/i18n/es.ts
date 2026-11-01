@@ -648,6 +648,7 @@ export const es: Record<keyof typeof en, string> = {
   "library.sort.type": "Ordenar: Tipo",
   "library.sort.cardNumber": "Ordenar: Número de carta",
   "library.sort.random": "Ordenar: Aleatorio",
+  "library.keywords": "Palabras clave",
   "library.traitAttribute": "Rasgo / atributo",
   "library.traitAttributePlaceholder": "Buscar rasgos o atributos…",
   "library.set": "Set",

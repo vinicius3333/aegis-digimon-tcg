@@ -864,6 +864,7 @@ const interfaceMessages = {
   "library.sort.type": "排序：类型",
   "library.sort.cardNumber": "排序：卡号",
   "library.sort.random": "排序：随机",
+  "library.keywords": "关键词",
   "library.traitAttribute": "特性 / 属性",
   "library.traitAttributePlaceholder": "搜索特性或属性…",
   "library.set": "系列",

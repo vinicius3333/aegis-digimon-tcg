@@ -911,6 +911,7 @@ const interfaceMessages = {
   "library.sort.type": "並べ替え: タイプ",
   "library.sort.cardNumber": "並べ替え: カード番号",
   "library.sort.random": "並べ替え: ランダム",
+  "library.keywords": "キーワード",
   "library.traitAttribute": "特徴/属性",
   "library.traitAttributePlaceholder": "特徴または属性を検索…",
   "library.set": "セット",

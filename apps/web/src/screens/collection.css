@@ -105,6 +105,10 @@
     min-width: 0;
   }
 
+  .collection-filters .card-filter-rail:not(.is-mobile-open) > .card-filter-disclosure[open] {
+    grid-column: 1 / -1;
+  }
+
   .collection-filters .card-filter-rail:not(.is-mobile-open) .card-filter-chip {
     min-height: 28px;
     padding: 0 10px;

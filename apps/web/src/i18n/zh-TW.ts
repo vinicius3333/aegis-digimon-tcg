@@ -869,6 +869,7 @@ const interfaceMessages = {
   "library.sort.type": "排序：類型",
   "library.sort.cardNumber": "排序：卡片編號",
   "library.sort.random": "排序：隨機",
+  "library.keywords": "關鍵字",
   "library.traitAttribute": "特徵/屬性",
   "library.traitAttributePlaceholder": "搜尋特徵或屬性...",
   "library.set": "卡包",

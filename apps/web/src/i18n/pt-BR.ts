@@ -658,6 +658,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "library.sort.type": "Ordenar: Tipo",
   "library.sort.cardNumber": "Ordenar: Número da carta",
   "library.sort.random": "Ordenar: Aleatório",
+  "library.keywords": "Palavras-chave",
   "library.traitAttribute": "Traço / atributo",
   "library.traitAttributePlaceholder": "Buscar traços ou atributos…",
   "library.set": "Set",

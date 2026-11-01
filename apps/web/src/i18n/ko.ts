@@ -901,6 +901,7 @@ const interfaceMessages = {
   "library.sort.type": "정렬: 카드 종류",
   "library.sort.cardNumber": "정렬: 카드 번호",
   "library.sort.random": "정렬: 랜덤",
+  "library.keywords": "키워드",
   "library.traitAttribute": "특징 / 속성",
   "library.traitAttributePlaceholder": "특징 또는 속성 검색…",
   "library.set": "세트",
