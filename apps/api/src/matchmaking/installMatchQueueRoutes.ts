@@ -23,12 +23,13 @@ type WaitingRoomListing = {
   locked?: boolean;
   private?: boolean;
   clients?: number;
-  format?: unknown;
-  unlimited?: unknown;
-  matchTimer?: unknown;
-  bestOf?: unknown;
-  allowRollback?: unknown;
-  metadata?: { format?: unknown; unlimited?: unknown };
+  metadata?: {
+    format?: unknown;
+    unlimited?: unknown;
+    matchTimer?: unknown;
+    bestOf?: unknown;
+    allowRollback?: unknown;
+  };
 };
 
 const MATCH_QUEUE_COUNTS_CACHE_MILLISECONDS = 5_000;
@@ -44,16 +45,13 @@ function isWaitingForOpponent(listing: WaitingRoomListing): boolean {
   return listing.locked !== true && listing.private !== true && listing.clients === 1;
 }
 
-function getWaitingRoomBucket(listing: WaitingRoomListing, queue: MatchQueue): MatchQueueCount {
+function getWaitingRoomBucket({ metadata = {} }: WaitingRoomListing, queue: MatchQueue): MatchQueueCount {
   return {
     queue,
-    format: deckFormat(
-      listing.format ?? listing.metadata?.format,
-      listing.unlimited === true || listing.metadata?.unlimited === true,
-    ),
-    matchTimer: listing.matchTimer === true,
-    bestOf: matchBestOf(listing.bestOf),
-    allowRollback: listing.allowRollback === true,
+    format: deckFormat(metadata.format, metadata.unlimited === true),
+    matchTimer: metadata.matchTimer === true,
+    bestOf: matchBestOf(metadata.bestOf),
+    allowRollback: metadata.allowRollback === true,
     searching: 1,
   };
 }

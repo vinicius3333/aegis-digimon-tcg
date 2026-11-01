@@ -34,19 +34,21 @@ async function readCounts(options: Options = {}): Promise<MatchQueueCounts> {
   return withServer(options, async (get) => (await get()).json() as Promise<MatchQueueCounts>);
 }
 
-function waitingRoom(overrides: Record<string, unknown> = {}) {
+function waitingRoom({ metadata, ...overrides }: Record<string, unknown> = {}) {
   return {
     roomId: crypto.randomUUID(),
     name: "aegis",
     locked: false,
     private: false,
     clients: 1,
-    format: "standard",
-    matchTimer: true,
-    bestOf: 1,
-    allowRollback: false,
-    metadata: { format: "standard", unlimited: false },
     ...overrides,
+    metadata: {
+      format: "standard",
+      matchTimer: true,
+      bestOf: 1,
+      allowRollback: false,
+      ...(metadata as Record<string, unknown> | undefined),
+    },
   };
 }
 
@@ -55,11 +57,14 @@ describe("matchmaking queue counts", () => {
     vi.mocked(matchMaker.query).mockResolvedValue([
       waitingRoom(),
       waitingRoom(),
-      waitingRoom({ matchTimer: false }),
-      waitingRoom({ bestOf: 3 }),
-      waitingRoom({ name: "aegis_unlimited", format: "unlimited", metadata: { format: "unlimited", unlimited: true } }),
-      waitingRoom({ name: "aegis_beta", format: undefined }),
-      waitingRoom({ name: "aegis_manual", matchTimer: undefined, bestOf: undefined, allowRollback: undefined }),
+      waitingRoom({ metadata: { matchTimer: false } }),
+      waitingRoom({ metadata: { bestOf: 3 } }),
+      waitingRoom({ name: "aegis_unlimited", metadata: { format: "unlimited" } }),
+      waitingRoom({ name: "aegis_beta", metadata: { format: undefined } }),
+      waitingRoom({
+        name: "aegis_manual",
+        metadata: { matchTimer: undefined, bestOf: undefined, allowRollback: undefined },
+      }),
     ] as never);
 
     const { buckets } = await readCounts();
