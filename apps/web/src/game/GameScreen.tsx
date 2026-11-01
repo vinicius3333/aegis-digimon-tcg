@@ -110,6 +110,7 @@ import {
 } from "@aegis/shared";
 import { rejectionMessage } from "../rejectionMessages";
 import { useTranslation } from "../i18n";
+import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
 import { intents } from "../net/intents";
 import { useRoom, type MatchMode, type SeriesGameTicket, type UseRoomResult } from "../net/useRoom";
 import { seriesView } from "./seriesModel";
@@ -319,6 +320,7 @@ function GameScreenSession({
   renderSeriesDeckPicker?: (params: SeriesDeckPickerParams) => ReactNode;
 }) {
   const { t } = useTranslation();
+  const getCardName = useTranslatedCardName();
   const [handOrder, setHandOrder] = useState<readonly string[]>([]);
   const [spectating] = useState(
     () => replayMode || startMode === "spectator" || (!demoConnection && loadReconnectSession()?.spectator === true),
@@ -1505,6 +1507,7 @@ function GameScreenSession({
     opponent: opp,
     handInstanceIds: shownHandEntries.map((entry) => entry.instanceId),
     t,
+    getCardName,
   });
   const effectSourceMarks = findEffectSourceMarks({
     events,
