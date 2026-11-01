@@ -3,6 +3,7 @@ import { tournamentOfficialRequestJa } from "@/i18n/tournamentOfficialRequest.ja
 import { staffRolesJa } from "@/i18n/staffRoles.ja";
 import { tournamentDetailJa } from "@/i18n/tournamentDetail.ja";
 import { tournamentSpectatorsJa } from "@/i18n/tournamentSpectators.ja";
+import { publicReplaysJa } from "@/i18n/publicReplays.ja";
 import { achievementsJa } from "@/i18n/achievements.ja";
 import { rankedJa } from "@/i18n/ranked.ja";
 import { friendsEn } from "@/i18n/friends.en";
@@ -284,7 +285,7 @@ const interfaceMessages = {
   "replay.public": "公開",
   "replay.privateHint": "このリンクを開けるのは、サインインしているあなただけです。",
   "replay.publicHint":
-    "リンクを知っている人は誰でも、記録された両プレイヤーの手札を含めてこのリプレイを視聴・ダウンロードできます。Google ドライブのファイルも、ドライブのリンクを知っている人なら誰でも閲覧できるようになります。",
+    "リンクを知っている人は誰でも、記録された両プレイヤーの手札を含めてこのリプレイを視聴・ダウンロードできます。Google ドライブのファイルも、ドライブのリンクを知っている人なら誰でも閲覧できるようになります。ホームの公開リプレイ一覧にも表示されることがあります。",
   "replay.revokeHint":
     "非公開に切り替えると、以後のアクセスはブロックされます。すでにダウンロードされたファイルは受け取った人の手元に残ります。",
   "replay.copyLink": "リンクをコピー",
@@ -2813,6 +2814,7 @@ const interfaceMessages = {
   ...rankedJa,
   ...tournamentDetailJa,
   ...tournamentSpectatorsJa,
+  ...publicReplaysJa,
   ...tournamentCircuitsJa,
   ...tournamentOfficialRequestJa,
   ...staffRolesJa,

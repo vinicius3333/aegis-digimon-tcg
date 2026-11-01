@@ -16,8 +16,9 @@ export interface AppRoute {
   profile?: boolean;
   avatarMenuRequest?: number;
   settingsSectionId?: string;
-  /** Only shared replay links open the replays screen; `/replays` itself redirects to the profile. */
+  /** Shared replay links and the public replay list open the replays screen; `/replays` itself redirects to the profile. */
   replayId?: string;
+  publicReplays?: boolean;
   tournament?: TournamentRoute;
   /** The public deck open on the community screen; absent on the browse list. */
   communityDeckId?: string;
@@ -119,6 +120,7 @@ export function routeFromPathname(pathname: string): AppRoute | undefined {
   // The profile used to split into tabs and the replays screen had its own library; old links land on the profile.
   if (["/profile", "/profile/replays", "/profile/customize", "/replays"].includes(normalized))
     return { screen: "settings", profile: true };
+  if (normalized === "/replays/public") return { screen: "replays", publicReplays: true };
   const replayId = /^\/replays\/([^/]+)$/.exec(normalized)?.[1];
   if (replayId) return { screen: "replays", replayId: safeDecode(replayId) };
   if (normalized === "/settings") return { screen: "settings" };
@@ -130,6 +132,7 @@ export function routeFromPathname(pathname: string): AppRoute | undefined {
 export function pathForRoute(route: AppRoute): string {
   if (route.screen === "lobby" && route.rankedQueue) return "/play/ranked";
   if (route.screen === "settings" && route.profile) return "/profile";
+  if (route.screen === "replays" && route.publicReplays) return "/replays/public";
   if (route.screen === "replays") return route.replayId ? `/replays/${encodeURIComponent(route.replayId)}` : "/profile";
   if (route.screen === "community" && route.communityDeckId)
     return `/community/decks/${encodeURIComponent(route.communityDeckId)}`;

@@ -10,6 +10,7 @@ import { HomeDecksCard } from "@/home/HomeDecksCard";
 import { HomeLiveMatchesCard } from "@/home/HomeLiveMatchesCard";
 import type { HomeMatchQueue } from "@/home/HomeMatchQueue";
 import { HomeNextMatchCard } from "@/home/HomeNextMatchCard";
+import { HomePublicReplaysCard } from "@/home/HomePublicReplaysCard";
 import { HomeTournamentsCard } from "@/home/HomeTournamentsCard";
 import { useHomeTournaments } from "@/home/useHomeTournaments";
 import { useTranslation } from "@/i18n/useTranslation";
@@ -29,6 +30,8 @@ type HomeParams = {
   onChangeDeck: () => void;
   onWatchLive: (spectatorCode: string) => void;
   onOpenWatch: () => void;
+  onOpenReplay: (replayId: string) => void;
+  onOpenPublicReplays: () => void;
   onOpenTournament: (id: string) => void;
   onOpenTournaments: () => void;
   onCreateTournament: () => void;
@@ -56,6 +59,7 @@ export function Home(params: HomeParams) {
         <div className="home-board">
           <div className="home-board__main">
             <HomeLiveMatchesCard onWatch={params.onWatchLive} onViewAll={params.onOpenWatch} />
+            <HomePublicReplaysCard onOpen={params.onOpenReplay} onViewAll={params.onOpenPublicReplays} />
             <HomeTournamentsCard
               tournaments={tournaments}
               onOpen={params.onOpenTournament}

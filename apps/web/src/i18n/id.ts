@@ -3,6 +3,7 @@ import { tournamentOfficialRequestId } from "@/i18n/tournamentOfficialRequest.id
 import { staffRolesId } from "@/i18n/staffRoles.id";
 import { tournamentDetailId } from "@/i18n/tournamentDetail.id";
 import { tournamentSpectatorsId } from "@/i18n/tournamentSpectators.id";
+import { publicReplaysId } from "@/i18n/publicReplays.id";
 import { achievementsId } from "@/i18n/achievements.id";
 import { rankedId } from "@/i18n/ranked.id";
 import { friendsEn } from "@/i18n/friends.en";
@@ -281,7 +282,7 @@ const interfaceMessages = {
   "replay.public": "Publik",
   "replay.privateHint": "Hanya Anda yang dapat membuka tautan ini saat masuk.",
   "replay.publicHint":
-    "Siapa pun yang memiliki tautan dapat menonton dan mengunduh replay ini, termasuk rekaman tangan kedua pemain. File Google Drive juga dapat dibaca oleh siapa saja yang memiliki tautan Drive-nya.",
+    "Siapa pun yang memiliki tautan dapat menonton dan mengunduh replay ini, termasuk rekaman tangan kedua pemain. File Google Drive juga dapat dibaca oleh siapa saja yang memiliki tautan Drive-nya. Replay ini juga dapat muncul di daftar replay publik di Beranda.",
   "replay.revokeHint":
     "Beralih ke akses pribadi memblokir akses di masa mendatang. File yang sudah diunduh tetap menjadi milik penerimanya.",
   "replay.copyLink": "Salin tautan",
@@ -2829,6 +2830,7 @@ const interfaceMessages = {
   ...rankedId,
   ...tournamentDetailId,
   ...tournamentSpectatorsId,
+  ...publicReplaysId,
   ...tournamentCircuitsId,
   ...tournamentOfficialRequestId,
   ...staffRolesId,

@@ -3,6 +3,7 @@ import { tournamentOfficialRequestPtBR } from "@/i18n/tournamentOfficialRequest.
 import { staffRolesPtBR } from "@/i18n/staffRoles.pt-BR";
 import { tournamentDetailPtBR } from "@/i18n/tournamentDetail.pt-BR";
 import { tournamentSpectatorsPtBR } from "@/i18n/tournamentSpectators.pt-BR";
+import { publicReplaysPtBR } from "@/i18n/publicReplays.pt-BR";
 import { achievementsPt } from "@/i18n/achievements.pt-BR";
 import { rankedPt } from "@/i18n/ranked.pt-BR";
 import { friendsPtBR } from "@/i18n/friends.pt-BR";
@@ -2114,6 +2115,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   ...rankedPt,
   ...tournamentDetailPtBR,
   ...tournamentSpectatorsPtBR,
+  ...publicReplaysPtBR,
   ...tournamentCircuitsPtBR,
   ...tournamentOfficialRequestPtBR,
   ...staffRolesPtBR,

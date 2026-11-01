@@ -3,6 +3,7 @@ import { tournamentOfficialRequestKo } from "@/i18n/tournamentOfficialRequest.ko
 import { staffRolesKo } from "@/i18n/staffRoles.ko";
 import { tournamentDetailKo } from "@/i18n/tournamentDetail.ko";
 import { tournamentSpectatorsKo } from "@/i18n/tournamentSpectators.ko";
+import { publicReplaysKo } from "@/i18n/publicReplays.ko";
 import { achievementsKo } from "@/i18n/achievements.ko";
 import { rankedKo } from "@/i18n/ranked.ko";
 import { friendsEn } from "@/i18n/friends.en";
@@ -284,7 +285,7 @@ const interfaceMessages = {
   "replay.public": "공개",
   "replay.privateHint": "로그인한 본인만 이 링크를 열 수 있습니다.",
   "replay.publicHint":
-    "링크가 있는 사람은 누구나 이 리플레이를 보고 다운로드할 수 있으며, 기록된 양쪽 패도 포함됩니다. Google 드라이브 파일도 드라이브 링크가 있는 사람은 누구나 읽을 수 있게 됩니다.",
+    "링크가 있는 사람은 누구나 이 리플레이를 보고 다운로드할 수 있으며, 기록된 양쪽 패도 포함됩니다. Google 드라이브 파일도 드라이브 링크가 있는 사람은 누구나 읽을 수 있게 됩니다. 홈의 공개 리플레이 목록에도 표시될 수 있습니다.",
   "replay.revokeHint":
     "비공개로 전환하면 이후의 접근이 차단됩니다. 이미 다운로드한 파일은 받은 사람에게 그대로 남습니다.",
   "replay.copyLink": "링크 복사",
@@ -2787,6 +2788,7 @@ const interfaceMessages = {
   ...rankedKo,
   ...tournamentDetailKo,
   ...tournamentSpectatorsKo,
+  ...publicReplaysKo,
   ...tournamentCircuitsKo,
   ...tournamentOfficialRequestKo,
   ...staffRolesKo,

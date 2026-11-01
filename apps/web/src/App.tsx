@@ -86,6 +86,10 @@ const ReplaysScreen = createLazyComponent({
   load: () => import("./replays/ReplaysScreen"),
   pick: (module) => module.ReplaysScreen,
 });
+const PublicReplaysScreen = createLazyComponent({
+  load: () => import("./replays/PublicReplaysScreen"),
+  pick: (module) => module.PublicReplaysScreen,
+});
 const FeedbackScreen = createLazyComponent({
   load: () => import("./bugs/FeedbackScreen"),
   pick: (module) => module.FeedbackScreen,
@@ -222,6 +226,8 @@ function ScreenFallback() {
     </div>
   );
 }
+
+const PROFILE_ROUTE: AppRoute = { screen: "settings", profile: true };
 
 const NAV_SCREENS: Screen[] = [
   "friends",
@@ -535,6 +541,7 @@ function LoadedAegisClient({
   const [playerMenuAnchor, setPlayerMenuAnchor] = useState<HTMLElement | null>(null);
   const playerMenuOpen = playerMenuAnchor !== null;
   const [replayViewing, setReplayViewing] = useState(false);
+  const [replayCloseRoute, setReplayCloseRoute] = useState<AppRoute>(PROFILE_ROUTE);
   const [themeOpen, setThemeOpen] = useState(false);
   const [bugReportOpen, setBugReportOpen] = useState(false);
   const [leaveMatchPromptOpen, setLeaveMatchPromptOpen] = useState(false);
@@ -626,6 +633,10 @@ function LoadedAegisClient({
     setRoute(nextRoute);
   };
   const navigateScreen = (nextScreen: Screen) => navigate({ screen: nextScreen });
+  const openPublicReplay = (replayId: string) => {
+    setReplayCloseRoute(route);
+    navigate({ screen: "replays", replayId });
+  };
 
   const startMatch = (
     mode: StartMode,
@@ -860,6 +871,8 @@ function LoadedAegisClient({
                   onChangeDeck={() => navigateScreen("lobby")}
                   onWatchLive={(code) => startMatch("spectator", code)}
                   onOpenWatch={() => navigateScreen("watch")}
+                  onOpenReplay={openPublicReplay}
+                  onOpenPublicReplays={() => navigate({ screen: "replays", publicReplays: true })}
                   onOpenTournament={(id) => navigate({ screen: "tournaments", tournament: { kind: "detail", id } })}
                   onOpenTournaments={() => navigate({ screen: "tournaments", tournament: { kind: "catalog" } })}
                   onCreateTournament={() => navigate({ screen: "tournaments", tournament: { kind: "create" } })}
@@ -1143,10 +1156,15 @@ function LoadedAegisClient({
                 <ReplaysScreen
                   key={route.replayId}
                   replayId={route.replayId}
-                  onCloseLink={() => navigate({ screen: "settings", profile: true })}
+                  onCloseLink={() => {
+                    navigate(replayCloseRoute);
+                    setReplayCloseRoute(PROFILE_ROUTE);
+                  }}
                   onViewingChange={setReplayViewing}
                 />
               )}
+
+              {screen === "replays" && route.publicReplays && <PublicReplaysScreen onOpen={openPublicReplay} />}
 
               {screen === "releases" && <ReleasesScreen />}
               {screen === "privacy" && <PrivacyScreen />}

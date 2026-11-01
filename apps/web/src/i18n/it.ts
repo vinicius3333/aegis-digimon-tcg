@@ -3,6 +3,7 @@ import { tournamentOfficialRequestIt } from "@/i18n/tournamentOfficialRequest.it
 import { staffRolesIt } from "@/i18n/staffRoles.it";
 import { tournamentDetailIt } from "@/i18n/tournamentDetail.it";
 import { tournamentSpectatorsIt } from "@/i18n/tournamentSpectators.it";
+import { publicReplaysIt } from "@/i18n/publicReplays.it";
 import { achievementsIt } from "@/i18n/achievements.it";
 import { rankedIt } from "@/i18n/ranked.it";
 import { friendsEn } from "@/i18n/friends.en";
@@ -2580,6 +2581,7 @@ const interfaceMessages = {
   ...rankedIt,
   ...tournamentDetailIt,
   ...tournamentSpectatorsIt,
+  ...publicReplaysIt,
   ...tournamentCircuitsIt,
   ...tournamentOfficialRequestIt,
   ...staffRolesIt,
