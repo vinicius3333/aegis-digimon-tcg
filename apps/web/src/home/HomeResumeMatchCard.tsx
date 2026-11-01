@@ -50,11 +50,15 @@ export function HomeResumeMatchCard({ onResume }: HomeResumeMatchCardParams) {
   };
 
   return (
-    <Alert className="home-resume-match" tone="info" title={t("resumeMatch.title")}>
-      <p>{t("resumeMatch.copy")}</p>
+    <section className="home-card home-resume-match" aria-labelledby="home-resume-match-title">
+      <span className="home-resume-match__pulse" aria-hidden="true" />
+      <div className="home-resume-match__text">
+        <strong id="home-resume-match-title">{t("resumeMatch.title")}</strong>
+        <span>{t("resumeMatch.copy")}</span>
+      </div>
       <Button size="sm" disabled={state.kind === "claiming"} onClick={() => void resume()}>
         {t("resumeMatch.action")}
       </Button>
-    </Alert>
+    </section>
   );
 }
