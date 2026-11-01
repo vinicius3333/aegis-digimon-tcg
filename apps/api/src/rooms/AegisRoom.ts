@@ -135,6 +135,9 @@ import {
 import type { SeriesDeckChoice } from "@aegis/shared/protocol/series";
 import type { SeriesRecord } from "./series/SeriesDirectory.js";
 import { RematchOffer } from "#api/rooms/series/RematchOffer";
+import { GuestApprovalGate } from "#api/rooms/guestApproval/GuestApprovalGate";
+import { GUEST_APPROVAL_CHANNEL } from "@aegis/shared/protocol/GuestApprovalMessage";
+import { GUEST_DECLINED_CLOSE_CODE, HOST_LEFT_CLOSE_CODE } from "@aegis/shared/protocol/closeCodes";
 import { REMATCH_BEST_OF } from "@aegis/shared/protocol/RematchStatus";
 import { parsePresentationReport } from "./presentationReport.js";
 import { CONNECTION_REPORT_CHANNEL } from "@aegis/shared/protocol/ConnectionReport";
@@ -194,6 +197,7 @@ interface RoomCreateOptions extends Partial<SeriesContinuationOptions> {
   timerRefillSeconds?: number;
   seed?: number;
   private?: boolean;
+  requireApproval?: boolean;
   /** Reopens a private room under the code of the one that just finished. */
   roomCode?: unknown;
   botRoom?: boolean;
@@ -459,6 +463,7 @@ export class AegisRoom extends Room<{
   private storyGuestHash: string | undefined;
   private readonly BOT_SEAT = 1 as Seat;
   private isPrivate = false;
+  private guestApproval: GuestApprovalGate | undefined;
   private isRankedRoom = false;
   private isBetaBattleRoom = false;
   private isUnlimitedRoom = false;
@@ -612,6 +617,9 @@ export class AegisRoom extends Room<{
     const identity = await this.resolveIdentity(options);
     if (!identity) return false;
     const account = identity.account;
+    if (account && this.guestApproval?.isDeclinedAccount(account.id)) {
+      return false;
+    }
     if (account) options.displayName = account.displayName;
     const normalizedName = options.displayName.trim().toLocaleLowerCase();
     if (
@@ -1039,6 +1047,9 @@ export class AegisRoom extends Room<{
       this.state.roomCode = code;
       roomCodes.claim(code, this.roomId);
       this.autoDispose = true;
+      if (options.requireApproval === true && !continuation) {
+        this.guestApproval = this.createGuestApprovalGate();
+      }
     }
     if (!this.isBotRoom && !this.isRankedRoom && !this.isTournamentRoom) {
       this.state.spectatorCode = this.state.roomCode || generateRoomCode();
@@ -1294,6 +1305,12 @@ export class AegisRoom extends Room<{
       }
       if (type === CHAT_CHANNEL) {
         this.handleChat(client, payload);
+        return;
+      }
+      if (type === GUEST_APPROVAL_CHANNEL) {
+        if (!this.matchStartRequested) {
+          this.guestApproval?.handleMessage({ senderSessionId: client.sessionId, payload });
+        }
         return;
       }
       if (type === SERIES_CHANNEL) {
@@ -1805,10 +1822,48 @@ export class AegisRoom extends Room<{
    * start anyway.
    */
   private armReadyTimeoutIfSeated(): void {
-    if (this.matchStartRequested) return;
+    if (this.matchStartRequested || this.guestApproval?.blocksMatchStart()) return;
     if (this.seatByClient.size + this.occupiedBotSeats().length !== 2) return;
     this.readyTimeout?.clear();
     this.readyTimeout = this.clock.setTimeout(() => this.startMatchNow(), this.READY_TIMEOUT_SECONDS * 1000);
+  }
+
+  private createGuestApprovalGate(): GuestApprovalGate {
+    return new GuestApprovalGate({
+      readState: () => this.state,
+      readSeatedSessionIds: () => [...this.seatByClient.keys()],
+      findAccountId: (sessionId) => this.accountByClient.get(sessionId),
+      admitGuest: ({ guestSessionId, readyDeferred }) => {
+        if (this.clients.some((client) => client.sessionId === guestSessionId)) {
+          this.armReadyTimeoutIfSeated();
+        }
+        const seat = this.seatByClient.get(guestSessionId);
+        if (readyDeferred && seat !== undefined) {
+          this.applyLoggedIntent(seat, { type: "ready" });
+        }
+      },
+      removeGuest: (guestSessionId) => {
+        const connected = this.clients.find((client) => client.sessionId === guestSessionId);
+        if (connected) {
+          connected.leave(GUEST_DECLINED_CLOSE_CODE);
+          return;
+        }
+        this.heldReconnections.get(guestSessionId)?.deadline.expire();
+      },
+    });
+  }
+
+  private settleGuestApprovalDeparture(sessionId: string): void {
+    if (!this.guestApproval || this.matchStartRequested) {
+      return;
+    }
+    if (!this.guestApproval.isHost(sessionId)) {
+      this.guestApproval.noteGuestDeparted(sessionId);
+      return;
+    }
+    void this.disconnect(HOST_LEFT_CLOSE_CODE).catch((error: unknown) =>
+      this.debugError("[AegisRoom] failed to close a private room its host left", error),
+    );
   }
 
   override onDispose(): void {
@@ -2200,6 +2255,7 @@ export class AegisRoom extends Room<{
       `[AegisRoom] onJoin sessionId=${client.sessionId} seat=${seat} takenSeats=[${[...taken].join(",")}] totalClients=${this.clients.length} allSessionIds=[${this.clients.map((c) => c.sessionId).join(", ")}]`,
     );
     this.seatClient(client, seat, options);
+    this.guestApproval?.noteSeated(client.sessionId);
     // The match starts once both seats have sent `ready` (GameEngineHooks.onBothReady),
     // not on join — starting on join races the client's asset loading against the
     // mulligan window. Arm a fallback so a stuck/never-readying client can't hang the
@@ -2262,7 +2318,7 @@ export class AegisRoom extends Room<{
 
   /** Idempotent: only the first caller (ready-gate or timeout) actually starts the match. */
   private startMatchNow(): void {
-    if (this.matchStartRequested || this.rankedStartPending) return;
+    if (this.matchStartRequested || this.rankedStartPending || this.guestApproval?.blocksMatchStart()) return;
     if (this.rankedPairId) {
       this.rankedStartPending = true;
       void new RankedStore(this.accounts())
@@ -2331,7 +2387,7 @@ export class AegisRoom extends Room<{
   }
 
   override async onLeave(client: Client, code?: number): Promise<void> {
-    const consented = code === CloseCode.CONSENTED;
+    const consented = code === CloseCode.CONSENTED || this.guestApproval?.wasDeclined(client.sessionId) === true;
     if (this.spectatorClients.has(client.sessionId)) {
       try {
         if (!consented && code !== SPECTATOR_ACCESS_REVOKED_CLOSE_CODE && !this.state.gameOver) {
@@ -2400,6 +2456,7 @@ export class AegisRoom extends Room<{
       }
       this.seatByClient.delete(client.sessionId);
       this.concede(seat);
+      this.settleGuestApprovalDeparture(client.sessionId);
       this.releaseActiveMatch(accountId);
       if (countsAsDodge && accountId) await this.accounts().recordRankedDodge(this.roomId, accountId);
       this.accountByClient.delete(client.sessionId);
@@ -2458,6 +2515,7 @@ export class AegisRoom extends Room<{
       this.readyTimeout?.clear();
       this.readyTimeout = undefined;
       this.concede(seat);
+      this.settleGuestApprovalDeparture(client.sessionId);
       this.releaseActiveMatch(accountId);
       if (countsAsDodge && accountId) await this.accounts().recordRankedDodge(this.roomId, accountId);
       this.accountByClient.delete(client.sessionId);
@@ -4035,6 +4093,9 @@ export class AegisRoom extends Room<{
     if (seat === undefined) {
       if (intent.type === "ready" && this.seriesSeatByClient.has(client.sessionId))
         this.seriesEarlyReady.add(client.sessionId);
+      return;
+    }
+    if (intent.type === "ready" && this.guestApproval?.deferReady(client.sessionId)) {
       return;
     }
     const decisionId =

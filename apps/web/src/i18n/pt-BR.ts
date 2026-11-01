@@ -902,6 +902,21 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.inviteShareTitle": "Jogue comigo no Aegis",
   "game.shareLink": "Compartilhar link",
   "game.cancelInvite": "Cancelar e voltar ao lobby",
+  "game.guestApproval.requestTitle": "Pedido para entrar",
+  "game.guestApproval.requestDetail":
+    "{name} quer entrar na sua sala. Aceite para começar a partida ou recuse para liberar a vaga.",
+  "game.guestApproval.guestOffline": "Desconectado",
+  "game.guestApproval.accept": "Aceitar",
+  "game.guestApproval.decline": "Recusar",
+  "game.guestApproval.waitingTitle": "Aguardando o anfitrião",
+  "game.guestApproval.waitingDetail": "O anfitrião precisa aceitar você antes de a partida começar.",
+  "game.guestApproval.declinedTitle": "Pedido recusado",
+  "game.guestApproval.declined": "O anfitrião recusou seu pedido para entrar nesta sala.",
+  "game.guestApproval.hostLeftTitle": "Sala fechada",
+  "game.guestApproval.hostLeft": "O anfitrião saiu da sala antes de a partida começar.",
+  "lobby.approval.label": "Exigir aprovação",
+  "lobby.approval.hint":
+    "Quando alguém entrar com seu código, você vê quem é e aceita ou recusa antes de a partida começar.",
   "game.connectingPrivate": "Conectando à sala privada…",
   "game.waitingSpectate": "Entrando como espectador…",
   "game.spectateDetail":

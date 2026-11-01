@@ -35,6 +35,8 @@ import { boardActions } from "./screen/boardActions";
 import { matchIntents } from "./screen/matchIntents";
 import { PendingMatchBoard } from "./screen/layout/PendingMatchBoard";
 import { pendingMatchNotice } from "./screen/model/pendingMatchNotice";
+import { getGuestApprovalView } from "@/game/screen/model/getGuestApprovalView";
+import { GUEST_APPROVAL_CHANNEL } from "@aegis/shared/protocol/GuestApprovalMessage";
 import { sourceHostChoiceFor } from "./screen/model/sourceHostChoice";
 import { BoardStage, type BoardAnchors } from "./screen/layout/BoardStage";
 import { useMatchChat } from "./chat/useMatchChat";
@@ -357,8 +359,10 @@ function GameScreenSession({
   // stay cached as the fallback seat 0.
   const viewerSeat = viewerSeatOf(state, sessionId);
   const chat = useMatchChat({ room: connectedRoom, viewerSeat, spectating });
+  const guestApproval = spectating ? undefined : getGuestApprovalView({ state, sessionId });
 
-  const leaveForfeits = !demoConnection && !spectating && !!state && bothSeated(state) && !state.gameOver;
+  const leaveForfeits =
+    !demoConnection && !spectating && !!state && bothSeated(state) && !state.gameOver && !guestApproval;
   useEffect(() => {
     if (!leaveForfeits || !onLeaveForfeitsChange) return;
     onLeaveForfeitsChange(() => {
@@ -977,7 +981,8 @@ function GameScreenSession({
     !opp ||
     !shownState ||
     !seats ||
-    !bothSeated(state)
+    !bothSeated(state) ||
+    guestApproval
   ) {
     const pendingSeries = state && viewerSeat !== undefined ? seriesView(state.series, viewerSeat) : undefined;
     const notice =
@@ -1007,8 +1012,10 @@ function GameScreenSession({
               startMode,
               hostRoomCode,
               joinOptions,
+              guestApproval,
               t,
             });
+    const guestRequest = guestApproval?.kind === "hostReview" ? guestApproval.guest : undefined;
     return (
       <PendingMatchBoard
         title={notice.title}
@@ -1016,6 +1023,12 @@ function GameScreenSession({
         spinner={notice.spinner}
         actionLabel={notice.actionLabel}
         roomCode={notice.roomCode}
+        guestRequest={guestRequest}
+        onAnswerGuest={
+          guestRequest
+            ? (accept) => room?.send(GUEST_APPROVAL_CHANNEL, { guestSessionId: guestRequest.sessionId, accept })
+            : undefined
+        }
         status={
           "searchingQueue" in notice && notice.searchingQueue ? (
             <MatchQueueActivity

@@ -10,6 +10,8 @@ import type { StartMode } from "../../../screens/Lobby";
 import type { Translate } from "../../../i18n";
 import { ConnectionErrorCode } from "@aegis/shared/protocol/ConnectionErrorCode";
 import { getConnectionErrorMessage } from "@/net/getConnectionErrorMessage";
+import type { GuestApprovalView } from "@/game/screen/model/getGuestApprovalView";
+import type { TranslationKey } from "@/i18n/translationTypes";
 
 export interface PendingMatchNotice {
   title: string;
@@ -33,6 +35,7 @@ export function pendingMatchNotice({
   startMode,
   hostRoomCode,
   joinOptions,
+  guestApproval,
   t,
 }: {
   status: string;
@@ -44,6 +47,7 @@ export function pendingMatchNotice({
   startMode: StartMode;
   hostRoomCode: string | undefined;
   joinOptions: { displayName: string; tournamentGameId?: string };
+  guestApproval?: GuestApprovalView;
   t: Translate;
 }): PendingMatchNotice {
   if (status === "reconnecting") {
@@ -58,7 +62,7 @@ export function pendingMatchNotice({
   }
   if (status === "error" || status === "closed" || botError) {
     return {
-      title: botError ? t("game.botConnectionFailed") : t("game.connectionLost"),
+      title: botError ? t("game.botConnectionFailed") : t(getConnectionFailureTitle(error)),
       detail:
         (!botError && getRankedConnectionError({ error, t })) ||
         getConnectionErrorMessage({ error: botError ?? error, t }),
@@ -82,6 +86,28 @@ export function pendingMatchNotice({
   }
   if (joinOptions.tournamentGameId) {
     return { title: t("game.waitingOpponent"), detail: t("tournaments.play.waitingGame"), spinner: true };
+  }
+  if (guestApproval?.kind === "hostReview") {
+    return {
+      title: t("game.guestApproval.requestTitle"),
+      detail: t("game.guestApproval.requestDetail", { name: guestApproval.guest.displayName }),
+      spinner: false,
+    };
+  }
+  if (guestApproval?.kind === "guestWaiting") {
+    return {
+      title: t("game.guestApproval.waitingTitle"),
+      detail: t("game.guestApproval.waitingDetail"),
+      spinner: true,
+    };
+  }
+  if (guestApproval?.kind === "hostWaiting") {
+    return {
+      title: t("game.waitingOpponent"),
+      detail: hostRoomCode ? t("game.shareCode", { code: hostRoomCode }) : t("game.creatingRoom"),
+      spinner: true,
+      roomCode: hostRoomCode,
+    };
   }
   const canCancelSearch = !hasOpponent && !vsBot && ["casual", "ranked", "unlimited", "beta"].includes(startMode);
   return {
@@ -107,4 +133,14 @@ export function pendingMatchNotice({
     searchingQueue: canCancelSearch,
     roomCode: startMode === "private_host" ? hostRoomCode : undefined,
   };
+}
+
+function getConnectionFailureTitle(error: string | undefined): TranslationKey {
+  if (error === ConnectionErrorCode.GUEST_DECLINED.value) {
+    return "game.guestApproval.declinedTitle";
+  }
+  if (error === ConnectionErrorCode.HOST_LEFT.value) {
+    return "game.guestApproval.hostLeftTitle";
+  }
+  return "game.connectionLost";
 }

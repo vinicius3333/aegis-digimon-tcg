@@ -58,6 +58,7 @@ import { DeckFormatSelector } from "@/screens/DeckFormatSelector";
 import { deckFormatLabel } from "@/screens/deckFormatLabel";
 import { MatchFormatSettings } from "./MatchFormatSettings";
 import { RollbackSettings } from "@/screens/RollbackSettings";
+import { GuestApprovalSettings } from "@/screens/GuestApprovalSettings";
 import { MatchTimerSettings } from "./MatchTimerSettings";
 import { loadMatchFormatPreference, saveMatchFormatPreference } from "./matchFormatPreference";
 import "./lobby.css";
@@ -218,6 +219,8 @@ export function Lobby({
   onBestOfChange,
   allowRollback = false,
   onAllowRollbackChange,
+  requireGuestApproval = false,
+  onRequireGuestApprovalChange,
   gameMode = GameMode.AUTOMATIC.value,
   onGameModeChange,
   openMatchSettings = false,
@@ -239,6 +242,8 @@ export function Lobby({
   initialMode?: LobbyMode;
   allowRollback?: boolean;
   onAllowRollbackChange?: (allow: boolean) => void;
+  requireGuestApproval?: boolean;
+  onRequireGuestApprovalChange?: (required: boolean) => void;
   timerOptions?: MatchTimerOptions;
   onTimerOptionsChange?: (options: Required<MatchTimerOptions>) => void;
   bestOf?: MatchBestOf;
@@ -1151,6 +1156,12 @@ export function Lobby({
                     {mode === "casual" || vsBot || (mode === "private" && privateSub === "create" && !privateRoom) ? (
                       <div className="lobby-match-rules">
                         {!vsBot ? <GameModeSwitch value={gameMode} onChange={onGameModeChange} /> : null}
+                        {mode === "private" ? (
+                          <GuestApprovalSettings
+                            enabled={requireGuestApproval}
+                            onChange={onRequireGuestApprovalChange ?? (() => {})}
+                          />
+                        ) : null}
                         {gameMode !== GameMode.MANUAL.value ? (
                           <RollbackSettings enabled={allowRollback} onChange={onAllowRollbackChange ?? (() => {})} />
                         ) : null}

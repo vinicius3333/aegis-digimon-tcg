@@ -9,6 +9,8 @@ const messages: Record<ConnectionErrorCode, TranslationKey> = {
   [ConnectionErrorCode.SESSION_EXPIRED.value]: "game.sessionExpired",
   [ConnectionErrorCode.TOO_MANY_MESSAGES.value]: "game.tooManyMessages",
   [ConnectionErrorCode.SERVER_UNAVAILABLE.value]: "game.serverUnavailable",
+  [ConnectionErrorCode.GUEST_DECLINED.value]: "game.guestApproval.declined",
+  [ConnectionErrorCode.HOST_LEFT.value]: "game.guestApproval.hostLeft",
 };
 
 type Params = {
