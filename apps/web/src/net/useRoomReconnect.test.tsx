@@ -351,6 +351,21 @@ describe("useRoom reconnection token persistence", () => {
     }
   });
 
+  it("gives up the seat without reconnecting when the match continues on another device", async () => {
+    const joined = fakeRoom("moved-match");
+    joinOrCreate.mockResolvedValue(joined.room);
+    const { result } = renderHook(() => useRoom(OPTIONS));
+    await waitFor(() => expect(result.current.status).toBe("connected"));
+    expect(loadReconnectSession()).toBeDefined();
+
+    joined.emitLeave(4004);
+
+    expect(result.current.status).toBe("closed");
+    expect(result.current.error).toBe("AEGIS_SEAT_TRANSFERRED");
+    expect(reconnect).not.toHaveBeenCalled();
+    expect(loadReconnectSession()).toBeUndefined();
+  });
+
   it("stops retrying at once when the server says the room is gone", async () => {
     const joined = fakeRoom("gone");
     joinOrCreate.mockResolvedValue(joined.room);

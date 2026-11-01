@@ -9,6 +9,11 @@ import { buildReplayDecks } from "#api/replays/buildReplayDecks";
 import { QuickMatchPreference } from "#api/rooms/QuickMatchPreference";
 import { buildDeckCompositionKey } from "#api/accounts/buildDeckCompositionKey";
 import { SPECTATOR_ACCESS_REVOKED_CLOSE_CODE } from "@aegis/shared/protocol/spectatorAccessRevokedCloseCode";
+import { SEAT_TRANSFERRED_CLOSE_CODE } from "@aegis/shared/protocol/seatTransferredCloseCode";
+import type { ActiveMatch } from "@aegis/shared/protocol/ActiveMatch";
+import type { ActiveMatchClaim } from "@aegis/shared/protocol/ActiveMatchClaim";
+import type { ActiveMatchDirectory } from "#api/rooms/activeMatch/ActiveMatchDirectory";
+import { activeMatchRuntime } from "#api/rooms/activeMatch/activeMatchRuntime";
 import type { SocialEvent } from "@aegis/shared/protocol/social";
 import { SPECTATOR_REPLAY_SEAT } from "@aegis/shared/replays/spectatorReplaySeat";
 import { canSpectatePlayers } from "#api/social/canSpectatePlayers";
@@ -362,6 +367,14 @@ type ConnectionDropParams = {
   closeCode: number | undefined;
 };
 
+type ReconnectDeadline = { expiresAt: number; timer: Delayed; expire: () => void };
+
+type HeldReconnection = { tokens: string[]; deadline: ReconnectDeadline };
+
+type PendingSeatTransfer = { promise: Promise<string | undefined>; resolve: (token: string | undefined) => void };
+
+const SEAT_TRANSFER_TIMEOUT_MS = 5_000;
+
 /**
  * The one and only room class (REQUIRED name "AegisRoom"), registered as room
  * type "aegis" in src/index.ts. It is a thin transport adapter: it seats players,
@@ -451,7 +464,6 @@ export class AegisRoom extends Room<{
   private readonly BOT_SEAT = 1 as Seat;
   private isPrivate = false;
   private guestApproval: GuestApprovalGate | undefined;
-  private readonly reconnectExpiryBySession = new Map<string, () => void>();
   private isRankedRoom = false;
   private isBetaBattleRoom = false;
   private isUnlimitedRoom = false;
@@ -531,6 +543,10 @@ export class AegisRoom extends Room<{
     return connectionDropStore;
   }
 
+  protected activeMatches(): ActiveMatchDirectory {
+    return activeMatchRuntime.directory;
+  }
+
   // How long the in-memory match is held open for a client that dropped without
   // a consented leave (network blip, tab reload, mobile browser backgrounded —
   // phones kill the socket seconds after the app loses focus). A reconnect within
@@ -542,9 +558,15 @@ export class AegisRoom extends Room<{
 
   private readonly RECONNECT_CLAIM_SECONDS = 15;
 
-  private readonly reconnectDeadlines = new Map<string, { expiresAt: number; timer: Delayed; expire: () => void }>();
+  private readonly reconnectDeadlines = new Map<string, ReconnectDeadline>();
 
   private readonly tokenBeforeLastReconnect = new Map<string, string>();
+
+  private readonly heldReconnections = new Map<string, HeldReconnection>();
+
+  private readonly pendingSeatTransfers = new Map<string, PendingSeatTransfer>();
+
+  private readonly publishedActiveMatchAccounts = new Set<string>();
 
   // How long both seats can sit joined-but-not-ready (e.g. a client stuck loading
   // assets, or one that crashed before it could send `ready`) before the room gives
@@ -1114,6 +1136,7 @@ export class AegisRoom extends Room<{
           void saved.catch((error) => this.debugError("[AegisRoom] failed to persist story progress", error));
         }
         if (event.kind === "gameOver") {
+          this.releaseActiveMatches();
           void this.publishSocialPresence().catch(() => undefined);
           // A completed engine cannot accept replacement players. Locking also
           // guarantees a drawn tournament replay receives a fresh room. A failure here is worth
@@ -1339,6 +1362,7 @@ export class AegisRoom extends Room<{
     }
     this.matchLimitInterval = this.clock.setInterval(() => {
       this.enforceMatchLimits();
+      this.publishActiveMatches();
       if (this.accountByClient.size && (getRankedConfig().enabled || this.rankedPairId) && !this.state.gameOver) {
         void this.accounts()
           .pool.query("UPDATE account_active_rooms SET expires_at=$2 WHERE room_id=$1", [
@@ -1824,7 +1848,7 @@ export class AegisRoom extends Room<{
           connected.leave(GUEST_DECLINED_CLOSE_CODE);
           return;
         }
-        this.reconnectExpiryBySession.get(guestSessionId)?.();
+        this.heldReconnections.get(guestSessionId)?.deadline.expire();
       },
     });
   }
@@ -1843,6 +1867,7 @@ export class AegisRoom extends Room<{
   }
 
   override onDispose(): void {
+    this.releaseActiveMatches();
     for (const [accountId, receive] of this.spectatorPrivacySubscriptions) {
       void this.presence?.unsubscribe(`social:account:${accountId}`, receive);
     }
@@ -2358,6 +2383,7 @@ export class AegisRoom extends Room<{
         .catch((error: unknown) => this.debugError("[AegisRoom] failed to mark tournament game playing", error));
     this.recordReplayInput({ kind: "startMatch" });
     this.withBatch(() => this.engine.startMatch());
+    this.publishActiveMatches();
   }
 
   override async onLeave(client: Client, code?: number): Promise<void> {
@@ -2431,6 +2457,7 @@ export class AegisRoom extends Room<{
       this.seatByClient.delete(client.sessionId);
       this.concede(seat);
       this.settleGuestApprovalDeparture(client.sessionId);
+      this.releaseActiveMatch(accountId);
       if (countsAsDodge && accountId) await this.accounts().recordRankedDodge(this.roomId, accountId);
       this.accountByClient.delete(client.sessionId);
       this.liveAvatarUrlByClient.delete(client.sessionId);
@@ -2451,7 +2478,10 @@ export class AegisRoom extends Room<{
     this.withBatch(() => this.engine.handleDisconnect(seat, false));
     this.syncMatchClock();
     this.reportableDropBySeat.delete(seat);
-    const drop = this.recordConnectionDrop({ seat, accountId, closeCode: code });
+    const drop =
+      code === SEAT_TRANSFERRED_CLOSE_CODE
+        ? Promise.resolve(undefined)
+        : this.recordConnectionDrop({ seat, accountId, closeCode: code });
     try {
       const reconnectedClient = await this.holdSeatForReconnect(client);
       this.resolveConnectionDrop(drop, ConnectionDropOutcome.RECONNECTED.value);
@@ -2486,6 +2516,7 @@ export class AegisRoom extends Room<{
       this.readyTimeout = undefined;
       this.concede(seat);
       this.settleGuestApprovalDeparture(client.sessionId);
+      this.releaseActiveMatch(accountId);
       if (countsAsDodge && accountId) await this.accounts().recordRankedDodge(this.roomId, accountId);
       this.accountByClient.delete(client.sessionId);
       this.liveAvatarUrlByClient.delete(client.sessionId);
@@ -2503,30 +2534,167 @@ export class AegisRoom extends Room<{
       unacknowledged._enqueuedMessages === undefined ? undefined : this.tokenBeforeLastReconnect.get(client.sessionId);
     delete unacknowledged._enqueuedMessages;
     const reconnection = this.allowReconnection(client, "manual");
-    const tokens = tokenBeforeLastReconnect ? [token, tokenBeforeLastReconnect] : [token];
-    const pending = (this as unknown as { _reconnections: Record<string, unknown> })._reconnections;
+    const pending = this.getPendingReconnections();
     if (tokenBeforeLastReconnect) pending[tokenBeforeLastReconnect] = pending[token];
-    const expire = () => {
-      for (const held of tokens) this.reconnectDeadlines.delete(held);
-      reconnection.reject(new Error("reconnect grace elapsed"));
-    };
     const graceMs = this.RECONNECT_GRACE_SECONDS * 1000;
-    const deadline = {
-      expiresAt: this.clock.currentTime + graceMs,
-      timer: this.clock.setTimeout(expire, graceMs),
-      expire,
+    const hold: HeldReconnection = {
+      tokens: tokenBeforeLastReconnect ? [token, tokenBeforeLastReconnect] : [token],
+      deadline: {
+        expiresAt: this.clock.currentTime + graceMs,
+        timer: this.clock.setTimeout(() => hold.deadline.expire(), graceMs),
+        expire: () => {
+          for (const held of hold.tokens) this.reconnectDeadlines.delete(held);
+          reconnection.reject(new Error("reconnect grace elapsed"));
+        },
+      },
     };
-    for (const held of tokens) this.reconnectDeadlines.set(held, deadline);
-    this.reconnectExpiryBySession.set(client.sessionId, expire);
+    for (const held of hold.tokens) this.reconnectDeadlines.set(held, hold.deadline);
+    this.heldReconnections.set(client.sessionId, hold);
+    const transfer = this.pendingSeatTransfers.get(client.sessionId);
+    if (transfer) {
+      this.pendingSeatTransfers.delete(client.sessionId);
+      transfer.resolve(this.rotateHeldReconnection(hold));
+    }
     try {
       const reconnected = await reconnection;
-      this.tokenBeforeLastReconnect.set(client.sessionId, token);
+      this.tokenBeforeLastReconnect.set(client.sessionId, hold.tokens[0]!);
       return reconnected;
     } finally {
-      this.reconnectExpiryBySession.delete(client.sessionId);
-      deadline.timer.clear();
-      for (const held of tokens) this.reconnectDeadlines.delete(held);
-      if (tokenBeforeLastReconnect) delete pending[tokenBeforeLastReconnect];
+      this.heldReconnections.delete(client.sessionId);
+      hold.deadline.timer.clear();
+      for (const held of hold.tokens) {
+        this.reconnectDeadlines.delete(held);
+        if (held !== token) delete pending[held];
+      }
+    }
+  }
+
+  private getPendingReconnections(): Record<string, unknown> {
+    return (this as unknown as { _reconnections: Record<string, unknown> })._reconnections;
+  }
+
+  private rotateHeldReconnection(hold: HeldReconnection): string {
+    const pending = this.getPendingReconnections();
+    const reservation = pending[hold.tokens[0]!];
+    const token = randomBytes(24).toString("base64url");
+    for (const held of hold.tokens) {
+      delete pending[held];
+      this.reconnectDeadlines.delete(held);
+    }
+    pending[token] = reservation;
+    this.reconnectDeadlines.set(token, hold.deadline);
+    hold.tokens = [token];
+    return token;
+  }
+
+  findAccountSeat(accountId: string): ActiveMatch | null {
+    const sessionId = this.findTransferableSession(accountId);
+    const seat = sessionId === undefined ? undefined : this.seatByClient.get(sessionId);
+    if (sessionId === undefined || seat === undefined) {
+      return null;
+    }
+    const hold = this.heldReconnections.get(sessionId);
+    if (!hold) {
+      return { roomId: this.roomId, seat };
+    }
+    return {
+      roomId: this.roomId,
+      seat,
+      reconnectGraceMs: Math.max(0, hold.deadline.expiresAt - this.clock.currentTime),
+    };
+  }
+
+  async transferAccountSeat(accountId: string): Promise<ActiveMatchClaim | null> {
+    const sessionId = this.findTransferableSession(accountId);
+    const seat = sessionId === undefined ? undefined : this.seatByClient.get(sessionId);
+    if (sessionId === undefined || seat === undefined) {
+      return null;
+    }
+    const token = await this.prepareSeatTransfer(sessionId);
+    if (!token || this.seatByClient.get(sessionId) !== seat) {
+      return null;
+    }
+    return { roomId: this.roomId, seat, reconnectionToken: `${this.roomId}:${token}` };
+  }
+
+  private findTransferableSession(accountId: string): string | undefined {
+    if (typeof accountId !== "string" || !accountId || !this.matchStartRequested || this.state.gameOver) {
+      return undefined;
+    }
+    const owned = [...this.seatByClient.keys()].filter(
+      (sessionId) => this.accountByClient.get(sessionId) === accountId,
+    );
+    return owned.length === 1 ? owned[0] : undefined;
+  }
+
+  private prepareSeatTransfer(sessionId: string): Promise<string | undefined> {
+    const hold = this.heldReconnections.get(sessionId);
+    if (hold) {
+      return Promise.resolve(this.rotateHeldReconnection(hold));
+    }
+    const pendingTransfer = this.pendingSeatTransfers.get(sessionId);
+    if (pendingTransfer) {
+      return pendingTransfer.promise;
+    }
+    const client = this.clients.find((candidate) => candidate.sessionId === sessionId);
+    if (!client) {
+      return Promise.resolve(undefined);
+    }
+    let resolve!: (token: string | undefined) => void;
+    const promise = new Promise<string | undefined>((done) => {
+      resolve = done;
+    });
+    const timeout = this.clock.setTimeout(() => {
+      if (this.pendingSeatTransfers.get(sessionId)?.promise === promise) {
+        this.pendingSeatTransfers.delete(sessionId);
+      }
+      resolve(undefined);
+    }, SEAT_TRANSFER_TIMEOUT_MS);
+    void promise.then(() => timeout.clear());
+    this.pendingSeatTransfers.set(sessionId, { promise, resolve });
+    this.disconnectForSeatTransfer(client);
+    return promise;
+  }
+
+  private disconnectForSeatTransfer(client: Client): void {
+    const socket = client.ref as (Client["ref"] & { onleave?: (...args: unknown[]) => void }) | undefined;
+    socket?.removeAllListeners("message");
+    if (socket?.onleave) {
+      socket.removeListener("close", socket.onleave);
+    }
+    client.leave(SEAT_TRANSFERRED_CLOSE_CODE);
+    const room = this as unknown as { _onLeave: (client: Client, code: number) => Promise<void> };
+    void room._onLeave(client, SEAT_TRANSFERRED_CLOSE_CODE);
+  }
+
+  private publishActiveMatches(): void {
+    if (!this.matchStartRequested || this.state.gameOver) {
+      return;
+    }
+    for (const sessionId of this.seatByClient.keys()) {
+      const accountId = this.accountByClient.get(sessionId);
+      if (!accountId) {
+        continue;
+      }
+      this.publishedActiveMatchAccounts.add(accountId);
+      void this.activeMatches()
+        .publish({ accountId, roomId: this.roomId })
+        .catch((error: unknown) => this.debugError("[AegisRoom] failed to publish active match", error));
+    }
+  }
+
+  private releaseActiveMatch(accountId: string | undefined): void {
+    if (!accountId || !this.publishedActiveMatchAccounts.delete(accountId)) {
+      return;
+    }
+    void this.activeMatches()
+      .release({ accountId, roomId: this.roomId })
+      .catch((error: unknown) => this.debugError("[AegisRoom] failed to release active match", error));
+  }
+
+  private releaseActiveMatches(): void {
+    for (const accountId of [...this.publishedActiveMatchAccounts]) {
+      this.releaseActiveMatch(accountId);
     }
   }
 

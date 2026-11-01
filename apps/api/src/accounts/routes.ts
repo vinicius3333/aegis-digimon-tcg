@@ -18,6 +18,7 @@ import { installFriendDetailRoutes } from "#api/friends/installFriendDetailRoute
 import { publishSocialChange } from "#api/social/publishSocialChange";
 import { isSpectatorAccess } from "@aegis/shared/account/isSpectatorAccess";
 import { installFriendSpectatorRoutes } from "#api/social/installFriendSpectatorRoutes";
+import { installActiveMatchRoutes } from "#api/rooms/activeMatch/installActiveMatchRoutes";
 import { installSocialRoutes } from "#api/social/installSocialRoutes";
 import { FriendStore } from "#api/friends/FriendStore";
 import { installFriendRoutes } from "#api/friends/installFriendRoutes";
@@ -171,6 +172,7 @@ export function installAccountRoutes(
   installNotificationRoutes({ app, store: new NotificationStore(store), session: sessionFromRequest });
   installPlaytestRoutes({ app, store: new PlaytestStore(store), session: sessionFromRequest });
   installFriendSpectatorRoutes({ app, accounts: store, session: sessionFromRequest });
+  installActiveMatchRoutes({ app, session: sessionFromRequest });
   installSocialRoutes({ app, accounts: store, session: sessionFromRequest });
   installDirectMessageRoutes({ app, accounts: store, session: sessionFromRequest });
   installFriendRoutes({ app, store: new FriendStore(store), session: sessionFromRequest });

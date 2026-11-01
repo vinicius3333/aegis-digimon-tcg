@@ -774,6 +774,17 @@ const interfaceMessages = {
   "home.signInTitle": "Vous jouez sur plusieurs appareils ?",
   "home.signInCopy": "Connectez Discord pour conserver vos decks et statistiques sur votre compte.",
   "home.signInAction": "Se connecter",
+  "resumeMatch.title": "Votre partie est toujours en cours",
+  "resumeMatch.copy": "Continuez-la ici. Votre autre appareil quitte la partie.",
+  "resumeMatch.action": "Reprendre la partie",
+  "resumeMatch.graceLeft": "Place réservée pendant {time}",
+  "game.handoff.title": "Continuer sur un autre appareil",
+  "game.handoff.hint":
+    "Scannez-le avec un téléphone ou un ordinateur connecté à ce compte, puis touchez Reprendre la partie. Cet appareil quitte alors la partie.",
+  "game.handoff.show": "Afficher le QR code",
+  "game.handoff.hide": "Masquer le QR code",
+  "game.handoff.qrLabel": "QR code qui ouvre Aegis pour reprendre cette partie",
+  "resumeMatch.failed": "Impossible de transférer la partie sur cet appareil. Elle est peut-être terminée.",
   "home.footer.discord": "Communauté Discord",
   "home.footer.github": "GitHub",
   "home.footer.legal":
@@ -1131,6 +1142,7 @@ const interfaceMessages = {
     "Votre sélection était trop volumineuse. Reconnexion pour rétablir le choix en attente.",
   "game.reconnectFailed": "Impossible de reprendre cette partie. Retournez au lobby et réessayez.",
   "game.sessionExpired": "Cette partie ne peut plus être reprise. Retournez au lobby.",
+  "game.seatTransferred": "Vous avez poursuivi cette partie sur un autre appareil.",
   "game.tooManyMessages":
     "Trop d’actions ont été envoyées simultanément. Patientez un instant, puis retournez au lobby.",
   "game.serverUnavailable": "Le serveur de jeu est temporairement indisponible. Réessayez dans quelques instants.",

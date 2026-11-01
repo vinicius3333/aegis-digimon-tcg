@@ -4,11 +4,17 @@ import {
   MATCH_EXPIRED_CLOSE_CODE,
   MESSAGE_FLOOD_CLOSE_CODE,
 } from "#shared/protocol/closeCodes";
+import { SEAT_TRANSFERRED_CLOSE_CODE } from "#shared/protocol/seatTransferredCloseCode";
 
 export const ConnectionErrorCode = {
   MESSAGE_TOO_LARGE: { name: "MESSAGE_TOO_LARGE", value: "AEGIS_MESSAGE_TOO_LARGE", codes: [1009, 413] },
   CONNECTION_LOST: { name: "CONNECTION_LOST", value: "AEGIS_CONNECTION_LOST", codes: [1006] },
   RECONNECT_FAILED: { name: "RECONNECT_FAILED", value: "AEGIS_RECONNECT_FAILED", codes: [] },
+  SEAT_TRANSFERRED: {
+    name: "SEAT_TRANSFERRED",
+    value: "AEGIS_SEAT_TRANSFERRED",
+    codes: [SEAT_TRANSFERRED_CLOSE_CODE],
+  },
   SESSION_EXPIRED: {
     name: "SESSION_EXPIRED",
     value: "AEGIS_SESSION_EXPIRED",

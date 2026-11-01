@@ -779,6 +779,17 @@ const interfaceMessages = {
   "home.signInTitle": "Spielen Sie auf mehr als einem Gerät?",
   "home.signInCopy": "Verbinden Sie Discord, um Ihre Decks und Statistiken in Ihrem Konto zu behalten.",
   "home.signInAction": "Verbinden",
+  "resumeMatch.title": "Ihre Partie läuft noch",
+  "resumeMatch.copy": "Setzen Sie sie hier fort. Ihr anderes Gerät verlässt die Partie.",
+  "resumeMatch.action": "Partie fortsetzen",
+  "resumeMatch.graceLeft": "Platz reserviert für {time}",
+  "game.handoff.title": "Auf einem anderen Gerät fortsetzen",
+  "game.handoff.hint":
+    "Scannen Sie ihn mit einem Handy oder Computer, auf dem dieses Konto angemeldet ist, und tippen Sie auf Partie fortsetzen. Dieses Gerät verlässt dann die Partie.",
+  "game.handoff.show": "QR-Code anzeigen",
+  "game.handoff.hide": "QR-Code ausblenden",
+  "game.handoff.qrLabel": "QR-Code, der Aegis öffnet, um diese Partie fortzusetzen",
+  "resumeMatch.failed": "Die Partie konnte nicht auf dieses Gerät verschoben werden. Sie ist vielleicht beendet.",
   "home.footer.discord": "Discord-Community",
   "home.footer.github": "GitHub",
   "home.footer.legal":
@@ -1140,6 +1151,7 @@ const interfaceMessages = {
   "game.reconnectFailed":
     "Die Partie konnte nicht fortgesetzt werden. Kehren Sie zur Lobby zurück und versuchen Sie es erneut.",
   "game.sessionExpired": "Diese Partie kann nicht mehr fortgesetzt werden. Kehren Sie zur Lobby zurück.",
+  "game.seatTransferred": "Sie haben diese Partie auf einem anderen Gerät fortgesetzt.",
   "game.tooManyMessages":
     "Es wurden zu viele Aktionen gleichzeitig gesendet. Warten Sie kurz und kehren Sie dann zur Lobby zurück.",
   "game.serverUnavailable": "Der Spielserver ist vorübergehend nicht verfügbar. Versuchen Sie es in Kürze erneut.",

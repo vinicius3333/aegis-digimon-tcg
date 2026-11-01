@@ -667,6 +667,18 @@ function LoadedAegisClient({
     navigateScreen("game");
   };
 
+  const resumeMatchFromAnotherDevice = () => {
+    setSeriesGame(undefined);
+    setTournamentGame(undefined);
+    setSpectatedTournamentMatch(undefined);
+    setStoryBattleId(undefined);
+    setSpectatorFriendId(undefined);
+    setRoomCode(undefined);
+    setStartMode("casual");
+    setMatchNumber((current) => current + 1);
+    navigateScreen("game");
+  };
+
   const startLesson = (lessonId: string) => {
     startMatch("bot");
     setStoryBattleId(lessonId);
@@ -882,6 +894,7 @@ function LoadedAegisClient({
                   onSignIn={() => navigateScreen("login")}
                   onReportBug={() => setBugReportOpen(true)}
                   onOpenReleases={() => navigateScreen("releases")}
+                  onResumeMatch={resumeMatchFromAnotherDevice}
                 />
               )}
 

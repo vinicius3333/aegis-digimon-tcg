@@ -1647,6 +1647,17 @@ function GameScreenSession({
       seatAvatars={seatAvatars}
       logViewerSeat={spectating ? undefined : viewerSeat}
       signedIn={signedIn}
+      handoffUrl={
+        signedIn &&
+        !spectating &&
+        !replayMode &&
+        !tutorialLesson &&
+        !demoConnection &&
+        !state.gameOver &&
+        viewerSeat !== undefined
+          ? `${window.location.origin}/`
+          : undefined
+      }
       opponentDropped={!spectating && !vsBot && !opp.connected && !state.gameOver}
       gameOver={
         !replayMode && !tutorialLesson && (state.gameOver || series?.stage === "over") && !cues.resultPending

@@ -1,6 +1,7 @@
 import type { TournamentSpectateTarget } from "@/tournaments/TournamentSpectateTarget";
 import { SPECTATOR_ACCESS_REVOKED_CLOSE_CODE } from "@aegis/shared/protocol/spectatorAccessRevokedCloseCode";
 import { GUEST_DECLINED_CLOSE_CODE, HOST_LEFT_CLOSE_CODE } from "@aegis/shared/protocol/closeCodes";
+import { SEAT_TRANSFERRED_CLOSE_CODE } from "@aegis/shared/protocol/seatTransferredCloseCode";
 import { ClientErrorKind } from "@aegis/shared/clientErrors/ClientErrorKind";
 import { ConnectionErrorCode } from "@aegis/shared/protocol/ConnectionErrorCode";
 import { getConnectionErrorCode } from "@aegis/shared/protocol/getConnectionErrorCode";
@@ -69,6 +70,7 @@ const FINAL_CLOSE_CODES = new Set([
   SPECTATOR_ACCESS_REVOKED_CLOSE_CODE,
   GUEST_DECLINED_CLOSE_CODE,
   HOST_LEFT_CLOSE_CODE,
+  SEAT_TRANSFERRED_CLOSE_CODE,
 ]);
 /** Grace runs from the drop, not the join, so a live seat keeps its saved session fresh. */
 const SESSION_HEARTBEAT_MS = 5_000;

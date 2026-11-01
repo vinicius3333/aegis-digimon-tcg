@@ -10,6 +10,7 @@ import { HomeDecksCard } from "@/home/HomeDecksCard";
 import { HomeLiveMatchesCard } from "@/home/HomeLiveMatchesCard";
 import type { HomeMatchQueue } from "@/home/HomeMatchQueue";
 import { HomeNextMatchCard } from "@/home/HomeNextMatchCard";
+import { HomeResumeMatchCard } from "@/home/HomeResumeMatchCard";
 import { HomeTournamentsCard } from "@/home/HomeTournamentsCard";
 import { useHomeTournaments } from "@/home/useHomeTournaments";
 import { useTranslation } from "@/i18n/useTranslation";
@@ -40,6 +41,7 @@ type HomeParams = {
   onSignIn: () => void;
   onReportBug?: () => void;
   onOpenReleases?: () => void;
+  onResumeMatch?: () => void;
 };
 
 export function Home(params: HomeParams) {
@@ -52,6 +54,8 @@ export function Home(params: HomeParams) {
     <main className="home-page">
       <div className="home-wrap">
         <h1 className="aegis-sr-only">{t("nav.home")}</h1>
+
+        {signedIn && params.onResumeMatch ? <HomeResumeMatchCard onResume={params.onResumeMatch} /> : null}
 
         <div className="home-board">
           <div className="home-board__main">
