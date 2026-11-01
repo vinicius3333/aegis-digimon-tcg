@@ -371,6 +371,7 @@ export class TopCutProgram {
       ledger,
       standings: standingsConfig(tournament.rules, tournament.id),
       participants: roster,
+      drawSeed: tournament.id,
     });
   }
 }
