@@ -1720,3 +1720,10 @@ body:has(.decision-overlay--selection) .narration-slot {
   color: var(--ds-text);
   background: var(--ds-sheet);
 }
+.decision-overlay__used-effect {
+  padding: var(--ds-space-1) var(--ds-space-2);
+  border: 1px dashed var(--ds-line);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-text-2);
+  background: var(--ds-sheet);
+}
