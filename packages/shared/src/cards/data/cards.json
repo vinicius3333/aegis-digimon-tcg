@@ -110878,6 +110878,11 @@
         "color": "Red",
         "level": 2,
         "memoryCost": 0
+      },
+      {
+        "color": "Black",
+        "level": 2,
+        "memoryCost": 0
       }
     ],
     "forms": ["Rookie"],

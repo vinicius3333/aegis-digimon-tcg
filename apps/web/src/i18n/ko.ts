@@ -918,6 +918,7 @@ const interfaceMessages = {
   "library.rowRarity": "레어리티",
   "library.mainEffect": "메인 효과",
   "library.inheritedEffect": "진화원 효과",
+  "library.linkEffect": "링크 효과",
   "library.securityEffect": "시큐리티 효과",
   "library.kind.Digimon": "디지몬",
   "library.kind.DigiEgg": "디지타마",

@@ -672,6 +672,7 @@ export const en = {
   "library.rowRarity": "Rarity",
   "library.mainEffect": "Main effect",
   "library.inheritedEffect": "Inherited (ESS)",
+  "library.linkEffect": "Link effect",
   "library.securityEffect": "Security effect",
   "library.kind.Digimon": "Digimon",
   "library.kind.DigiEgg": "Digi-Egg",
