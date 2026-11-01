@@ -610,6 +610,10 @@ const interfaceMessages = {
   "game.handSort.cost": "コスト別",
   "game.handSort.color": "色別",
   "game.handSort.choose": "並び順を選択",
+  "game.handSort.ascending": "昇順",
+  "game.handSort.descending": "降順",
+  "game.handSort.orderGroup": "並べ替え基準",
+  "game.handSort.directionGroup": "順序",
   "settings.sortHand": "手札を並べ替え",
   "settings.sortHandDesc":
     "現在の手札を選んだ順に並べ替えます。新しく引いたカードは、もう一度並べ替えるまで末尾に置かれます。",

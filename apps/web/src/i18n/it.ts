@@ -500,6 +500,10 @@ const interfaceMessages = {
   "game.handSort.cost": "Per costo",
   "game.handSort.color": "Per colore",
   "game.handSort.choose": "Scegli l'ordine",
+  "game.handSort.ascending": "Crescente",
+  "game.handSort.descending": "Decrescente",
+  "game.handSort.orderGroup": "Ordina per",
+  "game.handSort.directionGroup": "Direzione",
   "settings.sortHand": "Ordina la mano",
   "settings.sortHandDesc":
     "Ordina la mano attuale nell'ordine scelto. Le nuove carte restano in fondo finché non ordini di nuovo.",

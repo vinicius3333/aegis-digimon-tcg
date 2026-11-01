@@ -606,6 +606,10 @@ const interfaceMessages = {
   "game.handSort.cost": "Berdasarkan cost",
   "game.handSort.color": "Berdasarkan warna",
   "game.handSort.choose": "Pilih urutan pengurutan",
+  "game.handSort.ascending": "Rendah ke tinggi",
+  "game.handSort.descending": "Tinggi ke rendah",
+  "game.handSort.orderGroup": "Urutkan berdasarkan",
+  "game.handSort.directionGroup": "Arah",
   "settings.sortHand": "Urutkan tangan",
   "settings.sortHandDesc":
     "Urutkan tangan saat ini dalam urutan yang dipilih. Kartu yang baru di-draw tetap di akhir sampai Anda mengurutkannya lagi.",

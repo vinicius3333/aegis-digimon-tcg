@@ -331,6 +331,10 @@ export const es: Record<keyof typeof en, string> = {
   "game.handSort.cost": "Por coste",
   "game.handSort.color": "Por color",
   "game.handSort.choose": "Elegir orden",
+  "game.handSort.ascending": "De menor a mayor",
+  "game.handSort.descending": "De mayor a menor",
+  "game.handSort.orderGroup": "Ordenar por",
+  "game.handSort.directionGroup": "Dirección",
   "settings.sortHand": "Ordenar mano",
   "settings.sortHandDesc":
     "Ordena la mano actual en el orden elegido. Las nuevas cartas quedan al final hasta que vuelvas a ordenar.",

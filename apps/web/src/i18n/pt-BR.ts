@@ -332,6 +332,10 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.handSort.cost": "Por custo",
   "game.handSort.color": "Por cor",
   "game.handSort.choose": "Escolher ordenação",
+  "game.handSort.ascending": "Menor para maior",
+  "game.handSort.descending": "Maior para menor",
+  "game.handSort.orderGroup": "Ordenar por",
+  "game.handSort.directionGroup": "Direção",
   "settings.sortHand": "Ordenar mão",
   "settings.sortHandDesc":
     "Ordena a mão atual na ordem escolhida. Novas compras ficam no fim até você ordenar novamente.",

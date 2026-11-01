@@ -166,6 +166,18 @@ const ArrowRight = (p: IconProps) => (
     <polyline points="12 5 19 12 12 19" />
   </Svg>
 );
+const ArrowUp = (p: IconProps) => (
+  <Svg {...p}>
+    <line x1="12" y1="19" x2="12" y2="5" />
+    <polyline points="5 12 12 5 19 12" />
+  </Svg>
+);
+const ArrowDown = (p: IconProps) => (
+  <Svg {...p}>
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <polyline points="19 12 12 19 5 12" />
+  </Svg>
+);
 const Send = (p: IconProps) => (
   <Svg {...p}>
     <line x1="22" y1="2" x2="11" y2="13" />
@@ -714,6 +726,8 @@ export const Icons = {
   ChevronUp,
   ArrowLeft,
   ArrowRight,
+  ArrowUp,
+  ArrowDown,
   Send,
   ScrollText,
   Maximize,
