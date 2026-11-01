@@ -260,7 +260,7 @@ const interfaceMessages = {
   "profile.preferences": "設定",
   "profile.showStats": "対戦成績を表示",
   "profile.showStatsDesc":
-    "プロフィール上部に対戦数、勝利数、勝率、保存したリプレイを表示します。アカウントに保存されます。",
+    "プロフィールに対戦数、勝利数、勝率、デッキ別の戦績、保存したリプレイを表示します。アカウントに保存されます。",
   "profile.avatarMenu.title": "アバターを選択",
   "profile.avatarMenu.default": "デフォルトのアバターを使用",
   "profile.avatarMenu.discord": "Discordのアバターを使用",

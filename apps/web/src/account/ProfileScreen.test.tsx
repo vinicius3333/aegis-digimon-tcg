@@ -689,3 +689,31 @@ it("compares deck records and opens the selected deck history without matchups",
   expect(screen.queryByRole("tablist", { name: "Deck matchups" })).toBeNull();
   expect(load).toHaveBeenLastCalledWith(expect.objectContaining({ deckId: "serious", page: 1 }));
 });
+
+it("hides deck records and deck win rates while match stats are hidden", async () => {
+  setProfileStatsShown(false);
+  const records = [
+    { deckId: "serious", name: "Competitive Blue", stats: { matches: 8, wins: 6, losses: 2, draws: 0 } },
+  ];
+  const decks = records.map(({ deckId, name }) => ({ id: deckId, name }));
+  const load = vi.spyOn(accountApi, "matches").mockResolvedValue(page([match(0)], { deckRecords: records, decks }));
+  renderProfile();
+  expect(await screen.findByText("Rival 0")).toBeTruthy();
+  expect(screen.queryByText("Your deck records")).toBeNull();
+  expect(screen.queryByText("75%")).toBeNull();
+
+  load.mockResolvedValue(
+    page([match(3)], {
+      decks,
+      deckStats: { total: records[0]!.stats, sinceChange: { matches: 4, wins: 3, losses: 1, draws: 0 } },
+    }),
+  );
+  fireEvent.change(screen.getByRole("combobox", { name: "Deck" }), { target: { value: "serious" } });
+  expect(await screen.findByText("Rival 3")).toBeTruthy();
+  expect(screen.queryByRole("region", { name: "Deck performance" })).toBeNull();
+  expect(screen.queryByRole("heading", { name: "Deck win rate" })).toBeNull();
+
+  fireEvent.click(screen.getByRole("switch", { name: "Show match stats" }));
+  expect(await screen.findByRole("heading", { name: "Deck win rate" })).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "Since last card change" })).toBeTruthy();
+});

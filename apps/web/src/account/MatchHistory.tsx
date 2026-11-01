@@ -2,6 +2,7 @@ import { ReplayDeckIcons } from "@/replays/ReplayDeckIcons";
 import { DeckPerformanceCollection } from "@/account/DeckPerformanceCollection";
 import { MatchOwnDeckAction } from "@/account/MatchOwnDeckAction";
 import { DeckHistoryStats } from "@/account/DeckHistoryStats";
+import { useProfileStatsShown } from "@/account/profileStats";
 import { DeckStatsWindow } from "@aegis/shared/decks/DeckStatsWindow";
 import { AddFriendButton } from "@/friends/AddFriendButton";
 import type { DeckListing } from "@/game/decks";
@@ -65,6 +66,7 @@ export function MatchHistory({
   onWinRateChange: (rate: MatchWinRate | undefined) => void;
 }) {
   const { t } = useTranslation();
+  const statsShown = useProfileStatsShown();
   const { provider } = useCloudReplays();
   const [filter, setFilter] = useState<MatchHistoryFilter>({});
   const [search, setSearch] = useState("");
@@ -264,7 +266,7 @@ export function MatchHistory({
           ) : null}
         </div>
       </header>
-      {!filter.deckId && ready?.deckRecords?.length ? (
+      {statsShown && !filter.deckId && ready?.deckRecords?.length ? (
         <DeckPerformanceCollection
           records={ready.deckRecords}
           statsWindow={filter.deckWindow ?? DeckStatsWindow.ALL.value}
@@ -272,7 +274,7 @@ export function MatchHistory({
           onSelect={(deckId) => changeFilter({ ...filter, deckId })}
         />
       ) : null}
-      {ready?.deckStats ? (
+      {statsShown && ready?.deckStats ? (
         <DeckHistoryStats
           key={filter.deckId}
           stats={ready.deckStats}

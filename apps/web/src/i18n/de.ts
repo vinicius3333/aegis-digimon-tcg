@@ -261,7 +261,7 @@ const interfaceMessages = {
   "profile.preferences": "Einstellungen",
   "profile.showStats": "Match-Statistiken anzeigen",
   "profile.showStatsDesc":
-    "Zeigt Ihre Matches, Siege, Siegquote und gespeicherten Replays oben in Ihrem Profil. Wird in Ihrem Konto gespeichert.",
+    "Zeigt Ihre Matches, Siege, Siegquoten, Deck-Bilanzen und gespeicherten Replays in Ihrem Profil. Wird in Ihrem Konto gespeichert.",
   "profile.avatarMenu.title": "Avatar wählen",
   "profile.avatarMenu.default": "Standard-Avatar verwenden",
   "profile.avatarMenu.discord": "Discord-Avatar verwenden",
