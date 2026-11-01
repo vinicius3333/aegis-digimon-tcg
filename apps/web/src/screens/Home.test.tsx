@@ -61,7 +61,11 @@ beforeEach(() => {
   vi.stubGlobal(
     "fetch",
     vi.fn<typeof fetch>(async (input) => {
-      const page = String(input).includes("/replays/public") ? publicReplayPage : liveMatchPage;
+      const url = String(input);
+      if (url.includes("/tournaments")) {
+        return new Response(JSON.stringify([]), { status: 200 });
+      }
+      const page = url.includes("/replays/public") ? publicReplayPage : liveMatchPage;
       return new Response(JSON.stringify(page), { status: 200 });
     }),
   );
@@ -126,7 +130,7 @@ describe("the home screen", () => {
     expect(props.onOpenReplay).toHaveBeenCalledWith("public-replay");
     const card = screen.getByRole("heading", { name: "Public replays" }).closest("section")!;
     expect(within(card).getByText("BT15 · Standard")).toBeTruthy();
-    fireEvent.click(within(card).getByRole("button", { name: "View all" }));
+    fireEvent.click(within(card).getByRole("button", { name: "See all" }));
     expect(props.onOpenPublicReplays).toHaveBeenCalledOnce();
   });
 
