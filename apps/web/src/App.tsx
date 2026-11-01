@@ -511,6 +511,7 @@ function LoadedAegisClient({
   }));
   const [gameMode, setGameMode] = useState<GameMode>(GameMode.AUTOMATIC.value);
   const [allowRollback, setAllowRollback] = useState(false);
+  const [requireGuestApproval, setRequireGuestApproval] = useState(false);
   const [bestOf, setBestOf] = useState(loadMatchFormatPreference);
   /** Set between the games of a best-of-three: the next GameScreen takes this seat. */
   const [seriesGame, setSeriesGame] = useState<SeriesGameTicket>();
@@ -697,6 +698,7 @@ function LoadedAegisClient({
       storyGuestToken: storyBattleId ? getStoryGuestToken() : undefined,
       gameMode: effectiveGameMode,
       allowRollback: effectiveGameMode !== GameMode.MANUAL.value && allowRollback,
+      ...(startMode === "private_host" && requireGuestApproval ? { requireApproval: true } : {}),
       bestOf: effectiveGameMode === GameMode.MANUAL.value ? 1 : bestOf,
       format: deckFormat,
       displayName: effectivePlayer.name,
@@ -731,6 +733,7 @@ function LoadedAegisClient({
       customBotDeck,
       deckFormat,
       allowRollback,
+      requireGuestApproval,
       effectiveGameMode,
     ],
   );
@@ -995,6 +998,8 @@ function LoadedAegisClient({
                   onGameModeChange={setGameMode}
                   allowRollback={allowRollback}
                   onAllowRollbackChange={setAllowRollback}
+                  requireGuestApproval={requireGuestApproval}
+                  onRequireGuestApprovalChange={setRequireGuestApproval}
                   bestOf={bestOf}
                   onBestOfChange={setBestOf}
                   invitedRoomCode={invitedRoomCode}

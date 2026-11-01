@@ -84,3 +84,48 @@ describe("spectator notice", () => {
     expect(notice.actionLabel).toBeUndefined();
   });
 });
+
+describe("private room guest approval notice", () => {
+  it("asks the host to review the guest by name", () => {
+    const guest = { sessionId: "guest", displayName: "Challenger", avatarId: "", connected: true };
+    expect(
+      getNotice({ status: "connected", startMode: "private_host", guestApproval: { kind: "hostReview", guest } }),
+    ).toMatchObject({ title: "Join request", spinner: false, roomCode: undefined });
+  });
+
+  it("tells a pending guest that the host must accept them", () => {
+    expect(
+      getNotice({ status: "connected", startMode: "private_guest", guestApproval: { kind: "guestWaiting" } }),
+    ).toMatchObject({
+      title: "Waiting for the host",
+      detail: "The host must accept you before the match starts.",
+      spinner: true,
+    });
+  });
+
+  it("keeps sharing the code while the host waits for the next guest", () => {
+    expect(
+      getNotice({
+        status: "connected",
+        startMode: "casual",
+        hostRoomCode: "ABC234",
+        guestApproval: { kind: "hostWaiting" },
+      }),
+    ).toMatchObject({ title: "Waiting for opponent…", roomCode: "ABC234" });
+  });
+
+  it("explains a declined request", () => {
+    expect(getNotice({ status: "closed", error: "AEGIS_GUEST_DECLINED" })).toMatchObject({
+      title: "Request declined",
+      detail: "The host declined your request to join this room.",
+      exitTo: "lobby",
+    });
+  });
+
+  it("explains a room the host closed before the match started", () => {
+    expect(getNotice({ status: "closed", error: "AEGIS_HOST_LEFT" })).toMatchObject({
+      title: "Room closed",
+      detail: "The host left the room before the match started.",
+    });
+  });
+});
