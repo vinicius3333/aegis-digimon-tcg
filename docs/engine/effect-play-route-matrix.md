@@ -305,3 +305,15 @@ After this bounded semantic review, the catalog fingerprint changes from `c6a63b
 Compared with `develop` at `f7ed44fc4e`, this branch adds only BT27-053 BanchoLeomon. Existing card records are unchanged. Its ordinary green or yellow level-5 evolution and alternate Leomon-name or DATA SQUAD evolution do not introduce DNA, App Fusion or Burst providers. Its On Deletion effect plays a Tamer or uses an Option from the hand, so it adds no Digimon recipient and no security or deck-reveal source zone. Comparing the DNA, App Fusion and Burst searches over all five effect text fields produces the same candidate sets as the reviewed catalog (134, 38 and 7 cards).
 
 The 22 covered route cells, eight reviewed provider absences, candidate lists, scenario evidence and rule-source fingerprint remain applicable. After this bounded review, the catalog fingerprint changes from `e193fee1e406c425a23ed90a544164bf5daab362dea2956556cff18dacca2149` to `ba3ccd7642198d024e5dd17b79b88ef480eaa434809d5e269ca929374aec7199`. Catalog drift remains an error; no validator or test expectation is weakened.
+
+### Catalog review after unmatched-bracket text corrections (2026-10-31)
+
+Compared with the reviewed catalog after BanchoLeomon (`1d88003359`), no card is added or removed and no non-text field changes. Three `effectText` fields change, each checked against the official card image:
+
+- BT3-093 Davis Motomiya: a line break and the opening bracket return before `[On Play]`. The Start of Your Turn and On Play effects were already separate in the card module.
+- EX8-027 Plesiomon: a stray closing bracket after "DNA digivolve" is removed. The effect still DNA digivolves 2 Digimon into a [DS] card in the hand.
+- RB1-018 Monzaemon: a stray `on]` after `[When Digivolving]` is removed.
+
+Re-running the three absence searches (`DNA digivolv`, `app fus`, `burst digivolv`) over the effect fields returns the same card sets as the reviewed catalog (134, 38 and 7 cards). No change introduces a provider or a new recipient zone, so the 22 covered cells, eight reviewed provider absences, candidate lists, scenario evidence and rule-source fingerprint remain applicable.
+
+After this bounded review, the catalog fingerprint changes from `ba3ccd7642198d024e5dd17b79b88ef480eaa434809d5e269ca929374aec7199` to `66359d05278a5f652017fb71f9ebb1e1caa250e5f44d105386a2de7510c0a1d3`. Catalog drift remains an error; no validator or test expectation is weakened.
