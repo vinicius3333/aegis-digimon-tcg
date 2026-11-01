@@ -1063,7 +1063,7 @@ const interfaceMessages = {
     "Faites glisser pour la déplacer ou utilisez les touches fléchées. Appuyez sur Origine pour réinitialiser la position.",
   "settings.effectPromptPosition": "Position de la fenêtre d'effet",
   "settings.effectPromptPositionDesc":
-    "Choisissez où apparaissent les fenêtres d'activation. Les cibles sur le terrain restent sur le plateau.",
+    "Choisissez où apparaissent les fenêtres d'activation et de confirmation. Les cibles sur le terrain restent sur le plateau.",
   "settings.effectPromptCenter": "Centre",
   "settings.effectPromptLeft": "En bas à gauche (par défaut)",
   "settings.effectSpeed": "Vitesse des effets",

@@ -1047,7 +1047,8 @@ const interfaceMessages = {
   "overlay.moveEffectPrompt": "効果の確認ウィンドウを移動",
   "overlay.moveEffectPromptHelp": "ドラッグするか矢印キーで移動します。Homeキーで位置をリセットします。",
   "settings.effectPromptPosition": "効果の確認ウィンドウの位置",
-  "settings.effectPromptPositionDesc": "効果の発動確認を表示する場所を選びます。場の対象は盤面上に残ります。",
+  "settings.effectPromptPositionDesc":
+    "効果の発動確認や確認ダイアログを表示する場所を選びます。場の対象は盤面上に残ります。",
   "settings.effectPromptCenter": "中央",
   "settings.effectPromptLeft": "左下（デフォルト）",
   "settings.effectSpeed": "効果の表示速度",
