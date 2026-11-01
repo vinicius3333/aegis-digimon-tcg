@@ -28,6 +28,8 @@ export const arenaEs: Record<keyof typeof arenaEn, string> = {
   "redesign.arena.badge.dpUp": "{base} DP impresos, aumentados en {amount} por efectos.",
   "redesign.arena.badge.dpDown": "{base} DP impresos, reducidos en {amount} por efectos.",
   "redesign.arena.badge.dpChanged": "Hay efectos que cambiaron el DP de este Digimon.",
+  "redesign.arena.badge.heldDp":
+    "Una protección impide este cambio de DP. Se aplica si la protección termina mientras el cambio sigue vigente. Inspecciona la carta para ver cada duración.",
   "redesign.arena.badge.moreTitle": "Más efectos en este Digimon",
   "redesign.arena.badge.keywordsMore": "{count} palabras clave más. Abre la carta para leerlas todas.",
   "redesign.arena.restriction.immuneToOpponentEffects": "Los efectos de tu oponente no pueden afectar a este Digimon.",

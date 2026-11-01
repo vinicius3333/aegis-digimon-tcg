@@ -1,6 +1,8 @@
 import { ManualStatus } from "@aegis/shared/manual/ManualStatus";
 import "@/game/manual/manualFeatures.css";
 import { PermanentDpDeltaHint } from "@/game/piece/PermanentDpDeltaHint";
+import { PermanentHeldDpBadge } from "@/game/piece/PermanentHeldDpBadge";
+import { getHeldDpDelta } from "@/game/getHeldDpDelta";
 import { CardAceBadge } from "@/design/CardAceBadge";
 import { useRef, type CSSProperties } from "react";
 import { useCardTranslations } from "@/i18n/useCardTranslations";
@@ -171,6 +173,7 @@ export function PermanentView({
   const def = topId ? getCardDefinition(topId) : undefined;
   const delta = perm.currentDP - originalDP(perm);
   const hasDpDelta = delta !== 0;
+  const heldDpDelta = getHeldDpDelta(perm);
   const activeKeywords = resolvePermanentKeywordEntries({ perm, keywordLabels });
   // Server truth (`Permanent.keywords`): the resolved keyword list already folds a
   // ＜Blocker＞ this Digimon only has because something granted it, so the shield is
@@ -250,6 +253,7 @@ export function PermanentView({
               copies,
               delta,
               hasDpDelta,
+              heldDpDelta,
               t,
             })
           : undefined
@@ -384,6 +388,7 @@ export function PermanentView({
               {node}
             </PermanentDpDeltaHint>
           )}
+          dpAnnotation={heldDpDelta === undefined ? undefined : <PermanentHeldDpBadge delta={heldDpDelta} />}
           identity={transformation}
           reference={fieldReferenceVisible ? shortFieldReference : undefined}
           info

@@ -4,6 +4,7 @@ import { InspectorTone } from "@/game/InspectorTone";
 import { formatResolvedKeyword } from "@/game/keywordDisplay";
 import type { CardInspectionDetail } from "@/game/permanentDetail";
 import type { RestrictionBadge } from "@/game/fieldBadges";
+import { getHeldDpLabel } from "@/game/piece/getHeldDpLabel";
 import { useTranslation } from "@/i18n/useTranslation";
 
 type Params = { detail: CardInspectionDetail };
@@ -99,9 +100,7 @@ export function InspectorActiveBadges({ detail }: Params) {
           <i aria-hidden="true">
             <Icons.Clock size={14} />
           </i>
-          {t("overlay.heldDp", {
-            delta: `${held.delta > 0 ? "+" : "−"}${Math.abs(held.delta).toLocaleString()}`,
-          })}
+          {getHeldDpLabel({ delta: held.delta, t })}
           {" · "}
           {t(held.expiryKey)}
         </span>

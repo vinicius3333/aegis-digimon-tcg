@@ -2673,6 +2673,8 @@ const interfaceMessages = {
   "redesign.arena.badge.dpUp": "DP tercetak {base}, naik {amount} karena efek.",
   "redesign.arena.badge.dpDown": "DP tercetak {base}, turun {amount} karena efek.",
   "redesign.arena.badge.dpChanged": "Efek mengubah DP Digimon ini.",
+  "redesign.arena.badge.heldDp":
+    "Perlindungan menahan perubahan DP ini. Perubahan berlaku jika perlindungan berakhir selama perubahan masih aktif. Periksa kartu untuk melihat setiap durasi.",
   "redesign.arena.badge.moreTitle": "Efek lainnya pada Digimon ini",
   "redesign.arena.badge.keywordsMore": "{count} keyword lainnya. Buka kartu untuk membaca semuanya.",
   "redesign.arena.restriction.immuneToOpponentEffects": "Efek lawan tidak dapat memengaruhi Digimon ini.",

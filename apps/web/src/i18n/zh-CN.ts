@@ -2564,6 +2564,8 @@ const interfaceMessages = {
   "redesign.arena.badge.dpUp": "印刷 {base} DP，被效果提升 {amount}。",
   "redesign.arena.badge.dpDown": "印刷 {base} DP，被效果降低 {amount}。",
   "redesign.arena.badge.dpChanged": "此数码宝贝的 DP 已被效果改变。",
+  "redesign.arena.badge.heldDp":
+    "保护效果阻止了此 DP 变化。如果保护在变化持续期间结束，该变化就会生效。查看卡牌详情可了解各自的持续时间。",
   "redesign.arena.badge.moreTitle": "此数码宝贝的更多效果",
   "redesign.arena.badge.keywordsMore": "还有 {count} 个关键字。打开卡牌查看全部。",
   "redesign.arena.restriction.immuneToOpponentEffects": "对手的效果无法影响此数码宝贝。",

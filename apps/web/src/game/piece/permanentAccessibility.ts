@@ -3,6 +3,7 @@ import type { RestrictionBadge } from "../fieldBadges";
 import type { PendingFateBadge } from "../pendingFate";
 import type { Translate } from "../../i18n";
 import { formatDp } from "@/design/formatDp";
+import { getHeldDpLabel } from "@/game/piece/getHeldDpLabel";
 
 /**
  * The accessible name a permanent speaks when it is interactive: the card name,
@@ -20,6 +21,7 @@ export function permanentAriaLabel({
   copies = 1,
   delta,
   hasDpDelta,
+  heldDpDelta,
   t,
 }: {
   perm: Pick<Permanent, "isSuspended" | "summoningSick" | "currentDP">;
@@ -31,6 +33,7 @@ export function permanentAriaLabel({
   copies?: number;
   delta: number;
   hasDpDelta: boolean;
+  heldDpDelta?: number;
   t: Translate;
 }): string {
   const states = [
@@ -41,6 +44,7 @@ export function permanentAriaLabel({
     // The coming fate joins the spoken state list rather than labelling the pill
     // itself: a nested aria-label would rewrite the card's own accessible name.
     fate ? t(fate.labelKey) : undefined,
+    heldDpDelta === undefined ? undefined : getHeldDpLabel({ delta: heldDpDelta, t }),
   ].filter((state): state is string => state !== undefined);
   const stateLabel = states.length ? ` (${states.join(", ")})` : "";
   const dpLabel = hasDpDelta

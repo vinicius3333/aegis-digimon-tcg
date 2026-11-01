@@ -282,6 +282,23 @@ it("lets the caller wrap the bonus", () => {
   expect(screen.getByTitle("DP explanation").textContent).toBe("+1K");
 });
 
+it("stacks the DP readout and keeps a DP annotation outside the total on wide cards", () => {
+  render(
+    <CardMini
+      cardId="ST1-02"
+      width={116}
+      dp={4000}
+      info
+      zoomOnHover={false}
+      dpAnnotation={<span title="held">−3K</span>}
+    />,
+  );
+  const annotation = screen.getByTitle("held");
+  expect(annotation.closest('[data-dp-layout="stacked"]')).toBeTruthy();
+  expect(annotation.closest("[data-dp-annotation]")?.parentElement?.textContent).toBe("−3K4K");
+  expect(screen.getByText("4K").contains(annotation)).toBe(false);
+});
+
 it("caps non-round DP so the total and bonus fit the card", () => {
   render(<CardMini cardId="ST1-02" width={116} dp={12500} dpDelta={500} info zoomOnHover={false} />);
   expect(screen.getByText((12500).toLocaleString()).style.fontSize).toMatch(/^min\(calc\(16px/);

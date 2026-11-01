@@ -283,10 +283,11 @@ type TokenInfoParams = {
   dp?: number;
   dpDelta?: number;
   renderDpDelta?: (node: ReactNode) => ReactNode;
+  dpAnnotation?: ReactNode;
   reference?: string;
 };
 
-function TokenInfo({ def, width, dp, dpDelta, renderDpDelta, reference }: TokenInfoParams) {
+function TokenInfo({ def, width, dp, dpDelta, renderDpDelta, dpAnnotation, reference }: TokenInfoParams) {
   const translations = useCardTranslations();
   const scale = width / 92;
   const px = (n: number) => Math.round(n * scale);
@@ -297,7 +298,8 @@ function TokenInfo({ def, width, dp, dpDelta, renderDpDelta, reference }: TokenI
   const showLevel = def.level != null && width >= 66;
 
   const hasDelta = typeof dpDelta === "number" && dpDelta !== 0;
-  const stacked = hasDelta || (dp !== undefined && width < 92);
+  const hasDpAnnotation = Boolean(dpAnnotation);
+  const stacked = hasDelta || hasDpAnnotation || (dp !== undefined && width < 92);
   const dpBoost = "calc(1 + (var(--ds-text-scale, 1) - 1) * 2)";
   const deltaNode = hasDelta ? (
     <span
@@ -436,7 +438,16 @@ function TokenInfo({ def, width, dp, dpDelta, renderDpDelta, reference }: TokenI
           background: "linear-gradient(to top, rgba(8,10,16,0.92) 28%, rgba(8,10,16,0.55) 64%, transparent)",
         }}
       >
-        {stacked ? <div style={{ display: "flex", justifyContent: "flex-end" }}>{dpReadout}</div> : null}
+        {stacked ? (
+          <div style={{ position: "relative", display: "flex", justifyContent: "flex-end" }}>
+            {hasDpAnnotation ? (
+              <span data-dp-annotation style={{ position: "absolute", right: 0, bottom: `calc(100% + ${px(2)}px)` }}>
+                {dpAnnotation}
+              </span>
+            ) : null}
+            {dpReadout}
+          </div>
+        ) : null}
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: px(3) }}>
           <span
             style={{
@@ -489,6 +500,7 @@ export function CardMini({
   dp,
   dpDelta,
   renderDpDelta,
+  dpAnnotation,
   identity,
   reference,
   zoomOnHover = true,
@@ -508,6 +520,7 @@ export function CardMini({
   dp?: number;
   dpDelta?: number;
   renderDpDelta?: (node: ReactNode) => ReactNode;
+  dpAnnotation?: ReactNode;
   /** Original name and colors an effect imposed (KingSukamon), shown instead of the printed ones. */
   identity?: { name: string; colors: readonly CardColor[] };
   reference?: string;
@@ -595,6 +608,7 @@ export function CardMini({
           dp={dp}
           dpDelta={dpDelta}
           renderDpDelta={renderDpDelta}
+          dpAnnotation={dpAnnotation}
           reference={reference}
         />
       ) : null}

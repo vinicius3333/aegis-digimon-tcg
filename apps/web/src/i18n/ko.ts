@@ -2635,6 +2635,8 @@ const interfaceMessages = {
   "redesign.arena.badge.dpUp": "원래 DP {base}, 효과로 {amount} 올라감.",
   "redesign.arena.badge.dpDown": "원래 DP {base}, 효과로 {amount} 내려감.",
   "redesign.arena.badge.dpChanged": "효과로 이 디지몬의 DP가 바뀌었습니다.",
+  "redesign.arena.badge.heldDp":
+    "보호 효과로 이 DP 변화가 막혀 있습니다. 변화가 지속되는 동안 보호가 끝나면 적용됩니다. 카드를 살펴보면 각 지속 시간을 확인할 수 있습니다.",
   "redesign.arena.badge.moreTitle": "이 디지몬에 적용 중인 다른 효과",
   "redesign.arena.badge.keywordsMore": "키워드가 {count}개 더 있습니다. 카드를 열어 모두 확인하세요.",
   "redesign.arena.restriction.immuneToOpponentEffects": "이 디지몬은 상대의 효과를 받지 않습니다.",

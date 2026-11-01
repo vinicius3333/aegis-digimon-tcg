@@ -2714,6 +2714,8 @@ const interfaceMessages = {
   "redesign.arena.badge.dpUp": "{base} DP imprimés, augmentés de {amount} par des effets.",
   "redesign.arena.badge.dpDown": "{base} DP imprimés, réduits de {amount} par des effets.",
   "redesign.arena.badge.dpChanged": "Des effets ont modifié les DP de ce Digimon.",
+  "redesign.arena.badge.heldDp":
+    "Une protection bloque ce changement de DP. Il s'applique si la protection prend fin pendant que le changement dure encore. Inspectez la carte pour voir chaque durée.",
   "redesign.arena.badge.moreTitle": "Plus d'effets sur ce Digimon",
   "redesign.arena.badge.keywordsMore": "{count} mots-clés de plus. Ouvrez la carte pour tous les lire.",
   "redesign.arena.restriction.immuneToOpponentEffects":

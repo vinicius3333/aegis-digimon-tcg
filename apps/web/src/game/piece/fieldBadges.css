@@ -188,6 +188,48 @@
   content: "";
 }
 
+.game-permanent .game-held-dp {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 4px;
+  pointer-events: auto;
+  color: #fecaca;
+  border-radius: 4px;
+  background: var(--ds-ink);
+  box-shadow: var(--badge-outline);
+  font: 800 var(--badge-font) / 1.25 var(--ds-font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.game-permanent .game-held-dp[data-held-dp="up"] {
+  color: #bbf7d0;
+}
+
+.game-permanent .game-held-dp::before {
+  position: absolute;
+  inset: -6px;
+  content: "";
+}
+
+.game-permanent .game-held-dp i {
+  display: inline-flex;
+  color: #67e8f9;
+}
+
+.game-permanent .game-held-dp svg {
+  width: 1.1em;
+  height: 1.1em;
+  stroke-width: 2.5;
+}
+
+.game-permanent .game-held-dp s {
+  text-decoration-thickness: 1.5px;
+}
+
 /* ---- Keywords on one line just above the card (the pre-redesign pills) ----
    The line starts after the digivolution count in the top-left corner and never wraps, so it
    fits in the row's top padding (arenaRows.css), clear of the memory band. The component

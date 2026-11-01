@@ -2570,6 +2570,8 @@ const interfaceMessages = {
   "redesign.arena.badge.dpUp": "印刷 DP 為 {base}，因效果提高了 {amount}。",
   "redesign.arena.badge.dpDown": "印刷 DP 為 {base}，因效果降低了 {amount}。",
   "redesign.arena.badge.dpChanged": "效果改變了這隻數碼寶貝的 DP。",
+  "redesign.arena.badge.heldDp":
+    "保護效果阻止了此 DP 變化。如果保護在變化持續期間結束，該變化就會生效。查看卡牌詳情可了解各自的持續時間。",
   "redesign.arena.badge.moreTitle": "這隻數碼寶貝的更多效果",
   "redesign.arena.badge.keywordsMore": "還有 {count} 個關鍵字。開啟卡片即可閱讀全部內容。",
   "redesign.arena.restriction.immuneToOpponentEffects": "對手的效果不能影響這隻數碼寶貝。",

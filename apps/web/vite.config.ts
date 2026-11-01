@@ -114,7 +114,11 @@ export default defineConfig({
       },
       {
         extends: true,
-        test: { name: "dp-hint", include: ["src/game/piece/PermanentDpDeltaHint.test.tsx"], environment: "jsdom" },
+        test: {
+          name: "dp-hint",
+          include: ["src/game/piece/PermanentDpDeltaHint.test.tsx", "src/game/piece/PermanentHeldDpBadge.test.tsx"],
+          environment: "jsdom",
+        },
       },
       {
         extends: true,
@@ -164,6 +168,7 @@ export default defineConfig({
             "src/screens/community/**/*.test.tsx",
             "src/game/arenaInspectorSources.test.tsx",
             "src/game/piece/PermanentDpDeltaHint.test.tsx",
+            "src/game/piece/PermanentHeldDpBadge.test.tsx",
             "src/game/log/**/*.test.tsx",
             "src/deckProviders/**/*.test.tsx",
             "src/learn/**/*.test.tsx",

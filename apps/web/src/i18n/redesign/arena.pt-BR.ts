@@ -28,6 +28,8 @@ export const arenaPtBR: Record<keyof typeof arenaEn, string> = {
   "redesign.arena.badge.dpUp": "DP impresso {base}, aumentado em {amount} por efeitos.",
   "redesign.arena.badge.dpDown": "DP impresso {base}, reduzido em {amount} por efeitos.",
   "redesign.arena.badge.dpChanged": "Efeitos mudaram o DP deste Digimon.",
+  "redesign.arena.badge.heldDp":
+    "Uma proteção impede esta mudança de DP. Ela se aplica se a proteção acabar enquanto a mudança ainda durar. Inspecione a carta para ver cada duração.",
   "redesign.arena.badge.moreTitle": "Mais efeitos neste Digimon",
   "redesign.arena.badge.keywordsMore": "Mais {count} palavras-chave. Abra a carta para ler todas.",
 

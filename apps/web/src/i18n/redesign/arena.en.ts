@@ -26,6 +26,8 @@ export const arenaEn = {
   "redesign.arena.badge.dpUp": "Printed {base} DP, raised by {amount} by effects.",
   "redesign.arena.badge.dpDown": "Printed {base} DP, lowered by {amount} by effects.",
   "redesign.arena.badge.dpChanged": "Effects changed this Digimon's DP.",
+  "redesign.arena.badge.heldDp":
+    "Protection stops this DP change. It applies if the protection ends while the change still lasts. Inspect the card to see each duration.",
   "redesign.arena.badge.moreTitle": "More effects on this Digimon",
   "redesign.arena.badge.keywordsMore": "{count} more keywords. Open the card to read them all.",
 

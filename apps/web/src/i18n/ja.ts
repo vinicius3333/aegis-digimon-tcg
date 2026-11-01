@@ -2658,6 +2658,8 @@ const interfaceMessages = {
   "redesign.arena.badge.dpUp": "カードに記載のDPは{base}で、効果により{amount}上がっています。",
   "redesign.arena.badge.dpDown": "カードに記載のDPは{base}で、効果により{amount}下がっています。",
   "redesign.arena.badge.dpChanged": "効果によりこのデジモンのDPが変化しています。",
+  "redesign.arena.badge.heldDp":
+    "保護によりこのDP変化は適用されていません。変化の期間中に保護が終わると適用されます。各期間はカードを詳しく見ると確認できます。",
   "redesign.arena.badge.moreTitle": "このデジモンのその他の効果",
   "redesign.arena.badge.keywordsMore": "ほかに{count}個のキーワードがあります。カードを開くとすべて読めます。",
   "redesign.arena.restriction.immuneToOpponentEffects": "このデジモンは相手の効果を受けません。",
