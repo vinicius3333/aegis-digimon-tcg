@@ -5,6 +5,8 @@ import type { BotSettings } from "@aegis/shared/bot/BotSettings";
 import { GameMode } from "@aegis/shared/manual/GameMode";
 import { getDecisionMaterialSelectionOrder } from "@/game/screen/model/getDecisionMaterialSelectionOrder";
 import { UsedDeckDialog } from "@/game/UsedDeckDialog";
+import { MatchQueueActivity } from "@/matchmaking/MatchQueueActivity";
+import { getMatchQueueSelection } from "@/matchmaking/getMatchQueueSelection";
 import { collectViewerCardArtIds } from "@/screens/cardLanguage/collectViewerCardArtIds";
 import { ViewerCardArtIdsContext } from "@/screens/cardLanguage/ViewerCardArtIdsContext";
 import type { DeckListing } from "@/game/decks";
@@ -33,6 +35,8 @@ import { boardActions } from "./screen/boardActions";
 import { matchIntents } from "./screen/matchIntents";
 import { PendingMatchBoard } from "./screen/layout/PendingMatchBoard";
 import { pendingMatchNotice } from "./screen/model/pendingMatchNotice";
+import { getGuestApprovalView } from "@/game/screen/model/getGuestApprovalView";
+import { GUEST_APPROVAL_CHANNEL } from "@aegis/shared/protocol/GuestApprovalMessage";
 import { sourceHostChoiceFor } from "./screen/model/sourceHostChoice";
 import { BoardStage, type BoardAnchors } from "./screen/layout/BoardStage";
 import { useMatchChat } from "./chat/useMatchChat";
@@ -76,6 +80,8 @@ import { clientErrorReporter } from "@/clientErrors/clientErrorReporter";
 import { ClientErrorKind } from "@aegis/shared/clientErrors/ClientErrorKind";
 import { useHandAutoSort } from "./handAutoSort";
 import { setHandSortMode, useHandSortMode, type HandSortMode } from "./handSortMode";
+import type { HandSortDirection } from "@/game/HandSortDirection";
+import { setHandSortDirection, useHandSortDirection } from "@/game/handSortDirectionPreference";
 import { dnaFieldChoice, dnaMaterialPicks, toggleDnaMaterial } from "./screen/model/dnaMaterialSelection";
 import { presentedSeats } from "./screen/model/presentedSeats";
 import { visibleBoard } from "./screen/model/visibleBoard";
@@ -156,6 +162,7 @@ import { TIMINGS } from "./timings";
 import { loadReconnectSession } from "../net/reconnectSession";
 import { pendingFateBadges } from "./pendingFate";
 import { useEffectConfirmationHold } from "./effectConfirmationHold";
+import { findEffectSourceMarks } from "@/game/effectMarks/findEffectSourceMarks";
 
 export type SeriesDeckPickerParams = Pick<
   SeriesDeckDialogProps,
@@ -355,8 +362,10 @@ function GameScreenSession({
   // stay cached as the fallback seat 0.
   const viewerSeat = viewerSeatOf(state, sessionId);
   const chat = useMatchChat({ room: connectedRoom, viewerSeat, spectating });
+  const guestApproval = spectating ? undefined : getGuestApprovalView({ state, sessionId });
 
-  const leaveForfeits = !demoConnection && !spectating && !!state && bothSeated(state) && !state.gameOver;
+  const leaveForfeits =
+    !demoConnection && !spectating && !!state && bothSeated(state) && !state.gameOver && !guestApproval;
   useEffect(() => {
     if (!leaveForfeits || !onLeaveForfeitsChange) return;
     onLeaveForfeitsChange(() => {
@@ -408,7 +417,15 @@ function GameScreenSession({
     clearSel,
     clearDeclarations,
   } = selectionState;
-  const overlayState = useOverlayState({ decision, state, clearSel, clearDeclarations, viewerSeat });
+  const overlayState = useOverlayState({
+    decision,
+    state,
+    handPreview,
+    setHandPreview,
+    clearSel,
+    clearDeclarations,
+    viewerSeat,
+  });
   const {
     cardMenu,
     setCardMenu,
@@ -912,14 +929,17 @@ function GameScreenSession({
   const presentedHandKey = presentedHand?.map((card) => `${card.instanceId}\u0001${card.cardId}`).join("\0");
   const handAutoSort = useHandAutoSort();
   const handSortMode = useHandSortMode();
+  const handSortDirection = useHandSortDirection();
   useEffect(() => {
     if (presentedHandKey === undefined) return;
     const hand = presentedHandKey.split("\0").map((card) => {
       const [instanceId = "", cardId = ""] = card.split("\u0001");
       return { instanceId, cardId };
     });
-    setHandOrder((order) => (handAutoSort ? sortedHandInstanceIds(hand, handSortMode) : retainHandOrder(order, hand)));
-  }, [presentedHandKey, handAutoSort, handSortMode]);
+    setHandOrder((order) =>
+      handAutoSort ? sortedHandInstanceIds(hand, handSortMode, handSortDirection) : retainHandOrder(order, hand),
+    );
+  }, [presentedHandKey, handAutoSort, handSortMode, handSortDirection]);
 
   const instanceIndex = state ? buildInstanceIndex(state, viewerSeat) : new Map<string, string>();
   const playerName0 = state?.players[0]?.displayName;
@@ -934,7 +954,17 @@ function GameScreenSession({
       }),
     [playerName0, playerName1, spectating, viewerSeat, replayPlayers, t],
   );
-  const { turns: logTurns, recent: log } = useMatchLogHistory({
+  const playerAvatar0 = state?.players[0]?.avatarId;
+  const playerAvatar1 = state?.players[1]?.avatarId;
+  const seatAvatars = useMemo(
+    () => ({ 0: playerAvatar0 || undefined, 1: playerAvatar1 || undefined }),
+    [playerAvatar0, playerAvatar1],
+  );
+  const {
+    turns: logTurns,
+    recent: log,
+    entries: logEntries,
+  } = useMatchLogHistory({
     events: historyEvents ?? events,
     initialTurn: state
       ? { turnCount: Math.max(1, state.turnCount), turnSeat: state.turnSeat, phase: state.phase }
@@ -957,7 +987,8 @@ function GameScreenSession({
     !opp ||
     !shownState ||
     !seats ||
-    !bothSeated(state)
+    !bothSeated(state) ||
+    guestApproval
   ) {
     const pendingSeries = state && viewerSeat !== undefined ? seriesView(state.series, viewerSeat) : undefined;
     const notice =
@@ -987,8 +1018,10 @@ function GameScreenSession({
               startMode,
               hostRoomCode,
               joinOptions,
+              guestApproval,
               t,
             });
+    const guestRequest = guestApproval?.kind === "hostReview" ? guestApproval.guest : undefined;
     return (
       <PendingMatchBoard
         title={notice.title}
@@ -996,6 +1029,28 @@ function GameScreenSession({
         spinner={notice.spinner}
         actionLabel={notice.actionLabel}
         roomCode={notice.roomCode}
+        guestRequest={guestRequest}
+        onAnswerGuest={
+          guestRequest
+            ? (accept) => room?.send(GUEST_APPROVAL_CHANNEL, { guestSessionId: guestRequest.sessionId, accept })
+            : undefined
+        }
+        status={
+          "searchingQueue" in notice && notice.searchingQueue ? (
+            <MatchQueueActivity
+              className="waiting-dialog__queue-activity"
+              viewerQueued
+              selection={getMatchQueueSelection({
+                options: {
+                  ...joinOptions,
+                  ranked: startMode === "ranked",
+                  betaBattleMode: startMode === "beta",
+                  unlimited: startMode === "unlimited" || joinOptions.unlimited,
+                },
+              })}
+            />
+          ) : undefined
+        }
         onAction={notice.exitTo ? () => onExit(notice.exitTo!) : undefined}
         onCancel={() => onExit("lobby")}
       />
@@ -1442,9 +1497,21 @@ function GameScreenSession({
     decision: viewerDecision,
     viewer: you,
     opponent: opp,
-    handInstanceIds,
+    handInstanceIds: shownHandEntries.map((entry) => entry.instanceId),
     t,
   });
+  const effectSourceMarks = findEffectSourceMarks({
+    events,
+    presentedStateVersion: cues.presentedStateVersion,
+    viewerDecision,
+  });
+  const trashChrome = (seat: Seat): string | undefined => {
+    const trash = seat === viewerSeat ? shownYou.trash : shownOpp.trash;
+    const marked = trash.some((card) => effectSourceMarks.has(card.instanceId));
+    return (
+      [trashEffectSource(seat), marked ? "game-pile--effect-marked" : undefined].filter(Boolean).join(" ") || undefined
+    );
+  };
 
   const appFusion = appFusionLive({
     choice: appFusionChoice,
@@ -1595,8 +1662,20 @@ function GameScreenSession({
       collapseNotices={collapseNotices}
       logTurns={logTurns}
       seatNames={seatNames}
+      seatAvatars={seatAvatars}
       logViewerSeat={spectating ? undefined : viewerSeat}
       signedIn={signedIn}
+      handoffUrl={
+        signedIn &&
+        !spectating &&
+        !replayMode &&
+        !tutorialLesson &&
+        !demoConnection &&
+        !state.gameOver &&
+        viewerSeat !== undefined
+          ? `${window.location.origin}/`
+          : undefined
+      }
       opponentDropped={!spectating && !vsBot && !opp.connected && !state.gameOver}
       gameOver={
         !replayMode && !tutorialLesson && (state.gameOver || series?.stage === "over") && !cues.resultPending
@@ -1629,7 +1708,7 @@ function GameScreenSession({
                   : undefined,
               replayFile: liveConnection.replayDownload?.kind === "ready" ? liveConnection.replayDownload : undefined,
               replayStatus:
-                spectating || demoConnection || joinOptions.devScenario
+                demoConnection || joinOptions.devScenario
                   ? undefined
                   : liveConnection.replayDownload?.kind === "unavailable"
                     ? "unavailable"
@@ -1704,6 +1783,7 @@ function GameScreenSession({
       linkTargetsOfPermanent={linkTargetsOfPermanent}
       handEntries={handEntries}
       shownHandEntries={shownHandEntries}
+      effectSourceMarks={effectSourceMarks}
       viewerTurnOrder={viewerTurnOrder}
       boardRef={boardRef}
       permanentRefs={permRefs}
@@ -1806,7 +1886,16 @@ function GameScreenSession({
         mainActionBlocked: guards.mainActionBlocked || dnaChoosing,
         endPhaseBlocked: guards.endPhaseBlocked || dnaChoosing,
       }}
-      readouts={{ memory, memoryPrediction, displayedTurnSeat, displayedTurnCount, log }}
+      readouts={{
+        memory,
+        memoryPrediction,
+        displayedTurnSeat,
+        displayedTurnCount,
+        log,
+        logEntries,
+        seatNames,
+        seatAvatars,
+      }}
       targeting={{
         spotlight,
         spotlightSubjects,
@@ -1846,12 +1935,20 @@ function GameScreenSession({
           (pickingSourceHost && sourceHostChoice?.cardIdsByHost.has(perm.permanentId) === true) ||
           (fieldDecision && decisionAllowsPermanent(perm)),
       }}
-      chrome={{ permanentChrome, unsuspendStagger, dropIntentAttrs, baseDropIntentAttrs, trashEffectSource }}
+      chrome={{
+        permanentChrome,
+        unsuspendStagger,
+        dropIntentAttrs,
+        baseDropIntentAttrs,
+        trashEffectSource: trashChrome,
+      }}
       handDock={{
         handSortMode,
-        onSortHand: (mode: HandSortMode) => {
+        handSortDirection,
+        onSortHand: (mode: HandSortMode, direction: HandSortDirection) => {
           setHandSortMode(mode);
-          setHandOrder(sortedHandInstanceIds(shownHandEntries, mode));
+          setHandSortDirection(direction);
+          setHandOrder(sortedHandInstanceIds(shownHandEntries, mode, direction));
         },
         reorderDropBeforeInstanceId: hoveredDragIntent === "reorder" ? (dragHover?.id ?? null) : undefined,
         onMoveHandCard: (instanceId, direction) => {
@@ -1866,6 +1963,7 @@ function GameScreenSession({
         effectSource: handEffectSource,
         effectSourceInstanceId:
           handEffectSourceInstanceId?.zone === "hand" ? handEffectSourceInstanceId.instanceId : undefined,
+        effectSourceMarks,
         shakeInstanceId: shakeHandInstanceId,
         selection: dnaChoosing
           ? {

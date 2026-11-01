@@ -1,4 +1,70 @@
 {
+  "releases.1.45.0-beta.summary": {
+    "en": "Resume matches on another device, see who is searching, browse public replays, and follow matches with a fixed log. Includes card and effect-order fixes.",
+    "pt-BR": "Continue partidas em outro dispositivo, veja quem está procurando partida, explore replays públicos e acompanhe partidas com um histórico fixo. Inclui correções de cartas e da ordem de efeitos.",
+    "es": "Continúa partidas en otro dispositivo, mira quién está buscando partida, explora repeticiones públicas y sigue las partidas con un registro fijo. Incluye correcciones de cartas y del orden de efectos.",
+    "it": "Riprendi le partite su un altro dispositivo, vedi chi sta cercando una partita, sfoglia i replay pubblici e segui le partite con un registro fisso. Include correzioni a carte e all’ordine degli effetti."
+  },
+  "releases.1.45.0-beta.feature.home": {
+    "en": "Home now shows card art and avatars for live matches, a Public replays list, and a Resume match card. Continue a live match on another device by signing in or scanning the QR code in match settings.",
+    "pt-BR": "A página inicial agora mostra arte das cartas e avatares nas partidas ao vivo, uma lista de Replays públicos e um card para Retomar partida. Continue uma partida ao vivo em outro dispositivo entrando na conta ou lendo o QR code nas configurações da partida.",
+    "es": "El inicio ahora muestra arte de cartas y avatares en las partidas en directo, una lista de Repeticiones públicas y una tarjeta para Reanudar partida. Continúa una partida en directo en otro dispositivo iniciando sesión o escaneando el código QR en los ajustes de la partida.",
+    "it": "La home ora mostra artwork e avatar nelle partite in diretta, un elenco di Replay pubblici e una scheda Riprendi partita. Continua una partita in diretta su un altro dispositivo accedendo o scansionando il codice QR nelle impostazioni della partita."
+  },
+  "releases.1.45.0-beta.feature.play": {
+    "en": "The lobby shows how many players are searching with your settings and in all queues. Private room hosts can require approval before a guest joins. Spectators, including guests, can save replays of finished matches.",
+    "pt-BR": "O lobby mostra quantos jogadores estão procurando partida com suas configurações e em todas as filas. Anfitriões de salas privadas podem exigir aprovação antes de um convidado entrar. Espectadores, inclusive convidados, podem salvar replays de partidas encerradas.",
+    "es": "El lobby muestra cuántos jugadores están buscando partida con tus ajustes y en todas las colas. Los anfitriones de salas privadas pueden exigir aprobación antes de que entre un invitado. Los espectadores, incluidos los invitados, pueden guardar repeticiones de partidas terminadas.",
+    "it": "La lobby mostra quanti giocatori stanno cercando una partita con le tue impostazioni e in tutte le code. Gli host delle stanze private possono richiedere l’approvazione prima che un ospite entri. Gli spettatori, inclusi gli ospiti, possono salvare i replay delle partite concluse."
+  },
+  "releases.1.45.0-beta.feature.match": {
+    "en": "New Match log display setting: popups, a fixed log of recent actions, or both, with an unread badge. More confirmations follow the prompt position setting, and a dot marks the card behind a pending or resolving effect.",
+    "pt-BR": "Nova configuração de exibição do histórico: pop-ups, um histórico fixo com as ações recentes ou ambos, com indicador de não lidas. Mais confirmações seguem a posição dos prompts, e um ponto marca a carta de origem de um efeito pendente ou em resolução.",
+    "es": "Nuevo ajuste de visualización del registro: ventanas emergentes, un registro fijo de acciones recientes o ambos, con indicador de no leídas. Más confirmaciones siguen la posición de los avisos, y un punto marca la carta de origen de un efecto pendiente o en resolución.",
+    "it": "Nuova impostazione di visualizzazione del registro: popup, un registro fisso delle azioni recenti o entrambi, con indicatore dei non letti. Più conferme seguono la posizione dei prompt e un punto indica la carta all’origine di un effetto in attesa o in risoluzione."
+  },
+  "releases.1.45.0-beta.feature.inspect": {
+    "en": "Card views you had open, such as the stack inspector or trash, reopen after you answer your own decision. Sort your hand from low to high or high to low.",
+    "pt-BR": "As visualizações de cartas que estavam abertas, como o inspetor de pilha ou o descarte, reabrem depois que você responde à sua decisão. Ordene a mão do menor para o maior ou do maior para o menor.",
+    "es": "Las vistas de cartas que tenías abiertas, como el inspector de pila o la papelera, se vuelven a abrir después de responder tu decisión. Ordena tu mano de menor a mayor o de mayor a menor.",
+    "it": "Le viste delle carte che avevi aperto, come l’ispettore della pila o il cestino, si riaprono dopo aver risposto alla tua decisione. Ordina la mano dal più basso al più alto o viceversa."
+  },
+  "releases.1.45.0-beta.feature.cards": {
+    "en": "Filter the deck builder and collection by keyword. BT27-053 BanchoLeomon is now available. Appmon details now show their Link effect.",
+    "pt-BR": "Filtre o construtor de decks e a coleção por palavra-chave. BT27-053 BanchoLeomon já está disponível. Os detalhes de Appmon agora mostram o efeito Link.",
+    "es": "Filtra el constructor de mazos y la colección por palabra clave. BT27-053 BanchoLeomon ya está disponible. Los detalles de los Appmon ahora muestran su efecto Link.",
+    "it": "Filtra il costruttore di mazzi e la collezione per parola chiave. BT27-053 BanchoLeomon è ora disponibile. I dettagli degli Appmon ora mostrano l’effetto Link."
+  },
+  "releases.1.45.0-beta.fix.solarmon": {
+    "en": "Solarmon (BT27-007) can now digivolve from black Lv.2 Digi-Eggs.",
+    "pt-BR": "Solarmon (BT27-007) agora pode digievoluir a partir de Digi-Ovos Lv.2 pretos.",
+    "es": "Solarmon (BT27-007) ahora puede digievolucionar desde Digi-Huevos Lv.2 negros.",
+    "it": "Solarmon (BT27-007) ora può digievolvere dai Digi-Uova Lv.2 neri."
+  },
+  "releases.1.45.0-beta.fix.jimmyKen": {
+    "en": "Jimmy KEN (BT22-092) no longer bypasses Digimon-effect immunity when it activates another Digimon’s effect.",
+    "pt-BR": "Jimmy KEN (BT22-092) não ignora mais a imunidade a efeitos de Digimon ao ativar o efeito de outro Digimon.",
+    "es": "Jimmy KEN (BT22-092) ya no ignora la inmunidad a efectos de Digimon al activar el efecto de otro Digimon.",
+    "it": "Jimmy KEN (BT22-092) non ignora più l’immunità agli effetti dei Digimon quando attiva l’effetto di un altro Digimon."
+  },
+  "releases.1.45.0-beta.fix.cardText": {
+    "en": "Fixed card text for Davis Motomiya (BT3-093), Plesiomon (EX8-027) and Monzaemon (RB1-018). Davis no longer shows his On Play effect at the start of every turn.",
+    "pt-BR": "Corrigido o texto de Davis Motomiya (BT3-093), Plesiomon (EX8-027) e Monzaemon (RB1-018). Davis não mostra mais o efeito Ao Jogar no início de cada turno.",
+    "es": "Corregido el texto de Davis Motomiya (BT3-093), Plesiomon (EX8-027) y Monzaemon (RB1-018). Davis ya no muestra su efecto Al Jugar al inicio de cada turno.",
+    "it": "Corretto il testo di Davis Motomiya (BT3-093), Plesiomon (EX8-027) e Monzaemon (RB1-018). Davis non mostra più l’effetto Quando Giocato all’inizio di ogni turno."
+  },
+  "releases.1.45.0-beta.fix.effectOrder": {
+    "en": "Marcus Damon & Agumon (AD1-021) now shows the draw before the battle when its end-of-turn attack triggers it.",
+    "pt-BR": "Marcus Damon & Agumon (AD1-021) agora mostra a compra antes da batalha quando o ataque de fim de turno a ativa.",
+    "es": "Marcus Damon & Agumon (AD1-021) ahora muestra el robo antes del combate cuando su ataque de fin de turno lo activa.",
+    "it": "Marcus Damon & Agumon (AD1-021) ora mostra la pescata prima della battaglia quando il suo attacco di fine turno la attiva."
+  },
+  "releases.1.45.0-beta.fix.guard": {
+    "en": "When several Digimon with Guard leave at the same time, the prompt now offers every one of them. The Counter source choice is clearer.",
+    "pt-BR": "Quando vários Digimon com Guard saem ao mesmo tempo, o prompt agora oferece todos eles. A escolha da origem do Counter ficou mais clara.",
+    "es": "Cuando varios Digimon con Guard salen a la vez, el aviso ahora ofrece todos ellos. La elección del origen del Counter es más clara.",
+    "it": "Quando più Digimon con Guard lasciano il campo contemporaneamente, il prompt ora li offre tutti. La scelta della fonte del Counter è più chiara."
+  },
   "releases.1.44.0-beta.summary": {
     "en": "A new Aegis layout with a home dashboard and redesigned play, decks, collection, community and tournament screens.",
     "pt-BR": "Novo layout do Aegis com painel inicial e telas renovadas de jogo, decks, coleção, comunidade e torneios.",

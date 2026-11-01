@@ -34,6 +34,7 @@ import type { RematchProps } from "@/game/overlay/match/RematchPanel";
 import type { TurnOrder } from "../../overlay";
 import type { LogTurnGroup } from "@/game/log/LogEntry";
 import type { SeatNames } from "@/game/log/SeatNames";
+import type { SeatAvatars } from "@/game/log/SeatAvatars";
 import type { PendingFateBadge } from "../../pendingFate";
 import type { HandEntry } from "../../piece";
 import type { AppFusionRoute } from "../../AppFusionChoiceOverlay";
@@ -51,6 +52,7 @@ import type { CombatWindows } from "../model/combatWindows";
 import type { DecisionView } from "../model/decisionView";
 import type { TriggerDetail } from "../../overlay";
 import type { ArenaDeckColors } from "../../../design/arenaPalette";
+import type { EffectSourceMark } from "@/game/effectMarks/EffectSourceMark";
 
 export function MatchOverlays({
   state,
@@ -80,8 +82,10 @@ export function MatchOverlays({
   collapseNotices,
   logTurns,
   seatNames,
+  seatAvatars,
   logViewerSeat,
   signedIn,
+  handoffUrl,
   opponentDropped,
   gameOver,
   overlays,
@@ -102,6 +106,7 @@ export function MatchOverlays({
   linkTargetsOfPermanent,
   handEntries,
   shownHandEntries,
+  effectSourceMarks,
   viewerTurnOrder,
   boardRef,
   permanentRefs,
@@ -156,8 +161,10 @@ export function MatchOverlays({
   collapseNotices: boolean;
   logTurns: readonly LogTurnGroup[];
   seatNames: SeatNames;
+  seatAvatars: SeatAvatars;
   logViewerSeat?: Seat;
   signedIn: boolean;
+  handoffUrl?: string;
   opponentDropped: boolean;
   gameOver:
     | (ReplaySaveProps & {
@@ -204,6 +211,7 @@ export function MatchOverlays({
   linkTargetsOfPermanent: (perm: Permanent) => readonly string[];
   handEntries: HandEntry[];
   shownHandEntries: HandEntry[];
+  effectSourceMarks?: ReadonlyMap<string, EffectSourceMark>;
   viewerTurnOrder: TurnOrder | undefined;
   boardRef: RefObject<HTMLDivElement | null>;
   permanentRefs: RefObject<Record<string, HTMLDivElement | null>>;
@@ -353,6 +361,7 @@ export function MatchOverlays({
       <MatchStatusOverlays
         turns={logTurns}
         playerNames={seatNames}
+        playerAvatars={seatAvatars}
         viewerSeat={logViewerSeat}
         historyOpen={overlays.historyOpen}
         zoomCardId={overlays.zoomCardId}
@@ -360,7 +369,7 @@ export function MatchOverlays({
         bugReportOpen={overlays.bugReportOpen}
         arenaLook={
           overlays.arenaLookOpen
-            ? { deckColors: arenaDeckColors, onClose: () => overlays.setArenaLookOpen(false) }
+            ? { deckColors: arenaDeckColors, onClose: () => overlays.setArenaLookOpen(false), handoffUrl }
             : undefined
         }
         matchLogId={state.matchLogId}
@@ -493,6 +502,7 @@ export function MatchOverlays({
         revealedZoneView={overlays.revealedZoneView}
         sheet={narrowGameLayout}
         trashActivatable={isMyTurn && !mainActionBlocked}
+        effectSourceMarks={effectSourceMarks}
         onActivateTrashEffect={(effect) => {
           overlays.setTrashView(null);
           intents.activateEffect(effect.instanceId, effect.effectKey);

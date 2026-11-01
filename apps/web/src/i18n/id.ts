@@ -1,8 +1,10 @@
 import { tournamentCircuitsId } from "@/i18n/tournamentCircuits.id";
 import { tournamentOfficialRequestId } from "@/i18n/tournamentOfficialRequest.id";
+import { matchQueueId } from "@/i18n/matchQueue.id";
 import { staffRolesId } from "@/i18n/staffRoles.id";
 import { tournamentDetailId } from "@/i18n/tournamentDetail.id";
 import { tournamentSpectatorsId } from "@/i18n/tournamentSpectators.id";
+import { publicReplaysId } from "@/i18n/publicReplays.id";
 import { achievementsId } from "@/i18n/achievements.id";
 import { rankedId } from "@/i18n/ranked.id";
 import { friendsEn } from "@/i18n/friends.en";
@@ -281,7 +283,7 @@ const interfaceMessages = {
   "replay.public": "Publik",
   "replay.privateHint": "Hanya Anda yang dapat membuka tautan ini saat masuk.",
   "replay.publicHint":
-    "Siapa pun yang memiliki tautan dapat menonton dan mengunduh replay ini, termasuk rekaman tangan kedua pemain. File Google Drive juga dapat dibaca oleh siapa saja yang memiliki tautan Drive-nya.",
+    "Siapa pun yang memiliki tautan dapat menonton dan mengunduh replay ini, termasuk rekaman tangan kedua pemain. File Google Drive juga dapat dibaca oleh siapa saja yang memiliki tautan Drive-nya. Replay ini juga dapat muncul di daftar replay publik di Beranda.",
   "replay.revokeHint":
     "Beralih ke akses pribadi memblokir akses di masa mendatang. File yang sudah diunduh tetap menjadi milik penerimanya.",
   "replay.copyLink": "Salin tautan",
@@ -605,6 +607,10 @@ const interfaceMessages = {
   "game.handSort.cost": "Berdasarkan cost",
   "game.handSort.color": "Berdasarkan warna",
   "game.handSort.choose": "Pilih urutan pengurutan",
+  "game.handSort.ascending": "Rendah ke tinggi",
+  "game.handSort.descending": "Tinggi ke rendah",
+  "game.handSort.orderGroup": "Urutkan berdasarkan",
+  "game.handSort.directionGroup": "Arah",
   "settings.sortHand": "Urutkan tangan",
   "settings.sortHandDesc":
     "Urutkan tangan saat ini dalam urutan yang dipilih. Kartu yang baru di-draw tetap di akhir sampai Anda mengurutkannya lagi.",
@@ -759,6 +765,17 @@ const interfaceMessages = {
   "home.signInTitle": "Main di lebih dari satu perangkat?",
   "home.signInCopy": "Hubungkan Discord untuk menyimpan deck dan statistik di akun Anda.",
   "home.signInAction": "Hubungkan",
+  "resumeMatch.title": "Pertandingan Anda masih berlangsung",
+  "resumeMatch.copy": "Lanjutkan di sini. Perangkat Anda yang lain akan keluar dari pertandingan.",
+  "resumeMatch.action": "Lanjutkan pertandingan",
+  "resumeMatch.graceLeft": "Kursi ditahan selama {time}",
+  "game.handoff.title": "Lanjutkan di perangkat lain",
+  "game.handoff.hint":
+    "Pindai dengan ponsel atau komputer yang masuk ke akun ini, lalu ketuk Lanjutkan pertandingan. Perangkat ini lalu keluar dari pertandingan.",
+  "game.handoff.show": "Tampilkan kode QR",
+  "game.handoff.hide": "Sembunyikan kode QR",
+  "game.handoff.qrLabel": "Kode QR yang membuka Aegis untuk melanjutkan pertandingan ini",
+  "resumeMatch.failed": "Pertandingan tidak dapat dipindahkan ke perangkat ini. Mungkin pertandingan sudah selesai.",
   "home.footer.discord": "Komunitas Discord",
   "home.footer.github": "GitHub",
   "home.footer.legal":
@@ -908,6 +925,7 @@ const interfaceMessages = {
   "library.sort.type": "Urutkan: Jenis",
   "library.sort.cardNumber": "Urutkan: Nomor Kartu",
   "library.sort.random": "Urutkan: Acak",
+  "library.keywords": "Kata kunci",
   "library.traitAttribute": "Trait / atribut",
   "library.traitAttributePlaceholder": "Cari trait atau atribut…",
   "library.set": "Set",
@@ -925,6 +943,7 @@ const interfaceMessages = {
   "library.rowRarity": "Kelangkaan",
   "library.mainEffect": "Efek utama",
   "library.inheritedEffect": "Inherited (ESS)",
+  "library.linkEffect": "Efek Link",
   "library.securityEffect": "Efek security",
   "library.kind.Digimon": "Digimon",
   "library.kind.DigiEgg": "Digi-Egg",
@@ -1046,7 +1065,8 @@ const interfaceMessages = {
   "overlay.moveEffectPromptHelp":
     "Seret untuk memindahkan, atau gunakan tombol panah. Tekan Home untuk mereset posisi.",
   "settings.effectPromptPosition": "Posisi prompt efek",
-  "settings.effectPromptPositionDesc": "Pilih tempat prompt aktivasi muncul. Target di field tetap berada di papan.",
+  "settings.effectPromptPositionDesc":
+    "Pilih tempat prompt aktivasi dan konfirmasi muncul. Target di field tetap berada di papan.",
   "settings.effectPromptCenter": "Tengah",
   "settings.effectPromptLeft": "Kiri bawah (default)",
   "settings.effectSpeed": "Kecepatan efek",
@@ -1098,7 +1118,8 @@ const interfaceMessages = {
   "settings.communityDesc": "Berita, cari lawan, dan diskusi deck di server Discord kami.",
   "settings.joinDiscord": "Gabung ke Discord",
   "settings.language": "Bahasa",
-  "settings.languageDesc": "Bahasa antarmuka. Nama kartu dan teks kartu tetap dalam bahasa Inggris.",
+  "settings.languageDesc":
+    "Bahasa antarmuka. Dalam bahasa Jepang, Korea, dan Mandarin Sederhana, nama dan teks kartu memakai terjemahan resmi jika tersedia. Dalam bahasa lain, dan untuk kartu tanpa terjemahan, keduanya tetap dalam bahasa Inggris. Gambar kartu mengikuti pengaturan Bahasa gambar kartu.",
   "game.reconnecting": "Menghubungkan kembali…",
   "game.reconnectingDetail": "Koneksi terputus. Mencoba melanjutkan pertandingan Anda.",
   "game.connectionLost": "Koneksi terputus",
@@ -1108,6 +1129,7 @@ const interfaceMessages = {
     "Pilihan Anda terlalu besar untuk dikirim. Menghubungkan ulang untuk memulihkan pilihan yang tertunda.",
   "game.reconnectFailed": "Pertandingan ini tidak dapat dilanjutkan. Kembali ke lobi dan coba lagi.",
   "game.sessionExpired": "Pertandingan ini tidak bisa dilanjutkan lagi. Kembali ke lobi.",
+  "game.seatTransferred": "Anda melanjutkan pertandingan ini di perangkat lain.",
   "game.tooManyMessages": "Terlalu banyak aksi dikirim sekaligus. Tunggu sebentar, lalu kembali ke lobi.",
   "game.serverUnavailable": "Server game sedang tidak tersedia. Coba lagi sebentar lagi.",
   "game.opponentDisconnected": "Lawan terputus",
@@ -1142,6 +1164,21 @@ const interfaceMessages = {
   "game.inviteShareTitle": "Lawan saya di Aegis",
   "game.shareLink": "Bagikan tautan",
   "game.cancelInvite": "Batalkan dan kembali ke lobi",
+  "game.guestApproval.requestTitle": "Permintaan bergabung",
+  "game.guestApproval.requestDetail":
+    "{name} ingin bergabung ke ruanganmu. Terima untuk memulai pertandingan, atau tolak untuk mengosongkan kursi.",
+  "game.guestApproval.guestOffline": "Terputus",
+  "game.guestApproval.accept": "Terima",
+  "game.guestApproval.decline": "Tolak",
+  "game.guestApproval.waitingTitle": "Menunggu tuan rumah",
+  "game.guestApproval.waitingDetail": "Tuan rumah harus menerimamu sebelum pertandingan dimulai.",
+  "game.guestApproval.declinedTitle": "Permintaan ditolak",
+  "game.guestApproval.declined": "Tuan rumah menolak permintaanmu untuk bergabung ke ruangan ini.",
+  "game.guestApproval.hostLeftTitle": "Ruangan ditutup",
+  "game.guestApproval.hostLeft": "Tuan rumah keluar dari ruangan sebelum pertandingan dimulai.",
+  "lobby.approval.label": "Wajib persetujuan",
+  "lobby.approval.hint":
+    "Saat seseorang bergabung dengan kodemu, kamu melihat siapa dia lalu menerima atau menolaknya sebelum pertandingan dimulai.",
   "game.opponent": "Lawan",
   "game.you": "Anda",
   "game.activeKeywords": "Kata kunci aktif",
@@ -1243,6 +1280,15 @@ const interfaceMessages = {
   "game.dragIntent.use": "GUNAKAN",
   "game.dragIntent.attack": "SERANG",
   "game.matchLog": "Log pertandingan",
+  "game.matchLogUnread": "Log pertandingan, {count} baru",
+  "game.matchLogExpand": "Perbesar log pertandingan",
+  "game.matchLogDrag": "Seret untuk memindahkan",
+  "settings.matchLogDisplay": "Tampilan log pertandingan",
+  "settings.matchLogDisplayDesc":
+    "Pilih cara pertandingan menampilkan apa yang terjadi: popup singkat di atas papan, log tetap di tepi papan, atau keduanya. Di ponsel, popup tetap tampil dan log dibuka dari tombol.",
+  "settings.matchLogDisplayPopups": "Popup",
+  "settings.matchLogDisplayPanel": "Log tetap",
+  "settings.matchLogDisplayBoth": "Keduanya",
   "game.fullscreen.enter": "Layar penuh",
   "game.fullscreen.exit": "Keluar dari layar penuh",
   "game.skipPresentation": "Lewati animasi",
@@ -1423,6 +1469,14 @@ const interfaceMessages = {
   "overlay.activateCounter": "Aktifkan",
   "overlay.counterChooseFieldSource": "Ketuk Digimon di field untuk menggunakan [Counter]-nya.",
   "overlay.counterChooseSource": "Ketuk kartu di tangan Anda atau Digimon di field untuk menggunakan [Counter]-nya.",
+  "overlay.counterSourceInHand": "{card} · di tangan",
+  "overlay.counterSourceOnField": "{card} · di field",
+  "overlay.counterZoneField": "Field",
+  "overlay.counterZoneHand": "Tangan",
+  "overlay.counterAttackOnYou": "{attacker} ({dp} DP) menyerang Anda.",
+  "overlay.counterAttackOnDigimon": "{attacker} ({dp} DP) menyerang {target}.",
+  "overlay.counterKindCounter": "Counter",
+  "overlay.counterKindBlastAce": "Blast Ace",
   "overlay.blockChooseCard": "Pilih Blocker Anda",
   "overlay.fieldPosition": "Field {position}",
   "overlay.unsuspended": "Unsuspend",
@@ -1565,7 +1619,13 @@ const interfaceMessages = {
   "overlay.triggerReason": "Dipicu oleh: {reason}",
   "overlay.presetLabel": "Jawaban untuk pilihan opsional {name}",
   "overlay.triggerSourceField": "Field:{position}",
-  "overlay.triggerSourceHand": "Tangan",
+  "overlay.triggerSourceHand": "Tangan:{position}",
+  "overlay.triggerSourceBreeding": "Breeding",
+  "overlay.triggerSourceTrash": "Trash",
+  "overlay.triggerSourceDelay": "Delay",
+  "overlay.triggerSourceSecurity": "Security",
+  "overlay.effectSourcePending": "Efek tertunda",
+  "overlay.effectSourceResolving": "Efek sedang diselesaikan",
   "overlay.selectCardsSubtitle": "Pilih {count} kartu.",
   "overlay.selectCardsRangeSubtitle": "Pilih {range} kartu.",
   "overlay.orderDeckBottomHint":
@@ -2829,8 +2889,10 @@ const interfaceMessages = {
   ...rankedId,
   ...tournamentDetailId,
   ...tournamentSpectatorsId,
+  ...publicReplaysId,
   ...tournamentCircuitsId,
   ...tournamentOfficialRequestId,
+  ...matchQueueId,
   ...staffRolesId,
   ...achievementsId,
   "profile.filter.deck": "Deck",

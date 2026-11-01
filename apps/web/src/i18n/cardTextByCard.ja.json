@@ -7368,7 +7368,7 @@
     "<Piercing>(WhenthisDigimonattacksanddeletesanopponent'sDigimonandsurvivesthebattle,itperformsanysecuritychecksitnormallywould.)[AllTurns]WhenanotherDigimonisdeleted,gain1memoryforeachDigimondeleted.": "≪貫通≫（このデジモンがアタックしたバトルで相手のデジモンだけを消滅させたとき、このデジモンはセキュリティをチェックする）\n【お互いのターン】他の自分のデジモンか、相手のデジモンが消滅したとき、消滅したデジモン1体ごとに、メモリーを+1する。"
   },
   "BT3-093": {
-    "[StartofYourTurn]Ifyouhave2memoryorless,setyourmemoryto3.OnPlay]Revealthetop3cardsofyourdeck.Add1blueand1greenDigimoncardamongthemtoyourhand.Placetheremainingcardsatthebottomofyourdeckinanyorder.": "【自分のターン開始時】自分のメモリーが2以下のとき、3にする。\n【登場時】自分のデッキの上から3枚オープンする。その中の青と緑のデジモンカード1枚ずつを手札に加える。残ったカードは好きな順番でデッキの下に戻す。",
+    "[StartofYourTurn]Ifyouhave2memoryorless,setyourmemoryto3.[OnPlay]Revealthetop3cardsofyourdeck.Add1blueand1greenDigimoncardamongthemtoyourhand.Placetheremainingcardsatthebottomofyourdeckinanyorder.": "【自分のターン開始時】自分のメモリーが2以下のとき、3にする。\n【登場時】自分のデッキの上から3枚オープンする。その中の青と緑のデジモンカード1枚ずつを手札に加える。残ったカードは好きな順番でデッキの下に戻す。",
     "[Security]Playthiscardwithoutpayingitsmemorycost.": "【セキュリティ】このカードをコストを支払わずに登場させる。"
   },
   "BT3-094": {
@@ -12548,7 +12548,7 @@
     "[Digivolve]Lv.5w/[DS]trait:Cost3[Hand][Counter]<BlastDigivolve>[OnPlay][WhenDigivolving]<De-Digivolve1>1ofyouropponent'sDigimon.Then,return1ofyouropponent'sDigimonwithaplaycostof7orlesstothebottomofthedeck.[AllTurns]Whileyouhave1ormorememory,noneofyouropponent'sDigimoncansuspend.[Rule]Trait:Hasthe[Aquatic]type.": "〔進化〕特徴に「DS」を持つLv.5:コスト3\n\n[手札]【カウンター】≪ブラスト進化≫（自分のデジモンをこのカードにコストを支払わずに進化できる）\n【登場時】【進化時】相手のデジモン1体を≪退化1≫。その後、登場コスト7以下の相手のデジモン1体をデッキの下に戻す。\n【お互いのターン】メモリーが1以上の間、相手のデジモン全てはレストできない。\n〈ルール〉特徴:タイプ「水棲型」を持つ。\n\n≪オーバーフロー《-4》≫（エリアかカードの下から、それ以外の場所に送られる場合、メモリー-4）"
   },
   "EX8-027": {
-    "[Digivolve]Lv.5w/[DS]trait:Cost3[WhenDigivolving]Youmayplay1level4orlowerDigimoncardfromthisDigimon'sdigivolutioncardswithoutpayingthecost.[YourTurn][OncePerTurn]WhenanyofyourDigimonareplayedordigivolve,ifanyofthemhavethe[DS]trait,2ofyourDigimonmayDNAdigivolve]intoaDigimoncardwiththe[DS]traitinthehand.Then,thatDNAdigivolvedDigimonmayattack.": "〔進化〕特徴に「DS」を持つLv.5:コスト3\n\n【進化時】このデジモンの進化元から、Lv.4以下のデジモンカード1枚をコストを支払わずに登場できる。\n【自分のターン】[ターンに1回]自分のデジモンが登場/進化したとき、そのデジモンが特徴に「DS」を持つなら、自分のデジモン2体で手札の特徴に「DS」を持つデジモンカードにジョグレス進化できる。その後、ジョグレス進化したそのデジモンでアタックできる。"
+    "[Digivolve]Lv.5w/[DS]trait:Cost3[WhenDigivolving]Youmayplay1level4orlowerDigimoncardfromthisDigimon'sdigivolutioncardswithoutpayingthecost.[YourTurn][OncePerTurn]WhenanyofyourDigimonareplayedordigivolve,ifanyofthemhavethe[DS]trait,2ofyourDigimonmayDNAdigivolveintoaDigimoncardwiththe[DS]traitinthehand.Then,thatDNAdigivolvedDigimonmayattack.": "〔進化〕特徴に「DS」を持つLv.5:コスト3\n\n【進化時】このデジモンの進化元から、Lv.4以下のデジモンカード1枚をコストを支払わずに登場できる。\n【自分のターン】[ターンに1回]自分のデジモンが登場/進化したとき、そのデジモンが特徴に「DS」を持つなら、自分のデジモン2体で手札の特徴に「DS」を持つデジモンカードにジョグレス進化できる。その後、ジョグレス進化したそのデジモンでアタックできる。"
   },
   "EX8-028": {
     "[Digivolve]Lv.5w/[Ice-Snow]trait:Cost3<IceClad>.<Barrier>[WhenDigivolving]Youmayplay1level4orlower[Ice-Snow]traitDigimoncardfromyourhandwithoutpayingthecost.Foreachofyouropponent'sDigimonwithnodigivolutioncards,add1tothiseffect'slevelmaximum.[WhenDigivolving][WhenAttacking][OncePerTurn]Byplacing1Digimonwithnodigivolutioncardsasthebottomsecuritycard,thisDigimonunsuspends.": "〔進化〕特徴に「氷雪型」を持つLv.5:コスト3\n\n≪氷装≫≪防壁≫\n【進化時】自分の手札から、特徴に「氷雪型」を持つLv.4以下のデジモンカード1枚をコストを支払わずに登場できる。進化元を持たない相手のデジモン1体ごとに、この効果のLv.上限+1。\n【進化時】【アタック時】[ターンに1回]進化元を持たないデジモン1体をセキュリティの下に置くことで、このデジモンをアクティブにする。"
@@ -14176,7 +14176,7 @@
     "[Opponent'sTurn]WhilethisDigimonhas[Monzaemon]or[Numemon]initsname,itgains<Blocker>.": "【相手のターン】このデジモンが名称に「もんざえモン」か「ヌメモン」を含む間、このデジモンは≪ブロッカー≫を得る。"
   },
   "RB1-018": {
-    "Digivolve:3fromLv.4w/[Numemon]inname[OnPlay]Byplacing1Digimoncardwith[Numemon]initsnamefromyourtrashasthisDigimon'sbottomdigivolutioncard,gain2memory.[OnPlay][WhenDigivolving]on]1ofyouropponent’sDigimongets-3000DPandgains<SecurityAttack-1>untiltheendoftheirturn.": "〔進化〕『名称に「ヌメモン」を含むLv.4』から3\n\n【登場時】自分のトラッシュから、名称に「ヌメモン」を含むデジモンカード1枚をこのデジモンの進化元の下に置くことで、メモリー+2。\n【登場時】【進化時】次の相手のターン終了まで、相手のデジモン1体をDP-3000し、≪セキュリティアタック-1≫を与える。",
+    "Digivolve:3fromLv.4w/[Numemon]inname[OnPlay]Byplacing1Digimoncardwith[Numemon]initsnamefromyourtrashasthisDigimon'sbottomdigivolutioncard,gain2memory.[OnPlay][WhenDigivolving]1ofyouropponent’sDigimongets-3000DPandgains<SecurityAttack-1>untiltheendoftheirturn.": "〔進化〕『名称に「ヌメモン」を含むLv.4』から3\n\n【登場時】自分のトラッシュから、名称に「ヌメモン」を含むデジモンカード1枚をこのデジモンの進化元の下に置くことで、メモリー+2。\n【登場時】【進化時】次の相手のターン終了まで、相手のデジモン1体をDP-3000し、≪セキュリティアタック-1≫を与える。",
     "[YourTurn]WhilethisDigimonhas[Monzaemon]or[Numemon]initsname,itgains<SecurityAttack+1>.": "【自分のターン】このデジモンが名称に「もんざえモン」か「ヌメモン」を含む間、このデジモンは≪セキュリティアタック+1≫を得る。"
   },
   "RB1-019": {
@@ -15550,5 +15550,8 @@
   "BT27-093": {
     "[StartofYourMainPhase]Byplacing1cardwith[Chessmon]initstextfromyourhandfacedownunderthisTamer,<Draw1>andgain1memory.[Main]BysuspendingthisTamerandtrashing2bottomface-downcardsfromunderanyofyourTamers,1ofyourDigimonmaydigivolveintoaDigimoncardwith[Chessmon]initsnameinthehandwiththecostreducedby2.": "【自分のメインフェイズ開始時】自分の手札から、「チェスモン」の記述があるカード1枚をこのテイマーの下に裏向きで置くことで、≪1ドロー≫、メモリー+1。\n【メイン】このテイマーをレストさせ、自分のテイマーの下にある裏向きのカードを下から2枚破棄することで、自分のデジモン1体を手札の名称に「チェスモン」を含むデジモンカードに支払うコスト-2で進化できる。",
     "[Security]Playthiscardwithoutpayingthecost.": "【セキュリティ】このカードをコストを支払わず登場させる。"
+  },
+  "BT27-053": {
+    "[Digivolve]Lv.5w/[Leomon]innameorw/[DATASQUAD]trait:Cost4Whenthiscardwouldbeplayed,ifyouropponenthasaDigimonwith11000DPormore,reducethecostby6.<Blocker><Fortitude>[OnPlay][WhenDigivolving][WhenAttacking][OncePerTurn]ThisDigimonmaybattle1ofyouropponent'sDigimon.[OnDeletion]Youmayplayoruse1TamerorOptioncardwiththe[Boss]or[DATASQUAD]traitfromyourhandwithoutpayingthecost.": "〔進化〕名称に「レオモン」を含むLv.5/特徴「セイバーズ」を持つLv.5:コスト4\nこのカードが登場するとき、DP11000以上の相手のデジモンがいるなら、支払うコスト-6。\n≪ブロッカー≫ ≪不屈≫\n【登場時】【進化時】【アタック時】【ターンに1回】このデジモンと相手のデジモン1体でバトルできる。\n【消滅時】自分の手札から、特徴「バンチョー」/「セイバーズ」を持つテイマーカード/オプションカード1枚をコストを支払わず登場/使用できる。"
   }
 }

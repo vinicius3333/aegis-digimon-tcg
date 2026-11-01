@@ -6,10 +6,12 @@
    rather than the decision's. */
 
 import { getCardDefinition, parseTriggerKey, type DecisionRequest, type PlayerState } from "@aegis/shared";
+import { Zone } from "@aegis/shared/schema/enums";
 import { triggerCardId } from "../../boardModel";
-import { fieldSlots, triggerClauseSummary, triggerSource, type TriggerSource } from "../../decisionPresentation";
+import { triggerClauseSummary } from "../../decisionPresentation";
 import { playerFacingEffectClause, type TriggerDetail } from "../../overlay";
 import type { Translate } from "../../../i18n";
+import { findTriggerSource, type TriggerSource } from "@/game/screen/model/findTriggerSource";
 
 export function triggerDetailsFor({
   decision,
@@ -21,17 +23,16 @@ export function triggerDetailsFor({
   decision: DecisionRequest | undefined;
   viewer: PlayerState;
   opponent: PlayerState;
-  handInstanceIds: string[];
+  handInstanceIds: readonly string[];
   t: Translate;
 }): TriggerDetail[] {
   if (decision?.kind !== "orderTriggers") return [];
   return (decision.options?.triggerKeys ?? []).map((key, index) => {
-    const instanceId = parseTriggerKey(key).instanceId;
-    const source = ((): TriggerSource => {
-      const mine = triggerSource(instanceId, { fieldSlots: fieldSlots(viewer.battleArea), handInstanceIds });
-      if (mine.zone !== "unknown") return mine;
-      return triggerSource(instanceId, { fieldSlots: fieldSlots(opponent.battleArea), handInstanceIds });
-    })();
+    const source = findTriggerSource({
+      instanceId: parseTriggerKey(key).instanceId,
+      players: [viewer, opponent],
+      handInstanceIds,
+    });
     const cardId = decision.options?.triggerCardIds?.[index] ?? triggerCardId(key);
     const clause =
       playerFacingEffectClause({
@@ -41,13 +42,28 @@ export function triggerDetailsFor({
         isInherited: decision.options?.triggerIsInherited?.[index] === true,
       }) ?? getCardDefinition(cardId)?.effectText;
     return {
-      sourceLabel:
-        source.zone === "field"
-          ? t("overlay.triggerSourceField", { position: source.position })
-          : source.zone === "hand"
-            ? t("overlay.triggerSourceHand")
-            : undefined,
+      sourceLabel: getTriggerSourceLabel(source, t),
       summary: triggerClauseSummary(clause),
     };
   });
+}
+
+function getTriggerSourceLabel(source: TriggerSource | undefined, t: Translate): string | undefined {
+  if (!source) {
+    return undefined;
+  }
+  switch (source.zone) {
+    case Zone.BattleArea:
+      return t("overlay.triggerSourceField", { position: source.position });
+    case Zone.Hand:
+      return t("overlay.triggerSourceHand", { position: source.position });
+    case Zone.Breeding:
+      return t("overlay.triggerSourceBreeding");
+    case Zone.Trash:
+      return t("overlay.triggerSourceTrash");
+    case Zone.Delay:
+      return t("overlay.triggerSourceDelay");
+    case Zone.Security:
+      return t("overlay.triggerSourceSecurity");
+  }
 }

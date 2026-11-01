@@ -1,3 +1,8 @@
+import type { LiveMatchPlayerPreview } from "@aegis/shared/protocol/LiveMatchPlayerPreview";
+import { CoverThumb } from "@/design/cards";
+import { getCardDefinition } from "@aegis/shared";
+import { getTranslatedCardName } from "@/i18n/getTranslatedCardName";
+import { useCardTranslations } from "@/i18n/useCardTranslations";
 import { GameMode } from "@aegis/shared/manual/GameMode";
 import type { LiveMatch } from "@aegis/shared/protocol/LiveMatch";
 import { Avatar, Button } from "@/design/primitives";
@@ -64,6 +69,10 @@ function HomeLiveMatch({ match, now, onWatch }: HomeLiveMatchParams) {
   return (
     <li className="home-live__match">
       <div className="home-live__arena">
+        <div className="home-live__artwork" aria-hidden="true">
+          <HomeLiveCardArt preview={match.playerPreviews?.[0]} />
+          <HomeLiveCardArt preview={match.playerPreviews?.[1]} />
+        </div>
         <div className="home-live__top">
           <span className="home-live-chip">
             <i aria-hidden="true" />
@@ -73,11 +82,11 @@ function HomeLiveMatch({ match, now, onWatch }: HomeLiveMatchParams) {
             {match.gameMode === GameMode.MANUAL.value ? t("manual.title") : deckFormatLabel(match.format, t)}
           </span>
         </div>
-        <div className="home-live__duel">
-          <HomeLivePlayer name={first} />
-          <span className="home-live__versus">{t("spectator.liveVersus")}</span>
-          <HomeLivePlayer name={second} />
-        </div>
+      </div>
+      <div className="home-live__duel">
+        <HomeLivePlayer name={first} preview={match.playerPreviews?.[0]} />
+        <span className="home-live__versus">{t("spectator.liveVersus")}</span>
+        <HomeLivePlayer name={second} preview={match.playerPreviews?.[1]} />
       </div>
       <div className="home-live__foot">
         <span className="home-meta">
@@ -101,11 +110,32 @@ function HomeLiveMatch({ match, now, onWatch }: HomeLiveMatchParams) {
   );
 }
 
-function HomeLivePlayer({ name }: { name: string }) {
+type HomeLivePlayerParams = {
+  name: string;
+  preview?: LiveMatchPlayerPreview;
+};
+
+function HomeLivePlayer({ name, preview }: HomeLivePlayerParams) {
+  const translations = useCardTranslations();
+  const printedName = preview?.cardId ? getCardDefinition(preview.cardId)?.nameEn : undefined;
+  const cardName = printedName ? getTranslatedCardName({ name: printedName, translations }) : undefined;
   return (
     <span className="home-live__player">
-      <Avatar name={name} size={36} />
-      <b>{name}</b>
+      <Avatar name={name} size={34} avatarId={preview?.avatarId} avatarUrl={preview?.avatarUrl} />
+      <span className="home-live__identity">
+        <b title={name}>{name}</b>
+        {cardName ? <small title={cardName}>{cardName}</small> : null}
+      </span>
+    </span>
+  );
+}
+
+type HomeLiveCardArtParams = Pick<HomeLivePlayerParams, "preview">;
+
+function HomeLiveCardArt({ preview }: HomeLiveCardArtParams) {
+  return (
+    <span className="home-live__art">
+      <CoverThumb coverCardId={preview?.cardId} artId={preview?.artId} objectPosition="50% 24%" />
     </span>
   );
 }

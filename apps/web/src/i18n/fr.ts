@@ -1,8 +1,10 @@
 import { tournamentCircuitsFr } from "@/i18n/tournamentCircuits.fr";
 import { tournamentOfficialRequestFr } from "@/i18n/tournamentOfficialRequest.fr";
+import { matchQueueFr } from "@/i18n/matchQueue.fr";
 import { staffRolesFr } from "@/i18n/staffRoles.fr";
 import { tournamentDetailFr } from "@/i18n/tournamentDetail.fr";
 import { tournamentSpectatorsFr } from "@/i18n/tournamentSpectators.fr";
+import { publicReplaysFr } from "@/i18n/publicReplays.fr";
 import { achievementsFr } from "@/i18n/achievements.fr";
 import { rankedFr } from "@/i18n/ranked.fr";
 import { friendsEn } from "@/i18n/friends.en";
@@ -285,7 +287,7 @@ const interfaceMessages = {
   "replay.public": "Public",
   "replay.privateHint": "Vous seul pouvez ouvrir ce lien lorsque vous êtes connecté.",
   "replay.publicHint":
-    "Toute personne disposant du lien peut regarder et télécharger ce replay, y compris les deux mains enregistrées. Le fichier Google Drive devient également lisible par toute personne disposant de son lien Drive.",
+    "Toute personne disposant du lien peut regarder et télécharger ce replay, y compris les deux mains enregistrées. Le fichier Google Drive devient également lisible par toute personne disposant de son lien Drive. Il peut aussi apparaître dans la liste des replays publics de l’accueil.",
   "replay.revokeHint":
     "Le passage à un accès privé bloque les accès futurs. Les fichiers déjà téléchargés restent chez leurs destinataires.",
   "replay.copyLink": "Copier le lien",
@@ -618,6 +620,10 @@ const interfaceMessages = {
   "game.handSort.cost": "Par coût",
   "game.handSort.color": "Par couleur",
   "game.handSort.choose": "Choisissez l'ordre de tri",
+  "game.handSort.ascending": "Croissant",
+  "game.handSort.descending": "Décroissant",
+  "game.handSort.orderGroup": "Trier par",
+  "game.handSort.directionGroup": "Sens",
   "settings.sortHand": "Trier la main",
   "settings.sortHandDesc":
     "Trie la main actuelle dans l’ordre choisi. Les cartes piochées ensuite restent à la fin jusqu'au prochain tri.",
@@ -773,6 +779,17 @@ const interfaceMessages = {
   "home.signInTitle": "Vous jouez sur plusieurs appareils ?",
   "home.signInCopy": "Connectez Discord pour conserver vos decks et statistiques sur votre compte.",
   "home.signInAction": "Se connecter",
+  "resumeMatch.title": "Votre partie est toujours en cours",
+  "resumeMatch.copy": "Continuez-la ici. Votre autre appareil quitte la partie.",
+  "resumeMatch.action": "Reprendre la partie",
+  "resumeMatch.graceLeft": "Place réservée pendant {time}",
+  "game.handoff.title": "Continuer sur un autre appareil",
+  "game.handoff.hint":
+    "Scannez-le avec un téléphone ou un ordinateur connecté à ce compte, puis touchez Reprendre la partie. Cet appareil quitte alors la partie.",
+  "game.handoff.show": "Afficher le QR code",
+  "game.handoff.hide": "Masquer le QR code",
+  "game.handoff.qrLabel": "QR code qui ouvre Aegis pour reprendre cette partie",
+  "resumeMatch.failed": "Impossible de transférer la partie sur cet appareil. Elle est peut-être terminée.",
   "home.footer.discord": "Communauté Discord",
   "home.footer.github": "GitHub",
   "home.footer.legal":
@@ -922,6 +939,7 @@ const interfaceMessages = {
   "library.sort.type": "Trier : Type",
   "library.sort.cardNumber": "Trier : Numéro de carte",
   "library.sort.random": "Trier : aléatoire",
+  "library.keywords": "Mots-clés",
   "library.traitAttribute": "Trait / attribut",
   "library.traitAttributePlaceholder": "Rechercher des traits ou des attributs…",
   "library.set": "Extension",
@@ -939,6 +957,7 @@ const interfaceMessages = {
   "library.rowRarity": "Rareté",
   "library.mainEffect": "Effet principal",
   "library.inheritedEffect": "Effet hérité (ESS)",
+  "library.linkEffect": "Effet de Link",
   "library.securityEffect": "Effet de sécurité",
   "library.kind.Digimon": "Digimon",
   "library.kind.DigiEgg": "Digi-Œuf",
@@ -1062,7 +1081,7 @@ const interfaceMessages = {
     "Faites glisser pour la déplacer ou utilisez les touches fléchées. Appuyez sur Origine pour réinitialiser la position.",
   "settings.effectPromptPosition": "Position de la fenêtre d'effet",
   "settings.effectPromptPositionDesc":
-    "Choisissez où apparaissent les fenêtres d'activation. Les cibles sur le terrain restent sur le plateau.",
+    "Choisissez où apparaissent les fenêtres d'activation et de confirmation. Les cibles sur le terrain restent sur le plateau.",
   "settings.effectPromptCenter": "Centre",
   "settings.effectPromptLeft": "En bas à gauche (par défaut)",
   "settings.effectSpeed": "Vitesse des effets",
@@ -1117,7 +1136,8 @@ const interfaceMessages = {
     "Actualités, recherche d'adversaires et discussions sur les decks sur notre serveur Discord.",
   "settings.joinDiscord": "Rejoindre Discord",
   "settings.language": "Langue",
-  "settings.languageDesc": "Langue de l'interface. Les noms et le texte des cartes restent en anglais.",
+  "settings.languageDesc":
+    "Langue de l'interface. En japonais, coréen et chinois simplifié, les noms et le texte des cartes utilisent la traduction officielle lorsqu'elle existe. Dans les autres langues, et pour les cartes sans traduction, ils restent en anglais. Les images des cartes suivent le réglage Langue des images des cartes.",
   "game.reconnecting": "Reconnexion…",
   "game.reconnectingDetail": "La connexion a été interrompue. Tentative de reprise de votre match.",
   "game.connectionLost": "Connexion perdue",
@@ -1127,6 +1147,7 @@ const interfaceMessages = {
     "Votre sélection était trop volumineuse. Reconnexion pour rétablir le choix en attente.",
   "game.reconnectFailed": "Impossible de reprendre cette partie. Retournez au lobby et réessayez.",
   "game.sessionExpired": "Cette partie ne peut plus être reprise. Retournez au lobby.",
+  "game.seatTransferred": "Vous avez poursuivi cette partie sur un autre appareil.",
   "game.tooManyMessages":
     "Trop d’actions ont été envoyées simultanément. Patientez un instant, puis retournez au lobby.",
   "game.serverUnavailable": "Le serveur de jeu est temporairement indisponible. Réessayez dans quelques instants.",
@@ -1163,6 +1184,21 @@ const interfaceMessages = {
   "game.inviteShareTitle": "Affronte-moi sur Aegis",
   "game.shareLink": "Partager le lien",
   "game.cancelInvite": "Annuler et revenir au lobby",
+  "game.guestApproval.requestTitle": "Demande pour rejoindre",
+  "game.guestApproval.requestDetail":
+    "{name} veut rejoindre votre salle. Acceptez pour lancer le match, ou refusez pour libérer la place.",
+  "game.guestApproval.guestOffline": "Déconnecté",
+  "game.guestApproval.accept": "Accepter",
+  "game.guestApproval.decline": "Refuser",
+  "game.guestApproval.waitingTitle": "En attente de l'hôte",
+  "game.guestApproval.waitingDetail": "L'hôte doit vous accepter avant le début du match.",
+  "game.guestApproval.declinedTitle": "Demande refusée",
+  "game.guestApproval.declined": "L'hôte a refusé votre demande pour rejoindre cette salle.",
+  "game.guestApproval.hostLeftTitle": "Salle fermée",
+  "game.guestApproval.hostLeft": "L'hôte a quitté la salle avant le début du match.",
+  "lobby.approval.label": "Exiger une approbation",
+  "lobby.approval.hint":
+    "Quand quelqu'un rejoint avec votre code, vous voyez qui c'est et l'acceptez ou le refusez avant le début du match.",
   "game.opponent": "Adversaire",
   "game.you": "Vous",
   "game.activeKeywords": "Mots-clés actifs",
@@ -1263,6 +1299,15 @@ const interfaceMessages = {
   "game.dragIntent.use": "UTILISER",
   "game.dragIntent.attack": "ATTAQUE",
   "game.matchLog": "Journal du match",
+  "game.matchLogUnread": "Journal du match, {count} nouvelle(s)",
+  "game.matchLogExpand": "Agrandir le journal du match",
+  "game.matchLogDrag": "Faites glisser pour déplacer",
+  "settings.matchLogDisplay": "Affichage du journal",
+  "settings.matchLogDisplayDesc":
+    "Choisissez comment le match montre ce qui s'est passé : de courtes notifications sur le plateau, un journal fixe au bord du plateau, ou les deux. Sur téléphone, les notifications restent et le journal s'ouvre avec le bouton.",
+  "settings.matchLogDisplayPopups": "Notifications",
+  "settings.matchLogDisplayPanel": "Journal fixe",
+  "settings.matchLogDisplayBoth": "Les deux",
   "game.fullscreen.enter": "Plein écran",
   "game.fullscreen.exit": "Quitter le plein écran",
   "game.skipPresentation": "Passer les animations",
@@ -1446,6 +1491,14 @@ const interfaceMessages = {
   "overlay.counterChooseFieldSource": "Touchez un Digimon sur le terrain pour utiliser son [Contre].",
   "overlay.counterChooseSource":
     "Touchez une carte de votre main ou un Digimon sur le terrain pour utiliser son [Contre].",
+  "overlay.counterSourceInHand": "{card} · en main",
+  "overlay.counterSourceOnField": "{card} · sur le terrain",
+  "overlay.counterZoneField": "Terrain",
+  "overlay.counterZoneHand": "Main",
+  "overlay.counterAttackOnYou": "{attacker} ({dp} DP) vous attaque.",
+  "overlay.counterAttackOnDigimon": "{attacker} ({dp} DP) attaque {target}.",
+  "overlay.counterKindCounter": "Counter",
+  "overlay.counterKindBlastAce": "Blast Ace",
   "overlay.blockChooseCard": "Choisissez votre bloqueur",
   "overlay.fieldPosition": "Terrain {position}",
   "overlay.unsuspended": "Réactivé",
@@ -1591,7 +1644,13 @@ const interfaceMessages = {
   "overlay.triggerReason": "Déclenché par : {reason}",
   "overlay.presetLabel": "Réponse aux choix facultatifs de {name}",
   "overlay.triggerSourceField": "Terrain : {position}",
-  "overlay.triggerSourceHand": "Main",
+  "overlay.triggerSourceHand": "Main : {position}",
+  "overlay.triggerSourceBreeding": "Élevage",
+  "overlay.triggerSourceTrash": "Défausse",
+  "overlay.triggerSourceDelay": "Délai",
+  "overlay.triggerSourceSecurity": "Sécurité",
+  "overlay.effectSourcePending": "Effet en attente",
+  "overlay.effectSourceResolving": "Effet en cours de résolution",
   "overlay.selectCardsSubtitle": "Sélectionnez {count} carte(s).",
   "overlay.selectCardsRangeSubtitle": "Sélectionnez {range} carte(s).",
   "overlay.orderDeckBottomHint":
@@ -2875,8 +2934,10 @@ const interfaceMessages = {
   ...rankedFr,
   ...tournamentDetailFr,
   ...tournamentSpectatorsFr,
+  ...publicReplaysFr,
   ...tournamentCircuitsFr,
   ...tournamentOfficialRequestFr,
+  ...matchQueueFr,
   ...staffRolesFr,
   ...achievementsFr,
   "profile.filter.deck": "Deck",

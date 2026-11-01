@@ -30,6 +30,7 @@ describe("application routes", () => {
     ["/profile/customize", { screen: "settings", profile: true }],
     ["/replays", { screen: "settings", profile: true }],
     ["/replays/saved-id", { screen: "replays", replayId: "saved-id" }],
+    ["/replays/public", { screen: "replays", publicReplays: true }],
     ["/whats-new", { screen: "releases" }],
   ])("parses %s", (pathname, expected) => {
     expect(routeFromPathname(pathname)).toEqual(expected);
@@ -39,6 +40,10 @@ describe("application routes", () => {
     expect(pathForRoute({ screen: "settings", profile: true })).toBe("/profile");
     expect(pathForRoute({ screen: "replays", replayId: "saved-id" })).toBe("/replays/saved-id");
     expect(pathForRoute({ screen: "replays" })).toBe("/profile");
+  });
+
+  it("round-trips the public replay list", () => {
+    expect(pathForRoute({ screen: "replays", publicReplays: true })).toBe("/replays/public");
   });
 
   it("round-trips a community deck path", () => {

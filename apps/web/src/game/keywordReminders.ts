@@ -20,6 +20,7 @@ export function normalizeKeywordBrackets(text: string): string {
 export function keywordBaseName(keyword: string): string {
   const name = normalizeKeywordBrackets(keyword)
     .replace(/[<>]/g, "")
+    .replace(/^\s*S(?=\s+Attack\b)/, "Security")
     .replace(/\bA\.(?=\s|$)/, "Attack")
     .replace(/\./g, "")
     .replace(/\(.*\)/, "")

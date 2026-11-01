@@ -1,6 +1,9 @@
 import { Badge, Button, Panel, type Screen } from "@/design/primitives";
+import type { MatchQueueSelection } from "@aegis/shared/matchmaking/MatchQueueSelection";
 import { Icons } from "@/design/icons";
 import { useTranslation } from "@/i18n/useTranslation";
+import { MatchQueueTables } from "@/matchmaking/MatchQueueTables";
+import { useMatchQueueCounts } from "@/matchmaking/useMatchQueueCounts";
 import { PlayHeader } from "@/play/PlayHeader";
 import { PlayTab } from "@/play/PlayTab";
 import { PrivateRoomCard } from "@/play/PrivateRoomCard";
@@ -17,6 +20,7 @@ type WatchScreenParams = {
   onOpenMatchSettings: () => void;
   onCreateRoom: () => void;
   onJoinRoom: (code: string) => void;
+  onChallengeQueue: (selection: MatchQueueSelection) => void;
 };
 
 export function WatchScreen({
@@ -27,10 +31,12 @@ export function WatchScreen({
   onOpenMatchSettings,
   onCreateRoom,
   onJoinRoom,
+  onChallengeQueue,
 }: WatchScreenParams) {
   const { t } = useTranslation();
   const { page, failed, canShowMore, refresh, showMore } = useLiveMatches();
   const hasMatches = (page?.matches.length ?? 0) > 0;
+  const queueCounts = useMatchQueueCounts();
 
   function getLiveMatchesContent() {
     if (page) {
@@ -69,6 +75,7 @@ export function WatchScreen({
         />
         <div className="aegis-page__body">
           <PrivateRoomCard onCreateRoom={onCreateRoom} onJoinRoom={onJoinRoom} />
+          {queueCounts ? <MatchQueueTables counts={queueCounts} onChallenge={onChallengeQueue} /> : null}
           <section className="watch-section" aria-labelledby="watch-live-title">
             <header className="watch-header">
               <div className="watch-header__title">

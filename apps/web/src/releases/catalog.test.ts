@@ -6,9 +6,9 @@ import { translateReleaseMessage } from "@/releases/translateReleaseMessage";
 
 describe("release catalog", () => {
   it("exposes the latest beta as the current release", () => {
-    expect(currentRelease().version).toBe("1.44.0-beta");
-    expect(displayVersion(currentRelease().version)).toBe("v1.44.0-BETA");
-    expect(allReleases()).toHaveLength(120);
+    expect(currentRelease().version).toBe("1.45.0-beta");
+    expect(displayVersion(currentRelease().version)).toBe("v1.45.0-BETA");
+    expect(allReleases()).toHaveLength(121);
   });
 
   it.each(LOCALES)("resolves every release message in %s", (locale) => {

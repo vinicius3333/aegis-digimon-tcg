@@ -52455,7 +52455,7 @@
     "playCost": 4,
     "dp": 0,
     "evoCosts": [],
-    "effectText": "[Start of Your Turn] If you have 2 memory or less, set your memory to 3.On Play] Reveal the top 3 cards of your deck. Add 1 blue and 1 green Digimon card among them to your hand. Place the remaining cards at the bottom of your deck in any order.",
+    "effectText": "[Start of Your Turn] If you have 2 memory or less, set your memory to 3.\n[On Play] Reveal the top 3 cards of your deck. Add 1 blue and 1 green Digimon card among them to your hand. Place the remaining cards at the bottom of your deck in any order.",
     "securityEffectText": "[Security] Play this card without paying its memory cost.",
     "rarity": "R",
     "maxCountInDeck": 4,
@@ -89817,7 +89817,7 @@
     "forms": ["Mega"],
     "attributes": ["Data"],
     "types": ["Plesiosaur", "DS"],
-    "effectText": "[Digivolve]Lv.5 w/[DS] trait: Cost 3 \n\n[When Digivolving] You may play 1 level 4 or lower Digimon card from this Digimon's digivolution cards without paying the cost.\n[Your Turn] [Once Per Turn] When any of your Digimon are played or digivolve, if any of them have the [DS] trait, 2 of your Digimon may DNA digivolve] into a Digimon card with the [DS] trait in the hand. Then, that DNA digivolved Digimon may attack.",
+    "effectText": "[Digivolve]Lv.5 w/[DS] trait: Cost 3 \n\n[When Digivolving] You may play 1 level 4 or lower Digimon card from this Digimon's digivolution cards without paying the cost.\n[Your Turn] [Once Per Turn] When any of your Digimon are played or digivolve, if any of them have the [DS] trait, 2 of your Digimon may DNA digivolve into a Digimon card with the [DS] trait in the hand. Then, that DNA digivolved Digimon may attack.",
     "rarity": "R",
     "maxCountInDeck": 4,
     "imageId": "EX8-027"
@@ -100740,7 +100740,7 @@
     "forms": ["Ultimate"],
     "attributes": ["Vaccine"],
     "types": ["Puppet"],
-    "effectText": "Digivolve: 3 from Lv.4 w/[Numemon] in name[On Play] By placing 1 Digimon card with [Numemon] in its name from your trash as this Digimon's bottom digivolution card, gain 2 memory.[On Play][When Digivolving] on] 1 of your opponent’s Digimon gets -3000 DP and gains ＜Security Attack -1＞ until the end of their turn.",
+    "effectText": "Digivolve: 3 from Lv.4 w/[Numemon] in name[On Play] By placing 1 Digimon card with [Numemon] in its name from your trash as this Digimon's bottom digivolution card, gain 2 memory.[On Play][When Digivolving] 1 of your opponent’s Digimon gets -3000 DP and gains ＜Security Attack -1＞ until the end of their turn.",
     "inheritedEffectText": "[Your Turn] While this Digimon has [Monzaemon] or [Numemon] in its name, it gains ＜Security Attack +1＞.",
     "rarity": "R",
     "maxCountInDeck": 4,
@@ -110431,6 +110431,36 @@
     "imageId": "BT27-052"
   },
   {
+    "cardId": "BT27-053",
+    "set": "BT27",
+    "nameEn": "BanchoLeomon",
+    "nameJp": "バンチョーレオモン",
+    "colors": ["Green", "Yellow"],
+    "kinds": ["Digimon"],
+    "level": 6,
+    "playCost": 13,
+    "dp": 13000,
+    "evoCosts": [
+      {
+        "color": "Green",
+        "level": 5,
+        "memoryCost": 5
+      },
+      {
+        "color": "Yellow",
+        "level": 5,
+        "memoryCost": 5
+      }
+    ],
+    "forms": ["Mega"],
+    "attributes": ["Vaccine"],
+    "types": ["Beastkin", "Boss", "DATA SQUAD"],
+    "effectText": "[Digivolve] Lv.5 w/[Leomon] in name or w/[DATA SQUAD] trait: Cost 4\nWhen this card would be played, if your opponent has a Digimon with 11000 DP or more, reduce the cost by 6.\n＜Blocker＞ ＜Fortitude＞\n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] This Digimon may battle 1 of your opponent's Digimon.\n[On Deletion] You may play or use 1 Tamer or Option card with the [Boss] or [DATA SQUAD] trait from your hand without paying the cost.",
+    "rarity": "SR",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-053"
+  },
+  {
     "cardId": "BT27-023",
     "set": "BT27",
     "nameEn": "KausGammamon",
@@ -110846,6 +110876,11 @@
     "evoCosts": [
       {
         "color": "Red",
+        "level": 2,
+        "memoryCost": 0
+      },
+      {
+        "color": "Black",
         "level": 2,
         "memoryCost": 0
       }

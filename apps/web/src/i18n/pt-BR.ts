@@ -1,8 +1,10 @@
 import { tournamentCircuitsPtBR } from "@/i18n/tournamentCircuits.pt-BR";
 import { tournamentOfficialRequestPtBR } from "@/i18n/tournamentOfficialRequest.pt-BR";
+import { matchQueuePtBR } from "@/i18n/matchQueue.pt-BR";
 import { staffRolesPtBR } from "@/i18n/staffRoles.pt-BR";
 import { tournamentDetailPtBR } from "@/i18n/tournamentDetail.pt-BR";
 import { tournamentSpectatorsPtBR } from "@/i18n/tournamentSpectators.pt-BR";
+import { publicReplaysPtBR } from "@/i18n/publicReplays.pt-BR";
 import { achievementsPt } from "@/i18n/achievements.pt-BR";
 import { rankedPt } from "@/i18n/ranked.pt-BR";
 import { friendsPtBR } from "@/i18n/friends.pt-BR";
@@ -331,6 +333,10 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.handSort.cost": "Por custo",
   "game.handSort.color": "Por cor",
   "game.handSort.choose": "Escolher ordenação",
+  "game.handSort.ascending": "Menor para maior",
+  "game.handSort.descending": "Maior para menor",
+  "game.handSort.orderGroup": "Ordenar por",
+  "game.handSort.directionGroup": "Direção",
   "settings.sortHand": "Ordenar mão",
   "settings.sortHandDesc":
     "Ordena a mão atual na ordem escolhida. Novas compras ficam no fim até você ordenar novamente.",
@@ -491,6 +497,17 @@ export const ptBR: Record<keyof typeof en, string> = {
   "home.signInTitle": "Jogando em mais de um aparelho?",
   "home.signInCopy": "Conecte o Discord para guardar decks e estat\u00edsticas na sua conta.",
   "home.signInAction": "Conectar",
+  "resumeMatch.title": "Sua partida ainda está em andamento",
+  "resumeMatch.copy": "Continue aqui. O outro aparelho sai da partida.",
+  "resumeMatch.action": "Retomar partida",
+  "resumeMatch.graceLeft": "Lugar reservado por {time}",
+  "game.handoff.title": "Continuar em outro aparelho",
+  "game.handoff.hint":
+    "Escaneie com um celular ou computador conectado a esta conta e toque em Retomar partida. Este aparelho sai da partida.",
+  "game.handoff.show": "Mostrar QR code",
+  "game.handoff.hide": "Ocultar QR code",
+  "game.handoff.qrLabel": "QR code que abre o Aegis para retomar esta partida",
+  "resumeMatch.failed": "Não foi possível trazer a partida para este aparelho. Ela pode ter terminado.",
   "home.footer.discord": "Comunidade no Discord",
   "home.footer.github": "GitHub",
   "home.footer.legal":
@@ -658,6 +675,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "library.sort.type": "Ordenar: Tipo",
   "library.sort.cardNumber": "Ordenar: Número da carta",
   "library.sort.random": "Ordenar: Aleatório",
+  "library.keywords": "Palavras-chave",
   "library.traitAttribute": "Traço / atributo",
   "library.traitAttributePlaceholder": "Buscar traços ou atributos…",
   "library.set": "Set",
@@ -675,6 +693,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "library.rowRarity": "Raridade",
   "library.mainEffect": "Efeito principal",
   "library.inheritedEffect": "Herdado (ESS)",
+  "library.linkEffect": "Efeito de Link",
   "library.securityEffect": "Efeito de segurança",
   "library.kind.Digimon": "Digimon",
   "library.kind.DigiEgg": "Digi-Egg",
@@ -795,7 +814,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.moveEffectPrompt": "Mover painel de efeito",
   "overlay.moveEffectPromptHelp": "Arraste para mover ou use as setas. Pressione Home para restaurar a posição.",
   "settings.effectPromptPosition": "Posição dos efeitos",
-  "settings.effectPromptPositionDesc": "Escolha onde aparecem as perguntas de ativação. Os alvos continuam no campo.",
+  "settings.effectPromptPositionDesc":
+    "Escolha onde aparecem as perguntas de ativação e confirmação. Os alvos continuam no campo.",
   "settings.effectPromptCenter": "Centro",
   "settings.effectPromptLeft": "Canto inferior esquerdo (padrão)",
   "settings.effectSpeed": "Velocidade dos efeitos",
@@ -848,7 +868,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "settings.communityDesc": "Novidades, partidas e papo de deck no nosso servidor do Discord.",
   "settings.joinDiscord": "Entrar no Discord",
   "settings.language": "Idioma",
-  "settings.languageDesc": "Idioma da interface. Nomes e textos das cartas continuam em inglês.",
+  "settings.languageDesc":
+    "Idioma da interface. Em japonês, coreano e chinês simplificado, nomes e textos das cartas usam a tradução oficial quando ela existe. Nos outros idiomas, e em cartas sem tradução, continuam em inglês. As imagens das cartas seguem a configuração Idioma das imagens das cartas.",
 
   "game.reconnecting": "Reconectando…",
   "game.reconnectingDetail": "A conexão caiu. Tentando retomar sua partida.",
@@ -859,6 +880,7 @@ export const ptBR: Record<keyof typeof en, string> = {
     "Sua seleção era grande demais para enviar. Reconectando para restaurar a escolha pendente.",
   "game.reconnectFailed": "Não foi possível retomar esta partida. Volte ao lobby e tente novamente.",
   "game.sessionExpired": "Esta partida não pode mais ser retomada. Volte ao lobby.",
+  "game.seatTransferred": "Você continuou esta partida em outro aparelho.",
   "game.tooManyMessages": "Muitas ações foram enviadas ao mesmo tempo. Aguarde um pouco e volte ao lobby.",
   "game.serverUnavailable": "O servidor do jogo está temporariamente indisponível. Tente novamente em instantes.",
   "game.opponentDisconnected": "Oponente desconectado",
@@ -885,6 +907,21 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.inviteShareTitle": "Jogue comigo no Aegis",
   "game.shareLink": "Compartilhar link",
   "game.cancelInvite": "Cancelar e voltar ao lobby",
+  "game.guestApproval.requestTitle": "Pedido para entrar",
+  "game.guestApproval.requestDetail":
+    "{name} quer entrar na sua sala. Aceite para começar a partida ou recuse para liberar a vaga.",
+  "game.guestApproval.guestOffline": "Desconectado",
+  "game.guestApproval.accept": "Aceitar",
+  "game.guestApproval.decline": "Recusar",
+  "game.guestApproval.waitingTitle": "Aguardando o anfitrião",
+  "game.guestApproval.waitingDetail": "O anfitrião precisa aceitar você antes de a partida começar.",
+  "game.guestApproval.declinedTitle": "Pedido recusado",
+  "game.guestApproval.declined": "O anfitrião recusou seu pedido para entrar nesta sala.",
+  "game.guestApproval.hostLeftTitle": "Sala fechada",
+  "game.guestApproval.hostLeft": "O anfitrião saiu da sala antes de a partida começar.",
+  "lobby.approval.label": "Exigir aprovação",
+  "lobby.approval.hint":
+    "Quando alguém entrar com seu código, você vê quem é e aceita ou recusa antes de a partida começar.",
   "game.connectingPrivate": "Conectando à sala privada…",
   "game.waitingSpectate": "Entrando como espectador…",
   "game.spectateDetail":
@@ -991,6 +1028,15 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.dragIntent.use": "USAR",
   "game.dragIntent.attack": "ATACAR",
   "game.matchLog": "Registro da partida",
+  "game.matchLogUnread": "Registro da partida, {count} novas",
+  "game.matchLogExpand": "Expandir registro da partida",
+  "game.matchLogDrag": "Arraste para mover",
+  "settings.matchLogDisplay": "Exibição do registro da partida",
+  "settings.matchLogDisplayDesc":
+    "Escolha como a partida mostra o que aconteceu: popups curtos sobre o tabuleiro, um registro fixo na borda do tabuleiro ou ambos. No celular, os popups continuam e o registro fica no botão.",
+  "settings.matchLogDisplayPopups": "Popups",
+  "settings.matchLogDisplayPanel": "Registro fixo",
+  "settings.matchLogDisplayBoth": "Ambos",
   "game.fullscreen.enter": "Tela cheia",
   "game.fullscreen.exit": "Sair da tela cheia",
   "game.skipPresentation": "Pular animações",
@@ -1174,6 +1220,14 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.activateCounter": "Ativar",
   "overlay.counterChooseFieldSource": "Toque em um Digimon no campo para usar o [Counter] dele.",
   "overlay.counterChooseSource": "Toque em uma carta da mão ou em um Digimon no campo para usar o [Counter].",
+  "overlay.counterSourceInHand": "{card} · na mão",
+  "overlay.counterSourceOnField": "{card} · no campo",
+  "overlay.counterZoneField": "Campo",
+  "overlay.counterZoneHand": "Mão",
+  "overlay.counterAttackOnYou": "{attacker} ({dp} DP) está atacando você.",
+  "overlay.counterAttackOnDigimon": "{attacker} ({dp} DP) está atacando {target}.",
+  "overlay.counterKindCounter": "Counter",
+  "overlay.counterKindBlastAce": "Blast Ace",
   "overlay.blockChooseCard": "Escolha um bloqueador",
   "overlay.fieldPosition": "Campo {position}",
   "overlay.unsuspended": "Não suspenso",
@@ -1316,7 +1370,13 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.triggerReason": "Motivo: {reason}",
   "overlay.presetLabel": "Resposta para as escolhas opcionais de {name}",
   "overlay.triggerSourceField": "Campo:{position}",
-  "overlay.triggerSourceHand": "Mão",
+  "overlay.triggerSourceHand": "Mão:{position}",
+  "overlay.triggerSourceBreeding": "Criação",
+  "overlay.triggerSourceTrash": "Lixo",
+  "overlay.triggerSourceDelay": "Delay",
+  "overlay.triggerSourceSecurity": "Segurança",
+  "overlay.effectSourcePending": "Efeito pendente",
+  "overlay.effectSourceResolving": "Efeito em resolução",
   "overlay.selectCardsSubtitle": "Selecione {count} carta(s).",
   "overlay.selectCardsRangeSubtitle": "Selecione {range} carta(s).",
   "overlay.orderDeckBottomHint": "Organize as cartas que vão para o fundo do deck. A carta 1 fica mais perto do topo.",
@@ -2114,8 +2174,10 @@ export const ptBR: Record<keyof typeof en, string> = {
   ...rankedPt,
   ...tournamentDetailPtBR,
   ...tournamentSpectatorsPtBR,
+  ...publicReplaysPtBR,
   ...tournamentCircuitsPtBR,
   ...tournamentOfficialRequestPtBR,
+  ...matchQueuePtBR,
   ...staffRolesPtBR,
   ...achievementsPt,
   ...learnPtBR,
