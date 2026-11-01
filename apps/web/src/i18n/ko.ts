@@ -1037,7 +1037,7 @@ const interfaceMessages = {
   "overlay.moveEffectPromptHelp": "드래그하거나 화살표 키로 이동하세요. Home 키를 누르면 위치가 초기화됩니다.",
   "settings.effectPromptPosition": "효과 창 위치",
   "settings.effectPromptPositionDesc":
-    "발동 확인 창이 표시될 위치를 선택합니다. 필드의 대상 선택은 보드에 그대로 표시됩니다.",
+    "발동 및 확인 창이 표시될 위치를 선택합니다. 필드의 대상 선택은 보드에 그대로 표시됩니다.",
   "settings.effectPromptCenter": "가운데",
   "settings.effectPromptLeft": "왼쪽 아래 (기본값)",
   "settings.effectSpeed": "효과 속도",

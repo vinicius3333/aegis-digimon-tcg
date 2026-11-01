@@ -1002,7 +1002,7 @@ const interfaceMessages = {
   "overlay.moveEffectPrompt": "移動效果提示",
   "overlay.moveEffectPromptHelp": "拖曳進行移動，或使用箭頭鍵。按 Home 重置位置。",
   "settings.effectPromptPosition": "效果提示位置",
-  "settings.effectPromptPositionDesc": "選擇發動提示出現的位置。場上的目標仍在場地上選擇。",
+  "settings.effectPromptPositionDesc": "選擇發動提示和確認提示出現的位置。場上的目標仍在場地上選擇。",
   "settings.effectPromptCenter": "置中",
   "settings.effectPromptLeft": "左下（預設）",
   "settings.effectSpeed": "效果速度",

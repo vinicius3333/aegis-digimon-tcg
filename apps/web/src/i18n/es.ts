@@ -788,7 +788,7 @@ export const es: Record<keyof typeof en, string> = {
   "overlay.moveEffectPromptHelp": "Arrastra para mover o usa las flechas. Pulsa Inicio para restaurar la posición.",
   "settings.effectPromptPosition": "Posición de los efectos",
   "settings.effectPromptPositionDesc":
-    "Elige dónde aparecen las preguntas de activación. Los objetivos siguen en el campo.",
+    "Elige dónde aparecen las preguntas de activación y confirmación. Los objetivos siguen en el campo.",
   "settings.effectPromptCenter": "Centro",
   "settings.effectPromptLeft": "Esquina inferior izquierda (predeterminada)",
   "settings.effectSpeed": "Velocidad de efectos",

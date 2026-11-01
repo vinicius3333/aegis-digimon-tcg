@@ -795,7 +795,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.moveEffectPrompt": "Mover painel de efeito",
   "overlay.moveEffectPromptHelp": "Arraste para mover ou use as setas. Pressione Home para restaurar a posição.",
   "settings.effectPromptPosition": "Posição dos efeitos",
-  "settings.effectPromptPositionDesc": "Escolha onde aparecem as perguntas de ativação. Os alvos continuam no campo.",
+  "settings.effectPromptPositionDesc":
+    "Escolha onde aparecem as perguntas de ativação e confirmação. Os alvos continuam no campo.",
   "settings.effectPromptCenter": "Centro",
   "settings.effectPromptLeft": "Canto inferior esquerdo (padrão)",
   "settings.effectSpeed": "Velocidade dos efeitos",

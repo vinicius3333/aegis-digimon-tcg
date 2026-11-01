@@ -1070,7 +1070,7 @@ const interfaceMessages = {
     "Zum Verschieben ziehen oder die Pfeiltasten verwenden. Pos1 setzt die Position zurück.",
   "settings.effectPromptPosition": "Position der Effektabfrage",
   "settings.effectPromptPositionDesc":
-    "Wählen Sie, wo Aktivierungsabfragen erscheinen. Ziele auf dem Feld bleiben auf dem Spielfeld.",
+    "Wählen Sie, wo Aktivierungs- und Bestätigungsabfragen erscheinen. Ziele auf dem Feld bleiben auf dem Spielfeld.",
   "settings.effectPromptCenter": "Mitte",
   "settings.effectPromptLeft": "Unten links (Standard)",
   "settings.effectSpeed": "Effektgeschwindigkeit",

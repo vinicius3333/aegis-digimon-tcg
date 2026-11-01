@@ -997,7 +997,7 @@ const interfaceMessages = {
   "overlay.moveEffectPrompt": "移动效果提示",
   "overlay.moveEffectPromptHelp": "拖动即可移动，也可使用方向键。按 Home 键重置位置。",
   "settings.effectPromptPosition": "效果提示位置",
-  "settings.effectPromptPositionDesc": "选择发动提示出现的位置。场上目标仍显示在场地上。",
+  "settings.effectPromptPositionDesc": "选择发动提示和确认提示出现的位置。场上目标仍显示在场地上。",
   "settings.effectPromptCenter": "居中",
   "settings.effectPromptLeft": "左下（默认）",
   "settings.effectSpeed": "效果显示速度",

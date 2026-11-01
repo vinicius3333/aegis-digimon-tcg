@@ -1046,7 +1046,8 @@ const interfaceMessages = {
   "overlay.moveEffectPromptHelp":
     "Seret untuk memindahkan, atau gunakan tombol panah. Tekan Home untuk mereset posisi.",
   "settings.effectPromptPosition": "Posisi prompt efek",
-  "settings.effectPromptPositionDesc": "Pilih tempat prompt aktivasi muncul. Target di field tetap berada di papan.",
+  "settings.effectPromptPositionDesc":
+    "Pilih tempat prompt aktivasi dan konfirmasi muncul. Target di field tetap berada di papan.",
   "settings.effectPromptCenter": "Tengah",
   "settings.effectPromptLeft": "Kiri bawah (default)",
   "settings.effectSpeed": "Kecepatan efek",

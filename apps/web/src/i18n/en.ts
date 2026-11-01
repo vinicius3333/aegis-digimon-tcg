@@ -793,7 +793,8 @@ export const en = {
   "overlay.moveEffectPrompt": "Move effect prompt",
   "overlay.moveEffectPromptHelp": "Drag to move, or use the arrow keys. Press Home to reset the position.",
   "settings.effectPromptPosition": "Effect prompt position",
-  "settings.effectPromptPositionDesc": "Choose where activation prompts appear. Field targets stay on the board.",
+  "settings.effectPromptPositionDesc":
+    "Choose where activation and confirmation prompts appear. Field targets stay on the board.",
   "settings.effectPromptCenter": "Center",
   "settings.effectPromptLeft": "Lower left (default)",
   "settings.effectSpeed": "Effect speed",

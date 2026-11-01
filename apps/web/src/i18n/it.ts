@@ -939,7 +939,7 @@ const interfaceMessages = {
   "overlay.moveEffectPromptHelp": "Trascina per spostare o usa le frecce. Premi Home per ripristinare la posizione.",
   "settings.effectPromptPosition": "Posizione degli effetti",
   "settings.effectPromptPositionDesc":
-    "Scegli dove visualizzare le richieste di attivazione. I bersagli restano sul campo.",
+    "Scegli dove visualizzare le richieste di attivazione e conferma. I bersagli restano sul campo.",
   "settings.effectPromptCenter": "Centro",
   "settings.effectPromptLeft": "Angolo inferiore sinistro (predefinito)",
   "settings.effectSpeed": "Velocità degli effetti",
