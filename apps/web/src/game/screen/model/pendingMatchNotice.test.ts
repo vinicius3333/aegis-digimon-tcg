@@ -88,9 +88,13 @@ describe("spectator notice", () => {
 describe("private room guest approval notice", () => {
   it("asks the host to review the guest by name", () => {
     const guest = { sessionId: "guest", displayName: "Challenger", avatarId: "", connected: true };
-    expect(
-      getNotice({ status: "connected", startMode: "private_host", guestApproval: { kind: "hostReview", guest } }),
-    ).toMatchObject({ title: "Join request", spinner: false, roomCode: undefined });
+    const notice = getNotice({
+      status: "connected",
+      startMode: "private_host",
+      guestApproval: { kind: "hostReview", guest },
+    });
+    expect(notice).toMatchObject({ title: "Join request", spinner: false });
+    expect(notice.roomCode).toBeUndefined();
   });
 
   it("tells a pending guest that the host must accept them", () => {
