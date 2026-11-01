@@ -488,6 +488,12 @@ export const es: Record<keyof typeof en, string> = {
   "resumeMatch.copy": "Continúala aquí. Tu otro dispositivo sale de la partida.",
   "resumeMatch.action": "Reanudar partida",
   "resumeMatch.graceLeft": "Asiento reservado durante {time}",
+  "game.handoff.title": "Continuar en otro dispositivo",
+  "game.handoff.hint":
+    "Escanéalo con un móvil u ordenador con esta cuenta iniciada y toca Reanudar partida. Este dispositivo saldrá de la partida.",
+  "game.handoff.show": "Mostrar código QR",
+  "game.handoff.hide": "Ocultar código QR",
+  "game.handoff.qrLabel": "Código QR que abre Aegis para reanudar esta partida",
   "resumeMatch.failed": "No pudimos pasar la partida a este dispositivo. Puede que haya terminado.",
   "home.footer.discord": "Comunidad en Discord",
   "home.footer.github": "GitHub",

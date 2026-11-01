@@ -763,6 +763,12 @@ const interfaceMessages = {
   "resumeMatch.copy": "Lanjutkan di sini. Perangkat Anda yang lain akan keluar dari pertandingan.",
   "resumeMatch.action": "Lanjutkan pertandingan",
   "resumeMatch.graceLeft": "Kursi ditahan selama {time}",
+  "game.handoff.title": "Lanjutkan di perangkat lain",
+  "game.handoff.hint":
+    "Pindai dengan ponsel atau komputer yang masuk ke akun ini, lalu ketuk Lanjutkan pertandingan. Perangkat ini lalu keluar dari pertandingan.",
+  "game.handoff.show": "Tampilkan kode QR",
+  "game.handoff.hide": "Sembunyikan kode QR",
+  "game.handoff.qrLabel": "Kode QR yang membuka Aegis untuk melanjutkan pertandingan ini",
   "resumeMatch.failed": "Pertandingan tidak dapat dipindahkan ke perangkat ini. Mungkin pertandingan sudah selesai.",
   "home.footer.discord": "Komunitas Discord",
   "home.footer.github": "GitHub",

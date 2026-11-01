@@ -492,6 +492,12 @@ export const en = {
   "resumeMatch.copy": "Continue it here. Your other device leaves the match.",
   "resumeMatch.action": "Resume match",
   "resumeMatch.graceLeft": "Seat held for {time}",
+  "game.handoff.title": "Continue on another device",
+  "game.handoff.hint":
+    "Scan this with a phone or computer signed in to this account, then tap Resume match. This device then leaves the match.",
+  "game.handoff.show": "Show QR code",
+  "game.handoff.hide": "Hide QR code",
+  "game.handoff.qrLabel": "QR code that opens Aegis to resume this match",
   "resumeMatch.failed": "We could not move the match to this device. It may have ended.",
   "home.footer.discord": "Discord community",
   "home.footer.github": "GitHub",

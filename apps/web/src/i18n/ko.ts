@@ -759,6 +759,12 @@ const interfaceMessages = {
   "resumeMatch.copy": "이 기기에서 이어서 진행하세요. 다른 기기는 대전에서 나갑니다.",
   "resumeMatch.action": "대전 재개",
   "resumeMatch.graceLeft": "좌석 유지 {time} 남음",
+  "game.handoff.title": "다른 기기에서 계속하기",
+  "game.handoff.hint":
+    "이 계정으로 로그인한 휴대폰이나 컴퓨터로 스캔한 뒤 대전 재개를 누르세요. 이 기기는 대전에서 나갑니다.",
+  "game.handoff.show": "QR 코드 보기",
+  "game.handoff.hide": "QR 코드 숨기기",
+  "game.handoff.qrLabel": "이 대전을 재개하도록 Aegis를 여는 QR 코드",
   "resumeMatch.failed": "대전을 이 기기로 옮기지 못했습니다. 대전이 끝났을 수 있습니다.",
   "home.footer.discord": "Discord 커뮤니티",
   "home.footer.github": "GitHub",

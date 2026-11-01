@@ -82,6 +82,7 @@ export function MatchOverlays({
   seatNames,
   logViewerSeat,
   signedIn,
+  handoffUrl,
   opponentDropped,
   gameOver,
   overlays,
@@ -158,6 +159,7 @@ export function MatchOverlays({
   seatNames: SeatNames;
   logViewerSeat?: Seat;
   signedIn: boolean;
+  handoffUrl?: string;
   opponentDropped: boolean;
   gameOver:
     | (ReplaySaveProps & {
@@ -360,7 +362,7 @@ export function MatchOverlays({
         bugReportOpen={overlays.bugReportOpen}
         arenaLook={
           overlays.arenaLookOpen
-            ? { deckColors: arenaDeckColors, onClose: () => overlays.setArenaLookOpen(false) }
+            ? { deckColors: arenaDeckColors, onClose: () => overlays.setArenaLookOpen(false), handoffUrl }
             : undefined
         }
         matchLogId={state.matchLogId}

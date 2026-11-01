@@ -657,6 +657,12 @@ const interfaceMessages = {
   "resumeMatch.copy": "Continuala qui. L'altro dispositivo esce dalla partita.",
   "resumeMatch.action": "Riprendi partita",
   "resumeMatch.graceLeft": "Posto riservato per {time}",
+  "game.handoff.title": "Continua su un altro dispositivo",
+  "game.handoff.hint":
+    "Scansionalo con un telefono o computer con questo account, poi tocca Riprendi partita. Questo dispositivo esce dalla partita.",
+  "game.handoff.show": "Mostra codice QR",
+  "game.handoff.hide": "Nascondi codice QR",
+  "game.handoff.qrLabel": "Codice QR che apre Aegis per riprendere questa partita",
   "resumeMatch.failed": "Non è stato possibile spostare la partita su questo dispositivo. Potrebbe essere terminata.",
   "home.footer.discord": "Community Discord",
   "home.footer.github": "GitHub",

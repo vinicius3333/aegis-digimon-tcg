@@ -495,6 +495,12 @@ export const ptBR: Record<keyof typeof en, string> = {
   "resumeMatch.copy": "Continue aqui. O outro aparelho sai da partida.",
   "resumeMatch.action": "Retomar partida",
   "resumeMatch.graceLeft": "Lugar reservado por {time}",
+  "game.handoff.title": "Continuar em outro aparelho",
+  "game.handoff.hint":
+    "Escaneie com um celular ou computador conectado a esta conta e toque em Retomar partida. Este aparelho sai da partida.",
+  "game.handoff.show": "Mostrar QR code",
+  "game.handoff.hide": "Ocultar QR code",
+  "game.handoff.qrLabel": "QR code que abre o Aegis para retomar esta partida",
   "resumeMatch.failed": "Não foi possível trazer a partida para este aparelho. Ela pode ter terminado.",
   "home.footer.discord": "Comunidade no Discord",
   "home.footer.github": "GitHub",

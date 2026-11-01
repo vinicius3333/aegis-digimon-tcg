@@ -777,6 +777,12 @@ const interfaceMessages = {
   "resumeMatch.copy": "Continuez-la ici. Votre autre appareil quitte la partie.",
   "resumeMatch.action": "Reprendre la partie",
   "resumeMatch.graceLeft": "Place réservée pendant {time}",
+  "game.handoff.title": "Continuer sur un autre appareil",
+  "game.handoff.hint":
+    "Scannez-le avec un téléphone ou un ordinateur connecté à ce compte, puis touchez Reprendre la partie. Cet appareil quitte alors la partie.",
+  "game.handoff.show": "Afficher le QR code",
+  "game.handoff.hide": "Masquer le QR code",
+  "game.handoff.qrLabel": "QR code qui ouvre Aegis pour reprendre cette partie",
   "resumeMatch.failed": "Impossible de transférer la partie sur cet appareil. Elle est peut-être terminée.",
   "home.footer.discord": "Communauté Discord",
   "home.footer.github": "GitHub",

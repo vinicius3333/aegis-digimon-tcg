@@ -767,6 +767,12 @@ const interfaceMessages = {
   "resumeMatch.copy": "このデバイスで続行できます。もう一方のデバイスは対戦から退出します。",
   "resumeMatch.action": "対戦を再開",
   "resumeMatch.graceLeft": "席の保持 残り {time}",
+  "game.handoff.title": "別のデバイスで続ける",
+  "game.handoff.hint":
+    "このアカウントでログインしたスマホやPCでスキャンし、「対戦を再開」をタップしてください。このデバイスは対戦から退出します。",
+  "game.handoff.show": "QRコードを表示",
+  "game.handoff.hide": "QRコードを隠す",
+  "game.handoff.qrLabel": "この対戦を再開するためにAegisを開くQRコード",
   "resumeMatch.failed": "対戦をこのデバイスに移せませんでした。対戦が終了した可能性があります。",
   "home.footer.discord": "Discordコミュニティ",
   "home.footer.github": "GitHub",
