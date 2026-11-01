@@ -20853,7 +20853,8 @@
                 ],
                 "count": 1
               },
-              "bindResultAs": "trashedMachine"
+              "bindResultAs": "trashedMachine",
+              "raw": "By trashing 1 card with a [Cyborg] or [Machine] trait from your hand"
             },
             "optional": true,
             "abortOnDecline": true
@@ -231034,7 +231035,11 @@
             "payCost": true,
             "reduceCostByOpponentMemory": true,
             "optional": true,
-            "cost": { "kind": "suspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } },
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "By suspending this Tamer"
+            },
             "raw": "For each point of memory your opponent has, reduce this effect's paid cost by 1."
           }
         ]
@@ -232423,7 +232428,11 @@
             "from": ["hand"],
             "payCost": false,
             "optional": true,
-            "cost": { "kind": "suspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "by suspending this Tamer"
+            }
           }
         ]
       },
@@ -241901,7 +241910,12 @@
               },
               "count": 1
             },
-            "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine", "count": 1 },
+            "cost": {
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 1,
+              "raw": "by trashing the bottom face-down card from under any of your Tamers"
+            },
             "optional": true
           }
         ]
@@ -241929,7 +241943,12 @@
               },
               "count": 1
             },
-            "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine", "count": 1 },
+            "cost": {
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 1,
+              "raw": "by trashing the bottom face-down card from under any of your Tamers"
+            },
             "optional": true
           }
         ]
