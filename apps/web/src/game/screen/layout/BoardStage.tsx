@@ -27,7 +27,6 @@ import { RollbackControls } from "@/game/RollbackControls";
 
 import {
   useMemo,
-  useState,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
@@ -36,7 +35,7 @@ import {
 import { ChatBubble } from "../../chat/ChatBubble";
 import { MatchChatWindow } from "../../chat/MatchChatWindow";
 import type { MatchChat } from "../../chat/useMatchChat";
-import { useUnreadChatCount } from "../../chat/useUnreadChatCount";
+import type { MatchChatWindow as MatchChatWindowState } from "../../chat/useMatchChatWindow";
 import type { ArenaBoardLook } from "../../arenaLook";
 import type { HandSortDirection } from "@/game/HandSortDirection";
 import type { HandSortMode } from "../../handSortMode";
@@ -205,6 +204,7 @@ export function BoardStage({
   viewerSeat,
   room,
   chat,
+  chatWindow,
   look,
   layout,
   anchors,
@@ -244,6 +244,7 @@ export function BoardStage({
   room: Parameters<typeof intents.surrender>[0] | undefined;
   /** Absent when there is no live room to talk through, as in a demo. */
   chat?: MatchChat;
+  chatWindow: MatchChatWindowState;
   look: ArenaBoardLook;
   layout: ReturnType<typeof useArenaLayout>;
   anchors: BoardAnchors;
@@ -298,8 +299,6 @@ export function BoardStage({
   useBreedingTransferOrigins(anchors.board);
   useFieldShatterOrigins(anchors.board);
   const other = otherSeat(viewerSeat);
-  const [chatOpen, setChatOpen] = useState(false);
-  const chatUnread = useUnreadChatCount(chat?.entries, chatOpen);
   const logUnread = useUnreadLogCount({ entries: readouts.logEntries, open: overlays.historyOpen });
   const matchLogDisplay = useMatchLogDisplay();
   const showsFixedLog = matchLogDisplay.showsPanel && !layout.narrowGameLayout;
@@ -548,9 +547,9 @@ export function BoardStage({
             onOpenLog={() => overlays.setHistoryOpen(true)}
             onReportBug={() => overlays.setBugReportOpen(true)}
             onOpenArenaLook={() => overlays.setArenaLookOpen(true)}
-            onToggleChat={chat ? () => setChatOpen((open) => !open) : undefined}
-            chatOpen={chatOpen}
-            chatUnread={chatUnread}
+            onToggleChat={chat ? chatWindow.toggle : undefined}
+            chatOpen={chatWindow.open}
+            chatUnread={chatWindow.unread}
             logUnread={logUnread}
             gameOver={state.gameOver}
             onSurrender={
@@ -894,7 +893,7 @@ export function BoardStage({
               senderName={viewerName}
               boardRef={anchors.board}
             />
-            {chatOpen ? (
+            {chatWindow.open ? (
               <MatchChatWindow
                 chat={chat}
                 spectating={spectating}
@@ -904,7 +903,7 @@ export function BoardStage({
                     [other]: opponentName,
                   } as Record<Seat, string>
                 }
-                onClose={() => setChatOpen(false)}
+                onClose={chatWindow.close}
               />
             ) : null}
           </>

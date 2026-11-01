@@ -29,6 +29,35 @@ function renderOverlay(cardsRevealed = false) {
   );
 }
 
+describe("chatting from the result", () => {
+  it("toggles the match chat and shows how many messages are unread", () => {
+    const onToggle = vi.fn<() => void>();
+    render(
+      <I18nProvider>
+        <GameOverOverlay
+          result="loss"
+          reason="surrender"
+          stats={[]}
+          onMenu={() => {}}
+          onRematch={() => {}}
+          chat={{ open: false, unread: 2, onToggle }}
+        />
+      </I18nProvider>,
+    );
+
+    const chatButton = screen.getByRole("button", { name: "Chat, 2 unread" });
+    expect(chatButton.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(chatButton);
+    expect(onToggle).toHaveBeenCalledOnce();
+  });
+
+  it("offers no chat when the match has no live chat", () => {
+    renderOverlay();
+
+    expect(screen.queryByTestId("game-result-chat")).toBeNull();
+  });
+});
+
 describe("reviewing the board after the match", () => {
   it("folds the result into a bar and brings it back", () => {
     renderOverlay();
