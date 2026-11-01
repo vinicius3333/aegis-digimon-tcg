@@ -1085,6 +1085,36 @@
     gap: 6px var(--ds-space-3);
     padding: var(--ds-space-3) var(--ds-space-4);
   }
+  .profile-matches > li[data-replay="available"] {
+    grid-template-areas:
+      "opponent result"
+      "mode date"
+      "deck deck"
+      "replay replay";
+  }
+  .profile-matches > li[data-replay="available"] .profile-matches__replay {
+    justify-self: stretch;
+    width: 100%;
+  }
+  .profile-matches > li[data-replay="available"] .profile-watch {
+    margin-left: auto;
+  }
+  .profile-matches__opponent {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: var(--ds-space-3);
+  }
+  .profile-matches__opponent > :first-child {
+    grid-row: 1 / span 2;
+    align-self: start;
+  }
+  .profile-matches__opponent .friends-add-action {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .profile-matches__opponent .friends-add-action > .aegis-button {
+    padding-inline: 0;
+  }
   .profile-result {
     align-self: start;
     justify-self: end;
