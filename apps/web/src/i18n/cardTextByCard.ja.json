@@ -15550,5 +15550,8 @@
   "BT27-093": {
     "[StartofYourMainPhase]Byplacing1cardwith[Chessmon]initstextfromyourhandfacedownunderthisTamer,<Draw1>andgain1memory.[Main]BysuspendingthisTamerandtrashing2bottomface-downcardsfromunderanyofyourTamers,1ofyourDigimonmaydigivolveintoaDigimoncardwith[Chessmon]initsnameinthehandwiththecostreducedby2.": "【自分のメインフェイズ開始時】自分の手札から、「チェスモン」の記述があるカード1枚をこのテイマーの下に裏向きで置くことで、≪1ドロー≫、メモリー+1。\n【メイン】このテイマーをレストさせ、自分のテイマーの下にある裏向きのカードを下から2枚破棄することで、自分のデジモン1体を手札の名称に「チェスモン」を含むデジモンカードに支払うコスト-2で進化できる。",
     "[Security]Playthiscardwithoutpayingthecost.": "【セキュリティ】このカードをコストを支払わず登場させる。"
+  },
+  "BT27-053": {
+    "[Digivolve]Lv.5w/[Leomon]innameorw/[DATASQUAD]trait:Cost4Whenthiscardwouldbeplayed,ifyouropponenthasaDigimonwith11000DPormore,reducethecostby6.<Blocker><Fortitude>[OnPlay][WhenDigivolving][WhenAttacking][OncePerTurn]ThisDigimonmaybattle1ofyouropponent'sDigimon.[OnDeletion]Youmayplayoruse1TamerorOptioncardwiththe[Boss]or[DATASQUAD]traitfromyourhandwithoutpayingthecost.": "〔進化〕名称に「レオモン」を含むLv.5/特徴「セイバーズ」を持つLv.5:コスト4\nこのカードが登場するとき、DP11000以上の相手のデジモンがいるなら、支払うコスト-6。\n≪ブロッカー≫ ≪不屈≫\n【登場時】【進化時】【アタック時】【ターンに1回】このデジモンと相手のデジモン1体でバトルできる。\n【消滅時】自分の手札から、特徴「バンチョー」/「セイバーズ」を持つテイマーカード/オプションカード1枚をコストを支払わず登場/使用できる。"
   }
 }

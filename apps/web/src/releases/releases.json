@@ -1,5 +1,48 @@
 [
   {
+    "version": "1.45.0-beta",
+    "releasedAt": "2026-11-01",
+    "summaryKey": "releases.1.45.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.45.0-beta.feature.home"
+      },
+      {
+        "textKey": "releases.1.45.0-beta.feature.play"
+      },
+      {
+        "textKey": "releases.1.45.0-beta.feature.match"
+      },
+      {
+        "textKey": "releases.1.45.0-beta.feature.inspect"
+      },
+      {
+        "textKey": "releases.1.45.0-beta.feature.cards"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.45.0-beta.fix.solarmon",
+        "issue": 6349
+      },
+      {
+        "textKey": "releases.1.45.0-beta.fix.jimmyKen",
+        "issue": 6355
+      },
+      {
+        "textKey": "releases.1.45.0-beta.fix.cardText",
+        "issue": 6356
+      },
+      {
+        "textKey": "releases.1.45.0-beta.fix.effectOrder",
+        "issue": 6371
+      },
+      {
+        "textKey": "releases.1.45.0-beta.fix.guard"
+      }
+    ]
+  },
+  {
     "version": "1.44.0-beta",
     "releasedAt": "2026-10-31",
     "summaryKey": "releases.1.44.0-beta.summary",
