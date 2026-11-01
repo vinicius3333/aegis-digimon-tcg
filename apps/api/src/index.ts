@@ -52,6 +52,8 @@ import { mailerFromEnv } from "./email/mailer.js";
 import { turnstileVerifier } from "#api/accounts/turnstileVerifier";
 import { createClusterRuntime } from "./cluster/runtime.js";
 import { setRoomCodeDirectory } from "./rooms/AegisRoom.js";
+import { activeMatchRuntime } from "#api/rooms/activeMatch/activeMatchRuntime";
+import { createActiveMatchDirectory } from "#api/rooms/activeMatch/createActiveMatchDirectory";
 import { createSeriesDirectory, setSeriesDirectory } from "./rooms/series/SeriesDirectory.js";
 import {
   BACKFILL_TIMEOUT_MS,
@@ -157,6 +159,7 @@ socialRuntime.service = new SocialService({
   resolveRoom: resolveSocialInviteRoom,
 });
 setRoomCodeDirectory(cluster.roomCodes);
+activeMatchRuntime.directory = createActiveMatchDirectory({ presence: cluster.presence, keyPrefix: cluster.keyPrefix });
 setSeriesDirectory(createSeriesDirectory(cluster.presence, cluster.keyPrefix));
 
 const configuredSlot = process.env.AEGIS_DEPLOYMENT_SLOT ?? "legacy";

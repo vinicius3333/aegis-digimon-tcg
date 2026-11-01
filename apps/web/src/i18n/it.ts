@@ -653,6 +653,10 @@ const interfaceMessages = {
   "home.signInTitle": "Giochi su più dispositivi?",
   "home.signInCopy": "Collega Discord per conservare mazzi e statistiche nel tuo account.",
   "home.signInAction": "Collega",
+  "resumeMatch.title": "La tua partita è ancora in corso",
+  "resumeMatch.copy": "Continuala qui. L'altro dispositivo esce dalla partita.",
+  "resumeMatch.action": "Riprendi partita",
+  "resumeMatch.failed": "Non è stato possibile spostare la partita su questo dispositivo. Potrebbe essere terminata.",
   "home.footer.discord": "Community Discord",
   "home.footer.github": "GitHub",
   "home.footer.legal":
@@ -1002,6 +1006,7 @@ const interfaceMessages = {
     "La selezione era troppo grande da inviare. Riconnessione per ripristinare la scelta in sospeso.",
   "game.reconnectFailed": "Non è stato possibile riprendere la partita. Torna alla lobby e riprova.",
   "game.sessionExpired": "Questa partita non può più essere ripresa. Torna alla lobby.",
+  "game.seatTransferred": "Hai continuato questa partita su un altro dispositivo.",
   "game.tooManyMessages": "Sono state inviate troppe azioni insieme. Attendi un momento, poi torna alla lobby.",
   "game.serverUnavailable": "Il server di gioco non è al momento disponibile. Riprova tra poco.",
   "game.opponentDisconnected": "Avversario disconnesso",

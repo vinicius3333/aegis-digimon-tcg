@@ -759,6 +759,10 @@ const interfaceMessages = {
   "home.signInTitle": "Main di lebih dari satu perangkat?",
   "home.signInCopy": "Hubungkan Discord untuk menyimpan deck dan statistik di akun Anda.",
   "home.signInAction": "Hubungkan",
+  "resumeMatch.title": "Pertandinganmu masih berlangsung",
+  "resumeMatch.copy": "Lanjutkan di sini. Perangkat lainmu akan keluar dari pertandingan.",
+  "resumeMatch.action": "Lanjutkan pertandingan",
+  "resumeMatch.failed": "Pertandingan tidak dapat dipindahkan ke perangkat ini. Mungkin pertandingan sudah selesai.",
   "home.footer.discord": "Komunitas Discord",
   "home.footer.github": "GitHub",
   "home.footer.legal":
@@ -1108,6 +1112,7 @@ const interfaceMessages = {
     "Pilihan Anda terlalu besar untuk dikirim. Menghubungkan ulang untuk memulihkan pilihan yang tertunda.",
   "game.reconnectFailed": "Pertandingan ini tidak dapat dilanjutkan. Kembali ke lobi dan coba lagi.",
   "game.sessionExpired": "Pertandingan ini tidak bisa dilanjutkan lagi. Kembali ke lobi.",
+  "game.seatTransferred": "Kamu melanjutkan pertandingan ini di perangkat lain.",
   "game.tooManyMessages": "Terlalu banyak aksi dikirim sekaligus. Tunggu sebentar, lalu kembali ke lobi.",
   "game.serverUnavailable": "Server game sedang tidak tersedia. Coba lagi sebentar lagi.",
   "game.opponentDisconnected": "Lawan terputus",

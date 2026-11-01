@@ -799,6 +799,19 @@
   width: 100%;
 }
 
+.home-resume-match .aegis-alert__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+}
+
+.home-resume-match p {
+  margin: 0;
+  color: var(--ds-text-2);
+}
+
 .home-guides {
   display: flex;
   align-items: center;

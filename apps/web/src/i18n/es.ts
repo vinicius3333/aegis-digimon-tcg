@@ -484,6 +484,10 @@ export const es: Record<keyof typeof en, string> = {
   "home.signInTitle": "¿Juegas en más de un dispositivo?",
   "home.signInCopy": "Conecta Discord para guardar tus decks y estadísticas en tu cuenta.",
   "home.signInAction": "Conectar",
+  "resumeMatch.title": "Tu partida sigue en curso",
+  "resumeMatch.copy": "Continúala aquí. Tu otro dispositivo sale de la partida.",
+  "resumeMatch.action": "Reanudar partida",
+  "resumeMatch.failed": "No pudimos pasar la partida a este dispositivo. Puede que haya terminado.",
   "home.footer.discord": "Comunidad en Discord",
   "home.footer.github": "GitHub",
   "home.footer.legal":
@@ -844,6 +848,7 @@ export const es: Record<keyof typeof en, string> = {
     "Tu selección era demasiado grande para enviarla. Reconectando para restaurar la elección pendiente.",
   "game.reconnectFailed": "No pudimos reanudar esta partida. Vuelve al lobby e inténtalo de nuevo.",
   "game.sessionExpired": "Esta partida ya no se puede reanudar. Vuelve al lobby.",
+  "game.seatTransferred": "Continuaste esta partida en otro dispositivo.",
   "game.tooManyMessages": "Se enviaron demasiadas acciones a la vez. Espera un momento y vuelve al lobby.",
   "game.serverUnavailable": "El servidor del juego no está disponible temporalmente. Inténtalo de nuevo en breve.",
   "game.opponentDisconnected": "Oponente desconectado",

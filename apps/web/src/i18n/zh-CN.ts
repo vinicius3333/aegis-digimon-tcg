@@ -720,6 +720,10 @@ const interfaceMessages = {
   "home.signInTitle": "在多台设备上游玩？",
   "home.signInCopy": "连接 Discord，把卡组和战绩留在你的账号里。",
   "home.signInAction": "连接",
+  "resumeMatch.title": "你的对战仍在进行",
+  "resumeMatch.copy": "在这里继续。另一台设备将退出对战。",
+  "resumeMatch.action": "继续对战",
+  "resumeMatch.failed": "无法将对战转到这台设备。对战可能已经结束。",
   "home.footer.discord": "Discord 社区",
   "home.footer.github": "GitHub",
   "home.footer.legal":
@@ -1055,6 +1059,7 @@ const interfaceMessages = {
   "game.messageTooLargeReconnecting": "选择内容过大，无法发送。正在重新连接以恢复待处理的选择。",
   "game.reconnectFailed": "无法恢复这场对战。请返回大厅后重试。",
   "game.sessionExpired": "这场对战已无法恢复。请返回大厅。",
+  "game.seatTransferred": "你已在另一台设备上继续这场对战。",
   "game.tooManyMessages": "同时发送的操作过多。请稍候再返回大厅。",
   "game.serverUnavailable": "游戏服务器暂时不可用。请稍后重试。",
   "game.opponentDisconnected": "对手已断开",

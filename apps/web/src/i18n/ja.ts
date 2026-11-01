@@ -763,6 +763,10 @@ const interfaceMessages = {
   "home.signInTitle": "複数のデバイスでプレイしますか？",
   "home.signInCopy": "Discordに接続すると、デッキと戦績がアカウントに保存されます。",
   "home.signInAction": "接続する",
+  "resumeMatch.title": "対戦はまだ続いています",
+  "resumeMatch.copy": "このデバイスで続行できます。もう一方のデバイスは対戦から退出します。",
+  "resumeMatch.action": "対戦を再開",
+  "resumeMatch.failed": "対戦をこのデバイスに移せませんでした。対戦が終了した可能性があります。",
   "home.footer.discord": "Discordコミュニティ",
   "home.footer.github": "GitHub",
   "home.footer.legal":
@@ -1108,6 +1112,7 @@ const interfaceMessages = {
     "選択内容が大きすぎて送信できませんでした。保留中の選択を復元するため再接続しています。",
   "game.reconnectFailed": "対戦を再開できませんでした。ロビーに戻って再試行してください。",
   "game.sessionExpired": "この対戦は再開できません。ロビーに戻ってください。",
+  "game.seatTransferred": "この対戦は別のデバイスで続行されました。",
   "game.tooManyMessages": "一度に送信された操作が多すぎます。少し待ってからロビーに戻ってください。",
   "game.serverUnavailable": "ゲームサーバーを一時的に利用できません。しばらくしてから再試行してください。",
   "game.opponentDisconnected": "対戦相手の接続が切れました",

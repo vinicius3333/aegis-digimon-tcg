@@ -725,6 +725,10 @@ const interfaceMessages = {
   "home.signInTitle": "在多台裝置上遊玩？",
   "home.signInCopy": "連接 Discord，將你的卡組和統計資料保存在帳戶中。",
   "home.signInAction": "連接",
+  "resumeMatch.title": "你的對戰仍在進行",
+  "resumeMatch.copy": "在這裡繼續。另一台裝置將退出對戰。",
+  "resumeMatch.action": "繼續對戰",
+  "resumeMatch.failed": "無法將對戰轉到這台裝置。對戰可能已經結束。",
   "home.footer.discord": "Discord 社群",
   "home.footer.github": "GitHub",
   "home.footer.legal":
@@ -1061,6 +1065,7 @@ const interfaceMessages = {
   "game.messageTooLargeReconnecting": "選擇內容過大，無法傳送。正在重新連線以恢復待處理的選擇。",
   "game.reconnectFailed": "無法恢復這場對戰。請返回大廳後重試。",
   "game.sessionExpired": "這場對戰已無法恢復。請返回大廳。",
+  "game.seatTransferred": "你已在另一台裝置上繼續這場對戰。",
   "game.tooManyMessages": "同時傳送的操作過多。請稍候再返回大廳。",
   "game.serverUnavailable": "遊戲伺服器暫時無法使用。請稍後重試。",
   "game.opponentDisconnected": "對手斷線",

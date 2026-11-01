@@ -491,6 +491,10 @@ export const ptBR: Record<keyof typeof en, string> = {
   "home.signInTitle": "Jogando em mais de um aparelho?",
   "home.signInCopy": "Conecte o Discord para guardar decks e estat\u00edsticas na sua conta.",
   "home.signInAction": "Conectar",
+  "resumeMatch.title": "Sua partida ainda está em andamento",
+  "resumeMatch.copy": "Continue aqui. O outro aparelho sai da partida.",
+  "resumeMatch.action": "Retomar partida",
+  "resumeMatch.failed": "Não foi possível trazer a partida para este aparelho. Ela pode ter terminado.",
   "home.footer.discord": "Comunidade no Discord",
   "home.footer.github": "GitHub",
   "home.footer.legal":
@@ -859,6 +863,7 @@ export const ptBR: Record<keyof typeof en, string> = {
     "Sua seleção era grande demais para enviar. Reconectando para restaurar a escolha pendente.",
   "game.reconnectFailed": "Não foi possível retomar esta partida. Volte ao lobby e tente novamente.",
   "game.sessionExpired": "Esta partida não pode mais ser retomada. Volte ao lobby.",
+  "game.seatTransferred": "Você continuou esta partida em outro aparelho.",
   "game.tooManyMessages": "Muitas ações foram enviadas ao mesmo tempo. Aguarde um pouco e volte ao lobby.",
   "game.serverUnavailable": "O servidor do jogo está temporariamente indisponível. Tente novamente em instantes.",
   "game.opponentDisconnected": "Oponente desconectado",
