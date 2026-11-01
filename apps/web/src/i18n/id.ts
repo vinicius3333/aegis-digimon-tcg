@@ -1099,7 +1099,8 @@ const interfaceMessages = {
   "settings.communityDesc": "Berita, cari lawan, dan diskusi deck di server Discord kami.",
   "settings.joinDiscord": "Gabung ke Discord",
   "settings.language": "Bahasa",
-  "settings.languageDesc": "Bahasa antarmuka. Nama kartu dan teks kartu tetap dalam bahasa Inggris.",
+  "settings.languageDesc":
+    "Bahasa antarmuka. Dalam bahasa Jepang, Korea, dan Mandarin Sederhana, nama dan teks kartu memakai terjemahan resmi jika tersedia. Dalam bahasa lain, dan untuk kartu tanpa terjemahan, keduanya tetap dalam bahasa Inggris. Gambar kartu mengikuti pengaturan Bahasa gambar kartu.",
   "game.reconnecting": "Menghubungkan kembali…",
   "game.reconnectingDetail": "Koneksi terputus. Mencoba melanjutkan pertandingan Anda.",
   "game.connectionLost": "Koneksi terputus",

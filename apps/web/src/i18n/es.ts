@@ -835,7 +835,8 @@ export const es: Record<keyof typeof en, string> = {
   "settings.communityDesc": "Noticias, partidas y charlas de decks en nuestro servidor de Discord.",
   "settings.joinDiscord": "Unirse a Discord",
   "settings.language": "Idioma",
-  "settings.languageDesc": "Idioma de la interfaz. Los nombres y textos de las cartas siguen en inglés.",
+  "settings.languageDesc":
+    "Idioma de la interfaz. En japonés, coreano y chino simplificado, los nombres y textos de las cartas usan la traducción oficial cuando existe. En los demás idiomas, y en cartas sin traducción, siguen en inglés. Las imágenes de las cartas siguen el ajuste Idioma de las imágenes de cartas.",
   "game.reconnecting": "Reconectando…",
   "game.reconnectingDetail": "Se perdió la conexión. Intentando retomar tu partida.",
   "game.connectionLost": "Conexión perdida",

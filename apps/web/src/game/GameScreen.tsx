@@ -408,7 +408,15 @@ function GameScreenSession({
     clearSel,
     clearDeclarations,
   } = selectionState;
-  const overlayState = useOverlayState({ decision, state, clearSel, clearDeclarations, viewerSeat });
+  const overlayState = useOverlayState({
+    decision,
+    state,
+    handPreview,
+    setHandPreview,
+    clearSel,
+    clearDeclarations,
+    viewerSeat,
+  });
   const {
     cardMenu,
     setCardMenu,

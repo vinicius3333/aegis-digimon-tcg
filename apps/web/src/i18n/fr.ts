@@ -1118,7 +1118,8 @@ const interfaceMessages = {
     "Actualités, recherche d'adversaires et discussions sur les decks sur notre serveur Discord.",
   "settings.joinDiscord": "Rejoindre Discord",
   "settings.language": "Langue",
-  "settings.languageDesc": "Langue de l'interface. Les noms et le texte des cartes restent en anglais.",
+  "settings.languageDesc":
+    "Langue de l'interface. En japonais, coréen et chinois simplifié, les noms et le texte des cartes utilisent la traduction officielle lorsqu'elle existe. Dans les autres langues, et pour les cartes sans traduction, ils restent en anglais. Les images des cartes suivent le réglage Langue des images des cartes.",
   "game.reconnecting": "Reconnexion…",
   "game.reconnectingDetail": "La connexion a été interrompue. Tentative de reprise de votre match.",
   "game.connectionLost": "Connexion perdue",

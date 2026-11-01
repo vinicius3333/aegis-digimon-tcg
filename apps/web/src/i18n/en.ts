@@ -846,7 +846,8 @@ export const en = {
   "settings.communityDesc": "News, matchmaking and deck talk on our Discord server.",
   "settings.joinDiscord": "Join Discord",
   "settings.language": "Language",
-  "settings.languageDesc": "Interface language. Card names and card text stay in English.",
+  "settings.languageDesc":
+    "Interface language. In Japanese, Korean and Simplified Chinese, card names and text use the official translation where one exists. In other languages, and for cards without a translation, they stay in English. Card images follow the card image language setting.",
 
   "game.reconnecting": "Reconnecting…",
   "game.reconnectingDetail": "The connection dropped. Trying to resume your match.",

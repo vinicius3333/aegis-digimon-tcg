@@ -1090,7 +1090,8 @@ const interfaceMessages = {
   "settings.communityDesc": "Discord 서버에서 소식, 대전 상대 찾기, 덱 이야기를 나눕니다.",
   "settings.joinDiscord": "Discord 참가",
   "settings.language": "언어",
-  "settings.languageDesc": "인터페이스 언어입니다. 카드 이름과 카드 텍스트는 영어로 표시됩니다.",
+  "settings.languageDesc":
+    "인터페이스 언어입니다. 일본어, 한국어, 중국어(간체)에서는 공식 번역이 있는 카드 이름과 카드 텍스트를 해당 언어로 표시합니다. 다른 언어나 공식 번역이 없는 카드는 영어로 표시됩니다. 카드 이미지는 '카드 이미지 언어' 설정을 따릅니다.",
   "game.reconnecting": "다시 연결하는 중…",
   "game.reconnectingDetail": "연결이 끊어졌습니다. 대전을 다시 이어 가는 중입니다.",
   "game.connectionLost": "연결 끊김",
