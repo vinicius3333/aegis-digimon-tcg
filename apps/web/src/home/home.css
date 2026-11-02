@@ -8,6 +8,7 @@
 
 .home-wrap {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   width: min(100%, calc(1360px + 2 * var(--ds-gutter-desktop)));
   gap: var(--ds-space-5);
   margin-inline: auto;
