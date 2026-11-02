@@ -1,5 +1,43 @@
 [
   {
+    "version": "1.46.0-beta",
+    "releasedAt": "2026-11-01",
+    "summaryKey": "releases.1.46.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.46.0-beta.feature.chat"
+      },
+      {
+        "textKey": "releases.1.46.0-beta.feature.effects"
+      },
+      {
+        "textKey": "releases.1.46.0-beta.feature.cards"
+      },
+      {
+        "textKey": "releases.1.46.0-beta.feature.tournaments"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.46.0-beta.fix.sayoKoh",
+        "issue": 6386
+      },
+      {
+        "textKey": "releases.1.46.0-beta.fix.byCosts"
+      },
+      {
+        "textKey": "releases.1.46.0-beta.fix.cardText",
+        "issue": 6387
+      },
+      {
+        "textKey": "releases.1.46.0-beta.fix.loading"
+      },
+      {
+        "textKey": "releases.1.46.0-beta.fix.profile"
+      }
+    ]
+  },
+  {
     "version": "1.45.0-beta",
     "releasedAt": "2026-11-01",
     "summaryKey": "releases.1.45.0-beta.summary",
