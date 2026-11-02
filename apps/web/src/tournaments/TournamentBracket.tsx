@@ -3,18 +3,22 @@ import type { CSSProperties } from "react";
 import { Badge } from "@/design/primitives";
 import { Icons } from "@/design/icons";
 import { useTranslation } from "@/i18n/useTranslation";
+import { isTournamentSeriesLive } from "@/tournaments/isTournamentSeriesLive";
 import { TournamentBotPortrait } from "@/tournaments/TournamentBotPortrait";
+import type { TournamentBracketSpectating } from "@/tournaments/TournamentBracketSpectating";
+import { TournamentWatchButton } from "@/tournaments/TournamentWatchButton";
 import { pairingReasonKey, topCutRoundKey } from "@/tournaments/labels";
 
 type Params = {
   phase: PhaseView;
   participants: readonly ParticipantView[];
   accountId?: string;
+  spectating?: TournamentBracketSpectating;
 };
 
 type Seat = 0 | 1;
 
-export function TournamentBracket({ phase, participants, accountId }: Params) {
+export function TournamentBracket({ phase, participants, accountId, spectating }: Params) {
   const { t } = useTranslation();
   const ownParticipantId = participants.find(
     (participant) => accountId !== undefined && participant.accountId === accountId,
@@ -36,12 +40,33 @@ export function TournamentBracket({ phase, participants, accountId }: Params) {
     return ([0, 1] as const).some((seat) => findSeatParticipant(match, seat)?.id === ownParticipantId);
   }
 
+  function getSeatName(match: SeriesScoreView, seat: Seat): string {
+    return (
+      findSeatParticipant(match, seat)?.displayName ??
+      getSeatReference(match, seat) ??
+      t("tournaments.topCut.emptySeat")
+    );
+  }
+
+  function renderWatchButton(match: SeriesScoreView) {
+    if (!spectating || !isTournamentSeriesLive(match)) {
+      return null;
+    }
+    return (
+      <TournamentWatchButton
+        target={{ tournamentId: spectating.tournamentId, matchId: match.matchId }}
+        players={`${getSeatName(match, 0)} · ${getSeatName(match, 1)}`}
+        onWatch={spectating.onWatch}
+      />
+    );
+  }
+
   function renderSeat(match: SeriesScoreView, seat: Seat) {
     const participant = findSeatParticipant(match, seat);
     const reference = getSeatReference(match, seat);
     const isBot = participant?.kind === "bot";
     const isOwn = participant !== undefined && participant.id === ownParticipantId;
-    const name = participant?.displayName ?? reference ?? t("tournaments.topCut.emptySeat");
+    const name = getSeatName(match, seat);
     return (
       <div className="tournaments-tree__seat" data-empty={!reference || undefined} data-bot={isBot || undefined}>
         {isBot ? (
@@ -99,6 +124,7 @@ export function TournamentBracket({ phase, participants, accountId }: Params) {
                         {pairingReasonKey(match.pairingReason) ? (
                           <Badge tone="neutral">{t(pairingReasonKey(match.pairingReason)!)}</Badge>
                         ) : null}
+                        {renderWatchButton(match)}
                       </div>
                     </li>
                   ))}

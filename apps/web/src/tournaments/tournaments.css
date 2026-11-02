@@ -847,6 +847,12 @@
   align-self: flex-start;
 }
 
+.tournaments-tree__card > .tournaments-watch-button {
+  align-self: stretch;
+  justify-content: center;
+  margin-top: var(--ds-space-1);
+}
+
 .tournaments-bracket__match[data-mine] > .tournaments-tree__card {
   border-color: var(--ds-accent);
   background: var(--ds-accent-soft);
