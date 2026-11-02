@@ -1,4 +1,5 @@
 import { recordTournamentGameFacts } from "#api/ranked/recordTournamentGameFacts";
+import { advanceSeriesDeadline } from "#api/tournaments/scheduler/advanceSeriesDeadline";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type {
   GameStatus,
@@ -399,6 +400,7 @@ export class SeriesStore {
       if (CLOSED_SERIES_STATUSES.includes(series.status)) return failure("series_already_resolved");
       const seat = seatOfSeries(series, holder);
       if (seat === undefined) return failure("not_a_participant");
+      if (series.status === "overtime") return failure("no_games_remaining");
 
       const game = await this.nextGame(client, series, now);
       if (!game) return failure("no_games_remaining");
@@ -611,21 +613,23 @@ export class SeriesStore {
         finishedAt: input.finishedAt,
       });
       const winner = outcome.result === "participant0" ? 0 : outcome.result === "participant1" ? 1 : undefined;
-      if (winner === undefined) return ok(await this.reread(client, series.id));
-
       const wins: [number, number] = [...series.wins];
-      wins[winner] += 1;
-      await client.query(`UPDATE match_series SET wins${winner}=$1, version=version+1 WHERE id=$2`, [
-        wins[winner],
-        series.id,
-      ]);
-      if (wins[winner] >= series.winsRequired)
+      if (winner !== undefined) {
+        wins[winner] += 1;
+        await client.query(`UPDATE match_series SET wins${winner}=$1, version=version+1 WHERE id=$2`, [
+          wins[winner],
+          series.id,
+        ]);
+      }
+      if (winner !== undefined && wins[winner] >= series.winsRequired)
         await this.closeSeries(client, series.id, series.matchId, {
           status: "resolved",
           officialResult: winner === 0 ? "participant0" : "participant1",
           reason: "series_won",
           at: input.finishedAt,
         });
+      else if (series.status === "overtime")
+        await advanceSeriesDeadline({ db: client, seriesId: series.id, dueAt: input.finishedAt });
       return ok(await this.reread(client, series.id));
     });
     await this.announceIfResolved(result);
@@ -650,6 +654,7 @@ export class SeriesStore {
     /** The deadline row driving this, so the decision does not retire the row producing it. */
     commandId?: string;
     now?: number;
+    liveGameGraceMs?: number;
   }): Promise<SeriesResult<SeriesRecord>> {
     const now = input.now ?? Date.now();
     const result = await this.mutate<SeriesResult<SeriesRecord>>(input.seriesId, async (client) => {
@@ -661,6 +666,16 @@ export class SeriesStore {
       if (CLOSED_SERIES_STATUSES.includes(series.status)) return ok(series);
       if (series.seriesDeadlineAt === null) return failure("no_deadline");
       if (now < series.seriesDeadlineAt) return failure("deadline_not_reached");
+
+      const gameInProgress = series.games.some((game) => game.status === "playing");
+      if (gameInProgress && now < series.seriesDeadlineAt + (input.liveGameGraceMs ?? 0)) {
+        if (series.status !== "overtime")
+          await client.query(
+            "UPDATE match_series SET status='overtime', overtime_started_at=$1, version=version+1 WHERE id=$2",
+            [now, series.id],
+          );
+        return ok(await this.reread(client, series.id));
+      }
 
       const [wins0, wins1] = series.wins;
       const decided: DeadlineOutcome =

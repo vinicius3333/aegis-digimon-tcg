@@ -29,7 +29,7 @@ import { PermanentStackView } from "./PermanentStackView";
 import { PileViewers } from "./PileViewers";
 import { Side } from "../../side";
 import type { GameOverOutcome } from "../../gameOverSplash";
-import type { SeriesResultProps } from "../../overlay/match/GameOverOverlay";
+import type { PostGameChat, SeriesResultProps } from "../../overlay/match/GameOverOverlay";
 import type { RematchProps } from "@/game/overlay/match/RematchPanel";
 import type { TurnOrder } from "../../overlay";
 import type { LogTurnGroup } from "@/game/log/LogEntry";
@@ -182,6 +182,7 @@ export function MatchOverlays({
         series?: SeriesResultProps;
         rematch?: RematchProps;
         friendMatchId?: string;
+        chat?: PostGameChat;
       })
     | undefined;
   overlays: ReturnType<typeof useOverlayState>;

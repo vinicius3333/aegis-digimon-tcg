@@ -40,6 +40,7 @@ import { GUEST_APPROVAL_CHANNEL } from "@aegis/shared/protocol/GuestApprovalMess
 import { sourceHostChoiceFor } from "./screen/model/sourceHostChoice";
 import { BoardStage, type BoardAnchors } from "./screen/layout/BoardStage";
 import { useMatchChat } from "./chat/useMatchChat";
+import { useMatchChatWindow } from "./chat/useMatchChatWindow";
 import { BreedingDock } from "./screen/layout/BreedingDock";
 import { MatchOverlays } from "./screen/layout/MatchOverlays";
 
@@ -109,6 +110,7 @@ import {
 } from "@aegis/shared";
 import { rejectionMessage } from "../rejectionMessages";
 import { useTranslation } from "../i18n";
+import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
 import { intents } from "../net/intents";
 import { useRoom, type MatchMode, type SeriesGameTicket, type UseRoomResult } from "../net/useRoom";
 import { seriesView } from "./seriesModel";
@@ -318,6 +320,7 @@ function GameScreenSession({
   renderSeriesDeckPicker?: (params: SeriesDeckPickerParams) => ReactNode;
 }) {
   const { t } = useTranslation();
+  const getCardName = useTranslatedCardName();
   const [handOrder, setHandOrder] = useState<readonly string[]>([]);
   const [spectating] = useState(
     () => replayMode || startMode === "spectator" || (!demoConnection && loadReconnectSession()?.spectator === true),
@@ -650,6 +653,11 @@ function GameScreenSession({
     devProbe,
     presentationPacing,
     holdEffectsForConfirmation: vsBot && !spectating && effectConfirmationHold,
+  });
+  const liveChat = connectedRoom ? chat : undefined;
+  const chatWindow = useMatchChatWindow({
+    chat: liveChat,
+    resultShown: !!state?.gameOver && !cues.resultPending,
   });
   const you = state?.players[viewerSeat];
   const opp = state?.players[otherSeat(viewerSeat)];
@@ -1499,6 +1507,7 @@ function GameScreenSession({
     opponent: opp,
     handInstanceIds: shownHandEntries.map((entry) => entry.instanceId),
     t,
+    getCardName,
   });
   const effectSourceMarks = findEffectSourceMarks({
     events,
@@ -1716,6 +1725,7 @@ function GameScreenSession({
                       ? undefined
                       : "preparing",
               friendMatchId: !spectating && !vsBot ? room?.roomId : undefined,
+              chat: liveChat && { open: chatWindow.open, unread: chatWindow.unread, onToggle: chatWindow.toggle },
               reason: gameOverReason,
               revealed,
               series: series && {
@@ -1865,7 +1875,8 @@ function GameScreenSession({
       spectating={spectating}
       onLeaveSpectator={() => onExit("lobby")}
       room={spectating ? undefined : room}
-      chat={connectedRoom ? chat : undefined}
+      chat={liveChat}
+      chatWindow={chatWindow}
       look={arenaLook}
       layout={layout}
       anchors={anchors}

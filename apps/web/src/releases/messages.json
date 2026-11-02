@@ -1,4 +1,64 @@
 {
+  "releases.1.46.0-beta.summary": {
+    "en": "Chat after a match, see which inherited effects were used this turn, learn DNA, App Fusion, DigiXros and Assembly from card text, and play fairer tournament tiebreakers. Adds BT27 cards and rules fixes.",
+    "pt-BR": "Converse depois da partida, veja quais efeitos herdados já foram usados no turno, entenda DNA, App Fusion, DigiXros e Assembly direto no texto da carta e jogue torneios com desempates mais justos. Inclui cartas de BT27 e correções de regras.",
+    "es": "Chatea después de la partida, mira qué efectos heredados ya se usaron en el turno, entiende DNA, App Fusion, DigiXros y Assembly desde el texto de la carta y juega torneos con desempates más justos. Incluye cartas de BT27 y correcciones de reglas.",
+    "it": "Chatta dopo la partita, vedi quali effetti ereditati sono già stati usati nel turno, scopri DNA, App Fusion, DigiXros e Assembly dal testo della carta e gioca tornei con spareggi più equi. Include carte BT27 e correzioni alle regole."
+  },
+  "releases.1.46.0-beta.feature.chat": {
+    "en": "The result screen has a Chat button with the unread count. If anyone chatted during the match, the chat opens by itself when the match ends.",
+    "pt-BR": "A tela de resultado tem um botão de Chat com o número de mensagens não lidas. Se alguém conversou durante a partida, o chat abre sozinho quando a partida termina.",
+    "es": "La pantalla de resultado tiene un botón de Chat con el número de mensajes no leídos. Si alguien chateó durante la partida, el chat se abre solo cuando termina la partida.",
+    "it": "La schermata dei risultati ha un pulsante Chat con il numero di messaggi non letti. Se qualcuno ha chattato durante la partita, la chat si apre da sola alla fine della partita."
+  },
+  "releases.1.46.0-beta.feature.effects": {
+    "en": "Digivolution cards whose inherited Once Per Turn effect was used show “Inherited used” in prompts and in the inspector. The effect order window now names the Digimon that carries each inherited effect, with its picture.",
+    "pt-BR": "Cartas de digievolução cujo efeito herdado de Uma vez por turno já foi usado mostram “Herdado usado” nos prompts e no inspetor. A janela de ordem dos efeitos agora mostra o nome e a imagem do Digimon que carrega cada efeito herdado.",
+    "es": "Las cartas de digievolución cuyo efecto heredado de Una vez por turno ya se usó muestran “Heredado usado” en los avisos y en el inspector. La ventana de orden de efectos ahora muestra el nombre y la imagen del Digimon que lleva cada efecto heredado.",
+    "it": "Le carte digievoluzione il cui effetto ereditato Una volta per turno è già stato usato mostrano “Ereditato usato” nei prompt e nell’ispettore. La finestra dell’ordine degli effetti ora mostra il nome e l’immagine del Digimon che porta ogni effetto ereditato."
+  },
+  "releases.1.46.0-beta.feature.cards": {
+    "en": "DNA Digivolution, App Fusion, DigiXros and Assembly in card text open a short explanation with a link to the rules. New BT27 cards: Spencer Damon, Nanami, Kouki, & Ivan, Bio Hybrid Digivolution, and a BanchoLeomon alternate art.",
+    "pt-BR": "DNA Digivolution, App Fusion, DigiXros e Assembly no texto das cartas abrem uma explicação curta com link para as regras. Novas cartas de BT27: Spencer Damon, Nanami, Kouki, & Ivan, Bio Hybrid Digivolution e uma arte alternativa de BanchoLeomon.",
+    "es": "DNA Digivolution, App Fusion, DigiXros y Assembly en el texto de las cartas abren una explicación breve con enlace a las reglas. Nuevas cartas de BT27: Spencer Damon, Nanami, Kouki, & Ivan, Bio Hybrid Digivolution y un arte alternativo de BanchoLeomon.",
+    "it": "DNA Digivolution, App Fusion, DigiXros e Assembly nel testo delle carte aprono una breve spiegazione con un link alle regole. Nuove carte BT27: Spencer Damon, Nanami, Kouki, & Ivan, Bio Hybrid Digivolution e un’arte alternativa di BanchoLeomon."
+  },
+  "releases.1.46.0-beta.feature.tournaments": {
+    "en": "Tournament ties after OMW% are now settled by head-to-head, then by a random draw. A game still running at the round deadline can finish within a 10-minute grace period instead of being voided.",
+    "pt-BR": "Empates de torneio depois do OMW% agora são decididos por confronto direto e depois por sorteio. Uma partida ainda em andamento no prazo da rodada pode terminar em até 10 minutos de tolerância, em vez de ser anulada.",
+    "es": "Los empates de torneo después del OMW% ahora se deciden por enfrentamiento directo y luego por sorteo. Una partida que sigue en curso al cumplirse el plazo de la ronda puede terminar dentro de 10 minutos de tolerancia en lugar de anularse.",
+    "it": "Gli spareggi nei tornei dopo l’OMW% ora si decidono per scontro diretto e poi per sorteggio. Una partita ancora in corso alla scadenza del turno può terminare entro 10 minuti di tolleranza invece di essere annullata."
+  },
+  "releases.1.46.0-beta.fix.sayoKoh": {
+    "en": "Sayo & Koh can pay its cost at the start of your opponent’s turn even when the DNA digivolution can’t happen.",
+    "pt-BR": "Sayo & Koh pode pagar seu custo no início do turno do oponente mesmo quando a digievolução DNA não pode acontecer.",
+    "es": "Sayo & Koh puede pagar su coste al inicio del turno del oponente aunque la digievolución DNA no pueda ocurrir.",
+    "it": "Sayo & Koh può pagare il suo costo all’inizio del turno dell’avversario anche quando la digievoluzione DNA non può avvenire."
+  },
+  "releases.1.46.0-beta.fix.byCosts": {
+    "en": "Effects that read “By [cost], [effect]”, such as Kanan Yuki’s, now ask whether to pay the cost even when the effect has no target.",
+    "pt-BR": "Efeitos do tipo “Ao [custo], [efeito]”, como o de Kanan Yuki, agora perguntam se você quer pagar o custo mesmo quando o efeito não tem alvo.",
+    "es": "Los efectos del tipo “Al [coste], [efecto]”, como el de Kanan Yuki, ahora preguntan si quieres pagar el coste aunque el efecto no tenga objetivo.",
+    "it": "Gli effetti del tipo “Pagando [costo], [effetto]”, come quello di Kanan Yuki, ora chiedono se pagare il costo anche quando l’effetto non ha bersagli."
+  },
+  "releases.1.46.0-beta.fix.cardText": {
+    "en": "P-213 Aegiochusmon shows its correct Chinese text.",
+    "pt-BR": "P-213 Aegiochusmon mostra o texto correto em chinês.",
+    "es": "P-213 Aegiochusmon muestra su texto correcto en chino.",
+    "it": "P-213 Aegiochusmon mostra il testo cinese corretto."
+  },
+  "releases.1.46.0-beta.fix.loading": {
+    "en": "When part of a screen fails to download, Reload now clears the browser’s cached game files before loading again.",
+    "pt-BR": "Quando uma parte da tela não consegue ser baixada, o botão Recarregar agora limpa os arquivos do jogo guardados no navegador antes de carregar de novo.",
+    "es": "Cuando una parte de la pantalla no se puede descargar, Recargar ahora borra los archivos del juego guardados en el navegador antes de volver a cargar.",
+    "it": "Quando una parte della schermata non si scarica, Ricarica ora svuota i file di gioco salvati nel browser prima di ricaricare."
+  },
+  "releases.1.46.0-beta.fix.profile": {
+    "en": "Match history rows on phones keep the deck and opponent names readable.",
+    "pt-BR": "As linhas do histórico de partidas no celular mantêm legíveis os nomes do deck e do oponente.",
+    "es": "Las filas del historial de partidas en el móvil mantienen legibles los nombres del mazo y del oponente.",
+    "it": "Le righe della cronologia partite sul telefono mantengono leggibili i nomi del mazzo e dell’avversario."
+  },
   "releases.1.45.0-beta.summary": {
     "en": "Resume matches on another device, see who is searching, browse public replays, and follow matches with a fixed log. Includes card and effect-order fixes.",
     "pt-BR": "Continue partidas em outro dispositivo, veja quem está procurando partida, explore replays públicos e acompanhe partidas com um histórico fixo. Inclui correções de cartas e da ordem de efeitos.",

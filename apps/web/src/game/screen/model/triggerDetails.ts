@@ -1,10 +1,3 @@
-/* One line per queued trigger, for the dialog that asks which order they resolve in.
-
-   Positions count inside the owner's own battle area: numbering across both players'
-   fields printed "Field: 3" for the first Digimon a player had out. One permanent can
-   queue an [On Play] and a [When Digivolving] at once, so each row reads its own clause
-   rather than the decision's. */
-
 import { getCardDefinition, parseTriggerKey, type DecisionRequest, type PlayerState } from "@aegis/shared";
 import { Zone } from "@aegis/shared/schema/enums";
 import { triggerCardId } from "../../boardModel";
@@ -19,12 +12,14 @@ export function triggerDetailsFor({
   opponent,
   handInstanceIds,
   t,
+  getCardName = (cardId) => getCardDefinition(cardId)?.nameEn ?? cardId,
 }: {
   decision: DecisionRequest | undefined;
   viewer: PlayerState;
   opponent: PlayerState;
   handInstanceIds: readonly string[];
   t: Translate;
+  getCardName?: (cardId: string) => string;
 }): TriggerDetail[] {
   if (decision?.kind !== "orderTriggers") return [];
   return (decision.options?.triggerKeys ?? []).map((key, index) => {
@@ -42,19 +37,30 @@ export function triggerDetailsFor({
         isInherited: decision.options?.triggerIsInherited?.[index] === true,
       }) ?? getCardDefinition(cardId)?.effectText;
     return {
-      sourceLabel: getTriggerSourceLabel(source, t),
+      sourceLabel: getTriggerSourceLabel(source, t, getCardName),
       summary: triggerClauseSummary(clause),
+      ...(source?.zone === Zone.BattleArea && source.inherited ? { hostCardId: source.hostCardId } : {}),
     };
   });
 }
 
-function getTriggerSourceLabel(source: TriggerSource | undefined, t: Translate): string | undefined {
+function withCopy(label: string, source: { copy: number; copies: number }, t: Translate): string {
+  return source.copies > 1 ? t("log.copySuffix", { label, n: source.copy }) : label;
+}
+
+function getTriggerSourceLabel(
+  source: TriggerSource | undefined,
+  t: Translate,
+  getCardName: (cardId: string) => string,
+): string | undefined {
   if (!source) {
     return undefined;
   }
   switch (source.zone) {
     case Zone.BattleArea:
-      return t("overlay.triggerSourceField", { position: source.position });
+      return source.inherited
+        ? t("overlay.triggerSourceInherited", { name: withCopy(getCardName(source.hostCardId), source, t) })
+        : withCopy(t("overlay.triggerSourceField"), source, t);
     case Zone.Hand:
       return t("overlay.triggerSourceHand", { position: source.position });
     case Zone.Breeding:

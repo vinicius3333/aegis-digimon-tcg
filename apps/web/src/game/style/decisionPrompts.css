@@ -316,6 +316,16 @@ body:has(.decision-overlay--selection) .narration-slot {
   font-weight: 800;
   letter-spacing: 0.06em;
 }
+.trigger-chooser__host {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  min-width: 0;
+}
+.trigger-chooser__host-art {
+  display: inline-flex;
+  flex-shrink: 0;
+}
 .trigger-chooser__name {
   font-size: var(--ds-text-sm);
   font-weight: 600;
@@ -1718,5 +1728,12 @@ body:has(.decision-overlay--selection) .narration-slot {
   border: 1px solid var(--ds-accent);
   border-radius: var(--ds-radius-sm);
   color: var(--ds-text);
+  background: var(--ds-sheet);
+}
+.decision-overlay__used-effect {
+  padding: var(--ds-space-1) var(--ds-space-2);
+  border: 1px dashed var(--ds-line);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-text-2);
   background: var(--ds-sheet);
 }

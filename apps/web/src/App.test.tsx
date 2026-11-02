@@ -270,7 +270,9 @@ describe("responsive application state", () => {
       expect(menuButton.querySelector("img")?.getAttribute("src")).not.toBe(original.avatarUrl);
       expect(window.location.pathname).toBe("/profile");
       fireEvent.click(await screen.findByRole("button", { name: "Change avatar" }, { timeout: 5_000 }));
-      fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Use Discord avatar" }));
+      const avatarDialog = screen.getByRole("dialog");
+      fireEvent.click(within(avatarDialog).getByRole("tab", { name: "Discord" }));
+      fireEvent.click(within(avatarDialog).getByRole("button", { name: "Use Discord avatar" }));
       await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
       expect(updateAvatar).toHaveBeenCalledWith(null);
       expect(menuButton.querySelector("img")?.getAttribute("src")).toBe(original.avatarUrl);

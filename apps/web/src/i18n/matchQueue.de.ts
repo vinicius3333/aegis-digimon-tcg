@@ -9,7 +9,8 @@ export const matchQueueDe = {
   "matchQueue.roomSubtitle":
     "Spieler, die gerade ein Match suchen. Fordere einen heraus, um dieselbe Warteschlange zu nutzen.",
   "matchQueue.roomCount": "{count} in der Warteschlange",
-  "matchQueue.roomEmpty": "Noch niemand in der Schnellspiel-Warteschlange. Reih dich ein und sei der Erste.",
+  "matchQueue.roomEmpty":
+    "Noch niemand in der Schnellspiel-Warteschlange. Reihen Sie sich ein und seien Sie der Erste.",
   "matchQueue.challenge": "Herausfordern",
   "matchQueue.seats": "{count} Spieler warten",
 } as const;
