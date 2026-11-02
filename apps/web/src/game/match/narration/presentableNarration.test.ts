@@ -26,6 +26,13 @@ describe("presentable narration", () => {
     expect(presentableNarration(item, { collapseNarration: false }).lifetimeMs).toBe(NOTICE_LIFETIME_MS * 2);
   });
 
+  it("shortens the reading time when the player picks the short notice duration", () => {
+    setNoticeDuration("short");
+    expect(presentableNarration(item, { collapseNarration: false }).lifetimeMs).toBe(
+      Math.round(NOTICE_LIFETIME_MS * 0.6),
+    );
+  });
+
   it("combines the notice duration with the touch layout's longer clock", () => {
     setNoticeDuration("long");
     expect(presentableNarration(item, { collapseNarration: true }).lifetimeMs).toBe(
