@@ -5,8 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_EGG_SLEEVE,
   clearCustomCardSleeve,
+  clearCustomEggSleeve,
   setCardSleeveId,
   setCustomCardSleeve,
+  setCustomEggSleeve,
   setEggSleeveId,
 } from "../design/sleeve";
 import { I18nProvider } from "../i18n";
@@ -47,6 +49,7 @@ const tileNames = (dialog: HTMLElement) =>
 
 beforeEach(() => {
   clearCustomCardSleeve();
+  clearCustomEggSleeve();
   setCardSleeveId("omnimon");
   setEggSleeveId(DEFAULT_EGG_SLEEVE.id);
 });
@@ -95,6 +98,30 @@ describe("deck sleeve dialog", () => {
     const names = tileNames(dialog);
     expect(names.slice(0, 3)).toEqual([en["redesign.decks.editor.sleeveUseSettings"], "Digi-Egg", "Digimon Card Game"]);
     expect(names.filter((name) => name === "Digi-Egg")).toHaveLength(1);
+  });
+
+  it("offers the uploaded Digi-Egg image in the Digi-Eggs tab only", () => {
+    setCustomEggSleeve("data:image/webp;base64,ZWdn");
+    setEggSleeveId(DEFAULT_EGG_SLEEVE.id);
+    const onChange = vi.fn<(ids: SleeveIds) => void>();
+    renderPicker(undefined, onChange);
+    const dialog = openDialog();
+    expect(tileNames(dialog)).not.toContain(en["settings.sleeveCustom"]);
+
+    fireEvent.click(within(dialog).getByRole("tab", { name: en["redesign.decks.editor.sleeveTabEgg"] }));
+    expect(tileNames(dialog).slice(0, 3)).toEqual([
+      en["redesign.decks.editor.sleeveUseSettings"],
+      en["settings.sleeveCustom"],
+      "Digi-Egg",
+    ]);
+    fireEvent.click(within(dialog).getByRole("button", { name: new RegExp(en["settings.sleeveLocal"]) }));
+    expect(onChange).toHaveBeenLastCalledWith({ main: undefined, egg: "custom-egg" });
+    expect(screen.getByTestId("deck-sleeve-egg").textContent).toBe(`Digi-Eggs${en["settings.sleeveCustom"]}`);
+  });
+
+  it("falls back to the Settings egg sleeve when the Digi-Egg image is missing on this device", () => {
+    renderPicker({ main: undefined, egg: "custom-egg" });
+    expect(screen.getByTestId("deck-sleeve-egg").textContent).toContain(en["redesign.decks.editor.sleeveFromSettings"]);
   });
 
   it("applies a pick to the tab's deck part at once", () => {

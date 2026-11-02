@@ -9,12 +9,14 @@ import { Icons } from "../design/icons";
 import {
   CARD_SLEEVES,
   CUSTOM_CARD_SLEEVE_ID,
+  CUSTOM_EGG_SLEEVE_ID,
   DEFAULT_CARD_SLEEVE,
   DEFAULT_EGG_SLEEVE,
   cardSleeveById,
   eggSleeveById,
   getCardSleeveId,
   getCustomCardSleeveSrc,
+  getCustomEggSleeveSrc,
   getEggSleeveId,
   subscribeCardSleeve,
   type CardSleeve,
@@ -64,8 +66,34 @@ export interface SleeveTile {
   collection?: string;
 }
 
-/** The tiles pinned above the catalog, in order: Settings sleeve, uploaded image, the part's default back. */
-export function pinnedSleeveTiles(part: SleevePart, t: Translate, customSrc: string | undefined): SleeveTile[] {
+export interface CustomSleeveSources {
+  card: string | undefined;
+  egg: string | undefined;
+}
+
+function buildUploadedTiles(part: SleevePart, t: Translate, sources: CustomSleeveSources): SleeveTile[] {
+  const tiles: SleeveTile[] = [];
+  if (part === "egg" && sources.egg) {
+    tiles.push({
+      value: CUSTOM_EGG_SLEEVE_ID,
+      name: t("settings.sleeveCustom"),
+      caption: t("settings.sleeveLocal"),
+      src: sources.egg,
+    });
+  }
+  if (sources.card) {
+    tiles.push({
+      value: CUSTOM_CARD_SLEEVE_ID,
+      name: t("settings.sleeveCustom"),
+      caption: t(part === "egg" ? "settings.sleeveFromCards" : "settings.sleeveLocal"),
+      src: sources.card,
+    });
+  }
+  return tiles;
+}
+
+/** The tiles pinned above the catalog, in order: Settings sleeve, uploaded images, the part's default back. */
+export function pinnedSleeveTiles(part: SleevePart, t: Translate, sources: CustomSleeveSources): SleeveTile[] {
   const config = PARTS[part];
   const globalSleeve = config.byId(config.getGlobalId());
   return [
@@ -75,16 +103,7 @@ export function pinnedSleeveTiles(part: SleevePart, t: Translate, customSrc: str
       caption: sleeveName(globalSleeve, t),
       src: globalSleeve.src,
     },
-    ...(customSrc
-      ? [
-          {
-            value: CUSTOM_CARD_SLEEVE_ID,
-            name: t("settings.sleeveCustom"),
-            caption: t("settings.sleeveLocal"),
-            src: customSrc,
-          },
-        ]
-      : []),
+    ...buildUploadedTiles(part, t, sources),
     ...(config.pinnedDefault
       ? [
           {
@@ -99,19 +118,33 @@ export function pinnedSleeveTiles(part: SleevePart, t: Translate, customSrc: str
 }
 
 function sleeveName(sleeve: CardSleeve, t: Translate): string {
-  return sleeve.id === CUSTOM_CARD_SLEEVE_ID ? t("settings.sleeveCustom") : sleeve.label;
+  return sleeve.id === CUSTOM_CARD_SLEEVE_ID || sleeve.id === CUSTOM_EGG_SLEEVE_ID
+    ? t("settings.sleeveCustom")
+    : sleeve.label;
 }
 
 function useSleeveStores() {
   const mainGlobal = useSyncExternalStore(subscribeCardSleeve, getCardSleeveId, () => DEFAULT_CARD_SLEEVE.id);
   const eggGlobal = useSyncExternalStore(subscribeCardSleeve, getEggSleeveId, () => DEFAULT_EGG_SLEEVE.id);
-  const customSrc = useSyncExternalStore(subscribeCardSleeve, getCustomCardSleeveSrc, () => undefined);
-  return { globalIds: { main: mainGlobal, egg: eggGlobal } as Record<SleevePart, string>, customSrc };
+  const card = useSyncExternalStore(subscribeCardSleeve, getCustomCardSleeveSrc, () => undefined);
+  const egg = useSyncExternalStore(subscribeCardSleeve, getCustomEggSleeveSrc, () => undefined);
+  const customSources: CustomSleeveSources = { card, egg };
+  return { globalIds: { main: mainGlobal, egg: eggGlobal } as Record<SleevePart, string>, customSources };
+}
+
+function isShowableSleeveId(part: SleevePart, id: string, sources: CustomSleeveSources): boolean {
+  if (id === CUSTOM_CARD_SLEEVE_ID) {
+    return Boolean(sources.card);
+  }
+  if (id === CUSTOM_EGG_SLEEVE_ID) {
+    return part === "egg" && Boolean(sources.egg);
+  }
+  return true;
 }
 
 /** The sleeve a deck part shows: its own choice when this device can show it, else the Settings one. */
-function shownSleeve(part: SleevePart, own: string | undefined, globalId: string, customSrc: string | undefined) {
-  const usable = own !== undefined && (own !== CUSTOM_CARD_SLEEVE_ID || Boolean(customSrc));
+function shownSleeve(part: SleevePart, own: string | undefined, globalId: string, sources: CustomSleeveSources) {
+  const usable = own !== undefined && isShowableSleeveId(part, own, sources);
   return { sleeve: PARTS[part].byId(usable ? own : globalId), fromSettings: !usable };
 }
 
@@ -131,14 +164,14 @@ export function DeckSleevePicker({
   onChange: (part: SleevePart, sleeveId: string | undefined) => void;
 }) {
   const { t } = useTranslation();
-  const { globalIds, customSrc } = useSleeveStores();
+  const { globalIds, customSources } = useSleeveStores();
   const [open, setOpen] = useState(false);
 
   return (
     <div className="deck-sleeves">
       <ul className="deck-sleeves__list">
         {SLEEVE_PARTS.map((part) => {
-          const { sleeve, fromSettings } = shownSleeve(part, sleeveIds[part], globalIds[part], customSrc);
+          const { sleeve, fromSettings } = shownSleeve(part, sleeveIds[part], globalIds[part], customSources);
           return (
             <li key={part} className="deck-sleeves__item" data-testid={`deck-sleeve-${part}`}>
               <SleeveThumb src={sleeve.src} />
@@ -170,7 +203,7 @@ export function DeckSleevePicker({
         <DeckSleeveDialog
           sleeveIds={sleeveIds}
           globalIds={globalIds}
-          customSrc={customSrc}
+          customSources={customSources}
           onChange={onChange}
           onClose={() => setOpen(false)}
         />
@@ -182,13 +215,13 @@ export function DeckSleevePicker({
 function DeckSleeveDialog({
   sleeveIds,
   globalIds,
-  customSrc,
+  customSources,
   onChange,
   onClose,
 }: {
   sleeveIds: Record<SleevePart, string | undefined>;
   globalIds: Record<SleevePart, string>;
-  customSrc: string | undefined;
+  customSources: CustomSleeveSources;
   onChange: (part: SleevePart, sleeveId: string | undefined) => void;
   onClose: () => void;
 }) {
@@ -200,8 +233,8 @@ function DeckSleeveDialog({
     if (panelRef.current) panelRef.current.scrollTop = 0;
   }, [part]);
   const selected = sleeveIds[part];
-  const shown = shownSleeve(part, selected, globalIds[part], customSrc);
-  const pinned = pinnedSleeveTiles(part, t, customSrc);
+  const shown = shownSleeve(part, selected, globalIds[part], customSources);
+  const pinned = pinnedSleeveTiles(part, t, customSources);
   const pinnedValues = new Set(pinned.map((tile) => tile.value));
 
   const selectTab = (next: SleevePart) => {
