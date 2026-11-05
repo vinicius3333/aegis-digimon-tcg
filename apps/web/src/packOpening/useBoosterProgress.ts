@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { appendOpenedPacks } from "@/packOpening/appendOpenedPacks";
 import { BOOSTER_BOX_PACK_COUNT, type BoosterBox, type BoosterProgress } from "@/packOpening/BoosterProgress";
-import type { BoxHit } from "@/packOpening/BoxHit";
-import type { PackCard } from "@/packOpening/PackCard";
+import type { BoxHit } from "@aegis/shared/packOpening/BoxHit";
+import type { PackCard } from "@aegis/shared/packOpening/PackCard";
 import { startBoosterBox } from "@/packOpening/startBoosterBox";
 import { readBoosterProgress } from "@/packOpening/readBoosterProgress";
 import { saveBoosterProgress } from "@/packOpening/saveBoosterProgress";

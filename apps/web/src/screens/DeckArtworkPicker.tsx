@@ -1,5 +1,6 @@
 import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
-import { useEffect, useRef, useState } from "react";
+import { useModalFocus } from "@/design/useModalFocus";
+import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { getCardArts, resolveCardArt } from "@aegis/shared";
 import { ArtRegion } from "@aegis/shared/cards/ArtRegion";
@@ -33,43 +34,15 @@ export function DeckArtworkPicker({
   const { t } = useTranslation();
   const [target, setTarget] = useState<number | "all">(count > 1 ? "all" : 0);
   const panel = useRef<HTMLDivElement>(null);
-  const close = useRef<HTMLButtonElement>(null);
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  useModalFocus({ surfaceRef: panel, onClose, focusFirst: true });
   const copyArtIds = Array.from({ length: count }, (_, index) => resolveCardArt(cardId, arts[index]).artId);
   const sharedArtId = copyArtIds.every((artId) => artId === copyArtIds[0]) ? copyArtIds[0] : undefined;
   const selected = target === "all" ? sharedArtId : copyArtIds[target];
-  useEffect(() => {
-    const previous = document.activeElement as HTMLElement | null;
-    close.current?.focus();
-    const keydown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onCloseRef.current();
-      }
-      if (event.key !== "Tab") return;
-      const buttons = panel.current?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)");
-      if (!buttons?.length) return;
-      const first = buttons[0]!;
-      const last = buttons[buttons.length - 1]!;
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener("keydown", keydown);
-    return () => {
-      document.removeEventListener("keydown", keydown);
-      previous?.focus();
-    };
-  }, []);
   return createPortal(
     <div className="deck-art-picker-backdrop" onClick={onClose}>
       <div
         ref={panel}
+        tabIndex={-1}
         className="deck-art-picker"
         role="dialog"
         aria-modal="true"
@@ -83,13 +56,7 @@ export function DeckArtworkPicker({
               {getCardName(cardId)} · {cardId}
             </p>
           </div>
-          <button
-            ref={close}
-            type="button"
-            className="deck-art-picker__close"
-            aria-label={t("common.close")}
-            onClick={onClose}
-          >
+          <button type="button" className="deck-art-picker__close" aria-label={t("common.close")} onClick={onClose}>
             ×
           </button>
         </div>

@@ -1,4 +1,4 @@
-import type { PackCard } from "@/packOpening/PackCard";
+import type { PackCard } from "@aegis/shared/packOpening/PackCard";
 import { getPackCardRank } from "@/packOpening/getPackCardRank";
 
 export function findBestPull(cards: readonly PackCard[]): PackCard | undefined {

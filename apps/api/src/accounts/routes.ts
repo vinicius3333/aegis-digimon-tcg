@@ -1,3 +1,4 @@
+import { installSealedRoutes } from "#api/tournaments/sealed/installSealedRoutes";
 import { installDeckSimulationRoutes } from "#api/deckSimulation/installDeckSimulationRoutes";
 import { DeckMatchupResultStore } from "#api/deckSimulation/DeckMatchupResultStore";
 import { matchupOwnerPath } from "#api/deckSimulation/matchupOwnerPath";
@@ -231,6 +232,7 @@ export function installAccountRoutes(
   installTournamentSpectatorRoutes({ app, accounts: store, series, session: sessionFromRequest });
   const tournamentSpectators = new TournamentSpectatorStore(store);
   installTournamentCircuitRoutes({ app, accounts: store, participants, session: sessionFromRequest });
+  installSealedRoutes({ app, accounts: store, swiss, session: sessionFromRequest });
   const get = (path: string, handler: AsyncHandler) => app.get(path, asyncRoute(handler));
   const post = (path: string, handler: AsyncHandler) => app.post(path, asyncRoute(handler));
   const put = (path: string, handler: AsyncHandler) => app.put(path, asyncRoute(handler));
@@ -739,6 +741,7 @@ export function installAccountRoutes(
     }
     const { input, rules, banlistCards } = validated.value;
     const tournament = await store.createTournament(session.account.id, {
+      sealedConfiguration: input.sealedConfiguration,
       category: input.category,
       name: input.name,
       format: input.format,
@@ -862,14 +865,15 @@ export function installAccountRoutes(
     const session = await requireSession(req, res, store);
     if (!session) return;
     const { savedDeckId, password } = req.body as { savedDeckId?: unknown; password?: unknown };
-    if (typeof savedDeckId !== "string" || !savedDeckId) {
+    const tournament = await store.tournament(req.params.id!);
+    if (!tournament?.sealedConfiguration && (typeof savedDeckId !== "string" || !savedDeckId)) {
       res.status(400).json({ error: "savedDeckId is required" });
       return;
     }
     const result = await participants.register({
       tournamentId: req.params.id!,
       accountId: session.account.id,
-      savedDeckId,
+      savedDeckId: typeof savedDeckId === "string" ? savedDeckId : undefined,
       password,
     });
     if (!result.ok) {
@@ -975,10 +979,14 @@ export function installAccountRoutes(
       return;
     }
     const { program } = started;
-    res.status(program.ok ? 200 : 409).json({
-      participants: started.participants,
+    const sealedBuilding = !program.ok && program.reason === "sealed_not_ready";
+    res.status(program.ok || sealedBuilding ? 200 : 409).json({
+      participants: (await store.tournament(req.params.id!))?.sealedConfiguration
+        ? await participants.participantViews(req.params.id!)
+        : started.participants,
+      sealedBuilding,
       phase: program.ok ? program.value : null,
-      error: program.ok ? undefined : program.reason,
+      error: program.ok || sealedBuilding ? undefined : program.reason,
     });
   };
   post("/tournaments/:id/category", async (req, res) => {
@@ -1133,6 +1141,8 @@ function toTournamentSummary(
 ): TournamentSummary & Pick<Tournament, "block" | "createdBy" | "winnerAccountId"> & { registrations: number } {
   return {
     id: tournament.id,
+    sealedConfiguration: tournament.sealedConfiguration,
+    sealedBuildDeadlineAt: tournament.sealedBuildDeadlineAt,
     name: tournament.name,
     format: tournament.format,
     description: tournament.description,

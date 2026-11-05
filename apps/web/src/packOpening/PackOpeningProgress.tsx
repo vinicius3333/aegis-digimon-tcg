@@ -1,29 +1,42 @@
+import { useTranslation } from "@/i18n/useTranslation";
 import type { CSSProperties } from "react";
 import { type BoosterBox, BOOSTER_BOX_PACK_COUNT } from "@/packOpening/BoosterProgress";
 import { findBestPull } from "@/packOpening/findBestPull";
-import { findPackRarity } from "@/packOpening/findPackRarity";
+import { findPackRarity } from "@aegis/shared/packOpening/findPackRarity";
 import { getPackCardKey } from "@/packOpening/getPackCardKey";
-import type { PackCard } from "@/packOpening/PackCard";
+import type { PackCard } from "@aegis/shared/packOpening/PackCard";
 
 type Props = {
+  totalPacks?: number;
+  allocated?: boolean;
   progress: BoosterBox | undefined;
   availableCards: readonly PackCard[];
   onViewPack: (cards: PackCard[]) => void;
 };
 
-export function PackOpeningProgress({ progress, availableCards, onViewPack }: Props) {
+export function PackOpeningProgress({
+  progress,
+  availableCards,
+  onViewPack,
+  totalPacks = BOOSTER_BOX_PACK_COUNT,
+  allocated = false,
+}: Props) {
+  const { t } = useTranslation();
   const packs = progress?.packs ?? [];
   const owned = new Set(packs.flatMap((pack) => pack.cards.map(getPackCardKey)));
   const eligible = new Map(availableCards.map((card) => [getPackCardKey(card), card]));
   const collected = [...owned].filter((key) => eligible.has(key)).length;
   const percent = eligible.size === 0 ? 0 : Math.round((collected / eligible.size) * 100);
   return (
-    <section className="pack-opening-progress" aria-label="Practice collection">
+    <section
+      className="pack-opening-progress"
+      aria-label={allocated ? t("sealed.packProgress") : "Practice collection"}
+    >
       <header className="pack-opening-progress__header">
         <div>
-          <h2>Current box</h2>
+          <h2>{allocated ? t("sealed.packProgress") : "Current box"}</h2>
           <p>
-            {packs.length} / {BOOSTER_BOX_PACK_COUNT} packs opened
+            {packs.length} / {totalPacks} packs opened
           </p>
         </div>
         <p className="pack-opening-progress__count">

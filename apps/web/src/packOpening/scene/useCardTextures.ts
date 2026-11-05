@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { CanvasTexture, SRGBColorSpace, TextureLoader, type Texture } from "three";
-import type { PackCard } from "@/packOpening/PackCard";
+import type { PackCard } from "@aegis/shared/packOpening/PackCard";
 import { cardImageUrls } from "@aegis/shared/cards/images";
 
 import { getPackCardKey } from "@/packOpening/getPackCardKey";

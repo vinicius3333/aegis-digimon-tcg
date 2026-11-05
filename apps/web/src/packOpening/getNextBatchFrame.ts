@@ -1,4 +1,4 @@
-import type { PackCard } from "@/packOpening/PackCard";
+import type { PackCard } from "@aegis/shared/packOpening/PackCard";
 
 type Params = {
   packs: readonly (readonly PackCard[])[];

@@ -183,6 +183,7 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
     const replace =
       !queue.hasPendingStep(
         (step) =>
+          step.id.startsWith("pile-move-") ||
           step.id.startsWith("security-destroyed-") ||
           step.id.startsWith("security-notices-late-") ||
           step.id.startsWith("security-presented-"),

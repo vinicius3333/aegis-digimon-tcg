@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BOOSTER_PACK_COMMON_SLOTS, BOOSTER_PACK_UNCOMMON_SLOTS } from "@/packOpening/BoosterPackSlots";
+import { BOOSTER_PACK_COMMON_SLOTS, BOOSTER_PACK_UNCOMMON_SLOTS } from "@aegis/shared/packOpening/BoosterPackSlots";
 import { BoosterOddsKind } from "@/packOpening/boosterTab/BoosterOddsKind";
 import { listBoosterOdds } from "@/packOpening/boosterTab/listBoosterOdds";
 import { listBoosterSets } from "@/packOpening/listBoosterSets";

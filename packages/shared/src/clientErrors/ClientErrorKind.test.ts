@@ -3,8 +3,8 @@ import { CLIENT_ERROR_KINDS, ClientErrorKind } from "#shared/clientErrors/Client
 import { isClientErrorKind } from "#shared/clientErrors/isClientErrorKind";
 
 describe("client error kinds", () => {
-  it("serializes the three capture sources", () => {
-    expect(CLIENT_ERROR_KINDS).toEqual(["error", "unhandledRejection", "render"]);
+  it("serializes the capture sources and arena fallback", () => {
+    expect(CLIENT_ERROR_KINDS).toEqual(["error", "unhandledRejection", "render", "arena3dFallback"]);
   });
 
   it.each([ClientErrorKind.ERROR.value, ClientErrorKind.RENDER.value])("accepts %s", (kind) => {

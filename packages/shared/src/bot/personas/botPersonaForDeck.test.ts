@@ -103,6 +103,7 @@ describe("bot identities", () => {
       "anonymousSpectatorCount",
       "manualInspectionJson",
       "equippedRankedTier",
+      "avatarUrl",
     ]);
   });
 });

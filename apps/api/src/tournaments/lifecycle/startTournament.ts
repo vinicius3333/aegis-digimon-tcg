@@ -1,3 +1,4 @@
+import { expireSealedBuilding } from "#api/tournaments/sealed/expireSealedBuilding";
 import type { AccountStore } from "#api/accounts/AccountStore";
 import type { BotSeatingStore } from "#api/tournaments/bots/BotSeatingStore";
 import type { EliminationStore } from "#api/tournaments/elimination/EliminationStore";
@@ -47,6 +48,9 @@ export async function startTournament({
       kind: "elimination",
       opened: await openEliminationEvent({ tournamentId, participants, bots, elimination, now }),
     };
+  }
+  if (tournament.sealedConfiguration) {
+    await expireSealedBuilding({ accounts, tournamentId, now });
   }
   const closed = await participants.closeCheckIn({ tournamentId, now });
   if (!closed.ok) {

@@ -1,5 +1,5 @@
 import { BOOSTER_BOX_PACK_COUNT, type BoosterProgress } from "@/packOpening/BoosterProgress";
-import type { PackCard } from "@/packOpening/PackCard";
+import type { PackCard } from "@aegis/shared/packOpening/PackCard";
 
 type Params = {
   progress: BoosterProgress;

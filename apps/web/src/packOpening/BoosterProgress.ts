@@ -1,4 +1,4 @@
-import type { BoxHit } from "@/packOpening/BoxHit";
+import type { BoxHit } from "@aegis/shared/packOpening/BoxHit";
 
 export interface StoredPackCard {
   cardId: string;

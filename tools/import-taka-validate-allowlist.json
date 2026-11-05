@@ -95,6 +95,11 @@
     "reason": "Junomon: Hysteric Mode — committed text carries the <Recovery +3> reminder clause '(Place the top 3 cards of your deck as your top security card.)' present in the source at import time; the current community-DB snapshot has since trimmed that reminder. Wording-only community-DB drift, not an import defect."
   },
   {
+    "cardId": "BT26-091",
+    "field": "rarity",
+    "reason": "Verified 2026-11-02 against Bandai's official English BT26 card list (https://world.digimoncard.com/cardlist/?search=true&category=522038): Yoshino Fujieda is rarity R. The vendored community snapshot records '-', so the committed catalog corrects that metadata for product collation."
+  },
+  {
     "cardId": "BT26-103",
     "field": "effectText",
     "reason": "Jupitermon: Wrath Mode — same <Recovery +2> reminder-clause drift as BT26-083: the source has since trimmed '(Place the top 2 cards of your deck as your top security card.)'. Wording-only."

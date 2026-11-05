@@ -1,9 +1,9 @@
 import type { CardDefinition } from "@aegis/shared";
 import { BOOSTER_BOX_PACK_COUNT } from "@/packOpening/BoosterProgress";
-import { BoxHit } from "@/packOpening/BoxHit";
-import { getPackCardRarity } from "@/packOpening/getPackCardRarity";
-import { getPackPullRates } from "@/packOpening/getPackPullRates";
-import { listPackAlternateArts } from "@/packOpening/listPackAlternateArts";
+import { BoxHit } from "@aegis/shared/packOpening/BoxHit";
+import { getPackCardRarity } from "@aegis/shared/packOpening/getPackCardRarity";
+import { getPackPullRates } from "@aegis/shared/packOpening/getPackPullRates";
+import { listPackAlternateArts } from "@aegis/shared/packOpening/listPackAlternateArts";
 
 type Params = {
   setId: string;

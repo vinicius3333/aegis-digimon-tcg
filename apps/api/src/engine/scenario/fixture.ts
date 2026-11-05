@@ -1,3 +1,4 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import { GameState, PlayerState, Phase, Zone, getCardDefinition, resolveCardArt } from "@aegis/shared";
 import { clearBattleArea, clearZone, setBreeding } from "../state/access.js";
 import { createBoardIds, layBoard, type AliasTable, type CardSpec, type PermanentSpec } from "./board.js";
@@ -41,6 +42,12 @@ export function bindScenarioDecks(fixture: ScenarioFixture, decks?: readonly [De
 
 /** Check local authoring errors before clearing the receiving board. */
 export function validateScenarioFixture(fixture: ScenarioFixture): void {
+  if (
+    fixture.rulesPolicy !== undefined &&
+    !Object.values(GameRulesPolicy).some((entry) => entry.value === fixture.rulesPolicy)
+  ) {
+    throw new Error("Invalid scenario rules policy");
+  }
   if (!Number.isInteger(fixture.memory) || Math.abs(fixture.memory) > (fixture.allowOutOfRangeMemory ? 127 : 10))
     throw new Error("Scenario memory must be an integer from -10 to 10");
   if (fixture.turnSeat !== 0 && fixture.turnSeat !== 1) throw new Error("Scenario turnSeat must be 0 or 1");
@@ -148,6 +155,9 @@ export function validateScenarioFixture(fixture: ScenarioFixture): void {
 }
 
 export function arrangeScenarioTurn(state: GameState, fixture: ScenarioFixture): void {
+  if (fixture.rulesPolicy !== undefined) {
+    state.rulesPolicy = fixture.rulesPolicy;
+  }
   state.phase = Phase.None;
   state.memory = fixture.memory;
   state.turnSeat = fixture.turnSeat;

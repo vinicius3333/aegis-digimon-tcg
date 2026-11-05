@@ -1,3 +1,5 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
+import { validateSealedDeckShape } from "@aegis/shared/sealed/validateSealedDeckShape";
 import type { TournamentBanlistCard } from "@aegis/shared/tournaments/index";
 import {
   deckFormat,
@@ -47,12 +49,16 @@ interface ReadonlyDecklist {
 export function validateDecklist(
   deck: ReadonlyDecklist,
   options?: {
+    rulesPolicy?: GameRulesPolicy;
     betaBattleMode?: boolean;
     unlimited?: boolean;
     format?: DeckFormat;
     banlistCards?: readonly TournamentBanlistCard[];
   },
 ): DecklistValidation {
+  if (options?.rulesPolicy === GameRulesPolicy.SEALED.value) {
+    return validateSealedDeckShape(deck);
+  }
   const betaBattleMode = options?.betaBattleMode ?? false;
   const format = deckFormat(options?.format, options?.unlimited);
   const frozen =

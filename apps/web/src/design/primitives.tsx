@@ -1,3 +1,4 @@
+import { useModalFocus } from "@/design/useModalFocus";
 import { InputSurfaceEvent } from "@/design/InputSurfaceEvent";
 /* Aegis shared chrome: the letterboxed 16:9 Stage, UI primitives, and the top nav.
    maintained as part of the Aegis design system. Presentational only. */
@@ -10,7 +11,6 @@ import {
   type ButtonHTMLAttributes,
   type CSSProperties,
   type InputHTMLAttributes,
-  type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
 } from "react";
@@ -279,30 +279,6 @@ export function Switch({
   );
 }
 
-// Safari does not focus a button when it is clicked or tapped, so
-// document.activeElement still points at whatever had focus before (often a
-// screen region) when a dialog opens from one. A control the pointer pressed
-// just before the dialog opened is the element to refocus on close.
-const PRESS_OPENS_DIALOG_MS = 1000;
-let lastPress: { control: HTMLElement; at: number } | null = null;
-if (typeof document !== "undefined") {
-  document.addEventListener(
-    "pointerdown",
-    (event) => {
-      const target = event.target instanceof Element ? event.target : null;
-      const control = target?.closest<HTMLElement>("button, [href], input, select, textarea, [tabindex]");
-      lastPress = control ? { control, at: performance.now() } : null;
-    },
-    true,
-  );
-}
-
-function focusToRestore(): HTMLElement | null {
-  if (lastPress?.control.isConnected && performance.now() - lastPress.at < PRESS_OPENS_DIALOG_MS)
-    return lastPress.control;
-  return document.activeElement instanceof HTMLElement ? document.activeElement : null;
-}
-
 export function Dialog({
   children,
   className,
@@ -322,11 +298,7 @@ export function Dialog({
   closeOnEscape?: boolean;
 }) {
   const dialogRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const previousFocus = focusToRestore();
-    dialogRef.current?.focus();
-    return () => previousFocus?.focus();
-  }, []);
+  useModalFocus({ surfaceRef: dialogRef, onClose: closeOnEscape ? onClose : undefined });
 
   useEffect(() => {
     const surface = dialogRef.current;
@@ -345,34 +317,6 @@ export function Dialog({
     };
   }, [onClose, closeOnEscape]);
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.defaultPrevented) {
-      return;
-    }
-    if (event.key === "Escape" && onClose) {
-      event.preventDefault();
-      if (closeOnEscape) onClose();
-      return;
-    }
-    if (event.key !== "Tab") return;
-    const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
-      'button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
-    );
-    if (!focusable?.length) {
-      event.preventDefault();
-      dialogRef.current?.focus();
-      return;
-    }
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (event.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) {
-      event.preventDefault();
-      last?.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first?.focus();
-    }
-  };
   const layer = (
     <div className="aegis-dialog-layer" onClick={closeOnBackdrop ? onClose : undefined}>
       <section
@@ -383,7 +327,6 @@ export function Dialog({
         aria-labelledby={labelledBy}
         tabIndex={-1}
         style={style}
-        onKeyDown={handleKeyDown}
         onClick={(event) => event.stopPropagation()}
       >
         {children}

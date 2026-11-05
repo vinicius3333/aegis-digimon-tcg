@@ -1,4 +1,4 @@
-import type { PackCard } from "@/packOpening/PackCard";
+import type { PackCard } from "@aegis/shared/packOpening/PackCard";
 
 export interface BoxPull {
   card: PackCard;

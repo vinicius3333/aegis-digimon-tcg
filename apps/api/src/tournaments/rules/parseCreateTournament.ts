@@ -1,3 +1,4 @@
+import { isSealedConfiguration } from "@aegis/shared/sealed/isSealedConfiguration";
 import { isTournamentRoundStartMode } from "@aegis/shared/tournaments/isTournamentRoundStartMode";
 import { latestReleasedProductLabel } from "@aegis/shared/cards/cardPool";
 import type { BanlistPolicy, CreateTournamentInput } from "@aegis/shared/tournaments/index";
@@ -38,11 +39,18 @@ export function parseCreateTournament(
   if (body.roundStartMode !== undefined && !isTournamentRoundStartMode(body.roundStartMode)) {
     return undefined;
   }
+  if (body.sealedConfiguration !== undefined && !isSealedConfiguration(body.sealedConfiguration)) {
+    return undefined;
+  }
+  if (body.sealedConfiguration && bestOf !== undefined && bestOf !== 3) {
+    return undefined;
+  }
   const policy = banlist === undefined ? ({ mode: "none" } as const) : parseBanlistPolicy(banlist);
   if (!policy) return undefined;
   return {
     input: {
       name,
+      sealedConfiguration: body.sealedConfiguration,
       roundStartMode: body.roundStartMode,
       description: body.description as string | undefined,
       category: body.category ?? TournamentCategory.COMMUNITY.value,
@@ -55,7 +63,7 @@ export function parseCreateTournament(
       rounds: (body.rounds as number | null | undefined) ?? null,
       tiebreakers: (body.tiebreakers as CreateTournamentInput["tiebreakers"]) ?? null,
       points: (body.points as CreateTournamentInput["points"]) ?? null,
-      bestOf: bestOf ?? 1,
+      bestOf: bestOf ?? (body.sealedConfiguration ? 3 : 1),
       startsAt: Number(startsAt),
       maxPlayers: Number(maxPlayers),
       allowBots: allowBots === true,

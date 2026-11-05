@@ -1,4 +1,5 @@
 import { EffectsLab } from "../src/dev/EffectsLab";
+import { observeVisibleControls } from "../test/browser/observeVisibleControls";
 // Served only by the test Vite server; never imported by the product entry point.
 import { createRoot } from "react-dom/client";
 import { Client, type Room } from "@colyseus/sdk";
@@ -25,6 +26,7 @@ declare global {
     browserTestMode?: "casual" | "bot" | "private_host" | "private_guest" | "spectator";
     browserTestRoomCode?: string;
     browserTestBotDeckId?: string;
+    browserTestControlVisibleAt: (element: Element) => number | undefined;
     browserTestSnapshot: () => ReturnType<GameState["toJSON"]>;
     browserTestPresentation: () => {
       idle: boolean;
@@ -123,6 +125,7 @@ for (const method of ["joinOrCreate", "create", "joinById", "consumeSeatReservat
     return room;
   } as typeof original;
 }
+window.browserTestControlVisibleAt = observeVisibleControls();
 const root = createRoot(document.getElementById("root")!);
 root.render(
   <I18nProvider>

@@ -1,3 +1,6 @@
+import { getPrivateSealedResults } from "#api/rooms/sealed/getPrivateSealedResults";
+import { installPrivateSealedRoutes } from "#api/rooms/sealed/installPrivateSealedRoutes";
+import { sweepSealedPreparation } from "#api/tournaments/sealed/sweepSealedPreparation";
 import { createTournamentDiscordSweep } from "#api/tournaments/discord/createTournamentDiscordSweep";
 import { createTournamentResultSweep } from "#api/tournaments/results/createTournamentResultSweep";
 import { createTournamentCircuitSweep } from "#api/tournaments/circuits/createTournamentCircuitSweep";
@@ -206,6 +209,7 @@ installDeploymentRoutes({ app, runtime: deploymentRuntime });
 installBotRoutes(app);
 
 installPrivateRoomRoutes(app);
+installPrivateSealedRoutes({ app, accounts: accountStore });
 
 installSpectatorRoutes(app);
 
@@ -290,6 +294,7 @@ async function runSweeps(now: number): Promise<number> {
   for (const [name, sweep] of [
     ["join_ladders", () => deadlineScheduler.armPendingJoinLadders(now)],
     ["auto_start", () => circuitSweep.start(now)],
+    ["sealed_preparation", () => sweepSealedPreparation({ accounts: accountStore, swiss: swissProgram, now })],
     ["swiss", () => swissProgram.sweepOpenTournaments(now)],
     ["top_cut", () => topCutProgram.sweepFrozenSwissPhases(now)],
     ["bracket_rounds", () => eliminationStore.sweepAutomaticRounds(now)],
@@ -339,6 +344,7 @@ const shutdown = (signal: string) => {
     stopDeadlineWorker: () => deadlineWorker?.stop(),
     shutdownRooms: () => gameServer.gracefullyShutdown(false),
   })
+    .finally(() => getPrivateSealedResults({ accounts: accountStore }).close())
     .finally(() => stopBotInference())
     .then(() => cluster.shutdown())
     .then(() => flushLogs())

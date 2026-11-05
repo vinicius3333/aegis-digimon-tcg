@@ -1,3 +1,5 @@
+import { prepareSealedField } from "#api/tournaments/sealed/prepareSealedField";
+import type { SealedConfiguration } from "@aegis/shared/sealed/SealedContracts";
 import type { TournamentRoundStartMode } from "@aegis/shared/tournaments/TournamentRoundStartMode";
 import { appendTournamentEvent } from "#api/tournaments/audit/TournamentEventLog";
 import type { TournamentOwnDeck } from "@aegis/shared/tournaments/TournamentOwnDeck";
@@ -256,7 +258,7 @@ export class ParticipantStore {
     return this.mutate(input.tournamentId, async (client) => {
       const tournament = (
         await client.query<TournamentRow & { check_in_closes_at: string | null }>(
-          "SELECT id, status, format, check_in_closes_at FROM tournaments WHERE id=$1 FOR UPDATE",
+          "SELECT id, status, format, check_in_closes_at, sealed_configuration, sealed_build_deadline_at FROM tournaments WHERE id=$1 FOR UPDATE",
           [input.tournamentId],
         )
       ).rows[0];
@@ -264,6 +266,7 @@ export class ParticipantStore {
         return { ok: false, reason: "tournament_not_found" } as const;
       }
       if (
+        tournament.sealed_configuration ||
         !CHECK_IN_STATUSES.has(tournament.status) ||
         (tournament.check_in_closes_at !== null && now > Number(tournament.check_in_closes_at))
       ) {
@@ -297,7 +300,11 @@ export class ParticipantStore {
   }
 
   async participantViews(tournamentId: string): Promise<ParticipantView[]> {
-    return (await this.participants(tournamentId)).map(toParticipantView);
+    const sealed = (await this.accounts.tournament(tournamentId))?.sealedConfiguration;
+    return (await this.participants(tournamentId)).map((participant) => ({
+      ...toParticipantView(participant),
+      ...(sealed ? { sealedReady: participant.deckSnapshot !== null } : {}),
+    }));
   }
 
   async windows(tournamentId: string): Promise<TournamentWindows | undefined> {
@@ -392,7 +399,7 @@ export class ParticipantStore {
   async register(input: {
     tournamentId: string;
     accountId: string;
-    savedDeckId: string;
+    savedDeckId?: string;
     password?: unknown;
     now?: number;
   }): Promise<ParticipantResult<ParticipantRecord>> {
@@ -400,7 +407,7 @@ export class ParticipantStore {
     return this.mutate(input.tournamentId, async (client) => {
       const tournament = (
         await client.query<TournamentRow>(
-          "SELECT id, status, max_players, registration_closes_at, password_hash, format FROM tournaments WHERE id=$1 FOR UPDATE",
+          "SELECT id, status, max_players, registration_closes_at, password_hash, format, sealed_configuration FROM tournaments WHERE id=$1 FOR UPDATE",
           [input.tournamentId],
         )
       ).rows[0];
@@ -421,14 +428,20 @@ export class ParticipantStore {
       if (existing?.status === "disqualified") return { ok: false, reason: "disqualified" } as const;
       if (existing && existing.status !== "dropped") return { ok: false, reason: "already_registered" } as const;
 
-      const deck = await this.savedDeck(client, input.accountId, input.savedDeckId);
-      if (!deck) return { ok: false, reason: "deck_not_found" } as const;
-      const legality = validateCompetitiveDeck(
-        deck,
-        await this.readBanlist(client, input.tournamentId),
-        tournament.format,
-      );
-      if (!legality.legal) return { ok: false, reason: "deck_illegal", violations: legality.violations } as const;
+      if (!tournament.sealed_configuration) {
+        const deck = await this.savedDeck(client, input.accountId, input.savedDeckId ?? null);
+        if (!deck) {
+          return { ok: false, reason: "deck_not_found" } as const;
+        }
+        const legality = validateCompetitiveDeck(
+          deck,
+          await this.readBanlist(client, input.tournamentId),
+          tournament.format,
+        );
+        if (!legality.legal) {
+          return { ok: false, reason: "deck_illegal", violations: legality.violations } as const;
+        }
+      }
 
       if ((await this.occupiedSlots(client, input.tournamentId)) >= Number(tournament.max_players))
         return { ok: false, reason: "tournament_full" } as const;
@@ -438,14 +451,21 @@ export class ParticipantStore {
       if (existing)
         await client.query(
           "UPDATE tournament_participants SET status='registered', saved_deck_id=$1, dropped_at=NULL, checked_in_at=NULL, created_at=$2 WHERE id=$3",
-          [input.savedDeckId, now, id],
+          [tournament.sealed_configuration ? null : input.savedDeckId, now, id],
         );
       else
         await client.query(
           `INSERT INTO tournament_participants
              (id, tournament_id, kind, account_id, display_name, status, saved_deck_id, created_at)
            VALUES ($1,$2,'human',$3,$4,'registered',$5,$6)`,
-          [id, input.tournamentId, input.accountId, displayName, input.savedDeckId, now],
+          [
+            id,
+            input.tournamentId,
+            input.accountId,
+            displayName,
+            tournament.sealed_configuration ? null : input.savedDeckId,
+            now,
+          ],
         );
       return { ok: true, value: (await this.readParticipant(client, id))! } as const;
     });
@@ -460,7 +480,7 @@ export class ParticipantStore {
     return this.mutate(input.tournamentId, async (client) => {
       const tournament = (
         await client.query<TournamentRow>(
-          "SELECT id, status, max_players, check_in_opens_at, check_in_closes_at FROM tournaments WHERE id=$1 FOR UPDATE",
+          "SELECT id, status, max_players, check_in_opens_at, check_in_closes_at, sealed_build_deadline_at FROM tournaments WHERE id=$1 FOR UPDATE",
           [input.tournamentId],
         )
       ).rows[0];
@@ -470,6 +490,9 @@ export class ParticipantStore {
           ok: false,
           reason: PRE_CHECK_IN_STATUSES.has(tournament.status) ? "check_in_not_open" : "check_in_closed",
         } as const;
+      if (tournament.sealed_build_deadline_at) {
+        return { ok: false, reason: "check_in_closed" } as const;
+      }
       if (tournament.check_in_opens_at !== null && now < Number(tournament.check_in_opens_at))
         return { ok: false, reason: "check_in_not_open" } as const;
       if (tournament.check_in_closes_at !== null && now > Number(tournament.check_in_closes_at))
@@ -504,6 +527,26 @@ export class ParticipantStore {
         now,
         existing.id,
       ]);
+      const event = (
+        await client.query<{ sealed_configuration: unknown }>(
+          "SELECT sealed_configuration FROM tournaments WHERE id=$1",
+          [input.tournamentId],
+        )
+      ).rows[0];
+      if (event?.sealed_configuration) {
+        await appendTournamentEvent(client, {
+          tournamentId: input.tournamentId,
+          actorKind: "participant",
+          actorId: input.accountId,
+          command: "sealed_participant_dropped",
+          commandId: `sealed_drop:${existing.id}:${randomUUID()}`,
+          reason: "Participant withdrew from the sealed field",
+          reasonCode: "participant_withdrew",
+          subjectKind: "participant",
+          subjectId: existing.id,
+          now,
+        });
+      }
       return { ok: true, value: (await this.readParticipant(client, existing.id))! } as const;
     });
   }
@@ -527,7 +570,7 @@ export class ParticipantStore {
     return this.mutate(input.tournamentId, async (client) => {
       const tournament = (
         await client.query<TournamentRow>(
-          "SELECT id, status, check_in_opens_at, check_in_closes_at, format FROM tournaments WHERE id=$1 FOR UPDATE",
+          "SELECT id, status, check_in_opens_at, check_in_closes_at, format, sealed_configuration, sealed_build_deadline_at FROM tournaments WHERE id=$1 FOR UPDATE",
           [input.tournamentId],
         )
       ).rows[0];
@@ -535,6 +578,26 @@ export class ParticipantStore {
       if (!CHECK_IN_STATUSES.has(tournament.status)) return { ok: false, reason: "check_in_closed" } as const;
       if (tournament.check_in_opens_at !== null && now < Number(tournament.check_in_opens_at))
         return { ok: false, reason: "check_in_not_open" } as const;
+
+      if (tournament.sealed_configuration) {
+        if (tournament.sealed_build_deadline_at === null) {
+          await prepareSealedField({
+            client,
+            tournamentId: input.tournamentId,
+            configuration: tournament.sealed_configuration,
+            now,
+          });
+        }
+        return {
+          ok: true,
+          value: (
+            await client.query<ParticipantRow>(
+              `SELECT ${COLUMNS} FROM tournament_participants WHERE tournament_id=$1 ORDER BY created_at,id`,
+              [input.tournamentId],
+            )
+          ).rows.map(toParticipant),
+        } as const;
+      }
 
       const banlist = await this.readBanlist(client, input.tournamentId);
       const pending = (
@@ -864,6 +927,8 @@ type ParticipantRow = {
 };
 
 type TournamentRow = {
+  sealed_configuration: SealedConfiguration | null;
+  sealed_build_deadline_at: string | null;
   format: DeckFormat;
   password_hash: string | null;
   id: string;

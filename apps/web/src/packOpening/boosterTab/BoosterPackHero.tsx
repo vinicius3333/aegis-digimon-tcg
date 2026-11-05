@@ -1,7 +1,7 @@
 import { Button } from "@/design/primitives";
 import { Icons } from "@/design/icons";
 import { useTranslation } from "@/i18n/useTranslation";
-import { BOOSTER_PACK_CARD_COUNT } from "@/packOpening/BoosterPackSlots";
+import { BOOSTER_PACK_CARD_COUNT } from "@aegis/shared/packOpening/BoosterPackSlots";
 import type { BoosterSet } from "@/packOpening/listBoosterSets";
 
 type BoosterPackHeroParams = {

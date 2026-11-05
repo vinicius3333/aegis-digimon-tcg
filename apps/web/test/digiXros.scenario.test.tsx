@@ -9,6 +9,7 @@ import { swapMainDeckCard } from "./scenarioHarness/decks";
 import { scenario } from "./scenarioHarness/scenario";
 import { startTestServer, type TestServer } from "./scenarioHarness/server";
 import { joinHeadlessOpponent } from "./scenarioHarness/headlessOpponent";
+import { GameScreen } from "../src/game/GameScreen";
 
 // BT11-009 "Shoutmon + StarSword" (Red/Yellow, Lv.3, playCost 5) carries a DigiXros
 // requirement: "DigiXros -1: [Shoutmon] x∞" — one material slot named "Shoutmon",
@@ -56,7 +57,6 @@ scenario("digi-xros", () => {
 
   it("playing Shoutmon + StarSword with a Shoutmon material renders it in the battle area with the material in its stack", async () => {
     vi.stubEnv("VITE_AEGIS_API_URL", server.endpoint);
-    const { GameScreen } = await import("../src/game/GameScreen");
 
     // Seed 94: seat 0 (protagonist, the swapped deck) goes first and its dealt
     // opening hand includes two copies of BT11-009 "Shoutmon + StarSword" and one

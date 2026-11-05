@@ -1,3 +1,4 @@
+import { resolveSealedGameDecks } from "#api/tournaments/sealed/resolveSealedGameDecks";
 import { recordTournamentGameFacts } from "#api/ranked/recordTournamentGameFacts";
 import { advanceSeriesDeadline } from "#api/tournaments/scheduler/advanceSeriesDeadline";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
@@ -36,6 +37,8 @@ export type GameResult = "participant0" | "participant1" | "draw" | "voided";
 export type SeriesTimeoutPolicy = { kind: "swiss"; onTie: SwissTimeoutPolicy } | { kind: "elimination" };
 
 export type SeriesFailure =
+  | "sealed_not_ready"
+  | "sealed_sideboarding"
   | "match_not_found"
   | "match_not_ready"
   | "tournament_cancelled"
@@ -391,6 +394,10 @@ export class SeriesStore {
     const ttl = input.ttlMs ?? AUTHORIZATION_TTL_MS;
     const holder = holderOf(input);
     return this.mutate(input.seriesId, async (client) => {
+      const context = await readSeries(client, input.seriesId);
+      if (context) {
+        await client.query("SELECT id FROM tournaments WHERE id=$1 FOR UPDATE", [context.tournamentId]);
+      }
       const series = await lockSeries(client, input.seriesId);
       if (!series) return failure("series_not_found");
       if (await this.isTournamentCancelled({ db: client, tournamentId: series.tournamentId })) {
@@ -401,10 +408,20 @@ export class SeriesStore {
       if (seat === undefined) return failure("not_a_participant");
       if (series.status === "overtime") return failure("no_games_remaining");
 
+      const sealed = await resolveSealedGameDecks({ db: client, series, now });
+      if (!sealed.ok) {
+        return sealed;
+      }
       const game = await this.nextGame(client, series, now);
       if (!game) return failure("no_games_remaining");
       await expireLiveAuthorizations(client, game.id, holder, now);
 
+      if (sealed.decks && game.deckSnapshots[0] === null && game.deckSnapshots[1] === null) {
+        await client.query(
+          "UPDATE tournament_games SET player0_deck_snapshot=$1,player1_deck_snapshot=$2 WHERE id=$3",
+          [JSON.stringify(sealed.decks[0]), JSON.stringify(sealed.decks[1]), game.id],
+        );
+      }
       const token = randomBytes(32).toString("base64url");
       await client.query(
         `INSERT INTO tournament_game_authorizations (token_hash, game_id, account_id, participant_id, issued_at, expires_at)
@@ -486,14 +503,6 @@ export class SeriesStore {
     });
   }
 
-  /**
-   * Everything an authorization asserts, validated once and shared by {@link inspectAuthorization}
-   * and {@link claimGame} so the two can never disagree about who may enter a room.
-   *
-   * The deck comes from `tournament_participants.deck_snapshot`, frozen when check-in closed. A
-   * tournament game is played with the deck the participant registered, full stop — the client's
-   * own `deck` option is not consulted, and an account with no frozen deck cannot be seated at all.
-   */
   private async entryFor(
     db: Queryable,
     input: { gameId: string; authorizationToken: string; roomId: string },
@@ -543,7 +552,7 @@ export class SeriesStore {
       participantId: identity.participantId,
       kind: identity.kind,
       displayName: identity.displayName,
-      deck: identity.deck,
+      deck: game.deckSnapshots[seat] ?? identity.deck,
       binding: { authorization, game, replaying, seat },
     });
   }

@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/i18n/I18nProvider";
-import { drawBoosterPack } from "@/packOpening/drawBoosterPack";
+import { drawBoosterPack } from "@aegis/shared/packOpening/drawBoosterPack";
 import { listBoosterSets } from "@/packOpening/listBoosterSets";
 import { readBoosterProgress } from "@/packOpening/readBoosterProgress";
 import { saveBoosterProgress } from "@/packOpening/saveBoosterProgress";

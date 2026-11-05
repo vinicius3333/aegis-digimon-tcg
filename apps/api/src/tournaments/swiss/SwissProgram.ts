@@ -1,3 +1,4 @@
+import { isSealedFieldReady } from "#api/tournaments/sealed/isSealedFieldReady";
 import { TournamentRoundStartMode } from "@aegis/shared/tournaments/TournamentRoundStartMode";
 import { grantTournamentTrophies } from "#api/achievements/grantTournamentTrophies";
 import { buildTournamentRules } from "#api/tournaments/rules/buildTournamentRules";
@@ -28,6 +29,7 @@ import type { SeriesStore } from "../series/index.js";
 import { computeStandings } from "../standings/index.js";
 
 export type SwissFailure =
+  | "sealed_not_ready"
   | "tournament_not_found"
   | "not_swiss"
   | "no_active_participants"
@@ -100,6 +102,13 @@ export class SwissProgram {
 
       const existing = await readPhase(client, tournamentId);
       if (existing) return ok(await this.phaseView(client, tournament, existing));
+      if (tournament.status === "cancelled" || tournament.status === "finished") {
+        return failure("round_not_ready");
+      }
+
+      if (!(await isSealedFieldReady({ db: client, tournamentId }))) {
+        return failure("sealed_not_ready");
+      }
 
       const roster = await readRoster(client, tournamentId);
       if (roster.length === 0) return failure("no_active_participants");

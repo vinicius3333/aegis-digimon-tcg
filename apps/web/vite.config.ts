@@ -44,6 +44,11 @@ export default defineConfig({
   },
   test: {
     projects: [
+      {
+        extends: true,
+        test: { name: "modal-focus", include: ["src/design/useModalFocus.test.tsx"], environment: "jsdom" },
+      },
+      { extends: true, test: { name: "sealed-ui", include: ["src/sealed/**/*.test.tsx"], environment: "jsdom" } },
       { extends: true, test: { name: "deck-sync", include: ["src/App.deckDeletion.test.tsx"], environment: "jsdom" } },
       { extends: true, test: { name: "ranked-ui", include: ["src/ranked/**/*.test.tsx"], environment: "jsdom" } },
       {
@@ -157,6 +162,7 @@ export default defineConfig({
         test: {
           name: "default",
           exclude: [
+            "src/design/useModalFocus.test.tsx",
             "src/App.deckDeletion.test.tsx",
             "src/game/screen/hooks/useBoardMeasurements.test.tsx",
             "src/replays/ReplayPlayer.test.tsx",
@@ -165,6 +171,7 @@ export default defineConfig({
             "src/i18n/useCardTranslationState.test.tsx",
             ...configDefaults.exclude,
             "e2e/**",
+            "src/sealed/**/*.test.tsx",
             "src/ranked/**/*.test.tsx",
             "src/achievements/**/*.test.tsx",
             "src/bot/personas/**/*.test.tsx",

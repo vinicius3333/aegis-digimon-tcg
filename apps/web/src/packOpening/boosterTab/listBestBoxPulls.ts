@@ -3,8 +3,8 @@ import type { BoxPull } from "@/packOpening/boosterTab/BoxPull";
 import { listOpenedPackCards } from "@/packOpening/boosterTab/listOpenedPackCards";
 import { getPackCardKey } from "@/packOpening/getPackCardKey";
 import { getPackCardRank } from "@/packOpening/getPackCardRank";
-import type { PackCard } from "@/packOpening/PackCard";
-import { PackRarity } from "@/packOpening/PackRarity";
+import type { PackCard } from "@aegis/shared/packOpening/PackCard";
+import { PackRarity } from "@aegis/shared/packOpening/PackRarity";
 
 type Params = {
   packs: readonly OpenedPack[];

@@ -46,6 +46,11 @@ for (const mode of ["accept", "decline", "ordinary"] as const) {
       }
       if (decision.kind === "selectCards" || decision.kind === "chooseTargets") {
         const candidates = decision.options.candidateInstanceIds ?? [];
+        if (decision.options.selectionContext === "attackTarget") {
+          expect(decision.options).toMatchObject({ min: 0, max: 1 });
+          expect(candidates).toContain("player");
+          return { instanceId: "player" };
+        }
         if ((decision.options.min ?? 1) === 0) return { accept: false };
         for (const id of ["player", fixtureInstanceId("feedback79-destroy"), OMNI])
           if (candidates.includes(id)) return { instanceId: id };

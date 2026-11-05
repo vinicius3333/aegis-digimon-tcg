@@ -13,6 +13,7 @@ import { BreedingSlot, Pile, type DropAttrs } from "../../piece";
 import type { PermanentBurst } from "../../showcases";
 
 export function BreedingDock({
+  sealed = false,
   eggDeckCount,
   breeding,
   keywordLabels,
@@ -33,6 +34,7 @@ export function BreedingDock({
   onSlotClick,
   onInspect,
 }: {
+  sealed?: boolean;
   eggDeckCount: number;
   breeding: Permanent | undefined;
   keywordLabels?: Readonly<Record<string, string>>;
@@ -57,6 +59,16 @@ export function BreedingDock({
   onInspect?: () => void;
 }) {
   const { t } = useTranslation();
+  let hint = t("game.breedingHint.end");
+  if (canMoveOut) {
+    hint = t("game.breedingHint.move");
+  }
+  if (canHatchEgg) {
+    hint = t("game.breedingHint.hatch");
+  }
+  if (sealed) {
+    hint = t("sealed.breedingHint");
+  }
   return (
     <div
       className="game-breeding-dock"
@@ -118,11 +130,7 @@ export function BreedingDock({
       </div>
       {actionsOpen ? (
         <p className="game-breeding-hint" role="status">
-          {canHatchEgg
-            ? t("game.breedingHint.hatch")
-            : canMoveOut
-              ? t("game.breedingHint.move")
-              : t("game.breedingHint.end")}
+          {hint}
         </p>
       ) : null}
     </div>

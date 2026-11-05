@@ -2,7 +2,7 @@ import { resolveCardArt } from "@aegis/shared/cards/arts";
 import { getCardDefinition } from "@aegis/shared/cards/registry";
 import type { CardFinishEntry } from "@/design/webglCard/CardFinish";
 import { getCardFinish } from "@/design/webglCard/getCardFinish";
-import { getPackCardRarity } from "@/packOpening/getPackCardRarity";
+import { getPackCardRarity } from "@aegis/shared/packOpening/getPackCardRarity";
 
 type Params = {
   cardId: string;

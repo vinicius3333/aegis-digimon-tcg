@@ -329,3 +329,9 @@ Compared with the reviewed catalog after the bracket corrections (`373533af17`),
 Re-running the three absence searches (`DNA digivolv`, `app fus`, `burst digivolv`) over the effect fields returns the same counts as the reviewed catalog (134, 38 and 7 cards). No new card provides DNA, App Fusion, Burst, or a security or deck-reveal recipient, so the 22 covered cells, eight reviewed provider absences, candidate lists, scenario evidence and rule-source fingerprint remain applicable.
 
 After this bounded review, the catalog fingerprint changes from `66359d05278a5f652017fb71f9ebb1e1caa250e5f44d105386a2de7510c0a1d3` to `af81130a84a6fec753e17a6b92dfe531029233ee13399a430a1583529b45c995`. Catalog drift remains an error; no validator or test expectation is weakened.
+
+### Catalog review after sealed integration (2026-11-02)
+
+A field-by-field comparison against pinned upstream `2d6b1e7a62388ce49d90c6fc182849bfc25a1ec9` finds the same 4,556 identities and exactly one changed field: BT26-091 Yoshino Fujieda's `rarity` changes from `-` to `R`, matching the [official English BT26 card list](https://world.digimoncard.com/cardlist/?search=true&category=522038). No card text, evolution requirement, identity, executable module or recipient route changes. Upstream's Spencer and Kurata's Army additions and review above remain intact.
+
+The 22 covered cells, eight reviewed provider absences, candidate lists, scenario evidence and rules-source fingerprint remain unchanged. The catalog fingerprint changes from `af81130a84a6fec753e17a6b92dfe531029233ee13399a430a1583529b45c995` to `690b3b34407ac116354dc82014e2714b83586bb835c273dd200d83f5bfa6b70d`. The validator, catalog-drift failure and automatic-refresh safeguards remain in force; this is a bounded metadata review, not a refreshed rules certification.

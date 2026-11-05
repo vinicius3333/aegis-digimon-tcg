@@ -1,6 +1,6 @@
 import type { OpenedPack } from "@/packOpening/BoosterProgress";
 import { getPackCardKey } from "@/packOpening/getPackCardKey";
-import type { PackCard } from "@/packOpening/PackCard";
+import type { PackCard } from "@aegis/shared/packOpening/PackCard";
 
 type Params = {
   pack: OpenedPack;

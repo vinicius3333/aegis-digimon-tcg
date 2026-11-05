@@ -1,6 +1,6 @@
-import type { PackCard } from "@/packOpening/PackCard";
-import { findPackRarity } from "@/packOpening/findPackRarity";
-import { PackRarity } from "@/packOpening/PackRarity";
+import type { PackCard } from "@aegis/shared/packOpening/PackCard";
+import { findPackRarity } from "@aegis/shared/packOpening/findPackRarity";
+import { PackRarity } from "@aegis/shared/packOpening/PackRarity";
 
 const RARITY_ORDER: string[] = [
   PackRarity.COMMON.value,

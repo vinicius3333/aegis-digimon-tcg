@@ -1,3 +1,4 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import { chooseCounterAction } from "#api/bot/decisions/chooseCounterAction";
 import type { DecisionAnswerObservation } from "#api/bot/decisions/DecisionAnswerObservation";
 import { explainDecisionAnswer } from "#api/bot/decisions/explainDecisionAnswer";
@@ -121,6 +122,12 @@ export function createEvaluationPolicy(options: EvaluationPolicyOptions = {}): B
     chooseBreedingAction(view: BotView): Intent {
       const breeding = view.breeding;
       if (breeding === undefined) {
+        if (view.rulesPolicy === GameRulesPolicy.SEALED.value && view.eggDeckCount === 0) {
+          const rookie = view.hand.find((card) => card.definition?.level === 3 && isDigimonCard(card.definition));
+          if (rookie) {
+            return { type: "placeSealedRookie", instanceId: rookie.instanceId };
+          }
+        }
         return view.eggDeckCount > 0 ? { type: "hatchEgg" } : { type: "endPhase" };
       }
       // A Lv.2 Digi-Egg is not a Digimon yet and cannot leave the raising area.

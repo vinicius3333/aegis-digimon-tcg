@@ -2,7 +2,7 @@ import { useState } from "react";
 import { cardImageUrls } from "@aegis/shared/cards/images";
 import { CardFinish } from "@/design/webglCard/CardFinish";
 import { getCardFinish } from "@/design/webglCard/getCardFinish";
-import type { PackCard } from "@/packOpening/PackCard";
+import type { PackCard } from "@aegis/shared/packOpening/PackCard";
 
 type Props = {
   card: PackCard;
@@ -20,6 +20,8 @@ export function PackResultCard({ card, index, foilEnabled, onInspect }: Props) {
     <button
       type="button"
       className="pack-result-card"
+      data-card-id={card.cardId}
+      data-art-id={card.artId ?? card.cardId}
       data-foil={!foilEnabled || finish.value === CardFinish.NONE.value ? undefined : finish.value}
       onClick={() => onInspect(index)}
       aria-label={`Zoom ${card.nameEn}${card.artId ? " AA" : ""}, card ${index + 1}`}

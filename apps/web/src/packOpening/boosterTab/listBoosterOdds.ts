@@ -4,11 +4,11 @@ import {
   BOOSTER_PACK_COMMON_SLOTS,
   BOOSTER_PACK_RARE_SLOTS,
   BOOSTER_PACK_UNCOMMON_SLOTS,
-} from "@/packOpening/BoosterPackSlots";
+} from "@aegis/shared/packOpening/BoosterPackSlots";
 import { BoosterOddsKind } from "@/packOpening/boosterTab/BoosterOddsKind";
-import { getPackCardRarity } from "@/packOpening/getPackCardRarity";
-import { getPackPullRates } from "@/packOpening/getPackPullRates";
-import { listPackAlternateArts } from "@/packOpening/listPackAlternateArts";
+import { getPackCardRarity } from "@aegis/shared/packOpening/getPackCardRarity";
+import { getPackPullRates } from "@aegis/shared/packOpening/getPackPullRates";
+import { listPackAlternateArts } from "@aegis/shared/packOpening/listPackAlternateArts";
 
 type BoosterOddsEntry = (typeof BoosterOddsKind)[keyof typeof BoosterOddsKind];
 

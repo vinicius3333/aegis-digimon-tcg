@@ -3,7 +3,10 @@
 Aegis persists application data in PostgreSQL. This filename names the inventory;
 it does not imply a MongoDB collection layer. The API owns every query and write.
 The authoritative schema is the ordered [migration registry](apps/api/src/db/migrations/index.ts),
-currently migrations 001–056, plus the migrator's `schema_migrations` table.
+together with the migrator's `schema_migrations` table. Both `053-public-replay-listing`
+and `053-sealed-tournaments` retain distinct identities, as do `054-private-sealed`
+and `054-tournament-tiebreak-values`. Private Sealed results retain
+`055-private-sealed-results`.
 Append migrations for released schema changes and update this inventory with them.
 
 Tables below list their identity, important fields, and constraints. Foreign keys,
@@ -324,6 +327,24 @@ Migration [050-account-roles](apps/api/src/db/migrations/050-account-roles.ts) r
 | Table                | Ownership and purpose                                                                                                                                                                                                                                         |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `accounts` (columns) | `roles` (`text[]`, default empty) holds `admin`, `judge` and `organizer`, as defined by the shared `AccountRole` enum. The migration gives `admin` to every account that had `is_admin`, then drops `is_admin`. The API ignores unknown values when it reads. |
+
+### Sealed tournaments
+
+Migration `053-sealed-tournaments` adds immutable `tournaments.sealed_configuration` and the durable `sealed_build_deadline_at` preparation boundary. `tournament_sealed_pools` has one immutable six-pack manifest per participant (primary key and participant foreign key), allocation time, current deck revision and ready-window key. `tournament_sealed_decks` retains append-only submissions and canonical/printing snapshots keyed by participant and revision. Unused cards are derived by multiset subtraction. No pool or generation randomness is included in public tournament projections or replays. Existing `tournament_games.player0_deck_snapshot` and `player1_deck_snapshot` hold the decks locked for each game.
+
+### `private_sealed_series`
+
+Standalone invite-only sealed BO3, independent of accounts and tournaments (migration 054). `id` is the UUID primary key; `code` is a unique invitation, and `(host_hash, request_id)` makes create retries idempotent. `host_hash` and each seat's credential hash bind the HttpOnly private guest cookie; invitation codes never grant an occupied seat. The `state` JSONB holds at most two names and immutable six-pack product pools and the creator-selected `configuration` (set, pack count, catalog/collation/rules versions and timings) with JSON state `version: 2`, per-seat monotonic revisions and ready windows, last legal submissions, the initial build or sideboard deadline, BO3 scores, immutable per-game locked deck snapshots and result timestamps, game room bindings and private game authorization tokens. New creation requires an eligible English/world catalog product. A repeated creation request with another product is rejected. Legacy JSON states without both version and configuration resolve to BT4; malformed versioned states are rejected. The configuration is never accepted on join or edited afterward. No SQL migration is needed for these additive JSON fields; migrations 053–055 retain their semantics. Every mutation locks the series row in a transaction. No public listing, tournament participant or hidden tournament is created. Active engines remain process-local; an absent active room cancels continuation without rerolling a pool. Records are retained after cancellation or completion.
+
+`current_game_id` is a unique indexed lookup for room admission/results, so authorization does not scan JSON histories. `private_sealed_room_grants` holds short-lived, single-use SHA-256 creation grants (`token_hash`, `code`, `game_id`, `expires_at`). The server issues these privately to the matchmaker, consumes them with DELETE RETURNING on the selected process, and removes failed grants. They allow room creation across API processes without trusting client-provided mode, rules, identity or deck options.
+
+`private_sealed_results` (migration 055) is the idempotent authoritative result ledger: `game_id` is the primary key, `series_id` references the private series, and `room_id`, nullable winning seat and original finish timestamp bind the outcome. Ledger insertion and score/window updates commit in one transaction. Duplicate deliveries, including after a later game starts, cannot increment again; conflicting outcomes are rejected.
+
+The API also owns a private, credential-free result journal at `AEGIS_PRIVATE_SEALED_RESULT_DIR`, defaulting to `private-sealed-results` beneath its log directory. Each game outcome is synchronously written, fsynced and atomically renamed before database delivery. A bounded, non-overlapping worker retries pending entries independently of room disposal and reloads them after process restart. Completed entries are removed only after the database transaction succeeds. Retain this directory on persistent storage to recover outcomes across restart; losing both PostgreSQL availability and the journal storage before an outcome becomes durable cannot be repaired from a client report. This journal contains game/room IDs, winning seat and finish time, never pools, decks or seat credentials.
+
+### Migration branch collision
+
+The sealed host already applied `053-sealed-tournaments` before upstream introduced `053-public-replay-listing`. Both immutable full IDs are retained, ordered lexically with public replay listing first, followed by sealed tournaments, both distinct 054 identities, both `055-private-sealed-results` and `055-replay-markers`, then `056-replay-notes` and `057-deck-matchup-results`. The migrator validates unique full strings and applies every unapplied ID; it does not use a numeric high-water mark. Upgrading a deployed sealed history applies the missing upstream migrations without rerunning sealed DDL. Fresh installations apply every full ID. Isolated real-PostgreSQL regression coverage verifies fresh, pre-private and applied-private histories, retained data and second-run no-ops. Renaming an applied ID is not a safe live-upgrade policy.
 
 ## Deck matchup results
 

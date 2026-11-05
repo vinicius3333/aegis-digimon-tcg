@@ -45,7 +45,10 @@ describe.skipIf(process.env.POSTGRES_TESTS !== "1")("social migration with live 
         writer = await pool.connect();
         await writer.query("BEGIN");
         await writer.query(`SELECT 1 FROM ${table}`);
-        migration = runMigrations(pool, migrations);
+        migration = runMigrations(
+          pool,
+          migrations.filter((entry) => entry.id <= "041-friends-system"),
+        );
         const outcome = migration.then(
           (ids) => ({ ids }),
           (error: unknown) => ({ error }),

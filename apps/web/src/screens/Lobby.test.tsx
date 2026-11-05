@@ -549,19 +549,21 @@ describe("famous deck selection", () => {
   it("selects provider decks within collections without copying and preserves owner filters", async () => {
     const onUseProviderDeck = vi.fn();
     const onCopyDeck = vi.fn();
-    renderConfiguredLobby(
-      <I18nProvider>
-        <Lobby
-          player={{ name: "Tamer", color: "Blue", shards: 0 }}
-          decks={DECKS}
-          activeDeckId={DECKS[0]!.id}
-          onSelectDeck={vi.fn()}
-          onCopyDeck={onCopyDeck}
-          onUseProviderDeck={onUseProviderDeck}
-          onNav={vi.fn()}
-          onStart={vi.fn()}
-        />
-      </I18nProvider>,
+    await act(async () =>
+      renderConfiguredLobby(
+        <I18nProvider>
+          <Lobby
+            player={{ name: "Tamer", color: "Blue", shards: 0 }}
+            decks={DECKS}
+            activeDeckId={DECKS[0]!.id}
+            onSelectDeck={vi.fn()}
+            onCopyDeck={onCopyDeck}
+            onUseProviderDeck={onUseProviderDeck}
+            onNav={vi.fn()}
+            onStart={vi.fn()}
+          />
+        </I18nProvider>,
+      ),
     );
     const picker = within(screen.getByRole("region", { name: "Choose your battle deck" }));
     fireEvent.click(await picker.findByRole("button", { name: "Tournament winner" }));
@@ -608,19 +610,21 @@ describe("invite links", () => {
 describe("famous deck list", () => {
   it("opens provider information only through the info action and can copy from the dialog", async () => {
     const onCopyDeck = vi.fn();
-    renderConfiguredLobby(
-      <I18nProvider>
-        <Lobby
-          player={{ name: "Tamer", color: "Blue", shards: 0 }}
-          decks={[]}
-          activeDeckId=""
-          onSelectDeck={vi.fn()}
-          onCopyDeck={onCopyDeck}
-          onUseProviderDeck={vi.fn()}
-          onNav={vi.fn()}
-          onStart={vi.fn()}
-        />
-      </I18nProvider>,
+    await act(async () =>
+      renderConfiguredLobby(
+        <I18nProvider>
+          <Lobby
+            player={{ name: "Tamer", color: "Blue", shards: 0 }}
+            decks={[]}
+            activeDeckId=""
+            onSelectDeck={vi.fn()}
+            onCopyDeck={onCopyDeck}
+            onUseProviderDeck={vi.fn()}
+            onNav={vi.fn()}
+            onStart={vi.fn()}
+          />
+        </I18nProvider>,
+      ),
     );
     fireEvent.click(await screen.findByRole("button", { name: "Recent versions · Tournament winner" }));
     fireEvent.click(await screen.findByRole("button", { name: "Deck information" }));

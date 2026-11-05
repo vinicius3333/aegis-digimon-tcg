@@ -1,4 +1,4 @@
-import { BoxHit } from "@/packOpening/BoxHit";
+import { BoxHit } from "@aegis/shared/packOpening/BoxHit";
 
 const VALUES = new Set<string>(Object.values(BoxHit).map((entry) => entry.value));
 

@@ -1,3 +1,4 @@
+import type { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import type { TournamentBanlistCard } from "@aegis/shared/tournaments/index";
 import type { GameMode } from "@aegis/shared/manual/GameMode";
 import type { DeckFormat, Intent, Seat } from "@aegis/shared";
@@ -33,6 +34,7 @@ export interface ReplayRecord {
 }
 
 export interface ReplayRules {
+  rulesPolicy?: GameRulesPolicy;
   gameMode?: GameMode;
   deckFormat: DeckFormat;
   unlimited: boolean;
@@ -144,6 +146,7 @@ export interface ReplayDivergence {
 
 /** `replay.header`, written once when the room builds its engine. */
 export interface ReplayHeaderLine {
+  rulesPolicy?: GameRulesPolicy;
   gameMode?: GameMode;
   replaySeq: number;
   seed: number;

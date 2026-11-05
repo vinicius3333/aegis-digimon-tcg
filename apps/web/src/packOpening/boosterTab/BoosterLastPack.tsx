@@ -1,7 +1,7 @@
 import { CardFull } from "@/design/cards";
 import { useTranslation } from "@/i18n/useTranslation";
 import { getPackCardKey } from "@/packOpening/getPackCardKey";
-import type { PackCard } from "@/packOpening/PackCard";
+import type { PackCard } from "@aegis/shared/packOpening/PackCard";
 
 type BoosterLastPackParams = {
   cards: readonly PackCard[];

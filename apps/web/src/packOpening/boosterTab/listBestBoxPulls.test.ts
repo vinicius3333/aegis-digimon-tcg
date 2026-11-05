@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { OpenedPack } from "@/packOpening/BoosterProgress";
 import { listBestBoxPulls } from "@/packOpening/boosterTab/listBestBoxPulls";
-import type { PackCard } from "@/packOpening/PackCard";
+import type { PackCard } from "@aegis/shared/packOpening/PackCard";
 
 function createCard(cardId: string, rarity: string, artId?: string): PackCard {
   return { cardId, rarity, artId } as PackCard;

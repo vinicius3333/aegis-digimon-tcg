@@ -77,6 +77,17 @@ afterEach(() => {
 });
 
 describe("security check blow arming", () => {
+  it("finishes the preceding public pile move before checking security", async () => {
+    const queue = createAnimationQueue();
+    queue.pause();
+    const presented = vi.fn<() => void>();
+    queue.enqueue({ id: "pile-move-revealed-rest", track: "centerStage", run: presented });
+    stageFor({ battlePending: true, isDigimon: true }, { queue, enqueue: (step) => queue.enqueue(step) });
+    queue.setMode("replay");
+    queue.resume();
+    await queue.idle();
+    expect(presented).toHaveBeenCalledOnce();
+  });
   it.each(["security-notices-late-25", "security-presented-1"])(
     "preserves completed-check %s before the next reveal (feedback #57)",
     async (id) => {

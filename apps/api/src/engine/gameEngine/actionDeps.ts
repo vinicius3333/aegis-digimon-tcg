@@ -1,3 +1,4 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import { resumeMainPhaseInput } from "#api/engine/gameEngine/resumeMainPhaseInput";
 import { createResolutionCandidateReader } from "#api/engine/effects/resolution/createResolutionCandidateReader";
 import { trackResolutionDependencies } from "#api/engine/effects/resolution/trackResolutionDependencies";
@@ -1028,7 +1029,8 @@ export function dnaDigivolveDeps(engine: GameEngine): DnaDigivolveDeps {
   const mem = memoryDepsFromGauge(engine.memory);
   return {
     maxAffordable: mem.maxAffordable,
-    matchingCost: (definition, materials) => matchingDnaDigivolveCost(definition, materials),
+    matchingCost: (definition, materials) =>
+      matchingDnaDigivolveCost(definition, materials, engine.state.rulesPolicy === GameRulesPolicy.SEALED.value),
     effectiveMaterialDefinitions: (_state, materials, definition) =>
       materials.map((material) => effectiveDnaMaterialDefinition(engine, material, definition)),
     adjustedCost: (_state, materials, definition, printedCost) => {

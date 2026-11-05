@@ -1,5 +1,11 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import { CardColor, CardKind, nameIncludesToken, type CardDefinition, type Intent } from "@aegis/shared";
-import { cardHasTrait, matchingEvoCost, matchingAlternateDigivolutionRequirement } from "../engine/cards/cardData.js";
+import {
+  cardHasTrait,
+  matchingEvoCost,
+  matchingEvoCostIgnoringColor,
+  matchingAlternateDigivolutionRequirement,
+} from "../engine/cards/cardData.js";
 import { isDigimonCard, isDigiEggCard, isOptionCard, isTamerCard, type BotUnit, type BotView } from "./view.js";
 
 /**
@@ -98,6 +104,7 @@ function digivolveCandidates(view: BotView): Candidate[] {
       const cost =
         card.digivolveCosts === undefined
           ? digivolveCost(card.cardId, base.cardId, {
+              rulesPolicy: view.rulesPolicy,
               inBreeding: base === view.breeding,
               controlledUnits: view.board,
             })
@@ -208,11 +215,16 @@ function activateCandidates(view: BotView): Candidate[] {
 export function digivolveCost(
   evolvingId: string,
   baseId: string,
-  options: { inBreeding?: boolean; controlledUnits?: readonly BotUnit[] } = {},
+  options: { rulesPolicy?: GameRulesPolicy; inBreeding?: boolean; controlledUnits?: readonly BotUnit[] } = {},
 ): number | undefined {
-  const evo = matchingEvoCost(evolvingId, baseId);
+  const evo =
+    options.rulesPolicy === GameRulesPolicy.SEALED.value
+      ? matchingEvoCostIgnoringColor(evolvingId, baseId)
+      : matchingEvoCost(evolvingId, baseId);
   if (evo !== undefined) return evo.memoryCost;
-  const alternate = matchingAlternateDigivolutionRequirement(evolvingId, baseId);
+  const alternate = matchingAlternateDigivolutionRequirement(evolvingId, baseId, {
+    sealed: options.rulesPolicy === GameRulesPolicy.SEALED.value,
+  });
   if (alternate === undefined) return undefined;
   const hasUnverifiableCost =
     (alternate.battleAreaOnly === true && options.inBreeding === true) ||
