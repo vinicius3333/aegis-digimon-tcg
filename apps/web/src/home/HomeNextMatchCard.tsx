@@ -6,28 +6,58 @@ import { COLORS } from "@/design/theme";
 import { displayCoverArt, displayCoverCard, type DeckListing } from "@/game/decks";
 import { HomeCard } from "@/home/HomeCard";
 import { HomeMatchQueue } from "@/home/HomeMatchQueue";
+import { HomeRankedSummary } from "@/home/HomeRankedSummary";
 import { useTranslation } from "@/i18n/useTranslation";
+
+const QUEUE_STORAGE_KEY = "aegis:home-match-queue";
+
+function getInitialQueue(): HomeMatchQueue {
+  try {
+    const stored = localStorage.getItem(QUEUE_STORAGE_KEY);
+    if (stored === HomeMatchQueue.RANKED.value) {
+      return HomeMatchQueue.RANKED.value;
+    }
+  } catch {}
+  return HomeMatchQueue.CASUAL.value;
+}
 
 type HomeNextMatchCardParams = {
   deck: DeckListing | undefined;
+  accountId?: string;
   rankedEnabled: boolean;
   onFindMatch: (queue: HomeMatchQueue) => void;
   onPractice: () => void;
   onPrivateMatch: () => void;
   onChangeDeck: () => void;
+  onOpenRanked?: () => void;
 };
 
 export function HomeNextMatchCard({
   deck,
+  accountId,
   rankedEnabled,
   onFindMatch,
   onPractice,
   onPrivateMatch,
   onChangeDeck,
+  onOpenRanked,
 }: HomeNextMatchCardParams) {
   const { t } = useTranslation();
-  const [queue, setQueue] = useState<HomeMatchQueue>(HomeMatchQueue.CASUAL.value);
+  const [queue, setQueue] = useState<HomeMatchQueue>(getInitialQueue);
   const selectedQueue = rankedEnabled ? queue : HomeMatchQueue.CASUAL.value;
+  const rankedSelected = selectedQueue === HomeMatchQueue.RANKED.value;
+
+  function handleQueueChange(next: HomeMatchQueue) {
+    setQueue(next);
+    try {
+      localStorage.setItem(QUEUE_STORAGE_KEY, next);
+    } catch {}
+  }
+
+  const matchIcon = rankedSelected ? Icons.Trophy : Icons.Search;
+  const queueLabel = t(rankedSelected ? "home.next.findRanked" : "home.next.findCasual");
+  const matchLabel = rankedEnabled ? queueLabel : t("home.next.find");
+
   return (
     <HomeCard
       className="home-next"
@@ -63,20 +93,6 @@ export function HomeNextMatchCard({
             <span className="home-color-dots" aria-hidden="true">
               <i style={{ background: COLORS[deck.color].base }} />
             </span>
-            {rankedEnabled ? (
-              <div className="home-tabs-list" role="group" aria-label={t("home.next.queueAria")}>
-                {Object.values(HomeMatchQueue).map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    aria-pressed={selectedQueue === option.value}
-                    onClick={() => setQueue(option.value)}
-                  >
-                    {t(option.labelKey)}
-                  </button>
-                ))}
-              </div>
-            ) : null}
           </div>
         </div>
       ) : (
@@ -87,9 +103,26 @@ export function HomeNextMatchCard({
           </p>
         </div>
       )}
+      {rankedEnabled ? (
+        <div className="home-tabs-list" role="group" aria-label={t("home.next.queueAria")}>
+          {Object.values(HomeMatchQueue).map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={selectedQueue === option.value}
+              onClick={() => handleQueueChange(option.value)}
+            >
+              {t(option.labelKey)}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {rankedSelected ? (
+        <HomeRankedSummary key={accountId} signedIn={accountId !== undefined} onOpenRanked={onOpenRanked} />
+      ) : null}
       <div className="home-next__actions">
-        <Button size="lg" full icon={Icons.Search} onClick={() => onFindMatch(selectedQueue)}>
-          {t("home.next.find")}
+        <Button size="lg" full icon={matchIcon} onClick={() => onFindMatch(selectedQueue)}>
+          {matchLabel}
         </Button>
         <div className="home-next__row">
           <Button variant="secondary" icon={Icons.Bot} onClick={onPractice}>
