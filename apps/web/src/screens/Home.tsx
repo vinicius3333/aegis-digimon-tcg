@@ -41,6 +41,7 @@ type HomeParams = {
   onPlayDeck: (deck: DeckListing) => void;
   onBuildDeck: () => void;
   onOpenDecks: () => void;
+  onOpenRanked?: () => void;
   onSignIn: () => void;
   onReportBug?: () => void;
   onOpenReleases?: () => void;
@@ -83,11 +84,13 @@ export function Home(params: HomeParams) {
           <aside className="home-board__rail">
             <HomeNextMatchCard
               deck={params.activeDeck}
+              accountId={params.accountId}
               rankedEnabled={params.rankedEnabled}
               onFindMatch={params.onFindMatch}
               onPractice={params.onPractice}
               onPrivateMatch={params.onPrivateMatch}
               onChangeDeck={params.onChangeDeck}
+              onOpenRanked={params.onOpenRanked}
             />
             <HomeBoosterCard onOpen={params.onOpenBooster} />
             {params.accountId ? (
