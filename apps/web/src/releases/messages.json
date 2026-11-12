@@ -1,4 +1,22 @@
 {
+  "releases.1.70.0-beta.summary": {
+    "en": "Four new BT27 cards join the card pool, and Datamon no longer blocks your own De-Digivolve effects.",
+    "pt-BR": "Quatro novas cartas do BT27 entram no jogo, e o Datamon não bloqueia mais os seus próprios efeitos de De-Digivolve.",
+    "es": "Cuatro cartas nuevas de BT27 llegan al juego, y Datamon ya no bloquea tus propios efectos de De-Digivolve.",
+    "it": "Quattro nuove carte di BT27 entrano nel gioco e Datamon non blocca più i tuoi effetti di De-Digivolve."
+  },
+  "releases.1.70.0-beta.feature.bt27Cards": {
+    "en": "Added four BT27 cards: Motimon (BT27-005), Clockmon (BT27-059), Andromon (BT27-063) and Gankoomon (X Antibody) (BT27-068).",
+    "pt-BR": "Adicionamos quatro cartas do BT27: Motimon (BT27-005), Clockmon (BT27-059), Andromon (BT27-063) e Gankoomon (X Antibody) (BT27-068).",
+    "es": "Añadimos cuatro cartas de BT27: Motimon (BT27-005), Clockmon (BT27-059), Andromon (BT27-063) y Gankoomon (X Antibody) (BT27-068).",
+    "it": "Abbiamo aggiunto quattro carte di BT27: Motimon (BT27-005), Clockmon (BT27-059), Andromon (BT27-063) e Gankoomon (X Antibody) (BT27-068)."
+  },
+  "releases.1.70.0-beta.fix.datamonDeDigivolve": {
+    "en": "Datamon (BT22-060) now ignores only your opponent's De-Digivolve effects. Your own De-Digivolve effects affect it again.",
+    "pt-BR": "O Datamon (BT22-060) agora ignora só os efeitos de De-Digivolve do oponente. Os seus próprios efeitos de De-Digivolve voltam a afetá-lo.",
+    "es": "Datamon (BT22-060) ahora ignora solo los efectos de De-Digivolve de tu oponente. Tus propios efectos de De-Digivolve vuelven a afectarlo.",
+    "it": "Datamon (BT22-060) ora ignora solo gli effetti di De-Digivolve dell'avversario. I tuoi effetti di De-Digivolve tornano ad avere effetto su di lui."
+  },
   "releases.1.69.0-beta.summary": {
     "en": "Optional battles from effects always ask first, Battle NPC stays when nothing is under it, and inherited effects trigger again when their condition repeats.",
     "pt-BR": "Batalhas opcionais de efeitos sempre perguntam antes, o Battle NPC fica em campo quando não há nada embaixo dele e efeitos herdados ativam de novo quando a condição se repete.",
