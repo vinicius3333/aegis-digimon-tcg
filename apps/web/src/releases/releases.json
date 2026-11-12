@@ -1,5 +1,41 @@
 [
   {
+    "version": "1.71.0-beta",
+    "releasedAt": "2026-11-12",
+    "summaryKey": "releases.1.71.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.71.0-beta.feature.matchChatToggle"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.71.0-beta.fix.motherDReaperTamers"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.kentaurosmonCounter"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.placementPrevented"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.leaveEffectOrder"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.continuousTargetArrows"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.finishedRoomClosed"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.deckImagePreview"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.discordNov12"
+      }
+    ]
+  },
+  {
     "version": "1.70.0-beta",
     "releasedAt": "2026-11-12",
     "summaryKey": "releases.1.70.0-beta.summary",

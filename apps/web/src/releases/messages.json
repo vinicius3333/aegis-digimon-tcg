@@ -1,4 +1,64 @@
 {
+  "releases.1.71.0-beta.summary": {
+    "en": "You can now turn match chat off, and this update fixes a batch of player-reported card and match problems.",
+    "pt-BR": "Agora você pode desligar o chat da partida, e esta atualização corrige vários problemas de cartas e partidas relatados pelos jogadores.",
+    "es": "Ahora puedes desactivar el chat de la partida, y esta actualización corrige varios problemas de cartas y partidas reportados por los jugadores.",
+    "it": "Ora puoi disattivare la chat della partita, e questo aggiornamento corregge diversi problemi di carte e partite segnalati dai giocatori."
+  },
+  "releases.1.71.0-beta.feature.matchChatToggle": {
+    "en": "Added a setting to turn match chat off.",
+    "pt-BR": "Adicionamos uma configuração para desligar o chat da partida.",
+    "es": "Añadimos un ajuste para desactivar el chat de la partida.",
+    "it": "Abbiamo aggiunto un'impostazione per disattivare la chat della partita."
+  },
+  "releases.1.71.0-beta.fix.motherDReaperTamers": {
+    "en": "Mother D-Reaper (EX2-007) now reduces the play cost of D-Reaper Tamers such as Jeri (Fake), not only Digimon.",
+    "pt-BR": "A Mother D-Reaper (EX2-007) agora reduz o custo de Domadores D-Reaper, como a Jeri (Fake), e não só de Digimon.",
+    "es": "Mother D-Reaper (EX2-007) ahora reduce el coste de los Domadores D-Reaper, como Jeri (Fake), y no solo de los Digimon.",
+    "it": "Mother D-Reaper (EX2-007) ora riduce il costo dei Domatori D-Reaper, come Jeri (Fake), e non solo dei Digimon."
+  },
+  "releases.1.71.0-beta.fix.kentaurosmonCounter": {
+    "en": "Kentaurosmon's (EX13-036) [Counter] places both Digimon at the same time, so effects like Zephagamon's (LM-066) can still keep a Digimon in play.",
+    "pt-BR": "O [Counter] do Kentaurosmon (EX13-036) coloca os dois Digimon ao mesmo tempo, então efeitos como o do Zephagamon (LM-066) ainda podem manter um Digimon em campo.",
+    "es": "El [Counter] de Kentaurosmon (EX13-036) coloca ambos Digimon a la vez, así que efectos como el de Zephagamon (LM-066) aún pueden mantener un Digimon en juego.",
+    "it": "Il [Counter] di Kentaurosmon (EX13-036) piazza entrambi i Digimon nello stesso momento, così effetti come quello di Zephagamon (LM-066) possono ancora tenere un Digimon in gioco."
+  },
+  "releases.1.71.0-beta.fix.placementPrevented": {
+    "en": "Sakuyamon: Maid Mode (ST22-06) no longer trashes a security card when Jupitermon (BT26-033) keeps the Digimon in play.",
+    "pt-BR": "A Sakuyamon: Maid Mode (ST22-06) não descarta mais uma carta de segurança quando o Jupitermon (BT26-033) mantém o Digimon em campo.",
+    "es": "Sakuyamon: Maid Mode (ST22-06) ya no descarta una carta de seguridad cuando Jupitermon (BT26-033) mantiene al Digimon en juego.",
+    "it": "Sakuyamon: Maid Mode (ST22-06) non scarta più una carta della sicurezza quando Jupitermon (BT26-033) tiene il Digimon in gioco."
+  },
+  "releases.1.71.0-beta.fix.leaveEffectOrder": {
+    "en": "When Digimon on both sides would leave at once, each player now orders only their own effects, starting with the turn player.",
+    "pt-BR": "Quando Digimon dos dois lados sairiam ao mesmo tempo, cada jogador agora ordena só os próprios efeitos, começando pelo jogador do turno.",
+    "es": "Cuando Digimon de ambos lados saldrían a la vez, cada jugador ahora ordena solo sus propios efectos, empezando por el jugador del turno.",
+    "it": "Quando Digimon di entrambi i lati lascerebbero il campo insieme, ogni giocatore ora ordina solo i propri effetti, a partire dal giocatore di turno."
+  },
+  "releases.1.71.0-beta.fix.continuousTargetArrows": {
+    "en": "Always-on effects such as Takumi Aiba's (BT5-091) no longer replay their target animation over and over.",
+    "pt-BR": "Efeitos contínuos, como o do Takumi Aiba (BT5-091), não repetem mais a animação de alvo sem parar.",
+    "es": "Los efectos continuos, como el de Takumi Aiba (BT5-091), ya no repiten la animación de objetivo una y otra vez.",
+    "it": "Gli effetti continui, come quello di Takumi Aiba (BT5-091), non ripetono più l'animazione del bersaglio all'infinito."
+  },
+  "releases.1.71.0-beta.fix.finishedRoomClosed": {
+    "en": "Matchmaking no longer puts you into a match that already ended before it started.",
+    "pt-BR": "O matchmaking não coloca mais você em uma partida que já terminou antes de começar.",
+    "es": "El emparejamiento ya no te mete en una partida que terminó antes de empezar.",
+    "it": "Il matchmaking non ti inserisce più in una partita già terminata prima di iniziare."
+  },
+  "releases.1.71.0-beta.fix.deckImagePreview": {
+    "en": "The deck image preview no longer restarts while you have the export window open.",
+    "pt-BR": "A prévia da imagem do deck não reinicia mais enquanto a janela de exportação está aberta.",
+    "es": "La vista previa de la imagen del mazo ya no se reinicia mientras la ventana de exportación está abierta.",
+    "it": "L'anteprima dell'immagine del mazzo non si riavvia più mentre la finestra di esportazione è aperta."
+  },
+  "releases.1.71.0-beta.fix.discordNov12": {
+    "en": "Ceresmon (BT26-032) shows its own text when another effect uses it, Cupimon (EX6-003) pays its security cost first, Kari Kamiya (BT15-084) reacts when P-122 returns a security card to the hand, and a replay freeze with Grademon and Ouryumon is fixed.",
+    "pt-BR": "A Ceresmon (BT26-032) mostra o próprio texto quando outro efeito a usa, o Cupimon (EX6-003) paga primeiro o custo de segurança, a Kari Kamiya (BT15-084) reage quando o P-122 devolve uma carta de segurança para a mão, e um travamento de replay com Grademon e Ouryumon foi corrigido.",
+    "es": "Ceresmon (BT26-032) muestra su propio texto cuando otro efecto la usa, Cupimon (EX6-003) paga primero su coste de seguridad, Kari Kamiya (BT15-084) reacciona cuando P-122 devuelve una carta de seguridad a la mano, y se corrigió un bloqueo de repetición con Grademon y Ouryumon.",
+    "it": "Ceresmon (BT26-032) mostra il proprio testo quando un altro effetto la usa, Cupimon (EX6-003) paga prima il costo della sicurezza, Kari Kamiya (BT15-084) reagisce quando P-122 riporta una carta della sicurezza in mano, ed è stato corretto un blocco del replay con Grademon e Ouryumon."
+  },
   "releases.1.70.0-beta.summary": {
     "en": "Four new BT27 cards join the card pool, and Datamon no longer blocks your own De-Digivolve effects.",
     "pt-BR": "Quatro novas cartas do BT27 entram no jogo, e o Datamon não bloqueia mais os seus próprios efeitos de De-Digivolve.",
