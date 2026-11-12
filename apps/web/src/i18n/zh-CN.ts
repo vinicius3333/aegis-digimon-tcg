@@ -2749,6 +2749,8 @@ const interfaceMessages = {
   "chat.muteSpectators": "禁言观众",
   "chat.sound": "聊天提示音",
   "chat.soundDesc": "对手或观战者发送新消息时播放提示音。",
+  "chat.enabled": "对局聊天",
+  "chat.enabledDesc": "在对局中显示聊天按钮、对话气泡和消息。关闭后将完全隐藏聊天。",
   "chat.you": "你",
   "chat.spectator": "观众 {number}",
   "chat.spectatorTag": "观众",

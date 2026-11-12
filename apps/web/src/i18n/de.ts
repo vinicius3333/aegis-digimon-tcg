@@ -2941,6 +2941,9 @@ const interfaceMessages = {
   "chat.muteSpectators": "Zuschauer stumm schalten",
   "chat.sound": "Chat-Ton",
   "chat.soundDesc": "Spielt bei jeder neuen Nachricht Ihres Gegners oder der Zuschauer einen Ton.",
+  "chat.enabled": "Match-Chat",
+  "chat.enabledDesc":
+    "Zeigt in Matches den Chat-Button, Sprechblasen und Nachrichten an. Schalten Sie ihn aus, um den Chat vollständig auszublenden.",
   "chat.you": "Sie",
   "chat.spectator": "Zuschauer {number}",
   "chat.spectatorTag": "Zuschauer",

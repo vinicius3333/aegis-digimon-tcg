@@ -627,7 +627,11 @@ export class AegisRoom extends Room<{
       }
       return true;
     }
-    if (this.matchStartRequested || this.seatByClient.size + this.occupiedBotSeats().length >= 2) {
+    if (
+      this.matchStartRequested ||
+      this.state.gameOver ||
+      this.seatByClient.size + this.occupiedBotSeats().length >= 2
+    ) {
       return refuseJoin({ roomId: this.roomId, reason: ConnectionErrorCode.ROOM_FULL.value });
     }
     if (this.casualSeries?.continuation)
@@ -2520,10 +2524,12 @@ export class AegisRoom extends Room<{
       if (!this.matchStartRequested) {
         this.readyTimeout?.clear();
         this.readyTimeout = undefined;
+      }
+      if (this.matchStartRequested || this.state.gameOver) {
+        await this.lock();
+      } else {
         // A reconnect into a full room keeps the explicit lock, which Colyseus never lifts on its own.
         await this.unlock();
-      } else {
-        await this.lock();
       }
       this.seatByClient.delete(client.sessionId);
       this.concede(seat);

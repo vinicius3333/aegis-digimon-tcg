@@ -45,7 +45,7 @@ export interface LeavePreventionHost {
    */
   resolveInsteadBody?<T>(replacement: ReplacementSubscription, ctx: EffectContext, body: () => Promise<T>): Promise<T>;
   resolvePreventBody?<T>(body: () => Promise<T>): Promise<T>;
-  /** Let the affected player order simultaneous non-preventing and preventing leave reactions. */
+  /** Let a player order their own simultaneous non-preventing and preventing leave reactions. */
   orderReplacements?(replacements: ReplacementSubscription[], seat: Seat): Promise<OrderedReplacements>;
   /**
    * Announce a keyword prevention that paid and succeeded. Only the keyword reactions carry an
@@ -236,24 +236,7 @@ export async function consultLeavePrevention(
       });
     }
 
-    let ordered = eligible;
-    // Simultaneous leave reactions resolve in the affected player's order (KB Q6884). Order
-    // matters even between two "instead" reactions: one that relocates the leaving permanent
-    // ends the event before the rest are reached (KB Q5352). The chooser's answer moves the
-    // picked replacement to the front; an unanswered or empty response keeps the offered order.
-    if (host.orderReplacements !== undefined && eligible.length > 1) {
-      const plan = await host.orderReplacements(
-        eligible.map(({ repl }) => repl),
-        leaving.controllerSeat,
-      );
-      const byId = new Map(eligible.map((candidate) => [candidate.repl.id, candidate]));
-      ordered = plan.order.map((replacement) => byId.get(replacement.id)).filter((value) => value !== undefined);
-      // A preset answers only the chooser's own reactions; an opponent's card still asks them.
-      for (const { repl, ctx } of ordered) {
-        const preset = plan.presetAnswers?.get(repl.id);
-        if (preset !== undefined && ctx.source.ownerSeat === leaving.controllerSeat) ctx.presetOptionalAnswer = preset;
-      }
-    }
+    const ordered = await orderEligibleByController(host, eligible);
 
     for (const { repl, ctx, activationKey, sourceTopInstanceId, sourceCardId, sourceRole, sourceFaceUp } of ordered) {
       if (host.permanentById(leavingId) === undefined) break;
@@ -426,4 +409,34 @@ export async function consultLeavePrevention(
     }
   }
   return prevented;
+}
+
+async function orderEligibleByController<T extends { repl: ReplacementSubscription; ctx: EffectContext }>(
+  host: LeavePreventionHost,
+  eligible: T[],
+): Promise<T[]> {
+  const controllerSeats = [...new Set(eligible.map(({ ctx }) => ctx.source.ownerSeat))].sort(
+    (a, b) => Number(b === host.turnSeat) - Number(a === host.turnSeat),
+  );
+  const ordered: T[] = [];
+  for (const controllerSeat of controllerSeats) {
+    const group = eligible.filter(({ ctx }) => ctx.source.ownerSeat === controllerSeat);
+    if (host.orderReplacements === undefined || group.length < 2) {
+      ordered.push(...group);
+      continue;
+    }
+    const plan = await host.orderReplacements(
+      group.map(({ repl }) => repl),
+      controllerSeat,
+    );
+    const byId = new Map(group.map((candidate) => [candidate.repl.id, candidate]));
+    for (const replacement of plan.order) {
+      const candidate = byId.get(replacement.id);
+      if (candidate === undefined) continue;
+      const preset = plan.presetAnswers?.get(replacement.id);
+      if (preset !== undefined) candidate.ctx.presetOptionalAnswer = preset;
+      ordered.push(candidate);
+    }
+  }
+  return ordered;
 }

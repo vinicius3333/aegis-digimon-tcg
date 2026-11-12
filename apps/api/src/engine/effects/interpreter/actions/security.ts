@@ -415,7 +415,12 @@ export async function runSecurityManipulation(
       if (action.detachPermanentTop === true) {
         source = { ...source, filter: { ...source.filter, hasDigivolutionCards: true } };
       }
-      const resolvedPermanentIds = await resolvePermanentTargets(ctx, source);
+      const resolvedPermanentIds = [...(await resolvePermanentTargets(ctx, source))];
+      for (const additionalSource of action.additionalSources ?? []) {
+        resolvedPermanentIds.push(
+          ...(await resolvePermanentTargets(ctx, additionalSource)).filter((id) => !resolvedPermanentIds.includes(id)),
+        );
+      }
       // Some cards place the top card of a Digimon's digivolution stack as security
       // rather than the Digimon's current top card (BT20-084). Keep this separate from
       // `detachPermanentTop`: the former removes one stack card, while the latter
@@ -439,14 +444,22 @@ export async function runSecurityManipulation(
       // card, not the resolving player, so a chosen opposing Digimon lands in that player's
       // stack. Without the flag the destination stays the single `seat` above.
       if (action.ownerSecurity === true) {
+        const placements: { instanceId: string; toTop: boolean }[] = [];
         for (const permanentId of resolvedPermanentIds) {
-          const permanent = ctx.game.permanentById(permanentId);
-          const top = permanent?.topCard;
-          if (permanent === undefined || top === undefined) continue;
-          await ctx.fx.addSecurity(top.ownerSeat, [top.instanceId], {
-            toTop: await placementToTop([permanentId]),
+          const top = ctx.game.permanentById(permanentId)?.topCard;
+          if (top === undefined) continue;
+          placements.push({ instanceId: top.instanceId, toTop: await placementToTop([permanentId]) });
+        }
+        for (const toTop of [true, false]) {
+          const instanceIds = placements
+            .filter((placement) => placement.toTop === toTop)
+            .map((placement) => placement.instanceId);
+          if (instanceIds.length === 0) continue;
+          await ctx.fx.addSecurity(seat, instanceIds, {
+            toTop,
             faceUp: action.faceUp,
             detachPermanentTop: action.detachPermanentTop,
+            toOwnerSecurity: true,
           });
         }
         return;
@@ -665,7 +678,8 @@ async function runSecurityAdd(
       }
       return;
     }
-    const ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, source));
+    const permanentIds = await resolvePermanentTargets(ctx, source);
+    const ids = topInstanceIds(ctx, permanentIds);
     if (ids.length > 0) {
       await ctx.fx.addSecurity(seat, ids, opts);
       // `ifThisEffectActed` is used by follow-up actions such as ST10-14's
@@ -673,7 +687,11 @@ async function runSecurityAdd(
       // by a replacement effect (for example Kongou), so derive acted state
       // from the moved instance's actual presence rather than assuming the
       // primitive accepted the move.
-      ctx.lastEffectActed = ids.some((id) => ctx.game.player(seat).security.some((card) => card.instanceId === id));
+      const placedInSecurity = ids.some((id) => ctx.game.player(seat).security.some((card) => card.instanceId === id));
+      const permanentLeftOrDetached =
+        opts.detachPermanentTop === true ||
+        permanentIds.some((permanentId) => ctx.game.permanentById(permanentId) === undefined);
+      ctx.lastEffectActed = placedInSecurity && permanentLeftOrDetached;
     } else {
       ctx.lastEffectActed = false;
     }
