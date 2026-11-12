@@ -98,18 +98,10 @@ describe("EX13-036 Kentaurosmon", () => {
         op: "placeAsSecurity",
         controller: "mine",
         source: { count: 1, filter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" } },
+        additionalSources: [{ count: 1, filter: { controller: "opponent", kind: ["Digimon"], zone: "battleArea" } }],
         ownerSecurity: true,
         toTop: true,
         optional: true,
-        abortOnDecline: true,
-      },
-      {
-        kind: "SecurityManipulation",
-        op: "placeAsSecurity",
-        controller: "opponent",
-        source: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], zone: "battleArea" } },
-        ownerSecurity: true,
-        toTop: true,
       },
     ];
     for (const index of [3, 4, 5]) {
@@ -118,7 +110,7 @@ describe("EX13-036 Kentaurosmon", () => {
         sharedUseKey: "EX13-036/place-one-each-as-security",
         actions: placement,
       });
-      expect(compiled.effects[index]!.actions.map((action) => "condition" in action)).toEqual([false, false]);
+      expect(compiled.effects[index]!.actions.map((action) => "condition" in action)).toEqual([false]);
     }
     expect(new Set(compiled.effects.slice(3).map((effect) => effect.sharedUseKey)).size).toBe(1);
 
@@ -838,6 +830,35 @@ describe("EX13-036 Kentaurosmon", () => {
     expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual([cardId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("places both Digimon at once, so a would-leave cost can suspend the other placed Digimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "kentaurosmon" }], deck: DECK },
+        1: {
+          battleArea: [{ card: "LM-066", as: "zephagamon", suspended: true }],
+          deck: DECK,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(
+      s.perm("kentaurosmon").topCard.instanceId,
+      s.perm("kentaurosmon").permanentId,
+      s.perm("zephagamon").topCard.instanceId,
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("kentaurosmon"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual([cardId]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["LM-066"]);
     assertNoLoudGap(s);
   });
 

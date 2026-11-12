@@ -115,6 +115,7 @@ export interface SecurityManipulationAction extends ActionBase {
    * rather than the single `controller` stack ("on top of its owner's security stack" — LM-020).
    */
   ownerSecurity?: boolean;
+  additionalSources?: Target[];
   /**
    * For placeAsSecurity from a LOOSE zone: always reveal the chosen card to the opponent before it
    * goes face down onto the stack (LM-023 Q4025). Without it, the engine still reveals a card
