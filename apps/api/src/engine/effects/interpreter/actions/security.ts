@@ -665,7 +665,8 @@ async function runSecurityAdd(
       }
       return;
     }
-    const ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, source));
+    const permanentIds = await resolvePermanentTargets(ctx, source);
+    const ids = topInstanceIds(ctx, permanentIds);
     if (ids.length > 0) {
       await ctx.fx.addSecurity(seat, ids, opts);
       // `ifThisEffectActed` is used by follow-up actions such as ST10-14's
@@ -673,7 +674,11 @@ async function runSecurityAdd(
       // by a replacement effect (for example Kongou), so derive acted state
       // from the moved instance's actual presence rather than assuming the
       // primitive accepted the move.
-      ctx.lastEffectActed = ids.some((id) => ctx.game.player(seat).security.some((card) => card.instanceId === id));
+      const placedInSecurity = ids.some((id) => ctx.game.player(seat).security.some((card) => card.instanceId === id));
+      const permanentLeftOrDetached =
+        opts.detachPermanentTop === true ||
+        permanentIds.some((permanentId) => ctx.game.permanentById(permanentId) === undefined);
+      ctx.lastEffectActed = placedInSecurity && permanentLeftOrDetached;
     } else {
       ctx.lastEffectActed = false;
     }
