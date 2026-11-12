@@ -2672,6 +2672,9 @@ const interfaceMessages = {
   "chat.muteSpectators": "Silenzia gli spettatori",
   "chat.sound": "Suono della chat",
   "chat.soundDesc": "Riproduce un suono per ogni nuovo messaggio dell'avversario o degli spettatori.",
+  "chat.enabled": "Chat della partita",
+  "chat.enabledDesc":
+    "Mostra il pulsante della chat, i fumetti e i messaggi durante le partite. Disattivala per nascondere del tutto la chat.",
   "chat.you": "Tu",
   "chat.spectator": "Spettatore {number}",
   "chat.spectatorTag": "spettatore",

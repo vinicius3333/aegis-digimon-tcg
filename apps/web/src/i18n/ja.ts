@@ -2855,6 +2855,9 @@ const interfaceMessages = {
   "chat.muteSpectators": "観戦者をミュート",
   "chat.sound": "チャットの通知音",
   "chat.soundDesc": "対戦相手や観戦者から新しいメッセージが届くたびに音を鳴らします。",
+  "chat.enabled": "対戦チャット",
+  "chat.enabledDesc":
+    "対戦中にチャットボタン、吹き出し、メッセージを表示します。オフにするとチャットを完全に非表示にします。",
   "chat.you": "あなた",
   "chat.spectator": "観戦者{number}",
   "chat.spectatorTag": "観戦者",

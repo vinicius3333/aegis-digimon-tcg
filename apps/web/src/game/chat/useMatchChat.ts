@@ -3,6 +3,7 @@ import { CHAT_CHANNEL, CHAT_COOLDOWN_MS, type ChatBroadcast, type ChatMessage, t
 import { playSound } from "../../design/sound";
 import type { AegisRoom } from "../../net/client";
 import { isChatSoundEnabled } from "./chatSound";
+import { isMatchChatEnabled } from "@/game/chat/matchChatEnabled/isMatchChatEnabled";
 import { useLiveReplayAnnotations, type LiveReplayAnnotations } from "@/replays/annotations/useLiveReplayAnnotations";
 
 const HISTORY_LIMIT = 50;
@@ -61,7 +62,7 @@ export function useMatchChat({
       const entry = { ...broadcast, id: nextIdRef.current++, own };
       setEntries((previous) => [...previous.slice(1 - HISTORY_LIMIT), entry]);
       const viewer = { viewerSeat, spectating, mutedOpponent, mutedSpectators };
-      if (!own && isChatSoundEnabled() && isEntryShown({ entry, viewer })) {
+      if (!own && isMatchChatEnabled() && isChatSoundEnabled() && isEntryShown({ entry, viewer })) {
         playSound("prompt");
       }
     });
