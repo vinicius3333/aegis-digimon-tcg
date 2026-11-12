@@ -75,6 +75,20 @@ describe("Clockmon De-Digivolve shield, counter De-Digivolve, and inherited unsu
     },
   );
 
+  it("does not stop your own De-Digivolve on the shielded Digimon", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(clockmonBoard(), { autoSelectCards: true, preferInstanceIds });
+    preferInstanceIds.push(s.perm("ally").topCard.instanceId);
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("clockmon"));
+    await settle(() => !s.state.pendingDecision);
+    advance(s.engine).verb.enterEffectResolution(0, ["Digimon"]);
+    await advance(s.engine).verb.deDigivolve(s.perm("ally").permanentId, 1);
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => !s.state.pendingDecision);
+    expect(s.perm("ally").topCard.cardId).toBe("BT5-061");
+  });
+
   it("leaves an unshielded Digimon open to the opponent's De-Digivolve", async () => {
     const s = setupEngine(clockmonBoard(), { autoSelectCards: true });
     await s.ready();

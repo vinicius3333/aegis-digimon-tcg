@@ -26,6 +26,7 @@ export const compiled: CompiledCard = {
             isSelf: true,
           },
           restriction: "cantBeDeDigivolved",
+          byOpponentEffectsOnly: true,
           duration: "untilOpponentTurnEnd",
         },
         {
@@ -63,6 +64,7 @@ export const compiled: CompiledCard = {
             isSelf: true,
           },
           restriction: "cantBeDeDigivolved",
+          byOpponentEffectsOnly: true,
           duration: "untilOpponentTurnEnd",
         },
         {
