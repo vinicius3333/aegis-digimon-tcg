@@ -173,9 +173,7 @@ export function enqueueArrivals({
     const effectResult = effectResults !== undefined && !securityReveal && eventIndex >= effectResults.fromEventIndex;
     /**
      * A card an Option's ＜Delay＞ played is that clause's consequence, the same way: the Option
-     * breaks, its clause is read, and the card arrives after it. It waits on its permanent's
-     * burst track rather than centre stage, so the clause's toast is never held behind it,
-     * while the card's own [On Play] — which waits for that track — still reads after it lands.
+     * breaks, its clause is read, and the card arrives after it.
      */
     const awaitsCostClause = costClause !== undefined && "seat" in event && event.seat === costClause.seat;
     const step = zoneChangeStep({
@@ -200,7 +198,7 @@ export function enqueueArrivals({
           : {}),
       ...(awaitsCostClause
         ? {
-            track: burst ? `burst-${burst.permanentId}` : `${CueTrack.CenterStage}-cost-clause-${key}`,
+            track: `${CueTrack.CenterStage}-cost-clause-${key}`,
             waitFor: costClause.read,
           }
         : {}),
