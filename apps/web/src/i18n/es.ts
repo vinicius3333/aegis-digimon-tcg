@@ -2361,6 +2361,9 @@ export const es: Record<keyof typeof en, string> = {
   "chat.muteSpectators": "Silenciar a los espectadores",
   "chat.sound": "Sonido del chat",
   "chat.soundDesc": "Reproduce un sonido con cada mensaje nuevo de tu oponente o de los espectadores.",
+  "chat.enabled": "Chat de la partida",
+  "chat.enabledDesc":
+    "Muestra el botón de chat, los bocadillos y los mensajes en las partidas. Desactívalo para ocultar el chat por completo.",
   "chat.you": "Tú",
   "chat.spectator": "Espectador {number}",
   "chat.spectatorTag": "espectador",

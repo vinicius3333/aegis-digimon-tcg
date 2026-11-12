@@ -2870,6 +2870,9 @@ const interfaceMessages = {
   "chat.muteSpectators": "Bisukan penonton",
   "chat.sound": "Suara chat",
   "chat.soundDesc": "Putar suara untuk setiap pesan baru dari lawan atau penonton.",
+  "chat.enabled": "Chat pertandingan",
+  "chat.enabledDesc":
+    "Tampilkan tombol chat, balon ucapan, dan pesan dalam pertandingan. Matikan untuk menyembunyikan chat sepenuhnya.",
   "chat.you": "Anda",
   "chat.spectator": "Penonton {number}",
   "chat.spectatorTag": "penonton",

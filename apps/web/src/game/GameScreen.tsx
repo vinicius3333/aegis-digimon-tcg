@@ -45,6 +45,7 @@ import { sourceHostChoiceFor } from "./screen/model/sourceHostChoice";
 import { BoardStage, type BoardAnchors } from "./screen/layout/BoardStage";
 import { useMatchChat } from "./chat/useMatchChat";
 import { useMatchChatWindow } from "./chat/useMatchChatWindow";
+import { useMatchChatEnabled } from "@/game/chat/matchChatEnabled/useMatchChatEnabled";
 import { BreedingDock } from "./screen/layout/BreedingDock";
 import { MatchOverlays } from "./screen/layout/MatchOverlays";
 
@@ -374,6 +375,7 @@ function GameScreenSession({
   // stay cached as the fallback seat 0.
   const viewerSeat = viewerSeatOf(state, sessionId);
   const chat = useMatchChat({ room: connectedRoom, viewerSeat, spectating });
+  const matchChatEnabled = useMatchChatEnabled();
   const guestApproval = spectating ? undefined : getGuestApprovalView({ state, sessionId });
 
   const leaveForfeits =
@@ -668,7 +670,7 @@ function GameScreenSession({
     presentationPacing,
     holdEffectsForConfirmation: vsBot && !spectating && effectConfirmationHold,
   });
-  const liveChat = connectedRoom ? chat : undefined;
+  const liveChat = connectedRoom && matchChatEnabled ? chat : undefined;
   const chatWindow = useMatchChatWindow({
     chat: liveChat,
     resultShown: !!state?.gameOver && !cues.resultPending,

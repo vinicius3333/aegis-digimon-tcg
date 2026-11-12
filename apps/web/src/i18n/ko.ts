@@ -2823,6 +2823,8 @@ const interfaceMessages = {
   "chat.muteSpectators": "관전자 음소거",
   "chat.sound": "채팅 알림음",
   "chat.soundDesc": "상대나 관전자가 새 메시지를 보낼 때마다 소리를 재생합니다.",
+  "chat.enabled": "대전 채팅",
+  "chat.enabledDesc": "대전 중 채팅 버튼, 말풍선, 메시지를 표시합니다. 끄면 채팅이 완전히 숨겨집니다.",
   "chat.you": "나",
   "chat.spectator": "관전자 {number}",
   "chat.spectatorTag": "관전자",

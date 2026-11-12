@@ -2917,6 +2917,9 @@ const interfaceMessages = {
   "chat.muteSpectators": "Couper le son des spectateurs",
   "chat.sound": "Son du chat",
   "chat.soundDesc": "Joue un son à chaque nouveau message de votre adversaire ou des spectateurs.",
+  "chat.enabled": "Chat de la partie",
+  "chat.enabledDesc":
+    "Affiche le bouton de chat, les bulles et les messages pendant les parties. Désactivez-le pour masquer complètement le chat.",
   "chat.you": "Vous",
   "chat.spectator": "Spectateur {number}",
   "chat.spectatorTag": "spectateur",
