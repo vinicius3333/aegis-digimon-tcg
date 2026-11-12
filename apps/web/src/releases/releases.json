@@ -1,5 +1,20 @@
 [
   {
+    "version": "1.70.0-beta",
+    "releasedAt": "2026-11-12",
+    "summaryKey": "releases.1.70.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.70.0-beta.feature.bt27Cards"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.70.0-beta.fix.datamonDeDigivolve"
+      }
+    ]
+  },
+  {
     "version": "1.69.0-beta",
     "releasedAt": "2026-11-12",
     "summaryKey": "releases.1.69.0-beta.summary",
