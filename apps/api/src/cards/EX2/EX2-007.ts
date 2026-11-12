@@ -62,7 +62,7 @@ export const compiled: CompiledCard = {
           event: "wouldBePlayed",
           sourceFilter: {
             controllerDefault: "mine",
-            kind: ["Digimon"],
+            kind: ["Digimon", "Tamer"],
             nameOrTrait: [{ tokens: ["D-Reaper"], match: "trait" }],
           },
           actions: [
