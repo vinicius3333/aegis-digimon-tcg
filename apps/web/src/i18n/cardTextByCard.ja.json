@@ -15707,5 +15707,20 @@
   "ST25-06": {
     "[StartofYourTurn]Ifyouhave2orlessmemory,setitto3.[YourTurn]WhenyourDigimonareplayedordigivolve,ifanyofthemhavethe[ALYSION]trait,bysuspendingthisTamer,fortheturn,1ofyourDigimonisn'taffectedbyyouropponent'sOptioneffectsandgets+3000DP.": "【自分のターン開始時】メモリーが2以下なら、3にする。\n【自分のターン】自分のデジモンが登場/進化したとき、そのデジモンが特徴「アリシオン」を持つなら、このテイマーをレストさせることで、ターン終了まで、自分のデジモン1体は相手のオプションの効果を受けず、DP+3000。",
     "[Security]Playthiscardwithoutpayingthecost.": "【セキュリティ】このカードをコストを支払わず登場させる。"
+  },
+  "BT27-005": {
+    "[YourTurn][OncePerTurn]WhenanyofyourblackDigimonareplayed,<Draw1>.": "【自分のターン】[ターン1回]黒の自分のデジモンが登場したとき、≪1ドロー≫。"
+  },
+  "BT27-059": {
+    "<Blocker>[OnPlay][WhenDigivolving]Youropponent's<De-Digivolve>effectsdon'taffect1ofyourDigimonuntiltheirturnends.Then,ifit'stheirturn,<De-Digivolve1>1oftheirDigimon.": "≪ブロッカー≫\n【登場時】【進化時】相手のターン終了まで、自分のデジモン1体は相手の≪退化≫の効果を受けない。その後、相手のターンなら、相手のデジモン1体を≪退化1≫。",
+    "[Opponent'sTurn][OncePerTurn]WhenanyofyourDigimonsuspend,thisDigimonmayunsuspend.": "【相手のターン】[ターン1回]自分のデジモンがレストしたとき、このデジモンをアクティブにできる。"
+  },
+  "BT27-063": {
+    "<Blocker>[AllTurns][OncePerTurn]WhenthisDigimonsuspends,<De-Digivolve1>1ofyouropponent'sDigimon.[AllTurns]WhenanyofyourDigimonwith<Blocker>wouldleavethebattleareaotherthanbyyoureffects,bysuspendingthisDigimon,1ofyourDigimondoesn'tleave.": "≪ブロッカー≫\n【お互いのターン】[ターン1回]このデジモンがレストしたとき、相手のデジモン1体を≪退化1≫。\n【お互いのターン】≪ブロッカー≫を持つ自分のデジモンが自分の効果以外でバトルエリアを離れるとき、このデジモンをレストさせることで、自分のデジモン1体は離れない。",
+    "[Opponent'sTurn][OncePerTurn]WhenanyofyourDigimonsuspend,youmayplay1level5orlowerblackDigimoncardwith<Blocker>fromyourhandwithoutpayingthecost.": "【相手のターン】[ターン1回]自分のデジモンがレストしたとき、自分の手札から、≪ブロッカー≫を持つ黒のLv.5以下のデジモンカード1枚をコストを支払わず登場できる。"
+  },
+  "BT27-068": {
+    "[Digivolve][Gankoomon]:Cost2<Collision><Reboot><Blocker>[AllTurns]WhenthisDigimonwouldleavethebattlearea,byreturning1ofyourotherDigimonor1[Gankoomon]or[XAntibody]fromthisDigimon'sdigivolutioncardstothebottomofthedeck,itdoesn'tleave.[AllTurns][OncePerTurn]WhenanyofyourDigimonleavethebattlearea,youmayactivate1[Main]effectonthiscard'sOptionside.": "〔進化〕「ガンクゥモン」:コスト2\n≪衝突≫ ≪再起動≫ ≪ブロッカー≫\n【お互いのターン】このデジモンがバトルエリアを離れるとき、このデジモンの進化元の「ガンクゥモン」/「X抗体」1枚か、他の自分のデジモン1体をデッキの下に戻すことで、離れない。\n【お互いのターン】[ターン1回]自分のデジモンがバトルエリアを離れたとき、このカードのオプション側の【メイン】効果1つを発揮できる。",
+    "UseReq.<[Huckmon]intext>[Main]Return1ofyouropponent's12000DPorhigherDigimontothetopofthedeck.Ifthiseffectdidn'treturn,delete1ofyouropponent'slowestplaycostDigimon.<ArtsDigivolve>": "≪使用条件《「ハックモン」記述》≫（指定の条件で色条件を満たせる）\n【メイン】DP12000以上の相手のデジモン1体をデッキの上に戻す。この効果で戻らなかったなら、最も登場コストの低い相手のデジモン1体を消滅させる。\n≪アーツ進化≫（使用後、破棄する代わりに自分のカードをこのカードにコストを支払わず進化できる）"
   }
 }
