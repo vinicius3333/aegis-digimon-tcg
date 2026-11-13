@@ -1,3 +1,4 @@
+import { getOptionUseDefinition } from "#api/engine/effects/interpreter/getOptionUseDefinition";
 import { getSingleHandActionCostBenefit } from "#api/engine/effects/interpreter/getSingleHandActionCostBenefit";
 import { getDecisionActionSummary } from "#api/engine/effects/interpreter/getDecisionActionSummary";
 import { getDecisionSelectionGoal } from "#api/engine/effects/interpreter/getDecisionSelectionGoal";
@@ -1043,7 +1044,12 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       let candidates = playableCandidates(
         ctx,
         staticPreflightTarget,
-        candidateLooseInstances(ctx, staticPreflightTarget, zones),
+        candidateLooseInstances(
+          ctx,
+          staticPreflightTarget,
+          zones,
+          action.chooseDualMode === true ? getOptionUseDefinition : undefined,
+        ),
         action.chooseDualMode,
       ).filter((candidate) => !isEffectPlayProhibited(ctx, candidate));
       // A return-cost clause can define the play target's color dynamically. Preflight the

@@ -1,5 +1,6 @@
 // Playing cards from hand, deck, trash, and security.
 
+import { getOptionUseDefinition } from "#api/engine/effects/interpreter/getOptionUseDefinition";
 import type { EffectContext } from "../../EffectContext.js";
 import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import { evaluateCondition } from "../conditions.js";
@@ -651,7 +652,12 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       let candidates = playableCandidates(
         ctx,
         playCostAdjustedTarget,
-        candidateLooseInstances(ctx, playCostAdjustedTarget, zones),
+        candidateLooseInstances(
+          ctx,
+          playCostAdjustedTarget,
+          zones,
+          action.chooseDualMode === true ? getOptionUseDefinition : undefined,
+        ),
         action.chooseDualMode,
       );
       if (action.fromTriggerHandTrash === true) {

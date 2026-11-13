@@ -1,3 +1,4 @@
+import { getOptionUseDefinition } from "#api/engine/effects/interpreter/getOptionUseDefinition";
 import { getDecisionEffectSummary } from "#api/engine/effects/interpreter/getDecisionEffectSummary";
 // Choosing between the options of a modal action.
 
@@ -433,7 +434,17 @@ function canAttemptModalAction(ctx: EffectContext, action: Action): boolean {
     const target = applyPlayCostCeiling(ctx, action, action.target);
     const candidates = candidatesAllowedBySameNameRestriction(
       ctx,
-      playableCandidates(ctx, target, candidateLooseInstances(ctx, target, zones), action.chooseDualMode),
+      playableCandidates(
+        ctx,
+        target,
+        candidateLooseInstances(
+          ctx,
+          target,
+          zones,
+          action.chooseDualMode === true ? getOptionUseDefinition : undefined,
+        ),
+        action.chooseDualMode,
+      ),
     );
     return candidates.some((candidate) => !isEffectPlayProhibited(ctx, candidate));
   }

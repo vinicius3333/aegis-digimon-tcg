@@ -311,6 +311,45 @@ describe("EX13-012 SaviorHuckmon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
+  it.each(["digivolving", "attacking"])("uses the white Option side of BT27-068 for 2 when %s", async (timing) => {
+    const digivolving = timing === "digivolving";
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: digivolving ? "BT1-014" : CARD_ID, as: "host" }],
+          hand: [{ card: "BT27-068", as: "option" }, ...(digivolving ? [{ card: CARD_ID, as: "savior" }] : [])],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT2-064", as: "target" }],
+          deck: ["BT1-009"],
+          security: [{ card: "BT1-009" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    s.state.memory = 6;
+    const targetId = s.perm("target").topCard.instanceId;
+    const hostId = s.perm("host").permanentId;
+    const optionId = s.inst("option").instanceId;
+
+    expect(
+      s.engine.applyIntent(
+        0,
+        digivolving
+          ? { type: "digivolve", permanentId: hostId, instanceId: s.inst("savior").instanceId }
+          : { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } },
+      ),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.pendingDecision && s.engine.mainVerbContinuationsInFlight === 0);
+
+    expect(s.state.players[1]!.deck[0]?.instanceId).toBe(targetId);
+    expect(s.state.memory).toBe(digivolving ? 1 : 4);
+    expect(s.perm("host").topCard.instanceId).toBe(optionId);
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(digivolving ? ["BT1-014", CARD_ID] : [CARD_ID]);
+  });
+
   it("discriminates white [Huckmon]-text cards from white non-[Huckmon] and red [Huckmon] hand cards", async () => {
     const s = setupEngine(
       {
