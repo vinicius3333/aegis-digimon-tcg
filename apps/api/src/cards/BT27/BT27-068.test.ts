@@ -169,6 +169,67 @@ describe("Gankoomon (X Antibody) and Ultimate Sengi Tengyouken", () => {
     expect(player.deck.at(-1)!.cardId).toBe("BT2-056");
   });
 
+  it("offers your other Digimon and matching digivolution cards in one card choice to stay", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "gankoomon", under: ["BT9-109"] },
+            { card: "BT2-056", as: "ally" },
+          ],
+          deck: DECK,
+        },
+        1: { deck: DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds },
+    );
+    const ally = s.perm("ally").topCard.instanceId;
+    const xAntibody = s.perm("gankoomon").stack[0]!.instanceId;
+    preferInstanceIds.push(xAntibody);
+    await s.ready();
+    expect(await deleteByOpponent(s, ["gankoomon"])).toBe(0);
+    const costChoices = s.decisions.filter(({ req }) => req.kind === "selectCards" && req.options?.purpose === "cost");
+    expect(costChoices).toHaveLength(1);
+    expect(costChoices[0]!.req.options?.candidateInstanceIds).toEqual(expect.arrayContaining([ally, xAntibody]));
+    expect(s.decisions.some(({ req }) => req.kind === "chooseOption")).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.players[0]!.deck.at(-1)!.instanceId).toBe(xAntibody);
+  });
+
+  it("leaves when the return is declined in the card choice", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "gankoomon", under: ["BT9-109"] },
+            { card: "BT2-056", as: "ally" },
+          ],
+          deck: DECK,
+        },
+        1: { deck: DECK },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    const removal = advance(s.engine).verb.deletePermanent([s.perm("gankoomon").permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision !== undefined);
+    const picker = s.decisions.at(-1)!.req;
+    expect(picker).toMatchObject({ kind: "selectCards", options: { purpose: "cost", min: 0, declinesCost: true } });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: picker.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    expect(await removal).toBe(1);
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => !s.state.pendingDecision);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT2-056"]);
+  });
+
   it.each(["BT20-057", "BT9-109"])("returns a %s digivolution card to the deck bottom to stay", async (source) => {
     const s = setupEngine(
       {

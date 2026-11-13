@@ -321,3 +321,69 @@ it("identifies field candidates by card number and board field reference", () =>
     setFieldReferenceVisible(false);
   }
 });
+
+it("names the Digimon holding digivolution cards only when they come from more than one Digimon", () => {
+  const { container } = render(
+    <I18nProvider>
+      <DecisionCandidateGrid
+        candidates={[
+          { instanceId: "ally", cardId: "BT7-009", zone: "battle" },
+          {
+            instanceId: "x",
+            cardId: "BT9-109",
+            zone: "digivolutionCards",
+            hostCardId: "BT27-016",
+            hostPermanentId: "jesmon",
+          },
+          {
+            instanceId: "j",
+            cardId: "BT6-016",
+            zone: "digivolutionCards",
+            hostCardId: "BT27-016",
+            hostPermanentId: "jesmon",
+          },
+        ]}
+        picks={[]}
+        min={1}
+        max={1}
+        selectedPlayCost={0}
+        withinPlayCostBudget
+        selectedDP={0}
+        onTogglePick={vi.fn<(instanceId: string) => void>()}
+      />
+    </I18nProvider>,
+  );
+  expect(container.querySelectorAll(".decision-overlay__source-host")).toHaveLength(0);
+  cleanup();
+
+  const mixed = render(
+    <I18nProvider>
+      <DecisionCandidateGrid
+        candidates={[
+          {
+            instanceId: "x",
+            cardId: "BT9-109",
+            zone: "digivolutionCards",
+            hostCardId: "BT27-016",
+            hostPermanentId: "jesmon",
+          },
+          {
+            instanceId: "j",
+            cardId: "BT6-016",
+            zone: "digivolutionCards",
+            hostCardId: "BT27-068",
+            hostPermanentId: "gankoomon",
+          },
+        ]}
+        picks={[]}
+        min={1}
+        max={1}
+        selectedPlayCost={0}
+        withinPlayCostBudget
+        selectedDP={0}
+        onTogglePick={vi.fn<(instanceId: string) => void>()}
+      />
+    </I18nProvider>,
+  );
+  expect(mixed.container.querySelectorAll(".decision-overlay__source-host")).toHaveLength(2);
+});
