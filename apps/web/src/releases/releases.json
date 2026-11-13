@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.72.1-beta",
+    "releasedAt": "2026-11-13",
+    "summaryKey": "releases.1.72.1-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.72.1-beta.fix.deckListNames"
+      }
+    ]
+  },
+  {
     "version": "1.72.0-beta",
     "releasedAt": "2026-11-13",
     "summaryKey": "releases.1.72.0-beta.summary",
