@@ -1,4 +1,16 @@
 {
+  "releases.1.72.1-beta.summary": {
+    "en": "This update makes deck names easier to read on the deck list.",
+    "pt-BR": "Esta atualização deixa os nomes dos decks mais fáceis de ler na lista de decks.",
+    "es": "Esta actualización hace que los nombres de los mazos sean más fáciles de leer en la lista de mazos.",
+    "it": "Questo aggiornamento rende i nomi dei mazzi più facili da leggere nella lista dei mazzi."
+  },
+  "releases.1.72.1-beta.fix.deckListNames": {
+    "en": "On tablets and narrow windows, the deck list shows full deck names, and the buttons no longer cover the deck counts.",
+    "pt-BR": "Em tablets e janelas estreitas, a lista de decks mostra o nome completo dos decks, e os botões não cobrem mais a contagem de cartas.",
+    "es": "En tabletas y ventanas estrechas, la lista de mazos muestra el nombre completo de los mazos, y los botones ya no tapan el recuento de cartas.",
+    "it": "Su tablet e finestre strette, la lista dei mazzi mostra il nome completo dei mazzi, e i pulsanti non coprono più il conteggio delle carte."
+  },
   "releases.1.72.0-beta.summary": {
     "en": "This update adds Gurimon and Jesmon (X Antibody) from BT27, keeps prompts and the match log out of your way, and fixes a batch of player-reported card problems.",
     "pt-BR": "Esta atualização adiciona Gurimon e Jesmon (X Antibody) do BT27, deixa as janelas e o registro da partida menos no caminho e corrige vários problemas de cartas relatados pelos jogadores.",
