@@ -33,7 +33,7 @@ describe("BT24-040 Venusmon", () => {
       expect(actions[0]).toMatchObject({
         kind: "TrashDigivolution",
         amount: "all",
-        target: { filter: { controller: "opponent", digivolutionCards: "hasAny" } },
+        target: { filter: { controller: "opponent" } },
       });
       expect(actions[1]).toMatchObject({ kind: "Restrict", restriction: "suspend", duration: "untilOpponentTurnEnd" });
       expect(actions[2]).toMatchObject({
@@ -303,20 +303,23 @@ describe("BT24-040 Venusmon", () => {
   });
 
   it("resolves a public When Attacking effect after Venusmon's restrictions expire", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "BT24-040", as: "venusmon" }],
-        security: ["BT1-009", "BT1-010", "BT1-011"],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-040", as: "venusmon" }],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT13-026", as: "attacker" },
+            { card: "BT1-009", as: "control" },
+          ],
+          security: ["BT1-010", "BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT13-026", as: "attacker" },
-          { card: "BT1-009", as: "control" },
-        ],
-        security: ["BT1-010", "BT1-011"],
-        deck: ["BT1-012", "BT1-013", "BT1-014"],
-      },
-    });
+      { autoSelectCards: true },
+    );
     s.state.turnSeat = 0;
     s.state.memory = 20;
     await s.ready();

@@ -36,7 +36,7 @@ describe("BT22-016 Mcmon", () => {
       kind: "TrashDigivolution",
       amount: 1,
       choose: true,
-      target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: 1 },
+      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
     });
   });
 

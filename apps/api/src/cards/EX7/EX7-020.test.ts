@@ -44,7 +44,7 @@ describe("EX7-020 Paledramon", () => {
           {
             kind: "TrashDigivolution",
             target: {
-              filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
+              filter: { controller: "opponent", kind: ["Digimon"] },
               count: 1,
             },
             amount: 2,
@@ -96,7 +96,7 @@ describe("EX7-020 Paledramon", () => {
           {
             kind: "TrashDigivolution",
             target: {
-              filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
+              filter: { controller: "opponent", kind: ["Digimon"] },
               count: 1,
             },
             amount: 1,
