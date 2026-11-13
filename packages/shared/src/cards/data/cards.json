@@ -112075,5 +112075,54 @@
     "dualEffect": "Ultimate Sengi Tengyouken",
     "optionColorRequirements": ["White"],
     "optionEffect": "Use Req. ＜[Huckmon] in text＞\n[Main] Return 1 of your opponent's 12000 DP or higher Digimon to the top of the deck. If this effect didn't return, delete 1 of your opponent's lowest play cost Digimon.\n＜Arts Digivolve＞"
+  },
+  {
+    "cardId": "BT27-001",
+    "set": "BT27",
+    "nameEn": "Gurimon",
+    "nameJp": "グリモン",
+    "colors": ["Red"],
+    "kinds": ["DigiEgg"],
+    "level": 2,
+    "playCost": -1,
+    "dp": 0,
+    "evoCosts": [],
+    "forms": ["In-Training"],
+    "attributes": [],
+    "types": ["Lesser"],
+    "effectText": "",
+    "inheritedEffectText": "[Your Turn] [Once Per Turn] When any of your Digimon with [Huckmon] in their texts suspend, ＜Draw 1＞.",
+    "rarity": "C",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-001"
+  },
+  {
+    "cardId": "BT27-016",
+    "set": "BT27",
+    "nameEn": "Jesmon (X Antibody)",
+    "nameJp": "ジエスモンX抗体/究極戦刃聖覇剣",
+    "colors": ["Red"],
+    "kinds": ["Digimon", "Option"],
+    "level": 6,
+    "playCost": 5,
+    "dp": 12000,
+    "evoCosts": [
+      {
+        "color": "Red",
+        "level": 5,
+        "memoryCost": 3
+      }
+    ],
+    "forms": ["Mega"],
+    "attributes": ["Data"],
+    "types": ["Holy Warrior", "X Antibody", "Royal Knight"],
+    "effectText": "[Digivolve] [Jesmon]: Cost 1\n＜Progress＞ ＜Piercing＞ ＜Engage＞\n[When Digivolving] [When Attacking] [Once Per Turn] This Digimon gets +6000 DP until your opponent's turn ends. Then, by returning 1 of your other Digimon or 1 [Jesmon] or [X Antibody] from this Digimon's digivolution cards to the bottom of the deck, activate 1 [Main] effect on this card's Option side.",
+    "rarity": "SR",
+    "maxCountInDeck": 4,
+    "imageId": "BT27-016",
+    "isDualCard": true,
+    "dualEffect": "Ultimate Seibaken",
+    "optionColorRequirements": ["White"],
+    "optionEffect": "Use Req. ＜[Huckmon] in text＞\n[Main] By placing 1 of your opponent's lowest DP Digimon as the bottom security card, trash their top security card.\n＜Arts Digivolve＞"
   }
 ]

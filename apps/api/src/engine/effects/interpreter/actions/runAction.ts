@@ -9,6 +9,7 @@ import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import { evaluateCondition } from "../conditions.js";
 import { borrowedProcessingCost } from "../borrowedProcessingCost.js";
 import { canPayCost, costIsAskedAsSelection, payCost, payOneCostOption } from "../costs.js";
+import { mergedReturnCandidates } from "../cost/mergedReturnCandidates.js";
 import { describeAction, describeCost } from "../describe.js";
 import { type ActionScope, installActionRunner } from "../dispatch.js";
 import { unsupported } from "../errors.js";
@@ -909,6 +910,15 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     payableActionCost !== undefined &&
     costIsAskedAsSelection(payableActionCost as Cost);
   const targetAsksThisAction = optionalTargetAsksAction(ctx, action);
+  const costOptionsAskThisAction =
+    action.kind !== "RawUnparsed" &&
+    action.kind !== "CostModifier" &&
+    action.optional === true &&
+    (action.costOptions?.length ?? 0) > 0 &&
+    (mergedReturnCandidates(
+      ctx,
+      (action.costOptions as Cost[]).filter((cost) => canPayCost(ctx, cost)),
+    )?.length ?? 0) > 0;
 
   // "You may" — ask the controller. Skip the prompt when the action carries a cost that is
   // provably unpayable (e.g. a "by trashing your security" cost with an empty security stack):
@@ -1182,7 +1192,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // "By [cost], you may [effect]" pays first and asks afterwards: the leading prompt would make
     // a decline skip the cost too. The pay-then-ask block further down raises the payload prompt
     // once the cost is spent.
-    if (!costUnpayable && !costAsksThisAction && !targetAsksThisAction && !paysCostFirst) {
+    if (!costUnpayable && !costAsksThisAction && !costOptionsAskThisAction && !targetAsksThisAction && !paysCostFirst) {
       const chooser =
         action.kind === "Delete" && action.target.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
       const predecided = ctx.predecidedOptionalActions?.get(action);
@@ -1250,7 +1260,17 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.kind !== "PlayPerLevel" &&
     (action.costOptions?.length ?? 0) > 0
   ) {
+    const outerCostIsTheQuestion = ctx.costIsTheQuestion;
+    if (costOptionsAskThisAction) ctx.costIsTheQuestion = true;
     const paid = await payOneCostOption(ctx, action.costOptions as Cost[], costPayment);
+    ctx.costIsTheQuestion = outerCostIsTheQuestion;
+    if (costOptionsAskThisAction) {
+      if (paid) markActivationChosen(ctx);
+      else {
+        ctx.lastEffectActed = false;
+        markActivationDeclined(ctx);
+      }
+    }
     if (!paid) return action.abortOnDecline === true;
   } else if (
     action.kind !== "RawUnparsed" &&
