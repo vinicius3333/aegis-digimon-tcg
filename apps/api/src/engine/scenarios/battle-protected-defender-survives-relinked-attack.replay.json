@@ -1,7 +1,6 @@
 {
   "format": "aegis-replay-inputs/1",
   "matchId": "f4a1c525-5331-42fc-941c-def450b3f196",
-  "serverRevision": "17d74783121bf58eaef6a42f2a39cc74051fedee",
   "seed": 915916605,
   "rules": {
     "deckFormat": "standard",
@@ -521,7 +520,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 24,
+      "stateVersion": 25,
       "engineEvents": 40
     },
     {
@@ -532,7 +531,7 @@
         "permanentId": "perm-1"
       },
       "ok": true,
-      "stateVersion": 32,
+      "stateVersion": 33,
       "engineEvents": 48
     },
     {
@@ -546,7 +545,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 34,
+      "stateVersion": 35,
       "engineEvents": 51
     },
     {
@@ -557,7 +556,7 @@
         "instanceId": "s1-32"
       },
       "ok": true,
-      "stateVersion": 39,
+      "stateVersion": 40,
       "engineEvents": 59
     },
     {
@@ -568,7 +567,7 @@
         "permanentId": "perm-2"
       },
       "ok": true,
-      "stateVersion": 44,
+      "stateVersion": 45,
       "engineEvents": 67
     },
     {
@@ -580,7 +579,7 @@
         "targetPermanentId": "perm-2"
       },
       "ok": true,
-      "stateVersion": 46,
+      "stateVersion": 47,
       "engineEvents": 70
     },
     {
@@ -595,7 +594,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 46,
+      "stateVersion": 47,
       "engineEvents": 70
     },
     {
@@ -613,7 +612,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 47,
+      "stateVersion": 49,
       "engineEvents": 72
     },
     {
@@ -626,7 +625,7 @@
         "linkedInstanceId": "s0-2"
       },
       "ok": true,
-      "stateVersion": 54,
+      "stateVersion": 56,
       "engineEvents": 80
     },
     {
@@ -638,7 +637,7 @@
         "effectKey": "BT25-098/ir-27-0"
       },
       "ok": true,
-      "stateVersion": 55,
+      "stateVersion": 57,
       "engineEvents": 83
     },
     {
@@ -653,7 +652,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 57,
+      "stateVersion": 59,
       "engineEvents": 85
     },
     {
@@ -668,7 +667,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 60,
+      "stateVersion": 62,
       "engineEvents": 92
     },
     {
@@ -683,7 +682,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 61,
+      "stateVersion": 63,
       "engineEvents": 93
     },
     {
@@ -697,7 +696,7 @@
         "alternateRequirementIndex": 0
       },
       "ok": true,
-      "stateVersion": 64,
+      "stateVersion": 66,
       "engineEvents": 96
     },
     {
@@ -712,7 +711,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 66,
+      "stateVersion": 68,
       "engineEvents": 101
     },
     {
@@ -727,7 +726,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 67,
+      "stateVersion": 69,
       "engineEvents": 102
     },
     {
@@ -749,7 +748,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 69,
+      "stateVersion": 72,
       "engineEvents": 105
     },
     {
@@ -762,7 +761,7 @@
         "linkedInstanceId": "s0-22"
       },
       "ok": true,
-      "stateVersion": 80,
+      "stateVersion": 83,
       "engineEvents": 117
     },
     {
@@ -777,20 +776,20 @@
         }
       },
       "ok": true,
-      "stateVersion": 81,
+      "stateVersion": 84,
       "engineEvents": 120
     },
     {
       "kind": "disconnect",
       "seat": 0,
       "final": false,
-      "stateVersion": 82,
+      "stateVersion": 85,
       "engineEvents": 121
     },
     {
       "kind": "reconnect",
       "seat": 0,
-      "stateVersion": 82,
+      "stateVersion": 85,
       "engineEvents": 121
     },
     {
@@ -805,7 +804,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 82,
+      "stateVersion": 85,
       "engineEvents": 121
     },
     {
@@ -821,7 +820,7 @@
         "vortex": false
       },
       "ok": true,
-      "stateVersion": 86,
+      "stateVersion": 89,
       "engineEvents": 125
     },
     {
@@ -832,7 +831,7 @@
         "instanceId": "hidden-s0-426528f2d61a4fdee05976a8"
       },
       "ok": true,
-      "stateVersion": 98,
+      "stateVersion": 101,
       "engineEvents": 140
     },
     {
@@ -847,7 +846,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 99,
+      "stateVersion": 102,
       "engineEvents": 144
     },
     {
@@ -857,7 +856,7 @@
         "type": "hatchEgg"
       },
       "ok": true,
-      "stateVersion": 106,
+      "stateVersion": 109,
       "engineEvents": 151
     },
     {
@@ -872,14 +871,14 @@
         }
       },
       "ok": true,
-      "stateVersion": 108,
+      "stateVersion": 111,
       "engineEvents": 154
     },
     {
       "kind": "intent",
       "seat": 1,
       "ok": true,
-      "stateVersion": 109,
+      "stateVersion": 112,
       "engineEvents": 155,
       "intent": {
         "type": "respondDecision",
@@ -902,7 +901,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 112,
+      "stateVersion": 115,
       "engineEvents": 162
     },
     {
@@ -917,7 +916,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 112,
+      "stateVersion": 115,
       "engineEvents": 162
     },
     {
@@ -929,7 +928,7 @@
         "instanceId": "s1-21"
       },
       "ok": true,
-      "stateVersion": 115,
+      "stateVersion": 118,
       "engineEvents": 165
     },
     {
@@ -944,7 +943,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 117,
+      "stateVersion": 120,
       "engineEvents": 170
     },
     {
@@ -956,7 +955,7 @@
         "instanceId": "s1-9"
       },
       "ok": true,
-      "stateVersion": 121,
+      "stateVersion": 124,
       "engineEvents": 174
     },
     {
@@ -968,7 +967,7 @@
         "instanceId": "s1-31"
       },
       "ok": true,
-      "stateVersion": 123,
+      "stateVersion": 126,
       "engineEvents": 177
     },
     {
@@ -978,20 +977,20 @@
         "type": "hatchEgg"
       },
       "ok": true,
-      "stateVersion": 134,
+      "stateVersion": 137,
       "engineEvents": 191
     },
     {
       "kind": "disconnect",
       "seat": 0,
       "final": false,
-      "stateVersion": 138,
+      "stateVersion": 141,
       "engineEvents": 197
     },
     {
       "kind": "reconnect",
       "seat": 0,
-      "stateVersion": 138,
+      "stateVersion": 141,
       "engineEvents": 197
     },
     {
@@ -1001,7 +1000,7 @@
         "type": "ready"
       },
       "ok": true,
-      "stateVersion": 138,
+      "stateVersion": 141,
       "engineEvents": 197
     },
     {
@@ -1013,7 +1012,7 @@
         "effectKey": "BT25-089/ir-27-0"
       },
       "ok": true,
-      "stateVersion": 138,
+      "stateVersion": 141,
       "engineEvents": 197
     },
     {
@@ -1028,7 +1027,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 138,
+      "stateVersion": 141,
       "engineEvents": 197
     },
     {
@@ -1043,7 +1042,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 140,
+      "stateVersion": 143,
       "engineEvents": 199
     },
     {
@@ -1065,7 +1064,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 142,
+      "stateVersion": 145,
       "engineEvents": 201
     },
     {
@@ -1080,7 +1079,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 146,
+      "stateVersion": 149,
       "engineEvents": 206
     },
     {
@@ -1096,7 +1095,7 @@
         "vortex": false
       },
       "ok": true,
-      "stateVersion": 155,
+      "stateVersion": 158,
       "engineEvents": 216
     },
     {
@@ -1111,7 +1110,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 156,
+      "stateVersion": 159,
       "engineEvents": 217
     },
     {
@@ -1126,7 +1125,7 @@
         }
       },
       "ok": true,
-      "stateVersion": 157,
+      "stateVersion": 160,
       "engineEvents": 218
     },
     {
@@ -1136,13 +1135,13 @@
         "type": "respondDecision",
         "decisionId": "dec-26",
         "response": {
-          "kind": "chooseTargets",
-          "instanceIds": ["perm-2"]
+          "kind": "selectCards",
+          "instanceIds": ["s0-15"]
         }
       },
       "ok": true,
-      "stateVersion": 158,
-      "engineEvents": 219
+      "stateVersion": 160,
+      "engineEvents": 218
     },
     {
       "kind": "intent",
@@ -1151,13 +1150,13 @@
         "type": "respondDecision",
         "decisionId": "dec-27",
         "response": {
-          "kind": "selectCards",
-          "instanceIds": ["s0-15"]
+          "kind": "chooseTargets",
+          "instanceIds": ["perm-2"]
         }
       },
       "ok": true,
-      "stateVersion": 160,
-      "engineEvents": 221
+      "stateVersion": 162,
+      "engineEvents": 220
     },
     {
       "kind": "intent",
@@ -1172,7 +1171,7 @@
         "vortex": false
       },
       "ok": true,
-      "stateVersion": 163,
+      "stateVersion": 166,
       "engineEvents": 225
     }
   ]

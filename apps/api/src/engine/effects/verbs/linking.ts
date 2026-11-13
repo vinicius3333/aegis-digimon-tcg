@@ -253,9 +253,10 @@ export function createLinkingVerbs(pc: PrimitivesContext) {
       linked.push(instance);
     }
     if (linked.length > 0) {
-      // CR 4-9-5: these cards are the newly linked ones, so the over-limit rule check must
-      // trash EXISTING link cards instead of them (see PrimitivesEngine.noteLinked).
+      // CR 4-9-5: these cards are the newly linked ones, so the EXISTING link cards they
+      // replace are trashed at the same time (see PrimitivesEngine.noteLinked).
       engine.noteLinked?.(linked.map((c) => c.instanceId));
+      await engine.trashReplacedLinkCards?.(permanent.permanentId);
       // CR 4-2-4: a linked card contributes its printed linkDp, so the DP tier must be
       // re-derived here the way digivolve does after it stacks a card.
       ledger.recomputeDP(state, permanent.permanentId);
