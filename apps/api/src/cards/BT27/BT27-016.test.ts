@@ -203,10 +203,40 @@ describe("Jesmon (X Antibody) and Ultimate Seibaken", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
-  it("keeps the DP gain and the other Digimon when the return is declined", async () => {
-    const s = jesmonBoard({ allies: [{ card: "BT2-056", as: "ally" }], accept: false });
+  it("asks the return in the card choice itself and keeps the DP gain when it is declined", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT6-016", as: "base" },
+          { card: "BT2-056", as: "ally" },
+        ],
+        hand: [{ card: cardId, as: "card" }],
+        deck: DECK,
+      },
+      1: { battleArea: OPPONENT_FIELD, security: OPPONENT_SECURITY, deck: DECK },
+    });
+    s.state.memory = 10;
     await s.ready();
-    await digivolve(s);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("card").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision !== undefined);
+    const picker = s.decisions.at(-1)!.req;
+    expect(picker).toMatchObject({ kind: "selectCards", options: { purpose: "cost", min: 0, declinesCost: true } });
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: picker.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.pendingDecision);
     expect(s.perm("base").currentDP).toBe(18000);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
