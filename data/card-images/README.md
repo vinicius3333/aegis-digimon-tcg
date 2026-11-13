@@ -343,3 +343,15 @@ attachment is cropped to `(41, 41, 909, 1254)`, producing 868 x 1213 px WebP
 images at quality 90 without the white outer margin. The SAMPLE watermark is
 preserved. The Japanese scans supply the Japanese name and text
 transcriptions.
+
+## BT27 Gankoomon (X Antibody) alternate art, 2026-11-13
+
+BT27-068_P1 and BT27-068_P1-J come from user-provided official English and
+Japanese reveal scans of the BT-27 booster alternate art, which carries the
+star rarity mark and the DUAL stamp. The SAMPLE watermark is preserved and
+each crop is encoded as WebP at quality 90 without the white outer margin.
+
+| File          | Source scan   | Crop box              | Output     |
+| ------------- | ------------- | --------------------- | ---------- |
+| BT27-068_P1   | 951 x 1295 px | `(41, 41, 909, 1254)` | 868 x 1213 |
+| BT27-068_P1-J | 907 x 1235 px | `(39, 39, 868, 1197)` | 829 x 1158 |
