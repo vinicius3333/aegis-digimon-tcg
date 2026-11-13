@@ -59,7 +59,7 @@ describe("BT1-041 through BT1-050 IR coverage", () => {
           kind: "TrashDigivolution",
           amount: 4,
           fromTop: false,
-          target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: 1 },
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
         },
       ],
     });

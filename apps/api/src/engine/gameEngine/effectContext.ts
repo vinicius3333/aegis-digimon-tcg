@@ -1039,5 +1039,6 @@ export function buildPrimitives(engine: GameEngine): Primitives {
     noteLinked: (instanceIds) => {
       for (const instanceId of instanceIds) engine.justLinked.add(instanceId);
     },
+    trashReplacedLinkCards: (permanentId) => engine.ruleChecks.trashReplacedLinkCards(permanentId),
   });
 }

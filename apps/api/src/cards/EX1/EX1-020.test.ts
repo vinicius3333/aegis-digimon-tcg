@@ -175,6 +175,7 @@ describe("EX1-020 Plesiomon", () => {
   });
 
   it("draws only once when two opponent sources are trashed in one turn", async () => {
+    const intendedTarget: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -192,12 +193,14 @@ describe("EX1-020 Plesiomon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: intendedTarget },
     );
     s.state.memory = 20;
     await s.ready();
+    intendedTarget.splice(0, intendedTarget.length, s.perm("firstTarget").topCard.instanceId);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("firstTarget").stack.length === 0);
+    intendedTarget.splice(0, intendedTarget.length, s.perm("secondTarget").topCard.instanceId);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
       ok: true,
     });
@@ -207,6 +210,7 @@ describe("EX1-020 Plesiomon", () => {
   });
 
   it("resets Draw 2 on the next own turn through the public turn loop", async () => {
+    const intendedTarget: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -227,13 +231,14 @@ describe("EX1-020 Plesiomon", () => {
           deck: Array.from({ length: 20 }, () => "BT1-009"),
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: intendedTarget },
     );
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     await s.ready();
     s.state.memory = 20;
     const play = async (alias: string, targetAlias: string) => {
+      intendedTarget.splice(0, intendedTarget.length, s.perm(targetAlias).topCard.instanceId);
       expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst(alias).instanceId })).toEqual({ ok: true });
       await settle(() => s.perm(targetAlias).stack.length === 0 && s.state.pendingDecision === undefined);
     };

@@ -203,7 +203,7 @@ describe("EX9-018", () => {
             kind: "TrashDigivolution",
             amount: 1,
             choose: true,
-            target: { filter: { controller: "opponent", digivolutionCards: "hasAny" } },
+            target: { filter: { controller: "opponent" } },
           },
           { kind: "Return", to: "deckBottom" },
         ],
@@ -688,8 +688,21 @@ it("issue #5322: public Then picker rejects sourced Digimon, own Digimon, and Ta
   s.state.memory = 10;
   await s.ready();
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+  const host = s.state.pendingDecision!;
+  expect(s.decisions.at(-1)!.req.options?.candidateInstanceIds).toEqual([
+    s.perm("stacked").permanentId,
+    s.perm("sourceLess").permanentId,
+    s.perm("otherSourceLess").permanentId,
+  ]);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: host.decisionId,
+      response: { kind: "chooseTargets", instanceIds: [s.perm("stacked").permanentId] },
+    }),
+  ).toEqual({ ok: true });
   await settle(() => s.state.pendingDecision?.kind === "selectCards");
-  // The sole legal payment and sole sourced opponent are selected automatically.
   expect(s.state.players[0]!.trash).toHaveLength(0);
   expect(
     s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX9-018")!.stack.map(

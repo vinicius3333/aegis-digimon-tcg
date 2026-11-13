@@ -71,7 +71,9 @@ describe("BT6 Azulongmon source-strip deck gauntlet", () => {
     const topStripChoice = s.decisions.find(
       ({ req }) => req.kind === "chooseTargets" && req.options?.candidateInstanceIds?.includes(twoSourcesId),
     )?.req;
-    expect(new Set(topStripChoice?.options?.candidateInstanceIds ?? [])).toEqual(new Set([twoSourcesId, oneSourceId]));
+    expect(new Set(topStripChoice?.options?.candidateInstanceIds ?? [])).toEqual(
+      new Set([twoSourcesId, oneSourceId, s.perm("alreadyEmpty").permanentId]),
+    );
     expect(s.perm("twoSources").stack.map(({ instanceId }) => instanceId)).toEqual([bottomSourceId]);
     expect(s.perm("oneSource").stack.map(({ instanceId }) => instanceId)).toEqual([onlySourceId]);
     expect(s.state.memory).toBe(5);

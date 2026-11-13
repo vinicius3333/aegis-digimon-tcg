@@ -17,8 +17,9 @@ import { candidateLooseInstances, looseCardsInZone } from "../targeting/loose.js
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, EffectTiming } from "@aegis/shared";
 import { MemoryGauge } from "../../../MemoryGauge.js";
+import { optionUseDefinition } from "#api/engine/effects/interpreter/actions/optionUseDefinition";
 import { createLenderCardSource } from "#api/engine/effects/interpreter/actions/createLenderCardSource";
-import type { Action, CardDefinition, CardEffect, EffectTrigger, Filter, Seat, ZoneRef } from "@aegis/shared";
+import type { Action, CardEffect, EffectTrigger, Filter, Seat, ZoneRef } from "@aegis/shared";
 
 /** A foreign card eligible to lend a borrowed effect (its instance + the borrowable effects). */
 interface ForeignCandidate {
@@ -461,14 +462,6 @@ export async function runActivateEffect(
  * then goes to trash (the `playInstances` `isPermanentKind` gap). The use RESULT binds on
  * `ctx.lastOptionUsed` at use-time (KB EX8-037 Q4738) so an `ifThisEffectUsed` tail can gate.
  */
-// Loose DUAL cards carry both sides' colors in the catalog. When selecting an
-// Option to use, color predicates (including single-color) read its Option face.
-function optionUseDefinition(definition: CardDefinition): CardDefinition {
-  return definition.isDualCard && definition.optionColorRequirements !== undefined
-    ? { ...definition, colors: definition.optionColorRequirements }
-    : definition;
-}
-
 function optionUseCandidates(
   ctx: EffectContext,
   action: Extract<Action, { kind: "UseOptionWithoutCost" }>,
