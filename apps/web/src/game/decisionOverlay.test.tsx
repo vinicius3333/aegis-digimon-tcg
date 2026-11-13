@@ -998,8 +998,46 @@ describe("order-trigger chooser identity", () => {
       },
     });
 
-    expect(screen.getByRole("button", { name: "[On Play], Megadramon (copy 1)" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "[On Play], Megadramon (copy 2)" })).toBeTruthy();
+    const first = screen.getByRole("button", { name: "[On Play], Megadramon, copy 1 of 2" });
+    expect(screen.getByRole("button", { name: "[On Play], Megadramon, copy 2 of 2" })).toBeTruthy();
+    expect(first.querySelector(".trigger-chooser__name")?.textContent).toBe("Megadramon");
+    expect(first.querySelector(".trigger-chooser__copy")?.textContent).toBe("copy 1 of 2");
+  });
+
+  it("shows a field copy number once, on the source line, never in the card name", () => {
+    render(
+      <I18nProvider>
+        <DecisionOverlay
+          request={{
+            decisionId: "two-venusmon",
+            seat: 0,
+            kind: "orderTriggers",
+            promptText: "Choose the next pending effect to resolve.",
+            options: {
+              triggerKeys: [
+                buildTriggerKey("venusmon-a", "EX12-064/on-play"),
+                buildTriggerKey("venusmon-b", "EX12-064/on-play"),
+              ],
+              triggerCardIds: ["EX12-064", "EX12-064"],
+              triggerTimings: ["OnPlay", "OnPlay"],
+            },
+          }}
+          candidates={[]}
+          picks={[]}
+          triggerDetails={[
+            { sourceLabel: "Field (copy 1)", sourceShowsCopy: true },
+            { sourceLabel: "Field (copy 2)", sourceShowsCopy: true },
+          ]}
+          onTogglePick={vi.fn<(instanceId: string) => void>()}
+          onRespond={vi.fn<(response: DecisionResponse) => void>()}
+        />
+      </I18nProvider>,
+    );
+
+    const first = screen.getByRole("button", { name: "[On Play], Megadramon, Field (copy 1)" });
+    expect(first.querySelector(".trigger-chooser__name")?.textContent).toBe("Megadramon");
+    expect(first.querySelector(".trigger-chooser__copy")).toBeNull();
+    expect(first.textContent?.match(/copy/g)).toHaveLength(1);
   });
 
   it("shows full printed text for each option even when the clauses repeat", () => {

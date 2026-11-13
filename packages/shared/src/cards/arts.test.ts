@@ -82,10 +82,24 @@ it("offers Japanese printings for the Gaomon line, MirageGaogamon, and Thomas H.
   }
 });
 
-it("offers Japanese printings for Motimon, Clockmon, Andromon, and Gankoomon (X Antibody)", () => {
-  for (const cardId of ["BT27-005", "BT27-059", "BT27-063", "BT27-068"]) {
+it("offers Japanese printings for Gurimon, Motimon, Clockmon, and Andromon", () => {
+  for (const cardId of ["BT27-001", "BT27-005", "BT27-059", "BT27-063"]) {
     expect(getCardArts(cardId).map((art) => art.artId)).toEqual([cardId, `${cardId}-J`]);
     expect(cardImageUrls(cardId, `${cardId}-J`)[0]).toContain(`/${cardId}-J.webp`);
+  }
+});
+
+it("offers Jesmon (X Antibody) and Gankoomon (X Antibody) alternate artwork in both languages", () => {
+  for (const cardId of ["BT27-016", "BT27-068"]) {
+    expect(getCardArts(cardId).map((art) => art.artId)).toEqual([
+      cardId,
+      `${cardId}_P1`,
+      `${cardId}-J`,
+      `${cardId}_P1-J`,
+    ]);
+    expect(cardImageUrls(cardId)[0]).toContain(`/${cardId}.webp`);
+    expect(cardImageUrls(cardId, `${cardId}_P1`)[0]).toContain(`/${cardId}_P1.webp`);
+    expect(cardImageUrls(cardId, `${cardId}_P1-J`)[0]).toContain(`/${cardId}_P1-J.webp`);
   }
 });
 

@@ -181,7 +181,7 @@ for (const [width, dark] of [
     await expect(page.getByRole("heading", { name: "My profile", level: 1 })).toBeVisible();
     const identity = page.getByRole("region", { name: "My profile" });
     await expect(identity.getByText("Account connected")).toBeVisible();
-    await expect(identity.locator(".profile-stats")).toContainText("Human matches28");
+    await expect(identity.locator(".profile-stats")).toContainText("Recent human matches28");
     await expect(identity.getByRole("link", { name: "Preferences" })).toHaveAttribute("href", "/settings");
     await expect(rows(page)).toHaveCount(25);
     await expect(page.getByText("Showing 1–25 of 37")).toBeVisible();

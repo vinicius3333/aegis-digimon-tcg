@@ -259,10 +259,10 @@ const interfaceMessages = {
   "profile.page": "Page {page}",
   "profile.stats.matches": "Matchs",
   "profile.stats.wins": "Victoires",
-  "profile.stats.humanMatches": "Matchs contre des humains",
-  "profile.stats.humanWins": "Victoires contre des humains",
+  "profile.stats.humanMatches": "Matchs récents contre des humains",
+  "profile.stats.humanWins": "Victoires récentes contre des humains",
   "profile.stats.rateScope":
-    "Historique conservé contre des humains · Les filtres de mode et d'adversaire s'appliquent · Le filtre de résultat ne concerne que la liste · Bots exclus.",
+    "{limit} derniers matchs contre des humains, plus les replays enregistrés · Les filtres de mode et d'adversaire s'appliquent · Le filtre de résultat ne concerne que la liste · Bots exclus.",
   "profile.stats.winRate": "Taux de victoire",
   "profile.stats.replays": "Replays enregistrés",
   "profile.changeAvatar": "Changer d'avatar",
@@ -1338,7 +1338,7 @@ const interfaceMessages = {
   "game.matchLogDrag": "Faites glisser pour déplacer",
   "settings.matchLogDisplay": "Affichage du journal",
   "settings.matchLogDisplayDesc":
-    "Choisissez comment le match montre ce qui s'est passé : de courtes notifications sur le plateau, un journal fixe au bord du plateau, ou les deux. Sur téléphone, les notifications restent et le journal s'ouvre avec le bouton.",
+    "Choisissez comment le match montre ce qui s'est passé : de courtes notifications sur le plateau, un journal fixe au bord du plateau, ou les deux. Sur téléphone, il n'y a pas de journal fixe : ouvrez-le avec le bouton du journal.",
   "settings.matchLogDisplayPopups": "Notifications",
   "settings.matchLogDisplayPanel": "Journal fixe",
   "settings.matchLogDisplayBoth": "Les deux",

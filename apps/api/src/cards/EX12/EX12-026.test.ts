@@ -259,7 +259,7 @@ describe("EX12-026 Shellmon", () => {
             fromTop: false,
             target: {
               count: 1,
-              filter: { controller: "opponent", kind: [CardKind.Digimon], digivolutionCards: "hasAny" },
+              filter: { controller: "opponent", kind: [CardKind.Digimon] },
             },
           },
           {
@@ -396,14 +396,21 @@ describe("EX12-026 Shellmon — feedback report 4: two independent targets", () 
     expect(observe(s.engine).isRestricted(s.perm("other"), "attack")).toBe(true);
   });
 
-  it("auto-targets the only Digimon with sources, then asks only the restriction clause", async () => {
+  it("offers a Digimon without sources to the trash clause too (Q2007)", async () => {
     const s = await playShellmonAgainst([]);
+    const candidates = [s.perm("stripped").permanentId, s.perm("other").permanentId];
 
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-    expect(s.decisions).toHaveLength(1);
+    expect(lastTargetRequest(s).options).toMatchObject({
+      candidateInstanceIds: candidates,
+      effectTextPart: trashClause,
+    });
+    await chooseTarget(s, s.perm("stripped").permanentId);
+
+    await settle(() => s.decisions.length === 2);
     expect(s.perm("stripped").stack.map((card) => card.cardId)).toEqual(["BT1-011"]);
     expect(lastTargetRequest(s).options).toMatchObject({
-      candidateInstanceIds: [s.perm("stripped").permanentId, s.perm("other").permanentId],
+      candidateInstanceIds: candidates,
       effectTextPart: restrictClause,
     });
     await chooseTarget(s, s.perm("other").permanentId);

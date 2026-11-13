@@ -18,6 +18,8 @@ const playSelfNamed: CostGatedBlockAction = {
   actions: [
     {
       kind: "PlayWithoutCost",
+      effectTextPart:
+        "By returning this Tamer to the bottom of the deck, you may play 1 [Takato Matsuki] from your hand without paying the cost.",
       target: {
         filter: {
           controller: "mine",
@@ -31,6 +33,8 @@ const playSelfNamed: CostGatedBlockAction = {
     },
     {
       kind: "PlayWithoutCost",
+      effectTextPart:
+        "After, if you don't have a Digimon, you may play 1 [Guilmon] from your trash without paying the cost.",
       target: {
         filter: {
           controller: "mine",

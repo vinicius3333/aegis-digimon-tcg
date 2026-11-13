@@ -56,15 +56,3 @@ export function revealedZones(input: {
   }
   return undefined;
 }
-
-// Turn order is server truth: `matchStarted` names the seat that takes turn 1.
-// Nothing is shown until that event has arrived rather than inferring a side.
-export function viewerTurnOrder(input: {
-  events: readonly ServerEvent[];
-  viewerSeat: Seat;
-}): "first" | "second" | undefined {
-  const { events, viewerSeat } = input;
-  const started = events.find((event) => event.kind === "matchStarted");
-  if (started?.kind !== "matchStarted") return undefined;
-  return started.firstSeat === viewerSeat ? "first" : "second";
-}

@@ -1,5 +1,38 @@
 [
   {
+    "version": "1.72.0-beta",
+    "releasedAt": "2026-11-13",
+    "summaryKey": "releases.1.72.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.72.0-beta.feature.bt27Jesmon"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.72.0-beta.fix.quieterMatchUi"
+      },
+      {
+        "textKey": "releases.1.72.0-beta.fix.breedingPrompt"
+      },
+      {
+        "textKey": "releases.1.72.0-beta.fix.dualCardColors"
+      },
+      {
+        "textKey": "releases.1.72.0-beta.fix.takatoPrompts"
+      },
+      {
+        "textKey": "releases.1.72.0-beta.fix.linkReplacement"
+      },
+      {
+        "textKey": "releases.1.72.0-beta.fix.trashSourcesBare"
+      },
+      {
+        "textKey": "releases.1.72.0-beta.fix.recentProfileStats"
+      }
+    ]
+  },
+  {
     "version": "1.71.0-beta",
     "releasedAt": "2026-11-12",
     "summaryKey": "releases.1.71.0-beta.summary",

@@ -470,7 +470,13 @@ Later narration remains outside that wait so it can depend on the slot's settlem
 Event-driven flights retain their originating batch. A clause waits for earlier
 batch draws rather than its own same-batch draw, which needs that clause first.
 A pending server check
-can hold longer for its actual result. Outcome transforms use forwards fill and
+can hold longer for its actual result. When it is still open after the readable
+hold (`CLASH_OUTCOME_AT_MS`), the scene sets `data-receded`: the board dim fades
+out, the cards shrink, and the captions move onto their own panel. The layer stays
+pointer-transparent, so board cards stay readable and hoverable while "when a
+security card is removed" effects and their prompts resolve. A receded scene stays
+receded through its outcome. A check that closes within the hold keeps the full
+centre-stage scene. Outcome transforms use forwards fill and
 the loser alone takes the artwork tremor, so the entry is not overridden before it
 starts. Phone layouts retain the curve/clock with a narrower arc to keep the
 card visible. Resting positions, sizes, captions and typography are preserved.

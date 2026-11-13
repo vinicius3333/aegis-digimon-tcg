@@ -347,3 +347,9 @@ No provider or exclusion changes: the 22 covered cells, eight reviewed provider 
 Compared with `develop`, all card identities remain unchanged. Only `evoCosts` changes on two cards: EX12-063 Karakurumon's Purple and Green Lv.4 costs change from 3 to 4, and EX13-034 Wisemon gains its printed Black Lv.4 cost of 4. No printed effect, play cost or recipient zone changes. The alternate digivolution cells are all covered by scenarios and have no exclusion lists.
 
 No provider or exclusion changes: the 22 covered cells, eight reviewed provider absences, candidate lists, scenario evidence and rules fingerprint remain applicable. The catalog fingerprint changes from `e65da5714bd637b38ba9cb9ec49115e8b6be6a275602ef88fa1e35b7fc21c726` to `73ab1d5d829ae9b1b90c4867d9320bd2efb7bbdaf65e8cf0254669548f332e0a` after this bounded comparison. Catalog drift remains an error; no validator is weakened.
+
+### Catalog review after BT27 DUAL color fixes (2026-11-13)
+
+Compared with `develop`, all card identities remain unchanged. Only `colors` changes on three BT27 DUAL cards, to match their printed name bars: BT27-068 Gankoomon (X Antibody) from Red/Black to Black/White, BT27-016 Jesmon (X Antibody) from Red to Red/White and BT27-032 MirageGaogamon from Blue to Blue/Black. No printed effect, digivolve cost, play cost or recipient zone changes. The eight reviewed absences search effect text for DNA, App Fusion and Burst providers, which colors do not affect.
+
+No provider or exclusion changes: the 22 covered cells, eight reviewed provider absences, candidate lists, scenario evidence and rules fingerprint remain applicable. The catalog fingerprint changes from `15531f772697c771ce5e7d2a2274753d3cdd8220719faf7e2685f9506a829c37` to `b046dd4780bea4ade7fda0234d01e9d82dc6c8cb914b85b8c1624534ddd0ee3e` after this bounded comparison. Catalog drift remains an error; no validator is weakened.

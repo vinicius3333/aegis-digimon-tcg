@@ -1105,8 +1105,8 @@
         }
       },
       "ok": true,
-      "stateVersion": 133,
-      "engineEvents": 195
+      "stateVersion": 134,
+      "engineEvents": 196
     },
     {
       "kind": "intent",
@@ -1120,8 +1120,8 @@
         }
       },
       "ok": true,
-      "stateVersion": 136,
-      "engineEvents": 199
+      "stateVersion": 137,
+      "engineEvents": 200
     },
     {
       "kind": "intent",
@@ -1774,6 +1774,21 @@
     },
     {
       "kind": "intent",
+      "seat": 1,
+      "intent": {
+        "type": "respondDecision",
+        "decisionId": "dec-55",
+        "response": {
+          "kind": "chooseTargets",
+          "instanceIds": ["perm-11"]
+        }
+      },
+      "ok": true,
+      "stateVersion": 242,
+      "engineEvents": 339
+    },
+    {
+      "kind": "intent",
       "seat": 0,
       "intent": {
         "type": "declareBlock",
@@ -1788,7 +1803,7 @@
       "seat": 0,
       "intent": {
         "type": "respondDecision",
-        "decisionId": "dec-55",
+        "decisionId": "dec-56",
         "response": {
           "kind": "optional",
           "accept": true

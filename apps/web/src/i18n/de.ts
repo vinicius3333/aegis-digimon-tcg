@@ -259,10 +259,10 @@ const interfaceMessages = {
   "profile.page": "Seite {page}",
   "profile.stats.matches": "Matches",
   "profile.stats.wins": "Siege",
-  "profile.stats.humanMatches": "Matches gegen Menschen",
-  "profile.stats.humanWins": "Siege gegen Menschen",
+  "profile.stats.humanMatches": "Letzte Matches gegen Menschen",
+  "profile.stats.humanWins": "Letzte Siege gegen Menschen",
   "profile.stats.rateScope":
-    "Gespeicherter Verlauf gegen Menschen · Modus- und Gegnerfilter gelten · Der Ergebnisfilter betrifft nur die Liste · Ohne Bots.",
+    "Letzte {limit} Matches gegen Menschen plus gespeicherte Replays · Modus- und Gegnerfilter gelten · Der Ergebnisfilter betrifft nur die Liste · Ohne Bots.",
   "profile.stats.winRate": "Siegquote",
   "profile.stats.replays": "Gespeicherte Replays",
   "profile.changeAvatar": "Avatar ändern",
@@ -1350,7 +1350,7 @@ const interfaceMessages = {
   "game.matchLogDrag": "Zum Verschieben ziehen",
   "settings.matchLogDisplay": "Anzeige des Match-Protokolls",
   "settings.matchLogDisplayDesc":
-    "Wählen Sie, wie das Match zeigt, was passiert ist: kurze Einblendungen über dem Spielfeld, ein festes Protokoll am Spielfeldrand oder beides. Auf dem Handy bleiben die Einblendungen, das Protokoll öffnen Sie über die Schaltfläche.",
+    "Wählen Sie, wie das Match zeigt, was passiert ist: kurze Einblendungen über dem Spielfeld, ein festes Protokoll am Spielfeldrand oder beides. Auf dem Handy gibt es kein festes Protokoll; öffnen Sie es über die Protokoll-Schaltfläche.",
   "settings.matchLogDisplayPopups": "Einblendungen",
   "settings.matchLogDisplayPanel": "Festes Protokoll",
   "settings.matchLogDisplayBoth": "Beides",
