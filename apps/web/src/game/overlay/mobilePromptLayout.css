@@ -577,22 +577,6 @@
     > button:last-child:nth-child(odd) {
     grid-column: 1 / -1;
   }
-  .board-prompt.board-prompt--block[data-prompt-surface][data-variant="field-selection"]
-    .board-prompt__actions
-    > .board-prompt__blockers {
-    grid-column: 1 / -1;
-  }
-  .board-prompt.board-prompt--block[data-prompt-surface][data-variant="field-selection"]
-    .board-prompt__actions:has(> .board-prompt__blockers)
-    > button:last-child:nth-child(odd) {
-    grid-column: auto;
-  }
-  .board-prompt.board-prompt--block[data-prompt-surface][data-variant="field-selection"]
-    .board-prompt__actions
-    > .board-prompt__blockers
-    + button:last-child {
-    grid-column: 1 / -1;
-  }
   .aegis-stage:has(.board-prompt) .game-end-turn-orb {
     visibility: hidden;
   }

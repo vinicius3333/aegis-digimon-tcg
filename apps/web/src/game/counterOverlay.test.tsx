@@ -471,13 +471,15 @@ function CounterOverlayWithSelection(
   return <CounterOverlay {...props} selectedInstanceId={selectedInstanceId} onSelectInstance={onSelectInstance} />;
 }
 
-it.each([false, true])("docks compact server-authorized blockers and preserves Collision (%s)", (mustBlock) => {
-  const { send } = renderCombatGame("block", mustBlock);
+it.each([false, true])("uses server-authorized blockers on the field and preserves Collision (%s)", (mustBlock) => {
+  const { send, permanent } = renderCombatGame("block", mustBlock);
   expect(screen.queryByRole("dialog", { name: "Block window" })).toBeNull();
   const rail = screen.getByRole("region", { name: "Block window" });
-  const decline = within(rail).queryByRole("button", { name: "Don't block" });
+  const decline = within(rail).queryByRole("button", { name: /don't block/i });
   expect(Boolean(decline)).toBe(!mustBlock);
-  fireEvent.click(within(rail).getByRole("button", { name: /MetalGreymon/ }));
+  expect(within(rail).queryByRole("button", { name: /MetalGreymon/ })).toBeNull();
+  fireEvent.click(permanent("ally"));
+  fireEvent.click(within(screen.getByRole("dialog", { name: "Confirm block" })).getByRole("button", { name: "Block" }));
   expect(send).toHaveBeenCalledWith("declareBlock", { blockerPermanentId: "ally", rollbackRevision: 0 });
 });
 
@@ -494,7 +496,7 @@ it("routes a field Counter picked in the source dialog to the exact GameScreen i
   });
 });
 
-it("puts the lone no-block action on the left when no server-authorized blocker remains", () => {
+it("puts the lone take-attack action on the left when no server-authorized blocker remains", () => {
   const decline = vi.fn<() => void>();
   render(
     <I18nProvider>
