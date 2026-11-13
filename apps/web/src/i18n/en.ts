@@ -1220,7 +1220,7 @@ export const en = {
   "overlay.blockForcedPrompt":
     "During this Digimon's attack, all of your opponent's Digimon gain ＜Blocker＞, and must block if possible.",
   "overlay.noBlockers": "No eligible blockers.",
-  "overlay.takeAttack": "Take the attack, no block",
+  "overlay.takeAttack": "No block",
   "overlay.dpBoost": "DP boost",
   "overlay.yourDigimon": "Your Digimon",
   "overlay.allianceAction": "is attacking",

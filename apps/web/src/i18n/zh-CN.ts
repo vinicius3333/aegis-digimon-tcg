@@ -1395,7 +1395,7 @@ const interfaceMessages = {
   "overlay.blockForced": "强制",
   "overlay.blockForcedPrompt": "此数码宝贝攻击期间，对方所有数码宝贝获得＜阻挡者＞，且必须尽可能进行阻挡。",
   "overlay.noBlockers": "没有可格挡的数码宝贝。",
-  "overlay.takeAttack": "承受攻击，不格挡",
+  "overlay.takeAttack": "不格挡",
   "overlay.dpBoost": "DP 提升",
   "overlay.yourDigimon": "你的数码宝贝",
   "overlay.allianceAction": "正在攻击",

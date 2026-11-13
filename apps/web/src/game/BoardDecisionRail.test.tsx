@@ -16,6 +16,8 @@ import {
   OpponentSelectingPill,
 } from "./BoardDecisionRail";
 import { CardOpenerProvider } from "./cardLinks";
+import { setFieldReferenceVisible } from "@/design/fieldReference/setFieldReferenceVisible";
+import { hoverZoomPreference } from "@/design/hoverZoomPreference";
 import { Hand } from "./piece";
 
 it("translates a board selection's resolving clause with its source card", async () => {
@@ -367,19 +369,78 @@ describe("BoardSelectionRail board view", () => {
 });
 
 describe("BoardBlockPrompt", () => {
-  it("keeps the blocker choice on the field and offers the decline action", () => {
-    const onDecline = vi.fn<() => void>();
-    renderIn(<BoardBlockPrompt attackerCardId="ST1-07" mustBlock={false} onDecline={onDecline} />);
+  const blockers = [
+    { permanentId: "perm-3", cardId: "BT24-030", currentDP: 13000, sourceCount: 3 },
+    { permanentId: "perm-7", cardId: "BT24-020", currentDP: 2000, sourceCount: 0 },
+  ];
 
-    expect(screen.getByRole("region", { name: "Block window" }).classList.contains("board-prompt--block")).toBe(true);
+  it("docks compact blocker choices beside the board and offers No block", () => {
+    const onDecline = vi.fn<() => void>();
+    const onBlock = vi.fn<(permanentId: string) => void>();
+    renderIn(
+      <BoardBlockPrompt
+        attackerCardId="ST1-07"
+        mustBlock={false}
+        blockers={blockers}
+        onBlock={onBlock}
+        onDecline={onDecline}
+      />,
+    );
+
+    const rail = screen.getByRole("region", { name: "Block window" });
+    expect(rail.classList.contains("board-prompt--block")).toBe(true);
+    expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByText("Choose your blocker")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Take the attack, no block" }));
+    const choices = within(screen.getByRole("group", { name: "Choose your blocker" })).getAllByRole("button");
+    expect(choices).toHaveLength(2);
+    expect(choices[0]!.getAttribute("aria-label")).toBe("Neptunemon, 13,000 DP, 3 sources, BT24-030");
+    expect(choices[0]!.textContent).toContain("BT24-030");
+    expect(choices[0]!.textContent).toContain("13,000 DP");
+    fireEvent.click(choices[1]!);
+    expect(onBlock).toHaveBeenCalledExactlyOnceWith("perm-7");
+    fireEvent.click(screen.getByRole("button", { name: "No block" }));
     expect(onDecline).toHaveBeenCalledTimes(1);
   });
 
+  it("shows the board field reference on each blocker when references are on", () => {
+    setFieldReferenceVisible(true);
+    try {
+      renderIn(<BoardBlockPrompt mustBlock={false} blockers={blockers} onBlock={noop} onDecline={noop} />);
+      const choice = screen.getByRole("button", { name: /^Gomamon, 2,000 DP/ });
+      expect(choice.getAttribute("aria-label")).toBe("Gomamon, 2,000 DP, 0 sources, #7, BT24-020");
+      expect(choice.textContent).toContain("#7 · BT24-020");
+    } finally {
+      setFieldReferenceVisible(false);
+    }
+  });
+
+  it("previews the full blocker card on hover", () => {
+    hoverZoomPreference.setEnabled(true);
+    vi.spyOn(window, "matchMedia").mockImplementation((query) => ({
+      matches: query === "(hover: hover) and (pointer: fine)",
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn<MediaQueryList["addEventListener"]>(),
+      removeEventListener: vi.fn<MediaQueryList["removeEventListener"]>(),
+      addListener: vi.fn<MediaQueryList["addListener"]>(),
+      removeListener: vi.fn<MediaQueryList["removeListener"]>(),
+      dispatchEvent: vi.fn<MediaQueryList["dispatchEvent"]>(),
+    }));
+    try {
+      renderIn(<BoardBlockPrompt mustBlock={false} blockers={blockers} onBlock={noop} onDecline={noop} />);
+      const art = screen.getByRole("button", { name: /^Neptunemon/ }).querySelector<HTMLElement>("[data-state]")!;
+      fireEvent.mouseMove(art, { clientX: 120, clientY: 300 });
+      expect(screen.getByTestId("card-zoom-preview")).toBeTruthy();
+    } finally {
+      hoverZoomPreference.setEnabled(false);
+      vi.restoreAllMocks();
+    }
+  });
+
   it("does not offer decline when blocking is mandatory", () => {
-    renderIn(<BoardBlockPrompt mustBlock onDecline={noop} />);
-    expect(screen.queryByRole("button", { name: "Take the attack, no block" })).toBeNull();
+    renderIn(<BoardBlockPrompt mustBlock blockers={blockers} onBlock={noop} onDecline={noop} />);
+    expect(screen.queryByRole("button", { name: "No block" })).toBeNull();
+    expect(screen.getByText(/must block if possible/i)).toBeTruthy();
   });
 });
 

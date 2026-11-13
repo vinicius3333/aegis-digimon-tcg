@@ -3966,7 +3966,7 @@ describe("decision board preview", () => {
       </I18nProvider>,
     );
 
-    expect(screen.queryByRole("button", { name: "Take the attack, no block" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "No block" })).toBeNull();
     expect(screen.getByText(/must block if possible/i)).toBeTruthy();
     expect(screen.getByText("Mandatory")).toBeTruthy();
   });

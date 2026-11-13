@@ -1451,7 +1451,7 @@ const interfaceMessages = {
   "overlay.blockForcedPrompt":
     "이 디지몬이 어택하는 동안 상대 디지몬은 모두 ≪블로커≫를 얻고, 가능하면 블록해야 합니다.",
   "overlay.noBlockers": "블록할 수 있는 디지몬이 없습니다.",
-  "overlay.takeAttack": "블록하지 않고 어택 받기",
+  "overlay.takeAttack": "블록하지 않기",
   "overlay.dpBoost": "DP 부스트",
   "overlay.yourDigimon": "내 디지몬",
   "overlay.allianceAction": "이(가) 어택 중",

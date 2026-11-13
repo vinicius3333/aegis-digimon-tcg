@@ -251,7 +251,7 @@ it("shows blocker artwork and statistics, and preserves mandatory blocking", () 
   expect(screen.queryByRole("dialog")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Return to decision" }));
   expect(screen.getByRole("dialog", { name: "Block window" })).toBeTruthy();
-  expect(screen.queryByRole("button", { name: /Take the attack/ })).toBeNull();
+  expect(screen.queryByRole("button", { name: "No block" })).toBeNull();
   expect(block).not.toHaveBeenCalled();
   expect(decline).not.toHaveBeenCalled();
 });
@@ -471,10 +471,11 @@ function CounterOverlayWithSelection(
   return <CounterOverlay {...props} selectedInstanceId={selectedInstanceId} onSelectInstance={onSelectInstance} />;
 }
 
-it.each([false, true])("offers explicit server-authorized blockers and preserves Collision (%s)", (mustBlock) => {
+it.each([false, true])("docks compact server-authorized blockers and preserves Collision (%s)", (mustBlock) => {
   const { send } = renderCombatGame("block", mustBlock);
-  const rail = screen.getByRole("dialog", { name: "Block window" });
-  const decline = within(rail).queryByRole("button", { name: /take the attack/i });
+  expect(screen.queryByRole("dialog", { name: "Block window" })).toBeNull();
+  const rail = screen.getByRole("region", { name: "Block window" });
+  const decline = within(rail).queryByRole("button", { name: "No block" });
   expect(Boolean(decline)).toBe(!mustBlock);
   fireEvent.click(within(rail).getByRole("button", { name: /MetalGreymon/ }));
   expect(send).toHaveBeenCalledWith("declareBlock", { blockerPermanentId: "ally", rollbackRevision: 0 });
@@ -493,7 +494,7 @@ it("routes a field Counter picked in the source dialog to the exact GameScreen i
   });
 });
 
-it("puts the lone take-attack action on the left when no server-authorized blocker remains", () => {
+it("puts the lone no-block action on the left when no server-authorized blocker remains", () => {
   const decline = vi.fn<() => void>();
   render(
     <I18nProvider>
@@ -502,7 +503,7 @@ it("puts the lone take-attack action on the left when no server-authorized block
   );
   const dialog = screen.getByRole("dialog", { name: "Block window" });
   expect(dialog.getAttribute("data-prompt-surface")).toBe("left");
-  fireEvent.click(within(dialog).getByRole("button", { name: /take the attack/i }));
+  fireEvent.click(within(dialog).getByRole("button", { name: "No block" }));
   expect(decline).toHaveBeenCalledOnce();
 });
 

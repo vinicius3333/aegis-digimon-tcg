@@ -24,6 +24,9 @@ import { PromptMoveHandle } from "./overlay/choice/PromptMoveHandle";
 import { useDraggableWindow } from "./chat/useDraggableWindow";
 import { useEffectPromptPosition } from "@/game/effectPromptPosition";
 import { getBoardPromptSurface } from "@/game/getBoardPromptSurface";
+import { useFieldReferenceVisible } from "@/design/fieldReference/useFieldReferenceVisible";
+import { formatFieldReference } from "@/design/fieldReference/formatFieldReference";
+import type { BlockerChoice } from "@/game/overlay/combat/BlockerChoice";
 
 function useEscapeToDialog(onOpenDialog: (() => void) | undefined) {
   useEffect(() => {
@@ -364,14 +367,49 @@ export function BoardSelectionRail({
   );
 }
 
-/** A block window is answered from the battle area; the rail only carries context and decline. */
+function BlockerChoiceButton({ blocker, onBlock }: { blocker: BlockerChoice; onBlock: (permanentId: string) => void }) {
+  const { t } = useTranslation();
+  const getCardName = useTranslatedCardName();
+  const fieldReferenceVisible = useFieldReferenceVisible();
+  const name = getCardName(blocker.cardId);
+  const dp = `${blocker.currentDP.toLocaleString()} DP`;
+  const sourceLabel = t(blocker.sourceCount === 1 ? "overlay.sourceCountOne" : "overlay.sourceCountMany", {
+    count: blocker.sourceCount,
+  });
+  const reference = fieldReferenceVisible ? formatFieldReference(blocker.permanentId) : undefined;
+  return (
+    <button
+      type="button"
+      className="board-prompt__blocker"
+      data-permanent-id={blocker.permanentId}
+      aria-label={[name, dp, sourceLabel, reference, blocker.cardId].filter(Boolean).join(", ")}
+      onClick={() => onBlock(blocker.permanentId)}
+    >
+      <CardMini cardId={blocker.cardId} width={36} />
+      <span className="board-prompt__blocker-text" aria-hidden="true">
+        <span className="board-prompt__blocker-name">{name}</span>
+        <span className="board-prompt__blocker-meta">
+          {[reference, blocker.cardId, sourceLabel].filter(Boolean).join(" · ")}
+        </span>
+      </span>
+      <span className="board-prompt__blocker-dp" aria-hidden="true">
+        {dp}
+      </span>
+    </button>
+  );
+}
+
 export function BoardBlockPrompt({
   attackerCardId,
   mustBlock,
+  blockers = [],
+  onBlock,
   onDecline,
 }: {
   attackerCardId?: string;
   mustBlock: boolean;
+  blockers?: readonly BlockerChoice[];
+  onBlock?: (permanentId: string) => void;
   onDecline: () => void;
 }) {
   const { t } = useTranslation();
@@ -385,9 +423,15 @@ export function BoardBlockPrompt({
       eyebrow={mustBlock ? "＜Collision＞" : "＜Blocker＞"}
       art={attackerCardId}
       prompt={t("overlay.blockChooseCard")}
-      clause={en[mustBlock ? "overlay.blockForcedPrompt" : "overlay.blockPrompt"]}
-      clauseLang="en"
+      clause={mustBlock ? t("overlay.blockForcedPrompt") : undefined}
     >
+      {blockers.length && onBlock ? (
+        <div className="board-prompt__blockers" role="group" aria-label={t("overlay.blockChooseCard")}>
+          {blockers.map((blocker) => (
+            <BlockerChoiceButton key={blocker.permanentId} blocker={blocker} onBlock={onBlock} />
+          ))}
+        </div>
+      ) : null}
       {!mustBlock ? (
         <Button full variant="secondary" icon={Icons.Shield} onClick={onDecline}>
           {t("overlay.takeAttack")}

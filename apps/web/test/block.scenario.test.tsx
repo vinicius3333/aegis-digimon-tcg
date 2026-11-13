@@ -113,10 +113,8 @@ scenario("block", () => {
     const agumonPermanentId = opponent.room.state.players[1]!.battleArea[0]!.permanentId;
     opponent.attack(agumonPermanentId, { kind: "player" });
 
-    // The centered block window lists each server-authorized blocker beside the
-    // decline action.
-    const blockPrompt = await screen.findByRole("dialog", { name: "Block window" }, { timeout: 10_000 });
-    expect(within(blockPrompt).getByRole("button", { name: /take the attack/i })).toBeTruthy();
+    const blockPrompt = await screen.findByRole("region", { name: "Block window" }, { timeout: 10_000 });
+    expect(within(blockPrompt).getByRole("button", { name: "No block" })).toBeTruthy();
     const monmonBlockerButton = within(blockPrompt).getByRole("button", { name: /^monmon, 1,000 dp/i });
     const blocker = opponent.room.state.players[0]!.battleArea.find(
       (permanent) => permanent.topCard.cardId === "BT1-031",

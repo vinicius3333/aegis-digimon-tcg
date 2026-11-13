@@ -5,6 +5,8 @@
    one while a decision is unanswered — so at most one of these is ever on screen. */
 
 import type { GameState } from "@aegis/shared";
+import { BoardBlockPrompt } from "@/game/BoardDecisionRail";
+import type { BlockerChoice } from "@/game/overlay/combat/BlockerChoice";
 import { instanceCardId, instancePermanentId, permCardId } from "../../decisionModel";
 import { BarrierOverlay, BlockOverlay, CounterOverlay, EvadeOverlay } from "../../overlay";
 import { AllianceOverlay } from "../../overlay/combat/AllianceOverlay";
@@ -46,25 +48,36 @@ export function CombatWindowPrompts({
     handInstanceIds: readonly string[];
   };
 }) {
+  const blockers: BlockerChoice[] = (blockWindow?.eligibleBlockerIds ?? []).flatMap((permanentId) => {
+    const permanent = findPermanentInState(state, permanentId);
+    return permanent
+      ? [
+          {
+            permanentId,
+            cardId: permanent.topCard.cardId,
+            currentDP: permanent.currentDP,
+            sourceCount: permanent.stack.length,
+          },
+        ]
+      : [];
+  });
   return (
     <>
-      {blockWindow ? (
+      {blockWindow && blockers.length ? (
+        <BoardBlockPrompt
+          attackerCardId={permCardId(state, blockWindow.attackerPermanentId)}
+          mustBlock={blockWindow.mustBlock}
+          blockers={blockers}
+          onBlock={onBlock}
+          onDecline={() => onBlock()}
+        />
+      ) : null}
+
+      {blockWindow && !blockers.length ? (
         <BlockOverlay
           attackerCardId={permCardId(state, blockWindow.attackerPermanentId)}
           mustBlock={blockWindow.mustBlock}
-          blockers={blockWindow.eligibleBlockerIds.flatMap((permanentId) => {
-            const permanent = findPermanentInState(state, permanentId);
-            return permanent
-              ? [
-                  {
-                    permanentId,
-                    cardId: permanent.topCard.cardId,
-                    currentDP: permanent.currentDP,
-                    sourceCount: permanent.stack.length,
-                  },
-                ]
-              : [];
-          })}
+          blockers={[]}
           onBlock={onBlock}
           onDecline={() => onBlock()}
         />

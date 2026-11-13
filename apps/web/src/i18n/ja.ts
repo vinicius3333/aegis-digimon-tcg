@@ -1464,7 +1464,7 @@ const interfaceMessages = {
   "overlay.blockForcedPrompt":
     "このデジモンのアタック中、相手のデジモンすべては《ブロッカー》を得て、可能ならブロックしなければならない。",
   "overlay.noBlockers": "ブロックできるデジモンがいません。",
-  "overlay.takeAttack": "ブロックせずにアタックを受ける",
+  "overlay.takeAttack": "ブロックしない",
   "overlay.dpBoost": "DPブースト",
   "overlay.yourDigimon": "あなたのデジモン",
   "overlay.allianceAction": "がアタック中",

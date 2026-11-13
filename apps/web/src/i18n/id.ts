@@ -1470,7 +1470,7 @@ const interfaceMessages = {
   "overlay.blockForcedPrompt":
     "Selama serangan Digimon ini, semua Digimon lawan mendapat ＜Blocker＞ dan harus block jika memungkinkan.",
   "overlay.noBlockers": "Tidak ada Blocker yang memenuhi syarat.",
-  "overlay.takeAttack": "Terima serangan, tanpa block",
+  "overlay.takeAttack": "Tidak block",
   "overlay.dpBoost": "Peningkatan DP",
   "overlay.yourDigimon": "Digimon Anda",
   "overlay.allianceAction": "sedang menyerang",

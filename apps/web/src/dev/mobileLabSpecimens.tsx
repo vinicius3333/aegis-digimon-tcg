@@ -861,7 +861,18 @@ export const SPECIMENS: readonly Specimen[] = [
     group: "Overlays",
     title: "Block window (board prompt)",
     surface: "board",
-    render: () => <BoardBlockPrompt attackerCardId="BT26-059" mustBlock={false} onDecline={noop} />,
+    render: () => (
+      <BoardBlockPrompt
+        attackerCardId="BT26-059"
+        mustBlock={false}
+        blockers={[
+          { permanentId: "perm-3", cardId: "BT24-030", currentDP: 13000, sourceCount: 3 },
+          { permanentId: "perm-7", cardId: "BT24-020", currentDP: 2000, sourceCount: 0 },
+        ]}
+        onBlock={noop}
+        onDecline={noop}
+      />
+    ),
   },
   {
     id: "alliance-prompt",

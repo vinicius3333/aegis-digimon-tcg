@@ -6,6 +6,7 @@ import { CardArt } from "../CardArt";
 
 import { CardPromptFrame } from "./CardPromptFrame";
 import { useEffectPromptPosition } from "@/game/effectPromptPosition";
+import type { BlockerChoice } from "@/game/overlay/combat/BlockerChoice";
 
 export function BlockOverlay({
   attackerCardId,
@@ -15,7 +16,7 @@ export function BlockOverlay({
   onDecline,
 }: {
   attackerCardId?: string;
-  blockers: { permanentId: string; cardId: string; currentDP: number; sourceCount: number }[];
+  blockers: readonly BlockerChoice[];
   /** Collision requires blocking while a blocker is available. */
   mustBlock?: boolean;
   onBlock: (permanentId: string) => void;

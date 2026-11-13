@@ -1401,7 +1401,7 @@ const interfaceMessages = {
   "overlay.blockForced": "強制",
   "overlay.blockForcedPrompt": "這隻數碼寶貝攻擊期間，對手的所有數碼寶貝獲得＜阻擋者＞，並且必須盡可能進行阻擋。",
   "overlay.noBlockers": "沒有符合條件的阻擋者。",
-  "overlay.takeAttack": "承受攻擊，不阻擋",
+  "overlay.takeAttack": "不阻擋",
   "overlay.dpBoost": "DP 提升",
   "overlay.yourDigimon": "你的數碼寶貝",
   "overlay.allianceAction": "正在攻擊",

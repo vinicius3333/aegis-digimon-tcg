@@ -1366,7 +1366,7 @@ const interfaceMessages = {
   "overlay.blockForcedPrompt":
     "Durante l'attacco di questo Digimon, tutti i Digimon avversari ottengono ＜Blocker＞ e devono bloccare se possibile.",
   "overlay.noBlockers": "Nessun Blocker idoneo.",
-  "overlay.takeAttack": "Subisci l'attacco senza bloccare",
+  "overlay.takeAttack": "Non bloccare",
   "overlay.dpBoost": "Aumento DP",
   "overlay.yourDigimon": "I tuoi Digimon",
   "overlay.allianceAction": "sta attaccando",
