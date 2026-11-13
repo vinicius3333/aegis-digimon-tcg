@@ -2,8 +2,6 @@ import { getDecisionEffectSummary } from "#api/engine/effects/interpreter/getDec
 // Choosing between the options of a modal action.
 
 import type { EffectContext } from "../../EffectContext.js";
-import { createCardSource } from "../../../cards/CardSource.js";
-import { runtimeCompiledCard } from "../compiledCards.js";
 import { evaluateCondition } from "../conditions.js";
 import { canPayCost } from "../costs.js";
 import { describeAction } from "../describe.js";
@@ -21,47 +19,8 @@ import {
   playableTokenRefs,
 } from "./play.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
-import {
-  printedModalBullets,
-  printedModalPreamble,
-  splitPrintedClauses,
-  type Action,
-  type CardInstance,
-} from "@aegis/shared";
-
-/** Read a prospective hand card's printed waiver without installing a color grant. */
-function prospectiveColorWaiver(ctx: EffectContext, card: CardInstance): boolean {
-  const source = createCardSource(card, {
-    permanentOf: () => undefined,
-    isOnBattleArea: () => false,
-    isInHand: () => true,
-    isSeatsTurn: (seat) => ctx.game.state.turnSeat === seat,
-  });
-  const cardCtx = { ...ctx, source };
-  return (
-    runtimeCompiledCard(card.cardId)?.effects.some((effect) => {
-      if (effect.trigger !== "Static" && effect.trigger !== "Rule") return false;
-      // Mirror colorWaiverStatic's supported shape; ordinary or mixed Static
-      // bodies need their on-field guard and cannot grant a loose-card waiver.
-      if (
-        effect.actions.length === 0 ||
-        !effect.actions.every(
-          (action) =>
-            action.kind === "WaiveColorRequirement" &&
-            (action.target === undefined || action.target.isSelf === true || action.target.filter.isSelfRef === true),
-        )
-      )
-        return false;
-      if (effect.condition !== undefined && !evaluateCondition(cardCtx, effect.condition)) return false;
-      return effect.actions.some(
-        (action) =>
-          action.kind === "WaiveColorRequirement" &&
-          action.color === undefined &&
-          (action.condition === undefined || evaluateCondition(cardCtx, action.condition)),
-      );
-    }) === true
-  );
-}
+import { prospectiveColorWaiver } from "#api/engine/effects/interpreter/actions/prospectiveColorWaiver";
+import { printedModalBullets, printedModalPreamble, splitPrintedClauses, type Action } from "@aegis/shared";
 
 function ownTopSecurityHandPayment(
   action: Extract<Action, { kind: "Modal" }>,

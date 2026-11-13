@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { AccountApiError, request } from "@/account/client";
 
-export function useRankedRequest<T>(path: string | null) {
+type RankedRequestOptions = { poll?: boolean };
+
+export function useRankedRequest<T>(path: string | null, { poll = true }: RankedRequestOptions = {}) {
   const [version, setVersion] = useState(0);
   const [state, setState] = useState<{ path: string | null; data?: T; error: boolean; errorCode?: string }>({
     path,
@@ -25,12 +27,12 @@ export function useRankedRequest<T>(path: string | null) {
       }
     }
     void load();
-    const timer = path ? setInterval(() => void load(), 30_000) : undefined;
+    const timer = path && poll ? setInterval(() => void load(), 30_000) : undefined;
     return () => {
       active = false;
       clearInterval(timer);
     };
-  }, [path, version]);
+  }, [path, poll, version]);
   const current = state.path === path ? state : { error: false, data: undefined, errorCode: undefined };
   return { ...current, refresh: () => setVersion((value) => value + 1) };
 }

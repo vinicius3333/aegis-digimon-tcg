@@ -178,6 +178,7 @@ export interface DigiXrosDeps {
   digiXrosExpandedZones?(seat: Seat, playedInstanceId: string): readonly string[];
   /** Per-zone material quotas for the same ledger, when the granting effect supplied them. */
   digiXrosExpandedZoneCounts?(seat: Seat, playedInstanceId: string): Partial<Record<string, number>>;
+  canSuspendExpander?(permanent: Permanent): boolean;
   /** Suspend an expander Tamer (the activation cost of unlocking its source zones). */
   suspendPermanent(permanentId: string): Promise<void>;
   holdCostTriggers?(): DigivolveCostTriggers;
@@ -212,6 +213,7 @@ export function validateDigiXros(
     | "ruleTrashMaterialCandidates"
     | "digiXrosExpandedZones"
     | "digiXrosExpandedZoneCounts"
+    | "canSuspendExpander"
   >,
 ): DigiXrosCheck {
   if (state.gameOver) return { ok: false, reason: "game-over" };
@@ -277,7 +279,13 @@ export function validateDigiXros(
   }
   for (const permanentId of expanderPermanentIds) {
     const perm = player.battleArea.find((p) => p.permanentId === permanentId);
-    if (perm === undefined || perm.controllerSeat !== seat || perm.topCard === undefined || perm.isSuspended) {
+    if (
+      perm === undefined ||
+      perm.controllerSeat !== seat ||
+      perm.topCard === undefined ||
+      perm.isSuspended ||
+      deps.canSuspendExpander?.(perm) === false
+    ) {
       return { ok: false, reason: "invalid-expander" };
     }
     const expander = digiXrosZoneExpanderFor(perm.topCard.cardId);

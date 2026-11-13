@@ -292,7 +292,7 @@ export async function runActivateForeignEffect(
       const labels = chosen.borrowable.map((entry) => describeEffect(entry.effect));
       const idx = await ctx.ask.chooseOption(ctx, labels, {
         choiceEffects: chosen.borrowable.map((entry) => ({
-          cardId: chosen.cardId,
+          cardId: entry.sourceCardId,
           timing: entry.effect.trigger,
           ...(entry.effect.isInherited === true ? { isInherited: true } : {}),
         })),
@@ -364,7 +364,7 @@ export async function runActivateForeignEffect(
           : undefined;
       // The activator's own notice names only its clause; announce the borrowed clause too so
       // the player sees which effect of the lender actually resolves.
-      const lenderCard = { ...runCtx.source, cardId: chosen.cardId, instanceId: chosen.instanceId };
+      const lenderCard = { ...runCtx.source, cardId: borrowed.sourceCardId, instanceId: borrowed.sourceInstanceId };
       const resolvedNotice = runCtx.fx.announceEffect?.(
         { ...runCtx, source: lenderCard },
         {

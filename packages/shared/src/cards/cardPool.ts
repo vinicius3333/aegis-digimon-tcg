@@ -1,3 +1,4 @@
+import { appOnlySets } from "#shared/cards/appOnlySets";
 import { getLimitedCardAvailability } from "#shared/cards/getLimitedCardAvailability";
 import type { CardDefinition } from "./types.js";
 
@@ -104,6 +105,7 @@ const PRODUCT_RELEASES: Readonly<Record<string, ProductRelease>> = {
   SD01: { date: "2026-12-04", label: "SD01" },
   SD02: { date: "2026-12-04", label: "SD02" },
   ED01: { date: "2026-12-04", label: "ED01" },
+  ST25: { date: "2026-12-04", label: "ST25" },
   BT27: { date: "2026-12-11", label: "BT27" },
   EX14: { date: "2027-01-22", label: "EX14" },
 };
@@ -173,7 +175,6 @@ const PROMO_PRODUCTS: ReadonlyArray<Readonly<PromoProduct>> = [
   { date: "2026-10-01", cardIds: "245 246 247 248 249 250" }, // Store Tournament 2026 Vol. 4
 ];
 
-const APP_ONLY_SETS: ReadonlySet<string> = new Set(["BD01", "BD02"]);
 const APP_ONLY_RELEASE_DATE: ReleaseDate = "9999-12-31";
 
 const PROMO_RELEASE_DATES: Readonly<Record<string, ReleaseDate>> = Object.freeze(
@@ -198,7 +199,7 @@ export function releaseDateForCard(card: CardReference): ReleaseDate | undefined
   if (card.set === "P") {
     return PROMO_RELEASE_DATES[card.cardId];
   }
-  if (APP_ONLY_SETS.has(card.set)) {
+  if (appOnlySets.includes(card.set)) {
     return APP_ONLY_RELEASE_DATE;
   }
   return PRODUCT_RELEASES[card.set]?.date;

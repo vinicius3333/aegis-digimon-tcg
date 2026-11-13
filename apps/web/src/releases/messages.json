@@ -1,4 +1,298 @@
 {
+  "releases.1.71.0-beta.summary": {
+    "en": "You can now turn match chat off, and this update fixes a batch of player-reported card and match problems.",
+    "pt-BR": "Agora você pode desligar o chat da partida, e esta atualização corrige vários problemas de cartas e partidas relatados pelos jogadores.",
+    "es": "Ahora puedes desactivar el chat de la partida, y esta actualización corrige varios problemas de cartas y partidas reportados por los jugadores.",
+    "it": "Ora puoi disattivare la chat della partita, e questo aggiornamento corregge diversi problemi di carte e partite segnalati dai giocatori."
+  },
+  "releases.1.71.0-beta.feature.matchChatToggle": {
+    "en": "Added a setting to turn match chat off.",
+    "pt-BR": "Adicionamos uma configuração para desligar o chat da partida.",
+    "es": "Añadimos un ajuste para desactivar el chat de la partida.",
+    "it": "Abbiamo aggiunto un'impostazione per disattivare la chat della partita."
+  },
+  "releases.1.71.0-beta.fix.motherDReaperTamers": {
+    "en": "Mother D-Reaper (EX2-007) now reduces the play cost of D-Reaper Tamers such as Jeri (Fake), not only Digimon.",
+    "pt-BR": "A Mother D-Reaper (EX2-007) agora reduz o custo de Domadores D-Reaper, como a Jeri (Fake), e não só de Digimon.",
+    "es": "Mother D-Reaper (EX2-007) ahora reduce el coste de los Domadores D-Reaper, como Jeri (Fake), y no solo de los Digimon.",
+    "it": "Mother D-Reaper (EX2-007) ora riduce il costo dei Domatori D-Reaper, come Jeri (Fake), e non solo dei Digimon."
+  },
+  "releases.1.71.0-beta.fix.kentaurosmonCounter": {
+    "en": "Kentaurosmon's (EX13-036) [Counter] places both Digimon at the same time, so effects like Zephagamon's (LM-066) can still keep a Digimon in play.",
+    "pt-BR": "O [Counter] do Kentaurosmon (EX13-036) coloca os dois Digimon ao mesmo tempo, então efeitos como o do Zephagamon (LM-066) ainda podem manter um Digimon em campo.",
+    "es": "El [Counter] de Kentaurosmon (EX13-036) coloca ambos Digimon a la vez, así que efectos como el de Zephagamon (LM-066) aún pueden mantener un Digimon en juego.",
+    "it": "Il [Counter] di Kentaurosmon (EX13-036) piazza entrambi i Digimon nello stesso momento, così effetti come quello di Zephagamon (LM-066) possono ancora tenere un Digimon in gioco."
+  },
+  "releases.1.71.0-beta.fix.placementPrevented": {
+    "en": "Sakuyamon: Maid Mode (ST22-06) no longer trashes a security card when Jupitermon (BT26-033) keeps the Digimon in play.",
+    "pt-BR": "A Sakuyamon: Maid Mode (ST22-06) não descarta mais uma carta de segurança quando o Jupitermon (BT26-033) mantém o Digimon em campo.",
+    "es": "Sakuyamon: Maid Mode (ST22-06) ya no descarta una carta de seguridad cuando Jupitermon (BT26-033) mantiene al Digimon en juego.",
+    "it": "Sakuyamon: Maid Mode (ST22-06) non scarta più una carta della sicurezza quando Jupitermon (BT26-033) tiene il Digimon in gioco."
+  },
+  "releases.1.71.0-beta.fix.leaveEffectOrder": {
+    "en": "When Digimon on both sides would leave at once, each player now orders only their own effects, starting with the turn player.",
+    "pt-BR": "Quando Digimon dos dois lados sairiam ao mesmo tempo, cada jogador agora ordena só os próprios efeitos, começando pelo jogador do turno.",
+    "es": "Cuando Digimon de ambos lados saldrían a la vez, cada jugador ahora ordena solo sus propios efectos, empezando por el jugador del turno.",
+    "it": "Quando Digimon di entrambi i lati lascerebbero il campo insieme, ogni giocatore ora ordina solo i propri effetti, a partire dal giocatore di turno."
+  },
+  "releases.1.71.0-beta.fix.continuousTargetArrows": {
+    "en": "Always-on effects such as Takumi Aiba's (BT5-091) no longer replay their target animation over and over.",
+    "pt-BR": "Efeitos contínuos, como o do Takumi Aiba (BT5-091), não repetem mais a animação de alvo sem parar.",
+    "es": "Los efectos continuos, como el de Takumi Aiba (BT5-091), ya no repiten la animación de objetivo una y otra vez.",
+    "it": "Gli effetti continui, come quello di Takumi Aiba (BT5-091), non ripetono più l'animazione del bersaglio all'infinito."
+  },
+  "releases.1.71.0-beta.fix.finishedRoomClosed": {
+    "en": "Matchmaking no longer puts you into a match that already ended before it started.",
+    "pt-BR": "O matchmaking não coloca mais você em uma partida que já terminou antes de começar.",
+    "es": "El emparejamiento ya no te mete en una partida que terminó antes de empezar.",
+    "it": "Il matchmaking non ti inserisce più in una partita già terminata prima di iniziare."
+  },
+  "releases.1.71.0-beta.fix.deckImagePreview": {
+    "en": "The deck image preview no longer restarts while you have the export window open.",
+    "pt-BR": "A prévia da imagem do deck não reinicia mais enquanto a janela de exportação está aberta.",
+    "es": "La vista previa de la imagen del mazo ya no se reinicia mientras la ventana de exportación está abierta.",
+    "it": "L'anteprima dell'immagine del mazzo non si riavvia più mentre la finestra di esportazione è aperta."
+  },
+  "releases.1.71.0-beta.fix.discordNov12": {
+    "en": "Ceresmon (BT26-032) shows its own text when another effect uses it, Cupimon (EX6-003) pays its security cost first, Kari Kamiya (BT15-084) reacts when P-122 returns a security card to the hand, and a replay freeze with Grademon and Ouryumon is fixed.",
+    "pt-BR": "A Ceresmon (BT26-032) mostra o próprio texto quando outro efeito a usa, o Cupimon (EX6-003) paga primeiro o custo de segurança, a Kari Kamiya (BT15-084) reage quando o P-122 devolve uma carta de segurança para a mão, e um travamento de replay com Grademon e Ouryumon foi corrigido.",
+    "es": "Ceresmon (BT26-032) muestra su propio texto cuando otro efecto la usa, Cupimon (EX6-003) paga primero su coste de seguridad, Kari Kamiya (BT15-084) reacciona cuando P-122 devuelve una carta de seguridad a la mano, y se corrigió un bloqueo de repetición con Grademon y Ouryumon.",
+    "it": "Ceresmon (BT26-032) mostra il proprio testo quando un altro effetto la usa, Cupimon (EX6-003) paga prima il costo della sicurezza, Kari Kamiya (BT15-084) reagisce quando P-122 riporta una carta della sicurezza in mano, ed è stato corretto un blocco del replay con Grademon e Ouryumon."
+  },
+  "releases.1.70.0-beta.summary": {
+    "en": "Four new BT27 cards join the card pool, and Datamon no longer blocks your own De-Digivolve effects.",
+    "pt-BR": "Quatro novas cartas do BT27 entram no jogo, e o Datamon não bloqueia mais os seus próprios efeitos de De-Digivolve.",
+    "es": "Cuatro cartas nuevas de BT27 llegan al juego, y Datamon ya no bloquea tus propios efectos de De-Digivolve.",
+    "it": "Quattro nuove carte di BT27 entrano nel gioco e Datamon non blocca più i tuoi effetti di De-Digivolve."
+  },
+  "releases.1.70.0-beta.feature.bt27Cards": {
+    "en": "Added four BT27 cards: Motimon (BT27-005), Clockmon (BT27-059), Andromon (BT27-063) and Gankoomon (X Antibody) (BT27-068).",
+    "pt-BR": "Adicionamos quatro cartas do BT27: Motimon (BT27-005), Clockmon (BT27-059), Andromon (BT27-063) e Gankoomon (X Antibody) (BT27-068).",
+    "es": "Añadimos cuatro cartas de BT27: Motimon (BT27-005), Clockmon (BT27-059), Andromon (BT27-063) y Gankoomon (X Antibody) (BT27-068).",
+    "it": "Abbiamo aggiunto quattro carte di BT27: Motimon (BT27-005), Clockmon (BT27-059), Andromon (BT27-063) e Gankoomon (X Antibody) (BT27-068)."
+  },
+  "releases.1.70.0-beta.fix.datamonDeDigivolve": {
+    "en": "Datamon (BT22-060) now ignores only your opponent's De-Digivolve effects. Your own De-Digivolve effects affect it again.",
+    "pt-BR": "O Datamon (BT22-060) agora ignora só os efeitos de De-Digivolve do oponente. Os seus próprios efeitos de De-Digivolve voltam a afetá-lo.",
+    "es": "Datamon (BT22-060) ahora ignora solo los efectos de De-Digivolve de tu oponente. Tus propios efectos de De-Digivolve vuelven a afectarlo.",
+    "it": "Datamon (BT22-060) ora ignora solo gli effetti di De-Digivolve dell'avversario. I tuoi effetti di De-Digivolve tornano ad avere effetto su di lui."
+  },
+  "releases.1.69.0-beta.summary": {
+    "en": "Optional battles from effects always ask first, Battle NPC stays when nothing is under it, and inherited effects trigger again when their condition repeats.",
+    "pt-BR": "Batalhas opcionais de efeitos sempre perguntam antes, o Battle NPC fica em campo quando não há nada embaixo dele e efeitos herdados ativam de novo quando a condição se repete.",
+    "es": "Las batallas opcionales de efectos siempre preguntan antes, Battle NPC se queda en el campo cuando no tiene nada debajo y los efectos heredados vuelven a activarse cuando su condición se repite.",
+    "it": "Le battaglie facoltative degli effetti chiedono sempre prima, Battle NPC resta in campo quando non ha nulla sotto e gli effetti ereditati si attivano di nuovo quando la loro condizione si ripete."
+  },
+  "releases.1.69.0-beta.fix.optionalBattle": {
+    "en": "Answering Yes in the effect order list no longer accepts a later \"may battle\". Callismon (BT25-058), Marsmon (BT25-020), Examon (EX13-045), Zephagamon (LM-066) and Vortexdramon (EX11-074) now ask before the battle.",
+    "pt-BR": "Responder Sim na lista de ordem dos efeitos não aceita mais um \"pode batalhar\" posterior. Callismon (BT25-058), Marsmon (BT25-020), Examon (EX13-045), Zephagamon (LM-066) e Vortexdramon (EX11-074) agora perguntam antes da batalha.",
+    "es": "Responder Sí en la lista de orden de efectos ya no acepta un \"puede combatir\" posterior. Callismon (BT25-058), Marsmon (BT25-020), Examon (EX13-045), Zephagamon (LM-066) y Vortexdramon (EX11-074) ahora preguntan antes del combate.",
+    "it": "Rispondere Sì nell'elenco dell'ordine degli effetti non accetta più un successivo \"può combattere\". Callismon (BT25-058), Marsmon (BT25-020), Examon (EX13-045), Zephagamon (LM-066) e Vortexdramon (EX11-074) ora chiedono prima della battaglia."
+  },
+  "releases.1.69.0-beta.fix.battleNpc": {
+    "en": "Battle NPC (BT20-092) is no longer deleted at the start of your Main Phase when no Digimon card is under it to play.",
+    "pt-BR": "O Battle NPC (BT20-092) não é mais apagado no início da sua Fase Principal quando não há carta de Digimon embaixo dele para jogar.",
+    "es": "Battle NPC (BT20-092) ya no se elimina al inicio de tu Fase Principal cuando no tiene debajo ninguna carta de Digimon para jugar.",
+    "it": "Battle NPC (BT20-092) non viene più eliminato all'inizio della tua Fase Principale quando sotto non ha nessuna carta Digimon da giocare."
+  },
+  "releases.1.69.0-beta.fix.inheritedRetrigger": {
+    "en": "Inherited effects trigger again when their condition is met again before they activate, for example after Taomon digivolves into Sakuyamon and uses a second Option.",
+    "pt-BR": "Efeitos herdados ativam de novo quando a condição deles se cumpre outra vez antes de serem ativados, por exemplo depois que Taomon digivolve em Sakuyamon e usa uma segunda Opção.",
+    "es": "Los efectos heredados vuelven a activarse cuando su condición se cumple de nuevo antes de activarse, por ejemplo después de que Taomon digievolucione en Sakuyamon y use una segunda Opción.",
+    "it": "Gli effetti ereditati si attivano di nuovo quando la loro condizione si verifica ancora prima che si attivino, per esempio dopo che Taomon digievolve in Sakuyamon e usa una seconda Opzione."
+  },
+  "releases.1.69.0-beta.fix.plugInColor": {
+    "en": "Sakuyamon (BT19-040) can use a Plug-in that its own effect just drew while you have a Tamer.",
+    "pt-BR": "Sakuyamon (BT19-040) pode usar um Plug-in que o próprio efeito dele acabou de comprar enquanto você tem um Tamer.",
+    "es": "Sakuyamon (BT19-040) puede usar un Plug-in que su propio efecto acaba de robar mientras tienes un Tamer.",
+    "it": "Sakuyamon (BT19-040) può usare un Plug-in appena pescato dal suo stesso effetto mentre hai un Domatore."
+  },
+  "releases.1.69.0-beta.fix.timingLockImmune": {
+    "en": "Taomon's (ST22-04) \"can't activate [When Digivolving]\" now stays on a Digimon that was unaffected by effects when chosen, and applies once that protection ends.",
+    "pt-BR": "O \"não pode ativar [Ao Digivolver]\" do Taomon (ST22-04) agora continua num Digimon que não era afetado por efeitos quando foi escolhido e vale quando essa proteção acaba.",
+    "es": "El \"no puede activar [Al Digievolucionar]\" de Taomon (ST22-04) ahora se mantiene en un Digimon que no era afectado por efectos al elegirlo y se aplica cuando termina esa protección.",
+    "it": "Il \"non può attivare [Quando digievolve]\" di Taomon (ST22-04) ora resta su un Digimon che non era influenzato dagli effetti quando è stato scelto e si applica quando quella protezione finisce."
+  },
+  "releases.1.69.0-beta.fix.dnaCardText": {
+    "en": "Card details for 13 older DNA Digimon, such as Tlalocmon (EX7-037), show their [DNA Digivolve] requirement again.",
+    "pt-BR": "Os detalhes de 13 Digimon DNA mais antigos, como Tlalocmon (EX7-037), voltam a mostrar o requisito de [DNA Digivolve].",
+    "es": "Los detalles de 13 Digimon DNA más antiguos, como Tlalocmon (EX7-037), vuelven a mostrar su requisito de [DNA Digivolve].",
+    "it": "I dettagli di 13 Digimon DNA meno recenti, come Tlalocmon (EX7-037), mostrano di nuovo il requisito di [DNA Digivolve]."
+  },
+  "releases.1.68.0-beta.summary": {
+    "en": "Security checks now finish each check's effects before the next one, Ranked is easier to find on the home screen, and the deck editor loads more cards when you scroll on a phone.",
+    "pt-BR": "As verificações de segurança agora resolvem os efeitos de cada verificação antes da próxima, a partida ranqueada ficou mais fácil de achar na tela inicial e o editor de decks carrega mais cartas quando você rola no celular.",
+    "es": "Las comprobaciones de seguridad ahora resuelven los efectos de cada comprobación antes de la siguiente, la partida clasificatoria es más fácil de encontrar en la pantalla de inicio y el editor de mazos carga más cartas al desplazarte en el móvil.",
+    "it": "I controlli della sicurezza ora risolvono gli effetti di ogni controllo prima del successivo, la modalità Classificata è più facile da trovare nella schermata iniziale e l'editor dei mazzi carica altre carte quando scorri sul telefono."
+  },
+  "releases.1.68.0-beta.feature.rankedHome": {
+    "en": "The home screen shows a clearer Casual and Ranked switch and your current rating, which opens the Ranked page.",
+    "pt-BR": "A tela inicial mostra uma escolha mais clara entre partida casual e ranqueada e a sua pontuação atual, que abre os detalhes da ranqueada.",
+    "es": "La pantalla de inicio muestra un selector más claro entre partida casual y clasificatoria y tu puntuación actual, que abre los detalles de la clasificatoria.",
+    "it": "La schermata iniziale mostra una scelta più chiara tra Casual e Classificata e il tuo punteggio attuale, che apre la pagina della Classificata."
+  },
+  "releases.1.68.0-beta.feature.textOnlySearch": {
+    "en": "A new switch next to card search matches only card text, so searching \"Vaccine\" skips cards that only have the trait.",
+    "pt-BR": "Uma nova opção ao lado da busca de cartas procura só no texto da carta, então buscar \"Vaccine\" ignora cartas que só têm esse traço.",
+    "es": "Un nuevo interruptor junto a la búsqueda de cartas busca solo en el texto de la carta, así que buscar \"Vaccine\" omite las cartas que solo tienen ese rasgo.",
+    "it": "Un nuovo interruttore accanto alla ricerca delle carte cerca solo nel testo della carta, quindi cercare \"Vaccine\" esclude le carte che hanno solo quel tratto."
+  },
+  "releases.1.68.0-beta.feature.st25Cards": {
+    "en": "Added six cards from Starter Deck ALYSION RUBEUSDRAMON [ST-25], including Tokomon and Gemmon.",
+    "pt-BR": "Adicionamos seis cartas do Starter Deck ALYSION RUBEUSDRAMON [ST-25], incluindo Tokomon e Gemmon.",
+    "es": "Añadimos seis cartas del Starter Deck ALYSION RUBEUSDRAMON [ST-25], entre ellas Tokomon y Gemmon.",
+    "it": "Abbiamo aggiunto sei carte dello Starter Deck ALYSION RUBEUSDRAMON [ST-25], tra cui Tokomon e Gemmon."
+  },
+  "releases.1.68.0-beta.fix.securityCheckTiming": {
+    "en": "When an effect makes an attack check several security cards, effects from one check, such as the [On Play] of a Digimon played by Final Guardian or Examon (EX13), now resolve before the next check.",
+    "pt-BR": "Quando um efeito faz um ataque verificar várias cartas de segurança, os efeitos de uma verificação, como o [Ao Jogar] de um Digimon jogado por Final Guardian ou Examon (EX13), agora resolvem antes da próxima verificação.",
+    "es": "Cuando un efecto hace que un ataque compruebe varias cartas de seguridad, los efectos de una comprobación, como el [Al Jugar] de un Digimon jugado por Final Guardian o Examon (EX13), ahora se resuelven antes de la siguiente.",
+    "it": "Quando un effetto fa controllare a un attacco più carte della sicurezza, gli effetti di un controllo, come il [Quando entra in gioco] di un Digimon giocato da Final Guardian o Examon (EX13), ora si risolvono prima del controllo successivo."
+  },
+  "releases.1.68.0-beta.fix.lockedTamerCosts": {
+    "en": "A Tamer that can't suspend, for example after MetalGarurumon (AD01), no longer pays for DigiXros materials or Argomon's (BT17-048) cost reduction.",
+    "pt-BR": "Um Tamer que não pode ser suspenso, por exemplo depois do MetalGarurumon (AD01), não paga mais materiais de DigiXros nem a redução de custo do Argomon (BT17-048).",
+    "es": "Un Tamer que no puede suspenderse, por ejemplo después de MetalGarurumon (AD01), ya no paga materiales de DigiXros ni la reducción de coste de Argomon (BT17-048).",
+    "it": "Un Domatore che non può essere sospeso, per esempio dopo MetalGarurumon (AD01), non paga più i materiali DigiXros né la riduzione di costo di Argomon (BT17-048)."
+  },
+  "releases.1.68.0-beta.fix.overclockPrompt": {
+    "en": "The Overclock prompt for Etemon (BT27-040), BT27-069 and BT22-036 shows the Overclock text instead of the digivolve requirement.",
+    "pt-BR": "O aviso de Overclock do Etemon (BT27-040), BT27-069 e BT22-036 mostra o texto do Overclock em vez do requisito de digivolução.",
+    "es": "El aviso de Overclock de Etemon (BT27-040), BT27-069 y BT22-036 muestra el texto de Overclock en lugar del requisito de digievolución.",
+    "it": "La richiesta di Overclock di Etemon (BT27-040), BT27-069 e BT22-036 mostra il testo dell'Overclock invece del requisito di digievoluzione."
+  },
+  "releases.1.68.0-beta.fix.inheritedOnDeletion": {
+    "en": "An inherited [On Deletion] still activates after you play its digivolution card from the trash with another [On Deletion], for example Crowmon under Ravemon (BT27-083).",
+    "pt-BR": "Um [Ao Ser Apagado] herdado continua ativando depois que você joga a carta de digivolução dele do lixo com outro [Ao Ser Apagado], por exemplo Crowmon sob Ravemon (BT27-083).",
+    "es": "Un [Al Ser Eliminado] heredado sigue activándose después de jugar su carta de digievolución desde la papelera con otro [Al Ser Eliminado], por ejemplo Crowmon bajo Ravemon (BT27-083).",
+    "it": "Un [Quando viene eliminato] ereditato si attiva ancora dopo che giochi la sua carta di digievoluzione dagli scarti con un altro [Quando viene eliminato], per esempio Crowmon sotto Ravemon (BT27-083)."
+  },
+  "releases.1.68.0-beta.fix.decisionWindows": {
+    "en": "Decision windows always label View board, show smaller target cards with their card numbers, and follow the same layout.",
+    "pt-BR": "As janelas de decisão sempre mostram o texto Ver mesa, exibem cartas-alvo menores com o número da carta e seguem o mesmo layout.",
+    "es": "Las ventanas de decisión siempre muestran el texto Ver mesa, enseñan cartas objetivo más pequeñas con su número y siguen el mismo diseño.",
+    "it": "Le finestre di decisione mostrano sempre il testo Mostra il campo, presentano carte bersaglio più piccole con il loro numero e seguono la stessa struttura."
+  },
+  "releases.1.68.0-beta.fix.deckPoolPhoneScroll": {
+    "en": "On phones, the deck editor loads more cards when you scroll to \"Scroll for more\".",
+    "pt-BR": "No celular, o editor de decks carrega mais cartas quando você rola até \"Role para ver mais\".",
+    "es": "En el móvil, el editor de mazos carga más cartas al desplazarte hasta \"Desplázate para ver más\".",
+    "it": "Sul telefono, l'editor dei mazzi carica altre carte quando scorri fino a \"Scorri per mostrarne altre\"."
+  },
+  "releases.1.67.0-beta.summary": {
+    "en": "Effects given to a Digimon now show on it and keep working after it digivolves, a crashed match screen no longer concedes the match, and you choose blockers on the board again.",
+    "pt-BR": "Efeitos dados a um Digimon agora aparecem nele e continuam valendo depois que ele digievolui, uma falha na tela da partida não entrega mais a partida e você volta a escolher bloqueadores no campo.",
+    "es": "Los efectos dados a un Digimon ahora se muestran en él y siguen activos después de que digievolucione, un fallo en la pantalla de la partida ya no te hace perderla y vuelves a elegir bloqueadores en el campo.",
+    "it": "Gli effetti assegnati a un Digimon ora compaiono su di esso e restano attivi dopo che digievolve, un crash della schermata di partita non fa più perdere la partita e i bloccanti si scelgono di nuovo sul campo."
+  },
+  "releases.1.67.0-beta.fix.grantedAttackAfterDigivolve": {
+    "en": "A Digimon given \"[Start of Your Main Phase] This Digimon attacks.\", for example by P-240 Arcturusmon, still attacks when it digivolves earlier in that phase.",
+    "pt-BR": "Um Digimon que recebeu \"[Início da Sua Fase Principal] Este Digimon ataca.\", por exemplo do Arcturusmon (P-240), continua atacando quando digievolui antes, na mesma fase.",
+    "es": "Un Digimon que recibió \"[Inicio de tu fase principal] Este Digimon ataca.\", por ejemplo de Arcturusmon (P-240), sigue atacando cuando digievoluciona antes en esa misma fase.",
+    "it": "Un Digimon che ha ricevuto \"[Inizio della tua fase principale] Questo Digimon attacca.\", per esempio da Arcturusmon (P-240), attacca comunque quando digievolve prima nella stessa fase."
+  },
+  "releases.1.67.0-beta.fix.grantedEffectsVisible": {
+    "en": "Effects given to an opponent's Digimon, such as EX7 LadyDevimon (X Antibody)'s \"[End of Attack] Delete this Digimon.\", now show on that Digimon, and an arrow points to it.",
+    "pt-BR": "Efeitos dados a um Digimon do oponente, como o \"[Fim do Ataque] Apague este Digimon.\" da LadyDevimon (X Antibody) (EX7), agora aparecem nesse Digimon, e uma seta aponta para ele.",
+    "es": "Los efectos dados a un Digimon del rival, como \"[Fin del ataque] Elimina este Digimon.\" de LadyDevimon (X Antibody) (EX7), ahora se muestran en ese Digimon y una flecha lo señala.",
+    "it": "Gli effetti assegnati a un Digimon avversario, come \"[Fine dell'attacco] Elimina questo Digimon.\" di LadyDevimon (X Antibody) (EX7), ora compaiono su quel Digimon e una freccia lo indica."
+  },
+  "releases.1.67.0-beta.fix.presetKeepsPlacementOptional": {
+    "en": "A \"Yes\" preset in the effect order window no longer answers the \"you may place\" of BT27 Thomas H. Norstein, Reina Sakuya and Makoto Kuonji for you.",
+    "pt-BR": "Uma resposta \"Sim\" predefinida na janela de ordem dos efeitos não responde mais por você o \"você pode colocar\" de Thomas H. Norstein, Reina Sakuya e Makoto Kuonji (BT27).",
+    "es": "Una respuesta \"Sí\" preseleccionada en la ventana de orden de efectos ya no responde por ti el \"puedes colocar\" de Thomas H. Norstein, Reina Sakuya y Makoto Kuonji (BT27).",
+    "it": "Una risposta \"Sì\" preimpostata nella finestra dell'ordine degli effetti non risponde più al posto tuo al \"puoi mettere\" di Thomas H. Norstein, Reina Sakuya e Makoto Kuonji (BT27)."
+  },
+  "releases.1.67.0-beta.fix.borrowedEffectSource": {
+    "en": "Homeros's effect choice and the log now name the card an effect really comes from, and effects gained through Succession are no longer labelled as inherited.",
+    "pt-BR": "A escolha de efeito de Homeros e o registro agora mostram a carta de onde o efeito realmente vem, e efeitos obtidos por Sucessão não aparecem mais como herdados.",
+    "es": "La elección de efecto de Homeros y el registro ahora muestran la carta de la que viene realmente el efecto, y los efectos obtenidos por Sucesión ya no aparecen como heredados.",
+    "it": "La scelta dell'effetto di Homeros e il registro ora indicano la carta da cui proviene davvero l'effetto, e gli effetti ottenuti con Successione non risultano più ereditati."
+  },
+  "releases.1.67.0-beta.fix.turnDrawHeld": {
+    "en": "The card you draw at the start of your turn no longer appears in your hand before the draw phase.",
+    "pt-BR": "A carta comprada no início do seu turno não aparece mais na sua mão antes da fase de compra.",
+    "es": "La carta que robas al inicio de tu turno ya no aparece en tu mano antes de la fase de robo.",
+    "it": "La carta pescata all'inizio del tuo turno non compare più in mano prima della fase di pesca."
+  },
+  "releases.1.67.0-beta.fix.renderCrashKeepsSeat": {
+    "en": "If the match screen crashes, you no longer lose the match at once: reload within 60 seconds to continue. Browser page translation no longer crashes the screen.",
+    "pt-BR": "Se a tela da partida falhar, você não perde mais a partida na hora: recarregue em até 60 segundos para continuar. A tradução de página do navegador não derruba mais a tela.",
+    "es": "Si la pantalla de la partida falla, ya no pierdes la partida al instante: recarga en menos de 60 segundos para continuar. La traducción de página del navegador ya no rompe la pantalla.",
+    "it": "Se la schermata di partita va in crash, non perdi più subito la partita: ricarica entro 60 secondi per continuare. La traduzione della pagina del browser non manda più in crash la schermata."
+  },
+  "releases.1.67.0-beta.fix.decisionWindows": {
+    "en": "You choose blockers on the board again, you can hover the resolving card to read it, and the pending effects window uses the board's # references.",
+    "pt-BR": "Você volta a escolher bloqueadores no campo, pode passar o mouse sobre a carta que está resolvendo para ler o texto, e a janela de efeitos pendentes usa as referências # do campo.",
+    "es": "Vuelves a elegir bloqueadores en el campo, puedes pasar el cursor sobre la carta que se está resolviendo para leerla, y la ventana de efectos pendientes usa las referencias # del campo.",
+    "it": "I bloccanti si scelgono di nuovo sul campo, puoi passare il puntatore sulla carta in risoluzione per leggerla e la finestra degli effetti in attesa usa i riferimenti # del campo."
+  },
+  "releases.1.67.0-beta.fix.mulliganArt": {
+    "en": "The mulligan window shows the alternate art you chose for each card.",
+    "pt-BR": "A janela de mulligan mostra a arte alternativa que você escolheu para cada carta.",
+    "es": "La ventana de mulligan muestra el arte alternativo que elegiste para cada carta.",
+    "it": "La finestra del mulligan mostra l'arte alternativa che hai scelto per ogni carta."
+  },
+  "releases.1.67.0-beta.fix.collectionSetOrder": {
+    "en": "BD01, BD02 and BT26 now sort by release date in the collection and the deck builder.",
+    "pt-BR": "BD01, BD02 e BT26 agora são ordenados pela data de lançamento na coleção e no editor de decks.",
+    "es": "BD01, BD02 y BT26 ahora se ordenan por fecha de lanzamiento en la colección y el editor de mazos.",
+    "it": "BD01, BD02 e BT26 ora sono ordinati per data di uscita nella collezione e nell'editor dei mazzi."
+  },
+  "releases.1.66.0-beta.summary": {
+    "en": "Cards trashed from your deck now wait for the effect that trashed them to finish, Burst Digivolve no longer counts as an effect adding cards to the hand, and deleted decks stay deleted.",
+    "pt-BR": "Cartas descartadas do deck agora esperam o efeito que as descartou terminar, a Digievolução Burst não conta mais como efeito que adiciona cartas à mão e decks apagados continuam apagados.",
+    "es": "Las cartas descartadas del mazo ahora esperan a que termine el efecto que las descartó, la Digievolución Burst ya no cuenta como un efecto que añade cartas a la mano y los mazos borrados siguen borrados.",
+    "it": "Le carte scartate dal mazzo ora aspettano che finisca l'effetto che le ha scartate, la Digievoluzione Burst non conta più come effetto che aggiunge carte alla mano e i mazzi eliminati restano eliminati."
+  },
+  "releases.1.66.0-beta.feature.starterRevealCards": {
+    "en": "Added the revealed ST25 and ST26 starter cards, including Rubeusdramon, Yukinamon, Renamon and their Bond Options.",
+    "pt-BR": "Adicionamos as cartas reveladas dos starters ST25 e ST26, incluindo Rubeusdramon, Yukinamon, Renamon e suas Opções Bond.",
+    "es": "Añadimos las cartas reveladas de los starters ST25 y ST26, incluidos Rubeusdramon, Yukinamon, Renamon y sus Opciones Bond.",
+    "it": "Abbiamo aggiunto le carte rivelate degli starter ST25 e ST26, tra cui Rubeusdramon, Yukinamon, Renamon e le loro Opzioni Bond."
+  },
+  "releases.1.66.0-beta.fix.deckTrashTiming": {
+    "en": "\"When this card is trashed from your deck\" effects now activate after the effect that trashed them finishes. EX10 Beelzemon ACE deletes its target before milled Impmon and Beelzemon trigger, and their notices show only that clause.",
+    "pt-BR": "Efeitos \"quando esta carta for descartada do seu deck\" agora ativam depois que o efeito que as descartou termina. O Beelzemon ACE (EX10) apaga o alvo antes de Impmon e Beelzemon descartados ativarem, e os avisos mostram só essa parte do texto.",
+    "es": "Los efectos \"cuando esta carta sea descartada de tu mazo\" ahora se activan después de que termine el efecto que la descartó. Beelzemon ACE (EX10) borra su objetivo antes de que se activen Impmon y Beelzemon descartados, y sus avisos muestran solo esa parte del texto.",
+    "it": "Gli effetti \"quando questa carta viene scartata dal tuo mazzo\" ora si attivano dopo che l'effetto che l'ha scartata è terminato. Beelzemon ACE (EX10) elimina il bersaglio prima che si attivino Impmon e Beelzemon scartati, e gli avvisi mostrano solo quella parte del testo."
+  },
+  "releases.1.66.0-beta.fix.burstTamerReturn": {
+    "en": "Returning a Tamer to the hand for a Burst Digivolve no longer triggers MirageGaogamon or Thomas H. Norstein effects that watch for effects adding cards to a hand.",
+    "pt-BR": "Devolver um Tamer para a mão para uma Digievolução Burst não ativa mais efeitos de MirageGaogamon ou Thomas H. Norstein que observam efeitos adicionando cartas à mão.",
+    "es": "Devolver un Tamer a la mano para una Digievolución Burst ya no activa efectos de MirageGaogamon o Thomas H. Norstein que vigilan efectos que añaden cartas a la mano.",
+    "it": "Riportare un Domatore in mano per una Digievoluzione Burst non attiva più gli effetti di MirageGaogamon o Thomas H. Norstein che reagiscono agli effetti che aggiungono carte alla mano."
+  },
+  "releases.1.66.0-beta.fix.xAntibodyGates": {
+    "en": "BT7 DoruGreymon and BT8 Hisyaryumon inherited effects now check the [X Antibody] trait on the Digimon itself, not on its digivolution cards.",
+    "pt-BR": "Os efeitos herdados de DoruGreymon (BT7) e Hisyaryumon (BT8) agora verificam o traço [X Antibody] no próprio Digimon, não nas cartas de digievolução.",
+    "es": "Los efectos heredados de DoruGreymon (BT7) e Hisyaryumon (BT8) ahora comprueban el rasgo [X Antibody] en el propio Digimon, no en sus cartas de digievolución.",
+    "it": "Gli effetti ereditati di DoruGreymon (BT7) e Hisyaryumon (BT8) ora controllano il tratto [X Antibody] sul Digimon stesso, non sulle sue carte di digievoluzione."
+  },
+  "releases.1.66.0-beta.fix.deletedDecks": {
+    "en": "A deck deleted on one device no longer comes back when another device or browser opens the game with an older copy.",
+    "pt-BR": "Um deck apagado em um dispositivo não volta mais quando outro dispositivo ou navegador abre o jogo com uma cópia antiga.",
+    "es": "Un mazo borrado en un dispositivo ya no vuelve cuando otro dispositivo o navegador abre el juego con una copia antigua.",
+    "it": "Un mazzo eliminato su un dispositivo non ritorna più quando un altro dispositivo o browser apre il gioco con una copia vecchia."
+  },
+  "releases.1.66.0-beta.fix.deckReturnOrder": {
+    "en": "Effects that return several Digimon to the top or bottom of a deck now let their controller choose the order.",
+    "pt-BR": "Efeitos que devolvem vários Digimon ao topo ou fundo de um deck agora deixam o controlador escolher a ordem.",
+    "es": "Los efectos que devuelven varios Digimon a la parte superior o inferior de un mazo ahora permiten a su controlador elegir el orden.",
+    "it": "Gli effetti che riportano più Digimon in cima o in fondo a un mazzo ora permettono al loro controllore di sceglierne l'ordine."
+  },
+  "releases.1.66.0-beta.fix.cardCorrections": {
+    "en": "Fixed Karakurumon's digivolve cost to 4, added Wisemon's black digivolve cost, and corrected BlitzGreymon, Dan & Kanan and declined-cost \"Then\" effects.",
+    "pt-BR": "Corrigimos o custo de digievolução de Karakurumon para 4, adicionamos o custo preto de Wisemon e corrigimos BlitzGreymon, Dan & Kanan e efeitos \"Então\" após recusar um custo.",
+    "es": "Corregimos el coste de digievolución de Karakurumon a 4, añadimos el coste negro de Wisemon y corregimos BlitzGreymon, Dan & Kanan y los efectos \"Luego\" tras rechazar un coste.",
+    "it": "Abbiamo corretto il costo di digievoluzione di Karakurumon a 4, aggiunto il costo nero di Wisemon e corretto BlitzGreymon, Dan & Kanan e gli effetti \"Poi\" dopo aver rifiutato un costo."
+  },
+  "releases.1.66.0-beta.fix.spectatorReplays": {
+    "en": "Spectator replays keep the recorded hands again.",
+    "pt-BR": "Replays de espectador voltam a guardar as mãos gravadas.",
+    "es": "Las repeticiones de espectador vuelven a conservar las manos grabadas.",
+    "it": "I replay degli spettatori conservano di nuovo le mani registrate."
+  },
   "releases.1.65.0-beta.summary": {
     "en": "Matches respond more steadily: the server no longer pauses every room for a moment while bots think or effects are recalculated.",
     "pt-BR": "As partidas respondem de forma mais estável: o servidor não pausa mais todas as salas por um instante enquanto bots pensam ou efeitos são recalculados.",

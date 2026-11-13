@@ -685,6 +685,7 @@ export const en = {
   "library.keywords": "Keywords",
   "library.traitAttribute": "Trait / attribute",
   "library.traitAttributePlaceholder": "Search traits or attributes…",
+  "library.searchTextOnly": "Search card text only",
   "library.set": "Set",
   "library.allSets": "All sets",
   "library.clearFilters": "Clear filters",
@@ -1220,7 +1221,7 @@ export const en = {
   "overlay.blockForcedPrompt":
     "During this Digimon's attack, all of your opponent's Digimon gain ＜Blocker＞, and must block if possible.",
   "overlay.noBlockers": "No eligible blockers.",
-  "overlay.takeAttack": "No block",
+  "overlay.takeAttack": "Don't block",
   "overlay.dpBoost": "DP boost",
   "overlay.yourDigimon": "Your Digimon",
   "overlay.allianceAction": "is attacking",

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import appHtml from "../index.html?raw";
 import { act } from "react";
+import { createPortal } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { expect, it } from "vitest";
 import { installTranslationCompatibility } from "./translationCompatibility";
@@ -234,6 +235,133 @@ it("inserts at the vacated position when a translator removes a Text node withou
     await Promise.resolve();
     await act(async () => root.render(<View badge />));
     expect([...parent.children].map((child) => child.tagName)).toEqual(["I", "B", "U"]);
+  } finally {
+    await act(async () => root.unmount());
+    dispose();
+    container.remove();
+  }
+});
+
+function translatedFont(text?: string): HTMLElement {
+  const font = document.createElement("font");
+  font.style.verticalAlign = "inherit";
+  if (text !== undefined) font.textContent = text;
+  return font;
+}
+
+it("removes and replaces an element a translator moved into its sentence wrapper", async () => {
+  const container = document.createElement("div");
+  document.body.append(container);
+  const tolerated: string[] = [];
+  const dispose = installTranslationCompatibility(container, (error) => tolerated.push(error.message));
+  const root = createRoot(container);
+  function View({ effect }: { effect: string }) {
+    return (
+      <p>
+        <span key={effect} className="effect">
+          {effect}
+        </span>
+      </p>
+    );
+  }
+  try {
+    await act(async () => root.render(<View effect="Draw 1 card." />));
+    const paragraph = container.querySelector("p")!;
+    const sentence = translatedFont();
+    paragraph.append(sentence);
+    sentence.append(paragraph.querySelector(".effect")!);
+    await Promise.resolve();
+    await act(async () => root.render(<View effect="Trash 1 card." />));
+    expect(paragraph.textContent).toBe("Trash 1 card.");
+    expect(paragraph.querySelectorAll(".effect")).toHaveLength(1);
+    expect(tolerated).toEqual(["Tolerated removeChild of a node moved by foreign code"]);
+  } finally {
+    await act(async () => root.unmount());
+    dispose();
+    container.remove();
+  }
+});
+
+it("inserts next to a sibling element a translator moved into its sentence wrapper", async () => {
+  const container = document.createElement("div");
+  document.body.append(container);
+  const dispose = installTranslationCompatibility(container);
+  const root = createRoot(container);
+  function View({ badge }: { badge?: boolean }) {
+    return (
+      <p>
+        {badge && <b>Once per turn</b>}
+        <span>Draw 1 card.</span>
+      </p>
+    );
+  }
+  try {
+    await act(async () => root.render(<View />));
+    const paragraph = container.querySelector("p")!;
+    const sentence = translatedFont();
+    paragraph.append(sentence);
+    sentence.append(paragraph.querySelector("span")!);
+    await Promise.resolve();
+    await act(async () => root.render(<View badge />));
+    expect(paragraph.textContent).toBe("Once per turnDraw 1 card.");
+    await act(async () => root.render(<View />));
+    expect(paragraph.textContent).toBe("Draw 1 card.");
+  } finally {
+    await act(async () => root.unmount());
+    dispose();
+    container.remove();
+  }
+});
+
+it("removes an element that foreign code already detached", async () => {
+  const container = document.createElement("div");
+  document.body.append(container);
+  const dispose = installTranslationCompatibility(container);
+  const root = createRoot(container);
+  function View({ banner }: { banner: boolean }) {
+    return (
+      <section>
+        {banner && <aside>Banner</aside>}
+        <span>Board</span>
+      </section>
+    );
+  }
+  try {
+    await act(async () => root.render(<View banner />));
+    container.querySelector("aside")!.remove();
+    await Promise.resolve();
+    await act(async () => root.render(<View banner={false} />));
+    expect(container.querySelector("section")!.textContent).toBe("Board");
+  } finally {
+    await act(async () => root.unmount());
+    dispose();
+    container.remove();
+  }
+});
+
+it("keeps translated text working inside a panel portalled to the document body", async () => {
+  const container = document.createElement("div");
+  document.body.append(container);
+  const dispose = installTranslationCompatibility(container);
+  const root = createRoot(container);
+  function View({ used }: { used: boolean }) {
+    return createPortal(
+      <span className="portalled-label">
+        {"Agumon"}
+        {used ? <em>Used</em> : " · Inherited"}
+      </span>,
+      document.body,
+    );
+  }
+  try {
+    await act(async () => root.render(<View used={false} />));
+    const label = document.body.querySelector(".portalled-label")!;
+    const role = label.lastChild!;
+    role.before(translatedFont(" · Herdado"));
+    role.remove();
+    await Promise.resolve();
+    await act(async () => root.render(<View used />));
+    expect(label.textContent).toBe("AgumonUsed");
   } finally {
     await act(async () => root.unmount());
     dispose();

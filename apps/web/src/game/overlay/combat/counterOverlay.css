@@ -221,17 +221,7 @@
     border-top: 1px solid var(--ds-line);
   }
   .counter-overlay--sources .counter-overlay__confirm > .decision-overlay__view-board {
-    width: 3rem;
-    padding-inline: 0;
     margin-right: 0;
-  }
-  .counter-overlay--sources .decision-overlay__view-board-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
   }
   .counter-overlay--sources .counter-overlay__confirm > .counter-overlay__pass,
   .counter-overlay--sources .counter-overlay__confirm > .counter-overlay__activate {

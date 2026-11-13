@@ -678,6 +678,7 @@ export const es: Record<keyof typeof en, string> = {
   "library.keywords": "Palabras clave",
   "library.traitAttribute": "Rasgo / atributo",
   "library.traitAttributePlaceholder": "Buscar rasgos o atributos…",
+  "library.searchTextOnly": "Buscar solo en el texto de las cartas",
   "library.set": "Set",
   "library.allSets": "Todos los sets",
   "library.clearFilters": "Borrar filtros",
@@ -2363,6 +2364,9 @@ export const es: Record<keyof typeof en, string> = {
   "chat.muteSpectators": "Silenciar a los espectadores",
   "chat.sound": "Sonido del chat",
   "chat.soundDesc": "Reproduce un sonido con cada mensaje nuevo de tu oponente o de los espectadores.",
+  "chat.enabled": "Chat de la partida",
+  "chat.enabledDesc":
+    "Muestra el botón de chat, los bocadillos y los mensajes en las partidas. Desactívalo para ocultar el chat por completo.",
   "chat.you": "Tú",
   "chat.spectator": "Espectador {number}",
   "chat.spectatorTag": "espectador",

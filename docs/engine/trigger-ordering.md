@@ -371,7 +371,11 @@ movements are now collected before a timing window resolves; their deletion,
 Ascension and watcher reactions join the existing pending group. Both seat orders,
 play entry, the zero-DP start-turn example and derived rule checks are covered.
 Native and inherited On Deletion lapse after Ascension moves the former host out
-of trash. A surviving watcher removed by an earlier effect lapses before activation;
+of trash. The reverse does not lapse: an inherited On Deletion pends for the deleted
+top card (KB Q4286, Q5759), so it stays activatable when its own digivolution card
+leaves trash for the hand or the battle area while that top card remains in trash.
+`passesPlacementGuard` accepts the deletion snapshot as proof in that case;
+`inherited-on-deletion-survives-source-replay` covers the battle-area destination. A surviving watcher removed by an earlier effect lapses before activation;
 a paired surviving control activates. Each pending watcher rechecks live eligibility.
 Checks remain deferred while an Option or effect body is still processing; the
 existing BT24-041 regression exercises the Option boundary.

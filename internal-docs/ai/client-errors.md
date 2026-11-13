@@ -14,6 +14,8 @@ and, optionally, to a Discord channel. No third-party service is involved.
 
 `arena3dFallback` is not a crash. It records why a player who chose the 3D board got the classic board, as `Arena 3D fallback: <reason>` with the reason `webglUnavailable`, `contextLost`, `restartFailed`, or `sceneCrashed`. See `apps/web/src/game/arena3d/ARENA_3D.md`.
 
+Browser translation and extensions move or remove DOM nodes that React owns. `installTranslationCompatibility` (`apps/web/src/translationCompatibility.ts`) keeps React's `removeChild` and `insertBefore` working for those nodes across the whole document body, which includes panels portalled outside `#root`. When it tolerates a node that foreign code moved, it reports kind `error` with the message `Tolerated removeChild of a node moved by foreign code` or `Tolerated insertBefore a node moved by foreign code`. These reports are not crashes: the screen keeps working.
+
 The boundary shows "Something went wrong" with a reload button. It is keyed by screen,
 so navigating to another screen also recovers.
 

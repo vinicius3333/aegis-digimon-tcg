@@ -688,6 +688,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "library.keywords": "Palavras-chave",
   "library.traitAttribute": "Traço / atributo",
   "library.traitAttributePlaceholder": "Buscar traços ou atributos…",
+  "library.searchTextOnly": "Buscar só no texto das cartas",
   "library.set": "Set",
   "library.allSets": "Todos os sets",
   "library.clearFilters": "Limpar filtros",

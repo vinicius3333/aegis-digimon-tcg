@@ -167,6 +167,33 @@ describe("Etemon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
+  it("Overclock prompts with the printed Overclock keyword instead of the digivolve requirement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: [OTHER_ROOKIE, OTHER_ROOKIE],
+          battleArea: [
+            { card: ETEMON, as: "etemon" },
+            { card: CHUUMON, as: "fodder" },
+          ],
+        },
+        1: { deck: [OTHER_ROOKIE, OTHER_ROOKIE], security: [TAMER, TAMER] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).runTurn(0);
+
+    const overclockPrompt = s.decisions.find(
+      ({ req }) => req.kind === "optional" && req.sourceCardId === ETEMON && req.options?.timing === "EndOfYourTurn",
+    );
+    expect(overclockPrompt?.req.options).toMatchObject({
+      effectTextPart: "＜Overclock ([Chuumon]/[Sukamon] in name)＞",
+    });
+    expect(overclockPrompt?.req.options?.effectTextEmphasis).toBeUndefined();
+  });
+
   it("Overclock cannot delete a Digimon without [Chuumon] or [Sukamon] in its name", async () => {
     const s = setupEngine(
       {

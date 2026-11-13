@@ -77,6 +77,7 @@ export interface SubTriggerSubscription {
   dedupeKey?: string;
   /** Printed placement class of the effect that installed this watcher. */
   isInheritedSource?: boolean;
+  isGainedMainEffect?: boolean;
   isLinkedSource?: boolean;
   /**
    * The clause watches its own source ("when THIS Digimon is deleted"), not a class of

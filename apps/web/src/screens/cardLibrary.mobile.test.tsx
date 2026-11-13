@@ -9,6 +9,8 @@ import { type CardFilter } from "./cardFilters";
 const emptyFilter: CardFilter = {
   query: "",
   setQuery: () => undefined,
+  textOnly: false,
+  setTextOnly: () => undefined,
   colors: [],
   kinds: [],
   levels: [],

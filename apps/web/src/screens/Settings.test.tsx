@@ -12,6 +12,8 @@ import { areProfileStatsShown, setProfileStatsShown } from "../account/profileSt
 import type { RemoteAccount } from "../account/client";
 import { setSoundEnabled } from "../design/sound";
 import { isChatSoundEnabled, setChatSoundEnabled } from "../game/chat/chatSound";
+import { isMatchChatEnabled } from "@/game/chat/matchChatEnabled/isMatchChatEnabled";
+import { setMatchChatEnabled } from "@/game/chat/matchChatEnabled/setMatchChatEnabled";
 
 const player = { name: "Guest Tamer", color: "Blue", shards: 0, guestAvatarId: null };
 const account: RemoteAccount = {
@@ -239,6 +241,31 @@ describe("settings chat sound", () => {
     fireEvent.click(screen.getByRole("switch", { name: /^Sound effects/ }));
 
     expect(toggle).toHaveProperty("disabled", true);
+  });
+});
+
+describe("settings match chat", () => {
+  afterEach(() => {
+    cleanup();
+    setMatchChatEnabled(true);
+    localStorage.clear();
+  });
+
+  it("lets the player turn match chat off, which also disables the chat sound", () => {
+    render(
+      <I18nProvider>
+        <Settings player={player} account={null} dark={false} onToggleDark={() => undefined} />
+      </I18nProvider>,
+    );
+    const toggle = screen.getByRole("switch", { name: /^Match chat/ });
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+
+    fireEvent.click(toggle);
+
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    expect(isMatchChatEnabled()).toBe(false);
+    expect(localStorage.getItem("aegis.chat.enabled")).toBe("false");
+    expect(screen.getByRole("switch", { name: /Chat sound/ })).toHaveProperty("disabled", true);
   });
 });
 

@@ -143,7 +143,7 @@ describe("ST22-04 Taomon — KB Q&A rulings", () => {
     return s;
   }
 
-  it("does not impose a timing lock on Magnamon X while its evolution immunity is active", async () => {
+  it("holds the timing lock on an immune Magnamon X until its evolution immunity ends", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "ST22-04", as: "taomon" }], deck: ["BT1-009", "BT1-009"], security: ["BT1-009"] },
@@ -175,13 +175,13 @@ describe("ST22-04 Taomon — KB Q&A rulings", () => {
       ok: true,
     });
     await settle();
-    expect(observe(s.engine).timingEffectDisabled(s.perm("magna"), "whenDigivolving")).toBe(false);
     await turn;
     s.state.turnSeat = 1;
     s.state.phase = Phase.Main;
     s.state.memory = 3;
     await advance(s.engine).recompute();
-    expect(observe(s.engine).timingEffectDisabled(s.perm("magna"), "whenDigivolving")).toBe(false);
+    expect(s.perm("magna").currentDP).toBe(9000);
+    expect(observe(s.engine).timingEffectDisabled(s.perm("magna"), "whenDigivolving")).toBe(true);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -190,7 +190,7 @@ describe("ST22-04 Taomon — KB Q&A rulings", () => {
       }),
     ).toEqual({ ok: true });
     await settle();
-    expect(s.perm("magna").isSuspended).toBe(false);
+    expect(s.perm("magna").isSuspended).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });

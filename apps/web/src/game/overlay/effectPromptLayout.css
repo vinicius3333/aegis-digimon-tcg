@@ -1162,6 +1162,17 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
 .decision-overlay__candidate-identity {
   font-family: var(--ds-font-mono);
 }
+.decision-overlay__candidate-id {
+  color: var(--ds-text-3);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+  line-height: 1.3;
+  text-align: center;
+  white-space: nowrap;
+}
+.decision-candidate-tile > .decision-overlay__candidate-id {
+  margin-top: calc(-1 * var(--ds-space-2));
+}
 .decision-card-inspect {
   position: absolute;
   top: 4px;

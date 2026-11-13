@@ -17,6 +17,19 @@ if (typeof window !== "undefined" && typeof window.ResizeObserver !== "function"
   globalThis.ResizeObserver = window.ResizeObserver;
 }
 
+if (typeof window !== "undefined" && typeof window.IntersectionObserver !== "function") {
+  class IntersectionObserverPolyfill {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() {
+      return [];
+    }
+  }
+  window.IntersectionObserver = IntersectionObserverPolyfill as unknown as typeof IntersectionObserver;
+  globalThis.IntersectionObserver = window.IntersectionObserver;
+}
+
 // jsdom ships a `WebSocket` global that throws "not implemented" on connect
 // rather than actually opening a socket. Scenario tests need a real client
 // websocket to reach the in-process Colyseus server

@@ -43,6 +43,7 @@ export interface CollectedEffect {
    */
   timingLabel?: string;
   printedTiming?: string;
+  isGainedMainEffect?: boolean;
   /** The printed condition that armed a watcher, when its description is the whole clause. */
   triggerReason?: string;
 }

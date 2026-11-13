@@ -60,7 +60,7 @@ function players() {
   return { viewer, opponent };
 }
 
-function details(instanceIds: readonly string[], handInstanceIds: readonly string[] = []) {
+function details(instanceIds: readonly string[], handInstanceIds: readonly string[] = [], showFieldReferences = false) {
   const { viewer, opponent } = players();
   return triggerDetailsFor({
     decision: orderTriggers(instanceIds),
@@ -68,6 +68,7 @@ function details(instanceIds: readonly string[], handInstanceIds: readonly strin
     opponent,
     handInstanceIds,
     t: translator("en"),
+    showFieldReferences,
   });
 }
 
@@ -82,15 +83,33 @@ describe("trigger chooser source labels", () => {
 
   it("names the Digimon that carries an inherited effect", () => {
     expect(sourceLabels(["inherited-b", "inherited-c"])).toEqual([
-      "Inherited by Omnimon (copy 1)",
-      "Inherited by Omnimon (copy 2)",
+      "Inherited by Omnimon #2",
+      "Inherited by Omnimon #4",
     ]);
     expect(details(["inherited-b", "field-a"]).map((detail) => detail.hostCardId)).toEqual(["BT1-084", undefined]);
   });
 
-  it("tells apart two field copies of one Digimon by copy, not slot", () => {
-    expect(sourceLabels(["field-b", "field-c"])).toEqual(["Field (copy 1)", "Field (copy 2)"]);
-    expect(details(["field-b", "field-a"]).map((detail) => detail.sourceShowsCopy)).toEqual([true, undefined]);
+  it("tells apart two field copies of one Digimon by the reference the board prints", () => {
+    expect(sourceLabels(["field-b", "field-c"])).toEqual(["Field #2", "Field #4"]);
+  });
+
+  it("names field copies by the reference the board prints when references are shown", () => {
+    const shown = details(["field-b", "inherited-c", "field-a", "trash-card"], [], true);
+    expect(shown.map((detail) => detail.sourceLabel)).toEqual([
+      "Field #2",
+      "Inherited by Omnimon #4",
+      "Field",
+      "Trash",
+    ]);
+    expect(shown.map((detail) => detail.fieldReference)).toEqual(["#2", "#4", "#1", undefined]);
+  });
+
+  it("carries a field reference only for duplicated Digimon while the board hides references", () => {
+    expect(details(["field-b", "field-c", "field-a"]).map((detail) => detail.fieldReference)).toEqual([
+      "#2",
+      "#4",
+      undefined,
+    ]);
   });
 
   it("names the exact hand copy by its position in the displayed hand", () => {
@@ -109,5 +128,19 @@ describe("trigger chooser source labels", () => {
 
   it("leaves a source it cannot place unlabelled", () => {
     expect(sourceLabels(["unknown-card"])).toEqual([undefined]);
+  });
+
+  it("labels a stack card whose effect the Digimon gained as a field source, not as inherited", () => {
+    const { viewer, opponent } = players();
+    const decision = orderTriggers(["inherited-b", "inherited-c"]);
+    const labels = triggerDetailsFor({
+      decision: { ...decision, options: { ...decision.options, triggerIsInherited: [false, true] } },
+      viewer,
+      opponent,
+      handInstanceIds: [],
+      t: translator("en"),
+    }).map((detail) => detail.sourceLabel);
+    expect(labels[0]).toBe("Field #2");
+    expect(labels[1]).toContain("Inherited");
   });
 });

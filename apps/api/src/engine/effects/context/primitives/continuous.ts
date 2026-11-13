@@ -263,6 +263,7 @@ export interface ContinuousPrimitives {
       continuous?: boolean;
       /** The card whose effect grants the clause. */
       sourceCardId?: string;
+      recipientPermanentId?: string;
     },
   ): void;
   /** Grant a named effect to every matching current/future permanent controlled by `seat`. */

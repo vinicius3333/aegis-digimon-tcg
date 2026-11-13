@@ -1,5 +1,186 @@
 [
   {
+    "version": "1.71.0-beta",
+    "releasedAt": "2026-11-12",
+    "summaryKey": "releases.1.71.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.71.0-beta.feature.matchChatToggle"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.71.0-beta.fix.motherDReaperTamers"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.kentaurosmonCounter"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.placementPrevented"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.leaveEffectOrder"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.continuousTargetArrows"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.finishedRoomClosed"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.deckImagePreview"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.discordNov12"
+      }
+    ]
+  },
+  {
+    "version": "1.70.0-beta",
+    "releasedAt": "2026-11-12",
+    "summaryKey": "releases.1.70.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.70.0-beta.feature.bt27Cards"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.70.0-beta.fix.datamonDeDigivolve"
+      }
+    ]
+  },
+  {
+    "version": "1.69.0-beta",
+    "releasedAt": "2026-11-12",
+    "summaryKey": "releases.1.69.0-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.69.0-beta.fix.optionalBattle"
+      },
+      {
+        "textKey": "releases.1.69.0-beta.fix.battleNpc"
+      },
+      {
+        "textKey": "releases.1.69.0-beta.fix.inheritedRetrigger"
+      },
+      {
+        "textKey": "releases.1.69.0-beta.fix.plugInColor"
+      },
+      {
+        "textKey": "releases.1.69.0-beta.fix.timingLockImmune"
+      },
+      {
+        "textKey": "releases.1.69.0-beta.fix.dnaCardText"
+      }
+    ]
+  },
+  {
+    "version": "1.68.0-beta",
+    "releasedAt": "2026-11-11",
+    "summaryKey": "releases.1.68.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.68.0-beta.feature.rankedHome"
+      },
+      {
+        "textKey": "releases.1.68.0-beta.feature.textOnlySearch"
+      },
+      {
+        "textKey": "releases.1.68.0-beta.feature.st25Cards"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.68.0-beta.fix.securityCheckTiming"
+      },
+      {
+        "textKey": "releases.1.68.0-beta.fix.lockedTamerCosts"
+      },
+      {
+        "textKey": "releases.1.68.0-beta.fix.overclockPrompt"
+      },
+      {
+        "textKey": "releases.1.68.0-beta.fix.inheritedOnDeletion"
+      },
+      {
+        "textKey": "releases.1.68.0-beta.fix.decisionWindows"
+      },
+      {
+        "textKey": "releases.1.68.0-beta.fix.deckPoolPhoneScroll"
+      }
+    ]
+  },
+  {
+    "version": "1.67.0-beta",
+    "releasedAt": "2026-11-10",
+    "summaryKey": "releases.1.67.0-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.67.0-beta.fix.grantedAttackAfterDigivolve"
+      },
+      {
+        "textKey": "releases.1.67.0-beta.fix.grantedEffectsVisible"
+      },
+      {
+        "textKey": "releases.1.67.0-beta.fix.presetKeepsPlacementOptional"
+      },
+      {
+        "textKey": "releases.1.67.0-beta.fix.borrowedEffectSource"
+      },
+      {
+        "textKey": "releases.1.67.0-beta.fix.turnDrawHeld"
+      },
+      {
+        "textKey": "releases.1.67.0-beta.fix.renderCrashKeepsSeat"
+      },
+      {
+        "textKey": "releases.1.67.0-beta.fix.decisionWindows"
+      },
+      {
+        "textKey": "releases.1.67.0-beta.fix.mulliganArt"
+      },
+      {
+        "textKey": "releases.1.67.0-beta.fix.collectionSetOrder"
+      }
+    ]
+  },
+  {
+    "version": "1.66.0-beta",
+    "releasedAt": "2026-11-10",
+    "summaryKey": "releases.1.66.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.66.0-beta.feature.starterRevealCards"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.66.0-beta.fix.deckTrashTiming"
+      },
+      {
+        "textKey": "releases.1.66.0-beta.fix.burstTamerReturn"
+      },
+      {
+        "textKey": "releases.1.66.0-beta.fix.xAntibodyGates"
+      },
+      {
+        "textKey": "releases.1.66.0-beta.fix.deletedDecks"
+      },
+      {
+        "textKey": "releases.1.66.0-beta.fix.deckReturnOrder"
+      },
+      {
+        "textKey": "releases.1.66.0-beta.fix.cardCorrections"
+      },
+      {
+        "textKey": "releases.1.66.0-beta.fix.spectatorReplays"
+      }
+    ]
+  },
+  {
     "version": "1.65.0-beta",
     "releasedAt": "2026-11-10",
     "summaryKey": "releases.1.65.0-beta.summary",

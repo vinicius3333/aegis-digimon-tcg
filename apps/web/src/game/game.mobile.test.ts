@@ -213,10 +213,8 @@ describe("mobile portrait match layout", () => {
     expect(portraitRules).toMatch(/\.decision-overlay__header \{[^}]*align-items:\s*center[^}]*flex-wrap:\s*nowrap/);
     expect(portraitRules).toMatch(/\.decision-overlay__heading \{[^}]*padding:\s*0[^}]*background:\s*none/);
     expect(portraitRules).toMatch(/\.decision-overlay__title \{[^}]*font-size:\s*1\.0625rem/);
-    // The pill shares the header line but still answers to the touch floor.
-    expect(portraitRules).toMatch(
-      /\.decision-overlay__view-board \{[^}]*width:\s*auto[^}]*min-height:\s*44px[^}]*border-radius:\s*999px/,
-    );
+    expect(portraitRules).toMatch(/\.decision-overlay__view-board \{[^}]*width:\s*auto[^}]*min-height:\s*44px/);
+    expect(portraitRules).not.toMatch(/\.decision-overlay__view-board \{[^}]*border-radius:\s*999px/);
   });
 
   it("gives the target row a gutter so the sheet edge never slices a card", () => {
@@ -768,6 +766,11 @@ describe("centre-stage cards are sized by the viewport", () => {
   it("scales the zone showcase by width on a phone and by height in landscape", () => {
     expect(portraitRules).toMatch(/\.battle-showcase__art > div \{[^}]*width:\s*min\(190px, 46vw\)/);
     expect(landscapeRules).toMatch(/\.battle-showcase__art > div \{[^}]*height:\s*min\(58dvh, 266px\)/);
+  });
+
+  it("lets the pointer reach a resolving card so its text can be read on hover", () => {
+    expect(gameCss).toMatch(/\.battle-security-branch \{[^}]*pointer-events:\s*none/);
+    expect(gameCss).toMatch(/\.battle-security-branch__art \{[^}]*pointer-events:\s*auto/);
   });
 
   it("drives the security branch's lift from a property the short blocks retune", () => {

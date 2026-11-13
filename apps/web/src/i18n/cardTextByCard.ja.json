@@ -1718,7 +1718,7 @@
     "Digivolve:1from[Leopardmon][WhenDigivolving]Suspend1ofyouropponent'sDigimon.Untiltheendofyouropponent'sturn,1ofyouropponent'sDigimondoesn'tunsuspend.[WhenAttacking]Bysuspending1ofyourotherDigimon,unsuspendthisDigimon.[EndofYourTurn]TrashthetopcardofthisDigimonandunsuspendallofyourDigimon.": "〔進化〕「ドゥフトモン」から1\n\n【進化時】相手のデジモン1体をレストさせる。次の相手のターン終了まで、相手のデジモン1体はアクティブにならない。\n【アタック時】他の自分のデジモン1体をレストさせることで、このデジモンをアクティブにする。\n【自分のターン終了時】このデジモンに重ねられているカードを上から1枚破棄し、自分のデジモン全てをアクティブにする。"
   },
   "BT13-059": {
-    "Digivolveunsuspendedwiththe2specifiedDigimonstackedontopofeachother.[OnPlay][WhenDigivolving]Suspend1ofyouropponent'sDigimon.ThatDigimondoesn'tunsuspendduringyouropponent'snextunsuspendphase.[AllTurns][OncePerTurn]Whenanopponent'sDigimonbecomessuspended,youmayactivate1oftheeffectsbelow.・Suspend1ofyouropponent'sDigimon.・Unsuspend1ofyourDigimon.": "〔ジョグレス〕緑Lv.6+青Lv.6から0 指定のデジモン2体を重ね、アクティブで進化する\n\n【登場時】【進化時】相手のデジモン1体をレストさせる。次の相手のアクティブフェイズでは、そのデジモンはアクティブにならない。\n【お互いのターン】[ターンに1回]相手のデジモンがレストしたとき、以下の効果から1つを選んで発揮できる。\n・相手のデジモン1体をレストさせる。\n・自分のデジモン1体をアクティブにする。"
+    "[DNADigivolve]GreenLv.6+BlueLv.6:Cost0Digivolveunsuspendedwiththe2specifiedDigimonstackedontopofeachother.[OnPlay][WhenDigivolving]Suspend1ofyouropponent'sDigimon.ThatDigimondoesn'tunsuspendduringyouropponent'snextunsuspendphase.[AllTurns][OncePerTurn]Whenanopponent'sDigimonbecomessuspended,youmayactivate1oftheeffectsbelow.・Suspend1ofyouropponent'sDigimon.・Unsuspend1ofyourDigimon.": "〔ジョグレス〕緑Lv.6+青Lv.6から0 指定のデジモン2体を重ね、アクティブで進化する\n\n【登場時】【進化時】相手のデジモン1体をレストさせる。次の相手のアクティブフェイズでは、そのデジモンはアクティブにならない。\n【お互いのターン】[ターンに1回]相手のデジモンがレストしたとき、以下の効果から1つを選んで発揮できる。\n・相手のデジモン1体をレストさせる。\n・自分のデジモン1体をアクティブにする。"
   },
   "BT13-060": {
     "BurstDigivolve:0from[Rosemon]byreturning1[YoshinoFujieda]tohandAttheendoftheburstdigivolutionturn,trashthisDigimon’stopcard[WhenDigivolving]Suspend1ofyouropponent'sDigimonand1oftheirTamers.Untiltheendofyouropponent'sturn,alloftheirDigimonandTamersdon'tunsuspend.[WhenAttacking]Trashthetopcardofyouropponent’ssecuritystackforevery2ofyouropponent'ssuspendedDigimonandTamers.": "〔バースト進化〕「藤枝淑乃」1体を手札に戻すことで、「ロゼモン」から0\nバースト進化したターン終了時、このデジモンに重ねられているカードを上から1枚破棄する\n\n【進化時】相手のデジモンとテイマー1体ずつをレストさせる。次の相手のターン終了まで、相手のデジモンとテイマー全てはアクティブにならない。\n【アタック時】レスト状態の相手のデジモンとテイマー2体ごとに、相手のセキュリティを上から1枚破棄する。"
@@ -3439,7 +3439,7 @@
     "[Digivolve][TakuyaKanbara]w/5[Hybrid]traitcardsunderit:Cost5[WhenDigivolving]ForeachcolorinthisDigimon'sdigivolutioncards,trashany1digivolutioncardfromyouropponent'sDigimonandsuspend1oftheirDigimon.Then,thisDigimonmayattack.[YourTurn][OncePerTurn]WhenthisDigimondeletesyouropponent'sDigimoninbattle,itgains<SecurityAttack+1>fortheturnandunsuspendit.": "〔進化〕特徴に「ハイブリッド体」を持つカードが下に5枚ある「神原拓也」:コスト5\n\n【進化時】このデジモンの進化元の色1色ごとに、相手のデジモンの進化元を選んで1枚破棄し、相手のデジモン1体をレストさせる。その後、このデジモンでアタックできる。\n【自分のターン】[ターンに1回]このデジモンがバトルで相手のデジモンを消滅させたとき、ターン終了まで、このデジモンは≪Sアタック+1≫を得て、このデジモンをアクティブにする。"
   },
   "BT18-019": {
-    "[OnPlay][WhenDigivolving]Delete1ofyouropponent'sDigimon.Then,ifDNAdigivolving,byreturning1ofeachDigimoncardwithdifferentlevelsfromyouropponent'strashtothetopofthedeck,gain1memoryforeachcardreturned.[OnDeletion]Byreturning1[Kimeramon]and1[Machinedramon]fromyourtrashtothebottomofthedeck,youmayplay1[Millenniummon]fromyourtrashwithoutpayingthecost.[DigiXros-2][Kimeramon]x[Machinedramon]": "〔ジョグレス〕「キメラモン」+「ムゲンドラモン」:コスト0\n\nデジクロス-2:「キメラモン」×「ムゲンドラモン」\n\n【登場時】【進化時】相手のデジモン1体を消滅させる。その後、ジョグレス進化していたなら、相手のトラッシュから、Lv.の異なるデジモンカード1枚ずつをデッキの上に戻すことで、戻した1枚ごとに、メモリー+1。\n【消滅時】自分のトラッシュから、「キメラモン」と「ムゲンドラモン」1枚ずつをデッキの下に戻すことで、自分のトラッシュから、「ミレニアモン」1枚をコストを支払わずに登場できる。"
+    "[DNADigivolve][Kimeramon]+[Machinedramon]:Cost0[OnPlay][WhenDigivolving]Delete1ofyouropponent'sDigimon.Then,ifDNAdigivolving,byreturning1ofeachDigimoncardwithdifferentlevelsfromyouropponent'strashtothetopofthedeck,gain1memoryforeachcardreturned.[OnDeletion]Byreturning1[Kimeramon]and1[Machinedramon]fromyourtrashtothebottomofthedeck,youmayplay1[Millenniummon]fromyourtrashwithoutpayingthecost.[DigiXros-2][Kimeramon]x[Machinedramon]": "〔ジョグレス〕「キメラモン」+「ムゲンドラモン」:コスト0\n\nデジクロス-2:「キメラモン」×「ムゲンドラモン」\n\n【登場時】【進化時】相手のデジモン1体を消滅させる。その後、ジョグレス進化していたなら、相手のトラッシュから、Lv.の異なるデジモンカード1枚ずつをデッキの上に戻すことで、戻した1枚ごとに、メモリー+1。\n【消滅時】自分のトラッシュから、「キメラモン」と「ムゲンドラモン」1枚ずつをデッキの下に戻すことで、自分のトラッシュから、「ミレニアモン」1枚をコストを支払わずに登場できる。"
   },
   "BT18-020": {
     "[Rule]Trait:Hasthe[Aquatic]type.": "〈ルール〉特徴:タイプ「水棲型」を持つ。"
@@ -4500,7 +4500,7 @@
     "[YourTurn]ThisDigimondoesn'tactivate[Security]effectsonOptioncardsitchecks.": "【自分のターン】このデジモンがチェックしたオプションカードの【セキュリティ】効果は発揮しない。"
   },
   "BT20-016": {
-    "[OnPlay][WhenDigivolving]Fortheturn,1ofyourDigimongains<Piercing>andgets+4000DP.Then,thisDigimonmayattack.[AllTurns]Whenanyofyour[Paildramon]/[Dinobeemon]wouldbedeleted,2ofyourDigimonmayDNAdigivolveinto[Imperialdramon:DragonMode]inthehand.": "〔ジョグレス〕赤Lv.4+紫Lv.4:コスト0 指定のデジモン2体を重ね、アクティブで進化する\n\n【登場時】【進化時】ターン終了まで、自分のデジモン1体は≪貫通≫を得て、DP+4000。その後、このデジモンでアタックできる。\n【お互いのターン】自分の「パイルドラモン」/「ディノビーモン」が消滅するとき、自分のデジモン2体で手札の「インペリアルドラモン：ドラゴンモード」にジョグレス進化できる。",
+    "[DNADigivolve]RedLv.4+PurpleLv.4:Cost0[OnPlay][WhenDigivolving]Fortheturn,1ofyourDigimongains<Piercing>andgets+4000DP.Then,thisDigimonmayattack.[AllTurns]Whenanyofyour[Paildramon]/[Dinobeemon]wouldbedeleted,2ofyourDigimonmayDNAdigivolveinto[Imperialdramon:DragonMode]inthehand.": "〔ジョグレス〕赤Lv.4+紫Lv.4:コスト0 指定のデジモン2体を重ね、アクティブで進化する\n\n【登場時】【進化時】ターン終了まで、自分のデジモン1体は≪貫通≫を得て、DP+4000。その後、このデジモンでアタックできる。\n【お互いのターン】自分の「パイルドラモン」/「ディノビーモン」が消滅するとき、自分のデジモン2体で手札の「インペリアルドラモン：ドラゴンモード」にジョグレス進化できる。",
     "<SecurityA.+1>.": "≪Sアタック+1≫（このデジモンがチェックする枚数+1）"
   },
   "BT20-017": {
@@ -4518,7 +4518,7 @@
     "[Digivolve][Imperialdramon:DragonMode]:Cost2<Raid>.<Piercing>[WhenDigivolving]Youropponentcan'tplayDigimonorTamersbyeffectsuntiltheendoftheirturn.Then,if[Imperialdramon:DragonMode]isinthisDigimon'sdigivolutioncards,trashyouropponent'stopsecuritycard.[AllTurns][OncePerTurn]Whenyouropponent'ssecuritystackisremovedfrom,delete1oftheirDigimonwithasmuchorlessDPasthisDigimon.": "〔進化〕「インペリアルドラモン：ドラゴンモード」:コスト2\n\n≪突進≫≪貫通≫\n【進化時】相手のターン終了まで、相手はデジモンとテイマーを効果で登場できない。その後、このデジモンの進化元に「インペリアルドラモン：ドラゴンモード」があるなら、相手のセキュリティを上から1枚破棄する。\n【お互いのターン】[ターンに1回]相手のセキュリティが減ったとき、このデジモンのDP以下の相手のデジモン1体を消滅させる。"
   },
   "BT20-021": {
-    "[Hand][Counter]<BlastDigivolve>[OnPlay][WhenDigivolving][WhenAttacking][OncePerTurn]Byplacing1[RoyalKnight]traitcardfromyourhandortrashasthisDigimon'sbottomdigivolutioncard,delete1ofyouropponent'sDigimonwithasmuchorlessDPasthisDigimon.[WhenAttacking][OncePerTurn]ThisDigimonunsuspends.Then,forevery2[RoyalKnight]traitcardsinthisDigimon'sdigivolutioncards,trashyouropponent'stopsecuritycard.": "〔ジョグレス〕名称に「ジエスモン」を含むLv.6+名称に「ガンクゥモン」を含むLv.6:コスト0\n\n[手札]【カウンター】≪ブラスト進化≫（自分のデジモンをこのカードにコストを支払わずに進化できる）\n【登場時】【進化時】【アタック時】[ターンに1回]自分の手札/トラッシュから、特徴に「ロイヤルナイツ」を持つカード1枚をこのデジモンの進化元の下に置くことで、このデジモンのDP以下の相手のデジモン1体を消滅させる。\n【アタック時】[ターンに1回]このデジモンをアクティブにする。その後、このデジモンの進化元の特徴に｢ロイヤルナイツ｣を持つカード2枚ごとに、相手のセキュリティを上から1枚破棄する。\n\n≪オーバーフロー《-5》≫（エリアかカードの下から、それ以外の場所に送られる場合、メモリー-5）"
+    "[DNADigivolve]Lv.6w/[Jesmon]inname+Lv.6w/[Gankoomon]inname:Cost0[Hand][Counter]<BlastDigivolve>[OnPlay][WhenDigivolving][WhenAttacking][OncePerTurn]Byplacing1[RoyalKnight]traitcardfromyourhandortrashasthisDigimon'sbottomdigivolutioncard,delete1ofyouropponent'sDigimonwithasmuchorlessDPasthisDigimon.[WhenAttacking][OncePerTurn]ThisDigimonunsuspends.Then,forevery2[RoyalKnight]traitcardsinthisDigimon'sdigivolutioncards,trashyouropponent'stopsecuritycard.": "〔ジョグレス〕名称に「ジエスモン」を含むLv.6+名称に「ガンクゥモン」を含むLv.6:コスト0\n\n[手札]【カウンター】≪ブラスト進化≫（自分のデジモンをこのカードにコストを支払わずに進化できる）\n【登場時】【進化時】【アタック時】[ターンに1回]自分の手札/トラッシュから、特徴に「ロイヤルナイツ」を持つカード1枚をこのデジモンの進化元の下に置くことで、このデジモンのDP以下の相手のデジモン1体を消滅させる。\n【アタック時】[ターンに1回]このデジモンをアクティブにする。その後、このデジモンの進化元の特徴に｢ロイヤルナイツ｣を持つカード2枚ごとに、相手のセキュリティを上から1枚破棄する。\n\n≪オーバーフロー《-5》≫（エリアかカードの下から、それ以外の場所に送られる場合、メモリー-5）"
   },
   "BT20-022": {
     "[Digivolve][Crabmon]:Cost0[OnPlay][WhenDigivolving]1ofyourDigimoncan'tbedeletedinbattleuntiltheendofyouropponent'sturn.": "〔進化〕「ガニモン」:コスト0\n\n【登場時】【進化時】相手のターン終了まで、自分のデジモン1体はバトルで消滅しない。",
@@ -4580,7 +4580,7 @@
     "[Opponent'sTurn][OncePerTurn]Whenoneofyouropponent'sDigimonattacks,youmaychangetheattacktargettothisDigimon.": "【相手のターン】[ターンに1回]相手のデジモンがアタックしたとき、アタックの対象をこのデジモンに変更できる。"
   },
   "BT20-037": {
-    "<SecurityA.+1>.<Partition(YellowLv.6+Green/BlackLv.6)>[WhenDigivolving]ForeachofthisDigimon'slevel6digivolutioncards,suspend1ofyouropponent'sDigimonorTamersandgain1memory.ThennoneoftheirDigimonorTamerscanactivate[OnPlay]effectsorunsuspenduntiltheendoftheirturn.": "〔ジョグレス〕黄Lv.6+緑/黒Lv.6:コスト0\n\n≪Sアタック+1≫≪パーティション《黄Lv.6＆緑/黒Lv.6》≫（進化元に指定のカードが1枚ずつあるこのデジモンが自分の効果とバトル以外でバトルエリアを離れるとき、指定のカード1枚ずつをコストを支払わずに登場できる）\n【進化時】このデジモンの進化元のLv.6のカード1枚ごとに、相手のデジモン/テイマー1体をレストさせ、メモリー+1。その後、相手のターン終了まで、相手のデジモン/テイマー全ての【登場時】効果は発揮せず、アクティブにならない。"
+    "[DNADigivolve]YellowLv.6+Green/BlackLv.6:Cost0<SecurityA.+1>.<Partition(YellowLv.6+Green/BlackLv.6)>[WhenDigivolving]ForeachofthisDigimon'slevel6digivolutioncards,suspend1ofyouropponent'sDigimonorTamersandgain1memory.ThennoneoftheirDigimonorTamerscanactivate[OnPlay]effectsorunsuspenduntiltheendoftheirturn.": "〔ジョグレス〕黄Lv.6+緑/黒Lv.6:コスト0\n\n≪Sアタック+1≫≪パーティション《黄Lv.6＆緑/黒Lv.6》≫（進化元に指定のカードが1枚ずつあるこのデジモンが自分の効果とバトル以外でバトルエリアを離れるとき、指定のカード1枚ずつをコストを支払わずに登場できる）\n【進化時】このデジモンの進化元のLv.6のカード1枚ごとに、相手のデジモン/テイマー1体をレストさせ、メモリー+1。その後、相手のターン終了まで、相手のデジモン/テイマー全ての【登場時】効果は発揮せず、アクティブにならない。"
   },
   "BT20-038": {
     "[Digivolve][Pinamon]/Lv.2w/[ACCEL]trait:Cost0[YourTurn]WhenthisDigimonwoulddigivolveintoaDigimoncardwiththe[ACCEL]trait,reducethedigivolutioncostby1.": "〔進化〕「ピナモン」か特徴に「アクセル」を持つLv.2:コスト0\n\n【自分のターン】このデジモンが特徴に「アクセル」を持つデジモンカードに進化するとき、支払う進化コスト-1。",
@@ -4722,7 +4722,7 @@
     "[OnDeletion]<De-Digivolve1>1ofyouropponent'sDigimon.": "【消滅時】相手のデジモン1体を≪退化1≫。"
   },
   "BT20-074": {
-    "[OnPlay][WhenDigivolving]Youmayreturn1Digimoncardwith[Imperialdramon]initsnameorthe[Free]traitfromyourtrashtothehand.[AllTurns]Whenanyofyour[Dinobeemon]/[Paildramon]wouldbereturnedtohandsordecks,2ofyourDigimonmayDNAdigivolveinto[Imperialdramon:DragonMode]inthehand.": "〔ジョグレス〕紫Lv.4+赤Lv.4:コスト0 指定のデジモン2体を重ね、アクティブで進化する\n\n【登場時】【進化時】自分のトラッシュから、名称に「インペリアルドラモン」を含むか特徴に「フリー」を持つデジモンカード1枚を手札に戻せる。\n【お互いのターン】自分の「ディノビーモン」/「パイルドラモン」が手札/デッキに戻るとき、自分のデジモン2体で手札の「インペリアルドラモン：ドラゴンモード」にジョグレス進化できる。",
+    "[DNADigivolve]PurpleLv.4+RedLv.4:Cost0[OnPlay][WhenDigivolving]Youmayreturn1Digimoncardwith[Imperialdramon]initsnameorthe[Free]traitfromyourtrashtothehand.[AllTurns]Whenanyofyour[Dinobeemon]/[Paildramon]wouldbereturnedtohandsordecks,2ofyourDigimonmayDNAdigivolveinto[Imperialdramon:DragonMode]inthehand.": "〔ジョグレス〕紫Lv.4+赤Lv.4:コスト0 指定のデジモン2体を重ね、アクティブで進化する\n\n【登場時】【進化時】自分のトラッシュから、名称に「インペリアルドラモン」を含むか特徴に「フリー」を持つデジモンカード1枚を手札に戻せる。\n【お互いのターン】自分の「ディノビーモン」/「パイルドラモン」が手札/デッキに戻るとき、自分のデジモン2体で手札の「インペリアルドラモン：ドラゴンモード」にジョグレス進化できる。",
     "[YourTurn]ThisDigimondoesn'tactivate[Security]effectsonOptioncardsitchecks.": "【自分のターン】このデジモンがチェックしたオプションカードの【セキュリティ】効果は発揮しない。"
   },
   "BT20-075": {
@@ -8842,7 +8842,7 @@
     "[WhenDigivolving]<Blitz>(ThisDigimoncanattackwhenyouropponenthas1ormorememory.)": "【進化時】≪進撃≫（メモリーが相手側の1以上のとき、このデジモンはアタックできる）"
   },
   "BT8-015": {
-    "[WhenDigivolving]1ofyouropponent'sDigimongets-5000DPfortheturn.Then,whenDNAdigivolving,delete1ofyouropponent'sDigimonwith5000DPorless.": "〔ジョグレス〕赤Lv.4+黄Lv.4から0 指定のデジモン2体を重ね、アクティブで進化する\n\n【進化時】このターンの間、相手のデジモン1体をDP-5000。その後、ジョグレス進化していたとき、DP5000以下の相手のデジモン1体を消滅させる。",
+    "[DNADigivolve]RedLv.4+YellowLv.4:Cost0[WhenDigivolving]1ofyouropponent'sDigimongets-5000DPfortheturn.Then,whenDNAdigivolving,delete1ofyouropponent'sDigimonwith5000DPorless.": "〔ジョグレス〕赤Lv.4+黄Lv.4から0 指定のデジモン2体を重ね、アクティブで進化する\n\n【進化時】このターンの間、相手のデジモン1体をDP-5000。その後、ジョグレス進化していたとき、DP5000以下の相手のデジモン1体を消滅させる。",
     "[WhenAttacking]Delete1ofyouropponent'sDigimonwith5000DPorless.": "【アタック時】DP5000以下の相手のデジモン1体を消滅させる。"
   },
   "BT8-016": {
@@ -8913,7 +8913,7 @@
     "[WhenDigivolving]Youmaytrash1cardinyourhandtotreatthisDigimonasalsohavingthecolorsofthetrashedcardfortheturn.Then,ifthisDigimonhas2ormorecolors,<Draw2>.(Draw2cardsfromyourdeck.)": "【進化時】自分の手札を1枚破棄することで、このターンの間、このデジモンの色は破棄したカードの色としても扱う。その後、このデジモンが2色以上なら≪2ドロー≫（自分のデッキからカードを2枚引く）。"
   },
   "BT8-042": {
-    "[WhenDigivolving]Ifyouhave5orfewersecuritycards,<Recovery+1(Deck)>.(Placethetopcardofyourdeckontopofyoursecuritystack.)Then,whenDNAdigivolving,return1ofyouropponent'sDigimonwhoselevelislessthanorequaltothenumberofcardsinyoursecuritystacktoitsowner'shand.": "〔ジョグレス〕黄Lv.4+青Lv.4から0 指定のデジモン2体を重ね、アクティブで進化する\n\n【進化時】自分のセキュリティが5枚以下のとき、≪リカバリー+1《デッキ》≫（自分のデッキの上からカードを1枚セキュリティの上に置く）。その後、ジョグレス進化していたとき、自分のセキュリティの枚数以下のLv.の相手のデジモン1体を手札に戻す。",
+    "[DNADigivolve]YellowLv.4+BlueLv.4:Cost0[WhenDigivolving]Ifyouhave5orfewersecuritycards,<Recovery+1(Deck)>.(Placethetopcardofyourdeckontopofyoursecuritystack.)Then,whenDNAdigivolving,return1ofyouropponent'sDigimonwhoselevelislessthanorequaltothenumberofcardsinyoursecuritystacktoitsowner'shand.": "〔ジョグレス〕黄Lv.4+青Lv.4から0 指定のデジモン2体を重ね、アクティブで進化する\n\n【進化時】自分のセキュリティが5枚以下のとき、≪リカバリー+1《デッキ》≫（自分のデッキの上からカードを1枚セキュリティの上に置く）。その後、ジョグレス進化していたとき、自分のセキュリティの枚数以下のLv.の相手のデジモン1体を手札に戻す。",
     "[WhenAttacking]1ofyouropponent'sDigimongets-3000DPfortheturn.": "【アタック時】このターンの間、相手のデジモン1体をDP-3000。"
   },
   "BT8-043": {
@@ -9036,7 +9036,7 @@
     "[OnPlay]Ifthereare5ormorecardswith[Myotismon]intheirnamesinyourtrash,delete1ofyouropponent'sunsuspendedDigimonandtrashthetopcardofyouropponent'ssecuritystack.[WhenDigivolving]Trashthetop5cardsofyourdeck.Then,ifthere'sacardwith[Myotismon]initsnameinyourtrash,gain1memory.": "【登場時】自分のトラッシュに名称に「ヴァンデモン」を含むカードが5枚以上あるとき、アクティブ状態の相手のデジモン1体を消滅させ、相手のセキュリティを上から1枚破棄する。\n【進化時】自分のデッキの上から5枚破棄する。その後、自分のトラッシュに名称に「ヴァンデモン」を含むカードがあるとき、メモリー+1。"
   },
   "BT8-084": {
-    "[WhenDigivolving]Youmayplace1level5orlowerDigimoncardfromyourtrashunderthisDigimonasitsbottomdigivolutioncard.Then,upto4ofyouropponent'sDigimonget-1000DPforeachofthisDigimon'scolorsuntiltheendofyouropponent'snextturn.[YourTurn]ThisDigimonistreatedasalsohavingthecolorsofitsdigivolutioncards.WhilethisDigimonhas4ormorecolors,itgets+4000DP.": "〔ジョグレス〕Lv.4+Lv.4から0 指定のデジモン2体を重ね、アクティブで進化する\n\n【進化時】自分のトラッシュから、Lv.5以下のデジモンカード1枚をこのデジモンの進化元の1番下に置ける。その後、次の相手のターン終了時まで、相手のデジモン4体までを、このデジモンの色1色ごとにDP-1000。\n【自分のターン】このデジモンの色はこのデジモンの進化元のカードの色としても扱う。このデジモンが4色以上の間、このデジモンをDP+4000。"
+    "[DNADigivolve]Lv.4+Lv.4:Cost0[WhenDigivolving]Youmayplace1level5orlowerDigimoncardfromyourtrashunderthisDigimonasitsbottomdigivolutioncard.Then,upto4ofyouropponent'sDigimonget-1000DPforeachofthisDigimon'scolorsuntiltheendofyouropponent'snextturn.[YourTurn]ThisDigimonistreatedasalsohavingthecolorsofitsdigivolutioncards.WhilethisDigimonhas4ormorecolors,itgets+4000DP.": "〔ジョグレス〕Lv.4+Lv.4から0 指定のデジモン2体を重ね、アクティブで進化する\n\n【進化時】自分のトラッシュから、Lv.5以下のデジモンカード1枚をこのデジモンの進化元の1番下に置ける。その後、次の相手のターン終了時まで、相手のデジモン4体までを、このデジモンの色1色ごとにDP-1000。\n【自分のターン】このデジモンの色はこのデジモンの進化元のカードの色としても扱う。このデジモンが4色以上の間、このデジモンをDP+4000。"
   },
   "BT8-085": {
     "[StartofYourMainPhase]IfyouhavearedDigimoninplay,gain1memory.[YourTurn]WhenoneofyourDigimonwith2ormorecolorsattacks,youmaysuspendthisTamertodelete1ofyouropponent'sDigimonwith3000DPorless.": "【自分のメインフェイズ開始時】赤の自分のデジモンがいるとき、メモリー+1。\n【自分のターン】2色以上の自分のデジモンがアタックしたとき、このテイマーをレストさせることで、DP3000以下の相手のデジモン1体を消滅させる。",
@@ -12130,7 +12130,7 @@
     "[AllTurns][OncePerTurn]Whenanopponent'sDigimonoroneofyourDigimonwiththe[SevenGreatDemonLords]traitisplayed,bytrashing1cardinyourhand,returnthebottom3digivolutioncardsof1ofyouropponent'sDigimontothebottomofthedeck.Then,ifyouropponenthasasmanyorfewertotalDigimonandTamersasyou,delete1ofyouropponent'sDigimonwithnodigivolutioncards.[AllTurns]WhenthisDigimonwouldleavethebattleareaotherthaninbattle,place1cardwiththe[SevenGreatDemonLords]traitfromyourtrashasthebottomdigivolutioncardofoneofyour[GateofDeadlySins]inyourbreedingarea.": "【お互いのターン】[ターンに1回]相手のデジモンか特徴に「七大魔王」を持つ自分のデジモンが登場したとき、自分の手札を1枚破棄することで、相手のデジモン1体の進化元を下から3枚デッキの下に戻す。その後、相手のデジモンとテイマーの合計体数が自分のデジモンとテイマーの合計体数以下なら、進化元を持たない相手のデジモン1体を消滅させる。\n【お互いのターン】このデジモンがバトル以外でバトルエリアを離れるとき、自分のトラッシュから、特徴に「七大魔王」を持つカード1枚を育成エリアの自分の「大罪の門」の進化元の下に置く。"
   },
   "EX6-062": {
-    "<Partition(Yellow/BlackLv.6+Green/PurpleLv.6)>(WhenthisDigimonwitheachofthespecifieddigivolutioncardswouldleavethebattleareaotherthanbyyourowneffectsorbybattle,youmayplay1eachofthespecifiedcardswithoutpayingthecosts)[WhenDigivolving]IfDNAdigivolving,youmayplaceupto2level6cardsfromyourtrashasthisDigimon'sbottomdigivolutioncards.Then,foreachlevel6cardinthisDigimon'sdigivolutioncards,return1ofyouropponent'sDigimontothebottomofthedeck.[YourTurn]WhilethisDigimonhas4ormorelevel6cardsinitsdigivolutioncards,itgains<SecurityAttack+3>(ThisDigimonchecks3additionalsecuritycards)and<Piercing>.": "〔ジョグレス〕黄/黒Lv.6+緑/紫Lv.6:コスト0\n\n≪パーティション《黄/黒Lv.6&緑/紫Lv.6》≫（進化元に指定のカードが1枚ずつあるこのデジモンが自分の効果とバトル以外でバトルエリアを離れるとき、指定のカード1枚ずつをコストを支払わずに登場できる）\n【進化時】ジョグレス進化していたなら、自分のトラッシュから、Lv.6のカード2枚までをこのデジモンの進化元の下に置ける。その後、このデジモンの進化元のLv.6のカード1枚ごとに、相手のデジモン1体をデッキの下に戻す。\n【自分のターン】進化元にLv.6のカードが4枚以上あるこのデジモンは≪Sアタック+3≫と≪貫通≫を得る。"
+    "[DNADigivolve]Yellow/BlackLv.6+Green/PurpleLv.6:Cost0<Partition(Yellow/BlackLv.6+Green/PurpleLv.6)>(WhenthisDigimonwitheachofthespecifieddigivolutioncardswouldleavethebattleareaotherthanbyyourowneffectsorbybattle,youmayplay1eachofthespecifiedcardswithoutpayingthecosts)[WhenDigivolving]IfDNAdigivolving,youmayplaceupto2level6cardsfromyourtrashasthisDigimon'sbottomdigivolutioncards.Then,foreachlevel6cardinthisDigimon'sdigivolutioncards,return1ofyouropponent'sDigimontothebottomofthedeck.[YourTurn]WhilethisDigimonhas4ormorelevel6cardsinitsdigivolutioncards,itgains<SecurityAttack+3>(ThisDigimonchecks3additionalsecuritycards)and<Piercing>.": "〔ジョグレス〕黄/黒Lv.6+緑/紫Lv.6:コスト0\n\n≪パーティション《黄/黒Lv.6&緑/紫Lv.6》≫（進化元に指定のカードが1枚ずつあるこのデジモンが自分の効果とバトル以外でバトルエリアを離れるとき、指定のカード1枚ずつをコストを支払わずに登場できる）\n【進化時】ジョグレス進化していたなら、自分のトラッシュから、Lv.6のカード2枚までをこのデジモンの進化元の下に置ける。その後、このデジモンの進化元のLv.6のカード1枚ごとに、相手のデジモン1体をデッキの下に戻す。\n【自分のターン】進化元にLv.6のカードが4枚以上あるこのデジモンは≪Sアタック+3≫と≪貫通≫を得る。"
   },
   "EX6-063": {
     "[StartofYourMainPhase][OnPlay]1ofyouryellowDigimongains<Barrier>untiltheendofyouropponent'sturn.[YourTurn]WhenoneofyourDigimonisplayedordigivolves,ifithasthe[Angel]/[Archangel]/[ThreeGreatAngels]trait,bysuspendingthisTamer,gain1memory.": "【自分のメインフェイズ開始時】【登場時】相手のターン終了まで、黄の自分のデジモン1体は≪防壁≫を得る。\n【自分のターン】自分のデジモンが登場/進化したとき、そのデジモンが特徴に「天使型」/「大天使型」/「三大天使」を持つなら、このテイマーをレストさせることで、メモリー+1。",
@@ -12310,7 +12310,7 @@
     "<SecurityAttack+1>.<Vortex>(Attheendofyourturn,thisDigimonmayattackanopponent'sDigimon.Withthiseffect,itcanattacktheturnitwasplayed)[WhenDigivolving][WhenAttacking]Suspend1Digimon.IfthiseffectsuspendedyourDigimon,return1ofyouropponent'ssuspendedDigimontothebottomofthedeck.[Rule]Trait:Hasthe[BirdDragon]type.": "≪Sアタック+1≫≪ヴォルテクス≫（自分のターン終了時、このデジモンで相手のデジモンにアタックできる。この効果では、登場したターンでもアタックできる）\n【進化時】【アタック時】デジモン1体をレストさせる。この効果で自分のデジモンがレストしたなら、レスト状態の相手のデジモン1体をデッキの下に戻す。\n〈ルール〉特徴:タイプ「鳥竜型」を持つ。"
   },
   "EX7-037": {
-    "[WhenDigivolving]Youmayplay1Digimoncardwiththe[NSp]traitandaplaycostof7orlessfromyourhandwithoutpayingthecost.IfDNAdigivolving,youmayplay2Digimoncardswithdifferentcolorsandthe[NSp]traitandaplaycostof7orlessfromyourhandwithoutpayingthecostinstead.[WhenDigivolving][WhenAttacking][OncePerTurn]ForeachofyourDigimon,1ofyouropponent'sDigimongets-7000DPfortheturn.": "〔ジョグレス〕緑/黄Lv.6+黒/青Lv.6:コスト0\n\n【進化時】自分の手札から、特徴に「NSp」を持つ登場コスト7以下のデジモンカード1枚をコストを支払わずに登場できる。ジョグレス進化していたなら、代わりに自分の手札から、特徴に「NSp」を持つ色の異なる登場コスト7以下のデジモンカード2枚までをコストを支払わずに登場できる。\n【進化時】【アタック時】[ターンに1回]ターン終了まで、相手のデジモン1体を自分のデジモン1体ごとに、DP-7000。"
+    "[DNADigivolve]Green/YellowLv.6+Black/BlueLv.6:Cost0[WhenDigivolving]Youmayplay1Digimoncardwiththe[NSp]traitandaplaycostof7orlessfromyourhandwithoutpayingthecost.IfDNAdigivolving,youmayplay2Digimoncardswithdifferentcolorsandthe[NSp]traitandaplaycostof7orlessfromyourhandwithoutpayingthecostinstead.[WhenDigivolving][WhenAttacking][OncePerTurn]ForeachofyourDigimon,1ofyouropponent'sDigimongets-7000DPfortheturn.": "〔ジョグレス〕緑/黄Lv.6+黒/青Lv.6:コスト0\n\n【進化時】自分の手札から、特徴に「NSp」を持つ登場コスト7以下のデジモンカード1枚をコストを支払わずに登場できる。ジョグレス進化していたなら、代わりに自分の手札から、特徴に「NSp」を持つ色の異なる登場コスト7以下のデジモンカード2枚までをコストを支払わずに登場できる。\n【進化時】【アタック時】[ターンに1回]ターン終了まで、相手のデジモン1体を自分のデジモン1体ごとに、DP-7000。"
   },
   "EX7-038": {
     "[Digivolve]Lv.2w/[NSP]trait:Cost0<Blocker>.": "〔進化〕特徴に「NSp」を持つLv.2:コスト0\n\n≪ブロッカー≫（このデジモンはブロックタイミングでブロックできる）",
@@ -13879,7 +13879,7 @@
     "[Digivolve]Lv.5w/[WarGrowlmon]inname:Cost3Whenthiscardwouldbeplayed,ifthereisaDigimonwith13000DPormore,reducetheplaycostby2forevery5totalcardsinbothplayers'trashes.<Rush>.<Blocker>[OnPlay][WhenDigivolving]Delete1Digimonwith13000DPormore.Ifthiseffectdidn'tdelete,<Recovery+1(Deck)>.": "〔進化〕名称に「メガログラウモン」を含むLv.5:コスト3\n\nこのカードが登場するとき、DP13000以上のデジモンがいるなら、お互いのトラッシュ合計5枚ごとに、支払う登場コスト-2。\n≪速攻≫≪ブロッカー≫\n【登場時】【進化時】DP13000以上のデジモン1体を消滅させる。この効果で消滅しなかったなら、≪リカバリー+1《デッキ》≫。"
   },
   "P-187": {
-    "[WhenDigivolving]<Recovery+1(Deck)>.Then,ifDNAdigivolving,byplacing1otherDigimonorTamerasthetoporbottomsecuritycard,trashyouropponent'stopsecuritycard.[WhenDigivolving][WhenAttacking][OncePerTurn]Bytrashingyourtopsecuritycard,youmayplay1purpleoryellowDigimoncardwith6000DPorlessfromyourhandortrashwithoutpayingthecost.": "〔ジョグレス〕紫Lv.5+黄Lv.5:コスト0 指定のデジモン2体を重ね、アクティブで進化する\n\n【進化時】≪リカバリー+1《デッキ》≫。その後、ジョグレス進化していたなら、他のデジモン/テイマー1体をセキュリティの上か下に置くことで、相手のセキュリティを上から1枚破棄する。\n【進化時】【アタック時】[ターンに1回]自分のセキュリティを上から1枚破棄することで、自分の手札/トラッシュから、DP6000以下の紫/黄のデジモンカード1枚をコストを支払わずに登場できる。"
+    "[DNADigivolve]PurpleLv.5+YellowLv.5:Cost0[WhenDigivolving]<Recovery+1(Deck)>.Then,ifDNAdigivolving,byplacing1otherDigimonorTamerasthetoporbottomsecuritycard,trashyouropponent'stopsecuritycard.[WhenDigivolving][WhenAttacking][OncePerTurn]Bytrashingyourtopsecuritycard,youmayplay1purpleoryellowDigimoncardwith6000DPorlessfromyourhandortrashwithoutpayingthecost.": "〔ジョグレス〕紫Lv.5+黄Lv.5:コスト0 指定のデジモン2体を重ね、アクティブで進化する\n\n【進化時】≪リカバリー+1《デッキ》≫。その後、ジョグレス進化していたなら、他のデジモン/テイマー1体をセキュリティの上か下に置くことで、相手のセキュリティを上から1枚破棄する。\n【進化時】【アタック時】[ターンに1回]自分のセキュリティを上から1枚破棄することで、自分の手札/トラッシュから、DP6000以下の紫/黄のデジモンカード1枚をコストを支払わずに登場できる。"
   },
   "P-188": {
     "[YourTurn][OncePerTurn]WhenanyofyourblueTamersareplayed,<Draw1>.": "【自分のターン】[ターンに1回]青の自分のテイマーが登場したとき、≪1ドロー≫。"
@@ -14007,7 +14007,7 @@
     "[Digivolve][Kimeramon]:Cost6[DNADigivolve][Kimeramon]+[Machinedramon]:Cost0[Assembly-6]3[Composite]/[Ver.3]/[Ver.5]traitDigimoncardsw/differentlevels<Reboot><Blocker>[OnPlay][WhenDigivolving]<De-Digivolve2>1ofyouropponent'sDigimon.Then,youmaydelete1Digimon.[OnDeletion]Byreturning3[Composite],[WickedGod]or[DM]cardsfromyourtrashtothebottomofthedeck,youmayplay2level6orlower[Composite],[Ver.3]or[Ver.5]Digimoncardsfromyourtrashwithoutpayingthecosts.Thiseffectcan'tplaycardsofthesamelevel.": "〔進化〕「キメラモン」:コスト6\n〔ジョグレス〕「キメラモン」+「ムゲンドラモン」:コスト0\n\nアセンブリ-6:特徴に「合成型」/「Ver.3」/「Ver.5」を持つLv.の異なるデジモンカード3枚\n\n≪再起動≫≪ブロッカー≫\n【登場時】【進化時】相手のデジモン1体を≪退化2≫。その後、デジモン1体を消滅できる。\n【消滅時】自分のトラッシュから、特徴に「合成型」/「邪神型」/「DM」を持つカード3枚をデッキの下に戻すことで、自分のトラッシュから、特徴に「合成型」/「Ver.3」/「Ver.5」を持つLv.6以下のデジモンカード2枚をコストを支払わずに登場できる。この効果では、Lv.の同じカードは登場できない。"
   },
   "P-221": {
-    "<SecurityA.+1><Partition(YellowLv.6&Purple/BlackLv.6)>[WhenDigivolving]IfDNAdigivolving,untilyouropponent'sturnends,theireffectsdon'taffectthisDigimon.[WhenDigivolving][WhenAttacking]1ofyouropponent'sDigimongets-10000DPuntiltheirturnends.": "〔ジョグレス〕黄Lv.6+紫/黒Lv.6:コスト0\n\n≪Sアタック+1≫≪パーティション《黄Lv.6＆紫/黒Lv.6》≫（進化元に指定のカードが1枚ずつあるこのデジモンが自分の効果とバトル以外でバトルエリアを離れるとき、指定のカード1枚ずつをコストを支払わずに登場できる）\n【進化時】ジョグレス進化していたなら、相手のターン終了まで、このデジモンは相手の効果を受けない。\n【進化時】【アタック時】相手のターン終了まで、相手のデジモン1体をDP-10000。"
+    "[DNADigivolve]YellowLv.6+Purple/BlackLv.6:Cost0<SecurityA.+1><Partition(YellowLv.6&Purple/BlackLv.6)>[WhenDigivolving]IfDNAdigivolving,untilyouropponent'sturnends,theireffectsdon'taffectthisDigimon.[WhenDigivolving][WhenAttacking]1ofyouropponent'sDigimongets-10000DPuntiltheirturnends.": "〔ジョグレス〕黄Lv.6+紫/黒Lv.6:コスト0\n\n≪Sアタック+1≫≪パーティション《黄Lv.6＆紫/黒Lv.6》≫（進化元に指定のカードが1枚ずつあるこのデジモンが自分の効果とバトル以外でバトルエリアを離れるとき、指定のカード1枚ずつをコストを支払わずに登場できる）\n【進化時】ジョグレス進化していたなら、相手のターン終了まで、このデジモンは相手の効果を受けない。\n【進化時】【アタック時】相手のターン終了まで、相手のデジモン1体をDP-10000。"
   },
   "P-222": {
     "[Digivolve]Lv.5w/[WG]trait:Cost3Whenthiscardwouldbeplayed,ifyouhaveaface-up[WindGuardians]securitycard,reducetheplaycostby4.[OnPlay][WhenDigivolving]Youmaysuspend1Digimon.[AllTurns][OncePerTurn]WhenanyDigimonsuspend,youmaydelete1ofyouropponent'slowestDPDigimon.": "〔進化〕特徴に「WG」を持つLv.5:コスト3\n\nこのカードが登場するとき、自分の表向きのセキュリティに「ウィンドガーディアンズ」があるなら、支払う登場コスト-4。\n【登場時】【進化時】デジモン1体をレストできる。\n【お互いのターン】[ターンに1回]デジモンがレストしたとき、最もDPの低い相手のデジモン1体を消滅できる。"
@@ -15684,5 +15684,43 @@
   "SD02-04": {
     "[WhenDigivolving]Trashthebottom2digivolutioncardsof1ofyouropponent'sDigimon.": "【進化時】相手のデジモン1体の進化元を下から2枚破棄する。",
     "[WhenAttacking][OncePerTurn]IfthisDigimonhasthe[ALYSION]trait,itunsuspends.": "【アタック時】[ターン1回]このデジモンが特徴「アリシオン」を持つなら、このデジモンをアクティブにする。"
+  },
+  "ST25-01": {
+    "[YourTurn]Whileyouropponenthas3ormorememory,thisDigimonwith[Gemmon]initstextgets+3000DP.": "【自分のターン】メモリーが相手側の3以上の間、「ジェムモン」の記述があるこのデジモンをDP+3000。"
+  },
+  "ST25-02": {
+    "[Digivolve]Lv.2w/[Gemmon]intext:Cost0[WhenMoving][OnPlay]1ofyourDigimongets+3000DPfortheturn.": "〔進化〕「ジェムモン」の記述があるLv.2:コスト0\n【移動時】【登場時】ターン終了まで、自分のデジモン1体をDP+3000。",
+    "[YourTurn]ThisDigimongets+2000DP.": "【自分のターン】このデジモンをDP+2000。"
+  },
+  "ST25-03": {
+    "[Digivolve]Lv.3w/[Gemmon]intext:Cost2[OnPlay][WhenDigivolving]Ifyouhave1orfewerTamers,youmayplay1[KanataHondo]fromyourhandwithoutpayingthecost.": "〔進化〕「ジェムモン」の記述があるLv.3:コスト2\n【登場時】【進化時】自分のテイマーが1体以下なら、自分の手札から、「本堂カナタ」1枚をコストを支払わず登場できる。",
+    "<Raid>(WhenthisDigimonattacks,youmaychangetheattacktargetto1ofyouropponent'sunsuspendedDigimonwiththehighestDP.)": "≪突進≫（このデジモンがアタックしたとき、アタックの対象を最もDPの高いアクティブ状態の相手のデジモン1体に変更できる）"
+  },
+  "ST25-04": {
+    "[Digivolve]Lv.4w/[Gemmon]intext:Cost3<Engage>[OnPlay][WhenDigivolving]1ofyourDigimongets+3000DPfortheturn.Then,ifthatDigimonhas12000DPormore,italsogains<SecurityA.+1>.(ThisDigimonchecks1additionalsecuritycard.)": "〔進化〕「ジェムモン」の記述があるLv.4:コスト3\n≪急襲≫\n【登場時】【進化時】ターン終了まで、自分のデジモン1体をDP+3000。その後、そのデジモンがDP12000以上なら、加えて≪Sアタック+1≫（このデジモンがチェックする枚数+1）を得る。",
+    "[YourTurn]ThisDigimonwith[Gemmon]initstextgains<Engage>.(Attheendofyourturn,thisDigimonmayattack.)": "【自分のターン】「ジェムモン」の記述があるこのデジモンは≪急襲≫（自分のターン終了時、このデジモンでアタックできる）を得る。"
+  },
+  "ST25-05": {
+    "[Digivolve]Lv.5w/[Gemmon]intext:Cost3<Progress><Piercing>[WhenDigivolving]Deleteupto7000DPtotalworthofyouropponent'sDigimon.Forevery8000DPthisDigimonhas,add4000tothisDPdeletioneffect'smaximum.[YourTurn]Forevery8000DPthisDigimonhas,itgains<SecurityA.+1>.(ThisDigimonchecks1additionalsecuritycard.)": "〔進化〕「ジェムモン」の記述があるLv.5:コスト3\n≪プログレス≫ ≪貫通≫\n【進化時】DP合計7000まで、相手のデジモンを消滅させる。このデジモンのDP8000ごとに、このDP消滅効果の上限+4000。\n【自分のターン】このデジモンのDP8000ごとに、このデジモンは≪Sアタック+1≫（このデジモンがチェックする枚数+1）を得る。",
+    "[Main]1ofyour[ALYSION]traitDigimongets+10000DPfortheturn.Then,delete1ofyouropponent'sDigimonwithasmuchDPas1ofyourDigimonorless.<ArtsDigivolve>": "【メイン】ターン終了まで、特徴「アリシオン」を持つ自分のデジモン1体をDP+10000。その後、自分のデジモン1体のDP以下の相手のデジモン1体を消滅させる。\n≪アーツ進化≫（使用後、破棄する代わりに自分のカードをこのカードにコストを支払わず進化できる）"
+  },
+  "ST25-06": {
+    "[StartofYourTurn]Ifyouhave2orlessmemory,setitto3.[YourTurn]WhenyourDigimonareplayedordigivolve,ifanyofthemhavethe[ALYSION]trait,bysuspendingthisTamer,fortheturn,1ofyourDigimonisn'taffectedbyyouropponent'sOptioneffectsandgets+3000DP.": "【自分のターン開始時】メモリーが2以下なら、3にする。\n【自分のターン】自分のデジモンが登場/進化したとき、そのデジモンが特徴「アリシオン」を持つなら、このテイマーをレストさせることで、ターン終了まで、自分のデジモン1体は相手のオプションの効果を受けず、DP+3000。",
+    "[Security]Playthiscardwithoutpayingthecost.": "【セキュリティ】このカードをコストを支払わず登場させる。"
+  },
+  "BT27-005": {
+    "[YourTurn][OncePerTurn]WhenanyofyourblackDigimonareplayed,<Draw1>.": "【自分のターン】[ターン1回]黒の自分のデジモンが登場したとき、≪1ドロー≫。"
+  },
+  "BT27-059": {
+    "<Blocker>[OnPlay][WhenDigivolving]Youropponent's<De-Digivolve>effectsdon'taffect1ofyourDigimonuntiltheirturnends.Then,ifit'stheirturn,<De-Digivolve1>1oftheirDigimon.": "≪ブロッカー≫\n【登場時】【進化時】相手のターン終了まで、自分のデジモン1体は相手の≪退化≫の効果を受けない。その後、相手のターンなら、相手のデジモン1体を≪退化1≫。",
+    "[Opponent'sTurn][OncePerTurn]WhenanyofyourDigimonsuspend,thisDigimonmayunsuspend.": "【相手のターン】[ターン1回]自分のデジモンがレストしたとき、このデジモンをアクティブにできる。"
+  },
+  "BT27-063": {
+    "<Blocker>[AllTurns][OncePerTurn]WhenthisDigimonsuspends,<De-Digivolve1>1ofyouropponent'sDigimon.[AllTurns]WhenanyofyourDigimonwith<Blocker>wouldleavethebattleareaotherthanbyyoureffects,bysuspendingthisDigimon,1ofyourDigimondoesn'tleave.": "≪ブロッカー≫\n【お互いのターン】[ターン1回]このデジモンがレストしたとき、相手のデジモン1体を≪退化1≫。\n【お互いのターン】≪ブロッカー≫を持つ自分のデジモンが自分の効果以外でバトルエリアを離れるとき、このデジモンをレストさせることで、自分のデジモン1体は離れない。",
+    "[Opponent'sTurn][OncePerTurn]WhenanyofyourDigimonsuspend,youmayplay1level5orlowerblackDigimoncardwith<Blocker>fromyourhandwithoutpayingthecost.": "【相手のターン】[ターン1回]自分のデジモンがレストしたとき、自分の手札から、≪ブロッカー≫を持つ黒のLv.5以下のデジモンカード1枚をコストを支払わず登場できる。"
+  },
+  "BT27-068": {
+    "[Digivolve][Gankoomon]:Cost2<Collision><Reboot><Blocker>[AllTurns]WhenthisDigimonwouldleavethebattlearea,byreturning1ofyourotherDigimonor1[Gankoomon]or[XAntibody]fromthisDigimon'sdigivolutioncardstothebottomofthedeck,itdoesn'tleave.[AllTurns][OncePerTurn]WhenanyofyourDigimonleavethebattlearea,youmayactivate1[Main]effectonthiscard'sOptionside.": "〔進化〕「ガンクゥモン」:コスト2\n≪衝突≫ ≪再起動≫ ≪ブロッカー≫\n【お互いのターン】このデジモンがバトルエリアを離れるとき、このデジモンの進化元の「ガンクゥモン」/「X抗体」1枚か、他の自分のデジモン1体をデッキの下に戻すことで、離れない。\n【お互いのターン】[ターン1回]自分のデジモンがバトルエリアを離れたとき、このカードのオプション側の【メイン】効果1つを発揮できる。",
+    "UseReq.<[Huckmon]intext>[Main]Return1ofyouropponent's12000DPorhigherDigimontothetopofthedeck.Ifthiseffectdidn'treturn,delete1ofyouropponent'slowestplaycostDigimon.<ArtsDigivolve>": "≪使用条件《「ハックモン」記述》≫（指定の条件で色条件を満たせる）\n【メイン】DP12000以上の相手のデジモン1体をデッキの上に戻す。この効果で戻らなかったなら、最も登場コストの低い相手のデジモン1体を消滅させる。\n≪アーツ進化≫（使用後、破棄する代わりに自分のカードをこのカードにコストを支払わず進化できる）"
   }
 }

@@ -1,4 +1,5 @@
 import { getCardDefinition } from "@aegis/shared/cards/registry";
+import { formatFieldReference } from "@/design/fieldReference/formatFieldReference";
 
 type Params = { cardId: string; permanentId?: string };
 
@@ -8,5 +9,5 @@ export function getLogCardName({ cardId, permanentId }: Params): string {
   if (!permanentId) {
     return card;
   }
-  return `${card} #${permanentId.replace(/^perm-/, "")}`;
+  return `${card} ${formatFieldReference(permanentId)}`;
 }

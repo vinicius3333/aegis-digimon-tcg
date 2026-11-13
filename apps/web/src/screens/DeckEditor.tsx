@@ -274,21 +274,38 @@ export function DeckEditor({
   const [page, setPage] = useState(1);
 
   const sortedPool = useMemo(() => {
-    return sortSearchResults({ cards: filter.filtered, sort: filter.sort, query: filter.query });
-  }, [filter.filtered, filter.sort, filter.query]);
+    return sortSearchResults({
+      cards: filter.filtered,
+      sort: filter.sort,
+      query: filter.query,
+      textOnly: filter.textOnly,
+    });
+  }, [filter.filtered, filter.sort, filter.query, filter.textOnly]);
 
   useEffect(() => {
     setPage(1);
   }, [filter.filtered]);
 
   const shownPool = sortedPool.slice(0, page * PAGE_SIZE);
+  const hasMorePool = shownPool.length < sortedPool.length;
+  const morePoolRef = useRef<HTMLDivElement>(null);
 
-  const onPoolScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const el = e.currentTarget;
-    if (shownPool.length < sortedPool.length && el.scrollHeight - el.scrollTop - el.clientHeight < 400) {
-      setPage((p) => p + 1);
+  useEffect(() => {
+    const marker = morePoolRef.current;
+    if (!hasMorePool || !marker) {
+      return;
     }
-  };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setPage((current) => current + 1);
+        }
+      },
+      { rootMargin: "400px 0px" },
+    );
+    observer.observe(marker);
+    return () => observer.disconnect();
+  }, [hasMorePool, page]);
 
   return (
     <main className="deck-builder-page">
@@ -304,7 +321,7 @@ export function DeckEditor({
         <FilterRail filter={filter} showCostFilter showRarityFilter showSort />
 
         <div className="deck-workspace" ref={workspace} style={deckShare.style}>
-          <div className="deck-card-pool" onScroll={onPoolScroll}>
+          <div className="deck-card-pool">
             <DeckFormatSelector value={format} onChange={setFormat} />
             <SectionHeading
               title={t("redesign.decks.editor.pool")}
@@ -338,8 +355,10 @@ export function DeckEditor({
               })}
               {shownPool.length === 0 ? <div className="deck-card-pool__empty">{t("deck.emptyPool")}</div> : null}
             </div>
-            {shownPool.length < sortedPool.length ? (
-              <div className="deck-card-pool__more">{t("deck.scrollForMore")}</div>
+            {hasMorePool ? (
+              <div ref={morePoolRef} className="deck-card-pool__more">
+                {t("deck.scrollForMore")}
+              </div>
             ) : null}
           </div>
 

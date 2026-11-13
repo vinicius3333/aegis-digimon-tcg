@@ -35,6 +35,7 @@ interface Harness {
   optionalAnswers: boolean[];
   replacementOrder: ReplacementId[];
   offeredReplacementIds: ReplacementId[][];
+  offeredReplacementSeats: Seat[];
   replacementFiredKeys: Set<string>;
   /** Resolve the consult exactly as GameEngine does (delegates to the real function). */
   consult(
@@ -68,6 +69,7 @@ function harness(opts?: { turnSeat?: Seat }): Harness {
   const optionalAnswers: boolean[] = [];
   const replacementOrder: ReplacementId[] = [];
   const offeredReplacementIds: ReplacementId[][] = [];
+  const offeredReplacementSeats: Seat[] = [];
   const replacementFiredKeys = new Set<string>();
 
   const ask: SelectionPort = {
@@ -127,8 +129,9 @@ function harness(opts?: { turnSeat?: Seat }): Harness {
     permanentById,
     buildContext: (srcPerm, leavingId) => sourceContext(srcPerm, leavingId),
     turnSeat: state.turnSeat,
-    orderReplacements: async (replacements) => {
+    orderReplacements: async (replacements, seat) => {
       offeredReplacementIds.push(replacements.map(({ id }) => id));
+      offeredReplacementSeats.push(seat);
       if (replacementOrder.length === 0) return { order: replacements };
       const rank = new Map(replacementOrder.map((id, index) => [id, index]));
       return {
@@ -164,6 +167,7 @@ function harness(opts?: { turnSeat?: Seat }): Harness {
     optionalAnswers,
     replacementOrder,
     offeredReplacementIds,
+    offeredReplacementSeats,
     replacementFiredKeys,
     consult: (ids, cause = "byEffect", resolvingSeat, o) =>
       consultLeavePrevention(host, ids, cause, resolvingSeat, {
@@ -498,6 +502,53 @@ describe("leave-area simultaneous mixed-mode ordering", () => {
 
     expect(h.offeredReplacementIds).toEqual([[own, other]]);
     expect(log).toEqual(["other", "own"]);
+  });
+
+  it("lets each player order only their own reactions, turn player first", async () => {
+    const h = harness({ turnSeat: 0 });
+    const ownLeaving = putPermanent(h.state, 0, "own-leaving");
+    const ownPeer = putPermanent(h.state, 0, "own-peer");
+    const opponentLeaving = putPermanent(h.state, 1, "opponent-leaving");
+    const opponentPeer = putPermanent(h.state, 1, "opponent-peer");
+    const log: string[] = [];
+    const subscribeInstead = (owner: Permanent, name: string): number =>
+      h.subTriggers.subscribeReplacement({
+        event: "wouldLeavePlay",
+        sourcePermanentId: owner.permanentId,
+        sourceInstanceId: owner.topCard!.instanceId,
+        mode: "instead",
+        description: name,
+        appliesTo: () => true,
+        apply: async () => {
+          log.push(name);
+        },
+      });
+    const subscribeOpponentPrevent = (owner: Permanent, name: string): number =>
+      h.subTriggers.subscribeReplacement({
+        event: "wouldLeavePlay",
+        sourcePermanentId: owner.permanentId,
+        sourceInstanceId: owner.topCard!.instanceId,
+        mode: "prevent",
+        description: name,
+        affectsAll: true,
+        protects: (_ctx, leavingId) => leavingId === opponentLeaving.permanentId,
+        preventCheck: async () => {
+          log.push(name);
+          return true;
+        },
+      });
+    const own = subscribeInstead(ownPeer, "own");
+    const firstOpponent = subscribeOpponentPrevent(opponentLeaving, "first opponent");
+    const secondOpponent = subscribeOpponentPrevent(opponentPeer, "second opponent");
+
+    h.replacementOrder.push(secondOpponent, firstOpponent, own);
+    expect(await h.consult([ownLeaving.permanentId, opponentLeaving.permanentId])).toEqual(
+      new Set([opponentLeaving.permanentId]),
+    );
+
+    expect(h.offeredReplacementSeats).toEqual([1]);
+    expect(h.offeredReplacementIds).toEqual([[firstOpponent, secondOpponent]]);
+    expect(log).toEqual(["own", "second opponent"]);
   });
 
   it("stops at an instead reaction that relocates the leaving permanent (Q5352)", async () => {

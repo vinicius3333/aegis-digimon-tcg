@@ -876,14 +876,13 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
           const outerChainsSameTarget = ctxWithSelections.nextActionChainsSameTarget;
           const outerAttackContinuation = ctxWithSelections.continueEffectAfterAttackDeclaration;
           const outerOptionalAnswer = ctxWithSelections.presetOptionalAnswer;
-          // An optional attack on the result of an earlier action is a separate
-          // decision: accepting DNA in the plan does not also accept its attack.
+          // An optional attack on the result of an earlier action, or a later optional battle,
+          // is a separate decision: accepting DNA in the plan does not also accept its attack.
           if (
             actionIndex > 0 &&
-            action.kind === "Attack" &&
             action.optional === true &&
-            action.target.filter.boundRef !== undefined &&
-            outerOptionalAnswer === true
+            outerOptionalAnswer === true &&
+            ((action.kind === "Attack" && action.target.filter.boundRef !== undefined) || action.kind === "Battle")
           )
             ctxWithSelections.presetOptionalAnswer = undefined;
           ctxWithSelections.activeActionPath = `${actionIndex}`;

@@ -4,7 +4,14 @@ import type { PlayerState } from "@aegis/shared/schema/PlayerState";
 
 export type TriggerSource =
   | { zone: Zone.Hand; position: number }
-  | { zone: Zone.BattleArea; hostCardId: string; inherited: boolean; copy: number; copies: number }
+  | {
+      zone: Zone.BattleArea;
+      permanentId: string;
+      hostCardId: string;
+      inherited: boolean;
+      copy: number;
+      copies: number;
+    }
   | { zone: Zone.Breeding | Zone.Trash | Zone.Delay | Zone.Security };
 
 type Params = {
@@ -34,6 +41,7 @@ function findPlayerTriggerSource(instanceId: string, player: PlayerState): Trigg
     const twins = player.battleArea.filter((permanent) => permanent?.topCard?.cardId === hostCardId);
     return {
       zone: Zone.BattleArea,
+      permanentId: host.permanentId,
       hostCardId,
       inherited: host.topCard.instanceId !== instanceId,
       copy: twins.indexOf(host) + 1,

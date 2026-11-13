@@ -880,7 +880,9 @@ export function BoardShowcase() {
       >
         <Stage label="mulligan" height={560}>
           <MulliganOverlay
-            handCardIds={[CARDS.rookie, CARDS.champion, CARDS.tamer, CARDS.option, CARDS.ultimate]}
+            handCards={[CARDS.rookie, CARDS.champion, CARDS.tamer, CARDS.option, CARDS.ultimate].map((cardId) => ({
+              cardId,
+            }))}
             turnOrder="second"
             onKeep={noop}
             onMulligan={noop}

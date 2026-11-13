@@ -106,6 +106,43 @@ describe("card search box", () => {
     expect(searchIds(cards, "dsa")).toEqual(["BT1-023"]);
   });
 
+  it("searches only card text when text-only search is on", () => {
+    const cards = [
+      testCard("BT1-040", "Agumon", { attributes: ["Vaccine"] }),
+      testCard("BT1-041", "Vaccine Hunter", { attributes: ["Virus"] }),
+      testCard("BT1-042", "Gabumon", {
+        effectText: "Delete 1 of your opponent's Digimon with the [Vaccine] attribute.",
+      }),
+      testCard("BT1-043", "Patamon", {
+        inheritedEffectText: "[Your Turn] While you have a Vaccine Digimon, +1000 DP.",
+      }),
+    ];
+    const { result } = renderHook(() => useCardFilter(cards));
+
+    act(() => result.current.setQuery("vaccine"));
+    expect(result.current.filtered.map((card) => card.cardId)).toEqual(["BT1-041", "BT1-040", "BT1-042", "BT1-043"]);
+
+    act(() => result.current.setTextOnly(true));
+    expect(result.current.filtered.map((card) => card.cardId)).toEqual(["BT1-042", "BT1-043"]);
+    expect(
+      sortSearchResults({ cards: result.current.filtered, sort: "name", query: "vaccine", textOnly: true }).map(
+        (card) => card.nameEn,
+      ),
+    ).toEqual(["Gabumon", "Patamon"]);
+
+    act(() => result.current.clear());
+    expect(result.current.textOnly).toBe(false);
+  });
+
+  it("ignores field group names in text-only search", () => {
+    const cards = [testCard("BT1-050", "Seadramon", { types: ["Aquatic", "DS"] })];
+    const { result } = renderHook(() => useCardFilter(cards));
+
+    act(() => result.current.setQuery("deep savers"));
+    act(() => result.current.setTextOnly(true));
+    expect(result.current.filtered).toEqual([]);
+  });
+
   it("filters the trait box by a field group's name or abbreviation", () => {
     const cards = [
       testCard("BT1-030", "Rosemon", { types: ["Fairy", "WG"] }),

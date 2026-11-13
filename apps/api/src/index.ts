@@ -9,6 +9,7 @@ import { installMatchQueueRoutes } from "#api/matchmaking/installMatchQueueRoute
 import { countRankedSearchers } from "#api/ranked/countRankedSearchers";
 import { getRankedConfig } from "#api/ranked/getRankedConfig";
 import { DirectMessageStore } from "#api/messages/DirectMessageStore";
+import { runReplayCleanupExclusively } from "#api/replays/runReplayCleanupExclusively";
 import { socialRuntime } from "#api/social/socialRuntime";
 import { SocialService } from "#api/social/SocialService";
 import { resolveSocialInviteRoom } from "#api/social/resolveSocialInviteRoom";
@@ -142,9 +143,12 @@ function scheduleReplayCleanup() {
     if (cleaning) return;
     cleaning = true;
     try {
-      await replayLibrary.cleanup();
-      await replayLibrary.annotations.cleanup();
-      await new DirectMessageStore(accountStore).cleanup();
+      await accountStore.ensureReady();
+      await runReplayCleanupExclusively(accountStore.pool, async () => {
+        await replayLibrary.cleanup();
+        await replayLibrary.annotations.cleanup();
+        await new DirectMessageStore(accountStore).cleanup();
+      });
     } catch (error) {
       logError("[replays] cleanup failed", error);
     } finally {

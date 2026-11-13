@@ -23,6 +23,7 @@ import { DecisionViewBoardButton } from "./DecisionViewBoardButton";
 import { TriggerChooserScrollCue } from "./TriggerChooserScrollCue";
 import { scrollToNextEntry } from "./scrollToNextEntry";
 import { useContentBelow } from "./useContentBelow";
+import { TOUCH_LAYOUT_QUERY, useMediaQuery } from "@/design/useMediaQuery";
 
 /** Preset answer for an effect's yes/no questions; absent means the engine asks. */
 type Preset = "yes" | "no";
@@ -370,19 +371,19 @@ export function DecisionTriggerChooser({
           <div className="trigger-chooser__status" aria-live="polite">
             <span>{t("overlay.orderedCount", { ordered: order.length, total: optionCount })}</span>
             {order.length === 0 ? (
-              <Button size="sm" variant="secondary" onClick={orderRemaining}>
+              <Button className="trigger-chooser__shortcut" size="sm" variant="secondary" onClick={orderRemaining}>
                 {t("overlay.orderAllTopToBottom")}
               </Button>
             ) : null}
             {canSelectMandatory ? (
-              <Button size="sm" variant="secondary" onClick={orderMandatory}>
+              <Button className="trigger-chooser__shortcut" size="sm" variant="secondary" onClick={orderMandatory}>
                 {t("overlay.orderMandatoryTopToBottom")}
               </Button>
             ) : null}
             {order.length > 0 && order.length < optionCount ? (
               <>
                 <span className="trigger-chooser__status-hint">{t("overlay.orderedRestLater")}</span>
-                <Button size="sm" variant="secondary" onClick={orderRemaining}>
+                <Button className="trigger-chooser__shortcut" size="sm" variant="secondary" onClick={orderRemaining}>
                   {t("overlay.orderRemaining")}
                 </Button>
               </>
@@ -464,28 +465,35 @@ function WaitingTriggerList({ entries, timing }: { entries: readonly WaitingTrig
   const getCardName = useTranslatedCardName();
   const { t } = useTranslation();
   const groups = groupWaitingTriggers(entries, timing);
+  const touchLayout = useMediaQuery(TOUCH_LAYOUT_QUERY);
   return (
     <section className="trigger-chooser__waiting" aria-label={t("overlay.waitingEffects")}>
-      <div className="trigger-chooser__waiting-title">{t("overlay.waitingEffects")}</div>
-      <p className="trigger-chooser__waiting-hint">{t("overlay.waitingEffectsHint")}</p>
-      <ul className="trigger-chooser__waiting-list">
-        {groups.map(({ cardId, clause, count }, index) => (
-          <li key={`${cardId}-${index}`} className="trigger-chooser__waiting-entry">
-            <CardFull cardId={cardId} width={40} zoomOnHover={false} />
-            <span className="trigger-chooser__meta">
-              <span className="trigger-chooser__name">
-                {getCardName(cardId)}
-                {count > 1 ? <span className="trigger-chooser__waiting-count">×{count}</span> : null}
-              </span>
-              {clause ? (
-                <span className="trigger-chooser__effect-text">
-                  <EffectText text={clause} cardId={cardId} timing={timing} surface="waiting-trigger" allowContext />
+      <details className="trigger-chooser__waiting-details" open={!touchLayout}>
+        <summary className="trigger-chooser__waiting-title">
+          {t("overlay.waitingEffects")}
+          <span className="trigger-chooser__waiting-count">{entries.length}</span>
+          <Icons.ChevronDown size={14} aria-hidden="true" />
+        </summary>
+        <p className="trigger-chooser__waiting-hint">{t("overlay.waitingEffectsHint")}</p>
+        <ul className="trigger-chooser__waiting-list">
+          {groups.map(({ cardId, clause, count }, index) => (
+            <li key={`${cardId}-${index}`} className="trigger-chooser__waiting-entry">
+              <CardFull cardId={cardId} width={40} zoomOnHover={false} />
+              <span className="trigger-chooser__meta">
+                <span className="trigger-chooser__name">
+                  {getCardName(cardId)}
+                  {count > 1 ? <span className="trigger-chooser__waiting-count">×{count}</span> : null}
                 </span>
-              ) : null}
-            </span>
-          </li>
-        ))}
-      </ul>
+                {clause ? (
+                  <span className="trigger-chooser__effect-text">
+                    <EffectText text={clause} cardId={cardId} timing={timing} surface="waiting-trigger" allowContext />
+                  </span>
+                ) : null}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </details>
     </section>
   );
 }

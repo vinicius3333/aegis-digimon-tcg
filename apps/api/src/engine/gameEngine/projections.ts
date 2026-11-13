@@ -57,6 +57,8 @@ import type { AttackDeps, DigivolveDeps, DnaDigivolveDeps, LinkCardDeps, PlayCar
 import type { AppFusionValidation } from "./types.js";
 import type { PendingBlitzAttack } from "./blitz.js";
 
+const KEYWORD_BEHAVIOR_GRANT_TOKENS: ReadonlySet<string> = new Set(["Execute", "Execute deletion"]);
+
 /**
  * What the projection pass reads and calls. The affordance projections re-run every
  * validator the intent handlers use, so the engine's deps builders are passed as
@@ -231,7 +233,18 @@ export class BoardProjection {
   }
 
   projectRestrictions(perm: Permanent): void {
-    replaceIfChanged(perm.grantedEffectTexts, this.deps.subTriggers.grantedEffectTextsFor(perm.permanentId));
+    replaceIfChanged(perm.grantedEffectTexts, [
+      ...this.deps.subTriggers.grantedEffectTextsFor(perm.permanentId),
+      ...this.deps.continuous
+        .listCustomEffectGrants()
+        .filter(
+          (grant) =>
+            grant.instanceId === perm.topCard?.instanceId &&
+            grant.isActive?.() !== false &&
+            !KEYWORD_BEHAVIOR_GRANT_TOKENS.has(grant.token),
+        )
+        .map((grant) => getGrantedEffectText(grant.token)),
+    ]);
     perm.attacksAtStartOfMainPhase = this.deps.subTriggers
       .subscriptionsFor("startOfYourMainPhase", perm.permanentId)
       .some(({ publicBadge, publicBadgeGrantingSeat, publicBadgeSourceKinds }) => {

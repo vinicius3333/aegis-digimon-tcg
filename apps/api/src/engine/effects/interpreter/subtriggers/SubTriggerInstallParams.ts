@@ -11,6 +11,7 @@ export type SubTriggerInstallParams = {
   playerScoped: boolean;
   isLinkedSource: boolean;
   isInheritedSource: boolean;
+  isGainedMainEffect?: boolean;
   printedWatcherClause: string | undefined;
   printedTiming: EffectContext["activeTiming"];
   anchorPermanentId: string | undefined;

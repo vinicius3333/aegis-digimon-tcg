@@ -297,8 +297,8 @@
   .board-prompt--counter[data-variant="prompt"] .board-prompt__actions {
     grid-area: actions;
   }
-  /* The rail sits above the hand (usePromptHandSpace "keepVisible"). One row of answers,
-     with View board as an icon, keeps it low enough to leave the viewer's field visible. */
+  /* The rail sits above the hand (usePromptHandSpace "keepVisible"). One row of answers
+     keeps it low enough to leave the viewer's field visible. */
   .board-prompt.board-prompt--counter[data-prompt-surface][data-variant="prompt"] .board-prompt__art .game-card-mini,
   .board-prompt.board-prompt--counter[data-prompt-surface][data-variant="prompt"] .board-prompt__art > div {
     width: 3.5rem !important;
@@ -311,19 +311,5 @@
     grid-column: auto;
     min-width: 0;
     min-height: 44px;
-  }
-  .board-prompt.board-prompt--counter[data-prompt-surface][data-variant="prompt"]
-    .board-prompt__actions
-    > .decision-overlay__view-board {
-    width: 3rem;
-    padding-inline: 0;
-  }
-  .board-prompt--counter[data-variant="prompt"] .decision-overlay__view-board-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
   }
 }

@@ -13,7 +13,18 @@ export function getEffectDecisionText(ctx: Params) {
   const matchingClauses = focus
     ? splitPrintedClauses(ctx.activeEffectText).filter((clause) => printedPassage(clause.text, focus) !== undefined)
     : undefined;
-  const fullText = matchingClauses?.length === 1 ? matchingClauses[0]!.text : ctx.activeEffectText;
+  const keywordLines = focus?.startsWith("＜")
+    ? (ctx.activeEffectText ?? "")
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.toLowerCase().startsWith(focus.toLowerCase()))
+    : [];
+  const fullText =
+    keywordLines.length === 1
+      ? keywordLines[0]
+      : matchingClauses?.length === 1
+        ? matchingClauses[0]!.text
+        : ctx.activeEffectText;
   const printedPart =
     fullText && part && !fullText.toLowerCase().includes(part.toLowerCase()) ? printedPassage(fullText, part) : part;
   const emphasis =

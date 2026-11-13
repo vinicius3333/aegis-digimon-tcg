@@ -8,12 +8,12 @@ import { Scrim } from "../Scrim";
 import type { TurnOrder } from "../types";
 
 export function MulliganOverlay({
-  handCardIds,
+  handCards,
   turnOrder,
   onKeep,
   onMulligan,
 }: {
-  handCardIds: string[];
+  handCards: readonly { cardId: string; artId?: string }[];
   turnOrder?: TurnOrder;
   onKeep: () => void;
   onMulligan: () => void;
@@ -52,11 +52,11 @@ export function MulliganOverlay({
             {t(turnOrder === "first" ? "overlay.turnOrderFirst" : "overlay.turnOrderSecond")}
           </p>
         ) : null}
-        <p className="mulligan-detail">{t("overlay.mulliganDetail", { count: handCardIds.length })}</p>
+        <p className="mulligan-detail">{t("overlay.mulliganDetail", { count: handCards.length })}</p>
         <div className="mulligan-cards" aria-label={t("overlay.openingHand")}>
-          {handCardIds.map((id, i) => (
-            <div className="mulligan-card" key={`${id}-${i}`} style={{ animationDelay: `${i * 70}ms` }}>
-              <CardFull cardId={id} width={190} />
+          {handCards.map((card, i) => (
+            <div className="mulligan-card" key={`${card.cardId}-${i}`} style={{ animationDelay: `${i * 70}ms` }}>
+              <CardFull cardId={card.cardId} artId={card.artId} width={190} />
             </div>
           ))}
         </div>

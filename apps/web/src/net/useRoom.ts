@@ -14,7 +14,8 @@ import { CONNECTION_REPORT_CHANNEL, type ConnectionReport } from "@aegis/shared/
 import { OPPONENT_DECK_CHANNEL } from "@aegis/shared/decks/OPPONENT_DECK_CHANNEL";
 import { USED_DECK_CHANNEL, type UsedDeck } from "@aegis/shared/decks/UsedDeck";
 import { spectate } from "./client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { CloseCode } from "@colyseus/sdk";
 import type { GameState } from "@aegis/shared";
 import {
   EVENT_CHANNEL,
@@ -56,6 +57,7 @@ import { watchRoomLiveness } from "@/net/watchRoomLiveness";
 import type { AegisJoinOptions } from "./types";
 import { keepLocalReplay } from "../replays/local";
 import { clientErrorReporter } from "@/clientErrors/clientErrorReporter";
+import { RenderCrashContext } from "@/clientErrors/RenderCrashContext";
 
 type ConnectionDrop = Pick<ConnectionReport, "closeCode" | "hiddenAtDrop" | "onlineAtDrop"> & {
   droppedAt: number;
@@ -268,6 +270,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
   const roomSlotRef = useRef<RoomSlot>("legacy");
   const stateRef = useRef<GameState | undefined>(undefined);
   const readySentRef = useRef(false);
+  const renderCrash = useContext(RenderCrashContext);
 
   useEffect(() => {
     if (disabled) return;
@@ -545,9 +548,12 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
       stopHeartbeat();
       stopLiveness();
       clientErrorReporter.setMatchContext(undefined);
-      // A reload never runs this cleanup, so only a deliberate exit forgets the seat.
-      clearReconnectSession();
-      void roomRef.current?.leave();
+      if (renderCrash.crashed) {
+        roomRef.current?.connection.close(CloseCode.MAY_TRY_RECONNECT);
+      } else {
+        clearReconnectSession();
+        void roomRef.current?.leave();
+      }
       roomRef.current = undefined;
       roomSlotRef.current = "legacy";
       stateRef.current = undefined;

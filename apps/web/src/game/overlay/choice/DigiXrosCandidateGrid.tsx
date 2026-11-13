@@ -1,6 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import type { Translate } from "../../../i18n";
 import { CardArt } from "../CardArt";
+import { DecisionCardNumber } from "@/game/overlay/choice/DecisionCardNumber";
 import type { DigiXrosCandidate } from "../types";
 
 /** Stable grid of DigiXros materials; candidates that cannot extend the current pick stay visible but disabled. */
@@ -66,6 +67,7 @@ export function DigiXrosCandidateGrid({
             }}
           >
             <CardArt cardId={c.cardId} artId={c.artId} width={72} />
+            <DecisionCardNumber cardId={c.cardId} />
             <span
               style={{
                 fontSize: 9.5,

@@ -1,4 +1,5 @@
 import { OpenDecisionCardButton } from "@/game/overlay/choice/OpenDecisionCardButton";
+import { DecisionCardCaption } from "@/game/overlay/choice/DecisionCardCaption";
 import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
 import { useState, type ReactNode } from "react";
 import { CardBack, CardFull } from "../../../design/cards";
@@ -53,8 +54,8 @@ export function DecisionCandidateGrid({
   // Three tiles plus their gaps and the row's own badge gutter have to clear the
   // sheet's padding; on a phone narrower than the grid's breakpoint they only do
   // at the smaller size, and below that the row wraps rather than being clipped.
-  let displayedCardWidth = 144;
-  if (touchLayout) displayedCardWidth = 110;
+  let displayedCardWidth = 112;
+  if (touchLayout) displayedCardWidth = 104;
   if (narrowDialog) displayedCardWidth = 96;
   const cardCopyLabels = cardCopyLabelsByInstance({ candidates, t });
   // A prompt that reaches into two zones at once (a hand and a trash, say) is
@@ -215,10 +216,6 @@ export function DecisionCandidateGrid({
                   fieldReferenceVisible && cand.fieldPermanentId
                     ? formatFieldReference(cand.fieldPermanentId)
                     : undefined;
-                const fieldIdentity =
-                  cand.cardId && !abstractLabel && isFieldZone(cand.zone)
-                    ? [fieldReference, cand.cardId].filter(Boolean).join(" · ")
-                    : undefined;
                 const sourceLabel =
                   cand.sourceCount === undefined
                     ? undefined
@@ -268,17 +265,15 @@ export function DecisionCandidateGrid({
                           selected={on}
                         />
                       )}
-                      {cand.cardId && !abstractLabel ? (
-                        <span className="decision-overlay__candidate-name">{getCardName(cand.cardId)}</span>
+                      {cand.cardId && !abstractLabel ? <DecisionCardCaption cardId={cand.cardId} /> : null}
+                      {fieldReference && isFieldZone(cand.zone) && !abstractLabel ? (
+                        <span className="decision-overlay__candidate-identity" aria-hidden="true">
+                          {fieldReference}
+                        </span>
                       ) : null}
                       {copyLabel ? (
                         <span className="decision-overlay__candidate-copy" aria-hidden="true">
                           {copyLabel}
-                        </span>
-                      ) : null}
-                      {fieldIdentity ? (
-                        <span className="decision-overlay__candidate-identity" aria-hidden="true">
-                          {fieldIdentity}
                         </span>
                       ) : null}
                       {cand.hostCardId && !sourcePicker ? (

@@ -15,6 +15,7 @@ import type { AssemblyCandidate } from "../types";
 import { useEffectPromptFocus } from "./useEffectPromptFocus";
 import { useBoardPreview } from "./useBoardPreview";
 import { DecisionViewBoardButton } from "./DecisionViewBoardButton";
+import { DecisionCardNumber } from "@/game/overlay/choice/DecisionCardNumber";
 import "../effectPromptFamily.css";
 
 /** Human-readable label for one Assembly material slot. */
@@ -167,6 +168,7 @@ export function AssemblyMaterialOverlay({
                     }}
                   >
                     <CardArt cardId={candidate.cardId} artId={candidate.artId} width={72} />
+                    <DecisionCardNumber cardId={candidate.cardId} />
                     <span
                       style={{
                         fontSize: 9.5,

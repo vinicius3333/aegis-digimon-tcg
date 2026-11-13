@@ -29,11 +29,13 @@ import {
   flushDeferredSecurityRemovalTriggers,
   flushDeferredTimingWindows,
   parkDeferredSecurityRemovalTriggers,
+  settleBetweenEffects,
   withPendingPoolDrain,
   withTriggeredMutations,
 } from "./windows.js";
 import { buildEffectContext, cardSourceOf, effectEnvironment } from "./effectContext.js";
 import { beginBattleScope, endBattleScope, sweepBattleDurations } from "./turnFlow.js";
+import { resolveDerivedDuringAttackStep } from "#api/engine/gameEngine/resolveDerivedDuringAttackStep";
 
 export async function engineRunSecurityCheck(
   engine: GameEngine,
@@ -48,7 +50,22 @@ export async function engineRunSecurityCheck(
   // clears the securityDp ledger itself, so engine is a single, fresh re-application rather than
   // a one-shot stale value left from an earlier window.
   await engine.recomputeContinuousEffects();
+  const watchersPendingBeforeCheck = new Set(engine.pendingWindowSubTriggers);
+  const nestedPendingBeforeCheck = new Set(engine.pendingNestedTimingEffects);
   const deps: SecurityCheckDeps = {
+    settleAfterCheck: async () => {
+      if (engine.attackStepPauseDepth === 0) return;
+      await settleBetweenEffects(engine);
+      const offered = new Set(engine.pendingNestedTimingEffects);
+      await resolveDerivedDuringAttackStep({
+        engine,
+        olderWatchers: watchersPendingBeforeCheck,
+        olderNested: nestedPendingBeforeCheck,
+      });
+      engine.pendingNestedTimingEffects = engine.pendingNestedTimingEffects.filter(
+        (pending) => nestedPendingBeforeCheck.has(pending) || !offered.has(pending),
+      );
+    },
     beginBattleScope: () => beginBattleScope(engine),
     sweepEndOfBattle: (scopeId) => sweepBattleDurations(engine, scopeId),
     endBattleScope: (scopeId) => endBattleScope(engine, scopeId),

@@ -1,5 +1,5 @@
 import { OpenDecisionCardButton } from "@/game/overlay/choice/OpenDecisionCardButton";
-import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
+import { DecisionCardCaption } from "@/game/overlay/choice/DecisionCardCaption";
 import { CardFull } from "../../../design/cards";
 import { useTranslation } from "../../../i18n";
 import type { DecisionCandidate } from "./decisionTypes";
@@ -20,9 +20,8 @@ export function DecisionChoiceCards({
   largeCards?: boolean;
 }) {
   const { t } = useTranslation();
-  const getCardName = useTranslatedCardName();
   const cardWidth =
-    wideDialog && largeCards ? (candidates.length > 5 ? 144 : 180) : wideDialog && candidates.length > 3 ? 132 : 104;
+    wideDialog && largeCards ? (candidates.length > 5 ? 112 : 132) : wideDialog && candidates.length > 3 ? 112 : 104;
   // A digivolution-requirement question is about a card in the player's own hand, which
   // was never revealed; label the strip by what the question is about.
   const allInHand = candidates.length > 0 && candidates.every((candidate) => candidate.zone === "hand");
@@ -44,9 +43,7 @@ export function DecisionChoiceCards({
         {candidates.map((candidate) => (
           <div key={candidate.instanceId} className="decision-candidate-tile" style={{ width: cardWidth }}>
             <CardFull cardId={candidate.cardId ?? ""} artId={candidate.artId} width={cardWidth} />
-            {candidate.cardId ? (
-              <span className="decision-overlay__candidate-name">{getCardName(candidate.cardId)}</span>
-            ) : null}
+            {candidate.cardId ? <DecisionCardCaption cardId={candidate.cardId} /> : null}
             <OpenDecisionCardButton cardId={candidate.cardId} artId={candidate.artId} />
           </div>
         ))}

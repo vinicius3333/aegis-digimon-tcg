@@ -251,7 +251,7 @@ it("shows blocker artwork and statistics, and preserves mandatory blocking", () 
   expect(screen.queryByRole("dialog")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Return to decision" }));
   expect(screen.getByRole("dialog", { name: "Block window" })).toBeTruthy();
-  expect(screen.queryByRole("button", { name: "No block" })).toBeNull();
+  expect(screen.queryByRole("button", { name: /Don't block/ })).toBeNull();
   expect(block).not.toHaveBeenCalled();
   expect(decline).not.toHaveBeenCalled();
 });
@@ -475,7 +475,7 @@ it.each([false, true])("docks compact server-authorized blockers and preserves C
   const { send } = renderCombatGame("block", mustBlock);
   expect(screen.queryByRole("dialog", { name: "Block window" })).toBeNull();
   const rail = screen.getByRole("region", { name: "Block window" });
-  const decline = within(rail).queryByRole("button", { name: "No block" });
+  const decline = within(rail).queryByRole("button", { name: "Don't block" });
   expect(Boolean(decline)).toBe(!mustBlock);
   fireEvent.click(within(rail).getByRole("button", { name: /MetalGreymon/ }));
   expect(send).toHaveBeenCalledWith("declareBlock", { blockerPermanentId: "ally", rollbackRevision: 0 });
@@ -503,7 +503,7 @@ it("puts the lone no-block action on the left when no server-authorized blocker 
   );
   const dialog = screen.getByRole("dialog", { name: "Block window" });
   expect(dialog.getAttribute("data-prompt-surface")).toBe("left");
-  fireEvent.click(within(dialog).getByRole("button", { name: "No block" }));
+  fireEvent.click(within(dialog).getByRole("button", { name: /don't block/i }));
   expect(decline).toHaveBeenCalledOnce();
 });
 

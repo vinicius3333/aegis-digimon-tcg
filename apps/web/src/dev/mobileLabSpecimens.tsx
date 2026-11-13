@@ -849,7 +849,9 @@ export const SPECIMENS: readonly Specimen[] = [
     surface: "board",
     render: () => (
       <MulliganOverlay
-        handCardIds={[CARDS.rookie, CARDS.champion, CARDS.tamer, CARDS.option, CARDS.ultimate]}
+        handCards={[CARDS.rookie, CARDS.champion, CARDS.tamer, CARDS.option, CARDS.ultimate].map((cardId) => ({
+          cardId,
+        }))}
         turnOrder="second"
         onKeep={noop}
         onMulligan={noop}

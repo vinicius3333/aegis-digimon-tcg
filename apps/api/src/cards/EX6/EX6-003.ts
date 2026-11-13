@@ -7,15 +7,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       isInherited: true,
       frequency: "OncePerTurn",
-      optional: true,
       actions: [
-        {
-          kind: "SecurityManipulation",
-          op: "toHand",
-          controller: "mine",
-          amount: 1,
-          toTop: true,
-        },
         {
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
@@ -34,6 +26,12 @@ export const compiled: CompiledCard = {
           },
           from: ["hand"],
           toTop: false,
+          cost: {
+            kind: "securityToHand",
+            raw: "By adding the top card of your security stack to the hand",
+          },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },

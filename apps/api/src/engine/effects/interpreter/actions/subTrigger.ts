@@ -145,6 +145,8 @@ export async function runSubTrigger(
   const isLinkedSource = self?.linked?.some((card) => card.instanceId === ctx.source.instanceId) === true;
   const isInheritedSource =
     !isLinkedSource && self?.stack?.some((card) => card.instanceId === ctx.source.instanceId) === true;
+  const isGainedMainEffect =
+    isInheritedSource && ctx.conferredToPermanentId !== undefined && ctx.activeEffectIsInherited === false;
   const printedWatcherClause =
     action.printedClause ??
     (action.raw?.startsWith("[") === true ? action.raw : undefined) ??
@@ -191,6 +193,7 @@ export async function runSubTrigger(
     playerScoped,
     isLinkedSource,
     isInheritedSource,
+    ...(isGainedMainEffect ? { isGainedMainEffect: true } : {}),
     printedWatcherClause,
     printedTiming,
     anchorPermanentId,

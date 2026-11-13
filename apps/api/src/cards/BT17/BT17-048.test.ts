@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getCardDefinition, type PlayerState, type Seat } from "@aegis/shared";
+import { EffectDuration, getCardDefinition, type PlayerState, type Seat } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -72,6 +72,42 @@ describe("BT17-048 Argomon — [On Deletion] play Lv.6 Argomon (KB Q2800)", () =
     expect(s.state.memory).toBe(0);
     expect(s.perm("firstTamer").isSuspended).toBe(true);
     expect(s.perm("secondTamer").isSuspended).toBe(true);
+  });
+
+  it("does not count a Tamer that can't suspend toward its digivolution-cost reduction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-045", as: "base" },
+            { card: "BT1-087", as: "lockedTamer" },
+          ],
+          hand: [{ card: ARGOMON_LV5, as: "evolving" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    advance(s.engine).ledgers.continuous.addRestriction(
+      s.perm("lockedTamer").permanentId,
+      "suspend",
+      EffectDuration.UntilEachTurnEnd,
+    );
+    await advance(s.engine).recompute();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === ARGOMON_LV5);
+
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toEqual([]);
+    expect(s.perm("lockedTamer").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(0);
   });
 
   it("honors the alternate cost-4 route only from an exact [Argomon] base (namesExact)", async () => {

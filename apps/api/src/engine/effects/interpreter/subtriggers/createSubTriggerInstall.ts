@@ -80,6 +80,7 @@ export function createSubTriggerInstall({
   playerScoped,
   isLinkedSource,
   isInheritedSource,
+  isGainedMainEffect,
   printedWatcherClause,
   printedTiming,
   anchorPermanentId,
@@ -1193,6 +1194,7 @@ export function createSubTriggerInstall({
       ? { dedupeKey: `${ctx.source.instanceId}/${ctx.activeEffectKey ?? "effect"}/${ctx.activeActionPath ?? "0"}` }
       : {}),
     ...(bindsPrintedSource && isInheritedSource ? { isInheritedSource: true } : {}),
+    ...(bindsPrintedSource && isInheritedSource && isGainedMainEffect === true ? { isGainedMainEffect: true } : {}),
     ...(bindsPrintedSource && isLinkedSource ? { isLinkedSource: true } : {}),
     ...(sourceFilter?.isSelfRef === true ? { watchesSelf: true } : {}),
     ...(fireGates.length === 0 ? {} : { canFire: (subCtx) => fireGates.every((gate) => gate(subCtx)) }),
@@ -1261,7 +1263,7 @@ export function createSubTriggerInstall({
       // continuous effect that installed it (BT11-112 prints three clauses in one box).
       subCtx.activeEffectText = printedWatcherClause ?? subCtx.activeEffectText ?? ctx.activeEffectText;
       subCtx.activeEffectTextPart = action.effectTextPart;
-      subCtx.activeEffectIsInherited = bindsPrintedSource && isInheritedSource;
+      subCtx.activeEffectIsInherited = bindsPrintedSource && isInheritedSource && isGainedMainEffect !== true;
       // The body is resolving a triggered event even when its watcher was installed by a
       // continuous effect. Any duration-scoped effects it creates must survive the trailing
       // continuous recompute instead of being mistaken for static contributions.
@@ -1404,7 +1406,11 @@ export function createSubTriggerInstall({
           }
           const outerContinuation = subCtx.continueEffectAfterAttackDeclaration;
           const outerOptionalAnswer = subCtx.presetOptionalAnswer;
-          if (index > 0 && current.kind === "Attack" && current.optional === true && outerOptionalAnswer === true) {
+          if (
+            outerOptionalAnswer === true &&
+            ((index > 0 && (current.kind === "Attack" || current.kind === "Battle") && current.optional === true) ||
+              (activationCostPaid && placesDeckTopOptionally(current)))
+          ) {
             subCtx.presetOptionalAnswer = undefined;
           }
           let continuationRan = false;
@@ -1455,6 +1461,10 @@ const EVENT_PROVENANCE_CONDITIONS: ReadonlySet<string> = new Set([
   "triggerPlayedByEffectSource",
   "triggerPlayedByDecode",
 ]);
+
+function placesDeckTopOptionally(action: Action): boolean {
+  return action.kind === "PlaceUnder" && action.optional === true && action.fromDeckTop === true;
+}
 
 function bodyRefersToTriggerSubject(actions: readonly Action[]): boolean {
   const references: string[] = [];

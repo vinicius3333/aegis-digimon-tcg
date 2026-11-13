@@ -1014,6 +1014,7 @@ function LoadedAegisClient({
                   }}
                   onBuildDeck={() => navigateScreen("deck")}
                   onOpenDecks={() => navigateScreen("deck")}
+                  onOpenRanked={() => navigateScreen("ranked")}
                   onSignIn={() => navigateScreen("login")}
                   onReportBug={() => setBugReportOpen(true)}
                   onOpenReleases={() => navigateScreen("releases")}

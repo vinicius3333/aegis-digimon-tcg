@@ -60,7 +60,6 @@ export function DecisionAttackTarget({
           <h2>{t("overlay.declareAttack")}</h2>
           {contextText ? <p className="attack-target__context">{contextText}</p> : null}
         </div>
-        <DecisionViewBoardButton onOpenBoard={onOpenBoard} compact />
       </header>
       {effectText ? (
         <details className="attack-target__effect">
@@ -82,6 +81,7 @@ export function DecisionAttackTarget({
         onTogglePick={onTogglePick}
       />
       <footer className="attack-target__actions">
+        <DecisionViewBoardButton onOpenBoard={onOpenBoard} />
         {min === 0 ? (
           <Button variant="secondary" onClick={onPass}>
             {t("overlay.passNoSelection")}

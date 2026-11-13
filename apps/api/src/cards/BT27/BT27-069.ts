@@ -37,6 +37,7 @@ export const compiled: CompiledCard = {
       keywords: [overclock],
       actions: [
         {
+          effectTextPart: overclock.raw,
           kind: "Attack",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           attackTargetScope: "player",

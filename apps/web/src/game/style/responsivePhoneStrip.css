@@ -420,10 +420,7 @@
     min-width: 44px;
     min-height: 44px;
     flex: none;
-    padding-inline: var(--ds-space-2);
-    border-radius: 999px;
-    font-size: 0.625rem;
-    letter-spacing: 0.04em;
+    padding-inline: var(--ds-space-3);
     white-space: nowrap;
   }
   /* The effect text is the wording the choice hinges on: it flows at a denser

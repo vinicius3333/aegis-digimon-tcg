@@ -741,7 +741,7 @@ test.describe("effects lab pacing in the browser", () => {
             await page
               .locator(`[data-drop="perm-you"][data-id="${fixturePermanentId("own-keyword-blocker")}"]`)
               .click();
-          else await prompt.getByRole("button", { name: "No block", exact: true }).click();
+          else await prompt.getByRole("button", { name: "Don't block", exact: true }).click();
           await expect
             .poll(
               async () => {

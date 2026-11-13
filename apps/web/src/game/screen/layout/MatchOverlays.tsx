@@ -245,7 +245,7 @@ export function MatchOverlays({
     <>
       {decision && decision.seat === viewerSeat && decision.kind === "mulligan" && !mulliganHeld ? (
         <MulliganOverlay
-          handCardIds={handEntries.map((h) => h.cardId)}
+          handCards={handEntries}
           turnOrder={viewerTurnOrder}
           onKeep={() => intents.respondMulligan(true)}
           onMulligan={() => intents.respondMulligan(false)}

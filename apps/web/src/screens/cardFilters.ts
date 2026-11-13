@@ -83,7 +83,8 @@ export type CardSearchMatch = "name" | "text" | "none";
 
 interface CardSearchIndex {
   identity: string;
-  text: string;
+  traits: string;
+  effectText: string;
 }
 
 const searchIndexByCard = new WeakMap<CardDefinition, CardSearchIndex>();
@@ -104,10 +105,8 @@ function normalizeSearchText(value: string): string {
 function searchIndexFor(card: CardDefinition): CardSearchIndex {
   const cached = searchIndexByCard.get(card);
   if (cached) return cached;
-  const textFields = [
-    ...(card.forms ?? []),
-    ...(card.types ?? []),
-    ...(card.attributes ?? []),
+  const traitFields = [...(card.forms ?? []), ...(card.types ?? []), ...(card.attributes ?? [])];
+  const effectTextFields = [
     card.effectText,
     card.inheritedEffectText,
     card.securityEffectText,
@@ -118,25 +117,29 @@ function searchIndexFor(card: CardDefinition): CardSearchIndex {
   ].filter((field): field is string => Boolean(field));
   const index = {
     identity: normalizeSearchText(`${card.nameEn}${TEXT_FIELD_SEPARATOR}${card.cardId}`),
-    text: normalizeSearchText(textFields.join(TEXT_FIELD_SEPARATOR)),
+    traits: normalizeSearchText(traitFields.join(TEXT_FIELD_SEPARATOR)),
+    effectText: normalizeSearchText(effectTextFields.join(TEXT_FIELD_SEPARATOR)),
   };
   searchIndexByCard.set(card, index);
   return index;
 }
 
-export function cardSearchMatch(card: CardDefinition, query: string): CardSearchMatch {
+export function cardSearchMatch(card: CardDefinition, query: string, textOnly = false): CardSearchMatch {
   const normalizedQuery = normalizeSearchText(query);
   if (!normalizedQuery) return "name";
   const index = searchIndexFor(card);
+  if (textOnly) return index.effectText.includes(normalizedQuery) ? "text" : "none";
   if (index.identity.includes(normalizedQuery)) return "name";
   if (isCardInQueriedFieldGroup({ card, query })) return "name";
-  if (index.text.includes(normalizedQuery)) return "text";
+  if (index.traits.includes(normalizedQuery) || index.effectText.includes(normalizedQuery)) return "text";
   return "none";
 }
 
 export interface CardFilter {
   query: string;
   setQuery: (v: string) => void;
+  textOnly: boolean;
+  setTextOnly: (textOnly: boolean) => void;
   colors: ColorName[];
   kinds: KindFilter[];
   levels: LevelFilter[];
@@ -178,6 +181,7 @@ export function useCardFilter(
   } = {},
 ): CardFilter {
   const [query, setQuery] = useState(initialQuery);
+  const [textOnly, setTextOnly] = useState(false);
   const [colors, setColors] = useState<ColorName[]>([]);
   const [kinds, setKinds] = useState<KindFilter[]>([]);
   const [levels, setLevels] = useState<LevelFilter[]>([]);
@@ -215,7 +219,7 @@ export function useCardFilter(
   const filtered = useMemo(() => {
     const textMatches: CardDefinition[] = [];
     const nameMatches = all.filter((c) => {
-      const searchMatch = cardSearchMatch(c, query);
+      const searchMatch = cardSearchMatch(c, query, textOnly);
       if (searchMatch === "none") return false;
       if (!matchesColorFilter({ cardColors: c.colors, selectedColors: colors, mode: colorFilterMode })) return false;
       if (!matchesKindFilter({ card: c, selectedKinds: kinds })) return false;
@@ -236,6 +240,7 @@ export function useCardFilter(
   }, [
     all,
     query,
+    textOnly,
     colors,
     kinds,
     levels,
@@ -251,6 +256,8 @@ export function useCardFilter(
   return {
     query,
     setQuery,
+    textOnly,
+    setTextOnly,
     colors,
     kinds,
     levels,
@@ -280,6 +287,7 @@ export function useCardFilter(
     setSort,
     clear: () => {
       setQuery("");
+      setTextOnly(false);
       setColors([]);
       setKinds([]);
       setLevels([]);

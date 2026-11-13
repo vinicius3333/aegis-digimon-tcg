@@ -159,6 +159,8 @@ export interface TriggerInfo {
   securityInstanceId?: string;
   securityRemovalEventId?: number;
   digivolutionTrashEventId?: number;
+  optionUseEventId?: number;
+  causingEffectBody?: number;
   /** Option permanent card instance that was trashed from the battle area. */
   trashedOptionInstanceId?: string;
   /** The checked security card was face-up before the check revealed it. */

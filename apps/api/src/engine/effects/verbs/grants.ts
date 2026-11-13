@@ -233,7 +233,13 @@ export function createGrantsVerbs(pc: PrimitivesContext) {
     duration,
     opts,
   ): void => {
-    continuous.addCustomEffectGrant(instanceId, ownerSeat, token, duration, { ...continuousOpt(), ...opts });
+    const { recipientPermanentId, ...grantOptions }: NonNullable<typeof opts> = opts ?? {};
+    const isContinuousGrant =
+      grantOptions.continuous === true || (duration === EffectDuration.Permanent && continuousOpt() !== undefined);
+    if (recipientPermanentId !== undefined && !isContinuousGrant) {
+      emitEffectTargetsSelected({ pc, permanentIds: [recipientPermanentId] });
+    }
+    continuous.addCustomEffectGrant(instanceId, ownerSeat, token, duration, { ...continuousOpt(), ...grantOptions });
   };
 
   const grantPlayerCustomEffect: NonNullable<Primitives["grantPlayerCustomEffect"]> = (

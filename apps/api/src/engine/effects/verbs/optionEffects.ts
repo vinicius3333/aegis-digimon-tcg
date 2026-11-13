@@ -253,6 +253,7 @@ export function createOptionEffectsVerbs(pc: PrimitivesContext) {
             activeTiming: "Main",
             activeEffectTextPart: undefined,
             activeEffectTextEmphasis: undefined,
+            activeEffectTextCardId: undefined,
             source: {
               instanceId: usedInstanceId,
               cardId: usedCard.cardId,

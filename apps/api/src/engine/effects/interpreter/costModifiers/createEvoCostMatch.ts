@@ -2,6 +2,7 @@ import type { CardDefinition } from "@aegis/shared/cards/types";
 import type { Permanent } from "@aegis/shared/schema/Permanent";
 import { type DefinitionFacts, definitionMatches } from "#api/engine/effects/interpreter/matching/definition";
 import { permanentMatchesFilter } from "#api/engine/effects/interpreter/matching/permanent";
+import { canSuspendForCost } from "#api/engine/effects/interpreter/cost/canPay";
 import type { CostModifierMatchParams } from "#api/engine/effects/interpreter/costModifiers/CostModifierMatchParams";
 
 export function createEvoCostMatch({
@@ -15,7 +16,7 @@ export function createEvoCostMatch({
   return (m) => {
     if (action.restriction === "suspendThisTamer") {
       const tamer = ctx.source.permanent();
-      if (tamer === undefined || tamer.isSuspended || tamer.inBreeding) return false;
+      if (tamer === undefined || tamer.inBreeding || !canSuspendForCost(ctx, tamer)) return false;
     }
     if (selfRef) {
       const self = ctx.source.permanent();

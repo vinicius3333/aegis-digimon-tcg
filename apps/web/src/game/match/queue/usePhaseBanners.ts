@@ -231,13 +231,6 @@ export function usePhaseBanners({
   const phaseBatchesRef = useRef(batches);
   phaseBatchesRef.current = batches;
 
-  /**
-   * The board the turn handoff starts from. `previous` is the live state of the previous
-   * render, which predates every batch of a burst: when the ending turn's last effect and the
-   * next turn's unsuspend arrive together, it still shows the board before that effect, so
-   * an end-of-turn suspend undone by ＜Reboot＞ never rotated (Discord 1557481090870939840).
-   * The newest snapshot taken before the phase opened is the board the turn really ended on.
-   */
   function boardBeforePhase(openedPhase: ServerEvent, previous: GameState | undefined): GameState | undefined {
     const openedAt =
       "stateVersion" in openedPhase && typeof openedPhase.stateVersion === "number"
@@ -246,8 +239,9 @@ export function usePhaseBanners({
     if (openedAt === undefined) return previous;
     const snapshot = phaseStateRef.current.snapshots?.filter((candidate) => candidate.stateVersion <= openedAt).at(-1);
     if (snapshot === undefined) return previous;
-    if (previous !== undefined && (previous.stateVersion ?? 0) >= snapshot.stateVersion) return previous;
-    return snapshot.state;
+    const previousVersion = previous?.stateVersion ?? 0;
+    const previousPredatesPhase = previousVersion >= snapshot.stateVersion && previousVersion <= openedAt;
+    return previous !== undefined && previousPredatesPhase ? previous : snapshot.state;
   }
 
   async function waitForPhasePrerequisites(

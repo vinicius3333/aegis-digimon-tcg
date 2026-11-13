@@ -6,13 +6,14 @@ type Params = {
   cards: readonly CardDefinition[];
   sort: CardSort;
   query: string;
+  textOnly?: boolean;
 };
 
-export function sortSearchResults({ cards, sort, query }: Params): CardDefinition[] {
+export function sortSearchResults({ cards, sort, query, textOnly = false }: Params): CardDefinition[] {
   if (sort !== "name") {
     return sortCards(cards, sort);
   }
-  const nameMatches = cards.filter((card) => cardSearchMatch(card, query) === "name");
-  const textMatches = cards.filter((card) => cardSearchMatch(card, query) === "text");
+  const nameMatches = cards.filter((card) => cardSearchMatch(card, query, textOnly) === "name");
+  const textMatches = cards.filter((card) => cardSearchMatch(card, query, textOnly) === "text");
   return [...sortCards(nameMatches, sort), ...sortCards(textMatches, sort)];
 }

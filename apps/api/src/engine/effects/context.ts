@@ -479,6 +479,7 @@ export function gatherTriggeredEffects(
       granterInstanceId?: string;
     }[];
     customEffectGrants: readonly { grantId?: number; instanceId: string; token: string; isActive?: () => boolean }[];
+    recipientFollowingGrantIds?: readonly number[];
     onDeletionAtEndOfAttackProjections: readonly string[];
   },
 ): CollectedEffect[] {
@@ -665,10 +666,26 @@ export function gatherTriggeredEffects(
   // among the candidate instances — battle area AND trash, so a granted [On Deletion] is collected
   // from trash on the grantee's own deletion, exactly like a printed one), and collect those that
   // trigger. Resolution then runs through the same stack at the same window (OnDestroyedAnyone).
+  const followedGrantAnchorIds = new Set(
+    customEffectGrants.flatMap((grant) =>
+      grant.grantId !== undefined && grantSnapshot?.recipientFollowingGrantIds?.includes(grant.grantId) === true
+        ? [grant.instanceId]
+        : [],
+    ),
+  );
+  const grantRecipientById = (id: string): CardSource | undefined => {
+    const direct = instanceById(id);
+    if (direct !== undefined || !followedGrantAnchorIds.has(id)) return direct;
+    for (const player of env.state.players) {
+      const topCard = player.battleArea.find((permanent) => permanent.topCard?.instanceId === id)?.topCard;
+      if (topCard !== undefined) return createCardSource(topCard, lookup);
+    }
+    return undefined;
+  };
   const granted = collectGrantedCustomEffects(
     timing,
     customEffectGrants,
-    instanceById,
+    grantRecipientById,
     (token, source) => grantedTokenEffectsForTiming(token, timing, source),
     (source, effect) => makeContext(source, effect),
     env.tracker,

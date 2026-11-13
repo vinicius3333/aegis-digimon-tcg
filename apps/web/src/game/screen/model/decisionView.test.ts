@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { expect, it } from "vitest";
-import { CardInstance, type SequencedServerEvent, type DecisionRequest } from "@aegis/shared";
+import { CardInstance, Permanent, type SequencedServerEvent, type DecisionRequest, type Seat } from "@aegis/shared";
 import { createArenaDemoState } from "../../../dev/ArenaDemo";
 import { decisionViewFor } from "./decisionView";
 
@@ -137,4 +137,45 @@ it("#60 carries synchronized trash provenance into the decision model after reco
     { instanceId: "old-shot", cardId: "EX7-071", zone: "trash", trashPosition: 2 },
     { instanceId: "source-shot", cardId: "EX7-071", zone: "trash", trashOriginCardId: "BT25-083", trashPosition: 3 },
   ]);
+});
+
+function raisedDigimon(seat: Seat, permanentId: string) {
+  const card = new CardInstance();
+  card.instanceId = `${permanentId}-top`;
+  card.cardId = "BT24-008";
+  const permanent = new Permanent();
+  permanent.permanentId = permanentId;
+  permanent.controllerSeat = seat;
+  permanent.topCard = card;
+  return permanent;
+}
+
+it("answers a link onto a battle or raised Digimon on the board", () => {
+  const state = createArenaDemoState();
+  const permanents = [...state.players[0]!.battleArea];
+  const battle = permanents[0]!;
+  const ownRaised = raisedDigimon(0, "own-raised");
+  const opponentRaised = raisedDigimon(1, "opponent-raised");
+  const linkTargets = (candidateInstanceIds: string[]) =>
+    decisionViewFor({
+      decision: {
+        decisionId: "link-target",
+        seat: 0,
+        kind: "chooseTargets",
+        sourceCardId: "BT24-095",
+        promptText: "Choose a Digimon to link to.",
+        options: { candidateInstanceIds, min: 0, max: 1 },
+      },
+      decisionAnimationsPending: false,
+      decisionAsDialog: false,
+      viewerSeat: 0,
+      events: [],
+      state,
+      instanceIndex: new Map<string, string>(),
+      permanents,
+      breedingPermanents: [ownRaised, opponentRaised],
+      handInstanceIds: [],
+    }).answerOnBoard;
+  expect(linkTargets([battle.permanentId, ownRaised.permanentId])).toBe(true);
+  expect(linkTargets([battle.permanentId, opponentRaised.permanentId])).toBe(false);
 });

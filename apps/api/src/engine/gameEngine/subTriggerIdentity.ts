@@ -3,6 +3,18 @@ import { isTamer, lookupDefinition } from "../cards/cardData.js";
 import type { EffectContext, TriggerInfo } from "../effects/EffectContext.js";
 import type { SubTriggerSubscription } from "../effects/subtriggers.js";
 import { isDigivolutionTrashEvent } from "#api/engine/gameEngine/isDigivolutionTrashEvent";
+import type { SubTriggerEventName } from "../effects/EffectContext.js";
+
+const EVENTS_WITH_OCCURRENCE_IDENTITY: ReadonlySet<SubTriggerEventName> = new Set([
+  "whenLinked",
+  "whenAnyDigivolves",
+  "whenOneOfYoursDigivolves",
+  "whenHandTrashed",
+  "whenTrashedFromHand",
+  "whenOptionUsed",
+]);
+
+const ATTACK_DECLARATION_EVENTS: ReadonlySet<SubTriggerEventName> = new Set(["whenAttacking", "whenOpponentAttacks"]);
 
 /**
  * A watcher's identity ACROSS continuous recomputes. Every recompute clears the continuous
@@ -57,6 +69,9 @@ export function subTriggerIdentity(sub: SubTriggerSubscription, trigger?: Trigge
   if (trigger?.digivolutionTrashEventId !== undefined && isDigivolutionTrashEvent(sub.event)) {
     return `${identity}|digivolutionTrashEvent:${trigger.digivolutionTrashEventId}`;
   }
+  if (trigger?.optionUseEventId !== undefined && sub.event === "whenOptionUsed") {
+    return `${identity}|optionUseEvent:${trigger.optionUseEventId}`;
+  }
   if (trigger?.securityInstanceId !== undefined && sub.event === "whenSecurityRemoved") {
     return `${identity}|securityRemoved:${trigger.securityInstanceId}`;
   }
@@ -64,6 +79,9 @@ export function subTriggerIdentity(sub: SubTriggerSubscription, trigger?: Trigge
     const trashed = trigger.handTrashedInstanceIds ?? [];
     if (trashed.length > 0)
       return `${identity}|handTrash:${trigger.handTrashedSeat ?? ""}:${[...trashed].sort().join(",")}`;
+  }
+  if (trigger?.causingEffectBody !== undefined && !ATTACK_DECLARATION_EVENTS.has(sub.event)) {
+    return `${identity}|causingEffectBody:${trigger.causingEffectBody}`;
   }
   return identity;
 }
@@ -78,20 +96,15 @@ export function subTriggerIdentity(sub: SubTriggerSubscription, trigger?: Trigge
  */
 export function uniqueOncePerTurnWatcherOccurrences(items: readonly ArmedSubTrigger[]): ArmedSubTrigger[] {
   const kept = new Map<string, ArmedSubTrigger>();
-  const identityOf = (item: ArmedSubTrigger): string =>
+  const identityOf = (item: ArmedSubTrigger): string => {
     // A later Link or digivolution inside the same outer window is a new event.
     // Preserve it while an older occurrence waits; the OPT ledger still prevents
     // both from activating successfully in the same turn.
-    subTriggerIdentity(
-      item.sub,
-      item.sub.event === "whenLinked" ||
-        item.sub.event === "whenAnyDigivolves" ||
-        item.sub.event === "whenOneOfYoursDigivolves" ||
-        item.sub.event === "whenHandTrashed" ||
-        item.sub.event === "whenTrashedFromHand"
-        ? item.ctx.trigger
-        : undefined,
-    );
+    if (EVENTS_WITH_OCCURRENCE_IDENTITY.has(item.sub.event)) return subTriggerIdentity(item.sub, item.ctx.trigger);
+    const watcher = subTriggerIdentity(item.sub);
+    if (item.sub.event === "whenBattleWon" || ATTACK_DECLARATION_EVENTS.has(item.sub.event)) return watcher;
+    return `${watcher}|occurrence:${item.occurrence.windowToken ?? ""}`;
+  };
   for (const item of items) {
     if (item.sub.oncePerTurnKey === undefined) continue;
     const identity = identityOf(item);

@@ -4,6 +4,7 @@ import { splitPrintedClauses } from "@aegis/shared/effects/printedClauses";
 import type { EffectContext } from "../../EffectContext.js";
 import { evaluateCondition } from "../conditions.js";
 import { canPayCost, payCost } from "../costs.js";
+import { canSuspendForCost } from "../cost/canPay.js";
 import { runAction } from "../dispatch.js";
 import { scaleFactor } from "../scaling.js";
 import {
@@ -508,7 +509,9 @@ export function potentialWouldDigivolveSelfReduction(
     return reducer.amount * scale;
   }
   if (reducer.cost.kind === "suspend") {
-    const candidates = candidatePermanents(ctx, reducer.cost.target).filter((permanent) => !permanent.isSuspended);
+    const candidates = candidatePermanents(ctx, reducer.cost.target).filter((permanent) =>
+      canSuspendForCost(ctx, permanent),
+    );
     return reducer.amount * scale * Math.min(reducer.cost.target.count, candidates.length);
   }
   const zones: ZoneRef[] = reducer.cost.target.filter.zone === "trash" ? ["trash"] : [];

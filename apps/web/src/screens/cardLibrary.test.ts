@@ -10,7 +10,7 @@ import {
   matchesRarityFilter,
   matchesTraitOrAttributeFilter,
 } from "./cardFilters";
-import { sortCards, sortByCollection } from "./cardSorting";
+import { collectionOrder, sortCards, sortByCollection } from "./cardSorting";
 
 describe("deck-builder color filtering", () => {
   it("requires every selected color for a multicolor deck search", () => {
@@ -138,5 +138,38 @@ describe("collection chronology", () => {
     ] as never[];
 
     expect(sortByCollection(cards).map(({ cardId }) => cardId)).toEqual(["EX13-001", "EX12-001", "BT25-001", "P-250"]);
+  });
+
+  it("orders every dated set newest first and keeps promos and limited cards last", () => {
+    const cards = ["P-250", "LM-001", "BT25-001", "ST9-01", "BT26-001", "ST10-01", "EX14-012", "SD01-02"].map(
+      (cardId) => ({ cardId, set: cardId.split("-")[0] }),
+    ) as never[];
+
+    expect(sortByCollection(cards).map(({ cardId }) => cardId)).toEqual([
+      "EX14-012",
+      "SD01-02",
+      "BT26-001",
+      "BT25-001",
+      "ST10-01",
+      "ST9-01",
+      "LM-001",
+      "P-250",
+    ]);
+  });
+
+  it("places the app-only BD sets ahead of every dated set, newest pack first", () => {
+    const cards = ["EX14-012", "BD01-02", "P-250", "BD02-03"].map((cardId) => ({
+      cardId,
+      set: cardId.split("-")[0],
+    })) as never[];
+
+    expect(sortByCollection(cards).map(({ cardId }) => cardId)).toEqual(["BD02-03", "BD01-02", "EX14-012", "P-250"]);
+  });
+
+  it("gives every catalog set a collection position", () => {
+    const sets = new Set(allCards().map(({ set }) => set));
+    sets.delete("TOKEN");
+
+    expect([...sets].filter((set) => collectionOrder(set) === 999999)).toEqual([]);
   });
 });

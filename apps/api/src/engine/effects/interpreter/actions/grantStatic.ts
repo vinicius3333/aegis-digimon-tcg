@@ -206,6 +206,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
             if (token === "get -5000DP") continue;
             ctx.fx.grantCustomEffect?.(top.instanceId, ctx.source.ownerSeat, token, grantDuration, {
               sourceCardId: ctx.source.cardId,
+              ...(ids.includes(id) ? { recipientPermanentId: id } : {}),
               isActive: tracksTargetFilter
                 ? () => isAffectedByGranter(id) && matchesTarget(id)
                 : () => isAffectedByGranter(id),

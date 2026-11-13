@@ -1091,6 +1091,24 @@
   }
 }
 
+.battle-security-branch__art {
+  pointer-events: auto;
+}
+
+.battle-security-branch__open {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  cursor: zoom-in;
+}
+
+.battle-security-branch__open:focus-visible {
+  outline: 3px solid var(--ds-focus);
+  outline-offset: 2px;
+}
+
 /* A closed execution slot has no additional motion or readable hold. */
 .battle-security-branch[data-state="closing"] {
   visibility: hidden;

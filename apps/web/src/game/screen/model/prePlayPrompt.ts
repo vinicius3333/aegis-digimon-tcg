@@ -158,7 +158,7 @@ function digiXrosMaterials({
   const eligibleExpanders: DigiXrosEligibleExpander[] = playingDefinition
     ? viewer.battleArea
         .map((p) => {
-          if (!p.topCard || p.isSuspended) return [];
+          if (!p.topCard || p.isSuspended || p.cannotSuspend) return [];
           if (!getCardDefinition(p.topCard.cardId)?.kinds.includes(CardKind.Tamer)) return [];
           const expander = digiXrosZoneExpanderFor(p.topCard.cardId);
           if (!expander?.appliesTo(playingDefinition)) return [];

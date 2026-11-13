@@ -1311,6 +1311,16 @@ describe("triggerLabel / triggerLabels", () => {
     expect(labelB).toContain("copy 2");
   });
 
+  it("names two triggering permanents of the same card by their field references", () => {
+    const keyA = buildTriggerKey("top-A", "AD1-001/dp-plus-1000");
+    const keyB = buildTriggerKey("top-B", "AD1-001/dp-plus-1000");
+    expect(triggerLabels([keyA, keyB], t, [], undefined, ["#7", "#12"])).toEqual(["Greymon #7", "Greymon #12"]);
+    expect(triggerLabels([keyA, keyB], t, [], undefined, ["#7", undefined])).toEqual([
+      "Greymon #7",
+      "Greymon (copy 2)",
+    ]);
+  });
+
   it("never numbers two effects of ONE permanent as copies", () => {
     const onPlay = buildTriggerKey("perm-A", "AD1-001/on-play");
     const whenDigivolving = buildTriggerKey("perm-A", "AD1-001/when-digivolving");

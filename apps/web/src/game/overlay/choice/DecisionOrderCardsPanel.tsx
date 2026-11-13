@@ -1,5 +1,6 @@
 import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
 import { DecisionReorderHandle } from "./DecisionReorderHandle";
+import { DecisionCardNumber } from "@/game/overlay/choice/DecisionCardNumber";
 import { useDecisionReorder } from "./useDecisionReorder";
 import { CardFull } from "../../../design/cards";
 import { Button } from "../../../design/primitives";
@@ -79,6 +80,12 @@ export function DecisionOrderCardsPanel({
               </div>
               <span style={{ flex: 1, fontWeight: 600 }}>
                 <CardLink cardId={card?.cardId} />
+                {card?.cardId ? (
+                  <>
+                    {" "}
+                    <DecisionCardNumber cardId={card.cardId} />
+                  </>
+                ) : null}
               </span>
               <Button
                 variant="ghost"

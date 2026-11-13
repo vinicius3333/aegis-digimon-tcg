@@ -1676,17 +1676,7 @@
       "seat": 0,
       "intent": {
         "type": "respondDecision",
-        "response": {
-          "kind": "orderTriggers",
-          "order": [
-            "s0-29::BT25-085/ir-shared-1",
-            "s0-50::subtrigger/opt/s0-50/printed/BT25-005/ir-35-0/s0-50/BT25-005/ir-35-0/0"
-          ],
-          "optionalAnswers": {
-            "s0-29::BT25-085/ir-shared-1": false,
-            "s0-50::subtrigger/opt/s0-50/printed/BT25-005/ir-35-0/s0-50/BT25-005/ir-35-0/0": false
-          }
-        },
+        "response": { "kind": "selectCards", "instanceIds": [] },
         "decisionId": "dec-88"
       },
       "engineEvents": 397,
@@ -1698,7 +1688,17 @@
       "seat": 0,
       "intent": {
         "type": "respondDecision",
-        "response": { "kind": "selectCards", "instanceIds": [] },
+        "response": {
+          "kind": "orderTriggers",
+          "order": [
+            "s0-29::BT25-085/ir-shared-1",
+            "s0-50::subtrigger/opt/s0-50/printed/BT25-005/ir-35-0/s0-50/BT25-005/ir-35-0/0"
+          ],
+          "optionalAnswers": {
+            "s0-29::BT25-085/ir-shared-1": false,
+            "s0-50::subtrigger/opt/s0-50/printed/BT25-005/ir-35-0/s0-50/BT25-005/ir-35-0/0": false
+          }
+        },
         "decisionId": "dec-89"
       },
       "engineEvents": 398,

@@ -80,6 +80,10 @@ export const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "by playing 1 play cost 3 or lower Digimon card from under this Tamer without paying the cost",
+          },
         },
       ],
     },

@@ -97,7 +97,7 @@
     background: none;
   }
 
-  .collection-filters .card-filter-rail:not(.is-mobile-open) > .card-filter-search {
+  .collection-filters .card-filter-rail:not(.is-mobile-open) > .card-filter-query {
     grid-column: 1 / -1;
   }
 

@@ -104,8 +104,17 @@
   outline-offset: 2px;
 }
 
+.card-filter-query {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-3) var(--ds-space-5);
+}
+
 .card-filter-search {
   position: relative;
+  min-width: 0;
+  flex: 1 1 220px;
 }
 
 .card-filter-search > svg {
@@ -119,6 +128,39 @@
 
 .card-filter-search > .card-filter-input {
   padding-left: 32px;
+}
+
+.card-filter-text-only {
+  flex: none;
+}
+
+.card-filter-text-only .aegis-switch {
+  width: auto;
+  min-height: 32px;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: var(--ds-space-2);
+}
+
+.card-filter-text-only .aegis-switch__copy strong {
+  font: 500 var(--ds-text-sm) / 1.2 var(--ds-font-body);
+  color: var(--ds-text-2);
+}
+
+.card-filter-text-only .aegis-switch__track {
+  width: 36px;
+  height: 20px;
+}
+
+.card-filter-text-only .aegis-switch__thumb {
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+}
+
+.card-filter-text-only .aegis-switch[aria-checked="true"] .aegis-switch__thumb {
+  transform: translateX(16px);
 }
 
 .card-filter-input {

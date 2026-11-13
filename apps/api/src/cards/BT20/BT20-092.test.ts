@@ -35,7 +35,7 @@ describe("BT20-092 Battle NPC", () => {
       condition: { kind: "youHaveNone", filter: { kind: ["Digimon"] } },
       actions: [
         { kind: "PlayWithoutCost", from: ["underThisTamer"], payCost: false, abortOnDecline: true },
-        { kind: "Delete", target: { isSelf: true } },
+        { kind: "Delete", target: { isSelf: true }, condition: { kind: "ifThisEffectActed" } },
       ],
     });
   });
@@ -120,6 +120,39 @@ describe("BT20-092 Battle NPC", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-092")).toBe(true);
     expect(s.perm("npc").stack.map((card) => card.cardId)).toEqual(["BT20-046"]);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-092")).toBe(false);
+  });
+
+  it("stays on the field when no Digimon card is under it at the next main phase", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-092", as: "npc" }], deck: ["BT1-010"] },
+        1: { deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+
+    await driveTurn(s, 0);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-092")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-092")).toBe(false);
+  });
+
+  it("keeps itself and its under-Tamer Digimon when the player declines the play", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-092", as: "npc", under: ["BT20-046"] }], deck: ["BT1-010"] },
+        1: { deck: ["BT1-010"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+
+    await driveTurn(s, 0);
+
+    expect(s.perm("npc").stack.map((card) => card.cardId)).toEqual(["BT20-046"]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-046")).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-092")).toBe(false);
   });
 

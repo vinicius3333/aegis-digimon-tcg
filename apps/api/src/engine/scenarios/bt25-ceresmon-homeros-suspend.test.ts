@@ -16,6 +16,9 @@ it("Homeros does not trigger native or Succession Ceresmon in the arena", async 
   const homeros = human.battleArea.find((p) => p.topCard.cardId === "BT24-102")!;
   const attacker = human.battleArea.find((p) => p.topCard.cardId === "BT1-013")!;
   const target = opponent.battleArea[0]!;
+  const successionSource = human.battleArea
+    .find((p) => p.stack.some((card) => card.cardId === "BT25-059"))!
+    .stack.find((card) => card.cardId === "BT25-059")!;
   const ceresmonTriggers = () =>
     s.events.filter((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-059");
   const loop = s.engine.startTurnLoop();
@@ -40,7 +43,10 @@ it("Homeros does not trigger native or Succession Ceresmon in the arena", async 
     await advance(s.engine).finishAttack();
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
     expect(ceresmonTriggers()).toHaveLength(2);
-    expect(ceresmonTriggers()).toContainEqual(expect.objectContaining({ isInherited: true }));
+    expect(ceresmonTriggers()).toContainEqual(
+      expect.objectContaining({ sourceInstanceId: successionSource.instanceId }),
+    );
+    expect(ceresmonTriggers()).not.toContainEqual(expect.objectContaining({ isInherited: true }));
     expect(target.currentDP).toBe(5000);
     expect(opponent.security).toHaveLength(0);
   } finally {

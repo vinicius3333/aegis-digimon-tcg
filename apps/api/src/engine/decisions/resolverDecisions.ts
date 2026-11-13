@@ -5,6 +5,7 @@ import type { DecisionManager } from "./index.js";
 import type { ResolutionPlan } from "./resolutionPlan.js";
 import { triggerKeyOf } from "./triggerKeyOf.js";
 import { log } from "../../logger.js";
+import { presentsAsInherited } from "#api/engine/effects/presentsAsInherited";
 
 export interface ResolverDecisions {
   /**
@@ -107,7 +108,7 @@ export function createResolverDecisions(
           triggerControllerSeats: active.map((entry) => entry.source.ownerSeat),
           triggerDescriptions: active.map((c) => c.effect.description ?? ""),
           ...(triggerReasons.some((reason) => reason !== "") ? { triggerReasons } : {}),
-          triggerIsInherited: active.map((c) => c.effect.isInherited),
+          triggerIsInherited: active.map(presentsAsInherited),
           ...(plan !== undefined
             ? {
                 acceptsResolutionPlan: true,
@@ -121,7 +122,7 @@ export function createResolverDecisions(
             ? {
                 waitingTriggerCardIds: waiting.map((c) => c.source.cardId),
                 waitingTriggerDescriptions: waiting.map((c) => c.effect.description ?? ""),
-                waitingTriggerIsInherited: waiting.map((c) => c.effect.isInherited),
+                waitingTriggerIsInherited: waiting.map(presentsAsInherited),
               }
             : {}),
         },

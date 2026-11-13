@@ -66,6 +66,8 @@ export const EFFECT_PROMPT_CASES = [
   ["select-field", "Choose targets · field", "center"],
   ["select-mixed", "Select cards · mixed zones", "center"],
   ["select-player", "Choose targets · player", "center"],
+  ["select-attack-target", "Choose targets · attack target", "center"],
+  ["select-link", "Choose targets · link onto battle or breeding Digimon", "center"],
   ["select-dp-budget", "Choose targets · DP budget", "center"],
   ["select-cost-budget", "Select cards · hand play cost budget", "left"],
   ["select-empty", "Select cards · no legal candidates", "center"],
@@ -73,6 +75,7 @@ export const EFFECT_PROMPT_CASES = [
   ["order-triggers", "Order triggers · next effect", "center"],
   ["order-same-card", "Order triggers · same permanent", "center"],
   ["resolution-plan", "Order triggers · complete plan", "center"],
+  ["order-copies", "Order triggers · two copies on the field", "center"],
   ["partition", "Partition · use / decline", "left"],
   ["confirm-action", "Action confirmation", "left"],
   ["dual-play", "Dual card · option play", "left"],
@@ -148,6 +151,13 @@ export function EffectPromptGallery() {
         }),
       );
     }
+    if (caseId === "order-copies") {
+      preview.players[0]!.battleArea.clear();
+      preview.players[0]!.battleArea.push(
+        permanent({ permanentId: "perm-3", cardId: "BT24-040", baseDP: 12000, stackCardIds: ["BT24-019"] }),
+        permanent({ permanentId: "perm-5", cardId: "BT24-040", baseDP: 12000, stackCardIds: ["BT24-020"] }),
+      );
+    }
     if (active && ["alliance", "alliance-empty", "block", "collision", "collision-empty"].includes(caseId)) {
       if (caseId.startsWith("alliance")) {
         const attacker = preview.players[0]!.battleArea[0]!;
@@ -212,6 +222,23 @@ export function EffectPromptGallery() {
               .filter((card) => (getCardDefinition(card.cardId)?.playCost ?? Infinity) <= 10)
               .map((card) => card.instanceId),
           ),
+        },
+      } satisfies DecisionRequest;
+    }
+    if (caseId === "order-copies") {
+      const copies = [...state.players[0]!.battleArea];
+      return {
+        decisionId: `gallery-order-copies-${revision}`,
+        seat: 0,
+        kind: "orderTriggers",
+        promptText: "Choose one effect to activate",
+        options: {
+          triggerKeys: copies.map((copy) => `${copy.topCard.instanceId}::BT24-040/ir-0-0`),
+          triggerCardIds: copies.map(() => "BT24-040"),
+          triggerDescriptions: copies.map(() => getCardDefinition("BT24-040")?.effectText ?? ""),
+          timing: "AllTurns",
+          acceptsResolutionPlan: true,
+          triggerIsOptional: copies.map(() => true),
         },
       } satisfies DecisionRequest;
     }
@@ -551,7 +578,7 @@ function GalleryPrompt({
   if (caseId.startsWith("mulligan-"))
     return (
       <MulliganOverlay
-        handCardIds={SELECT_CARDS.slice(0, 5)}
+        handCards={SELECT_CARDS.slice(0, 5).map((cardId) => ({ cardId }))}
         turnOrder={caseId === "mulligan-first" ? "first" : "second"}
         onKeep={() => yesNo("keep")}
         onMulligan={() => yesNo("mulligan")}
@@ -685,6 +712,30 @@ function GalleryPrompt({
       request.sourcePermanentId = "gallery-host-1";
       candidates = [{ instanceId: "player" }];
       request.options = { min: 1, max: 1, candidateInstanceIds: ["player"], selectionContext: "attackTarget" };
+    }
+    if (caseId === "select-attack-target") {
+      request.kind = "chooseTargets";
+      request.sourcePermanentId = "gallery-host-1";
+      candidates = [
+        { instanceId: "player" },
+        ...permanents
+          .filter((entry) => entry.controllerSeat === 1)
+          .map((entry) => ({
+            instanceId: entry.permanentId,
+            cardId: entry.topCard.cardId,
+            zone: "opponentBattle" as const,
+          })),
+      ];
+      request.options = { min: 1, max: 1, selectionContext: "attackTarget" };
+    }
+    if (caseId === "select-link") {
+      request.kind = "chooseTargets";
+      request.sourceCardId = "BT24-095";
+      candidates = [
+        { instanceId: "gallery-link-battle", cardId: "BT24-009", zone: "battle" },
+        { instanceId: "gallery-link-breeding", cardId: "BT24-008", zone: "breeding" },
+      ];
+      request.options = { min: 0, max: 1, effectText: getCardDefinition("BT24-095")?.effectText };
     }
     if (caseId === "select-empty") candidates = [];
     if (caseId === "select-dp-budget") request.options = { min: 1, max: 3, maxTotalDP: 12000, targetFate: "delete" };

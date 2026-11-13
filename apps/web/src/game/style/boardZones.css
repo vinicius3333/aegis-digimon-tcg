@@ -421,6 +421,10 @@
   min-height: 0;
 }
 
+.game-board .game-permanent:has(.game-permanent__inspect) [data-card-name]:has([data-field-reference]) {
+  padding-inline-start: 1.5rem;
+}
+
 .game-permanent[data-inspectable] {
   -webkit-touch-callout: none;
   user-select: none;

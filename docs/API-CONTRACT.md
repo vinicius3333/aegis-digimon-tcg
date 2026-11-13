@@ -507,6 +507,12 @@ grace. After a reload of the game page, the client therefore tries any saved tok
 exists answers at once (`410`, `522`, or `524`). Retries after a reload run for the grace
 period from the page load, not from the stale stamp.
 
+Leaving the match screen on purpose sends a consented leave, which concedes at once and
+forgets the saved token. A render crash is not a decision to leave. When
+`ClientErrorBoundary` replaces a crashed match screen, the client keeps the saved token and
+closes the socket with `MAY_TRY_RECONNECT` (4010). The room then treats the seat as dropped
+and holds it for the grace period, so the reload button on the crash screen resumes the match.
+
 ## Events and errors
 
 State synchronization carries durable game state. Ephemeral presentation events

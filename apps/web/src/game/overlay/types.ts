@@ -10,6 +10,7 @@ export interface TriggerDetail {
   sourceLabel?: string;
   sourceShowsCopy?: boolean;
   hostCardId?: string;
+  fieldReference?: string;
   summary?: string;
 }
 

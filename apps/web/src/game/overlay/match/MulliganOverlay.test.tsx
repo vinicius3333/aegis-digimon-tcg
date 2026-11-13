@@ -10,7 +10,12 @@ afterEach(cleanup);
 function renderMulligan(turnOrder?: TurnOrder) {
   render(
     <I18nProvider>
-      <MulliganOverlay handCardIds={["BT1-010"]} turnOrder={turnOrder} onKeep={() => {}} onMulligan={() => {}} />
+      <MulliganOverlay
+        handCards={[{ cardId: "BT1-010" }]}
+        turnOrder={turnOrder}
+        onKeep={() => {}}
+        onMulligan={() => {}}
+      />
     </I18nProvider>,
   );
 }

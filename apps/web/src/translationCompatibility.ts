@@ -1,11 +1,16 @@
 /** Keep React's text-node references valid when the browser replaces them with translated <font> nodes. */
-export function installTranslationCompatibility(root: HTMLElement): () => void {
+export function installTranslationCompatibility(
+  container: HTMLElement,
+  reportToleratedMutation?: (error: Error) => void,
+): () => void {
+  const root = container.ownerDocument.body;
   const removeChild = Node.prototype.removeChild;
   const insertBefore = Node.prototype.insertBefore;
   const nodeValue = Object.getOwnPropertyDescriptor(Node.prototype, "nodeValue")!;
   const translatedNodes = new WeakMap<Node, Node>();
   const vacatedPositions = new WeakMap<Node, { parent: Node; nextSibling: Node | null }>();
   const ownDetachments = new WeakSet<Node>();
+  const displacedNodes = new WeakSet<Node>();
 
   function translatedText(node: Node | null): node is HTMLElement {
     return node instanceof HTMLElement && node.tagName === "FONT" && node.style.verticalAlign === "inherit";
@@ -19,8 +24,10 @@ export function installTranslationCompatibility(root: HTMLElement): () => void {
     for (const record of records) {
       if (!root.contains(record.target)) continue;
       for (const removed of record.removedNodes) {
-        if (ownDetachments.delete(removed) || !replaceableText(removed)) continue;
+        if (ownDetachments.delete(removed)) continue;
+        displacedNodes.add(removed);
         vacatedPositions.set(removed, { parent: record.target, nextSibling: record.nextSibling });
+        if (!replaceableText(removed)) continue;
         const insertion = records.find(
           (candidate) =>
             candidate.target === record.target &&
@@ -55,6 +62,18 @@ export function installTranslationCompatibility(root: HTMLElement): () => void {
     return root.contains(parent) && vacatedPositions.get(child)?.parent === parent;
   }
 
+  function holderIn(parent: Node, node: Node): Node | undefined {
+    if (!root.contains(parent)) return undefined;
+    let holder = node.parentNode;
+    while (holder && holder.parentNode !== parent) holder = holder.parentNode;
+    return holder ?? undefined;
+  }
+
+  function displacedFrom(parent: Node, child: Node): boolean {
+    if (!root.contains(parent)) return false;
+    return vacatedFrom(parent, child) || displacedNodes.has(child) || holderIn(parent, child) !== undefined;
+  }
+
   function referenceIn(parent: Node, reference: Node): Node | null | undefined {
     const visited = new Set<Node>();
     let candidate: Node | null = reference;
@@ -63,7 +82,9 @@ export function installTranslationCompatibility(root: HTMLElement): () => void {
       visited.add(candidate);
       const replacement = replacementIn(parent, candidate);
       if (replacement) return replacement;
-      if (!vacatedFrom(parent, candidate)) return undefined;
+      const holder = holderIn(parent, candidate);
+      if (holder) return holder;
+      if (!vacatedFrom(parent, candidate)) return displacedFrom(parent, candidate) ? null : undefined;
       candidate = vacatedPositions.get(candidate)!.nextSibling;
     }
     return candidate === null ? null : undefined;
@@ -83,12 +104,14 @@ export function installTranslationCompatibility(root: HTMLElement): () => void {
       removeChild.call(this, replacement);
       return child;
     }
-    if (vacatedFrom(this, child)) {
+    if (displacedFrom(this, child)) {
+      const tracked = vacatedFrom(this, child) && replaceableText(child);
       const holder = child.parentNode;
       if (holder && root.contains(holder)) {
         ownDetachments.add(child);
         removeChild.call(holder, child);
       }
+      if (!tracked) reportToleratedMutation?.(new Error("Tolerated removeChild of a node moved by foreign code"));
       return child;
     }
     return removeChild.call(this, child) as T;
@@ -96,6 +119,9 @@ export function installTranslationCompatibility(root: HTMLElement): () => void {
   function compatibleInsertBefore<T extends Node>(this: Node, child: T, reference: Node | null): T {
     if (child.parentNode) ownDetachments.add(child);
     const resolved = reference && reference.parentNode !== this ? referenceIn(this, reference) : reference;
+    if (reference && resolved !== undefined && resolved !== reference && !replaceableText(reference)) {
+      reportToleratedMutation?.(new Error("Tolerated insertBefore a node moved by foreign code"));
+    }
     return insertBefore.call(this, child, resolved === undefined ? reference : resolved) as T;
   }
   Node.prototype.removeChild = compatibleRemoveChild;

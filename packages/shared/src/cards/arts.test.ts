@@ -82,6 +82,13 @@ it("offers Japanese printings for the Gaomon line, MirageGaogamon, and Thomas H.
   }
 });
 
+it("offers Japanese printings for Motimon, Clockmon, Andromon, and Gankoomon (X Antibody)", () => {
+  for (const cardId of ["BT27-005", "BT27-059", "BT27-063", "BT27-068"]) {
+    expect(getCardArts(cardId).map((art) => art.artId)).toEqual([cardId, `${cardId}-J`]);
+    expect(cardImageUrls(cardId, `${cardId}-J`)[0]).toContain(`/${cardId}-J.webp`);
+  }
+});
+
 it("offers Japanese printings for the ST25 and ST26 reveal cards", () => {
   for (const cardId of [
     "ED01-01",
@@ -94,6 +101,12 @@ it("offers Japanese printings for the ST25 and ST26 reveal cards", () => {
     "SD02-02",
     "SD02-03",
     "SD02-04",
+    "ST25-01",
+    "ST25-02",
+    "ST25-03",
+    "ST25-04",
+    "ST25-05",
+    "ST25-06",
   ]) {
     expect(getCardArts(cardId).map((art) => art.artId)).toEqual([cardId, `${cardId}-J`]);
     expect(cardImageUrls(cardId, `${cardId}-J`)[0]).toContain(`/${cardId}-J.webp`);

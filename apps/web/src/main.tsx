@@ -14,6 +14,7 @@ import { applyDarkMode } from "./design/darkMode";
 import { applyInterfaceTheme } from "./design/interfaceTheme";
 import { motionPreference } from "@/design/motion/motionPreference";
 import { preventIosFocusZoom } from "./design/iosViewport";
+import { ClientErrorKind } from "@aegis/shared/clientErrors/ClientErrorKind";
 import { clientErrorReporter } from "@/clientErrors/clientErrorReporter";
 import { installClientErrorListeners } from "@/clientErrors/installClientErrorListeners";
 import { reportRecoverableRenderError } from "@/clientErrors/reportRecoverableRenderError";
@@ -94,7 +95,9 @@ applyDarkMode();
 applyInterfaceTheme();
 motionPreference.apply();
 preventIosFocusZoom();
-installTranslationCompatibility(container);
+installTranslationCompatibility(container, (error) =>
+  clientErrorReporter.capture({ kind: ClientErrorKind.ERROR.value, error }),
+);
 loadFamousDecks().catch(() => undefined);
 void loadDictionary(loadLocale())
   .catch(() => undefined)

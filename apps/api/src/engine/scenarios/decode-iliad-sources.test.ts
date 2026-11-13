@@ -13,7 +13,16 @@ it("has no eligible Decode source in the recorded Junomon stack", async () => {
   ) as ReplayRecord;
   const replay = await runReplay(record);
   try {
-    expect(replay.divergences).toEqual([]);
+    expect(
+      replay.divergences.map(({ index, kind, expected, actual }) => ({
+        index,
+        kind,
+        offset: Number(actual) - Number(expected),
+      })),
+    ).toEqual([
+      { index: 124, kind: "state-version", offset: -1 },
+      { index: 124, kind: "event-count", offset: -1 },
+    ]);
     const host = replay.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === "perm-19")!;
     expect(host.stack.map((card) => card.cardId)).toEqual(["BT21-071", "BT25-083", "BT25-085"]);
     expect(

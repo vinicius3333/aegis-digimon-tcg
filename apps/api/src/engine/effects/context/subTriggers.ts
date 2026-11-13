@@ -96,6 +96,7 @@ export interface SubTriggerInstall {
   dedupeKey?: string;
   /** Printed placement class retained so a pending watcher passes the same kernel guard. */
   isInheritedSource?: boolean;
+  isGainedMainEffect?: boolean;
   isLinkedSource?: boolean;
   /** See `SubTriggerSubscription.watchesSelf`. */
   watchesSelf?: boolean;

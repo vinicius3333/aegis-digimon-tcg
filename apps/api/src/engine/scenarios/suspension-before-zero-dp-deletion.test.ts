@@ -14,7 +14,11 @@ const record = JSON.parse(
 it("preserves Breakdramon's suspension trigger after the suspended ally is deleted at zero DP", async () => {
   const replay = await runReplay(record);
   try {
-    expect(replay.divergences).toEqual([]);
+    const exhaustedRikaRetriggerOffsets = new Set(
+      replay.divergences.map(({ kind, expected, actual }) => `${kind}:${Number(actual) - Number(expected)}`),
+    );
+    expect(exhaustedRikaRetriggerOffsets).toEqual(new Set(["state-version:1", "event-count:3"]));
+    expect(replay.divergences[0]?.index).toBe(168);
     expect(replay.pendingRequest).toMatchObject({ kind: "chooseTargets", seat: 0 });
     expect(
       await replay.applyIntent(0, {

@@ -280,7 +280,7 @@ it("offers no trash sort when the prompt has a single trash card", () => {
   expect(screen.queryByRole("combobox", { name: /Sort trash/ })).toBeNull();
 });
 
-it("keeps every card name directly under its card and moves the copy label to the line below", () => {
+it("keeps every card name and number directly under its card and moves the copy label below them", () => {
   grid([
     { instanceId: "single", cardId: "BT1-010", zone: "trash" },
     { instanceId: "first", cardId: "EX7-071", zone: "trash", pendingEffect: true },
@@ -293,8 +293,10 @@ it("keeps every card name directly under its card and moves the copy label to th
   const first = screen.getByRole("button", { name: /copy 1 of 2/ });
   const name = first.querySelector(".decision-overlay__candidate-name")!;
   expect(name.textContent).not.toContain("copy");
-  expect(name.nextElementSibling?.className).toBe("decision-overlay__candidate-copy");
-  expect(name.nextElementSibling?.textContent).toBe("copy 1 of 2");
+  expect(name.nextElementSibling?.className).toBe("decision-overlay__candidate-id");
+  expect(name.nextElementSibling?.textContent).toBe("EX7-071");
+  expect(name.nextElementSibling?.nextElementSibling?.className).toBe("decision-overlay__candidate-copy");
+  expect(name.nextElementSibling?.nextElementSibling?.textContent).toBe("copy 1 of 2");
   expect(within(first).getByText("Pending effect").closest(".decision-overlay__candidate-details")).toBeTruthy();
   expect(first.querySelector(".decision-overlay__candidate-details")?.textContent).not.toContain("copy");
 });
@@ -308,10 +310,11 @@ it("identifies field candidates by card number and board field reference", () =>
       { instanceId: "hand-card", cardId: "BT24-020", zone: "hand" },
     ]);
     const battle = document.querySelector('[data-instance-id="perm-4"]')!;
-    expect(battle.querySelector(".decision-overlay__candidate-identity")?.textContent).toBe("#4 · BT24-030");
+    expect(battle.querySelector(".decision-overlay__candidate-identity")?.textContent).toBe("#4");
+    expect(battle.querySelector(".decision-overlay__candidate-id")?.textContent).toBe("BT24-030");
     expect(battle.getAttribute("aria-label")).toContain("#4");
     const breeding = document.querySelector('[data-instance-id="perm-9"]')!;
-    expect(breeding.querySelector(".decision-overlay__candidate-identity")?.textContent).toBe("#9 · BT24-020");
+    expect(breeding.querySelector(".decision-overlay__candidate-identity")?.textContent).toBe("#9");
     const hand = document.querySelector('[data-instance-id="hand-card"]')!;
     expect(hand.querySelector(".decision-overlay__candidate-identity")).toBeNull();
   } finally {

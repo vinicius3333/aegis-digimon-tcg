@@ -1,4 +1,5 @@
 import { effectEnvironmentSnapshots } from "#api/engine/effects/resolution/effectEnvironmentSnapshots";
+import { printedHandColorWaiver } from "#api/engine/gameEngine/printedHandColorWaiver";
 import { observeEffectActivation } from "#api/engine/effects/activationPresentation";
 import { resolveDerivedDuringAttackStep } from "#api/engine/gameEngine/resolveDerivedDuringAttackStep";
 import type { ArmedSubTrigger } from "#api/engine/gameEngine/subTriggerIdentity";
@@ -110,7 +111,7 @@ export function effectAccess(engine: GameEngine): GameAccess {
     (seat) => engine.tracker.count(`seat:${seat}`, "digivolvedThisTurn") > 0,
     (permanentId, timing) => isTimingActivationDisabled(engine.continuous, permanentId, timing),
     (permanent) => effectiveColorsOf(engine, permanent),
-    (instanceId) => engine.continuous.hasColorWaiver(instanceId),
+    (instanceId) => engine.continuous.hasColorWaiver(instanceId) || printedHandColorWaiver(engine, instanceId),
     (instanceId) => engine.continuous.colorRequirementAlternatives(instanceId),
     (permanent) => canAttackerDeclare(engine.access, permanent.controllerSeat, permanent, engine.continuous) === null,
     (permanentId, printedTraits) => effectiveTraits(engine.continuous, permanentId, printedTraits),
@@ -232,7 +233,8 @@ export function effectEnvironment(engine: GameEngine, trigger: TriggerInfo): Eff
       (keyword.toLowerCase() === "piercing" && engine.modifiers.hasPierce(id)),
     digivolvedThisTurn: (seat) => engine.tracker.count(`seat:${seat}`, "digivolvedThisTurn") > 0,
     effectiveColors: (permanent) => effectiveColorsOf(engine, permanent),
-    colorRequirementWaived: (instanceId) => engine.continuous.hasColorWaiver(instanceId),
+    colorRequirementWaived: (instanceId) =>
+      engine.continuous.hasColorWaiver(instanceId) || printedHandColorWaiver(engine, instanceId),
     colorRequirementAlternatives: (instanceId) => engine.continuous.colorRequirementAlternatives(instanceId),
     canDeclareAttack: (permanent) =>
       canAttackerDeclare(engine.access, permanent.controllerSeat, permanent, engine.continuous) === null,

@@ -5,6 +5,7 @@ import { CardInstance, Permanent, getCardArts } from "@aegis/shared";
 import { CardFull, CardMini } from "../design/cards";
 import { I18nProvider } from "../i18n";
 import { CardActionMenu, StackViewerOverlay, TrashViewerOverlay } from "./overlay";
+import { MulliganOverlay } from "./overlay/match/MulliganOverlay";
 import { CardZoomOverlay } from "./overlay/viewer/CardZoomOverlay";
 import { buildPermanentDetail } from "./permanentDetail";
 
@@ -83,6 +84,23 @@ describe("physical copy previews", () => {
         .getByAltText("Agumon")
         .getAttribute("src"),
     ).toContain(`${artId}.webp`);
+  });
+  it("shows each opening hand copy's chosen art in the mulligan window", () => {
+    render(
+      <I18nProvider>
+        <MulliganOverlay
+          handCards={[
+            { cardId, artId },
+            { cardId, artId: cardId },
+          ]}
+          onKeep={noop}
+          onMulligan={noop}
+        />
+      </I18nProvider>,
+    );
+    const images = screen.getAllByAltText("Agumon");
+    expect(images[0]!.getAttribute("src")).toContain(`${artId}.webp`);
+    expect(images[1]!.getAttribute("src")).toContain(`${cardId}.webp`);
   });
   it("zooms each stack copy's own art on the mobile sheet", () => {
     render(

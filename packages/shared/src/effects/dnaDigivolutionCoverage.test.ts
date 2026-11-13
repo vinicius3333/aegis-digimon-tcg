@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { getCardDefinition } from "../cards/registry.js";
 import { dnaDigivolutionRequirementsFor } from "./data.js";
 
 /**
@@ -86,10 +87,19 @@ const CARDS_PRINTING_A_DNA_HEADER = [
   "ST9-11",
 ];
 
+const CARDS_GRANTING_DNA_ONLY_THROUGH_AN_EFFECT = new Set(["BT17-101"]);
+
 describe("dnaDigivolutionRequirementsFor / DNA destination coverage", () => {
   it.each(CARDS_PRINTING_A_DNA_HEADER)("%s resolves to a DNA requirement", (cardId) => {
     expect(dnaDigivolutionRequirementsFor(cardId).length).toBeGreaterThan(0);
   });
+
+  it.each(CARDS_PRINTING_A_DNA_HEADER.filter((cardId) => !CARDS_GRANTING_DNA_ONLY_THROUGH_AN_EFFECT.has(cardId)))(
+    "%s shows its DNA requirement in the card text",
+    (cardId) => {
+      expect(getCardDefinition(cardId)?.effectText).toMatch(/\[DNA Digivol|DNA Digivolution:/);
+    },
+  );
 
   it("gives every requirement exactly two material specs", () => {
     for (const cardId of CARDS_PRINTING_A_DNA_HEADER) {

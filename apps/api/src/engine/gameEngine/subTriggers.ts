@@ -2,6 +2,8 @@ import { bumpEngineMutationClock } from "#api/engine/mutationClock/bumpEngineMut
 import { EngineRuntimeObjectKind } from "#api/engine/snapshot/context/EngineRuntimeObjectKind";
 import { resolveDerivedDuringAttackStep } from "#api/engine/gameEngine/resolveDerivedDuringAttackStep";
 import { buildSubTriggerEffectKey } from "#api/engine/gameEngine/buildSubTriggerEffectKey";
+import { currentCausingEffectBody } from "#api/engine/gameEngine/currentCausingEffectBody";
+import { withCausingEffectBody } from "#api/engine/gameEngine/withCausingEffectBody";
 import { observeEffectActivation } from "../effects/activationPresentation.js";
 import { EffectTiming, KEYWORDS, type Seat } from "@aegis/shared";
 import { rootZoneOfLooseInstance } from "../effects/primitives.js";
@@ -55,6 +57,10 @@ export async function fireSubTrigger(
   if (isDigivolutionTrashEvent(event) && payload.digivolutionTrashEventId === undefined) {
     payload = { ...payload, digivolutionTrashEventId: ++engine.digivolutionTrashEventSeq };
   }
+  if (event === "whenOptionUsed" && payload.optionUseEventId === undefined) {
+    payload = { ...payload, optionUseEventId: ++engine.optionUseEventSeq };
+  }
+  payload = withCausingEffectBody(payload, currentCausingEffectBody(engine));
   const scopedOut = (sub: SubTriggerSubscription): boolean => {
     if (sourceScope === undefined) return false;
     // A class watcher that merely includes its own host ("one of your [Chessmon]") is not a
@@ -244,7 +250,7 @@ export function prepareSubTrigger(
   event: SubTriggerEventName,
   payload: TriggerInfo,
 ): () => Promise<void> {
-  const boundPayload = { ...payload };
+  const boundPayload = { ...withCausingEffectBody(payload, currentCausingEffectBody(engine)) };
   const subscriptions = [...engine.subTriggers.subscriptionsFor(event)];
   const contexts = new Map<number, EffectContext>();
   for (const sub of subscriptions) {
@@ -264,7 +270,7 @@ export function prepareOptionUsed(
   usedInstanceId: string,
   usedOptionCost?: number,
 ): () => Promise<void> {
-  const payload = { subjectPermanentId: usedInstanceId, usedOptionCost };
+  const payload = { subjectPermanentId: usedInstanceId, usedOptionCost, optionUseEventId: ++engine.optionUseEventSeq };
   const armed = armedSubTriggers(engine, engine.subTriggers.subscriptionsFor("whenOptionUsed"), payload);
   return async () => {
     const pending = armed.filter((item) => pendingWatcherSourceStillResident(engine, item));
@@ -856,6 +862,8 @@ export async function withPendingSubTriggers(
     alsoArmed?: readonly ArmedSubTrigger[];
   } = {},
 ): Promise<void> {
+  const causingEffectBody = currentCausingEffectBody(engine);
+  if (payload !== undefined) payload = withCausingEffectBody(payload, causingEffectBody);
   // A rule sweep parks watchers wholesale (see fireSubTrigger); leave that path alone.
   const ruleSweepDefersWatchers = engine.ruleProcessing;
   const armed = [
@@ -886,8 +894,9 @@ export async function withPendingSubTriggers(
     );
     if (alsoRemaining.length > 0)
       await withTriggeredMutations(engine, () => runSubTriggersInChosenOrder(engine, alsoRemaining));
-    const trigger = opts.busTrigger === undefined ? payload : opts.busTrigger();
-    if (trigger === undefined) return;
+    const busTrigger = opts.busTrigger === undefined ? payload : opts.busTrigger();
+    if (busTrigger === undefined) return;
+    const trigger = withCausingEffectBody(busTrigger, causingEffectBody);
     for (const event of events) await engine.fireSubTrigger(event, trigger);
   };
   if (armed.length === 0) {
@@ -1047,7 +1056,7 @@ export function playerFacingWatcherClause(sub: SubTriggerSubscription, ctx: Effe
   const box =
     sub.isLinkedSource === true
       ? definition.linkEffect
-      : sub.isInheritedSource === true
+      : readsInheritedBox(sub)
         ? definition.inheritedEffectText
         : definition.effectText;
   if (sub.isLinkedSource === true && sub.event === "whenLinked") {
@@ -1055,10 +1064,12 @@ export function playerFacingWatcherClause(sub: SubTriggerSubscription, ctx: Effe
     if (clause !== undefined) return clause;
   }
   const optionSideLine =
-    sub.isLinkedSource === true || sub.isInheritedSource === true
-      ? undefined
-      : soleWatcherLine(definition.optionEffect);
+    sub.isLinkedSource === true || readsInheritedBox(sub) ? undefined : soleWatcherLine(definition.optionEffect);
   return soleWatcherLine(box) ?? optionSideLine ?? `${triggerLabel(sub.event)}: ${definition.nameEn}`;
+}
+
+function readsInheritedBox(sub: SubTriggerSubscription): boolean {
+  return sub.isInheritedSource === true && sub.isGainedMainEffect !== true;
 }
 
 /** Present a watcher to the ordering prompt as an ordinary collected effect. */
@@ -1082,6 +1093,7 @@ export function subTriggerAsCollected(engine: GameEngine, { sub, ctx, occurrence
     discardedStackSourceProof: ctx.discardedStackSourceProof,
     timingLabel: sub.event,
     printedTiming: sub.printedTiming,
+    ...(sub.isGainedMainEffect === true ? { isGainedMainEffect: true } : {}),
     ...triggerReasonOf(sub),
     effect: {
       effectKey: buildSubTriggerEffectKey(sub),
@@ -1139,7 +1151,7 @@ export function announceSubTrigger(
       description,
       timing: sub.event,
       ...(sub.printedTiming !== undefined ? { printedTiming: sub.printedTiming } : {}),
-      ...(sub.isInheritedSource === true ? { isInherited: true } : {}),
+      ...(readsInheritedBox(sub) ? { isInherited: true } : {}),
       // `securityChecked` closes the check AFTER these bodies have run, so the client needs
       // engine to hold the announcement until the checked card's reveal has been shown.
       ...(engine.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
@@ -1158,7 +1170,7 @@ export function announceSubTrigger(
       effectKey,
       description,
       timing: sub.event,
-      ...(sub.isInheritedSource === true ? { isInherited: true } : {}),
+      ...(readsInheritedBox(sub) ? { isInherited: true } : {}),
     });
   };
 }
@@ -1181,7 +1193,7 @@ function announceWithoutLegalOutcome(engine: GameEngine, item: ArmedSubTrigger):
     effectKey: buildSubTriggerEffectKey(sub),
     description: playerFacingWatcherClause(sub, ctx),
     timing: sub.event,
-    ...(sub.isInheritedSource === true ? { isInherited: true } : {}),
+    ...(readsInheritedBox(sub) ? { isInherited: true } : {}),
   });
 }
 

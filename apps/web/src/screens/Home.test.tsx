@@ -1,7 +1,9 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { LiveMatchPage } from "@aegis/shared/protocol/LiveMatch";
+import { RankedTier } from "@aegis/shared/ranked/RankedTier";
+import type { RankedLeaderboard } from "@aegis/shared/ranked/RankedContracts";
 import type { PublicReplayPage } from "@aegis/shared/replays/PublicReplay";
 import type { DeckListing } from "@/game/decks";
 import { HomeMatchQueue } from "@/home/HomeMatchQueue";
@@ -54,14 +56,30 @@ function renderHome(overrides: Partial<Parameters<typeof Home>[0]> = {}) {
 
 let liveMatchPage: LiveMatchPage;
 let publicReplayPage: PublicReplayPage;
+let rankedLeaderboard: RankedLeaderboard;
+let rankedResponseStatus: number;
+const requestedUrls: string[] = [];
 
 beforeEach(() => {
   liveMatchPage = { matches: [], total: 0 };
   publicReplayPage = { replays: [] };
+  requestedUrls.length = 0;
+  rankedLeaderboard = {
+    season: { id: 2, startsAt: 0, endsAt: 1, finalized: false, formats: ["standard"] },
+    entries: [],
+    mine: null,
+    page: 1,
+    total: 0,
+  };
+  rankedResponseStatus = 200;
   vi.stubGlobal(
     "fetch",
     vi.fn<typeof fetch>(async (input) => {
       const url = String(input);
+      requestedUrls.push(url);
+      if (url.includes("/ranked/leaderboard")) {
+        return new Response(JSON.stringify(rankedLeaderboard), { status: rankedResponseStatus });
+      }
       if (url.includes("/tournaments")) {
         return new Response(JSON.stringify([]), { status: 200 });
       }
@@ -73,7 +91,9 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  localStorage.removeItem("aegis:locale");
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 describe("the home screen", () => {
@@ -156,11 +176,90 @@ describe("the home screen", () => {
     expect(screen.queryByRole("button", { name: "Play now" })).toBeNull();
   });
 
-  it("queues the selected deck for a ranked match", () => {
-    const props = renderHome();
+  it("queues the selected deck for a ranked match", async () => {
+    const onOpenRanked = vi.fn<() => void>();
+    const props = renderHome({ accountId: "mine", onOpenRanked });
+    expect(screen.getByRole("button", { name: "Find casual match" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Ranked" }));
-    fireEvent.click(screen.getByRole("button", { name: "Find match" }));
+    const summary = screen.getByRole("link", { name: "View ranked details" });
+    expect(summary.getAttribute("href")).toBe("/ranked");
+    await screen.findByText("Not yet ranked this season");
+    fireEvent.click(summary);
+    expect(onOpenRanked).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole("button", { name: "Find ranked match" }));
     expect(props.onFindMatch).toHaveBeenCalledWith(HomeMatchQueue.RANKED.value);
+  });
+
+  it("starts on casual and allows switching modes without a deck", () => {
+    renderHome({ activeDeck: undefined });
+    expect(screen.getByRole("button", { name: "Casual" }).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(screen.getByRole("button", { name: "Ranked" }));
+    expect(screen.getByRole("button", { name: "Ranked" }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByRole("button", { name: "Find ranked match" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Casual" }));
+    expect(screen.getByRole("button", { name: "Find casual match" })).toBeTruthy();
+  });
+
+  it("shows loading before confirmed empty ranked data", async () => {
+    renderHome({ accountId: "mine" });
+    expect(requestedUrls.some((url) => url.includes("/ranked/leaderboard"))).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Ranked" }));
+    const summary = screen.getByRole("link", { name: "View ranked details", description: "Loading..." });
+    expect(within(summary).queryByText("Not yet ranked this season")).toBeNull();
+    expect(await within(summary).findByText("Not yet ranked this season")).toBeTruthy();
+  });
+
+  it("does not report a failed ranked request as an empty standing", async () => {
+    rankedResponseStatus = 503;
+    localStorage.setItem("aegis:locale", "zh-CN");
+    renderHome({ accountId: "mine" });
+    fireEvent.click(screen.getByRole("button", { name: "排位" }));
+    const summary = screen.getByRole("link", { name: "查看排位详情" });
+    expect(screen.getByRole("button", { name: "寻找排位对战" })).toBeTruthy();
+    expect(await within(summary).findByText("暂时无法加载排位数据")).toBeTruthy();
+    expect(within(summary).queryByText("本赛季尚未参与排位")).toBeNull();
+  });
+
+  it("does not request personal ranked data before an account is available", () => {
+    renderHome();
+    fireEvent.click(screen.getByRole("button", { name: "Ranked" }));
+    expect(
+      screen.getByRole("link", { name: "View ranked details", description: "Ranked data unavailable" }),
+    ).toBeTruthy();
+    expect(requestedUrls.some((url) => url.includes("/ranked/leaderboard"))).toBe(false);
+  });
+
+  it("refreshes the accessible ranked score on re-entry without polling the leaderboard", async () => {
+    vi.useFakeTimers();
+    const standing = {
+      accountId: "mine",
+      displayName: "Player",
+      position: 3,
+      rating: 1234,
+      peakRating: 1234,
+      tier: RankedTier.GOLD.value,
+      region: null,
+      wins: 7,
+      losses: 3,
+      draws: 0,
+      games: 10,
+      winrate: 0.7,
+      provisional: false,
+    };
+    rankedLeaderboard.mine = standing;
+    renderHome({ accountId: standing.accountId });
+    fireEvent.click(screen.getByRole("button", { name: "Ranked" }));
+    await act(async () => {});
+    expect(screen.getByRole("link", { name: "View ranked details", description: /Gold 1,234 pts.*#3/ })).toBeTruthy();
+    await act(async () => vi.advanceTimersByTimeAsync(30_000));
+    expect(requestedUrls.filter((url) => url.includes("/ranked/leaderboard"))).toHaveLength(1);
+    cleanup();
+    rankedLeaderboard.mine = { ...standing, rating: 1250 };
+    renderHome({ accountId: standing.accountId });
+    fireEvent.click(screen.getByRole("button", { name: "Ranked" }));
+    await act(async () => {});
+    expect(screen.getByRole("link", { name: "View ranked details", description: /1,250 pts/ })).toBeTruthy();
+    expect(requestedUrls.filter((url) => url.includes("/ranked/leaderboard"))).toHaveLength(2);
   });
 
   it("hides the ranked choice and queues casual when ranked is off", () => {

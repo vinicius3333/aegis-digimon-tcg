@@ -374,7 +374,7 @@ describe("BoardBlockPrompt", () => {
     { permanentId: "perm-7", cardId: "BT24-020", currentDP: 2000, sourceCount: 0 },
   ];
 
-  it("docks compact blocker choices beside the board and offers No block", () => {
+  it("docks compact blocker choices beside the board and offers Don't block", () => {
     const onDecline = vi.fn<() => void>();
     const onBlock = vi.fn<(permanentId: string) => void>();
     renderIn(
@@ -398,7 +398,7 @@ describe("BoardBlockPrompt", () => {
     expect(choices[0]!.textContent).toContain("13,000 DP");
     fireEvent.click(choices[1]!);
     expect(onBlock).toHaveBeenCalledExactlyOnceWith("perm-7");
-    fireEvent.click(screen.getByRole("button", { name: "No block" }));
+    fireEvent.click(screen.getByRole("button", { name: "Don't block" }));
     expect(onDecline).toHaveBeenCalledTimes(1);
   });
 
@@ -439,7 +439,7 @@ describe("BoardBlockPrompt", () => {
 
   it("does not offer decline when blocking is mandatory", () => {
     renderIn(<BoardBlockPrompt mustBlock blockers={blockers} onBlock={noop} onDecline={noop} />);
-    expect(screen.queryByRole("button", { name: "No block" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Don't block" })).toBeNull();
     expect(screen.getByText(/must block if possible/i)).toBeTruthy();
   });
 });

@@ -330,7 +330,7 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
         return false;
       }
       // The disable suppresses the masked timing effects of the resolved (opponent) permanents.
-      const ids = await resolvePermanentTargets(ctx, action.target);
+      const ids = await resolvePermanentTargets(ctx, action.target, { preserveUnaffectableSelection: true });
       const duration = toDuration(action.duration);
       for (const id of ids) ctx.fx.disableTimingEffect(id, action.timings, duration);
       return false;

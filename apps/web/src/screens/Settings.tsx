@@ -46,6 +46,8 @@ import { useHoverZoomPreference } from "@/design/useHoverZoomPreference";
 import { cardViewer3dPreference } from "@/game/overlay/viewer/cardViewer3d/cardViewer3dPreference";
 import { useCardViewer3dEnabled } from "@/game/overlay/viewer/cardViewer3d/useCardViewer3dEnabled";
 import { setChatSoundEnabled, useChatSoundEnabled } from "../game/chat/chatSound";
+import { setMatchChatEnabled } from "@/game/chat/matchChatEnabled/setMatchChatEnabled";
+import { useMatchChatEnabled } from "@/game/chat/matchChatEnabled/useMatchChatEnabled";
 import { CardSleevePicker, EggSleevePicker } from "../design/sleevePicker";
 import { TEXT_SCALES, setTextScale, useTextScale, type TextScale } from "../design/textScale";
 import { SEQUENTIAL_PACING_ENABLED } from "../features";
@@ -310,6 +312,7 @@ export function Settings({
   const hoverZoom = useHoverZoomPreference();
   const cardViewer3d = useCardViewer3dEnabled();
   const chatSoundEnabled = useChatSoundEnabled();
+  const matchChatEnabled = useMatchChatEnabled();
   const handAutoSort = useHandAutoSort();
   const effectPromptPosition = useEffectPromptPosition();
   const noticeDuration = useNoticeDuration();
@@ -484,7 +487,7 @@ export function Settings({
               <div className="settings-row">
                 <Switch
                   checked={chatSoundEnabled}
-                  disabled={!soundOn}
+                  disabled={!soundOn || !matchChatEnabled}
                   label={t("chat.sound")}
                   description={t("chat.soundDesc")}
                   onChange={(next) => {
@@ -715,6 +718,14 @@ export function Settings({
                   label={t("settings.handAutoSort")}
                   description={t("settings.handAutoSortDesc")}
                   onChange={setHandAutoSortEnabled}
+                />
+              </div>
+              <div className="settings-row">
+                <Switch
+                  checked={matchChatEnabled}
+                  label={t("chat.enabled")}
+                  description={t("chat.enabledDesc")}
+                  onChange={setMatchChatEnabled}
                 />
               </div>
               <div className="settings-row">

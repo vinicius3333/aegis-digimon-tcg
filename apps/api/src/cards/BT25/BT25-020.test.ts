@@ -234,6 +234,58 @@ describe("BT25-020 Marsmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
+  it("asks before each later optional battle after the trigger list accepted both effects", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-058", as: "callismon" }],
+          hand: [{ card: "BT25-020", as: "marsmon" }],
+        },
+        1: { battleArea: [{ card: "BT24-017", as: "victim", under: ["BT1-020"], dp: 3000 }] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: false },
+    );
+    await s.ready();
+
+    const played = advance(s.engine).verb.playInstances([s.inst("marsmon").instanceId], "BT25-054");
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const order = s.state.pendingDecision!;
+    const { triggerKeys } = JSON.parse(order.payloadJson) as { triggerKeys: string[] };
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: {
+          kind: "orderTriggers",
+          order: triggerKeys,
+          optionalAnswers: Object.fromEntries(triggerKeys.map((key) => [key, true])),
+        },
+      }),
+    ).toEqual({ ok: true });
+
+    const declinedBattles: string[] = [];
+    for (let answered = 0; answered < 2; answered += 1) {
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const optional = s.state.pendingDecision!;
+      declinedBattles.push((JSON.parse(optional.payloadJson) as { effectTextPart: string }).effectTextPart);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: optional.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await played;
+
+    expect(declinedBattles.sort()).toEqual([
+      "Then, 1 of your Digimon may battle 1 of your opponent's Digimon.",
+      "Then, this Digimon may battle 1 of your opponent's Digimon.",
+    ]);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-020"]);
+    expect(s.perm("callismon").topCard.cardId).toBe("BT25-058");
+  });
+
   it("applies the entry boost and direct battle after a public TS evolution", async () => {
     const s = setupEngine(
       {

@@ -63,6 +63,7 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
+          effectTextPart: "＜Overclock ([Puppet] Trait)＞",
           kind: "Attack",
           target: {
             filter: {

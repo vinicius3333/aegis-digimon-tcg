@@ -326,3 +326,20 @@ text transcriptions.
 | SD02-02-J, SD02-03-J, SD02-04-J | [Official Japanese reveal](https://x.com/digimon_tcg/status/2119950689669657016)   |
 | ED01-02-J                       | [Official Japanese reveal](https://x.com/digimon_tcg/status/2120033787442827376)   |
 | ED01-10-J                       | [Official Japanese reveal](https://x.com/digimon_tcg/status/2120131900232925324)   |
+
+## ST25 Gemmon line and Kanata Hondo, 2026-11-11
+
+ST25-01 through ST25-06 and their `-J` printings come from the user-provided
+official English and Japanese reveal scans. Each 951 x 1295 px attachment is
+cropped to `(41, 41, 909, 1254)`, producing 868 x 1213 px WebP images at
+quality 90 without the white outer margin. The SAMPLE watermark is preserved.
+The Japanese scans supply the Japanese name and text transcriptions.
+
+## BT27 Motimon, Clockmon, Andromon and Gankoomon (X Antibody), 2026-11-12
+
+BT27-005, BT27-059, BT27-063, BT27-068 and their `-J` printings come from the
+user-provided official English and Japanese reveal scans. Each 951 x 1295 px
+attachment is cropped to `(41, 41, 909, 1254)`, producing 868 x 1213 px WebP
+images at quality 90 without the white outer margin. The SAMPLE watermark is
+preserved. The Japanese scans supply the Japanese name and text
+transcriptions.

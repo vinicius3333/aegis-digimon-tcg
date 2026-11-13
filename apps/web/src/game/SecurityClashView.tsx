@@ -14,6 +14,7 @@ import { CardBurst } from "./CardBurst";
 import { CardShatter } from "./CardShatterView";
 import { CLASH_OUTCOME_AT_MS, TIMINGS } from "./timings";
 import { useTranslation } from "../i18n";
+import { useCardOpener } from "./cardLinks";
 import {
   orderSecurityClashFighters,
   type SecurityBranchScene,
@@ -274,6 +275,7 @@ export function SecurityBranch({ scene, compact = false }: { scene: SecurityBran
   const artRef = useRef<HTMLDivElement>(null);
   const [transfer, setTransfer] = useState<CSSProperties | null>(null);
   const securityDock = scene.source !== "option" && scene.state === "docked";
+  const openCard = useCardOpener();
   useLayoutEffect(() => {
     if (scene.source === "option" || scene.state !== "docked") return;
     const root = rootRef.current;
@@ -314,7 +316,18 @@ export function SecurityBranch({ scene, compact = false }: { scene: SecurityBran
     >
       <figure className="battle-security-branch__frame">
         <div ref={artRef} className="battle-security-branch__art">
-          <CardFull cardId={scene.cardId} artId={scene.artId} width={compact ? 92 : BRANCH_CARD_WIDTH} />
+          {openCard ? (
+            <button
+              type="button"
+              className="battle-security-branch__open"
+              aria-label={t("feed.openCard", { card: revealedName })}
+              onClick={() => openCard(scene.cardId, scene.artId)}
+            >
+              <CardFull cardId={scene.cardId} artId={scene.artId} width={compact ? 92 : BRANCH_CARD_WIDTH} />
+            </button>
+          ) : (
+            <CardFull cardId={scene.cardId} artId={scene.artId} width={compact ? 92 : BRANCH_CARD_WIDTH} />
+          )}
         </div>
         <figcaption className="battle-security-branch__caption">
           {scene.source === "option" ? t("overlay.optionResolving") : t("overlay.securityResolving")}

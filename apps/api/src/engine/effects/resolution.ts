@@ -89,17 +89,35 @@ export interface ResolutionDeps {
  * cannot trigger retroactively (BT10-011 Q1940); one granted to a card that has since left
  * the field still triggered from that event (BT12-105 Q2241).
  */
-export function eventGrantSnapshot(env: EffectEnvironment): NonNullable<Parameters<typeof gatherTriggeredEffects>[3]> {
+export function eventGrantSnapshot(
+  env: EffectEnvironment,
+  listCandidateInstances?: () => readonly CardInstance[],
+): NonNullable<Parameters<typeof gatherTriggeredEffects>[3]> {
+  const customEffectGrants = [
+    ...(env.triggerInfo?.customEffectGrantsSnapshot ?? env.continuous.listCustomEffectGrants()),
+  ];
   return {
     stackEffectConferrals: [
       ...(env.triggerInfo?.stackEffectConferralsSnapshot ?? env.continuous.listStackEffectConferrals()),
     ],
-    customEffectGrants: [...(env.triggerInfo?.customEffectGrantsSnapshot ?? env.continuous.listCustomEffectGrants())],
+    customEffectGrants,
+    recipientFollowingGrantIds: grantIdsAnchoredOnCandidates(customEffectGrants, listCandidateInstances),
     onDeletionAtEndOfAttackProjections: [
       ...(env.triggerInfo?.onDeletionAtEndOfAttackProjectionsSnapshot ??
         env.continuous.listOnDeletionAtEndOfAttackProjections().map((projection) => projection.permanentId)),
     ],
   };
+}
+
+function grantIdsAnchoredOnCandidates(
+  grants: readonly { grantId?: number; instanceId: string }[],
+  listCandidateInstances: (() => readonly CardInstance[]) | undefined,
+): number[] {
+  if (grants.length === 0 || listCandidateInstances === undefined) return [];
+  const candidateIds = new Set(listCandidateInstances().map((instance) => instance.instanceId));
+  return grants.flatMap((grant) =>
+    grant.grantId !== undefined && candidateIds.has(grant.instanceId) ? [grant.grantId] : [],
+  );
 }
 
 /**
@@ -112,7 +130,7 @@ export function eventGrantSnapshot(env: EffectEnvironment): NonNullable<Paramete
 export function buildResolutionEnv(
   env: EffectEnvironment,
   deps: ResolutionDeps,
-  grantSnapshot: ReturnType<typeof eventGrantSnapshot> = eventGrantSnapshot(env),
+  grantSnapshot: ReturnType<typeof eventGrantSnapshot> = eventGrantSnapshot(env, deps.listCandidateInstances),
 ): ResolutionEnv {
   const environment: ResolutionEnv = {
     runtimeObjects: env.runtimeObjects,

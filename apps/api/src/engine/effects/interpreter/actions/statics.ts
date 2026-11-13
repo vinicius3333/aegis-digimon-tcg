@@ -122,7 +122,7 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
             : (ctx.effectSourceKinds ?? ctx.source.definition.kinds).filter(
                 (kind) => kind === "Digimon" || kind === "Option",
               );
-        const grantToPermanent = (grantCtx: EffectContext, permanentId: string): void => {
+        const grantToPermanent = (grantCtx: EffectContext, permanentId: string, isResolvedRecipient = false): void => {
           if (grantedPermanentIds.has(permanentId)) return;
           const permanent = grantCtx.game.permanentById(permanentId);
           const top = permanent?.topCard;
@@ -131,6 +131,7 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
             activationIdentity,
             continuous: ctx.continuousPass === true,
             sourceCardId: ctx.source.cardId,
+            ...(isResolvedRecipient ? { recipientPermanentId: permanentId } : {}),
             // Q2120/Q2121: a duration-scoped Option aura is applied only while this Digimon can
             // be affected by the granting Option. Re-evaluate at trigger collection time.
             isActive: createTrackedGrantActivity({
@@ -143,7 +144,7 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
           grantedPermanentIds.add(permanentId);
         };
         for (const id of ids) {
-          grantToPermanent(ctx, id);
+          grantToPermanent(ctx, id, true);
         }
         // "All of their Digimon gain ... until the end of their turn" is a timed player-wide
         // grant, not a snapshot of the board. Keep the existing targets and apply the same

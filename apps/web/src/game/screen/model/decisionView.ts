@@ -85,7 +85,11 @@ export function decisionViewFor({
   const decisionSourcePermanentId = viewerDecision
     ? sourcePermanentIdOf(decisionSourceCardId, permanents, viewerDecision)
     : undefined;
-  const fieldInstanceIds = permanents.flatMap((permanent) => [permanent.permanentId, permanent.topCard.instanceId]);
+  const viewerBreeding = breedingPermanents.filter((permanent) => permanent.controllerSeat === viewerSeat);
+  const fieldInstanceIds = [...permanents, ...viewerBreeding].flatMap((permanent) => [
+    permanent.permanentId,
+    permanent.topCard.instanceId,
+  ]);
   const boardPresentation = viewerDecision
     ? decisionPresentation({
         decision: viewerDecision,

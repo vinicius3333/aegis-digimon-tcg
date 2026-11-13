@@ -11,6 +11,7 @@ export function BreedingSlot({
   keywordLabels,
   label,
   candidate,
+  picked,
   focused,
   compact,
   burst,
@@ -27,6 +28,7 @@ export function BreedingSlot({
   keywordLabels?: Readonly<Record<string, string>>;
   label: string;
   candidate?: boolean;
+  picked?: boolean;
   /** The breeding step is open: the slot is the one lit thing on a dimmed board. */
   focused?: boolean;
   compact?: boolean;
@@ -116,7 +118,8 @@ export function BreedingSlot({
             width={w}
             effectSource={effectSource}
             effectLinked={effectLinked}
-            highlight={highlight}
+            highlight={highlight || picked}
+            picked={picked}
             onInspect={onInspect}
             showInspect={focused}
           />

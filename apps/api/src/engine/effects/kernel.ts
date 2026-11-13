@@ -142,6 +142,19 @@ function inheritedHostInvalidAtDeletion(ctx: EffectContext): boolean {
   );
 }
 
+function pendsForDeletedHostInTrash(ctx: EffectContext): boolean {
+  const trigger = ctx.trigger;
+  const sourceId = ctx.source.instanceId;
+  const hostId = trigger?.deletedHostInstanceByInstanceId?.[sourceId];
+  return (
+    hostId !== undefined &&
+    hostId !== sourceId &&
+    trigger?.deletedInstanceIds?.includes(sourceId) === true &&
+    trigger.deletedWasStackInstanceIds?.includes(sourceId) === true &&
+    ctx.game.state.players.some((player) => player.trash.some((card) => card.instanceId === hostId))
+  );
+}
+
 /**
  * Whether this effect's source card is currently placed such that an
  * inherited/linked effect may activate:
@@ -183,6 +196,7 @@ export function passesPlacementGuard(effect: Effect, ctx: EffectContext): boolea
       (host?.inBreeding === false || discardedOption || discardedProof.activatesFromDiscardedCard === true);
     if (!proofIsLive) return false;
   }
+  if (effect.isInherited && pendsForDeletedHostInTrash(ctx)) return true;
   const permanent = ctx.source.permanent();
   if (permanent === undefined) {
     if (

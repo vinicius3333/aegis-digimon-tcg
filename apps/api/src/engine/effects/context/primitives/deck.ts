@@ -16,7 +16,7 @@ export interface DeckPrimitives {
   addSecurity(
     seat: Seat,
     instanceIds: string[],
-    opts?: { toTop?: boolean; faceUp?: boolean; detachPermanentTop?: boolean },
+    opts?: { toTop?: boolean; faceUp?: boolean; detachPermanentTop?: boolean; toOwnerSecurity?: boolean },
   ): Promise<void>;
   /** Resolution-source stack used by ownership, source-kind, and deletion-provenance checks. */
   enterEffectResolution?(seat: Seat, sourceKinds?: string[], sourcePermanentId?: string): void;

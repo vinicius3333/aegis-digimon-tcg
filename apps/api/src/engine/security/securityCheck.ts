@@ -196,6 +196,8 @@ export interface SecurityCheckDeps {
    * change; absent => the restriction is not checked.
    */
   hasRestriction?(permanentId: string, restriction: "beDeletedInBattle"): boolean;
+
+  settleAfterCheck?(): Promise<void>;
 }
 
 /**
@@ -401,6 +403,8 @@ export async function runSecurityCheck(
     });
 
     // A loss may have been flagged by an effect during resolution.
+    if (win.resolveLossFlags()) break;
+    await deps.settleAfterCheck?.();
     if (win.resolveLossFlags()) break;
   }
 }

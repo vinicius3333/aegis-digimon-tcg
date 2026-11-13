@@ -1477,7 +1477,7 @@ describe("phone target grid", () => {
   it("keeps the compact size on a phone wide enough for it", () => {
     stubViewportWidth(TOUCH_LAYOUT_QUERY);
     const cards = renderTargets().querySelectorAll<HTMLElement>("button > div");
-    expect([...cards].map((card) => card.style.width)).toEqual(["110px", "110px", "110px"]);
+    expect([...cards].map((card) => card.style.width)).toEqual(["104px", "104px", "104px"]);
   });
 });
 
@@ -2943,7 +2943,7 @@ describe("EX3-046 Commandramon decisions", () => {
     expect(screen.getByText(getCardDefinition("EX3-046")!.effectText!.match(/＜Decoy[^＞]*＞/)![0])).toBeTruthy();
     expect(screen.getByRole("button", { name: /Commandramon, 0 source/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: "None" })).toBeTruthy();
-    expect(screen.queryByText("EX3-046")).toBeNull();
+    expect(screen.getByText("EX3-046").className).toBe("decision-overlay__candidate-id");
     fireEvent.click(screen.getByRole("button", { name: "View board" }));
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(onRespond).not.toHaveBeenCalled();
@@ -4004,7 +4004,7 @@ describe("decision board preview", () => {
       </I18nProvider>,
     );
 
-    expect(screen.queryByRole("button", { name: "No block" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Don't block" })).toBeNull();
     expect(screen.getByText(/must block if possible/i)).toBeTruthy();
     expect(screen.getByText("Mandatory")).toBeTruthy();
   });
@@ -5188,4 +5188,38 @@ it.each([0, 1])("keeps attack target actions explicit with minimum %i", (min) =>
   expect(onRespond.mock.calls).toEqual(min === 0 ? [[{ kind: "selectCards", instanceIds: [] }]] : []);
   fireEvent.click(screen.getByRole("button", { name: "Attack" }));
   expect(onRespond).toHaveBeenLastCalledWith({ kind: "selectCards", instanceIds: ["player"] });
+});
+
+it.each([
+  {
+    cardId: "BT27-040",
+    options: {
+      effectText: getCardDefinition("BT27-040")!.effectText,
+      effectTextPart: "＜Overclock ([Chuumon]/[Sukamon] in name)＞",
+    },
+    expected: "＜Overclock ([Chuumon]/[Sukamon] in name)＞",
+  },
+  {
+    cardId: "BT22-036",
+    options: {
+      effectText:
+        "＜Overclock ([Puppet] Trait)＞ (At the end of your turn, by deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon attacks a player without suspending.)",
+      effectTextPart: "＜Overclock ([Puppet] Trait)＞",
+      effectTextEmphasis: "＜Overclock ([Puppet] Trait)＞",
+    },
+    expected: "＜Overclock ([Puppet] Trait)＞",
+  },
+])("shows the printed Overclock keyword in $cardId's end-of-turn prompt", ({ cardId, options, expected }) => {
+  renderDecision({
+    decisionId: `overclock-${cardId}`,
+    seat: 0,
+    kind: "optional",
+    sourceCardId: cardId,
+    promptText: "Use this effect?",
+    options: { timing: "EndOfYourTurn", ...options },
+  });
+  const effectText = document.querySelector(".decision-overlay__effect-text")?.textContent ?? "";
+  expect(effectText).toContain(expected);
+  expect(effectText).not.toContain("[Digivolve]");
+  expect(effectText).not.toContain("[Hand] [Main]");
 });

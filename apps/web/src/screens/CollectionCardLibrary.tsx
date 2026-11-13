@@ -22,13 +22,14 @@ type SortLibraryParams = {
   cards: readonly CardDefinition[];
   sort: CardSort;
   query: string;
+  textOnly: boolean;
 };
 
-function sortLibrary({ cards, sort, query }: SortLibraryParams): readonly CardDefinition[] {
+function sortLibrary({ cards, sort, query, textOnly }: SortLibraryParams): readonly CardDefinition[] {
   if (sort === "releaseDate") {
     return cards;
   }
-  return sortSearchResults({ cards, sort, query });
+  return sortSearchResults({ cards, sort, query, textOnly });
 }
 
 export function CollectionCardLibrary({ hidden }: CollectionCardLibraryParams) {
@@ -37,8 +38,8 @@ export function CollectionCardLibrary({ hidden }: CollectionCardLibraryParams) {
   const all = useMemo<CardDefinition[]>(() => sortCards(activeCollectionCards(), "releaseDate"), []);
   const filter = useCardFilter(all, { initialQuery: new URLSearchParams(window.location.search).get("q") ?? "" });
   const sorted = useMemo(
-    () => sortLibrary({ cards: filter.filtered, sort: filter.sort, query: filter.query }),
-    [filter.filtered, filter.sort, filter.query],
+    () => sortLibrary({ cards: filter.filtered, sort: filter.sort, query: filter.query, textOnly: filter.textOnly }),
+    [filter.filtered, filter.sort, filter.query, filter.textOnly],
   );
   const [selected, setSelected] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);

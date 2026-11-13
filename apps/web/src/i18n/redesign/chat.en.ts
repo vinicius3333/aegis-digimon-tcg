@@ -14,6 +14,8 @@ export const chatEn = {
   "chat.muteSpectators": "Mute spectators",
   "chat.sound": "Chat sound",
   "chat.soundDesc": "Play a sound for each new message from your opponent or spectators.",
+  "chat.enabled": "Match chat",
+  "chat.enabledDesc": "Show the chat button, speech bubbles and messages in matches. Turn off to hide chat completely.",
   "chat.you": "You",
   "chat.spectator": "Spectator {number}",
   "chat.spectatorTag": "spectator",

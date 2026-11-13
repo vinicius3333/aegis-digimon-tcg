@@ -566,6 +566,28 @@ body:has(.decision-overlay--selection) .narration-slot {
   font-size: var(--ds-text-xs);
   font-weight: 600;
 }
+.trigger-chooser__waiting-details > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  min-height: 32px;
+  list-style: none;
+  cursor: pointer;
+}
+.trigger-chooser__waiting-details > summary::-webkit-details-marker {
+  display: none;
+}
+.trigger-chooser__waiting-details > summary svg {
+  margin-left: auto;
+  transition: rotate 120ms;
+}
+.trigger-chooser__waiting-details[open] > summary svg {
+  rotate: 180deg;
+}
+.trigger-chooser__waiting-details > summary:focus-visible {
+  outline: 2px solid var(--ds-focus);
+  outline-offset: 2px;
+}
 .trigger-chooser__waiting-count {
   margin-left: var(--ds-space-2);
   color: var(--ds-text-3);
@@ -630,22 +652,72 @@ body:has(.decision-overlay--selection) .narration-slot {
     grid-template-columns: auto minmax(0, 1fr);
     gap: var(--ds-space-2);
   }
-  .decision-overlay--resolution-plan .trigger-chooser__footer > .aegis-button {
-    min-width: 0;
-  }
-  .decision-overlay--resolution-plan .decision-overlay__view-board-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
   .decision-overlay--resolution-plan .trigger-chooser__status {
     grid-column: 1 / -1;
   }
   .decision-overlay--resolution-plan .trigger-chooser__status-hint {
     display: none;
+  }
+  .trigger-chooser__waiting {
+    padding-block: var(--ds-space-2);
+  }
+}
+@media (width < 640px) {
+  .game-modal__panel.effect-prompt-family.decision-overlay--resolution-plan[data-prompt-surface]
+    .trigger-chooser__footer
+    > .aegis-button {
+    min-height: var(--ds-touch-target);
+    padding: var(--ds-space-2) var(--ds-space-3);
+    font-size: var(--ds-text-sm);
+  }
+  .game-modal__panel.effect-prompt-family.decision-overlay--resolution-plan[data-prompt-surface]
+    .trigger-chooser__footer
+    > .decision-overlay__view-board {
+    white-space: nowrap;
+  }
+  .game-modal__panel.effect-prompt-family.decision-overlay--resolution-plan[data-prompt-surface]
+    .trigger-chooser__status {
+    flex-wrap: wrap;
+    gap: 0 var(--ds-space-3);
+  }
+  .game-modal__panel.effect-prompt-family.decision-overlay--resolution-plan[data-prompt-surface]
+    .trigger-chooser__status
+    > .trigger-chooser__shortcut {
+    min-height: 28px;
+    padding: 0;
+    color: var(--ds-accent);
+    border: 0;
+    background: none;
+    font-size: var(--ds-text-xs);
+    letter-spacing: 0;
+    text-transform: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+  }
+  .game-modal__panel.effect-prompt-family.decision-overlay--resolution-plan[data-prompt-surface]
+    .trigger-chooser__bulk
+    > .aegis-button {
+    min-height: 36px;
+  }
+}
+@media (width >= 380px) and (width < 640px) {
+  .game-modal__panel.effect-prompt-family.decision-overlay--resolution-plan[data-prompt-surface]
+    .trigger-chooser__footer
+    > .aegis-button {
+    padding-inline: var(--ds-space-2);
+    white-space: nowrap;
+  }
+  .game-modal__panel.effect-prompt-family.decision-overlay--resolution-plan[data-prompt-surface]
+    .trigger-chooser__footer
+    > .aegis-button:last-child
+    > svg {
+    display: none;
+  }
+}
+@media (width < 600px) and (orientation: portrait) {
+  .game-modal__panel.decision-overlay--trigger-chooser.decision-overlay--resolution-plan {
+    max-height: min(74dvh, calc(100dvh - 2 * var(--ds-space-3))) !important;
   }
 }
 /* Landscape phones: the list needs every row of height the chrome can give up. */
