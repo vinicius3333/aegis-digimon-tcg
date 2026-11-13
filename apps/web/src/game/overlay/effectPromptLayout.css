@@ -1243,3 +1243,15 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
     width: min(32rem, calc(100vw - var(--ds-space-8))) !important;
   }
 }
+
+@media (width >= 1024px) and (height >= 600px) {
+  body:has([data-drop="breeding-you"] :is([data-selected="true"], .game-permanent--candidate))
+    :is(
+      .game-modal__panel.effect-prompt-family[data-prompt-surface="left"],
+      .board-prompt[data-prompt-surface="left"][data-variant]
+    ) {
+    --viewer-slot-clearance: max(13rem, 19dvh);
+    bottom: calc(var(--viewer-slot-clearance) + env(safe-area-inset-bottom, 0px)) !important;
+    max-height: calc(100dvh - var(--viewer-slot-clearance) - var(--ds-space-4)) !important;
+  }
+}

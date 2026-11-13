@@ -250,9 +250,10 @@ const interfaceMessages = {
   "profile.page": "第 {page} 页",
   "profile.stats.matches": "对局数",
   "profile.stats.wins": "胜场",
-  "profile.stats.humanMatches": "玩家对战场次",
-  "profile.stats.humanWins": "玩家对战胜场",
-  "profile.stats.rateScope": "已保留的玩家对战记录 · 应用模式和对手筛选 · 胜负筛选仅影响列表 · 不计入机器人对战。",
+  "profile.stats.humanMatches": "近期玩家对战场次",
+  "profile.stats.humanWins": "近期玩家对战胜场",
+  "profile.stats.rateScope":
+    "最近 {limit} 局玩家对战及已保存回放 · 应用模式和对手筛选 · 胜负筛选仅影响列表 · 不计入机器人对战。",
   "profile.stats.winRate": "胜率",
   "profile.stats.replays": "已保存回放",
   "profile.changeAvatar": "更换头像",

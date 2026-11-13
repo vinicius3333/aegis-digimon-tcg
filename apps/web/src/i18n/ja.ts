@@ -258,10 +258,10 @@ const interfaceMessages = {
   "profile.page": "{page}ページ",
   "profile.stats.matches": "対戦数",
   "profile.stats.wins": "勝利数",
-  "profile.stats.humanMatches": "対人戦",
-  "profile.stats.humanWins": "対人戦の勝利数",
+  "profile.stats.humanMatches": "最近の対人戦",
+  "profile.stats.humanWins": "最近の対人戦の勝利数",
   "profile.stats.rateScope":
-    "保持されている対人戦の履歴です · モードと対戦相手のフィルターが適用されます · 結果フィルターは一覧にのみ適用されます · ボット戦は除外されます。",
+    "直近{limit}件の対人戦と保存したリプレイです · モードと対戦相手のフィルターが適用されます · 結果フィルターは一覧にのみ適用されます · ボット戦は除外されます。",
   "profile.stats.winRate": "勝率",
   "profile.stats.replays": "保存したリプレイ",
   "profile.changeAvatar": "アバターを変更",
