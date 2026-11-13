@@ -1039,6 +1039,10 @@
   animation: battle-security-branch-in var(--t-security-branch-in, 120ms) ease-out both;
 }
 
+.battle-security-branch[data-state="docked"] .battle-security-branch__art {
+  pointer-events: auto;
+}
+
 /* A live security reveal transfers its existing art rather than disappearing and
    entering again. The layout effect measures both cards before the first paint. */
 .battle-security-branch[data-transfer][data-state="docked"] {
