@@ -69,8 +69,8 @@ import {
   gameOverReason as modelGameOverReason,
   gameOverResult as modelGameOverResult,
   revealedZones as modelRevealedZones,
-  viewerTurnOrder as modelViewerTurnOrder,
 } from "./screen/model/gameOutcome";
+import { getOpeningTurnOrder } from "@/game/screen/model/getOpeningTurnOrder";
 import { actionGuards } from "./screen/model/actionGuards";
 import { dropZoneAt } from "./screen/dropZones";
 import {
@@ -1403,7 +1403,7 @@ function GameScreenSession({
     winnerSeat: state.winnerSeat,
   });
 
-  const viewerTurnOrder = modelViewerTurnOrder({ events, viewerSeat });
+  const viewerTurnOrder = getOpeningTurnOrder({ state, viewerSeat });
 
   const revealed = modelRevealedZones({ events, viewerSeat, resultShown: state.gameOver && !cues.resultPending });
 
