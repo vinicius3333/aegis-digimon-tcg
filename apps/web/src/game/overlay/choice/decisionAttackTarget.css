@@ -60,12 +60,13 @@
 
 .decision-overlay--attack-target .decision-overlay__view-board--compact {
   flex: none;
-  width: var(--ds-touch-target);
-  height: var(--ds-touch-target);
+  width: auto;
+  min-height: var(--ds-touch-target);
   min-width: var(--ds-touch-target);
-  padding: 0;
+  padding-inline: var(--ds-space-3);
   border-color: var(--ds-line);
   color: var(--ds-text-2);
+  white-space: nowrap;
 }
 
 .attack-target__effect {

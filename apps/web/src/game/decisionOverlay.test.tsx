@@ -5180,7 +5180,7 @@ it.each([0, 1])("keeps attack target actions explicit with minimum %i", (min) =>
   expect(screen.getByText("Cougarmon attacks. Choose its target.")).toBeTruthy();
   expect(document.querySelector("details")?.textContent).toContain("+5000 DP");
   expect(document.querySelector("details")?.textContent).not.toContain("Cougarmon attacks");
-  expect(screen.getByRole("button", { name: "View board" }).textContent).toBe("");
+  expect(screen.getByRole("button", { name: "View board" }).textContent).toBe("View board");
   if (min === 0) {
     fireEvent.click(screen.getByRole("button", { name: "Pass" }));
   }

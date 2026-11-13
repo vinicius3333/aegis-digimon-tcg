@@ -10,8 +10,6 @@ export function DecisionViewBoardButton({ onOpenBoard, compact = false }: Params
   return (
     <Button
       className={`decision-overlay__view-board${compact ? " decision-overlay__view-board--compact" : ""}`}
-      aria-label={t("overlay.viewBoard")}
-      title={compact ? t("overlay.viewBoard") : undefined}
       size={compact ? "sm" : "lg"}
       variant="secondary"
       icon={Icons.Map}
@@ -20,7 +18,7 @@ export function DecisionViewBoardButton({ onOpenBoard, compact = false }: Params
         onOpenBoard();
       }}
     >
-      {compact ? null : <span className="decision-overlay__view-board-label">{t("overlay.viewBoard")}</span>}
+      <span className="decision-overlay__view-board-label">{t("overlay.viewBoard")}</span>
     </Button>
   );
 }
