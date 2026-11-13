@@ -145,6 +145,24 @@ describe("Jesmon (X Antibody) and Ultimate Seibaken", () => {
     expect(opponent.trash.map((card) => card.instanceId)).toEqual([top]);
   });
 
+  it("offers your other Digimon and matching digivolution cards in one card choice", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = jesmonBoard({ sources: ["BT9-109"], allies: [{ card: "BT2-056", as: "ally" }], preferInstanceIds });
+    const ally = s.perm("ally").topCard.instanceId;
+    const xAntibody = s.perm("base").stack[0]!.instanceId;
+    preferInstanceIds.push(xAntibody);
+    await s.ready();
+    await digivolve(s);
+
+    const costChoices = s.decisions.filter(({ req }) => req.kind === "selectCards" && req.options?.purpose === "cost");
+    expect(costChoices).toHaveLength(1);
+    expect(costChoices[0]!.req.options?.candidateInstanceIds).toEqual(expect.arrayContaining([ally, xAntibody]));
+    expect(s.decisions.some(({ req }) => req.kind === "chooseOption")).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.players[0]!.deck.at(-1)!.instanceId).toBe(xAntibody);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-019"]);
+  });
+
   it.each([
     ["Jesmon", "BT6-016"],
     ["X Antibody", "BT9-109"],
