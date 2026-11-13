@@ -15,6 +15,8 @@ import { playCostBudgetAllowsCandidate } from "./decisionPlayCost";
 import { dpBudgetAllowsCandidate } from "./decisionDpBudget";
 import { DecisionScrollRow } from "@/game/overlay/choice/DecisionScrollRow";
 import { compareCardIdsByName } from "@/game/overlay/viewer/compareCardIdsByName";
+import { useFieldReferenceVisible } from "@/design/fieldReference/useFieldReferenceVisible";
+import { formatFieldReference } from "@/design/fieldReference/formatFieldReference";
 
 /** The grid of selectable targets for a `chooseTargets` / `selectCards` decision. */
 export function DecisionCandidateGrid({
@@ -48,6 +50,7 @@ export function DecisionCandidateGrid({
   const { t } = useTranslation();
   const narrowDialog = useMediaQuery(NARROW_DIALOG_QUERY);
   const touchLayout = useMediaQuery(TOUCH_LAYOUT_QUERY);
+  const fieldReferenceVisible = useFieldReferenceVisible();
   // Three tiles plus their gaps and the row's own badge gutter have to clear the
   // sheet's padding; on a phone narrower than the grid's breakpoint they only do
   // at the smaller size, and below that the row wraps rather than being clipped.
@@ -212,6 +215,10 @@ export function DecisionCandidateGrid({
                     : undefined;
                 const usedLabel = cand.oncePerTurnUsed && cand.cardId ? t("overlay.inheritedUsed") : undefined;
                 const copyLabel = cardCopyLabels.get(cand.instanceId);
+                const fieldReference =
+                  fieldReferenceVisible && cand.fieldPermanentId
+                    ? formatFieldReference(cand.fieldPermanentId)
+                    : undefined;
                 const sourceLabel =
                   cand.sourceCount === undefined
                     ? undefined
@@ -235,7 +242,7 @@ export function DecisionCandidateGrid({
                       className={`decision-overlay__candidate${abstractLabel ? " decision-overlay__candidate--security" : ""}`}
                       data-instance-id={cand.instanceId}
                       type="button"
-                      aria-label={`${abstractLabel ?? (cand.cardId ? getCardName(cand.cardId) : t("overlay.card"))}${liveLabels.length ? `, ${liveLabels.join(", ")}` : ""}${copyLabel ? `, ${copyLabel}` : ""}${on ? t("overlay.selected") : ""}`}
+                      aria-label={`${abstractLabel ?? (cand.cardId ? getCardName(cand.cardId) : t("overlay.card"))}${liveLabels.length ? `, ${liveLabels.join(", ")}` : ""}${copyLabel ? `, ${copyLabel}` : ""}${fieldReference ? `, ${fieldReference}` : ""}${on ? t("overlay.selected") : ""}`}
                       aria-pressed={on}
                       disabled={!selectable}
                       key={cand.instanceId}
@@ -261,14 +268,24 @@ export function DecisionCandidateGrid({
                           selected={on}
                         />
                       )}
+                      {cand.cardId && !abstractLabel ? <DecisionCardCaption cardId={cand.cardId} /> : null}
+                      {fieldReference && isFieldZone(cand.zone) && !abstractLabel ? (
+                        <span className="decision-overlay__candidate-identity" aria-hidden="true">
+                          {fieldReference}
+                        </span>
+                      ) : null}
+                      {copyLabel ? (
+                        <span className="decision-overlay__candidate-copy" aria-hidden="true">
+                          {copyLabel}
+                        </span>
+                      ) : null}
                       {namesSourceHosts && cand.hostCardId ? (
                         <span className="decision-overlay__source-host" data-host-permanent-id={cand.hostPermanentId}>
                           {getCardName(cand.hostCardId)}
                         </span>
                       ) : null}
-                      {copyLabel || pendingLabel || usedLabel || cand.trashOriginCardId ? (
+                      {pendingLabel || usedLabel || cand.trashOriginCardId ? (
                         <span className="decision-overlay__candidate-details" aria-hidden="true">
-                          {copyLabel ? <span>{copyLabel}</span> : null}
                           {pendingLabel ? (
                             <span className="decision-overlay__pending-effect">{pendingLabel}</span>
                           ) : null}
@@ -319,7 +336,6 @@ export function DecisionCandidateGrid({
                         </span>
                       ) : null}
                     </button>
-                    {cand.cardId && !abstractLabel ? <DecisionCardCaption cardId={cand.cardId} /> : null}
                     <OpenDecisionCardButton cardId={abstractLabel ? undefined : cand.cardId} artId={cand.artId} />
                   </div>
                 );
@@ -346,6 +362,10 @@ function CandidateRow({ scrolls, children }: CandidateRowParams) {
     );
   }
   return <div className="decision-overlay__grid">{children}</div>;
+}
+
+function isFieldZone(zone: CandidateZone | undefined): boolean {
+  return zone === "battle" || zone === "opponentBattle" || zone === "breeding";
 }
 
 function isTrashZone(zone: CandidateZone | undefined): boolean {

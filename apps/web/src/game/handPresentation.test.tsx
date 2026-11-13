@@ -9,16 +9,22 @@ import {
   type SequencedServerEvent,
 } from "@aegis/shared";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import type { AegisRoom } from "../net/client";
 import { snapshotGameState } from "../net/presentedState";
 import type { ServerBatch } from "../net/serverBatches";
 import { GameScreen } from "./GameScreen";
+import { MatchLogDisplay } from "@/game/log/MatchLogDisplay";
+import { matchLogDisplayPreference } from "@/game/log/matchLogDisplayPreference";
 import { HandSortMode, setHandSortMode } from "./handSortMode";
 import { HandSortDirection } from "@/game/HandSortDirection";
 import { setHandSortDirection } from "@/game/handSortDirectionPreference";
 import { TIMINGS } from "./timings";
+
+beforeEach(() => {
+  matchLogDisplayPreference.set(MatchLogDisplay.POPUPS.value);
+});
 
 afterEach(() => {
   cleanup();

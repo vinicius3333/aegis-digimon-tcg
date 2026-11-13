@@ -10,7 +10,8 @@ import { CardFull } from "../../../design/cards";
 import { Button } from "../../../design/primitives";
 import { Icons } from "../../../design/icons";
 import { useTranslation } from "../../../i18n";
-import { triggerCardId, triggerLabels } from "../../boardModel";
+import { triggerCardId } from "../../boardModel";
+import { getTriggerLabelParts } from "@/game/getTriggerLabelParts";
 import {
   cardEffectClauseForTiming,
   cardEffectClausesForTiming,
@@ -79,12 +80,14 @@ export function DecisionTriggerChooser({
   const translateCardText = useTranslatedCardText();
   const [order, setOrder] = useState<string[]>([]);
   const [presets, setPresets] = useState<Readonly<Record<string, Preset>>>({});
-  const triggerKeyLabels = triggerLabels(
+  const triggerLabelParts = getTriggerLabelParts({
     triggerKeys,
-    t,
-    triggerCardIds,
-    getCardName,
-    triggerDetails.map((detail) => detail.fieldReference),
+    cardIds: triggerKeys.map((key, index) => triggerCardIds[index] ?? triggerCardId(key)),
+    getDisplayName: getCardName,
+  });
+  const triggerKeyLabels = triggerLabelParts.map((part) => part.name);
+  const triggerCopyLabels = triggerLabelParts.map((part, index) =>
+    part.copy && !triggerDetails[index]?.sourceShowsCopy ? t("overlay.cardCopy", part.copy) : undefined,
   );
   // Two effects of ONE permanent reach the chooser with the same name and art; the
   // window each fired in is the only honest thing that separates them.
@@ -279,7 +282,9 @@ export function DecisionTriggerChooser({
               <button
                 type="button"
                 className={`trigger-chooser__option${chosen ? " trigger-chooser__option--chosen" : ""}`}
-                aria-label={[timingLabel, triggerKeyLabels[i], detail?.sourceLabel, reason].filter(Boolean).join(", ")}
+                aria-label={[timingLabel, triggerKeyLabels[i], triggerCopyLabels[i], detail?.sourceLabel, reason]
+                  .filter(Boolean)
+                  .join(", ")}
                 aria-pressed={chosen}
                 onClick={() => toggle(key)}
               >
@@ -298,6 +303,9 @@ export function DecisionTriggerChooser({
                   </span>
                   <span className="trigger-chooser__meta">
                     <span className="trigger-chooser__name">{triggerKeyLabels[i]}</span>
+                    {triggerCopyLabels[i] ? (
+                      <span className="trigger-chooser__copy">{triggerCopyLabels[i]}</span>
+                    ) : null}
                     <span className="trigger-chooser__id">{cardId}</span>
                     {detail?.hostCardId ? (
                       <span className="trigger-chooser__host">
@@ -336,7 +344,14 @@ export function DecisionTriggerChooser({
               {acceptsResolutionPlan ? (
                 isOptional ? (
                   <PresetControl
-                    label={t("overlay.presetLabel", { name: triggerKeyLabels[i] ?? cardId })}
+                    label={t("overlay.presetLabel", {
+                      name: [
+                        triggerKeyLabels[i] ?? cardId,
+                        triggerCopyLabels[i] ?? (detail?.sourceShowsCopy ? detail.sourceLabel : undefined),
+                      ]
+                        .filter(Boolean)
+                        .join(", "),
+                    })}
                     value={presets[key]}
                     onChange={(preset) => setPreset(key, preset)}
                   />

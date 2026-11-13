@@ -46,6 +46,7 @@ export function triggerDetailsFor({
         : undefined;
     return {
       sourceLabel: getTriggerSourceLabel(source, presentsAsInherited, t, getCardName, fieldReference),
+      ...(source?.zone === Zone.BattleArea && source.copies > 1 ? { sourceShowsCopy: true } : {}),
       summary: triggerClauseSummary(clause),
       ...(fieldReference ? { fieldReference } : {}),
       ...(source?.zone === Zone.BattleArea && source.inherited ? { hostCardId: source.hostCardId } : {}),

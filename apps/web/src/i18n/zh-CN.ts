@@ -1250,7 +1250,7 @@ const interfaceMessages = {
   "game.matchLogDrag": "拖动以移动",
   "settings.matchLogDisplay": "对局记录显示方式",
   "settings.matchLogDisplayDesc":
-    "选择对局如何显示发生的事情：棋盘上的简短弹窗、棋盘边缘的固定记录，或两者兼有。手机上保留弹窗，记录通过按钮打开。",
+    "选择对局如何显示发生的事情：棋盘上的简短弹窗、棋盘边缘的固定记录，或两者兼有。手机上没有固定记录，请通过记录按钮打开。",
   "settings.matchLogDisplayPopups": "弹窗",
   "settings.matchLogDisplayPanel": "固定记录",
   "settings.matchLogDisplayBoth": "两者",

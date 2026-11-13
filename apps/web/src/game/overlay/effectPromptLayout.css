@@ -1146,6 +1146,22 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   text-align: center;
   overflow-wrap: break-word;
 }
+.decision-overlay__candidate > .decision-overlay__candidate-name {
+  align-self: stretch;
+  margin-top: var(--ds-space-2);
+}
+.decision-overlay__candidate-copy,
+.decision-overlay__candidate-identity {
+  align-self: stretch;
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-xs);
+  line-height: 1.35;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.decision-overlay__candidate-identity {
+  font-family: var(--ds-font-mono);
+}
 .decision-overlay__candidate-id {
   color: var(--ds-text-3);
   font-family: var(--ds-font-mono);

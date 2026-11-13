@@ -1256,7 +1256,7 @@ const interfaceMessages = {
   "game.matchLogDrag": "拖曳以移動",
   "settings.matchLogDisplay": "對局日誌顯示方式",
   "settings.matchLogDisplayDesc":
-    "選擇對局如何顯示發生的事情：棋盤上的簡短彈窗、棋盤邊緣的固定日誌，或兩者皆有。手機上保留彈窗，日誌透過按鈕開啟。",
+    "選擇對局如何顯示發生的事情：棋盤上的簡短彈窗、棋盤邊緣的固定日誌，或兩者皆有。手機上沒有固定日誌，請透過日誌按鈕開啟。",
   "settings.matchLogDisplayPopups": "彈窗",
   "settings.matchLogDisplayPanel": "固定日誌",
   "settings.matchLogDisplayBoth": "兩者",

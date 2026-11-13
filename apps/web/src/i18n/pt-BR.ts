@@ -1064,7 +1064,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.matchLogDrag": "Arraste para mover",
   "settings.matchLogDisplay": "Exibição do registro da partida",
   "settings.matchLogDisplayDesc":
-    "Escolha como a partida mostra o que aconteceu: popups curtos sobre o tabuleiro, um registro fixo na borda do tabuleiro ou ambos. No celular, os popups continuam e o registro fica no botão.",
+    "Escolha como a partida mostra o que aconteceu: popups curtos sobre o tabuleiro, um registro fixo na borda do tabuleiro ou ambos. No celular não há registro fixo; abra-o pelo botão do registro.",
   "settings.matchLogDisplayPopups": "Popups",
   "settings.matchLogDisplayPanel": "Registro fixo",
   "settings.matchLogDisplayBoth": "Ambos",

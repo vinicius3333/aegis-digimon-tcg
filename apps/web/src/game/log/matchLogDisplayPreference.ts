@@ -8,9 +8,9 @@ const listeners = new Set<() => void>();
 function read(): MatchLogDisplay {
   try {
     const stored = localStorage.getItem(storageKey);
-    return isMatchLogDisplay(stored) ? stored : MatchLogDisplay.POPUPS.value;
+    return isMatchLogDisplay(stored) ? stored : MatchLogDisplay.PANEL.value;
   } catch {
-    return MatchLogDisplay.POPUPS.value;
+    return MatchLogDisplay.PANEL.value;
   }
 }
 
