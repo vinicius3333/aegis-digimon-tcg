@@ -55,6 +55,9 @@ export function DecisionCandidateGrid({
   if (touchLayout) displayedCardWidth = 104;
   if (narrowDialog) displayedCardWidth = 96;
   const cardCopyLabels = cardCopyLabelsByInstance({ candidates, t });
+  const namesSourceHosts =
+    !sourcePicker &&
+    new Set(candidates.flatMap((candidate) => (candidate.hostCardId ? [candidate.hostPermanentId] : []))).size > 1;
   // A prompt that reaches into two zones at once (a hand and a trash, say) is
   // unreadable as one undivided row, so each zone gets its own titled section;
   // a single-zone prompt keeps the plain grid it always had.
@@ -224,7 +227,7 @@ export function DecisionCandidateGrid({
                   cand.currentDP === undefined ? undefined : `${cand.currentDP.toLocaleString()} DP`,
                   cand.isSuspended === true ? t("overlay.suspended") : undefined,
                   sourceLabel,
-                  cand.hostCardId ? getCardName(cand.hostCardId) : undefined,
+                  namesSourceHosts && cand.hostCardId ? getCardName(cand.hostCardId) : undefined,
                 ].filter((label): label is string => label !== undefined);
                 return (
                   <div key={cand.instanceId} className="decision-candidate-tile">
@@ -258,7 +261,7 @@ export function DecisionCandidateGrid({
                           selected={on}
                         />
                       )}
-                      {cand.hostCardId && !sourcePicker ? (
+                      {namesSourceHosts && cand.hostCardId ? (
                         <span className="decision-overlay__source-host" data-host-permanent-id={cand.hostPermanentId}>
                           {getCardName(cand.hostCardId)}
                         </span>
