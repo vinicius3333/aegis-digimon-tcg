@@ -1343,7 +1343,7 @@ const interfaceMessages = {
   "game.matchLogDrag": "Zum Verschieben ziehen",
   "settings.matchLogDisplay": "Anzeige des Match-Protokolls",
   "settings.matchLogDisplayDesc":
-    "Wählen Sie, wie das Match zeigt, was passiert ist: kurze Einblendungen über dem Spielfeld, ein festes Protokoll am Spielfeldrand oder beides. Auf dem Handy bleiben die Einblendungen, das Protokoll öffnen Sie über die Schaltfläche.",
+    "Wählen Sie, wie das Match zeigt, was passiert ist: kurze Einblendungen über dem Spielfeld, ein festes Protokoll am Spielfeldrand oder beides. Auf dem Handy gibt es kein festes Protokoll; öffnen Sie es über die Protokoll-Schaltfläche.",
   "settings.matchLogDisplayPopups": "Einblendungen",
   "settings.matchLogDisplayPanel": "Festes Protokoll",
   "settings.matchLogDisplayBoth": "Beides",

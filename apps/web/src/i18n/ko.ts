@@ -1295,7 +1295,7 @@ const interfaceMessages = {
   "game.matchLogDrag": "드래그하여 이동",
   "settings.matchLogDisplay": "대전 로그 표시",
   "settings.matchLogDisplayDesc":
-    "일어난 일을 보여 주는 방식을 고릅니다: 보드 위의 짧은 팝업, 보드 가장자리의 고정 로그, 또는 둘 다. 휴대폰에서는 팝업이 유지되고 로그는 버튼으로 엽니다.",
+    "일어난 일을 보여 주는 방식을 고릅니다: 보드 위의 짧은 팝업, 보드 가장자리의 고정 로그, 또는 둘 다. 휴대폰에는 고정 로그가 없으니 로그 버튼으로 엽니다.",
   "settings.matchLogDisplayPopups": "팝업",
   "settings.matchLogDisplayPanel": "고정 로그",
   "settings.matchLogDisplayBoth": "둘 다",

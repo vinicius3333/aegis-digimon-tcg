@@ -1307,7 +1307,7 @@ const interfaceMessages = {
   "game.matchLogDrag": "ドラッグして移動",
   "settings.matchLogDisplay": "対戦ログの表示",
   "settings.matchLogDisplayDesc":
-    "起きたことの表示方法を選びます：盤面上の短いポップアップ、盤面の端に固定されたログ、またはその両方。スマートフォンではポップアップのまま、ログはボタンから開きます。",
+    "起きたことの表示方法を選びます：盤面上の短いポップアップ、盤面の端に固定されたログ、またはその両方。スマートフォンには固定ログがないため、ログボタンから開きます。",
   "settings.matchLogDisplayPopups": "ポップアップ",
   "settings.matchLogDisplayPanel": "固定ログ",
   "settings.matchLogDisplayBoth": "両方",

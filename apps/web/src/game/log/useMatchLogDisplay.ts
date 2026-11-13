@@ -8,7 +8,7 @@ export function useMatchLogDisplay(): MatchLogDisplayEntry {
   const value = useSyncExternalStore(
     matchLogDisplayPreference.subscribe,
     matchLogDisplayPreference.get,
-    () => MatchLogDisplay.POPUPS.value,
+    () => MatchLogDisplay.PANEL.value,
   );
-  return Object.values(MatchLogDisplay).find((entry) => entry.value === value) ?? MatchLogDisplay.POPUPS;
+  return Object.values(MatchLogDisplay).find((entry) => entry.value === value) ?? MatchLogDisplay.PANEL;
 }

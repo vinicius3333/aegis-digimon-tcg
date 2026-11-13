@@ -1311,7 +1311,7 @@ const interfaceMessages = {
   "game.matchLogDrag": "Seret untuk memindahkan",
   "settings.matchLogDisplay": "Tampilan log pertandingan",
   "settings.matchLogDisplayDesc":
-    "Pilih cara pertandingan menampilkan apa yang terjadi: popup singkat di atas papan, log tetap di tepi papan, atau keduanya. Di ponsel, popup tetap tampil dan log dibuka dari tombol.",
+    "Pilih cara pertandingan menampilkan apa yang terjadi: popup singkat di atas papan, log tetap di tepi papan, atau keduanya. Di ponsel tidak ada log tetap; buka log dari tombol log.",
   "settings.matchLogDisplayPopups": "Popup",
   "settings.matchLogDisplayPanel": "Log tetap",
   "settings.matchLogDisplayBoth": "Keduanya",
