@@ -90,6 +90,7 @@ describe("trigger chooser source labels", () => {
 
   it("tells apart two field copies of one Digimon by copy, not slot", () => {
     expect(sourceLabels(["field-b", "field-c"])).toEqual(["Field (copy 1)", "Field (copy 2)"]);
+    expect(details(["field-b", "field-a"]).map((detail) => detail.sourceShowsCopy)).toEqual([true, undefined]);
   });
 
   it("names the exact hand copy by its position in the displayed hand", () => {

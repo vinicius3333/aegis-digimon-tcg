@@ -345,6 +345,10 @@ body:has(.decision-overlay--selection) .narration-slot {
   color: var(--ds-text-3);
   font-size: var(--ds-text-xs);
 }
+.trigger-chooser__copy {
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-xs);
+}
 .trigger-chooser__context {
   margin-bottom: var(--ds-space-3);
   color: var(--battle-cyan);

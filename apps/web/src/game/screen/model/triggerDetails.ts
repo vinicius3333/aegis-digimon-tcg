@@ -38,6 +38,7 @@ export function triggerDetailsFor({
       }) ?? getCardDefinition(cardId)?.effectText;
     return {
       sourceLabel: getTriggerSourceLabel(source, t, getCardName),
+      ...(source?.zone === Zone.BattleArea && source.copies > 1 ? { sourceShowsCopy: true } : {}),
       summary: triggerClauseSummary(clause),
       ...(source?.zone === Zone.BattleArea && source.inherited ? { hostCardId: source.hostCardId } : {}),
     };

@@ -8,6 +8,7 @@ export type TurnOrder = "first" | "second";
 /** Per-trigger chrome the board supplies for the chooser: where it fires from, and its clause in one line. */
 export interface TriggerDetail {
   sourceLabel?: string;
+  sourceShowsCopy?: boolean;
   hostCardId?: string;
   summary?: string;
 }

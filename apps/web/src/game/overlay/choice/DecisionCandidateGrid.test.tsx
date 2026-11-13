@@ -7,6 +7,7 @@ import { I18nProvider, translator, type Locale } from "../../../i18n";
 import { DecisionCandidateGrid } from "./DecisionCandidateGrid";
 import type { DecisionCandidate } from "./decisionTypes";
 import { compareCardIdsByName } from "@/game/overlay/viewer/compareCardIdsByName";
+import { setFieldReferenceVisible } from "@/design/fieldReference/setFieldReferenceVisible";
 
 afterEach(() => {
   cleanup();
@@ -277,4 +278,43 @@ it("offers no trash sort when the prompt has a single trash card", () => {
     { instanceId: "hand", cardId: "BT1-001", zone: "hand" },
   ]);
   expect(screen.queryByRole("combobox", { name: /Sort trash/ })).toBeNull();
+});
+
+it("keeps every card name directly under its card and moves the copy label to the line below", () => {
+  grid([
+    { instanceId: "single", cardId: "BT1-010", zone: "trash" },
+    { instanceId: "first", cardId: "EX7-071", zone: "trash", pendingEffect: true },
+    { instanceId: "second", cardId: "EX7-071", zone: "trash" },
+  ]);
+  for (const candidate of document.querySelectorAll<HTMLElement>(".decision-overlay__candidate")) {
+    const name = candidate.querySelector(".decision-overlay__candidate-name")!;
+    expect(candidate.firstElementChild?.nextElementSibling).toBe(name);
+  }
+  const first = screen.getByRole("button", { name: /copy 1 of 2/ });
+  const name = first.querySelector(".decision-overlay__candidate-name")!;
+  expect(name.textContent).not.toContain("copy");
+  expect(name.nextElementSibling?.className).toBe("decision-overlay__candidate-copy");
+  expect(name.nextElementSibling?.textContent).toBe("copy 1 of 2");
+  expect(within(first).getByText("Pending effect").closest(".decision-overlay__candidate-details")).toBeTruthy();
+  expect(first.querySelector(".decision-overlay__candidate-details")?.textContent).not.toContain("copy");
+});
+
+it("identifies field candidates by card number and board field reference", () => {
+  setFieldReferenceVisible(true);
+  try {
+    grid([
+      { instanceId: "perm-4", fieldPermanentId: "perm-4", cardId: "BT24-030", zone: "battle" },
+      { instanceId: "perm-9", fieldPermanentId: "perm-9", cardId: "BT24-020", zone: "breeding" },
+      { instanceId: "hand-card", cardId: "BT24-020", zone: "hand" },
+    ]);
+    const battle = document.querySelector('[data-instance-id="perm-4"]')!;
+    expect(battle.querySelector(".decision-overlay__candidate-identity")?.textContent).toBe("#4 · BT24-030");
+    expect(battle.getAttribute("aria-label")).toContain("#4");
+    const breeding = document.querySelector('[data-instance-id="perm-9"]')!;
+    expect(breeding.querySelector(".decision-overlay__candidate-identity")?.textContent).toBe("#9 · BT24-020");
+    const hand = document.querySelector('[data-instance-id="hand-card"]')!;
+    expect(hand.querySelector(".decision-overlay__candidate-identity")).toBeNull();
+  } finally {
+    setFieldReferenceVisible(false);
+  }
 });
