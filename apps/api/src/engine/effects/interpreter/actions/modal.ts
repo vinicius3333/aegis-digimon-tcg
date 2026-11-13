@@ -19,6 +19,7 @@ import {
   playableTokenRefs,
 } from "./play.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
+import { optionUseDefinition } from "#api/engine/effects/interpreter/actions/optionUseDefinition";
 import { prospectiveColorWaiver } from "#api/engine/effects/interpreter/actions/prospectiveColorWaiver";
 import { printedModalBullets, printedModalPreamble, splitPrintedClauses, type Action } from "@aegis/shared";
 
@@ -433,7 +434,12 @@ function canAttemptModalAction(ctx: EffectContext, action: Action): boolean {
     const target = applyPlayCostCeiling(ctx, action, action.target);
     const candidates = candidatesAllowedBySameNameRestriction(
       ctx,
-      playableCandidates(ctx, target, candidateLooseInstances(ctx, target, zones), action.chooseDualMode),
+      playableCandidates(
+        ctx,
+        target,
+        candidateLooseInstances(ctx, target, zones, optionUseDefinition),
+        action.chooseDualMode,
+      ),
     );
     return candidates.some((candidate) => !isEffectPlayProhibited(ctx, candidate));
   }

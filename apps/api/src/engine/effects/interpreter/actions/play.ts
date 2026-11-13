@@ -16,6 +16,7 @@ import {
 } from "#api/engine/effects/interpreter/targeting/loose";
 import { stackHostMatches } from "../targeting/stackHostMatches.js";
 import { runPlayPerLevel } from "./dna.js";
+import { optionUseDefinition } from "#api/engine/effects/interpreter/actions/optionUseDefinition";
 import { CardKind, effectiveStaticNames, getCardDefinition, resolveTokenCardId } from "@aegis/shared";
 import type { Action, Filter, Scaling, Seat, Target } from "@aegis/shared";
 import { availableEffectPlayAssembly, playEffectInstances } from "./effectPlayAssembly.js";
@@ -651,7 +652,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       let candidates = playableCandidates(
         ctx,
         playCostAdjustedTarget,
-        candidateLooseInstances(ctx, playCostAdjustedTarget, zones),
+        candidateLooseInstances(ctx, playCostAdjustedTarget, zones, optionUseDefinition),
         action.chooseDualMode,
       );
       if (action.fromTriggerHandTrash === true) {

@@ -18,6 +18,7 @@ import { permanentMatchesFilter } from "../matching/permanent.js";
 import { scaleFactor } from "../scaling.js";
 import { targetFateOf } from "../targetFate.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, zoneList } from "../targeting/loose.js";
+import { optionUseDefinition } from "#api/engine/effects/interpreter/actions/optionUseDefinition";
 import { candidatePermanents, raiseDeletionDpCap, resolvePermanentTargets } from "../targeting/permanents.js";
 import { targetAfterSelfPlacementCost } from "../targeting/afterCost.js";
 import { runBoardAction } from "./board.js";
@@ -1053,7 +1054,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       let candidates = playableCandidates(
         ctx,
         staticPreflightTarget,
-        candidateLooseInstances(ctx, staticPreflightTarget, zones),
+        candidateLooseInstances(ctx, staticPreflightTarget, zones, optionUseDefinition),
         action.chooseDualMode,
       ).filter((candidate) => !isEffectPlayProhibited(ctx, candidate));
       // A return-cost clause can define the play target's color dynamically. Preflight the
