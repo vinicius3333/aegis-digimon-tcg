@@ -15,7 +15,6 @@ import {
 } from "@aegis/shared";
 import { colorKey, type ColorName } from "../design/theme";
 import type { Translate } from "../i18n";
-import { getTriggerLabelParts } from "@/game/getTriggerLabelParts";
 
 export interface ActivatableEntry {
   instanceId: string;
