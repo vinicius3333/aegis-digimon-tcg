@@ -1,4 +1,58 @@
 {
+  "releases.1.72.0-beta.summary": {
+    "en": "This update adds Gurimon and Jesmon (X Antibody) from BT27, keeps prompts and the match log out of your way, and fixes a batch of player-reported card problems.",
+    "pt-BR": "Esta atualização adiciona Gurimon e Jesmon (X Antibody) do BT27, deixa as janelas e o registro da partida menos no caminho e corrige vários problemas de cartas relatados pelos jogadores.",
+    "es": "Esta actualización añade Gurimon y Jesmon (X Antibody) de BT27, aparta las ventanas y el registro de la partida de tu camino y corrige varios problemas de cartas reportados por los jugadores.",
+    "it": "Questo aggiornamento aggiunge Gurimon e Jesmon (X Antibody) da BT27, tiene finestre e registro della partita fuori dai piedi e corregge diversi problemi di carte segnalati dai giocatori."
+  },
+  "releases.1.72.0-beta.feature.bt27Jesmon": {
+    "en": "Added Gurimon (BT27-001) and Jesmon (X Antibody) (BT27-016), plus an alternate art for Gankoomon (X Antibody).",
+    "pt-BR": "Adicionamos Gurimon (BT27-001) e Jesmon (X Antibody) (BT27-016), além de uma arte alternativa para Gankoomon (X Antibody).",
+    "es": "Añadimos Gurimon (BT27-001) y Jesmon (X Antibody) (BT27-016), además de un arte alternativo para Gankoomon (X Antibody).",
+    "it": "Abbiamo aggiunto Gurimon (BT27-001) e Jesmon (X Antibody) (BT27-016), oltre a un'arte alternativa per Gankoomon (X Antibody)."
+  },
+  "releases.1.72.0-beta.fix.quieterMatchUi": {
+    "en": "Match log bubbles are now off by default, the mulligan window shows whether you go first, long security checks stay out of the way, and you pick blockers on the board.",
+    "pt-BR": "Os balões do registro da partida agora vêm desligados, a janela de mulligan mostra se você começa, verificações de segurança longas saem do caminho e você escolhe o bloqueador no campo.",
+    "es": "Las burbujas del registro de la partida ahora vienen desactivadas, la ventana de mulligan muestra si empiezas, las comprobaciones de seguridad largas no estorban y eliges al bloqueador en el tablero.",
+    "it": "I fumetti del registro della partita ora sono disattivati, la finestra del mulligan mostra se inizi tu, i controlli della sicurezza lunghi non intralciano e scegli il bloccante sul campo."
+  },
+  "releases.1.72.0-beta.fix.breedingPrompt": {
+    "en": "On desktop, prompts about your breeding Digimon no longer cover your breeding area.",
+    "pt-BR": "No computador, as janelas sobre o seu Digimon da área de criação não cobrem mais essa área.",
+    "es": "En el ordenador, las ventanas sobre tu Digimon de la zona de crianza ya no tapan esa zona.",
+    "it": "Su computer, le finestre sul tuo Digimon dell'area di allevamento non coprono più quell'area."
+  },
+  "releases.1.72.0-beta.fix.dualCardColors": {
+    "en": "Gankoomon (X Antibody), Jesmon (X Antibody) and MirageGaogamon from BT27 have their printed colors, and SaviorHuckmon can use their Option side.",
+    "pt-BR": "Gankoomon (X Antibody), Jesmon (X Antibody) e MirageGaogamon do BT27 têm as cores impressas, e o SaviorHuckmon pode usar o lado Option deles.",
+    "es": "Gankoomon (X Antibody), Jesmon (X Antibody) y MirageGaogamon de BT27 tienen sus colores impresos, y SaviorHuckmon puede usar su lado Option.",
+    "it": "Gankoomon (X Antibody), Jesmon (X Antibody) e MirageGaogamon di BT27 hanno i colori stampati, e SaviorHuckmon può usare il loro lato Option."
+  },
+  "releases.1.72.0-beta.fix.takatoPrompts": {
+    "en": "Takato Matsuki (EX13-068) shows which card each prompt plays: the Takato from your hand or the Guilmon from your trash.",
+    "pt-BR": "Takato Matsuki (EX13-068) mostra qual carta cada janela joga: o Takato da sua mão ou o Guilmon do seu descarte.",
+    "es": "Takato Matsuki (EX13-068) muestra qué carta juega cada ventana: el Takato de tu mano o el Guilmon de tu papelera.",
+    "it": "Takato Matsuki (EX13-068) mostra quale carta gioca ogni finestra: il Takato dalla tua mano o il Guilmon dal tuo cestino."
+  },
+  "releases.1.72.0-beta.fix.linkReplacement": {
+    "en": "Linking a new Plug-In at the limit trashes the old one right away, so later DP checks use the right value.",
+    "pt-BR": "Ao linkar um novo Plug-In no limite, o antigo é descartado na hora, então as verificações de DP seguintes usam o valor certo.",
+    "es": "Al vincular un nuevo Plug-In en el límite, el antiguo se descarta en el acto, así que las comprobaciones de DP posteriores usan el valor correcto.",
+    "it": "Collegando un nuovo Plug-In al limite, il vecchio viene scartato subito, così i controlli dei DP successivi usano il valore giusto."
+  },
+  "releases.1.72.0-beta.fix.trashSourcesBare": {
+    "en": "Effects that trash digivolution cards, such as Shellmon's, can choose a Digimon with no digivolution cards again.",
+    "pt-BR": "Efeitos que descartam cartas de digievolução, como o do Shellmon, voltam a poder escolher um Digimon sem cartas de digievolução.",
+    "es": "Los efectos que descartan cartas de digievolución, como el de Shellmon, vuelven a poder elegir un Digimon sin cartas de digievolución.",
+    "it": "Gli effetti che scartano carte digievoluzione, come quello di Shellmon, possono di nuovo scegliere un Digimon senza carte digievoluzione."
+  },
+  "releases.1.72.0-beta.fix.recentProfileStats": {
+    "en": "Profile stats now say they cover your recent matches: the last 100, plus saved replays.",
+    "pt-BR": "As estatísticas do perfil agora indicam que cobrem as suas partidas recentes: as últimas 100, mais os replays salvos.",
+    "es": "Las estadísticas del perfil ahora indican que cubren tus partidas recientes: las últimas 100, más las repeticiones guardadas.",
+    "it": "Le statistiche del profilo ora indicano che riguardano le tue partite recenti: le ultime 100, più i replay salvati."
+  },
   "releases.1.71.0-beta.summary": {
     "en": "You can now turn match chat off, and this update fixes a batch of player-reported card and match problems.",
     "pt-BR": "Agora você pode desligar o chat da partida, e esta atualização corrige vários problemas de cartas e partidas relatados pelos jogadores.",
