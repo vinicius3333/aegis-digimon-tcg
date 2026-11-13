@@ -25,7 +25,7 @@ describe("Gankoomon (X Antibody) and Ultimate Sengi Tengyouken", () => {
     expect(getCardDefinition(cardId)).toMatchObject({
       nameEn: "Gankoomon (X Antibody)",
       nameJp: "ガンクゥモンX抗体/究極戦技天仰拳",
-      colors: ["Red", "Black"],
+      colors: ["Black", "White"],
       kinds: ["Digimon", "Option"],
       level: 6,
       playCost: 5,

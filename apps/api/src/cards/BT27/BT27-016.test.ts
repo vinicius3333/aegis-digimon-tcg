@@ -72,7 +72,7 @@ describe("Jesmon (X Antibody) and Ultimate Seibaken", () => {
     expect(getCardDefinition(cardId)).toMatchObject({
       nameEn: "Jesmon (X Antibody)",
       nameJp: "ジエスモンX抗体/究極戦刃聖覇剣",
-      colors: ["Red"],
+      colors: ["Red", "White"],
       kinds: ["Digimon", "Option"],
       level: 6,
       playCost: 5,
