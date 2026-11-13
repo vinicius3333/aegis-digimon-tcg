@@ -255,10 +255,10 @@ const interfaceMessages = {
   "profile.page": "Halaman {page}",
   "profile.stats.matches": "Pertandingan",
   "profile.stats.wins": "Menang",
-  "profile.stats.humanMatches": "Pertandingan lawan manusia",
-  "profile.stats.humanWins": "Menang lawan manusia",
+  "profile.stats.humanMatches": "Pertandingan terbaru lawan manusia",
+  "profile.stats.humanWins": "Kemenangan terbaru lawan manusia",
   "profile.stats.rateScope":
-    "Riwayat tersimpan melawan manusia · filter mode dan lawan berlaku · filter hasil hanya memengaruhi daftar · bot tidak dihitung.",
+    "{limit} pertandingan terakhir melawan manusia, ditambah replay tersimpan · filter mode dan lawan berlaku · filter hasil hanya memengaruhi daftar · bot tidak dihitung.",
   "profile.stats.winRate": "Tingkat kemenangan",
   "profile.stats.replays": "Replay tersimpan",
   "profile.changeAvatar": "Ubah avatar",

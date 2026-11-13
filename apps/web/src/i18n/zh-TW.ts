@@ -249,9 +249,10 @@ const interfaceMessages = {
   "profile.page": "第 {page} 頁",
   "profile.stats.matches": "對局",
   "profile.stats.wins": "勝利",
-  "profile.stats.humanMatches": "真人對局",
-  "profile.stats.humanWins": "真人對局勝場",
-  "profile.stats.rateScope": "僅統計保留的真人對局紀錄 · 套用模式與對手篩選 · 結果篩選僅影響清單 · 不含機器人。",
+  "profile.stats.humanMatches": "近期真人對局",
+  "profile.stats.humanWins": "近期真人對局勝場",
+  "profile.stats.rateScope":
+    "僅統計最近 {limit} 場真人對局及已儲存重播 · 套用模式與對手篩選 · 結果篩選僅影響清單 · 不含機器人。",
   "profile.stats.winRate": "勝率",
   "profile.stats.replays": "已儲存重播",
   "profile.changeAvatar": "更改頭像",

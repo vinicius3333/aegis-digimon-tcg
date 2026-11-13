@@ -259,10 +259,10 @@ const interfaceMessages = {
   "profile.page": "{page}페이지",
   "profile.stats.matches": "대전",
   "profile.stats.wins": "승리",
-  "profile.stats.humanMatches": "플레이어 대전",
-  "profile.stats.humanWins": "플레이어 대전 승리",
+  "profile.stats.humanMatches": "최근 플레이어 대전",
+  "profile.stats.humanWins": "최근 플레이어 대전 승리",
   "profile.stats.rateScope":
-    "보관된 플레이어 대전 기록 기준 · 모드와 상대 필터 적용 · 결과 필터는 목록에만 적용 · 봇 제외",
+    "최근 {limit}개 플레이어 대전과 저장한 리플레이 기준 · 모드와 상대 필터 적용 · 결과 필터는 목록에만 적용 · 봇 제외",
   "profile.stats.winRate": "승률",
   "profile.stats.replays": "저장한 리플레이",
   "profile.changeAvatar": "아바타 변경",

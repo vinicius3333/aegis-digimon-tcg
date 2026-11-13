@@ -259,10 +259,10 @@ const interfaceMessages = {
   "profile.page": "Page {page}",
   "profile.stats.matches": "Matchs",
   "profile.stats.wins": "Victoires",
-  "profile.stats.humanMatches": "Matchs contre des humains",
-  "profile.stats.humanWins": "Victoires contre des humains",
+  "profile.stats.humanMatches": "Matchs récents contre des humains",
+  "profile.stats.humanWins": "Victoires récentes contre des humains",
   "profile.stats.rateScope":
-    "Historique conservé contre des humains · Les filtres de mode et d'adversaire s'appliquent · Le filtre de résultat ne concerne que la liste · Bots exclus.",
+    "{limit} derniers matchs contre des humains, plus les replays enregistrés · Les filtres de mode et d'adversaire s'appliquent · Le filtre de résultat ne concerne que la liste · Bots exclus.",
   "profile.stats.winRate": "Taux de victoire",
   "profile.stats.replays": "Replays enregistrés",
   "profile.changeAvatar": "Changer d'avatar",
