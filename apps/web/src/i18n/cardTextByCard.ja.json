@@ -15722,5 +15722,12 @@
   "BT27-068": {
     "[Digivolve][Gankoomon]:Cost2<Collision><Reboot><Blocker>[AllTurns]WhenthisDigimonwouldleavethebattlearea,byreturning1ofyourotherDigimonor1[Gankoomon]or[XAntibody]fromthisDigimon'sdigivolutioncardstothebottomofthedeck,itdoesn'tleave.[AllTurns][OncePerTurn]WhenanyofyourDigimonleavethebattlearea,youmayactivate1[Main]effectonthiscard'sOptionside.": "〔進化〕「ガンクゥモン」:コスト2\n≪衝突≫ ≪再起動≫ ≪ブロッカー≫\n【お互いのターン】このデジモンがバトルエリアを離れるとき、このデジモンの進化元の「ガンクゥモン」/「X抗体」1枚か、他の自分のデジモン1体をデッキの下に戻すことで、離れない。\n【お互いのターン】[ターン1回]自分のデジモンがバトルエリアを離れたとき、このカードのオプション側の【メイン】効果1つを発揮できる。",
     "UseReq.<[Huckmon]intext>[Main]Return1ofyouropponent's12000DPorhigherDigimontothetopofthedeck.Ifthiseffectdidn'treturn,delete1ofyouropponent'slowestplaycostDigimon.<ArtsDigivolve>": "≪使用条件《「ハックモン」記述》≫（指定の条件で色条件を満たせる）\n【メイン】DP12000以上の相手のデジモン1体をデッキの上に戻す。この効果で戻らなかったなら、最も登場コストの低い相手のデジモン1体を消滅させる。\n≪アーツ進化≫（使用後、破棄する代わりに自分のカードをこのカードにコストを支払わず進化できる）"
+  },
+  "BT27-001": {
+    "[YourTurn][OncePerTurn]WhenanyofyourDigimonwith[Huckmon]intheirtextssuspend,<Draw1>.": "【自分のターン】[ターン1回]「ハックモン」の記述がある自分のデジモンがレストしたとき、≪1ドロー≫。"
+  },
+  "BT27-016": {
+    "[Digivolve][Jesmon]:Cost1<Progress><Piercing><Engage>[WhenDigivolving][WhenAttacking][OncePerTurn]ThisDigimongets+6000DPuntilyouropponent'sturnends.Then,byreturning1ofyourotherDigimonor1[Jesmon]or[XAntibody]fromthisDigimon'sdigivolutioncardstothebottomofthedeck,activate1[Main]effectonthiscard'sOptionside.": "〔進化〕「ジエスモン」:コスト1\n≪プログレス≫ ≪貫通≫ ≪急襲≫（自分のターン終了時、このデジモンでアタックできる）\n【進化時】【アタック時】[ターン1回]相手のターン終了まで、このデジモンをDP+6000。その後、このデジモンの進化元の「ジエスモン」/「X抗体」1枚か、他の自分のデジモン1体をデッキの下に戻すことで、このカードのオプション側の【メイン】効果1つを発揮する。",
+    "UseReq.<[Huckmon]intext>[Main]Byplacing1ofyouropponent'slowestDPDigimonasthebottomsecuritycard,trashtheirtopsecuritycard.<ArtsDigivolve>": "≪使用条件《「ハックモン」記述》≫（指定の条件で色条件を満たせる）\n【メイン】最もDPの低い相手のデジモン1体をセキュリティの下に置くことで、相手のセキュリティを上から1枚破棄する。\n≪アーツ進化≫（使用後、破棄する代わりに自分のカードをこのカードにコストを支払わず進化できる）"
   }
 }
