@@ -42,6 +42,7 @@ describe("BT6 Gabumon Bond of Friendship historical deck", () => {
     s.state.phase = Phase.Breeding;
     s.state.memory = 0;
 
+    void s.engine.breeding.run(0, false);
     expect(
       s.engine.applyIntent(0, {
         type: "moveFromBreeding",

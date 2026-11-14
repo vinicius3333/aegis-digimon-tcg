@@ -67,7 +67,7 @@ export function installCommunityDeckRoutes({
   const route =
     (handler: (req: Request<Record<string, string>>, res: Response) => Promise<unknown>) =>
     (req: Request, res: Response, next: NextFunction) => {
-      handler(req as Request<Record<string, string>>, res).catch(next);
+      return handler(req as Request<Record<string, string>>, res).catch(next);
     };
   const requireSession = async (req: Request, res: Response) => {
     const current = await session(req);

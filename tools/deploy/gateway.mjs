@@ -155,7 +155,7 @@ export function isApiPath(path, headers) {
     return false;
   }
   return (
-    /^\/(health|ready|matchmake|series|auth|account|room|bot|bug-reports|deck-providers|story|achievements|tournament-circuits|social|messages|spectate)(\/|$)/.test(
+    /^\/(health|ready|private-sealed|matchmake|series|auth|account|room|bot|bug-reports|deck-providers|story|achievements|tournament-circuits|social|messages|spectate)(\/|$)/.test(
       path,
     ) ||
     (/^\/(tournaments|community|replays|roadmap|ranked|friends)(\/|$)/.test(path) &&

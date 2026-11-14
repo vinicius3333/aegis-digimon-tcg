@@ -20,7 +20,13 @@ export function PoolCard({
   onRemove,
   onOpen,
   selected,
+  owned,
+  artId,
+  disabled = false,
 }: {
+  owned?: number;
+  artId?: string;
+  disabled?: boolean;
   cardId: string;
   format?: DeckFormat;
   inDeck: number;
@@ -34,8 +40,11 @@ export function PoolCard({
   const { t } = useTranslation();
   const language = useCardImageLanguage();
   const [hover, setHover] = useState(false);
-  const banLabel = pairConflict ? t("deck.pairBadge") : formatRestrictionLabel(cardId, format);
-  const banned = formatCopyLimit(cardId, format) === 0;
+  let banLabel: string | undefined;
+  if (owned === undefined) {
+    banLabel = pairConflict ? t("deck.pairBadge") : formatRestrictionLabel(cardId, format);
+  }
+  const banned = owned === undefined && formatCopyLimit(cardId, format) === 0;
   const blocked = banned || pairConflict;
   const hasCopies = inDeck > 0;
   const beta = isBetaCard(cardId);
@@ -43,19 +52,23 @@ export function PoolCard({
     <div
       className="deck-pool-card"
       data-hover={hover}
+      data-pool-card={cardId}
+      data-bounded={owned !== undefined}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
       <div className="deck-pool-card__art">
         <CardFull
           cardId={cardId}
-          artId={findCardArtForLanguage({ cardId, language })?.artId}
+          artId={artId ?? findCardArtForLanguage({ cardId, language })?.artId}
           width={132}
           selected={selected}
           count={hasCopies ? inDeck : undefined}
           dim={banned}
           onClick={() => {
-            if (!blocked && !atMax) onAdd();
+            if (!blocked && !atMax && !disabled) {
+              onAdd();
+            }
           }}
         />
         {blocked ? <div className="deck-pool-card__tint" /> : null}
@@ -86,6 +99,9 @@ export function PoolCard({
       >
         ℹ
       </button>
+      {owned !== undefined ? (
+        <span className="deck-pool-card__ownership">{t("sealed.owned", { remaining: owned - inDeck, owned })}</span>
+      ) : null}
       <div className="deck-pool-card-actions">
         {hasCopies ? (
           <div className="deck-pool-card-stepper">
@@ -95,6 +111,7 @@ export function PoolCard({
                 e.stopPropagation();
                 onRemove();
               }}
+              disabled={disabled}
               aria-label={t("common.remove")}
             >
               −
@@ -107,7 +124,7 @@ export function PoolCard({
                 onAdd();
               }}
               aria-label={t("common.add")}
-              disabled={atMax || banned}
+              disabled={atMax || banned || disabled}
             >
               +
             </button>
@@ -119,7 +136,7 @@ export function PoolCard({
               e.stopPropagation();
               onAdd();
             }}
-            disabled={atMax || banned}
+            disabled={atMax || banned || disabled}
           >
             <Icons.Plus size={14} />
             {banned ? t("common.banned") : atMax ? t("common.max") : t("common.add")}

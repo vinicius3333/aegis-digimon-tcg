@@ -1,13 +1,10 @@
+import type { BotPlayer } from "../../api/dist/bot/BotPlayer.js";
+import type { configureLocalScenario } from "../../api/dist/engine/scenario/local.js";
 import { createServer } from "node:http";
-import { Server, createEndpoint, createRouter } from "colyseus";
-import { createGameTransport } from "../../api/dist/connections/createGameTransport.js";
+import { Server } from "colyseus";
 import { ROOM_TYPE, ROOM_TYPE_BOT } from "@aegis/shared";
-import { AegisRoom, roomRegistry } from "../../api/dist/rooms/AegisRoom.js";
-import "../../api/dist/cards/index.js";
-import { BotPlayer } from "../../api/dist/bot/BotPlayer.js";
 import type { DecisionRequest, GameState, Intent } from "@aegis/shared";
 import { Edge } from "./edge";
-import { configureLocalScenario, clearLocalScenario } from "../../api/dist/engine/scenario/local.js";
 import type { ScenarioFixture } from "../../api/src/engine/scenario/types.js";
 
 let activeFixtureServer: ((fixture: ScenarioFixture) => ReturnType<typeof configureLocalScenario>) | undefined;
@@ -36,6 +33,12 @@ export async function startBrowserServer({
   botMainIntents?: Intent[];
   holdBotAfterTurn?: number;
 } = {}) {
+  const { createBrowserHttpApp } = await import("../../api/test-support/createBrowserHttpApp");
+  const { createGameTransport } = await import("../../api/dist/connections/createGameTransport.js");
+  const { AegisRoom, roomRegistry } = await import("../../api/dist/rooms/AegisRoom.js");
+  await import("../../api/dist/cards/index.js");
+  const { BotPlayer } = await import("../../api/dist/bot/BotPlayer.js");
+  const { configureLocalScenario, clearLocalScenario } = await import("../../api/dist/engine/scenario/local.js");
   const fixtureBotTurnWindow = holdBotAfterTurn;
   const scriptedAnswers = [...(botOptionalScript?.answers ?? [])];
   const scriptedMainIntents = botMainIntents === undefined ? undefined : [...botMainIntents];
@@ -67,15 +70,13 @@ export async function startBrowserServer({
   phases.onOwnPhase = function (phase, turn) {
     if (turn < holdBotAfterTurn) originalPhase.call(this, phase, turn);
   };
-  const http = createServer();
-  const server = new Server({ transport: createGameTransport({ server: http }) });
-  // Colyseus 404s unknown routes itself, so a second request listener would double-respond.
-  server.router = createRouter({
-    botJoin: createEndpoint("/bot/join", { method: "POST" }, async (context) => {
-      const { roomId } = context.body as { roomId: string };
-      return new Response("{}", { status: roomRegistry.get(roomId)?.addBot() ? 200 : 400 });
-    }),
+  const httpApp = createBrowserHttpApp();
+  httpApp.app.post("/bot/join", (req, res) => {
+    const { roomId } = req.body as { roomId: string };
+    res.status(roomRegistry.get(roomId)?.addBot() ? 200 : 400).json({});
   });
+  const http = createServer(httpApp.app);
+  const server = new Server({ transport: createGameTransport({ server: http }) });
   server.define(ROOM_TYPE, AegisRoom, { botRoom: false });
   server.define(ROOM_TYPE_BOT, AegisRoom, { botRoom: true });
   await server.listen(serverPort, "127.0.0.1");
@@ -129,6 +130,7 @@ export async function startBrowserServer({
       autonomous.startMainPhaseLoop = originalMain;
       await edge.stop();
       await server.gracefullyShutdown(false);
+      await httpApp.close();
     },
   };
 }

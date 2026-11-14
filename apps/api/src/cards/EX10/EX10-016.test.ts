@@ -252,6 +252,7 @@ describe("EX10-016 Mirrormon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
@@ -272,7 +273,9 @@ describe("EX10-016 Mirrormon", () => {
     expect(s.state.memory).toBe(memoryBeforeDigivolve);
     expect(s.state.players[0]!.breeding!.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
 
+    await settle(() => !s.engine.breeding.isOpen);
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: breedingPermanentId })).toEqual({
       ok: true,
     });

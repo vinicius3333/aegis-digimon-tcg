@@ -1,3 +1,4 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import {
   appFusionCostFor,
   CardKind,
@@ -634,10 +635,11 @@ export function validateDigivolve(
   const derivedBaseColors = deps.derivedBaseColors?.(state, permanent);
   const evoCost = appFusionRequested
     ? undefined
-    : deps.colorWaived?.(state, found.instance)
+    : state.rulesPolicy === GameRulesPolicy.SEALED.value || deps.colorWaived?.(state, found.instance)
       ? matchingEvoCostIgnoringColor(definition, baseDef)
       : matchingEvoCost(definition, baseDef, derivedBaseColors);
   const matchedAlternateRequirement = matchingAlternateDigivolutionRequirement(definition, baseDef, {
+    sealed: state.rulesPolicy === GameRulesPolicy.SEALED.value,
     grantedBaseExactNames: deps.grantedBaseExactNames?.(state, permanent),
     ...(intent.alternateRequirementIndex === undefined ? {} : { requirementIndex: intent.alternateRequirementIndex }),
     isBlastDigivolve: intent.useBlastDigivolve === true,

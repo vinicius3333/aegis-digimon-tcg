@@ -226,14 +226,23 @@ export function TournamentFormatPanel({ detail }: Props) {
         <FormatRow
           label={t("tournaments.detail.cardPool")}
           help={
-            <>
-              <p>{t("tournaments.formatHelp.cardPool")}</p>
-              <p>{t(CARD_POOL_RULE_HELP_KEYS[cardPool.rules])}</p>
-              {cardPool.set === "all" ? null : <p>{t("tournaments.formatHelp.cardPool.set", { set: cardPool.set })}</p>}
-            </>
+            detail.sealedConfiguration ? (
+              <>
+                <p>{t("sealed.building")}</p>
+                <p>{t("sealed.policy")}</p>
+              </>
+            ) : (
+              <>
+                <p>{t("tournaments.formatHelp.cardPool")}</p>
+                <p>{t(CARD_POOL_RULE_HELP_KEYS[cardPool.rules])}</p>
+                {cardPool.set === "all" ? null : (
+                  <p>{t("tournaments.formatHelp.cardPool.set", { set: cardPool.set })}</p>
+                )}
+              </>
+            )
           }
         >
-          {deckFormatLabel(format, t)}
+          {detail.sealedConfiguration ? t("sealed.create") : deckFormatLabel(format, t)}
         </FormatRow>
 
         <FormatRow

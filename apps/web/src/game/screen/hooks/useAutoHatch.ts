@@ -1,3 +1,4 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import { useEffect, useRef } from "react";
 import type { GameState, PlayerState, Seat } from "@aegis/shared";
 import type { AegisRoom } from "../../../net/client";
@@ -31,7 +32,8 @@ export function useAutoHatch({
     state && viewer && viewerSeat !== undefined
       ? actionGuards({ state, viewer, viewerSeat, decisionOpen, presenting, phasePresentationPending })
       : undefined;
-  const canHatch = ready && guards?.breedingActionsOpen && guards.canHatchEgg;
+  const canHatch =
+    state?.rulesPolicy !== GameRulesPolicy.SEALED.value && ready && guards?.breedingActionsOpen && guards.canHatchEgg;
   const raisingDuringBreedingStep = Boolean(guards?.breedingWindow && viewer?.breeding);
   const step = room && state && `${room.roomId}:${state.turnCount}:${viewerSeat}`;
 

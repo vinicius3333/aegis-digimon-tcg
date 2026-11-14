@@ -21,6 +21,7 @@ describe("catalogued Digi-Egg behavior — public breeding hatch", () => {
     const s = setupEngine({ 0: { eggDeck: [{ card: eggId, as: "egg" }] } });
     const player = s.state.players[0] as PlayerState;
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
 
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
     await settle(() => player.breeding?.topCard?.cardId === eggId);

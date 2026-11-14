@@ -99,6 +99,7 @@ describe("Lane R6 — SubTriggerEvent dead-clause fixes", () => {
     p1.breeding = bred;
     s.state.phase = Phase.Breeding;
 
+    void s.engine.breeding.run(1, false);
     expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: bred.permanentId })).toEqual({
       ok: true,
     });

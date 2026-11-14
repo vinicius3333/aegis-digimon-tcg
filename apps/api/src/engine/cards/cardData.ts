@@ -381,6 +381,7 @@ function requirementHasGate(req: DigivolutionRequirement): boolean {
  *   the base for a Blast Digivolve).
  */
 export interface AlternateDigivolveOptions {
+  sealed?: boolean;
   /** Full name identities granted to the live base, separate from substring-only aliases. */
   grantedBaseExactNames?: readonly string[];
   isBlastDigivolve?: boolean;
@@ -455,7 +456,7 @@ function matchGatedRequirement(
     // Tamer-base gate: the alternate path digivolves onto a Tamer ("as if the Tamer is a
     if (req.baseIsTamer && !isTamer(baseDef)) continue;
     // Color gate on the base: "onto one of your <color> Tamers" restricts which Tamers qualify.
-    if (req.baseColors && req.baseColors.length > 0) {
+    if (!options?.sealed && req.baseColors && req.baseColors.length > 0) {
       if (!req.baseColors.some((c) => baseDef.colors.includes(c as CardColor))) continue;
     }
     if (req.baseColorCountMax !== undefined && baseDef.colors.length > req.baseColorCountMax) continue;
@@ -480,7 +481,7 @@ function matchGatedRequirement(
     }
 
     // Color gate: base must have at least one of the listed printed colors.
-    if (req.colors && req.colors.length > 0) {
+    if (!options?.sealed && req.colors && req.colors.length > 0) {
       if (!req.colors.some((c) => baseDef.colors.includes(c as CardColor))) continue;
     }
     if (req.colorCount !== undefined && baseDef.colors.length !== req.colorCount) continue;
@@ -591,7 +592,9 @@ export function matchingAlternateDigivolutionRequirement(
     // evolving card's evo cost at the "as if" level for that shared color. The stale gateless/baseIsTamer-only
     // effects.json entry for these cards is intentionally ignored here.
     const evolvingDef = resolve(evolving);
-    const evo = evolvingDef.evoCosts.find((c) => c.level === tamerOntoLevel && baseDef.colors.includes(c.color));
+    const evo = evolvingDef.evoCosts.find(
+      (c) => c.level === tamerOntoLevel && (options?.sealed === true || baseDef.colors.includes(c.color)),
+    );
     if (evo === undefined) return undefined;
     return {
       cost: tamerOntoDigivolveCostOverride(evolvingId) ?? evo.memoryCost,

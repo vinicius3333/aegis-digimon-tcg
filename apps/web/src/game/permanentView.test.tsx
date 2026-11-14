@@ -582,6 +582,47 @@ it.each(["BT1-043", undefined])(
   },
 );
 
+it.each([
+  { cardId: "TOKEN-Diaboromon-Token", name: "Diaboromon Token" },
+  { cardId: "BT1-043", name: "SaberLeomon" },
+])("hides field identity across face-down transitions for $cardId", ({ cardId, name }) => {
+  const permanent = opponentWithDpDown();
+  permanent.permanentId = "manual-1";
+  permanent.topCard.cardId = cardId;
+  permanent.manualStatuses.push("sick", "immune");
+  permanent.manualMarker = "Custom reminder";
+  const choose = vi.fn<() => void>();
+  const inspect = vi.fn<() => void>();
+  const view = () => (
+    <I18nProvider>
+      <PermanentView perm={permanent} onClick={choose} onInspect={inspect} showInspect />
+    </I18nProvider>
+  );
+  const { container, rerender } = render(view());
+  for (const faceUp of [true, false, true, false]) {
+    permanent.topCard.faceUp = faceUp;
+    rerender(view());
+    const target = container.querySelector('[data-permanent-id="manual-1"]')!;
+    const label = target.getAttribute("aria-label")!;
+    expect(label).toContain("Field reference #manual-1");
+    expect(label).toContain("Sick");
+    expect(label).toContain("Immune");
+    expect(label).toContain("Custom reminder");
+    expect(label.includes(name)).toBe(faceUp);
+    expect(label.includes(`(${cardId})`)).toBe(faceUp);
+    expect(label.includes("Face down")).toBe(!faceUp);
+    const labels = [...container.querySelectorAll("[aria-label]")].map((element) =>
+      element.getAttribute("aria-label")!,
+    );
+    expect(labels.some((entry) => entry.includes(cardId))).toBe(faceUp);
+    expect(labels.some((entry) => entry.includes(name))).toBe(faceUp);
+    fireEvent.keyDown(target, { key: "Enter" });
+    fireEvent.click(screen.getByRole("button", { name: faceUp ? `Read ${name}` : "Read Face down" }));
+  }
+  expect(choose).toHaveBeenCalledTimes(4);
+  expect(inspect).toHaveBeenCalledTimes(4);
+});
+
 it("shows all manually selected visual statuses together on the field", () => {
   const permanent = opponentWithDpDown();
   permanent.manualStatuses.push("sick", "taunt", "immune");

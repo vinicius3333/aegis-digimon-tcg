@@ -62,6 +62,7 @@ describe("BT26 training main and breeding actions", () => {
   it("offers skip alongside hatch and movement, without moving a DP-less egg", async () => {
     const setup = setupEngine({ 0: { eggDeck: ["ST23-01"] } });
     setup.state.phase = Phase.Breeding;
+    void setup.engine.breeding.run(0, false);
     await setup.ready();
     expect(breedingActions(setup.engine, 0).map((action) => action.intent.type)).toEqual(["endPhase", "hatchEgg"]);
     expect(setup.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });

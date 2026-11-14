@@ -62,7 +62,9 @@ export function TournamentMatchActions({ tournamentId, matchId, seriesId, presen
       {present && !seriesId ? <p role="status">{t("tournaments.play.waiting")}</p> : null}
       {error ? (
         <Alert tone="danger" title={t("tournaments.error.action")}>
-          {t("tournaments.reason.unknown", { code: error.code })}
+          {error.code === "sealed_sideboarding"
+            ? t("sealed.policy")
+            : t("tournaments.reason.unknown", { code: error.code })}
         </Alert>
       ) : null}
     </div>

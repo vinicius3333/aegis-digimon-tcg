@@ -187,6 +187,7 @@ describe("BT9-003 Tokomon (X Antibody)", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("tokomon").topCard.instanceId === s.inst("salamon").instanceId);
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("tokomon").permanentId })).toEqual({
       ok: true,
     });

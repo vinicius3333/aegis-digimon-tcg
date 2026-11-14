@@ -44,7 +44,10 @@ describe("social presence and invitations", () => {
     await service.writePresence({ accountId: first.id, connectionId: "tab-one", status: "online" });
     await service.writePresence({ accountId: first.id, connectionId: "tab-two", status: "online" });
     await service.writePresence({ accountId: first.id, connectionId: "game", status: "in_match" });
-    expect(await service.readPresence(first.id)).toEqual({ accountId: first.id, status: "in_match" });
+    expect(await service.readPresence(first.id)).toEqual({
+      accountId: first.id,
+      status: "in_match",
+    });
     await service.deletePresence({ accountId: first.id, connectionId: "game" });
     await service.deletePresence({ accountId: first.id, connectionId: "tab-one" });
     expect(await service.readPresence(first.id)).toEqual({ accountId: first.id, status: "online" });
@@ -89,7 +92,11 @@ describe("social presence and invitations", () => {
     try {
       await firstRoom.onJoin(firstClient);
       await secondRoom.onJoin(secondClient);
-      await service.writePresence({ accountId: first.id, connectionId: "game", status: "in_match" });
+      await service.writePresence({
+        accountId: first.id,
+        connectionId: "game",
+        status: "in_match",
+      });
       await vi.waitFor(() =>
         expect(secondClient.send).toHaveBeenCalledWith("social", {
           kind: "presenceChanged",
@@ -97,7 +104,10 @@ describe("social presence and invitations", () => {
         }),
       );
       await firstRoom.onLeave(firstClient);
-      expect(await service.readPresence(first.id)).toEqual({ accountId: first.id, status: "in_match" });
+      expect(await service.readPresence(first.id)).toEqual({
+        accountId: first.id,
+        status: "in_match",
+      });
       await service.deletePresence({ accountId: first.id, connectionId: "game" });
       await vi.waitFor(() =>
         expect(secondClient.send).toHaveBeenCalledWith("social", {
@@ -188,7 +198,11 @@ describe("social presence and invitations", () => {
   it("allows only the recipient to answer once and publishes the result to both accounts", async () => {
     const sent = vi.fn<(event: unknown) => void>();
     await presence.subscribe(`social:account:${first.id}`, sent);
-    const invite = (await service.invite({ senderId: first.id, recipientId: second.id, roomCode: privateCode }))!;
+    const invite = (await service.invite({
+      senderId: first.id,
+      recipientId: second.id,
+      roomCode: privateCode,
+    }))!;
     expect(await service.answer({ accountId: stranger.id, inviteId: invite.id, accept: true })).toBeUndefined();
     expect(await service.answer({ accountId: first.id, inviteId: invite.id, accept: true })).toBeUndefined();
     const answers = await Promise.all([
@@ -196,22 +210,94 @@ describe("social presence and invitations", () => {
       service.answer({ accountId: second.id, inviteId: invite.id, accept: false }),
     ]);
     expect(answers.filter(Boolean)).toHaveLength(1);
-    expect(sent).toHaveBeenCalledWith({ kind: "inviteAnswered", inviteId: invite.id, accepted: true });
+    expect(sent).toHaveBeenCalledWith({
+      kind: "inviteAnswered",
+      inviteId: invite.id,
+      accepted: true,
+    });
   });
 
   it("expires invites after sixty seconds, when the room closes, or when blocking removes consent", async () => {
     const sent = vi.fn<(event: unknown) => void>();
     await presence.subscribe(`social:account:${second.id}`, sent);
-    const firstInvite = (await service.invite({ senderId: first.id, recipientId: second.id, roomCode: privateCode }))!;
+    const firstInvite = (await service.invite({
+      senderId: first.id,
+      recipientId: second.id,
+      roomCode: privateCode,
+    }))!;
     now += 60_000;
     expect(await service.answer({ accountId: second.id, inviteId: firstInvite.id, accept: true })).toBeUndefined();
     expect(sent).toHaveBeenCalledWith({ kind: "inviteExpired", inviteId: firstInvite.id });
-    const closed = (await service.invite({ senderId: first.id, recipientId: second.id, roomCode: privateCode }))!;
+    const closed = (await service.invite({
+      senderId: first.id,
+      recipientId: second.id,
+      roomCode: privateCode,
+    }))!;
     roomOpen = false;
     expect(await service.answer({ accountId: second.id, inviteId: closed.id, accept: true })).toBeUndefined();
     roomOpen = true;
-    const blocked = (await service.invite({ senderId: first.id, recipientId: second.id, roomCode: privateCode }))!;
+    const blocked = (await service.invite({
+      senderId: first.id,
+      recipientId: second.id,
+      roomCode: privateCode,
+    }))!;
     await new BlockStore(accounts).block({ accountId: first.id, otherId: second.id });
     expect(await service.answer({ accountId: second.id, inviteId: blocked.id, accept: true })).toBeUndefined();
+  });
+});
+
+describe("social room callback retirement", () => {
+  function createRoom() {
+    class LifecycleRoom extends SocialRoom {
+      protected override createSocialService(): SocialService {
+        return service;
+      }
+    }
+    const room = new LifecycleRoom();
+    Object.defineProperty(room, "presence", { value: presence });
+    room.onCreate();
+    return room;
+  }
+
+  it("admits authentication synchronously and drains it before disposal without admitting late lifecycle work", async () => {
+    const room = createRoom();
+    const ticket = await accounts.createRoomTicket(first.id);
+    const consume = accounts.consumeRoomTicket.bind(accounts);
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let entered = false;
+    const spy = vi.spyOn(accounts, "consumeRoomTicket").mockImplementationOnce(async (value) => {
+      entered = true;
+      await gate;
+      return consume(value);
+    });
+    const authenticating = room.onAuth(room.clients[0]!, { authTicket: ticket });
+    expect(entered).toBe(true);
+    let disposed = false;
+    const closing = room.onDispose().then(() => {
+      disposed = true;
+    });
+    await Promise.resolve();
+    expect(disposed).toBe(false);
+    release();
+    expect(await authenticating).toEqual({ accountId: first.id });
+    await closing;
+    const calls = spy.mock.calls.length;
+    expect(await room.onAuth(room.clients[0]!, { authTicket: ticket })).toBe(false);
+    await room.onJoin(room.clients[0]!);
+    await room.onLeave(room.clients[0]!);
+    expect(spy.mock.calls).toHaveLength(calls);
+    await room.onDispose();
+  });
+
+  it("retains an unexpected lifecycle rejection after the admitted task has settled", async () => {
+    const room = createRoom();
+    const failure = new Error("unexpected authentication failure");
+    vi.spyOn(accounts, "consumeRoomTicket").mockRejectedValueOnce(failure);
+    await expect(room.onAuth(room.clients[0]!, {})).rejects.toBe(failure);
+    await expect(room.onDispose()).rejects.toBe(failure);
+    await expect(room.onDispose()).rejects.toBe(failure);
   });
 });

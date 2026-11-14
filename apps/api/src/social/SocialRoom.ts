@@ -25,6 +25,39 @@ export class SocialRoom extends Room {
   private readonly messageLimit = tokenBucketLimiter({ capacity: 5, refillMs: 1500 });
   private readonly limit = tokenBucketLimiter({ capacity: 3, refillMs: 20_000 });
 
+  private retiring = false;
+  private readonly pendingTasks = new Set<Promise<unknown>>();
+  private readonly taskFailures = new Map<number, unknown>();
+  private nextTask = 0;
+  private heartbeat?: ReturnType<Room["clock"]["setInterval"]>;
+  private reconciliation?: ReturnType<Room["clock"]["setInterval"]>;
+  private disposing?: Promise<void>;
+
+  private runTask<T>(work: () => Promise<T>, retiredValue: T): Promise<T> {
+    if (this.retiring) return Promise.resolve(retiredValue);
+    const order = this.nextTask++;
+    let start!: (value: T | PromiseLike<T>) => void;
+    let fail!: (error: unknown) => void;
+    const task = new Promise<T>((resolve, reject) => {
+      start = resolve;
+      fail = reject;
+    });
+    this.pendingTasks.add(task);
+    void task.then(
+      () => this.pendingTasks.delete(task),
+      (error: unknown) => {
+        this.taskFailures.set(order, error);
+        this.pendingTasks.delete(task);
+      },
+    );
+    try {
+      start(work());
+    } catch (error) {
+      fail(error);
+    }
+    return task;
+  }
+
   override onCreate(): void {
     if (rooms.has(this.presence)) {
       throw new ServerError(409, "Social room already exists on this process");
@@ -32,19 +65,27 @@ export class SocialRoom extends Room {
     rooms.set(this.presence, this.roomId);
     this.service = this.createSocialService();
     this.onMessage("social", (client, payload: unknown) => {
-      void this.handleIntent(client, payload).catch(() =>
-        client.send("social", { kind: "error", error: "unavailable" }),
+      void this.runTask(
+        () =>
+          this.handleIntent(client, payload).catch(() =>
+            client.send("social", { kind: "error", error: "unavailable" }),
+          ),
+        undefined,
       );
     });
-    this.clock.setInterval(() => {
-      void this.renewConnections().catch(() => undefined);
+    this.heartbeat = this.clock.setInterval(() => {
+      void this.runTask(() => this.renewConnections().catch(() => undefined), undefined);
     }, LEASE_RENEWAL_INTERVAL_MS);
-    this.clock.setInterval(() => {
-      void this.reconcileSnapshots().catch(() => undefined);
+    this.reconciliation = this.clock.setInterval(() => {
+      void this.runTask(() => this.reconcileSnapshots().catch(() => undefined), undefined);
     }, SNAPSHOT_RECONCILE_INTERVAL_MS);
   }
 
   override async onAuth(_client: Client, options: { authTicket?: string }): Promise<{ accountId: string } | false> {
+    return this.runTask<{ accountId: string } | false>(() => this.authenticate(options), false);
+  }
+
+  private async authenticate(options: { authTicket?: string }): Promise<{ accountId: string } | false> {
     const ticket = await this.service.accounts.consumeRoomTicket(options.authTicket);
     if (!ticket || ticket.tournamentMatchId) {
       return false;
@@ -52,17 +93,25 @@ export class SocialRoom extends Room {
     return { accountId: ticket.account.id };
   }
 
-  override async onJoin(client: Client): Promise<void> {
+  override onJoin(client: Client): Promise<void> {
+    return this.runTask(() => this.join(client), undefined);
+  }
+
+  private async join(client: Client): Promise<void> {
     const accountId = (client.auth as { accountId: string }).accountId;
     this.accountByClient.set(client.sessionId, accountId);
     if (!this.subscriptions.has(accountId)) {
       const receive = (event: SocialEvent) => {
-        void this.deliver({ accountId, event }).catch(() => undefined);
+        void this.runTask(() => this.deliver({ accountId, event }).catch(() => undefined), undefined);
       };
       this.subscriptions.set(accountId, receive);
       await this.presence.subscribe(`social:account:${accountId}`, receive);
     }
-    await this.service.writePresence({ accountId, connectionId: client.sessionId, status: SocialStatus.ONLINE.value });
+    await this.service.writePresence({
+      accountId,
+      connectionId: client.sessionId,
+      status: SocialStatus.ONLINE.value,
+    });
     client.send("social", await this.unreadMessages(accountId));
     this.sendSnapshot(client, await this.service.snapshot(accountId));
     for (const invite of await this.service.readInvites(accountId)) {
@@ -70,7 +119,11 @@ export class SocialRoom extends Room {
     }
   }
 
-  override async onLeave(client: Client): Promise<void> {
+  override onLeave(client: Client): Promise<void> {
+    return this.runTask(() => this.leave(client), undefined);
+  }
+
+  private async leave(client: Client): Promise<void> {
     const accountId = this.accountByClient.get(client.sessionId);
     this.accountByClient.delete(client.sessionId);
     this.lastSnapshotBySession.delete(client.sessionId);
@@ -84,22 +137,45 @@ export class SocialRoom extends Room {
     }
   }
 
-  override async onDispose(): Promise<void> {
+  override onDispose(): Promise<void> {
+    this.retiring = true;
+    this.heartbeat?.clear();
+    this.reconciliation?.clear();
+    this.disposing ??= this.dispose();
+    return this.disposing;
+  }
+
+  private async dispose(): Promise<void> {
+    await Promise.allSettled(this.pendingTasks);
+    const errors = [...this.taskFailures].sort(([a], [b]) => a - b).map(([, error]) => error);
+    const attempt = async (work: () => Promise<unknown>) => {
+      try {
+        await work();
+      } catch (error) {
+        errors.push(error);
+      }
+    };
     if (rooms.get(this.presence) === this.roomId) {
       rooms.delete(this.presence);
     }
     for (const [accountId, receive] of this.subscriptions) {
-      await this.presence.unsubscribe(`social:account:${accountId}`, receive);
+      await attempt(() => this.presence.unsubscribe(`social:account:${accountId}`, receive));
     }
-    await Promise.all(
-      [...this.accountByClient].map(([connectionId, accountId]) =>
-        this.service.deletePresence({ accountId, connectionId }),
-      ),
-    );
+    for (const [connectionId, accountId] of this.accountByClient) {
+      await attempt(() => this.service.deletePresence({ accountId, connectionId }));
+    }
+    this.subscriptions.clear();
+    this.accountByClient.clear();
+    if (errors.length === 1) throw errors[0];
+    if (errors.length > 1) throw new AggregateError(errors, "Social room cleanup failed", { cause: errors[0] });
   }
 
   protected createSocialService(): SocialService {
-    return new SocialService({ accounts: accountStore, presence: this.presence, resolveRoom: resolveSocialInviteRoom });
+    return new SocialService({
+      accounts: accountStore,
+      presence: this.presence,
+      resolveRoom: resolveSocialInviteRoom,
+    });
   }
 
   private async deliver({ accountId, event }: { accountId: string; event: SocialEvent }): Promise<void> {
@@ -127,7 +203,10 @@ export class SocialRoom extends Room {
         event.kind === "presenceChanged"
           ? {
               ...event,
-              presence: await this.service.visiblePresence({ viewerId: accountId, presence: event.presence }),
+              presence: await this.service.visiblePresence({
+                viewerId: accountId,
+                presence: event.presence,
+              }),
             }
           : event,
       );
@@ -156,7 +235,11 @@ export class SocialRoom extends Room {
 
   private async renewConnections(): Promise<void> {
     for (const [connectionId, accountId] of this.accountByClient) {
-      await this.service.writePresence({ accountId, connectionId, status: SocialStatus.ONLINE.value });
+      await this.service.writePresence({
+        accountId,
+        connectionId,
+        status: SocialStatus.ONLINE.value,
+      });
     }
     for (const accountId of new Set(this.accountByClient.values())) {
       await this.service.readInvites(accountId);
@@ -202,14 +285,25 @@ export class SocialRoom extends Room {
         if (typeof intent.requestId !== "string" || !/^[0-9a-f-]{36}$/i.test(intent.requestId)) {
           return;
         }
-        const message = await store.send({ accountId, friendId: intent.friendId, body: intent.body });
+        const message = await store.send({
+          accountId,
+          friendId: intent.friendId,
+          body: intent.body,
+        });
         if (!message) {
-          client.send("social", { kind: "error", error: "message_unavailable", requestId: intent.requestId });
+          client.send("social", {
+            kind: "error",
+            error: "message_unavailable",
+            requestId: intent.requestId,
+          });
           return;
         }
         client.send("social", { kind: "messageSent", requestId: intent.requestId, message });
         for (const target of [accountId, intent.friendId]) {
-          await this.service.publish({ accountId: target, event: { kind: "directMessage", message } });
+          await this.service.publish({
+            accountId: target,
+            event: { kind: "directMessage", message },
+          });
         }
       } else if (this.refreshLimit(accountId)) {
         const at = await store.markRead({ accountId, friendId: intent.friendId });
@@ -261,7 +355,11 @@ export class SocialRoom extends Room {
       /^[0-9a-f-]{36}$/i.test(intent.inviteId) &&
       typeof intent.accept === "boolean"
     ) {
-      const invite = await this.service.answer({ accountId, inviteId: intent.inviteId, accept: intent.accept });
+      const invite = await this.service.answer({
+        accountId,
+        inviteId: intent.inviteId,
+        accept: intent.accept,
+      });
       if (!invite) {
         client.send("social", { kind: "inviteExpired", inviteId: intent.inviteId });
       }

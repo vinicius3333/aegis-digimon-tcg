@@ -41,6 +41,7 @@ it("legally evolves, suspends to block a player attack, and preserves security",
   expect(s.perm("agumon").stack.map((card) => card.cardId)).toEqual(["BT14-001", "BT14-007"]);
 
   s.state.phase = Phase.Breeding;
+  void s.engine.breeding.run(1, false);
   expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: s.perm("agumon").permanentId })).toEqual({
     ok: true,
   });

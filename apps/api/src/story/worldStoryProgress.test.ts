@@ -5,6 +5,7 @@ import { getWorldStoryMilestones } from "@aegis/shared/story/getWorldStoryMilest
 import { getStoryScenario } from "#api/story/getStoryScenario";
 import { getStorySeatDeck } from "#api/story/getStorySeatDeck";
 import { shuffleStoryDecks } from "#api/story/shuffleStoryDecks";
+import { getRoomRandomness } from "#api/rooms/getRoomRandomness";
 import { getStoryBattleDifficulty } from "@aegis/shared/story/getStoryBattleDifficulty";
 
 describe("World story progression", () => {
@@ -30,9 +31,9 @@ describe("World story progression", () => {
       const first = structuredClone(original);
       const repeated = structuredClone(original);
       const next = structuredClone(original);
-      shuffleStoryDecks({ fixture: first, seed: 1 });
-      shuffleStoryDecks({ fixture: repeated, seed: 1 });
-      shuffleStoryDecks({ fixture: next, seed: 2 });
+      shuffleStoryDecks({ fixture: first, ...getRoomRandomness({ seed: 1 }) });
+      shuffleStoryDecks({ fixture: repeated, ...getRoomRandomness({ seed: 1 }) });
+      shuffleStoryDecks({ fixture: next, ...getRoomRandomness({ seed: 2 }) });
       expect(first).toEqual(repeated);
       expect(first).not.toEqual(next);
       const difficulty = getStoryBattleDifficulty({ battleId })!;

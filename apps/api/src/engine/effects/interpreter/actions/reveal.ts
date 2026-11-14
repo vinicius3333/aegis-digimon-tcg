@@ -1,7 +1,9 @@
+import { getPolicyEvoCost } from "#api/engine/cards/getPolicyEvoCost";
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import { getDecisionSelectionGoal } from "#api/engine/effects/interpreter/getDecisionSelectionGoal";
 // Revealing cards and dispatching what the controller takes from them.
 
-import { matchingAlternateDigivolutionRequirement, matchingEvoCost } from "../../../cards/cardData.js";
+import { matchingAlternateDigivolutionRequirement } from "../../../cards/cardData.js";
 import type { EffectContext } from "../../EffectContext.js";
 import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
@@ -265,8 +267,9 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         const base = liveDigivolutionBase(ctx, host);
         if (base === undefined) return false;
         return (
-          matchingEvoCost(into, base) !== undefined ||
+          getPolicyEvoCost({ evolving: into, base, policy: ctx.game.state.rulesPolicy }) !== undefined ||
           matchingAlternateDigivolutionRequirement(into, base, {
+            sealed: ctx.game.state.rulesPolicy === GameRulesPolicy.SEALED.value,
             grantedBaseExactNames: ctx.game.effectiveNames?.(host) ?? [],
           }) !== undefined
         );
@@ -387,8 +390,9 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
           const base = liveDigivolutionBase(ctx, host);
           if (base === undefined) return false;
           return (
-            matchingEvoCost(into, base) !== undefined ||
+            getPolicyEvoCost({ evolving: into, base, policy: ctx.game.state.rulesPolicy }) !== undefined ||
             matchingAlternateDigivolutionRequirement(into, base, {
+              sealed: ctx.game.state.rulesPolicy === GameRulesPolicy.SEALED.value,
               grantedBaseExactNames: ctx.game.effectiveNames?.(host) ?? [],
             }) !== undefined
           );
@@ -884,8 +888,9 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         const base = liveDigivolutionBase(ctx, permanent);
         if (base === undefined) return false;
         return (
-          matchingEvoCost(into, base) !== undefined ||
+          getPolicyEvoCost({ evolving: into, base, policy: ctx.game.state.rulesPolicy }) !== undefined ||
           matchingAlternateDigivolutionRequirement(into, base, {
+            sealed: ctx.game.state.rulesPolicy === GameRulesPolicy.SEALED.value,
             grantedBaseExactNames: ctx.game.effectiveNames?.(permanent) ?? [],
           }) !== undefined
         );

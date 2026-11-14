@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared/cards/registry";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
+import type { BoardSpec } from "#api/engine/scenario/types";
 import { advance } from "#api/engine/testkit/advance";
 import { compiled } from "#api/cards/BT27/BT27-065";
 import "#api/cards/index";
@@ -12,7 +13,7 @@ const battleCardIds = (s: Setup, seat: Seat) => s.state.players[seat]!.battleAre
 const trashCardIds = (s: Setup, seat: Seat) => s.state.players[seat]!.trash.map(({ cardId }) => cardId);
 
 async function digivolveMamemonX(
-  board: Parameters<typeof setupEngine>[0],
+  board: BoardSpec,
   options: { accept: boolean; prefer?: string; useAlternateCost?: boolean },
 ) {
   const preferInstanceIds: string[] = [];
@@ -207,7 +208,7 @@ describe("Mamemon (X Antibody) When Digivolving Rush attack", () => {
 });
 
 describe("Mamemon (X Antibody) On Deletion", () => {
-  async function deleteMamemonX(board: Parameters<typeof setupEngine>[0]) {
+  async function deleteMamemonX(board: BoardSpec) {
     const s = setupEngine(board, { autoSelectCards: true, autoDeclineOptional: true });
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("mamemonX").permanentId]);

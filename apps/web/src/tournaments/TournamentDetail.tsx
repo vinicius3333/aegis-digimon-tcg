@@ -1,3 +1,4 @@
+import { SealedBuilder } from "@/tournaments/sealed/SealedBuilder";
 import { TournamentRuntimeControls } from "@/tournaments/TournamentRuntimeControls";
 import type { TournamentCategory } from "@aegis/shared/tournaments/TournamentCategory";
 import { TournamentCategoryBadge } from "@/tournaments/TournamentCategoryBadge";
@@ -235,6 +236,9 @@ export function TournamentDetail({
   const checkIn = () => void run(() => tournamentApi.checkIn(detail.id));
   const drop = () => void run(() => tournamentApi.drop(detail.id));
 
+  const sealedBuilder =
+    detail.sealedConfiguration && own && accountId ? <SealedBuilder tournamentId={id} onReady={refresh} /> : null;
+
   const entryPanel =
     entryView.showsProgress || entryView.value === TournamentEntryView.SIGNUP.value ? (
       <TournamentEntrySummary detail={detail} own={own} />
@@ -304,6 +308,12 @@ export function TournamentDetail({
                 <Badge>{t(`tournaments.botStyle.${participant.botStyle}` as TranslationKey)}</Badge>
               ) : null}
               <Badge>{t(participantStatusKey(participant.status))}</Badge>
+              {detail.sealedConfiguration &&
+              detail.sealedBuildDeadlineAt &&
+              detail.status === "check_in" &&
+              participant.status === "active" ? (
+                <Badge>{t(participant.sealedReady ? "sealed.ready" : "sealed.building")}</Badge>
+              ) : null}
               {participant.seed !== null ? <span className="tournaments-seed">#{participant.seed}</span> : null}
             </li>
           ))}
@@ -451,6 +461,7 @@ export function TournamentDetail({
               />
             ) : (
               <>
+                {sealedBuilder}
                 {entryProgress}
                 <MyMatchPanel detail={detail} accountId={accountId} onJoinGame={onJoinGame} onChanged={refresh} />
                 {isElimination ? bracketPanel : <TournamentMatchHistory detail={detail} onWatchMatch={onWatchMatch} />}

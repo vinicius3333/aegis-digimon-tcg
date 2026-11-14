@@ -144,6 +144,7 @@ describe("BT9-002 Puyoyomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("puyoyomon").topCard.instanceId === s.inst("elecmon").instanceId);
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("puyoyomon").permanentId })).toEqual(
       {
         ok: true,
