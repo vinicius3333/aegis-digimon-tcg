@@ -18,6 +18,7 @@ describe("BT6-087 Tai Kamiya", () => {
     });
     s.state.phase = Phase.Breeding;
 
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("agumon").permanentId })).toEqual({
       ok: true,
     });

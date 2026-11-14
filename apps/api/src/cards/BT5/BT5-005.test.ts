@@ -123,6 +123,7 @@ describe("BT5-005 Tsumemon", () => {
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT5-005"]);
 
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("host").permanentId })).toEqual({
       ok: true,
     });

@@ -620,3 +620,10 @@ test("tournament authorization forwards to the API instead of returning the site
   assert.match(response.headers.get("content-type"), /application\/json/);
   assert.equal((await response.json()).path, "/series/test-series/authorize-game");
 });
+
+test("sealed admission reach the API for every Accept header", () => {
+  for (const path of ["/private-sealed", "/private-sealed/invite/ready"]) {
+    assert.equal(isApiPath(path, {}), true);
+    assert.equal(isApiPath(path, { accept: "text/html" }), true);
+  }
+});

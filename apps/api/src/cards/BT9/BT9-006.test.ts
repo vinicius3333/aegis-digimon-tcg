@@ -135,6 +135,7 @@ describe("BT9-006 Pagumon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("pagumon").topCard.instanceId === s.inst("demidevimon").instanceId);
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("pagumon").permanentId })).toEqual({
       ok: true,
     });

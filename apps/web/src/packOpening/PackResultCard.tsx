@@ -20,6 +20,8 @@ export function PackResultCard({ card, index, foilEnabled, onInspect }: Props) {
     <button
       type="button"
       className="pack-result-card"
+      data-card-id={card.cardId}
+      data-art-id={card.artId ?? card.cardId}
       data-foil={!foilEnabled || finish.value === CardFinish.NONE.value ? undefined : finish.value}
       onClick={() => onInspect(index)}
       aria-label={`Zoom ${card.nameEn}${card.artId ? " AA" : ""}, card ${index + 1}`}

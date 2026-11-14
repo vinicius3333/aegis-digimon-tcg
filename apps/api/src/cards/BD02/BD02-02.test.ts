@@ -18,8 +18,8 @@ function playRenamonOnto(deck: string[]) {
   return s;
 }
 
-function cardIdsIn(cards: readonly { cardId: string }[]) {
-  return cards.map((card) => card.cardId);
+function cardIdsIn(cards: Iterable<{ cardId: string }>) {
+  return Array.from(cards, (card) => card.cardId);
 }
 
 describe("BD02-02 Renamon", () => {

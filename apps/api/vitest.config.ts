@@ -28,6 +28,7 @@ const verifyContinuousSkips = process.env.AEGIS_VERIFY_CONTINUOUS_SKIPS === "1";
 const focusedPath = process.argv.some((arg) => arg.startsWith("src/") || arg.startsWith("test-support/"));
 const batchCards = process.env.TEST_BATCH_CARDS === "1" && !process.env.FAST && !focusedPath;
 const exclude = [
+  ...(process.env.SEALED_TEST_DATABASE_URL ? [] : ["src/rooms/sealed/*.test.ts"]),
   ...configDefaults.exclude,
   ...(process.env.FAST ? heavySuites : []),
   ...(process.env.POSTGRES_TESTS === "1" ? [] : [postgresLane]),

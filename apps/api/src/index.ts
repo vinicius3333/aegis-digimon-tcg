@@ -1,3 +1,5 @@
+import { getPrivateSealedResults } from "#api/rooms/sealed/getPrivateSealedResults";
+import { installPrivateSealedRoutes } from "#api/rooms/sealed/installPrivateSealedRoutes";
 import { createTournamentDiscordSweep } from "#api/tournaments/discord/createTournamentDiscordSweep";
 import { createTournamentResultSweep } from "#api/tournaments/results/createTournamentResultSweep";
 import { createTournamentCircuitSweep } from "#api/tournaments/circuits/createTournamentCircuitSweep";
@@ -212,6 +214,7 @@ installDeploymentRoutes({ app, runtime: deploymentRuntime });
 installBotRoutes(app);
 
 installPrivateRoomRoutes(app);
+installPrivateSealedRoutes({ app, accounts: accountStore });
 
 installSpectatorRoutes(app);
 
@@ -350,6 +353,7 @@ const shutdown = (signal: string) => {
     stopDeadlineWorker: () => deadlineWorker?.stop(),
     shutdownRooms: () => gameServer.gracefullyShutdown(false),
   })
+    .finally(() => getPrivateSealedResults({ accounts: accountStore }).close())
     .finally(() => stopBotInference())
     .then(() => cluster.shutdown())
     .then(() => flushLogs())

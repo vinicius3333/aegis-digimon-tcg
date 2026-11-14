@@ -83,6 +83,7 @@ describe("BT9-001 Koromon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("koromon").topCard.instanceId === s.inst("agumon").instanceId);
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("koromon").permanentId })).toEqual({
       ok: true,
     });

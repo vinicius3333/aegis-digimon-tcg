@@ -2,6 +2,11 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useState } from "react";
+import "@/account/ProfileScreen";
+import "@/screens/DeckBuilder";
+import "@/screens/Lobby";
+import "@/screens/Home";
+import "@/screens/Settings";
 import { accountApi, type RemoteAccount } from "./account/client";
 import { AegisClient, cardEffectsLabCardId, initialAppRoute, withAccountAvatar } from "./App";
 import { I18nProvider } from "./i18n";
@@ -68,6 +73,7 @@ describe("game reload routing", () => {
 
 describe("responsive application state", () => {
   beforeEach(() => {
+    window.history.replaceState(null, "", "/");
     localStorage.clear();
     localStorage.setItem("aegis:player", JSON.stringify({ name: "Resize Tamer", color: "Blue", shards: 0 }));
     HTMLCanvasElement.prototype.getContext = () => null;

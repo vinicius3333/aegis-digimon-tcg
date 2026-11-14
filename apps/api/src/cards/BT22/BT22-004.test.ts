@@ -19,6 +19,7 @@ describe("BT22-004 Wanyamon", () => {
       },
     });
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT22-004");
@@ -97,6 +98,7 @@ describe("BT22-004 Wanyamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT22-004");
@@ -119,6 +121,7 @@ describe("BT22-004 Wanyamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT22-046");
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: breedingId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === breedingId));
     s.state.phase = Phase.Main;

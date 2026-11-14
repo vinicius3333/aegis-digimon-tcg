@@ -70,7 +70,7 @@ export function installClientErrorRoutes({
     "/bug-reports/client-errors",
     express.text({ type: "text/plain", limit: GAME_MESSAGE_LIMITS.maxMessageBytes }),
     (req, res, next) => {
-      accept(req, res).catch(next);
+      return accept(req, res).catch(next);
     },
   );
 }

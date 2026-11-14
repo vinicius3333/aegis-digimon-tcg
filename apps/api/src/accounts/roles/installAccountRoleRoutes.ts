@@ -19,9 +19,9 @@ const SEARCH_MAX_LENGTH = 32;
 export function installAccountRoleRoutes({ app, store, session }: AccountRoleRouteDeps): void {
   const adminRoute =
     (handler: Handler) =>
-    (req: Request, res: Response, next: NextFunction): void => {
+    (req: Request, res: Response, next: NextFunction): Promise<unknown> | void => {
       res.set("Cache-Control", "no-store");
-      void (async () => {
+      return (async () => {
         const auth = await session(req);
         if (!auth) {
           res.status(401).json({ error: "authentication_required" });

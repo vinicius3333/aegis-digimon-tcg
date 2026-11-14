@@ -1,3 +1,5 @@
+import type { PrivateSealedGameTicket } from "@aegis/shared/sealed/private/PrivateSealedContracts";
+import { createLazyComponent } from "@/net/createLazyComponent";
 import { BotDifficulty } from "@aegis/shared/bot/BotDifficulty";
 import { BotStyle } from "@aegis/shared/bot/BotStyle";
 import type { BotSettings } from "@aegis/shared/bot/BotSettings";
@@ -25,7 +27,7 @@ import { communityDeckListing } from "@/community/communityDeckListing";
    chosen deck and the button that starts the chosen mode in reach while the
    player scrolls the deck picker. */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   allCards,
   MATCH_TIMER_REFILL_SECONDS,
@@ -41,7 +43,7 @@ import {
   sharedCardNumberGroups,
   deckLegality,
 } from "@aegis/shared";
-import { Alert, Button, Dialog, Field, IconButton, type PlayerIdentity, type Screen } from "../design/primitives";
+import { Alert, Button, Dialog, IconButton, type PlayerIdentity, type Screen } from "../design/primitives";
 import { CoverThumb } from "../design/cards";
 import { Panel } from "../design/surfaces";
 import { Icons, type IconComponent } from "../design/icons";
@@ -61,6 +63,7 @@ import { PlayTab } from "@/play/PlayTab";
 import { DeckColorDots, DeckPicker } from "./DeckPicker";
 import { FamousDeckListDialog } from "./FamousDeckListDialog";
 import { DeckFormatSelector } from "@/screens/DeckFormatSelector";
+import { PrivateSidebar } from "@/screens/PrivateSidebar";
 import { deckFormatLabel } from "@/screens/deckFormatLabel";
 import { MatchFormatSettings } from "./MatchFormatSettings";
 import { RollbackSettings } from "@/screens/RollbackSettings";
@@ -73,6 +76,11 @@ import { BotOpponentPreview } from "@/bot/personas/BotOpponentPreview";
 import { useLiveMatches } from "./useLiveMatches";
 import { deckHasBetaCards } from "@/screens/deckHasBetaCards";
 import { isBetaCard } from "@/screens/isBetaCard";
+
+const PrivateSealed = createLazyComponent({
+  load: () => import("@/sealed/PrivateSealed"),
+  pick: (module) => module.PrivateSealed,
+});
 
 /** The private room a finished match returns to. Its host reopens it under the same code. */
 export interface PrivateRoom {
@@ -216,6 +224,7 @@ export function Lobby({
   onEditDeck,
   onNav,
   onStart: onStartRequested,
+  onStartPrivateSealedGame,
   invitedRoomCode,
   privateRoom,
   onLeavePrivateRoom,
@@ -237,6 +246,7 @@ export function Lobby({
   queueChallenge,
   onQueueChallengeHandled,
 }: {
+  onStartPrivateSealedGame?: (ticket: PrivateSealedGameTicket) => void;
   queueChallenge?: MatchQueueSelection;
   onQueueChallengeHandled?: () => void;
   challengeFriendName?: string;
@@ -284,6 +294,12 @@ export function Lobby({
   privateRoom?: PrivateRoom;
   onLeavePrivateRoom?: () => void;
 }) {
+  const [privateSealed, setPrivateSealed] = useState(
+    () =>
+      !!sessionStorage.getItem("aegis:private-sealed-code") ||
+      new URLSearchParams(location.search).has("privateSealed"),
+  );
+  const [sealedFormat, setSealedFormat] = useState(false);
   const getCardName = useTranslatedCardName();
   const { t } = useTranslation();
   const MODES = modesFor(t);
@@ -311,6 +327,7 @@ export function Lobby({
     getInitialLobbyMode({ initialMode, privateEntry: Boolean(invitedRoomCode || privateRoom || challengeFriendName) }),
   );
   const [betaConfirmationOpen, setBetaConfirmationOpen] = useState(false);
+  const sealedSetup = mode === LobbyMode.PRIVATE.value && sealedFormat;
   const [privateSub, setPrivateSub] = useState<"create" | "join">(invitedRoomCode ? "join" : "create");
   const [roomCodeInput, setRoomCodeInput] = useState(invitedRoomCode ?? "");
   const [preferredBotDeckId, setPreferredBotDeckId] = useState(readBotDeckPreference);
@@ -812,6 +829,21 @@ export function Lobby({
     void start(unlimited ? "unlimited" : "casual");
   }, [pendingChallengeKey, queueSelection, selectionLegal, betaEnabled, start, unlimited]);
 
+  if (privateSealed) {
+    return (
+      <Suspense fallback={<p role="status">{t("sealed.loading")}</p>}>
+        <PrivateSealed
+          displayName={player.name}
+          onClose={() => {
+            setPrivateSealed(false);
+            setSealedFormat(false);
+            setMode(LobbyMode.PRIVATE.value);
+          }}
+          onStartGame={onStartPrivateSealedGame}
+        />
+      </Suspense>
+    );
+  }
   return (
     <main className="aegis-page play-page lobby-page">
       <div className="aegis-page__wrap">
@@ -836,89 +868,102 @@ export function Lobby({
           ) : null}
           {randomError ? <Alert tone="danger">{t("lobby.randomFailed")}</Alert> : null}
           {randomDrawing ? <p role="status">{t("lobby.randomDrawing")}</p> : null}
-          <Panel as="section" className="lobby-active-strip" aria-label={t("lobby.battleDeck")}>
-            {randomSelected ? (
-              <div className="lobby-active-strip__jump">
-                <span className="lobby-active-strip__thumb lobby-active-strip__thumb--mystery">
-                  <Icons.Dices size={22} />
-                </span>
-                <span className="lobby-active-strip__text">
-                  <span className="lobby-active-strip__eyebrow">{t("lobby.battleDeck")}</span>
-                  <span className="lobby-active-strip__name">{t("lobby.randomDeck")}</span>
-                  <span className="lobby-active-strip__meta">{randomPoolLabel}</span>
-                </span>
-              </div>
-            ) : active ? (
-              <button type="button" className="lobby-active-strip__jump" onClick={scrollToActiveDeckCard}>
-                <span className="lobby-active-strip__thumb">
-                  <CoverThumb
-                    key={displayCoverCard(active)}
-                    coverCardId={displayCoverCard(active)}
-                    sigilColor={active.color}
-                    sigilSize={22}
-                  />
-                </span>
-                <span className="lobby-active-strip__text">
-                  <span className="lobby-active-strip__eyebrow">{t("lobby.battleDeck")}</span>
-                  <span className="lobby-active-strip__name">{active.name}</span>
-                  <span className="lobby-active-strip__meta">
-                    <DeckColorDots deck={active} />
-                    <span className="lobby-active-strip__counts">
-                      {t("redesign.play.deckCounts", { main: active.mainDeck.length, egg: active.eggDeck.length })}
-                    </span>
-                    <span className="lobby-active-strip__status" data-tone={deckStatus.tone}>
-                      {deckLegal ? <Icons.Check size={13} /> : null}
-                      {deckStatus.label}
-                    </span>
-                    {!manualMatch &&
-                    bestOf === 3 &&
-                    (mode === "casual" || (mode === "private" && privateSub === "create")) ? (
-                      <span className="lobby-timer-summary">
-                        <Icons.Trophy size={13} /> {t("lobby.format.enabled")}
-                      </span>
-                    ) : null}
-                    {!manualMatch &&
-                    timer.matchTimer &&
-                    (mode === "casual" || (mode === "private" && privateSub === "create")) ? (
-                      <span className="lobby-timer-summary">
-                        <Icons.Clock size={13} /> {t("lobby.timer.enabled")}
-                      </span>
-                    ) : null}
-                    {activeIsPreset ? (
-                      <span className="lobby-active-strip__source">
-                        {t("lobby.presetSource", { collection: activeCollection })}
-                      </span>
-                    ) : activeIsBorrowed ? (
-                      <span className="lobby-active-strip__source">
-                        {active.id.startsWith("provider-")
-                          ? active.blurb
-                          : t("community.lobbySource", { name: active.blurb })}
-                      </span>
-                    ) : null}
+          {!sealedSetup ? (
+            <Panel as="section" className="lobby-active-strip" aria-label={t("lobby.battleDeck")}>
+              {randomSelected ? (
+                <div className="lobby-active-strip__jump">
+                  <span className="lobby-active-strip__thumb lobby-active-strip__thumb--mystery">
+                    <Icons.Dices size={22} />
                   </span>
-                </span>
-              </button>
-            ) : (
-              <div className="lobby-active-strip__jump">
-                <span className="lobby-active-strip__text">
-                  <span className="lobby-active-strip__eyebrow">{t("lobby.battleDeck")}</span>
-                  <span className="lobby-active-strip__name">{t("lobby.noDeckSelected")}</span>
-                </span>
-              </div>
-            )}
-            <div className="lobby-active-strip__tools">
-              {!randomSelected && active && activeIsPreset ? (
-                <>
-                  <IconButton
-                    className="lobby-deck-action"
-                    variant="ghost"
-                    size="sm"
-                    label={t("lobby.viewList")}
-                    title={t("lobby.viewList")}
-                    onClick={() => setViewedDeck(active)}
-                  >
-                    <Icons.Eye size={16} />
-                  </IconButton>
+                  <span className="lobby-active-strip__text">
+                    <span className="lobby-active-strip__eyebrow">{t("lobby.battleDeck")}</span>
+                    <span className="lobby-active-strip__name">{t("lobby.randomDeck")}</span>
+                    <span className="lobby-active-strip__meta">{randomPoolLabel}</span>
+                  </span>
+                </div>
+              ) : active ? (
+                <button type="button" className="lobby-active-strip__jump" onClick={scrollToActiveDeckCard}>
+                  <span className="lobby-active-strip__thumb">
+                    <CoverThumb
+                      key={displayCoverCard(active)}
+                      coverCardId={displayCoverCard(active)}
+                      sigilColor={active.color}
+                      sigilSize={22}
+                    />
+                  </span>
+                  <span className="lobby-active-strip__text">
+                    <span className="lobby-active-strip__eyebrow">{t("lobby.battleDeck")}</span>
+                    <span className="lobby-active-strip__name">{active.name}</span>
+                    <span className="lobby-active-strip__meta">
+                      <DeckColorDots deck={active} />
+                      <span className="lobby-active-strip__counts">
+                        {t("redesign.play.deckCounts", { main: active.mainDeck.length, egg: active.eggDeck.length })}
+                      </span>
+                      <span className="lobby-active-strip__status" data-tone={deckStatus.tone}>
+                        {deckLegal ? <Icons.Check size={13} /> : null}
+                        {deckStatus.label}
+                      </span>
+                      {!manualMatch &&
+                      bestOf === 3 &&
+                      (mode === "casual" || (mode === "private" && privateSub === "create")) ? (
+                        <span className="lobby-timer-summary">
+                          <Icons.Trophy size={13} /> {t("lobby.format.enabled")}
+                        </span>
+                      ) : null}
+                      {!manualMatch &&
+                      timer.matchTimer &&
+                      (mode === "casual" || (mode === "private" && privateSub === "create")) ? (
+                        <span className="lobby-timer-summary">
+                          <Icons.Clock size={13} /> {t("lobby.timer.enabled")}
+                        </span>
+                      ) : null}
+                      {activeIsPreset ? (
+                        <span className="lobby-active-strip__source">
+                          {t("lobby.presetSource", { collection: activeCollection })}
+                        </span>
+                      ) : activeIsBorrowed ? (
+                        <span className="lobby-active-strip__source">
+                          {active.id.startsWith("provider-")
+                            ? active.blurb
+                            : t("community.lobbySource", { name: active.blurb })}
+                        </span>
+                      ) : null}
+                    </span>
+                  </span>
+                </button>
+              ) : (
+                <div className="lobby-active-strip__jump">
+                  <span className="lobby-active-strip__text">
+                    <span className="lobby-active-strip__eyebrow">{t("lobby.battleDeck")}</span>
+                    <span className="lobby-active-strip__name">{t("lobby.noDeckSelected")}</span>
+                  </span>
+                </div>
+              )}
+              <div className="lobby-active-strip__tools">
+                {!randomSelected && active && activeIsPreset ? (
+                  <>
+                    <IconButton
+                      className="lobby-deck-action"
+                      variant="ghost"
+                      size="sm"
+                      label={t("lobby.viewList")}
+                      title={t("lobby.viewList")}
+                      onClick={() => setViewedDeck(active)}
+                    >
+                      <Icons.Eye size={16} />
+                    </IconButton>
+                    <IconButton
+                      className="lobby-deck-action"
+                      variant="ghost"
+                      size="sm"
+                      label={t("lobby.copyPreset")}
+                      title={t("lobby.copyPreset")}
+                      onClick={() => onCopyDeck(active)}
+                    >
+                      <Icons.Copy size={16} />
+                    </IconButton>
+                  </>
+                ) : !randomSelected && active && activeIsBorrowed ? (
                   <IconButton
                     className="lobby-deck-action"
                     variant="ghost"
@@ -929,62 +974,53 @@ export function Lobby({
                   >
                     <Icons.Copy size={16} />
                   </IconButton>
-                </>
-              ) : !randomSelected && active && activeIsBorrowed ? (
+                ) : null}
                 <IconButton
                   className="lobby-deck-action"
                   variant="ghost"
                   size="sm"
-                  label={t("lobby.copyPreset")}
-                  title={t("lobby.copyPreset")}
-                  onClick={() => onCopyDeck(active)}
+                  label={t("nav.decks")}
+                  title={t("nav.decks")}
+                  onClick={() => onNav("deck")}
                 >
-                  <Icons.Copy size={16} />
+                  <Icons.FileText size={16} />
                 </IconButton>
+              </div>
+              {!randomSelected && !active ? (
+                <Button size="sm" variant="secondary" icon={Icons.Plus} onClick={() => onNav("deck")}>
+                  {t("lobby.buildDeck")}
+                </Button>
               ) : null}
-              <IconButton
-                className="lobby-deck-action"
-                variant="ghost"
-                size="sm"
-                label={t("nav.decks")}
-                title={t("nav.decks")}
-                onClick={() => onNav("deck")}
-              >
-                <Icons.FileText size={16} />
-              </IconButton>
-            </div>
-            {!randomSelected && !active ? (
-              <Button size="sm" variant="secondary" icon={Icons.Plus} onClick={() => onNav("deck")}>
-                {t("lobby.buildDeck")}
-              </Button>
-            ) : null}
-            {rankedChoiceShown ? (
-              <RankedQueueSwitch
-                ranked={selectedRankedQueue}
-                rankedAvailable={signedIn === true && !rankedDeckBlocked}
-                rankedUnavailableReason={t(rankedDeckBlocked ? "ranked.season.savedDeck" : "ranked.signInToEnable")}
-                onRankedChange={chooseRankedQueue}
-              />
-            ) : null}
-            <div className="lobby-launch">
-              <Button
-                icon={launch.icon}
-                disabled={launch.disabled}
-                aria-label={launch.beta ? t("lobby.enterBetaQueue") : launch.label}
-                onClick={launch.onClick}
-              >
-                <span className="lobby-launch__label">{launch.label}</span>
-                <span className="lobby-launch__short" aria-hidden="true">
-                  {launch.shortLabel}
-                </span>
-              </Button>
-              {launch.beta ? (
-                <span className="lobby-launch__beta" aria-hidden="true">
-                  {t("beta.tag")}
-                </span>
+              {rankedChoiceShown ? (
+                <RankedQueueSwitch
+                  ranked={selectedRankedQueue}
+                  rankedAvailable={signedIn === true && !rankedDeckBlocked}
+                  rankedUnavailableReason={t(rankedDeckBlocked ? "ranked.season.savedDeck" : "ranked.signInToEnable")}
+                  onRankedChange={chooseRankedQueue}
+                />
               ) : null}
-            </div>
-          </Panel>
+              {launch ? (
+                <div className="lobby-launch">
+                  <Button
+                    icon={launch.icon}
+                    disabled={launch.disabled}
+                    aria-label={launch.beta ? t("lobby.enterBetaQueue") : launch.label}
+                    onClick={launch.onClick}
+                  >
+                    <span className="lobby-launch__label">{launch.label}</span>
+                    <span className="lobby-launch__short" aria-hidden="true">
+                      {launch.shortLabel}
+                    </span>
+                  </Button>
+                  {launch.beta ? (
+                    <span className="lobby-launch__beta" aria-hidden="true">
+                      {t("beta.tag")}
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
+            </Panel>
+          ) : null}
 
           <header className="lobby-header">
             <h2 className="lobby-header__title">{t("lobby.title")}</h2>
@@ -1045,292 +1081,335 @@ export function Lobby({
             })}
           </div>
 
-          <section className="lobby-setup" aria-labelledby="lobby-setup-title" ref={matchSetup}>
-            <div className="lobby-setup__header">
-              <h2 id="lobby-setup-title" className="lobby-setup__title">
+          {sealedSetup ? (
+            <section className="lobby-setup" aria-labelledby="sealed-setup-title">
+              <h2 id="sealed-setup-title" className="lobby-setup__title">
                 {t("redesign.play.setupTitle")}
               </h2>
-            </div>
-            <div className="lobby-setup__notices">
-              <p className="lobby-setup__notice">
-                {randomSelected ? (
-                  t("lobby.randomQueueNotice")
-                ) : active ? (
-                  <>
-                    {t("lobby.queueNoticePrefix")}
-                    <strong>{selectedRankedQueue ? t("ranked.queue.ranked") : modeTitle}</strong>
-                    {t("lobby.queueNoticeSuffix", { deck: active.name })}
-                  </>
-                ) : (
-                  t("lobby.buildFirst")
-                )}
-              </p>
-              {betaEnabled ? (
-                <Alert className="lobby-alert" tone="warning" title={t("lobby.betaBattleMode")}>
-                  {t("lobby.betaBattleHint")}
-                </Alert>
-              ) : null}
-              {betaCards.length > 0 && !betaAllowed ? (
-                <Alert className="lobby-alert" tone="warning" title={t("lobby.betaRequiredTitle")}>
-                  {t("lobby.betaRequiredHint")}
-                </Alert>
-              ) : null}
-              {active && deckLegality(active, { format }).formatViolations.length > 0 ? (
-                <Alert tone="warning">
-                  {t("deckFormat.violations", { count: deckLegality(active, { format }).formatViolations.length })}
-                </Alert>
-              ) : null}
-              {banViolations.length > 0 ? (
-                <Alert className="lobby-alert" tone="danger" title={t("lobby.banlistTitle")}>
-                  {banViolations.map(({ id, n, cap }) => (
-                    <div key={id}>{t("lobby.banlistRow", { cardId: id, count: n, cap })}</div>
-                  ))}
-                </Alert>
-              ) : null}
-              {pairViolations.length > 0 ? (
-                <Alert className="lobby-alert" tone="danger" title={t("lobby.pairTitle")}>
-                  {pairViolations.map(([a, b]) => (
-                    <div key={`${a}-${b}`}>
-                      {t("lobby.pairRow", {
-                        a: getCardName(a),
-                        b: getCardName(b),
-                      })}
-                    </div>
-                  ))}
-                </Alert>
-              ) : null}
-            </div>
-            <div className="lobby-setup__controls">
-              <div className="lobby-setup__rules">
-                {matchSummary}
-                {queueActivity}
-              </div>
-              {mode === "private" && (privateGuest || privateRoom) ? (
-                <div>
-                  <p className="lobby-timer-hint">{t("lobby.timer.guestHint")}</p>
-                  <p role="status">
-                    {privateRoom || guestRules?.code === guestCode
-                      ? t("lobby.hostBanlist", {
-                          mode: format === "standard" ? t("lobby.standardBanlist") : deckFormatLabel(format, t),
-                        })
-                      : t(guestLookupFailed ? "lobby.roomLookupFailed" : "lobby.roomRulesPending")}
-                  </p>
+              <details className="lobby-advanced" open>
+                <summary>{t("redesign.play.advancedSettings")}</summary>
+                <DeckFormatSelector
+                  value={format}
+                  onChange={changeFormat}
+                  allowSealed
+                  sealed
+                  onSealedChange={setSealedFormat}
+                />
+              </details>
+              <Suspense fallback={<p role="status">{t("sealed.loading")}</p>}>
+                <PrivateSealed
+                  embedded
+                  displayName={player.name}
+                  onClose={() => setSealedFormat(false)}
+                  onStartGame={onStartPrivateSealedGame}
+                  initialSub={privateSub}
+                  onEntered={() => setPrivateSealed(true)}
+                />
+              </Suspense>
+            </section>
+          ) : (
+            <>
+              <section className="lobby-setup" aria-labelledby="lobby-setup-title" ref={matchSetup}>
+                <div className="lobby-setup__header">
+                  <h2 id="lobby-setup-title" className="lobby-setup__title">
+                    {t("redesign.play.setupTitle")}
+                  </h2>
                 </div>
-              ) : null}
-              {mode === "private" && privateRoom ? (
-                <PrivateRoomPanel t={t} room={privateRoom} onLeave={() => onLeavePrivateRoom?.()} />
-              ) : mode === "private" ? (
-                <PrivateSidebar
-                  t={t}
-                  sub={privateSub}
-                  onSub={setPrivateSub}
-                  roomCode={roomCodeInput}
-                  onRoomCode={setRoomCodeInput}
-                />
-              ) : rankedChoiceShown ? (
-                <RankedQueueNotes
-                  ranked={selectedRankedQueue}
-                  signedIn={signedIn}
-                  rankedDisabled={rankedDeckBlocked}
-                  signInRequired={rankedStart.signInRequired}
-                  onOpenSettings={() => onNav("settings")}
-                />
-              ) : null}
-            </div>
-            {vsBot ? <BotOpponentPreview deck={botPreview} settings={botSettings} /> : null}
-            <details className="lobby-advanced">
-              <summary>
-                <Icons.Settings size={18} className="lobby-advanced__icon" />
-                <span className="lobby-advanced__label">
-                  <strong>{t("redesign.play.advancedSettings")}</strong>
-                  <small>{t("redesign.play.advancedSettingsHint")}</small>
-                </span>
-                <Icons.ChevronDown size={18} className="lobby-advanced__chevron" />
-              </summary>
-              <div className="lobby-advanced__content">
-                {!privateGuest || privateRoom || guestRules?.code === guestCode ? (
-                  <DeckFormatSelector
-                    value={format}
-                    onChange={changeFormat}
-                    disabled={(mode === "private" && !!privateRoom) || privateGuest}
-                  />
-                ) : null}
-                <div className="lobby-setup__body">
-                  <div className="lobby-setup__column">
-                    {mode === "casual" || vsBot || (mode === "private" && privateSub === "create" && !privateRoom) ? (
-                      <div className="lobby-match-rules">
-                        {!vsBot ? <GameModeSwitch value={gameMode} onChange={onGameModeChange} /> : null}
-                        {mode === "private" ? (
-                          <GuestApprovalSettings
-                            enabled={requireGuestApproval}
-                            onChange={onRequireGuestApprovalChange ?? (() => {})}
-                          />
-                        ) : null}
-                        {gameMode !== GameMode.MANUAL.value ? (
-                          <RollbackSettings enabled={allowRollback} onChange={onAllowRollbackChange ?? (() => {})} />
-                        ) : null}
-                        {!vsBot && gameMode !== GameMode.MANUAL.value ? (
-                          <>
-                            <MatchFormatSettings bestOf={bestOf} onChange={changeBestOf} />
-                            <MatchTimerSettings
-                              options={timer}
-                              onChange={changeTimer}
-                              privateRoom={mode === "private"}
-                            />
-                          </>
+                <div className="lobby-setup__notices">
+                  <p className="lobby-setup__notice">
+                    {randomSelected ? (
+                      t("lobby.randomQueueNotice")
+                    ) : active ? (
+                      <>
+                        {t("lobby.queueNoticePrefix")}
+                        <strong>{selectedRankedQueue ? t("ranked.queue.ranked") : modeTitle}</strong>
+                        {t("lobby.queueNoticeSuffix", { deck: active.name })}
+                      </>
+                    ) : (
+                      t("lobby.buildFirst")
+                    )}
+                  </p>
+                  {betaEnabled ? (
+                    <Alert className="lobby-alert" tone="warning" title={t("lobby.betaBattleMode")}>
+                      {t("lobby.betaBattleHint")}
+                    </Alert>
+                  ) : null}
+                  {betaCards.length > 0 && !betaAllowed ? (
+                    <Alert className="lobby-alert" tone="warning" title={t("lobby.betaRequiredTitle")}>
+                      {t("lobby.betaRequiredHint")}
+                    </Alert>
+                  ) : null}
+                  {active && deckLegality(active, { format }).formatViolations.length > 0 ? (
+                    <Alert tone="warning">
+                      {t("deckFormat.violations", { count: deckLegality(active, { format }).formatViolations.length })}
+                    </Alert>
+                  ) : null}
+                  {banViolations.length > 0 ? (
+                    <Alert className="lobby-alert" tone="danger" title={t("lobby.banlistTitle")}>
+                      {banViolations.map(({ id, n, cap }) => (
+                        <div key={id}>{t("lobby.banlistRow", { cardId: id, count: n, cap })}</div>
+                      ))}
+                    </Alert>
+                  ) : null}
+                  {pairViolations.length > 0 ? (
+                    <Alert className="lobby-alert" tone="danger" title={t("lobby.pairTitle")}>
+                      {pairViolations.map(([a, b]) => (
+                        <div key={`${a}-${b}`}>
+                          {t("lobby.pairRow", {
+                            a: getCardName(a),
+                            b: getCardName(b),
+                          })}
+                        </div>
+                      ))}
+                    </Alert>
+                  ) : null}
+                </div>
+                <div className="lobby-setup__controls">
+                  {launch ? (
+                    <div className="lobby-setup__rules">
+                      {matchSummary}
+                      {queueActivity}
+                    </div>
+                  ) : null}
+                  {mode === "private" && (privateGuest || privateRoom) ? (
+                    <div>
+                      <p className="lobby-timer-hint">{t("lobby.timer.guestHint")}</p>
+                      <p role="status">
+                        {privateRoom || guestRules?.code === guestCode
+                          ? t("lobby.hostBanlist", {
+                              mode: format === "standard" ? t("lobby.standardBanlist") : deckFormatLabel(format, t),
+                            })
+                          : t(guestLookupFailed ? "lobby.roomLookupFailed" : "lobby.roomRulesPending")}
+                      </p>
+                    </div>
+                  ) : null}
+                  {mode === "private" && privateRoom ? (
+                    <PrivateRoomPanel t={t} room={privateRoom} onLeave={() => onLeavePrivateRoom?.()} />
+                  ) : mode === "private" ? (
+                    <PrivateSidebar
+                      t={t}
+                      sub={privateSub}
+                      onSub={setPrivateSub}
+                      roomCode={roomCodeInput}
+                      onRoomCode={setRoomCodeInput}
+                    />
+                  ) : rankedChoiceShown ? (
+                    <RankedQueueNotes
+                      ranked={selectedRankedQueue}
+                      signedIn={signedIn}
+                      rankedDisabled={rankedDeckBlocked}
+                      signInRequired={rankedStart.signInRequired}
+                      onOpenSettings={() => onNav("settings")}
+                    />
+                  ) : null}
+                </div>
+                {vsBot ? <BotOpponentPreview deck={botPreview} settings={botSettings} /> : null}
+                <details className="lobby-advanced">
+                  <summary>
+                    <Icons.Settings size={18} className="lobby-advanced__icon" />
+                    <span className="lobby-advanced__label">
+                      <strong>{t("redesign.play.advancedSettings")}</strong>
+                      <small>{t("redesign.play.advancedSettingsHint")}</small>
+                    </span>
+                    <Icons.ChevronDown size={18} className="lobby-advanced__chevron" />
+                  </summary>
+                  <div className="lobby-advanced__content">
+                    {!privateGuest || privateRoom || guestRules?.code === guestCode || guestCode.length !== 6 ? (
+                      <DeckFormatSelector
+                        value={format}
+                        onChange={changeFormat}
+                        disabled={
+                          (mode === "private" && !!privateRoom) || (privateGuest && guestRules?.code === guestCode)
+                        }
+                        allowSealed={mode === LobbyMode.PRIVATE.value && !privateRoom}
+                        onSealedChange={setSealedFormat}
+                      />
+                    ) : null}
+                    <div className="lobby-setup__body">
+                      <div className="lobby-setup__column">
+                        {mode === "casual" ||
+                        vsBot ||
+                        (mode === "private" && privateSub === "create" && !privateRoom) ? (
+                          <div className="lobby-match-rules">
+                            {!vsBot ? <GameModeSwitch value={gameMode} onChange={onGameModeChange} /> : null}
+                            {mode === "private" ? (
+                              <GuestApprovalSettings
+                                enabled={requireGuestApproval}
+                                onChange={onRequireGuestApprovalChange ?? (() => {})}
+                              />
+                            ) : null}
+                            {gameMode !== GameMode.MANUAL.value ? (
+                              <RollbackSettings
+                                enabled={allowRollback}
+                                onChange={onAllowRollbackChange ?? (() => {})}
+                              />
+                            ) : null}
+                            {!vsBot && gameMode !== GameMode.MANUAL.value ? (
+                              <>
+                                <MatchFormatSettings bestOf={bestOf} onChange={changeBestOf} />
+                                <MatchTimerSettings
+                                  options={timer}
+                                  onChange={changeTimer}
+                                  privateRoom={mode === "private"}
+                                />
+                              </>
+                            ) : null}
+                          </div>
                         ) : null}
                       </div>
-                    ) : null}
-                  </div>
-                  <div className="lobby-setup__column">
-                    {vsBot ? (
-                      <div className="lobby-bot-deck">
-                        <label htmlFor="lobby-bot-difficulty">{t("bot.difficulty.label")}</label>
-                        <select
-                          id="lobby-bot-difficulty"
-                          className="lobby-bot-deck-select"
-                          value={botSettings.botDifficulty}
-                          onChange={(event) => {
-                            const value = event.target.value;
-                            if (isBotDifficulty(value)) {
-                              setBotSettings((current) => ({ ...current, botDifficulty: value }));
-                            }
-                          }}
-                        >
-                          {Object.values(BotDifficulty).map((entry) => (
-                            <option key={entry.value} value={entry.value}>
-                              {t(`bot.difficulty.${entry.value}`)}
-                            </option>
-                          ))}
-                        </select>
-                        <label htmlFor="lobby-bot-style">{t("bot.style.label")}</label>
-                        <select
-                          id="lobby-bot-style"
-                          className="lobby-bot-deck-select"
-                          value={botSettings.botStyle}
-                          onChange={(event) => {
-                            const value = event.target.value;
-                            if (isBotStyle(value)) {
-                              setBotSettings((current) => ({ ...current, botStyle: value }));
-                            }
-                          }}
-                        >
-                          {Object.values(BotStyle).map((entry) => (
-                            <option key={entry.value} value={entry.value}>
-                              {t(`bot.style.${entry.value}`)}
-                            </option>
-                          ))}
-                        </select>
-                        <label htmlFor="lobby-bot-deck">{t("lobby.botDeck")}</label>
-                        <select
-                          id="lobby-bot-deck"
-                          className="lobby-bot-deck-select"
-                          value={botDeckId}
-                          onChange={(event) => {
-                            setPreferredBotDeckId(event.target.value);
-                            saveBotDeckPreference(event.target.value);
-                          }}
-                        >
-                          <option value="">{t("lobby.botDeckRandom")}</option>
-                          <optgroup label={t("lobby.filterMine")}>
-                            {decks.map((deck) => (
-                              <option
-                                key={deck.id}
-                                value={`mine:${deck.id}`}
-                                disabled={!deckLegality(deck, { unlimited, format }).legal}
-                              >
-                                {deck.name}
-                              </option>
-                            ))}
-                          </optgroup>
-                          {FAMOUS_DECK_GROUPS.map((group) => (
-                            <optgroup key={group.collection} label={group.collection}>
-                              <option
-                                value={`${RANDOM_SET_BOT_DECK_PREFIX}${group.collection}`}
-                                disabled={group.decks.every(isBotPresetUnplayable)}
-                              >
-                                {t("lobby.botDeckRandomSet", { set: group.collection })}
-                              </option>
-                              {group.decks.map((deck) => (
-                                <option key={deck.id} value={deck.id} disabled={isBotPresetUnplayable(deck)}>
-                                  {deck.name}
+                      <div className="lobby-setup__column">
+                        {vsBot ? (
+                          <div className="lobby-bot-deck">
+                            <label htmlFor="lobby-bot-difficulty">{t("bot.difficulty.label")}</label>
+                            <select
+                              id="lobby-bot-difficulty"
+                              className="lobby-bot-deck-select"
+                              value={botSettings.botDifficulty}
+                              onChange={(event) => {
+                                const value = event.target.value;
+                                if (isBotDifficulty(value)) {
+                                  setBotSettings((current) => ({ ...current, botDifficulty: value }));
+                                }
+                              }}
+                            >
+                              {Object.values(BotDifficulty).map((entry) => (
+                                <option key={entry.value} value={entry.value}>
+                                  {t(`bot.difficulty.${entry.value}`)}
                                 </option>
                               ))}
-                            </optgroup>
-                          ))}
-                        </select>
-                      </div>
-                    ) : null}
-                    {betaOptional ? (
-                      <label className="lobby-beta-option">
-                        <input
-                          type="checkbox"
-                          checked={betaQueueChosen}
-                          onChange={(event) => setBetaQueueChosen(event.target.checked)}
-                        />
-                        <span>
-                          <strong>{t("lobby.betaQueueOption")}</strong>
-                          <span className="lobby-beta-option__description">{t("lobby.betaQueueOptionHint")}</span>
-                        </span>
-                      </label>
-                    ) : null}
-                    {randomSelected ? (
-                      <div className="lobby-random-pool">
-                        <span id="lobby-random-pool-label">{t("lobby.randomPoolLabel")}</span>
-                        <div role="group" aria-labelledby="lobby-random-pool-label">
-                          {(["mine", "famous", "all"] as const).map((scope) => (
-                            <button
-                              type="button"
-                              key={scope}
-                              className={randomPoolScope === scope ? "is-selected" : undefined}
-                              aria-pressed={randomPoolScope === scope}
-                              onClick={() => setRandomPoolScope(scope)}
+                            </select>
+                            <label htmlFor="lobby-bot-style">{t("bot.style.label")}</label>
+                            <select
+                              id="lobby-bot-style"
+                              className="lobby-bot-deck-select"
+                              value={botSettings.botStyle}
+                              onChange={(event) => {
+                                const value = event.target.value;
+                                if (isBotStyle(value)) {
+                                  setBotSettings((current) => ({ ...current, botStyle: value }));
+                                }
+                              }}
                             >
-                              {t(`lobby.filter${scope === "mine" ? "Mine" : scope === "famous" ? "Famous" : "All"}`)}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-                    {mode !== "private" ? (
-                      <dl className="lobby-details">
-                        {[
-                          [t("lobby.format"), deckFormatLabel(format, t)],
-                          [t("lobby.players"), vsBot ? t("lobby.playersBot") : t("lobby.playersHuman")],
-                          [t("lobby.identity"), player.name],
-                        ].map(([label, value]) => (
-                          <div key={label} className="lobby-details__row">
-                            <dt>{label}</dt>
-                            <dd>{value}</dd>
+                              {Object.values(BotStyle).map((entry) => (
+                                <option key={entry.value} value={entry.value}>
+                                  {t(`bot.style.${entry.value}`)}
+                                </option>
+                              ))}
+                            </select>
+                            <label htmlFor="lobby-bot-deck">{t("lobby.botDeck")}</label>
+                            <select
+                              id="lobby-bot-deck"
+                              className="lobby-bot-deck-select"
+                              value={botDeckId}
+                              onChange={(event) => {
+                                setPreferredBotDeckId(event.target.value);
+                                saveBotDeckPreference(event.target.value);
+                              }}
+                            >
+                              <option value="">{t("lobby.botDeckRandom")}</option>
+                              <optgroup label={t("lobby.filterMine")}>
+                                {decks.map((deck) => (
+                                  <option
+                                    key={deck.id}
+                                    value={`mine:${deck.id}`}
+                                    disabled={!deckLegality(deck, { unlimited, format }).legal}
+                                  >
+                                    {deck.name}
+                                  </option>
+                                ))}
+                              </optgroup>
+                              {FAMOUS_DECK_GROUPS.map((group) => (
+                                <optgroup key={group.collection} label={group.collection}>
+                                  <option
+                                    value={`${RANDOM_SET_BOT_DECK_PREFIX}${group.collection}`}
+                                    disabled={group.decks.every(isBotPresetUnplayable)}
+                                  >
+                                    {t("lobby.botDeckRandomSet", { set: group.collection })}
+                                  </option>
+                                  {group.decks.map((deck) => (
+                                    <option key={deck.id} value={deck.id} disabled={isBotPresetUnplayable(deck)}>
+                                      {deck.name}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              ))}
+                            </select>
                           </div>
-                        ))}
-                      </dl>
-                    ) : null}
+                        ) : null}
+                        {betaOptional ? (
+                          <label className="lobby-beta-option">
+                            <input
+                              type="checkbox"
+                              checked={betaQueueChosen}
+                              onChange={(event) => setBetaQueueChosen(event.target.checked)}
+                            />
+                            <span>
+                              <strong>{t("lobby.betaQueueOption")}</strong>
+                              <span className="lobby-beta-option__description">{t("lobby.betaQueueOptionHint")}</span>
+                            </span>
+                          </label>
+                        ) : null}
+                        {randomSelected ? (
+                          <div className="lobby-random-pool">
+                            <span id="lobby-random-pool-label">{t("lobby.randomPoolLabel")}</span>
+                            <div role="group" aria-labelledby="lobby-random-pool-label">
+                              {(["mine", "famous", "all"] as const).map((scope) => (
+                                <button
+                                  type="button"
+                                  key={scope}
+                                  className={randomPoolScope === scope ? "is-selected" : undefined}
+                                  aria-pressed={randomPoolScope === scope}
+                                  onClick={() => setRandomPoolScope(scope)}
+                                >
+                                  {t(
+                                    `lobby.filter${scope === "mine" ? "Mine" : scope === "famous" ? "Famous" : "All"}`,
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+                        {mode !== "private" ? (
+                          <dl className="lobby-details">
+                            {[
+                              [t("lobby.format"), deckFormatLabel(format, t)],
+                              [t("lobby.players"), vsBot ? t("lobby.playersBot") : t("lobby.playersHuman")],
+                              [t("lobby.identity"), player.name],
+                            ].map(([label, value]) => (
+                              <div key={label} className="lobby-details__row">
+                                <dt>{label}</dt>
+                                <dd>{value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        ) : null}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </details>
-          </section>
+                </details>
+              </section>
 
-          <DeckPicker
-            ownDecks={userDecks}
-            format={format}
-            activeDeckId={activeDeckId}
-            randomSelected={randomSelected}
-            randomPoolSize={randomPoolScope === "all" ? undefined : randomPool.length}
-            onSelectRandom={() => setRandomSelected(true)}
-            onSelectDeck={selectDeck}
-            onCopyDeck={onCopyDeck}
-            onUseProviderDeck={(deck) => {
-              setRandomSelected(false);
-              onUseProviderDeck?.(deck);
-            }}
-            onEditDeck={editDeck}
-            onBuildDeck={buildDeck}
-            onPickCommunityDeck={pickCommunityDeck}
-            onOpenCommunityDeck={openCommunityDeck}
-            accountId={accountId}
-          />
+              <DeckPicker
+                ownDecks={userDecks}
+                format={format}
+                activeDeckId={activeDeckId}
+                randomSelected={randomSelected}
+                randomPoolSize={randomPoolScope === "all" ? undefined : randomPool.length}
+                onSelectRandom={() => setRandomSelected(true)}
+                onSelectDeck={selectDeck}
+                onCopyDeck={onCopyDeck}
+                onUseProviderDeck={(deck) => {
+                  setRandomSelected(false);
+                  onUseProviderDeck?.(deck);
+                }}
+                onEditDeck={editDeck}
+                onBuildDeck={buildDeck}
+                onPickCommunityDeck={pickCommunityDeck}
+                onOpenCommunityDeck={openCommunityDeck}
+                accountId={accountId}
+              />
+            </>
+          )}
         </div>
       </div>
       {viewedDeck ? (
@@ -1385,64 +1464,6 @@ function PrivateRoomPanel({ t, room, onLeave }: { t: Translate; room: PrivateRoo
       <Button size="sm" variant="secondary" icon={Icons.LogOut} onClick={onLeave}>
         {t("lobby.leaveRoom")}
       </Button>
-    </div>
-  );
-}
-
-function PrivateSidebar({
-  t,
-  sub,
-  onSub,
-  roomCode,
-  onRoomCode,
-}: {
-  t: Translate;
-  sub: "create" | "join";
-  onSub: (s: "create" | "join") => void;
-  roomCode: string;
-  onRoomCode: (c: string) => void;
-}) {
-  return (
-    <div className="lobby-private">
-      <div className="lobby-private-toggle" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={sub === "create"}
-          className={sub === "create" ? "is-selected" : undefined}
-          onClick={() => onSub("create")}
-        >
-          {t("lobby.create")}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={sub === "join"}
-          className={sub === "join" ? "is-selected" : undefined}
-          onClick={() => onSub("join")}
-        >
-          {t("lobby.join")}
-        </button>
-      </div>
-
-      {sub === "create" ? (
-        <p className="lobby-private__hint">{t("lobby.createHint")}</p>
-      ) : (
-        <>
-          <p className="lobby-private__hint">{t("lobby.joinHint")}</p>
-          <Field
-            className="lobby-room-field"
-            label={t("lobby.roomCodePlaceholder")}
-            name="roomCode"
-            autoComplete="off"
-            spellCheck={false}
-            value={roomCode}
-            onChange={(e) => onRoomCode(e.target.value.toUpperCase())}
-            placeholder={t("lobby.roomCodePlaceholder")}
-            maxLength={6}
-          />
-        </>
-      )}
     </div>
   );
 }

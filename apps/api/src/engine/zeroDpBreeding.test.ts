@@ -27,10 +27,13 @@ describe("#5161 printed DP breeding movement", () => {
   it("keeps an ordinary Digi-Egg in breeding", async () => {
     const s = setupEngine({ 0: { breeding: { card: "BT1-001", as: "egg" } } });
     s.state.phase = Phase.Breeding;
+    const window = s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
       ok: false,
       reason: "not-movable",
     });
     expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("BT1-001");
+    s.engine.breeding.abort();
+    await window;
   });
 });

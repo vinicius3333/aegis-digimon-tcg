@@ -137,6 +137,7 @@ describe("BT21-023 Globemon", () => {
     s.state.memory = 10;
     await s.ready();
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("host").permanentId })).toEqual({
       ok: true,
     });

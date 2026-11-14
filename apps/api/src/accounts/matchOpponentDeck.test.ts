@@ -78,6 +78,9 @@ describe("finished opponent decks", () => {
     ).toBe(404);
     const history = await fetch(`${url}/account/matches?page=1&limit=25`, { headers: { Cookie: cookie } });
     const body = await history.json();
+    if (typeof body !== "object" || body === null || !("matches" in body) || !Array.isArray(body.matches)) {
+      throw new Error("Expected match history with a matches array");
+    }
     expect(body.matches[0]).toMatchObject({ id: "finished-match", hasOpponentDeck: true });
     expect(JSON.stringify(body)).not.toContain("private-deck-id");
     expect(JSON.stringify(body)).not.toContain(ownerId);

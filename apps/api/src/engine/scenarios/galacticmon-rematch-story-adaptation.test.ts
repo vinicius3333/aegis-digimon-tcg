@@ -23,6 +23,7 @@ describe("Galacticmon rematch story adaptation", () => {
     const s = setupBattle();
     await s.ready();
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
     const player = s.state.players[0]!;
     s.state.phase = Phase.Main;

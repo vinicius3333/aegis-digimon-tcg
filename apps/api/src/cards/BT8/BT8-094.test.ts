@@ -70,6 +70,7 @@ describe("BT8-094 Digimon Emperor [Opponent's Turn] gain 2 memory on opponent's 
     s.state.turnSeat = 1;
     s.state.memory = 0;
 
+    void s.engine.breeding.run(1, false);
     expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: mover.permanentId })).toEqual({ ok: true });
 
     await settle(() => s.state.memory !== 0, 200);

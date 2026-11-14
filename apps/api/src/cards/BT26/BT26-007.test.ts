@@ -47,6 +47,7 @@ describe("BT26-007 Swipemon", () => {
     expect(s.perm("swipemon").stack.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
 
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("swipemon").permanentId })).toEqual({
       ok: true,
     });

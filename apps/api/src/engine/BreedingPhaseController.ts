@@ -62,16 +62,19 @@ export class BreedingPhaseController {
     });
   }
 
+  canTakeAction(seat: Seat): boolean {
+    return this.isOpen && this.activeSeat === seat && this.state.phase === Phase.Breeding && !this.actionSpent;
+  }
+
   /**
    * Spend the window's one breeding action. The window ends at once, or — when the action
    * fired triggers — only after `triggersSettled` resolves. Returns true when it claimed an
    * open, unspent window for `seat`; false otherwise.
    */
   actionTaken(seat: Seat, triggersSettled?: Promise<void>): boolean {
-    if (this.end === undefined) return false;
-    if (this.activeSeat !== seat) return false;
-    if (this.state.phase !== Phase.Breeding) return false;
-    if (this.actionSpent) return false;
+    if (!this.canTakeAction(seat)) {
+      return false;
+    }
     if (triggersSettled === undefined) {
       this.finish();
       return true;
@@ -86,10 +89,9 @@ export class BreedingPhaseController {
    * during breeding). Returns true when it closed an open window for `seat`.
    */
   skip(seat: Seat): boolean {
-    if (this.end === undefined) return false;
-    if (this.activeSeat !== seat) return false;
-    if (this.state.phase !== Phase.Breeding) return false;
-    if (this.actionSpent) return false;
+    if (!this.canTakeAction(seat)) {
+      return false;
+    }
     this.finish();
     return true;
   }
