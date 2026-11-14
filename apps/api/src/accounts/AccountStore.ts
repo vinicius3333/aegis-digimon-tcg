@@ -1,3 +1,6 @@
+import { buildTournamentRules } from "#api/tournaments/rules/buildTournamentRules";
+import type { SealedConfiguration } from "@aegis/shared/sealed/SealedContracts";
+import { isSealedConfiguration } from "@aegis/shared/sealed/isSealedConfiguration";
 import type { TournamentStatus } from "@aegis/shared/tournaments/index";
 import { TournamentRoundStartMode } from "@aegis/shared/tournaments/TournamentRoundStartMode";
 import { getDeckStatsMatchLimit } from "@aegis/shared/decks/getDeckStatsMatchLimit";
@@ -164,6 +167,8 @@ export type Tournament = {
 // The tournament-program columns (migrations 002 and 003), read back as the shared contract shapes.
 // Legacy rows carry exactly what the backfills gave them, so this is never partially populated.
 export type TournamentProgram = {
+  sealedConfiguration?: SealedConfiguration | null;
+  sealedBuildDeadlineAt?: number | null;
   structure: TournamentStructure;
   bestOf: 1 | 3;
   topCutEnabled: boolean;
@@ -1288,13 +1293,30 @@ export class AccountStore {
   async createTournament(createdBy: string, record: CreateTournamentRecord): Promise<Tournament> {
     await this.ensureReady();
     const input = { ...LEGACY_TOURNAMENT_PROGRAM, ...record };
+    if (input.sealedConfiguration && record.bestOf === undefined) {
+      input.bestOf = 3;
+    }
+    if (input.sealedConfiguration && input.rules === null) {
+      input.rules = buildTournamentRules({ bestOf: input.bestOf });
+    }
+    if (
+      input.sealedConfiguration &&
+      (!isSealedConfiguration(input.sealedConfiguration) ||
+        input.structure !== "swiss" ||
+        input.bestOf !== 3 ||
+        input.allowBots ||
+        input.topCutEnabled ||
+        (input.format !== undefined && input.format !== "standard"))
+    ) {
+      throw new Error("sealed_configuration_invalid");
+    }
     const id = record.id ?? randomUUID();
     await this.pool.query(
-      "INSERT INTO tournaments (id,name,block,status,starts_at,max_players,created_by,created_at,structure,best_of,top_cut_enabled,allow_bots,rules_snapshot,banlist_policy,banlist_cards,description,password_hash,format,category,random_bot_styles,circuit_id,auto_start,registration_closes_at,check_in_opens_at,check_in_closes_at,round_start_mode) VALUES ($1,$2,$3,'registration',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25) ON CONFLICT DO NOTHING",
+      "INSERT INTO tournaments (id,name,block,status,starts_at,max_players,created_by,created_at,structure,best_of,top_cut_enabled,allow_bots,rules_snapshot,banlist_policy,banlist_cards,description,password_hash,format,category,random_bot_styles,circuit_id,auto_start,registration_closes_at,check_in_opens_at,check_in_closes_at,round_start_mode,sealed_configuration) VALUES ($1,$2,$3,'registration',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26) ON CONFLICT DO NOTHING",
       [
         id,
         input.name,
-        input.block,
+        input.sealedConfiguration?.setId ?? input.block,
         input.startsAt,
         input.maxPlayers,
         createdBy,
@@ -1317,6 +1339,7 @@ export class AccountStore {
         input.checkInOpensAt ?? null,
         input.checkInClosesAt ?? null,
         input.roundStartMode ?? TournamentRoundStartMode.AUTOMATIC.value,
+        JSON.stringify(input.sealedConfiguration ?? null),
       ],
     );
     return (await this.tournament(id))!;
@@ -1436,14 +1459,16 @@ export class AccountStore {
   ): Promise<"deleted" | "not_found" | "forbidden" | "already_started"> {
     return this.transaction(async (client) => {
       const t = (
-        await client.query<{ created_by: string; status: string }>(
-          "SELECT created_by,status FROM tournaments WHERE id=$1 FOR UPDATE",
+        await client.query<{ created_by: string; status: string; sealed_build_deadline_at: string | null }>(
+          "SELECT created_by,status,sealed_build_deadline_at FROM tournaments WHERE id=$1 FOR UPDATE",
           [id],
         )
       ).rows[0];
       if (!t) return "not_found";
       if (!canDeleteAny && t.created_by !== organizerId) return "forbidden";
-      if (!isTournamentDeletable(t.status)) return "already_started";
+      if (!isTournamentDeletable(t.status) || t.sealed_build_deadline_at !== null) {
+        return "already_started";
+      }
       await client.query(
         "DELETE FROM tournament_game_authorizations WHERE game_id IN (SELECT g.id FROM tournament_games g JOIN match_series s ON s.id=g.series_id JOIN tournament_matches m ON m.id=s.tournament_match_id WHERE m.tournament_id=$1)",
         [id],
@@ -1811,6 +1836,8 @@ function toTournament(row: TournamentRow): Tournament {
     autoStart: row.auto_start === true,
     roundStartMode: (row.round_start_mode ?? TournamentRoundStartMode.AUTOMATIC.value) as TournamentRoundStartMode,
     ...toTournamentProgram(row),
+    sealedConfiguration: parseJson<SealedConfiguration>(row.sealed_configuration) ?? null,
+    sealedBuildDeadlineAt: row.sealed_build_deadline_at == null ? null : Number(row.sealed_build_deadline_at),
   };
 }
 // Defaults here mirror the migration backfills rather than inventing a second source of truth: a row

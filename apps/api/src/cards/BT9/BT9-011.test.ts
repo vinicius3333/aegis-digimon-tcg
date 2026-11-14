@@ -107,6 +107,7 @@ describe("BT9-011 Growlmon (X Antibody)", () => {
       await settle(() => s.perm("egg").topCard.instanceId === s.inst(alias).instanceId);
     }
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
       ok: true,
     });
@@ -151,6 +152,7 @@ describe("BT9-011 Growlmon (X Antibody)", () => {
       await settle(() => s.perm("egg").topCard.instanceId === s.inst(alias).instanceId);
     }
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
       ok: true,
     });

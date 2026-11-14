@@ -87,6 +87,7 @@ describe("BT4-060 Lotosmon", () => {
     });
     s.state.phase = Phase.Breeding;
     await s.engine.recomputeContinuousEffects();
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,
     });
@@ -168,6 +169,7 @@ describe("BT4-060 Lotosmon — KB Q&A rulings", () => {
     s.state.phase = Phase.Breeding;
     await s.engine.recomputeContinuousEffects();
 
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,
     });

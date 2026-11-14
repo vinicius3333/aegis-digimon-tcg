@@ -32,13 +32,13 @@ export function installTournamentCircuitRoutes({
   const allow = tokenBucketLimiter({ capacity: 60, refillMs: 500 });
   const store = new TournamentCircuitStore(accounts);
   function handle(action: (req: Request, res: Response) => Promise<void>) {
-    return (req: Request, res: Response, next: NextFunction): void => {
+    return (req: Request, res: Response, next: NextFunction): Promise<unknown> | void => {
       res.set("Cache-Control", "private, no-store");
       if (!allow(req.ip ?? "unknown")) {
         res.status(429).set("Retry-After", "2").json({ error: "tournament_circuits_rate_limited" });
         return;
       }
-      action(req, res).catch(next);
+      return action(req, res).catch(next);
     };
   }
   async function requireAdmin(req: Request, res: Response): Promise<AuthSession | undefined> {

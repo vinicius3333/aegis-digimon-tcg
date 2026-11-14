@@ -104,6 +104,7 @@ describe("BT9-009 Guilmon (X Antibody)", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
       ok: true,
     });
@@ -177,6 +178,7 @@ describe("BT9-009 Guilmon (X Antibody)", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.cardId === "BT9-009");
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
       ok: true,
     });

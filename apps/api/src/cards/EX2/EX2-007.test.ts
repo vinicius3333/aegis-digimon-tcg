@@ -494,6 +494,7 @@ describe("EX2-007 Mother D-Reaper — KB Q&A rulings", () => {
   it("hatches into the breeding area as a level-less Digimon (Q3274)", async () => {
     const s = setupEngine({ 0: { eggDeck: [{ card: "EX2-007", as: "mother" }] } });
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     await s.engine.recomputeContinuousEffects();
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding !== undefined);
@@ -533,6 +534,7 @@ describe("EX2-007 Mother D-Reaper — KB Q&A rulings", () => {
     async function moveFromBreeding(cardId: string) {
       const s = setupEngine({ 0: { breeding: { card: cardId, as: "raised" } } });
       s.state.phase = Phase.Breeding;
+      void s.engine.breeding.run(0, false);
       await s.engine.recomputeContinuousEffects();
       const result = s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("raised").permanentId });
       await settle();

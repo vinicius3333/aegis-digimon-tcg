@@ -28,9 +28,11 @@ const DECK_ERRORS: readonly string[] = ["deck_illegal", "deck_not_found"];
 
 export function TournamentSignupFlow({ detail, decks, onDecks, onCancel, onRegistered }: TournamentSignupFlowParams) {
   const { t, locale } = useTranslation();
-  const steps = detail.passwordProtected
-    ? [TournamentSignupStep.PASSWORD, TournamentSignupStep.DECK, TournamentSignupStep.REVIEW]
-    : [TournamentSignupStep.DECK, TournamentSignupStep.REVIEW];
+  const steps = [
+    ...(detail.passwordProtected ? [TournamentSignupStep.PASSWORD] : []),
+    ...(!detail.sealedConfiguration ? [TournamentSignupStep.DECK] : []),
+    TournamentSignupStep.REVIEW,
+  ];
   const [step, setStep] = useState<TournamentSignupStep>(steps[0]!.value);
   const [password, setPassword] = useState("");
   const [deckId, setDeckId] = useState(() => findFirstLegalDeckId({ decks, detail }));
@@ -73,7 +75,7 @@ export function TournamentSignupFlow({ detail, decks, onDecks, onCancel, onRegis
   async function register() {
     setBusy(true);
     setError(undefined);
-    const result = await tournamentApi.register(detail.id, deckId, password);
+    const result = await tournamentApi.register(detail.id, detail.sealedConfiguration ? "" : deckId, password);
     if (result.ok) {
       await onRegistered();
       return;
@@ -163,7 +165,7 @@ export function TournamentSignupFlow({ detail, decks, onDecks, onCancel, onRegis
               <h3>{t("tournaments.signup.reviewTitle")}</h3>
               <p>{t("tournaments.signup.reviewHint")}</p>
             </header>
-            {deck ? (
+            {deck && !detail.sealedConfiguration ? (
               <div className="tournaments-signup-deck">
                 <span className="tournaments-deck-option__cover" aria-hidden="true">
                   <CoverThumb
@@ -220,7 +222,12 @@ export function TournamentSignupFlow({ detail, decks, onDecks, onCancel, onRegis
             {t("mobile.back")}
           </Button>
           {step === TournamentSignupStep.REVIEW.value ? (
-            <Button size="lg" icon={Icons.Check} disabled={busy || !deck} onClick={() => void register()}>
+            <Button
+              size="lg"
+              icon={Icons.Check}
+              disabled={busy || (!detail.sealedConfiguration && !deck)}
+              onClick={() => void register()}
+            >
               {t("tournaments.signup.confirm")}
             </Button>
           ) : (

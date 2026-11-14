@@ -1,3 +1,5 @@
+import { getPolicyEvoCost } from "#api/engine/cards/getPolicyEvoCost";
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import { CardMovePosition } from "@aegis/shared/protocol/CardMovePosition";
 import { locateMoveOrigins } from "#api/engine/effects/verbs/locateMoveOrigins";
 import {
@@ -12,10 +14,9 @@ import {
 } from "@aegis/shared";
 import { pushOnStack, setTopCard } from "../../state/access.js";
 import { alternateRequirementAvailable } from "../../actions/digivolve.js";
-import { matchingEvoCostIgnoringLevel, matchingAlternateDigivolutionRequirement } from "../../cards/cardData.js";
+import { matchingAlternateDigivolutionRequirement } from "../../cards/cardData.js";
 import { effectiveKinds } from "../continuous.js";
 import { effectiveDigivolutionBase } from "../continuous/effective.js";
-import { matchingDigivolveCost } from "../verbs/digivolveCost.js";
 import { looseZoneOfInstance, peekLooseInstance, removeLooseInstance } from "../verbs/looseInstances.js";
 
 import type { InternalVerbs, PrimitivesContext } from "./context.js";
@@ -145,8 +146,14 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
           permanent,
           requireCardDefinition(permanent.topCard.cardId),
         );
-        const printed = matchingEvoCostIgnoringLevel(definition, baseDef);
+        const printed = getPolicyEvoCost({
+          evolving: definition,
+          base: baseDef,
+          policy: state.rulesPolicy,
+          ignoreLevel: true,
+        });
         const matchedAlternate = matchingAlternateDigivolutionRequirement(definition, baseDef, {
+          sealed: state.rulesPolicy === GameRulesPolicy.SEALED.value,
           grantedBaseExactNames: continuous.grantedExactNames(permanent.permanentId),
           ignoreLevel: true,
           ...(sourceZone === undefined ? {} : { sourceZone }),
@@ -179,7 +186,11 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
           opts.virtualBase === undefined
             ? actualBaseDef
             : { ...actualBaseDef, level: opts.virtualBase.level, colors: opts.virtualBase.colors };
-        const printed = matchingDigivolveCost(definition, baseDef);
+        const printed = getPolicyEvoCost({
+          evolving: definition,
+          base: baseDef,
+          policy: state.rulesPolicy,
+        })?.memoryCost;
         // `virtualBase` replaces the base used for requirement matching. Retaining the
         // original card's Tamer/name/trait identity here would incorrectly admit alternate
         // paths in addition to the stated virtual level and colors.
@@ -190,6 +201,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
         const matchedAlternate =
           opts.virtualBase === undefined
             ? matchingAlternateDigivolutionRequirement(definition, baseDef, {
+                sealed: state.rulesPolicy === GameRulesPolicy.SEALED.value,
                 grantedBaseExactNames: continuous.grantedExactNames(permanent.permanentId),
                 ...(sourceZone === undefined ? {} : { sourceZone }),
               })
@@ -241,8 +253,9 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
       // callers that digivolve such bases supply their own route.
       const baseDef = effectiveDigivolutionBase(continuous, permanent, requireCardDefinition(permanent.topCard.cardId));
       const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition, sourceZone);
-      const printed = matchingDigivolveCost(definition, baseDef);
+      const printed = getPolicyEvoCost({ evolving: definition, base: baseDef, policy: state.rulesPolicy })?.memoryCost;
       const matchedAlternate = matchingAlternateDigivolutionRequirement(definition, baseDef, {
+        sealed: state.rulesPolicy === GameRulesPolicy.SEALED.value,
         grantedBaseExactNames: continuous.grantedExactNames(permanent.permanentId),
         ...(sourceZone === undefined ? {} : { sourceZone }),
       });

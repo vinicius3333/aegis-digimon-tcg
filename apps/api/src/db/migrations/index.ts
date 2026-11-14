@@ -1,3 +1,6 @@
+import { privateSealedResults } from "#api/db/migrations/060-private-sealed-results";
+import { privateSealed } from "#api/db/migrations/059-private-sealed";
+import { sealedTournaments } from "#api/db/migrations/058-sealed-tournaments";
 import { tournamentDiscordGuild } from "#api/db/migrations/048-tournament-discord-guild";
 import { slimDeckMatchLedger } from "#api/db/migrations/049-slim-deck-match-ledger";
 import { accountRoles } from "#api/db/migrations/050-account-roles";
@@ -121,4 +124,7 @@ export const migrations: readonly Migration[] = [
   replayNotes,
   deckMatchupResults,
   optionalRankedRegion,
+  sealedTournaments,
+  privateSealed,
+  privateSealedResults,
 ];

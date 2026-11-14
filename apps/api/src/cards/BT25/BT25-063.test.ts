@@ -123,6 +123,7 @@ describe("BT25-063 Commandramon", () => {
       { autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1, autoOrderCards: true },
     );
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,
     });

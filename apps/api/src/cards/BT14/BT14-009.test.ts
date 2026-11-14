@@ -95,6 +95,7 @@ it("keeps the effect-play restriction on a legal Koromon-to-Gotsumon stack", asy
   await settle(() => s.perm("egg").topCard.cardId === "BT14-009");
 
   s.state.phase = Phase.Breeding;
+  void s.engine.breeding.run(0, false);
   expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
     ok: true,
   });

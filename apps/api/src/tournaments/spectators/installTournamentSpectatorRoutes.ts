@@ -28,9 +28,9 @@ export function installTournamentSpectatorRoutes({ app, accounts, series, sessio
   const allowSpectate = tokenBucketLimiter({ capacity: 10, refillMs: 3_000 });
 
   function organizerRoute(handler: OrganizerHandler) {
-    return (req: Request, res: Response, next: NextFunction): void => {
+    return (req: Request, res: Response, next: NextFunction): Promise<unknown> | void => {
       res.set("Cache-Control", "private, no-store");
-      void (async () => {
+      return (async () => {
         const auth = await session(req);
         if (!auth) {
           res.status(401).json({ error: "authentication_required" });
@@ -118,9 +118,9 @@ export function installTournamentSpectatorRoutes({ app, accounts, series, sessio
     }),
   );
 
-  app.post("/spectate/tournament", (req: Request, res: Response, next: NextFunction): void => {
+  app.post("/spectate/tournament", (req: Request, res: Response, next: NextFunction): Promise<unknown> | void => {
     res.set("Cache-Control", "no-store");
-    void (async () => {
+    return (async () => {
       const { tournamentId, matchId, authTicket } = req.body ?? {};
       if (!isUuid(String(tournamentId)) || !isUuid(String(matchId)) || typeof authTicket !== "string") {
         res.status(400).json({ error: "invalid_spectate_request" });

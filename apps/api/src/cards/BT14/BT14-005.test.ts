@@ -70,6 +70,7 @@ it("pays from a mixed trait pool on a legal Missimon stack and leaves nonmatchin
   expect(s.perm("missimon").stack.map((card) => card.cardId)).toEqual(["BT14-005"]);
 
   s.state.phase = Phase.Breeding;
+  void s.engine.breeding.run(0, false);
   expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("missimon").permanentId })).toEqual({
     ok: true,
   });

@@ -1,3 +1,4 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import { locateMoveOrigins } from "#api/engine/effects/verbs/locateMoveOrigins";
 import { groupCardsByOrigin } from "#api/engine/effects/verbs/groupCardsByOrigin";
 import { CardMovePosition } from "@aegis/shared/protocol/CardMovePosition";
@@ -100,7 +101,7 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
     const materialGroups = materials.map((mat) => [...mat.stack, mat.topCard!]);
     const printedOrder =
       opts?.extraMaterialsOnBottom === undefined
-        ? matchingDnaMaterialOrder(definition, materialDefinitions)
+        ? matchingDnaMaterialOrder(definition, materialDefinitions, state.rulesPolicy === GameRulesPolicy.SEALED.value)
         : undefined;
     if (opts?.payCost) {
       // A printed DNA requirement is authoritative: every material slot must match it. Only cards
@@ -110,7 +111,11 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
       // Only a matching printed DNA requirement authorizes the merge. Apply used to fall back to
       // the best single-base digivolve cost when the card carried no structured requirement; that
       // mirrored the same hole in `dnaDigivolveCostFor` and is gone for the same reason.
-      const printedCost = matchingDnaDigivolveCost(definition, materialDefinitions);
+      const printedCost = matchingDnaDigivolveCost(
+        definition,
+        materialDefinitions,
+        state.rulesPolicy === GameRulesPolicy.SEALED.value,
+      );
       if (printedCost === undefined) return undefined;
       const chosenMaterial = materials[0]!;
       // Route the chosen material's printed cost through the continuous evo-cost ledger so

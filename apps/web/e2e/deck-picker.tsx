@@ -19,7 +19,6 @@ function Picker() {
       onSelectRandom={() => {}}
       onSelectDeck={onSelectDeck}
       onCopyDeck={() => {}}
-      onViewDeck={() => {}}
       onEditDeck={() => {}}
       onBuildDeck={() => {}}
       onPickCommunityDeck={() => {}}

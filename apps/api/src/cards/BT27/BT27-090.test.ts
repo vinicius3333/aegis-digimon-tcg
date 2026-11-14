@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import { Zone } from "@aegis/shared/schema/enums";
 import { getCardDefinition } from "@aegis/shared/cards/registry";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { advance } from "#api/engine/testkit/advance";
@@ -129,7 +130,7 @@ describe("BT27-090 Spencer Damon", () => {
   ])("%s an opponent's effect returning the Digimon to the hand", async (_label, accept) => {
     const s = await playFromHand("BT1-042", { accept, protect: "played" });
     s.putOnBoard(1, { card: "BT1-027", as: "blue" });
-    s.give(1, "hand", { card: "BT13-105", as: "bounce" });
+    s.give(1, Zone.Hand, { card: "BT13-105", as: "bounce" });
     s.state.turnSeat = 1;
     s.state.memory = 10;
 

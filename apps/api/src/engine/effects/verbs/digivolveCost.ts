@@ -28,23 +28,35 @@ export function matchingDigivolveCost(evolving: CardDefinition, base: CardDefini
  * DNA destinations to a structured requirement, so a missing recipe means the card genuinely has
  * none. See docs/engine/dna-digivolve-into-filter.md.
  */
-export function dnaDigivolveCostFor(evolving: CardDefinition, materials: CardDefinition[]): number | undefined {
-  return matchingDnaDigivolveCost(evolving, materials);
+export function dnaDigivolveCostFor(
+  evolving: CardDefinition,
+  materials: CardDefinition[],
+  sealed = false,
+): number | undefined {
+  return matchingDnaDigivolveCost(evolving, materials, sealed);
 }
 
-export function matchingDnaDigivolveCost(evolving: CardDefinition, materials: CardDefinition[]): number | undefined {
+export function matchingDnaDigivolveCost(
+  evolving: CardDefinition,
+  materials: CardDefinition[],
+  sealed = false,
+): number | undefined {
   const requirements = dnaDigivolutionRequirementsFor(evolving.cardId);
   let best: number | undefined;
   for (const req of requirements) {
     if (req.materials.length === 0) continue;
-    if (!dnaRequirementMatches(req.materials, materials)) continue;
+    if (!dnaRequirementMatches(req.materials, materials, sealed)) continue;
     if (best === undefined || req.cost < best) best = req.cost;
   }
   return best;
 }
 
 /** Material indices in printed left-to-right (top-to-bottom) order. */
-export function matchingDnaMaterialOrder(evolving: CardDefinition, materials: CardDefinition[]): number[] | undefined {
+export function matchingDnaMaterialOrder(
+  evolving: CardDefinition,
+  materials: CardDefinition[],
+  sealed = false,
+): number[] | undefined {
   const requirements = [...dnaDigivolutionRequirementsFor(evolving.cardId)].sort((a, b) => a.cost - b.cost);
   for (const requirement of requirements) {
     if (requirement.materials.length !== materials.length) continue;
@@ -52,7 +64,8 @@ export function matchingDnaMaterialOrder(evolving: CardDefinition, materials: Ca
     const visit = (slot: number): boolean => {
       if (slot === requirement.materials.length) return true;
       for (let index = 0; index < materials.length; index += 1) {
-        if (order.includes(index) || !dnaMaterialSpecMatches(requirement.materials[slot]!, materials[index]!)) continue;
+        if (order.includes(index) || !dnaMaterialSpecMatches(requirement.materials[slot]!, materials[index]!, sealed))
+          continue;
         order.push(index);
         if (visit(slot + 1)) return true;
         order.pop();
@@ -71,6 +84,7 @@ export function matchingDnaMaterialOrder(evolving: CardDefinition, materials: Ca
 export function dnaRequirementMatches(
   specs: { color?: string; level?: number; names?: string[]; traits?: string[] }[],
   materials: CardDefinition[],
+  sealed = false,
 ): boolean {
   // Every declared material must occupy one printed slot; accepting a superset
   // would allow unrelated permanents to be consumed by a two-material recipe.
@@ -81,7 +95,7 @@ export function dnaRequirementMatches(
     const spec = specs[specIndex]!;
     for (let i = 0; i < materials.length; i++) {
       if (used.has(i)) continue;
-      if (!dnaMaterialSpecMatches(spec, materials[i]!)) continue;
+      if (!dnaMaterialSpecMatches(spec, materials[i]!, sealed)) continue;
       used.add(i);
       if (visit(specIndex + 1)) return true;
       used.delete(i);
@@ -101,8 +115,9 @@ export function dnaMaterialSpecMatches(
     traits?: string[];
   },
   material: CardDefinition,
+  sealed = false,
 ): boolean {
-  if (spec.color !== undefined && !material.colors.includes(spec.color as CardColor)) return false;
+  if (!sealed && spec.color !== undefined && !material.colors.includes(spec.color as CardColor)) return false;
   if (spec.level !== undefined && material.level !== spec.level) return false;
   if (spec.names && spec.names.length > 0) {
     const names = effectiveStaticNames(material);

@@ -97,6 +97,7 @@ describe("BT15-022", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.cardId === "BT15-022");
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
       ok: true,
     });

@@ -80,6 +80,7 @@ describe("BT9-005 Tumblemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("tumblemon").topCard.instanceId === s.inst("gotsumon").instanceId);
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("tumblemon").permanentId })).toEqual(
       { ok: true },
     );

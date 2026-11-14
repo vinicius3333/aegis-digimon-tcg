@@ -426,6 +426,7 @@ describe("EX13-017 Veemon", () => {
       },
     });
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });

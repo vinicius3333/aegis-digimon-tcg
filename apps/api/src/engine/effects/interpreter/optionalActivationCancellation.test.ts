@@ -29,7 +29,7 @@ async function prepareOptionalActivation({ effect, seededSelections = false, tar
     frequency: "OncePerTurn",
     actions: [
       { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: targetCount } },
-      { kind: "GainMemory", controller: "mine", amount: 3 },
+      { kind: "GainMemory", amount: 3 },
     ],
   };
   const module = irCardModule(source.cardId, { effects: [definition], coverage: "full", residual: [] });
@@ -170,7 +170,7 @@ it("preserves mandatory later processing when only the first action is optional"
           optional: true,
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
         },
-        { kind: "GainMemory", controller: "mine", amount: 3 },
+        { kind: "GainMemory", amount: 3 },
       ],
     },
   });
