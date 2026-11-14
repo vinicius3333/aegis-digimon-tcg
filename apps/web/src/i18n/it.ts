@@ -1216,7 +1216,8 @@ const interfaceMessages = {
   "game.matchLogDrag": "Trascina per spostare",
   "settings.matchLogDisplay": "Visualizzazione del registro",
   "settings.matchLogDisplayDesc":
-    "Scegli come la partita mostra cosa è successo: avvisi brevi sul tabellone, un registro fisso sul bordo del tabellone o entrambi. Sul telefono non c'è un registro fisso: aprilo dal pulsante del registro.",
+    "Scegli come la partita mostra cosa è successo: niente, avvisi brevi sul tabellone, un registro fisso sul bordo del tabellone o entrambi. Sul telefono non c'è un registro fisso: aprilo dal pulsante del registro.",
+  "settings.matchLogDisplayHidden": "Nascosto",
   "settings.matchLogDisplayPopups": "Avvisi",
   "settings.matchLogDisplayPanel": "Registro fisso",
   "settings.matchLogDisplayBoth": "Entrambi",

@@ -1338,7 +1338,8 @@ const interfaceMessages = {
   "game.matchLogDrag": "Faites glisser pour déplacer",
   "settings.matchLogDisplay": "Affichage du journal",
   "settings.matchLogDisplayDesc":
-    "Choisissez comment le match montre ce qui s'est passé : de courtes notifications sur le plateau, un journal fixe au bord du plateau, ou les deux. Sur téléphone, il n'y a pas de journal fixe : ouvrez-le avec le bouton du journal.",
+    "Choisissez comment le match montre ce qui s'est passé : rien, de courtes notifications sur le plateau, un journal fixe au bord du plateau, ou les deux. Sur téléphone, il n'y a pas de journal fixe : ouvrez-le avec le bouton du journal.",
+  "settings.matchLogDisplayHidden": "Masqué",
   "settings.matchLogDisplayPopups": "Notifications",
   "settings.matchLogDisplayPanel": "Journal fixe",
   "settings.matchLogDisplayBoth": "Les deux",

@@ -690,7 +690,7 @@ export function Settings({
                   label={(display) =>
                     t(
                       Object.values(MatchLogDisplay).find((entry) => entry.value === display)?.labelKey ??
-                        MatchLogDisplay.POPUPS.labelKey,
+                        MatchLogDisplay.HIDDEN.labelKey,
                     )
                   }
                   onSelect={matchLogDisplayPreference.set}

@@ -1052,7 +1052,8 @@ export const es: Record<keyof typeof en, string> = {
   "game.matchLogDrag": "Arrastra para mover",
   "settings.matchLogDisplay": "Visualización del registro",
   "settings.matchLogDisplayDesc":
-    "Elige cómo muestra la partida lo que pasó: avisos breves sobre el tablero, un registro fijo en el borde del tablero o ambos. En el móvil no hay registro fijo; ábrelo con el botón del registro.",
+    "Elige cómo muestra la partida lo que pasó: nada, avisos breves sobre el tablero, un registro fijo en el borde del tablero o ambos. En el móvil no hay registro fijo; ábrelo con el botón del registro.",
+  "settings.matchLogDisplayHidden": "Oculto",
   "settings.matchLogDisplayPopups": "Avisos",
   "settings.matchLogDisplayPanel": "Registro fijo",
   "settings.matchLogDisplayBoth": "Ambos",
