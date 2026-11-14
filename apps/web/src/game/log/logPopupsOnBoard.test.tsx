@@ -105,13 +105,23 @@ describe.each([
   { viewport: "desktop", phone: false, logAccess: "fixed-match-log" },
   { viewport: "phone", phone: true, logAccess: "log-strip" },
 ])("log popups on $viewport", ({ phone, logAccess }) => {
-  it("stay hidden with the default setting and leave the match log reachable", async () => {
+  it("stay hidden with the fixed log setting and leave the match log reachable", async () => {
     stubViewport(phone);
     act(() => matchLogDisplayPreference.set(MatchLogDisplay.PANEL.value));
     renderOpponentEffect();
     expect(await screen.findByTestId(logAccess)).toBeTruthy();
     await new Promise((resolve) => setTimeout(resolve, 1_000));
     expect(effectNotice()).toBeNull();
+  });
+
+  it("stay hidden with the default setting", async () => {
+    stubViewport(phone);
+    act(() => matchLogDisplayPreference.set(MatchLogDisplay.HIDDEN.value));
+    renderOpponentEffect();
+    await screen.findByTestId("opponent-hand");
+    await new Promise((resolve) => setTimeout(resolve, 1_000));
+    expect(effectNotice()).toBeNull();
+    expect(screen.queryByTestId("fixed-match-log")).toBeNull();
   });
 
   it("show the effect once the player turns them on", async () => {
