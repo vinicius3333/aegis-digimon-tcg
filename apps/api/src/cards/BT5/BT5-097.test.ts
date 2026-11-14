@@ -36,7 +36,7 @@ describe("BT5-097 Absolute Blast", () => {
       { autoSelectCards: true, preferInstanceIds },
     );
     const returnedTopId = s.perm("noSources").topCard.instanceId;
-    preferInstanceIds.push(returnedTopId);
+    preferInstanceIds.push(s.perm("stripped").topCard.instanceId);
     s.state.memory = 7;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
@@ -73,27 +73,37 @@ describe("BT5-097 Absolute Blast", () => {
 });
 
 describe("BT5-097 Absolute Blast — KB Q&A rulings", () => {
+  const chooseTarget = async (s: ReturnType<typeof setupEngine>, permanentId: string) => {
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const pending = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [permanentId] },
+      }),
+    ).toEqual({ ok: true });
+  };
+
   const playAbsoluteBlastReturning = async (returnedAlias: "stripped" | "noSources") => {
-    const preferInstanceIds: string[] = [];
-    const s = setupEngine(
-      {
-        0: { battleArea: ["BT5-020"], hand: [{ card: "BT5-097", as: "option" }] },
-        1: {
-          battleArea: [
-            { card: "BT5-021", as: "stripped", under: [{ card: "BT5-002", as: "onlySource" }] },
-            { card: "BT5-022", as: "noSources" },
-          ],
-          deck: ["BT5-003"],
-        },
+    const s = setupEngine({
+      0: { battleArea: ["BT5-020"], hand: [{ card: "BT5-097", as: "option" }] },
+      1: {
+        battleArea: [
+          { card: "BT5-021", as: "stripped", under: [{ card: "BT5-002", as: "onlySource" }] },
+          { card: "BT5-022", as: "noSources" },
+        ],
+        deck: ["BT5-003"],
       },
-      { autoSelectCards: true, preferInstanceIds },
-    );
+    });
     const returnedTopId = s.perm(returnedAlias).topCard.instanceId;
-    preferInstanceIds.push(returnedTopId);
     s.state.memory = 7;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
+    await chooseTarget(s, s.perm("stripped").permanentId);
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "chooseTargets").length === 2);
+    await chooseTarget(s, s.perm(returnedAlias).permanentId);
     await settle(() => s.state.players[1]!.deck.some(({ instanceId }) => instanceId === returnedTopId));
     return { s, returnedTopId };
   };

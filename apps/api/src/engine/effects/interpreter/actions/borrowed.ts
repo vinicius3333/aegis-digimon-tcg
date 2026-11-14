@@ -1,6 +1,5 @@
 // Running another card's effect, or an Option, as an effect of this one.
 
-import { getOptionUseDefinition } from "#api/engine/effects/interpreter/getOptionUseDefinition";
 import { effectProvenanceKinds } from "../../effectProvenance.js";
 import type { EffectContext } from "../../EffectContext.js";
 import type { CardSource } from "../../CardSource.js";
@@ -18,6 +17,7 @@ import { candidateLooseInstances, looseCardsInZone } from "../targeting/loose.js
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, EffectTiming } from "@aegis/shared";
 import { MemoryGauge } from "../../../MemoryGauge.js";
+import { optionUseDefinition } from "#api/engine/effects/interpreter/actions/optionUseDefinition";
 import { createLenderCardSource } from "#api/engine/effects/interpreter/actions/createLenderCardSource";
 import type { Action, CardEffect, EffectTrigger, Filter, Seat, ZoneRef } from "@aegis/shared";
 
@@ -524,7 +524,7 @@ function optionUseCandidates(
     const inHandCost = ctx.fx.inHandCost?.(candidate.instanceId, seat) ?? def.playCost;
     if (
       effectiveFilter !== undefined &&
-      !definitionMatches(effectiveFilter, { ...getOptionUseDefinition(def), playCost: inHandCost })
+      !definitionMatches(effectiveFilter, { ...optionUseDefinition(def), playCost: inHandCost })
     )
       return;
     if (!def.kinds.includes(CardKind.Option)) return;
@@ -540,7 +540,7 @@ function optionUseCandidates(
     const zoneCandidates =
       action.target === undefined
         ? looseCardsInZone(ctx, seat, zone)
-        : candidateLooseInstances(ctx, action.target, [zone], getOptionUseDefinition);
+        : candidateLooseInstances(ctx, action.target, [zone], optionUseDefinition);
     for (const candidate of zoneCandidates) {
       addIfEligible(candidate);
     }

@@ -24,7 +24,6 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              digivolutionCards: "hasAny",
             },
             count: 1,
           },

@@ -250,9 +250,10 @@ const interfaceMessages = {
   "profile.page": "第 {page} 页",
   "profile.stats.matches": "对局数",
   "profile.stats.wins": "胜场",
-  "profile.stats.humanMatches": "玩家对战场次",
-  "profile.stats.humanWins": "玩家对战胜场",
-  "profile.stats.rateScope": "已保留的玩家对战记录 · 应用模式和对手筛选 · 胜负筛选仅影响列表 · 不计入机器人对战。",
+  "profile.stats.humanMatches": "近期玩家对战场次",
+  "profile.stats.humanWins": "近期玩家对战胜场",
+  "profile.stats.rateScope":
+    "最近 {limit} 局玩家对战及已保存回放 · 应用模式和对手筛选 · 胜负筛选仅影响列表 · 不计入机器人对战。",
   "profile.stats.winRate": "胜率",
   "profile.stats.replays": "已保存回放",
   "profile.changeAvatar": "更换头像",
@@ -1250,7 +1251,7 @@ const interfaceMessages = {
   "game.matchLogDrag": "拖动以移动",
   "settings.matchLogDisplay": "对局记录显示方式",
   "settings.matchLogDisplayDesc":
-    "选择对局如何显示发生的事情：棋盘上的简短弹窗、棋盘边缘的固定记录，或两者兼有。手机上保留弹窗，记录通过按钮打开。",
+    "选择对局如何显示发生的事情：棋盘上的简短弹窗、棋盘边缘的固定记录，或两者兼有。手机上没有固定记录，请通过记录按钮打开。",
   "settings.matchLogDisplayPopups": "弹窗",
   "settings.matchLogDisplayPanel": "固定记录",
   "settings.matchLogDisplayBoth": "两者",

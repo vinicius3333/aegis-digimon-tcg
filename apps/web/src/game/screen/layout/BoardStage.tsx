@@ -315,7 +315,7 @@ export function BoardStage({
   const other = otherSeat(viewerSeat);
   const matchLogDisplay = useMatchLogDisplay();
   const showsFixedLog = matchLogDisplay.showsPanel && !layout.narrowGameLayout;
-  const shownNarration = matchLogDisplay.showsPopups || layout.narrowGameLayout ? cues.narration : HIDDEN_NARRATION;
+  const shownNarration = matchLogDisplay.showsPopups ? cues.narration : HIDDEN_NARRATION;
   const endTurnConfirmation = useEndTurnConfirmation({
     phase: displayPhase,
     turnCount: state.turnCount,

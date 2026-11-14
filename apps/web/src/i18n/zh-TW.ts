@@ -249,9 +249,10 @@ const interfaceMessages = {
   "profile.page": "第 {page} 頁",
   "profile.stats.matches": "對局",
   "profile.stats.wins": "勝利",
-  "profile.stats.humanMatches": "真人對局",
-  "profile.stats.humanWins": "真人對局勝場",
-  "profile.stats.rateScope": "僅統計保留的真人對局紀錄 · 套用模式與對手篩選 · 結果篩選僅影響清單 · 不含機器人。",
+  "profile.stats.humanMatches": "近期真人對局",
+  "profile.stats.humanWins": "近期真人對局勝場",
+  "profile.stats.rateScope":
+    "僅統計最近 {limit} 場真人對局及已儲存重播 · 套用模式與對手篩選 · 結果篩選僅影響清單 · 不含機器人。",
   "profile.stats.winRate": "勝率",
   "profile.stats.replays": "已儲存重播",
   "profile.changeAvatar": "更改頭像",
@@ -1256,7 +1257,7 @@ const interfaceMessages = {
   "game.matchLogDrag": "拖曳以移動",
   "settings.matchLogDisplay": "對局日誌顯示方式",
   "settings.matchLogDisplayDesc":
-    "選擇對局如何顯示發生的事情：棋盤上的簡短彈窗、棋盤邊緣的固定日誌，或兩者皆有。手機上保留彈窗，日誌透過按鈕開啟。",
+    "選擇對局如何顯示發生的事情：棋盤上的簡短彈窗、棋盤邊緣的固定日誌，或兩者皆有。手機上沒有固定日誌，請透過日誌按鈕開啟。",
   "settings.matchLogDisplayPopups": "彈窗",
   "settings.matchLogDisplayPanel": "固定日誌",
   "settings.matchLogDisplayBoth": "兩者",

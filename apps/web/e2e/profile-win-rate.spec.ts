@@ -86,7 +86,7 @@ for (const [width, dark] of [
       const identity = page.getByRole("region", { name: "My profile" });
       const rate = identity.getByText("Win rate", { exact: true }).locator("..").locator("dd");
       await expect(rate).toHaveText("33%");
-      await expect(identity.getByText("Human matches", { exact: true }).locator("..")).toContainText("3");
+      await expect(identity.getByText("Recent human matches", { exact: true }).locator("..")).toContainText("3");
       await expect(page.getByText("Showing 1–25 of 29")).toBeVisible();
       await expect(page.getByText("Agumon Bot", { exact: true })).toHaveCount(25);
       await page.getByRole("button", { name: "Next", exact: true }).click();

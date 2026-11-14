@@ -14,7 +14,6 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon", "Tamer"],
-              digivolutionCards: "hasAny",
             },
             count: 1,
           },
@@ -65,7 +64,6 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon", "Tamer"],
-              digivolutionCards: "hasAny",
             },
             count: 1,
           },

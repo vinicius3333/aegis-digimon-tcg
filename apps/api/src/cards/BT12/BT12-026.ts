@@ -9,7 +9,7 @@ if (whenDigivolving !== undefined && typeof placementCost === "object") {
     {
       kind: "TrashDigivolution",
       target: {
-        filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
+        filter: { controller: "opponent", kind: ["Digimon"] },
         count: 2,
       },
       amount: 2,

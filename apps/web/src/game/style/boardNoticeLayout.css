@@ -97,7 +97,7 @@
   /* The security clash plays in this same center lane. An earlier "Deleted" notice left
      under it framed the attacker as if it were already deleted, so the column steps
      aside until the clash closes. */
-  body:has(.battle-clash) .aegis-arena .game-board-notices {
+  body:has(.battle-clash:not([data-receded="true"])) .aegis-arena .game-board-notices {
     visibility: hidden;
   }
 }

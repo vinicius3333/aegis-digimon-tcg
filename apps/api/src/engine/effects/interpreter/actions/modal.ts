@@ -1,4 +1,3 @@
-import { getOptionUseDefinition } from "#api/engine/effects/interpreter/getOptionUseDefinition";
 import { getDecisionEffectSummary } from "#api/engine/effects/interpreter/getDecisionEffectSummary";
 // Choosing between the options of a modal action.
 
@@ -20,6 +19,7 @@ import {
   playableTokenRefs,
 } from "./play.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
+import { optionUseDefinition } from "#api/engine/effects/interpreter/actions/optionUseDefinition";
 import { prospectiveColorWaiver } from "#api/engine/effects/interpreter/actions/prospectiveColorWaiver";
 import { printedModalBullets, printedModalPreamble, splitPrintedClauses, type Action } from "@aegis/shared";
 
@@ -437,12 +437,7 @@ function canAttemptModalAction(ctx: EffectContext, action: Action): boolean {
       playableCandidates(
         ctx,
         target,
-        candidateLooseInstances(
-          ctx,
-          target,
-          zones,
-          action.chooseDualMode === true ? getOptionUseDefinition : undefined,
-        ),
+        candidateLooseInstances(ctx, target, zones, optionUseDefinition),
         action.chooseDualMode,
       ),
     );

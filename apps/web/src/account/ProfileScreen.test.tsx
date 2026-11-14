@@ -143,7 +143,8 @@ it("shows the identity header with totals and no tabs", async () => {
   );
   renderProfile();
   const stats = await screen.findByText("33%");
-  expect(stats.closest("dl")?.textContent).toBe("Human matches3Human wins1Win rate33%Replays saved4");
+  expect(stats.closest("dl")?.textContent).toBe("Recent human matches3Recent human wins1Win rate33%Replays saved4");
+  expect(screen.getByText(/^Last 100 matches against humans, plus saved replays · /)).toBeTruthy();
   expect(screen.getByRole("link", { name: "Preferences" }).getAttribute("href")).toBe("/settings");
   expect(screen.getByText("Account connected")).toBeTruthy();
   expect(screen.queryByRole("navigation", { name: "Profile sections" })).toBeNull();

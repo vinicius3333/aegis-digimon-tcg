@@ -75,6 +75,19 @@ describe("BT14-020", () => {
     );
     s.state.memory = 10;
     const turn = s.engine.runOneTurn();
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const targetChoice = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)?.req.options?.candidateInstanceIds).toEqual([
+      s.perm("target").permanentId,
+      s.perm("blocker").permanentId,
+    ]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("target").permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.decisions.some((decision) => decision.req.kind === "selectCards"));
     const decision = s.decisions.find((entry) => entry.req.kind === "selectCards")!;
     if (decision.req.kind !== "selectCards") throw new Error("expected card-selection decision");
