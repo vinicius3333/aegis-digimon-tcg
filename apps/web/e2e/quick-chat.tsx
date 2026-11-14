@@ -4,7 +4,8 @@ import { I18nProvider } from "@/i18n/I18nProvider";
 import { applyDarkMode } from "@/design/darkMode";
 import { Stage, Button, Logo } from "@/design/primitives";
 import { FriendsScreen } from "@/friends/FriendsScreen";
-import { QuickChatDock } from "@/messages/QuickChatDock";
+import { FriendsDrawer } from "@/messages/FriendsDrawer";
+import { FriendsDrawerButton } from "@/messages/FriendsDrawerButton";
 import { useQuickChatState } from "@/messages/useQuickChatState";
 import { SocialContext } from "@/social/SocialContext";
 import type { SocialConnection } from "@/social/SocialConnection";
@@ -83,6 +84,7 @@ function QuickChatFixture() {
           <header className="quick-chat-fixture-header">
             <Logo />
             <nav>
+              <FriendsDrawerButton />
               <Button variant="ghost" onClick={() => setHome(true)}>
                 Home
               </Button>
@@ -100,7 +102,7 @@ function QuickChatFixture() {
               <FriendsScreen signedIn onSignIn={() => {}} />
             )}
           </div>
-          <QuickChatDock />
+          <FriendsDrawer />
         </Stage>
       </SocialContext>
     </I18nProvider>

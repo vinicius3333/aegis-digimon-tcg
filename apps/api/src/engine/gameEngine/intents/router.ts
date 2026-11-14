@@ -1,3 +1,4 @@
+import { handleSealedRookie } from "#api/engine/gameEngine/intents/handleSealedRookie";
 import { Phase, type Intent, type IntentResult, type Seat } from "@aegis/shared";
 import { handleEndPhase, handleReady, handleRespondDecision, handleSurrender } from "../../intentRouter.js";
 import {
@@ -184,6 +185,9 @@ export function applyIntent(engine: GameEngine, seat: Seat, intent: Intent): Int
 
     case "mulligan":
       return engine.mulligan.answer(seat, intent.keep) ? { ok: true } : { ok: false, reason: "decision-pending" };
+
+    case "placeSealedRookie":
+      return handleSealedRookie({ engine, seat, instanceId: intent.instanceId });
 
     case "hatchEgg":
       return handleHatchEgg(engine, seat, intent);

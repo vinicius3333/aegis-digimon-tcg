@@ -1,3 +1,4 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import { liveContinuousRecomputeReuse } from "#api/rooms/liveContinuousRecomputeReuse";
 import { getLiveMatchPlayerPreview } from "#api/rooms/getLiveMatchPlayerPreview";
 import { RankedRewardStore } from "#api/ranked/RankedRewardStore";
@@ -1285,6 +1286,7 @@ export class AegisRoom extends Room<{
     const firstSeat = this.casualSeries?.fixedFirstSeat;
     const serverRevision = process.env.AEGIS_REVISION;
     this.debug("replay.header", {
+      ...(this.state.rulesPolicy === GameRulesPolicy.SEALED.value ? { rulesPolicy: this.state.rulesPolicy } : {}),
       gameMode: this.state.gameMode,
       replaySeq: this.nextReplaySeq(),
       seed,
@@ -2862,11 +2864,12 @@ export class AegisRoom extends Room<{
     return (
       Array.isArray(deck.mainDeck) &&
       Array.isArray(deck.eggDeck) &&
-      deck.mainDeck.length === 50 &&
+      deck.mainDeck.length === (this.state.rulesPolicy === GameRulesPolicy.SEALED.value ? 40 : 50) &&
       deck.eggDeck.length <= 5 &&
       deck.mainDeck.every((id) => typeof id === "string") &&
       deck.eggDeck.every((id) => typeof id === "string") &&
       validateDecklist(deck, {
+        rulesPolicy: this.state.rulesPolicy,
         betaBattleMode: this.isBetaBattleRoom,
         unlimited: this.isUnlimitedRoom,
         format: this.state.format as DeckFormat,

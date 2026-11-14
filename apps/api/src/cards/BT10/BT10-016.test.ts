@@ -182,6 +182,7 @@ describe("BT10-016 Jesmon (X Antibody) — later entrants", () => {
     await settle(() => s.perm("base").currentDP === 13_000);
 
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(
       s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("breedingRush").permanentId }),
     ).toEqual({ ok: true });
@@ -241,6 +242,7 @@ describe("BT10-016 Jesmon (X Antibody) — later entrants", () => {
     );
 
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(
       s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("breedingRush").permanentId }),
     ).toEqual({ ok: true });

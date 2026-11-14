@@ -39,6 +39,7 @@ export type Intent =
       /** Declare App Fusion using this linked card on the chosen battle-area Digimon. */
       appFusionLinkInstanceId?: string;
     } // stack hand card onto a permanent; boolean remains the first-match compatibility path
+  | { type: "placeSealedRookie"; instanceId: string }
   | { type: "hatchEgg" } // breeding: move top egg to raising area
   | { type: "moveFromBreeding"; permanentId: string } // move raised Digimon to battle area
   | { type: "activateEffect"; sourceInstanceId: string; effectKey: string } // activate a [Main]/activated effect

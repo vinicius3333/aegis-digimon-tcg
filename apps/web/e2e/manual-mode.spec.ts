@@ -1,11 +1,23 @@
 import { expect, test, type Page } from "@playwright/test";
-import { RED_DECK, BLUE_DECK } from "../../api/dist/engine/testDecks.js";
+let RED_DECK: typeof import("../../api/dist/engine/testDecks.js").RED_DECK;
+let BLUE_DECK: typeof import("../../api/dist/engine/testDecks.js").BLUE_DECK;
 import { startManualBrowserServer } from "./startManualBrowserServer";
 import type {} from "./harness";
+
+type ManualSnapshot = ReturnType<Window["browserTestSnapshot"]>;
+type ManualPlayer = ManualSnapshot["players"][number];
+
+declare global {
+  interface Window {
+    manualTestSnapshot: () => Omit<ManualSnapshot, "players"> & { players: [ManualPlayer, ManualPlayer] };
+    manualTestFixture: <T>(value: T | undefined, label: string) => T;
+  }
+}
 
 test.describe("manual table", () => {
   let server: Awaited<ReturnType<typeof startManualBrowserServer>>;
   test.beforeAll(async () => {
+    ({ RED_DECK, BLUE_DECK } = await import("../../api/dist/engine/testDecks.js"));
     server = await startManualBrowserServer();
   });
   test.afterAll(async () => {
@@ -15,6 +27,21 @@ test.describe("manual table", () => {
   async function openPlayer(page: Page, name: string, privateCode?: string) {
     await page.addInitScript(
       ({ playerName, deck, code }) => {
+        window.manualTestFixture = (value, label) => {
+          if (value === undefined) {
+            throw new Error(`Missing manual fixture: ${label}`);
+          }
+          return value;
+        };
+        window.manualTestSnapshot = () => {
+          const snapshot = window.browserTestSnapshot();
+          const first = snapshot.players[0];
+          const second = snapshot.players[1];
+          if (!first || !second || snapshot.players.length !== 2) {
+            throw new Error("Manual fixture requires exactly two player seats");
+          }
+          return { ...snapshot, players: [first, second] };
+        };
         localStorage.setItem("aegis:locale", "en");
         window.browserTestOptions = {
           displayName: playerName,
@@ -84,13 +111,13 @@ test.describe("manual table", () => {
     await openPlayer(second, "Second");
     await prepare(page, second);
     await second.getByRole("button", { name: "Draw", exact: true }).click();
-    await expect.poll(() => second.evaluate(() => window.browserTestSnapshot().players[1].handCount)).toBe(6);
-    await expect.poll(() => page.evaluate(() => window.browserTestSnapshot().players[1].handCount)).toBe(6);
+    await expect.poll(() => second.evaluate(() => window.manualTestSnapshot().players[1].handCount)).toBe(6);
+    await expect.poll(() => page.evaluate(() => window.manualTestSnapshot().players[1].handCount)).toBe(6);
     await second.getByRole("button", { name: "Piles", exact: true }).click();
     await second.getByRole("button", { name: "Search pile", exact: true }).click();
     await second.getByRole("button", { name: "Cards", exact: true }).click();
     await expect(second.getByLabel("Card or pile")).toContainText("Look at top cards");
-    expect(await page.evaluate(() => window.browserTestSnapshot().players[1].manualInspectionJson ?? "[]")).toBe("[]");
+    expect(await page.evaluate(() => window.manualTestSnapshot().players[1].manualInspectionJson ?? "[]")).toBe("[]");
     await second.reload();
     await second.getByRole("button", { name: "Manual table", exact: false }).click();
     await expect(second.getByLabel("Card or pile")).toContainText("Look at top cards");
@@ -107,14 +134,18 @@ test.describe("manual table", () => {
     await second.getByLabel("Card or pile").selectOption(hand.value);
     await second.getByLabel("Destination", { exact: true }).selectOption("battleArea");
     await second.getByRole("button", { name: "Move", exact: true }).click();
-    await expect.poll(() => page.evaluate(() => window.browserTestSnapshot().players[1].battleArea.length)).toBe(1);
-    const permanentId = await second.evaluate(() => window.browserTestSnapshot().players[1].battleArea[0].permanentId);
+    await expect.poll(() => page.evaluate(() => window.manualTestSnapshot().players[1].battleArea.length)).toBe(1);
+    const permanentId = await second.evaluate(
+      () =>
+        window.manualTestFixture(window.manualTestSnapshot().players[1].battleArea[0], "seat 1 battleArea[0]")
+          .permanentId,
+    );
     await expect(second.locator(`[data-drop="perm-you"][data-id="${permanentId}"]`)).toBeVisible();
     await expect(page.locator(`[data-drop="perm-opp"][data-id="${permanentId}"]`)).toBeVisible();
     await second.getByRole("button", { name: "Request undo", exact: true }).click();
     await expect(page.getByRole("button", { name: "Accept", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Accept", exact: true }).click();
-    await expect.poll(() => second.evaluate(() => window.browserTestSnapshot().players[1].battleArea.length)).toBe(0);
+    await expect.poll(() => second.evaluate(() => window.manualTestSnapshot().players[1].battleArea.length)).toBe(0);
     await page.getByRole("button", { name: "Turn", exact: true }).click();
     await page.getByLabel("Memory for the active player").fill("-5");
     await page.getByRole("button", { name: "Set memory", exact: true }).click();
@@ -146,9 +177,9 @@ test.describe("manual table", () => {
     expect(await second.evaluate(() => window.browserTestSnapshot().gameMode)).toBe("manual");
     await page.getByRole("button", { name: "Piles", exact: true }).click();
     await page.getByRole("button", { name: "Recover from deck", exact: true }).click();
-    await expect.poll(() => page.evaluate(() => window.browserTestSnapshot().players[0].securityCount)).toBe(6);
+    await expect.poll(() => page.evaluate(() => window.manualTestSnapshot().players[0].securityCount)).toBe(6);
     await page.getByRole("button", { name: "Trash deck top", exact: true }).click();
-    await expect.poll(() => second.evaluate(() => window.browserTestSnapshot().players[0].trash.length)).toBe(1);
+    await expect.poll(() => second.evaluate(() => window.manualTestSnapshot().players[0].trash.length)).toBe(1);
     await page.getByRole("button", { name: "Reveal security top", exact: true }).click();
     await expect
       .poll(() => second.evaluate(() => JSON.parse(window.browserTestSnapshot().manual.revealedJson).length))
@@ -168,10 +199,20 @@ test.describe("manual table", () => {
     await expect(cardDialog.locator('[data-role="top"]')).toBeVisible();
     await cardDialog.getByText("DP and markers", { exact: true }).click();
     await expect(cardDialog.getByRole("button", { name: "Increase DP by 1000", exact: true })).toBeVisible();
-    const originalDp = await page.evaluate(() => window.browserTestSnapshot().players[0].battleArea[0].currentDP);
+    const originalDp = await page.evaluate(
+      () =>
+        window.manualTestFixture(window.manualTestSnapshot().players[0].battleArea[0], "seat 0 battleArea[0]")
+          .currentDP,
+    );
     await cardDialog.getByRole("button", { name: "Increase DP by 1000", exact: true }).click();
     await expect
-      .poll(() => second.evaluate(() => window.browserTestSnapshot().players[0].battleArea[0].currentDP))
+      .poll(() =>
+        second.evaluate(
+          () =>
+            window.manualTestFixture(window.manualTestSnapshot().players[0].battleArea[0], "seat 0 battleArea[0]")
+              .currentDP,
+        ),
+      )
       .toBe(originalDp + 1000);
     const markerInput = cardDialog.getByLabel("Marker", { exact: true });
     const suggestionsId = await markerInput.getAttribute("list");
@@ -270,9 +311,13 @@ test.describe("manual table", () => {
       await player.getByRole("button", { name: "Create token", exact: true }).click();
     }
     await expect
-      .poll(() => page.evaluate(() => window.browserTestSnapshot().players.map((player) => player.battleArea.length)))
+      .poll(() => page.evaluate(() => window.manualTestSnapshot().players.map((player) => player.battleArea.length)))
       .toEqual([1, 1]);
-    const blockerId = await second.evaluate(() => window.browserTestSnapshot().players[1].battleArea[0].permanentId);
+    const blockerId = await second.evaluate(
+      () =>
+        window.manualTestFixture(window.manualTestSnapshot().players[1].battleArea[0], "seat 1 battleArea[0]")
+          .permanentId,
+    );
     await page.locator('[data-drop="perm-you"]').click();
     const editor = page.getByRole("dialog");
     await editor.getByText("DP and markers", { exact: true }).click();
@@ -290,7 +335,10 @@ test.describe("manual table", () => {
     await expect
       .poll(() =>
         second.evaluate(() => {
-          const permanent = window.browserTestSnapshot().players[0].battleArea[0];
+          const permanent = window.manualTestFixture(
+            window.manualTestSnapshot().players[0].battleArea[0],
+            "seat 0 battleArea[0]",
+          );
           return {
             security: permanent.securityAttackModifier,
             keywords: permanent.keywords,
@@ -304,7 +352,13 @@ test.describe("manual table", () => {
     await page.getByRole("button", { name: "Request undo", exact: true }).click();
     await second.getByRole("button", { name: "Accept", exact: true }).click();
     await expect
-      .poll(() => page.evaluate(() => window.browserTestSnapshot().players[0].battleArea[0].securityAttackModifier))
+      .poll(() =>
+        page.evaluate(
+          () =>
+            window.manualTestFixture(window.manualTestSnapshot().players[0].battleArea[0], "seat 0 battleArea[0]")
+              .securityAttackModifier,
+        ),
+      )
       .toBe(0);
     await page.getByLabel("Number of cards to reveal", { exact: true }).fill("3");
     await page.getByRole("button", { name: "Reveal cards", exact: true }).click();
@@ -314,41 +368,71 @@ test.describe("manual table", () => {
     await expect(page.getByRole("region", { name: "Revealed cards", exact: true }).locator("figure")).toHaveCount(4);
     await page.getByRole("button", { name: "Clear my revealed cards", exact: true }).click();
     await expect(second.getByRole("region", { name: "Revealed cards", exact: true }).locator("figure")).toHaveCount(1);
-    expect(await page.evaluate(() => window.browserTestSnapshot().players[0].deckCount)).toBe(40);
+    expect(await page.evaluate(() => window.manualTestSnapshot().players[0].deckCount)).toBe(40);
     await page.getByRole("button", { name: "Cards", exact: true }).click();
     await page.getByLabel("Card or pile", { exact: true }).selectOption("security:top");
     await page.getByRole("button", { name: "Turn face up", exact: true }).click();
     await expect
-      .poll(() => second.evaluate(() => window.browserTestSnapshot().players[0].securityView[0].faceUp))
+      .poll(() =>
+        second.evaluate(
+          () =>
+            window.manualTestFixture(window.manualTestSnapshot().players[0].securityView[0], "seat 0 securityView[0]")
+              .faceUp,
+        ),
+      )
       .toBe(true);
     await page.getByRole("button", { name: "Turn face down", exact: true }).click();
     await expect
-      .poll(() => second.evaluate(() => window.browserTestSnapshot().players[0].securityView[0].faceUp))
+      .poll(() =>
+        second.evaluate(
+          () =>
+            window.manualTestFixture(window.manualTestSnapshot().players[0].securityView[0], "seat 0 securityView[0]")
+              .faceUp,
+        ),
+      )
       .toBe(false);
     const tokenInstanceId = await page.evaluate(
-      () => window.browserTestSnapshot().players[0].battleArea[0].topCard.instanceId,
+      () =>
+        window.manualTestFixture(window.manualTestSnapshot().players[0].battleArea[0], "seat 0 battleArea[0]").topCard
+          .instanceId,
     );
     await page.getByLabel("Card or pile", { exact: true }).selectOption(tokenInstanceId);
     await page.getByRole("button", { name: "Turn face down", exact: true }).click();
     await expect
-      .poll(() => second.evaluate(() => window.browserTestSnapshot().players[0].battleArea[0].topCard.faceUp))
+      .poll(() =>
+        second.evaluate(
+          () =>
+            window.manualTestFixture(window.manualTestSnapshot().players[0].battleArea[0], "seat 0 battleArea[0]")
+              .topCard.faceUp,
+        ),
+      )
       .toBe(false);
     const faceDownOpponent = second.locator('[data-drop="perm-opp"]');
     await expect(faceDownOpponent).toHaveAttribute("aria-label", /Face down/);
     await expect(faceDownOpponent).not.toHaveAttribute("aria-label", /Diaboromon/);
     await expect(faceDownOpponent.locator('img[alt="Diaboromon Token"]')).toHaveCount(0);
-    expect(await page.evaluate(() => window.browserTestSnapshot().players[0].battleArea[0].topCard.cardId)).toBe(
-      "TOKEN-Diaboromon-Token",
-    );
+    expect(
+      await page.evaluate(
+        () =>
+          window.manualTestFixture(window.manualTestSnapshot().players[0].battleArea[0], "seat 0 battleArea[0]").topCard
+            .cardId,
+      ),
+    ).toBe("TOKEN-Diaboromon-Token");
     await page.getByRole("button", { name: "Turn face up", exact: true }).click();
     await expect
-      .poll(() => second.evaluate(() => window.browserTestSnapshot().players[0].battleArea[0].topCard.cardId))
+      .poll(() =>
+        second.evaluate(
+          () =>
+            window.manualTestFixture(window.manualTestSnapshot().players[0].battleArea[0], "seat 0 battleArea[0]")
+              .topCard.cardId,
+        ),
+      )
       .toBe("TOKEN-Diaboromon-Token");
     for (const player of [page, second]) await player.getByRole("button", { name: "Turn", exact: true }).click();
     await expect(page.locator(".manual-combat__phases button")).toHaveCount(0);
     await expect(second.locator(".manual-combat__phases button")).toHaveCount(0);
     await expect.poll(() => second.evaluate(() => window.browserTestSnapshot().manual.turnPhase)).toBe("Main");
-    expect(await page.evaluate(() => window.browserTestSnapshot().players[0].handCount)).toBe(5);
+    expect(await page.evaluate(() => window.manualTestSnapshot().players[0].handCount)).toBe(5);
     async function declareAttack() {
       await page.locator('[data-drop="perm-you"]').click();
       await editor.getByText("DP and markers", { exact: true }).click();
@@ -383,7 +467,9 @@ test.describe("manual table", () => {
     await expect.poll(() => second.evaluate(() => window.browserTestSnapshot().manual.combatStage)).toBe("none");
     expect(
       await page.evaluate(() =>
-        window.browserTestSnapshot().players.every((player) => !player.battleArea[0].isSuspended),
+        window
+          .manualTestSnapshot()
+          .players.every((player) => !window.manualTestFixture(player.battleArea[0], "battle permanent").isSuspended),
       ),
     ).toBe(true);
     await declareAttack();
@@ -393,14 +479,14 @@ test.describe("manual table", () => {
     await page.getByRole("button", { name: "Continue", exact: true }).click();
     await expect.poll(() => second.evaluate(() => window.browserTestSnapshot().manual.combatStage)).toBe("security");
     expect(
-      await page.evaluate(() => window.browserTestSnapshot().players.map((player) => player.securityCount)),
+      await page.evaluate(() => window.manualTestSnapshot().players.map((player) => player.securityCount)),
     ).toEqual([5, 5]);
     await page.getByRole("button", { name: "End attack", exact: true }).click();
     await second.locator('[data-drop="perm-you"]').click();
     const secondEditor = second.getByRole("dialog");
     await secondEditor.getByText("DP and markers", { exact: true }).click();
     await secondEditor.getByRole("button", { name: "Remove token", exact: true }).click();
-    await expect.poll(() => page.evaluate(() => window.browserTestSnapshot().players[1].battleArea.length)).toBe(0);
+    await expect.poll(() => page.evaluate(() => window.manualTestSnapshot().players[1].battleArea.length)).toBe(0);
     expect(errors).toEqual([]);
   });
 
@@ -412,10 +498,12 @@ test.describe("manual table", () => {
     await openPlayer(page, "First");
     await openPlayer(second, "Second");
     await prepare(page, second);
-    const firstHand = await page.evaluate(() => window.browserTestSnapshot().players[0].hand[0].instanceId);
+    const firstHand = await page.evaluate(
+      () => window.manualTestFixture(window.manualTestSnapshot().players[0].hand[0], "seat 0 hand[0]").instanceId,
+    );
     await page.getByLabel("Card or pile", { exact: true }).selectOption(firstHand);
     await page.getByRole("button", { name: "Place on field", exact: true }).click();
-    await expect.poll(() => second.evaluate(() => window.browserTestSnapshot().players[0].battleArea.length)).toBe(1);
+    await expect.poll(() => second.evaluate(() => window.manualTestSnapshot().players[0].battleArea.length)).toBe(1);
     await page.locator('[data-drop="perm-you"]').click();
     const editor = page.getByRole("dialog");
     await editor.getByText("DP and markers", { exact: true }).click();
@@ -427,13 +515,22 @@ test.describe("manual table", () => {
     await editor.getByRole("button", { name: "Suspend", exact: true }).click();
     await editor.getByRole("button", { name: "Increase DP by 1000", exact: true }).click();
     await expect
-      .poll(() => second.evaluate(() => window.browserTestSnapshot().players[0].battleArea[0].manualStatuses))
+      .poll(() =>
+        second.evaluate(
+          () =>
+            window.manualTestFixture(window.manualTestSnapshot().players[0].battleArea[0], "seat 0 battleArea[0]")
+              .manualStatuses,
+        ),
+      )
       .toEqual(["sick", "immune"]);
     await editor.getByRole("button", { name: "Reset modifiers", exact: true }).click();
     await expect
       .poll(() =>
         second.evaluate(() => {
-          const permanent = window.browserTestSnapshot().players[0].battleArea[0];
+          const permanent = window.manualTestFixture(
+            window.manualTestSnapshot().players[0].battleArea[0],
+            "seat 0 battleArea[0]",
+          );
           return {
             statuses: permanent.manualStatuses,
             suspended: permanent.isSuspended,
@@ -445,22 +542,36 @@ test.describe("manual table", () => {
       .toMatchObject({ statuses: [], suspended: true });
     expect(
       await page.evaluate(() => {
-        const permanent = window.browserTestSnapshot().players[0].battleArea[0];
+        const permanent = window.manualTestFixture(
+          window.manualTestSnapshot().players[0].battleArea[0],
+          "seat 0 battleArea[0]",
+        );
         return permanent.currentDP === permanent.baseDP;
       }),
     ).toBe(true);
     await editor.getByRole("button", { name: "Training: add deck top as source", exact: true }).click();
     await expect
-      .poll(() => second.evaluate(() => window.browserTestSnapshot().players[0].battleArea[0].stack.length))
+      .poll(() =>
+        second.evaluate(
+          () =>
+            window.manualTestFixture(window.manualTestSnapshot().players[0].battleArea[0], "seat 0 battleArea[0]").stack
+              .length,
+        ),
+      )
       .toBe(1);
-    expect(await page.evaluate(() => window.browserTestSnapshot().players[0].deckCount)).toBe(39);
+    expect(await page.evaluate(() => window.manualTestSnapshot().players[0].deckCount)).toBe(39);
     await editor.getByRole("button", { name: "Close", exact: true }).click();
     const trainingSourceId = await page.evaluate(
-      () => window.browserTestSnapshot().players[0].battleArea[0].stack[0].instanceId,
+      () =>
+        window.manualTestFixture(
+          window.manualTestFixture(window.manualTestSnapshot().players[0].battleArea[0], "seat 0 battle permanent")
+            .stack[0],
+          "training source",
+        ).instanceId,
     );
     await page.getByLabel("Card or pile", { exact: true }).selectOption(trainingSourceId);
     await page.getByRole("button", { name: "Move to trash", exact: true }).click();
-    await expect.poll(() => second.evaluate(() => window.browserTestSnapshot().players[0].trash.length)).toBe(1);
+    await expect.poll(() => second.evaluate(() => window.manualTestSnapshot().players[0].trash.length)).toBe(1);
     await page.getByRole("button", { name: "Piles", exact: true }).click();
     await page.getByLabel("Number of cards to reveal", { exact: true }).fill("1");
     await page.getByRole("button", { name: "Reveal cards", exact: true }).click();
@@ -469,9 +580,11 @@ test.describe("manual table", () => {
     await expect(second.getByRole("button", { name: "Move revealed card", exact: true })).toHaveCount(0);
     await gallery.getByLabel("Reveal destination", { exact: true }).selectOption("hand");
     await gallery.getByRole("button", { name: "Move revealed card", exact: true }).click();
-    await expect.poll(() => page.evaluate(() => window.browserTestSnapshot().players[0].handCount)).toBe(5);
+    await expect.poll(() => page.evaluate(() => window.manualTestSnapshot().players[0].handCount)).toBe(5);
     await page.getByRole("button", { name: "Turn", exact: true }).click();
-    const signalSource = await page.evaluate(() => window.browserTestSnapshot().players[0].hand[0]);
+    const signalSource = await page.evaluate(() =>
+      window.manualTestFixture(window.manualTestSnapshot().players[0].hand[0], "seat 0 hand[0]"),
+    );
     await page.getByLabel("Effect source", { exact: true }).selectOption(signalSource.instanceId);
     await page.getByLabel("Effect target", { exact: true }).selectOption("seat:1");
     await page.getByRole("button", { name: "Signal effect", exact: true }).click();
@@ -483,7 +596,7 @@ test.describe("manual table", () => {
         })),
       )
       .toEqual({ card: signalSource.cardId, target: 1 });
-    expect(await second.evaluate(() => window.browserTestSnapshot().players[0].hand?.length ?? 0)).toBe(0);
+    expect(await second.evaluate(() => window.manualTestSnapshot().players[0].hand?.length ?? 0)).toBe(0);
     const ownEffectToast = page.getByTestId("match-notice").filter({ hasText: "First signals an effect" });
     const opponentEffectToast = second.getByTestId("match-notice").filter({ hasText: "First signals an effect" });
     await expect(ownEffectToast).toHaveAttribute("data-side", "you");
@@ -508,7 +621,11 @@ test.describe("manual table", () => {
     await expect(second.getByRole("button", { name: "Clear my effect signal", exact: true })).toHaveCount(0);
     await page.getByRole("button", { name: "Clear my effect signal", exact: true }).click();
     await expect.poll(() => second.evaluate(() => window.browserTestSnapshot().manual.signalSeat)).toBe(-1);
-    const fieldId = await page.evaluate(() => window.browserTestSnapshot().players[0].battleArea[0].permanentId);
+    const fieldId = await page.evaluate(
+      () =>
+        window.manualTestFixture(window.manualTestSnapshot().players[0].battleArea[0], "seat 0 battleArea[0]")
+          .permanentId,
+    );
     await page.getByLabel("Effect source", { exact: true }).selectOption(fieldId);
     await page.getByLabel("Effect target", { exact: true }).selectOption(fieldId);
     await page.getByRole("button", { name: "Signal effect", exact: true }).click();
@@ -564,11 +681,11 @@ test.describe("manual table", () => {
       .poll(() =>
         page.evaluate(() => ({
           turnCount: window.browserTestSnapshot().turnCount,
-          security: window.browserTestSnapshot().players.map((player) => player.securityCount),
+          security: window.manualTestSnapshot().players.map((player) => player.securityCount),
         })),
       )
       .toEqual({ turnCount: 1, security: [5, 5] });
-    const restarted = await page.evaluate(() => window.browserTestSnapshot());
+    const restarted = await page.evaluate(() => window.manualTestSnapshot());
     expect(
       restarted.players.map((player) => ({
         hand: player.handCount,
@@ -595,19 +712,19 @@ test.describe("manual table", () => {
     await openPlayer(second, "Second");
     await prepare(page, second, "Hatch egg");
     let agumon = await page.evaluate(() =>
-      window.browserTestSnapshot().players[0].hand.find((card) => card.cardId === "BT1-010"),
+      window.manualTestSnapshot().players[0].hand.find((card) => card.cardId === "BT1-010"),
     );
     while (!agumon) {
-      const beforeDraw = await page.evaluate(() => window.browserTestSnapshot().players[0].handCount);
+      const beforeDraw = await page.evaluate(() => window.manualTestSnapshot().players[0].handCount);
       await page.getByRole("button", { name: "Draw", exact: true }).click();
       await expect
-        .poll(() => page.evaluate(() => window.browserTestSnapshot().players[0].handCount))
+        .poll(() => page.evaluate(() => window.manualTestSnapshot().players[0].handCount))
         .toBe(beforeDraw + 1);
       agumon = await page.evaluate(() =>
-        window.browserTestSnapshot().players[0].hand.find((card) => card.cardId === "BT1-010"),
+        window.manualTestSnapshot().players[0].hand.find((card) => card.cardId === "BT1-010"),
       );
     }
-    const before = await page.evaluate(() => window.browserTestSnapshot().players[0]);
+    const before = await page.evaluate(() => window.manualTestSnapshot().players[0]);
     const egg = before.breeding!;
     await page.locator(".manual-table__toggle").click();
     const handCard = page.locator(`[data-testid="hand"] [data-hand-instance-id="${agumon.instanceId}"]`);
@@ -620,15 +737,15 @@ test.describe("manual table", () => {
     await page.mouse.move(destination.x + destination.width / 2, destination.y + destination.height / 2, { steps: 12 });
     await page.mouse.up();
     await expect
-      .poll(() => page.evaluate(() => window.browserTestSnapshot().players[0].breeding?.topCard.cardId))
+      .poll(() => page.evaluate(() => window.manualTestSnapshot().players[0].breeding?.topCard.cardId))
       .toBe("BT1-010");
-    const after = await page.evaluate(() => window.browserTestSnapshot().players[0]);
+    const after = await page.evaluate(() => window.manualTestSnapshot().players[0]);
     expect(after.breeding!.permanentId).toBe(egg.permanentId);
     expect(after.breeding!.stack.map((card) => card.instanceId)).toEqual([egg.topCard.instanceId]);
     expect(after.handCount).toBe(before.handCount - 1);
     expect(after.deckCount).toBe(before.deckCount);
     await expect
-      .poll(() => second.evaluate(() => window.browserTestSnapshot().players[0].breeding?.topCard.cardId))
+      .poll(() => second.evaluate(() => window.manualTestSnapshot().players[0].breeding?.topCard.cardId))
       .toBe("BT1-010");
   });
 
@@ -662,7 +779,7 @@ test.describe("manual table", () => {
             .browserTestPresentation()
             .steps.filter((step) => step.phase === "started" && step.id.startsWith("draw-flight-")).length,
       );
-      expect(await player.evaluate(() => window.browserTestSnapshot().players[1].handCount)).toBe(6);
+      expect(await player.evaluate(() => window.manualTestSnapshot().players[1].handCount)).toBe(6);
       expect(flights - before[index]!).toBe(1);
     }
   });
@@ -675,25 +792,25 @@ test.describe("manual table", () => {
     await openPlayer(page, "First");
     await openPlayer(second, "Second");
     await prepare(page, second, "Hatch egg");
-    expect(await page.evaluate(() => window.browserTestSnapshot().players[0].handCount)).toBe(5);
-    expect(await page.evaluate(() => window.browserTestSnapshot().players[0].eggDeckCount)).toBe(
+    expect(await page.evaluate(() => window.manualTestSnapshot().players[0].handCount)).toBe(5);
+    expect(await page.evaluate(() => window.manualTestSnapshot().players[0].eggDeckCount)).toBe(
       RED_DECK.eggDeck.length - 1,
     );
-    const breedingId = await page.evaluate(() => window.browserTestSnapshot().players[0].breeding!.permanentId);
-    const evolveCard = await page.evaluate(() => window.browserTestSnapshot().players[0].hand[0]);
+    const breedingId = await page.evaluate(() => window.manualTestSnapshot().players[0].breeding!.permanentId);
+    const evolveCard = await page.evaluate(() =>
+      window.manualTestFixture(window.manualTestSnapshot().players[0].hand[0], "seat 0 hand[0]"),
+    );
     await page.getByLabel("Card or pile", { exact: true }).selectOption(evolveCard.instanceId);
     await page.getByLabel("Destination", { exact: true }).selectOption(`${breedingId}:top`);
     await page.getByRole("button", { name: "Move", exact: true }).click();
-    await expect
-      .poll(() => page.evaluate(() => window.browserTestSnapshot().players[0].breeding!.stack.length))
-      .toBe(1);
-    expect(await page.evaluate(() => window.browserTestSnapshot().players[0].handCount)).toBe(4);
+    await expect.poll(() => page.evaluate(() => window.manualTestSnapshot().players[0].breeding!.stack.length)).toBe(1);
+    expect(await page.evaluate(() => window.manualTestSnapshot().players[0].handCount)).toBe(4);
     type FieldPreparation = { player: Page; seat: number };
     async function placeAndSuspend({ player, seat }: FieldPreparation) {
-      const handCard = await player.evaluate(
-        (owner) => window.browserTestSnapshot().players[owner].hand[0].instanceId,
-        seat,
-      );
+      const handCard = await player.evaluate((owner) => {
+        const ownerState = window.manualTestFixture(window.manualTestSnapshot().players[owner], `seat ${owner}`);
+        return window.manualTestFixture(ownerState.hand[0], `seat ${owner} hand card`).instanceId;
+      }, seat);
       await player.getByLabel("Card or pile", { exact: true }).selectOption(handCard);
       await player.getByRole("button", { name: "Place on field", exact: true }).click();
       await player.locator('[data-drop="perm-you"]').click();
@@ -716,10 +833,12 @@ test.describe("manual table", () => {
       .toEqual({ seat: 1, count: 2 });
     await expect(second.locator(".game-utility-slot--you-eggs.game-egg-deck--hatchable")).toBeVisible();
     await expect(second.getByRole("dialog")).toHaveCount(0);
-    expect(await second.evaluate(() => window.browserTestSnapshot().players[1].handCount)).toBe(5);
+    expect(await second.evaluate(() => window.manualTestSnapshot().players[1].handCount)).toBe(5);
     expect(
       await second.evaluate(() =>
-        window.browserTestSnapshot().players.map((player) => player.battleArea[0].isSuspended),
+        window
+          .manualTestSnapshot()
+          .players.map((player) => window.manualTestFixture(player.battleArea[0], "battle permanent").isSuspended),
       ),
     ).toEqual([true, false]);
     await expect(second.getByRole("button", { name: "Move to battle", exact: true })).toHaveCount(0);
@@ -735,17 +854,19 @@ test.describe("manual table", () => {
         })),
       )
       .toEqual({ seat: 0, count: 1, phase: "Main" });
-    expect(await second.evaluate(() => window.browserTestSnapshot().players[1].handCount)).toBe(4);
+    expect(await second.evaluate(() => window.manualTestSnapshot().players[1].handCount)).toBe(4);
     expect(
       await second.evaluate(() =>
-        window.browserTestSnapshot().players.map((player) => player.battleArea[0].isSuspended),
+        window
+          .manualTestSnapshot()
+          .players.map((player) => window.manualTestFixture(player.battleArea[0], "battle permanent").isSuspended),
       ),
     ).toEqual([true, true]);
     await page.getByRole("button", { name: "Pass turn", exact: true }).click();
     await expect.poll(() => second.evaluate(() => window.browserTestSnapshot().turnCount)).toBe(2);
     await expect(second.locator(".game-utility-slot--you-eggs.game-egg-deck--hatchable")).toBeVisible();
     await expect(second.getByRole("dialog")).toHaveCount(0);
-    expect(await second.evaluate(() => window.browserTestSnapshot().players[1].handCount)).toBe(5);
+    expect(await second.evaluate(() => window.manualTestSnapshot().players[1].handCount)).toBe(5);
     for (const width of [390, 1440]) {
       await second.setViewportSize({ width, height: 1000 });
       for (const dark of [false, true]) {
@@ -757,7 +878,7 @@ test.describe("manual table", () => {
       }
     }
     await finishBreeding({ player: second, choice: "Hatch egg" });
-    expect(await second.evaluate(() => window.browserTestSnapshot().players[1].eggDeckCount)).toBe(
+    expect(await second.evaluate(() => window.manualTestSnapshot().players[1].eggDeckCount)).toBe(
       BLUE_DECK.eggDeck.length - 1,
     );
     await page.locator('[data-drop="perm-you"]').click();
@@ -778,11 +899,17 @@ test.describe("manual table", () => {
       page.locator(".game-utility-slot--you-raising .game-breeding-slot__box[data-arena-suggested]"),
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "Hatch egg", exact: true })).toHaveCount(0);
-    expect(await page.evaluate(() => window.browserTestSnapshot().players[0].handCount)).toBe(4);
-    expect(await page.evaluate(() => window.browserTestSnapshot().players[0].battleArea[0].isSuspended)).toBe(false);
+    expect(await page.evaluate(() => window.manualTestSnapshot().players[0].handCount)).toBe(4);
+    expect(
+      await page.evaluate(
+        () =>
+          window.manualTestFixture(window.manualTestSnapshot().players[0].battleArea[0], "seat 0 battleArea[0]")
+            .isSuspended,
+      ),
+    ).toBe(false);
     await finishBreeding({ player: page, choice: "Move to battle" });
-    await expect.poll(() => page.evaluate(() => window.browserTestSnapshot().players[0].battleArea.length)).toBe(2);
-    const afterMove = await page.evaluate(() => window.browserTestSnapshot());
+    await expect.poll(() => page.evaluate(() => window.manualTestSnapshot().players[0].battleArea.length)).toBe(2);
+    const afterMove = await page.evaluate(() => window.manualTestSnapshot());
     expect(afterMove.players[0].breeding).toBeUndefined();
     expect(afterMove.players[0].handCount).toBe(4);
     expect(
@@ -800,11 +927,11 @@ test.describe("manual table", () => {
         })),
       )
       .toEqual({ seat: 1, count: 4, phase: "Main" });
-    expect(await second.evaluate(() => window.browserTestSnapshot().players[1].handCount)).toBe(6);
-    expect(await second.evaluate(() => window.browserTestSnapshot().players[1].eggDeckCount)).toBe(
+    expect(await second.evaluate(() => window.manualTestSnapshot().players[1].handCount)).toBe(6);
+    expect(await second.evaluate(() => window.manualTestSnapshot().players[1].eggDeckCount)).toBe(
       BLUE_DECK.eggDeck.length - 1,
     );
-    expect(await second.evaluate(() => window.browserTestSnapshot().players[1].breeding!.stack.length)).toBe(0);
+    expect(await second.evaluate(() => window.manualTestSnapshot().players[1].breeding!.stack.length)).toBe(0);
     await expect(second.getByRole("dialog")).toHaveCount(0);
     expect(
       await page.evaluate(() =>
@@ -840,7 +967,7 @@ test.describe("manual table", () => {
     await expect(second.locator(".game-utility-slot--you-eggs.game-egg-deck--hatchable")).toBeVisible();
     await expect(second.getByRole("dialog")).toHaveCount(0);
     await finishBreeding({ player: second, choice: "Hatch egg" });
-    expect(await second.evaluate(() => window.browserTestSnapshot().players[1].eggDeckCount)).toBe(
+    expect(await second.evaluate(() => window.manualTestSnapshot().players[1].eggDeckCount)).toBe(
       BLUE_DECK.eggDeck.length - 1,
     );
     expect(errors).toEqual([]);

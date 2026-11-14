@@ -33,6 +33,7 @@ async function breedingUnderRuinMode(board: {
   await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("ruin"));
   s.state.turnSeat = 0;
   s.state.phase = Phase.Breeding;
+  void s.engine.breeding.run(0, false);
   return s;
 }
 
@@ -65,6 +66,7 @@ describe("BT16-082 Ukkomon", () => {
     );
     s.state.phase = Phase.Breeding;
     await s.ready();
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("moved").permanentId })).toEqual({
       ok: true,
     });
@@ -95,6 +97,7 @@ describe("BT16-082 Ukkomon — KB Q&A rulings", () => {
     s.state.phase = Phase.Breeding;
     await s.ready();
 
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("ukko").permanentId })).toEqual({
       ok: true,
     });

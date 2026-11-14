@@ -23,7 +23,7 @@ test("Neptunemon must suspend for every protection and leaves when it cannot pay
       (state) => state.players[0]!.trash.some((card) => card.cardId === "BT24-030") && !state.pendingDecision,
       async (decision) => {
         if (decision.kind === "optional" && decision.sourceCardId === "BT24-030") {
-          prompts.push(decision.effectText ?? "");
+          prompts.push(decision.options.effectText ?? "");
         }
         return { accept: true };
       },

@@ -81,6 +81,7 @@ it("deletes exactly one 3000 DP target once from a legal Gizamon evolution stack
   expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT14-001", "BT14-008"]);
 
   s.state.phase = Phase.Breeding;
+  void s.engine.breeding.run(0, false);
   expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
     ok: true,
   });

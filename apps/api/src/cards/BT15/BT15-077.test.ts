@@ -99,6 +99,7 @@ describe("BT15-077", () => {
     expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT15-031");
 
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
     expect(
       s.engine.applyIntent(0, {
         type: "moveFromBreeding",

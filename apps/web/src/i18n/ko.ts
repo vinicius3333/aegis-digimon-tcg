@@ -2987,6 +2987,8 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
+  "sealed.breedingHint": "육성 행동 하나를 선택하거나 육성 페이즈를 종료하세요.",
+  "sealed.placeRookie": "육성 영역에 놓기",
 } satisfies Record<keyof typeof en, string>;
 
 export const ko: Record<keyof typeof en, string> = {

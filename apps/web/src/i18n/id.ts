@@ -3037,6 +3037,8 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
+  "sealed.breedingHint": "Pilih satu aksi breeding atau akhiri breeding phase.",
+  "sealed.placeRookie": "Letakkan di breeding area",
 } satisfies Record<keyof typeof en, string>;
 
 export const id: Record<keyof typeof en, string> = {

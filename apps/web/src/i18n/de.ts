@@ -3101,6 +3101,8 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
+  "sealed.breedingHint": "Wählen Sie eine Aufzuchtaktion oder beenden Sie die Aufzucht.",
+  "sealed.placeRookie": "In Aufzucht legen",
 } satisfies Record<keyof typeof en, string>;
 
 export const de: Record<keyof typeof en, string> = {

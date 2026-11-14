@@ -97,6 +97,7 @@ describe("BT9-012 Greymon (X Antibody)", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "BT1-021");
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("host").permanentId })).toEqual({
       ok: true,
     });

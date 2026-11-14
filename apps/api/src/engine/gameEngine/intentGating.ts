@@ -24,6 +24,7 @@ export const ATTACK_BLOCKED_INTENTS: ReadonlySet<Intent["type"]> = new Set([
   "attack",
   "activateEffect",
   "endPhase",
+  "placeSealedRookie",
   "hatchEgg",
   "moveFromBreeding",
 ]);

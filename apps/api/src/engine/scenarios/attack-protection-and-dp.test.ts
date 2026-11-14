@@ -112,6 +112,7 @@ it("Espimon moving increases face-up security and draws from Kapurimon", async (
   await s.ready();
   s.state.phase = Phase.Breeding;
   const before = s.state.players[0]!.hand.length;
+  void s.engine.breeding.run(0, false);
   expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("espi").permanentId })).toEqual({
     ok: true,
   });

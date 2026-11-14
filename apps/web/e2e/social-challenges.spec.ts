@@ -38,11 +38,14 @@ for (const width of [390, 1440]) {
           }, dark);
           const page = await context.newPage();
           await page.goto(`http://127.0.0.1:${process.env.AEGIS_E2E_WEB_PORT ?? 4175}/friends`);
-          await expect(page.getByText("Connected to friends", { exact: true })).toBeVisible();
+          await expect(page.locator("#aegis-main").getByText("Connected to friends", { exact: true })).toBeVisible();
           players.push(page);
         }
         const [host, guest, spectator] = players;
-        await expect(host.getByText("Online", { exact: true })).toHaveCount(2);
+        if (players.length !== 3 || !host || !guest || !spectator) {
+          throw new Error("Expected the challenge host, guest, and spectator to be initialized");
+        }
+        await expect(host.locator("#aegis-main").getByText("Online", { exact: true })).toHaveCount(2);
         await host.screenshot({
           path: fileURLToPath(
             new URL(
@@ -92,14 +95,38 @@ for (const width of [390, 1440]) {
           .getByRole("dialog", { name: "Surrender this match?" })
           .getByRole("button", { name: "Surrender", exact: true })
           .click();
-        async function readSavedReplay() {
+        const readSavedReplay = async () => {
           return spectator.evaluate(async () => {
-            const { unsyncedLocalReplays } = await import("/src/replays/local.ts");
-            return (await unsyncedLocalReplays()).find((replay: { viewerSeat: number }) => replay.viewerSeat === -1);
+            const modulePath = "/src/replays/local.ts";
+            const { unsyncedLocalReplays } = await import(modulePath);
+            const replays: unknown = await unsyncedLocalReplays();
+            if (!Array.isArray(replays)) {
+              throw new Error("Expected the local replay list");
+            }
+            const replay: unknown = replays.find(
+              (entry: unknown) =>
+                typeof entry === "object" && entry !== null && "viewerSeat" in entry && entry.viewerSeat === -1,
+            );
+            if (replay === undefined) {
+              return undefined;
+            }
+            if (
+              typeof replay !== "object" ||
+              replay === null ||
+              !("data" in replay) ||
+              typeof replay.data !== "string" ||
+              ("indexId" in replay && replay.indexId !== undefined && typeof replay.indexId !== "string")
+            ) {
+              throw new Error("Expected a saved spectator replay with encoded data");
+            }
+            return { data: replay.data, indexId: "indexId" in replay ? replay.indexId : undefined };
           });
-        }
+        };
         await expect.poll(async () => Boolean((await readSavedReplay())?.indexId)).toBe(true);
         const saved = await readSavedReplay();
+        if (!saved || !saved.indexId) {
+          throw new Error("Expected the saved spectator replay to have an account library entry");
+        }
         const replay = JSON.parse(gunzipSync(Buffer.from(saved.data, "base64")).toString());
         expect(replay.viewerSeat).toBe(-1);
         expect(replay.players).not.toContain("Challenge Host");

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { StrictMode } from "react";
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import { Phase, type GameState, type PlayerState } from "@aegis/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AegisRoom } from "../../../net/client";
@@ -31,6 +32,16 @@ afterEach(() => {
 });
 
 describe("auto hatch", () => {
+  it("leaves the sealed breeding action available even when automatic hatch is enabled", () => {
+    setAutoHatchEnabled(true);
+    const props = options();
+    props.state.rulesPolicy = GameRulesPolicy.SEALED.value;
+    const { rerender } = renderHook(useAutoHatch, { initialProps: props });
+    expect(intents.hatchEgg).not.toHaveBeenCalled();
+    rerender({ ...props, state: { ...props.state, rulesPolicy: GameRulesPolicy.CONSTRUCTED.value } as GameState });
+    expect(intents.hatchEgg).toHaveBeenCalledExactlyOnceWith(props.room);
+  });
+
   it("stays manual by default and responds immediately to enabling the setting", () => {
     renderHook(() => useAutoHatch(options()));
     expect(intents.hatchEgg).not.toHaveBeenCalled();

@@ -36,11 +36,17 @@ type WorkerSlot = {
   idleTimer?: NodeJS.Timeout;
 };
 
+type Limits = {
+  [Key in keyof typeof MATCHUP_LIMITS]: (typeof MATCHUP_LIMITS)[Key] extends number
+    ? number
+    : (typeof MATCHUP_LIMITS)[Key];
+};
+
 type Options = {
   spawnWorker?: () => MatchupWorkerHandle;
   isHostBusy?: () => boolean;
   now?: () => number;
-  limits?: Partial<typeof MATCHUP_LIMITS>;
+  limits?: Partial<Limits>;
   onFinished?: (finished: FinishedMatchup) => void;
 };
 
@@ -72,7 +78,7 @@ export class MatchupSimulator {
   readonly #spawnWorker: () => MatchupWorkerHandle;
   readonly #isHostBusy: () => boolean;
   readonly #now: () => number;
-  readonly #limits: typeof MATCHUP_LIMITS;
+  readonly #limits: Limits;
   readonly #onFinished: ((finished: FinishedMatchup) => void) | undefined;
   #slot?: WorkerSlot;
   #retryTimer?: NodeJS.Timeout;

@@ -68,6 +68,7 @@ it("keeps a legally evolved blue stack in play after losing a security battle wi
   expect(s.perm("bukamon").stack.map((card) => card.cardId)).toEqual(["BT14-002"]);
 
   s.state.phase = Phase.Breeding;
+  void s.engine.breeding.run(0, false);
   expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("bukamon").permanentId })).toEqual({
     ok: true,
   });

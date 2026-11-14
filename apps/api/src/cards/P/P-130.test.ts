@@ -58,6 +58,7 @@ describe("P-130 Lui Ohwada — KB Q&A rulings", () => {
   it("still suspends to gain memory when the moved Digimon is deleted at 0 DP on arrival (Q4243)", async () => {
     const s = breedingUnderKingEtemon([{ card: "P-130", as: "P-130" }]);
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     await moveRaisedOutOfBreeding(s);
 
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("raised").instanceId);

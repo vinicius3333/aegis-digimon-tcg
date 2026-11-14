@@ -167,6 +167,7 @@ describe("BT15-054", () => {
     preferInstanceIds.push(s.perm("target").topCard!.instanceId);
     s.state.turnSeat = 1;
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
     await s.ready();
     expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,

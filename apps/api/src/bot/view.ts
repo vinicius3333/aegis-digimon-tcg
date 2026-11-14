@@ -1,3 +1,4 @@
+import type { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import type { AttackRedirection } from "@aegis/shared/schema/AttackRedirection";
 import { CardKind, Phase, getCardDefinition, type CardDefinition, type GameState, type Seat } from "@aegis/shared";
 import { digivolveValidatorByState } from "#api/engine/gameEngine/digivolveValidatorByState";
@@ -62,6 +63,7 @@ export interface BotHandCard {
 }
 
 export interface BotView {
+  rulesPolicy?: GameRulesPolicy;
   seat: Seat;
   opponentSeat: Seat;
   phase: Phase;
@@ -221,6 +223,7 @@ export function buildBotView(state: GameState, seat: Seat): BotView | undefined 
       opponent === undefined ? FULL_SECURITY_STACK : zoneSize(opponent.security, opponent.securityCount),
     deckCount: zoneSize(me.deck, me.deckCount),
     eggDeckCount: zoneSize(me.eggDeck, me.eggDeckCount),
+    rulesPolicy: state.rulesPolicy,
     trashCount: toArray(me.trash).length,
     opponentTrashCardIds: toArray(opponent?.trash).map((card) => card.cardId),
     readyAttackers: board.filter(
