@@ -1060,7 +1060,8 @@ export const en = {
   "game.matchLogDrag": "Drag to move",
   "settings.matchLogDisplay": "Match log display",
   "settings.matchLogDisplayDesc":
-    "Choose how the match shows what happened: short popups over the board, a fixed log at the board's edge, or both. Phones have no fixed log; open it with the log button.",
+    "Choose how the match shows what happened: nothing, short popups over the board, a fixed log at the board's edge, or both. Phones have no fixed log; open it with the log button.",
+  "settings.matchLogDisplayHidden": "Hidden",
   "settings.matchLogDisplayPopups": "Popups",
   "settings.matchLogDisplayPanel": "Fixed log",
   "settings.matchLogDisplayBoth": "Both",

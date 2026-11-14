@@ -18,11 +18,19 @@ afterEach(() => {
 });
 
 describe("match log display preference", () => {
-  it("hides the log popups on a fresh device", async () => {
+  it("hides both the log popups and the fixed log on a fresh device", async () => {
+    const { useMatchLogDisplay } = await import("@/game/log/useMatchLogDisplay");
+    const { result } = renderHook(() => useMatchLogDisplay());
+    expect(result.current.value).toBe("hidden");
+    expect(result.current.showsPopups).toBe(false);
+    expect(result.current.showsPanel).toBe(false);
+  });
+
+  it("keeps a stored fixed log choice", async () => {
+    values.set(storageKey, "panel");
     const { useMatchLogDisplay } = await import("@/game/log/useMatchLogDisplay");
     const { result } = renderHook(() => useMatchLogDisplay());
     expect(result.current.value).toBe("panel");
-    expect(result.current.showsPopups).toBe(false);
     expect(result.current.showsPanel).toBe(true);
   });
 
@@ -38,10 +46,10 @@ describe("match log display preference", () => {
     expect(reloaded.matchLogDisplayPreference.get()).toBe("popups");
   });
 
-  it("keeps the popups hidden for an unknown stored value", async () => {
+  it("hides the match log for an unknown stored value", async () => {
     values.set(storageKey, "constructor");
     const { matchLogDisplayPreference } = await import("@/game/log/matchLogDisplayPreference");
-    expect(matchLogDisplayPreference.get()).toBe("panel");
+    expect(matchLogDisplayPreference.get()).toBe("hidden");
   });
 
   it("keeps the session choice when storage refuses the write", async () => {

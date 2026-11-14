@@ -1,6 +1,13 @@
 import type { TranslationKey } from "@/i18n/translationTypes";
 
 export const MatchLogDisplay = {
+  HIDDEN: {
+    name: "HIDDEN",
+    value: "hidden",
+    showsPanel: false,
+    showsPopups: false,
+    labelKey: "settings.matchLogDisplayHidden" satisfies TranslationKey,
+  },
   POPUPS: {
     name: "POPUPS",
     value: "popups",
