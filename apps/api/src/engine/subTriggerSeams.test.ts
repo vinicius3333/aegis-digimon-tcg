@@ -285,6 +285,7 @@ describe("OnEnterFieldAnyone broad battle-entry seam", () => {
       },
     });
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     const entries = watchBattleEntry(s, s.perm("watcher").permanentId);
     let breedingWatcherFires = 0;
     advance(s.engine).ledgers.subTriggers.subscribe({

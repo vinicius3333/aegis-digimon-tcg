@@ -1,3 +1,4 @@
+import { useModalFocus } from "@/design/useModalFocus";
 import { CardAceBadge } from "@/design/CardAceBadge";
 import { CardTextField } from "@/i18n/CardTextField";
 import { I18nContext } from "@/i18n/I18nContext";
@@ -8,7 +9,7 @@ import { getTranslatedCardName } from "@/i18n/getTranslatedCardName";
 import { getTranslatedCardMeta } from "@/i18n/getTranslatedCardMeta";
 /* The card detail drawer: the full card, its printed numbers and its effect text. */
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import {
   formatCopyLimit,
   type DeckFormat,
@@ -34,7 +35,11 @@ export function CardDetailDrawer({
   initialArtId,
   onArtChange,
   onArtApply,
+  ownedLimit,
+  allowedArtIds,
 }: {
+  ownedLimit?: number;
+  allowedArtIds?: readonly string[];
   cardId: string;
   format?: DeckFormat;
   onClose: () => void;
@@ -52,7 +57,9 @@ export function CardDetailDrawer({
   ).artId;
   const cardTranslation = useCardFaceTranslation({ artId: selectedArt });
   const translations = useCardTranslations({ locale: cardTranslation.locale });
-  const arts = getCardArts(cardId);
+  const drawer = useRef<HTMLElement>(null);
+  useModalFocus({ surfaceRef: drawer, onClose, focusFirst: true });
+  const arts = getCardArts(cardId).filter((art) => !allowedArtIds || allowedArtIds.includes(art.artId));
   const def = getCardDefinition(cardId);
   if (!def) return null;
   const isDigi = kindOf(def) === "Digimon";
@@ -61,10 +68,17 @@ export function CardDetailDrawer({
     ...(def.attributes ?? []).map((value) => getTranslatedCardMeta({ value, group: "attributes", translations })),
     ...(def.types ?? []).map((value) => getTranslatedCardMeta({ value, group: "traits", translations })),
   ].filter((value) => value && value !== "-" && value !== "—");
-  const copyLimit = formatCopyLimit(cardId, format);
-  const banLabel = formatRestrictionLabel(cardId, format);
+  const copyLimit = ownedLimit ?? formatCopyLimit(cardId, format);
+  const banLabel = ownedLimit === undefined ? formatRestrictionLabel(cardId, format) : undefined;
   return (
-    <aside aria-labelledby="card-detail-title" aria-modal="true" className="card-detail-drawer" role="dialog">
+    <aside
+      ref={drawer}
+      tabIndex={-1}
+      aria-labelledby="card-detail-title"
+      aria-modal="true"
+      className="card-detail-drawer"
+      role="dialog"
+    >
       <div className="card-detail-header">
         <div id="card-detail-title">
           <Eyebrow>{t("library.cardDetail")}</Eyebrow>
@@ -123,7 +137,11 @@ export function CardDetailDrawer({
                 {t("beta.tag")}
               </span>
             ) : null}
-            <span className="card-detail-copy-limit">{t("library.maxPerDeck", { count: copyLimit })}</span>
+            <span className="card-detail-copy-limit">
+              {ownedLimit === undefined
+                ? t("library.maxPerDeck", { count: copyLimit })
+                : t("sealed.owned", { remaining: ownedLimit, owned: ownedLimit })}
+            </span>
           </div>
           <div className="card-detail-metadata">
             <DetailRow label={cardTranslation.t("library.rowSet")} value={def.set} mono />

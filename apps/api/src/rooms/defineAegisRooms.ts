@@ -1,3 +1,4 @@
+import { PRIVATE_SEALED_ROOM_TYPE } from "@aegis/shared/sealed/private/privateSealedRoomType";
 import { SocialRoom } from "#api/social/SocialRoom";
 import { ROOM_TYPE_SOCIAL } from "@aegis/shared/protocol/roomTypeSocial";
 import { ROOM_TYPE_MANUAL, ROOM_TYPE_MANUAL_PRIVATE } from "@aegis/shared/protocol/messages";
@@ -15,6 +16,7 @@ import {
 import { AegisRoom } from "./AegisRoom.js";
 
 const publicMode = {
+  privateSealedRoom: false,
   allowUnlimitedSelection: false,
   allowFormatSelection: false,
   unlimitedRoom: false,
@@ -28,6 +30,7 @@ const publicMode = {
 /** Register the same immutable mode boundaries in production and websocket tests. */
 export function defineAegisRooms(gameServer: Pick<Server, "define">): void {
   gameServer.define(ROOM_TYPE_SOCIAL, SocialRoom);
+  gameServer.define(PRIVATE_SEALED_ROOM_TYPE, AegisRoom, { ...publicMode, privateSealedRoom: true });
   gameServer
     .define(ROOM_TYPE_MANUAL, AegisRoom, {
       ...publicMode,

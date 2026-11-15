@@ -123,6 +123,7 @@ describe("BT1-112 Dimension Scissor", () => {
     s.state.memory = 10;
     s.state.phase = Phase.Breeding;
 
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.cardId === "BT1-007");
     const carrier = s.perm("egg");
@@ -141,6 +142,7 @@ describe("BT1-112 Dimension Scissor", () => {
     expect(carrier.topCard.cardId).toBe("BT1-075");
 
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: carrier.permanentId })).toEqual({
       ok: true,
     });

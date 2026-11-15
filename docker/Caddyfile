@@ -51,6 +51,9 @@
 	handle /bot/* {
 		import api_upstreams
 	}
+	handle /private-sealed* {
+		import api_upstreams
+	}
 	handle /room/* {
 		import api_upstreams
 	}

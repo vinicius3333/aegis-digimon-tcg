@@ -246,6 +246,7 @@ describe("BT25-078 Gazimon", () => {
       { autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1, preferInstanceIds: preferred },
     );
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
     preferred.push(s.inst("traitCard").instanceId);
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("gazimon").permanentId })).toEqual({

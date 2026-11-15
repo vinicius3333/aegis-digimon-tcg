@@ -122,6 +122,7 @@ describe("EX11-037 Espimon", () => {
     await settle(() => s.perm("kapurimon").topCard.cardId === cardId);
     expect(s.perm("kapurimon").stack.map(({ cardId: id }) => id)).toEqual(["BT13-006"]);
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId })).toEqual({ ok: true });
     await settle(() => !s.perm("kapurimon").inBreeding);
     expect(s.state.players[1]!.security[0]!.faceUp).toBe(true);

@@ -11,6 +11,7 @@ import { getStoryScenario } from "#api/story/getStoryScenario";
 import { getStoryScenarioDeck } from "#api/story/getStoryScenarioDeck";
 import { getStorySeatDeck } from "#api/story/getStorySeatDeck";
 import { shuffleStoryDecks } from "#api/story/shuffleStoryDecks";
+import { getRoomRandomness } from "#api/rooms/getRoomRandomness";
 import { seitenGokuumonStoryDeck } from "#api/story/decks/seitenGokuumonStoryDeck";
 
 const playableBattles = catalogStoryBattles.filter((battle) => battle.playable);
@@ -54,7 +55,7 @@ describe("story difficulty", () => {
     const battle = catalogStoryBattles.find((entry) => entry.id === battleId)!;
     const difficulty = getStoryBattleDifficulty({ battleId })!;
     const fixture = getStoryScenario(battleId)!;
-    shuffleStoryDecks({ fixture, seed: 7 });
+    shuffleStoryDecks({ fixture, ...getRoomRandomness({ seed: 7 }) });
     const [player, opponent] = [fixture.board[0]!, fixture.board[1]!];
     expect(player.security).toHaveLength(difficulty.playerSecurity);
     expect(opponent.security).toHaveLength(difficulty.opponentSecurity);

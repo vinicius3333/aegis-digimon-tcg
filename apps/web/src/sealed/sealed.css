@@ -1,0 +1,291 @@
+.sealed-builder {
+  display: grid;
+  gap: var(--ds-space-3);
+  min-width: 0;
+}
+.sealed-builder__header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ds-space-3);
+}
+.sealed-builder__header > div {
+  flex: 1;
+  min-width: 12rem;
+}
+.sealed-builder h4 {
+  margin: 4px 0;
+  font-family: var(--ds-font-display);
+}
+.sealed-eyebrow {
+  color: var(--ds-text-3);
+  font: 500 var(--ds-text-xs) / 1.5 var(--ds-font-mono);
+}
+.sealed-builder__header time {
+  font: 500 var(--ds-text-xs) / 1.5 var(--ds-font-mono);
+}
+.sealed-builder__header details {
+  width: 100%;
+  font-size: var(--ds-text-sm);
+  color: var(--ds-text-2);
+}
+.sealed-builder__header summary {
+  cursor: pointer;
+  width: fit-content;
+  padding: 8px 0;
+}
+.sealed-builder .deck-builder-page {
+  height: clamp(500px, calc(100dvh - 350px), 1000px);
+  min-height: 500px;
+  padding: 0;
+}
+.deck-builder-page[data-bounded="true"] .deck-pool-card-actions {
+  position: static;
+  opacity: 1;
+  padding: 4px 0;
+}
+.deck-builder-page[data-bounded="true"] .deck-pool-card__info {
+  width: 44px;
+  height: 44px;
+  opacity: 1;
+}
+.deck-builder-page[data-bounded="true"] .deck-pool-card__add {
+  min-height: 44px;
+}
+.deck-builder-page[data-bounded="true"] .deck-pool-card-stepper {
+  grid-template-columns: 44px 32px 44px;
+}
+.deck-builder-page[data-bounded="true"] .deck-pool-card-stepper button {
+  height: 44px;
+}
+.deck-pool-card__ownership {
+  color: var(--ds-text-2);
+  font: 500 var(--ds-text-xs) / 1.5 var(--ds-font-mono);
+  padding-top: 6px;
+}
+.deck-builder-page[data-bounded="true"] .deck-current__footer p {
+  margin: 0;
+  font-size: var(--ds-text-sm);
+  color: var(--ds-text-2);
+}
+.private-sealed {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 1rem;
+  min-width: 0;
+}
+.private-sealed > .aegis-field {
+  max-width: 36rem;
+}
+.private-sealed > h2,
+.private-sealed > p {
+  margin: 0;
+}
+.private-sealed__invitation {
+  font-size: var(--ds-text-sm);
+}
+.private-sealed__invitation summary {
+  cursor: pointer;
+  padding-block: 8px;
+}
+@media (width < 960px) {
+  .sealed-builder .deck-builder-page {
+    height: min(900px, 78dvh);
+    min-height: 500px;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    overflow: hidden;
+  }
+  .sealed-builder .deck-builder-body {
+    flex: 1;
+    min-height: 0;
+  }
+  .sealed-builder .deck-card-pool {
+    min-height: 0;
+  }
+  .aegis-stage:has(.sealed-builder) .aegis-bottom-nav {
+    display: none;
+  }
+  .sealed-builder .deck-info-trigger {
+    bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+  .sealed-builder .deck-current__footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--ds-sheet);
+  }
+}
+@media (width < 600px) {
+  .private-sealed {
+    padding: 12px;
+  }
+}
+.deck-builder-page[data-bounded="true"] .card-detail-drawer,
+.sealed-builder .pack-opening-page .card-detail-drawer {
+  position: fixed;
+  z-index: var(--ds-z-card-sheet);
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  left: auto;
+  width: min(420px, calc(100vw - 24px));
+  height: auto;
+  max-height: calc(100dvh - 24px);
+  box-shadow: var(--ds-shadow-dialog);
+}
+.deck-builder-page[data-bounded="true"] .deck-count[data-done="true"] .deck-count__value {
+  color: var(--ds-success);
+}
+.deck-bounded-action {
+  display: none;
+}
+@media (width < 960px) {
+  .deck-builder-page[data-bounded="true"] .deck-info-trigger {
+    right: calc(50% + 6px);
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    padding: 8px;
+  }
+  .deck-builder-page[data-bounded="true"] .deck-info-trigger__cover,
+  .deck-builder-page[data-bounded="true"] .deck-info-trigger__action {
+    display: none;
+  }
+  .deck-bounded-action {
+    position: fixed;
+    z-index: 40;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    left: calc(50% + 6px);
+    right: 12px;
+    display: flex;
+  }
+  .deck-bounded-action > button {
+    min-width: 0;
+    white-space: normal;
+    line-height: 1.25;
+    width: 100%;
+    min-height: 56px;
+    padding-inline: 8px;
+  }
+  .deck-builder-page:has(.deck-current--open) .deck-bounded-action {
+    display: none;
+  }
+}
+.private-sealed__header,
+.private-sealed__status,
+.private-sealed__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+}
+.private-sealed__header {
+  justify-content: space-between;
+}
+.private-sealed__header h2,
+.private-sealed__status p {
+  margin: 0;
+}
+.private-sealed__status {
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-sm);
+}
+.private-sealed__actions {
+  padding-block: 8px;
+  gap: 8px;
+}
+.private-sealed__actions button {
+  white-space: normal;
+}
+.sealed-builder__status {
+  margin: 4px 0 0;
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-sm);
+}
+.deck-builder-page[data-bounded="true"] .deck-pool-card__info {
+  background: transparent;
+}
+.deck-builder-page[data-bounded="true"] .deck-pool-card__info::before {
+  position: absolute;
+  z-index: -1;
+  inset: 10px;
+  content: "";
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-ink);
+}
+@media (width < 600px) {
+  .private-sealed__actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .private-sealed__actions button:last-child {
+    grid-column: 1 / -1;
+  }
+}
+.deck-builder-page[data-bounded="true"] .deck-preview__empty,
+.deck-builder-page[data-bounded="true"] .deck-color-balance__empty {
+  color: var(--ds-text-3);
+}
+.sealed-product {
+  display: flex;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-4);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-sheet);
+  min-width: 0;
+}
+.sealed-product__art {
+  width: 88px;
+  height: 132px;
+  object-fit: contain;
+  align-self: start;
+  border-radius: var(--ds-radius-sm);
+}
+.sealed-product__details {
+  display: grid;
+  gap: var(--ds-space-2);
+  min-width: 0;
+  flex: 1;
+}
+.sealed-product select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid var(--ds-line-strong);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-sheet);
+  color: var(--ds-text);
+  font: inherit;
+}
+.sealed-product select:focus-visible {
+  outline: 2px solid var(--ds-focus);
+  outline-offset: 2px;
+}
+.sealed-product p,
+.sealed-product details {
+  margin: 0;
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-sm);
+}
+.sealed-product summary,
+.private-sealed > details > summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 12px 0;
+}
+.private-sealed > .aegis-field input,
+.private-sealed .lobby-private-toggle button,
+.private-sealed > button,
+.private-sealed__actions button {
+  min-height: 44px;
+}
+@media (max-width: 540px) {
+  .sealed-product {
+    gap: var(--ds-space-2);
+    padding: var(--ds-space-3);
+  }
+  .sealed-product__art {
+    width: 56px;
+    height: 84px;
+  }
+}

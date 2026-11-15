@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { AccountStore } from "#api/accounts/AccountStore";
 import { createMemoryPool } from "#api/db/memoryPool.fixture";
 import { RankedMetaStore } from "#api/ranked/RankedMetaStore";
+import type { QueryResult } from "pg";
 
 describe("ranked deck statistics", () => {
   it("keeps a game finishing after the season boundary in its assigned season", async () => {
@@ -34,7 +35,13 @@ describe("ranked deck statistics", () => {
   it("keeps win rates private for unidentified decks and insufficient samples", async () => {
     const accounts = new AccountStore(createMemoryPool());
     await accounts.ensureReady();
-    const query = vi.spyOn(accounts.pool, "query").mockResolvedValueOnce({
+    const pool: {
+      query: (
+        text: string,
+        values: unknown[],
+      ) => Promise<QueryResult<{ archetype: string; games: string; wins: string; players: string }>>;
+    } = accounts.pool;
+    const query = vi.spyOn(pool, "query").mockResolvedValueOnce({
       rows: [
         { archetype: "Greymon", games: "40", wins: "24", players: "12" },
         { archetype: "Small", games: "20", wins: "15", players: "12" },

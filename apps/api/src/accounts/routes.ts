@@ -1356,8 +1356,8 @@ function sendParticipantFailure(res: Response, reason: ParticipantFailure, viola
 type RouteRequest = Request<Record<string, string>>;
 type AsyncHandler = (req: RouteRequest, res: Response) => unknown | Promise<unknown>;
 function asyncRoute(handler: AsyncHandler) {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    Promise.resolve(handler(req as RouteRequest, res)).catch(next);
+  return (req: Request, res: Response, next: NextFunction): Promise<unknown> => {
+    return Promise.resolve(handler(req as RouteRequest, res)).catch(next);
   };
 }
 

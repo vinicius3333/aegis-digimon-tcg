@@ -61,6 +61,7 @@ export function DeckViewToggle({ view, onView }: { view: DeckView; onView: (view
 
 interface DeckPreviewSectionsProps {
   view: DeckView;
+  boundedLimits?: { isAtMax: (cardId: string) => boolean; disabled: boolean };
   format?: DeckFormat;
   arts?: Record<string, string[]>;
   main: CountMap;
@@ -92,6 +93,7 @@ export function DeckPreviewSections({
   arts,
   coverCardId,
   pairConflictCardIds = new Set<string>(),
+  boundedLimits,
   onOpen,
   onAdd,
   onRemove,
@@ -173,6 +175,7 @@ export function DeckPreviewSections({
                 key={cardId}
                 cardId={cardId}
                 cardWidth={cardWidth}
+                boundedLimits={boundedLimits}
                 format={format}
                 artId={arts?.[cardId]?.[0]}
                 count={section.cards[cardId]!}
@@ -195,6 +198,7 @@ function countCardsFromIds(cards: CountMap, cardIds: readonly string[]): number 
 }
 
 interface DeckEntryProps {
+  boundedLimits?: { isAtMax: (cardId: string) => boolean; disabled: boolean };
   cardWidth?: number;
   cardId: string;
   format?: DeckFormat;
@@ -224,19 +228,21 @@ export function DeckStepper({
   name,
   count,
   addDisabled,
+  removeDisabled = false,
   onAdd,
   onRemove,
 }: {
   name: string;
   count: number;
   addDisabled: boolean;
+  removeDisabled?: boolean;
   onAdd: () => void;
   onRemove: () => void;
 }) {
   const { t } = useTranslation();
   return (
     <div className="deck-stepper">
-      <button type="button" onClick={onRemove} aria-label={`${t("common.remove")} ${name}`}>
+      <button type="button" disabled={removeDisabled} onClick={onRemove} aria-label={`${t("common.remove")} ${name}`}>
         –
       </button>
       <span aria-label={t("deck.copiesInDeck", { count })}>{count}</span>
@@ -255,6 +261,7 @@ function DeckGridCard({
   count,
   isCover,
   pairConflict,
+  boundedLimits,
   onOpen,
   onAdd,
   onRemove,
@@ -281,9 +288,9 @@ function DeckGridCard({
         onClick={onOpen}
       >
         <CardFull cardId={cardId} artId={artId} width={cardWidth} count={count} />
-        {banLabel || beta ? (
+        {(!boundedLimits && banLabel) || beta ? (
           <span className="deck-grid-card__badges">
-            {banLabel ? (
+            {!boundedLimits && banLabel ? (
               <span className="deck-grid-card__restriction" data-tone={banned ? "danger" : "warning"}>
                 {banLabel}
               </span>
@@ -304,7 +311,8 @@ function DeckGridCard({
       <DeckStepper
         name={getTranslatedCardName({ name: definition.nameEn, translations })}
         count={count}
-        addDisabled={addDisabled}
+        addDisabled={boundedLimits ? boundedLimits.isAtMax(cardId) : addDisabled}
+        removeDisabled={boundedLimits?.disabled}
         onAdd={onAdd}
         onRemove={onRemove}
       />
@@ -319,6 +327,7 @@ function DeckListRow({
   count,
   isCover,
   pairConflict,
+  boundedLimits,
   onOpen,
   onAdd,
   onRemove,
@@ -356,9 +365,9 @@ function DeckListRow({
             {getTranslatedCardName({ name: definition.nameEn, translations })}
             {isCover ? <Icons.Star size={11} /> : null}
           </span>
-          {banLabel || beta ? (
+          {(!boundedLimits && banLabel) || beta ? (
             <span className="deck-list-row__tags">
-              {banLabel ? (
+              {!boundedLimits && banLabel ? (
                 <span className="deck-tag" data-tone={banned ? "danger" : "warning"}>
                   {banLabel}
                 </span>
@@ -376,7 +385,8 @@ function DeckListRow({
       <DeckStepper
         name={getTranslatedCardName({ name: definition.nameEn, translations })}
         count={count}
-        addDisabled={addDisabled}
+        addDisabled={boundedLimits ? boundedLimits.isAtMax(cardId) : addDisabled}
+        removeDisabled={boundedLimits?.disabled}
         onAdd={onAdd}
         onRemove={onRemove}
       />

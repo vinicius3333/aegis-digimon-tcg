@@ -86,6 +86,7 @@ describe("EX11-008 Elizamon", () => {
     );
     preferInstanceIds.push(s.perm("ally").permanentId);
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,
@@ -109,6 +110,7 @@ describe("EX11-008 Elizamon", () => {
       { autoSelectCards: true },
     );
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("egg").instanceId);
     expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT1-001");

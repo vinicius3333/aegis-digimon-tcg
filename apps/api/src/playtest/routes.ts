@@ -16,9 +16,9 @@ type Handler = (req: Request, res: Response, auth: AuthSession) => Promise<void>
 export function installPlaytestRoutes({ app, store, session }: PlaytestRouteDeps): void {
   const route =
     (handler: Handler, { admin = false } = {}) =>
-    (req: Request, res: Response, next: NextFunction): void => {
+    (req: Request, res: Response, next: NextFunction): Promise<unknown> | void => {
       res.set("Cache-Control", "no-store");
-      void (async () => {
+      return (async () => {
         const auth = await session(req);
         if (!auth) {
           res.status(401).json({ error: "authentication_required" });

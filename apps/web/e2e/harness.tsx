@@ -111,17 +111,24 @@ window.browserTestPresentation = () => ({
 });
 // Observe the actual connection, including the replacement created by page reload.
 // The browser bridge exposes a snapshot only, never an intent sender or state setter.
-for (const method of ["joinOrCreate", "create", "joinById", "consumeSeatReservation", "reconnect"] as const) {
+function observeRoomMethod<K extends "joinOrCreate" | "create" | "joinById" | "consumeSeatReservation" | "reconnect">(
+  method: K,
+) {
   const original = Client.prototype[method];
-  Client.prototype[method] = async function (this: Client, ...args: unknown[]) {
-    const room = (await (original as Function).apply(this, args)) as Room<GameState>;
-    room.onMessage<DecisionRequest>(DECISION_CHANNEL, (request) => {
-      decisions.push(request);
-      decisionReceipts.push({ decisionId: request.decisionId, at: performance.now() });
-    });
-    window.browserTestSnapshot = () => room.state.toJSON();
-    return room;
-  } as typeof original;
+  Client.prototype[method] = new Proxy(original, {
+    async apply(target, client, args) {
+      const room: Room<unknown, GameState> = await Reflect.apply(target, client, args);
+      room.onMessage<DecisionRequest>(DECISION_CHANNEL, (request) => {
+        decisions.push(request);
+        decisionReceipts.push({ decisionId: request.decisionId, at: performance.now() });
+      });
+      window.browserTestSnapshot = () => room.state.toJSON();
+      return room;
+    },
+  });
+}
+for (const method of ["joinOrCreate", "create", "joinById", "consumeSeatReservation", "reconnect"] as const) {
+  observeRoomMethod(method);
 }
 const root = createRoot(document.getElementById("root")!);
 root.render(

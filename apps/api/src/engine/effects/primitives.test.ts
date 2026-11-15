@@ -2838,6 +2838,7 @@ describe("primitives: redirectAttack (chooser / optional)", () => {
   function combatHarness(opts: {
     isAttacking: boolean;
     attackerId?: string;
+    currentAttackTarget?: AttackTarget;
     board?: BoardSpec;
     rejectRedirect?: boolean;
   }) {
@@ -2861,6 +2862,7 @@ describe("primitives: redirectAttack (chooser / optional)", () => {
     const combat = {
       isAttacking: opts.isAttacking,
       currentAttackerId: opts.attackerId,
+      currentAttackTarget: opts.currentAttackTarget,
       resolveAttack: async (_seat: Seat, attacker: Permanent) => {
         resolvedAttacks.push(attacker.permanentId);
       },
@@ -2904,6 +2906,18 @@ describe("primitives: redirectAttack (chooser / optional)", () => {
       },
     };
   }
+
+  it("returns the current attack target only while an attack is resolving", () => {
+    const targets: AttackTarget[] = [{ kind: "player" }, { kind: "permanent", permanentId: "defender" }];
+    for (const currentAttackTarget of targets) {
+      const active = combatHarness({ isAttacking: true, currentAttackTarget });
+      const idle = combatHarness({ isAttacking: false, currentAttackTarget });
+      expect(active.fx.currentAttackTarget!()).toEqual(currentAttackTarget);
+      expect(idle.fx.currentAttackTarget!()).toBeUndefined();
+    }
+    expect(combatHarness({ isAttacking: true }).fx.currentAttackTarget!()).toBeUndefined();
+    expect(harness().fx.currentAttackTarget!()).toBeUndefined();
+  });
 
   it("Q3400 does not nest a second forced attack while the first attack is resolving", async () => {
     const h = combatHarness({
@@ -3615,6 +3629,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     grantCustom: true,
     grantCustomEffect: true,
     customEffectGrants: true,
+    currentAttackTarget: true,
     grantDnaLevel: true,
     grantDynamicNames: true,
     grantedKeywords: true,
