@@ -23,6 +23,11 @@ for (const { width, partialPreset } of [
     await scenario.evolve("Lucemon (X Antibody)", refs.permanentId("lucemon"), true);
     await scenario.resolveUntil((state) => state.pendingDecision?.kind === "orderTriggers");
     const before = await scenario.snapshot();
+    const beforeFirst = before.players[0];
+    const beforeSecond = before.players[1];
+    if (!beforeFirst || !beforeSecond) {
+      throw new Error("Trigger-order fixture requires both initial player seats");
+    }
     const dialog = page.getByRole("dialog");
     if (partialPreset) {
       await dialog
@@ -32,6 +37,11 @@ for (const { width, partialPreset } of [
         .click();
     } else {
       await dialog.getByRole("button", { name: "No to all", exact: true }).click();
+      const divineCruz = dialog.getByRole("group", { name: /Answer for Seventh Divine Cruz/ });
+      await expect(divineCruz).toHaveCount(2);
+      for (let index = 0; index < 2; index += 1) {
+        await divineCruz.nth(index).getByRole("button", { name: "Ask", exact: true }).click();
+      }
     }
     const framesBeforeResponse = frames.length;
     await dialog.getByRole("button", { name: "Resolve in this order", exact: true }).click();
@@ -41,10 +51,15 @@ for (const { width, partialPreset } of [
     expect(closed).toEqual([]);
     const choices = (await scenario.presentation()).events.filter((event) => event.kind === "resolutionOrderChosen");
     expect(choices.some((event) => event.entries.length >= 4)).toBe(true);
-    const player = (await scenario.snapshot()).players[0];
+    const after = await scenario.snapshot();
+    const player = after.players[0];
+    const opponent = after.players[1];
+    if (!player || !opponent) {
+      throw new Error("Trigger-order fixture requires both resolved player seats");
+    }
     expect(player.trash.filter((card) => card.cardId === "BT19-094")).toHaveLength(0);
-    expect(player.deckCount).toBe(before.players[0].deckCount + 2);
-    expect((await scenario.snapshot()).players[1].securityCount).toBe(before.players[1].securityCount - 2);
+    expect(player.deckCount).toBe(beforeFirst.deckCount + 2);
+    expect(opponent.securityCount).toBe(beforeSecond.securityCount - 2);
     const dokusons = player.battleArea.filter((permanent) => permanent.topCard.cardId === "EX11-067");
     expect(dokusons).toHaveLength(2);
     expect(dokusons.filter((permanent) => permanent.isSuspended)).toHaveLength(partialPreset ? 1 : 0);

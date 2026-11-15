@@ -570,3 +570,26 @@ it("attaches an account ticket when a signed-in viewer reserves spectator access
     expect.objectContaining({ body: JSON.stringify({ roomCode: "ABCDEF", authTicket: "spectator-account-ticket" }) }),
   );
 });
+
+it("keeps private sealed game authorization on the slot that owns its locked game", async () => {
+  const sealedRoom = room("private-sealed-game");
+  const blueJoin = vi.fn<() => Promise<Room<GameState>>>(async () => sealedRoom);
+  const greenJoin = vi.fn<() => Promise<Room<GameState>>>(async () => room("wrong-room"));
+  const client = router({
+    manifest: { version: 1, active: { slot: "green", revision: "new" }, draining: [{ slot: "blue", revision: "old" }] },
+    blue: clientPort({ joinById: blueJoin }),
+    green: clientPort({ joinById: greenJoin }),
+  });
+  const privateSealedGame = {
+    roomId: "private-sealed-game",
+    gameId: "game",
+    token: "private-seat",
+    slot: "blue" as const,
+  };
+  await expect(
+    client.joinSeriesGame(privateSealedGame.roomId, privateSealedGame.slot, { ...OPTIONS, privateSealedGame }),
+  ).resolves.toBe(sealedRoom);
+  expect(blueJoin).toHaveBeenCalledWith(privateSealedGame.roomId, expect.objectContaining({ privateSealedGame }));
+  expect(greenJoin).not.toHaveBeenCalled();
+  expect(connectionSlot(sealedRoom)).toBe("blue");
+});

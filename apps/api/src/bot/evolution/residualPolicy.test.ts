@@ -12,6 +12,7 @@ it.each([0, 1] as const)("deploys a rookie with an explicit breeding override in
   await setup.ready();
   setup.state.turnSeat = seat;
   setup.state.phase = Phase.Breeding;
+  void setup.engine.breeding.run(seat, false);
   setup.state.memory = seat === 0 ? 3 : -3;
   const candidate = createResidualPolicy({
     engine: setup.engine,

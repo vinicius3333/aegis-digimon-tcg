@@ -192,6 +192,7 @@ describe("BT26-008 Kotemon", () => {
     );
     preferred.push(s.perm("chosen").topCard.instanceId);
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,

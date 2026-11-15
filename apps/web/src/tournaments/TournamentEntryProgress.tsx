@@ -94,7 +94,7 @@ export function TournamentEntryProgress({
 
       {error}
 
-      {detail.ownDeck ? (
+      {detail.ownDeck && !detail.sealedConfiguration ? (
         <Panel>
           <TournamentRegisteredDeck
             key={detail.id}

@@ -86,6 +86,7 @@ describe("BT9-004 Motimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("motimon").topCard.instanceId === s.inst("tentomon").instanceId);
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("motimon").permanentId })).toEqual({
       ok: true,
     });

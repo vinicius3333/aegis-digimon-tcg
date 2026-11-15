@@ -1,3 +1,4 @@
+import { validateSealedRookie } from "#api/engine/actions/validateSealedRookie";
 import { EffectTiming, Zone, type CardInstance, type Seat } from "@aegis/shared";
 import { insertCard, takeTop } from "../state/access.js";
 import { type DurationBoundary as TurnBoundary } from "../TurnStateMachine.js";
@@ -216,7 +217,12 @@ export function unsuspendRebootForSeat(engine: GameEngine, seat: Seat): string[]
  * auto-skips with no client round-trip (§6-4-1-3).
  */
 export async function runBreedingPhase(engine: GameEngine, seat: Seat): Promise<void> {
-  const possible = canHatch(engine.state, seat) || canMove(engine.state, seat);
+  const possible =
+    canHatch(engine.state, seat) ||
+    canMove(engine.state, seat) ||
+    engine.state.players[seat]!.hand.some(
+      (card) => validateSealedRookie({ state: engine.state, seat, instanceId: card.instanceId }).ok,
+    );
   await engine.breeding.run(seat, !possible);
 }
 

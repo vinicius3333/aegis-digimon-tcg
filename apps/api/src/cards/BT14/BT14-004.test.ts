@@ -90,6 +90,7 @@ it("uses a legal green evolution stack and gains DP when a played Digimon suspen
   expect(s.perm("tanemon").stack.map((card) => card.cardId)).toEqual(["BT14-004"]);
 
   s.state.phase = Phase.Breeding;
+  void s.engine.breeding.run(0, false);
   expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("tanemon").permanentId })).toEqual({
     ok: true,
   });

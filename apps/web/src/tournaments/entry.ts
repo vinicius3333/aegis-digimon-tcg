@@ -23,7 +23,10 @@ export function entryActions({ detail, own, signedIn }: EntryActionsParams): Ent
 
   return {
     register: REGISTRATION_OPEN.includes(detail.status) && !full && !holdsSeat && status !== "disqualified",
-    checkIn: CHECK_IN_OPEN.includes(detail.status) && (registrationUnknown || status === "registered"),
+    checkIn:
+      !detail.sealedBuildDeadlineAt &&
+      CHECK_IN_OPEN.includes(detail.status) &&
+      (registrationUnknown || status === "registered"),
     drop: detail.status !== "finished" && detail.status !== "cancelled" && holdsSeat,
   };
 }

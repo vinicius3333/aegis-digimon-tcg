@@ -1,11 +1,9 @@
+import { getPolicyEvoCost } from "#api/engine/cards/getPolicyEvoCost";
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import { CardKind } from "@aegis/shared/schema/enums";
 // The Digivolve action and its legality preflight.
 
-import {
-  matchingAlternateDigivolutionRequirement,
-  matchingEvoCost,
-  matchingEvoCostIgnoringLevel,
-} from "../../../cards/cardData.js";
+import { matchingAlternateDigivolutionRequirement } from "../../../cards/cardData.js";
 import { alternateRequirementAvailable } from "../../../actions/digivolve.js";
 import type { EffectContext } from "../../EffectContext.js";
 import { unsupported } from "../errors.js";
@@ -100,7 +98,12 @@ function legalIntoCandidates(
   return pool.filter((c) => {
     if (ctx.fx.isEffectDigivolveBlocked?.(basePermanentId, c.cardId, virtualBase) === true) return false;
     const intoDef = ctx.game.definitionOf({ cardId: c.cardId } as never);
-    const ordinary = ignoreLevel ? matchingEvoCostIgnoringLevel(intoDef, baseDef) : matchingEvoCost(intoDef, baseDef);
+    const ordinary = getPolicyEvoCost({
+      evolving: intoDef,
+      base: baseDef,
+      policy: ctx.game.state.rulesPolicy,
+      ignoreLevel,
+    });
     const sourceZone = (["hand", "trash"] as const).find((zone) =>
       looseCardsInZone(ctx, c.ownerSeat, zone).some(({ instanceId }) => instanceId === c.instanceId),
     );
@@ -110,6 +113,7 @@ function legalIntoCandidates(
     const matchedAlternate =
       virtualBase === undefined
         ? matchingAlternateDigivolutionRequirement(intoDef, baseDef, {
+            sealed: ctx.game.state.rulesPolicy === GameRulesPolicy.SEALED.value,
             grantedBaseExactNames: projectedBase === undefined && base ? (ctx.game.effectiveNames?.(base) ?? []) : [],
             ...(ignoreLevel ? { ignoreLevel: true } : {}),
             ...(sourceZone === undefined ? {} : { sourceZone }),
@@ -588,12 +592,16 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
             (candidate) => candidate.instanceId === chosenCandidate.instanceId,
           ),
         );
-        const printed = ignoreLevel
-          ? matchingEvoCostIgnoringLevel(intoDef, baseDef)
-          : matchingEvoCost(intoDef, baseDef);
+        const printed = getPolicyEvoCost({
+          evolving: intoDef,
+          base: baseDef,
+          policy: ctx.game.state.rulesPolicy,
+          ignoreLevel,
+        });
         const matchedAlternate =
           action.virtualBase === undefined
             ? matchingAlternateDigivolutionRequirement(intoDef, baseDef, {
+                sealed: ctx.game.state.rulesPolicy === GameRulesPolicy.SEALED.value,
                 grantedBaseExactNames: base ? (ctx.game.effectiveNames?.(base) ?? []) : [],
                 ...(ignoreLevel ? { ignoreLevel: true } : {}),
                 ...(sourceZone === undefined ? {} : { sourceZone }),

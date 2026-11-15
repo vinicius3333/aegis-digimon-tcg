@@ -52,6 +52,7 @@ it.each([
     };
     sync(true);
     setup.state.phase = Phase.Breeding;
+    void setup.engine.breeding.run(seat, false);
     expect(setup.engine.applyIntent(seat, { type: "hatchEgg" })).toEqual({ ok: true });
     for (let tick = 0; tick < 20; tick += 1) {
       await new Promise((resolve) => setTimeout(resolve, 1));

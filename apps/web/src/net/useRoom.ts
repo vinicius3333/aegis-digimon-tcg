@@ -213,6 +213,9 @@ function connectRoom(
   isCancelled: () => boolean,
   signal?: AbortSignal,
 ): Promise<AegisRoom> {
+  if (options.privateSealedGame) {
+    return joinSeriesGame(options.privateSealedGame.roomId, options.privateSealedGame.slot ?? "legacy", options);
+  }
   switch (match?.mode) {
     case "spectator":
       if (match.tournamentMatch) {

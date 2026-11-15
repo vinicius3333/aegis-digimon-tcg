@@ -43,6 +43,7 @@ describe("BT6 Agumon Bond of Bravery historical deck", () => {
     s.state.phase = Phase.Breeding;
     await s.ready();
 
+    void s.engine.breeding.run(0, false);
     expect(
       s.engine.applyIntent(0, {
         type: "moveFromBreeding",

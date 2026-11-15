@@ -23,7 +23,8 @@ describe("digivolution cards trashed twice inside one effect window", () => {
       await settle(() => s.state.turnSeat === 1 || s.state.pendingDecision?.seat === 0);
 
       const triggered = s.events
-        .filter((event) => event.kind === "effectTriggered" && event.seat === 1)
+        .filter((event) => event.kind === "effectTriggered")
+        .filter((event) => event.seat === 1)
         .map((event) => event.sourceCardId)
         .filter((cardId) => SOURCE_TRASH_REACTIONS.includes(cardId));
       expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["EX11-044"]);

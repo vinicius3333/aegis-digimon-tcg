@@ -272,6 +272,7 @@ describe("EX3-004 Veemon", () => {
     expect(s.perm("egg").stack.map(({ cardId }) => cardId)).toEqual(["BT1-001", "EX3-004"]);
 
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
       ok: true,
     });

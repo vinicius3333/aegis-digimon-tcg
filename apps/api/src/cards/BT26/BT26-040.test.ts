@@ -146,6 +146,7 @@ describe("BT26-040 Drimogemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
     await advance(s.engine).fireGlobal(EffectTiming.OnMove, { movedPermanentId: s.perm("unrelated").permanentId });
     expect(s.perm("opponent").isSuspended).toBe(false);
     expect(s.perm("mover").stack).toHaveLength(0);

@@ -284,6 +284,27 @@ describe("tournament creation form", () => {
     return await screen.findByRole("heading", { name: "New tournament" });
   }
 
+  it.each(["EX13", "BT26"])("submits the organizer-selected %s sealed configuration", async (setId) => {
+    await openForm();
+    fireEvent.click(screen.getByRole("checkbox", { name: "Sealed Swiss · six packs" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Booster series" }), { target: { value: setId } });
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Selected series" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create tournament" }));
+    await waitFor(() => {
+      const request = vi
+        .mocked(fetch)
+        .mock.calls.find(([url, init]) => new URL(String(url)).pathname === "/tournaments" && init?.method === "POST");
+      const body = JSON.parse(String(request?.[1]?.body));
+      expect(body).toMatchObject({
+        sealedConfiguration: { setId, packs: 6 },
+        structure: "swiss",
+        bestOf: 3,
+        allowBots: false,
+        topCut: false,
+      });
+    });
+  });
+
   it("lets administrators choose official endorsement independently of rules", async () => {
     await openForm();
     const toggle = screen.getByRole("switch", { name: /Official Aegis/ }) as HTMLButtonElement;

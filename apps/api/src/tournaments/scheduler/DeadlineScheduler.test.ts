@@ -578,7 +578,7 @@ describe("the shared clock", () => {
 });
 
 describe("a game still being played when the clock runs out", () => {
-  async function eliminationSeries(winsRequired: number) {
+  async function eliminationSeries(winsRequired: 1 | 2) {
     fixture = await build({ structure: "single_elimination", rules: buildTournamentRules({ bestOf: 3 }) });
     await arrive(fixture.alice, PUBLISHED_AT, winsRequired);
     await arrive(fixture.bob, PUBLISHED_AT + 1_000, winsRequired);

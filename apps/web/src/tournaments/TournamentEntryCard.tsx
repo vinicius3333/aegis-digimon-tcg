@@ -102,7 +102,7 @@ export function TournamentEntryCard({
               {t("tournaments.detail.yourStatus", { status: t(participantStatusKey(own.status)) })}
             </p>
           ) : null}
-          {own && detail.ownDeck ? (
+          {own && detail.ownDeck && !detail.sealedConfiguration ? (
             <TournamentRegisteredDeck
               key={detail.id}
               tournamentId={detail.id}
