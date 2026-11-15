@@ -41,7 +41,10 @@ describe("multi-destination reveals through the asynchronous policy", () => {
         { autoOrderTriggers: false, autoOrderCards: false },
       );
       setup.state.memory = 10;
-      if (moving) setup.state.phase = Phase.Breeding;
+      if (moving) {
+        setup.state.phase = Phase.Breeding;
+        void setup.engine.breeding.run(0, false);
+      }
       await setup.ready();
       const sourceId = setup.inst("source").instanceId;
       const revealIds = [0, 1, 2].map((index) => setup.inst(`reveal-${index}`).instanceId);

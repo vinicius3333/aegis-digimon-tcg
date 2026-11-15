@@ -1,3 +1,4 @@
+import { GameRulesPolicy } from "#shared/sealed/GameRulesPolicy";
 import { ManualCombatStage } from "#shared/manual/ManualCombatStage";
 import { GameMode } from "#shared/manual/GameMode";
 import { Schema, ArraySchema, type, view } from "@colyseus/schema";
@@ -192,4 +193,5 @@ export class GameState extends Schema {
   @type("string") gameMode: GameMode = GameMode.AUTOMATIC.value;
   @type(ManualTable) manual = new ManualTable();
   @type("string") guestApproval: GuestApproval = GuestApproval.NOT_REQUIRED.value;
+  @type("string") rulesPolicy: GameRulesPolicy = GameRulesPolicy.CONSTRUCTED.value;
 }

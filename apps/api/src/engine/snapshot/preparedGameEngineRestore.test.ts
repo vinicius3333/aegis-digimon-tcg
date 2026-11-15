@@ -49,8 +49,12 @@ it("keeps every prepared restore independent of the prepared state and of each o
   await Promise.all([first.ready, second.ready]);
   expect(first.engine.state).not.toBe(prepared.state);
   expect(first.engine.state.players[0]).not.toBe(second.engine.state.players[0]);
+  const originalMemory = second.engine.state.memory;
+  expect(originalMemory).not.toBe(9);
   first.engine.state.players[0]!.hand.splice(0, 1);
-  first.engine.state.players[0]!.memory = 9;
+  first.engine.state.memory = 9;
+  expect(first.engine.state.memory).toBe(9);
+  expect(second.engine.state.memory).toBe(originalMemory);
   expect(second.engine.state.players[0]!.hand.length).toBe(2);
   expect(JSON.stringify(prepared.state.toJSON())).toBe(pristine);
 });

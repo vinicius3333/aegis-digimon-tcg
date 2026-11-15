@@ -103,6 +103,7 @@ describe("BT11-087 Lilithmon [Opponent's Turn] — real engine: breeding move gr
     s.state.turnSeat = 1;
     s.state.memory = 3;
 
+    void s.engine.breeding.run(1, false);
     expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,
     });
@@ -159,6 +160,7 @@ describe("BT11-087 Lilithmon [Opponent's Turn] — real engine: breeding move gr
     s.state.phase = Phase.Breeding;
     s.state.turnSeat = 0;
 
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,
     });

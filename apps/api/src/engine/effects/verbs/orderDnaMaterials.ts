@@ -1,3 +1,4 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import { requireCardDefinition } from "@aegis/shared/cards/registry";
 import { CardColor } from "@aegis/shared/schema/enums";
 import type { CardDefinition } from "@aegis/shared/cards/types";
@@ -39,5 +40,7 @@ export function orderDnaMaterials({
       nameEn: names.join(" | "),
     });
   }
-  return matchingDnaMaterialOrder(into, definitions)?.map((index) => materialPermanentIds[index]!);
+  return matchingDnaMaterialOrder(into, definitions, pc.state.rulesPolicy === GameRulesPolicy.SEALED.value)?.map(
+    (index) => materialPermanentIds[index]!,
+  );
 }

@@ -114,6 +114,7 @@ describe("EX3-002 Missimon", () => {
     expect(s.perm("egg").stack.map(({ cardId }) => cardId)).toEqual(["EX3-002"]);
 
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
       ok: true,
     });

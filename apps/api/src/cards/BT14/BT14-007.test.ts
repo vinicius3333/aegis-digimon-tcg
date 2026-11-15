@@ -70,6 +70,7 @@ describe("BT14-007", () => {
     await settle(() => s.perm("koromon").topCard.cardId === "BT14-007");
 
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("koromon").permanentId })).toEqual({
       ok: true,
     });

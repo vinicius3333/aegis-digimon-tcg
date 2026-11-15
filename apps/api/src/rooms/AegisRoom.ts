@@ -1,3 +1,10 @@
+import { getPrivateSealedResults } from "#api/rooms/sealed/getPrivateSealedResults";
+import type { PrivateSealedGameTicket } from "@aegis/shared/sealed/private/PrivateSealedContracts";
+import type { SealedDeck } from "@aegis/shared/sealed/SealedContracts";
+import { buildPrivateSealedReplayFile } from "#api/replays/buildPrivateSealedReplayFile";
+import { PrivateSealedStore } from "#api/rooms/sealed/PrivateSealedStore";
+import { consumePrivateSealedRoomGrant } from "#api/rooms/sealed/consumePrivateSealedRoomGrant";
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import { liveContinuousRecomputeReuse } from "#api/rooms/liveContinuousRecomputeReuse";
 import { getLiveMatchPlayerPreview } from "#api/rooms/getLiveMatchPlayerPreview";
 import { RankedRewardStore } from "#api/ranked/RankedRewardStore";
@@ -218,6 +225,8 @@ interface RoomCreateOptions extends Partial<SeriesContinuationOptions> {
   unlimited?: boolean;
   format?: DeckFormat;
   allowFormatSelection?: boolean;
+  privateSealedRoom?: boolean;
+  privateSealedCapability?: string;
   tournamentRoom?: boolean;
   tournamentGameId?: string;
   devScenario?: unknown;
@@ -291,6 +300,8 @@ function combatWindowEvent(window: CombatWindow): ServerEvent | undefined {
  * brackets keep running until the manager takes them over.
  */
 export interface AegisJoinOptions extends SeatJoinOptions {
+  privateSealedGame?: PrivateSealedGameTicket;
+
   rankedPairId?: string;
   rankedToken?: string;
   gameMode?: GameMode;
@@ -488,8 +499,18 @@ export class AegisRoom extends Room<{
   private isTournamentRoom = false;
   private tournamentMatchId: string | undefined;
   private tournamentGameId: string | undefined;
+  private privateSealedGameId: string | undefined;
+  private privateSealedSeats = new Map<
+    string,
+    {
+      seat: Seat;
+      name: string;
+      deck: SealedDeck;
+    }
+  >();
+
   private tournamentId: string | undefined;
-  private tournamentRules: Pick<Tournament, "format" | "banlistCards"> | undefined;
+  private tournamentRules: Pick<Tournament, "format" | "banlistCards" | "sealedConfiguration"> | undefined;
   private readyTimeout: Delayed | undefined;
   private waitingRoomTimeout: Delayed | undefined;
   private tournamentBotRoomIdleTimeout: Delayed | undefined;
@@ -600,6 +621,34 @@ export class AegisRoom extends Room<{
   private combatWindowTimeoutKey: string | undefined;
 
   override async onAuth(client: Client, options: AegisJoinOptions): Promise<boolean> {
+    if (this.privateSealedGameId) {
+      if (
+        options.spectator ||
+        this.matchStartRequested ||
+        !options.privateSealedGame ||
+        options.privateSealedGame.gameId !== this.privateSealedGameId
+      ) {
+        return false;
+      }
+      try {
+        const authorized = await new PrivateSealedStore(this.accounts()).authorize({
+          ...options.privateSealedGame,
+          roomId: this.roomId,
+        });
+        if ([...this.privateSealedSeats.values()].some((entry) => entry.seat === authorized.seat)) {
+          return false;
+        }
+        this.privateSealedSeats.set(client.sessionId, authorized);
+        this.seriesSeatByClient.set(client.sessionId, authorized.seat);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+    if (options.privateSealedGame) {
+      return false;
+    }
+
     if (options.spectator === true) {
       if (this.isTournamentRoom) {
         return this.authorizeTournamentSpectator(client, options);
@@ -928,6 +977,9 @@ export class AegisRoom extends Room<{
   }
 
   override onCreate(options: RoomCreateOptions): void | Promise<void> {
+    if (options.privateSealedRoom) {
+      return this.openPrivateSealedGame(options);
+    }
     if (options.rankedRoom && options.rankedPairId) {
       this.rankedPairId = options.rankedPairId;
       options.allowFormatSelection = true;
@@ -943,6 +995,39 @@ export class AegisRoom extends Room<{
     if (reopenedCode) return this.reopenUnderCode(options, reopenedCode);
     this.initialize(options);
     return this.publishRoomRules();
+  }
+
+  hasFinishedPrivateSealedGame(): boolean {
+    return this.privateSealedGameId !== undefined && this.state.gameOver;
+  }
+
+  async retryPrivateSealedResult(): Promise<boolean> {
+    if (!this.privateSealedGameId) {
+      return false;
+    }
+    const results = getPrivateSealedResults({ accounts: this.accounts() });
+    try {
+      await results.flush(this.privateSealedGameId);
+    } catch {
+      return false;
+    }
+    return !results.hasPending(this.privateSealedGameId);
+  }
+
+  private async openPrivateSealedGame(options: RoomCreateOptions): Promise<void> {
+    const grant = await consumePrivateSealedRoomGrant({
+      accounts: this.accounts(),
+      capability: options.privateSealedCapability,
+    });
+    if (!grant) {
+      throw new ServerError(403, "Private sealed creation denied");
+    }
+    this.privateSealedGameId = grant.gameId;
+    this.initialize({ private: true, bestOf: 1 });
+    this.state.spectatorCode = "";
+    this.maxClients = 2;
+    await this.setPrivate(true);
+    await this.publishRoomRules();
   }
 
   private async openTournamentGame(options: RoomCreateOptions): Promise<void> {
@@ -1000,6 +1085,10 @@ export class AegisRoom extends Room<{
 
   private initialize(options: RoomCreateOptions, reopenedCode?: string, continuation?: SeriesRecord): void {
     this.setState(new GameState());
+    this.state.rulesPolicy =
+      this.privateSealedGameId || this.tournamentRules?.sealedConfiguration
+        ? GameRulesPolicy.SEALED.value
+        : GameRulesPolicy.CONSTRUCTED.value;
     this.guardFullStateSync();
     this.state.gameMode = options.manualRoom === true ? GameMode.MANUAL.value : GameMode.AUTOMATIC.value;
     if (options.manualRoom) {
@@ -1236,7 +1325,12 @@ export class AegisRoom extends Room<{
         }
         // A tournament set or a casual series plays on with the same decks, so its hidden cards
         // stay hidden until the last game.
-        if (event.kind === "gameOver" && !this.isTournamentRoom && (this.casualSeries?.over ?? true)) {
+        if (
+          event.kind === "gameOver" &&
+          !this.isTournamentRoom &&
+          !this.privateSealedGameId &&
+          (this.casualSeries?.over ?? true)
+        ) {
           this.broadcast(EVENT_CHANNEL, this.stamp({ kind: "finalReveal", players: finalRevealOf(this.state) }));
         }
         // Rebuild each client's StateView after any event that can move a CardInstance
@@ -1285,6 +1379,7 @@ export class AegisRoom extends Room<{
     const firstSeat = this.casualSeries?.fixedFirstSeat;
     const serverRevision = process.env.AEGIS_REVISION;
     this.debug("replay.header", {
+      ...(this.state.rulesPolicy === GameRulesPolicy.SEALED.value ? { rulesPolicy: this.state.rulesPolicy } : {}),
       gameMode: this.state.gameMode,
       replaySeq: this.nextReplaySeq(),
       seed,
@@ -1436,6 +1531,7 @@ export class AegisRoom extends Room<{
       !this.isBotRoom &&
       !this.isRankedRoom &&
       !this.isTournamentRoom &&
+      !this.privateSealedGameId &&
       this.devScenario === undefined
     );
   }
@@ -1604,6 +1700,15 @@ export class AegisRoom extends Room<{
   private async recordAuthoritativeResult(
     event: Extract<import("@aegis/shared").ServerEvent, { kind: "gameOver" }>,
   ): Promise<void> {
+    if (this.privateSealedGameId) {
+      await getPrivateSealedResults({ accounts: this.accounts() }).enqueue({
+        gameId: this.privateSealedGameId,
+        roomId: this.roomId,
+        winner: event.result.outcome === "draw" ? null : event.result.winnerSeat,
+        now: Date.now(),
+      });
+      return;
+    }
     if (this.accountByClient.size && (getRankedConfig().enabled || this.rankedPairId)) {
       await this.accounts().ensureReady();
       await this.accounts().pool.query("DELETE FROM account_active_rooms WHERE room_id=$1", [this.roomId]);
@@ -2206,6 +2311,10 @@ export class AegisRoom extends Room<{
 
   /** Public information only; the HTTP gateway calls this through cluster RPC. */
   spectatorInfo(roomCode?: string): { roomId: string; players: string[]; spectators: number } | null {
+    if (this.privateSealedGameId) {
+      return null;
+    }
+
     if (
       this.isBotRoom ||
       this.isRankedRoom ||
@@ -2225,6 +2334,51 @@ export class AegisRoom extends Room<{
   }
 
   override onJoin(client: Client, options: AegisJoinOptions): void {
+    if (this.privateSealedGameId) {
+      const authorized = this.privateSealedSeats.get(client.sessionId);
+      if (!authorized) {
+        throw new ServerError(403, "Private sealed seat denied");
+      }
+      options = {
+        displayName: authorized.name,
+        deck: structuredClone(authorized.deck),
+        deckName: "Sealed",
+        format: "standard",
+      };
+      this.deckByClient.set(client.sessionId, {
+        deckId: null,
+        deckName: "Sealed",
+        format: "standard",
+        ...structuredClone(authorized.deck),
+      });
+      if (this.seatByClient.size > 0) {
+        if ([...this.seatByClient.values()].includes(authorized.seat)) {
+          throw new ServerError(403, "Private sealed seat occupied");
+        }
+        this.seatClient(client, authorized.seat, options);
+        if (this.seriesEarlyReady.delete(client.sessionId)) {
+          this.applyLoggedIntent(authorized.seat, { type: "ready" });
+        }
+        this.armReadyTimeoutIfSeated();
+        return;
+      }
+      this.seriesArrivals.set(authorized.seat, { client, options });
+      if (this.seriesArrivals.size < 2) {
+        return;
+      }
+      const arrivals = [...this.seriesArrivals].sort(([a], [b]) => a - b);
+      this.seriesArrivals.clear();
+      for (const [seat, arrival] of arrivals) {
+        this.seatClient(arrival.client, seat, arrival.options);
+      }
+      for (const [seat, arrival] of arrivals) {
+        if (this.seriesEarlyReady.delete(arrival.client.sessionId)) {
+          this.applyLoggedIntent(seat, { type: "ready" });
+        }
+      }
+      this.armReadyTimeoutIfSeated();
+      return;
+    }
     if (options.spectator === true) {
       // Recheck after reservation: a match can end while the socket is connecting.
       if (!this.canAdmitSpectator(options.roomCode)) {
@@ -2503,6 +2657,7 @@ export class AegisRoom extends Room<{
       `[AegisRoom] onLeave sessionId=${client.sessionId} seat=${seat} consented=${consented} totalClients=${this.clients.length}`,
     );
     if (seat === undefined) {
+      this.privateSealedSeats.delete(client.sessionId);
       const seriesSeat = this.seriesSeatByClient.get(client.sessionId);
       if (seriesSeat !== undefined && this.seriesArrivals.get(seriesSeat)?.client === client) {
         this.seriesArrivals.delete(seriesSeat);
@@ -2521,6 +2676,7 @@ export class AegisRoom extends Room<{
 
     // A consented leave (tab closed, surrender) is a real departure.
     if (consented) {
+      this.privateSealedSeats.delete(client.sessionId);
       if (!this.matchStartRequested) {
         this.readyTimeout?.clear();
         this.readyTimeout = undefined;
@@ -2588,6 +2744,7 @@ export class AegisRoom extends Room<{
       // Grace elapsed (or room disposed) without a reconnect: resolve as a real
       // departure — the opponent wins an in-progress match.
       this.debug(`[AegisRoom] reconnect grace elapsed sessionId=${client.sessionId} seat=${seat}`);
+      this.privateSealedSeats.delete(client.sessionId);
       this.resolveConnectionDrop(drop, ConnectionDropOutcome.EXPIRED.value);
       this.seatByClient.delete(client.sessionId);
       this.readyTimeout?.clear();
@@ -2862,11 +3019,12 @@ export class AegisRoom extends Room<{
     return (
       Array.isArray(deck.mainDeck) &&
       Array.isArray(deck.eggDeck) &&
-      deck.mainDeck.length === 50 &&
+      deck.mainDeck.length === (this.state.rulesPolicy === GameRulesPolicy.SEALED.value ? 40 : 50) &&
       deck.eggDeck.length <= 5 &&
       deck.mainDeck.every((id) => typeof id === "string") &&
       deck.eggDeck.every((id) => typeof id === "string") &&
       validateDecklist(deck, {
+        rulesPolicy: this.state.rulesPolicy,
         betaBattleMode: this.isBetaBattleRoom,
         unlimited: this.isUnlimitedRoom,
         format: this.state.format as DeckFormat,
@@ -3298,6 +3456,9 @@ export class AegisRoom extends Room<{
   }
 
   private async sendOpponentDeck(client: Client): Promise<void> {
+    if (this.privateSealedGameId) {
+      return;
+    }
     const seat = this.seatByClient.get(client.sessionId);
     if (seat === undefined || this.spectatorClients.has(client.sessionId) || !this.state.gameOver) {
       return;
@@ -3366,6 +3527,9 @@ export class AegisRoom extends Room<{
     const sharedSeats = await Promise.all(
       ([0, 1] as const).map(async (ownerSeat) => {
         const owner = this.deckOwnerBySeat.get(ownerSeat);
+        if (this.privateSealedGameId) {
+          return ownerSeat === seat;
+        }
         if (ownerSeat === seat || !owner) {
           return true;
         }
@@ -3377,6 +3541,14 @@ export class AegisRoom extends Room<{
       }),
     );
     const decks = buildReplayDecks({ decks: snapshots, sharedSeats, viewerSeat: seat });
+    if (this.privateSealedGameId) {
+      const replay = this.replayRecording?.complete(this.replayMode());
+      if (!replay) {
+        return { kind: "unavailable", reason: "recording_limit" };
+      }
+      replay.decks = decks;
+      return replayDownload(buildPrivateSealedReplayFile({ replay, seat }), seat);
+    }
     const file = this.replayRecording?.participantFile(this.replayMode(), seat, Date.now(), decks);
     return file ? replayDownload(file, seat) : { kind: "unavailable", reason: "recording_limit" };
   }

@@ -22,9 +22,9 @@ export function installTournamentReportRoutes({ app, accounts, store, session }:
   const limitReport = tokenBucketLimiter({ capacity: 5, refillMs: 60_000 });
   const route =
     (access: Access, handler: Handler) =>
-    (req: Request, res: Response, next: NextFunction): void => {
+    (req: Request, res: Response, next: NextFunction): Promise<unknown> | void => {
       res.set("Cache-Control", "no-store");
-      void (async () => {
+      return (async () => {
         const auth = await session(req);
         if (!auth) {
           res.status(401).json({ error: "authentication_required" });

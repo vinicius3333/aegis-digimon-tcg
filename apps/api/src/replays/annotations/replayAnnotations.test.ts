@@ -192,6 +192,16 @@ describe("replay note routes", () => {
     const created = await post(ownerSession, { frameIndex: 1, turn: 1, text: "  Should   attack\n\n\n\nfirst " });
     expect(created.status).toBe(201);
     const note = await created.json();
+    if (
+      typeof note !== "object" ||
+      note === null ||
+      !("id" in note) ||
+      typeof note.id !== "string" ||
+      !("text" in note) ||
+      typeof note.text !== "string"
+    ) {
+      throw new Error("Expected a created note with a string id and text");
+    }
     expect(note.text).toBe("Should attack\n\nfirst");
 
     const patch = (session: string, text: unknown) =>
@@ -205,9 +215,18 @@ describe("replay note routes", () => {
     const remove = (session: string) => call(`${notes}/${note.id}`, { method: "DELETE", session });
     expect((await remove(viewerSession)).status).toBe(404);
     expect((await remove(ownerSession)).status).toBe(200);
-    expect(
-      (await call(`/replays/annotations/${matchId}`, { session: ownerSession }).then((res) => res.json())).notes,
-    ).toEqual([]);
+    const annotations = await call(`/replays/annotations/${matchId}`, { session: ownerSession }).then((res) =>
+      res.json(),
+    );
+    if (
+      typeof annotations !== "object" ||
+      annotations === null ||
+      !("notes" in annotations) ||
+      !Array.isArray(annotations.notes)
+    ) {
+      throw new Error("Expected annotations with a notes array");
+    }
+    expect(annotations.notes).toEqual([]);
   });
 });
 
@@ -217,7 +236,7 @@ describe("replay marker routes", () => {
     const call = await serve(accounts, library);
     const ownerSession = (await accounts.issueSession(owner)).id;
     const viewerSession = (await accounts.issueSession(viewer)).id;
-    const post = (session: string | undefined, body: unknown, target = matchId) =>
+    const post = (session: string | undefined, body: unknown, target: string = matchId) =>
       call(`/replays/annotations/${target}/markers`, { method: "POST", session, body: JSON.stringify(body) });
     const valid = { frameIndex: 4, turn: 2, emoji: ReplayMarkerEmoji.KEY_MOMENT.value };
 
@@ -238,6 +257,9 @@ describe("replay marker routes", () => {
     const created = await post(ownerSession, valid);
     expect(created.status).toBe(201);
     const marker = await created.json();
+    if (typeof marker !== "object" || marker === null || !("id" in marker) || typeof marker.id !== "string") {
+      throw new Error("Expected a created marker with a string id");
+    }
     expect(marker).toMatchObject({ matchId, frameIndex: 4, turn: 2, emoji: "⭐" });
     const custom = await post(ownerSession, { ...valid, frameIndex: 5, emoji: "🦖" });
     expect(custom.status).toBe(201);

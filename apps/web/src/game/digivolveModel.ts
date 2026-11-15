@@ -677,7 +677,14 @@ export function getDigivolveCostOptions(
   // Live identity grants can open paths absent from the printed definition. The server
   // already validates and prices these indexed routes against the current permanent.
   for (const route of projectedRoutes ?? []) {
-    if (route.permanentId !== base.permanentId || route.alternateRequirementIndex < 0) continue;
+    if (route.permanentId !== base.permanentId) continue;
+    if (route.alternateRequirementIndex === -1) {
+      if (!options.some((option) => option.alternateRequirementIndex === undefined)) {
+        options.push({ type: "normal", label: `Lv.${baseLevel}`, cost: route.projectedCost });
+      }
+      continue;
+    }
+    if (route.alternateRequirementIndex < 0) continue;
     if (options.some((option) => option.alternateRequirementIndex === route.alternateRequirementIndex)) continue;
     const req = digivolutionRequirementsFor(handCardId)?.[route.alternateRequirementIndex];
     if (!req) continue;

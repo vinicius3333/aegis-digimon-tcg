@@ -65,7 +65,7 @@ describe("ranked route boundaries", () => {
       ["GET", "/ranked/rewards"],
       ["POST", "/ranked/queue"],
       ["GET", "/account/admin/ranked/reports"],
-    ]) {
+    ] as const) {
       const response = await send(path, method);
       expect(response.status).toBe(404);
       expect(await response.json()).toEqual({ error: "ranked_unavailable" });

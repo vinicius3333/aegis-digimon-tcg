@@ -56,6 +56,7 @@ describe("BT8-028 CaptainHookmon", () => {
     s.state.memory = 3;
     await s.ready();
 
+    void s.engine.breeding.run(1, false);
     expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,
     });
@@ -125,6 +126,7 @@ describe("BT8-028 CaptainHookmon — KB Q&A rulings", () => {
     s.state.memory = 10;
     await s.ready();
 
+    void s.engine.breeding.run(1, false);
     expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,
     });

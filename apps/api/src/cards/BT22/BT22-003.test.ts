@@ -17,6 +17,7 @@ describe("BT22-003 Tapmon", () => {
       },
     });
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT22-003");

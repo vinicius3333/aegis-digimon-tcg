@@ -61,7 +61,7 @@ export function installBugReportRoutes({ app, store, tracker, session, replayCap
   });
 
   app.post("/bug-reports", (req, res, next) => {
-    submit(req, res).catch(next);
+    return submit(req, res).catch(next);
   });
 
   installFeedbackTriageRoutes({ app, store, session });

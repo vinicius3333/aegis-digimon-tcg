@@ -1,3 +1,4 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import {
   CardKind,
   Permanent,
@@ -123,7 +124,7 @@ export function createGrantsVerbs(pc: PrimitivesContext) {
       }),
       ...extraMaterials.map((card) => requireCardDefinition(card.cardId)),
     ];
-    return dnaDigivolveCostFor(into, definitions) !== undefined;
+    return dnaDigivolveCostFor(into, definitions, state.rulesPolicy === GameRulesPolicy.SEALED.value) !== undefined;
   };
 
   const grantedKeywords = (permanentId: string): { keyword: string; amount?: number }[] =>

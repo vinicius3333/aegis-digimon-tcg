@@ -16,6 +16,7 @@ describe("BT22-005 Tsumemon", () => {
       },
     });
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
