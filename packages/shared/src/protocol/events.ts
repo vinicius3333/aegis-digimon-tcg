@@ -825,7 +825,7 @@ export interface DecisionRequest {
     /** Public board permanents already selected by the effect that opened this follow-up decision. */
     affectedPermanentIds?: string[];
     /** Client-translated prompt text; `digivolveHost` asks which card an effect digivolves, `armorPurge` asks whether to trash the top card to prevent a deletion. */
-    promptKey?: "activateBlitz" | "armorPurge" | "attackAlreadyResolving" | "digivolveHost";
+    promptKey?: "activateBlitz" | "armorPurge" | "attackAlreadyResolving" | "attackUnavailable" | "digivolveHost";
     /**
      * Why the engine is asking. `"cost"` means the selection IS the payment of a cost the
      * resolving clause charges, so declining it (an empty selection on a `min: 0` request)

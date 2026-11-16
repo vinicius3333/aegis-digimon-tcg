@@ -151,6 +151,10 @@ function buildSeatScopedApi(
       // the optional activation for the player or changing effect resolution.
       const attackAlreadyResolving =
         ctx.activeSelectionContext === "attackSource" && ctx.fx.isAttackResolving?.() === true;
+      const attackUnavailable =
+        !attackAlreadyResolving &&
+        ctx.activeSelectionContext === "attackSource" &&
+        ctx.activeAttackUnavailable === true;
       const response = await manager.request({
         seat: resolveSeat(ctx),
         kind: "optional",
@@ -161,6 +165,7 @@ function buildSeatScopedApi(
         options: {
           ...provenance(ctx),
           ...(attackAlreadyResolving ? { promptKey: "attackAlreadyResolving" as const } : {}),
+          ...(attackUnavailable ? { promptKey: "attackUnavailable" as const } : {}),
           activationConfirmation: asksController && ctx.isActivationPending?.() === true,
         },
       });

@@ -94,6 +94,7 @@ export interface EffectContext {
   affectedPermanentIds?: readonly string[];
   /** The selected permanent will become the attacker; it is not a target of the source card. */
   activeSelectionContext?: "attackSource";
+  activeAttackUnavailable?: boolean;
   /**
    * How many `payCost` frames are currently on the stack. Non-zero means every decision
    * raised right now is asking the controller to PAY a cost, not to pick a target — the

@@ -265,6 +265,8 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   }
   ctx.activeTargetFate = targetFateOf(action);
   ctx.activeSelectionContext = action.kind === "Attack" ? "attackSource" : undefined;
+  const outerAttackUnavailable = ctx.activeAttackUnavailable;
+  ctx.activeAttackUnavailable = action.kind === "Attack" && !canAttemptAttack(ctx, action);
   const outerPickingAcceptedOptional = ctx.pickingAcceptedOptional;
   const outerSelectingOptionalTarget = ctx.selectingOptionalTarget;
   ctx.pickingAcceptedOptional = false;
@@ -279,6 +281,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     ctx.selectingOptionalTarget = outerSelectingOptionalTarget;
     ctx.activeTargetFate = outerFate;
     ctx.activeSelectionContext = outerSelectionContext;
+    ctx.activeAttackUnavailable = outerAttackUnavailable;
     ctx.activeEffectTextPart = outerEffectTextPart;
     // `requiresDelayArmed` is scoped to this action resolution. Some focused
     // contexts are intentionally reused across timing windows; leaking the
