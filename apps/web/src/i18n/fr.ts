@@ -1631,6 +1631,8 @@ const interfaceMessages = {
   "overlay.digivolveHostPrompt": "Choisissez la carte qui va digivolver.",
   "overlay.armorPurgePrompt": "Utiliser ＜Purge d'armure＞ ?",
   "overlay.attackAlreadyResolving": "Une autre attaque ne peut pas commencer pendant la résolution de cette attaque.",
+  "overlay.attackUnavailable":
+    "Aucune attaque ne peut être déclarée pour le moment. Vous pouvez quand même payer le coût, mais aucune attaque ne suivra.",
   "overlay.deckTop": "Dessus du deck",
   "overlay.deckBottom": "Dessous du deck",
   "overlay.digivolutionCardsTop": "Dessus des cartes de digivolution",

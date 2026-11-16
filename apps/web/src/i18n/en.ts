@@ -1351,6 +1351,8 @@ export const en = {
   "overlay.digivolveHostPrompt": "Choose the card that will digivolve.",
   "overlay.armorPurgePrompt": "Use ＜Armor Purge＞?",
   "overlay.attackAlreadyResolving": "Another attack cannot start while this attack is resolving.",
+  "overlay.attackUnavailable":
+    "No attack can be declared right now. You can still pay the cost, but no attack will follow.",
   "overlay.deckTop": "Top of the deck",
   "overlay.deckBottom": "Bottom of the deck",
   "overlay.digivolutionCardsTop": "Top of the digivolution cards",

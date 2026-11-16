@@ -1587,6 +1587,8 @@ const interfaceMessages = {
   "overlay.digivolveHostPrompt": "진화할 카드를 선택하세요.",
   "overlay.armorPurgePrompt": "≪아머 해제≫를 사용하시겠습니까?",
   "overlay.attackAlreadyResolving": "이 어택을 처리하는 동안에는 다른 어택을 시작할 수 없습니다.",
+  "overlay.attackUnavailable":
+    "지금은 어택을 선언할 수 없습니다. 코스트는 지불할 수 있지만 어택은 이루어지지 않습니다.",
   "overlay.deckTop": "덱 맨 위",
   "overlay.deckBottom": "덱 맨 아래",
   "overlay.digivolutionCardsTop": "진화원 맨 위",

@@ -6,6 +6,7 @@ import { EffectText } from "@/game/EffectText";
 import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
 import { isAllowedTargetSelection } from "@/game/screen/model/isAllowedTargetSelection";
 import { EffectStepText } from "@/game/overlay/choice/EffectStepText";
+import { getAttackPromptNoteKey } from "@/game/overlay/choice/getAttackPromptNoteKey";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { printedModalPreamble, type DecisionRequest, type DecisionResponse } from "@aegis/shared";
 import { CardMini } from "../../../design/cards";
@@ -282,14 +283,14 @@ export function DecisionOverlay({
             : "overlay.resolveEffect",
   );
   // The eyebrow above already names the source card; repeating it as the title says nothing twice.
-  const specificPrompt =
-    request.options?.promptKey === "attackAlreadyResolving"
-      ? t("overlay.attackAlreadyResolving")
-      : playerFacingPromptText(
-          request.promptText,
-          request.kind,
-          request.options?.effectTextPart ? sourceEffectText : undefined,
-        );
+  const attackPromptNoteKey = getAttackPromptNoteKey(request.options?.promptKey);
+  const specificPrompt = attackPromptNoteKey
+    ? t(attackPromptNoteKey)
+    : playerFacingPromptText(
+        request.promptText,
+        request.kind,
+        request.options?.effectTextPart ? sourceEffectText : undefined,
+      );
   const promptText =
     isOptional || isMaterialSaveActivation || (isChoose && declineIndex !== undefined)
       ? t("overlay.useEffectPrompt")
@@ -506,7 +507,7 @@ export function DecisionOverlay({
                     )}
                   </p>
                 ) : null}
-                {isOptional && request.options?.promptKey === "attackAlreadyResolving" && sourceEffectText ? (
+                {isOptional && attackPromptNoteKey && sourceEffectText ? (
                   <p className="decision-overlay__effect-text">{specificPrompt}</p>
                 ) : null}
               </div>

@@ -1601,6 +1601,8 @@ const interfaceMessages = {
   "overlay.digivolveHostPrompt": "進化させるカードを選んでください。",
   "overlay.armorPurgePrompt": "《アーマー解除》を使いますか？",
   "overlay.attackAlreadyResolving": "このアタックの処理中は、別のアタックを開始できません。",
+  "overlay.attackUnavailable":
+    "現在はアタックを宣言できません。コストを支払うことはできますが、アタックは行われません。",
   "overlay.deckTop": "デッキの一番上",
   "overlay.deckBottom": "デッキの一番下",
   "overlay.digivolutionCardsTop": "進化元の一番上",

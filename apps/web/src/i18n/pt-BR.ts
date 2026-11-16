@@ -1357,6 +1357,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.digivolveHostPrompt": "Escolha a carta que vai digivolver.",
   "overlay.armorPurgePrompt": "Usar ＜Armor Purge＞?",
   "overlay.attackAlreadyResolving": "Não é possível iniciar outro ataque enquanto este ataque está em andamento.",
+  "overlay.attackUnavailable":
+    "Nenhum ataque pode ser declarado agora. Você ainda pode pagar o custo, mas nenhum ataque acontecerá.",
   "overlay.deckTop": "Topo do deck",
   "overlay.deckBottom": "Fundo do deck",
   "overlay.digivolutionCardsTop": "Topo das cartas de digievolução",

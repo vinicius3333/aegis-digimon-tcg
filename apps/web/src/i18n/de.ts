@@ -1644,6 +1644,8 @@ const interfaceMessages = {
   "overlay.digivolveHostPrompt": "Wählen Sie die Karte, die digitieren soll.",
   "overlay.armorPurgePrompt": "＜Armor Purge＞ einsetzen?",
   "overlay.attackAlreadyResolving": "Solange dieser Angriff abgehandelt wird, kann kein weiterer Angriff beginnen.",
+  "overlay.attackUnavailable":
+    "Derzeit kann kein Angriff erklärt werden. Sie können die Kosten trotzdem bezahlen, aber es folgt kein Angriff.",
   "overlay.deckTop": "Oben auf dem Deck",
   "overlay.deckBottom": "Unten im Deck",
   "overlay.digivolutionCardsTop": "Oben auf die Digitationskarten",

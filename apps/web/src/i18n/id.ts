@@ -1608,6 +1608,8 @@ const interfaceMessages = {
   "overlay.digivolveHostPrompt": "Pilih kartu yang akan digivolve.",
   "overlay.armorPurgePrompt": "Gunakan ＜Armor Purge＞?",
   "overlay.attackAlreadyResolving": "Serangan lain tidak dapat dimulai saat serangan ini sedang diproses.",
+  "overlay.attackUnavailable":
+    "Tidak ada serangan yang dapat dideklarasikan saat ini. Anda tetap dapat membayar biayanya, tetapi tidak ada serangan yang terjadi.",
   "overlay.deckTop": "Bagian atas deck",
   "overlay.deckBottom": "Bagian bawah deck",
   "overlay.digivolutionCardsTop": "Bagian atas digivolution card",

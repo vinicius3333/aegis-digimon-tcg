@@ -1539,6 +1539,7 @@ const interfaceMessages = {
   "overlay.digivolveHostPrompt": "選擇將會進化的卡片。",
   "overlay.armorPurgePrompt": "使用＜裝甲解除＞？",
   "overlay.attackAlreadyResolving": "本次攻擊結算完畢前，無法開始另一次攻擊。",
+  "overlay.attackUnavailable": "現在無法宣告攻擊。你仍可支付費用，但不會進行攻擊。",
   "overlay.deckTop": "卡組頂部",
   "overlay.deckBottom": "卡組底部",
   "overlay.digivolutionCardsTop": "進化源頂部",

@@ -1,5 +1,6 @@
 import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
 import { isAllowedTargetSelection } from "@/game/screen/model/isAllowedTargetSelection";
+import { getAttackPromptNoteKey } from "@/game/overlay/choice/getAttackPromptNoteKey";
 /* The viewer's open decision, in whichever surface answers it.
 
    Field targets use the physical cards and a confirmation rail. Selections from other
@@ -89,6 +90,7 @@ export function DecisionPrompts({
 }) {
   const getCardName = useTranslatedCardName();
   const { t } = useTranslation();
+  const attackPromptNoteKey = getAttackPromptNoteKey(decision?.options?.promptKey);
   const clause = sourceCardId
     ? playerFacingEffectClause({
         cardId: decision?.options?.effectTextCardId ?? sourceCardId,
@@ -356,8 +358,8 @@ export function DecisionPrompts({
           key={decision.decisionId}
           sourceCardId={sourceCardId}
           contextText={
-            decision.options?.promptKey === "attackAlreadyResolving"
-              ? t("overlay.attackAlreadyResolving")
+            attackPromptNoteKey
+              ? t(attackPromptNoteKey)
               : clause
                 ? undefined
                 : playerFacingPromptText(decision.promptText, decision.kind)

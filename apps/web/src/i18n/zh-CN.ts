@@ -1533,6 +1533,7 @@ const interfaceMessages = {
   "overlay.digivolveHostPrompt": "选择要进化的卡牌。",
   "overlay.armorPurgePrompt": "使用＜装甲解除＞？",
   "overlay.attackAlreadyResolving": "本次攻击处理中，无法开始另一次攻击。",
+  "overlay.attackUnavailable": "现在无法宣告攻击。你仍可支付费用，但不会进行攻击。",
   "overlay.deckTop": "卡组顶",
   "overlay.deckBottom": "卡组底",
   "overlay.digivolutionCardsTop": "进化源顶部",

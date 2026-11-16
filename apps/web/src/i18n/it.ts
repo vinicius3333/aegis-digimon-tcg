@@ -1505,6 +1505,8 @@ const interfaceMessages = {
   "overlay.digivolveHostPrompt": "Scegli la carta che digievolverà.",
   "overlay.armorPurgePrompt": "Usare ＜Armor Purge＞?",
   "overlay.attackAlreadyResolving": "Non puoi iniziare un altro attacco mentre questo attacco è in corso.",
+  "overlay.attackUnavailable":
+    "Nessun attacco può essere dichiarato ora. Puoi comunque pagare il costo, ma non seguirà alcun attacco.",
   "overlay.deckTop": "Cima del mazzo",
   "overlay.deckBottom": "Fondo del mazzo",
   "overlay.digivolutionCardsTop": "Cima delle carte di digievoluzione",

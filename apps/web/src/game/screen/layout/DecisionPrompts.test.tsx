@@ -47,6 +47,48 @@ it.each([false, true])(
   },
 );
 
+it.each([false, true])(
+  "warns that Overclock cannot attack while keeping the answer open on the board/dialog (%s)",
+  (answerOnBoard) => {
+    const onRespond = vi.fn<(response: DecisionResponse) => void>();
+    render(
+      <I18nProvider>
+        <DecisionPrompts
+          decision={{
+            decisionId: "dec-45",
+            seat: 0,
+            kind: "optional",
+            promptText:
+              "By paying: by deleting 1 of your Tokens or other [Puppet] trait Digimon → Attack with this Digimon",
+            sourceCardId: "EX11-024",
+            options: { selectionContext: "attackSource", timing: "EndOfYourTurn", promptKey: "attackUnavailable" },
+          }}
+          answerOnBoard={answerOnBoard}
+          permanents={[]}
+          sourceCardId="EX11-024"
+          candidates={[]}
+          allowsPick={() => true}
+          picks={[]}
+          min={0}
+          max={1}
+          triggerDetails={[]}
+          opponentSecurityCount={5}
+          onTogglePick={() => {}}
+          onRespond={onRespond}
+          onOpenDialog={() => {}}
+        />
+      </I18nProvider>,
+    );
+    expect(
+      screen.getByText("No attack can be declared right now. You can still pay the cost, but no attack will follow."),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: answerOnBoard ? "Use" : "Yes, activate" }));
+    expect(onRespond).toHaveBeenCalledWith({ kind: "optional", accept: true });
+    fireEvent.click(screen.getByRole("button", { name: answerOnBoard ? "Don't use" : "No, decline" }));
+    expect(onRespond).toHaveBeenCalledWith({ kind: "optional", accept: false });
+  },
+);
+
 it("reuses the Assembly material overlay for an effect-driven play", () => {
   const onRespond = vi.fn<(response: DecisionResponse) => void>();
   render(
