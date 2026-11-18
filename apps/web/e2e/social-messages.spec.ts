@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect, test } from "@playwright/test";
 import { startSocialBrowserServer } from "./startSocialBrowserServer";
@@ -24,7 +25,9 @@ for (const width of [390, 1440]) {
             recordVideo:
               width === 1440 && !dark
                 ? {
-                    dir: fileURLToPath(new URL("../../../.local/validation/videos/", import.meta.url)),
+                    dir: process.env.B_EVIDENCE_ROOT
+                      ? join(process.env.B_EVIDENCE_ROOT, "social-messages-videos")
+                      : fileURLToPath(new URL("../../../.local/validation/videos/", import.meta.url)),
                     size: { width, height: 1000 },
                   }
                 : undefined,
@@ -37,11 +40,14 @@ for (const width of [390, 1440]) {
           }, dark);
           const page = await context.newPage();
           await page.goto("/friends");
-          await expect(page.getByText("Connected to friends", { exact: true })).toBeVisible();
+          await expect(page.locator("#aegis-main").getByText("Connected to friends", { exact: true })).toBeVisible();
           await page.getByRole("button", { name: "Message", exact: true }).click();
           pages.push(page);
         }
         const [sender, recipient] = pages;
+        if (pages.length !== 2 || !sender || !recipient) {
+          throw new Error("Expected both messaging players to be initialized");
+        }
         await sender.getByRole("textbox", { name: "Message", exact: true }).fill("Ready to test our decks?");
         await sender.getByRole("button", { name: "Send", exact: true }).click();
         await expect(recipient.getByText("Ready to test our decks?", { exact: true })).toBeVisible();
@@ -72,8 +78,12 @@ for (const width of [390, 1440]) {
           ),
         });
         await recipient.getByRole("button", { name: "Close", exact: true }).click();
-        await recipient.getByLabel("More actions for Message Sender", { exact: true }).click();
-        await recipient.getByRole("button", { name: "Block player", exact: true }).click();
+        await recipient
+          .getByRole("main")
+          .getByRole("region", { name: "Friends", exact: true })
+          .getByLabel("More actions for Message Sender", { exact: true })
+          .click();
+        await recipient.getByRole("menu").getByRole("menuitem", { name: "Block player", exact: true }).click();
         await expect(sender.getByText("This conversation is unavailable.", { exact: true })).toBeVisible();
         await expect(sender.getByRole("button", { name: "Send", exact: true })).toBeDisabled();
       } finally {

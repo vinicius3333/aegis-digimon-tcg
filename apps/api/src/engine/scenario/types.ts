@@ -1,3 +1,4 @@
+import type { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import type { Seat } from "@aegis/shared";
 
 /** A card in a zone: a bare card id, or the same plus an alias to address it by later. */
@@ -55,6 +56,7 @@ export type BoardSpec = { 0?: SeatSpec; 1?: SeatSpec };
 
 /** A board immediately before the real turn loop's Unsuspend/Draw/Breeding phases. */
 export interface ScenarioFixture {
+  rulesPolicy?: GameRulesPolicy;
   name?: string;
   board: BoardSpec;
   memory: number;

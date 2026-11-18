@@ -57,6 +57,7 @@ describe("BT8-092 Yuji Musya", () => {
     s.state.phase = Phase.Breeding;
     s.state.memory = 0;
 
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,
     });

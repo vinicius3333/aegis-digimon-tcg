@@ -154,6 +154,7 @@ describe("BT26-035 Morphomon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     moving.state.phase = Phase.Breeding;
+    void moving.engine.breeding.run(moving.state.turnSeat, false);
     expect(
       moving.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: moving.perm("mover").permanentId }),
     ).toEqual({
@@ -199,6 +200,7 @@ describe("BT26-035 Morphomon", () => {
     );
     preferred.push(s.perm("target").permanentId);
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,

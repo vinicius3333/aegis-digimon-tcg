@@ -69,6 +69,7 @@ describe("BT5-003 Pickmon", () => {
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT5-003"]);
 
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("host").permanentId })).toEqual({
       ok: true,
     });

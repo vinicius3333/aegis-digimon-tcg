@@ -109,6 +109,7 @@ describe("EX10-025 Sunarizamon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
 
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggPermanentId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     s.state.phase = Phase.Main;

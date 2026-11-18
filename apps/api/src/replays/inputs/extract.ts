@@ -1,3 +1,4 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import type { TournamentBanlistCard } from "@aegis/shared/tournaments/index";
 import { GameMode } from "@aegis/shared/manual/GameMode";
 import { serializeScenarioFixture } from "../../engine/scenario/serialize.js";
@@ -43,6 +44,7 @@ const INTENT_FIELDS: { [T in Intent["type"]]: readonly Exclude<keyof Extract<Int
     "useBlastDigivolve",
     "appFusionLinkInstanceId",
   ],
+  placeSealedRookie: ["instanceId"],
   hatchEgg: [],
   moveFromBreeding: ["permanentId"],
   activateEffect: ["sourceInstanceId", "effectKey"],
@@ -278,6 +280,7 @@ function buildRecord(entries: Entry[], matchId: string): ReplayRecord {
     ...(typeof header.randomKey === "string" ? { randomKey: header.randomKey } : {}),
     ...(firstSeat !== undefined ? { firstSeat } : {}),
     rules: {
+      ...(header.rulesPolicy === GameRulesPolicy.SEALED.value ? { rulesPolicy: GameRulesPolicy.SEALED.value } : {}),
       ...(header.gameMode === GameMode.MANUAL.value ? { gameMode: GameMode.MANUAL.value } : {}),
       deckFormat: (typeof header.deckFormat === "string" ? header.deckFormat : "standard") as DeckFormat,
       unlimited: header.unlimited === true,

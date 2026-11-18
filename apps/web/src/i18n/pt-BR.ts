@@ -2265,4 +2265,6 @@ export const ptBR: Record<keyof typeof en, string> = {
   ...learnPtBR,
   ...learnDrillsPtBR,
   ...newDrillsPtBR,
+  "sealed.breedingHint": "Escolha uma ação de criação ou encerre a criação.",
+  "sealed.placeRookie": "Colocar na criação",
 };

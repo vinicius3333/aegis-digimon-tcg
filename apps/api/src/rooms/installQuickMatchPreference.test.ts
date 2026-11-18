@@ -67,7 +67,12 @@ async function openMatchmaking() {
     await server.gracefullyShutdown(false);
     await accounts.close();
   });
-  async function reserve(accountId: string, method = "joinOrCreate", roomType = ROOM_TYPE, format = "standard") {
+  async function reserve(
+    accountId: string,
+    method = "joinOrCreate",
+    roomType: string = ROOM_TYPE,
+    format = "standard",
+  ) {
     const authTicket = await accounts.createRoomTicket(accountId);
     const response = await fetch(`http://127.0.0.1:${port}/matchmake/${method}/${roomType}`, {
       method: "POST",
@@ -90,7 +95,11 @@ async function openMatchmaking() {
       socket.addEventListener("error", reject, { once: true });
       socket.addEventListener(
         "message",
-        (event: MessageEvent<ArrayBuffer>) => {
+        (event: MessageEvent) => {
+          if (!(event.data instanceof ArrayBuffer)) {
+            reject(new Error("Expected binary handshake"));
+            return;
+          }
           if (new Uint8Array(event.data)[0] !== Protocol.JOIN_ROOM) {
             reject(new Error("Unexpected handshake"));
             return;
