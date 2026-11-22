@@ -263,3 +263,50 @@ describe("LoaderLeomon optional battle, Fortitude, and deletion recovery", () =>
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT27-051"]);
   });
 });
+
+describe("official rulings", () => {
+  it("battles an opposing Digimon that its effects don't affect and deletes it by the DP comparison", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT27-051", as: "loader" }] },
+        1: { battleArea: [{ card: "BT15-047", as: "immune", suspended: true }], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("loader").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => hasFinishedBattleChoice(s, true) && !s.state.pendingDecision);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT15-047"]);
+    expect(findLoaderLeomon(s)).toBeDefined();
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it.each([
+    ["the On Deletion effect first still recovers", "BT27-051/ir", 1],
+    ["Fortitude first leaves the trash and loses the On Deletion recovery", "keyword/fortitude", 0],
+  ])("when Fortitude and On Deletion trigger together, resolving %s", async (_label, firstTrigger, recovered) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT27-051", as: "loader", under: ["BT1-014"] }],
+          deck: [{ card: "BT1-009", as: "recovered" }, "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: [firstTrigger] },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("loader").permanentId]);
+    await settle(() => findLoaderLeomon(s) !== undefined && !s.state.pendingDecision);
+    expect(
+      s.decisions.find(({ req }) => req.kind === "orderTriggers")?.req.options?.triggerKeys?.length,
+    ).toBe(2);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(
+      recovered ? [s.inst("recovered").instanceId] : [],
+    );
+    expect(findLoaderLeomon(s)?.stack).toHaveLength(0);
+  });
+});

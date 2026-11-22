@@ -246,3 +246,27 @@ it.each([
   }
   expect(s.state.memory).toBe(10 - (allowed ? cost : 0));
 });
+
+describe("official rulings", () => {
+  it("applies the play cost limit to both the Avian or Bird and the DATA SQUAD revival choices", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-083", as: "host", under: ["BT27-081"] }],
+          trash: [
+            { card: "BT1-022", as: "bird" },
+            { card: "BT27-081", as: "squad" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    await settle(() => !s.state.pendingDecision);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("bird").instanceId, s.inst("squad").instanceId]),
+    );
+  });
+});

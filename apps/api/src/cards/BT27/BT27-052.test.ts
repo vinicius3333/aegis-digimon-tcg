@@ -211,3 +211,112 @@ describe("Atratusmon Assembly, battle and paid Glowing Dawn play", () => {
     await settle(() => s.state.players[1]!.security.length === 1 && !s.state.pendingDecision);
   });
 });
+
+describe("official rulings", () => {
+  function decisionIndex(s: ReturnType<typeof setupEngine>, effectKey: string) {
+    return s.decisions.findIndex(({ req }) => req.options?.effectKey?.startsWith(effectKey) === true);
+  }
+
+  it.each([
+    ["the battle", "BT27-052/battle", "BT27-052/ir-6"],
+    ["the free play", "BT27-052/ir-6", "BT27-052/battle"],
+  ])("lets the player resolve %s first when both On Play effects trigger", async (_label, first, second) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT27-052", as: "host" },
+            {
+              card: "BT1-085",
+              under: [
+                { card: "BT1-009", faceUp: false },
+                { card: "BT1-011", faceUp: false },
+              ],
+            },
+          ],
+          hand: [{ card: "BT27-044", as: "reward" }],
+        },
+        1: { battleArea: [{ card: "BT1-060", as: "rival" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferTriggerKeys: [first] },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("host"));
+    await settle(() => !s.state.pendingDecision);
+    const order = s.decisions.find(({ req }) => req.kind === "orderTriggers");
+    expect(order?.req.options?.triggerKeys).toEqual(
+      expect.arrayContaining([expect.stringContaining(first), expect.stringContaining(second)]),
+    );
+    expect(decisionIndex(s, first)).toBeGreaterThan(-1);
+    expect(decisionIndex(s, first)).toBeLessThan(decisionIndex(s, second));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT27-044")).toBe(true);
+  });
+
+  it("battles an opposing Digimon that its effects don't affect and deletes it by the DP comparison", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT27-052", as: "host" }] },
+        1: { battleArea: [{ card: "BT15-047", as: "immune", suspended: true }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("host"));
+    await settle(() => !s.state.pendingDecision);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((c) => c.cardId)).toEqual(["BT15-047"]);
+    expect(s.perm("host").topCard.cardId).toBe("BT27-052");
+  });
+
+  it("pays the free play by trashing one face-down card from under each of two Tamers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT27-052", as: "host" },
+            { card: "BT1-085", as: "first", under: [{ card: "BT1-009", as: "firstCost", faceUp: false }] },
+            { card: "BT1-085", as: "second", under: [{ card: "BT1-011", as: "secondCost", faceUp: false }] },
+          ],
+          hand: [{ card: "BT27-044", as: "reward" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("host"));
+    await settle(() => !s.state.pendingDecision);
+    expect(s.perm("first").stack).toHaveLength(0);
+    expect(s.perm("second").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId).sort()).toEqual(
+      [s.inst("firstCost").instanceId, s.inst("secondCost").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("reward").instanceId)).toBe(true);
+  });
+
+  it("does not play a card from the opponent's Digimon's digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT27-052", as: "host" },
+            {
+              card: "BT1-085",
+              under: [
+                { card: "BT1-009", faceUp: false },
+                { card: "BT1-011", faceUp: false },
+              ],
+            },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-060", as: "rival", under: [{ card: "BT27-044", as: "theirs" }] }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, declinePrompts: ["Battle"] },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("host"));
+    await settle(() => !s.state.pendingDecision);
+    expect(s.perm("rival").stack.map((c) => c.instanceId)).toEqual([s.inst("theirs").instanceId]);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT27-044")).toBe(false);
+  });
+});

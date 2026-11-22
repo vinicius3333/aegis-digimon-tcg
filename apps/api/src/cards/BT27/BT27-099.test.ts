@@ -4,6 +4,7 @@ import { getCardArts } from "@aegis/shared/cards/arts";
 import { getCardDefinition } from "@aegis/shared/cards/registry";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { advance } from "#api/engine/testkit/advance";
+import { observe } from "#api/engine/testkit/observe";
 import "#api/cards/index";
 
 const SURTR = "BT27-099";
@@ -138,5 +139,79 @@ describe("Surtr Brander", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+});
+
+describe("Surtr Brander official rulings", () => {
+  it("finishes its whole Main effect before the rule check deletes the 0 DP Digimon", async () => {
+    let targetOnFieldWhenSurtrReturned: boolean | undefined;
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-050" }],
+          hand: [{ card: SURTR, as: "option" }],
+          security: [{ card: "BT1-009", as: "top" }],
+        },
+        1: { battleArea: [{ card: "BT10-075", dp: 6000, as: "target" }] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent: () => {
+          if (targetOnFieldWhenSurtrReturned !== undefined) return;
+          if (s.state.players[0]!.security[0]?.cardId !== SURTR) return;
+          targetOnFieldWhenSurtrReturned = s.state.players[1]!.battleArea.length === 1;
+        },
+      },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const targetTop = s.perm("target").topCard.instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === targetTop));
+
+    expect(targetOnFieldWhenSurtrReturned).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual([SURTR]);
+  });
+
+  it("does not activate its Security effect when it is trashed after being revealed from the security stack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-086", as: "omnimon", under: [{ card: "BT9-109", as: "cost" }] }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-028", as: "target", suspended: true }],
+          security: [
+            { card: "BT1-001", as: "first" },
+            { card: SURTR, as: "surtr" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("cost").instanceId, s.inst("surtr").instanceId);
+    await s.ready();
+    const omnimonTop = s.perm("omnimon").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omnimon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("surtr").instanceId));
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("first").instanceId]);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([omnimonTop]);
   });
 });

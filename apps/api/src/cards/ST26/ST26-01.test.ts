@@ -82,3 +82,34 @@ describe("ST26-01 Viximon", () => {
     expect(observe(s.engine).isRestricted(s.perm("host"), "beDeletedInBattle")).toBe(false);
   });
 });
+
+describe("ST26-01 Viximon official rulings", () => {
+  it("protects an Ice-Snow host when the opponent has no Digimon at all", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: vanillaIceSnowLevel4, as: "host", under: [cardId] }] } });
+    await s.ready();
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(observe(s.engine).isRestricted(s.perm("host"), "beDeletedInBattle")).toBe(true);
+  });
+
+  it("keeps an Ice-Snow host alive after losing a battle against a Security Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: vanillaIceSnowLevel4, as: "host", under: [cardId] }] },
+        1: { security: [vanillaBlueLevel5] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.phase === Phase.Main && !observe(s.engine).isAttacking(), 5000);
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(hostSurvived(s)).toBe(true);
+  });
+});

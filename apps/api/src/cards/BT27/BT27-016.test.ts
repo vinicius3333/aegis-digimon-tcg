@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { observe } from "#api/engine/testkit/observe";
+import { advance } from "#api/engine/testkit/advance";
 import { compiled } from "./BT27-016.js";
 import "#api/cards/index";
 
@@ -333,5 +334,115 @@ describe("Jesmon (X Antibody) and Ultimate Seibaken", () => {
     const opponent = await useOption([]);
     expect(opponent.security.map((card) => card.cardId)).toEqual(["BT1-013", "BT1-014"]);
     expect(opponent.trash).toHaveLength(0);
+  });
+});
+
+describe("official rulings", () => {
+  it.each([
+    ["a Digimon whose name only contains [Huckmon]", "BT6-011"],
+    ["a Digimon with [Huckmon] only in its effect text", "BT20-057"],
+  ])("uses the Option side with %s on the field", async (_label, ally) => {
+    const s = setupEngine(
+      { 0: { battleArea: [ally], hand: [{ card: cardId, as: "card" }], deck: DECK }, 1: { deck: DECK } },
+      { autoSelectCards: true, autoDeclineOptional: true, declinePrompts: ["Arts Digivolve"] },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("card").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.pendingDecision);
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("treats the activated Option side as an Option effect and trashes no security when nothing was placed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT6-016", as: "base" },
+            { card: "BT2-056", as: "ally" },
+          ],
+          hand: [{ card: cardId, as: "card" }],
+          deck: DECK,
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "protected" }],
+          hand: [{ card: "BT19-089", as: "redCard" }],
+          security: OPPONENT_SECURITY,
+          deck: DECK,
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true, autoAcceptOptional: true, declinePrompts: ["Arts Digivolve"] },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("redCard").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.pendingDecision);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT19-089"]);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.engine.recomputeContinuousEffects();
+    await digivolve(s);
+
+    expect(s.state.players[0]!.deck.at(-1)!.cardId).toBe("BT2-056");
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-013", "BT1-014"]);
+  });
+
+  it("does not count activating the Option side as using an Option card", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = jesmonBoard({ sources: ["BT9-109"], allies: [{ card: "BT3-091", as: "lilithmon" }], preferInstanceIds });
+    preferInstanceIds.push(s.perm("base").stack[0]!.instanceId);
+    await s.ready();
+    await digivolve(s);
+    expect(s.state.players[0]!.deck.at(-1)!.cardId).toBe("BT9-109");
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-013"]);
+    expect(s.state.memory).toBe(9);
+  });
+
+  it("is referenced as a [Royal Knight] trait Option card from the hand", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT27-104", as: "tamer" }], hand: [{ card: cardId, as: "card" }], deck: DECK },
+        1: { battleArea: [{ card: "BT1-009", as: "lowest" }], security: OPPONENT_SECURITY, deck: DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1, declinePrompts: ["Arts Digivolve"] },
+    );
+    await s.ready();
+    s.state.memory = 4;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("tamer"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("card").instanceId);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-014", "BT1-009"]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-013"]);
+  });
+
+  it("activates the Option side after returning your own token, which leaves the game", async () => {
+    const s = jesmonBoard({});
+    await advance(s.engine).verb.playTwoTokensInOneWindow(0, "Diaboromon");
+    const tokenIds = s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId !== "BT6-016").map(
+      (permanent) => permanent.topCard.instanceId,
+    );
+    expect(tokenIds).toHaveLength(2);
+    s.state.memory = 10;
+    await s.ready();
+    await digivolve(s);
+
+    const ownCards = [
+      ...s.state.players[0]!.deck,
+      ...s.state.players[0]!.trash,
+      ...s.state.players[0]!.hand,
+      ...s.state.players[0]!.battleArea.map((permanent) => permanent.topCard),
+    ].map((card) => card.instanceId);
+    expect(tokenIds.filter((id) => !ownCards.includes(id))).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-019"]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-013"]);
   });
 });

@@ -130,3 +130,35 @@ describe("PrinceMamemon X Antibody copied deletion and name aura", () => {
     },
   );
 });
+
+describe("official rulings", () => {
+  it("lets Alliance suspend a Digimon played by the borrowed deletion effect during the same attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT27-072", as: "host", under: ["EX13-059"] }],
+          deck: [{ card: "BT6-064", as: "played" }, "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferTriggerKeys: ["EX13-059", "WhenAttacking"] },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT6-064");
+    expect(played).toBeDefined();
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: played!.permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => played!.isSuspended);
+    expect(played!.isSuspended).toBe(true);
+    assertNoLoudGap(s);
+  });
+});

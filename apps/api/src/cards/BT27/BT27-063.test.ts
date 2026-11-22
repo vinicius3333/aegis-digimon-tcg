@@ -189,3 +189,46 @@ describe("Andromon suspend De-Digivolve, Blocker leave prevention, and inherited
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT2-061"]);
   });
 });
+
+describe("official rulings", () => {
+  it("keeps an ally that gained ＜Blocker＞ from an inherited effect from leaving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "andromon" },
+            { card: NON_BLOCKER, as: "ally", under: ["BT27-058"] },
+          ],
+          deck: DECK,
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "rival", under: ["BT1-009"] }], deck: DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(true);
+    expect(await deleteBy(s, 1, ["ally"])).toBe(0);
+    expect(s.perm("ally").topCard.cardId).toBe(NON_BLOCKER);
+    expect(s.perm("andromon").isSuspended).toBe(true);
+  });
+
+  it("inherited: does not play a card whose ＜Blocker＞ is only an inherited effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-062", as: "host", under: [cardId] }],
+          hand: [{ card: "BT27-058", as: "reward" }],
+          deck: DECK,
+        },
+        1: { deck: DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
+    await settle(() => !s.state.pendingDecision);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("reward").instanceId]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+});

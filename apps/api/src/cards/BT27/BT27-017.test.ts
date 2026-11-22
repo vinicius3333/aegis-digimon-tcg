@@ -5,6 +5,7 @@ import { registerIrCard } from "#api/engine/effects/interpreter";
 import { unregisterIrCard } from "#api/engine/effects/interpreter/registration/unregisterIrCard";
 import { assertNoLoudGap, setupEngine, settle } from "#api/engine/testkit/harness";
 import { observe } from "#api/engine/testkit/observe";
+import { advance } from "#api/engine/testkit/advance";
 import { syntheticDefinitions } from "#api/engine/testkit/syntheticDefinitions";
 import { compiled } from "#api/cards/BT27/BT27-017";
 import "#api/cards/index";
@@ -214,5 +215,145 @@ describe("Spinomon Stegomon and Kurata's Army digivolve, DP deletion, and suspen
         target: { kind: "permanent", permanentId: s.perm("spinomon").permanentId },
       }),
     ).toEqual({ ok: true });
+  });
+});
+
+describe("official rulings", () => {
+  async function digivolveFromKurataTamer(extra: { breeding?: string; tamerEnteredThisTurn?: boolean } = {}) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: kurataTamer, as: "base", enteredThisTurn: extra.tamerEnteredThisTurn ?? false }],
+          ...(extra.breeding === undefined ? {} : { breeding: { card: extra.breeding, as: "egg" } }),
+          hand: [{ card: spinomon, as: "spinomon" }],
+          deck: [{ card: "BT1-013", as: "bonusDraw" }, ...filler],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "small" }], security: ["BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("spinomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === spinomon && !s.state.pendingDecision);
+    return s;
+  }
+
+  it("still triggers its own When Digivolving effect when it digivolves from a Tamer", async () => {
+    const s = await digivolveFromKurataTamer();
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("digivolves from a Tamer while your Digimon can't digivolve", async () => {
+    const s = await digivolveFromKurataTamer({ breeding: "BT13-007" });
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual([kurataTamer]);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("performs the digivolution bonus draw when it digivolves from a Tamer", async () => {
+    const s = await digivolveFromKurataTamer();
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bonusDraw").instanceId]);
+  });
+
+  it("can't attack the turn its Tamer was played", async () => {
+    const s = await digivolveFromKurataTamer({ tamerEnteredThisTurn: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("trashes the Tamer in its digivolution cards when it leaves the field", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: spinomon, as: "spinomon", under: [{ card: kurataTamer, as: "tamer" }] }] } },
+      { declinePrompts: ["Spinomon"] },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("spinomon").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && !s.state.pendingDecision);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("tamer").instanceId);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(spinomon);
+  });
+
+  it("gains the inherited effect of a Tamer in its digivolution cards", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: spinomon, as: "spinomon", under: ["BT27-092"] },
+            { card: "BT1-009", as: "sacrifice" },
+          ],
+          deck: filler,
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "victim" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("sacrifice").topCard.instanceId, s.perm("victim").topCard.instanceId);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("spinomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "attackEnded") && !s.state.pendingDecision);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("skips the second security check after Armor Purge leaves only a Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: spinomon, as: "spinomon", under: [kurataTamer] }], deck: filler },
+        1: { security: [{ card: vanillaMega, as: "blockerCheck" }, { card: "BT1-009", as: "secondCheck" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("spinomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "attackEnded") && !s.state.pendingDecision);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([kurataTamer]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(spinomon);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("secondCheck").instanceId]);
+  });
+
+  it("digivolves from a Stegomon in the breeding area", async () => {
+    const s = setupEngine(
+      { 0: { breeding: { card: stegomon, as: "base" }, hand: [{ card: spinomon, as: "spinomon" }], deck: filler } },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("spinomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === spinomon && !s.state.pendingDecision);
+    expect(s.state.memory).toBe(0);
   });
 });

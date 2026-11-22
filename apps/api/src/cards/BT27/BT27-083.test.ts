@@ -106,3 +106,81 @@ describe("Ravemon discard and revival", () => {
     expect(s.state.players[0]!.trash.map((c) => c.cardId)).toContain("BT27-078");
   });
 });
+
+describe("official rulings", () => {
+  it("counts as a DATA SQUAD Option card when another effect uses one", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT27-081", as: "crowmon" },
+            {
+              card: "BT1-085",
+              under: [
+                { card: "BT1-009", faceUp: false },
+                { card: "BT1-011", faceUp: false },
+              ],
+            },
+          ],
+          hand: [{ card: "BT27-083", as: "option" }],
+          deck: ["BT1-009"],
+        },
+        1: { hand: Array<string>(9).fill("BT1-009"), battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, declinePrompts: ["Arts Digivolve"] },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("crowmon"));
+    await settle(() => !s.state.pendingDecision);
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.state.players[1]!.hand).toHaveLength(7);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it.each([
+    ["keyword/retaliation", ["retaliation", "revival"]],
+    ["BT27-083/ir", ["revival", "retaliation"]],
+  ])("lets the player resolve %s first when Retaliation and its revival trigger together", async (first, expected) => {
+    const order: string[] = [];
+    const record = (step: string, done: boolean) => {
+      if (done && !order.includes(step)) order.push(step);
+    };
+    const s: ReturnType<typeof setupEngine> = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT27-083", as: "raven", suspended: true }],
+          trash: [{ card: "BT27-078", as: "bird" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 13000 }] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declineDigiXros: true,
+        declinePrompts: ["Arts Digivolve"],
+        preferTriggerKeys: [first],
+        onEvent: () => {
+          record("retaliation", s.state.players[1]!.trash.length > 0);
+          record(
+            "revival",
+            s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("bird").instanceId),
+          );
+        },
+      },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("raven").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && order.length === 2 && !s.state.pendingDecision);
+    const ordering = s.decisions.find((d) => d.req.kind === "orderTriggers");
+    expect(ordering?.req.options?.triggerCardIds).toEqual(["BT27-083", "BT27-083"]);
+    expect(order).toEqual(expected);
+  });
+});

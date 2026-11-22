@@ -1,5 +1,7 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { Encoder } from "@colyseus/schema";
+import { CARD_ID_VIEW_TAG, EffectTiming, getCardDefinition, type GameState } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { buildStateView } from "../../engine/state/visibility.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT27-098.js";
@@ -276,5 +278,96 @@ describe("BT27-098 Akihiro Kurata", () => {
       (permanent) => permanent.topCard?.instanceId === s.inst("gizmon").instanceId,
     );
     expect(gizmon?.stack.map((card) => card.instanceId)).toEqual([s.inst("kurata").instanceId]);
+  });
+});
+
+describe("BT27-098 Akihiro Kurata official rulings", () => {
+  function seatViews(state: GameState) {
+    const encoder = new Encoder(state);
+    return { encoder, ownerView: buildStateView(state, 0), opponentView: buildStateView(state, 1) };
+  }
+
+  async function attackAndDelete(loser: "attacker" | "defender") {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-010", as: "attacker", dp: loser === "attacker" ? 1000 : 20_000 },
+            { card: "BT27-098", as: "kurata" },
+          ],
+          deck: [
+            { card: "BT1-009", as: "firstTop" },
+            { card: "BT1-011", as: "secondTop" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "defender", dp: loser === "defender" ? 1000 : 20_000, suspended: true }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("kurata").stack.length === 2);
+    return s;
+  }
+
+  it("also places cards under this Tamer when its controller's own Digimon is deleted", async () => {
+    const s = await attackAndDelete("attacker");
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
+      s.inst("kurata").instanceId,
+    ]);
+    expect(s.perm("kurata").isSuspended).toBe(true);
+    expect(s.perm("kurata").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("secondTop").instanceId,
+      s.inst("firstTop").instanceId,
+    ]);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+
+  it("offers no way to rearrange the face-down cards it places", async () => {
+    const s = await attackAndDelete("defender");
+
+    expect(s.decisions.some(({ req }) => req.kind === "orderCards")).toBe(false);
+    expect(s.perm("kurata").stack.every((card) => card.faceUp === false)).toBe(true);
+  });
+
+  it("hides the face-down cards under it from the opponent but not from their owner", async () => {
+    const s = await attackAndDelete("defender");
+    const { ownerView, opponentView } = seatViews(s.state);
+
+    for (const card of s.perm("kurata").stack) {
+      expect(ownerView.hasTag(card, CARD_ID_VIEW_TAG)).toBe(true);
+      expect(opponentView.hasTag(card, CARD_ID_VIEW_TAG)).toBe(false);
+    }
+  });
+
+  it("puts the face-down cards it trashes face up in the trash", async () => {
+    const aliases = ["first", "second", "third", "fourth", "fifth"];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT27-098", as: "kurata", under: aliases.map(faceDown) }],
+          hand: [{ card: "BT27-076", as: "gizmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.OnEndTurn, s.inst("kurata"));
+
+    for (const alias of aliases) {
+      expect(s.state.players[0]!.trash).toContainEqual(
+        expect.objectContaining({ instanceId: s.inst(alias).instanceId, faceUp: true }),
+      );
+    }
   });
 });

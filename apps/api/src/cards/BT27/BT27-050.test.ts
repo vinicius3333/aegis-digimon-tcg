@@ -3,6 +3,7 @@ import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { EffectTiming } from "@aegis/shared/schema/enums";
 import { observe } from "#api/engine/testkit/observe";
 import { advance } from "#api/engine/testkit/advance";
+import { expectDelayCannotUseHandMainRoute } from "#api/cards/P/qaRulings2.testSupport";
 import "#api/cards/index";
 
 describe("Monarchlizamon hand evolution and suspension", () => {
@@ -155,5 +156,60 @@ describe("Monarchlizamon hand evolution and suspension", () => {
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("official rulings", () => {
+  it("offers the hand digivolution only while the card is in the hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT27-050", as: "field" }, { card: "BT27-044" }, { card: "BT27-091" }],
+          trash: ["BT27-046", { card: "BT27-050", as: "trashed" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(JSON.parse(s.perm("field").activatableEffectsJson || "[]")).toHaveLength(0);
+    expect(JSON.parse(s.inst("trashed").activatableEffectsJson || "[]")).toHaveLength(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("cannot use the hand digivolution at the same time as Agility Training's digivolution", async () => {
+    await expectDelayCannotUseHandMainRoute("P-106", {
+      host: "BT27-044",
+      tamer: "BT27-091",
+      material: "BT27-046",
+      target: "BT27-050",
+    });
+  });
+
+  it("may forbid unsuspending a different opposing Digimon than the one it suspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT27-050", as: "card" }],
+          battleArea: [{ card: "BT1-085", under: [{ card: "BT1-009", faceUp: false }] }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-060", as: "locked", suspended: true },
+            { card: "BT1-060", as: "suspended" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("card").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("suspended").isSuspended && !s.state.pendingDecision);
+    expect(observe(s.engine).isRestricted(s.perm("locked"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("suspended"), "unsuspend")).toBe(false);
   });
 });

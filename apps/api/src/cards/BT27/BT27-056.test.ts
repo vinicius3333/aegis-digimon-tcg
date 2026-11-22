@@ -65,3 +65,30 @@ describe("Pristimon evolution discount and inherited Reboot", () => {
     expect([...s.perm("alone").keywords]).not.toContain("Reboot");
   });
 });
+
+describe("official rulings", () => {
+  it("does not reduce the digivolution cost while it is in the breeding area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT27-056", as: "base" },
+          hand: [{ card: "BT27-058", as: "evolution" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT27-058" && !s.state.pendingDecision);
+    expect(s.perm("base").inBreeding).toBe(true);
+    expect(s.state.memory).toBe(8);
+  });
+});

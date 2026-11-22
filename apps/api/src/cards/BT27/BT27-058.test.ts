@@ -86,3 +86,34 @@ describe("Wolvermon Tamer recruitment and inherited Blocker", () => {
     expect([...s.perm("plain").keywords]).not.toContain("Blocker");
   });
 });
+
+describe("official rulings", () => {
+  it("activates its Security effect before battling the attacking Digimon", async () => {
+    let reinaInPlayWhenAttackerLeft: boolean | undefined;
+    const s: ReturnType<typeof setupEngine> = setupEngine(
+      { 0: { security: ["BT27-058"], hand: ["BT26-093"] }, 1: { battleArea: [{ card: "BT1-009", as: "attacker" }] } },
+      {
+        autoSelectCards: true,
+        autoAcceptOptional: true,
+        onEvent: () => {
+          if (reinaInPlayWhenAttackerLeft !== undefined || s.state.players[1]!.battleArea.length > 0) return;
+          reinaInPlayWhenAttackerLeft = s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT26-093");
+        },
+      },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && !s.state.pendingDecision);
+    expect(reinaInPlayWhenAttackerLeft).toBe(true);
+    expect(s.state.players[1]!.trash.map((c) => c.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.trash.map((c) => c.cardId)).toEqual(["BT27-058"]);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT26-093"]);
+  });
+});

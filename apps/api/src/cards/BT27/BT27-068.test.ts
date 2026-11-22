@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "#api/engine/testkit/advance";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { observe } from "#api/engine/testkit/observe";
@@ -287,20 +287,6 @@ describe("Gankoomon (X Antibody) and Ultimate Sengi Tengyouken", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
-  it("activates the Option side when Gankoomon itself leaves, because the text says any of your Digimon", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: cardId, as: "gankoomon" }], deck: DECK },
-        1: { battleArea: [{ card: "BT2-064", as: "big" }], deck: DECK },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
-    );
-    await s.ready();
-    expect(await deleteByOpponent(s, ["gankoomon"])).toBe(1);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.deck[0]!.cardId).toBe("BT2-064");
-  });
-
   it("does not activate the Option side when an opponent's Digimon leaves", async () => {
     const s = setupEngine(
       {
@@ -348,5 +334,175 @@ describe("Gankoomon (X Antibody) and Ultimate Sengi Tengyouken", () => {
     expect(await prompts(["BT2-056", "BT2-056"])).toContainEqual(
       expect.objectContaining({ effectTextEmphasis: deleteText }),
     );
+  });
+});
+
+describe("Gankoomon (X Antibody) official rulings", () => {
+  it("does not activate the Option side when Gankoomon itself leaves", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "gankoomon" }], deck: DECK },
+        1: { battleArea: [{ card: "BT2-064", as: "big" }], deck: DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    expect(await deleteByOpponent(s, ["gankoomon"])).toBe(1);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT2-064"]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(DECK);
+  });
+
+  it.each([
+    ["a Digimon whose name contains Huckmon", "BT6-011"],
+    ["a Digimon with Huckmon only in its effect text", "BT20-057"],
+  ])("counts %s as a card with Huckmon in its text", async (_label, ally) => {
+    const s = setupEngine(
+      { 0: { battleArea: [ally], hand: [{ card: cardId, as: "card" }], deck: DECK }, 1: { deck: DECK } },
+      { autoSelectCards: true, autoDeclineOptional: true, declinePrompts: ["Arts Digivolve"] },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("card").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("treats the activated Option side effect as an Option effect against Digimon-effect immunity", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "gankoomon" },
+            { card: "BT2-056", as: "ally" },
+          ],
+          deck: DECK,
+        },
+        1: { battleArea: [{ card: "BT15-047", as: "immune", suspended: true }], deck: DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    expect(await deleteByOpponent(s, ["ally"])).toBe(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT15-047"]);
+  });
+
+  it("does not count activating the Option side as using an Option card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "gankoomon" },
+            { card: "BT1-009", under: ["P-046"] },
+            { card: "BT2-056", as: "ally" },
+          ],
+          deck: DECK,
+        },
+        1: { battleArea: [{ card: "BT2-064", as: "big" }], deck: DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    expect(await deleteByOpponent(s, ["ally"])).toBe(1);
+    expect(s.state.players[1]!.deck[0]!.cardId).toBe("BT2-064");
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("gankoomon").topCard.cardId).toBe(cardId);
+  });
+
+  it("counts as a Royal Knight trait Option card for King Drasil", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT27-104", as: "tamer" }],
+          hand: [{ card: cardId, as: "option" }],
+          deck: DECK,
+        },
+        1: { battleArea: [{ card: "BT2-064", as: "big" }], deck: DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1, declinePrompts: ["Arts Digivolve"] },
+    );
+    await s.ready();
+    s.state.memory = 4;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("tamer"));
+    await settle(() => !s.state.pendingDecision);
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual([cardId]);
+    expect(s.state.players[1]!.deck[0]!.cardId).toBe("BT2-064");
+  });
+
+  it("stays by returning your own token even though the token leaves the game instead", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "gankoomon" },
+            { card: "TOKEN-Diaboromon-Token", as: "token" },
+          ],
+          deck: DECK,
+        },
+        1: { deck: DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    expect(await deleteByOpponent(s, ["gankoomon"])).toBe(0);
+    const player = s.state.players[0]!;
+    expect(player.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([cardId]);
+    expect(player.deck.map((card) => card.cardId)).toEqual(DECK);
+    expect(player.trash).toHaveLength(0);
+  });
+
+  it("chooses an opponent's 12000 DP Digimon that can't be returned and then deletes the lowest play cost", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT13-009"], hand: [{ card: cardId, as: "card" }], deck: DECK },
+        1: {
+          battleArea: [
+            { card: "BT11-060", as: "protected", dp: 12000 },
+            { card: "BT1-009", as: "cheap" },
+          ],
+          deck: DECK,
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true, declinePrompts: ["Arts Digivolve"] },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("card").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.pendingDecision);
+    const opponent = s.state.players[1]!;
+    expect(opponent.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT11-060"]);
+    expect(opponent.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(opponent.deck.map((card) => card.cardId)).toEqual(DECK);
+  });
+
+  it("lets each copy's leave prevention interrupt only once while the first deletion resolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "first" },
+            { card: cardId, as: "second" },
+          ],
+          deck: DECK,
+        },
+        1: { deck: DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    const first = s.perm("first").topCard.instanceId;
+    const second = s.perm("second").topCard.instanceId;
+    await deleteByOpponent(s, ["first"]);
+    const player = s.state.players[0]!;
+    expect(player.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([second]);
+    expect(player.deck.at(-1)!.instanceId).toBe(first);
+    expect(player.trash).toHaveLength(0);
   });
 });

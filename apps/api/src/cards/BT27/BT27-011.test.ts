@@ -147,3 +147,10 @@ describe("BT27-011 Liskmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Raid")).toBe(true);
   });
 });
+
+describe("official rulings", () => {
+  it("accepts a level 3 card whose name only contains [Gemmon] for the alternate requirement", () => {
+    expect(getCardDefinition("SD01-02")).toMatchObject({ nameEn: "Gemmon", level: 3 });
+    expect(matchingAlternateDigivolutionRequirement(cardId, "SD01-02")).toMatchObject({ level: 3, cost: 2 });
+  });
+});

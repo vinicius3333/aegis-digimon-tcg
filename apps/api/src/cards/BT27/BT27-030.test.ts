@@ -206,3 +206,61 @@ describe("MachGaogamon bounce, Tamer-paid free play, and inherited leave prevent
     expect(s.perm("tamer").stack).toHaveLength(1);
   });
 });
+
+describe("official rulings", () => {
+  it("finishes the Tamer-paid free play after a would-leave effect removes it during the bounce", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "mach" }, tamerWithTwoFaceDown()],
+          hand: [{ card: "BT27-089", as: "reward" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT24-018", as: "styracomon" },
+            { card: "BT8-013", as: "bounced" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.perm("bounced").permanentId, s.perm("mach").permanentId);
+    const machCard = s.perm("mach").topCard.instanceId;
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mach"));
+    await settle(() => !s.state.pendingDecision);
+
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(machCard);
+    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toContain(s.perm("bounced").permanentId);
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("reward").instanceId)).toBe(true);
+  });
+
+  it("pays the cost with one bottom face-down card from each of two Tamers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "mach" },
+            { card: "BT1-085", as: "firstTamer", under: [{ card: "BT1-009", as: "firstCost", faceUp: false }] },
+            { card: "BT1-085", as: "secondTamer", under: [{ card: "BT1-013", as: "secondCost", faceUp: false }] },
+          ],
+          hand: [{ card: "BT27-089", as: "reward" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mach"));
+    await settle(() => !s.state.pendingDecision);
+    expect(s.perm("firstTamer").stack).toHaveLength(0);
+    expect(s.perm("secondTamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("firstCost").instanceId, s.inst("secondCost").instanceId]),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("reward").instanceId)).toBe(true);
+  });
+});

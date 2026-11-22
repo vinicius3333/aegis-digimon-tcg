@@ -5,6 +5,7 @@ import { advance } from "#api/engine/testkit/advance";
 import { setupEngine, settle, type CardSpec } from "#api/engine/testkit/harness";
 import { observe } from "#api/engine/testkit/observe";
 import { compiled } from "#api/cards/BT27/BT27-045";
+import "#api/cards/index";
 
 type RevealParams = {
   deck: CardSpec[];
@@ -306,5 +307,100 @@ describe("Liollmon reveal, alternate digivolution, and inherited battle memory",
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.battleArea.length === 0);
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("Liollmon official rulings", () => {
+  async function attackWithHost(
+    s: ReturnType<typeof setupEngine>,
+    target: { kind: "player" } | { kind: "permanent"; permanentId: string },
+  ) {
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "attackEnded") && !s.state.pendingDecision);
+  }
+
+  it("gains memory after the losing Digimon is deleted and before the loser's On Deletion effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-019", as: "host", dp: 10000, under: ["BT27-045"] }] },
+        1: { battleArea: [{ card: "ST16-07", as: "victim", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const victim = s.perm("victim").topCard.instanceId;
+    await attackWithHost(s, { kind: "permanent", permanentId: s.perm("victim").permanentId });
+    const deleted = s.events.findIndex((event) => event.kind === "cardsMoved" && event.instanceIds.includes(victim));
+    const triggered = s.events.flatMap((event, index) =>
+      event.kind === "effectTriggered" ? [{ index, sourceCardId: event.sourceCardId }] : [],
+    );
+    expect(triggered.map(({ sourceCardId }) => sourceCardId)).toEqual(["BT27-045", "ST16-07"]);
+    expect(triggered[0]!.index).toBeGreaterThan(deleted);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([victim]);
+  });
+
+  it("gains memory when its inherited host wins a battle against a Security Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-019", as: "host", dp: 10000, under: ["BT27-045"] }] },
+      1: { security: [{ card: "BT1-009", as: "securityDigimon" }, "BT1-013"] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    await attackWithHost(s, { kind: "player" });
+    expect(s.events.find((event) => event.kind === "securityChecked")).toMatchObject({
+      revealedCardId: "BT1-009",
+      resolution: "battle",
+    });
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("gains memory after the loser's would-be-deleted Armor Purge keeps it on the field", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-019", as: "host", dp: 10000, under: ["BT27-045"] }] },
+        1: { battleArea: [{ card: "BT27-038", as: "victim", suspended: true, under: ["BT1-045"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const purged = s.perm("victim").topCard.instanceId;
+    await attackWithHost(s, { kind: "permanent", permanentId: s.perm("victim").permanentId });
+    const purge = s.events.findIndex((event) => event.kind === "cardsMoved" && event.instanceIds.includes(purged));
+    const gain = s.events.findIndex((event) => event.kind === "memoryChanged" && event.to === 1);
+    expect(purge).toBeGreaterThanOrEqual(0);
+    expect(gain).toBeGreaterThan(purge);
+    expect(s.perm("victim").topCard.cardId).toBe("BT1-045");
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([purged]);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it.each([
+    ["Liollmon", "BT27-045", false],
+    ["Leomon", "BT1-035", true],
+  ])("is not a card named exactly Leomon for an effect that plays [Leomon]: %s", async (_label, card, played) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX2-058", as: "jeri" },
+            { card, as: "candidate" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("jeri").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === (played ? 2 : 1) && !s.state.pendingDecision);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === card)).toBe(played);
+    expect(s.state.players[0]!.hand.some((handCard) => handCard.cardId === card)).toBe(!played);
+    expect(s.state.memory).toBe(6);
   });
 });

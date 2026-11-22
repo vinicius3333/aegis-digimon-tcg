@@ -218,3 +218,47 @@ describe("BT27-090 Spencer Damon", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("BT27-090 official rulings", () => {
+  it.each([
+    ["stops", "De-Digivolve trashing the top stacked card", true, "EX13-052", "BT1-014", ["BT1-009"]],
+    ["without the placement does not stop", "De-Digivolve trashing the top stacked card", false, "EX13-052", "BT1-009", []],
+    ["stops", "effect trashing the bottom digivolution card", true, "P-003", "BT1-014", ["BT1-009"]],
+    ["without the placement does not stop", "effect trashing the bottom digivolution card", false, "P-003", "BT1-014", []],
+  ] as const)("%s an opponent's %s", async (_label, _effect, accept, attacker, top, stack) => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "spencer" },
+            { card: "BT1-014", as: "bystander", under: ["BT1-009"] },
+          ],
+          hand: [{ card: "BT1-042", as: "played" }],
+        },
+        1: { deck: ["BT1-009"] },
+      },
+      {
+        autoSelectCards: true,
+        preferInstanceIds,
+        ...(accept ? { autoAcceptOptional: true } : { autoDeclineOptional: true }),
+      },
+    );
+    s.state.memory = 15;
+    await s.ready();
+    preferInstanceIds.push(s.perm("bystander").topCard.instanceId);
+    const bystanderId = s.perm("bystander").permanentId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined && !spencerInBattleArea(s) === accept);
+
+    s.putOnBoard(1, { card: attacker, as: "attacker" });
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("attacker"));
+    await settle();
+
+    const bystander = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === bystanderId)!;
+    expect(bystander.topCard.cardId).toBe(top);
+    expect(bystander.stack.map((card) => card.cardId)).toEqual(stack);
+  });
+});

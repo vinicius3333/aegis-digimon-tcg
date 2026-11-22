@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { matchingAlternateDigivolutionRequirement } from "#api/engine/cards/cardData";
 import { runtimeCompiledCard } from "#api/engine/effects/interpreter";
 import { playByAssembly } from "#api/engine/testkit/assembly";
-import { assertNoLoudGap, settle, setupEngine } from "#api/engine/testkit/harness";
+import { assertNoLoudGap, settle, setupEngine, type PermanentSpec } from "#api/engine/testkit/harness";
 import { observe } from "#api/engine/testkit/observe";
 import "#api/cards/index";
 import { compiled } from "./BT27-018.js";
@@ -29,7 +29,7 @@ const opponentBoard = [
 const opponentSecurity = [vanillaRedLevel3, vanillaRedLevel3, vanillaRedLevel3];
 
 const opponentDigimonDp = (s: Setup) => s.state.players[1]!.battleArea.map(({ currentDP }) => currentDP);
-const deletionPrompts = (s: Setup) => s.decisions.filter(({ req }) => req.kind === "chooseTargets");
+const activationPrompts = (s: Setup) => s.decisions.filter(({ req }) => req.kind === "optional");
 
 async function digivolveIntoRubeusdramon(options: Options, baseSources: string[] = []) {
   const s = setupEngine(
@@ -123,7 +123,7 @@ describe("BT27-018 Rubeusdramon", () => {
     const s = await digivolveIntoRubeusdramon({ autoAcceptOptional: true, autoSelectCards: true }, [gemmon, gemmon]);
 
     expect(s.perm("base").currentDP).toBe(16000);
-    expect(deletionPrompts(s)).toHaveLength(2);
+    expect(activationPrompts(s)).toHaveLength(1);
     expect(s.decisions.filter(({ req }) => req.kind === "chooseOption")).toHaveLength(0);
     expect(opponentDigimonDp(s)).toEqual([9000]);
     expect(s.state.players[1]!.security).toHaveLength(2);
@@ -147,7 +147,7 @@ describe("BT27-018 Rubeusdramon", () => {
   it("deletes nothing when the player declines every activation", async () => {
     const s = await digivolveIntoRubeusdramon({ autoDeclineOptional: true, autoSelectCards: true }, [gemmon, gemmon]);
 
-    expect(deletionPrompts(s)).toHaveLength(2);
+    expect(activationPrompts(s)).toHaveLength(1);
     expect(opponentDigimonDp(s)).toEqual([9000, 3000, 6000]);
     expect(s.state.players[1]!.security).toHaveLength(3);
   });
@@ -191,7 +191,7 @@ describe("BT27-018 Rubeusdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "attackEnded") && s.state.pendingDecision === undefined);
 
-    expect(deletionPrompts(s)).toHaveLength(1);
+    expect(activationPrompts(s)).toHaveLength(1);
     expect(opponentDigimonDp(s)).toEqual([9000, 6000]);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
@@ -252,5 +252,130 @@ describe("BT27-018 Rubeusdramon", () => {
     const { result } = await playByAssembly(cardId, materials, 12);
 
     expect(result).toMatchObject({ ok: false });
+  });
+});
+
+describe("official rulings", () => {
+  it("plays by Assembly with a level 3 card whose name only contains [Gemmon]", async () => {
+    const { s, result } = await playByAssembly(cardId, [reptilimon, liskmon, "SD01-02"], 7);
+
+    expect(result).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map(({ cardId: id }) => id)).toEqual([
+      "SD01-02",
+      liskmon,
+      reptilimon,
+    ]);
+  });
+
+  async function digivolveAtSixteenThousand(opponentField: PermanentSpec[], options: Options) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: reptilimon, as: "base", under: [gemmon, gemmon] }],
+          hand: [{ card: cardId, as: "rubeusdramon" }],
+        },
+        1: { battleArea: opponentField, security: opponentSecurity },
+      },
+      options,
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("rubeusdramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    return s;
+  }
+
+  it("keeps activating every counted deletion once the first one is accepted", async () => {
+    const s = await digivolveAtSixteenThousand(opponentBoard, {});
+    let answeredTargets = 0;
+    for (;;) {
+      await settle(
+        () =>
+          s.state.pendingDecision !== undefined ||
+          s.events.some(
+            (event) =>
+              event.kind === "effectResolved" &&
+              event.sourceCardId === cardId &&
+              event.description.includes("For every 8000 DP"),
+          ),
+      );
+      const decision = s.state.pendingDecision;
+      if (decision === undefined) break;
+      const req = s.decisions.find((entry) => entry.req.decisionId === decision.decisionId)!.req;
+      const candidates = req.options?.candidateInstanceIds ?? [];
+      const declineLater = answeredTargets > 0 && (req.options?.min ?? 0) === 0;
+      const response =
+        req.kind === "optional"
+          ? { kind: "optional" as const, accept: answeredTargets === 0 }
+          : req.kind === "chooseTargets"
+            ? { kind: "chooseTargets" as const, instanceIds: declineLater ? [] : candidates.slice(0, 1) }
+            : { kind: "selectCards" as const, instanceIds: candidates.slice(0, 1) };
+      if (req.kind === "chooseTargets") answeredTargets += 1;
+      expect(
+        s.engine.applyIntent(0, { type: "respondDecision", decisionId: decision.decisionId, response }),
+      ).toEqual({ ok: true });
+    }
+
+    expect(s.perm("base").currentDP).toBe(16000);
+    expect(opponentDigimonDp(s)).toEqual([9000]);
+  });
+
+  it("counts the activations when the effect activates, even if this Digimon's DP drops between them", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "rubeusdramon", dp: 15000, under: ["BT10-020"] }] },
+        1: {
+          battleArea: [
+            { card: vanillaRedLevel4, as: "low", dp: 3000 },
+            { card: vanillaRedLevel5, as: "middle", dp: 6000 },
+          ],
+          security: opponentSecurity,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.perm("rubeusdramon").currentDP).toBe(16000);
+    await attackWithRubeusdramon(s);
+
+    expect(activationPrompts(s)).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("trashes security for an opponent's deleted Digimon only after every counted deletion resolves", async () => {
+    const s = await digivolveAtSixteenThousand(opponentBoard, { autoAcceptOptional: true, autoSelectCards: true });
+    await settle(() => s.perm("base").topCard.cardId === cardId && s.state.pendingDecision === undefined);
+
+    const deletions = s.events.flatMap((event, index) =>
+      event.kind === "cardsMoved" && (event.deletedPermanents?.length ?? 0) > 0 ? [index] : [],
+    );
+    const securityTrash = s.events.findIndex(
+      (event) =>
+        event.kind === "effectTriggered" &&
+        event.sourceCardId === cardId &&
+        (event.effectTextPart ?? event.description).includes("are deleted"),
+    );
+    expect(deletions).toHaveLength(2);
+    expect(securityTrash).toBeGreaterThan(deletions[1]!);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("deletes on the next activation a Digimon whose Fragment prevented the previous deletion", async () => {
+    const s = await digivolveAtSixteenThousand(
+      [{ card: "BT26-055", as: "giromon", under: [vanillaRedLevel3, vanillaRedLevel4] }],
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await settle(() => s.perm("base").topCard.cardId === cardId && s.state.pendingDecision === undefined);
+
+    expect(s.events.filter((event) => event.kind === "deletionPrevented")).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("giromon").instanceId);
   });
 });

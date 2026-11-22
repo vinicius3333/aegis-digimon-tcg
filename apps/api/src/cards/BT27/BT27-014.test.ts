@@ -161,3 +161,14 @@ describe("BT27-014 Reptilimon", () => {
     expect(ended.state.players[1]!.security).toHaveLength(2);
   });
 });
+
+describe("official rulings", () => {
+  it.each([
+    ["whose name only contains [Gemmon]", "SD01-02"],
+    ["with [Gemmon] only in its digivolution requirement", liskmon],
+  ])("gives a host %s Engage", async (_label, host) => {
+    const s = setupEngine({ 0: { battleArea: [{ card: host, as: "host", under: [cardId] }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Engage")).toBe(true);
+  });
+});

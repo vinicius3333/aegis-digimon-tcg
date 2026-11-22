@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectDuration } from "@aegis/shared/schema/enums";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { advance } from "#api/engine/testkit/advance";
 import "#api/cards/index";
@@ -554,4 +555,248 @@ it("trashes both named sources when Partition is declined", async () => {
   expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(
     ["BT27-103", "BT13-075", "BT8-069"].sort(),
   );
+});
+
+describe("Alphamon: Ouryuken official rulings", () => {
+  const ALPHAMON = "BT27-103";
+
+  async function opponentAttacksWith(attackerCard: string) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: ALPHAMON, as: "alphamon", under: ["BT13-077"] },
+            { card: "BT1-010", as: "bystander" },
+          ],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: attackerCard, as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("alphamon").permanentId, s.perm("alphamon").topCard.instanceId);
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"));
+    return s;
+  }
+
+  function offeredAlphamonToSeat(s: ReturnType<typeof setupEngine>, seat: 0 | 1) {
+    const alphamonIds = [s.perm("alphamon").permanentId, s.perm("alphamon").topCard.instanceId];
+    return s.decisions.some(
+      (decision) =>
+        decision.seat === seat &&
+        alphamonIds.some((id) => decision.req.options?.candidateInstanceIds?.includes(id)),
+    );
+  }
+
+  it("does not recover on a later turn's attack after the DNA digivolution, but still deletes", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: ALPHAMON, as: "alphamon", under: ["BT13-075", "BT8-069"] }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("alphamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await advance(s.engine).finishAttack();
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+  });
+
+  it.each([
+    ["suspend", "ST18-03"],
+    ["-4000 DP", "ST3-11"],
+  ])(
+    "can be chosen for an opponent's %s effect while another player's Digimon attacks, but is not affected",
+    async (_label, attackerCard) => {
+      const s = await opponentAttacksWith(attackerCard);
+
+      expect(offeredAlphamonToSeat(s, 1)).toBe(true);
+      expect(s.perm("alphamon").isSuspended).toBe(false);
+      expect(s.perm("alphamon").currentDP).toBe(16000);
+      expect(s.perm("bystander").isSuspended).toBe(false);
+      expect(s.perm("bystander").currentDP).toBe(2000);
+    },
+  );
+
+  it("is still unaffected by an opponent's End of Attack effect, since the end of an attack is during the attack", async () => {
+    const s = await opponentAttacksWith("EX4-036");
+    await advance(s.engine).finishAttack();
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(offeredAlphamonToSeat(s, 1)).toBe(true);
+    expect(s.perm("alphamon").topCard.cardId).toBe(ALPHAMON);
+    expect(s.perm("alphamon").stack.map((card) => card.cardId)).toEqual(["BT13-077"]);
+    expect(s.perm("bystander").topCard.cardId).toBe("BT1-010");
+  });
+
+  it("stops being affected by an earlier opponent's DP reduction once an attack starts, and is affected again after it", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: ALPHAMON, as: "alphamon" }], security: ["BT1-009", "BT1-009"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    advance(s.engine).verb.enterEffectResolution(1, ["Option"]);
+    await advance(s.engine).verb.modifyDP(s.perm("alphamon").permanentId, -4000, EffectDuration.UntilEachTurnEnd);
+    advance(s.engine).verb.leaveEffectResolution();
+    expect(s.perm("alphamon").currentDP).toBe(12000);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"));
+    expect(s.perm("alphamon").currentDP).toBe(16000);
+
+    await advance(s.engine).finishAttack();
+    await advance(s.engine).recompute();
+    expect(s.perm("alphamon").currentDP).toBe(12000);
+  });
+
+  it("is not considered to have an opponent-given Security Attack -1 during its own attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: ALPHAMON, as: "alphamon" }] },
+        1: {
+          battleArea: [{ card: "ST3-11", as: "yellow" }],
+          hand: [{ card: "BT10-099", as: "option" }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+
+    s.state.turnSeat = 0;
+    await advance(s.engine).recompute();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("alphamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("does not trigger an opponent-given When Attacking effect, because it is unaffected when it attacks", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: ALPHAMON, as: "alphamon" },
+            { card: "BT1-010", as: "other" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-028" }],
+          hand: [{ card: "EX1-068", as: "option" }],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    await advance(s.engine).recompute();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("alphamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(5);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("other").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("cannot Arts Digivolve after its Option effect DNA digivolved into this card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-075", as: "alpha" },
+            { card: "BT8-069", as: "ouryu" },
+            { card: "BT13-077", as: "artsBase" },
+          ],
+          hand: [{ card: ALPHAMON, as: "result" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const artsBaseTop = s.perm("artsBase").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("result").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.resolvingOption === undefined && s.state.pendingDecision === undefined);
+
+    const result = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("result").instanceId,
+    );
+    expect(result?.stack.map((card) => card.cardId)).toEqual(["BT8-069", "BT13-075"]);
+    expect(s.perm("artsBase").topCard.instanceId).toBe(artsBaseTop);
+    expect(s.decisions.some(({ req }) => JSON.stringify(req).includes("Arts Digivolve"))).toBe(false);
+  });
 });

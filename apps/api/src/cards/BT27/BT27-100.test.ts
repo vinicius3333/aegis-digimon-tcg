@@ -168,3 +168,41 @@ describe("Hjaðningar Waltz", () => {
     expect(s.state.players[0]!.hand.map((c) => c.cardId)).toEqual(["BT27-100"]);
   });
 });
+
+describe("Hjaðningar Waltz official rulings", () => {
+  it("gives the attack effect to a Digimon that is unaffected on its own turn, where the effect does not trigger", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-055" }],
+          hand: [{ card: "BT27-100", as: "option" }],
+          security: ["BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "AD1-008", as: "immune", under: ["BT12-089"] }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT27-100") && !s.state.pendingDecision,
+    );
+    expect(s.state.memory).toBe(7);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    await advance(s.engine).fireGlobal(EffectTiming.OnStartMainPhase);
+    await settleAcrossTimers(() => s.events.some((e) => e.kind === "attackDeclared"), 50);
+
+    expect(s.events.some((e) => e.kind === "attackDeclared")).toBe(false);
+    expect(s.perm("immune").isSuspended).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+  });
+});

@@ -269,3 +269,68 @@ describe("BT27-102 Bio Hybrid Digivolution — Security", () => {
     expect(battleAreaIds(s, 0)).not.toContain(s.inst("candidate").instanceId);
   });
 });
+
+describe("BT27-102 Bio Hybrid Digivolution official rulings", () => {
+  const LOTOSMON = "BT27-055";
+  const TAMER_DIGIVOLUTION_WATCHER = "BT5-091";
+  const ALL_DIGIMON_CANT_DIGIVOLVE_EGG = "BT13-007";
+
+  const tamerDigivolutionBoard = (breeding?: string) =>
+    setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "option" },
+            { card: "BT27-092", as: "tamer" },
+            { card: TAMER_DIGIVOLUTION_WATCHER, as: "watcher" },
+          ],
+          ...(breeding === undefined ? {} : { breeding }),
+          hand: [{ card: LOTOSMON, as: "lotosmon" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "deleted" },
+            { card: "BT1-010", as: "survivor" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+  const deleteAndDigivolveTamer = async (s: ReturnType<typeof setupEngine>) => {
+    s.state.memory = 4;
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("deleted").permanentId]);
+    await settle(() => s.state.pendingDecision === undefined);
+  };
+
+  it("digivolves from the Tamer and still triggers the new Digimon's own When Digivolving effect", async () => {
+    const s = tamerDigivolutionBoard();
+    await deleteAndDigivolveTamer(s);
+
+    expect(s.perm("tamer").topCard.instanceId).toBe(s.inst("lotosmon").instanceId);
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([s.inst("tamer").instanceId]);
+    expect(s.state.memory).toBe(4);
+    expect(s.perm("survivor").isSuspended).toBe(true);
+  });
+
+  it("digivolves from the Tamer without triggering when-a-Digimon-digivolves effects", async () => {
+    const s = tamerDigivolutionBoard();
+    await deleteAndDigivolveTamer(s);
+
+    expect(s.perm("tamer").topCard.instanceId).toBe(s.inst("lotosmon").instanceId);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.perm("watcher").isSuspended).toBe(false);
+  });
+
+  it("still digivolves from the Tamer while a Digimon-can't-digivolve effect is active", async () => {
+    const s = tamerDigivolutionBoard(ALL_DIGIMON_CANT_DIGIVOLVE_EGG);
+    await deleteAndDigivolveTamer(s);
+
+    expect(s.perm("tamer").topCard.instanceId).toBe(s.inst("lotosmon").instanceId);
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([s.inst("tamer").instanceId]);
+  });
+});

@@ -292,3 +292,41 @@ describe("Mamemon (X Antibody) inherited deletion response", () => {
     expect(battleCardIds(s, 1)).toEqual(["BT6-063", "BT1-010", "BT1-010"]);
   });
 });
+
+describe("Mamemon (X Antibody) official rulings", () => {
+  it("makes the Digimon given Rush attack without a second chance to decline", async () => {
+    const s = await digivolveMamemonX(
+      {
+        0: {
+          battleArea: [
+            { card: "BT6-063", as: "host" },
+            { card: "BT6-063", as: "attacker" },
+          ],
+          hand: [{ card: "BT27-065", as: "mamemonX" }],
+        },
+        1: { security: ["BT1-010", "BT1-010"] },
+      },
+      { accept: true, prefer: "attacker" },
+    );
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT27-065")).toHaveLength(1);
+    expect(s.events.filter(({ kind }) => kind === "attackDeclared")).toHaveLength(1);
+    expect(trashCardIds(s, 0)).toEqual(["BT6-063"]);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("chooses an undeletable lowest DP Digimon and then trashes the top security card", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT27-065", as: "mamemonX" }] },
+        1: { battleArea: [{ card: "BT14-062", as: "protected" }], security: ["BT1-010", "BT6-063"] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("mamemonX").permanentId]);
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(battleCardIds(s, 1)).toEqual(["BT14-062"]);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(trashCardIds(s, 1)).toHaveLength(1);
+  });
+});

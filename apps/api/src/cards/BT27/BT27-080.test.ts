@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { advance } from "#api/engine/testkit/advance";
 import "#api/cards/index";
+import { expectDelayCannotUseHandMainRoute } from "#api/cards/P/qaRulings2.testSupport";
 
 describe("ScourgeChiropmon removal and inherited revival", () => {
   it.each([true, false])(
@@ -278,5 +279,39 @@ describe("ScourgeChiropmon removal and inherited revival", () => {
         expect.objectContaining({ timing: "OnPlay", effectText: `${deletion} ${gain}`, effectTextEmphasis: emphasis }),
       );
     }
+  });
+});
+
+describe("official rulings", () => {
+  it.each([
+    ["hand", 1],
+    ["trash", 0],
+  ] as const)("offers its hand evolution only while the card is in the %s", async (zone, offered) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT27-073", "BT26-095"],
+          [zone]: [{ card: "BT27-080", as: "card" }, ...(zone === "trash" ? ["BT26-070"] : [])],
+          ...(zone === "hand" ? { trash: ["BT26-070"] } : {}),
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const effects: unknown[] = JSON.parse(s.inst("card").activatableEffectsJson || "[]");
+    expect(effects).toHaveLength(offered);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("cannot use its hand evolution through Wisdom Training's digivolution", async () => {
+    await expectDelayCannotUseHandMainRoute("P-108", {
+      host: "BT27-073",
+      tamer: "BT26-095",
+      material: "BT26-070",
+      target: "BT27-080",
+    });
   });
 });
