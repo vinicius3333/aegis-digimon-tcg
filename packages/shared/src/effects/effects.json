@@ -174054,8 +174054,8 @@
         "trigger": "AllTurns",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "onDeletionOf",
+            "kind": "Replacement",
+            "event": "wouldBeDeleted",
             "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
@@ -174065,6 +174065,7 @@
                   "count": 1
                 },
                 "from": ["digivolutionCards"],
+                "fromOwnDigivolutionStack": true,
                 "payCost": false,
                 "optional": true
               },
@@ -174078,11 +174079,11 @@
                   "count": 1
                 },
                 "from": ["digivolutionCards"],
+                "fromOwnDigivolutionStack": true,
                 "payCost": false,
                 "optional": true
               }
-            ],
-            "raw": "onDeletionOf"
+            ]
           },
           {
             "kind": "SubTrigger",
