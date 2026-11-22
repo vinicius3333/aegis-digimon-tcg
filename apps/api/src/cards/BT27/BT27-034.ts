@@ -91,7 +91,7 @@ export const compiled: CompiledCard = {
           kind: "Delete",
           effectTextPart:
             "[Main] Delete up to 9000 DP's total worth of your opponent's Digimon. For each of their Digimon and Tamers, add 3000 to this effect's DP maximum.",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all", upTo: true, totalDpCap: 9000 },
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all", totalDpCap: 9000 },
           totalDpCapScaling: {
             per: 1,
             filter: { controller: "opponent", kind: ["Digimon", "Tamer"] },

@@ -4,9 +4,11 @@ import fixture from "#api/engine/scenarios/flame-deletion-stack.fixture";
 import { setupScenario } from "#api/engine/testkit/scenario";
 import { advance } from "#api/engine/testkit/advance";
 import { assertNoLoudGap, setupEngine, settle } from "#api/engine/testkit/harness";
+import { observe } from "#api/engine/testkit/observe";
 import "#api/cards/BT27/BT27-012";
 import "#api/cards/BT27/BT27-010";
 import "#api/cards/BT27/BT27-007";
+import "#api/cards/BT22/BT22-078";
 
 function activateMain(s: ReturnType<typeof setupEngine>) {
   return s.engine.applyIntent(0, {
@@ -125,5 +127,38 @@ describe("SkullMeramon deletion effects", () => {
     expect(s.state.memory).toBe(valid ? 2 : 5);
     expect(s.perm("base").topCard.cardId).toBe(valid ? "BT27-012" : base);
     assertNoLoudGap(s);
+  });
+});
+
+describe("official rulings", () => {
+  it("lets Boltmon activate only SkullMeramon's inherited On Deletion effect through the gained Main effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT22-078", as: "boltmon", under: [{ card: "BT27-012", as: "skullMeramon" }] }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "lowest" }],
+          security: [{ card: "BT1-009", as: "securityTop" }, "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const gainedMain = (
+      observe(s.engine).activatableEffects(s.perm("boltmon")) as { instanceId: string; effectKey: string }[]
+    ).find((entry) => entry.instanceId === s.inst("skullMeramon").instanceId);
+    expect(gainedMain).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("skullMeramon").instanceId,
+        effectKey: gainedMain!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !s.state.pendingDecision);
+    expect(s.decisions.some(({ req }) => req.kind === "chooseOption")).toBe(false);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("securityTop").instanceId]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.memory).toBe(4);
   });
 });

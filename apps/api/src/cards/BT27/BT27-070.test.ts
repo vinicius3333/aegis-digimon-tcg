@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectDuration, EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { advance } from "#api/engine/testkit/advance";
 import "#api/cards/index";
@@ -535,5 +536,123 @@ describe("Craniamon (X Antibody)", () => {
     );
     expect(s.perm("source").currentDP).toBe(18000);
     expect(s.perm("source").isSuspended).toBe(false);
+  });
+});
+
+describe("Craniamon (X Antibody) official rulings", () => {
+  async function useOptionFromHand(board: Parameters<typeof setupEngine>[0]) {
+    const s = setupEngine(board, {
+      autoAcceptOptional: true,
+      autoSelectCards: true,
+      declinePrompts: ["Arts Digivolve"],
+    });
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("option").instanceId));
+    return s;
+  }
+
+  it("does not count activating the Option side as using an Option card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT27-070", as: "source", under: ["BT3-075"] },
+            { card: "BT1-009", under: ["P-046"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Delete"] },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    await advance(s.engine).verb.suspend([s.perm("source").permanentId]);
+    await settle(() => !s.state.pendingDecision);
+    expect(s.perm("source").currentDP).toBe(18000);
+    expect(s.perm("source").topCard.cardId).toBe("BT27-070");
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("counts as a Royal Knight trait Option card for King Drasil", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT27-104", as: "tamer" },
+            { card: "ST5-08", as: "blocker" },
+          ],
+          hand: [{ card: "BT27-070", as: "option" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1, declinePrompts: ["Arts Digivolve"] },
+    );
+    await s.ready();
+    s.state.memory = 4;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("tamer"));
+    await settle(() => !s.state.pendingDecision);
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT27-070"]);
+    expect(s.perm("blocker").currentDP).toBe(10000);
+  });
+
+  it("gives the bonus to a Digimon that gained Blocker from an inherited effect", async () => {
+    const s = await useOptionFromHand({
+      0: {
+        battleArea: [{ card: "BT2-056", as: "host", under: ["BT26-053"], suspended: true }],
+        hand: [{ card: "BT27-070", as: "option" }],
+      },
+    });
+    expect([...s.perm("host").keywords]).toContain("Blocker");
+    expect(s.perm("host").currentDP).toBe(8000);
+  });
+
+  it("can still be chosen by an opponent's Digimon effect it isn't affected by", async () => {
+    const s = await useOptionFromHand({
+      0: {
+        battleArea: [{ card: "BT27-070", as: "source" }],
+        hand: [{ card: "BT27-070", as: "option" }],
+      },
+      1: { hand: [{ card: "BT25-049", as: "suspender" }] },
+    });
+    expect(s.perm("source").currentDP).toBe(18000);
+    expect(s.perm("source").immuneToOpponentDigimonEffects).toBe(true);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1 && !s.state.pendingDecision);
+    const sourceIds = [s.perm("source").permanentId, s.perm("source").topCard.instanceId];
+    const choice = s.decisions.find(({ req }) => req.kind === "chooseTargets" && req.sourceCardId === "BT25-049");
+    expect(choice?.req.options?.candidateInstanceIds?.some((id) => sourceIds.includes(id))).toBe(true);
+    expect(s.perm("source").isSuspended).toBe(false);
+  });
+
+  it("stops an opponent's Digimon DP reduction as soon as it gains the immunity", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT27-070", as: "source", suspended: true }],
+          hand: [{ card: "BT27-070", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Arts Digivolve"] },
+    );
+    await s.ready();
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    await advance(s.engine).verb.modifyDP(s.perm("source").permanentId, -3000, EffectDuration.UntilOpponentTurnEnd);
+    advance(s.engine).verb.leaveEffectResolution();
+    expect(s.perm("source").currentDP).toBe(10000);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("option").instanceId));
+    expect(s.perm("source").currentDP).toBe(18000);
   });
 });

@@ -141,6 +141,69 @@ describe("AD1-015 Beowolfmon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(false);
   });
 
+  it.each([
+    { zone: "hand" as const, tamer: "BT18-091" },
+    { zone: "trash" as const, tamer: "BT18-094" },
+    { zone: "hand" as const, tamer: "AD1-023" },
+  ])("plays $tamer from the $zone after the attack without paying the cost", async ({ zone, tamer }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-015", as: "beowolf" }],
+          hand: zone === "hand" ? [{ card: tamer, as: "tamer" }] : [],
+          trash: zone === "trash" ? [{ card: tamer, as: "tamer" }] : [],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { security: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("beowolf").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "attackEnded") && s.state.pendingDecision === undefined);
+
+    const tamerId = s.inst("tamer").instanceId;
+    const player = s.state.players[0]!;
+    expect(player.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(tamerId);
+    expect([...player.hand, ...player.trash].some((card) => card.instanceId === tamerId)).toBe(false);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("does not offer a Tamer outside yellow, black and purple after the attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-015", as: "beowolf" }],
+          hand: [{ card: "BT17-083", as: "koji" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { security: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("beowolf").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "attackEnded") && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("koji").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
   it("inherits the when-attacking -4000 DP effect", async () => {
     const s = setupEngine(
       {

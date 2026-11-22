@@ -9,12 +9,14 @@ if (!connectionString?.startsWith("postgres://postgres@127.0.0.1:55439/")) {
   throw new Error("Sealed migration tests require isolated loopback Postgres 55439");
 }
 
-const sealedIds = ["059-private-sealed", "060-private-sealed-results"];
+const sealedIds = ["062-private-sealed", "063-private-sealed-results"];
 
 it("appends canonical sealed migrations after the complete upstream registry", () => {
-  expect(migrations.slice(-4).map((migration) => migration.id)).toEqual([
+  expect(migrations.slice(-6).map((migration) => migration.id)).toEqual([
     "057-deck-matchup-results",
     "058-optional-ranked-region",
+    "059-competitive-archetypes",
+    "060-tournament-beta-cards",
     ...sealedIds,
   ]);
   const ids = migrations.map((migration) => migration.id);
@@ -22,14 +24,15 @@ it("appends canonical sealed migrations after the complete upstream registry", (
   expect(ids).toEqual([...ids].sort());
 });
 
-for (const upgrade of [false, true]) {
-  it(`applies canonical sealed migrations on ${upgrade ? "an upstream 057 upgrade" : "a fresh installation"}`, async () => {
+for (const upgradeFrom of [undefined, "057", "060"]) {
+  const upgrade = upgradeFrom !== undefined;
+  it(`applies canonical sealed migrations on ${upgrade ? `an upstream ${upgradeFrom} upgrade` : "a fresh installation"}`, async () => {
     const schema = `sealed_migrations_${randomUUID().replaceAll("-", "")}`;
     const admin = new Pool({ connectionString });
     const pool = new Pool({ connectionString, options: `-c search_path=${schema}` });
     try {
       await admin.query(`CREATE SCHEMA ${schema}`);
-      const existing = migrations.filter((migration) => migration.id < "058");
+      const existing = migrations.filter((migration) => migration.id.slice(0, 3) <= (upgradeFrom ?? ""));
       if (upgrade) {
         expect(await runMigrations(pool, existing)).toEqual(existing.map((migration) => migration.id));
         await pool.query("INSERT INTO accounts (id, display_name, created_at) VALUES ($1, 'Retained', 1)", [
@@ -41,7 +44,7 @@ for (const upgrade of [false, true]) {
         );
       }
       expect(await runMigrations(pool, migrations)).toEqual(
-        upgrade ? ["058-optional-ranked-region", ...sealedIds] : migrations.map((migration) => migration.id),
+        migrations.filter((migration) => !existing.includes(migration)).map((migration) => migration.id),
       );
       expect((await pool.query("SELECT id FROM schema_migrations ORDER BY id")).rows.map((row) => row.id)).toEqual(
         migrations.map((migration) => migration.id),

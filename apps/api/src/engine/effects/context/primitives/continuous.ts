@@ -31,6 +31,7 @@ export interface ContinuousPrimitives {
       fromSourceKind?: string[];
       byOpponentEffectsOnly?: boolean;
       byEffectsOnly?: boolean;
+      exceptInBattle?: boolean;
       continuous?: boolean;
     },
   ): void;
@@ -51,6 +52,7 @@ export interface ContinuousPrimitives {
       fromSourceKind?: string[];
       byOpponentEffectsOnly?: boolean;
       byEffectsOnly?: boolean;
+      exceptInBattle?: boolean;
     },
   ): void;
   /**
@@ -121,6 +123,7 @@ export interface ContinuousPrimitives {
     playedPermanentId: string,
     timing?: "endOfOwnerTurn" | "endOfOpponentTurn" | "endOfCurrentTurn",
     sourceCardId?: string,
+    printedClause?: string,
   ): void;
   /**
    * Install a one-shot end-of-turn memory change for `seat` ("Gain 3 memory. At the end of

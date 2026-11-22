@@ -4,6 +4,7 @@ import { getDecisionEffectSummary } from "#api/engine/effects/interpreter/getDec
 import type { EffectContext } from "../../EffectContext.js";
 import { evaluateCondition } from "../conditions.js";
 import { canPayCost } from "../costs.js";
+import { isPrintedByCondition } from "../isPrintedByCondition.js";
 import { describeAction } from "../describe.js";
 import { runAction } from "../dispatch.js";
 import { scaleFactor } from "../scaling.js";
@@ -19,6 +20,7 @@ import {
   playableTokenRefs,
 } from "./play.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
+import { optionUseDefinition } from "#api/engine/effects/interpreter/actions/optionUseDefinition";
 import { prospectiveColorWaiver } from "#api/engine/effects/interpreter/actions/prospectiveColorWaiver";
 import { printedModalBullets, printedModalPreamble, splitPrintedClauses, type Action } from "@aegis/shared";
 
@@ -360,10 +362,13 @@ export async function runModal(ctx: EffectContext, action: Extract<Action, { kin
     for (let i = 0; i < rawChoose; i += 1) {
       const currentAvailable = availableOptionIndices(ctx, action);
       if (currentAvailable.length === 0) break;
-      const chosen = await askModalOption(ctx, action, currentAvailable, clauses, headerCtx, {
-        index: i + 1,
-        total: rawChoose,
-      });
+      const chosen =
+        action.options.length === 1
+          ? currentAvailable[0]!
+          : await askModalOption(ctx, action, currentAvailable, clauses, headerCtx, {
+              index: i + 1,
+              total: rawChoose,
+            });
       await runOption(ctx, action, chosen, clauses);
     }
     return false;
@@ -408,7 +413,10 @@ function canAttemptModalAction(ctx: EffectContext, action: Action): boolean {
   ) {
     return false;
   }
-  if (action.cost !== undefined && typeof action.cost !== "number" && !canPayCost(ctx, action.cost)) return false;
+  if (action.cost !== undefined && typeof action.cost !== "number") {
+    if (!canPayCost(ctx, action.cost)) return false;
+    if (isPrintedByCondition(action.cost)) return true;
+  }
   // A PlaceUnder is attemptable only when both an eligible card and a legal host exist.
   // Without this the modal is offered with no legal destination, the activation cost is
   // charged, and the placement silently no-ops (BT17-050 Q2803).
@@ -433,7 +441,12 @@ function canAttemptModalAction(ctx: EffectContext, action: Action): boolean {
     const target = applyPlayCostCeiling(ctx, action, action.target);
     const candidates = candidatesAllowedBySameNameRestriction(
       ctx,
-      playableCandidates(ctx, target, candidateLooseInstances(ctx, target, zones), action.chooseDualMode),
+      playableCandidates(
+        ctx,
+        target,
+        candidateLooseInstances(ctx, target, zones, optionUseDefinition),
+        action.chooseDualMode,
+      ),
     );
     return candidates.some((candidate) => !isEffectPlayProhibited(ctx, candidate));
   }

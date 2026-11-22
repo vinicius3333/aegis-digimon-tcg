@@ -1,5 +1,6 @@
 import { deckMatchupDe } from "@/i18n/deckMatchup.de";
 import { deckOddsDe } from "@/i18n/deckOdds.de";
+import { chatActionsDe } from "@/i18n/chatActions.de";
 import { tournamentCircuitsDe } from "@/i18n/tournamentCircuits.de";
 import { tournamentOfficialRequestDe } from "@/i18n/tournamentOfficialRequest.de";
 import { matchQueueDe } from "@/i18n/matchQueue.de";
@@ -326,10 +327,10 @@ const interfaceMessages = {
   "profile.page": "Seite {page}",
   "profile.stats.matches": "Matches",
   "profile.stats.wins": "Siege",
-  "profile.stats.humanMatches": "Matches gegen Menschen",
-  "profile.stats.humanWins": "Siege gegen Menschen",
+  "profile.stats.humanMatches": "Letzte Matches gegen Menschen",
+  "profile.stats.humanWins": "Letzte Siege gegen Menschen",
   "profile.stats.rateScope":
-    "Gespeicherter Verlauf gegen Menschen · Modus- und Gegnerfilter gelten · Der Ergebnisfilter betrifft nur die Liste · Ohne Bots.",
+    "Letzte {limit} Matches gegen Menschen plus gespeicherte Replays · Modus- und Gegnerfilter gelten · Der Ergebnisfilter betrifft nur die Liste · Ohne Bots.",
   "profile.stats.winRate": "Siegquote",
   "profile.stats.replays": "Gespeicherte Replays",
   "profile.changeAvatar": "Avatar ändern",
@@ -814,6 +815,7 @@ const interfaceMessages = {
   "common.export": "Exportieren",
   "game.hiddenCard": "Verdeckte Karte",
   "game.faceDownSource": "Verdeckt",
+  "game.faceDownSourceCount": "{count} verdeckt",
   "game.debugId": "Match-ID",
   "game.debugCopyFailed": "Kopieren fehlgeschlagen; markieren Sie die ID zum Kopieren.",
   "common.copy": "Kopieren",
@@ -1254,7 +1256,7 @@ const interfaceMessages = {
     "Dieser Raumcode ist falsch oder abgelaufen. Prüfen Sie den Code und versuchen Sie es erneut.",
   "game.accountRequired": "Melden Sie sich an, um dieser Partie beizutreten.",
   "game.alreadyInMatch":
-    "Ihr Konto ist bereits in einer anderen Partie. Beenden Sie sie oder schließen Sie andere Aegis-Tabs und versuchen Sie es erneut.",
+    "Ihr Konto ist bereits in einer anderen Partie. Setzen Sie sie hier fort oder beenden Sie sie zuerst. Eine Partie mit unterbrochener Verbindung gibt Ihr Konto innerhalb einer Minute frei.",
   "game.rankedSearchActive":
     "Ihr Konto sucht gerade eine Ranglistenpartie. Brechen Sie diese Suche ab und versuchen Sie es erneut.",
   "game.joinRefused": "Der Server hat den Beitritt abgelehnt. Kehren Sie zur Lobby zurück und versuchen Sie es erneut.",
@@ -1309,6 +1311,13 @@ const interfaceMessages = {
   "game.guestApproval.hostLeft": "Der Gastgeber hat den Raum vor Matchbeginn verlassen.",
   "game.tournamentCancelledTitle": "Turnier abgesagt",
   "game.tournamentCancelled": "Der Veranstalter hat dieses Turnier abgesagt. Dieses Spiel endet ohne Ergebnis.",
+  "lobby.turnOrder.label": "Zugreihenfolge",
+  "lobby.turnOrder.random": "Zufällig",
+  "lobby.turnOrder.hostFirst": "Gastgeber beginnt",
+  "lobby.turnOrder.hostSecond": "Gastgeber spielt als Zweiter",
+  "lobby.turnOrder.hint":
+    "Legt fest, wer in Spiel 1 den ersten Zug hat. In einem Best of 3 gilt für spätere Spiele die übliche Serienregel.",
+  "lobby.turnOrder.guest": "Zugreihenfolge in Spiel 1: {order}",
   "lobby.approval.label": "Zustimmung erforderlich",
   "lobby.approval.hint":
     "Wenn jemand mit Ihrem Code beitritt, sehen Sie, wer es ist, und können die Person vor Matchbeginn annehmen oder ablehnen.",
@@ -1417,7 +1426,8 @@ const interfaceMessages = {
   "game.matchLogDrag": "Zum Verschieben ziehen",
   "settings.matchLogDisplay": "Anzeige des Match-Protokolls",
   "settings.matchLogDisplayDesc":
-    "Wählen Sie, wie das Match zeigt, was passiert ist: kurze Einblendungen über dem Spielfeld, ein festes Protokoll am Spielfeldrand oder beides. Auf dem Handy bleiben die Einblendungen, das Protokoll öffnen Sie über die Schaltfläche.",
+    "Wählen Sie, wie das Match zeigt, was passiert ist: gar nicht, kurze Einblendungen über dem Spielfeld, ein festes Protokoll am Spielfeldrand oder beides. Auf dem Handy gibt es kein festes Protokoll; öffnen Sie es über die Protokoll-Schaltfläche.",
+  "settings.matchLogDisplayHidden": "Ausgeblendet",
   "settings.matchLogDisplayPopups": "Einblendungen",
   "settings.matchLogDisplayPanel": "Festes Protokoll",
   "settings.matchLogDisplayBoth": "Beides",
@@ -1481,6 +1491,7 @@ const interfaceMessages = {
   "game.fieldEffects.untilYourActivePhase": "Bis zu Ihrer Reaktivierungsphase",
   "game.fieldEffects.untilOpponentActivePhase": "Bis zur Reaktivierungsphase Ihres Gegners",
   "game.restriction.cannotAttack": "Kann nicht angreifen",
+  "game.restriction.cannotAttackPlayers": "Kann keine Spieler angreifen",
   "game.restriction.cannotPlayByEffects": "Kann nicht durch Effekte ausgespielt werden",
   "game.restriction.cannotPlay": "Kann nicht ausgespielt werden",
   "game.restriction.immuneToOpponentDigimonEffects": "Geschützt vor gegnerischen Digimon-Effekten",
@@ -1527,6 +1538,7 @@ const interfaceMessages = {
   "game.restriction.cannotBlock": "Kann nicht blockieren",
   "game.restriction.cannotSuspend": "Kann nicht suspendiert werden",
   "game.restriction.cannotUnsuspend": "Wird nicht reaktiviert",
+  "game.restriction.cannotUnsuspendAtAll": "Kann nicht reaktiviert werden",
   "game.restriction.cannotDigivolve": "Kann nicht digitieren",
   "game.restriction.cannotActivateWhenDigivolving": "Kein [When Digivolving]",
   "game.digivolutionSources": "{count} Digitationskarten",
@@ -1688,6 +1700,7 @@ const interfaceMessages = {
   "overlay.useEffectPrompt": "Diesen Effekt verwenden?",
   "overlay.choiceRevealedCards": "Aufgedeckte Karten",
   "overlay.choiceHandCards": "Betreffende Karte",
+  "overlay.cardToPlay": "Zu spielende Karte",
   "overlay.selectTargets": "{range} Ziel(e) wählen",
   "overlay.sourceCountOne": "{count} Digitationskarte",
   "overlay.sourceCountMany": "{count} Digitationskarten",
@@ -1758,6 +1771,10 @@ const interfaceMessages = {
     "Frühere Effekte stehen noch aus. Sie werden abgehandelt, sobald die Effekte oben erledigt sind.",
   "overlay.presetMandatory": "Pflicht",
   "overlay.triggerReason": "Ausgelöst durch: {reason}",
+  "overlay.triggerSubject": "Auslösende Karte: {name}",
+  "overlay.triggerOpponentEffect": "Effekt des Gegners",
+  "overlay.orderOpponentEffectsNote":
+    "Sie sind der Spieler am Zug und bestimmen die Reihenfolge dieser Effekte, auch die Ihres Gegners.",
   "overlay.presetLabel": "Antwort für die optionalen Entscheidungen von {name}",
   "overlay.triggerSourceField": "Feld",
   "overlay.triggerSourceInherited": "Vererbt an {name}",
@@ -1862,6 +1879,7 @@ const interfaceMessages = {
   "overlay.trashSort": "Ablage sortieren",
   "overlay.trashSortRecent": "Neueste zuerst",
   "overlay.trashSortName": "Nach Kartenname gruppieren",
+  "overlay.trashSortLevel": "Nach Level sortieren",
   "overlay.trashCount": "{count} Karten",
   "overlay.securityCount": "{faceUp} aufgedeckt von {count} Karten",
   "overlay.securityNoFaceUp": "keine aufgedeckten Karten",
@@ -2981,6 +2999,9 @@ const interfaceMessages = {
   "redesign.arena.restriction.attacksAtStartOfMainPhase":
     "Ein Effekt lässt dieses Digimon zu Beginn seiner Hauptphase angreifen, sofern möglich.",
   "redesign.arena.restriction.attacksAtStartOfMainPhaseGranted": "{card} gewährt: {clause}",
+  "redesign.arena.restriction.cannotAttackPlayers": "Ein Effekt verhindert, dass dieses Digimon Spieler angreift.",
+  "redesign.arena.restriction.cannotUnsuspendAtAll":
+    "Ein Effekt verhindert, dass dieses Digimon reaktiviert wird, sowohl in der Reaktivierungsphase als auch durch Effekte.",
   "redesign.arena.restriction.cannotAttack": "Ein Effekt verhindert, dass dieses Digimon angreift.",
   "redesign.arena.restriction.cannotBlock": "Ein Effekt verhindert, dass dieses Digimon blockt.",
   "redesign.arena.restriction.cannotSuspend": "Ein Effekt verhindert, dass dieses Digimon suspendiert wird.",
@@ -3008,6 +3029,9 @@ const interfaceMessages = {
   "chat.muteSpectators": "Zuschauer stumm schalten",
   "chat.sound": "Chat-Ton",
   "chat.soundDesc": "Spielt bei jeder neuen Nachricht Ihres Gegners oder der Zuschauer einen Ton.",
+  "chat.enabled": "Match-Chat",
+  "chat.enabledDesc":
+    "Zeigt in Matches den Chat-Button, Sprechblasen und Nachrichten an. Schalten Sie ihn aus, um den Chat vollständig auszublenden.",
   "chat.you": "Sie",
   "chat.spectator": "Zuschauer {number}",
   "chat.spectatorTag": "Zuschauer",
@@ -3135,6 +3159,7 @@ const interfaceMessages = {
   ...matchQueueDe,
   ...deckMatchupDe,
   ...deckOddsDe,
+  ...chatActionsDe,
   ...matchIntroDe,
   ...staffRolesDe,
   ...achievementsDe,

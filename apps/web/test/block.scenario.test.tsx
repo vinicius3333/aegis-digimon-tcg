@@ -113,18 +113,18 @@ scenario("block", () => {
     const agumonPermanentId = opponent.room.state.players[1]!.battleArea[0]!.permanentId;
     opponent.attack(agumonPermanentId, { kind: "player" });
 
-    // The centered block window lists each server-authorized blocker beside the
-    // decline action.
-    const blockPrompt = await screen.findByRole("dialog", { name: "Block window" }, { timeout: 10_000 });
-    expect(within(blockPrompt).getByRole("button", { name: /take the attack/i })).toBeTruthy();
-    const monmonBlockerButton = within(blockPrompt).getByRole("button", { name: /^monmon, 1,000 dp/i });
+    const blockPrompt = await screen.findByRole("region", { name: "Block window" }, { timeout: 10_000 });
+    expect(within(blockPrompt).getByRole("button", { name: /don't block/i })).toBeTruthy();
     const blocker = opponent.room.state.players[0]!.battleArea.find(
       (permanent) => permanent.topCard.cardId === "BT1-031",
     )!;
     const blockerId = blocker.permanentId;
     const blockerCardId = blocker.topCard.instanceId;
     expect(blocker.isSuspended).toBe(false);
-    fireEvent.click(monmonBlockerButton);
+    fireEvent.click(document.querySelector<HTMLElement>(`[data-drop="perm-you"][data-id="${blockerId}"]`)!);
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "Confirm block" })).getByRole("button", { name: "Block" }),
+    );
 
     // The attack is redirected onto Monmon instead of the protagonist's security —
     // the answered-outcome proof: security stays at 5 (never checked) while the

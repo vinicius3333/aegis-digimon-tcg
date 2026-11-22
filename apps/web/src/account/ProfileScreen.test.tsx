@@ -143,7 +143,8 @@ it("shows the identity header with totals and no tabs", async () => {
   );
   renderProfile();
   const stats = await screen.findByText("33%");
-  expect(stats.closest("dl")?.textContent).toBe("Human matches3Human wins1Win rate33%Replays saved4");
+  expect(stats.closest("dl")?.textContent).toBe("Recent human matches3Recent human wins1Win rate33%Replays saved4");
+  expect(screen.getByText(/^Last 100 matches against humans, plus saved replays · /)).toBeTruthy();
   expect(screen.getByRole("link", { name: "Preferences" }).getAttribute("href")).toBe("/settings");
   expect(screen.getByText("Account connected")).toBeTruthy();
   expect(screen.queryByRole("navigation", { name: "Profile sections" })).toBeNull();
@@ -688,4 +689,38 @@ it("compares deck records and opens the selected deck history without matchups",
   expect(screen.queryByRole("region", { name: "Deck matchups" })).toBeNull();
   expect(screen.queryByRole("tablist", { name: "Deck matchups" })).toBeNull();
   expect(load).toHaveBeenLastCalledWith(expect.objectContaining({ deckId: "serious", page: 1 }));
+});
+
+it("shows the ranked season section on a signed-in profile and not to a guest", async () => {
+  vi.spyOn(accountApi, "matches").mockResolvedValue(page([]));
+  const fetcher = vi.fn<typeof fetch>(async (input) =>
+    String(input).includes("/ranked/leaderboard")
+      ? new Response(
+          JSON.stringify({
+            season: { id: 2, startsAt: 0, endsAt: 1, finalized: false, formats: ["standard"] },
+            entries: [],
+            mine: null,
+            page: 1,
+            total: 0,
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        )
+      : new Response("{}", { status: 404, headers: { "Content-Type": "application/json" } }),
+  );
+  vi.stubGlobal("fetch", fetcher);
+  try {
+    renderProfile();
+    const section = await screen.findByRole("region", { name: "Ranked season" });
+    expect(within(section).getByText("Not yet ranked this season")).toBeTruthy();
+    expect(within(section).getByRole("link", { name: "View ranked details" }).getAttribute("href")).toBe("/ranked");
+
+    cleanup();
+    fetcher.mockClear();
+    renderProfile({ account: null });
+    expect(await screen.findByText("Guest Tamer")).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Ranked season" })).toBeNull();
+    expect(fetcher.mock.calls.some(([input]) => String(input).includes("/ranked/leaderboard"))).toBe(false);
+  } finally {
+    vi.unstubAllGlobals();
+  }
 });

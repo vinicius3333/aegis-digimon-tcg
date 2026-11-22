@@ -238,7 +238,10 @@ export function installAccountRoutes(
   const del = (path: string, handler: AsyncHandler) => app.delete(path, asyncRoute(handler));
   const limitDisplayNameChange = tokenBucketLimiter(DISPLAY_NAME_RATE_LIMIT);
   get("/auth/me", async (req, res) => {
-    const account = (await store.session(cookie(req, SESSION_COOKIE)))?.account;
+    const session = await store.session(cookie(req, SESSION_COOKIE));
+    const renewed = session && (await store.renewSession(session));
+    if (renewed) setSession(res, renewed);
+    const account = session?.account;
     res.json(account ? { ...account, discordLinked: Boolean(await store.discordUserId(account.id)) } : null);
   });
   // Every replica shares one Discord bot bucket of about 30 requests per window.
@@ -758,6 +761,7 @@ export function installAccountRoutes(
       allowBots: input.allowBots,
       randomBotStyles: input.randomBotStyles === true,
       roundStartMode: input.roundStartMode,
+      allowBetaCards: input.allowBetaCards === true,
       rules,
       banlistPolicy: input.banlist,
       banlistCards,
@@ -1153,6 +1157,7 @@ function toTournamentSummary(
     allowBots: tournament.allowBots,
     randomBotStyles: tournament.randomBotStyles,
     roundStartMode: tournament.roundStartMode,
+    allowBetaCards: tournament.allowBetaCards,
     startsAt: tournament.startsAt,
     maxPlayers: tournament.maxPlayers,
     registeredCount: tournament.registrations,

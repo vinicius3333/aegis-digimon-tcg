@@ -1,7 +1,7 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { placeAtStartOfMain } from "#api/cards/BT26/tamerStack.testSupport";
-import { identityVisibility, stackIds } from "#api/cards/ST24/tamerStack.testSupport";
+import { identityVisibility, stackIds, trashBottomTamerCardWithFalcomon } from "#api/cards/ST24/tamerStack.testSupport";
 import { advance } from "#api/engine/testkit/advance";
 import { assertNoLoudGap, settle, setupEngine } from "#api/engine/testkit/harness";
 import { compiled } from "#api/cards/BT27/BT27-091";
@@ -192,5 +192,17 @@ describe("BT27-091 Tomoro Tenma", () => {
       s.inst("securityTomoro").instanceId,
     ]);
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("BT27-091 official rulings", () => {
+  it("puts a face-down card trashed from under this Tamer face up in the trash", async () => {
+    const { s, placedId, finish } = await placeAtStartOfMain("BT27-091", "P-236");
+
+    const { trashed } = await trashBottomTamerCardWithFalcomon(s);
+
+    expect(trashed).toMatchObject({ instanceId: placedId, cardId: "P-236", faceUp: true });
+    expect(identityVisibility(s, trashed!)).toEqual({ owner: true, opponent: true });
+    await finish();
   });
 });

@@ -16,6 +16,8 @@ import { I18nProvider } from "../i18n";
 import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import { GameScreen } from "./GameScreen";
+import { MatchLogDisplay } from "@/game/log/MatchLogDisplay";
+import { matchLogDisplayPreference } from "@/game/log/matchLogDisplayPreference";
 import { Hand } from "./piece";
 import { DEFAULT_PACING, PACING_BY_STYLE, setBasePacing } from "./pacing";
 import type { VisibleBoard } from "./screen/model/visibleBoard";
@@ -80,6 +82,7 @@ function seats(
 
 beforeEach(() => {
   localStorage.clear();
+  matchLogDisplayPreference.set(MatchLogDisplay.POPUPS.value);
   setPileCountsShown(true);
   vi.useFakeTimers();
   setBasePacing(PACING_BY_STYLE.sequential);

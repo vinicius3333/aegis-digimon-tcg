@@ -41,8 +41,11 @@ describe("breeding area on the 3D field", () => {
   });
 
   it("dims the DOM above the canvas during the breeding step but leaves the viewer's eggs and raising slots lit", () => {
-    const start = fieldStyles.indexOf(":has(.arena-3d-field > .game-breeding-mode)");
+    const start = fieldStyles.indexOf(
+      '.game-board[data-board-style="arena3d"][data-arena-3d-live][data-breeding-mode]',
+    );
     expect(start).toBeGreaterThan(-1);
+    expect(boardStageSource).toContain("data-breeding-mode={guards.breedingActionsOpen || undefined}");
     const rule = fieldStyles.slice(start, fieldStyles.indexOf("}", start));
     expect(rule).toContain("filter: brightness(0.38) !important");
     expect(rule).toContain(".game-player-dock");
@@ -72,5 +75,18 @@ describe("breeding area on the 3D field", () => {
     const selector = ".game-field > .arena-3d-field > .game-breeding-dock > .game-breeding-hint";
     expect(portraitStyles).toContain(selector);
     expect(redesignPortraitStyles).toContain(selector);
+  });
+});
+
+describe("security count on the 3D field", () => {
+  it("centers the count on its pile instead of the phone grid column the 2D board uses", () => {
+    expect(portraitStyles).toMatch(/\.game-board \.game-security-shield__count \{[^}]*grid-area:\s*1 \/ 3/);
+    const selector =
+      '.game-board[data-board-style="arena3d"][data-arena-3d-live] .arena-3d-field .game-security-shield__count {';
+    const start = fieldStyles.indexOf(selector);
+    expect(start).toBeGreaterThan(-1);
+    const rule = fieldStyles.slice(start, fieldStyles.indexOf("}", start));
+    expect(rule).toContain("grid-area: auto !important");
+    expect(rule).toContain("inset: auto auto -0.5rem 50% !important");
   });
 });

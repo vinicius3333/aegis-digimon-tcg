@@ -1,6 +1,6 @@
 import type { Migration } from "#api/db/migrator";
 export const privateSealed: Migration = {
-  id: "059-private-sealed",
+  id: "062-private-sealed",
   up: `CREATE TABLE private_sealed_series (
     id uuid PRIMARY KEY,
     code text NOT NULL UNIQUE,

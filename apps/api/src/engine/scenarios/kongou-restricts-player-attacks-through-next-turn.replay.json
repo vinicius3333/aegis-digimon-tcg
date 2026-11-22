@@ -1501,6 +1501,21 @@
       "stateVersion": 226
     },
     {
+      "kind": "intent",
+      "seat": 0,
+      "intent": {
+        "type": "respondDecision",
+        "decisionId": "dec-37",
+        "response": {
+          "kind": "chooseTargets",
+          "instanceIds": ["perm-1"]
+        }
+      },
+      "ok": true,
+      "stateVersion": 229,
+      "engineEvents": 333
+    },
+    {
       "ok": true,
       "kind": "intent",
       "seat": 0,
@@ -1533,7 +1548,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-37"
+        "decisionId": "dec-38"
       },
       "engineEvents": 341,
       "stateVersion": 237
@@ -1548,7 +1563,7 @@
           "kind": "selectCards",
           "instanceIds": ["s0-44"]
         },
-        "decisionId": "dec-38"
+        "decisionId": "dec-39"
       },
       "engineEvents": 342,
       "stateVersion": 238
@@ -1563,7 +1578,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-39"
+        "decisionId": "dec-40"
       },
       "engineEvents": 350,
       "stateVersion": 243
@@ -1589,7 +1604,7 @@
           "kind": "selectCards",
           "instanceIds": ["s0-42"]
         },
-        "decisionId": "dec-40"
+        "decisionId": "dec-41"
       },
       "engineEvents": 358,
       "stateVersion": 247
@@ -1628,7 +1643,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-41"
+        "decisionId": "dec-42"
       },
       "engineEvents": 371,
       "stateVersion": 258
@@ -1643,7 +1658,7 @@
           "kind": "chooseTargets",
           "instanceIds": ["perm-12"]
         },
-        "decisionId": "dec-42"
+        "decisionId": "dec-43"
       },
       "engineEvents": 371,
       "stateVersion": 258
@@ -1658,7 +1673,7 @@
           "kind": "selectCards",
           "instanceIds": ["s0-1"]
         },
-        "decisionId": "dec-43"
+        "decisionId": "dec-44"
       },
       "engineEvents": 371,
       "stateVersion": 258
@@ -1673,7 +1688,7 @@
           "kind": "chooseOption",
           "optionIndex": 1
         },
-        "decisionId": "dec-44"
+        "decisionId": "dec-45"
       },
       "engineEvents": 371,
       "stateVersion": 258
@@ -1688,7 +1703,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-45"
+        "decisionId": "dec-46"
       },
       "engineEvents": 377,
       "stateVersion": 261
@@ -1703,7 +1718,7 @@
           "kind": "selectCards",
           "instanceIds": ["s0-42"]
         },
-        "decisionId": "dec-46"
+        "decisionId": "dec-47"
       },
       "engineEvents": 377,
       "stateVersion": 261
@@ -1730,7 +1745,7 @@
           "kind": "selectCards",
           "instanceIds": ["s1-38"]
         },
-        "decisionId": "dec-47"
+        "decisionId": "dec-48"
       },
       "engineEvents": 390,
       "stateVersion": 270
@@ -1745,7 +1760,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-48"
+        "decisionId": "dec-49"
       },
       "engineEvents": 392,
       "stateVersion": 272
@@ -1760,7 +1775,7 @@
           "kind": "selectCards",
           "instanceIds": ["s0-39"]
         },
-        "decisionId": "dec-49"
+        "decisionId": "dec-50"
       },
       "engineEvents": 393,
       "stateVersion": 273
@@ -1775,7 +1790,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-50"
+        "decisionId": "dec-51"
       },
       "engineEvents": 402,
       "stateVersion": 281
@@ -1790,7 +1805,7 @@
           "kind": "orderTriggers",
           "order": ["s1-13::subtrigger/opt/s1-13/printed/EX13-062/ir-35-1/s1-13/EX13-062/ir-35-1/0"]
         },
-        "decisionId": "dec-51"
+        "decisionId": "dec-52"
       },
       "engineEvents": 406,
       "stateVersion": 285
@@ -1805,7 +1820,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-52"
+        "decisionId": "dec-53"
       },
       "engineEvents": 407,
       "stateVersion": 286
@@ -1820,7 +1835,7 @@
           "kind": "orderTriggers",
           "order": ["s1-7::subtrigger/opt/s1-7/printed/EX13-051/ir-35-2/s1-7/EX13-051/ir-35-2/0"]
         },
-        "decisionId": "dec-53"
+        "decisionId": "dec-54"
       },
       "engineEvents": 411,
       "stateVersion": 290
@@ -1835,7 +1850,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-54"
+        "decisionId": "dec-55"
       },
       "engineEvents": 412,
       "stateVersion": 291
@@ -1874,7 +1889,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-55"
+        "decisionId": "dec-56"
       },
       "engineEvents": 432,
       "stateVersion": 307
@@ -1889,7 +1904,7 @@
           "kind": "chooseTargets",
           "instanceIds": ["perm-20"]
         },
-        "decisionId": "dec-56"
+        "decisionId": "dec-57"
       },
       "engineEvents": 433,
       "stateVersion": 308
@@ -1904,7 +1919,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-57"
+        "decisionId": "dec-58"
       },
       "engineEvents": 437,
       "stateVersion": 311
@@ -1964,7 +1979,7 @@
           "kind": "chooseTargets",
           "instanceIds": ["perm-20"]
         },
-        "decisionId": "dec-58"
+        "decisionId": "dec-59"
       },
       "engineEvents": 461,
       "stateVersion": 330
@@ -1979,7 +1994,7 @@
           "kind": "chooseTargets",
           "instanceIds": ["perm-1"]
         },
-        "decisionId": "dec-59"
+        "decisionId": "dec-60"
       },
       "engineEvents": 464,
       "stateVersion": 333
@@ -2009,7 +2024,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-60"
+        "decisionId": "dec-61"
       },
       "engineEvents": 473,
       "stateVersion": 342
@@ -2024,7 +2039,7 @@
           "kind": "selectCards",
           "instanceIds": ["s0-44"]
         },
-        "decisionId": "dec-61"
+        "decisionId": "dec-62"
       },
       "engineEvents": 476,
       "stateVersion": 345
@@ -2039,7 +2054,7 @@
           "kind": "selectCards",
           "instanceIds": ["s0-1"]
         },
-        "decisionId": "dec-62"
+        "decisionId": "dec-63"
       },
       "engineEvents": 479,
       "stateVersion": 348
@@ -2060,7 +2075,7 @@
       "seat": 0,
       "intent": {
         "type": "respondDecision",
-        "decisionId": "dec-63",
+        "decisionId": "dec-64",
         "response": {
           "kind": "optional",
           "accept": false
@@ -2120,6 +2135,21 @@
       "stateVersion": 376
     },
     {
+      "kind": "intent",
+      "seat": 0,
+      "intent": {
+        "type": "respondDecision",
+        "decisionId": "dec-65",
+        "response": {
+          "kind": "chooseTargets",
+          "instanceIds": ["perm-22"]
+        }
+      },
+      "ok": true,
+      "stateVersion": 379,
+      "engineEvents": 519
+    },
+    {
       "ok": true,
       "kind": "intent",
       "seat": 0,
@@ -2140,7 +2170,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-64"
+        "decisionId": "dec-66"
       },
       "engineEvents": 522,
       "stateVersion": 382
@@ -2155,7 +2185,7 @@
           "kind": "selectCards",
           "instanceIds": ["s0-43"]
         },
-        "decisionId": "dec-65"
+        "decisionId": "dec-67"
       },
       "engineEvents": 523,
       "stateVersion": 383
@@ -2170,7 +2200,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-66"
+        "decisionId": "dec-68"
       },
       "engineEvents": 531,
       "stateVersion": 388
@@ -2199,7 +2229,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-67"
+        "decisionId": "dec-69"
       },
       "engineEvents": 539,
       "stateVersion": 393
@@ -2214,7 +2244,7 @@
           "kind": "selectCards",
           "instanceIds": ["s0-9"]
         },
-        "decisionId": "dec-68"
+        "decisionId": "dec-70"
       },
       "engineEvents": 539,
       "stateVersion": 393
@@ -2255,7 +2285,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-69"
+        "decisionId": "dec-71"
       },
       "engineEvents": 557,
       "stateVersion": 408
@@ -2283,7 +2313,7 @@
             "s0-42::subtrigger/opt/s0-42/printed/EX7-058/ir-35-0/s0-42/EX7-058/ir-35-0/0/occurrence/onDeletionOf%7Cperm-17%7Cs0-42%7ConDeletionOf%7Cs0-42%2Fprinted%2FEX7-058%2Fir-35-0%7Cs0-42%2FEX7-058%2Fir-35-0%2F0%7Cleave%3Aperm-22"
           ]
         },
-        "decisionId": "dec-70"
+        "decisionId": "dec-72"
       },
       "engineEvents": 571,
       "stateVersion": 421
@@ -2298,7 +2328,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-71"
+        "decisionId": "dec-73"
       },
       "engineEvents": 572,
       "stateVersion": 422
@@ -2313,7 +2343,7 @@
           "kind": "selectCards",
           "instanceIds": ["s0-38"]
         },
-        "decisionId": "dec-72"
+        "decisionId": "dec-74"
       },
       "engineEvents": 573,
       "stateVersion": 423
@@ -2328,7 +2358,7 @@
           "kind": "selectCards",
           "instanceIds": ["s1-11"]
         },
-        "decisionId": "dec-73"
+        "decisionId": "dec-75"
       },
       "engineEvents": 577,
       "stateVersion": 426
@@ -2343,7 +2373,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-74"
+        "decisionId": "dec-76"
       },
       "engineEvents": 579,
       "stateVersion": 428
@@ -2358,7 +2388,7 @@
           "kind": "selectCards",
           "instanceIds": ["s0-39"]
         },
-        "decisionId": "dec-75"
+        "decisionId": "dec-77"
       },
       "engineEvents": 580,
       "stateVersion": 429
@@ -2373,7 +2403,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-76"
+        "decisionId": "dec-78"
       },
       "engineEvents": 586,
       "stateVersion": 434
@@ -2388,7 +2418,7 @@
           "kind": "selectCards",
           "instanceIds": ["s0-22"]
         },
-        "decisionId": "dec-77"
+        "decisionId": "dec-79"
       },
       "engineEvents": 587,
       "stateVersion": 435
@@ -2436,7 +2466,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-78"
+        "decisionId": "dec-80"
       },
       "engineEvents": 605,
       "stateVersion": 449
@@ -2451,7 +2481,7 @@
           "kind": "chooseTargets",
           "instanceIds": ["perm-26"]
         },
-        "decisionId": "dec-79"
+        "decisionId": "dec-81"
       },
       "engineEvents": 606,
       "stateVersion": 450
@@ -2466,7 +2496,7 @@
           "kind": "optional",
           "accept": true
         },
-        "decisionId": "dec-80"
+        "decisionId": "dec-82"
       },
       "engineEvents": 612,
       "stateVersion": 454
@@ -2511,7 +2541,7 @@
           "kind": "orderTriggers",
           "order": ["s0-33::BT16-069/ir-12-0"]
         },
-        "decisionId": "dec-81"
+        "decisionId": "dec-83"
       },
       "engineEvents": 619,
       "stateVersion": 461
@@ -2526,7 +2556,7 @@
           "kind": "selectCards",
           "instanceIds": ["s0-23"]
         },
-        "decisionId": "dec-82"
+        "decisionId": "dec-84"
       },
       "engineEvents": 621,
       "stateVersion": 463
@@ -2541,7 +2571,7 @@
           "kind": "orderTriggers",
           "order": ["s0-41::EX8-058/ir-12-0"]
         },
-        "decisionId": "dec-83"
+        "decisionId": "dec-85"
       },
       "engineEvents": 625,
       "stateVersion": 467
@@ -2556,7 +2586,7 @@
           "kind": "orderTriggers",
           "order": ["s0-24::BT16-066/ir-12-0"]
         },
-        "decisionId": "dec-84"
+        "decisionId": "dec-86"
       },
       "engineEvents": 628,
       "stateVersion": 470
@@ -2571,7 +2601,7 @@
           "kind": "selectCards",
           "instanceIds": ["s0-21"]
         },
-        "decisionId": "dec-85"
+        "decisionId": "dec-87"
       },
       "engineEvents": 630,
       "stateVersion": 472
@@ -2592,6 +2622,5 @@
       "stateVersion": 479
     }
   ],
-  "matchId": "34835abc-0754-4bea-9a5c-7a04a392f1ff",
-  "serverRevision": "4a69cc407dc05ef710a554b1dc9d136a7e534543"
+  "matchId": "34835abc-0754-4bea-9a5c-7a04a392f1ff"
 }

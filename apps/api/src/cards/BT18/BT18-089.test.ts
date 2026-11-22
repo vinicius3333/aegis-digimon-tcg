@@ -20,7 +20,7 @@ describe("BT18-089 Tommy Himi", () => {
           kind: "TrashDigivolution",
           amount: 1,
           fromTop: false,
-          target: { filter: { controller: "opponent", digivolutionCards: "hasAny" } },
+          target: { filter: { controller: "opponent" } },
         },
         { kind: "Draw", amount: 1, condition: { kind: "opponentHasNone" } },
       ],

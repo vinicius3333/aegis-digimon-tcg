@@ -43,7 +43,7 @@ describe("EX5-019 Antylamon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")?.actions).toEqual([
       {
         kind: "TrashDigivolution",
-        target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: 1 },
+        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
         amount: 1,
         fromTop: false,
       },

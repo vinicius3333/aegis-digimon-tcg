@@ -17,8 +17,9 @@ import { candidateLooseInstances, looseCardsInZone } from "../targeting/loose.js
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, EffectTiming } from "@aegis/shared";
 import { MemoryGauge } from "../../../MemoryGauge.js";
+import { optionUseDefinition } from "#api/engine/effects/interpreter/actions/optionUseDefinition";
 import { createLenderCardSource } from "#api/engine/effects/interpreter/actions/createLenderCardSource";
-import type { Action, CardDefinition, CardEffect, EffectTrigger, Filter, Seat, ZoneRef } from "@aegis/shared";
+import type { Action, CardEffect, EffectTrigger, Filter, Seat, ZoneRef } from "@aegis/shared";
 
 /** A foreign card eligible to lend a borrowed effect (its instance + the borrowable effects). */
 interface ForeignCandidate {
@@ -386,6 +387,7 @@ export async function runActivateForeignEffect(
             activeTiming: eff.trigger,
             activeEffectText: eff.description ?? describeEffect(eff),
             activeEffectTextCardId: borrowed.sourceCardId,
+            printedEffectCardId: borrowed.sourceCardId,
           },
           eff,
         );
@@ -461,14 +463,6 @@ export async function runActivateEffect(
  * then goes to trash (the `playInstances` `isPermanentKind` gap). The use RESULT binds on
  * `ctx.lastOptionUsed` at use-time (KB EX8-037 Q4738) so an `ifThisEffectUsed` tail can gate.
  */
-// Loose DUAL cards carry both sides' colors in the catalog. When selecting an
-// Option to use, color predicates (including single-color) read its Option face.
-function optionUseDefinition(definition: CardDefinition): CardDefinition {
-  return definition.isDualCard && definition.optionColorRequirements !== undefined
-    ? { ...definition, colors: definition.optionColorRequirements }
-    : definition;
-}
-
 function optionUseCandidates(
   ctx: EffectContext,
   action: Extract<Action, { kind: "UseOptionWithoutCost" }>,
@@ -734,18 +728,22 @@ export async function runUseOptionWithoutCost(
  * [Main] effect (so a silent no-op cannot hide a missing main ability).
  */
 export async function runActivateMain(ctx: EffectContext): Promise<void> {
-  const compiled = runtimeCompiledCard(ctx.source.cardId);
-  const mains = (compiled === undefined ? [] : withPrintedClauses(ctx.source.cardId, compiled).effects).filter(
+  const printedCardId = ctx.printedEffectCardId ?? ctx.source.cardId;
+  const compiled = runtimeCompiledCard(printedCardId);
+  const mains = (compiled === undefined ? [] : withPrintedClauses(printedCardId, compiled).effects).filter(
     (e) => e.trigger === "Main" && !e.isSecurity,
   );
   if (mains.length === 0) {
-    unsupported(ctx, { kind: "ActivateMain" }, `ActivateMain found no [Main] effect on ${ctx.source.cardId}`);
+    unsupported(ctx, { kind: "ActivateMain" }, `ActivateMain found no [Main] effect on ${printedCardId}`);
     return;
   }
   // A DUAL Digimon directly activating its Option-side [Main] produces an Option effect,
   // not a Digimon effect (BT25-104 Q6496-Q6498). Narrow the physical dual definition only
   // for this borrowed Main body so source-kind-qualified immunity sees the correct face.
-  const sourceKinds = ctx.source.definition.kinds;
+  const sourceKinds =
+    printedCardId === ctx.source.cardId
+      ? ctx.source.definition.kinds
+      : ctx.game.definitionOf({ cardId: printedCardId }).kinds;
   const activatesDualOptionFace = sourceKinds.includes(CardKind.Digimon) && sourceKinds.includes(CardKind.Option);
   const mainCtx = activatesDualOptionFace ? { ...ctx, effectSourceKinds: [CardKind.Option] } : ctx;
   const outerTiming = mainCtx.activeTiming;
@@ -761,7 +759,7 @@ export async function runActivateMain(ctx: EffectContext): Promise<void> {
   try {
     for (const [index, effect] of mains.entries()) {
       const resolved = ctx.fx.announceEffect?.(ctx, {
-        effectKey: effect.effectKey ?? `${ctx.source.cardId}/main/${index}`,
+        effectKey: effect.effectKey ?? `${printedCardId}/main/${index}`,
         description: describeEffect(effect),
         timing: "Main",
         ...(effect.isInherited === true ? { isInherited: true } : {}),

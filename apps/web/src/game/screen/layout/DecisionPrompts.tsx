@@ -195,6 +195,13 @@ export function DecisionPrompts({
                       sourceCount: sourceCounts.get(card.instanceId),
                       hostCardId: host?.topCard.cardId,
                       hostPermanentId: host?.permanentId,
+                      fieldPermanentId:
+                        permanents.find(
+                          (permanent) =>
+                            permanent.permanentId === card.instanceId ||
+                            permanent.topCard?.instanceId === card.instanceId,
+                        )?.permanentId ??
+                        (card.zone === "breeding" && decision.kind === "chooseTargets" ? card.instanceId : undefined),
                       currentDP: details?.currentDP,
                       isSuspended: details?.isSuspended,
                       zone: card.zone,

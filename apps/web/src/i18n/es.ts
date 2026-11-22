@@ -1,5 +1,6 @@
 import { deckMatchupEs } from "@/i18n/deckMatchup.es";
 import { deckOddsEs } from "@/i18n/deckOdds.es";
+import { chatActionsEs } from "@/i18n/chatActions.es";
 import { tournamentCircuitsEs } from "@/i18n/tournamentCircuits.es";
 import { tournamentOfficialRequestEs } from "@/i18n/tournamentOfficialRequest.es";
 import { matchQueueEs } from "@/i18n/matchQueue.es";
@@ -521,6 +522,7 @@ export const es: Record<keyof typeof en, string> = {
   "common.export": "Exportar",
   "game.hiddenCard": "Carta boca abajo",
   "game.faceDownSource": "Boca abajo",
+  "game.faceDownSourceCount": "{count} boca abajo",
   "game.debugId": "ID de la partida",
   "game.debugCopyFailed": "No se pudo copiar; selecciona el ID para copiarlo.",
   "common.copy": "Copiar",
@@ -960,7 +962,7 @@ export const es: Record<keyof typeof en, string> = {
   "game.roomCodeInvalid": "Este código de sala es incorrecto o caducó. Revisa el código e inténtalo de nuevo.",
   "game.accountRequired": "Inicia sesión para unirte a esta partida.",
   "game.alreadyInMatch":
-    "Tu cuenta ya está en otra partida. Termínala o cierra otras pestañas de Aegis e inténtalo de nuevo.",
+    "Tu cuenta ya está en otra partida. Reanúdala aquí o termínala antes. Una partida que perdió la conexión libera tu cuenta en menos de un minuto.",
   "game.rankedSearchActive":
     "Tu cuenta está buscando una partida clasificatoria. Cancela esa búsqueda e inténtalo de nuevo.",
   "game.joinRefused": "El servidor no aceptó la conexión. Vuelve al lobby e inténtalo de nuevo.",
@@ -1007,6 +1009,13 @@ export const es: Record<keyof typeof en, string> = {
   "game.guestApproval.hostLeft": "El anfitrión salió de la sala antes de que empezara la partida.",
   "game.tournamentCancelledTitle": "Torneo cancelado",
   "game.tournamentCancelled": "El organizador canceló este torneo, así que esta partida terminó sin resultado.",
+  "lobby.turnOrder.label": "Orden de turno",
+  "lobby.turnOrder.random": "Aleatorio",
+  "lobby.turnOrder.hostFirst": "El anfitrión empieza",
+  "lobby.turnOrder.hostSecond": "El anfitrión juega segundo",
+  "lobby.turnOrder.hint":
+    "Define quién juega el primer turno de la partida 1. En un al mejor de 3, las partidas siguientes usan la regla habitual de la serie.",
+  "lobby.turnOrder.guest": "Orden de turno de la partida 1: {order}",
   "lobby.approval.label": "Requerir aprobación",
   "lobby.approval.hint":
     "Cuando alguien entre con tu código, verás quién es y podrás aceptarlo o rechazarlo antes de que empiece la partida.",
@@ -1120,7 +1129,8 @@ export const es: Record<keyof typeof en, string> = {
   "game.matchLogDrag": "Arrastra para mover",
   "settings.matchLogDisplay": "Visualización del registro",
   "settings.matchLogDisplayDesc":
-    "Elige cómo muestra la partida lo que pasó: avisos breves sobre el tablero, un registro fijo en el borde del tablero o ambos. En el móvil se mantienen los avisos y el registro queda en el botón.",
+    "Elige cómo muestra la partida lo que pasó: nada, avisos breves sobre el tablero, un registro fijo en el borde del tablero o ambos. En el móvil no hay registro fijo; ábrelo con el botón del registro.",
+  "settings.matchLogDisplayHidden": "Oculto",
   "settings.matchLogDisplayPopups": "Avisos",
   "settings.matchLogDisplayPanel": "Registro fijo",
   "settings.matchLogDisplayBoth": "Ambos",
@@ -1184,11 +1194,13 @@ export const es: Record<keyof typeof en, string> = {
   "game.fieldEffects.untilYourActivePhase": "Hasta tu fase de activación",
   "game.fieldEffects.untilOpponentActivePhase": "Hasta la fase de activación de tu rival",
   "game.restriction.cannotAttack": "No puede atacar",
+  "game.restriction.cannotAttackPlayers": "No puede atacar a jugadores",
   "game.restriction.cannotPlayByEffects": "No puede jugar mediante efectos",
   "game.restriction.cannotPlay": "No puede jugar",
   "game.restriction.cannotBlock": "No puede bloquear",
   "game.restriction.cannotSuspend": "No puede suspenderse",
   "game.restriction.cannotUnsuspend": "No se reactiva",
+  "game.restriction.cannotUnsuspendAtAll": "No puede reactivarse",
   "game.restriction.cannotDigivolve": "No puede digievolucionar",
   "game.restriction.cannotActivateWhenDigivolving": "Sin [When Digivolving]",
   "game.restriction.immuneToOpponentDigimonEffects": "Protegido de efectos de Digimon rivales",
@@ -1386,6 +1398,7 @@ export const es: Record<keyof typeof en, string> = {
   "overlay.useEffectPrompt": "¿Usar este efecto?",
   "overlay.choiceRevealedCards": "Cartas reveladas",
   "overlay.choiceHandCards": "Carta en cuestión",
+  "overlay.cardToPlay": "Carta que se jugará",
   "overlay.selectTargets": "Selecciona {range} objetivo(s)",
   "overlay.sourceCountOne": "{count} fuente",
   "overlay.sourceCountMany": "{count} fuentes",
@@ -1457,6 +1470,10 @@ export const es: Record<keyof typeof en, string> = {
     "Hay efectos anteriores pendientes. Se resuelven cuando terminen los efectos de arriba.",
   "overlay.presetMandatory": "Obligatorio",
   "overlay.triggerReason": "Activado por: {reason}",
+  "overlay.triggerSubject": "Carta que lo activó: {name}",
+  "overlay.triggerOpponentEffect": "Efecto del oponente",
+  "overlay.orderOpponentEffectsNote":
+    "Eres el jugador del turno, así que eliges el orden de estos efectos, incluidos los de tu oponente.",
   "overlay.presetLabel": "Respuesta para las elecciones opcionales de {name}",
   "overlay.triggerSourceField": "Campo",
   "overlay.triggerSourceInherited": "Heredado por {name}",
@@ -1544,6 +1561,7 @@ export const es: Record<keyof typeof en, string> = {
   "overlay.trashSort": "Ordenar descarte",
   "overlay.trashSortRecent": "Más recientes",
   "overlay.trashSortName": "Agrupar por nombre",
+  "overlay.trashSortLevel": "Ordenar por nivel",
   "overlay.trashCount": "{count} cartas",
   "overlay.securityCount": "{faceUp} boca arriba de {count} cartas",
   "overlay.securityNoFaceUp": "ninguna carta boca arriba",
@@ -2432,6 +2450,9 @@ export const es: Record<keyof typeof en, string> = {
   "chat.muteSpectators": "Silenciar a los espectadores",
   "chat.sound": "Sonido del chat",
   "chat.soundDesc": "Reproduce un sonido con cada mensaje nuevo de tu oponente o de los espectadores.",
+  "chat.enabled": "Chat de la partida",
+  "chat.enabledDesc":
+    "Muestra el botón de chat, los bocadillos y los mensajes en las partidas. Desactívalo para ocultar el chat por completo.",
   "chat.you": "Tú",
   "chat.spectator": "Espectador {number}",
   "chat.spectatorTag": "espectador",
@@ -2523,6 +2544,7 @@ export const es: Record<keyof typeof en, string> = {
   ...matchQueueEs,
   ...deckMatchupEs,
   ...deckOddsEs,
+  ...chatActionsEs,
   ...matchIntroEs,
   ...staffRolesEs,
   ...achievementsEs,

@@ -111,3 +111,39 @@ it("does not recruit a different Glowing Dawn Tamer when no Tomoro Tenma is in h
   expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "ST23-14")).toHaveLength(0);
   expect(s.state.players[0]!.hand.some((card) => card.cardId === "ST23-14")).toBe(true);
 });
+
+describe("Armalizamon official rulings", () => {
+  it("plays Tomoro through its Security effect before battling the attacker as a Security Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT27-046", as: "armalizamon" }], hand: ["BT27-091"] },
+        1: { battleArea: [{ card: "BT1-009", dp: 4000, as: "attacker" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const attacker = s.perm("attacker").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "attackEnded") && !s.state.pendingDecision);
+    const played = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT27-091");
+    const battleLoss = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.instanceIds.includes(attacker),
+    );
+    expect(played).toBeGreaterThanOrEqual(0);
+    expect(battleLoss).toBeGreaterThan(played);
+    expect(s.events.find((event) => event.kind === "securityChecked")).toMatchObject({
+      revealedCardId: "BT27-046",
+      resolution: "battle",
+    });
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT27-091"]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([attacker]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("armalizamon").instanceId]);
+  });
+});
