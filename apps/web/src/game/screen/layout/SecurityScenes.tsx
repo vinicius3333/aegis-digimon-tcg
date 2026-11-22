@@ -19,6 +19,7 @@ export function SecurityScenes({
   zoneShowcase,
   revealShowcase,
   compact,
+  stowBranches = false,
 }: {
   securityBreak: SecurityBreakCue | null;
   securityClash: SecurityClashScene | null;
@@ -28,6 +29,7 @@ export function SecurityScenes({
   zoneShowcase: ZoneShowcaseCue | null;
   revealShowcase: RevealShowcaseCue | null;
   compact: boolean;
+  stowBranches?: boolean;
 }) {
   return (
     <ParticleLightScope>
@@ -38,11 +40,21 @@ export function SecurityScenes({
       {securityClash ? <SecurityClash key={`security-clash-${securityClash.key}`} scene={securityClash} /> : null}
 
       {securityBranch ? (
-        <SecurityBranch key={`security-branch-${securityBranch.key}`} scene={securityBranch} compact={compact} />
+        <SecurityBranch
+          key={`security-branch-${securityBranch.key}`}
+          scene={securityBranch}
+          compact={compact}
+          stowed={stowBranches}
+        />
       ) : null}
 
       {optionBranch ? (
-        <SecurityBranch key={`option-${optionBranch.key}`} scene={optionBranch} compact={compact} />
+        <SecurityBranch
+          key={`option-${optionBranch.key}`}
+          scene={optionBranch}
+          compact={compact}
+          stowed={stowBranches}
+        />
       ) : null}
 
       {zoneShowcase && !securityClash ? <ZoneShowcase key={zoneShowcase.key} showcase={zoneShowcase} /> : null}

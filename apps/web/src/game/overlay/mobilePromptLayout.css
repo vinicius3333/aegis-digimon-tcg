@@ -761,7 +761,7 @@
     height: 16px;
   }
   .board-prompt.board-prompt--target-selection[data-prompt-surface][data-variant="field-selection"] {
-    grid-template-rows: auto auto auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, auto) auto minmax(0, 1fr);
     grid-template-areas:
       "art eyebrow eyebrow"
       "art text text"
@@ -800,9 +800,15 @@
       "actions actions actions";
   }
   .board-prompt.board-prompt--target-selection[data-prompt-surface][data-variant="field-selection"]
-    .board-prompt__clause {
+    :is(.board-prompt__text, .board-prompt__clause) {
     min-height: 0;
     overflow: hidden auto;
     overscroll-behavior: contain;
+  }
+}
+
+@media (width < 768px), (height < 520px) and (orientation: landscape) {
+  .battle-security-branch[data-stowed] {
+    visibility: hidden;
   }
 }
