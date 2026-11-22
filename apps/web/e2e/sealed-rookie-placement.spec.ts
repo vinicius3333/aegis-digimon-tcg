@@ -18,6 +18,25 @@ for (const width of [390, 1440]) {
       await expect.poll(() => action.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
       await expect(page.locator(".sealed-breeding-actions")).toHaveCSS("z-index", "21");
       await expect(page.getByText("Choose one breeding action, or end breeding.", { exact: true })).toBeVisible();
+      await expect
+        .poll(() =>
+          page.getByText("Choose one breeding action, or end breeding.", { exact: true }).evaluate((element) => {
+            const hint = element.getBoundingClientRect();
+            const actions = document.querySelector(".sealed-breeding-actions")?.getBoundingClientRect();
+            return (
+              !!actions &&
+              hint.width > 0 &&
+              hint.height > 0 &&
+              actions.width > 0 &&
+              actions.height > 0 &&
+              (hint.bottom <= actions.top ||
+                actions.bottom <= hint.top ||
+                hint.right <= actions.left ||
+                actions.right <= hint.left)
+            );
+          }),
+        )
+        .toBe(true);
       await page.screenshot({
         path: `${evidence}/rookie-breeding-controls-${width}-${dark ? "dark" : "light"}.png`,
         fullPage: true,

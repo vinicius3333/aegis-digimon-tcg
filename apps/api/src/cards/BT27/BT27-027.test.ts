@@ -2,6 +2,7 @@ import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "#api/engine/effects/interpreter";
 import { assertNoLoudGap, settle, setupEngine } from "#api/engine/testkit/harness";
+import type { SetupEngineOptions } from "#api/engine/testkit/harness";
 import { observe } from "#api/engine/testkit/observe";
 import "#api/cards/index";
 
@@ -15,7 +16,7 @@ const source = "BT1-028";
 const allySource = "BT1-003";
 
 type Setup = ReturnType<typeof setupEngine>;
-type Options = Parameters<typeof setupEngine>[1];
+type Options = SetupEngineOptions | undefined;
 
 async function playTenkomon(handCard: string | undefined, opponentSources: string[], options: Options = {}) {
   const preferInstanceIds: string[] = [];

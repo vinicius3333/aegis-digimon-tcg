@@ -1672,8 +1672,8 @@ function GameScreenSession({
   // One physical raising area moves into the utility row on a portrait screen.
   const yourBreedingDock = (
     <>
-      <SealedBreedingActions state={state} player={you} room={room} enabled={breedingActionsOpen} />
       <BreedingDock
+        actions={<SealedBreedingActions state={state} player={you} room={room} enabled={breedingActionsOpen} />}
         sealed={state.rulesPolicy === GameRulesPolicy.SEALED.value}
         eggDeckCount={breedingYou.eggDeckCount}
         breeding={breedingYou.breeding}

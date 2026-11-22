@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectDuration, EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
+import type { BoardSpec } from "#api/engine/scenario/types";
 import { advance } from "#api/engine/testkit/advance";
 import "#api/cards/index";
 
@@ -540,7 +541,7 @@ describe("Craniamon (X Antibody)", () => {
 });
 
 describe("Craniamon (X Antibody) official rulings", () => {
-  async function useOptionFromHand(board: Parameters<typeof setupEngine>[0]) {
+  async function useOptionFromHand(board: BoardSpec | undefined) {
     const s = setupEngine(board, {
       autoAcceptOptional: true,
       autoSelectCards: true,
