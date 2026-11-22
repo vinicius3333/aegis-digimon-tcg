@@ -43,9 +43,18 @@ for (const upgradeFrom of [undefined, "057", "060"]) {
           ["00000000-0000-0000-0000-0000000000bb", "00000000-0000-0000-0000-0000000000aa"],
         );
       }
-      expect(await runMigrations(pool, migrations)).toEqual(
-        migrations.filter((migration) => !existing.includes(migration)).map((migration) => migration.id),
-      );
+      let expectedApplied = migrations.map((migration) => migration.id);
+      if (upgradeFrom === "057") {
+        expectedApplied = [
+          "058-optional-ranked-region",
+          "059-competitive-archetypes",
+          "060-tournament-beta-cards",
+          ...sealedIds,
+        ];
+      } else if (upgradeFrom === "060") {
+        expectedApplied = sealedIds;
+      }
+      expect(await runMigrations(pool, migrations)).toEqual(expectedApplied);
       expect((await pool.query("SELECT id FROM schema_migrations ORDER BY id")).rows.map((row) => row.id)).toEqual(
         migrations.map((migration) => migration.id),
       );
