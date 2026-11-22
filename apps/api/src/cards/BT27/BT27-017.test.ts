@@ -320,7 +320,12 @@ describe("official rulings", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: spinomon, as: "spinomon", under: [kurataTamer] }], deck: filler },
-        1: { security: [{ card: vanillaMega, as: "blockerCheck" }, { card: "BT1-009", as: "secondCheck" }] },
+        1: {
+          security: [
+            { card: vanillaMega, as: "blockerCheck" },
+            { card: "BT1-009", as: "secondCheck" },
+          ],
+        },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
@@ -335,7 +340,9 @@ describe("official rulings", () => {
     await settle(() => s.events.some(({ kind }) => kind === "attackEnded") && !s.state.pendingDecision);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([kurataTamer]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(spinomon);
-    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("secondCheck").instanceId]);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("secondCheck").instanceId,
+    ]);
   });
 
   it("digivolves from a Stegomon in the breeding area", async () => {

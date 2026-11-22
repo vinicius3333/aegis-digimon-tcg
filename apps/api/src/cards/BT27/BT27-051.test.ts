@@ -301,9 +301,7 @@ describe("official rulings", () => {
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("loader").permanentId]);
     await settle(() => findLoaderLeomon(s) !== undefined && !s.state.pendingDecision);
-    expect(
-      s.decisions.find(({ req }) => req.kind === "orderTriggers")?.req.options?.triggerKeys?.length,
-    ).toBe(2);
+    expect(s.decisions.find(({ req }) => req.kind === "orderTriggers")?.req.options?.triggerKeys?.length).toBe(2);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(
       recovered ? [s.inst("recovered").instanceId] : [],
     );

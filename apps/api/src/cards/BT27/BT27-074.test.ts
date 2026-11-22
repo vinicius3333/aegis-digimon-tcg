@@ -147,7 +147,11 @@ describe("official rulings", () => {
     const s = keenanBoard();
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("falcomon"));
-    await advance(s.engine).verb.trashDigivolutionCards(s.perm("keenan").permanentId, [s.inst("payment").instanceId], 0);
+    await advance(s.engine).verb.trashDigivolutionCards(
+      s.perm("keenan").permanentId,
+      [s.inst("payment").instanceId],
+      0,
+    );
     const trashed = s.state.players[0]!.trash.find((c) => c.instanceId === s.inst("payment").instanceId);
     expect(trashed?.faceUp).toBe(true);
     expect(s.perm("keenan").stack).toHaveLength(0);

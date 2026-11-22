@@ -318,9 +318,9 @@ describe("official rulings", () => {
             ? { kind: "chooseTargets" as const, instanceIds: declineLater ? [] : candidates.slice(0, 1) }
             : { kind: "selectCards" as const, instanceIds: candidates.slice(0, 1) };
       if (req.kind === "chooseTargets") answeredTargets += 1;
-      expect(
-        s.engine.applyIntent(0, { type: "respondDecision", decisionId: decision.decisionId, response }),
-      ).toEqual({ ok: true });
+      expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: decision.decisionId, response })).toEqual({
+        ok: true,
+      });
     }
 
     expect(s.perm("base").currentDP).toBe(16000);

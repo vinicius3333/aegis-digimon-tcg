@@ -222,9 +222,23 @@ describe("BT27-090 Spencer Damon", () => {
 describe("BT27-090 official rulings", () => {
   it.each([
     ["stops", "De-Digivolve trashing the top stacked card", true, "EX13-052", "BT1-014", ["BT1-009"]],
-    ["without the placement does not stop", "De-Digivolve trashing the top stacked card", false, "EX13-052", "BT1-009", []],
+    [
+      "without the placement does not stop",
+      "De-Digivolve trashing the top stacked card",
+      false,
+      "EX13-052",
+      "BT1-009",
+      [],
+    ],
     ["stops", "effect trashing the bottom digivolution card", true, "P-003", "BT1-014", ["BT1-009"]],
-    ["without the placement does not stop", "effect trashing the bottom digivolution card", false, "P-003", "BT1-014", []],
+    [
+      "without the placement does not stop",
+      "effect trashing the bottom digivolution card",
+      false,
+      "P-003",
+      "BT1-014",
+      [],
+    ],
   ] as const)("%s an opponent's %s", async (_label, _effect, accept, attacker, top, stack) => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(

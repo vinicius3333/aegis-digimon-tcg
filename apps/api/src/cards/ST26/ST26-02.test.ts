@@ -176,8 +176,7 @@ describe("ST26-02 Renamon official rulings", () => {
 
     const redirectChoice = s.decisions.find(
       ({ seat, req }) =>
-        seat === 0 &&
-        tiedIds.every((ids) => ids.some((id) => req.options?.candidateInstanceIds?.includes(id))),
+        seat === 0 && tiedIds.every((ids) => ids.some((id) => req.options?.candidateInstanceIds?.includes(id))),
     );
     expect(redirectChoice).toBeDefined();
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -222,5 +221,4 @@ describe("ST26-02 Renamon official rulings", () => {
     expect(s.state.players[1]!.battleArea[0]!.stack).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(3);
   });
-
 });

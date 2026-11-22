@@ -593,8 +593,7 @@ describe("Alphamon: Ouryuken official rulings", () => {
     const alphamonIds = [s.perm("alphamon").permanentId, s.perm("alphamon").topCard.instanceId];
     return s.decisions.some(
       (decision) =>
-        decision.seat === seat &&
-        alphamonIds.some((id) => decision.req.options?.candidateInstanceIds?.includes(id)),
+        decision.seat === seat && alphamonIds.some((id) => decision.req.options?.candidateInstanceIds?.includes(id)),
     );
   }
 

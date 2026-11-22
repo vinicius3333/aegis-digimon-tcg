@@ -330,7 +330,9 @@ describe("official rulings", () => {
     s.state.memory = 11;
     await s.ready();
     if (playedThisTurn) {
-      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("base").instanceId })).toEqual({ ok: true });
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("base").instanceId })).toEqual({
+        ok: true,
+      });
       await settle(() => s.state.players[0]!.battleArea.length === 1 && !s.state.pendingDecision);
     }
     expect((await digivolveFrom(s, "base")).ok).toBe(true);

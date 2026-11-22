@@ -255,44 +255,47 @@ describe("official rulings", () => {
   it.each([
     ["keyword/retaliation", ["retaliation", "play"]],
     ["BT27-079/ir", ["play", "retaliation"]],
-  ])("lets the player resolve %s first when Retaliation and its deletion play trigger together", async (first, expected) => {
-    const order: string[] = [];
-    const record = (step: string, done: boolean) => {
-      if (done && !order.includes(step)) order.push(step);
-    };
-    const s: ReturnType<typeof setupEngine> = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT27-079", as: "xt" }],
-          trash: [{ card: "BT27-075", as: "proto" }],
-          deck: ["BT1-009", "BT1-009"],
+  ])(
+    "lets the player resolve %s first when Retaliation and its deletion play trigger together",
+    async (first, expected) => {
+      const order: string[] = [];
+      const record = (step: string, done: boolean) => {
+        if (done && !order.includes(step)) order.push(step);
+      };
+      const s: ReturnType<typeof setupEngine> = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT27-079", as: "xt" }],
+            trash: [{ card: "BT27-075", as: "proto" }],
+            deck: ["BT1-009", "BT1-009"],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 12000, suspended: true }] },
         },
-        1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 12000, suspended: true }] },
-      },
-      {
-        autoAcceptOptional: true,
-        autoSelectCards: true,
-        declineDigiXros: true,
-        preferTriggerKeys: [first],
-        onEvent: () => {
-          record("retaliation", s.state.players[1]!.trash.length > 0);
-          record("play", isOnBattleArea(s, "BT27-075"));
+        {
+          autoAcceptOptional: true,
+          autoSelectCards: true,
+          declineDigiXros: true,
+          preferTriggerKeys: [first],
+          onEvent: () => {
+            record("retaliation", s.state.players[1]!.trash.length > 0);
+            record("play", isOnBattleArea(s, "BT27-075"));
+          },
         },
-      },
-    );
-    await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("xt").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () => s.state.players[1]!.battleArea.length === 0 && isOnBattleArea(s, "BT27-075") && !s.state.pendingDecision,
-    );
-    const ordering = s.decisions.find((d) => d.req.kind === "orderTriggers");
-    expect(ordering?.req.options?.triggerCardIds).toEqual(["BT27-079", "BT27-079"]);
-    expect(order).toEqual(expected);
-  });
+      );
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("xt").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.state.players[1]!.battleArea.length === 0 && isOnBattleArea(s, "BT27-075") && !s.state.pendingDecision,
+      );
+      const ordering = s.decisions.find((d) => d.req.kind === "orderTriggers");
+      expect(ordering?.req.options?.triggerCardIds).toEqual(["BT27-079", "BT27-079"]);
+      expect(order).toEqual(expected);
+    },
+  );
 });
