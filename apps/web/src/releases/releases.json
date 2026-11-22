@@ -1,5 +1,44 @@
 [
   {
+    "version": "1.80.0-beta",
+    "releasedAt": "2026-11-22",
+    "summaryKey": "releases.1.80.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.80.0-beta.feature.landscapeBoard"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.80.0-beta.fix.bt27Rulings"
+      },
+      {
+        "textKey": "releases.1.80.0-beta.fix.optionalEndAttack"
+      },
+      {
+        "textKey": "releases.1.80.0-beta.fix.freeOptionReducer"
+      },
+      {
+        "textKey": "releases.1.80.0-beta.fix.rinaSuspension"
+      },
+      {
+        "textKey": "releases.1.80.0-beta.fix.shakamonZeroDp"
+      },
+      {
+        "textKey": "releases.1.80.0-beta.fix.useReqBreeding"
+      },
+      {
+        "textKey": "releases.1.80.0-beta.fix.opponentSleeve"
+      },
+      {
+        "textKey": "releases.1.80.0-beta.fix.phoneArtsTarget"
+      },
+      {
+        "textKey": "releases.1.80.0-beta.fix.trashSourceCard"
+      }
+    ]
+  },
+  {
     "version": "1.79.0-beta",
     "releasedAt": "2026-11-21",
     "summaryKey": "releases.1.79.0-beta.summary",
