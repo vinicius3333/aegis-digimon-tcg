@@ -46,11 +46,19 @@ for (const through of [null, "056", "057", "060"]) {
         await pool.query("UPDATE tournaments SET allow_beta_cards=true");
       }
       const ledger = upgrade ? (await pool.query("SELECT * FROM schema_migrations ORDER BY id")).rows : [];
-      expect(await runMigrations(pool, migrations)).toEqual(
-        upgrade
-          ? migrations.filter((migration) => !existing.includes(migration)).map((migration) => migration.id)
-          : migrations.map((migration) => migration.id),
-      );
+      let expectedApplied = migrations.map((migration) => migration.id);
+      if (through === "056" || through === "057") {
+        expectedApplied = [
+          ...(through === "056" ? ["057-deck-matchup-results"] : []),
+          "058-optional-ranked-region",
+          "059-competitive-archetypes",
+          "060-tournament-beta-cards",
+          ...sealedIds,
+        ];
+      } else if (through === "060") {
+        expectedApplied = sealedIds;
+      }
+      expect(await runMigrations(pool, migrations)).toEqual(expectedApplied);
       expect((await pool.query("SELECT id FROM schema_migrations ORDER BY id")).rows.map((row) => row.id)).toEqual(
         migrations.map((migration) => migration.id),
       );
