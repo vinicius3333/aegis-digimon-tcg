@@ -95,6 +95,24 @@ describe("Ravemon discard and revival", () => {
     expect(s.state.memory).toBe(5);
   });
 
+  it.each([
+    ["EX13-026", { ok: true }],
+    ["BT1-009", { ok: false, reason: "color-requirement-unmet" }],
+  ])("meets its use requirement with %s in the breeding area", async (breedingCard, expected) => {
+    const s = setupEngine(
+      {
+        0: { breeding: { card: breedingCard }, hand: [{ card: "BT27-083", as: "option" }] },
+        1: { battleArea: [{ card: "BT1-009" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, declinePrompts: ["Arts Digivolve"] },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" }),
+    ).toMatchObject(expected);
+  });
+
   it("allows declining revival", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT27-083", as: "raven" }], trash: ["BT27-078"] } },
