@@ -177,7 +177,6 @@ body:has(.game-board > .game-effect-focus) .game-hand-hover__face::after {
   position: absolute;
   inset: 0;
   z-index: 2;
-  pointer-events: none;
   /* The authored 190px displacement is relative to a 100 × 140 card. Move
      inward from our own pile, preserving the board and its resting dimensions. */
   --trash-focus-x: -190%;

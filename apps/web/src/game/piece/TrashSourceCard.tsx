@@ -20,7 +20,7 @@ export function TrashSourceCard({ card, width }: { card: TrashEffectCard; width:
       data-linked={card.linked === true ? "true" : "false"}
       style={{ "--t-effect-trash-rise": `${TIMINGS.effectTrashRise * motionScale}ms` } as CSSProperties}
     >
-      <CardMini cardId={card.cardId} artId={card.artId} width={width} zoomOnHover={false} />
+      <CardMini cardId={card.cardId} artId={card.artId} width={width} />
     </div>
   );
 }
