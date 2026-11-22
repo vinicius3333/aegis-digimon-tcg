@@ -802,6 +802,7 @@
   .board-prompt.board-prompt--target-selection[data-prompt-surface][data-variant="field-selection"]
     :is(.board-prompt__text, .board-prompt__clause) {
     min-height: 0;
+    max-height: 100%;
     overflow: hidden auto;
     overscroll-behavior: contain;
   }
