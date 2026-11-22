@@ -39,7 +39,17 @@ describe("ranked deck statistics", () => {
       query: (
         text: string,
         values: unknown[],
-      ) => Promise<QueryResult<{ archetype: string; games: string; wins: string; players: string }>>;
+      ) => Promise<
+        QueryResult<{
+          archetype: string;
+          games: string;
+          wins: string;
+          players: string;
+          cover_card_id: string | null;
+          primary_color: string | null;
+          secondary_color: string | null;
+        }>
+      >;
     } = accounts.pool;
     const query = vi.spyOn(pool, "query").mockResolvedValueOnce({
       rows: [
