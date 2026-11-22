@@ -1,5 +1,425 @@
 [
   {
+    "version": "1.79.0-beta",
+    "releasedAt": "2026-11-21",
+    "summaryKey": "releases.1.79.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.79.0-beta.feature.alternateArts"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.79.0-beta.fix.fragmentFullCount"
+      },
+      {
+        "textKey": "releases.1.79.0-beta.fix.scaledSourceTrash"
+      },
+      {
+        "textKey": "releases.1.79.0-beta.fix.turnBannerMemory"
+      },
+      {
+        "textKey": "releases.1.79.0-beta.fix.revealedPicks"
+      }
+    ]
+  },
+  {
+    "version": "1.78.2-beta",
+    "releasedAt": "2026-11-20",
+    "summaryKey": "releases.1.78.2-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.78.2-beta.fix.arena3dSecurityCount"
+      }
+    ]
+  },
+  {
+    "version": "1.78.1-beta",
+    "releasedAt": "2026-11-20",
+    "summaryKey": "releases.1.78.1-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.78.1-beta.fix.mobilePerformance"
+      },
+      {
+        "textKey": "releases.1.78.1-beta.fix.kingEtemonErrata"
+      }
+    ]
+  },
+  {
+    "version": "1.78.0-beta",
+    "releasedAt": "2026-11-20",
+    "summaryKey": "releases.1.78.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.78.0-beta.feature.tournamentBetaCards"
+      },
+      {
+        "textKey": "releases.1.78.0-beta.feature.masterBot"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.78.0-beta.fix.rankedEarlyLeave"
+      },
+      {
+        "textKey": "releases.1.78.0-beta.fix.rankedOneSearch"
+      },
+      {
+        "textKey": "releases.1.78.0-beta.fix.p167"
+      }
+    ]
+  },
+  {
+    "version": "1.77.0-beta",
+    "releasedAt": "2026-11-19",
+    "summaryKey": "releases.1.77.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.77.0-beta.feature.bt27Online"
+      },
+      {
+        "textKey": "releases.1.77.0-beta.feature.profileRanked"
+      },
+      {
+        "textKey": "releases.1.77.0-beta.feature.chatReportTranslate"
+      },
+      {
+        "textKey": "releases.1.77.0-beta.feature.privateTurnOrder"
+      },
+      {
+        "textKey": "releases.1.77.0-beta.feature.tournamentNotifications"
+      },
+      {
+        "textKey": "releases.1.77.0-beta.feature.clearerPrompts"
+      },
+      {
+        "textKey": "releases.1.77.0-beta.feature.rankedDecisionLimit"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.77.0-beta.fix.rarities"
+      },
+      {
+        "textKey": "releases.1.77.0-beta.fix.seriesSpectators"
+      },
+      {
+        "textKey": "releases.1.77.0-beta.fix.dualOptionCost",
+        "issue": 6970
+      },
+      {
+        "textKey": "releases.1.77.0-beta.fix.opponentHandHidden",
+        "issue": 6974
+      },
+      {
+        "textKey": "releases.1.77.0-beta.fix.freeDigivolveReducers",
+        "issue": 6978
+      },
+      {
+        "textKey": "releases.1.77.0-beta.fix.pendingTriggerKept",
+        "issue": 6980
+      },
+      {
+        "textKey": "releases.1.77.0-beta.fix.coverArt",
+        "issue": 6981
+      },
+      {
+        "textKey": "releases.1.77.0-beta.fix.alliancesource"
+      },
+      {
+        "textKey": "releases.1.77.0-beta.fix.startOfTurnBanner"
+      },
+      {
+        "textKey": "releases.1.77.0-beta.fix.matchEndReadable"
+      }
+    ]
+  },
+  {
+    "version": "1.76.1-beta",
+    "releasedAt": "2026-11-18",
+    "summaryKey": "releases.1.76.1-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.76.1-beta.fix.paladinModeReturn",
+        "issue": 6963
+      },
+      {
+        "textKey": "releases.1.76.1-beta.fix.lucemonTrashCost",
+        "issue": 6962
+      },
+      {
+        "textKey": "releases.1.76.1-beta.fix.deDigivolveTamer",
+        "issue": 6961
+      },
+      {
+        "textKey": "releases.1.76.1-beta.fix.artsDigivolveOrder",
+        "issue": 6959
+      },
+      {
+        "textKey": "releases.1.76.1-beta.fix.yuuAmanoTurn"
+      },
+      {
+        "textKey": "releases.1.76.1-beta.fix.marcusAgumonAttack"
+      },
+      {
+        "textKey": "releases.1.76.1-beta.fix.serverClosureNoResult"
+      }
+    ]
+  },
+  {
+    "version": "1.76.0-beta",
+    "releasedAt": "2026-11-17",
+    "summaryKey": "releases.1.76.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.76.0-beta.feature.bt27IceSnow"
+      },
+      {
+        "textKey": "releases.1.76.0-beta.feature.homeScreenApp"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.76.0-beta.fix.readyEffectAttackers",
+        "issue": 6946
+      },
+      {
+        "textKey": "releases.1.76.0-beta.fix.keenanOwnStack",
+        "issue": 6944
+      },
+      {
+        "textKey": "releases.1.76.0-beta.fix.replayOpponentHand"
+      }
+    ]
+  },
+  {
+    "version": "1.75.2-beta",
+    "releasedAt": "2026-11-16",
+    "summaryKey": "releases.1.75.2-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.75.2-beta.fix.givenKeywords"
+      },
+      {
+        "textKey": "releases.1.75.2-beta.fix.ceresmonSuspendCost"
+      },
+      {
+        "textKey": "releases.1.75.2-beta.fix.endOfTurnRevealFreeze"
+      },
+      {
+        "textKey": "releases.1.75.2-beta.fix.zeroDpDeletion"
+      }
+    ]
+  },
+  {
+    "version": "1.75.1-beta",
+    "releasedAt": "2026-11-16",
+    "summaryKey": "releases.1.75.1-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.75.1-beta.fix.playCostDeletion"
+      },
+      {
+        "textKey": "releases.1.75.1-beta.fix.unsuspendLockShown"
+      },
+      {
+        "textKey": "releases.1.75.1-beta.fix.opponentEffectOrder"
+      }
+    ]
+  },
+  {
+    "version": "1.75.0-beta",
+    "releasedAt": "2026-11-15",
+    "summaryKey": "releases.1.75.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.75.0-beta.feature.rankedMetaDecks"
+      },
+      {
+        "textKey": "releases.1.75.0-beta.feature.resumeMatch",
+        "issue": 6896
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.75.0-beta.fix.kimeramonAssembly",
+        "issue": 6888
+      },
+      {
+        "textKey": "releases.1.75.0-beta.fix.optionalReturn",
+        "issue": 6897
+      },
+      {
+        "textKey": "releases.1.75.0-beta.fix.luiFixedCost",
+        "issue": 6863
+      },
+      {
+        "textKey": "releases.1.75.0-beta.fix.dualOptionPrompt",
+        "issue": 6857
+      }
+    ]
+  },
+  {
+    "version": "1.74.0-beta",
+    "releasedAt": "2026-11-15",
+    "summaryKey": "releases.1.74.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.74.0-beta.feature.bt27Rubeusdramon"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.74.0-beta.fix.valnerDraw",
+        "issue": 6882
+      },
+      {
+        "textKey": "releases.1.74.0-beta.fix.grandGalemonOptional",
+        "issue": 6884
+      },
+      {
+        "textKey": "releases.1.74.0-beta.fix.battleRowColumns"
+      }
+    ]
+  },
+  {
+    "version": "1.73.0-beta",
+    "releasedAt": "2026-11-14",
+    "summaryKey": "releases.1.73.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.73.0-beta.feature.st26Viximon"
+      },
+      {
+        "textKey": "releases.1.73.0-beta.feature.bt27Gemmon"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.73.0-beta.fix.beelstarmonCost"
+      },
+      {
+        "textKey": "releases.1.73.0-beta.fix.highestDpEgg"
+      },
+      {
+        "textKey": "releases.1.73.0-beta.fix.laterByCost"
+      },
+      {
+        "textKey": "releases.1.73.0-beta.fix.shellmonPlacement"
+      },
+      {
+        "textKey": "releases.1.73.0-beta.fix.borrowedMain"
+      },
+      {
+        "textKey": "releases.1.73.0-beta.fix.kingEtemonReturn"
+      },
+      {
+        "textKey": "releases.1.73.0-beta.fix.securityMemoryPacing"
+      }
+    ]
+  },
+  {
+    "version": "1.72.1-beta",
+    "releasedAt": "2026-11-13",
+    "summaryKey": "releases.1.72.1-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.72.1-beta.fix.deckListNames"
+      }
+    ]
+  },
+  {
+    "version": "1.72.0-beta",
+    "releasedAt": "2026-11-13",
+    "summaryKey": "releases.1.72.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.72.0-beta.feature.bt27Jesmon"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.72.0-beta.fix.quieterMatchUi"
+      },
+      {
+        "textKey": "releases.1.72.0-beta.fix.breedingPrompt"
+      },
+      {
+        "textKey": "releases.1.72.0-beta.fix.dualCardColors"
+      },
+      {
+        "textKey": "releases.1.72.0-beta.fix.takatoPrompts"
+      },
+      {
+        "textKey": "releases.1.72.0-beta.fix.linkReplacement"
+      },
+      {
+        "textKey": "releases.1.72.0-beta.fix.trashSourcesBare"
+      },
+      {
+        "textKey": "releases.1.72.0-beta.fix.recentProfileStats"
+      }
+    ]
+  },
+  {
+    "version": "1.71.0-beta",
+    "releasedAt": "2026-11-12",
+    "summaryKey": "releases.1.71.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.71.0-beta.feature.matchChatToggle"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.71.0-beta.fix.motherDReaperTamers"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.kentaurosmonCounter"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.placementPrevented"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.leaveEffectOrder"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.continuousTargetArrows"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.finishedRoomClosed"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.deckImagePreview"
+      },
+      {
+        "textKey": "releases.1.71.0-beta.fix.discordNov12"
+      }
+    ]
+  },
+  {
+    "version": "1.70.0-beta",
+    "releasedAt": "2026-11-12",
+    "summaryKey": "releases.1.70.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.70.0-beta.feature.bt27Cards"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.70.0-beta.fix.datamonDeDigivolve"
+      }
+    ]
+  },
+  {
     "version": "1.69.0-beta",
     "releasedAt": "2026-11-12",
     "summaryKey": "releases.1.69.0-beta.summary",

@@ -15,6 +15,12 @@ export const tournamentDetailId = {
   "tournaments.myMatch.roundTable": "Ronde {round} · Meja {table}",
   "tournaments.myMatch.you": "Anda",
   "tournaments.myMatch.versus": "melawan {opponent}",
+  "tournaments.create.allowBetaCards": "Izinkan kartu beta",
+  "tournaments.create.allowBetaCardsDesc": "Deck boleh memakai kartu dari produk yang belum rilis.",
+  "tournaments.betaCards.label": "Kartu beta",
+  "tournaments.betaCards.allowed": "Diizinkan",
+  "tournaments.betaCards.warning":
+    "Kartu beta diizinkan. Deck boleh memakai kartu dari produk yang belum rilis, dan kartu itu masih bisa berubah sebelum rilis.",
   "tournaments.detail.cardPool": "Kartu yang boleh",
   "tournaments.create.randomBotStyles": "Gaya bot acak",
   "tournaments.create.randomBotStylesDesc":
@@ -233,4 +239,6 @@ export const tournamentDetailId = {
   "tournaments.format.pointsLoss": "Kalah",
   "tournaments.format.pointsValue": "Menang {win} · Seri {draw} · Kalah {loss}",
   "tournaments.create.pointsAuto": "Otomatis (3/1/0)",
+  "notifications.tournament.started": "{name} telah dimulai. Buka turnamen untuk melihat lawan Anda.",
+  "notifications.tournament.matchReady": "Ronde {round} di {name} sudah siap. Masuk ke meja Anda sekarang.",
 };

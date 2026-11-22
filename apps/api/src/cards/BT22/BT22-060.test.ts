@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared/schema/enums";
 import { setupEngine, settle, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -12,6 +13,7 @@ describe("BT22-060 Datamon", () => {
       expect(effect?.actions[0]).toMatchObject({
         kind: "Restrict",
         restriction: "cantBeDeDigivolved",
+        byOpponentEffectsOnly: true,
         duration: "untilOpponentTurnEnd",
         target: { filter: { isSelfRef: true }, isSelf: true },
       });
@@ -164,6 +166,26 @@ describe("BT22-060 Datamon", () => {
 
     expect(s.perm("base").currentDP).toBe(7000);
     expect(observe(s.engine).isRestricted(s.perm("base"), "cantBeDeDigivolved")).toBe(true);
+  });
+});
+
+describe("BT22-060 Datamon De-Digivolve protection", () => {
+  it.each([
+    ["the opponent's", 1, "BT22-060"],
+    ["your own", 0, "BT1-009"],
+  ] as const)("On Play blocks %s De-Digivolve only when it is the opponent's", async (_label, seat, top) => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-060", as: "datamon", under: ["BT1-009"] }] } },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("datamon"));
+    await settle(() => !s.state.pendingDecision);
+    advance(s.engine).verb.enterEffectResolution(seat, ["Digimon"]);
+    await advance(s.engine).verb.deDigivolve(s.perm("datamon").permanentId, 1);
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => !s.state.pendingDecision);
+    expect(s.perm("datamon").topCard.cardId).toBe(top);
   });
 });
 

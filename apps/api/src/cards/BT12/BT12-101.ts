@@ -2,7 +2,7 @@ import type { CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const opposingDigimon: Target = {
-  filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
+  filter: { controller: "opponent", kind: ["Digimon"] },
   count: 1,
 };
 const ownGreenDigimon: Filter = { controller: "mine", zone: "battleArea", kind: ["Digimon"], colors: ["Green"] };

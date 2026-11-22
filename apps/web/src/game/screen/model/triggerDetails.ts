@@ -44,13 +44,62 @@ export function triggerDetailsFor({
       source?.zone === Zone.BattleArea && (showFieldReferences || source.copies > 1)
         ? formatFieldReference(source.permanentId)
         : undefined;
+    const subject = findTriggerSubject({
+      permanentId: decision.options?.triggerSubjectPermanentIds?.[index],
+      players: [viewer, opponent],
+    });
+    const subjectFieldReference =
+      subject && (showFieldReferences || subject.copies > 1) ? formatFieldReference(subject.permanentId) : undefined;
     return {
+      ...(subject
+        ? {
+            subjectCardId: subject.cardId,
+            subjectLabel: t("overlay.triggerSubject", {
+              name: [getCardName(subject.cardId), subjectFieldReference].filter(Boolean).join(" "),
+            }),
+          }
+        : {}),
+      ...(subjectFieldReference ? { subjectFieldReference } : {}),
       sourceLabel: getTriggerSourceLabel(source, presentsAsInherited, t, getCardName, fieldReference),
+      ...(source?.zone === Zone.BattleArea && source.copies > 1 ? { sourceShowsCopy: true } : {}),
       summary: triggerClauseSummary(clause),
       ...(fieldReference ? { fieldReference } : {}),
       ...(source?.zone === Zone.BattleArea && source.inherited ? { hostCardId: source.hostCardId } : {}),
+      ...(isControlledByOpponent(decision, index) ? { controlledByOpponent: true } : {}),
     };
   });
+}
+
+type FindTriggerSubjectParams = {
+  permanentId: string | undefined;
+  players: readonly PlayerState[];
+};
+
+function findTriggerSubject({
+  permanentId,
+  players,
+}: FindTriggerSubjectParams): { permanentId: string; cardId: string; copies: number } | undefined {
+  if (!permanentId) {
+    return undefined;
+  }
+  for (const player of players) {
+    const permanents = [...player.battleArea, ...(player.breeding ? [player.breeding] : [])];
+    const subject = permanents.find((permanent) => permanent?.permanentId === permanentId);
+    const cardId = subject?.topCard?.cardId;
+    if (cardId) {
+      return {
+        permanentId,
+        cardId,
+        copies: player.battleArea.filter((permanent) => permanent?.topCard?.cardId === cardId).length,
+      };
+    }
+  }
+  return undefined;
+}
+
+function isControlledByOpponent(decision: DecisionRequest, index: number): boolean {
+  const controllerSeat = decision.options?.triggerControllerSeats?.[index];
+  return controllerSeat !== undefined && controllerSeat !== decision.seat;
 }
 
 function withCopy(

@@ -147,7 +147,11 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     // A rule deletion has no controlling effect, so an opponent-scoped entry cannot apply to it.
     permanentIds = permanentIds.filter((permanentId) =>
       cause === "byRule" || cause === "byBattle"
-        ? !continuous.hasRestriction(permanentId, "beDeleted", undefined, { byOpponentEffect: false, byEffect: false })
+        ? !continuous.hasRestriction(permanentId, "beDeleted", undefined, {
+            byOpponentEffect: false,
+            byEffect: false,
+            inBattle: cause === "byBattle",
+          })
         : !isRestricted(permanentId, "beDeleted"),
     );
     if (permanentIds.length === 0) return 0;
@@ -189,6 +193,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
             removalCause: cause,
             removalMechanic: opts?.mechanic,
             deletedByDpZero: cause === "byRule" && deleted.currentDP === 0,
+            ...(deleted.inBreeding ? { deletedFromBreeding: true } : {}),
           },
           "selfSourceOnly",
         );
@@ -471,6 +476,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
             removalCause: cause,
             removalMechanic: opts?.mechanic,
             deletedByDpZero: cause === "byRule" && deleted.currentDP === 0,
+            ...(deleted.inBreeding ? { deletedFromBreeding: true } : {}),
           },
           deletionWatchersFired.has(permanentId) ? "excludeSelfSource" : undefined,
         );
@@ -482,6 +488,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
           deletedTopCardId: deleted.topCard.cardId,
           removalCause: cause,
           ...(cause === "byEffect" ? { byEffectSeat: effectSeatStack.at(-1) ?? engine.controllerSeat() } : {}),
+          ...(deleted.inBreeding ? { deletedFromBreeding: true } : {}),
         });
         // whenTrashedByEffect (CAP-E8): fires only when this deletion was effect-driven.
         // The permanent is still live here so the watcher's sourceFilter.isSelfRef can match.

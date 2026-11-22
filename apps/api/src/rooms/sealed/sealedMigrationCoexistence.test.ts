@@ -9,12 +9,13 @@ if (!connectionString?.startsWith("postgres://postgres@127.0.0.1:55439/")) {
   throw new Error("Sealed migration tests require isolated loopback Postgres 55439");
 }
 
-const sealedIds = ["058-sealed-tournaments", "059-private-sealed", "060-private-sealed-results"];
+const sealedIds = ["061-sealed-tournaments", "062-private-sealed", "063-private-sealed-results"];
 
 it("inserts canonical sealed migrations after the complete upstream registry", () => {
-  expect(migrations.slice(-5).map((migration) => migration.id)).toEqual([
-    "057-deck-matchup-results",
+  expect(migrations.slice(-6).map((migration) => migration.id)).toEqual([
     "058-optional-ranked-region",
+    "059-competitive-archetypes",
+    "060-tournament-beta-cards",
     ...sealedIds,
   ]);
   const ids = migrations.map((migration) => migration.id);
@@ -22,7 +23,7 @@ it("inserts canonical sealed migrations after the complete upstream registry", (
   expect(ids).toEqual([...ids].sort());
 });
 
-for (const through of [null, "056", "057"]) {
+for (const through of [null, "056", "057", "060"]) {
   const upgrade = through !== null;
   it(`applies canonical sealed migrations on ${upgrade ? `an upstream ${through} upgrade` : "a fresh installation"}`, async () => {
     const schema = `sealed_migrations_${randomUUID().replaceAll("-", "")}`;
@@ -41,6 +42,10 @@ for (const through of [null, "056", "057"]) {
           ["00000000-0000-0000-0000-0000000000bb", "00000000-0000-0000-0000-0000000000aa"],
         );
       }
+      if (through === "060") {
+        await pool.query("UPDATE tournaments SET allow_beta_cards=true");
+      }
+      const ledger = upgrade ? (await pool.query("SELECT * FROM schema_migrations ORDER BY id")).rows : [];
       expect(await runMigrations(pool, migrations)).toEqual(
         upgrade
           ? migrations.filter((migration) => !existing.includes(migration)).map((migration) => migration.id)
@@ -48,6 +53,18 @@ for (const through of [null, "056", "057"]) {
       );
       expect((await pool.query("SELECT id FROM schema_migrations ORDER BY id")).rows.map((row) => row.id)).toEqual(
         migrations.map((migration) => migration.id),
+      );
+      if (upgrade) {
+        expect(
+          (
+            await pool.query("SELECT * FROM schema_migrations WHERE id=ANY($1::text[]) ORDER BY id", [
+              existing.map((migration) => migration.id),
+            ])
+          ).rows,
+        ).toEqual(ledger);
+      }
+      expect((await pool.query("SELECT allow_beta_cards FROM tournaments")).rows).toEqual(
+        upgrade ? [{ allow_beta_cards: through === "060" }] : [],
       );
       expect(await runMigrations(pool, migrations)).toEqual([]);
       expect((await pool.query("SELECT count(*) FROM private_sealed_results")).rows[0].count).toBe("0");

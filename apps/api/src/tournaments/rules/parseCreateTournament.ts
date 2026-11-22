@@ -45,6 +45,8 @@ export function parseCreateTournament(
   if (body.sealedConfiguration && bestOf !== undefined && bestOf !== 3) {
     return undefined;
   }
+  if (body.allowBetaCards !== undefined && typeof body.allowBetaCards !== "boolean") return undefined;
+  if (body.allowBetaCards === true && body.format !== undefined && body.format !== "standard") return undefined;
   const policy = banlist === undefined ? ({ mode: "none" } as const) : parseBanlistPolicy(banlist);
   if (!policy) return undefined;
   return {
@@ -52,6 +54,7 @@ export function parseCreateTournament(
       name,
       sealedConfiguration: body.sealedConfiguration,
       roundStartMode: body.roundStartMode,
+      allowBetaCards: body.allowBetaCards === true,
       description: body.description as string | undefined,
       category: body.category ?? TournamentCategory.COMMUNITY.value,
       clocks: body.clocks as CreateTournamentInput["clocks"],

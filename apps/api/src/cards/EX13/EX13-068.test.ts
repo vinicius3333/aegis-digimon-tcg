@@ -176,6 +176,45 @@ describe("EX13-068 Takato Matsuki", () => {
     await turn;
   });
 
+  it("names the Takato and the Guilmon clause in their separate play prompts", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "source" }],
+          hand: [{ card: "EX2-056", as: "replacement" }],
+          trash: [{ card: "BT2-009", as: "guilmon" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: { deck: ["BT1-011", "BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("guilmon").instanceId),
+    );
+    await settle();
+
+    const playPrompts = s.decisions
+      .map(({ req }) => req)
+      .filter(
+        (req) =>
+          req.kind === "optional" &&
+          req.sourceCardId === CARD_ID &&
+          req.options?.selectionGoal === "play" &&
+          req.options.activationConfirmation === false,
+      );
+    expect(playPrompts.map((req) => req.options?.effectTextPart)).toEqual([
+      "By returning this Tamer to the bottom of the deck, you may play 1 [Takato Matsuki] from your hand without paying the cost.",
+      "After, if you don't have a Digimon, you may play 1 [Guilmon] from your trash without paying the cost.",
+    ]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("skips the Guilmon tail while a Digimon is already in the battle area", async () => {
     const s = setupEngine(
       {

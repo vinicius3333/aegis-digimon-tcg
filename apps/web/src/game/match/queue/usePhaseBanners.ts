@@ -2,19 +2,26 @@ import { CardMovePosition } from "@aegis/shared/protocol/CardMovePosition";
 import { useLayoutEffect, useMemo, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import type { GameState, Seat, ServerEvent } from "@aegis/shared";
 import { Phase } from "@aegis/shared/schema/enums";
-import type { AnimationQueue, AnimationStep, AnimationStepContext } from "../../animationQueue";
+import {
+  DEFAULT_TRACK,
+  type AnimationQueue,
+  type AnimationStep,
+  type AnimationStepContext,
+} from "../../animationQueue";
 import type { SoundKind } from "../../../design/sound";
 import type { StateSnapshot } from "../../../net/presentedState";
 import type { NarrationItem } from "../../narration";
 import type { ServerBatch } from "../../../net/serverBatches";
 import { isAnnouncedPhase, phaseBannerFrom, type PhaseBanner } from "../../phaseBanner";
-import { PRESENTED_BOARD_BUDGET_MS } from "../../presentationProgress";
+import { PRESENTED_BOARD_BUDGET_MS, type PresentationProgress } from "../../presentationProgress";
 import { TIMINGS } from "../../timings";
 import { waitForPaintedAnimation } from "../../paintedAnimationClock";
 import { Side } from "../../side";
 import { UNSUSPEND_PHASE, UNSUSPEND_SWEEP_MS } from "../constants";
 import { CueTrack } from "../enums";
 import { OPTION_DOCK_TRACKS } from "../tracks";
+import { waitsForPhaseRibbons } from "./waitsForPhaseRibbons";
+import { findUnsuspendBoundary } from "./findUnsuspendBoundary";
 import { buildInstanceSeatIndex } from "../../sidePanels";
 import type { DrawPhaseOwner, MatchCues, TurnTransitionCue, UnsuspendSweep } from "../types";
 
@@ -110,6 +117,7 @@ export function usePhaseBanners({
   eventTimeline,
   viewerSeat,
   queue,
+  progress,
   phaseOrdersRef,
   nextPhaseOrderRef,
   completedPhaseOrderRef,
@@ -141,6 +149,7 @@ export function usePhaseBanners({
   eventTimeline: readonly ServerEvent[];
   viewerSeat: Seat;
   queue: AnimationQueue;
+  progress: PresentationProgress;
   /** Mutated: which ribbon each phase event belongs to, pruned as the log is rewritten. */
   phaseOrdersRef: MutableRefObject<Map<ServerEvent, number>>;
   /** Mutated: the last ribbon number handed out. */
@@ -149,7 +158,7 @@ export function usePhaseBanners({
   completedPhaseOrderRef: MutableRefObject<number>;
   stepPhaseOrdersRef: MutableRefObject<WeakMap<AnimationStep, number>>;
   /** Mutated: the phase event the previous pass ended at. */
-  lastPhaseEventRef: MutableRefObject<Extract<ServerEvent, { kind: "phaseChanged" | "turnEnded" }> | undefined>;
+  lastPhaseEventRef: MutableRefObject<ServerEvent | undefined>;
   /** Mutated: false until the first pass has recorded the history it joined mid-match. */
   phaseBaselineRef: MutableRefObject<boolean>;
   /** Mutated: true while a ribbon is on screen. */
@@ -180,6 +189,7 @@ export function usePhaseBanners({
   const appliedUnsuspendsRef = useRef(new WeakSet<ServerEvent>());
   /** The Unsuspend phase whose ribbon has not released that phase's moves yet. */
   const unreleasedUnsuspendPhaseRef = useRef<ServerEvent | undefined>(undefined);
+  const deferredUnsuspendRef = useRef<{ phase: ServerEvent; last: ServerEvent | undefined } | undefined>(undefined);
 
   /**
    * Release permanents whose unsuspend move reaches the client after the Unsuspend ribbon
@@ -231,11 +241,12 @@ export function usePhaseBanners({
   const phaseBatchesRef = useRef(batches);
   phaseBatchesRef.current = batches;
 
-  function boardBeforePhase(openedPhase: ServerEvent, previous: GameState | undefined): GameState | undefined {
-    const openedAt =
-      "stateVersion" in openedPhase && typeof openedPhase.stateVersion === "number"
-        ? openedPhase.stateVersion
-        : undefined;
+  function holdBoardAt(phaseEvent: ServerEvent): () => void {
+    const phaseBatch = phaseBatchesRef.current.find((batch) => batch.events.some((event) => event === phaseEvent));
+    return phaseBatch ? progress.hold(phaseBatch.stateVersion) : () => {};
+  }
+
+  function boardBeforePhase(openedAt: number | undefined, previous: GameState | undefined): GameState | undefined {
     if (openedAt === undefined) return previous;
     const snapshot = phaseStateRef.current.snapshots?.filter((candidate) => candidate.stateVersion <= openedAt).at(-1);
     if (snapshot === undefined) return previous;
@@ -289,15 +300,22 @@ export function usePhaseBanners({
               ),
             ),
         );
-      const awaitingCue = queue.hasPendingStep(
-        (step) =>
-          step.track !== "phaseBanner" &&
+      const tracksHeldBehindRibbon = new Set<string>();
+      const awaitingCue = queue.hasPendingStep((step) => {
+        const track = step.track ?? DEFAULT_TRACK;
+        if (
+          track === "phaseBanner" ||
           // Audio callbacks have no painted handoff to finish before a ribbon.
-          step.track !== "sound" &&
-          step.track !== CueTrack.SecurityDock &&
-          !OPTION_DOCK_TRACKS.includes(step.track ?? "") &&
-          (stepPhaseOrdersRef.current.get(step) ?? 0) < phaseOrder,
-      );
+          track === "sound" ||
+          track === CueTrack.SecurityDock ||
+          OPTION_DOCK_TRACKS.includes(track) ||
+          tracksHeldBehindRibbon.has(track)
+        )
+          return false;
+        if ((stepPhaseOrdersRef.current.get(step) ?? 0) < phaseOrder) return true;
+        if (waitsForPhaseRibbons(step)) tracksHeldBehindRibbon.add(track);
+        return false;
+      });
       // A clause the ribbon is about to cover gets one readable beat first. The same budget
       // bounds it: a batch that keeps arriving must never hold the ribbon for good.
       const awaitingRead =
@@ -311,7 +329,10 @@ export function usePhaseBanners({
   const phaseHistory = useMemo(
     () =>
       (phaseEvents ?? batches.flatMap((batch) => batch.events)).filter(
-        (event) => event.kind === "phaseChanged" || event.kind === "turnEnded",
+        (event) =>
+          event.kind === "phaseChanged" ||
+          event.kind === "turnEnded" ||
+          (event.kind === "cardsMoved" && event.from === "suspended" && event.to === "unsuspended"),
       ),
     [phaseEvents, batches],
   );
@@ -329,13 +350,28 @@ export function usePhaseBanners({
       return;
     }
     const fresh = phaseHistory.slice(last ? phaseHistory.lastIndexOf(last) + 1 : 0);
-    for (const openedPhase of fresh) {
+    const deferred = deferredUnsuspendRef.current;
+    deferredUnsuspendRef.current = undefined;
+    const opened = deferred && eventTimeline.includes(deferred.phase) ? [deferred.phase, ...fresh] : fresh;
+    for (const openedPhase of opened) {
+      if (openedPhase.kind === "cardsMoved") continue;
       if (openedPhase.kind === "phaseChanged" && !isAnnouncedPhase(openedPhase.phase)) continue;
+      const precedingFrom = openedPhase === deferred?.phase ? deferred.last : last;
+      let unsuspendBoundary: ServerEvent | undefined;
+      if (openedPhase.kind === "phaseChanged" && openedPhase.phase === UNSUSPEND_PHASE) {
+        const boundary = findUnsuspendBoundary({ activePhase: openedPhase, eventTimeline });
+        if (boundary === "skipped") continue;
+        if (boundary === "pending") {
+          deferredUnsuspendRef.current = { phase: openedPhase, last: precedingFrom };
+          continue;
+        }
+        unsuspendBoundary = boundary;
+      }
       const phaseOrder = ++nextPhaseOrderRef.current;
       phaseOrdersRef.current.set(openedPhase, phaseOrder);
       const preceding = eventTimeline.slice(
-        last ? eventTimeline.lastIndexOf(last) + 1 : 0,
-        eventTimeline.indexOf(openedPhase),
+        precedingFrom ? eventTimeline.lastIndexOf(precedingFrom) + 1 : 0,
+        eventTimeline.indexOf(unsuspendBoundary ?? openedPhase),
       );
       const isArrival = (event: ServerEvent) =>
         event.kind === "cardPlayed" ||
@@ -362,9 +398,11 @@ export function usePhaseBanners({
           side: openedPhase.nextSeat === viewerSeat ? Side.Viewer : Side.Opponent,
           track: "phaseBanner",
           async run(context) {
+            let releaseBoard = () => {};
             try {
               await waitForPhasePrerequisites(context, awaitedEvents, phaseOrder);
               if (context.cancelled || context.mode !== "live") return;
+              releaseBoard = holdBoardAt(openedPhase);
               visiblePhaseBannerRef.current = true;
               // The count belongs to the turn that just ended; the new one arrives with the
               // phase ribbons that follow, which carry it.
@@ -387,6 +425,7 @@ export function usePhaseBanners({
               setTurnTransition((current) => (current === transition ? null : current));
               await context.wait(TIMINGS.phaseBannerGap);
             } finally {
+              releaseBoard();
               visiblePhaseBannerRef.current = false;
               completedPhaseOrderRef.current = phaseOrder;
               setTurnTransition((current) => (current === transition ? null : current));
@@ -409,14 +448,25 @@ export function usePhaseBanners({
         if (banner.phase === UNSUSPEND_PHASE) {
           drawPhaseWaitingRef.current = { seat: openedPhase.turnSeat, phaseOrder };
           unreleasedUnsuspendPhaseRef.current = openedPhase;
-          const drawState = boardBeforePhase(openedPhase, previousDrawStateRef.current);
+          const versionOf = (event: ServerEvent) =>
+            "stateVersion" in event && typeof event.stateVersion === "number" ? event.stateVersion : undefined;
+          const boundaryVersion = unsuspendBoundary && versionOf(unsuspendBoundary);
+          const boardAtBoundary =
+            boundaryVersion === undefined
+              ? undefined
+              : phaseStateRef.current.snapshots?.filter((candidate) => candidate.stateVersion < boundaryVersion).at(-1)
+                  ?.state;
+          const drawState = boardBeforePhase(
+            boundaryVersion === undefined ? versionOf(openedPhase) : boundaryVersion - 1,
+            previousDrawStateRef.current,
+          );
           // The held revision can predate an unsuspend the ending turn made before its End
           // phase (EX13-006): the move reached an earlier pass, and the state patch lags the
           // events. Release every move the held revision does not show yet, not only this
           // pass's arrivals, or the permanent stays rotated until the hold lifts.
           const unsuspendedBeforeActive = new Set(
             eventTimeline
-              .slice(0, eventTimeline.indexOf(openedPhase))
+              .slice(0, eventTimeline.indexOf(unsuspendBoundary ?? openedPhase))
               .flatMap((event) =>
                 event.kind === "cardsMoved" &&
                 event.from === "suspended" &&
@@ -436,7 +486,7 @@ export function usePhaseBanners({
                   ...drawState,
                   players: drawState.players.map((player) => releaseUnsuspended(player, unsuspendedBeforeActive)),
                 } as GameState,
-                live: state,
+                live: boardAtBoundary ?? state,
                 moves: arrivals,
               })
             : undefined;
@@ -466,6 +516,7 @@ export function usePhaseBanners({
           side: banner.side,
           track: "phaseBanner",
           async run(context) {
+            let releaseBoard = () => {};
             try {
               if (context.mode !== "live") {
                 setHeldSuspendedIds(new Set());
@@ -476,6 +527,7 @@ export function usePhaseBanners({
               }
               await waitForPhasePrerequisites(context, awaitedEvents, phaseOrder);
               if (context.cancelled || context.mode !== "live") return;
+              releaseBoard = holdBoardAt(openedPhase);
               visiblePhaseBannerRef.current = true;
               if (isAnnouncedPhase(openedPhase.phase)) setAnnouncedPhase(openedPhase.phase);
               setAnnouncedTurn({ seat: openedPhase.turnSeat, count: openedPhase.turnCount });
@@ -594,6 +646,7 @@ export function usePhaseBanners({
               setPhaseBanner((current) => (current?.key === banner.key ? null : current));
               await context.wait(TIMINGS.phaseBannerGap);
             } finally {
+              releaseBoard();
               visiblePhaseBannerRef.current = false;
               completedPhaseOrderRef.current = phaseOrder;
               setPhaseBanner((current) => (current?.key === banner.key ? null : current));

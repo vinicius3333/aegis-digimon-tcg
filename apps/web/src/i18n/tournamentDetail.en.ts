@@ -15,6 +15,12 @@ export const tournamentDetailEn = {
   "tournaments.myMatch.roundTable": "Round {round} · Table {table}",
   "tournaments.myMatch.you": "You",
   "tournaments.myMatch.versus": "vs {opponent}",
+  "tournaments.create.allowBetaCards": "Allow beta cards",
+  "tournaments.create.allowBetaCardsDesc": "Decks may include cards from products that are not released yet.",
+  "tournaments.betaCards.label": "Beta cards",
+  "tournaments.betaCards.allowed": "Allowed",
+  "tournaments.betaCards.warning":
+    "Beta cards are allowed. Decks can use cards from unreleased products, and those cards may still change before release.",
   "tournaments.detail.cardPool": "Card pool",
   "tournaments.create.randomBotStyles": "Random bot styles",
   "tournaments.create.randomBotStylesDesc":
@@ -224,4 +230,6 @@ export const tournamentDetailEn = {
   "tournaments.format.pointsLoss": "Loss",
   "tournaments.format.pointsValue": "Win {win} · Draw {draw} · Loss {loss}",
   "tournaments.create.pointsAuto": "Auto (3/1/0)",
+  "notifications.tournament.started": "{name} has started. Open the tournament to see your pairing.",
+  "notifications.tournament.matchReady": "Round {round} of {name} is ready. Join your table now.",
 };

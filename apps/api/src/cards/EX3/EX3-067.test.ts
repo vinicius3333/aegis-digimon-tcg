@@ -225,6 +225,7 @@ describe("EX3-067 Sourai", () => {
   });
 
   it("Security activates the same Main sequence without paying cost or meeting color", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -236,8 +237,9 @@ describe("EX3-067 Sourai", () => {
         },
         1: { security: [{ card: "EX3-067", as: "securitySourai" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds },
     );
+    preferInstanceIds.push(s.perm("target").topCard.instanceId);
     s.state.turnSeat = 0;
     await s.ready();
 
@@ -249,6 +251,14 @@ describe("EX3-067 Sourai", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").stack.length === 0);
+    expect(s.decisions.find(({ req }) => req.kind === "chooseTargets")).toMatchObject({
+      seat: 1,
+      req: {
+        options: {
+          candidateInstanceIds: expect.arrayContaining([s.perm("attacker").permanentId, s.perm("target").permanentId]),
+        },
+      },
+    });
 
     expect(s.perm("target").stack).toHaveLength(0);
     expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);

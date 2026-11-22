@@ -4,7 +4,7 @@ import { PermanentDpDeltaHint } from "@/game/piece/PermanentDpDeltaHint";
 import { CardAceBadge } from "@/design/CardAceBadge";
 import { CardZoomPreview } from "@/design/CardZoomPreview";
 import { useBoardHoverZoom } from "@/game/piece/useBoardHoverZoom";
-import { useRef, useState, type CSSProperties } from "react";
+import { memo, useRef, useState, type CSSProperties } from "react";
 import { useCardTranslations } from "@/i18n/useCardTranslations";
 import { formatFieldReference } from "@/design/fieldReference/formatFieldReference";
 import { useBoardFieldReferenceVisible } from "@/design/fieldReference/useBoardFieldReferenceVisible";
@@ -40,9 +40,10 @@ import { PermanentSummoningRing } from "./PermanentSummoningRing";
 import { originalDP, permanentTransformation } from "../transformation";
 import type { DropAttrs } from "./types";
 import { usePermanentInspection } from "./usePermanentInspection";
+import { getTurnedCardInlineMargin } from "@/game/getTurnedCardInlineMargin";
 import "./fieldBadges.css";
 
-export function PermanentView({
+function PermanentViewBody({
   perm,
   copies = 1,
   fieldReferenceIds,
@@ -76,6 +77,7 @@ export function PermanentView({
   onKeyboardActivate,
   onInspect,
   showInspect = false,
+  reserveRowInlineSpace = true,
   useSelectedSleeve = true,
 }: {
   perm: Permanent;
@@ -137,13 +139,25 @@ export function PermanentView({
   onInspect?: () => void;
   /** Show the magnifier while the board is being used to choose a card or effect. */
   showInspect?: boolean;
+  reserveRowInlineSpace?: boolean;
   useSelectedSleeve?: boolean;
+  permSignature?: string;
 }) {
   const stationaryDeparture =
     heldDeletion || fate?.fate === "delete" || fate?.fate === "trash" || fate?.fate === "effectTarget";
   const permanentWidth = width ?? (compact ? 76 : 116);
   const isVisuallySuspended = heldSuspended || perm.isSuspended;
-  const suspendedInlineMargin = Math.ceil(permanentWidth * 0.2);
+  const turnedCardInlineMargin = getTurnedCardInlineMargin(permanentWidth);
+  const trailingOverhang =
+    linkCardOverhang(perm.linked.length, permanentWidth) + copyEdgeCount(copies) * COPY_EDGE_STEP;
+  const reservedTurnMargin = isVisuallySuspended
+    ? `${turnedCardInlineMargin}px`
+    : `calc((1 - var(--field-prefer-stacked, 0)) * ${turnedCardInlineMargin}px)`;
+  const leadingMargin = perm.stack.length
+    ? `max(${reservedTurnMargin}, calc(4px + ${perm.stack.length - 1} * min(var(--arena-source-step, 4px), ${sourceFanStepLimit(permanentWidth, perm.stack.length)}px)))`
+    : reservedTurnMargin;
+  const trailingMargin =
+    trailingOverhang > 0 ? `calc(${reservedTurnMargin} + ${trailingOverhang}px)` : reservedTurnMargin;
   const { t } = useTranslation();
   const translations = useCardTranslations();
   const beginInspection = usePermanentInspection(onInspect);
@@ -277,6 +291,7 @@ export function PermanentView({
       data-combat-impact={(shake && claw) || undefined}
       data-permanent-id={perm.permanentId}
       data-inspectable={!!onInspect || undefined}
+      data-inspect-shown={(!!onInspect && showInspect) || undefined}
       style={{
         // The badges size themselves from the card, so a phone's smaller card gets smaller badges.
         ...({ "--permanent-width": `${permanentWidth}px` } as CSSProperties),
@@ -288,15 +303,8 @@ export function PermanentView({
         // announcement is over, rather than flying the card across the board.
         visibility: pending ? "hidden" : undefined,
         transform: !stationaryDeparture && (highlight || effectSource || effectLinked) ? "translateY(-6px)" : "none",
-        marginInlineStart: perm.stack.length
-          ? `max(${isVisuallySuspended ? suspendedInlineMargin : 0}px, calc(4px + ${perm.stack.length - 1} * min(var(--arena-source-step, 4px), ${sourceFanStepLimit(permanentWidth, perm.stack.length)}px)))`
-          : isVisuallySuspended
-            ? suspendedInlineMargin
-            : 0,
-        marginInlineEnd:
-          (isVisuallySuspended ? suspendedInlineMargin : 0) +
-          linkCardOverhang(perm.linked.length, permanentWidth) +
-          copyEdgeCount(copies) * COPY_EDGE_STEP,
+        marginInlineStart: reserveRowInlineSpace ? leadingMargin : undefined,
+        marginInlineEnd: reserveRowInlineSpace ? trailingMargin : undefined,
         transition: stationaryDeparture
           ? "opacity 160ms"
           : "transform 160ms, opacity 160ms, margin-inline-start 200ms, margin-inline-end 200ms",
@@ -440,5 +448,61 @@ export function PermanentView({
         </button>
       ) : null}
     </div>
+  );
+}
+
+type PermanentViewProps = Parameters<typeof PermanentViewBody>[0];
+
+function sameEntries(previous: unknown, next: unknown): boolean {
+  if (previous === next) return true;
+  if (!previous || !next || typeof previous !== "object" || typeof next !== "object") return false;
+  if (
+    Array.isArray(previous) !== Array.isArray(next) ||
+    Object.getPrototypeOf(previous) !== Object.getPrototypeOf(next)
+  )
+    return false;
+  const previousKeys = Object.keys(previous);
+  return (
+    previousKeys.length === Object.keys(next).length &&
+    previousKeys.every((key) => Reflect.get(previous, key) === Reflect.get(next, key))
+  );
+}
+
+function samePermanentViewProps(previous: PermanentViewProps, next: PermanentViewProps): boolean {
+  const keys = new Set([...Object.keys(previous), ...Object.keys(next)] as (keyof PermanentViewProps)[]);
+  for (const key of keys) {
+    const before = previous[key];
+    const after = next[key];
+    if (before === after) continue;
+    if (key === "perm") continue;
+    if (key === "refCb") {
+      if (!before || !after || !sameEntries(previous.fieldReferenceIds, next.fieldReferenceIds)) return false;
+      continue;
+    }
+    if (!sameEntries(before, after)) return false;
+  }
+  return true;
+}
+
+const MemoizedPermanentView = memo(PermanentViewBody, samePermanentViewProps);
+
+export function PermanentView(props: PermanentViewProps) {
+  const latest = useRef(props);
+  latest.current = props;
+  const [handlers] = useState(() => ({
+    onClick: () => latest.current.onClick?.(),
+    onPointerDown: (event: React.PointerEvent) => latest.current.onPointerDown?.(event),
+    onKeyboardActivate: () => latest.current.onKeyboardActivate?.(),
+    onInspect: () => latest.current.onInspect?.(),
+  }));
+  return (
+    <MemoizedPermanentView
+      {...props}
+      permSignature={JSON.stringify(props.perm)}
+      onClick={props.onClick && handlers.onClick}
+      onPointerDown={props.onPointerDown && handlers.onPointerDown}
+      onKeyboardActivate={props.onKeyboardActivate && handlers.onKeyboardActivate}
+      onInspect={props.onInspect && handlers.onInspect}
+    />
   );
 }

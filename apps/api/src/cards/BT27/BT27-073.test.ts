@@ -97,3 +97,30 @@ describe("Chiropmon evolution discount and inherited draw", () => {
     expect(s.perm("egg").stack.map((c) => c.cardId)).toEqual(allowed ? [egg] : []);
   });
 });
+
+describe("official rulings", () => {
+  it("does not reduce the cost when it digivolves in the breeding area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT27-073", as: "base" },
+          hand: [{ card: "BT27-077", as: "evolution" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT27-077" && !s.state.pendingDecision);
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("base").stack.map((c) => c.cardId)).toEqual(["BT27-073"]);
+  });
+});

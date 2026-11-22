@@ -1,10 +1,10 @@
-import type { CompiledCard } from "@aegis/shared";
+import type { CardEffect, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "Static", actions: [], keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }] },
-    ...(["OnPlay", "WhenDigivolving"] as const).map((trigger) => ({
+    ...(["OnPlay", "WhenDigivolving"] as const).map((trigger): CardEffect => ({
       trigger,
       actions: [
         {
@@ -14,8 +14,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "opponent" as const,
-              kind: ["Digimon" as const],
-              digivolutionCards: "hasAny" as const,
+              kind: ["Digimon" as const] as const,
             },
             count: 1,
           },

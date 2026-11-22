@@ -32,7 +32,7 @@ describe("BT1-043 SaberLeomon", () => {
           actions: [
             {
               kind: "TrashDigivolution",
-              target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: 1 },
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
               amount: 4,
               fromTop: false,
             },
@@ -99,7 +99,8 @@ describe("BT1-043 SaberLeomon", () => {
     expect(s.perm("target").stack).toHaveLength(0);
   });
 
-  it("chooses only a sourced opponent Digimon and leaves a source-less peer untouched", async () => {
+  it("offers a source-less opponent Digimon too and trashes the chosen Digimon's sources", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-039", as: "base" }], hand: [{ card: "BT1-043", as: "evolving" }] },
@@ -110,8 +111,9 @@ describe("BT1-043 SaberLeomon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("sourced").permanentId);
     s.state.memory = 3;
 
     expect(
@@ -122,6 +124,10 @@ describe("BT1-043 SaberLeomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("sourced").stack.length === 0);
+    expect(s.decisions.find(({ req }) => req.kind === "chooseTargets")?.req.options?.candidateInstanceIds).toEqual([
+      s.perm("sourceLess").permanentId,
+      s.perm("sourced").permanentId,
+    ]);
 
     expect(s.perm("sourced").stack).toHaveLength(0);
     expect(s.perm("sourceLess").topCard.cardId).toBe("BT1-010");

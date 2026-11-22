@@ -285,3 +285,57 @@ describe("QueenChessmon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });
+
+describe("QueenChessmon official rulings", () => {
+  it("chooses an undeletable lowest play cost Digimon and then trashes the top security card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: QUEEN, as: "queen" },
+            { card: PAWN, as: "pawn" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT14-062", as: "protected" }], security: [{ card: TAMER, as: "top" }, FILLER] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("pawn").permanentId]);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT14-062"]);
+    expect(s.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual([FILLER]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("top").instanceId]);
+  });
+
+  it("refuses Assembly when one of the level materials lacks [Chessmon] in its name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: QUEEN, as: "queen" }],
+          trash: [
+            { card: BISHOP, as: "lv5" },
+            { card: "BT1-019", as: "lv4" },
+            { card: PAWN, as: "lv3" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    s.state.memory = 7;
+
+    const result = s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: s.inst("queen").instanceId,
+      assembly: { materialInstanceIds: ["lv5", "lv4", "lv3"].map((alias) => s.inst(alias).instanceId) },
+    });
+
+    expect(result.ok).toBe(false);
+    expect(s.state.memory).toBe(7);
+    expect(queenIn(s)).toBeUndefined();
+    expect(s.state.players[0]!.trash).toHaveLength(3);
+  });
+});

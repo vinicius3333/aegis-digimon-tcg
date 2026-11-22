@@ -45,6 +45,7 @@ export type TournamentBanlistCard = {
 
 export type CreateTournamentInput = {
   sealedConfiguration?: SealedConfiguration;
+  allowBetaCards?: boolean;
   roundStartMode?: TournamentRoundStartMode;
   category?: TournamentCategory;
   format?: DeckFormat;
@@ -189,6 +190,7 @@ export type ParticipantView = {
 export type TournamentSummary = {
   sealedConfiguration?: SealedConfiguration | null;
   sealedBuildDeadlineAt?: number | null;
+  allowBetaCards?: boolean;
   roundStartMode?: TournamentRoundStartMode;
   category?: TournamentCategory;
   myEntry?: {

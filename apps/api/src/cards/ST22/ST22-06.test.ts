@@ -388,6 +388,39 @@ describe("ST22-06 Sakuyamon: Maid Mode — KB Q&A rulings", () => {
     expect(s.perm("high").topCard.cardId).toBe("BT1-010");
   });
 
+  it("does not trash security when Jupitermon keeps the lowest-DP Digimon in play with its own top card", async () => {
+    const s = setupEngine(
+      {
+        0: { security: ["BT1-090"], battleArea: [{ card: "ST22-06", as: "maid" }] },
+        1: {
+          security: [{ card: "BT1-091", as: "mustRemain" }],
+          battleArea: [
+            {
+              card: "BT26-033",
+              as: "jupitermon",
+              dp: 2000,
+              under: [{ card: "BT26-030", as: "jupitermonSource" }],
+            },
+            { card: "BT1-010", dp: 6000, as: "high" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const jupitermonPermanentId = s.perm("jupitermon").permanentId;
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => s.state.players[1]!.security.some((card) => card.cardId === "BT26-033"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const survivor = s.state.players[1]!.battleArea.find(({ permanentId }) => permanentId === jupitermonPermanentId);
+    expect(survivor?.topCard.cardId).toBe("BT26-030");
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-091", "BT26-033"]);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.perm("high").topCard.cardId).toBe("BT1-010");
+  });
+
   it("spends its [Once Per Turn] use even when the placement was prevented (Q5426)", async () => {
     const s = setupEngine(
       {

@@ -39,7 +39,7 @@ describe("EX3-019 Paledramon", () => {
             {
               kind: "TrashDigivolution",
               target: {
-                filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
+                filter: { controller: "opponent", kind: ["Digimon"] },
                 count: 1,
               },
               amount: 1,
@@ -70,7 +70,7 @@ describe("EX3-019 Paledramon", () => {
     });
   });
 
-  it("chooses a source-bearing opponent Digimon and then any exact card in its stack", async () => {
+  it("offers every opponent Digimon, including one without sources, then any exact card in its stack (Q2007)", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-029", as: "base" }],
@@ -115,20 +115,25 @@ describe("EX3-019 Paledramon", () => {
         candidateInstanceIds: expect.arrayContaining([
           s.perm("withSources").permanentId,
           s.perm("otherWithSource").permanentId,
+          s.perm("empty").permanentId,
         ]),
         visibleInstanceIds: expect.arrayContaining([
           s.perm("withSources").permanentId,
           s.perm("otherWithSource").permanentId,
+          s.perm("empty").permanentId,
         ]),
       },
     });
     expect(hostPayload.candidateInstanceIds).toContain(s.perm("withSources").permanentId);
     expect(hostPayload.candidateInstanceIds).toContain(s.perm("otherWithSource").permanentId);
-    expect(hostPayload.candidateInstanceIds).not.toContain(s.perm("empty").permanentId);
+    expect(hostPayload.candidateInstanceIds).toContain(s.perm("empty").permanentId);
     expect(hostPayload.visibleInstanceIds).toEqual(
-      expect.arrayContaining([s.perm("withSources").permanentId, s.perm("otherWithSource").permanentId]),
+      expect.arrayContaining([
+        s.perm("withSources").permanentId,
+        s.perm("otherWithSource").permanentId,
+        s.perm("empty").permanentId,
+      ]),
     );
-    expect(hostPayload.visibleInstanceIds).not.toContain(s.perm("empty").permanentId);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",

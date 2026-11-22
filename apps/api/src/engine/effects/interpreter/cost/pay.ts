@@ -2,6 +2,7 @@ import { printedPassage } from "#api/engine/decisions/printedPassage";
 import type { EffectContext } from "../../EffectContext.js";
 import { canPayCost, costIsAskedAsSelection } from "./canPay.js";
 import { payCompoundCost } from "./compound.js";
+import { payMergedReturnCost } from "./payMergedReturnCost.js";
 import { payPlaceCost } from "./place.js";
 import {
   payDeleteOwnCost,
@@ -108,6 +109,8 @@ export async function payOneCostOption(
   // charges nothing and silently cancels the effect (BT23-073 without a [Mother Eater]).
   const payable = costs.filter((cost) => canPayCost(ctx, cost));
   if (payable.length === 0) return false;
+  const merged = payMergedReturnCost(ctx, payable, out);
+  if (merged !== undefined) return merged;
   const index =
     payable.length === 1
       ? 0

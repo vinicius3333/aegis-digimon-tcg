@@ -1,7 +1,7 @@
 import fixture from "../../api/src/engine/scenarios/mother-d-reaper-digimon-cost.fixture";
 import { test, expect } from "./scenario-page";
 
-test("Mother D-Reaper reduces a Digimon after Jeri is played at full cost", async ({ scenario }) => {
+test("Mother D-Reaper reduces a Digimon after its reduction is declined for Jeri", async ({ scenario }) => {
   const refs = await scenario.openFixture(fixture, "normal", "none");
   await scenario.resolveUntil((state) => state.phase === "Main" && !state.pendingDecision);
   await scenario.play("Jeri (Fake)", "Tamer");
@@ -9,6 +9,7 @@ test("Mother D-Reaper reduces a Digimon after Jeri is played at full cost", asyn
     (state) =>
       !state.pendingDecision &&
       state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === refs.instanceId("tamer")),
+    (decision) => (decision.kind === "optional" ? { accept: false } : {}),
   );
   expect((await scenario.snapshot()).memory).toBe(4);
   await scenario.play("ADR-03 Pendulum Feet", "Digimon");

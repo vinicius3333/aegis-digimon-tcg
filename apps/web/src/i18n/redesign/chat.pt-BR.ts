@@ -16,6 +16,9 @@ export const chatPtBR: Record<keyof typeof chatEn, string> = {
   "chat.muteSpectators": "Silenciar espectadores",
   "chat.sound": "Som do chat",
   "chat.soundDesc": "Toca um som a cada nova mensagem do oponente ou dos espectadores.",
+  "chat.enabled": "Chat da partida",
+  "chat.enabledDesc":
+    "Mostra o botão de chat, os balões de fala e as mensagens nas partidas. Desligue para esconder o chat por completo.",
   "chat.you": "Você",
   "chat.spectator": "Espectador {number}",
   "chat.spectatorTag": "espectador",

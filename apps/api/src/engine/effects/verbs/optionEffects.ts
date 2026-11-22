@@ -191,6 +191,8 @@ export function createOptionEffectsVerbs(pc: PrimitivesContext) {
         // Pending effects still resolve after memory crosses to the opponent's side.
         if (engine.memory.maxCostFor(ctx.source.ownerSeat) < cost) return [];
         if (cost > 0) engine.memory.pay(ctx.source.ownerSeat, cost, "useOption");
+      } else if (opts?.payCost !== true && usedDefinition !== undefined && opts?.paymentHandled !== true) {
+        await engine.finalizeEffectPlayCost?.(usedInstanceId, 0, true, looseZoneOfInstance(state, usedInstanceId));
       }
       wasUnderCard =
         hostOfStackInstance(state, usedInstanceId) !== undefined ||
@@ -253,6 +255,7 @@ export function createOptionEffectsVerbs(pc: PrimitivesContext) {
             activeTiming: "Main",
             activeEffectTextPart: undefined,
             activeEffectTextEmphasis: undefined,
+            activeEffectTextCardId: undefined,
             source: {
               instanceId: usedInstanceId,
               cardId: usedCard.cardId,

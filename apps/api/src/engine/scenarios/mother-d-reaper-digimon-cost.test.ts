@@ -8,21 +8,32 @@ import "#api/cards/EX2/EX2-046";
 import "#api/cards/EX2/EX2-047";
 import "#api/cards/P/P-158";
 
-it("pays Jeri's full Tamer cost and preserves Mother D-Reaper's reduction for a Digimon", async () => {
-  const s = setupScenario(fixture, { autoAcceptOptional: true, autoSelectCards: true });
+it("keeps Mother D-Reaper's reduction for a Digimon after declining it for Jeri", async () => {
+  const s = setupScenario(fixture, { autoSelectCards: true });
   const loop = s.engine.startTurnLoop();
+  const answerMotherReduction = async (accept: boolean) => {
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)?.req.sourceCardId).toBe("EX2-007");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.engine.mainVerbContinuationsInFlight === 0 && !s.state.pendingDecision);
+  };
   try {
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
-    await settle(() => s.engine.mainVerbContinuationsInFlight === 0 && !s.state.pendingDecision);
+    await answerMotherReduction(false);
     expect(s.state.memory).toBe(4);
-    expect(s.decisions.some(({ req }) => req.sourceCardId === "EX2-007")).toBe(false);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("digimon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.engine.mainVerbContinuationsInFlight === 0 && !s.state.pendingDecision);
+    await answerMotherReduction(true);
     expect(s.state.memory).toBe(3);
-    expect(s.decisions.some(({ req }) => req.sourceCardId === "EX2-007")).toBe(true);
   } finally {
     s.engine.applyIntent(0, { type: "surrender" });
     await loop;

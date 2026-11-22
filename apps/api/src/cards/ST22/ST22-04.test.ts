@@ -442,6 +442,42 @@ describe("ST22-04 Taomon — KB Q&A rulings", () => {
     },
   );
 
+  it("offers only Options with the printed [Plug-In] trait, not a [Plug-In] name alone", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST3-12", as: "tamer" },
+            { card: "ST22-04", as: "taomon" },
+          ],
+          hand: [
+            { card: "EX2-070", as: "namedPlugIn" },
+            { card: "ST22-09", as: "traitPlugIn" },
+          ],
+          security: ["BT1-090"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], security: ["ST1-02", "ST1-02"] },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("taomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+
+    const selection = s.decisions.at(-1)!.req;
+    expect(selection.kind).toBe("selectCards");
+    const candidates = selection.options?.candidateInstanceIds;
+    expect(candidates).toContain(s.inst("traitPlugIn").instanceId);
+    expect(candidates).not.toContain(s.inst("namedPlugIn").instanceId);
+  });
+
   it("triggers its inherited [End of Attack] effect after Viximon digivolved it mid-attack (Q5416)", async () => {
     const s = await attackWithTaomonThatDigivolvesMidAttack();
     const attacker = s.perm("attacker");

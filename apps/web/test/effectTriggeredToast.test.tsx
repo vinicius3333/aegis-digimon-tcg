@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { ReactElement } from "react";
 import { setupEngine, settle } from "@aegis-api/engine/testkit/harness.js";
 import "@aegis-api/cards/BT25/BT25-084.js";
@@ -11,6 +11,8 @@ import { cleanup, render, screen, within, waitFor } from "./scenarioHarness/test
 import { act } from "@testing-library/react";
 import type { DecisionResponse } from "@aegis/shared";
 import { GameScreen } from "../src/game/GameScreen";
+import { MatchLogDisplay } from "@/game/log/MatchLogDisplay";
+import { matchLogDisplayPreference } from "@/game/log/matchLogDisplayPreference";
 
 const mocked = vi.hoisted(() => ({
   roomResult: { current: undefined as unknown },
@@ -20,6 +22,8 @@ const mocked = vi.hoisted(() => ({
 vi.mock("../src/net/useRoom", () => ({
   useRoom: () => mocked.roomResult.current,
 }));
+
+beforeEach(() => matchLogDisplayPreference.set(MatchLogDisplay.POPUPS.value));
 
 afterEach(() => cleanup());
 

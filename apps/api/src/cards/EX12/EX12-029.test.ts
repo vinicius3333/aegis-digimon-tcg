@@ -320,7 +320,8 @@ describe("EX12-029 Sagomon", () => {
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "beSuspended")).toBe(true);
   });
 
-  it("trashes bottom sources and restricts a source-less opposing Digimon once per turn", async () => {
+  it("trashes bottom sources of the chosen Digimon and restricts a source-less opposing Digimon once per turn", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-011", as: "host", under: [{ card: cardId, as: "source" }] }] },
@@ -331,8 +332,9 @@ describe("EX12-029 Sagomon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
+    preferInstanceIds.push(s.perm("stacked").topCard.instanceId);
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     await settle(
@@ -340,6 +342,9 @@ describe("EX12-029 Sagomon", () => {
         s.perm("stacked").stack.length === 1 && observe(s.engine).isRestricted(s.perm("empty").permanentId, "suspend"),
     );
 
+    expect(s.decisions.find(({ req }) => req.kind === "chooseTargets")?.req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.perm("empty").permanentId, s.perm("stacked").permanentId]),
+    );
     expect(s.perm("stacked").stack).toHaveLength(1);
     expect(observe(s.engine).isRestricted(s.perm("empty").permanentId, "beSuspended")).toBe(true);
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));

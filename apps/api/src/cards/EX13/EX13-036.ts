@@ -43,20 +43,11 @@ const placeOneEach = (): Action[] => [
     op: "placeAsSecurity",
     controller: "mine",
     source: { filter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" }, count: 1 },
+    additionalSources: [{ filter: theirDigimon, count: 1 }],
     ownerSecurity: true,
     toTop: true,
     optional: true,
-    abortOnDecline: true,
-    raw: "you may place 1 of your Digimon as the top security card",
-  },
-  {
-    kind: "SecurityManipulation",
-    op: "placeAsSecurity",
-    controller: "opponent",
-    source: { filter: theirDigimon, count: 1 },
-    ownerSecurity: true,
-    toTop: true,
-    raw: "place 1 of your opponent's Digimon as the top security card",
+    raw: "you may place 1 of each player's Digimon as the top security cards",
   },
 ];
 

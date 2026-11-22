@@ -1,9 +1,11 @@
+import { Encoder } from "@colyseus/schema";
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { CARD_ID_VIEW_TAG, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { effectiveStaticTraits } from "@aegis/shared/cards/effectiveTraits";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { advance } from "#api/engine/testkit/advance";
 import { observe } from "#api/engine/testkit/observe";
+import { buildStateView } from "#api/engine/state/visibility";
 import { compiled } from "./BT27-020.js";
 import "#api/cards/index";
 
@@ -245,4 +247,54 @@ describe("BT27-020 Kamemon", () => {
       expect(s.perm("bystander").stack.map((card) => card.instanceId)).toEqual([s.inst("bystanderSource").instanceId]);
     },
   );
+});
+
+describe("official rulings", () => {
+  async function placeUnderTamerWithFaceDownCard() {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-091", as: "tamer", under: [{ card: "BT1-013", as: "existing", faceUp: false }] }],
+          hand: [
+            { card: "BT27-020", as: "kamemon" },
+            { card: "BT26-039", as: "dataSquad" },
+          ],
+          deck,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.inst("dataSquad").instanceId, s.perm("tamer").permanentId);
+    playKamemon(s);
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    return s;
+  }
+
+  it("places the card at the bottom of the cards already under the Tamer", async () => {
+    const s = await placeUnderTamerWithFaceDownCard();
+    expect(s.perm("tamer").stack.map((card) => [card.instanceId, card.faceUp])).toEqual([
+      [s.inst("dataSquad").instanceId, false],
+      [s.inst("existing").instanceId, false],
+    ]);
+  });
+
+  it("lets only the owner see the identity of the face-down card placed under the Tamer", async () => {
+    const s = await placeUnderTamerWithFaceDownCard();
+    expect(new Encoder(s.state)).toBeDefined();
+    const placed = s.perm("tamer").stack.find((card) => card.instanceId === s.inst("dataSquad").instanceId)!;
+    expect(buildStateView(s.state, 0).hasTag(placed, CARD_ID_VIEW_TAG)).toBe(true);
+    expect(buildStateView(s.state, 1).hasTag(placed, CARD_ID_VIEW_TAG)).toBe(false);
+  });
+
+  it("puts the face-down cards under the Tamer face up in the trash when the Tamer is deleted", async () => {
+    const s = await placeUnderTamerWithFaceDownCard();
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("tamer").permanentId], "byEffect")).toBe(1);
+    await settle(() => !s.state.pendingDecision);
+    const trashed = s.state.players[0]!.trash.filter((card) =>
+      [s.inst("dataSquad").instanceId, s.inst("existing").instanceId].includes(card.instanceId),
+    );
+    expect(trashed.map((card) => card.faceUp)).toEqual([true, true]);
+  });
 });

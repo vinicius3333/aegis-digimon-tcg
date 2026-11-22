@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "#api/engine/testkit/advance";
 import { assertNoLoudGap, settle, setupEngine } from "#api/engine/testkit/harness";
 import { observe } from "#api/engine/testkit/observe";
+import { seatClients } from "#api/engine/testkit/seatClients";
 import { compiled } from "#api/cards/BT27/BT27-096";
 import "#api/cards/index";
 
@@ -27,7 +28,7 @@ function setupRavemonCombo(options: { under: ReturnType<typeof faceDown>[]; decl
     },
     options.decline === true
       ? { autoDeclineOptional: true, autoSelectCards: true }
-      : { autoAcceptOptional: true, autoSelectCards: true },
+      : { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Trash bottom face down under tamer"] },
   );
   return s;
 }
@@ -253,5 +254,75 @@ describe("BT27-096 Keenan Crier", () => {
       s.inst("securityKeenan").instanceId,
     ]);
     expect(s.state.memory).toBe(0);
+  });
+
+  describe("official rulings", () => {
+    it("trashes 5 face-down cards across multiple Tamers face up to use the Option", async () => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT27-096", as: "keenan", under: ["first", "second", "third"].map(faceDown) },
+              { card: "BT26-091", as: "otherTamer", under: ["fourth", "fifth"].map(faceDown) },
+              { card: "BT13-079", as: "falcomon" },
+            ],
+            trash: [
+              { card: "BT27-101", as: "yaksha" },
+              { card: "BT13-082", as: "peckmon" },
+              { card: "BT13-085", as: "crowmon" },
+              { card: "BT13-089", as: "ravemon" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+
+      expect(await activateMain(s)).toEqual({ ok: true });
+      await settle(() => s.perm("falcomon").topCard.cardId === "BT13-089");
+
+      const paid = ["first", "second", "third", "fourth", "fifth"].map((alias) => s.inst(alias).instanceId);
+      expect(s.perm("keenan").stack).toHaveLength(0);
+      expect(s.perm("otherTamer").stack).toHaveLength(0);
+      expect(
+        s.state.players[0]!.trash.filter((card) => paid.includes(card.instanceId))
+          .map((card) => [card.instanceId, card.faceUp])
+          .sort(),
+      ).toEqual(paid.map((id) => [id, true]).sort());
+    });
+
+    it("shows the cards placed face down under the Tamer to their owner only", async () => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT27-096", as: "keenan" }],
+            deck: [
+              { card: "BT1-011", as: "firstTop" },
+              { card: "BT1-012", as: "secondTop" },
+            ],
+          },
+          1: { hand: [{ card: "BT1-009", as: "opponentHandCard" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const clients = seatClients(s.engine, s.state);
+      await s.ready();
+      clients.patch();
+
+      await advance(s.engine).verb.trash([s.inst("opponentHandCard").instanceId]);
+      await settle(() => s.perm("keenan").stack.length === 2);
+      clients.patch();
+
+      const seenStack = (seat: 0 | 1) =>
+        clients
+          .stateFor(seat)
+          .players[0]!.battleArea.find(({ permanentId }) => permanentId === s.perm("keenan").permanentId)!
+          .stack.map(({ cardId }) => cardId);
+      expect(s.perm("keenan").stack.map((card) => card.faceUp)).toEqual([false, false]);
+      expect(seenStack(0)).toEqual(["BT1-012", "BT1-011"]);
+      expect(seenStack(1)).toEqual([undefined, undefined]);
+      expect(clients.decoderErrors).toEqual([]);
+      clients.restore();
+    });
   });
 });
