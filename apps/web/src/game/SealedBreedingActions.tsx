@@ -22,12 +22,13 @@ export function SealedBreedingActions({ state, player, room, enabled }: Props) {
       style={{
         position: "relative",
         zIndex: 21,
+        pointerEvents: "auto",
         display: "flex",
         flexDirection: "column",
         alignSelf: "center",
         gap: 4,
         width: "18rem",
-        maxWidth: "calc(100vw - 2rem)",
+        maxWidth: "100%",
         flexShrink: 0,
       }}
     >
@@ -39,6 +40,7 @@ export function SealedBreedingActions({ state, player, room, enabled }: Props) {
         .map((card) => (
           <Button
             key={card.instanceId}
+            style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}
             onClick={() => sendIntent(room, { type: "placeSealedRookie", instanceId: card.instanceId })}
           >
             {t("sealed.placeRookie")} · {name(card.cardId)}
