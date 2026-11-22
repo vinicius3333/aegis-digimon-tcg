@@ -268,7 +268,15 @@ export function SecurityEdgeFlash({ scene }: { scene: SecurityBreakScene }) {
  * side panels do not occupy while its effect notice reads next to it (the notice is
  * mirrored to the same half by `noticeAnchor`, so the two are one moment).
  */
-export function SecurityBranch({ scene, compact = false }: { scene: SecurityBranchScene; compact?: boolean }) {
+export function SecurityBranch({
+  scene,
+  compact = false,
+  stowed = false,
+}: {
+  scene: SecurityBranchScene;
+  compact?: boolean;
+  stowed?: boolean;
+}) {
   const getCardName = useTranslatedCardName();
   const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -307,6 +315,7 @@ export function SecurityBranch({ scene, compact = false }: { scene: SecurityBran
       data-side={scene.side}
       data-source={scene.source ?? "security"}
       data-compact={compact || undefined}
+      data-stowed={stowed || undefined}
       // The dock is open-ended, so its slide-in and its exit are two animations rather
       // than one fixed clip: the state says which of them the card is playing.
       data-state={scene.state}

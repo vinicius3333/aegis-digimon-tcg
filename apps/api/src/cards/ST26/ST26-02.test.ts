@@ -139,3 +139,86 @@ describe("ST26-02 Renamon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 });
+
+describe("ST26-02 Renamon official rulings", () => {
+  it("draws on play when the opponent has no Digimon at all", async () => {
+    const s = await playRenamon([]);
+    expect(handSize(s)).toBe(1);
+  });
+
+  it("lets the attacker choose among opposing Digimon tied for the fewest digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: vanillaIceSnowLevel4, as: "host", under: [cardId], dp: 7000 }] },
+        1: {
+          battleArea: [
+            { card: vanillaBlueLevel3, as: "first" },
+            { card: weakBlueLevel3, as: "second" },
+          ],
+          security: [weakBlueLevel3, weakBlueLevel3, weakBlueLevel3],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const tiedIds = [s.perm("first"), s.perm("second")].map((permanent) => [
+      permanent.permanentId,
+      permanent.topCard.instanceId,
+    ]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.phase === Phase.Main && !observe(s.engine).isAttacking(), 5000);
+
+    const redirectChoice = s.decisions.find(
+      ({ seat, req }) =>
+        seat === 0 && tiedIds.every((ids) => ids.some((id) => req.options?.candidateInstanceIds?.includes(id))),
+    );
+    expect(redirectChoice).toBeDefined();
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+  });
+
+  it("redirects to a Digimon that became the one with the fewest digivolution cards earlier in the attack", async () => {
+    let thinnedId: string | undefined;
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: vanillaIceSnowLevel4, as: "host", under: [cardId, "BT13-023"], dp: 7000 }] },
+        1: {
+          battleArea: [
+            { card: vanillaBlueLevel3, as: "first", under: [bottomSource] },
+            { card: weakBlueLevel3, as: "second", under: [bottomSource] },
+          ],
+          security: [weakBlueLevel3, weakBlueLevel3, weakBlueLevel3],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferTriggerKeys: ["BT13-023"],
+        onEvent: () => {
+          thinnedId ??= s.state.players[1]!.battleArea.find((permanent) => permanent.stack.length === 0)?.permanentId;
+        },
+      },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.phase === Phase.Main && !observe(s.engine).isAttacking(), 5000);
+
+    expect(thinnedId).toBeDefined();
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(opponentBattleAreaIds(s)).not.toContain(thinnedId);
+    expect(s.state.players[1]!.battleArea[0]!.stack).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+  });
+});

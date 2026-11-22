@@ -255,3 +255,28 @@ describe("BT27-054 Lotosmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });
+
+describe("official rulings", () => {
+  it("may forbid unsuspending a different opposing Digimon than the one it suspended", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: cardId, as: "lotosmon" }] },
+        1: {
+          battleArea: [
+            { card: vanillaLevel3, as: "locked", suspended: true },
+            { card: vanillaLevel3, as: "suspended" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 11;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lotosmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("suspended").isSuspended && s.state.pendingDecision === undefined);
+    expect(hasRestriction(s, s.perm("locked").permanentId, "unsuspend")).toBe(true);
+    expect(hasRestriction(s, s.perm("suspended").permanentId, "unsuspend")).toBe(false);
+  });
+});

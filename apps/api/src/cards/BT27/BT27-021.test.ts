@@ -179,3 +179,24 @@ describe("Dracomon (X Antibody) Examon reveal and inherited DNA", () => {
     },
   );
 });
+
+describe("official rulings", () => {
+  it("adds a Digimon whose name has Examon even when its effects never mention Examon", async () => {
+    const s = await playAndReveal([
+      { card: "BT13-059", as: "examonByName" },
+      { card: "BT1-009", as: "miss" },
+      { card: "BT1-010", as: "otherMiss" },
+    ]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("examonByName").instanceId]);
+  });
+
+  it("requires the Option card to have Examon in its text as well as the Digimon card", async () => {
+    const s = await playAndReveal([
+      { card: "EX13-018", as: "digimonMatch" },
+      { card: "BT1-108", as: "optionMiss" },
+      { card: "BT1-009", as: "miss" },
+    ]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("digimonMatch").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("optionMiss").instanceId);
+  });
+});

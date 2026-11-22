@@ -82,9 +82,6 @@ export function useArenaLayout(): ArenaLayout {
   // Just above the phone layout, full-size hand cards leave the field too short for both battle rows.
   const shortDock = useMediaQuery("(min-height: 520px) and (max-height: 559px) and (orientation: landscape)");
   const landscapePhone = useMediaQuery(LANDSCAPE_PHONE_QUERY);
-  // A phone on its side with the browser's bars showing: two rails of piles and two battle rows
-  // share about 180px, so the pieces take one size down.
-  const shortLandscapePhone = useMediaQuery("(height < 360px) and (orientation: landscape)");
   // A narrow docked board under 600px tall keeps its rails single file, so the piles shrink to fit.
   const shortNarrowDock = useMediaQuery(
     "(min-width: 600px) and (max-width: 759px) and (min-height: 520px) and (max-height: 599px) and (orientation: landscape)",
@@ -112,9 +109,7 @@ export function useArenaLayout(): ArenaLayout {
             ? 60
             : 76
     : landscapePhone
-      ? shortLandscapePhone
-        ? 42
-        : LANDSCAPE_PHONE_PERMANENT_WIDTH
+      ? LANDSCAPE_PHONE_PERMANENT_WIDTH
       : shortBoard
         ? 76
         : tightArena

@@ -262,3 +262,29 @@ describe("BT27-029 Sekkamon", () => {
     expect(s.perm("target").stack).toHaveLength(2);
   });
 });
+
+describe("official rulings", () => {
+  it("lets an unsuspended Ice-Snow host attack through another End of Your Turn effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT27-033", as: "host", under: [cardId], suspended: true }] },
+        1: {
+          battleArea: [{ card: vanillaBlueLevel5, as: "bare" }],
+          security: [vanillaBlueLevel3, vanillaBlueLevel3, vanillaBlueLevel3],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: [cardId] },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("host"));
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking(), 5000);
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("still trashes at the end of your turn when the host lacks the Ice-Snow trait", async () => {
+    const s = await endTurnWith(vanillaBlueLevel3, [vanillaBlueLevel3, source, source]);
+    expect(s.perm("target").stack.map((card) => card.cardId)).toEqual([source]);
+    expect(s.perm("host").isSuspended).toBe(true);
+  });
+});

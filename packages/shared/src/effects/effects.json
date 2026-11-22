@@ -174054,8 +174054,8 @@
         "trigger": "AllTurns",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "onDeletionOf",
+            "kind": "Replacement",
+            "event": "wouldBeDeleted",
             "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
@@ -174065,6 +174065,7 @@
                   "count": 1
                 },
                 "from": ["digivolutionCards"],
+                "fromOwnDigivolutionStack": true,
                 "payCost": false,
                 "optional": true
               },
@@ -174078,11 +174079,11 @@
                   "count": 1
                 },
                 "from": ["digivolutionCards"],
+                "fromOwnDigivolutionStack": true,
                 "payCost": false,
                 "optional": true
               }
-            ],
-            "raw": "onDeletionOf"
+            ]
           },
           {
             "kind": "SubTrigger",
@@ -241426,7 +241427,11 @@
             "kind": "WaiveColorRequirement",
             "condition": {
               "kind": "youHave",
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["DATA SQUAD"], "match": "trait" }] }
+              "filter": {
+                "controller": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["DATA SQUAD"], "match": "trait" }]
+              }
             }
           }
         ]
@@ -241716,7 +241721,11 @@
             "kind": "WaiveColorRequirement",
             "condition": {
               "kind": "youHave",
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["TERMINAL"], "match": "trait" }] }
+              "filter": {
+                "controller": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["TERMINAL"], "match": "trait" }]
+              }
             }
           }
         ]
@@ -244796,6 +244805,7 @@
               "kind": "place",
               "target": { "filter": { "controller": "mine", "zone": "hand" }, "count": 1, "from": ["hand"] },
               "destination": "digivolutionStack",
+              "position": "bottom",
               "host": {
                 "filter": {
                   "controller": "mine",
@@ -244825,6 +244835,7 @@
               "kind": "place",
               "target": { "filter": { "controller": "mine", "zone": "hand" }, "count": 1, "from": ["hand"] },
               "destination": "digivolutionStack",
+              "position": "bottom",
               "host": {
                 "filter": {
                   "controller": "mine",
@@ -245092,7 +245103,11 @@
             "kind": "WaiveColorRequirement",
             "condition": {
               "kind": "youHave",
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["DATA SQUAD"], "match": "trait" }] }
+              "filter": {
+                "controller": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["DATA SQUAD"], "match": "trait" }]
+              }
             }
           }
         ]
@@ -245170,7 +245185,11 @@
             "kind": "WaiveColorRequirement",
             "condition": {
               "kind": "youHave",
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["DATA SQUAD"], "match": "trait" }] }
+              "filter": {
+                "controller": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["DATA SQUAD"], "match": "trait" }]
+              }
             }
           }
         ]
@@ -246402,7 +246421,6 @@
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
               "count": "all",
-              "upTo": true,
               "totalDpCap": 9000
             },
             "totalDpCapScaling": {
@@ -248994,6 +249012,7 @@
               "kind": "place",
               "target": { "filter": { "controller": "mine", "zone": "hand" }, "count": 1, "from": ["hand"] },
               "destination": "digivolutionStack",
+              "position": "bottom",
               "host": {
                 "filter": {
                   "controller": "mine",
@@ -249024,6 +249043,7 @@
               "kind": "place",
               "target": { "filter": { "controller": "mine", "zone": "hand" }, "count": 1, "from": ["hand"] },
               "destination": "digivolutionStack",
+              "position": "bottom",
               "host": {
                 "filter": {
                   "controller": "mine",
@@ -250433,7 +250453,7 @@
             "event": "whenLeavesPlay",
             "effectTextPart": "[All Turns] [Once Per Turn] When any of your Digimon leave the battle area, you may activate 1 [Main] effect on this card's Option side.",
             "raw": "[All Turns] [Once Per Turn] When any of your Digimon leave the battle area, you may activate 1 [Main] effect on this card's Option side.",
-            "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
+            "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "excludeSelf": true },
             "actions": [{ "kind": "ActivateMain", "optional": true }]
           }
         ]
@@ -251339,11 +251359,11 @@
                   "target": {
                     "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
                     "count": 1
-                  },
-                  "optional": true
+                  }
                 }
               ]
             ],
+            "optional": true,
             "raw": "For every 8000 DP this Digimon has, you may activate the effect below"
           }
         ]
@@ -251365,11 +251385,11 @@
                   "target": {
                     "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
                     "count": 1
-                  },
-                  "optional": true
+                  }
                 }
               ]
             ],
+            "optional": true,
             "raw": "For every 8000 DP this Digimon has, you may activate the effect below"
           }
         ]

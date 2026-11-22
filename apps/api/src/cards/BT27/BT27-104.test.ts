@@ -13,6 +13,8 @@ const jesmon = "BT13-017";
 const warGreymon = "BT1-025";
 const royalKnightsOfThePurge = "BT13-110";
 const seikenMeppa = "BT10-110";
+const syakomon = "BT5-021";
+const dynasmonX = "BT19-042";
 
 function handIds(s: Session) {
   return s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
@@ -218,5 +220,70 @@ describe("BT27-104 King Drasil", () => {
     expect(s.perm("tamer").isSuspended).toBe(false);
     expect(s.perm("base").topCard.cardId).toBe(redLevel5);
     expect(s.state.memory).toBe(3);
+  });
+});
+
+describe("BT27-104 King Drasil official rulings", () => {
+  it("still digivolves while the opponent's Syakomon stops cost reductions, but pays the full cost", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "tamer", under: [{ card: jesmon, as: "jesmon" }] },
+            { card: redLevel5, as: "base" },
+          ],
+        },
+        1: { battleArea: [{ card: syakomon }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    preferred.push(s.perm("base").topCard.instanceId, s.inst("jesmon").instanceId);
+
+    await endTurn(s);
+
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("jesmon").instanceId);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not activate the End of Your Turn effect of the Digimon it digivolved at the end of the turn", async () => {
+    const preferred: string[] = [];
+    const filler = ["BT1-009", "BT1-009", "BT1-009", "BT1-009"];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "tamer", under: [{ card: dynasmonX, as: "dynasmon" }] },
+            { card: redLevel5, as: "base" },
+          ],
+          deck: filler,
+        },
+        1: { deck: filler, security: ["BT1-009", "BT1-009"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferInstanceIds: preferred,
+        declinePrompts: ["By placing 1 card from your hand"],
+      },
+    );
+    preferred.push(s.perm("base").topCard.instanceId, s.inst("dynasmon").instanceId);
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("dynasmon").instanceId);
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

@@ -51,8 +51,8 @@ export const compiled: CompiledCard = {
       trigger: "AllTurns",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "onDeletionOf",
+          kind: "Replacement",
+          event: "wouldBeDeleted",
           sourceFilter: {
             isSelfRef: true,
           },
@@ -72,6 +72,7 @@ export const compiled: CompiledCard = {
                 count: 1,
               },
               from: ["digivolutionCards"],
+              fromOwnDigivolutionStack: true,
               payCost: false,
               optional: true,
             },
@@ -90,11 +91,11 @@ export const compiled: CompiledCard = {
                 count: 1,
               },
               from: ["digivolutionCards"],
+              fromOwnDigivolutionStack: true,
               payCost: false,
               optional: true,
             },
           ],
-          raw: "onDeletionOf",
         },
         {
           kind: "SubTrigger",

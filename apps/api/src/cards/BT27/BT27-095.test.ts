@@ -4,19 +4,20 @@ import { effectsOf } from "#api/engine/effects/collect";
 import type { CardSource } from "#api/engine/effects/CardSource";
 import { advance } from "#api/engine/testkit/advance";
 import { assertNoLoudGap, setupEngine, settle } from "#api/engine/testkit/harness";
+import { seatClients } from "#api/engine/testkit/seatClients";
 import { compiled } from "./BT27-095.js";
 import "#api/cards/index";
 
 const cardId = "BT27-095";
 
-function activateMain(s: ReturnType<typeof setupEngine>) {
+function activateMain(s: ReturnType<typeof setupEngine>, alias = "homer") {
   const source = (s.engine as unknown as { cardSourceOf(instance: CardInstance): CardSource }).cardSourceOf(
-    s.inst("homer"),
+    s.inst(alias),
   );
   const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
     effect.effectKey.startsWith(`${cardId}/`),
   )!.effectKey;
-  return s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.inst("homer").instanceId, effectKey });
+  return s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.inst(alias).instanceId, effectKey });
 }
 
 describe("BT27-095 Homer Yushima", () => {
@@ -217,5 +218,174 @@ describe("BT27-095 Homer Yushima", () => {
     ).toBe(
       "1 of your Digimon may digivolve into a [Cyborg] or [Aquatic] trait Digimon card in the hand with the cost reduced by 2.",
     );
+  });
+
+  describe("official rulings", () => {
+    it("start of main places the card beneath the face-down cards already under Homer", async () => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: cardId, as: "homer", under: [{ card: "BT1-010", as: "existing", faceUp: false }] }],
+            hand: [{ card: "BT1-024", as: "cost" }],
+            deck: ["BT1-009"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+
+      await advance(s.engine).fireForPermanent(EffectTiming.OnStartMainPhase, s.perm("homer"));
+      await settle();
+
+      expect(s.perm("homer").stack.map(({ instanceId, faceUp }) => [instanceId, faceUp])).toEqual([
+        [s.inst("cost").instanceId, false],
+        [s.inst("existing").instanceId, false],
+      ]);
+    });
+
+    it("trashes face-down cards from the bottom in their fixed stack order and puts them face up in the trash", async () => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              {
+                card: cardId,
+                as: "homer",
+                under: [
+                  { card: "BT1-010", as: "bottom", faceUp: false },
+                  { card: "BT1-011", as: "middle", faceUp: false },
+                  { card: "BT1-012", as: "top", faceUp: false },
+                ],
+              },
+              { card: "BT1-019", as: "host" },
+            ],
+            hand: [{ card: "BT1-024", as: "cyborg" }],
+            deck: ["BT1-009"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 3;
+
+      expect(activateMain(s)).toEqual({ ok: true });
+      await settle(() => s.perm("host").topCard.cardId === "BT1-024");
+      await settle();
+
+      expect(s.perm("homer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("top").instanceId]);
+      expect(s.state.players[0]!.trash.map(({ instanceId, faceUp }) => [instanceId, faceUp]).sort()).toEqual(
+        [
+          [s.inst("bottom").instanceId, true],
+          [s.inst("middle").instanceId, true],
+        ].sort(),
+      );
+    });
+
+    it("shows the card placed face down under Homer to its owner only", async () => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: cardId, as: "homer" }],
+            hand: [{ card: "BT1-024", as: "cost" }],
+            deck: ["BT1-009"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const clients = seatClients(s.engine, s.state);
+      await s.ready();
+      clients.patch();
+
+      await advance(s.engine).fireForPermanent(EffectTiming.OnStartMainPhase, s.perm("homer"));
+      await settle();
+      clients.patch();
+
+      const seenStack = (seat: 0 | 1) =>
+        clients
+          .stateFor(seat)
+          .players[0]!.battleArea.find(({ permanentId }) => permanentId === s.perm("homer").permanentId)!
+          .stack.map(({ cardId }) => cardId);
+      expect(s.perm("homer").stack.map(({ faceUp }) => faceUp)).toEqual([false]);
+      expect(seenStack(0)).toEqual(["BT1-024"]);
+      expect(seenStack(1)).toEqual([undefined]);
+      expect(clients.decoderErrors).toEqual([]);
+      clients.restore();
+    });
+
+    it("reduces the digivolve cost by only its own amount when two copies are in the battle area", async () => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              {
+                card: cardId,
+                as: "homer",
+                under: [
+                  { card: "BT1-010", faceUp: false },
+                  { card: "BT1-011", faceUp: false },
+                ],
+              },
+              {
+                card: cardId,
+                as: "secondHomer",
+                under: [
+                  { card: "BT1-010", faceUp: false },
+                  { card: "BT1-011", faceUp: false },
+                ],
+              },
+              { card: "BT1-019", as: "host" },
+            ],
+            hand: [{ card: "BT1-024", as: "cyborg" }],
+            deck: ["BT1-009"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 3;
+
+      expect(activateMain(s)).toEqual({ ok: true });
+      await settle(() => s.perm("host").topCard.cardId === "BT1-024");
+      await settle();
+
+      expect(s.state.memory).toBe(2);
+      expect(s.perm("homer").isSuspended).toBe(true);
+      expect(s.perm("secondHomer").isSuspended).toBe(false);
+      expect(s.perm("homer").stack.length + s.perm("secondHomer").stack.length).toBe(2);
+    });
+
+    it("digivolves at full cost while the opponent's Syakomon forbids digivolution cost reductions", async () => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              {
+                card: cardId,
+                as: "homer",
+                under: [
+                  { card: "BT1-010", faceUp: false },
+                  { card: "BT1-011", faceUp: false },
+                ],
+              },
+              { card: "BT1-019", as: "host" },
+            ],
+            hand: [{ card: "BT1-024", as: "cyborg" }],
+            deck: ["BT1-009"],
+          },
+          1: { battleArea: [{ card: "BT5-021", as: "syakomon" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 3;
+
+      expect(activateMain(s)).toEqual({ ok: true });
+      await settle(() => s.perm("host").topCard.cardId === "BT1-024");
+      await settle();
+
+      expect(s.perm("homer").isSuspended).toBe(true);
+      expect(s.perm("homer").stack).toHaveLength(0);
+      expect(s.state.memory).toBe(0);
+    });
   });
 });

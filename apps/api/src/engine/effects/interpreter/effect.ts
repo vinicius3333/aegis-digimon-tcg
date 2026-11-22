@@ -2,6 +2,7 @@ import { printedSentence } from "#api/engine/decisions/printedSentence";
 import { OptionalActivationCancelled } from "#api/engine/effects/OptionalActivationCancelled";
 import { canCancelOptionalActivation } from "#api/engine/effects/interpreter/canCancelOptionalActivation";
 import { keepsFollowUpAfterDeclinedTarget } from "#api/engine/effects/interpreter/keepsFollowUpAfterDeclinedTarget";
+import { endsAttackOptionally } from "#api/engine/effects/interpreter/endsAttackOptionally";
 import { getSingleHandActionCostBenefit } from "#api/engine/effects/interpreter/getSingleHandActionCostBenefit";
 import { getSingleHandCostBenefit } from "#api/engine/effects/interpreter/getSingleHandCostBenefit";
 import { getDecisionActionSummary } from "#api/engine/effects/interpreter/getDecisionActionSummary";
@@ -889,7 +890,10 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
           const outerChainsSameTarget = ctxWithSelections.nextActionChainsSameTarget;
           const outerAttackContinuation = ctxWithSelections.continueEffectAfterAttackDeclaration;
           const outerOptionalAnswer = ctxWithSelections.presetOptionalAnswer;
-          if (actionIndex > 0 && outerOptionalAnswer === true && isDecidedApartFromActivation(action))
+          if (
+            actionIndex > 0 &&
+            ((outerOptionalAnswer === true && isDecidedApartFromActivation(action)) || endsAttackOptionally(action))
+          )
             ctxWithSelections.presetOptionalAnswer = undefined;
           ctxWithSelections.activeActionPath = `${actionIndex}`;
           ctxWithSelections.nextActionChainsSameTarget =

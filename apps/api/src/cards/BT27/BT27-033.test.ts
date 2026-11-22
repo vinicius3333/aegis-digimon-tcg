@@ -280,3 +280,58 @@ describe("BT27-033 Yukinamon", () => {
     expect(result).toMatchObject({ ok: false });
   });
 });
+
+describe("official rulings", () => {
+  it("cannot start a Bond of Snowflakes Delay attack while its End of Your Turn attack is in progress", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ED01-10", as: "bond" },
+            { card: cardId, as: "yukinamon", under: [source] },
+            { card: "SD02-03", as: "alysion", under: [source] },
+          ],
+          deck: [vanillaBlueLevel3, vanillaBlueLevel3, vanillaBlueLevel3],
+        },
+        1: {
+          battleArea: [{ card: vanillaBlueLevel3, as: "bare", dp: 1000 }],
+          security: [vanillaBlueLevel3, vanillaBlueLevel3, vanillaBlueLevel3],
+          deck: [vanillaBlueLevel3, vanillaBlueLevel3, vanillaBlueLevel3],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred, preferTriggerKeys: [cardId] },
+    );
+    s.perm("bond").placedByEffect = true;
+    preferred.push(s.perm("yukinamon").permanentId);
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("ED01-10");
+    expect(s.perm("yukinamon").isSuspended).toBe(true);
+    expect(s.perm("alysion").isSuspended).toBe(false);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([s.perm("bare").permanentId]);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("attacks when the opponent has no Digimon at all", async () => {
+    const s = await endTurnWithYukinamon([{ card: tenkomon, as: "ally" }], []);
+    expect(s.perm("ally").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("makes the Digimon given Rush attack without a separate choice to skip the attack", async () => {
+    const s = await endTurnWithYukinamon([{ card: tenkomon, as: "ally" }], [{ card: vanillaBlueLevel5, as: "bare" }]);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === cardId)
+        .map(({ req }) => req.promptText),
+    ).toHaveLength(1);
+    expect(s.perm("ally").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+});

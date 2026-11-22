@@ -61,7 +61,9 @@ export function subTriggerIdentity(sub: SubTriggerSubscription, trigger?: Trigge
   if (trigger !== undefined && (sub.event === "whenSuspended" || sub.event === "whenEffectSuspends")) {
     const subjects =
       trigger.subjectPermanentIds ?? (trigger.suspendedPermanentId ? [trigger.suspendedPermanentId] : []);
-    if (subjects.length > 0) return `${identity}|suspend:${[...subjects].sort().join(",")}`;
+    const causingBody =
+      trigger.causingEffectBody === undefined ? "" : `|causingEffectBody:${trigger.causingEffectBody}`;
+    if (subjects.length > 0) return `${identity}|suspend:${[...subjects].sort().join(",")}${causingBody}`;
   }
   if (trigger?.securityRemovalEventId !== undefined && sub.event === "whenSecurityRemoved") {
     return `${identity}|securityRemovalEvent:${trigger.securityRemovalEventId}`;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, getCardDefinition, type Seat } from "@aegis/shared";
+import { EffectDuration, digivolutionRequirementsFor, getCardDefinition, type Seat } from "@aegis/shared";
 import { advance } from "#api/engine/testkit/advance";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { compiled } from "./BT27-034.js";
@@ -385,5 +385,147 @@ describe("BT27-034 Examon (X Antibody)", () => {
     await settle();
     expect(boardCardIds(s, 0).sort()).toEqual(played);
     expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual([cardId]);
+  });
+});
+
+describe("official rulings", () => {
+  async function useOptionAgainstTwoFourThousandDigimon(protectSecond = false) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009" }], hand: [{ card: cardId, as: "option" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-027", as: "first" },
+            { card: "BT1-027", as: "second" },
+            { card: "P-039", as: "opposingOption" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, declinePrompts: ["Arts Digivolve"] },
+    );
+    await s.ready();
+    if (protectSecond) {
+      await advance(s.engine).verb.restrict(s.perm("second").permanentId, "beDeleted", EffectDuration.UntilEndOfTurn);
+    }
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    return s;
+  }
+
+  function chooseTargets(s: Scenario, instanceIds: string[]) {
+    return s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: s.state.pendingDecision!.decisionId,
+      response: { kind: "chooseTargets", instanceIds },
+    });
+  }
+
+  it("may delete only 1 of two Digimon that fit within the DP maximum", async () => {
+    const s = await useOptionAgainstTwoFourThousandDigimon();
+    const secondId = s.perm("second").permanentId;
+    expect(chooseTargets(s, [s.perm("first").permanentId])).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("option").instanceId));
+    expect(trashCardIds(s, 1)).toEqual(["BT1-027"]);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(secondId);
+    expect(boardCardIds(s, 1)).toContain("P-039");
+  });
+
+  it("must delete at least 1 Digimon when one can be deleted", async () => {
+    const s = await useOptionAgainstTwoFourThousandDigimon();
+    expect(chooseTargets(s, [])).not.toEqual({ ok: true });
+    expect(s.state.pendingDecision).toBeDefined();
+    expect(chooseTargets(s, [s.perm("first").permanentId])).toEqual({ ok: true });
+    await settle(() => !s.state.pendingDecision);
+    expect(s.state.players[1]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT1-027")).toHaveLength(1);
+    expect(boardCardIds(s, 1)).toContain("P-039");
+  });
+
+  it("trashes an opposing Option when the chosen Digimon is protected from deletion", async () => {
+    const s = await useOptionAgainstTwoFourThousandDigimon(true);
+    const firstId = s.perm("first").permanentId;
+    const secondId = s.perm("second").permanentId;
+    expect(chooseTargets(s, [secondId])).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("option").instanceId));
+    await settle(() => !s.state.pendingDecision);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([firstId, secondId]);
+    expect(trashCardIds(s, 1)).toEqual(["P-039"]);
+  });
+
+  it("keeps the card on the field and pays no use cost when it activates its Option side", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "examon", under: ["EX5-070"] }], deck: ["BT1-009"] },
+        1: { battleArea: [{ card: "BT1-009" }], security: ["BT1-009"], deck: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Suspend"] },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    const examonCard = s.perm("examon").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("examon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => !s.state.pendingDecision);
+    expect(s.perm("examon").topCard.instanceId).toBe(examonCard);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === examonCard)).toBe(false);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("allows only one Counter effect per attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "firstExamon", under: ["BT20-045"] },
+            { card: cardId, as: "secondExamon", under: ["BT20-045"] },
+          ],
+          deck: ["BT1-009"],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT1-084", as: "attacker" }], deck: ["BT1-012"], security: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Suspend", "Blocker"] },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    const attackerId = s.perm("attacker").permanentId;
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const counterOf = (alias: string) =>
+      opened.eligibleCounters.find(({ instanceId }) => instanceId === s.perm(alias).topCard.instanceId)!;
+    const first = counterOf("firstExamon");
+    const second = counterOf("secondExamon");
+    expect(first).toBeDefined();
+    expect(second).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: first.instanceId,
+        effectKey: first.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("firstExamon").stack.length === 0 && !s.state.pendingDecision);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: second.instanceId,
+        effectKey: second.effectKey,
+      }).ok,
+    ).toBe(false);
+    await settle(() => !s.state.pendingDecision);
+    expect(s.events.filter((event) => event.kind === "counterWindowOpened")).toHaveLength(1);
+    expect(s.perm("secondExamon").stack).toHaveLength(1);
   });
 });

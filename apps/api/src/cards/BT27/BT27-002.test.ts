@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import type { SeatSpec } from "../../engine/testkit/harness.js";
+import type { SeatSpec, SetupEngineOptions } from "../../engine/testkit/harness.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT27-002.js";
 import "../index.js";
@@ -9,7 +9,7 @@ import "./BT27-002.js";
 
 const host = "BT1-020";
 
-async function startMainPhase(own: SeatSpec, memory: number) {
+async function startMainPhase(own: SeatSpec, memory: number, options: SetupEngineOptions = {}) {
   const s = setupEngine(
     {
       0: { hand: ["BT1-009"], deck: ["BT1-010", "BT1-011", "BT1-012"], ...own },
@@ -20,7 +20,7 @@ async function startMainPhase(own: SeatSpec, memory: number) {
         deck: ["BT1-009", "BT1-010", "BT1-011"],
       },
     },
-    { autoAcceptOptional: true, autoSelectCards: true },
+    { autoAcceptOptional: true, autoSelectCards: true, ...options },
   );
   void s.engine.startTurnLoop();
   await advance(s.engine).waitForMainPhase(0);
@@ -183,5 +183,25 @@ describe("BT27-002 Chapmon", () => {
     );
     expect(played).toHaveLength(1);
     expect(s.state.memory).toBe(3);
+  });
+});
+
+describe("official rulings", () => {
+  it("plays a card another attack effect placed in this Digimon's sources during the same attack", async () => {
+    const s = await startMainPhase(
+      {
+        battleArea: [{ card: host, as: "host", under: [{ card: "BT27-002" }, { card: "EX6-002" }] }],
+        hand: [{ card: "BT18-020", as: "placed" }],
+      },
+      5,
+      { preferTriggerKeys: ["EX6-002"] },
+    );
+
+    await attackWith(s, "host");
+
+    expect(battleTopIds(s)).toContain(s.inst("placed").instanceId);
+    expect(stackIds(s, "host")).not.toContain(s.inst("placed").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("placed").instanceId);
+    expect(s.events).toContainEqual({ kind: "memoryChanged", from: 5, to: 4, reason: "playCard" });
   });
 });

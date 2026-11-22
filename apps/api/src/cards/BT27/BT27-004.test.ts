@@ -89,3 +89,39 @@ describe("Kapurimon inherited Chessmon digivolution", () => {
     ]);
   });
 });
+
+describe("official rulings", () => {
+  it("resolves the new When Digivolving effect before the played Chessmon's On Play effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT27-039", under: ["BT27-004"], as: "host" }],
+          hand: [
+            { card: "BT27-036", as: "pawn" },
+            { card: "BT27-041", as: "bishop" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "target" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderCards: true, preferTriggerKeys: ["BT27-004"] },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pawn").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT27-036") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("bishop").instanceId);
+    expect(s.state.memory).toBe(6);
+    expect(
+      s.events.flatMap((e) =>
+        e.kind === "effectTriggered" && ["BT27-004", "BT27-041", "BT27-036"].includes(e.sourceCardId)
+          ? [e.sourceCardId]
+          : [],
+      ),
+    ).toEqual(["BT27-004", "BT27-041", "BT27-036"]);
+  });
+});

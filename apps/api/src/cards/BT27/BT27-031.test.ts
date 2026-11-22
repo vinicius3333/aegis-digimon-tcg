@@ -313,3 +313,103 @@ describe("BT27-031 JumboGamemon", () => {
     ]);
   });
 });
+
+describe("official rulings", () => {
+  it("resolves the return completely before its All Turns effect plays the placed Tamer", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "jumbo", under: [{ card: "BT2-027", as: "zudomon" }] },
+            { card: "BT1-086", as: "tamer" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "eligible", under: ["BT1-010"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    const tamerCard = s.perm("tamer").topCard.instanceId;
+    const eligibleCard = s.perm("eligible").topCard.instanceId;
+    preferred.push(s.perm("tamer").permanentId, s.perm("eligible").permanentId, tamerCard);
+    const start = s.events.length;
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("jumbo"));
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && inBattleArea(s, 0, tamerCard));
+
+    const kinds = s.events.slice(start);
+    const returned = kinds.findIndex(
+      (event) => event.kind === "cardsMoved" && event.instanceIds.includes(eligibleCard),
+    );
+    const placementResolved = kinds.findIndex((event, index) => index > returned && event.kind === "effectResolved");
+    const watcherTriggered = kinds.findIndex(
+      (event, index) => index > placementResolved && event.kind === "effectTriggered",
+    );
+    const tamerPlayed = kinds.findIndex((event) => event.kind === "cardPlayed");
+    expect(returned).toBeGreaterThan(-1);
+    expect(placementResolved).toBeGreaterThan(returned);
+    expect(watcherTriggered).toBeGreaterThan(placementResolved);
+    expect(tamerPlayed).toBeGreaterThan(watcherTriggered);
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(eligibleCard);
+  });
+
+  it("allows only one Counter effect per attack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "firstJumbo" },
+            { card: cardId, as: "secondJumbo" },
+            { card: "BT1-019", as: "firstAlly" },
+            { card: "BT1-019", as: "secondAlly" },
+          ],
+          deck: ["BT1-009"],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-013", as: "attacker", under: ["BT1-009", "BT1-010", "BT1-011"] }],
+          deck: ["BT1-012"],
+          security: ["BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.perm("firstAlly").permanentId);
+    s.state.turnSeat = 1;
+    const attackerId = s.perm("attacker").permanentId;
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const counterOf = (alias: string) =>
+      opened.eligibleCounters.find(({ instanceId }) => instanceId === s.perm(alias).topCard.instanceId)!;
+    const first = counterOf("firstJumbo");
+    const second = counterOf("secondJumbo");
+    expect(first).toBeDefined();
+    expect(second).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: first.instanceId,
+        effectKey: first.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("firstJumbo").stack.length === 1 && !s.state.pendingDecision);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: second.instanceId,
+        effectKey: second.effectKey,
+      }).ok,
+    ).toBe(false);
+    await settle(() => !s.state.pendingDecision);
+    expect(s.events.filter((event) => event.kind === "counterWindowOpened")).toHaveLength(1);
+    expect(s.perm("secondJumbo").stack).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([attackerId]);
+  });
+});

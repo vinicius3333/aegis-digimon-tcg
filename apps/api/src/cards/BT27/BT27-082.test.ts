@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { advance } from "#api/engine/testkit/advance";
+import { observe } from "#api/engine/testkit/observe";
 import "#api/cards/index";
 
 describe("Nosferamon removal and Rampage Bullet", () => {
@@ -372,5 +373,210 @@ describe("Nosferamon removal and Rampage Bullet", () => {
     );
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT27-077")).toBe(true);
+  });
+});
+
+describe("official rulings", () => {
+  function securityCheckBoard(attackerUnder: string[] = []) {
+    const order: string[] = [];
+    const sourceKinds: (readonly string[] | undefined)[] = [];
+    const s: ReturnType<typeof setupEngine> = setupEngine(
+      {
+        0: { security: ["BT27-082"] },
+        1: {
+          battleArea: [
+            { card: "BT1-060", as: "attacker", under: attackerUnder },
+            { card: "BT1-009", as: "lowest" },
+          ],
+          security: ["BT1-009"],
+        },
+      },
+      {
+        autoSelectCards: true,
+        autoDeclineOptional: true,
+        onEvent: () => {
+          const trash = s.state.players[1]!.trash;
+          if (!order.includes("effect") && trash.some((c) => c.instanceId === s.inst("lowest").instanceId)) {
+            order.push("effect");
+            sourceKinds.push(observe(s.engine).resolvingEffectSourceKinds());
+          }
+          if (!order.includes("battle") && trash.some((c) => c.instanceId === s.inst("attacker").instanceId))
+            order.push("battle");
+        },
+      },
+    );
+    return { s, order, sourceKinds };
+  }
+
+  async function attackIntoSecurity(s: ReturnType<typeof setupEngine>) {
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((c) => c.cardId === "BT27-082") && !s.state.pendingDecision);
+  }
+
+  it("resolves its Security effect and then battles the attacking Digimon", async () => {
+    const { s, order } = securityCheckBoard();
+    await attackIntoSecurity(s);
+    expect(order).toEqual(["effect", "battle"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("resolves its Security effect as a Digimon effect", async () => {
+    const { s, sourceKinds } = securityCheckBoard();
+    await attackIntoSecurity(s);
+    expect(sourceKinds).toEqual([["Digimon"]]);
+  });
+
+  it("does not activate its Security effect while Option Security effects are not activated", async () => {
+    const { s, order } = securityCheckBoard(["BT20-015"]);
+    await attackIntoSecurity(s);
+    expect(order).toEqual(["battle"]);
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard.instanceId)).toEqual([s.inst("lowest").instanceId]);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("must delete one of the opponent's lowest level Digimon when they have any", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT27-082", as: "source" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "first" }, { card: "BT1-009", as: "second" }, "BT1-060"],
+          security: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+    await settle(() => s.state.pendingDecision?.seat === 0 && s.state.pendingDecision.kind !== "optional");
+    const { decisionId } = s.state.pendingDecision!;
+    const request = s.decisions.at(-1)!.req;
+    expect(request.kind).toBe("chooseTargets");
+    expect(request.options?.min).toBe(1);
+    expect([...(request.options?.candidateInstanceIds ?? [])].sort()).toEqual(
+      [s.perm("first").permanentId, s.perm("second").permanentId].sort(),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId,
+        response: { kind: "chooseTargets", instanceIds: [] },
+      }).ok,
+    ).toBe(false);
+    expect(s.state.pendingDecision?.decisionId).toBe(decisionId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("first").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await deletion;
+    await settle(() => !s.state.pendingDecision);
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard.cardId).sort()).toEqual(["BT1-009", "BT1-060"]);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("trashes the top security card after choosing a lowest level Digimon that cannot be deleted", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT27-082", as: "source" }] },
+        1: { battleArea: [{ card: "BT14-062", as: "protected" }], security: ["BT1-009", "BT1-060"] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+    await settle(() => !s.state.pendingDecision);
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard.instanceId)).toEqual([s.inst("protected").instanceId]);
+    expect(s.state.players[1]!.security.map((c) => c.cardId)).toEqual(["BT1-060"]);
+    expect(s.state.players[1]!.trash.map((c) => c.cardId)).toEqual(["BT1-009"]);
+  });
+
+  it("can resolve its deletion effect before Ascension and still ascend", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT27-082", as: "source" }] },
+        1: { battleArea: ["BT1-009", "BT1-060"], security: ["BT1-009"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferTriggerKeys: ["on-deletion"] },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+    await settle(() => !s.state.pendingDecision);
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT1-060"]);
+    expect(s.state.players[0]!.security.map((c) => c.instanceId)).toContain(s.inst("source").instanceId);
+  });
+
+  it("counts as a Glowing Dawn Option card for an effect that uses one", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-026", as: "cougarmon" },
+            { card: "BT1-085", as: "tamer", under: [{ card: "BT1-009", faceUp: false }] },
+          ],
+          hand: [{ card: "BT27-082", as: "card" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-083", as: "target" }], security: ["BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("cougarmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && !s.state.pendingDecision);
+    expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("card").instanceId)).toBe(false);
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.memory).toBe(7);
+  });
+
+  it("pays its two bottom face-down cards from different Tamers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT27-080", as: "base" },
+            { card: "BT1-085", as: "first", under: [{ card: "BT1-009", as: "firstCard", faceUp: false }] },
+            { card: "BT1-085", as: "second", under: [{ card: "BT1-010", as: "secondCard", faceUp: false }] },
+          ],
+          hand: [{ card: "BT27-082", as: "card" }],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: ["BT1-083"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("card").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT27-082" && !s.state.pendingDecision);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("first").stack).toHaveLength(0);
+    expect(s.perm("second").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("firstCard").instanceId, s.inst("secondCard").instanceId]),
+    );
   });
 });

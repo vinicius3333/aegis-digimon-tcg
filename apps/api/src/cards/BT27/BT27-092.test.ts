@@ -7,6 +7,8 @@ import { unregisterIrCard } from "#api/engine/effects/interpreter/registration/u
 import { advance } from "#api/engine/testkit/advance";
 import { assertNoLoudGap, setupEngine, settle } from "#api/engine/testkit/harness";
 import { syntheticDefinitions } from "#api/engine/testkit/syntheticDefinitions";
+import { placeAtStartOfMain } from "#api/cards/BT26/tamerStack.testSupport";
+import { identityVisibility } from "#api/cards/ST24/tamerStack.testSupport";
 import { compiled } from "./BT27-092.js";
 import "#api/cards/index";
 
@@ -421,5 +423,150 @@ describe("BT27-092 Nanami, Kouki, & Ivan", () => {
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([cardId]);
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("BT27-092 official rulings", () => {
+  const darkdramon = "BT27-071";
+
+  function digivolvingTamer(options: {
+    tamers: { card: string; as: string; faceDown: number }[];
+    opponent?: string[];
+  }) {
+    return setupEngine(
+      {
+        0: {
+          battleArea: options.tamers.map(({ card, as, faceDown }) => ({
+            card,
+            as,
+            under: Array.from({ length: faceDown }, () => ({ card: "BT1-010", faceUp: false })),
+          })),
+          hand: [{ card: darkdramon, as: "darkdramon" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { battleArea: (options.opponent ?? []).map((card) => ({ card })) },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Arts Digivolve"] },
+    );
+  }
+
+  it("places the start-of-main card face down at the bottom, visible only to its owner", async () => {
+    const { s, placedId, priorIds, finish } = await placeAtStartOfMain(cardId, "BT27-075");
+
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([placedId, ...priorIds]);
+    expect(s.perm("tamer").stack.every(({ faceUp }) => faceUp === false)).toBe(true);
+    expect(identityVisibility(s, s.inst("placed"))).toEqual({ owner: true, opponent: false });
+    await finish();
+  });
+
+  it("pays its cost with 1 face-down card from each of 2 Tamers and puts them face up in the trash", async () => {
+    const s = digivolvingTamer({
+      tamers: [
+        { card: cardId, as: "tamer", faceDown: 1 },
+        { card: "BT27-091", as: "otherTamer", faceDown: 1 },
+      ],
+    });
+    await s.ready();
+    s.state.memory = 5;
+    const faceDownIds = [s.perm("tamer").stack[0]!.instanceId, s.perm("otherTamer").stack[0]!.instanceId];
+
+    expect(activateMain(s)).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").topCard.cardId === darkdramon && s.state.pendingDecision === undefined);
+
+    expect(s.perm("otherTamer").stack).toHaveLength(0);
+    const trashed = s.state.players[0]!.trash.filter(({ instanceId }) => faceDownIds.includes(instanceId));
+    expect(trashed).toHaveLength(2);
+    expect(trashed.every(({ faceUp }) => faceUp === true)).toBe(true);
+    expect(s.perm("tamer").stack.map(({ cardId: stacked }) => stacked)).toEqual([cardId]);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("digivolves the Tamer under a Digimon-can't-digivolve effect without firing when-a-Digimon-digivolves effects", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT13-007", as: "drasil" },
+          battleArea: [
+            {
+              card: cardId,
+              as: "tamer",
+              under: [
+                { card: "BT1-010", faceUp: false },
+                { card: "BT1-010", faceUp: false },
+              ],
+            },
+            { card: "EX2-045", as: "calumon" },
+          ],
+          hand: [{ card: darkdramon, as: "darkdramon" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Arts Digivolve"] },
+    );
+    await s.ready();
+    s.state.memory = 5;
+
+    expect(activateMain(s)).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").topCard.cardId === darkdramon && s.state.pendingDecision === undefined);
+
+    expect(s.perm("calumon").isSuspended).toBe(false);
+    expect(s.perm("tamer").immuneToOpponentDigimonEffects).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it.each([
+    ["reduces", [], 2],
+    ["does not reduce while the opponent's Syakomon forbids it, but still digivolves for", ["BT5-021"], 0],
+  ] as const)("%s the digivolution cost (memory left %i)", async (_label, opponent, memoryLeft) => {
+    const s = digivolvingTamer({ tamers: [{ card: cardId, as: "tamer", faceDown: 2 }], opponent: [...opponent] });
+    await s.ready();
+    s.state.memory = 7;
+
+    expect(activateMain(s)).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").topCard.cardId === darkdramon && s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(memoryLeft);
+  });
+
+  it("reduces the digivolution cost by only 2 while a second copy is in the battle area", async () => {
+    const s = digivolvingTamer({
+      tamers: [
+        { card: cardId, as: "tamer", faceDown: 2 },
+        { card: cardId, as: "secondCopy", faceDown: 2 },
+      ],
+    });
+    await s.ready();
+    s.state.memory = 7;
+
+    expect(activateMain(s)).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").topCard.cardId === darkdramon && s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("secondCopy").topCard.cardId).toBe(cardId);
+  });
+
+  it("lets <Armor Purge> save the chosen Digimon before the opponent's Digimon is deleted", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: darkdramon, as: "host", under: [cardId, "BT1-034"] }] },
+        1: { battleArea: [{ card: "BT1-013", as: "atDp" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.perm("host").permanentId);
+    const hostId = s.perm("host").permanentId;
+
+    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("host"));
+    await settle();
+
+    const host = s.state.players[0]!.battleArea.find(({ permanentId }) => permanentId === hostId);
+    expect(host?.topCard.cardId).toBe("BT1-034");
+    expect(host?.stack.map(({ cardId: stacked }) => stacked)).toEqual([cardId]);
+    expect(s.state.players[0]!.trash.map(({ cardId: trashed }) => trashed)).toEqual([darkdramon]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("atDp").instanceId]);
   });
 });

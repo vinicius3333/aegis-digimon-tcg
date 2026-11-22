@@ -84,3 +84,12 @@ describe("Gurimon inherited draw when Huckmon text Digimon suspend", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 });
+
+describe("official rulings", () => {
+  it("draws when a Digimon whose name only contains [Huckmon] suspends", async () => {
+    const s = gurimonBoard("BT6-011");
+    await s.ready();
+    await suspend(s, "host");
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+  });
+});
