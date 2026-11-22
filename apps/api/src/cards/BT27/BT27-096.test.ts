@@ -27,7 +27,7 @@ function setupRavemonCombo(options: { under: ReturnType<typeof faceDown>[]; decl
     },
     options.decline === true
       ? { autoDeclineOptional: true, autoSelectCards: true }
-      : { autoAcceptOptional: true, autoSelectCards: true },
+      : { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Trash bottom face down under tamer"] },
   );
   return s;
 }
