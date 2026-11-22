@@ -125,7 +125,7 @@ export function createDeckVerbs(pc: PrimitivesContext) {
   const addSecurity = async (
     seat: Seat,
     instanceIds: string[],
-    opts?: { toTop?: boolean; faceUp?: boolean; detachPermanentTop?: boolean },
+    opts?: { toTop?: boolean; faceUp?: boolean; detachPermanentTop?: boolean; toOwnerSecurity?: boolean },
   ): Promise<void> => {
     if (continuous.cannotAddSecurityFromEffect(effectSeatStack.at(-1))) return;
     // The detach form bypasses filterBouncePrevented below. It still cannot peel the top card
@@ -168,7 +168,7 @@ export function createDeckVerbs(pc: PrimitivesContext) {
       });
       await fireWhenReturnedPermanentsLeave(instanceIds);
     }
-    const p = player(seat);
+    const destinationSeatOf = (card: CardInstance): Seat => (opts?.toOwnerSecurity === true ? card.ownerSeat : seat);
     const toTop = opts?.toTop ?? false;
     const faceUp = opts?.faceUp ?? false;
     const added: CardInstance[] = [];
@@ -221,8 +221,8 @@ export function createDeckVerbs(pc: PrimitivesContext) {
           continue;
         }
         detached.faceUp = faceUp;
-        if (toTop) insertCard(p, Zone.Security, detached, "top");
-        else insertCard(p, Zone.Security, detached);
+        if (toTop) insertCard(player(destinationSeatOf(detached)), Zone.Security, detached, "top");
+        else insertCard(player(destinationSeatOf(detached)), Zone.Security, detached);
         ledger.dropSourceInstances(state, [detached.instanceId]);
         added.push(detached);
         overflowLeavers.push(detached);
@@ -258,8 +258,8 @@ export function createDeckVerbs(pc: PrimitivesContext) {
             continue;
           }
           card.faceUp = faceUp;
-          if (toTop) insertCard(p, Zone.Security, card, "top");
-          else insertCard(p, Zone.Security, card);
+          if (toTop) insertCard(player(destinationSeatOf(card)), Zone.Security, card, "top");
+          else insertCard(player(destinationSeatOf(card)), Zone.Security, card);
           added.push(card);
         } else {
           card.faceUp = true;
@@ -287,18 +287,19 @@ export function createDeckVerbs(pc: PrimitivesContext) {
         to: Zone.EggDeck,
       });
     }
-    if (added.length > 0) {
+    for (const destinationSeat of [...new Set(added.map(destinationSeatOf))]) {
+      const addedToSeat = added.filter((card) => destinationSeatOf(card) === destinationSeat);
       // The stack is face-down and the cards may have come from a hidden hand, so the
       // seat is the only thing a client can narrate the growth from: a net-zero patch
       // ("place 1 card as bottom security, then trash the top card", BT24-016) shows no
       // count change at all.
-      for (const { cards, ...origin } of groupCardsByOrigin({ origins, cards: added })) {
+      for (const { cards, ...origin } of groupCardsByOrigin({ origins, cards: addedToSeat })) {
         engine.emit({
           kind: "cardsMoved",
           instanceIds: cards.map((card) => card.instanceId),
           ...origin,
           to: Zone.Security,
-          seat,
+          seat: destinationSeat,
         });
       }
       // SubTrigger bus: "when cards are added to security" —
@@ -309,16 +310,16 @@ export function createDeckVerbs(pc: PrimitivesContext) {
       // microtask, interleaving its decisions with subsequent actions of the same effect.
       if (engine.fireSubTrigger) {
         await engine.fireSubTrigger("whenAddSecurity", {
-          addedToSecuritySeat: seat,
-          addedToSecurityInstanceIds: added.map((c) => c.instanceId),
+          addedToSecuritySeat: destinationSeat,
+          addedToSecurityInstanceIds: addedToSeat.map((c) => c.instanceId),
         });
         // Piggyback whenFaceUpCardsAddedToOpponentSecurity on the same add (EX11-004): this is
         // the only PlaceToSecurityEffect seam that can add FACE-UP (opts.faceUp), unlike
         // ascendToSecurity/recoverToSecurity which always add face-down — so only this site
         // needs the extra fire. The interpreter gate itself filters for actually-face-up cards.
         await engine.fireSubTrigger("whenFaceUpCardsAddedToOpponentSecurity", {
-          addedToSecuritySeat: seat,
-          addedToSecurityInstanceIds: added.map((c) => c.instanceId),
+          addedToSecuritySeat: destinationSeat,
+          addedToSecurityInstanceIds: addedToSeat.map((c) => c.instanceId),
         });
       }
     }

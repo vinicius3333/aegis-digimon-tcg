@@ -998,8 +998,46 @@ describe("order-trigger chooser identity", () => {
       },
     });
 
-    expect(screen.getByRole("button", { name: "[On Play], Megadramon (copy 1)" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "[On Play], Megadramon (copy 2)" })).toBeTruthy();
+    const first = screen.getByRole("button", { name: "[On Play], Megadramon, copy 1 of 2" });
+    expect(screen.getByRole("button", { name: "[On Play], Megadramon, copy 2 of 2" })).toBeTruthy();
+    expect(first.querySelector(".trigger-chooser__name")?.textContent).toBe("Megadramon");
+    expect(first.querySelector(".trigger-chooser__copy")?.textContent).toBe("copy 1 of 2");
+  });
+
+  it("shows a field copy number once, on the source line, never in the card name", () => {
+    render(
+      <I18nProvider>
+        <DecisionOverlay
+          request={{
+            decisionId: "two-venusmon",
+            seat: 0,
+            kind: "orderTriggers",
+            promptText: "Choose the next pending effect to resolve.",
+            options: {
+              triggerKeys: [
+                buildTriggerKey("venusmon-a", "EX12-064/on-play"),
+                buildTriggerKey("venusmon-b", "EX12-064/on-play"),
+              ],
+              triggerCardIds: ["EX12-064", "EX12-064"],
+              triggerTimings: ["OnPlay", "OnPlay"],
+            },
+          }}
+          candidates={[]}
+          picks={[]}
+          triggerDetails={[
+            { sourceLabel: "Field (copy 1)", sourceShowsCopy: true },
+            { sourceLabel: "Field (copy 2)", sourceShowsCopy: true },
+          ]}
+          onTogglePick={vi.fn<(instanceId: string) => void>()}
+          onRespond={vi.fn<(response: DecisionResponse) => void>()}
+        />
+      </I18nProvider>,
+    );
+
+    const first = screen.getByRole("button", { name: "[On Play], Megadramon, Field (copy 1)" });
+    expect(first.querySelector(".trigger-chooser__name")?.textContent).toBe("Megadramon");
+    expect(first.querySelector(".trigger-chooser__copy")).toBeNull();
+    expect(first.textContent?.match(/copy/g)).toHaveLength(1);
   });
 
   it("shows full printed text for each option even when the clauses repeat", () => {
@@ -1068,6 +1106,66 @@ describe("order-trigger chooser identity", () => {
     expect(hosts[0]!.textContent).toContain("Inherited by Omnimon");
     expect(hosts[0]!.querySelector(".trigger-chooser__host-art")).toBeTruthy();
     expect(screen.getByText("Field")).toBeTruthy();
+  });
+
+  it("labels the opponent's pending turn-end deletions and shows their pending clause", () => {
+    const request: DecisionRequest = {
+      decisionId: "turn-end-deletions",
+      seat: 1,
+      kind: "orderTriggers",
+      promptText: "Choose the next pending effect to resolve.",
+      options: {
+        triggerKeys: [
+          buildTriggerKey("puppetmon", "subtrigger/endOfTurn~perm-47"),
+          buildTriggerKey("metalseadramon", "subtrigger/endOfTurn~perm-45"),
+        ],
+        triggerCardIds: ["EX10-020", "EX10-012"],
+        triggerControllerSeats: [0, 0],
+        triggerDescriptions: [
+          "[Pending] At turn end, delete this Digimon.",
+          "[Pending] At turn end, delete this Digimon.",
+        ],
+        triggerTimings: ["endOfTurn", "endOfTurn"],
+        timing: "OnEndTurn",
+        acceptsResolutionPlan: true,
+      },
+    };
+    const { container, rerender } = render(
+      <I18nProvider>
+        <DecisionOverlay
+          request={request}
+          candidates={[]}
+          picks={[]}
+          triggerDetails={[{ controlledByOpponent: true }, { controlledByOpponent: true }]}
+          onTogglePick={vi.fn()}
+          onRespond={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+
+    expect(screen.getAllByText("Opponent's effect")).toHaveLength(2);
+    expect(screen.getByText(/You are the turn player/)).toBeTruthy();
+    const texts = [...container.querySelectorAll(".trigger-chooser__effect-text")].map((node) => node.textContent);
+    expect(texts).toHaveLength(2);
+    for (const text of texts) {
+      expect(text).toContain("At turn end, delete this Digimon.");
+      expect(text).not.toContain("[On Deletion]");
+    }
+
+    rerender(
+      <I18nProvider>
+        <DecisionOverlay
+          request={request}
+          candidates={[]}
+          picks={[]}
+          triggerDetails={[{}, {}]}
+          onTogglePick={vi.fn()}
+          onRespond={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.queryByText("Opponent's effect")).toBeNull();
+    expect(screen.queryByText(/You are the turn player/)).toBeNull();
   });
 
   it("uses full catalog text instead of shortened summaries", () => {

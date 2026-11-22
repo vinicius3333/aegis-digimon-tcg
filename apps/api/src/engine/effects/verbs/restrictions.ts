@@ -36,6 +36,7 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
       fromSourceKind?: string[];
       byOpponentEffectsOnly?: boolean;
       byEffectsOnly?: boolean;
+      exceptInBattle?: boolean;
       continuous?: boolean;
     },
   ): void => {
@@ -47,6 +48,7 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
       fromSourceKind: opts?.fromSourceKind,
       byOpponentEffectsOnly: opts?.byOpponentEffectsOnly,
       byEffectsOnly: opts?.byEffectsOnly,
+      exceptInBattle: opts?.exceptInBattle,
       originSeat: effectSeatStack.at(-1) ?? engine.controllerSeat(),
       sourceKinds: effectSourceKindsStack.at(-1) ?? [],
     });
@@ -79,6 +81,7 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
       fromSourceKind: opts?.fromSourceKind,
       byOpponentEffectsOnly: opts?.byOpponentEffectsOnly,
       byEffectsOnly: opts?.byEffectsOnly,
+      exceptInBattle: opts?.exceptInBattle,
     });
     if (restriction === "beAffected") {
       for (const permanent of state.players[seat]?.battleArea ?? []) ledger.recomputeDP(state, permanent.permanentId);
@@ -199,6 +202,7 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
     playedPermanentId: string,
     timing: "endOfOwnerTurn" | "endOfOpponentTurn" | "endOfCurrentTurn" = "endOfOwnerTurn",
     sourceCardId?: string,
+    printedClause?: string,
   ): void => {
     // A one-shot `endOfTurn` watcher anchored on the affected permanent. Most cards delete at
     // their owner's turn end; BT23-048 explicitly schedules the opponent's turn end (Q5567/Q5568).
@@ -225,6 +229,7 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
       // other end-of-turn effects even when the deleted Digimon is the opponent's
       // (KB Q5564/Q5566/Q5568).
       orderedByTurnPlayer: true,
+      ...(printedClause === undefined ? {} : { printedClause }),
       ...(expiresOnTurnEndOf !== undefined && deferredToTurnCount === undefined ? { expiresOnTurnEndOf } : {}),
       matches: (subCtx) =>
         (deferredToTurnCount === undefined || state.turnCount === deferredToTurnCount) &&

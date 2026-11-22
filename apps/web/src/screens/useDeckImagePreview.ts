@@ -1,9 +1,6 @@
-/* Renders the deck PNG once per deck change for the export modal preview and
-   revokes the object URL when it is replaced or unmounted. */
-
 import { useEffect, useState } from "react";
 import type { DeckListing } from "../game/decks";
-import { useTranslation } from "../i18n";
+import { useTranslation } from "@/i18n/useTranslation";
 import { renderDeckImage } from "./deckImageExport";
 
 export type DeckImagePreview =
@@ -11,17 +8,24 @@ export type DeckImagePreview =
   | { status: "failed" }
   | { status: "ready"; url: string; width: number; height: number };
 
+function renderedContent(deck: DeckListing): string {
+  return JSON.stringify([deck.name, deck.mainDeck, deck.eggDeck]);
+}
+
 export function useDeckImagePreview(deck: DeckListing): DeckImagePreview {
   const { t } = useTranslation();
+  const [renderedDeck, setRenderedDeck] = useState(deck);
   const [preview, setPreview] = useState<DeckImagePreview>({
     status: "loading",
   });
+
+  if (renderedContent(renderedDeck) !== renderedContent(deck)) setRenderedDeck(deck);
 
   useEffect(() => {
     let cancelled = false;
     let objectUrl: string | undefined;
     setPreview({ status: "loading" });
-    renderDeckImage({ deck, t })
+    renderDeckImage({ deck: renderedDeck, t })
       .then((blob) => {
         if (cancelled) return;
         objectUrl = URL.createObjectURL(blob);
@@ -42,7 +46,7 @@ export function useDeckImagePreview(deck: DeckListing): DeckImagePreview {
       cancelled = true;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [deck, t]);
+  }, [renderedDeck, t]);
 
   return preview;
 }

@@ -212,3 +212,28 @@ describe("Thundermon (X Antibody) digivolution and inherited Blocker", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
   });
 });
+
+describe("official rulings", () => {
+  it.each([
+    ["Thundermon (X Antibody), whose rule only adds [Mamemon] to its name,", "BT27-060", false],
+    ["a card whose name is also treated as [Mamemon]", "BT8-061", true],
+  ])("lets %s use a digivolution requirement that names exactly [Mamemon]: %s", async (_label, base, allowed) => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: "EX9-018", as: "target" }], deck: ["BT1-009"] } },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("target").instanceId,
+      useAlternateCost: true,
+      alternateRequirementIndex: 0,
+    });
+    expect(result.ok).toBe(allowed);
+    if (allowed) await settle(() => s.perm("base").topCard.cardId === "EX9-018" && !s.state.pendingDecision);
+    expect(s.perm("base").topCard.cardId).toBe(allowed ? "EX9-018" : base);
+    expect(s.state.memory).toBe(allowed ? 4 : 5);
+  });
+});

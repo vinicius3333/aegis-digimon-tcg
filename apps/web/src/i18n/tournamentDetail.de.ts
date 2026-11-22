@@ -15,6 +15,12 @@ export const tournamentDetailDe = {
   "tournaments.myMatch.roundTable": "Runde {round} · Tisch {table}",
   "tournaments.myMatch.you": "Sie",
   "tournaments.myMatch.versus": "gegen {opponent}",
+  "tournaments.create.allowBetaCards": "Beta-Karten erlauben",
+  "tournaments.create.allowBetaCardsDesc": "Decks dürfen Karten aus noch nicht erschienenen Produkten enthalten.",
+  "tournaments.betaCards.label": "Beta-Karten",
+  "tournaments.betaCards.allowed": "Erlaubt",
+  "tournaments.betaCards.warning":
+    "Beta-Karten sind erlaubt. Decks können Karten aus unveröffentlichten Produkten nutzen; diese Karten können sich vor dem Release noch ändern.",
   "tournaments.detail.cardPool": "Kartenpool",
   "tournaments.create.randomBotStyles": "Zufällige Bot-Stile",
   "tournaments.create.randomBotStylesDesc":
@@ -232,4 +238,6 @@ export const tournamentDetailDe = {
   "tournaments.format.pointsLoss": "Niederlage",
   "tournaments.format.pointsValue": "Sieg {win} · Unentschieden {draw} · Niederlage {loss}",
   "tournaments.create.pointsAuto": "Automatisch (3/1/0)",
+  "notifications.tournament.started": "{name} hat begonnen. Öffnen Sie das Turnier, um Ihre Paarung zu sehen.",
+  "notifications.tournament.matchReady": "Runde {round} von {name} ist bereit. Gehen Sie jetzt an Ihren Tisch.",
 };

@@ -1277,6 +1277,28 @@ it("rechecks player capacity before a late join can overwrite an occupied seat",
   room.onDispose();
 });
 
+it("keeps a room finished by a surrender before the match starts closed to new players", async () => {
+  const room = makeRoom();
+  const waiting = fakeClient("waiting-host");
+  room.clients.push(waiting);
+  room.onJoin(waiting, { displayName: "Waiting", deck: RED_DECK });
+  const conceding = fakeClient("conceding-guest");
+  room.clients.push(conceding);
+  room.onJoin(conceding, { displayName: "Conceding", deck: RED_DECK });
+  intentSender(room)(conceding, { type: "ready" });
+  intentSender(room)(conceding, { type: "surrender" });
+  expect(room.state.gameOver).toBe(true);
+
+  room.clients.splice(room.clients.indexOf(conceding), 1);
+  await room.onLeave(conceding, CloseCode.CONSENTED);
+
+  expect(room.unlock).not.toHaveBeenCalled();
+  await expect(room.onAuth(fakeClient("late-arrival"), { displayName: "Late", deck: RED_DECK })).rejects.toMatchObject({
+    message: ConnectionErrorCode.ROOM_FULL.value,
+  });
+  room.onDispose();
+});
+
 describe("AegisRoom final reveal", () => {
   it("reveals every hidden zone right after the game is over", () => {
     const room = makeRoom();

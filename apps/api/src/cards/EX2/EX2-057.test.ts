@@ -66,7 +66,7 @@ describe("EX2-057 Kenta Kitagawa", () => {
                 expect.objectContaining({
                   kind: "TrashDigivolution",
                   target: {
-                    filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
+                    filter: { controller: "opponent", kind: ["Digimon"] },
                     count: 1,
                   },
                   amount: 1,
@@ -104,7 +104,7 @@ describe("EX2-057 Kenta Kitagawa", () => {
                 expect.objectContaining({
                   kind: "TrashDigivolution",
                   target: {
-                    filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
+                    filter: { controller: "opponent", kind: ["Digimon"] },
                     count: 1,
                   },
                   amount: 1,

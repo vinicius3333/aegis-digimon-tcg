@@ -35,6 +35,9 @@ Base schema: [001](apps/api/src/db/migrations/001-initial-schema.ts).
 Migration [052](apps/api/src/db/migrations/052-tournament-round-start-mode.ts) adds
 `tournaments.round_start_mode` (`automatic` or `manual`, default `automatic`). Manual
 rounds wait for organizer release, including Swiss, elimination and the Top Cut transition.
+Migration [060](apps/api/src/db/migrations/060-tournament-beta-cards.ts) adds
+`tournaments.allow_beta_cards` (boolean, default `false`). It is set at creation, only for
+Standard events, and lets decks and match rooms use cards from unreleased products.
 The participant's selected saved deck can be replaced until check-in closes. The frozen
 `deck_snapshot` remains authoritative afterward and is exposed only to its owner through
 the private tournament detail response.
@@ -258,7 +261,8 @@ Migration `044-community-tournaments` introduces the following PostgreSQL tables
 | `ranked_game_reports`     | One bug report per pair (unique `pair_id`): season, reporter, description, turn, status `pending`/`confirmed`/`rejected`, resolution time and admin, and the private replay record copied from the logs. Indexed by reporter and season, and by status and season. |
 | `ranked_rewards`          | Permanent idempotent seasonal cosmetic grants; one equipped grant per account enforced by a partial unique index.                                                                                                                                                  |
 | `ranked_discord`          | Opt-in, desired tier, applied role and retry state; no bot credentials.                                                                                                                                                                                            |
-| `competitive_match_facts` | Per-player perspectives keyed by ranked result or tournament game, archetypes, classifier version, format, region and outcome; no full decklists.                                                                                                                  |
+| `competitive_match_facts` | Per-player perspectives keyed by ranked result or tournament game, archetypes, classifier version, format, region and outcome; no full decklists. Indexed by classifier version so maintenance finds facts awaiting classification.                                |
+| `competitive_archetypes`  | One row per archetype name: cover card and up to two card colours, written once when maintenance first classifies a deck as that archetype.                                                                                                                        |
 
 Ranked report rulings notify both players through `notifications` with kind `ranked_report_ruling` and subject `ranked_report:<id>`. Competitive history and cosmetic grants are retained across seasons. Queue and room leases are transient; maintenance runs every 15 seconds. Matchup queries are paginated and enforce sample thresholds. Raw deck snapshots remain in their existing private persistence owners; aggregate endpoints do not expose them.
 

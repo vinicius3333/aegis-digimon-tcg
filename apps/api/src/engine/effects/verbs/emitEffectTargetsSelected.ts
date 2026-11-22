@@ -6,6 +6,9 @@ type EmitEffectTargetsSelectedParams = {
 };
 
 export function emitEffectTargetsSelected({ pc, permanentIds }: EmitEffectTargetsSelectedParams): void {
+  if (pc.continuousOpt() !== undefined) {
+    return;
+  }
   const sourcePermanentId = pc.effectSourcePermanentIdStack.at(-1);
   const seat = pc.effectSeatStack.at(-1);
   const emitted = pc.effectTargetsEmittedStack.at(-1);

@@ -32,7 +32,7 @@ describe("EX3-021 CrysPaledramon", () => {
             {
               kind: "TrashDigivolution",
               target: {
-                filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
+                filter: { controller: "opponent", kind: ["Digimon"] },
                 count: 1,
               },
               amount: 2,
@@ -393,7 +393,8 @@ describe("EX3-021 CrysPaledramon — KB Q&A rulings", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-    expect(s.perm("sourceHost").stack).toHaveLength(0);
+    chooseTarget(s.perm("sourceHost").permanentId);
+    await settle(() => s.perm("sourceHost").stack.length === 0 && s.state.pendingDecision?.kind === "chooseTargets");
     const lockPayload = JSON.parse(s.state.pendingDecision!.payloadJson) as { candidateInstanceIds: string[] };
     expect(lockPayload.candidateInstanceIds).toEqual(
       expect.arrayContaining([s.perm("sourceHost").permanentId, s.perm("emptyTarget").permanentId]),

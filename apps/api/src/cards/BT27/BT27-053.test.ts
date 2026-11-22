@@ -441,3 +441,76 @@ describe("BanchoLeomon cost reduction, shared battle limit, and Boss or DATA SQU
     expect(optionalPrompts(s)).toBe(1);
   });
 });
+
+describe("official rulings", () => {
+  it("battles an opposing Digimon that its effects don't affect and deletes it by the DP comparison", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT27-053", as: "bancho" }] },
+        1: { battleArea: [{ card: "BT15-047", as: "immune", suspended: true }], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 13;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bancho").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => optionalPrompts(s) === 1 && !s.state.pendingDecision && findBancho(s) !== undefined);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT15-047"]);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it.each([
+    ["the On Deletion effect first still plays the reward", "BT27-053/ir", true],
+    ["Fortitude first leaves the trash and loses the On Deletion reward", "keyword/fortitude", false],
+  ])("when Fortitude and On Deletion trigger together, resolving %s", async (_label, firstTrigger, played) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT27-053", as: "bancho", under: ["BT11-014"] }],
+          hand: [{ card: "BT26-091", as: "reward" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: [firstTrigger] },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("bancho").permanentId]);
+    await settle(() => findBancho(s) !== undefined && !s.state.pendingDecision);
+    expect(s.decisions.find(({ req }) => req.kind === "orderTriggers")?.req.options?.triggerKeys?.length).toBe(2);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT26-091")).toBe(played);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("reward").instanceId)).toBe(!played);
+  });
+
+  it("resolves the On Play effect of the Tamer its On Deletion effect played before Fortitude", async () => {
+    let tamerCardsWhenBanchoReturned: number | undefined;
+    let deleted = false;
+    const s: Session = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT27-053", as: "bancho", under: ["BT11-014"] }],
+          hand: [{ card: "ST24-14", as: "tamer" }],
+          deck: ["BT1-009", "BT1-013", "BT1-014"],
+        },
+        1: { battleArea: ["BT1-019"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferTriggerKeys: ["BT27-053/ir", "keyword/fortitude"],
+        onEvent: () => {
+          if (!deleted || tamerCardsWhenBanchoReturned !== undefined || findBancho(s) === undefined) return;
+          const tamer = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST24-14");
+          tamerCardsWhenBanchoReturned = tamer?.stack.length ?? -1;
+        },
+      },
+    );
+    await s.ready();
+    deleted = true;
+    await advance(s.engine).verb.deletePermanent([s.perm("bancho").permanentId]);
+    await settle(() => findBancho(s) !== undefined && !s.state.pendingDecision);
+    expect(tamerCardsWhenBanchoReturned).toBe(1);
+    expect(s.perm("tamer").stack).toHaveLength(1);
+  });
+});

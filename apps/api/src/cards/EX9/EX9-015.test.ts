@@ -20,7 +20,7 @@ describe("EX9-015", () => {
           fromTop: false,
           target: {
             count: 1,
-            filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
+            filter: { controller: "opponent", kind: ["Digimon"] },
           },
         },
       ],

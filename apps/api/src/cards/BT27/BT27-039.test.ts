@@ -87,3 +87,22 @@ describe("KnightChessmon discounted attack play", () => {
     ]);
   });
 });
+
+describe("KnightChessmon official rulings", () => {
+  it("still plays the Chessmon at full cost while a player can't reduce play costs", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT27-039", as: "knight" }], hand: ["BT27-036"] }, 1: { battleArea: ["ST12-03"] } },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("knight"));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([
+      "BT27-039",
+      "BT27-036",
+    ]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(7);
+  });
+});

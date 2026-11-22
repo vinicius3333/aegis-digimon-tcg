@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared/schema/enums";
+import { EffectTiming, Phase } from "@aegis/shared/schema/enums";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { advance } from "#api/engine/testkit/advance";
 import { observe } from "#api/engine/testkit/observe";
@@ -99,5 +99,65 @@ describe("KausGammamon protection, suspension lock and inherited Evade", () => {
     expect(s.state.memory).toBe(5);
     expect(s.perm("base").stack.map((c) => c.cardId)).toEqual(["BT8-008", "BT27-023"]);
     expect([...s.perm("base").keywords]).toContain("Evade");
+  });
+});
+
+describe("official rulings", () => {
+  it("protects a Digimon whose name contains Gammamon even without Gammamon in its effects or the VB trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT27-023", as: "kaus" },
+            { card: "BT8-013", as: "betel" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const request = s.decisions.length;
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("kaus"));
+    await settle(() => !s.state.pendingDecision);
+    const candidates = s.decisions.slice(request).find(({ req }) => req.kind === "chooseTargets");
+    expect(candidates?.req.options?.candidateInstanceIds ?? []).toContain(s.perm("betel").permanentId);
+  });
+
+  it.each([
+    ["an opponent's Digimon", true],
+    ["a Security Digimon", false],
+  ])("keeps the protected Digimon on the field after losing a battle against %s", async (_label, versusDigimon) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT27-023", as: "kaus" },
+            { card: "BT8-008", as: "gammamon" },
+          ],
+        },
+        1: {
+          battleArea: versusDigimon ? [{ card: "BT1-038", as: "defender", suspended: true }] : [],
+          security: ["BT1-038"],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.perm("gammamon").permanentId);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("kaus"));
+    await settle(() => !s.state.pendingDecision);
+    const gammamonId = s.perm("gammamon").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: gammamonId,
+        target: versusDigimon ? { kind: "permanent", permanentId: s.perm("defender").permanentId } : { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.phase === Phase.Main && !observe(s.engine).isAttacking() && !s.state.pendingDecision);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(gammamonId);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    if (!versusDigimon) expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });

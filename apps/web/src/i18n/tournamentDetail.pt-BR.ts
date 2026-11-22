@@ -15,6 +15,12 @@ export const tournamentDetailPtBR = {
   "tournaments.myMatch.roundTable": "Rodada {round} · Mesa {table}",
   "tournaments.myMatch.you": "Você",
   "tournaments.myMatch.versus": "contra {opponent}",
+  "tournaments.create.allowBetaCards": "Permitir cartas beta",
+  "tournaments.create.allowBetaCardsDesc": "Os decks podem usar cartas de produtos que ainda não foram lançados.",
+  "tournaments.betaCards.label": "Cartas beta",
+  "tournaments.betaCards.allowed": "Permitidas",
+  "tournaments.betaCards.warning":
+    "Cartas beta são permitidas. Os decks podem usar cartas de produtos não lançados, e essas cartas ainda podem mudar antes do lançamento.",
   "tournaments.detail.cardPool": "Pool de cartas",
   "tournaments.create.randomBotStyles": "Estilos de bot aleatórios",
   "tournaments.create.randomBotStylesDesc":
@@ -228,4 +234,6 @@ export const tournamentDetailPtBR = {
   "tournaments.format.pointsLoss": "Derrota",
   "tournaments.format.pointsValue": "Vitória {win} · Empate {draw} · Derrota {loss}",
   "tournaments.create.pointsAuto": "Automático (3/1/0)",
+  "notifications.tournament.started": "{name} começou. Abra o torneio para ver seu emparelhamento.",
+  "notifications.tournament.matchReady": "A rodada {round} de {name} está pronta. Entre na sua mesa agora.",
 };

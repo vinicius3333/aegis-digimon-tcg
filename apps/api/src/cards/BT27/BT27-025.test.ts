@@ -1,4 +1,4 @@
-import { EffectTiming, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, Phase, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { effectiveStaticTraits } from "@aegis/shared/cards/effectiveTraits";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
@@ -236,5 +236,73 @@ describe("BT27-025 Gawappamon", () => {
     expect(effectiveStaticTraits(getCardDefinition("BT27-025")!)).toEqual(
       expect.arrayContaining(["DATA SQUAD", "Aquatic"]),
     );
+  });
+});
+
+describe("official rulings", () => {
+  it("keeps the protected Digimon on the field after it loses a battle against a Security Digimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT27-025", as: "gawappamon" },
+            { card: "BT1-009", as: "protected" },
+          ],
+        },
+        1: { security: ["BT1-038"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.perm("protected").permanentId);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("gawappamon"));
+    await settle(() => s.state.pendingDecision === undefined);
+    const protectedId = s.perm("protected").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: protectedId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.phase === Phase.Main && !observe(s.engine).isAttacking() && !s.state.pendingDecision);
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === protectedId)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("gives the effect-played Blocker the same duration as the battle protection", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT27-025", as: "gawappamon" },
+            { card: "BT1-009", as: "protected" },
+          ],
+          deck: ["BT1-013", "BT1-014", "BT1-015"],
+        },
+        1: { deck: ["BT1-013", "BT1-014", "BT1-015"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.perm("protected").permanentId);
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("gawappamon"), { enteredByEffect: 0 });
+    await settle(() => s.state.pendingDecision === undefined);
+    const protectedId = s.perm("protected").permanentId;
+    const continuous = (s.engine as unknown as Restrictions).continuous;
+
+    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(continuous.hasRestriction(protectedId, "beDeletedInBattle")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("protected"), "Blocker")).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(continuous.hasRestriction(protectedId, "beDeletedInBattle")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("protected"), "Blocker")).toBe(false);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

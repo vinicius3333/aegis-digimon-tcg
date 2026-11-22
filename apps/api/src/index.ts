@@ -3,12 +3,14 @@ import { createTournamentResultSweep } from "#api/tournaments/results/createTour
 import { createTournamentCircuitSweep } from "#api/tournaments/circuits/createTournamentCircuitSweep";
 import { expireUnstartedTournaments } from "#api/tournaments/lifecycle/expireUnstartedTournaments";
 import { notifyOverdueOrganizers } from "#api/tournaments/lifecycle/notifyOverdueOrganizers";
+import { notifyTournamentPlayers } from "#api/tournaments/lifecycle/notifyTournamentPlayers";
 import { startRankedMaintenance } from "#api/ranked/startRankedMaintenance";
 import { installQuickMatchPreference } from "#api/rooms/installQuickMatchPreference";
 import { installMatchQueueRoutes } from "#api/matchmaking/installMatchQueueRoutes";
 import { countRankedSearchers } from "#api/ranked/countRankedSearchers";
 import { getRankedConfig } from "#api/ranked/getRankedConfig";
 import { DirectMessageStore } from "#api/messages/DirectMessageStore";
+import { runReplayCleanupExclusively } from "#api/replays/runReplayCleanupExclusively";
 import { socialRuntime } from "#api/social/socialRuntime";
 import { SocialService } from "#api/social/SocialService";
 import { resolveSocialInviteRoom } from "#api/social/resolveSocialInviteRoom";
@@ -142,9 +144,12 @@ function scheduleReplayCleanup() {
     if (cleaning) return;
     cleaning = true;
     try {
-      await replayLibrary.cleanup();
-      await replayLibrary.annotations.cleanup();
-      await new DirectMessageStore(accountStore).cleanup();
+      await accountStore.ensureReady();
+      await runReplayCleanupExclusively(accountStore.pool, async () => {
+        await replayLibrary.cleanup();
+        await replayLibrary.annotations.cleanup();
+        await new DirectMessageStore(accountStore).cleanup();
+      });
     } catch (error) {
       logError("[replays] cleanup failed", error);
     } finally {
@@ -300,6 +305,7 @@ async function runSweeps(now: number): Promise<number> {
     ["swiss", () => swissProgram.sweepOpenTournaments(now)],
     ["top_cut", () => topCutProgram.sweepFrozenSwissPhases(now)],
     ["bracket_rounds", () => eliminationStore.sweepAutomaticRounds(now)],
+    ["player_notifications", () => notifyTournamentPlayers({ accounts: accountStore, now })],
     ["bots", () => driveBotMatches(now)],
     ["discord", () => syncTournamentDiscord(now)],
     ["results", () => recordTournamentResults(now)],

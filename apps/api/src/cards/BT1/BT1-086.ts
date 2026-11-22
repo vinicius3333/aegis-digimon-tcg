@@ -17,7 +17,7 @@ export const compiled: CompiledCard = {
           actions: [
             {
               kind: "TrashDigivolution",
-              target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: 1 },
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
               amount: 1,
               fromTop: false,
               cost: {

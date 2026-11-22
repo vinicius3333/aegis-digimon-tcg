@@ -99,9 +99,13 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
     // whenCardReturnsFromTrashToHand (BT15-082/BT16-011: "a card returns from your trash to
     // your hand") — the move itself is zone-agnostic, so the origin must be captured now.
     const trashOriginIds = new Set<string>();
+    const securityOriginIds = new Set<string>();
     for (const owner of state.players) {
       for (const card of owner.trash) {
         if (instanceIds.includes(card.instanceId)) trashOriginIds.add(card.instanceId);
+      }
+      for (const card of owner.security) {
+        if (instanceIds.includes(card.instanceId)) securityOriginIds.add(card.instanceId);
       }
     }
     const origins = locateMoveOrigins({ state, instanceIds });
@@ -207,6 +211,16 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
       // by a play/digivolve (RevealAdd `to:play`/`to:digivolve`): the card never settles in
       // the owner's usable hand, so it is not a hand addition the watcher should observe.
       if (opts?.silent !== true) {
+        const securityRemovalSeats = new Set(
+          movedToHand.filter((card) => securityOriginIds.has(card.instanceId)).map((card) => card.ownerSeat),
+        );
+        for (const seat of securityRemovalSeats) {
+          await engine.fireSubTrigger?.("whenEffectRemovesFromSecurity", { removedFromSecuritySeat: seat });
+          await engine.fireSubTrigger?.("whenSecurityRemoved", {
+            removedFromSecuritySeat: seat,
+            securityRemovedByEffect: true,
+          });
+        }
         const recipientSeats = new Set(opts?.isRuleProcess === true ? [] : movedToHand.map((c) => c.ownerSeat));
         for (const seat of recipientSeats) {
           const addedToHand = {

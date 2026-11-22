@@ -4,6 +4,21 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import "../index.js";
 import { compiled } from "./BT14-022.js";
 
+async function chooseTrashTarget(s: ReturnType<typeof setupEngine>, chosen: string, offered: string[]): Promise<void> {
+  await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+  const pending = s.state.pendingDecision!;
+  expect(s.decisions.at(-1)?.req.options?.candidateInstanceIds).toEqual(
+    offered.map((alias) => s.perm(alias).permanentId),
+  );
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: pending.decisionId,
+      response: { kind: "chooseTargets", instanceIds: [s.perm(chosen).permanentId] },
+    }),
+  ).toEqual({ ok: true });
+}
+
 describe("BT14-022", () => {
   it("preserves Gesomon's catalog identity and ordered When Attacking IR", () => {
     expect(getCardDefinition("BT14-022")).toMatchObject({
@@ -69,6 +84,7 @@ describe("BT14-022", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await chooseTrashTarget(s, "sourced", ["sourced", "returnable"]);
     await settle(() => s.decisions.some((decision) => decision.req.kind === "selectCards"));
     const sourceChoice = s.decisions.find((decision) => decision.req.kind === "selectCards")!;
     expect(
@@ -123,6 +139,7 @@ describe("BT14-022", () => {
   });
 
   it("does not return a source-less level 6 or a level 5 that still has sources", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT14-022", as: "gesomon" }], security: ["BT1-009"] },
@@ -133,8 +150,9 @@ describe("BT14-022", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("level5").permanentId);
     s.state.memory = 10;
     expect(
       s.engine.applyIntent(0, {
@@ -144,6 +162,10 @@ describe("BT14-022", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("level5").stack.length === 1);
+    expect(s.decisions.find(({ req }) => req.kind === "chooseTargets")?.req.options?.candidateInstanceIds).toEqual([
+      s.perm("level6").permanentId,
+      s.perm("level5").permanentId,
+    ]);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(
       expect.arrayContaining(["BT14-017", "BT14-015"]),
     );

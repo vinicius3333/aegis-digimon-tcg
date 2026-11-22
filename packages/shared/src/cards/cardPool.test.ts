@@ -43,7 +43,7 @@ describe("release dates", () => {
     expect(isBetaOnlyCard(card(cardId), "2027-01-22")).toBe(false);
   });
 
-  it.each(["SD01-02", "SD02-02", "ED01-01", "ED01-10", "ST25-01", "ST25-05"])(
+  it.each(["SD01-02", "SD02-02", "ED01-01", "ED01-10", "ST25-01", "ST25-05", "ST26-01", "ST26-05"])(
     "keeps %s in beta until the ST25 and ST26 release",
     (cardId) => {
       expect(releaseDateForCard(card(cardId))).toBe("2026-12-04");
@@ -51,6 +51,13 @@ describe("release dates", () => {
       expect(isBetaOnlyCard(card(cardId), "2026-12-04")).toBe(false);
     },
   );
+
+  it.each(["BT27-001", "BT27-102"])("opens %s online one week before the BT27 release", (cardId) => {
+    expect(releaseDateForSet("BT27")).toBe("2026-12-11");
+    expect(releaseDateForCard(card(cardId))).toBe("2026-12-11");
+    expect(isBetaOnlyCard(card(cardId), "2026-12-03")).toBe(true);
+    expect(isBetaOnlyCard(card(cardId), "2026-12-04")).toBe(false);
+  });
 
   it("keeps the app-only BD01 set in beta without listing it as a product", () => {
     expect(releaseDateForSet("BD01")).toBeUndefined();

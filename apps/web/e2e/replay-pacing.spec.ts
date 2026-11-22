@@ -158,6 +158,7 @@ const cases = [
   { id: "keyword-pacing-recovery-many", speed: "0.5", mobile: false },
   { id: "bt24-silphymon-dna", speed: "4", mobile: true },
   { id: "phase-pacing-bot-raising-move", speed: "4", mobile: true },
+  { id: "attack-digivolve-chain-cost-arrival", speed: "4", mobile: false },
 ];
 for (const { id, speed, mobile } of cases) {
   test(`complex recording settles with correct board: ${id} ${speed}x ${mobile ? "mobile" : "desktop"}`, async ({

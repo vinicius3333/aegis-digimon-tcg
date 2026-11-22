@@ -19,6 +19,14 @@ function getNotice(params: Params) {
 }
 
 describe("connection notices", () => {
+  it("explains a ranked search canceled by another tab instead of a lost connection", () => {
+    expect(getNotice({ startMode: "ranked", error: "ranked_search_moved" })).toMatchObject({
+      title: "Search canceled",
+      detail: "You started a ranked search in another tab, so this search was canceled.",
+      exitTo: "lobby",
+    });
+  });
+
   it("explains an oversized selection while preserving automatic recovery", () => {
     expect(getNotice({ status: "reconnecting", error: "AEGIS_MESSAGE_TOO_LARGE" })).toMatchObject({
       title: "Reconnecting…",
@@ -39,6 +47,21 @@ describe("connection notices", () => {
     expect(getNotice({ error: "AEGIS_CONNECTION_LOST" }).detail).toBe(
       "The connection to your match was interrupted. Please try reconnecting.",
     );
+  });
+});
+
+describe("a join refused because the account is in another match", () => {
+  it("names the live match and offers resuming it beside the lobby exit", () => {
+    expect(getNotice({ error: "AEGIS_ALREADY_IN_MATCH" })).toMatchObject({
+      title: "Your match is still in progress",
+      spinner: false,
+      exitTo: "lobby",
+      resumable: true,
+    });
+  });
+
+  it("offers no resume for other connection failures", () => {
+    expect(getNotice({ error: "AEGIS_ROOM_FULL" }).resumable).toBe(false);
   });
 });
 

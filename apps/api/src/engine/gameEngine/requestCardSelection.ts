@@ -10,18 +10,26 @@ type CardSelectionParams = {
   promptText: string;
   source: { sourceCardId: string; sourceInstanceId: string; sourcePermanentId: string };
   selectionGoal?: DecisionSelectionGoal;
+  declinesCost?: boolean;
 };
 
 export async function requestCardSelection(
   engine: GameEngine,
-  { seat, candidateInstanceIds, min, max, promptText, source, selectionGoal }: CardSelectionParams,
+  { seat, candidateInstanceIds, min, max, promptText, source, selectionGoal, declinesCost }: CardSelectionParams,
 ): Promise<string[]> {
   const response = await engine.decisions.request({
     seat,
     kind: "selectCards",
     promptText,
     ...source,
-    options: { candidateInstanceIds, min, max, ...(selectionGoal === undefined ? {} : { selectionGoal }) },
+    options: {
+      candidateInstanceIds,
+      min,
+      max,
+      ...(selectionGoal === undefined ? {} : { selectionGoal }),
+      ...(declinesCost === true ? { declinesCost } : {}),
+      affectedPermanentIds: [source.sourcePermanentId],
+    },
   });
   return response.kind === "selectCards" ? response.instanceIds : [];
 }

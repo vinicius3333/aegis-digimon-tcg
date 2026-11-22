@@ -1,5 +1,6 @@
 import { deckMatchupId } from "@/i18n/deckMatchup.id";
 import { deckOddsId } from "@/i18n/deckOdds.id";
+import { chatActionsId } from "@/i18n/chatActions.id";
 import { tournamentCircuitsId } from "@/i18n/tournamentCircuits.id";
 import { tournamentOfficialRequestId } from "@/i18n/tournamentOfficialRequest.id";
 import { matchQueueId } from "@/i18n/matchQueue.id";
@@ -255,10 +256,10 @@ const interfaceMessages = {
   "profile.page": "Halaman {page}",
   "profile.stats.matches": "Pertandingan",
   "profile.stats.wins": "Menang",
-  "profile.stats.humanMatches": "Pertandingan lawan manusia",
-  "profile.stats.humanWins": "Menang lawan manusia",
+  "profile.stats.humanMatches": "Pertandingan terbaru lawan manusia",
+  "profile.stats.humanWins": "Kemenangan terbaru lawan manusia",
   "profile.stats.rateScope":
-    "Riwayat tersimpan melawan manusia · filter mode dan lawan berlaku · filter hasil hanya memengaruhi daftar · bot tidak dihitung.",
+    "{limit} pertandingan terakhir melawan manusia, ditambah replay tersimpan · filter mode dan lawan berlaku · filter hasil hanya memengaruhi daftar · bot tidak dihitung.",
   "profile.stats.winRate": "Tingkat kemenangan",
   "profile.stats.replays": "Replay tersimpan",
   "profile.changeAvatar": "Ubah avatar",
@@ -729,6 +730,7 @@ const interfaceMessages = {
   "common.export": "Ekspor",
   "game.hiddenCard": "Kartu tertutup",
   "game.faceDownSource": "Tertutup",
+  "game.faceDownSourceCount": "{count} tertutup",
   "game.debugId": "ID pertandingan",
   "game.debugCopyFailed": "Penyalinan gagal; pilih ID yang akan disalin.",
   "common.copy": "Salin",
@@ -1158,7 +1160,7 @@ const interfaceMessages = {
   "game.roomCodeInvalid": "Kode ruangan ini salah atau sudah kedaluwarsa. Periksa kodenya dan coba lagi.",
   "game.accountRequired": "Masuk ke akun Anda untuk bergabung ke pertandingan ini.",
   "game.alreadyInMatch":
-    "Akun Anda sudah ada di pertandingan lain. Selesaikan pertandingan itu atau tutup tab Aegis lain, lalu coba lagi.",
+    "Akun Anda sudah ada di pertandingan lain. Lanjutkan di sini atau selesaikan dulu. Pertandingan yang kehilangan koneksi membebaskan akun Anda dalam satu menit.",
   "game.rankedSearchActive": "Akun Anda sedang mencari pertandingan ranked. Batalkan pencarian itu, lalu coba lagi.",
   "game.joinRefused": "Server tidak menerima permintaan bergabung. Kembali ke lobi dan coba lagi.",
   "game.seatTransferred": "Anda melanjutkan pertandingan ini di perangkat lain.",
@@ -1210,6 +1212,13 @@ const interfaceMessages = {
   "game.guestApproval.hostLeft": "Tuan rumah keluar dari ruangan sebelum pertandingan dimulai.",
   "game.tournamentCancelledTitle": "Turnamen dibatalkan",
   "game.tournamentCancelled": "Penyelenggara membatalkan turnamen ini, jadi permainan ini berakhir tanpa hasil.",
+  "lobby.turnOrder.label": "Urutan giliran",
+  "lobby.turnOrder.random": "Acak",
+  "lobby.turnOrder.hostFirst": "Host jalan pertama",
+  "lobby.turnOrder.hostSecond": "Host jalan kedua",
+  "lobby.turnOrder.hint":
+    "Menentukan siapa yang mengambil giliran pertama di game 1. Dalam Best of 3, game berikutnya mengikuti aturan seri yang biasa.",
+  "lobby.turnOrder.guest": "Urutan giliran game 1: {order}",
   "lobby.approval.label": "Wajib persetujuan",
   "lobby.approval.hint":
     "Saat seseorang bergabung dengan kode Anda, Anda dapat melihat siapa dia lalu menerima atau menolaknya sebelum pertandingan dimulai.",
@@ -1318,7 +1327,8 @@ const interfaceMessages = {
   "game.matchLogDrag": "Seret untuk memindahkan",
   "settings.matchLogDisplay": "Tampilan log pertandingan",
   "settings.matchLogDisplayDesc":
-    "Pilih cara pertandingan menampilkan apa yang terjadi: popup singkat di atas papan, log tetap di tepi papan, atau keduanya. Di ponsel, popup tetap tampil dan log dibuka dari tombol.",
+    "Pilih cara pertandingan menampilkan apa yang terjadi: disembunyikan, popup singkat di atas papan, log tetap di tepi papan, atau keduanya. Di ponsel tidak ada log tetap; buka log dari tombol log.",
+  "settings.matchLogDisplayHidden": "Tersembunyi",
   "settings.matchLogDisplayPopups": "Popup",
   "settings.matchLogDisplayPanel": "Log tetap",
   "settings.matchLogDisplayBoth": "Keduanya",
@@ -1382,6 +1392,7 @@ const interfaceMessages = {
   "game.fieldEffects.untilYourActivePhase": "Sampai unsuspend phase Anda",
   "game.fieldEffects.untilOpponentActivePhase": "Sampai unsuspend phase lawan",
   "game.restriction.cannotAttack": "Tidak bisa menyerang",
+  "game.restriction.cannotAttackPlayers": "Tidak bisa menyerang pemain",
   "game.restriction.cannotPlayByEffects": "Tidak bisa memainkan lewat efek",
   "game.restriction.cannotPlay": "Tidak bisa memainkan",
   "game.restriction.immuneToOpponentDigimonEffects": "Terlindungi dari efek Digimon lawan",
@@ -1426,6 +1437,7 @@ const interfaceMessages = {
   "game.restriction.cannotBlock": "Tidak bisa block",
   "game.restriction.cannotSuspend": "Tidak bisa suspend",
   "game.restriction.cannotUnsuspend": "Tidak akan unsuspend",
+  "game.restriction.cannotUnsuspendAtAll": "Tidak bisa unsuspend",
   "game.restriction.cannotDigivolve": "Tidak bisa digivolve",
   "game.restriction.cannotActivateWhenDigivolving": "Tanpa [When Digivolving]",
   "game.digivolutionSources": "{count} digivolution card",
@@ -1585,6 +1597,7 @@ const interfaceMessages = {
   "overlay.useEffectPrompt": "Gunakan efek ini?",
   "overlay.choiceRevealedCards": "Kartu yang dibuka",
   "overlay.choiceHandCards": "Kartu yang dimaksud",
+  "overlay.cardToPlay": "Kartu yang dimainkan",
   "overlay.selectTargets": "Pilih {range} target",
   "overlay.sourceCountOne": "{count} digivolution card",
   "overlay.sourceCountMany": "{count} digivolution card",
@@ -1653,6 +1666,10 @@ const interfaceMessages = {
   "overlay.waitingEffectsHint": "Efek sebelumnya masih tertunda. Efek tersebut diproses setelah efek di atas selesai.",
   "overlay.presetMandatory": "Wajib",
   "overlay.triggerReason": "Dipicu oleh: {reason}",
+  "overlay.triggerSubject": "Kartu pemicu: {name}",
+  "overlay.triggerOpponentEffect": "Efek lawan",
+  "overlay.orderOpponentEffectsNote":
+    "Anda adalah pemain giliran, jadi Anda memilih urutan efek ini, termasuk efek lawan.",
   "overlay.presetLabel": "Jawaban untuk pilihan opsional {name}",
   "overlay.triggerSourceField": "Field",
   "overlay.triggerSourceInherited": "Diwarisi oleh {name}",
@@ -1757,6 +1774,7 @@ const interfaceMessages = {
   "overlay.trashSort": "Urutkan trash",
   "overlay.trashSortRecent": "Terbaru dulu",
   "overlay.trashSortName": "Kelompokkan berdasarkan nama kartu",
+  "overlay.trashSortLevel": "Urutkan berdasarkan level",
   "overlay.trashCount": "{count} kartu",
   "overlay.securityCount": "{faceUp} dari {count} kartu terbuka",
   "overlay.securityNoFaceUp": "tidak ada kartu terbuka",
@@ -2854,6 +2872,9 @@ const interfaceMessages = {
   "redesign.arena.restriction.attacksAtStartOfMainPhase":
     "Sebuah efek membuat Digimon ini menyerang di awal main phase-nya, jika bisa.",
   "redesign.arena.restriction.attacksAtStartOfMainPhaseGranted": "Diberikan oleh {card}: {clause}",
+  "redesign.arena.restriction.cannotAttackPlayers": "Sebuah efek mencegah Digimon ini menyerang pemain.",
+  "redesign.arena.restriction.cannotUnsuspendAtAll":
+    "Sebuah efek mencegah Digimon ini unsuspend, baik saat unsuspend phase maupun oleh efek.",
   "redesign.arena.restriction.cannotAttack": "Sebuah efek mencegah Digimon ini menyerang.",
   "redesign.arena.restriction.cannotBlock": "Sebuah efek mencegah Digimon ini melakukan block.",
   "redesign.arena.restriction.cannotSuspend": "Sebuah efek mencegah Digimon ini di-suspend.",
@@ -2879,6 +2900,9 @@ const interfaceMessages = {
   "chat.muteSpectators": "Bisukan penonton",
   "chat.sound": "Suara chat",
   "chat.soundDesc": "Putar suara untuk setiap pesan baru dari lawan atau penonton.",
+  "chat.enabled": "Chat pertandingan",
+  "chat.enabledDesc":
+    "Tampilkan tombol chat, balon ucapan, dan pesan dalam pertandingan. Matikan untuk menyembunyikan chat sepenuhnya.",
   "chat.you": "Anda",
   "chat.spectator": "Penonton {number}",
   "chat.spectatorTag": "penonton",
@@ -3004,6 +3028,7 @@ const interfaceMessages = {
   ...matchQueueId,
   ...deckMatchupId,
   ...deckOddsId,
+  ...chatActionsId,
   ...matchIntroId,
   ...staffRolesId,
   ...achievementsId,

@@ -15,6 +15,12 @@ export const tournamentDetailJa = {
   "tournaments.myMatch.roundTable": "ラウンド {round} · テーブル {table}",
   "tournaments.myMatch.you": "あなた",
   "tournaments.myMatch.versus": "{opponent} と対戦",
+  "tournaments.create.allowBetaCards": "ベータカードを許可",
+  "tournaments.create.allowBetaCardsDesc": "未発売の商品のカードをデッキに入れられます。",
+  "tournaments.betaCards.label": "ベータカード",
+  "tournaments.betaCards.allowed": "許可",
+  "tournaments.betaCards.warning":
+    "ベータカードが許可されています。未発売商品のカードを使えますが、発売前に変更される場合があります。",
   "tournaments.detail.cardPool": "使用可能カード",
   "tournaments.create.randomBotStyles": "ボットのスタイルをランダムにする",
   "tournaments.create.randomBotStylesDesc":
@@ -223,4 +229,7 @@ export const tournamentDetailJa = {
   "tournaments.format.pointsLoss": "負け",
   "tournaments.format.pointsValue": "勝ち {win}・引き分け {draw}・負け {loss}",
   "tournaments.create.pointsAuto": "自動(3/1/0)",
+  "notifications.tournament.started": "{name}が開始されました。トーナメントを開いて対戦組み合わせを確認してください。",
+  "notifications.tournament.matchReady":
+    "{name}のラウンド {round} の準備ができました。今すぐテーブルに参加してください。",
 };

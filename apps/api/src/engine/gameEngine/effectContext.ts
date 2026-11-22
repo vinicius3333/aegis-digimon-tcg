@@ -450,12 +450,13 @@ export async function engineConsultLeavePrevention(
             }
             return fragmentCountOf(permanent.topCard.cardId, engine.continuous.grantedKeywords(id));
           },
-          select: (seat, candidateInstanceIds, { min, max }, promptText, source) =>
+          select: (seat, candidateInstanceIds, { min, max, declinesCost }, promptText, source) =>
             requestCardSelection(engine, {
               seat,
               candidateInstanceIds,
               min,
               max,
+              declinesCost,
               promptText,
               source,
               selectionGoal: DecisionSelectionGoal.PROTECT.value,
@@ -504,13 +505,20 @@ export async function engineConsultLeavePrevention(
                 isDecoySourceProtecting(source, targetDefinition),
               );
             },
-            select: async (seat, candidateInstanceIds, min, promptText, source) => {
+            select: async (seat, candidateInstanceIds, min, promptText, source, affectedPermanentIds) => {
               const response = await engine.decisions.request({
                 seat,
                 kind: "selectCards",
                 promptText,
                 sourceCardId: source.sourceCardId,
-                options: { candidateInstanceIds, min, max: 1, timing: "Static", effectText: source.effectText },
+                options: {
+                  candidateInstanceIds,
+                  min,
+                  max: 1,
+                  timing: "Static",
+                  effectText: source.effectText,
+                  ...(affectedPermanentIds.length > 0 ? { affectedPermanentIds: [...affectedPermanentIds] } : {}),
+                },
               });
               return response.kind === "selectCards" ? response.instanceIds : [];
             },
@@ -735,7 +743,9 @@ export function buildPrimitives(engine: GameEngine): Primitives {
         // Settle the already-armed watcher tier before exposing the Option's older
         // printed entry/attack effects. Then settle the interrupted Option's rule
         // check in that same parent pool before Counter Timing/security can proceed.
-        await drain();
+        if (options?.poolWatchersWithArtsEntryEffects !== true) {
+          await drain();
+        }
         engine.optionResolutionDepth = 0;
         const remainingRulePending = await collectRuleProcessPending(engine);
         engine.pendingNestedTimingEffects.push(...remainingRulePending);
@@ -913,6 +923,17 @@ export function buildPrimitives(engine: GameEngine): Primitives {
         )) ?? 0;
       return Math.max(0, passiveCost - interactiveReduction);
     },
+    activateFreeDigivolveReductions: async (target, evolvingInstanceId, into, baseAsDigimon) => {
+      await digivolveDeps(engine).activateInteractiveDigivolveReduction?.(
+        engine.state,
+        target.controllerSeat,
+        target,
+        into,
+        evolvingInstanceId,
+        baseAsDigimon,
+        0,
+      );
+    },
     effectiveLooseUseCost: (instanceId, controllerSeat) => projectLooseUseCost(engine, instanceId, controllerSeat),
     inHandCost: (instanceId, controllerSeat) => projectInHandCost(engine, instanceId, controllerSeat),
     fireLinkEvent: async (instanceIds, targetPermanentId) => {
@@ -1039,5 +1060,6 @@ export function buildPrimitives(engine: GameEngine): Primitives {
     noteLinked: (instanceIds) => {
       for (const instanceId of instanceIds) engine.justLinked.add(instanceId);
     },
+    trashReplacedLinkCards: (permanentId) => engine.ruleChecks.trashReplacedLinkCards(permanentId),
   });
 }

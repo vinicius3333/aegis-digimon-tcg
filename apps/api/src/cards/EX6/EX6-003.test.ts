@@ -6,14 +6,12 @@ import "../BT6/BT6-034.js";
 import "../EX1/EX1-029.js";
 
 describe("EX6-003 Cupimon", () => {
-  it("returns one security card to hand and places an Angel excluding Fallen Angel as security", () => {
+  it("pays the top security card as the cost of placing an Angel from hand at the security bottom", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "WhenAttacking",
       isInherited: true,
       frequency: "OncePerTurn",
-      optional: true,
       actions: [
-        { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1, toTop: true },
         {
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
@@ -27,6 +25,9 @@ describe("EX6-003 Cupimon", () => {
           },
           from: ["hand"],
           toTop: false,
+          cost: { kind: "securityToHand" },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     });

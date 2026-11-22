@@ -158,8 +158,12 @@ export function candidatePermanents(
  */
 function isDigimonPermanent(ctx: EffectContext, permanent: Permanent): boolean {
   if (permanent.topCard === undefined) return false;
-  const kinds = ctx.game.definitionOf(permanent.topCard).kinds;
-  return (ctx.game.effectiveKinds?.(permanent.permanentId, kinds) ?? kinds).includes(CardKind.Digimon);
+  const definition = ctx.game.definitionOf(permanent.topCard);
+  const kinds = ctx.game.effectiveKinds?.(permanent.permanentId, definition.kinds) ?? definition.kinds;
+  if (kinds.includes(CardKind.Digimon)) {
+    return true;
+  }
+  return permanent.inBreeding !== true && definition.kinds.includes(CardKind.DigiEgg);
 }
 
 function narrowToSuperlative(
@@ -398,6 +402,7 @@ export async function resolvePermanentTargets(
     /** Let an otherwise fixed-count selection answer an optional processing condition with zero picks. */
     allowDecline?: boolean;
     promptKey?: "digivolveHost";
+    askWhenEligibilityNarrows?: boolean;
   },
 ): Promise<string[]> {
   // SourceRef: resolve to the permanent that triggered this SubTrigger event.
@@ -508,6 +513,7 @@ export async function resolvePermanentTargets(
     ctx.payingDeclinableCost !== true &&
     !(ctx.pickingAcceptedOptional === true && ctx.presetOptionalAnswer === true) &&
     !holdsUnaffectableCandidate &&
+    !(opts?.askWhenEligibilityNarrows === true && candidates.length < visibleCandidates.length) &&
     (target as Target & { forceSelection?: boolean }).forceSelection !== true
   ) {
     const result = finalize(candidates.map((p) => p.permanentId));

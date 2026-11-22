@@ -318,3 +318,60 @@ describe("MirageGaogamon and Full Moon Blaster", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
   });
 });
+
+describe("official rulings", () => {
+  it("activates the Option side's [Main] without using the card as an Option", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "mirage" },
+            { card: "BT1-086", as: "tamer", under: [{ card: "BT1-009", as: "under" }] },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-038", as: "highest" }, "BT1-009"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    const mirageCard = s.perm("mirage").topCard.instanceId;
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("tamer").permanentId, [s.inst("under").instanceId], 0);
+    await settle();
+    expect(s.state.players[1]!.hand.map((c) => c.cardId)).toEqual(["BT1-038"]);
+    expect(s.perm("mirage").topCard.instanceId).toBe(mirageCard);
+    expect(s.state.players[0]!.trash.some((c) => c.instanceId === mirageCard)).toBe(false);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("counts as a DATA SQUAD trait Option card for an effect that uses DATA SQUAD cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT27-030", as: "mach" },
+            {
+              card: "BT1-085",
+              as: "tamer",
+              under: [
+                { card: "BT1-009", faceUp: false },
+                { card: "BT1-013", faceUp: false },
+              ],
+            },
+          ],
+          hand: [{ card: cardId, as: "mirage" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-038", as: "highest" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferOptionIndex: 1, declinePrompts: ["Arts Digivolve"] },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mach"));
+    await settle(() => !s.state.pendingDecision);
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[1]!.hand.map((c) => c.cardId)).toEqual(["BT1-038"]);
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("mirage").instanceId);
+    expect(s.state.memory).toBe(0);
+  });
+});

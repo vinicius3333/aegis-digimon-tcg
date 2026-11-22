@@ -263,3 +263,97 @@ describe("Artiomon protection, Option activation and Doom Buster", () => {
     await loop;
   });
 });
+
+describe("Artiomon official rulings", () => {
+  async function activateDoomBusterFromTamerTrash(board: Parameters<typeof setupEngine>[0]) {
+    const s = setupEngine(board, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+    s.state.memory = 3;
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("tamer").permanentId, [s.inst("under").instanceId], 0);
+    await settle(() => !s.state.pendingDecision);
+    return s;
+  }
+
+  const tamerWithOneFaceDown = {
+    card: "BT1-089",
+    as: "tamer",
+    under: [{ card: "BT1-009", as: "under", faceUp: false }],
+  };
+
+  it("treats the activated Option side effect as an Option effect against Digimon-effect immunity", async () => {
+    const s = await activateDoomBusterFromTamerTrash({
+      0: { battleArea: [{ card: "BT27-067", as: "source", suspended: true }, tamerWithOneFaceDown] },
+      1: { battleArea: [{ card: "BT15-047", as: "target", under: ["BT1-009"], suspended: true }] },
+    });
+    expect(s.perm("target").topCard.cardId).toBe("BT1-009");
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT15-047"]);
+  });
+
+  it("does not count activating the Option side as using an Option card", async () => {
+    const s = await activateDoomBusterFromTamerTrash({
+      0: {
+        battleArea: [
+          { card: "BT27-067", as: "source", suspended: true },
+          { card: "BT1-009", as: "wizardmonHost", under: ["P-046"] },
+          tamerWithOneFaceDown,
+        ],
+      },
+      1: { battleArea: [opponentStack] },
+    });
+    expect(s.perm("target").stack).toHaveLength(1);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("source").topCard.cardId).toBe("BT27-067");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+  });
+
+  it("counts as a Glowing Dawn trait Option card when used from the hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-049", as: "armalizamon" },
+            {
+              card: "BT1-089",
+              as: "tamer",
+              under: [{ card: "BT1-009", faceUp: false }],
+            },
+          ],
+          hand: [{ card: "BT27-067", as: "card" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [opponentStack] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Arts Digivolve"] },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("card").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((c) => c.cardId === "BT27-067") && !s.state.pendingDecision);
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.perm("target").stack).toHaveLength(1);
+  });
+
+  it("stays by trashing 1 face-down card from each of 2 Tamers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT27-067", as: "source" },
+            { card: "BT1-089", as: "firstTamer", under: [{ card: "BT1-009", faceUp: false }] },
+            { card: "BT1-089", as: "secondTamer", under: [{ card: "BT1-009", faceUp: false }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect")).toBe(0);
+    await settle(() => !s.state.pendingDecision);
+    expect(s.perm("source").topCard.cardId).toBe("BT27-067");
+    expect(s.perm("firstTamer").stack).toHaveLength(0);
+    expect(s.perm("secondTamer").stack).toHaveLength(0);
+  });
+});

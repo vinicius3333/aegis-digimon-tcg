@@ -268,3 +268,30 @@ describe("ProtoGizmon deletion recursion", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("at").instanceId]);
   });
 });
+
+describe("official rulings", () => {
+  it("digivolves from the breeding area where its digivolve restriction does not apply", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT27-075", as: "gizmon" },
+          hand: [{ card: "ST6-07", as: "evolution" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gizmon").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gizmon").topCard.cardId === "ST6-07" && !s.state.pendingDecision);
+    expect(s.perm("gizmon").stack.map((card) => card.cardId)).toEqual(["BT27-075"]);
+    expect(s.state.memory).toBe(8);
+  });
+});
