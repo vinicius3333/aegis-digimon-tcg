@@ -884,6 +884,7 @@ export function presentServerBatch({
       combatLeadInMs,
       combatCompletionGate: battleGate,
       cardSiteRef,
+      lastVisibleArtRef,
       effectSourceKeyRef,
       setEffectSources,
       enqueue,

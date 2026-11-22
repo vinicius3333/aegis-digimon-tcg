@@ -743,6 +743,7 @@ export function useMatchCues({
       const snapshot = phaseStateRef.current.snapshots?.find((entry) => entry.stateVersion === version);
       return snapshot ? buildCardSiteIndex(snapshot.state) : undefined;
     },
+    lastVisibleArtRef,
     effectNarrationTracksRef,
     heldOriginsRef,
     enqueuePhaseOrderRef,

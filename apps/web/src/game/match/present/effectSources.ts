@@ -28,6 +28,7 @@ export function enqueueEffectSources({
   combatLeadInMs,
   combatCompletionGate,
   cardSiteRef,
+  lastVisibleArtRef,
   effectSourceKeyRef,
   setEffectSources,
   enqueue,
@@ -41,6 +42,7 @@ export function enqueueEffectSources({
   combatCompletionGate?: PresentationGate;
   /** Where every card the viewer can see currently sits, refreshed per commit. */
   cardSiteRef: MutableRefObject<{ locate: EffectSourceLookup }>;
+  lastVisibleArtRef: MutableRefObject<Map<string, string>>;
   /** Mutated: incremented per event so each activation gets its own key. */
   effectSourceKeyRef: MutableRefObject<number>;
   setEffectSources: Dispatch<SetStateAction<readonly EffectActivation[]>>;
@@ -78,6 +80,7 @@ export function enqueueEffectSources({
         ? { key: effectSourceKeyRef.current, seat: event.seat, cardId: event.sourceCardId, site }
         : effectActivationFromEvent(event, effectSourceKeyRef.current, cardSiteRef.current.locate);
     if (!activation) continue;
+    if (activation.site.zone === "trash") activation.artId = lastVisibleArtRef.current.get(activation.site.instanceId);
     enqueue({
       id: `effect-source-${activation.key}`,
       track: effectActivationTrack(activation),
