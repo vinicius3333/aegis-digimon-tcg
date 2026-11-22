@@ -17,10 +17,10 @@ const deleteLowestPerEightThousand: Action = {
       {
         kind: "Delete",
         target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDP" }, count: 1 },
-        optional: true,
       },
     ],
   ],
+  optional: true,
   raw: "For every 8000 DP this Digimon has, you may activate the effect below",
 };
 

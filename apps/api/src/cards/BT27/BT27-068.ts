@@ -85,7 +85,7 @@ export const compiled: CompiledCard = {
           event: "whenLeavesPlay",
           effectTextPart: optionTriggerText,
           raw: optionTriggerText,
-          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          sourceFilter: { controller: "mine", kind: ["Digimon"], excludeSelf: true },
           actions: [{ kind: "ActivateMain", optional: true }],
         },
       ],
