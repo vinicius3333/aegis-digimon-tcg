@@ -47,7 +47,11 @@ export const compiled: CompiledCard = {
           kind: "WaiveColorRequirement",
           condition: {
             kind: "youHave",
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["TERMINAL"], match: "trait" }] },
+            filter: {
+              controller: "mine",
+              zone: ["battleArea", "breeding"],
+              nameOrTrait: [{ tokens: ["TERMINAL"], match: "trait" }],
+            },
           },
         },
       ],
