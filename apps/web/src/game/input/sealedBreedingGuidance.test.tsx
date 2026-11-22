@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
-import { JSDOM } from "jsdom";
 import { describe, expect, it, vi } from "vitest";
 import { BreedingDock } from "@/game/screen/layout/BreedingDock";
 
@@ -37,7 +37,9 @@ function renderGuidance(actionsOpen: boolean) {
       actions={<button>Place in breeding · Gabumon</button>}
     />,
   );
-  return new JSDOM(markup).window.document;
+  const container = document.createElement("div");
+  container.innerHTML = markup;
+  return container;
 }
 
 describe("sealed breeding guidance ownership", () => {
@@ -62,7 +64,7 @@ describe("sealed breeding guidance ownership", () => {
   });
 
   it("composes sealed actions inside the real dock rather than as a field grid sibling", () => {
-    const screen = readFileSync(new URL("../../GameScreen.tsx", import.meta.url), "utf8");
+    const screen = readFileSync(resolve(import.meta.dirname, "../GameScreen.tsx"), "utf8");
     const start = screen.indexOf("const yourBreedingDock = (");
     const end = screen.indexOf("const tutorialLesson", start);
     const dock = screen.slice(start, end);
@@ -71,7 +73,7 @@ describe("sealed breeding guidance ownership", () => {
   });
 
   it("keeps action hit testing and width bounded by the containing guidance panel", () => {
-    const actions = readFileSync(new URL("../../SealedBreedingActions.tsx", import.meta.url), "utf8");
+    const actions = readFileSync(resolve(import.meta.dirname, "../SealedBreedingActions.tsx"), "utf8");
     expect(actions).toContain("zIndex: 21");
     expect(actions).toContain('pointerEvents: "auto"');
     expect(actions).toContain('maxWidth: "100%"');
