@@ -872,7 +872,7 @@ describe("landscape phone match layout", () => {
   it("names an explicit card width for the battle rows", () => {
     // Even the compact Digimon (106px) is taller than a row here.
     expect(gameScreenSource).toMatch(/const LANDSCAPE_PHONE_PERMANENT_WIDTH = \d+;/);
-    expect(gameScreenSource).toMatch(/: landscapePhone\s*\?[^:]*:\s*LANDSCAPE_PHONE_PERMANENT_WIDTH/);
+    expect(gameScreenSource).toMatch(/: landscapePhone\s*\?\s*LANDSCAPE_PHONE_PERMANENT_WIDTH/);
     expect(gameScreenSource).toMatch(/width:\s*arenaPermanentWidth,/);
   });
 });
