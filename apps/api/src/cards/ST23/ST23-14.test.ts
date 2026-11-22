@@ -101,6 +101,31 @@ describe("ST23-14 Reina Sakuya & Makoto Kuonji", () => {
     expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("glowing").permanentId)).toBe(true);
   });
+
+  it("still gains 1 memory at the start of the main phase after declining to place the deck card", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST23-14", as: "tamer" }], deck: ["BT1-002", "BT1-009", "BT1-003"] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], deck: ["BT1-002"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 0;
+    s.state.isFirstPlayersFirstTurn = false;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "ST23-14").map(({ req }) => req.kind)).toEqual([
+      "optional",
+    ]);
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.memory).toBe(1);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
 });
 
 async function placeUnderTamerAtStartOfMain() {
