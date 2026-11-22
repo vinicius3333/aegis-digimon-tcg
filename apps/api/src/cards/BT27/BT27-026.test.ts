@@ -281,7 +281,7 @@ describe("Thunderbirdmon trashes opposing sources, deletes a chosen own Digimon,
 });
 
 describe("official rulings", () => {
-  function tamerBoard(options: Parameters<typeof setupEngine>[1], tamer = kurataTamer) {
+  function tamerBoard(options: SetupEngineOptions | undefined, tamer = kurataTamer) {
     return setupEngine(
       {
         0: {

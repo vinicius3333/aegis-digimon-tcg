@@ -4,6 +4,7 @@ import { runtimeCompiledCard } from "#api/engine/effects/interpreter";
 import { advance } from "#api/engine/testkit/advance";
 import { playByAssembly } from "#api/engine/testkit/assembly";
 import { assertNoLoudGap, makeInstance, settle, setupEngine, type PermanentSpec } from "#api/engine/testkit/harness";
+import type { SetupEngineOptions } from "#api/engine/testkit/harness";
 import { observe } from "#api/engine/testkit/observe";
 import "#api/cards/index";
 import { compiled } from "./BT27-033.js";
@@ -20,7 +21,7 @@ const blueTamer = "BT1-086";
 const source = "BT1-028";
 
 type Setup = ReturnType<typeof setupEngine>;
-type Options = Parameters<typeof setupEngine>[1];
+type Options = SetupEngineOptions | undefined;
 
 async function playYukinamon(opponentBattleArea: PermanentSpec[], opponentHand: PermanentSpec[] = []) {
   const s = setupEngine(

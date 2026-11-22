@@ -32,7 +32,7 @@ describe("inherited On Deletion after its digivolution card is replayed from tra
         s.engine.applyIntent(0, {
           type: "attack",
           attackerPermanentId: s.perm("ravemon").permanentId,
-          target: { kind: "digimon", permanentId: s.perm("strongerDigimon").permanentId },
+          target: { kind: "permanent", permanentId: s.perm("strongerDigimon").permanentId },
         }),
       ).toEqual({ ok: true });
       await settle(

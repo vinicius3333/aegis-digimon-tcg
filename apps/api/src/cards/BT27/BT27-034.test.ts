@@ -405,7 +405,7 @@ describe("official rulings", () => {
     );
     await s.ready();
     if (protectSecond) {
-      await advance(s.engine).verb.restrict(s.perm("second").permanentId, "beDeleted", EffectDuration.UntilEndOfTurn);
+      await advance(s.engine).verb.restrict(s.perm("second").permanentId, "beDeleted", EffectDuration.UntilEachTurnEnd);
     }
     s.state.memory = 10;
     expect(
