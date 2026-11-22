@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createAnimationQueue } from "../../animationQueue";
-import type { EffectActivation } from "../../effectSource";
+import { trashEffectCardFromSources, type EffectActivation } from "../../effectSource";
 import { enqueueEffectSources } from "./effectSources";
 
 beforeEach(() => vi.useFakeTimers());
@@ -32,6 +32,7 @@ function standaloneTrashSource() {
     usedOption: undefined,
     combatLeadInMs: 0,
     cardSiteRef: { current: { locate: () => ({ zone: "trash", instanceId: "buried" }) } },
+    lastVisibleArtRef: { current: new Map([["buried", "ST1-02_P1"]]) },
     effectSourceKeyRef: { current: 0 },
     setEffectSources(update) {
       sources = typeof update === "function" ? update(sources) : update;
@@ -50,6 +51,12 @@ function standaloneTrashSource() {
 }
 
 describe("painted standalone trash ownership", () => {
+  it("carries the source's parallel art before the presented trash holds the card", async () => {
+    const cue = standaloneTrashSource();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(cue.sources.map(({ artId }) => artId)).toEqual(["ST1-02_P1"]);
+    expect(trashEffectCardFromSources(cue.sources, 0, [])?.artId).toBe("ST1-02_P1");
+  });
   it("keeps the card after nominal queue time until its delayed CSS clock finishes", async () => {
     const cue = standaloneTrashSource();
     await vi.advanceTimersByTimeAsync(830);

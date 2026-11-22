@@ -66,6 +66,7 @@ export interface NarrationStreamDeps {
   }>;
   /** Freeze a queued clause's source against its own recorded board, before later results move it. */
   cardSiteAtVersion: (version: number | undefined) => { locate: EffectSourceLookup } | undefined;
+  lastVisibleArtRef: MutableRefObject<Map<string, string>>;
   effectNarrationTracksRef: MutableRefObject<Map<Seat, string>>;
   heldOriginsRef: MutableRefObject<WeakMap<object, HeldNarrationOrigin>>;
   enqueuePhaseOrderRef: MutableRefObject<number | undefined>;
@@ -182,6 +183,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
     queue,
     cardSiteRef,
     cardSiteAtVersion,
+    lastVisibleArtRef,
     effectNarrationTracksRef,
     heldOriginsRef,
     enqueuePhaseOrderRef,
@@ -543,6 +545,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
               activation = {
                 key: ++effectSourceKeyRef.current,
                 cardId: body.cardId,
+                ...(site.zone === "trash" ? { artId: lastVisibleArtRef.current.get(site.instanceId) } : {}),
                 seat,
                 site,
                 itemId: item.id,
