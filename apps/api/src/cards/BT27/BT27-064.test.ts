@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { advance } from "#api/engine/testkit/advance";
+import { expectDelayCannotUseHandMainRoute } from "#api/cards/P/qaRulings2.testSupport";
 import "#api/cards/index";
 
 describe("Bearcatmon (BT27) De-Digivolve, Reina evolution and inherited security trash", () => {
@@ -121,6 +122,63 @@ describe("Bearcatmon (BT27) De-Digivolve, Reina evolution and inherited security
     expect(s.state.players[1]!.security).toHaveLength(left);
     expect(s.perm("tamer").stack).toHaveLength(left === 1 ? 0 : 1);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});
+
+describe("official rulings", () => {
+  it("offers the hand digivolution only while the card is in the hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT27-064", as: "field" }, { card: "BT27-056" }, { card: "BT26-093" }],
+          trash: ["BT27-058", { card: "BT27-064", as: "trashed" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(JSON.parse(s.perm("field").activatableEffectsJson || "[]")).toHaveLength(0);
+    expect(JSON.parse(s.inst("trashed").activatableEffectsJson || "[]")).toHaveLength(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("cannot use the hand digivolution at the same time as Defense Training's digivolution", async () => {
+    await expectDelayCannotUseHandMainRoute("P-107", {
+      host: "BT27-056",
+      tamer: "BT26-093",
+      material: "BT27-058",
+      target: "BT27-064",
+    });
+  });
+
+  it("gives the forced attack to a Digimon its effects don't affect, which attacks once it is affected again", async () => {
+    const filler = Array<string>(10).fill("BT1-009");
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT27-064", as: "card" }],
+          battleArea: [{ card: "BT1-085", as: "tamer", under: [{ card: "BT1-009", faceUp: false }] }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+          deck: filler,
+        },
+        1: { battleArea: [{ card: "BT15-047", as: "immune", suspended: true }], deck: filler },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("card").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").stack.length === 0 && !s.state.pendingDecision);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.players[0]!.security.length < 3 || s.state.turnSeat === 0, 400);
+    expect(s.state.players[0]!.security.length).toBeLessThan(3);
+    expect(s.engine.applyIntent(1, { type: "surrender" }).ok).toBe(true);
     await loop;
   });
 });

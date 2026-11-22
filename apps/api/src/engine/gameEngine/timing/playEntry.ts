@@ -334,7 +334,7 @@ export async function reactivateOnPlay(
       )
         continue;
       await resolveReactivatedEffect({ effect, ctx });
-      activatedAny = true;
+      if (ctx.oncePerTurnActivationDeclined !== true) activatedAny = true;
     }
     await engine.recomputeContinuousEffects();
     return activatedAny;
@@ -361,7 +361,7 @@ export async function reactivateOnPlay(
   engine.tracker.register(chosen.source.instanceId, chosen.effect.effectKey);
   await resolveReactivatedEffect({ effect: chosen.effect, ctx: chosen.ctx });
   await engine.recomputeContinuousEffects();
-  return true;
+  return chosen.ctx.oncePerTurnActivationDeclined !== true;
 }
 
 type ResolveReactivatedEffectParams = {

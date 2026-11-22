@@ -78,3 +78,22 @@ describe("PawnChessmon text and DATA SQUAD search", () => {
     ).toEqual(["Add 1 card with [Chessmon] in its text", "1 [DATA SQUAD] trait card among them to the hand."]);
   });
 });
+
+describe("PawnChessmon official rulings", () => {
+  it("counts a card whose only Chessmon mention is its name as a card with Chessmon in its text", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT27-036", as: "pawn" }], deck: ["ST19-05", "BT27-074", "BT1-009", "BT1-011"] } },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pawn").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT27-036") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[0]!.hand.map((c) => c.cardId)).toEqual(["ST19-05", "BT27-074"]);
+    expect(s.state.players[0]!.deck.map((c) => c.cardId)).toEqual(["BT1-011", "BT1-009"]);
+  });
+});

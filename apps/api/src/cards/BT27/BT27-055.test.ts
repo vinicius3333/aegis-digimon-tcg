@@ -3,6 +3,7 @@ import { requireCardDefinition } from "@aegis/shared/cards/registry";
 import { advance } from "#api/engine/testkit/advance";
 import { assertNoLoudGap, setupEngine, settle } from "#api/engine/testkit/harness";
 import { observe } from "#api/engine/testkit/observe";
+import { EffectTiming } from "@aegis/shared/schema/enums";
 import { compiled } from "#api/cards/BT27/BT27-055";
 import "#api/cards/index";
 
@@ -231,5 +232,183 @@ describe("Lotosmon suspends and locks opposing cards and unsuspends itself once 
 
     await attackPlayer(s, "base");
     expect(s.perm("third").isSuspended).toBe(false);
+  });
+});
+
+describe("official rulings", () => {
+  async function digivolveFrom(s: Session, base: string) {
+    return s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm(base).permanentId,
+      instanceId: s.inst("lotosmon").instanceId,
+      useAlternateCost: true,
+    });
+  }
+
+  it.each([
+    ["a Kurata's Army Tamer does not trigger", kurataTamer, false],
+    ["a [Bio] Quetzalmon triggers", bioQuetzalmon, true],
+  ])("digivolving from %s a when-your-Digimon-digivolve effect", async (_label, base, triggered) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: base, as: "base" },
+            { card: "BT19-085", as: "watcher" },
+          ],
+          hand: [{ card: lotosmon, as: "lotosmon" }],
+          deck: filler,
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "rival" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Unsuspend"] },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    expect((await digivolveFrom(s, "base")).ok).toBe(true);
+    await settle(() => s.perm("base").topCard.cardId === lotosmon && !s.state.pendingDecision);
+    expect(s.perm("watcher").isSuspended).toBe(triggered);
+  });
+
+  it.each([
+    ["a Kurata's Army Tamer", kurataTamer, true],
+    ["a [Bio] Quetzalmon", bioQuetzalmon, false],
+  ])("digivolves from %s while your Digimon can't digivolve: %s", async (_label, base, allowed) => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT13-007" },
+          battleArea: [{ card: base, as: "base" }],
+          hand: [{ card: lotosmon, as: "lotosmon" }],
+          deck: filler,
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    expect((await digivolveFrom(s, "base")).ok).toBe(allowed);
+    if (allowed) await settle(() => s.perm("base").topCard.cardId === lotosmon && !s.state.pendingDecision);
+    expect(s.perm("base").topCard.cardId).toBe(allowed ? lotosmon : base);
+  });
+
+  it("draws the digivolution bonus card when digivolving from a Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: kurataTamer, as: "base" }],
+          hand: [{ card: lotosmon, as: "lotosmon" }],
+          deck: [{ card: "BT1-013", as: "bonus" }, ...filler],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    expect((await digivolveFrom(s, "base")).ok).toBe(true);
+    await settle(() => s.perm("base").topCard.cardId === lotosmon && !s.state.pendingDecision);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bonus").instanceId]);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it.each([
+    ["played this turn can't attack", true, false],
+    ["already in play can attack", false, true],
+  ])("a Digimon digivolved from a Tamer %s", async (_label, playedThisTurn, canAttack) => {
+    const tamerSpec = { card: kurataTamer, as: "base" };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: playedThisTurn ? [] : [tamerSpec],
+          hand: [{ card: lotosmon, as: "lotosmon" }, ...(playedThisTurn ? [tamerSpec] : [])],
+          deck: filler,
+        },
+        1: { security: securityFiller },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 11;
+    await s.ready();
+    if (playedThisTurn) {
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("base").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.length === 1 && !s.state.pendingDecision);
+    }
+    expect((await digivolveFrom(s, "base")).ok).toBe(true);
+    await settle(() => s.perm("base").topCard.cardId === lotosmon && !s.state.pendingDecision);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }).ok,
+    ).toBe(canAttack);
+  });
+
+  it("trashes the Tamer under it like other digivolution cards when it leaves play", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: lotosmon, as: "lotosmon", under: [{ card: kurataTamer, as: "tamer" }] }] } },
+      { declinePrompts: ["Lotosmon"] },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("lotosmon").permanentId]);
+    await settle(() => !s.state.pendingDecision);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual([lotosmon, kurataTamer].sort());
+  });
+
+  it("gains the inherited effect of a Tamer among its digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: lotosmon, as: "lotosmon", under: ["BT27-092"] }] },
+        1: { battleArea: [{ card: "BT1-013", as: "rival" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("lotosmon"));
+    await settle(() => !s.state.pendingDecision);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-013"]);
+  });
+
+  it("becomes a Tamer through Armor Purge with only a Tamer under it, ending its attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: lotosmon, as: "lotosmon", under: [{ card: kurataTamer, as: "tamer" }] }] },
+        1: { battleArea: [{ card: "BT27-052", as: "wall", suspended: true }], security: securityFiller },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Unsuspend"] },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("lotosmon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && !s.state.pendingDecision);
+    const survivor = s.state.players[0]!.battleArea;
+    expect(survivor.map((permanent) => permanent.topCard.instanceId)).toEqual([s.inst("tamer").instanceId]);
+    expect(survivor[0]!.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual([lotosmon]);
+    expect(s.state.players[1]!.security).toHaveLength(securityFiller.length);
+  });
+
+  it("digivolves from a [Bio] Quetzalmon in the breeding area", async () => {
+    const s = setupEngine(
+      {
+        0: { breeding: { card: bioQuetzalmon, as: "base" }, hand: [{ card: lotosmon, as: "lotosmon" }], deck: filler },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    expect((await digivolveFrom(s, "base")).ok).toBe(true);
+    await settle(() => s.perm("base").topCard.cardId === lotosmon && !s.state.pendingDecision);
+    expect(s.perm("base").inBreeding).toBe(true);
+    expect(s.state.memory).toBe(3);
   });
 });

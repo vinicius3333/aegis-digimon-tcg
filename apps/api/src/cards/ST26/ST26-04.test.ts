@@ -177,3 +177,33 @@ describe("ST26-04 Sekkamon", () => {
     expect(s.perm("target").stack).toHaveLength(2);
   });
 });
+
+describe("ST26-04 Sekkamon official rulings", () => {
+  it("lets the unsuspended host attack through another End of Your Turn effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: vanillaIceSnowLevel4, as: "host", under: [cardId], suspended: true },
+            { card: "AD1-004", as: "enabler", suspended: true },
+          ],
+        },
+        1: { battleArea: [{ card: vanillaBlueLevel5, as: "target" }], security: [source, source] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: [cardId] },
+    );
+    await s.ready();
+    await advance(s.engine).fireGlobal(EffectTiming.EndOfYourTurn);
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking(), 5000);
+
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("host"))).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("still trashes from the opponent but does not unsuspend a host without the Ice-Snow trait", async () => {
+    const s = await endTurnWith(vanillaBlueLevel3, [source, source]);
+    expect(s.perm("target").stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash).toHaveLength(2);
+    expect(s.perm("host").isSuspended).toBe(true);
+  });
+});

@@ -214,7 +214,7 @@ export async function runSecurityManipulation(
           : true;
       const trashed = await ctx.fx.trashFromSecurity(seat, amount, {
         fromTop,
-        ...(selectedSecurityIds !== undefined ? { instanceIds: selectedSecurityIds } : {}),
+        ...(selectedSecurityIds !== undefined ? { instanceIds: selectedSecurityIds, revealedFirst: true } : {}),
       });
       ctx.lastEffectActed = trashed.length > 0;
       if (action.optionalFor !== undefined && trashed.length === 0) ctx.lastOpponentDeclined = true;

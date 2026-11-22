@@ -4,6 +4,8 @@ import { EffectTiming } from "@aegis/shared/schema/enums";
 import { advance } from "#api/engine/testkit/advance";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { observe } from "#api/engine/testkit/observe";
+import { placeAtStartOfMain } from "#api/cards/BT26/tamerStack.testSupport";
+import { identityVisibility, trashBottomTamerCardWithFalcomon } from "#api/cards/ST24/tamerStack.testSupport";
 import { compiled } from "./BT27-089.js";
 import "#api/cards/index";
 
@@ -196,4 +198,69 @@ describe("Thomas H. Norstein Gaomon storage and Gaogamon battle protection", () 
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === cardId));
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
+});
+
+describe("Thomas H. Norstein official rulings", () => {
+  it("places the start-of-main card face down at the bottom, visible only to its owner", async () => {
+    const { s, placedId, priorIds, finish } = await placeAtStartOfMain(cardId, "BT25-021");
+
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([placedId, ...priorIds]);
+    expect(s.perm("tamer").stack.every((card) => card.faceUp === false)).toBe(true);
+    expect(identityVisibility(s, s.inst("placed"))).toEqual({ owner: true, opponent: false });
+    await finish();
+  });
+
+  it("puts a face-down card trashed from under this Tamer face up in the trash", async () => {
+    const { s, placedId, finish } = await placeAtStartOfMain(cardId, "BT25-021");
+
+    const { trashed } = await trashBottomTamerCardWithFalcomon(s);
+
+    expect(trashed).toMatchObject({ instanceId: placedId, cardId: "BT25-021", faceUp: true });
+    expect(identityVisibility(s, trashed!)).toEqual({ owner: true, opponent: true });
+    await finish();
+  });
+
+  it.each([
+    ["an opponent's Digimon", false, "combatResolved"],
+    ["a Security Digimon", true, "securityChecked"],
+  ] as const)(
+    "keeps the protected Gaogamon after it loses a battle against %s",
+    async (_label, againstSecurity, battleEvent) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: cardId, as: "thomas" },
+              { card: "BT25-023", as: "gaogamon" },
+            ],
+            deck: ["BT1-013", "BT1-013", "BT1-013"],
+          },
+          1: againstSecurity
+            ? { security: ["BT2-075"], deck: ["BT1-013", "BT1-013"] }
+            : { battleArea: [{ card: "BT2-075", as: "defender", suspended: true }], deck: ["BT1-013", "BT1-013"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
+      await settle(() => observe(s.engine).isRestricted(s.perm("gaogamon"), "beDeletedInBattle"));
+      const gaogamonId = s.perm("gaogamon").permanentId;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: gaogamonId,
+          target: againstSecurity
+            ? { kind: "player" }
+            : { kind: "permanent", permanentId: s.perm("defender").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).finishAttack();
+      await settle();
+
+      expect(s.events.some((event) => event.kind === battleEvent)).toBe(true);
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === gaogamonId)).toBe(true);
+      expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("BT25-023");
+    },
+  );
 });

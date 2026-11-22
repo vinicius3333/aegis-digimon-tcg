@@ -14,7 +14,7 @@ export function createSecurityTrashVerbs(pc: PrimitivesContext) {
   const trashFromSecurity = async (
     seat: Seat,
     n: number,
-    opts?: { fromTop?: boolean; instanceIds?: string[]; cause?: "effect" | "barrierCost" },
+    opts?: { fromTop?: boolean; instanceIds?: string[]; cause?: "effect" | "barrierCost"; revealedFirst?: boolean },
   ): Promise<CardInstance[]> => {
     const p = player(seat);
     const fromTop = opts?.fromTop ?? false;
@@ -48,7 +48,7 @@ export function createSecurityTrashVerbs(pc: PrimitivesContext) {
       // Barrier's processing cost is paid by an effect (CR 16-25-1/3), unlike a security check.
       await fireSecurityTrashedEvents(engine, seat, moved, true);
       // Each trashed security card's own OnDiscardSecurity clause (ST22-10) fires now that it is in trash.
-      await engine.fireDiscardedFromSecurity?.(moved.map((c) => c.instanceId));
+      if (opts?.revealedFirst !== true) await engine.fireDiscardedFromSecurity?.(moved.map((c) => c.instanceId));
     }
     return moved;
   };

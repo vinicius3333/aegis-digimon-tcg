@@ -91,3 +91,37 @@ describe("NightChiropmon Tamer recruitment", () => {
     expect(s.state.players[0]!.trash.map((c) => c.cardId)).toContain("BT27-077");
   });
 });
+
+describe("official rulings", () => {
+  it("resolves its Security effect before battling the attacking Digimon", async () => {
+    const order: string[] = [];
+    const s: ReturnType<typeof setupEngine> = setupEngine(
+      {
+        0: { security: ["BT27-077"], hand: ["BT26-095"] },
+        1: { battleArea: [{ card: "BT1-060", as: "attacker", dp: 3000 }] },
+      },
+      {
+        autoSelectCards: true,
+        autoAcceptOptional: true,
+        onEvent: () => {
+          if (!order.includes("makoto") && s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT26-095"))
+            order.push("makoto");
+          if (!order.includes("battle") && s.state.players[1]!.trash.some((c) => c.cardId === "BT1-060"))
+            order.push("battle");
+        },
+      },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((c) => c.cardId === "BT27-077") && !s.state.pendingDecision);
+    expect(order).toEqual(["makoto", "battle"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});

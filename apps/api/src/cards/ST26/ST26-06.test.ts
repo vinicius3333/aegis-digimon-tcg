@@ -174,3 +174,28 @@ describe("ST26-06 Valner Dragnogh", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain(cardId);
   });
 });
+
+describe("ST26-06 Valner Dragnogh official rulings", () => {
+  it("neither trashes nor draws when it is already suspended and can't pay the suspension", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "valner", suspended: true }],
+          hand: [{ card: vanillaIceSnowLevel4, as: "entering" }],
+          deck: [vanillaBlueLevel3, vanillaBlueLevel3],
+        },
+        1: { battleArea: [{ card: vanillaBlueLevel5, as: "target", under: [source, source] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("entering").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 2 && s.state.pendingDecision === undefined);
+
+    expect(s.perm("target").stack).toHaveLength(2);
+    expect(handSize(s)).toBe(0);
+  });
+});

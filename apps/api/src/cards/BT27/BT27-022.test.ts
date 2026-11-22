@@ -145,3 +145,85 @@ describe("BT27-022 Renamon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 });
+
+describe("official rulings", () => {
+  it("lets the attacker choose among opponent Digimon tied for the fewest digivolution cards", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: vanillaIceSnowLevel4, as: "host", under: [cardId], dp: 7000 }] },
+        1: {
+          battleArea: [
+            { card: weakBlueLevel3, as: "first" },
+            { card: weakBlueLevel3, as: "second" },
+          ],
+          security: [weakBlueLevel3, weakBlueLevel3],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    const firstId = s.perm("first").permanentId;
+    const secondId = s.perm("second").permanentId;
+    preferred.push(secondId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.phase === Phase.Main && !observe(s.engine).isAttacking(), 5000);
+
+    const redirect = s.decisions.find(({ req }) => req.kind === "chooseTargets");
+    expect([...(redirect?.req.options?.candidateInstanceIds ?? [])].sort()).toEqual([firstId, secondId].sort());
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([firstId]);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("redirects to a Digimon that became the fewest after another When Attacking effect trashed its source", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: vanillaIceSnowLevel4, as: "host", under: ["BT27-020", cardId], dp: 7000 }] },
+        1: {
+          battleArea: [
+            { card: weakBlueLevel3, as: "trashed", under: [{ card: bottomSource, as: "trashedSource" }] },
+            { card: weakBlueLevel3, as: "untouched", under: [bottomSource] },
+          ],
+          security: [weakBlueLevel3, weakBlueLevel3],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+        preferTriggerKeys: ["BT27-020"],
+        preferOptionIndex: 0,
+      },
+    );
+    await s.ready();
+    const trashedId = s.perm("trashed").permanentId;
+    preferred.push(trashedId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.phase === Phase.Main && !observe(s.engine).isAttacking(), 5000);
+
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("trashedSource").instanceId);
+    expect(s.decisions.map(({ req }) => req.kind)).toEqual([
+      "orderTriggers",
+      "chooseOption",
+      "chooseTargets",
+      "optional",
+    ]);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("untouched").permanentId,
+    ]);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+});

@@ -164,3 +164,32 @@ describe("Liamon alternate digivolution, discounted attack digivolution, and inh
     expect(s.perm("control").currentDP).toBe(getCardDefinition("BT20-039")!.dp);
   });
 });
+
+describe("official rulings", () => {
+  it("still digivolves while attacking but without the reduction when the opponent has Syakomon", async () => {
+    const s = await attackWithLiamon({ hand: ["BT13-043"], opponentBattleArea: ["BT5-021"], accept: true });
+    expect(s.perm("liamon").topCard.cardId).toBe("BT13-043");
+    expect(s.state.memory).toBe(2);
+  });
+
+  it.each([
+    ["Liamon, whose rule only adds [Leomon] to its name,", "BT27-049", false],
+    ["a card named exactly [Leomon]", "EX5-047", true],
+  ])("lets %s use a digivolution requirement that names exactly [Leomon]: %s", async (_label, base, allowed) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: "P-139", as: "target" }], deck: ["BT1-009"] },
+    });
+    await s.ready();
+    s.state.memory = 5;
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("target").instanceId,
+      useAlternateCost: true,
+    });
+    expect(result.ok).toBe(allowed);
+    if (allowed) await settle(() => s.perm("base").topCard.cardId === "P-139" && !s.state.pendingDecision);
+    expect(s.perm("base").topCard.cardId).toBe(allowed ? "P-139" : base);
+    expect(s.state.memory).toBe(5);
+  });
+});

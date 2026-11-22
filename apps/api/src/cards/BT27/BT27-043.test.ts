@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared/schema/enums";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { advance } from "#api/engine/testkit/advance";
 import "#api/cards/index";
@@ -256,5 +257,89 @@ describe("Kentaurosmon (X Antibody) and Ultimate Crossbow Einherjar", () => {
     await settle(() => s.state.players[0]!.security.length === 1 && !s.state.pendingDecision);
     expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(under);
     expect(s.perm("attacker").currentDP).toBe(40000);
+  });
+});
+
+describe("Kentaurosmon (X Antibody) official rulings", () => {
+  it("activates the Option side Main without paying, trashing, or using the card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT27-043", as: "source", under: [kentaurosmon], suspended: true }],
+          security: ["BT1-010", "BT1-011"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 40000 }], security: ["BT1-009"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.security.some((card) => card.cardId === kentaurosmon) && !s.state.pendingDecision,
+    );
+    expect(s.perm("attacker").currentDP).toBe(23000);
+    expect(s.perm("source").topCard.cardId).toBe("BT27-043");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-010"]);
+    expect(s.state.memory).toBe(3);
+    expect(s.events.some((event) => event.kind === "cardPlayed" && event.cardId === "BT27-043")).toBe(false);
+  });
+
+  it("is usable as a Royal Knight trait Option card by an effect that names that trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT27-104", as: "tamer" }, vanillaYellowLevelFive],
+          hand: [{ card: "BT27-043", as: "dual" }],
+          security: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 40000 }], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1, declinePrompts: ["Arts Digivolve"] },
+    );
+    await s.ready();
+    s.state.memory = 4;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("tamer"));
+    await settle(() => s.state.pendingDecision === undefined && !s.state.players[0]!.resolvingOption);
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("dual").instanceId]);
+    expect(s.perm("target").currentDP).toBe(22000);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("resolves a checked Security effect before its security-removed trigger", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT27-043", as: "source", under: [kentaurosmon], suspended: true }],
+          security: ["BT4-105", "BT1-011"],
+          deck: [{ card: "BT1-010", as: "recovered" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 40000 }], security: ["BT1-009"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.security.some((card) => card.cardId === kentaurosmon) && !s.state.pendingDecision,
+    );
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-011", kentaurosmon]);
+    expect(s.perm("attacker").currentDP).toBe(40000 - 20000 + 1000 * (3 + 1));
   });
 });

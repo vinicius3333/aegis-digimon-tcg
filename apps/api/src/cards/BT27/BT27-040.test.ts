@@ -273,3 +273,31 @@ describe("Etemon", () => {
     expect(s.state.players[1]!.trash).toHaveLength(0);
   });
 });
+
+describe("Etemon official rulings", () => {
+  it("resolves its Security effect before battling the attacker as a Security Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: SUKAMON }], security: [{ card: ETEMON, as: "etemon" }] },
+        1: { battleArea: [{ card: PLAIN_ROOKIE, dp: 10000, as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const attacker = s.perm("attacker").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "attackEnded") && !s.state.pendingDecision);
+    const check = s.events.find((event) => event.kind === "securityChecked");
+    expect(check).toMatchObject({ revealedCardId: ETEMON, resolution: "battle" });
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([attacker]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("etemon").instanceId]);
+  });
+});

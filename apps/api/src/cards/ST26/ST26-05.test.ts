@@ -187,3 +187,12 @@ describe("ST26-05 Yukinamon", () => {
     expect(s.state.players[1]!.trash).toHaveLength(2);
   });
 });
+
+describe("ST26-05 Yukinamon official rulings", () => {
+  it("attacks without suspending when the opponent has no Digimon at all", async () => {
+    const s = await digivolveFromSekkamon([]);
+    expect(s.perm("base").topCard.cardId).toBe(cardId);
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("base"))).toBe(true);
+    expect(s.perm("base").isSuspended).toBe(false);
+  });
+});

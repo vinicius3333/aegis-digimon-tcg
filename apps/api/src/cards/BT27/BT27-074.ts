@@ -15,6 +15,7 @@ const placeThenDraw: Action[] = [
       kind: "place",
       target: { filter: { controller: "mine", zone: "hand" }, count: 1, from: ["hand"] },
       destination: "digivolutionStack",
+      position: "bottom",
       host: {
         filter: {
           controller: "mine",
