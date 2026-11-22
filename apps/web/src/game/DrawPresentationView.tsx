@@ -45,7 +45,7 @@ export function DrawPresentation({ flight }: { flight: DrawFlight }) {
             zoomOnHover={false}
           />
         ) : (
-          <CardBack width={presentation.width} />
+          <CardBack width={presentation.width} useSelectedSleeve={viewer} />
         )}
         <span className="game-draw-presentation__wash" />
       </div>

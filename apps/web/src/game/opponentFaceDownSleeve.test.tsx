@@ -6,7 +6,9 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { setCardSleeveId } from "@/design/sleeve";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { CardArt } from "@/game/overlay/CardArt";
+import { DrawPresentation } from "@/game/DrawPresentationView";
 import { PermanentView } from "@/game/piece/PermanentView";
+import { Side } from "@/game/side";
 
 const SELECTED_SLEEVE = 'img[src="/sleeves/omnimon.webp"]';
 const DEFAULT_SLEEVE = 'img[src="/sleeves/digimon-standard.webp"]';
@@ -51,6 +53,24 @@ describe("face-down card backs", () => {
 
   it("draws an unreadable card in a viewer without the local sleeve", () => {
     const { container } = render(<CardArt cardId="" width={42} />);
+    expect(container.querySelector(SELECTED_SLEEVE)).toBeNull();
+    expect(container.querySelector(DEFAULT_SLEEVE)).toBeTruthy();
+  });
+
+  it("draws the opponent's hidden deck draw without the local sleeve", () => {
+    const { container } = render(
+      <DrawPresentation
+        flight={{
+          key: 1,
+          x: 0,
+          y: 0,
+          dx: 0,
+          dy: 0,
+          duration: 400,
+          presentation: { side: Side.Opponent, width: 60, inward: 1 },
+        }}
+      />,
+    );
     expect(container.querySelector(SELECTED_SLEEVE)).toBeNull();
     expect(container.querySelector(DEFAULT_SLEEVE)).toBeTruthy();
   });
