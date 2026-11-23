@@ -127,6 +127,14 @@ describe("portable participant replay", () => {
       expect(file.summary).toEqual(summary);
     }
   });
+  it("represents each deck by its featured Digimon instead of its last listed card", () => {
+    const deck = (mainDeck: string[]) => ({ deckName: "Deck", mainDeck, eggDeck: [] });
+    const decks = [deck(["BT1-010", "ST1-11", "BT1-085"]), deck(["ST1-07", "BT1-084", "BT1-090"])] as const;
+    expect(finishedRecording().participantFile("casual", 0, 200, [...decks])!.summary.deckIcons).toEqual([
+      "ST1-11",
+      "BT1-084",
+    ]);
+  });
   it("has no participant file before the game is over", () => {
     const recording = new ReplayRecording();
     recording.capture(state(), [event("matchStarted", 1)]);

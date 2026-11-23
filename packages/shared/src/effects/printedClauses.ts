@@ -140,6 +140,12 @@ export function isPrintedTimingReference(text: string, bracketEnd: number): bool
  * separated only by whitespace ("[On Play] [When Digivolving] ...") and runs to the next
  * such run. Text before the first bracket (keywords, digivolve costs) is not a clause.
  */
+const ruleLine = /^\s*\(Rule\).*$/gm;
+
+function withoutRuleLines(clause: string): string {
+  return clause.replace(ruleLine, "").trim();
+}
+
 export function splitPrintedClauses(text: string | undefined): PrintedClause[] {
   if (!text) return [];
   const marks: { label: string; index: number; end: number }[] = [];
@@ -159,7 +165,7 @@ export function splitPrintedClauses(text: string | undefined): PrintedClause[] {
   });
   return groups.map((group, index) => ({
     labels: group.labels,
-    text: text.slice(group.start, groups[index + 1]?.start ?? text.length).trim(),
+    text: withoutRuleLines(text.slice(group.start, groups[index + 1]?.start ?? text.length)),
   }));
 }
 

@@ -64,6 +64,13 @@ import { isDigiXrosPickerReplacement } from "#api/engine/effects/interpreter/act
 import { getActivationMemoryCost } from "#api/engine/effects/interpreter/getActivationMemoryCost";
 import { getDecisionEffectSummary } from "#api/engine/effects/interpreter/getDecisionEffectSummary";
 
+function containsSelfReference(node: unknown): boolean {
+  if (Array.isArray(node)) return node.some(containsSelfReference);
+  if (node === null || typeof node !== "object") return false;
+  const record = node as Record<string, unknown>;
+  return record.isSelf === true || record.isSelfRef === true || Object.values(record).some(containsSelfReference);
+}
+
 function containsPlayCostReduction(actions: Action[]): boolean {
   return actions.some((action) => {
     if (action.kind === "ReducePlayCost") return true;
@@ -280,6 +287,7 @@ export function irCardModule(
         ...built,
         activationMemoryCost,
         decisionSummary,
+        ...(built.isInherited && containsSelfReference(effect) ? { referencesItsOwnCard: true } : {}),
         ...(effect.cost === undefined &&
         onlyAction !== undefined &&
         isDigiXrosPickerReplacement({ cardId, action: onlyAction })

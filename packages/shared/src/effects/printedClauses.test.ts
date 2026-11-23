@@ -19,6 +19,23 @@ describe("splitPrintedClauses", () => {
     expect(splitPrintedClauses(`${clause}\n${next}`).map((entry) => entry.text)).toEqual([clause, next]);
   });
 
+  it("leaves a trailing (Rule) line out of the last clause and keeps a [Rule] clause", () => {
+    const clause = "[On Play] Unsuspend 1 of your Digimon.";
+    expect(splitPrintedClauses(`${clause}\n(Rule) Trait: Has [Cyborg] Type.`).map((entry) => entry.text)).toEqual([
+      clause,
+    ]);
+    expect(splitPrintedClauses(`${clause}\n[Rule] Name: Also treated as [Agumon].`).map((entry) => entry.text)).toEqual(
+      [clause, "[Rule] Name: Also treated as [Agumon]."],
+    );
+  });
+
+  it("leaves Aegiochusmon: Blue's Cyborg rule out of its De-Digivolve clause", () => {
+    const clauses = splitPrintedClauses(definitionOf("BT25-025").effectText);
+    expect(clauses.at(-1)!.text).toBe(
+      "[On Play] [When Digivolving] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, if you have 3 or fewer security cards, 1 of your Digimon unsuspends.",
+    );
+  });
+
   it("splits at a timing printed with a typographic apostrophe (BT13-103's [End of Opponent’s Turn])", () => {
     const definition = definitionOf("BT13-103");
     const clauses = splitPrintedClauses(definition.effectText);

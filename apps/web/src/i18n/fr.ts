@@ -1843,6 +1843,7 @@ const interfaceMessages = {
   "log.hatched": "{player} a fait éclore {card}",
   "log.movedFromBreeding": "{player} a déplacé {card} depuis l'élevage",
   "log.attackOnBy": "{card} de {player} attaque {target}",
+  "log.effectBattle": "{card} de {player} combat {target}",
   "log.matchStarted": "La partie commence. {player} joue en premier",
   "log.turnEnded": "Le tour de {player} est terminé. Tour de {nextPlayer}",
   "log.securityCheck": "Le contrôle de sécurité de {player} a révélé {card} ({resolution})",

@@ -334,12 +334,17 @@ export async function resolveTiming(
   // producing activatable effects after this many passes is an infinite loop (§18-3-1).
 
   const sourceArrivals = state.sourceArrivals;
+  const pendsForDeletedHost = (collected: CollectedEffect, ctx: EffectContext): boolean => {
+    const hostId = ctx.trigger?.deletedHostInstanceByInstanceId?.[collected.source.instanceId];
+    return (
+      hostId !== undefined && hostId !== collected.source.instanceId && collected.effect.referencesItsOwnCard !== true
+    );
+  };
   const hasCurrentTrashSource = (collected: CollectedEffect, ctx: EffectContext): boolean => {
     const proof = sourceArrivals.get(declineKey(collected));
     const hostId = ctx.trigger?.deletedHostInstanceByInstanceId?.[collected.source.instanceId];
-    const pendsForDeletedHost = hostId !== undefined && hostId !== collected.source.instanceId;
     if (
-      !pendsForDeletedHost &&
+      !pendsForDeletedHost(collected, ctx) &&
       proof?.source !== undefined &&
       trashArrivalOf(ctx.game.state, collected.source.instanceId) !== proof.source
     ) {
@@ -431,6 +436,7 @@ export async function resolveTiming(
         // executing may legitimately move its own source card as part of its body.
         for (const c of collectedThisPass) {
           if (c.effect.isActivatedConsequence === true) continue;
+          if (pendsForDeletedHost(c, env.makeContext(c))) continue;
           const identity = permanentIdentityOf(c.source);
           if (identity === undefined) continue;
           const key = declineKey(c);
