@@ -1,4 +1,52 @@
 {
+  "releases.1.80.1-beta.summary": {
+    "en": "This update fixes inherited On Deletion effects, Venusmon, mandatory unsuspend choices, the effect battle log, replay deck icons and Start of Turn timing.",
+    "pt-BR": "Esta atualização corrige efeitos herdados de Ao Ser Deletado, Venusmon, escolhas obrigatórias de desvirar, o registro de batalhas por efeito, os ícones de deck nos replays e o tempo do Início do Turno.",
+    "es": "Esta actualización corrige efectos heredados de Al Ser Eliminado, Venusmon, elecciones obligatorias de reactivar, el registro de batallas por efecto, los iconos de mazo en las repeticiones y el tiempo del Inicio del Turno.",
+    "it": "Questo aggiornamento corregge gli effetti ereditati Quando Viene Eliminato, Venusmon, le scelte obbligatorie di riattivazione, il registro delle battaglie da effetto, le icone dei mazzi nei replay e i tempi dell'Inizio del Turno."
+  },
+  "releases.1.80.1-beta.fix.inheritedOnDeletion": {
+    "en": "An inherited [On Deletion] effect now stays available when its card returns to your hand or is played before it resolves, for example after Cherubimon (BT26-078) deletes your own Digimon as a cost or with Ravemon (BT27-083).",
+    "pt-BR": "Um efeito herdado [Ao Ser Deletado] agora continua disponível quando a carta dele volta para a mão ou é jogada antes de resolver, por exemplo depois que Cherubimon (BT26-078) deleta o seu próprio Digimon como custo ou com Ravemon (BT27-083).",
+    "es": "Un efecto heredado [Al Ser Eliminado] ahora sigue disponible cuando su carta vuelve a tu mano o se juega antes de resolverse, por ejemplo después de que Cherubimon (BT26-078) elimine tu propio Digimon como coste o con Ravemon (BT27-083).",
+    "it": "Un effetto ereditato [Quando Viene Eliminato] ora resta disponibile quando la sua carta torna in mano o viene giocata prima di risolversi, per esempio dopo che Cherubimon (BT26-078) elimina un tuo Digimon come costo o con Ravemon (BT27-083)."
+  },
+  "releases.1.80.1-beta.fix.venusmon": {
+    "en": "Venusmon can now place another Digimon that is leaving the field at the same time as its cost.",
+    "pt-BR": "Venusmon agora pode colocar outro Digimon que está saindo do campo ao mesmo tempo que o custo dele.",
+    "es": "Venusmon ahora puede colocar otro Digimon que sale del campo al mismo tiempo que su coste.",
+    "it": "Venusmon ora può posizionare un altro Digimon che lascia il campo nello stesso momento del suo costo."
+  },
+  "releases.1.80.1-beta.fix.unsuspendChoice": {
+    "en": "A mandatory \"unsuspend 1 of your Digimon\" effect now asks you which Digimon to pick instead of choosing for you.",
+    "pt-BR": "Um efeito obrigatório de \"desvire 1 dos seus Digimon\" agora pergunta qual Digimon escolher em vez de escolher por você.",
+    "es": "Un efecto obligatorio de \"reactiva 1 de tus Digimon\" ahora te pregunta qué Digimon elegir en lugar de elegir por ti.",
+    "it": "Un effetto obbligatorio \"riattiva 1 dei tuoi Digimon\" ora ti chiede quale Digimon scegliere invece di sceglierlo per te."
+  },
+  "releases.1.80.1-beta.fix.effectBattleLog": {
+    "en": "The match log now names both Digimon when an effect makes them battle.",
+    "pt-BR": "O registro da partida agora mostra os dois Digimon quando um efeito faz eles batalharem.",
+    "es": "El registro de la partida ahora muestra los dos Digimon cuando un efecto los hace combatir.",
+    "it": "Il registro della partita ora mostra entrambi i Digimon quando un effetto li fa combattere."
+  },
+  "releases.1.80.1-beta.fix.replayDeckIcon": {
+    "en": "Match history now shows each deck's main Digimon as its icon instead of the same card every match.",
+    "pt-BR": "O histórico de partidas agora mostra o Digimon principal de cada deck como ícone, em vez da mesma carta em toda partida.",
+    "es": "El historial de partidas ahora muestra el Digimon principal de cada mazo como icono, en lugar de la misma carta en cada partida.",
+    "it": "La cronologia delle partite ora mostra il Digimon principale di ogni mazzo come icona, invece della stessa carta in ogni partita."
+  },
+  "releases.1.80.1-beta.fix.startOfTurnTiming": {
+    "en": "The unsuspend banner now plays before a Start of Turn prompt, so the effect starts about a second sooner after you answer.",
+    "pt-BR": "O aviso de desvirar agora aparece antes de uma pergunta de Início do Turno, então o efeito começa cerca de um segundo mais cedo depois da sua resposta.",
+    "es": "El aviso de reactivar ahora aparece antes de una pregunta de Inicio del Turno, así que el efecto empieza un segundo antes después de tu respuesta.",
+    "it": "L'avviso di riattivazione ora compare prima di una domanda di Inizio del Turno, quindi l'effetto parte circa un secondo prima dopo la tua risposta."
+  },
+  "releases.1.80.1-beta.fix.ruleLines": {
+    "en": "Effect popups no longer show printed \"(Rule)\" lines as part of the last effect, for example on Aegiochusmon: Blue (BT25-025).",
+    "pt-BR": "Os pop-ups de efeito não mostram mais linhas \"(Regra)\" impressas como parte do último efeito, por exemplo em Aegiochusmon: Blue (BT25-025).",
+    "es": "Las ventanas de efecto ya no muestran las líneas \"(Regla)\" impresas como parte del último efecto, por ejemplo en Aegiochusmon: Blue (BT25-025).",
+    "it": "I popup degli effetti non mostrano più le righe \"(Regola)\" stampate come parte dell'ultimo effetto, per esempio su Aegiochusmon: Blue (BT25-025)."
+  },
   "releases.1.80.0-beta.summary": {
     "en": "This update rebuilds the board for phones held sideways and fixes BT27 rulings, Rina, Shakamon, Use Req., Arts Digivolve on phones and several effect prompts.",
     "pt-BR": "Esta atualização refaz o tabuleiro para celular na horizontal e corrige regras da BT27, Rina, Shakamon, Use Req., Arts Digivolve no celular e vários avisos de efeito.",
