@@ -36,6 +36,7 @@ export interface Effect {
   optional: boolean;
   /** Granted via the digivolution stack? (source IsInheritedEffect) */
   isInherited: boolean;
+  referencesItsOwnCard?: boolean;
   /** Triggered from security? (source IsSecurityEffect) */
   isSecurity: boolean;
   /** From the Link mechanic? (source IsLinkedEffect) */
