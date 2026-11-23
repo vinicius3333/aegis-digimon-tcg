@@ -71,13 +71,16 @@ describe("EX1-017 WereGarurumon", () => {
   });
 
   it("gains memory only once across two player attacks", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX1-021", as: "host", under: ["EX1-017"] }],
-        hand: [{ card: "BT1-036", as: "unsuspender" }, ...Array.from({ length: 8 }, () => "BT1-029")],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-021", as: "host", under: ["EX1-017"] }],
+          hand: [{ card: "BT1-036", as: "unsuspender" }, ...Array.from({ length: 8 }, () => "BT1-029")],
+        },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
       },
-      1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
-    });
+      { autoSelectCards: true },
+    );
     s.state.memory = 9;
     await s.ready();
     const attack = () =>

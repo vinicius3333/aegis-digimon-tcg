@@ -6,15 +6,18 @@ import "./EX1-025.js";
 
 describe("EX1-025 Salamon", () => {
   it("draws 1 from an inherited source at exactly 3 security and only once per turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX1-028", as: "host", under: ["EX1-025"] }],
-        hand: [{ card: "BT1-036", as: "unsuspender" }],
-        deck: ["BT1-009", "BT1-010"],
-        security: ["BT1-009", "BT1-010", "BT1-011"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-028", as: "host", under: ["EX1-025"] }],
+          hand: [{ card: "BT1-036", as: "unsuspender" }],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
       },
-      1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
-    });
+      { autoSelectCards: true },
+    );
     s.state.memory = 10;
     await s.ready();
     expect(
@@ -197,18 +200,21 @@ describe("EX1-025 Salamon", () => {
   });
 
   it("resets the inherited once-per-turn effect on the next own turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX1-028", as: "host", under: ["EX1-025"] }],
-        hand: [{ card: "BT1-036", as: "unsuspender" }],
-        deck: ["BT1-009", "BT1-010"],
-        security: ["BT1-009", "BT1-010", "BT1-011"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-028", as: "host", under: ["EX1-025"] }],
+          hand: [{ card: "BT1-036", as: "unsuspender" }],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
       },
-      1: {
-        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
-        security: ["BT1-009", "BT1-010", "BT1-011"],
-      },
-    });
+      { autoSelectCards: true },
+    );
     s.state.memory = 10;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
