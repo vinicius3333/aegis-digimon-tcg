@@ -77,6 +77,11 @@
     width: 13rem;
   }
 
+  .aegis-arena .game-player-dock > .game-breeding-dock > .game-breeding-hint:has(> .sealed-breeding-actions) {
+    top: auto;
+    bottom: 1rem;
+  }
+
   .aegis-arena .game-board .game-security-shield--you,
   .aegis-arena .game-board .game-security-shield-wrap:has(.game-security-shield--you) {
     left: 2rem;
