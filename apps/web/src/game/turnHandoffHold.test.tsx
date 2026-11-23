@@ -16,6 +16,8 @@ import { I18nProvider } from "../i18n";
 import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import { GameScreen } from "./GameScreen";
+import { MatchLogDisplay } from "@/game/log/MatchLogDisplay";
+import { matchLogDisplayPreference } from "@/game/log/matchLogDisplayPreference";
 import { DEFAULT_PACING, setBasePacing } from "./pacing";
 
 vi.mock("../design/sound", () => ({
@@ -64,6 +66,7 @@ function opponentMainPhase() {
 
 beforeEach(() => {
   localStorage.clear();
+  matchLogDisplayPreference.set(MatchLogDisplay.POPUPS.value);
   vi.useFakeTimers();
   setBasePacing(DEFAULT_PACING);
 });

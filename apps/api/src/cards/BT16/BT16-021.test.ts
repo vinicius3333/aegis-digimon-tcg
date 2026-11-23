@@ -21,7 +21,7 @@ describe("BT16-021", () => {
           amount: 1,
           target: expect.objectContaining({
             count: 1,
-            filter: expect.objectContaining({ digivolutionCards: "hasAny" }),
+            filter: expect.not.objectContaining({ digivolutionCards: "hasAny" }),
           }),
         }),
         expect.objectContaining({ kind: "Restrict", restriction: "attackOrBlock", duration: "untilOpponentTurnEnd" }),

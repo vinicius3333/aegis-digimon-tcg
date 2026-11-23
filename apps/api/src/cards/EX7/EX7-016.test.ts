@@ -80,7 +80,7 @@ describe("EX7-016 Bulucomon", () => {
           {
             kind: "TrashDigivolution",
             target: {
-              filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
+              filter: { controller: "opponent", kind: ["Digimon"] },
               count: 1,
             },
             amount: 1,

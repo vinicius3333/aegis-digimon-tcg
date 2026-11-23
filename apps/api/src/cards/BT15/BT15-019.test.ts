@@ -9,7 +9,7 @@ describe("BT15-019", () => {
       kind: "TrashDigivolution",
       amount: 1,
       fromTop: false,
-      target: { filter: { controller: "opponent", digivolutionCards: "hasAny" } },
+      target: { filter: { controller: "opponent" } },
     });
     expect(compiled.effects?.[0]?.actions[1]).toMatchObject({
       kind: "Draw",

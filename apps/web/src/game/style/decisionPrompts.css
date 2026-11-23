@@ -345,6 +345,10 @@ body:has(.decision-overlay--selection) .narration-slot {
   color: var(--ds-text-3);
   font-size: var(--ds-text-xs);
 }
+.trigger-chooser__copy {
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-xs);
+}
 .trigger-chooser__context {
   margin-bottom: var(--ds-space-3);
   color: var(--battle-cyan);
@@ -557,6 +561,21 @@ body:has(.decision-overlay--selection) .narration-slot {
   outline: 2px solid var(--ds-focus);
   outline-offset: 2px;
 }
+.trigger-chooser__opponent {
+  padding: 1px var(--ds-space-2);
+  border: 1px solid var(--ds-warning);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-warning);
+  font-size: var(--ds-text-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.trigger-chooser__turn-player-note {
+  margin: 0 0 var(--ds-space-3);
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-sm);
+}
 .trigger-chooser__reason {
   color: var(--ds-accent, var(--ds-text-3));
   font-size: var(--ds-text-xs);
@@ -641,6 +660,19 @@ body:has(.decision-overlay--selection) .narration-slot {
   }
   .trigger-chooser--plan .trigger-chooser__mandatory {
     justify-self: start;
+  }
+  .trigger-chooser--plan .trigger-chooser__host-art {
+    display: none;
+  }
+  .trigger-chooser--plan .trigger-chooser__host {
+    max-width: 100%;
+  }
+  .trigger-chooser--plan .trigger-chooser__source {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   /* Both actions share one thumb-reach row so the list keeps the height. */
   .decision-overlay--resolution-plan .trigger-chooser__footer {

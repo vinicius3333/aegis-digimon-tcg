@@ -15,7 +15,7 @@ export const compiled: CompiledCard = {
           effectTextPart: "[When Digivolving] Trash all digivolution cards of 1 of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
-            filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
+            filter: { controller: "opponent", kind: ["Digimon"] },
             count: 1,
           },
           amount: "all",

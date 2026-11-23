@@ -47,7 +47,7 @@ import { Alert, Button, Dialog, IconButton, type PlayerIdentity, type Screen } f
 import { CoverThumb } from "../design/cards";
 import { Panel } from "../design/surfaces";
 import { Icons, type IconComponent } from "../design/icons";
-import { displayCoverCard, type DeckListing } from "../game/decks";
+import { displayCoverArt, displayCoverCard, type DeckListing } from "../game/decks";
 import { FAMOUS_DECKS, FAMOUS_DECK_GROUPS } from "@/game/famousDecks";
 import { selectableDecks } from "@/game/selectableDecks";
 import { RANDOM_SET_BOT_DECK_PREFIX } from "@aegis/shared/decks/randomSetBotDeckPrefix";
@@ -68,6 +68,8 @@ import { deckFormatLabel } from "@/screens/deckFormatLabel";
 import { MatchFormatSettings } from "./MatchFormatSettings";
 import { RollbackSettings } from "@/screens/RollbackSettings";
 import { GuestApprovalSettings } from "@/screens/GuestApprovalSettings";
+import { TurnOrderSettings } from "@/screens/TurnOrderSettings";
+import { PrivateTurnOrder } from "@aegis/shared/protocol/PrivateTurnOrder";
 import { MatchTimerSettings } from "./MatchTimerSettings";
 import { loadMatchFormatPreference, saveMatchFormatPreference } from "./matchFormatPreference";
 import "./lobby.css";
@@ -236,6 +238,8 @@ export function Lobby({
   onAllowRollbackChange,
   requireGuestApproval = false,
   onRequireGuestApprovalChange,
+  turnOrder = PrivateTurnOrder.RANDOM.value,
+  onTurnOrderChange,
   gameMode = GameMode.AUTOMATIC.value,
   onGameModeChange,
   openMatchSettings = false,
@@ -260,6 +264,8 @@ export function Lobby({
   onAllowRollbackChange?: (allow: boolean) => void;
   requireGuestApproval?: boolean;
   onRequireGuestApprovalChange?: (required: boolean) => void;
+  turnOrder?: PrivateTurnOrder;
+  onTurnOrderChange?: (turnOrder: PrivateTurnOrder) => void;
   timerOptions?: MatchTimerOptions;
   onTimerOptionsChange?: (options: Required<MatchTimerOptions>) => void;
   bestOf?: MatchBestOf;
@@ -342,6 +348,7 @@ export function Lobby({
     unlimited: boolean;
     format?: DeckFormat;
     gameMode?: GameMode;
+    turnOrder: PrivateTurnOrder;
   }>();
   const [guestLookupFailed, setGuestLookupFailed] = useState(false);
   const guestCode = privateRoom?.code ?? roomCodeInput;
@@ -360,6 +367,7 @@ export function Lobby({
               unlimited: rules.unlimited,
               format: rules.format,
               gameMode: rules.gameMode,
+              turnOrder: rules.turnOrder,
             });
         })
         .catch(() => {
@@ -887,6 +895,7 @@ export function Lobby({
                     <CoverThumb
                       key={displayCoverCard(active)}
                       coverCardId={displayCoverCard(active)}
+                      artId={displayCoverArt(active)}
                       sigilColor={active.color}
                       sigilSize={22}
                     />
@@ -1181,6 +1190,13 @@ export function Lobby({
                             })
                           : t(guestLookupFailed ? "lobby.roomLookupFailed" : "lobby.roomRulesPending")}
                       </p>
+                      {!privateRoom &&
+                      guestRules?.code === guestCode &&
+                      guestRules.gameMode !== GameMode.MANUAL.value ? (
+                        <p role="status">
+                          {t("lobby.turnOrder.guest", { order: t(`lobby.turnOrder.${guestRules.turnOrder}`) })}
+                        </p>
+                      ) : null}
                     </div>
                   ) : null}
                   {mode === "private" && privateRoom ? (
@@ -1247,6 +1263,9 @@ export function Lobby({
                             {!vsBot && gameMode !== GameMode.MANUAL.value ? (
                               <>
                                 <MatchFormatSettings bestOf={bestOf} onChange={changeBestOf} />
+                                {mode === "private" ? (
+                                  <TurnOrderSettings turnOrder={turnOrder} onChange={onTurnOrderChange ?? (() => {})} />
+                                ) : null}
                                 <MatchTimerSettings
                                   options={timer}
                                   onChange={changeTimer}

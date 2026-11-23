@@ -181,6 +181,12 @@ export function resolutionDeps(
       // The window only rebuilds statics when it opens. A condition an earlier effect
       // changed (memory for BT17-016's immunity, Q2746) must be current for the next one.
       await engine.recomputeContinuousEffects();
+      if (engine.optionMainDepth > 0 || engine.effectResolutionDepth > 0) {
+        return;
+      }
+      if (hasRuleProcessPending(engine)) {
+        derivedPending.push(...(await collectRuleProcessPending(engine)));
+      }
     },
     turnSeat: runtimeState.turnSeat,
     listCandidateInstances: runtimeState.listCandidate,
@@ -348,7 +354,15 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
       );
       return liveReduction + intrinsicReduction;
     },
-    activateInteractiveDigivolveReduction: async (_state, seat, target, into, evolvingInstanceId, baseAsDigimon) => {
+    activateInteractiveDigivolveReduction: async (
+      _state,
+      seat,
+      target,
+      into,
+      evolvingInstanceId,
+      baseAsDigimon,
+      remainingCost,
+    ) => {
       if (engine.continuous.blocksCostReduction(seat, "digivolve")) return 0;
       const liveReduction = await engine.subTriggers.activateInteractiveReductionsFor(
         "wouldDigivolve",
@@ -373,6 +387,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
         undefined,
         looseZoneOfInstance(engine.state, evolvingInstanceId),
         baseAsDigimon,
+        remainingCost,
       );
       const evolving = findLooseInstance(engine, evolvingInstanceId);
       if (evolving === undefined) return liveReduction;

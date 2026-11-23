@@ -591,3 +591,86 @@ describe("MirageGaogamon dual card lifecycle", () => {
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Evade")).toBe(false);
   });
 });
+
+describe("MirageGaogamon: Burst Mode official rulings", () => {
+  it("activates the Option side Main from the field without paying, trashing, or using the card", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT27-035", as: "source" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "enemy" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Arts Digivolve"] },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    const enemy = s.perm("enemy").topCard.instanceId;
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([enemy]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT27-035"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.memory).toBe(3);
+    expect(s.events.some((event) => event.kind === "cardPlayed" && event.cardId === "BT27-035")).toBe(false);
+  });
+
+  it("is usable as a DATA SQUAD trait Option card by an effect that names that trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT27-053", as: "bancho" },
+            { card: "EX13-032", as: "ally" },
+          ],
+          hand: [{ card: "BT27-035", as: "dual" }],
+        },
+        1: { battleArea: [{ card: "BT1-060", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Arts Digivolve"] },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("bancho").permanentId]);
+    await settle(() => !s.state.pendingDecision && s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("dual").instanceId);
+    expect(s.state.players[1]!.hand.map((card) => card.cardId)).toEqual(["BT1-060"]);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it.each([
+    { label: "the Option Main first", prefer: "activate-main", hand: 7 },
+    { label: "the hand return first", prefer: "ir-", hand: 8 },
+  ])("lets the player resolve its simultaneous When Digivolving effects with $label", async ({ prefer, hand }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST24-07", as: "base" }],
+          hand: [{ card: "BT27-035", as: "card" }],
+          deck: ["BT1-009"],
+        },
+        1: { hand: Array(8).fill("BT1-009"), battleArea: [{ card: "BT1-010" }], security: ["BT1-015", "BT1-015"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: ["Arts Digivolve"],
+        preferTriggerKeys: [prefer],
+      },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("card").instanceId,
+        alternateRequirementIndex: 0,
+      }).ok,
+    ).toBe(true);
+    await settle(() => s.perm("base").topCard.cardId === "BT27-035" && !s.state.pendingDecision);
+    const order = s.decisions.find(({ req }) => req.kind === "orderTriggers");
+    expect(order?.seat).toBe(0);
+    expect(order?.req.options?.triggerCardIds).toEqual(["BT27-035", "BT27-035"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.hand).toHaveLength(hand);
+  });
+});

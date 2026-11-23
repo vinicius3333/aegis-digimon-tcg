@@ -5,6 +5,18 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT6-097.js";
 
+async function chooseTarget(s: ReturnType<typeof setupEngine>, permanentId: string): Promise<void> {
+  await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+  const pending = s.state.pendingDecision!;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: pending.decisionId,
+      response: { kind: "chooseTargets", instanceIds: [permanentId] },
+    }),
+  ).toEqual({ ok: true });
+}
+
 describe("BT6-097 Howling Memory Boost!", () => {
   it("places itself in the battle area from security", async () => {
     const s = setupEngine({ 0: { security: [{ card: "BT6-097", as: "security", faceUp: true }] } });
@@ -15,24 +27,24 @@ describe("BT6-097 Howling Memory Boost!", () => {
   });
 
   it("trashes 2 bottom sources, restricts a source-less Digimon, and places itself", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: ["BT6-019"], hand: [{ card: "BT6-097", as: "option" }] },
-        1: {
-          battleArea: [
-            { card: "BT1-009", as: "restricted" },
-            { card: "BT6-020", as: "stripped", under: ["BT6-021", "BT6-022"] },
-          ],
-        },
+    const s = setupEngine({
+      0: { battleArea: ["BT6-019"], hand: [{ card: "BT6-097", as: "option" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "restricted" },
+          { card: "BT6-020", as: "stripped", under: ["BT6-021", "BT6-022"] },
+        ],
       },
-      { autoSelectCards: true },
-    );
+    });
     const stripped = s.perm("stripped");
     const restricted = s.perm("restricted");
     const optionId = s.inst("option").instanceId;
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await chooseTarget(s, stripped.permanentId);
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "chooseTargets").length === 2);
+    await chooseTarget(s, restricted.permanentId);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
 
     expect(stripped.stack).toHaveLength(0);
@@ -138,27 +150,25 @@ describe("BT6-097 Howling Memory Boost! — KB Q&A rulings", () => {
   });
 
   it("may restrict a different source-less Digimon than the one it trashed sources from (Q1484)", async () => {
-    const preferred: string[] = [];
-    const s = setupEngine(
-      {
-        0: { battleArea: ["BT6-019"], hand: [{ card: "BT6-097", as: "option" }] },
-        1: {
-          battleArea: [
-            { card: "BT6-020", as: "stripped", under: ["BT6-021", "BT6-022"] },
-            { card: "BT1-009", as: "other" },
-          ],
-        },
+    const s = setupEngine({
+      0: { battleArea: ["BT6-019"], hand: [{ card: "BT6-097", as: "option" }] },
+      1: {
+        battleArea: [
+          { card: "BT6-020", as: "stripped", under: ["BT6-021", "BT6-022"] },
+          { card: "BT1-009", as: "other" },
+        ],
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
-    );
-    preferred.push(s.perm("other").topCard.instanceId);
+    });
     const optionId = s.inst("option").instanceId;
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await chooseTarget(s, s.perm("stripped").permanentId);
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "chooseTargets").length === 2);
+    await chooseTarget(s, s.perm("other").permanentId);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
 
-    const restrictChoice = s.decisions.find(({ req }) => req.kind === "chooseTargets");
+    const restrictChoice = s.decisions.filter(({ req }) => req.kind === "chooseTargets")[1];
     expect(restrictChoice?.req.options).toMatchObject({
       candidateInstanceIds: expect.arrayContaining([s.perm("stripped").permanentId, s.perm("other").permanentId]),
     });

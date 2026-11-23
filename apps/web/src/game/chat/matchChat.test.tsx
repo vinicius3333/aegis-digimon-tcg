@@ -16,6 +16,7 @@ import { playSound } from "../../design/sound";
 import { I18nProvider } from "../../i18n";
 import type { AegisRoom } from "../../net/client";
 import { isChatSoundEnabled, setChatSoundEnabled } from "./chatSound";
+import { setMatchChatEnabled } from "@/game/chat/matchChatEnabled/setMatchChatEnabled";
 import { MatchChatWindow } from "./MatchChatWindow";
 import { useMatchChat, type ChatEntry, type MatchChat } from "./useMatchChat";
 
@@ -109,6 +110,7 @@ describe("useMatchChat", () => {
   describe("chat sound", () => {
     afterEach(() => {
       setChatSoundEnabled(false);
+      setMatchChatEnabled(true);
       localStorage.clear();
       vi.mocked(playSound).mockClear();
     });
@@ -140,6 +142,15 @@ describe("useMatchChat", () => {
       act(() => result.current.setMutedSpectators(true));
       fake.receive({ sender: player(1), message: { kind: "text", text: "hi" } });
       fake.receive({ sender: spectator("someone", 1), message: { kind: "text", text: "go" } });
+      expect(playSound).not.toHaveBeenCalled();
+    });
+
+    it("stays silent while the player has turned match chat off", () => {
+      setChatSoundEnabled(true);
+      setMatchChatEnabled(false);
+      const fake = fakeRoom();
+      renderHook(() => useMatchChat({ room: fake.room, viewerSeat: 0, spectating: false }));
+      fake.receive({ sender: player(1), message: { kind: "text", text: "hi" } });
       expect(playSound).not.toHaveBeenCalled();
     });
   });

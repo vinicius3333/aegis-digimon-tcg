@@ -161,3 +161,64 @@ describe("RookChessmon digivolution", () => {
     expect(s.state.memory).toBe(memory);
   });
 });
+
+describe("RookChessmon official rulings", () => {
+  async function playRookInto(target: { card: string; under: string[]; suspended?: boolean }) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT27-039" }, { card: "BT13-068" }], hand: [{ card: "BT27-066", as: "rook" }] },
+        1: { battleArea: [{ ...target, as: "target" }, { card: "BT1-059" }] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rook").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT27-066") && !s.state.pendingDecision,
+    );
+    return s;
+  }
+
+  it("keeps peeling past a Tamer exposed by the first De-Digivolve 1", async () => {
+    const s = await playRookInto({ card: "BT1-080", under: ["BT1-019", "BT1-089"] });
+    expect(s.perm("target").topCard.cardId).toBe("BT1-019");
+    expect(s.perm("target").stack).toHaveLength(0);
+    expect(trashIds(s, 1)).toEqual(expect.arrayContaining(["BT1-080", "BT1-089"]));
+  });
+
+  it("stops when the first De-Digivolve 1 exposes a card that isn't affected by its effects", async () => {
+    const s = await playRookInto({ card: "BT1-080", under: ["BT1-009", "BT15-047"], suspended: true });
+    expect(s.perm("target").topCard.cardId).toBe("BT15-047");
+    expect(s.perm("target").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(trashIds(s, 1)).toContain("BT1-080");
+  });
+
+  it("changes the attack target of an attacker that isn't affected by its effects", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT15-047", as: "attacker" }] },
+        1: {
+          battleArea: [{ card: "BT1-080", under: ["BT27-036", "BT27-061", "BT27-066"], as: "defender" }],
+          security: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(redirectPrompts(s)).toBe(1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(battleIds(s, 0)).toEqual([]);
+    expect(battleIds(s, 1)).toEqual(["BT1-080"]);
+  });
+});

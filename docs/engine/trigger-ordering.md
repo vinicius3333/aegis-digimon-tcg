@@ -31,9 +31,9 @@ effect (comprehensive rules 15-4-3-5 and 15-4-4).
 Proof lives in `scenarios/arts-digivolve-inside-effect-resolves-turn-player-entry-effects-first.test.ts`.
 Reverting the engine change makes it fail. In `turn-player-block-triggers-resolve-first-replay.test.ts`,
 EX13-014's outer [When Digivolving] now ends before the reactions to its own Arts Digivolve
-deletion. That moves one `effectResolved` event earlier, so the test now expects state-version
-and event-count drift at inputs 50 and 51. Its decisions and behavioral assertions are
-unchanged.
+deletion. That moved one `effectResolved` event earlier; the record's counters after input 50
+are refreshed (see `replay-regression-compatibility.md`). Its decisions and behavioral
+assertions are unchanged.
 
 ## Derived trigger exhaustion (2026-10-15)
 

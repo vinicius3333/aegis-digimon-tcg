@@ -334,3 +334,57 @@ official English and Japanese reveal scans. Each 951 x 1295 px attachment is
 cropped to `(41, 41, 909, 1254)`, producing 868 x 1213 px WebP images at
 quality 90 without the white outer margin. The SAMPLE watermark is preserved.
 The Japanese scans supply the Japanese name and text transcriptions.
+
+## BT27 Motimon, Clockmon, Andromon and Gankoomon (X Antibody), 2026-11-12
+
+BT27-005, BT27-059, BT27-063, BT27-068 and their `-J` printings come from the
+user-provided official English and Japanese reveal scans. Each 951 x 1295 px
+attachment is cropped to `(41, 41, 909, 1254)`, producing 868 x 1213 px WebP
+images at quality 90 without the white outer margin. The SAMPLE watermark is
+preserved. The Japanese scans supply the Japanese name and text
+transcriptions.
+
+## BT27 Gankoomon (X Antibody) alternate art, 2026-11-13
+
+BT27-068_P1 and BT27-068_P1-J come from user-provided official English and
+Japanese reveal scans of the BT-27 booster alternate art, which carries the
+star rarity mark and the DUAL stamp. The SAMPLE watermark is preserved and
+each crop is encoded as WebP at quality 90 without the white outer margin.
+
+| File          | Source scan   | Crop box              | Output     |
+| ------------- | ------------- | --------------------- | ---------- |
+| BT27-068_P1   | 951 x 1295 px | `(41, 41, 909, 1254)` | 868 x 1213 |
+| BT27-068_P1-J | 907 x 1235 px | `(39, 39, 868, 1197)` | 829 x 1158 |
+
+## BT27 Gurimon and Jesmon (X Antibody), 2026-11-13
+
+BT27-001, BT27-016, BT27-016_P1 and their `-J` printings come from
+user-provided official English and Japanese reveal scans. The `_P1` scans carry
+the star rarity mark and the DUAL stamp of the BT-27 booster alternate art. The
+SAMPLE watermark is preserved and each crop is encoded as WebP at quality 90
+without the white outer margin. The Japanese scans supply the Japanese text
+transcriptions.
+
+| Files                                                        | Source scan   | Crop box              | Output     |
+| ------------------------------------------------------------ | ------------- | --------------------- | ---------- |
+| BT27-001-J, BT27-016, BT27-016-J, BT27-016_P1, BT27-016_P1-J | 951 x 1295 px | `(41, 41, 909, 1254)` | 868 x 1213 |
+| BT27-001                                                     | 881 x 1200 px | `(38, 38, 842, 1162)` | 804 x 1124 |
+
+## ST26 Viximon line and Valner Dragnogh, 2026-11-14
+
+ST26-01 through ST26-06 and their `-J` printings come from the user-provided
+official English and Japanese reveal scans. Each 951 x 1295 px attachment is
+cropped to `(41, 41, 909, 1254)`, producing 868 x 1213 px WebP images at
+quality 90 without the white outer margin. The English ST26-01 and ST26-02
+scans are 881 x 1200 px; they are cropped to `(38, 38, 842, 1162)`, producing
+804 x 1124 px images. The SAMPLE watermark is preserved. The Japanese scans
+supply the Japanese name and text transcriptions.
+
+## BT27 Gemmon line, 2026-11-14
+
+BT27-006 Gemmon, BT27-011 Liskmon, BT27-014 Reptilimon and their `-J`
+printings come from the user-provided official English and Japanese reveal
+scans. Each 951 x 1295 px attachment is cropped to `(41, 41, 909, 1254)`,
+producing 868 x 1213 px WebP images at quality 90 without the white outer
+margin. The SAMPLE watermark is preserved. The Japanese scans supply the
+Japanese text transcriptions.

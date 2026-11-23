@@ -1,7 +1,7 @@
 import { useProfileTrophiesShown } from "@/achievements/useProfileTrophiesShown";
 import { setProfileTrophiesShown } from "@/achievements/setProfileTrophiesShown";
 import { useEffect, useId, useState, type FormEvent } from "react";
-import type { MatchHistorySummary, MatchWinRate } from "@aegis/shared";
+import { MATCH_HISTORY_LIMIT, type MatchHistorySummary, type MatchWinRate } from "@aegis/shared";
 import { Avatar, Badge, Switch, type PlayerIdentity } from "../design/primitives";
 import { Icons } from "../design/icons";
 import { useTranslation, type TranslationKey } from "../i18n";
@@ -228,7 +228,7 @@ export function ProfileIdentity({
               </div>
             ))}
           </dl>
-          <p className="profile-rate-hint">{t("profile.stats.rateScope")}</p>
+          <p className="profile-rate-hint">{t("profile.stats.rateScope", { limit: MATCH_HISTORY_LIMIT })}</p>
         </>
       ) : null}
       {menuOpen ? (

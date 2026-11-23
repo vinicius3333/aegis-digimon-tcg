@@ -16,7 +16,7 @@ it("fills the Swiss migration gap without rewriting an installed private BO3 led
   const privateTables = ["private_sealed_series", "private_sealed_results", "private_sealed_room_grants"];
   try {
     await admin.query(`CREATE SCHEMA ${schema}`);
-    const privateRegistry = migrations.filter((migration) => migration.id !== "058-sealed-tournaments");
+    const privateRegistry = migrations.filter((migration) => migration.id !== "061-sealed-tournaments");
     expect(await runMigrations(pool, privateRegistry)).toEqual(privateRegistry.map((migration) => migration.id));
     const seriesId = randomUUID();
     const gameId = randomUUID();
@@ -50,9 +50,9 @@ it("fills the Swiss migration gap without rewriting an installed private BO3 led
       expect(table.rows).toHaveLength(1);
       expect(table.count).toEqual([{ count: "1" }]);
     }
-    expect(await runMigrations(pool, migrations)).toEqual(["058-sealed-tournaments"]);
+    expect(await runMigrations(pool, migrations)).toEqual(["061-sealed-tournaments"]);
     expect(
-      (await pool.query("SELECT * FROM schema_migrations WHERE id <> '058-sealed-tournaments' ORDER BY id")).rows,
+      (await pool.query("SELECT * FROM schema_migrations WHERE id <> '061-sealed-tournaments' ORDER BY id")).rows,
     ).toEqual(ledger);
     expect((await pool.query("SELECT id FROM schema_migrations ORDER BY id")).rows.map((row) => row.id)).toEqual(
       migrations.map((migration) => migration.id),

@@ -55,6 +55,7 @@ export interface EffectContext {
   activeEffectText?: string;
   /** Catalog provenance for a copied clause, independent of its activating rules source. */
   activeEffectTextCardId?: string;
+  printedEffectCardId?: string;
   activeEffectTextPart?: string;
   activeEffectTextEmphasis?: string;
   activeEffectIsInherited?: boolean;
@@ -109,6 +110,7 @@ export interface EffectContext {
    */
   pickingAcceptedOptional?: boolean;
   optionalActivationCancellation?: { available: boolean };
+  optionalPlayPreviewCards?: readonly { instanceId: string; cardId: string }[];
   /** This target selection is the optional action's activation choice. */
   selectingOptionalTarget?: boolean;
   /** Temporary restrictions installed by a RestrictEffect action in this resolution. */

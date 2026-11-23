@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./BT12-023.js";
 
 describe("BT12-023 Gekomon", () => {
-  it("trashes the bottom evolution card of an opposing Digimon on an opponent attack", async () => {
+  it("offers every opposing Digimon and trashes the chosen one's bottom evolution card on an opponent attack", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT12-025", as: "host", under: ["BT12-023"] }] },
@@ -15,8 +16,9 @@ describe("BT12-023 Gekomon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("target").permanentId);
     s.state.turnSeat = 1;
     const bottom = s.perm("target").stack[0]!.instanceId;
     const upper = s.perm("target").stack[1]!.instanceId;
@@ -24,6 +26,11 @@ describe("BT12-023 Gekomon", () => {
     await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
       attackerPermanentId: s.perm("attacker").permanentId,
     });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.decisions.find(({ req }) => req.kind === "chooseTargets")?.req.options?.candidateInstanceIds).toEqual([
+      s.perm("attacker").permanentId,
+      s.perm("target").permanentId,
+    ]);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(bottom);
     expect(s.perm("target").stack.map(({ instanceId }) => instanceId)).toContain(upper);
   });

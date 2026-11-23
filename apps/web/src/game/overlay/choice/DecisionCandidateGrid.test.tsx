@@ -7,6 +7,7 @@ import { I18nProvider, translator, type Locale } from "../../../i18n";
 import { DecisionCandidateGrid } from "./DecisionCandidateGrid";
 import type { DecisionCandidate } from "./decisionTypes";
 import { compareCardIdsByName } from "@/game/overlay/viewer/compareCardIdsByName";
+import { setFieldReferenceVisible } from "@/design/fieldReference/setFieldReferenceVisible";
 
 afterEach(() => {
   cleanup();
@@ -277,4 +278,112 @@ it("offers no trash sort when the prompt has a single trash card", () => {
     { instanceId: "hand", cardId: "BT1-001", zone: "hand" },
   ]);
   expect(screen.queryByRole("combobox", { name: /Sort trash/ })).toBeNull();
+});
+
+it("keeps every card name and number directly under its card and moves the copy label below them", () => {
+  grid([
+    { instanceId: "single", cardId: "BT1-010", zone: "trash" },
+    { instanceId: "first", cardId: "EX7-071", zone: "trash", pendingEffect: true },
+    { instanceId: "second", cardId: "EX7-071", zone: "trash" },
+  ]);
+  for (const candidate of document.querySelectorAll<HTMLElement>(".decision-overlay__candidate")) {
+    const name = candidate.querySelector(".decision-overlay__candidate-name")!;
+    expect(candidate.firstElementChild?.nextElementSibling).toBe(name);
+  }
+  const first = screen.getByRole("button", { name: /copy 1 of 2/ });
+  const name = first.querySelector(".decision-overlay__candidate-name")!;
+  expect(name.textContent).not.toContain("copy");
+  expect(name.nextElementSibling?.className).toBe("decision-overlay__candidate-id");
+  expect(name.nextElementSibling?.textContent).toBe("EX7-071");
+  expect(name.nextElementSibling?.nextElementSibling?.className).toBe("decision-overlay__candidate-copy");
+  expect(name.nextElementSibling?.nextElementSibling?.textContent).toBe("copy 1 of 2");
+  expect(within(first).getByText("Pending effect").closest(".decision-overlay__candidate-details")).toBeTruthy();
+  expect(first.querySelector(".decision-overlay__candidate-details")?.textContent).not.toContain("copy");
+});
+
+it("identifies field candidates by card number and board field reference", () => {
+  setFieldReferenceVisible(true);
+  try {
+    grid([
+      { instanceId: "perm-4", fieldPermanentId: "perm-4", cardId: "BT24-030", zone: "battle" },
+      { instanceId: "perm-9", fieldPermanentId: "perm-9", cardId: "BT24-020", zone: "breeding" },
+      { instanceId: "hand-card", cardId: "BT24-020", zone: "hand" },
+    ]);
+    const battle = document.querySelector('[data-instance-id="perm-4"]')!;
+    expect(battle.querySelector(".decision-overlay__candidate-identity")?.textContent).toBe("#4");
+    expect(battle.querySelector(".decision-overlay__candidate-id")?.textContent).toBe("BT24-030");
+    expect(battle.getAttribute("aria-label")).toContain("#4");
+    const breeding = document.querySelector('[data-instance-id="perm-9"]')!;
+    expect(breeding.querySelector(".decision-overlay__candidate-identity")?.textContent).toBe("#9");
+    const hand = document.querySelector('[data-instance-id="hand-card"]')!;
+    expect(hand.querySelector(".decision-overlay__candidate-identity")).toBeNull();
+  } finally {
+    setFieldReferenceVisible(false);
+  }
+});
+
+it("names the Digimon holding digivolution cards only when they come from more than one Digimon", () => {
+  const { container } = render(
+    <I18nProvider>
+      <DecisionCandidateGrid
+        candidates={[
+          { instanceId: "ally", cardId: "BT7-009", zone: "battle" },
+          {
+            instanceId: "x",
+            cardId: "BT9-109",
+            zone: "digivolutionCards",
+            hostCardId: "BT27-016",
+            hostPermanentId: "jesmon",
+          },
+          {
+            instanceId: "j",
+            cardId: "BT6-016",
+            zone: "digivolutionCards",
+            hostCardId: "BT27-016",
+            hostPermanentId: "jesmon",
+          },
+        ]}
+        picks={[]}
+        min={1}
+        max={1}
+        selectedPlayCost={0}
+        withinPlayCostBudget
+        selectedDP={0}
+        onTogglePick={vi.fn<(instanceId: string) => void>()}
+      />
+    </I18nProvider>,
+  );
+  expect(container.querySelectorAll(".decision-overlay__source-host")).toHaveLength(0);
+  cleanup();
+
+  const mixed = render(
+    <I18nProvider>
+      <DecisionCandidateGrid
+        candidates={[
+          {
+            instanceId: "x",
+            cardId: "BT9-109",
+            zone: "digivolutionCards",
+            hostCardId: "BT27-016",
+            hostPermanentId: "jesmon",
+          },
+          {
+            instanceId: "j",
+            cardId: "BT6-016",
+            zone: "digivolutionCards",
+            hostCardId: "BT27-068",
+            hostPermanentId: "gankoomon",
+          },
+        ]}
+        picks={[]}
+        min={1}
+        max={1}
+        selectedPlayCost={0}
+        withinPlayCostBudget
+        selectedDP={0}
+        onTogglePick={vi.fn<(instanceId: string) => void>()}
+      />
+    </I18nProvider>,
+  );
+  expect(mixed.container.querySelectorAll(".decision-overlay__source-host")).toHaveLength(2);
 });

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared/schema/enums";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { advance } from "#api/engine/testkit/advance";
+import { seatClients } from "#api/engine/testkit/seatClients";
 import "#api/cards/index";
 
 describe("Makoto Kuonji attack storage and Option use", () => {
@@ -337,5 +338,146 @@ describe("Makoto Kuonji attack storage and Option use", () => {
     );
     const optionPrompts = s.decisions.filter((d) => d.req.sourceCardId !== "BT27-097");
     expect(optionPrompts.every((d) => d.req.options?.effectTextPart === undefined)).toBe(true);
+  });
+
+  describe("official rulings", () => {
+    it("uses no Option when the Tamer cannot be suspended to meet the condition", async () => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              {
+                card: "BT27-097",
+                as: "tamer",
+                suspended: true,
+                under: Array.from({ length: 4 }, () => ({ card: "BT1-009", faceUp: false })),
+              },
+              { card: "BT1-010", as: "attacker" },
+            ],
+            deck: [
+              { card: "BT1-011", as: "first" },
+              { card: "BT1-012", as: "second" },
+            ],
+            trash: [{ card: "BT26-075", as: "option" }],
+          },
+          1: { battleArea: ["BT1-009"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 0;
+      s.state.memory = 5;
+      await s.ready();
+      await advance(s.engine).fireSubTrigger("whenAttacking", { attackerPermanentId: s.perm("attacker").permanentId });
+      await settle();
+      expect(s.perm("tamer").stack).toHaveLength(4);
+      expect(s.state.players[0]!.deck.map((c) => c.instanceId)).toEqual([
+        s.inst("first").instanceId,
+        s.inst("second").instanceId,
+      ]);
+      expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("option").instanceId);
+      expect(s.events.some((e) => e.kind === "cardPlayed" && e.instanceId === s.inst("option").instanceId)).toBe(false);
+    });
+
+    it("places the top deck cards one at a time beneath the cards already under the Tamer", async () => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              {
+                card: "BT27-097",
+                as: "tamer",
+                under: [{ card: "BT1-009", as: "existing", faceUp: false }],
+              },
+            ],
+            deck: [{ card: "BT1-011", as: "first" }, { card: "BT1-012", as: "second" }, "BT1-009"],
+          },
+          1: { battleArea: ["BT1-009", { card: "BT1-010", as: "attacker" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      await s.ready();
+      await advance(s.engine).fireSubTrigger("whenAttacking", { attackerPermanentId: s.perm("attacker").permanentId });
+      await settle();
+      expect(s.perm("tamer").stack.map((c) => [c.instanceId, c.faceUp])).toEqual([
+        [s.inst("second").instanceId, false],
+        [s.inst("first").instanceId, false],
+        [s.inst("existing").instanceId, false],
+      ]);
+    });
+
+    it("trashes face-down cards from the bottom in their fixed stack order and puts them face up in the trash", async () => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              {
+                card: "BT27-097",
+                as: "tamer",
+                under: [
+                  { card: "BT1-009", as: "bottom", faceUp: false },
+                  { card: "BT1-010", as: "middle", faceUp: false },
+                  { card: "BT1-011", as: "top", faceUp: false },
+                ],
+              },
+              { card: "BT1-010", as: "attacker" },
+            ],
+            deck: [
+              { card: "BT1-012", as: "first" },
+              { card: "BT2-052", as: "second" },
+            ],
+            trash: [{ card: "BT26-075", as: "option" }],
+          },
+          1: { battleArea: ["BT1-009"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 0;
+      s.state.memory = 5;
+      await s.ready();
+      await advance(s.engine).fireSubTrigger("whenAttacking", { attackerPermanentId: s.perm("attacker").permanentId });
+      await settle();
+      const paid = ["second", "first", "bottom", "middle"].map((alias) => s.inst(alias).instanceId);
+      expect(s.perm("tamer").stack.map((c) => c.instanceId)).toEqual([s.inst("top").instanceId]);
+      expect(
+        s.state.players[0]!.trash.filter((c) => paid.includes(c.instanceId))
+          .map((c) => [c.instanceId, c.faceUp])
+          .sort(),
+      ).toEqual(paid.map((id) => [id, true]).sort());
+      expect(s.events.some((e) => e.kind === "cardPlayed" && e.instanceId === s.inst("option").instanceId)).toBe(true);
+    });
+
+    it("shows the cards placed face down under the Tamer to their owner only", async () => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT27-097", as: "tamer" }],
+            deck: [
+              { card: "BT1-011", as: "first" },
+              { card: "BT1-012", as: "second" },
+            ],
+          },
+          1: { battleArea: ["BT1-009", { card: "BT1-010", as: "attacker" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      const clients = seatClients(s.engine, s.state);
+      await s.ready();
+      clients.patch();
+      await advance(s.engine).fireSubTrigger("whenAttacking", { attackerPermanentId: s.perm("attacker").permanentId });
+      await settle();
+      clients.patch();
+      const seenStack = (seat: 0 | 1) =>
+        clients
+          .stateFor(seat)
+          .players[0]!.battleArea.find(({ permanentId }) => permanentId === s.perm("tamer").permanentId)!
+          .stack.map(({ cardId }) => cardId);
+      expect(s.perm("tamer").stack.map((c) => c.faceUp)).toEqual([false, false]);
+      expect(seenStack(0)).toEqual(["BT1-012", "BT1-011"]);
+      expect(seenStack(1)).toEqual([undefined, undefined]);
+      expect(clients.decoderErrors).toEqual([]);
+      clients.restore();
+    });
   });
 });

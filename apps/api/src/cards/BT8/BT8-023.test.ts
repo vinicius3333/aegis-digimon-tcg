@@ -4,20 +4,26 @@ import "./BT8-023.js";
 
 describe("BT8-023 Submarimon", () => {
   it("trashes a bottom source, then gives a source-less Digimon -3000 DP", async () => {
-    const preferred: string[] = [];
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT1-027", as: "base" }], hand: [{ card: "BT8-023", as: "evolving" }] },
-        1: {
-          battleArea: [
-            { card: "BT1-009", under: [{ card: "BT1-001", as: "bottom" }], as: "withSource" },
-            { card: "BT1-015", as: "sourceLess" },
-          ],
-        },
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-027", as: "base" }], hand: [{ card: "BT8-023", as: "evolving" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", under: [{ card: "BT1-001", as: "bottom" }], as: "withSource" },
+          { card: "BT1-015", as: "sourceLess" },
+        ],
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
-    );
-    preferred.push(s.perm("sourceLess").permanentId);
+    });
+    const chooseTarget = async (permanentId: string, promptNumber: number) => {
+      await settle(() => s.decisions.filter(({ req }) => req.kind === "chooseTargets").length === promptNumber);
+      const pending = s.state.pendingDecision!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: pending.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [permanentId] },
+        }),
+      ).toEqual({ ok: true });
+    };
     s.state.memory = 2;
     expect(
       s.engine.applyIntent(0, {
@@ -26,6 +32,8 @@ describe("BT8-023 Submarimon", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
+    await chooseTarget(s.perm("withSource").permanentId, 1);
+    await chooseTarget(s.perm("sourceLess").permanentId, 2);
     await settle(() => s.perm("sourceLess").currentDP === 1000);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("bottom").instanceId)).toBe(true);
   });

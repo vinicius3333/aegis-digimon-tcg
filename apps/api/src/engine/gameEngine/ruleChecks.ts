@@ -180,6 +180,15 @@ export class RuleChecks {
     if (toTrash.length > 0) await this.deps.primitives().trash(toTrash, { byRule: true });
   }
 
+  async trashReplacedLinkCards(permanentId: string): Promise<void> {
+    const permanent = fieldPermanents(this.deps.state).find((candidate) => candidate.permanentId === permanentId);
+    if (permanent === undefined) return;
+    const excess = permanent.linked.length - this.deps.linkMaxOf(permanent);
+    if (excess <= 0) return;
+    const replaced = await this.chooseExcessLinkCards(permanent, excess);
+    if (replaced.length > 0) await this.deps.primitives().trash(replaced, { byRule: true });
+  }
+
   /**
    * Which of `permanent`'s link cards its controller gives up to bring the count back to the
    * limit (Q6370, BT25-075: "The link cards to trash are chosen by the player"). A choice

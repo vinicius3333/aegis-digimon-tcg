@@ -25,7 +25,7 @@ describe("ranked deck statistics", () => {
     );
     const store = new RankedMetaStore(accounts);
     expect(await store.getDeckStats({ format: "standard", seasonId: 1 })).toEqual([
-      { archetype: "unknown", games: 1, wins: 1, players: 1, winrate: null },
+      { archetype: "unknown", games: 1, wins: 1, players: 1, winrate: null, coverCardId: null, colors: [] },
     ]);
     expect(await store.getDeckStats({ format: "standard", seasonId: 2 })).toEqual([]);
     expect(await store.getDeckStats({ format: "standard", seasonId: 1, region: "asia" })).toEqual([]);
@@ -39,14 +39,56 @@ describe("ranked deck statistics", () => {
       query: (
         text: string,
         values: unknown[],
-      ) => Promise<QueryResult<{ archetype: string; games: string; wins: string; players: string }>>;
+      ) => Promise<
+        QueryResult<{
+          archetype: string;
+          games: string;
+          wins: string;
+          players: string;
+          cover_card_id: string | null;
+          primary_color: string | null;
+          secondary_color: string | null;
+        }>
+      >;
     } = accounts.pool;
     const query = vi.spyOn(pool, "query").mockResolvedValueOnce({
       rows: [
-        { archetype: "Greymon", games: "40", wins: "24", players: "12" },
-        { archetype: "Small", games: "20", wins: "15", players: "12" },
-        { archetype: "Few players", games: "40", wins: "20", players: "9" },
-        { archetype: "unknown", games: "100", wins: "50", players: "30" },
+        {
+          archetype: "Greymon",
+          games: "40",
+          wins: "24",
+          players: "12",
+          cover_card_id: "BT1-010",
+          primary_color: "Red",
+          secondary_color: null,
+        },
+        {
+          archetype: "Small",
+          games: "20",
+          wins: "15",
+          players: "12",
+          cover_card_id: null,
+          primary_color: null,
+          secondary_color: null,
+        },
+        {
+          archetype: "Few players",
+          games: "40",
+          wins: "20",
+          players: "9",
+          cover_card_id: null,
+          primary_color: null,
+          secondary_color: null,
+        },
+        {
+          archetype: "unknown",
+          games: "100",
+          wins: "50",
+          players: "30",
+          cover_card_id: null,
+          primary_color: null,
+          secondary_color: null,
+        },
       ],
       rowCount: 4,
       command: "SELECT",
@@ -59,10 +101,10 @@ describe("ranked deck statistics", () => {
       seasonId: 1,
     });
     expect(data).toEqual([
-      { archetype: "Greymon", games: 40, wins: 24, players: 12, winrate: 0.6 },
-      { archetype: "Small", games: 20, wins: 15, players: 12, winrate: null },
-      { archetype: "Few players", games: 40, wins: 20, players: 9, winrate: null },
-      { archetype: "unknown", games: 100, wins: 50, players: 30, winrate: null },
+      { archetype: "Greymon", games: 40, wins: 24, players: 12, winrate: 0.6, coverCardId: "BT1-010", colors: ["Red"] },
+      { archetype: "Small", games: 20, wins: 15, players: 12, winrate: null, coverCardId: null, colors: [] },
+      { archetype: "Few players", games: 40, wins: 20, players: 9, winrate: null, coverCardId: null, colors: [] },
+      { archetype: "unknown", games: 100, wins: 50, players: 30, winrate: null, coverCardId: null, colors: [] },
     ]);
     expect(query).toHaveBeenCalledWith(expect.stringContaining("f.origin='ranked'"), ["standard", "europe", 1]);
     query.mockRestore();

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { requireCardDefinition } from "@aegis/shared/cards/registry";
+import { EffectTiming } from "@aegis/shared/schema/enums";
 import { advance } from "#api/engine/testkit/advance";
 import { assertNoLoudGap, setupEngine, settle } from "#api/engine/testkit/harness";
 import type { SetupEngineOptions } from "#api/engine/testkit/harness";
@@ -276,5 +277,236 @@ describe("Thunderbirdmon trashes opposing sources, deletes a chosen own Digimon,
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
       s.perm("second").permanentId,
     );
+  });
+});
+
+describe("official rulings", () => {
+  function tamerBoard(options: SetupEngineOptions | undefined, tamer = kurataTamer) {
+    return setupEngine(
+      {
+        0: {
+          battleArea: [{ card: tamer, as: "tamer" }],
+          hand: [{ card: thunderbirdmon, as: "thunderbirdmon" }],
+          deck: [{ card: "BT1-013", as: "bonus" }, ...filler],
+          security: securityFiller,
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-041", as: "sourced", under: [{ card: "BT1-027", as: "opponentSource" }] },
+            { card: "BT1-013", as: "locked" },
+          ],
+          deck: filler,
+          security: securityFiller,
+        },
+      },
+      options,
+    );
+  }
+
+  async function digivolveFromTamer(s: Session) {
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tamer").permanentId,
+        instanceId: s.inst("thunderbirdmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").topCard.cardId === thunderbirdmon && !s.state.pendingDecision);
+  }
+
+  it("does not trigger when-a-Digimon-digivolves effects when it digivolves from a Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: kurataTamer, as: "tamer" },
+            { card: "EX2-045", as: "calumon" },
+          ],
+          hand: [{ card: thunderbirdmon, as: "thunderbirdmon" }],
+          deck: filler,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["TrashDigivolution", "SelectBind"] },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    await digivolveFromTamer(s);
+    expect(s.perm("calumon").isSuspended).toBe(false);
+  });
+
+  it("digivolves from a Tamer while a Digimon can't-digivolve lock is active", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT13-007", as: "drasil" },
+          battleArea: [
+            { card: kurataTamer, as: "tamer" },
+            { card: blueRookie, as: "rookie" },
+          ],
+          hand: [
+            { card: thunderbirdmon, as: "thunderbirdmon" },
+            { card: thunderbirdmon, as: "secondThunderbirdmon" },
+          ],
+          deck: filler,
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("rookie").permanentId,
+        instanceId: s.inst("secondThunderbirdmon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    await digivolveFromTamer(s);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("performs the digivolution bonus draw when it digivolves from a Tamer", async () => {
+    const s = tamerBoard({ autoDeclineOptional: true });
+    s.state.memory = 5;
+    await s.ready();
+    await digivolveFromTamer(s);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bonus").instanceId]);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("cannot attack after digivolving from a Tamer played this turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: kurataTamer, as: "tamer" },
+            { card: thunderbirdmon, as: "thunderbirdmon" },
+          ],
+          deck: filler,
+        },
+        1: { security: securityFiller },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1 && !s.state.pendingDecision);
+    await digivolveFromTamer(s);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("tamer").permanentId,
+        target: { kind: "player" },
+      }).ok,
+    ).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+  });
+
+  it("keeps the Tamer as a digivolution card and trashes it when the Digimon leaves the field", async () => {
+    const s = tamerBoard({ autoDeclineOptional: true });
+    s.state.memory = 5;
+    await s.ready();
+    const tamerCard = s.perm("tamer").topCard.instanceId;
+    await digivolveFromTamer(s);
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([tamerCard]);
+    await advance(s.engine).verb.returnToHand([s.inst("thunderbirdmon").instanceId]);
+    await settle(() => !s.state.pendingDecision);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(trashIds(s, 0)).toContain(tamerCard);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("thunderbirdmon").instanceId);
+  });
+
+  it("gains the inherited effect printed on a Tamer among its digivolution cards", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: thunderbirdmon, as: "attacker", under: [{ card: "BT27-092", as: "tamerSource" }] },
+            { card: "BT1-009", as: "fodder" },
+            { card: "BT1-009", as: "secondFodder" },
+          ],
+          deck: filler,
+        },
+        1: {
+          battleArea: [{ card: "BT1-013", as: "victim" }],
+          security: securityFiller,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    const victimId = s.perm("victim").permanentId;
+    preferred.push(s.perm("fodder").permanentId, s.perm("secondFodder").permanentId, victimId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && !s.state.pendingDecision);
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "BT27-092")).toBe(true);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("attacker").permanentId,
+    ]);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(victimId);
+  });
+
+  it("still locks an opponent's Digimon when it chooses itself and survives through Armor Purge", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: thunderbirdmon, as: "thunderbirdmon", under: [{ card: blueRookie, as: "purgeSource" }] },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-041", as: "sourced", under: ["BT1-027"] },
+            { card: "BT1-013", as: "locked" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    const permanentId = s.perm("thunderbirdmon").permanentId;
+    preferred.push(permanentId, s.perm("thunderbirdmon").topCard.instanceId, s.perm("locked").permanentId);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("thunderbirdmon"));
+    await settle(() => !s.state.pendingDecision);
+    expect(s.perm("thunderbirdmon").topCard.instanceId).toBe(s.inst("purgeSource").instanceId);
+    expect(trashIds(s, 0)).toContain(s.inst("thunderbirdmon").instanceId);
+    expect(observe(s.engine).isRestricted(s.perm("locked"), "suspend")).toBe(true);
+  });
+
+  it("ends the attack when Armor Purge turns the attacker back into a Tamer", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: thunderbirdmon, as: "attacker", under: [{ card: kurataTamer, as: "tamerSource" }] }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-013", as: "locked" }],
+          security: securityFiller,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    const permanentId = s.perm("attacker").permanentId;
+    preferred.push(permanentId, s.perm("attacker").topCard.instanceId, s.perm("locked").permanentId);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && !s.state.pendingDecision);
+    expect(s.perm("attacker").topCard.instanceId).toBe(s.inst("tamerSource").instanceId);
+    expect(s.perm("attacker").stack).toHaveLength(0);
+    expect(trashIds(s, 0)).toContain(s.inst("attacker").instanceId);
+    expect(s.state.players[1]!.security).toHaveLength(3);
   });
 });

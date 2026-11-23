@@ -4,7 +4,7 @@ import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
    resolves between them. Decoration only — it never takes pointer input, and the
    contents and the timeline come from ./securityClash. */
 
-import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { getCardDefinition } from "@aegis/shared";
 import { CardFull } from "../design/cards";
 import { colorKey, type ColorName } from "../design/theme";
@@ -12,7 +12,7 @@ import { Icons } from "../design/icons";
 import { ClawSlash } from "./piece";
 import { CardBurst } from "./CardBurst";
 import { CardShatter } from "./CardShatterView";
-import { TIMINGS } from "./timings";
+import { CLASH_OUTCOME_AT_MS, TIMINGS } from "./timings";
 import { useTranslation } from "../i18n";
 import { useCardOpener } from "./cardLinks";
 import {
@@ -146,6 +146,16 @@ function clashShatterColor(cardId: string): ColorName {
   return colorKey(getCardDefinition(cardId)?.colors[0]);
 }
 
+function useRecedesAfterReadableHold(pending: boolean): boolean {
+  const [receded, setReceded] = useState(false);
+  useEffect(() => {
+    if (!pending) return;
+    const timer = setTimeout(() => setReceded(true), CLASH_OUTCOME_AT_MS);
+    return () => clearTimeout(timer);
+  }, [pending]);
+  return receded;
+}
+
 export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
   const getCardName = useTranslatedCardName();
   const { t } = useTranslation();
@@ -157,6 +167,7 @@ export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
     [scene.lightOwner, scene.key],
   );
   const fighters = orderSecurityClashFighters(scene);
+  const receded = useRecedesAfterReadableHold(scene.resolution === "pending");
   const destroyed = scene.cause === "destruction";
   const cardWidth = destroyed ? DESTROYED_CARD_WIDTH : CLASH_CARD_WIDTH;
   return (
@@ -169,6 +180,7 @@ export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
       data-departing={scene.departing ? "true" : undefined}
       data-exiting={scene.exiting ? "true" : undefined}
       data-revealed-ready={scene.revealedReady ? "true" : undefined}
+      data-receded={receded ? "true" : undefined}
       // A scene that names its own outcome beat runs the break and the fade behind it from
       // that moment: zero for a check that held on stage while it resolved and has already
       // spent the lead-in, and the shorter destruction beat for a card no attacker faced.

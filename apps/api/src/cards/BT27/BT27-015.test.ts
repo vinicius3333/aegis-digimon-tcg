@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
 import { playByAssembly } from "#api/engine/testkit/assembly";
 import { observe } from "#api/engine/testkit/observe";
+import { advance } from "#api/engine/testkit/advance";
 import "#api/cards/index";
 
 describe("Ouryumon (BT27) deletion, security trash, Chronicle play and inherited Ouryuken unsuspend", () => {
@@ -218,5 +219,114 @@ describe("Ouryumon (BT27) deletion, security trash, Chronicle play and inherited
     ).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "attackEnded") && !s.state.pendingDecision);
     expect(s.perm("host").isSuspended).toBe(!unsuspends);
+  });
+});
+
+describe("official rulings", () => {
+  it("activates a checked Security effect before its security removal effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT27-015", as: "ouryumon" }],
+          hand: [{ card: "BT20-087", as: "tamer" }],
+        },
+        1: { security: ["BT27-098", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ouryumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "attackEnded") && !s.state.pendingDecision);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT20-087");
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT27-098");
+    expect(
+      s.events.flatMap((event) =>
+        event.kind === "effectTriggered" && ["BT27-098", "BT27-015"].includes(event.sourceCardId)
+          ? [event.sourceCardId]
+          : [],
+      ),
+    ).toEqual(["BT27-098", "BT27-015"]);
+  });
+
+  it("trashes the top security card when digivolving at the end of an attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX13-057", as: "grademon" }],
+          hand: [{ card: "BT27-015", as: "ouryumon" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("grademon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("grademon").topCard.cardId === "BT27-015" &&
+        s.events.some(({ kind }) => kind === "attackEnded") &&
+        !s.state.pendingDecision,
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("trashes the top security card when digivolving during an opponent's attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-204", as: "option" },
+            { card: "EX13-057", as: "grademon" },
+          ],
+          hand: [{ card: "BT27-015", as: "ouryumon" }],
+          security: ["BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          security: ["BT1-009", "BT1-010"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    s.state.turnSeat = 1;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "attackEnded") && !s.state.pendingDecision);
+    expect(s.perm("grademon").topCard.cardId).toBe("BT27-015");
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

@@ -1,4 +1,5 @@
 import { ArenaInputRegion } from "@/game/input/ArenaInputRegion";
+import type { ReactNode } from "react";
 /* The raising area: the egg deck, the slot the hatched Digimon stands in, and the one
    line of hint that replaced the breeding dialog.
 
@@ -13,6 +14,7 @@ import { BreedingSlot, Pile, type DropAttrs } from "../../piece";
 import type { PermanentBurst } from "../../showcases";
 
 export function BreedingDock({
+  actions,
   sealed = false,
   eggDeckCount,
   breeding,
@@ -35,6 +37,7 @@ export function BreedingDock({
   onSlotClick,
   onInspect,
 }: {
+  actions?: ReactNode;
   sealed?: boolean;
   eggDeckCount: number;
   breeding: Permanent | undefined;
@@ -132,9 +135,12 @@ export function BreedingDock({
         </div>
       </div>
       {actionsOpen ? (
-        <p className="game-breeding-hint" role="status">
-          {hint}
-        </p>
+        <div className="game-breeding-hint" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <p role="status" style={{ margin: 0 }}>
+            {hint}
+          </p>
+          {actions}
+        </div>
       ) : null}
     </div>
   );

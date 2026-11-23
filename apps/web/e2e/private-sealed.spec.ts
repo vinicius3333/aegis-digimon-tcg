@@ -140,6 +140,17 @@ for (const width of [390, 1440]) {
           JSON.stringify(poolReady, null, 2),
         );
         await page.getByRole("button", { name: /^View deck/ }).click();
+        await expect
+          .poll(() =>
+            page
+              .locator(".deck-current--open")
+              .evaluate((element) =>
+                element
+                  .getAnimations()
+                  .every((animation) => animation.playState === "finished" || animation.playState === "idle"),
+              ),
+          )
+          .toBe(true);
       }
       await page.locator(".lobby-page").evaluate((element) => {
         element.scrollTop = 0;

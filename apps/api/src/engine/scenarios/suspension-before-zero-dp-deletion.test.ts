@@ -14,11 +14,16 @@ const record = JSON.parse(
 it("preserves Breakdramon's suspension trigger after the suspended ally is deleted at zero DP", async () => {
   const replay = await runReplay(record);
   try {
-    const exhaustedRikaRetriggerOffsets = new Set(
-      replay.divergences.map(({ kind, expected, actual }) => `${kind}:${Number(actual) - Number(expected)}`),
+    const offset = ({ kind, expected, actual }: (typeof replay.divergences)[number]) =>
+      `${kind}:${Number(actual) - Number(expected)}`;
+    const earlierLinkTrashDivergences = replay.divergences.filter(({ index }) => index < 168);
+    expect(earlierLinkTrashDivergences.map(({ index }) => index)).toEqual([135, 135, 136, 136]);
+    expect(new Set(earlierLinkTrashDivergences.map(offset))).toEqual(new Set(["state-version:1", "event-count:1"]));
+    const exhaustedRikaRetriggerDivergences = replay.divergences.filter(({ index }) => index >= 168);
+    expect(exhaustedRikaRetriggerDivergences[0]?.index).toBe(168);
+    expect(new Set(exhaustedRikaRetriggerDivergences.map(offset))).toEqual(
+      new Set(["state-version:1", "event-count:3"]),
     );
-    expect(exhaustedRikaRetriggerOffsets).toEqual(new Set(["state-version:1", "event-count:3"]));
-    expect(replay.divergences[0]?.index).toBe(168);
     expect(replay.pendingRequest).toMatchObject({ kind: "chooseTargets", seat: 0 });
     expect(
       await replay.applyIntent(0, {

@@ -25,6 +25,7 @@ import type { Friend } from "@aegis/shared/friends/Friend";
 import { FriendsScreen } from "@/friends/FriendsScreen";
 import type { BotSettings } from "@aegis/shared/bot/BotSettings";
 import { GameMode } from "@aegis/shared/manual/GameMode";
+import { PrivateTurnOrder } from "@aegis/shared/protocol/PrivateTurnOrder";
 import { getStoryGuestToken } from "@/story/getStoryGuestToken";
 import { LocalScenarioHelp } from "./dev/LocalScenarioHelp";
 import { MATCH_TIMER_START_SECONDS } from "@aegis/shared";
@@ -632,9 +633,11 @@ function LoadedAegisClient({
   const [gameMode, setGameMode] = useState<GameMode>(GameMode.AUTOMATIC.value);
   const [allowRollback, setAllowRollback] = useState(false);
   const [requireGuestApproval, setRequireGuestApproval] = useState(false);
+  const [turnOrder, setTurnOrder] = useState<PrivateTurnOrder>(PrivateTurnOrder.RANDOM.value);
   const [bestOf, setBestOf] = useState(loadMatchFormatPreference);
   /** Set between the games of a best-of-three: the next GameScreen takes this seat. */
   const [seriesGame, setSeriesGame] = useState<SeriesGameTicket>();
+  const [awaitNextSeriesGame, setAwaitNextSeriesGame] = useState(false);
   const [tournamentGame, setTournamentGame] = useState<TournamentGameTicket>();
   const [privateSealedGame, setPrivateSealedGame] = useState<PrivateSealedGameTicket>();
   const [spectatedTournamentMatch, setSpectatedTournamentMatch] = useState<TournamentSpectateTarget>();
@@ -774,6 +777,7 @@ function LoadedAegisClient({
     setSeriesGame(undefined);
     setPrivateSealedGame(undefined);
     sessionStorage.removeItem("aegis:private-sealed-playing");
+    setAwaitNextSeriesGame(false);
     setTournamentGame(undefined);
     setSpectatedTournamentMatch(undefined);
     if (mode !== "private_host" && mode !== "private_guest") setPrivateRoom(undefined);
@@ -846,6 +850,7 @@ function LoadedAegisClient({
       gameMode: effectiveGameMode,
       allowRollback: effectiveGameMode !== GameMode.MANUAL.value && allowRollback,
       ...(startMode === "private_host" && requireGuestApproval ? { requireApproval: true } : {}),
+      ...(startMode === "private_host" && effectiveGameMode !== GameMode.MANUAL.value ? { turnOrder } : {}),
       bestOf: effectiveGameMode === GameMode.MANUAL.value ? 1 : bestOf,
       format: deckFormat,
       displayName: effectivePlayer.name,
@@ -882,6 +887,7 @@ function LoadedAegisClient({
       deckFormat,
       allowRollback,
       requireGuestApproval,
+      turnOrder,
       effectiveGameMode,
     ],
   );
@@ -1152,6 +1158,8 @@ function LoadedAegisClient({
                   onAllowRollbackChange={setAllowRollback}
                   requireGuestApproval={requireGuestApproval}
                   onRequireGuestApprovalChange={setRequireGuestApproval}
+                  turnOrder={turnOrder}
+                  onTurnOrderChange={setTurnOrder}
                   bestOf={bestOf}
                   onBestOfChange={setBestOf}
                   invitedRoomCode={invitedRoomCode}
@@ -1422,10 +1430,17 @@ function LoadedAegisClient({
                     setSeriesGame(ticket);
                     setMatchNumber((current) => current + 1);
                   }}
+                  awaitNextSeriesGame={awaitNextSeriesGame}
+                  onSpectateNextSeriesGame={() => {
+                    clearReconnectSession();
+                    setAwaitNextSeriesGame(true);
+                    setMatchNumber((current) => current + 1);
+                  }}
                   presentationPacing={SEQUENTIAL_PACING_ENABLED ? "sequential" : "current"}
                   signedIn={!!account}
                   onLeaveForfeitsChange={setLeaveForfeitsMatch}
                   onStartLesson={startLesson}
+                  onResumeMatch={account ? resumeMatchFromAnotherDevice : undefined}
                   onExit={(next) => {
                     setSeriesGame(undefined);
                     if (spectatedTournamentMatch) {

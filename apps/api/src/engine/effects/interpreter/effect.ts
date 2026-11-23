@@ -2,6 +2,7 @@ import { printedSentence } from "#api/engine/decisions/printedSentence";
 import { OptionalActivationCancelled } from "#api/engine/effects/OptionalActivationCancelled";
 import { canCancelOptionalActivation } from "#api/engine/effects/interpreter/canCancelOptionalActivation";
 import { keepsFollowUpAfterDeclinedTarget } from "#api/engine/effects/interpreter/keepsFollowUpAfterDeclinedTarget";
+import { endsAttackOptionally } from "#api/engine/effects/interpreter/endsAttackOptionally";
 import { getSingleHandActionCostBenefit } from "#api/engine/effects/interpreter/getSingleHandActionCostBenefit";
 import { getSingleHandCostBenefit } from "#api/engine/effects/interpreter/getSingleHandCostBenefit";
 import { getDecisionActionSummary } from "#api/engine/effects/interpreter/getDecisionActionSummary";
@@ -570,6 +571,19 @@ function mirrorResultBindings(from: EffectContext, to: EffectContext): void {
   }
 }
 
+function isDecidedApartFromActivation(action: Action): boolean {
+  if (action.kind === "RawUnparsed") {
+    return false;
+  }
+  if (typeof action.cost === "object" && /^\s*by\b/i.test(action.cost.raw ?? "")) {
+    return true;
+  }
+  if (action.optional !== true) {
+    return false;
+  }
+  return (action.kind === "Attack" && action.target.filter.boundRef !== undefined) || action.kind === "Battle";
+}
+
 function isPredecidableProcessingCost(
   action: Action,
 ): action is Exclude<Action, { kind: "RawUnparsed" }> & { cost: Cost } {
@@ -876,13 +890,9 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
           const outerChainsSameTarget = ctxWithSelections.nextActionChainsSameTarget;
           const outerAttackContinuation = ctxWithSelections.continueEffectAfterAttackDeclaration;
           const outerOptionalAnswer = ctxWithSelections.presetOptionalAnswer;
-          // An optional attack on the result of an earlier action, or a later optional battle,
-          // is a separate decision: accepting DNA in the plan does not also accept its attack.
           if (
             actionIndex > 0 &&
-            action.optional === true &&
-            outerOptionalAnswer === true &&
-            ((action.kind === "Attack" && action.target.filter.boundRef !== undefined) || action.kind === "Battle")
+            ((outerOptionalAnswer === true && isDecidedApartFromActivation(action)) || endsAttackOptionally(action))
           )
             ctxWithSelections.presetOptionalAnswer = undefined;
           ctxWithSelections.activeActionPath = `${actionIndex}`;

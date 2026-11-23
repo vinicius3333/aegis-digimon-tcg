@@ -11,8 +11,11 @@ type AllyState = "missing" | "suspended" | "active";
 
 function fixtureWithAlly(allyState: AllyState) {
   const [attacker, ally] = fixture.board[0]!.battleArea!;
+  if (!ally || typeof ally === "string") {
+    throw new Error("Alliance fixture requires an ally permanent specification");
+  }
   const battleArea =
-    allyState === "missing" ? [attacker!] : [attacker!, { ...(ally as object), suspended: allyState === "suspended" }];
+    allyState === "missing" ? [attacker!] : [attacker!, { ...ally, suspended: allyState === "suspended" }];
   return { ...fixture, board: { ...fixture.board, 0: { ...fixture.board[0], battleArea } } };
 }
 

@@ -29,7 +29,9 @@ import {
 } from "#api/engine/effects/interpreter/matching/permanent";
 import { candidatePermanents } from "#api/engine/effects/interpreter/targeting/permanents";
 import { getCardDefinition } from "@aegis/shared/cards/registry";
+import { CardKind } from "@aegis/shared/schema/enums";
 import type { Action } from "@aegis/shared/effects/ir/actions/action";
+import { endsAttackOptionally } from "#api/engine/effects/interpreter/endsAttackOptionally";
 import type { Cost } from "@aegis/shared/effects/ir/predicates/costs";
 import type { Filter } from "@aegis/shared/effects/ir/filters/filter";
 import { findLooseCandidateByInstance } from "#api/engine/effects/interpreter/targeting/loose";
@@ -284,6 +286,11 @@ export function createSubTriggerInstall({
           return refs.some((ref) => matchNameOrTrait(def as DefinitionFacts, ref));
         }
       : undefined;
+  const watchesBreedingArea = [sourceFilter?.zone].flat().includes("breeding");
+  const breedingDeletionGate =
+    (event === "onDeletionOf" || event === "whenLeavesPlay") && !watchesBreedingArea
+      ? (subCtx: EffectContext): boolean => subCtx.trigger.deletedFromBreeding !== true
+      : undefined;
   const deletionSourceFilterGate =
     (event === "onDeletionOf" || event === "whenLeavesPlay") && sourceFilter !== undefined
       ? (subCtx: EffectContext): boolean => {
@@ -351,6 +358,10 @@ export function createSubTriggerInstall({
             )
           ) {
             const { nameOrTrait: _nameOrTrait, ...rest } = snapshotFilter;
+            snapshotFilter = rest;
+          }
+          if (snapshotFilter.kind?.includes("Digimon") && definition.kinds.includes(CardKind.DigiEgg)) {
+            const { kind: _kind, ...rest } = snapshotFilter;
             snapshotFilter = rest;
           }
           if (!definitionMatches(snapshotFilter, definition as DefinitionFacts)) {
@@ -883,7 +894,7 @@ export function createSubTriggerInstall({
       : undefined;
   const addedDigivolutionCardGate =
     event === "onAddDigivolutionCards" && action.addedDigivolutionCardFilter !== undefined
-      ? (subCtx: EffectContext): boolean => {
+      ? matchedAtEvent((subCtx: EffectContext): boolean => {
           const subjectId = subCtx.trigger?.subjectPermanentId;
           const ids = subCtx.trigger?.addedDigivolutionCardInstanceIds ?? [];
           if (subjectId === undefined || ids.length === 0) {
@@ -900,7 +911,7 @@ export function createSubTriggerInstall({
               (action.addedDigivolutionCardFilter!.faceUp !== true || card.faceUp === true) &&
               definitionMatches(action.addedDigivolutionCardFilter!, subCtx.game.definitionOf(card)),
           );
-        }
+        })
       : undefined;
   const addedDigivolutionPositionGate =
     event === "onAddDigivolutionCards" && action.addedDigivolutionCardsPosition !== undefined
@@ -941,7 +952,7 @@ export function createSubTriggerInstall({
       : undefined;
   const linkedCardGate =
     event === "whenLinked" && action.linkedCardFilter !== undefined
-      ? (subCtx: EffectContext): boolean => {
+      ? matchedAtEvent((subCtx: EffectContext): boolean => {
           const subjectId = subCtx.trigger.subjectPermanentId;
           const linkedIds = subCtx.trigger.linkedCardInstanceIds ?? [];
           const subject = subjectId === undefined ? undefined : subCtx.game.permanentById(subjectId);
@@ -953,7 +964,7 @@ export function createSubTriggerInstall({
               linkedIds.includes(card.instanceId) &&
               definitionMatches(action.linkedCardFilter!, subCtx.game.definitionOf(card)),
           );
-        }
+        })
       : undefined;
   // A linked card's "when this card is linked" effect is physically scoped to that card,
   // not merely to the Digimon carrying it. All linked cards share the recipient permanent,
@@ -1053,6 +1064,7 @@ export function createSubTriggerInstall({
     addDigivolutionByEffectGate,
     digimonReturnsToHandGate,
     requireByEffectGate,
+    breedingDeletionGate,
     deletionSourceFilterGate,
     ownerMainPhaseGate,
     grantedEffectAffectableGate,
@@ -1407,9 +1419,10 @@ export function createSubTriggerInstall({
           const outerContinuation = subCtx.continueEffectAfterAttackDeclaration;
           const outerOptionalAnswer = subCtx.presetOptionalAnswer;
           if (
-            outerOptionalAnswer === true &&
-            ((index > 0 && (current.kind === "Attack" || current.kind === "Battle") && current.optional === true) ||
-              (activationCostPaid && placesDeckTopOptionally(current)))
+            (outerOptionalAnswer === true &&
+              ((index > 0 && (current.kind === "Attack" || current.kind === "Battle") && current.optional === true) ||
+                (activationCostPaid && placesDeckTopOptionally(current)))) ||
+            (index > 0 && endsAttackOptionally(current))
           ) {
             subCtx.presetOptionalAnswer = undefined;
           }
@@ -1506,6 +1519,16 @@ function subjectMatchSettledAtEvent({
     if (matched && subjectsOnField) {
       matchedEvents.add(subCtx.trigger);
     }
+    return matched;
+  };
+}
+
+function matchedAtEvent(gate: (subCtx: EffectContext) => boolean): (subCtx: EffectContext) => boolean {
+  const matchedEvents = new WeakSet<object>();
+  return (subCtx) => {
+    if (matchedEvents.has(subCtx.trigger)) return true;
+    const matched = gate(subCtx);
+    if (matched) matchedEvents.add(subCtx.trigger);
     return matched;
   };
 }

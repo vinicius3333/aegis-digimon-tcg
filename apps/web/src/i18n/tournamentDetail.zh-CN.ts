@@ -15,6 +15,11 @@ export const tournamentDetailZhCN = {
   "tournaments.myMatch.roundTable": "第 {round} 轮 · {table} 号桌",
   "tournaments.myMatch.you": "你",
   "tournaments.myMatch.versus": "对阵 {opponent}",
+  "tournaments.create.allowBetaCards": "允许测试卡",
+  "tournaments.create.allowBetaCardsDesc": "卡组可以使用尚未发售产品中的卡牌。",
+  "tournaments.betaCards.label": "测试卡",
+  "tournaments.betaCards.allowed": "允许",
+  "tournaments.betaCards.warning": "允许使用测试卡。卡组可以使用未发售产品的卡牌，这些卡牌在发售前仍可能变动。",
   "tournaments.detail.cardPool": "可用卡池",
   "tournaments.create.randomBotStyles": "随机机器人风格",
   "tournaments.create.randomBotStylesDesc": "每个机器人入座时随机抽取一种打法：均衡、进攻或防守。",
@@ -208,4 +213,6 @@ export const tournamentDetailZhCN = {
   "tournaments.format.pointsLoss": "负",
   "tournaments.format.pointsValue": "胜 {win} · 平 {draw} · 负 {loss}",
   "tournaments.create.pointsAuto": "自动(3/1/0)",
+  "notifications.tournament.started": "{name} 已开始。请打开比赛查看对阵。",
+  "notifications.tournament.matchReady": "{name} 第 {round} 轮已准备就绪，请立即加入对局。",
 };

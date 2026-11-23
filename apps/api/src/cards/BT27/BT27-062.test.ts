@@ -212,3 +212,32 @@ describe("BT27-062 Maildramon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 });
+
+describe("official rulings", () => {
+  it.each([
+    ["only in its name", "EX4-040", false, 4, 2],
+    ["at full cost while Solarmon stops play cost reductions", gladimon, true, 5, 0],
+  ])("when attacking, plays a [Knightmon]-text card %s", async (_label, card, withSolarmon, playCost, memoryAfter) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "maildramon" }],
+          hand: [{ card, as: "knight" }],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: withSolarmon ? [{ card: "ST12-03", as: "solarmon" }] : [],
+          security: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    s.state.memory = playCost;
+    await attackWithMaildramon(s);
+    await settle(() => battleAreaTops(s).includes(s.inst("knight").instanceId));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(handIds(s)).toEqual([]);
+    expect(s.state.memory).toBe(memoryAfter);
+  });
+});

@@ -40,6 +40,7 @@ import { PendingMatchBoard } from "./screen/layout/PendingMatchBoard";
 import { MatchIntroOverlay } from "@/game/overlay/match/MatchIntroOverlay";
 import { useMatchIntro } from "@/game/screen/hooks/useMatchIntro";
 import { pendingMatchNotice } from "./screen/model/pendingMatchNotice";
+import { ResumeActiveMatchAction } from "@/game/screen/layout/ResumeActiveMatchAction";
 import { getGuestApprovalView } from "@/game/screen/model/getGuestApprovalView";
 import { isMatchIntroStarting } from "@/game/screen/model/isMatchIntroStarting";
 import { GUEST_APPROVAL_CHANNEL } from "@aegis/shared/protocol/GuestApprovalMessage";
@@ -47,6 +48,7 @@ import { sourceHostChoiceFor } from "./screen/model/sourceHostChoice";
 import { BoardStage, type BoardAnchors } from "./screen/layout/BoardStage";
 import { useMatchChat } from "./chat/useMatchChat";
 import { useMatchChatWindow } from "./chat/useMatchChatWindow";
+import { useMatchChatEnabled } from "@/game/chat/matchChatEnabled/useMatchChatEnabled";
 import { BreedingDock } from "./screen/layout/BreedingDock";
 import { MatchOverlays } from "./screen/layout/MatchOverlays";
 
@@ -71,8 +73,8 @@ import {
   gameOverReason as modelGameOverReason,
   gameOverResult as modelGameOverResult,
   revealedZones as modelRevealedZones,
-  viewerTurnOrder as modelViewerTurnOrder,
 } from "./screen/model/gameOutcome";
+import { getOpeningTurnOrder } from "@/game/screen/model/getOpeningTurnOrder";
 import { actionGuards } from "./screen/model/actionGuards";
 import { dropZoneAt } from "./screen/dropZones";
 import {
@@ -194,6 +196,7 @@ export function GameScreen(props: Omit<Parameters<typeof GameScreenSession>[0], 
     presentationPacing,
     seriesGame,
     tournamentMatch,
+    awaitNextSeriesGame,
     demoConnection,
     replayMode,
   } = props;
@@ -201,13 +204,15 @@ export function GameScreen(props: Omit<Parameters<typeof GameScreenSession>[0], 
     () => replayMode || startMode === "spectator" || (!demoConnection && loadReconnectSession()?.spectator === true),
   );
   const matchConfig = useMemo(() => {
-    if (startMode === "spectator") return { mode: "spectator" as const, roomCode, spectatorFriendId, tournamentMatch };
+    if (startMode === "spectator") {
+      return { mode: "spectator" as const, roomCode, spectatorFriendId, tournamentMatch, awaitNextSeriesGame };
+    }
     if (seriesGame) return { mode: "series" as const, seriesGame };
     if (startMode === "casual" || startMode === "unlimited" || startMode === "ranked" || startMode === "beta")
       return undefined;
     if (startMode === "bot") return { mode: "bot" as MatchMode };
     return { mode: startMode, roomCode, waitForHost };
-  }, [startMode, roomCode, spectatorFriendId, waitForHost, seriesGame, tournamentMatch]);
+  }, [startMode, roomCode, spectatorFriendId, waitForHost, seriesGame, tournamentMatch, awaitNextSeriesGame]);
   const roomOptions = useMemo(
     () => ({
       ...joinOptions,
@@ -246,6 +251,7 @@ function GameScreenSession({
   botDeckId,
   botSettings,
   onExit,
+  onResumeMatch,
   onStartLesson,
   onRematch,
   onCopyUsedDeck,
@@ -261,6 +267,7 @@ function GameScreenSession({
   devProbe,
   presentationPacing,
   onSeriesNext,
+  onSpectateNextSeriesGame,
   onLeaveForfeitsChange,
   renderSeriesDeckPicker,
 }: {
@@ -282,6 +289,7 @@ function GameScreenSession({
   betaBattleMode?: boolean;
   unlimited?: boolean;
   onExit: (screen: Screen) => void;
+  onResumeMatch?: () => void;
   onStartLesson?: (lessonId: string) => void;
   onCopyUsedDeck?: (deck: DeckListing) => void;
   ownDeckIds?: ReadonlySet<string>;
@@ -324,6 +332,8 @@ function GameScreenSession({
   seriesGame?: SeriesGameTicket;
   /** The series opened its next game; the caller remounts this screen on that ticket. */
   onSeriesNext?: (ticket: SeriesGameTicket) => void;
+  awaitNextSeriesGame?: boolean;
+  onSpectateNextSeriesGame?: () => void;
   /**
    * Receives a way to concede while leaving would forfeit a live match, and `undefined` once it
    * would not. Conceding keeps the player on the result so they can still keep the replay.
@@ -371,6 +381,21 @@ function GameScreenSession({
     );
     return () => clearTimeout(hop);
   }, [nextSeriesRoomId, seriesSeat]);
+  const spectatedSeriesContinues =
+    startMode === "spectator" &&
+    !replayMode &&
+    !demoConnection &&
+    state?.series?.phase === "starting" &&
+    !!state.series.nextRoomId;
+  const onSpectateNextSeriesGameRef = useRef(onSpectateNextSeriesGame);
+  onSpectateNextSeriesGameRef.current = onSpectateNextSeriesGame;
+  useEffect(() => {
+    if (!spectatedSeriesContinues) {
+      return;
+    }
+    const hop = setTimeout(() => onSpectateNextSeriesGameRef.current?.(), SERIES_HOP_DELAY_MS);
+    return () => clearTimeout(hop);
+  }, [spectatedSeriesContinues]);
   // A demo or showcase fabricates events with no batch boundary of their own, so its list
   // is presented as the one moment it describes.
   const cueBatches = useMemo(() => batches ?? [singleServerBatch(events)], [batches, events]);
@@ -379,6 +404,7 @@ function GameScreenSession({
   // stay cached as the fallback seat 0.
   const viewerSeat = viewerSeatOf(state, sessionId);
   const chat = useMatchChat({ room: connectedRoom, viewerSeat, spectating });
+  const matchChatEnabled = useMatchChatEnabled();
   const guestApproval = spectating ? undefined : getGuestApprovalView({ state, sessionId });
 
   const leaveForfeits =
@@ -501,8 +527,17 @@ function GameScreenSession({
   }>();
   const blockConfirmationSubmittedRef = useRef(false);
 
-  const { drag, dragHover, handleTapRef, handleDropRef, canDragRef, startHandDrag, startPermDrag, cancelDrag } =
-    useDragPlumbing({ manual: state?.gameMode === GameMode.MANUAL.value });
+  const {
+    drag,
+    dragPointer,
+    dragHover,
+    handleTapRef,
+    handleDropRef,
+    canDragRef,
+    startHandDrag,
+    startPermDrag,
+    cancelDrag,
+  } = useDragPlumbing({ manual: state?.gameMode === GameMode.MANUAL.value });
   canDragRef.current = null;
   const playDragStarted = drag?.kind === DragKind.Play && drag.started;
   useEffect(() => {
@@ -673,7 +708,7 @@ function GameScreenSession({
     presentationPacing,
     holdEffectsForConfirmation: vsBot && !spectating && effectConfirmationHold,
   });
-  const liveChat = connectedRoom ? chat : undefined;
+  const liveChat = connectedRoom && matchChatEnabled ? chat : undefined;
   const chatWindow = useMatchChatWindow({
     chat: liveChat,
     resultShown: !!state?.gameOver && !cues.resultPending,
@@ -1114,6 +1149,8 @@ function GameScreenSession({
                     },
                   })}
                 />
+              ) : "resumable" in notice && notice.resumable && onResumeMatch ? (
+                <ResumeActiveMatchAction onResume={onResumeMatch} />
               ) : undefined
             }
             onAction={notice.exitTo ? () => onExit(notice.exitTo!) : undefined}
@@ -1408,7 +1445,7 @@ function GameScreenSession({
     winnerSeat: state.winnerSeat,
   });
 
-  const viewerTurnOrder = modelViewerTurnOrder({ events, viewerSeat });
+  const viewerTurnOrder = getOpeningTurnOrder({ state, viewerSeat });
 
   const revealed = modelRevealedZones({ events, viewerSeat, resultShown: state.gameOver && !cues.resultPending });
 
@@ -1537,7 +1574,14 @@ function GameScreenSession({
   // What the resolving effect will do to each target the viewer has picked. The
   // fate is the server's own projection (`options.targetFate`); a prompt that
   // carries none badges nothing.
-  const fateBadges = pendingFateBadges({ decision: viewerDecision, picks, viewerSeat });
+  const fateBadges = pendingFateBadges({
+    decision: viewerDecision,
+    picks,
+    viewerSeat,
+    wouldBeDeletedPermanentIds: [combatWindows.evadeWindow, combatWindows.barrierWindow].flatMap((keywordWindow) =>
+      keywordWindow ? [keywordWindow.permanentId] : [],
+    ),
+  });
 
   const spotlight = spotlightRequest({
     breedingWindow,
@@ -1575,7 +1619,9 @@ function GameScreenSession({
     getCardName,
     showFieldReferences,
   });
-  const triggerNeedsFieldReferences = triggerDetails.some((detail) => detail.fieldReference !== undefined);
+  const triggerNeedsFieldReferences = triggerDetails.some(
+    (detail) => detail.fieldReference !== undefined || detail.subjectFieldReference !== undefined,
+  );
   const effectSourceMarks = findEffectSourceMarks({
     events,
     presentedStateVersion: cues.presentedStateVersion,
@@ -1626,8 +1672,8 @@ function GameScreenSession({
   // One physical raising area moves into the utility row on a portrait screen.
   const yourBreedingDock = (
     <>
-      <SealedBreedingActions state={state} player={you} room={room} enabled={breedingActionsOpen} />
       <BreedingDock
+        actions={<SealedBreedingActions state={state} player={you} room={room} enabled={breedingActionsOpen} />}
         sealed={state.rulesPolicy === GameRulesPolicy.SEALED.value}
         eggDeckCount={breedingYou.eggDeckCount}
         breeding={breedingYou.breeding}
@@ -2202,7 +2248,13 @@ function GameScreenSession({
                     : actions
       }
       senders={matchSenders}
-      drag={{ state: drag, isPlay: dragIsPlay, cardId: dragCardId, hoveredIntent: hoveredDragIntent ?? undefined }}
+      drag={{
+        state: drag,
+        pointer: dragPointer,
+        isPlay: dragIsPlay,
+        cardId: dragCardId,
+        hoveredIntent: hoveredDragIntent ?? undefined,
+      }}
       breedingDock={yourBreedingDock}
       overlayStack={overlays}
       stageEl={stageEl}

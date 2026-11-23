@@ -40,7 +40,7 @@ export interface PrimitivesEngine {
   /** Pause enclosing card bodies while an effect-directed attack drains pending effects. */
   resolveAttackTimingWindow?(
     drain: (options?: { retireUnactivatable?: boolean }) => Promise<void>,
-    options?: { retireUnactivatable?: boolean },
+    options?: { retireUnactivatable?: boolean; poolWatchersWithArtsEntryEffects?: boolean },
   ): Promise<void>;
   /**
    * Pause enclosing card bodies for the whole Counter -> End of Attack stretch of an
@@ -197,6 +197,12 @@ export interface PrimitivesEngine {
     baseAsDigimon?: CardDefinition,
     costDelta?: number,
   ) => Promise<number>;
+  activateFreeDigivolveReductions?: (
+    target: Permanent,
+    evolvingInstanceId: string,
+    into: CardDefinition,
+    baseAsDigimon?: CardDefinition,
+  ) => Promise<void>;
   /** Read the effective hand-use cost for eligibility checks that must include automatic self reducers. */
   effectiveLooseUseCost?: (instanceId: string, controllerSeat: Seat) => number | undefined;
   /** Read a loose card's cost while in hand, counting only reducers that apply there (Q1501). */
@@ -343,11 +349,12 @@ export interface PrimitivesEngine {
    * Report cards that were JUST linked to a permanent. Comprehensive Rules §4-9-5: when
    * linking to a Digimon that has already reached its link limit, "the same number of the
    * EXISTING link cards are trashed at the same time as the newly linked cards" — the card
-   * that just arrived is never the one that goes. The over-limit trim itself is a rule check
-   * (§17-1-3-2-5) that runs later and cannot tell new from existing on its own, so the link
-   * verb tells it. Optional on the port: a fake that never links needs no implementation.
+   * that just arrived is never the one that goes. The link verb trims the replaced cards right
+   * away through `trashReplacedLinkCards`, which cannot tell new from existing on its own, so the
+   * link verb tells it. Optional on the port: a fake that never links needs no implementation.
    */
   noteLinked?(instanceIds: readonly string[]): void;
+  trashReplacedLinkCards?(permanentId: string): Promise<void>;
 }
 
 /** The slice of MemoryGauge the primitives use (memory-gauge subsystem owns the impl). */

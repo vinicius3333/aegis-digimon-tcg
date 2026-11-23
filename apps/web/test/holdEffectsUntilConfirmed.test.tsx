@@ -5,6 +5,8 @@ import type { ReactElement } from "react";
 import { setupEngine } from "@aegis-api/engine/testkit/harness.js";
 import { cleanup, fireEvent, render, screen, waitFor } from "./scenarioHarness/testingLibrary";
 import { GameScreen } from "../src/game/GameScreen";
+import { MatchLogDisplay } from "@/game/log/MatchLogDisplay";
+import { matchLogDisplayPreference } from "@/game/log/matchLogDisplayPreference";
 import { setEffectConfirmationHoldEnabled } from "../src/game/effectConfirmationHold";
 import { activePacing } from "../src/game/pacing";
 
@@ -22,7 +24,10 @@ vi.mock("../src/net/client", async (importOriginal) => ({
   joinWithBot: () => Promise.resolve(),
 }));
 
-beforeEach(() => setEffectConfirmationHoldEnabled(true));
+beforeEach(() => {
+  setEffectConfirmationHoldEnabled(true);
+  matchLogDisplayPreference.set(MatchLogDisplay.POPUPS.value);
+});
 
 afterEach(() => {
   cleanup();

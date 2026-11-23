@@ -34,10 +34,10 @@ export function trashEffectCardFromSources(
   const activation = matching.find((source) => source.linked !== true) ?? matching.at(-1);
   if (!activation || activation.site.zone !== "trash") return undefined;
   const instanceId = activation.site.instanceId;
-  let artId: string | undefined;
+  let artId = activation.artId;
   for (const card of trash) {
     if (card.instanceId !== instanceId || card.cardId !== activation.cardId) continue;
-    artId = card.artId;
+    artId = card.artId ?? artId;
     break;
   }
   return {
@@ -83,6 +83,7 @@ export interface EffectActivation {
   key: number;
   seat: Seat;
   cardId: string;
+  artId?: string;
   site: EffectSourceSite;
   /** Freeze the physical source's queue and CSS speed together when preparation starts. */
   motionScale?: number;

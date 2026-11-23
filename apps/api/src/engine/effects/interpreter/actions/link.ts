@@ -191,12 +191,9 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
   // link card. When linking to a Digimon that has already reached the link limit, the same
   // number of the existing link cards are trashed at the same time as the newly linked cards" —
   // the link is ALLOWED and the pre-existing excess is trashed alongside it, not refused.
-  // §17-1-3-2-5 (Rule Checks) confirms the cleanup happens as a state-based sweep AFTER the
-  // fact ("Link cards for a Digimon that has exceeded the link limit — only the cards that
-  // exceed link limit are trashed"), which is exactly what GameEngine's `trashExcessLinkCards`
-  // rule-check pass already does on every fixpoint pass. So `runLink` must land the full
-  // requested count here and let that sweep trim any excess, the same way the player-facing
-  // `linkCard` verb (actions/link.ts) never gates on headroom either — both paths must agree.
+  // The shared link primitive trims that excess as the cards land, before the effect's next
+  // clause reads the host. So `runLink` must land the full requested count here, the same way
+  // the player-facing `linkCard` verb (actions/link.ts) never gates on headroom either.
   const chosen = await pickLoose(ctx, action.target, hostedCandidates);
   if (chosen.length === 0) return;
   if (action.differentNames === true) {

@@ -121,7 +121,7 @@ export interface RemovalPrimitives {
   trashFromSecurity(
     seat: Seat,
     n: number,
-    opts?: { fromTop?: boolean; instanceIds?: string[]; cause?: "effect" | "barrierCost" },
+    opts?: { fromTop?: boolean; instanceIds?: string[]; cause?: "effect" | "barrierCost"; revealedFirst?: boolean },
   ): Promise<CardInstance[]>;
   /**
    * "By trashing the top security card of 1 player with the most security cards, ...".
