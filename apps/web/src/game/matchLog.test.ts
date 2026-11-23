@@ -323,3 +323,20 @@ it("explains Barrier and subsequent public option results without naming conceal
   expect(log.some((line) => line.text.includes("Hurricane Screw Shot") && line.text.includes("ACCEL"))).toBe(true);
   expect(log.flatMap((line) => line.cardIds ?? [])).not.toContain("hidden-security");
 });
+
+it("names both Digimon of a battle an effect starts", () => {
+  const events: ServerEvent[] = [
+    {
+      kind: "battleCompared",
+      attackerPermanentId: "perm-4",
+      defenderPermanentId: "perm-2",
+      loserPermanentIds: ["perm-2"],
+      effectBattle: { attackerSeat: 1, attackerCardId: "BT25-057", defenderCardId: "BT26-033" },
+    },
+  ];
+  const log = buildMatchLog(events, 0, new Map(), translator("en"));
+  expect(log.map((line) => line.text)).toEqual([
+    "Opponent: Monarchlizamon (BT25-057) #4 battles Jupitermon (BT26-033) #2",
+  ]);
+  expect(log[0]?.cardIds).toEqual(["BT25-057", "BT26-033"]);
+});

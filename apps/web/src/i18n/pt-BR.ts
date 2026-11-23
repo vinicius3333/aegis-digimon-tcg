@@ -1565,6 +1565,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "log.hatched": "{player} chocou {card}",
   "log.movedFromBreeding": "{player} moveu {card} da criação",
   "log.attackOnBy": "{card} de {player} ataca {target}",
+  "log.effectBattle": "{card} de {player} batalha com {target}",
   "log.matchStarted": "Partida iniciada. {player} começa",
   "log.turnEnded": "O turno de {player} terminou. Turno de {nextPlayer}",
   "log.securityCheck": "A checagem de segurança de {player} revelou {card} ({resolution})",

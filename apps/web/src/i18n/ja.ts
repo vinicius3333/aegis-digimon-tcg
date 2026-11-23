@@ -1807,6 +1807,7 @@ const interfaceMessages = {
   "log.hatched": "{player}が{card}を孵化させた",
   "log.movedFromBreeding": "{player}が{card}を育成エリアから移動した",
   "log.attackOnBy": "{player}の{card}が{target}にアタック",
+  "log.effectBattle": "{player}の{card}が{target}とバトル",
   "log.matchStarted": "対戦開始。{player}が先攻",
   "log.turnEnded": "{player}のターン終了。{nextPlayer}のターン",
   "log.securityCheck": "{player}のセキュリティチェックで{card}が公開された（{resolution}）",

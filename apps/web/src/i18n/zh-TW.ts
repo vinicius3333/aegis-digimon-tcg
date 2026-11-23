@@ -1744,6 +1744,7 @@ const interfaceMessages = {
   "log.hatched": "{player}孵化了{card}",
   "log.movedFromBreeding": "{player}將{card}從育成區移出",
   "log.attackOnBy": "{player}的{card}攻擊{target}",
+  "log.effectBattle": "{player}的{card}與{target}戰鬥",
   "log.matchStarted": "對戰開始。{player}先攻",
   "log.turnEnded": "{player}的回合結束。輪到{nextPlayer}",
   "log.securityCheck": "對{player}進行的安防檢查翻開了{card}（{resolution}）",
