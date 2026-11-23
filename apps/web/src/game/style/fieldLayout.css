@@ -270,6 +270,16 @@
     top: -5px;
     bottom: auto;
   }
+  .aegis-arena
+    .game-board[data-organized-field]:not([data-board-style="arena3d"]):has(.sealed-breeding-actions)
+    .game-field
+    :is(
+      [class*="game-utility-slot--you-"] .game-pile + span,
+      [class*="game-utility-slot--you-"] .game-breeding-slot > span,
+      .game-security-shield--you .game-security-shield__label
+    ) {
+    top: 0;
+  }
   .game-board .game-battle-row[data-field-layout="organized"] > .game-battle-lane,
   .game-board .game-battle-row[data-field-layout="organized"] [data-field-key] {
     touch-action: pan-x !important;
