@@ -359,7 +359,20 @@ export function MatchOverlays({
         />
       ) : null}
 
-      {!gameOver ? <SecurityScenes {...scenes} compact={collapseNotices} /> : null}
+      {!gameOver ? (
+        <SecurityScenes
+          {...scenes}
+          compact={collapseNotices}
+          stowBranches={
+            decisionView.answerOnBoard &&
+            allPermanents.some(
+              (permanent) =>
+                decisionView.decisionSelectable.has(permanent.permanentId) ||
+                decisionView.decisionSelectable.has(permanent.topCard.instanceId),
+            )
+          }
+        />
+      ) : null}
 
       <MatchStatusOverlays
         turns={logTurns}

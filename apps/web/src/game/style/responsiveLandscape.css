@@ -555,22 +555,57 @@
   .game-board > .game-player-dock {
     display: contents !important;
   }
-  /* Bottom-aligned, so the raising card's stack badge clears the memory band. */
   .game-player-dock > .game-breeding-dock {
     z-index: 2;
-    grid-area: 4 / 2;
+    grid-area: 5 / 1 / 6 / 3;
     align-self: end;
     padding: 0 var(--ds-space-1) !important;
     overflow: visible;
     border: 0 !important;
     background: transparent !important;
   }
-  /* The cards sit 4px below the hand's top edge, so the hand is that much taller
-     than a card or its last pixels fall off the bottom of the board. */
+  .game-board {
+    overflow: clip;
+  }
   .game-player-dock > .game-hand-dock {
-    grid-area: 5 / 1 / 6 / 4;
-    min-height: calc(var(--game-hand-h) + var(--ds-space-1));
-    padding-block: 0 var(--ds-space-1) !important;
+    grid-area: 5 / 3;
+    align-self: end;
+    min-height: var(--game-hand-h);
+    margin-bottom: calc(var(--hand-card-width) * -0.36);
+    padding-block: 0 !important;
+  }
+  .game-breeding-dock :is(.game-utility-slot, .game-utility-slot > div, .game-breeding-slot) > span {
+    display: none;
+  }
+  .game-player-dock [data-testid="hand"] {
+    align-items: flex-start;
+    justify-content: safe center !important;
+  }
+  .game-player-dock [data-testid="hand"] > div {
+    margin-left: calc(var(--hand-card-width) * -0.3) !important;
+  }
+  .game-player-dock [data-testid="hand"] > div:first-child {
+    margin-left: 0 !important;
+  }
+  .game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] {
+    --field-prefer-stacked: 1;
+    --field-fit-width: 1;
+  }
+  .game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] > .game-battle-lane {
+    padding-inline: 4px !important;
+  }
+  .game-battle-row .game-field-card-slot__label {
+    inset: 0 -4px;
+    padding: 0;
+    font-size: 9px;
+    line-height: 1.2;
+  }
+  .game-memory-gauge__track {
+    --memory-track-pad-y: 2px;
+  }
+  .game-memory-band .game-memory-coin {
+    max-width: 19px;
+    font-size: 9px;
   }
   .game-board .game-player-dock > .game-arena-counters[data-side="you"] {
     grid-area: 5 / 4;
@@ -648,7 +683,7 @@
    270px: the bar, the hand and the bar's buttons shrink, and the pile captions go. */
 @media (height < 360px) and (orientation: landscape) {
   :root {
-    --hand-card-width: 2.75rem;
+    --hand-card-width: 3.25rem;
   }
   .game-opponent-bar {
     min-height: 0;

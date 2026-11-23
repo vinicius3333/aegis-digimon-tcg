@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectDuration, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { ruleProcess } from "../../engine/gameEngine/ruleProcess.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-031.js";
@@ -23,7 +24,7 @@ describe("EX6-031 Shakamon", () => {
   });
   it("plays named materials from its stack after deletion/return and places a Security Attack Digimon into security once per turn", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions).toMatchObject([
-      { kind: "SubTrigger", event: "onDeletionOf" },
+      { kind: "Replacement", event: "wouldBeDeleted" },
       { kind: "SubTrigger", event: "wouldBeReturned" },
     ]);
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfOpponentsTurn")).toMatchObject({
@@ -103,6 +104,23 @@ describe("EX6-031 Shakamon", () => {
     expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.cardId)).toEqual(
       expect.arrayContaining(["EX6-025", "EX6-023"]),
     );
+  });
+
+  it("publicly plays exact named cards from its stack when reduced to 0 DP by an opponent's effect", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-031", as: "shaka", under: ["EX6-025", "EX6-023"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
+    );
+    await s.ready();
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    await advance(s.engine).verb.modifyDP(s.perm("shaka").permanentId, -15_000, EffectDuration.UntilEachTurnEnd);
+    advance(s.engine).verb.leaveEffectResolution();
+    await ruleProcess(s.engine);
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.cardId)).toEqual(
+      expect.arrayContaining(["EX6-025", "EX6-023"]),
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX6-031"]);
   });
 
   it("publicly plays exact named cards from its stack after returning to deck", async () => {
