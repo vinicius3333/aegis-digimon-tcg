@@ -489,8 +489,9 @@ export function nextInstanceId(engine: GameEngine): string {
 
 function isDigivolutionCardOfAnotherDigimon(engine: GameEngine, instanceId: string): boolean {
   return engine.state.players.some((player) =>
-    [...player.battleArea, ...(player.breeding === undefined ? [] : [player.breeding])].some((permanent) =>
-      permanent.stack.some((card) => card.instanceId === instanceId),
+    [...player.battleArea, ...(player.breeding === undefined ? [] : [player.breeding])].some(
+      (permanent) =>
+        permanent.topCard?.instanceId !== instanceId && permanent.stack.some((card) => card.instanceId === instanceId),
     ),
   );
 }
