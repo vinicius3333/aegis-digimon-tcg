@@ -1564,6 +1564,27 @@ describe("match cues", () => {
     expect(result.current.heldSuspendedIds.has("late")).toBe(false);
   });
 
+  it("shows the Unsuspend ribbon before a Start of Turn prompt instead of after its answer", async () => {
+    const state = {
+      phase: Phase.Active,
+      pendingDecision: { seat: 1, decisionId: "start-of-turn", payloadJson: "{}" },
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        deckCount: 40,
+        eggDeckCount: 4,
+        battleArea: [],
+        trash: [],
+      })),
+    } as unknown as GameState;
+    const { result, rerender } = renderCuesOverBoard(state);
+    await advance(0);
+    rerender([{ kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 2 }]);
+    await advance(0);
+
+    expect(result.current.phaseBanner?.phase).toBe("Active");
+  });
+
   it("releases a suspended breeding permanent along with the battle area", async () => {
     const state = {
       phase: Phase.Main,
