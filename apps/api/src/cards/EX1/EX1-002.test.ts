@@ -76,14 +76,17 @@ describe("EX1-002 Biyomon", () => {
   });
 
   it("does not draw again when a second player attack occurs in the same turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX1-003", as: "attacker", under: ["EX1-002"] }],
-        hand: [{ card: "BT1-036", as: "unsuspender" }],
-        deck: ["BT1-009", "BT1-011", "BT1-012"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-003", as: "attacker", under: ["EX1-002"] }],
+          hand: [{ card: "BT1-036", as: "unsuspender" }],
+          deck: ["BT1-009", "BT1-011", "BT1-012"],
+        },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
       },
-      1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
-    });
+      { autoSelectCards: true },
+    );
     const p0 = s.state.players[0]!;
     s.state.memory = 10;
     await s.ready();
@@ -109,17 +112,20 @@ describe("EX1-002 Biyomon", () => {
   });
 
   it("resets after a complete public turn loop and draws on the next own turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX1-003", as: "attacker", under: ["EX1-002"] }],
-        hand: [{ card: "BT1-036", as: "unsuspender" }],
-        deck: ["BT1-009", "BT1-011", "BT1-012", "BT1-013"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-003", as: "attacker", under: ["EX1-002"] }],
+          hand: [{ card: "BT1-036", as: "unsuspender" }],
+          deck: ["BT1-009", "BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: {
+          deck: ["BT1-009", "BT1-011", "BT1-012", "BT1-013"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
       },
-      1: {
-        deck: ["BT1-009", "BT1-011", "BT1-012", "BT1-013"],
-        security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
-      },
-    });
+      { autoSelectCards: true },
+    );
     const p0 = s.state.players[0]!;
     s.state.memory = 10;
     await s.ready();

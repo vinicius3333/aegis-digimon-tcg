@@ -99,15 +99,18 @@ describe("EX1-028 Angemon", () => {
   });
 
   it("activates only once per turn and resets on the next own turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-060", as: "host", under: ["EX1-028"] }],
-        hand: [{ card: "BT1-036", as: "unsuspender" }],
-        security: ["BT1-009", "BT1-010", "BT1-011"],
-        deck: ["BT1-012", "BT1-013", "BT1-014"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-060", as: "host", under: ["EX1-028"] }],
+          hand: [{ card: "BT1-036", as: "unsuspender" }],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011"], deck: ["BT1-012", "BT1-013"] },
       },
-      1: { security: ["BT1-009", "BT1-010", "BT1-011"], deck: ["BT1-012", "BT1-013"] },
-    });
+      { autoSelectCards: true },
+    );
     s.state.memory = 10;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);

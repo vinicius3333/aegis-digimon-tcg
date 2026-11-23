@@ -361,11 +361,11 @@ export function usePhaseBanners({
       if (openedPhase.kind === "phaseChanged" && openedPhase.phase === UNSUSPEND_PHASE) {
         const boundary = findUnsuspendBoundary({ activePhase: openedPhase, eventTimeline });
         if (boundary === "skipped") continue;
-        if (boundary === "pending") {
+        if (boundary === "pending" && state?.pendingDecision === undefined) {
           deferredUnsuspendRef.current = { phase: openedPhase, last: precedingFrom };
           continue;
         }
-        unsuspendBoundary = boundary;
+        unsuspendBoundary = boundary === "pending" ? undefined : boundary;
       }
       const phaseOrder = ++nextPhaseOrderRef.current;
       phaseOrdersRef.current.set(openedPhase, phaseOrder);

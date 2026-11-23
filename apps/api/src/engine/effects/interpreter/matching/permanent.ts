@@ -283,7 +283,12 @@ export function permanentMatchesFilter(
     const fieldZones = zones.filter((zone) => zone === "battleArea" || zone === "breeding");
     if (fieldZones.length > 0 && !fieldZones.includes(permanent.inBreeding ? "breeding" : "battleArea")) return false;
   }
-  if (filter.excludeLeavingSubject === true && ctx.trigger.deletedPermanentId === permanent.permanentId) return false;
+  if (
+    filter.excludeLeavingSubject === true &&
+    ctx.trigger.deletedPermanentId === permanent.permanentId &&
+    (ctx.affectedPermanentIds?.length ?? 0) <= 1
+  )
+    return false;
   const stackKeywords = (filter as Filter & { stackKeywords?: string[] }).stackKeywords;
   if (stackKeywords !== undefined) {
     if (

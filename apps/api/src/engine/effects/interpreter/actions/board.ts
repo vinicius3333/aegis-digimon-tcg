@@ -14,7 +14,7 @@ import { ACTION_TYPE_KEYWORDS, unsupported } from "../errors.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { countMatching, scaleFactor } from "../scaling.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
-import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, getCardDefinition } from "@aegis/shared";
 import { AttackTargetScope } from "@aegis/shared/effects/ir/actions/AttackTargetScope";
 import type { Action, EffectDurationRef, Target, ZoneRef } from "@aegis/shared";
@@ -145,18 +145,18 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       return action.abortOnDecline === true && suspendedIds.length === 0;
     }
     case "Unsuspend": {
-      // "Unsuspend 1" can only act on a suspended permanent. Excluding already-active
-      // candidates before the prompt prevents an automatic or human selection from
-      // wasting the effect on a card whose orientation cannot change (BT15-063).
-      // A chained sibling ("...; it gains <Blocker>", BT1-095) makes the choice matter
-      // beyond the orientation, so the printed pool stands there (KB Q963).
+      const mandatory = action.optional !== true;
       const mandatoryReachesOpponent =
-        action.optional !== true &&
-        seatsForController(ctx, action.target.filter).includes(ctx.game.opponentOf(ctx.source.ownerSeat));
+        mandatory && seatsForController(ctx, action.target.filter).includes(ctx.game.opponentOf(ctx.source.ownerSeat));
+      const mandatoryCanUnsuspend =
+        mandatory &&
+        candidatePermanents(ctx, action.target, { includeUnaffectable: true }).some(
+          (permanent) => permanent.isSuspended === true,
+        );
       const ids = await resolvePermanentTargets(
         ctx,
         action.target,
-        ctx.nextActionChainsSameTarget === true || mandatoryReachesOpponent
+        ctx.nextActionChainsSameTarget === true || mandatoryReachesOpponent || mandatoryCanUnsuspend
           ? {}
           : { eligible: (permanentId) => ctx.game.permanentById(permanentId)?.isSuspended === true },
       );
