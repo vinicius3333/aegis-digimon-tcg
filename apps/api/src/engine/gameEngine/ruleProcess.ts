@@ -175,7 +175,7 @@ export function collectDeletionPending(engine: GameEngine, pool: readonly Pooled
               // CR 15-4-4-3: replaying/evolving and returning to trash is a new card,
               // even if both moves happen inside one body between collection passes.
               canActivate: (ctx: EffectContext) =>
-                (pendsForDeletedHost ||
+                ((pendsForDeletedHost && !isDigivolutionCardOfAnotherDigimon(engine, instanceId)) ||
                   (sourceArrival !== undefined && trashArrivalOf(engine.state, instanceId) === sourceArrival)) &&
                 (deletedHostId === undefined ||
                   (hostArrival !== undefined && trashArrivalOf(engine.state, deletedHostId) === hostArrival)) &&
@@ -485,4 +485,12 @@ export function nextInstanceId(engine: GameEngine): string {
     candidate = `inst-${engine.instanceSeq}`;
   } while (findInstance(engine, candidate) !== undefined);
   return candidate;
+}
+
+function isDigivolutionCardOfAnotherDigimon(engine: GameEngine, instanceId: string): boolean {
+  return engine.state.players.some((player) =>
+    [...player.battleArea, ...(player.breeding === undefined ? [] : [player.breeding])].some((permanent) =>
+      permanent.stack.some((card) => card.instanceId === instanceId),
+    ),
+  );
 }
