@@ -4,6 +4,7 @@ import { buildDeckCompositionKey } from "#api/accounts/buildDeckCompositionKey";
 import { gunzipSync } from "node:zlib";
 import { CloseCode, type Client } from "colyseus";
 import { REPLAY_CHANNEL, type MatchReplay, type ReplayDownloadMessage } from "@aegis/shared";
+import { decodeReplayFrames } from "@aegis/shared/replays/decodeReplayFrames";
 import type { AccountStore } from "../accounts/AccountStore.js";
 import type { ReplayLibrary } from "../replays/ReplayLibrary.js";
 import type { SeriesRecord } from "./series/SeriesDirectory.js";
@@ -58,7 +59,8 @@ function replayOf(client: Client): MatchReplay | undefined {
     | ReplayDownloadMessage
     | undefined;
   if (message?.kind !== "ready") return undefined;
-  return JSON.parse(gunzipSync(Buffer.from(message.data, "base64")).toString());
+  const file = JSON.parse(gunzipSync(Buffer.from(message.data, "base64")).toString()) as MatchReplay;
+  return { ...file, frames: decodeReplayFrames(file.frames) };
 }
 
 describe("room replay delivery", () => {
@@ -120,7 +122,8 @@ describe("room replay delivery", () => {
     expect(owner).toBe("trusted-owner");
     expect(exported).toMatchObject({ kind: "ready", viewerSeat: 0 });
     expect(context).toEqual({ format: room.state.format, playerAccountIds: [null, null] });
-    expect(JSON.parse(gunzipSync(Buffer.from(exported.data, "base64")).toString())).toEqual(replayOf(signedIn));
+    const exportedFile = JSON.parse(gunzipSync(Buffer.from(exported.data, "base64")).toString()) as MatchReplay;
+    expect({ ...exportedFile, frames: decodeReplayFrames(exportedFile.frames) }).toEqual(replayOf(signedIn));
     Reflect.get(room, "sendReplayDownload").call(room, signedIn);
     await vi.waitFor(() =>
       expect(vi.mocked(signedIn.send).mock.calls.filter(([channel]) => channel === REPLAY_CHANNEL)).toHaveLength(2),
