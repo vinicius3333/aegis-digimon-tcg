@@ -2,7 +2,7 @@ import { printedSentence } from "#api/engine/decisions/printedSentence";
 import { OptionalActivationCancelled } from "#api/engine/effects/OptionalActivationCancelled";
 import { canCancelOptionalActivation } from "#api/engine/effects/interpreter/canCancelOptionalActivation";
 import { keepsFollowUpAfterDeclinedTarget } from "#api/engine/effects/interpreter/keepsFollowUpAfterDeclinedTarget";
-import { endsAttackOptionally } from "#api/engine/effects/interpreter/endsAttackOptionally";
+import { asksApartFromYesPreset } from "#api/engine/effects/interpreter/asksApartFromYesPreset";
 import { getSingleHandActionCostBenefit } from "#api/engine/effects/interpreter/getSingleHandActionCostBenefit";
 import { getSingleHandCostBenefit } from "#api/engine/effects/interpreter/getSingleHandCostBenefit";
 import { getDecisionActionSummary } from "#api/engine/effects/interpreter/getDecisionActionSummary";
@@ -893,7 +893,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
           if (
             actionIndex > 0 &&
             outerOptionalAnswer === true &&
-            (isDecidedApartFromActivation(action) || endsAttackOptionally(action))
+            (isDecidedApartFromActivation(action) || asksApartFromYesPreset(action))
           )
             ctxWithSelections.presetOptionalAnswer = undefined;
           ctxWithSelections.activeActionPath = `${actionIndex}`;
