@@ -17,6 +17,7 @@ import { Switch } from "../../../design/primitives";
 import { SEQUENTIAL_PACING_ENABLED } from "../../../features";
 import { useTranslation, type TranslationKey } from "../../../i18n";
 import { setAutoHatchEnabled, useAutoHatch } from "../../autoHatch";
+import { setSkipNothingToDoEnabled, useSkipNothingToDo } from "@/game/skipNothingToDoPrompts";
 import { setEffectConfirmationHoldEnabled, useEffectConfirmationHold } from "../../effectConfirmationHold";
 import { setHandAutoSortEnabled, useHandAutoSort } from "../../handAutoSort";
 import { arenaInputPreference } from "@/game/input/arenaInputPreference";
@@ -55,6 +56,7 @@ export function ArenaBoardSettings() {
   const handAutoSort = useHandAutoSort();
   const arenaInputEnabled = useArenaInputEnabled();
   const autoHatch = useAutoHatch();
+  const skipNothingToDo = useSkipNothingToDo();
   const groupIdenticalTamers = useTamerGrouping();
   const effectConfirmationHold = useEffectConfirmationHold();
   const effectPromptPosition = useEffectPromptPosition();
@@ -233,6 +235,14 @@ export function ArenaBoardSettings() {
             label={t("settings.autoHatch")}
             description={t("settings.autoHatchDesc")}
             onChange={setAutoHatchEnabled}
+          />
+        </div>
+        <div className="game-arena-settings__row">
+          <Switch
+            checked={skipNothingToDo}
+            label={t("settings.skipNothingToDo")}
+            description={t("settings.skipNothingToDoDesc")}
+            onChange={setSkipNothingToDoEnabled}
           />
         </div>
         <div className="game-arena-settings__row">

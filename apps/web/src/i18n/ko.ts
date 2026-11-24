@@ -625,6 +625,9 @@ const interfaceMessages = {
   "settings.autoHatch": "자동 부화",
   "settings.autoHatchDesc":
     "육성 페이즈에 육성 에어리어가 비어 있으면 디지타마를 자동으로 부화합니다. 계정에 저장됩니다.",
+  "settings.skipNothingToDo": "아무것도 할 수 없는 효과 건너뛰기",
+  "settings.skipNothingToDoDesc":
+    "유발된 효과에 유효한 대상이나 결과가 없으면 “할 수 있다” 확인을 자동으로 거절합니다. 모든 확인을 보려면 끄세요. 계정에 저장됩니다.",
   "settings.handAutoSort": "패 자동 정렬",
   "settings.handAutoSortDesc":
     "카드가 패에 들어오거나 나갈 때마다 패 정렬 버튼에서 고른 순서로 다시 정렬합니다. 드래그한 카드는 패가 바뀔 때까지 그 자리에 있습니다.",

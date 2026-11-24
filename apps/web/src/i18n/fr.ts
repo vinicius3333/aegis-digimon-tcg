@@ -641,6 +641,9 @@ const interfaceMessages = {
   "settings.autoHatch": "Éclosion automatique",
   "settings.autoHatchDesc":
     "Fait éclore automatiquement un Digi-Œuf pendant votre phase d'élevage lorsque la zone d'élevage est vide. Enregistré sur votre compte.",
+  "settings.skipNothingToDo": "Ignorer les effets sans action possible",
+  "settings.skipNothingToDoDesc":
+    "Refuse automatiquement le « vous pouvez » d'un effet déclenché quand il n'a aucune cible ni aucun résultat valide. Désactivez pour voir chaque demande. Enregistré sur votre compte.",
   "settings.handAutoSort": "Garder la main triée",
   "settings.handAutoSortDesc":
     "Trie à nouveau votre main dans l'ordre choisi sur le bouton de tri de la main chaque fois qu'une carte arrive ou part. Les cartes que vous déplacez restent en place jusqu'à ce que la main change.",

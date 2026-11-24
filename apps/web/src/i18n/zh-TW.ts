@@ -600,6 +600,9 @@ const interfaceMessages = {
   "settings.sortHandDesc": "依所選順序整理目前手牌。新抽到的牌會留在最後，直到你再次整理。",
   "settings.autoHatch": "自動孵化",
   "settings.autoHatchDesc": "培育區為空時，在你的培育階段自動孵化數碼蛋。儲存到你的帳戶。",
+  "settings.skipNothingToDo": "跳過無法生效的效果",
+  "settings.skipNothingToDoDesc":
+    "觸發的效果沒有合法對象或結果時，自動拒絕其「可以」提示。關閉後會顯示所有提示。儲存到你的帳戶。",
   "settings.handAutoSort": "保持手牌有序",
   "settings.handAutoSortDesc":
     "每當有牌加入或離開手牌時，按手牌排序按鈕上所選的順序重新整理手牌。你拖曳過的牌會保持原位，直到手牌發生變化。",

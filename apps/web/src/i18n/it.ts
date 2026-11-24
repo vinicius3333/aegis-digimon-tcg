@@ -527,6 +527,9 @@ const interfaceMessages = {
   "settings.autoHatch": "Schiusa automatica",
   "settings.autoHatchDesc":
     "Schiude automaticamente un Digi-Uovo durante la tua fase di allevamento quando l’area è vuota. Salvato nel tuo account.",
+  "settings.skipNothingToDo": "Salta gli effetti che non possono fare nulla",
+  "settings.skipNothingToDoDesc":
+    "Rifiuta automaticamente il “puoi” di un effetto attivato quando non ha bersagli o risultati validi. Disattiva per vedere ogni richiesta. Salvato nel tuo account.",
   "settings.handAutoSort": "Mantieni la mano ordinata",
   "settings.handAutoSortDesc":
     "Riordina la mano nell'ordine scelto sul pulsante di ordinamento ogni volta che una carta entra o esce. Le carte che trascini restano al loro posto finché la mano non cambia.",

@@ -628,6 +628,9 @@ const interfaceMessages = {
   "settings.autoHatch": "Hatch otomatis",
   "settings.autoHatchDesc":
     "Otomatis hatch Digi-Egg saat breeding phase jika breeding area kosong. Disimpan ke akun Anda.",
+  "settings.skipNothingToDo": "Lewati efek yang tidak bisa melakukan apa pun",
+  "settings.skipNothingToDoDesc":
+    "Tolak otomatis “kamu boleh” dari efek terpicu saat tidak ada target atau hasil yang sah. Matikan untuk melihat setiap prompt. Disimpan ke akunmu.",
   "settings.handAutoSort": "Jaga tangan tetap terurut",
   "settings.handAutoSortDesc":
     "Urutkan ulang tangan Anda sesuai urutan yang dipilih di tombol urutkan tangan setiap kali ada kartu masuk atau keluar. Kartu yang Anda seret tetap di tempatnya sampai isi tangan berubah.",

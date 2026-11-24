@@ -352,6 +352,9 @@ export const es: Record<keyof typeof en, string> = {
   "settings.autoHatch": "Eclosión automática",
   "settings.autoHatchDesc":
     "Eclosiona un Digi-Huevo automáticamente durante tu fase de crianza cuando el área está vacía. Se guarda en tu cuenta.",
+  "settings.skipNothingToDo": "Omitir efectos que no pueden hacer nada",
+  "settings.skipNothingToDoDesc":
+    "Rechaza automáticamente el “puedes” de un efecto activado cuando no tiene objetivo ni resultado válido. Desactívalo para ver todos los avisos. Se guarda en tu cuenta.",
   "settings.handAutoSort": "Mantener la mano ordenada",
   "settings.handAutoSortDesc":
     "Reordena la mano en el orden elegido en el botón de ordenar cada vez que entra o sale una carta. Las cartas que arrastras se quedan en su sitio hasta que cambie la mano.",

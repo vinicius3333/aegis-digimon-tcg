@@ -632,6 +632,9 @@ const interfaceMessages = {
   "settings.autoHatch": "自動孵化",
   "settings.autoHatchDesc":
     "育成エリアが空のとき、育成フェイズにデジタマを自動で孵化します。アカウントに保存されます。",
+  "settings.skipNothingToDo": "何もできない効果をスキップ",
+  "settings.skipNothingToDoDesc":
+    "誘発した効果に有効な対象や結果がないとき、「〜してもよい」の確認を自動で断ります。すべての確認を表示するにはオフにします。アカウントに保存されます。",
   "settings.handAutoSort": "手札を自動で並べ替え",
   "settings.handAutoSortDesc":
     "手札にカードが加わったり離れたりするたびに、並べ替えボタンで選んだ順に手札を並べ直します。ドラッグしたカードは、手札が変わるまでその位置に残ります。",

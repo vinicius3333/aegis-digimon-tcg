@@ -350,6 +350,9 @@ export const en = {
   "settings.autoHatch": "Auto hatch",
   "settings.autoHatchDesc":
     "Automatically hatch a Digi-Egg during your breeding phase when the breeding area is empty. Saved to your account.",
+  "settings.skipNothingToDo": "Skip effects that can't do anything",
+  "settings.skipNothingToDoDesc":
+    "Automatically decline a triggered effect's “you may” prompt when it has no legal target or result. Turn off to see every prompt. Saved to your account.",
   "settings.handAutoSort": "Keep hand sorted",
   "settings.handAutoSortDesc":
     "Re-sort your hand in the order chosen on the hand's sort button whenever a card arrives or leaves. Cards you drag stay put until the hand changes.",

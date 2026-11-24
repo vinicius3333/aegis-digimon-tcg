@@ -645,6 +645,9 @@ const interfaceMessages = {
   "settings.autoHatch": "Automatisch ausbrüten",
   "settings.autoHatchDesc":
     "Brütet in Ihrer Aufzuchtphase automatisch ein Digi-Ei aus, wenn der Aufzuchtbereich leer ist. Wird in Ihrem Konto gespeichert.",
+  "settings.skipNothingToDo": "Effekte ohne mögliche Wirkung überspringen",
+  "settings.skipNothingToDoDesc":
+    "Lehnt das „du kannst“ eines ausgelösten Effekts automatisch ab, wenn er kein gültiges Ziel und kein Ergebnis hat. Ausschalten, um jede Abfrage zu sehen. Wird in deinem Konto gespeichert.",
   "settings.handAutoSort": "Hand sortiert halten",
   "settings.handAutoSortDesc":
     "Sortiert Ihre Hand in der über die Sortierschaltfläche der Hand gewählten Reihenfolge neu, sobald eine Karte hinzukommt oder sie verlässt. Karten, die Sie verschieben, bleiben liegen, bis sich die Hand ändert.",

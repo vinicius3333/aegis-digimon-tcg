@@ -598,6 +598,9 @@ const interfaceMessages = {
   "settings.sortHandDesc": "按数码宝贝等级整理当前手牌，其次是驯兽师和选项卡。新抽到的牌会排在末尾，直到你再次整理。",
   "settings.autoHatch": "自动孵化",
   "settings.autoHatchDesc": "育成阶段育成区为空时自动孵化数码蛋，设置保存至账号。",
+  "settings.skipNothingToDo": "跳过无法生效的效果",
+  "settings.skipNothingToDoDesc":
+    "触发的效果没有合法对象或结果时，自动拒绝其“可以”提示。关闭后会显示所有提示。保存到你的账户。",
   "settings.handAutoSort": "保持手牌有序",
   "settings.handAutoSortDesc":
     "每次有卡牌进入或离开手牌时自动重新排序：先按数码宝贝等级，再按驯兽师，最后按选项卡，同类按费用从低到高。你手动拖动过的卡牌会保持原位，直到手牌发生变化。",

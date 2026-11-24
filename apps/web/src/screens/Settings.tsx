@@ -1,6 +1,7 @@
 import { ArenaAppearanceControls } from "@/design/arenaAppearance/ArenaAppearanceControls";
 import { useTamerGrouping } from "@/design/tamerGrouping/useTamerGrouping";
 import { setTamerGroupingEnabled } from "@/design/tamerGrouping/setTamerGroupingEnabled";
+import { setSkipNothingToDoEnabled, useSkipNothingToDo } from "@/game/skipNothingToDoPrompts";
 import { SpectatorAccessSetting } from "@/account/SpectatorAccessSetting";
 import { cardConfirmationModeLabelKey } from "@/game/cardConfirmation/cardConfirmationModeLabelKey";
 import { cardConfirmationModeValues } from "@/game/cardConfirmation/cardConfirmationModeValues";
@@ -308,6 +309,7 @@ export function Settings({
   };
   const fieldLayout = useFieldLayout();
   const groupIdenticalTamers = useTamerGrouping();
+  const skipNothingToDo = useSkipNothingToDo();
   const pileCountsShown = usePileCountsShown();
   const hoverZoom = useHoverZoomPreference();
   const cardViewer3d = useCardViewer3dEnabled();
@@ -710,6 +712,14 @@ export function Settings({
                   label={t("settings.groupIdenticalTamers")}
                   description={t("settings.groupIdenticalTamersDesc")}
                   onChange={setTamerGroupingEnabled}
+                />
+              </div>
+              <div className="settings-row">
+                <Switch
+                  checked={skipNothingToDo}
+                  label={t("settings.skipNothingToDo")}
+                  description={t("settings.skipNothingToDoDesc")}
+                  onChange={setSkipNothingToDoEnabled}
                 />
               </div>
               <div className="settings-row">

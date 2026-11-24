@@ -353,6 +353,9 @@ export const ptBR: Record<keyof typeof en, string> = {
   "settings.autoHatch": "Chocar ovo automaticamente",
   "settings.autoHatchDesc":
     "Choca um Digi-Ovo automaticamente na sua fase de criação quando a área de criação está vazia. Salvo na sua conta.",
+  "settings.skipNothingToDo": "Pular efeitos sem ação possível",
+  "settings.skipNothingToDoDesc":
+    "Recusa automaticamente o “você pode” de um efeito disparado quando ele não tem alvo ou resultado válido. Desligue para ver todos os prompts. Salvo na sua conta.",
   "settings.handAutoSort": "Manter mão ordenada",
   "settings.handAutoSortDesc":
     "Reordena a mão na ordem escolhida no botão de ordenar sempre que uma carta entra ou sai. Cartas que você arrasta ficam no lugar até a mão mudar.",
