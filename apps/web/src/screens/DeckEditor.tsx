@@ -369,8 +369,9 @@ export function DeckEditor({
     return () => observer.disconnect();
   }, [hasMorePool, page]);
 
+  const Root = boundedPool ? "div" : "main";
   return (
-    <div className="deck-builder-page" data-bounded={Boolean(boundedPool)}>
+    <Root className="deck-builder-page" data-bounded={Boolean(boundedPool)}>
       {importing && !boundedPool ? (
         <DeckImportModal onImport={handleImport} onClose={() => setImporting(false)} />
       ) : null}
@@ -417,7 +418,12 @@ export function DeckEditor({
                     }
                     disabled={boundedPool?.disabled}
                     inDeck={inDeck}
-                    atMax={isAtMax(card.cardId)}
+                    atMax={
+                      boundedPool
+                        ? isAtMax(card.cardId)
+                        : sharedCardNumberCount(deckCardIds, card.cardId) >=
+                          Math.min(card.maxCountInDeck, copyLimit(card.cardId))
+                    }
                     pairConflict={pairedCardIds.has(card.cardId)}
                     onAdd={() => add(card.cardId)}
                     onRemove={() => remove(card.cardId)}
@@ -774,6 +780,6 @@ export function DeckEditor({
           onClose={() => setChoosingCover(false)}
         />
       ) : null}
-    </div>
+    </Root>
   );
 }

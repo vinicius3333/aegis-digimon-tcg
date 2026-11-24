@@ -43,7 +43,7 @@ test("combined formats gate deck selection and bot/private starts", async ({ pag
   await page.getByRole("button", { name: /Practice vs AI/ }).click();
   await page.getByRole("button", { name: "Play vs Bot", exact: true }).click();
   await expect(page.getByRole("status", { name: "Match request" })).toHaveText(
-    '["bot",null,null,null,null,true,"BT13:unlimited",{"botDifficulty":"standard","botStyle":"balanced"}]',
+    '["bot",null,null,false,null,true,"BT13:unlimited"]',
   );
   await page.getByRole("button", { name: /Private Match/ }).click();
   await page.getByRole("button", { name: "Create Room", exact: true }).click();
@@ -53,9 +53,6 @@ test("combined formats gate deck selection and bot/private starts", async ({ pag
 });
 
 test("private guests see both fixed host controls", async ({ page }) => {
-  await page.route("**/deployment/manifest.json", (route) =>
-    route.fulfill({ json: { version: 1, active: { slot: "blue", revision: "development" }, draining: [] } }),
-  );
   await page.route("**/room/lookup", (route) =>
     route.fulfill({ json: { roomId: "private-room", unlimited: false, format: "BT13:pauper" } }),
   );

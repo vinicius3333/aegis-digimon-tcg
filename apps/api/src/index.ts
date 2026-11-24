@@ -1,4 +1,3 @@
-import { getPrivateSealedResults } from "#api/rooms/sealed/getPrivateSealedResults";
 import { installPrivateSealedRoutes } from "#api/rooms/sealed/installPrivateSealedRoutes";
 import { createTournamentDiscordSweep } from "#api/tournaments/discord/createTournamentDiscordSweep";
 import { createTournamentResultSweep } from "#api/tournaments/results/createTournamentResultSweep";
@@ -355,7 +354,6 @@ const shutdown = (signal: string) => {
     stopDeadlineWorker: () => deadlineWorker?.stop(),
     shutdownRooms: () => gameServer.gracefullyShutdown(false),
   })
-    .finally(() => getPrivateSealedResults({ accounts: accountStore }).close())
     .finally(() => stopBotInference())
     .then(() => cluster.shutdown())
     .then(() => flushLogs())

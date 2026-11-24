@@ -22,6 +22,12 @@ test("private sealed helper serves real startup HTTP contracts", async () => {
     const me = await fetch(`${origin}/auth/me`);
     assert.equal(me.status, 200);
     assert.equal(await me.json(), null);
+    const outOfScope = await fetch(`${origin}/account/decks`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+    assert.equal(outOfScope.status, 404);
     const decks = await fetch(`${origin}/account/decks`);
     assert.equal(decks.status, 401);
     const config = await fetch(`${origin}/ranked/config`);

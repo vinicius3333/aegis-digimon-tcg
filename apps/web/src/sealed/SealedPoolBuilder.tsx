@@ -18,12 +18,13 @@ import "@/sealed/sealed.css";
 type Props = {
   loadPool: (signal: AbortSignal) => Promise<ApiResult<SealedOwnPool>>;
   readyDeck: (input: PrivateSealedReady) => Promise<ApiResult<SealedOwnPool>>;
+  unreadyDeck?: (input: Pick<PrivateSealedReady, "window" | "revision">) => Promise<ApiResult<SealedOwnPool>>;
   onReady: () => void;
   policy?: string;
   waitingText?: string;
 };
 
-export function SealedPoolBuilder({ loadPool, readyDeck, onReady, policy, waitingText }: Props) {
+export function SealedPoolBuilder({ loadPool, readyDeck, unreadyDeck, onReady, policy, waitingText }: Props) {
   const { t } = useTranslation();
   const [pool, setPool] = useState<SealedOwnPool>();
   const [loadFailed, setLoadFailed] = useState(false);
@@ -60,20 +61,30 @@ export function SealedPoolBuilder({ loadPool, readyDeck, onReady, policy, waitin
       refresh={refresh}
       loadFailed={loadFailed}
       readyDeck={readyDeck}
+      unreadyDeck={unreadyDeck}
       onReady={onReady}
       policy={policy}
     />
   );
 }
 
-type LoadedProps = Pick<Props, "readyDeck" | "onReady" | "policy"> & {
+type LoadedProps = Pick<Props, "readyDeck" | "unreadyDeck" | "onReady" | "policy"> & {
   pool: SealedOwnPool;
   setPool: (pool: SealedOwnPool) => void;
   refresh: () => Promise<unknown>;
   loadFailed: boolean;
 };
 
-function SealedLoadedPoolBuilder({ pool, setPool, refresh, loadFailed, readyDeck, onReady, policy }: LoadedProps) {
+function SealedLoadedPoolBuilder({
+  pool,
+  setPool,
+  refresh,
+  loadFailed,
+  readyDeck,
+  unreadyDeck,
+  onReady,
+  policy,
+}: LoadedProps) {
   const { t } = useTranslation();
   const id = useId();
   const [mainDeck, setMainDeck] = useState<string[]>([]);
@@ -133,12 +144,15 @@ function SealedLoadedPoolBuilder({ pool, setPool, refresh, loadFailed, readyDeck
     }
     setBusy(true);
     setError(false);
-    const result = await readyDeck({
-      mainDeck: eligibleMain,
-      eggDeck: eligibleEggs,
-      revision: pool.revision,
-      window: pool.window,
-    });
+    const result =
+      pool.ready && unreadyDeck
+        ? await unreadyDeck({ revision: pool.revision, window: pool.window })
+        : await readyDeck({
+            mainDeck: eligibleMain,
+            eggDeck: eligibleEggs,
+            revision: pool.revision,
+            window: pool.window,
+          });
     setBusy(false);
     if (result.ok) {
       setPool(result.value);
@@ -168,9 +182,12 @@ function SealedLoadedPoolBuilder({ pool, setPool, refresh, loadFailed, readyDeck
   } else if (editable) {
     status = t("sealed.building");
   }
+  const canUnready = Boolean(
+    unreadyDeck && pool.ready && pool.window && pool.deadlineAt && serverNow() < pool.deadlineAt,
+  );
   const readyAction = (
-    <Button disabled={!editable || busy || !legal} onClick={() => void ready()}>
-      {busy ? t("sealed.saving") : t("sealed.submit")}
+    <Button disabled={busy || (!canUnready && (!editable || !legal))} onClick={() => void ready()}>
+      {busy ? t("sealed.saving") : canUnready ? t("mobile.lobby.editDeck") : t("sealed.submit")}
     </Button>
   );
   const footer = (

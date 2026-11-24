@@ -1,6 +1,5 @@
 import { ownHttpRouteBodies } from "./ownHttpRouteBodies.js";
 import type { AccountStore } from "../dist/accounts/AccountStore.js";
-import type { getPrivateSealedResults } from "../dist/rooms/sealed/getPrivateSealedResults.js";
 import { createServer } from "node:http";
 import type { Socket } from "node:net";
 import express from "express";
@@ -94,7 +93,6 @@ export async function startPrivateSealedBrowserServer({ connectionString, port }
   let database: Awaited<ReturnType<typeof createPrivateBrowserDatabase>> | undefined;
   let pool: Pool | undefined;
   let accounts: AccountStore | undefined;
-  let results: ReturnType<typeof getPrivateSealedResults> | undefined;
   let http: ReturnType<typeof createServer> | undefined;
   let transport: OwnedTransport | undefined;
   let presence: LocalPresence | undefined;
@@ -172,7 +170,6 @@ export async function startPrivateSealedBrowserServer({ connectionString, port }
       }
       if (presence) await attempt(() => presence!.shutdown());
       if (driver) await attempt(() => driver!.shutdown());
-      if (results) await attempt(() => results!.close());
       if (database) await attempt(() => database!.close());
       if (errors.length > 0) retired = true;
       if (!retired) {
@@ -186,7 +183,6 @@ export async function startPrivateSealedBrowserServer({ connectionString, port }
     return closing;
   }
   try {
-    const { getPrivateSealedResults } = await import("../dist/rooms/sealed/getPrivateSealedResults.js");
     const { AccountStore } = await import("../dist/accounts/AccountStore.js");
     const { AegisRoom, roomRegistry } = await import("../dist/rooms/AegisRoom.js");
     const { installPrivateSealedRoutes } = await import("../dist/rooms/sealed/installPrivateSealedRoutes.js");
@@ -200,7 +196,6 @@ export async function startPrivateSealedBrowserServer({ connectionString, port }
     const initializedAccounts = new AccountStore(pool);
     accounts = initializedAccounts;
     await accounts.ensureReady();
-    results = getPrivateSealedResults({ accounts });
     class PrivateRoom extends AegisRoom {
       protected override accounts() {
         return initializedAccounts;
@@ -217,10 +212,18 @@ export async function startPrivateSealedBrowserServer({ connectionString, port }
     app.options("/{*path}", (_req, res) => {
       res.sendStatus(204);
     });
-    installAccountRoutes(app, accounts);
     installMatchQueueRoutes({ app });
     installPrivateRoomRoutes(app);
     installPrivateSealedRoutes({ app, accounts });
+    const accountReads = new Set(["/auth/me", "/account/decks", "/ranked/config", "/ranked/queue"]);
+    app.use((req, res, next) => {
+      if (req.method === "GET" && accountReads.has(req.path)) {
+        next();
+      } else {
+        res.sendStatus(404);
+      }
+    });
+    installAccountRoutes(app, accounts);
     http = createServer(app);
     transport = new OwnedTransport({
       server: http,

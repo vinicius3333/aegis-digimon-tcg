@@ -15,7 +15,14 @@ import type {
 import type { SealedPull, SealedDeck, SealedConfiguration } from "@aegis/shared/sealed/SealedContracts";
 
 type Owner = { credential: string; code: string; now?: number };
-type Create = { credential: string; name: string; requestId: string; setId: string; now?: number };
+type Create = {
+  admissionAddress?: string;
+  credential: string;
+  name: string;
+  requestId: string;
+  setId: string;
+  now?: number;
+};
 type Join = Owner & { name: string };
 type Ready = Owner & PrivateSealedReady;
 type Start = Owner & {
@@ -154,6 +161,12 @@ export class PrivateSealedStore {
     try {
       await client.query("BEGIN");
       await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1,0))", [`private-sealed-host:${hash}`]);
+      const addressHash = input.admissionAddress ? getHash(input.admissionAddress) : null;
+      if (addressHash) {
+        await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1,0))", [
+          `private-sealed-address:${addressHash}`,
+        ]);
+      }
       const existing = (
         await client.query<Row>("SELECT code,state FROM private_sealed_series WHERE host_hash=$1 AND request_id=$2", [
           hash,
@@ -168,15 +181,23 @@ export class PrivateSealedStore {
         return this.present(existing, input.credential, input.now ?? Date.now());
       }
       const now = input.now ?? Date.now();
-      const hosted = (
-        await client.query<Row>("SELECT code,state FROM private_sealed_series WHERE host_hash=$1 LIMIT 13", [hash])
-      ).rows;
-      const open = hosted.filter((row) => {
-        this.expire(row.state, now);
-        return row.state.status !== Status.COMPLETE.value && row.state.status !== Status.CANCELLED.value;
-      });
-      if (open.length >= 3 || hosted.length >= 12) {
-        throw new Error("host_series_limit");
+      const byHost = await client.query<Row>(
+        "SELECT code,state FROM private_sealed_series WHERE host_hash=$1 LIMIT 13",
+        [hash],
+      );
+      const byAddress = addressHash
+        ? await client.query<Row>("SELECT code,state FROM private_sealed_series WHERE address_hash=$1 LIMIT 13", [
+            addressHash,
+          ])
+        : null;
+      for (const rows of [byHost.rows, byAddress?.rows ?? []]) {
+        const open = rows.filter((row) => {
+          this.expire(row.state, now);
+          return row.state.status !== Status.COMPLETE.value && row.state.status !== Status.CANCELLED.value;
+        });
+        if (open.length >= 3 || rows.length >= 12) {
+          throw new Error("host_series_limit");
+        }
       }
       const state: State = {
         version: 2,
@@ -191,8 +212,8 @@ export class PrivateSealedStore {
       };
       const code = randomBytes(9).toString("hex").toUpperCase();
       await client.query(
-        "INSERT INTO private_sealed_series(id,code,host_hash,request_id,state) VALUES($1,$2,$3,$4,$5)",
-        [randomUUID(), code, hash, requestId, JSON.stringify(state)],
+        "INSERT INTO private_sealed_series(id,code,host_hash,request_id,state,address_hash) VALUES($1,$2,$3,$4,$5,$6)",
+        [randomUUID(), code, hash, requestId, JSON.stringify(state), addressHash],
       );
       await client.query("COMMIT");
       return this.present({ code, state }, input.credential, now);
@@ -282,6 +303,23 @@ export class PrivateSealedStore {
         mainDeckArts: legality.mainDeckArts,
         eggDeckArts: legality.eggDeckArts,
       };
+      return this.present(row, input.credential, now);
+    });
+  }
+
+  async unready(input: Owner & Pick<Ready, "revision" | "window">): Promise<PrivateSealedView> {
+    return this.change(input.code, async (row) => {
+      const seat = row.state.seats[this.requireSeat(row.state, input.credential)]!;
+      const now = input.now ?? Date.now();
+      const window = this.getWindow(row.state);
+      if (!window || input.window !== window || now >= row.state.deadlineAt) {
+        throw new Error("window_closed");
+      }
+      if (seat.revision !== input.revision || seat.readyWindow !== window) {
+        throw new Error("stale_revision");
+      }
+      seat.readyWindow = null;
+      seat.revision++;
       return this.present(row, input.credential, now);
     });
   }
@@ -401,38 +439,22 @@ export class PrivateSealedStore {
     return { seat, name: row.state.seats[seat]!.name, deck: structuredClone(game.decks[seat]) };
   }
 
-  async getCurrentGame(
-    input: Owner,
-  ): Promise<{ gameId: string; roomId: string | null; slot: PrivateSealedRoomSlot; finishedAt: number | null } | null> {
-    await this.accounts.ensureReady();
-    const row = (
-      await this.accounts.pool.query<Row>("SELECT code,state FROM private_sealed_series WHERE code=$1", [input.code])
-    ).rows[0];
-    if (!row) {
-      throw new Error("series_not_found");
-    }
-    this.requireSeat(row.state, input.credential);
-    const game = row.state.games.at(-1);
-    return game ? { gameId: game.id, roomId: game.roomId, slot: game.slot, finishedAt: game.finishedAt } : null;
-  }
-
   async recordResult(input: Result): Promise<void> {
     await this.accounts.ensureReady();
-    if (await this.hasRecordedResult(this.accounts.pool, input)) {
-      return;
-    }
-    const found = (
-      await this.accounts.pool.query<{ code: string }>(
-        "SELECT code FROM private_sealed_series WHERE current_game_id=$1",
-        [input.gameId],
-      )
-    ).rows[0];
-    if (!found) {
-      throw new Error("game_not_found");
-    }
-    await this.change(found.code, async (row, client) => {
+    const client = await this.accounts.pool.connect();
+    try {
+      await client.query("BEGIN");
+      const row = (
+        await client.query<Row>("SELECT code,state FROM private_sealed_series WHERE current_game_id=$1 FOR UPDATE", [
+          input.gameId,
+        ])
+      ).rows[0];
       if (await this.hasRecordedResult(client, input)) {
+        await client.query("COMMIT");
         return;
+      }
+      if (!row) {
+        throw new Error("game_not_found");
       }
       const game = row.state.games.find((entry) => entry.id === input.gameId);
       if (!game || game.roomId !== input.roomId) {
@@ -443,26 +465,32 @@ export class PrivateSealedStore {
         "INSERT INTO private_sealed_results(game_id,series_id,room_id,winner,finished_at) SELECT $1,id,$2,$3,$4 FROM private_sealed_series WHERE code=$5",
         [input.gameId, input.roomId, input.winner, finishedAt, row.code],
       );
-      if (game.finishedAt !== null) {
-        return;
-      }
       game.finishedAt = finishedAt;
       game.winner = input.winner;
-      if (row.state.status !== Status.PLAYING.value) {
-        return;
+      if (row.state.status === Status.PLAYING.value) {
+        if (input.winner !== null) {
+          row.state.score[input.winner]++;
+        }
+        if (row.state.score.some((score) => score >= 2)) {
+          row.state.status = Status.COMPLETE.value;
+          row.state.retiredAt = finishedAt;
+          row.state.winner = row.state.score[0] >= 2 ? 0 : 1;
+        } else {
+          row.state.status = Status.SIDEBOARDING.value;
+          row.state.deadlineAt = finishedAt + getConfiguration(row.state).sideboardSeconds * 1000;
+        }
       }
-      if (input.winner !== null) {
-        row.state.score[input.winner]++;
-      }
-      if (row.state.score.some((score) => score >= 2)) {
-        row.state.status = Status.COMPLETE.value;
-        row.state.retiredAt = finishedAt;
-        row.state.winner = row.state.score[0] >= 2 ? 0 : 1;
-      } else {
-        row.state.status = Status.SIDEBOARDING.value;
-        row.state.deadlineAt = game.finishedAt + getConfiguration(row.state).sideboardSeconds * 1000;
-      }
-    });
+      await client.query("UPDATE private_sealed_series SET state=$1 WHERE code=$2", [
+        JSON.stringify(row.state),
+        row.code,
+      ]);
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   private async hasRecordedResult(db: Pick<PoolClient, "query">, input: Result): Promise<boolean> {

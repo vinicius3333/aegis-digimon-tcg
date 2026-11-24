@@ -6,7 +6,6 @@ import { Pool } from "pg";
 import { beforeAll, afterAll, expect, it } from "vitest";
 import { AccountStore } from "#api/accounts/AccountStore";
 import { installPrivateSealedRoutes } from "#api/rooms/sealed/installPrivateSealedRoutes";
-import { getPrivateSealedResults } from "#api/rooms/sealed/getPrivateSealedResults";
 import type { PrivateSealedView } from "@aegis/shared/sealed/private/PrivateSealedContracts";
 
 const connectionString = process.env.SEALED_TEST_DATABASE_URL;
@@ -31,7 +30,6 @@ beforeAll(async () => {
 });
 afterAll(async () => {
   await new Promise<void>((resolve) => server.close(() => resolve()));
-  await getPrivateSealedResults({ accounts }).close();
   await pool.end();
   await admin.query(`DROP SCHEMA ${schema} CASCADE`);
   await admin.end();

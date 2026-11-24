@@ -1,8 +1,5 @@
 import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
-import { mkdtempSync, readdirSync, rmSync } from "node:fs";
-import { join } from "node:path";
-import { PrivateSealedResults } from "#api/rooms/sealed/PrivateSealedResults";
 import { afterAll, beforeAll, beforeEach, expect, it, vi } from "vitest";
 import { matchMaker } from "colyseus";
 import { createPrivateSealedRoom } from "#api/rooms/sealed/createPrivateSealedRoom";
@@ -249,56 +246,24 @@ it("keeps all retained rows in the persistent cap and permits only identical req
   expect((await new PrivateSealedStore(accounts).create(input)).code).toBe(first.code);
 });
 
-it("preserves active games, authoritative pending memory and journals until a real receipt commits", async () => {
+it("rolls back a receipt when the series update fails and preserves the authoritative game", async () => {
   const { owner } = await createReadySeries();
   const game = await startGame(owner);
-  const directory = mkdtempSync(join(process.env.TMPDIR!, "retirement-journal-"));
   const result = { gameId: game.gameId, roomId: game.roomId, winner: 0 as const, now: epoch + 1000 };
-  const failed = new PrivateSealedResults({
-    accounts,
-    directory,
-    automatic: false,
-    persist: async () => {
-      throw new Error("database unavailable");
-    },
-  });
+  await pool.query(
+    "ALTER TABLE private_sealed_series ADD CONSTRAINT refuse_result CHECK (state->>'status' <> 'sideboarding')",
+  );
   try {
-    await expect(failed.enqueue(result)).rejects.toThrow("database unavailable");
-    const before = (await pool.query("SELECT state FROM private_sealed_series WHERE code=$1", [owner.code])).rows[0]
-      .state;
-    await sweepAll(epoch + 30 * day);
-    expect(
-      (await pool.query("SELECT state FROM private_sealed_series WHERE code=$1", [owner.code])).rows[0].state,
-    ).toEqual(before);
-    await store.cancel({ ...owner, now: epoch + 2000 });
+    await expect(store.recordResult(result)).rejects.toMatchObject({ code: "23514" });
+    expect((await pool.query("SELECT count(*) FROM private_sealed_results")).rows[0].count).toBe("0");
+    expect(await store.view(owner)).toMatchObject({ score: [0, 0], status: "playing" });
     await sweepAll(epoch + 30 * day);
     expect(await countSeries()).toBe(1);
-    expect(failed.hasPending(game.gameId)).toBe(true);
-    expect(readdirSync(directory)).toEqual([`${game.gameId}.json`]);
-    expect((await pool.query("SELECT count(*) FROM private_sealed_results")).rows[0].count).toBe("0");
   } finally {
-    await failed.close();
+    await pool.query("ALTER TABLE private_sealed_series DROP CONSTRAINT refuse_result");
   }
-  const recovered = new PrivateSealedResults({ accounts, directory, automatic: false });
-  try {
-    await recovered.runOnce();
-    expect(recovered.hasPending(game.gameId)).toBe(false);
-    expect(readdirSync(directory)).toEqual([]);
-    await sweepAll(epoch + 30 * day);
-    expect(await countSeries()).toBe(0);
-    await recovered.enqueue(result);
-    expect(recovered.hasPending(game.gameId)).toBe(false);
-    const unknown = { ...result, gameId: randomUUID() };
-    await expect(recovered.enqueue(unknown)).rejects.toThrow("game_not_found");
-    expect(recovered.hasPending(unknown.gameId)).toBe(true);
-    expect(readdirSync(directory)).toEqual([`${unknown.gameId}.json`]);
-    expect((await pool.query("SELECT room_id,winner,finished_at FROM private_sealed_results")).rows).toEqual([
-      { room_id: game.roomId, winner: 0, finished_at: String(result.now) },
-    ]);
-  } finally {
-    await recovered.close();
-    rmSync(directory, { recursive: true, force: true });
-  }
+  await store.recordResult(result);
+  expect(await store.view(owner)).toMatchObject({ score: [1, 0], status: "sideboarding" });
 });
 
 it("reclaims abandoned sideboarding only after its deadline plus retention and durable receipts", async () => {

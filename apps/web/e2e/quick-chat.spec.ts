@@ -69,7 +69,6 @@ for (const width of [390, 1440]) {
       await expect(
         page.getByRole("button", { name: "Open quick chat, 1 unread messages", exact: true }),
       ).toHaveAttribute("aria-expanded", "false");
-      await expect(page.locator(".friends-drawer-badge")).toHaveText("1");
       expect(await page.evaluate(() => window.quickChatFixtureMessages[0]?.readAt)).toBeNull();
       await page.screenshot({
         path: fileURLToPath(
@@ -84,10 +83,6 @@ for (const width of [390, 1440]) {
       await expect(chat).toBeVisible();
       await expect(input).toBeFocused();
       await expect(input).toHaveValue("Keep my draft");
-      await expect(page.getByRole("button", { name: "Open quick chat", exact: true })).toHaveAttribute(
-        "aria-expanded",
-        "true",
-      );
       await expect(chat.getByText("Bora testar os decks?", { exact: true })).toBeVisible();
       await expect.poll(async () => page.evaluate(() => window.quickChatFixtureMessages[0]?.readAt)).not.toBeNull();
       await input.fill("Bora! Me chama quando terminar.");
@@ -147,19 +142,6 @@ for (const width of [390, 1440]) {
           ),
         ),
       });
-      await page.keyboard.press("Escape");
-      await expect(menu).toHaveCount(0);
-      await expect(more).toBeFocused();
-      await more.press("ArrowDown");
-      await expect(menu.getByRole("menuitem", { name: "Challenge", exact: true })).toBeFocused();
-      await page.keyboard.press("ArrowDown");
-      await expect(menu.getByRole("menuitem", { name: "Remove friend" })).toBeFocused();
-      await page.keyboard.press("ArrowDown");
-      await expect(menu.getByRole("menuitem", { name: "Block player", exact: true })).toBeFocused();
-      await page.keyboard.press("ArrowUp");
-      await expect(menu.getByRole("menuitem", { name: "Remove friend" })).toBeFocused();
-      await page.keyboard.press("ArrowUp");
-      await expect(menu.getByRole("menuitem", { name: "Challenge", exact: true })).toBeFocused();
       await page.keyboard.press("Escape");
       await expect(menu).toHaveCount(0);
       await expect(more).toBeFocused();

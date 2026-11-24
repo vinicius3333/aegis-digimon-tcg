@@ -22,9 +22,9 @@ export function installFeedbackTriageRoutes({ app, store, session }: FeedbackTri
   const limitReopen = tokenBucketLimiter(REOPEN_RATE_LIMIT);
   const route =
     (handler: Handler) =>
-    (req: Request, res: Response, next: NextFunction): Promise<unknown> | void => {
+    (req: Request, res: Response, next: NextFunction): void => {
       res.set("Cache-Control", "no-store");
-      return handler(req, res).catch(next);
+      handler(req, res).catch(next);
     };
 
   async function signedIn(req: Request, res: Response): Promise<AuthSession | undefined> {

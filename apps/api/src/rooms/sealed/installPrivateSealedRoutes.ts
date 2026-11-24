@@ -1,7 +1,5 @@
 import { findBoosterProduct } from "@aegis/shared/packOpening/findBoosterProduct";
 import { isSealedProductAvailable } from "@aegis/shared/sealed/isSealedProductAvailable";
-import { getPrivateSealedResults } from "#api/rooms/sealed/getPrivateSealedResults";
-import { reconcilePrivateSealedResult } from "#api/rooms/sealed/reconcilePrivateSealedResult";
 import { closePrivateSealedRoom } from "#api/rooms/sealed/closePrivateSealedRoom";
 import { tokenBucketLimiter } from "#api/http/rateLimit";
 import { randomBytes } from "node:crypto";
@@ -15,7 +13,6 @@ const cookieName = "aegis_private_sealed";
 type Params = { app: Express; accounts: AccountStore };
 export function installPrivateSealedRoutes({ app, accounts }: Params): void {
   const store = new PrivateSealedStore(accounts);
-  const results = getPrivateSealedResults({ accounts });
   const createSeries = tokenBucketLimiter({ capacity: 6, refillMs: 60000 });
   const admit = tokenBucketLimiter({ capacity: 60, refillMs: 1000 });
   const poll = tokenBucketLimiter({ capacity: 30, refillMs: 1000 });
@@ -52,6 +49,7 @@ export function installPrivateSealedRoutes({ app, accounts }: Params): void {
     }
     await respond(res, async () =>
       store.create({
+        admissionAddress: req.ip ?? "unknown",
         credential: getCredential(req, res, true)!,
         name: body.name.trim(),
         requestId: body.requestId,
@@ -76,23 +74,12 @@ export function installPrivateSealedRoutes({ app, accounts }: Params): void {
       store.join({ code: getCode(req), credential: getCredential(req, res, true)!, name: req.body.name.trim() }),
     );
   });
-  app.use("/private-sealed/:code", async (req, res, next) => {
-    if (req.method === "GET") {
-      next();
+  app.use("/private-sealed/:code", (req, res, next) => {
+    if (!getCredential(req, res)) {
+      res.status(403).json({ error: "seat_required" });
       return;
     }
-    try {
-      await reconcilePrivateSealedResult({
-        store,
-        results,
-        owner: { code: getCode(req), credential: getRequiredCredential(req, res) },
-      });
-      next();
-    } catch (error) {
-      await respond(res, async () => {
-        throw error;
-      });
-    }
+    next();
   });
   app.get("/private-sealed/:code", async (req, res) => {
     await respond(res, async () => store.view({ code: getCode(req), credential: getRequiredCredential(req, res) }));
@@ -109,6 +96,27 @@ export function installPrivateSealedRoutes({ app, accounts }: Params): void {
         credential: getRequiredCredential(req, res),
         mainDeck: body.mainDeck,
         eggDeck: body.eggDeck,
+        revision: body.revision,
+        window: body.window,
+      }),
+    );
+  });
+  app.post("/private-sealed/:code/unready", async (req, res) => {
+    const body = req.body;
+    if (
+      !body ||
+      !Number.isSafeInteger(body.revision) ||
+      body.revision < 0 ||
+      typeof body.window !== "string" ||
+      body.window.length > 80
+    ) {
+      res.status(400).json({ error: "invalid_request" });
+      return;
+    }
+    await respond(res, () =>
+      store.unready({
+        code: getCode(req),
+        credential: getRequiredCredential(req, res),
         revision: body.revision,
         window: body.window,
       }),

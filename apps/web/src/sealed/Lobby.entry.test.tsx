@@ -166,3 +166,24 @@ it("preserves constructed rules and restricts sealed to private matches", async 
   expect(screen.getByRole("combobox", { name: "Rules" })).toHaveProperty("value", "pauper");
   expect(requestPrivateSealed).not.toHaveBeenCalled();
 });
+
+it("honors an explicit practice entry instead of resuming a saved private series", () => {
+  sessionStorage.setItem("aegis:private-sealed-code", "0123456789ABCDEF01");
+  render(
+    <I18nProvider>
+      <Lobby
+        initialMode="practice"
+        player={loadIdentity()}
+        decks={[]}
+        activeDeckId=""
+        onSelectDeck={() => undefined}
+        onCopyDeck={() => undefined}
+        onNav={() => undefined}
+        onStart={() => undefined}
+      />
+    </I18nProvider>,
+  );
+  expect(screen.getByRole("button", { name: /Practice vs AI/ }).getAttribute("aria-pressed")).toBe("true");
+  expect(requestPrivateSealed).not.toHaveBeenCalled();
+  expect(sessionStorage.getItem("aegis:private-sealed-code")).toBe("0123456789ABCDEF01");
+});

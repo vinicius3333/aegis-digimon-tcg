@@ -25,6 +25,7 @@ function renderEditor(editorDeck: DeckListing = deck) {
 describe("deck sheet bar", () => {
   it("shows the main and Digi-Egg counts and opens the deck sheet with its stats", () => {
     renderEditor();
+    expect(screen.getByRole("main").className).toBe("deck-builder-page");
     const bar = screen.getByRole("button", { name: /^View deck/ });
     expect(bar).toHaveProperty("textContent", expect.stringContaining("Main 8/50"));
     expect(bar).toHaveProperty("textContent", expect.stringContaining("Egg 5/5"));
@@ -42,6 +43,19 @@ describe("deck sheet bar", () => {
         .map((term) => [term.textContent, term.nextElementSibling?.textContent]),
     );
     expect(typeCounts).toEqual({ Digimon: "5", Tamer: "2", Option: "1", "Digi-Egg": "5" });
+  });
+
+  it("does not present a forbidden pair as a reached copy limit", async () => {
+    renderEditor({ ...deck, mainDeck: ["BT20-037", "BT17-035"], eggDeck: [] });
+    fireEvent.change(screen.getByRole("textbox", { name: "Search name, number or text…" }), {
+      target: { value: "BT20-037" },
+    });
+    const tile = document.querySelector<HTMLElement>('[data-pool-card="BT20-037"]');
+    if (!tile) throw new Error("Expected the pair member in the pool");
+    const add = within(tile).getByRole("button", { name: "Add" });
+    expect(add).toHaveProperty("disabled", false);
+    fireEvent.click(add);
+    expect(screen.getByRole("button", { name: /^View deck/ }).textContent).toContain("Main 2/50");
   });
 
   it("keeps add and remove working from the open sheet", () => {

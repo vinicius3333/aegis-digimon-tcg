@@ -1,4 +1,3 @@
-import { useModalFocus } from "@/design/useModalFocus";
 import { CardAceBadge } from "@/design/CardAceBadge";
 import { CardTextField } from "@/i18n/CardTextField";
 import { I18nContext } from "@/i18n/I18nContext";
@@ -9,7 +8,7 @@ import { getTranslatedCardName } from "@/i18n/getTranslatedCardName";
 import { getTranslatedCardMeta } from "@/i18n/getTranslatedCardMeta";
 /* The card detail drawer: the full card, its printed numbers and its effect text. */
 
-import { useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   formatCopyLimit,
   type DeckFormat,
@@ -18,7 +17,7 @@ import {
   resolveCardArt,
   formatRestrictionLabel,
 } from "@aegis/shared";
-import { Eyebrow } from "../design/primitives";
+import { Dialog, Eyebrow } from "../design/primitives";
 import { CardFull } from "../design/cards";
 import { formLabel, kindOf } from "../design/theme";
 import { useTranslation } from "../i18n";
@@ -57,8 +56,6 @@ export function CardDetailDrawer({
   ).artId;
   const cardTranslation = useCardFaceTranslation({ artId: selectedArt });
   const translations = useCardTranslations({ locale: cardTranslation.locale });
-  const drawer = useRef<HTMLElement>(null);
-  useModalFocus({ surfaceRef: drawer, onClose, focusFirst: true });
   const arts = getCardArts(cardId).filter((art) => !allowedArtIds || allowedArtIds.includes(art.artId));
   const def = getCardDefinition(cardId);
   if (!def) return null;
@@ -70,15 +67,8 @@ export function CardDetailDrawer({
   ].filter((value) => value && value !== "-" && value !== "—");
   const copyLimit = ownedLimit ?? formatCopyLimit(cardId, format);
   const banLabel = ownedLimit === undefined ? formatRestrictionLabel(cardId, format) : undefined;
-  return (
-    <aside
-      ref={drawer}
-      tabIndex={-1}
-      aria-labelledby="card-detail-title"
-      aria-modal="true"
-      className="card-detail-drawer"
-      role="dialog"
-    >
+  const content = (
+    <>
       <div className="card-detail-header">
         <div id="card-detail-title">
           <Eyebrow>{t("library.cardDetail")}</Eyebrow>
@@ -190,6 +180,18 @@ export function CardDetailDrawer({
         </I18nContext.Provider>
         {footer}
       </div>
+    </>
+  );
+  if (ownedLimit !== undefined) {
+    return (
+      <Dialog className="card-detail-drawer" labelledBy="card-detail-title" onClose={onClose}>
+        {content}
+      </Dialog>
+    );
+  }
+  return (
+    <aside aria-labelledby="card-detail-title" aria-modal="true" className="card-detail-drawer" role="dialog">
+      {content}
     </aside>
   );
 }

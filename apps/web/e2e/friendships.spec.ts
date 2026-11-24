@@ -1,6 +1,13 @@
-import { expect, test, type Page, type BrowserContext } from "@playwright/test";
-import { closeFriendshipFixture } from "./closeFriendshipFixture.js";
-import { startSocialBrowserServer } from "./startSocialBrowserServer.js";
+import { createRequire } from "node:module";
+import type { AddressInfo } from "node:net";
+import { expect, test, type Page } from "@playwright/test";
+
+const requireApi = createRequire(new URL("../../api/package.json", import.meta.url));
+const express = requireApi("express");
+
+async function loadApiModule(name: string) {
+  return import(new URL(`../../api/dist/${name}.js`, import.meta.url).href);
+}
 
 class FriendsPage {
   constructor(private readonly page: Page) {}
@@ -23,23 +30,32 @@ for (const width of [390, 1440]) {
     test(`players become friends from history and enforce blocking at ${width}px in ${dark ? "dark" : "light"} mode`, async ({
       browser,
     }) => {
-      const fixture = await startSocialBrowserServer();
-      const contexts: BrowserContext[] = [];
-      const errors: unknown[] = [];
+      const { createMemoryDatabase } = await loadApiModule("db/createMemoryDatabase");
+      const { AccountStore } = await loadApiModule("accounts/AccountStore");
+      const { installAccountRoutes } = await loadApiModule("accounts/routes");
+      const store = new AccountStore(
+        new (createMemoryDatabase({ noAstCoverageCheck: true }).adapters.createPg().Pool)(),
+      );
+      const app = express();
+      app.use(express.json());
+      installAccountRoutes(app, store);
+      const first = await store.accountForIdentity("email", "first@test.invalid", "First Tamer");
+      const second = await store.accountForIdentity("email", "second@test.invalid", "Second Tamer");
+      await store.recordRecentMatch(first.id, "friends-finished-room", {
+        id: "friends-finished-match",
+        mode: "casual",
+        opponentKind: "human",
+        opponentName: second.displayName,
+        opponentAccountId: second.id,
+        result: "win",
+        reason: "security",
+        finishedAt: Date.now(),
+      });
+      const server = app.listen(0, "127.0.0.1");
+      await new Promise<void>((resolve) => server.once("listening", resolve));
+      const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+      const contexts = [];
       try {
-        const store = fixture.accounts;
-        const first = await store.accountForIdentity("email", "first@test.invalid", "First Tamer");
-        const second = await store.accountForIdentity("email", "second@test.invalid", "Second Tamer");
-        await store.recordRecentMatch(first.id, "friends-finished-room", {
-          id: "friends-finished-match",
-          mode: "casual",
-          opponentKind: "human",
-          opponentName: second.displayName,
-          opponentAccountId: second.id,
-          result: "win",
-          reason: "security",
-          finishedAt: Date.now(),
-        });
         const players = [];
         for (const account of [first, second]) {
           const session = await store.issueSession(account);
@@ -52,7 +68,9 @@ for (const width of [390, 1440]) {
           }, dark);
           await page.route(`http://127.0.0.1:${process.env.AEGIS_E2E_EDGE_PORT ?? 2569}/**`, async (route) => {
             const request = route.request();
+            const url = new URL(request.url());
             const response = await route.fetch({
+              url: `${origin}${url.pathname}${url.search}`,
               headers: { ...request.headers(), cookie: `aegis_session=${session.id}` },
             });
             await route.fulfill({ response });
@@ -101,10 +119,12 @@ for (const width of [390, 1440]) {
         ).toHaveText("This request is unavailable.");
         await sender.friends.expectNoOverflow();
         await recipient.friends.expectNoOverflow();
-      } catch (error) {
-        errors.push(error);
       } finally {
-        await closeFriendshipFixture({ contexts, server: undefined, database: fixture, errors });
+        for (const context of contexts) {
+          await context.close();
+        }
+        await new Promise<void>((resolve) => server.close(() => resolve()));
+        await store.close();
       }
     });
   }

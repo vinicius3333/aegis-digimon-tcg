@@ -1,4 +1,3 @@
-import { getPrivateSealedResults } from "#api/rooms/sealed/getPrivateSealedResults";
 import type { PrivateSealedGameTicket } from "@aegis/shared/sealed/private/PrivateSealedContracts";
 import type { SealedDeck } from "@aegis/shared/sealed/SealedContracts";
 import { buildPrivateSealedReplayFile } from "#api/replays/buildPrivateSealedReplayFile";
@@ -1017,19 +1016,6 @@ export class AegisRoom extends Room<{
     return this.privateSealedGameId !== undefined && this.state.gameOver;
   }
 
-  async retryPrivateSealedResult(): Promise<boolean> {
-    if (!this.privateSealedGameId) {
-      return false;
-    }
-    const results = getPrivateSealedResults({ accounts: this.accounts() });
-    try {
-      await results.flush(this.privateSealedGameId);
-    } catch {
-      return false;
-    }
-    return !results.hasPending(this.privateSealedGameId);
-  }
-
   private async openPrivateSealedGame(options: RoomCreateOptions): Promise<void> {
     const grant = await consumePrivateSealedRoomGrant({
       accounts: this.accounts(),
@@ -1725,7 +1711,7 @@ export class AegisRoom extends Room<{
     event: Extract<import("@aegis/shared").ServerEvent, { kind: "gameOver" }>,
   ): Promise<void> {
     if (this.privateSealedGameId) {
-      await getPrivateSealedResults({ accounts: this.accounts() }).enqueue({
+      await new PrivateSealedStore(this.accounts()).recordResult({
         gameId: this.privateSealedGameId,
         roomId: this.roomId,
         winner: event.result.outcome === "draw" ? null : event.result.winnerSeat,

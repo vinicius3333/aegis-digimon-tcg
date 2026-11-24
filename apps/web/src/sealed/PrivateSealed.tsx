@@ -129,11 +129,15 @@ export function PrivateSealed({
     [code, isCurrent],
   );
   const readyDeck = useCallback(
-    async (input: PrivateSealedReady) => {
+    async (input: PrivateSealedReady | Pick<PrivateSealedReady, "window" | "revision">) => {
       if (!isCurrent()) {
         return { ok: false as const, error: { status: 0, code: "client_resource_superseded" } };
       }
-      const result = await requestPrivateSealed<PrivateSealedView>({ code, action: "ready", body: input });
+      const result = await requestPrivateSealed<PrivateSealedView>({
+        code,
+        action: "mainDeck" in input ? "ready" : "unready",
+        body: input,
+      });
       if (!result.ok) {
         return result;
       }
@@ -343,6 +347,7 @@ export function PrivateSealed({
                         key={`${code}:${resource.version}:${view.pool.window}`}
                         loadPool={loadPool}
                         readyDeck={readyDeck}
+                        unreadyDeck={readyDeck}
                         policy={t("sealed.private.policy")}
                         waitingText={t("sealed.private.waiting")}
                         onReady={() => void refresh()}

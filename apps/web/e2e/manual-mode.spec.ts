@@ -729,33 +729,6 @@ test.describe("manual table", () => {
     await page.locator(".manual-table__toggle").click();
     const handCard = page.locator(`[data-testid="hand"] [data-hand-instance-id="${agumon.instanceId}"]`);
     const target = page.locator(".game-utility-slot--you-raising .game-breeding-slot__box");
-    let priorRect: number[] | undefined;
-    await expect
-      .poll(async () => {
-        const sample = await handCard.evaluate((card) => {
-          const { x, y, width, height } = card.getBoundingClientRect();
-          const hit = document.elementFromPoint(x + width / 2, y + height / 2);
-          const owner = hit?.closest("[data-hand-instance-id], [data-hand-hover-instance-id]");
-          const instanceId =
-            owner?.getAttribute("data-hand-instance-id") ?? owner?.getAttribute("data-hand-hover-instance-id");
-          const moving = card.getAnimations().some((animation) => {
-            const endTime = animation.effect?.getComputedTiming().endTime;
-            return (
-              Number.isFinite(endTime) &&
-              Number(endTime) > 0 &&
-              (animation.pending || animation.playState !== "finished")
-            );
-          });
-          return {
-            rect: [x, y, width, height],
-            ready: width > 0 && height > 0 && !moving && instanceId === card.getAttribute("data-hand-instance-id"),
-          };
-        });
-        const stable = sample.rect.every((value, index) => Number.isFinite(value) && value === priorRect?.[index]);
-        priorRect = sample.rect;
-        return sample.ready && stable;
-      })
-      .toBe(true);
     const origin = (await handCard.boundingBox())!;
     const destination = (await target.boundingBox())!;
     await page.mouse.move(origin.x + origin.width / 2, origin.y + origin.height / 2);

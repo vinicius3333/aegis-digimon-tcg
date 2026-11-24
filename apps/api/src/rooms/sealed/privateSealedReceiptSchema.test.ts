@@ -28,6 +28,14 @@ for (const baseline of ["fresh", "058", "060"]) {
           ])
         ).rows,
       ).toEqual(ledger);
+      expect(
+        (
+          await pool.query(
+            "SELECT indexdef FROM pg_indexes WHERE schemaname=$1 AND tablename='private_sealed_room_grants'",
+            [schema],
+          )
+        ).rows.some((row) => /\(code\)/.test(row.indexdef)),
+      ).toBe(true);
       const seriesId = randomUUID();
       const gameId = randomUUID();
       await pool.query(

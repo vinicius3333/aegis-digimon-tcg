@@ -90,6 +90,25 @@ it("rejects invalid decks and stale revisions and idempotently locks ready submi
     store.start({ ...owner, createRoom: async () => "never", roomExists: async () => true }),
   ).rejects.toThrow("not_ready");
 });
+it("reopens only the owning ready revision in the current window", async () => {
+  const { created } = await createSeries();
+  const owner = { code: created.code, credential: host, now };
+  await store.join({ ...owner, credential: guest, name: "Guest" });
+  const deck = chooseDeck(await store.view(owner));
+  const locked = await store.ready({ ...owner, ...deck });
+  const input = { ...owner, window: deck.window, revision: locked.pool.revision };
+  await expect(store.unready({ ...input, credential: randomUUID() })).rejects.toThrow("seat_required");
+  await expect(store.unready({ ...input, now: locked.pool.deadlineAt! })).rejects.toThrow("window_closed");
+  const reopened = await store.unready(input);
+  expect(reopened.pool).toMatchObject({
+    editable: true,
+    ready: false,
+    revision: input.revision + 1,
+    deck: locked.pool.deck,
+  });
+  await expect(store.ready({ ...owner, ...deck })).rejects.toThrow("stale_revision");
+  expect((await store.ready({ ...owner, ...deck, revision: reopened.pool.revision })).pool.ready).toBe(true);
+});
 it("locks current deck snapshots, seats by authorization, records BO3 once and preserves pools", async () => {
   const { created } = await createSeries();
   const owner = { code: created.code, credential: host, now };

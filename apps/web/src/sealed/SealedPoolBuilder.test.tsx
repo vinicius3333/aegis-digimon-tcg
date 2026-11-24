@@ -42,6 +42,16 @@ it("keeps edits through stale polls, shows legality, and honors a server lock", 
     editable: true,
     deadlineAt: Date.now() + 600000,
   };
+  const unready = vi.fn(async () => {
+    pool = {
+      ...pool,
+      deck: { mainDeck: ["BT4-009", "BT4-009"], eggDeck: [], revision: 1 },
+      ready: false,
+      editable: true,
+      revision: 2,
+    };
+    return { ok: true as const, value: pool };
+  });
   const load = vi.fn<() => Promise<{ ok: true; value: SealedOwnPool }>>(async () => ({
     ok: true as const,
     value: { ...pool },
@@ -51,6 +61,7 @@ it("keeps edits through stale polls, shows legality, and honors a server lock", 
     <I18nProvider>
       <SealedPoolBuilder
         loadPool={load}
+        unreadyDeck={unready}
         readyDeck={vi.fn<() => Promise<{ ok: true; value: SealedOwnPool }>>()}
         onReady={() => undefined}
       />
@@ -95,6 +106,11 @@ it("keeps edits through stale polls, shows legality, and honors a server lock", 
     await vi.advanceTimersByTimeAsync(3000);
   });
   expect(screen.getByRole("button", { name: /^View deck/ }).textContent).toContain("Main 2/40");
+  await act(async () => fireEvent.click(screen.getAllByRole("button", { name: "Edit deck" })[0]!));
+  expect(unready).toHaveBeenCalledWith({ revision: 1, window: "initial" });
+  expect(
+    within(document.querySelector<HTMLElement>('[data-pool-card="BT4-009"]')!).getByRole("button", { name: "Remove" }),
+  ).toHaveProperty("disabled", false);
 });
 
 it("explains an expired preparation window and prevents ready", async () => {

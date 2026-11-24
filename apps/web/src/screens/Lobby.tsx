@@ -300,11 +300,27 @@ export function Lobby({
   privateRoom?: PrivateRoom;
   onLeavePrivateRoom?: () => void;
 }) {
-  const [privateSealed, setPrivateSealed] = useState(
-    () =>
-      !!sessionStorage.getItem("aegis:private-sealed-code") ||
-      new URLSearchParams(location.search).has("privateSealed"),
-  );
+  const [privateSealed, setPrivateSealed] = useState(() => {
+    if (new URLSearchParams(location.search).has("privateSealed")) {
+      return true;
+    }
+    if (
+      invitedRoomCode ||
+      privateRoom ||
+      queueChallenge ||
+      challengeFriendName ||
+      initialMode ||
+      openMatchSettings ||
+      initialRanked
+    ) {
+      return false;
+    }
+    try {
+      return Boolean(sessionStorage.getItem("aegis:private-sealed-code"));
+    } catch {
+      return false;
+    }
+  });
   const [sealedFormat, setSealedFormat] = useState(false);
   const getCardName = useTranslatedCardName();
   const { t } = useTranslation();
