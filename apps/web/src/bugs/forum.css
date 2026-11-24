@@ -30,6 +30,9 @@
 .aegis-coins__spin {
   display: inline-grid;
   flex: none;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
   padding: 0;
   border: 0;
   border-radius: 50%;
