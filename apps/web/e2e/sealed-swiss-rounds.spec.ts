@@ -91,7 +91,10 @@ test("four signed-in players keep their pools through two played Swiss BO3 round
     await Promise.all(pages.map((page) => page.goto(route, { waitUntil: "domcontentloaded" })));
     await Promise.all(pages.map((page, index) => buildDeck({ page, pool: pools.get(accounts[index]!.id)! })));
     for (const page of pages) {
-      await page.getByRole("button", { name: "Ready", exact: true }).click();
+      await page
+        .getByRole("complementary", { name: "Deck information", exact: true })
+        .getByRole("button", { name: "Ready", exact: true })
+        .click();
     }
     await expect.poll(async () => (await backend.accounts.tournament(event.id))!.status).toBe("in_progress");
     const pairings: string[][] = [];
@@ -128,7 +131,10 @@ test("four signed-in players keep their pools through two played Swiss BO3 round
                 if (seat === 0) {
                   await exchangeCard({ page, pool: own });
                 }
-                await page.getByRole("button", { name: "Ready", exact: true }).click();
+                await page
+                  .getByRole("complementary", { name: "Deck information", exact: true })
+                  .getByRole("button", { name: "Ready", exact: true })
+                  .click();
                 await expect.poll(async () => (await getPool(ids[seat]!)).ready).toBe(true);
               }
             }
