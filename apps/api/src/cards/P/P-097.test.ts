@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "./P-097.js";
 
@@ -13,6 +14,18 @@ function ledgerOf(s: EngineSetup): LedgerReader {
 const ZUBAMON = "P-097";
 const LEGEND_ARMS_HOST = "BT3-008";
 const BLACK_NON_LEGEND_ARMS = "BT2-055";
+
+describe("P-097 Zubamon printed card", () => {
+  it("is red only, and digivolves from a red or a black level 2 for 0", () => {
+    expect(getCardDefinition(ZUBAMON)).toMatchObject({
+      colors: ["Red"],
+      evoCosts: [
+        { color: "Red", level: 2, memoryCost: 0 },
+        { color: "Black", level: 2, memoryCost: 0 },
+      ],
+    });
+  });
+});
 
 describe("P-097 [On Play] places self under another Digimon and reorders the revealed cards", () => {
   it("exposes top/bottom and ordering decisions, then puts the chosen order on top", async () => {
