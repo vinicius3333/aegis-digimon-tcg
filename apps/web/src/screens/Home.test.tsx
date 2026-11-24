@@ -38,6 +38,7 @@ function renderHome(overrides: Partial<Parameters<typeof Home>[0]> = {}) {
     onOpenTournaments: vi.fn<() => void>(),
     onCreateTournament: vi.fn<() => void>(),
     onOpenBooster: vi.fn<() => void>(),
+    onOpenBugForum: vi.fn<() => void>(),
     onEditDeck: vi.fn<(deck: DeckListing) => void>(),
     onPlayDeck: vi.fn<(deck: DeckListing) => void>(),
     onBuildDeck: vi.fn<() => void>(),
@@ -72,6 +73,7 @@ beforeEach(() => {
     total: 0,
   };
   rankedResponseStatus = 200;
+  bugForumSummary = { open: 0, awaitingVote: null, aegisCoins: null };
   vi.stubGlobal(
     "fetch",
     vi.fn<typeof fetch>(async (input) => {
@@ -79,6 +81,9 @@ beforeEach(() => {
       requestedUrls.push(url);
       if (url.includes("/ranked/leaderboard")) {
         return new Response(JSON.stringify(rankedLeaderboard), { status: rankedResponseStatus });
+      }
+      if (url.includes("/feedback/bugs/summary")) {
+        return new Response(JSON.stringify(bugForumSummary), { status: 200 });
       }
       if (url.includes("/tournaments")) {
         return new Response(JSON.stringify([]), { status: 200 });
@@ -96,7 +101,25 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+let bugForumSummary: { open: number; awaitingVote: number | null; aegisCoins: number | null };
+
 describe("the home screen", () => {
+  it("invites a signed-in player to vote in the bug forum and shows their Aegis coins", async () => {
+    bugForumSummary = { open: 4, awaitingVote: 3, aegisCoins: 12 };
+    const onOpenBugForum = vi.fn<() => void>();
+    renderHome({ accountId: "account-1", onOpenBugForum });
+
+    expect(await screen.findByText("Reports waiting for your vote: 3")).toBeTruthy();
+    expect(screen.getByText("12")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Vote now" }));
+    expect(onOpenBugForum).toHaveBeenCalled();
+  });
+
+  it("asks guests to sign in from the bug forum card", async () => {
+    renderHome();
+    expect(await screen.findByText("Vote on bug reports and earn Aegis coins when the team agrees.")).toBeTruthy();
+  });
+
   it("renders live player portraits and public card previews without changing the watch action", async () => {
     liveMatchPage = {
       total: 1,

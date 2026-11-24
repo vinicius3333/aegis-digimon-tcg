@@ -1,4 +1,4 @@
-import { openBugsZhTW } from "@/i18n/openBugs.zh-TW";
+import { bugForumZhTW } from "@/i18n/bugForum.zh-TW";
 import { deckMatchupZhTW } from "@/i18n/deckMatchup.zh-TW";
 import { deckOddsZhTW } from "@/i18n/deckOdds.zh-TW";
 import { chatActionsZhTW } from "@/i18n/chatActions.zh-TW";
@@ -556,14 +556,14 @@ const interfaceMessages = {
   "bugReport.notice.anonymousPrivate": "你的回饋已儲存。如果你想追蹤並獲得回覆，請先登入。",
   "feedback.triage.confirmedBug": "已確認的錯誤",
   "feedback.triage.confirmedBugBadge": "已確認的錯誤",
-  "feedback.triage.confirmedBugHint": "{name} 獲得 1 分，現在共有 {count} 分。",
-  "feedback.triage.confirmedBugAnonymous": "匿名報告：沒有人獲得積分。",
-  "feedback.triage.confirmedBugDuplicate": "重複報告不計分；積分歸原始報告。",
+  "feedback.triage.confirmedBugHint": "{name} 獲得 1 枚 Aegis 幣。目前已確認的錯誤：{count}。",
+  "feedback.triage.confirmedBugAnonymous": "匿名報告：沒有人獲得 Aegis 幣。",
+  "feedback.triage.confirmedBugDuplicate": "重複報告不發放 Aegis 幣；Aegis 幣歸原始報告。",
   "feedback.triage.reporterPoints": "{count} 個已確認的錯誤",
   "feedback.reportedDecks.title": "被檢舉的社群卡組（{count}）",
   "feedback.reportedDecks.reports": "{count} 次檢舉",
   "myFeedback.points": "已確認的錯誤：{count}",
-  "myFeedback.pointsHint": "團隊每確認一份報告為真實錯誤，你就獲得 1 分。",
+  "myFeedback.pointsHint": "團隊每確認一份報告為真實錯誤，你就獲得 1 枚 Aegis 幣。你也可以在錯誤論壇中賺取 Aegis 幣。",
   "myFeedback.confirmedBug": "已確認的錯誤",
   "notifications.feedback.confirmed": "你的報告「{summary}」已被確認為錯誤",
   "notifications.bugConfirmedPoint": "已確認為錯誤 · +1 分",
@@ -2932,7 +2932,7 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
-  ...openBugsZhTW,
+  ...bugForumZhTW,
 } satisfies Record<keyof typeof en, string>;
 
 export const zhTW: Record<keyof typeof en, string> = {

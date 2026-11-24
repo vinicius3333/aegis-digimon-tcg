@@ -51,7 +51,7 @@ type Handler = (url: string, init?: RequestInit) => Reply;
 const REPORTED_DECKS = "/admin/community/reports";
 const PLAYTEST = "/admin/playtest/";
 const REPORTED_TOURNAMENTS = "/account/admin/tournament-reports";
-const OPEN_BUGS = "/feedback/open-bugs/";
+const BUG_FORUM = "/feedback/bugs/";
 const investigation = {
   id: 42,
   summary: "",
@@ -59,10 +59,12 @@ const investigation = {
   cardIds: [],
   status: "new",
   createdAt: 0,
-  volunteerNames: [],
-  claimedByMe: false,
-  noteCount: 0,
-  notes: [],
+  commentCount: 0,
+  outcome: null,
+  myVote: null,
+  ownReport: false,
+  comments: [],
+  tally: null,
 };
 
 function mockApi(handler: Handler, reportedDecks: unknown[] = []) {
@@ -74,7 +76,7 @@ function mockApi(handler: Handler, reportedDecks: unknown[] = []) {
         ? [200, { reports: [] }]
         : url.includes(PLAYTEST)
           ? [200, url.endsWith("/members") ? { members: [] } : { open: [], past: [] }]
-          : url.includes(OPEN_BUGS)
+          : url.includes(BUG_FORUM)
             ? [200, investigation]
             : handler(url, init);
     return new Response(JSON.stringify(body), { status });
@@ -106,7 +108,7 @@ function show(
 const urls = (fetchMock: ReturnType<typeof mockApi>) =>
   fetchMock.mock.calls
     .map(([input]) => String(input))
-    .filter((url) => !url.endsWith(REPORTED_DECKS) && !url.includes(PLAYTEST) && !url.includes(OPEN_BUGS));
+    .filter((url) => !url.endsWith(REPORTED_DECKS) && !url.includes(PLAYTEST) && !url.includes(BUG_FORUM));
 
 afterEach(() => {
   cleanup();
@@ -383,7 +385,7 @@ describe("confirming a real bug", () => {
     ]);
     show({ selectedId: 42 });
     expect(await screen.findByText(/Kai \(2 confirmed bugs\)/)).toBeTruthy();
-    expect(screen.getByText("Kai earns 1 point. They have 2 now.")).toBeTruthy();
+    expect(screen.getByText("Kai earns 1 Aegis coin. Confirmed bugs so far: 2.")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("checkbox", { name: "Confirmed bug" }));
     expect(screen.getByText("Saving notifies the reporter.")).toBeTruthy();
@@ -405,14 +407,14 @@ describe("confirming a real bug", () => {
     const checkbox = screen.getByRole("checkbox", { name: "Confirmed bug" }) as HTMLInputElement;
     expect(checkbox.disabled).toBe(true);
     expect(checkbox.checked).toBe(false);
-    expect(screen.getByText("Duplicates earn no point; the original report holds it.")).toBeTruthy();
+    expect(screen.getByText("Duplicates earn no Aegis coin; the original report holds it.")).toBeTruthy();
   });
 
   it("says nobody earns the point on an anonymous report", async () => {
     const anonymous = { ...item, hasReporterAccount: false };
     api(() => [200, detail(anonymous)], anonymous);
     show({ selectedId: 42 });
-    expect(await screen.findByText("Anonymous report: nobody earns the point.")).toBeTruthy();
+    expect(await screen.findByText("Anonymous report: nobody earns the Aegis coin.")).toBeTruthy();
   });
 });
 

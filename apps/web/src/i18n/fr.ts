@@ -1,4 +1,4 @@
-import { openBugsFr } from "@/i18n/openBugs.fr";
+import { bugForumFr } from "@/i18n/bugForum.fr";
 import { deckMatchupFr } from "@/i18n/deckMatchup.fr";
 import { deckOddsFr } from "@/i18n/deckOdds.fr";
 import { chatActionsFr } from "@/i18n/chatActions.fr";
@@ -591,14 +591,16 @@ const interfaceMessages = {
     "Vos commentaires sont enregistrés. Connectez-vous d'abord si vous souhaitez les suivre et obtenir une réponse.",
   "feedback.triage.confirmedBug": "Bug confirmé",
   "feedback.triage.confirmedBugBadge": "Bug confirmé",
-  "feedback.triage.confirmedBugHint": "{name} gagne 1 point. Total actuel : {count}.",
-  "feedback.triage.confirmedBugAnonymous": "Rapport anonyme : personne ne gagne le point.",
-  "feedback.triage.confirmedBugDuplicate": "Les doublons ne rapportent aucun point ; il revient au rapport original.",
+  "feedback.triage.confirmedBugHint": "{name} gagne 1 pièce Aegis. Bugs confirmés à ce jour : {count}.",
+  "feedback.triage.confirmedBugAnonymous": "Rapport anonyme : personne ne gagne la pièce Aegis.",
+  "feedback.triage.confirmedBugDuplicate":
+    "Les doublons ne rapportent aucune pièce Aegis ; elle revient au rapport original.",
   "feedback.triage.reporterPoints": "{count} bugs confirmés",
   "feedback.reportedDecks.title": "Decks communautaires signalés ({count})",
   "feedback.reportedDecks.reports": "{count} rapports",
   "myFeedback.points": "Bugs confirmés : {count}",
-  "myFeedback.pointsHint": "Chaque signalement confirmé par l'équipe comme étant un bug réel vous rapporte 1 point.",
+  "myFeedback.pointsHint":
+    "Chaque signalement confirmé par l'équipe comme bug réel vous rapporte 1 pièce Aegis. Vous gagnez aussi des pièces dans le forum des bugs.",
   "myFeedback.confirmedBug": "Bug confirmé",
   "notifications.feedback.confirmed": "Votre rapport « {summary} » a été confirmé comme un bug",
   "notifications.bugConfirmedPoint": "Confirmé comme bug · +1 point",
@@ -3111,7 +3113,7 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
-  ...openBugsFr,
+  ...bugForumFr,
 } satisfies Record<keyof typeof en, string>;
 
 export const fr: Record<keyof typeof en, string> = {

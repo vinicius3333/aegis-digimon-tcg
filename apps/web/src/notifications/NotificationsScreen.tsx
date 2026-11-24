@@ -13,19 +13,11 @@ type NotificationsScreenParams = {
   inbox: NotificationInbox;
   tab: NotificationsTab;
   feedback: ReactNode;
-  openBugs: ReactNode;
   onTabChange: (tab: NotificationsTab) => void;
   onOpenFeedback: (feedbackId?: number) => void;
 };
 
-export function NotificationsScreen({
-  inbox,
-  tab,
-  feedback,
-  openBugs,
-  onTabChange,
-  onOpenFeedback,
-}: NotificationsScreenParams) {
+export function NotificationsScreen({ inbox, tab, feedback, onTabChange, onOpenFeedback }: NotificationsScreenParams) {
   const { t } = useTranslation();
   const { load } = inbox;
   useEffect(() => {
@@ -71,17 +63,9 @@ export function NotificationsScreen({
           >
             {t("myFeedback.title")}
           </button>
-          <button
-            aria-current={tab === NotificationsTab.OPEN_BUGS.value ? "page" : undefined}
-            onClick={() => onTabChange(NotificationsTab.OPEN_BUGS.value)}
-          >
-            {t("openBugs.title")}
-          </button>
         </nav>
         {tab === NotificationsTab.FEEDBACK.value ? (
           feedback
-        ) : tab === NotificationsTab.OPEN_BUGS.value ? (
-          openBugs
         ) : (
           <div className="notifications-card">
             {inbox.failed ? <p className="aegis-notifications__state">{t("notifications.failed")}</p> : null}

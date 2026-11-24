@@ -1,4 +1,4 @@
-import { openBugsKo } from "@/i18n/openBugs.ko";
+import { bugForumKo } from "@/i18n/bugForum.ko";
 import { deckMatchupKo } from "@/i18n/deckMatchup.ko";
 import { deckOddsKo } from "@/i18n/deckOdds.ko";
 import { chatActionsKo } from "@/i18n/chatActions.ko";
@@ -578,14 +578,15 @@ const interfaceMessages = {
     "피드백이 저장되었습니다. 진행 상황을 확인하고 답변을 받으려면 먼저 로그인하세요.",
   "feedback.triage.confirmedBug": "확인된 버그",
   "feedback.triage.confirmedBugBadge": "확인된 버그",
-  "feedback.triage.confirmedBugHint": "{name} 님이 1점을 받습니다. 현재 {count}점입니다.",
-  "feedback.triage.confirmedBugAnonymous": "익명 신고: 아무도 점수를 받지 않습니다.",
-  "feedback.triage.confirmedBugDuplicate": "중복 신고는 점수를 받지 않습니다. 점수는 원본 신고에 주어집니다.",
+  "feedback.triage.confirmedBugHint": "{name} 님이 Aegis 코인 1개를 받습니다. 지금까지 확인된 버그: {count}개",
+  "feedback.triage.confirmedBugAnonymous": "익명 신고: 아무도 Aegis 코인을 받지 않습니다.",
+  "feedback.triage.confirmedBugDuplicate": "중복 신고는 Aegis 코인을 받지 않습니다. 코인은 원본 신고에 주어집니다.",
   "feedback.triage.reporterPoints": "확인된 버그 {count}개",
   "feedback.reportedDecks.title": "신고된 커뮤니티 덱 ({count})",
   "feedback.reportedDecks.reports": "신고 {count}건",
   "myFeedback.points": "확인된 버그: {count}",
-  "myFeedback.pointsHint": "팀이 실제 버그로 확인한 신고마다 1점을 받습니다.",
+  "myFeedback.pointsHint":
+    "팀이 실제 버그로 확인한 신고마다 Aegis 코인 1개를 받습니다. 버그 포럼에서도 코인을 받을 수 있습니다.",
   "myFeedback.confirmedBug": "확인된 버그",
   "notifications.feedback.confirmed": "신고 “{summary}”이(가) 버그로 확인되었습니다",
   "notifications.bugConfirmedPoint": "버그로 확인됨 · +1점",
@@ -3011,7 +3012,7 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
-  ...openBugsKo,
+  ...bugForumKo,
 } satisfies Record<keyof typeof en, string>;
 
 export const ko: Record<keyof typeof en, string> = {

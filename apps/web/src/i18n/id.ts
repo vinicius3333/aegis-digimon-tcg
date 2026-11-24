@@ -1,4 +1,4 @@
-import { openBugsId } from "@/i18n/openBugs.id";
+import { bugForumId } from "@/i18n/bugForum.id";
 import { deckMatchupId } from "@/i18n/deckMatchup.id";
 import { deckOddsId } from "@/i18n/deckOdds.id";
 import { chatActionsId } from "@/i18n/chatActions.id";
@@ -578,14 +578,15 @@ const interfaceMessages = {
     "Masukan Anda disimpan. Masuk terlebih dahulu jika ingin mengikutinya dan mendapat balasan.",
   "feedback.triage.confirmedBug": "Bug yang dikonfirmasi",
   "feedback.triage.confirmedBugBadge": "Bug yang dikonfirmasi",
-  "feedback.triage.confirmedBugHint": "{name} mendapat 1 poin. Mereka memiliki {count} sekarang.",
-  "feedback.triage.confirmedBugAnonymous": "Laporan anonim: tidak ada yang mendapat poin.",
-  "feedback.triage.confirmedBugDuplicate": "Duplikat tidak mendapat poin; poin tetap pada laporan asli.",
+  "feedback.triage.confirmedBugHint": "{name} mendapat 1 koin Aegis. Bug yang dikonfirmasi sejauh ini: {count}.",
+  "feedback.triage.confirmedBugAnonymous": "Laporan anonim: tidak ada yang mendapat koin Aegis.",
+  "feedback.triage.confirmedBugDuplicate": "Duplikat tidak mendapat koin Aegis; koin tetap pada laporan asli.",
   "feedback.triage.reporterPoints": "{count} bug yang dikonfirmasi",
   "feedback.reportedDecks.title": "Deck komunitas yang dilaporkan ({count})",
   "feedback.reportedDecks.reports": "{count} laporan",
   "myFeedback.points": "Bug yang dikonfirmasi: {count}",
-  "myFeedback.pointsHint": "Setiap laporan yang dikonfirmasi oleh tim sebagai bug nyata memberi Anda 1 poin.",
+  "myFeedback.pointsHint":
+    "Setiap laporan yang dikonfirmasi tim sebagai bug nyata memberi Anda 1 koin Aegis. Anda juga bisa mendapat koin di forum bug.",
   "myFeedback.confirmedBug": "Bug yang dikonfirmasi",
   "notifications.feedback.confirmed": "Laporan Anda “{summary}” dikonfirmasi sebagai bug",
   "notifications.bugConfirmedPoint": "Dikonfirmasi sebagai bug · +1 poin",
@@ -3063,7 +3064,7 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
-  ...openBugsId,
+  ...bugForumId,
 } satisfies Record<keyof typeof en, string>;
 
 export const id: Record<keyof typeof en, string> = {

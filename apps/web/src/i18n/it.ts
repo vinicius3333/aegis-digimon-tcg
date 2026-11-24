@@ -1,4 +1,4 @@
-import { openBugsIt } from "@/i18n/openBugs.it";
+import { bugForumIt } from "@/i18n/bugForum.it";
 import { deckMatchupIt } from "@/i18n/deckMatchup.it";
 import { deckOddsIt } from "@/i18n/deckOdds.it";
 import { chatActionsIt } from "@/i18n/chatActions.it";
@@ -354,15 +354,16 @@ const interfaceMessages = {
     "Il tuo feedback viene salvato. Accedi prima se vuoi seguirlo e ricevere una risposta.",
   "feedback.triage.confirmedBug": "Bug confermato",
   "feedback.triage.confirmedBugBadge": "Bug confermato",
-  "feedback.triage.confirmedBugHint": "{name} guadagna 1 punto. Ora ne ha {count}.",
-  "feedback.triage.confirmedBugAnonymous": "Segnalazione anonima: nessuno guadagna il punto.",
+  "feedback.triage.confirmedBugHint": "{name} guadagna 1 moneta Aegis. Bug confermati finora: {count}.",
+  "feedback.triage.confirmedBugAnonymous": "Segnalazione anonima: nessuno guadagna la moneta Aegis.",
   "feedback.triage.confirmedBugDuplicate":
-    "I duplicati non guadagnano punti; il punto resta alla segnalazione originale.",
+    "I duplicati non guadagnano monete Aegis; la moneta resta alla segnalazione originale.",
   "feedback.triage.reporterPoints": "{count} bug confermati",
   "feedback.reportedDecks.title": "Mazzi della community segnalati ({count})",
   "feedback.reportedDecks.reports": "{count} segnalazioni",
   "myFeedback.points": "Bug confermati: {count}",
-  "myFeedback.pointsHint": "Ogni segnalazione che il team conferma come bug reale vale 1 punto.",
+  "myFeedback.pointsHint":
+    "Ogni segnalazione che il team conferma come bug reale vale 1 moneta Aegis. Puoi guadagnare monete anche nel forum dei bug.",
   "myFeedback.confirmedBug": "Bug confermato",
   "notifications.feedback.confirmed": "La tua segnalazione “{summary}” è stata confermata come bug",
   "notifications.bugConfirmedPoint": "Confermato come bug · +1 punto",
@@ -2788,7 +2789,7 @@ const interfaceMessages = {
   ...matchIntroIt,
   ...staffRolesIt,
   ...achievementsIt,
-  ...openBugsIt,
+  ...bugForumIt,
 } satisfies Record<Exclude<keyof typeof en, `releases.${string}`>, string>;
 
 export const it: Record<keyof typeof en, string> = {

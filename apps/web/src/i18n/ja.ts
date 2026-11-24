@@ -1,4 +1,4 @@
-import { openBugsJa } from "@/i18n/openBugs.ja";
+import { bugForumJa } from "@/i18n/bugForum.ja";
 import { deckMatchupJa } from "@/i18n/deckMatchup.ja";
 import { deckOddsJa } from "@/i18n/deckOdds.ja";
 import { chatActionsJa } from "@/i18n/chatActions.ja";
@@ -584,14 +584,16 @@ const interfaceMessages = {
     "フィードバックは保存されます。進み具合を確認して返信を受け取るには、先にサインインしてください。",
   "feedback.triage.confirmedBug": "確認済みのバグ",
   "feedback.triage.confirmedBugBadge": "確認済みのバグ",
-  "feedback.triage.confirmedBugHint": "{name}に1ポイントが付与されます。現在{count}ポイントです。",
-  "feedback.triage.confirmedBugAnonymous": "匿名のレポートのため、ポイントは付与されません。",
-  "feedback.triage.confirmedBugDuplicate": "重複にはポイントが付与されません。ポイントは元のレポートに付与されます。",
+  "feedback.triage.confirmedBugHint": "{name}に Aegis コインが1枚付与されます。これまでの確認済みバグ: {count}",
+  "feedback.triage.confirmedBugAnonymous": "匿名のレポートのため、Aegis コインは付与されません。",
+  "feedback.triage.confirmedBugDuplicate":
+    "重複には Aegis コインが付与されません。コインは元のレポートに付与されます。",
   "feedback.triage.reporterPoints": "確認済みのバグ: {count}",
   "feedback.reportedDecks.title": "報告されたコミュニティデッキ ({count})",
   "feedback.reportedDecks.reports": "{count}件の報告",
   "myFeedback.points": "確認済みのバグ: {count}",
-  "myFeedback.pointsHint": "チームが実際のバグと確認したレポートごとに1ポイントが付与されます。",
+  "myFeedback.pointsHint":
+    "チームが実際のバグと確認したレポートごとに Aegis コインが1枚付与されます。バグフォーラムでもコインを獲得できます。",
   "myFeedback.confirmedBug": "確認済みのバグ",
   "notifications.feedback.confirmed": "あなたのレポート「{summary}」がバグとして確認されました",
   "notifications.bugConfirmedPoint": "バグとして確認 · +1ポイント",
@@ -3037,7 +3039,7 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
-  ...openBugsJa,
+  ...bugForumJa,
 } satisfies Record<keyof typeof en, string>;
 
 export const ja: Record<keyof typeof en, string> = {

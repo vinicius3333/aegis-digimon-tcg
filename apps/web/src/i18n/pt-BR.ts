@@ -1,4 +1,4 @@
-import { openBugsPtBR } from "@/i18n/openBugs.pt-BR";
+import { bugForumPtBR } from "@/i18n/bugForum.pt-BR";
 import { deckMatchupPtBR } from "@/i18n/deckMatchup.pt-BR";
 import { deckOddsPtBR } from "@/i18n/deckOdds.pt-BR";
 import { chatActionsPtBR } from "@/i18n/chatActions.pt-BR";
@@ -306,14 +306,15 @@ export const ptBR: Record<keyof typeof en, string> = {
     "Seu feedback é salvo. Entre na conta antes se quiser acompanhar e receber resposta.",
   "feedback.triage.confirmedBug": "Bug confirmado",
   "feedback.triage.confirmedBugBadge": "Bug confirmado",
-  "feedback.triage.confirmedBugHint": "{name} ganha 1 ponto. Hoje tem {count}.",
-  "feedback.triage.confirmedBugAnonymous": "Relato anônimo: ninguém ganha o ponto.",
-  "feedback.triage.confirmedBugDuplicate": "Duplicados não ganham ponto; ele fica com o relato original.",
+  "feedback.triage.confirmedBugHint": "{name} ganha 1 Aegis coin. Bugs confirmados até agora: {count}.",
+  "feedback.triage.confirmedBugAnonymous": "Relato anônimo: ninguém ganha a Aegis coin.",
+  "feedback.triage.confirmedBugDuplicate": "Duplicados não ganham Aegis coin; ela fica com o relato original.",
   "feedback.triage.reporterPoints": "{count} bugs confirmados",
   "feedback.reportedDecks.title": "Decks da comunidade denunciados ({count})",
   "feedback.reportedDecks.reports": "{count} denúncias",
   "myFeedback.points": "Bugs confirmados: {count}",
-  "myFeedback.pointsHint": "Cada relato que a equipe confirma como bug real vale 1 ponto.",
+  "myFeedback.pointsHint":
+    "Cada relato que a equipe confirma como bug real vale 1 Aegis coin. Você também ganha moedas no fórum de bugs.",
   "myFeedback.confirmedBug": "Bug confirmado",
   "notifications.feedback.confirmed": "Seu relato “{summary}” foi confirmado como bug",
   "notifications.bugConfirmedPoint": "Confirmado como bug · +1 ponto",
@@ -2285,5 +2286,5 @@ export const ptBR: Record<keyof typeof en, string> = {
   ...learnPtBR,
   ...learnDrillsPtBR,
   ...newDrillsPtBR,
-  ...openBugsPtBR,
+  ...bugForumPtBR,
 };

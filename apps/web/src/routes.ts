@@ -26,6 +26,7 @@ export interface AppRoute {
   /** The report open on the admin triage or the reporter's own feedback screen. */
   feedbackId?: number;
   roadmapItemId?: number;
+  bugId?: number;
   matchSettings?: boolean;
   rankedQueue?: boolean;
   lobbyMode?: LobbyMode;
@@ -36,7 +37,7 @@ export const SCREEN_PATHS: Record<Screen, string> = {
   friends: "/friends",
   feedback: "/admin/feedback",
   myFeedback: "/feedback",
-  openBugs: "/feedback/open-bugs",
+  bugForum: "/community/bugs",
   notifications: "/notifications",
   home: "/",
   booster: "/booster",
@@ -70,7 +71,6 @@ export function routeFromPathname(pathname: string): AppRoute | undefined {
   if (normalized === "/friends") return { screen: "friends" };
   if (normalized === "/notifications") return { screen: "notifications" };
   if (normalized === "/feedback") return { screen: "myFeedback" };
-  if (normalized === "/feedback/open-bugs") return { screen: "openBugs" };
   const ownFeedback = /^\/feedback\/(\d{1,9})$/.exec(normalized)?.[1];
   if (ownFeedback) return { screen: "myFeedback", feedbackId: Number(ownFeedback) };
   if (normalized === "/") return { screen: "home" };
@@ -114,6 +114,9 @@ export function routeFromPathname(pathname: string): AppRoute | undefined {
       tournament: { kind: "detail", id: safeDecode(tournamentTab[1]!), tab: tournamentTab[2] },
     };
   }
+  if (normalized === "/community/bugs") return { screen: "bugForum" };
+  const bugThread = /^\/community\/bugs\/(\d{1,9})$/.exec(normalized)?.[1];
+  if (bugThread) return { screen: "bugForum", bugId: Number(bugThread) };
   if (normalized === "/roadmap") return { screen: "roadmap" };
   const roadmapItem = /^\/roadmap\/(\d{1,9})$/.exec(normalized)?.[1];
   if (roadmapItem) return { screen: "roadmap", roadmapItemId: Number(roadmapItem) };
@@ -145,6 +148,7 @@ export function pathForRoute(route: AppRoute): string {
     return "/community/meta";
   }
   if (route.screen === "roadmap" && route.roadmapItemId !== undefined) return `/roadmap/${route.roadmapItemId}`;
+  if (route.screen === "bugForum" && route.bugId !== undefined) return `/community/bugs/${route.bugId}`;
   if ((route.screen === "feedback" || route.screen === "myFeedback") && route.feedbackId !== undefined)
     return `${SCREEN_PATHS[route.screen]}/${route.feedbackId}`;
   if (route.screen !== "tournaments") return SCREEN_PATHS[route.screen];

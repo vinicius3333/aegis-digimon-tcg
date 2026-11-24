@@ -1,4 +1,4 @@
-import { openBugsZhCN } from "@/i18n/openBugs.zh-CN";
+import { bugForumZhCN } from "@/i18n/bugForum.zh-CN";
 import { deckMatchupZhCN } from "@/i18n/deckMatchup.zh-CN";
 import { deckOddsZhCN } from "@/i18n/deckOdds.zh-CN";
 import { chatActionsZhCN } from "@/i18n/chatActions.zh-CN";
@@ -554,14 +554,14 @@ const interfaceMessages = {
   "bugReport.notice.anonymousPrivate": "反馈会被保存。需要追踪进展和收到回复时，请先登录。",
   "feedback.triage.confirmedBug": "确认的错误",
   "feedback.triage.confirmedBugBadge": "已确认错误",
-  "feedback.triage.confirmedBugHint": "{name} 获得 1 积分，目前共 {count} 积分。",
-  "feedback.triage.confirmedBugAnonymous": "匿名报告，不发放积分。",
-  "feedback.triage.confirmedBugDuplicate": "重复报告不发放积分，积分归于原报告。",
+  "feedback.triage.confirmedBugHint": "{name} 获得 1 枚 Aegis 币。目前已确认错误：{count}。",
+  "feedback.triage.confirmedBugAnonymous": "匿名报告，不发放 Aegis 币。",
+  "feedback.triage.confirmedBugDuplicate": "重复报告不发放 Aegis 币，Aegis 币归于原报告。",
   "feedback.triage.reporterPoints": "确认错误 {count} 次",
   "feedback.reportedDecks.title": "被举报的社区卡组（{count}）",
   "feedback.reportedDecks.reports": "{count} 份举报",
   "myFeedback.points": "确认错误：{count}",
-  "myFeedback.pointsHint": "每份被团队确认为真实错误的报告可获得 1 积分。",
+  "myFeedback.pointsHint": "每份被团队确认为真实错误的报告可获得 1 枚 Aegis 币。你也可以在错误论坛中赚取 Aegis 币。",
   "myFeedback.confirmedBug": "已确认错误",
   "notifications.feedback.confirmed": "你的报告“{summary}”已确认为错误",
   "notifications.bugConfirmedPoint": "已确认错误 · +1 积分",
@@ -2927,7 +2927,7 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
-  ...openBugsZhCN,
+  ...bugForumZhCN,
 } satisfies Record<keyof typeof en, string>;
 
 export const zhCN: Record<keyof typeof en, string> = getChineseLearnDictionary({

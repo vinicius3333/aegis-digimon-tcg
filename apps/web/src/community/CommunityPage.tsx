@@ -18,6 +18,7 @@ export function CommunityPage({ section, metaAvailable, onSectionChange, actions
     { value: CommunitySection.DECKS.value, label: t("roadmap.hub.decks") },
     ...(metaAvailable ? [{ value: CommunitySection.META.value, label: t("community.meta.tab") }] : []),
     { value: CommunitySection.ROADMAP.value, label: t("roadmap.hub.roadmap") },
+    { value: CommunitySection.BUGS.value, label: t("bugForum.tab") },
   ];
   return (
     <main className="aegis-page community-hub">

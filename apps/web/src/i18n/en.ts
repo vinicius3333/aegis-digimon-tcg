@@ -1,4 +1,4 @@
-import { openBugsEn } from "@/i18n/openBugs.en";
+import { bugForumEn } from "@/i18n/bugForum.en";
 import { deckMatchupEn } from "@/i18n/deckMatchup.en";
 import { deckOddsEn } from "@/i18n/deckOdds.en";
 import { chatActionsEn } from "@/i18n/chatActions.en";
@@ -302,14 +302,15 @@ export const en = {
     "Your feedback is saved. Sign in first if you want to follow it and get a reply.",
   "feedback.triage.confirmedBug": "Confirmed bug",
   "feedback.triage.confirmedBugBadge": "Confirmed bug",
-  "feedback.triage.confirmedBugHint": "{name} earns 1 point. They have {count} now.",
-  "feedback.triage.confirmedBugAnonymous": "Anonymous report: nobody earns the point.",
-  "feedback.triage.confirmedBugDuplicate": "Duplicates earn no point; the original report holds it.",
+  "feedback.triage.confirmedBugHint": "{name} earns 1 Aegis coin. Confirmed bugs so far: {count}.",
+  "feedback.triage.confirmedBugAnonymous": "Anonymous report: nobody earns the Aegis coin.",
+  "feedback.triage.confirmedBugDuplicate": "Duplicates earn no Aegis coin; the original report holds it.",
   "feedback.triage.reporterPoints": "{count} confirmed bugs",
   "feedback.reportedDecks.title": "Reported community decks ({count})",
   "feedback.reportedDecks.reports": "{count} reports",
   "myFeedback.points": "Confirmed bugs: {count}",
-  "myFeedback.pointsHint": "Each report the team confirms as a real bug earns you 1 point.",
+  "myFeedback.pointsHint":
+    "Each report the team confirms as a real bug earns you 1 Aegis coin. You also earn coins in the bug forum.",
   "myFeedback.confirmedBug": "Confirmed bug",
   "notifications.feedback.confirmed": "Your report “{summary}” was confirmed as a bug",
   "notifications.bugConfirmedPoint": "Confirmed as a bug · +1 point",
@@ -2272,5 +2273,5 @@ export const en = {
   ...learnLessonsEn,
   ...learnDrillsEn,
   ...newDrillsEn,
-  ...openBugsEn,
+  ...bugForumEn,
 } as const;

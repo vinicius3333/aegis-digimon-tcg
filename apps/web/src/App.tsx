@@ -106,9 +106,9 @@ const MyFeedbackPanel = createLazyComponent({
   load: () => import("./bugs/MyFeedbackPanel"),
   pick: (module) => module.MyFeedbackPanel,
 });
-const OpenBugsPanel = createLazyComponent({
-  load: () => import("./bugs/OpenBugsPanel"),
-  pick: (module) => module.OpenBugsPanel,
+const BugForumScreen = createLazyComponent({
+  load: () => import("./bugs/BugForumScreen"),
+  pick: (module) => module.BugForumScreen,
 });
 const NotificationsScreen = createLazyComponent({
   load: () => import("./notifications/NotificationsScreen"),
@@ -261,7 +261,7 @@ const NAV_SCREENS: Screen[] = [
   "replays",
   "feedback",
   "myFeedback",
-  "openBugs",
+  "bugForum",
   "notifications",
   "privacy",
 ];
@@ -269,13 +269,11 @@ const NAV_SCREENS: Screen[] = [
 const NOTIFICATION_TAB_BY_SCREEN = {
   notifications: NotificationsTab.ALL.value,
   myFeedback: NotificationsTab.FEEDBACK.value,
-  openBugs: NotificationsTab.OPEN_BUGS.value,
 } as const satisfies Partial<Record<Screen, NotificationsTab>>;
 
 const SCREEN_BY_NOTIFICATION_TAB: Record<NotificationsTab, Screen> = {
   [NotificationsTab.ALL.value]: "notifications",
   [NotificationsTab.FEEDBACK.value]: "myFeedback",
-  [NotificationsTab.OPEN_BUGS.value]: "openBugs",
 };
 
 export function withAccountAvatar(player: PlayerIdentity, account: RemoteAccount | null): PlayerIdentity {
@@ -1027,6 +1025,7 @@ function LoadedAegisClient({
                   onOpenTournaments={() => navigate({ screen: "tournaments", tournament: { kind: "catalog" } })}
                   onCreateTournament={() => navigate({ screen: "tournaments", tournament: { kind: "create" } })}
                   onOpenBooster={() => navigateScreen("booster")}
+                  onOpenBugForum={() => navigateScreen("bugForum")}
                   onEditDeck={(deck) => {
                     setEditingDeck(deck);
                     navigateScreen("deck");
@@ -1060,7 +1059,7 @@ function LoadedAegisClient({
                   onOpenDeck={(communityDeckId) => navigate({ screen: "community", communityDeckId })}
                 />
               )}
-              {(screen === "notifications" || screen === "myFeedback" || screen === "openBugs") && (
+              {(screen === "notifications" || screen === "myFeedback") && (
                 <NotificationsScreen
                   inbox={inbox}
                   tab={NOTIFICATION_TAB_BY_SCREEN[screen]}
@@ -1073,13 +1072,6 @@ function LoadedAegisClient({
                       focusId={route.feedbackId}
                       onSignIn={() => navigateScreen("login")}
                       onSendFeedback={() => setBugReportOpen(true)}
-                    />
-                  }
-                  openBugs={
-                    <OpenBugsPanel
-                      key={account?.id ?? "guest"}
-                      signedIn={!!account}
-                      onSignIn={() => navigateScreen("login")}
                     />
                   }
                 />
@@ -1309,6 +1301,18 @@ function LoadedAegisClient({
                   onOpen={(id) => navigate({ screen: "roadmap", roadmapItemId: id })}
                   onSectionChange={(section) => navigate(getCommunitySectionRoute(section))}
                   onSuggest={() => setBugReportOpen(true)}
+                />
+              )}
+
+              {screen === "bugForum" && (
+                <BugForumScreen
+                  key={account?.id ?? "guest"}
+                  bugId={route.bugId}
+                  signedIn={!!account}
+                  metaAvailable={rankedConfig?.enabled === true}
+                  onSignIn={() => navigateScreen("login")}
+                  onOpen={(bugId) => navigate({ screen: "bugForum", bugId })}
+                  onSectionChange={(section) => navigate(getCommunitySectionRoute(section))}
                 />
               )}
 
