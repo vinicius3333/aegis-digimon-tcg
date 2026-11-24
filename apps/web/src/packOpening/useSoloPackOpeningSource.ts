@@ -30,7 +30,7 @@ export function useSoloPackOpeningSource(): PackOpeningSource {
   }
   return {
     sets,
-    initialSetId: sets.find((set) => set.setId === progress.activeBox?.setId)?.setId ?? sets[0]?.setId ?? "",
+    initialSetId: sets.find((set) => set.setId === progress.activeBox?.setId)?.setId ?? sets[0]?.setId ?? "BT1",
     progress,
     saveFailed,
     totalPacks: BOOSTER_BOX_PACK_COUNT,

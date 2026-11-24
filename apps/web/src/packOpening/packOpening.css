@@ -1029,8 +1029,7 @@
   }
 
   .pack-opening__top {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: center;
     gap: 0 var(--ds-space-3);
     padding-top: var(--ds-space-2);
@@ -1041,14 +1040,8 @@
   }
 
   .pack-opening__set {
-    min-width: 0;
     grid-row: 1;
     grid-column: 2;
-  }
-
-  .pack-opening__set select {
-    min-width: 0;
-    width: 100%;
   }
 
   .pack-opening__fullscreen {

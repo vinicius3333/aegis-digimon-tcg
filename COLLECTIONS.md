@@ -339,6 +339,8 @@ Migration [057-deck-matchup-results](apps/api/src/db/migrations/057-deck-matchup
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `deck_matchup_results` | `(account_id, deck_id)` primary key; account FK with cascade delete. `deck_id` is the client's saved deck ID (up to 64 characters). `deck_key` is the shared `matchupDeckKey` of the tested list, so the page can tell when the deck changed. `result` is the finished job JSON without sample games. `saved_at` is epoch milliseconds. A new result replaces the old one. Sample replays stay in memory and expire after 15 minutes. `AccountStore.deleteDeck` removes the deck's row in the same transaction. |
 
+Migration [058-optional-ranked-region](apps/api/src/db/migrations/058-optional-ranked-region.ts) makes `region` nullable in `ranked_queue`, `ranked_pair_players` and `ranked_standings`. The client no longer sends a region, so new entries pair without a region preference and record a null region. Rows that already have a region keep it.
+
 ### `private_sealed_series`
 
 Stores the unique invitation code, host credential hash, indexed guest address hash, per-host unique request ID, unique current game ID and private JSON series state (configuration, seats, packs, decks, revisions, deadlines, games and score).

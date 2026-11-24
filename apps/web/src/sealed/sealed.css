@@ -289,3 +289,17 @@
     height: 84px;
   }
 }
+
+@media (max-width: 640px) {
+  .sealed-builder .pack-opening__top:not([hidden]) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+  }
+  .sealed-builder .pack-opening__set,
+  .sealed-builder .pack-opening__set select {
+    min-width: 0;
+  }
+  .sealed-builder .pack-opening__set select {
+    width: 100%;
+  }
+}

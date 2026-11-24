@@ -238,6 +238,7 @@ function SealedLoadedPoolBuilder({
         <Button variant="secondary" onClick={() => setOpening((value) => !value)}>
           {t("sealed.open")}
         </Button>
+        {canUnready && completed === 0 ? readyAction : null}
         <details>
           <summary>{t("sealed.rules")}</summary>
           <p>{policy ?? t("sealed.private.policy")}</p>

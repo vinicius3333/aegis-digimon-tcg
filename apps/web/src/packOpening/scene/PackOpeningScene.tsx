@@ -27,7 +27,6 @@ import { useCardTextures } from "@/packOpening/scene/useCardTextures";
 
 type Props = {
   playbackRate: number;
-  cinematicEffects?: boolean;
   setId: string;
   coverUrl: string;
   cards: readonly PackCard[];
@@ -340,7 +339,6 @@ type StageProps = Props & {
 
 function StageContents(props: StageProps) {
   const { cards, phase, carousel, packCount, revealedCount, reducedMotion, onPhaseComplete } = props;
-  const cinematicEffects = props.cinematicEffects !== false;
   const phaseStartedAt = useRef(0);
   const impulse = useRef<CameraImpulse>({ strength: 0, startedAt: -10 });
   const clock = useThree((state) => state.clock);
@@ -393,34 +391,30 @@ function StageContents(props: StageProps) {
         reducedMotion={reducedMotion}
         onPhaseComplete={onPhaseComplete}
       />
-      {cinematicEffects ? <NeonGrid energy={energy} reducedMotion={reducedMotion} /> : null}
+      <NeonGrid energy={energy} reducedMotion={reducedMotion} />
       {props.showPacks ? (
         <Suspense fallback={null}>
           <PackCarousel {...props} layout={layout} phaseStartedAt={phaseStartedAt} hitColor={hitColor} />
         </Suspense>
       ) : null}
-      {cinematicEffects ? (
-        <OpeningEffects
-          playbackRate={props.playbackRate}
-          phase={phase}
-          phaseStartedAt={phaseStartedAt}
-          chargePosition={layout.chargePosition}
-          hitColor={hitColor}
-          prismatic={prismaticHit}
-          reducedMotion={reducedMotion}
-        />
-      ) : null}
+      <OpeningEffects
+        playbackRate={props.playbackRate}
+        phase={phase}
+        phaseStartedAt={phaseStartedAt}
+        chargePosition={layout.chargePosition}
+        hitColor={hitColor}
+        prismatic={prismaticHit}
+        reducedMotion={reducedMotion}
+      />
       {cards.length > 0 ? (
         <Suspense fallback={null}>
           <CardSpread {...props} layout={layout} phaseStartedAt={phaseStartedAt} />
         </Suspense>
       ) : null}
-      {cinematicEffects ? (
-        <EffectComposer frameBufferType={HalfFloatType}>
-          <Bloom mipmapBlur luminanceThreshold={1.15} luminanceSmoothing={0.2} intensity={0.45} radius={0.7} />
-          <Vignette offset={0.25} darkness={0.4} />
-        </EffectComposer>
-      ) : null}
+      <EffectComposer frameBufferType={HalfFloatType}>
+        <Bloom mipmapBlur luminanceThreshold={1.15} luminanceSmoothing={0.2} intensity={0.45} radius={0.7} />
+        <Vignette offset={0.25} darkness={0.4} />
+      </EffectComposer>
     </>
   );
 }
@@ -431,9 +425,9 @@ export function PackOpeningScene(props: Props) {
   return (
     <Canvas
       className="pack-opening__canvas"
-      shadows={props.cinematicEffects === false ? false : { type: PCFShadowMap }}
-      dpr={props.cinematicEffects === false ? 1 : [1, 2]}
-      gl={{ antialias: props.cinematicEffects !== false, alpha: false }}
+      shadows={{ type: PCFShadowMap }}
+      dpr={[1, 2]}
+      gl={{ antialias: true, alpha: false }}
       camera={{ fov: 40, near: 0.1, far: 60, position: [0, 2.1, 9] }}
       onPointerMissed={() => {
         if (grip.dragged) {

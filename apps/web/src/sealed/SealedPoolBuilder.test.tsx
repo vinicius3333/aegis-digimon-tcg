@@ -360,3 +360,32 @@ it("admits only finalized packs across cancellation, polling and browser-session
   expect(document.querySelector('[data-pool-card="BT4-010"]')).toBeTruthy();
   expect(document.querySelector('[data-pool-card="BT4-104"]')).toBeTruthy();
 });
+
+it("can reopen a ready deck without reconstructing its local pack history", async () => {
+  const pool: SealedOwnPool = {
+    configuration: getSealedConfiguration({ setId: "BT4" }),
+    packs: [[{ cardId: "BT4-009" }]],
+    revision: 4,
+    window: "initial",
+    deck: null,
+    ready: true,
+    editable: false,
+    deadlineAt: Date.now() + 60000,
+  };
+  const unready = vi.fn(async () => ({
+    ok: true as const,
+    value: { ...pool, revision: 5, ready: false, editable: true },
+  }));
+  render(
+    <I18nProvider>
+      <SealedPoolBuilder
+        loadPool={async () => ({ ok: true, value: pool })}
+        readyDeck={vi.fn<PropsReady>()}
+        unreadyDeck={unready}
+        onReady={() => undefined}
+      />
+    </I18nProvider>,
+  );
+  fireEvent.click(await screen.findByRole("button", { name: "Edit deck" }));
+  expect(unready).toHaveBeenCalledWith({ revision: 4, window: "initial" });
+});
