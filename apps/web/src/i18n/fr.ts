@@ -25,6 +25,10 @@ import { learnFr } from "@/i18n/learn/learn.fr";
 import { learnDrillsFr } from "@/i18n/learn/drills.fr";
 
 const interfaceMessages = {
+  "sealed.create": "Sealed Swiss · six boosters",
+  "sealed.waiting": "Votre réserve apparaît après la clôture du pointage.",
+  "sealed.policy":
+    "Seules ces cartes sont autorisées. La préparation entre matchs inclut les exemptions. Les pauses entre parties BO3 utilisent le temps du match. À expiration, le dernier deck légal est conservé. Aucune modification après le verrouillage d’une partie.",
   "sealed.retry": "Réessayer",
   "sealed.private.interrupted":
     "La partie active a été interrompue. La série est annulée ; le pool initial est conservé.",

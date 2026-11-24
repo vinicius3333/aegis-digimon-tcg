@@ -13,7 +13,13 @@ it("keeps every sealed key translated in every supported locale", async () => {
   for (const locale of (Object.keys(dictionaryLoaders) as Locale[]).filter((candidate) => candidate !== "en")) {
     const dictionary = await loadDictionary(locale);
     expect(dictionary["sealed.title"]).not.toBe(en["sealed.title"]);
+    expect(dictionary["sealed.policy"]).not.toBe(en["sealed.policy"]);
   }
+});
+
+it("describes preparation between matches without forbidding round-boundary edits", () => {
+  expect(en["sealed.policy"]).toContain("Between-match");
+  expect(en["sealed.policy"]).not.toContain("or at round boundaries");
 });
 
 it("describes independent private pools, BO3 sideboard fallback and restart limits in all eleven locales", async () => {

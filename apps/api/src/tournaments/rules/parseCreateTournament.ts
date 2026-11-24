@@ -6,7 +6,7 @@ import { isTournamentCategory } from "@aegis/shared/tournaments/isTournamentCate
 
 export function parseCreateTournament(
   body: Record<string, unknown>,
-): { input: CreateTournamentInput; block: string } | undefined {
+): { input: CreateTournamentInput & { sealedConfiguration?: unknown }; block: string } | undefined {
   const { name, block, startsAt, maxPlayers, structure, topCut, bestOf, allowBots, banlist } = body;
   if (typeof name !== "string" || !Number.isFinite(startsAt) || !Number.isInteger(maxPlayers)) return undefined;
   if (
@@ -45,6 +45,7 @@ export function parseCreateTournament(
   return {
     input: {
       name,
+      sealedConfiguration: body.sealedConfiguration,
       roundStartMode: body.roundStartMode,
       allowBetaCards: body.allowBetaCards === true,
       description: body.description as string | undefined,
@@ -58,7 +59,7 @@ export function parseCreateTournament(
       rounds: (body.rounds as number | null | undefined) ?? null,
       tiebreakers: (body.tiebreakers as CreateTournamentInput["tiebreakers"]) ?? null,
       points: (body.points as CreateTournamentInput["points"]) ?? null,
-      bestOf: bestOf ?? 1,
+      bestOf: bestOf ?? (body.sealedConfiguration ? 3 : 1),
       startsAt: Number(startsAt),
       maxPlayers: Number(maxPlayers),
       allowBots: allowBots === true,

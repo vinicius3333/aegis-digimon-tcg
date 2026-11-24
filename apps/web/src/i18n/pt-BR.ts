@@ -45,6 +45,10 @@ import { learnPtBR } from "@/i18n/learn/learn.pt-BR";
 import { learnDrillsPtBR } from "@/i18n/learn/drills.pt-BR";
 
 export const ptBR: Record<keyof typeof en, string> = {
+  "sealed.create": "Sealed Swiss · seis pacotes",
+  "sealed.waiting": "Seu pool aparece após o encerramento do check-in.",
+  "sealed.policy":
+    "Somente estas cartas são permitidas. A preparação entre confrontos inclui os byes. As pausas entre jogos BO3 consomem o tempo do confronto. Ao expirar, o último deck legal é mantido. Sem alterações após o bloqueio de um jogo.",
   "sealed.retry": "Tentar novamente",
   "sealed.private.interrupted":
     "O jogo ativo foi interrompido. A série foi cancelada; sua coleção original foi preservada.",

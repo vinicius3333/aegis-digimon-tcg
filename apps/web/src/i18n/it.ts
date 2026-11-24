@@ -29,6 +29,10 @@ import { learnDrillsIt } from "@/i18n/learn/drills.it";
 
 // All interface messages are translated; printed card names and effects remain in English.
 const interfaceMessages = {
+  "sealed.create": "Sealed Swiss · sei buste",
+  "sealed.waiting": "Il pool appare alla chiusura del check-in.",
+  "sealed.policy":
+    "Sono consentite solo queste carte. La preparazione tra incontri vale anche dopo un bye. Le pause tra partite BO3 consumano il tempo dell’incontro. Alla scadenza resta l’ultimo mazzo legale. Nessuna modifica dopo il blocco di una partita.",
   "sealed.retry": "Riprova",
   "sealed.private.interrupted":
     "La partita attiva è stata interrotta. La serie è annullata; il pool originale è conservato.",

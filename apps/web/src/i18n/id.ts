@@ -25,6 +25,10 @@ import { learnId } from "@/i18n/learn/learn.id";
 import { learnDrillsId } from "@/i18n/learn/drills.id";
 
 const interfaceMessages = {
+  "sealed.create": "Sealed Swiss · enam pak",
+  "sealed.waiting": "Pool Anda muncul setelah check-in ditutup.",
+  "sealed.policy":
+    "Hanya kartu ini yang boleh dipakai. Persiapan antarpertandingan juga berlaku setelah bye. Jeda antargim BO3 memakai waktu pertandingan. Saat batas waktu habis, deck legal terakhir dipertahankan. Tidak ada perubahan setelah deck gim dikunci.",
   "sealed.retry": "Coba lagi",
   "sealed.private.interrupted": "Gim aktif terputus. Seri dibatalkan; pool awal tetap tersimpan.",
   "sealed.private.buildExpired": "Waktu penyusunan awal habis sebelum keduanya siap.",

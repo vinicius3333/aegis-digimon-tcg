@@ -9,11 +9,10 @@ if (!connectionString?.startsWith("postgres://postgres@127.0.0.1:55439/")) {
   throw new Error("Sealed migration tests require isolated loopback Postgres 55439");
 }
 
-const sealedIds = ["062-private-sealed", "063-private-sealed-results"];
+const sealedIds = ["061-sealed-tournaments", "062-private-sealed", "063-private-sealed-results"];
 
-it("appends canonical sealed migrations after the complete upstream registry", () => {
+it("inserts canonical sealed migrations after the complete upstream registry", () => {
   expect(migrations.slice(-6).map((migration) => migration.id)).toEqual([
-    "057-deck-matchup-results",
     "058-optional-ranked-region",
     "059-competitive-archetypes",
     "060-tournament-beta-cards",
@@ -24,15 +23,15 @@ it("appends canonical sealed migrations after the complete upstream registry", (
   expect(ids).toEqual([...ids].sort());
 });
 
-for (const upgradeFrom of [undefined, "057", "060"]) {
-  const upgrade = upgradeFrom !== undefined;
-  it(`applies canonical sealed migrations on ${upgrade ? `an upstream ${upgradeFrom} upgrade` : "a fresh installation"}`, async () => {
+for (const through of [null, "056", "057", "060"]) {
+  const upgrade = through !== null;
+  it(`applies canonical sealed migrations on ${upgrade ? `an upstream ${through} upgrade` : "a fresh installation"}`, async () => {
     const schema = `sealed_migrations_${randomUUID().replaceAll("-", "")}`;
     const admin = new Pool({ connectionString });
     const pool = new Pool({ connectionString, options: `-c search_path=${schema}` });
     try {
       await admin.query(`CREATE SCHEMA ${schema}`);
-      const existing = migrations.filter((migration) => migration.id.slice(0, 3) <= (upgradeFrom ?? ""));
+      const existing = migrations.filter((migration) => migration.id.slice(0, 3) <= (through ?? "057"));
       if (upgrade) {
         expect(await runMigrations(pool, existing)).toEqual(existing.map((migration) => migration.id));
         await pool.query("INSERT INTO accounts (id, display_name, created_at) VALUES ($1, 'Retained', 1)", [
@@ -43,20 +42,37 @@ for (const upgradeFrom of [undefined, "057", "060"]) {
           ["00000000-0000-0000-0000-0000000000bb", "00000000-0000-0000-0000-0000000000aa"],
         );
       }
+      if (through === "060") {
+        await pool.query("UPDATE tournaments SET allow_beta_cards=true");
+      }
+      const ledger = upgrade ? (await pool.query("SELECT * FROM schema_migrations ORDER BY id")).rows : [];
       let expectedApplied = migrations.map((migration) => migration.id);
-      if (upgradeFrom === "057") {
+      if (through === "056" || through === "057") {
         expectedApplied = [
+          ...(through === "056" ? ["057-deck-matchup-results"] : []),
           "058-optional-ranked-region",
           "059-competitive-archetypes",
           "060-tournament-beta-cards",
           ...sealedIds,
         ];
-      } else if (upgradeFrom === "060") {
+      } else if (through === "060") {
         expectedApplied = sealedIds;
       }
       expect(await runMigrations(pool, migrations)).toEqual(expectedApplied);
       expect((await pool.query("SELECT id FROM schema_migrations ORDER BY id")).rows.map((row) => row.id)).toEqual(
         migrations.map((migration) => migration.id),
+      );
+      if (upgrade) {
+        expect(
+          (
+            await pool.query("SELECT * FROM schema_migrations WHERE id=ANY($1::text[]) ORDER BY id", [
+              existing.map((migration) => migration.id),
+            ])
+          ).rows,
+        ).toEqual(ledger);
+      }
+      expect((await pool.query("SELECT allow_beta_cards FROM tournaments")).rows).toEqual(
+        upgrade ? [{ allow_beta_cards: through === "060" }] : [],
       );
       expect(await runMigrations(pool, migrations)).toEqual([]);
       expect((await pool.query("SELECT count(*) FROM private_sealed_results")).rows[0].count).toBe("0");
@@ -79,6 +95,8 @@ for (const upgradeFrom of [undefined, "057", "060"]) {
         "private_sealed_results",
         "private_sealed_room_grants",
         "private_sealed_series",
+        "tournament_sealed_decks",
+        "tournament_sealed_pools",
       ]);
     } finally {
       await pool.end();

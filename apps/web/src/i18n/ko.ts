@@ -25,6 +25,10 @@ import { learnKo } from "@/i18n/learn/learn.ko";
 import { learnDrillsKo } from "@/i18n/learn/drills.ko";
 
 const interfaceMessages = {
+  "sealed.create": "실드 스위스 · 6팩",
+  "sealed.waiting": "체크인이 종료되면 카드 풀이 표시됩니다.",
+  "sealed.policy":
+    "이 카드 풀만 사용할 수 있습니다. 부전승 후에도 매치 사이에 준비할 수 있습니다. BO3 게임 사이에도 매치 시간은 진행됩니다. 시간이 만료되면 마지막 적법한 덱을 유지합니다. 게임 덱이 잠긴 후에는 변경할 수 없습니다.",
   "sealed.retry": "다시 시도",
   "sealed.private.interrupted": "진행 중 게임이 중단되었습니다. 시리즈는 취소되며 원래 풀은 보존됩니다.",
   "sealed.private.buildExpired": "두 플레이어가 준비되기 전에 초기 구성 시간이 만료되었습니다.",

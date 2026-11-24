@@ -110,14 +110,30 @@ function testIgnoreForDatabase(databaseUrl: string): string[] {
 }
 
 const databaseSpecs = [
+  "sealed-tournament.spec.ts",
+  "sealed-swiss-rounds.spec.ts",
+  "sealed-copy.spec.ts",
+  "sealed-products.spec.ts",
   "private-sealed-no-name.spec.ts",
   "private-sealed.spec.ts",
   "sealed-native-touch.spec.ts",
   "sealed-opening-gate.spec.ts",
 ];
 
-it("requires PostgreSQL for exactly the four private browser specs", () => {
-  expect(databaseSpecs).toHaveLength(4);
+it("requires PostgreSQL for every Swiss browser spec while retaining the configured integration lane", () => {
+  expect(testIgnoreForDatabase("")).toEqual(
+    expect.arrayContaining([
+      "**/sealed-tournament.spec.ts",
+      "**/sealed-swiss-rounds.spec.ts",
+      "**/sealed-copy.spec.ts",
+      "**/sealed-products.spec.ts",
+    ]),
+  );
+  expect(testIgnoreForDatabase("postgres://postgres@127.0.0.1:55439/aegis_sealed_test")).toEqual([]);
+});
+
+it("requires PostgreSQL for exactly the eight private and Swiss browser specs", () => {
+  expect(databaseSpecs).toHaveLength(8);
   expect(testIgnoreForDatabase("")).toEqual(databaseSpecs.map((file) => `**/${file}`));
   expect(testIgnoreForDatabase("invalid-nonempty")).toEqual([]);
 });

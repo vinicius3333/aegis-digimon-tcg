@@ -50,7 +50,7 @@ export function SealedPoolBuilder({ loadPool, readyDeck, unreadyDeck, onReady, p
         <Button onClick={() => void refresh()}>{t("sealed.retry")}</Button>
       </Alert>
     ) : (
-      <p role="status">{waitingText ?? t("sealed.private.waiting")}</p>
+      <p role="status">{waitingText ?? t("sealed.waiting")}</p>
     );
   }
   return (
@@ -131,7 +131,7 @@ function SealedLoadedPoolBuilder({
         <Button onClick={() => void refresh()}>{t("sealed.retry")}</Button>
       </Alert>
     ) : (
-      <p role="status">{t("sealed.private.waiting")}</p>
+      <p role="status">{t("sealed.waiting")}</p>
     );
   }
 
@@ -241,7 +241,7 @@ function SealedLoadedPoolBuilder({
         {canUnready && completed === 0 ? readyAction : null}
         <details>
           <summary>{t("sealed.rules")}</summary>
-          <p>{policy ?? t("sealed.private.policy")}</p>
+          <p>{policy ?? t("sealed.policy")}</p>
         </details>
       </header>
       {error || loadFailed ? <Alert tone="danger">{t("sealed.error")}</Alert> : null}

@@ -41,6 +41,10 @@ import { learnEs } from "@/i18n/learn/learn.es";
 import { learnDrillsEs } from "@/i18n/learn/drills.es";
 
 export const es: Record<keyof typeof en, string> = {
+  "sealed.create": "Sealed Swiss · seis sobres",
+  "sealed.waiting": "Tu reserva aparecerá al cerrar la confirmación.",
+  "sealed.policy":
+    "Solo se permiten estas cartas. La preparación entre encuentros incluye los pases libres. Las pausas entre partidas BO3 consumen tiempo del encuentro. Al vencer el plazo se conserva el último mazo legal. No se puede editar tras bloquear una partida.",
   "sealed.retry": "Reintentar",
   "sealed.private.interrupted":
     "La partida activa se interrumpió. La serie se canceló; el conjunto original se conserva.",

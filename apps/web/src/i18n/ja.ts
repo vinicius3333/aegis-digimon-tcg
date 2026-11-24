@@ -25,6 +25,10 @@ import { learnJa } from "@/i18n/learn/learn.ja";
 import { learnDrillsJa } from "@/i18n/learn/drills.ja";
 
 const interfaceMessages = {
+  "sealed.create": "シールド・スイス ·を6パック",
+  "sealed.waiting": "チェックイン終了後にカードプールが表示されます。",
+  "sealed.policy":
+    "このカードプールのみ使用できます。不戦勝後もマッチ間に準備できます。BO3のゲーム間も対戦時間は進みます。期限切れ時は直前の適正なデッキを維持します。ゲームのデッキ確定後は変更できません。",
   "sealed.retry": "再試行",
   "sealed.private.interrupted": "進行中のゲームが中断されました。シリーズは中止され、元のプールは保存されます。",
   "sealed.private.buildExpired": "両者が準備完了する前に初期構築時間が終了しました。",

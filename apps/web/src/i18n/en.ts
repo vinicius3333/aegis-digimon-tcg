@@ -44,6 +44,10 @@ import { learnDrillsEn } from "@/i18n/learn/drills.en";
    error. Placeholders use {name} and are filled by `t(key, params)`. */
 
 export const en = {
+  "sealed.create": "Sealed Swiss · six packs",
+  "sealed.waiting": "Your pool will appear after check-in closes.",
+  "sealed.policy":
+    "Only these pulls may be used. Between-match preparation includes byes. BO3 game breaks consume the series clock. Timeout retains your last legal deck. No edits after a game locks.",
   "sealed.retry": "Retry",
   "sealed.private.interrupted":
     "The active game was interrupted. The series is cancelled; your original pool is preserved.",

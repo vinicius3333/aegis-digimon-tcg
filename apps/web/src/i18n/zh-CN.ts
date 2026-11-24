@@ -26,6 +26,10 @@ import { learnZhCN } from "@/i18n/learn/learn.zh-CN";
 import { learnDrillsZhCN } from "@/i18n/learn/drills.zh-CN";
 
 const interfaceMessages = {
+  "sealed.create": "现开瑞士轮 · 六包",
+  "sealed.waiting": "签到结束后将显示你的卡池。",
+  "sealed.policy":
+    "只能使用此卡池中的牌。比赛之间可准备，轮空后也可准备。BO3局间准备会消耗比赛时间。超时将保留上一个合法卡组。本局卡组锁定后不能修改。",
   "sealed.retry": "重试",
   "sealed.private.interrupted": "进行中的游戏已中断。系列赛取消；原卡池保留。",
   "sealed.private.buildExpired": "双方准备就绪前，初始组牌时间已到期。",

@@ -3,7 +3,7 @@
 Aegis persists application data in PostgreSQL. This filename names the inventory;
 it does not imply a MongoDB collection layer. The API owns every query and write.
 The authoritative schema is the ordered [migration registry](apps/api/src/db/migrations/index.ts),
-currently migrations 001–056, plus the migrator's `schema_migrations` table.
+plus the migrator's `schema_migrations` table.
 Append migrations for released schema changes and update this inventory with them.
 
 Tables below list their identity, important fields, and constraints. Foreign keys,
@@ -340,6 +340,10 @@ Migration [057-deck-matchup-results](apps/api/src/db/migrations/057-deck-matchup
 | `deck_matchup_results` | `(account_id, deck_id)` primary key; account FK with cascade delete. `deck_id` is the client's saved deck ID (up to 64 characters). `deck_key` is the shared `matchupDeckKey` of the tested list, so the page can tell when the deck changed. `result` is the finished job JSON without sample games. `saved_at` is epoch milliseconds. A new result replaces the old one. Sample replays stay in memory and expire after 15 minutes. `AccountStore.deleteDeck` removes the deck's row in the same transaction. |
 
 Migration [058-optional-ranked-region](apps/api/src/db/migrations/058-optional-ranked-region.ts) makes `region` nullable in `ranked_queue`, `ranked_pair_players` and `ranked_standings`. The client no longer sends a region, so new entries pair without a region preference and record a null region. Rows that already have a region keep it.
+
+### Sealed tournaments
+
+`tournaments.sealed_configuration` stores the product configuration (JSONB); `sealed_build_deadline_at` is the preparation deadline (bigint). `tournament_sealed_pools` is keyed by `participant_id` (FK to `tournament_participants`) and stores packs, allocation time, revision and ready window. `tournament_sealed_decks` is keyed by `(participant_id, revision)` with a foreign key to the pool; it stores the window, submitted list, deck snapshot and submission time.
 
 ### `private_sealed_series`
 

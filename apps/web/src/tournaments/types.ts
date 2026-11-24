@@ -1,25 +1,18 @@
+import type { TournamentOverview, TournamentParticipant } from "@aegis/shared/tournaments/SealedTournamentContracts";
 import type { TournamentCancellationReason } from "@aegis/shared/tournaments/TournamentCancellationReason";
 import type { TournamentOwnDeck } from "@aegis/shared/tournaments/TournamentOwnDeck";
 /* Wire shapes for the tournament endpoints, expressed on top of `@aegis/shared`.
    Only the parts the server does NOT yet publish are declared here; everything the
    shared contract already owns is imported, never re-typed. */
 
-import type {
-  ParticipantView,
-  SeriesScoreView,
-  PhaseView,
-  StandingsRow,
-  TournamentBanlistCard,
-  TournamentRules,
-  TournamentSummary,
-} from "@aegis/shared";
+import type { SeriesScoreView, PhaseView, StandingsRow, TournamentBanlistCard, TournamentRules } from "@aegis/shared";
 
 /**
  * The list/detail payload: the shared summary plus the three columns the legacy bracket client
  * still reads. `registrations` is the server's deprecated alias for `registeredCount` and is
  * deliberately absent here so no component can read it.
  */
-export type TournamentListing = TournamentSummary & {
+export type TournamentListing = TournamentOverview & {
   block: string;
   createdBy: string | null;
   winnerAccountId: string | null;
@@ -53,7 +46,7 @@ export type TournamentDetail = TournamentListing & {
   rules: TournamentRules | null;
   banlistCards: TournamentBanlistCard[];
   matches: LegacyTournamentMatch[];
-  participants: ParticipantView[];
+  participants: TournamentParticipant[];
   /**
    * Extension points for later slices. The server does not send any of these yet, so every
    * reader must treat them as absent rather than empty: standings arrive with slice 6, phases

@@ -31,7 +31,7 @@ export function parseCreateTournamentCircuit(body: unknown): CreateTournamentCir
     name,
     startsAt: Number(startsAt),
   });
-  if (!schedule || !pointsTable || !tournament) {
+  if (!schedule || !pointsTable || !tournament || tournament.input.sealedConfiguration !== undefined) {
     return undefined;
   }
   const { name: _name, startsAt: _startsAt, category: _category, password: _password, ...template } = tournament.input;
