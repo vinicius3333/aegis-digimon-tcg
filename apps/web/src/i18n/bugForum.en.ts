@@ -66,4 +66,5 @@ export const bugForumEn = {
   "bugForum.deleteComment": "Delete comment",
   "bugForum.deleteVote": "Delete vote",
   "bugForum.moderated": "Removed by a moderator.",
+  "bugForum.coinSpin": "Spin the coin",
 } as const;

@@ -71,4 +71,5 @@ export const bugForumFr = {
   "bugForum.deleteComment": "Supprimer le commentaire",
   "bugForum.deleteVote": "Supprimer le vote",
   "bugForum.moderated": "Supprimé par un modérateur.",
+  "bugForum.coinSpin": "Faire tourner la pièce",
 } as const;

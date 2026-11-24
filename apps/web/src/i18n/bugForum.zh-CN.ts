@@ -66,4 +66,5 @@ export const bugForumZhCN = {
   "bugForum.deleteComment": "删除评论",
   "bugForum.deleteVote": "删除投票",
   "bugForum.moderated": "已被版主删除。",
+  "bugForum.coinSpin": "旋转硬币",
 } as const;

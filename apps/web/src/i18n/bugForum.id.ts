@@ -69,4 +69,5 @@ export const bugForumId = {
   "bugForum.deleteComment": "Hapus komentar",
   "bugForum.deleteVote": "Hapus suara",
   "bugForum.moderated": "Dihapus oleh moderator.",
+  "bugForum.coinSpin": "Putar koin",
 } as const;

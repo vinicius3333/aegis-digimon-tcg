@@ -67,4 +67,5 @@ export const bugForumJa = {
   "bugForum.deleteComment": "コメントを削除",
   "bugForum.deleteVote": "投票を削除",
   "bugForum.moderated": "モデレーターによって削除されました。",
+  "bugForum.coinSpin": "コインを回す",
 } as const;

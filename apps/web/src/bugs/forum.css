@@ -25,6 +25,24 @@
   flex: none;
   width: 24px;
   height: 24px;
+}
+
+.aegis-coins__spin {
+  display: inline-grid;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.aegis-coins__spin:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.aegis-coins__spin[aria-pressed="true"] .aegis-coins__mark {
   animation: aegis-coin-spin 2.5s linear infinite;
 }
 

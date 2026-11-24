@@ -66,4 +66,5 @@ export const bugForumKo = {
   "bugForum.deleteComment": "댓글 삭제",
   "bugForum.deleteVote": "투표 삭제",
   "bugForum.moderated": "관리자가 삭제했습니다.",
+  "bugForum.coinSpin": "코인 돌리기",
 } as const;
