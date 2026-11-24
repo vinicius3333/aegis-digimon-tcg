@@ -38,6 +38,36 @@ describe("BT25-102 Factorial Area", () => {
     expect(s.state.memory).toBe(7);
   });
 
+  it("plays the yellow and black TS Guardromon from hand with the Main play reduced by 3", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT25-102", as: "area" },
+            { card: "BT27-037", as: "guardromon" },
+          ],
+          security: [{ card: "BT1-001" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const areaId = s.inst("area").instanceId;
+    const guardromonId = s.inst("guardromon").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: areaId, useAs: "option" } as never)).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === areaId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === guardromonId),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === guardromonId)).toBe(true);
+    expect(s.state.memory).toBe(5);
+  });
+
   it("does not play a blue TS or a red non-TS card from hand for the Main play branch", async () => {
     const s = setupEngine(
       {

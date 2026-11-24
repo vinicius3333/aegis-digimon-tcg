@@ -109748,7 +109748,7 @@
     "set": "BT27",
     "nameEn": "Etemon",
     "nameJp": "エテモン",
-    "colors": ["Yellow"],
+    "colors": ["Yellow", "Black"],
     "kinds": ["Digimon"],
     "level": 5,
     "playCost": 8,
@@ -109756,6 +109756,11 @@
     "evoCosts": [
       {
         "color": "Yellow",
+        "level": 4,
+        "memoryCost": 4
+      },
+      {
+        "color": "Black",
         "level": 4,
         "memoryCost": 4
       }
@@ -111446,7 +111451,7 @@
     "set": "BT27",
     "nameEn": "Guardromon",
     "nameJp": "ガードロモン",
-    "colors": ["Yellow"],
+    "colors": ["Yellow", "Black"],
     "kinds": ["Digimon"],
     "level": 4,
     "playCost": 5,
@@ -111454,6 +111459,11 @@
     "evoCosts": [
       {
         "color": "Yellow",
+        "level": 3,
+        "memoryCost": 3
+      },
+      {
+        "color": "Black",
         "level": 3,
         "memoryCost": 3
       }

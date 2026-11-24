@@ -43,12 +43,15 @@ describe("BT27-037 Guardromon", () => {
   it("matches the printed card and compiles every clause", () => {
     expect(getCardDefinition(cardId)).toMatchObject({
       nameEn: "Guardromon",
-      colors: ["Yellow"],
+      colors: ["Yellow", "Black"],
       kinds: ["Digimon"],
       level: 4,
       playCost: 5,
       dp: 5000,
-      evoCosts: [{ color: "Yellow", level: 3, memoryCost: 3 }],
+      evoCosts: [
+        { color: "Yellow", level: 3, memoryCost: 3 },
+        { color: "Black", level: 3, memoryCost: 3 },
+      ],
       forms: ["Champion"],
       attributes: ["Free"],
       types: ["Machine", "Iliad", "TS"],
