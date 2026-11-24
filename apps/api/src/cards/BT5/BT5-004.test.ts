@@ -125,7 +125,6 @@ describe("BT5-004 Yokomon", () => {
     expect(s.perm("yokomon").stack.map((card) => card.cardId)).toEqual(["BT5-004"]);
 
     s.state.phase = Phase.Breeding;
-    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("yokomon").permanentId })).toEqual({
       ok: true,
     });

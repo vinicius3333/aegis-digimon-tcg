@@ -123,7 +123,6 @@ describe("BT15-027", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === onPlayTargetId)).toBe(true);
 
     s.state.phase = Phase.Breeding;
-    void s.engine.breeding.run(s.state.turnSeat, false);
     expect(
       s.engine.applyIntent(0, {
         type: "moveFromBreeding",

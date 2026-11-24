@@ -14,7 +14,6 @@ describe("BT5-044 Sakuyamon", () => {
     });
     s.state.phase = Phase.Breeding;
     s.state.turnSeat = 1;
-    void s.engine.breeding.run(1, false);
     expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,
     });

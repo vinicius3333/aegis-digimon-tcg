@@ -27,7 +27,6 @@ describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
     await advance(s.engine).recompute();
     await advance(s.engine).recompute();
 
-    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "hatchEgg" }).ok).toBe(true);
     await settle(() => s.state.memory === 1);
 
@@ -102,7 +101,6 @@ describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
     await s.ready();
     await advance(s.engine).recompute();
 
-    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "hatchEgg" }).ok).toBe(true);
     await settle(() => s.state.players[0]?.breeding?.topCard?.cardId === "BT1-001");
 
@@ -258,7 +256,6 @@ describe("BT17-093 Tai Kamiya & Kari Kamiya — KB Q&A rulings", () => {
     await hatchControl.ready();
     await advance(hatchControl.engine).recompute();
 
-    void hatchControl.engine.breeding.run(0, false);
     expect(hatchControl.engine.applyIntent(0, { type: "hatchEgg" }).ok).toBe(true);
     await settle(() => hatchControl.state.memory === 1);
 

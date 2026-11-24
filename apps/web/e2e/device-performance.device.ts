@@ -131,7 +131,7 @@ for (const boardStyle of ["classic", "arena3d"] as const) {
         localStorage.setItem("aegis.board-style", style);
         localStorage.setItem("aegis.arena-3d-quality", quality);
       },
-      [boardStyle, arenaQuality] as const,
+      [boardStyle, arenaQuality],
     );
     await expect
       .poll(() => page.evaluate(() => document.visibilityState), "keep Chrome open on the phone")

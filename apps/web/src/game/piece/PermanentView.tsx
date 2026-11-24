@@ -261,7 +261,7 @@ function PermanentViewBody({
               fate,
               cardName: [
                 cardName,
-                !faceDown && topId ? `(${topId})` : undefined,
+                topId ? `(${topId})` : undefined,
                 t("game.fieldReference", { reference: fieldReference }),
                 ...statusLabels,
                 perm.manualMarker,

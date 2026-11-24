@@ -45,12 +45,7 @@ for (const width of [390, 1440]) {
       const chat = page.getByRole("complementary", { name: "Quick chat", exact: true });
       const input = chat.getByRole("textbox", { name: "Message", exact: true });
       await input.fill("Keep my draft");
-      await chat.getByRole("button", { name: "Close", exact: true }).click();
-      await expect(chat).toBeHidden();
-      await expect(page.getByRole("button", { name: "Open quick chat", exact: true })).toHaveAttribute(
-        "aria-expanded",
-        "false",
-      );
+      await chat.getByRole("button", { name: "Minimize chat", exact: true }).click();
       await page.evaluate(() =>
         window.dispatchEvent(
           new CustomEvent("quick-chat-fixture-message", {
@@ -65,10 +60,7 @@ for (const width of [390, 1440]) {
           }),
         ),
       );
-      await expect(page.getByRole("button", { name: "Open quick chat, 1 unread messages", exact: true })).toBeVisible();
-      await expect(
-        page.getByRole("button", { name: "Open quick chat, 1 unread messages", exact: true }),
-      ).toHaveAttribute("aria-expanded", "false");
+      await expect(chat.getByRole("button", { name: "Open quick chat, 1 unread messages", exact: true })).toBeVisible();
       expect(await page.evaluate(() => window.quickChatFixtureMessages[0]?.readAt)).toBeNull();
       await page.screenshot({
         path: fileURLToPath(
@@ -79,9 +71,7 @@ for (const width of [390, 1440]) {
         ),
       });
       await page.getByRole("button", { name: "Home", exact: true }).click();
-      await page.getByRole("button", { name: "Open quick chat, 1 unread messages", exact: true }).click();
-      await expect(chat).toBeVisible();
-      await expect(input).toBeFocused();
+      await chat.getByRole("button", { name: "Open quick chat, 1 unread messages", exact: true }).click();
       await expect(input).toHaveValue("Keep my draft");
       await expect(chat.getByText("Bora testar os decks?", { exact: true })).toBeVisible();
       await expect.poll(async () => page.evaluate(() => window.quickChatFixtureMessages[0]?.readAt)).not.toBeNull();
@@ -146,10 +136,8 @@ for (const width of [390, 1440]) {
       await expect(menu).toHaveCount(0);
       await expect(more).toBeFocused();
       await more.press("ArrowDown");
-      await expect(menu.getByRole("menuitem", { name: "Challenge", exact: true })).toBeFocused();
-      await page.keyboard.press("ArrowDown");
       await expect(menu.getByRole("menuitem", { name: "Remove friend" })).toBeFocused();
-      await chat.getByRole("heading", { name: "Friends", exact: true }).click();
+      await page.getByRole("heading", { name: "Aegis", exact: true }).click();
       await expect(menu).toHaveCount(0);
       await expect(more).toBeVisible();
       await page.setViewportSize({ width, height: 600 });
@@ -161,11 +149,10 @@ for (const width of [390, 1440]) {
       await page.keyboard.press("Escape");
       await page.setViewportSize({ width, height: 1000 });
 
-      await chat.getByRole("button", { name: "Chat with Quick Friend", exact: true }).click();
+      await chat.getByRole("button", { name: "Message", exact: true }).click();
       await expect(chat.getByText("Bora testar os decks?", { exact: true })).toBeVisible();
       await chat.getByRole("button", { name: "Close", exact: true }).click();
-      await expect(page.getByRole("button", { name: "Open quick chat", exact: true })).toBeVisible();
-      await expect(chat).toBeHidden();
+      await expect(chat.getByRole("button", { name: "Open quick chat", exact: true })).toBeVisible();
     });
   }
 }

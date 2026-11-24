@@ -1,5 +1,4 @@
 import { getCardDefinition } from "@aegis/shared";
-import { CardColor } from "@aegis/shared/schema/enums";
 import { afterEach, describe, expect, it } from "vitest";
 import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { unregisterIrCard } from "../../engine/effects/interpreter/registration/unregisterIrCard.js";
@@ -23,8 +22,8 @@ function registerBlueAlysion() {
     ...liskmon,
     cardId: blueAlysion,
     imageId: blueAlysion,
-    colors: [CardColor.Blue],
-    evoCosts: [{ color: CardColor.Blue, level: 3, memoryCost: 2 }],
+    colors: ["Blue"],
+    evoCosts: [{ color: "Blue", level: 3, memoryCost: 2 }],
   });
   registerIrCard(blueAlysion, liskmonCompiled);
 }

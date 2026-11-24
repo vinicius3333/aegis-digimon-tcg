@@ -3,7 +3,6 @@ import { requireCardDefinition } from "@aegis/shared/cards/registry";
 import { EffectTiming } from "@aegis/shared/schema/enums";
 import { advance } from "#api/engine/testkit/advance";
 import { assertNoLoudGap, setupEngine, settle } from "#api/engine/testkit/harness";
-import type { SetupEngineOptions } from "#api/engine/testkit/harness";
 import { observe } from "#api/engine/testkit/observe";
 import { compiled } from "#api/cards/BT27/BT27-026";
 import "#api/cards/index";
@@ -32,7 +31,7 @@ async function playThunderbirdmon(s: Session) {
   await settle(() => findThunderbirdmon(s) !== undefined && !s.state.pendingDecision);
 }
 
-function sourceBoard(options: SetupEngineOptions) {
+function sourceBoard(options: Parameters<typeof setupEngine>[1]) {
   return setupEngine(
     {
       0: {
@@ -281,7 +280,7 @@ describe("Thunderbirdmon trashes opposing sources, deletes a chosen own Digimon,
 });
 
 describe("official rulings", () => {
-  function tamerBoard(options: SetupEngineOptions | undefined, tamer = kurataTamer) {
+  function tamerBoard(options: Parameters<typeof setupEngine>[1], tamer = kurataTamer) {
     return setupEngine(
       {
         0: {

@@ -22,7 +22,6 @@ describe("P-123 Ukkomon", () => {
     );
     s.state.memory = 0;
     s.state.phase = Phase.Breeding;
-    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("raised").permanentId })).toEqual({
       ok: true,
     });
@@ -45,7 +44,6 @@ describe("P-123 Ukkomon", () => {
     );
     s.state.memory = 0;
     s.state.phase = Phase.Breeding;
-    void s.engine.breeding.run(0, false);
 
     expect(
       s.engine.applyIntent(0, {
@@ -68,7 +66,6 @@ describe("P-123 Ukkomon", () => {
     );
     s.state.memory = 0;
     s.state.phase = Phase.Breeding;
-    void s.engine.breeding.run(0, false);
 
     expect(
       s.engine.applyIntent(0, {
@@ -242,7 +239,6 @@ describe("P-123 Ukkomon — KB Q&A rulings", () => {
   it("still activates when the moved Digimon is deleted at 0 DP on arrival (Q4238)", async () => {
     const s = breedingUnderKingEtemon([{ card: "P-123", as: "ukkomon", under: ["BT1-005"] }], 6);
     s.state.phase = Phase.Breeding;
-    void s.engine.breeding.run(0, false);
     await moveRaisedOutOfBreeding(s);
 
     expect(s.perm("ukkomon").currentDP).toBe(1000);

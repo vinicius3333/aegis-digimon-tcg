@@ -4,7 +4,6 @@ import { matchingAlternateDigivolutionRequirement } from "#api/engine/cards/card
 import { runtimeCompiledCard } from "#api/engine/effects/interpreter";
 import { playByAssembly } from "#api/engine/testkit/assembly";
 import { assertNoLoudGap, settle, setupEngine, type PermanentSpec } from "#api/engine/testkit/harness";
-import type { SetupEngineOptions } from "#api/engine/testkit/harness";
 import { observe } from "#api/engine/testkit/observe";
 import "#api/cards/index";
 import { compiled } from "./BT27-018.js";
@@ -20,7 +19,7 @@ const vanillaRedLevel5 = "BT1-020";
 const vanillaRedLevel6 = "ST1-10";
 
 type Setup = ReturnType<typeof setupEngine>;
-type Options = SetupEngineOptions | undefined;
+type Options = Parameters<typeof setupEngine>[1];
 
 const opponentBoard = [
   { card: vanillaRedLevel6, as: "high", dp: 9000 },

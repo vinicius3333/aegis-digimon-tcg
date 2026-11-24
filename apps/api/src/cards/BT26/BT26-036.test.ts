@@ -82,7 +82,6 @@ describe("BT26-036 Lalamon", () => {
     );
     preferred.push(s.inst("greenTamer").instanceId);
     s.state.phase = Phase.Breeding;
-    void s.engine.breeding.run(s.state.turnSeat, false);
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,

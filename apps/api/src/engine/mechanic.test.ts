@@ -3775,7 +3775,6 @@ describe("A3 SubTrigger — whenMovedFromBreeding / whenOpponentMovedFromBreedin
     s.state.phase = Phase.Breeding;
 
     // Arm a synthetic whenMovedFromBreeding watcher on the bred Digimon.
-    void s.engine.breeding.run(0, false);
     let movedFromBreedingCount = 0;
     advance(s.engine).ledgers.subTriggers.subscribe({
       event: "whenMovedFromBreeding",
@@ -3807,7 +3806,6 @@ describe("A3 SubTrigger — whenMovedFromBreeding / whenOpponentMovedFromBreedin
     bred.inBreeding = true;
     p0.breeding = bred;
     s.state.phase = Phase.Breeding;
-    void s.engine.breeding.run(0, false);
 
     // Seat-1 has a watcher anchored on one of their own on-field Digimon.
     const watcher = digimon(1, 4000);

@@ -100,7 +100,6 @@ describe("EX11-013 Sangomon", () => {
       },
     });
     s.state.phase = Phase.Breeding;
-    void s.engine.breeding.run(0, false);
 
     expect(
       s.engine.applyIntent(0, {

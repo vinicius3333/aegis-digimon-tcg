@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "#api/engine/testkit/harness";
-import type { BoardSpec } from "#api/engine/scenario/types";
 import { advance } from "#api/engine/testkit/advance";
 import "#api/cards/index";
 
@@ -266,7 +265,7 @@ describe("Artiomon protection, Option activation and Doom Buster", () => {
 });
 
 describe("Artiomon official rulings", () => {
-  async function activateDoomBusterFromTamerTrash(board: BoardSpec | undefined) {
+  async function activateDoomBusterFromTamerTrash(board: Parameters<typeof setupEngine>[0]) {
     const s = setupEngine(board, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
     s.state.memory = 3;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Phase } from "@aegis/shared/schema/enums";
-import type { DecisionRequest } from "@aegis/shared/protocol/events";
+import type { DecisionRequest } from "@aegis/shared/protocol/decisions";
 import type { DecisionResponse } from "@aegis/shared/protocol/intents";
 import "#api/cards/index";
 import { setupScenario } from "#api/engine/testkit/scenario";

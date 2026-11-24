@@ -4,7 +4,6 @@ import { EffectTiming } from "@aegis/shared/schema/enums";
 import { requireCardDefinition } from "@aegis/shared/cards/registry";
 import { advance } from "#api/engine/testkit/advance";
 import { assertNoLoudGap, setupEngine, settle } from "#api/engine/testkit/harness";
-import type { SetupEngineOptions } from "#api/engine/testkit/harness";
 import { observe } from "#api/engine/testkit/observe";
 import { compiled } from "#api/cards/BT27/BT27-048";
 import "#api/cards/index";
@@ -33,7 +32,7 @@ async function playStegomon(s: Session) {
   await settle(() => findStegomon(s) !== undefined && !s.state.pendingDecision);
 }
 
-function lockBoard(options: SetupEngineOptions) {
+function lockBoard(options: Parameters<typeof setupEngine>[1]) {
   const s = setupEngine(
     {
       0: {

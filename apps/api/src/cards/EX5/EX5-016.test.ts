@@ -394,7 +394,6 @@ describe("EX5-016 Lunamon", () => {
     expect(s.state.memory).toBe(5);
 
     s.state.phase = Phase.Breeding;
-    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
       ok: true,
     });

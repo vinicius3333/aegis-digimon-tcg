@@ -3,7 +3,6 @@ import { EffectTiming } from "@aegis/shared/schema/enums";
 import { requireCardDefinition } from "@aegis/shared/cards/registry";
 import { advance } from "#api/engine/testkit/advance";
 import { assertNoLoudGap, setupEngine, settle } from "#api/engine/testkit/harness";
-import type { SetupEngineOptions } from "#api/engine/testkit/harness";
 import { observe } from "#api/engine/testkit/observe";
 import { compiled } from "#api/cards/BT27/BT27-038";
 import "#api/cards/index";
@@ -32,7 +31,7 @@ async function playQuetzalmon(s: Session) {
   await settle(() => findQuetzalmon(s) !== undefined && !s.state.pendingDecision);
 }
 
-function weakenBoard(options: SetupEngineOptions) {
+function weakenBoard(options: Parameters<typeof setupEngine>[1]) {
   return setupEngine(
     {
       0: {

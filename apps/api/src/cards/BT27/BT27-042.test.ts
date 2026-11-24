@@ -344,15 +344,11 @@ describe("KingChessmon", () => {
       let answered = 0;
       while (answered < 5) {
         await settle(() => s.state.pendingDecision !== undefined || s.state.players[0]!.breeding !== undefined);
-        const pending = s.state.pendingDecision;
-        if (pending === undefined) break;
-        const request = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)?.req;
-        if (request === undefined || (request.kind !== "selectCards" && request.kind !== "chooseTargets")) {
-          throw new Error("Expected the pending card-selection request");
-        }
+        const request = s.state.pendingDecision;
+        if (request === undefined) break;
         const candidates = request.options?.candidateInstanceIds ?? [];
         const instanceIds = request.options?.assemblyCardId === KING ? [] : candidates.slice(0, 1);
-        const kind = request.kind;
+        const kind = request.kind === "selectCards" ? "selectCards" : "chooseTargets";
         s.engine.applyIntent(0, {
           type: "respondDecision",
           decisionId: request.decisionId,
