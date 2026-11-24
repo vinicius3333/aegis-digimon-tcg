@@ -64,5 +64,6 @@ export const bugForumIt = {
   "bugForum.home.browse": "Vedi segnalazioni",
   "bugForum.home.guest": "Vota le segnalazioni di bug e guadagna monete Aegis quando il team è d'accordo.",
   "bugForum.coinsHelpLabel": "Cosa sono le monete Aegis?",
-  "bugForum.coinsHelp": "Le monete Aegis non hanno ancora un utilizzo. Verranno usate in futuro, quindi continua a guadagnarle.",
+  "bugForum.coinsHelp":
+    "Le monete Aegis non hanno ancora un utilizzo. Verranno usate in futuro, quindi continua a guadagnarle.",
 } as const;

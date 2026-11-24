@@ -343,11 +343,6 @@
   margin-inline-start: -8px;
 }
 
-.bug-thread__header {
-  display: grid;
-  gap: 6px;
-}
-
 .bug-thread__meta {
   display: flex;
   flex-wrap: wrap;
@@ -356,25 +351,27 @@
   margin: 0;
 }
 
-.bug-thread__header h2 {
+.bug-thread__report h2 {
   margin: 0;
   font: 600 22px / 1.25 var(--ds-font-body);
   letter-spacing: -0.015em;
 }
 
-.bug-thread__report {
+.bug-thread__report,
+.bug-thread__discussion {
   display: grid;
   gap: var(--ds-space-3);
-  padding: var(--ds-space-4) var(--ds-space-5);
-  border-inline-start: 3px solid var(--ds-line-strong);
-  border-radius: 0 10px 10px 0;
-  background: var(--ds-fill);
+  padding: var(--ds-space-5) var(--ds-space-6);
+  border: 1px solid var(--ds-line);
+  border-radius: 12px;
+  background: var(--ds-sheet);
+  box-shadow: var(--ds-shadow-card);
 }
 
-.bug-thread__report p {
+.bug-thread__description {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.55;
+  font-size: 15px;
+  line-height: 1.6;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -639,14 +636,22 @@
 .bug-ballots li {
   display: grid;
   gap: 2px;
-  padding: 10px 12px;
-  border-inline-start: 3px solid var(--ds-text-3);
-  border-radius: 0 8px 8px 0;
-  background: var(--ds-fill);
+  padding: 10px 0;
+  border-top: 1px solid var(--ds-line);
 }
 
-.bug-ballots li[data-verdict="bug"] {
-  border-inline-start-color: var(--ds-danger);
+.bug-ballots__verdict::before {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-inline-end: 5px;
+  content: "";
+  border-radius: 50%;
+  background: var(--ds-text-3);
+}
+
+.bug-ballots li[data-verdict="bug"] .bug-ballots__verdict::before {
+  background: var(--ds-danger);
 }
 
 .bug-ballots p {

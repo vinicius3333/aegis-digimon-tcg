@@ -50,20 +50,18 @@ export function BugForumThread({ bugId, onBack }: BugForumThreadParams) {
   if (!detail) return <p role="status">{t("common.loading")}</p>;
 
   return (
-    <article className="bug-thread" aria-labelledby="bug-thread-title">
+    <article className="bug-thread">
       {back}
-      <header className="bug-thread__header">
-        <p className="bug-thread__meta">
-          <span className="bug-forum-row__meta">
-            #{detail.id} · {new Date(detail.createdAt).toLocaleDateString(locale, { dateStyle: "medium" })}
-          </span>
-          <Badge tone={FEEDBACK_STATUS_TONE[detail.status]}>{t(`feedback.status.${detail.status}`)}</Badge>
-        </p>
-        <h2 id="bug-thread-title">{detail.summary}</h2>
-      </header>
       <div className="bug-thread__layout">
-        <div className="bug-thread__report">
-          <p>{detail.description}</p>
+        <section className="bug-thread__report" aria-labelledby="bug-thread-title">
+          <p className="bug-thread__meta">
+            <span className="bug-forum-row__meta">
+              #{detail.id} · {new Date(detail.createdAt).toLocaleDateString(locale, { dateStyle: "medium" })}
+            </span>
+            <Badge tone={FEEDBACK_STATUS_TONE[detail.status]}>{t(`feedback.status.${detail.status}`)}</Badge>
+          </p>
+          <h2 id="bug-thread-title">{detail.summary}</h2>
+          <p className="bug-thread__description">{detail.description}</p>
           {detail.cardIds.length ? (
             <ul className="bug-forum-cards" aria-label={t("bugReport.cardsLabel")}>
               {detail.cardIds.map((cardId) => (
@@ -71,7 +69,7 @@ export function BugForumThread({ bugId, onBack }: BugForumThreadParams) {
               ))}
             </ul>
           ) : null}
-        </div>
+        </section>
         <aside className="bug-thread__aside">
           {detail.tally ? (
             <BugForumResult detail={detail} tally={detail.tally} />
