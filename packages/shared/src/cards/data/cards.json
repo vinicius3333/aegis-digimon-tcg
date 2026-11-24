@@ -50022,6 +50022,11 @@
         "color": "Blue",
         "level": 5,
         "memoryCost": 4
+      },
+      {
+        "color": "Black",
+        "level": 5,
+        "memoryCost": 4
       }
     ],
     "forms": ["Mega"],
@@ -50062,6 +50067,11 @@
     "evoCosts": [
       {
         "color": "Blue",
+        "level": 6,
+        "memoryCost": 5
+      },
+      {
+        "color": "Black",
         "level": 6,
         "memoryCost": 5
       }
