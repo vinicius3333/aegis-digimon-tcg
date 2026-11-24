@@ -99,7 +99,12 @@ it("reopens only the owning ready revision in the current window", async () => {
   const input = { ...owner, window: deck.window, revision: locked.pool.revision };
   await expect(store.unready({ ...input, credential: randomUUID() })).rejects.toThrow("seat_required");
   await expect(store.unready({ ...input, now: locked.pool.deadlineAt! })).rejects.toThrow("window_closed");
+  await store.ready({ ...owner, credential: guest, ...chooseDeck(await store.view({ ...owner, credential: guest })) });
   const reopened = await store.unready(input);
+  expect(await store.view({ ...owner, now: locked.pool.deadlineAt! })).toMatchObject({
+    status: "cancelled",
+    reason: "build_timeout",
+  });
   expect(reopened.pool).toMatchObject({
     editable: true,
     ready: false,

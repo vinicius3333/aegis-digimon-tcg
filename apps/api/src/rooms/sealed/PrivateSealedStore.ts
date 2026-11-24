@@ -566,7 +566,7 @@ export class PrivateSealedStore {
     if (
       state.status === Status.BUILDING.value &&
       now >= state.deadlineAt &&
-      (state.seats.length < 2 || state.seats.some((seat) => !seat.deck))
+      (state.seats.length < 2 || state.seats.some((seat) => !seat.deck || seat.readyWindow !== this.getWindow(state)))
     ) {
       state.status = Status.CANCELLED.value;
       state.reason = "build_timeout";
