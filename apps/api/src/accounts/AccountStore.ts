@@ -1,6 +1,5 @@
 import { buildTournamentRules } from "#api/tournaments/rules/buildTournamentRules";
 import type { SealedConfiguration } from "@aegis/shared/sealed/SealedContracts";
-import { isSealedConfiguration } from "@aegis/shared/sealed/isSealedConfiguration";
 import type { TournamentStatus } from "@aegis/shared/tournaments/index";
 import { TournamentRoundStartMode } from "@aegis/shared/tournaments/TournamentRoundStartMode";
 import { getDeckStatsMatchLimit } from "@aegis/shared/decks/getDeckStatsMatchLimit";
@@ -200,7 +199,18 @@ export type CreateTournamentRecord = {
   registrationClosesAt?: number;
   checkInOpensAt?: number;
   checkInClosesAt?: number;
-} & Partial<Omit<TournamentProgram, "topCutSize">>;
+} & Partial<Omit<TournamentProgram, "topCutSize" | "sealedConfiguration">> &
+  (
+    | { sealedConfiguration?: undefined }
+    | {
+        sealedConfiguration: SealedConfiguration;
+        structure: "swiss";
+        bestOf: 3;
+        allowBots?: false;
+        topCutEnabled?: false;
+        format?: "standard";
+      }
+  );
 export const LEGACY_TOURNAMENT_PROGRAM: Omit<TournamentProgram, "topCutSize"> = {
   structure: "single_elimination",
   bestOf: 1,
@@ -1307,23 +1317,7 @@ export class AccountStore {
   async createTournament(createdBy: string, record: CreateTournamentRecord): Promise<Tournament> {
     await this.ensureReady();
     const input = { ...LEGACY_TOURNAMENT_PROGRAM, ...record };
-    if (input.sealedConfiguration && record.bestOf === undefined) {
-      input.bestOf = 3;
-    }
-    if (input.sealedConfiguration && input.rules === null) {
-      input.rules = buildTournamentRules({ bestOf: input.bestOf });
-    }
-    if (
-      input.sealedConfiguration &&
-      (!isSealedConfiguration(input.sealedConfiguration) ||
-        input.structure !== "swiss" ||
-        input.bestOf !== 3 ||
-        input.allowBots ||
-        input.topCutEnabled ||
-        (input.format !== undefined && input.format !== "standard"))
-    ) {
-      throw new Error("sealed_configuration_invalid");
-    }
+    const rules = input.rules ?? (input.sealedConfiguration ? buildTournamentRules({ bestOf: input.bestOf }) : null);
     const id = record.id ?? randomUUID();
     await this.pool.query(
       "INSERT INTO tournaments (id,name,block,status,starts_at,max_players,created_by,created_at,structure,best_of,top_cut_enabled,allow_bots,rules_snapshot,banlist_policy,banlist_cards,description,password_hash,format,category,random_bot_styles,circuit_id,auto_start,registration_closes_at,check_in_opens_at,check_in_closes_at,round_start_mode,allow_beta_cards,sealed_configuration) VALUES ($1,$2,$3,'registration',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27) ON CONFLICT DO NOTHING",
@@ -1339,7 +1333,7 @@ export class AccountStore {
         input.bestOf,
         input.topCutEnabled,
         input.allowBots,
-        JSON.stringify(input.rules),
+        JSON.stringify(rules),
         JSON.stringify(input.banlistPolicy),
         JSON.stringify(input.banlistCards),
         input.description ?? "",
@@ -1354,7 +1348,7 @@ export class AccountStore {
         input.checkInClosesAt ?? null,
         input.roundStartMode ?? TournamentRoundStartMode.AUTOMATIC.value,
         input.allowBetaCards === true,
-        JSON.stringify(input.sealedConfiguration ?? null),
+        input.sealedConfiguration ? JSON.stringify(input.sealedConfiguration) : null,
       ],
     );
     return (await this.tournament(id))!;

@@ -13,6 +13,7 @@ export type TournamentCommandName =
   // Organizer arbitration (this slice).
   | "sealed_pools_allocated"
   | "sealed_deck_ready"
+  | "sealed_deck_unready"
   | "sealed_build_expired"
   | "sealed_participant_dropped"
   | "decide_series"

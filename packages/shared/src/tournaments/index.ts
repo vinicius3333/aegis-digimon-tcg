@@ -1,4 +1,3 @@
-import type { SealedConfiguration } from "#shared/sealed/SealedContracts";
 // Tournament program contracts shared by server and client.
 // Frozen before wave-1 fan-out; extend additively — parallel worktrees depend
 // on these shapes not changing underneath them.
@@ -44,7 +43,6 @@ export type TournamentBanlistCard = {
 };
 
 export type CreateTournamentInput = {
-  sealedConfiguration?: SealedConfiguration;
   allowBetaCards?: boolean;
   roundStartMode?: TournamentRoundStartMode;
   category?: TournamentCategory;
@@ -175,7 +173,6 @@ export type StandingsRow = {
 };
 
 export type ParticipantView = {
-  sealedReady?: boolean;
   id: string;
   kind: ParticipantKind;
   displayName: string;
@@ -188,8 +185,6 @@ export type ParticipantView = {
 };
 
 export type TournamentSummary = {
-  sealedConfiguration?: SealedConfiguration | null;
-  sealedBuildDeadlineAt?: number | null;
   allowBetaCards?: boolean;
   roundStartMode?: TournamentRoundStartMode;
   category?: TournamentCategory;

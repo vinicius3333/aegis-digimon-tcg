@@ -88,6 +88,29 @@ function chooseDeck(own: NonNullable<Awaited<ReturnType<SealedStore["getOwnPool"
 }
 
 describe("sealed check-in and Swiss readiness", () => {
+  it("withdraws initial readiness without losing the draft and rejects stale retries", async () => {
+    const { event, players } = await buildEvent(2);
+    const owner = { tournamentId: event.id, accountId: players[0]!.id, now };
+    const own = (await sealed.getOwnPool(owner))!;
+    const input = { ...owner, ...chooseDeck(own) };
+    expect(await sealed.ready(input)).toEqual({ ok: true, revision: 1 });
+    const edit = { ...owner, revision: 1, window: "initial" };
+    expect(await sealed.unready({ ...edit, now: own.deadlineAt! })).toMatchObject({ reason: "sealed_window_closed" });
+    expect(await sealed.unready(edit)).toEqual({ ok: true, revision: 2 });
+    expect(await sealed.getOwnPool(owner)).toMatchObject({
+      ready: false,
+      editable: true,
+      revision: 2,
+      deck: { mainDeck: input.mainDeck },
+    });
+    expect(await swiss.startTournamentProgram(event.id, now)).toMatchObject({ reason: "sealed_not_ready" });
+    expect(await sealed.ready(input)).toMatchObject({ reason: "stale_revision" });
+    expect(await sealed.ready({ ...input, mainDeck: [...input.mainDeck].reverse(), revision: 2 })).toEqual({
+      ok: true,
+      revision: 3,
+    });
+    expect(await sealed.unready(edit)).toMatchObject({ reason: "stale_revision" });
+  });
   it("preserves allocated pools when an organizer tries to delete preparation", async () => {
     const { event, players } = await buildEvent(2);
     expect(await accounts.deleteTournament(event.id, players[0]!.id)).toBe("already_started");
@@ -190,6 +213,43 @@ async function playGame(seriesId: string, accountsInMatch: string[], at: number)
   return authorization.value.gameId;
 }
 
+it("locks the event for sealed allocation but not constructed allocation", async () => {
+  const { event, players } = await buildEvent(2);
+  await readyField(event.id, players);
+  const match = (
+    await pool.query<{ id: string }>("SELECT id FROM tournament_matches WHERE tournament_id=$1", [event.id])
+  ).rows[0]!;
+  const started = await startMatch(
+    event.id,
+    match.id,
+    players.map((player) => player.id),
+    now,
+  );
+  const shortPool = new Pool({ connectionString, options: `-c search_path=${schema} -c lock_timeout=200ms` });
+  const store = new AccountStore(shortPool);
+  const locked = await pool.connect();
+  try {
+    await store.ensureReady();
+    const authorize = () =>
+      new SeriesStore(store).authorizeNextGame({ seriesId: started.id, accountId: players[0]!.id, now });
+    await locked.query("BEGIN");
+    await locked.query("SELECT id FROM tournaments WHERE id=$1 FOR UPDATE", [event.id]);
+    await expect(authorize()).rejects.toMatchObject({ code: "55P03" });
+    await locked.query("ROLLBACK");
+    for (const value of [null, "null"]) {
+      await pool.query("UPDATE tournaments SET sealed_configuration=$1 WHERE id=$2", [value, event.id]);
+      await locked.query("BEGIN");
+      await locked.query("SELECT id FROM tournaments WHERE id=$1 FOR UPDATE", [event.id]);
+      expect((await authorize()).ok).toBe(true);
+      await locked.query("ROLLBACK");
+    }
+  } finally {
+    await locked.query("ROLLBACK");
+    locked.release();
+    await shortPool.end();
+  }
+});
+
 it("locks BO3 revisions atomically, retains immutable game snapshots and keeps the original series clock", async () => {
   const { event, players } = await buildEvent(2);
   await readyField(event.id, players);
@@ -234,6 +294,32 @@ it("locks BO3 revisions atomically, retains immutable game snapshots and keeps t
   expect(finished.games[0]!.deckSnapshots).toEqual(snapshot);
   expect(finished.games[1]!.deckSnapshots.map((deck) => deck!.revision)).toEqual([2, 2]);
   expect(finished.wins).toEqual([2, 0]);
+});
+
+it("withdraws sideboard readiness until authorization locks the next game", async () => {
+  const { event, players } = await buildEvent(2);
+  await readyField(event.id, players);
+  const match = (
+    await pool.query<{ id: string }>("SELECT id FROM tournament_matches WHERE tournament_id=$1", [event.id])
+  ).rows[0]!;
+  const ids = players.map((player) => player.id);
+  const started = await startMatch(event.id, match.id, ids, now);
+  await playGame(started.id, ids, now);
+  const at = now + 2000;
+  const owner = { tournamentId: event.id, accountId: ids[0]!, now: at };
+  const own = (await sealed.getOwnPool(owner))!;
+  for (const accountId of ids) {
+    const seat = { ...owner, accountId };
+    expect((await sealed.ready({ ...seat, ...chooseDeck((await sealed.getOwnPool(seat))!) })).ok).toBe(true);
+  }
+  expect(await sealed.unready({ ...owner, window: own.window!, revision: 2 })).toEqual({ ok: true, revision: 3 });
+  const authorize = { seriesId: started.id, accountId: ids[0]!, now: at };
+  expect(await series.authorizeNextGame(authorize)).toMatchObject({ reason: "sealed_sideboarding" });
+  expect((await series.authorizeNextGame({ ...authorize, now: own.deadlineAt! })).ok).toBe(true);
+  expect((await series.series(started.id))!.games[1]!.deckSnapshots.map((deck) => deck!.revision)).toEqual([2, 2]);
+  expect(await sealed.unready({ ...owner, window: own.window!, revision: 3 })).toMatchObject({
+    reason: "sealed_window_closed",
+  });
 });
 
 it("runs four players through all Swiss rounds with no pool reroll and no duplicate scoring", async () => {
@@ -410,6 +496,21 @@ it("authenticates private pool APIs and registers a sealed entrant through the r
     });
     expect(rejected.status).toBe(409);
     expect((await sealed.getOwnPool({ tournamentId: event.id, accountId: owner.id }))!.revision).toBe(0);
+    const ready = await fetch(`${path}/ready`, { method: "POST", headers, body: JSON.stringify(chooseDeck(own)) });
+    expect(ready.status).toBe(200);
+    const change = { method: "POST", headers, body: JSON.stringify({ window: "initial", revision: 1 }) };
+    expect(
+      (await fetch(`${path}/unready`, { ...change, headers: { "Content-Type": "application/json" } })).status,
+    ).toBe(401);
+    const stranger = await fetch(`${path}/unready`, {
+      ...change,
+      headers: { ...headers, Cookie: `aegis_session=${otherSession.id}` },
+    });
+    expect(stranger.status).toBe(409);
+    const reopened = await fetch(`${path}/unready`, change);
+    expect(reopened.status).toBe(200);
+    expect(await reopened.json()).toMatchObject({ editable: true, ready: false, revision: 2 });
+    expect((await fetch(`${path}/unready`, change)).status).toBe(409);
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
@@ -634,22 +735,6 @@ it("opens a bounded durable preparation window after a bye", async () => {
     2, 2,
   ]);
   expect((await sealed.getOwnPool({ ...owner, now: now + 124004 }))!.editable).toBe(false);
-});
-
-it("enforces sealed BO3 at the persistence boundary and defaults omitted BO3 consistently", async () => {
-  const owner = await accounts.accountForIdentity("discord", randomUUID(), "BO3 organizer");
-  const input = {
-    name: "Sealed configuration",
-    block: "BT4",
-    startsAt: now,
-    maxPlayers: 8,
-    structure: "swiss" as const,
-    sealedConfiguration: getSealedConfiguration({ setId: "BT4" }),
-  };
-  await expect(accounts.createTournament(owner.id, { ...input, bestOf: 1 })).rejects.toThrow(
-    "sealed_configuration_invalid",
-  );
-  expect((await accounts.createTournament(owner.id, input)).bestOf).toBe(3);
 });
 
 it("sweeps beyond twenty pending preparations without starving later ready or expired events", async () => {

@@ -1,4 +1,5 @@
-import { isSealedConfiguration } from "@aegis/shared/sealed/isSealedConfiguration";
+import type { TournamentCreation } from "@aegis/shared/tournaments/SealedTournamentContracts";
+import { parseTournamentSettings } from "#api/tournaments/rules/parseTournamentSettings";
 import { isDeckFormat } from "@aegis/shared/deckFormat";
 import { isTournamentClockSettings } from "@aegis/shared/tournaments/isTournamentClockSettings";
 import type { BanlistPolicy, CreateTournamentInput, TournamentBanlistCard, TournamentRules } from "@aegis/shared";
@@ -34,12 +35,13 @@ export type TournamentValidationCode =
 
 export type TournamentValidationError = {
   code: TournamentValidationCode;
-  field: keyof CreateTournamentInput;
+  field: keyof TournamentCreation;
   detail?: string;
 };
 
 export type ValidatedTournament = {
-  input: CreateTournamentInput;
+  input: TournamentCreation;
+  settings: NonNullable<ReturnType<typeof parseTournamentSettings>>;
   rules: TournamentRules;
   banlistCards: TournamentBanlistCard[];
 };
@@ -55,18 +57,14 @@ export const MAX_TOURNAMENT_PLAYERS = 1024;
 
 export const STARTS_AT_PAST_TOLERANCE_MS = 5 * 60_000;
 
-export function validateCreateTournament(input: CreateTournamentInput, createdAt: number): ValidationResult {
+export function validateCreateTournament(
+  input: CreateTournamentInput & { sealedConfiguration?: unknown },
+  createdAt: number,
+): ValidationResult {
   const errors: TournamentValidationError[] = [];
-  if (
-    input.sealedConfiguration &&
-    (!isSealedConfiguration(input.sealedConfiguration) ||
-      input.structure !== "swiss" ||
-      input.bestOf !== 3 ||
-      input.allowBots ||
-      input.topCut ||
-      (input.format !== undefined && input.format !== "standard"))
-  ) {
-    errors.push({ code: "sealed_configuration_invalid", field: "sealedConfiguration" });
+  const settings = parseTournamentSettings(input);
+  if (!settings) {
+    return { ok: false, errors: [{ code: "sealed_configuration_invalid", field: "sealedConfiguration" }] };
   }
   if (input.format !== undefined && !isDeckFormat(input.format)) {
     errors.push({ code: "format_invalid", field: "format" });
@@ -130,7 +128,8 @@ export function validateCreateTournament(input: CreateTournamentInput, createdAt
   return {
     ok: true,
     value: {
-      input: { ...input, name, description, banlist },
+      settings,
+      input: { ...input, sealedConfiguration: settings.sealedConfiguration, name, description, banlist },
       rules,
       banlistCards: resolveBanlistPolicy(banlist, createdAt),
     },

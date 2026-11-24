@@ -344,3 +344,36 @@ it("admits only finalized packs across cancellation, polling and browser-session
   expect(document.querySelector('[data-pool-card="BT4-010"]')).toBeTruthy();
   expect(document.querySelector('[data-pool-card="BT4-104"]')).toBeTruthy();
 });
+
+it("reopens the acknowledged ready revision without submitting another deck", async () => {
+  let pool: SealedOwnPool = {
+    configuration: getSealedConfiguration({ setId: "BT4" }),
+    packs: [[{ cardId: "BT4-009" }]],
+    revision: 1,
+    window: "initial",
+    deck: { mainDeck: ["BT4-009"], eggDeck: [], revision: 0 },
+    ready: true,
+    editable: false,
+    deadlineAt: Date.now() + 600000,
+  };
+  const unready = vi.fn<PropsReady>(async () => {
+    pool = { ...pool, revision: 2, ready: false, editable: true };
+    return { ok: true as const, value: pool };
+  });
+  const ready = vi.fn<PropsReady>();
+  render(
+    <I18nProvider>
+      <SealedPoolBuilder
+        loadPool={async () => ({ ok: true, value: pool })}
+        readyDeck={ready}
+        unreadyDeck={unready}
+        onReady={() => undefined}
+      />
+    </I18nProvider>,
+  );
+  fireEvent.click(await screen.findByRole("button", { name: "Edit deck" }));
+  expect(unready).toHaveBeenCalledWith({ revision: 1, window: "initial" });
+  expect(ready).not.toHaveBeenCalled();
+  await screen.findByRole("heading", { name: "Your pool & deck" });
+  expect(screen.queryByRole("button", { name: "Edit deck" })).toBeNull();
+});

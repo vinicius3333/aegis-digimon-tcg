@@ -21,7 +21,7 @@ import type {
   TournamentValidationError,
   TournamentWindows,
 } from "./types";
-import type { CreateTournamentInput } from "@aegis/shared";
+import type { TournamentCreation } from "@aegis/shared/tournaments/SealedTournamentContracts";
 import type {
   CreateTournamentCircuitInput,
   TournamentCircuitLeaderboard,
@@ -88,6 +88,11 @@ async function readJson(response: Response): Promise<unknown> {
 export const tournamentApi = {
   sealedPool: (id: string, signal?: AbortSignal) =>
     send<SealedOwnPool>(`/tournaments/${encodeURIComponent(id)}/sealed`, { signal }),
+  sealedUnready: (id: string, input: { revision: number; window: string }) =>
+    send<SealedOwnPool>(`/tournaments/${encodeURIComponent(id)}/sealed/unready`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
   sealedReady: (id: string, input: SealedDeckInput & { window: string }) =>
     send<SealedOwnPool>(`/tournaments/${encodeURIComponent(id)}/sealed/ready`, {
       method: "POST",
@@ -146,7 +151,7 @@ export const tournamentApi = {
   list: (signal?: AbortSignal) => send<TournamentListing[]>("/tournaments", { signal }),
   detail: (id: string, signal?: AbortSignal) =>
     send<TournamentDetail>(`/tournaments/${encodeURIComponent(id)}`, { signal }),
-  create: (input: CreateTournamentInput & { block?: string }) =>
+  create: (input: TournamentCreation & { block?: string }) =>
     send<TournamentDetail>("/tournaments", { method: "POST", body: JSON.stringify(input) }),
   register: (id: string, savedDeckId: string, password?: string) =>
     send<unknown>(`/tournaments/${encodeURIComponent(id)}/participants`, {

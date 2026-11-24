@@ -5,21 +5,12 @@ import type { SeriesRecord } from "#api/tournaments/series/SeriesStore";
 import type { SealedConfiguration, SealedPull } from "@aegis/shared/sealed/SealedContracts";
 import { validateSealedDeck } from "@aegis/shared/sealed/validateSealedDeck";
 
-type Params = { db: Queryable; series: SeriesRecord; now: number };
+type Params = { db: Queryable; series: SeriesRecord; now: number; configuration: SealedConfiguration };
 type Result =
   | { ok: true; decks: [ParticipantDeckSnapshot, ParticipantDeckSnapshot] | null }
   | { ok: false; reason: "sealed_not_ready" | "sealed_sideboarding" };
 
-export async function resolveSealedGameDecks({ db, series, now }: Params): Promise<Result> {
-  const event = (
-    await db.query<{ sealed_configuration: SealedConfiguration | null }>(
-      "SELECT sealed_configuration FROM tournaments WHERE id=$1",
-      [series.tournamentId],
-    )
-  ).rows[0];
-  if (!event?.sealed_configuration) {
-    return { ok: true, decks: null };
-  }
+export async function resolveSealedGameDecks({ db, series, now, configuration }: Params): Promise<Result> {
   const open = series.games.find((game) => ["allocated", "room_claimed", "playing"].includes(game.status));
   if (open?.deckSnapshots[0] && open.deckSnapshots[1]) {
     return { ok: true, decks: [open.deckSnapshots[0], open.deckSnapshots[1]] };
@@ -29,10 +20,7 @@ export async function resolveSealedGameDecks({ db, series, now }: Params): Promi
   const deadline =
     last?.finishedAt === null || last?.finishedAt === undefined
       ? null
-      : Math.min(
-          last.finishedAt + event.sealed_configuration.sideboardSeconds * 1000,
-          series.seriesDeadlineAt ?? Infinity,
-        );
+      : Math.min(last.finishedAt + configuration.sideboardSeconds * 1000, series.seriesDeadlineAt ?? Infinity);
   const decks: ParticipantDeckSnapshot[] = [];
   for (const accountId of series.participantAccountIds) {
     if (accountId === null) {
@@ -60,7 +48,7 @@ export async function resolveSealedGameDecks({ db, series, now }: Params): Promi
           db,
           tournamentId: series.tournamentId,
           accountId,
-          sideboardSeconds: event.sealed_configuration.sideboardSeconds,
+          sideboardSeconds: configuration.sideboardSeconds,
           beforeRound: currentMatch?.round,
         });
     const effectiveDeadline =

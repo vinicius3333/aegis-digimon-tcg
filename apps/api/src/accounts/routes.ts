@@ -1,3 +1,4 @@
+import type { TournamentOverview } from "@aegis/shared/tournaments/SealedTournamentContracts";
 import { installSealedRoutes } from "#api/tournaments/sealed/installSealedRoutes";
 import { installDeckSimulationRoutes } from "#api/deckSimulation/installDeckSimulationRoutes";
 import { DeckMatchupResultStore } from "#api/deckSimulation/DeckMatchupResultStore";
@@ -51,7 +52,6 @@ import {
   type MatchHistoryFilter,
   type MatchHistoryPage,
   type SeriesScoreView,
-  type TournamentSummary,
   type TournamentView,
 } from "@aegis/shared";
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
@@ -749,19 +749,14 @@ export function installAccountRoutes(
     }
     const { input, rules, banlistCards } = validated.value;
     const tournament = await store.createTournament(session.account.id, {
-      sealedConfiguration: input.sealedConfiguration,
       category: input.category,
       name: input.name,
-      format: input.format,
       description: input.description,
       passwordHash: await hashTournamentPassword(input.password ?? ""),
       block: parsed.block,
       startsAt: input.startsAt,
       maxPlayers: input.maxPlayers,
-      structure: input.structure,
-      bestOf: input.bestOf,
-      topCutEnabled: input.topCut,
-      allowBots: input.allowBots,
+      ...validated.value.settings,
       randomBotStyles: input.randomBotStyles === true,
       roundStartMode: input.roundStartMode,
       allowBetaCards: input.allowBetaCards === true,
@@ -1147,7 +1142,7 @@ type TournamentDetailExtras = {
  */
 function toTournamentSummary(
   tournament: Tournament,
-): TournamentSummary & Pick<Tournament, "block" | "createdBy" | "winnerAccountId"> & { registrations: number } {
+): TournamentOverview & Pick<Tournament, "block" | "createdBy" | "winnerAccountId"> & { registrations: number } {
   return {
     id: tournament.id,
     sealedConfiguration: tournament.sealedConfiguration,

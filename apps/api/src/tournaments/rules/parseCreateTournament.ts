@@ -1,4 +1,3 @@
-import { isSealedConfiguration } from "@aegis/shared/sealed/isSealedConfiguration";
 import { isTournamentRoundStartMode } from "@aegis/shared/tournaments/isTournamentRoundStartMode";
 import { latestReleasedProductLabel } from "@aegis/shared/cards/cardPool";
 import type { BanlistPolicy, CreateTournamentInput } from "@aegis/shared/tournaments/index";
@@ -7,7 +6,7 @@ import { isTournamentCategory } from "@aegis/shared/tournaments/isTournamentCate
 
 export function parseCreateTournament(
   body: Record<string, unknown>,
-): { input: CreateTournamentInput; block: string } | undefined {
+): { input: CreateTournamentInput & { sealedConfiguration?: unknown }; block: string } | undefined {
   const { name, block, startsAt, maxPlayers, structure, topCut, bestOf, allowBots, banlist } = body;
   if (typeof name !== "string" || !Number.isFinite(startsAt) || !Number.isInteger(maxPlayers)) return undefined;
   if (
@@ -37,12 +36,6 @@ export function parseCreateTournament(
     return undefined;
   }
   if (body.roundStartMode !== undefined && !isTournamentRoundStartMode(body.roundStartMode)) {
-    return undefined;
-  }
-  if (body.sealedConfiguration !== undefined && !isSealedConfiguration(body.sealedConfiguration)) {
-    return undefined;
-  }
-  if (body.sealedConfiguration && bestOf !== undefined && bestOf !== 3) {
     return undefined;
   }
   if (body.allowBetaCards !== undefined && typeof body.allowBetaCards !== "boolean") return undefined;

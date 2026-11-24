@@ -1,3 +1,4 @@
+import type { SealedConfiguration } from "@aegis/shared/sealed/SealedContracts";
 import { resolveSealedGameDecks } from "#api/tournaments/sealed/resolveSealedGameDecks";
 import { recordTournamentGameFacts } from "#api/ranked/recordTournamentGameFacts";
 import { advanceSeriesDeadline } from "#api/tournaments/scheduler/advanceSeriesDeadline";
@@ -390,7 +391,12 @@ export class SeriesStore {
     return this.mutate(input.seriesId, async (client) => {
       const unlockedSeries = await readSeries(client, input.seriesId);
       if (!unlockedSeries) return failure("series_not_found");
-      await client.query("SELECT id FROM tournaments WHERE id=$1 FOR UPDATE", [unlockedSeries.tournamentId]);
+      const configuration = (
+        await client.query<{ sealed_configuration: SealedConfiguration }>(
+          "SELECT sealed_configuration FROM tournaments WHERE id=$1 AND sealed_configuration IS NOT NULL AND sealed_configuration <> 'null'::jsonb FOR UPDATE",
+          [unlockedSeries.tournamentId],
+        )
+      ).rows[0]?.sealed_configuration;
       const match = await lockMatch(client, unlockedSeries.matchId);
       const series = await lockSeries(client, input.seriesId);
       if (!match || !series) return failure("series_not_found");
@@ -402,7 +408,9 @@ export class SeriesStore {
       if (seat === undefined) return failure("not_a_participant");
       if (series.status === "overtime") return failure("no_games_remaining");
 
-      const sealed = await resolveSealedGameDecks({ db: client, series, now });
+      const sealed = configuration
+        ? await resolveSealedGameDecks({ db: client, series, now, configuration })
+        : { ok: true as const, decks: null };
       if (!sealed.ok) {
         return sealed;
       }

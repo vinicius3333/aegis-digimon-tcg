@@ -14,7 +14,8 @@ import type {
 import { validateSealedDeck } from "@aegis/shared/sealed/validateSealedDeck";
 
 type Owner = { tournamentId: string; accountId: string; now?: number };
-type Submission = Owner & SealedDeckInput & { window: string };
+type WindowChange = Owner & { revision: number; window: string };
+type Submission = WindowChange & SealedDeckInput;
 type Result = { ok: true; revision: number } | { ok: false; reason: string };
 type PoolRow = {
   participant_id: string;
@@ -51,13 +52,52 @@ export class SealedStore {
     };
   }
 
-  async ready(input: Submission): Promise<Result> {
+  ready(input: Submission): Promise<Result> {
+    return this.change(input, (client) => this.submit(client, input));
+  }
+
+  unready(input: WindowChange): Promise<Result> {
+    return this.change(input, async (client) => {
+      const row = await this.readOwner(client, input);
+      if (!row) return { ok: false, reason: "sealed_pool_not_found" };
+      const window = await this.readWindow(client, row, input, true);
+      if (!window?.editable || window.key !== input.window) return { ok: false, reason: "sealed_window_closed" };
+      if (row.revision !== input.revision || row.ready_window !== window.key)
+        return { ok: false, reason: "stale_revision" };
+      const revision = row.revision + 1;
+      await client.query("UPDATE tournament_sealed_pools SET revision=$1,ready_window=NULL WHERE participant_id=$2", [
+        revision,
+        row.participant_id,
+      ]);
+      if (window.key === "initial") {
+        await client.query("UPDATE tournament_participants SET deck_snapshot=NULL,deck_version=NULL WHERE id=$1", [
+          row.participant_id,
+        ]);
+      }
+      await appendTournamentEvent(client, {
+        tournamentId: input.tournamentId,
+        actorKind: "participant",
+        actorId: input.accountId,
+        command: "sealed_deck_unready",
+        commandId: `sealed_unready:${row.participant_id}:${revision}`,
+        reason: "Participant reopened deck preparation",
+        reasonCode: "sealed_deck_unready",
+        subjectKind: "participant",
+        subjectId: row.participant_id,
+        after: { revision, window: window.key },
+        now: input.now ?? Date.now(),
+      });
+      return { ok: true, revision };
+    });
+  }
+
+  private async change(input: Owner, operation: (client: PoolClient) => Promise<Result>): Promise<Result> {
     await this.accounts.ensureReady();
     const client = await this.accounts.pool.connect();
     try {
       await client.query("BEGIN");
       await client.query("SELECT id FROM tournaments WHERE id=$1 FOR UPDATE", [input.tournamentId]);
-      const result = await this.submit(client, input);
+      const result = await operation(client);
       await client.query(result.ok ? "COMMIT" : "ROLLBACK");
       return result;
     } catch (error) {
@@ -150,7 +190,7 @@ export class SealedStore {
         `SELECT sp.participant_id,sp.packs,sp.revision,sp.ready_window,p.status,t.status event_status,t.sealed_configuration,t.sealed_build_deadline_at,d.submission
       FROM tournament_sealed_pools sp JOIN tournament_participants p ON p.id=sp.participant_id
       JOIN tournaments t ON t.id=p.tournament_id
-      LEFT JOIN tournament_sealed_decks d ON d.participant_id=sp.participant_id AND d.revision=sp.revision
+      LEFT JOIN LATERAL (SELECT submission FROM tournament_sealed_decks WHERE participant_id=sp.participant_id ORDER BY revision DESC LIMIT 1) d ON true
       WHERE p.tournament_id=$1 AND p.account_id=$2`,
         [input.tournamentId, input.accountId],
       )

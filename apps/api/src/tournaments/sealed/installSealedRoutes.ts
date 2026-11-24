@@ -32,6 +32,33 @@ export function installSealedRoutes({ app, accounts, swiss, session }: Params): 
     }
     res.json(own);
   });
+  app.post("/tournaments/:id/sealed/unready", async (req, res) => {
+    res.set("Cache-Control", "private, no-store");
+    const auth = await session(req);
+    if (!auth) {
+      res.status(401).json({ error: "authentication_required" });
+      return;
+    }
+    const tournamentId = String(req.params.id);
+    const { revision, window } = req.body ?? {};
+    if (
+      !isUuid(tournamentId) ||
+      !Number.isSafeInteger(revision) ||
+      revision < 0 ||
+      typeof window !== "string" ||
+      window.length > 100
+    ) {
+      res.status(400).json({ error: "invalid_sealed_deck" });
+      return;
+    }
+    const owner = { tournamentId, accountId: auth.account.id };
+    const result = await sealed.unready({ ...owner, revision, window });
+    if (!result.ok) {
+      res.status(409).json({ error: result.reason });
+      return;
+    }
+    res.json(await sealed.getOwnPool(owner));
+  });
   app.post("/tournaments/:id/sealed/ready", async (req, res) => {
     res.set("Cache-Control", "private, no-store");
     const auth = await session(req);

@@ -1,3 +1,4 @@
+import type { TournamentParticipant } from "@aegis/shared/tournaments/SealedTournamentContracts";
 import { prepareSealedField } from "#api/tournaments/sealed/prepareSealedField";
 import type { SealedConfiguration } from "@aegis/shared/sealed/SealedContracts";
 import type { TournamentRoundStartMode } from "@aegis/shared/tournaments/TournamentRoundStartMode";
@@ -301,7 +302,7 @@ export class ParticipantStore {
     });
   }
 
-  async participantViews(tournamentId: string): Promise<ParticipantView[]> {
+  async participantViews(tournamentId: string): Promise<TournamentParticipant[]> {
     const sealed = (await this.accounts.tournament(tournamentId))?.sealedConfiguration;
     return (await this.participants(tournamentId)).map((participant) => ({
       ...toParticipantView(participant),

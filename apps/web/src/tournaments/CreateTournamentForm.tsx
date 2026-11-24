@@ -1,3 +1,4 @@
+import type { TournamentCreation } from "@aegis/shared/tournaments/SealedTournamentContracts";
 import { SealedProductSelector } from "@/sealed/SealedProductSelector";
 import { listSealedProducts } from "@aegis/shared/sealed/listSealedProducts";
 import { getSealedConfiguration } from "@aegis/shared/sealed/getSealedConfiguration";
@@ -15,13 +16,7 @@ import { MAX_SWISS_ROUNDS, TOURNAMENT_TOP_CUT_SIZES } from "@aegis/shared/tourna
 import { TournamentTiebreakerPicker } from "@/tournaments/TournamentTiebreakerPicker";
 import { TournamentPointsField } from "@/tournaments/TournamentPointsField";
 import type { TournamentPoints } from "@aegis/shared/tournaments/TournamentPoints";
-import {
-  swissRoundCount,
-  topCutSize,
-  type BanlistPolicy,
-  type CreateTournamentInput,
-  type TournamentStructure,
-} from "@aegis/shared";
+import { swissRoundCount, topCutSize, type BanlistPolicy, type TournamentStructure } from "@aegis/shared";
 import { Alert, Badge, Button, Field, Switch } from "@/design/primitives";
 import { Icons } from "@/design/icons";
 import type { Translate, TranslationKey } from "@/i18n/translationTypes";
@@ -161,7 +156,7 @@ export function CreateTournamentForm({ onCreated, onCancel, canCreateOfficial = 
     setSubmitting(true);
     setErrors([]);
     setFailure(undefined);
-    const input: CreateTournamentInput = {
+    const input: TournamentCreation = {
       name: name.trim(),
       ...(sealed ? { sealedConfiguration: getSealedConfiguration({ setId: sealedSetId }) } : {}),
       category: isOfficial ? TournamentCategory.OFFICIAL.value : TournamentCategory.COMMUNITY.value,

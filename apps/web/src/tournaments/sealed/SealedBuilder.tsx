@@ -9,5 +9,9 @@ export function SealedBuilder({ tournamentId, onReady }: Props) {
     (input: PrivateSealedReady) => tournamentApi.sealedReady(tournamentId, input),
     [tournamentId],
   );
-  return <SealedPoolBuilder loadPool={loadPool} readyDeck={readyDeck} onReady={onReady} />;
+  const unreadyDeck = useCallback(
+    (input: { revision: number; window: string }) => tournamentApi.sealedUnready(tournamentId, input),
+    [tournamentId],
+  );
+  return <SealedPoolBuilder unreadyDeck={unreadyDeck} loadPool={loadPool} readyDeck={readyDeck} onReady={onReady} />;
 }

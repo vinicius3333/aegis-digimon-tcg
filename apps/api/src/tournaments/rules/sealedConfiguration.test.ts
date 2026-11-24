@@ -10,9 +10,9 @@ const body = {
   structure: "swiss",
   sealedConfiguration: getSealedConfiguration({ setId: "BT4" }),
 };
-it("defaults sealed creation to BO3 and rejects an explicit BO1 at parsing", () => {
+it("defaults sealed creation to BO3 and leaves BO1 rejection to validation", () => {
   expect(parseCreateTournament(body)?.input.bestOf).toBe(3);
-  expect(parseCreateTournament({ ...body, bestOf: 1 })).toBeUndefined();
+  expect(validateCreateTournament(parseCreateTournament({ ...body, bestOf: 1 })!.input, Date.now()).ok).toBe(false);
 });
 it("refuses sealed BO1 and omitted match format at domain validation", () => {
   const parsed = parseCreateTournament({ ...body, bestOf: 3 })!;
@@ -28,9 +28,18 @@ it.each(["BT4", "EX13", "BT26"])("accepts frozen %s configuration through parsin
   expect(validateCreateTournament(parsed!.input, Date.now()).ok).toBe(true);
 });
 
-it.each(["BT27", "unknown", "constructor"])("rejects forged %s configuration in both validation layers", (setId) => {
+it.each(["BT27", "unknown", "constructor"])("rejects forged %s configuration at the domain boundary", (setId) => {
   const config = { ...body.sealedConfiguration, setId };
-  expect(parseCreateTournament({ ...body, sealedConfiguration: config })).toBeUndefined();
-  const input = parseCreateTournament(body)!.input;
-  expect(validateCreateTournament({ ...input, sealedConfiguration: config }, Date.now()).ok).toBe(false);
+  const parsed = parseCreateTournament({ ...body, sealedConfiguration: config })!;
+  expect(validateCreateTournament(parsed.input, Date.now()).ok).toBe(false);
+});
+
+it("detaches the validated configuration from caller-owned data", () => {
+  const config = { ...body.sealedConfiguration, untrusted: true };
+  const parsed = parseCreateTournament({ ...body, sealedConfiguration: config })!;
+  const result = validateCreateTournament(parsed.input, Date.now());
+  if (!result.ok) throw new Error("expected valid configuration");
+  config.buildMinutes++;
+  expect(result.value.input.sealedConfiguration).toEqual(body.sealedConfiguration);
+  expect(Object.isFrozen(result.value.input.sealedConfiguration)).toBe(true);
 });
