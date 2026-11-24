@@ -48,6 +48,7 @@ describe("EX10-004 Cupimon compiled contract", () => {
     );
     prefer.push(s.inst("discarded").instanceId);
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     const memoryBefore = s.state.memory;
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("lucemon").permanentId })).toEqual({
@@ -89,6 +90,7 @@ describe("EX10-004 Cupimon compiled contract", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     const memoryBefore = s.state.memory;
 
     expect(
@@ -112,6 +114,7 @@ describe("EX10-004 Cupimon compiled contract", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     const memoryBefore = s.state.memory;
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("lucemon").permanentId })).toEqual({
@@ -136,6 +139,7 @@ describe("EX10-004 Cupimon compiled contract", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     const memoryBefore = s.state.memory;
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("lucemon").permanentId })).toEqual({
@@ -162,6 +166,7 @@ describe("EX10-004 Cupimon compiled contract", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     const memoryBefore = s.state.memory;
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("lucemon").permanentId })).toEqual({
@@ -189,6 +194,7 @@ describe("EX10-004 Cupimon compiled contract", () => {
     );
     prefer.push(s.inst("discarded").instanceId);
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     const memoryBefore = s.state.memory;
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("chaosMode").permanentId })).toEqual(
@@ -217,6 +223,7 @@ describe("EX10-004 Cupimon compiled contract", () => {
     );
     prefer.push(s.inst("discarded").instanceId);
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     const memoryBefore = s.state.memory;
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("lucemon").permanentId })).toEqual({
@@ -252,6 +259,7 @@ describe("EX10-004 Cupimon compiled contract", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     const memoryBefore = s.state.memory;
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("lucemon").permanentId })).toEqual({
@@ -278,6 +286,7 @@ describe("EX10-004 Cupimon compiled contract", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     const memoryBefore = s.state.memory;
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("cupimon").permanentId })).toEqual({
@@ -310,6 +319,7 @@ describe("EX10-004 Cupimon compiled contract", () => {
     );
     s.state.turnSeat = 1;
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(1, false);
     const memoryBefore = s.state.memory;
 
     expect(
@@ -349,6 +359,7 @@ describe("EX10-004 Cupimon compiled contract", () => {
     );
     prefer.push(s.inst("fodder1").instanceId, s.inst("fodder2").instanceId);
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     const memoryBefore = s.state.memory;
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("lucemonA").permanentId })).toEqual({
@@ -485,6 +496,7 @@ describe("EX10-004 Cupimon — KB Q&A rulings", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     const memoryBefore = s.state.memory;
     expect(s.perm("lucemon").stack.map(({ cardId }) => cardId)).toEqual(["EX10-004"]);
 

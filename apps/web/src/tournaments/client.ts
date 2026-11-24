@@ -1,3 +1,4 @@
+import type { SealedOwnPool, SealedDeckInput } from "@aegis/shared/sealed/SealedContracts";
 import { isTournamentGameTicket } from "@aegis/shared/tournaments/isTournamentGameTicket";
 import type { TournamentRoundStartMode } from "@aegis/shared/tournaments/TournamentRoundStartMode";
 import type { TournamentOwnDeck } from "@aegis/shared/tournaments/TournamentOwnDeck";
@@ -85,6 +86,13 @@ async function readJson(response: Response): Promise<unknown> {
 }
 
 export const tournamentApi = {
+  sealedPool: (id: string, signal?: AbortSignal) =>
+    send<SealedOwnPool>(`/tournaments/${encodeURIComponent(id)}/sealed`, { signal }),
+  sealedReady: (id: string, input: SealedDeckInput & { window: string }) =>
+    send<SealedOwnPool>(`/tournaments/${encodeURIComponent(id)}/sealed/ready`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
   changeDeck: (id: string, savedDeckId: string) =>
     send<TournamentOwnDeck>(`/tournaments/${encodeURIComponent(id)}/own-deck`, {
       method: "POST",

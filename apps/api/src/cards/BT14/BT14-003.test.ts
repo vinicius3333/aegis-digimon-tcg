@@ -70,6 +70,7 @@ it("draws from a real recovery after a legal Tokomon-to-Elecmon breeding evoluti
   expect(s.perm("tokomon").stack.map((card) => card.cardId)).toEqual(["BT14-003"]);
 
   s.state.phase = Phase.Breeding;
+  void s.engine.breeding.run(0, false);
   expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("tokomon").permanentId })).toEqual({
     ok: true,
   });

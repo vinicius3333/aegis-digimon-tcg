@@ -1,3 +1,4 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import type { ReplayEngineSnapshot } from "#api/replays/inputs/ReplayEngineSnapshot";
 import type { GameEngineHooks } from "#api/engine/gameEngine/types";
 import { snapshotGameEngine } from "#api/engine/snapshot/snapshotGameEngine";
@@ -75,6 +76,7 @@ const MAX_IDLE_TURNS = 1_000;
  */
 export async function runReplay(record: ReplayRecord, options: RunReplayOptions = {}): Promise<ReplayRun> {
   let state = new GameState();
+  state.rulesPolicy = record.rules.rulesPolicy ?? GameRulesPolicy.CONSTRUCTED.value;
   state.gameMode = record.rules.gameMode ?? GameMode.AUTOMATIC.value;
   state.format = record.rules.deckFormat;
   state.unlimited = record.rules.unlimited;

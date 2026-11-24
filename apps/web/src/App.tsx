@@ -1,3 +1,4 @@
+import type { PrivateSealedGameTicket } from "@aegis/shared/sealed/private/PrivateSealedContracts";
 import { enqueueDeckMutation } from "@/account/decks/enqueueDeckMutation";
 import { getDeletedDecks } from "@/account/decks/getDeletedDecks";
 import { getSyncedDeckIds } from "@/account/decks/getSyncedDeckIds";
@@ -614,6 +615,9 @@ function LoadedAegisClient({
   );
   const [route, setRoute] = useState<AppRoute>(() => {
     if (initialScreen) return { screen: initialScreen };
+    if (window.location.pathname === "/play/game" && sessionStorage.getItem("aegis:private-sealed-playing")) {
+      return { screen: "lobby" };
+    }
     return initialAppRoute({
       pathname: window.location.pathname,
       invitedRoomCode,
@@ -635,6 +639,7 @@ function LoadedAegisClient({
   const [seriesGame, setSeriesGame] = useState<SeriesGameTicket>();
   const [awaitNextSeriesGame, setAwaitNextSeriesGame] = useState(false);
   const [tournamentGame, setTournamentGame] = useState<TournamentGameTicket>();
+  const [privateSealedGame, setPrivateSealedGame] = useState<PrivateSealedGameTicket>();
   const [spectatedTournamentMatch, setSpectatedTournamentMatch] = useState<TournamentSpectateTarget>();
   const [storyBattleId, setStoryBattleId] = useState<string>();
   const [startMode, setStartMode] = useState<StartMode>("casual");
@@ -730,6 +735,8 @@ function LoadedAegisClient({
     leaveMatchRouteRef.current = undefined;
     setSeriesGame(undefined);
     setTournamentGame(undefined);
+    setPrivateSealedGame(undefined);
+    sessionStorage.removeItem("aegis:private-sealed-playing");
     clearReconnectSession();
     if (action) {
       action();
@@ -768,6 +775,8 @@ function LoadedAegisClient({
     // reload left a resumable seat from the previous match in storage.
     clearReconnectSession();
     setSeriesGame(undefined);
+    setPrivateSealedGame(undefined);
+    sessionStorage.removeItem("aegis:private-sealed-playing");
     setAwaitNextSeriesGame(false);
     setTournamentGame(undefined);
     setSpectatedTournamentMatch(undefined);
@@ -826,10 +835,13 @@ function LoadedAegisClient({
       ? decks.find((deck) => deck.id === botDeckId.slice(5))
       : undefined;
   const effectiveGameMode =
-    startMode === "bot" || startMode === "ranked" || tournamentGame ? GameMode.AUTOMATIC.value : gameMode;
+    startMode === "bot" || startMode === "ranked" || tournamentGame || privateSealedGame
+      ? GameMode.AUTOMATIC.value
+      : gameMode;
   const joinOptions = useMemo<AegisJoinOptions>(
     () => ({
       ...timerOptions,
+      privateSealedGame,
       tournamentGameId: tournamentGame?.gameId,
       tournamentGameToken: tournamentGame?.token,
       ...(effectiveGameMode === GameMode.MANUAL.value ? { matchTimer: false } : {}),
@@ -855,14 +867,15 @@ function LoadedAegisClient({
           }
         : undefined,
       deck: {
-        mainDeck: matchDeck?.mainDeck ?? [],
-        eggDeck: matchDeck?.eggDeck ?? [],
-        mainDeckArts: matchDeck?.mainDeckArts,
-        eggDeckArts: matchDeck?.eggDeckArts,
+        mainDeck: privateSealedGame ? [] : (matchDeck?.mainDeck ?? []),
+        eggDeck: privateSealedGame ? [] : (matchDeck?.eggDeck ?? []),
+        mainDeckArts: privateSealedGame ? undefined : matchDeck?.mainDeckArts,
+        eggDeckArts: privateSealedGame ? undefined : matchDeck?.eggDeckArts,
       },
     }),
     [
       tournamentGame,
+      privateSealedGame,
       storyBattleId,
       startMode,
       effectivePlayer.name,
@@ -1155,6 +1168,22 @@ function LoadedAegisClient({
                   onCancelChallenge={() => setChallengeTarget(undefined)}
                   privateRoom={privateRoom}
                   onLeavePrivateRoom={() => setPrivateRoom(undefined)}
+                  onStartPrivateSealedGame={(ticket) => {
+                    if (loadReconnectSession()?.roomId !== ticket.roomId) {
+                      clearReconnectSession();
+                    }
+                    sessionStorage.setItem("aegis:private-sealed-playing", "true");
+                    setPrivateSealedGame(ticket);
+                    setSpectatedTournamentMatch(undefined);
+                    setSeriesGame(undefined);
+                    setTournamentGame(undefined);
+                    setStoryBattleId(undefined);
+                    setStartMode("casual");
+                    setRoomCode(undefined);
+                    setBotDeckId(undefined);
+                    setMatchNumber((current) => current + 1);
+                    navigateScreen("game");
+                  }}
                   onStart={startMatch}
                   openMatchSettings={route.matchSettings === true}
                   queueChallenge={queueChallenge}
@@ -1260,6 +1289,8 @@ function LoadedAegisClient({
                     setMatchNumber((current) => current + 1);
                   }}
                   onJoinGame={(ticket) => {
+                    setPrivateSealedGame(undefined);
+                    sessionStorage.removeItem("aegis:private-sealed-playing");
                     clearReconnectSession();
                     setSeriesGame(undefined);
                     setSpectatedTournamentMatch(undefined);
@@ -1420,6 +1451,13 @@ function LoadedAegisClient({
                       });
                       return;
                     }
+                    if (privateSealedGame) {
+                      setPrivateSealedGame(undefined);
+                      sessionStorage.removeItem("aegis:private-sealed-playing");
+                      clearReconnectSession();
+                      navigateScreen("lobby");
+                      return;
+                    }
                     if (tournamentGame) {
                       setTournamentGame(undefined);
                       navigate({
@@ -1433,6 +1471,13 @@ function LoadedAegisClient({
                       .catch(() => navigateScreen(next));
                   }}
                   onRematch={(privateRoomCode, roomUnlimited, roomHost, roomFormat, roomGameMode) => {
+                    if (privateSealedGame) {
+                      setPrivateSealedGame(undefined);
+                      sessionStorage.removeItem("aegis:private-sealed-playing");
+                      clearReconnectSession();
+                      navigateScreen("lobby");
+                      return;
+                    }
                     if (tournamentGame) {
                       clearReconnectSession();
                       setTournamentGame(undefined);

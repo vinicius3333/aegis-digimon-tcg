@@ -86,6 +86,7 @@ describe("BT9-015 MetalGreymon (X Antibody)", () => {
       await settle(() => s.perm("stack").topCard.instanceId === s.inst(alias).instanceId);
     }
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("stack").permanentId })).toEqual({
       ok: true,
     });

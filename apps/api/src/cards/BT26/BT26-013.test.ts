@@ -74,6 +74,7 @@ describe("BT26-013 Musyamon", () => {
     expect(legal.state.memory).toBe(0);
 
     legal.state.phase = Phase.Breeding;
+    void legal.engine.breeding.run(legal.state.turnSeat, false);
     expect(
       legal.engine.applyIntent(0, {
         type: "moveFromBreeding",

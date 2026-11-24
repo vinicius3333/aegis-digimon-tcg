@@ -26,8 +26,8 @@ async function digivolveIntoJesmonGx(s: EngineSetup): Promise<void> {
   await respond(s, { kind: "optional", accept: true });
 }
 
-function instanceIds(cards: readonly { instanceId: string }[]): string[] {
-  return cards.map(({ instanceId }) => instanceId);
+function instanceIds(cards: Iterable<{ instanceId: string }>): string[] {
+  return Array.from(cards, ({ instanceId }) => instanceId);
 }
 
 describe("a borrowed [When Digivolving] that activates the Option side of its printed card", () => {

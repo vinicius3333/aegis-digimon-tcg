@@ -15,6 +15,7 @@ import type { Decklist } from "#api/engine/setup";
 import { getStoryScenario } from "#api/story/getStoryScenario";
 import { getStorySeatDeck } from "#api/story/getStorySeatDeck";
 import { shuffleStoryDecks } from "#api/story/shuffleStoryDecks";
+import { getRoomRandomness } from "#api/rooms/getRoomRandomness";
 
 const isEnabled = process.env.STORY_BALANCE === "1";
 const battlesPerDifficulty = Number(process.env.STORY_BALANCE_BATTLES ?? 12);
@@ -41,7 +42,7 @@ async function getPlayerWinRate(battleIds: readonly string[]): Promise<number> {
   for (const battleId of battleIds) {
     for (let seed = 1; seed <= seedsPerBattle; seed++) {
       const fixture = getStoryScenario(battleId)!;
-      shuffleStoryDecks({ fixture, seed });
+      shuffleStoryDecks({ fixture, ...getRoomRandomness({ seed }) });
       const difficulty = getStoryBattleDifficulty({ battleId })!;
       const playerDeck = getStorySeatDeck({ fixture, seat: 0 });
       const opponentDeck = getStorySeatDeck({ fixture, seat: 1 });

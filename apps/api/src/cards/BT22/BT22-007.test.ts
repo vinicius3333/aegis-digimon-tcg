@@ -322,6 +322,7 @@ describe("BT22-007 battle-area clauses", () => {
     });
     s.state.phase = Phase.Breeding;
     await s.ready();
+    void s.engine.breeding.run(0, false);
     expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT22-007");
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
@@ -605,6 +606,7 @@ describe("BT22-007 Mother Eater — KB Q&A rulings", () => {
     );
     hatched.state.phase = Phase.Breeding;
     await hatched.ready();
+    void hatched.engine.breeding.run(0, false);
     expect(hatched.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
     await settle(() => hatched.state.players[0]!.breeding?.topCard?.cardId === MOTHER_EATER_CARD);
     await settle();

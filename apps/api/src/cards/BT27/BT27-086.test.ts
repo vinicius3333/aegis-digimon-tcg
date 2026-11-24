@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "#api/engine/effects/interpreter";
 import { advance } from "#api/engine/testkit/advance";
 import { assertNoLoudGap, drainMicrotasks, settle, setupEngine } from "#api/engine/testkit/harness";
+import type { SetupEngineOptions } from "#api/engine/testkit/harness";
 import "#api/cards/index";
 import { compiled } from "./BT27-086.js";
 
@@ -16,7 +17,7 @@ const vanillaRedLevel4 = "BT1-014";
 const vanillaRedLevel6 = "ST1-10";
 
 type Setup = ReturnType<typeof setupEngine>;
-type Options = Parameters<typeof setupEngine>[1];
+type Options = SetupEngineOptions | undefined;
 
 async function memoryAtMainPhaseWith(digimon: readonly string[]) {
   const s = setupEngine({

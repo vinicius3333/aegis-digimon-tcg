@@ -173,8 +173,8 @@ export const rankedZhTw = {
   "ranked.deck.result.win": "勝利",
   "ranked.deck.result.loss": "敗北",
   "ranked.deck.result.draw": "平手",
-  "ranked.settings.hideDecks": "隱藏我的排位卡組",
-  "ranked.settings.hideDecksDesc": "其他玩家能看到你的積分和戰績，但看不到你在排位中使用的卡組。",
+  "ranked.settings.hideDecks": "隱藏我的排位Deck",
+  "ranked.settings.hideDecksDesc": "其他玩家能看到你的積分和戰績，但看不到你在排位中使用的Deck。",
   "ranked.settings.hideDecksFailed": "無法載入或儲存此設定。請重試或重新開啟設定。",
-  "ranked.deck.hidden": "此玩家未公開其排位卡組。",
+  "ranked.deck.hidden": "此玩家未公開其排位Deck。",
 } as const;

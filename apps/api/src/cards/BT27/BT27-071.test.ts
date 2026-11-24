@@ -3,6 +3,7 @@ import { EffectDuration } from "@aegis/shared";
 import { requireCardDefinition } from "@aegis/shared/cards/registry";
 import { advance } from "#api/engine/testkit/advance";
 import { assertNoLoudGap, setupEngine, settle } from "#api/engine/testkit/harness";
+import type { BoardSpec } from "#api/engine/scenario/types";
 import { observe } from "#api/engine/testkit/observe";
 import { compiled } from "#api/cards/BT27/BT27-071";
 import "#api/cards/index";
@@ -199,7 +200,7 @@ describe("Darkdramon gains immunity, de-digivolves on attack or Counter, and can
 });
 
 describe("Darkdramon official rulings", () => {
-  type Board = Parameters<typeof setupEngine>[0];
+  type Board = BoardSpec;
   type Session = ReturnType<typeof setupEngine>;
 
   async function digivolveDarkdramon(

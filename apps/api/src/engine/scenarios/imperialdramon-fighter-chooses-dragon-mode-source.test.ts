@@ -4,6 +4,7 @@ import { setupScenario } from "#api/engine/testkit/scenario";
 import { advance } from "#api/engine/testkit/advance";
 import { settle } from "#api/engine/testkit/harness";
 import fixture from "#api/engine/scenarios/imperialdramon-fighter-chooses-dragon-mode-source.fixture";
+import "#api/cards/BT12/BT12-028";
 import "#api/cards/BT12/BT12-030";
 import "#api/cards/BT12/BT12-031";
 import "#api/cards/BT3/BT3-031";

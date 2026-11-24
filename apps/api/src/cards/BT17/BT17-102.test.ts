@@ -459,6 +459,7 @@ describe("BT17-102 Greymon — [All Turns] names survive the breeding move (KB Q
     s.state.turnSeat = 0;
     s.state.memory = 3;
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("greymon").permanentId })).toEqual({

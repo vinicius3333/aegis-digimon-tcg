@@ -79,7 +79,10 @@ describe("BT25-008 Coronamon", () => {
         { autoAcceptOptional: true, autoSelectCards: true },
       );
       if (trigger === "OnPlay") s.state.memory = 3;
-      else s.state.phase = Phase.Breeding;
+      else {
+        s.state.phase = Phase.Breeding;
+        void s.engine.breeding.run(s.state.turnSeat, false);
+      }
 
       const result =
         trigger === "OnPlay"
@@ -113,6 +116,7 @@ describe("BT25-008 Coronamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     single.state.phase = Phase.Breeding;
+    void single.engine.breeding.run(single.state.turnSeat, false);
     await single.ready();
     expect(
       single.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: single.perm("coronamon").permanentId }),
@@ -137,6 +141,7 @@ describe("BT25-008 Coronamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     paid.state.phase = Phase.Breeding;
+    void paid.engine.breeding.run(paid.state.turnSeat, false);
     await paid.ready();
     expect(
       paid.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: paid.perm("coronamon").permanentId }),
@@ -161,6 +166,7 @@ describe("BT25-008 Coronamon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     declined.state.phase = Phase.Breeding;
+    void declined.engine.breeding.run(declined.state.turnSeat, false);
     await declined.ready();
     expect(
       declined.engine.applyIntent(0, {
@@ -191,6 +197,7 @@ describe("BT25-008 Coronamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("coronamon").permanentId })).toEqual(
       { ok: true },
@@ -217,6 +224,7 @@ describe("BT25-008 Coronamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(s.state.turnSeat, false);
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("coronamon").permanentId })).toEqual(
       { ok: true },
@@ -243,6 +251,7 @@ describe("BT25-008 Coronamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     paid.state.phase = Phase.Breeding;
+    void paid.engine.breeding.run(paid.state.turnSeat, false);
     await paid.ready();
     expect(
       paid.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: paid.perm("coronamon").permanentId }),
@@ -267,6 +276,7 @@ describe("BT25-008 Coronamon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     declined.state.phase = Phase.Breeding;
+    void declined.engine.breeding.run(declined.state.turnSeat, false);
     await declined.ready();
     expect(
       declined.engine.applyIntent(0, {

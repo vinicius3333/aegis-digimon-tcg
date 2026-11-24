@@ -1,3 +1,4 @@
+import { validateSealedRookie } from "#api/engine/actions/validateSealedRookie";
 import { assemblyRequirementFor, digivolutionRequirementsFor, type Intent, type Seat } from "@aegis/shared";
 import type { GameEngine } from "../../engine/GameEngine.js";
 import { validateAssembly, validateAttack, validateDigivolve, validatePlayCard } from "../../engine/actions/index.js";
@@ -32,6 +33,15 @@ export interface TrainingAction {
 export function breedingActions(engine: GameEngine, seat: Seat): TrainingAction[] {
   const actions: TrainingAction[] = [{ intent: { type: "endPhase" }, label: "Skip breeding" }];
   if (validateHatchEgg(engine.state, seat).ok) actions.push({ intent: { type: "hatchEgg" }, label: "Hatch" });
+  for (const card of engine.state.players[seat]?.hand ?? []) {
+    if (validateSealedRookie({ state: engine.state, seat, instanceId: card.instanceId }).ok) {
+      actions.push({
+        intent: { type: "placeSealedRookie", instanceId: card.instanceId },
+        label: "Place level 3 in breeding",
+        sourceId: card.instanceId,
+      });
+    }
+  }
   const permanent = engine.state.players[seat]?.breeding;
   if (permanent !== undefined) {
     const intent: Intent = { type: "moveFromBreeding", permanentId: permanent.permanentId };

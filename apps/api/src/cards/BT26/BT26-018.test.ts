@@ -214,6 +214,7 @@ describe("BT26-018 public engine behavior", () => {
       },
     });
     s.state.phase = Phase.Breeding;
+    void s.engine.breeding.run(0, false);
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,

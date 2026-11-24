@@ -4,7 +4,10 @@
     "paths": {
       "@/*": ["../src/*"],
       "@e2e/*": ["./*"],
-      "@api-fixtures/*": ["../../api/src/engine/scenarios/*"]
+      "@api-fixtures/*": ["../../api/src/engine/scenarios/*"],
+      "#api/*": ["../../api/dist/*"],
+      "@aegis/shared/*.js": ["../../../packages/shared/dist/*.d.ts"],
+      "express": ["../../api/node_modules/@types/express"]
     },
     "noEmit": true,
     "allowJs": true,
