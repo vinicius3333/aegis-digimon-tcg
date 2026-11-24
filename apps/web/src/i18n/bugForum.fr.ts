@@ -65,4 +65,6 @@ export const bugForumFr = {
   "bugForum.home.voteNow": "Voter maintenant",
   "bugForum.home.browse": "Voir les rapports",
   "bugForum.home.guest": "Votez sur les rapports de bug et gagnez des pièces Aegis quand l'équipe est d'accord.",
+  "bugForum.coinsHelpLabel": "Que sont les pièces Aegis ?",
+  "bugForum.coinsHelp": "Les pièces Aegis n'ont pas encore d'utilité. Elles serviront plus tard : continuez à en gagner.",
 } as const;

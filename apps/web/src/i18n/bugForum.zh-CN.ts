@@ -61,4 +61,6 @@ export const bugForumZhCN = {
   "bugForum.home.voteNow": "立即投票",
   "bugForum.home.browse": "查看报告",
   "bugForum.home.guest": "为 Bug 报告投票，团队认同时即可获得 Aegis 币。",
+  "bugForum.coinsHelpLabel": "什么是 Aegis 币？",
+  "bugForum.coinsHelp": "Aegis 币目前还没有用途，将来会派上用场，请继续赚取。",
 } as const;

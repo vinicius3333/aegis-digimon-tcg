@@ -61,4 +61,6 @@ export const bugForumKo = {
   "bugForum.home.voteNow": "지금 투표",
   "bugForum.home.browse": "제보 보기",
   "bugForum.home.guest": "버그 제보에 투표하고 팀과 의견이 같으면 Aegis 코인을 얻으세요.",
+  "bugForum.coinsHelpLabel": "Aegis 코인이란?",
+  "bugForum.coinsHelp": "Aegis 코인은 아직 사용처가 없습니다. 앞으로 사용될 예정이니 계속 모아 두세요.",
 } as const;

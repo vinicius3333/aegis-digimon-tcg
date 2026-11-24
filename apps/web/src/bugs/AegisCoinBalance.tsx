@@ -1,3 +1,4 @@
+import { HelpTip } from "@/design/HelpTip";
 import { Icons } from "@/design/icons";
 import { useTranslation } from "@/i18n/useTranslation";
 import "@/bugs/bugForum.css";
@@ -13,6 +14,7 @@ export function AegisCoinBalance({ coins, size = "sm" }: AegisCoinBalanceParams)
       </span>
       <b>{coins.toLocaleString(locale)}</b>
       <span>{t("bugForum.coinsLabel")}</span>
+      <HelpTip label={t("bugForum.coinsHelpLabel")}>{t("bugForum.coinsHelp")}</HelpTip>
     </span>
   );
 }

@@ -62,4 +62,6 @@ export const bugForumJa = {
   "bugForum.home.voteNow": "今すぐ投票",
   "bugForum.home.browse": "報告を見る",
   "bugForum.home.guest": "バグ報告に投票して、チームの判断と一致したら Aegis コインを獲得しましょう。",
+  "bugForum.coinsHelpLabel": "Aegis コインとは?",
+  "bugForum.coinsHelp": "Aegis コインにはまだ使い道がありません。今後使えるようになるので、集めておきましょう。",
 } as const;
