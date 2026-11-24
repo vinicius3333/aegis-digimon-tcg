@@ -18,6 +18,9 @@ import { notify } from "#api/notifications/NotificationStore";
 import type { ReplayRecord } from "#api/replays/inputs/types";
 import type { FiledBugReport, NewBugReport } from "#api/bugs/GitHubIssueTracker";
 import { replayRetentionMs } from "#api/bugs/replayRetentionMs";
+import { getBugVoteOutcome } from "#api/bugs/getBugVoteOutcome";
+import { settleBugVotes } from "#api/bugs/settleBugVotes";
+import type { BugVerdict } from "@aegis/shared/feedback/BugVerdict";
 
 const PAGE_SIZE = 50;
 const OWN_PAGE_SIZE = 20;
@@ -90,10 +93,11 @@ type FeedbackRow = {
   closed_at: string | null;
   reopened_at: string | null;
   confirmed_bug: boolean;
+  vote_payout: BugVerdict | null;
 };
 
 const FEEDBACK_COLUMNS =
-  "id, report, created_at, github_status, github_number, github_url, status, final_reply, internal_note, duplicate_of_id, revision, reporter_account_id, closed_at, reopened_at, confirmed_bug";
+  "id, report, created_at, github_status, github_number, github_url, status, final_reply, internal_note, duplicate_of_id, revision, reporter_account_id, closed_at, reopened_at, confirmed_bug, vote_payout";
 /** A report row with the input count of its stored replay; `input_count` is null when it has none. */
 type FeedbackRecordRow = FeedbackRow & { input_count: number | null };
 const SELECT_WITH_REPLAY = `SELECT ${FEEDBACK_COLUMNS.split(", ")
@@ -231,10 +235,17 @@ export class FeedbackStore {
       );
       if (current.reporter_account_id && confirmedBug !== current.confirmed_bug) {
         await client.query(
-          "UPDATE accounts SET confirmed_bug_reports = GREATEST(0, confirmed_bug_reports + $2) WHERE id=$1",
+          `UPDATE accounts SET confirmed_bug_reports = GREATEST(0, confirmed_bug_reports + $2),
+             aegis_coins = GREATEST(0, aegis_coins + $2) WHERE id=$1`,
           [current.reporter_account_id, confirmedBug ? 1 : -1],
         );
       }
+
+      await settleBugVotes(client, {
+        feedbackId: id,
+        previous: current.vote_payout,
+        next: getBugVoteOutcome({ kind: current.report.kind, status: update.status, confirmedBug }),
+      });
 
       const statusChanged = current.status !== update.status;
       const approvesOfficialTournament =
@@ -304,6 +315,7 @@ export class FeedbackStore {
         "UPDATE feedback_reports SET status=$3, closed_at=NULL, reopened_at=$2, revision=revision+1 WHERE id=$1",
         [id, at, FeedbackStatus.TRIAGED.value],
       );
+      await settleBugVotes(client, { feedbackId: id, previous: current.vote_payout, next: null });
       await client.query(
         `INSERT INTO feedback_status_events (feedback_id, actor_account_id, from_status, to_status, by_reporter, comment, created_at)
          VALUES ($1,$2,$3,$6,true,$4,$5)`,
@@ -328,14 +340,15 @@ export class FeedbackStore {
       page.map((row) => row.id),
     );
     const items = page.map((row) => toOwnReport(row, histories.get(row.id) ?? []));
-    const { rows: points } = await this.accounts.pool.query<{ confirmed_bug_reports: number }>(
-      "SELECT confirmed_bug_reports FROM accounts WHERE id=$1",
+    const { rows: points } = await this.accounts.pool.query<{ confirmed_bug_reports: number; aegis_coins: number }>(
+      "SELECT confirmed_bug_reports, aegis_coins FROM accounts WHERE id=$1",
       [accountId],
     );
     return {
       items,
       nextBefore: rows.length > OWN_PAGE_SIZE ? items.at(-1)!.id : null,
       confirmedBugs: points[0]?.confirmed_bug_reports ?? 0,
+      aegisCoins: points[0]?.aegis_coins ?? 0,
     };
   }
 

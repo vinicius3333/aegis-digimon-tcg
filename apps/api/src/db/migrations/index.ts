@@ -18,7 +18,7 @@ import { optionalRankedRegion } from "#api/db/migrations/058-optional-ranked-reg
 import { competitiveArchetypes } from "#api/db/migrations/059-competitive-archetypes";
 import { tournamentBetaCards } from "#api/db/migrations/060-tournament-beta-cards";
 import { replayFeaturedDeckIcons } from "#api/db/migrations/061-replay-featured-deck-icons";
-import { bugVolunteers } from "#api/db/migrations/062-bug-volunteers";
+import { bugForum } from "#api/db/migrations/062-bug-forum";
 import type { Migration } from "../migrator.js";
 import { initialSchema } from "./001-initial-schema.js";
 import { tournamentProgramColumns } from "./002-tournament-program-columns.js";
@@ -128,5 +128,5 @@ export const migrations: readonly Migration[] = [
   competitiveArchetypes,
   tournamentBetaCards,
   replayFeaturedDeckIcons,
-  bugVolunteers,
+  bugForum,
 ];
