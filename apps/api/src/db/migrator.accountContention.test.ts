@@ -53,7 +53,9 @@ describe.skipIf(process.env.POSTGRES_TESTS !== "1")("social migration with live 
         await contention;
         await writer.query("UPDATE accounts SET display_name='After migration' WHERE id=$1", [accountId]);
         await writer.query("COMMIT");
-        expect(await outcome).toEqual({ ids: ["041-friends-system"] });
+        expect(await outcome).toEqual({
+          ids: migrations.filter((entry) => entry.id >= "041").map((entry) => entry.id),
+        });
         expect((await pool.query("SELECT display_name FROM accounts WHERE id=$1", [accountId])).rows).toEqual([
           { display_name: "After migration" },
         ]);
