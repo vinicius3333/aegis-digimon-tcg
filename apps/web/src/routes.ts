@@ -36,6 +36,7 @@ export const SCREEN_PATHS: Record<Screen, string> = {
   friends: "/friends",
   feedback: "/admin/feedback",
   myFeedback: "/feedback",
+  openBugs: "/feedback/open-bugs",
   notifications: "/notifications",
   home: "/",
   booster: "/booster",
@@ -69,6 +70,7 @@ export function routeFromPathname(pathname: string): AppRoute | undefined {
   if (normalized === "/friends") return { screen: "friends" };
   if (normalized === "/notifications") return { screen: "notifications" };
   if (normalized === "/feedback") return { screen: "myFeedback" };
+  if (normalized === "/feedback/open-bugs") return { screen: "openBugs" };
   const ownFeedback = /^\/feedback\/(\d{1,9})$/.exec(normalized)?.[1];
   if (ownFeedback) return { screen: "myFeedback", feedbackId: Number(ownFeedback) };
   if (normalized === "/") return { screen: "home" };

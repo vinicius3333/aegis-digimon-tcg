@@ -1,0 +1,23 @@
+export const openBugsDe = {
+  "openBugs.title": "Offene Fehler",
+  "openBugs.subtitle":
+    "Helfen Sie, die Ursache gemeldeter Fehler zu finden. Übernehmen Sie einen Fehler, versuchen Sie, ihn nachzustellen, und hinterlassen Sie Ihre Ergebnisse für das Team.",
+  "openBugs.signInTitle": "Melden Sie sich an, um bei Fehlern zu helfen",
+  "openBugs.signInCopy": "Angemeldete Spieler können offene Fehler übernehmen und Notizen für das Team hinterlassen.",
+  "openBugs.empty": "Gerade gibt es keine offenen Fehler.",
+  "openBugs.failed": "Offene Fehler konnten nicht geladen werden. Laden Sie die Seite neu, um es erneut zu versuchen.",
+  "openBugs.more": "Ältere Fehler anzeigen",
+  "openBugs.volunteers": "Wird untersucht von: {names}",
+  "openBugs.noVolunteers": "Noch untersucht niemand diesen Fehler.",
+  "openBugs.noteCount": "Notizen: {count}",
+  "openBugs.claim": "Ich untersuche das",
+  "openBugs.release": "Nicht mehr untersuchen",
+  "openBugs.notesTitle": "Untersuchungsnotizen",
+  "openBugs.noteLabel": "Notiz hinzufügen",
+  "openBugs.notePlaceholder": "Schritte zum Nachstellen, beteiligte Karten oder die vermutete Ursache.",
+  "openBugs.noteSubmit": "Notiz veröffentlichen",
+  "openBugs.noteHint": "Alle angemeldeten Spieler können diese Notizen lesen.",
+  "openBugs.closed": "Dieser Fehler ist bereits geschlossen.",
+  "openBugs.saveFailed": "Speichern fehlgeschlagen. Versuchen Sie es erneut.",
+  "openBugs.formerPlayer": "Ehemaliger Spieler",
+} as const;

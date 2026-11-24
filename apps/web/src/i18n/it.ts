@@ -1,3 +1,4 @@
+import { openBugsIt } from "@/i18n/openBugs.it";
 import { deckMatchupIt } from "@/i18n/deckMatchup.it";
 import { deckOddsIt } from "@/i18n/deckOdds.it";
 import { chatActionsIt } from "@/i18n/chatActions.it";
@@ -2787,6 +2788,7 @@ const interfaceMessages = {
   ...matchIntroIt,
   ...staffRolesIt,
   ...achievementsIt,
+  ...openBugsIt,
 } satisfies Record<Exclude<keyof typeof en, `releases.${string}`>, string>;
 
 export const it: Record<keyof typeof en, string> = {

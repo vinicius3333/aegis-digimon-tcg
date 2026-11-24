@@ -24,6 +24,7 @@ describe("application routes", () => {
     ["/notifications", { screen: "notifications" }],
     ["/feedback", { screen: "myFeedback" }],
     ["/feedback/412/", { screen: "myFeedback", feedbackId: 412 }],
+    ["/feedback/open-bugs", { screen: "openBugs" }],
     ["/settings", { screen: "settings" }],
     ["/profile", { screen: "settings", profile: true }],
     ["/profile/replays", { screen: "settings", profile: true }],
@@ -69,6 +70,7 @@ describe("application routes", () => {
     expect(pathForRoute({ screen: "feedback", feedbackId: 7 })).toBe("/admin/feedback/7");
     expect(pathForRoute({ screen: "myFeedback", feedbackId: 7 })).toBe("/feedback/7");
     expect(pathForRoute({ screen: "myFeedback" })).toBe("/feedback");
+    expect(pathForRoute({ screen: "openBugs" })).toBe("/feedback/open-bugs");
   });
 
   it("rejects unknown paths", () => {

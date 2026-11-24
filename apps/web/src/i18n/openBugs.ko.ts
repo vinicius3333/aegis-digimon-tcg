@@ -1,0 +1,23 @@
+export const openBugsKo = {
+  "openBugs.title": "미해결 버그",
+  "openBugs.subtitle":
+    "신고된 버그의 원인을 찾는 데 도움을 주세요. 조사할 버그를 맡아 재현해 보고, 알아낸 내용을 팀에 남겨 주세요.",
+  "openBugs.signInTitle": "로그인하고 버그 조사 돕기",
+  "openBugs.signInCopy": "로그인한 플레이어는 미해결 버그를 맡고 팀에 메모를 남길 수 있습니다.",
+  "openBugs.empty": "지금은 미해결 버그가 없습니다.",
+  "openBugs.failed": "미해결 버그를 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도하세요.",
+  "openBugs.more": "이전 버그 보기",
+  "openBugs.volunteers": "조사 중: {names}",
+  "openBugs.noVolunteers": "아직 조사하는 사람이 없습니다.",
+  "openBugs.noteCount": "메모: {count}",
+  "openBugs.claim": "제가 조사할게요",
+  "openBugs.release": "조사 중단",
+  "openBugs.notesTitle": "조사 메모",
+  "openBugs.noteLabel": "메모 추가",
+  "openBugs.notePlaceholder": "재현 단계, 관련 카드, 예상 원인 등.",
+  "openBugs.noteSubmit": "메모 게시",
+  "openBugs.noteHint": "로그인한 모든 플레이어가 이 메모를 볼 수 있습니다.",
+  "openBugs.closed": "이미 종료된 버그입니다.",
+  "openBugs.saveFailed": "저장하지 못했습니다. 다시 시도하세요.",
+  "openBugs.formerPlayer": "탈퇴한 플레이어",
+} as const;

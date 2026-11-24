@@ -24,6 +24,7 @@ import {
 } from "@/bugs/adminClient";
 import { FEEDBACK_STATUS_TONE } from "@/bugs/feedbackStatus";
 import { AccountRolesPanel } from "@/account/roles/AccountRolesPanel";
+import { BugInvestigation } from "@/bugs/BugInvestigation";
 import { PlaytestAdminPanel } from "@/bugs/PlaytestAdminPanel";
 import { ReportedDecksPanel } from "@/bugs/ReportedDecksPanel";
 import { ReportedTournamentsPanel } from "@/bugs/ReportedTournamentsPanel";
@@ -448,6 +449,8 @@ function FeedbackDetailPanel({
         }}
         onConflict={setDetail}
       />
+
+      {report.kind === "bug" ? <BugInvestigation key={detail.id} bugId={detail.id} /> : null}
 
       {report.kind === "official_tournament" ? null : (
         <RoadmapPublishPanel feedbackId={detail.id} summary={report.summary} description={report.description} />

@@ -1,3 +1,4 @@
+import { openBugsEs } from "@/i18n/openBugs.es";
 import { deckMatchupEs } from "@/i18n/deckMatchup.es";
 import { deckOddsEs } from "@/i18n/deckOdds.es";
 import { chatActionsEs } from "@/i18n/chatActions.es";
@@ -2487,4 +2488,5 @@ export const es: Record<keyof typeof en, string> = {
   ...learnEs,
   ...learnDrillsEs,
   ...battleLessonsEs,
+  ...openBugsEs,
 };

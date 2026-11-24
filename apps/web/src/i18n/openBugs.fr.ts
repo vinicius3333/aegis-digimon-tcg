@@ -1,0 +1,23 @@
+export const openBugsFr = {
+  "openBugs.title": "Bugs ouverts",
+  "openBugs.subtitle":
+    "Aidez à trouver la cause des bugs signalés. Prenez un bug que vous voulez examiner, essayez de le reproduire et laissez vos découvertes à l'équipe.",
+  "openBugs.signInTitle": "Connectez-vous pour aider avec les bugs",
+  "openBugs.signInCopy": "Les joueurs connectés peuvent prendre des bugs ouverts et laisser des notes à l'équipe.",
+  "openBugs.empty": "Aucun bug ouvert pour le moment.",
+  "openBugs.failed": "Impossible de charger les bugs ouverts. Rechargez la page pour réessayer.",
+  "openBugs.more": "Afficher les bugs plus anciens",
+  "openBugs.volunteers": "En cours d'examen par : {names}",
+  "openBugs.noVolunteers": "Personne ne l'examine encore.",
+  "openBugs.noteCount": "Notes : {count}",
+  "openBugs.claim": "Je m'en occupe",
+  "openBugs.release": "Arrêter d'examiner",
+  "openBugs.notesTitle": "Notes d'enquête",
+  "openBugs.noteLabel": "Ajouter une note",
+  "openBugs.notePlaceholder": "Étapes pour reproduire, cartes concernées ou cause probable.",
+  "openBugs.noteSubmit": "Publier la note",
+  "openBugs.noteHint": "Tous les joueurs connectés peuvent lire ces notes.",
+  "openBugs.closed": "Ce bug est déjà fermé.",
+  "openBugs.saveFailed": "Enregistrement impossible. Réessayez.",
+  "openBugs.formerPlayer": "Ancien joueur",
+} as const;

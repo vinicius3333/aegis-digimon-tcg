@@ -1,0 +1,23 @@
+export const openBugsJa = {
+  "openBugs.title": "未解決のバグ",
+  "openBugs.subtitle":
+    "報告されたバグの原因探しを手伝ってください。調べたいバグを担当し、再現を試して、わかったことをチームに残してください。",
+  "openBugs.signInTitle": "ログインしてバグ調査に協力",
+  "openBugs.signInCopy": "ログイン中のプレイヤーは未解決のバグを担当し、チーム向けのメモを残せます。",
+  "openBugs.empty": "現在、未解決のバグはありません。",
+  "openBugs.failed": "未解決のバグを読み込めませんでした。ページを再読み込みしてもう一度お試しください。",
+  "openBugs.more": "古いバグを表示",
+  "openBugs.volunteers": "調査中: {names}",
+  "openBugs.noVolunteers": "まだ誰も調査していません。",
+  "openBugs.noteCount": "メモ: {count}",
+  "openBugs.claim": "調査する",
+  "openBugs.release": "調査をやめる",
+  "openBugs.notesTitle": "調査メモ",
+  "openBugs.noteLabel": "メモを追加",
+  "openBugs.notePlaceholder": "再現手順、関係するカード、考えられる原因など。",
+  "openBugs.noteSubmit": "メモを投稿",
+  "openBugs.noteHint": "ログイン中のすべてのプレイヤーがこのメモを読めます。",
+  "openBugs.closed": "このバグはすでに終了しています。",
+  "openBugs.saveFailed": "保存できませんでした。もう一度お試しください。",
+  "openBugs.formerPlayer": "退会したプレイヤー",
+} as const;

@@ -1,3 +1,4 @@
+import { openBugsZhTW } from "@/i18n/openBugs.zh-TW";
 import { deckMatchupZhTW } from "@/i18n/deckMatchup.zh-TW";
 import { deckOddsZhTW } from "@/i18n/deckOdds.zh-TW";
 import { chatActionsZhTW } from "@/i18n/chatActions.zh-TW";
@@ -2931,6 +2932,7 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
+  ...openBugsZhTW,
 } satisfies Record<keyof typeof en, string>;
 
 export const zhTW: Record<keyof typeof en, string> = {

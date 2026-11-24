@@ -51,6 +51,19 @@ type Handler = (url: string, init?: RequestInit) => Reply;
 const REPORTED_DECKS = "/admin/community/reports";
 const PLAYTEST = "/admin/playtest/";
 const REPORTED_TOURNAMENTS = "/account/admin/tournament-reports";
+const OPEN_BUGS = "/feedback/open-bugs/";
+const investigation = {
+  id: 42,
+  summary: "",
+  description: "",
+  cardIds: [],
+  status: "new",
+  createdAt: 0,
+  volunteerNames: [],
+  claimedByMe: false,
+  noteCount: 0,
+  notes: [],
+};
 
 function mockApi(handler: Handler, reportedDecks: unknown[] = []) {
   const fetchMock = vi.fn<typeof fetch>(async (input, init) => {
@@ -61,7 +74,9 @@ function mockApi(handler: Handler, reportedDecks: unknown[] = []) {
         ? [200, { reports: [] }]
         : url.includes(PLAYTEST)
           ? [200, url.endsWith("/members") ? { members: [] } : { open: [], past: [] }]
-          : handler(url, init);
+          : url.includes(OPEN_BUGS)
+            ? [200, investigation]
+            : handler(url, init);
     return new Response(JSON.stringify(body), { status });
   });
   vi.stubGlobal("fetch", fetchMock);
@@ -91,7 +106,7 @@ function show(
 const urls = (fetchMock: ReturnType<typeof mockApi>) =>
   fetchMock.mock.calls
     .map(([input]) => String(input))
-    .filter((url) => !url.endsWith(REPORTED_DECKS) && !url.includes(PLAYTEST));
+    .filter((url) => !url.endsWith(REPORTED_DECKS) && !url.includes(PLAYTEST) && !url.includes(OPEN_BUGS));
 
 afterEach(() => {
   cleanup();

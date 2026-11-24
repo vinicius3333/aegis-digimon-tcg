@@ -1,3 +1,4 @@
+import { openBugsEn } from "@/i18n/openBugs.en";
 import { deckMatchupEn } from "@/i18n/deckMatchup.en";
 import { deckOddsEn } from "@/i18n/deckOdds.en";
 import { chatActionsEn } from "@/i18n/chatActions.en";
@@ -2271,4 +2272,5 @@ export const en = {
   ...learnLessonsEn,
   ...learnDrillsEn,
   ...newDrillsEn,
+  ...openBugsEn,
 } as const;

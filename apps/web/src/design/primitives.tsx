@@ -61,6 +61,7 @@ export type Screen =
   | "feedback"
   | "privacy"
   | "myFeedback"
+  | "openBugs"
   | "notifications"
   | "game";
 

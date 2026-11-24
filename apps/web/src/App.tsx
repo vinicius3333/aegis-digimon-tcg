@@ -106,6 +106,10 @@ const MyFeedbackPanel = createLazyComponent({
   load: () => import("./bugs/MyFeedbackPanel"),
   pick: (module) => module.MyFeedbackPanel,
 });
+const OpenBugsPanel = createLazyComponent({
+  load: () => import("./bugs/OpenBugsPanel"),
+  pick: (module) => module.OpenBugsPanel,
+});
 const NotificationsScreen = createLazyComponent({
   load: () => import("./notifications/NotificationsScreen"),
   pick: (module) => module.NotificationsScreen,
@@ -257,9 +261,22 @@ const NAV_SCREENS: Screen[] = [
   "replays",
   "feedback",
   "myFeedback",
+  "openBugs",
   "notifications",
   "privacy",
 ];
+
+const NOTIFICATION_TAB_BY_SCREEN = {
+  notifications: NotificationsTab.ALL.value,
+  myFeedback: NotificationsTab.FEEDBACK.value,
+  openBugs: NotificationsTab.OPEN_BUGS.value,
+} as const satisfies Partial<Record<Screen, NotificationsTab>>;
+
+const SCREEN_BY_NOTIFICATION_TAB: Record<NotificationsTab, Screen> = {
+  [NotificationsTab.ALL.value]: "notifications",
+  [NotificationsTab.FEEDBACK.value]: "myFeedback",
+  [NotificationsTab.OPEN_BUGS.value]: "openBugs",
+};
 
 export function withAccountAvatar(player: PlayerIdentity, account: RemoteAccount | null): PlayerIdentity {
   return {
@@ -1043,13 +1060,11 @@ function LoadedAegisClient({
                   onOpenDeck={(communityDeckId) => navigate({ screen: "community", communityDeckId })}
                 />
               )}
-              {(screen === "notifications" || screen === "myFeedback") && (
+              {(screen === "notifications" || screen === "myFeedback" || screen === "openBugs") && (
                 <NotificationsScreen
                   inbox={inbox}
-                  tab={screen === "myFeedback" ? NotificationsTab.FEEDBACK.value : NotificationsTab.ALL.value}
-                  onTabChange={(tab) =>
-                    navigateScreen(tab === NotificationsTab.FEEDBACK.value ? "myFeedback" : "notifications")
-                  }
+                  tab={NOTIFICATION_TAB_BY_SCREEN[screen]}
+                  onTabChange={(tab) => navigateScreen(SCREEN_BY_NOTIFICATION_TAB[tab])}
                   onOpenFeedback={openOwnFeedback}
                   feedback={
                     <MyFeedbackPanel
@@ -1058,6 +1073,13 @@ function LoadedAegisClient({
                       focusId={route.feedbackId}
                       onSignIn={() => navigateScreen("login")}
                       onSendFeedback={() => setBugReportOpen(true)}
+                    />
+                  }
+                  openBugs={
+                    <OpenBugsPanel
+                      key={account?.id ?? "guest"}
+                      signedIn={!!account}
+                      onSignIn={() => navigateScreen("login")}
                     />
                   }
                 />

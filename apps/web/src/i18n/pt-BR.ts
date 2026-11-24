@@ -1,3 +1,4 @@
+import { openBugsPtBR } from "@/i18n/openBugs.pt-BR";
 import { deckMatchupPtBR } from "@/i18n/deckMatchup.pt-BR";
 import { deckOddsPtBR } from "@/i18n/deckOdds.pt-BR";
 import { chatActionsPtBR } from "@/i18n/chatActions.pt-BR";
@@ -2284,4 +2285,5 @@ export const ptBR: Record<keyof typeof en, string> = {
   ...learnPtBR,
   ...learnDrillsPtBR,
   ...newDrillsPtBR,
+  ...openBugsPtBR,
 };
