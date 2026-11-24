@@ -10,6 +10,7 @@ import type { ReplayLibrary } from "../replays/ReplayLibrary.js";
 import type { SeriesRecord } from "./series/SeriesDirectory.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AegisRoom } from "./AegisRoom.js";
+import { addLogSink } from "../logger.js";
 import { RED_DECK, BLUE_DECK } from "../engine/testDecks.js";
 
 const rooms: AegisRoom[] = [];
@@ -375,5 +376,35 @@ describe("spectator replay saving", () => {
     await vi.waitFor(() =>
       expect(spectator.send).toHaveBeenCalledWith(REPLAY_CHANNEL, { kind: "unavailable", reason: "recording_limit" }),
     );
+  });
+});
+
+describe("replay limit alert", () => {
+  it("logs one alert error with the match when its recording passes the replay limit", async () => {
+    const { room, players, send } = await start();
+    const lines: string[] = [];
+    const stop = addLogSink((line) => lines.push(line));
+    Reflect.set(room, "replayRecording", {
+      exceededLimit: true,
+      frameCount: 0,
+      capture: () => {},
+      participantFile: () => undefined,
+      spectatorFile: () => undefined,
+    });
+    try {
+      send(players[1]!, "surrender");
+      await vi.waitFor(() =>
+        expect(vi.mocked(players[0]!.send)).toHaveBeenCalledWith(REPLAY_CHANNEL, {
+          kind: "unavailable",
+          reason: "recording_limit",
+        }),
+      );
+    } finally {
+      stop();
+    }
+
+    const alerts = lines.filter((line) => line.includes("[replays] match recording passed the replay limit"));
+    expect(alerts).toHaveLength(1);
+    expect(JSON.parse(alerts[0]!)).toMatchObject({ level: "ERROR", matchId: room.state.matchLogId });
   });
 });
