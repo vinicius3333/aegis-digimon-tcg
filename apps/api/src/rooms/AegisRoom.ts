@@ -4091,7 +4091,8 @@ export class AegisRoom extends Room<{
             this.state.turnCount > 0 &&
             intent.type !== "ready" &&
             intent.type !== "mulligan" &&
-            intent.type !== "surrender"
+            intent.type !== "surrender" &&
+            intent.type !== "showNothingToDoPrompts"
           )
             this.rollbackHistory?.acceptAction(actionIndex);
         }
@@ -4100,7 +4101,8 @@ export class AegisRoom extends Room<{
           seat === inputSeat &&
           intent.type !== "ready" &&
           intent.type !== "mulligan" &&
-          intent.type !== "surrender"
+          intent.type !== "surrender" &&
+          intent.type !== "showNothingToDoPrompts"
         ) {
           this.matchClock?.resetInactivity();
         }

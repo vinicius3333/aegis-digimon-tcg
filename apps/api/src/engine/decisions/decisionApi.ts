@@ -49,14 +49,17 @@ import { DecisionSelectionGoal } from "@aegis/shared/protocol/DecisionSelectionG
 export function createDecisionApi(
   manager: DecisionManager,
   playCostReductionBlocked?: (seat: Seat) => boolean,
+  showsNothingToDoPrompts?: (seat: Seat) => boolean,
 ): DecisionApi {
   const controller = buildSeatScopedApi(manager, (ctx) => ctx.source.ownerSeat, {
     playCostReductionBlocked,
+    showsNothingToDoPrompts,
     honorsPresets: true,
     asksController: true,
   });
   const opponent = buildSeatScopedApi(manager, (ctx) => ctx.game.opponentOf(ctx.source.ownerSeat), {
     playCostReductionBlocked,
+    showsNothingToDoPrompts,
     honorsPresets: false,
     asksController: false,
   });
@@ -95,10 +98,12 @@ function buildSeatScopedApi(
     honorsPresets,
     asksController,
     playCostReductionBlocked,
+    showsNothingToDoPrompts,
   }: {
     honorsPresets: boolean;
     asksController: boolean;
     playCostReductionBlocked?: (seat: Seat) => boolean;
+    showsNothingToDoPrompts?: (seat: Seat) => boolean;
   },
 ): SeatScopedDecisionApi {
   const provenance = (ctx: EffectContext) => {
@@ -139,7 +144,8 @@ function buildSeatScopedApi(
   // zero is how a "you may" choice over cards is asked. A "Yes" preset still asks which cards.
   const declinedByPreset = (ctx: EffectContext, min: number): boolean => presetAnswer(ctx) === false && min === 0;
   return {
-    async optional(ctx: EffectContext, prompt: string): Promise<boolean> {
+    async optional(ctx: EffectContext, prompt: string, optionalOptions?: { nothingToDo?: boolean }): Promise<boolean> {
+      if (optionalOptions?.nothingToDo === true && showsNothingToDoPrompts?.(resolveSeat(ctx)) !== true) return false;
       const preset = presetAnswer(ctx);
       if (preset !== undefined) {
         if (preset && asksController && ctx.optionalActivationCancellation?.available !== true)
@@ -160,6 +166,7 @@ function buildSeatScopedApi(
         sourcePermanentId: ctx.source.permanent()?.permanentId,
         options: {
           ...provenance(ctx),
+          ...(optionalOptions?.nothingToDo === true ? { nothingToDo: true } : {}),
           ...(attackAlreadyResolving ? { promptKey: "attackAlreadyResolving" as const } : {}),
           activationConfirmation: asksController && ctx.isActivationPending?.() === true,
           ...(asksController && ctx.optionalPlayPreviewCards?.length

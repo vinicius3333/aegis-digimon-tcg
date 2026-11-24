@@ -58,6 +58,7 @@ const INTENT_FIELDS: { [T in Intent["type"]]: readonly Exclude<keyof Extract<Int
   respondBarrier: ["permanentId", "accept"],
   respondDecision: ["decisionId", "response"],
   surrender: [],
+  showNothingToDoPrompts: ["show"],
 };
 
 /** Keep only the fields the intent's type defines; an unknown type keeps only its `type`. */
