@@ -43,7 +43,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [api, browser]
+        suite: [api, browser, server]
     services:
       postgres:
         image: postgres:16-alpine
@@ -61,6 +61,9 @@ jobs:
       POSTGRES_TESTS: "1"
       PGPASSWORD: ci-only
       POSTGRES_TEST_URL: postgres://postgres@127.0.0.1:55439/aegis_sealed_test
+      SEALED_TEST_DATABASE_URL: postgres://postgres@127.0.0.1:55439/aegis_sealed_test
+      AEGIS_DISPOSABLE_SCHEMA_CATALOG_LOCK: "true"
+      AEGIS_SOCIAL_SCHEMA_SOURCE_SHA: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -79,6 +82,17 @@ jobs:
         run: |
           shopt -s globstar nocaseglob
           pnpm test:postgres src/db/migrator.accountContention src/**/*sealed*.test.ts --maxWorkers=1
+      - name: Prepare disposable database fixture
+        if: matrix.suite != 'api'
+        run: |
+          printf 'AEGIS_SOCIAL_SCHEMA_RECEIPT_OUT=%s\n' "$(mktemp -d "$RUNNER_TEMP/sealed.XXXXXXXX")" >> "$GITHUB_ENV"
+          printf 'AEGIS_SOCIAL_SCHEMA_TASK_NONCE=%s\n' "$(node -p 'crypto.randomUUID()')" >> "$GITHUB_ENV"
+      - name: Sealed browser server tests
+        if: matrix.suite == 'server'
+        working-directory: apps/api
+        env:
+          NODE_ENV: test
+        run: node --import=./test-support/ts-loader.mjs --test --test-concurrency=1 test-support/*Sealed*.test.ts
       - run: pnpm --filter @aegis/web exec playwright install --with-deps chromium
         if: matrix.suite == 'browser'
       - name: Sealed browser tests

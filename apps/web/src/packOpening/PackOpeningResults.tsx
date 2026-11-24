@@ -10,6 +10,7 @@ import { ResultSort } from "@/packOpening/results/ResultSort";
 
 type Props = {
   cards: readonly PackCard[];
+  packSize?: number;
   foilEnabled: boolean;
   onInspect: (index: number) => void;
 };
@@ -20,15 +21,15 @@ const RARITY_OPTIONS = [
   ...Object.values(PackRarity).reverse(),
 ];
 
-export function PackOpeningResults({ cards, foilEnabled, onInspect }: Props) {
+export function PackOpeningResults({ cards, foilEnabled, onInspect, packSize }: Props) {
   const [query, setQuery] = useState("");
   const [rarity, setRarity] = useState<string>(ResultRarityFilter.ALL.value);
   const [sort, setSort] = useState<ResultSort>(ResultSort.PACK_ORDER.value);
   const [grouping, setGrouping] = useState<ResultGrouping>(ResultGrouping.PACK.value);
   const deferredQuery = useDeferredValue(query);
   const groups = useMemo(
-    () => groupPackResults({ cards, query: deferredQuery, rarity, sort, grouping }),
-    [cards, deferredQuery, rarity, sort, grouping],
+    () => groupPackResults({ cards, query: deferredQuery, rarity, sort, grouping, packSize }),
+    [cards, deferredQuery, rarity, sort, grouping, packSize],
   );
   const shown = groups.reduce((total, group) => total + group.entries.length, 0);
   const filtered = query.trim().length > 0 || rarity !== ResultRarityFilter.ALL.value;

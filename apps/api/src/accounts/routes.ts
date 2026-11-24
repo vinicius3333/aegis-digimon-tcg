@@ -237,7 +237,7 @@ export function installAccountRoutes(
   const put = (path: string, handler: AsyncHandler) => app.put(path, asyncRoute(handler));
   const del = (path: string, handler: AsyncHandler) => app.delete(path, asyncRoute(handler));
   const limitDisplayNameChange = tokenBucketLimiter(DISPLAY_NAME_RATE_LIMIT);
-  get("/auth/me", async (req, res) => {
+  app.get("/auth/me", async (req, res) => {
     const session = await store.session(cookie(req, SESSION_COOKIE));
     const renewed = session && (await store.renewSession(session));
     if (renewed) setSession(res, renewed);
@@ -381,7 +381,7 @@ export function installAccountRoutes(
     }
   });
 
-  get("/account/decks", async (req, res) => {
+  app.get("/account/decks", async (req, res) => {
     const session = await requireSession(req, res, store);
     if (session) res.json(await store.decks(session.account.id));
   });

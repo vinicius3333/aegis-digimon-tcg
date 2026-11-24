@@ -1,4 +1,6 @@
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
+import { consumePrivateSealedRoomGrant } from "#api/rooms/sealed/consumePrivateSealedRoomGrant";
+import { PrivateSealedStore } from "#api/rooms/sealed/PrivateSealedStore";
 import type { Client } from "colyseus";
 import type { Intent } from "@aegis/shared/protocol/intents";
 import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
@@ -12,6 +14,10 @@ import { settle } from "#api/engine/testkit/harness";
 import { extractReplay } from "#api/replays/inputs/extract";
 import { createEngineSchemaCloner } from "#api/engine/snapshot/schema/createEngineSchemaCloner";
 import { runReplay } from "#api/replays/inputs/run";
+
+vi.mock("#api/rooms/sealed/consumePrivateSealedRoomGrant", () => ({
+  consumePrivateSealedRoomGrant: vi.fn(),
+}));
 
 type Driver = {
   scenarioFixture: ScenarioFixture;
@@ -29,22 +35,44 @@ it("roundtrips recorded sealed placement and cross-color evolution through extra
   room.unlock = async () => {};
   room.setMatchmaking = async () => {};
   room.broadcast = () => true;
-  const setState = room.setState.bind(room);
-  room.setState = (state) => {
-    state.rulesPolicy = GameRulesPolicy.SEALED.value;
-    setState(state);
+  room.setPrivate = vi.fn(async () => {});
+  const gameId = "sealed-replay-game";
+  const capability = "a".repeat(64);
+  const deck = {
+    mainDeck: Array<string>(40).fill("BT1-009"),
+    eggDeck: [] as string[],
+    mainDeckArts: Array<string>(40).fill("BT1-009"),
+    eggDeckArts: [] as string[],
   };
+  const grant = vi.mocked(consumePrivateSealedRoomGrant);
+  grant.mockImplementationOnce(async (input) => {
+    if (input.capability !== capability) throw new Error("Unexpected sealed capability");
+    return { code: "REPLAY", gameId };
+  });
+  const authorize = vi.spyOn(PrivateSealedStore.prototype, "authorize").mockImplementation(async (input) => {
+    const seat = input.token === "sealed-replay-token-0" ? 0 : input.token === "sealed-replay-token-1" ? 1 : -1;
+    if (input.gameId !== gameId || input.roomId !== room.roomId || (seat !== 0 && seat !== 1)) {
+      throw new Error("Unexpected sealed authorization");
+    }
+    return { seat, name: "Replay entrant", deck: structuredClone(deck) };
+  });
   try {
-    await room.onCreate({ seed: 42 });
+    await room.onCreate({ privateSealedRoom: true, privateSealedCapability: capability });
+    expect(grant).toHaveBeenCalledTimes(1);
+    expect(room.state.rulesPolicy).toBe(GameRulesPolicy.SEALED.value);
     driver.scenarioFixture = fixture;
     const clients = [0, 1].map((seat) => ({ sessionId: `sealed-replay-${seat}`, send: () => {} }) as unknown as Client);
-    for (const client of clients) {
+    for (const [seat, client] of clients.entries()) {
+      const options = {
+        privateSealedGame: { gameId, roomId: room.roomId, token: `sealed-replay-token-${seat}` },
+        displayName: "Untrusted entrant",
+        deck: { mainDeck: [] as string[], eggDeck: [] as string[] },
+      };
+      expect(await room.onAuth(client, options)).toBe(true);
       room.clients.push(client);
-      room.onJoin(client, {
-        displayName: "Replay entrant",
-        deck: { mainDeck: Array<string>(40).fill("BT1-009"), eggDeck: [] },
-      });
+      room.onJoin(client, options);
     }
+    expect(authorize).toHaveBeenCalledTimes(2);
     driver.startScenarioNow();
     await settle(() => driver.engine.breeding.isOpen);
     const player = room.state.players[0]!;
@@ -85,8 +113,13 @@ it("roundtrips recorded sealed placement and cross-color evolution through extra
     expect(restored.state.players[0]!.deck.length).toBe(player.deck.length);
     expect(JSON.stringify(record)).not.toContain('"packs"');
   } finally {
-    stop();
-    room.onDispose();
-    room.clock.stop();
+    try {
+      stop();
+      room.onDispose();
+      room.clock.stop();
+    } finally {
+      authorize.mockRestore();
+      grant.mockReset();
+    }
   }
 });
