@@ -332,7 +332,7 @@ const interfaceMessages = {
   "replay.loading": "正在開啟重播…",
   "replay.error.invalid": "該檔案不是有效、完整的 Aegis 重播。",
   "replay.error.version": "此重播使用此版本的 Aegis 無法開啟的格式。",
-  "replay.error.size": "請選擇不超過 32 MB（含解壓縮後內容）的非空重播檔案。",
+  "replay.error.size": "請選擇不超過 128 MB（含解壓縮後內容）的非空重播檔案。",
   "replay.play": "播放",
   "replay.pause": "暫停",
   "replay.previous": "上一步操作",

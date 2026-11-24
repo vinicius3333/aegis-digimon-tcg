@@ -19,6 +19,7 @@ import { competitiveArchetypes } from "#api/db/migrations/059-competitive-archet
 import { tournamentBetaCards } from "#api/db/migrations/060-tournament-beta-cards";
 import { replayFeaturedDeckIcons } from "#api/db/migrations/061-replay-featured-deck-icons";
 import { feedbackForum } from "#api/db/migrations/062-feedback-forum";
+import { replayFrameLimit } from "#api/db/migrations/063-replay-frame-limit";
 import type { Migration } from "../migrator.js";
 import { initialSchema } from "./001-initial-schema.js";
 import { tournamentProgramColumns } from "./002-tournament-program-columns.js";
@@ -129,4 +130,5 @@ export const migrations: readonly Migration[] = [
   tournamentBetaCards,
   replayFeaturedDeckIcons,
   feedbackForum,
+  replayFrameLimit,
 ];

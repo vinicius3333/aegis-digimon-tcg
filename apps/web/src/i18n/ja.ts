@@ -346,7 +346,7 @@ const interfaceMessages = {
   "replay.loading": "リプレイを開いています…",
   "replay.error.invalid": "このファイルは有効で完全なAegisのリプレイではありません。",
   "replay.error.version": "このリプレイは、このバージョンのAegisでは開けない形式を使用しています。",
-  "replay.error.size": "展開後の内容を含めて32 MB以下の、空でないリプレイを選択してください。",
+  "replay.error.size": "展開後の内容を含めて128 MB以下の、空でないリプレイを選択してください。",
   "replay.play": "再生",
   "replay.pause": "一時停止",
   "replay.previous": "前のアクション",

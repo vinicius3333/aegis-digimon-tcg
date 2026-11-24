@@ -1,6 +1,7 @@
 import { gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { MAX_REPLAY_BYTES } from "@aegis/shared";
+import { encodeReplayFrames } from "@aegis/shared/replays/encodeReplayFrames";
 import { replayFixture } from "./fixture";
 import { readReplay } from "../../src/replays/files";
 import { frameDelay, playbackState, turnPositions } from "../../src/replays/playback";
@@ -12,6 +13,31 @@ describe("portable replay files", () => {
     for (const file of [new Blob([text]), new Blob([gzipSync(text)])]) {
       expect(await readReplay(file)).toEqual(JSON.parse(text));
     }
+  });
+
+  it("opens a version 2 file that stores each later frame as a patch", async () => {
+    const replay = replayFixture();
+    const frames = encodeReplayFrames(replay.frames);
+    expect(frames.slice(1).some((frame) => !("state" in frame))).toBe(true);
+
+    const opened = await readReplay(new Blob([gzipSync(JSON.stringify({ ...replay, version: 2, frames }))]));
+
+    expect(opened).toEqual(JSON.parse(JSON.stringify(replay)));
+  });
+
+  it("still opens a version 1 file with a full state in every frame", async () => {
+    const replay = { ...replayFixture(), version: 1 };
+
+    expect(await readReplay(new Blob([JSON.stringify(replay)]))).toEqual(JSON.parse(JSON.stringify(replay)));
+  });
+
+  it("rejects a version 2 file whose patch does not fit the frame before it", async () => {
+    const replay = replayFixture();
+    const frames = [replay.frames[0], { atMs: 1, events: [], patch: { o: { memory: { o: {} } } } }];
+
+    await expect(readReplay(new Blob([JSON.stringify({ ...replay, version: 2, frames })]))).rejects.toMatchObject({
+      code: "invalid",
+    });
   });
   it("rejects unsupported versions, corrupt archives, incomplete states, invalid event shapes and empty files", async () => {
     await expect(readReplay(new Blob())).rejects.toMatchObject({ code: "size" });

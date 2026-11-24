@@ -1,5 +1,12 @@
 import { SPECTATOR_REPLAY_SEAT } from "@aegis/shared/replays/spectatorReplaySeat";
-import { MAX_REPLAY_BYTES, REPLAY_FORMAT_VERSION, type MatchReplay, type ReplayDownloadMessage } from "@aegis/shared";
+import {
+  FULL_FRAME_REPLAY_VERSION,
+  MAX_REPLAY_BYTES,
+  REPLAY_FORMAT_VERSION,
+  type MatchReplay,
+  type ReplayDownloadMessage,
+} from "@aegis/shared";
+import { decodeReplayFrames } from "@aegis/shared/replays/decodeReplayFrames";
 import { validateReplay } from "./validation";
 
 export type ReadyReplay = Extract<ReplayDownloadMessage, { kind: "ready" }>;
@@ -70,15 +77,18 @@ export async function readReplay(file: Blob): Promise<MatchReplay> {
   } catch {
     throw new ReplayFileError("invalid");
   }
-  if (
-    typeof value === "object" &&
-    value !== null &&
-    "format" in value &&
-    value.format === "aegis-replay" &&
-    "version" in value &&
-    value.version !== REPLAY_FORMAT_VERSION
-  )
-    throw new ReplayFileError("version");
+  if (typeof value === "object" && value !== null && "format" in value && value.format === "aegis-replay") {
+    const version = "version" in value ? value.version : undefined;
+    if (version !== REPLAY_FORMAT_VERSION && version !== FULL_FRAME_REPLAY_VERSION)
+      throw new ReplayFileError("version");
+    if (version === REPLAY_FORMAT_VERSION && "frames" in value) {
+      try {
+        value.frames = decodeReplayFrames(value.frames);
+      } catch {
+        throw new ReplayFileError("invalid");
+      }
+    }
+  }
   if (!validateReplay(value)) throw new ReplayFileError("invalid");
   return value;
 }

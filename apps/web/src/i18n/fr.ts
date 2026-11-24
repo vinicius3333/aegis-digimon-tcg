@@ -347,7 +347,7 @@ const interfaceMessages = {
   "replay.loading": "Ouverture du replay…",
   "replay.error.invalid": "Ce fichier n'est pas un replay Aegis complet et valide.",
   "replay.error.version": "Ce replay utilise un format que cette version d'Aegis ne peut pas ouvrir.",
-  "replay.error.size": "Choisissez un replay non vide de 32 Mo maximum, contenu étendu compris.",
+  "replay.error.size": "Choisissez un replay non vide de 128 Mo maximum, contenu étendu compris.",
   "replay.play": "Jouer",
   "replay.pause": "Pause",
   "replay.previous": "Action précédente",

@@ -4,6 +4,8 @@ import {
   PlayerState,
   Permanent,
   CardInstance,
+  FULL_FRAME_REPLAY_VERSION,
+  MAX_REPLAY_FRAMES,
   REPLAY_FORMAT_VERSION,
   type MatchReplay,
 } from "@aegis/shared";
@@ -39,16 +41,20 @@ const string = (value: unknown): value is string => typeof value === "string" &&
 const array = (value: unknown, check: (item: unknown) => boolean): boolean =>
   Array.isArray(value) && value.length <= 1000 && value.every(check);
 
-function safeTree(value: unknown, depth = 0): boolean {
+function safeTree(value: unknown, checked: WeakSet<object>, depth = 0): boolean {
   if (depth > 24) return false;
   if (value === null || typeof value === "boolean") return true;
   if (typeof value === "string") return string(value);
   if (typeof value === "number") return number(value);
-  if (Array.isArray(value)) return value.length <= 5000 && value.every((item) => safeTree(item, depth + 1));
-  if (!record(value)) return false;
-  return Object.entries(value).every(
-    ([key, item]) => !["__proto__", "prototype", "constructor"].includes(key) && safeTree(item, depth + 1),
-  );
+  if (typeof value !== "object") return false;
+  if (checked.has(value)) return true;
+  const safe = Array.isArray(value)
+    ? value.length <= MAX_REPLAY_FRAMES && value.every((item) => safeTree(item, checked, depth + 1))
+    : Object.entries(value).every(
+        ([key, item]) => !["__proto__", "prototype", "constructor"].includes(key) && safeTree(item, checked, depth + 1),
+      );
+  if (safe) checked.add(value);
+  return safe;
 }
 
 function card(value: unknown): boolean {
@@ -210,10 +216,10 @@ function isValidReplayDeckMetadata(value: RecordValue): boolean {
 export function validateReplay(value: unknown): value is MatchReplay {
   if (
     !record(value) ||
-    !safeTree(value) ||
+    !safeTree(value, new WeakSet()) ||
     !isValidReplayDeckMetadata(value) ||
     value.format !== "aegis-replay" ||
-    value.version !== REPLAY_FORMAT_VERSION ||
+    (value.version !== REPLAY_FORMAT_VERSION && value.version !== FULL_FRAME_REPLAY_VERSION) ||
     !string(value.id) ||
     (!seat(value.viewerSeat) && value.viewerSeat !== SPECTATOR_REPLAY_SEAT) ||
     !Array.isArray(value.visibleHandSeats) ||
@@ -232,7 +238,7 @@ export function validateReplay(value: unknown): value is MatchReplay {
     ![-1, 0, 1].includes(value.winnerSeat) ||
     !Array.isArray(value.frames) ||
     value.frames.length === 0 ||
-    value.frames.length > 5000 ||
+    value.frames.length > MAX_REPLAY_FRAMES ||
     value.frameCount !== value.frames.length
   )
     return false;

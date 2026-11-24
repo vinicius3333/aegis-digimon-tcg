@@ -1,4 +1,5 @@
-import type { MatchReplay } from "@aegis/shared/replays";
+import { REPLAY_FORMAT_VERSION, type MatchReplay } from "@aegis/shared/replays";
+import { encodeReplayFrames } from "@aegis/shared/replays/encodeReplayFrames";
 import { SPECTATOR_REPLAY_SEAT } from "@aegis/shared/replays/spectatorReplaySeat";
 import type { ParticipantReplayFile } from "#api/replays/recording";
 
@@ -56,5 +57,8 @@ export function buildSpectatorReplayFile({
     visibleHandSeats: _visibleHandSeats,
     ...summary
   } = copy;
-  return { summary, json: JSON.stringify(copy) };
+  return {
+    summary,
+    json: JSON.stringify({ ...copy, version: REPLAY_FORMAT_VERSION, frames: encodeReplayFrames(copy.frames) }),
+  };
 }

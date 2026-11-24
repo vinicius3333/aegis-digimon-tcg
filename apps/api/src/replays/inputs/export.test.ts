@@ -1,6 +1,7 @@
 import { gunzipSync } from "node:zlib";
 import type { GameState, MatchReplay, ReplayFrame } from "@aegis/shared";
 import { beforeAll, describe, expect, it } from "vitest";
+import { decodeReplayFrames } from "@aegis/shared/replays/decodeReplayFrames";
 import { exportPlayerReplay } from "./export.js";
 import { extractReplay } from "./extract.js";
 import { comparableState, recordRoomMatch } from "./roomMatch.fixture.js";
@@ -23,7 +24,8 @@ beforeAll(async () => {
 }, 120_000);
 
 function open(file: Buffer): MatchReplay {
-  return JSON.parse(gunzipSync(file).toString("utf8")) as MatchReplay;
+  const replay = JSON.parse(gunzipSync(file).toString("utf8")) as MatchReplay;
+  return { ...replay, frames: decodeReplayFrames(replay.frames) };
 }
 
 /** The public mirrors of a seat (`syncPublicCounts`), refreshed only when the room patches. */
@@ -39,7 +41,7 @@ describe("exportPlayerReplay", () => {
     expect(exported.divergences).toEqual([]);
     expect(exported.endedBy).toBe("recording");
     expect(replay.format).toBe("aegis-replay");
-    expect(replay.version).toBe(1);
+    expect(replay.version).toBe(2);
     expect(replay.mode).toBe("casual");
     expect(replay.frames.length).toBeGreaterThan(1);
     expect(replay.frameCount).toBe(replay.frames.length);

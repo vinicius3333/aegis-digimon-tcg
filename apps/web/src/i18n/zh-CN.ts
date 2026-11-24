@@ -333,7 +333,7 @@ const interfaceMessages = {
   "replay.loading": "正在打开回放…",
   "replay.error.invalid": "此文件不是有效且完整的 Aegis 回放。",
   "replay.error.version": "当前 Aegis 版本无法打开此回放格式。",
-  "replay.error.size": "请选择非空且不超过 32 MB 的回放，包括解压后的内容。",
+  "replay.error.size": "请选择非空且不超过 128 MB 的回放，包括解压后的内容。",
   "replay.play": "播放",
   "replay.pause": "暂停",
   "replay.previous": "上一步",

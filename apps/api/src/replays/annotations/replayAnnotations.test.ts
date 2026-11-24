@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { ReplayDownloadMessage } from "@aegis/shared";
 import { ReplayMarkerEmoji } from "@aegis/shared/replays/annotations/ReplayMarkerEmoji";
 import {
+  MAX_REPLAY_FRAME_INDEX,
   MAX_REPLAY_MARKERS_PER_MATCH,
   MAX_REPLAY_NOTES_PER_MATCH,
   REPLAY_NOTE_MAX_LENGTH,
@@ -225,7 +226,7 @@ describe("replay marker routes", () => {
     expect((await post(ownerSession, valid, "not-a-match")).status).toBe(404);
     for (const invalid of [
       { ...valid, frameIndex: -1 },
-      { ...valid, frameIndex: 5000 },
+      { ...valid, frameIndex: MAX_REPLAY_FRAME_INDEX + 1 },
       { ...valid, frameIndex: 1.5 },
       { ...valid, turn: "2" },
       { ...valid, emoji: "ok" },

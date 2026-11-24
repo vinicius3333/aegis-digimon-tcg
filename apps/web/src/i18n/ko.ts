@@ -346,7 +346,7 @@ const interfaceMessages = {
   "replay.loading": "리플레이 여는 중…",
   "replay.error.invalid": "올바르고 완전한 Aegis 리플레이 파일이 아닙니다.",
   "replay.error.version": "이 리플레이는 이 Aegis 버전에서 열 수 없는 형식을 사용합니다.",
-  "replay.error.size": "압축 해제한 내용을 포함해 32MB 이하이며 비어 있지 않은 리플레이를 선택하세요.",
+  "replay.error.size": "압축 해제한 내용을 포함해 128MB 이하이며 비어 있지 않은 리플레이를 선택하세요.",
   "replay.play": "재생",
   "replay.pause": "일시정지",
   "replay.previous": "이전 행동",

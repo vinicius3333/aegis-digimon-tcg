@@ -5,13 +5,16 @@ import { ArraySchema } from "@colyseus/schema";
 import { randomUUID } from "node:crypto";
 import { constants, zstdCompressSync, zstdDecompressSync } from "node:zlib";
 import { copyWithoutSharedBacking } from "#api/replays/copyWithoutSharedBacking";
+import { createReplayPatch } from "@aegis/shared/replays/createReplayPatch";
+import { decodeReplayFrames } from "@aegis/shared/replays/decodeReplayFrames";
+import type { EncodedReplayFrame } from "@aegis/shared/replays/EncodedReplayFrame";
 import {
   REPLAY_FORMAT_VERSION,
   MAX_REPLAY_BYTES,
+  MAX_REPLAY_FRAMES,
   type CardInstance,
   type GameState,
   type MatchReplay,
-  type ReplayFrame,
   type ReplaySummary,
   type Seat,
   type SequencedServerEvent,
@@ -19,7 +22,6 @@ import {
 
 // Leave room for the file envelope and metadata in the expanded import budget.
 const MAX_RECORDING_BYTES = MAX_REPLAY_BYTES - 64 * 1024;
-const MAX_FRAMES = 5000;
 const FRAME_COMPRESSION = { params: { [constants.ZSTD_c_compressionLevel]: 1 } };
 
 const UNRECORDED_STATE_FIELDS = new Set(["pendingDecision", "combatWindow"]);
@@ -144,7 +146,7 @@ type SpectatorFileParams = {
 export class ReplayRecording {
   readonly id = randomUUID();
   private compressedFrames: Uint8Array[] = [];
-  private previousFrame?: Buffer;
+  private previousState?: GameState;
   private lastAtMs = 0;
   private bytes = 0;
   private overflow = false;
@@ -158,30 +160,29 @@ export class ReplayRecording {
     if (this.overflow || this.ending) return;
     const atMs = Math.max(this.lastAtMs, now - this.startedAt);
     const recorded = recordingState(state);
-    const frame = Buffer.from(JSON.stringify({ atMs, state: recorded, events: recordingEvents(events) }));
+    const frame = Buffer.from(JSON.stringify(this.encodedFrame(atMs, recorded, recordingEvents(events))));
     this.bytes += frame.length;
-    if (this.bytes > MAX_RECORDING_BYTES || this.compressedFrames.length >= MAX_FRAMES) {
+    if (this.bytes > MAX_RECORDING_BYTES || this.compressedFrames.length >= MAX_REPLAY_FRAMES) {
       this.compressedFrames = [];
-      this.previousFrame = undefined;
+      this.previousState = undefined;
       this.overflow = true;
       return;
     }
-    this.compressedFrames.push(
-      copyWithoutSharedBacking(
-        zstdCompressSync(
-          frame,
-          this.previousFrame ? { ...FRAME_COMPRESSION, dictionary: this.previousFrame } : FRAME_COMPRESSION,
-        ),
-      ),
-    );
-    this.previousFrame = frame;
+    this.compressedFrames.push(copyWithoutSharedBacking(zstdCompressSync(frame, FRAME_COMPRESSION)));
+    this.previousState = recorded;
     this.lastAtMs = atMs;
     if (!state.gameOver) return;
-    this.previousFrame = undefined;
+    this.previousState = undefined;
     this.ending = {
       players: [recorded.players[0]!.displayName, recorded.players[1]!.displayName],
       winnerSeat: recorded.winnerSeat,
     };
+  }
+
+  private encodedFrame(atMs: number, state: GameState, events: SequencedServerEvent[]): EncodedReplayFrame {
+    if (this.previousState === undefined) return { atMs, events, state };
+    const patch = createReplayPatch(this.previousState, state);
+    return patch === undefined ? { atMs, events } : { atMs, events, patch };
   }
 
   complete(mode: ReplaySummary["mode"], finishedAt = Date.now()): MatchReplay | undefined {
@@ -190,7 +191,7 @@ export class ReplayRecording {
     return {
       ...summary,
       version: REPLAY_FORMAT_VERSION,
-      frames: this.frames,
+      frames: decodeReplayFrames(this.serializedFrames().map((frame) => JSON.parse(frame) as unknown)),
       viewerSeat: 0,
       visibleHandSeats: [],
       format: "aegis-replay",
@@ -243,18 +244,10 @@ export class ReplayRecording {
     return this.compressedFrames.length;
   }
 
-  private get frames(): ReplayFrame[] {
-    return this.serializedFrames().map((frame) => JSON.parse(frame) as ReplayFrame);
-  }
-
   private serializedFrames(): string[] {
     const cached = this.decompressedFrames?.deref();
     if (cached !== undefined && cached.frameCount === this.compressedFrames.length) return cached.frames;
-    let previous: Buffer | undefined;
-    const frames = this.compressedFrames.map((compressed) => {
-      previous = zstdDecompressSync(compressed, previous ? { dictionary: previous } : {});
-      return previous.toString();
-    });
+    const frames = this.compressedFrames.map((compressed) => zstdDecompressSync(compressed).toString());
     this.decompressedFrames = new WeakRef({ frameCount: frames.length, frames });
     return frames;
   }
