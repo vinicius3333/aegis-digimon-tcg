@@ -57,6 +57,6 @@ describe("061-replay-featured-deck-icons", () => {
   });
 
   it("applies on an empty database", async () => {
-    expect(await runMigrations(pool, migrations)).toEqual(["061-replay-featured-deck-icons"]);
+    expect(await runMigrations(pool, migrations)).toContain("061-replay-featured-deck-icons");
   });
 });

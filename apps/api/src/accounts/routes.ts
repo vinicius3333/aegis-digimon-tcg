@@ -69,6 +69,8 @@ import { EliminationStore } from "../tournaments/elimination/index.js";
 import { ArbitrationService, installArbitrationRoutes } from "../tournaments/arbitration/index.js";
 import { FeedbackStore } from "../bugs/FeedbackStore.js";
 import { installBugReportRoutes } from "#api/bugs/routes";
+import { BugVolunteerStore } from "#api/bugs/BugVolunteerStore";
+import { installBugVolunteerRoutes } from "#api/bugs/installBugVolunteerRoutes";
 import { ReplayCapturer } from "#api/bugs/replayCapture";
 import type { IssueTracker } from "#api/bugs/GitHubIssueTracker";
 import { NotificationStore } from "../notifications/NotificationStore.js";
@@ -191,6 +193,7 @@ export function installAccountRoutes(
     session: sessionFromRequest,
     replayCapture,
   });
+  installBugVolunteerRoutes({ app, store: new BugVolunteerStore(store), session: sessionFromRequest });
   // The signed-in player's inbox; feedback triage is its first producer. See src/notifications.
   installNotificationRoutes({ app, store: new NotificationStore(store), session: sessionFromRequest });
   installPlaytestRoutes({ app, store: new PlaytestStore(store), session: sessionFromRequest });
