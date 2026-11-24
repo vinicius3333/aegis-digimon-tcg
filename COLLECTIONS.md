@@ -3,9 +3,7 @@
 Aegis persists application data in PostgreSQL. This filename names the inventory;
 it does not imply a MongoDB collection layer. The API owns every query and write.
 The authoritative schema is the ordered [migration registry](apps/api/src/db/migrations/index.ts),
-preserving upstream migrations `058-optional-ranked-region`, `059-competitive-archetypes` and
-`060-tournament-beta-cards` before canonical `061-sealed-tournaments`, `062-private-sealed` and
-`063-private-sealed-results`, plus the migrator's `schema_migrations` table.
+plus the migrator's `schema_migrations` table.
 Append migrations for released schema changes and update this inventory with them.
 
 Tables below list their identity, important fields, and constraints. Foreign keys,
@@ -343,7 +341,7 @@ Migration [057-deck-matchup-results](apps/api/src/db/migrations/057-deck-matchup
 
 ### Sealed tournaments
 
-Migration `061-sealed-tournaments` adds immutable `tournaments.sealed_configuration` and the durable `sealed_build_deadline_at` preparation boundary. `tournament_sealed_pools` has one immutable six-pack manifest per participant (primary key and participant foreign key), allocation time, current deck revision and ready-window key. `tournament_sealed_decks` retains append-only submissions and canonical/printing snapshots keyed by participant and revision. Unused cards are derived by multiset subtraction. No pool or generation randomness is included in public tournament projections or replays. Existing `tournament_games.player0_deck_snapshot` and `player1_deck_snapshot` hold the decks locked for each game.
+`tournaments.sealed_configuration` stores the product configuration (JSONB); `sealed_build_deadline_at` is the preparation deadline (bigint). `tournament_sealed_pools` is keyed by `participant_id` (FK to `tournament_participants`) and stores packs, allocation time, revision and ready window. `tournament_sealed_decks` is keyed by `(participant_id, revision)` with a foreign key to the pool; it stores the window, submitted list, deck snapshot and submission time.
 
 ### `private_sealed_series`
 

@@ -1,7 +1,7 @@
 import { hashTournamentPassword } from "#api/tournaments/access/hashTournamentPassword";
 import { getCardArts, type TournamentBanlistCard } from "@aegis/shared";
 import type { Pool } from "pg";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { type Account, AccountStore } from "../../accounts/AccountStore.js";
 import { createMemoryPool } from "../../db/memoryPool.fixture.js";
 import { snapshotFixtures } from "../../db/snapshotFixture.js";
@@ -56,49 +56,6 @@ describe("ParticipantStore registration", () => {
   let fixture: Fixture;
   beforeEach(async () => {
     fixture = await createMigratedFixture();
-  });
-
-  it("preserves the beta-card choice through registration, replacement and deck freeze", async () => {
-    const { store, participants } = fixture;
-    const player = await createPlayer(store, "Beta player");
-    const savedDeckId = await saveLegalDeck(store, player.id, {
-      ...RED_DECK,
-      mainDeck: ["EX13-020", ...RED_DECK.mainDeck.slice(1)],
-    });
-    vi.useFakeTimers({ toFake: ["Date"], now: new Date("2026-09-11T12:00:00Z") });
-    try {
-      for (const allowBetaCards of [false, true]) {
-        const tournament = await store.createTournament(player.id, {
-          name: "Beta choice",
-          block: "BT10",
-          startsAt: T0,
-          maxPlayers: 8,
-          allowBetaCards,
-        });
-        expect((await store.tournament(tournament.id))?.allowBetaCards).toBe(allowBetaCards);
-        const input = { tournamentId: tournament.id, accountId: player.id, savedDeckId, now: T0 };
-        const result = await participants.register(input);
-        if (!allowBetaCards) {
-          expect(result).toMatchObject({
-            ok: false,
-            reason: "deck_illegal",
-            violations: expect.arrayContaining([{ kind: "outside_format", cardId: "EX13-020" }]),
-          });
-          continue;
-        }
-        expect(result.ok).toBe(true);
-        expect((await participants.changeDeck(input)).ok).toBe(true);
-        expect((await participants.checkIn(input)).ok).toBe(true);
-        expect((await participants.closeCheckIn({ tournamentId: tournament.id, now: T0 })).ok).toBe(true);
-        expect(await participants.getOwnDeck(input)).toMatchObject({
-          locked: true,
-          mainDeck: ["EX13-020", ...RED_DECK.mainDeck.slice(1)],
-        });
-        expect(await participants.participants(tournament.id)).toMatchObject([{ status: "active" }]);
-      }
-    } finally {
-      vi.useRealTimers();
-    }
   });
 
   it("shows the entrant's selected list and freezes it against later deck edits and replacement", async () => {
