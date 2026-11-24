@@ -73,11 +73,13 @@ describe("sealed breeding guidance ownership", () => {
   });
 
   it("keeps action hit testing and width bounded by the containing guidance panel", () => {
-    const actions = readFileSync(resolve(import.meta.dirname, "../SealedBreedingActions.tsx"), "utf8");
-    expect(actions).toContain("zIndex: 21");
-    expect(actions).toContain('pointerEvents: "auto"');
-    expect(actions).toContain('maxWidth: "100%"');
-    expect(actions).toContain('whiteSpace: "normal"');
-    expect(actions).toContain('overflowWrap: "anywhere"');
+    const css = readFileSync(resolve(import.meta.dirname, "../style/fieldLayout.css"), "utf8");
+    const panel = css.match(/\.sealed-breeding-actions \{([^}]*)\}/)?.[1];
+    const button = css.match(/\.sealed-breeding-actions > button \{([^}]*)\}/)?.[1];
+    expect(panel).toContain("z-index: 21;");
+    expect(panel).toContain("pointer-events: auto;");
+    expect(panel).toContain("max-width: 100%;");
+    expect(button).toContain("white-space: normal;");
+    expect(button).toContain("overflow-wrap: anywhere;");
   });
 });

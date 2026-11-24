@@ -143,6 +143,7 @@ function bestDigivolve(view: BotView): DevelopAction | undefined {
       if (base.cardId === undefined || base.cannotDigivolve) continue;
       const cost = digivolveCost(card.cardId, base.cardId, {
         inBreeding: base.inBreeding,
+        rulesPolicy: view.rulesPolicy,
         controlledUnits: view.board,
       });
       if (cost === undefined || cost > view.maxAffordable) continue;
@@ -180,6 +181,7 @@ function canDigivolveOnto(view: BotView, base: BotUnit): boolean {
       isDigimonCard(card.definition) &&
       (digivolveCost(card.cardId, base.cardId!, {
         inBreeding: base.inBreeding,
+        rulesPolicy: view.rulesPolicy,
         controlledUnits: view.board,
       }) ?? Number.POSITIVE_INFINITY) <= view.maxAffordable,
   );

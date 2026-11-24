@@ -17,21 +17,7 @@ export function SealedBreedingActions({ state, player, room, enabled }: Props) {
     return null;
   }
   return (
-    <div
-      className="sealed-breeding-actions"
-      style={{
-        position: "relative",
-        zIndex: 21,
-        pointerEvents: "auto",
-        display: "flex",
-        flexDirection: "column",
-        alignSelf: "center",
-        gap: 4,
-        width: "18rem",
-        maxWidth: "100%",
-        flexShrink: 0,
-      }}
-    >
+    <div className="sealed-breeding-actions">
       {player.hand
         .filter((card) => {
           const definition = getCardDefinition(card.cardId);
@@ -40,7 +26,6 @@ export function SealedBreedingActions({ state, player, room, enabled }: Props) {
         .map((card) => (
           <Button
             key={card.instanceId}
-            style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}
             onClick={() => sendIntent(room, { type: "placeSealedRookie", instanceId: card.instanceId })}
           >
             {t("sealed.placeRookie")} · {name(card.cardId)}

@@ -1242,6 +1242,7 @@ function GameScreenSession({
     setEvoCostChoice,
   };
   const matchSenders = matchIntents({
+    rulesPolicy: state.rulesPolicy,
     room,
     localConnection: demoConnection,
     decision,
@@ -1598,6 +1599,7 @@ function GameScreenSession({
   spotlightRequestRef.current = spotlight;
 
   const { memoryPrediction } = memoryPreviewInputs({
+    rulesPolicy: state.rulesPolicy,
     memory,
     dragIsPlay,
     drag,
@@ -1671,63 +1673,61 @@ function GameScreenSession({
     fieldDecision && breedingYou.breeding ? decisionCandidateIdFor(breedingYou.breeding) : undefined;
   // One physical raising area moves into the utility row on a portrait screen.
   const yourBreedingDock = (
-    <>
-      <BreedingDock
-        actions={<SealedBreedingActions state={state} player={you} room={room} enabled={breedingActionsOpen} />}
-        sealed={state.rulesPolicy === GameRulesPolicy.SEALED.value}
-        eggDeckCount={breedingYou.eggDeckCount}
-        breeding={breedingYou.breeding}
-        keywordLabels={
-          breedingYou.breeding ? demoConnection?.keywordLabels?.[breedingYou.breeding.permanentId] : undefined
+    <BreedingDock
+      actions={<SealedBreedingActions state={state} player={you} room={room} enabled={breedingActionsOpen} />}
+      sealed={state.rulesPolicy === GameRulesPolicy.SEALED.value}
+      eggDeckCount={breedingYou.eggDeckCount}
+      breeding={breedingYou.breeding}
+      keywordLabels={
+        breedingYou.breeding ? demoConnection?.keywordLabels?.[breedingYou.breeding.permanentId] : undefined
+      }
+      pileWidth={arenaLayout.arenaRaisingWidth}
+      compactPiles={compactPiles}
+      burst={breedingYou.breeding ? permanentBursts.get(breedingYou.breeding.permanentId) : undefined}
+      effectSource={!!breedingYou.breeding && effectSourcePermanentIds.has(breedingYou.breeding.permanentId)}
+      effectLinked={!!breedingYou.breeding && effectLinkedPermanentIds.has(breedingYou.breeding.permanentId)}
+      highlight={!!breedingYou.breeding && decisionBreedingSourcePermanentId === breedingYou.breeding.permanentId}
+      eggDeckRiffling={deckRiffles.get(`${viewerSeat}:eggDeck`) ?? false}
+      actionsOpen={breedingActionsOpen}
+      canHatchEgg={canHatchEgg}
+      canMoveOut={canMoveOutOfBreeding}
+      slotCandidate={
+        (fieldDecision && !!breedingYou.breeding && decisionAllowsPermanent(breedingYou.breeding)) ||
+        (breedingActionsOpen && canMoveOutOfBreeding) ||
+        (!!breedingYou.breeding &&
+          (eligibleBase(breedingYou.breeding) ||
+            (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(breedingYou.breeding.permanentId))))
+      }
+      slotPicked={breedingDecisionCandidateId !== undefined && picks.includes(breedingDecisionCandidateId)}
+      slotDrop={{ "data-drop": "breeding-you", ...dropIntentAttrs("breeding-you") }}
+      onHatch={onBreeding}
+      onInspect={() => {
+        if (!breedingYou.breeding) {
+          return;
         }
-        pileWidth={arenaLayout.arenaRaisingWidth}
-        compactPiles={compactPiles}
-        burst={breedingYou.breeding ? permanentBursts.get(breedingYou.breeding.permanentId) : undefined}
-        effectSource={!!breedingYou.breeding && effectSourcePermanentIds.has(breedingYou.breeding.permanentId)}
-        effectLinked={!!breedingYou.breeding && effectLinkedPermanentIds.has(breedingYou.breeding.permanentId)}
-        highlight={!!breedingYou.breeding && decisionBreedingSourcePermanentId === breedingYou.breeding.permanentId}
-        eggDeckRiffling={deckRiffles.get(`${viewerSeat}:eggDeck`) ?? false}
-        actionsOpen={breedingActionsOpen}
-        canHatchEgg={canHatchEgg}
-        canMoveOut={canMoveOutOfBreeding}
-        slotCandidate={
-          (fieldDecision && !!breedingYou.breeding && decisionAllowsPermanent(breedingYou.breeding)) ||
-          (breedingActionsOpen && canMoveOutOfBreeding) ||
-          (!!breedingYou.breeding &&
-            (eligibleBase(breedingYou.breeding) ||
-              (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(breedingYou.breeding.permanentId))))
-        }
-        slotPicked={breedingDecisionCandidateId !== undefined && picks.includes(breedingDecisionCandidateId)}
-        slotDrop={{ "data-drop": "breeding-you", ...dropIntentAttrs("breeding-you") }}
-        onHatch={onBreeding}
-        onInspect={() => {
-          if (!breedingYou.breeding) {
-            return;
-          }
-          cancelDrag();
-          actions.showCardMenu(breedingYou.breeding.permanentId, Side.Viewer, { preserveSelection: true });
-        }}
-        onOpenEggDeck={
-          revealed ? () => overlayState.setRevealedZoneView({ side: Side.Viewer, zone: "eggDeck" }) : undefined
-        }
-        onSlotClick={
-          breedingDecisionCandidateId !== undefined &&
-          (picks.includes(breedingDecisionCandidateId) || decisionAllowsPick(breedingDecisionCandidateId))
-            ? () => toggleDecisionPick(breedingDecisionCandidateId)
-            : you.breeding
-              ? breedingSlotClickAction({
-                  breedingActionsOpen,
-                  canMove: canMoveOutOfBreeding,
-                  hasPendingSelection: !!handSel || !!linkSel || selPerm === you.breeding.permanentId,
-                }) === "move"
-                ? onBreeding
-                : onYourPerm(you.breeding)
-              : breedingActionsOpen
-                ? onBreeding
-                : undefined
-        }
-      />
-    </>
+        cancelDrag();
+        actions.showCardMenu(breedingYou.breeding.permanentId, Side.Viewer, { preserveSelection: true });
+      }}
+      onOpenEggDeck={
+        revealed ? () => overlayState.setRevealedZoneView({ side: Side.Viewer, zone: "eggDeck" }) : undefined
+      }
+      onSlotClick={
+        breedingDecisionCandidateId !== undefined &&
+        (picks.includes(breedingDecisionCandidateId) || decisionAllowsPick(breedingDecisionCandidateId))
+          ? () => toggleDecisionPick(breedingDecisionCandidateId)
+          : you.breeding
+            ? breedingSlotClickAction({
+                breedingActionsOpen,
+                canMove: canMoveOutOfBreeding,
+                hasPendingSelection: !!handSel || !!linkSel || selPerm === you.breeding.permanentId,
+              }) === "move"
+              ? onBreeding
+              : onYourPerm(you.breeding)
+            : breedingActionsOpen
+              ? onBreeding
+              : undefined
+      }
+    />
   );
   const tutorialLesson = spectating || replayMode ? undefined : findTutorialLesson(joinOptions.storyBattleId);
   const matchOverlays = (

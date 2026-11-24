@@ -1,3 +1,4 @@
+import type { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import type { Permanent, PlayerState } from "@aegis/shared";
 import { getDigivolveCostOptions } from "../../digivolveModel";
 import type { HandEntry } from "../../piece";
@@ -34,6 +35,7 @@ export function previewEntry(input: {
 export function cheapestDigivolveCost(input: {
   cardId: string;
   instanceId: string;
+  rulesPolicy?: GameRulesPolicy;
   base: Permanent | undefined;
   you: PlayerState;
   opp: PlayerState;
@@ -41,9 +43,14 @@ export function cheapestDigivolveCost(input: {
 }): number | undefined {
   const { cardId, instanceId, base, you, opp, handEntries } = input;
   if (!base) return undefined;
-  const costs = getDigivolveCostOptions(cardId, base, you, opp, digivolveRoutesOf({ handEntries, instanceId })).map(
-    (option) => option.cost,
-  );
+  const costs = getDigivolveCostOptions(
+    cardId,
+    base,
+    you,
+    opp,
+    digivolveRoutesOf({ handEntries, instanceId }),
+    input.rulesPolicy,
+  ).map((option) => option.cost);
   return costs.length > 0 ? Math.min(...costs) : undefined;
 }
 
@@ -53,6 +60,7 @@ export function previewDropTarget(input: {
   dragIsPlay: boolean;
   drag: DragState | null;
   dragHover: DropZoneHit | null;
+  rulesPolicy?: GameRulesPolicy;
   hoveredDragIntent: DragIntent | null;
   you: PlayerState;
   opp: PlayerState;
@@ -70,6 +78,7 @@ export function previewDropTarget(input: {
         kind: "permanent",
         digivolve: {
           cost: cheapestDigivolveCost({
+            rulesPolicy: input.rulesPolicy,
             cardId: drag.cardId,
             instanceId: drag.instanceId,
             base,
@@ -85,6 +94,7 @@ export function previewDropTarget(input: {
         kind: "breeding",
         digivolve: {
           cost: cheapestDigivolveCost({
+            rulesPolicy: input.rulesPolicy,
             cardId: drag.cardId,
             instanceId: drag.instanceId,
             base: you.breeding,

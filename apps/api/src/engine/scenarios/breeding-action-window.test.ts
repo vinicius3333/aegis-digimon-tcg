@@ -9,7 +9,7 @@ import { advance } from "#api/engine/testkit/advance";
 import fixture from "#api/engine/scenarios/sealed-color-and-breeding.fixture";
 import { validateHatchEgg, validateMoveFromBreeding } from "#api/engine/actions/breeding";
 
-it.each(["hatch", "move"] as const)("rejects every immediate second action after ordinary %s", async (first) => {
+it.each(["hatch", "move"] as const)("rejects every immediate second action after sealed %s", async (first) => {
   const s = setupScenario({
     ...fixture,
     board: {
@@ -21,6 +21,7 @@ it.each(["hatch", "move"] as const)("rejects every immediate second action after
       },
     },
   });
+  s.state.rulesPolicy = GameRulesPolicy.SEALED.value;
   const loop = s.engine.startTurnLoop();
   try {
     await settle(() => s.engine.breeding.isOpen);
@@ -118,3 +119,24 @@ it.each([
     }
   },
 );
+
+it.each(["hatch", "move"] as const)("preserves constructed %s without a staged controller window", (verb) => {
+  const s = setupScenario({
+    ...fixture,
+    board: {
+      ...fixture.board,
+      0: {
+        ...fixture.board[0],
+        eggDeck: ["BT1-001"],
+        breeding: verb === "move" ? { card: "BT1-029", as: "raised" } : undefined,
+      },
+    },
+  });
+  s.state.phase = Phase.Breeding;
+  expect(s.engine.breeding.isOpen).toBe(false);
+  const intent =
+    verb === "hatch"
+      ? ({ type: "hatchEgg" } as const)
+      : ({ type: "moveFromBreeding", permanentId: s.perm("raised").permanentId } as const);
+  expect(s.engine.applyIntent(0, intent)).toEqual({ ok: true });
+});

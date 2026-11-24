@@ -1,3 +1,4 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 /* Digivolution routes and their prices: which stacks a hand card can evolve onto, which
    requirement a candidate satisfies, and what each route costs the viewer. */
 
@@ -610,6 +611,7 @@ export function getDigivolveCostOptions(
   viewer?: PlayerState,
   opponent?: PlayerState,
   projectedRoutes?: readonly ProjectedDigivolveRoute[],
+  rulesPolicy?: GameRulesPolicy,
 ): EvoCostOption[] {
   const hand = getCardDefinition(handCardId);
   const printedBase = base.topCard ? getCardDefinition(base.topCard.cardId) : undefined;
@@ -679,7 +681,10 @@ export function getDigivolveCostOptions(
   for (const route of projectedRoutes ?? []) {
     if (route.permanentId !== base.permanentId) continue;
     if (route.alternateRequirementIndex === -1) {
-      if (!options.some((option) => option.alternateRequirementIndex === undefined)) {
+      if (
+        rulesPolicy === GameRulesPolicy.SEALED.value &&
+        !options.some((option) => option.alternateRequirementIndex === undefined)
+      ) {
         options.push({ type: "normal", label: `Lv.${baseLevel}`, cost: route.projectedCost });
       }
       continue;

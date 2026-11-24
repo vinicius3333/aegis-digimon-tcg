@@ -319,3 +319,21 @@
 .game-board .game-battle-row[data-field-layout="organized"] > .game-battle-lane > :last-child {
   margin-right: auto;
 }
+
+.sealed-breeding-actions {
+  position: relative;
+  z-index: 21;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  gap: 4px;
+  width: 18rem;
+  max-width: 100%;
+  flex-shrink: 0;
+}
+
+.sealed-breeding-actions > button {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

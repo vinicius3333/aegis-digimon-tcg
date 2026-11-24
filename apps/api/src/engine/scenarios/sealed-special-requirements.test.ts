@@ -100,3 +100,10 @@ it("executes a declared cross-color DNA evolution with the same material legalit
   expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual(["BT1-082", "BT1-044"]);
   expect(s.state.memory).toBe(before);
 });
+
+it("preserves exact and maximum printed color counts on named alternate routes", () => {
+  expect(matchingAlternateDigivolutionRequirement("BT16-102", "BT21-036", { sealed: true })?.cost).toBe(5);
+  expect(matchingAlternateDigivolutionRequirement("BT16-102", "BT16-102", { sealed: true })).toBeUndefined();
+  expect(matchingAlternateDigivolutionRequirement("BT25-084", "BT11-057", { sealed: true })?.cost).toBe(2);
+  expect(matchingAlternateDigivolutionRequirement("BT25-084", "BT25-084", { sealed: true })).toBeUndefined();
+});

@@ -143,6 +143,7 @@ export function createEvaluationPolicy(options: EvaluationPolicyOptions = {}): B
             breeding.cardId !== undefined &&
             (digivolveCost(card.cardId, breeding.cardId, {
               inBreeding: true,
+              rulesPolicy: view.rulesPolicy,
               controlledUnits: view.board,
             }) ?? Number.POSITIVE_INFINITY) <= view.maxAffordable,
         );
