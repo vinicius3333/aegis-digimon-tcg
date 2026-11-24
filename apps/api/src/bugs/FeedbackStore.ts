@@ -18,9 +18,9 @@ import { notify } from "#api/notifications/NotificationStore";
 import type { ReplayRecord } from "#api/replays/inputs/types";
 import type { FiledBugReport, NewBugReport } from "#api/bugs/GitHubIssueTracker";
 import { replayRetentionMs } from "#api/bugs/replayRetentionMs";
-import { getBugVoteOutcome } from "#api/bugs/getBugVoteOutcome";
-import { settleBugVotes } from "#api/bugs/settleBugVotes";
-import type { BugVerdict } from "@aegis/shared/feedback/BugVerdict";
+import { getForumOutcome } from "#api/bugs/getForumOutcome";
+import { settleForumVotes } from "#api/bugs/settleForumVotes";
+import type { ForumVerdict } from "@aegis/shared/feedback/ForumVerdict";
 
 const PAGE_SIZE = 50;
 const OWN_PAGE_SIZE = 20;
@@ -93,7 +93,7 @@ type FeedbackRow = {
   closed_at: string | null;
   reopened_at: string | null;
   confirmed_bug: boolean;
-  vote_payout: BugVerdict | null;
+  vote_payout: ForumVerdict | null;
 };
 
 const FEEDBACK_COLUMNS =
@@ -241,10 +241,10 @@ export class FeedbackStore {
         );
       }
 
-      await settleBugVotes(client, {
+      await settleForumVotes(client, {
         feedbackId: id,
         previous: current.vote_payout,
-        next: getBugVoteOutcome({ kind: current.report.kind, status: update.status, confirmedBug }),
+        next: getForumOutcome({ kind: current.report.kind, status: update.status, confirmedBug }),
       });
 
       const statusChanged = current.status !== update.status;
@@ -315,7 +315,7 @@ export class FeedbackStore {
         "UPDATE feedback_reports SET status=$3, closed_at=NULL, reopened_at=$2, revision=revision+1 WHERE id=$1",
         [id, at, FeedbackStatus.TRIAGED.value],
       );
-      await settleBugVotes(client, { feedbackId: id, previous: current.vote_payout, next: null });
+      await settleForumVotes(client, { feedbackId: id, previous: current.vote_payout, next: null });
       await client.query(
         `INSERT INTO feedback_status_events (feedback_id, actor_account_id, from_status, to_status, by_reporter, comment, created_at)
          VALUES ($1,$2,$3,$6,true,$4,$5)`,

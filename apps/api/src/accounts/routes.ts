@@ -69,8 +69,11 @@ import { EliminationStore } from "../tournaments/elimination/index.js";
 import { ArbitrationService, installArbitrationRoutes } from "../tournaments/arbitration/index.js";
 import { FeedbackStore } from "../bugs/FeedbackStore.js";
 import { installBugReportRoutes } from "#api/bugs/routes";
-import { BugForumStore } from "#api/bugs/BugForumStore";
-import { installBugForumRoutes } from "#api/bugs/installBugForumRoutes";
+import { ForumStore } from "#api/bugs/ForumStore";
+import { installForumRoutes } from "#api/bugs/installForumRoutes";
+import { createForumReplayCache } from "#api/bugs/createForumReplayCache";
+import { renderForumReplay } from "#api/bugs/renderForumReplay";
+import { ForumBoard } from "@aegis/shared/feedback/ForumBoard";
 import { ReplayCapturer } from "#api/bugs/replayCapture";
 import type { IssueTracker } from "#api/bugs/GitHubIssueTracker";
 import { NotificationStore } from "../notifications/NotificationStore.js";
@@ -186,14 +189,27 @@ export function installAccountRoutes(
   });
   // Feedback is stored locally, with an optional copy in GitHub. A report filed from a match also
   // keeps a private copy of the match's input record (see bugs/replayCapture).
+  const feedback = new FeedbackStore(store);
   installBugReportRoutes({
     app,
-    store: new FeedbackStore(store),
+    store: feedback,
     tracker: bugTracker,
     session: sessionFromRequest,
     replayCapture,
   });
-  installBugForumRoutes({ app, store: new BugForumStore(store), session: sessionFromRequest });
+  installForumRoutes({
+    app,
+    board: ForumBoard.BUGS.value,
+    store: new ForumStore(store, ForumBoard.BUGS.value),
+    session: sessionFromRequest,
+    replays: { load: (id) => feedback.replay(id), render: createForumReplayCache(renderForumReplay) },
+  });
+  installForumRoutes({
+    app,
+    board: ForumBoard.IDEAS.value,
+    store: new ForumStore(store, ForumBoard.IDEAS.value),
+    session: sessionFromRequest,
+  });
   // The signed-in player's inbox; feedback triage is its first producer. See src/notifications.
   installNotificationRoutes({ app, store: new NotificationStore(store), session: sessionFromRequest });
   installPlaytestRoutes({ app, store: new PlaytestStore(store), session: sessionFromRequest });
