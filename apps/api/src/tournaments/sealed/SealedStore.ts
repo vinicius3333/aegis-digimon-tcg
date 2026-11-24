@@ -1,3 +1,4 @@
+import { lockSealedTournament } from "#api/tournaments/sealed/lockSealedTournament";
 import { readSealedMatchPreparation } from "#api/tournaments/sealed/readSealedMatchPreparation";
 import { createHash } from "node:crypto";
 import type { PoolClient } from "pg";
@@ -96,8 +97,8 @@ export class SealedStore {
     const client = await this.accounts.pool.connect();
     try {
       await client.query("BEGIN");
-      await client.query("SELECT id FROM tournaments WHERE id=$1 FOR UPDATE", [input.tournamentId]);
-      const result = await operation(client);
+      const configuration = await lockSealedTournament({ client, tournamentId: input.tournamentId });
+      const result = configuration ? await operation(client) : { ok: false as const, reason: "sealed_pool_not_found" };
       await client.query(result.ok ? "COMMIT" : "ROLLBACK");
       return result;
     } catch (error) {

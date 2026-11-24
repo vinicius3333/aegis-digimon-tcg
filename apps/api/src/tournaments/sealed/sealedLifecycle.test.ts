@@ -241,6 +241,8 @@ it("locks the event for sealed allocation but not constructed allocation", async
       await locked.query("BEGIN");
       await locked.query("SELECT id FROM tournaments WHERE id=$1 FOR UPDATE", [event.id]);
       expect((await authorize()).ok).toBe(true);
+      const unrelated = { tournamentId: event.id, accountId: players[0]!.id, now, window: "initial", revision: 0 };
+      expect(await new SealedStore(store).unready(unrelated)).toMatchObject({ reason: "sealed_pool_not_found" });
       await locked.query("ROLLBACK");
     }
   } finally {
