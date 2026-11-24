@@ -16,14 +16,14 @@ const api = `http://127.0.0.1:${process.env.AEGIS_E2E_EDGE_PORT ?? 2569}`;
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: Date.now() - 1000 });
 });
-test.beforeAll(async () => {
+test.beforeEach(async () => {
   await mkdir(evidence, { recursive: true });
   backend = await startPrivateSealedBrowserServer({
     connectionString: process.env.SEALED_TEST_DATABASE_URL,
     port: Number(process.env.AEGIS_E2E_EDGE_PORT ?? 2569),
   });
 });
-test.afterAll(async () => {
+test.afterEach(async () => {
   await backend?.close();
 });
 type SwipeParams = { page: Page; x: number; from: number; to: number };
