@@ -341,8 +341,6 @@ const interfaceMessages = {
   "replay.start": "回到开头",
   "replay.end": "跳到结尾",
   "replay.speed": "播放速度",
-  "replay.move": "移动播放控件",
-  "replay.moveHint": "拖动以移动。使用方向键移动，按住 Shift 加大移动幅度，按 Home 重置位置。",
   "replay.position": "回放进度",
   "replay.turn": "回合",
   "replay.action": "第 {current} 步，共 {total} 步",

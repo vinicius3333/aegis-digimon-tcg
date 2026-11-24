@@ -340,8 +340,6 @@ const interfaceMessages = {
   "replay.start": "跳到開頭",
   "replay.end": "跳到結尾",
   "replay.speed": "播放速度",
-  "replay.move": "移動播放控制項",
-  "replay.moveHint": "拖曳以移動。使用方向鍵移動，按住 Shift 加大移動幅度，按 Home 重設位置。",
   "replay.position": "重播位置",
   "replay.turn": "回合",
   "replay.action": "第 {current} 個操作（共 {total} 個）",

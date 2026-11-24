@@ -354,8 +354,6 @@ const interfaceMessages = {
   "replay.start": "最初へ",
   "replay.end": "最後へ",
   "replay.speed": "再生速度",
-  "replay.move": "再生コントロールを移動",
-  "replay.moveHint": "ドラッグして移動。矢印キーで移動、Shiftで移動幅を拡大、Homeで位置をリセットします。",
   "replay.position": "再生位置",
   "replay.turn": "ターン",
   "replay.action": "アクション {current}/{total}",

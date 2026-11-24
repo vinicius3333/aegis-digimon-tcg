@@ -354,8 +354,6 @@ const interfaceMessages = {
   "replay.start": "시작으로 이동",
   "replay.end": "끝으로 이동",
   "replay.speed": "재생 속도",
-  "replay.move": "재생 컨트롤 이동",
-  "replay.moveHint": "드래그하여 이동하세요. 방향키로 이동하고 Shift로 더 크게 이동하며 Home으로 위치를 초기화합니다.",
   "replay.position": "리플레이 위치",
   "replay.turn": "턴",
   "replay.action": "행동 {current}/{total}",

@@ -356,9 +356,6 @@ const interfaceMessages = {
   "replay.start": "Zum Anfang",
   "replay.end": "Zum Ende",
   "replay.speed": "Wiedergabegeschwindigkeit",
-  "replay.move": "Wiedergabesteuerung verschieben",
-  "replay.moveHint":
-    "Zum Verschieben ziehen. Mit den Pfeiltasten bewegen, mit Umschalt in größeren Schritten und mit Pos1 zurücksetzen.",
   "replay.position": "Replay-Position",
   "replay.turn": "Zug",
   "replay.action": "Aktion {current} von {total}",

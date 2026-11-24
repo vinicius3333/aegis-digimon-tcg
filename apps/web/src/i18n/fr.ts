@@ -355,9 +355,6 @@ const interfaceMessages = {
   "replay.start": "Aller au début",
   "replay.end": "Aller à la fin",
   "replay.speed": "Vitesse de lecture",
-  "replay.move": "Déplacer les commandes de lecture",
-  "replay.moveHint":
-    "Faites glisser pour déplacer. Utilisez les flèches, Maj pour de plus grands déplacements et Début pour réinitialiser.",
   "replay.position": "Position dans le replay",
   "replay.turn": "Tour",
   "replay.action": "Action {current} sur {total}",
