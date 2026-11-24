@@ -1,3 +1,4 @@
+import { ideaForumZhCN } from "@/i18n/ideaForum.zh-CN";
 import { bugForumZhCN } from "@/i18n/bugForum.zh-CN";
 import { deckMatchupZhCN } from "@/i18n/deckMatchup.zh-CN";
 import { deckOddsZhCN } from "@/i18n/deckOdds.zh-CN";
@@ -2928,6 +2929,7 @@ const interfaceMessages = {
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
   ...bugForumZhCN,
+  ...ideaForumZhCN,
 } satisfies Record<keyof typeof en, string>;
 
 export const zhCN: Record<keyof typeof en, string> = getChineseLearnDictionary({

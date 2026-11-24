@@ -1,3 +1,4 @@
+import { ideaForumZhTW } from "@/i18n/ideaForum.zh-TW";
 import { bugForumZhTW } from "@/i18n/bugForum.zh-TW";
 import { deckMatchupZhTW } from "@/i18n/deckMatchup.zh-TW";
 import { deckOddsZhTW } from "@/i18n/deckOdds.zh-TW";
@@ -2933,6 +2934,7 @@ const interfaceMessages = {
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
   ...bugForumZhTW,
+  ...ideaForumZhTW,
 } satisfies Record<keyof typeof en, string>;
 
 export const zhTW: Record<keyof typeof en, string> = {

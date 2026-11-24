@@ -1,102 +1,162 @@
-import type { BugForumDetail } from "@aegis/shared/feedback/BugForum";
-import { BUG_VERDICTS, type BugVerdict } from "@aegis/shared/feedback/BugVerdict";
-import { MAX_BUG_VOTE_REASON, MIN_BUG_VOTE_REASON } from "@aegis/shared/feedback/limits";
+import type { MatchReplay } from "@aegis/shared";
+import type { ForumDetail } from "@aegis/shared/feedback/Forum";
+import { FORUM_VERDICTS, type ForumVerdict } from "@aegis/shared/feedback/ForumVerdict";
+import { MAX_FORUM_VOTE_REASON, MIN_FORUM_VOTE_REASON } from "@aegis/shared/feedback/limits";
 import { isClosedFeedbackStatus } from "@aegis/shared/feedback/isClosedFeedbackStatus";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { Icons } from "@/design/icons";
 import { Alert, Badge, Button } from "@/design/primitives";
 import { useTranslation } from "@/i18n/useTranslation";
-import { BugForumConversation } from "@/bugs/BugForumConversation";
-import { BugForumResult } from "@/bugs/BugForumResult";
-import { bugForumApi } from "@/bugs/bugForumClient";
+import { ForumConversation } from "@/bugs/ForumConversation";
+import { ForumResult } from "@/bugs/ForumResult";
+import { ForumUpvoteButton } from "@/bugs/ForumUpvoteButton";
+import { ForumBoard } from "@aegis/shared/feedback/ForumBoard";
 import { BugReportApiError } from "@/bugs/client";
+import { forumApi, type ForumApi } from "@/bugs/forumClient";
 import { FEEDBACK_STATUS_TONE } from "@/bugs/feedbackStatus";
-import { getBugForumError } from "@/bugs/getBugForumError";
-import "@/bugs/bugForum.css";
+import { getForumCopyPrefix } from "@/bugs/getForumCopyPrefix";
+import { getForumError } from "@/bugs/getForumError";
+import { readReplay } from "@/replays/files";
+import { ReplayViewer } from "@/replays/ReplayViewer";
+import "@/bugs/forum.css";
 
-type BugForumThreadParams = { bugId: number; onBack: () => void };
+type ForumThreadParams = { board: ForumBoard; reportId: number; onBack: () => void };
 
-export function BugForumThread({ bugId, onBack }: BugForumThreadParams) {
+export function ForumThread({ board, reportId, onBack }: ForumThreadParams) {
   const { t, locale } = useTranslation();
-  const [detail, setDetail] = useState<BugForumDetail>();
+  const copy = getForumCopyPrefix(board);
+  const api = useMemo(() => forumApi(board), [board]);
+  const [detail, setDetail] = useState<ForumDetail>();
   const [failed, setFailed] = useState<"missing" | "error">();
+  const [replay, setReplay] = useState<MatchReplay>();
 
   useEffect(() => {
     const controller = new AbortController();
-    void bugForumApi
-      .read(bugId, controller.signal)
+    void api
+      .read(reportId, controller.signal)
       .then(setDetail)
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
         setFailed(error instanceof BugReportApiError && error.status === 404 ? "missing" : "error");
       });
     return () => controller.abort();
-  }, [bugId]);
+  }, [api, reportId]);
+
+  if (replay) return <ReplayViewer replay={replay} onClose={() => setReplay(undefined)} />;
 
   const back = (
-    <Button variant="ghost" size="sm" className="bug-thread__back" icon={Icons.ArrowLeft} onClick={onBack}>
-      {t("bugForum.back")}
+    <Button variant="ghost" size="sm" className="forum-thread__back" icon={Icons.ArrowLeft} onClick={onBack}>
+      {t(`${copy}.back`)}
     </Button>
   );
 
   if (failed) {
     return (
-      <div className="bug-thread">
+      <div className="forum-thread">
         {back}
-        <Alert tone="warning" title={t(failed === "missing" ? "bugForum.missing" : "bugForum.failed")} />
+        <Alert tone="warning" title={t(failed === "missing" ? `${copy}.missing` : "bugForum.failed")} />
       </div>
     );
   }
   if (!detail) return <p role="status">{t("common.loading")}</p>;
 
   return (
-    <article className="bug-thread">
+    <article className="forum-thread">
       {back}
-      <div className="bug-thread__layout">
-        <section className="bug-thread__report" aria-labelledby="bug-thread-title">
-          <p className="bug-thread__meta">
-            <span className="bug-forum-row__meta">
+      <div className="forum-thread__layout">
+        <section className="forum-thread__report" aria-labelledby="forum-thread-title">
+          <p className="forum-thread__meta">
+            <span className="forum-row__meta">
               #{detail.id} · {new Date(detail.createdAt).toLocaleDateString(locale, { dateStyle: "medium" })}
             </span>
             <Badge tone={FEEDBACK_STATUS_TONE[detail.status]}>{t(`feedback.status.${detail.status}`)}</Badge>
           </p>
-          <h2 id="bug-thread-title">{detail.summary}</h2>
-          <p className="bug-thread__description">{detail.description}</p>
+          <h2 id="forum-thread-title">{detail.summary}</h2>
+          <p className="forum-thread__description">{detail.description}</p>
           {detail.cardIds.length ? (
-            <ul className="bug-forum-cards" aria-label={t("bugReport.cardsLabel")}>
+            <ul className="forum-cards" aria-label={t("bugReport.cardsLabel")}>
               {detail.cardIds.map((cardId) => (
                 <li key={cardId}>{cardId}</li>
               ))}
             </ul>
           ) : null}
+          {detail.hasReplay ? <ForumReplayButton api={api} reportId={detail.id} onOpen={setReplay} /> : null}
         </section>
-        <aside className="bug-thread__aside">
-          {detail.tally ? (
-            <BugForumResult detail={detail} tally={detail.tally} />
+        <aside className="forum-thread__aside">
+          {board === ForumBoard.IDEAS.value ? (
+            <section className="forum-vote" aria-labelledby="forum-upvote-title">
+              <header className="forum-vote__header">
+                <h3 id="forum-upvote-title">{t("ideaForum.upvoteTitle")}</h3>
+                <p>{t("ideaForum.upvoteHint")}</p>
+              </header>
+              <ForumUpvoteButton api={api} item={detail} size="lg" onChange={setDetail} />
+            </section>
+          ) : detail.tally ? (
+            <ForumResult api={api} board={board} detail={detail} tally={detail.tally} onChange={setDetail} />
           ) : (
-            <BugForumVotePanel detail={detail} onChange={setDetail} />
+            <ForumVotePanel api={api} detail={detail} onChange={setDetail} />
           )}
         </aside>
-        <div className="bug-thread__discussion">
-          <BugForumConversation detail={detail} onChange={setDetail} />
+        <div className="forum-thread__discussion">
+          <ForumConversation
+            api={api}
+            detail={detail}
+            placeholder={t(`${copy}.commentPlaceholder`)}
+            onChange={setDetail}
+          />
         </div>
       </div>
     </article>
   );
 }
 
-const VERDICT_ICON = { bug: Icons.Bug, not_bug: Icons.CircleCheck } as const;
+function ForumReplayButton({
+  api,
+  reportId,
+  onOpen,
+}: {
+  api: ForumApi;
+  reportId: number;
+  onOpen: (replay: MatchReplay) => void;
+}) {
+  const { t } = useTranslation();
+  const [loading, setLoading] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const open = async () => {
+    setLoading(true);
+    setFailed(false);
+    try {
+      onOpen(await readReplay(await api.replay(reportId)));
+    } catch {
+      setFailed(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <div className="forum-replay">
+      <Button variant="secondary" size="sm" icon={Icons.PlayCircle} disabled={loading} onClick={() => void open()}>
+        {loading ? t("bugForum.loadingReplay") : t("bugForum.watchReplay")}
+      </Button>
+      {failed ? <p className="forum-thread-muted">{t("bugForum.replayUnavailable")}</p> : null}
+    </div>
+  );
+}
 
-function BugForumVotePanel({
+const VERDICT_ICON = { yes: Icons.Bug, no: Icons.CircleCheck } as const;
+
+function ForumVotePanel({
+  api,
   detail,
   onChange,
 }: {
-  detail: BugForumDetail;
-  onChange: (detail: BugForumDetail) => void;
+  api: ForumApi;
+  detail: ForumDetail;
+  onChange: (detail: ForumDetail) => void;
 }) {
   const { t } = useTranslation();
   const fieldId = useId();
-  const [verdict, setVerdict] = useState<BugVerdict | undefined>(detail.myVote?.verdict);
+  const [verdict, setVerdict] = useState<ForumVerdict | undefined>(detail.myVote?.verdict);
   const [reason, setReason] = useState(detail.myVote?.reason ?? "");
   const [saving, setSaving] = useState(false);
   const [failure, setFailure] = useState<string>();
@@ -104,17 +164,17 @@ function BugForumVotePanel({
   if (isClosedFeedbackStatus(detail.status)) return null;
   if (detail.ownReport) {
     return (
-      <section className="bug-vote" data-locked>
-        <h3>{t("bugForum.voteTitle")}</h3>
-        <p className="bug-thread-muted">{t("bugForum.ownReport")}</p>
+      <section className="forum-vote" data-locked>
+        <h3>{t(`bugForum.voteTitle`)}</h3>
+        <p className="forum-thread-muted">{t(`bugForum.ownReport`)}</p>
       </section>
     );
   }
 
-  const ready = verdict !== undefined && reason.trim().length >= MIN_BUG_VOTE_REASON;
+  const ready = verdict !== undefined && reason.trim().length >= MIN_FORUM_VOTE_REASON;
   const unchanged = detail.myVote?.verdict === verdict && detail.myVote?.reason === reason.trim();
 
-  const save = async (work: () => Promise<BugForumDetail>) => {
+  const save = async (work: () => Promise<ForumDetail>) => {
     setSaving(true);
     setFailure(undefined);
     try {
@@ -123,22 +183,22 @@ function BugForumVotePanel({
       setVerdict(next.myVote?.verdict);
       setReason(next.myVote?.reason ?? "");
     } catch (error) {
-      setFailure(getBugForumError(error, t));
+      setFailure(getForumError(error, t));
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <section className="bug-vote" aria-labelledby={`${fieldId}-title`}>
-      <header className="bug-vote__header">
-        <h3 id={`${fieldId}-title`}>{t("bugForum.voteTitle")}</h3>
+    <section className="forum-vote" aria-labelledby={`${fieldId}-title`}>
+      <header className="forum-vote__header">
+        <h3 id={`${fieldId}-title`}>{t(`bugForum.voteTitle`)}</h3>
         <p>
           <Icons.Lock size={13} aria-hidden="true" /> {t("bugForum.voteHidden")}
         </p>
       </header>
       {detail.myVote ? (
-        <p className="bug-vote__saved" role="status">
+        <p className="forum-vote__saved" role="status">
           <Icons.CircleCheck size={16} aria-hidden="true" />
           {t(`bugForum.youVoted.${detail.myVote.verdict}`)}
         </p>
@@ -146,11 +206,11 @@ function BugForumVotePanel({
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          if (ready && !saving && verdict) void save(() => bugForumApi.vote(detail.id, { verdict, reason }));
+          if (ready && !saving && verdict) void save(() => api.vote(detail.id, { verdict, reason }));
         }}
       >
-        <div className="bug-vote__options" role="radiogroup" aria-labelledby={`${fieldId}-title`}>
-          {BUG_VERDICTS.map((option) => {
+        <div className="forum-vote__options" role="radiogroup" aria-labelledby={`${fieldId}-title`}>
+          {FORUM_VERDICTS.map((option) => {
             const Icon = VERDICT_ICON[option];
             return (
               <button
@@ -158,11 +218,11 @@ function BugForumVotePanel({
                 type="button"
                 role="radio"
                 aria-checked={verdict === option}
-                className="bug-vote__option"
+                className="forum-vote__option"
                 data-verdict={option}
                 onClick={() => setVerdict(option)}
               >
-                <span className="bug-vote__icon" aria-hidden="true">
+                <span className="forum-vote__icon" aria-hidden="true">
                   <Icon size={18} />
                 </span>
                 <span>
@@ -178,22 +238,22 @@ function BugForumVotePanel({
           id={fieldId}
           rows={3}
           value={reason}
-          maxLength={MAX_BUG_VOTE_REASON}
-          placeholder={t("bugForum.reasonPlaceholder")}
+          maxLength={MAX_FORUM_VOTE_REASON}
+          placeholder={t(`bugForum.reasonPlaceholder`)}
           aria-describedby={`${fieldId}-hint`}
           onChange={(event) => setReason(event.target.value)}
         />
-        <div className="bug-compose__footer">
+        <div className="forum-compose__footer">
           <small id={`${fieldId}-hint`}>
-            {t("bugForum.reasonHint", { count: MIN_BUG_VOTE_REASON })} · {reason.length} / {MAX_BUG_VOTE_REASON}
+            {t("bugForum.reasonHint", { count: MIN_FORUM_VOTE_REASON })} · {reason.length} / {MAX_FORUM_VOTE_REASON}
           </small>
-          <div className="bug-vote__actions">
+          <div className="forum-vote__actions">
             {detail.myVote ? (
               <Button
                 variant="ghost"
                 size="sm"
                 disabled={saving}
-                onClick={() => void save(() => bugForumApi.retract(detail.id))}
+                onClick={() => void save(() => api.retract(detail.id))}
               >
                 {t("bugForum.removeVote")}
               </Button>

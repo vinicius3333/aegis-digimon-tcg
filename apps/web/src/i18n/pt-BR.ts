@@ -1,3 +1,4 @@
+import { ideaForumPtBR } from "@/i18n/ideaForum.pt-BR";
 import { bugForumPtBR } from "@/i18n/bugForum.pt-BR";
 import { deckMatchupPtBR } from "@/i18n/deckMatchup.pt-BR";
 import { deckOddsPtBR } from "@/i18n/deckOdds.pt-BR";
@@ -2287,4 +2288,5 @@ export const ptBR: Record<keyof typeof en, string> = {
   ...learnDrillsPtBR,
   ...newDrillsPtBR,
   ...bugForumPtBR,
+  ...ideaForumPtBR,
 };

@@ -1,3 +1,4 @@
+import { ideaForumEs } from "@/i18n/ideaForum.es";
 import { bugForumEs } from "@/i18n/bugForum.es";
 import { deckMatchupEs } from "@/i18n/deckMatchup.es";
 import { deckOddsEs } from "@/i18n/deckOdds.es";
@@ -2490,4 +2491,5 @@ export const es: Record<keyof typeof en, string> = {
   ...learnDrillsEs,
   ...battleLessonsEs,
   ...bugForumEs,
+  ...ideaForumEs,
 };

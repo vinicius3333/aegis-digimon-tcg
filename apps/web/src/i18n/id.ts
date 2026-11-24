@@ -1,3 +1,4 @@
+import { ideaForumId } from "@/i18n/ideaForum.id";
 import { bugForumId } from "@/i18n/bugForum.id";
 import { deckMatchupId } from "@/i18n/deckMatchup.id";
 import { deckOddsId } from "@/i18n/deckOdds.id";
@@ -3065,6 +3066,7 @@ const interfaceMessages = {
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
   ...bugForumId,
+  ...ideaForumId,
 } satisfies Record<keyof typeof en, string>;
 
 export const id: Record<keyof typeof en, string> = {

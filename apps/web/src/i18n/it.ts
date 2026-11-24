@@ -1,3 +1,4 @@
+import { ideaForumIt } from "@/i18n/ideaForum.it";
 import { bugForumIt } from "@/i18n/bugForum.it";
 import { deckMatchupIt } from "@/i18n/deckMatchup.it";
 import { deckOddsIt } from "@/i18n/deckOdds.it";
@@ -2790,6 +2791,7 @@ const interfaceMessages = {
   ...staffRolesIt,
   ...achievementsIt,
   ...bugForumIt,
+  ...ideaForumIt,
 } satisfies Record<Exclude<keyof typeof en, `releases.${string}`>, string>;
 
 export const it: Record<keyof typeof en, string> = {

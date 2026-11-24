@@ -51,7 +51,7 @@ type Handler = (url: string, init?: RequestInit) => Reply;
 const REPORTED_DECKS = "/admin/community/reports";
 const PLAYTEST = "/admin/playtest/";
 const REPORTED_TOURNAMENTS = "/account/admin/tournament-reports";
-const BUG_FORUM = "/feedback/bugs/";
+const BUG_FORUM = /\/feedback\/(bugs|ideas)\//;
 const investigation = {
   id: 42,
   summary: "",
@@ -63,8 +63,11 @@ const investigation = {
   outcome: null,
   myVote: null,
   ownReport: false,
+  hasReplay: false,
+  upvotes: null,
   comments: [],
   tally: null,
+  canModerate: true,
 };
 
 function mockApi(handler: Handler, reportedDecks: unknown[] = []) {
@@ -76,7 +79,7 @@ function mockApi(handler: Handler, reportedDecks: unknown[] = []) {
         ? [200, { reports: [] }]
         : url.includes(PLAYTEST)
           ? [200, url.endsWith("/members") ? { members: [] } : { open: [], past: [] }]
-          : url.includes(BUG_FORUM)
+          : BUG_FORUM.test(url)
             ? [200, investigation]
             : handler(url, init);
     return new Response(JSON.stringify(body), { status });
@@ -108,7 +111,7 @@ function show(
 const urls = (fetchMock: ReturnType<typeof mockApi>) =>
   fetchMock.mock.calls
     .map(([input]) => String(input))
-    .filter((url) => !url.endsWith(REPORTED_DECKS) && !url.includes(PLAYTEST) && !url.includes(BUG_FORUM));
+    .filter((url) => !url.endsWith(REPORTED_DECKS) && !url.includes(PLAYTEST) && !BUG_FORUM.test(url));
 
 afterEach(() => {
   cleanup();

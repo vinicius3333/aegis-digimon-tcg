@@ -1,9 +1,10 @@
-import type { BugForumSummary } from "@aegis/shared/feedback/BugForum";
+import type { ForumSummary } from "@aegis/shared/feedback/Forum";
+import { ForumBoard } from "@aegis/shared/feedback/ForumBoard";
 import { useEffect, useState } from "react";
 import { Button } from "@/design/primitives";
 import { Icons } from "@/design/icons";
 import { AegisCoinBalance } from "@/bugs/AegisCoinBalance";
-import { bugForumApi } from "@/bugs/bugForumClient";
+import { forumApi } from "@/bugs/forumClient";
 import { HomeCard } from "@/home/HomeCard";
 import { useTranslation } from "@/i18n/useTranslation";
 
@@ -15,11 +16,11 @@ type HomeBugForumCardParams = {
 
 export function HomeBugForumCard({ signedIn, onOpen, onSignIn }: HomeBugForumCardParams) {
   const { t } = useTranslation();
-  const [summary, setSummary] = useState<BugForumSummary>();
+  const [summary, setSummary] = useState<ForumSummary>();
 
   useEffect(() => {
     const controller = new AbortController();
-    void bugForumApi
+    void forumApi(ForumBoard.BUGS.value)
       .summary(controller.signal)
       .then(setSummary)
       .catch(() => undefined);
@@ -29,7 +30,7 @@ export function HomeBugForumCard({ signedIn, onOpen, onSignIn }: HomeBugForumCar
   const awaiting = summary?.awaitingVote ?? 0;
   return (
     <HomeCard
-      className="home-bug-forum"
+      className="home-forum"
       title={
         <>
           <Icons.Bug size={16} aria-hidden="true" />

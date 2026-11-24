@@ -1,6 +1,6 @@
 import { HelpTip } from "@/design/HelpTip";
 import { useTranslation } from "@/i18n/useTranslation";
-import "@/bugs/bugForum.css";
+import "@/bugs/forum.css";
 
 const COIN_SRC = "/branding/aegis-coin.png";
 

@@ -24,7 +24,8 @@ import {
 } from "@/bugs/adminClient";
 import { FEEDBACK_STATUS_TONE } from "@/bugs/feedbackStatus";
 import { AccountRolesPanel } from "@/account/roles/AccountRolesPanel";
-import { BugForumDiscussion } from "@/bugs/BugForumDiscussion";
+import { ForumDiscussion } from "@/bugs/ForumDiscussion";
+import { ForumBoard } from "@aegis/shared/feedback/ForumBoard";
 import { PlaytestAdminPanel } from "@/bugs/PlaytestAdminPanel";
 import { ReportedDecksPanel } from "@/bugs/ReportedDecksPanel";
 import { ReportedTournamentsPanel } from "@/bugs/ReportedTournamentsPanel";
@@ -450,7 +451,13 @@ function FeedbackDetailPanel({
         onConflict={setDetail}
       />
 
-      {report.kind === "bug" ? <BugForumDiscussion key={detail.id} bugId={detail.id} /> : null}
+      {report.kind === "bug" || report.kind === "improvement" ? (
+        <ForumDiscussion
+          key={detail.id}
+          board={report.kind === "bug" ? ForumBoard.BUGS.value : ForumBoard.IDEAS.value}
+          reportId={detail.id}
+        />
+      ) : null}
 
       {report.kind === "official_tournament" ? null : (
         <RoadmapPublishPanel feedbackId={detail.id} summary={report.summary} description={report.description} />

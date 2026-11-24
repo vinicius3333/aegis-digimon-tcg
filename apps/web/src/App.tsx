@@ -60,6 +60,7 @@ import { communityApi } from "./community/client";
 import { SeriesDeckDialog } from "@/game/overlay/match/SeriesDeckDialog";
 import { communityDeckListing } from "./community/communityDeckListing";
 import { CommunitySection } from "@/community/CommunitySection";
+import { ForumBoard } from "@aegis/shared/feedback/ForumBoard";
 import { getCommunitySectionRoute } from "@/community/getCommunitySectionRoute";
 import { usePreferencesSync } from "./account/usePreferencesSync";
 import { setDeckFavorite } from "@/screens/favoriteDecks/setDeckFavorite";
@@ -106,9 +107,9 @@ const MyFeedbackPanel = createLazyComponent({
   load: () => import("./bugs/MyFeedbackPanel"),
   pick: (module) => module.MyFeedbackPanel,
 });
-const BugForumScreen = createLazyComponent({
-  load: () => import("./bugs/BugForumScreen"),
-  pick: (module) => module.BugForumScreen,
+const ForumScreen = createLazyComponent({
+  load: () => import("./bugs/ForumScreen"),
+  pick: (module) => module.ForumScreen,
 });
 const NotificationsScreen = createLazyComponent({
   load: () => import("./notifications/NotificationsScreen"),
@@ -262,6 +263,7 @@ const NAV_SCREENS: Screen[] = [
   "feedback",
   "myFeedback",
   "bugForum",
+  "ideaForum",
   "notifications",
   "privacy",
 ];
@@ -1304,14 +1306,15 @@ function LoadedAegisClient({
                 />
               )}
 
-              {screen === "bugForum" && (
-                <BugForumScreen
-                  key={account?.id ?? "guest"}
-                  bugId={route.bugId}
+              {(screen === "bugForum" || screen === "ideaForum") && (
+                <ForumScreen
+                  key={`${screen}-${account?.id ?? "guest"}`}
+                  board={screen === "bugForum" ? ForumBoard.BUGS.value : ForumBoard.IDEAS.value}
+                  reportId={route.forumReportId}
                   signedIn={!!account}
                   metaAvailable={rankedConfig?.enabled === true}
                   onSignIn={() => navigateScreen("login")}
-                  onOpen={(bugId) => navigate({ screen: "bugForum", bugId })}
+                  onOpen={(forumReportId) => navigate({ screen, forumReportId })}
                   onSectionChange={(section) => navigate(getCommunitySectionRoute(section))}
                 />
               )}

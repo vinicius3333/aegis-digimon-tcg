@@ -62,6 +62,7 @@ export type Screen =
   | "privacy"
   | "myFeedback"
   | "bugForum"
+  | "ideaForum"
   | "notifications"
   | "game";
 
@@ -583,6 +584,7 @@ const SCREEN_SECTIONS: Partial<Record<Screen, Screen>> = {
   rules: "lobby",
   roadmap: "community",
   bugForum: "community",
+  ideaForum: "community",
   booster: "collection",
 };
 

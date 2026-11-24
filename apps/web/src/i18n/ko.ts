@@ -1,3 +1,4 @@
+import { ideaForumKo } from "@/i18n/ideaForum.ko";
 import { bugForumKo } from "@/i18n/bugForum.ko";
 import { deckMatchupKo } from "@/i18n/deckMatchup.ko";
 import { deckOddsKo } from "@/i18n/deckOdds.ko";
@@ -3013,6 +3014,7 @@ const interfaceMessages = {
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
   ...bugForumKo,
+  ...ideaForumKo,
 } satisfies Record<keyof typeof en, string>;
 
 export const ko: Record<keyof typeof en, string> = {

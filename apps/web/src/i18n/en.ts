@@ -1,3 +1,4 @@
+import { ideaForumEn } from "@/i18n/ideaForum.en";
 import { bugForumEn } from "@/i18n/bugForum.en";
 import { deckMatchupEn } from "@/i18n/deckMatchup.en";
 import { deckOddsEn } from "@/i18n/deckOdds.en";
@@ -2274,4 +2275,5 @@ export const en = {
   ...learnDrillsEn,
   ...newDrillsEn,
   ...bugForumEn,
+  ...ideaForumEn,
 } as const;
