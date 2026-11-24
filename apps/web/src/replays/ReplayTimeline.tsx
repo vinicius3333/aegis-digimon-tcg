@@ -212,6 +212,7 @@ export function ReplayTimeline({ replay, logLines, index: committedIndex, annota
     <div
       ref={root}
       className="replay-timeline"
+      data-scrubbing={scrubIndex === undefined ? undefined : true}
       onKeyDown={(event) => {
         if (event.key === "Escape" && selected) {
           event.preventDefault();
@@ -292,6 +293,7 @@ export function ReplayTimeline({ replay, logLines, index: committedIndex, annota
             style={{ width: `${(index / last) * 100}%` }}
             aria-hidden="true"
           />
+          <span className="replay-timeline__thumb" style={{ left: `${(index / last) * 100}%` }} aria-hidden="true" />
           <input
             type="range"
             min={0}
