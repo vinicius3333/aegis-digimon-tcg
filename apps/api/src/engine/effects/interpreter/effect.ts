@@ -892,7 +892,8 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
           const outerOptionalAnswer = ctxWithSelections.presetOptionalAnswer;
           if (
             actionIndex > 0 &&
-            ((outerOptionalAnswer === true && isDecidedApartFromActivation(action)) || endsAttackOptionally(action))
+            outerOptionalAnswer === true &&
+            (isDecidedApartFromActivation(action) || endsAttackOptionally(action))
           )
             ctxWithSelections.presetOptionalAnswer = undefined;
           ctxWithSelections.activeActionPath = `${actionIndex}`;

@@ -65,11 +65,11 @@ const endAttackPrompt = {
   effectTextPart: endAttackText,
 };
 
-describe("GraceNovamon asks to end its attack whatever the trigger preset", () => {
-  it("asks after a No preset declines the trash", async () => {
+describe("GraceNovamon end-attack prompt under a trigger preset", () => {
+  it("skips the end-attack prompt after a No preset declines the effect", async () => {
     const s = await attackAndPresetTrash(false);
 
-    expect(pendingPrompt(s)).toMatchObject(endAttackPrompt);
+    expect(pendingPrompt(s)).not.toMatchObject({ effectTextPart: endAttackText });
   });
 
   it("asks after a Yes preset trashes instead of ending the attack automatically", async () => {

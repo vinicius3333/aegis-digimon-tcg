@@ -1419,10 +1419,11 @@ export function createSubTriggerInstall({
           const outerContinuation = subCtx.continueEffectAfterAttackDeclaration;
           const outerOptionalAnswer = subCtx.presetOptionalAnswer;
           if (
-            (outerOptionalAnswer === true &&
-              ((index > 0 && (current.kind === "Attack" || current.kind === "Battle") && current.optional === true) ||
-                (activationCostPaid && placesDeckTopOptionally(current)))) ||
-            (index > 0 && endsAttackOptionally(current))
+            outerOptionalAnswer === true &&
+            ((index > 0 &&
+              (((current.kind === "Attack" || current.kind === "Battle") && current.optional === true) ||
+                endsAttackOptionally(current))) ||
+              (activationCostPaid && placesDeckTopOptionally(current)))
           ) {
             subCtx.presetOptionalAnswer = undefined;
           }
