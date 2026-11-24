@@ -1043,7 +1043,11 @@ export function presentServerBatch({
       enqueue,
     });
     enqueueAttackAnnouncement({
-      announcement,
+      announcement: fresh.some(
+        (event) => event.kind === "gameOver" && event.reason === "security" && event.result.outcome === "win",
+      )
+        ? null
+        : announcement,
       setAttackAnnouncement,
       enqueue: attackReady
         ? (step) => enqueue(afterGate(step, attackReady, CONSEQUENCE_GATE_MAX_MS, "attack/ready"))

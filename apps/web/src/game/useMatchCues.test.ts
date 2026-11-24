@@ -822,6 +822,24 @@ describe("match cues", () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it("leaves the winning direct attack to the finale instead of announcing it first", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([ATTACK, { kind: "gameOver", result: { outcome: "win", winnerSeat: 1 }, reason: "security" }]);
+    await advance(0);
+    expect(result.current.attackAnnouncement).toBeNull();
+    await advance(TIMINGS.attackAnnounce / 2);
+    expect(result.current.attackAnnouncement).toBeNull();
+  });
+
+  it("announces a direct attack that does not end the match", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([ATTACK]);
+    await advance(TIMINGS.attackAnnounce / 2);
+    expect(result.current.attackAnnouncement).not.toBeNull();
+  });
+
   it("finishes a visible phase ribbon before presenting a fast bot's next play", async () => {
     const { result, rerender } = renderCues();
     const main: ServerEvent = {
