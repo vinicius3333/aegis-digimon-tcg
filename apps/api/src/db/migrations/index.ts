@@ -17,6 +17,7 @@ import { deckMatchupResults } from "#api/db/migrations/057-deck-matchup-results"
 import { optionalRankedRegion } from "#api/db/migrations/058-optional-ranked-region";
 import { competitiveArchetypes } from "#api/db/migrations/059-competitive-archetypes";
 import { tournamentBetaCards } from "#api/db/migrations/060-tournament-beta-cards";
+import { replayFeaturedDeckIcons } from "#api/db/migrations/061-replay-featured-deck-icons";
 import type { Migration } from "../migrator.js";
 import { initialSchema } from "./001-initial-schema.js";
 import { tournamentProgramColumns } from "./002-tournament-program-columns.js";
@@ -125,4 +126,5 @@ export const migrations: readonly Migration[] = [
   optionalRankedRegion,
   competitiveArchetypes,
   tournamentBetaCards,
+  replayFeaturedDeckIcons,
 ];
