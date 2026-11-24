@@ -49,6 +49,14 @@ describe("activeAttackArrow", () => {
     expect(activeAttackArrow(events)).toBeNull();
   });
 
+  it("drops the arrow when the attack wins the match, so the finale strikes alone", () => {
+    const events: ServerEvent[] = [
+      attackSecurity,
+      { kind: "gameOver", result: { outcome: "win", winnerSeat: 0 }, reason: "security" },
+    ];
+    expect(activeAttackArrow(events)).toBeNull();
+  });
+
   it("drops the arrow once security is checked", () => {
     const events: ServerEvent[] = [
       attackSecurity,

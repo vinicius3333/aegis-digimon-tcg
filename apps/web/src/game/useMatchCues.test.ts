@@ -832,6 +832,20 @@ describe("match cues", () => {
     expect(result.current.attackAnnouncement).toBeNull();
   });
 
+  it("leaves an attack on empty security to the finale even when the match ends in a later batch", async () => {
+    const emptySecurity = {
+      players: [
+        { battleArea: [], trash: [], hand: [], securityCount: 0 },
+        { battleArea: [], trash: [], hand: [], securityCount: 3 },
+      ],
+    } as unknown as GameState;
+    const { result, rerender } = renderCuesOverBoard(emptySecurity);
+    await advance(0);
+    rerender([ATTACK]);
+    await advance(TIMINGS.attackAnnounce / 2);
+    expect(result.current.attackAnnouncement).toBeNull();
+  });
+
   it("announces a direct attack that does not end the match", async () => {
     const { result, rerender } = renderCues();
     await advance(0);

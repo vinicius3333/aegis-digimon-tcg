@@ -96,6 +96,18 @@ export type PresentSegment = (
   continuingBatch?: boolean,
 ) => void;
 
+type FinishingBlowParams = { fresh: readonly ServerEvent[]; securityCountOf: (seat: Seat) => number | undefined };
+
+function isFinishingBlow({ fresh, securityCountOf }: FinishingBlowParams): boolean {
+  return fresh.some(
+    (event) =>
+      (event.kind === "gameOver" && event.reason === "security" && event.result.outcome === "win") ||
+      (event.kind === "attackDeclared" &&
+        event.target.kind === "player" &&
+        securityCountOf((1 - event.seat) as Seat) === 0),
+  );
+}
+
 function isPassageBoundary(event: ServerEvent | undefined): boolean {
   return (
     event?.kind === "effectTargetsSelected" ||
@@ -1043,9 +1055,12 @@ export function presentServerBatch({
       enqueue,
     });
     enqueueAttackAnnouncement({
-      announcement: fresh.some(
-        (event) => event.kind === "gameOver" && event.reason === "security" && event.result.outcome === "win",
-      )
+      announcement: isFinishingBlow({
+        fresh,
+        securityCountOf: (seat) =>
+          snapshots.find((snapshot) => snapshot.stateVersion === stateVersion)?.state.players[seat]?.securityCount ??
+          state?.players[seat]?.securityCount,
+      })
         ? null
         : announcement,
       setAttackAnnouncement,
