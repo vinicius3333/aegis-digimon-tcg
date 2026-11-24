@@ -25,6 +25,9 @@ import { buildReplayAnnotationEntries } from "@/replays/annotations/buildReplayA
 
 const emptyDeck = { mainDeck: [], eggDeck: [] };
 const ANNOTATION_SHEET_QUERY = "(width < 600px)";
+const IDLE_MS = 2500;
+const CHROME_IN_USE =
+  ".replay-controls:hover, .replay-player__tools:hover, .replay-player__heading:hover, .replay-recording-trigger:hover, .replay-controls details[open], .replay-controls:focus-within, .replay-player__tools:focus-within, .replay-player__heading:focus-within";
 const acknowledgeDecision = () => undefined;
 
 export function ReplayPlayer({
@@ -70,6 +73,7 @@ export function ReplayPlayer({
   );
   const [controlsVisible, setControlsVisible] = useState(true);
   const [controlsInset, setControlsInset] = useState(0);
+  const [idle, setIdle] = useState(false);
   const annotationSheet = useMediaQuery(ANNOTATION_SHEET_QUERY) && annotationsOpen;
   const [recordingMode, setRecordingMode] = useState(false);
   const history = useRef<HTMLElement>(null);
@@ -210,6 +214,30 @@ export function ReplayPlayer({
     return () => clearInterval(interval);
   }, [clock, playing, jumping, atEnd, replay, cursor.index, skipThinking]);
   useEffect(() => {
+    const element = surface.current;
+    if (!element) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const rest = () => {
+      if (element.querySelector(CHROME_IN_USE)) {
+        timer = setTimeout(rest, IDLE_MS);
+        return;
+      }
+      setIdle(true);
+    };
+    const wake = () => {
+      setIdle(false);
+      clearTimeout(timer);
+      timer = setTimeout(rest, IDLE_MS);
+    };
+    const activity = ["pointermove", "pointerdown", "keydown", "wheel", "touchstart"] as const;
+    for (const type of activity) element.addEventListener(type, wake, { passive: true });
+    timer = setTimeout(rest, IDLE_MS);
+    return () => {
+      clearTimeout(timer);
+      for (const type of activity) element.removeEventListener(type, wake);
+    };
+  }, []);
+  useEffect(() => {
     if (!historyOpen) return;
     history.current?.querySelector<HTMLElement>('[aria-current="step"]')?.scrollIntoView({ block: "nearest" });
   }, [historyOpen, cursor.index]);
@@ -296,6 +324,7 @@ export function ReplayPlayer({
     <section
       ref={surface}
       className={`replay-player${recordingMode ? " replay-player--recording" : ""}`}
+      data-idle={idle && !historyOpen && !annotationsOpen && deckSeat === undefined ? true : undefined}
       aria-label={t("replay.title")}
       style={{ "--replay-controls-inset": `${controlsInset}px` } as CSSProperties}
     >
