@@ -25,16 +25,11 @@
   flex: none;
   width: 24px;
   height: 24px;
-  animation: aegis-coin-spin 4s ease-in-out infinite;
+  animation: aegis-coin-spin 2.5s linear infinite;
 }
 
 @keyframes aegis-coin-spin {
-  0%,
-  75% {
-    transform: rotateY(0deg);
-  }
-
-  100% {
+  to {
     transform: rotateY(360deg);
   }
 }
