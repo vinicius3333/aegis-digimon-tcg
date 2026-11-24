@@ -1792,6 +1792,7 @@ const interfaceMessages = {
   "log.hatched": "{player}가 {card}를 부화시켰습니다",
   "log.movedFromBreeding": "{player}가 {card}를 육성 영역에서 이동했습니다",
   "log.attackOnBy": "{player}의 {card}가 {target}에 어택합니다",
+  "log.effectBattle": "{player}의 {card}가 {target}와 배틀합니다",
   "log.matchStarted": "대전 시작. {player}가 선공입니다",
   "log.turnEnded": "{player}의 턴 종료. {nextPlayer}의 턴입니다",
   "log.securityCheck": "{player}의 시큐리티 체크에서 {card} 공개 ({resolution})",

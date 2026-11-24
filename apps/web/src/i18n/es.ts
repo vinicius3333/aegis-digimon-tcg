@@ -1536,6 +1536,7 @@ export const es: Record<keyof typeof en, string> = {
   "log.hatched": "{player} eclosionó {card}",
   "log.movedFromBreeding": "{player} movió {card} desde crianza",
   "log.attackOnBy": "{card} de {player} ataca a {target}",
+  "log.effectBattle": "{card} de {player} combate contra {target}",
   "log.matchStarted": "Partida iniciada. {player} empieza",
   "log.turnEnded": "Terminó el turno de {player}. Turno de {nextPlayer}",
   "log.securityCheck": "El chequeo de seguridad de {player} reveló {card} ({resolution})",

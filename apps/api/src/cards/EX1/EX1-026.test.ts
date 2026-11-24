@@ -58,14 +58,17 @@ describe("EX1-026 Gatomon", () => {
   });
 
   it("modifies only once across two player attacks in one turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-057", as: "host", under: ["BT1-006", "BT1-046", "EX1-026"] }],
-        hand: [{ card: "BT1-036", as: "unsuspender" }],
-        security: ["BT1-009", "BT1-010", "BT1-011"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-057", as: "host", under: ["BT1-006", "BT1-046", "EX1-026"] }],
+          hand: [{ card: "BT1-036", as: "unsuspender" }],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }], security: ["BT1-009", "BT1-010", "BT1-011"] },
       },
-      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }], security: ["BT1-009", "BT1-010", "BT1-011"] },
-    });
+      { autoSelectCards: true },
+    );
     s.state.memory = 10;
     await s.ready();
     const attack = () =>

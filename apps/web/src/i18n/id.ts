@@ -1817,6 +1817,7 @@ const interfaceMessages = {
   "log.hatched": "{player} menetaskan {card}",
   "log.movedFromBreeding": "{player} memindahkan {card} dari breeding",
   "log.attackOnBy": "{card} milik {player} menyerang {target}",
+  "log.effectBattle": "{card} milik {player} bertarung dengan {target}",
   "log.matchStarted": "Pertandingan dimulai. {player} bermain lebih dulu",
   "log.turnEnded": "Giliran {player} berakhir. Giliran {nextPlayer}",
   "log.securityCheck": "Security check pada {player} mengungkap {card} ({resolution})",

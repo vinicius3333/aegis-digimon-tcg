@@ -161,6 +161,11 @@ export function collectDeletionPending(engine: GameEngine, pool: readonly Pooled
             return collected;
           const canActivate = collected.effect.canActivate;
           const deletedHostId = merged.trigger.deletedHostInstanceByInstanceId?.[instanceId];
+          const pendsForDeletedHost =
+            collected.effect.isInherited &&
+            deletedHostId !== undefined &&
+            deletedHostId !== instanceId &&
+            merged.trigger.deletedWasStackInstanceIds?.includes(instanceId) === true;
           const sourceArrival = trashArrivalOf(engine.state, instanceId);
           const hostArrival = deletedHostId === undefined ? undefined : trashArrivalOf(engine.state, deletedHostId);
           return {
@@ -170,8 +175,8 @@ export function collectDeletionPending(engine: GameEngine, pool: readonly Pooled
               // CR 15-4-4-3: replaying/evolving and returning to trash is a new card,
               // even if both moves happen inside one body between collection passes.
               canActivate: (ctx: EffectContext) =>
-                sourceArrival !== undefined &&
-                trashArrivalOf(engine.state, instanceId) === sourceArrival &&
+                ((pendsForDeletedHost && !isDigivolutionCardOfAnotherDigimon(engine, instanceId)) ||
+                  (sourceArrival !== undefined && trashArrivalOf(engine.state, instanceId) === sourceArrival)) &&
                 (deletedHostId === undefined ||
                   (hostArrival !== undefined && trashArrivalOf(engine.state, deletedHostId) === hostArrival)) &&
                 canActivate(ctx),
@@ -480,4 +485,13 @@ export function nextInstanceId(engine: GameEngine): string {
     candidate = `inst-${engine.instanceSeq}`;
   } while (findInstance(engine, candidate) !== undefined);
   return candidate;
+}
+
+function isDigivolutionCardOfAnotherDigimon(engine: GameEngine, instanceId: string): boolean {
+  return engine.state.players.some((player) =>
+    [...player.battleArea, ...(player.breeding === undefined ? [] : [player.breeding])].some(
+      (permanent) =>
+        permanent.topCard?.instanceId !== instanceId && permanent.stack.some((card) => card.instanceId === instanceId),
+    ),
+  );
 }

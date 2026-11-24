@@ -68,13 +68,16 @@ describe("EX1-006 Garudamon", () => {
   });
 
   it("gains memory only once across two player attacks in one turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-025", as: "attacker", under: ["EX1-006"] }],
-        hand: [{ card: "BT1-036", as: "unsuspender" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-025", as: "attacker", under: ["EX1-006"] }],
+          hand: [{ card: "BT1-036", as: "unsuspender" }],
+        },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
       },
-      1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
-    });
+      { autoSelectCards: true },
+    );
     s.state.memory = 9;
     await s.ready();
     const attack = () =>

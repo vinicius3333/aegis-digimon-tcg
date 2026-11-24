@@ -894,6 +894,43 @@ describe("EX13-060 Alphamon", () => {
     assertNoLoudGap(s);
   });
 
+  it("gives the end-of-turn play only Rush once the [Your Turn] attack was already used that turn", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "alphamon", under: ["BT1-010"], dp: 13_000 }],
+          hand: [
+            { card: CHRONICLE_LV3, as: "mainPhasePlay" },
+            { card: CHRONICLE_LV4, as: "endOfTurnPlay" },
+          ],
+          deck: ["BT1-011", "BT1-012"],
+          security: ["BT1-013"],
+        },
+        1: { deck: ["BT1-013"], security: ["BT1-014", "BT1-013", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mainPhasePlay").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 2 && s.state.pendingDecision === undefined);
+    preferInstanceIds.push(s.inst("endOfTurnPlay").instanceId);
+    s.state.memory = 8;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+
+    const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === CHRONICLE_LV4)!;
+    expect(played.isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    assertNoLoudGap(s);
+  });
+
   it("grants Rush before the attack watcher when the played card has no [On Play]", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(

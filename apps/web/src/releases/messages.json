@@ -1,4 +1,118 @@
 {
+  "releases.1.80.1-beta.summary": {
+    "en": "This update fixes inherited On Deletion effects, Venusmon, mandatory unsuspend choices, the effect battle log, replay deck icons and Start of Turn timing.",
+    "pt-BR": "Esta atualização corrige efeitos herdados de Ao Ser Deletado, Venusmon, escolhas obrigatórias de desvirar, o registro de batalhas por efeito, os ícones de deck nos replays e o tempo do Início do Turno.",
+    "es": "Esta actualización corrige efectos heredados de Al Ser Eliminado, Venusmon, elecciones obligatorias de reactivar, el registro de batallas por efecto, los iconos de mazo en las repeticiones y el tiempo del Inicio del Turno.",
+    "it": "Questo aggiornamento corregge gli effetti ereditati Quando Viene Eliminato, Venusmon, le scelte obbligatorie di riattivazione, il registro delle battaglie da effetto, le icone dei mazzi nei replay e i tempi dell'Inizio del Turno."
+  },
+  "releases.1.80.1-beta.fix.inheritedOnDeletion": {
+    "en": "An inherited [On Deletion] effect now stays available when its card returns to your hand or is played before it resolves, for example after Cherubimon (BT26-078) deletes your own Digimon as a cost or with Ravemon (BT27-083).",
+    "pt-BR": "Um efeito herdado [Ao Ser Deletado] agora continua disponível quando a carta dele volta para a mão ou é jogada antes de resolver, por exemplo depois que Cherubimon (BT26-078) deleta o seu próprio Digimon como custo ou com Ravemon (BT27-083).",
+    "es": "Un efecto heredado [Al Ser Eliminado] ahora sigue disponible cuando su carta vuelve a tu mano o se juega antes de resolverse, por ejemplo después de que Cherubimon (BT26-078) elimine tu propio Digimon como coste o con Ravemon (BT27-083).",
+    "it": "Un effetto ereditato [Quando Viene Eliminato] ora resta disponibile quando la sua carta torna in mano o viene giocata prima di risolversi, per esempio dopo che Cherubimon (BT26-078) elimina un tuo Digimon come costo o con Ravemon (BT27-083)."
+  },
+  "releases.1.80.1-beta.fix.venusmon": {
+    "en": "Venusmon can now place another Digimon that is leaving the field at the same time as its cost.",
+    "pt-BR": "Venusmon agora pode colocar outro Digimon que está saindo do campo ao mesmo tempo que o custo dele.",
+    "es": "Venusmon ahora puede colocar otro Digimon que sale del campo al mismo tiempo que su coste.",
+    "it": "Venusmon ora può posizionare un altro Digimon che lascia il campo nello stesso momento del suo costo."
+  },
+  "releases.1.80.1-beta.fix.unsuspendChoice": {
+    "en": "A mandatory \"unsuspend 1 of your Digimon\" effect now asks you which Digimon to pick instead of choosing for you.",
+    "pt-BR": "Um efeito obrigatório de \"desvire 1 dos seus Digimon\" agora pergunta qual Digimon escolher em vez de escolher por você.",
+    "es": "Un efecto obligatorio de \"reactiva 1 de tus Digimon\" ahora te pregunta qué Digimon elegir en lugar de elegir por ti.",
+    "it": "Un effetto obbligatorio \"riattiva 1 dei tuoi Digimon\" ora ti chiede quale Digimon scegliere invece di sceglierlo per te."
+  },
+  "releases.1.80.1-beta.fix.effectBattleLog": {
+    "en": "The match log now names both Digimon when an effect makes them battle.",
+    "pt-BR": "O registro da partida agora mostra os dois Digimon quando um efeito faz eles batalharem.",
+    "es": "El registro de la partida ahora muestra los dos Digimon cuando un efecto los hace combatir.",
+    "it": "Il registro della partita ora mostra entrambi i Digimon quando un effetto li fa combattere."
+  },
+  "releases.1.80.1-beta.fix.replayDeckIcon": {
+    "en": "Match history now shows each deck's main Digimon as its icon instead of the same card every match.",
+    "pt-BR": "O histórico de partidas agora mostra o Digimon principal de cada deck como ícone, em vez da mesma carta em toda partida.",
+    "es": "El historial de partidas ahora muestra el Digimon principal de cada mazo como icono, en lugar de la misma carta en cada partida.",
+    "it": "La cronologia delle partite ora mostra il Digimon principale di ogni mazzo come icona, invece della stessa carta in ogni partita."
+  },
+  "releases.1.80.1-beta.fix.startOfTurnTiming": {
+    "en": "The unsuspend banner now plays before a Start of Turn prompt, so the effect starts about a second sooner after you answer.",
+    "pt-BR": "O aviso de desvirar agora aparece antes de uma pergunta de Início do Turno, então o efeito começa cerca de um segundo mais cedo depois da sua resposta.",
+    "es": "El aviso de reactivar ahora aparece antes de una pregunta de Inicio del Turno, así que el efecto empieza un segundo antes después de tu respuesta.",
+    "it": "L'avviso di riattivazione ora compare prima di una domanda di Inizio del Turno, quindi l'effetto parte circa un secondo prima dopo la tua risposta."
+  },
+  "releases.1.80.1-beta.fix.ruleLines": {
+    "en": "Effect popups no longer show printed \"(Rule)\" lines as part of the last effect, for example on Aegiochusmon: Blue (BT25-025).",
+    "pt-BR": "Os pop-ups de efeito não mostram mais linhas \"(Regra)\" impressas como parte do último efeito, por exemplo em Aegiochusmon: Blue (BT25-025).",
+    "es": "Las ventanas de efecto ya no muestran las líneas \"(Regla)\" impresas como parte del último efecto, por ejemplo en Aegiochusmon: Blue (BT25-025).",
+    "it": "I popup degli effetti non mostrano più le righe \"(Regola)\" stampate come parte dell'ultimo effetto, per esempio su Aegiochusmon: Blue (BT25-025)."
+  },
+  "releases.1.80.0-beta.summary": {
+    "en": "This update rebuilds the board for phones held sideways and fixes BT27 rulings, Rina, Shakamon, Use Req., Arts Digivolve on phones and several effect prompts.",
+    "pt-BR": "Esta atualização refaz o tabuleiro para celular na horizontal e corrige regras da BT27, Rina, Shakamon, Use Req., Arts Digivolve no celular e vários avisos de efeito.",
+    "es": "Esta actualización rehace el tablero para móviles en horizontal y corrige reglas de BT27, Rina, Shakamon, Use Req., Arts Digivolve en móviles y varios avisos de efectos.",
+    "it": "Questo aggiornamento rifà il tabellone per i telefoni in orizzontale e corregge regole di BT27, Rina, Shakamon, Use Req., Arts Digivolve su telefono e vari avvisi degli effetti."
+  },
+  "releases.1.80.0-beta.feature.landscapeBoard": {
+    "en": "On a phone held sideways, a full row of five Digimon now fits without scrolling, battle cards are larger, the memory gauge is slimmer, and the hand fans out from the bottom centre of the screen.",
+    "pt-BR": "No celular na horizontal, uma fileira com cinco Digimon agora cabe sem rolar, as cartas em campo estão maiores, o marcador de memória está mais fino e a mão se abre a partir do centro da parte de baixo da tela.",
+    "es": "En un móvil en horizontal, una fila de cinco Digimon ahora cabe sin desplazarse, las cartas en el campo son más grandes, el indicador de memoria es más fino y la mano se despliega desde el centro de la parte inferior de la pantalla.",
+    "it": "Su un telefono in orizzontale, una fila di cinque Digimon ora entra senza scorrere, le carte in campo sono più grandi, l'indicatore della memoria è più sottile e la mano si apre dal centro della parte bassa dello schermo."
+  },
+  "releases.1.80.0-beta.fix.bt27Rulings": {
+    "en": "BT27 cards now follow the official rulings from November 20. An effect that needs another effect to activate only counts it when its cost was paid, and a revealed security card that gets trashed no longer activates its own trash effect.",
+    "pt-BR": "As cartas da BT27 agora seguem as regras oficiais de 20 de novembro. Um efeito que depende de outro efeito ter sido ativado só conta esse efeito quando o custo dele foi pago, e uma carta de segurança revelada que é descartada não ativa mais o próprio efeito de descarte.",
+    "es": "Las cartas de BT27 ahora siguen las reglas oficiales del 20 de noviembre. Un efecto que depende de que otro se haya activado solo lo cuenta si se pagó su coste, y una carta de seguridad revelada que se descarta ya no activa su propio efecto de descarte.",
+    "it": "Le carte di BT27 ora seguono le regole ufficiali del 20 novembre. Un effetto che dipende dall'attivazione di un altro effetto lo conta solo se il suo costo è stato pagato, e una carta sicurezza rivelata che viene scartata non attiva più il proprio effetto di scarto."
+  },
+  "releases.1.80.0-beta.fix.optionalEndAttack": {
+    "en": "Effects that say \"you may end this attack\", like GraceNovamon's, now always ask you, even after you chose Yes or No in the trigger order dialog.",
+    "pt-BR": "Efeitos que dizem \"você pode encerrar este ataque\", como o de GraceNovamon, agora sempre perguntam, mesmo depois de você escolher Sim ou Não na janela de ordem dos efeitos.",
+    "es": "Los efectos que dicen \"puedes terminar este ataque\", como el de GraceNovamon, ahora siempre te preguntan, aunque hayas elegido Sí o No en la ventana de orden de efectos.",
+    "it": "Gli effetti che dicono \"puoi terminare questo attacco\", come quello di GraceNovamon, ora lo chiedono sempre, anche dopo aver scelto Sì o No nella finestra dell'ordine degli effetti."
+  },
+  "releases.1.80.0-beta.fix.freeOptionReducer": {
+    "en": "When you use an Option without paying its cost, its \"reduce the cost when this card would be used\" effect is now offered too, as the official rulings allow.",
+    "pt-BR": "Quando você usa uma Opção sem pagar o custo, o efeito \"reduza o custo quando esta carta for usada\" agora também é oferecido, como as regras oficiais permitem.",
+    "es": "Cuando usas una Opción sin pagar su coste, ahora también se ofrece su efecto de \"reducir el coste cuando esta carta vaya a usarse\", como permiten las reglas oficiales.",
+    "it": "Quando usi un'Opzione senza pagarne il costo, ora viene offerto anche il suo effetto \"riduci il costo quando questa carta sta per essere usata\", come permettono le regole ufficiali."
+  },
+  "releases.1.80.0-beta.fix.rinaSuspension": {
+    "en": "Rina (BT11-112) is offered again when the same Veedramon is suspended a second time in one chain, for example by two Evades.",
+    "pt-BR": "Rina (BT11-112) volta a ser oferecida quando o mesmo Veedramon é suspenso uma segunda vez na mesma sequência, por exemplo com dois Evades.",
+    "es": "Rina (BT11-112) vuelve a ofrecerse cuando el mismo Veedramon se suspende una segunda vez en la misma secuencia, por ejemplo con dos Evade.",
+    "it": "Rina (BT11-112) viene di nuovo offerta quando lo stesso Veedramon viene sospeso una seconda volta nella stessa sequenza, per esempio con due Evade."
+  },
+  "releases.1.80.0-beta.fix.shakamonZeroDp": {
+    "en": "Shakamon (EX6-031) now lets you play its stacked cards when it is deleted at 0 DP, not only when an effect deletes it.",
+    "pt-BR": "Shakamon (EX6-031) agora deixa você jogar as cartas embaixo dele quando é deletado com 0 DP, e não só quando um efeito o deleta.",
+    "es": "Shakamon (EX6-031) ahora te deja jugar sus cartas apiladas cuando se elimina con 0 DP, no solo cuando lo elimina un efecto.",
+    "it": "Shakamon (EX6-031) ora ti permette di giocare le carte sotto di lui quando viene eliminato a 0 DP, non solo quando lo elimina un effetto."
+  },
+  "releases.1.80.0-beta.fix.useReqBreeding": {
+    "en": "Use Req. on BT27-035, BT27-083, BT27-085 and EX14-012 now counts a matching Digimon in your breeding area, like every other Use Req. card.",
+    "pt-BR": "Use Req. em BT27-035, BT27-083, BT27-085 e EX14-012 agora conta um Digimon compatível na sua área de criação, como todas as outras cartas com Use Req.",
+    "es": "Use Req. en BT27-035, BT27-083, BT27-085 y EX14-012 ahora cuenta un Digimon válido en tu zona de crianza, como todas las demás cartas con Use Req.",
+    "it": "Use Req. su BT27-035, BT27-083, BT27-085 ed EX14-012 ora conta un Digimon valido nella tua area di allevamento, come tutte le altre carte con Use Req."
+  },
+  "releases.1.80.0-beta.fix.opponentSleeve": {
+    "en": "When your opponent draws, the card in the draw animation now shows their sleeve, not yours.",
+    "pt-BR": "Quando o oponente compra, a carta na animação de compra agora mostra o sleeve dele, e não o seu.",
+    "es": "Cuando tu rival roba, la carta de la animación de robo ahora muestra su funda, no la tuya.",
+    "it": "Quando l'avversario pesca, la carta nell'animazione di pescata ora mostra la sua bustina, non la tua."
+  },
+  "releases.1.80.0-beta.fix.phoneArtsTarget": {
+    "en": "On phones, the Option card and the prompt panel no longer cover your rightmost Digimon when you choose an Arts Digivolve target, and long prompts scroll inside their panel.",
+    "pt-BR": "No celular, a carta de Opção e o painel do aviso não cobrem mais o seu Digimon mais à direita quando você escolhe o alvo de Arts Digivolve, e avisos longos rolam dentro do painel.",
+    "es": "En móviles, la carta de Opción y el panel del aviso ya no tapan tu Digimon más a la derecha cuando eliges el objetivo de Arts Digivolve, y los avisos largos se desplazan dentro de su panel.",
+    "it": "Su telefono, la carta Opzione e il pannello dell'avviso non coprono più il tuo Digimon più a destra quando scegli il bersaglio di Arts Digivolve, e gli avvisi lunghi scorrono dentro il pannello."
+  },
+  "releases.1.80.0-beta.fix.trashSourceCard": {
+    "en": "A card that activates an effect from the trash now keeps its parallel art and can be zoomed by hovering it.",
+    "pt-BR": "Uma carta que ativa um efeito a partir do descarte agora mantém a arte paralela e pode ser ampliada ao passar o mouse.",
+    "es": "Una carta que activa un efecto desde la papelera ahora conserva su arte paralelo y se puede ampliar al pasar el ratón.",
+    "it": "Una carta che attiva un effetto dagli scarti ora mantiene la sua arte parallela e si può ingrandire passandoci sopra con il mouse."
+  },
   "releases.1.79.0-beta.summary": {
     "en": "This update adds new alternate arts and fixes Fragment, source trashing, the turn-start memory display and revealed cards.",
     "pt-BR": "Esta atualização adiciona novas artes alternativas e corrige Fragment, o descarte de cartas de digievolução, a exibição da memória no início do turno e as cartas reveladas.",

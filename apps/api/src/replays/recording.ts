@@ -1,4 +1,5 @@
 import type { ReplayDecks } from "@aegis/shared/replays/ReplayDeck";
+import { getDeckFeaturedCardId } from "#api/accounts/getDeckFeaturedCardId";
 import { buildSpectatorReplayFile } from "#api/replays/buildSpectatorReplayFile";
 import { ArraySchema } from "@colyseus/schema";
 import { randomUUID } from "node:crypto";
@@ -25,6 +26,13 @@ const UNRECORDED_STATE_FIELDS = new Set(["pendingDecision", "combatWindow"]);
 const UNRECORDED_PLAYER_ZONES = new Set(["deck", "eggDeck", "security"]);
 
 const schemaFieldsByConstructor = new WeakMap<object, readonly string[]>();
+
+function replayDeckIcons(decks: ReplayDecks): [string | null, string | null] {
+  return [
+    decks[0] ? (getDeckFeaturedCardId(decks[0]) ?? null) : null,
+    decks[1] ? (getDeckFeaturedCardId(decks[1]) ?? null) : null,
+  ];
+}
 
 function schemaFieldsOf(schema: object): readonly string[] | undefined {
   const cached = schemaFieldsByConstructor.get(schema.constructor);
@@ -198,7 +206,7 @@ export class ReplayRecording {
     const summary = this.summary(mode, finishedAt);
     if (!summary) return undefined;
     if (decks) {
-      summary.deckIcons = decks.map((deck) => deck?.mainDeck.at(-1) ?? null) as [string | null, string | null];
+      summary.deckIcons = replayDeckIcons(decks);
     }
     const envelope = JSON.stringify({
       ...summary,
@@ -220,7 +228,7 @@ export class ReplayRecording {
     const replay = this.complete(mode, finishedAt);
     if (replay && decks) {
       replay.decks = decks;
-      replay.deckIcons = decks.map((deck) => deck?.mainDeck.at(-1) ?? null) as [string | null, string | null];
+      replay.deckIcons = replayDeckIcons(decks);
     }
     return replay
       ? buildSpectatorReplayFile({ replay, hiddenIdentities, sharedDeckSeats: decks?.map(Boolean) })

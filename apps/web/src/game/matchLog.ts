@@ -150,6 +150,19 @@ export function describeEvent({
         cardIds: [event.attackerCardId, targetCardId].filter((id): id is string => id !== undefined),
       };
     }
+    case "battleCompared": {
+      const battle = event.effectBattle;
+      if (battle === undefined) return null;
+      return {
+        text: t("log.effectBattle", {
+          player: seatNames[battle.attackerSeat],
+          card: getLogCardName({ cardId: battle.attackerCardId, permanentId: event.attackerPermanentId }),
+          target: getLogCardName({ cardId: battle.defenderCardId, permanentId: event.defenderPermanentId }),
+        }),
+        kind: "sys",
+        cardIds: [battle.attackerCardId, battle.defenderCardId],
+      };
+    }
     case "blockWindowOpened":
       return { text: t("log.blockWindow"), kind: "sys" };
     case "blocked":

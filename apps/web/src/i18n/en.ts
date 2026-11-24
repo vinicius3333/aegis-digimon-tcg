@@ -1559,6 +1559,7 @@ export const en = {
   "log.hatched": "{player} hatched {card}",
   "log.movedFromBreeding": "{player} moved {card} from breeding",
   "log.attackOnBy": "{player}: {card} attacks {target}",
+  "log.effectBattle": "{player}: {card} battles {target}",
   "log.matchStarted": "Match started. {player} goes first",
   "log.turnEnded": "Turn ended for {player}. Next: {nextPlayer}",
   "log.securityCheck": "Security check on {player} revealed {card} ({resolution})",

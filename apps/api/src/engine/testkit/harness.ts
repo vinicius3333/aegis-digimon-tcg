@@ -326,9 +326,14 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
           if (pa !== pb) return pa - pb;
           // Suspending an already suspended Digimon is legal (Q1782) but a no-op, so a
           // stand-in player only picks one when it prefers it or nothing else is left.
-          const alreadySuspended = (id: string): number =>
-            req.options?.targetFate === "suspend" && findPermanentForDecisionId(state, id)?.isSuspended ? 1 : 0;
-          return alreadySuspended(a) - alreadySuspended(b);
+          const changesNothing = (id: string): number => {
+            const permanent = findPermanentForDecisionId(state, id);
+            if (req.options?.targetFate === "suspend") return permanent?.isSuspended ? 1 : 0;
+            if (req.options?.targetFate === "unsuspend")
+              return permanent !== undefined && !permanent.isSuspended ? 1 : 0;
+            return 0;
+          };
+          return changesNothing(a) - changesNothing(b);
         });
         // A malformed/NaN `max` (e.g. a compiled action with an unset materials.count) must not
         // collapse the selection to empty: Array.prototype.slice treats a NaN end as 0.
