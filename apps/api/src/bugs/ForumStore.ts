@@ -15,6 +15,7 @@ import { ForumVerdict } from "@aegis/shared/feedback/ForumVerdict";
 import { CLOSED_FEEDBACK_STATUSES, type FeedbackStatus } from "@aegis/shared/feedback/FeedbackStatus";
 import { getForumBoardKind } from "@aegis/shared/feedback/getForumBoardKind";
 import { isClosedFeedbackStatus } from "@aegis/shared/feedback/isClosedFeedbackStatus";
+import type { PoolClient } from "pg";
 import type { AccountStore } from "#api/accounts/AccountStore";
 
 const CLOSED_LIST = CLOSED_FEEDBACK_STATUSES.map((status) => `'${status}'`).join(", ");
@@ -38,6 +39,7 @@ type Row = {
 };
 
 type Refusal = { error: ForumFailure };
+type LockedReport = { status: FeedbackStatus; reporter_account_id: string | null; vote_payout: ForumVerdict | null };
 type Viewer = { accountId: string; isAdmin: boolean };
 
 export class ForumStore {
@@ -53,9 +55,7 @@ export class ForumStore {
     this.ofBoard = `f.report->>'kind' = '${getForumBoardKind(board)}'`;
     this.open = `${this.ofBoard} AND f.status NOT IN (${CLOSED_LIST})`;
     this.upvoteOnly = board === ForumBoard.IDEAS.value;
-    this.decided = this.upvoteOnly
-      ? `${this.ofBoard} AND f.status IN (${CLOSED_LIST})`
-      : `${this.ofBoard} AND f.vote_payout IS NOT NULL`;
+    this.decided = `${this.ofBoard} AND f.status IN (${CLOSED_LIST})`;
   }
 
   async summary(accountId: string | undefined): Promise<ForumSummary> {
@@ -132,35 +132,34 @@ export class ForumStore {
   }
 
   async vote(viewer: Viewer, id: number, vote: ForumVote, at = Date.now()): Promise<ForumDetail | Refusal> {
-    const refusal = await this.refuseUnlessOpen(id, viewer.accountId, { forbidReporter: !this.upvoteOnly });
-    if (refusal) return refusal;
-    await this.accounts.pool.query(
-      `INSERT INTO feedback_votes (feedback_id, account_id, verdict, reason, created_at, updated_at)
-       VALUES ($1,$2,$3,$4,$5,$5)
-       ON CONFLICT (feedback_id, account_id) DO UPDATE SET verdict=EXCLUDED.verdict, reason=EXCLUDED.reason, updated_at=EXCLUDED.updated_at`,
-      [id, viewer.accountId, vote.verdict, vote.reason, at],
+    const refusal = await this.whileOpen(id, viewer.accountId, { forbidReporter: !this.upvoteOnly }, (client) =>
+      client.query(
+        `INSERT INTO feedback_votes (feedback_id, account_id, verdict, reason, created_at, updated_at)
+         VALUES ($1,$2,$3,$4,$5,$5)
+         ON CONFLICT (feedback_id, account_id) DO UPDATE SET verdict=EXCLUDED.verdict, reason=EXCLUDED.reason, updated_at=EXCLUDED.updated_at`,
+        [id, viewer.accountId, vote.verdict, vote.reason, at],
+      ),
     );
-    return (await this.detail(viewer, id))!;
+    return refusal ?? (await this.detail(viewer, id))!;
   }
 
   async retract(viewer: Viewer, id: number): Promise<ForumDetail | Refusal> {
-    const refusal = await this.refuseUnlessOpen(id, viewer.accountId, { forbidReporter: false });
-    if (refusal) return refusal;
-    await this.accounts.pool.query("DELETE FROM feedback_votes WHERE feedback_id=$1 AND account_id=$2", [
-      id,
-      viewer.accountId,
-    ]);
-    return (await this.detail(viewer, id))!;
+    const refusal = await this.whileOpen(id, viewer.accountId, { forbidReporter: false }, (client) =>
+      client.query("DELETE FROM feedback_votes WHERE feedback_id=$1 AND account_id=$2", [id, viewer.accountId]),
+    );
+    return refusal ?? (await this.detail(viewer, id))!;
   }
 
   async comment(viewer: Viewer, id: number, body: string, at = Date.now()): Promise<ForumDetail | Refusal> {
-    const refusal = await this.refuseUnlessOpen(id, viewer.accountId, { forbidReporter: false });
-    if (refusal) return refusal;
-    await this.accounts.pool.query(
-      "INSERT INTO feedback_comments (feedback_id, account_id, body, created_at) VALUES ($1,$2,$3,$4)",
-      [id, viewer.accountId, body, at],
+    const refusal = await this.whileOpen(id, viewer.accountId, { forbidReporter: false }, (client) =>
+      client.query("INSERT INTO feedback_comments (feedback_id, account_id, body, created_at) VALUES ($1,$2,$3,$4)", [
+        id,
+        viewer.accountId,
+        body,
+        at,
+      ]),
     );
-    return (await this.detail(viewer, id))!;
+    return refusal ?? (await this.detail(viewer, id))!;
   }
 
   async removeComment(viewer: Viewer, id: number, commentId: number): Promise<ForumDetail | Refusal> {
@@ -170,18 +169,17 @@ export class ForumStore {
   }
 
   async removeVote(viewer: Viewer, id: number, voterId: string): Promise<ForumDetail | Refusal> {
-    const row = await this.read(id);
-    if (!row) return { error: "not_found" };
-    const { rows } = await this.accounts.pool.query<{ verdict: ForumVerdict }>(
-      "DELETE FROM feedback_votes WHERE feedback_id=$1 AND account_id=$2 RETURNING verdict",
-      [id, voterId],
-    );
-    if (rows[0] && rows[0].verdict === row.vote_payout) {
-      await this.accounts.pool.query("UPDATE accounts SET aegis_coins = GREATEST(0, aegis_coins - 1) WHERE id=$1", [
-        voterId,
-      ]);
-    }
-    return (await this.detail(viewer, id))!;
+    const refusal = await this.withReportLock(id, "UPDATE", async (client, report) => {
+      const { rows } = await client.query<{ verdict: ForumVerdict }>(
+        "DELETE FROM feedback_votes WHERE feedback_id=$1 AND account_id=$2 RETURNING verdict",
+        [id, voterId],
+      );
+      if (rows[0] && rows[0].verdict === report.vote_payout) {
+        await client.query("UPDATE accounts SET aegis_coins = GREATEST(0, aegis_coins - 1) WHERE id=$1", [voterId]);
+      }
+      return undefined;
+    });
+    return refusal ?? (await this.detail(viewer, id))!;
   }
 
   private async read(id: number): Promise<Row | undefined> {
@@ -193,16 +191,42 @@ export class ForumStore {
     return rows[0];
   }
 
-  private async refuseUnlessOpen(
+  private whileOpen(
     id: number,
     accountId: string,
     { forbidReporter }: { forbidReporter: boolean },
+    write: (client: PoolClient) => Promise<unknown>,
   ): Promise<Refusal | undefined> {
-    const row = await this.read(id);
-    if (!row) return { error: "not_found" };
-    if (isClosedFeedbackStatus(row.status)) return { error: "closed" };
-    if (forbidReporter && row.reporter_account_id === accountId) return { error: "own_report" };
-    return undefined;
+    return this.withReportLock(id, "SHARE", async (client, report) => {
+      if (isClosedFeedbackStatus(report.status)) return { error: "closed" };
+      if (forbidReporter && report.reporter_account_id === accountId) return { error: "own_report" };
+      await write(client);
+      return undefined;
+    });
+  }
+
+  private async withReportLock(
+    id: number,
+    mode: "SHARE" | "UPDATE",
+    work: (client: PoolClient, report: LockedReport) => Promise<Refusal | undefined>,
+  ): Promise<Refusal | undefined> {
+    await this.accounts.ensureReady();
+    const client = await this.accounts.pool.connect();
+    try {
+      await client.query("BEGIN");
+      const { rows } = await client.query<LockedReport>(
+        `SELECT f.status, f.reporter_account_id, f.vote_payout FROM feedback_reports f WHERE f.id=$1 AND ${this.ofBoard} FOR ${mode}`,
+        [id],
+      );
+      const result = rows[0] ? await work(client, rows[0]) : { error: "not_found" as const };
+      await client.query("COMMIT");
+      return result;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   private async tally(id: number, withVoterIds: boolean): Promise<ForumTally> {

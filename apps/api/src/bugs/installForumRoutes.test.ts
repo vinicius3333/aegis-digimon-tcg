@@ -189,6 +189,14 @@ describe("forum routes", () => {
     });
     expect(response.status).toBe(200);
     expect(await coins(harness.believer)).toBe(0);
+    const decided = await json<ForumPage>(await call("GET", "/feedback/bugs?state=decided", harness.believer));
+    expect(decided.items.map((item) => item.id)).toContain(id);
+    expect(decided.items.find((item) => item.id === id)?.outcome).toBeNull();
+  });
+
+  it("answers 404 when an admin removes a vote with a malformed voter ID", async () => {
+    const id = await report("Malformed voter");
+    expect((await call("DELETE", `/feedback/bugs/${id}/votes/not-a-uuid`, harness.admin)).status).toBe(404);
   });
 
   it("pages the list ten reports at a time", async () => {

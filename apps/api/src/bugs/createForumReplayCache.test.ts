@@ -24,6 +24,15 @@ describe("createForumReplayCache", () => {
     expect(peak).toBe(1);
   });
 
+  it("refuses a new report while three renders are already waiting", async () => {
+    const render = vi.fn<(record: ReplayRecord) => Promise<Uint8Array>>(() => new Promise(() => {}));
+    const cache = createForumReplayCache(render);
+    for (const id of [1, 2, 3]) void cache(id, record);
+
+    await expect(cache(4, record)).rejects.toThrow(/busy/);
+    expect(cache(2, record)).toBeInstanceOf(Promise);
+  });
+
   it("retries a report whose render failed", async () => {
     const render = vi
       .fn<(record: ReplayRecord) => Promise<Uint8Array>>()

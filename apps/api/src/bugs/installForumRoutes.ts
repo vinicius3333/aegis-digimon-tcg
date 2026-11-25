@@ -11,6 +11,8 @@ import { parseId } from "#api/http/parseId";
 import { tokenBucketLimiter, type TokenBucketOptions } from "#api/http/rateLimit";
 import type { ReplayRecord } from "#api/replays/inputs/types";
 
+const ACCOUNT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export type ForumReplaySource = {
   load: (id: number) => Promise<ReplayRecord | undefined>;
   render: (id: number, record: ReplayRecord) => Promise<Uint8Array>;
@@ -170,7 +172,11 @@ export function installForumRoutes({ app, board, store, session, replays }: Foru
   app.delete(
     at("/:id/votes/:voterId"),
     onReport(
-      async (req, res, viewer, id) => reply(res, await store.removeVote(viewer, id, String(req.params.voterId))),
+      async (req, res, viewer, id) => {
+        const voterId = String(req.params.voterId);
+        if (!ACCOUNT_ID.test(voterId)) return reply(res, { error: "not_found" });
+        return reply(res, await store.removeVote(viewer, id, voterId));
+      },
       { admin: true },
     ),
   );
