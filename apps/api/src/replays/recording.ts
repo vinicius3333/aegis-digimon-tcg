@@ -10,7 +10,7 @@ import { decodeReplayFrames } from "@aegis/shared/replays/decodeReplayFrames";
 import type { EncodedReplayFrame } from "@aegis/shared/replays/EncodedReplayFrame";
 import {
   REPLAY_FORMAT_VERSION,
-  MAX_REPLAY_BYTES,
+  MAX_REPLAY_EXPANDED_BYTES,
   MAX_REPLAY_FRAMES,
   type CardInstance,
   type GameState,
@@ -21,7 +21,7 @@ import {
 } from "@aegis/shared";
 
 // Leave room for the file envelope and metadata in the expanded import budget.
-const MAX_RECORDING_BYTES = MAX_REPLAY_BYTES - 64 * 1024;
+const MAX_RECORDING_BYTES = MAX_REPLAY_EXPANDED_BYTES - 64 * 1024;
 const FRAME_COMPRESSION = { params: { [constants.ZSTD_c_compressionLevel]: 1 } };
 
 const UNRECORDED_STATE_FIELDS = new Set(["pendingDecision", "combatWindow"]);

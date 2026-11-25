@@ -13,7 +13,8 @@ import type { DigimonWorldAvatarId } from "./account/avatars.js";
 export const REPLAY_CHANNEL = "replay";
 export const REPLAY_FORMAT_VERSION = 2;
 export const FULL_FRAME_REPLAY_VERSION = 1;
-export const MAX_REPLAY_BYTES = 128 * 1024 * 1024;
+export const MAX_REPLAY_BYTES = 32 * 1024 * 1024;
+export const MAX_REPLAY_EXPANDED_BYTES = 128 * 1024 * 1024;
 export const MAX_REPLAY_FRAMES = 20_000;
 /** Default and largest page of `GET /account/replays`. */
 export const REPLAY_PAGE_SIZE = 20;

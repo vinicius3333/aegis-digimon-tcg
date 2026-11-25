@@ -349,7 +349,7 @@ const interfaceMessages = {
   "replay.error.invalid": "Diese Datei ist kein gültiges, vollständiges Aegis-Replay.",
   "replay.error.version": "Dieses Replay verwendet ein Format, das diese Aegis-Version nicht öffnen kann.",
   "replay.error.size":
-    "Wählen Sie ein nicht leeres Replay mit höchstens 128 MB, einschließlich des entpackten Inhalts.",
+    "Wählen Sie eine nicht leere Replay-Datei mit höchstens 32 MB und höchstens 128 MB entpacktem Inhalt.",
   "replay.play": "Abspielen",
   "replay.pause": "Pause",
   "replay.previous": "Vorherige Aktion",

@@ -2,6 +2,7 @@ import { SPECTATOR_REPLAY_SEAT } from "@aegis/shared/replays/spectatorReplaySeat
 import {
   FULL_FRAME_REPLAY_VERSION,
   MAX_REPLAY_BYTES,
+  MAX_REPLAY_EXPANDED_BYTES,
   REPLAY_FORMAT_VERSION,
   type MatchReplay,
   type ReplayDownloadMessage,
@@ -59,7 +60,7 @@ export async function readReplay(file: Blob): Promise<MatchReplay> {
         const { done, value } = await reader.read();
         if (done) break;
         length += value.byteLength;
-        if (length > MAX_REPLAY_BYTES) throw new ReplayFileError("size");
+        if (length > MAX_REPLAY_EXPANDED_BYTES) throw new ReplayFileError("size");
         parts.push(decoder.decode(value, { stream: true }));
       }
       parts.push(decoder.decode());

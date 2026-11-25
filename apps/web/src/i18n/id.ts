@@ -343,7 +343,7 @@ const interfaceMessages = {
   "replay.loading": "Membuka replay…",
   "replay.error.invalid": "File ini bukan replay Aegis yang valid dan lengkap.",
   "replay.error.version": "Replay ini menggunakan format yang tidak dapat dibuka oleh versi Aegis ini.",
-  "replay.error.size": "Pilih replay yang tidak kosong hingga 128 MB, termasuk kontennya yang diperluas.",
+  "replay.error.size": "Pilih file replay yang tidak kosong hingga 32 MB, dengan konten yang diperluas hingga 128 MB.",
   "replay.play": "Main",
   "replay.pause": "Jeda",
   "replay.previous": "Aksi sebelumnya",

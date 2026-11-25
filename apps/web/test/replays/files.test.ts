@@ -1,6 +1,6 @@
 import { gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
-import { MAX_REPLAY_BYTES } from "@aegis/shared";
+import { MAX_REPLAY_EXPANDED_BYTES } from "@aegis/shared";
 import { encodeReplayFrames } from "@aegis/shared/replays/encodeReplayFrames";
 import { replayFixture } from "./fixture";
 import { readReplay } from "../../src/replays/files";
@@ -103,7 +103,7 @@ describe("portable replay files", () => {
   });
 
   it("limits gzip expansion so a small compressed file cannot allocate unlimited memory", async () => {
-    const bomb = gzipSync(" ".repeat(MAX_REPLAY_BYTES + 1));
+    const bomb = gzipSync(" ".repeat(MAX_REPLAY_EXPANDED_BYTES + 1));
     await expect(readReplay(new Blob([bomb]))).rejects.toMatchObject({ code: "size" });
   });
   it("seeks across turn changes and hides a hand without mutating the recording", () => {
