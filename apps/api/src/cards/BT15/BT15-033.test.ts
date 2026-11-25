@@ -23,37 +23,40 @@ describe("BT15-033", () => {
   it.each([
     [true, true],
     [false, false],
-  ])("trashes the top security card to prevent its own battle deletion when accepted (%s)", async (accept, survives) => {
-    const s = attackHost({
-      0: {
-        battleArea: [{ card: "BT15-033", as: "host", suspended: true }],
-        security: [
-          { card: "BT1-009", as: "topSecurity" },
-          { card: "BT1-010", as: "bottomSecurity" },
-        ],
-      },
-    });
-    await s.ready();
-    const hostId = s.perm("host").permanentId;
+  ])(
+    "trashes the top security card to prevent its own battle deletion when accepted (%s)",
+    async (accept, survives) => {
+      const s = attackHost({
+        0: {
+          battleArea: [{ card: "BT15-033", as: "host", suspended: true }],
+          security: [
+            { card: "BT1-009", as: "topSecurity" },
+            { card: "BT1-010", as: "bottomSecurity" },
+          ],
+        },
+      });
+      await s.ready();
+      const hostId = s.perm("host").permanentId;
 
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: hostId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
-    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept })).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking());
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "permanent", permanentId: hostId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+      expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept })).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId)).toBe(survives);
-    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual(
-      survives
-        ? [s.inst("bottomSecurity").instanceId]
-        : [s.inst("topSecurity").instanceId, s.inst("bottomSecurity").instanceId],
-    );
-  });
+      expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId)).toBe(survives);
+      expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual(
+        survives
+          ? [s.inst("bottomSecurity").instanceId]
+          : [s.inst("topSecurity").instanceId, s.inst("bottomSecurity").instanceId],
+      );
+    },
+  );
 
   it("cannot prevent battle deletion with an empty security stack", async () => {
     const s = attackHost({ 0: { battleArea: [{ card: "BT15-033", as: "host", suspended: true }] } });
