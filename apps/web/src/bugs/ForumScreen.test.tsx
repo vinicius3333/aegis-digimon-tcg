@@ -2,6 +2,7 @@
 import type { ForumDetail, ForumItem } from "@aegis/shared/feedback/Forum";
 import type { ForumBoard } from "@aegis/shared/feedback/ForumBoard";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/i18n";
 import { ForumScreen } from "@/bugs/ForumScreen";
@@ -56,6 +57,24 @@ function show(props: { signedIn?: boolean; reportId?: number; board?: ForumBoard
   return callbacks;
 }
 
+function ForumWithRoutes() {
+  const [reportId, setReportId] = useState<number>();
+  vi.spyOn(window.history, "back").mockImplementation(() => setReportId(undefined));
+  return (
+    <I18nProvider>
+      <ForumScreen
+        board="bugs"
+        signedIn
+        reportId={reportId}
+        metaAvailable={false}
+        onSectionChange={vi.fn<() => void>()}
+        onSignIn={vi.fn<() => void>()}
+        onOpen={(id) => setReportId(id)}
+      />
+    </I18nProvider>
+  );
+}
+
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
@@ -76,6 +95,17 @@ describe("ForumScreen", () => {
     expect(onOpen).toHaveBeenCalledWith(7);
     expect(await screen.findByText("5")).toBeTruthy();
     expect(screen.getByText("Vote")).toBeTruthy();
+  });
+
+  it("goes back to the same tab after opening a thread from the list", async () => {
+    mockApi((url) => (url.includes("/feedback/bugs/7") ? [200, detail] : [200, page([item])]));
+    render(<ForumWithRoutes />);
+    fireEvent.click(await screen.findByRole("button", { name: "Decided" }));
+    fireEvent.click(await screen.findByRole("link", { name: "Dianamon skips the DNA prompt" }));
+    fireEvent.click(await screen.findByRole("button", { name: "All bug reports" }));
+
+    expect(window.history.back).toHaveBeenCalledOnce();
+    expect(await screen.findByRole("button", { name: "Decided", pressed: true })).toBeTruthy();
   });
 
   it("pages through more than ten reports", async () => {
@@ -111,6 +141,20 @@ describe("ForumScreen", () => {
       verdict: "yes",
       reason: "The card says may, so it must ask.",
     });
+  });
+
+  it("moves between the verdicts with the arrow keys and keeps one tab stop", async () => {
+    mockApi(() => [200, detail]);
+    show({ reportId: 7 });
+    const bug = await screen.findByRole("radio", { name: /^Bug/ });
+    const notBug = screen.getByRole("radio", { name: /^Not a bug/ });
+    expect([bug.tabIndex, notBug.tabIndex]).toEqual([0, -1]);
+
+    fireEvent.keyDown(bug, { key: "ArrowRight" });
+
+    expect(notBug.getAttribute("aria-checked")).toBe("true");
+    expect(document.activeElement).toBe(notBug);
+    expect([bug.tabIndex, notBug.tabIndex]).toEqual([-1, 0]);
   });
 
   it("shows the decision, the split and everyone's reasons once a report is closed", async () => {
@@ -174,6 +218,17 @@ describe("ForumScreen", () => {
     expect(await screen.findByRole("button", { name: "Upvote Deck folders (4 upvotes)", pressed: true })).toBeTruthy();
     expect(screen.queryByText("Aegis coins")).toBeNull();
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/feedback/ideas/7/vote"))).toBe(true);
+  });
+
+  it("says why an upvote failed instead of doing nothing", async () => {
+    const idea = { ...item, summary: "Deck folders", upvotes: 3 };
+    mockApi((url, init) =>
+      url.endsWith("/7/vote") && init?.method === "PUT" ? [429, { error: "too_many_requests" }] : [200, page([idea])],
+    );
+    show({ board: "ideas" });
+    fireEvent.click(await screen.findByRole("button", { name: "Upvote Deck folders (3 upvotes)" }));
+
+    expect((await screen.findByRole("alert")).textContent).toBe("Could not save. Try again.");
   });
 
   it("shows an upvote panel instead of a verdict on an idea", async () => {

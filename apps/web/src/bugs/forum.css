@@ -72,8 +72,6 @@
   line-height: 1;
 }
 
-/* ---- Board ---- */
-
 .forum {
   display: grid;
   min-width: 0;
@@ -291,6 +289,12 @@
     color 120ms ease;
 }
 
+.forum-upvote__error {
+  max-width: 14rem;
+  color: var(--ds-danger);
+  font-size: 12px;
+  line-height: 1.3;
+}
 .forum-upvote b {
   font-family: var(--ds-font-mono);
   font-variant-numeric: tabular-nums;
@@ -419,8 +423,6 @@
   font: 500 12px / 1 var(--ds-font-mono);
 }
 
-/* ---- Thread ---- */
-
 .forum-thread {
   display: grid;
   min-width: 0;
@@ -533,8 +535,6 @@
   display: grid;
   gap: var(--ds-space-5);
 }
-
-/* ---- Vote ---- */
 
 .forum-vote {
   display: grid;
@@ -690,8 +690,6 @@
   gap: var(--ds-space-2);
 }
 
-/* ---- Result ---- */
-
 .forum-result {
   display: grid;
   gap: var(--ds-space-3);
@@ -809,8 +807,6 @@
   background: var(--ds-success);
 }
 
-/* ---- Discussion ---- */
-
 .forum-comments {
   display: grid;
   margin: 0;
@@ -864,8 +860,6 @@
   padding-top: var(--ds-space-3);
   border-top: 1px solid var(--ds-line);
 }
-
-/* ---- Home ---- */
 
 .home-bug-forum__body {
   display: grid;

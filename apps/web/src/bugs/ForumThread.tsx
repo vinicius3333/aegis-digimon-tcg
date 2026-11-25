@@ -210,7 +210,7 @@ function ForumVotePanel({
         }}
       >
         <div className="forum-vote__options" role="radiogroup" aria-labelledby={`${fieldId}-title`}>
-          {FORUM_VERDICTS.map((option) => {
+          {FORUM_VERDICTS.map((option, index) => {
             const Icon = VERDICT_ICON[option];
             return (
               <button
@@ -218,9 +218,24 @@ function ForumVotePanel({
                 type="button"
                 role="radio"
                 aria-checked={verdict === option}
+                tabIndex={verdict === option || (verdict === undefined && index === 0) ? 0 : -1}
                 className="forum-vote__option"
                 data-verdict={option}
                 onClick={() => setVerdict(option)}
+                onKeyDown={(event) => {
+                  const step = ["ArrowRight", "ArrowDown"].includes(event.key)
+                    ? 1
+                    : ["ArrowLeft", "ArrowUp"].includes(event.key)
+                      ? -1
+                      : 0;
+                  if (step === 0) return;
+                  event.preventDefault();
+                  const target = (index + step + FORUM_VERDICTS.length) % FORUM_VERDICTS.length;
+                  setVerdict(FORUM_VERDICTS[target]);
+                  const radios =
+                    event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="radio"]');
+                  radios?.[target]?.focus();
+                }}
               >
                 <span className="forum-vote__icon" aria-hidden="true">
                   <Icon size={18} />

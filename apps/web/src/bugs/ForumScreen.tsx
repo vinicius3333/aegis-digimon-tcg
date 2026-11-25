@@ -1,6 +1,6 @@
 import { ForumState, type ForumItem, type ForumPage } from "@aegis/shared/feedback/Forum";
 import { ForumBoard } from "@aegis/shared/feedback/ForumBoard";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CommunityPage } from "@/community/CommunityPage";
 import { CommunitySection } from "@/community/CommunitySection";
 import { Icons } from "@/design/icons";
@@ -35,6 +35,8 @@ export function ForumScreen({
   const { t } = useTranslation();
   const api = useMemo(() => forumApi(board), [board]);
   const [coins, setCoins] = useState<number | null>(null);
+  const [views, setViews] = useState<Partial<Record<ForumBoard, ForumListView>>>({});
+  const openedFromList = useRef(false);
 
   useEffect(() => {
     if (!signedIn) return;
@@ -64,9 +66,31 @@ export function ForumScreen({
           </Alert>
         </div>
       ) : reportId === undefined ? (
-        <ForumList key={board} api={api} board={board} onOpen={onOpen} />
+        <ForumList
+          key={board}
+          api={api}
+          board={board}
+          view={views[board] ?? DEFAULT_LIST_VIEW}
+          onViewChange={(view) => setViews((current) => ({ ...current, [board]: view }))}
+          onOpen={(id) => {
+            openedFromList.current = true;
+            onOpen(id);
+          }}
+        />
       ) : (
-        <ForumThread key={`${board}-${reportId}`} board={board} reportId={reportId} onBack={() => onOpen()} />
+        <ForumThread
+          key={`${board}-${reportId}`}
+          board={board}
+          reportId={reportId}
+          onBack={() => {
+            if (openedFromList.current) {
+              openedFromList.current = false;
+              window.history.back();
+              return;
+            }
+            onOpen();
+          }}
+        />
       )}
     </CommunityPage>
   );
@@ -85,11 +109,23 @@ function ForumIntro({ board }: { board: ForumBoard }) {
   );
 }
 
-function ForumList({ api, board, onOpen }: { api: ForumApi; board: ForumBoard; onOpen: (id: number) => void }) {
+type ForumListView = { state: ForumState; page: number };
+
+const DEFAULT_LIST_VIEW: ForumListView = { state: ForumState.OPEN.value, page: 1 };
+
+type ForumListParams = {
+  api: ForumApi;
+  board: ForumBoard;
+  view: ForumListView;
+  onViewChange: (view: ForumListView) => void;
+  onOpen: (id: number) => void;
+};
+
+function ForumList({ api, board, view, onViewChange, onOpen }: ForumListParams) {
   const { t } = useTranslation();
   const copy = getForumCopyPrefix(board);
-  const [state, setState] = useState<ForumState>(ForumState.OPEN.value);
-  const [page, setPage] = useState(1);
+  const { state, page } = view;
+  const setPage = (next: number) => onViewChange({ state, page: next });
   const [data, setData] = useState<ForumPage>();
   const [failed, setFailed] = useState(false);
 
@@ -118,8 +154,7 @@ function ForumList({ api, board, onOpen }: { api: ForumApi; board: ForumBoard; o
             type="button"
             aria-pressed={state === value}
             onClick={() => {
-              setState(value);
-              setPage(1);
+              onViewChange({ state: value, page: 1 });
               setData(undefined);
             }}
           >
