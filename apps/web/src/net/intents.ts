@@ -32,6 +32,8 @@ export const intents = {
   appFusion: (room: AegisRoom, permanentId: string, instanceId: string, linkedInstanceId: string) =>
     sendIntent(room, { type: "appFusion", permanentId, instanceId, linkedInstanceId }),
   hatchEgg: (room: AegisRoom) => sendIntent(room, { type: "hatchEgg" }),
+  showNothingToDoPrompts: (room: AegisRoom, show: boolean) =>
+    sendIntent(room, { type: "showNothingToDoPrompts", show }),
   moveFromBreeding: (room: AegisRoom, permanentId: string) =>
     sendIntent(room, { type: "moveFromBreeding", permanentId }),
   activateEffect: (room: AegisRoom, sourceInstanceId: string, effectKey: string) =>

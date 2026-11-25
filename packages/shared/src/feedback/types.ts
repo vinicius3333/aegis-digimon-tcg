@@ -50,6 +50,7 @@ export type OwnFeedbackPage = {
   items: OwnFeedbackReport[];
   nextBefore: number | null;
   confirmedBugs: number;
+  aegisCoins: number;
 };
 
 export type FeedbackTriageUpdate = {

@@ -11,6 +11,7 @@ describe("MirageGaogamon and Full Moon Blaster", () => {
     ["BT1-038", false, 4],
     ["BT5-068", true, 3],
     ["ST24-10", true, 3],
+    ["BT10-064", false, 4],
   ] as const)("digivolves from %s using alternate %s and cost %i", async (base, alternate, cost) => {
     const s = setupEngine(
       {

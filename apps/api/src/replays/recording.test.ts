@@ -11,8 +11,15 @@ import {
   type SequencedServerEvent,
 } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { decodeReplayFrames } from "@aegis/shared/replays/decodeReplayFrames";
+import { MAX_REPLAY_FRAMES } from "@aegis/shared/replays";
 import { projectReplay, recordingState, ReplayRecording } from "./recording.js";
 import { replayDownload } from "./download.js";
+
+function readFile(json: string): MatchReplay {
+  const replay = JSON.parse(json) as MatchReplay;
+  return { ...replay, frames: decodeReplayFrames(replay.frames) };
+}
 
 function card(id: string, ownerSeat: 0 | 1, faceUp = true): CardInstance {
   return Object.assign(new CardInstance(), {
@@ -93,7 +100,7 @@ describe("portable participant replay", () => {
     const read = (index: number): MatchReplay => {
       const file = files[index]!;
       if (file.kind !== "ready") throw new Error("Replay should be ready");
-      return JSON.parse(gunzipSync(Buffer.from(file.data, "base64")).toString());
+      return readFile(gunzipSync(Buffer.from(file.data, "base64")).toString());
     };
     for (const seat of [0, 1] as const) {
       const replay = read(seat);
@@ -115,7 +122,7 @@ describe("portable participant replay", () => {
     for (const seat of [0, 1] as const) {
       const file = recording.participantFile("ranked", seat, 200)!;
       const expected = projectReplay(recording.complete("ranked", 200)!, seat);
-      expect(JSON.parse(file.json)).toEqual(expected);
+      expect(readFile(file.json)).toEqual(expected);
       const {
         frames: _frames,
         visibleHandSeats: _hands,
@@ -181,7 +188,7 @@ describe("portable participant replay", () => {
   it("drops an over-limit recording rather than returning a partial replay", () => {
     const recording = new ReplayRecording();
     const game = state();
-    for (let index = 0; index <= 5000; index++) {
+    for (let index = 0; index <= MAX_REPLAY_FRAMES; index++) {
       game.stateVersion++;
       recording.capture(game, [], index);
     }
@@ -199,7 +206,7 @@ describe("neutral spectator replay export", () => {
     const file = recording.spectatorFile({ mode: "casual", hiddenIdentities: [true, false], finishedAt: 200 })!;
     const message = await replayDownload(file, -1);
     expect(message).toMatchObject({ kind: "ready", viewerSeat: -1 });
-    const replay = JSON.parse(file.json) as MatchReplay;
+    const replay = readFile(file.json);
     expect(replay.visibleHandSeats).toEqual([]);
     expect(replay.players).toEqual(["Player 1", "Player 1"]);
     for (const frame of replay.frames) {
@@ -235,7 +242,7 @@ describe("spectator replay hands", () => {
       decks: [null, deck],
       finishedAt: 200,
     })!;
-    const replay = JSON.parse(file.json) as MatchReplay;
+    const replay = readFile(file.json);
     expect(replay.viewerSeat).toBe(-1);
     expect(replay.visibleHandSeats).toEqual([1]);
     for (const frame of replay.frames) {
@@ -254,7 +261,7 @@ describe("spectator replay hands", () => {
       decks: [deck, deck],
       finishedAt: 200,
     })!;
-    const replay = JSON.parse(file.json) as MatchReplay;
+    const replay = readFile(file.json);
     expect(replay.visibleHandSeats).toEqual([0]);
     expect(replay.frames.every((frame) => frame.state.players[1]!.hand.length === 0)).toBe(true);
     expect(replay.frames[0]!.state.players[0]!.hand).toHaveLength(1);

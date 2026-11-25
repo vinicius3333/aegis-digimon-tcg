@@ -8,6 +8,8 @@ import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import { GameScreen } from "./GameScreen";
 import { SECURITY_BREAK_TOTAL_MS, SECURITY_DESTROY_TOTAL_MS } from "./timings";
 
+vi.mock("@/game/screen/hooks/useNothingToDoPrompts", () => ({ useNothingToDoPrompts: () => undefined }));
+
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
