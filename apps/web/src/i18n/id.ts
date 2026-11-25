@@ -1,3 +1,5 @@
+import { ideaForumId } from "@/i18n/ideaForum.id";
+import { bugForumId } from "@/i18n/bugForum.id";
 import { deckMatchupId } from "@/i18n/deckMatchup.id";
 import { deckOddsId } from "@/i18n/deckOdds.id";
 import { chatActionsId } from "@/i18n/chatActions.id";
@@ -341,7 +343,7 @@ const interfaceMessages = {
   "replay.loading": "Membuka replay…",
   "replay.error.invalid": "File ini bukan replay Aegis yang valid dan lengkap.",
   "replay.error.version": "Replay ini menggunakan format yang tidak dapat dibuka oleh versi Aegis ini.",
-  "replay.error.size": "Pilih replay yang tidak kosong hingga 32 MB, termasuk kontennya yang diperluas.",
+  "replay.error.size": "Pilih file replay yang tidak kosong hingga 32 MB, dengan konten yang diperluas hingga 128 MB.",
   "replay.play": "Main",
   "replay.pause": "Jeda",
   "replay.previous": "Aksi sebelumnya",
@@ -349,9 +351,6 @@ const interfaceMessages = {
   "replay.start": "Ke awal",
   "replay.end": "Ke akhir",
   "replay.speed": "Kecepatan pemutaran",
-  "replay.move": "Pindahkan kontrol pemutaran",
-  "replay.moveHint":
-    "Seret untuk memindahkan. Gunakan tombol panah, Shift untuk langkah lebih besar, dan Home untuk mengatur ulang.",
   "replay.position": "Posisi replay",
   "replay.turn": "Giliran",
   "replay.action": "Aksi {current} dari {total}",
@@ -577,14 +576,15 @@ const interfaceMessages = {
     "Masukan Anda disimpan. Masuk terlebih dahulu jika ingin mengikutinya dan mendapat balasan.",
   "feedback.triage.confirmedBug": "Bug yang dikonfirmasi",
   "feedback.triage.confirmedBugBadge": "Bug yang dikonfirmasi",
-  "feedback.triage.confirmedBugHint": "{name} mendapat 1 poin. Mereka memiliki {count} sekarang.",
-  "feedback.triage.confirmedBugAnonymous": "Laporan anonim: tidak ada yang mendapat poin.",
-  "feedback.triage.confirmedBugDuplicate": "Duplikat tidak mendapat poin; poin tetap pada laporan asli.",
+  "feedback.triage.confirmedBugHint": "{name} mendapat 1 koin Aegis. Bug yang dikonfirmasi sejauh ini: {count}.",
+  "feedback.triage.confirmedBugAnonymous": "Laporan anonim: tidak ada yang mendapat koin Aegis.",
+  "feedback.triage.confirmedBugDuplicate": "Duplikat tidak mendapat koin Aegis; koin tetap pada laporan asli.",
   "feedback.triage.reporterPoints": "{count} bug yang dikonfirmasi",
   "feedback.reportedDecks.title": "Deck komunitas yang dilaporkan ({count})",
   "feedback.reportedDecks.reports": "{count} laporan",
   "myFeedback.points": "Bug yang dikonfirmasi: {count}",
-  "myFeedback.pointsHint": "Setiap laporan yang dikonfirmasi oleh tim sebagai bug nyata memberi Anda 1 poin.",
+  "myFeedback.pointsHint":
+    "Setiap laporan yang dikonfirmasi tim sebagai bug nyata memberi Anda 1 koin Aegis. Anda juga bisa mendapat koin di forum bug.",
   "myFeedback.confirmedBug": "Bug yang dikonfirmasi",
   "notifications.feedback.confirmed": "Laporan Anda “{summary}” dikonfirmasi sebagai bug",
   "notifications.bugConfirmedPoint": "Dikonfirmasi sebagai bug · +1 poin",
@@ -628,6 +628,9 @@ const interfaceMessages = {
   "settings.autoHatch": "Hatch otomatis",
   "settings.autoHatchDesc":
     "Otomatis hatch Digi-Egg saat breeding phase jika breeding area kosong. Disimpan ke akun Anda.",
+  "settings.skipNothingToDo": "Lewati efek yang tidak bisa melakukan apa pun",
+  "settings.skipNothingToDoDesc":
+    "Tolak otomatis “Anda boleh” dari efek terpicu saat tidak ada target atau hasil yang sah. Matikan untuk melihat setiap prompt. Disimpan ke akun Anda.",
   "settings.handAutoSort": "Jaga tangan tetap terurut",
   "settings.handAutoSortDesc":
     "Urutkan ulang tangan Anda sesuai urutan yang dipilih di tombol urutkan tangan setiap kali ada kartu masuk atau keluar. Kartu yang Anda seret tetap di tempatnya sampai isi tangan berubah.",
@@ -3059,6 +3062,8 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
+  ...bugForumId,
+  ...ideaForumId,
 } satisfies Record<keyof typeof en, string>;
 
 export const id: Record<keyof typeof en, string> = {

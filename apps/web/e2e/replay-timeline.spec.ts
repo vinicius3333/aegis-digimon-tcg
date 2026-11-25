@@ -26,7 +26,7 @@ for (const width of [320, 1440]) {
       const security = page.getByRole("button", { name: "Go to action 3", exact: true });
       await expect(security).toBeFocused();
       await expect(page.locator(".replay-timeline__event > span")).toHaveText(
-        "Turn 2 · Combat resolved. Agumon deleted",
+        "Turn 2 · Combat resolved. Agumon (BT1-010) #agumon deleted",
       );
       await security.click();
       await expect(position).toHaveValue("2");
@@ -41,19 +41,12 @@ for (const width of [320, 1440]) {
       await page.keyboard.press("Escape");
       await expect(security).toHaveCount(0);
       await expect(marker).toBeFocused();
-      const move = page.getByRole("button", { name: "Move playback controls", exact: true });
-      await move.focus();
-      for (let step = 0; step < 20; step++) {
-        await page.keyboard.press("Shift+ArrowUp");
-      }
       await marker.click();
       await expect(security).toBeVisible();
       const eventBounds = await security.boundingBox();
       expect(eventBounds!.y).toBeGreaterThanOrEqual(0);
       expect(eventBounds!.y + eventBounds!.height).toBeLessThanOrEqual(900);
       await page.keyboard.press("Escape");
-      await move.focus();
-      await page.keyboard.press("Home");
       await turn.click();
       await expect(position).toHaveValue("0");
       await expect(turn).toHaveAttribute("aria-current", "step");

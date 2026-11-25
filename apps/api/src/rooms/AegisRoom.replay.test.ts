@@ -4,11 +4,13 @@ import { buildDeckCompositionKey } from "#api/accounts/buildDeckCompositionKey";
 import { gunzipSync } from "node:zlib";
 import { CloseCode, type Client } from "colyseus";
 import { REPLAY_CHANNEL, type MatchReplay, type ReplayDownloadMessage } from "@aegis/shared";
+import { decodeReplayFrames } from "@aegis/shared/replays/decodeReplayFrames";
 import type { AccountStore } from "../accounts/AccountStore.js";
 import type { ReplayLibrary } from "../replays/ReplayLibrary.js";
 import type { SeriesRecord } from "./series/SeriesDirectory.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AegisRoom } from "./AegisRoom.js";
+import { addLogSink } from "../logger.js";
 import { RED_DECK, BLUE_DECK } from "../engine/testDecks.js";
 
 const rooms: AegisRoom[] = [];
@@ -58,7 +60,8 @@ function replayOf(client: Client): MatchReplay | undefined {
     | ReplayDownloadMessage
     | undefined;
   if (message?.kind !== "ready") return undefined;
-  return JSON.parse(gunzipSync(Buffer.from(message.data, "base64")).toString());
+  const file = JSON.parse(gunzipSync(Buffer.from(message.data, "base64")).toString()) as MatchReplay;
+  return { ...file, frames: decodeReplayFrames(file.frames) };
 }
 
 describe("room replay delivery", () => {
@@ -120,7 +123,8 @@ describe("room replay delivery", () => {
     expect(owner).toBe("trusted-owner");
     expect(exported).toMatchObject({ kind: "ready", viewerSeat: 0 });
     expect(context).toEqual({ format: room.state.format, playerAccountIds: [null, null] });
-    expect(JSON.parse(gunzipSync(Buffer.from(exported.data, "base64")).toString())).toEqual(replayOf(signedIn));
+    const exportedFile = JSON.parse(gunzipSync(Buffer.from(exported.data, "base64")).toString()) as MatchReplay;
+    expect({ ...exportedFile, frames: decodeReplayFrames(exportedFile.frames) }).toEqual(replayOf(signedIn));
     Reflect.get(room, "sendReplayDownload").call(room, signedIn);
     await vi.waitFor(() =>
       expect(vi.mocked(signedIn.send).mock.calls.filter(([channel]) => channel === REPLAY_CHANNEL)).toHaveLength(2),
@@ -372,5 +376,36 @@ describe("spectator replay saving", () => {
     await vi.waitFor(() =>
       expect(spectator.send).toHaveBeenCalledWith(REPLAY_CHANNEL, { kind: "unavailable", reason: "recording_limit" }),
     );
+  });
+});
+
+describe("replay limit alert", () => {
+  it("logs one alert error with the match when its recording passes the replay limit", async () => {
+    const { room, players, send } = await start();
+    const lines: string[] = [];
+    const stop = addLogSink((line) => lines.push(line));
+    Reflect.set(room, "replayRecording", {
+      exceededLimit: true,
+      frameCount: 0,
+      capture: () => {},
+      participantFile: () => undefined,
+      spectatorFile: () => undefined,
+    });
+    try {
+      send(players[1]!, "surrender");
+      await vi.waitFor(() =>
+        expect(vi.mocked(players[0]!.send)).toHaveBeenCalledWith(REPLAY_CHANNEL, {
+          kind: "unavailable",
+          reason: "recording_limit",
+        }),
+      );
+    } finally {
+      stop();
+    }
+
+    const alerts = lines.filter((line) => line.includes("recording passed the replay limit"));
+    expect(alerts).toHaveLength(1);
+    expect(JSON.parse(alerts[0]!)).toMatchObject({ level: "ERROR", matchId: room.state.matchLogId });
+    expect(alerts[0]).toContain(`[replays] match ${room.state.matchLogId} recording passed the replay limit`);
   });
 });

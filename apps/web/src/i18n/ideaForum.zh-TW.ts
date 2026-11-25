@@ -1,0 +1,15 @@
+export const ideaForumZhTW = {
+  "ideaForum.tab": "創意",
+  "ideaForum.title": "創意板",
+  "ideaForum.subtitle": "為你最想要的想法按讚，並討論如何改進。團隊會根據按讚數決定要做什麼。",
+  "ideaForum.empty.open": "目前沒有進行中的創意。",
+  "ideaForum.empty.decided": "還沒有已決定的創意。",
+  "ideaForum.missing": "這個創意不存在或未公開。",
+  "ideaForum.back": "所有創意",
+  "ideaForum.commentPlaceholder": "改進創意的方法、範例或顧慮。",
+  "ideaForum.upvote": "按讚",
+  "ideaForum.upvoted": "已按讚",
+  "ideaForum.upvoteLabel": "為 {title} 按讚（{count} 個讚）",
+  "ideaForum.upvoteTitle": "想要這個嗎？",
+  "ideaForum.upvoteHint": "為你最想要的想法按讚。你可以隨時收回按讚。",
+} as const;

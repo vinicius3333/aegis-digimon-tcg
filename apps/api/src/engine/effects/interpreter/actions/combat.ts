@@ -168,14 +168,7 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
         // filtering for own/unspecified attack subjects.
         const preserveUnaffectableSelection =
           attackSubject.filter?.controller === "opponent" || attackSubject.filter?.controllerDefault === "opponent";
-        const canForceAttack = ctx.fx.canForceAttack;
-        const offersOnlyReadyAttackers =
-          action.optional === true && !preserveUnaffectableSelection && canForceAttack !== undefined;
-        const ids = await resolvePermanentTargets(ctx, attackSubject, {
-          preserveUnaffectableSelection,
-          eligible: offersOnlyReadyAttackers ? (permanentId) => canForceAttack(permanentId, opts) : undefined,
-          askWhenEligibilityNarrows: offersOnlyReadyAttackers,
-        });
+        const ids = await resolvePermanentTargets(ctx, attackSubject, { preserveUnaffectableSelection });
         for (const id of ids) await ctx.fx.forceAttack(id, opts);
         await fireDeferredSuspensionTriggers();
       });

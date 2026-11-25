@@ -8,6 +8,7 @@ import { useTranslation } from "@/i18n/useTranslation";
 import { BugReportApiError, ownFeedbackApi } from "@/bugs/client";
 import { FEEDBACK_PROGRESS_STEPS, FEEDBACK_STATUS_TONE } from "@/bugs/feedbackStatus";
 import { progressStep } from "@/bugs/progressStep";
+import { AegisCoinBalance } from "@/bugs/AegisCoinBalance";
 import "@/bugs/myFeedback.css";
 
 export function MyFeedbackPanel({
@@ -57,6 +58,7 @@ function OwnFeedbackList({ focusId }: { focusId?: number }) {
   const [failed, setFailed] = useState(false);
   const [expanded, setExpanded] = useState<ReadonlySet<number>>(new Set());
   const [confirmedBugs, setConfirmedBugs] = useState(0);
+  const [coins, setCoins] = useState<number>();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -66,6 +68,7 @@ function OwnFeedbackList({ focusId }: { focusId?: number }) {
         setItems((current) => merge(page.items, current ?? []));
         setNextBefore(page.nextBefore);
         setConfirmedBugs(page.confirmedBugs);
+        setCoins(page.aegisCoins);
       })
       .catch(() => {
         if (!controller.signal.aborted) setFailed(true);
@@ -123,6 +126,7 @@ function OwnFeedbackList({ focusId }: { focusId?: number }) {
   return (
     <>
       <p className="my-feedback-points">
+        {coins === undefined ? null : <AegisCoinBalance coins={coins} />}
         <strong>{t("myFeedback.points", { count: confirmedBugs })}</strong>
         <span>{t("myFeedback.pointsHint")}</span>
       </p>

@@ -82,6 +82,7 @@ import {
   reorderedHandInstanceIds,
 } from "./screen/model/handEntries";
 import { useAutoHatch } from "./screen/hooks/useAutoHatch";
+import { useNothingToDoPrompts } from "./screen/hooks/useNothingToDoPrompts";
 import { useBotMatchStartDeadline } from "./screen/hooks/useBotMatchStartDeadline";
 import { clientErrorReporter } from "@/clientErrors/clientErrorReporter";
 import { ClientErrorKind } from "@aegis/shared/clientErrors/ClientErrorKind";
@@ -972,6 +973,11 @@ function GameScreenSession({
     permFacesRef,
     permCardIdsRef,
     opponentSecurityRef: oppSecRef,
+  });
+
+  useNothingToDoPrompts({
+    room,
+    ready: status === "connected" && viewerSeat !== undefined && !!state && bothSeated(state),
   });
 
   useAutoHatch({

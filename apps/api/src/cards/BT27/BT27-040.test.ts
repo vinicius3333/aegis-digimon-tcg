@@ -64,7 +64,7 @@ describe("Etemon", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("etemon").instanceId,
-        useAlternateCost: false,
+        useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === ETEMON);

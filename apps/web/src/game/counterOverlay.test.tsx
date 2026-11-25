@@ -22,6 +22,8 @@ import type { AegisRoom } from "../net/client";
 import { I18nContext } from "@/i18n/I18nContext";
 import { translator } from "@/i18n/translator";
 
+vi.mock("@/game/screen/hooks/useNothingToDoPrompts", () => ({ useNothingToDoPrompts: () => undefined }));
+
 it("localizes a plain Blast step that asks for its host on the board", () => {
   render(
     <I18nContext.Provider value={{ locale: "zh-CN", t: translator("zh-CN"), setLocale: () => undefined }}>

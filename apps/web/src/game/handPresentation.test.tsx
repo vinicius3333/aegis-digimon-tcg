@@ -22,6 +22,8 @@ import { HandSortDirection } from "@/game/HandSortDirection";
 import { setHandSortDirection } from "@/game/handSortDirectionPreference";
 import { TIMINGS } from "./timings";
 
+vi.mock("@/game/screen/hooks/useNothingToDoPrompts", () => ({ useNothingToDoPrompts: () => undefined }));
+
 beforeEach(() => {
   matchLogDisplayPreference.set(MatchLogDisplay.POPUPS.value);
 });

@@ -55,6 +55,7 @@ export const ENGINE_SNAPSHOT_FIELDS = new Set([
   "decisionApi",
   "resolverDecisions",
   "readySeats",
+  "nothingToDoPromptSeats",
   "pendingBlitzAttack",
   "crossedMemoryRushAttackers",
   "matchSetupStarted",

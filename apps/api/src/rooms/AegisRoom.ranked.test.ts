@@ -262,6 +262,24 @@ describe("ranked departure", () => {
     }
   });
 
+  it("still voids the pair when the leaver only sent the skip-effects preference", async () => {
+    const { room, clients, pairId } = await seatPair();
+    sendReady(room, clients);
+    await vi.waitFor(() => expect(room.state.rankedDeadlineAt).toBeGreaterThan(0));
+    const internals = room as unknown as { handleIntent(client: Client, intent: Intent): void };
+    internals.handleIntent(clients[1]!, { type: "showNothingToDoPrompts", show: true });
+
+    await leave(room, clients[1]!);
+
+    await vi.waitFor(async () => {
+      const pair = (
+        await accounts.pool.query<{ status: string }>("SELECT status FROM ranked_pairs WHERE id=$1", [pairId])
+      ).rows[0];
+      expect(pair?.status).toBe(RankedQueueStatus.VOID.value);
+    });
+    expect((await accounts.pool.query("SELECT 1 FROM ranked_ratings")).rowCount).toBe(0);
+  });
+
   it("voids the pair and frees both accounts when a player leaves while the ranked start is pending", async () => {
     const { room, clients, pairId, players } = await seatPair();
     sendReady(room, clients);

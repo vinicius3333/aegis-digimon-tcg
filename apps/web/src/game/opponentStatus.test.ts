@@ -15,6 +15,15 @@ function decision(seat: 0 | 1, kind: string): PendingDecision {
 }
 
 describe("opponentStatusKey", () => {
+  it("says nothing while a replay shows the opponent's open turn", () => {
+    const opponentTurn = stateWith((state) => {
+      state.turnSeat = 1;
+    });
+
+    expect(opponentStatusKey(opponentTurn, 0)).toBe("game.opponentIsThinking");
+    expect(opponentStatusKey(opponentTurn, 0, { replaying: true })).toBeNull();
+  });
+
   it("names the kind of the opponent's open decision", () => {
     const cases = {
       selectCards: "game.opponentIsSelecting",

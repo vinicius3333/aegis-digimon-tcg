@@ -1,3 +1,5 @@
+import { ideaForumFr } from "@/i18n/ideaForum.fr";
+import { bugForumFr } from "@/i18n/bugForum.fr";
 import { deckMatchupFr } from "@/i18n/deckMatchup.fr";
 import { deckOddsFr } from "@/i18n/deckOdds.fr";
 import { chatActionsFr } from "@/i18n/chatActions.fr";
@@ -345,7 +347,8 @@ const interfaceMessages = {
   "replay.loading": "Ouverture du replay…",
   "replay.error.invalid": "Ce fichier n'est pas un replay Aegis complet et valide.",
   "replay.error.version": "Ce replay utilise un format que cette version d'Aegis ne peut pas ouvrir.",
-  "replay.error.size": "Choisissez un replay non vide de 32 Mo maximum, contenu étendu compris.",
+  "replay.error.size":
+    "Choisissez un fichier de replay non vide de 32 Mo maximum, dont le contenu étendu ne dépasse pas 128 Mo.",
   "replay.play": "Jouer",
   "replay.pause": "Pause",
   "replay.previous": "Action précédente",
@@ -353,9 +356,6 @@ const interfaceMessages = {
   "replay.start": "Aller au début",
   "replay.end": "Aller à la fin",
   "replay.speed": "Vitesse de lecture",
-  "replay.move": "Déplacer les commandes de lecture",
-  "replay.moveHint":
-    "Faites glisser pour déplacer. Utilisez les flèches, Maj pour de plus grands déplacements et Début pour réinitialiser.",
   "replay.position": "Position dans le replay",
   "replay.turn": "Tour",
   "replay.action": "Action {current} sur {total}",
@@ -590,14 +590,16 @@ const interfaceMessages = {
     "Vos commentaires sont enregistrés. Connectez-vous d'abord si vous souhaitez les suivre et obtenir une réponse.",
   "feedback.triage.confirmedBug": "Bug confirmé",
   "feedback.triage.confirmedBugBadge": "Bug confirmé",
-  "feedback.triage.confirmedBugHint": "{name} gagne 1 point. Total actuel : {count}.",
-  "feedback.triage.confirmedBugAnonymous": "Rapport anonyme : personne ne gagne le point.",
-  "feedback.triage.confirmedBugDuplicate": "Les doublons ne rapportent aucun point ; il revient au rapport original.",
+  "feedback.triage.confirmedBugHint": "{name} gagne 1 pièce Aegis. Bugs confirmés à ce jour : {count}.",
+  "feedback.triage.confirmedBugAnonymous": "Rapport anonyme : personne ne gagne la pièce Aegis.",
+  "feedback.triage.confirmedBugDuplicate":
+    "Les doublons ne rapportent aucune pièce Aegis ; elle revient au rapport original.",
   "feedback.triage.reporterPoints": "{count} bugs confirmés",
   "feedback.reportedDecks.title": "Decks communautaires signalés ({count})",
   "feedback.reportedDecks.reports": "{count} rapports",
   "myFeedback.points": "Bugs confirmés : {count}",
-  "myFeedback.pointsHint": "Chaque signalement confirmé par l'équipe comme étant un bug réel vous rapporte 1 point.",
+  "myFeedback.pointsHint":
+    "Chaque signalement confirmé par l'équipe comme bug réel vous rapporte 1 pièce Aegis. Vous gagnez aussi des pièces dans le forum des bugs.",
   "myFeedback.confirmedBug": "Bug confirmé",
   "notifications.feedback.confirmed": "Votre rapport « {summary} » a été confirmé comme un bug",
   "notifications.bugConfirmedPoint": "Confirmé comme bug · +1 point",
@@ -641,6 +643,9 @@ const interfaceMessages = {
   "settings.autoHatch": "Éclosion automatique",
   "settings.autoHatchDesc":
     "Fait éclore automatiquement un Digi-Œuf pendant votre phase d'élevage lorsque la zone d'élevage est vide. Enregistré sur votre compte.",
+  "settings.skipNothingToDo": "Ignorer les effets sans action possible",
+  "settings.skipNothingToDoDesc":
+    "Refuse automatiquement le « vous pouvez » d'un effet déclenché quand il n'a aucune cible ni aucun résultat valide. Désactivez pour voir chaque demande. Enregistré sur votre compte.",
   "settings.handAutoSort": "Garder la main triée",
   "settings.handAutoSortDesc":
     "Trie à nouveau votre main dans l'ordre choisi sur le bouton de tri de la main chaque fois qu'une carte arrive ou part. Les cartes que vous déplacez restent en place jusqu'à ce que la main change.",
@@ -3107,6 +3112,8 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
+  ...bugForumFr,
+  ...ideaForumFr,
 } satisfies Record<keyof typeof en, string>;
 
 export const fr: Record<keyof typeof en, string> = {

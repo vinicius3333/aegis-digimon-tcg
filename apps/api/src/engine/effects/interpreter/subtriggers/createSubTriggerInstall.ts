@@ -31,7 +31,7 @@ import { candidatePermanents } from "#api/engine/effects/interpreter/targeting/p
 import { getCardDefinition } from "@aegis/shared/cards/registry";
 import { CardKind } from "@aegis/shared/schema/enums";
 import type { Action } from "@aegis/shared/effects/ir/actions/action";
-import { endsAttackOptionally } from "#api/engine/effects/interpreter/endsAttackOptionally";
+import { asksApartFromYesPreset } from "#api/engine/effects/interpreter/asksApartFromYesPreset";
 import type { Cost } from "@aegis/shared/effects/ir/predicates/costs";
 import type { Filter } from "@aegis/shared/effects/ir/filters/filter";
 import { findLooseCandidateByInstance } from "#api/engine/effects/interpreter/targeting/loose";
@@ -1419,10 +1419,11 @@ export function createSubTriggerInstall({
           const outerContinuation = subCtx.continueEffectAfterAttackDeclaration;
           const outerOptionalAnswer = subCtx.presetOptionalAnswer;
           if (
-            (outerOptionalAnswer === true &&
-              ((index > 0 && (current.kind === "Attack" || current.kind === "Battle") && current.optional === true) ||
-                (activationCostPaid && placesDeckTopOptionally(current)))) ||
-            (index > 0 && endsAttackOptionally(current))
+            outerOptionalAnswer === true &&
+            ((index > 0 &&
+              (((current.kind === "Attack" || current.kind === "Battle") && current.optional === true) ||
+                asksApartFromYesPreset(current))) ||
+              (activationCostPaid && placesDeckTopOptionally(current)))
           ) {
             subCtx.presetOptionalAnswer = undefined;
           }

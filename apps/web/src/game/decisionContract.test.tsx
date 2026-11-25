@@ -25,6 +25,7 @@ type DecisionOptionKey = keyof NonNullable<DecisionRequest["options"]>;
  */
 const OPTION_CONSUMERS: Record<DecisionOptionKey, string | null> = {
   canCancelActivation: "overlay/choice/DecisionOverlay.tsx",
+  nothingToDo: null,
   singleHandCostBenefit: null,
   selectionGoal: null,
   effectControllerSeat: null,
