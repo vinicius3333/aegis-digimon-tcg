@@ -39,6 +39,7 @@ type HomeParams = {
   onCreateTournament: () => void;
   onOpenBooster: () => void;
   onOpenBugForum: () => void;
+  onOpenBugReport: (reportId: number) => void;
   onEditDeck: (deck: DeckListing) => void;
   onPlayDeck: (deck: DeckListing) => void;
   onBuildDeck: () => void;
@@ -94,7 +95,12 @@ export function Home(params: HomeParams) {
               onChangeDeck={params.onChangeDeck}
               onOpenRanked={params.onOpenRanked}
             />
-            <HomeBugForumCard signedIn={signedIn} onOpen={params.onOpenBugForum} onSignIn={params.onSignIn} />
+            <HomeBugForumCard
+              signedIn={signedIn}
+              onOpen={params.onOpenBugForum}
+              onOpenReport={params.onOpenBugReport}
+              onSignIn={params.onSignIn}
+            />
             <HomeBoosterCard onOpen={params.onOpenBooster} />
             {params.accountId ? (
               <HomeAgendaCard

@@ -55,8 +55,6 @@ export const bugForumZhTW = {
   "bugForum.home.open": "開啟論壇",
   "bugForum.home.awaiting": "等待你投票的回報：{count} 份",
   "bugForum.home.caughtUp": "你已為所有進行中的回報投票。謝謝！",
-  "bugForum.home.voteNow": "立即投票",
-  "bugForum.home.browse": "查看回報",
   "bugForum.home.guest": "為 Bug 回報投票，團隊認同時即可獲得 Aegis 幣。",
   "bugForum.coinsHelpLabel": "什麼是 Aegis 幣？",
   "bugForum.coinsHelp": "Aegis 幣目前還沒有用途，未來會派上用場，請繼續賺取。",

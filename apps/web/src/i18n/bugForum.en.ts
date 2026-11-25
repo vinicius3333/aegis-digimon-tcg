@@ -55,8 +55,6 @@ export const bugForumEn = {
   "bugForum.home.open": "Open forum",
   "bugForum.home.awaiting": "Reports waiting for your vote: {count}",
   "bugForum.home.caughtUp": "You have voted on every open report. Thank you!",
-  "bugForum.home.voteNow": "Vote now",
-  "bugForum.home.browse": "See reports",
   "bugForum.home.guest": "Vote on bug reports and earn Aegis coins when the team agrees.",
   "bugForum.coinsHelpLabel": "What are Aegis coins?",
   "bugForum.coinsHelp": "Aegis coins have no use yet. They will be used in the future, so keep earning them.",

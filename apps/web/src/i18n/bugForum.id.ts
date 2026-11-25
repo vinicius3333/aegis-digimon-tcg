@@ -58,8 +58,6 @@ export const bugForumId = {
   "bugForum.home.open": "Buka forum",
   "bugForum.home.awaiting": "Laporan menunggu suara Anda: {count}",
   "bugForum.home.caughtUp": "Anda sudah memberi suara pada semua laporan terbuka. Terima kasih!",
-  "bugForum.home.voteNow": "Beri suara sekarang",
-  "bugForum.home.browse": "Lihat laporan",
   "bugForum.home.guest": "Beri suara pada laporan bug dan dapatkan koin Aegis saat tim setuju.",
   "bugForum.coinsHelpLabel": "Apa itu koin Aegis?",
   "bugForum.coinsHelp": "Koin Aegis belum bisa digunakan. Koin ini akan dipakai di masa depan, jadi terus kumpulkan.",

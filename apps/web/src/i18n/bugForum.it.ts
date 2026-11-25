@@ -57,8 +57,6 @@ export const bugForumIt = {
   "bugForum.home.open": "Apri il forum",
   "bugForum.home.awaiting": "Segnalazioni in attesa del tuo voto: {count}",
   "bugForum.home.caughtUp": "Hai votato tutte le segnalazioni aperte. Grazie!",
-  "bugForum.home.voteNow": "Vota ora",
-  "bugForum.home.browse": "Vedi segnalazioni",
   "bugForum.home.guest": "Vota le segnalazioni di bug e guadagna monete Aegis quando il team è d'accordo.",
   "bugForum.coinsHelpLabel": "Cosa sono le monete Aegis?",
   "bugForum.coinsHelp":

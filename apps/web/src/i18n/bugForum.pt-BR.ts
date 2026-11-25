@@ -56,8 +56,6 @@ export const bugForumPtBR = {
   "bugForum.home.open": "Abrir fórum",
   "bugForum.home.awaiting": "Relatórios aguardando seu voto: {count}",
   "bugForum.home.caughtUp": "Você votou em todos os relatórios abertos. Obrigado!",
-  "bugForum.home.voteNow": "Votar agora",
-  "bugForum.home.browse": "Ver relatórios",
   "bugForum.home.guest": "Vote em relatórios de bug e ganhe moedas Aegis quando a equipe concordar.",
   "bugForum.coinsHelpLabel": "O que são Aegis coins?",
   "bugForum.coinsHelp": "As Aegis coins ainda não têm uso. Elas serão usadas no futuro, então continue ganhando.",

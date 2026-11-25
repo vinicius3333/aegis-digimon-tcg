@@ -59,8 +59,6 @@ export const bugForumFr = {
   "bugForum.home.open": "Ouvrir le forum",
   "bugForum.home.awaiting": "Rapports en attente de votre vote : {count}",
   "bugForum.home.caughtUp": "Vous avez voté sur tous les rapports ouverts. Merci !",
-  "bugForum.home.voteNow": "Voter maintenant",
-  "bugForum.home.browse": "Voir les rapports",
   "bugForum.home.guest": "Votez sur les rapports de bug et gagnez des pièces Aegis quand l'équipe est d'accord.",
   "bugForum.coinsHelpLabel": "Que sont les pièces Aegis ?",
   "bugForum.coinsHelp":

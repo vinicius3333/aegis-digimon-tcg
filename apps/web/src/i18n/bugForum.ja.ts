@@ -56,8 +56,6 @@ export const bugForumJa = {
   "bugForum.home.open": "フォーラムを開く",
   "bugForum.home.awaiting": "投票待ちの報告：{count} 件",
   "bugForum.home.caughtUp": "開いている報告すべてに投票済みです。ありがとうございます！",
-  "bugForum.home.voteNow": "今すぐ投票",
-  "bugForum.home.browse": "報告を見る",
   "bugForum.home.guest": "バグ報告に投票して、チームの判断と一致したら Aegis コインを獲得しましょう。",
   "bugForum.coinsHelpLabel": "Aegis コインとは?",
   "bugForum.coinsHelp": "Aegis コインにはまだ使い道がありません。今後使えるようになるので、集めておきましょう。",
