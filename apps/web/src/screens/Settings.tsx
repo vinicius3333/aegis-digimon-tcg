@@ -1,7 +1,8 @@
 import { ArenaAppearanceControls } from "@/design/arenaAppearance/ArenaAppearanceControls";
 import { useTamerGrouping } from "@/design/tamerGrouping/useTamerGrouping";
 import { setTamerGroupingEnabled } from "@/design/tamerGrouping/setTamerGroupingEnabled";
-import { setSkipNothingToDoEnabled, useSkipNothingToDo } from "@/game/skipNothingToDoPrompts";
+import { setSkipNothingToDoEnabled } from "@/game/skipNothingToDo/setSkipNothingToDoEnabled";
+import { useSkipNothingToDo } from "@/game/skipNothingToDo/useSkipNothingToDo";
 import { SpectatorAccessSetting } from "@/account/SpectatorAccessSetting";
 import { cardConfirmationModeLabelKey } from "@/game/cardConfirmation/cardConfirmationModeLabelKey";
 import { cardConfirmationModeValues } from "@/game/cardConfirmation/cardConfirmationModeValues";

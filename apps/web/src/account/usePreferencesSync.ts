@@ -22,7 +22,8 @@ import {
   useDeckBuilderPreferences,
 } from "../screens/deckBuilderPreferences";
 import { setAutoHatchEnabled, useAutoHatch } from "../game/autoHatch";
-import { setSkipNothingToDoEnabled, useSkipNothingToDo } from "@/game/skipNothingToDoPrompts";
+import { setSkipNothingToDoEnabled } from "@/game/skipNothingToDo/setSkipNothingToDoEnabled";
+import { useSkipNothingToDo } from "@/game/skipNothingToDo/useSkipNothingToDo";
 import { useTranslation } from "../i18n";
 import { isLocale } from "@/i18n/isLocale";
 import { accountApi, type AccountPreferences } from "./client";
