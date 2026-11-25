@@ -33,6 +33,41 @@ function seat(state: GameState, index: Seat, sessionId: string, displayName: str
   state.players[index] = player;
 }
 
+it("opens the spectator board only after both public seats arrive, even with identities withheld", async () => {
+  const state = new GameState();
+  state.phase = Phase.Main;
+  seat(state, 0, "", "");
+  const view = () => (
+    <I18nProvider>
+      <GameScreen
+        startMode="spectator"
+        joinOptions={{ displayName: "Watcher", deck: { mainDeck: [], eggDeck: [] } }}
+        identityColor="Blue"
+        onExit={() => undefined}
+        demoConnection={{
+          room: undefined,
+          status: "connected",
+          error: undefined,
+          state,
+          events: [],
+          decision: undefined,
+          acknowledgeDecision: () => undefined,
+          sessionId: undefined,
+          roomCode: "",
+        }}
+      />
+    </I18nProvider>
+  );
+  const rendered = render(view());
+  await act(async () => vi.advanceTimersByTimeAsync(0));
+  expect(rendered.container.querySelector('[data-spectator="true"]')).toBeNull();
+  seat(state, 1, "", "");
+  state.stateVersion++;
+  rendered.rerender(view());
+  await act(async () => vi.advanceTimersByTimeAsync(0));
+  expect(rendered.container.querySelector('[data-spectator="true"]')).not.toBeNull();
+});
+
 it("Discord 1557352131416035499: a series player seated after their first state sync keeps their own seat", async () => {
   // A later series game holds whoever arrives first unseated until the other player joins, so
   // the first state this client decodes has no seat for it yet. Colyseus then seats it by

@@ -1089,7 +1089,7 @@ function GameScreenSession({
     !opp ||
     !shownState ||
     !seats ||
-    !bothSeated(state) ||
+    (!spectating && !bothSeated(state)) ||
     guestApproval
   ) {
     const pendingSeries = state && viewerSeat !== undefined ? seriesView(state.series, viewerSeat) : undefined;
