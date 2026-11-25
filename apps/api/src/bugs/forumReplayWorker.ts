@@ -7,6 +7,7 @@ const { exportPlayerReplay } = await import("#api/replays/inputs/export");
 
 if (parentPort === null) throw new Error("Forum replay worker requires a parent port");
 const port = parentPort;
-exportPlayerReplay((workerData as { record: ReplayRecord }).record)
+const { record } = workerData as { record: ReplayRecord };
+exportPlayerReplay({ ...record, matchId: "" }, { spectator: true })
   .then((exported) => port.postMessage({ file: new Uint8Array(exported.file) }))
   .catch((error: unknown) => port.postMessage({ error: error instanceof Error ? error.message : String(error) }));

@@ -10,6 +10,7 @@ export interface ExportPlayerReplayOptions {
   until?: number;
   /** Called once the record's inputs have run, before the export ends the match. */
   inspect?: (run: ReplayRun) => void;
+  spectator?: boolean;
 }
 
 export interface ExportedPlayerReplay {
@@ -68,7 +69,10 @@ export async function exportPlayerReplay(
     endedBy = "surrender";
   }
 
-  const replay = recording.participantFile(replayMode(record.rules), 0, frames * FRAME_MS);
+  const mode = replayMode(record.rules);
+  const replay = options.spectator
+    ? recording.spectatorFile({ mode, hiddenIdentities: [true, true], finishedAt: frames * FRAME_MS })
+    : recording.participantFile(mode, 0, frames * FRAME_MS);
   if (!replay)
     throw new Error(
       recording.exceededLimit
