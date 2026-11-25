@@ -466,7 +466,7 @@ export function Avatar({
         fontFamily: "var(--ds-font-display)",
         fontWeight: 800,
         fontSize: size * 0.4,
-        boxShadow: ring ? `0 0 0 2px var(--ds-paper), 0 0 0 4px ${c.base}` : "none",
+        boxShadow: ring ? `0 0 0 2px var(--ds-paper), 0 0 0 4px ${c.base}` : undefined,
       }}
     >
       {imageUrl ? (
