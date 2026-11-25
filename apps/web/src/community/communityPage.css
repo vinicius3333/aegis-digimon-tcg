@@ -238,3 +238,11 @@
     padding-inline: var(--ds-gutter-phone);
   }
 }
+
+.community-hub {
+  scrollbar-gutter: stable;
+}
+
+.community-hub .aegis-page-header__title-row {
+  min-height: 44px;
+}

@@ -1,3 +1,5 @@
+import { ideaForumIt } from "@/i18n/ideaForum.it";
+import { bugForumIt } from "@/i18n/bugForum.it";
 import { deckMatchupIt } from "@/i18n/deckMatchup.it";
 import { deckOddsIt } from "@/i18n/deckOdds.it";
 import { chatActionsIt } from "@/i18n/chatActions.it";
@@ -421,15 +423,16 @@ const interfaceMessages = {
     "Il tuo feedback viene salvato. Accedi prima se vuoi seguirlo e ricevere una risposta.",
   "feedback.triage.confirmedBug": "Bug confermato",
   "feedback.triage.confirmedBugBadge": "Bug confermato",
-  "feedback.triage.confirmedBugHint": "{name} guadagna 1 punto. Ora ne ha {count}.",
-  "feedback.triage.confirmedBugAnonymous": "Segnalazione anonima: nessuno guadagna il punto.",
+  "feedback.triage.confirmedBugHint": "{name} guadagna 1 moneta Aegis. Bug confermati finora: {count}.",
+  "feedback.triage.confirmedBugAnonymous": "Segnalazione anonima: nessuno guadagna la moneta Aegis.",
   "feedback.triage.confirmedBugDuplicate":
-    "I duplicati non guadagnano punti; il punto resta alla segnalazione originale.",
+    "I duplicati non guadagnano monete Aegis; la moneta resta alla segnalazione originale.",
   "feedback.triage.reporterPoints": "{count} bug confermati",
   "feedback.reportedDecks.title": "Mazzi della community segnalati ({count})",
   "feedback.reportedDecks.reports": "{count} segnalazioni",
   "myFeedback.points": "Bug confermati: {count}",
-  "myFeedback.pointsHint": "Ogni segnalazione che il team conferma come bug reale vale 1 punto.",
+  "myFeedback.pointsHint":
+    "Ogni segnalazione che il team conferma come bug reale vale 1 moneta Aegis. Puoi guadagnare monete anche nel forum dei bug.",
   "myFeedback.confirmedBug": "Bug confermato",
   "notifications.feedback.confirmed": "La tua segnalazione “{summary}” è stata confermata come bug",
   "notifications.bugConfirmedPoint": "Confermato come bug · +1 punto",
@@ -595,6 +598,9 @@ const interfaceMessages = {
   "settings.autoHatch": "Schiusa automatica",
   "settings.autoHatchDesc":
     "Schiude automaticamente un Digi-Uovo durante la tua fase di allevamento quando l’area è vuota. Salvato nel tuo account.",
+  "settings.skipNothingToDo": "Salta gli effetti che non possono fare nulla",
+  "settings.skipNothingToDoDesc":
+    "Rifiuta automaticamente il “puoi” di un effetto attivato quando non ha bersagli o risultati validi. Disattiva per vedere ogni richiesta. Salvato nel tuo account.",
   "settings.handAutoSort": "Mantieni la mano ordinata",
   "settings.handAutoSortDesc":
     "Riordina la mano nell'ordine scelto sul pulsante di ordinamento ogni volta che una carta entra o esce. Le carte che trascini restano al loro posto finché la mano non cambia.",
@@ -2852,6 +2858,8 @@ const interfaceMessages = {
   ...matchIntroIt,
   ...staffRolesIt,
   ...achievementsIt,
+  ...bugForumIt,
+  ...ideaForumIt,
   "sealed.breedingHint": "Scegli un’azione di allevamento o termina l’allevamento.",
   "sealed.placeRookie": "Posiziona in allevamento",
 } satisfies Record<Exclude<keyof typeof en, `releases.${string}`>, string>;

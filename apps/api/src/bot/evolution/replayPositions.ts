@@ -32,7 +32,14 @@ export interface ReplayPositions {
   positions: ReplayPosition[];
 }
 
-const NON_MAIN_INTENTS = new Set(["ready", "mulligan", "respondDecision", "surrender", "concede"]);
+const NON_MAIN_INTENTS = new Set([
+  "ready",
+  "mulligan",
+  "respondDecision",
+  "surrender",
+  "concede",
+  "showNothingToDoPrompts",
+]);
 
 export async function replayPositions(
   record: ReplayRecord,

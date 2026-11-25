@@ -9,14 +9,16 @@ if (!connectionString?.startsWith("postgres://postgres@127.0.0.1:55439/")) {
   throw new Error("Sealed migration tests require isolated loopback Postgres 55439");
 }
 
-const sealedIds = ["062-private-sealed", "063-private-sealed-results"];
+const forumIds = ["061-replay-featured-deck-icons", "062-feedback-forum", "063-replay-frame-limit"];
+const sealedIds = ["064-private-sealed", "065-private-sealed-results"];
 
 it("appends canonical sealed migrations after the complete upstream registry", () => {
-  expect(migrations.slice(-6).map((migration) => migration.id)).toEqual([
+  expect(migrations.slice(-9).map((migration) => migration.id)).toEqual([
     "057-deck-matchup-results",
     "058-optional-ranked-region",
     "059-competitive-archetypes",
     "060-tournament-beta-cards",
+    ...forumIds,
     ...sealedIds,
   ]);
   const ids = migrations.map((migration) => migration.id);
@@ -24,7 +26,7 @@ it("appends canonical sealed migrations after the complete upstream registry", (
   expect(ids).toEqual([...ids].sort());
 });
 
-for (const upgradeFrom of [undefined, "057", "060"]) {
+for (const upgradeFrom of [undefined, "057", "060", "063"]) {
   const upgrade = upgradeFrom !== undefined;
   it(`applies canonical sealed migrations on ${upgrade ? `an upstream ${upgradeFrom} upgrade` : "a fresh installation"}`, async () => {
     const schema = `sealed_migrations_${randomUUID().replaceAll("-", "")}`;
@@ -49,9 +51,12 @@ for (const upgradeFrom of [undefined, "057", "060"]) {
           "058-optional-ranked-region",
           "059-competitive-archetypes",
           "060-tournament-beta-cards",
+          ...forumIds,
           ...sealedIds,
         ];
       } else if (upgradeFrom === "060") {
+        expectedApplied = [...forumIds, ...sealedIds];
+      } else if (upgradeFrom === "063") {
         expectedApplied = sealedIds;
       }
       expect(await runMigrations(pool, migrations)).toEqual(expectedApplied);

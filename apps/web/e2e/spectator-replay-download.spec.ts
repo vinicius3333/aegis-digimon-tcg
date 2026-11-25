@@ -4,6 +4,7 @@ import { matchMaker } from "colyseus";
 import type { MatchReplay } from "@aegis/shared/replays";
 import { SPECTATOR_REPLAY_SEAT } from "@aegis/shared/replays/spectatorReplaySeat";
 import { expect, test } from "@e2e/fixtures";
+import { decodeReplayFrames } from "@aegis/shared/replays/decodeReplayFrames";
 
 for (const { width, dark } of [
   { width: 1440, dark: false },
@@ -62,7 +63,8 @@ for (const { width, dark } of [
       expect(download.suggestedFilename()).toMatch(/^aegis-.+-spectator\.aegis-replay$/);
       const path = await download.path();
       expect(path).toBeTruthy();
-      const replay = JSON.parse(gunzipSync(await readFile(path!)).toString()) as MatchReplay;
+      const file = JSON.parse(gunzipSync(await readFile(path!)).toString()) as MatchReplay;
+      const replay = { ...file, frames: decodeReplayFrames(file.frames) };
       expect(replay.viewerSeat).toBe(SPECTATOR_REPLAY_SEAT);
       expect(replay.visibleHandSeats).toEqual([0, 1]);
       expect(replay.frames.some((frame) => frame.state.players.every((player) => player.hand.length > 0))).toBe(true);

@@ -338,6 +338,7 @@ export class GameEngine {
   readonly digivolveSupport: DigivolveSupport;
   /** The player-decision API (ctx.ask.*) backed by the DecisionManager. */
   readonly decisionApi: DecisionApi;
+  readonly nothingToDoPromptSeats = new Set<Seat>();
   /** The stack-resolver's controller prompts (chooseOrder / askOptional). */
   readonly resolverDecisions: ResolverDecisions;
   /** Lobby readiness per seat (analogue of RoomManager AllPlayerIsReady). */
@@ -517,7 +518,11 @@ export class GameEngine {
       },
       { pendingEffectCandidates: (spec) => pendingEffectCandidates(this, spec) },
     );
-    this.decisionApi = createDecisionApi(this.decisions, (seat) => this.continuous.blocksCostReduction(seat, "play"));
+    this.decisionApi = createDecisionApi(
+      this.decisions,
+      (seat) => this.continuous.blocksCostReduction(seat, "play"),
+      (seat) => this.nothingToDoPromptSeats.has(seat),
+    );
     this.resolverDecisions = createResolverDecisions(
       this.decisions,
       () => this.recomputeContinuousEffects(),
@@ -750,6 +755,7 @@ export class GameEngine {
       matchSetupStarted: this.matchSetupStarted,
       bothReadyFired: this.bothReadyFired,
       readySeats: [...this.readySeats],
+      nothingToDoPromptSeats: [...this.nothingToDoPromptSeats],
       stagedDecks: this.stagedDecks,
       crossedMemoryRushAttackers: [...this.crossedMemoryRushAttackers],
       justLinked: [...this.justLinked],
@@ -772,6 +778,7 @@ export class GameEngine {
     this.stagedDecks.length = 0;
     this.stagedDecks.push(...snapshot.stagedDecks);
     replaceSet({ target: this.readySeats, values: snapshot.readySeats });
+    replaceSet({ target: this.nothingToDoPromptSeats, values: snapshot.nothingToDoPromptSeats ?? [] });
     replaceSet({ target: this.crossedMemoryRushAttackers, values: snapshot.crossedMemoryRushAttackers });
     replaceSet({ target: this.justLinked, values: snapshot.justLinked });
     replaceSet({ target: this.declinedAttackArts, values: snapshot.declinedAttackArts });
@@ -836,6 +843,7 @@ export class GameEngine {
         intent.type !== "ready" &&
         intent.type !== "mulligan" &&
         intent.type !== "surrender" &&
+        intent.type !== "showNothingToDoPrompts" &&
         !(intent.type === "respondDecision" && this.state.turnCount === 0)
       ) {
         return { ok: false, reason: "unknown-intent" };

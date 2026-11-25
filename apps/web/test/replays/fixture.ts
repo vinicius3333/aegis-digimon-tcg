@@ -1,5 +1,5 @@
 import { ArraySchema } from "@colyseus/schema";
-import { CardInstance, GameState, Permanent, PlayerState, Phase } from "@aegis/shared";
+import { CardInstance, GameState, Permanent, PlayerState, Phase, type MatchReplay } from "@aegis/shared";
 import { ReplayRecording } from "../../../api/src/replays/recording.js";
 import { projectReplay } from "../../../api/src/replays/recording.js";
 
@@ -69,7 +69,7 @@ export function replayFixture() {
       1000 + index * 1000,
     );
   }
-  return projectReplay(recording.complete("casual", 4000)!, 0);
+  return JSON.parse(JSON.stringify(projectReplay(recording.complete("casual", 4000)!, 0))) as MatchReplay;
 }
 
 /** A draw must finish its hand-arrival animation before the next frame is allowed to run. */

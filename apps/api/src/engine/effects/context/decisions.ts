@@ -55,7 +55,7 @@ export interface DecisionApi extends SeatScopedDecisionApi {
 
 /** One seat-addressed decision surface — see `DecisionApi.opponent`'s doc comment. */
 export interface SeatScopedDecisionApi {
-  optional(ctx: EffectContext, prompt: string): Promise<boolean>;
+  optional(ctx: EffectContext, prompt: string, options?: { nothingToDo?: boolean }): Promise<boolean>;
   chooseTargets(
     ctx: EffectContext,
     opts: {

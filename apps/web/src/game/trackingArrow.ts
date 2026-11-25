@@ -43,7 +43,8 @@ function closesAttack(event: ServerEvent): boolean {
     event.kind === "combatResolved" ||
     event.kind === "securityChecked" ||
     event.kind === "turnEnded" ||
-    event.kind === "phaseChanged"
+    event.kind === "phaseChanged" ||
+    event.kind === "gameOver"
   );
 }
 

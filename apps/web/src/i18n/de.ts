@@ -1,3 +1,5 @@
+import { ideaForumDe } from "@/i18n/ideaForum.de";
+import { bugForumDe } from "@/i18n/bugForum.de";
 import { deckMatchupDe } from "@/i18n/deckMatchup.de";
 import { deckOddsDe } from "@/i18n/deckOdds.de";
 import { chatActionsDe } from "@/i18n/chatActions.de";
@@ -413,7 +415,8 @@ const interfaceMessages = {
   "replay.loading": "Replay wird geöffnet…",
   "replay.error.invalid": "Diese Datei ist kein gültiges, vollständiges Aegis-Replay.",
   "replay.error.version": "Dieses Replay verwendet ein Format, das diese Aegis-Version nicht öffnen kann.",
-  "replay.error.size": "Wählen Sie ein nicht leeres Replay mit höchstens 32 MB, einschließlich des entpackten Inhalts.",
+  "replay.error.size":
+    "Wählen Sie eine nicht leere Replay-Datei mit höchstens 32 MB und höchstens 128 MB entpacktem Inhalt.",
   "replay.play": "Abspielen",
   "replay.pause": "Pause",
   "replay.previous": "Vorherige Aktion",
@@ -421,9 +424,6 @@ const interfaceMessages = {
   "replay.start": "Zum Anfang",
   "replay.end": "Zum Ende",
   "replay.speed": "Wiedergabegeschwindigkeit",
-  "replay.move": "Wiedergabesteuerung verschieben",
-  "replay.moveHint":
-    "Zum Verschieben ziehen. Mit den Pfeiltasten bewegen, mit Umschalt in größeren Schritten und mit Pos1 zurücksetzen.",
   "replay.position": "Replay-Position",
   "replay.turn": "Zug",
   "replay.action": "Aktion {current} von {total}",
@@ -661,14 +661,15 @@ const interfaceMessages = {
     "Ihr Feedback wird gespeichert. Melden Sie sich zuerst an, wenn Sie es verfolgen und eine Antwort erhalten möchten.",
   "feedback.triage.confirmedBug": "Bestätigter Fehler",
   "feedback.triage.confirmedBugBadge": "Bestätigter Fehler",
-  "feedback.triage.confirmedBugHint": "{name} erhält 1 Punkt. Sie haben jetzt {count}.",
-  "feedback.triage.confirmedBugAnonymous": "Anonymer Bericht: Niemand erhält den Punkt.",
-  "feedback.triage.confirmedBugDuplicate": "Duplikate bringen keinen Punkt; der Originalbericht erhält ihn.",
+  "feedback.triage.confirmedBugHint": "{name} erhält 1 Aegis-Münze. Bisher bestätigte Fehler: {count}.",
+  "feedback.triage.confirmedBugAnonymous": "Anonymer Bericht: Niemand erhält die Aegis-Münze.",
+  "feedback.triage.confirmedBugDuplicate": "Duplikate bringen keine Aegis-Münze; der Originalbericht erhält sie.",
   "feedback.triage.reporterPoints": "{count} bestätigte Fehler",
   "feedback.reportedDecks.title": "Gemeldete Community-Decks ({count})",
   "feedback.reportedDecks.reports": "{count} Berichte",
   "myFeedback.points": "Bestätigte Fehler: {count}",
-  "myFeedback.pointsHint": "Für jede Meldung, die das Team als echten Fehler bestätigt, erhalten Sie 1 Punkt.",
+  "myFeedback.pointsHint":
+    "Für jede Meldung, die das Team als echten Fehler bestätigt, erhalten Sie 1 Aegis-Münze. Im Fehlerforum können Sie weitere Münzen verdienen.",
   "myFeedback.confirmedBug": "Bestätigter Fehler",
   "notifications.feedback.confirmed": "Ihr Bericht „{summary}“ wurde als Fehler bestätigt",
   "notifications.bugConfirmedPoint": "Als Fehler bestätigt · +1 Punkt",
@@ -712,6 +713,9 @@ const interfaceMessages = {
   "settings.autoHatch": "Automatisch ausbrüten",
   "settings.autoHatchDesc":
     "Brütet in Ihrer Aufzuchtphase automatisch ein Digi-Ei aus, wenn der Aufzuchtbereich leer ist. Wird in Ihrem Konto gespeichert.",
+  "settings.skipNothingToDo": "Effekte ohne mögliche Wirkung überspringen",
+  "settings.skipNothingToDoDesc":
+    "Lehnt das „Sie können“ eines ausgelösten Effekts automatisch ab, wenn er kein gültiges Ziel und kein Ergebnis hat. Ausschalten, um jede Abfrage zu sehen. Wird in Ihrem Konto gespeichert.",
   "settings.handAutoSort": "Hand sortiert halten",
   "settings.handAutoSortDesc":
     "Sortiert Ihre Hand in der über die Sortierschaltfläche der Hand gewählten Reihenfolge neu, sobald eine Karte hinzukommt oder sie verlässt. Karten, die Sie verschieben, bleiben liegen, bis sich die Hand ändert.",
@@ -3190,6 +3194,8 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
+  ...bugForumDe,
+  ...ideaForumDe,
   "sealed.breedingHint": "Wählen Sie eine Aufzuchtaktion oder beenden Sie die Aufzucht.",
   "sealed.placeRookie": "In Aufzucht legen",
 } satisfies Record<keyof typeof en, string>;

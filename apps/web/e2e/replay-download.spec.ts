@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { gunzipSync } from "node:zlib";
 import type { MatchReplay } from "@aegis/shared";
 import { expect, test } from "./fixtures";
+import { decodeReplayFrames } from "@aegis/shared/replays/decodeReplayFrames";
 
 test("downloads a finished live match and opens it locally after leaving the room", async ({ page, match }) => {
   await match.start("reconnect");
@@ -16,7 +17,8 @@ test("downloads a finished live match and opens it locally after leaving the roo
   expect(download.suggestedFilename()).toMatch(/^aegis-.+-player-1\.aegis-replay$/);
   const path = await download.path();
   expect(path).toBeTruthy();
-  const replay = JSON.parse(gunzipSync(await readFile(path!)).toString()) as MatchReplay;
+  const file = JSON.parse(gunzipSync(await readFile(path!)).toString()) as MatchReplay;
+  const replay = { ...file, frames: decodeReplayFrames(file.frames) };
   expect(replay.viewerSeat).toBe(0);
   expect(replay.frames[0]!.state.players[0]!.hand.length).toBeGreaterThan(0);
   expect(replay.visibleHandSeats).toEqual([0, 1]);

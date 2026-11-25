@@ -1,3 +1,5 @@
+import { ideaForumZhCN } from "@/i18n/ideaForum.zh-CN";
+import { bugForumZhCN } from "@/i18n/bugForum.zh-CN";
 import { deckMatchupZhCN } from "@/i18n/deckMatchup.zh-CN";
 import { deckOddsZhCN } from "@/i18n/deckOdds.zh-CN";
 import { chatActionsZhCN } from "@/i18n/chatActions.zh-CN";
@@ -395,7 +397,7 @@ const interfaceMessages = {
   "replay.loading": "正在打开回放…",
   "replay.error.invalid": "此文件不是有效且完整的 Aegis 回放。",
   "replay.error.version": "当前 Aegis 版本无法打开此回放格式。",
-  "replay.error.size": "请选择非空且不超过 32 MB 的回放，包括解压后的内容。",
+  "replay.error.size": "请选择非空且不超过 32 MB 的回放文件，解压后的内容不超过 128 MB。",
   "replay.play": "播放",
   "replay.pause": "暂停",
   "replay.previous": "上一步",
@@ -403,8 +405,6 @@ const interfaceMessages = {
   "replay.start": "回到开头",
   "replay.end": "跳到结尾",
   "replay.speed": "播放速度",
-  "replay.move": "移动播放控件",
-  "replay.moveHint": "拖动以移动。使用方向键移动，按住 Shift 加大移动幅度，按 Home 重置位置。",
   "replay.position": "回放进度",
   "replay.turn": "回合",
   "replay.action": "第 {current} 步，共 {total} 步",
@@ -617,14 +617,14 @@ const interfaceMessages = {
   "bugReport.notice.anonymousPrivate": "反馈会被保存。需要追踪进展和收到回复时，请先登录。",
   "feedback.triage.confirmedBug": "确认的错误",
   "feedback.triage.confirmedBugBadge": "已确认错误",
-  "feedback.triage.confirmedBugHint": "{name} 获得 1 积分，目前共 {count} 积分。",
-  "feedback.triage.confirmedBugAnonymous": "匿名报告，不发放积分。",
-  "feedback.triage.confirmedBugDuplicate": "重复报告不发放积分，积分归于原报告。",
+  "feedback.triage.confirmedBugHint": "{name} 获得 1 枚 Aegis 币。目前已确认错误：{count}。",
+  "feedback.triage.confirmedBugAnonymous": "匿名报告，不发放 Aegis 币。",
+  "feedback.triage.confirmedBugDuplicate": "重复报告不发放 Aegis 币，Aegis 币归于原报告。",
   "feedback.triage.reporterPoints": "确认错误 {count} 次",
   "feedback.reportedDecks.title": "被举报的社区卡组（{count}）",
   "feedback.reportedDecks.reports": "{count} 份举报",
   "myFeedback.points": "确认错误：{count}",
-  "myFeedback.pointsHint": "每份被团队确认为真实错误的报告可获得 1 积分。",
+  "myFeedback.pointsHint": "每份被团队确认为真实错误的报告可获得 1 枚 Aegis 币。你也可以在错误论坛中赚取 Aegis 币。",
   "myFeedback.confirmedBug": "已确认错误",
   "notifications.feedback.confirmed": "你的报告“{summary}”已确认为错误",
   "notifications.bugConfirmedPoint": "已确认错误 · +1 积分",
@@ -662,6 +662,9 @@ const interfaceMessages = {
   "settings.sortHandDesc": "按数码宝贝等级整理当前手牌，其次是驯兽师和选项卡。新抽到的牌会排在末尾，直到你再次整理。",
   "settings.autoHatch": "自动孵化",
   "settings.autoHatchDesc": "育成阶段育成区为空时自动孵化数码蛋，设置保存至账号。",
+  "settings.skipNothingToDo": "跳过无法生效的效果",
+  "settings.skipNothingToDoDesc":
+    "触发的效果没有合法对象或结果时，自动拒绝其“可以”提示。关闭后会显示所有提示。保存到你的账户。",
   "settings.handAutoSort": "保持手牌有序",
   "settings.handAutoSortDesc":
     "每次有卡牌进入或离开手牌时自动重新排序：先按数码宝贝等级，再按驯兽师，最后按选项卡，同类按费用从低到高。你手动拖动过的卡牌会保持原位，直到手牌发生变化。",
@@ -2987,6 +2990,8 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
+  ...bugForumZhCN,
+  ...ideaForumZhCN,
   "sealed.breedingHint": "选择一个养成行动，或结束养成阶段。",
   "sealed.placeRookie": "放入育成区",
 } satisfies Record<keyof typeof en, string>;

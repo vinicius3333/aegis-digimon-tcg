@@ -1,7 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { ShieldMinus } from "lucide-react";
 import type { MatchReplay } from "@aegis/shared/replays";
-import type { Seat } from "@aegis/shared/schema/enums";
 import { Icons } from "@/design/icons";
 import { useTranslation } from "@/i18n/useTranslation";
 import type { ReplayAnnotationEntry } from "@/replays/annotations/buildReplayAnnotationEntries";
@@ -21,8 +20,6 @@ type Segment = { event: ReplayTimelineEvent; start: number; end: number };
 type Group = { position: number; events: ReplayTimelineEvent[] };
 type GroupParams = { events: ReplayTimelineEvent[]; last: number; width: number };
 type SegmentParams = { events: ReplayTimelineEvent[]; last: number };
-
-const seats = [0, 1] as const satisfies readonly Seat[];
 
 function buildSegments({ events, last }: SegmentParams): Segment[] {
   const turns = events.filter((event) => event.kind === ReplayTimelineEventKind.TURN.value);
@@ -71,26 +68,24 @@ export function ReplayTimeline({ replay, logLines, index: committedIndex, annota
   const [width, setWidth] = useState(200);
   const [selectedIndex, setSelectedIndex] = useState<number>();
   const popupId = useId();
-  const positionId = useId();
   const last = Math.max(1, replay.frames.length - 1);
   const events = useMemo(() => buildReplayTimelineEvents({ replay }), [replay]);
   const annotationPins = useMemo(() => groupAnnotationsByFrame({ annotations, last }), [annotations, last]);
   const segments = useMemo(() => buildSegments({ events, last }), [events, last]);
-  const lanes = useMemo(
+  const markers = useMemo(
     () =>
-      seats.map((seat) =>
-        groupNearbyEvents({
-          events: events.filter(
-            (event) => event.kind === ReplayTimelineEventKind.SECURITY.value && event.seat === seat,
-          ),
-          last,
-          width,
-        }),
-      ),
+      groupNearbyEvents({
+        events: events.filter((event) => event.kind === ReplayTimelineEventKind.SECURITY.value),
+        last,
+        width,
+      }),
     [events, last, width],
   );
+  const [hoverIndex, setHoverIndex] = useState<number>();
+  const hoverSegment =
+    hoverIndex === undefined ? undefined : segments.filter((segment) => segment.start <= hoverIndex).at(-1);
 
-  const selected = lanes.flat().find((group) => group.events[0]!.index === selectedIndex);
+  const selected = markers.find((group) => group.events[0]!.index === selectedIndex);
 
   useEffect(() => {
     const element = scale.current;
@@ -171,10 +166,15 @@ export function ReplayTimeline({ replay, logLines, index: committedIndex, annota
     trigger.current?.focus();
   }
 
-  function renderLane(seat: Seat) {
+  function pointedIndex(clientX: number) {
+    const bounds = scale.current!.getBoundingClientRect();
+    return Math.round(Math.max(0, Math.min(1, (clientX - bounds.left) / bounds.width)) * last);
+  }
+
+  function renderMarkers() {
     return (
-      <div className="replay-timeline__lane" data-seat={seat}>
-        {lanes[seat]!.map((group) => {
+      <div className="replay-timeline__lane">
+        {markers.map((group) => {
           const first = group.events[0]!;
           const grouped = group.events.length > 1;
           const amount = group.events.reduce((total, event) => total + event.amount, 0);
@@ -186,6 +186,7 @@ export function ReplayTimeline({ replay, logLines, index: committedIndex, annota
               key={first.index}
               type="button"
               className="replay-timeline__marker"
+              data-seat={first.seat}
               style={{ left: `${group.position * 100}%` }}
               title={label}
               aria-label={label}
@@ -211,6 +212,7 @@ export function ReplayTimeline({ replay, logLines, index: committedIndex, annota
     <div
       ref={root}
       className="replay-timeline"
+      data-scrubbing={scrubIndex === undefined ? undefined : true}
       onKeyDown={(event) => {
         if (event.key === "Escape" && selected) {
           event.preventDefault();
@@ -220,19 +222,14 @@ export function ReplayTimeline({ replay, logLines, index: committedIndex, annota
         }
       }}
     >
-      <label htmlFor={positionId}>{t("replay.action", { current: index + 1, total: replay.frames.length })}</label>
-      <ul className="replay-timeline__legend" aria-hidden="true">
-        {seats.map((seat) => (
-          <li key={seat} data-seat={seat}>
-            {replay.players[seat]}
-          </li>
-        ))}
-        <li>
-          <ShieldMinus size={12} />
-          {t("replay.timeline.securityShort")}
-        </li>
-      </ul>
-      <div ref={scale} className="replay-timeline__scale" role="group" aria-label={t("replay.timeline.events")}>
+      <div
+        ref={scale}
+        className="replay-timeline__scale"
+        role="group"
+        aria-label={t("replay.timeline.events")}
+        onPointerMove={(event) => setHoverIndex(pointedIndex(event.clientX))}
+        onPointerLeave={() => setHoverIndex(undefined)}
+      >
         {annotationPins.length ? (
           <div className="replay-timeline__annotations">
             {annotationPins.map(({ target, entries }) => {
@@ -268,7 +265,7 @@ export function ReplayTimeline({ replay, logLines, index: committedIndex, annota
             })}
           </div>
         ) : null}
-        {renderLane(0)}
+        {renderMarkers()}
         <div className="replay-timeline__bar">
           {segments.map(({ event, start, end }) => {
             const label = getEventLabel(event);
@@ -284,17 +281,20 @@ export function ReplayTimeline({ replay, logLines, index: committedIndex, annota
                 title={label}
                 aria-label={label}
                 aria-current={start <= index && (index < end || end === last) ? "step" : undefined}
-                onClick={() => {
+                onClick={(click) => {
                   setSelectedIndex(undefined);
-                  onJump(start);
+                  onJump(click.detail === 0 ? start : pointedIndex(click.clientX));
                 }}
-              >
-                {span * width >= 18 ? event.turn : null}
-              </button>
+              />
             );
           })}
+          <span
+            className="replay-timeline__progress"
+            style={{ width: `${(index / last) * 100}%` }}
+            aria-hidden="true"
+          />
+          <span className="replay-timeline__thumb" style={{ left: `${(index / last) * 100}%` }} aria-hidden="true" />
           <input
-            id={positionId}
             type="range"
             min={0}
             max={replay.frames.length - 1}
@@ -316,7 +316,15 @@ export function ReplayTimeline({ replay, logLines, index: committedIndex, annota
             }}
           />
         </div>
-        {renderLane(1)}
+        {hoverSegment && hoverIndex !== undefined ? (
+          <span className="replay-timeline__hover" style={{ left: `${(hoverIndex / last) * 100}%` }} aria-hidden="true">
+            {t("replay.timeline.turn", {
+              turn: hoverSegment.event.turn,
+              name: replay.players[hoverSegment.event.seat],
+              action: hoverIndex + 1,
+            })}
+          </span>
+        ) : null}
       </div>
       {selected ? (
         <div id={popupId} className="replay-timeline__events" role="group" aria-label={t("replay.timeline.events")}>

@@ -1,7 +1,7 @@
 import { GameMode } from "@aegis/shared/manual/GameMode";
 import { gzipSync } from "node:zlib";
 import type { GameState, ReplaySummary, SequencedServerEvent } from "@aegis/shared";
-import { projectReplay, ReplayRecording } from "../recording.js";
+import { ReplayRecording } from "../recording.js";
 import { runReplay, type ReplayRun } from "./run.js";
 import type { ReplayDivergence, ReplayRecord, ReplayRules } from "./types.js";
 
@@ -68,17 +68,16 @@ export async function exportPlayerReplay(
     endedBy = "surrender";
   }
 
-  const replay = recording.complete(replayMode(record.rules), frames * FRAME_MS);
+  const replay = recording.participantFile(replayMode(record.rules), 0, frames * FRAME_MS);
   if (!replay)
     throw new Error(
       recording.exceededLimit
         ? "The match is too long for a replay file (the recording exceeded its size or frame limit)."
         : "The recording did not reach the end of the match.",
     );
-  projectReplay(replay, 0);
   return {
-    file: gzipSync(JSON.stringify(replay)),
-    frames: replay.frames.length,
+    file: gzipSync(replay.json),
+    frames: replay.summary.frameCount,
     divergences: run.divergences,
     endedBy,
   };

@@ -448,6 +448,7 @@ export class AegisRoom extends Room<{
   private readonly spectatorReplayDownloads = new Map<string, Promise<ReplayDownloadMessage>>();
   private replayDownloads = new Map<Seat, Promise<ReplayDownloadMessage>>();
   private replayFinished = false;
+  private replayLimitReported = false;
   private replayRequestTimes = new WeakMap<Client, number>();
   private reportableDropBySeat = new Map<Seat, Promise<number | undefined>>();
   private readonly allowClientMessage = tokenBucketLimiter(CLIENT_MESSAGE_RATE_LIMIT);
@@ -3492,6 +3493,7 @@ export class AegisRoom extends Room<{
     if (this.replayRecording && !this.replayFinished) {
       this.engine.flushHandAffordances();
       this.replayRecording.capture(this.state, batch.events);
+      this.reportReplayLimit();
       if (this.state.gameOver) {
         this.replayFinished = true;
         for (const client of this.clients) this.sendReplayDownload(client);
@@ -3521,6 +3523,16 @@ export class AegisRoom extends Room<{
     if (this.clients.includes(client)) {
       client.send(OPPONENT_DECK_CHANNEL, structuredClone({ ...deck, deckId: null }));
     }
+  }
+
+  private reportReplayLimit(): void {
+    if (this.replayLimitReported || !this.replayRecording?.exceededLimit) return;
+    this.replayLimitReported = true;
+    this.debugError(`[replays] match ${this.state.matchLogId} recording passed the replay limit`, {
+      mode: this.replayMode(),
+      turn: this.state.turnCount,
+      stateVersion: this.state.stateVersion,
+    });
   }
 
   private replayMode(): ReplaySummary["mode"] {
@@ -4248,7 +4260,8 @@ export class AegisRoom extends Room<{
             this.state.turnCount > 0 &&
             intent.type !== "ready" &&
             intent.type !== "mulligan" &&
-            intent.type !== "surrender"
+            intent.type !== "surrender" &&
+            intent.type !== "showNothingToDoPrompts"
           )
             this.rollbackHistory?.acceptAction(actionIndex);
         }
@@ -4257,7 +4270,8 @@ export class AegisRoom extends Room<{
           seat === inputSeat &&
           intent.type !== "ready" &&
           intent.type !== "mulligan" &&
-          intent.type !== "surrender"
+          intent.type !== "surrender" &&
+          intent.type !== "showNothingToDoPrompts"
         ) {
           this.matchClock?.resetInactivity();
         }
@@ -4497,7 +4511,7 @@ export class AegisRoom extends Room<{
           ? this.state.pendingDecision?.decisionId
           : undefined;
     const result = this.applyLoggedIntent(seat, intent);
-    if (result.ok) {
+    if (result.ok && intent.type !== "showNothingToDoPrompts") {
       this.lastPlayerActionAt = Date.now();
       if (intent.type !== "ready") this.seatsThatActed.add(seat);
     }

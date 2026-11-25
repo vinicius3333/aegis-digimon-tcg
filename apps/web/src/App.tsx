@@ -61,6 +61,7 @@ import { communityApi } from "./community/client";
 import { SeriesDeckDialog } from "@/game/overlay/match/SeriesDeckDialog";
 import { communityDeckListing } from "./community/communityDeckListing";
 import { CommunitySection } from "@/community/CommunitySection";
+import { ForumBoard } from "@aegis/shared/feedback/ForumBoard";
 import { getCommunitySectionRoute } from "@/community/getCommunitySectionRoute";
 import { usePreferencesSync } from "./account/usePreferencesSync";
 import { setDeckFavorite } from "@/screens/favoriteDecks/setDeckFavorite";
@@ -106,6 +107,10 @@ const FeedbackScreen = createLazyComponent({
 const MyFeedbackPanel = createLazyComponent({
   load: () => import("./bugs/MyFeedbackPanel"),
   pick: (module) => module.MyFeedbackPanel,
+});
+const ForumScreen = createLazyComponent({
+  load: () => import("./bugs/ForumScreen"),
+  pick: (module) => module.ForumScreen,
 });
 const NotificationsScreen = createLazyComponent({
   load: () => import("./notifications/NotificationsScreen"),
@@ -258,9 +263,21 @@ const NAV_SCREENS: Screen[] = [
   "replays",
   "feedback",
   "myFeedback",
+  "bugForum",
+  "ideaForum",
   "notifications",
   "privacy",
 ];
+
+const NOTIFICATION_TAB_BY_SCREEN = {
+  notifications: NotificationsTab.ALL.value,
+  myFeedback: NotificationsTab.FEEDBACK.value,
+} as const satisfies Partial<Record<Screen, NotificationsTab>>;
+
+const SCREEN_BY_NOTIFICATION_TAB: Record<NotificationsTab, Screen> = {
+  [NotificationsTab.ALL.value]: "notifications",
+  [NotificationsTab.FEEDBACK.value]: "myFeedback",
+};
 
 export function withAccountAvatar(player: PlayerIdentity, account: RemoteAccount | null): PlayerIdentity {
   return {
@@ -1023,6 +1040,8 @@ function LoadedAegisClient({
                   onOpenTournaments={() => navigate({ screen: "tournaments", tournament: { kind: "catalog" } })}
                   onCreateTournament={() => navigate({ screen: "tournaments", tournament: { kind: "create" } })}
                   onOpenBooster={() => navigateScreen("booster")}
+                  onOpenBugForum={() => navigateScreen("bugForum")}
+                  onOpenBugReport={(forumReportId) => navigate({ screen: "bugForum", forumReportId })}
                   onEditDeck={(deck) => {
                     setEditingDeck(deck);
                     navigateScreen("deck");
@@ -1059,10 +1078,8 @@ function LoadedAegisClient({
               {(screen === "notifications" || screen === "myFeedback") && (
                 <NotificationsScreen
                   inbox={inbox}
-                  tab={screen === "myFeedback" ? NotificationsTab.FEEDBACK.value : NotificationsTab.ALL.value}
-                  onTabChange={(tab) =>
-                    navigateScreen(tab === NotificationsTab.FEEDBACK.value ? "myFeedback" : "notifications")
-                  }
+                  tab={NOTIFICATION_TAB_BY_SCREEN[screen]}
+                  onTabChange={(tab) => navigateScreen(SCREEN_BY_NOTIFICATION_TAB[tab])}
                   onOpenFeedback={openOwnFeedback}
                   feedback={
                     <MyFeedbackPanel
@@ -1318,6 +1335,19 @@ function LoadedAegisClient({
                   onOpen={(id) => navigate({ screen: "roadmap", roadmapItemId: id })}
                   onSectionChange={(section) => navigate(getCommunitySectionRoute(section))}
                   onSuggest={() => setBugReportOpen(true)}
+                />
+              )}
+
+              {(screen === "bugForum" || screen === "ideaForum") && (
+                <ForumScreen
+                  key={`${screen}-${account?.id ?? "guest"}`}
+                  board={screen === "bugForum" ? ForumBoard.BUGS.value : ForumBoard.IDEAS.value}
+                  reportId={route.forumReportId}
+                  signedIn={!!account}
+                  metaAvailable={rankedConfig?.enabled === true}
+                  onSignIn={() => navigateScreen("login")}
+                  onOpen={(forumReportId) => navigate({ screen, forumReportId })}
+                  onSectionChange={(section) => navigate(getCommunitySectionRoute(section))}
                 />
               )}
 

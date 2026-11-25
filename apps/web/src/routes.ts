@@ -26,6 +26,7 @@ export interface AppRoute {
   /** The report open on the admin triage or the reporter's own feedback screen. */
   feedbackId?: number;
   roadmapItemId?: number;
+  forumReportId?: number;
   matchSettings?: boolean;
   rankedQueue?: boolean;
   lobbyMode?: LobbyMode;
@@ -36,6 +37,8 @@ export const SCREEN_PATHS: Record<Screen, string> = {
   friends: "/friends",
   feedback: "/admin/feedback",
   myFeedback: "/feedback",
+  bugForum: "/community/bugs",
+  ideaForum: "/community/ideas",
   notifications: "/notifications",
   home: "/",
   booster: "/booster",
@@ -112,6 +115,12 @@ export function routeFromPathname(pathname: string): AppRoute | undefined {
       tournament: { kind: "detail", id: safeDecode(tournamentTab[1]!), tab: tournamentTab[2] },
     };
   }
+  if (normalized === "/community/bugs") return { screen: "bugForum" };
+  const bugThread = /^\/community\/bugs\/(\d{1,9})$/.exec(normalized)?.[1];
+  if (bugThread) return { screen: "bugForum", forumReportId: Number(bugThread) };
+  if (normalized === "/community/ideas") return { screen: "ideaForum" };
+  const ideaThread = /^\/community\/ideas\/(\d{1,9})$/.exec(normalized)?.[1];
+  if (ideaThread) return { screen: "ideaForum", forumReportId: Number(ideaThread) };
   if (normalized === "/roadmap") return { screen: "roadmap" };
   const roadmapItem = /^\/roadmap\/(\d{1,9})$/.exec(normalized)?.[1];
   if (roadmapItem) return { screen: "roadmap", roadmapItemId: Number(roadmapItem) };
@@ -143,6 +152,8 @@ export function pathForRoute(route: AppRoute): string {
     return "/community/meta";
   }
   if (route.screen === "roadmap" && route.roadmapItemId !== undefined) return `/roadmap/${route.roadmapItemId}`;
+  if ((route.screen === "bugForum" || route.screen === "ideaForum") && route.forumReportId !== undefined)
+    return `${SCREEN_PATHS[route.screen]}/${route.forumReportId}`;
   if ((route.screen === "feedback" || route.screen === "myFeedback") && route.feedbackId !== undefined)
     return `${SCREEN_PATHS[route.screen]}/${route.feedbackId}`;
   if (route.screen !== "tournaments") return SCREEN_PATHS[route.screen];

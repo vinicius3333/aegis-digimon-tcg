@@ -1,3 +1,5 @@
+import { ideaForumJa } from "@/i18n/ideaForum.ja";
+import { bugForumJa } from "@/i18n/bugForum.ja";
 import { deckMatchupJa } from "@/i18n/deckMatchup.ja";
 import { deckOddsJa } from "@/i18n/deckOdds.ja";
 import { chatActionsJa } from "@/i18n/chatActions.ja";
@@ -409,7 +411,7 @@ const interfaceMessages = {
   "replay.loading": "リプレイを開いています…",
   "replay.error.invalid": "このファイルは有効で完全なAegisのリプレイではありません。",
   "replay.error.version": "このリプレイは、このバージョンのAegisでは開けない形式を使用しています。",
-  "replay.error.size": "展開後の内容を含めて32 MB以下の、空でないリプレイを選択してください。",
+  "replay.error.size": "32 MB以下で、展開後の内容が128 MB以下の、空でないリプレイファイルを選択してください。",
   "replay.play": "再生",
   "replay.pause": "一時停止",
   "replay.previous": "前のアクション",
@@ -417,8 +419,6 @@ const interfaceMessages = {
   "replay.start": "最初へ",
   "replay.end": "最後へ",
   "replay.speed": "再生速度",
-  "replay.move": "再生コントロールを移動",
-  "replay.moveHint": "ドラッグして移動。矢印キーで移動、Shiftで移動幅を拡大、Homeで位置をリセットします。",
   "replay.position": "再生位置",
   "replay.turn": "ターン",
   "replay.action": "アクション {current}/{total}",
@@ -648,14 +648,16 @@ const interfaceMessages = {
     "フィードバックは保存されます。進み具合を確認して返信を受け取るには、先にサインインしてください。",
   "feedback.triage.confirmedBug": "確認済みのバグ",
   "feedback.triage.confirmedBugBadge": "確認済みのバグ",
-  "feedback.triage.confirmedBugHint": "{name}に1ポイントが付与されます。現在{count}ポイントです。",
-  "feedback.triage.confirmedBugAnonymous": "匿名のレポートのため、ポイントは付与されません。",
-  "feedback.triage.confirmedBugDuplicate": "重複にはポイントが付与されません。ポイントは元のレポートに付与されます。",
+  "feedback.triage.confirmedBugHint": "{name}に Aegis コインが1枚付与されます。これまでの確認済みバグ: {count}",
+  "feedback.triage.confirmedBugAnonymous": "匿名のレポートのため、Aegis コインは付与されません。",
+  "feedback.triage.confirmedBugDuplicate":
+    "重複には Aegis コインが付与されません。コインは元のレポートに付与されます。",
   "feedback.triage.reporterPoints": "確認済みのバグ: {count}",
   "feedback.reportedDecks.title": "報告されたコミュニティデッキ ({count})",
   "feedback.reportedDecks.reports": "{count}件の報告",
   "myFeedback.points": "確認済みのバグ: {count}",
-  "myFeedback.pointsHint": "チームが実際のバグと確認したレポートごとに1ポイントが付与されます。",
+  "myFeedback.pointsHint":
+    "チームが実際のバグと確認したレポートごとに Aegis コインが1枚付与されます。バグフォーラムでもコインを獲得できます。",
   "myFeedback.confirmedBug": "確認済みのバグ",
   "notifications.feedback.confirmed": "あなたのレポート「{summary}」がバグとして確認されました",
   "notifications.bugConfirmedPoint": "バグとして確認 · +1ポイント",
@@ -697,6 +699,9 @@ const interfaceMessages = {
   "settings.autoHatch": "自動孵化",
   "settings.autoHatchDesc":
     "育成エリアが空のとき、育成フェイズにデジタマを自動で孵化します。アカウントに保存されます。",
+  "settings.skipNothingToDo": "何もできない効果をスキップ",
+  "settings.skipNothingToDoDesc":
+    "誘発した効果に有効な対象や結果がないとき、「〜してもよい」の確認を自動で断ります。すべての確認を表示するにはオフにします。アカウントに保存されます。",
   "settings.handAutoSort": "手札を自動で並べ替え",
   "settings.handAutoSortDesc":
     "手札にカードが加わったり離れたりするたびに、並べ替えボタンで選んだ順に手札を並べ直します。ドラッグしたカードは、手札が変わるまでその位置に残ります。",
@@ -3098,6 +3103,8 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
+  ...bugForumJa,
+  ...ideaForumJa,
   "sealed.breedingHint": "育成アクションを1つ選ぶか、育成フェイズを終了してください。",
   "sealed.placeRookie": "育成エリアに置く",
 } satisfies Record<keyof typeof en, string>;

@@ -61,6 +61,8 @@ export type Screen =
   | "feedback"
   | "privacy"
   | "myFeedback"
+  | "bugForum"
+  | "ideaForum"
   | "notifications"
   | "game";
 
@@ -464,7 +466,7 @@ export function Avatar({
         fontFamily: "var(--ds-font-display)",
         fontWeight: 800,
         fontSize: size * 0.4,
-        boxShadow: ring ? `0 0 0 2px var(--ds-paper), 0 0 0 4px ${c.base}` : "none",
+        boxShadow: ring ? `0 0 0 2px var(--ds-paper), 0 0 0 4px ${c.base}` : undefined,
       }}
     >
       {imageUrl ? (
@@ -581,6 +583,8 @@ const SCREEN_SECTIONS: Partial<Record<Screen, Screen>> = {
   learn: "lobby",
   rules: "lobby",
   roadmap: "community",
+  bugForum: "community",
+  ideaForum: "community",
   booster: "collection",
 };
 

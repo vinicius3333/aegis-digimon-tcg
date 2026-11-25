@@ -14,6 +14,8 @@ import { I18nProvider } from "../i18n";
 import type { AegisRoom } from "../net/client";
 import { GameScreen } from "./GameScreen";
 
+vi.mock("@/game/screen/hooks/useNothingToDoPrompts", () => ({ useNothingToDoPrompts: () => undefined }));
+
 afterEach(cleanup);
 
 it.each([

@@ -92,8 +92,7 @@ type RoomInternals = {
   handleIntent(client: Client, intent: Intent): void;
   handleChat(client: Client, payload: unknown): void;
   COMBAT_WINDOW_TIMEOUT_SECONDS: number;
-  // `frames` is private on `ReplayRecording`; read structurally so `recording.ts` stays as it is.
-  replayRecording?: { frames: ReplayFrame[] };
+  replayRecording?: { complete: (mode: "casual") => { frames: ReplayFrame[] } | undefined };
 };
 
 /**
@@ -216,7 +215,7 @@ export async function recordRoomMatch(options: RoomMatchOptions): Promise<Record
       finalState: comparableState(room.state),
       turnCount: room.state.turnCount,
       gameOver: room.state.gameOver,
-      recordingFrames: structuredClone(internals.replayRecording?.frames ?? []),
+      recordingFrames: structuredClone(internals.replayRecording?.complete("casual")?.frames ?? []),
     };
   } finally {
     if (realClock) disposeLikeColyseus(room);

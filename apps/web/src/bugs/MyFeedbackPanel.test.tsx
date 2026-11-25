@@ -68,7 +68,7 @@ describe("my feedback", () => {
   });
 
   it("shows the reporter's points and which reports earned them", async () => {
-    mockApi(() => [200, { items: [resolved, open], nextBefore: null, confirmedBugs: 4 }]);
+    mockApi(() => [200, { items: [resolved, open], nextBefore: null, confirmedBugs: 4, aegisCoins: 6 }]);
     show();
     expect(await screen.findByText("Confirmed bugs: 4")).toBeTruthy();
     const earned = screen.getByRole("heading", { name: resolved.summary }).closest("article")!;
