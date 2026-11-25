@@ -1,7 +1,7 @@
 import type { Migration } from "#api/db/migrator";
 
 export const sealedTournaments: Migration = {
-  id: "061-sealed-tournaments",
+  id: "066-sealed-tournaments",
   up: `ALTER TABLE tournaments ADD COLUMN sealed_configuration jsonb;
     ALTER TABLE tournaments ADD COLUMN sealed_build_deadline_at bigint;
     CREATE TABLE tournament_sealed_pools (

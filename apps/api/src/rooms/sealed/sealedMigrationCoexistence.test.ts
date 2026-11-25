@@ -9,13 +9,16 @@ if (!connectionString?.startsWith("postgres://postgres@127.0.0.1:55439/")) {
   throw new Error("Sealed migration tests require isolated loopback Postgres 55439");
 }
 
-const sealedIds = ["061-sealed-tournaments", "062-private-sealed", "063-private-sealed-results"];
+const forumIds = ["061-replay-featured-deck-icons", "062-feedback-forum", "063-replay-frame-limit"];
+const sealedIds = ["064-private-sealed", "065-private-sealed-results", "066-sealed-tournaments"];
 
 it("inserts canonical sealed migrations after the complete upstream registry", () => {
-  expect(migrations.slice(-6).map((migration) => migration.id)).toEqual([
+  expect(migrations.slice(-10).map((migration) => migration.id)).toEqual([
+    "057-deck-matchup-results",
     "058-optional-ranked-region",
     "059-competitive-archetypes",
     "060-tournament-beta-cards",
+    ...forumIds,
     ...sealedIds,
   ]);
   const ids = migrations.map((migration) => migration.id);
@@ -23,7 +26,7 @@ it("inserts canonical sealed migrations after the complete upstream registry", (
   expect(ids).toEqual([...ids].sort());
 });
 
-for (const through of [null, "056", "057", "060"]) {
+for (const through of [null, "056", "057", "060", "063"]) {
   const upgrade = through !== null;
   it(`applies canonical sealed migrations on ${upgrade ? `an upstream ${through} upgrade` : "a fresh installation"}`, async () => {
     const schema = `sealed_migrations_${randomUUID().replaceAll("-", "")}`;
@@ -42,7 +45,7 @@ for (const through of [null, "056", "057", "060"]) {
           ["00000000-0000-0000-0000-0000000000bb", "00000000-0000-0000-0000-0000000000aa"],
         );
       }
-      if (through === "060") {
+      if (through === "060" || through === "063") {
         await pool.query("UPDATE tournaments SET allow_beta_cards=true");
       }
       const ledger = upgrade ? (await pool.query("SELECT * FROM schema_migrations ORDER BY id")).rows : [];
@@ -53,9 +56,12 @@ for (const through of [null, "056", "057", "060"]) {
           "058-optional-ranked-region",
           "059-competitive-archetypes",
           "060-tournament-beta-cards",
+          ...forumIds,
           ...sealedIds,
         ];
       } else if (through === "060") {
+        expectedApplied = [...forumIds, ...sealedIds];
+      } else if (through === "063") {
         expectedApplied = sealedIds;
       }
       expect(await runMigrations(pool, migrations)).toEqual(expectedApplied);
@@ -72,7 +78,7 @@ for (const through of [null, "056", "057", "060"]) {
         ).toEqual(ledger);
       }
       expect((await pool.query("SELECT allow_beta_cards FROM tournaments")).rows).toEqual(
-        upgrade ? [{ allow_beta_cards: through === "060" }] : [],
+        upgrade ? [{ allow_beta_cards: through === "060" || through === "063" }] : [],
       );
       expect(await runMigrations(pool, migrations)).toEqual([]);
       expect((await pool.query("SELECT count(*) FROM private_sealed_results")).rows[0].count).toBe("0");
