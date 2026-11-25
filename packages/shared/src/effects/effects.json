@@ -73902,7 +73902,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "name",
             "digiXrosOnly": true,
-            "tokens": ["Shoutmon", "ZeigGreymon"]
+            "tokens": ["OmniShoutmon", "ZeigGreymon"]
           }
         ]
       },
