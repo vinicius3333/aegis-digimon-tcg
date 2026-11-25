@@ -66,6 +66,34 @@ describe("BT10-112 Jesmon GX", () => {
     );
   });
 
+  it("does not place a DUAL Royal Knight, which has no play cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-111", as: "base" }],
+          hand: [
+            { card: "BT10-112", as: "evolving" },
+            { card: "BT27-016", as: "dualKnight" },
+          ],
+          trash: [{ card: "BT27-084", as: "trashedDualKnight" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "Blitz"));
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT6-111"]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("dualKnight").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("trashedDualKnight").instanceId);
+  });
+
   it("activates only the When Digivolving effect of the Royal Knight it just placed from trash", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
