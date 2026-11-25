@@ -811,7 +811,6 @@
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
               "count": "all",
-              "upTo": true,
               "totalDpCap": 10000
             }
           },
@@ -186138,7 +186137,6 @@
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
               "count": "all",
-              "upTo": true,
               "totalDpCap": 5000
             },
             "cost": {
@@ -186173,7 +186171,6 @@
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
               "count": "all",
-              "upTo": true,
               "totalDpCap": 5000
             },
             "cost": {
@@ -241834,7 +241831,6 @@
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
               "count": "all",
-              "upTo": true,
               "totalDpCap": 15000
             }
           }
@@ -249437,7 +249433,6 @@
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
               "count": "all",
-              "upTo": true,
               "totalDpCap": 6000
             }
           }
@@ -250062,7 +250057,6 @@
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
               "count": "all",
-              "upTo": true,
               "totalDpCap": 7000
             },
             "totalDpCapScaling": { "per": 8000, "unit": "selfDP", "amount": 4000 }

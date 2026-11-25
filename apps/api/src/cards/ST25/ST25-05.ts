@@ -18,7 +18,7 @@ export const compiled: CompiledCard = {
           kind: "Delete",
           effectTextPart:
             "Delete up to 7000 DP total worth of your opponent's Digimon. For every 8000 DP this Digimon has, add 4000 to this DP deletion effect's maximum.",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all", upTo: true, totalDpCap: 7000 },
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all", totalDpCap: 7000 },
           totalDpCapScaling: { per: 8000, unit: "selfDP", amount: 4000 },
         },
       ],
