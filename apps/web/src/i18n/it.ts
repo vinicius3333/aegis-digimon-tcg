@@ -1790,6 +1790,7 @@ const interfaceMessages = {
   "log.cardMoved": "{count} carta spostata: {from} → {to}",
   "log.cardMovedNamed": "{card} spostato: {from} → {to}",
   "log.turnEndDeletion": "{card} è stato eliminato a fine turno dall'effetto di {source}",
+  "log.dpModified": "{card} ottiene {delta} DP",
   "log.cardsMoved": "{count} carte spostate: {from} → {to}",
   "log.zone.deck": "mazzo",
   "log.zone.deckBottom": "fondo del mazzo",

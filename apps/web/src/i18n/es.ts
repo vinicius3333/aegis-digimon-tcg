@@ -1611,6 +1611,7 @@ export const es: Record<keyof typeof en, string> = {
   "log.cardMoved": "{count} carta movida: {from} → {to}",
   "log.cardMovedNamed": "{card} movida: {from} → {to}",
   "log.turnEndDeletion": "{card} fue eliminado al final del turno por el efecto de {source}",
+  "log.dpModified": "{card} obtiene {delta} DP",
   "log.cardsMoved": "{count} cartas movidas: {from} → {to}",
   "log.zone.deck": "deck",
   "log.zone.deckBottom": "fondo del deck",

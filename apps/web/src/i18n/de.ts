@@ -1928,6 +1928,7 @@ const interfaceMessages = {
   "log.cardMoved": "{count} Karte verschoben: {from} → {to}",
   "log.cardMovedNamed": "{card} verschoben: {from} → {to}",
   "log.turnEndDeletion": "{card} wurde am Ende des Zuges durch den Effekt von {source} gelöscht",
+  "log.dpModified": "{card} erhält {delta} DP",
   "log.cardsMoved": "{count} Karten verschoben: {from} → {to}",
   "log.zone.deck": "Deck",
   "log.zone.deckBottom": "unten im Deck",
