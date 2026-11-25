@@ -765,6 +765,7 @@ export class GameEngine {
       continuousDpSeedState: [...this.continuousDpSeedState],
       declinedAttackArts: [...this.declinedAttackArts],
       announcedSubTriggerEffectKeys: [...this.announcedSubTriggerEffectKeys],
+      pendingDpChanges: this.pendingDpChanges.map((change) => ({ ...change })),
     };
   }
 
@@ -780,6 +781,8 @@ export class GameEngine {
     this.bothReadyFired = snapshot.bothReadyFired;
     this.stagedDecks.length = 0;
     this.stagedDecks.push(...snapshot.stagedDecks);
+    this.pendingDpChanges.length = 0;
+    this.pendingDpChanges.push(...(snapshot.pendingDpChanges ?? []).map((change) => ({ ...change })));
     replaceSet({ target: this.readySeats, values: snapshot.readySeats });
     replaceSet({ target: this.nothingToDoPromptSeats, values: snapshot.nothingToDoPromptSeats ?? [] });
     replaceSet({ target: this.crossedMemoryRushAttackers, values: snapshot.crossedMemoryRushAttackers });
