@@ -114,6 +114,30 @@ describe("replay frame patches", () => {
     expect(() => decodeReplayFrames(JSON.parse(JSON.stringify(frames)))).toThrow(/replay/i);
   });
 
+  it("rejects a file with more frames than a replay may hold before decoding any patch", () => {
+    const frames = [
+      { atMs: 0, events: [], state: {} },
+      ...Array.from({ length: 20_000 }, () => ({ atMs: 0, events: [] })),
+    ];
+
+    expect(() => decodeReplayFrames(frames)).toThrow(/too many frames/);
+  });
+
+  it("stops a small file whose patches would copy a wide board at every frame", () => {
+    const wide = Object.fromEntries(Array.from({ length: 1000 }, (_, index) => [`key${index}`, index]));
+    const frames = [
+      { atMs: 0, events: [], state: { ...wide, stateVersion: 0 } },
+      ...Array.from({ length: 50 }, (_, index) => ({
+        atMs: index + 1,
+        events: [],
+        patch: { o: { stateVersion: { r: index + 1 } } },
+      })),
+    ];
+
+    expect(() => decodeReplayFrames(frames, 20_000)).toThrow(/copy too much/);
+    expect(decodeReplayFrames(frames, 60_000)).toHaveLength(51);
+  });
+
   it("rejects a patch key that would replace an object prototype", () => {
     const file =
       '[{"atMs":0,"events":[],"state":{}},{"atMs":1,"events":[],"patch":{"o":{"__proto__":{"r":{"polluted":true}}}}}]';

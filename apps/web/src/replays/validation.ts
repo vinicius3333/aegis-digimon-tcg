@@ -57,7 +57,29 @@ function safeTree(value: unknown, checked: WeakSet<object>, depth = 0): boolean 
   return safe;
 }
 
+let validatedObjects: WeakSet<object> | undefined;
+
+function validatedOnce(value: unknown, check: () => boolean): boolean {
+  if (validatedObjects === undefined || !record(value)) return check();
+  if (validatedObjects.has(value)) return true;
+  const valid = check();
+  if (valid) validatedObjects.add(value);
+  return valid;
+}
+
 function card(value: unknown): boolean {
+  return validatedOnce(value, () => isValidCard(value));
+}
+
+function permanent(value: unknown): boolean {
+  return validatedOnce(value, () => isValidPermanent(value));
+}
+
+function player(value: unknown, index: number): boolean {
+  return validatedOnce(value, () => isValidPlayer(value, index));
+}
+
+function isValidCard(value: unknown): boolean {
   if (record(value) && value.faceUp === false) {
     if (value.cardId === undefined) {
       value.cardId = "";
@@ -80,7 +102,7 @@ function card(value: unknown): boolean {
   );
 }
 
-function permanent(value: unknown): boolean {
+function isValidPermanent(value: unknown): boolean {
   return (
     record(value) &&
     defaultFields(value, permanentDefaults) &&
@@ -144,7 +166,7 @@ function manualTable(value: unknown): boolean {
   }
 }
 
-function player(value: unknown, index: number): boolean {
+function isValidPlayer(value: unknown, index: number): boolean {
   if (
     !record(value) ||
     !defaultFields(value, playerDefaults) ||
@@ -214,6 +236,15 @@ function isValidReplayDeckMetadata(value: RecordValue): boolean {
 }
 
 export function validateReplay(value: unknown): value is MatchReplay {
+  validatedObjects = new WeakSet();
+  try {
+    return isValidReplay(value);
+  } finally {
+    validatedObjects = undefined;
+  }
+}
+
+function isValidReplay(value: unknown): value is MatchReplay {
   if (
     !record(value) ||
     !safeTree(value, new WeakSet()) ||
