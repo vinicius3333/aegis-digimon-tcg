@@ -8,7 +8,7 @@ import { recordRoomMatch } from "#api/replays/inputs/roomMatch.fixture";
 import type { ReplayRecord } from "#api/replays/inputs/types";
 
 describe("renderForumReplay", () => {
-  it("turns a report's input record into a spectator replay with no hands, decks, names or match ID", async () => {
+  it("turns a report's input record into a replay that shows both hands, without the match ID", async () => {
     const recorded = await recordRoomMatch({ seed: 20260914 });
     const record = JSON.parse(JSON.stringify(extractReplay(recorded.lines, recorded.matchId))) as ReplayRecord;
 
@@ -17,14 +17,10 @@ describe("renderForumReplay", () => {
 
     expect(replay.format).toBe("aegis-replay");
     expect(replay.frames.length).toBeGreaterThan(1);
-    expect(replay.viewerSeat).toBe(-1);
-    expect(replay.visibleHandSeats).toEqual([]);
-    expect(replay.decks).toBeUndefined();
-    expect(replay.players).toEqual(["Player 1", "Player 2"]);
-    for (const frame of replay.frames) {
-      expect(frame.state.matchLogId).toBe("");
-      expect(frame.state.players.every((player) => player.hand.length === 0)).toBe(true);
-    }
+    expect(replay.viewerSeat).toBe(0);
+    expect(replay.visibleHandSeats).toEqual([0, 1]);
+    expect(replay.frames.some((frame) => frame.state.players.every((player) => player.hand.length > 0))).toBe(true);
+    expect(replay.frames.every((frame) => frame.state.matchLogId === "")).toBe(true);
     expect(JSON.stringify(file)).not.toContain(recorded.matchId);
   }, 180_000);
 });
