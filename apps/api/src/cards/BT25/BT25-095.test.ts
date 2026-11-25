@@ -140,6 +140,53 @@ describe("BT25-095 Paradise Colosseum", () => {
     expect(s.perm("opponent").currentDP).toBe(getCardDefinition("BT25-010")!.dp);
   });
 
+  it("counts the replacing face-up copy's DP bonus for the play it then offers", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT25-095", as: "newColosseum" },
+            { card: "BT25-020", as: "marsmon" },
+          ],
+          security: [
+            { card: "BT25-001", as: "top" },
+            { card: "BT25-095", as: "oldColosseum", faceUp: true },
+          ],
+          battleArea: [
+            { card: "BT24-085", as: "tamer" },
+            { card: "BT25-054", as: "target", dp: 11000 },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-011", "BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.perm("target").currentDP).toBe(13000);
+    const newColosseumId = s.inst("newColosseum").instanceId;
+    const marsmonId = s.inst("marsmon").instanceId;
+    preferred.push(newColosseumId, marsmonId);
+
+    const turn = s.engine.runOneTurn();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await settle(() => s.perm("tamer").isSuspended);
+      await settle();
+
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("oldColosseum").instanceId]);
+      expect(s.state.players[0]!.security.at(-1)).toMatchObject({ instanceId: newColosseumId, faceUp: true });
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(marsmonId);
+      expect(s.state.memory).toBe(-7);
+    } finally {
+      s.engine.applyIntent(0, { type: "surrender" });
+      await turn;
+    }
+  });
+
   it("applies the DP bonus on either turn but not conditional Rush without Marsmon/Callismon", async () => {
     const s = setupEngine({
       0: { security: [{ card: "BT25-095", faceUp: true }], battleArea: [{ card: "BT25-011", as: "target" }] },

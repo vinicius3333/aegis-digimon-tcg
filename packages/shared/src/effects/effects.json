@@ -32848,26 +32848,7 @@
     "residual": []
   },
   "BT15-033": {
-    "effects": [
-      {
-        "trigger": "AllTurns",
-        "isInherited": true,
-        "actions": [
-          {
-            "kind": "Replacement",
-            "event": "wouldBeDeleted",
-            "leaveCause": "byBattle",
-            "sourceFilter": { "isSelfRef": true },
-            "mode": "prevent",
-            "actions": [],
-            "cost": {
-              "kind": "trashSecurityTop",
-              "raw": "By trashing the top card of your security stack, prevent that deletion"
-            }
-          }
-        ]
-      }
-    ],
+    "effects": [{ "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Barrier", "raw": "＜Barrier＞" }] }],
     "coverage": "full",
     "residual": []
   },
@@ -37949,7 +37930,6 @@
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Armor Purge", "raw": "＜Armor Purge＞" }] },
       {
         "trigger": "WhenAttacking",
-        "isInherited": true,
         "actions": [
           {
             "effectTextPart": "[When Attacking] Trash any 1 digivolution card of 1 of your opponent's Digimon.",
@@ -190161,26 +190141,6 @@
   },
   "EX9-065": {
     "effects": [
-      {
-        "trigger": "BeforePayCost",
-        "actions": [
-          {
-            "kind": "ReducePlayCost",
-            "payment": {
-              "kind": "trashFromHand",
-              "filter": {
-                "controller": "mine",
-                "zone": "hand",
-                "nameOrTrait": [
-                  { "tokens": ["Cyborg"], "match": "trait" },
-                  { "tokens": ["Ver.4"], "match": "trait" }
-                ]
-              }
-            },
-            "amount": { "kind": "fixed", "value": 2 }
-          }
-        ]
-      },
       {
         "trigger": "Counter",
         "actions": [],

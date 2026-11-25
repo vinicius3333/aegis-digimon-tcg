@@ -28,7 +28,7 @@ describe("BT16-022", () => {
 
   it("offers every opposing Digimon to the trash, then gives Security Attack -1 to a source-less opponent", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-010", as: "host", under: ["BT16-022"] }] },
+      0: { battleArea: [{ card: "BT16-022", as: "host" }] },
       1: {
         battleArea: [
           { card: "BT1-010", as: "stacked", under: ["BT1-009"] },
@@ -79,7 +79,7 @@ describe("BT16-022", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-010", as: "host", under: ["BT16-022"] }] },
+        0: { battleArea: [{ card: "BT16-022", as: "host" }] },
         1: {
           battleArea: [
             { card: "BT1-010", as: "stacked", under: ["BT1-009", "BT1-011"] },
@@ -104,5 +104,24 @@ describe("BT16-022", () => {
 
     expect(s.perm("stacked").stack[0]!.instanceId).toBe(topSourceId);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === bottomSourceId)).toBe(true);
+  });
+
+  it("does not give its When Attacking effect to the Digimon it digivolves into", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-010", as: "host", under: ["BT16-022"] }] },
+      1: { battleArea: [{ card: "BT1-010", as: "stacked", under: ["BT1-009"] }], security: ["BT1-011"] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.decisions).toHaveLength(0);
+    expect(s.perm("stacked").stack).toHaveLength(1);
   });
 });
