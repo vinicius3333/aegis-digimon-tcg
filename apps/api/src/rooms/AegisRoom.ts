@@ -3382,7 +3382,7 @@ export class AegisRoom extends Room<{
   private reportReplayLimit(): void {
     if (this.replayLimitReported || !this.replayRecording?.exceededLimit) return;
     this.replayLimitReported = true;
-    this.debugError("[replays] match recording passed the replay limit", {
+    this.debugError(`[replays] match ${this.state.matchLogId} recording passed the replay limit`, {
       mode: this.replayMode(),
       turn: this.state.turnCount,
       stateVersion: this.state.stateVersion,

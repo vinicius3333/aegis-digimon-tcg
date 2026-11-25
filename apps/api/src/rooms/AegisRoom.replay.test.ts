@@ -403,8 +403,9 @@ describe("replay limit alert", () => {
       stop();
     }
 
-    const alerts = lines.filter((line) => line.includes("[replays] match recording passed the replay limit"));
+    const alerts = lines.filter((line) => line.includes("recording passed the replay limit"));
     expect(alerts).toHaveLength(1);
     expect(JSON.parse(alerts[0]!)).toMatchObject({ level: "ERROR", matchId: room.state.matchLogId });
+    expect(alerts[0]).toContain(`[replays] match ${room.state.matchLogId} recording passed the replay limit`);
   });
 });
