@@ -1,3 +1,4 @@
+import { decodeReplayFrames } from "@aegis/shared/replays/decodeReplayFrames";
 import { gunzipSync } from "node:zlib";
 import { fileURLToPath } from "node:url";
 import { expect, test } from "@playwright/test";
@@ -36,13 +37,19 @@ for (const width of [390, 1440]) {
             localStorage.setItem("aegis:locale", "en");
             localStorage.setItem("aegis:darkMode", String(darkMode));
           }, dark);
-          const page = await context.newPage();
-          await page.goto(`http://127.0.0.1:${process.env.AEGIS_E2E_WEB_PORT ?? 4175}/friends`);
-          await expect(page.getByText("Connected to friends", { exact: true })).toBeVisible();
-          players.push(page);
+          players.push(await context.newPage());
         }
+        await Promise.all(
+          players.map(async (page) => {
+            await page.goto(`http://127.0.0.1:${process.env.AEGIS_E2E_WEB_PORT ?? 4175}/friends`, {
+              waitUntil: "domcontentloaded",
+            });
+            await expect(page.getByRole("main").getByText("Connected to friends", { exact: true })).toBeVisible();
+          }),
+        );
         const [host, guest, spectator] = players;
-        await expect(host.getByText("Online", { exact: true })).toHaveCount(2);
+        await host.bringToFront();
+        await expect(host.getByRole("main").getByText("Online", { exact: true })).toHaveCount(2);
         await host.screenshot({
           path: fileURLToPath(
             new URL(
@@ -58,6 +65,8 @@ for (const width of [390, 1440]) {
           .click();
         await expect(host.getByRole("status").filter({ hasText: "Challenge Challenge Guest" })).toBeVisible();
         await host.getByRole("button", { name: /^create room$/i }).click();
+        await expect(host.getByRole("button", { name: /^Room code / })).toBeVisible();
+        await guest.bringToFront();
         await expect(guest.getByText("Challenge Host invited you to a match", { exact: true })).toBeVisible();
         await guest.screenshot({
           path: fileURLToPath(
@@ -73,12 +82,22 @@ for (const width of [390, 1440]) {
         await expect(guest).toHaveURL(/\/play\/game$/);
         await expect(guest.getByRole("button", { name: "Challenge Host", exact: true })).toBeVisible();
         await expect(host.getByRole("button", { name: "Challenge Guest", exact: true })).toBeVisible();
-        await spectator
-          .getByRole("listitem")
-          .filter({ hasText: "Challenge Guest" })
-          .getByRole("button", { name: "Watch", exact: true })
-          .click();
+        await spectator.bringToFront();
+        const [reservation] = await Promise.all([
+          spectator.waitForResponse(
+            (response) =>
+              new URL(response.url()).pathname === "/spectate/friend" && response.request().method() === "POST",
+          ),
+          spectator
+            .getByRole("main")
+            .getByRole("listitem")
+            .filter({ hasText: "Challenge Guest" })
+            .getByRole("button", { name: "Watch", exact: true })
+            .click(),
+        ]);
+        expect(reservation.status()).toBe(200);
         await expect(spectator).toHaveURL(/\/play\/game$/);
+        await expect(spectator.locator('[data-spectator="true"]')).toBeVisible();
         await expect(spectator.getByRole("button", { name: "Keep hand", exact: true })).toHaveCount(0);
         await expect(spectator.getByRole("button", { name: "Challenge Host", exact: true })).toHaveCount(0);
         await Promise.all(
@@ -105,7 +124,7 @@ for (const width of [390, 1440]) {
         expect(replay.players).not.toContain("Challenge Host");
         const guestSeat = replay.players.indexOf("Challenge Guest");
         expect(replay.visibleHandSeats).toEqual([guestSeat]);
-        for (const frame of replay.frames) {
+        for (const frame of decodeReplayFrames(replay.frames)) {
           expect(frame.state.players[1 - guestSeat].hand).toEqual([]);
         }
         expect(
@@ -117,10 +136,11 @@ for (const width of [390, 1440]) {
           ).rows,
         ).toEqual([{ viewer_seat: -1 }]);
       } finally {
-        for (const context of contexts) {
-          await context.close();
+        try {
+          await Promise.all(contexts.map((context) => context.close()));
+        } finally {
+          await server.close();
         }
-        await server.close();
       }
     });
   }
