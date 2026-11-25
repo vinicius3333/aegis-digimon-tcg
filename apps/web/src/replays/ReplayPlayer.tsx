@@ -27,7 +27,7 @@ const emptyDeck = { mainDeck: [], eggDeck: [] };
 const ANNOTATION_SHEET_QUERY = "(width < 600px)";
 const IDLE_MS = 2500;
 const CHROME_IN_USE =
-  ".replay-controls:hover, .replay-player__tools:hover, .replay-player__heading:hover, .replay-recording-trigger:hover, .replay-controls details[open], .replay-controls:focus-within, .replay-player__tools:focus-within, .replay-player__heading:focus-within";
+  ".replay-controls:hover, .replay-player__tools:hover, .replay-player__heading:hover, .replay-recording-trigger:hover, .replay-controls details[open], .replay-controls:has(:focus-visible), .replay-player__tools:has(:focus-visible), .replay-player__heading:has(:focus-visible)";
 const acknowledgeDecision = () => undefined;
 
 export function ReplayPlayer({
@@ -229,12 +229,14 @@ export function ReplayPlayer({
       clearTimeout(timer);
       timer = setTimeout(rest, IDLE_MS);
     };
-    const activity = ["pointermove", "pointerdown", "keydown", "wheel", "touchstart"] as const;
+    const activity = ["pointermove", "pointerdown", "wheel", "touchstart"] as const;
     for (const type of activity) element.addEventListener(type, wake, { passive: true });
+    window.addEventListener("keydown", wake);
     timer = setTimeout(rest, IDLE_MS);
     return () => {
       clearTimeout(timer);
       for (const type of activity) element.removeEventListener(type, wake);
+      window.removeEventListener("keydown", wake);
     };
   }, []);
   useEffect(() => {
@@ -543,15 +545,17 @@ export function ReplayPlayer({
               <SkipForward size={18} aria-hidden="true" />
             </button>
           </div>
-          <span className="replay-controls__time">
-            {t("replay.action", { current: cursor.index + 1, total: replay.frames.length })}
-          </span>
-          <span
-            className="replay-controls__chapter"
-            role="status"
-            title={atEnd && settled ? t("replay.finished") : labels[cursor.index]}
-          >
-            {atEnd && settled ? t("replay.finished") : labels[cursor.index]}
+          <span className="replay-controls__status">
+            <span className="replay-controls__time">
+              {t("replay.action", { current: cursor.index + 1, total: replay.frames.length })}
+            </span>
+            <span
+              className="replay-controls__chapter"
+              role="status"
+              title={atEnd && settled ? t("replay.finished") : labels[cursor.index]}
+            >
+              {atEnd && settled ? t("replay.finished") : labels[cursor.index]}
+            </span>
           </span>
           <div className="replay-controls__end">
             {annotations.canAnnotate ? (

@@ -589,6 +589,13 @@
   width: 44px;
   height: 44px;
 }
+.replay-controls__status {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
 .replay-controls__time {
   flex: none;
   color: var(--ds-on-ink);
@@ -723,6 +730,11 @@
   border: 0;
   background: color-mix(in srgb, var(--replay-seat) 30%, transparent);
   cursor: pointer;
+}
+.replay-timeline__turn::before {
+  content: "";
+  position: absolute;
+  inset: -8px 0;
 }
 .replay-timeline__turn::after {
   content: "";
@@ -1007,18 +1019,28 @@
   justify-items: center;
   gap: 4px;
 }
+@media (width < 600px), (height < 520px) and (orientation: landscape) {
+  .replay-controls {
+    bottom: var(--game-hand-h, 0px);
+    padding-bottom: 6px;
+  }
+}
 @media (max-width: 520px) {
   .replay-controls {
     padding-inline: 8px;
   }
   .replay-controls__row {
-    gap: 6px;
+    flex-wrap: wrap;
+    gap: 0 6px;
   }
+  .replay-controls__status {
+    order: 2;
+    flex-basis: 100%;
+    gap: 8px;
+    padding: 0 4px 2px;
+  }
+  .replay-controls__time,
   .replay-controls__chapter {
-    display: none;
-  }
-  .replay-controls__transport > .replay-controls__icon:first-child,
-  .replay-controls__transport > .replay-controls__icon:last-child {
-    display: none;
+    font-size: 12px;
   }
 }
