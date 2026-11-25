@@ -4,6 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const chuumonOrSukamonNamedCost: Filter = {
   controller: "mine",
   zone: ["hand", "digivolutionCards"],
+  hostFilter: { kind: ["Digimon"] },
   nameOrTrait: [{ tokens: ["Chuumon", "Sukamon"], match: "name" }],
 };
 

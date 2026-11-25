@@ -235007,6 +235007,7 @@
                 "filter": {
                   "controller": "mine",
                   "zone": ["hand", "digivolutionCards"],
+                  "hostFilter": { "kind": ["Digimon"] },
                   "nameOrTrait": [{ "tokens": ["Chuumon", "Sukamon"], "match": "name" }]
                 },
                 "count": 1
@@ -235033,6 +235034,7 @@
                 "filter": {
                   "controller": "mine",
                   "zone": ["hand", "digivolutionCards"],
+                  "hostFilter": { "kind": ["Digimon"] },
                   "nameOrTrait": [{ "tokens": ["Chuumon", "Sukamon"], "match": "name" }]
                 },
                 "count": 1
@@ -235059,6 +235061,7 @@
                 "filter": {
                   "controller": "mine",
                   "zone": ["hand", "digivolutionCards"],
+                  "hostFilter": { "kind": ["Digimon"] },
                   "nameOrTrait": [{ "tokens": ["Chuumon", "Sukamon"], "match": "name" }]
                 },
                 "count": 1
