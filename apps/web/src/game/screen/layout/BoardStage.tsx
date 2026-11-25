@@ -386,8 +386,9 @@ export function BoardStage({
   const finaleTone = cues.finale
     ? resolveMatchFinaleTone({ winnerSeat: cues.finale.winnerSeat, viewerSeat, spectating })
     : undefined;
-  let opponentStatus = opponentStatusKey(state, viewerSeat);
+  let opponentStatus = opponentStatusKey(state, viewerSeat, { replaying: replayMode });
   if (
+    !replayMode &&
     manualState.gameMode === GameMode.MANUAL.value &&
     manualState.manual.turnPhase === Phase.Breeding &&
     (spectating || manualState.turnSeat !== viewerSeat) &&
