@@ -4354,7 +4354,7 @@ export class AegisRoom extends Room<{
           ? this.state.pendingDecision?.decisionId
           : undefined;
     const result = this.applyLoggedIntent(seat, intent);
-    if (result.ok) {
+    if (result.ok && intent.type !== "showNothingToDoPrompts") {
       this.lastPlayerActionAt = Date.now();
       if (intent.type !== "ready") this.seatsThatActed.add(seat);
     }
