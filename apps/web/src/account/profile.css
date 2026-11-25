@@ -105,10 +105,35 @@
   position: relative;
   flex: none;
   padding: 0;
-  border: 2px solid var(--ds-accent);
-  border-radius: 20%;
-  background: var(--ds-fill);
+  border: 0;
+  border-radius: 30%;
+  background: transparent;
   cursor: pointer;
+}
+.profile-identity__avatar > :first-child {
+  box-shadow:
+    0 0 0 3px var(--ds-sheet),
+    0 0 0 5px color-mix(in srgb, var(--ds-accent) 45%, transparent);
+  transition:
+    box-shadow var(--ds-motion-fast) var(--ds-ease-standard),
+    transform var(--ds-motion-fast) var(--ds-ease-standard);
+}
+.profile-identity__avatar:hover:not(:disabled) > :first-child,
+.profile-identity__avatar[aria-expanded="true"] > :first-child {
+  box-shadow:
+    0 0 0 3px var(--ds-sheet),
+    0 0 0 5px var(--ds-accent);
+}
+.profile-identity__avatar:active:not(:disabled) > :first-child {
+  transform: scale(0.97);
+}
+.profile-identity__avatar:focus-visible {
+  outline: none;
+}
+.profile-identity__avatar:focus-visible > :first-child {
+  box-shadow:
+    0 0 0 3px var(--ds-sheet),
+    0 0 0 6px var(--ds-focus);
 }
 .profile-identity__avatar:disabled {
   cursor: default;

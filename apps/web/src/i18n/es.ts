@@ -1,3 +1,5 @@
+import { ideaForumEs } from "@/i18n/ideaForum.es";
+import { bugForumEs } from "@/i18n/bugForum.es";
 import { deckMatchupEs } from "@/i18n/deckMatchup.es";
 import { deckOddsEs } from "@/i18n/deckOdds.es";
 import { chatActionsEs } from "@/i18n/chatActions.es";
@@ -303,14 +305,15 @@ export const es: Record<keyof typeof en, string> = {
     "Tu comentario se guarda. Inicia sesión antes si quieres seguirlo y recibir respuesta.",
   "feedback.triage.confirmedBug": "Bug confirmado",
   "feedback.triage.confirmedBugBadge": "Bug confirmado",
-  "feedback.triage.confirmedBugHint": "{name} gana 1 punto. Ahora tiene {count}.",
-  "feedback.triage.confirmedBugAnonymous": "Informe anónimo: nadie gana el punto.",
-  "feedback.triage.confirmedBugDuplicate": "Los duplicados no ganan punto; lo conserva el informe original.",
+  "feedback.triage.confirmedBugHint": "{name} gana 1 moneda Aegis. Bugs confirmados hasta ahora: {count}.",
+  "feedback.triage.confirmedBugAnonymous": "Informe anónimo: nadie gana la moneda Aegis.",
+  "feedback.triage.confirmedBugDuplicate": "Los duplicados no ganan moneda Aegis; la conserva el informe original.",
   "feedback.triage.reporterPoints": "{count} bugs confirmados",
   "feedback.reportedDecks.title": "Mazos de la comunidad denunciados ({count})",
   "feedback.reportedDecks.reports": "{count} denuncias",
   "myFeedback.points": "Bugs confirmados: {count}",
-  "myFeedback.pointsHint": "Cada informe que el equipo confirma como bug real te da 1 punto.",
+  "myFeedback.pointsHint":
+    "Cada informe que el equipo confirma como bug real te da 1 moneda Aegis. También ganas monedas en el foro de bugs.",
   "myFeedback.confirmedBug": "Bug confirmado",
   "notifications.feedback.confirmed": "Tu informe «{summary}» se confirmó como bug",
   "notifications.bugConfirmedPoint": "Confirmado como bug · +1 punto",
@@ -352,6 +355,9 @@ export const es: Record<keyof typeof en, string> = {
   "settings.autoHatch": "Eclosión automática",
   "settings.autoHatchDesc":
     "Eclosiona un Digi-Huevo automáticamente durante tu fase de crianza cuando el área está vacía. Se guarda en tu cuenta.",
+  "settings.skipNothingToDo": "Omitir efectos que no pueden hacer nada",
+  "settings.skipNothingToDoDesc":
+    "Rechaza automáticamente el “puedes” de un efecto activado cuando no tiene objetivo ni resultado válido. Desactívalo para ver todos los avisos. Se guarda en tu cuenta.",
   "settings.handAutoSort": "Mantener la mano ordenada",
   "settings.handAutoSortDesc":
     "Reordena la mano en el orden elegido en el botón de ordenar cada vez que entra o sale una carta. Las cartas que arrastras se quedan en su sitio hasta que cambie la mano.",
@@ -2484,6 +2490,8 @@ export const es: Record<keyof typeof en, string> = {
   ...learnEs,
   ...learnDrillsEs,
   ...battleLessonsEs,
+  ...bugForumEs,
+  ...ideaForumEs,
   "sealed.breedingHint": "Elige una acción de crianza o termina la crianza.",
   "sealed.placeRookie": "Colocar en crianza",
 };

@@ -6,6 +6,7 @@ import { DISCORD_INVITE_URL, GITHUB_REPO_URL } from "@/community";
 import type { DeckListing } from "@/game/decks";
 import { HomeAgendaCard } from "@/home/HomeAgendaCard";
 import { HomeBoosterCard } from "@/home/HomeBoosterCard";
+import { HomeBugForumCard } from "@/home/HomeBugForumCard";
 import { HomeDecksCard } from "@/home/HomeDecksCard";
 import { HomeLiveMatchesCard } from "@/home/HomeLiveMatchesCard";
 import type { HomeMatchQueue } from "@/home/HomeMatchQueue";
@@ -37,6 +38,8 @@ type HomeParams = {
   onOpenTournaments: () => void;
   onCreateTournament: () => void;
   onOpenBooster: () => void;
+  onOpenBugForum: () => void;
+  onOpenBugReport: (reportId: number) => void;
   onEditDeck: (deck: DeckListing) => void;
   onPlayDeck: (deck: DeckListing) => void;
   onBuildDeck: () => void;
@@ -91,6 +94,12 @@ export function Home(params: HomeParams) {
               onPrivateMatch={params.onPrivateMatch}
               onChangeDeck={params.onChangeDeck}
               onOpenRanked={params.onOpenRanked}
+            />
+            <HomeBugForumCard
+              signedIn={signedIn}
+              onOpen={params.onOpenBugForum}
+              onOpenReport={params.onOpenBugReport}
+              onSignIn={params.onSignIn}
             />
             <HomeBoosterCard onOpen={params.onOpenBooster} />
             {params.accountId ? (

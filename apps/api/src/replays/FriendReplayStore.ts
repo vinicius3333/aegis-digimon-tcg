@@ -1,7 +1,12 @@
 import { gunzipSync } from "node:zlib";
 import type { AccountStore } from "#api/accounts/AccountStore";
 import { runFriendTransaction } from "#api/friends/runFriendTransaction";
-import { MAX_REPLAY_BYTES, REPLAY_FORMAT_VERSION, type SavedReplay } from "@aegis/shared/replays";
+import {
+  FULL_FRAME_REPLAY_VERSION,
+  MAX_REPLAY_BYTES,
+  REPLAY_FORMAT_VERSION,
+  type SavedReplay,
+} from "@aegis/shared/replays";
 import { ReplayVisibility } from "@aegis/shared/replays/ReplayVisibility";
 
 type SaveFriendReplayParams = { accountId: string; replayId: string; archive: Buffer };
@@ -20,7 +25,11 @@ export class FriendReplayStore {
     } catch {
       return false;
     }
-    if (!parsed || parsed.format !== "aegis-replay" || parsed.version !== REPLAY_FORMAT_VERSION) {
+    if (
+      !parsed ||
+      parsed.format !== "aegis-replay" ||
+      (parsed.version !== REPLAY_FORMAT_VERSION && parsed.version !== FULL_FRAME_REPLAY_VERSION)
+    ) {
       return false;
     }
     return runFriendTransaction({

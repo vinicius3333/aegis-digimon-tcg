@@ -1,3 +1,5 @@
+import { ideaForumZhTW } from "@/i18n/ideaForum.zh-TW";
+import { bugForumZhTW } from "@/i18n/bugForum.zh-TW";
 import { deckMatchupZhTW } from "@/i18n/deckMatchup.zh-TW";
 import { deckOddsZhTW } from "@/i18n/deckOdds.zh-TW";
 import { chatActionsZhTW } from "@/i18n/chatActions.zh-TW";
@@ -330,7 +332,7 @@ const interfaceMessages = {
   "replay.loading": "正在開啟重播…",
   "replay.error.invalid": "該檔案不是有效、完整的 Aegis 重播。",
   "replay.error.version": "此重播使用此版本的 Aegis 無法開啟的格式。",
-  "replay.error.size": "請選擇不超過 32 MB（含解壓縮後內容）的非空重播檔案。",
+  "replay.error.size": "請選擇不超過 32 MB 且解壓縮後內容不超過 128 MB 的非空重播檔案。",
   "replay.play": "播放",
   "replay.pause": "暫停",
   "replay.previous": "上一步操作",
@@ -338,8 +340,6 @@ const interfaceMessages = {
   "replay.start": "跳到開頭",
   "replay.end": "跳到結尾",
   "replay.speed": "播放速度",
-  "replay.move": "移動播放控制項",
-  "replay.moveHint": "拖曳以移動。使用方向鍵移動，按住 Shift 加大移動幅度，按 Home 重設位置。",
   "replay.position": "重播位置",
   "replay.turn": "回合",
   "replay.action": "第 {current} 個操作（共 {total} 個）",
@@ -555,14 +555,14 @@ const interfaceMessages = {
   "bugReport.notice.anonymousPrivate": "你的回饋已儲存。如果你想追蹤並獲得回覆，請先登入。",
   "feedback.triage.confirmedBug": "已確認的錯誤",
   "feedback.triage.confirmedBugBadge": "已確認的錯誤",
-  "feedback.triage.confirmedBugHint": "{name} 獲得 1 分，現在共有 {count} 分。",
-  "feedback.triage.confirmedBugAnonymous": "匿名報告：沒有人獲得積分。",
-  "feedback.triage.confirmedBugDuplicate": "重複報告不計分；積分歸原始報告。",
+  "feedback.triage.confirmedBugHint": "{name} 獲得 1 枚 Aegis 幣。目前已確認的錯誤：{count}。",
+  "feedback.triage.confirmedBugAnonymous": "匿名報告：沒有人獲得 Aegis 幣。",
+  "feedback.triage.confirmedBugDuplicate": "重複報告不發放 Aegis 幣；Aegis 幣歸原始報告。",
   "feedback.triage.reporterPoints": "{count} 個已確認的錯誤",
   "feedback.reportedDecks.title": "被檢舉的社群卡組（{count}）",
   "feedback.reportedDecks.reports": "{count} 次檢舉",
   "myFeedback.points": "已確認的錯誤：{count}",
-  "myFeedback.pointsHint": "團隊每確認一份報告為真實錯誤，你就獲得 1 分。",
+  "myFeedback.pointsHint": "團隊每確認一份報告為真實錯誤，你就獲得 1 枚 Aegis 幣。你也可以在錯誤論壇中賺取 Aegis 幣。",
   "myFeedback.confirmedBug": "已確認的錯誤",
   "notifications.feedback.confirmed": "你的報告「{summary}」已被確認為錯誤",
   "notifications.bugConfirmedPoint": "已確認為錯誤 · +1 分",
@@ -600,6 +600,9 @@ const interfaceMessages = {
   "settings.sortHandDesc": "依所選順序整理目前手牌。新抽到的牌會留在最後，直到你再次整理。",
   "settings.autoHatch": "自動孵化",
   "settings.autoHatchDesc": "培育區為空時，在你的培育階段自動孵化數碼蛋。儲存到你的帳戶。",
+  "settings.skipNothingToDo": "跳過無法生效的效果",
+  "settings.skipNothingToDoDesc":
+    "觸發的效果沒有合法對象或結果時，自動拒絕其「可以」提示。關閉後會顯示所有提示。儲存到你的帳戶。",
   "settings.handAutoSort": "保持手牌有序",
   "settings.handAutoSortDesc":
     "每當有牌加入或離開手牌時，按手牌排序按鈕上所選的順序重新整理手牌。你拖曳過的牌會保持原位，直到手牌發生變化。",
@@ -2928,6 +2931,8 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
+  ...bugForumZhTW,
+  ...ideaForumZhTW,
   "sealed.breedingHint": "選擇一個培育行動，或結束培育階段。",
   "sealed.placeRookie": "放入育成區",
 } satisfies Record<keyof typeof en, string>;

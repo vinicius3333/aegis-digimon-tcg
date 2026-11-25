@@ -1256,7 +1256,8 @@ function makeContext(opts: {
   };
 
   const ask: DecisionApi = {
-    optional: async () => {
+    optional: async (_ctx, _prompt, options) => {
+      if (options?.nothingToDo === true) return false;
       opts.onOptional?.();
       return opts.optionalAnswer ?? true;
     },

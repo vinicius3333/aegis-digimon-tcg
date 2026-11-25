@@ -72,7 +72,8 @@ export type Intent =
   | { type: "respondDecision"; decisionId: string; response: DecisionResponse }
 
   // --- Always available ---
-  | { type: "surrender" };
+  | { type: "surrender" }
+  | { type: "showNothingToDoPrompts"; show: boolean };
 
 export type IntentType = Intent["type"];
 

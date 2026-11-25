@@ -17,8 +17,12 @@ const DECISION_STATUS: Record<string, TranslationKey> = {
  * synchronized state; only their payloads are view-gated, so this never says
  * which cards are involved.
  */
-export function opponentStatusKey(state: GameState, viewerSeat: Seat): TranslationKey | null {
-  if (state.gameOver) return null;
+export function opponentStatusKey(
+  state: GameState,
+  viewerSeat: Seat,
+  { replaying = false }: { replaying?: boolean } = {},
+): TranslationKey | null {
+  if (replaying || state.gameOver) return null;
   const decision = state.pendingDecision;
   if (decision) {
     if (decision.seat === viewerSeat) return null;

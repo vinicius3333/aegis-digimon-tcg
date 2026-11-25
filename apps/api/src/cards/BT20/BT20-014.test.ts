@@ -84,6 +84,7 @@ describe("BT20-014 SaviorHuckmon", () => {
   });
 
   it("suspends another Digimon and free-evolves into Jesmon through the real End of Your Turn flow", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -95,13 +96,14 @@ describe("BT20-014 SaviorHuckmon", () => {
         },
         1: { security: ["BT1-010", "BT1-010"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.memory = 7;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("savior").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.perm("savior").topCard.cardId === "BT20-014");
+    preferred.push(s.perm("savior").permanentId);
     expect(s.state.memory).toBe(0);
 
     const turn = s.engine.runOneTurn();

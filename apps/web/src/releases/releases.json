@@ -1,5 +1,50 @@
 [
   {
+    "version": "1.81.0-beta",
+    "releasedAt": "2026-11-24",
+    "summaryKey": "releases.1.81.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.81.0-beta.feature.bugForum"
+      },
+      {
+        "textKey": "releases.1.81.0-beta.feature.ideaBoard"
+      },
+      {
+        "textKey": "releases.1.81.0-beta.feature.skipNothingToDo"
+      },
+      {
+        "textKey": "releases.1.81.0-beta.feature.smallerReplays"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.81.0-beta.fix.guardromonColors"
+      },
+      {
+        "textKey": "releases.1.81.0-beta.fix.mirageGaogamon"
+      },
+      {
+        "textKey": "releases.1.81.0-beta.fix.graceNovamonNo"
+      },
+      {
+        "textKey": "releases.1.81.0-beta.fix.followUpDna"
+      },
+      {
+        "textKey": "releases.1.81.0-beta.fix.effectAttackChoice"
+      },
+      {
+        "textKey": "releases.1.81.0-beta.fix.opponentEggs"
+      },
+      {
+        "textKey": "releases.1.81.0-beta.fix.replayPlayback"
+      },
+      {
+        "textKey": "releases.1.81.0-beta.fix.botSeatSymmetry"
+      }
+    ]
+  },
+  {
     "version": "1.80.1-beta",
     "releasedAt": "2026-11-23",
     "summaryKey": "releases.1.80.1-beta.summary",

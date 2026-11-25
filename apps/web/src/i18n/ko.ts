@@ -1,3 +1,5 @@
+import { ideaForumKo } from "@/i18n/ideaForum.ko";
+import { bugForumKo } from "@/i18n/bugForum.ko";
 import { deckMatchupKo } from "@/i18n/deckMatchup.ko";
 import { deckOddsKo } from "@/i18n/deckOdds.ko";
 import { chatActionsKo } from "@/i18n/chatActions.ko";
@@ -344,7 +346,7 @@ const interfaceMessages = {
   "replay.loading": "리플레이 여는 중…",
   "replay.error.invalid": "올바르고 완전한 Aegis 리플레이 파일이 아닙니다.",
   "replay.error.version": "이 리플레이는 이 Aegis 버전에서 열 수 없는 형식을 사용합니다.",
-  "replay.error.size": "압축 해제한 내용을 포함해 32MB 이하이며 비어 있지 않은 리플레이를 선택하세요.",
+  "replay.error.size": "32MB 이하이고 압축 해제한 내용이 128MB 이하인, 비어 있지 않은 리플레이 파일을 선택하세요.",
   "replay.play": "재생",
   "replay.pause": "일시정지",
   "replay.previous": "이전 행동",
@@ -352,8 +354,6 @@ const interfaceMessages = {
   "replay.start": "시작으로 이동",
   "replay.end": "끝으로 이동",
   "replay.speed": "재생 속도",
-  "replay.move": "재생 컨트롤 이동",
-  "replay.moveHint": "드래그하여 이동하세요. 방향키로 이동하고 Shift로 더 크게 이동하며 Home으로 위치를 초기화합니다.",
   "replay.position": "리플레이 위치",
   "replay.turn": "턴",
   "replay.action": "행동 {current}/{total}",
@@ -577,14 +577,15 @@ const interfaceMessages = {
     "피드백이 저장되었습니다. 진행 상황을 확인하고 답변을 받으려면 먼저 로그인하세요.",
   "feedback.triage.confirmedBug": "확인된 버그",
   "feedback.triage.confirmedBugBadge": "확인된 버그",
-  "feedback.triage.confirmedBugHint": "{name} 님이 1점을 받습니다. 현재 {count}점입니다.",
-  "feedback.triage.confirmedBugAnonymous": "익명 신고: 아무도 점수를 받지 않습니다.",
-  "feedback.triage.confirmedBugDuplicate": "중복 신고는 점수를 받지 않습니다. 점수는 원본 신고에 주어집니다.",
+  "feedback.triage.confirmedBugHint": "{name} 님이 Aegis 코인 1개를 받습니다. 지금까지 확인된 버그: {count}개",
+  "feedback.triage.confirmedBugAnonymous": "익명 신고: 아무도 Aegis 코인을 받지 않습니다.",
+  "feedback.triage.confirmedBugDuplicate": "중복 신고는 Aegis 코인을 받지 않습니다. 코인은 원본 신고에 주어집니다.",
   "feedback.triage.reporterPoints": "확인된 버그 {count}개",
   "feedback.reportedDecks.title": "신고된 커뮤니티 덱 ({count})",
   "feedback.reportedDecks.reports": "신고 {count}건",
   "myFeedback.points": "확인된 버그: {count}",
-  "myFeedback.pointsHint": "팀이 실제 버그로 확인한 신고마다 1점을 받습니다.",
+  "myFeedback.pointsHint":
+    "팀이 실제 버그로 확인한 신고마다 Aegis 코인 1개를 받습니다. 버그 포럼에서도 코인을 받을 수 있습니다.",
   "myFeedback.confirmedBug": "확인된 버그",
   "notifications.feedback.confirmed": "신고 “{summary}”이(가) 버그로 확인되었습니다",
   "notifications.bugConfirmedPoint": "버그로 확인됨 · +1점",
@@ -625,6 +626,9 @@ const interfaceMessages = {
   "settings.autoHatch": "자동 부화",
   "settings.autoHatchDesc":
     "육성 페이즈에 육성 에어리어가 비어 있으면 디지타마를 자동으로 부화합니다. 계정에 저장됩니다.",
+  "settings.skipNothingToDo": "아무것도 할 수 없는 효과 건너뛰기",
+  "settings.skipNothingToDoDesc":
+    "유발된 효과에 유효한 대상이나 결과가 없으면 “할 수 있다” 확인을 자동으로 거절합니다. 모든 확인을 보려면 끄세요. 계정에 저장됩니다.",
   "settings.handAutoSort": "패 자동 정렬",
   "settings.handAutoSortDesc":
     "카드가 패에 들어오거나 나갈 때마다 패 정렬 버튼에서 고른 순서로 다시 정렬합니다. 드래그한 카드는 패가 바뀔 때까지 그 자리에 있습니다.",
@@ -3007,6 +3011,8 @@ const interfaceMessages = {
   "profile.deckRecords.title": "Your deck records",
   "profile.deckRecords.hint": "Compare tracked human results. Select a deck to view its history.",
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
+  ...bugForumKo,
+  ...ideaForumKo,
   "sealed.breedingHint": "육성 행동 하나를 선택하거나 육성 페이즈를 종료하세요.",
   "sealed.placeRookie": "육성 영역에 놓기",
 } satisfies Record<keyof typeof en, string>;

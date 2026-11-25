@@ -1,4 +1,82 @@
 {
+  "releases.1.81.0-beta.summary": {
+    "en": "This update adds the bug forum and idea board, a setting for effects that can't do anything, and smaller, faster replays. It also fixes Guardromon, MirageGaogamon, Zubamon, GraceNovamon, follow-up DNA digivolves and effect attacks.",
+    "pt-BR": "Esta atualização adiciona o fórum de bugs e o quadro de ideias, uma configuração para efeitos que não podem fazer nada, e replays menores e mais rápidos. Também corrige Guardromon, MirageGaogamon, Zubamon, GraceNovamon, DNA digivolves em sequência e ataques por efeito.",
+    "es": "Esta actualización añade el foro de bugs y el tablero de ideas, un ajuste para efectos que no pueden hacer nada, y repeticiones más pequeñas y rápidas. También corrige Guardromon, MirageGaogamon, Zubamon, GraceNovamon, los DNA digivolve encadenados y los ataques por efecto.",
+    "it": "Questo aggiornamento aggiunge il forum dei bug e la bacheca delle idee, un'impostazione per gli effetti che non possono fare nulla, e replay più piccoli e veloci. Corregge anche Guardromon, MirageGaogamon, Zubamon, GraceNovamon, i DNA digivolve successivi e gli attacchi da effetto."
+  },
+  "releases.1.81.0-beta.feature.bugForum": {
+    "en": "New Bugs tab in Community: vote on whether a player report is a bug, give a reason, and earn an Aegis coin when the team agrees. The Home card previews open reports.",
+    "pt-BR": "Nova aba Bugs na Comunidade: vote se um relato de jogador é um bug, explique o motivo e ganhe uma moeda Aegis quando a equipe concordar. O card da Home mostra relatos abertos.",
+    "es": "Nueva pestaña Bugs en Comunidad: vota si el reporte de un jugador es un bug, explica el motivo y gana una moneda Aegis cuando el equipo esté de acuerdo. La tarjeta de Inicio muestra reportes abiertos.",
+    "it": "Nuova scheda Bug nella Community: vota se la segnalazione di un giocatore è un bug, spiega il motivo e guadagna una moneta Aegis quando il team è d'accordo. La scheda della Home mostra le segnalazioni aperte."
+  },
+  "releases.1.81.0-beta.feature.ideaBoard": {
+    "en": "New Ideas tab in Community: upvote and discuss improvement ideas from other players.",
+    "pt-BR": "Nova aba Ideias na Comunidade: vote e comente ideias de melhoria de outros jogadores.",
+    "es": "Nueva pestaña Ideas en Comunidad: vota y comenta ideas de mejora de otros jugadores.",
+    "it": "Nuova scheda Idee nella Community: vota e commenta le idee di miglioramento degli altri giocatori."
+  },
+  "releases.1.81.0-beta.feature.skipNothingToDo": {
+    "en": "New setting \"Skip effects that can't do anything\", on by default. Turn it off to see a prompt when a triggered \"you may\" effect has nothing it can do.",
+    "pt-BR": "Nova configuração \"Pular efeitos que não podem fazer nada\", ligada por padrão. Desligue para ver uma pergunta quando um efeito ativado de \"você pode\" não tiver nada a fazer.",
+    "es": "Nuevo ajuste \"Omitir efectos que no pueden hacer nada\", activado por defecto. Desactívalo para ver una pregunta cuando un efecto activado de \"puedes\" no tenga nada que hacer.",
+    "it": "Nuova impostazione \"Salta gli effetti che non possono fare nulla\", attiva per impostazione predefinita. Disattivala per vedere una domanda quando un effetto attivato \"puoi\" non ha nulla da fare."
+  },
+  "releases.1.81.0-beta.feature.smallerReplays": {
+    "en": "Replays now store only what changes between steps. Long matches keep their replay instead of losing it, and replays open much faster.",
+    "pt-BR": "Os replays agora guardam só o que muda entre os passos. Partidas longas mantêm o replay em vez de perdê-lo, e os replays abrem muito mais rápido.",
+    "es": "Las repeticiones ahora guardan solo lo que cambia entre pasos. Las partidas largas conservan su repetición en lugar de perderla, y las repeticiones se abren mucho más rápido.",
+    "it": "I replay ora salvano solo ciò che cambia tra un passo e l'altro. Le partite lunghe mantengono il replay invece di perderlo, e i replay si aprono molto più velocemente."
+  },
+  "releases.1.81.0-beta.fix.guardromonColors": {
+    "en": "Guardromon (BT27-037) and Etemon (BT27-040) are now yellow and black, as printed, so Factorial Area (BT25-102) can play Guardromon and give it ＜Blocker＞.",
+    "pt-BR": "Guardromon (BT27-037) e Etemon (BT27-040) agora são amarelos e pretos, como na carta, então Factorial Area (BT25-102) pode jogar Guardromon e dar ＜Blocker＞ a ele.",
+    "es": "Guardromon (BT27-037) y Etemon (BT27-040) ahora son amarillos y negros, como en la carta, así que Factorial Area (BT25-102) puede jugar a Guardromon y darle ＜Blocker＞.",
+    "it": "Guardromon (BT27-037) ed Etemon (BT27-040) ora sono gialli e neri, come sulla carta, quindi Factorial Area (BT25-102) può giocare Guardromon e dargli ＜Blocker＞."
+  },
+  "releases.1.81.0-beta.fix.mirageGaogamon": {
+    "en": "MirageGaogamon (BT27-032) and MirageGaogamon: Burst Mode (BT27-035) can now digivolve from black Digimon for their printed cost, and Zubamon (P-097) is red only, as printed.",
+    "pt-BR": "MirageGaogamon (BT27-032) e MirageGaogamon: Burst Mode (BT27-035) agora podem digievoluir a partir de Digimon pretos pelo custo impresso, e Zubamon (P-097) é só vermelho, como na carta.",
+    "es": "MirageGaogamon (BT27-032) y MirageGaogamon: Burst Mode (BT27-035) ahora pueden digievolucionar desde Digimon negros por su coste impreso, y Zubamon (P-097) es solo rojo, como en la carta.",
+    "it": "MirageGaogamon (BT27-032) e MirageGaogamon: Burst Mode (BT27-035) ora possono digievolvere da Digimon neri al costo stampato, e Zubamon (P-097) è solo rosso, come sulla carta."
+  },
+  "releases.1.81.0-beta.fix.graceNovamonNo": {
+    "en": "Choosing No for GraceNovamon in the trigger order dialog no longer asks again whether to end the attack. After Yes, it still asks.",
+    "pt-BR": "Escolher Não para GraceNovamon na janela de ordem dos efeitos não pergunta mais de novo se você quer encerrar o ataque. Depois de Sim, ainda pergunta.",
+    "es": "Elegir No para GraceNovamon en la ventana de orden de efectos ya no vuelve a preguntar si quieres terminar el ataque. Después de Sí, sigue preguntando.",
+    "it": "Scegliere No per GraceNovamon nella finestra dell'ordine degli effetti non chiede più di nuovo se terminare l'attacco. Dopo Sì, lo chiede ancora."
+  },
+  "releases.1.81.0-beta.fix.followUpDna": {
+    "en": "A Yes in the trigger order dialog no longer makes a later \"you may DNA digivolve\" happen without asking, for example with Dianamon (BT25-028).",
+    "pt-BR": "Um Sim na janela de ordem dos efeitos não faz mais um \"você pode fazer DNA digivolve\" posterior acontecer sem perguntar, por exemplo com Dianamon (BT25-028).",
+    "es": "Un Sí en la ventana de orden de efectos ya no hace que un \"puedes hacer DNA digivolve\" posterior ocurra sin preguntar, por ejemplo con Dianamon (BT25-028).",
+    "it": "Un Sì nella finestra dell'ordine degli effetti non fa più avvenire senza chiedere un successivo \"puoi effettuare DNA digivolve\", per esempio con Dianamon (BT25-028)."
+  },
+  "releases.1.81.0-beta.fix.effectAttackChoice": {
+    "en": "Effects that let 1 of your Digimon attack, such as Dan Yuki & Kanan Yuki's, list every matching Digimon again, including one that can't attack, as the official rulings allow. Choosing that Digimon declares no attack.",
+    "pt-BR": "Efeitos que deixam 1 dos seus Digimon atacar, como o de Dan Yuki & Kanan Yuki, voltam a listar todos os Digimon válidos, inclusive um que não pode atacar, como as regras oficiais permitem. Escolher esse Digimon não declara ataque.",
+    "es": "Los efectos que permiten atacar a 1 de tus Digimon, como el de Dan Yuki & Kanan Yuki, vuelven a mostrar todos los Digimon válidos, incluido uno que no puede atacar, como permiten las reglas oficiales. Elegir ese Digimon no declara ataque.",
+    "it": "Gli effetti che fanno attaccare 1 dei tuoi Digimon, come quello di Dan Yuki & Kanan Yuki, elencano di nuovo tutti i Digimon validi, compreso uno che non può attaccare, come consentono le regole ufficiali. Scegliere quel Digimon non dichiara alcun attacco."
+  },
+  "releases.1.81.0-beta.fix.opponentEggs": {
+    "en": "On a phone held upright, the opponent's Digi-Egg deck now stays to the left of their raising area, as in the other layouts.",
+    "pt-BR": "No celular na vertical, o deck de Digi-Egg do oponente agora fica à esquerda da área de criação dele, como nos outros layouts.",
+    "es": "En el móvil en vertical, el deck de Digi-Egg del rival ahora queda a la izquierda de su zona de crianza, como en los otros diseños.",
+    "it": "Sul telefono in verticale, il mazzo Digi-Uova dell'avversario ora resta a sinistra della sua area di allevamento, come negli altri layout."
+  },
+  "releases.1.81.0-beta.fix.replayPlayback": {
+    "en": "Older saved matches now show each deck's main Digimon as its icon, the replay bar on phones keeps Go to start, Go to end and the current step visible without covering your hand, and replays no longer say the opponent is thinking.",
+    "pt-BR": "Partidas salvas mais antigas agora mostram o Digimon principal de cada deck como ícone, a barra de replay no celular mantém Ir para o início, Ir para o fim e o passo atual visíveis sem cobrir sua mão, e os replays não dizem mais que o oponente está pensando.",
+    "es": "Las partidas guardadas más antiguas ahora muestran el Digimon principal de cada mazo como icono, la barra de repetición en el móvil mantiene visibles Ir al inicio, Ir al final y el paso actual sin tapar tu mano, y las repeticiones ya no dicen que el rival está pensando.",
+    "it": "Le partite salvate più vecchie ora mostrano il Digimon principale di ogni mazzo come icona, la barra dei replay sul telefono mantiene visibili Vai all'inizio, Vai alla fine e il passo attuale senza coprire la tua mano, e i replay non dicono più che l'avversario sta pensando."
+  },
+  "releases.1.81.0-beta.fix.botSeatSymmetry": {
+    "en": "Bots now judge a board position the same way whichever seat they play from.",
+    "pt-BR": "Os bots agora avaliam uma posição do tabuleiro do mesmo jeito, seja qual for o lado em que jogam.",
+    "es": "Los bots ahora valoran una posición del tablero de la misma forma, juegue desde el lado que juegue.",
+    "it": "I bot ora valutano una posizione sul tavolo allo stesso modo, da qualunque lato giochino."
+  },
   "releases.1.80.1-beta.summary": {
     "en": "This update fixes inherited On Deletion effects, Venusmon, mandatory unsuspend choices, the effect battle log, replay deck icons and Start of Turn timing.",
     "pt-BR": "Esta atualização corrige efeitos herdados de Ao Ser Deletado, Venusmon, escolhas obrigatórias de desvirar, o registro de batalhas por efeito, os ícones de deck nos replays e o tempo do Início do Turno.",
