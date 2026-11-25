@@ -82,7 +82,11 @@ for (const [width, dark] of [
         });
         await route.fulfill({ response });
       });
-      await page.goto("/profile");
+      const [history] = await Promise.all([
+        page.waitForResponse((response) => new URL(response.url()).pathname === "/account/matches"),
+        page.goto("/profile"),
+      ]);
+      expect(history.ok()).toBe(true);
       const identity = page.getByRole("region", { name: "My profile" });
       const rate = identity.getByText("Win rate", { exact: true }).locator("..").locator("dd");
       await expect(rate).toHaveText("33%");

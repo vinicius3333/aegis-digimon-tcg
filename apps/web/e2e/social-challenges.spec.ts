@@ -64,7 +64,11 @@ for (const width of [390, 1440]) {
           .getByRole("button", { name: "Challenge", exact: true })
           .click();
         await expect(host.getByRole("status").filter({ hasText: "Challenge Challenge Guest" })).toBeVisible();
-        await host.getByRole("button", { name: /^create room$/i }).click();
+        const [creation] = await Promise.all([
+          host.waitForResponse((response) => new URL(response.url()).pathname === "/matchmake/create/aegis_private"),
+          host.getByRole("button", { name: /^create room$/i }).click(),
+        ]);
+        expect(creation.ok()).toBe(true);
         await expect(host.getByRole("button", { name: /^Room code / })).toBeVisible();
         await guest.bringToFront();
         await expect(guest.getByText("Challenge Host invited you to a match", { exact: true })).toBeVisible();
@@ -77,7 +81,11 @@ for (const width of [390, 1440]) {
           ),
         });
         expect(await guest.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-        await guest.getByRole("button", { name: "Join match", exact: true }).click();
+        const [admission] = await Promise.all([
+          guest.waitForResponse((response) => new URL(response.url()).pathname.startsWith("/matchmake/joinById/")),
+          guest.getByRole("button", { name: "Join match", exact: true }).click(),
+        ]);
+        expect(admission.ok()).toBe(true);
         await expect(host).toHaveURL(/\/play\/game$/);
         await expect(guest).toHaveURL(/\/play\/game$/);
         await expect(guest.getByRole("button", { name: "Challenge Host", exact: true })).toBeVisible();
