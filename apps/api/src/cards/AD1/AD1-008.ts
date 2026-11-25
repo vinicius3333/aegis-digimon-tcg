@@ -44,7 +44,6 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: "all",
-            upTo: true,
             totalDpCap: 10000,
           },
         },

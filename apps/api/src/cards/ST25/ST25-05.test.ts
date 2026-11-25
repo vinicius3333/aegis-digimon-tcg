@@ -87,6 +87,15 @@ describe("ST25-05 Rubeusdramon", () => {
     expect(opponentTrash(s)).toHaveLength(2);
   });
 
+  it("must delete at least one Digimon that fits the total DP maximum (Q7555)", async () => {
+    const s = await whenDigivolvingAt(12_000, [{ card: vanillaRedLevel3, dp: 3000 }]);
+    const deletion = s.decisions.find(
+      ({ req }) => req.kind === "chooseTargets" && req.options?.maxTotalDP !== undefined,
+    );
+    expect(deletion?.req.options).toMatchObject({ min: 1, maxTotalDP: 11_000 });
+    expect(opponentTrash(s)).toHaveLength(1);
+  });
+
   it.each([
     [12_000, 1],
     [15_999, 1],
