@@ -287,6 +287,7 @@ export function createDeckVerbs(pc: PrimitivesContext) {
         to: Zone.EggDeck,
       });
     }
+    if (faceUp && added.length > 0) await engine.recomputeContinuousEffects?.();
     for (const destinationSeat of [...new Set(added.map(destinationSeatOf))]) {
       const addedToSeat = added.filter((card) => destinationSeatOf(card) === destinationSeat);
       // The stack is face-down and the cards may have come from a hidden hand, so the
