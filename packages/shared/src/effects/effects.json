@@ -32849,26 +32849,7 @@
     "residual": []
   },
   "BT15-033": {
-    "effects": [
-      {
-        "trigger": "AllTurns",
-        "isInherited": true,
-        "actions": [
-          {
-            "kind": "Replacement",
-            "event": "wouldBeDeleted",
-            "leaveCause": "byBattle",
-            "sourceFilter": { "isSelfRef": true },
-            "mode": "prevent",
-            "actions": [],
-            "cost": {
-              "kind": "trashSecurityTop",
-              "raw": "By trashing the top card of your security stack, prevent that deletion"
-            }
-          }
-        ]
-      }
-    ],
+    "effects": [{ "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Barrier", "raw": "＜Barrier＞" }] }],
     "coverage": "full",
     "residual": []
   },
@@ -37950,7 +37931,6 @@
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Armor Purge", "raw": "＜Armor Purge＞" }] },
       {
         "trigger": "WhenAttacking",
-        "isInherited": true,
         "actions": [
           {
             "effectTextPart": "[When Attacking] Trash any 1 digivolution card of 1 of your opponent's Digimon.",
