@@ -9,6 +9,7 @@ import { useTranslation } from "@/i18n/useTranslation";
 import { AegisCoinBalance } from "@/bugs/AegisCoinBalance";
 import { ForumThread } from "@/bugs/ForumThread";
 import { ForumUpvoteButton } from "@/bugs/ForumUpvoteButton";
+import { ForumVotePill } from "@/bugs/ForumVotePill";
 import { forumApi, type ForumApi } from "@/bugs/forumClient";
 import { getForumCopyPrefix } from "@/bugs/getForumCopyPrefix";
 import "@/bugs/forum.css";
@@ -282,18 +283,7 @@ function ForumRow({ api, board, item, onOpen, onChange }: ForumRowParams) {
             {t(`bugForum.verdict.${item.outcome}`)}
           </Badge>
         ) : null}
-        {board === ForumBoard.IDEAS.value ? null : item.ownReport ? (
-          <span className="forum-pill">{t("bugForum.yourReport")}</span>
-        ) : item.myVote ? (
-          <span className="forum-pill" data-tone="voted">
-            <Icons.Check size={14} aria-hidden="true" />
-            {t(`bugForum.youVoted.${item.myVote.verdict}`)}
-          </span>
-        ) : item.outcome === null ? (
-          <span className="forum-pill" data-tone="todo">
-            {t("bugForum.votePrompt")}
-          </span>
-        ) : null}
+        {board === ForumBoard.IDEAS.value ? null : <ForumVotePill item={item} />}
         {earned ? <span className="forum-earned">{t("bugForum.earnedShort")}</span> : null}
         <span className="forum-row__meta-icons">
           {item.hasReplay ? (
