@@ -70,6 +70,9 @@ describe("GraceNovamon end-attack prompt under a trigger preset", () => {
     const s = await attackAndPresetTrash(false);
 
     expect(pendingPrompt(s)).not.toMatchObject({ effectTextPart: endAttackText });
+    expect(s.state.pendingDecision?.kind).toBe("orderTriggers");
+    expect(s.perm("grace").stack).toHaveLength(4);
+    expect(s.events.some((event) => event.kind === "attackEnded")).toBe(false);
   });
 
   it("asks after a Yes preset trashes instead of ending the attack automatically", async () => {

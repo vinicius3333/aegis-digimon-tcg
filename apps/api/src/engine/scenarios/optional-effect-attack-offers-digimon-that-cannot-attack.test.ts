@@ -43,6 +43,7 @@ describe("optional effect attack with a Digimon played this turn on the board", 
         expect.arrayContaining([s.perm("playedThisTurn").permanentId, s.perm("establishedHost").permanentId]),
       );
       expect(s.perm("playedThisTurn").isSuspended).toBe(false);
+      expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
       expect(s.state.players[1]!.security).toHaveLength(3);
       expect(s.state.phase).toBe(Phase.Main);
     } finally {

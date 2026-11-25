@@ -24,8 +24,11 @@ async function endTurnWithApollomon({ showPrompts, accept }: { showPrompts?: boo
   };
   const s = setupEngine(board, { autoAcceptOptional: accept, autoDeclineOptional: !accept, autoSelectCards: true });
   await s.ready();
-  if (showPrompts !== undefined)
-    expect(s.engine.applyIntent(0, { type: "showNothingToDoPrompts", show: showPrompts })).toEqual({ ok: true });
+  const shown =
+    showPrompts === undefined
+      ? { ok: true }
+      : s.engine.applyIntent(0, { type: "showNothingToDoPrompts", show: showPrompts });
+  expect(shown).toEqual({ ok: true });
   await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
   await settle(() => s.state.pendingDecision === undefined);
   const prompts = s.decisions
@@ -66,8 +69,11 @@ describe("triggered costless optional delete with no legal target", () => {
     );
     await s.ready();
     s.state.memory = 10;
-    if (showPrompts !== undefined)
-      expect(s.engine.applyIntent(0, { type: "showNothingToDoPrompts", show: showPrompts })).toEqual({ ok: true });
+    const shown =
+      showPrompts === undefined
+        ? { ok: true }
+        : s.engine.applyIntent(0, { type: "showNothingToDoPrompts", show: showPrompts });
+    expect(shown).toEqual({ ok: true });
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wargrowlmon").instanceId })).toEqual({
       ok: true,
     });
