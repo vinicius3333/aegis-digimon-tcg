@@ -1,3 +1,4 @@
+import type { BoardSpec } from "#api/engine/scenario/types";
 import { describe, expect, it } from "vitest";
 import { EffectDuration } from "@aegis/shared";
 import { requireCardDefinition } from "@aegis/shared/cards/registry";
@@ -199,7 +200,7 @@ describe("Darkdramon gains immunity, de-digivolves on attack or Counter, and can
 });
 
 describe("Darkdramon official rulings", () => {
-  type Board = Parameters<typeof setupEngine>[0];
+  type Board = BoardSpec;
   type Session = ReturnType<typeof setupEngine>;
 
   async function digivolveDarkdramon(

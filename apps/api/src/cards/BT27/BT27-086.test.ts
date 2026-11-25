@@ -1,3 +1,4 @@
+import type { SetupEngineOptions } from "#api/engine/testkit/harness";
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "#api/engine/effects/interpreter";
@@ -16,7 +17,7 @@ const vanillaRedLevel4 = "BT1-014";
 const vanillaRedLevel6 = "ST1-10";
 
 type Setup = ReturnType<typeof setupEngine>;
-type Options = Parameters<typeof setupEngine>[1];
+type Options = SetupEngineOptions | undefined;
 
 async function memoryAtMainPhaseWith(digimon: readonly string[]) {
   const s = setupEngine({
