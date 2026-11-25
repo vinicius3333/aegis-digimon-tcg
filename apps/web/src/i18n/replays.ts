@@ -310,7 +310,8 @@ export const replayEs: Record<keyof typeof replayEn, string> = {
   "replay.loading": "Abriendo replay…",
   "replay.error.invalid": "Este archivo no es un replay válido y completo de Aegis.",
   "replay.error.version": "Este replay usa un formato que esta versión de Aegis no puede abrir.",
-  "replay.error.size": "Elige un archivo de replay no vacío de hasta 32 MB, con contenido descomprimido de hasta 128 MB.",
+  "replay.error.size":
+    "Elige un archivo de replay no vacío de hasta 32 MB, con contenido descomprimido de hasta 128 MB.",
   "replay.play": "Reproducir",
   "replay.pause": "Pausar",
   "replay.previous": "Jugada anterior",
