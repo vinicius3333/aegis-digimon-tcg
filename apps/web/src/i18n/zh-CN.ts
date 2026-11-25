@@ -1809,6 +1809,7 @@ const interfaceMessages = {
   "log.cardMoved": "{count} 张卡牌移动：{from} → {to}",
   "log.cardMovedNamed": "{card}移动：{from} → {to}",
   "log.turnEndDeletion": "{card}在回合结束时被{source}的效果消灭",
+  "log.dpModified": "{card} DP{delta}",
   "log.cardsMoved": "{count} 张卡牌移动：{from} → {to}",
   "log.zone.deck": "卡组",
   "log.zone.deckBottom": "卡组底部",

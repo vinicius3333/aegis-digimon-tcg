@@ -1864,6 +1864,7 @@ const interfaceMessages = {
   "log.cardMoved": "카드 {count}장 이동: {from} → {to}",
   "log.cardMovedNamed": "{card} 이동: {from} → {to}",
   "log.turnEndDeletion": "{source}의 효과로 턴 종료 시 {card}이(가) 소멸했습니다",
+  "log.dpModified": "{card}의 DP {delta}",
   "log.cardsMoved": "카드 {count}장 이동: {from} → {to}",
   "log.zone.deck": "덱",
   "log.zone.deckBottom": "덱 맨 아래",

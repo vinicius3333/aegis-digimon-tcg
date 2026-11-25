@@ -31,7 +31,8 @@ export function createStatsVerbs(pc: PrimitivesContext) {
     // reduction while `dpImmune` holds rather than dropping it, so it applies for the rest
     // of its duration once the protection ends.
     const byOpponentEffect = pc.helpers.isOpponentEffectAgainst(permanentId);
-    if (opts?.continuous !== true && (opts?.continuous === false || continuousOpt() === undefined)) {
+    const oneShot = opts?.continuous !== true && (opts?.continuous === false || continuousOpt() === undefined);
+    if (oneShot) {
       emitEffectTargetsSelected({ pc, permanentIds: [permanentId] });
     }
     ledger.addDpModifier(state, permanentId, delta, durationForTarget(permanentId, duration), {
@@ -46,8 +47,9 @@ export function createStatsVerbs(pc: PrimitivesContext) {
         : {}),
       ...(opts?.skipsCurrentOpponentTurnEnd === true ? { skipsCurrentOpponentTurnEnd: true } : {}),
     });
-    // currentDP was recomputed by the ledger; no dedicated ServerEvent in the
-    // protocol for a DP change — the schema delta (currentDP) is the source of truth.
+    if (oneShot && delta !== 0) {
+      engine.noteDpChange?.({ permanentId, cardId: before.topCard.cardId, delta });
+    }
   };
 
   const modifyPlayerDP: Primitives["modifyPlayerDP"] = (seat, delta, duration, opts): void => {

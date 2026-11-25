@@ -14,6 +14,7 @@ import { flushPendingLogMemory } from "@/game/log/flushPendingLogMemory";
 import { flattenRecentLogEntries } from "@/game/log/flattenRecentLogEntries";
 import type { LogKind, LogLine } from "@/game/log/LogEntry";
 import { getLogEffectDetail } from "@/game/log/getLogEffectDetail";
+import { formatSignedMemory } from "@/game/log/formatSignedMemory";
 
 const cardName = (cardId: string): string => getLogCardName({ cardId });
 
@@ -272,17 +273,28 @@ export function describeEvent({
         cardIds: [event.sourceCardId],
         effect: getLogEffectDetail({ event }),
       };
-    case "effectResolved":
+    case "effectResolved": {
+      const resolved = t(
+        event.digivolutionPerformed === false ? "log.effectResolvedWithoutDigivolution" : "log.effectResolved",
+        {
+          card: getLogCardName({ cardId: event.sourceCardId, permanentId: event.sourcePermanentId }),
+        },
+      );
+      const dpChanges = event.dpChanges ?? [];
       return {
-        text: t(
-          event.digivolutionPerformed === false ? "log.effectResolvedWithoutDigivolution" : "log.effectResolved",
-          {
-            card: getLogCardName({ cardId: event.sourceCardId, permanentId: event.sourcePermanentId }),
-          },
-        ),
+        text: [
+          resolved,
+          ...dpChanges.map((change) =>
+            t("log.dpModified", {
+              card: getLogCardName({ cardId: change.cardId, permanentId: change.permanentId }),
+              delta: formatSignedMemory(change.delta),
+            }),
+          ),
+        ].join(". "),
         kind: "sys",
-        cardIds: [event.sourceCardId],
+        cardIds: [...new Set([event.sourceCardId, ...dpChanges.map((change) => change.cardId)])],
       };
+    }
     case "effectHadNoEffect":
       return {
         text: t("log.effectHadNoEffect", {
