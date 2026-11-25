@@ -4,7 +4,6 @@ import { expect, test, type Page } from "@playwright/test";
 
 const requireApi = createRequire(new URL("../../api/package.json", import.meta.url));
 const express = requireApi("express");
-const { newDb } = requireApi("pg-mem");
 
 async function loadApiModule(name: string) {
   return import(new URL(`../../api/dist/${name}.js`, import.meta.url).href);
@@ -32,8 +31,11 @@ for (const width of [390, 1440]) {
       browser,
     }) => {
       const { AccountStore } = await loadApiModule("accounts/AccountStore");
+      const { createMemoryDatabase } = await loadApiModule("db/createMemoryDatabase");
       const { installAccountRoutes } = await loadApiModule("accounts/routes");
-      const store = new AccountStore(new (newDb({ noAstCoverageCheck: true }).adapters.createPg().Pool)());
+      const store = new AccountStore(
+        new (createMemoryDatabase({ noAstCoverageCheck: true }).adapters.createPg().Pool)(),
+      );
       const app = express();
       app.use(express.json());
       installAccountRoutes(app, store);
