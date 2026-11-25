@@ -8,6 +8,8 @@ import { CardConfirmationMode } from "@/game/cardConfirmation/CardConfirmationMo
 import { cardConfirmationPreference } from "@/game/cardConfirmation/cardConfirmationPreference";
 import type { AegisRoom } from "../net/client";
 
+vi.mock("@/game/screen/hooks/useNothingToDoPrompts", () => ({ useNothingToDoPrompts: () => undefined }));
+
 afterEach(cleanup);
 function mountHand() {
   localStorage.setItem("aegis.locale", "en");
