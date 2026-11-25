@@ -12,6 +12,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              excludeKind: ["Option"],
               playCostLte: 13,
               nameOrTrait: [
                 {

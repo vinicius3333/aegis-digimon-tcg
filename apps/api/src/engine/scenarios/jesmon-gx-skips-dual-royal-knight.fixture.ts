@@ -1,7 +1,7 @@
 import type { ScenarioFixture } from "#api/engine/scenario/types";
 
 const fixture: ScenarioFixture = {
-  name: "borrowed-clause-activates-lender-option-main",
+  name: "jesmon-gx-skips-dual-royal-knight",
   memory: 6,
   turnSeat: 0,
   turnCount: 5,

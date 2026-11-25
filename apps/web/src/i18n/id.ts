@@ -1889,6 +1889,7 @@ const interfaceMessages = {
   "log.cardMoved": "{count} kartu dipindahkan: {from} → {to}",
   "log.cardMovedNamed": "{card} dipindahkan: {from} → {to}",
   "log.turnEndDeletion": "{card} di-delete di akhir giliran oleh efek {source}",
+  "log.dpModified": "{card} mendapat {delta} DP",
   "log.cardsMoved": "{count} kartu dipindahkan: {from} → {to}",
   "log.zone.deck": "deck",
   "log.zone.deckBottom": "bagian bawah deck",

@@ -936,7 +936,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             ctx.boundPlayed ??= new Map();
             ctx.boundPlayed.set(action.bindResultAs, new Set());
           }
-          return false;
+          return action.abortOnDecline === true;
         }
         if (action.to === "hand" || action.to === "deckTop" || action.to === "deckBottom")
           revealPrivateRequirementPicks(ctx, returnTarget, candidates, chosen);
@@ -1000,7 +1000,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           ctx.boundPlayed ??= new Map();
           ctx.boundPlayed.set(action.bindResultAs, new Set());
         }
-        return false;
+        return action.abortOnDecline === true;
       }
       ids = await orderDeckReturn(ctx, action, ids);
       if (action.storeAs !== undefined) {
@@ -1031,7 +1031,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
         ctx.namedCounts.set(action.trackCount, moved.length);
       }
-      return false;
+      return action.abortOnDecline === true && !ctx.lastEffectActed;
     }
     case "ReturnToEggDeck": {
       const zones =

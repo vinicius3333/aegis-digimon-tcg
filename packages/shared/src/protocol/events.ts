@@ -379,6 +379,7 @@ export type ServerEvent =
       timing?: string;
       /** The clause lives in the source card's inherited text box (see `effectTriggered`). */
       isInherited?: boolean;
+      dpChanges?: EffectDpChange[];
     }
   | {
       // A triggered effect's condition was met, but it had nothing it could do (a cost-free
@@ -631,6 +632,12 @@ type _ServerEventKindsComplete =
   Exclude<ServerEventKind, (typeof SERVER_EVENT_KINDS)[number]> extends never ? true : never;
 const _serverEventKindsComplete: _ServerEventKindsComplete = true;
 void _serverEventKindsComplete;
+
+export interface EffectDpChange {
+  permanentId: string;
+  cardId: string;
+  delta: number;
+}
 
 export interface FinalRevealCard {
   cardId: string;

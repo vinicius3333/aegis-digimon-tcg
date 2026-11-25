@@ -6,6 +6,7 @@ import type { ContinuousEffectLedger } from "../continuous.js";
 import type { DnaMemoryGain, SubTriggerRegistry } from "../subtriggers.js";
 import type { SubTriggerSourceScope } from "../EffectContext.js";
 import type { AttackDecisionProvenance } from "../context/primitives/index.js";
+import type { EffectDpChange } from "@aegis/shared/protocol/events";
 import type {
   AttackTarget,
   CardDefinition,
@@ -81,6 +82,7 @@ export interface PrimitivesEngine {
   ): { cost: number } | undefined;
   /** Emit a server event (narration/log). */
   emit(event: ServerEvent): void;
+  noteDpChange?(change: EffectDpChange): void;
   inSecurityCheck?(): boolean;
   /** Allocate a permanentId unique within the match (play-from-hand/security). */
   nextPermanentId(): string;

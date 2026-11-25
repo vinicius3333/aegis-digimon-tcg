@@ -811,7 +811,6 @@
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
               "count": "all",
-              "upTo": true,
               "totalDpCap": 10000
             }
           },
@@ -9820,6 +9819,7 @@
             "target": {
               "filter": {
                 "controller": "mine",
+                "excludeKind": ["Option"],
                 "playCostLte": 13,
                 "nameOrTrait": [{ "tokens": ["Royal Knight"], "match": "trait" }]
               },
@@ -32849,26 +32849,7 @@
     "residual": []
   },
   "BT15-033": {
-    "effects": [
-      {
-        "trigger": "AllTurns",
-        "isInherited": true,
-        "actions": [
-          {
-            "kind": "Replacement",
-            "event": "wouldBeDeleted",
-            "leaveCause": "byBattle",
-            "sourceFilter": { "isSelfRef": true },
-            "mode": "prevent",
-            "actions": [],
-            "cost": {
-              "kind": "trashSecurityTop",
-              "raw": "By trashing the top card of your security stack, prevent that deletion"
-            }
-          }
-        ]
-      }
-    ],
+    "effects": [{ "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Barrier", "raw": "＜Barrier＞" }] }],
     "coverage": "full",
     "residual": []
   },
@@ -37950,7 +37931,6 @@
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Armor Purge", "raw": "＜Armor Purge＞" }] },
       {
         "trigger": "WhenAttacking",
-        "isInherited": true,
         "actions": [
           {
             "effectTextPart": "[When Attacking] Trash any 1 digivolution card of 1 of your opponent's Digimon.",
@@ -73902,7 +73882,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "name",
             "digiXrosOnly": true,
-            "tokens": ["Shoutmon", "ZeigGreymon"]
+            "tokens": ["OmniShoutmon", "ZeigGreymon"]
           }
         ]
       },
@@ -141096,10 +141076,12 @@
         "trigger": "OnPlay",
         "actions": [
           {
-            "kind": "DeleteByDPBudget",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "baseBudget": 6000,
-            "upTo": true,
+            "kind": "Delete",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": "all",
+              "totalDpCap": 6000
+            },
             "cost": {
               "kind": "trash",
               "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
@@ -186138,7 +186120,6 @@
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
               "count": "all",
-              "upTo": true,
               "totalDpCap": 5000
             },
             "cost": {
@@ -186173,7 +186154,6 @@
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
               "count": "all",
-              "upTo": true,
               "totalDpCap": 5000
             },
             "cost": {
@@ -190164,26 +190144,6 @@
   },
   "EX9-065": {
     "effects": [
-      {
-        "trigger": "BeforePayCost",
-        "actions": [
-          {
-            "kind": "ReducePlayCost",
-            "payment": {
-              "kind": "trashFromHand",
-              "filter": {
-                "controller": "mine",
-                "zone": "hand",
-                "nameOrTrait": [
-                  { "tokens": ["Cyborg"], "match": "trait" },
-                  { "tokens": ["Ver.4"], "match": "trait" }
-                ]
-              }
-            },
-            "amount": { "kind": "fixed", "value": 2 }
-          }
-        ]
-      },
       {
         "trigger": "Counter",
         "actions": [],
@@ -203504,9 +203464,12 @@
             }
           },
           {
-            "kind": "DeleteByDPBudget",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "baseBudget": 7000
+            "kind": "Delete",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": "all",
+              "totalDpCap": 7000
+            }
           }
         ]
       },
@@ -203530,9 +203493,12 @@
             }
           },
           {
-            "kind": "DeleteByDPBudget",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "baseBudget": 7000
+            "kind": "Delete",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": "all",
+              "totalDpCap": 7000
+            }
           }
         ]
       },
@@ -211129,6 +211095,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenSecurityRemoved",
+            "sourceFilter": { "controller": "any" },
             "actions": [
               { "kind": "Unsuspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
             ],
@@ -235007,6 +234974,7 @@
                 "filter": {
                   "controller": "mine",
                   "zone": ["hand", "digivolutionCards"],
+                  "hostFilter": { "kind": ["Digimon"] },
                   "nameOrTrait": [{ "tokens": ["Chuumon", "Sukamon"], "match": "name" }]
                 },
                 "count": 1
@@ -235033,6 +235001,7 @@
                 "filter": {
                   "controller": "mine",
                   "zone": ["hand", "digivolutionCards"],
+                  "hostFilter": { "kind": ["Digimon"] },
                   "nameOrTrait": [{ "tokens": ["Chuumon", "Sukamon"], "match": "name" }]
                 },
                 "count": 1
@@ -235059,6 +235028,7 @@
                 "filter": {
                   "controller": "mine",
                   "zone": ["hand", "digivolutionCards"],
+                  "hostFilter": { "kind": ["Digimon"] },
                   "nameOrTrait": [{ "tokens": ["Chuumon", "Sukamon"], "match": "name" }]
                 },
                 "count": 1
@@ -241834,7 +241804,6 @@
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
               "count": "all",
-              "upTo": true,
               "totalDpCap": 15000
             }
           }
@@ -249437,7 +249406,6 @@
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
               "count": "all",
-              "upTo": true,
               "totalDpCap": 6000
             }
           }
@@ -250062,7 +250030,6 @@
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
               "count": "all",
-              "upTo": true,
               "totalDpCap": 7000
             },
             "totalDpCapScaling": { "per": 8000, "unit": "selfDP", "amount": 4000 }

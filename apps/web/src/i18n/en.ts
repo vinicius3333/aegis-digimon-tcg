@@ -1633,6 +1633,7 @@ export const en = {
   "log.cardMoved": "{count} card moved: {from} → {to}",
   "log.cardMovedNamed": "{card} moved: {from} → {to}",
   "log.turnEndDeletion": "{card} was deleted at turn end by {source}'s effect",
+  "log.dpModified": "{card} gets {delta} DP",
   "log.cardsMoved": "{count} cards moved: {from} → {to}",
   "log.zone.deck": "deck",
   "log.zone.deckBottom": "bottom of the deck",

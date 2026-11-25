@@ -10,6 +10,9 @@ import { stackHostMatches } from "./stackHostMatches.js";
 import { filterToDistinctColors } from "@aegis/shared";
 import { nameIncludesToken } from "@aegis/shared";
 import type { CardDefinition, Filter, Seat, Target, ZoneRef } from "@aegis/shared";
+import type { DefinitionFacts } from "../matching/definition.js";
+
+const FACE_DOWN_STACKED_CARD_FACTS: DefinitionFacts = { kinds: [], colors: [], nameEn: "", playCost: 0 };
 
 // ---------------------------------------------------------------------------
 // Loose-card (hand/trash/security/deck/under-permanent) resolution
@@ -365,6 +368,12 @@ function candidateLooseInstancesIncludingReserved(
           const branchZones =
             filter.zone === undefined ? undefined : Array.isArray(filter.zone) ? filter.zone : [filter.zone];
           if (branchZones !== undefined && !branchZones.includes(zone)) return false;
+          if (
+            cand.hostPermanentId !== undefined &&
+            cand.faceUp === false &&
+            !definitionMatches(filter, FACE_DOWN_STACKED_CARD_FACTS)
+          )
+            return false;
           // A hostFilter on the common target constrains only hosted candidates; the same
           // target may explicitly pool loose trash/hand cards (BT24-077/079). A hostFilter
           // declared by one OR branch is different: it qualifies that branch itself, so a

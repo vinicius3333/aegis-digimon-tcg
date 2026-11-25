@@ -370,6 +370,7 @@ export class DigivolveSupport {
     const eligible = fieldPermanents.filter(
       (p) =>
         p.topCard !== undefined &&
+        this.deps.primitives.isEffectDigivolveBlocked?.(p.permanentId, definition.cardId) !== true &&
         (this.meetsArtsDigivolutionRequirement(definition, p, sourceZone) ||
           (!p.inBreeding && this.matchBaseGrantedDigivolve(seat, p, definition, sourceZone) !== undefined)),
     );
