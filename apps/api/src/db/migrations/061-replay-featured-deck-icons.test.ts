@@ -56,6 +56,45 @@ describe("061-replay-featured-deck-icons", () => {
     expect(await icons("00000000-0000-4000-8000-000000000003")).toEqual(["BT1-085", "BT1-090"]);
   });
 
+  it("updates the replays of every account when there are more accounts than one batch", async () => {
+    const accountIds = Array.from(
+      { length: 61 },
+      (_, index) => `00000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+    );
+    for (const [index, accountId] of accountIds.entries()) {
+      if (accountId !== ALICE) {
+        await pool.query("INSERT INTO accounts (id, display_name, created_at) VALUES ($1,$2,1)", [
+          accountId,
+          `Player ${index}`,
+        ]);
+      }
+      await pool.query(
+        "INSERT INTO account_recent_matches (account_id,room_id,match_id,finished_at,record) VALUES ($1,$2,$3,1,$4)",
+        [
+          accountId,
+          `room-${index}`,
+          `match-${index}`,
+          JSON.stringify({ id: `match-${index}`, ownDeck: deck(["BT1-010", "ST1-11", "BT1-085"]) }),
+        ],
+      );
+      await pool.query(
+        "INSERT INTO account_replays (id,account_id,match_id,viewer_seat,summary,byte_size,created_at) VALUES ($1,$2,$3,0,$4,1,1)",
+        [
+          `10000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+          accountId,
+          `match-${index}`,
+          JSON.stringify({ id: `match-${index}`, deckIcons: ["BT1-085", null] }),
+        ],
+      );
+    }
+
+    await runMigrations(pool, migrations);
+
+    const { rows } = await pool.query<{ summary: { deckIcons: unknown } }>("SELECT summary FROM account_replays");
+    expect(rows).toHaveLength(accountIds.length);
+    expect(rows.every((row) => JSON.stringify(row.summary.deckIcons) === JSON.stringify(["ST1-11", null]))).toBe(true);
+  });
+
   it("applies on an empty database", async () => {
     expect(await runMigrations(pool, migrations)).toContain("061-replay-featured-deck-icons");
   });
