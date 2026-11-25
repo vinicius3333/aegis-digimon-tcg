@@ -463,10 +463,29 @@ function resolvesTriggeredEffect(ctx: EffectContext): boolean {
   );
 }
 
-async function declineUnavailableOptional(ctx: EffectContext, action: Action, abort = false): Promise<boolean> {
+async function askNothingToDo(ctx: EffectContext, action: Action): Promise<void> {
   if (resolvesTriggeredEffect(ctx) && ctx.predecidedOptionalActions?.get(action) === undefined) {
     await ctx.ask.optional({ ...ctx, onActivationChosen: undefined }, describeAction(action), { nothingToDo: true });
   }
+}
+
+function isCostlessOptional(action: Action): boolean {
+  const extra = action as { additionalCost?: unknown; additionalCosts?: readonly unknown[] };
+  return (
+    action.optional === true &&
+    action.cost === undefined &&
+    extra.additionalCost === undefined &&
+    (extra.additionalCosts?.length ?? 0) === 0
+  );
+}
+
+async function declineUnavailableOptional(ctx: EffectContext, action: Action, abort = false): Promise<boolean> {
+  await askNothingToDo(ctx, action);
+  return unavailableAction(ctx, action, abort);
+}
+
+async function skipUnavailableAction(ctx: EffectContext, action: Action, abort = false): Promise<boolean> {
+  if (isCostlessOptional(action)) await askNothingToDo(ctx, action);
   return unavailableAction(ctx, action, abort);
 }
 
@@ -591,7 +610,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.target.filter.dpLessOrEqualToSuspendedDigimon !== true &&
     (await resolvePermanentTargets(ctx, action.target)).length === 0
   ) {
-    return unavailableAction(ctx, action, action.abortOnDecline === true);
+    return await skipUnavailableAction(ctx, action, action.abortOnDecline === true);
   }
   const dynamicallyScaledDeleteTarget =
     action.kind === "Delete" &&
@@ -680,7 +699,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     typeof payableActionCost !== "number" &&
     !looseCostCanProduceDeleteTarget(ctx, action, payableActionCost)
   ) {
-    return unavailableAction(ctx, action, action.abortOnDecline === true);
+    return await skipUnavailableAction(ctx, action, action.abortOnDecline === true);
   }
   // A costless optional Delete still needs a legal target before its confirmation prompt.
   // Cost-bearing Deletes are handled above because their target may be created by payment;
@@ -700,6 +719,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     )
   ) {
     clearDeleteOutcome(ctx, action);
+    await askNothingToDo(ctx, action);
     return false;
   }
   if (
@@ -714,7 +734,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       (target) => candidatePermanents(ctx, target).length === 0,
     )
   ) {
-    return unavailableAction(ctx, action, action.abortOnDecline === true);
+    return await skipUnavailableAction(ctx, action, action.abortOnDecline === true);
   }
   // Target-bearing source-trash and binding actions must not consume a Digi-Burst (or other
   // activation) cost when their target pool is empty. Return/Delete already have equivalent
@@ -739,7 +759,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     const eligible =
       bred?.topCard !== undefined &&
       (action.target === undefined || permanentMatchesFilter(ctx, bred, action.target.filter, ctx.source));
-    if (!eligible) return unavailableAction(ctx, action, action.abortOnDecline === true);
+    if (!eligible) return await skipUnavailableAction(ctx, action, action.abortOnDecline === true);
   }
   if (
     action.kind === "Unsuspend" &&
@@ -750,6 +770,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       (permanent) => permanent.isSuspended !== true,
     )
   ) {
+    if (isCostlessOptional(action)) await askNothingToDo(ctx, action);
     ctx.lastEffectActed = false;
     // No suspended target means the "may unsuspend" prompt is never raised, so the player
     // never chose to use it. Treat the skip like a decline for the [Once Per Turn] budget
@@ -759,10 +780,10 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     return action.cost !== undefined ? action.abortOnDecline === true : false;
   }
   if (isDetachTopAction(action) && !canDetachPermanentTop(ctx, action)) {
-    return unavailableAction(ctx, action, action.abortOnDecline === true);
+    return await skipUnavailableAction(ctx, action, action.abortOnDecline === true);
   }
   if (action.kind === "ReactivateEffect" && !canReactivateOwnEffect(ctx, action)) {
-    return unavailableAction(ctx, action, action.abortOnDecline === true);
+    return await skipUnavailableAction(ctx, action, action.abortOnDecline === true);
   }
   if (
     action.kind === "PlaceUnder" &&
@@ -770,13 +791,13 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     !allowsOptionalProcessingCostWithoutTarget(action) &&
     !canAttemptPlaceUnder(ctx, action)
   ) {
-    return unavailableAction(ctx, action, action.abortOnDecline === true);
+    return await skipUnavailableAction(ctx, action, action.abortOnDecline === true);
   }
   // A modal whose every option is un-attemptable cannot be activated at all, so its
   // activation cost must not be charged (BT17-050 Q2803: with no level 5 or higher Digimon
   // there is nothing to place this card under, and the 4 memory is never paid).
   if (action.kind === "Modal" && action.options.length > 0 && !modalHasAvailableOption(ctx, action)) {
-    return unavailableAction(ctx, action, action.abortOnDecline === true);
+    return await skipUnavailableAction(ctx, action, action.abortOnDecline === true);
   }
   // A breeding-area play with a printed activation cost is transactional: an occupied
   // single-slot destination makes the action impossible before any optional prompt or cost
@@ -788,7 +809,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     !allowsOptionalProcessingCostWithoutTarget(action) &&
     ctx.game.player(ctx.source.ownerSeat).breeding !== undefined
   ) {
-    return unavailableAction(ctx, action, action.abortOnDecline === true);
+    return await skipUnavailableAction(ctx, action, action.abortOnDecline === true);
   }
   if (
     action.kind === "CostModifier" &&
@@ -796,7 +817,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     !allowsOptionalProcessingCostWithoutTarget(action) &&
     (action.target === undefined || candidatePermanents(ctx, action.target).length === 0)
   ) {
-    return unavailableAction(ctx, action, action.abortOnDecline === true);
+    return await skipUnavailableAction(ctx, action, action.abortOnDecline === true);
   }
   // Unless a ruling explicitly allows paying the processing condition by itself, a redirect's
   // activation cost is payable only when the attack can actually be redirected. Preflight
@@ -808,7 +829,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     !allowsOptionalProcessingCostWithoutTarget(action) &&
     ctx.fx.isAttackTargetLocked?.() === true
   ) {
-    return unavailableAction(ctx, action, action.abortOnDecline === true);
+    return await skipUnavailableAction(ctx, action, action.abortOnDecline === true);
   }
   if (
     action.kind === "RedirectAttack" &&
@@ -827,7 +848,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     const switchable = candidates.filter(
       (permanent) => !isSameAttackTarget(currentTarget, { kind: "permanent", permanentId: permanent.permanentId }),
     );
-    if (switchable.length === 0) return unavailableAction(ctx, action, action.abortOnDecline === true);
+    if (switchable.length === 0) return await skipUnavailableAction(ctx, action, action.abortOnDecline === true);
   }
   const structuredCost = action.kind !== "RawUnparsed" && typeof action.cost !== "number" ? action.cost : undefined;
   if (action.kind === "CostModifier" && action.amount === null && action.dynamicFrom === "deletedDigimonPlayCost") {
@@ -859,7 +880,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     nestedRequiredOptionUse?.selectionRequired === true &&
     !(await canAttemptUseOptionWithoutCost(ctx, nestedRequiredOptionUse))
   ) {
-    return unavailableAction(ctx, action, action.kind === "CostGatedBlock" && action.abortOnDecline === true);
+    return await skipUnavailableAction(ctx, action, action.kind === "CostGatedBlock" && action.abortOnDecline === true);
   }
   if (
     action.kind === "UseOptionWithoutCost" &&
@@ -867,7 +888,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     !allowsOptionalProcessingCostWithoutTarget(action) &&
     !(await canAttemptUseOptionWithoutCost(ctx, action))
   ) {
-    return unavailableAction(ctx, action, action.abortOnDecline === true);
+    return await skipUnavailableAction(ctx, action, action.abortOnDecline === true);
   }
   // Bind a SelectBind target before paying a cost that refers to that selected host.
   if (action.kind === "SelectBind" && action.target.bindAs !== undefined && action.cost?.kind === "trash") {
