@@ -43,10 +43,8 @@ describe("EX10-047 Arukenimon", () => {
     expect(compiled.effects?.find((effect) => effect.trigger === "OnPlay")).toMatchObject({
       actions: [
         {
-          kind: "DeleteByDPBudget",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
-          baseBudget: 6000,
-          upTo: true,
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all", totalDpCap: 6000 },
           cost: {
             kind: "trash",
             target: { filter: { zone: "hand", controller: "mine" }, count: 1 },
@@ -194,6 +192,41 @@ describe("EX10-047 Arukenimon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.memory).toBe(5);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("[On Play] must delete at least one Digimon that fits the 6000 DP total", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "arukenimon" },
+            { card: "BT1-013", as: "cost" },
+          ],
+          deck: ["BT1-014"],
+          security: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "small", dp: 3000 }], deck: ["BT1-014"], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Delete "] },
+    );
+    await s.ready();
+    s.state.memory = 11;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arukenimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const deletion = s.decisions.find(
+      ({ req }) => req.kind === "chooseTargets" && req.options?.maxTotalDP !== undefined,
+    );
+    expect(deletion?.req.options).toMatchObject({ min: 1, maxTotalDP: 6000 });
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
   });
 
   it("[On Play] with an empty opposing board still pays the hand cost and deletes nothing", async () => {

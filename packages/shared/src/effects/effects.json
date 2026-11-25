@@ -141076,10 +141076,12 @@
         "trigger": "OnPlay",
         "actions": [
           {
-            "kind": "DeleteByDPBudget",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "baseBudget": 6000,
-            "upTo": true,
+            "kind": "Delete",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": "all",
+              "totalDpCap": 6000
+            },
             "cost": {
               "kind": "trash",
               "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
@@ -203462,9 +203464,12 @@
             }
           },
           {
-            "kind": "DeleteByDPBudget",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "baseBudget": 7000
+            "kind": "Delete",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": "all",
+              "totalDpCap": 7000
+            }
           }
         ]
       },
@@ -203488,9 +203493,12 @@
             }
           },
           {
-            "kind": "DeleteByDPBudget",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "baseBudget": 7000
+            "kind": "Delete",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": "all",
+              "totalDpCap": 7000
+            }
           }
         ]
       },

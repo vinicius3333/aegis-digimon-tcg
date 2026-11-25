@@ -34,13 +34,14 @@ describe("P-191 Apollomon", () => {
             scaling: { per: 1, unit: "cards", filter: { nameOrTrait: [{ tokens: ["Olympos XII"], match: "trait" }] } },
           },
           {
-            kind: "DeleteByDPBudget",
-            baseBudget: 7000,
-            target: { count: "all" },
+            kind: "Delete",
+            target: { count: "all", totalDpCap: 7000 },
           },
         ],
       });
-      expect(card.effects.find((effect) => effect.trigger === trigger)?.actions?.[1]).not.toHaveProperty("budgetBonus");
+      expect(card.effects.find((effect) => effect.trigger === trigger)?.actions?.[1]).not.toHaveProperty(
+        "totalDpCapScaling",
+      );
     }
   });
 
@@ -352,14 +353,23 @@ describe("P-191 Apollomon — KB Q&A rulings", () => {
   }
 
   it("leaves a 0 DP Digimon on the field until the effect finishes, then the rule check deletes it (Q4980)", async () => {
-    const { s, decisions } = await playApollomon([{ as: "zeroed", dp: 4000 }], ["Delete "]);
-    const budgetPrompt = decisions.find(({ req }) => req.kind === "optional" && req.sourceCardId === "P-191");
-    expect(budgetPrompt?.req.promptText).toContain("DP 0");
+    const { s, decisions } = await playApollomon([{ as: "zeroed", dp: 4000 }]);
+    expect(decisions.some(({ req }) => req.kind === "chooseTargets" && req.options?.maxTotalDP !== undefined)).toBe(
+      false,
+    );
     const effectEnd = s.events.findIndex((event) => event.kind === "effectResolved" && event.sourceCardId === "P-191");
     const deletion = s.events.findIndex(
       (event) => event.kind === "cardsMoved" && event.deletedPermanents !== undefined,
     );
     expect(deletion).toBeGreaterThan(effectEnd);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
+  });
+
+  it("must delete at least one Digimon that fits the 7000 DP total", async () => {
+    const { s, decisions } = await playApollomon([{ as: "small", dp: 8000 }], ["Delete "]);
+    const deletion = decisions.find(({ req }) => req.kind === "chooseTargets" && req.options?.maxTotalDP !== undefined);
+    expect(deletion?.req.options).toMatchObject({ min: 1, maxTotalDP: 7000 });
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
