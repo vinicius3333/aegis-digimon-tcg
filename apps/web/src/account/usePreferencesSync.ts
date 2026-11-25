@@ -22,6 +22,8 @@ import {
   useDeckBuilderPreferences,
 } from "../screens/deckBuilderPreferences";
 import { setAutoHatchEnabled, useAutoHatch } from "../game/autoHatch";
+import { setSkipNothingToDoEnabled } from "@/game/skipNothingToDo/setSkipNothingToDoEnabled";
+import { useSkipNothingToDo } from "@/game/skipNothingToDo/useSkipNothingToDo";
 import { useTranslation } from "../i18n";
 import { isLocale } from "@/i18n/isLocale";
 import { accountApi, type AccountPreferences } from "./client";
@@ -46,6 +48,7 @@ export function usePreferencesSync({
 }): boolean {
   const { locale, setLocale } = useTranslation();
   const autoHatch = useAutoHatch();
+  const skipNothingToDo = useSkipNothingToDo();
   const groupIdenticalTamers = useTamerGrouping();
   const profileStats = useProfileStatsShown();
   const profileTrophies = useProfileTrophiesShown();
@@ -73,6 +76,7 @@ export function usePreferencesSync({
         if (preferences.eggSleeve && getEggSleeveId() !== CUSTOM_CARD_SLEEVE_ID) setEggSleeveId(preferences.eggSleeve);
         setDeckBuilderPreferences(sanitizeDeckBuilderPreferences(preferences));
         setAutoHatchEnabled(preferences.autoHatch === true);
+        if (typeof preferences.skipNothingToDo === "boolean") setSkipNothingToDoEnabled(preferences.skipNothingToDo);
         if (typeof preferences.groupIdenticalTamers === "boolean") {
           setTamerGroupingEnabled(preferences.groupIdenticalTamers);
         }
@@ -94,6 +98,7 @@ export function usePreferencesSync({
     const current: AccountPreferences = {
       ...(cardImageLanguage !== undefined && { cardImageLanguage }),
       ...(autoHatch || stored.autoHatch !== undefined ? { autoHatch } : {}),
+      ...(!skipNothingToDo || stored.skipNothingToDo !== undefined ? { skipNothingToDo } : {}),
       ...(!profileStats || stored.profileStats !== undefined ? { profileStats } : {}),
       ...(!profileTrophies || stored.profileTrophies !== undefined ? { profileTrophies } : {}),
       ...(!groupIdenticalTamers || stored.groupIdenticalTamers !== undefined ? { groupIdenticalTamers } : {}),
@@ -124,6 +129,7 @@ export function usePreferencesSync({
     accountId,
     stored,
     autoHatch,
+    skipNothingToDo,
     groupIdenticalTamers,
     profileStats,
     profileTrophies,

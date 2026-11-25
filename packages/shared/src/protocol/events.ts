@@ -712,6 +712,7 @@ export interface DecisionRequest {
   sourcePermanentId?: string;
   // kind-specific options the UI needs to render the prompt and constrain input:
   options?: {
+    nothingToDo?: boolean;
     selectionGoal?: DecisionSelectionGoal;
     effectControllerSeat?: Seat;
     singleHandCostBenefit?: SingleHandCostBenefit;

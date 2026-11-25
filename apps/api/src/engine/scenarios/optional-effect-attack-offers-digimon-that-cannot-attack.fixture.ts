@@ -1,6 +1,6 @@
 import type { ScenarioFixture } from "#api/engine/scenario/types";
 
-const optionalEffectAttackOffersOnlyReadyAttackers: ScenarioFixture = {
+const optionalEffectAttackOffersDigimonThatCannotAttack: ScenarioFixture = {
   memory: 5,
   turnSeat: 0,
   turnCount: 0,
@@ -23,4 +23,4 @@ const optionalEffectAttackOffersOnlyReadyAttackers: ScenarioFixture = {
   },
 };
 
-export default optionalEffectAttackOffersOnlyReadyAttackers;
+export default optionalEffectAttackOffersDigimonThatCannotAttack;

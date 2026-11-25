@@ -47,35 +47,37 @@ export function RoadmapItemPage({ id, signedIn, isAdmin, onSignIn, onBack }: Roa
       {!failure && !item ? <p role="status">{t("common.loading")}</p> : null}
       {item ? (
         <>
-          <header className="roadmap-item__header">
-            {column ? (
-              <Badge tone="primary" className="roadmap-item__status">
-                {t(column.label)}
-              </Badge>
-            ) : null}
-            <h2 id="roadmap-item-title" className="roadmap-item__title">
-              {item.title}
-            </h2>
-            <p className="roadmap-item__meta">
-              {t("roadmap.updated", { when: relativeTime({ at: item.updatedAt, locale }) })}
-            </p>
-          </header>
-          <p className="roadmap-item__description">{item.description}</p>
-          <div className="roadmap-item__actions">
-            <RoadmapSupportButton
-              item={item}
-              signedIn={signedIn}
-              onSignIn={onSignIn}
-              onChanged={(updated) => setItem((current) => (current ? { ...current, ...updated } : current))}
-              onFailed={() => setFailure("error")}
-            />
-            {item.discussionUrl ? (
-              <a className="roadmap-item__discuss" href={item.discussionUrl} target="_blank" rel="noreferrer">
-                <Icons.Discord size={16} />
-                {t("roadmap.discuss")}
-              </a>
-            ) : null}
-          </div>
+          <section className="roadmap-item__card">
+            <header className="roadmap-item__header">
+              {column ? (
+                <Badge tone="primary" className="roadmap-item__status">
+                  {t(column.label)}
+                </Badge>
+              ) : null}
+              <h2 id="roadmap-item-title" className="roadmap-item__title">
+                {item.title}
+              </h2>
+              <p className="roadmap-item__meta">
+                {t("roadmap.updated", { when: relativeTime({ at: item.updatedAt, locale }) })}
+              </p>
+            </header>
+            <p className="roadmap-item__description">{item.description}</p>
+            <div className="roadmap-item__actions">
+              <RoadmapSupportButton
+                item={item}
+                signedIn={signedIn}
+                onSignIn={onSignIn}
+                onChanged={(updated) => setItem((current) => (current ? { ...current, ...updated } : current))}
+                onFailed={() => setFailure("error")}
+              />
+              {item.discussionUrl ? (
+                <a className="roadmap-item__discuss" href={item.discussionUrl} target="_blank" rel="noreferrer">
+                  <Icons.Discord size={16} />
+                  {t("roadmap.discuss")}
+                </a>
+              ) : null}
+            </div>
+          </section>
           {isAdmin ? (
             <RoadmapItemEditor
               key={item.id}

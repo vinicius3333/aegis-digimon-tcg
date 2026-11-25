@@ -1,6 +1,6 @@
 import type { Migration } from "#api/db/migrator";
 export const privateSealedResults: Migration = {
-  id: "063-private-sealed-results",
+  id: "065-private-sealed-results",
   up: `CREATE TABLE private_sealed_results (
     game_id uuid PRIMARY KEY,
     series_id uuid REFERENCES private_sealed_series(id) ON DELETE SET NULL,

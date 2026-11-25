@@ -1,6 +1,6 @@
-import { privateSealedResults } from "#api/db/migrations/063-private-sealed-results";
-import { privateSealed } from "#api/db/migrations/062-private-sealed";
 import { sealedTournaments } from "#api/db/migrations/066-sealed-tournaments";
+import { privateSealedResults } from "#api/db/migrations/065-private-sealed-results";
+import { privateSealed } from "#api/db/migrations/064-private-sealed";
 import { tournamentDiscordGuild } from "#api/db/migrations/048-tournament-discord-guild";
 import { slimDeckMatchLedger } from "#api/db/migrations/049-slim-deck-match-ledger";
 import { accountRoles } from "#api/db/migrations/050-account-roles";
@@ -20,6 +20,9 @@ import { deckMatchupResults } from "#api/db/migrations/057-deck-matchup-results"
 import { optionalRankedRegion } from "#api/db/migrations/058-optional-ranked-region";
 import { competitiveArchetypes } from "#api/db/migrations/059-competitive-archetypes";
 import { tournamentBetaCards } from "#api/db/migrations/060-tournament-beta-cards";
+import { replayFeaturedDeckIcons } from "#api/db/migrations/061-replay-featured-deck-icons";
+import { feedbackForum } from "#api/db/migrations/062-feedback-forum";
+import { replayFrameLimit } from "#api/db/migrations/063-replay-frame-limit";
 import type { Migration } from "../migrator.js";
 import { initialSchema } from "./001-initial-schema.js";
 import { tournamentProgramColumns } from "./002-tournament-program-columns.js";
@@ -128,6 +131,9 @@ export const migrations: readonly Migration[] = [
   optionalRankedRegion,
   competitiveArchetypes,
   tournamentBetaCards,
+  replayFeaturedDeckIcons,
+  feedbackForum,
+  replayFrameLimit,
   privateSealed,
   privateSealedResults,
   sealedTournaments,

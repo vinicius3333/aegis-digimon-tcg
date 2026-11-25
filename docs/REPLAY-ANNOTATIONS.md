@@ -71,16 +71,16 @@ never receive someone else's annotations. There is no sharing setting.
 
 ## Limits
 
-| Limit                        | Value                                               |
-| ---------------------------- | --------------------------------------------------- |
-| Markers per author and match | 100                                                 |
-| Notes per author and match   | 50                                                  |
-| Note length                  | 1 to 500 code points after normalization            |
-| Live annotations             | One per second per author                           |
-| HTTP writes                  | Token bucket of 20, one token per 3 s               |
-| HTTP reads                   | Token bucket of 30, one token per 2 s               |
-| Emoji                        | Exactly one emoji; the eight presets come first     |
-| Frame index                  | 0 to 4999 (the recording keeps at most 5000 frames) |
+| Limit                        | Value                                                 |
+| ---------------------------- | ----------------------------------------------------- |
+| Markers per author and match | 100                                                   |
+| Notes per author and match   | 50                                                    |
+| Note length                  | 1 to 500 code points after normalization              |
+| Live annotations             | One per second per author                             |
+| HTTP writes                  | Token bucket of 20, one token per 3 s                 |
+| HTTP reads                   | Token bucket of 30, one token per 2 s                 |
+| Emoji                        | Exactly one emoji; the eight presets come first       |
+| Frame index                  | 0 to 19999 (the recording keeps at most 20000 frames) |
 
 ## Retention
 

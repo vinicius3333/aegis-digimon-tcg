@@ -183,6 +183,11 @@ export function applyIntent(engine: GameEngine, seat: Seat, intent: Intent): Int
     case "surrender":
       return handleSurrender(intentRouterDeps(engine), seat);
 
+    case "showNothingToDoPrompts":
+      if (intent.show) engine.nothingToDoPromptSeats.add(seat);
+      else engine.nothingToDoPromptSeats.delete(seat);
+      return { ok: true };
+
     case "mulligan":
       return engine.mulligan.answer(seat, intent.keep) ? { ok: true } : { ok: false, reason: "decision-pending" };
 

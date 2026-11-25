@@ -1,3 +1,5 @@
+import { ideaForumPtBR } from "@/i18n/ideaForum.pt-BR";
+import { bugForumPtBR } from "@/i18n/bugForum.pt-BR";
 import { deckMatchupPtBR } from "@/i18n/deckMatchup.pt-BR";
 import { deckOddsPtBR } from "@/i18n/deckOdds.pt-BR";
 import { chatActionsPtBR } from "@/i18n/chatActions.pt-BR";
@@ -378,14 +380,15 @@ export const ptBR: Record<keyof typeof en, string> = {
     "Seu feedback é salvo. Entre na conta antes se quiser acompanhar e receber resposta.",
   "feedback.triage.confirmedBug": "Bug confirmado",
   "feedback.triage.confirmedBugBadge": "Bug confirmado",
-  "feedback.triage.confirmedBugHint": "{name} ganha 1 ponto. Hoje tem {count}.",
-  "feedback.triage.confirmedBugAnonymous": "Relato anônimo: ninguém ganha o ponto.",
-  "feedback.triage.confirmedBugDuplicate": "Duplicados não ganham ponto; ele fica com o relato original.",
+  "feedback.triage.confirmedBugHint": "{name} ganha 1 Aegis coin. Bugs confirmados até agora: {count}.",
+  "feedback.triage.confirmedBugAnonymous": "Relato anônimo: ninguém ganha a Aegis coin.",
+  "feedback.triage.confirmedBugDuplicate": "Duplicados não ganham Aegis coin; ela fica com o relato original.",
   "feedback.triage.reporterPoints": "{count} bugs confirmados",
   "feedback.reportedDecks.title": "Decks da comunidade denunciados ({count})",
   "feedback.reportedDecks.reports": "{count} denúncias",
   "myFeedback.points": "Bugs confirmados: {count}",
-  "myFeedback.pointsHint": "Cada relato que a equipe confirma como bug real vale 1 ponto.",
+  "myFeedback.pointsHint":
+    "Cada relato que a equipe confirma como bug real vale 1 Aegis coin. Você também ganha moedas no fórum de bugs.",
   "myFeedback.confirmedBug": "Bug confirmado",
   "notifications.feedback.confirmed": "Seu relato “{summary}” foi confirmado como bug",
   "notifications.bugConfirmedPoint": "Confirmado como bug · +1 ponto",
@@ -426,6 +429,9 @@ export const ptBR: Record<keyof typeof en, string> = {
   "settings.autoHatch": "Chocar ovo automaticamente",
   "settings.autoHatchDesc":
     "Choca um Digi-Ovo automaticamente na sua fase de criação quando a área de criação está vazia. Salvo na sua conta.",
+  "settings.skipNothingToDo": "Pular efeitos sem ação possível",
+  "settings.skipNothingToDoDesc":
+    "Recusa automaticamente o “você pode” de um efeito disparado quando ele não tem alvo ou resultado válido. Desligue para ver todos os prompts. Salvo na sua conta.",
   "settings.handAutoSort": "Manter mão ordenada",
   "settings.handAutoSortDesc":
     "Reordena a mão na ordem escolhida no botão de ordenar sempre que uma carta entra ou sai. Cartas que você arrasta ficam no lugar até a mão mudar.",
@@ -2354,6 +2360,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   ...learnPtBR,
   ...learnDrillsPtBR,
   ...newDrillsPtBR,
+  ...bugForumPtBR,
+  ...ideaForumPtBR,
   "sealed.breedingHint": "Escolha uma ação de criação ou encerre a criação.",
   "sealed.placeRookie": "Colocar na criação",
 };

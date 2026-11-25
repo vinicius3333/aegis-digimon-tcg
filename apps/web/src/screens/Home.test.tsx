@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { ForumItem } from "@aegis/shared/feedback/Forum";
+import { FeedbackStatus } from "@aegis/shared/feedback/FeedbackStatus";
 import type { LiveMatchPage } from "@aegis/shared/protocol/LiveMatch";
 import { RankedTier } from "@aegis/shared/ranked/RankedTier";
 import type { RankedLeaderboard } from "@aegis/shared/ranked/RankedContracts";
@@ -38,6 +40,8 @@ function renderHome(overrides: Partial<Parameters<typeof Home>[0]> = {}) {
     onOpenTournaments: vi.fn<() => void>(),
     onCreateTournament: vi.fn<() => void>(),
     onOpenBooster: vi.fn<() => void>(),
+    onOpenBugForum: vi.fn<() => void>(),
+    onOpenBugReport: vi.fn<(reportId: number) => void>(),
     onEditDeck: vi.fn<(deck: DeckListing) => void>(),
     onPlayDeck: vi.fn<(deck: DeckListing) => void>(),
     onBuildDeck: vi.fn<() => void>(),
@@ -72,6 +76,8 @@ beforeEach(() => {
     total: 0,
   };
   rankedResponseStatus = 200;
+  bugForumSummary = { open: 0, awaitingVote: null, aegisCoins: null };
+  openBugReports = [];
   vi.stubGlobal(
     "fetch",
     vi.fn<typeof fetch>(async (input) => {
@@ -79,6 +85,14 @@ beforeEach(() => {
       requestedUrls.push(url);
       if (url.includes("/ranked/leaderboard")) {
         return new Response(JSON.stringify(rankedLeaderboard), { status: rankedResponseStatus });
+      }
+      if (url.includes("/feedback/bugs/summary")) {
+        return new Response(JSON.stringify(bugForumSummary), { status: 200 });
+      }
+      if (url.includes("/feedback/bugs?state=open")) {
+        return new Response(JSON.stringify({ items: openBugReports, page: 1, pageSize: 10, total: 0 }), {
+          status: 200,
+        });
       }
       if (url.includes("/tournaments")) {
         return new Response(JSON.stringify([]), { status: 200 });
@@ -96,7 +110,62 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+let bugForumSummary: { open: number; awaitingVote: number | null; aegisCoins: number | null };
+let openBugReports: ForumItem[];
+
+function openBugReport(id: number, fields: Partial<ForumItem> = {}): ForumItem {
+  return {
+    id,
+    summary: `Report ${id}`,
+    description: "",
+    cardIds: [],
+    status: FeedbackStatus.NEW.value,
+    createdAt: 0,
+    commentCount: 0,
+    outcome: null,
+    myVote: null,
+    ownReport: false,
+    hasReplay: false,
+    upvotes: null,
+    ...fields,
+  };
+}
+
 describe("the home screen", () => {
+  it("previews three open bug reports, waiting votes first, without the Aegis coin balance", async () => {
+    bugForumSummary = { open: 5, awaitingVote: 3, aegisCoins: 12 };
+    openBugReports = [
+      openBugReport(1, { myVote: { verdict: "yes", reason: "Seen it too" } }),
+      openBugReport(2, { cardIds: ["BT27-037"] }),
+      openBugReport(3, { ownReport: true }),
+      openBugReport(4),
+      openBugReport(5),
+    ];
+    const props = renderHome({ accountId: "account-1" });
+
+    expect(await screen.findByText("Reports waiting for your vote: 3")).toBeTruthy();
+    const previews = await screen.findAllByRole("link", { name: /^#\d/ });
+    expect(previews.map((preview) => preview.getAttribute("href"))).toEqual([
+      "/community/bugs/2",
+      "/community/bugs/4",
+      "/community/bugs/5",
+    ]);
+    expect(previews[0]!.textContent).toBe("#2 · BT27-037Report 2Vote");
+    expect(screen.queryByText("12")).toBeNull();
+    expect(screen.queryByText("Aegis coins")).toBeNull();
+
+    fireEvent.click(previews[1]!);
+    expect(props.onOpenBugReport).toHaveBeenCalledWith(4);
+    fireEvent.click(screen.getByRole("button", { name: "Open forum" }));
+    expect(props.onOpenBugForum).toHaveBeenCalled();
+  });
+
+  it("asks guests to sign in from the bug forum card without loading reports", async () => {
+    renderHome();
+    expect(await screen.findByText("Vote on bug reports and earn Aegis coins when the team agrees.")).toBeTruthy();
+    expect(requestedUrls.some((url) => url.includes("/feedback/bugs"))).toBe(false);
+  });
+
   it("renders live player portraits and public card previews without changing the watch action", async () => {
     liveMatchPage = {
       total: 1,

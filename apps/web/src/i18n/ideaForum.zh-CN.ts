@@ -1,0 +1,15 @@
+export const ideaForumZhCN = {
+  "ideaForum.tab": "创意",
+  "ideaForum.title": "创意板",
+  "ideaForum.subtitle": "为你最想要的想法点赞，并讨论如何改进。团队会根据点赞决定要做什么。",
+  "ideaForum.empty.open": "目前没有进行中的创意。",
+  "ideaForum.empty.decided": "还没有已决定的创意。",
+  "ideaForum.missing": "这个创意不存在或未公开。",
+  "ideaForum.back": "所有创意",
+  "ideaForum.commentPlaceholder": "改进创意的方法、示例或顾虑。",
+  "ideaForum.upvote": "点赞",
+  "ideaForum.upvoted": "已点赞",
+  "ideaForum.upvoteLabel": "为 {title} 点赞（{count} 个赞）",
+  "ideaForum.upvoteTitle": "想要这个吗？",
+  "ideaForum.upvoteHint": "为你最想要的想法点赞。你可以随时取消点赞。",
+} as const;

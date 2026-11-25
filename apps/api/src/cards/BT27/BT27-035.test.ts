@@ -6,6 +6,33 @@ import { advance } from "#api/engine/testkit/advance";
 import "#api/cards/index";
 
 describe("MirageGaogamon: Burst Mode", () => {
+  it("digivolves from a black level 6 for its printed cost of 5", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-072", as: "base" }],
+          hand: [{ card: "BT27-035", as: "card" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("card").instanceId,
+        useAlternateCost: false,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.perm("base").topCard.cardId).toBe("BT27-035");
+    expect(s.state.memory).toBe(5);
+  });
+
   it("returns hidden hand cards down to seven and moves only the top security to deck bottom", async () => {
     const s = setupEngine(
       {

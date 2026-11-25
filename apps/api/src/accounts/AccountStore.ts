@@ -80,6 +80,7 @@ export type Deck = {
 export type AccountPreferences = {
   cardImageLanguage?: CardImageLanguage;
   autoHatch?: boolean;
+  skipNothingToDo?: boolean;
   groupIdenticalTamers?: boolean;
   darkMode?: boolean;
   locale?: string;

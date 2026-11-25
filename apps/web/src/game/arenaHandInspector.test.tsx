@@ -20,6 +20,8 @@ import { GameScreen, HandCardPreview } from "./GameScreen";
 import { normalizeKeywordBrackets } from "./keywordReminders";
 import { Side } from "./side";
 
+vi.mock("@/game/screen/hooks/useNothingToDoPrompts", () => ({ useNothingToDoPrompts: () => undefined }));
+
 beforeEach(() => {
   localStorage.clear();
   cardConfirmationPreference.setMode(CardConfirmationMode.NEVER.value);
