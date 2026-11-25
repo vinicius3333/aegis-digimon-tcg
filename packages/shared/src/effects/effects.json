@@ -9819,6 +9819,7 @@
             "target": {
               "filter": {
                 "controller": "mine",
+                "excludeKind": ["Option"],
                 "playCostLte": 13,
                 "nameOrTrait": [{ "tokens": ["Royal Knight"], "match": "trait" }]
               },
@@ -73881,7 +73882,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "name",
             "digiXrosOnly": true,
-            "tokens": ["Shoutmon", "ZeigGreymon"]
+            "tokens": ["OmniShoutmon", "ZeigGreymon"]
           }
         ]
       },
