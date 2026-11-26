@@ -17,10 +17,12 @@ const alysionSets: ReadonlySet<string> = new Set([
   ...appOnlySets,
 ]);
 
-const alysionEntryDeckPromos: ReadonlySet<string> = new Set(
-  [2, 4, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21].map((number) => `P-${String(number).padStart(3, "0")}`),
+const ALYSION_LAST_PROMO_NUMBER = 27;
+
+const alysionPromos: ReadonlySet<string> = new Set(
+  Array.from({ length: ALYSION_LAST_PROMO_NUMBER }, (_, index) => `P-${String(index + 1).padStart(3, "0")}`),
 );
 
 export function isAlysionCard(card: Readonly<Pick<CardDefinition, "cardId" | "set">>): boolean {
-  return alysionSets.has(card.set) || alysionEntryDeckPromos.has(card.cardId);
+  return alysionSets.has(card.set) || alysionPromos.has(card.cardId);
 }
