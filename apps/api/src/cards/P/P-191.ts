@@ -46,15 +46,15 @@ const compiled: CompiledCard = {
           },
         },
         {
-          kind: "DeleteByDPBudget",
+          kind: "Delete",
           target: {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
             },
             count: "all",
+            totalDpCap: 7000,
           },
-          baseBudget: 7000,
         },
       ],
     },
@@ -90,15 +90,15 @@ const compiled: CompiledCard = {
           },
         },
         {
-          kind: "DeleteByDPBudget",
+          kind: "Delete",
           target: {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
             },
             count: "all",
+            totalDpCap: 7000,
           },
-          baseBudget: 7000,
         },
       ],
     },

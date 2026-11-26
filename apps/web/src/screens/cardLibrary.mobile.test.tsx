@@ -24,6 +24,8 @@ const emptyFilter: CardFilter = {
   setTraitQuery: () => undefined,
   set: "",
   setSet: () => undefined,
+  alysionOnly: false,
+  setAlysionOnly: () => undefined,
   availableSets: [],
   filtered: [],
   toggleColor: () => undefined,

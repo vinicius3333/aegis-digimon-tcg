@@ -259,7 +259,7 @@ describe("BT23-045 TigerVespamon ACE", () => {
           security: SECURITY,
           deck: DECK,
         },
-        1: { battleArea: [{ card: "BT1-012", as: "tooBig", dp: 13000 }], security: SECURITY, deck: DECK },
+        1: { battleArea: [{ card: "BT1-012", as: "tooBig", dp: 14000 }], security: SECURITY, deck: DECK },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -268,7 +268,12 @@ describe("BT23-045 TigerVespamon ACE", () => {
     const securityBefore = s.state.players[0]!.security.map((card) => card.instanceId);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tiger").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT23-045"));
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT23-045") &&
+        s.engine.mainVerbContinuationsInFlight === 0 &&
+        s.state.pendingDecision === undefined,
+    );
 
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([...securityBefore, costId]);

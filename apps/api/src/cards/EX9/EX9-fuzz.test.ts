@@ -75,7 +75,7 @@ describe("EX9 deterministic fuzz properties", () => {
   const seed = configuredInteger("EX9_FUZZ_SEED", DEFAULT_SEED);
   const cases = configuredInteger("EX9_FUZZ_CASES", DEFAULT_CASES);
 
-  it(`preserves Titamon payment semantics across ${cases} generated cases (seed ${seed})`, async () => {
+  it(`preserves Megadramon payment semantics across ${cases} generated cases (seed ${seed})`, async () => {
     const random = seededRandom(seed);
     const payments = ["BT1-024", "EX9-038", "BT1-009"] as const;
 
@@ -89,7 +89,7 @@ describe("EX9 deterministic fuzz properties", () => {
           0: {
             hand: [
               { card: payment, as: "payment" },
-              { card: "EX9-065", as: "titamon" },
+              { card: "EX9-064", as: "megadramon" },
             ],
             deck: ["BT1-009", "BT1-010", "BT1-011"],
           },
@@ -102,7 +102,7 @@ describe("EX9 deterministic fuzz properties", () => {
       const ownersBefore = ownershipByInstance(setup);
 
       expect(
-        setup.engine.applyIntent(0, { type: "playCard", instanceId: setup.inst("titamon").instanceId }),
+        setup.engine.applyIntent(0, { type: "playCard", instanceId: setup.inst("megadramon").instanceId }),
         label,
       ).toEqual({ ok: true });
       if (eligible && accept) {

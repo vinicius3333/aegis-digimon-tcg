@@ -26,6 +26,12 @@
   font-size: 0.75rem;
   font-weight: 700;
 }
+.deck-format-selector[data-game="alysion"] .deck-format-selector__fields {
+  grid-template-columns: minmax(0, 1fr);
+}
+.deck-format-selector__pool[hidden] {
+  display: none;
+}
 .deck-format-selector__fields {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

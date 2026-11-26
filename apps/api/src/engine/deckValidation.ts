@@ -1,4 +1,5 @@
 import type { TournamentBanlistCard } from "@aegis/shared/tournaments/index";
+import { isUnreleasedInFormat } from "@aegis/shared/decks/isUnreleasedInFormat";
 import {
   deckFormat,
   formatCopyLimit,
@@ -6,7 +7,6 @@ import {
   formatPairViolations,
   type DeckFormat,
   getCardDefinition,
-  isBetaOnlyCard,
   sharedCardNumberGroups,
   CardKind,
 } from "@aegis/shared";
@@ -83,7 +83,7 @@ export function validateDecklist(
     if (def.kinds.includes(CardKind.DigiEgg)) {
       return { ok: false, reason: `Digi-Egg ${cardId} belongs in the egg deck, not the main deck` };
     }
-    if (!betaBattleMode && isBetaOnlyCard(def, today)) {
+    if (!betaBattleMode && isUnreleasedInFormat(def, format, today)) {
       return { ok: false, reason: `${cardId} is not released yet and is only legal in beta battle mode` };
     }
   }
@@ -96,7 +96,7 @@ export function validateDecklist(
     if (!def.kinds.includes(CardKind.DigiEgg)) {
       return { ok: false, reason: `non-Digi-Egg ${cardId} cannot go in the egg deck` };
     }
-    if (!betaBattleMode && isBetaOnlyCard(def, today)) {
+    if (!betaBattleMode && isUnreleasedInFormat(def, format, today)) {
       return { ok: false, reason: `${cardId} is not released yet and is only legal in beta battle mode` };
     }
   }

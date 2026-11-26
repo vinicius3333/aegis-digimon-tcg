@@ -211,6 +211,40 @@ describe("validateDecklist (decklist + banlist legality)", () => {
   });
 });
 
+describe("Alysion format release", () => {
+  beforeEach(() => vi.setSystemTime(new Date("2026-11-30T12:00:00Z")));
+
+  function alysionDeckWith(cardId: string): Decklist {
+    const base = [
+      "BT1-010",
+      "BT1-011",
+      "BT1-013",
+      "BT1-016",
+      "BT1-017",
+      "BT1-019",
+      "BT1-020",
+      "BT1-022",
+      "BT1-085",
+      "BT1-086",
+      "BT1-089",
+      "BT1-090",
+    ];
+    return { mainDeck: [...base.flatMap((id) => [id, id, id, id]), cardId, cardId], eggDeck: ["BT1-001", "BT1-001"] };
+  }
+
+  it("accepts Story Deck cards the app already released, outside beta battle mode", () => {
+    expect(validateDecklist(alysionDeckWith("SD01-02"), { format: "alysion" })).toEqual({ ok: true });
+    expect(validateDecklist(alysionDeckWith("SD01-02"), { format: "standard" }).ok).toBe(false);
+  });
+
+  it("keeps unannounced Alysion sets in beta battle mode", () => {
+    expect(validateDecklist(alysionDeckWith("BD05-07"), { format: "alysion" }).ok).toBe(false);
+    expect(validateDecklist(alysionDeckWith("BD05-07"), { format: "alysion", betaBattleMode: true })).toEqual({
+      ok: true,
+    });
+  });
+});
+
 describe("seatPlayer rejects an illegal deck on join (server-authoritative)", () => {
   const illegalSeat = 0 as Seat;
 

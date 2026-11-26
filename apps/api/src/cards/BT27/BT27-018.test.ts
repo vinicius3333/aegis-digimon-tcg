@@ -1,3 +1,4 @@
+import type { SetupEngineOptions } from "#api/engine/testkit/harness";
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { matchingAlternateDigivolutionRequirement } from "#api/engine/cards/cardData";
@@ -19,7 +20,7 @@ const vanillaRedLevel5 = "BT1-020";
 const vanillaRedLevel6 = "ST1-10";
 
 type Setup = ReturnType<typeof setupEngine>;
-type Options = Parameters<typeof setupEngine>[1];
+type Options = SetupEngineOptions | undefined;
 
 const opponentBoard = [
   { card: vanillaRedLevel6, as: "high", dp: 9000 },

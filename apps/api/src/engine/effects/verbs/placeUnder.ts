@@ -50,6 +50,14 @@ export function createPlaceUnderVerbs(pc: PrimitivesContext) {
       else unshiftOnStack(permanent, instance);
       placed.push(instance);
     }
+    engine.forgetCardUses?.(
+      placed
+        .filter((card) => {
+          const host = origins.get(card.instanceId)?.fromHost;
+          return host !== undefined && host.permanentId !== targetPermanentId;
+        })
+        .map((card) => card.instanceId),
+    );
     if (placed.length > 0) {
       for (const { cards, ...origin } of groupCardsByOrigin({ origins, cards: placed })) {
         engine.emit({

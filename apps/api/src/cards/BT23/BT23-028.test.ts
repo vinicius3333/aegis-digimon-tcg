@@ -501,7 +501,7 @@ describe("BT23-028 Coordemon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT21-009", as: "host", dp: 13000 },
+            { card: "BT21-009", as: "host", dp: 14000 },
             { card: "BT1-009", as: "target" },
           ],
           hand: [...(restricted ? [{ card: "BT23-028", as: "coordemon" }] : []), { card: "ST1-02", as: "neutral" }],
@@ -548,7 +548,12 @@ describe("BT23-028 Coordemon", () => {
         instanceId: s.inst("tiger").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard?.cardId === "BT23-045");
+    await settle(
+      () =>
+        s.perm("base").topCard?.cardId === "BT23-045" &&
+        s.engine.mainVerbContinuationsInFlight === 0 &&
+        s.state.pendingDecision === undefined,
+    );
     expect(s.state.pendingDecision).toBeUndefined();
     expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === royalSourceId)).toBe(restricted);

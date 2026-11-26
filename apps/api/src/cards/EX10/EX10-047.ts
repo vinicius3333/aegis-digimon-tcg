@@ -7,16 +7,15 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "DeleteByDPBudget",
+          kind: "Delete",
           target: {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
             },
             count: "all",
+            totalDpCap: 6000,
           },
-          baseBudget: 6000,
-          upTo: true,
           cost: {
             kind: "trash",
             target: {

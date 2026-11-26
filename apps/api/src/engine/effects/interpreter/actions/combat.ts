@@ -304,6 +304,7 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
         ctx.fx.grantCanAttackUnsuspended(id, duration, {
           noDigivolutionCards,
           defenderLevelMax: action.defenderLevelMax,
+          defenderHasFewerDigivolutionCards: action.defenderHasFewerDigivolutionCards,
         });
       for (const id of ids) grant(id);
       if (action.includeLaterEntrants === true) {

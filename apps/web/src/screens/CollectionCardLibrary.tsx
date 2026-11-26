@@ -95,7 +95,7 @@ export function CollectionCardLibrary({ hidden }: CollectionCardLibraryParams) {
       </section>
 
       <section className="collection-card collection-filters" aria-label={t("mobile.filters")}>
-        <FilterRail filter={filter} />
+        <FilterRail filter={filter} showAlysionFilter />
       </section>
 
       <div className="collection-results" data-detail={selected ? true : undefined}>

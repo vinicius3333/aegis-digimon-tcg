@@ -468,7 +468,6 @@ describe("Dramon Breaker aggregate target selection", () => {
   it.each([
     { selected: ["first", "second", "third"], deleted: 3 },
     { selected: ["first", "second", "third", "extra"], deleted: 0 },
-    { selected: [], deleted: 0 },
   ])(
     "resolves the complete selection $selected without choosing a subset for the player",
     async ({ selected, deleted }) => {
@@ -493,7 +492,7 @@ describe("Dramon Breaker aggregate target selection", () => {
       ).toEqual({ ok: true });
       await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
       const request = s.decisions.find(({ req }) => req.kind === "chooseTargets")!.req;
-      expect(request.options).toMatchObject({ min: 0, max: 4, maxTotalDP: 15000 });
+      expect(request.options).toMatchObject({ min: 1, max: 4, maxTotalDP: 15000 });
       expect(request.options?.candidateInstanceIds).toEqual(
         expect.arrayContaining(["first", "second", "third", "extra"].map((alias) => s.perm(alias).permanentId)),
       );

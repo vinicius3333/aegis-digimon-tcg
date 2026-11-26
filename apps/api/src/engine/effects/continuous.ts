@@ -692,7 +692,12 @@ export class ContinuousEffectLedger {
   grantCanAttackUnsuspended(
     permanentId: string,
     duration: EffectDuration,
-    opts?: { continuous?: boolean; noDigivolutionCards?: boolean; defenderLevelMax?: number },
+    opts?: {
+      continuous?: boolean;
+      noDigivolutionCards?: boolean;
+      defenderLevelMax?: number;
+      defenderHasFewerDigivolutionCards?: boolean;
+    },
   ): void {
     this.canAttackUnsuspendedGrants.push(
       this.anchorDuration({
@@ -701,6 +706,7 @@ export class ContinuousEffectLedger {
         continuous: opts?.continuous,
         noDigivolutionCards: opts?.noDigivolutionCards,
         defenderLevelMax: opts?.defenderLevelMax,
+        defenderHasFewerDigivolutionCards: opts?.defenderHasFewerDigivolutionCards,
       }),
     );
   }
@@ -724,11 +730,16 @@ export class ContinuousEffectLedger {
   /** Whether at least one active grant accepts this exact unsuspended defender. */
   canAttackUnsuspendedTarget(
     permanentId: string,
-    defender: { level?: number; hasDigivolutionCards: boolean },
+    defender: { level?: number; digivolutionCardCount: number; attackerDigivolutionCardCount: number },
   ): boolean {
     return this.canAttackUnsuspendedGrants.some((grant) => {
       if (grant.permanentId !== permanentId) return false;
-      if (grant.noDigivolutionCards === true && defender.hasDigivolutionCards) return false;
+      if (grant.noDigivolutionCards === true && defender.digivolutionCardCount > 0) return false;
+      if (
+        grant.defenderHasFewerDigivolutionCards === true &&
+        defender.digivolutionCardCount >= defender.attackerDigivolutionCardCount
+      )
+        return false;
       if (
         grant.defenderLevelMax !== undefined &&
         (defender.level === undefined || defender.level > grant.defenderLevelMax)

@@ -1,3 +1,4 @@
+import { createMemoryDatabase } from "../../api/dist/db/createMemoryDatabase.js";
 import { ReplayLibrary } from "../../api/dist/replays/ReplayLibrary.js";
 import { createServer } from "node:http";
 import { createRequire } from "node:module";
@@ -18,8 +19,8 @@ import "../../api/dist/cards/index.js";
 export async function startSocialBrowserServer() {
   const requireApi = createRequire(new URL("../../api/package.json", import.meta.url));
   const express = requireApi("express") as typeof import("../../api/node_modules/express");
-  const { newDb, DataType } = requireApi("pg-mem") as typeof import("../../api/node_modules/pg-mem");
-  const db = newDb({ noAstCoverageCheck: true });
+  const { DataType } = requireApi("pg-mem") as typeof import("../../api/node_modules/pg-mem");
+  const db = createMemoryDatabase({ noAstCoverageCheck: true });
   db.public.registerFunction({
     name: "decode",
     args: [DataType.text, DataType.text],

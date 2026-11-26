@@ -86,6 +86,7 @@ describe("EX13-031 KingSukamon", () => {
               filter: {
                 controller: "mine",
                 zone: ["hand", "digivolutionCards"],
+                hostFilter: { kind: ["Digimon"] },
                 nameOrTrait: [{ tokens: ["Chuumon", "Sukamon"], match: "name" }],
               },
               count: 1,
@@ -445,6 +446,73 @@ describe("EX13-031 KingSukamon", () => {
     expect(victim.currentDP).toBe(3000);
     expect(s.perm("other").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("fee").instanceId]);
+  });
+
+  it("cannot pay the cost from cards under a Tamer, face down or face up", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: cardId, as: "king" }],
+          battleArea: [
+            {
+              card: TAI_KAMIYA,
+              as: "tamer",
+              under: [
+                { card: SUKAMON, as: "faceDownFee", faceUp: false },
+                { card: PLATINUM_SUKAMON, as: "faceUpFee" },
+              ],
+            },
+          ],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [{ card: OPPONENT_BODY, as: "victim" }],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    const victim = s.perm("victim");
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(observe(s.engine).effectiveNames(victim)).toEqual(["metalgreymon"]);
+    expect(s.perm("tamer").stack).toHaveLength(2);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("cannot pay the cost with a face-down digivolution card, which has no name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: cardId, as: "king" }],
+          battleArea: [{ card: NEUTRAL_LV3, as: "other", under: [{ card: SUKAMON, as: "fee", faceUp: false }] }],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [{ card: OPPONENT_BODY, as: "victim" }],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    const victim = s.perm("victim");
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(observe(s.engine).effectiveNames(victim)).toEqual(["metalgreymon"]);
+    expect(s.perm("other").stack).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
   it("Q7300: cannot pay the cost from an opponent's Digimon's digivolution cards", async () => {

@@ -118,7 +118,7 @@ export function CardDetailDrawer({
           </h2>
           <div className="card-detail-limit">
             {banLabel ? <span className="card-detail-restriction">{banLabel}</span> : null}
-            {isBetaCard(cardId) ? (
+            {isBetaCard(cardId, format) ? (
               <span className="card-detail-restriction" data-tone="beta" title={t("beta.cardHint")}>
                 {t("beta.tag")}
               </span>
