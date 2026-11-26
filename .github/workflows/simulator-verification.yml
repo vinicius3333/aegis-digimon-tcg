@@ -36,3 +36,73 @@ jobs:
       - name: Scheduled and manual deep checks
         if: github.event_name != 'pull_request'
         run: pnpm verify:simulator:deep
+
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [api, browser, server]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: aegis_sealed_test
+          POSTGRES_PASSWORD: ci-only
+        ports:
+          - 127.0.0.1:55439:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      POSTGRES_TESTS: "1"
+      PGPASSWORD: ci-only
+      POSTGRES_TEST_URL: postgres://postgres@127.0.0.1:55439/aegis_sealed_test
+      SEALED_TEST_DATABASE_URL: postgres://postgres@127.0.0.1:55439/aegis_sealed_test
+      AEGIS_DISPOSABLE_SCHEMA_CATALOG_LOCK: "true"
+      AEGIS_SOCIAL_SCHEMA_SOURCE_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10.30.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "26"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @aegis/shared build
+      - run: pnpm --filter @aegis/api build
+      - name: PostgreSQL and Sealed API tests
+        if: matrix.suite == 'api'
+        working-directory: apps/api
+        run: |
+          shopt -s globstar nocaseglob
+          pnpm test:postgres src/db/migrator.accountContention src/**/*sealed*.test.ts --maxWorkers=1
+      - name: Prepare disposable database fixture
+        if: matrix.suite != 'api'
+        run: |
+          printf 'AEGIS_SOCIAL_SCHEMA_RECEIPT_OUT=%s\n' "$(mktemp -d "$RUNNER_TEMP/sealed.XXXXXXXX")" >> "$GITHUB_ENV"
+          printf 'AEGIS_SOCIAL_SCHEMA_TASK_NONCE=%s\n' "$(node -p 'crypto.randomUUID()')" >> "$GITHUB_ENV"
+      - name: Sealed browser server tests
+        if: matrix.suite == 'server'
+        working-directory: apps/api
+        env:
+          NODE_ENV: test
+        run: node --import=./test-support/ts-loader.mjs --test --test-concurrency=1 test-support/*Sealed*.test.ts
+      - run: pnpm --filter @aegis/web exec playwright install --with-deps chromium
+        if: matrix.suite == 'browser'
+      - name: Sealed browser tests
+        if: matrix.suite == 'browser'
+        env:
+          AEGIS_CARD_IMAGE_ORIGIN: https://web-garage.takaotaku.de
+        working-directory: apps/web
+        run: |
+          failed=0
+          for spec in e2e/*sealed*.spec.ts; do
+            pnpm exec playwright test "$spec" --output "$RUNNER_TEMP/${spec##*/}" || failed=1
+          done
+          exit "$failed"

@@ -50,6 +50,7 @@ export function seatPlayer(engine: GameEngine, seat: Seat, sessionId: string, op
   const deckIsEmpty = options.deck.mainDeck.length === 0 && options.deck.eggDeck.length === 0;
   if (!deckIsEmpty) {
     const verdict = validateDecklist(options.deck, {
+      rulesPolicy: engine.state.rulesPolicy,
       betaBattleMode: options.betaBattleMode === true,
       unlimited: options.unlimited === true,
       format: options.format,

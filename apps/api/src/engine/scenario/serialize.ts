@@ -57,6 +57,7 @@ function opponent(value: ScenarioOpponent): ScenarioOpponent {
 export function serializeScenarioFixture(value: ScenarioFixture): ScenarioFixture {
   validateScenarioFixture(value);
   const result = fields(value, [
+    "rulesPolicy",
     "name",
     "memory",
     "turnSeat",

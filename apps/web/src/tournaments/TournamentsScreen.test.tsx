@@ -5,6 +5,7 @@ import { I18nProvider } from "../i18n";
 import { resetServerClock } from "./serverClock";
 import { TournamentsScreen } from "./TournamentsScreen";
 import type { TournamentListing } from "./types";
+import { getSealedConfiguration } from "@aegis/shared/sealed/getSealedConfiguration";
 
 const LIGHTNING: TournamentListing = {
   id: "t-lightning",
@@ -284,6 +285,27 @@ describe("tournament creation form", () => {
     return await screen.findByRole("heading", { name: "New tournament" });
   }
 
+  it.each(["EX13", "BT26"])("submits the organizer-selected %s sealed configuration", async (setId) => {
+    await openForm();
+    fireEvent.click(screen.getByRole("checkbox", { name: "Sealed Swiss · six packs" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Booster series" }), { target: { value: setId } });
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Selected series" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create tournament" }));
+    await waitFor(() => {
+      const request = vi
+        .mocked(fetch)
+        .mock.calls.find(([url, init]) => new URL(String(url)).pathname === "/tournaments" && init?.method === "POST");
+      const body = JSON.parse(String(request?.[1]?.body));
+      expect(body).toMatchObject({
+        sealedConfiguration: { setId, packs: 6 },
+        structure: "swiss",
+        bestOf: 3,
+        allowBots: false,
+        topCut: false,
+      });
+    });
+  });
+
   it("lets administrators choose official endorsement independently of rules", async () => {
     await openForm();
     const toggle = screen.getByRole("switch", { name: /Official Aegis/ }) as HTMLButtonElement;
@@ -414,6 +436,48 @@ describe("tournament creation form", () => {
     await waitFor(async () => expect(await postedBody()).toBeDefined());
     expect((await postedBody()).format).toBe("alysion");
     expect((await postedBody()).banlist).toEqual({ mode: "alysion" });
+  });
+
+  it("submits isolated rules when switching from Alysion to Sealed and back", async () => {
+    await openForm();
+    fireEvent.click(screen.getByRole("radio", { name: /Alysion/ }));
+    expect(screen.queryByLabelText("Banned cards")).toBeNull();
+    fireEvent.click(screen.getByRole("checkbox", { name: "Sealed Swiss · six packs" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Booster series" }), { target: { value: "BT26" } });
+    const banlist = screen.getByLabelText<HTMLSelectElement>("Banned cards");
+    expect(banlist.disabled).toBe(true);
+    expect(banlist.value).toBe("none");
+    expect(screen.queryByRole("radio", { name: /Alysion/ })).toBeNull();
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Format transition" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create tournament" }));
+    await waitFor(() => {
+      const requests = vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === "POST");
+      expect(requests).toHaveLength(1);
+      expect(JSON.parse(String(requests[0]?.[1]?.body))).toMatchObject({
+        format: "standard",
+        structure: "swiss",
+        bestOf: 3,
+        topCut: false,
+        allowBots: false,
+        banlist: { mode: "none" },
+        sealedConfiguration: getSealedConfiguration({ setId: "BT26" }),
+      });
+      expect(screen.getByRole<HTMLButtonElement>("button", { name: "Create tournament" }).disabled).toBe(false);
+    });
+    fireEvent.click(screen.getByRole("checkbox", { name: "Sealed Swiss · six packs" }));
+    expect(screen.queryByRole("combobox", { name: "Booster series" })).toBeNull();
+    expect(screen.getByLabelText<HTMLSelectElement>("Banned cards").disabled).toBe(false);
+    fireEvent.click(screen.getByRole("radio", { name: /Alysion/ }));
+    expect(screen.queryByLabelText("Banned cards")).toBeNull();
+    fireEvent.change(screen.getByLabelText("Rules"), { target: { value: "pauper" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create tournament" }));
+    await waitFor(() => {
+      const requests = vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === "POST");
+      expect(requests).toHaveLength(2);
+      const body = JSON.parse(String(requests[1]?.[1]?.body));
+      expect(body).toMatchObject({ format: "alysion:pauper", banlist: { mode: "alysion" } });
+      expect(body).not.toHaveProperty("sealedConfiguration");
+    });
   });
 
   it("shows Swiss round and cut estimates, labelled as pending check-in close", async () => {

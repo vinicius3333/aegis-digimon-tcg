@@ -1,3 +1,5 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
+import { SealedBreedingActions } from "@/game/SealedBreedingActions";
 import { useBoardStyle } from "@/game/arena3d/boardStyle/useBoardStyle";
 import type { TournamentSpectateTarget } from "@/tournaments/TournamentSpectateTarget";
 import { arenaAppearancePreference } from "@/design/arenaAppearance/arenaAppearancePreference";
@@ -1246,6 +1248,7 @@ function GameScreenSession({
     setEvoCostChoice,
   };
   const matchSenders = matchIntents({
+    rulesPolicy: state.rulesPolicy,
     room,
     localConnection: demoConnection,
     decision,
@@ -1602,6 +1605,7 @@ function GameScreenSession({
   spotlightRequestRef.current = spotlight;
 
   const { memoryPrediction } = memoryPreviewInputs({
+    rulesPolicy: state.rulesPolicy,
     memory,
     dragIsPlay,
     drag,
@@ -1676,6 +1680,8 @@ function GameScreenSession({
   // One physical raising area moves into the utility row on a portrait screen.
   const yourBreedingDock = (
     <BreedingDock
+      actions={<SealedBreedingActions state={state} player={you} room={room} enabled={breedingActionsOpen} />}
+      sealed={state.rulesPolicy === GameRulesPolicy.SEALED.value}
       eggDeckCount={breedingYou.eggDeckCount}
       breeding={breedingYou.breeding}
       keywordLabels={
@@ -1711,9 +1717,6 @@ function GameScreenSession({
       onOpenEggDeck={
         revealed ? () => overlayState.setRevealedZoneView({ side: Side.Viewer, zone: "eggDeck" }) : undefined
       }
-      // In the breeding step an occupied slot answers with the move itself;
-      // otherwise it reads like any other own card and opens the detail menu.
-      // An empty slot only answers the breeding step, once its actions open.
       onSlotClick={
         breedingDecisionCandidateId !== undefined &&
         (picks.includes(breedingDecisionCandidateId) || decisionAllowsPick(breedingDecisionCandidateId))

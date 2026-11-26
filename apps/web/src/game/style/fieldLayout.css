@@ -270,6 +270,16 @@
     top: -5px;
     bottom: auto;
   }
+  .aegis-arena
+    .game-board[data-organized-field]:not([data-board-style="arena3d"]):has(.sealed-breeding-actions)
+    .game-field
+    :is(
+      [class*="game-utility-slot--you-"] .game-pile + span,
+      [class*="game-utility-slot--you-"] .game-breeding-slot > span,
+      .game-security-shield--you .game-security-shield__label
+    ) {
+    top: 0;
+  }
   .game-board .game-battle-row[data-field-layout="organized"] > .game-battle-lane,
   .game-board .game-battle-row[data-field-layout="organized"] [data-field-key] {
     touch-action: pan-x !important;
@@ -308,4 +318,22 @@
 
 .game-board .game-battle-row[data-field-layout="organized"] > .game-battle-lane > :last-child {
   margin-right: auto;
+}
+
+.sealed-breeding-actions {
+  position: relative;
+  z-index: 21;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  gap: 4px;
+  width: 18rem;
+  max-width: 100%;
+  flex-shrink: 0;
+}
+
+.sealed-breeding-actions > button {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }

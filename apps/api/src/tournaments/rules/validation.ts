@@ -1,3 +1,5 @@
+import type { TournamentCreation } from "@aegis/shared/tournaments/SealedTournamentContracts";
+import { parseTournamentSettings } from "#api/tournaments/rules/parseTournamentSettings";
 import { deckFormatSettings, isDeckFormat } from "@aegis/shared/deckFormat";
 import { isTournamentClockSettings } from "@aegis/shared/tournaments/isTournamentClockSettings";
 import type { BanlistPolicy, CreateTournamentInput, TournamentBanlistCard, TournamentRules } from "@aegis/shared";
@@ -11,6 +13,7 @@ import { tiebreakersForStructure } from "@aegis/shared/tournaments/tiebreakersFo
 import { MAX_SWISS_ROUNDS } from "@aegis/shared/tournaments/TournamentTopCutSize";
 
 export type TournamentValidationCode =
+  | "sealed_configuration_invalid"
   | "name_too_short"
   | "name_too_long"
   | "description_too_long"
@@ -32,12 +35,13 @@ export type TournamentValidationCode =
 
 export type TournamentValidationError = {
   code: TournamentValidationCode;
-  field: keyof CreateTournamentInput;
+  field: keyof TournamentCreation;
   detail?: string;
 };
 
 export type ValidatedTournament = {
-  input: CreateTournamentInput;
+  input: TournamentCreation;
+  settings: NonNullable<ReturnType<typeof parseTournamentSettings>>;
   rules: TournamentRules;
   banlistCards: TournamentBanlistCard[];
 };
@@ -53,8 +57,15 @@ export const MAX_TOURNAMENT_PLAYERS = 1024;
 
 export const STARTS_AT_PAST_TOLERANCE_MS = 5 * 60_000;
 
-export function validateCreateTournament(input: CreateTournamentInput, createdAt: number): ValidationResult {
+export function validateCreateTournament(
+  input: CreateTournamentInput & { sealedConfiguration?: unknown },
+  createdAt: number,
+): ValidationResult {
   const errors: TournamentValidationError[] = [];
+  const settings = parseTournamentSettings(input);
+  if (!settings) {
+    return { ok: false, errors: [{ code: "sealed_configuration_invalid", field: "sealedConfiguration" }] };
+  }
   if (input.format !== undefined && !isDeckFormat(input.format)) {
     errors.push({ code: "format_invalid", field: "format" });
   }
@@ -117,7 +128,8 @@ export function validateCreateTournament(input: CreateTournamentInput, createdAt
   return {
     ok: true,
     value: {
-      input: { ...input, name, description, banlist },
+      settings,
+      input: { ...input, sealedConfiguration: settings.sealedConfiguration, name, description, banlist },
       rules,
       banlistCards: resolveBanlistPolicy(banlist, createdAt),
     },
@@ -158,8 +170,9 @@ function programErrors(input: CreateTournamentInput): TournamentValidationError[
 }
 
 function banlistErrors(policy: BanlistPolicy, format: unknown): TournamentValidationError[] {
-  if ((policy.mode === "alysion") !== (isDeckFormat(format) && deckFormatSettings(format).set === "alysion"))
+  if ((policy.mode === "alysion") !== (isDeckFormat(format) && deckFormatSettings(format).set === "alysion")) {
     return [{ code: "banlist_mode_unknown", field: "banlist", detail: JSON.stringify(policy) }];
+  }
   switch (policy.mode) {
     case "none":
     case "current":

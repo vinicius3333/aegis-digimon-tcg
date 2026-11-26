@@ -13,7 +13,10 @@ const fullMatchTimeoutMs = 60_000;
 
 function delayed<Args extends unknown[]>(choose: (...args: Args) => Intent): (...args: Args) => Promise<Intent> {
   return async (...args) => {
-    await new Promise<void>((resolve) => setTimeout(resolve, 2));
+    const deadline = process.hrtime.bigint() + 2_000_000n;
+    do {
+      await new Promise<void>((resolve) => setTimeout(resolve, 2));
+    } while (process.hrtime.bigint() < deadline);
     return choose(...args);
   };
 }

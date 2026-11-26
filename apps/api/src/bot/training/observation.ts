@@ -1,3 +1,4 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import {
   effectiveExactNames,
   getCardDefinition,
@@ -59,6 +60,7 @@ export interface ObservedPermanent {
 
 export interface TrainingObservation {
   schemaVersion: 4;
+  rulesPolicy?: GameRulesPolicy;
   seat: Seat;
   turnSeat: Seat;
   turn: number;
@@ -128,6 +130,7 @@ export function trainingObservation(state: GameState, seat: Seat, request?: Deci
   });
   return {
     schemaVersion: 4,
+    ...(state.rulesPolicy === GameRulesPolicy.SEALED.value ? { rulesPolicy: state.rulesPolicy } : {}),
     history: { seenCardIds: [], knownCards: [], recent: [] },
     seat,
     turnSeat: state.turnSeat,
