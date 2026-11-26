@@ -1,7 +1,7 @@
 import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
 import { useRef, useState } from "react";
 import { Tooltip } from "radix-ui";
-import { banlistAsOf, BANNED_PAIRS, bannedPairViolations } from "@aegis/shared";
+import { BANNED_PAIRS, formatBanlist, formatBanlistDate, formatPairViolations, type DeckFormat } from "@aegis/shared";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
 
@@ -9,16 +9,17 @@ const scrollDistances: Record<string, number> = { ArrowDown: 64, ArrowUp: -64, P
 const pairCardIds = BANNED_PAIRS.flatMap((pair) => [pair.cardId, ...pair.conflictsWith]);
 
 /** The date shown by the selector is the same snapshot used by deck validation. */
-export function BanlistTooltip({ date, label }: { date: string; label: string }) {
+export function BanlistTooltip({ format, label }: { format: DeckFormat; label: string }) {
   const getCardName = useTranslatedCardName();
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const content = useRef<HTMLDivElement>(null);
-  const entries = Object.values(banlistAsOf(date))
+  const date = formatBanlistDate(format);
+  const entries = Object.values(formatBanlist(format))
     .filter((entry) => entry.status !== "banned_pair")
     .sort((a, b) => a.cardId.localeCompare(b.cardId, undefined, { numeric: true }));
-  const pairs = bannedPairViolations(pairCardIds, date);
+  const pairs = formatPairViolations(pairCardIds, format);
   const cardName = (id: string) => `${id} · ${getCardName(id)}`;
   return (
     <Tooltip.Provider delayDuration={200}>

@@ -396,7 +396,7 @@ export function CreateTournamentForm({ onCreated, onCancel, canCreateOfficial = 
             ) : null}
 
             <div className="create-tournament__wide">
-              <DeckFormatSelector value={format} onChange={setFormat} showBanlist={false} />
+              <DeckFormatSelector value={format} onChange={setFormat} showBanlist={false} showAlysion={false} />
             </div>
 
             {format === "standard" ? (
