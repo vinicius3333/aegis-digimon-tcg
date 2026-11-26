@@ -395,6 +395,27 @@ describe("tournament creation form", () => {
     });
   });
 
+  it("creates an Alysion tournament with the Alysion banlist and no tabletop banlist choice", async () => {
+    const fetchMock = mockApi({
+      "GET /tournaments": { body: [] },
+      "GET /auth/me": { body: { id: "acc-1", displayName: "Tamer", avatarUrl: null, isAdmin: true, roles: ["admin"] } },
+      "POST /tournaments": { status: 201, body: { ...LIGHTNING, banlistCards: [] } },
+    });
+    await openForm();
+    fireEvent.click(screen.getByRole("radio", { name: /Alysion/ }));
+    expect(screen.queryByLabelText("Banned cards")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Create tournament" }));
+    const postedBody = async () => {
+      const call = fetchMock.mock.calls.find(
+        (args: unknown[]) => (args[1] as RequestInit | undefined)?.method === "POST",
+      );
+      return call === undefined ? undefined : JSON.parse(String((call[1] as RequestInit).body));
+    };
+    await waitFor(async () => expect(await postedBody()).toBeDefined());
+    expect((await postedBody()).format).toBe("alysion");
+    expect((await postedBody()).banlist).toEqual({ mode: "alysion" });
+  });
+
   it("shows Swiss round and cut estimates, labelled as pending check-in close", async () => {
     await openForm();
     fireEvent.click(screen.getByRole("radio", { name: /Swiss/ }));

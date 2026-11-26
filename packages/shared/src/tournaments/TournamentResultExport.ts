@@ -1,4 +1,4 @@
-import type { DeckFormat, DeckRuleMode, HistoricalDeckSet } from "#shared/deckFormat";
+import type { DeckFormat, DeckPool, DeckRuleMode } from "#shared/deckFormat";
 import type { TournamentCategory } from "#shared/tournaments/TournamentCategory";
 import type { ParticipantKind, PhaseKind, TournamentStructure } from "#shared/tournaments/index";
 
@@ -15,7 +15,7 @@ export type TournamentResultExportEvent = {
   organizerDisplayName: string;
   category: TournamentCategory;
   format: DeckFormat;
-  cardPool: HistoricalDeckSet | "all";
+  cardPool: DeckPool | "all";
   deckRules: DeckRuleMode;
   structure: TournamentStructure;
   bestOf: number;

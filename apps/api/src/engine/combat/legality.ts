@@ -56,7 +56,7 @@ export interface ContinuousLegalityReader {
   /** Whether an active grant accepts this exact unsuspended defender's constraints. */
   canAttackUnsuspendedTarget?(
     permanentId: string,
-    defender: { level?: number; hasDigivolutionCards: boolean },
+    defender: { level?: number; digivolutionCardCount: number; attackerDigivolutionCardCount: number },
   ): boolean;
   /**
    * Whether `permanentId`'s ＜Vortex＞ attack may ALSO target a player
@@ -312,7 +312,8 @@ export function canAttackTarget(
       defender.topCard === undefined ? undefined : getCardDefinition(defender.topCard.cardId)?.level;
     const exactGrantAllows = reader?.canAttackUnsuspendedTarget?.(attacker.permanentId, {
       level: defenderLevel,
-      hasDigivolutionCards: defender.stack.length > 0,
+      digivolutionCardCount: defender.stack.length,
+      attackerDigivolutionCardCount: attacker.stack.length,
     });
     if (reader?.canAttackUnsuspendedTarget !== undefined) {
       if (exactGrantAllows !== true) return "illegal-target";

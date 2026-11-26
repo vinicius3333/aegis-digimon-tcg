@@ -61,6 +61,7 @@ import { PlayTab } from "@/play/PlayTab";
 import { DeckColorDots, DeckPicker } from "./DeckPicker";
 import { FamousDeckListDialog } from "./FamousDeckListDialog";
 import { DeckFormatSelector } from "@/screens/DeckFormatSelector";
+import { GameFormatSwitch } from "@/screens/GameFormatSwitch";
 import { deckFormatLabel } from "@/screens/deckFormatLabel";
 import { MatchFormatSettings } from "./MatchFormatSettings";
 import { RollbackSettings } from "@/screens/RollbackSettings";
@@ -69,6 +70,8 @@ import { TurnOrderSettings } from "@/screens/TurnOrderSettings";
 import { PrivateTurnOrder } from "@aegis/shared/protocol/PrivateTurnOrder";
 import { MatchTimerSettings } from "./MatchTimerSettings";
 import { loadMatchFormatPreference, saveMatchFormatPreference } from "./matchFormatPreference";
+import { loadDeckFormatPreference } from "@/screens/loadDeckFormatPreference";
+import { saveDeckFormatPreference } from "@/screens/saveDeckFormatPreference";
 import "./lobby.css";
 import { lookupPrivateRoom } from "../net/client";
 import { BotOpponentPreview } from "@/bot/personas/BotOpponentPreview";
@@ -110,7 +113,7 @@ export function randomDeckPool(
         ? FAMOUS_DECKS
         : selectableDecks({ personalDecks, famousDecks: FAMOUS_DECKS });
   const eligible = candidates.filter(
-    (deck) => deckLegality(deck, { unlimited, format }).legal && (betaAllowed || !deckHasBetaCards(deck)),
+    (deck) => deckLegality(deck, { unlimited, format }).legal && (betaAllowed || !deckHasBetaCards(deck, format)),
   );
   return [...new Map(eligible.map((deck) => [deck.id, deck])).values()];
 }
@@ -311,7 +314,7 @@ export function Lobby({
   const [selectedFormat, setSelectedFormat] = useState<DeckFormat>(() =>
     privateRoom
       ? deckFormat(privateRoom.format, privateRoom.unlimited)
-      : deckFormat(decks.find((deck) => deck.id === activeDeckId)?.format),
+      : (loadDeckFormatPreference() ?? deckFormat(decks.find((deck) => deck.id === activeDeckId)?.format)),
   );
   const [mode, setMode] = useState<string>(() =>
     getInitialLobbyMode({ initialMode, privateEntry: Boolean(invitedRoomCode || privateRoom || challengeFriendName) }),
@@ -370,6 +373,7 @@ export function Lobby({
   const unlimited = formatIsUnlimited(format);
   function changeFormat(next: DeckFormat) {
     setSelectedFormat(next);
+    saveDeckFormatPreference(next);
   }
   const banlistLimit = (id: string) => formatCopyLimit(id, format);
   const onStart = useCallback(
@@ -451,7 +455,7 @@ export function Lobby({
     return decks
       .map((deck) => ({
         deck,
-        legal: deckLegality(deck, { unlimited, format }).legal && (betaAllowed || !deckHasBetaCards(deck)),
+        legal: deckLegality(deck, { unlimited, format }).legal && (betaAllowed || !deckHasBetaCards(deck, format)),
       }))
       .sort((a, b) => Number(b.legal) - Number(a.legal));
   }, [decks, betaAllowed, unlimited, format]);
@@ -505,7 +509,7 @@ export function Lobby({
     [active, unlimited, format],
   );
   const isBotPresetUnplayable = (deck: DeckListing) =>
-    !deckLegality(deck, { format }).legal || (!betaAllowed && deckHasBetaCards(deck));
+    !deckLegality(deck, { format }).legal || (!betaAllowed && deckHasBetaCards(deck, format));
   const preferredOwnBotDeck = preferredBotDeckId.startsWith("mine:")
     ? decks.find((deck) => deck.id === preferredBotDeckId.slice(5))
     : undefined;
@@ -533,9 +537,9 @@ export function Lobby({
               ...(customBotDeck?.mainDeck ?? []),
               ...(customBotDeck?.eggDeck ?? []),
             ]),
-          ].filter(isBetaCard)
+          ].filter((cardId) => isBetaCard(cardId, format))
         : [],
-    [active, customBotDeck],
+    [active, customBotDeck, format],
   );
   const betaEnabled = betaQueueMode && !randomSelected && betaCards.length > 0;
   const betaPeriod = useMemo(() => allCards().some((card) => isBetaOnlyCard(card)), []);
@@ -614,7 +618,7 @@ export function Lobby({
           setRandomError(true);
           return;
         }
-        const betaBattleMode = betaQueueMode && deckHasBetaCards(drawn) ? true : requestedBetaBattleMode;
+        const betaBattleMode = betaQueueMode && deckHasBetaCards(drawn, format) ? true : requestedBetaBattleMode;
         const queueMode = betaBattleMode && startMode === "casual" ? "beta" : startMode;
         submitMatch(
           queueMode,
@@ -1059,6 +1063,9 @@ export function Lobby({
               <h2 id="lobby-setup-title" className="lobby-setup__title">
                 {t("redesign.play.setupTitle")}
               </h2>
+              {!privateGuest && !privateRoom ? (
+                <GameFormatSwitch value={format} onChange={changeFormat} size="compact" />
+              ) : null}
             </div>
             <div className="lobby-setup__notices">
               <p className="lobby-setup__notice">
@@ -1167,6 +1174,7 @@ export function Lobby({
                     value={format}
                     onChange={changeFormat}
                     disabled={(mode === "private" && !!privateRoom) || privateGuest}
+                    showAlysion={false}
                   />
                 ) : null}
                 <div className="lobby-setup__body">

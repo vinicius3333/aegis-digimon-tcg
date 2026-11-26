@@ -1,4 +1,4 @@
-import { isBetaOnlyCard } from "@aegis/shared/cards/cardPool";
+import { isUnreleasedInFormat } from "@aegis/shared/decks/isUnreleasedInFormat";
 import { sharedCardNumberGroups } from "@aegis/shared/cards/sharedCardNumbers";
 import { formatCardViolation, type DeckFormat } from "@aegis/shared/deckFormat";
 import { getCardDefinition, isDigiEgg, type TournamentBanlistCard } from "@aegis/shared";
@@ -45,7 +45,7 @@ export function validateCompetitiveDeck(
     ...[...new Set([...deck.mainDeck, ...deck.eggDeck])]
       .filter((cardId) => {
         const card = getCardDefinition(cardId);
-        return card && ((!allowBetaCards && isBetaOnlyCard(card)) || formatCardViolation(cardId, format));
+        return card && ((!allowBetaCards && isUnreleasedInFormat(card, format)) || formatCardViolation(cardId, format));
       })
       .map((cardId): DeckViolation => ({ kind: "outside_format", cardId })),
   ];

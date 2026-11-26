@@ -1,4 +1,4 @@
-import { isDeckFormat } from "@aegis/shared/deckFormat";
+import { deckFormatSettings, isDeckFormat } from "@aegis/shared/deckFormat";
 import { isTournamentClockSettings } from "@aegis/shared/tournaments/isTournamentClockSettings";
 import type { BanlistPolicy, CreateTournamentInput, TournamentBanlistCard, TournamentRules } from "@aegis/shared";
 import { banlistDateForSet, normalizeBanlistPolicy, resolveBanlistPolicy } from "./banlistPolicy.js";
@@ -96,7 +96,7 @@ export function validateCreateTournament(input: CreateTournamentInput, createdAt
   if (input.bestOf !== 1 && input.bestOf !== 3) {
     errors.push({ code: "best_of_invalid", field: "bestOf" });
   }
-  errors.push(...banlistErrors(input.banlist));
+  errors.push(...banlistErrors(input.banlist, input.format));
 
   if (errors.length > 0) return { ok: false, errors };
   const banlist = normalizeBanlistPolicy(input.banlist);
@@ -157,10 +157,13 @@ function programErrors(input: CreateTournamentInput): TournamentValidationError[
   return errors;
 }
 
-function banlistErrors(policy: BanlistPolicy): TournamentValidationError[] {
+function banlistErrors(policy: BanlistPolicy, format: unknown): TournamentValidationError[] {
+  if ((policy.mode === "alysion") !== (isDeckFormat(format) && deckFormatSettings(format).set === "alysion"))
+    return [{ code: "banlist_mode_unknown", field: "banlist", detail: JSON.stringify(policy) }];
   switch (policy.mode) {
     case "none":
     case "current":
+    case "alysion":
       return [];
     case "as_of_set":
       return banlistDateForSet(policy.setId) === undefined

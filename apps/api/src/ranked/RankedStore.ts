@@ -74,6 +74,7 @@ export class RankedStore {
   }: JoinParams): Promise<RankedQueueView> {
     const deck = (await this.accounts.decks(accountId)).find((entry) => entry.id === deckId);
     const settings = deckFormatSettings(format);
+    if (settings.set === "alysion") throw new Error("ranked_invalid_deck");
     const policy =
       settings.set === "all" ? { mode: "current" as const } : { mode: "as_of_set" as const, setId: settings.set };
     const banlist = resolveBanlistPolicy(policy, now);

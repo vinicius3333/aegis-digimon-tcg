@@ -76,7 +76,7 @@ function isOptionalInteger(value: unknown): boolean {
 function parseBanlistPolicy(value: unknown): BanlistPolicy | undefined {
   if (typeof value !== "object" || value === null) return undefined;
   const { mode, setId } = value as { mode?: unknown; setId?: unknown };
-  if (mode === "none" || mode === "current") return { mode };
+  if (mode === "none" || mode === "current" || mode === "alysion") return { mode };
   if (mode === "as_of_set" && typeof setId === "string") return { mode, setId };
   return undefined;
 }

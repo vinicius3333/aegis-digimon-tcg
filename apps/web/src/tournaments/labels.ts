@@ -83,6 +83,7 @@ export function windowKey(key: keyof TournamentWindows): TranslationKey {
 export function banlistModeKey(policy: BanlistPolicy): TranslationKey {
   if (policy.mode === "none") return "tournaments.banlist.none";
   if (policy.mode === "current") return "tournaments.banlist.current";
+  if (policy.mode === "alysion") return "tournaments.banlist.alysion";
   return "tournaments.banlist.asOfSet";
 }
 

@@ -92,5 +92,5 @@ type IsPlayableDeckParams = {
 };
 
 function isPlayableDeck({ deck, unlimited, format, betaAllowed }: IsPlayableDeckParams): boolean {
-  return deckLegality(deck, { unlimited, format }).legal && (betaAllowed || !deckHasBetaCards(deck));
+  return deckLegality(deck, { unlimited, format }).legal && (betaAllowed || !deckHasBetaCards(deck, format));
 }

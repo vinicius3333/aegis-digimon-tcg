@@ -3,6 +3,7 @@
 
 import { useMemo, useState } from "react";
 import { type CardColor, type CardDefinition } from "@aegis/shared";
+import { isAlysionCard } from "@aegis/shared/alysion/isAlysionCard";
 import { isCardInQueriedFieldGroup } from "@aegis/shared/cards/isCardInQueriedFieldGroup";
 import { colorKey, type ColorName } from "../design/theme";
 import { collectionOrder } from "./cardSorting";
@@ -153,6 +154,8 @@ export interface CardFilter {
   setTraitQuery: (v: string) => void;
   set: string;
   setSet: (v: string) => void;
+  alysionOnly: boolean;
+  setAlysionOnly: (alysionOnly: boolean) => void;
   availableSets: string[];
   filtered: CardDefinition[];
   toggleColor: (v: ColorName) => void;
@@ -194,6 +197,7 @@ export function useCardFilter(
   const setSort = savedSort?.setSort ?? setLocalSort;
   const [traitQuery, setTraitQuery] = useState("");
   const [set, setSet] = useState("");
+  const [alysionOnly, setAlysionOnly] = useState(false);
 
   const availableSets = useMemo(() => {
     const seen = new Set<string>();
@@ -230,6 +234,7 @@ export function useCardFilter(
       if (!matchesKeywordFilter({ card: c, selectedKeywords: keywords })) return false;
       if (!matchesTraitOrAttributeFilter(c, traitQuery)) return false;
       if (set && c.set !== set) return false;
+      if (alysionOnly && !isAlysionCard(c)) return false;
       if (searchMatch === "text") {
         textMatches.push(c);
         return false;
@@ -250,6 +255,7 @@ export function useCardFilter(
     keywords,
     traitQuery,
     set,
+    alysionOnly,
     colorFilterMode,
   ]);
 
@@ -271,6 +277,8 @@ export function useCardFilter(
     setTraitQuery,
     set,
     setSet,
+    alysionOnly,
+    setAlysionOnly,
     availableSets,
     filtered,
     toggleColor: (v) => setColors((cs) => (cs.includes(v) ? cs.filter((x) => x !== v) : [...cs, v])),
@@ -297,6 +305,7 @@ export function useCardFilter(
       setKeywords([]);
       setTraitQuery("");
       setSet("");
+      setAlysionOnly(false);
     },
   };
 }

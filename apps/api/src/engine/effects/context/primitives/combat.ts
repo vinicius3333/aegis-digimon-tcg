@@ -81,7 +81,7 @@ export interface CombatPrimitives {
   grantCanAttackUnsuspended(
     permanentId: string,
     duration: EffectDuration,
-    opts?: { noDigivolutionCards?: boolean; defenderLevelMax?: number },
+    opts?: { noDigivolutionCards?: boolean; defenderLevelMax?: number; defenderHasFewerDigivolutionCards?: boolean },
   ): void;
 
   grantVortexCanAttackPlayers?(permanentId: string, duration: EffectDuration): void;
