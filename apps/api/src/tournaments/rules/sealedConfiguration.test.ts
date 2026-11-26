@@ -34,6 +34,49 @@ it.each(["BT27", "unknown", "constructor"])("rejects forged %s configuration at 
   expect(validateCreateTournament(parsed.input, Date.now()).ok).toBe(false);
 });
 
+it.each(["alysion", "alysion:pauper", "alysion:unlimited"] as const)(
+  "keeps %s constructed with its own banlist and rejects a sealed configuration",
+  (format) => {
+    const parsed = parseCreateTournament({
+      ...body,
+      sealedConfiguration: undefined,
+      format,
+      banlist: { mode: "alysion" },
+    });
+    expect(parsed).toBeDefined();
+    if (!parsed) {
+      throw new Error("expected parsed Alysion creation");
+    }
+    const result = validateCreateTournament(parsed.input, Date.now());
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error("expected valid Alysion creation");
+    }
+    expect(result.value.settings.format).toBe(format);
+    expect(result.value.input.sealedConfiguration).toBeUndefined();
+    expect(result.value.input.banlist).toEqual({ mode: "alysion" });
+    for (const mode of ["none", "current", "as_of_set"] as const) {
+      const banlist = mode === "as_of_set" ? { mode, setId: "BT4" } : { mode };
+      const rejected = validateCreateTournament({ ...parsed.input, banlist }, Date.now());
+      expect(rejected.ok).toBe(false);
+      if (rejected.ok) {
+        throw new Error("expected mismatched Alysion banlist rejection");
+      }
+      expect(rejected.errors).toContainEqual(
+        expect.objectContaining({ code: "banlist_mode_unknown", field: "banlist" }),
+      );
+    }
+    const sealed = validateCreateTournament(
+      { ...parsed.input, sealedConfiguration: body.sealedConfiguration },
+      Date.now(),
+    );
+    expect(sealed).toEqual({
+      ok: false,
+      errors: [{ code: "sealed_configuration_invalid", field: "sealedConfiguration" }],
+    });
+  },
+);
+
 it("detaches the validated configuration from caller-owned data", () => {
   const config = { ...body.sealedConfiguration, untrusted: true };
   const parsed = parseCreateTournament({ ...body, sealedConfiguration: config })!;

@@ -47,7 +47,7 @@ export function PoolCard({
   const banned = owned === undefined && formatCopyLimit(cardId, format) === 0;
   const blocked = banned || pairConflict;
   const hasCopies = inDeck > 0;
-  const beta = isBetaCard(cardId);
+  const beta = isBetaCard(cardId, format);
   return (
     <div
       className="deck-pool-card"

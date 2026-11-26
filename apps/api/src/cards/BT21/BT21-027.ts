@@ -17,7 +17,7 @@ export const compiled: CompiledCard = {
           },
           grant: "name",
           digiXrosOnly: true,
-          tokens: ["Shoutmon", "ZeigGreymon"],
+          tokens: ["OmniShoutmon", "ZeigGreymon"],
         },
       ],
     },

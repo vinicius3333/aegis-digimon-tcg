@@ -340,3 +340,24 @@ it("names both Digimon of a battle an effect starts", () => {
   ]);
   expect(log[0]?.cardIds).toEqual(["BT25-057", "BT26-033"]);
 });
+
+it("names each Digimon an effect changed the DP of", () => {
+  const events: ServerEvent[] = [
+    {
+      kind: "effectResolved",
+      seat: 1,
+      sourceCardId: "ST22-10",
+      effectKey: "ST22-10/security",
+      description: "[Security] 1 of your opponent's Digimon gets -9000 DP for the turn.",
+      dpChanges: [
+        { permanentId: "perm-13", cardId: "BT26-033", delta: -9000 },
+        { permanentId: "perm-2", cardId: "BT25-057", delta: 2000 },
+      ],
+    },
+  ];
+  const log = buildMatchLog(events, 0, new Map(), translator("en"));
+  expect(log.map((line) => line.text)).toEqual([
+    "Amethyst Mandala (ST22-10)'s effect resolved. Jupitermon (BT26-033) #13 gets -9000 DP. Monarchlizamon (BT25-057) #2 gets +2000 DP",
+  ]);
+  expect(log[0]?.cardIds).toEqual(["ST22-10", "BT26-033", "BT25-057"]);
+});

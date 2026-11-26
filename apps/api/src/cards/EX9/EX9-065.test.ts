@@ -106,55 +106,6 @@ describe("EX9-065", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX9-037"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-  it.each(["BT1-024", "EX9-038"] as const)(
-    "reduces normal play cost by two by trashing an independent Cyborg or Ver.4 card (%s)",
-    async (payment) => {
-      const s = setupEngine({ 0: { hand: [payment, { card: "EX9-065", as: "card" }] } }, { autoSelectCards: true });
-      s.state.memory = 10;
-      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("card").instanceId })).toEqual({
-        ok: true,
-      });
-      await settle(() => s.state.pendingDecision?.kind === "optional");
-      const reduction = s.state.pendingDecision!;
-      expect(
-        s.engine.applyIntent(0, {
-          type: "respondDecision",
-          decisionId: reduction.decisionId,
-          response: { kind: "optional", accept: true },
-        }),
-      ).toEqual({ ok: true });
-      await settle();
-      const freePlay = s.state.pendingDecision;
-      if (freePlay !== undefined) {
-        if (freePlay.kind !== "optional") throw new Error("Unexpected non-optional decision after play-cost payment");
-        const response = s.engine.applyIntent(0, {
-          type: "respondDecision",
-          decisionId: freePlay.decisionId,
-          response: { kind: "optional", accept: false },
-        });
-        if (!response.ok) throw new Error("Declining the optional free play was rejected");
-      }
-      await settle();
-      expect(s.state.memory).toBe(5);
-      expect(s.state.players[0]!.hand).toHaveLength(0);
-      expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([payment]);
-      expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(0);
-      expect(s.state.pendingDecision).toBeUndefined();
-    },
-  );
-  it("declines the optional play-cost reduction without trashing the eligible hand card", async () => {
-    const s = setupEngine(
-      { 0: { hand: ["BT1-024", { card: "EX9-065", as: "card" }] } },
-      { autoDeclineOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("card").instanceId })).toEqual({ ok: true });
-    await settle();
-    expect(s.state.memory).toBe(3);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-024"]);
-    expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(0);
-    expect(s.state.pendingDecision).toBeUndefined();
-  });
   it("grants a Ver.4 ally Blocker and Retaliation for a losing block that preserves security", async () => {
     const s = setupEngine({
       0: {
@@ -255,26 +206,24 @@ describe("EX9-065", () => {
         target: { filter: { levelComparison: { op: "lte", value: 4 } } },
       });
   });
-  it("reduces its play cost by two by trashing a Cyborg or Ver.4 card from hand", () =>
-    expect(compiled.effects?.find((entry) => entry.trigger === "BeforePayCost")).toMatchObject({
-      actions: [
-        {
-          kind: "ReducePlayCost",
-          amount: { kind: "fixed", value: 2 },
-          payment: {
-            kind: "trashFromHand",
-            filter: {
-              controller: "mine",
-              zone: "hand",
-              nameOrTrait: [
-                { tokens: ["Cyborg"], match: "trait" },
-                { tokens: ["Ver.4"], match: "trait" },
-              ],
-            },
-          },
+  it("plays from hand at full cost and plays its On Play choice from the trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX9-065", as: "ace" }, "EX9-008"],
+          trash: ["EX9-034"],
         },
-      ],
-    }));
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ace").instanceId }).ok).toBe(true);
+    await settle();
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-008"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-065", "EX9-034"]);
+  });
   it("grants Blocker and Retaliation to all own Ver.4 Digimon", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions ?? [];
     expect(

@@ -5,6 +5,7 @@ import { I18nProvider } from "../i18n";
 import { resetServerClock } from "./serverClock";
 import { TournamentsScreen } from "./TournamentsScreen";
 import type { TournamentListing } from "./types";
+import { getSealedConfiguration } from "@aegis/shared/sealed/getSealedConfiguration";
 
 const LIGHTNING: TournamentListing = {
   id: "t-lightning",
@@ -413,6 +414,69 @@ describe("tournament creation form", () => {
       eliminationMinutes: 55,
       finalMinutes: null,
       overtimeMinutes: 10,
+    });
+  });
+
+  it("creates an Alysion tournament with the Alysion banlist and no tabletop banlist choice", async () => {
+    const fetchMock = mockApi({
+      "GET /tournaments": { body: [] },
+      "GET /auth/me": { body: { id: "acc-1", displayName: "Tamer", avatarUrl: null, isAdmin: true, roles: ["admin"] } },
+      "POST /tournaments": { status: 201, body: { ...LIGHTNING, banlistCards: [] } },
+    });
+    await openForm();
+    fireEvent.click(screen.getByRole("radio", { name: /Alysion/ }));
+    expect(screen.queryByLabelText("Banned cards")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Create tournament" }));
+    const postedBody = async () => {
+      const call = fetchMock.mock.calls.find(
+        (args: unknown[]) => (args[1] as RequestInit | undefined)?.method === "POST",
+      );
+      return call === undefined ? undefined : JSON.parse(String((call[1] as RequestInit).body));
+    };
+    await waitFor(async () => expect(await postedBody()).toBeDefined());
+    expect((await postedBody()).format).toBe("alysion");
+    expect((await postedBody()).banlist).toEqual({ mode: "alysion" });
+  });
+
+  it("submits isolated rules when switching from Alysion to Sealed and back", async () => {
+    await openForm();
+    fireEvent.click(screen.getByRole("radio", { name: /Alysion/ }));
+    expect(screen.queryByLabelText("Banned cards")).toBeNull();
+    fireEvent.click(screen.getByRole("checkbox", { name: "Sealed Swiss · six packs" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Booster series" }), { target: { value: "BT26" } });
+    const banlist = screen.getByLabelText<HTMLSelectElement>("Banned cards");
+    expect(banlist.disabled).toBe(true);
+    expect(banlist.value).toBe("none");
+    expect(screen.queryByRole("radio", { name: /Alysion/ })).toBeNull();
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Format transition" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create tournament" }));
+    await waitFor(() => {
+      const requests = vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === "POST");
+      expect(requests).toHaveLength(1);
+      expect(JSON.parse(String(requests[0]?.[1]?.body))).toMatchObject({
+        format: "standard",
+        structure: "swiss",
+        bestOf: 3,
+        topCut: false,
+        allowBots: false,
+        banlist: { mode: "none" },
+        sealedConfiguration: getSealedConfiguration({ setId: "BT26" }),
+      });
+      expect(screen.getByRole<HTMLButtonElement>("button", { name: "Create tournament" }).disabled).toBe(false);
+    });
+    fireEvent.click(screen.getByRole("checkbox", { name: "Sealed Swiss · six packs" }));
+    expect(screen.queryByRole("combobox", { name: "Booster series" })).toBeNull();
+    expect(screen.getByLabelText<HTMLSelectElement>("Banned cards").disabled).toBe(false);
+    fireEvent.click(screen.getByRole("radio", { name: /Alysion/ }));
+    expect(screen.queryByLabelText("Banned cards")).toBeNull();
+    fireEvent.change(screen.getByLabelText("Rules"), { target: { value: "pauper" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create tournament" }));
+    await waitFor(() => {
+      const requests = vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === "POST");
+      expect(requests).toHaveLength(2);
+      const body = JSON.parse(String(requests[1]?.[1]?.body));
+      expect(body).toMatchObject({ format: "alysion:pauper", banlist: { mode: "alysion" } });
+      expect(body).not.toHaveProperty("sealedConfiguration");
     });
   });
 

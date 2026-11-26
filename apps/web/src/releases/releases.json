@@ -1,5 +1,52 @@
 [
   {
+    "version": "1.82.1-beta",
+    "releasedAt": "2026-11-26",
+    "summaryKey": "releases.1.82.1-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.82.1-beta.fix.alysionRanked"
+      }
+    ]
+  },
+  {
+    "version": "1.82.0-beta",
+    "releasedAt": "2026-11-25",
+    "summaryKey": "releases.1.82.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.82.0-beta.feature.alysionFormat"
+      },
+      {
+        "textKey": "releases.1.82.0-beta.feature.alysionCards"
+      },
+      {
+        "textKey": "releases.1.82.0-beta.feature.alysionTournaments"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.82.0-beta.fix.dpTotalDeletion"
+      },
+      {
+        "textKey": "releases.1.82.0-beta.fix.oncePerTurn"
+      },
+      {
+        "textKey": "releases.1.82.0-beta.fix.faceDownCards"
+      },
+      {
+        "textKey": "releases.1.82.0-beta.fix.cards"
+      },
+      {
+        "textKey": "releases.1.82.0-beta.fix.engine"
+      },
+      {
+        "textKey": "releases.1.82.0-beta.fix.boardAndLog"
+      }
+    ]
+  },
+  {
     "version": "1.81.0-beta",
     "releasedAt": "2026-11-24",
     "summaryKey": "releases.1.81.0-beta.summary",

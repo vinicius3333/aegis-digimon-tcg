@@ -936,7 +936,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             ctx.boundPlayed ??= new Map();
             ctx.boundPlayed.set(action.bindResultAs, new Set());
           }
-          return false;
+          return action.abortOnDecline === true;
         }
         if (action.to === "hand" || action.to === "deckTop" || action.to === "deckBottom")
           revealPrivateRequirementPicks(ctx, returnTarget, candidates, chosen);
@@ -1000,7 +1000,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           ctx.boundPlayed ??= new Map();
           ctx.boundPlayed.set(action.bindResultAs, new Set());
         }
-        return false;
+        return action.abortOnDecline === true;
       }
       ids = await orderDeckReturn(ctx, action, ids);
       if (action.storeAs !== undefined) {
@@ -1031,7 +1031,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
         ctx.namedCounts.set(action.trackCount, moved.length);
       }
-      return false;
+      return action.abortOnDecline === true && !ctx.lastEffectActed;
     }
     case "ReturnToEggDeck": {
       const zones =
@@ -1051,6 +1051,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         const self = ctx.source.permanent();
         if (self !== undefined)
           ctx.fx.addDeletionMaxDp?.({ permanentId: self.permanentId }, action.amount * (scope.scale ?? 1));
+      } else if (action.filter !== undefined) {
+        for (const permanent of candidatePermanents(ctx, { filter: action.filter, count: "all" })) {
+          ctx.fx.addDeletionMaxDp?.({ permanentId: permanent.permanentId }, action.amount * (scope.scale ?? 1));
+        }
       } else {
         ctx.fx.addDeletionMaxDp?.({ seat: ctx.source.ownerSeat }, action.amount * (scope.scale ?? 1));
       }

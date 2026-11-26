@@ -1,3 +1,4 @@
+import { alysionBanlist } from "@aegis/shared/alysion/alysionBanlist";
 import {
   banlistAsOf,
   getCardDefinition,
@@ -51,6 +52,10 @@ export function normalizeBanlistPolicy(policy: BanlistPolicy): BanlistPolicy {
  */
 export function resolveBanlistPolicy(policy: BanlistPolicy, createdAt: number): TournamentBanlistCard[] {
   if (policy.mode === "none") return [];
+  if (policy.mode === "alysion")
+    return Object.values(alysionBanlist)
+      .map((entry) => frozenCard(entry.cardId, entry.status, entry.count, entry.effectiveDate))
+      .sort((a, b) => a.cardId.localeCompare(b.cardId));
   const asOf = policy.mode === "current" ? banlistDateOf(createdAt) : banlistDateForSet(policy.setId);
   if (asOf === undefined) throw new UnknownBanlistSetError((policy as { setId: string }).setId);
   return Object.values(banlistAsOf(asOf))

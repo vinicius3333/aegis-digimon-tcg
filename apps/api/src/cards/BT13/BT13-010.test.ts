@@ -78,6 +78,50 @@ describe("BT13-010 Biyomon", () => {
     await opponentTurn;
   });
 
+  it("does not digivolve into Garudamon without a Kristy Damon in play to return", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT15-088", as: "security" }],
+          hand: [
+            { card: "BT13-010", as: "biyomon" },
+            { card: "BT13-014", as: "garudamon" },
+            { card: "BT13-094", as: "kristyInHand" },
+          ],
+          deck: ["BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-015", as: "attacker" }],
+          hand: ["BT1-010"],
+          deck: Array.from({ length: 8 }, () => "BT1-010"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-010"));
+    await settle(() => s.state.players[0]!.security.length === 0 && !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT13-010"]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("garudamon").instanceId, s.inst("kristyInHand").instanceId]),
+    );
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+  });
+
   it("may return Kristy Damon even without a Garudamon in hand (Q2269)", async () => {
     const s = setupEngine(
       {

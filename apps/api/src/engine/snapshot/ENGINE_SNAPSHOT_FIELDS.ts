@@ -83,6 +83,7 @@ export const ENGINE_SNAPSHOT_FIELDS = new Set([
   "deletionMaxDp",
   "dpDeleteBudget",
   "instanceSeq",
+  "pendingDpChanges",
   "gameAccess",
   "primitivesBySeat",
   "cardStateLookup",

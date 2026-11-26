@@ -1,7 +1,8 @@
-import { isBetaOnlyCard } from "@aegis/shared/cards/cardPool";
 import { getCardDefinition } from "@aegis/shared/cards/registry";
+import type { DeckFormat } from "@aegis/shared/deckFormat";
+import { isUnreleasedInFormat } from "@aegis/shared/decks/isUnreleasedInFormat";
 
-export function isBetaCard(cardId: string): boolean {
+export function isBetaCard(cardId: string, format: DeckFormat = "standard"): boolean {
   const card = getCardDefinition(cardId);
-  return card !== undefined && isBetaOnlyCard(card);
+  return card !== undefined && isUnreleasedInFormat(card, format);
 }

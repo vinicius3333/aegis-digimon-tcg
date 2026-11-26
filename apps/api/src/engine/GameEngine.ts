@@ -46,6 +46,8 @@ import type { Intent, IntentResult } from "@aegis/shared";
 import { MemoryGauge } from "./MemoryGauge.js";
 import type { VisibilityPort } from "./state/access.js";
 import { GameStateAccess, markRoutedUsedOption } from "./state/access.js";
+import { attachPendingDpChanges } from "#api/engine/gameEngine/attachPendingDpChanges";
+import type { EffectDpChange } from "@aegis/shared/protocol/events";
 import { CombatController } from "./combat/controller.js";
 import { printedKeywordsOf } from "./combat/keywords.js";
 import { canGainCollisionBlocker } from "./combat/legality.js";
@@ -411,6 +413,7 @@ export class GameEngine {
   readonly dpDeleteBudget = new DpDeleteBudgetLedger();
   /** Monotonic source of instanceIds for token spawn. */
   instanceSeq = 0;
+  readonly pendingDpChanges: EffectDpChange[] = [];
 
   constructor(
     readonly state: GameState,
@@ -440,7 +443,7 @@ export class GameEngine {
         trackGrantsOfCardsCrossingField(this, event);
         // The same seam marks the movement that routes a used Option out of its no-area slot,
         // whichever area the Option's own effect sent it to.
-        hooks.emit(markRoutedUsedOption(this.state, event));
+        hooks.emit(attachPendingDpChanges(this.pendingDpChanges, markRoutedUsedOption(this.state, event)));
       },
     };
     // TODO(effect-framework): import "../cards" is done at boot for side-effect
@@ -762,6 +765,7 @@ export class GameEngine {
       continuousDpSeedState: [...this.continuousDpSeedState],
       declinedAttackArts: [...this.declinedAttackArts],
       announcedSubTriggerEffectKeys: [...this.announcedSubTriggerEffectKeys],
+      pendingDpChanges: this.pendingDpChanges.map((change) => ({ ...change })),
     };
   }
 
@@ -777,6 +781,8 @@ export class GameEngine {
     this.bothReadyFired = snapshot.bothReadyFired;
     this.stagedDecks.length = 0;
     this.stagedDecks.push(...snapshot.stagedDecks);
+    this.pendingDpChanges.length = 0;
+    this.pendingDpChanges.push(...(snapshot.pendingDpChanges ?? []).map((change) => ({ ...change })));
     replaceSet({ target: this.readySeats, values: snapshot.readySeats });
     replaceSet({ target: this.nothingToDoPromptSeats, values: snapshot.nothingToDoPromptSeats ?? [] });
     replaceSet({ target: this.crossedMemoryRushAttackers, values: snapshot.crossedMemoryRushAttackers });

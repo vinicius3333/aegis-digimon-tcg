@@ -132,3 +132,13 @@ describe("resolveBanlistPolicy", () => {
     expect(banlistDateOf(Date.parse("2025-03-28T00:00:00Z"))).toBe("2025-03-28");
   });
 });
+
+describe("Alysion banlist policy", () => {
+  it("freezes only the Digimon Alysion restrictions", () => {
+    expect(normalizeBanlistPolicy({ mode: "alysion" })).toEqual({ mode: "alysion" });
+    expect(resolveBanlistPolicy({ mode: "alysion" }, Date.parse("2026-11-30T00:00:00Z"))).toEqual([
+      { cardId: "BT2-047", status: "restricted", allowedCopies: 1 },
+      { cardId: "BT3-103", status: "restricted", allowedCopies: 1 },
+    ]);
+  });
+});

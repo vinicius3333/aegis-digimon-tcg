@@ -22,7 +22,6 @@ export const compiled: CompiledCard = {
           target: {
             filter: { controller: "opponent", kind: ["Digimon"] },
             count: "all",
-            upTo: true,
             totalDpCap: 6000,
           },
         },

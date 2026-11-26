@@ -1,3 +1,4 @@
+import type { SetupEngineOptions } from "#api/engine/testkit/harness";
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "#api/engine/effects/interpreter";
@@ -20,7 +21,7 @@ const blueTamer = "BT1-086";
 const source = "BT1-028";
 
 type Setup = ReturnType<typeof setupEngine>;
-type Options = Parameters<typeof setupEngine>[1];
+type Options = SetupEngineOptions | undefined;
 
 async function playYukinamon(opponentBattleArea: PermanentSpec[], opponentHand: PermanentSpec[] = []) {
   const s = setupEngine(
