@@ -8,7 +8,7 @@ import { RankedStore } from "#api/ranked/RankedStore";
 import { RankedRegion } from "@aegis/shared/ranked/RankedRegion";
 import { AegisRoom, type AegisJoinOptions } from "#api/rooms/AegisRoom";
 import { RED_DECK } from "#api/engine/testDecks";
-import type { Intent } from "@aegis/shared/protocol/messages";
+import type { Intent } from "@aegis/shared/protocol/intents";
 import { claimAccountRoom } from "#api/ranked/claimAccountRoom";
 import { AccountRoomClaim } from "#api/ranked/AccountRoomClaim";
 import { RankedQueueStatus } from "@aegis/shared/ranked/RankedQueueStatus";
