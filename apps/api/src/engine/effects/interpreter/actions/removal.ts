@@ -1051,6 +1051,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         const self = ctx.source.permanent();
         if (self !== undefined)
           ctx.fx.addDeletionMaxDp?.({ permanentId: self.permanentId }, action.amount * (scope.scale ?? 1));
+      } else if (action.filter !== undefined) {
+        for (const permanent of candidatePermanents(ctx, { filter: action.filter, count: "all" })) {
+          ctx.fx.addDeletionMaxDp?.({ permanentId: permanent.permanentId }, action.amount * (scope.scale ?? 1));
+        }
       } else {
         ctx.fx.addDeletionMaxDp?.({ seat: ctx.source.ownerSeat }, action.amount * (scope.scale ?? 1));
       }

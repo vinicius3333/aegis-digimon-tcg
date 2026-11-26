@@ -114,6 +114,7 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
       ...continuousOpt(),
       noDigivolutionCards: opts?.noDigivolutionCards,
       defenderLevelMax: opts?.defenderLevelMax,
+      defenderHasFewerDigivolutionCards: opts?.defenderHasFewerDigivolutionCards,
     });
   };
 

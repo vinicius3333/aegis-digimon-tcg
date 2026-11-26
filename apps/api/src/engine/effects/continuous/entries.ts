@@ -130,6 +130,7 @@ export interface CanAttackUnsuspendedGrant {
   noDigivolutionCards?: boolean;
   /** Grant only applies to defenders at or below this printed level (EX1-061). */
   defenderLevelMax?: number;
+  defenderHasFewerDigivolutionCards?: boolean;
 }
 
 export interface VortexCanAttackPlayersGrant {
