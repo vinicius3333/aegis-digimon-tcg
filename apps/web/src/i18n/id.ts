@@ -2125,6 +2125,7 @@ const interfaceMessages = {
   "tournaments.restriction.bannedPair": "Pasangan terlarang",
   "tournaments.banlist.none": "Tidak ada batasan",
   "tournaments.banlist.current": "Kartu terlarang saat ini",
+  "tournaments.banlist.alysion": "Banlist Digimon Alysion",
   "tournaments.banlist.asOfSet": "Kartu terlarang per {set}",
   "tournaments.banlist.asOfSetOption": "Kartu terlarang per set",
   "tournaments.reason.formatInvalid": "Choose a valid format.",

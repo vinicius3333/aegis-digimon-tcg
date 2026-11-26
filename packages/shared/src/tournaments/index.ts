@@ -29,7 +29,12 @@ export type ParticipantKind = "human" | "bot";
 // - none: no restrictions (casual / aegis_custom only)
 // - current: banlist in force on the creation date
 // - as_of_set: banlist in force on the given collection's release date
-export type BanlistPolicy = { mode: "none" } | { mode: "current" } | { mode: "as_of_set"; setId: string };
+// - alysion: the Digimon Alysion banlist, required by the alysion format
+export type BanlistPolicy =
+  | { mode: "none" }
+  | { mode: "current" }
+  | { mode: "as_of_set"; setId: string }
+  | { mode: "alysion" };
 
 export type TournamentBanlistCard = {
   cardId: string;

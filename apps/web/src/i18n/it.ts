@@ -2033,6 +2033,7 @@ const interfaceMessages = {
   "tournaments.restriction.bannedPair": "Coppia vietata",
   "tournaments.banlist.none": "Nessuna restrizione",
   "tournaments.banlist.current": "Banlist attuale",
+  "tournaments.banlist.alysion": "Banlist di Digimon Alysion",
   "tournaments.banlist.asOfSet": "Banlist fino a {set}",
   "tournaments.banlist.asOfSetOption": "Banlist fino a un'espansione",
   "tournaments.reason.formatInvalid": "Choose a valid format.",

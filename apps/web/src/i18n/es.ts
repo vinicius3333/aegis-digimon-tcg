@@ -1847,6 +1847,7 @@ export const es: Record<keyof typeof en, string> = {
   "tournaments.restriction.bannedPair": "Pareja prohibida",
   "tournaments.banlist.none": "Sin restricciones",
   "tournaments.banlist.current": "Cartas prohibidas actuales",
+  "tournaments.banlist.alysion": "Lista de restricciones de Digimon Alysion",
   "tournaments.banlist.asOfSet": "Cartas prohibidas a la fecha de {set}",
   "tournaments.banlist.asOfSetOption": "Cartas prohibidas a la fecha de un set",
   "tournaments.reason.formatInvalid": "Choose a valid format.",

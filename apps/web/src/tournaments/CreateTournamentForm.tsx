@@ -1,6 +1,6 @@
 import { TournamentRoundStartMode } from "@aegis/shared/tournaments/TournamentRoundStartMode";
 import { TournamentCategory } from "@aegis/shared/tournaments/TournamentCategory";
-import type { DeckFormat } from "@aegis/shared/deckFormat";
+import { deckFormatSettings, type DeckFormat } from "@aegis/shared/deckFormat";
 import { DeckFormatSelector } from "@/screens/DeckFormatSelector";
 import type { TournamentClockSettings } from "@aegis/shared/tournaments/TournamentClockSettings";
 import { TournamentClockFields } from "@/tournaments/TournamentClockFields";
@@ -111,9 +111,15 @@ export function CreateTournamentForm({ onCreated, onCancel, canCreateOfficial = 
   const isOfficial = canCreateOfficial && official;
   const showTopCut = playsScoredRounds(structure);
   const startsAtMs = new Date(startsAt).getTime();
+  const alysionFormat = deckFormatSettings(format).set === "alysion";
   const banlist = useMemo<BanlistPolicy>(
-    () => (banlistMode === "as_of_set" ? { mode: "as_of_set", setId: banlistSetId } : { mode: banlistMode }),
-    [banlistMode, banlistSetId],
+    () =>
+      alysionFormat
+        ? { mode: "alysion" }
+        : banlistMode === "as_of_set"
+          ? { mode: "as_of_set", setId: banlistSetId }
+          : { mode: banlistMode === "alysion" ? "current" : banlistMode },
+    [alysionFormat, banlistMode, banlistSetId],
   );
   const { offsetSeconds } = useServerClock();
   const preview = useMemo(() => previewBanlist(banlist, formNow()), [banlist, offsetSeconds]);
@@ -396,7 +402,7 @@ export function CreateTournamentForm({ onCreated, onCancel, canCreateOfficial = 
             ) : null}
 
             <div className="create-tournament__wide">
-              <DeckFormatSelector value={format} onChange={setFormat} showBanlist={false} showAlysion={false} />
+              <DeckFormatSelector value={format} onChange={setFormat} showBanlist={false} />
             </div>
 
             {format === "standard" ? (
@@ -416,43 +422,47 @@ export function CreateTournamentForm({ onCreated, onCancel, canCreateOfficial = 
               </div>
             ) : null}
 
-            <div className="aegis-field">
-              <label className="aegis-field__label" htmlFor={`${formId}-banlist`}>
-                {t("tournaments.create.banlist")}
-              </label>
-              <select
-                id={`${formId}-banlist`}
-                className="aegis-field__control"
-                value={banlistMode}
-                onChange={(event) => setBanlistMode(event.target.value as BanlistMode)}
-              >
-                <option value="none">{t("tournaments.banlist.none")}</option>
-                <option value="current">{t("tournaments.banlist.current")}</option>
-                <option value="as_of_set">{t("tournaments.banlist.asOfSetOption")}</option>
-              </select>
-              <span className="aegis-field__message">{t("tournaments.create.banlistNoneHint")}</span>
-              <FieldError message={errorFor("banlist")} />
-            </div>
+            {alysionFormat ? null : (
+              <>
+                <div className="aegis-field">
+                  <label className="aegis-field__label" htmlFor={`${formId}-banlist`}>
+                    {t("tournaments.create.banlist")}
+                  </label>
+                  <select
+                    id={`${formId}-banlist`}
+                    className="aegis-field__control"
+                    value={banlistMode}
+                    onChange={(event) => setBanlistMode(event.target.value as BanlistMode)}
+                  >
+                    <option value="none">{t("tournaments.banlist.none")}</option>
+                    <option value="current">{t("tournaments.banlist.current")}</option>
+                    <option value="as_of_set">{t("tournaments.banlist.asOfSetOption")}</option>
+                  </select>
+                  <span className="aegis-field__message">{t("tournaments.create.banlistNoneHint")}</span>
+                  <FieldError message={errorFor("banlist")} />
+                </div>
 
-            {banlistMode === "as_of_set" ? (
-              <div className="aegis-field">
-                <label className="aegis-field__label" htmlFor={`${formId}-set`}>
-                  {t("tournaments.create.set")}
-                </label>
-                <select
-                  id={`${formId}-set`}
-                  className="aegis-field__control"
-                  value={banlistSetId}
-                  onChange={(event) => setBanlistSetId(event.target.value)}
-                >
-                  {banlistSetOptions().map((setId) => (
-                    <option key={setId} value={setId}>
-                      {setId}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ) : null}
+                {banlistMode === "as_of_set" ? (
+                  <div className="aegis-field">
+                    <label className="aegis-field__label" htmlFor={`${formId}-set`}>
+                      {t("tournaments.create.set")}
+                    </label>
+                    <select
+                      id={`${formId}-set`}
+                      className="aegis-field__control"
+                      value={banlistSetId}
+                      onChange={(event) => setBanlistSetId(event.target.value)}
+                    >
+                      {banlistSetOptions().map((setId) => (
+                        <option key={setId} value={setId}>
+                          {setId}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : null}
+              </>
+            )}
 
             <div className="create-tournament__wide">
               <BanlistPreviewSection preview={preview} />

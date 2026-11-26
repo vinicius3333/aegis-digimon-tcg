@@ -1874,6 +1874,7 @@ export const en = {
   "tournaments.restriction.bannedPair": "Banned pair",
   "tournaments.banlist.none": "No restrictions",
   "tournaments.banlist.current": "Current banned cards",
+  "tournaments.banlist.alysion": "Digimon Alysion banlist",
   "tournaments.banlist.asOfSet": "Banned cards as of {set}",
   "tournaments.banlist.asOfSetOption": "Banned cards as of a set",
   "tournaments.reason.formatInvalid": "Choose a valid format.",

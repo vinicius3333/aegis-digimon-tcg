@@ -2165,6 +2165,7 @@ const interfaceMessages = {
   "tournaments.restriction.bannedPair": "Verbotenes Paar",
   "tournaments.banlist.none": "Keine Einschränkungen",
   "tournaments.banlist.current": "Aktuell verbotene Karten",
+  "tournaments.banlist.alysion": "Digimon-Alysion-Banliste",
   "tournaments.banlist.asOfSet": "Verbotene Karten mit Stand {set}",
   "tournaments.banlist.asOfSetOption": "Verbotene Karten mit Stand eines Sets",
   "tournaments.reason.formatInvalid": "Choose a valid format.",

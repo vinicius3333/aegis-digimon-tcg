@@ -2115,6 +2115,7 @@ const interfaceMessages = {
   "tournaments.restriction.bannedPair": "禁止ペア",
   "tournaments.banlist.none": "制限なし",
   "tournaments.banlist.current": "現在の禁止カード",
+  "tournaments.banlist.alysion": "Digimon Alysion の禁止・制限リスト",
   "tournaments.banlist.asOfSet": "{set}時点の禁止カード",
   "tournaments.banlist.asOfSetOption": "特定のセット時点の禁止カード",
   "tournaments.reason.formatInvalid": "Choose a valid format.",

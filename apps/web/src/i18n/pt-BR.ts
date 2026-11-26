@@ -1882,6 +1882,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "tournaments.restriction.bannedPair": "Dupla banida",
   "tournaments.banlist.none": "Sem restrições",
   "tournaments.banlist.current": "Cartas proibidas de hoje",
+  "tournaments.banlist.alysion": "Banlist do Digimon Alysion",
   "tournaments.banlist.asOfSet": "Cartas proibidas na época de {set}",
   "tournaments.banlist.asOfSetOption": "Cartas proibidas na época de uma coleção",
   "tournaments.reason.formatInvalid": "Escolha um formato válido.",

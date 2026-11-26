@@ -2045,6 +2045,7 @@ const interfaceMessages = {
   "tournaments.restriction.bannedPair": "禁止組合",
   "tournaments.banlist.none": "無限制",
   "tournaments.banlist.current": "目前禁卡表",
+  "tournaments.banlist.alysion": "Digimon Alysion 禁限卡表",
   "tournaments.banlist.asOfSet": "截至 {set} 的禁卡表",
   "tournaments.banlist.asOfSetOption": "截至某卡包的禁卡表",
   "tournaments.reason.formatInvalid": "Choose a valid format.",
