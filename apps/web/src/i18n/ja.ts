@@ -1978,6 +1978,8 @@ const interfaceMessages = {
   "reject.no-such-card": "カードが見つかりません",
   "reject.not-implemented": "まだ実装されていません",
   "reject.unknown-intent": "不明な操作です",
+  "reject.malformed-intent": "操作データが不正です",
+  "reject.internal-error": "サーバーがこの操作を適用できませんでした",
   "reject.not-playable-kind": "このカードは登場させられません",
   "reject.no-empty-slot": "無効な場の位置です",
   "reject.play-prohibited": "場の効果により、このカードは登場させられません",

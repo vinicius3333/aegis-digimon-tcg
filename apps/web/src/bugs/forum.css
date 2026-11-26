@@ -507,6 +507,28 @@
   overflow-wrap: anywhere;
 }
 
+.forum-team-reply {
+  display: grid;
+  gap: var(--ds-space-2);
+  padding-inline-start: var(--ds-space-4);
+  border-inline-start: 3px solid var(--ds-accent);
+}
+
+.forum-team-reply h3 {
+  margin: 0;
+  color: var(--ds-text-3);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.forum-team-reply p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .forum-thread-muted {
   margin: 0;
   color: var(--ds-text-3);

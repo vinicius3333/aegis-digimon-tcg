@@ -22,6 +22,7 @@ import { hasDistinctRepresentatives } from "@aegis/shared/effects/hasDistinctRep
 import { cardHasTrait, definitionOf, dpOf } from "../cards/cardData.js";
 import { extractCardAt, placePermanent as appendPermanent, setTopCard } from "../state/access.js";
 import { digiXrosZoneExpanderFor } from "../digiXros/zoneExpanders.js";
+import { isInstanceIdList } from "#api/engine/actions/isInstanceIdList";
 import {
   allowsDigiXrosMaterialsFromTrash,
   allowsExtraDigiXrosMaterials,
@@ -233,8 +234,11 @@ export function validateDigiXros(
   const requirement = digiXrosRequirementFor(instance.cardId)?.[0];
   if (requirement === undefined) return { ok: false, reason: "not-digixros" };
 
-  const materialIds = intent.digiXros.materialInstanceIds;
+  const materialIds = intent.digiXros?.materialInstanceIds;
+  if (!isInstanceIdList(materialIds)) return { ok: false, reason: "invalid-material" };
   if (materialIds.length === 0) return { ok: false, reason: "no-materials" };
+  if (intent.digiXros.expanderPermanentIds !== undefined && !isInstanceIdList(intent.digiXros.expanderPermanentIds))
+    return { ok: false, reason: "invalid-expander" };
   if (materialIds.some((id) => deps.reservedMaterialInstanceIds?.(instance).includes(id)))
     return { ok: false, reason: "invalid-material" };
   if (new Set(materialIds).size !== materialIds.length) return { ok: false, reason: "invalid-material" };

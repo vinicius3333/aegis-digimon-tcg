@@ -1961,6 +1961,8 @@ const interfaceMessages = {
   "reject.no-such-card": "카드를 찾을 수 없습니다",
   "reject.not-implemented": "아직 구현되지 않음",
   "reject.unknown-intent": "알 수 없는 행동",
+  "reject.malformed-intent": "잘못된 행동 데이터",
+  "reject.internal-error": "서버가 이 행동을 적용하지 못했습니다",
   "reject.not-playable-kind": "이 카드는 등장시킬 수 없습니다",
   "reject.no-empty-slot": "잘못된 필드 위치",
   "reject.play-prohibited": "적용 중인 효과 때문에 이 카드를 등장시킬 수 없습니다",

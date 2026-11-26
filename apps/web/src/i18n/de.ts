@@ -2027,6 +2027,8 @@ const interfaceMessages = {
   "reject.no-such-card": "Karte nicht gefunden",
   "reject.not-implemented": "Noch nicht implementiert",
   "reject.unknown-intent": "Unbekannte Aktion",
+  "reject.malformed-intent": "Ungültige Aktionsdaten",
+  "reject.internal-error": "Der Server konnte diese Aktion nicht ausführen",
   "reject.not-playable-kind": "Diese Karte kann nicht ausgespielt werden",
   "reject.no-empty-slot": "Ungültige Feldposition",
   "reject.play-prohibited": "Ein Effekt im Spiel verhindert, dass diese Karte ausgespielt wird",

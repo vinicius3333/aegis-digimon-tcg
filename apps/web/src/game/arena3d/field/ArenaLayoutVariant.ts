@@ -44,16 +44,29 @@ const WIDE_ZONES: ArenaZoneSlots = {
 };
 
 const SHORT_ZONES: ArenaZoneSlots = {
-  [`${Side.Opponent}:${ArenaZone.DECK.value}`]: { x: -7.75, z: -1.7 },
-  [`${Side.Opponent}:${ArenaZone.TRASH.value}`]: { x: -7.75, z: -3.4 },
+  [`${Side.Opponent}:${ArenaZone.DECK.value}`]: { x: -7.75, z: -3.4 },
+  [`${Side.Opponent}:${ArenaZone.TRASH.value}`]: { x: -7.75, z: -1.7 },
   [`${Side.Viewer}:${ArenaZone.SECURITY.value}`]: { x: -8.3, z: 1.7 },
   [`${Side.Opponent}:${ArenaZone.EGGS.value}`]: { x: 5.25, z: -3.2 },
   [`${Side.Opponent}:${ArenaZone.RAISING.value}`]: { x: 6.6, z: -3.2 },
   [`${Side.Opponent}:${ArenaZone.SECURITY.value}`]: { x: 8.3, z: -1.7 },
-  [`${Side.Viewer}:${ArenaZone.DECK.value}`]: { x: 7.75, z: 1.7 },
-  [`${Side.Viewer}:${ArenaZone.TRASH.value}`]: { x: 7.75, z: 3.4 },
+  [`${Side.Viewer}:${ArenaZone.DECK.value}`]: { x: 6.9, z: 3.2 },
+  [`${Side.Viewer}:${ArenaZone.TRASH.value}`]: { x: 8.3, z: 3.2 },
   [`${Side.Viewer}:${ArenaZone.EGGS.value}`]: { x: -6.6, z: 3.2 },
   [`${Side.Viewer}:${ArenaZone.RAISING.value}`]: { x: -5.25, z: 3.2 },
+};
+
+const PHONE_ZONES: ArenaZoneSlots = {
+  [`${Side.Opponent}:${ArenaZone.DECK.value}`]: { x: -8.3, z: -3.2 },
+  [`${Side.Opponent}:${ArenaZone.TRASH.value}`]: { x: -6.9, z: -3.2 },
+  [`${Side.Opponent}:${ArenaZone.EGGS.value}`]: { x: 5.25, z: -3.2 },
+  [`${Side.Opponent}:${ArenaZone.RAISING.value}`]: { x: 6.6, z: -3.2 },
+  [`${Side.Opponent}:${ArenaZone.SECURITY.value}`]: { x: 8.3, z: -3.2 },
+  [`${Side.Viewer}:${ArenaZone.SECURITY.value}`]: { x: -8.3, z: 1.7 },
+  [`${Side.Viewer}:${ArenaZone.EGGS.value}`]: { x: -6.6, z: 3.2 },
+  [`${Side.Viewer}:${ArenaZone.RAISING.value}`]: { x: -5.25, z: 3.2 },
+  [`${Side.Viewer}:${ArenaZone.DECK.value}`]: { x: 6.9, z: 1.7 },
+  [`${Side.Viewer}:${ArenaZone.TRASH.value}`]: { x: 8.3, z: 1.7 },
 };
 
 const TALL_PILE_DEPTH = 5.28;
@@ -90,6 +103,16 @@ export const ArenaLayoutVariant = {
     bounds: { halfWidth: 9.95, halfDepth: 4.4 },
     lanes: { count: BattleLanes.Two, digimonDepth: 1.32, supportDepth: 3.26, columnPitch: 1.74, halfWidth: 6.1 },
     zones: SHORT_ZONES,
+    memoryScale: 1,
+    pitchDegrees: 62,
+    aura: ROOMY_AURA,
+  },
+  PHONE: {
+    name: "PHONE",
+    value: "phone",
+    bounds: { halfWidth: 9.95, halfDepth: 4.4 },
+    lanes: { count: BattleLanes.Two, digimonDepth: 1.32, supportDepth: 3.26, columnPitch: 1.74, halfWidth: 6.1 },
+    zones: PHONE_ZONES,
     memoryScale: 1,
     pitchDegrees: 62,
     aura: ROOMY_AURA,

@@ -31,6 +31,7 @@ export const bugForumZhTW = {
   "bugForum.updateVote": "更新投票",
   "bugForum.removeVote": "撤銷投票",
   "bugForum.ownReport": "這份回報是你送出的，因此不能為它投票。你仍可以參與討論。",
+  "bugForum.teamReply": "團隊回覆",
   "bugForum.result.title": "團隊已決定",
   "bugForum.result.adminTitle": "目前的投票",
   "bugForum.result.earned": "你的投票與決定一致。你獲得了 1 枚 Aegis 幣。",

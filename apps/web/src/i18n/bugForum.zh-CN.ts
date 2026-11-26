@@ -31,6 +31,7 @@ export const bugForumZhCN = {
   "bugForum.updateVote": "更新投票",
   "bugForum.removeVote": "撤销投票",
   "bugForum.ownReport": "这份报告由你提交，因此不能为它投票。你仍可以参与讨论。",
+  "bugForum.teamReply": "团队回复",
   "bugForum.result.title": "团队已决定",
   "bugForum.result.adminTitle": "目前的投票",
   "bugForum.result.earned": "你的投票与决定一致。你获得了 1 枚 Aegis 币。",

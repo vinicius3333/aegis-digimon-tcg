@@ -31,6 +31,7 @@ export const bugForumEn = {
   "bugForum.updateVote": "Update vote",
   "bugForum.removeVote": "Remove vote",
   "bugForum.ownReport": "You sent this report, so you can't vote on it. You can still join the discussion.",
+  "bugForum.teamReply": "Team reply",
   "bugForum.result.title": "The team decided",
   "bugForum.result.adminTitle": "Votes so far",
   "bugForum.result.earned": "Your vote matched. You earned 1 Aegis coin.",

@@ -1,4 +1,40 @@
 {
+  "releases.1.83.0-beta.summary": {
+    "en": "This release shows the team's reply on closed bug reports, adds more promos to Digimon Alysion, and fixes the 3D board on phones, a Violet Inboots timing issue and a server crash.",
+    "pt-BR": "Esta versão mostra a resposta da equipe nos reports de bug fechados, adiciona mais promos ao Digimon Alysion e corrige o tabuleiro 3D no celular, um problema de ordem da Violet Inboots e uma queda do servidor.",
+    "es": "Esta versión muestra la respuesta del equipo en los reportes de bugs cerrados, añade más promos a Digimon Alysion y corrige el tablero 3D en móviles, un problema de orden de Violet Inboots y una caída del servidor.",
+    "it": "Questa versione mostra la risposta del team nelle segnalazioni di bug chiuse, aggiunge altre promo a Digimon Alysion e corregge il tabellone 3D su telefono, un problema di ordine di Violet Inboots e un crash del server."
+  },
+  "releases.1.83.0-beta.feature.forumTeamReply": {
+    "en": "Closed bug reports and ideas now show the team's reply, and admins can still comment after a report closes.",
+    "pt-BR": "Reports de bug e ideias fechados agora mostram a resposta da equipe, e os admins ainda podem comentar depois que o report fecha.",
+    "es": "Los reportes de bugs e ideas cerrados ahora muestran la respuesta del equipo, y los admins aún pueden comentar después de cerrarse.",
+    "it": "Le segnalazioni di bug e le idee chiuse ora mostrano la risposta del team, e gli admin possono ancora commentare dopo la chiusura."
+  },
+  "releases.1.83.0-beta.feature.alysionPromos": {
+    "en": "Digimon Alysion now allows promos P-001 to P-027, the promos released up to BT-04.",
+    "pt-BR": "O Digimon Alysion agora permite as promos P-001 a P-027, lançadas até o BT-04.",
+    "es": "Digimon Alysion ahora permite las promos P-001 a P-027, lanzadas hasta BT-04.",
+    "it": "Digimon Alysion ora consente le promo da P-001 a P-027, uscite fino a BT-04."
+  },
+  "releases.1.83.0-beta.fix.board3dPhones": {
+    "en": "On phones in landscape, the 3D board now places decks, trash and security like the classic board, and the egg deck is no longer drawn too large.",
+    "pt-BR": "No celular deitado, o tabuleiro 3D agora posiciona deck, lixo e segurança como o tabuleiro clássico, e o deck de ovos não aparece mais grande demais.",
+    "es": "En móviles en horizontal, el tablero 3D ahora coloca mazo, papelera y seguridad como el tablero clásico, y el mazo de huevos ya no se ve demasiado grande.",
+    "it": "Sui telefoni in orizzontale, il tabellone 3D ora dispone mazzo, scarti e sicurezza come il tabellone classico, e il mazzo uova non appare più troppo grande."
+  },
+  "releases.1.83.0-beta.fix.violetTiming": {
+    "en": "After an end-of-turn Execute battle, Violet Inboots' effect is now ordered together with On Deletion effects instead of being asked first.",
+    "pt-BR": "Depois de uma batalha de Execute no fim do turno, o efeito da Violet Inboots agora entra na ordem junto com os efeitos de On Deletion, em vez de ser perguntado antes.",
+    "es": "Tras una batalla de Execute al final del turno, el efecto de Violet Inboots ahora se ordena junto con los efectos On Deletion en lugar de preguntarse antes.",
+    "it": "Dopo una battaglia di Execute a fine turno, l'effetto di Violet Inboots ora viene ordinato insieme agli effetti On Deletion invece di essere chiesto prima."
+  },
+  "releases.1.83.0-beta.fix.serverStability": {
+    "en": "An invalid action from one player can no longer crash the server and end other players' matches.",
+    "pt-BR": "Uma ação inválida de um jogador não consegue mais derrubar o servidor e encerrar as partidas de outros jogadores.",
+    "es": "Una acción no válida de un jugador ya no puede hacer caer el servidor y terminar las partidas de otros jugadores.",
+    "it": "Un'azione non valida di un giocatore non può più far crollare il server e chiudere le partite degli altri giocatori."
+  },
   "releases.1.82.1-beta.summary": {
     "en": "This hotfix makes Ranked always use the Digimon Card Game format.",
     "pt-BR": "Esta correção faz o Ranked usar sempre o formato Digimon Card Game.",

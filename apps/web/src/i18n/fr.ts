@@ -2016,6 +2016,8 @@ const interfaceMessages = {
   "reject.no-such-card": "Carte introuvable",
   "reject.not-implemented": "Pas encore disponible",
   "reject.unknown-intent": "Action inconnue",
+  "reject.malformed-intent": "Données d'action invalides",
+  "reject.internal-error": "Le serveur n'a pas pu appliquer cette action",
   "reject.not-playable-kind": "Cette carte ne peut pas être jouée",
   "reject.no-empty-slot": "Position sur le terrain invalide",
   "reject.play-prohibited": "Un effet en jeu empêche cette carte d'être jouée",

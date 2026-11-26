@@ -81,6 +81,12 @@ export function ForumThread({ board, reportId, onBack }: ForumThreadParams) {
             </ul>
           ) : null}
           {detail.hasReplay ? <ForumReplayButton api={api} reportId={detail.id} onOpen={setReplay} /> : null}
+          {detail.teamReply ? (
+            <section className="forum-team-reply" aria-labelledby="forum-team-reply-title">
+              <h3 id="forum-team-reply-title">{t("bugForum.teamReply")}</h3>
+              <p>{detail.teamReply}</p>
+            </section>
+          ) : null}
         </section>
         <aside className="forum-thread__aside">
           {board === ForumBoard.IDEAS.value ? (

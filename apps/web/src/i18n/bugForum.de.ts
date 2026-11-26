@@ -35,6 +35,7 @@ export const bugForumDe = {
   "bugForum.removeVote": "Stimme entfernen",
   "bugForum.ownReport":
     "Sie haben diese Meldung gesendet und können daher nicht darüber abstimmen. An der Diskussion können Sie trotzdem teilnehmen.",
+  "bugForum.teamReply": "Antwort des Teams",
   "bugForum.result.title": "Das Team hat entschieden",
   "bugForum.result.adminTitle": "Bisherige Stimmen",
   "bugForum.result.earned": "Ihre Stimme stimmte überein. Sie haben 1 Aegis-Münze verdient.",

@@ -35,6 +35,7 @@ export type ForumItem = {
 
 export type ForumDetail = ForumItem & {
   comments: ForumComment[];
+  teamReply: string | null;
   tally: ForumTally | null;
   canModerate: boolean;
 };

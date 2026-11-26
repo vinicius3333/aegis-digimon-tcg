@@ -159,12 +159,12 @@ describe("card search box", () => {
 
   it("narrows the pool to Digimon Alysion cards with the Alysion switch", () => {
     const pool = allCards().filter((card) =>
-      ["BT4-115", "BT5-001", "BD04-06", "SD01-02", "P-009", "P-001", "EX1-001"].includes(card.cardId),
+      ["BT4-115", "BT5-001", "BD04-06", "SD01-02", "P-009", "P-001", "P-028", "EX1-001"].includes(card.cardId),
     );
     const { result } = renderHook(() => useCardFilter(pool));
     act(() => result.current.setAlysionOnly(true));
     expect(result.current.filtered.map((card) => card.cardId).sort()).toEqual(
-      ["BD04-06", "BT4-115", "P-009", "SD01-02"].sort(),
+      ["BD04-06", "BT4-115", "P-001", "P-009", "SD01-02"].sort(),
     );
   });
 });
