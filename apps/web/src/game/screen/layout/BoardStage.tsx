@@ -870,6 +870,7 @@ export function BoardStage({
                 pileWidth={layout.arenaPileWidth}
                 raisingWidth={layout.arenaRaisingWidth}
                 portrait={layout.portraitArena}
+                landscapePhone={layout.landscapePhone}
               >
                 {breedingMode}
                 {leftPileColumn}

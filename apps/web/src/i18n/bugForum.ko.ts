@@ -31,6 +31,7 @@ export const bugForumKo = {
   "bugForum.updateVote": "투표 수정",
   "bugForum.removeVote": "투표 취소",
   "bugForum.ownReport": "이 제보는 직접 보내셨으므로 투표할 수 없습니다. 토론에는 참여할 수 있습니다.",
+  "bugForum.teamReply": "팀 답변",
   "bugForum.result.title": "팀이 결정했습니다",
   "bugForum.result.adminTitle": "현재까지의 투표",
   "bugForum.result.earned": "투표가 결정과 일치했습니다. Aegis 코인 1개를 얻었습니다.",

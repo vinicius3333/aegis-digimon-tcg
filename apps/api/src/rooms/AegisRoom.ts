@@ -73,6 +73,7 @@ import { LIVE_REPLAY_ANNOTATION_CHANNEL } from "@aegis/shared/replays/annotation
 import { ChatReportStatus } from "@aegis/shared/chat/ChatReportStatus";
 import { CHAT_REPORT_CHANNEL, type ChatReportUpdate } from "@aegis/shared/chat/ChatReportUpdate";
 import { MatchChatReports } from "#api/messages/MatchChatReports";
+import { isWellFormedIntent } from "@aegis/shared/protocol/isWellFormedIntent";
 import {
   GameState,
   MATCH_EXPIRED_CLOSE_CODE,
@@ -84,6 +85,7 @@ import {
   combatWindowKey,
   type CombatWindow,
   type Intent,
+  type IntentResult,
   type DecisionRequest,
   type Seat,
   type ServerEvent,
@@ -4131,7 +4133,7 @@ export class AegisRoom extends Room<{
         return result;
       } catch (error) {
         logError("intent.failed", { seat, intent, replaySeq }, error);
-        throw error;
+        return { ok: false, reason: "internal-error" } satisfies IntentResult;
       }
     });
   }
@@ -4337,6 +4339,11 @@ export class AegisRoom extends Room<{
     }
   }
 
+  private rejectMalformedIntent(seat: Seat, intent: Intent): IntentResult {
+    log("intent.malformed", { seat, intent });
+    return { ok: false, reason: "malformed-intent" };
+  }
+
   private handleIntent(client: Client, intent: Intent): void {
     const seat = this.seatByClient.get(client.sessionId);
     if (seat === undefined) {
@@ -4353,7 +4360,9 @@ export class AegisRoom extends Room<{
         : intent.type === "mulligan"
           ? this.state.pendingDecision?.decisionId
           : undefined;
-    const result = this.applyLoggedIntent(seat, intent);
+    const result: IntentResult = isWellFormedIntent(intent)
+      ? this.applyLoggedIntent(seat, intent)
+      : this.rejectMalformedIntent(seat, intent);
     if (result.ok && intent.type !== "showNothingToDoPrompts") {
       this.lastPlayerActionAt = Date.now();
       if (intent.type !== "ready") this.seatsThatActed.add(seat);

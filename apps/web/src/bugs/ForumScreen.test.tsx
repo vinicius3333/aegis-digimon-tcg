@@ -24,6 +24,7 @@ const item: ForumItem = {
 const detail: ForumDetail = {
   ...item,
   comments: [{ id: 1, authorName: "Mika", body: "Only with exactly four cards.", createdAt: Date.now() }],
+  teamReply: null,
   tally: null,
   canModerate: false,
 };
@@ -203,6 +204,20 @@ describe("ForumScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "Delete vote" }));
     expect(await screen.findByText(/Bug · 0/)).toBeTruthy();
     expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "DELETE")).toHaveLength(2);
+  });
+
+  it("shows the team reply on a closed report and keeps the comment box only for admins", async () => {
+    const closed: ForumDetail = { ...detail, status: "resolved", teamReply: "Released a fix for that." };
+    mockApi(() => [200, closed]);
+    show({ reportId: 7 });
+    expect(await screen.findByRole("region", { name: "Team reply" })).toBeTruthy();
+    expect(screen.getByText("Released a fix for that.")).toBeTruthy();
+    expect(screen.queryByRole("textbox")).toBeNull();
+    cleanup();
+
+    mockApi(() => [200, { ...closed, canModerate: true }]);
+    show({ reportId: 7 });
+    expect(await screen.findByRole("textbox")).toBeTruthy();
   });
 
   it("lets players upvote ideas from the list without coins or a reason", async () => {

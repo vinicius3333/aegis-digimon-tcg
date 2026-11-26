@@ -155,6 +155,8 @@ export type RejectReason =
   | "no-such-card"
   | "not-implemented"
   | "unknown-intent"
+  | "malformed-intent" // a field is missing or has the wrong type
+  | "internal-error" // the server failed while applying the intent; nothing else is affected
 
   // Play (playCard / DigiXros)
   | "not-playable-kind" // DigiEgg or unplayable card kind

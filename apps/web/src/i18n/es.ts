@@ -1711,6 +1711,8 @@ export const es: Record<keyof typeof en, string> = {
   "reject.no-such-card": "Carta no encontrada",
   "reject.not-implemented": "Aún no implementado",
   "reject.unknown-intent": "Acción desconocida",
+  "reject.malformed-intent": "Datos de acción no válidos",
+  "reject.internal-error": "El servidor no pudo aplicar esta acción",
   "reject.not-playable-kind": "Esta carta no se puede jugar",
   "reject.no-empty-slot": "Posición del campo no válida",
   "reject.play-prohibited": "Un efecto en juego impide jugar esta carta",

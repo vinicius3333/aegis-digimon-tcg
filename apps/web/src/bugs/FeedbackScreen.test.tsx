@@ -66,6 +66,7 @@ const investigation = {
   hasReplay: false,
   upvotes: null,
   comments: [],
+  teamReply: null,
   tally: null,
   canModerate: true,
 };

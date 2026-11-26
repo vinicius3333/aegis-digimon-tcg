@@ -109,13 +109,16 @@ describe("deck formats", () => {
       "ST6-16",
       "BD01-02",
       "BD04-10",
+      "P-001",
       "P-015",
+      "P-022",
+      "P-027",
       "SD01-02",
       "SD02-04",
       "BD06-06",
     ])
       expect(formatCardViolation(id, "alysion")).toBeUndefined();
-    for (const id of ["BT5-001", "ST7-01", "P-001", "P-022", "EX1-001", "BT27-006"])
+    for (const id of ["BT5-001", "ST7-01", "P-028", "P-029", "EX1-001", "BT27-006"])
       expect(formatCardViolation(id, "alysion")).toContain("Alysion card pool");
     expect(formatCopyLimit("BT2-047", "alysion")).toBe(1);
     expect(formatCopyLimit("BT3-103", "alysion")).toBe(1);

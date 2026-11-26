@@ -1743,6 +1743,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "reject.no-such-card": "Carta não encontrada",
   "reject.not-implemented": "Ainda não implementado",
   "reject.unknown-intent": "Ação desconhecida",
+  "reject.malformed-intent": "Dados de ação inválidos",
+  "reject.internal-error": "O servidor não conseguiu aplicar esta ação",
   "reject.not-playable-kind": "Esta carta não pode ser jogada",
   "reject.no-empty-slot": "Posição inválida no campo",
   "reject.play-prohibited": "Um efeito em jogo impede que esta carta seja jogada",

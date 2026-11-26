@@ -75,10 +75,22 @@ export async function resolveDeletionReactions(
     engine.pendingWindowSubTriggers = [...enclosing, ...deletionSubTriggers];
     engine.subTriggerWindowDepth += 1;
     try {
+      const deferredBefore = engine.deferredTimingWindows.length;
       await fire(trigger, simultaneousPending);
       const remaining = deletionSubTriggers.filter(
         (item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)),
       );
+      const deferredIndex = engine.deferredTimingWindows.findLastIndex(
+        (entry, index) => index >= deferredBefore && entry.timing === EffectTiming.OnDestroyedAnyone,
+      );
+      if (deferredIndex >= 0) {
+        const deferredWindow = engine.deferredTimingWindows[deferredIndex]!;
+        engine.deferredTimingWindows[deferredIndex] = {
+          ...deferredWindow,
+          deletionSubTriggers: [...(deferredWindow.deletionSubTriggers ?? []), ...remaining],
+        };
+        return;
+      }
       await runSubTriggersInChosenOrder(engine, remaining);
     } finally {
       engine.pendingWindowSubTriggers = enclosing;

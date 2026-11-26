@@ -35,6 +35,7 @@ export const bugForumFr = {
   "bugForum.removeVote": "Retirer le vote",
   "bugForum.ownReport":
     "Vous avez envoyé ce rapport, vous ne pouvez donc pas voter dessus. Vous pouvez quand même participer à la discussion.",
+  "bugForum.teamReply": "Réponse de l'équipe",
   "bugForum.result.title": "L'équipe a décidé",
   "bugForum.result.adminTitle": "Votes jusqu'à présent",
   "bugForum.result.earned": "Votre vote correspondait. Vous avez gagné 1 pièce Aegis.",

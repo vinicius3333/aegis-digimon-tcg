@@ -34,6 +34,7 @@ export const bugForumEs = {
   "bugForum.updateVote": "Actualizar voto",
   "bugForum.removeVote": "Quitar voto",
   "bugForum.ownReport": "Enviaste este informe, así que no puedes votarlo. Aun así, puedes participar en la discusión.",
+  "bugForum.teamReply": "Respuesta del equipo",
   "bugForum.result.title": "El equipo decidió",
   "bugForum.result.adminTitle": "Votos hasta ahora",
   "bugForum.result.earned": "Tu voto coincidió. Ganaste 1 moneda Aegis.",

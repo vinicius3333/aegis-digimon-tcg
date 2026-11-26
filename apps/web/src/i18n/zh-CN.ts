@@ -1905,6 +1905,8 @@ const interfaceMessages = {
   "reject.no-such-card": "未找到该卡牌",
   "reject.not-implemented": "尚未实装",
   "reject.unknown-intent": "未知操作",
+  "reject.malformed-intent": "操作数据无效",
+  "reject.internal-error": "服务器无法执行此操作",
   "reject.not-playable-kind": "这张卡牌无法登场",
   "reject.no-empty-slot": "场上位置无效",
   "reject.play-prohibited": "场上已有效果禁止此卡牌登场",

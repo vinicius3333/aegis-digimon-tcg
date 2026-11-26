@@ -194,6 +194,20 @@ describe("forum routes", () => {
     expect(decided.items.find((item) => item.id === id)?.outcome).toBeNull();
   });
 
+  it("shows the team reply once closed and lets only admins keep commenting", async () => {
+    const id = await report("Closed thread");
+    expect((await json<ForumDetail>(await call("GET", `/feedback/bugs/${id}`, harness.believer))).teamReply).toBeNull();
+
+    await decide(id, 0, "resolved", true);
+    const decided = await json<ForumDetail>(await call("GET", `/feedback/bugs/${id}`, harness.believer));
+    expect(decided.teamReply).toBe("Thanks for the report.");
+
+    const note = { body: "The forum replay runs on the current code." };
+    expect((await call("POST", `/feedback/bugs/${id}/comments`, harness.believer, note)).status).toBe(409);
+    const commented = await json<ForumDetail>(await call("POST", `/feedback/bugs/${id}/comments`, harness.admin, note));
+    expect(commented.comments).toMatchObject([{ authorName: "Vn", body: note.body }]);
+  });
+
   it("answers 404 when an admin removes a vote with a malformed voter ID", async () => {
     const id = await report("Malformed voter");
     expect((await call("DELETE", `/feedback/bugs/${id}/votes/not-a-uuid`, harness.admin)).status).toBe(404);
