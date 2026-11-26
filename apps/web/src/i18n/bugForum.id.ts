@@ -34,6 +34,7 @@ export const bugForumId = {
   "bugForum.removeVote": "Hapus suara",
   "bugForum.ownReport":
     "Anda yang mengirim laporan ini, jadi Anda tidak dapat memberi suara. Anda tetap dapat ikut berdiskusi.",
+  "bugForum.teamReply": "Balasan tim",
   "bugForum.result.title": "Tim sudah memutuskan",
   "bugForum.result.adminTitle": "Suara sejauh ini",
   "bugForum.result.earned": "Suara Anda sesuai. Anda mendapat 1 koin Aegis.",

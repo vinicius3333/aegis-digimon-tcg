@@ -32,6 +32,7 @@ export const bugForumJa = {
   "bugForum.updateVote": "投票を更新",
   "bugForum.removeVote": "投票を取り消す",
   "bugForum.ownReport": "この報告はあなたが送信したため、投票できません。議論には参加できます。",
+  "bugForum.teamReply": "チームからの回答",
   "bugForum.result.title": "チームの決定",
   "bugForum.result.adminTitle": "現在の投票",
   "bugForum.result.earned": "投票が決定と一致しました。Aegis コイン 1 枚を獲得しました。",

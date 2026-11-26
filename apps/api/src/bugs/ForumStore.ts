@@ -20,7 +20,7 @@ import type { AccountStore } from "#api/accounts/AccountStore";
 
 const CLOSED_LIST = CLOSED_FEEDBACK_STATUSES.map((status) => `'${status}'`).join(", ");
 const COLUMNS =
-  "f.id, f.report->>'summary' AS summary, f.report->>'description' AS description, f.report->'cardIds' AS card_ids, f.status, f.created_at, f.reporter_account_id, f.vote_payout, r.input_count, u.upvotes";
+  "f.id, f.report->>'summary' AS summary, f.report->>'description' AS description, f.report->'cardIds' AS card_ids, f.status, f.final_reply, f.created_at, f.reporter_account_id, f.vote_payout, r.input_count, u.upvotes";
 const FROM = `feedback_reports f
   LEFT JOIN feedback_report_replays r ON r.report_id = f.id
   LEFT JOIN (SELECT feedback_id, count(*) AS upvotes FROM feedback_votes WHERE verdict = 'yes' GROUP BY feedback_id) u ON u.feedback_id = f.id`;
@@ -31,6 +31,7 @@ type Row = {
   description: string;
   card_ids: string[] | string | null;
   status: FeedbackStatus;
+  final_reply: string | null;
   created_at: string;
   reporter_account_id: string | null;
   vote_payout: ForumVerdict | null;
@@ -119,6 +120,7 @@ export class ForumStore {
         body: comment.body,
         createdAt: Number(comment.created_at),
       })),
+      teamReply: isClosedFeedbackStatus(row.status) ? row.final_reply : null,
       tally:
         !this.upvoteOnly && (viewer.isAdmin || isClosedFeedbackStatus(row.status))
           ? await this.tally(id, viewer.isAdmin)
@@ -151,13 +153,17 @@ export class ForumStore {
   }
 
   async comment(viewer: Viewer, id: number, body: string, at = Date.now()): Promise<ForumDetail | Refusal> {
-    const refusal = await this.whileOpen(id, viewer.accountId, { forbidReporter: false }, (client) =>
-      client.query("INSERT INTO feedback_comments (feedback_id, account_id, body, created_at) VALUES ($1,$2,$3,$4)", [
-        id,
-        viewer.accountId,
-        body,
-        at,
-      ]),
+    const refusal = await this.whileOpen(
+      id,
+      viewer.accountId,
+      { forbidReporter: false, allowClosed: viewer.isAdmin },
+      (client) =>
+        client.query("INSERT INTO feedback_comments (feedback_id, account_id, body, created_at) VALUES ($1,$2,$3,$4)", [
+          id,
+          viewer.accountId,
+          body,
+          at,
+        ]),
     );
     return refusal ?? (await this.detail(viewer, id))!;
   }
@@ -194,11 +200,11 @@ export class ForumStore {
   private whileOpen(
     id: number,
     accountId: string,
-    { forbidReporter }: { forbidReporter: boolean },
+    { forbidReporter, allowClosed = false }: { forbidReporter: boolean; allowClosed?: boolean },
     write: (client: PoolClient) => Promise<unknown>,
   ): Promise<Refusal | undefined> {
     return this.withReportLock(id, "SHARE", async (client, report) => {
-      if (isClosedFeedbackStatus(report.status)) return { error: "closed" };
+      if (!allowClosed && isClosedFeedbackStatus(report.status)) return { error: "closed" };
       if (forbidReporter && report.reporter_account_id === accountId) return { error: "own_report" };
       await write(client);
       return undefined;

@@ -80,7 +80,7 @@ export function ForumConversation({ api, detail, placeholder, onChange }: ForumC
       ) : (
         <p className="forum-thread-muted">{t("bugForum.noComments")}</p>
       )}
-      {closed ? null : (
+      {closed && !detail.canModerate ? null : (
         <form
           className="forum-compose"
           onSubmit={(event) => {
