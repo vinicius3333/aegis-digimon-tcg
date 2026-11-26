@@ -96,6 +96,38 @@ describe("deck formats", () => {
     expect(formatCardViolation("BT14-033", "BT13:pauper")).toBeDefined();
     expect(formatPairViolations(["EX5-065", "BT13-102"], "EX5:pauper")).toHaveLength(1);
   });
+  it("Alysion limits the pool to the app's products and applies only the Alysion banlist", () => {
+    expect(isDeckFormat("alysion")).toBe(true);
+    expect(isDeckFormat("alysion:pauper")).toBe(true);
+    expect(deckFormatSettings("alysion:unlimited")).toEqual({ set: "alysion", rules: "unlimited" });
+    for (const id of [
+      "BT1-084",
+      "BT2-112",
+      "BT3-112",
+      "BT4-115",
+      "ST1-01",
+      "ST6-16",
+      "BD01-02",
+      "BD04-10",
+      "P-015",
+      "SD01-02",
+      "SD02-04",
+      "BD06-06",
+    ])
+      expect(formatCardViolation(id, "alysion")).toBeUndefined();
+    for (const id of ["BT5-001", "ST7-01", "P-001", "P-022", "EX1-001", "BT27-006"])
+      expect(formatCardViolation(id, "alysion")).toContain("Alysion card pool");
+    expect(formatCopyLimit("BT2-047", "alysion")).toBe(1);
+    expect(formatCopyLimit("BT3-103", "alysion")).toBe(1);
+    expect(formatCopyLimit("BT2-090", "standard")).toBe(0);
+    expect(formatCopyLimit("BT2-090", "alysion")).toBe(4);
+    expect(formatCopyLimit("BT1-090", "alysion")).toBe(4);
+    expect(formatCopyLimit("BT2-047", "alysion:unlimited")).toBe(4);
+  });
+  it("keeps app-only Alysion cards out of every tabletop format", () => {
+    for (const format of ["standard", "unlimited", "pauper", "BT13", "AD1:unlimited"] as const)
+      expect(formatCardViolation("BD01-03", format)).toContain("Alysion format only");
+  });
   it("set Unlimited lifts bans while retaining the historical pool and printed limits", () => {
     expect(formatCopyLimit("BT5-109", "BT13:unlimited")).toBe(4);
     expect(formatCardViolation("BT5-109", "BT13:unlimited")).toBeUndefined();
