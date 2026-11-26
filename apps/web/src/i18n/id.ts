@@ -1988,6 +1988,8 @@ const interfaceMessages = {
   "reject.no-such-card": "Kartu tidak ditemukan",
   "reject.not-implemented": "Belum diimplementasikan",
   "reject.unknown-intent": "Aksi tidak dikenal",
+  "reject.malformed-intent": "Data aksi tidak valid",
+  "reject.internal-error": "Server tidak dapat menerapkan aksi ini",
   "reject.not-playable-kind": "Kartu ini tidak bisa dimainkan",
   "reject.no-empty-slot": "Posisi field tidak valid",
   "reject.play-prohibited": "Efek yang sedang aktif mencegah kartu ini dimainkan",

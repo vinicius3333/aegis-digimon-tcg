@@ -1736,6 +1736,8 @@ export const en = {
   "reject.no-such-card": "Card not found",
   "reject.not-implemented": "Not implemented yet",
   "reject.unknown-intent": "Unknown action",
+  "reject.malformed-intent": "Invalid action data",
+  "reject.internal-error": "The server could not apply this action",
   "reject.not-playable-kind": "This card can't be played",
   "reject.no-empty-slot": "Invalid field position",
   "reject.play-prohibited": "An effect in play prevents this card from being played",
