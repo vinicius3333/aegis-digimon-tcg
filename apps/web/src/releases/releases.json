@@ -1,5 +1,29 @@
 [
   {
+    "version": "1.83.0-beta",
+    "releasedAt": "2026-11-26",
+    "summaryKey": "releases.1.83.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.83.0-beta.feature.forumTeamReply"
+      },
+      {
+        "textKey": "releases.1.83.0-beta.feature.alysionPromos"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.83.0-beta.fix.board3dPhones"
+      },
+      {
+        "textKey": "releases.1.83.0-beta.fix.violetTiming"
+      },
+      {
+        "textKey": "releases.1.83.0-beta.fix.serverStability"
+      }
+    ]
+  },
+  {
     "version": "1.82.1-beta",
     "releasedAt": "2026-11-26",
     "summaryKey": "releases.1.82.1-beta.summary",
