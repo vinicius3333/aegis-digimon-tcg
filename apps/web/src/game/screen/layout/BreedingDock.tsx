@@ -1,4 +1,5 @@
 import { ArenaInputRegion } from "@/game/input/ArenaInputRegion";
+import type { ReactNode } from "react";
 /* The raising area: the egg deck, the slot the hatched Digimon stands in, and the one
    line of hint that replaced the breeding dialog.
 
@@ -13,6 +14,8 @@ import { BreedingSlot, Pile, type DropAttrs } from "../../piece";
 import type { PermanentBurst } from "../../showcases";
 
 export function BreedingDock({
+  actions,
+  sealed = false,
   eggDeckCount,
   breeding,
   keywordLabels,
@@ -34,6 +37,8 @@ export function BreedingDock({
   onSlotClick,
   onInspect,
 }: {
+  actions?: ReactNode;
+  sealed?: boolean;
   eggDeckCount: number;
   breeding: Permanent | undefined;
   keywordLabels?: Readonly<Record<string, string>>;
@@ -59,6 +64,16 @@ export function BreedingDock({
   onInspect?: () => void;
 }) {
   const { t } = useTranslation();
+  let hint = t("game.breedingHint.end");
+  if (canMoveOut) {
+    hint = t("game.breedingHint.move");
+  }
+  if (canHatchEgg) {
+    hint = t("game.breedingHint.hatch");
+  }
+  if (sealed) {
+    hint = t("sealed.breedingHint");
+  }
   return (
     <div
       className="game-breeding-dock"
@@ -120,13 +135,12 @@ export function BreedingDock({
         </div>
       </div>
       {actionsOpen ? (
-        <p className="game-breeding-hint" role="status">
-          {canHatchEgg
-            ? t("game.breedingHint.hatch")
-            : canMoveOut
-              ? t("game.breedingHint.move")
-              : t("game.breedingHint.end")}
-        </p>
+        <div className="game-breeding-hint" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <p role="status" style={{ margin: 0 }}>
+            {hint}
+          </p>
+          {actions}
+        </div>
       ) : null}
     </div>
   );

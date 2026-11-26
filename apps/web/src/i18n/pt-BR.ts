@@ -2292,4 +2292,6 @@ export const ptBR: Record<keyof typeof en, string> = {
   ...newDrillsPtBR,
   ...bugForumPtBR,
   ...ideaForumPtBR,
+  "sealed.breedingHint": "Escolha uma ação de criação ou encerre a criação.",
+  "sealed.placeRookie": "Colocar na criação",
 };

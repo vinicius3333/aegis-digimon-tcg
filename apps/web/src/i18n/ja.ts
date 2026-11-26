@@ -3050,6 +3050,8 @@ const interfaceMessages = {
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
   ...bugForumJa,
   ...ideaForumJa,
+  "sealed.breedingHint": "育成アクションを1つ選ぶか、育成フェイズを終了してください。",
+  "sealed.placeRookie": "育成エリアに置く",
 } satisfies Record<keyof typeof en, string>;
 
 export const ja: Record<keyof typeof en, string> = {

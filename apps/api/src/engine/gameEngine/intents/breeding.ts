@@ -1,3 +1,4 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import { EffectTiming, type IntentResult, type RejectReason, type Seat } from "@aegis/shared";
 import { logError } from "../../../logger.js";
 import {
@@ -18,7 +19,9 @@ import { prepareSubjectFrozenSubTrigger } from "../subTriggers.js";
  */
 export function handleHatchEgg(engine: GameEngine, seat: Seat, intent: HatchEggIntent): IntentResult {
   void intent;
-  if (engine.breeding.isActionSpent) return { ok: false, reason: breedingActionSpentReason(engine) };
+  if (breedingActionUnavailable(engine, seat)) {
+    return { ok: false, reason: breedingActionSpentReason(engine) };
+  }
   const result = applyHatchEgg(engine.state, seat, breedingDeps(engine));
   if (!result.ok) return { ok: false, reason: mapBreedingReason(result.reason) };
   // "[All Turns] when YOU hatch [a Digi-Egg] in the breeding area" (BT17-093). Fired from
@@ -36,7 +39,9 @@ export function handleHatchEgg(engine: GameEngine, seat: Seat, intent: HatchEggI
  * success, closes the open breeding window (the single breeding action is spent).
  */
 export function handleMoveFromBreeding(engine: GameEngine, seat: Seat, intent: MoveFromBreedingIntent): IntentResult {
-  if (engine.breeding.isActionSpent) return { ok: false, reason: breedingActionSpentReason(engine) };
+  if (breedingActionUnavailable(engine, seat)) {
+    return { ok: false, reason: breedingActionSpentReason(engine) };
+  }
   const result = applyMoveFromBreeding(engine.state, seat, intent, breedingDeps(engine));
   if (!result.ok) return { ok: false, reason: mapBreedingReason(result.reason) };
   const movedPermanentId = result.outcome.permanentId;
@@ -98,4 +103,10 @@ export function handleBreedingSkip(engine: GameEngine, seat: Seat): IntentResult
   if (engine.state.pendingDecision !== undefined) return { ok: false, reason: "decision-pending" };
   if (engine.state.turnSeat !== seat) return { ok: false, reason: "not-your-turn" };
   return engine.breeding.skip(seat) ? { ok: true } : { ok: false, reason: "wrong-phase" };
+}
+
+function breedingActionUnavailable(engine: GameEngine, seat: Seat): boolean {
+  return engine.state.rulesPolicy === GameRulesPolicy.SEALED.value
+    ? !engine.breeding.canTakeAction(seat)
+    : engine.breeding.isActionSpent;
 }

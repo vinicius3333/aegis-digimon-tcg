@@ -2802,6 +2802,8 @@ const interfaceMessages = {
   ...achievementsIt,
   ...bugForumIt,
   ...ideaForumIt,
+  "sealed.breedingHint": "Scegli un’azione di allevamento o termina l’allevamento.",
+  "sealed.placeRookie": "Posiziona in allevamento",
 } satisfies Record<Exclude<keyof typeof en, `releases.${string}`>, string>;
 
 export const it: Record<keyof typeof en, string> = {

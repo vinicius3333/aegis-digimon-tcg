@@ -2938,6 +2938,8 @@ const interfaceMessages = {
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
   ...bugForumZhCN,
   ...ideaForumZhCN,
+  "sealed.breedingHint": "选择一个养成行动，或结束养成阶段。",
+  "sealed.placeRookie": "放入育成区",
 } satisfies Record<keyof typeof en, string>;
 
 export const zhCN: Record<keyof typeof en, string> = getChineseLearnDictionary({

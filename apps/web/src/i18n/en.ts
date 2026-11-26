@@ -2279,4 +2279,6 @@ export const en = {
   ...newDrillsEn,
   ...bugForumEn,
   ...ideaForumEn,
+  "sealed.breedingHint": "Choose one breeding action, or end breeding.",
+  "sealed.placeRookie": "Place in breeding",
 } as const;

@@ -1,5 +1,6 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import { CardKind } from "@aegis/shared";
-import { matchingEvoCost } from "#api/engine/cards/cardData";
+import { matchingEvoCost, matchingEvoCostIgnoringColor } from "#api/engine/cards/cardData";
 import { MEMORY_MIN, PASS_TURN_MEMORY } from "#api/engine/MemoryGauge";
 import type { PlannedTurnState } from "#api/bot/evolution/createPlannedTurnState";
 import type { TrainingAction } from "#api/bot/training/actions";
@@ -120,9 +121,10 @@ export function applyPlannedAction(state: PlannedTurnState, index: number): Plan
         !removedTargets.has(entry.targetId ?? "") &&
         !(entry.intent.type === "attack" && removedSources.has(entry.intent.attackerPermanentId)),
     );
-  actions = [...actions, ...reshapedPermanents.flatMap((unit) => digivolutionsOnto(own.hand, unit))].filter(
-    (entry) => (entry.projectedCost ?? 0) <= memory - MEMORY_MIN,
-  );
+  actions = [
+    ...actions,
+    ...reshapedPermanents.flatMap((unit) => digivolutionsOnto(own.hand, unit, observation.rulesPolicy)),
+  ].filter((entry) => (entry.projectedCost ?? 0) <= memory - MEMORY_MIN);
   const players = [...observation.players];
   players[ownIndex] = own;
   players[enemyIndex] = enemy;
@@ -171,12 +173,19 @@ function enteredPermanent(card: ObservedCard, permanentId: string): ObservedPerm
   };
 }
 
-function digivolutionsOnto(hand: readonly ObservedCard[], unit: ObservedPermanent): TrainingAction[] {
+function digivolutionsOnto(
+  hand: readonly ObservedCard[],
+  unit: ObservedPermanent,
+  rulesPolicy?: GameRulesPolicy,
+): TrainingAction[] {
   const base = unit.top.cardId;
   if (base === undefined || unit.statuses.cannotDigivolve) return [];
   return hand.flatMap((card) => {
     if (card.cardId === undefined || card.kinds?.includes(CardKind.Digimon) !== true) return [];
-    const requirement = matchingEvoCost(card.cardId, base);
+    const requirement =
+      rulesPolicy === GameRulesPolicy.SEALED.value
+        ? matchingEvoCostIgnoringColor(card.cardId, base)
+        : matchingEvoCost(card.cardId, base);
     if (requirement === undefined) return [];
     return [
       {

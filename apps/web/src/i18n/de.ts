@@ -3139,6 +3139,8 @@ const interfaceMessages = {
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
   ...bugForumDe,
   ...ideaForumDe,
+  "sealed.breedingHint": "Wählen Sie eine Aufzuchtaktion oder beenden Sie die Aufzucht.",
+  "sealed.placeRookie": "In Aufzucht legen",
 } satisfies Record<keyof typeof en, string>;
 
 export const de: Record<keyof typeof en, string> = {

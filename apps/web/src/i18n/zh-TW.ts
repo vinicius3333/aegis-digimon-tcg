@@ -2943,6 +2943,8 @@ const interfaceMessages = {
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
   ...bugForumZhTW,
   ...ideaForumZhTW,
+  "sealed.breedingHint": "選擇一個培育行動，或結束培育階段。",
+  "sealed.placeRookie": "放入育成區",
 } satisfies Record<keyof typeof en, string>;
 
 export const zhTW: Record<keyof typeof en, string> = {

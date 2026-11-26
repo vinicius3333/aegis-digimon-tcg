@@ -1,3 +1,5 @@
+import { getPolicyEvoCost } from "#api/engine/cards/getPolicyEvoCost";
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import {
   CardKind,
   effectiveExactNames,
@@ -22,7 +24,6 @@ import {
   isTamer,
   lookupDefinition,
   matchingAlternateDigivolutionRequirement,
-  matchingEvoCost,
 } from "../cards/cardData.js";
 import { effectiveDigivolutionBase } from "../effects/continuous/effective.js";
 import { matchNameOrTrait } from "../effects/interpreter.js";
@@ -349,8 +350,10 @@ export class DigivolveSupport {
   ): boolean {
     const baseDefinition = effectiveDigivolutionBase(this.deps.continuous, base, definitionOf(base.topCard.cardId));
     return (
-      matchingEvoCost(definition, baseDefinition) !== undefined ||
+      getPolicyEvoCost({ evolving: definition, base: baseDefinition, policy: this.deps.state.rulesPolicy }) !==
+        undefined ||
       matchingAlternateDigivolutionRequirement(definition, baseDefinition, {
+        sealed: this.deps.state.rulesPolicy === GameRulesPolicy.SEALED.value,
         grantedBaseExactNames: this.deps.continuous.grantedExactNames(base.permanentId),
         ...(sourceZone === undefined ? {} : { sourceZone }),
       }) !== undefined

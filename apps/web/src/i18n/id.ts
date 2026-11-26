@@ -3074,6 +3074,8 @@ const interfaceMessages = {
   "profile.deckRecords.record": "Wins {wins} · Losses {losses} · Draws {draws}",
   ...bugForumId,
   ...ideaForumId,
+  "sealed.breedingHint": "Pilih satu aksi breeding atau akhiri breeding phase.",
+  "sealed.placeRookie": "Letakkan di breeding area",
 } satisfies Record<keyof typeof en, string>;
 
 export const id: Record<keyof typeof en, string> = {
