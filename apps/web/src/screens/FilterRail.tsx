@@ -37,12 +37,14 @@ export function FilterRail({
   showCostFilter = false,
   showRarityFilter = false,
   showSort = false,
+  showAlysionFilter = false,
 }: {
   filter: CardFilter;
   extra?: ReactNode;
   showCostFilter?: boolean;
   showRarityFilter?: boolean;
   showSort?: boolean;
+  showAlysionFilter?: boolean;
 }) {
   const { t } = useTranslation();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -114,6 +116,11 @@ export function FilterRail({
           <div className="card-filter-text-only">
             <Switch checked={filter.textOnly} label={t("library.searchTextOnly")} onChange={filter.setTextOnly} />
           </div>
+          {showAlysionFilter ? (
+            <div className="card-filter-text-only">
+              <Switch checked={filter.alysionOnly} label={t("library.alysionOnly")} onChange={filter.setAlysionOnly} />
+            </div>
+          ) : null}
         </div>
 
         <div className="card-filter-group">

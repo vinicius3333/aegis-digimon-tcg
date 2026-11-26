@@ -939,6 +939,7 @@ const interfaceMessages = {
   "library.traitAttribute": "특징 / 속성",
   "library.traitAttributePlaceholder": "특징 또는 속성 검색…",
   "library.searchTextOnly": "카드 텍스트만 검색",
+  "library.alysionOnly": "Digimon Alysion 카드만",
   "library.set": "세트",
   "library.allSets": "모든 세트",
   "library.clearFilters": "필터 지우기",

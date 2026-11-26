@@ -901,6 +901,7 @@ const interfaceMessages = {
   "library.traitAttribute": "特性 / 属性",
   "library.traitAttributePlaceholder": "搜索特性或属性…",
   "library.searchTextOnly": "仅搜索卡牌文本",
+  "library.alysionOnly": "仅 Digimon Alysion 卡牌",
   "library.set": "系列",
   "library.allSets": "全部系列",
   "library.clearFilters": "清除筛选",

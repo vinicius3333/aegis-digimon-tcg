@@ -967,6 +967,7 @@ const interfaceMessages = {
   "library.traitAttribute": "Merkmal / Attribut",
   "library.traitAttributePlaceholder": "Merkmale oder Attribute suchen…",
   "library.searchTextOnly": "Nur im Kartentext suchen",
+  "library.alysionOnly": "Nur Digimon-Alysion-Karten",
   "library.set": "Set",
   "library.allSets": "Alle Sets",
   "library.clearFilters": "Filter löschen",

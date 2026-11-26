@@ -852,6 +852,7 @@ const interfaceMessages = {
   "library.traitAttribute": "Tratto / attributo",
   "library.traitAttributePlaceholder": "Cerca tratti o attributi…",
   "library.searchTextOnly": "Cerca solo nel testo delle carte",
+  "library.alysionOnly": "Solo carte di Digimon Alysion",
   "library.set": "Espansione",
   "library.allSets": "Tutte le espansioni",
   "library.clearFilters": "Azzera i filtri",

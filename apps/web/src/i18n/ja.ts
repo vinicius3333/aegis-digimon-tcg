@@ -950,6 +950,7 @@ const interfaceMessages = {
   "library.traitAttribute": "特徴/属性",
   "library.traitAttributePlaceholder": "特徴または属性を検索…",
   "library.searchTextOnly": "カードテキストのみ検索",
+  "library.alysionOnly": "Digimon Alysion のカードのみ",
   "library.set": "セット",
   "library.allSets": "すべてのセット",
   "library.clearFilters": "フィルターをクリア",

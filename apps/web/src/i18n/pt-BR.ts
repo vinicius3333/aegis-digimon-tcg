@@ -697,6 +697,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "library.traitAttribute": "Traço / atributo",
   "library.traitAttributePlaceholder": "Buscar traços ou atributos…",
   "library.searchTextOnly": "Buscar só no texto das cartas",
+  "library.alysionOnly": "Só cartas do Digimon Alysion",
   "library.set": "Set",
   "library.allSets": "Todos os sets",
   "library.clearFilters": "Limpar filtros",

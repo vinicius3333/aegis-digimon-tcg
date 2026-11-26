@@ -945,6 +945,7 @@ const interfaceMessages = {
   "library.traitAttribute": "Trait / atribut",
   "library.traitAttributePlaceholder": "Cari trait atau atribut…",
   "library.searchTextOnly": "Cari hanya di teks kartu",
+  "library.alysionOnly": "Hanya kartu Digimon Alysion",
   "library.set": "Set",
   "library.allSets": "Semua set",
   "library.clearFilters": "Hapus filter",

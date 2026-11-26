@@ -687,6 +687,7 @@ export const es: Record<keyof typeof en, string> = {
   "library.traitAttribute": "Rasgo / atributo",
   "library.traitAttributePlaceholder": "Buscar rasgos o atributos…",
   "library.searchTextOnly": "Buscar solo en el texto de las cartas",
+  "library.alysionOnly": "Solo cartas de Digimon Alysion",
   "library.set": "Set",
   "library.allSets": "Todos los sets",
   "library.clearFilters": "Borrar filtros",
