@@ -54,7 +54,6 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: "all",
-            upTo: true,
             totalDpCap: 5000,
           },
           cost: {
@@ -98,7 +97,6 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: "all",
-            upTo: true,
             totalDpCap: 5000,
           },
           cost: {

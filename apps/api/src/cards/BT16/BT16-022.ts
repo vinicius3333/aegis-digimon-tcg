@@ -15,7 +15,6 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "WhenAttacking",
-      isInherited: true,
       actions: [
         {
           effectTextPart: "[When Attacking] Trash any 1 digivolution card of 1 of your opponent's Digimon.",

@@ -206,6 +206,37 @@ describe("ST13-06 RagnaLoardmon", () => {
   });
 });
 
+describe("ST13-06 RagnaLoardmon unsuspends on the opponent's security", () => {
+  it("unsuspends after its attack removes a card from the opponent's security", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST13-06", as: "ragna" }] },
+        1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ragna").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 2 &&
+        !s.perm("ragna").isSuspended &&
+        s.engine.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.perm("ragna").isSuspended).toBe(false);
+    assertNoLoudGap(s);
+  });
+});
+
 describe("ST13-06 RagnaLoardmon — KB Q&A rulings", () => {
   it("can attack with the [When Digivolving] Blitz after DNA digivolving while the opponent has memory (Q775)", async () => {
     async function dnaDigivolveAtEndOfTurn(memory: number) {
@@ -247,7 +278,11 @@ describe("ST13-06 RagnaLoardmon — KB Q&A rulings", () => {
         (event) => event.kind === "attackDeclared" && event.attackerPermanentId === withMemory.ragnaLoardmonId(),
       ),
     );
-    expect(withMemory.s.perm("ragnaLoardmon").isSuspended).toBe(true);
+    expect(
+      withMemory.s.events.some(
+        (event) => event.kind === "attackDeclared" && event.attackerPermanentId === withMemory.ragnaLoardmonId(),
+      ),
+    ).toBe(true);
 
     const withoutMemory = await dnaDigivolveAtEndOfTurn(0);
     await settle(() => withoutMemory.s.state.players[1]!.security.length === 2);

@@ -91,7 +91,7 @@
     "ui-flows": ["ui-main-actions", "simultaneous-triggers", "optional-triggers", "effect-play-routes", "ui-mechanics"]
   },
   "effectPlayRouteMatrix": {
-    "catalogSha256": "5c400ededfe8e65894bbdf25d6ba719ed64a425ce006a138646b0318666c056d",
+    "catalogSha256": "fcbaa202c685657cfc50392e19016085a12027bfa9ffcb6931783b8bc43d3ea6",
     "sourceIndexSha256": "09c15a60598da42eda0af0f74ddd48c9896a4191c196a4ea71d312c78b9a5ac8",
     "cells": [
       {

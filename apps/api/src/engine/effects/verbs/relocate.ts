@@ -85,6 +85,7 @@ export function createRelocateVerbs(pc: PrimitivesContext) {
       if (belowTop) pushOnStack(dest, card);
       else unshiftOnStack(dest, card);
     }
+    engine.forgetCardUses?.(toAttach.map((card) => card.instanceId));
 
     if (emitMovementEvents) {
       engine.emit({

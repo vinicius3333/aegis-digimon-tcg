@@ -1880,6 +1880,7 @@ const interfaceMessages = {
   "log.cardMoved": "{count}枚のカードが移動しました: {from} → {to}",
   "log.cardMovedNamed": "{card}が移動しました: {from} → {to}",
   "log.turnEndDeletion": "{card}はターン終了時に{source}の効果で消滅しました",
+  "log.dpModified": "{card}のDP{delta}",
   "log.cardsMoved": "{count}枚のカードが移動しました: {from} → {to}",
   "log.zone.deck": "デッキ",
   "log.zone.deckBottom": "デッキの一番下",

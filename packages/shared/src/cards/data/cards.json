@@ -35042,7 +35042,7 @@
     "forms": ["Mega"],
     "attributes": ["Data"],
     "types": ["Composite", "Xros Heart", "Blue Flare"],
-    "effectText": "[Digivolve] [ZeigGreymon]: Cost 2\n[Digivolve] Lv.5 w/[Xros Heart] trait: Cost 3 \n\nThis card is also treated as [Shoutmon]/[ZeigGreymon] for DigiXros.\n＜Security A. +1＞ \n[On Play] [When Digivolving] Delete 1 of your opponent's lowest DP Digimon.\n[All Turns] When this Digimon would leave the battle area, you may place up to 4 [Xros Heart]/[Blue Flare] trait Digimon cards from its digivolution cards under 1 of your Tamers.\n\n[DigiXros -3] [OmniShoutmon] x [ZeigGreymon]",
+    "effectText": "[Digivolve] [ZeigGreymon]: Cost 2\n[Digivolve] Lv.5 w/[Xros Heart] trait: Cost 3 \n\nThis card is also treated as [OmniShoutmon] or [ZeigGreymon] for DigiXros.\n＜Security A. +1＞ \n[On Play] [When Digivolving] Delete 1 of your opponent's lowest DP Digimon.\n[All Turns] When this Digimon would leave the battle area, you may place up to 4 [Xros Heart]/[Blue Flare] trait Digimon cards from its digivolution cards under 1 of your Tamers.\n\n[DigiXros -3] [OmniShoutmon] x [ZeigGreymon]",
     "rarity": "R",
     "maxCountInDeck": 4,
     "imageId": "BT21-027"
