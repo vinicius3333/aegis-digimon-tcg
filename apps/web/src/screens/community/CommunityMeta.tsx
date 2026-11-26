@@ -6,6 +6,7 @@ import { Icons } from "@/design/icons";
 import { Button } from "@/design/primitives";
 import { useTranslation } from "@/i18n/useTranslation";
 import { useRankedRequest } from "@/ranked/useRankedRequest";
+import { CommunityCounters } from "@/screens/community/CommunityCounters";
 import { CommunityMatchups } from "@/screens/community/CommunityMatchups";
 import { CommunityMetaTable } from "@/screens/community/CommunityMetaTable";
 import { deckFormatLabel } from "@/screens/deckFormatLabel";
@@ -45,6 +46,7 @@ export function CommunityMeta({ onOpenRanked }: CommunityMetaParams) {
             onRetry={seasons.refresh}
           />
         )}
+        <CommunityCounters format={format} />
       </div>
       <aside className="community-stack community-aside">
         <CommunityMatchups format={format} />

@@ -126,6 +126,10 @@ export class ResolutionPlan {
     return this.order.find((key) => offered.includes(key));
   }
 
+  getOrderIndex(key: string): number {
+    return this.order.indexOf(key);
+  }
+
   /** The preset answer (true = use, false = skip) for this effect's yes/no questions, if any. */
   presetFor(key: string): boolean | undefined {
     return this.presets.get(key);

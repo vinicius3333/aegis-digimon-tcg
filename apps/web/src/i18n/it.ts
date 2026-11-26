@@ -12,7 +12,9 @@ import { tournamentDetailIt } from "@/i18n/tournamentDetail.it";
 import { tournamentSpectatorsIt } from "@/i18n/tournamentSpectators.it";
 import { publicReplaysIt } from "@/i18n/publicReplays.it";
 import { replayAnnotationsIt } from "@/i18n/replayAnnotations.it";
+import { replayAnalysisIt } from "@/i18n/replayAnalysis.it";
 import { achievementsIt } from "@/i18n/achievements.it";
+import { effectOrderIt } from "@/i18n/effectOrder.it";
 import { rankedIt } from "@/i18n/ranked.it";
 import { friendsEn } from "@/i18n/friends.en";
 import { advancedBattlesIt } from "@/i18n/learn/advancedBattles.it";
@@ -504,6 +506,15 @@ const interfaceMessages = {
   "community.meta.usage": "Utilizzo",
   "community.meta.versus": "{deck} contro {opponent}",
   "community.meta.openRanked": "Apri le statistiche classificate",
+  "community.counters.title": "Counter del meta",
+  "community.counters.description":
+    "Partite classificate delle ultime 4 settimane · i mazzi che battono più spesso ogni mazzo popolare",
+  "community.counters.share": "{share} dei mazzi giocati",
+  "community.counters.against": "Counter di {deck}",
+  "community.counters.sample": "{games} partite · {players} giocatori · probabile {low}–{high}",
+  "community.counters.none": "Nessun mazzo ha ancora un bilancio positivo contro questo con abbastanza partite.",
+  "community.counters.method":
+    "Un counter richiede 30 partite di 10 giocatori diversi e deve vincerne più della metà. L'intervallo probabile è l'intervallo di confidenza al 95%; l'ordine usa il suo limite inferiore.",
   "community.trending.title": "Di tendenza questa settimana",
   "community.roadmap.lanes": "Colonne della roadmap",
   "community.moderation.declined": "Revisione rifiutata. Il deck resta nascosto.",
@@ -2781,6 +2792,7 @@ const interfaceMessages = {
   ...tournamentSpectatorsIt,
   ...publicReplaysIt,
   ...replayAnnotationsIt,
+  ...replayAnalysisIt,
   ...tournamentCircuitsIt,
   ...tournamentOfficialRequestIt,
   ...matchQueueIt,
@@ -2790,6 +2802,7 @@ const interfaceMessages = {
   ...matchIntroIt,
   ...staffRolesIt,
   ...achievementsIt,
+  ...effectOrderIt,
   ...bugForumIt,
   ...ideaForumIt,
 } satisfies Record<Exclude<keyof typeof en, `releases.${string}`>, string>;

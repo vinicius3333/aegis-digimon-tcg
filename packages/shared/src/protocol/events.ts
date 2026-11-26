@@ -3,6 +3,7 @@ import type { SingleHandCostBenefit } from "#shared/protocol/SingleHandCostBenef
 import { CardMovePosition } from "#shared/protocol/CardMovePosition";
 import type { DecisionEffectSummary } from "#shared/protocol/DecisionEffectSummary";
 import type { DecisionSelectionGoal } from "#shared/protocol/DecisionSelectionGoal";
+import type { EffectQueueEntry } from "#shared/protocol/EffectQueueEntry";
 import type { Seat } from "../schema/enums.js";
 import type { AttackTarget } from "./intents.js";
 
@@ -325,6 +326,7 @@ export type ServerEvent =
        * actually been shown.
        */
       duringSecurityCheck?: boolean;
+      effectQueue?: EffectQueueEntry[];
     }
   | {
       // A seat answered an `orderTriggers` prompt. Public, so the other client can show which

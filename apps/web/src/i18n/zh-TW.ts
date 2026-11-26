@@ -12,7 +12,9 @@ import { tournamentDetailZhTW } from "@/i18n/tournamentDetail.zh-TW";
 import { tournamentSpectatorsZhTW } from "@/i18n/tournamentSpectators.zh-TW";
 import { publicReplaysZhTW } from "@/i18n/publicReplays.zh-TW";
 import { replayAnnotationsZhTW } from "@/i18n/replayAnnotations.zh-TW";
+import { replayAnalysisZhTW } from "@/i18n/replayAnalysis.zh-TW";
 import { achievementsZhTw } from "@/i18n/achievements.zh-TW";
+import { effectOrderZhTw } from "@/i18n/effectOrder.zh-TW";
 import { rankedZhTw } from "@/i18n/ranked.zh-TW";
 import { friendsEn } from "@/i18n/friends.en";
 import { advancedBattlesZhTW } from "@/i18n/learn/advancedBattles.zh-TW";
@@ -2676,6 +2678,14 @@ const interfaceMessages = {
   "community.meta.usage": "使用率",
   "community.meta.versus": "{deck} 對 {opponent}",
   "community.meta.openRanked": "開啟排位統計",
+  "community.counters.title": "環境剋制卡組",
+  "community.counters.description": "最近 4 週排位對局 · 對每個熱門卡組勝率最高的卡組",
+  "community.counters.share": "使用率 {share}",
+  "community.counters.against": "剋制 {deck} 的卡組",
+  "community.counters.sample": "{games} 場 · {players} 名玩家 · 可能 {low}–{high}",
+  "community.counters.none": "尚無卡組在足夠場次下對它保持勝勢。",
+  "community.counters.method":
+    "剋制卡組需來自 10 名不同玩家的 30 場以上對局，且勝場過半。可能範圍為 95% 信賴區間，並依其下限排序。",
   "community.trending.title": "本週熱門",
   "community.roadmap.lanes": "路線圖欄目",
   "community.moderation.declined": "已拒絕審核。卡組仍保持隱藏。",
@@ -2897,6 +2907,7 @@ const interfaceMessages = {
   ...tournamentSpectatorsZhTW,
   ...publicReplaysZhTW,
   ...replayAnnotationsZhTW,
+  ...replayAnalysisZhTW,
   ...tournamentCircuitsZhTW,
   ...tournamentOfficialRequestZhTW,
   ...matchQueueZhTW,
@@ -2906,6 +2917,7 @@ const interfaceMessages = {
   ...matchIntroZhTW,
   ...staffRolesZhTW,
   ...achievementsZhTw,
+  ...effectOrderZhTw,
   "profile.filter.deck": "卡組",
   "profile.filter.allDecks": "所有卡組",
   "profile.deckStats.total": "卡組勝率",

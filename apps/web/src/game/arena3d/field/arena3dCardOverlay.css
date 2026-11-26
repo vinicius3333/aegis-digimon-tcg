@@ -51,7 +51,8 @@
     .game-fate-badge,
     .game-keyword-badges,
     .game-restriction-badges,
-    .game-permanent__material-order
+    .game-permanent__material-order,
+    .game-permanent__effect-order
   ) {
   scale: 1 calc(1 / var(--arena-3d-squash, 1));
 }

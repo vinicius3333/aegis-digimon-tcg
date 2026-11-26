@@ -1,3 +1,4 @@
+import type { EffectQueueEntry } from "@aegis/shared/protocol/EffectQueueEntry";
 import { ArenaInputRegion } from "@/game/input/ArenaInputRegion";
 /* The right edge of the field: the opponent's raising area and security stack at the
    top, the viewer's own deck and trash at the bottom — the mirror of the left edge. A
@@ -28,6 +29,7 @@ export function RightPileColumn({
   breedingEffectSource,
   breedingEffectLinked,
   breedingHighlight,
+  breedingEffectOrder,
   securityCount,
   securityBreak,
   securityBreakMine,
@@ -56,6 +58,7 @@ export function RightPileColumn({
   breedingEffectSource: boolean;
   breedingEffectLinked: boolean;
   breedingHighlight: boolean;
+  breedingEffectOrder?: readonly EffectQueueEntry[];
   /** What the shield shows: a scene still holding a card keeps the higher figure. */
   securityCount: number;
   securityBreak: SecurityBreakCue | null;
@@ -113,6 +116,7 @@ export function RightPileColumn({
               effectSource={breedingEffectSource}
               effectLinked={breedingEffectLinked}
               highlight={breedingHighlight}
+              effectOrder={breedingEffectOrder}
               width={raisingWidth}
               onClick={onOpenOpponentBreeding}
             />

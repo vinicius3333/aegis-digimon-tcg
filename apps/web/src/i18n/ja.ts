@@ -12,7 +12,9 @@ import { tournamentDetailJa } from "@/i18n/tournamentDetail.ja";
 import { tournamentSpectatorsJa } from "@/i18n/tournamentSpectators.ja";
 import { publicReplaysJa } from "@/i18n/publicReplays.ja";
 import { replayAnnotationsJa } from "@/i18n/replayAnnotations.ja";
+import { replayAnalysisJa } from "@/i18n/replayAnalysis.ja";
 import { achievementsJa } from "@/i18n/achievements.ja";
+import { effectOrderJa } from "@/i18n/effectOrder.ja";
 import { rankedJa } from "@/i18n/ranked.ja";
 import { friendsEn } from "@/i18n/friends.en";
 import { advancedBattlesJa } from "@/i18n/learn/advancedBattles.ja";
@@ -2770,6 +2772,14 @@ const interfaceMessages = {
   "community.meta.usage": "使用率",
   "community.meta.versus": "{deck} vs {opponent}",
   "community.meta.openRanked": "ランクマッチの統計を開く",
+  "community.counters.title": "メタのカウンター",
+  "community.counters.description": "過去4週間のランクマッチ · 人気デッキごとに最もよく勝っているデッキ",
+  "community.counters.share": "使用率 {share}",
+  "community.counters.against": "{deck} へのカウンター",
+  "community.counters.sample": "{games} 戦 · {players} 人 · 推定 {low}–{high}",
+  "community.counters.none": "十分な対戦数で勝ち越しているデッキはまだありません。",
+  "community.counters.method":
+    "カウンターには10人以上の異なるプレイヤーによる30戦以上と、半数を超える勝利が必要です。推定範囲は95%信頼区間で、その下限の順に並べています。",
   "community.trending.title": "今週の注目",
   "community.roadmap.lanes": "ロードマップの列",
   "community.moderation.declined": "審査を却下しました。デッキは非表示のままです。",
@@ -3003,6 +3013,7 @@ const interfaceMessages = {
   ...tournamentSpectatorsJa,
   ...publicReplaysJa,
   ...replayAnnotationsJa,
+  ...replayAnalysisJa,
   ...tournamentCircuitsJa,
   ...tournamentOfficialRequestJa,
   ...matchQueueJa,
@@ -3012,6 +3023,7 @@ const interfaceMessages = {
   ...matchIntroJa,
   ...staffRolesJa,
   ...achievementsJa,
+  ...effectOrderJa,
   "profile.filter.deck": "デッキ",
   "profile.filter.allDecks": "すべてのデッキ",
   "profile.deckStats.total": "デッキの勝率",

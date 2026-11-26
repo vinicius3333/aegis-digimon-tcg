@@ -15,6 +15,8 @@ import type { CollectedEffect } from "./collect.js";
 import { UseTracker, canActivate } from "./kernel.js";
 import { observeEffectActivation } from "./activationPresentation.js";
 import { ResolutionPlan } from "../decisions/resolutionPlan.js";
+import type { EffectQueueSlot } from "#api/engine/effects/resolution/EffectQueueSlot";
+import { buildEffectQueueSlots } from "#api/engine/effects/resolution/buildEffectQueueSlots";
 
 /** One effect paired with the source that produced it (collection output). */
 export type { CollectedEffect } from "./collect.js";
@@ -71,6 +73,8 @@ export interface ResolutionEnv {
   runtimeObjects?: RuntimeObjectRegistry;
   onTimingWindowCreated?: (window: TimingWindowRuntime) => void;
   registerPendingEffects?: (read: () => readonly CollectedEffect[]) => () => void;
+  registerEffectQueue?: (read: () => readonly EffectQueueSlot[]) => () => void;
+  onEffectQueueChanged?: () => void;
   /** The active player; used for turn-player-first ordering. */
   readonly turnSeat: Seat;
   /** Per-turn use ledger (maxPerTurn accounting). Engine-owned; reset each turn. */
@@ -374,6 +378,18 @@ export async function resolveTiming(
       return canActivate(collected.effect, ctx, env.tracker) ? [{ ...collected, triggerInfo: ctx.trigger }] : [];
     });
   const unregisterPending = resume === undefined ? env.registerPendingEffects?.(readPendingEffects) : undefined;
+  const resolvingEffects = new Map<string, CollectedEffect>();
+  const readEffectQueue = (): EffectQueueSlot[] => [
+    ...[...resolvingEffects.values()].reverse().map((collected) => ({ effects: [collected], isResolving: true })),
+    ...buildEffectQueueSlots({
+      pending: readPendingEffects(),
+      turnSeat: env.turnSeat,
+      getTier: (collected) => activationTiers.get(declineKey(collected)) ?? 0,
+      getSeat: orderingSeatOf,
+      getPlanIndex: (collected) => plan.getOrderIndex(plan.keyFor(collected)),
+    }),
+  ];
+  const unregisterEffectQueue = resume === undefined ? env.registerEffectQueue?.(readEffectQueue) : undefined;
 
   // A re-entrant drain runs inside an effect whose derived processing can still enable a
   // pending effect (CR 15-4-3-4, 15-4-5-2/3), so
@@ -576,6 +592,7 @@ export async function resolveTiming(
         const group = ordered.filter((c) => orderingSeatOf(c) === frontSeat);
         const waiting = active.filter((c) => !group.includes(c) && orderingSeatOf(c) === frontSeat);
 
+        env.onEffectQueueChanged?.();
         const choice = await pickNext(frontSeat, group, timing, env, plan, waiting);
         if (choice === null) {
           // Decline is only returned when every effect in the group is optional. Mark them
@@ -590,6 +607,8 @@ export async function resolveTiming(
         const chosenKey = declineKey(chosen);
         env.onResolving?.(timing, chosen);
         inProgress.add(chosenKey);
+        resolvingEffects.set(chosenKey, chosen);
+        env.onEffectQueueChanged?.();
         let wasResolved: boolean;
         try {
           wasResolved = await resolveOne(
@@ -602,6 +621,7 @@ export async function resolveTiming(
           );
         } finally {
           inProgress.delete(chosenKey);
+          resolvingEffects.delete(chosenKey);
         }
         // A resolved (non-declined) triggered effect leaves the pending list for this
         // window so the next re-collection does not re-offer it (single-trigger rule).
@@ -609,6 +629,7 @@ export async function resolveTiming(
           resolved.add(declineKey(chosen));
           env.onResolved?.(timing, chosen);
         }
+        env.onEffectQueueChanged?.();
 
         // State-based actions between effects (RuleProcess). The next loop iteration
         // re-collects, surfacing anything triggered during this resolution.
@@ -634,6 +655,8 @@ export async function resolveTiming(
   } finally {
     state.scopeOpen = false;
     unregisterPending?.();
+    unregisterEffectQueue?.();
+    env.onEffectQueueChanged?.();
   }
 }
 

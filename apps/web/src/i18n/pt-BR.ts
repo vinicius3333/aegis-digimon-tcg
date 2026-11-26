@@ -12,7 +12,9 @@ import { tournamentDetailPtBR } from "@/i18n/tournamentDetail.pt-BR";
 import { tournamentSpectatorsPtBR } from "@/i18n/tournamentSpectators.pt-BR";
 import { publicReplaysPtBR } from "@/i18n/publicReplays.pt-BR";
 import { replayAnnotationsPtBR } from "@/i18n/replayAnnotations.pt-BR";
+import { replayAnalysisPtBR } from "@/i18n/replayAnalysis.pt-BR";
 import { achievementsPt } from "@/i18n/achievements.pt-BR";
+import { effectOrderPt } from "@/i18n/effectOrder.pt-BR";
 import { rankedPt } from "@/i18n/ranked.pt-BR";
 import { friendsPtBR } from "@/i18n/friends.pt-BR";
 import { advancedBattlesPtBR } from "@/i18n/learn/advancedBattles.pt-BR";
@@ -2275,6 +2277,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   ...tournamentSpectatorsPtBR,
   ...publicReplaysPtBR,
   ...replayAnnotationsPtBR,
+  ...replayAnalysisPtBR,
   ...tournamentCircuitsPtBR,
   ...tournamentOfficialRequestPtBR,
   ...matchQueuePtBR,
@@ -2284,6 +2287,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   ...matchIntroPtBR,
   ...staffRolesPtBR,
   ...achievementsPt,
+  ...effectOrderPt,
   ...learnPtBR,
   ...learnDrillsPtBR,
   ...newDrillsPtBR,

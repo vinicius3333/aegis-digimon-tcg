@@ -1,4 +1,5 @@
 import { CardKind, getCardDefinition, type Permanent } from "@aegis/shared";
+import type { EffectQueueEntry } from "@aegis/shared/protocol/EffectQueueEntry";
 import { CardBurst } from "../CardBurst";
 import type { PermanentBurst } from "../showcases";
 import { useTranslation } from "../../i18n";
@@ -23,6 +24,7 @@ export function BreedingSlot({
   onInspect,
   suggested,
   drop,
+  effectOrder,
 }: {
   perm?: Permanent;
   keywordLabels?: Readonly<Record<string, string>>;
@@ -48,6 +50,7 @@ export function BreedingSlot({
   onInspect?: () => void;
   suggested?: boolean;
   drop?: DropAttrs;
+  effectOrder?: readonly EffectQueueEntry[];
 }) {
   const { t } = useTranslation();
   const transferOrigin = useBreedingTransferOrigin(perm?.permanentId);
@@ -123,6 +126,7 @@ export function BreedingSlot({
             picked={picked}
             onInspect={onInspect}
             showInspect={focused}
+            effectOrder={effectOrder}
           />
         ) : (
           <span

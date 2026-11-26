@@ -12,7 +12,9 @@ import { tournamentDetailFr } from "@/i18n/tournamentDetail.fr";
 import { tournamentSpectatorsFr } from "@/i18n/tournamentSpectators.fr";
 import { publicReplaysFr } from "@/i18n/publicReplays.fr";
 import { replayAnnotationsFr } from "@/i18n/replayAnnotations.fr";
+import { replayAnalysisFr } from "@/i18n/replayAnalysis.fr";
 import { achievementsFr } from "@/i18n/achievements.fr";
+import { effectOrderFr } from "@/i18n/effectOrder.fr";
 import { rankedFr } from "@/i18n/ranked.fr";
 import { friendsEn } from "@/i18n/friends.en";
 import { advancedBattlesFr } from "@/i18n/learn/advancedBattles.fr";
@@ -2835,6 +2837,15 @@ const interfaceMessages = {
   "community.meta.usage": "Usage",
   "community.meta.versus": "{deck} contre {opponent}",
   "community.meta.openRanked": "Ouvrir les statistiques classées",
+  "community.counters.title": "Contres de la méta",
+  "community.counters.description":
+    "Parties classées des 4 dernières semaines · les decks qui battent le plus souvent chaque deck populaire",
+  "community.counters.share": "{share} des decks joués",
+  "community.counters.against": "Contres à {deck}",
+  "community.counters.sample": "{games} parties · {players} joueurs · probable {low}–{high}",
+  "community.counters.none": "Aucun deck n'a encore un bilan positif contre celui-ci avec assez de parties.",
+  "community.counters.method":
+    "Un contre exige 30 parties de 10 joueurs différents et doit en gagner plus de la moitié. La plage probable est l'intervalle de confiance à 95 % ; le classement utilise sa borne basse.",
   "community.trending.title": "Tendances de la semaine",
   "community.roadmap.lanes": "Colonnes de la feuille de route",
   "community.moderation.declined": "Révision refusée. Le deck reste masqué.",
@@ -3077,6 +3088,7 @@ const interfaceMessages = {
   ...tournamentSpectatorsFr,
   ...publicReplaysFr,
   ...replayAnnotationsFr,
+  ...replayAnalysisFr,
   ...tournamentCircuitsFr,
   ...tournamentOfficialRequestFr,
   ...matchQueueFr,
@@ -3086,6 +3098,7 @@ const interfaceMessages = {
   ...matchIntroFr,
   ...staffRolesFr,
   ...achievementsFr,
+  ...effectOrderFr,
   "profile.filter.deck": "Deck",
   "profile.filter.allDecks": "Tous les decks",
   "profile.deckStats.total": "Victoires du deck",

@@ -14,6 +14,8 @@ import { setSoundEnabled } from "../design/sound";
 import { isChatSoundEnabled, setChatSoundEnabled } from "../game/chat/chatSound";
 import { isMatchChatEnabled } from "@/game/chat/matchChatEnabled/isMatchChatEnabled";
 import { setMatchChatEnabled } from "@/game/chat/matchChatEnabled/setMatchChatEnabled";
+import { isEffectOrderEnabled } from "@/game/effectOrder/effectOrderEnabled/isEffectOrderEnabled";
+import { setEffectOrderEnabled } from "@/game/effectOrder/effectOrderEnabled/setEffectOrderEnabled";
 
 const player = { name: "Guest Tamer", color: "Blue", shards: 0, guestAvatarId: null };
 const account: RemoteAccount = {
@@ -266,6 +268,31 @@ describe("settings match chat", () => {
     expect(isMatchChatEnabled()).toBe(false);
     expect(localStorage.getItem("aegis.chat.enabled")).toBe("false");
     expect(screen.getByRole("switch", { name: /Chat sound/ })).toHaveProperty("disabled", true);
+  });
+});
+
+describe("settings effect order and rulings", () => {
+  afterEach(() => {
+    cleanup();
+    setEffectOrderEnabled(false);
+    localStorage.clear();
+  });
+
+  it("starts off beside match chat and lets the player turn it on", () => {
+    render(
+      <I18nProvider>
+        <Settings player={player} account={null} dark={false} onToggleDark={() => undefined} />
+      </I18nProvider>,
+    );
+    const toggle = screen.getByRole("switch", { name: /^Effect order and rulings/ });
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    expect(toggle.closest(".settings-row")?.previousElementSibling?.textContent).toContain("Match chat");
+
+    fireEvent.click(toggle);
+
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+    expect(isEffectOrderEnabled()).toBe(true);
+    expect(localStorage.getItem("aegis.effectOrder.enabled")).toBe("true");
   });
 });
 

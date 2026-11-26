@@ -5,7 +5,15 @@ export type ReplayCommand =
   | { command: "help"; topic?: ReplayCommandName }
   | { command: "fetch"; reportId: number; out?: string; url?: string }
   | { command: "extract"; matchId: string; logDir?: string; out?: string }
-  | { command: "run"; file: string; until?: number; json: boolean; export?: string }
+  | {
+      command: "run";
+      file: string;
+      until?: number;
+      json: boolean;
+      export?: string;
+      evaluate?: boolean;
+      calibrate?: boolean;
+    }
   | { command: "inputs"; file: string; from?: number; to?: number }
   | { command: "scaffold"; file: string; until: number; out: string; issue?: string };
 
@@ -34,7 +42,7 @@ const USAGE: Record<ReplayCommandName, string> = {
 
   Build a replay from the API's JSONL logs (api-*.jsonl), for a match without a report.
   Default --log-dir: AEGIS_LOG_DIR, else apps/api/logs. Default --out: <repo>/replays/<matchId>.json`,
-  run: `pnpm replay run <file> [--until <inputIndex>] [--json] [--strict] [--export <file.aegis-replay>]
+  run: `pnpm replay run <file> [--until <inputIndex>] [--json] [--strict] [--export <file.aegis-replay>] [--evaluate [--calibrate]]
 
   Replay the match on a fresh engine and print the inputs applied, every divergence from the
   recorded match, the position and a compact board per seat. --until N stops before input N,
@@ -43,7 +51,12 @@ const USAGE: Record<ReplayCommandName, string> = {
   throw, as in tests, which shows up as a divergence at the input that reached one.
   --export writes the replayed match as a player replay file the web viewer opens (Profile →
   Replays → Open file). The viewer shows finished games only: a replay that stops before the end
-  (--until, or a record cut short) is ended there by seat 0 surrendering.
+  (--until, or a record cut short) is ended there by seat 0 surrendering. The file carries the
+  options of every decision and a bot win-chance estimate for every frame. --evaluate also plays
+  out the chosen and top alternative Main-phase options with the bot search to rate each decision,
+  adding paired rollouts until each rating is settled; it takes minutes on a long match.
+  --calibrate also runs a Master-level search at each rated decision and reports how often its
+  choice matches the rated best option.
   Exit code 1 when the replay diverged (the file is still written).`,
   inputs: `pnpm replay inputs <file> [--from N] [--to M]
 
@@ -86,6 +99,8 @@ const OPTIONS = {
   issue: { type: "string" },
   json: { type: "boolean" },
   strict: { type: "boolean" },
+  evaluate: { type: "boolean" },
+  calibrate: { type: "boolean" },
   help: { type: "boolean", short: "h" },
 } as const;
 
@@ -93,7 +108,7 @@ const OPTIONS = {
 const ALLOWED: Record<ReplayCommandName, (keyof typeof OPTIONS)[]> = {
   fetch: ["out", "url"],
   extract: ["log-dir", "out"],
-  run: ["until", "json", "strict", "export"],
+  run: ["until", "json", "strict", "export", "evaluate", "calibrate"],
   inputs: ["from", "to"],
   scaffold: ["until", "out", "issue"],
 };
@@ -156,6 +171,8 @@ export function parseReplayArgs(argv: readonly string[]): ReplayCommand {
         file: subject,
         json: values.json === true,
         ...defined({ until: index("until"), export: values.export }),
+        ...(values.evaluate === true ? { evaluate: true } : {}),
+        ...(values.calibrate === true ? { calibrate: true } : {}),
       };
     case "inputs": {
       const from = index("from");

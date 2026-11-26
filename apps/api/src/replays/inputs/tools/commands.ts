@@ -98,14 +98,24 @@ export async function runCommand(command: ReplayCommand, io: CommandIo): Promise
         const out = path(command.export);
         const exported = await exportPlayerReplay(record, {
           ...(command.until !== undefined ? { until: command.until } : {}),
+          ...(command.evaluate ? { evaluate: true } : {}),
+          ...(command.calibrate ? { calibrate: true } : {}),
           inspect: (run) => (summary = summarizeRun(record, run, command.until)),
         });
         mkdirSync(dirname(out), { recursive: true });
         writeFileSync(out, exported.file);
         // With --json, stdout carries only the summary.
         const note = command.json ? io.err : io.out;
-        note(`Exported ${exported.frames} frames to ${out}`);
+        note(`Exported ${exported.frames} frames and ${exported.decisions} decisions to ${out}`);
         if (exported.endedBy === "surrender") note("Ended by surrender for the viewer");
+        if (command.evaluate)
+          note(
+            `Rated ${exported.evaluatedDecisions} decisions with ${exported.rollouts} bot rollouts in ${exported.evaluationMs} ms`,
+          );
+        if (command.calibrate)
+          note(
+            `Master-level search agreed with the rated best option in ${exported.calibration.agreed} of ${exported.calibration.compared} decisions`,
+          );
       } else {
         summary = summarizeRun(
           record,

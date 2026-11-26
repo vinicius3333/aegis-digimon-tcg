@@ -40,6 +40,7 @@ export function assertEngineSnapshotBoundary({ engine }: Params): void {
     deferredSecurityRemovalTriggers: engine.deferredSecurityRemovalTriggers.length,
     flushingDeferredSecurityRemovalTriggers: engine.flushingDeferredSecurityRemovalTriggers,
     pendingEffectReaders: engine.pendingEffectReaders.size,
+    effectQueueReaders: engine.effectQueueReaders.size,
     deferredTimingWindows: engine.deferredTimingWindows.length,
     flushingDeferredTimingWindows: engine.flushingDeferredTimingWindows,
     pendingPlayReducerPlacements: engine.pendingPlayReducerPlacements.size,

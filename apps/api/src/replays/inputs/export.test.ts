@@ -149,6 +149,73 @@ describe("exportPlayerReplay", () => {
     }
   }, 120_000);
 
+  it("records the options and the chosen answer at every accepted decision, linked to a frame", async () => {
+    const exported = await exportPlayerReplay(record);
+    const replay = open(exported.file);
+    const decisions = replay.decisions ?? [];
+    const accepted = record.inputs.flatMap((input, index) =>
+      input.kind === "intent" && input.ok === true && input.intent.type !== "ready" ? [index] : [],
+    );
+
+    expect(exported.decisions).toBe(decisions.length);
+    expect(decisions.map((decision) => decision.inputIndex)).toEqual(accepted);
+    for (const decision of decisions) {
+      const input = record.inputs[decision.inputIndex]!;
+      expect(input.kind === "intent" && input.seat).toBe(decision.seat);
+      expect(decision.frameIndex).toBeGreaterThanOrEqual(0);
+      expect(decision.frameIndex).toBeLessThan(replay.frames.length);
+      expect(decision.options.length).toBeGreaterThan(0);
+      for (const position of decision.chosen) expect(decision.options[position]).toBeDefined();
+    }
+    const main = decisions.filter((decision) => decision.context === "main");
+    expect(main.length).toBeGreaterThan(0);
+    for (const decision of main) {
+      expect(decision.options).toContainEqual({ action: "endPhase" });
+      expect(decision.chosen).toHaveLength(1);
+    }
+    const attack = decisions.find((decision) => decision.inputIndex === firstAttack())!;
+    expect(attack.options[attack.chosen[0]!]!.action).toMatch(/^attack/);
+    expect(attack.options[attack.chosen[0]!]!.cardId).toMatch(/^[A-Z0-9]+-\d+$/);
+  }, 120_000);
+
+  it("carries a bot win-chance estimate for every frame", async () => {
+    const replay = open((await exportPlayerReplay(record)).file);
+
+    expect(replay.advantage).toHaveLength(replay.frames.length);
+    for (const value of replay.advantage!) {
+      expect(value).toBeGreaterThanOrEqual(0);
+      expect(value).toBeLessThanOrEqual(1);
+    }
+    const winner = replay.winnerSeat;
+    expect(winner === 0 ? replay.advantage!.at(-1)! > 0.5 : replay.advantage!.at(-1)! < 0.5).toBe(true);
+  }, 120_000);
+
+  it("rates Main-phase decisions against the bot's best playout only when asked", async () => {
+    const until = firstAttack();
+    const plain = await exportPlayerReplay(record, { until });
+    expect(plain.evaluatedDecisions).toBe(0);
+    expect(open(plain.file).decisions!.some((decision) => decision.quality !== undefined)).toBe(false);
+
+    const exported = await exportPlayerReplay(record, { until, evaluate: true });
+    const replay = open(exported.file);
+    const rated = replay.decisions!.filter((decision) => decision.quality !== undefined);
+
+    expect(exported.divergences).toEqual([]);
+    expect(rated.length).toBe(exported.evaluatedDecisions);
+    expect(rated.length).toBeGreaterThan(0);
+    for (const decision of rated) {
+      expect(decision.context).toBe("main");
+      const chosen = decision.options[decision.chosen[0]!]!;
+      const best = decision.options[decision.bestOption!]!;
+      expect(chosen.value).toBeGreaterThanOrEqual(0);
+      expect(best.value).toBeGreaterThanOrEqual(chosen.value!);
+      expect(decision.loss).toBeCloseTo(best.value! - chosen.value!, 2);
+      expect(chosen.samples).toBeGreaterThanOrEqual(3);
+      expect(chosen.facts).toBeDefined();
+      expect(["best", "good", "inaccuracy", "mistake", "blunder", "uncertain"]).toContain(decision.quality);
+    }
+  }, 600_000);
+
   it("derives the mode from the record's rules", async () => {
     const until = firstAttack();
     const unlimited = structuredClone(record);

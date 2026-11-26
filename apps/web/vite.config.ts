@@ -154,6 +154,10 @@ export default defineConfig({
       },
       {
         extends: true,
+        test: { name: "effect-order-ui", include: ["src/game/effectOrder/**/*.test.tsx"], environment: "jsdom" },
+      },
+      {
+        extends: true,
         test: {
           name: "default",
           exclude: [
@@ -185,6 +189,7 @@ export default defineConfig({
             "src/game/piece/PermanentDpDeltaHint.test.tsx",
             "src/game/piece/handEffectSourceMarks.test.tsx",
             "src/game/overlay/viewer/trashEffectSourceMarks.test.tsx",
+            "src/game/effectOrder/**/*.test.tsx",
             "src/game/log/**/*.test.tsx",
             "src/game/noticeSize/**/*.test.tsx",
             "src/deckProviders/**/*.test.tsx",

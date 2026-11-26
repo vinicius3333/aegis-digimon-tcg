@@ -14,7 +14,7 @@ import { createPlaybackClock, frameDelay, playbackState, presentationEnd, turnPo
 import { SEQUENTIAL_PACING_ENABLED } from "../features";
 import { createAnimationPlayback } from "../game/animationPlayback";
 import { ReplayRecording } from "./ReplayRecording";
-import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
+import { ChartLine, Pause, Play, SkipBack, SkipForward } from "lucide-react";
 import { ReplayControls } from "@/replays/ReplayControls";
 import { ReplayTimeline } from "@/replays/ReplayTimeline";
 import { useMediaQuery } from "@/design/useMediaQuery";
@@ -22,6 +22,7 @@ import { ReplayQuickAnnotate } from "@/replays/annotations/ReplayQuickAnnotate";
 import { ReplayAnnotationPanel } from "@/replays/annotations/ReplayAnnotationPanel";
 import { useReplayAnnotations } from "@/replays/annotations/useReplayAnnotations";
 import { buildReplayAnnotationEntries } from "@/replays/annotations/buildReplayAnnotationEntries";
+import { ReplayAnalysisPanel } from "@/replays/analysis/ReplayAnalysisPanel";
 
 const emptyDeck = { mainDeck: [], eggDeck: [] };
 const ANNOTATION_SHEET_QUERY = "(width < 600px)";
@@ -62,6 +63,7 @@ export function ReplayPlayer({
   const [viewerSeat, setViewerSeat] = useState<Seat>(replay.viewerSeat === 1 ? 1 : 0);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [annotationsOpen, setAnnotationsOpen] = useState(false);
+  const [analysisOpen, setAnalysisOpen] = useState(false);
   const annotations = useReplayAnnotations({ matchId: replay.id });
   const annotationEntries = useMemo(
     () =>
@@ -74,7 +76,7 @@ export function ReplayPlayer({
   const [controlsVisible, setControlsVisible] = useState(true);
   const [controlsInset, setControlsInset] = useState(0);
   const [idle, setIdle] = useState(false);
-  const annotationSheet = useMediaQuery(ANNOTATION_SHEET_QUERY) && annotationsOpen;
+  const annotationSheet = useMediaQuery(ANNOTATION_SHEET_QUERY) && (annotationsOpen || analysisOpen);
   const [recordingMode, setRecordingMode] = useState(false);
   const history = useRef<HTMLElement>(null);
   const historyToggle = useRef<HTMLButtonElement>(null);
@@ -315,6 +317,7 @@ export function ReplayPlayer({
   function startRecordingPlayback() {
     setHistoryOpen(false);
     setAnnotationsOpen(false);
+    setAnalysisOpen(false);
     seek(0);
     setPlaying(true);
   }
@@ -326,7 +329,8 @@ export function ReplayPlayer({
     <section
       ref={surface}
       className={`replay-player${recordingMode ? " replay-player--recording" : ""}`}
-      data-idle={idle && !historyOpen && !annotationsOpen && deckSeat === undefined ? true : undefined}
+      data-idle={idle && !historyOpen && !annotationsOpen && !analysisOpen && deckSeat === undefined ? true : undefined}
+      data-analysis={analysisOpen || undefined}
       aria-label={t("replay.title")}
       style={{ "--replay-controls-inset": `${controlsInset}px` } as CSSProperties}
     >
@@ -403,6 +407,15 @@ export function ReplayPlayer({
             onClose={() => setAnnotationsOpen(false)}
           />
         ) : null}
+        {analysisOpen ? (
+          <ReplayAnalysisPanel
+            replay={replay}
+            index={cursor.index}
+            onJump={jump}
+            onSeek={seek}
+            onClose={() => setAnalysisOpen(false)}
+          />
+        ) : null}
         {historyOpen ? (
           <aside ref={history} id="replay-history" className="replay-history" aria-label={t("replay.log")}>
             <header>
@@ -452,6 +465,7 @@ export function ReplayPlayer({
           aria-controls="replay-history"
           onClick={() => {
             setAnnotationsOpen(false);
+            setAnalysisOpen(false);
             setHistoryOpen((open) => !open);
           }}
         >
@@ -466,10 +480,26 @@ export function ReplayPlayer({
           aria-controls="replay-annotations"
           onClick={() => {
             setHistoryOpen(false);
+            setAnalysisOpen(false);
             setAnnotationsOpen((open) => !open);
           }}
         >
           <Icons.Bookmark size={20} />
+        </button>
+        <button
+          type="button"
+          className="replay-player__tool"
+          aria-label={t("replayAnalysis.toggle")}
+          title={t("replayAnalysis.toggle")}
+          aria-expanded={analysisOpen}
+          aria-controls="replay-analysis"
+          onClick={() => {
+            setHistoryOpen(false);
+            setAnnotationsOpen(false);
+            setAnalysisOpen((open) => !open);
+          }}
+        >
+          <ChartLine size={20} aria-hidden="true" />
         </button>
         <button
           type="button"

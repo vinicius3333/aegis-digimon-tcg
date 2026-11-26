@@ -50,6 +50,8 @@ import { useCardViewer3dEnabled } from "@/game/overlay/viewer/cardViewer3d/useCa
 import { setChatSoundEnabled, useChatSoundEnabled } from "../game/chat/chatSound";
 import { setMatchChatEnabled } from "@/game/chat/matchChatEnabled/setMatchChatEnabled";
 import { useMatchChatEnabled } from "@/game/chat/matchChatEnabled/useMatchChatEnabled";
+import { setEffectOrderEnabled } from "@/game/effectOrder/effectOrderEnabled/setEffectOrderEnabled";
+import { useEffectOrderEnabled } from "@/game/effectOrder/effectOrderEnabled/useEffectOrderEnabled";
 import { CardSleevePicker, EggSleevePicker } from "../design/sleevePicker";
 import { TEXT_SCALES, setTextScale, useTextScale, type TextScale } from "../design/textScale";
 import { SEQUENTIAL_PACING_ENABLED } from "../features";
@@ -316,6 +318,7 @@ export function Settings({
   const cardViewer3d = useCardViewer3dEnabled();
   const chatSoundEnabled = useChatSoundEnabled();
   const matchChatEnabled = useMatchChatEnabled();
+  const effectOrderEnabled = useEffectOrderEnabled();
   const handAutoSort = useHandAutoSort();
   const effectPromptPosition = useEffectPromptPosition();
   const noticeDuration = useNoticeDuration();
@@ -737,6 +740,14 @@ export function Settings({
                   label={t("chat.enabled")}
                   description={t("chat.enabledDesc")}
                   onChange={setMatchChatEnabled}
+                />
+              </div>
+              <div className="settings-row" data-testid="settings-effect-order">
+                <Switch
+                  checked={effectOrderEnabled}
+                  label={t("effectOrder.option")}
+                  description={t("effectOrder.optionHint")}
+                  onChange={setEffectOrderEnabled}
                 />
               </div>
               <div className="settings-row">

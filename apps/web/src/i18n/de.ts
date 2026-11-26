@@ -12,7 +12,9 @@ import { tournamentDetailDe } from "@/i18n/tournamentDetail.de";
 import { tournamentSpectatorsDe } from "@/i18n/tournamentSpectators.de";
 import { publicReplaysDe } from "@/i18n/publicReplays.de";
 import { replayAnnotationsDe } from "@/i18n/replayAnnotations.de";
+import { replayAnalysisDe } from "@/i18n/replayAnalysis.de";
 import { achievementsDe } from "@/i18n/achievements.de";
+import { effectOrderDe } from "@/i18n/effectOrder.de";
 import { rankedDe } from "@/i18n/ranked.de";
 import { friendsEn } from "@/i18n/friends.en";
 import { advancedBattlesDe } from "@/i18n/learn/advancedBattles.de";
@@ -2849,6 +2851,15 @@ const interfaceMessages = {
   "community.meta.usage": "Anteil",
   "community.meta.versus": "{deck} gegen {opponent}",
   "community.meta.openRanked": "Gewertete Statistiken öffnen",
+  "community.counters.title": "Meta-Konter",
+  "community.counters.description":
+    "Gewertete Partien der letzten 4 Wochen · die Decks, die jedes beliebte Deck am häufigsten schlagen",
+  "community.counters.share": "{share} der gespielten Decks",
+  "community.counters.against": "Konter gegen {deck}",
+  "community.counters.sample": "{games} Partien · {players} Spieler · wahrscheinlich {low}–{high}",
+  "community.counters.none": "Noch kein Deck hat mit genug Partien eine positive Bilanz gegen dieses Deck.",
+  "community.counters.method":
+    "Ein Konter braucht 30 Partien von 10 verschiedenen Spielern und muss mehr als die Hälfte gewinnen. Der wahrscheinliche Bereich ist das 95-%-Konfidenzintervall; sortiert wird nach seiner Untergrenze.",
   "community.trending.title": "Diese Woche angesagt",
   "community.roadmap.lanes": "Roadmap-Spalten",
   "community.moderation.declined": "Prüfung abgelehnt. Das Deck bleibt ausgeblendet.",
@@ -3092,6 +3103,7 @@ const interfaceMessages = {
   ...tournamentSpectatorsDe,
   ...publicReplaysDe,
   ...replayAnnotationsDe,
+  ...replayAnalysisDe,
   ...tournamentCircuitsDe,
   ...tournamentOfficialRequestDe,
   ...matchQueueDe,
@@ -3101,6 +3113,7 @@ const interfaceMessages = {
   ...matchIntroDe,
   ...staffRolesDe,
   ...achievementsDe,
+  ...effectOrderDe,
   "profile.filter.deck": "Deck",
   "profile.filter.allDecks": "Alle Decks",
   "profile.deckStats.total": "Deck-Siegquote",

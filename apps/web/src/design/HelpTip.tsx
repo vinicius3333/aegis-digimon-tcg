@@ -3,9 +3,9 @@ import { useRef, useState, type ReactNode } from "react";
 import { Popover } from "radix-ui";
 import { Icons } from "@/design/icons";
 
-type Props = { label: string; children: ReactNode };
+type Props = { label: string; children: ReactNode; trigger?: ReactNode; triggerClassName?: string };
 
-export function HelpTip({ label, children }: Props) {
+export function HelpTip({ label, children, trigger, triggerClassName }: Props) {
   const [open, setOpen] = useState(false);
   const [pinned, setPinned] = useState(false);
   const pointerPressed = useRef(false);
@@ -28,7 +28,7 @@ export function HelpTip({ label, children }: Props) {
       <Popover.Trigger asChild>
         <button
           type="button"
-          className="aegis-help-tip"
+          className={triggerClassName ?? "aegis-help-tip"}
           aria-label={label}
           onPointerDown={() => {
             pointerPressed.current = true;
@@ -63,7 +63,7 @@ export function HelpTip({ label, children }: Props) {
             }
           }}
         >
-          <Icons.CircleHelp size={16} />
+          {trigger ?? <Icons.CircleHelp size={16} />}
         </button>
       </Popover.Trigger>
       <Popover.Portal>

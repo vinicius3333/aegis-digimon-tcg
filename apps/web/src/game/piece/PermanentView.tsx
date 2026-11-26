@@ -31,6 +31,8 @@ import { PermanentBlockerBadge } from "./PermanentBlockerBadge";
 import { PermanentCardStack } from "./PermanentCardStack";
 import { COPY_EDGE_STEP, copyEdgeCount, PermanentCopiesBadge, PermanentCopyEdges } from "./PermanentCopies";
 import { PermanentFateBadge } from "./PermanentFateBadge";
+import { PermanentEffectOrderBadges } from "@/game/piece/PermanentEffectOrderBadges";
+import type { EffectQueueEntry } from "@aegis/shared/protocol/EffectQueueEntry";
 import { PermanentKeywordBadges } from "./PermanentKeywordBadges";
 import { PermanentLinkedCards } from "./PermanentLinkedCards";
 import { PermanentRestrictionBadges } from "./PermanentRestrictionBadges";
@@ -60,6 +62,7 @@ function PermanentViewBody({
   burst,
   pending,
   fate,
+  effectOrder,
   shake,
   claw,
   dpPulse,
@@ -102,6 +105,7 @@ function PermanentViewBody({
   compact?: boolean;
   /** What an effect currently resolving is about to do to this permanent (server-projected). */
   fate?: PendingFateBadge;
+  effectOrder?: readonly EffectQueueEntry[];
   /** Shake the card: a refused action, or a battle it just lost. */
   shake?: boolean;
   /** Sweep the claw across the card, on the losing side of a battle. */
@@ -420,6 +424,7 @@ function PermanentViewBody({
       {copies > 1 ? <PermanentCopiesBadge copies={copies} /> : null}
       {blocker ? <PermanentBlockerBadge /> : null}
       {fate ? <PermanentFateBadge fate={fate} /> : null}
+      {effectOrder?.length ? <PermanentEffectOrderBadges entries={effectOrder} /> : null}
       {activeKeywords.length > 0 || annotations.length > 0 ? (
         <PermanentKeywordBadges
           keywords={activeKeywords}

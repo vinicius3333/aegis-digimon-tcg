@@ -1,5 +1,6 @@
 import type { DeckStatsWindow } from "#shared/decks/DeckStatsWindow";
 import type { ReplayDecks } from "#shared/replays/ReplayDeck";
+import type { ReplayDecisionPoint } from "#shared/replays/analysis/ReplayDecisionPoint";
 import type { DeckPerformanceRecord } from "#shared/decks/DeckPerformanceRecord";
 import type { DeckHistoryDetails } from "#shared/decks/DeckHistoryDetails";
 import type { ReplayViewerSeat } from "#shared/replays/ReplayViewerSeat";
@@ -146,6 +147,8 @@ export interface ReplaySummary {
 /** Completed participant recording; visibleHandSeats declares the hands included in the file. */
 export interface MatchReplay extends ReplaySummary {
   decks?: ReplayDecks;
+  decisions?: ReplayDecisionPoint[];
+  advantage?: number[];
   format: "aegis-replay";
   version: typeof REPLAY_FORMAT_VERSION | typeof FULL_FRAME_REPLAY_VERSION;
   frames: ReplayFrame[];

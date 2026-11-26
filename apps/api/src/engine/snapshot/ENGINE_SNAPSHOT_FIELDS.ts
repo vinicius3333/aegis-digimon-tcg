@@ -43,6 +43,7 @@ export const ENGINE_SNAPSHOT_FIELDS = new Set([
   "deferredSecurityRemovalTriggers",
   "flushingDeferredSecurityRemovalTriggers",
   "pendingEffectReaders",
+  "effectQueueReaders",
   "deferredTimingWindows",
   "flushingDeferredTimingWindows",
   "pendingPlayReducerPlacements",

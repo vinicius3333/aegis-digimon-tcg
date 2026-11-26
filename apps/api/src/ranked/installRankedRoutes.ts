@@ -7,12 +7,13 @@ import type { AccountStore, AuthSession } from "#api/accounts/AccountStore";
 import { RankedStore } from "#api/ranked/RankedStore";
 import { RankedMetaStore } from "#api/ranked/RankedMetaStore";
 import { RankedSeasonStore } from "#api/ranked/RankedSeasonStore";
+import { getRankedMetaCounters } from "#api/ranked/getRankedMetaCounters";
 import { RankedRewardStore } from "#api/ranked/RankedRewardStore";
 import { RankedReportStore } from "#api/ranked/RankedReportStore";
 import type { ReplayCapturer } from "#api/bugs/replayCapture";
 import { getRankedConfig } from "#api/ranked/getRankedConfig";
 import { RankedRegion } from "@aegis/shared/ranked/RankedRegion";
-import { isDeckFormat } from "@aegis/shared/deckFormat";
+import { isDeckFormat, type DeckFormat } from "@aegis/shared/deckFormat";
 import { ROOM_TYPE_RANKED } from "@aegis/shared/protocol/messages";
 import { isRankedReportRuling } from "@aegis/shared/ranked/isRankedReportRuling";
 import { MAX_RANKED_REPORT_DESCRIPTION, MAX_RANKED_REPORT_TURN } from "@aegis/shared/ranked/rankedReportLimits";
@@ -25,6 +26,8 @@ type Params = {
   reports?: RankedReportStore;
   replayCapture?: ReplayCapturer;
 };
+
+type PeriodFilter = { format: DeckFormat; origin: string; from: number; until: number; region?: RankedRegion };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -254,36 +257,25 @@ export function installRankedRoutes({
   app.get(
     "/ranked/matchups",
     handle(async (req, res) => {
-      const format = req.query.format ?? "standard";
-      const origin = req.query.origin ?? "ranked";
+      const filter = getPeriodFilter(req.query);
       const page = Number(req.query.page ?? 1);
-      const from = Number(req.query.from ?? Date.now() - 56 * 86_400_000);
-      const until = Number(req.query.until ?? Date.now());
-      if (
-        !isDeckFormat(format) ||
-        !["ranked", "tournament"].includes(String(origin)) ||
-        !Number.isSafeInteger(page) ||
-        page < 1 ||
-        page > 10000 ||
-        !Number.isSafeInteger(from) ||
-        !Number.isSafeInteger(until) ||
-        from < 0 ||
-        until <= from ||
-        (req.query.region !== undefined && !isRegion(req.query.region))
-      ) {
+      if (!filter || !Number.isSafeInteger(page) || page < 1 || page > 10000) {
         res.status(400).json({ error: "ranked_invalid_filter" });
         return;
       }
-      res.json(
-        await seasons.getMatchups({
-          format,
-          origin: String(origin),
-          page,
-          from,
-          until,
-          region: req.query.region as string | undefined,
-        }),
-      );
+      res.json(await seasons.getMatchups({ ...filter, page }));
+    }),
+  );
+  app.get(
+    "/ranked/counters",
+    handle(async (req, res) => {
+      const filter = getPeriodFilter(req.query);
+      if (!filter) {
+        res.status(400).json({ error: "ranked_invalid_filter" });
+        return;
+      }
+      await accounts.ensureReady();
+      res.json(await getRankedMetaCounters({ db: accounts.pool, ...filter }));
     }),
   );
   for (const [method, path] of [
@@ -357,6 +349,26 @@ export function installRankedRoutes({
       }),
     );
   }
+}
+
+function getPeriodFilter(query: Request["query"]): PeriodFilter | undefined {
+  const format = query.format ?? "standard";
+  const origin = String(query.origin ?? "ranked");
+  const from = Number(query.from ?? Date.now() - 56 * 86_400_000);
+  const until = Number(query.until ?? Date.now());
+  const region = query.region;
+  if (
+    !isDeckFormat(format) ||
+    !["ranked", "tournament"].includes(origin) ||
+    !Number.isSafeInteger(from) ||
+    !Number.isSafeInteger(until) ||
+    from < 0 ||
+    until <= from ||
+    (region !== undefined && !isRegion(region))
+  ) {
+    return undefined;
+  }
+  return { format, origin, from, until, region };
 }
 
 function isRegion(value: unknown): value is RankedRegion {

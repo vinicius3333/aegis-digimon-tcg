@@ -12,7 +12,9 @@ import { tournamentDetailEn } from "@/i18n/tournamentDetail.en";
 import { tournamentSpectatorsEn } from "@/i18n/tournamentSpectators.en";
 import { publicReplaysEn } from "@/i18n/publicReplays.en";
 import { replayAnnotationsEn } from "@/i18n/replayAnnotations.en";
+import { replayAnalysisEn } from "@/i18n/replayAnalysis.en";
 import { achievementsEn } from "@/i18n/achievements.en";
+import { effectOrderEn } from "@/i18n/effectOrder.en";
 import { rankedEn } from "@/i18n/ranked.en";
 import { friendsEn } from "@/i18n/friends.en";
 import { advancedBattlesEn } from "@/i18n/learn/advancedBattles.en";
@@ -2261,6 +2263,7 @@ export const en = {
   ...tournamentSpectatorsEn,
   ...publicReplaysEn,
   ...replayAnnotationsEn,
+  ...replayAnalysisEn,
   ...tournamentCircuitsEn,
   ...tournamentOfficialRequestEn,
   ...matchQueueEn,
@@ -2270,6 +2273,7 @@ export const en = {
   ...matchIntroEn,
   ...staffRolesEn,
   ...achievementsEn,
+  ...effectOrderEn,
   ...learnEn,
   ...learnLessonsEn,
   ...learnDrillsEn,

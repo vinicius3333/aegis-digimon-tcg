@@ -60,6 +60,7 @@ describe("ranked route boundaries", () => {
       ["GET", "/ranked/leaderboard"],
       ["GET", "/ranked/meta?season=1"],
       ["GET", "/ranked/matchups"],
+      ["GET", "/ranked/counters"],
       ["GET", "/ranked/players/00000000-0000-4000-8000-000000000001/decks?season=1"],
       ["GET", "/ranked/reports"],
       ["GET", "/ranked/rewards"],
@@ -115,6 +116,9 @@ describe("ranked route boundaries", () => {
       "/ranked/leaderboard?page=NaN",
       "/ranked/matchups?origin=casual",
       "/ranked/matchups?from=10&until=1",
+      "/ranked/counters?origin=casual",
+      "/ranked/counters?region=constructor",
+      "/ranked/counters?from=10&until=1",
     ]) {
       expect((await fetch(`${base}${path}`)).status).toBe(400);
     }
@@ -187,4 +191,10 @@ it("hides a player's ranked decks from everyone but the owner when the owner opt
   const own = await send(path, "GET");
   expect(own.status).toBe(200);
   expect(await own.json()).toEqual([]);
+});
+
+it("serves meta counters without a session", async () => {
+  const response = await send("/ranked/counters?format=standard&origin=ranked&from=0&until=1000", "GET");
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual([]);
 });

@@ -7,6 +7,7 @@ import type { Side } from "../side";
 import type { DpPulse } from "../dpPulse";
 import type { FreezePulse } from "../freezePulse";
 import type { PendingFateBadge } from "../pendingFate";
+import type { EffectQueueEntry } from "@aegis/shared/protocol/EffectQueueEntry";
 import type { PermanentBurst } from "../showcases";
 import type { TrackingArrow } from "../trackingArrow";
 import type { AttackArrowClock } from "../attackArrowClock";
@@ -104,6 +105,7 @@ export interface PermanentChrome {
   permanentBursts: ReadonlyMap<string, PermanentBurst>;
   pendingPermanentIds: ReadonlySet<string>;
   fateBadges: ReadonlyMap<string, PendingFateBadge>;
+  effectOrder?: ReadonlyMap<string, readonly EffectQueueEntry[]>;
   combatImpactIds: ReadonlySet<string>;
   dpPulses: ReadonlyMap<string, DpPulse>;
   dpBadgeSuppressedIds: ReadonlySet<string>;

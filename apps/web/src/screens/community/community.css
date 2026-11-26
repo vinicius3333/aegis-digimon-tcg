@@ -1230,3 +1230,86 @@ button.community-report-link:hover {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.community-counters,
+.community-counters__list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.community-counters__deck {
+  display: grid;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-3) 0;
+  border-top: 1px solid var(--ds-line);
+}
+
+.community-counters__deck:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.community-counters__list,
+.community-counters__none {
+  margin-left: calc(2.5rem + var(--ds-space-3));
+}
+
+.community-counters__none {
+  font-size: 12px;
+}
+
+.community-counter {
+  display: grid;
+  grid-template-areas:
+    "name band rate verdict"
+    "sample sample sample sample";
+  grid-template-columns: minmax(0, 1fr) 96px 48px 72px;
+  align-items: center;
+  gap: 2px 12px;
+  padding: 6px 0;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.community-counter__name {
+  grid-area: name;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.community-counter .deck-win-band {
+  grid-area: band;
+}
+
+.community-counter .community-winrate {
+  grid-area: rate;
+  text-align: right;
+}
+
+.community-counter .deck-matchup__verdict-chip {
+  grid-area: verdict;
+}
+
+.community-counter__sample {
+  grid-area: sample;
+  color: var(--ds-text-3);
+  font-size: 12px;
+}
+
+@container page (max-width: 520px) {
+  .community-counters__list,
+  .community-counters__none {
+    margin-left: 0;
+  }
+
+  .community-counter {
+    grid-template-areas:
+      "name rate verdict"
+      "band band band"
+      "sample sample sample";
+    grid-template-columns: minmax(0, 1fr) 48px auto;
+    row-gap: 6px;
+  }
+}

@@ -12,7 +12,9 @@ import { tournamentDetailEs } from "@/i18n/tournamentDetail.es";
 import { tournamentSpectatorsEs } from "@/i18n/tournamentSpectators.es";
 import { publicReplaysEs } from "@/i18n/publicReplays.es";
 import { replayAnnotationsEs } from "@/i18n/replayAnnotations.es";
+import { replayAnalysisEs } from "@/i18n/replayAnalysis.es";
 import { achievementsEs } from "@/i18n/achievements.es";
+import { effectOrderEs } from "@/i18n/effectOrder.es";
 import { rankedEs } from "@/i18n/ranked.es";
 import { friendsEs } from "@/i18n/friends.es";
 import { advancedBattlesEs } from "@/i18n/learn/advancedBattles.es";
@@ -2363,6 +2365,15 @@ export const es: Record<keyof typeof en, string> = {
   "community.meta.usage": "Uso",
   "community.meta.versus": "{deck} vs {opponent}",
   "community.meta.openRanked": "Abrir estadísticas clasificatorias",
+  "community.counters.title": "Counters del meta",
+  "community.counters.description":
+    "Partidas clasificatorias de las últimas 4 semanas · los decks que más ganan a cada deck popular",
+  "community.counters.share": "{share} de los decks jugados",
+  "community.counters.against": "Counters de {deck}",
+  "community.counters.sample": "{games} partidas · {players} jugadores · probable {low}–{high}",
+  "community.counters.none": "Ningún deck tiene récord ganador contra este con suficientes partidas.",
+  "community.counters.method":
+    "Un counter necesita 30 partidas de 10 jugadores distintos y debe ganar más de la mitad. El rango probable es el intervalo de confianza del 95%; el orden usa su límite inferior.",
   "community.trending.title": "Tendencia esta semana",
   "community.roadmap.lanes": "Columnas de la hoja de ruta",
   "community.moderation.declined": "Revisión rechazada. El deck sigue oculto.",
@@ -2478,6 +2489,7 @@ export const es: Record<keyof typeof en, string> = {
   ...tournamentSpectatorsEs,
   ...publicReplaysEs,
   ...replayAnnotationsEs,
+  ...replayAnalysisEs,
   ...tournamentCircuitsEs,
   ...tournamentOfficialRequestEs,
   ...matchQueueEs,
@@ -2487,6 +2499,7 @@ export const es: Record<keyof typeof en, string> = {
   ...matchIntroEs,
   ...staffRolesEs,
   ...achievementsEs,
+  ...effectOrderEs,
   ...learnEs,
   ...learnDrillsEs,
   ...battleLessonsEs,

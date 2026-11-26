@@ -12,7 +12,9 @@ import { tournamentDetailZhCN } from "@/i18n/tournamentDetail.zh-CN";
 import { tournamentSpectatorsZhCN } from "@/i18n/tournamentSpectators.zh-CN";
 import { publicReplaysZhCN } from "@/i18n/publicReplays.zh-CN";
 import { replayAnnotationsZhCN } from "@/i18n/replayAnnotations.zh-CN";
+import { replayAnalysisZhCN } from "@/i18n/replayAnalysis.zh-CN";
 import { achievementsZhCn } from "@/i18n/achievements.zh-CN";
+import { effectOrderZhCn } from "@/i18n/effectOrder.zh-CN";
 import { rankedZhCn } from "@/i18n/ranked.zh-CN";
 import { friendsEn } from "@/i18n/friends.en";
 import { getChineseLearnDictionary } from "@/i18n/learn/getChineseLearnDictionary";
@@ -2670,6 +2672,14 @@ const interfaceMessages = {
   "community.meta.usage": "使用率",
   "community.meta.versus": "{deck} 对 {opponent}",
   "community.meta.openRanked": "打开排位统计",
+  "community.counters.title": "环境克制卡组",
+  "community.counters.description": "最近 4 周排位对局 · 对每个热门卡组胜率最高的卡组",
+  "community.counters.share": "使用率 {share}",
+  "community.counters.against": "克制 {deck} 的卡组",
+  "community.counters.sample": "{games} 场 · {players} 名玩家 · 可能 {low}–{high}",
+  "community.counters.none": "尚无卡组在足够场次下对它保持胜势。",
+  "community.counters.method":
+    "克制卡组需来自 10 名不同玩家的 30 场以上对局，且胜场过半。可能范围为 95% 置信区间，并按其下限排序。",
   "community.trending.title": "本周热门",
   "community.roadmap.lanes": "路线图栏目",
   "community.moderation.declined": "已拒绝审核。卡组仍保持隐藏。",
@@ -2892,6 +2902,7 @@ const interfaceMessages = {
   ...tournamentSpectatorsZhCN,
   ...publicReplaysZhCN,
   ...replayAnnotationsZhCN,
+  ...replayAnalysisZhCN,
   ...tournamentCircuitsZhCN,
   ...tournamentOfficialRequestZhCN,
   ...matchQueueZhCN,
@@ -2901,6 +2912,7 @@ const interfaceMessages = {
   ...matchIntroZhCN,
   ...staffRolesZhCN,
   ...achievementsZhCn,
+  ...effectOrderZhCn,
   "profile.filter.deck": "卡组",
   "profile.filter.allDecks": "所有卡组",
   "profile.deckStats.total": "卡组胜率",

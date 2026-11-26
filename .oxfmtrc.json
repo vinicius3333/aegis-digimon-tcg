@@ -11,6 +11,7 @@
     "data/kb/qa.json",
     "data/kb/rules-index.json",
     "data/kb/rules/comprehensive.md",
-    "packages/shared/src/effects/effects.json"
+    "packages/shared/src/effects/effects.json",
+    "apps/web/src/game/rulings/data/**"
   ]
 }

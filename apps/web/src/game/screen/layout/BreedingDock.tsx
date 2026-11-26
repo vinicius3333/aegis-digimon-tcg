@@ -8,6 +8,7 @@ import { ArenaInputRegion } from "@/game/input/ArenaInputRegion";
    thing. */
 
 import type { Permanent } from "@aegis/shared";
+import type { EffectQueueEntry } from "@aegis/shared/protocol/EffectQueueEntry";
 import { useTranslation } from "../../../i18n";
 import { BreedingSlot, Pile, type DropAttrs } from "../../piece";
 import type { PermanentBurst } from "../../showcases";
@@ -22,6 +23,7 @@ export function BreedingDock({
   effectSource,
   effectLinked,
   highlight,
+  effectOrder,
   eggDeckRiffling,
   actionsOpen,
   canHatchEgg,
@@ -43,6 +45,7 @@ export function BreedingDock({
   effectSource: boolean;
   effectLinked: boolean;
   highlight: boolean;
+  effectOrder?: readonly EffectQueueEntry[];
   eggDeckRiffling: boolean | number;
   /** The breeding step is open and nothing is holding the board, so the dock answers. */
   actionsOpen: boolean;
@@ -106,6 +109,7 @@ export function BreedingDock({
             effectSource={effectSource}
             effectLinked={effectLinked}
             highlight={highlight}
+            effectOrder={effectOrder}
             // On a phone the dock is a row above the hand; a smaller slot gives
             // its height back to the battle rows while staying a 44px+ target.
             width={pileWidth}

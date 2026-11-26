@@ -66,6 +66,8 @@ import { NarrationStack } from "../../NarrationStack";
 import { AttackAnnouncementBanner } from "../../SidePanelStack";
 import { TargetingSpotlight } from "../../TargetingSpotlight";
 import { EffectFocus } from "../../EffectFocus";
+import { EffectOrderPanel } from "@/game/effectOrder/EffectOrderPanel";
+import type { EffectQueueEntry } from "@aegis/shared/protocol/EffectQueueEntry";
 import { trashEffectCardFromSources, type EffectActivation } from "../../effectSource";
 import { BATTLE_TIMING_STYLE } from "../../timings";
 import { shieldSecurityCount } from "../../securityClash";
@@ -238,6 +240,7 @@ export function BoardStage({
   onInspectPermanent,
   onOpenCard,
   promptSourceCardId,
+  effectQueue,
   onResetScenario,
   timeWarning,
 }: {
@@ -248,6 +251,7 @@ export function BoardStage({
   viewerSeat: Seat;
   /** The card whose effect the viewer's open decision is about. */
   promptSourceCardId?: string | undefined;
+  effectQueue: readonly EffectQueueEntry[];
   spectating?: boolean;
   replayMode?: boolean;
   onLeaveSpectator?: () => void;
@@ -525,6 +529,11 @@ export function BoardStage({
       breedingHighlight={
         !!breedingOpponent.breeding &&
         chrome.permanentChrome.decisionHighlightPermanentId === breedingOpponent.breeding.permanentId
+      }
+      breedingEffectOrder={
+        breedingOpponent.breeding
+          ? chrome.permanentChrome.effectOrder?.get(breedingOpponent.breeding.permanentId)
+          : undefined
       }
       securityCount={opponentSecurityCount}
       securityBreak={cues.securityBreak}
@@ -844,6 +853,8 @@ export function BoardStage({
             permanents={anchors.permanents}
             choosingTargets={targeting.spotlight.open}
           />
+
+          <EffectOrderPanel entries={effectQueue} viewerSeat={viewerSeat} />
 
           <div
             className="game-field"

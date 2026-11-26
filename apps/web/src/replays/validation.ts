@@ -11,6 +11,10 @@ import {
 } from "@aegis/shared";
 import { ManualStatus } from "@aegis/shared/manual/ManualStatus";
 import { ManualCombatStage } from "@aegis/shared/manual/ManualCombatStage";
+import { ReplayDecisionAction } from "@aegis/shared/replays/analysis/ReplayDecisionAction";
+import { ReplayDecisionContext } from "@aegis/shared/replays/analysis/ReplayDecisionContext";
+import { ReplayDecisionQuality } from "@aegis/shared/replays/analysis/ReplayDecisionQuality";
+import { ReplayEvaluationFactor } from "@aegis/shared/replays/analysis/ReplayEvaluationFactor";
 import { Phase, Zone } from "@aegis/shared/schema/enums";
 import { validReplayEvent } from "./eventValidation";
 
@@ -202,6 +206,102 @@ function isValidPlayer(value: unknown, index: number): boolean {
   );
 }
 
+function optional(value: unknown, check: (item: unknown) => boolean): boolean {
+  return value === undefined || check(value);
+}
+
+function probability(value: unknown): boolean {
+  return number(value) && value >= 0 && value <= 1;
+}
+
+const ROLLOUT_FACTS = ["ownSecurity", "opponentSecurity", "ownDigimon", "opponentDigimon", "ownHand", "memory"];
+
+function isValidFactors(value: unknown): boolean {
+  return (
+    record(value) &&
+    Object.entries(value).every(
+      ([key, item]) => Object.values(ReplayEvaluationFactor).some((entry) => entry.value === key) && number(item),
+    )
+  );
+}
+
+function isValidFacts(value: unknown): boolean {
+  return (
+    record(value) &&
+    Object.keys(value).length === ROLLOUT_FACTS.length &&
+    ROLLOUT_FACTS.every((key) => number(value[key]))
+  );
+}
+
+function isValidDecisionOption(value: unknown): boolean {
+  return (
+    record(value) &&
+    Object.values(ReplayDecisionAction).some((entry) => entry.value === value.action) &&
+    optional(value.cardId, string) &&
+    optional(value.targetCardId, string) &&
+    optional(value.cost, number) &&
+    optional(value.text, string) &&
+    optional(value.value, probability) &&
+    optional(value.margin, probability) &&
+    optional(value.samples, (samples) => Number.isInteger(samples) && (samples as number) >= 0) &&
+    optional(value.factors, isValidFactors) &&
+    optional(value.facts, isValidFacts)
+  );
+}
+
+type DecisionPointParams = { value: unknown; frameCount: number };
+
+function isValidDecisionPoint({ value, frameCount }: DecisionPointParams): boolean {
+  if (
+    !record(value) ||
+    !Number.isInteger(value.frameIndex) ||
+    (value.frameIndex as number) < 0 ||
+    (value.frameIndex as number) >= frameCount ||
+    !Number.isInteger(value.inputIndex) ||
+    !seat(value.seat) ||
+    !Number.isInteger(value.turn) ||
+    !Object.values(ReplayDecisionContext).some((entry) => entry.value === value.context) ||
+    !optional(value.sourceCardId, string) ||
+    !optional(value.prompt, string) ||
+    !array(value.options, isValidDecisionOption)
+  ) {
+    return false;
+  }
+  const options = value.options as unknown[];
+  const position = (item: unknown) =>
+    Number.isInteger(item) && (item as number) >= 0 && (item as number) < options.length;
+  return (
+    array(value.chosen, position) &&
+    optional(value.bestOption, position) &&
+    optional(value.loss, probability) &&
+    optional(value.lossMargin, (margin) => number(margin) && margin >= 0) &&
+    optional(value.quality, (quality) => Object.values(ReplayDecisionQuality).some((entry) => entry.value === quality))
+  );
+}
+
+function isValidReplayAdvantage(value: RecordValue): boolean {
+  const advantage = value.advantage;
+  return (
+    advantage === undefined ||
+    (Array.isArray(advantage) &&
+      advantage.length === (value.frames as unknown[]).length &&
+      advantage.every(probability))
+  );
+}
+
+function isValidReplayDecisions(value: RecordValue): boolean {
+  const decisions = value.decisions;
+  if (decisions === undefined) {
+    return true;
+  }
+  const frameCount = (value.frames as unknown[]).length;
+  return (
+    Array.isArray(decisions) &&
+    decisions.length <= MAX_REPLAY_FRAMES &&
+    decisions.every((decision) => isValidDecisionPoint({ value: decision, frameCount }))
+  );
+}
+
 function isValidReplayDeckMetadata(value: RecordValue): boolean {
   const icons = value.deckIcons;
   if (
@@ -270,7 +370,9 @@ function isValidReplay(value: unknown): value is MatchReplay {
     !Array.isArray(value.frames) ||
     value.frames.length === 0 ||
     value.frames.length > MAX_REPLAY_FRAMES ||
-    value.frameCount !== value.frames.length
+    value.frameCount !== value.frames.length ||
+    !isValidReplayDecisions(value) ||
+    !isValidReplayAdvantage(value)
   )
     return false;
   let previousTime = -1;

@@ -10,6 +10,8 @@ import { act, cleanup, fireEvent, render, screen, within, waitFor } from "@testi
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { Lobby, randomDeckPool } from "./Lobby";
+import { GameMode } from "@aegis/shared/manual/GameMode";
+import { setEffectOrderEnabled } from "@/game/effectOrder/effectOrderEnabled/setEffectOrderEnabled";
 import { deckHasBetaCards } from "@/screens/deckHasBetaCards";
 import { DECKS } from "../game/decks";
 import { FAMOUS_DECKS, FAMOUS_DECK_GROUPS } from "../game/famousDecks";
@@ -750,6 +752,45 @@ describe("optional match timer configuration", () => {
     expect(screen.getByText("The host sets the format and timer for both players.")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
     expect(screen.queryByRole("switch", { name: "Match timer" })).toBeNull();
+  });
+});
+
+describe("effect order and rulings option", () => {
+  afterEach(() => {
+    setEffectOrderEnabled(false);
+    localStorage.clear();
+  });
+
+  it("sits in the match rules in every mode, manual included, and is off until the player turns it on", () => {
+    const lobby = (gameMode: GameMode) => (
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={DECKS}
+          activeDeckId={DECKS[0]!.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={() => undefined}
+          gameMode={gameMode}
+        />
+      </I18nProvider>
+    );
+    const { rerender } = renderConfiguredLobby(lobby(GameMode.AUTOMATIC.value));
+    const option = () => screen.getByRole("switch", { name: "Effect order and rulings" });
+    expect(option().closest(".lobby-match-rules")).not.toBeNull();
+    expect(option().getAttribute("aria-checked")).toBe("false");
+    expect(option().getAttribute("aria-describedby")).toBeTruthy();
+    fireEvent.click(option());
+    expect(option().getAttribute("aria-checked")).toBe("true");
+    expect(localStorage.getItem("aegis.effectOrder.enabled")).toBe("true");
+
+    rerender(lobby(GameMode.MANUAL.value));
+    expect(option().getAttribute("aria-checked")).toBe("true");
+    fireEvent.click(screen.getByRole("button", { name: /Private Match/ }));
+    expect(option()).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
+    expect(option()).toBeTruthy();
   });
 });
 

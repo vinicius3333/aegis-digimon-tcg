@@ -114,6 +114,7 @@ export function OpponentBattleRow({
         }
         pending={chrome.pendingPermanentIds.has(p.permanentId)}
         fate={chrome.fateBadges.get(p.permanentId)}
+        effectOrder={chrome.effectOrder?.get(p.permanentId)}
         heldSuspended={chrome.heldSuspendedIds.has(p.permanentId)}
         suspendDelayMs={chrome.suspendDelayMs(playOrder.get(p.permanentId) ?? 0)}
         onClick={onPermanentClick(p)}

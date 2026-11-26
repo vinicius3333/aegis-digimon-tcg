@@ -139,6 +139,14 @@ export const communityEn = {
   "community.meta.usage": "Usage",
   "community.meta.versus": "{deck} vs {opponent}",
   "community.meta.openRanked": "Open ranked statistics",
+  "community.counters.title": "Meta counters",
+  "community.counters.description": "Ranked games, last 4 weeks · the decks that beat each popular deck most often",
+  "community.counters.share": "{share} of decks played",
+  "community.counters.against": "Counters to {deck}",
+  "community.counters.sample": "{games} games · {players} players · likely {low}–{high}",
+  "community.counters.none": "No deck has a winning record against it with enough games yet.",
+  "community.counters.method":
+    "A counter needs 30 games from 10 different players and must win more than half of them. The likely range is the 95% confidence interval; counters are ranked by its low end.",
   "community.trending.title": "Trending this week",
   "community.roadmap.lanes": "Roadmap columns",
 } as const;

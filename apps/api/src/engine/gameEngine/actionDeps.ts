@@ -85,6 +85,9 @@ import { effectiveColorsOf } from "./matchLifecycle.js";
 import { minimumDeferredPlayCost } from "./timing/playAffordability.js";
 import { holdCostTriggers } from "#api/engine/gameEngine/holdCostTriggers";
 import { presentsAsInherited } from "#api/engine/effects/presentsAsInherited";
+import { publishEffectQueue } from "#api/engine/gameEngine/publishEffectQueue";
+import { EMPTY_EFFECT_QUEUE_JSON } from "#api/engine/gameEngine/EMPTY_EFFECT_QUEUE_JSON";
+import type { EffectQueueEntry } from "@aegis/shared/protocol/EffectQueueEntry";
 import { looseZoneOfInstance } from "../effects/verbs/looseInstances.js";
 
 /**
@@ -143,6 +146,17 @@ export function resolutionDeps(
         engine.pendingEffectReaders.delete(read);
       };
     },
+    ...(engine.searchRollout
+      ? {}
+      : {
+          registerEffectQueue: (read) => {
+            engine.effectQueueReaders.add(read);
+            return () => {
+              engine.effectQueueReaders.delete(read);
+            };
+          },
+          onEffectQueueChanged: () => publishEffectQueue({ engine }),
+        }),
     // The outermost loop settles deferred queues between effects. A nested resolver normally
     // cannot reach into the enclosing pool while its card body is still running; a settlement
     // window that starts at effect depth zero may opt into only entries added after its opening
@@ -235,6 +249,9 @@ export function resolutionDeps(
         // `securityChecked` closes the check AFTER these effects have resolved, so the
         // client needs engine to hold the announcement until the reveal has been shown.
         ...(engine.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
+        ...(engine.state.effectQueueJson === EMPTY_EFFECT_QUEUE_JSON
+          ? {}
+          : { effectQueue: JSON.parse(engine.state.effectQueueJson) as EffectQueueEntry[] }),
       });
     },
     onWithoutLegalOutcome: (timing, collected) => {

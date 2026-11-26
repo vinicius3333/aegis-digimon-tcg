@@ -12,7 +12,9 @@ import { tournamentDetailKo } from "@/i18n/tournamentDetail.ko";
 import { tournamentSpectatorsKo } from "@/i18n/tournamentSpectators.ko";
 import { publicReplaysKo } from "@/i18n/publicReplays.ko";
 import { replayAnnotationsKo } from "@/i18n/replayAnnotations.ko";
+import { replayAnalysisKo } from "@/i18n/replayAnalysis.ko";
 import { achievementsKo } from "@/i18n/achievements.ko";
+import { effectOrderKo } from "@/i18n/effectOrder.ko";
 import { rankedKo } from "@/i18n/ranked.ko";
 import { friendsEn } from "@/i18n/friends.en";
 import { advancedBattlesKo } from "@/i18n/learn/advancedBattles.ko";
@@ -2748,6 +2750,14 @@ const interfaceMessages = {
   "community.meta.usage": "사용률",
   "community.meta.versus": "{deck} vs {opponent}",
   "community.meta.openRanked": "랭크 통계 열기",
+  "community.counters.title": "메타 카운터",
+  "community.counters.description": "최근 4주 랭크 게임 · 인기 덱마다 가장 자주 이긴 덱",
+  "community.counters.share": "사용률 {share}",
+  "community.counters.against": "{deck} 카운터",
+  "community.counters.sample": "{games}게임 · {players}명 · 예상 {low}–{high}",
+  "community.counters.none": "충분한 게임 수로 이 덱에 우세한 덱이 아직 없습니다.",
+  "community.counters.method":
+    "카운터는 서로 다른 플레이어 10명의 30게임 이상과 절반을 넘는 승리가 필요합니다. 예상 범위는 95% 신뢰 구간이며, 하한 기준으로 정렬합니다.",
   "community.trending.title": "이번 주 인기",
   "community.roadmap.lanes": "로드맵 열",
   "community.moderation.declined": "검토를 거절했습니다. 덱은 계속 숨겨집니다.",
@@ -2977,6 +2987,7 @@ const interfaceMessages = {
   ...tournamentSpectatorsKo,
   ...publicReplaysKo,
   ...replayAnnotationsKo,
+  ...replayAnalysisKo,
   ...tournamentCircuitsKo,
   ...tournamentOfficialRequestKo,
   ...matchQueueKo,
@@ -2986,6 +2997,7 @@ const interfaceMessages = {
   ...matchIntroKo,
   ...staffRolesKo,
   ...achievementsKo,
+  ...effectOrderKo,
   "profile.filter.deck": "덱",
   "profile.filter.allDecks": "모든 덱",
   "profile.deckStats.total": "덱 승률",

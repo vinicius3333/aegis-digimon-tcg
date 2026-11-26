@@ -29,6 +29,13 @@ describe("parseReplayArgs", () => {
       json: false,
       export: "r.aegis-replay",
     });
+    expect(parseReplayArgs(["run", "r.json", "--export", "r.aegis-replay", "--evaluate"])).toEqual({
+      command: "run",
+      file: "r.json",
+      json: false,
+      export: "r.aegis-replay",
+      evaluate: true,
+    });
     expect(parseReplayArgs(["inputs", "r.json", "--from", "3", "--to", "9"])).toEqual({
       command: "inputs",
       file: "r.json",

@@ -141,6 +141,14 @@ export const communityPtBR: Record<keyof typeof communityEn, string> = {
   "community.meta.usage": "Uso",
   "community.meta.versus": "{deck} vs {opponent}",
   "community.meta.openRanked": "Abrir estatísticas das ranqueadas",
+  "community.counters.title": "Counters do meta",
+  "community.counters.description": "Ranqueadas das últimas 4 semanas · os decks que mais vencem cada deck popular",
+  "community.counters.share": "{share} dos decks jogados",
+  "community.counters.against": "Counters de {deck}",
+  "community.counters.sample": "{games} partidas · {players} jogadores · provável {low}–{high}",
+  "community.counters.none": "Nenhum deck tem retrospecto positivo contra ele com partidas suficientes.",
+  "community.counters.method":
+    "Um counter precisa de 30 partidas de 10 jogadores diferentes e deve vencer mais da metade delas. A faixa provável é o intervalo de confiança de 95%; a ordem usa o limite inferior.",
   "community.trending.title": "Em alta esta semana",
   "community.roadmap.lanes": "Colunas do roadmap",
 };

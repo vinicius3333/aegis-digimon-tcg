@@ -11,6 +11,7 @@
    This module is the pure half: the model and the mapping from server events.
    Card text and translation belong to NoticeStack.tsx. */
 
+import type { EffectQueueEntry } from "@aegis/shared/protocol/EffectQueueEntry";
 import { type PreventionKeyword, type Seat, type ServerEvent } from "@aegis/shared";
 import { noticeDurationScale } from "./noticeDuration";
 import { Side } from "./side";
@@ -52,6 +53,7 @@ export type NoticeBody =
       sourcePermanentId?: string;
       /** The same effect resolving this many times in a row, announced once. Absent means once. */
       count?: number;
+      effectQueue?: readonly EffectQueueEntry[];
     }
   | { variant: "deletion"; cards: readonly DeletedCard[] }
   | {
@@ -171,6 +173,7 @@ export function effectNoticeFromEvent(
       ...(event.activatedBy !== undefined ? { activatedBy: event.activatedBy } : {}),
       ...(event.sourceInstanceId ? { sourceInstanceId: event.sourceInstanceId } : {}),
       ...(event.sourcePermanentId ? { sourcePermanentId: event.sourcePermanentId } : {}),
+      ...(event.effectQueue !== undefined ? { effectQueue: event.effectQueue } : {}),
     },
     createdAt: nowMs,
   };

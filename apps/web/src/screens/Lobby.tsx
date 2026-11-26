@@ -64,6 +64,7 @@ import { DeckFormatSelector } from "@/screens/DeckFormatSelector";
 import { deckFormatLabel } from "@/screens/deckFormatLabel";
 import { MatchFormatSettings } from "./MatchFormatSettings";
 import { RollbackSettings } from "@/screens/RollbackSettings";
+import { EffectOrderSettings } from "@/game/effectOrder/EffectOrderSettings";
 import { GuestApprovalSettings } from "@/screens/GuestApprovalSettings";
 import { TurnOrderSettings } from "@/screens/TurnOrderSettings";
 import { PrivateTurnOrder } from "@aegis/shared/protocol/PrivateTurnOrder";
@@ -1183,6 +1184,7 @@ export function Lobby({
                         {gameMode !== GameMode.MANUAL.value ? (
                           <RollbackSettings enabled={allowRollback} onChange={onAllowRollbackChange ?? (() => {})} />
                         ) : null}
+                        <EffectOrderSettings />
                         {!vsBot && gameMode !== GameMode.MANUAL.value ? (
                           <>
                             <MatchFormatSettings bestOf={bestOf} onChange={changeBestOf} />

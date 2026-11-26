@@ -1,4 +1,5 @@
 import type { ContinuousIdentitySpan } from "#api/engine/gameEngine/continuousIdentities/ContinuousIdentitySpan";
+import type { EffectQueueSlot } from "#api/engine/effects/resolution/EffectQueueSlot";
 import { createInterpreterRuntimeReferences } from "#api/engine/effects/interpreter/snapshot/createInterpreterRuntimeReferences";
 import { createEngineRuntimeObjects } from "#api/engine/snapshot/context/createEngineRuntimeObjects";
 import { SnapshotContinuationRecorder } from "#api/engine/snapshot/SnapshotContinuationRecorder";
@@ -297,6 +298,7 @@ export class GameEngine {
   }> = [];
   flushingDeferredSecurityRemovalTriggers = false;
   readonly pendingEffectReaders = new Set<() => readonly CollectedEffect[]>();
+  readonly effectQueueReaders = new Set<() => readonly EffectQueueSlot[]>();
 
   /** Trigger windows created inside a resolving effect and activated only after that effect ends. */
   readonly deferredTimingWindows: Array<{

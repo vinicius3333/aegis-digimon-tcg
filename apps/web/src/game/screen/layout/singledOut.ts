@@ -10,6 +10,7 @@ export function isSingledOut(permanent: Permanent, chrome: PermanentChrome): boo
     chrome.decisionPickedInstanceIds.has(permanent.topCard.instanceId) ||
     chrome.pendingPermanentIds.has(id) ||
     chrome.permanentBursts.get(id)?.variant === "play" ||
-    chrome.fateBadges.has(id)
+    chrome.fateBadges.has(id) ||
+    chrome.effectOrder?.has(id) === true
   );
 }

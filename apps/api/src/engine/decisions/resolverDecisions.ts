@@ -6,6 +6,7 @@ import type { ResolutionPlan } from "./resolutionPlan.js";
 import { triggerKeyOf } from "./triggerKeyOf.js";
 import { log } from "../../logger.js";
 import { presentsAsInherited } from "#api/engine/effects/presentsAsInherited";
+import { isPubliclyVisibleSource } from "#api/engine/effects/isPubliclyVisibleSource";
 
 export interface ResolverDecisions {
   /**
@@ -193,11 +194,7 @@ export function createResolverDecisions(
  */
 function publicOrderEntry(collected: CollectedEffect, timing: string): ResolutionOrderEntry {
   const { source } = collected;
-  const visible =
-    source.isOnBattleArea() ||
-    source.isOnBreedingArea?.() === true ||
-    source.isInTrash?.() === true ||
-    source.isInSecurity?.() === true;
+  const visible = isPubliclyVisibleSource(source);
   return {
     ...(timing !== "" ? { timing } : {}),
     ...(visible

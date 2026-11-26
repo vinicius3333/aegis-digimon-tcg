@@ -47,6 +47,7 @@ import { BoardStage, type BoardAnchors } from "./screen/layout/BoardStage";
 import { useMatchChat } from "./chat/useMatchChat";
 import { useMatchChatWindow } from "./chat/useMatchChatWindow";
 import { useMatchChatEnabled } from "@/game/chat/matchChatEnabled/useMatchChatEnabled";
+import { useEffectOrderEnabled } from "@/game/effectOrder/effectOrderEnabled/useEffectOrderEnabled";
 import { BreedingDock } from "./screen/layout/BreedingDock";
 import { MatchOverlays } from "./screen/layout/MatchOverlays";
 
@@ -173,6 +174,9 @@ import { loadReconnectSession } from "../net/reconnectSession";
 import { pendingFateBadges } from "./pendingFate";
 import { useEffectConfirmationHold } from "./effectConfirmationHold";
 import { findEffectSourceMarks } from "@/game/effectMarks/findEffectSourceMarks";
+import { parseEffectQueue } from "@/game/effectOrder/parseEffectQueue";
+import { getPresentedEffectQueue } from "@/game/effectOrder/getPresentedEffectQueue";
+import { groupEffectQueueByPermanent } from "@/game/effectOrder/groupEffectQueueByPermanent";
 import { useFieldReferenceVisible } from "@/design/fieldReference/useFieldReferenceVisible";
 import { FieldReferenceForcedContext } from "@/design/fieldReference/FieldReferenceForcedContext";
 
@@ -404,6 +408,7 @@ function GameScreenSession({
   const viewerSeat = viewerSeatOf(state, sessionId);
   const chat = useMatchChat({ room: connectedRoom, viewerSeat, spectating });
   const matchChatEnabled = useMatchChatEnabled();
+  const effectOrderEnabled = useEffectOrderEnabled();
   const guestApproval = spectating ? undefined : getGuestApprovalView({ state, sessionId });
 
   const leaveForfeits =
@@ -1631,6 +1636,11 @@ function GameScreenSession({
     presentedStateVersion: cues.presentedStateVersion,
     viewerDecision,
   });
+  const effectQueue = effectOrderEnabled
+    ? ((cues.playbackPending ? getPresentedEffectQueue({ notices: cues.notices }) : undefined) ??
+      parseEffectQueue(shownState.effectQueueJson))
+    : parseEffectQueue(undefined);
+  const effectOrderByPermanent = groupEffectQueueByPermanent(effectQueue);
   const trashChrome = (seat: Seat): string | undefined => {
     const trash = seat === viewerSeat ? shownYou.trash : shownOpp.trash;
     const marked = trash.some((card) => effectSourceMarks.has(card.instanceId));
@@ -1687,6 +1697,7 @@ function GameScreenSession({
       effectSource={!!breedingYou.breeding && effectSourcePermanentIds.has(breedingYou.breeding.permanentId)}
       effectLinked={!!breedingYou.breeding && effectLinkedPermanentIds.has(breedingYou.breeding.permanentId)}
       highlight={!!breedingYou.breeding && decisionBreedingSourcePermanentId === breedingYou.breeding.permanentId}
+      effectOrder={breedingYou.breeding ? effectOrderByPermanent.get(breedingYou.breeding.permanentId) : undefined}
       eggDeckRiffling={deckRiffles.get(`${viewerSeat}:eggDeck`) ?? false}
       actionsOpen={breedingActionsOpen}
       canHatchEgg={canHatchEgg}
@@ -1998,6 +2009,7 @@ function GameScreenSession({
     permanentBursts,
     pendingPermanentIds,
     fateBadges,
+    effectOrder: effectOrderByPermanent,
     combatImpactIds,
     dpPulses,
     dpBadgeSuppressedIds,
@@ -2016,6 +2028,7 @@ function GameScreenSession({
       opponent={opp}
       viewerSeat={viewerSeat}
       promptSourceCardId={decision?.seat === viewerSeat ? decision.sourceCardId : undefined}
+      effectQueue={effectQueue}
       spectating={spectating}
       onLeaveSpectator={() => onExit("lobby")}
       room={spectating ? undefined : room}

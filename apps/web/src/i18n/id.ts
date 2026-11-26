@@ -12,7 +12,9 @@ import { tournamentDetailId } from "@/i18n/tournamentDetail.id";
 import { tournamentSpectatorsId } from "@/i18n/tournamentSpectators.id";
 import { publicReplaysId } from "@/i18n/publicReplays.id";
 import { replayAnnotationsId } from "@/i18n/replayAnnotations.id";
+import { replayAnalysisId } from "@/i18n/replayAnalysis.id";
 import { achievementsId } from "@/i18n/achievements.id";
+import { effectOrderId } from "@/i18n/effectOrder.id";
 import { rankedId } from "@/i18n/ranked.id";
 import { friendsEn } from "@/i18n/friends.en";
 import { advancedBattlesId } from "@/i18n/learn/advancedBattles.id";
@@ -2792,6 +2794,15 @@ const interfaceMessages = {
   "community.meta.usage": "Penggunaan",
   "community.meta.versus": "{deck} vs {opponent}",
   "community.meta.openRanked": "Buka statistik ranked",
+  "community.counters.title": "Counter meta",
+  "community.counters.description":
+    "Permainan ranked 4 minggu terakhir · deck yang paling sering mengalahkan tiap deck populer",
+  "community.counters.share": "{share} dari deck yang dimainkan",
+  "community.counters.against": "Counter untuk {deck}",
+  "community.counters.sample": "{games} permainan · {players} pemain · kemungkinan {low}–{high}",
+  "community.counters.none": "Belum ada deck dengan rekor menang melawannya dengan jumlah permainan yang cukup.",
+  "community.counters.method":
+    "Counter butuh 30 permainan dari 10 pemain berbeda dan harus menang lebih dari separuhnya. Rentang kemungkinan adalah interval kepercayaan 95%; urutan memakai batas bawahnya.",
   "community.trending.title": "Tren minggu ini",
   "community.roadmap.lanes": "Kolom roadmap",
   "community.moderation.declined": "Peninjauan ditolak. Deck tetap disembunyikan.",
@@ -3027,6 +3038,7 @@ const interfaceMessages = {
   ...tournamentSpectatorsId,
   ...publicReplaysId,
   ...replayAnnotationsId,
+  ...replayAnalysisId,
   ...tournamentCircuitsId,
   ...tournamentOfficialRequestId,
   ...matchQueueId,
@@ -3036,6 +3048,7 @@ const interfaceMessages = {
   ...matchIntroId,
   ...staffRolesId,
   ...achievementsId,
+  ...effectOrderId,
   "profile.filter.deck": "Deck",
   "profile.filter.allDecks": "Semua deck",
   "profile.deckStats.total": "Kemenangan deck",

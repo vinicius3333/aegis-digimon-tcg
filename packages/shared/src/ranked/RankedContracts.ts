@@ -64,6 +64,26 @@ export type RankedMatchup = {
   draws: number;
   winrate: number | null;
 };
+export type RankedCounter = {
+  archetype: string;
+  coverCardId: string | null;
+  colors: string[];
+  games: number;
+  pilots: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  winrate: number;
+  interval: readonly [number, number];
+};
+export type RankedMetaCounters = {
+  archetype: string;
+  coverCardId: string | null;
+  colors: string[];
+  games: number;
+  share: number;
+  counters: RankedCounter[];
+};
 export type RankedReportableGame = {
   pairId: string;
   seasonId: number;

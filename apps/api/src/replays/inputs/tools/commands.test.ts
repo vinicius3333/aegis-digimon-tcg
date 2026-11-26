@@ -142,7 +142,9 @@ describe("run", () => {
       gunzipSync(readFileSync(join(dir, "match.aegis-replay"))).toString("utf8"),
     ) as MatchReplay;
     expect(replay.format).toBe("aegis-replay");
-    expect(out).toContain(`Exported ${replay.frames.length} frames to ${join(dir, "match.aegis-replay")}`);
+    expect(out).toContain(
+      `Exported ${replay.frames.length} frames and ${replay.decisions?.length} decisions to ${join(dir, "match.aegis-replay")}`,
+    );
     expect(out).not.toContain("Ended by surrender for the viewer");
     // The summary still shows the record's own end, not the export's.
     expect(out).toContain("Divergences: none");

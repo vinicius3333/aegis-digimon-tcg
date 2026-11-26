@@ -7,6 +7,7 @@ import { useCardTranslations } from "@/i18n/useCardTranslations";
 import { getTranslatedCardName } from "@/i18n/getTranslatedCardName";
 import { getTranslatedCardMeta } from "@/i18n/getTranslatedCardMeta";
 import { EffectText } from "./EffectText";
+import { CardRulings } from "@/game/rulings/CardRulings";
 import { ArenaInspectorSourcesColumn } from "@/game/ArenaInspectorSourcesColumn";
 import { ArenaInspectorSourcesResizer } from "@/game/ArenaInspectorSourcesResizer";
 import { ArenaInspectorSourcesStrip } from "@/game/ArenaInspectorSourcesStrip";
@@ -372,6 +373,7 @@ export function ArenaPermanentInspector({
                   </p>
                 </div>
               ))}
+            <CardRulings key={detail.cardId} cardId={detail.cardId} />
           </div>
           {supporting.length > 0 && !sideSources ? (
             <ArenaInspectorSourcesStrip key={detail.cardId} cards={supporting} onZoom={onZoom} />
