@@ -2609,6 +2609,7 @@ const interfaceMessages = {
   "deckFormat.alysion": "Digimon Alysion",
   "deckFormat.alysionShort": "Alysion",
   "deckFormat.newTag": "Baru",
+  "deckFormat.alysionNoRanked": "Ranked belum tersedia di format Digimon Alysion.",
   "deckFormat.alysionHint": "Kartu Digimon Alysion: BD‑01 sampai BD‑04, ST‑1 sampai ST‑6, Story Deck, dan Entry Deck.",
   "deckFormat.game": "Game",
   "deckFormat.cardGame": "Digimon Card Game",

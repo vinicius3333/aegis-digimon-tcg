@@ -407,6 +407,7 @@ const interfaceMessages = {
   "deckFormat.alysion": "Digimon Alysion",
   "deckFormat.alysionShort": "Alysion",
   "deckFormat.newTag": "Nuovo",
+  "deckFormat.alysionNoRanked": "La modalità classificata non è ancora disponibile nel formato Digimon Alysion.",
   "deckFormat.alysionHint": "Carte di Digimon Alysion: da BD‑01 a BD‑04, da ST‑1 a ST‑6, Story Deck ed Entry Deck.",
   "deckFormat.game": "Gioco",
   "deckFormat.cardGame": "Digimon Card Game",

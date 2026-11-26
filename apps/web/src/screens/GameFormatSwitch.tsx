@@ -9,11 +9,13 @@ export function GameFormatSwitch({
   onChange,
   disabled = false,
   size = "full",
+  alysionLockedReason,
 }: {
   value: DeckFormat;
   onChange: (format: DeckFormat) => void;
   disabled?: boolean;
   size?: "full" | "compact";
+  alysionLockedReason?: string;
 }) {
   const { t } = useTranslation();
   const compact = useMediaQuery("(width < 600px)");
@@ -42,7 +44,8 @@ export function GameFormatSwitch({
         type="button"
         role="radio"
         aria-checked={alysion}
-        disabled={disabled}
+        disabled={disabled || alysionLockedReason !== undefined}
+        title={alysionLockedReason}
         className="game-format-switch__option"
         onClick={() => onChange(createDeckFormat("alysion", rules))}
       >

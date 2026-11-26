@@ -2570,6 +2570,7 @@ const interfaceMessages = {
   "deckFormat.alysion": "Digimon Alysion",
   "deckFormat.alysionShort": "Alysion",
   "deckFormat.newTag": "신규",
+  "deckFormat.alysionNoRanked": "Digimon Alysion 포맷에서는 아직 랭크를 이용할 수 없습니다.",
   "deckFormat.alysionHint": "Digimon Alysion 카드: BD‑01~BD‑04, ST‑1~ST‑6, 스토리 덱, 엔트리 덱.",
   "deckFormat.game": "게임",
   "deckFormat.cardGame": "디지몬 카드 게임",
