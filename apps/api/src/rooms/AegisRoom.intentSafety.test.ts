@@ -14,7 +14,7 @@ function makeRoom(): { room: AegisRoom; client: Client } {
   room.lock = vi.fn<() => Promise<void>>(async () => {});
   room.unlock = vi.fn<() => Promise<void>>(async () => {});
   room.setMatchmaking = vi.fn<() => Promise<void>>(async () => {});
-  room.broadcast = vi.fn(() => true) as AegisRoom["broadcast"];
+  room.broadcast = vi.fn<() => boolean>(() => true) as unknown as AegisRoom["broadcast"];
   room.onCreate({ seed: 1 });
   const client = fakeClient("session-a");
   room.clients.push(client);
