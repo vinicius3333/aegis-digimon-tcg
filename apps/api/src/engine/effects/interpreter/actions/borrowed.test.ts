@@ -57,3 +57,42 @@ it.each([
     expect(s.perm("lender").isSuspended).toBe(copied || spent);
   },
 );
+
+it("resolves a DUAL digivolution card's Option-side [Main] from its borrowed [When Digivolving]", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT10-112", as: "host", under: [{ card: "BT27-016", as: "lender" }] },
+          { card: "BT1-009", as: "payment" },
+        ],
+        deck: Array(10).fill("BT1-009"),
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-060", as: "lowest" },
+          { card: "BT1-080", as: "highest" },
+        ],
+        security: [{ card: "BT1-009", as: "topSecurity" }, "BT1-009", "BT1-009"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+  );
+  await s.ready();
+  const engine = internalsOf(s.engine);
+  const ctx = engine.buildEffectContext(engine.cardSourceOf(s.perm("host").topCard), {});
+  await runActivateForeignEffect(ctx, {
+    kind: "ActivateForeignEffect",
+    asEffectOf: "this Digimon",
+    zone: "digivolutionCards",
+    fromTriggers: ["WhenDigivolving"],
+    filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Jesmon (X Antibody)"], match: "nameExact" }] },
+    count: 1,
+  });
+
+  const opponent = s.state.players[1]!;
+  expect(opponent.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([s.inst("highest").instanceId]);
+  expect(opponent.security.map((card) => card.instanceId).at(-1)).toBe(s.inst("lowest").instanceId);
+  expect(opponent.trash.map((card) => card.instanceId)).toEqual([s.inst("topSecurity").instanceId]);
+  expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("payment").instanceId);
+});

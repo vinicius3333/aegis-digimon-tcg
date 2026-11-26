@@ -1,12 +1,16 @@
+import { alysionBanlist } from "#shared/alysion/alysionBanlist";
+import { isAlysionCard } from "#shared/alysion/isAlysionCard";
+import { appOnlyReleaseDate, appOnlySets } from "#shared/cards/appOnlySets";
 import { getLimitedCardAvailability } from "#shared/cards/getLimitedCardAvailability";
-import { banlistAsOf, BANLIST_AS_OF_DATE, bannedPairViolations } from "./banlist.js";
+import { banlistAsOf, BANLIST_AS_OF_DATE, bannedPairViolations, type BanlistEntry } from "./banlist.js";
 import { allProductLabels, releaseDateForCard, releaseDateForSet } from "./cards/cardPool.js";
 import { getCardDefinition } from "./cards/registry.js";
 
 export type HistoricalDeckSet = `${"BT" | "EX" | "ST" | "RB" | "AD"}${number}`;
+export type DeckPool = HistoricalDeckSet | "alysion";
 export type DeckRuleMode = "standard" | "unlimited" | "pauper";
 /** Pool and rules are independent. Plain set ids retain their original Standard meaning. */
-export type DeckFormat = DeckRuleMode | HistoricalDeckSet | `${HistoricalDeckSet}:${"pauper" | "unlimited"}`;
+export type DeckFormat = DeckRuleMode | DeckPool | `${DeckPool}:${"pauper" | "unlimited"}`;
 
 export function historicalDeckFormats(asOf = BANLIST_AS_OF_DATE): HistoricalDeckSet[] {
   return allProductLabels().filter(
@@ -19,20 +23,20 @@ export function isDeckFormat(value: unknown): value is DeckFormat {
   if (typeof value !== "string") return false;
   const [set, rules, extra] = value.split(":");
   return (
-    historicalDeckFormats().includes(set as HistoricalDeckSet) &&
+    (set === "alysion" || historicalDeckFormats().includes(set as HistoricalDeckSet)) &&
     extra === undefined &&
     (rules === undefined || rules === "pauper" || rules === "unlimited")
   );
 }
 
-export function deckFormatSettings(format: DeckFormat): { set: HistoricalDeckSet | "all"; rules: DeckRuleMode } {
+export function deckFormatSettings(format: DeckFormat): { set: DeckPool | "all"; rules: DeckRuleMode } {
   const [set = "all", rules] = format.split(":");
-  return releaseDateForSet(set) === undefined
+  return set !== "alysion" && releaseDateForSet(set) === undefined
     ? { set: "all", rules: format as DeckRuleMode }
-    : { set: set as HistoricalDeckSet, rules: (rules ?? "standard") as DeckRuleMode };
+    : { set: set as DeckPool, rules: (rules ?? "standard") as DeckRuleMode };
 }
 
-export function createDeckFormat(set: HistoricalDeckSet | "all", rules: DeckRuleMode): DeckFormat {
+export function createDeckFormat(set: DeckPool | "all", rules: DeckRuleMode): DeckFormat {
   return set === "all" ? rules : rules === "standard" ? set : `${set}:${rules}`;
 }
 
@@ -45,22 +49,32 @@ export function deckFormat(value: unknown, unlimited = false): DeckFormat {
   return isDeckFormat(value) ? value : unlimited ? "unlimited" : "standard";
 }
 
+function isAlysionFormat(format: DeckFormat): boolean {
+  return deckFormatSettings(format).set === "alysion";
+}
+
 export function formatBanlistDate(format: DeckFormat): string {
+  if (isAlysionFormat(format)) return appOnlyReleaseDate;
   return releaseDateForSet(deckFormatSettings(format).set) ?? BANLIST_AS_OF_DATE;
 }
 
-const formatBanlists = new Map<string, ReturnType<typeof banlistAsOf>>();
+const formatBanlists = new Map<string, Readonly<Record<string, BanlistEntry>>>();
 
-export function formatCopyLimit(cardId: string, format: DeckFormat): number {
-  const printed = getCardDefinition(cardId)?.maxCountInDeck ?? 4;
-  if (formatIsUnlimited(format)) return printed;
+export function formatBanlist(format: DeckFormat): Readonly<Record<string, BanlistEntry>> {
+  if (isAlysionFormat(format)) return alysionBanlist;
   const date = formatBanlistDate(format);
   let list = formatBanlists.get(date);
   if (!list) {
     list = banlistAsOf(date);
     formatBanlists.set(date, list);
   }
-  const entry = list[cardId];
+  return list;
+}
+
+export function formatCopyLimit(cardId: string, format: DeckFormat): number {
+  const printed = getCardDefinition(cardId)?.maxCountInDeck ?? 4;
+  if (formatIsUnlimited(format)) return printed;
+  const entry = formatBanlist(format)[cardId];
   return entry === undefined || entry.status === "banned_pair" ? printed : Math.min(printed, entry.count);
 }
 
@@ -72,6 +86,8 @@ export function formatCardViolation(cardId: string, format: DeckFormat): string 
   const { set, rules } = deckFormatSettings(format);
   if (rules === "pauper" && card.rarity !== "C" && card.rarity !== "U")
     return `${cardId} is not Common or Uncommon (Pauper allows C/U only)`;
+  if (set === "alysion") return isAlysionCard(card) ? undefined : `${cardId} is outside the Digimon Alysion card pool`;
+  if (appOnlySets.includes(card.set)) return `${cardId} is a Digimon Alysion card (Alysion format only)`;
   const cutoff = releaseDateForSet(set);
   if (cutoff !== undefined) {
     const released = getLimitedCardAvailability(cardId)?.legalDate ?? releaseDateForCard(card);
@@ -90,5 +106,7 @@ export function formatRestrictionLabel(cardId: string, format: DeckFormat): stri
 }
 
 export function formatPairViolations(cardIds: readonly string[], format: DeckFormat): [string, string][] {
-  return formatIsUnlimited(format) ? [] : bannedPairViolations(cardIds, formatBanlistDate(format));
+  return formatIsUnlimited(format) || isAlysionFormat(format)
+    ? []
+    : bannedPairViolations(cardIds, formatBanlistDate(format));
 }

@@ -6,7 +6,6 @@ import type { MatchHistoryPage } from "@aegis/shared";
 // Exercise the compiled production account routes/store, not a duplicate browser stats mock.
 const requireApi = createRequire(new URL("../../api/package.json", import.meta.url));
 const express = requireApi("express");
-const { newDb } = requireApi("pg-mem");
 const apiModule = (name: string) => import(new URL(`../../api/dist/${name}.js`, import.meta.url).href);
 
 for (const [width, dark] of [
@@ -15,8 +14,9 @@ for (const [width, dark] of [
 ] as const) {
   test(`human win rate follows filters across pages at ${width}px`, async ({ page }) => {
     const { AccountStore } = await apiModule("accounts/AccountStore");
+    const { createMemoryDatabase } = await apiModule("db/createMemoryDatabase");
     const { installAccountRoutes } = await apiModule("accounts/routes");
-    const store = new AccountStore(new (newDb({ noAstCoverageCheck: true }).adapters.createPg().Pool)());
+    const store = new AccountStore(new (createMemoryDatabase({ noAstCoverageCheck: true }).adapters.createPg().Pool)());
     const app = express();
     app.use(express.json());
     installAccountRoutes(app, store);
@@ -82,7 +82,11 @@ for (const [width, dark] of [
         });
         await route.fulfill({ response });
       });
-      await page.goto("/profile");
+      const [history] = await Promise.all([
+        page.waitForResponse((response) => new URL(response.url()).pathname === "/account/matches"),
+        page.goto("/profile"),
+      ]);
+      expect(history.ok()).toBe(true);
       const identity = page.getByRole("region", { name: "My profile" });
       const rate = identity.getByText("Win rate", { exact: true }).locator("..").locator("dd");
       await expect(rate).toHaveText("33%");

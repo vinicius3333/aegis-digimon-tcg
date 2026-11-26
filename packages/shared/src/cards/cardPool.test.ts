@@ -59,17 +59,20 @@ describe("release dates", () => {
     expect(isBetaOnlyCard(card(cardId), "2026-12-04")).toBe(false);
   });
 
-  it("keeps the app-only BD01 set in beta without listing it as a product", () => {
-    expect(releaseDateForSet("BD01")).toBeUndefined();
-    expect(isBetaOnlyCard(card("BD01-02"), "2026-11-02")).toBe(true);
-    expect(isBetaOnlyCard(card("BD01-02"), "9999-12-30")).toBe(true);
+  it.each(["BD05-08", "BD06-06"])("keeps unannounced app-only %s in beta indefinitely", (cardId) => {
+    expect(releaseDateForSet(cardId.slice(0, 4))).toBeUndefined();
+    expect(isBetaOnlyCard(card(cardId), "2026-11-25")).toBe(true);
+    expect(isBetaOnlyCard(card(cardId), "9999-12-30")).toBe(true);
   });
 
-  it("keeps the app-only BD02 set in beta without listing it as a product", () => {
-    expect(releaseDateForSet("BD02")).toBeUndefined();
-    expect(isBetaOnlyCard(card("BD02-03"), "2026-11-04")).toBe(true);
-    expect(isBetaOnlyCard(card("BD02-03"), "9999-12-30")).toBe(true);
-  });
+  it.each(["BD01-02", "BD02-03"])(
+    "releases app-only %s with Digimon Alysion without listing it as a product",
+    (cardId) => {
+      expect(releaseDateForSet(cardId.slice(0, 4))).toBeUndefined();
+      expect(isBetaOnlyCard(card(cardId), "2026-11-24")).toBe(true);
+      expect(isBetaOnlyCard(card(cardId), "2026-11-25")).toBe(false);
+    },
+  );
 
   it("keeps each limited product behind its own release date", () => {
     expect(releaseDateForSet("LM")).toBeUndefined();

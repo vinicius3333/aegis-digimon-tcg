@@ -116,6 +116,42 @@ describe("BT21-027 compiled implementation", () => {
     );
   });
 
+  it("fills the OmniShoutmon slot of a Shoutmon EX6 DigiXros but not a Shoutmon slot", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT19-014", as: "ex6" },
+          { card: "BT21-027", as: "omniAlias" },
+          { card: "BT19-026", as: "zeig" },
+          { card: "BT21-021", as: "shoutmonRecipe" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("shoutmonRecipe").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("omniAlias").instanceId] },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("ex6").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("omniAlias").instanceId, s.inst("zeig").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT19-014"));
+    expect(s.perm("ex6").stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("omniAlias").instanceId, s.inst("zeig").instanceId]),
+    );
+    expect(s.state.memory).toBe(3);
+  });
+
   it("deletes exactly the lowest-DP opponent on play", async () => {
     const s = setupEngine(
       {

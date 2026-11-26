@@ -7,9 +7,10 @@ import {
   releaseDateForSet,
   formatBanlistDate,
   type DeckFormat,
+  type DeckPool,
   type DeckRuleMode,
-  type HistoricalDeckSet,
 } from "@aegis/shared";
+import { GameFormatSwitch } from "@/screens/GameFormatSwitch";
 import { useTranslation } from "../i18n";
 import { useMediaQuery } from "../design/useMediaQuery";
 import "./deckFormatSelector.css";
@@ -23,6 +24,7 @@ export function DeckFormatSelector({
   allowSealed = false,
   sealed = false,
   onSealedChange,
+  showAlysion = true,
 }: {
   value: DeckFormat;
   onChange: (format: DeckFormat) => void;
@@ -31,42 +33,43 @@ export function DeckFormatSelector({
   allowSealed?: boolean;
   sealed?: boolean;
   onSealedChange?: (sealed: boolean) => void;
+  showAlysion?: boolean;
 }) {
   const { t } = useTranslation();
   const id = useId();
   const compact = useMediaQuery("(width < 600px)");
   const { set, rules } = deckFormatSettings(value);
   const date = releaseDateForSet(set);
+  const alysion = set === "alysion";
   return (
-    <div className="deck-format-selector">
+    <div className="deck-format-selector" data-game={alysion ? "alysion" : "card-game"}>
       <div className="deck-format-selector__header">
         <h3>{t("deckFormat.title")}</h3>
         <span className="deck-format-selector__badge">
           {sealed ? t("deckFormat.sealed") : deckFormatLabel(value, t)}
         </span>
       </div>
+      {showAlysion && !sealed ? <GameFormatSwitch value={value} onChange={onChange} disabled={disabled} /> : null}
       <div className="deck-format-selector__fields">
-        {!sealed ? (
-          <div>
-            <label htmlFor={`${id}-pool`}>{t("deckFormat.pool")}</label>
-            <select
-              id={`${id}-pool`}
-              value={set}
-              disabled={disabled}
-              onChange={(event) => onChange(createDeckFormat(event.target.value as HistoricalDeckSet | "all", rules))}
-              aria-describedby={`${id}-summary`}
-            >
-              <option value="all">{t(compact ? "deckFormat.allSetsShort" : "deckFormat.allSets")}</option>
-              {historicalDeckFormats()
-                .reverse()
-                .map((product) => (
-                  <option key={product} value={product}>
-                    {compact ? product : `${product} · ${releaseDateForSet(product)}`}
-                  </option>
-                ))}
-            </select>
-          </div>
-        ) : null}
+        <div className="deck-format-selector__pool" hidden={alysion || sealed}>
+          <label htmlFor={`${id}-pool`}>{t("deckFormat.pool")}</label>
+          <select
+            id={`${id}-pool`}
+            value={set}
+            disabled={disabled}
+            onChange={(event) => onChange(createDeckFormat(event.target.value as DeckPool | "all", rules))}
+            aria-describedby={`${id}-summary`}
+          >
+            <option value="all">{t(compact ? "deckFormat.allSetsShort" : "deckFormat.allSets")}</option>
+            {historicalDeckFormats()
+              .reverse()
+              .map((product) => (
+                <option key={product} value={product}>
+                  {compact ? product : `${product} · ${releaseDateForSet(product)}`}
+                </option>
+              ))}
+          </select>
+        </div>
         <div>
           <label htmlFor={`${id}-rules`}>{t("deckFormat.label")}</label>
           <select
@@ -93,15 +96,21 @@ export function DeckFormatSelector({
       {!sealed ? (
         <p id={`${id}-summary`}>
           <span className="deck-format-selector__pool-hint">
-            {date ? t("deckFormat.poolHint", { set }) : t("deckFormat.allSetsHint")}
+            {alysion
+              ? t("deckFormat.alysionHint")
+              : date
+                ? t("deckFormat.poolHint", { set })
+                : t("deckFormat.allSetsHint")}
           </span>{" "}
           {!showBanlist ? null : rules === "unlimited" ? (
             t("deckFormat.noBanlist")
           ) : (
             <BanlistTooltip
               key={value}
-              date={formatBanlistDate(value)}
-              label={t("deckFormat.banlistHint", { date: date ?? t("deckFormat.current") })}
+              format={value}
+              label={t("deckFormat.banlistHint", {
+                date: alysion ? formatBanlistDate(value) : (date ?? t("deckFormat.current")),
+              })}
             />
           )}{" "}
           {rules === "pauper" ? t("deckFormat.rarityHint") : null}

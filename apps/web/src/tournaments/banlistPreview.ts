@@ -5,6 +5,8 @@
    It is a preview only: the server resolves the policy again at its own clock and its answer is
    what the event actually carries. */
 
+import { alysionBanlist } from "@aegis/shared/alysion/alysionBanlist";
+import { appOnlyReleaseDate } from "@aegis/shared/cards/appOnlySets";
 import {
   allProductLabels,
   banlistAsOf,
@@ -32,6 +34,14 @@ function normalizeSetId(setId: string): string {
 export function previewBanlist(policy: BanlistPolicy, now: number = Date.now()): BanlistPreview {
   if (policy.mode === "none") return { kind: "unrestricted" };
   if (policy.mode === "current") return resolved(new Date(now).toISOString().slice(0, 10));
+  if (policy.mode === "alysion")
+    return {
+      kind: "resolved",
+      asOf: appOnlyReleaseDate,
+      cards: Object.values(alysionBanlist)
+        .map((entry) => frozenCard(entry.cardId, entry.status, entry.count, entry.effectiveDate))
+        .sort((a, b) => a.cardId.localeCompare(b.cardId)),
+    };
   const asOf = releaseDateForSet(normalizeSetId(policy.setId));
   return asOf === undefined ? { kind: "unknown_set", setId: policy.setId } : resolved(asOf);
 }

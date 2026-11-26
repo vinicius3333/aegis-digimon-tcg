@@ -110,6 +110,7 @@ export interface GrantCanAttackUnsuspendedAction extends ActionBase {
    */
   noDigivolutionCards?: boolean;
   defenderLevelMax?: number;
+  defenderHasFewerDigivolutionCards?: boolean;
   /** Apply the same timed grant to matching permanents that enter after resolution. */
   includeLaterEntrants?: boolean;
 }

@@ -4,7 +4,6 @@ import { expect, test, type Page } from "@playwright/test";
 
 const requireApi = createRequire(new URL("../../api/package.json", import.meta.url));
 const express = requireApi("express");
-const { newDb } = requireApi("pg-mem");
 
 async function loadApiModule(name: string) {
   return import(new URL(`../../api/dist/${name}.js`, import.meta.url).href);
@@ -18,7 +17,7 @@ class FriendsPage {
   }
 
   async openRequests() {
-    await this.page.getByRole("button", { name: /^Requests \(/ }).click();
+    await this.page.getByRole("button", { name: "Requests 1", exact: true }).click();
   }
 
   async expectNoOverflow() {
@@ -32,8 +31,11 @@ for (const width of [390, 1440]) {
       browser,
     }) => {
       const { AccountStore } = await loadApiModule("accounts/AccountStore");
+      const { createMemoryDatabase } = await loadApiModule("db/createMemoryDatabase");
       const { installAccountRoutes } = await loadApiModule("accounts/routes");
-      const store = new AccountStore(new (newDb({ noAstCoverageCheck: true }).adapters.createPg().Pool)());
+      const store = new AccountStore(
+        new (createMemoryDatabase({ noAstCoverageCheck: true }).adapters.createPg().Pool)(),
+      );
       const app = express();
       app.use(express.json());
       installAccountRoutes(app, store);
@@ -85,7 +87,7 @@ for (const width of [390, 1440]) {
           first.displayName,
         );
         await recipient.page.getByRole("button", { name: "Accept", exact: true }).click();
-        await recipient.page.getByRole("button", { name: "Friends (1)", exact: true }).click();
+        await recipient.page.getByRole("button", { name: "Friends 1", exact: true }).click();
         await expect(recipient.page.getByRole("region", { name: "Friends", exact: true })).toContainText(
           first.displayName,
         );
@@ -93,19 +95,24 @@ for (const width of [390, 1440]) {
         await expect(sender.page.getByRole("region", { name: "Friends", exact: true })).toContainText(
           second.displayName,
         );
-        await sender.page.getByLabel(/More actions for/).click();
-        await sender.page.getByRole("button", { name: "Block player", exact: true }).click();
-        await sender.page.getByRole("button", { name: "Blocked (1)", exact: true }).click();
+        await sender.page
+          .getByRole("main")
+          .getByRole("button", { name: `More actions for ${second.displayName}`, exact: true })
+          .click();
+        await sender.page.getByRole("menuitem", { name: "Block player", exact: true }).click();
+        await sender.page.getByRole("button", { name: "Blocked 1", exact: true }).click();
         await expect(sender.page.getByRole("region", { name: "Blocked", exact: true })).toContainText(
           second.displayName,
         );
         await recipient.page.reload();
         await expect(
-          recipient.page.getByText("No friends yet. Add a player to get started.", { exact: true }),
+          recipient.page.getByRole("main").getByText("No friends yet. Add a player to get started.", { exact: true }),
         ).toBeVisible();
         await recipient.page.getByRole("textbox", { name: "Player display name" }).fill(first.displayName);
         await recipient.page.getByRole("button", { name: "Add friend", exact: true }).click();
-        await expect(recipient.page.getByRole("status")).toHaveText("This request is unavailable.");
+        await expect(
+          recipient.page.getByRole("main").getByRole("status").filter({ hasText: "This request is unavailable." }),
+        ).toHaveText("This request is unavailable.");
         await sender.friends.expectNoOverflow();
         await recipient.friends.expectNoOverflow();
       } finally {

@@ -218,7 +218,7 @@ function entryLimits(cardId: string, count: number, pairConflict: boolean, pairL
   return {
     definition,
     banLabel: pairConflict ? pairLabel : formatRestrictionLabel(cardId, format),
-    beta: isBetaCard(cardId),
+    beta: isBetaCard(cardId, format),
     banned,
     addDisabled: banned || count >= cap,
   };

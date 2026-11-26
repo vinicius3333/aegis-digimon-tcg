@@ -216,3 +216,13 @@ describe("validateCreateTournament points", () => {
     expect(codes(community({ points: { win: 3, draw: 1, loss: 0 } }))).toContain("points_invalid");
   });
 });
+
+describe("Alysion tournaments", () => {
+  it("requires the Alysion banlist exactly for the Alysion format", () => {
+    expect(codes(competitive({ format: "alysion", banlist: { mode: "alysion" } }))).not.toContain(
+      "banlist_mode_unknown",
+    );
+    expect(codes(competitive({ format: "alysion", banlist: { mode: "current" } }))).toContain("banlist_mode_unknown");
+    expect(codes(competitive({ banlist: { mode: "alysion" } }))).toContain("banlist_mode_unknown");
+  });
+});

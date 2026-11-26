@@ -1,3 +1,4 @@
+import type { SetupEngineOptions } from "#api/engine/testkit/harness";
 import { describe, expect, it } from "vitest";
 import { effectiveStaticTraits } from "@aegis/shared";
 import { EffectTiming } from "@aegis/shared/schema/enums";
@@ -32,7 +33,7 @@ async function playStegomon(s: Session) {
   await settle(() => findStegomon(s) !== undefined && !s.state.pendingDecision);
 }
 
-function lockBoard(options: Parameters<typeof setupEngine>[1]) {
+function lockBoard(options: SetupEngineOptions) {
   const s = setupEngine(
     {
       0: {

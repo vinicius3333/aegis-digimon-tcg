@@ -27,7 +27,6 @@ type FootprintParams = {
 
 const LAYOUTS = Object.values(ArenaLayoutVariant);
 const BREEDING_ZONES = [ArenaZone.EGGS.value, ArenaZone.RAISING.value];
-const SAME_COLUMN_TOLERANCE = 0.01;
 
 function measureZoneSize(zone: ArenaZone): { width: number; depth: number } {
   if (zone === ArenaZone.SECURITY.value) {
@@ -66,26 +65,25 @@ describe.each(LAYOUTS)("the $name world layout", (layout) => {
     BREEDING_ZONES.map((zone) => `${side}:${zone}` as ArenaZoneKey),
   );
 
-  it("gives the viewer eggs and raising slots point-symmetric to the opponent's", () => {
-    for (const zone of BREEDING_ZONES) {
-      const viewer = layout.zones[`${Side.Viewer}:${zone}`];
-      const opponent = layout.zones[`${Side.Opponent}:${zone}`];
-      expect(viewer).toBeDefined();
-      expect(viewer!.x).toBeCloseTo(-opponent!.x, 6);
-      expect(viewer!.z).toBeCloseTo(-opponent!.z, 6);
-    }
+  it("mirrors the opponent's breeding area through the centre line, as the classic board does", () => {
+    const viewerEggs = layout.zones[`${Side.Viewer}:${ArenaZone.EGGS.value}`]!;
+    const viewerRaising = layout.zones[`${Side.Viewer}:${ArenaZone.RAISING.value}`]!;
+    const opponentEggs = layout.zones[`${Side.Opponent}:${ArenaZone.EGGS.value}`]!;
+    const opponentRaising = layout.zones[`${Side.Opponent}:${ArenaZone.RAISING.value}`]!;
+    expect(opponentEggs.z).toBeCloseTo(-viewerEggs.z, 6);
+    expect(opponentRaising.z).toBeCloseTo(-viewerRaising.z, 6);
+    expect((opponentEggs.x + opponentRaising.x) / 2).toBeCloseTo(-(viewerEggs.x + viewerRaising.x) / 2, 6);
   });
 
-  it("puts the viewer's egg deck before the raising slot in reading order, as the classic board does", () => {
-    const eggs = layout.zones[`${Side.Viewer}:${ArenaZone.EGGS.value}`]!;
-    const raising = layout.zones[`${Side.Viewer}:${ArenaZone.RAISING.value}`]!;
-    if (Math.abs(eggs.x - raising.x) > SAME_COLUMN_TOLERANCE) {
+  it.each([Side.Viewer, Side.Opponent])(
+    "puts the %s egg deck left of the raising slot, as the classic board does",
+    (side) => {
+      const eggs = layout.zones[`${side}:${ArenaZone.EGGS.value}`]!;
+      const raising = layout.zones[`${side}:${ArenaZone.RAISING.value}`]!;
       expect(eggs.x).toBeLessThan(raising.x);
       expect(eggs.z).toBeCloseTo(raising.z, 6);
-    } else {
-      expect(eggs.z).toBeLessThan(raising.z);
-    }
-  });
+    },
+  );
 
   it("keeps every breeding card inside the world bounds", () => {
     for (const key of breedingKeys) {

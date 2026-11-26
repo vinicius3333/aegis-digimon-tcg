@@ -216,3 +216,35 @@ describe("unreleased product cards", () => {
     expect(validateCompetitiveDeck(deck, [], "standard", true).violations).not.toContainEqual(betaViolation);
   });
 });
+
+describe("Alysion tournament decks", () => {
+  afterEach(() => vi.useRealTimers());
+
+  function alysionDeckWith(cardId: string): CompetitiveDeck {
+    const base = [
+      "BT1-010",
+      "BT1-011",
+      "BT1-013",
+      "BT1-016",
+      "BT1-017",
+      "BT1-019",
+      "BT1-020",
+      "BT1-022",
+      "BT1-085",
+      "BT1-086",
+      "BT1-089",
+      "BT1-090",
+    ];
+    return { mainDeck: [...base.flatMap((id) => [id, id, id, id]), cardId, cardId], eggDeck: ["BT1-001"] };
+  }
+
+  it("accepts Story Deck cards the app released and rejects cards outside the Alysion pool", () => {
+    vi.useFakeTimers({ now: new Date("2026-11-30T12:00:00Z") });
+    expect(validateCompetitiveDeck(alysionDeckWith("SD01-02"), [], "alysion").legal).toBe(true);
+    expect(validateCompetitiveDeck(alysionDeckWith("BT5-001"), [], "alysion").violations).toContainEqual({
+      kind: "outside_format",
+      cardId: "BT5-001",
+    });
+    expect(validateCompetitiveDeck(alysionDeckWith("SD01-02"), [], "standard").legal).toBe(false);
+  });
+});

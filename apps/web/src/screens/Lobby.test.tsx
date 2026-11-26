@@ -137,6 +137,7 @@ afterEach(() => {
   localStorage.removeItem("aegis.botDeck");
   localStorage.removeItem("aegis:locale");
   localStorage.removeItem("aegis:match-timer");
+  localStorage.removeItem("aegis:deck-format");
   localStorage.removeItem("aegis-ranked-confirmed");
   rankedConfig.current = undefined;
 });
@@ -1027,6 +1028,31 @@ describe("historical and Pauper format selection", () => {
   });
 });
 
+describe("remembered format choice", () => {
+  it("keeps the chosen Alysion format when the lobby opens again with a saved BT5 deck", () => {
+    const onStart = vi.fn();
+    const deck = { ...DECKS[0]!, format: "BT5" as const };
+    const lobby = (
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[deck]}
+          activeDeckId={deck.id}
+          onSelectDeck={() => {}}
+          onCopyDeck={() => {}}
+          onNav={() => {}}
+          onStart={onStart}
+        />
+      </I18nProvider>
+    );
+    const first = renderConfiguredLobby(lobby);
+    fireEvent.click(screen.getByRole("radio", { name: /Alysion/ }));
+    first.unmount();
+    renderConfiguredLobby(lobby);
+    expect(screen.getByRole("radio", { name: /Alysion/ })).toHaveProperty("ariaChecked", "true");
+  });
+});
+
 describe("independent historical card pool and match rules", () => {
   const pauperDeck = {
     ...DECKS[0]!,
@@ -1548,6 +1574,25 @@ describe("queue button while a ranked season is open", () => {
       within(deckBar).getByRole("radio", { name: "Ranked" }),
     );
     expect(screen.getByRole("button", { name: "Sign in to enable ranked" })).toBeTruthy();
+  });
+
+  it("switches Alysion back to the Digimon Card Game when Ranked is chosen and locks Alysion", async () => {
+    const { onStart, deckBar } = renderRankedLobby();
+    const setup = screen.getByRole("region", { name: "Match setup" });
+    fireEvent.click(within(setup).getByRole("radio", { name: /Alysion/ }));
+    const ranked = within(deckBar).getByRole("radio", { name: "Ranked" });
+    await waitFor(() => expect((ranked as HTMLButtonElement).disabled).toBe(false));
+
+    fireEvent.click(ranked);
+
+    const alysion = within(setup).getByRole("radio", { name: /Alysion/ });
+    expect(within(setup).getByRole("radio", { name: "Digimon Card Game" }).getAttribute("aria-checked")).toBe("true");
+    expect(alysion).toHaveProperty("disabled", true);
+    expect(alysion.getAttribute("title")).toBe("Ranked isn't available in the Digimon Alysion format yet.");
+    fireEvent.click(within(deckBar).getByRole("button", { name: "Enter ranked queue" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Confirm" }));
+    expect(onStart.mock.calls[0]![0]).toBe("ranked");
+    expect(onStart.mock.calls[0]![6]).not.toBe("alysion");
   });
 
   it("preselects Ranked when the player arrives from the ranked tab", () => {

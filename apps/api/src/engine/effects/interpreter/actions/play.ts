@@ -526,6 +526,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
             ...(scaledReduction !== undefined ? { costDelta: scaledReduction } : {}),
+            ...(action.suspended === true ? { suspended: true } : {}),
             ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
           });
           ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
@@ -540,6 +541,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
             ...(selfReduction !== undefined ? { costDelta: selfReduction } : {}),
+            ...(action.suspended === true ? { suspended: true } : {}),
             ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
           });
           ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);

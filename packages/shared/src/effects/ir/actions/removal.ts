@@ -284,5 +284,6 @@ export interface DeletionMaxDpModifierAction extends ActionBase {
   amount: number;
   /** "owner" raises all the owner's DP-based deletions; "self" only this permanent's. */
   scope: "owner" | "self";
+  filter?: Filter;
   duration: EffectDurationRef;
 }

@@ -1,3 +1,4 @@
+import type { SetupEngineOptions } from "#api/engine/testkit/harness";
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared/schema/enums";
 import { requireCardDefinition } from "@aegis/shared/cards/registry";
@@ -31,7 +32,7 @@ async function playQuetzalmon(s: Session) {
   await settle(() => findQuetzalmon(s) !== undefined && !s.state.pendingDecision);
 }
 
-function weakenBoard(options: Parameters<typeof setupEngine>[1]) {
+function weakenBoard(options: SetupEngineOptions) {
   return setupEngine(
     {
       0: {

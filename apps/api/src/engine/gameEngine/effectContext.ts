@@ -815,6 +815,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
     baseGrantedDigivolve: (seat, base, evolving, sourceZone) =>
       engine.digivolveSupport.matchBaseGrantedDigivolve(seat, base, evolving, sourceZone),
     emit: (event) => engine.hooks.emit(event),
+    noteDpChange: (change) => engine.pendingDpChanges.push(change),
     inSecurityCheck: () => engine.securityCheckDepth > 0,
     nextPermanentId: () => nextPermanentId(engine),
     nextInstanceId: () => nextInstanceId(engine),

@@ -37,6 +37,7 @@ import {
   formatPairViolations,
   formatCopyLimit,
   deckFormat,
+  deckFormatSettings,
   formatIsUnlimited,
   type DeckFormat,
   isBetaOnlyCard,
@@ -63,6 +64,7 @@ import { PlayTab } from "@/play/PlayTab";
 import { DeckColorDots, DeckPicker } from "./DeckPicker";
 import { FamousDeckListDialog } from "./FamousDeckListDialog";
 import { DeckFormatSelector } from "@/screens/DeckFormatSelector";
+import { GameFormatSwitch } from "@/screens/GameFormatSwitch";
 import { PrivateSidebar } from "@/screens/PrivateSidebar";
 import { deckFormatLabel } from "@/screens/deckFormatLabel";
 import { MatchFormatSettings } from "./MatchFormatSettings";
@@ -72,6 +74,8 @@ import { TurnOrderSettings } from "@/screens/TurnOrderSettings";
 import { PrivateTurnOrder } from "@aegis/shared/protocol/PrivateTurnOrder";
 import { MatchTimerSettings } from "./MatchTimerSettings";
 import { loadMatchFormatPreference, saveMatchFormatPreference } from "./matchFormatPreference";
+import { loadDeckFormatPreference } from "@/screens/loadDeckFormatPreference";
+import { saveDeckFormatPreference } from "@/screens/saveDeckFormatPreference";
 import "./lobby.css";
 import { lookupPrivateRoom } from "../net/client";
 import { BotOpponentPreview } from "@/bot/personas/BotOpponentPreview";
@@ -118,7 +122,7 @@ export function randomDeckPool(
         ? FAMOUS_DECKS
         : selectableDecks({ personalDecks, famousDecks: FAMOUS_DECKS });
   const eligible = candidates.filter(
-    (deck) => deckLegality(deck, { unlimited, format }).legal && (betaAllowed || !deckHasBetaCards(deck)),
+    (deck) => deckLegality(deck, { unlimited, format }).legal && (betaAllowed || !deckHasBetaCards(deck, format)),
   );
   return [...new Map(eligible.map((deck) => [deck.id, deck])).values()];
 }
@@ -343,7 +347,7 @@ export function Lobby({
   const [selectedFormat, setSelectedFormat] = useState<DeckFormat>(() =>
     privateRoom
       ? deckFormat(privateRoom.format, privateRoom.unlimited)
-      : deckFormat(decks.find((deck) => deck.id === activeDeckId)?.format),
+      : (loadDeckFormatPreference() ?? deckFormat(decks.find((deck) => deck.id === activeDeckId)?.format)),
   );
   const [mode, setMode] = useState<string>(() =>
     getInitialLobbyMode({ initialMode, privateEntry: Boolean(invitedRoomCode || privateRoom || challengeFriendName) }),
@@ -403,6 +407,7 @@ export function Lobby({
   const unlimited = formatIsUnlimited(format);
   function changeFormat(next: DeckFormat) {
     setSelectedFormat(next);
+    saveDeckFormatPreference(next);
   }
   const banlistLimit = (id: string) => formatCopyLimit(id, format);
   const onStart = useCallback(
@@ -459,7 +464,10 @@ export function Lobby({
   const liveMatchCount = useLiveMatches({ pageSize: 1 }).page?.total;
   const rankedConfig = useRankedConfig();
   const rankedEnabled = rankedConfig?.enabled === true;
-  const rankedFormatEnabled = rankedConfig?.formats.includes(format) === true;
+  const alysionFormat = deckFormatSettings(format).set === "alysion";
+  const rankedFallbackFormat = rankedConfig?.formats.includes("standard") ? "standard" : rankedConfig?.formats[0];
+  const rankedFormatEnabled =
+    rankedConfig?.formats.includes(format) === true || (alysionFormat && rankedFallbackFormat !== undefined);
   const [rankedQueue, setRankedQueue] = useState(initialRanked);
   const signedIn = useSignedIn();
   const [pendingChallengeKey, setPendingChallengeKey] = useState<string>();
@@ -484,7 +492,7 @@ export function Lobby({
     return decks
       .map((deck) => ({
         deck,
-        legal: deckLegality(deck, { unlimited, format }).legal && (betaAllowed || !deckHasBetaCards(deck)),
+        legal: deckLegality(deck, { unlimited, format }).legal && (betaAllowed || !deckHasBetaCards(deck, format)),
       }))
       .sort((a, b) => Number(b.legal) - Number(a.legal));
   }, [decks, betaAllowed, unlimited, format]);
@@ -538,7 +546,7 @@ export function Lobby({
     [active, unlimited, format],
   );
   const isBotPresetUnplayable = (deck: DeckListing) =>
-    !deckLegality(deck, { format }).legal || (!betaAllowed && deckHasBetaCards(deck));
+    !deckLegality(deck, { format }).legal || (!betaAllowed && deckHasBetaCards(deck, format));
   const preferredOwnBotDeck = preferredBotDeckId.startsWith("mine:")
     ? decks.find((deck) => deck.id === preferredBotDeckId.slice(5))
     : undefined;
@@ -566,9 +574,9 @@ export function Lobby({
               ...(customBotDeck?.mainDeck ?? []),
               ...(customBotDeck?.eggDeck ?? []),
             ]),
-          ].filter(isBetaCard)
+          ].filter((cardId) => isBetaCard(cardId, format))
         : [],
-    [active, customBotDeck],
+    [active, customBotDeck, format],
   );
   const betaEnabled = betaQueueMode && !randomSelected && betaCards.length > 0;
   const betaPeriod = useMemo(() => allCards().some((card) => isBetaOnlyCard(card)), []);
@@ -647,7 +655,7 @@ export function Lobby({
           setRandomError(true);
           return;
         }
-        const betaBattleMode = betaQueueMode && deckHasBetaCards(drawn) ? true : requestedBetaBattleMode;
+        const betaBattleMode = betaQueueMode && deckHasBetaCards(drawn, format) ? true : requestedBetaBattleMode;
         const queueMode = betaBattleMode && startMode === "casual" ? "beta" : startMode;
         submitMatch(
           queueMode,
@@ -691,7 +699,11 @@ export function Lobby({
   const rankedDeckBlocked = randomSelected || Boolean(borrowedDeck);
   const rankedChoiceShown =
     mode === "casual" && rankedEnabled && rankedFormatEnabled && !betaEnabled && !betaOptedIn && !manualMatch;
-  const selectedRankedQueue = rankedChoiceShown && rankedQueue && !rankedDeckBlocked;
+  const selectedRankedQueue = rankedChoiceShown && rankedQueue && !rankedDeckBlocked && !alysionFormat;
+  const rankedWantsAlysionSwap = rankedChoiceShown && rankedQueue && !rankedDeckBlocked && alysionFormat;
+  useEffect(() => {
+    if (rankedWantsAlysionSwap && rankedFallbackFormat) changeFormat(rankedFallbackFormat);
+  }, [rankedWantsAlysionSwap, rankedFallbackFormat]);
   const rankedStart = useRankedQueueStart({ onStart: () => void start("ranked") });
   function chooseRankedQueue(ranked: boolean) {
     setRankedQueue(ranked);
@@ -1116,6 +1128,7 @@ export function Lobby({
                 <DeckFormatSelector
                   value={format}
                   onChange={changeFormat}
+                  showAlysion={false}
                   allowSealed
                   sealed
                   onSealedChange={setSealedFormat}
@@ -1139,6 +1152,14 @@ export function Lobby({
                   <h2 id="lobby-setup-title" className="lobby-setup__title">
                     {t("redesign.play.setupTitle")}
                   </h2>
+                  {!privateGuest && !privateRoom ? (
+                    <GameFormatSwitch
+                      value={format}
+                      onChange={changeFormat}
+                      size="compact"
+                      alysionLockedReason={selectedRankedQueue ? t("deckFormat.alysionNoRanked") : undefined}
+                    />
+                  ) : null}
                 </div>
                 <div className="lobby-setup__notices">
                   <p className="lobby-setup__notice">
@@ -1253,6 +1274,7 @@ export function Lobby({
                         disabled={
                           (mode === "private" && !!privateRoom) || (privateGuest && guestRules?.code === guestCode)
                         }
+                        showAlysion={false}
                         allowSealed={mode === LobbyMode.PRIVATE.value && !privateRoom}
                         onSealedChange={setSealedFormat}
                       />

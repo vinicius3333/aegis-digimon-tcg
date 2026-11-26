@@ -12902,7 +12902,7 @@ describe("LANE-F-12: zone:'digivolutionCards' cost from any Digimon stack (BT21-
 
     // JUNK has kind:["Option"] so nameOrTrait match on "Appmon" trait won't match JUNK.
     // We need a card in the stack that matches [Appmon] trait. Use a synthetic def.
-    const appmonCard = { instanceId: "HDIG#s0", cardId: "APPMON_CARD", ownerSeat: 0 as Seat, faceUp: false };
+    const appmonCard = { instanceId: "HDIG#s0", cardId: "APPMON_CARD", ownerSeat: 0 as Seat, faceUp: true };
     const appmonPerm = {
       permanentId: "HDIG",
       controllerSeat: 0 as Seat,
