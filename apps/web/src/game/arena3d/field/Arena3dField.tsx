@@ -3,6 +3,7 @@ import type { PerspectiveCamera } from "three";
 import { useBattleLanePreference } from "@/design/battleLanes";
 import { CARD_DIMENSIONS } from "@/design/webglCard/cardDimensions";
 import { ArenaZone } from "@/game/arena3d/ArenaZone";
+import { getArenaZoneDomWidth } from "@/game/arena3d/field/getArenaZoneDomWidth";
 import { Arena3dFieldContext, type Arena3dFieldContextValue } from "@/game/arena3d/field/Arena3dFieldContext";
 import type { ArenaCameraFrame } from "@/game/arena3d/field/ArenaCameraFrame";
 import {
@@ -141,7 +142,7 @@ function buildPositionStyle({ frame, camera, pileWidth, raisingWidth }: Position
         `${measureProjectedDepth({ frame, camera, position, depth: ARENA_SECURITY_LAYOUT.maxDepth }).toFixed(1)}px`;
     } else {
       const width = measureProjectedWidth({ frame, camera, position, width: getZoneWorldWidth(zone) });
-      const domWidth = zone === ArenaZone.RAISING.value ? raisingWidth : pileWidth;
+      const domWidth = getArenaZoneDomWidth({ zone, pileWidth, raisingWidth });
       style[`--arena-3d-${name}-w`] = `${width.toFixed(1)}px`;
       style[`--arena-3d-${name}-scale`] = (width / Math.max(1, domWidth)).toFixed(3);
     }
