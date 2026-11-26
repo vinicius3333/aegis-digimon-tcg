@@ -73,11 +73,18 @@ async function startHarness(tracker?: IssueTracker, filed: NewBugReport[] = []):
   };
 }
 
+const closedIssues: { issueNumber: number; status: string }[] = [];
+let closeFailure: Error | undefined;
+
 function recordingTracker(filed: NewBugReport[]): IssueTracker {
   return {
     file: async (report) => {
       filed.push(report);
       return { number: 42, url: "https://github.com/example/repo/issues/42" };
+    },
+    close: async (issueNumber, status) => {
+      if (closeFailure) throw closeFailure;
+      closedIssues.push({ issueNumber, status });
     },
   };
 }
@@ -91,6 +98,8 @@ function submit(body: unknown, cookie?: string): Promise<Response> {
 }
 
 beforeEach(async () => {
+  closedIssues.length = 0;
+  closeFailure = undefined;
   const filed: NewBugReport[] = [];
   harness = await startHarness(recordingTracker(filed), filed);
 });
@@ -430,5 +439,51 @@ describe("attaching a saved replay file to a report", () => {
     expect((await attach(reportId, Buffer.from("not a replay"), harness.cookie)).status).toBe(400);
     expect((await attach(reportId, gzipSync(JSON.stringify({ format: "other" })), harness.cookie)).status).toBe(400);
     expect((await attach(await fileReport(), archive, harness.cookie)).status).toBe(404);
+  });
+});
+
+describe("closing the GitHub issue from triage", () => {
+  async function admin(): Promise<string> {
+    const account = await harness.store.accountForIdentity("discord", "triage-admin", "Vn");
+    await harness.store.pool.query("UPDATE accounts SET roles=ARRAY['admin'] WHERE id=$1", [account.id]);
+    return `aegis_session=${(await harness.store.issueSession(account)).id}`;
+  }
+
+  async function fileReport(): Promise<number> {
+    const response = await submit({ summary: "Raid after digivolving", description: "details" }, harness.cookie);
+    return ((await response.json()) as { reportId: number }).reportId;
+  }
+
+  function triage(id: number, cookie: string, body: Record<string, unknown>): Promise<Response> {
+    return fetch(`${harness.url}/account/admin/feedback/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Cookie: cookie },
+      body: JSON.stringify({ revision: 0, finalReply: "", internalNote: "", ...body }),
+    });
+  }
+
+  it("closes the linked issue only when the report is saved as closed", async () => {
+    const cookie = await admin();
+    const id = await fileReport();
+
+    expect((await triage(id, cookie, { status: "triaged" })).status).toBe(200);
+    expect(closedIssues).toEqual([]);
+
+    expect(
+      (await triage(id, cookie, { revision: 1, status: "wont_fix", finalReply: "Works as printed." })).status,
+    ).toBe(200);
+    expect(closedIssues).toEqual([{ issueNumber: 42, status: "wont_fix" }]);
+  });
+
+  it("keeps the triage when GitHub refuses to close the issue", async () => {
+    const cookie = await admin();
+    const id = await fileReport();
+    closeFailure = new Error("GitHub refused to close the issue: 403");
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const response = await triage(id, cookie, { status: "resolved", finalReply: "Released a fix." });
+
+    expect(response.status).toBe(200);
+    expect(((await response.json()) as { status: string }).status).toBe("resolved");
   });
 });

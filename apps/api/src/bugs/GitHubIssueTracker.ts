@@ -1,4 +1,5 @@
 import { getCardDefinition, type FeedbackKind } from "@aegis/shared";
+import type { ClosedFeedbackStatus } from "@aegis/shared/feedback/FeedbackStatus";
 
 export const MAX_BUG_REPORT_CARDS = 20;
 export const MAX_BUG_REPORT_SUMMARY = 120;
@@ -60,6 +61,13 @@ export type IssueContext = {
  */
 export type IssueTracker = {
   file(report: NewBugReport, context?: IssueContext): Promise<FiledBugReport>;
+  close?(issueNumber: number, status: ClosedFeedbackStatus): Promise<void>;
+};
+
+const CLOSE_REASONS: Record<ClosedFeedbackStatus, "completed" | "not_planned" | "duplicate"> = {
+  resolved: "completed",
+  wont_fix: "not_planned",
+  duplicate: "duplicate",
 };
 
 export type GitHubIssueTrackerOptions = {
@@ -129,6 +137,18 @@ export class GitHubIssueTracker implements IssueTracker {
     }
     const issue = (await response.json()) as { number: number; html_url: string };
     return { number: issue.number, url: issue.html_url };
+  }
+
+  async close(issueNumber: number, status: ClosedFeedbackStatus): Promise<void> {
+    const response = await this.fetch(`${GITHUB_API}/repos/${this.options.repository}/issues/${issueNumber}`, {
+      method: "PATCH",
+      signal: AbortSignal.timeout(10_000),
+      headers: githubHeaders(this.options.token),
+      body: JSON.stringify({ state: "closed", state_reason: CLOSE_REASONS[status] }),
+    });
+    if (!response.ok) {
+      throw new Error(`GitHub refused to close the issue: ${response.status}`);
+    }
   }
 }
 

@@ -6,6 +6,8 @@ import type { AuthSession } from "#api/accounts/AccountStore";
 import { parseId } from "#api/http/parseId";
 import { tokenBucketLimiter, type TokenBucketOptions } from "#api/http/rateLimit";
 import type { FeedbackFilter, FeedbackStore } from "#api/bugs/FeedbackStore";
+import type { IssueTracker } from "#api/bugs/GitHubIssueTracker";
+import { isClosedFeedbackStatus } from "@aegis/shared/feedback/isClosedFeedbackStatus";
 import { validateReopenComment } from "#api/bugs/validateReopenComment";
 import { validateTriage } from "#api/bugs/validateTriage";
 
@@ -13,12 +15,13 @@ export type FeedbackTriageRouteDeps = {
   app: Express;
   store: FeedbackStore;
   session: (req: Request) => Promise<AuthSession | undefined>;
+  tracker?: IssueTracker;
 };
 
 type Handler = (req: Request, res: Response) => Promise<void>;
 
 /** Admin triage of every report, and each reporter's view of their own with a one-time reopen. */
-export function installFeedbackTriageRoutes({ app, store, session }: FeedbackTriageRouteDeps): void {
+export function installFeedbackTriageRoutes({ app, store, session, tracker }: FeedbackTriageRouteDeps): void {
   const limitReopen = tokenBucketLimiter(REOPEN_RATE_LIMIT);
   const route =
     (handler: Handler) =>
@@ -130,6 +133,11 @@ export function installFeedbackTriageRoutes({ app, store, session }: FeedbackTri
         }
         res.status(result.error === "not_found" ? 404 : 400).json({ error: result.error });
         return;
+      }
+      if (tracker?.close && result.githubNumber !== null && isClosedFeedbackStatus(result.status)) {
+        await tracker.close(result.githubNumber, result.status).catch((failure: unknown) => {
+          console.error("[feedback] saved triage but could not close the GitHub issue", id, failure);
+        });
       }
       res.json(result);
     }),

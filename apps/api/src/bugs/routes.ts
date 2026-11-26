@@ -75,7 +75,7 @@ export function installBugReportRoutes({ app, store, tracker, session, replayCap
     },
   );
 
-  installFeedbackTriageRoutes({ app, store, session });
+  installFeedbackTriageRoutes({ app, store, session, tracker });
 
   async function submit(req: Request, res: Response): Promise<void> {
     const auth = await session(req);
