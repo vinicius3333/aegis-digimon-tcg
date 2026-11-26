@@ -16,6 +16,8 @@ const REJECTION_KEYS: Record<RejectReason, TranslationKey> = {
   "no-such-card": "reject.no-such-card",
   "not-implemented": "reject.not-implemented",
   "unknown-intent": "reject.unknown-intent",
+  "malformed-intent": "reject.malformed-intent",
+  "internal-error": "reject.internal-error",
 
   // Play / DigiXros
   "not-playable-kind": "reject.not-playable-kind",
