@@ -1,4 +1,64 @@
 {
+  "releases.1.82.0-beta.summary": {
+    "en": "This update adds the Digimon Alysion format with its BD and Story Deck cards, Alysion tournaments and a collection filter. It also fixes DP-total deletions, Once Per Turn resets, face-down cards, Shoutmon DX, RagnaLoardmon and several other cards.",
+    "pt-BR": "Esta atualização adiciona o formato Digimon Alysion com suas cartas BD e de Story Deck, torneios Alysion e um filtro na coleção. Também corrige deleções por total de DP, o reinício de Uma Vez Por Turno, cartas viradas para baixo, Shoutmon DX, RagnaLoardmon e várias outras cartas.",
+    "es": "Esta actualización añade el formato Digimon Alysion con sus cartas BD y de Story Deck, torneos Alysion y un filtro en la colección. También corrige las eliminaciones por total de DP, el reinicio de Una Vez Por Turno, las cartas boca abajo, Shoutmon DX, RagnaLoardmon y varias cartas más.",
+    "it": "Questo aggiornamento aggiunge il formato Digimon Alysion con le sue carte BD e Story Deck, i tornei Alysion e un filtro nella collezione. Corregge anche le eliminazioni per DP totali, l'azzeramento di Una Volta Per Turno, le carte coperte, Shoutmon DX, RagnaLoardmon e diverse altre carte."
+  },
+  "releases.1.82.0-beta.feature.alysionFormat": {
+    "en": "New Digimon Alysion format: build decks from the cards in the Alysion app (BT1-BT4, ST1-ST6, BD01-BD04, the Story Decks and the Entry Deck promos) with the Alysion banlist. Switch between Digimon Card Game and Alysion in match setup and the deck builder. The lobby now remembers the format you chose.",
+    "pt-BR": "Novo formato Digimon Alysion: monte decks com as cartas do app Alysion (BT1-BT4, ST1-ST6, BD01-BD04, os Story Decks e as promos do Entry Deck) com a banlist do Alysion. Alterne entre Digimon Card Game e Alysion na preparação da partida e no construtor de decks. O lobby agora lembra o formato escolhido.",
+    "es": "Nuevo formato Digimon Alysion: arma mazos con las cartas de la app Alysion (BT1-BT4, ST1-ST6, BD01-BD04, los Story Decks y las promos del Entry Deck) con la banlist de Alysion. Cambia entre Digimon Card Game y Alysion en la preparación de la partida y en el constructor de mazos. El lobby ahora recuerda el formato elegido.",
+    "it": "Nuovo formato Digimon Alysion: costruisci mazzi con le carte dell'app Alysion (BT1-BT4, ST1-ST6, BD01-BD04, gli Story Deck e le promo dell'Entry Deck) con la banlist di Alysion. Passa da Digimon Card Game ad Alysion nella preparazione della partita e nel costruttore di mazzi. La lobby ora ricorda il formato scelto."
+  },
+  "releases.1.82.0-beta.feature.alysionCards": {
+    "en": "Added the BD01-BD04 cards and the SD01 and SD02 Story Deck cards from Digimon Alysion.",
+    "pt-BR": "Adicionadas as cartas BD01-BD04 e as cartas dos Story Decks SD01 e SD02 do Digimon Alysion.",
+    "es": "Añadidas las cartas BD01-BD04 y las cartas de los Story Decks SD01 y SD02 de Digimon Alysion.",
+    "it": "Aggiunte le carte BD01-BD04 e le carte degli Story Deck SD01 e SD02 di Digimon Alysion."
+  },
+  "releases.1.82.0-beta.feature.alysionTournaments": {
+    "en": "Tournaments can now use the Digimon Alysion format, and the collection can filter Alysion cards.",
+    "pt-BR": "Os torneios agora podem usar o formato Digimon Alysion, e a coleção pode filtrar cartas do Alysion.",
+    "es": "Los torneos ahora pueden usar el formato Digimon Alysion, y la colección puede filtrar cartas de Alysion.",
+    "it": "I tornei ora possono usare il formato Digimon Alysion, e la collezione può filtrare le carte di Alysion."
+  },
+  "releases.1.82.0-beta.fix.dpTotalDeletion": {
+    "en": "\"Delete up to N DP total worth\" effects, such as ST25-05, EX10-047 and P-191, must now delete at least one Digimon when one fits, as the official rulings say.",
+    "pt-BR": "Efeitos de \"deletar até N de DP no total\", como ST25-05, EX10-047 e P-191, agora precisam deletar pelo menos um Digimon quando houver um válido, como dizem as regras oficiais.",
+    "es": "Los efectos de \"eliminar hasta N de DP en total\", como ST25-05, EX10-047 y P-191, ahora deben eliminar al menos un Digimon cuando haya uno válido, como dicen las reglas oficiales.",
+    "it": "Gli effetti \"elimina fino a N DP in totale\", come ST25-05, EX10-047 e P-191, ora devono eliminare almeno un Digimon quando ce n'è uno valido, come dicono le regole ufficiali."
+  },
+  "releases.1.82.0-beta.fix.oncePerTurn": {
+    "en": "A card that moves under a different Digimon now gets its [Once Per Turn] effect back, as the rules require.",
+    "pt-BR": "Uma carta que vai para baixo de outro Digimon agora recupera seu efeito [Uma Vez Por Turno], como as regras exigem.",
+    "es": "Una carta que pasa debajo de otro Digimon ahora recupera su efecto [Una Vez Por Turno], como exigen las reglas.",
+    "it": "Una carta che finisce sotto un altro Digimon ora recupera il suo effetto [Una Volta Per Turno], come richiedono le regole."
+  },
+  "releases.1.82.0-beta.fix.faceDownCards": {
+    "en": "Face-down cards under a Digimon or Tamer no longer match name, trait or color requirements, and KingSukamon (EX13-031) only counts cards under your Digimon.",
+    "pt-BR": "Cartas viradas para baixo sob um Digimon ou Tamer não atendem mais a requisitos de nome, traço ou cor, e KingSukamon (EX13-031) só conta cartas sob seus Digimon.",
+    "es": "Las cartas boca abajo debajo de un Digimon o Tamer ya no cumplen requisitos de nombre, rasgo o color, y KingSukamon (EX13-031) solo cuenta cartas debajo de tus Digimon.",
+    "it": "Le carte coperte sotto un Digimon o un Domatore non soddisfano più requisiti di nome, tratto o colore, e KingSukamon (EX13-031) conta solo le carte sotto i tuoi Digimon."
+  },
+  "releases.1.82.0-beta.fix.cards": {
+    "en": "Shoutmon DX (BT21-027) counts as OmniShoutmon for DigiXros, RagnaLoardmon (ST13-06) unsuspends when either security stack loses a card, Jesmon GX (BT10-112) no longer places DUAL cards, Titamon (EX9-065) no longer has Megadramon's cost reduction, Biyomon (BT13-010) no longer digivolves without returning Kristy Damon, and Tapirmon (BT15-033) and Mantaraymon (BT16-022) effects are no longer inherited.",
+    "pt-BR": "Shoutmon DX (BT21-027) conta como OmniShoutmon para DigiXros, RagnaLoardmon (ST13-06) desvira quando qualquer pilha de segurança perde uma carta, Jesmon GX (BT10-112) não coloca mais cartas DUAL, Titamon (EX9-065) não tem mais a redução de custo do Megadramon, Biyomon (BT13-010) não digievolui mais sem devolver Kristy Damon, e os efeitos de Tapirmon (BT15-033) e Mantaraymon (BT16-022) não são mais herdados.",
+    "es": "Shoutmon DX (BT21-027) cuenta como OmniShoutmon para DigiXros, RagnaLoardmon (ST13-06) se reactiva cuando cualquier pila de seguridad pierde una carta, Jesmon GX (BT10-112) ya no coloca cartas DUAL, Titamon (EX9-065) ya no tiene la reducción de coste de Megadramon, Biyomon (BT13-010) ya no digievoluciona sin devolver a Kristy Damon, y los efectos de Tapirmon (BT15-033) y Mantaraymon (BT16-022) ya no se heredan.",
+    "it": "Shoutmon DX (BT21-027) conta come OmniShoutmon per DigiXros, RagnaLoardmon (ST13-06) si riattiva quando una qualsiasi pila della sicurezza perde una carta, Jesmon GX (BT10-112) non posiziona più carte DUAL, Titamon (EX9-065) non ha più la riduzione di costo di Megadramon, Biyomon (BT13-010) non digievolve più senza far tornare Kristy Damon, e gli effetti di Tapirmon (BT15-033) e Mantaraymon (BT16-022) non vengono più ereditati."
+  },
+  "releases.1.82.0-beta.fix.engine": {
+    "en": "Arts Digivolve no longer offers Digimon that can't digivolve, and a card placed face up in security now turns on its [Security] effect right away, for example with Paradise Colosseum.",
+    "pt-BR": "Arts Digivolve não oferece mais Digimon que não podem digievoluir, e uma carta colocada virada para cima na segurança agora ativa seu efeito [Segurança] na hora, por exemplo com Paradise Colosseum.",
+    "es": "Arts Digivolve ya no ofrece Digimon que no pueden digievolucionar, y una carta colocada boca arriba en la seguridad ahora activa su efecto [Seguridad] al instante, por ejemplo con Paradise Colosseum.",
+    "it": "Arts Digivolve non offre più Digimon che non possono digievolvere, e una carta messa scoperta nella sicurezza ora attiva subito il suo effetto [Sicurezza], per esempio con Paradise Colosseum."
+  },
+  "releases.1.82.0-beta.fix.boardAndLog": {
+    "en": "The match log names the Digimon whose DP an effect changes, the 3D board keeps each player's Digi-Egg deck left of their raising area like the 2D board, and spectators see the board correctly.",
+    "pt-BR": "O registro da partida mostra o Digimon cujo DP um efeito altera, o tabuleiro 3D mantém o deck de Digi-Egg de cada jogador à esquerda da área de criação como no tabuleiro 2D, e espectadores veem o tabuleiro corretamente.",
+    "es": "El registro de la partida nombra al Digimon cuyo DP cambia un efecto, el tablero 3D mantiene el deck de Digi-Egg de cada jugador a la izquierda de su zona de crianza como en el tablero 2D, y los espectadores ven el tablero correctamente.",
+    "it": "Il registro della partita indica il Digimon a cui un effetto cambia i DP, il tavolo 3D mantiene il mazzo Digi-Uova di ogni giocatore a sinistra della sua area di allevamento come nel tavolo 2D, e gli spettatori vedono il tavolo correttamente."
+  },
   "releases.1.81.0-beta.summary": {
     "en": "This update adds the bug forum and idea board, a setting for effects that can't do anything, and smaller, faster replays. It also fixes Guardromon, MirageGaogamon, Zubamon, GraceNovamon, follow-up DNA digivolves and effect attacks.",
     "pt-BR": "Esta atualização adiciona o fórum de bugs e o quadro de ideias, uma configuração para efeitos que não podem fazer nada, e replays menores e mais rápidos. Também corrige Guardromon, MirageGaogamon, Zubamon, GraceNovamon, DNA digivolves em sequência e ataques por efeito.",
