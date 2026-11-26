@@ -190,6 +190,9 @@ export const ptBR: Record<keyof typeof en, string> = {
   "feedback.anonymous": "Jogador anônimo",
   "feedback.context": "Detalhes técnicos",
   "feedback.match": "ID da partida",
+  "feedback.replayFile.watch": "Assistir à partida anexada",
+  "feedback.replayFile.loading": "Carregando a partida…",
+  "feedback.replayFile.unavailable": "Não foi possível abrir a partida anexada.",
   "feedback.version": "Versão",
   "feedback.client": "Cliente",
   "feedback.server": "Servidor",
@@ -2227,6 +2230,11 @@ export const ptBR: Record<keyof typeof en, string> = {
     "Podemos convidar você para entrevistas curtas e estudos de usabilidade que orientam o design e o roadmap do jogo. Você pode sair a qualquer momento pelo seu perfil.",
   "bugReport.playtest.saveFailed":
     "Seu relato foi enviado, mas não conseguimos salvar sua escolha do grupo de playtest. Altere pelo seu perfil.",
+  "bugReport.replay.label": "Anexar uma partida salva (opcional)",
+  "bugReport.replay.none": "Não anexar partida",
+  "bugReport.replay.option": "vs {opponent} · {date}",
+  "bugReport.replay.hint": "Só a equipe pode assistir. Assim vemos exatamente o que aconteceu.",
+  "bugReport.replay.attachFailed": "Seu report foi enviado, mas não foi possível anexar a partida.",
   "profile.playtest.title": "Grupo de playtest",
   "profile.playtest.label": "Grupo de playtest",
   "profile.playtest.desc":

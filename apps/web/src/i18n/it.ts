@@ -238,6 +238,9 @@ const interfaceMessages = {
   "feedback.anonymous": "Giocatore anonimo",
   "feedback.context": "Dettagli tecnici",
   "feedback.match": "ID della partita",
+  "feedback.replayFile.watch": "Guarda la partita allegata",
+  "feedback.replayFile.loading": "Caricamento della partita…",
+  "feedback.replayFile.unavailable": "Impossibile aprire la partita allegata.",
   "feedback.version": "Versione",
   "feedback.client": "Client",
   "feedback.server": "Server",
@@ -2363,6 +2366,11 @@ const interfaceMessages = {
     "Potremmo invitarti a brevi interviste e studi di usabilità che guidano il design e la roadmap del gioco. Puoi uscire in qualsiasi momento dal tuo profilo.",
   "bugReport.playtest.saveFailed":
     "La tua segnalazione è stata inviata, ma non siamo riusciti a salvare la tua scelta sul gruppo di playtest. Modificala dal tuo profilo.",
+  "bugReport.replay.label": "Allega una partita salvata (facoltativo)",
+  "bugReport.replay.none": "Non allegare partite",
+  "bugReport.replay.option": "vs {opponent} · {date}",
+  "bugReport.replay.hint": "Solo il team può guardarla. Così vediamo esattamente cosa è successo.",
+  "bugReport.replay.attachFailed": "La segnalazione è stata inviata, ma non è stato possibile allegare la partita.",
   "profile.playtest.title": "Gruppo di playtest",
   "profile.playtest.label": "Gruppo di playtest",
   "profile.playtest.desc":

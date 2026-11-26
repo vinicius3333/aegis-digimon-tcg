@@ -89,6 +89,24 @@ export function installFeedbackTriageRoutes({ app, store, session }: FeedbackTri
     }),
   );
 
+  app.get(
+    ["/admin/feedback/:id/replay-file", "/account/admin/feedback/:id/replay-file"],
+    route(async (req, res) => {
+      if (!(await admin(req, res))) return;
+      const id = parseId(req.params.id);
+      if (id === undefined) {
+        res.status(400).json({ error: "invalid_id" });
+        return;
+      }
+      const archive = await store.replayFile(id);
+      if (!archive) {
+        res.status(404).json({ error: "replay_not_found" });
+        return;
+      }
+      res.type("application/gzip").send(archive);
+    }),
+  );
+
   app.patch(
     ["/admin/feedback/:id", "/account/admin/feedback/:id"],
     route(async (req, res) => {

@@ -3,6 +3,8 @@ import { accountApi } from "../account/client";
 import { Icons, type IconComponent } from "../design/icons";
 import { Alert, Button, Dialog } from "../design/primitives";
 import { useTranslation, type TranslationKey } from "../i18n";
+import { replayBlob } from "@/replays/files";
+import { localReplayFile, localReplaysByMatch, type LocalReplay } from "@/replays/local";
 import {
   bugReportApi,
   BugReportApiError,
@@ -24,6 +26,12 @@ const ERROR_KEYS: Record<string, TranslationKey> = {
   tracker_unavailable: "bugReport.error.unavailable",
 };
 
+const SAVED_MATCH_CHOICES = 20;
+
+function opponentName(replay: LocalReplay): string {
+  return replay.summary.players[replay.viewerSeat === 1 ? 0 : 1];
+}
+
 const KIND_ICONS: Record<OfferedFeedbackKind, IconComponent> = {
   bug: Icons.Bug,
   improvement: Icons.Lightbulb,
@@ -38,7 +46,7 @@ export function BugReportDialog({
   onClose: () => void;
   matchLogId?: string;
 }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const titleId = useId();
   const kindName = useId();
   const summaryId = useId();
@@ -55,7 +63,27 @@ export function BugReportDialog({
   const [playtestMember, setPlaytestMember] = useState<boolean>();
   const [playtestWanted, setPlaytestWanted] = useState(false);
   const [playtestSaveFailed, setPlaytestSaveFailed] = useState(false);
+  const savedMatchId = useId();
+  const [savedMatches, setSavedMatches] = useState<LocalReplay[]>([]);
+  const [savedMatchKey, setSavedMatchKey] = useState("");
+  const [replayAttachFailed, setReplayAttachFailed] = useState(false);
   const hasDraft = [summary, description].some((text) => text.trim());
+
+  useEffect(() => {
+    if (!signedIn || matchLogId) return;
+    let cancelled = false;
+    void localReplaysByMatch().then((replays) => {
+      if (cancelled) return;
+      setSavedMatches(
+        [...replays.values()]
+          .sort((first, second) => second.summary.finishedAt - first.summary.finishedAt)
+          .slice(0, SAVED_MATCH_CHOICES),
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [signedIn, matchLogId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -95,12 +123,20 @@ export function BugReportDialog({
       })
       .then((report) => {
         setFiled(report);
-        if (signedIn && playtestMember !== undefined && playtestWanted !== playtestMember) {
-          return accountApi
-            .setPlaytest(playtestWanted)
-            .then(({ member }) => setPlaytestMember(member))
-            .catch(() => setPlaytestSaveFailed(true));
-        }
+        const savedMatch = savedMatches.find((replay) => replay.key === savedMatchKey);
+        return Promise.all([
+          savedMatch && report.reportId !== undefined
+            ? bugReportApi
+                .attachReplayFile(report.reportId, replayBlob(localReplayFile(savedMatch)))
+                .catch(() => setReplayAttachFailed(true))
+            : undefined,
+          signedIn && playtestMember !== undefined && playtestWanted !== playtestMember
+            ? accountApi
+                .setPlaytest(playtestWanted)
+                .then(({ member }) => setPlaytestMember(member))
+                .catch(() => setPlaytestSaveFailed(true))
+            : undefined,
+        ]);
       })
       .catch((failure: unknown) => {
         const code = failure instanceof BugReportApiError ? failure.code : undefined;
@@ -145,6 +181,11 @@ export function BugReportDialog({
           {playtestSaveFailed ? (
             <p className="aegis-field__message" role="status">
               {t("bugReport.playtest.saveFailed")}
+            </p>
+          ) : null}
+          {replayAttachFailed ? (
+            <p className="aegis-field__message" role="status">
+              {t("bugReport.replay.attachFailed")}
             </p>
           ) : null}
         </>
@@ -201,6 +242,34 @@ export function BugReportDialog({
               {t("bugReport.charactersLeft", { count: MAX_BUG_REPORT_DESCRIPTION - description.length })}
             </span>
           </div>
+
+          {savedMatches.length ? (
+            <div className="aegis-field">
+              <label className="aegis-field__label" htmlFor={savedMatchId}>
+                {t("bugReport.replay.label")}
+              </label>
+              <select
+                id={savedMatchId}
+                className="aegis-field__control"
+                aria-describedby={`${savedMatchId}-hint`}
+                value={savedMatchKey}
+                onChange={(event) => setSavedMatchKey(event.target.value)}
+              >
+                <option value="">{t("bugReport.replay.none")}</option>
+                {savedMatches.map((replay) => (
+                  <option key={replay.key} value={replay.key}>
+                    {t("bugReport.replay.option", {
+                      opponent: opponentName(replay),
+                      date: new Date(replay.summary.finishedAt).toLocaleString(locale),
+                    })}
+                  </option>
+                ))}
+              </select>
+              <span id={`${savedMatchId}-hint`} className="aegis-field__message">
+                {t("bugReport.replay.hint")}
+              </span>
+            </div>
+          ) : null}
 
           {signedIn && playtestMember !== undefined ? (
             <label className="bug-report__playtest" htmlFor={playtestId}>

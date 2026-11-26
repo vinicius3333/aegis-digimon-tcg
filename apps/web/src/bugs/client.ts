@@ -20,7 +20,7 @@ export type BugReportDraft = {
 };
 
 /** Submission receipt, with an optional GitHub mirror. */
-export type FiledBugReport = { number: number; url?: string };
+export type FiledBugReport = { number: number; url?: string; reportId?: number };
 
 export class BugReportApiError extends Error {
   constructor(
@@ -59,6 +59,15 @@ export const bugReportApi = {
       throw new BugReportApiError(response.status, body.error);
     }
     return response.json() as Promise<FiledBugReport>;
+  },
+  attachReplayFile: async (reportId: number, file: Blob): Promise<void> => {
+    const response = await fetch(`${accountApi.base}/bug-reports/${reportId}/replay-file`, {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/octet-stream" },
+      body: file,
+    });
+    if (!response.ok) throw new BugReportApiError(response.status);
   },
 };
 

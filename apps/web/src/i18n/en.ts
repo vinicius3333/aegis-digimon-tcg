@@ -187,6 +187,9 @@ export const en = {
   "feedback.anonymous": "Anonymous player",
   "feedback.context": "Technical details",
   "feedback.match": "Match ID",
+  "feedback.replayFile.watch": "Watch the attached match",
+  "feedback.replayFile.loading": "Loading the match…",
+  "feedback.replayFile.unavailable": "Could not open the attached match.",
   "feedback.version": "Version",
   "feedback.client": "Client",
   "feedback.server": "Server",
@@ -2213,6 +2216,11 @@ export const en = {
     "We may invite you to short interviews and usability studies that shape the game's design and roadmap. You can leave any time from your profile.",
   "bugReport.playtest.saveFailed":
     "Your report was sent, but we could not save your playtest group choice. Change it from your profile.",
+  "bugReport.replay.label": "Attach a saved match (optional)",
+  "bugReport.replay.none": "Don't attach a match",
+  "bugReport.replay.option": "vs {opponent} · {date}",
+  "bugReport.replay.hint": "Only the team can watch it. It shows us exactly what happened.",
+  "bugReport.replay.attachFailed": "Your report was sent, but the match could not be attached.",
   "profile.playtest.title": "Playtest group",
   "profile.playtest.label": "Playtest group",
   "profile.playtest.desc":
