@@ -1,3 +1,4 @@
+import { isInstanceIdList } from "#api/engine/actions/isInstanceIdList";
 import {
   CardInstance,
   EffectTiming,
@@ -138,7 +139,8 @@ export function validateAssembly(
   const requirements = assemblyRequirementFor(instance.cardId) ?? [];
   if (requirements.length === 0) return { ok: false, reason: "not-assembly" };
 
-  const materialIds = intent.assembly.materialInstanceIds;
+  const materialIds = intent.assembly?.materialInstanceIds;
+  if (!isInstanceIdList(materialIds)) return { ok: false, reason: "invalid-material" };
   if (materialIds.length === 0) return { ok: false, reason: "no-materials" };
 
   // §7-3-1: materials come from the trash ONLY (unlike DigiXros's hand/field/trash/under-Tamer).
