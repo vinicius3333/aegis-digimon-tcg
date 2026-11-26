@@ -2591,6 +2591,7 @@ const interfaceMessages = {
   "deckFormat.alysion": "Digimon Alysion",
   "deckFormat.alysionShort": "Alysion",
   "deckFormat.newTag": "新登場",
+  "deckFormat.alysionNoRanked": "Digimon Alysion フォーマットではまだランクマッチを利用できません。",
   "deckFormat.alysionHint": "Digimon Alysion のカード：BD‑01〜BD‑04、ST‑1〜ST‑6、ストーリーデッキ、エントリーデッキ。",
   "deckFormat.game": "ゲーム",
   "deckFormat.cardGame": "デジモンカードゲーム",

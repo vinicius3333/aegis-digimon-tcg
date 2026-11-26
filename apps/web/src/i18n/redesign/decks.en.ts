@@ -15,6 +15,7 @@ export const decksEn = {
   "deckFormat.alysion": "Digimon Alysion",
   "deckFormat.alysionShort": "Alysion",
   "deckFormat.newTag": "New",
+  "deckFormat.alysionNoRanked": "Ranked isn't available in the Digimon Alysion format yet.",
   "deckFormat.alysionHint":
     "Cards in Digimon Alysion: BD‑01 to BD‑04, ST‑1 to ST‑6, the Story Decks and the Entry Decks.",
   "deckFormat.game": "Game",

@@ -1576,6 +1576,25 @@ describe("queue button while a ranked season is open", () => {
     expect(screen.getByRole("button", { name: "Sign in to enable ranked" })).toBeTruthy();
   });
 
+  it("switches Alysion back to the Digimon Card Game when Ranked is chosen and locks Alysion", async () => {
+    const { onStart, deckBar } = renderRankedLobby();
+    const setup = screen.getByRole("region", { name: "Match setup" });
+    fireEvent.click(within(setup).getByRole("radio", { name: /Alysion/ }));
+    const ranked = within(deckBar).getByRole("radio", { name: "Ranked" });
+    await waitFor(() => expect((ranked as HTMLButtonElement).disabled).toBe(false));
+
+    fireEvent.click(ranked);
+
+    const alysion = within(setup).getByRole("radio", { name: /Alysion/ });
+    expect(within(setup).getByRole("radio", { name: "Digimon Card Game" }).getAttribute("aria-checked")).toBe("true");
+    expect(alysion).toHaveProperty("disabled", true);
+    expect(alysion.getAttribute("title")).toBe("Ranked isn't available in the Digimon Alysion format yet.");
+    fireEvent.click(within(deckBar).getByRole("button", { name: "Enter ranked queue" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Confirm" }));
+    expect(onStart.mock.calls[0]![0]).toBe("ranked");
+    expect(onStart.mock.calls[0]![6]).not.toBe("alysion");
+  });
+
   it("preselects Ranked when the player arrives from the ranked tab", () => {
     const { deckBar } = renderRankedLobby({ initialRanked: true });
 

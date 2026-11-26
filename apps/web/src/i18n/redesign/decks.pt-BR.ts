@@ -17,6 +17,7 @@ export const decksPtBR: Record<keyof typeof decksEn, string> = {
   "deckFormat.alysion": "Digimon Alysion",
   "deckFormat.alysionShort": "Alysion",
   "deckFormat.newTag": "Novo",
+  "deckFormat.alysionNoRanked": "O Ranked ainda não está disponível no formato Digimon Alysion.",
   "deckFormat.alysionHint": "Cartas do Digimon Alysion: BD‑01 a BD‑04, ST‑1 a ST‑6, os Story Decks e os Entry Decks.",
   "deckFormat.game": "Jogo",
   "deckFormat.cardGame": "Digimon Card Game",

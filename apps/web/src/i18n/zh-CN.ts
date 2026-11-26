@@ -2498,6 +2498,7 @@ const interfaceMessages = {
   "deckFormat.alysion": "Digimon Alysion",
   "deckFormat.alysionShort": "Alysion",
   "deckFormat.newTag": "新",
+  "deckFormat.alysionNoRanked": "Digimon Alysion 格式暂不支持排位赛。",
   "deckFormat.alysionHint": "Digimon Alysion 卡牌：BD‑01 至 BD‑04、ST‑1 至 ST‑6、故事卡组及入门卡组。",
   "deckFormat.game": "游戏",
   "deckFormat.cardGame": "数码宝贝卡牌游戏",

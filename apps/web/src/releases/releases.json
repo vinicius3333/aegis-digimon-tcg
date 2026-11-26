@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.82.1-beta",
+    "releasedAt": "2026-11-26",
+    "summaryKey": "releases.1.82.1-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.82.1-beta.fix.alysionRanked"
+      }
+    ]
+  },
+  {
     "version": "1.82.0-beta",
     "releasedAt": "2026-11-25",
     "summaryKey": "releases.1.82.0-beta.summary",

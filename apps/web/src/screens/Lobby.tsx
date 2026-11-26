@@ -35,6 +35,7 @@ import {
   formatPairViolations,
   formatCopyLimit,
   deckFormat,
+  deckFormatSettings,
   formatIsUnlimited,
   type DeckFormat,
   isBetaOnlyCard,
@@ -430,7 +431,10 @@ export function Lobby({
   const liveMatchCount = useLiveMatches({ pageSize: 1 }).page?.total;
   const rankedConfig = useRankedConfig();
   const rankedEnabled = rankedConfig?.enabled === true;
-  const rankedFormatEnabled = rankedConfig?.formats.includes(format) === true;
+  const alysionFormat = deckFormatSettings(format).set === "alysion";
+  const rankedFallbackFormat = rankedConfig?.formats.includes("standard") ? "standard" : rankedConfig?.formats[0];
+  const rankedFormatEnabled =
+    rankedConfig?.formats.includes(format) === true || (alysionFormat && rankedFallbackFormat !== undefined);
   const [rankedQueue, setRankedQueue] = useState(initialRanked);
   const signedIn = useSignedIn();
   const [pendingChallengeKey, setPendingChallengeKey] = useState<string>();
@@ -662,7 +666,11 @@ export function Lobby({
   const rankedDeckBlocked = randomSelected || Boolean(borrowedDeck);
   const rankedChoiceShown =
     mode === "casual" && rankedEnabled && rankedFormatEnabled && !betaEnabled && !betaOptedIn && !manualMatch;
-  const selectedRankedQueue = rankedChoiceShown && rankedQueue && !rankedDeckBlocked;
+  const selectedRankedQueue = rankedChoiceShown && rankedQueue && !rankedDeckBlocked && !alysionFormat;
+  const rankedWantsAlysionSwap = rankedChoiceShown && rankedQueue && !rankedDeckBlocked && alysionFormat;
+  useEffect(() => {
+    if (rankedWantsAlysionSwap && rankedFallbackFormat) changeFormat(rankedFallbackFormat);
+  }, [rankedWantsAlysionSwap, rankedFallbackFormat]);
   const rankedStart = useRankedQueueStart({ onStart: () => void start("ranked") });
   function chooseRankedQueue(ranked: boolean) {
     setRankedQueue(ranked);
@@ -1064,7 +1072,12 @@ export function Lobby({
                 {t("redesign.play.setupTitle")}
               </h2>
               {!privateGuest && !privateRoom ? (
-                <GameFormatSwitch value={format} onChange={changeFormat} size="compact" />
+                <GameFormatSwitch
+                  value={format}
+                  onChange={changeFormat}
+                  size="compact"
+                  alysionLockedReason={selectedRankedQueue ? t("deckFormat.alysionNoRanked") : undefined}
+                />
               ) : null}
             </div>
             <div className="lobby-setup__notices">

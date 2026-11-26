@@ -1,4 +1,16 @@
 {
+  "releases.1.82.1-beta.summary": {
+    "en": "This hotfix makes Ranked always use the Digimon Card Game format.",
+    "pt-BR": "Esta correção faz o Ranked usar sempre o formato Digimon Card Game.",
+    "es": "Esta corrección hace que el Ranked use siempre el formato Digimon Card Game.",
+    "it": "Questa correzione fa usare sempre al Ranked il formato Digimon Card Game."
+  },
+  "releases.1.82.1-beta.fix.alysionRanked": {
+    "en": "Choosing Ranked now switches to the Digimon Card Game format and locks Digimon Alysion, which has no Ranked yet.",
+    "pt-BR": "Escolher Ranked agora muda para o formato Digimon Card Game e bloqueia o Digimon Alysion, que ainda não tem Ranked.",
+    "es": "Elegir Ranked ahora cambia al formato Digimon Card Game y bloquea Digimon Alysion, que aún no tiene Ranked.",
+    "it": "Scegliere Ranked ora passa al formato Digimon Card Game e blocca Digimon Alysion, che non ha ancora il Ranked."
+  },
   "releases.1.82.0-beta.summary": {
     "en": "This update adds the Digimon Alysion format with its BD and Story Deck cards, Alysion tournaments and a collection filter. It also fixes DP-total deletions, Once Per Turn resets, face-down cards, Shoutmon DX, RagnaLoardmon and several other cards.",
     "pt-BR": "Esta atualização adiciona o formato Digimon Alysion com suas cartas BD e de Story Deck, torneios Alysion e um filtro na coleção. Também corrige deleções por total de DP, o reinício de Uma Vez Por Turno, cartas viradas para baixo, Shoutmon DX, RagnaLoardmon e várias outras cartas.",
