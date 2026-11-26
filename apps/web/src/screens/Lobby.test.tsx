@@ -137,6 +137,7 @@ afterEach(() => {
   localStorage.removeItem("aegis.botDeck");
   localStorage.removeItem("aegis:locale");
   localStorage.removeItem("aegis:match-timer");
+  localStorage.removeItem("aegis:deck-format");
   localStorage.removeItem("aegis-ranked-confirmed");
   rankedConfig.current = undefined;
 });
@@ -1024,6 +1025,31 @@ describe("historical and Pauper format selection", () => {
     expect(screen.getByRole("button", { name: "Enter queue" })).toHaveProperty("disabled", true);
     fireEvent.change(screen.getByRole("combobox", { name: "Rules" }), { target: { value: "pauper" } });
     expect(screen.getByRole("button", { name: "Enter queue" })).toHaveProperty("disabled", true);
+  });
+});
+
+describe("remembered format choice", () => {
+  it("keeps the chosen Alysion format when the lobby opens again with a saved BT5 deck", () => {
+    const onStart = vi.fn();
+    const deck = { ...DECKS[0]!, format: "BT5" as const };
+    const lobby = (
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[deck]}
+          activeDeckId={deck.id}
+          onSelectDeck={() => {}}
+          onCopyDeck={() => {}}
+          onNav={() => {}}
+          onStart={onStart}
+        />
+      </I18nProvider>
+    );
+    const first = renderConfiguredLobby(lobby);
+    fireEvent.click(screen.getByRole("radio", { name: /Alysion/ }));
+    first.unmount();
+    renderConfiguredLobby(lobby);
+    expect(screen.getByRole("radio", { name: /Alysion/ })).toHaveProperty("ariaChecked", "true");
   });
 });
 

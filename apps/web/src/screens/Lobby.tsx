@@ -70,6 +70,8 @@ import { TurnOrderSettings } from "@/screens/TurnOrderSettings";
 import { PrivateTurnOrder } from "@aegis/shared/protocol/PrivateTurnOrder";
 import { MatchTimerSettings } from "./MatchTimerSettings";
 import { loadMatchFormatPreference, saveMatchFormatPreference } from "./matchFormatPreference";
+import { loadDeckFormatPreference } from "@/screens/loadDeckFormatPreference";
+import { saveDeckFormatPreference } from "@/screens/saveDeckFormatPreference";
 import "./lobby.css";
 import { lookupPrivateRoom } from "../net/client";
 import { BotOpponentPreview } from "@/bot/personas/BotOpponentPreview";
@@ -312,7 +314,7 @@ export function Lobby({
   const [selectedFormat, setSelectedFormat] = useState<DeckFormat>(() =>
     privateRoom
       ? deckFormat(privateRoom.format, privateRoom.unlimited)
-      : deckFormat(decks.find((deck) => deck.id === activeDeckId)?.format),
+      : (loadDeckFormatPreference() ?? deckFormat(decks.find((deck) => deck.id === activeDeckId)?.format)),
   );
   const [mode, setMode] = useState<string>(() =>
     getInitialLobbyMode({ initialMode, privateEntry: Boolean(invitedRoomCode || privateRoom || challengeFriendName) }),
@@ -371,6 +373,7 @@ export function Lobby({
   const unlimited = formatIsUnlimited(format);
   function changeFormat(next: DeckFormat) {
     setSelectedFormat(next);
+    saveDeckFormatPreference(next);
   }
   const banlistLimit = (id: string) => formatCopyLimit(id, format);
   const onStart = useCallback(
