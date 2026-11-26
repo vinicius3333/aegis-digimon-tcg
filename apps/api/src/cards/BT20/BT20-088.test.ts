@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { finishTurnLoop } from "../../engine/testkit/finishTurnLoop.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-088.js";
 import "./index.js";
@@ -147,6 +148,60 @@ describe("BT20-088 Violet Inboots", () => {
     expect(s.perm("recipient").topCard.cardId).toBe("BT20-067");
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-072");
   });
+});
+
+it("orders its Ghost-deletion trigger with On Deletion effects after an end-of-turn Execute battle", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT20-072", as: "executor", under: ["BT20-063"] },
+          { card: "BT20-088", as: "tamer" },
+          { card: "BT20-063", as: "recipient" },
+        ],
+        hand: [{ card: "BT20-072", as: "evolution" }],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        security: ["BT1-009"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-084", as: "defender" }],
+        security: ["BT1-027"],
+        deck: ["BT1-027", "BT1-027", "BT1-027"],
+      },
+    },
+    { autoOrderTriggers: false },
+  );
+  await s.ready();
+  const loop = s.engine.startTurnLoop();
+  try {
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.perm("defender").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision !== undefined);
+
+    const window = s.state.pendingDecision!;
+    expect(window.kind).toBe("orderTriggers");
+    expect(JSON.parse(window.payloadJson).triggerCardIds).toEqual(
+      expect.arrayContaining(["BT20-063", "BT20-072", "BT20-088"]),
+    );
+  } finally {
+    await finishTurnLoop({ setup: s, loop }).catch(() => undefined);
+  }
 });
 
 it("plays the exact BT20-088 security instance for free after a public check", async () => {
