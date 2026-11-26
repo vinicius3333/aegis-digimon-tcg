@@ -30,6 +30,7 @@ type Props = {
   pileWidth: number;
   raisingWidth: number;
   portrait: boolean;
+  landscapePhone: boolean;
   children: ReactNode;
 };
 
@@ -160,7 +161,7 @@ function buildPositionStyle({ frame, camera, pileWidth, raisingWidth }: Position
   return style as CSSProperties;
 }
 
-export function Arena3dField({ board, store, pileWidth, raisingWidth, portrait, children }: Props) {
+export function Arena3dField({ board, store, pileWidth, raisingWidth, portrait, landscapePhone, children }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const [measurement, setMeasurement] = useState<Measurement | undefined>(undefined);
   const [createFrame, setCreateFrame] = useState<FieldFrameFactory | undefined>(() => fieldFrameFactory);
@@ -235,7 +236,7 @@ export function Arena3dField({ board, store, pileWidth, raisingWidth, portrait, 
       width: measurement.width,
       height: measurement.height - measurement.insetTop,
     };
-    const layout = selectArenaLayoutVariant({ portrait, width: field.width, height: field.height });
+    const layout = selectArenaLayoutVariant({ portrait, landscapePhone, width: field.width, height: field.height });
     const { frame, camera } = createFrame({
       canvasWidth: measurement.canvasWidth,
       canvasHeight: measurement.canvasHeight,
@@ -245,7 +246,7 @@ export function Arena3dField({ board, store, pileWidth, raisingWidth, portrait, 
       lanes: resolveArenaLanes(layout.lanes, battleLanes),
     });
     return { frame, camera, store };
-  }, [createFrame, measurement, store, portrait, battleLanes]);
+  }, [createFrame, measurement, store, portrait, landscapePhone, battleLanes]);
 
   useEffect(() => {
     if (value) {

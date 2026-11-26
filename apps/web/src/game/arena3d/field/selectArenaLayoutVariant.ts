@@ -2,15 +2,19 @@ import { ArenaLayoutVariant, type ArenaLayoutVariantEntry } from "@/game/arena3d
 
 type Params = {
   portrait: boolean;
+  landscapePhone: boolean;
   width: number;
   height: number;
 };
 
 const SHORT_ASPECT_RATIO = 2.75;
 
-export function selectArenaLayoutVariant({ portrait, width, height }: Params): ArenaLayoutVariantEntry {
+export function selectArenaLayoutVariant({ portrait, landscapePhone, width, height }: Params): ArenaLayoutVariantEntry {
   if (portrait) {
     return ArenaLayoutVariant.TALL;
+  }
+  if (landscapePhone) {
+    return ArenaLayoutVariant.PHONE;
   }
   if (width / Math.max(1, height) >= SHORT_ASPECT_RATIO) {
     return ArenaLayoutVariant.SHORT;

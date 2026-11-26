@@ -126,3 +126,47 @@ describe("the tall world layout", () => {
     expect(centerGap).toBeGreaterThanOrEqual(ARENA_ROW_LAYOUT.cardWidth);
   });
 });
+
+describe("the phone world layout", () => {
+  const zone = (side: Side, name: ArenaZone) => ArenaLayoutVariant.PHONE.zones[`${side}:${name}` as ArenaZoneKey]!;
+
+  it("puts each side's deck and trash side by side, as the classic landscape phone board does", () => {
+    for (const side of [Side.Viewer, Side.Opponent]) {
+      expect(zone(side, ArenaZone.DECK.value).x).toBeLessThan(zone(side, ArenaZone.TRASH.value).x);
+      expect(zone(side, ArenaZone.DECK.value).z).toBeCloseTo(zone(side, ArenaZone.TRASH.value).z, 6);
+    }
+  });
+
+  it("puts the opponent's security in their breeding row, right of the raising slot", () => {
+    const security = zone(Side.Opponent, ArenaZone.SECURITY.value);
+    const raising = zone(Side.Opponent, ArenaZone.RAISING.value);
+    expect(security.z).toBeCloseTo(raising.z, 6);
+    expect(security.x).toBeGreaterThan(raising.x);
+  });
+
+  it("keeps the viewer's security on the left, above the breeding area, level with the deck", () => {
+    const security = zone(Side.Viewer, ArenaZone.SECURITY.value);
+    expect(security.x).toBeLessThan(zone(Side.Viewer, ArenaZone.EGGS.value).x);
+    expect(security.z).toBeLessThan(zone(Side.Viewer, ArenaZone.EGGS.value).z);
+    expect(security.z).toBeCloseTo(zone(Side.Viewer, ArenaZone.DECK.value).z, 6);
+  });
+});
+
+describe("the short world layout", () => {
+  const zone = (side: Side, name: ArenaZone) => ArenaLayoutVariant.SHORT.zones[`${side}:${name}` as ArenaZoneKey]!;
+
+  it("stacks the opponent's deck above their trash, as the classic short board does", () => {
+    const deck = zone(Side.Opponent, ArenaZone.DECK.value);
+    const trash = zone(Side.Opponent, ArenaZone.TRASH.value);
+    expect(deck.x).toBeCloseTo(trash.x, 6);
+    expect(deck.z).toBeLessThan(trash.z);
+  });
+
+  it("puts the viewer's deck and trash side by side in the bottom row", () => {
+    const deck = zone(Side.Viewer, ArenaZone.DECK.value);
+    const trash = zone(Side.Viewer, ArenaZone.TRASH.value);
+    expect(deck.x).toBeLessThan(trash.x);
+    expect(deck.z).toBeCloseTo(trash.z, 6);
+    expect(deck.z).toBeCloseTo(zone(Side.Viewer, ArenaZone.EGGS.value).z, 6);
+  });
+});
