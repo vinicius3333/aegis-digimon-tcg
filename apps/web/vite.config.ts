@@ -44,6 +44,7 @@ export default defineConfig({
   },
   test: {
     projects: [
+      { extends: true, test: { name: "sealed-ui", include: ["src/sealed/**/*.test.tsx"], environment: "jsdom" } },
       { extends: true, test: { name: "deck-sync", include: ["src/App.deckDeletion.test.tsx"], environment: "jsdom" } },
       { extends: true, test: { name: "ranked-ui", include: ["src/ranked/**/*.test.tsx"], environment: "jsdom" } },
       {
@@ -165,6 +166,7 @@ export default defineConfig({
             "src/i18n/useCardTranslationState.test.tsx",
             ...configDefaults.exclude,
             "e2e/**",
+            "src/sealed/**/*.test.tsx",
             "src/ranked/**/*.test.tsx",
             "src/achievements/**/*.test.tsx",
             "src/bot/personas/**/*.test.tsx",

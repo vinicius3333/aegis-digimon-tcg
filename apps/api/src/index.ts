@@ -1,3 +1,4 @@
+import { installPrivateSealedRoutes } from "#api/rooms/sealed/installPrivateSealedRoutes";
 import { createTournamentDiscordSweep } from "#api/tournaments/discord/createTournamentDiscordSweep";
 import { createTournamentResultSweep } from "#api/tournaments/results/createTournamentResultSweep";
 import { createTournamentCircuitSweep } from "#api/tournaments/circuits/createTournamentCircuitSweep";
@@ -213,6 +214,7 @@ installDeploymentRoutes({ app, runtime: deploymentRuntime });
 installBotRoutes(app);
 
 installPrivateRoomRoutes(app);
+installPrivateSealedRoutes({ app, accounts: accountStore });
 
 installSpectatorRoutes(app);
 

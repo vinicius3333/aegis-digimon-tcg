@@ -1,3 +1,4 @@
+import type { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 /* Where memory would land if the action the pointer is offering were taken.
 
    Which action that is changes with the pointer: a hovered or selected hand card prices
@@ -19,6 +20,7 @@ import { previewDropTarget, previewEntry } from "./memoryPreview";
 import type { DragState, DropZoneHit } from "../types";
 
 export function memoryPreviewInputs({
+  rulesPolicy,
   memory,
   dragIsPlay,
   drag,
@@ -30,6 +32,7 @@ export function memoryPreviewInputs({
   viewer,
   opponent,
 }: {
+  rulesPolicy?: GameRulesPolicy;
   memory: number;
   dragIsPlay: boolean;
   drag: DragState | null;
@@ -53,6 +56,7 @@ export function memoryPreviewInputs({
   const candidate = memoryCostPreview({
     heldCard: entry ? { playable: entry.playableFromHand === true, playCost } : undefined,
     dropTarget: previewDropTarget({
+      rulesPolicy,
       dragIsPlay,
       drag,
       dragHover,

@@ -1,3 +1,4 @@
+import type { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 /* Everything the viewer can ask the server to do, and what the screen does around it.
 
    Every sender is guarded by `mainActionBlocked` and no-ops safely when the room has
@@ -35,6 +36,7 @@ import type { OverlayControls, SelectionControls } from "./types";
 type Room = Parameters<typeof intents.playCard>[0];
 
 export function matchIntents({
+  rulesPolicy,
   room,
   localConnection,
   decision,
@@ -53,6 +55,7 @@ export function matchIntents({
   overlays,
   onDecisionAnswered,
 }: {
+  rulesPolicy?: GameRulesPolicy;
   room: Room | undefined;
   /** A fabricated connection stands in for the room and may answer its own decisions. */
   localConnection: { respondDecision?: (response: DecisionResponse) => void } | undefined;
@@ -226,7 +229,7 @@ export function matchIntents({
     confirmDrop = false,
   ) => {
     if (mainActionBlocked) return;
-    const options = getDigivolveCostOptions(cardId, base, viewer, opponent, digivolveRoutesOf(instanceId));
+    const options = getDigivolveCostOptions(cardId, base, viewer, opponent, digivolveRoutesOf(instanceId), rulesPolicy);
     const distinctCosts = new Set(options.map((o) => o.cost));
     if (options.length > 1 && distinctCosts.size > 1) {
       overlays.setEvoCostChoice({

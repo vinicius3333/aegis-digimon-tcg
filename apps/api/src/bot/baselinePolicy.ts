@@ -1,3 +1,4 @@
+import { GameRulesPolicy } from "@aegis/shared/sealed/GameRulesPolicy";
 import type { DecisionRequest, Intent } from "@aegis/shared";
 import { digivolveCost } from "./candidates.js";
 import { DEFAULT_BOT_PROFILE } from "./profiles.js";
@@ -41,6 +42,12 @@ export function createBaselinePolicy(): BotPolicy {
     chooseBreedingAction(view: BotView): Intent {
       const breeding = view.breeding;
       if (breeding === undefined) {
+        if (view.rulesPolicy === GameRulesPolicy.SEALED.value && view.eggDeckCount === 0) {
+          const rookie = view.hand.find((card) => card.definition?.level === 3 && isDigimonCard(card.definition));
+          if (rookie) {
+            return { type: "placeSealedRookie", instanceId: rookie.instanceId };
+          }
+        }
         return view.eggDeckCount > 0 ? { type: "hatchEgg" } : { type: "endPhase" };
       }
       if (breeding.level < 3) return { type: "endPhase" };
@@ -136,6 +143,7 @@ function bestDigivolve(view: BotView): DevelopAction | undefined {
       if (base.cardId === undefined || base.cannotDigivolve) continue;
       const cost = digivolveCost(card.cardId, base.cardId, {
         inBreeding: base.inBreeding,
+        rulesPolicy: view.rulesPolicy,
         controlledUnits: view.board,
       });
       if (cost === undefined || cost > view.maxAffordable) continue;
@@ -173,6 +181,7 @@ function canDigivolveOnto(view: BotView, base: BotUnit): boolean {
       isDigimonCard(card.definition) &&
       (digivolveCost(card.cardId, base.cardId!, {
         inBreeding: base.inBreeding,
+        rulesPolicy: view.rulesPolicy,
         controlledUnits: view.board,
       }) ?? Number.POSITIVE_INFINITY) <= view.maxAffordable,
   );
