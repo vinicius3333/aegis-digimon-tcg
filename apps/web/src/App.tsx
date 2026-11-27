@@ -705,6 +705,10 @@ function LoadedAegisClient({
     if (window.location.pathname !== expectedPath) window.history.replaceState(null, "", expectedPath);
   }, []);
 
+  useEffect(() => {
+    if (sharedSpectatorCode) startMatch("spectator", sharedSpectatorCode);
+  }, []);
+
   /* Coming back from the Discord round trip lands on /login with a session; there
      is nothing left to sign in to, so the screen hands over to home. */
   useEffect(() => {
@@ -1334,6 +1338,7 @@ function LoadedAegisClient({
                 <ReplaysScreen
                   key={route.replayId}
                   replayId={route.replayId}
+                  onCopyDeck={(deck) => saveDeck(copyDeckPreset(deck, decks), false)}
                   onCloseLink={() => {
                     navigate(replayCloseRoute);
                     setReplayCloseRoute(PROFILE_ROUTE);
