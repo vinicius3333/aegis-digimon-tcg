@@ -192,4 +192,5 @@ export class GameState extends Schema {
   @type("string") gameMode: GameMode = GameMode.AUTOMATIC.value;
   @type(ManualTable) manual = new ManualTable();
   @type("string") guestApproval: GuestApproval = GuestApproval.NOT_REQUIRED.value;
+  @type("uint32") durationSeconds = 0;
 }

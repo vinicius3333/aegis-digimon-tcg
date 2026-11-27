@@ -1098,6 +1098,7 @@ export const en = {
   "game.leaveConfirmTitle": "Leave this match?",
   "game.leaveConfirmBody": "Leaving ends the match and counts as a loss.",
   "game.stats.turns": "Turns",
+  "game.stats.duration": "Duration",
   "game.stats.oppBoard": "Opp. board",
   "game.stats.yourSecurity": "Your security",
   "game.stack": "Stack",

@@ -1090,6 +1090,7 @@ export const es: Record<keyof typeof en, string> = {
   "game.leaveConfirmTitle": "¿Salir de esta partida?",
   "game.leaveConfirmBody": "Salir termina la partida y cuenta como derrota.",
   "game.stats.turns": "Turnos",
+  "game.stats.duration": "Duración",
   "game.stats.oppBoard": "Mesa rival",
   "game.stats.yourSecurity": "Tu seguridad",
   "game.stack": "Pila",

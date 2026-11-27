@@ -1353,6 +1353,7 @@ const interfaceMessages = {
   "game.leaveConfirmTitle": "Tinggalkan pertandingan ini?",
   "game.leaveConfirmBody": "Keluar akan mengakhiri pertandingan dan dihitung sebagai kekalahan.",
   "game.stats.turns": "Giliran",
+  "game.stats.duration": "Durasi",
   "game.stats.oppBoard": "Papan lawan",
   "game.stats.yourSecurity": "Security Anda",
   "game.stack": "Stack",

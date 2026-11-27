@@ -1286,6 +1286,7 @@ const interfaceMessages = {
   "game.leaveConfirmTitle": "离开本局？",
   "game.leaveConfirmBody": "离开将结束本局并计为失败。",
   "game.stats.turns": "回合数",
+  "game.stats.duration": "对局时长",
   "game.stats.oppBoard": "对手场上",
   "game.stats.yourSecurity": "你的安防",
   "game.stack": "进化源",

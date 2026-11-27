@@ -1292,6 +1292,7 @@ const interfaceMessages = {
   "game.leaveConfirmTitle": "離開這場對局？",
   "game.leaveConfirmBody": "離開將結束對局並計為落敗。",
   "game.stats.turns": "回合數",
+  "game.stats.duration": "對局時長",
   "game.stats.oppBoard": "對手場面",
   "game.stats.yourSecurity": "你的安防區",
   "game.stack": "疊放",

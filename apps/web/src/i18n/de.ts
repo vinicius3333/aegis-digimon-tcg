@@ -1386,6 +1386,7 @@ const interfaceMessages = {
   "game.leaveConfirmTitle": "Dieses Match verlassen?",
   "game.leaveConfirmBody": "Das Verlassen beendet das Match und zählt als Niederlage.",
   "game.stats.turns": "Züge",
+  "game.stats.duration": "Dauer",
   "game.stats.oppBoard": "Feld Gegner",
   "game.stats.yourSecurity": "Ihre Security",
   "game.stack": "Stapel",

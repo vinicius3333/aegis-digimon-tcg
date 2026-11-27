@@ -1259,6 +1259,7 @@ const interfaceMessages = {
   "game.surrenderConfirmTitle": "Arrenderti in questa partita?",
   "game.surrenderConfirmBody": "La partita termina subito e viene registrata come sconfitta.",
   "game.stats.turns": "Turni",
+  "game.stats.duration": "Durata",
   "game.stats.oppBoard": "Campo avv.",
   "game.stats.yourSecurity": "La tua sicurezza",
   "game.stack": "Pila",

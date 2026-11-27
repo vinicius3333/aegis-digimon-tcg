@@ -67,7 +67,7 @@ export function MatchStatusOverlays({
         replayStatus?: "preparing" | "unavailable";
         result: GameOverOutcome;
         reason: string;
-        stats: { value: number; label: string }[];
+        stats: { value: number | string; label: string }[];
         cardsRevealed: boolean;
         series?: SeriesResultProps;
         rematch?: RematchProps;

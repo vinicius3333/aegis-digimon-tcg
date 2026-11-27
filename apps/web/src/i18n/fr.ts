@@ -1376,6 +1376,7 @@ const interfaceMessages = {
   "game.leaveConfirmTitle": "Quitter ce match ?",
   "game.leaveConfirmBody": "Partir met fin au match et compte comme une défaite.",
   "game.stats.turns": "Tours",
+  "game.stats.duration": "Durée",
   "game.stats.oppBoard": "Terrain adv.",
   "game.stats.yourSecurity": "Votre sécurité",
   "game.stack": "Pile",

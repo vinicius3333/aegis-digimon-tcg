@@ -1102,6 +1102,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.leaveConfirmTitle": "Sair desta partida?",
   "game.leaveConfirmBody": "Sair encerra a partida e conta como derrota.",
   "game.stats.turns": "Turnos",
+  "game.stats.duration": "Duração",
   "game.stats.oppBoard": "Mesa do opon.",
   "game.stats.yourSecurity": "Sua segurança",
   "game.stack": "Pilha",

@@ -1350,6 +1350,7 @@ const interfaceMessages = {
   "game.leaveConfirmTitle": "この対戦を離れますか？",
   "game.leaveConfirmBody": "離れると対戦は終了し、敗北として記録されます。",
   "game.stats.turns": "ターン",
+  "game.stats.duration": "対戦時間",
   "game.stats.oppBoard": "相手の盤面",
   "game.stats.yourSecurity": "あなたのセキュリティ",
   "game.stack": "スタック",

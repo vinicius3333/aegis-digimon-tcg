@@ -1337,6 +1337,7 @@ const interfaceMessages = {
   "game.leaveConfirmTitle": "이 대전에서 나가시겠습니까?",
   "game.leaveConfirmBody": "나가면 대전이 끝나고 패배로 기록됩니다.",
   "game.stats.turns": "턴",
+  "game.stats.duration": "경기 시간",
   "game.stats.oppBoard": "상대 보드",
   "game.stats.yourSecurity": "내 시큐리티",
   "game.stack": "스택",

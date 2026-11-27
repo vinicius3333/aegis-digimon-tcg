@@ -1,4 +1,5 @@
 import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
+import { getResultStats } from "@/game/screen/layout/getResultStats";
 import type { ReplaySaveProps } from "../../../replays/ReplaySavePrompt";
 /* Everything the board can put over itself, in the order it stacks.
 
@@ -396,13 +397,14 @@ export function MatchOverlays({
             ? {
                 ...gameOver,
                 cardsRevealed: gameOver.revealed !== undefined,
-                stats: gameOver.spectatorResult
-                  ? [{ value: state.turnCount, label: t("game.stats.turns") }]
-                  : [
-                      { value: state.turnCount, label: t("game.stats.turns") },
-                      { value: opponent.battleArea.length, label: t("game.stats.oppBoard") },
-                      { value: viewer.securityCount, label: t("game.stats.yourSecurity") },
-                    ],
+                stats: getResultStats({
+                  turnCount: state.turnCount,
+                  durationSeconds: state.durationSeconds,
+                  spectating: Boolean(gameOver.spectatorResult),
+                  opponentBoardCount: opponent.battleArea.length,
+                  viewerSecurityCount: viewer.securityCount,
+                  t,
+                }),
               }
             : undefined
         }
