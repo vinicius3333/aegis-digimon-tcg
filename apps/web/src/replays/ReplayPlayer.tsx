@@ -1,4 +1,4 @@
-import { ReplayDeckDialog } from "@/replays/ReplayDeckDialog";
+import { UsedDeckDialog } from "@/game/UsedDeckDialog";
 import { getReplayResult } from "@/replays/getReplayResult";
 import { useReplayEnding } from "@/replays/useReplayEnding";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
@@ -363,7 +363,11 @@ export function ReplayPlayer({
         </div>
       </header>
       {deckSeat !== undefined && replay.decks?.[deckSeat] ? (
-        <ReplayDeckDialog deck={replay.decks[deckSeat]} onCopy={onCopyDeck} onClose={() => setDeckSeat(undefined)} />
+        <UsedDeckDialog
+          snapshot={{ ...replay.decks[deckSeat], deckId: null }}
+          onCopy={onCopyDeck}
+          onClose={() => setDeckSeat(undefined)}
+        />
       ) : null}
       <p className="aegis-sr-only">
         {t("replay.perspective", {

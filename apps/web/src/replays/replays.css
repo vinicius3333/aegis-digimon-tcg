@@ -1036,40 +1036,6 @@
 .replay-result p {
   margin: 0;
 }
-.aegis-dialog.replay-deck-dialog {
-  width: min(820px, calc(100vw - 24px));
-  padding-top: 0;
-}
-.replay-deck-dialog header {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--ds-space-3);
-  align-items: center;
-  padding-block: var(--aegis-dialog-pad) var(--ds-space-4);
-  border-bottom: 1px solid var(--ds-line);
-  background: var(--ds-sheet);
-}
-.replay-deck-dialog h2 {
-  overflow-wrap: anywhere;
-  margin: 0 auto 0 0;
-}
-.replay-deck-dialog h3 {
-  margin: var(--ds-space-5) 0 var(--ds-space-3);
-}
-.replay-deck-dialog__cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
-  gap: var(--ds-space-3);
-}
-.replay-deck-dialog__cards > div {
-  display: grid;
-  justify-items: center;
-  gap: var(--ds-space-1);
-}
 @media (width < 600px), (height < 520px) and (orientation: landscape) {
   .replay-controls {
     bottom: var(--game-hand-h, 0px);

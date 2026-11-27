@@ -245,6 +245,17 @@ it("copies a recorded player deck from the replay deck window", () => {
   expect(screen.getByRole("button", { name: "Copied!" }).hasAttribute("disabled")).toBe(true);
 });
 
+it("opens a recorded player deck in the same deck window as the match result", () => {
+  renderPlayer({ ...buildReplay(), decks: [{ deckName: "Starter", mainDeck: ["BT1-010"], eggDeck: [] }, null] });
+  fireEvent.click(screen.getByRole("button", { name: /Starter/ }));
+  const dialog = screen.getByRole("dialog", { name: /Starter/ });
+  expect(dialog.textContent).toContain("Deck used in this duel");
+  expect(dialog.textContent).toContain("1 cards + 0 eggs");
+  expect(screen.getByRole("button", { name: "Export PNG" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Close" }));
+  expect(screen.queryByRole("dialog", { name: /Starter/ })).toBeNull();
+});
+
 it("offers no deck copy when the replay is opened without a deck library", () => {
   renderPlayer({ ...buildReplay(), decks: [{ deckName: "Starter", mainDeck: ["BT1-010"], eggDeck: [] }, null] });
   fireEvent.click(screen.getByRole("button", { name: /Starter/ }));
