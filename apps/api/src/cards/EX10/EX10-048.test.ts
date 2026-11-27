@@ -131,6 +131,28 @@ describe("EX10-048 Myotismon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("names the deletion cost in the play cost reduction prompt", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "myotismon" }],
+          battleArea: [{ card: "EX1-056", as: "sacrifice" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("myotismon").instanceId });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
+
+    const reductionPrompts = s.decisions.filter(({ req }) => req.kind === "optional").map(({ req }) => req.promptText);
+    expect(reductionPrompts[0]).toBe(
+      "by deleting 1 of your Digimon with [Myotismon] in its text, reduce the play cost by 4",
+    );
+  });
+
   it("without a [Myotismon]-text Digimon the reduction is unavailable: the full cost 7 is paid", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
