@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { I18nProvider } from "../i18n";
 import { en } from "../i18n/en";
 import type { DeckListing } from "../game/decks";
@@ -88,5 +88,32 @@ describe("DeckList favorites", () => {
     expect(pressed[0]!.getAttribute("title")).toBe(en["redesign.decks.list.unfavorite"]);
     fireEvent.click(pressed[0]!);
     expect(names()).toEqual(["Beta", "Alpha", "Gamma"]);
+  });
+});
+
+describe("DeckList read-only view", () => {
+  it("opens a saved deck's card list without entering the editor", () => {
+    const onEdit = vi.fn();
+    render(
+      <I18nProvider>
+        <DeckList
+          decks={[deck("a", "Beta", "BT1-027", 1)]}
+          activeDeckId="a"
+          onEdit={onEdit}
+          onNew={() => undefined}
+          onSelectDeck={() => undefined}
+          onDelete={() => undefined}
+          onPlay={() => undefined}
+          onTest={() => undefined}
+        />
+      </I18nProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: en["lobby.viewList"] }));
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByRole("heading", { level: 2 }).textContent).toBe("Beta");
+    expect(within(dialog).queryByRole("button", { name: en["overlay.editUsedDeck"] })).toBeNull();
+    expect(onEdit).not.toHaveBeenCalled();
+    fireEvent.click(within(dialog).getByRole("button", { name: en["common.close"] }));
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 });
