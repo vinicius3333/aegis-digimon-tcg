@@ -6,6 +6,7 @@ import type { BotSettings } from "@aegis/shared/bot/BotSettings";
 import { GameMode } from "@aegis/shared/manual/GameMode";
 import { getDecisionMaterialSelectionOrder } from "@/game/screen/model/getDecisionMaterialSelectionOrder";
 import { UsedDeckDialog } from "@/game/UsedDeckDialog";
+import { useReplayDownloadDecks } from "@/game/useReplayDownloadDecks";
 import { MatchQueueActivity } from "@/matchmaking/MatchQueueActivity";
 import { getMatchQueueSelection } from "@/matchmaking/getMatchQueueSelection";
 import { collectViewerCardArtIds } from "@/screens/cardLanguage/collectViewerCardArtIds";
@@ -349,6 +350,11 @@ function GameScreenSession({
     () => replayMode || startMode === "spectator" || (!demoConnection && loadReconnectSession()?.spectator === true),
   );
   const usedDeck = spectating ? undefined : liveConnection.usedDeck;
+  const spectatorDecks = useReplayDownloadDecks(
+    spectating && !replayMode && liveConnection.replayDownload?.kind === "ready"
+      ? liveConnection.replayDownload
+      : undefined,
+  );
   const cardConfirmationMode = cardConfirmationPreference.useMode();
   const arenaLayout = useArenaLayout();
   const { narrowGameLayout, compactPiles, shortBoard, collapseNotices } = arenaLayout;
@@ -1816,6 +1822,23 @@ function GameScreenSession({
               result: series?.outcome ?? gameOverResult,
               usedDeckName: usedDeck?.deckName,
               opponentDeckName: !spectating ? liveConnection.opponentDeck?.deckName : undefined,
+              playerDeckDialogs: spectatorDecks?.flatMap((deck, seat) =>
+                deck
+                  ? [
+                      {
+                        player: state.players[seat]?.displayName || t("log.player", { n: seat + 1 }),
+                        deckName: deck.deckName,
+                        dialog: (onClose: () => void) => (
+                          <UsedDeckDialog
+                            snapshot={{ ...deck, deckId: null }}
+                            onCopy={onCopyUsedDeck}
+                            onClose={onClose}
+                          />
+                        ),
+                      },
+                    ]
+                  : [],
+              ),
               opponentDeckDialog:
                 !spectating && liveConnection.opponentDeck
                   ? (onClose: () => void) => (

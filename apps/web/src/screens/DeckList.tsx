@@ -20,6 +20,7 @@ import { useTranslation } from "@/i18n/useTranslation";
 import type { TranslationKey } from "@/i18n/translationTypes";
 import { DeckDeleteModal, DeckImportModal } from "@/screens/DeckTextModals";
 import { DeckImageButton } from "@/screens/DeckImageButton";
+import { FamousDeckListDialog } from "@/screens/FamousDeckListDialog";
 import { DeckPublishModal, type PublishMode } from "@/screens/DeckPublishModal";
 import { EGG_TARGET, MAIN_TARGET } from "@/screens/deckCounts";
 import {
@@ -82,6 +83,7 @@ export function DeckList({
   const { t } = useTranslation();
   const [importing, setImporting] = useState(false);
   const [deleting, setDeleting] = useState<DeckListing | null>(null);
+  const [viewing, setViewing] = useState<DeckListing | null>(null);
   const [query, setQuery] = useState("");
   const sort = useDeckListSort();
   const favoriteDeckIds = useFavoriteDeckIds();
@@ -138,6 +140,15 @@ export function DeckList({
               setDeleting(null);
             }}
             onClose={() => setDeleting(null)}
+          />
+        ) : null}
+        {viewing ? (
+          <FamousDeckListDialog
+            deck={viewing}
+            collection=""
+            eyebrow={t("deck.eyebrow")}
+            active={viewing.id === activeDeckId}
+            onClose={() => setViewing(null)}
           />
         ) : null}
         {publishing ? (
@@ -225,6 +236,7 @@ export function DeckList({
               publications={publications}
               onNew={onNew}
               onEdit={onEdit}
+              onView={setViewing}
               onSelectDeck={onSelectDeck}
               onPlay={onPlay}
               onDelete={setDeleting}
@@ -248,6 +260,7 @@ type DeckListContentParams = {
   publications: ReadonlyMap<string, CommunityPublication>;
   onNew: () => void;
   onEdit: (deck: DeckListing) => void;
+  onView: (deck: DeckListing) => void;
   onSelectDeck: (id: string) => void;
   onPlay: () => void;
   onDelete: (deck: DeckListing) => void;
@@ -265,6 +278,7 @@ function DeckListContent({
   publications,
   onNew,
   onEdit,
+  onView,
   onSelectDeck,
   onPlay,
   onDelete,
@@ -308,6 +322,7 @@ function DeckListContent({
             active={deck.id === activeDeckId}
             favorite={favoriteDeckIds.includes(deck.id)}
             onEdit={() => onEdit(deck)}
+            onView={() => onView(deck)}
             onSelect={() => onSelectDeck(deck.id)}
             onPlay={() => {
               onSelectDeck(deck.id);
@@ -330,6 +345,7 @@ type DeckListRowParams = {
   active: boolean;
   favorite: boolean;
   onEdit: () => void;
+  onView: () => void;
   onSelect: () => void;
   onPlay: () => void;
   onDelete: () => void;
@@ -344,6 +360,7 @@ function DeckListRow({
   active,
   favorite,
   onEdit,
+  onView,
   onSelect,
   onPlay,
   onDelete,
@@ -481,6 +498,14 @@ function DeckListRow({
             {t("deck.setActive")}
           </Button>
         ) : null}
+        <Button
+          size="sm"
+          variant="ghost"
+          icon={Icons.Eye}
+          aria-label={t("lobby.viewList")}
+          title={t("lobby.viewList")}
+          onClick={onView}
+        />
         <Button size="sm" variant={legal ? "secondary" : "primary"} icon={Icons.Pencil} onClick={onEdit}>
           {t("common.edit")}
         </Button>

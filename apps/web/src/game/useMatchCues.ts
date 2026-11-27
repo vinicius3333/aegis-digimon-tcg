@@ -1207,6 +1207,15 @@ export function useMatchCues({
     lastClauseAt: narration.size > 0 ? Math.max(...[...narration.values()].map((item) => item.createdAt)) : undefined,
     queueActivity,
     queue,
+    viewerConceded: batches.some((batch) =>
+      batch.events.some(
+        (event) =>
+          event.kind === "gameOver" &&
+          event.reason === "surrender" &&
+          event.result.outcome === "win" &&
+          event.result.winnerSeat !== viewerSeat,
+      ),
+    ),
   });
 
   const finale = useMatchFinale({ batches, gameOver: state?.gameOver === true, queue, board: anchors.board });

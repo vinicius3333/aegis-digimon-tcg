@@ -1299,6 +1299,28 @@ it("keeps a room finished by a surrender before the match starts closed to new p
   room.onDispose();
 });
 
+it("records how long a started match lasted when it ends", () => {
+  const room = makeRoom();
+  const host = fakeClient("duration-host");
+  room.clients.push(host);
+  room.onJoin(host, { displayName: "Host", deck: RED_DECK });
+  const guest = fakeClient("duration-guest");
+  room.clients.push(guest);
+  room.onJoin(guest, { displayName: "Guest", deck: RED_DECK });
+  const now = vi.spyOn(Date, "now").mockReturnValue(1_000_000);
+  intentSender(room)(host, { type: "ready" });
+  intentSender(room)(guest, { type: "ready" });
+  expect(room.state.durationSeconds).toBe(0);
+
+  now.mockReturnValue(1_125_400);
+  intentSender(room)(host, { type: "surrender" });
+
+  expect(room.state.gameOver).toBe(true);
+  expect(room.state.durationSeconds).toBe(125);
+  now.mockRestore();
+  room.onDispose();
+});
+
 describe("AegisRoom final reveal", () => {
   it("reveals every hidden zone right after the game is over", () => {
     const room = makeRoom();

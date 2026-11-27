@@ -71,6 +71,7 @@ export function PackOpening({ onBack }: PackOpeningParams = {}) {
   const [batch, setBatch] = useState<PackCard[][]>([]);
   const [batchIndex, setBatchIndex] = useState(0);
   const [summaryPage, setSummaryPage] = useState(0);
+  const [requestedPackCount, setRequestedPackCount] = useState(1);
   const stage = useRef<HTMLElement>(null);
   const carousel = useRef(createCarouselState());
   const drag = useRef<DragTrack | undefined>(undefined);
@@ -78,6 +79,7 @@ export function PackOpening({ onBack }: PackOpeningParams = {}) {
   const boosterSet = sets.find((set) => set.setId === setId) ?? sets[0];
   const setProgress = progress.activeBox?.setId === setId ? progress.activeBox : undefined;
   const remainingPacks = BOOSTER_BOX_PACK_COUNT - (setProgress?.packs.length ?? 0);
+  const chosenPackCount = Math.max(1, Math.min(requestedPackCount, remainingPacks));
   const availableCards = useMemo(() => {
     if (!boosterSet) {
       return [];
@@ -268,7 +270,7 @@ export function PackOpening({ onBack }: PackOpeningParams = {}) {
     setRevealedCount(revealedCount + 1);
   }, [phase, revealedCount, cards.length]);
 
-  function openRemainingPacks() {
+  function openPacks(count: number) {
     if (
       !boosterSet ||
       (!choosing && phase !== PackOpeningPhase.INTRO.value && phase !== PackOpeningPhase.SUMMARY.value) ||
@@ -280,7 +282,7 @@ export function PackOpening({ onBack }: PackOpeningParams = {}) {
       setId,
       createHits: () => planBoosterBox({ setId, cards: boosterSet.cards, random: Math.random }),
     });
-    const drawn = Array.from({ length: remainingPacks }, (_, index) =>
+    const drawn = Array.from({ length: Math.min(count, remainingPacks) }, (_, index) =>
       drawBoosterPack({
         setId,
         cards: boosterSet.cards,
@@ -313,6 +315,29 @@ export function PackOpening({ onBack }: PackOpeningParams = {}) {
       setPhase(PackOpeningPhase.CHARGING.value);
     }
   }
+
+  const packCountPicker = (
+    <div className="pack-opening__actions">
+      <label className="pack-opening__set pack-opening__pack-count">
+        <span>Packs</span>
+        <input
+          type="number"
+          aria-label="Packs to open"
+          min={1}
+          max={remainingPacks}
+          value={chosenPackCount}
+          onChange={(event) => {
+            if (Number.isFinite(event.target.valueAsNumber)) {
+              setRequestedPackCount(Math.trunc(event.target.valueAsNumber));
+            }
+          }}
+        />
+      </label>
+      <Button variant="secondary" sound={false} onClick={() => openPacks(chosenPackCount)}>
+        Open {chosenPackCount} {chosenPackCount === 1 ? "pack" : "packs"}
+      </Button>
+    </div>
+  );
 
   function revealAll() {
     setInspectedIndex(undefined);
@@ -545,9 +570,10 @@ export function PackOpening({ onBack }: PackOpeningParams = {}) {
               <p className="pack-opening__hint">
                 {remainingPacks} / {BOOSTER_BOX_PACK_COUNT} packs remaining in this box
               </p>
-              <Button size="lg" sound={false} onClick={openRemainingPacks}>
+              <Button size="lg" sound={false} onClick={() => openPacks(remainingPacks)}>
                 Open all packs ({remainingPacks})
               </Button>
+              {packCountPicker}
               <div className="pack-opening__carousel-controls">
                 <button
                   type="button"
@@ -653,7 +679,7 @@ export function PackOpening({ onBack }: PackOpeningParams = {}) {
                     <Button variant="secondary" sound={false} onClick={openAnotherPack}>
                       Open another pack
                     </Button>
-                    <Button sound={false} onClick={openRemainingPacks}>
+                    <Button sound={false} onClick={() => openPacks(remainingPacks)}>
                       Open all packs ({remainingPacks})
                     </Button>
                   </>
@@ -669,6 +695,7 @@ export function PackOpening({ onBack }: PackOpeningParams = {}) {
                   </Button>
                 )}
               </div>
+              {remainingPacks > 0 ? packCountPicker : null}
             </div>
           ) : null}
         </footer>

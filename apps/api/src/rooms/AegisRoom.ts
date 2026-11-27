@@ -515,6 +515,7 @@ export class AegisRoom extends Room<{
   private matchClockInterval: Delayed | undefined;
   private matchLimitInterval: Delayed | undefined;
   private gameOverAt: number | undefined;
+  private matchStartedAt: number | undefined;
   private lastPlayerActionAt: number | undefined;
   private readonly seatsThatActed = new Set<Seat>();
   private rankedResultVoided = false;
@@ -1193,6 +1194,13 @@ export class AegisRoom extends Room<{
         if (event.kind === "cardPlayed" || event.kind === "digivolved") this.matchClock?.grantCardBonus(event.seat);
         this.engineEvents += 1;
         this.refreshRollbackAvailability();
+        if (event.kind === "matchStarted") {
+          this.matchStartedAt = Date.now();
+          this.state.durationSeconds = 0;
+        }
+        if (event.kind === "gameOver" && this.matchStartedAt !== undefined) {
+          this.state.durationSeconds = Math.round((Date.now() - this.matchStartedAt) / 1000);
+        }
         if (event.kind === "matchStarted" && !this.devScenario && !this.replayRecording) {
           this.replayRecording = new ReplayRecording();
         }
@@ -1658,9 +1666,9 @@ export class AegisRoom extends Room<{
         finishedAt: Date.now(),
       });
       this.releaseTournamentBotRoom();
-      if (!recorded.ok && recorded.reason === "tournament_cancelled") {
+      if (!recorded.ok && (recorded.reason === "tournament_cancelled" || recorded.reason === "game_voided")) {
         this.debug(
-          `[AegisRoom] tournament game result discarded gameId=${this.tournamentGameId} roomId=${this.roomId} reason=tournament_cancelled`,
+          `[AegisRoom] tournament game result discarded gameId=${this.tournamentGameId} roomId=${this.roomId} reason=${recorded.reason}`,
         );
         return;
       }

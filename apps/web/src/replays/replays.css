@@ -280,6 +280,16 @@
   font-size: var(--ds-text-sm);
   margin: 0;
 }
+.replay-history__copy {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.replay-history__copy [role="status"] {
+  color: var(--ds-danger);
+  font-size: var(--ds-text-xs);
+}
 .replay-history ol {
   padding: 0;
   margin: 0;
@@ -1002,12 +1012,14 @@
 }
 .replay-deck-dialog header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 12px;
   align-items: center;
 }
 .replay-deck-dialog h2 {
   overflow-wrap: anywhere;
+  margin-right: auto;
 }
 .replay-deck-dialog__cards {
   display: grid;

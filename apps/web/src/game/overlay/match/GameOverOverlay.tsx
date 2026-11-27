@@ -1,4 +1,5 @@
 import { AddFriendButton } from "@/friends/AddFriendButton";
+import type { PlayerDeckDialog } from "@/game/overlay/match/PlayerDeckDialog";
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Button } from "../../../design/primitives";
 import { Icons } from "../../../design/icons";
@@ -104,6 +105,7 @@ export function GameOverOverlay({
   usedDeckName,
   opponentDeckName,
   opponentDeckDialog,
+  playerDeckDialogs,
   replayFile,
   replayStatus,
   signedIn,
@@ -121,6 +123,7 @@ export function GameOverOverlay({
 }: ReplaySaveProps & {
   spectatorResult?: string;
   opponentDeckDialog?: (onClose: () => void) => ReactNode;
+  playerDeckDialogs?: PlayerDeckDialog[];
   usedDeckDialog?: (onClose: () => void) => ReactNode;
   usedDeckName?: string;
   opponentDeckName?: string;
@@ -142,6 +145,7 @@ export function GameOverOverlay({
   const { t } = useTranslation();
   const splash = gameOverSplash(result, reason);
   const [opponentDeckOpen, setOpponentDeckOpen] = useState(false);
+  const [playerDeckOpen, setPlayerDeckOpen] = useState<number>();
   const [deckPickerOpen, setDeckPickerOpen] = useState(false);
   const [view, setView] = useState<ResultView>("splash");
   const reviewingBoard = view === "board";
@@ -181,6 +185,9 @@ export function GameOverOverlay({
   if (opponentDeckOpen && opponentDeckDialog) {
     return opponentDeckDialog(() => setOpponentDeckOpen(false));
   }
+
+  const openPlayerDeck = playerDeckOpen === undefined ? undefined : playerDeckDialogs?.[playerDeckOpen];
+  if (openPlayerDeck) return openPlayerDeck.dialog(() => setPlayerDeckOpen(undefined));
 
   if (view === "usedDeck" && usedDeckDialog) return usedDeckDialog(() => setView("board"));
 
@@ -276,6 +283,18 @@ export function GameOverOverlay({
           </div>
         )}
         <div className="game-result__links">
+          {playerDeckDialogs?.map((entry, index) => (
+            <Button
+              key={index}
+              className="game-result__link"
+              variant="ghost"
+              size="sm"
+              icon={Icons.FileText}
+              onClick={() => setPlayerDeckOpen(index)}
+            >
+              {entry.player} · {entry.deckName}
+            </Button>
+          ))}
           {opponentDeckDialog ? (
             <Button
               className="game-result__link"

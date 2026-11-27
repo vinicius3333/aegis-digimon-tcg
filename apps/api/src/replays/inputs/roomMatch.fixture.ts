@@ -248,6 +248,7 @@ export function comparableState(state: GameState): unknown {
     "timerActiveSeat",
     "mulliganTimerRemaining0",
     "mulliganTimerRemaining1",
+    "durationSeconds",
     "series",
   ])
     delete json[key];

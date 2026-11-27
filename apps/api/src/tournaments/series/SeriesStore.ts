@@ -49,6 +49,7 @@ export type SeriesFailure =
   | "game_not_found"
   | "game_already_claimed"
   | "game_already_finished"
+  | "game_voided"
   | "deck_not_frozen"
   | "room_mismatch"
   | "deadline_not_reached"
@@ -606,6 +607,7 @@ export class SeriesStore {
 
       const outcome = gameResultOf(input, series);
       if (!outcome) return failure("not_a_participant");
+      if (game.status === "voided" && outcome.result !== "voided") return failure("game_voided");
       if (game.status === "finished" || game.status === "voided") {
         if (game.result !== outcome.result)
           throw new ConflictingGameResultError(game.id, game.result ?? "voided", outcome.result);

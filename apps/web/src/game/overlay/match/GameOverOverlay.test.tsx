@@ -444,6 +444,38 @@ it("opens the shared opponent deck and returns to the result", () => {
   expect(screen.getByRole("button", { name: "Opponent’s deck" })).toBeTruthy();
 });
 
+it("lets a spectator copy a shared player deck from the result", () => {
+  const onCopy = vi.fn<(deck: DeckListing) => void>();
+  render(
+    <I18nProvider>
+      <GameOverOverlay
+        result="win"
+        reason="security"
+        spectatorResult="Nova wins"
+        stats={[]}
+        onMenu={() => {}}
+        onRematch={() => {}}
+        playerDeckDialogs={[
+          {
+            player: "Nova",
+            deckName: "Blue Flare",
+            dialog: (onClose) => (
+              <UsedDeckDialog
+                snapshot={{ deckId: null, deckName: "Blue Flare", mainDeck: ["BT1-010"], eggDeck: [] }}
+                onCopy={onCopy}
+                onClose={onClose}
+              />
+            ),
+          },
+        ]}
+      />
+    </I18nProvider>,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Nova · Blue Flare" }));
+  fireEvent.click(screen.getByRole("button", { name: "Copy to edit" }));
+  expect(onCopy).toHaveBeenCalledWith(expect.objectContaining({ name: "Blue Flare", mainDeck: ["BT1-010"] }));
+});
+
 it("does not offer an unavailable opponent deck", () => {
   renderOverlay();
   expect(screen.queryByRole("button", { name: "Opponent’s deck" })).toBeNull();

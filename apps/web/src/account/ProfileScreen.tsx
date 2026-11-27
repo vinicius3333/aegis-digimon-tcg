@@ -68,7 +68,7 @@ export function ProfileScreen({
     };
   }, [account?.id, summaryVersion]);
 
-  if (file.replay) return <ReplayViewer replay={file.replay} onClose={file.close} />;
+  if (file.replay) return <ReplayViewer replay={file.replay} onClose={file.close} onCopyDeck={onCopyDeck} />;
   const openError = file.error ? (`replay.error.${file.error}` as const) : undefined;
   return (
     <main className="profile-page">

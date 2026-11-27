@@ -6,6 +6,7 @@ import { I18nProvider } from "@/i18n";
 import { ReplayPlayer } from "@/replays/ReplayPlayer";
 import { validateReplay } from "@/replays/validation";
 import type { PresentationProbe } from "@/game/presentationProbe";
+import type { DeckListing } from "@/game/decks";
 
 const playback = vi.hoisted(() => ({ idle: true }));
 vi.mock("../game/GameScreen", () => ({
@@ -75,6 +76,7 @@ function buildReplay(): MatchReplay {
 afterEach(() => {
   cleanup();
   Reflect.deleteProperty(HTMLElement.prototype, "getAnimations");
+  Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
@@ -181,6 +183,86 @@ it.each([
     expect(screen.getByRole("combobox", { name: "Turn" })).toBeTruthy();
   },
 );
+
+function renderPlayer(replay: MatchReplay, onCopyDeck?: (deck: DeckListing) => void) {
+  Object.defineProperty(HTMLElement.prototype, "getAnimations", { configurable: true, value: () => [] });
+  Object.defineProperty(HTMLElement.prototype, "scrollIntoView", { configurable: true, value: () => undefined });
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  );
+  render(
+    <I18nProvider>
+      <ReplayPlayer replay={replay} onClose={vi.fn<() => void>()} onCopyDeck={onCopyDeck} />
+    </I18nProvider>,
+  );
+}
+
+it("keeps the controls hidden after the viewer hides them until the viewer shows them again", () => {
+  vi.useFakeTimers();
+  renderPlayer(buildReplay());
+  fireEvent.click(screen.getByRole("button", { name: "Hide controls" }));
+  expect(screen.queryByRole("button", { name: "Play" })).toBeNull();
+  act(() => {
+    fireEvent.pointerMove(screen.getByRole("region", { name: "Replays" }));
+    vi.advanceTimersByTime(5000);
+  });
+  expect(screen.queryByRole("button", { name: "Play" })).toBeNull();
+  const show = screen.getByRole("button", { name: "Show controls" });
+  expect(show.getAttribute("aria-expanded")).toBe("false");
+  fireEvent.click(show);
+  expect(screen.getByRole("button", { name: "Play" })).toBeTruthy();
+});
+
+it("copies a recorded player deck from the replay deck window", () => {
+  const onCopyDeck = vi.fn<(deck: DeckListing) => void>();
+  renderPlayer(
+    { ...buildReplay(), decks: [{ deckName: "Starter", mainDeck: ["BT1-010", "BT1-010"], eggDeck: [] }, null] },
+    onCopyDeck,
+  );
+  fireEvent.click(screen.getByRole("button", { name: /Starter/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Copy to edit" }));
+  expect(onCopyDeck).toHaveBeenCalledWith(
+    expect.objectContaining({ name: "Starter", mainDeck: ["BT1-010", "BT1-010"], eggDeck: [] }),
+  );
+  expect(screen.getByRole("button", { name: "Copied!" }).hasAttribute("disabled")).toBe(true);
+});
+
+it("offers no deck copy when the replay is opened without a deck library", () => {
+  renderPlayer({ ...buildReplay(), decks: [{ deckName: "Starter", mainDeck: ["BT1-010"], eggDeck: [] }, null] });
+  fireEvent.click(screen.getByRole("button", { name: /Starter/ }));
+  expect(screen.queryByRole("button", { name: "Copy to edit" })).toBeNull();
+});
+
+it("copies the action history as plain text", async () => {
+  const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue();
+  vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });
+  renderPlayer(buildReplay());
+  fireEvent.click(screen.getByRole("button", { name: "Show action history" }));
+  await act(async () => {
+    fireEvent.click(screen.getByRole("button", { name: "Copy action history" }));
+  });
+  const text = writeText.mock.calls[0]![0];
+  expect(text.split("\n")).toHaveLength(2);
+  expect(text.startsWith("1. Turn ")).toBe(true);
+  expect(screen.getByText("Copied!")).toBeTruthy();
+});
+
+it("reports a failed action history copy", async () => {
+  vi.stubGlobal("navigator", {
+    ...navigator,
+    clipboard: { writeText: vi.fn<(text: string) => Promise<void>>().mockRejectedValue(new Error("denied")) },
+  });
+  renderPlayer(buildReplay());
+  fireEvent.click(screen.getByRole("button", { name: "Show action history" }));
+  await act(async () => {
+    fireEvent.click(screen.getByRole("button", { name: "Copy action history" }));
+  });
+  expect(screen.getByText("Copy failed. Try again.")).toBeTruthy();
+});
 
 it("accepts spectator replays with or without recorded hands", () => {
   const spectator = { ...buildReplay(), viewerSeat: -1 };
