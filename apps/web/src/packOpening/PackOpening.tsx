@@ -42,7 +42,7 @@ interface DragTrack {
 }
 
 function isControl(target: EventTarget): boolean {
-  return target instanceof Element && target.closest("button, select, label, a") !== null;
+  return target instanceof Element && target.closest("button, select, input, label, a") !== null;
 }
 
 type PackOpeningParams = {
@@ -316,12 +316,22 @@ export function PackOpening({ onBack }: PackOpeningParams = {}) {
     }
   }
 
-  const packCountPicker = (
-    <div className="pack-opening__actions">
-      <label className="pack-opening__set pack-opening__pack-count">
-        <span>Packs</span>
+  const bulkOpenControls = (
+    <div className="pack-opening__bulk">
+      <div className="pack-opening__bulk-group" role="group" aria-label="Open several packs">
+        <button
+          type="button"
+          className="pack-opening__step"
+          aria-label="Fewer packs"
+          disabled={chosenPackCount <= 1}
+          onClick={() => setRequestedPackCount(chosenPackCount - 1)}
+        >
+          −
+        </button>
         <input
+          className="pack-opening__count-input"
           type="number"
+          inputMode="numeric"
           aria-label="Packs to open"
           min={1}
           max={remainingPacks}
@@ -332,10 +342,22 @@ export function PackOpening({ onBack }: PackOpeningParams = {}) {
             }
           }}
         />
-      </label>
-      <Button variant="secondary" sound={false} onClick={() => openPacks(chosenPackCount)}>
-        Open {chosenPackCount} {chosenPackCount === 1 ? "pack" : "packs"}
-      </Button>
+        <button
+          type="button"
+          className="pack-opening__step"
+          aria-label="More packs"
+          disabled={chosenPackCount >= remainingPacks}
+          onClick={() => setRequestedPackCount(chosenPackCount + 1)}
+        >
+          +
+        </button>
+        <button type="button" className="pack-opening__bulk-open" onClick={() => openPacks(chosenPackCount)}>
+          Open {chosenPackCount} {chosenPackCount === 1 ? "pack" : "packs"}
+        </button>
+      </div>
+      <button type="button" className="pack-opening__open-all" onClick={() => openPacks(remainingPacks)}>
+        Open all ({remainingPacks})
+      </button>
     </div>
   );
 
@@ -475,6 +497,28 @@ export function PackOpening({ onBack }: PackOpeningParams = {}) {
           />
         </Suspense>
 
+        {!boxEmpty && (phase === PackOpeningPhase.INTRO.value || choosing) && inspectedIndex === undefined ? (
+          <>
+            <button
+              type="button"
+              className="pack-opening__nav pack-opening__nav--previous"
+              aria-label="Previous pack"
+              disabled={!choosing}
+              onClick={() => rotateBy(1)}
+            >
+              <Icons.ChevronLeft size={24} />
+            </button>
+            <button
+              type="button"
+              className="pack-opening__nav pack-opening__nav--next"
+              aria-label="Next pack"
+              disabled={!choosing}
+              onClick={() => rotateBy(-1)}
+            >
+              <Icons.ChevronRight size={24} />
+            </button>
+          </>
+        ) : null}
         {inspectedIndex !== undefined ? (
           <button type="button" className="pack-opening__zoom-back" onClick={() => setInspectedIndex(undefined)}>
             ← Back to cards
@@ -566,40 +610,35 @@ export function PackOpening({ onBack }: PackOpeningParams = {}) {
               </Button>
             </div>
           ) : phase === PackOpeningPhase.INTRO.value || choosing ? (
-            <div className="pack-opening__panel">
-              <p className="pack-opening__hint">
-                {remainingPacks} / {BOOSTER_BOX_PACK_COUNT} packs remaining in this box
+            <div className="pack-opening__panel pack-opening__panel--hud">
+              <p className="pack-opening__remaining">
+                <Icons.Package size={16} />
+                <span>
+                  <strong>{remainingPacks}</strong> / {BOOSTER_BOX_PACK_COUNT} packs left
+                </span>
               </p>
-              <Button size="lg" sound={false} onClick={() => openPacks(remainingPacks)}>
-                Open all packs ({remainingPacks})
-              </Button>
-              {packCountPicker}
-              <div className="pack-opening__carousel-controls">
+              <div className="pack-opening__primary">
                 <button
                   type="button"
-                  className="pack-opening__arrow"
-                  aria-label="Previous pack"
+                  className="pack-opening__spin"
+                  aria-label="Spin"
+                  title="Spin"
                   disabled={!choosing}
-                  onClick={() => rotateBy(1)}
+                  onClick={spinRoulette}
                 >
-                  ‹
+                  <Icons.Dices size={22} />
                 </button>
-                <Button variant="secondary" sound={false} disabled={!choosing} onClick={spinRoulette}>
-                  Spin
-                </Button>
-                <Button sound={false} disabled={!choosing} onClick={openFrontPack}>
+                <Button
+                  size="lg"
+                  sound={false}
+                  disabled={!choosing}
+                  className="pack-opening__open-pack"
+                  onClick={openFrontPack}
+                >
                   Open pack
                 </Button>
-                <button
-                  type="button"
-                  className="pack-opening__arrow"
-                  aria-label="Next pack"
-                  disabled={!choosing}
-                  onClick={() => rotateBy(-1)}
-                >
-                  ›
-                </button>
               </div>
+              {bulkOpenControls}
             </div>
           ) : null}
 
@@ -641,12 +680,12 @@ export function PackOpening({ onBack }: PackOpeningParams = {}) {
           ) : null}
 
           {phase === PackOpeningPhase.SUMMARY.value ? (
-            <div className="pack-opening__panel pack-opening__panel--summary">
+            <div className="pack-opening__panel pack-opening__panel--hud">
               {cards.length > 12 ? (
                 <div className="pack-opening__pager" role="group" aria-label="Opened packs">
                   <button
                     type="button"
-                    className="pack-opening__arrow"
+                    className="pack-opening__page"
                     aria-label="Previous opened pack"
                     disabled={summaryPage === 0}
                     onClick={() => {
@@ -654,14 +693,14 @@ export function PackOpening({ onBack }: PackOpeningParams = {}) {
                       setSummaryPage((page) => page - 1);
                     }}
                   >
-                    ‹
+                    <Icons.ChevronLeft size={18} />
                   </button>
                   <span className="pack-opening__pager-label" aria-live="polite">
                     Pack <strong>{summaryPage + 1}</strong> / {Math.ceil(cards.length / 12)}
                   </span>
                   <button
                     type="button"
-                    className="pack-opening__arrow"
+                    className="pack-opening__page"
                     aria-label="Next opened pack"
                     disabled={(summaryPage + 1) * 12 >= cards.length}
                     onClick={() => {
@@ -669,23 +708,27 @@ export function PackOpening({ onBack }: PackOpeningParams = {}) {
                       setSummaryPage((page) => page + 1);
                     }}
                   >
-                    ›
+                    <Icons.ChevronRight size={18} />
                   </button>
                 </div>
-              ) : null}
-              <div className="pack-opening__actions pack-opening__actions--summary">
+              ) : (
+                <p className="pack-opening__remaining">
+                  <Icons.Package size={16} />
+                  <span>
+                    <strong>{remainingPacks}</strong> / {BOOSTER_BOX_PACK_COUNT} packs left
+                  </span>
+                </p>
+              )}
+              <div className="pack-opening__primary">
                 {remainingPacks > 0 ? (
-                  <>
-                    <Button variant="secondary" sound={false} onClick={openAnotherPack}>
-                      Open another pack
-                    </Button>
-                    <Button sound={false} onClick={() => openPacks(remainingPacks)}>
-                      Open all packs ({remainingPacks})
-                    </Button>
-                  </>
+                  <Button size="lg" sound={false} className="pack-opening__open-pack" onClick={openAnotherPack}>
+                    Open another pack
+                  </Button>
                 ) : (
                   <Button
+                    size="lg"
                     sound={false}
+                    className="pack-opening__open-pack"
                     onClick={() => {
                       startNextBox(setId);
                       restart();
@@ -695,7 +738,7 @@ export function PackOpening({ onBack }: PackOpeningParams = {}) {
                   </Button>
                 )}
               </div>
-              {remainingPacks > 0 ? packCountPicker : null}
+              {remainingPacks > 0 ? bulkOpenControls : null}
             </div>
           ) : null}
         </footer>
