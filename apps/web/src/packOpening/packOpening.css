@@ -9,7 +9,8 @@
 }
 
 .pack-opening-page a:focus-visible,
-.pack-opening__set select:focus-visible {
+.pack-opening__set select:focus-visible,
+.pack-opening__pack-count input:focus-visible {
   outline: 2px solid var(--ds-focus);
   outline-offset: 4px;
 }
@@ -133,7 +134,8 @@
   color: #9fc6d6;
 }
 
-.pack-opening__set select {
+.pack-opening__set select,
+.pack-opening__pack-count input {
   min-height: 40px;
   padding: 0 12px;
   border: 1px solid var(--ds-line-strong);
@@ -235,6 +237,10 @@
 .pack-opening__actions {
   display: flex;
   gap: 10px;
+}
+
+.pack-opening__pack-count input {
+  width: 5.5em;
 }
 
 @media (max-width: 640px) {
