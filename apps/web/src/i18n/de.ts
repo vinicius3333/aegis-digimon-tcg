@@ -365,6 +365,8 @@ const interfaceMessages = {
   "replay.hand.hide": "Ausblenden",
   "replay.flip": "Spielfeld drehen",
   "replay.log": "Aktionsverlauf",
+  "replay.copyLog": "Aktionsverlauf kopieren",
+  "replay.copyLogFailed": "Kopieren fehlgeschlagen. Bitte erneut versuchen.",
   "replay.finished": "Replay beendet",
   "replay.back": "Zurück zu den Replays",
   "replay.winner": "Gewinner: {name}",

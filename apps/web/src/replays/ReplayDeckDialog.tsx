@@ -1,18 +1,35 @@
 import type { ReplayDeck } from "@aegis/shared/replays/ReplayDeck";
 import { CardFull } from "@/design/cards";
+import { Icons } from "@/design/icons";
 import { Button, Dialog } from "@/design/primitives";
+import type { DeckListing } from "@/game/decks";
+import { usedDeckListing } from "@/game/usedDeckListing";
 import { useTranslation } from "@/i18n/useTranslation";
-import { useId } from "react";
+import { useId, useState } from "react";
 
-type Params = { deck: ReplayDeck; onClose: () => void };
+type Params = { deck: ReplayDeck; onCopy?: (deck: DeckListing) => void; onClose: () => void };
 
-export function ReplayDeckDialog({ deck, onClose }: Params) {
+export function ReplayDeckDialog({ deck, onCopy, onClose }: Params) {
   const title = useId();
   const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
   return (
     <Dialog labelledBy={title} onClose={onClose} className="replay-deck-dialog">
       <header>
         <h2 id={title}>{deck.deckName}</h2>
+        {onCopy ? (
+          <Button
+            variant="secondary"
+            icon={Icons.FileText}
+            disabled={copied}
+            onClick={() => {
+              onCopy(usedDeckListing({ snapshot: { ...deck, deckId: null } }));
+              setCopied(true);
+            }}
+          >
+            {copied ? t("common.copied") : t("lobby.copyPreset")}
+          </Button>
+        ) : null}
         <Button onClick={onClose}>{t("common.close")}</Button>
       </header>
       {[

@@ -362,6 +362,8 @@ const interfaceMessages = {
   "replay.hand.hide": "隠す",
   "replay.flip": "盤面を反転",
   "replay.log": "行動履歴",
+  "replay.copyLog": "行動履歴をコピー",
+  "replay.copyLogFailed": "コピーできませんでした。もう一度お試しください。",
   "replay.finished": "リプレイ終了",
   "replay.back": "リプレイに戻る",
   "replay.winner": "勝者: {name}",

@@ -22,6 +22,8 @@ import { ReplayQuickAnnotate } from "@/replays/annotations/ReplayQuickAnnotate";
 import { ReplayAnnotationPanel } from "@/replays/annotations/ReplayAnnotationPanel";
 import { useReplayAnnotations } from "@/replays/annotations/useReplayAnnotations";
 import { buildReplayAnnotationEntries } from "@/replays/annotations/buildReplayAnnotationEntries";
+import { ReplayLogCopyButton } from "@/replays/ReplayLogCopyButton";
+import type { DeckListing } from "@/game/decks";
 
 const emptyDeck = { mainDeck: [], eggDeck: [] };
 const ANNOTATION_SHEET_QUERY = "(width < 600px)";
@@ -36,12 +38,14 @@ export function ReplayPlayer({
   devProbe,
   initialIndex = 0,
   shareId,
+  onCopyDeck,
 }: {
   replay: MatchReplay;
   onClose: () => void;
   devProbe?: PresentationProbe;
   initialIndex?: number;
   shareId?: string;
+  onCopyDeck?: (deck: DeckListing) => void;
 }) {
   const observer = useRef(devProbe);
   observer.current = devProbe;
@@ -359,7 +363,7 @@ export function ReplayPlayer({
         </div>
       </header>
       {deckSeat !== undefined && replay.decks?.[deckSeat] ? (
-        <ReplayDeckDialog deck={replay.decks[deckSeat]} onClose={() => setDeckSeat(undefined)} />
+        <ReplayDeckDialog deck={replay.decks[deckSeat]} onCopy={onCopyDeck} onClose={() => setDeckSeat(undefined)} />
       ) : null}
       <p className="aegis-sr-only">
         {t("replay.perspective", {
@@ -407,6 +411,12 @@ export function ReplayPlayer({
           <aside ref={history} id="replay-history" className="replay-history" aria-label={t("replay.log")}>
             <header>
               <h2>{t("replay.log")}</h2>
+              <ReplayLogCopyButton
+                lines={labels.map(
+                  (label, index) =>
+                    `${index + 1}. ${t("replay.turn")} ${replay.frames[index]!.state.turnCount} · ${label}`,
+                )}
+              />
               <Button
                 size="sm"
                 variant="ghost"
@@ -588,7 +598,7 @@ export function ReplayPlayer({
                     value={speed}
                     onChange={(event) => setSpeed(Number(event.target.value))}
                   >
-                    {[0.5, 1, 2, 4].map((value) => (
+                    {[0.5, 1, 1.5, 2, 4].map((value) => (
                       <option key={value} value={value}>
                         {value}×
                       </option>

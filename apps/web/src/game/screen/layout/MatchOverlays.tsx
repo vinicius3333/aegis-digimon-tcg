@@ -1,4 +1,5 @@
 import { useTranslatedCardName } from "@/i18n/useTranslatedCardName";
+import type { PlayerDeckDialog } from "@/game/overlay/match/PlayerDeckDialog";
 import { getResultStats } from "@/game/screen/layout/getResultStats";
 import type { ReplaySaveProps } from "../../../replays/ReplaySavePrompt";
 /* Everything the board can put over itself, in the order it stacks.
@@ -173,6 +174,7 @@ export function MatchOverlays({
         spectatorResult?: string;
         onDownloadReplay?: () => void;
         opponentDeckDialog?: (onClose: () => void) => ReactNode;
+        playerDeckDialogs?: PlayerDeckDialog[];
         usedDeckDialog?: (onClose: () => void) => ReactNode;
         usedDeckName?: string;
         opponentDeckName?: string;

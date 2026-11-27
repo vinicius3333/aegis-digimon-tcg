@@ -4,6 +4,7 @@ import { useTranslation } from "../i18n";
 import { Button } from "../design/primitives";
 import { readReplay, ReplayFileError, type ReplayFileErrorCode } from "./files";
 import { ReplayPlayer } from "./ReplayPlayer";
+import type { DeckListing } from "@/game/decks";
 import "./replays.css";
 
 class ReplayRenderBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
@@ -17,9 +18,15 @@ class ReplayRenderBoundary extends Component<{ children: ReactNode; fallback: Re
 }
 
 /** Full-screen playback. A replay the player cannot render falls back to a message instead of a blank page. */
-type ReplayViewerProps = { replay: MatchReplay; onClose: () => void; initialIndex?: number; shareId?: string };
+type ReplayViewerProps = {
+  replay: MatchReplay;
+  onClose: () => void;
+  initialIndex?: number;
+  shareId?: string;
+  onCopyDeck?: (deck: DeckListing) => void;
+};
 
-export function ReplayViewer({ replay, onClose, initialIndex, shareId }: ReplayViewerProps) {
+export function ReplayViewer({ replay, onClose, initialIndex, shareId, onCopyDeck }: ReplayViewerProps) {
   const { t } = useTranslation();
   return (
     <ReplayRenderBoundary
@@ -31,7 +38,13 @@ export function ReplayViewer({ replay, onClose, initialIndex, shareId }: ReplayV
         </div>
       }
     >
-      <ReplayPlayer replay={replay} onClose={onClose} initialIndex={initialIndex} shareId={shareId} />
+      <ReplayPlayer
+        replay={replay}
+        onClose={onClose}
+        initialIndex={initialIndex}
+        shareId={shareId}
+        onCopyDeck={onCopyDeck}
+      />
     </ReplayRenderBoundary>
   );
 }

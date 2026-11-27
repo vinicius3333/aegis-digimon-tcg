@@ -349,6 +349,8 @@ const interfaceMessages = {
   "replay.hand.hide": "隐藏",
   "replay.flip": "翻转棋盘",
   "replay.log": "操作历史",
+  "replay.copyLog": "复制操作历史",
+  "replay.copyLogFailed": "复制失败，请重试。",
   "replay.finished": "回放结束",
   "replay.back": "返回回放列表",
   "replay.winner": "获胜者：{name}",

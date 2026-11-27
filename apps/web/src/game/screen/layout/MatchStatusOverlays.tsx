@@ -2,6 +2,7 @@
    report — and the two the match opens over them: an opponent who dropped, and the
    result once the game is over. */
 
+import type { PlayerDeckDialog } from "@/game/overlay/match/PlayerDeckDialog";
 import type { ReactNode } from "react";
 import { BugReportDialog } from "../../../bugs/BugReportDialog";
 import { PlayLogSidebar } from "@/game/log/PlayLogSidebar";
@@ -61,6 +62,7 @@ export function MatchStatusOverlays({
         spectatorResult?: string;
         onDownloadReplay?: () => void;
         opponentDeckDialog?: (onClose: () => void) => ReactNode;
+        playerDeckDialogs?: PlayerDeckDialog[];
         usedDeckDialog?: (onClose: () => void) => ReactNode;
         usedDeckName?: string;
         opponentDeckName?: string;
@@ -121,6 +123,7 @@ export function MatchStatusOverlays({
           opponentDeckName={gameOver.opponentDeckName}
           usedDeckDialog={gameOver.usedDeckDialog}
           opponentDeckDialog={gameOver.opponentDeckDialog}
+          playerDeckDialogs={gameOver.playerDeckDialogs}
           onDownloadReplay={gameOver.onDownloadReplay}
           replayFile={gameOver.replayFile}
           replayStatus={gameOver.replayStatus}

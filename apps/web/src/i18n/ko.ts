@@ -362,6 +362,8 @@ const interfaceMessages = {
   "replay.hand.hide": "숨기기",
   "replay.flip": "보드 뒤집기",
   "replay.log": "행동 기록",
+  "replay.copyLog": "행동 기록 복사",
+  "replay.copyLogFailed": "복사하지 못했습니다. 다시 시도하세요.",
   "replay.finished": "리플레이 종료",
   "replay.back": "리플레이 목록으로",
   "replay.winner": "승자: {name}",

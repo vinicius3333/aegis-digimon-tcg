@@ -7,6 +7,7 @@ import { readReplay, replayBlob, ReplayFileError } from "./files";
 import { findLocalReplay, localReplayFile } from "./local";
 import { replayApi } from "./library";
 import { ReplayViewer } from "./ReplayViewer";
+import type { DeckListing } from "@/game/decks";
 import { readReplayMomentIndex } from "@/replays/annotations/readReplayMomentIndex";
 import { CloudAuthError, CloudRequestError, useCloudReplays, withCloudSession } from "./cloud";
 import "./replays.css";
@@ -23,10 +24,12 @@ export function ReplaysScreen({
   onViewingChange,
   replayId,
   onCloseLink,
+  onCopyDeck,
 }: {
   onViewingChange?: (viewing: boolean) => void;
   replayId: string;
   onCloseLink?: () => void;
+  onCopyDeck?: (deck: DeckListing) => void;
 }) {
   const { t } = useTranslation();
   const [replay, setReplay] = useState<MatchReplay>();
@@ -104,6 +107,7 @@ export function ReplaysScreen({
         onClose={close}
         initialIndex={initialIndex}
         shareId={replayId === replay.id ? undefined : replayId}
+        onCopyDeck={onCopyDeck}
       />
     );
   return (

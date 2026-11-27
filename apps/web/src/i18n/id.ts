@@ -359,6 +359,8 @@ const interfaceMessages = {
   "replay.hand.hide": "Sembunyikan",
   "replay.flip": "Balik board",
   "replay.log": "Riwayat aksi",
+  "replay.copyLog": "Salin riwayat aksi",
+  "replay.copyLogFailed": "Penyalinan gagal. Coba lagi.",
   "replay.finished": "Replay selesai",
   "replay.back": "Kembali ke replay",
   "replay.winner": "Pemenang: {name}",

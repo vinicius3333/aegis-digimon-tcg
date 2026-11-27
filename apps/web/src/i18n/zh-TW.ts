@@ -348,6 +348,8 @@ const interfaceMessages = {
   "replay.hand.hide": "隱藏",
   "replay.flip": "翻轉場地",
   "replay.log": "操作記錄",
+  "replay.copyLog": "複製操作記錄",
+  "replay.copyLogFailed": "複製失敗，請再試一次。",
   "replay.finished": "重播完畢",
   "replay.back": "返回重播",
   "replay.winner": "獲勝者：{name}",
