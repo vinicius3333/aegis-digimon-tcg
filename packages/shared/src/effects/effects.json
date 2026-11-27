@@ -162727,9 +162727,7 @@
             },
             "from": ["hand"],
             "payCost": true,
-            "ignoreReqs": true,
             "useAlternateCost": true,
-            "costOverride": 2,
             "optional": true
           }
         ],

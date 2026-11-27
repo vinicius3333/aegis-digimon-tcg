@@ -5,6 +5,7 @@ import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../en
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT20/BT20-016.js";
 import "./EX3-063.js";
+import "../AD1/AD1-024.js";
 import "./EX3-073.js";
 
 interface DecisionPayload {
@@ -83,7 +84,6 @@ describe("EX3-063 Imperialdramon: Dragon Mode", () => {
             {
               kind: "Digivolve",
               into: { nameOrTrait: [{ tokens: ["Imperialdramon: Fighter Mode"], match: "nameExact" }] },
-              costOverride: 2,
               optional: true,
             },
           ],
@@ -280,7 +280,7 @@ describe("EX3-063 Imperialdramon: Dragon Mode", () => {
     assertNoLoudGap(s);
   });
 
-  it("When Attacking gains +2000 DP, may pay 2 to become Fighter Mode, and preserves the buff", async () => {
+  it("When Attacking gains +2000 DP, may pay the Fighter Mode digivolution cost, and preserves the buff", async () => {
     const s = setupEngine(
       {
         0: {
@@ -349,6 +349,33 @@ describe("EX3-063 Imperialdramon: Dragon Mode", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
       s.inst("otherFighterMode").instanceId,
     );
+    assertNoLoudGap(s);
+  });
+
+  it("When Attacking digivolves into AD1-024 Fighter Mode for its printed Dragon Mode cost of 1", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX3-063", under: ["EX3-061", "EX3-010"], as: "dragonMode" }],
+          hand: [{ card: "AD1-024", as: "fighterMode" }],
+        },
+        1: { security: ["BT1-012"] },
+      },
+      { autoSelectCards: false, autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("dragonMode").permanentId,
+      target: { kind: "player" },
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    respond(s, { kind: "optional", accept: true });
+    await settle(() => s.perm("dragonMode").topCard.cardId === "AD1-024");
+
+    expect(s.state.memory).toBe(4);
     assertNoLoudGap(s);
   });
 
