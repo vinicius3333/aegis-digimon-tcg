@@ -38,6 +38,7 @@ export interface ReplayRules {
   unlimited: boolean;
   betaBattle: boolean;
   devScenario?: string;
+  keepTurnOpenWithoutActions?: true;
 }
 
 export interface ReplayDeck {
@@ -154,6 +155,7 @@ export interface ReplayHeaderLine {
   unlimited: boolean;
   betaBattle: boolean;
   devScenario?: string;
+  keepTurnOpenWithoutActions?: true;
 }
 
 /** `replay.seat`, written after a seat is given a deck. */
