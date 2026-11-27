@@ -14,6 +14,8 @@ const alysionSets: ReadonlySet<string> = new Set([
   "ST6",
   "SD01",
   "SD02",
+  "BD01",
+  "BD02",
   ...appOnlySets,
 ]);
 
