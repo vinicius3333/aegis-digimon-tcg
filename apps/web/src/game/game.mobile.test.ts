@@ -335,8 +335,9 @@ describe("the result splash owns the whole screen", () => {
     expect(gameCss).toMatch(/\.game-result__panel \{[^}]*container-type:\s*inline-size/);
     expect(gameCss).toMatch(/\.game-result__title \{[^}]*font-size:\s*clamp\([^)]*cqi/);
     expect(gameCss).toMatch(/\.game-result \.game-actions-row \{[^}]*grid-template-columns:\s*repeat\(/);
-    expect(gameCss).toMatch(/\.game-result__stats \{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)/);
-    expect(gameCss).toMatch(/\.game-result__stat \{[^}]*min-width:\s*0/);
+    expect(gameCss).toMatch(/\.game-result__stats \{[^}]*flex-wrap:\s*wrap/);
+    expect(gameCss).toMatch(/\.game-result__stat \{[^}]*flex:\s*1 1 0/);
+    expect(gameCss).toMatch(/\.game-result__stat \{[^}]*min-width:\s*min\(100%, 4\.5rem\)/);
   });
 });
 
