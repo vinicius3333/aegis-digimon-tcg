@@ -107,3 +107,11 @@ it("never holds when the queue drains without playing (reduced motion, hidden ta
   hook.rerender(running(queue, { gameOver: true, gameOverPresented: true }));
   expect(hook.result.current).toBe(false);
 });
+
+it("shows the result at once and skips queued playback when the viewer conceded", () => {
+  const queue = fakeQueue();
+  const hook = renderHook((props: Props) => useResultHold(props), { initialProps: running(queue) });
+  hook.rerender(running(queue, { gameOver: true, gameOverPresented: true, viewerConceded: true }));
+  expect(hook.result.current).toBe(false);
+  expect(queue.skip).toHaveBeenCalledOnce();
+});

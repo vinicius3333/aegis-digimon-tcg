@@ -33,6 +33,7 @@ export function useResultHold({
   lastClauseAt,
   queueActivity,
   queue,
+  viewerConceded = false,
 }: {
   /** The live state: the server has ended the match. */
   gameOver: boolean;
@@ -48,6 +49,7 @@ export function useResultHold({
   /** Bumped by every queue change; the heartbeat the stall clock waits on. */
   queueActivity: number;
   queue: Pick<AnimationQueue, "skip" | "getMode" | "isPaused">;
+  viewerConceded?: boolean;
 }): boolean {
   // A match that was already over when this screen joined it (a reconnect, a late
   // spectator) has nothing of its ending left to play.
@@ -71,6 +73,7 @@ export function useResultHold({
     gameOver &&
     sawRunningMatchRef.current &&
     !released &&
+    !viewerConceded &&
     queue.getMode() === "live" &&
     (playbackPending || !gameOverPresented || clauseUnread);
 
@@ -82,6 +85,10 @@ export function useResultHold({
     queue.skip();
     setReleased(true);
   }
+
+  useEffect(() => {
+    if (gameOver && viewerConceded && sawRunningMatchRef.current) release();
+  });
 
   useEffect(() => {
     if (!holding) return;
