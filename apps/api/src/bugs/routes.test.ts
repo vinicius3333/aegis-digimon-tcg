@@ -2,6 +2,8 @@ import { mkdtempSync, rmSync } from "node:fs";
 import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { gzipSync } from "node:zlib";
+import { REPLAY_FORMAT_VERSION } from "@aegis/shared/replays";
 import express from "express";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { FeedbackStore } from "./FeedbackStore.js";
@@ -71,11 +73,18 @@ async function startHarness(tracker?: IssueTracker, filed: NewBugReport[] = []):
   };
 }
 
+const closedIssues: { issueNumber: number; status: string }[] = [];
+let closeFailure: Error | undefined;
+
 function recordingTracker(filed: NewBugReport[]): IssueTracker {
   return {
     file: async (report) => {
       filed.push(report);
       return { number: 42, url: "https://github.com/example/repo/issues/42" };
+    },
+    close: async (issueNumber, status) => {
+      if (closeFailure) throw closeFailure;
+      closedIssues.push({ issueNumber, status });
     },
   };
 }
@@ -89,6 +98,8 @@ function submit(body: unknown, cookie?: string): Promise<Response> {
 }
 
 beforeEach(async () => {
+  closedIssues.length = 0;
+  closeFailure = undefined;
   const filed: NewBugReport[] = [];
   harness = await startHarness(recordingTracker(filed), filed);
 });
@@ -134,7 +145,11 @@ describe("submitting a bug report", () => {
       harness.cookie,
     );
     expect(response.status).toBe(201);
-    expect(await response.json()).toEqual({ number: 42, url: "https://github.com/example/repo/issues/42" });
+    expect(await response.json()).toEqual({
+      number: 42,
+      url: "https://github.com/example/repo/issues/42",
+      reportId: expect.any(Number),
+    });
     expect(harness.filed).toEqual([
       {
         reporterName: "Tamer",
@@ -246,7 +261,7 @@ describe("submitting a bug report", () => {
 
     const response = await submit({ summary: "broken", description: "broken" }, harness.cookie);
     expect(response.status).toBe(201);
-    expect(await response.json()).toEqual({ number: 1 });
+    expect(await response.json()).toEqual({ number: 1, reportId: 1 });
     expect((await new FeedbackStore(harness.store).list()).items[0]).toMatchObject({
       githubStatus: "failed",
       report: { summary: "broken" },
@@ -257,7 +272,7 @@ describe("submitting a bug report", () => {
   it.each(["improvement", "other"])("keeps %s feedback private even when the GitHub tracker is on", async (kind) => {
     const response = await submit({ kind, summary: "an idea", description: "details" }, harness.cookie);
     expect(response.status).toBe(201);
-    expect(await response.json()).toEqual({ number: 1 });
+    expect(await response.json()).toEqual({ number: 1, reportId: 1 });
     expect(harness.filed).toEqual([]);
     expect((await new FeedbackStore(harness.store).list()).items[0]).toMatchObject({
       githubStatus: "disabled",
@@ -271,7 +286,7 @@ describe("submitting a bug report", () => {
 
     const response = await submit({ summary: "broken", description: "broken" }, harness.cookie);
     expect(response.status).toBe(201);
-    expect(await response.json()).toEqual({ number: 1 });
+    expect(await response.json()).toEqual({ number: 1, reportId: 1 });
     expect((await new FeedbackStore(harness.store).list()).items[0]?.githubStatus).toBe("disabled");
     const limits = (await (await fetch(`${harness.url}/bug-reports/limits`)).json()) as { enabled: boolean };
     expect(limits.enabled).toBe(true);
@@ -373,5 +388,102 @@ describe("feedback persistence and administrator access", () => {
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     expect((await submit({ summary: "saved", description: "details" })).status).toBe(201);
     expect((await new FeedbackStore(harness.store).list()).items[0]?.githubStatus).toBe("pending");
+  });
+});
+
+describe("attaching a saved replay file to a report", () => {
+  const archive = gzipSync(
+    JSON.stringify({ format: "aegis-replay", version: REPLAY_FORMAT_VERSION, id: "match", viewerSeat: 0 }),
+  );
+
+  function attach(reportId: number, body: Uint8Array, cookie?: string): Promise<Response> {
+    return fetch(`${harness.url}/bug-reports/${reportId}/replay-file`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/octet-stream", ...(cookie ? { Cookie: cookie } : {}) },
+      body,
+    });
+  }
+
+  async function fileReport(cookie?: string): Promise<number> {
+    const response = await submit({ summary: "Raid after digivolving", description: "details" }, cookie);
+    return ((await response.json()) as { reportId: number }).reportId;
+  }
+
+  async function cookieFor(subject: string, roles: string[] = []): Promise<string> {
+    const account = await harness.store.accountForIdentity("discord", subject, subject);
+    if (roles.length) await harness.store.pool.query("UPDATE accounts SET roles=$2 WHERE id=$1", [account.id, roles]);
+    return `aegis_session=${(await harness.store.issueSession(account)).id}`;
+  }
+
+  it("keeps the reporter's file once and serves it only to admins", async () => {
+    const reportId = await fileReport(harness.cookie);
+
+    expect((await attach(reportId, archive, harness.cookie)).status).toBe(204);
+    expect((await attach(reportId, archive, harness.cookie)).status).toBe(404);
+
+    const url = `${harness.url}/account/admin/feedback/${reportId}/replay-file`;
+    expect((await fetch(url, { headers: { Cookie: harness.cookie } })).status).toBe(403);
+    const download = await fetch(url, { headers: { Cookie: await cookieFor("admin", ["admin"]) } });
+    expect(download.status).toBe(200);
+    expect(download.headers.get("content-type")).toContain("application/gzip");
+    expect(Buffer.from(await download.arrayBuffer())).toEqual(archive);
+    const listed = await new FeedbackStore(harness.store).list();
+    expect(listed.items.find((item) => item.id === reportId)?.hasReplayFile).toBe(true);
+  });
+
+  it("refuses guests, other players and files that are not replays", async () => {
+    const reportId = await fileReport(harness.cookie);
+
+    expect((await attach(reportId, archive)).status).toBe(401);
+    expect((await attach(reportId, archive, await cookieFor("someone-else"))).status).toBe(404);
+    expect((await attach(reportId, Buffer.from("not a replay"), harness.cookie)).status).toBe(400);
+    expect((await attach(reportId, gzipSync(JSON.stringify({ format: "other" })), harness.cookie)).status).toBe(400);
+    expect((await attach(await fileReport(), archive, harness.cookie)).status).toBe(404);
+  });
+});
+
+describe("closing the GitHub issue from triage", () => {
+  async function admin(): Promise<string> {
+    const account = await harness.store.accountForIdentity("discord", "triage-admin", "Vn");
+    await harness.store.pool.query("UPDATE accounts SET roles=ARRAY['admin'] WHERE id=$1", [account.id]);
+    return `aegis_session=${(await harness.store.issueSession(account)).id}`;
+  }
+
+  async function fileReport(): Promise<number> {
+    const response = await submit({ summary: "Raid after digivolving", description: "details" }, harness.cookie);
+    return ((await response.json()) as { reportId: number }).reportId;
+  }
+
+  function triage(id: number, cookie: string, body: Record<string, unknown>): Promise<Response> {
+    return fetch(`${harness.url}/account/admin/feedback/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Cookie: cookie },
+      body: JSON.stringify({ revision: 0, finalReply: "", internalNote: "", ...body }),
+    });
+  }
+
+  it("closes the linked issue only when the report is saved as closed", async () => {
+    const cookie = await admin();
+    const id = await fileReport();
+
+    expect((await triage(id, cookie, { status: "triaged" })).status).toBe(200);
+    expect(closedIssues).toEqual([]);
+
+    expect(
+      (await triage(id, cookie, { revision: 1, status: "wont_fix", finalReply: "Works as printed." })).status,
+    ).toBe(200);
+    expect(closedIssues).toEqual([{ issueNumber: 42, status: "wont_fix" }]);
+  });
+
+  it("keeps the triage when GitHub refuses to close the issue", async () => {
+    const cookie = await admin();
+    const id = await fileReport();
+    closeFailure = new Error("GitHub refused to close the issue: 403");
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const response = await triage(id, cookie, { status: "resolved", finalReply: "Released a fix." });
+
+    expect(response.status).toBe(200);
+    expect(((await response.json()) as { status: string }).status).toBe("resolved");
   });
 });

@@ -16,9 +16,15 @@ import { forumApi, type ForumApi } from "@/bugs/forumClient";
 import { FEEDBACK_STATUS_TONE } from "@/bugs/feedbackStatus";
 import { getForumCopyPrefix } from "@/bugs/getForumCopyPrefix";
 import { getForumError } from "@/bugs/getForumError";
-import { readReplay } from "@/replays/files";
+import { ReplayFileButton } from "@/bugs/ReplayFileButton";
 import { ReplayViewer } from "@/replays/ReplayViewer";
 import "@/bugs/forum.css";
+
+const FORUM_REPLAY_LABELS = {
+  watch: "bugForum.watchReplay",
+  loading: "bugForum.loadingReplay",
+  unavailable: "bugForum.replayUnavailable",
+} as const;
 
 type ForumThreadParams = { board: ForumBoard; reportId: number; onBack: () => void };
 
@@ -80,7 +86,9 @@ export function ForumThread({ board, reportId, onBack }: ForumThreadParams) {
               ))}
             </ul>
           ) : null}
-          {detail.hasReplay ? <ForumReplayButton api={api} reportId={detail.id} onOpen={setReplay} /> : null}
+          {detail.hasReplay ? (
+            <ReplayFileButton load={() => api.replay(detail.id)} onOpen={setReplay} labels={FORUM_REPLAY_LABELS} />
+          ) : null}
           {detail.teamReply ? (
             <section className="forum-team-reply" aria-labelledby="forum-team-reply-title">
               <h3 id="forum-team-reply-title">{t("bugForum.teamReply")}</h3>
@@ -113,39 +121,6 @@ export function ForumThread({ board, reportId, onBack }: ForumThreadParams) {
         </div>
       </div>
     </article>
-  );
-}
-
-function ForumReplayButton({
-  api,
-  reportId,
-  onOpen,
-}: {
-  api: ForumApi;
-  reportId: number;
-  onOpen: (replay: MatchReplay) => void;
-}) {
-  const { t } = useTranslation();
-  const [loading, setLoading] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const open = async () => {
-    setLoading(true);
-    setFailed(false);
-    try {
-      onOpen(await readReplay(await api.replay(reportId)));
-    } catch {
-      setFailed(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-  return (
-    <div className="forum-replay">
-      <Button variant="secondary" size="sm" icon={Icons.PlayCircle} disabled={loading} onClick={() => void open()}>
-        {loading ? t("bugForum.loadingReplay") : t("bugForum.watchReplay")}
-      </Button>
-      {failed ? <p className="forum-thread-muted">{t("bugForum.replayUnavailable")}</p> : null}
-    </div>
   );
 }
 

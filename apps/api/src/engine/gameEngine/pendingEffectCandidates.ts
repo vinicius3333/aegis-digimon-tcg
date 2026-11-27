@@ -21,14 +21,15 @@ export function pendingEffectCandidates(engine: GameEngine, spec: DecisionSpec):
           deletionPending.includes(pending) &&
           pending.effect.irTrigger === "OnDeletion" &&
           pending.triggerInfo?.deletedInstanceIds?.includes(pending.source.instanceId) === true;
-        const id = deletionSource ? pending.source.instanceId : pending.discardedStackSourceProof?.sourceInstanceId;
-        return id !== undefined &&
-          id === pending.source.instanceId &&
-          offered.has(id) &&
-          visible.has(id) &&
-          trash.has(id)
-          ? [id]
-          : [];
+        const sourceId = pending.source.instanceId;
+        const id = deletionSource
+          ? (pending.triggerInfo?.deletedHostInstanceByInstanceId?.[sourceId] ??
+            pending.triggerInfo?.deletedLinkHostInstanceByLinkedInstanceId?.[sourceId] ??
+            sourceId)
+          : pending.discardedStackSourceProof?.sourceInstanceId === sourceId
+            ? sourceId
+            : undefined;
+        return id !== undefined && offered.has(id) && visible.has(id) && trash.has(id) ? [id] : [];
       }),
     ),
   ];

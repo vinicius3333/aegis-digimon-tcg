@@ -47,6 +47,7 @@ export type FeedbackRecord = {
   /** Whether a private replay of the reported match is stored with the report. */
   hasReplay: boolean;
   replayInputs: number | null;
+  hasReplayFile: boolean;
 };
 
 export type FeedbackStoreOptions = {
@@ -99,11 +100,13 @@ type FeedbackRow = {
 const FEEDBACK_COLUMNS =
   "id, report, created_at, github_status, github_number, github_url, status, final_reply, internal_note, duplicate_of_id, revision, reporter_account_id, closed_at, reopened_at, confirmed_bug, vote_payout";
 /** A report row with the input count of its stored replay; `input_count` is null when it has none. */
-type FeedbackRecordRow = FeedbackRow & { input_count: number | null };
+type FeedbackRecordRow = FeedbackRow & { input_count: number | null; has_replay_file: boolean };
 const SELECT_WITH_REPLAY = `SELECT ${FEEDBACK_COLUMNS.split(", ")
   .map((column) => `f.${column}`)
-  .join(", ")}, r.input_count
-  FROM feedback_reports f LEFT JOIN feedback_report_replays r ON r.report_id = f.id`;
+  .join(", ")}, r.input_count, rf.report_id IS NOT NULL AS has_replay_file
+  FROM feedback_reports f LEFT JOIN feedback_report_replays r ON r.report_id = f.id
+  LEFT JOIN feedback_report_replay_files rf ON rf.report_id = f.id`;
+const REPLAY_FILE_ATTACH_WINDOW_MS = 15 * 60_000;
 const CLOSED_LIST = CLOSED_FEEDBACK_STATUSES.map((status) => `'${status}'`).join(", ");
 const AWAITING_AFTER_REOPEN = `reopened_at IS NOT NULL AND status NOT IN (${CLOSED_LIST})`;
 
@@ -469,12 +472,40 @@ export class FeedbackStore {
     return typeof record === "string" ? (JSON.parse(record) as ReplayRecord) : record;
   }
 
+  async saveReplayFile(reportId: number, accountId: string, archive: Buffer): Promise<boolean> {
+    await this.accounts.ensureReady();
+    const now = this.now();
+    const { rowCount } = await this.accounts.pool.query(
+      `INSERT INTO feedback_report_replay_files (report_id, archive, byte_size, created_at)
+       SELECT id, decode($3,'base64'), $4::integer, $5::bigint FROM feedback_reports
+       WHERE id=$1::integer AND reporter_account_id=$2::uuid AND created_at >= $6::bigint
+         AND NOT EXISTS (SELECT 1 FROM feedback_report_replay_files WHERE report_id=$1::integer)
+       ON CONFLICT (report_id) DO NOTHING`,
+      [reportId, accountId, archive.toString("base64"), archive.length, now, now - REPLAY_FILE_ATTACH_WINDOW_MS],
+    );
+    return (rowCount ?? 0) > 0;
+  }
+
+  async replayFile(reportId: number): Promise<Buffer | undefined> {
+    await this.accounts.ensureReady();
+    await this.pruneReplays();
+    const { rows } = await this.accounts.pool.query<{ archive: string }>(
+      "SELECT encode(archive,'base64') AS archive FROM feedback_report_replay_files WHERE report_id=$1",
+      [reportId],
+    );
+    return rows[0] ? Buffer.from(rows[0].archive, "base64") : undefined;
+  }
+
   /** Deletes replays older than the retention window; returns how many went. */
   async pruneReplays(): Promise<number> {
-    const { rowCount } = await this.accounts.pool.query("DELETE FROM feedback_report_replays WHERE created_at < $1", [
-      this.now() - this.replayRetentionMs,
+    const cutoff = this.now() - this.replayRetentionMs;
+    const records = await this.accounts.pool.query("DELETE FROM feedback_report_replays WHERE created_at < $1", [
+      cutoff,
     ]);
-    return rowCount ?? 0;
+    const files = await this.accounts.pool.query("DELETE FROM feedback_report_replay_files WHERE created_at < $1", [
+      cutoff,
+    ]);
+    return (records.rowCount ?? 0) + (files.rowCount ?? 0);
   }
 }
 
@@ -523,6 +554,7 @@ function toRecord(row: FeedbackRecordRow): FeedbackRecord {
     confirmedBug: row.confirmed_bug,
     hasReplay: row.input_count !== null,
     replayInputs: row.input_count,
+    hasReplayFile: row.has_replay_file === true,
   };
 }
 

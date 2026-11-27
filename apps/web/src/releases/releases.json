@@ -1,5 +1,23 @@
 [
   {
+    "version": "1.84.0-beta",
+    "releasedAt": "2026-11-26",
+    "summaryKey": "releases.1.84.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.84.0-beta.feature.feedbackReplay"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.84.0-beta.fix.bdTabletop"
+      },
+      {
+        "textKey": "releases.1.84.0-beta.fix.pendingDeletionHost"
+      }
+    ]
+  },
+  {
     "version": "1.83.0-beta",
     "releasedAt": "2026-11-26",
     "summaryKey": "releases.1.83.0-beta.summary",
