@@ -1,4 +1,28 @@
 {
+  "releases.1.84.0-beta.summary": {
+    "en": "This release lets you attach a saved match to a bug report, allows BD01 and BD02 cards in tabletop formats, and fixes which card a pending On Deletion effect points to.",
+    "pt-BR": "Esta versão permite anexar uma partida salva a um report de bug, libera as cartas BD01 e BD02 nos formatos de mesa e corrige qual carta um efeito de On Deletion pendente indica.",
+    "es": "Esta versión permite adjuntar una partida guardada a un reporte de bug, permite las cartas BD01 y BD02 en los formatos de mesa y corrige qué carta indica un efecto On Deletion pendiente.",
+    "it": "Questa versione permette di allegare una partita salvata a una segnalazione di bug, consente le carte BD01 e BD02 nei formati da tavolo e corregge quale carta indica un effetto On Deletion in sospeso."
+  },
+  "releases.1.84.0-beta.feature.feedbackReplay": {
+    "en": "When you report a bug from the lobby, you can now attach one of the matches saved on this device.",
+    "pt-BR": "Ao reportar um bug pelo lobby, agora você pode anexar uma das partidas salvas neste dispositivo.",
+    "es": "Al reportar un bug desde el lobby, ahora puedes adjuntar una de las partidas guardadas en este dispositivo.",
+    "it": "Quando segnali un bug dalla lobby, ora puoi allegare una delle partite salvate su questo dispositivo."
+  },
+  "releases.1.84.0-beta.fix.bdTabletop": {
+    "en": "BD01 and BD02 cards, printed in ST-25 and ST-26, are now legal in the Digimon Card Game formats from the December 4 release. BD03 to BD06 stay Alysion-only.",
+    "pt-BR": "As cartas BD01 e BD02, impressas no ST-25 e ST-26, agora são legais nos formatos Digimon Card Game a partir do lançamento de 4 de dezembro. BD03 a BD06 continuam só no Alysion.",
+    "es": "Las cartas BD01 y BD02, impresas en ST-25 y ST-26, ahora son legales en los formatos Digimon Card Game desde el lanzamiento del 4 de diciembre. BD03 a BD06 siguen siendo solo de Alysion.",
+    "it": "Le carte BD01 e BD02, stampate in ST-25 e ST-26, ora sono legali nei formati Digimon Card Game dall'uscita del 4 dicembre. BD03-BD06 restano solo Alysion."
+  },
+  "releases.1.84.0-beta.fix.pendingDeletionHost": {
+    "en": "When an inherited or linked On Deletion effect is pending, the trash choice now marks the deleted Digimon, not the source card, as the card that cancels it if it leaves the trash.",
+    "pt-BR": "Quando um efeito de On Deletion herdado ou de link está pendente, a escolha no lixo agora marca o Digimon deletado, e não a carta de origem, como a carta que o cancela se sair do lixo.",
+    "es": "Cuando un efecto On Deletion heredado o de enlace está pendiente, la elección en la papelera ahora marca al Digimon eliminado, no a la carta de origen, como la carta que lo cancela si sale de la papelera.",
+    "it": "Quando un effetto On Deletion ereditato o di collegamento è in sospeso, la scelta negli scarti ora indica il Digimon eliminato, non la carta di origine, come la carta che lo annulla se lascia gli scarti."
+  },
   "releases.1.83.0-beta.summary": {
     "en": "This release shows the team's reply on closed bug reports, adds more promos to Digimon Alysion, and fixes the 3D board on phones, a Violet Inboots timing issue and a server crash.",
     "pt-BR": "Esta versão mostra a resposta da equipe nos reports de bug fechados, adiciona mais promos ao Digimon Alysion e corrige o tabuleiro 3D no celular, um problema de ordem da Violet Inboots e uma queda do servidor.",
