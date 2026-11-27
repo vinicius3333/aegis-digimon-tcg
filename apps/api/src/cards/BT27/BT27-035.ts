@@ -11,6 +11,7 @@ const reduceHandAndSecurity: Action[] = [
     to: "deckBottom",
     condition: { kind: "handAtLeast", controller: "opponent", value: 8 },
     optional: true,
+    allowCostWithoutTarget: true,
     cost: {
       kind: "return",
       target: { filter: { controller: "opponent", zone: "hand" }, count: "all" },

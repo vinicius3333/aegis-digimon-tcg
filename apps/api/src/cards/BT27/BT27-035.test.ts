@@ -127,6 +127,20 @@ describe("MirageGaogamon: Burst Mode boundaries", () => {
     expect(s.state.players[1]!.hand).toHaveLength(8);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
+  it("still returns the opponent's hand down to seven when their security is empty", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT27-035", as: "source" }] },
+        1: { hand: Array(9).fill("BT1-009"), security: [] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    expect(s.state.players[1]!.hand).toHaveLength(7);
+    expect(s.state.players[1]!.deck.slice(-2).map((c) => c.cardId)).toEqual(["BT1-009", "BT1-009"]);
+  });
   it("returns exactly one hand card when the opponent has eight", async () => {
     const s = setupEngine(
       {
