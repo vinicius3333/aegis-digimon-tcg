@@ -129,7 +129,10 @@ describe("deck formats", () => {
   });
   it("keeps app-only Alysion cards out of every tabletop format", () => {
     for (const format of ["standard", "unlimited", "pauper", "BT13", "AD1:unlimited"] as const)
-      expect(formatCardViolation("BD01-03", format)).toContain("Alysion format only");
+      expect(formatCardViolation("BD04-10", format)).toContain("Alysion format only");
+  });
+  it("allows BD01 and BD02 in tabletop formats because ST25 and ST26 print them", () => {
+    for (const id of ["BD01-03", "BD02-02", "BD02-08"]) expect(formatCardViolation(id, "standard")).toBeUndefined();
   });
   it("set Unlimited lifts bans while retaining the historical pool and printed limits", () => {
     expect(formatCopyLimit("BT5-109", "BT13:unlimited")).toBe(4);

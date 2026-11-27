@@ -80,34 +80,37 @@ it("does not mark a deletion without a triggered effect", async () => {
   }
 });
 
-it.each([true, false])("checks inherited deletion visibility and host arrival (faceUp=%s)", async (faceUp) => {
-  const s = setupEngine({
-    1: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "BT3-006", as: "source" }] }] },
-  });
-  await s.ready();
-  s.inst("source").faceUp = faceUp;
-  const sourceId = s.inst("source").instanceId;
-  const hostId = s.perm("host").topCard.instanceId;
-  const spec = {
-    seat: 0 as const,
-    kind: "selectCards" as const,
-    promptText: "Choose",
-    options: { candidateInstanceIds: [sourceId] },
-  };
-  const outer = beginResolvingWindow(s.engine);
-  s.engine.effectResolutionDepth += 1;
-  try {
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
-    expect(pendingEffectCandidates(s.engine, spec)).toEqual(faceUp ? [sourceId] : []);
-    const host = extractCardById(s.state.players[1]!, Zone.Trash, hostId)!;
-    insertCard(s.state.players[1]!, Zone.Trash, host);
-    expect(pendingEffectCandidates(s.engine, spec)).toEqual([]);
-  } finally {
-    s.engine.effectResolutionDepth -= 1;
-    s.engine.deferredTimingWindows.splice(0);
-    endResolvingWindow(s.engine, outer);
-  }
-});
+it.each([true, false])(
+  "marks the deleted host of an inherited deletion effect, not its source (faceUp=%s)",
+  async (faceUp) => {
+    const s = setupEngine({
+      1: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "BT3-006", as: "source" }] }] },
+    });
+    await s.ready();
+    s.inst("source").faceUp = faceUp;
+    const sourceId = s.inst("source").instanceId;
+    const hostId = s.perm("host").topCard.instanceId;
+    const spec = {
+      seat: 0 as const,
+      kind: "selectCards" as const,
+      promptText: "Choose",
+      options: { candidateInstanceIds: [sourceId, hostId] },
+    };
+    const outer = beginResolvingWindow(s.engine);
+    s.engine.effectResolutionDepth += 1;
+    try {
+      await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+      expect(pendingEffectCandidates(s.engine, spec)).toEqual(faceUp ? [hostId] : []);
+      const host = extractCardById(s.state.players[1]!, Zone.Trash, hostId)!;
+      insertCard(s.state.players[1]!, Zone.Trash, host);
+      expect(pendingEffectCandidates(s.engine, spec)).toEqual([]);
+    } finally {
+      s.engine.effectResolutionDepth -= 1;
+      s.engine.deferredTimingWindows.splice(0);
+      endResolvingWindow(s.engine, outer);
+    }
+  },
+);
 
 it("marks another pending deletion source while the first deletion effect chooses cards", async () => {
   const s = setupEngine({

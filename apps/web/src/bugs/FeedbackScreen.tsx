@@ -15,6 +15,7 @@ import { BugReportApiError, FEEDBACK_KINDS, type FeedbackKind } from "@/bugs/cli
 import {
   FeedbackConflictError,
   getFeedback,
+  getFeedbackReplayFile,
   listFeedback,
   triageFeedback,
   type FeedbackDetail,
@@ -30,7 +31,16 @@ import { PlaytestAdminPanel } from "@/bugs/PlaytestAdminPanel";
 import { ReportedDecksPanel } from "@/bugs/ReportedDecksPanel";
 import { ReportedTournamentsPanel } from "@/bugs/ReportedTournamentsPanel";
 import { pathForRoute } from "@/routes";
+import { ReplayFileButton } from "@/bugs/ReplayFileButton";
+import { ReplayViewer } from "@/replays/ReplayViewer";
+import type { MatchReplay } from "@aegis/shared";
 import "@/bugs/feedbackScreen.css";
+
+const ATTACHED_REPLAY_LABELS = {
+  watch: "feedback.replayFile.watch",
+  loading: "feedback.replayFile.loading",
+  unavailable: "feedback.replayFile.unavailable",
+} as const;
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -343,6 +353,7 @@ function FeedbackDetailPanel({
   const { t, locale } = useTranslation();
   const [detail, setDetail] = useState<FeedbackDetail>();
   const [failed, setFailed] = useState<"missing" | "error">();
+  const [replay, setReplay] = useState<MatchReplay>();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -369,6 +380,7 @@ function FeedbackDetailPanel({
     );
   }
   if (!detail) return <p role="status">{t("common.loading")}</p>;
+  if (replay) return <ReplayViewer replay={replay} onClose={() => setReplay(undefined)} />;
 
   const { report } = detail;
   const context = [
@@ -403,6 +415,13 @@ function FeedbackDetailPanel({
         ) : null}
       </header>
       <p className="feedback-detail__description">{report.description}</p>
+      {detail.hasReplayFile ? (
+        <ReplayFileButton
+          load={() => getFeedbackReplayFile(detail.id)}
+          onOpen={setReplay}
+          labels={ATTACHED_REPLAY_LABELS}
+        />
+      ) : null}
       {report.tournamentId ? (
         <Alert tone="info" title={t("feedback.officialTournament.hint")}>
           <a href={pathForRoute({ screen: "tournaments", tournament: { kind: "detail", id: report.tournamentId } })}>

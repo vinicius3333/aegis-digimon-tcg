@@ -20,6 +20,7 @@ import { tournamentBetaCards } from "#api/db/migrations/060-tournament-beta-card
 import { replayFeaturedDeckIcons } from "#api/db/migrations/061-replay-featured-deck-icons";
 import { feedbackForum } from "#api/db/migrations/062-feedback-forum";
 import { replayFrameLimit } from "#api/db/migrations/063-replay-frame-limit";
+import { feedbackReportReplayFiles } from "#api/db/migrations/064-feedback-report-replay-files";
 import type { Migration } from "../migrator.js";
 import { initialSchema } from "./001-initial-schema.js";
 import { tournamentProgramColumns } from "./002-tournament-program-columns.js";
@@ -131,4 +132,5 @@ export const migrations: readonly Migration[] = [
   replayFeaturedDeckIcons,
   feedbackForum,
   replayFrameLimit,
+  feedbackReportReplayFiles,
 ];

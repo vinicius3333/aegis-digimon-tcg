@@ -1,12 +1,7 @@
-import { gunzipSync } from "node:zlib";
 import type { AccountStore } from "#api/accounts/AccountStore";
 import { runFriendTransaction } from "#api/friends/runFriendTransaction";
-import {
-  FULL_FRAME_REPLAY_VERSION,
-  MAX_REPLAY_BYTES,
-  REPLAY_FORMAT_VERSION,
-  type SavedReplay,
-} from "@aegis/shared/replays";
+import type { SavedReplay } from "@aegis/shared/replays";
+import { readReplayArchiveHeader } from "#api/replays/readReplayArchiveHeader";
 import { ReplayVisibility } from "@aegis/shared/replays/ReplayVisibility";
 
 type SaveFriendReplayParams = { accountId: string; replayId: string; archive: Buffer };
@@ -16,22 +11,8 @@ export class FriendReplayStore {
   constructor(private readonly accounts: AccountStore) {}
 
   async save({ accountId, replayId, archive }: SaveFriendReplayParams): Promise<boolean> {
-    if (archive.length === 0 || archive.length > MAX_REPLAY_BYTES || archive[0] !== 0x1f || archive[1] !== 0x8b) {
-      return false;
-    }
-    let parsed: { format?: string; version?: number; id?: string; viewerSeat?: number };
-    try {
-      parsed = JSON.parse(gunzipSync(archive, { maxOutputLength: MAX_REPLAY_BYTES }).toString());
-    } catch {
-      return false;
-    }
-    if (
-      !parsed ||
-      parsed.format !== "aegis-replay" ||
-      (parsed.version !== REPLAY_FORMAT_VERSION && parsed.version !== FULL_FRAME_REPLAY_VERSION)
-    ) {
-      return false;
-    }
+    const parsed = readReplayArchiveHeader(archive);
+    if (!parsed) return false;
     return runFriendTransaction({
       accounts: this.accounts,
       accountIds: [accountId],

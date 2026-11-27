@@ -43,7 +43,7 @@ describe("release dates", () => {
     expect(isBetaOnlyCard(card(cardId), "2027-01-22")).toBe(false);
   });
 
-  it.each(["SD01-02", "SD02-02", "ED01-01", "ED01-10", "ST25-01", "ST25-05", "ST26-01", "ST26-05"])(
+  it.each(["BD01-02", "BD02-03", "SD01-02", "SD02-02", "ED01-01", "ED01-10", "ST25-01", "ST25-05", "ST26-01", "ST26-05"])(
     "keeps %s in beta until the ST25 and ST26 release",
     (cardId) => {
       expect(releaseDateForCard(card(cardId))).toBe("2026-12-04");
@@ -64,15 +64,6 @@ describe("release dates", () => {
     expect(isBetaOnlyCard(card(cardId), "2026-11-25")).toBe(true);
     expect(isBetaOnlyCard(card(cardId), "9999-12-30")).toBe(true);
   });
-
-  it.each(["BD01-02", "BD02-03"])(
-    "releases app-only %s with Digimon Alysion without listing it as a product",
-    (cardId) => {
-      expect(releaseDateForSet(cardId.slice(0, 4))).toBeUndefined();
-      expect(isBetaOnlyCard(card(cardId), "2026-11-24")).toBe(true);
-      expect(isBetaOnlyCard(card(cardId), "2026-11-25")).toBe(false);
-    },
-  );
 
   it("keeps each limited product behind its own release date", () => {
     expect(releaseDateForSet("LM")).toBeUndefined();

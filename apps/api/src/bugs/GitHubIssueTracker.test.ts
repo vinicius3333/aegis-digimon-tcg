@@ -246,3 +246,30 @@ describe("feedback GitHub mirror flag", () => {
     ).toBeDefined();
   });
 });
+
+describe("closing an issue", () => {
+  it.each([
+    ["resolved", "completed"],
+    ["wont_fix", "not_planned"],
+    ["duplicate", "duplicate"],
+  ] as const)("closes the issue of a %s report as %s", async (status, reason) => {
+    const fetchMock = vi.fn<typeof globalThis.fetch>(async () => new Response("{}", { status: 200 }));
+    const tracker = new GitHubIssueTracker({ repository: "example/repo", token: "secret", fetch: fetchMock });
+
+    await tracker.close(7087, status);
+
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toBe("https://api.github.com/repos/example/repo/issues/7087");
+    expect(init!.method).toBe("PATCH");
+    expect(JSON.parse(String(init!.body))).toEqual({ state: "closed", state_reason: reason });
+  });
+
+  it("reports a refused close", async () => {
+    const tracker = new GitHubIssueTracker({
+      repository: "example/repo",
+      token: "secret",
+      fetch: async () => new Response("", { status: 403 }),
+    });
+    await expect(tracker.close(7087, "resolved")).rejects.toThrow("403");
+  });
+});

@@ -1,7 +1,9 @@
 import type { FeedbackStore } from "./FeedbackStore.js";
 import { getCardDefinition } from "@aegis/shared";
 import { isSubmittableFeedbackKind } from "@aegis/shared/feedback/isSubmittableFeedbackKind";
-import type { Express, Request, Response } from "express";
+import express, { type Express, type Request, type Response } from "express";
+import { MAX_REPLAY_BYTES } from "@aegis/shared/replays";
+import { readReplayArchiveHeader } from "#api/replays/readReplayArchiveHeader";
 import type { AuthSession } from "../accounts/AccountStore.js";
 import { tokenBucketLimiter, type TokenBucketOptions } from "../http/rateLimit.js";
 import { captureReportReplay, type ReplayCapturer } from "./replayCapture.js";
@@ -64,7 +66,16 @@ export function installBugReportRoutes({ app, store, tracker, session, replayCap
     submit(req, res).catch(next);
   });
 
-  installFeedbackTriageRoutes({ app, store, session });
+  const limitReplayFiles = tokenBucketLimiter(SIGNED_IN_RATE_LIMIT);
+  app.put(
+    "/bug-reports/:id/replay-file",
+    express.raw({ type: "application/octet-stream", limit: MAX_REPLAY_BYTES }),
+    (req, res, next) => {
+      attachReplayFile(req, res).catch(next);
+    },
+  );
+
+  installFeedbackTriageRoutes({ app, store, session, tracker });
 
   async function submit(req: Request, res: Response): Promise<void> {
     const auth = await session(req);
@@ -95,7 +106,7 @@ export function installBugReportRoutes({ app, store, tracker, session, replayCap
     let replay: ReplayOutcome | undefined;
     if (report.matchId && replayCapture) replay = await captureReportReplay(store, replayCapture, id, report.matchId);
     if (!mirror) {
-      res.status(201).json({ number: id });
+      res.status(201).json({ number: id, reportId: id });
       return;
     }
     let issue;
@@ -110,7 +121,30 @@ export function installBugReportRoutes({ app, store, tracker, session, replayCap
     } catch (failure) {
       console.error("[bug-reports] could not update mirror status", failure);
     }
-    res.status(201).json(issue ?? { number: id });
+    res.status(201).json({ ...(issue ?? { number: id }), reportId: id });
+  }
+
+  async function attachReplayFile(req: Request, res: Response): Promise<void> {
+    const auth = await session(req);
+    if (!auth) {
+      res.status(401).json({ error: "sign_in_required" });
+      return;
+    }
+    if (!limitReplayFiles(auth.account.id)) {
+      res.status(429).json({ error: "too_many_requests" });
+      return;
+    }
+    const id = Number(req.params.id);
+    const archive = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
+    if (!Number.isSafeInteger(id) || id < 1 || !readReplayArchiveHeader(archive)) {
+      res.status(400).json({ error: "invalid_replay" });
+      return;
+    }
+    if (!(await store.saveReplayFile(id, auth.account.id, archive))) {
+      res.status(404).json({ error: "not_found" });
+      return;
+    }
+    res.status(204).end();
   }
 }
 

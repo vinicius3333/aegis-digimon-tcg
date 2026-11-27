@@ -27,6 +27,7 @@ const item: FeedbackRecord = {
   hasReporterAccount: true,
   reopenedAt: null,
   confirmedBug: false,
+  hasReplayFile: false,
 };
 
 const counts = { new: 1, triaged: 0, in_progress: 0, resolved: 0, wont_fix: 0, duplicate: 0 };

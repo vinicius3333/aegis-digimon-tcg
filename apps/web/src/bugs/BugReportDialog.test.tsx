@@ -3,6 +3,14 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { BugReportDialog } from "./BugReportDialog";
+import type { LocalReplay } from "@/replays/local";
+
+const savedReplays = new Map<string, LocalReplay>();
+
+vi.mock("@/replays/local", async (original) => ({
+  ...(await original<typeof import("@/replays/local")>()),
+  localReplaysByMatch: async () => savedReplays,
+}));
 
 type Route = { status?: number; body: unknown };
 
@@ -28,6 +36,7 @@ function renderDialog(signedIn = true, matchLogId?: string) {
 }
 
 afterEach(() => {
+  savedReplays.clear();
   cleanup();
   vi.unstubAllGlobals();
 });
@@ -292,5 +301,53 @@ describe("the playtest group opt-in", () => {
     fireEvent.click(screen.getByRole("button", { name: "Send" }));
     expect(await screen.findByText("Feedback sent")).toBeTruthy();
     expect(await screen.findByText(/could not save your playtest group choice/i)).toBeTruthy();
+  });
+});
+
+describe("attaching a saved match", () => {
+  const saved: LocalReplay = {
+    key: "match-1:0",
+    matchId: "match-1",
+    viewerSeat: 0,
+    summary: {
+      id: "match-1",
+      players: ["Tamer", "Rival"],
+      mode: "casual",
+      startedAt: Date.UTC(2026, 10, 24, 9, 30),
+      finishedAt: Date.UTC(2026, 10, 24, 10, 0),
+      winnerSeat: 0,
+      frameCount: 3,
+    },
+    data: btoa("replay"),
+    savedAt: Date.UTC(2026, 10, 24, 10, 0),
+  };
+
+  it("uploads the chosen match after the report is filed", async () => {
+    savedReplays.set(saved.matchId, saved);
+    const fetchMock = mockApi({
+      "POST /bug-reports": { status: 201, body: { number: 42, reportId: 7 } },
+      "PUT /bug-reports/7/replay-file": { status: 204, body: {} },
+    });
+    renderDialog();
+
+    fireEvent.change(await screen.findByLabelText("Attach a saved match (optional)"), {
+      target: { value: saved.key },
+    });
+    fireEvent.change(screen.getByLabelText("Title"), { target: { value: "Raid after digivolving" } });
+    fireEvent.change(screen.getByLabelText("What happened?"), { target: { value: "Raid was offered" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() => expect(fetchMock.mock.calls.some(([, init]) => init?.method === "PUT")).toBe(true));
+    const upload = fetchMock.mock.calls.find(([, init]) => init?.method === "PUT")!;
+    expect(new URL(String(upload[0])).pathname).toBe("/bug-reports/7/replay-file");
+    expect((upload[1]!.body as Blob).size).toBe("replay".length);
+  });
+
+  it("offers no saved match when the report comes from inside a match", async () => {
+    savedReplays.set(saved.matchId, saved);
+    mockApi({});
+    renderDialog(true, "4a1f6c1e-0f0e-4c4b-9f1a-2b3c4d5e6f70");
+    await screen.findByLabelText("Title");
+    expect(screen.queryByLabelText("Attach a saved match (optional)")).toBeNull();
   });
 });

@@ -30,6 +30,7 @@ export type FeedbackRecord = {
   hasReporterAccount: boolean;
   reopenedAt: number | null;
   confirmedBug: boolean;
+  hasReplayFile: boolean;
 };
 
 export type FeedbackDetail = FeedbackRecord & {
@@ -96,6 +97,15 @@ export async function getFeedback(id: number, signal?: AbortSignal): Promise<Fee
       signal,
     }),
   );
+}
+
+export async function getFeedbackReplayFile(id: number): Promise<Blob> {
+  const response = await fetch(`${accountApi.base}/account/admin/feedback/${id}/replay-file`, {
+    credentials: "include",
+    cache: "no-store",
+  });
+  if (!response.ok) throw new BugReportApiError(response.status);
+  return response.blob();
 }
 
 export async function triageFeedback(id: number, update: FeedbackTriageUpdate): Promise<FeedbackDetail> {

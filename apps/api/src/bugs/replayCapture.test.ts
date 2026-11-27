@@ -148,7 +148,11 @@ describe("capturing the replay of a reported match", () => {
     const response = await submit(h, { matchId: match.matchId });
 
     expect(response.status).toBe(201);
-    expect(await response.json()).toEqual({ number: 42, url: "https://github.com/example/repo/issues/42" });
+    expect(await response.json()).toEqual({
+      number: 42,
+      url: "https://github.com/example/repo/issues/42",
+      reportId: expect.any(Number),
+    });
     const rows = await storedReplays(h);
     expect(rows).toHaveLength(1);
     expect(rows[0]!.report_id).toBe(1);
@@ -290,7 +294,7 @@ describe("capturing the replay of a reported match", () => {
     const response = await submit(h, { matchId: match.matchId });
 
     expect(response.status).toBe(201);
-    expect(await response.json()).toEqual({ number: 1 });
+    expect(await response.json()).toEqual({ number: 1, reportId: 1 });
     expect((await storedReplays(h)).map((row) => row.report_id)).toEqual([1]);
   });
 

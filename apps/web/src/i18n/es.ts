@@ -187,6 +187,9 @@ export const es: Record<keyof typeof en, string> = {
   "feedback.anonymous": "Jugador anónimo",
   "feedback.context": "Detalles técnicos",
   "feedback.match": "ID de la partida",
+  "feedback.replayFile.watch": "Ver la partida adjunta",
+  "feedback.replayFile.loading": "Cargando la partida…",
+  "feedback.replayFile.unavailable": "No se pudo abrir la partida adjunta.",
   "feedback.version": "Versión",
   "feedback.client": "Cliente",
   "feedback.server": "Servidor",
@@ -2176,6 +2179,11 @@ export const es: Record<keyof typeof en, string> = {
     "Podemos invitarte a entrevistas breves y estudios de usabilidad que orientan el diseño y la hoja de ruta del juego. Puedes salir cuando quieras desde tu perfil.",
   "bugReport.playtest.saveFailed":
     "Tu reporte se envió, pero no pudimos guardar tu elección del grupo de playtest. Cámbiala desde tu perfil.",
+  "bugReport.replay.label": "Adjuntar una partida guardada (opcional)",
+  "bugReport.replay.none": "No adjuntar partida",
+  "bugReport.replay.option": "vs {opponent} · {date}",
+  "bugReport.replay.hint": "Solo el equipo puede verla. Así vemos exactamente lo que pasó.",
+  "bugReport.replay.attachFailed": "Tu reporte se envió, pero no se pudo adjuntar la partida.",
   "profile.playtest.title": "Grupo de playtest",
   "profile.playtest.label": "Grupo de playtest",
   "profile.playtest.desc":
