@@ -217,6 +217,20 @@ it("keeps the controls hidden after the viewer hides them until the viewer shows
   expect(screen.getByRole("button", { name: "Play" })).toBeTruthy();
 });
 
+it("toggles skip thinking time as a labelled switch", () => {
+  renderPlayer(buildReplay());
+  const skipThinking = screen.getByRole("switch", { name: "Skip thinking time" });
+  expect(skipThinking.getAttribute("aria-checked")).toBe("true");
+  fireEvent.click(skipThinking);
+  expect(skipThinking.getAttribute("aria-checked")).toBe("false");
+});
+
+it("names each deck button with its player and deck", () => {
+  renderPlayer({ ...buildReplay(), decks: [{ deckName: "Starter", mainDeck: ["BT1-010"], eggDeck: [] }, null] });
+  const deck = screen.getByRole("button", { name: /Starter/ });
+  expect(deck.getAttribute("title")).toMatch(/ · Starter$/);
+});
+
 it("copies a recorded player deck from the replay deck window", () => {
   const onCopyDeck = vi.fn<(deck: DeckListing) => void>();
   renderPlayer(
