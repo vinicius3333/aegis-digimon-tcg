@@ -128,7 +128,7 @@ function ArenaPermanentMeshView({
       material.uniforms.uFrameStrength!.value = SOURCE_FRAME_STRENGTH;
     });
     links.current.forEach((mesh, index) => {
-      const pose = tracked.links[index];
+      const pose = tracked.links[tracked.links.length - 1 - index];
       if (!mesh || !pose) {
         hideMeshes([mesh]);
         return;

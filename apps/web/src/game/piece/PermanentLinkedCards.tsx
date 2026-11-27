@@ -18,10 +18,11 @@ export function PermanentLinkedCards({
   width: number;
   useSelectedSleeve: boolean;
 }) {
+  const slots = linkCardSlots(linked.length, width);
   return (
     <>
       {linked.map((ci, i) => {
-        const slot = linkCardSlots(linked.length, width)[i]!;
+        const slot = slots[linked.length - 1 - i]!;
         return (
           <div
             key={ci.instanceId}
