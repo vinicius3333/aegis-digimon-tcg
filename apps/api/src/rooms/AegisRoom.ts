@@ -1658,9 +1658,9 @@ export class AegisRoom extends Room<{
         finishedAt: Date.now(),
       });
       this.releaseTournamentBotRoom();
-      if (!recorded.ok && recorded.reason === "tournament_cancelled") {
+      if (!recorded.ok && (recorded.reason === "tournament_cancelled" || recorded.reason === "game_voided")) {
         this.debug(
-          `[AegisRoom] tournament game result discarded gameId=${this.tournamentGameId} roomId=${this.roomId} reason=tournament_cancelled`,
+          `[AegisRoom] tournament game result discarded gameId=${this.tournamentGameId} roomId=${this.roomId} reason=${recorded.reason}`,
         );
         return;
       }

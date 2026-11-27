@@ -673,6 +673,19 @@ describe("recording results", () => {
     );
   });
 
+  it("discards a result for a game the series deadline already voided", async () => {
+    const series = await startSeries();
+    const game = await openGame(series.id, "room-1", START + 10_000);
+    await fixture.store.resolveSeriesByDeadline({
+      seriesId: series.id,
+      policy: { kind: "swiss", onTie: "draw" },
+      now: series.seriesDeadlineAt!,
+    });
+    expect(
+      await fixture.store.recordGameResult(winner(game, "room-1", fixture.bob, series.seriesDeadlineAt! + 60_000)),
+    ).toEqual({ ok: false, reason: "game_voided" });
+  });
+
   it("refuses a result from a room the game was never bound to", async () => {
     const series = await startSeries();
     const game = await openGame(series.id, "room-1", START + 10_000);
