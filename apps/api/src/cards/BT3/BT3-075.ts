@@ -24,7 +24,6 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
               keywords: ["Blocker"],
             },
-            orFilters: [{ controller: "mine", kind: ["Digimon"], stackKeywords: ["Blocker"] }],
             count: "all",
           },
           restriction: "beDeleted",
