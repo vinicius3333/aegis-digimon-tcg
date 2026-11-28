@@ -112224,7 +112224,6 @@
             "kind": "Restrict",
             "target": {
               "filter": { "controller": "mine", "kind": ["Digimon"], "keywords": ["Blocker"] },
-              "orFilters": [{ "controller": "mine", "kind": ["Digimon"], "stackKeywords": ["Blocker"] }],
               "count": "all"
             },
             "restriction": "beDeleted",

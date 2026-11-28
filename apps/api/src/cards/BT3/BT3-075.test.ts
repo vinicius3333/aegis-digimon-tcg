@@ -55,6 +55,22 @@ describe("BT3-075 Craniamon", () => {
     expect(observe(s.engine).isRestricted(s.perm("inheritedBlocker"), "beDeleted")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("nonBlocker"), "beDeleted")).toBe(false);
   });
+
+  it("leaves a Digimon unprotected when its stack only mentions Blocker", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT3-075", as: "craniamon" },
+          { card: "BD02-06", as: "mentionsBlocker", under: ["ST5-01"] },
+        ],
+      },
+    });
+
+    await s.engine.recomputeContinuousEffects();
+
+    expect(observe(s.engine).hasKeyword(s.perm("mentionsBlocker"), "Blocker")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("mentionsBlocker"), "beDeleted")).toBe(false);
+  });
 });
 
 describe("BT3-075 Craniamon — KB Q&A rulings", () => {
