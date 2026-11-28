@@ -39,7 +39,11 @@ export function checkTurnEndAfterVerb(engine: GameEngine): void {
   if (engine.combat.isAttacking) return;
 
   engine.mainPhase.checkTurnEnd();
-  if (engine.mainPhase.isOpen && !hasAnyMainPhaseAction(engine, engine.state.turnSeat)) {
+  if (
+    engine.hooks.keepTurnOpenWithoutActions !== true &&
+    engine.mainPhase.isOpen &&
+    !hasAnyMainPhaseAction(engine, engine.state.turnSeat)
+  ) {
     engine.mainPhase.endPhaseRequested(engine.state.turnSeat);
   }
 }

@@ -249,7 +249,7 @@ function captureReducer(
   if (a.target !== undefined) return;
   if (typeof a.amount !== "number") return;
   const amount = a.amount;
-  const raw = a.raw && a.raw.length > 4 ? a.raw : fallbackRaw;
+  const raw = a.raw && a.raw.length > 4 ? a.raw : (a.cost?.raw ?? fallbackRaw);
   const condition = a.condition as Condition | undefined;
   if (a.cost !== undefined) {
     if (condition !== undefined) return;

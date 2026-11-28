@@ -92,7 +92,7 @@ export function FamousDeckListDialog({
           <Eyebrow>{eyebrow ?? t("lobby.famousDeckEyebrow")}</Eyebrow>
           <h2 id="famous-deck-dialog-title" className="famous-deck-dialog__title">
             {deck.name}
-            <span className="famous-deck-dialog__collection">{collection}</span>
+            {collection ? <span className="famous-deck-dialog__collection">{collection}</span> : null}
           </h2>
           <p className="famous-deck-dialog__meta">
             {t("lobby.famousDeckCards", {

@@ -48,12 +48,22 @@ describe("extractReplay", () => {
       matchId: first.matchId,
       seed: 20260914,
       randomKey: expect.stringMatching(/^[a-f0-9]{64}$/),
-      rules: { deckFormat: "standard", unlimited: false, betaBattle: false },
+      rules: { deckFormat: "standard", unlimited: false, betaBattle: false, keepTurnOpenWithoutActions: true },
     });
     expect(record.seats[0].bot).toBeUndefined();
     expect(record.seats[1].bot).toBe(true);
     expect(record.seats[0].deck.mainDeck).toHaveLength(50);
     expect(record.inputs.slice(0, 4).map((input) => input.kind)).toEqual(["seat", "intent", "seat", "startMatch"]);
+  });
+
+  it("keeps auto-ending empty turns for matches recorded before live rooms kept them open", () => {
+    const legacy = first.lines.map((line) => {
+      const entry = JSON.parse(line);
+      if (entry.data?.[0] === "replay.header") delete entry.data[1].keepTurnOpenWithoutActions;
+      return JSON.stringify(entry);
+    });
+
+    expect(extractReplay(legacy, first.matchId).rules).not.toHaveProperty("keepTurnOpenWithoutActions");
   });
 
   it("extracts portable fixture preparation while stripping nested author metadata", () => {

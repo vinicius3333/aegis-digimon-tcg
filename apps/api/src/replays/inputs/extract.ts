@@ -284,6 +284,7 @@ function buildRecord(entries: Entry[], matchId: string): ReplayRecord {
       unlimited: header.unlimited === true,
       betaBattle: header.betaBattle === true,
       ...(typeof header.devScenario === "string" ? { devScenario: header.devScenario as string } : {}),
+      ...(header.keepTurnOpenWithoutActions === true ? { keepTurnOpenWithoutActions: true as const } : {}),
     },
     seats: [seats[0]!, seats[1]!],
     inputs,

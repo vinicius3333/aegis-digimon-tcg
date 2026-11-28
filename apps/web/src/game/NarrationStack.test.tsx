@@ -7,6 +7,7 @@ import { I18nProvider } from "../i18n";
 import { CardOpenerProvider } from "./cardLinks";
 import { NarrationStack } from "./NarrationStack";
 import { narrationReadingTime, type NarrationItem } from "./narration";
+import { activePacing } from "./pacing";
 import type { MatchNotice } from "./notices";
 import { Side } from "./side";
 import { TIMINGS } from "./timings";
@@ -125,7 +126,7 @@ function item(id: string): NarrationItem {
   };
 }
 
-it("shows only two recent toasts per side without dismissing older occurrences", () => {
+it("shows two recent clauses and every running card panel without dismissing older occurrences", () => {
   const onAdvance = vi.fn<(id: string) => void>();
   const entries = [
     item("left-old"),
@@ -152,7 +153,7 @@ it("shows only two recent toasts per side without dismissing older occurrences",
       node.getAttribute("data-narration-id"),
     );
   expect(ids("narration-text")).toEqual(["left-middle", "left-new"]);
-  expect(ids("narration-cards")).toEqual(["right-middle", "right-new"]);
+  expect(ids("narration-cards")).toEqual(["right-old", "right-middle", "right-new"]);
   expect(onAdvance).not.toHaveBeenCalled();
   rerender(view(entries.filter((entry) => !entry.id.endsWith("new"))));
   expect(ids("narration-text")).toEqual(["left-old", "left-middle"]);
@@ -210,8 +211,9 @@ it("counts each card panel when one occurrence contains two card toasts", () => 
     </I18nProvider>,
   );
   const right = container.querySelector('[data-slot="narration-cards"]')!;
-  expect(right.querySelectorAll(".side-panel")).toHaveLength(2);
-  fireEvent.click(right.querySelector(".side-panel__close")!);
+  expect(right.querySelectorAll(".side-panel")).toHaveLength(3);
+  expect(right.querySelectorAll('[data-narration-id="dual"] .side-panel')).toHaveLength(2);
+  fireEvent.click(right.querySelector('[data-narration-id="dual"] .side-panel__close')!);
   expect(onAdvance).toHaveBeenCalledExactlyOnceWith("dual");
 });
 
@@ -635,4 +637,108 @@ it("marks the prompt's own clause while retaining other accepted effects", () =>
   rerender(view(undefined));
   expect(marked()).toEqual([]);
   expect(document.querySelectorAll(".narration-item")).toHaveLength(2);
+});
+
+it("keeps an opponent's picked cards in the card column when later card panels arrive", () => {
+  const panel = (id: string, titleKey: "panel.revealedCards" | "panel.cardsAddedToHand" | "panel.deckBottomCard") => {
+    const base = cardItem(id);
+    return { ...base, panel: { ...base.panel!, titleKey } };
+  };
+  const deletion: NarrationItem = {
+    id: "deleted",
+    side: Side.Viewer,
+    batchId: "batch",
+    createdAt: 0,
+    notice: {
+      id: "deleted",
+      side: Side.Viewer,
+      fromSecurity: false,
+      createdAt: 0,
+      body: { variant: "deletion", cards: [{ cardId: "BT1-010" }] },
+    },
+  };
+  const entries = [
+    panel("revealed", "panel.revealedCards"),
+    panel("picked", "panel.cardsAddedToHand"),
+    panel("rest", "panel.deckBottomCard"),
+    deletion,
+  ];
+  const { container } = render(
+    <I18nProvider>
+      <NarrationStack
+        narration={new Map(entries.map((entry) => [entry.id, entry]))}
+        nowMs={0}
+        rejection={null}
+        onAdvance={() => {}}
+        onDismissRejection={() => {}}
+      />
+    </I18nProvider>,
+  );
+  const column = container.querySelector('[data-slot="narration-cards"]')!;
+  expect([...column.querySelectorAll(".side-panel__title")].map((title) => title.textContent)).toEqual([
+    "Revealed Cards",
+    "Cards added to hand",
+    "Returned to the deck bottom",
+    "Deleted",
+  ]);
+});
+
+it("holds the oldest card panel still within its readable time at the top of the column", () => {
+  const readableMs = activePacing().clauseReadableMs;
+  const at = (id: string, createdAt: number) => ({ ...cardItem(id), createdAt });
+  const view = (nowMs: number, entries: NarrationItem[]) => (
+    <I18nProvider>
+      <NarrationStack
+        narration={new Map(entries.map((entry) => [entry.id, entry]))}
+        nowMs={nowMs}
+        rejection={null}
+        onAdvance={() => {}}
+        onDismissRejection={() => {}}
+      />
+    </I18nProvider>
+  );
+  const entries = [at("read", 0), at("picked", readableMs), at("rest", readableMs + 200)];
+  const held = () =>
+    [...document.querySelectorAll('[data-slot="narration-cards"] [data-narration-hold]')].map((element) =>
+      element.getAttribute("data-narration-id"),
+    );
+  const { rerender } = render(view(readableMs + 300, entries));
+  expect(held()).toEqual(["picked"]);
+  rerender(view(readableMs * 2 + 100, entries));
+  expect(held()).toEqual(["rest"]);
+  rerender(view(readableMs * 3, entries));
+  expect(held()).toEqual([]);
+  rerender(view(readableMs * 3, [at("read", 0), { ...at("picked", readableMs), pausedAt: readableMs + 10 }]));
+  expect(held()).toEqual(["picked"]);
+});
+
+it("keeps following the newest card panel when an expiry, not the viewer, scrolls the column", async () => {
+  const readableMs = activePacing().clauseReadableMs;
+  const nowMs = readableMs * 10;
+  const view = (entries: NarrationItem[]) => (
+    <I18nProvider>
+      <NarrationStack
+        narration={new Map(entries.map((entry) => [entry.id, entry]))}
+        nowMs={nowMs}
+        rejection={null}
+        onAdvance={() => {}}
+        onDismissRejection={() => {}}
+      />
+    </I18nProvider>
+  );
+  const { container, rerender } = render(view([cardItem("picked"), cardItem("rest")]));
+  const column = container.querySelector<HTMLElement>('[data-slot="narration-cards"]')!;
+  Object.defineProperty(column, "scrollHeight", { configurable: true, value: 1000 });
+  Object.defineProperty(column, "clientHeight", { configurable: true, value: 500 });
+  column.scrollTop = 0;
+  fireEvent.scroll(column);
+  rerender(view([cardItem("picked"), cardItem("rest"), cardItem("deleted")]));
+  await waitFor(() => expect(column.scrollTop).toBe(1000));
+
+  column.scrollTop = 0;
+  fireEvent.wheel(column, { deltaY: -40 });
+  fireEvent.scroll(column);
+  rerender(view([cardItem("picked"), cardItem("rest"), cardItem("deleted"), cardItem("later")]));
+  await new Promise((resolve) => requestAnimationFrame(resolve));
+  expect(column.scrollTop).toBe(0);
 });

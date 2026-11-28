@@ -30,6 +30,7 @@ import type { LowTimeWarning } from "@/game/useLowTimeWarning";
 import { motionPreference } from "@/design/motion/motionPreference";
 import { useNoticeSize } from "@/game/noticeSize/useNoticeSize";
 import { getNoticeSizeStyle } from "@/game/noticeSize/getNoticeSizeStyle";
+import { activePacing } from "@/game/pacing";
 
 /** The art on the folded band: enough to recognise the card, not enough to read it. */
 const PEEK_ART_WIDTH = 34;
@@ -41,6 +42,16 @@ const MAX_VISIBLE_TOASTS = 2;
  * the viewer has not seen, and a chevron over it points at nothing.
  */
 const MORE_CHEVRON_SLACK_PX = 24;
+
+const USER_SCROLL_INTENT_MS = 300;
+
+function followTarget(column: HTMLElement): number {
+  const held = column.querySelector<HTMLElement>(":scope > [data-narration-hold]");
+  if (!held) return column.scrollHeight;
+  const above = column.querySelector<HTMLElement>(":scope > .narration-slot__more:not([data-below])");
+  const gap = Number.parseFloat(getComputedStyle(column).rowGap) || 0;
+  return held.offsetTop - (above ? above.offsetHeight + gap : 0);
+}
 
 /**
  * One half of a moment, in the column that half belongs to. A moment carrying both a
@@ -127,6 +138,7 @@ function Slot({
   useEffect(() => () => void (held.current && onHoldRef.current?.(false)), []);
   const followsNewest = useRef(true);
   const leavingBottom = useRef(false);
+  const userScrolledAt = useRef(Number.NEGATIVE_INFINITY);
   const [more, setMore] = useState({ above: false, below: false });
   // The desktop text lane grows with its two visible notices. Artwork can have
   // decorative overflow, which is not another notice to scroll to.
@@ -136,7 +148,7 @@ function Slot({
     const element = column.current;
     if (!element || anchor !== "bottom") return;
     const frame = requestAnimationFrame(() => {
-      if (followsNewest.current && scrolls()) element.scrollTop = element.scrollHeight;
+      if (followsNewest.current && scrolls()) element.scrollTop = followTarget(element);
     });
     return () => cancelAnimationFrame(frame);
   }, [count, anchor, children]);
@@ -171,10 +183,16 @@ function Slot({
     const onScroll = () => {
       const atBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - MORE_CHEVRON_SLACK_PX;
       if (!atBottom) leavingBottom.current = false;
-      followsNewest.current = atBottom && !leavingBottom.current;
+      const byViewer = performance.now() - userScrolledAt.current < USER_SCROLL_INTENT_MS;
+      if (atBottom || byViewer) followsNewest.current = atBottom && !leavingBottom.current;
       update();
     };
+    const noteViewerScroll = (event: Event) => {
+      if (event.type !== "pointerdown" || event.target === element) userScrolledAt.current = performance.now();
+    };
+    const viewerScrollEvents = ["wheel", "touchmove", "keydown", "pointerdown"] as const;
     element.addEventListener("scroll", onScroll, { passive: true });
+    for (const type of viewerScrollEvents) element.addEventListener(type, noteViewerScroll, { passive: true });
     /* The column also grows and shrinks without scrolling and without a new moment: a
        card's art arrives late, a clause rewraps. Watching the box and its moments keeps
        the chevron honest about what is actually out of sight. */
@@ -186,6 +204,7 @@ function Slot({
     for (const child of element.children) observer?.observe(child);
     return () => {
       element.removeEventListener("scroll", onScroll);
+      for (const type of viewerScrollEvents) element.removeEventListener(type, noteViewerScroll);
       observer?.disconnect();
     };
   }, [count, anchor, children]);
@@ -537,12 +556,20 @@ export function NarrationStack({
   // while keeping the original occurrence and lifetime for either dismissal.
   const cardItems = compact
     ? []
-    : items
-        .flatMap((item) => [
-          ...(item.panel ? [{ ...item, notice: undefined }] : []),
-          ...(item.notice && isCardListNotice(item.notice) ? [{ ...item, panel: undefined }] : []),
-        ])
-        .slice(-MAX_VISIBLE_TOASTS);
+    : items.flatMap((item) => [
+        ...(item.panel ? [{ ...item, notice: undefined }] : []),
+        ...(item.notice && isCardListNotice(item.notice) ? [{ ...item, panel: undefined }] : []),
+      ]);
+  const readableMs = activePacing().clauseReadableMs;
+  const readFor = (entry: NarrationItem) => Math.min(now, entry.pausedAt ?? now) - entry.createdAt;
+  const heldCard = cardItems.find((entry) => readFor(entry) < readableMs);
+  const heldRemainingMs = heldCard && heldCard.pausedAt === undefined ? readableMs - readFor(heldCard) : undefined;
+  const [, refreshHold] = useState(0);
+  useEffect(() => {
+    if (heldRemainingMs === undefined) return;
+    const timer = setTimeout(() => refreshHold((count) => count + 1), heldRemainingMs);
+    return () => clearTimeout(timer);
+  }, [heldCard?.id, heldRemainingMs]);
   const timeWarningNotice = timeWarning?.notice ?? null;
   const immediateCount = (rejection ? 1 : 0) + (timeWarningNotice ? 1 : 0);
   const shownTextItems = compact ? textItems : textItems.slice(-(MAX_VISIBLE_TOASTS - immediateCount));
@@ -555,6 +582,7 @@ export function NarrationStack({
       data-reading-paused={shown.pausedAt !== undefined || undefined}
       data-superseded={shown.superseded || undefined}
       data-prompt-effect={isPromptEffect(shown) || undefined}
+      data-narration-hold={shown === heldCard || undefined}
     >
       <NarrationItemView item={shown} half={half} nowMs={now} onAdvance={() => onAdvance(shown.id)} />
     </div>

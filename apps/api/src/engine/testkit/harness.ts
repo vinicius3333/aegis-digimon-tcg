@@ -72,6 +72,7 @@ export interface EngineSetup {
 export interface SetupEngineOptions {
   /** Use the same semantic identities as room fixtures. Set by setupScenario. */
   fixtureIds?: boolean;
+  keepTurnOpenWithoutActions?: boolean;
   autoAcceptOptional?: boolean;
   /**
    * Answer every "use this effect?" prompt with no — the declined branch. Also answers a
@@ -196,6 +197,7 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
   let engineRef: GameEngine | undefined;
   const hooks: GameEngineHooks = {
     seed: 1,
+    ...(opts?.keepTurnOpenWithoutActions === true ? { keepTurnOpenWithoutActions: true } : {}),
     requestDecision: (seat, req) => {
       decisions.push({ seat, req });
       const promptRefused =

@@ -116,6 +116,7 @@ describe("AegisRoom replay recording", () => {
         deckFormat: "standard",
         unlimited: false,
         betaBattle: false,
+        keepTurnOpenWithoutActions: true,
       },
     ]);
     vi.unstubAllEnvs();

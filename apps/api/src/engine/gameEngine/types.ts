@@ -28,6 +28,7 @@ export interface GameEngineHooks {
   /** Notifies in-process actors only after an asynchronous action has fully settled. */
   onActionSettled?: (seat: Seat, intentType: Intent["type"]) => void;
   deferHandAffordances?: boolean;
+  keepTurnOpenWithoutActions?: boolean;
 }
 
 /**

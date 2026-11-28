@@ -1167,9 +1167,11 @@ export class AegisRoom extends Room<{
           deckFormat: this.state.format as DeckFormat,
           unlimited: this.state.unlimited,
           betaBattle: this.isBetaBattleRoom,
+          keepTurnOpenWithoutActions: true,
         },
       });
     this.engineHooks = {
+      keepTurnOpenWithoutActions: true,
       beforeTurn: (turn) => {
         if (this.rankedRoundClock?.shouldDrawBeforeTurn({ now: Date.now(), turn })) {
           this.atReplaySite("beforeTurn", () => {
@@ -1329,6 +1331,7 @@ export class AegisRoom extends Room<{
       unlimited: this.isUnlimitedRoom,
       betaBattle: this.isBetaBattleRoom,
       ...(this.devScenario !== undefined ? { devScenario: this.devScenario } : {}),
+      keepTurnOpenWithoutActions: true,
     } satisfies ReplayHeaderLine);
     // Route zone arrivals to the per-client StateViews (see exposeCardToClients). Installed
     // before any seat is filled so `seatPlayer` picks it up for both PlayerStates. Not a replay

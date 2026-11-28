@@ -140,6 +140,7 @@ export async function runReplay(record: ReplayRecord, options: RunReplayOptions 
 
   const replayHooks: GameEngineHooks = {
     deferHandAffordances: true,
+    ...(record.rules.keepTurnOpenWithoutActions === true ? { keepTurnOpenWithoutActions: true } : {}),
     seed: record.seed,
     randomKey: record.randomKey,
     ...(record.firstSeat !== undefined ? { firstSeat: record.firstSeat } : {}),

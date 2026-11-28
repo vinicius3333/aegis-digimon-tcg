@@ -1,4 +1,4 @@
-import { ReplayDeckDialog } from "@/replays/ReplayDeckDialog";
+import { UsedDeckDialog } from "@/game/UsedDeckDialog";
 import { getReplayResult } from "@/replays/getReplayResult";
 import { useReplayEnding } from "@/replays/useReplayEnding";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
@@ -9,7 +9,7 @@ import { LogEffectTags } from "@/game/log/LogEffectTags";
 import type { PresentationControls, PresentationProbe } from "../game/presentationProbe";
 import { useTranslation } from "../i18n";
 import { Icons } from "../design/icons";
-import { Button } from "../design/primitives";
+import { Button, Switch } from "../design/primitives";
 import { createPlaybackClock, frameDelay, playbackState, presentationEnd, turnPositions } from "./playback";
 import { SEQUENTIAL_PACING_ENABLED } from "../features";
 import { createAnimationPlayback } from "../game/animationPlayback";
@@ -363,7 +363,11 @@ export function ReplayPlayer({
         </div>
       </header>
       {deckSeat !== undefined && replay.decks?.[deckSeat] ? (
-        <ReplayDeckDialog deck={replay.decks[deckSeat]} onCopy={onCopyDeck} onClose={() => setDeckSeat(undefined)} />
+        <UsedDeckDialog
+          snapshot={{ ...replay.decks[deckSeat], deckId: null }}
+          onCopy={onCopyDeck}
+          onClose={() => setDeckSeat(undefined)}
+        />
       ) : null}
       <p className="aegis-sr-only">
         {t("replay.perspective", {
@@ -580,76 +584,88 @@ export function ReplayPlayer({
                 <Icons.Settings size={20} />
               </summary>
               <div className="replay-controls__settings">
-                <label>
-                  <span>{t("replay.skipThinking")}</span>
-                  <input
-                    type="checkbox"
+                <div className="replay-controls__group">
+                  <Switch
                     checked={skipThinking}
-                    onChange={(event) => {
+                    label={t("replay.skipThinking")}
+                    onChange={(checked) => {
                       clock.reset();
-                      setSkipThinking(event.target.checked);
+                      setSkipThinking(checked);
                     }}
                   />
-                </label>
-                <label>
-                  <span>{t("replay.speedShort")}</span>
-                  <select
-                    aria-label={t("replay.speed")}
-                    value={speed}
-                    onChange={(event) => setSpeed(Number(event.target.value))}
-                  >
-                    {[0.5, 1, 1.5, 2, 4].map((value) => (
-                      <option key={value} value={value}>
-                        {value}×
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  <span>{t("replay.turn")}</span>
-                  <select
-                    aria-label={t("replay.turn")}
-                    value={currentTurn.index}
-                    onChange={(event) => seek(Number(event.target.value))}
-                  >
-                    {turns.map((turn) => (
-                      <option key={turn.index} value={turn.index}>
-                        {turn.turn} · {replay.players[turn.seat]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                {replay.visibleHandSeats.length > 0 ? (
                   <label>
-                    <span>{t("replay.hands")}</span>
+                    <span>{t("replay.speedShort")}</span>
                     <select
-                      aria-label={t("replay.hands")}
-                      value={showHand ? "show" : "hide"}
-                      onChange={(event) => {
-                        seek(cursor.index);
-                        setShowHand(event.target.value === "show");
-                      }}
+                      className="aegis-field__control"
+                      aria-label={t("replay.speed")}
+                      value={speed}
+                      onChange={(event) => setSpeed(Number(event.target.value))}
                     >
-                      <option value="show">{t("replay.hand.show")}</option>
-                      <option value="hide">{t("replay.hand.hide")}</option>
+                      {[0.5, 1, 1.5, 2, 4].map((value) => (
+                        <option key={value} value={value}>
+                          {value}×
+                        </option>
+                      ))}
                     </select>
                   </label>
-                ) : null}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    seek(cursor.index);
-                    setViewerSeat((seat) => (1 - seat) as Seat);
-                  }}
-                >
-                  {t("replay.flip")}
-                </Button>
+                  <label>
+                    <span>{t("replay.turn")}</span>
+                    <select
+                      className="aegis-field__control"
+                      aria-label={t("replay.turn")}
+                      title={`${currentTurn.turn} · ${replay.players[currentTurn.seat]}`}
+                      value={currentTurn.index}
+                      onChange={(event) => seek(Number(event.target.value))}
+                    >
+                      {turns.map((turn) => (
+                        <option key={turn.index} value={turn.index}>
+                          {turn.turn} · {replay.players[turn.seat]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <div className="replay-controls__group">
+                  {replay.visibleHandSeats.length > 0 ? (
+                    <label>
+                      <span>{t("replay.hands")}</span>
+                      <select
+                        className="aegis-field__control"
+                        aria-label={t("replay.hands")}
+                        value={showHand ? "show" : "hide"}
+                        onChange={(event) => {
+                          seek(cursor.index);
+                          setShowHand(event.target.value === "show");
+                        }}
+                      >
+                        <option value="show">{t("replay.hand.show")}</option>
+                        <option value="hide">{t("replay.hand.hide")}</option>
+                      </select>
+                    </label>
+                  ) : null}
+                  <Button
+                    className="replay-controls__flip"
+                    size="sm"
+                    variant="secondary"
+                    icon={Icons.RotateCcw}
+                    onClick={() => {
+                      seek(cursor.index);
+                      setViewerSeat((seat) => (1 - seat) as Seat);
+                    }}
+                  >
+                    {t("replay.flip")}
+                  </Button>
+                </div>
                 {replay.decks?.some(Boolean) ? (
                   <div className="replay-player__decks">
                     {replay.decks.map((deck, seat) =>
                       deck ? (
-                        <button key={seat} type="button" onClick={() => setDeckSeat(seat as Seat)}>
+                        <button
+                          key={seat}
+                          type="button"
+                          title={`${replay.players[seat]} · ${deck.deckName}`}
+                          onClick={() => setDeckSeat(seat as Seat)}
+                        >
                           <span>{replay.players[seat]}</span>
                           <strong>{deck.deckName}</strong>
                         </button>
